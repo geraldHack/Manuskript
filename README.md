@@ -1,6 +1,19 @@
 # Manuskript - DOCX Verarbeitung
 
-Eine JavaFX-Anwendung zur Verarbeitung von DOCX-Dateien zu einem zusammenhängenden Textdokument.
+**Hauptzweck:** JavaFX-App zum Zusammenführen mehrerer DOCX-Dateien zu einem Manuskript mit automatischer Überarbeitung
+
+## 🎯 Kernfunktionen
+- **Datei-Auswahl:** Verzeichnis mit DOCX-Dateien laden
+- **Regex-Filterung:** Intelligente Dateisuche mit regulären Ausdrücken
+- **Text-Extraktion:** DOCX zu lesbarem Text konvertieren
+- **Kapitel-Erkennung:** Automatische oder manuelle Kapitel-Nummerierung
+## 🔍 Regex-Features (automatische Überarbeitung)
+- **Überarbeitungs-Makros**  typische Fehler/Schwächen automatisch beheben: z.B. Ausrufungszeichen vereintlichen, überzählige Leerzeichen/Leerzeilen entfernen, drei Punkte zu Auslassungzeichen, -- zu Gedankenstrich usw.
+- **Recent-Liste:** Letzte 10 Regex-Patterns als Dropdown
+- **Automatische Sortierung:** Zahlen in Dateinamen werden erkannt und sortiert
+- **Regex-Suche/Ersetzung:** Im Text-Editor mit Such-Historie
+
+**Ideal für:** Autoren, die mehrere DOCX-Kapitel zu einem Buch zusammenführen möchten.
 
 ## Funktionen
 
