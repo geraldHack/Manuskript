@@ -138,4 +138,4 @@ src/
 
 ## Lizenz
 
-Dieses Projekt steht unter der MIT-Lizenz. 
+Dieses Projekt steht unter der MIT-Lizenz.
