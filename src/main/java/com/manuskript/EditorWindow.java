@@ -1583,24 +1583,8 @@ public class EditorWindow implements Initializable {
     // ALTE METHODEN GELÖSCHT - Waren kaputt
     
     private void createExampleMacros() {
-        // Beispiel-Makro 1: Anführungszeichen normalisieren
-        Macro quoteMacro = new Macro("Anführungszeichen normalisieren", "Ersetzt gerade Anführungszeichen durch deutsche Anführungszeichen");
-        quoteMacro.addStep(new MacroStep(1, "\"", "\"", "Gerade Anführungszeichen öffnen", false, false, false));
-        quoteMacro.addStep(new MacroStep(2, "\"", "\"", "Gerade Anführungszeichen schließen", false, false, false));
-        macros.add(quoteMacro);
-        
-        // Beispiel-Makro 2: Mehrfache Leerzeichen entfernen
-        Macro spaceMacro = new Macro("Mehrfache Leerzeichen entfernen", "Reduziert mehrere aufeinanderfolgende Leerzeichen auf ein einzelnes");
-        spaceMacro.addStep(new MacroStep(1, "[ ]+", " ", "Mehrfache Leerzeichen entfernen", true, false, false));
-        macros.add(spaceMacro);
-        
-        // Beispiel-Makro 3: Mehrfache Leerzeilen durch eine ersetzen
-        Macro newlineMacro = new Macro("Mehrfache Leerzeilen durch eine ersetzen", "Ersetzt mehrere aufeinanderfolgende Leerzeilen durch eine");
-        newlineMacro.addStep(new MacroStep(1, "\\n{2,}", "\\n", "Mehrfache Leerzeilen durch eine ersetzen", true, false, false));
-        macros.add(newlineMacro);
-        
-        // Beispiel-Makro 4: Text-Bereinigung (basierend auf "Neues Makro")
-        Macro textCleanupMacro = new Macro("Text-Bereinigung", "Bereinigt Text von mehrfachen Leerzeichen und Leerzeilen");
+        // Standard-Makro: Text-Bereinigung
+        Macro textCleanupMacro = new Macro("Text-Bereinigung", "Bereinigt Text von mehrfachen Leerzeichen, Leerzeilen und normalisiert Anführungszeichen");
         textCleanupMacro.addStep(new MacroStep(1, "[ ]{2,}", " ", "Mehrfache Leerzeichen reduzieren", true, false, false));
         textCleanupMacro.addStep(new MacroStep(2, "\\n{2,}", "\\n", "Mehrfache Leerzeilen reduzieren", true, false, false));
         textCleanupMacro.addStep(new MacroStep(3, "\"", "\"", "Gerade Anführungszeichen öffnen", false, false, false));
