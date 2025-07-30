@@ -1,0 +1,186 @@
+/* Hauptstil für die Anwendung */
+.root {
+    -fx-font-family: 'Segoe UI', Arial, sans-serif;
+    -fx-font-size: 12px;
+    -fx-background-color: #f5f5f5;
+}
+
+/* Button-Styling */
+.button {
+    -fx-background-color: #2196F3;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-padding: 8px 16px;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+    -fx-cursor: hand;
+}
+
+.button:hover {
+    -fx-background-color: #1976D2;
+}
+
+.button:pressed {
+    -fx-background-color: #0D47A1;
+}
+
+
+
+/* TextField-Styling */
+.text-field {
+    -fx-background-color: white;
+    -fx-border-color: #ddd;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+    -fx-padding: 6px 8px;
+}
+
+.text-field:focused {
+    -fx-border-color: #2196F3;
+    -fx-border-width: 2px;
+}
+
+/* ComboBox-Styling */
+.combo-box {
+    -fx-background-color: white;
+    -fx-border-color: #ddd;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+}
+
+.combo-box:focused {
+    -fx-border-color: #2196F3;
+    -fx-border-width: 2px;
+}
+
+/* CheckBox-Styling */
+.check-box {
+    -fx-text-fill: #333;
+}
+
+.check-box .box {
+    -fx-background-color: white;
+    -fx-border-color: #ddd;
+    -fx-border-radius: 3px;
+    -fx-background-radius: 3px;
+}
+
+.check-box:selected .box {
+    -fx-background-color: #2196F3;
+    -fx-border-color: #2196F3;
+}
+
+/* Separator-Styling */
+.separator {
+    -fx-background-color: #ddd;
+}
+
+/* TableView-Styling - Einfach und garantiert funktionierend */
+.table-view {
+    -fx-background-color: white;
+    -fx-border-color: #ccc;
+    -fx-border-width: 1px;
+}
+
+.table-view .column-header {
+    -fx-background-color: #f0f0f0;
+    -fx-border-color: #ccc;
+    -fx-border-width: 0 0 1 0;
+}
+
+.table-view .column-header .label {
+    -fx-text-fill: black;
+    -fx-font-weight: bold;
+}
+
+.table-view .table-row-cell {
+    -fx-background-color: white;
+    -fx-text-fill: black;
+}
+
+.table-view .table-row-cell:odd {
+    -fx-background-color: #f9f9f9;
+}
+
+.table-view .table-row-cell:selected {
+    -fx-background-color: #0066cc;
+    -fx-text-fill: white;
+}
+
+.table-view .table-row-cell:hover {
+    -fx-background-color: #e6f3ff;
+}
+
+.table-view .table-cell {
+    -fx-text-fill: black;
+}
+
+.table-view .table-row-cell:selected .table-cell {
+    -fx-text-fill: white;
+}
+
+.table-view .table-row-cell:selected:hover {
+    -fx-background-color: #004499;
+    -fx-text-fill: white;
+}
+
+/* TextArea-Styling */
+.text-area {
+    -fx-background-color: white;
+    -fx-border-color: #ddd;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+    -fx-font-family: 'Consolas', 'Monaco', monospace;
+    -fx-font-size: 11px;
+}
+
+.text-area .content {
+    -fx-background-color: white;
+}
+
+/* ProgressBar-Styling */
+.progress-bar {
+    -fx-background-color: #e0e0e0;
+    -fx-border-color: #ddd;
+    -fx-border-radius: 2px;
+    -fx-background-radius: 2px;
+}
+
+.progress-bar .bar {
+    -fx-background-color: #4CAF50;
+    -fx-background-radius: 2px;
+}
+
+/* Label-Styling */
+.label {
+    -fx-text-fill: #333;
+}
+
+/* VBox und HBox Styling */
+.vbox, .hbox {
+    -fx-background-color: transparent;
+}
+
+/* Spezielle Styling für Status-Label */
+#lblStatus {
+    -fx-font-style: italic;
+    -fx-text-fill: #666;
+}
+
+/* Help-Button Styling */
+.help-button {
+    -fx-background-color: #007bff;
+    -fx-text-fill: white;
+    -fx-border-radius: 12px;
+    -fx-background-radius: 12px;
+    -fx-cursor: hand;
+    -fx-font-weight: bold;
+}
+
+.help-button:hover {
+    -fx-background-color: #0056b3;
+}
+
+.help-button:pressed {
+    -fx-background-color: #004085;
+} 

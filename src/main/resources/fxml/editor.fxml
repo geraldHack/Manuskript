@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox fx:id="mainContainer" spacing="0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.manuskript.EditorWindow">
+   <children>
+      <!-- Toolbar -->
+      <HBox spacing="5" style="-fx-background-color: #f8f9fa; -fx-border-color: #dee2e6; -fx-border-width: 0 0 1 0;">
+         <children>
+            <Button fx:id="btnNew" text="Neu" styleClass="toolbar-button" />
+            <Button fx:id="btnOpen" text="Öffnen" styleClass="toolbar-button" />
+            <Button fx:id="btnSave" text="Speichern" styleClass="toolbar-button" />
+            <Button fx:id="btnSaveAs" text="Speichern als..." styleClass="toolbar-button" />
+            
+            <Separator orientation="VERTICAL" />
+            
+            <Button fx:id="btnToggleSearch" text="Suchen/Ersetzen" styleClass="toolbar-button" />
+            <Button fx:id="btnToggleMacro" text="Makros" styleClass="toolbar-button" />
+            
+            <Region HBox.hgrow="ALWAYS" />
+            
+            <Label fx:id="lblStatus" text="Bereit" style="-fx-text-fill: #6c757d; -fx-font-size: 11px;" />
+         </children>
+         <padding>
+            <Insets top="5.0" bottom="5.0" left="10.0" right="10.0" />
+         </padding>
+      </HBox>
+      
+      <!-- Such- und Ersetzungs-Panel -->
+      <VBox fx:id="searchReplacePanel" spacing="10" style="-fx-background-color: #f8f9fa; -fx-border-color: #dee2e6; -fx-border-width: 0 0 1 0;">
+         <children>
+            <!-- Erste Zeile: Suchfelder -->
+            <HBox spacing="10" alignment="CENTER_LEFT">
+               <children>
+                  <Label text="Suchen:" style="-fx-font-weight: bold;" />
+                  <ComboBox fx:id="cmbSearchHistory" promptText="Suchtext eingeben..." prefWidth="250.0" editable="true" />
+                  
+                  <VBox spacing="2" alignment="CENTER">
+                     <Button fx:id="btnSaveSearch" text="Pattern speichern" styleClass="toolbar-button" />
+                     <Button fx:id="btnDeleteSearch" text="Pattern löschen" styleClass="toolbar-button" />
+                  </VBox>
+                  
+                  <Label text="Ersetzen:" style="-fx-font-weight: bold;" />
+                  <ComboBox fx:id="cmbReplaceHistory" promptText="Ersetzungstext eingeben..." prefWidth="250.0" editable="true" />
+                  
+                  <VBox spacing="2" alignment="CENTER">
+                     <Button fx:id="btnSaveReplace" text="Pattern speichern" styleClass="toolbar-button" />
+                     <Button fx:id="btnDeleteReplace" text="Pattern löschen" styleClass="toolbar-button" />
+                  </VBox>
+               </children>
+            </HBox>
+            
+            <!-- Zweite Zeile: Optionen und Buttons -->
+            <HBox spacing="10" alignment="CENTER_LEFT">
+               <children>
+                  <CheckBox fx:id="chkRegexSearch" text="Regex" />
+                  <CheckBox fx:id="chkCaseSensitive" text="Groß-/Kleinschreibung" />
+                  <CheckBox fx:id="chkWholeWord" text="Ganzes Wort" />
+                  
+                  <Button fx:id="btnRegexHelp" text="?" styleClass="help-button" style="-fx-min-width: 25px; -fx-max-width: 25px; -fx-min-height: 25px; -fx-max-height: 25px; -fx-font-weight: bold;" />
+                  
+                  <Region HBox.hgrow="ALWAYS" />
+                  
+                  <Button fx:id="btnFindPrevious" text="↑ Vorheriger" styleClass="search-button" />
+                  <Button fx:id="btnFindNext" text="↓ Nächster" styleClass="search-button" />
+                  <Button fx:id="btnFind" text="Suchen" styleClass="search-button" />
+                  <Button fx:id="btnReplace" text="Ersetzen" styleClass="search-button" />
+                  <Button fx:id="btnReplaceAll" text="Alle ersetzen" styleClass="search-button" />
+                  
+                  <Label fx:id="lblMatchCount" text="" style="-fx-text-fill: #6c757d; -fx-font-size: 11px;" />
+               </children>
+            </HBox>
+         </children>
+         <padding>
+            <Insets top="10.0" bottom="10.0" left="10.0" right="10.0" />
+         </padding>
+      </VBox>
+      
+      <!-- SplitPane für Makro-Panel und Text-Editor -->
+      <SplitPane fx:id="mainSplitPane">
+         <items>
+            <!-- Makro-Panel (obere Seite) -->
+            <VBox fx:id="macroPanel" spacing="10" style="-fx-background-color: #f8f9fa; -fx-border-color: #dee2e6; -fx-border-width: 0 0 1 0;">
+               <children>
+                  <!-- Makro-Liste und Steuerung -->
+                  <HBox spacing="10" alignment="CENTER_LEFT">
+                     <children>
+                        <Label text="Makros:" style="-fx-font-weight: bold;" />
+                        <ComboBox fx:id="cmbMacroList" promptText="Makro auswählen..." prefWidth="200.0" />
+                        
+                        <Button fx:id="btnNewMacro" text="Neues Makro" styleClass="toolbar-button" />
+                        <Button fx:id="btnDeleteMacro" text="Makro löschen" styleClass="toolbar-button" />
+                        
+                        <Region HBox.hgrow="ALWAYS" />
+                        
+                        <Button fx:id="btnRunMacro" text="Makro ausführen" styleClass="search-button" />
+                     </children>
+                  </HBox>
+                  
+                  <!-- Makro-Details (nur sichtbar wenn Makro ausgewählt) -->
+                  <VBox fx:id="macroDetailsPanel" spacing="5" visible="false" VBox.vgrow="ALWAYS">
+                     <children>
+                        <Label text="Makro-Schritte:" style="-fx-font-weight: bold;" />
+                        
+                        <!-- Makro-Schritt-Beschreibung -->
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                           <children>
+                              <Label text="Schritt-Beschreibung:" style="-fx-font-weight: bold;" />
+                              <TextField fx:id="txtMacroStepDescription" promptText="Beschreibung des Schritts..." prefWidth="400.0" />
+                           </children>
+                        </HBox>
+                        
+                        <!-- Makro-Schritt-Eingabe -->
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                           <children>
+                              <Label text="Suchen:" style="-fx-font-weight: bold;" />
+                              <TextField fx:id="txtMacroSearch" promptText="Suchtext eingeben..." prefWidth="200.0" />
+                              
+                              <Label text="Ersetzen:" style="-fx-font-weight: bold;" />
+                              <TextField fx:id="txtMacroReplace" promptText="Ersetzungstext eingeben..." prefWidth="200.0" />
+                              
+                              <CheckBox fx:id="chkMacroRegex" text="Regex" />
+                              <CheckBox fx:id="chkMacroCaseSensitive" text="Case" />
+                              <CheckBox fx:id="chkMacroWholeWord" text="Word" />
+                              
+                              <Button fx:id="btnMacroRegexHelp" text="?" styleClass="help-button" style="-fx-min-width: 25px; -fx-max-width: 25px; -fx-min-height: 25px; -fx-max-height: 25px; -fx-font-weight: bold;" />
+                           </children>
+                        </HBox>
+                        
+                        <TableView fx:id="tblMacroSteps" VBox.vgrow="ALWAYS">
+                           <columns>
+                              <TableColumn fx:id="colStepNumber" text="Schritt" prefWidth="50.0" />
+                              <TableColumn fx:id="colEnabled" text="Aktiv" prefWidth="50.0" />
+                              <TableColumn fx:id="colDescription" text="Beschreibung" prefWidth="400.0" />
+                              <TableColumn fx:id="colSearchText" text="Suchen" prefWidth="150.0" />
+                              <TableColumn fx:id="colReplaceText" text="Ersetzen" prefWidth="150.0" />
+                              <TableColumn fx:id="colOptions" text="Optionen" prefWidth="100.0" />
+                              <TableColumn fx:id="colStatus" text="Status" prefWidth="120.0" />
+                              <TableColumn fx:id="colActions" text="Aktionen" prefWidth="100.0" />
+                           </columns>
+                        </TableView>
+                        
+                        <HBox spacing="5" alignment="CENTER_LEFT">
+                           <children>
+                              <Button fx:id="btnAddStep" text="Schritt hinzufügen" styleClass="toolbar-button" />
+                              <Button fx:id="btnRemoveStep" text="Schritt entfernen" styleClass="toolbar-button" />
+                              <Button fx:id="btnMoveStepUp" text="↑" styleClass="toolbar-button" />
+                              <Button fx:id="btnMoveStepDown" text="↓" styleClass="toolbar-button" />
+                           </children>
+                        </HBox>
+                     </children>
+                  </VBox>
+               </children>
+               <padding>
+                  <Insets top="10.0" bottom="10.0" left="10.0" right="10.0" />
+               </padding>
+            </VBox>
+            
+            <!-- Text-Editor (untere Seite) -->
+            <TextArea fx:id="textArea" promptText="Text hier eingeben..." />
+         </items>
+      </SplitPane>
+   </children>
+</VBox> 

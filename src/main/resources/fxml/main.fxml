@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox fx:id="mainContainer" spacing="10" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.manuskript.MainController">
+   <children>
+      <!-- Verzeichnis-Auswahl -->
+      <HBox spacing="10" alignment="CENTER_LEFT">
+         <children>
+            <Label text="Verzeichnis:" />
+            <TextField fx:id="txtDirectoryPath" promptText="Wählen Sie ein Verzeichnis mit DOCX-Dateien" HBox.hgrow="ALWAYS" />
+            <Button fx:id="btnSelectDirectory" text="Verzeichnis auswählen" />
+         </children>
+         <padding>
+            <Insets bottom="5.0" left="10.0" right="10.0" top="10.0" />
+         </padding>
+      </HBox>
+      
+      <!-- Filter und Sortierung -->
+      <VBox spacing="5">
+         <children>
+            <!-- Erste Zeile: Sortierung -->
+            <HBox spacing="10" alignment="CENTER_LEFT">
+               <children>
+                  <Label text="Sortieren nach:" />
+                  <ComboBox fx:id="cmbSortBy" prefWidth="150.0" />
+               </children>
+            </HBox>
+            
+            <!-- Zweite Zeile: Regex-Filter -->
+            <HBox spacing="10" alignment="CENTER_LEFT">
+               <children>
+                  <Label text="Regex-Filter:" />
+                  <ComboBox fx:id="cmbRegexFilter" promptText="z.B. *[0-9][0-9]* für Dateien mit zwei Ziffern" HBox.hgrow="ALWAYS" editable="true" />
+                  <CheckBox fx:id="chkRegexMode" text="Regex aktiv" />
+                  <Label text="Sortierung:" />
+                  <ComboBox fx:id="cmbRegexSort" prefWidth="120.0" />
+               </children>
+            </HBox>
+         </children>
+         <padding>
+            <Insets bottom="5.0" left="10.0" right="10.0" />
+         </padding>
+      </VBox>
+      
+      <!-- Zwei Tabellen nebeneinander -->
+      <HBox spacing="10" VBox.vgrow="ALWAYS">
+         <children>
+            <!-- Linke Tabelle: Verfügbare Dateien -->
+            <VBox spacing="5" HBox.hgrow="ALWAYS">
+               <children>
+                  <Label text="Verfügbare Dateien:" style="-fx-font-weight: bold;" />
+                  <TableView fx:id="tableViewAvailable" VBox.vgrow="ALWAYS">
+                    <columns>
+                      <TableColumn fx:id="colFileNameAvailable" text="Dateiname" prefWidth="200.0" />
+                      <TableColumn fx:id="colFileSizeAvailable" text="Größe" prefWidth="80.0" />
+                      <TableColumn fx:id="colLastModifiedAvailable" text="Geändert" prefWidth="120.0" />
+                    </columns>
+                  </TableView>
+               </children>
+            </VBox>
+            
+            <!-- Mittlere Buttons -->
+            <VBox spacing="10" alignment="CENTER">
+               <children>
+                  <Button fx:id="btnAddToSelected" text="→" prefWidth="40.0" prefHeight="30.0" />
+                  <Button fx:id="btnRemoveFromSelected" text="←" prefWidth="40.0" prefHeight="30.0" />
+               </children>
+            </VBox>
+            
+            <!-- Rechte Tabelle: Ausgewählte Dateien -->
+            <VBox spacing="5" HBox.hgrow="ALWAYS">
+               <children>
+                  <Label text="Ausgewählte Dateien:" style="-fx-font-weight: bold;" />
+                  <Label text="Datei verschieben mit CTRL-Pfeiltaste" style="-fx-font-size: 10px; -fx-text-fill: #666666; -fx-font-style: italic;" />
+                  <TableView fx:id="tableViewSelected" VBox.vgrow="ALWAYS">
+                    <columns>
+                      <TableColumn fx:id="colFileNameSelected" text="Dateiname" prefWidth="200.0" />
+                      <TableColumn fx:id="colFileSizeSelected" text="Größe" prefWidth="80.0" />
+                      <TableColumn fx:id="colLastModifiedSelected" text="Geändert" prefWidth="120.0" />
+                    </columns>
+                  </TableView>
+
+               </children>
+            </VBox>
+         </children>
+         <padding>
+            <Insets bottom="5.0" left="10.0" right="10.0" />
+         </padding>
+      </HBox>
+      
+      <!-- Format-Auswahl und Aktions-Buttons -->
+      <HBox spacing="10" alignment="CENTER_LEFT">
+         <children>
+            <Label text="Ausgabeformat:" />
+            <ComboBox fx:id="cmbOutputFormat" prefWidth="120.0" />
+            <Region HBox.hgrow="ALWAYS" />
+            <Button fx:id="btnProcessSelected" text="Ausgewählte verarbeiten" />
+            <Button fx:id="btnProcessAll" text="Alle verarbeiten" />
+         </children>
+         <padding>
+            <Insets bottom="5.0" left="10.0" right="10.0" />
+         </padding>
+      </HBox>
+      
+      <!-- Fortschrittsanzeige -->
+      <HBox spacing="10" alignment="CENTER_LEFT">
+         <children>
+            <Label text="Status:" />
+            <Label fx:id="lblStatus" text="Bereit" HBox.hgrow="ALWAYS" />
+            <ProgressBar fx:id="progressBar" prefWidth="200.0" />
+         </children>
+         <padding>
+            <Insets bottom="5.0" left="10.0" right="10.0" />
+         </padding>
+      </HBox>
+      
+
+   </children>
+</VBox> 
