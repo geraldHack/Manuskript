@@ -1584,11 +1584,19 @@ public class EditorWindow implements Initializable {
     
     private void createExampleMacros() {
         // Standard-Makro: Text-Bereinigung
-        Macro textCleanupMacro = new Macro("Text-Bereinigung", "Bereinigt Text von mehrfachen Leerzeichen, Leerzeilen und normalisiert Anführungszeichen");
+        Macro textCleanupMacro = new Macro("Text-Bereinigung", "Umfassende Textbereinigung mit 12 Schritten");
         textCleanupMacro.addStep(new MacroStep(1, "[ ]{2,}", " ", "Mehrfache Leerzeichen reduzieren", true, false, false));
-        textCleanupMacro.addStep(new MacroStep(2, "\\n{2,}", "\\n", "Mehrfache Leerzeilen reduzieren", true, false, false));
+        textCleanupMacro.addStep(new MacroStep(2, "\\n{3,}", "\\n\\n", "Mehrfache Leerzeilen auf 2 reduzieren", true, false, false));
         textCleanupMacro.addStep(new MacroStep(3, "\"", "\"", "Gerade Anführungszeichen öffnen", false, false, false));
         textCleanupMacro.addStep(new MacroStep(4, "\"", "\"", "Gerade Anführungszeichen schließen", false, false, false));
+        textCleanupMacro.addStep(new MacroStep(5, "'", "'", "Gerade Apostrophe normalisieren", false, false, false));
+        textCleanupMacro.addStep(new MacroStep(6, "\\s+$", "", "Leerzeichen am Zeilenende entfernen", true, false, false));
+        textCleanupMacro.addStep(new MacroStep(7, "^\\s+", "", "Leerzeichen am Zeilenanfang entfernen", true, false, false));
+        textCleanupMacro.addStep(new MacroStep(8, "\\t", "    ", "Tabs durch 4 Leerzeichen ersetzen", false, false, false));
+        textCleanupMacro.addStep(new MacroStep(9, "\\s+\\n", "\\n", "Leerzeichen vor Zeilenumbrüchen entfernen", true, false, false));
+        textCleanupMacro.addStep(new MacroStep(10, "\\n\\s+", "\\n", "Leerzeichen nach Zeilenumbrüchen entfernen", true, false, false));
+        textCleanupMacro.addStep(new MacroStep(11, "\\s+", " ", "Alle mehrfachen Whitespaces auf ein Leerzeichen reduzieren", true, false, false));
+        textCleanupMacro.addStep(new MacroStep(12, "^\\s*$", "", "Leere Zeilen entfernen", true, false, false));
         macros.add(textCleanupMacro);
         
         updateMacroList();
