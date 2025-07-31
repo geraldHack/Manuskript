@@ -1,6 +1,20 @@
 # Manuskript - DOCX Verarbeitung
 
+**Hauptzweck:** JavaFX-App zum Zusammenführen mehrerer DOCX-Dateien zu einem Manuskript mit automatischer Überarbeitung
+
 Eine JavaFX-Anwendung zur Verarbeitung und automatischen Nachbearbeitung von DOCX-Dateien zu einem zusammenhängenden Textdokument.
+
+## 🎯 Kernfunktionen
+- **Datei-Auswahl:** Verzeichnis mit DOCX-Dateien laden
+- **Regex-Filterung:** Intelligente Dateisuche mit regulären Ausdrücken
+- **Text-Extraktion:** DOCX zu lesbarem Text konvertieren
+- **Kapitel-Erkennung:** Automatische oder manuelle Kapitel-Nummerierung
+- **Überarbeitungs-Makros:** Typische Fehler/Schwächen automatisch beheben: z.B. Ausrufungszeichen vereintlichen, überzählige Leerzeichen/Leerzeilen entfernen, drei Punkte zu Auslassungzeichen, -- zu Gedankenstrich usw.
+- **Recent-Liste:** Letzte 10 Regex-Patterns als Dropdown
+- **Automatische Sortierung:** Zahlen in Dateinamen werden erkannt und sortiert
+- **Regex-Suche/Ersetzung:** Im Text-Editor mit Such-Historie
+
+**Ideal für:** Autoren, die mehrere DOCX-Kapitel zu einem Buch zusammenführen möchten.
 
 ## Funktionen
 
@@ -8,7 +22,7 @@ Eine JavaFX-Anwendung zur Verarbeitung und automatischen Nachbearbeitung von DOC
 - **Datei-Übersicht**: Tabellarische Darstellung aller gefundenen DOCX-Dateien
 - **Filterung**: Durchsuchen Sie die Dateien nach Namen
 - **Regex-Filterung**: Erweiterte Filterung mit regulären Ausdrücken (z.B. `*[0-9][0-9]*`)
-- **Recent-Liste**: Speichert die letzten 10 verwendeten Regex-Patterns als editierbares Dropdown
+- **RegEx-Speicherung**: Regex können zur Wiederverwendung gespeichert werden
 - **Automatische Regex-Sortierung**: Gefilterte Ergebnisse werden automatisch nach Zahlen sortiert
 - **Sortierung**: Sortieren Sie nach Dateiname, Größe oder Änderungsdatum
 - **Zwei-Tabellen-Ansicht**: Verfügbare Dateien links, ausgewählte Dateien rechts
