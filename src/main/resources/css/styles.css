@@ -53,29 +53,59 @@
     -fx-border-width: 2px;
 }
 
-/* CheckBox-Styling */
-.check-box {
-    -fx-text-fill: #333;
-}
-
+/* CheckBox-Styling - Vollständig und mit !important */
 .check-box .box {
-    -fx-background-color: white;
-    -fx-border-color: #ddd;
-    -fx-border-radius: 3px;
-    -fx-background-radius: 3px;
+    -fx-background-color: white !important;
+    -fx-border-color: #ccc !important;
+    -fx-border-width: 1px !important;
+    -fx-border-radius: 2px !important;
+    -fx-background-radius: 2px !important;
 }
 
 .check-box:selected .box {
-    -fx-background-color: #2196F3;
-    -fx-border-color: #2196F3;
+    -fx-background-color: #2196F3 !important;
+    -fx-border-color: #2196F3 !important;
 }
 
+.check-box:selected .mark {
+    -fx-background-color: #4CAF50 !important;
+    -fx-shape: "M 0 0 L 4 4 L 8 0 Z" !important;
+    -fx-scale-x: 1.0 !important;
+    -fx-scale-y: 1.0 !important;
+}
+
+/* Alternative Selektoren für das Häkchen */
+.check-box:selected .box .mark {
+    -fx-background-color: #4CAF50 !important;
+}
+
+.check-box:selected .mark {
+    -fx-background-color: #4CAF50 !important;
+    -fx-fill: #4CAF50 !important;
+}
+
+.check-box .mark {
+    -fx-background-color: transparent !important;
+}
+
+.check-box:hover .box {
+    -fx-border-color: #2196F3 !important;
+}
+
+.check-box:indeterminate .box {
+    -fx-background-color: #f0f0f0 !important;
+    -fx-border-color: #999 !important;
+}
+
+.check-box:indeterminate .mark {
+    -fx-background-color: #666 !important;
+}
 /* Separator-Styling */
 .separator {
     -fx-background-color: #ddd;
 }
 
-/* TableView-Styling - Einfach und garantiert funktionierend */
+/* TableView-Styling - Hell (Hauptmenü) */
 .table-view {
     -fx-background-color: white;
     -fx-border-color: #ccc;

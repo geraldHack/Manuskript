@@ -9,14 +9,27 @@ import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
+import javafx.scene.Node;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.paint.Color;
+import javafx.scene.control.Label;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+// RichTextFX Imports
+import org.fxmisc.richtext.CodeArea;
+import org.fxmisc.richtext.LineNumberFactory;
+import org.fxmisc.richtext.model.StyleSpans;
+import org.fxmisc.richtext.model.StyleSpansBuilder;
+import org.fxmisc.flowless.VirtualizedScrollPane;
+import java.util.Collection;
+import java.util.Collections;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,13 +45,22 @@ import java.util.ArrayList;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Objects;
 import javafx.scene.control.cell.PropertyValueFactory;
+
+// Eigene Klassen
+import com.manuskript.Macro;
+import com.manuskript.MacroStep;
+import com.manuskript.DocxProcessor;
 
 public class EditorWindow implements Initializable {
     
     private static final Logger logger = LoggerFactory.getLogger(EditorWindow.class);
     
-    @FXML private TextArea textArea;
+    @FXML private VBox textAreaContainer;
+    private CodeArea codeArea;
     @FXML private VBox mainContainer;
     @FXML private HBox searchReplaceContainer;
     @FXML private VBox searchReplacePanel;
@@ -73,6 +95,14 @@ public class EditorWindow implements Initializable {
     @FXML private Button btnToggleSearch;
     @FXML private Button btnToggleMacro;
     @FXML private Button btnRegexHelp;
+    
+    // Font-Size Toolbar
+    @FXML private ComboBox<String> cmbFontSize;
+    @FXML private Button btnIncreaseFont;
+    @FXML private Button btnDecreaseFont;
+    @FXML private Button btnBold;
+    @FXML private Button btnItalic;
+    @FXML private Button btnThemeToggle;
     @FXML private Button btnMacroRegexHelp;
     
     // Makro-UI-Elemente
@@ -109,6 +139,8 @@ public class EditorWindow implements Initializable {
     private Preferences preferences;
     private ObservableList<String> searchHistory = FXCollections.observableArrayList();
     private ObservableList<String> replaceHistory = FXCollections.observableArrayList();
+    private ObservableList<String> searchOptions = FXCollections.observableArrayList();
+    private ObservableList<String> replaceOptions = FXCollections.observableArrayList();
     private int currentMatchIndex = -1;
     private int totalMatches = 0;
     private String lastSearchText = "";
@@ -117,6 +149,23 @@ public class EditorWindow implements Initializable {
     private File currentFile = null;
     private DocxProcessor.OutputFormat outputFormat = DocxProcessor.OutputFormat.HTML;
     private DocxProcessor docxProcessor;
+    
+    // Theme-Management
+    private int currentThemeIndex = 0;
+    private static final String[][] THEMES = {
+        // Weißer Hintergrund / Schwarze Schrift
+        {"#ffffff", "#000000", "#f8f9fa", "#e9ecef"},
+        // Schwarzer Hintergrund / Weiße Schrift  
+        {"#1a1a1a", "#ffffff", "#2d2d2d", "#404040"},
+        // Kräftigeres Mauve mit schwarzer Schrift
+        {"#f3e5f5", "#000000", "#e1bee7", "#ce93d8"},
+        // Blau mit weißer Schrift
+        {"#1e3a8a", "#ffffff", "#3b82f6", "#60a5fa"},
+        // Grün mit weißer Schrift
+        {"#064e3b", "#ffffff", "#059669", "#10b981"},
+        // Lila mit weißer Schrift
+        {"#581c87", "#ffffff", "#7c3aed", "#a855f7"}
+    };
     
     // Makro-Management
     private ObservableList<Macro> macros = FXCollections.observableArrayList();
@@ -146,12 +195,89 @@ public class EditorWindow implements Initializable {
         loadSearchReplaceHistory();
         setupSearchReplacePanel();
         setupMacroPanel();
+        setupFontSizeComboBox();
+        
+            // Checkboxen explizit auf false setzen (nach FXML-Load)
+    Platform.runLater(() -> {
+        if (chkRegexSearch != null) {
+            chkRegexSearch.setSelected(false);
+            chkRegexSearch.setIndeterminate(false);
+        }
+        if (chkCaseSensitive != null) {
+            chkCaseSensitive.setSelected(false);
+            chkCaseSensitive.setIndeterminate(false);
+        }
+        if (chkWholeWord != null) {
+            chkWholeWord.setSelected(false);
+            chkWholeWord.setIndeterminate(false);
+        }
+    });
     }
     
     private void setupUI() {
-        // TextArea-Styling
-        textArea.setWrapText(true);
-        textArea.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px;");
+        // Toolbar explizit sichtbar machen
+        if (btnNew != null) {
+            btnNew.setVisible(true);
+            btnNew.setManaged(true);
+        }
+        if (btnOpen != null) {
+            btnOpen.setVisible(true);
+            btnOpen.setManaged(true);
+        }
+        if (btnSave != null) {
+            btnSave.setVisible(true);
+            btnSave.setManaged(true);
+        }
+        if (btnSaveAs != null) {
+            btnSaveAs.setVisible(true);
+            btnSaveAs.setManaged(true);
+        }
+        if (btnExportRTF != null) {
+            btnExportRTF.setVisible(true);
+            btnExportRTF.setManaged(true);
+        }
+        if (btnExportDOCX != null) {
+            btnExportDOCX.setVisible(true);
+            btnExportDOCX.setManaged(true);
+        }
+        if (btnToggleSearch != null) {
+            btnToggleSearch.setVisible(true);
+            btnToggleSearch.setManaged(true);
+        }
+        if (btnToggleMacro != null) {
+            btnToggleMacro.setVisible(true);
+            btnToggleMacro.setManaged(true);
+        }
+        if (lblStatus != null) {
+            lblStatus.setVisible(true);
+            lblStatus.setManaged(true);
+        }
+        
+        // Checkboxen initial auf false setzen
+        if (chkRegexSearch != null) {
+            chkRegexSearch.setSelected(false);
+        }
+        if (chkCaseSensitive != null) {
+            chkCaseSensitive.setSelected(false);
+        }
+        if (chkWholeWord != null) {
+            chkWholeWord.setSelected(false);
+        }
+        
+        // CodeArea initialisieren
+        codeArea = new CodeArea();
+        codeArea.setWrapText(true);
+        codeArea.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px; -rtfx-background-color: #ffffff;");
+        
+        // Zeilennummern hinzufügen
+        codeArea.setParagraphGraphicFactory(LineNumberFactory.get(codeArea));
+        
+        // VirtualizedScrollPane für bessere Performance
+        VirtualizedScrollPane<CodeArea> scrollPane = new VirtualizedScrollPane<>(codeArea);
+        
+        // CodeArea zum Container hinzufügen
+        textAreaContainer.getChildren().add(scrollPane);
+        VBox.setVgrow(scrollPane, Priority.ALWAYS);
         
         // Such- und Ersetzungs-Panel initial ausblenden
         searchReplacePanel.setVisible(false);
@@ -171,9 +297,19 @@ public class EditorWindow implements Initializable {
         cmbSearchHistory.setEditable(true);
         cmbReplaceHistory.setEditable(true);
         
+        // CodeArea Change-Listener für Undo/Redo
+        codeArea.textProperty().addListener((obs, oldText, newText) -> {
+            if (!isUndoRedoOperation) {
+                saveStateForUndo();
+            }
+        });
+        
         // Status-Label initialisieren
         updateStatus("Bereit");
         updateMatchCount(0, 0);
+        
+        // Toolbar-Einstellungen laden (Font-Size, Theme, etc.)
+        loadToolbarSettings();
     }
     
     private void setupEventHandlers() {
@@ -181,6 +317,12 @@ public class EditorWindow implements Initializable {
         cmbSearchHistory.setOnAction(e -> {
             String searchText = cmbSearchHistory.getValue();
             if (searchText != null && !searchText.trim().isEmpty()) {
+                // Lade die gespeicherten Optionen für diesen Eintrag
+                int index = searchHistory.indexOf(searchText);
+                if (index >= 0 && index < searchOptions.size()) {
+                    String options = searchOptions.get(index);
+                    applySearchOptions(options);
+                }
                 findNext(); // Suche zum nächsten Treffer, nicht zum ersten
             }
         });
@@ -188,6 +330,12 @@ public class EditorWindow implements Initializable {
         cmbReplaceHistory.setOnAction(e -> {
             String replaceText = cmbReplaceHistory.getValue();
             if (replaceText != null) {
+                // Lade die gespeicherten Optionen für diesen Eintrag
+                int index = replaceHistory.indexOf(replaceText);
+                if (index >= 0 && index < replaceOptions.size()) {
+                    String options = replaceOptions.get(index);
+                    applySearchOptions(options);
+                }
                 replaceText();
             }
         });
@@ -247,15 +395,19 @@ public class EditorWindow implements Initializable {
             }
         });
         
-        // Debug-Button zum Löschen der Preferences
-        btnToggleSearch.setOnAction(e -> toggleSearchPanel());
-        btnToggleMacro.setOnAction(e -> toggleMacroPanel());
-        btnRegexHelp.setOnAction(e -> showRegexHelp());
+        // Font-Size Event-Handler
+        btnIncreaseFont.setOnAction(e -> changeFontSize(2));
+        btnDecreaseFont.setOnAction(e -> changeFontSize(-2));
+        cmbFontSize.setOnAction(e -> changeFontSizeFromComboBox());
+        
+        // Text-Formatting Event-Handler
+        btnBold.setOnAction(e -> formatTextBold());
+        btnItalic.setOnAction(e -> formatTextItalic());
+        btnThemeToggle.setOnAction(e -> toggleTheme());
         btnMacroRegexHelp.setOnAction(e -> showRegexHelp());
+        btnRegexHelp.setOnAction(e -> showRegexHelp());
         btnFindNext.setOnAction(e -> findNext());
         btnFindPrevious.setOnAction(e -> findPrevious());
-        
-        btnRegexHelp.setOnAction(e -> showRegexHelp());
         
         // Toolbar-Events
         btnSave.setOnAction(e -> saveFile());
@@ -265,6 +417,7 @@ public class EditorWindow implements Initializable {
         btnOpen.setOnAction(e -> openFile());
         btnNew.setOnAction(e -> newFile());
         btnToggleSearch.setOnAction(e -> toggleSearchPanel());
+        btnToggleMacro.setOnAction(e -> toggleMacroPanel());
         
         // Keyboard-Shortcuts
         setupKeyboardShortcuts();
@@ -272,7 +425,7 @@ public class EditorWindow implements Initializable {
     
     private void setupKeyboardShortcuts() {
         // Ctrl+F für Such-Panel
-        textArea.setOnKeyPressed(event -> {
+        codeArea.setOnKeyPressed(event -> {
             if (event.isControlDown()) {
                 switch (event.getCode()) {
                     case F:
@@ -334,7 +487,7 @@ public class EditorWindow implements Initializable {
         
         try {
             Pattern pattern = createSearchPattern(searchText.trim());
-            String content = textArea.getText();
+            String content = codeArea.getText();
             
             Matcher matcher = pattern.matcher(content);
             
@@ -352,7 +505,7 @@ public class EditorWindow implements Initializable {
                 updateStatus("Keine Treffer gefunden");
                 currentMatchIndex = -1;
                 // Entferne alle Markierungen
-                textArea.deselect();
+                codeArea.deselect();
             }
             
         } catch (Exception e) {
@@ -367,13 +520,15 @@ public class EditorWindow implements Initializable {
         
         try {
             Pattern pattern = createSearchPattern(searchText.trim());
-            String content = textArea.getText();
+            String content = codeArea.getText();
             
             // Wenn sich der Suchtext geändert hat, reset
             if (!searchText.equals(lastSearchText)) {
                 totalMatches = 0;
                 currentMatchIndex = -1;
                 lastSearchText = searchText;
+                // Entferne alle bisherigen Markierungen
+                codeArea.setStyleSpans(0, content.length(), StyleSpans.singleton(new ArrayList<>(), 0));
             }
             
             // Zähle alle Treffer wenn nötig
@@ -387,19 +542,41 @@ public class EditorWindow implements Initializable {
             if (totalMatches == 0) {
                 updateMatchCount(0, 0);
                 updateStatus("Keine Treffer gefunden");
-                textArea.deselect();
+                codeArea.deselect();
                 return;
             }
             
-            // Sammle alle Treffer-Positionen
+            // Sammle alle Treffer-Positionen und markiere sie
             List<Integer> matchPositions = new ArrayList<>();
+            StyleSpansBuilder<Collection<String>> spansBuilder = new StyleSpansBuilder<>();
             Matcher collectMatcher = pattern.matcher(content);
+            int lastEnd = 0;
+            
             while (collectMatcher.find()) {
-                matchPositions.add(collectMatcher.start());
+                int start = collectMatcher.start();
+                int end = collectMatcher.end();
+                matchPositions.add(start);
+                
+                // Füge normalen Text vor dem Treffer hinzu
+                if (start > lastEnd) {
+                    spansBuilder.add(Collections.emptyList(), start - lastEnd);
+                }
+                
+                // Füge markierten Text hinzu
+                spansBuilder.add(Collections.singleton("search-match"), end - start);
+                lastEnd = end;
             }
             
+            // Füge restlichen Text hinzu
+            if (lastEnd < content.length()) {
+                spansBuilder.add(Collections.emptyList(), content.length() - lastEnd);
+            }
+            
+            // Wende die Markierungen an
+            codeArea.setStyleSpans(0, spansBuilder.create());
+            
             // Finde den nächsten Treffer
-            int currentPos = textArea.getCaretPosition();
+            int currentPos = codeArea.getCaretPosition();
             int nextIndex = -1;
             
             // Suche den nächsten Treffer nach der aktuellen Position
@@ -426,7 +603,7 @@ public class EditorWindow implements Initializable {
             }
             
         } catch (Exception e) {
-            updateStatus("Fehler beim Suchen: " + e.getMessage());
+            updateStatusError("Fehler beim Suchen: " + e.getMessage());
         }
     }
     
@@ -436,7 +613,7 @@ public class EditorWindow implements Initializable {
         
         try {
             Pattern pattern = createSearchPattern(searchText.trim());
-            String content = textArea.getText();
+            String content = codeArea.getText();
             Matcher matcher = pattern.matcher(content);
             
             // Wenn es die erste Suche ist oder sich der Suchtext geändert hat, zähle alle Treffer
@@ -452,11 +629,11 @@ public class EditorWindow implements Initializable {
             if (totalMatches == 0) {
                 updateMatchCount(0, 0);
                 updateStatus("Keine Treffer gefunden");
-                textArea.deselect();
+                codeArea.deselect();
                 return;
             }
             
-            int start = textArea.getCaretPosition();
+            int start = codeArea.getCaretPosition();
             boolean found = false;
             
             // Suche rückwärts
@@ -509,7 +686,7 @@ public class EditorWindow implements Initializable {
             }
             
         } catch (Exception e) {
-            updateStatus("Fehler beim Suchen: " + e.getMessage());
+            updateStatusError("Fehler beim Suchen: " + e.getMessage());
         }
     }
     
@@ -524,10 +701,10 @@ public class EditorWindow implements Initializable {
         
         try {
             Pattern pattern = createSearchPattern(searchText.trim());
-            String content = textArea.getText();
+            String content = codeArea.getText();
             Matcher matcher = pattern.matcher(content);
             
-            int start = textArea.getCaretPosition();
+            int start = codeArea.getCaretPosition();
             if (matcher.find(start)) {
                 // Für Regex-Ersetzung müssen wir die Backreferences manuell ersetzen
                 String replacement;
@@ -548,19 +725,20 @@ public class EditorWindow implements Initializable {
                     System.out.println("DEBUG REPLACE: Direct replacement: '" + replacement + "'");
                 }
                 
-                textArea.replaceText(matcher.start(), matcher.end(), replacement);
+                codeArea.replaceText(matcher.start(), matcher.end(), replacement);
                 updateStatus("Ersetzt");
                 
                 // Nach dem Ersetzen müssen wir die Suche neu starten
                 // Setze die Position auf den Anfang des ersetzten Texts
-                textArea.positionCaret(matcher.start());
+                codeArea.displaceCaret(matcher.start());
+                codeArea.requestFollowCaret();
                 
                 // Suche nach dem nächsten Treffer
                 findNext();
             }
             
         } catch (Exception e) {
-            updateStatus("Fehler beim Ersetzen: " + e.getMessage());
+            updateStatusError("Fehler beim Ersetzen: " + e.getMessage());
         }
     }
     
@@ -574,7 +752,7 @@ public class EditorWindow implements Initializable {
         saveStateForUndo();
         
         try {
-            String content = textArea.getText();
+            String content = codeArea.getText();
             String replacement;
             
             // Debug: Zeige Status im Status-Feld
@@ -609,12 +787,12 @@ public class EditorWindow implements Initializable {
             // Debug: Zeige die Konvertierung
             System.out.println("DEBUG: Original: '" + replaceText + "' -> Java: '" + replaceTextJava + "' -> Result: '" + replacement.substring(0, Math.min(50, replacement.length())) + "'");
             
-            textArea.setText(replacement);
+            codeArea.replaceText(replacement);
             lblStatus.setText("Alle Treffer ersetzt");
             updateMatchCount(0, 0);
             
         } catch (Exception e) {
-            lblStatus.setText("Fehler beim Ersetzen: " + e.getMessage());
+            updateStatusError("Fehler beim Ersetzen: " + e.getMessage());
         }
     }
     
@@ -672,27 +850,19 @@ public class EditorWindow implements Initializable {
     
     private void highlightText(int start, int end) {
         if (start >= 0 && end >= 0) {
-            textArea.selectRange(start, end);
-            textArea.requestFocus();
+            // Setze den Cursor an die Position und markiere den Text
+            codeArea.displaceCaret(start);
+            codeArea.selectRange(start, end);
+            codeArea.requestFocus();
             
-            // Scroll zum gefundenen Text
+            // RichTextFX: Zeige Cursor und scrolle automatisch
+            codeArea.requestFollowCaret();
+            
+            // Zusätzliches Scrollen für bessere Sichtbarkeit am unteren Rand
             Platform.runLater(() -> {
-                try {
-                    // Berechne die Zeile des gefundenen Texts
-                    String content = textArea.getText();
-                    int lineStart = start;
-                    while (lineStart > 0 && content.charAt(lineStart - 1) != '\n') {
-                        lineStart--;
-                    }
-                    
-                    // Setze den Cursor und scroll
-                    textArea.positionCaret(start);
-                    
-                    // Stelle sicher, dass der Text sichtbar ist
-                    textArea.setScrollTop(textArea.getScrollTop());
-                } catch (Exception e) {
-                    logger.warn("Fehler beim Scrollen: {}", e.getMessage());
-                }
+                // Zeige die aktuelle Zeile in der Mitte, aber mit etwas Abstand nach unten
+                int currentParagraph = codeArea.getCurrentParagraph();
+                codeArea.showParagraphAtCenter(currentParagraph + 2);
             });
         }
     }
@@ -700,8 +870,16 @@ public class EditorWindow implements Initializable {
     private void addToSearchHistory(String text) {
         if (!searchHistory.contains(text)) {
             searchHistory.add(0, text);
+            // Speichere auch die aktuellen Optionen
+            String options = String.format("regex:%s,case:%s,whole:%s", 
+                chkRegexSearch.isSelected(), 
+                chkCaseSensitive.isSelected(), 
+                chkWholeWord.isSelected());
+            searchOptions.add(0, options);
+            
             while (searchHistory.size() > 20) {
                 searchHistory.remove(searchHistory.size() - 1);
+                searchOptions.remove(searchOptions.size() - 1);
             }
             saveSearchHistory();
         }
@@ -713,8 +891,16 @@ public class EditorWindow implements Initializable {
     private void addToReplaceHistory(String text) {
         if (!replaceHistory.contains(text)) {
             replaceHistory.add(0, text);
+            // Speichere auch die aktuellen Optionen
+            String options = String.format("regex:%s,case:%s,whole:%s", 
+                chkRegexSearch.isSelected(), 
+                chkCaseSensitive.isSelected(), 
+                chkWholeWord.isSelected());
+            replaceOptions.add(0, options);
+            
             while (replaceHistory.size() > 20) {
                 replaceHistory.remove(replaceHistory.size() - 1);
+                replaceOptions.remove(replaceOptions.size() - 1);
             }
             saveReplaceHistory();
         }
@@ -737,23 +923,74 @@ public class EditorWindow implements Initializable {
     
     private void loadSearchReplaceHistory() {
         try {
+            // Lösche alte Daten und starte sauber
+            searchHistory.clear();
+            replaceHistory.clear();
+            searchOptions.clear();
+            replaceOptions.clear();
+            
             String searchHistoryStr = preferences.get("searchHistory", "");
             String replaceHistoryStr = preferences.get("replaceHistory", "");
+            String searchOptionsStr = preferences.get("searchOptions", "");
+            String replaceOptionsStr = preferences.get("replaceOptions", "");
             
             if (!searchHistoryStr.isEmpty()) {
-                String[] items = searchHistoryStr.split("\\|");
+                String[] items = searchHistoryStr.split("\\|\\|\\|");
                 for (String item : items) {
                     if (!item.trim().isEmpty()) {
-                        searchHistory.add(item.trim());
+                        // Base64-Dekodierung
+                        try {
+                            String decodedItem = new String(java.util.Base64.getDecoder().decode(item.trim()));
+                            searchHistory.add(decodedItem);
+                        } catch (Exception e) {
+                            // Ignoriere ungültige Einträge
+                            logger.debug("Ungültiger Base64-Eintrag in Search-Historie: {}", item);
+                        }
                     }
                 }
             }
             
             if (!replaceHistoryStr.isEmpty()) {
-                String[] items = replaceHistoryStr.split("\\|");
+                String[] items = replaceHistoryStr.split("\\|\\|\\|");
                 for (String item : items) {
                     if (!item.trim().isEmpty()) {
-                        replaceHistory.add(item.trim());
+                        // Base64-Dekodierung
+                        try {
+                            String decodedItem = new String(java.util.Base64.getDecoder().decode(item.trim()));
+                            replaceHistory.add(decodedItem);
+                        } catch (Exception e) {
+                            // Ignoriere ungültige Einträge
+                            logger.debug("Ungültiger Base64-Eintrag in Replace-Historie: {}", item);
+                        }
+                    }
+                }
+            }
+            
+            // Lade Optionen
+            if (!searchOptionsStr.isEmpty()) {
+                String[] items = searchOptionsStr.split("\\|\\|\\|");
+                for (String item : items) {
+                    if (!item.trim().isEmpty()) {
+                        try {
+                            String decodedItem = new String(java.util.Base64.getDecoder().decode(item.trim()));
+                            searchOptions.add(decodedItem);
+                        } catch (Exception e) {
+                            logger.debug("Ungültiger Base64-Eintrag in Search-Optionen: {}", item);
+                        }
+                    }
+                }
+            }
+            
+            if (!replaceOptionsStr.isEmpty()) {
+                String[] items = replaceOptionsStr.split("\\|\\|\\|");
+                for (String item : items) {
+                    if (!item.trim().isEmpty()) {
+                        try {
+                            String decodedItem = new String(java.util.Base64.getDecoder().decode(item.trim()));
+                            replaceOptions.add(decodedItem);
+                        } catch (Exception e) {
+                            logger.debug("Ungültiger Base64-Eintrag in Replace-Optionen: {}", item);
+                        }
                     }
                 }
             }
@@ -768,8 +1005,23 @@ public class EditorWindow implements Initializable {
     
     private void saveSearchHistory() {
         try {
-            String searchHistoryStr = String.join("|", searchHistory);
+            List<String> encodedItems = new ArrayList<>();
+            for (String item : searchHistory) {
+                // Base64-Kodierung für sicheres Speichern
+                String encoded = java.util.Base64.getEncoder().encodeToString(item.getBytes());
+                encodedItems.add(encoded);
+            }
+            String searchHistoryStr = String.join("|||", encodedItems);
             preferences.put("searchHistory", searchHistoryStr);
+            
+            // Speichere auch die Optionen
+            List<String> encodedOptions = new ArrayList<>();
+            for (String option : searchOptions) {
+                String encoded = java.util.Base64.getEncoder().encodeToString(option.getBytes());
+                encodedOptions.add(encoded);
+            }
+            String searchOptionsStr = String.join("|||", encodedOptions);
+            preferences.put("searchOptions", searchOptionsStr);
         } catch (Exception e) {
             logger.warn("Fehler beim Speichern der Such-Historie: {}", e.getMessage());
         }
@@ -777,8 +1029,23 @@ public class EditorWindow implements Initializable {
     
     private void saveReplaceHistory() {
         try {
-            String replaceHistoryStr = String.join("|", replaceHistory);
+            List<String> encodedItems = new ArrayList<>();
+            for (String item : replaceHistory) {
+                // Base64-Kodierung für sicheres Speichern
+                String encoded = java.util.Base64.getEncoder().encodeToString(item.getBytes());
+                encodedItems.add(encoded);
+            }
+            String replaceHistoryStr = String.join("|||", encodedItems);
             preferences.put("replaceHistory", replaceHistoryStr);
+            
+            // Speichere auch die Optionen
+            List<String> encodedOptions = new ArrayList<>();
+            for (String option : replaceOptions) {
+                String encoded = java.util.Base64.getEncoder().encodeToString(option.getBytes());
+                encodedOptions.add(encoded);
+            }
+            String replaceOptionsStr = String.join("|||", encodedOptions);
+            preferences.put("replaceOptions", replaceOptionsStr);
         } catch (Exception e) {
             logger.warn("Fehler beim Speichern der Ersetzungs-Historie: {}", e.getMessage());
         }
@@ -786,7 +1053,14 @@ public class EditorWindow implements Initializable {
     
     private void updateStatus(String message) {
         lblStatus.setText(message);
+        lblStatus.setStyle("-fx-text-fill: #6c757d; -fx-font-size: 11px;"); // Normale Farbe
         logger.info("Editor Status: {}", message);
+    }
+    
+    private void updateStatusError(String message) {
+        lblStatus.setText("❌ " + message);
+        lblStatus.setStyle("-fx-text-fill: #dc3545; -fx-font-size: 11px; -fx-font-weight: bold;"); // Rote Farbe
+        logger.error("Editor Fehler: {}", message);
     }
     
     private void updateMatchCount(int current, int total) {
@@ -797,11 +1071,46 @@ public class EditorWindow implements Initializable {
         }
     }
     
+    private void applySearchOptions(String options) {
+        try {
+            // Parse die Optionen: "regex:true,case:false,whole:true"
+            String[] parts = options.split(",");
+            for (String part : parts) {
+                String[] keyValue = part.split(":");
+                if (keyValue.length == 2) {
+                    String key = keyValue[0].trim();
+                    String value = keyValue[1].trim();
+                    boolean boolValue = Boolean.parseBoolean(value);
+                    
+                    switch (key) {
+                        case "regex":
+                            if (chkRegexSearch != null) {
+                                chkRegexSearch.setSelected(boolValue);
+                            }
+                            break;
+                        case "case":
+                            if (chkCaseSensitive != null) {
+                                chkCaseSensitive.setSelected(boolValue);
+                            }
+                            break;
+                        case "whole":
+                            if (chkWholeWord != null) {
+                                chkWholeWord.setSelected(boolValue);
+                            }
+                            break;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            logger.debug("Fehler beim Parsen der Search-Optionen: {}", options);
+        }
+    }
+    
     // Undo/Redo-Funktionalität
     private void saveStateForUndo() {
         if (!isUndoRedoOperation) {
-            String currentText = textArea.getText();
-            int currentCaretPosition = textArea.getCaretPosition();
+            String currentText = codeArea.getText();
+            int currentCaretPosition = 0; // CodeArea handhabt Caret-Position anders
             undoStack.add(new UndoState(currentText, currentCaretPosition));
             
             // Begrenze die Anzahl der Undo-Schritte
@@ -819,14 +1128,14 @@ public class EditorWindow implements Initializable {
             isUndoRedoOperation = true;
             
             // Aktuellen Zustand für Redo speichern
-            String currentText = textArea.getText();
-            int currentCaretPosition = textArea.getCaretPosition();
+            String currentText = codeArea.getText();
+            int currentCaretPosition = 0; // CodeArea handhabt Caret-Position anders
             redoStack.add(new UndoState(currentText, currentCaretPosition));
             
             // Letzten Zustand wiederherstellen
             UndoState previousState = undoStack.remove(undoStack.size() - 1);
-            textArea.setText(previousState.text);
-            textArea.positionCaret(previousState.caretPosition);
+            codeArea.replaceText(previousState.text);
+            // Caret-Position wird von CodeArea automatisch verwaltet
             
             isUndoRedoOperation = false;
             updateStatus("Undo ausgeführt");
@@ -840,14 +1149,14 @@ public class EditorWindow implements Initializable {
             isUndoRedoOperation = true;
             
             // Aktuellen Zustand für Undo speichern
-            String currentText = textArea.getText();
-            int currentCaretPosition = textArea.getCaretPosition();
+            String currentText = codeArea.getText();
+            int currentCaretPosition = 0; // CodeArea handhabt Caret-Position anders
             undoStack.add(new UndoState(currentText, currentCaretPosition));
             
             // Letzten Redo-Zustand wiederherstellen
             UndoState nextState = redoStack.remove(redoStack.size() - 1);
-            textArea.setText(nextState.text);
-            textArea.positionCaret(nextState.caretPosition);
+            codeArea.replaceText(nextState.text);
+            // Caret-Position wird von CodeArea automatisch verwaltet
             
             isUndoRedoOperation = false;
             updateStatus("Redo ausgeführt");
@@ -882,7 +1191,26 @@ public class EditorWindow implements Initializable {
             updateStatus("Alle Preferences und Makros gelöscht");
             System.out.println("Alle User Preferences und Makros gelöscht");
         } catch (Exception e) {
-            updateStatus("Fehler beim Löschen der Preferences: " + e.getMessage());
+            updateStatusError("Fehler beim Löschen der Preferences: " + e.getMessage());
+        }
+    }
+    
+    // Methode zum Löschen nur der Search/Replace-Historie
+    public void clearSearchReplaceHistory() {
+        try {
+            preferences.remove("searchHistory");
+            preferences.remove("replaceHistory");
+            preferences.flush();
+            
+            searchHistory.clear();
+            replaceHistory.clear();
+            cmbSearchHistory.setItems(searchHistory);
+            cmbReplaceHistory.setItems(replaceHistory);
+            
+            updateStatus("Search/Replace-Historie gelöscht");
+            System.out.println("Search/Replace-Historie gelöscht");
+        } catch (Exception e) {
+            updateStatusError("Fehler beim Löschen der Search/Replace-Historie: " + e.getMessage());
         }
     }
     
@@ -1001,10 +1329,10 @@ public class EditorWindow implements Initializable {
     
     private void saveToFile(File file) {
         try {
-            Files.write(file.toPath(), textArea.getText().getBytes());
+            Files.write(file.toPath(), codeArea.getText().getBytes());
             updateStatus("Datei gespeichert: " + file.getName());
         } catch (IOException e) {
-            updateStatus("Fehler beim Speichern: " + e.getMessage());
+            updateStatusError("Fehler beim Speichern: " + e.getMessage());
         }
     }
     
@@ -1057,7 +1385,7 @@ public class EditorWindow implements Initializable {
                     preferences.put("lastSaveDirectory", directory);
                 }
                 
-                String markdownContent = textArea.getText();
+                String markdownContent = codeArea.getText();
                 String rtfContent = convertMarkdownToRTF(markdownContent);
                 
                 // Verwende Windows-1252 Encoding für bessere RTF-Kompatibilität
@@ -1065,7 +1393,7 @@ public class EditorWindow implements Initializable {
                 updateStatus("Als RTF exportiert: " + file.getName());
                 
             } catch (Exception e) {
-                updateStatus("Fehler beim RTF-Export: " + e.getMessage());
+                updateStatusError("Fehler beim RTF-Export: " + e.getMessage());
             }
         }
     }
@@ -1191,13 +1519,13 @@ public class EditorWindow implements Initializable {
                     preferences.put("lastSaveDirectory", directory);
                 }
                 
-                String markdownContent = textArea.getText();
+                String markdownContent = codeArea.getText();
                 docxProcessor.exportMarkdownToDocx(markdownContent, file);
                 
                 updateStatus("Als DOCX exportiert: " + file.getName());
                 
             } catch (Exception e) {
-                updateStatus("Fehler beim DOCX-Export: " + e.getMessage());
+                updateStatusError("Fehler beim DOCX-Export: " + e.getMessage());
                 logger.error("Fehler beim DOCX-Export", e);
             }
         }
@@ -1256,17 +1584,23 @@ public class EditorWindow implements Initializable {
                 }
                 
                 String content = new String(Files.readAllBytes(file.toPath()));
-                textArea.setText(content);
+                codeArea.replaceText(content);
+                // Cursor an den Anfang setzen
+                codeArea.displaceCaret(0);
+                codeArea.requestFollowCaret();
                 currentFile = file;
                 updateStatus("Datei geöffnet: " + file.getName());
             } catch (IOException e) {
-                updateStatus("Fehler beim Öffnen: " + e.getMessage());
+                updateStatusError("Fehler beim Öffnen: " + e.getMessage());
             }
         }
     }
     
     private void newFile() {
-        textArea.clear();
+        codeArea.clear();
+        // Cursor an den Anfang setzen
+        codeArea.displaceCaret(0);
+        codeArea.requestFollowCaret();
         currentFile = null;
         // Lösche Undo/Redo-Stacks bei neuer Datei
         clearUndoRedoStacks();
@@ -1275,7 +1609,10 @@ public class EditorWindow implements Initializable {
     
     // Public Methoden für externe Verwendung
     public void setText(String text) {
-        textArea.setText(text);
+        codeArea.replaceText(text);
+        // Cursor an den Anfang setzen
+        codeArea.displaceCaret(0);
+        codeArea.requestFollowCaret();
         // Lösche Undo/Redo-Stacks beim Laden neuer Dateien
         clearUndoRedoStacks();
         updateStatus("Text geladen");
@@ -1286,11 +1623,39 @@ public class EditorWindow implements Initializable {
     }
     
     public String getText() {
-        return textArea.getText();
+        return codeArea.getText();
     }
     
     public void setStage(Stage stage) {
         this.stage = stage;
+        
+        // Fenster-Eigenschaften laden und anwenden
+        loadWindowProperties();
+        
+        // Listener für Fenster-Änderungen hinzufügen
+        stage.widthProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null && !newVal.equals(oldVal)) {
+                preferences.putDouble("window_width", newVal.doubleValue());
+            }
+        });
+        
+        stage.heightProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null && !newVal.equals(oldVal)) {
+                preferences.putDouble("window_height", newVal.doubleValue());
+            }
+        });
+        
+        stage.xProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null && !newVal.equals(oldVal)) {
+                preferences.putDouble("window_x", newVal.doubleValue());
+            }
+        });
+        
+        stage.yProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null && !newVal.equals(oldVal)) {
+                preferences.putDouble("window_y", newVal.doubleValue());
+            }
+        });
     }
     
     public void setOutputFormat(DocxProcessor.OutputFormat format) {
@@ -1327,6 +1692,7 @@ public class EditorWindow implements Initializable {
                     MacroStep step = getTableView().getItems().get(getIndex());
                     if (step != null) {
                         step.setEnabled(checkBox.isSelected());
+                        logger.info("CheckBox für Schritt " + step.getStepNumber() + " geändert zu: " + checkBox.isSelected());
                     }
                 });
             }
@@ -1337,8 +1703,15 @@ public class EditorWindow implements Initializable {
                 if (empty) {
                     setGraphic(null);
                 } else {
-                    checkBox.setSelected(item != null && item);
+                    boolean isSelected = item != null && item;
+                    checkBox.setSelected(isSelected);
                     setGraphic(checkBox);
+                    
+                    // Debug-Ausgabe für CheckBox-Status
+                    MacroStep step = getTableView().getItems().get(getIndex());
+                    if (step != null) {
+                        logger.debug("CheckBox für Schritt " + step.getStepNumber() + " gesetzt auf: " + isSelected);
+                    }
                 }
             }
         });
@@ -1497,6 +1870,14 @@ public class EditorWindow implements Initializable {
                 macroDetailsPanel.setVisible(true);
         
                 tblMacroSteps.setItems(currentMacro.getSteps());
+                
+                // Debug-Ausgabe für Makro-Schritte
+                logger.info("Makro ausgewählt: " + currentMacro.getName() + " mit " + currentMacro.getSteps().size() + " Schritten");
+                for (int i = 0; i < currentMacro.getSteps().size(); i++) {
+                    MacroStep step = currentMacro.getSteps().get(i);
+                    logger.info("Schritt " + (i+1) + ": " + step.getDescription() + " (enabled: " + step.isEnabled() + ")");
+                }
+                
                 updateStatus("Makro ausgewählt: " + currentMacro.getName());
             }
         } else {
@@ -1559,8 +1940,17 @@ public class EditorWindow implements Initializable {
         if (currentMacro != null) {
             MacroStep selectedStep = tblMacroSteps.getSelectionModel().getSelectedItem();
             if (selectedStep != null) {
+                int currentIndex = currentMacro.getSteps().indexOf(selectedStep);
                 currentMacro.moveStepUp(selectedStep);
                 saveMacros();
+                
+                // Cursor zur neuen Position setzen
+                Platform.runLater(() -> {
+                    int newIndex = Math.max(0, currentIndex - 1);
+                    tblMacroSteps.getSelectionModel().select(newIndex);
+                    tblMacroSteps.scrollTo(newIndex);
+                });
+                
                 updateStatus("Schritt nach oben verschoben");
             }
         }
@@ -1570,8 +1960,17 @@ public class EditorWindow implements Initializable {
         if (currentMacro != null) {
             MacroStep selectedStep = tblMacroSteps.getSelectionModel().getSelectedItem();
             if (selectedStep != null) {
+                int currentIndex = currentMacro.getSteps().indexOf(selectedStep);
                 currentMacro.moveStepDown(selectedStep);
                 saveMacros();
+                
+                // Cursor zur neuen Position setzen
+                Platform.runLater(() -> {
+                    int newIndex = Math.min(currentMacro.getSteps().size() - 1, currentIndex + 1);
+                    tblMacroSteps.getSelectionModel().select(newIndex);
+                    tblMacroSteps.scrollTo(newIndex);
+                });
+                
                 updateStatus("Schritt nach unten verschoben");
             }
         }
@@ -1668,7 +2067,7 @@ public class EditorWindow implements Initializable {
             // Speichere Zustand für Undo
             saveStateForUndo();
             
-            String content = textArea.getText();
+            String content = codeArea.getText();
             
             // Nur aktivierte Schritte zählen
             List<MacroStep> enabledSteps = currentMacro.getSteps().stream()
@@ -1741,11 +2140,11 @@ public class EditorWindow implements Initializable {
                     }
                 } catch (Exception e) {
                     step.setError(e.getMessage());
-                    updateStatus("Fehler in Schritt " + processedSteps + ": " + e.getMessage());
+                    updateStatusError("Fehler in Schritt " + processedSteps + ": " + e.getMessage());
                 }
             }
             
-            textArea.setText(content);
+            codeArea.replaceText(content);
             updateStatus("Makro erfolgreich ausgeführt: " + currentMacro.getName());
         } else {
             updateStatus("Kein Makro ausgewählt oder Makro ist leer");
@@ -1789,9 +2188,9 @@ public class EditorWindow implements Initializable {
         
         String savedMacros = preferences.get("savedMacros", "");
         
-        // Wenn alte Daten vorhanden sind, lösche sie
-        if (savedMacros.contains("|||") || savedMacros.contains("<<<MACRO>>>")) {
-            logger.info("Alte Makro-Daten gefunden - lösche alle Makros");
+        // Wenn alte Daten vorhanden sind oder alle CheckBoxen deaktiviert sind, lösche sie
+        if (savedMacros.contains("|||") || savedMacros.contains("<<<MACRO>>>") || savedMacros.contains("ENABLED:0")) {
+            logger.info("Alte Makro-Daten oder deaktivierte CheckBoxen gefunden - lösche alle Makros");
             try {
                 preferences.remove("savedMacros");
                 preferences.flush();
@@ -2045,6 +2444,262 @@ public class EditorWindow implements Initializable {
             logger.error("Fehler beim Speichern der CSV-Datei", e);
             updateStatus("Fehler beim Speichern: " + e.getMessage());
         }
+    }
+    
+    private void changeFontSize(int delta) {
+        try {
+            String currentText = cmbFontSize.getValue();
+            if (currentText == null || currentText.isEmpty()) {
+                currentText = "12";
+            }
+            int currentSize = Integer.parseInt(currentText);
+            int newSize = Math.max(8, Math.min(72, currentSize + delta));
+            
+            // Font-Size anwenden
+            applyFontSize(newSize);
+            
+            // Event-Handler temporär entfernen
+            EventHandler<ActionEvent> originalHandler = cmbFontSize.getOnAction();
+            cmbFontSize.setOnAction(null);
+            
+            // ComboBox aktualisieren
+            cmbFontSize.setValue(String.valueOf(newSize));
+            
+            // Event-Handler wieder hinzufügen
+            cmbFontSize.setOnAction(originalHandler);
+            
+        } catch (NumberFormatException e) {
+            logger.warn("Ungültige Schriftgröße: {}", cmbFontSize.getValue());
+        }
+    }
+    
+    private void changeFontSizeFromComboBox() {
+        try {
+            String sizeText = cmbFontSize.getValue();
+            if (sizeText != null && !sizeText.isEmpty()) {
+                int size = Integer.parseInt(sizeText);
+                applyFontSize(size);
+            }
+        } catch (NumberFormatException e) {
+            logger.warn("Ungültige Schriftgröße: {}", cmbFontSize.getValue());
+        }
+    }
+    
+    private void applyFontSize(int size) {
+        if (codeArea != null) {
+            // Theme neu anwenden mit neuer Schriftgröße
+            applyTheme(currentThemeIndex);
+            
+            // Speichere in Preferences
+            preferences.putInt("fontSize", size);
+        }
+    }
+    
+    // ===== PERSISTIERUNG VON TOOLBAR UND FENSTER-EIGENSCHAFTEN =====
+    
+    private void loadWindowProperties() {
+        if (stage == null) return;
+        
+        // Fenster-Größe und Position laden
+        double width = preferences.getDouble("window_width", 1200.0);
+        double height = preferences.getDouble("window_height", 800.0);
+        double x = preferences.getDouble("window_x", -1.0);
+        double y = preferences.getDouble("window_y", -1.0);
+        
+        // Fenster-Größe setzen
+        stage.setWidth(width);
+        stage.setHeight(height);
+        
+        // Fenster-Position setzen (nur wenn gültige Werte vorhanden)
+        if (x >= 0 && y >= 0) {
+            stage.setX(x);
+            stage.setY(y);
+        }
+        
+        // Divider-Position laden und Listener hinzufügen
+        Platform.runLater(() -> {
+            double dividerPosition = preferences.getDouble("divider_position", 0.3);
+            mainSplitPane.setDividerPositions(dividerPosition);
+            
+            // Divider-Listener hinzufügen (nur wenn Dividers vorhanden sind)
+            if (!mainSplitPane.getDividers().isEmpty()) {
+                mainSplitPane.getDividers().get(0).positionProperty().addListener((obs, oldVal, newVal) -> {
+                    if (newVal != null && !newVal.equals(oldVal)) {
+                        preferences.putDouble("divider_position", newVal.doubleValue());
+                    }
+                });
+            }
+        });
+    }
+    
+    private void loadToolbarSettings() {
+        // Font-Size laden
+        int fontSize = preferences.getInt("fontSize", 12);
+        cmbFontSize.setValue(String.valueOf(fontSize));
+        
+        // Theme laden
+        currentThemeIndex = preferences.getInt("editor_theme", 0);
+        applyTheme(currentThemeIndex);
+        
+        // Theme-Button Tooltip aktualisieren
+        updateThemeButtonTooltip();
+    }
+    
+    private void updateThemeButtonTooltip() {
+        String[] themeNames = {"Weiß", "Schwarz", "Pastell", "Blau", "Grün", "Lila"};
+        btnThemeToggle.setTooltip(new Tooltip("Theme: " + themeNames[currentThemeIndex] + " (Klick für nächstes)"));
+    }
+    
+    private void setupFontSizeComboBox() {
+        // Lade gespeicherte Schriftgröße
+        int savedSize = preferences.getInt("fontSize", 12);
+        cmbFontSize.setValue(String.valueOf(savedSize));
+        
+        // Füge Standard-Größen hinzu
+        ObservableList<String> sizes = FXCollections.observableArrayList();
+        for (int i = 8; i <= 72; i += 2) {
+            sizes.add(String.valueOf(i));
+        }
+        cmbFontSize.setItems(sizes);
+    }
+    
+    private void formatTextBold() {
+        formatTextAtCursor("**", "**", "<b>", "</b>");
+    }
+    
+    private void formatTextItalic() {
+        formatTextAtCursor("*", "*", "<i>", "</i>");
+    }
+    
+    private void toggleTheme() {
+        currentThemeIndex = (currentThemeIndex + 1) % THEMES.length;
+        applyTheme(currentThemeIndex);
+        
+        // Update Button-Tooltip
+        updateThemeButtonTooltip();
+        
+        String[] themeNames = {"Weiß", "Schwarz", "Pastell", "Blau", "Grün", "Lila"};
+        updateStatus("Theme gewechselt: " + themeNames[currentThemeIndex]);
+    }
+    
+    private void applyTheme(int themeIndex) {
+        if (codeArea == null) return;
+        
+        String[] theme = THEMES[themeIndex];
+        String backgroundColor = theme[0];
+        String textColor = theme[1];
+        String selectionColor = theme[2];
+        String caretColor = theme[3];
+        
+        // Aktuelle Schriftgröße sicher ermitteln
+        int fontSize = 12; // Standard
+        try {
+            String fontSizeStr = cmbFontSize.getValue();
+            if (fontSizeStr != null && !fontSizeStr.trim().isEmpty()) {
+                fontSize = Integer.parseInt(fontSizeStr);
+            } else {
+                // Fallback: Gespeicherte Schriftgröße aus Preferences
+                fontSize = preferences.getInt("fontSize", 12);
+            }
+        } catch (NumberFormatException e) {
+            fontSize = preferences.getInt("fontSize", 12);
+        }
+        
+        // RichTextFX CodeArea Theme anwenden - spezielle CSS-Eigenschaften
+        String cssStyle = String.format(
+            "-rtfx-background-color: %s;" +
+            "-fx-highlight-fill: %s;" +
+            "-fx-highlight-text-fill: %s;" +
+            "-fx-caret-color: %s;" +
+            "-fx-font-family: 'Consolas', 'Monaco', monospace;" +
+            "-fx-font-size: %dpx;" +
+            "-fx-background-color: %s;",
+            backgroundColor, selectionColor, textColor, caretColor, fontSize, backgroundColor
+        );
+        
+        codeArea.setStyle(cssStyle);
+        
+        // Textfarbe über CSS-Stylesheet anwenden (RichTextFX-spezifisch)
+        Platform.runLater(() -> {
+            // CSS-Stylesheet für Textfarbe erstellen
+            String textColorCSS = String.format(
+                ".text { -fx-text-fill: %s; -fx-fill: %s; } " +
+                ".content { -fx-text-fill: %s; -fx-fill: %s; } " +
+                ".paragraph-box { -fx-text-fill: %s; -fx-fill: %s; } " +
+                ".paragraph-text { -fx-text-fill: %s; -fx-fill: %s; }",
+                textColor, textColor, textColor, textColor, textColor, textColor, textColor, textColor
+            );
+            
+            // Stylesheet zur CodeArea hinzufügen
+            codeArea.getStylesheets().clear();
+            codeArea.getStylesheets().add("data:text/css," + textColorCSS);
+            
+            // Zeilennummern mit benutzerdefinierten Farben erstellen
+            // Zeilennummern komplett entfernt - kein grauer Bereich mehr
+            codeArea.setParagraphGraphicFactory(null);
+        });
+        
+        // VirtualizedScrollPane Theme anpassen
+        if (textAreaContainer.getChildren().size() > 0) {
+            Node scrollPane = textAreaContainer.getChildren().get(0);
+            if (scrollPane instanceof VirtualizedScrollPane) {
+                scrollPane.setStyle(String.format(
+                    "-fx-background-color: %s;" +
+                    "-fx-control-inner-background: %s;",
+                    backgroundColor, backgroundColor
+                ));
+            }
+        }
+        
+        // Theme in Preferences speichern
+        preferences.putInt("editor_theme", themeIndex);
+        
+        // Debug-Ausgabe
+        logger.info("Theme angewendet: Index={}, Hintergrund={}, Text={}", themeIndex, backgroundColor, textColor);
+    }
+    
+    private void formatTextAtCursor(String markdownStart, String markdownEnd, String htmlStart, String htmlEnd) {
+        if (codeArea == null) return;
+        
+        String selectedText = codeArea.getSelectedText();
+        int caretPosition = codeArea.getCaretPosition();
+        
+        if (selectedText != null && !selectedText.isEmpty()) {
+            // Text ist ausgewählt - formatiere den ausgewählten Text
+            int start = codeArea.getSelection().getStart();
+            int end = codeArea.getSelection().getEnd();
+            
+            String formattedText;
+            if (outputFormat == DocxProcessor.OutputFormat.MARKDOWN) {
+                formattedText = markdownStart + selectedText + markdownEnd;
+            } else {
+                formattedText = htmlStart + selectedText + htmlEnd;
+            }
+            
+            codeArea.replaceText(start, end, formattedText);
+            
+            // Markiere den formatierten Text
+            codeArea.selectRange(start, start + formattedText.length());
+        } else {
+            // Kein Text ausgewählt - füge Formatierung an der Cursor-Position ein
+            String formatText;
+            if (outputFormat == DocxProcessor.OutputFormat.MARKDOWN) {
+                formatText = markdownStart + markdownEnd;
+            } else {
+                formatText = htmlStart + htmlEnd;
+            }
+            
+            codeArea.insertText(caretPosition, formatText);
+            
+            // Setze Cursor zwischen die Formatierung
+            if (outputFormat == DocxProcessor.OutputFormat.MARKDOWN) {
+                codeArea.displaceCaret(caretPosition + markdownStart.length());
+            } else {
+                codeArea.displaceCaret(caretPosition + htmlStart.length());
+            }
+        }
+        
+        codeArea.requestFocus();
     }
     
     private void showRegexHelp() {

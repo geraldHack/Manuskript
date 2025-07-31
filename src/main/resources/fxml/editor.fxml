@@ -7,23 +7,47 @@
 <VBox fx:id="mainContainer" spacing="0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.manuskript.EditorWindow">
    <children>
       <!-- Toolbar -->
-      <HBox spacing="5" style="-fx-background-color: #f8f9fa; -fx-border-color: #dee2e6; -fx-border-width: 0 0 1 0;">
+      <HBox spacing="5" style="-fx-background-color: #343a40; -fx-border-color: #495057; -fx-border-width: 0 0 2 0; -fx-min-height: 40px;">
          <children>
-            <Button fx:id="btnNew" text="Neu" styleClass="toolbar-button" />
-            <Button fx:id="btnOpen" text="Öffnen" styleClass="toolbar-button" />
-            <Button fx:id="btnSave" text="Speichern" styleClass="toolbar-button" />
-            <Button fx:id="btnSaveAs" text="Speichern als..." styleClass="toolbar-button" />
-            <Button fx:id="btnExportRTF" text="Als RTF exportieren" styleClass="toolbar-button" />
-            <Button fx:id="btnExportDOCX" text="Als DOCX exportieren" styleClass="toolbar-button" />
+            <Button fx:id="btnNew" text="Neu" styleClass="button primary" />
+            <Button fx:id="btnOpen" text="Öffnen" styleClass="button primary" />
+            <Button fx:id="btnSave" text="Speichern" styleClass="button primary" />
+            <Button fx:id="btnSaveAs" text="Speichern als..." styleClass="button primary" />
+            <Button fx:id="btnExportRTF" text="Als RTF exportieren" styleClass="button" />
+            <Button fx:id="btnExportDOCX" text="Als DOCX exportieren" styleClass="button" />
             
             <Separator orientation="VERTICAL" />
             
-            <Button fx:id="btnToggleSearch" text="Suchen/Ersetzen" styleClass="toolbar-button" />
-            <Button fx:id="btnToggleMacro" text="Makros" styleClass="toolbar-button" />
+            <Button fx:id="btnToggleSearch" text="Suchen/Ersetzen" styleClass="button" />
+            <Button fx:id="btnToggleMacro" text="Makros" styleClass="button" />
             
             <Region HBox.hgrow="ALWAYS" />
             
-            <Label fx:id="lblStatus" text="Bereit" style="-fx-text-fill: #6c757d; -fx-font-size: 11px;" />
+            <Label fx:id="lblStatus" text="Bereit" style="-fx-text-fill: #ffffff; -fx-font-size: 11px;" />
+         </children>
+         <padding>
+            <Insets top="8.0" bottom="8.0" left="10.0" right="10.0" />
+         </padding>
+      </HBox>
+      
+      <!-- Neue einfache Toolbar für Textgröße -->
+      <HBox spacing="5" style="-fx-background-color: #495057; -fx-border-color: #6c757d; -fx-border-width: 0 0 1 0; -fx-min-height: 30px;">
+         <children>
+            <Label text="Textgröße:" style="-fx-text-fill: #ffffff; -fx-font-size: 11px; -fx-padding: 0 5 0 10;" />
+            <ComboBox fx:id="cmbFontSize" promptText="12" prefWidth="80.0" />
+            <Button fx:id="btnIncreaseFont" text="A+" styleClass="toolbar-button" style="-fx-min-width: 45px; -fx-max-width: 45px;" />
+            <Button fx:id="btnDecreaseFont" text="A-" styleClass="toolbar-button" style="-fx-min-width: 45px; -fx-max-width: 45px;" />
+            
+            <Separator orientation="VERTICAL" style="-fx-background-color: #6c757d;" />
+            
+            <Button fx:id="btnBold" text="B" styleClass="toolbar-button" style="-fx-min-width: 35px; -fx-max-width: 35px; -fx-font-weight: bold; -fx-font-size: 14px;" />
+            <Button fx:id="btnItalic" text="I" styleClass="toolbar-button" style="-fx-min-width: 35px; -fx-max-width: 35px; -fx-font-style: italic; -fx-font-size: 14px;" />
+            
+            <Separator orientation="VERTICAL" style="-fx-background-color: #6c757d;" />
+            
+            <Button fx:id="btnThemeToggle" text="🎨" styleClass="toolbar-button" style="-fx-min-width: 45px; -fx-max-width: 45px; -fx-font-size: 18px;" />
+            
+            <Region HBox.hgrow="ALWAYS" />
          </children>
          <padding>
             <Insets top="5.0" bottom="5.0" left="10.0" right="10.0" />
@@ -31,7 +55,7 @@
       </HBox>
       
       <!-- Such- und Ersetzungs-Panel -->
-      <VBox fx:id="searchReplacePanel" spacing="10" style="-fx-background-color: #f8f9fa; -fx-border-color: #dee2e6; -fx-border-width: 0 0 1 0;">
+      <VBox fx:id="searchReplacePanel" spacing="10" styleClass="search-replace-panel">
          <children>
             <!-- Erste Zeile: Suchfelder -->
             <HBox spacing="10" alignment="CENTER_LEFT">
@@ -40,16 +64,16 @@
                   <ComboBox fx:id="cmbSearchHistory" promptText="Suchtext eingeben..." prefWidth="250.0" editable="true" />
                   
                   <VBox spacing="2" alignment="CENTER">
-                     <Button fx:id="btnSaveSearch" text="Pattern speichern" styleClass="toolbar-button" />
-                     <Button fx:id="btnDeleteSearch" text="Pattern löschen" styleClass="toolbar-button" />
+                                       <Button fx:id="btnSaveSearch" text="Pattern speichern" styleClass="button primary" />
+                  <Button fx:id="btnDeleteSearch" text="Pattern löschen" styleClass="button danger" />
                   </VBox>
                   
                   <Label text="Ersetzen:" style="-fx-font-weight: bold;" />
                   <ComboBox fx:id="cmbReplaceHistory" promptText="Ersetzungstext eingeben..." prefWidth="250.0" editable="true" />
                   
                   <VBox spacing="2" alignment="CENTER">
-                     <Button fx:id="btnSaveReplace" text="Pattern speichern" styleClass="toolbar-button" />
-                     <Button fx:id="btnDeleteReplace" text="Pattern löschen" styleClass="toolbar-button" />
+                                       <Button fx:id="btnSaveReplace" text="Pattern speichern" styleClass="button primary" />
+                  <Button fx:id="btnDeleteReplace" text="Pattern löschen" styleClass="button danger" />
                   </VBox>
                </children>
             </HBox>
@@ -57,19 +81,19 @@
             <!-- Zweite Zeile: Optionen und Buttons -->
             <HBox spacing="10" alignment="CENTER_LEFT">
                <children>
-                  <CheckBox fx:id="chkRegexSearch" text="Regex" />
-                  <CheckBox fx:id="chkCaseSensitive" text="Groß-/Kleinschreibung" />
-                  <CheckBox fx:id="chkWholeWord" text="Ganzes Wort" />
+                  <CheckBox fx:id="chkRegexSearch" text="Regex" selected="false" />
+                  <CheckBox fx:id="chkCaseSensitive" text="Groß-/Kleinschreibung" selected="false" />
+                  <CheckBox fx:id="chkWholeWord" text="Ganzes Wort" selected="false" />
                   
-                  <Button fx:id="btnRegexHelp" text="?" styleClass="help-button" style="-fx-min-width: 25px; -fx-max-width: 25px; -fx-min-height: 25px; -fx-max-height: 25px; -fx-font-weight: bold;" />
+                  <Button fx:id="btnRegexHelp" text="?" styleClass="button" style="-fx-min-width: 25px; -fx-max-width: 25px; -fx-min-height: 25px; -fx-max-height: 25px; -fx-font-weight: bold;" />
                   
                   <Region HBox.hgrow="ALWAYS" />
                   
-                  <Button fx:id="btnFindPrevious" text="↑ Vorheriger" styleClass="search-button" />
-                  <Button fx:id="btnFindNext" text="↓ Nächster" styleClass="search-button" />
-                  <Button fx:id="btnFind" text="Suchen" styleClass="search-button" />
-                  <Button fx:id="btnReplace" text="Ersetzen" styleClass="search-button" />
-                  <Button fx:id="btnReplaceAll" text="Alle ersetzen" styleClass="search-button" />
+                  <Button fx:id="btnFindPrevious" text="↑ Vorheriger" styleClass="button" />
+                  <Button fx:id="btnFindNext" text="↓ Nächster" styleClass="button" />
+                  <Button fx:id="btnFind" text="Suchen" styleClass="button primary" />
+                  <Button fx:id="btnReplace" text="Ersetzen" styleClass="button primary" />
+                  <Button fx:id="btnReplaceAll" text="Alle ersetzen" styleClass="button primary" />
                   
                   <Label fx:id="lblMatchCount" text="" style="-fx-text-fill: #6c757d; -fx-font-size: 11px;" />
                </children>
@@ -84,7 +108,7 @@
       <SplitPane fx:id="mainSplitPane">
          <items>
             <!-- Makro-Panel (obere Seite) -->
-            <VBox fx:id="macroPanel" spacing="10" style="-fx-background-color: #f8f9fa; -fx-border-color: #dee2e6; -fx-border-width: 0 0 1 0;">
+            <VBox fx:id="macroPanel" spacing="10" styleClass="macro-panel">
                <children>
                   <!-- Makro-Liste und Steuerung -->
                   <HBox spacing="10" alignment="CENTER_LEFT">
@@ -92,13 +116,13 @@
                         <Label text="Makros:" style="-fx-font-weight: bold;" />
                         <ComboBox fx:id="cmbMacroList" promptText="Makro auswählen..." prefWidth="200.0" />
                         
-                        <Button fx:id="btnNewMacro" text="Neues Makro" styleClass="toolbar-button" />
-                        <Button fx:id="btnDeleteMacro" text="Makro löschen" styleClass="toolbar-button" />
-                        <Button fx:id="btnSaveMacro" text="Makro speichern" styleClass="toolbar-button" />
+                        <Button fx:id="btnNewMacro" text="Neues Makro" styleClass="button primary" />
+                        <Button fx:id="btnDeleteMacro" text="Makro löschen" styleClass="button danger" />
+                        <Button fx:id="btnSaveMacro" text="Makro speichern" styleClass="button primary" />
                         
                         <Region HBox.hgrow="ALWAYS" />
                         
-                        <Button fx:id="btnRunMacro" text="Makro ausführen" styleClass="search-button" />
+                        <Button fx:id="btnRunMacro" text="Makro ausführen" styleClass="button success" />
                      </children>
                   </HBox>
                   
@@ -162,7 +186,7 @@
             </VBox>
             
             <!-- Text-Editor (untere Seite) -->
-            <TextArea fx:id="textArea" promptText="Text hier eingeben..." />
+            <VBox fx:id="textAreaContainer" />
          </items>
       </SplitPane>
    </children>

@@ -7,21 +7,24 @@
 
 /* Toolbar-Buttons */
 .toolbar-button {
-    -fx-background-color: transparent;
-    -fx-border-color: transparent;
+    -fx-background-color: #6c757d;
+    -fx-border-color: #495057;
     -fx-border-radius: 4px;
     -fx-background-radius: 4px;
-    -fx-padding: 6px 12px;
+    -fx-padding: 6px 8px;
     -fx-font-size: 11px;
+    -fx-text-fill: #ffffff;
     -fx-cursor: hand;
+    -fx-font-weight: bold;
+    -fx-text-alignment: center;
 }
 
 .toolbar-button:hover {
-    -fx-background-color: #e9ecef;
+    -fx-background-color: #495057;
 }
 
 .toolbar-button:pressed {
-    -fx-background-color: #dee2e6;
+    -fx-background-color: #343a40;
 }
 
 /* Such-Buttons */
@@ -79,10 +82,10 @@
     -fx-border-width: 2px;
 }
 
-/* ComboBox-Styling */
+/* ComboBox-Styling - Dark Mode */
 .combo-box {
-    -fx-background-color: white;
-    -fx-border-color: #ced4da;
+    -fx-background-color: #495057;
+    -fx-border-color: #6c757d;
     -fx-border-radius: 4px;
     -fx-background-radius: 4px;
 }
@@ -97,17 +100,61 @@
 }
 
 .combo-box .arrow {
+    -fx-background-color: #ffffff;
+}
+
+.combo-box .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: #ffffff;
+}
+
+.combo-box .list-view {
+    -fx-background-color: #495057;
+    -fx-border-color: #6c757d;
+}
+
+.combo-box .list-cell:hover {
     -fx-background-color: #6c757d;
 }
 
-/* CheckBox-Styling */
+.combo-box .list-cell:selected {
+    -fx-background-color: #6c757d;
+    -fx-text-fill: #ffffff;
+}
+
+/* Spezielle ComboBox für Font-Size (nicht blau) */
+#cmbFontSize {
+    -fx-background-color: #495057;
+    -fx-border-color: #6c757d;
+}
+
+#cmbFontSize .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: #ffffff;
+}
+
+#cmbFontSize .list-view {
+    -fx-background-color: #495057;
+    -fx-border-color: #6c757d;
+}
+
+#cmbFontSize .list-cell:hover {
+    -fx-background-color: #6c757d;
+}
+
+#cmbFontSize .list-cell:selected {
+    -fx-background-color: #6c757d;
+    -fx-text-fill: #ffffff;
+}
+
+/* CheckBox-Styling - Dark Mode */
 .check-box {
-    -fx-text-fill: #495057;
+    -fx-text-fill: #ffffff;
 }
 
 .check-box .box {
-    -fx-background-color: white;
-    -fx-border-color: #ced4da;
+    -fx-background-color: #495057;
+    -fx-border-color: #6c757d;
     -fx-border-radius: 3px;
     -fx-background-radius: 3px;
 }
@@ -117,8 +164,17 @@
     -fx-border-color: #007bff;
 }
 
+.check-box:selected .mark {
+    -fx-background-color: #4CAF50 !important; /* Grün mit !important */
+}
+
+
 .check-box .mark {
-    -fx-background-color: white;
+    -fx-background-color: transparent;
+}
+
+.check-box:hover .box {
+    -fx-border-color: #007bff;
 }
 
 /* Label-Styling */
@@ -128,21 +184,39 @@
 
 /* Separator-Styling */
 .separator {
-    -fx-background-color: #dee2e6;
+    -fx-background-color: #495057;
+    -fx-pref-height: 2px;
+    -fx-min-height: 2px;
+    -fx-max-height: 2px;
 }
 
-/* ScrollBar-Styling */
+/* SplitPane Divider zwischen Makro-Panel und Text-Editor */
+.split-pane-divider {
+    -fx-background-color: #007bff;
+    -fx-pref-width: 6px;
+    -fx-min-width: 6px;
+    -fx-max-width: 6px;
+    -fx-padding: 0;
+    -fx-border-color: #0056b3;
+    -fx-border-width: 1px;
+}
+
+.split-pane-divider:hover {
+    -fx-background-color: #0056b3;
+}
+
+/* ScrollBar-Styling - Dunkel mit grünem Thumb */
 .scroll-bar {
-    -fx-background-color: #f8f9fa;
+    -fx-background-color: #343a40;
 }
 
 .scroll-bar .thumb {
-    -fx-background-color: #ced4da;
+    -fx-background-color: #28a745;
     -fx-background-radius: 4px;
 }
 
 .scroll-bar .thumb:hover {
-    -fx-background-color: #adb5bd;
+    -fx-background-color: #1e7e34;
 }
 
 .scroll-bar .increment-button,
@@ -153,7 +227,7 @@
 
 .scroll-bar .increment-arrow,
 .scroll-bar .decrement-arrow {
-    -fx-background-color: #6c757d;
+    -fx-background-color: #adb5bd;
 }
 
 /* Such-Panel Animation */
@@ -192,4 +266,319 @@
 
 .combo-box:hover {
     -fx-border-color: #adb5bd;
+}
+
+/* RichTextFX Search Match Styling */
+.search-match {
+    -rtfx-background-color: #ffff00;
+    -rtfx-border-color: #ffcc00;
+    -rtfx-border-width: 1px;
+}
+
+/* Suchen/Ersetzen Panel - Dark Mode */
+.search-replace-panel {
+    -fx-background-color: #343a40 !important;
+    -fx-border-color: #495057;
+    -fx-border-width: 1px;
+    -fx-padding: 10px;
+}
+
+/* Spezifischere Regel für das Such-Panel */
+VBox.search-replace-panel {
+    -fx-background-color: #343a40 !important;
+    -fx-border-color: #495057;
+    -fx-border-width: 1px;
+    -fx-padding: 10px;
+}
+
+.search-replace-panel Label {
+    -fx-text-fill: #ffffff;
+    -fx-font-weight: bold;
+}
+
+.search-replace-panel TextField, .search-replace-panel ComboBox {
+    -fx-background-color: #495057;
+    -fx-border-color: #6c757d;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+    -fx-padding: 8px;
+    -fx-text-fill: #ffffff;
+}
+
+.search-replace-panel TextField:focused, .search-replace-panel ComboBox:focused {
+    -fx-border-color: #007bff;
+}
+
+.search-replace-panel Button {
+    -fx-background-color: #007bff;
+    -fx-text-fill: #ffffff;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+    -fx-padding: 8px 16px;
+    -fx-cursor: hand;
+    -fx-font-weight: bold;
+}
+
+.search-replace-panel Button:hover {
+    -fx-background-color: #0056b3;
+}
+
+.search-replace-panel Button:pressed {
+    -fx-background-color: #004085;
+}
+
+/* Makro-Panel - Dark Mode */
+.macro-panel {
+    -fx-background-color: #343a40;
+    -fx-border-color: #495057;
+    -fx-border-width: 1px;
+    -fx-padding: 10px;
+}
+
+.macro-panel Label {
+    -fx-text-fill: #ffffff;
+    -fx-font-weight: bold;
+}
+
+.macro-panel TextField, .macro-panel ComboBox, .macro-panel TextArea {
+    -fx-background-color: #495057;
+    -fx-border-color: #6c757d;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+    -fx-padding: 8px;
+    -fx-text-fill: #ffffff;
+}
+
+.macro-panel TextField:focused, .macro-panel ComboBox:focused, .macro-panel TextArea:focused {
+    -fx-border-color: #007bff;
+}
+
+/* Spezifische ComboBox-Styling für Makros */
+.macro-panel .combo-box {
+    -fx-background-color: #495057;
+    -fx-border-color: #6c757d;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+}
+
+.macro-panel .combo-box:focused {
+    -fx-border-color: #007bff;
+    -fx-border-width: 2px;
+}
+
+.macro-panel .combo-box .arrow-button {
+    -fx-background-color: transparent;
+}
+
+.macro-panel .combo-box .arrow {
+    -fx-background-color: #ffffff;
+}
+
+.macro-panel .combo-box .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: #ffffff;
+}
+
+.macro-panel .combo-box .list-view {
+    -fx-background-color: #495057;
+    -fx-border-color: #6c757d;
+}
+
+.macro-panel .combo-box .list-cell:hover {
+    -fx-background-color: #6c757d;
+}
+
+.macro-panel .combo-box .list-cell:selected {
+    -fx-background-color: #6c757d;
+    -fx-text-fill: #ffffff;
+}
+
+.macro-panel Button {
+    -fx-background-color: #007bff;
+    -fx-text-fill: #ffffff;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+    -fx-padding: 8px 16px;
+    -fx-cursor: hand;
+    -fx-font-weight: bold;
+}
+
+.macro-panel Button:hover {
+    -fx-background-color: #0056b3;
+}
+
+.macro-panel Button:pressed {
+    -fx-background-color: #004085;
+}
+
+.macro-panel .list-view {
+    -fx-background-color: #495057;
+    -fx-border-color: #6c757d;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+}
+
+.macro-panel .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: #ffffff;
+    -fx-padding: 8px;
+}
+
+.macro-panel .list-cell:selected {
+    -fx-background-color: #007bff;
+    -fx-text-fill: #ffffff;
+}
+
+.macro-panel .list-cell:hover {
+    -fx-background-color: #6c757d;
+}
+
+/* TableView-Styling für Makros im Editor */
+.macro-panel .table-view {
+    -fx-background-color: #343a40;
+    -fx-border-color: #495057;
+    -fx-border-width: 1px;
+}
+
+.macro-panel .table-view .column-header {
+    -fx-background-color: #343a40;
+    -fx-border-color: #495057;
+    -fx-border-width: 0 0 1 0;
+}
+
+.macro-panel .table-view .column-header-background {
+    -fx-background-color: #343a40;
+}
+
+/* Spezifische Regel für die Makro-Tabelle - Hintergrund komplett dunkel */
+.macro-panel .table-view .filler {
+    -fx-background-color: #343a40;
+}
+
+.macro-panel .table-view .placeholder .label {
+    -fx-background-color: #343a40;
+    -fx-text-fill: #6c757d;
+}
+
+.macro-panel .table-view .column-header .label {
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+
+.macro-panel .table-view .table-row-cell {
+    -fx-background-color: #343a40;
+    -fx-text-fill: white;
+}
+
+.macro-panel .table-view .table-row-cell:odd {
+    -fx-background-color: #3a4046;
+}
+
+.macro-panel .table-view .table-row-cell:selected {
+    -fx-background-color: #007bff;
+    -fx-text-fill: white;
+}
+
+.macro-panel .table-view .table-row-cell:hover {
+    -fx-background-color: #495057;
+}
+
+.macro-panel .table-view .table-cell {
+    -fx-text-fill: white;
+}
+
+.macro-panel .table-view .table-row-cell:selected .table-cell {
+    -fx-text-fill: white;
+}
+
+.macro-panel .table-view .table-row-cell:selected:hover {
+    -fx-background-color: #0056b3;
+    -fx-text-fill: white;
+}
+
+/* Allgemeine Button-Vereinheitlichung */
+.button {
+    -fx-background-color: #6c757d;
+    -fx-border-color: #495057;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+    -fx-padding: 6px 12px;
+    -fx-font-size: 11px;
+    -fx-text-fill: #ffffff;
+    -fx-cursor: hand;
+    -fx-font-weight: bold;
+}
+
+/* Spezielle Regel für den Help-Button (?) */
+.button#btnRegexHelp {
+    -fx-background-color: #007bff;
+    -fx-border-color: #0056b3;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-padding: 4px 8px;
+    -fx-min-width: 24px;
+    -fx-max-width: 24px;
+    -fx-min-height: 24px;
+    -fx-max-height: 24px;
+}
+
+.button#btnRegexHelp:hover {
+    -fx-background-color: #0056b3;
+}
+
+.button#btnRegexHelp:pressed {
+    -fx-background-color: #004085;
+}
+
+.button:hover {
+    -fx-background-color: #495057;
+}
+
+.button:pressed {
+    -fx-background-color: #343a40;
+}
+
+/* Primary Buttons (wie Speichern, Öffnen, etc.) */
+.button.primary {
+    -fx-background-color: #007bff;
+    -fx-border-color: #0056b3;
+}
+
+.button.primary:hover {
+    -fx-background-color: #0056b3;
+}
+
+.button.primary:pressed {
+    -fx-background-color: #004085;
+}
+
+/* Success Buttons (wie Makro ausführen) */
+.button.success {
+    -fx-background-color: #28a745;
+    -fx-border-color: #1e7e34;
+}
+
+.button.success:hover {
+    -fx-background-color: #1e7e34;
+}
+
+.button.success:pressed {
+    -fx-background-color: #155724;
+}
+
+/* Danger Buttons (wie Löschen) */
+.button.danger {
+    -fx-background-color: #dc3545;
+    -fx-border-color: #c82333;
+}
+
+.button.danger:hover {
+    -fx-background-color: #c82333;
+}
+
+.button.danger:pressed {
+    -fx-background-color: #a71e2a;
 } 
