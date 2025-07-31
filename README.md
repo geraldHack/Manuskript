@@ -1,173 +1,247 @@
-# Manuskript - DOCX Verarbeitung
+# Manuskript - DOCX Verarbeitung & Text-Editor
 
-**Hauptzweck:** JavaFX-App zum Zusammenführen mehrerer DOCX-Dateien zu einem Manuskript mit automatischer Überarbeitung
+**Hauptzweck:** JavaFX-Anwendung zum Zusammenführen mehrerer DOCX-Dateien zu einem Manuskript mit integriertem Text-Editor und automatischer Nachbearbeitung
 
-Eine JavaFX-Anwendung zur Verarbeitung und automatischen Nachbearbeitung von DOCX-Dateien zu einem zusammenhängenden Textdokument.
+Eine moderne JavaFX-Anwendung zur Verarbeitung und automatischen Nachbearbeitung von DOCX-Dateien zu einem zusammenhängenden Textdokument mit professionellem Text-Editor.
 
 ## 🎯 Kernfunktionen
-- **Datei-Auswahl:** Verzeichnis mit DOCX-Dateien laden
-- **Regex-Filterung:** Intelligente Dateisuche mit regulären Ausdrücken
-- **Text-Extraktion:** DOCX zu lesbarem Text konvertieren
-- **Kapitel-Erkennung:** Automatische oder manuelle Kapitel-Nummerierung
-- **Überarbeitungs-Makros:** Typische Fehler/Schwächen automatisch beheben: z.B. Ausrufungszeichen vereintlichen, überzählige Leerzeichen/Leerzeilen entfernen, drei Punkte zu Auslassungzeichen, -- zu Gedankenstrich usw.
-- **Recent-Liste:** Letzte 10 Regex-Patterns als Dropdown
+
+### 📁 Datei-Verwaltung
+- **Verzeichnis-Auswahl:** Verzeichnis mit DOCX-Dateien laden
+- **Intelligente Filterung:** Einfache Textsuche und Regex-Filterung
+- **Zwei-Tabellen-Ansicht:** Verfügbare Dateien links, ausgewählte Dateien rechts
+- **Drag & Drop:** Intuitive Datei-Auswahl zwischen Tabellen
 - **Automatische Sortierung:** Zahlen in Dateinamen werden erkannt und sortiert
-- **Regex-Suche/Ersetzung:** Im Text-Editor mit Such-Historie
 
-**Ideal für:** Autoren, die mehrere DOCX-Kapitel zu einem Buch zusammenführen möchten.
+### 📝 Text-Editor
+- **Vollwertiger Editor:** Syntax-Highlighting, Zeilennummern, Themes
+- **Such- und Ersetzungsfunktionen:** Mit Regex-Unterstützung und Historie
+- **Datei-Operationen:** Öffnen, Speichern, Speichern als
+- **Export-Funktionen:** RTF, DOCX, Markdown, HTML, TXT
+- **Keyboard-Shortcuts:** Professionelle Tastenkombinationen
 
-## Funktionen
+### 🔧 Makro-System
+- **Automatische Text-Bereinigung:** 13 vordefinierte Schritte
+- **Anführungszeichen-Konvertierung:** Französische ↔ Deutsche Anführungszeichen
+- **Apostrophe-Korrektur:** Verschiedene Apostrophe-Formen korrigieren
+- **Vollständig anpassbar:** Eigene Makros erstellen und bearbeiten
+- **CSV-Export:** Makros können exportiert und geteilt werden
 
-- **Verzeichnis-Auswahl**: Wählen Sie ein Verzeichnis mit DOCX-Dateien aus
-- **Datei-Übersicht**: Tabellarische Darstellung aller gefundenen DOCX-Dateien
-- **Filterung**: Durchsuchen Sie die Dateien nach Namen
-- **Regex-Filterung**: Erweiterte Filterung mit regulären Ausdrücken (z.B. `*[0-9][0-9]*`)
-- **RegEx-Speicherung**: Regex können zur Wiederverwendung gespeichert werden
-- **Automatische Regex-Sortierung**: Gefilterte Ergebnisse werden automatisch nach Zahlen sortiert
-- **Sortierung**: Sortieren Sie nach Dateiname, Größe oder Änderungsdatum
-- **Zwei-Tabellen-Ansicht**: Verfügbare Dateien links, ausgewählte Dateien rechts
-- **Elegante Filterung**: Gefilterte Dateien verschwinden automatisch aus der linken Tabelle
-- **Drag & Drop**: Ziehen Sie Dateien zwischen den Tabellen
-- **Interne Umsortierung**: Alt+↑↓ für präzise Kontrolle
-- **Externe Verschiebung**: Drag & Drop mit Strg/Shift-Taste von rechts nach links
-- **Intuitive Auswahl**: Einfaches Hinzufügen/Entfernen von Dateien
-- **Mehrfachauswahl**: Wählen Sie einzelne oder alle Dateien zur Verarbeitung aus
-- **Verzeichnis-Memory**: Das letzte verwendete Verzeichnis wird automatisch gespeichert
-- **Regex-Memory**: Die letzten 10 verwendeten Regex-Patterns werden automatisch gespeichert
-- **Export mit Dateinamen als Titel**: Beim Export (Markdown, HTML, TXT) wird immer der Dateiname (ohne Endung) als Titel verwendet – keine automatische Kapitel-Erkennung mehr
-- **Text-Extraktion**: Konvertiert DOCX-Dateien in lesbaren Text
-- **Automatische Nachbearbeitung mit Makros**: Siehe unten
-- **Eleganter Text-Editor**: Vollwertiger Editor mit Such- und Ersetzungsfunktionen, RTF- und DOCX-Export
-- **Regex-Suche und -Ersetzung**: Erweiterte Textbearbeitung mit regulären Ausdrücken
-- **Such-Historie**: Speichert die letzten 20 Such- und Ersetzungs-Patterns
-- **Datei-Operationen**: Öffnen, Speichern und Speichern als
-- **Keyboard-Shortcuts**: Ctrl+F (Suchen), Ctrl+S (Speichern), Ctrl+O (Öffnen), Ctrl+N (Neu)
-- **Fortschrittsanzeige**: Zeigt den Verarbeitungsfortschritt an
+## 🚀 Funktionen im Detail
 
-## Automatische Nachbearbeitung mit Makros
+### Datei-Verarbeitung
+- **DOCX-Extraktion:** Konvertiert DOCX-Dateien in lesbaren Text
+- **Regex-Filterung:** Erweiterte Filterung mit regulären Ausdrücken
+- **Verzeichnis-Memory:** Letztes Verzeichnis wird automatisch gespeichert
+- **Regex-Memory:** Letzte 10 Regex-Patterns werden gespeichert
+- **Mehrfachauswahl:** Einzelne oder alle Dateien zur Verarbeitung auswählen
 
-Die Anwendung bietet eine leistungsfähige Makro-Funktion zur automatischen Text-Bereinigung und Nachbearbeitung. 
+### Text-Editor Features
+- **Syntax-Highlighting:** Für Markdown und andere Formate
+- **Theme-System:** Hell/Dunkel-Modi und weitere Themes
+- **Font-Größe:** Dynamische Schriftgrößen-Anpassung
+- **Formatierung:** Fett, Kursiv und weitere Formatierungen
+- **Undo/Redo:** Vollständige Rückgängig-Funktion
+- **Status-Anzeige:** Zeilen, Wörter, Zeichen zählen
 
-- **Makro "Text-Bereinigung"**: Enthält 12 typische Schritte zur professionellen Nachbearbeitung, z.B.:
-  - Mehrfache Leerzeichen/Leerzeilen reduzieren
-  - Gerade und französische Anführungszeichen ersetzen
-  - Auslassungszeichen und Gedankenstriche korrigieren
-  - Kommas und Sonderzeichen bereinigen
-  - Regex-basierte Suchen/Ersetzungen (z.B. für Zitate, Satzzeichen, etc.)
-- **Makro "Französische → Deutsche Anführungszeichen"**: Konvertiert `»text«` zu `„text"` und `›text‹` zu `‚text'`
-- **Makro "Deutsche → Französische Anführungszeichen"**: Konvertiert `„text"` zu `»text«` und `‚text'` zu `›text‹`
-- **Makro "Apostrophe korrigieren"**: Korrigiert verschiedene Apostrophe-Formen (`, `, ´, ') zu korrekten Apostrophen (')
-- **Makros können als CSV exportiert werden**
-- **Makros sind vollständig anpassbar**: Sie können eigene Schritte hinzufügen, entfernen oder bearbeiten
-- **Makros können auf beliebige Texte angewendet werden**
-- **Makro-Editor**: Übersichtliche Oberfläche zur Verwaltung und Bearbeitung der Makros
+### Such- und Ersetzungsfunktionen
+- **Regex-Unterstützung:** Erweiterte Suche mit regulären Ausdrücken
+- **Such-Historie:** Letzte 20 Such- und Ersetzungs-Patterns
+- **Optionen:** Case-Sensitive, Ganzes Wort, Regex
+- **Navigation:** Vor/Zurück durch Suchergebnisse
+- **Ersetzen:** Einzeln oder Alle ersetzen
 
-## Export: Immer Dateiname als Titel
+### Makro-System
+- **Text-Bereinigung:** 13 Schritte zur professionellen Nachbearbeitung
+- **Anführungszeichen:** Französische ↔ Deutsche Konvertierung
+- **Apostrophe:** Korrektur verschiedener Apostrophe-Formen
+- **Makro-Editor:** Übersichtliche Verwaltung und Bearbeitung
+- **Schritt-für-Schritt:** Einzelne Schritte aktivieren/deaktivieren
+- **Cursor-Navigation:** Automatisches Folgen verschobener Schritte
 
-Beim Export (Markdown, HTML, TXT) wird **immer der Dateiname (ohne Endung) als Titel** verwendet:
-- **Markdown**: `# Dateiname`
-- **HTML**: `<h1>Dateiname</h1>`
-- **Plain Text**: `Dateiname` (mit Leerzeile danach)
+## 📦 Voraussetzungen
 
-Es gibt **keine automatische Kapitel- oder Überschriften-Erkennung** mehr. Der Titel ist immer eindeutig und nachvollziehbar.
+- **Java:** 17 oder höher
+- **Maven:** 3.6 oder höher
+- **Betriebssystem:** Windows, macOS, Linux
 
-## Voraussetzungen
+## 🛠️ Installation und Ausführung
 
-- Java 17 oder höher
-- Maven 3.6 oder höher
+### 1. Projekt klonen
+```bash
+git clone https://github.com/geraldHack/SudowriteManuskript.git
+cd SudowriteManuskript
+```
 
-## Installation und Ausführung
+### 2. Maven-Abhängigkeiten installieren
+```bash
+mvn clean install
+```
 
-1. **Projekt klonen oder herunterladen**
-2. **Maven-Abhängigkeiten installieren**:
-   ```bash
-   mvn clean install
-   ```
-3. **Anwendung starten**:
-   ```bash
-   mvn javafx:run
-   ```
+### 3. Anwendung starten
+```bash
+mvn javafx:run
+```
 
-## Verwendung
+## 📖 Verwendung
 
-1. **Verzeichnis auswählen**: 
-   - Klicken Sie auf "Verzeichnis auswählen" und wählen Sie ein Verzeichnis mit DOCX-Dateien
-   - Das letzte verwendete Verzeichnis wird automatisch vorgeschlagen
-   - Bei Programmstart wird das letzte Verzeichnis automatisch geladen
-2. **Dateien filtern**: 
-   - Verwenden Sie das Suchfeld für einfache Textsuche
-   - Aktivieren Sie "Regex aktiv" und verwenden Sie reguläre Ausdrücke für erweiterte Filterung
-   - **Recent-Liste**: Wählen Sie aus den letzten 10 verwendeten Regex-Patterns oder geben Sie neue ein
-   - Wählen Sie "Aufsteigend" oder "Absteigend" für die automatische Sortierung
-3. **Dateien auswählen**: 
-   - **Drag & Drop**: Ziehen Sie Dateien von links nach rechts (oder umgekehrt)
-   - **Pfeil-Buttons**: Verwenden Sie → und ← Buttons zwischen den Tabellen
-   - **Mehrfachauswahl**: Wählen Sie mehrere Dateien gleichzeitig aus
-4. **Verarbeitung**: Wählen Sie aus der rechten Tabelle die zu verarbeitenden Dateien aus
-5. **Verarbeitung starten**: Klicken Sie auf "Ausgewählte verarbeiten" oder "Alle verarbeiten"
-6. **Ergebnis anzeigen**: Das verarbeitete Ergebnis wird im eleganten Text-Editor angezeigt
-7. **Text bearbeiten**: 
-   - **Suchen/Ersetzen**: Ctrl+F oder Button "Suchen/Ersetzen"
-   - **Regex-Patterns**: Aktivieren Sie "Regex" für erweiterte Suche
-   - **Such-Historie**: Wählen Sie aus den letzten 20 Such-Patterns
-   - **Datei speichern**: Ctrl+S oder Button "Speichern"
-   - **RTF-Export**: Button "Als RTF exportieren" für Markdown-Dokumente
-   - **DOCX-Export**: Button "Als DOCX exportieren" für Markdown-Dokumente mit Formatierung
+### Schritt 1: Verzeichnis auswählen
+1. Klicken Sie auf "Verzeichnis auswählen"
+2. Wählen Sie ein Verzeichnis mit DOCX-Dateien
+3. Das letzte Verzeichnis wird automatisch vorgeschlagen
 
-## Regex-Filterung
+### Schritt 2: Dateien filtern und auswählen
+1. **Einfache Suche:** Verwenden Sie das Suchfeld für Textsuche
+2. **Regex-Filterung:** Aktivieren Sie "Regex aktiv" für erweiterte Filterung
+3. **Dateien auswählen:** Drag & Drop zwischen den Tabellen
+4. **Sortierung:** Wählen Sie "Aufsteigend" oder "Absteigend"
 
-Die Anwendung unterstützt erweiterte Filterung mit regulären Ausdrücken:
+### Schritt 3: Verarbeitung starten
+1. Wählen Sie Dateien aus der rechten Tabelle
+2. Klicken Sie auf "Ausgewählte verarbeiten" oder "Alle verarbeiten"
+3. Das Ergebnis wird im Text-Editor angezeigt
 
-**Beispiele:**
+### Schritt 4: Text bearbeiten
+1. **Suchen/Ersetzen:** Ctrl+F oder Button "Suchen/Ersetzen"
+2. **Makros anwenden:** Button "Makros" für automatische Bereinigung
+3. **Datei speichern:** Ctrl+S oder Button "Speichern"
+4. **Exportieren:** RTF, DOCX, Markdown, HTML, TXT
+
+## 🔍 Regex-Filterung
+
+### Beispiele für Datei-Filterung
 - `*[0-9][0-9]*` - Dateien mit zwei aufeinanderfolgenden Ziffern
 - `.*kapitel.*` - Dateien mit "kapitel" im Namen (case-insensitive)
 - `^[A-Z].*` - Dateien, die mit einem Großbuchstaben beginnen
-- `.*\.docx$` - Alle DOCX-Dateien (Standard)
 - `[0-9]{2,3}` - Dateien mit 2-3 Ziffern
 
-**Tipp:** Aktivieren Sie "Regex aktiv" und testen Sie Ihre Patterns im Suchfeld.
+### Beispiele für Text-Suche
+- `\b[A-Z][a-z]+` - Wörter, die mit Großbuchstaben beginnen
+- `[.!?]{2,}` - Mehrfache Satzzeichen
+- `\s{2,}` - Mehrfache Leerzeichen
+- `[""''„"‚']` - Verschiedene Anführungszeichen
 
-**Automatische Sortierung:** Wenn Sie ein Regex-Pattern mit Zahlen verwenden, werden die gefilterten Ergebnisse automatisch nach diesen Zahlen sortiert. Wählen Sie "Aufsteigend" oder "Absteigend" für die Sortierrichtung.
+## 🎨 Makro-System
 
-**Elegante Filterung:**
-- **Automatische Ausblendung**: Gefilterte Dateien verschwinden automatisch aus der linken Tabelle
-- **Keine Duplikate**: Ausgewählte Dateien werden in der linken Tabelle nicht mehr angezeigt
-- **Saubere Trennung**: Klare Unterscheidung zwischen verfügbaren und ausgewählten Dateien
+### Vordefinierte Makros
 
-**Zwei-Tabellen-Ansicht:** 
-- **Linke Tabelle**: Zeigt verfügbare DOCX-Dateien (ohne ausgewählte)
-- **Rechte Tabelle**: Zeigt die für die Verarbeitung ausgewählten Dateien
-- **Drag & Drop**: Ziehen Sie Dateien zwischen den Tabellen für einfache Auswahl
-- **Interne Umsortierung**: Alt+↑↓ für präzise Kontrolle
-- **Externe Verschiebung**: Drag & Drop mit Strg/Shift-Taste von rechts nach links
-- **Schnelle Verschiebung**: Doppelklick verschiebt Datei nach oben
-- **Pfeil-Buttons**: Alternative zu Drag & Drop für präzise Kontrolle
+#### Text-Bereinigung (13 Schritte)
+1. Mehrfache Leerzeichen reduzieren
+2. Mehrfache Leerzeilen reduzieren
+3. Gerade Anführungszeichen öffnen
+4. Gerade Anführungszeichen schließen
+5. Komma vor Anführungszeichen I
+6. Einfache Anführungszeichen Französisch
+7. Anführungszeichen Französisch
+8. Auslassungszeichen
+9. Buchstabe direkt an Auslassungszeichen
+10. Buchstabe direkt nach Auslassungszeichen
+11. Gedankenstrich
+12. Komma vor Anführungszeichen
+13. Einfache Anführungszeichen Französisch
 
-## Projektstruktur
+#### Französische → Deutsche Anführungszeichen (2 Schritte)
+1. Französische zu deutsche Anführungszeichen
+2. Französische zu deutsche einfache Anführungszeichen
+
+#### Apostrophe korrigieren (4 Schritte)
+1. Apostrophe zwischen Buchstaben korrigieren
+2. Grave-Akzent zu Apostrophe
+3. Akut-Akzent zu Apostrophe
+4. Typografisches Apostrophe korrigieren
+
+### Makro-Verwaltung
+- **Makros erstellen:** Eigene Makros mit benutzerdefinierten Schritten
+- **Schritte bearbeiten:** Einzelne Schritte anpassen oder löschen
+- **Schritte verschieben:** Reihenfolge mit Drag & Drop ändern
+- **CSV-Export:** Makros können exportiert und geteilt werden
+
+## ⌨️ Keyboard-Shortcuts
+
+### Allgemein
+- `Ctrl+N` - Neue Datei
+- `Ctrl+O` - Datei öffnen
+- `Ctrl+S` - Speichern
+- `Ctrl+Shift+S` - Speichern als
+- `Ctrl+Q` - Beenden
+
+### Text-Editor
+- `Ctrl+F` - Suchen/Ersetzen
+- `F3` - Nächstes Suchergebnis
+- `Shift+F3` - Vorheriges Suchergebnis
+- `Ctrl+Z` - Rückgängig
+- `Ctrl+Y` - Wiederholen
+- `Ctrl+A` - Alles auswählen
+
+### Makros
+- `Ctrl+M` - Makro-Panel öffnen/schließen
+- `Ctrl+R` - Aktuelles Makro ausführen
+
+## 🏗️ Projektstruktur
 
 ```
 src/
 ├── main/
 │   ├── java/com/manuskript/
 │   │   ├── Main.java              # Hauptklasse
-│   │   ├── MainController.java    # UI-Controller
+│   │   ├── MainController.java    # Datei-Verwaltung Controller
+│   │   ├── EditorWindow.java      # Text-Editor Controller
 │   │   ├── DocxFile.java          # Datenmodell für DOCX-Dateien
-│   │   └── DocxProcessor.java     # DOCX-Verarbeitung
+│   │   ├── DocxProcessor.java     # DOCX-Verarbeitung
+│   │   ├── Macro.java             # Makro-Datenmodell
+│   │   └── MacroStep.java         # Makro-Schritt-Datenmodell
 │   ├── resources/
 │   │   ├── fxml/
-│   │   │   └── main.fxml          # UI-Layout
-│   │   └── css/
-│   │       └── styles.css         # Styling
+│   │   │   ├── main.fxml          # Hauptfenster-Layout
+│   │   │   └── editor.fxml        # Editor-Fenster-Layout
+│   │   ├── css/
+│   │   │   ├── styles.css         # Hauptfenster-Styling
+│   │   │   └── editor.css         # Editor-Styling
+│   │   └── logback.xml            # Logging-Konfiguration
 └── test/                          # Unit-Tests (optional)
 ```
 
-## Technologien
+## 🛠️ Technologien
 
-- **JavaFX**: Benutzeroberfläche
-- **Apache POI**: DOCX-Datei-Verarbeitung
-- **Maven**: Build-Management
-- **SLF4J/Logback**: Logging
+- **JavaFX:** Moderne Benutzeroberfläche
+- **Apache POI:** DOCX-Datei-Verarbeitung
+- **RichTextFX:** Erweiterter Text-Editor
+- **Maven:** Build-Management
+- **SLF4J/Logback:** Logging
+- **Java Preferences API:** Einstellungen speichern
 
-## Lizenz
+## 📝 Changelog
 
-Dieses Projekt steht unter der MIT-Lizenz.
+### Version 1.0 (Aktuell)
+- ✅ Vollwertiger Text-Editor mit Syntax-Highlighting
+- ✅ Makro-System für automatische Text-Bereinigung
+- ✅ Drag & Drop Datei-Verwaltung
+- ✅ Regex-Filterung und -Suche
+- ✅ Theme-System (Hell/Dunkel)
+- ✅ Export-Funktionen (RTF, DOCX, Markdown, HTML, TXT)
+- ✅ Keyboard-Shortcuts
+- ✅ Undo/Redo-System
+- ✅ Cursor-Navigation in Makro-Tabelle
+
+## 🤝 Beitragen
+
+1. Fork das Repository
+2. Erstelle einen Feature-Branch (`git checkout -b feature/AmazingFeature`)
+3. Committe deine Änderungen (`git commit -m 'Add some AmazingFeature'`)
+4. Push zum Branch (`git push origin feature/AmazingFeature`)
+5. Öffne einen Pull Request
+
+## 📄 Lizenz
+
+Dieses Projekt steht unter der MIT-Lizenz. Siehe die [LICENSE](LICENSE) Datei für Details.
+
+## 🙏 Danksagungen
+
+- **Apache POI** für DOCX-Verarbeitung
+- **RichTextFX** für den erweiterten Text-Editor
+- **JavaFX** für die moderne Benutzeroberfläche
+- **Maven** für das Build-Management
+
+---
+
+**Entwickelt für Autoren, die mehrere DOCX-Kapitel zu einem professionellen Manuskript zusammenführen möchten.** 📚✨
