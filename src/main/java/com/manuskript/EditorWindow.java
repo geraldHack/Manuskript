@@ -19,6 +19,7 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.scene.input.KeyCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -426,6 +427,9 @@ public class EditorWindow implements Initializable {
     private void setupKeyboardShortcuts() {
         // Keyboard-Shortcuts für den Editor
         codeArea.setOnKeyPressed(event -> {
+            // Debug-Ausgabe für Keyboard-Events
+            logger.debug("Key pressed: " + event.getCode() + ", Shift: " + event.isShiftDown() + ", Ctrl: " + event.isControlDown());
+            
             if (event.isControlDown()) {
                 switch (event.getCode()) {
                     case F:
@@ -453,18 +457,16 @@ public class EditorWindow implements Initializable {
                         event.consume();
                         break;
                 }
-            } else {
+            } else if (event.getCode() == KeyCode.F3) {
                 // F3 und Shift+F3 für Suchen-Navigation
-                switch (event.getCode()) {
-                    case F3:
-                        if (event.isShiftDown()) {
-                            findPrevious();
-                        } else {
-                            findNext();
-                        }
-                        event.consume();
-                        break;
+                if (event.isShiftDown()) {
+                    logger.debug("Shift+F3 pressed - calling findPrevious()");
+                    findPrevious();
+                } else {
+                    logger.debug("F3 pressed - calling findNext()");
+                    findNext();
                 }
+                event.consume();
             }
         });
     }
