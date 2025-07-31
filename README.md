@@ -21,7 +21,7 @@
 - **Datei-Übersicht**: Tabellarische Darstellung aller gefundenen DOCX-Dateien
 - **Filterung**: Durchsuchen Sie die Dateien nach Namen
 - **Regex-Filterung**: Erweiterte Filterung mit regulären Ausdrücken (z.B. `*[0-9][0-9]*`)
-- **Recent-Liste**: Speichert die letzten 10 verwendeten Regex-Patterns als editierbares Dropdown
+- **RegEx-Speicherung**: Regex können zur Wiederverwendung gespeichert werden
 - **Automatische Regex-Sortierung**: Gefilterte Ergebnisse werden automatisch nach Zahlen sortiert
 - **Sortierung**: Sortieren Sie nach Dateiname, Größe oder Änderungsdatum
 - **Zwei-Tabellen-Ansicht**: Verfügbare Dateien links, ausgewählte Dateien rechts
