@@ -13,6 +13,8 @@
             <Button fx:id="btnOpen" text="Öffnen" styleClass="toolbar-button" />
             <Button fx:id="btnSave" text="Speichern" styleClass="toolbar-button" />
             <Button fx:id="btnSaveAs" text="Speichern als..." styleClass="toolbar-button" />
+            <Button fx:id="btnExportRTF" text="Als RTF exportieren" styleClass="toolbar-button" />
+            <Button fx:id="btnExportDOCX" text="Als DOCX exportieren" styleClass="toolbar-button" />
             
             <Separator orientation="VERTICAL" />
             
@@ -92,6 +94,7 @@
                         
                         <Button fx:id="btnNewMacro" text="Neues Makro" styleClass="toolbar-button" />
                         <Button fx:id="btnDeleteMacro" text="Makro löschen" styleClass="toolbar-button" />
+                        <Button fx:id="btnSaveMacro" text="Makro speichern" styleClass="toolbar-button" />
                         
                         <Region HBox.hgrow="ALWAYS" />
                         

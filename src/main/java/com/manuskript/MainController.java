@@ -117,7 +117,7 @@ public class MainController implements Initializable {
         
         // Format-Auswahl
         cmbOutputFormat.getItems().addAll(DocxProcessor.OutputFormat.values());
-        cmbOutputFormat.setValue(DocxProcessor.OutputFormat.HTML);
+        cmbOutputFormat.setValue(DocxProcessor.OutputFormat.MARKDOWN);
         
         // Mehrfachauswahl aktivieren
         tableViewAvailable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
@@ -592,7 +592,9 @@ public class MainController implements Initializable {
             }
             
             // Öffne den Editor mit dem verarbeiteten Text
-            openEditor(result.toString());
+            // Verwende den Namen der ersten Datei als Basis für den Dateinamen
+            String baseFileName = files.isEmpty() ? "manuskript" : files.get(0).getFileName();
+            openEditor(result.toString(), baseFileName);
             updateStatus(processed + " Dateien erfolgreich verarbeitet - Editor geöffnet");
             
         } catch (Exception e) {
@@ -602,7 +604,7 @@ public class MainController implements Initializable {
         }
     }
     
-    private void openEditor(String text) {
+    private void openEditor(String text, String baseFileName) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/editor.fxml"));
             Parent root = loader.load();
@@ -610,11 +612,18 @@ public class MainController implements Initializable {
             EditorWindow editorController = loader.getController();
             editorController.setText(text);
             
+            // Erstelle eine virtuelle Datei mit dem ursprünglichen Namen
+            File virtualFile = new File(baseFileName);
+            editorController.setCurrentFile(virtualFile);
+            
             // Setze das aktuelle Format für die Dateiendung
             DocxProcessor.OutputFormat currentFormat = cmbOutputFormat.getValue();
             if (currentFormat != null) {
                 editorController.setOutputFormat(currentFormat);
             }
+            
+            // Übergebe den DocxProcessor für DOCX-Export
+            editorController.setDocxProcessor(docxProcessor);
             
             Stage editorStage = new Stage();
             editorStage.setTitle("Manuskript Editor");

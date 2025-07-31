@@ -1,6 +1,6 @@
 # Manuskript - DOCX Verarbeitung
 
-Eine JavaFX-Anwendung zur Verarbeitung von DOCX-Dateien zu einem zusammenhängenden Textdokument.
+Eine JavaFX-Anwendung zur Verarbeitung und automatischen Nachbearbeitung von DOCX-Dateien zu einem zusammenhängenden Textdokument.
 
 ## Funktionen
 
@@ -20,14 +20,42 @@ Eine JavaFX-Anwendung zur Verarbeitung von DOCX-Dateien zu einem zusammenhängen
 - **Mehrfachauswahl**: Wählen Sie einzelne oder alle Dateien zur Verarbeitung aus
 - **Verzeichnis-Memory**: Das letzte verwendete Verzeichnis wird automatisch gespeichert
 - **Regex-Memory**: Die letzten 10 verwendeten Regex-Patterns werden automatisch gespeichert
-- **Automatische Kapitel-Erkennung**: Erkennt vorhandene Kapitel-Header oder generiert automatisch neue
+- **Export mit Dateinamen als Titel**: Beim Export (Markdown, HTML, TXT) wird immer der Dateiname (ohne Endung) als Titel verwendet – keine automatische Kapitel-Erkennung mehr
 - **Text-Extraktion**: Konvertiert DOCX-Dateien in lesbaren Text
-- **Eleganter Text-Editor**: Vollwertiger Editor mit Such- und Ersetzungsfunktionen
+- **Automatische Nachbearbeitung mit Makros**: Siehe unten
+- **Eleganter Text-Editor**: Vollwertiger Editor mit Such- und Ersetzungsfunktionen, RTF- und DOCX-Export
 - **Regex-Suche und -Ersetzung**: Erweiterte Textbearbeitung mit regulären Ausdrücken
 - **Such-Historie**: Speichert die letzten 20 Such- und Ersetzungs-Patterns
 - **Datei-Operationen**: Öffnen, Speichern und Speichern als
 - **Keyboard-Shortcuts**: Ctrl+F (Suchen), Ctrl+S (Speichern), Ctrl+O (Öffnen), Ctrl+N (Neu)
 - **Fortschrittsanzeige**: Zeigt den Verarbeitungsfortschritt an
+
+## Automatische Nachbearbeitung mit Makros
+
+Die Anwendung bietet eine leistungsfähige Makro-Funktion zur automatischen Text-Bereinigung und Nachbearbeitung. 
+
+- **Makro "Text-Bereinigung"**: Enthält 12 typische Schritte zur professionellen Nachbearbeitung, z.B.:
+  - Mehrfache Leerzeichen/Leerzeilen reduzieren
+  - Gerade und französische Anführungszeichen ersetzen
+  - Auslassungszeichen und Gedankenstriche korrigieren
+  - Kommas und Sonderzeichen bereinigen
+  - Regex-basierte Suchen/Ersetzungen (z.B. für Zitate, Satzzeichen, etc.)
+- **Makro "Französische → Deutsche Anführungszeichen"**: Konvertiert `»text«` zu `„text"` und `›text‹` zu `‚text'`
+- **Makro "Deutsche → Französische Anführungszeichen"**: Konvertiert `„text"` zu `»text«` und `‚text'` zu `›text‹`
+- **Makro "Apostrophe korrigieren"**: Korrigiert verschiedene Apostrophe-Formen (`, `, ´, ') zu korrekten Apostrophen (')
+- **Makros können als CSV exportiert werden**
+- **Makros sind vollständig anpassbar**: Sie können eigene Schritte hinzufügen, entfernen oder bearbeiten
+- **Makros können auf beliebige Texte angewendet werden**
+- **Makro-Editor**: Übersichtliche Oberfläche zur Verwaltung und Bearbeitung der Makros
+
+## Export: Immer Dateiname als Titel
+
+Beim Export (Markdown, HTML, TXT) wird **immer der Dateiname (ohne Endung) als Titel** verwendet:
+- **Markdown**: `# Dateiname`
+- **HTML**: `<h1>Dateiname</h1>`
+- **Plain Text**: `Dateiname` (mit Leerzeile danach)
+
+Es gibt **keine automatische Kapitel- oder Überschriften-Erkennung** mehr. Der Titel ist immer eindeutig und nachvollziehbar.
 
 ## Voraussetzungen
 
@@ -37,12 +65,10 @@ Eine JavaFX-Anwendung zur Verarbeitung von DOCX-Dateien zu einem zusammenhängen
 ## Installation und Ausführung
 
 1. **Projekt klonen oder herunterladen**
-
 2. **Maven-Abhängigkeiten installieren**:
    ```bash
    mvn clean install
    ```
-
 3. **Anwendung starten**:
    ```bash
    mvn javafx:run
@@ -71,16 +97,8 @@ Eine JavaFX-Anwendung zur Verarbeitung von DOCX-Dateien zu einem zusammenhängen
    - **Regex-Patterns**: Aktivieren Sie "Regex" für erweiterte Suche
    - **Such-Historie**: Wählen Sie aus den letzten 20 Such-Patterns
    - **Datei speichern**: Ctrl+S oder Button "Speichern"
-
-## Kapitel-Erkennung
-
-Die Anwendung erkennt automatisch verschiedene Kapitel-Header-Formate:
-- "Kapitel 1", "Chapter 1"
-- "KAPITEL I", "CHAPTER I"
-- Nummerierte Überschriften (1., 2., etc.)
-- Römische Zahlen (I., II., etc.)
-
-Falls kein Kapitel-Header erkannt wird, wird automatisch "Kapitel X" generiert.
+   - **RTF-Export**: Button "Als RTF exportieren" für Markdown-Dokumente
+   - **DOCX-Export**: Button "Als DOCX exportieren" für Markdown-Dokumente mit Formatierung
 
 ## Regex-Filterung
 

@@ -66,6 +66,8 @@ public class EditorWindow implements Initializable {
     // Toolbar-Buttons
     @FXML private Button btnSave;
     @FXML private Button btnSaveAs;
+    @FXML private Button btnExportRTF;
+    @FXML private Button btnExportDOCX;
     @FXML private Button btnOpen;
     @FXML private Button btnNew;
     @FXML private Button btnToggleSearch;
@@ -77,6 +79,7 @@ public class EditorWindow implements Initializable {
     @FXML private ComboBox<String> cmbMacroList;
     @FXML private Button btnNewMacro;
     @FXML private Button btnDeleteMacro;
+    @FXML private Button btnSaveMacro;
     @FXML private Button btnRunMacro;
     @FXML private VBox macroDetailsPanel;
     @FXML private TableView<MacroStep> tblMacroSteps;
@@ -113,10 +116,27 @@ public class EditorWindow implements Initializable {
     private boolean macroPanelVisible = false;
     private File currentFile = null;
     private DocxProcessor.OutputFormat outputFormat = DocxProcessor.OutputFormat.HTML;
+    private DocxProcessor docxProcessor;
     
     // Makro-Management
     private ObservableList<Macro> macros = FXCollections.observableArrayList();
     private Macro currentMacro = null;
+    
+    // Undo/Redo-Funktionalität
+    private static class UndoState {
+        final String text;
+        final int caretPosition;
+        
+        UndoState(String text, int caretPosition) {
+            this.text = text;
+            this.caretPosition = caretPosition;
+        }
+    }
+    
+    private List<UndoState> undoStack = new ArrayList<>();
+    private List<UndoState> redoStack = new ArrayList<>();
+    private static final int MAX_UNDO_STEPS = 50;
+    private boolean isUndoRedoOperation = false;
     
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -240,6 +260,8 @@ public class EditorWindow implements Initializable {
         // Toolbar-Events
         btnSave.setOnAction(e -> saveFile());
         btnSaveAs.setOnAction(e -> saveFileAs());
+        btnExportRTF.setOnAction(e -> exportAsRTF());
+        btnExportDOCX.setOnAction(e -> exportAsDOCX());
         btnOpen.setOnAction(e -> openFile());
         btnNew.setOnAction(e -> newFile());
         btnToggleSearch.setOnAction(e -> toggleSearchPanel());
@@ -267,6 +289,14 @@ public class EditorWindow implements Initializable {
                         break;
                     case N:
                         newFile();
+                        event.consume();
+                        break;
+                    case Z:
+                        undo();
+                        event.consume();
+                        break;
+                    case Y:
+                        redo();
                         event.consume();
                         break;
                 }
@@ -305,6 +335,7 @@ public class EditorWindow implements Initializable {
         try {
             Pattern pattern = createSearchPattern(searchText.trim());
             String content = textArea.getText();
+            
             Matcher matcher = pattern.matcher(content);
             
             totalMatches = 0;
@@ -488,6 +519,9 @@ public class EditorWindow implements Initializable {
         
         if (searchText == null || searchText.trim().isEmpty()) return;
         
+        // Speichere Zustand für Undo
+        saveStateForUndo();
+        
         try {
             Pattern pattern = createSearchPattern(searchText.trim());
             String content = textArea.getText();
@@ -536,6 +570,9 @@ public class EditorWindow implements Initializable {
         
         if (searchText == null || searchText.trim().isEmpty()) return;
         
+        // Speichere Zustand für Undo
+        saveStateForUndo();
+        
         try {
             String content = textArea.getText();
             String replacement;
@@ -546,7 +583,7 @@ public class EditorWindow implements Initializable {
             
             // Immer Regex-Replace verwenden - das ist das Problem!
             // Wir verwenden immer matcher.replaceAll(), auch für normale Suche
-            int flags = 0;
+            int flags = Pattern.MULTILINE;
             if (!chkCaseSensitive.isSelected()) {
                 flags |= Pattern.CASE_INSENSITIVE;
             }
@@ -582,7 +619,7 @@ public class EditorWindow implements Initializable {
     }
     
     private Pattern createSearchPattern(String searchText) {
-        int flags = 0;
+        int flags = Pattern.MULTILINE;
         if (!chkCaseSensitive.isSelected()) {
             flags |= Pattern.CASE_INSENSITIVE;
         }
@@ -598,7 +635,7 @@ public class EditorWindow implements Initializable {
     
     private Pattern createReplacePattern(String searchText) {
         // Für Replace verwende immer das ursprüngliche Pattern ohne zusätzliche Escaping
-        int flags = 0;
+        int flags = Pattern.MULTILINE;
         if (!chkCaseSensitive.isSelected()) {
             flags |= Pattern.CASE_INSENSITIVE;
         }
@@ -760,6 +797,71 @@ public class EditorWindow implements Initializable {
         }
     }
     
+    // Undo/Redo-Funktionalität
+    private void saveStateForUndo() {
+        if (!isUndoRedoOperation) {
+            String currentText = textArea.getText();
+            int currentCaretPosition = textArea.getCaretPosition();
+            undoStack.add(new UndoState(currentText, currentCaretPosition));
+            
+            // Begrenze die Anzahl der Undo-Schritte
+            if (undoStack.size() > MAX_UNDO_STEPS) {
+                undoStack.remove(0);
+            }
+            
+            // Lösche Redo-Stack bei neuer Aktion
+            redoStack.clear();
+        }
+    }
+    
+    private void undo() {
+        if (!undoStack.isEmpty()) {
+            isUndoRedoOperation = true;
+            
+            // Aktuellen Zustand für Redo speichern
+            String currentText = textArea.getText();
+            int currentCaretPosition = textArea.getCaretPosition();
+            redoStack.add(new UndoState(currentText, currentCaretPosition));
+            
+            // Letzten Zustand wiederherstellen
+            UndoState previousState = undoStack.remove(undoStack.size() - 1);
+            textArea.setText(previousState.text);
+            textArea.positionCaret(previousState.caretPosition);
+            
+            isUndoRedoOperation = false;
+            updateStatus("Undo ausgeführt");
+        } else {
+            updateStatus("Keine Undo-Aktionen verfügbar");
+        }
+    }
+    
+    private void redo() {
+        if (!redoStack.isEmpty()) {
+            isUndoRedoOperation = true;
+            
+            // Aktuellen Zustand für Undo speichern
+            String currentText = textArea.getText();
+            int currentCaretPosition = textArea.getCaretPosition();
+            undoStack.add(new UndoState(currentText, currentCaretPosition));
+            
+            // Letzten Redo-Zustand wiederherstellen
+            UndoState nextState = redoStack.remove(redoStack.size() - 1);
+            textArea.setText(nextState.text);
+            textArea.positionCaret(nextState.caretPosition);
+            
+            isUndoRedoOperation = false;
+            updateStatus("Redo ausgeführt");
+        } else {
+            updateStatus("Keine Redo-Aktionen verfügbar");
+        }
+    }
+    
+    private void clearUndoRedoStacks() {
+        undoStack.clear();
+        redoStack.clear();
+        isUndoRedoOperation = false;
+    }
+    
     // Methode zum Löschen aller Preferences
     public void clearAllPreferences() {
         try {
@@ -830,15 +932,27 @@ public class EditorWindow implements Initializable {
             new FileChooser.ExtensionFilter("Alle Dateien", "*.*")
         );
         
-        // Setze Standard-Dateiendung
-        String defaultExtension = getDefaultExtension();
-        fileChooser.setInitialFileName("manuskript" + defaultExtension);
+        // Setze Standard-Dateinamen
+        String initialFileName;
+        if (currentFile != null) {
+            // Verwende den ursprünglichen Dateinamen, aber mit korrekter Erweiterung
+            String baseName = currentFile.getName();
+            int lastDot = baseName.lastIndexOf('.');
+            if (lastDot > 0) {
+                baseName = baseName.substring(0, lastDot);
+            }
+            initialFileName = baseName + getDefaultExtension();
+        } else {
+            // Fallback für neue Dateien
+            initialFileName = "manuskript" + getDefaultExtension();
+        }
+        fileChooser.setInitialFileName(initialFileName);
         
         File file = fileChooser.showSaveDialog(stage);
         if (file != null) {
             // Füge Standard-Erweiterung hinzu, falls keine angegeben
             if (!hasValidExtension(file.getName())) {
-                file = new File(file.getAbsolutePath() + defaultExtension);
+                file = new File(file.getAbsolutePath() + getDefaultExtension());
             }
             
             // Speichere das Verzeichnis für das nächste Mal
@@ -864,6 +978,14 @@ public class EditorWindow implements Initializable {
         }
     }
     
+    private String getExportExtension() {
+        // Für Export: Markdown -> RTF, andere bleiben gleich
+        if (outputFormat == DocxProcessor.OutputFormat.MARKDOWN) {
+            return ".rtf";
+        }
+        return getDefaultExtension();
+    }
+    
     private boolean hasValidExtension(String fileName) {
         String lowerFileName = fileName.toLowerCase();
         switch (outputFormat) {
@@ -886,6 +1008,201 @@ public class EditorWindow implements Initializable {
         }
     }
     
+    private void exportAsRTF() {
+        if (outputFormat != DocxProcessor.OutputFormat.MARKDOWN) {
+            updateStatus("RTF-Export nur für Markdown-Dokumente verfügbar");
+            return;
+        }
+        
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Als RTF exportieren");
+        
+        // Lade das letzte Verzeichnis aus den Einstellungen
+        String lastDirectory = preferences.get("lastSaveDirectory", null);
+        if (lastDirectory != null) {
+            File dir = new File(lastDirectory);
+            if (dir.exists() && dir.isDirectory()) {
+                fileChooser.setInitialDirectory(dir);
+            }
+        }
+        
+        // Verwende die gleiche Logik wie saveFileAs für konsistente Dateinamen
+        String initialFileName;
+        if (currentFile != null) {
+            // Verwende den ursprünglichen Dateinamen, aber mit RTF-Erweiterung
+            String baseName = currentFile.getName();
+            int lastDot = baseName.lastIndexOf('.');
+            if (lastDot > 0) {
+                baseName = baseName.substring(0, lastDot);
+            }
+            initialFileName = baseName + ".rtf";
+        } else {
+            // Fallback für neue Dateien
+            initialFileName = "manuskript.rtf";
+        }
+        fileChooser.setInitialFileName(initialFileName);
+        fileChooser.getExtensionFilters().add(
+            new FileChooser.ExtensionFilter("RTF-Dateien", "*.rtf")
+        );
+        fileChooser.getExtensionFilters().add(
+            new FileChooser.ExtensionFilter("Alle Dateien", "*.*")
+        );
+        
+        File file = fileChooser.showSaveDialog(stage);
+        if (file != null) {
+            try {
+                // Speichere das Verzeichnis für das nächste Mal
+                String directory = file.getParent();
+                if (directory != null) {
+                    preferences.put("lastSaveDirectory", directory);
+                }
+                
+                String markdownContent = textArea.getText();
+                String rtfContent = convertMarkdownToRTF(markdownContent);
+                
+                // Verwende Windows-1252 Encoding für bessere RTF-Kompatibilität
+                Files.write(file.toPath(), rtfContent.getBytes("Windows-1252"));
+                updateStatus("Als RTF exportiert: " + file.getName());
+                
+            } catch (Exception e) {
+                updateStatus("Fehler beim RTF-Export: " + e.getMessage());
+            }
+        }
+    }
+    
+    private String convertMarkdownToRTF(String markdown) {
+        StringBuilder rtf = new StringBuilder();
+        
+        // RTF-Header mit ANSI (Windows-1252) für bessere Kompatibilität
+        rtf.append("{\\rtf1\\ansi\\ansicpg1252\\deff0 {\\fonttbl {\\f0 Times New Roman;}}\n");
+        rtf.append("\\f0\\fs24\n");
+        
+        String[] lines = markdown.split("\n");
+        
+        for (int i = 0; i < lines.length; i++) {
+            String line = lines[i];
+            String trimmedLine = line.trim();
+            
+            if (trimmedLine.isEmpty()) {
+                rtf.append("\\par\n");
+                continue;
+            }
+            
+            // Horizontale Linie (Markdown-Trenner) - SONDERBEHANDLUNG
+            if (trimmedLine.matches("^(\\*{3,}|-{3,}|_{3,})$")) {
+                rtf.append("\\pard\\brdrb\\brdrs\\brdrw10\\brsp80 \\line\\par\\pard\\ql\n");
+                rtf.append("\\par\n");
+                rtf.append("\\par\n");
+                continue;
+            }
+            
+            // Überschriften
+            if (trimmedLine.startsWith("# ")) {
+                rtf.append("\\b\\fs32 ").append(trimmedLine.substring(2)).append("\\b0\\fs24\\par\n");
+            } else if (trimmedLine.startsWith("## ")) {
+                rtf.append("\\b\\fs28 ").append(trimmedLine.substring(3)).append("\\b0\\fs24\\par\n");
+            } else if (trimmedLine.startsWith("### ")) {
+                rtf.append("\\b\\fs26 ").append(trimmedLine.substring(4)).append("\\b0\\fs24\\par\n");
+            } else {
+                // Normaler Text mit Markdown-Formatierung
+                String formattedLine = convertMarkdownInlineToRTF(trimmedLine);
+                rtf.append(formattedLine).append("\\par\n");
+            }
+        }
+        
+        // RTF-Footer
+        rtf.append("}");
+        
+        return rtf.toString();
+    }
+    
+    private String convertMarkdownInlineToRTF(String text) {
+        // Fett: **text** (muss VOR Kursiv verarbeitet werden)
+        text = text.replaceAll("\\*\\*(.*?)\\*\\*", "\\\\b $1\\\\b0");
+        
+        // Unterstrichen: __text__ (muss VOR Kursiv verarbeitet werden)
+        text = text.replaceAll("__(.*?)__", "\\\\ul $1\\\\ul0");
+        
+        // Unterstrichen: ~~text~~
+        text = text.replaceAll("~~(.*?)~~", "\\\\ul $1\\\\ul0");
+        
+        // Kursiv: *text* oder _text_ (muss NACH Fett verarbeitet werden)
+        text = text.replaceAll("\\*([^*]+)\\*", "\\\\i $1\\\\i0");
+        text = text.replaceAll("_([^_]+)_", "\\\\i $1\\\\i0");
+        
+        // Escape RTF-spezielle Zeichen (nur { und })
+        text = text.replace("{", "\\{");
+        text = text.replace("}", "\\}");
+        
+        return text;
+    }
+    
+    private void exportAsDOCX() {
+        if (outputFormat != DocxProcessor.OutputFormat.MARKDOWN) {
+            updateStatus("DOCX-Export nur für Markdown-Dokumente verfügbar");
+            return;
+        }
+        
+        if (docxProcessor == null) {
+            updateStatus("DOCX-Processor nicht verfügbar");
+            return;
+        }
+        
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Als DOCX exportieren");
+        
+        // Lade das letzte Verzeichnis aus den Einstellungen
+        String lastDirectory = preferences.get("lastSaveDirectory", null);
+        if (lastDirectory != null) {
+            File dir = new File(lastDirectory);
+            if (dir.exists() && dir.isDirectory()) {
+                fileChooser.setInitialDirectory(dir);
+            }
+        }
+        
+        // Verwende die gleiche Logik wie saveFileAs für konsistente Dateinamen
+        String initialFileName;
+        if (currentFile != null) {
+            // Verwende den ursprünglichen Dateinamen, aber mit DOCX-Erweiterung
+            String baseName = currentFile.getName();
+            int lastDot = baseName.lastIndexOf('.');
+            if (lastDot > 0) {
+                baseName = baseName.substring(0, lastDot);
+            }
+            initialFileName = baseName + ".docx";
+        } else {
+            // Fallback für neue Dateien
+            initialFileName = "manuskript.docx";
+        }
+        fileChooser.setInitialFileName(initialFileName);
+        fileChooser.getExtensionFilters().add(
+            new FileChooser.ExtensionFilter("DOCX-Dateien", "*.docx")
+        );
+        fileChooser.getExtensionFilters().add(
+            new FileChooser.ExtensionFilter("Alle Dateien", "*.*")
+        );
+        
+        File file = fileChooser.showSaveDialog(stage);
+        if (file != null) {
+            try {
+                // Speichere das Verzeichnis für das nächste Mal
+                String directory = file.getParent();
+                if (directory != null) {
+                    preferences.put("lastSaveDirectory", directory);
+                }
+                
+                String markdownContent = textArea.getText();
+                docxProcessor.exportMarkdownToDocx(markdownContent, file);
+                
+                updateStatus("Als DOCX exportiert: " + file.getName());
+                
+            } catch (Exception e) {
+                updateStatus("Fehler beim DOCX-Export: " + e.getMessage());
+                logger.error("Fehler beim DOCX-Export", e);
+            }
+        }
+    }
+    
     private void openFile() {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Datei öffnen");
@@ -899,9 +1216,32 @@ public class EditorWindow implements Initializable {
             }
         }
         
-        fileChooser.getExtensionFilters().add(
-            new FileChooser.ExtensionFilter("Text-Dateien", "*.txt")
-        );
+        // Extension-Filter basierend auf dem aktuellen Format
+        switch (outputFormat) {
+            case MARKDOWN:
+                fileChooser.getExtensionFilters().add(
+                    new FileChooser.ExtensionFilter("Markdown-Dateien", "*.md")
+                );
+                fileChooser.getExtensionFilters().add(
+                    new FileChooser.ExtensionFilter("Text-Dateien", "*.txt")
+                );
+                break;
+            case HTML:
+                fileChooser.getExtensionFilters().add(
+                    new FileChooser.ExtensionFilter("HTML-Dateien", "*.html")
+                );
+                fileChooser.getExtensionFilters().add(
+                    new FileChooser.ExtensionFilter("Text-Dateien", "*.txt")
+                );
+                break;
+            case PLAIN_TEXT:
+            default:
+                fileChooser.getExtensionFilters().add(
+                    new FileChooser.ExtensionFilter("Text-Dateien", "*.txt")
+                );
+                break;
+        }
+        
         fileChooser.getExtensionFilters().add(
             new FileChooser.ExtensionFilter("Alle Dateien", "*.*")
         );
@@ -928,13 +1268,21 @@ public class EditorWindow implements Initializable {
     private void newFile() {
         textArea.clear();
         currentFile = null;
+        // Lösche Undo/Redo-Stacks bei neuer Datei
+        clearUndoRedoStacks();
         updateStatus("Neue Datei");
     }
     
     // Public Methoden für externe Verwendung
     public void setText(String text) {
         textArea.setText(text);
+        // Lösche Undo/Redo-Stacks beim Laden neuer Dateien
+        clearUndoRedoStacks();
         updateStatus("Text geladen");
+    }
+    
+    public void setCurrentFile(File file) {
+        this.currentFile = file;
     }
     
     public String getText() {
@@ -947,6 +1295,15 @@ public class EditorWindow implements Initializable {
     
     public void setOutputFormat(DocxProcessor.OutputFormat format) {
         this.outputFormat = format;
+        
+        // Export-Buttons nur für Markdown anzeigen
+        boolean isMarkdown = (format == DocxProcessor.OutputFormat.MARKDOWN);
+        btnExportRTF.setVisible(isMarkdown);
+        btnExportDOCX.setVisible(isMarkdown);
+    }
+    
+    public void setDocxProcessor(DocxProcessor docxProcessor) {
+        this.docxProcessor = docxProcessor;
     }
     
     // ===== MAKRO-FUNKTIONALITÄT =====
@@ -1049,6 +1406,7 @@ public class EditorWindow implements Initializable {
         // Macro-Event-Handler
         btnNewMacro.setOnAction(e -> createNewMacro());
         btnDeleteMacro.setOnAction(e -> deleteCurrentMacro());
+        btnSaveMacro.setOnAction(e -> saveMacroToCSV());
         btnRunMacro.setOnAction(e -> runCurrentMacro());
         btnAddStep.setOnAction(e -> addMacroStep());
         btnRemoveStep.setOnAction(e -> removeMacroStep());
@@ -1307,6 +1665,9 @@ public class EditorWindow implements Initializable {
     
     private void runCurrentMacro() {
         if (currentMacro != null && !currentMacro.getSteps().isEmpty()) {
+            // Speichere Zustand für Undo
+            saveStateForUndo();
+            
             String content = textArea.getText();
             
             // Nur aktivierte Schritte zählen
@@ -1398,7 +1759,7 @@ public class EditorWindow implements Initializable {
                 return null;
             }
             
-            int flags = 0;
+            int flags = Pattern.MULTILINE;
             if (!step.isCaseSensitive()) {
                 flags |= Pattern.CASE_INSENSITIVE;
             }
@@ -1587,17 +1948,38 @@ public class EditorWindow implements Initializable {
         Macro textCleanupMacro = new Macro("Text-Bereinigung", "Professionelle Textbereinigung mit 12 Schritten");
         textCleanupMacro.addStep(new MacroStep(1, "[ ]{2,}", " ", "Mehrfache Leerzeichen reduzieren", true, false, false));
         textCleanupMacro.addStep(new MacroStep(2, "\\n{2,}", "\\n", "Mehrfache Leerzeilen reduzieren", true, false, false));
-        textCleanupMacro.addStep(new MacroStep(3, "\"", "\"", "Gerade Anführungszeichen öffnen", false, false, false));
-        textCleanupMacro.addStep(new MacroStep(4, "\"", "\"", "Gerade Anführungszeichen schließen", false, false, false));
+        textCleanupMacro.addStep(new MacroStep(3, "„", "\"", "Gerade Anführungszeichen öffnen", false, false, false));
+        textCleanupMacro.addStep(new MacroStep(4, "“", "\"", "Gerade Anführungszeichen schließen", false, false, false));
         textCleanupMacro.addStep(new MacroStep(5, ",\"", "\",", "Komma vor Anführungszeichen I", false, false, false));
-        textCleanupMacro.addStep(new MacroStep(6, "'(.*?)'", ">$1<", "Einfache Anführungszeichen Französisch", true, false, false));
-        textCleanupMacro.addStep(new MacroStep(7, "\"(.*?)\"", ">>$1<<", "Anführungszeichen Französisch", true, false, false));
-        textCleanupMacro.addStep(new MacroStep(8, "...", "...", "Auslassungszeichen", false, false, false));
-        textCleanupMacro.addStep(new MacroStep(9, "([A-Za-zÄÖÜäöüß])...", "$1 ...", "Buchstabe direkt an Auslassungszeichen", true, false, false));
-        textCleanupMacro.addStep(new MacroStep(10, "(?<=...)(?=\\p{L})", " ", "Buchstabe direkt nach Auslassungszeichen", true, false, false));
+        textCleanupMacro.addStep(new MacroStep(6, "'(.*?)'", "›$1‹", "Einfache Anführungszeichen Französisch", true, false, false));
+        textCleanupMacro.addStep(new MacroStep(7, "\"(.*?)\"", "»$1«", "Anführungszeichen Französisch", true, false, false));
+        textCleanupMacro.addStep(new MacroStep(8, "...", "…", "Auslassungszeichen", false, false, false));
+        textCleanupMacro.addStep(new MacroStep(9, "([A-Za-zÄÖÜäöüß])…", "$1 ...", "Buchstabe direkt an Auslassungszeichen", true, false, false));
+        textCleanupMacro.addStep(new MacroStep(10, "(?<=…)(?=\\p{L})", " ", "Buchstabe direkt nach Auslassungszeichen", true, false, false));
         textCleanupMacro.addStep(new MacroStep(11, "--", "—", "Gedankenstrich", false, false, false));
         textCleanupMacro.addStep(new MacroStep(12, ",\"«", "«,", "Komma vor Anführungszeichen", false, false, false));
+        textCleanupMacro.addStep(new MacroStep(13, "‘(.*?)’", "›$1‹", "Einfache Anführungszeichen Französisch", true, false, false));
         macros.add(textCleanupMacro);
+        
+        // Neues Makro: Französische zu deutsche Anführungszeichen
+        Macro frenchToGermanQuotes = new Macro("Französische → Deutsche Anführungszeichen", "Konvertiert französische zu deutschen Anführungszeichen");
+        frenchToGermanQuotes.addStep(new MacroStep(1, "»(.*?)«", "„$1“", "Französische zu deutsche Anführungszeichen", true, false, false));
+        frenchToGermanQuotes.addStep(new MacroStep(2, "›(.*?)‹", "‚$1‘", "Französische zu deutsche einfache Anführungszeichen", true, false, false));
+        macros.add(frenchToGermanQuotes);
+        
+        // Neues Makro: Deutsche zu französische Anführungszeichen
+        Macro germanToFrenchQuotes = new Macro("Deutsche → Französische Anführungszeichen", "Konvertiert deutsche zu französischen Anführungszeichen");
+        germanToFrenchQuotes.addStep(new MacroStep(1, "„(.*?)“", "»$1«", "Deutsche zu französische Anführungszeichen", true, false, false));
+        germanToFrenchQuotes.addStep(new MacroStep(2, "‚(.*?)‘", "›$1‹", "Deutsche zu französische einfache Anführungszeichen", true, false, false));
+        macros.add(germanToFrenchQuotes);
+        
+        // Neues Makro: Apostrophe korrigieren
+        Macro apostropheCorrection = new Macro("Apostrophe korrigieren", "Korrigiert verschiedene Apostrophe-Formen");
+        apostropheCorrection.addStep(new MacroStep(1, "([A-Za-zÄÖÜäöüß])'([A-Za-zÄÖÜäöüß])", "$1'$2", "Apostrophe zwischen Buchstaben korrigieren", true, false, false));
+        apostropheCorrection.addStep(new MacroStep(2, "([A-Za-zÄÖÜäöüß])`([A-Za-zÄÖÜäöüß])", "$1'$2", "Grave-Akzent zu Apostrophe", true, false, false));
+        apostropheCorrection.addStep(new MacroStep(3, "([A-Za-zÄÖÜäöüß])´([A-Za-zÄÖÜäöüß])", "$1'$2", "Akut-Akzent zu Apostrophe", true, false, false));
+        apostropheCorrection.addStep(new MacroStep(4, "([A-Za-zÄÖÜäöüß])'([A-Za-zÄÖÜäöüß])", "$1'$2", "Typografisches Apostrophe korrigieren", true, false, false));
+        macros.add(apostropheCorrection);
         
         updateMacroList();
     }
@@ -1608,6 +1990,61 @@ public class EditorWindow implements Initializable {
             .collect(Collectors.toList());
         cmbMacroList.getItems().clear();
         cmbMacroList.getItems().addAll(macroNames);
+    }
+    
+    private void saveMacroToCSV() {
+        if (currentMacro == null) {
+            updateStatus("Kein Makro ausgewählt");
+            return;
+        }
+        
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Makro als CSV speichern");
+        fileChooser.setInitialFileName(currentMacro.getName() + ".csv");
+        fileChooser.getExtensionFilters().add(
+            new FileChooser.ExtensionFilter("CSV-Dateien", "*.csv")
+        );
+        
+        // Letztes Verzeichnis verwenden
+        String lastDirectory = preferences.get("lastSaveDirectory", null);
+        if (lastDirectory != null) {
+            fileChooser.setInitialDirectory(new File(lastDirectory));
+        }
+        
+        File file = fileChooser.showSaveDialog(stage);
+        if (file == null) return;
+        
+        try {
+            // Verzeichnis speichern
+            preferences.put("lastSaveDirectory", file.getParent());
+            
+            // CSV-Datei erstellen
+            StringBuilder csv = new StringBuilder();
+            csv.append("Schritt,Aktiv,Beschreibung,Suchen,Ersetzen,Regex,Case,Word\n");
+            
+            for (MacroStep step : currentMacro.getSteps()) {
+                csv.append(String.format("%d,%s,\"%s\",\"%s\",\"%s\",%s,%s,%s\n",
+                    step.getStepNumber(),
+                    step.isEnabled() ? "Ja" : "Nein",
+                    step.getDescription().replace("\"", "\"\""),
+                    step.getSearchText().replace("\"", "\"\""),
+                    step.getReplaceText().replace("\"", "\"\""),
+                    step.isUseRegex() ? "Ja" : "Nein",
+                    step.isCaseSensitive() ? "Ja" : "Nein",
+                    step.isWholeWord() ? "Ja" : "Nein"
+                ));
+            }
+            
+            // Datei schreiben
+            Files.write(file.toPath(), csv.toString().getBytes("UTF-8"));
+            
+            updateStatus("Makro '" + currentMacro.getName() + "' als CSV gespeichert: " + file.getName());
+            logger.info("Makro als CSV gespeichert: " + file.getAbsolutePath());
+            
+        } catch (Exception e) {
+            logger.error("Fehler beim Speichern der CSV-Datei", e);
+            updateStatus("Fehler beim Speichern: " + e.getMessage());
+        }
     }
     
     private void showRegexHelp() {

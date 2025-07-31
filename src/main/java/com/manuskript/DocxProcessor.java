@@ -1,12 +1,12 @@
 package com.manuskript;
 
-import org.apache.poi.xwpf.usermodel.XWPFDocument;
-import org.apache.poi.xwpf.usermodel.XWPFParagraph;
+import org.apache.poi.xwpf.usermodel.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -22,7 +22,7 @@ public class DocxProcessor {
     
     public enum OutputFormat {
         PLAIN_TEXT("Einfacher Text"),
-        MARKDOWN("Markdown"),
+        MARKDOWN("Markdown mit Export"),
         HTML("HTML");
         
         private final String displayName;
@@ -63,26 +63,16 @@ public class DocxProcessor {
             content.append("<body>\n");
         }
         
-        String detectedChapter = detectChapterHeader(file);
-        
-        if (detectedChapter != null) {
-            content.append(formatChapterHeader(detectedChapter, format)).append("\n\n");
-        } else {
-            // Verwende den Dateinamen (ohne .docx) als Kapitelnamen
+        // Immer Dateiname als Titel für Markdown
+        if (format == OutputFormat.MARKDOWN) {
             String fileName = file.getName();
             String chapterName = fileName;
-            
-            // Entferne .docx Erweiterung
             if (fileName.toLowerCase().endsWith(".docx")) {
                 chapterName = fileName.substring(0, fileName.length() - 5);
+            } else if (fileName.toLowerCase().endsWith(".doc")) {
+                chapterName = fileName.substring(0, fileName.length() - 4);
             }
-            
-            // Entferne weitere häufige Erweiterungen
-            if (chapterName.toLowerCase().endsWith(".doc")) {
-                chapterName = chapterName.substring(0, chapterName.length() - 4);
-            }
-            
-            content.append(formatChapterHeader(chapterName, format)).append("\n");
+            content.append("# ").append(chapterName).append("\n\n");
         }
         
         try (FileInputStream fis = new FileInputStream(file);
@@ -124,27 +114,26 @@ public class DocxProcessor {
         logger.info("Verarbeite Datei-Inhalt: {} im Format: {}", file.getName(), format);
         
         StringBuilder content = new StringBuilder();
-        
-        String detectedChapter = detectChapterHeader(file);
-        
-        if (detectedChapter != null) {
-            content.append(formatChapterHeader(detectedChapter, format)).append("\n\n");
-        } else {
-            // Verwende den Dateinamen (ohne .docx) als Kapitelnamen
-            String fileName = file.getName();
-            String chapterName = fileName;
-            
-            // Entferne .docx Erweiterung
-            if (fileName.toLowerCase().endsWith(".docx")) {
-                chapterName = fileName.substring(0, fileName.length() - 5);
-            }
-            
-            // Entferne weitere häufige Erweiterungen
-            if (chapterName.toLowerCase().endsWith(".doc")) {
-                chapterName = chapterName.substring(0, chapterName.length() - 4);
-            }
-            
-            content.append(formatChapterHeader(chapterName, format)).append("\n");
+
+        // Kapitelname bestimmen
+        String fileName = file.getName();
+        String chapterName = fileName;
+        if (fileName.toLowerCase().endsWith(".docx")) {
+            chapterName = fileName.substring(0, fileName.length() - 5);
+        } else if (fileName.toLowerCase().endsWith(".doc")) {
+            chapterName = fileName.substring(0, fileName.length() - 4);
+        }
+        switch (format) {
+            case MARKDOWN:
+                content.append("# ").append(chapterName).append("\n\n");
+                break;
+            case HTML:
+                content.append("<h1>").append(chapterName).append("</h1>\n");
+                break;
+            case PLAIN_TEXT:
+            default:
+                content.append(chapterName).append("\n\n");
+                break;
         }
         
         try (FileInputStream fis = new FileInputStream(file);
@@ -378,5 +367,124 @@ public class DocxProcessor {
         }
         
         return false;
+    }
+    
+    /**
+     * Konvertiert Markdown-Text zu einer DOCX-Datei
+     */
+    public void exportMarkdownToDocx(String markdownText, File outputFile) throws IOException {
+        logger.info("Exportiere Markdown zu DOCX: {}", outputFile.getName());
+        
+        try (XWPFDocument document = new XWPFDocument()) {
+            String[] lines = markdownText.split("\n");
+            boolean isFirstChapter = true;
+            
+            for (String line : lines) {
+                line = line.trim();
+                if (line.isEmpty()) {
+                    // Leerzeile
+                    document.createParagraph();
+                    continue;
+                }
+                
+                // Überschriften
+                if (line.startsWith("# ")) {
+                    // Seitenumbruch vor Kapitel-Header (außer beim ersten Kapitel)
+                    if (!isFirstChapter) {
+                        XWPFParagraph pageBreak = document.createParagraph();
+                        pageBreak.setPageBreak(true);
+                    }
+                    isFirstChapter = false;
+                    
+                    XWPFParagraph heading = document.createParagraph();
+                    heading.setStyle("Heading1");
+                    XWPFRun run = heading.createRun();
+                    run.setText(line.substring(2));
+                    run.setBold(true);
+                    run.setFontSize(18);
+                } else if (line.startsWith("## ")) {
+                    XWPFParagraph heading = document.createParagraph();
+                    heading.setStyle("Heading2");
+                    XWPFRun run = heading.createRun();
+                    run.setText(line.substring(3));
+                    run.setBold(true);
+                    run.setFontSize(16);
+                } else if (line.startsWith("### ")) {
+                    XWPFParagraph heading = document.createParagraph();
+                    heading.setStyle("Heading3");
+                    XWPFRun run = heading.createRun();
+                    run.setText(line.substring(4));
+                    run.setBold(true);
+                    run.setFontSize(14);
+                } else if (line.startsWith("***") || line.startsWith("---") || line.startsWith("___")) {
+                    // Horizontale Linie
+                    XWPFParagraph hr = document.createParagraph();
+                    XWPFRun run = hr.createRun();
+                    run.setText("_________________________________________________________________");
+                    run.setFontSize(12);
+                    run.setColor("CCCCCC");
+                } else {
+                    // Normaler Text mit Markdown-Formatierung
+                    XWPFParagraph paragraph = document.createParagraph();
+                    XWPFRun run = paragraph.createRun();
+                    
+                    // Markdown-Formatierung verarbeiten
+                    String processedText = processMarkdownFormatting(line);
+                    run.setText(processedText);
+                    
+                    // Formatierung anwenden
+                    applyMarkdownFormatting(run, line);
+                }
+            }
+            
+            // Dokument speichern
+            try (FileOutputStream fos = new FileOutputStream(outputFile)) {
+                document.write(fos);
+            }
+        }
+        
+        logger.info("DOCX-Export abgeschlossen: {}", outputFile.getAbsolutePath());
+    }
+    
+    /**
+     * Verarbeitet Markdown-Formatierung im Text
+     */
+    private String processMarkdownFormatting(String text) {
+        // Entferne Markdown-Syntax, behalte nur den Text
+        String processed = text;
+        
+        // **bold** -> normal
+        processed = processed.replaceAll("\\*\\*(.*?)\\*\\*", "$1");
+        
+        // *italic* -> normal
+        processed = processed.replaceAll("\\*(.*?)\\*", "$1");
+        
+        // __underline__ -> normal
+        processed = processed.replaceAll("__(.*?)__", "$1");
+        
+        // `code` -> normal
+        processed = processed.replaceAll("`(.*?)`", "$1");
+        
+        return processed;
+    }
+    
+    /**
+     * Wendet Markdown-Formatierung auf einen XWPFRun an
+     */
+    private void applyMarkdownFormatting(XWPFRun run, String text) {
+        // Fett: **text**
+        if (text.matches(".*\\*\\*.*\\*\\*.*")) {
+            run.setBold(true);
+        }
+        
+        // Kursiv: *text*
+        if (text.matches(".*\\*[^*].*[^*]\\*.*")) {
+            run.setItalic(true);
+        }
+        
+        // Unterstrichen: __text__
+        if (text.matches(".*__.*__.*")) {
+            run.setUnderline(UnderlinePatterns.SINGLE);
+        }
     }
 } 
