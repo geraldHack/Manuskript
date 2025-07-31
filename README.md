@@ -18,7 +18,7 @@ Eine moderne JavaFX-Anwendung zur Verarbeitung und automatischen Nachbearbeitung
 - **Such- und Ersetzungsfunktionen:** Mit Regex-Unterstützung und Historie
 - **Datei-Operationen:** Öffnen, Speichern, Speichern als
 - **Export-Funktionen:** RTF/DOCX (nur Markdown), Markdown, HTML, TXT
-- **Keyboard-Shortcuts:** Professionelle Tastenkombinationen
+- **Keyboard-Shortcuts:** Grundlegende Tastenkombinationen (Ctrl+F, Ctrl+S, etc.)
 
 ### 🔧 Makro-System
 - **Automatische Text-Bereinigung:** 13 vordefinierte Schritte
@@ -165,24 +165,17 @@ mvn javafx:run
 
 ## ⌨️ Keyboard-Shortcuts
 
-### Allgemein
-- `Ctrl+N` - Neue Datei
-- `Ctrl+O` - Datei öffnen
-- `Ctrl+S` - Speichern
-- `Ctrl+Shift+S` - Speichern als
-- `Ctrl+Q` - Beenden
-
 ### Text-Editor
-- `Ctrl+F` - Suchen/Ersetzen
-- `F3` - Nächstes Suchergebnis
-- `Shift+F3` - Vorheriges Suchergebnis
+- `Ctrl+F` - Suchen/Ersetzen-Panel öffnen/schließen
+- `Ctrl+S` - Speichern
+- `Ctrl+O` - Datei öffnen
+- `Ctrl+N` - Neue Datei
 - `Ctrl+Z` - Rückgängig
 - `Ctrl+Y` - Wiederholen
-- `Ctrl+A` - Alles auswählen
 
 ### Makros
-- `Ctrl+M` - Makro-Panel öffnen/schließen
-- `Ctrl+R` - Aktuelles Makro ausführen
+- **Button "Makros"** - Makro-Panel öffnen/schließen
+- **Button "Makro ausführen"** - Aktuelles Makro ausführen
 
 ## 🏗️ Projektstruktur
 
@@ -226,7 +219,7 @@ src/
 - ✅ Regex-Filterung und -Suche
 - ✅ Theme-System (Hell/Dunkel)
 - ✅ Export-Funktionen (RTF/DOCX nur für Markdown, Markdown, HTML, TXT)
-- ✅ Keyboard-Shortcuts
+- ✅ Grundlegende Keyboard-Shortcuts (Ctrl+F, Ctrl+S, etc.)
 - ✅ Undo/Redo-System
 - ✅ Cursor-Navigation in Makro-Tabelle
 - ✅ Pattern-Speicherung für Such- und Ersetzungs-Patterns
