@@ -424,7 +424,7 @@ public class EditorWindow implements Initializable {
     }
     
     private void setupKeyboardShortcuts() {
-        // Ctrl+F für Such-Panel
+        // Keyboard-Shortcuts für den Editor
         codeArea.setOnKeyPressed(event -> {
             if (event.isControlDown()) {
                 switch (event.getCode()) {
@@ -450,6 +450,18 @@ public class EditorWindow implements Initializable {
                         break;
                     case Y:
                         redo();
+                        event.consume();
+                        break;
+                }
+            } else {
+                // F3 und Shift+F3 für Suchen-Navigation
+                switch (event.getCode()) {
+                    case F3:
+                        if (event.isShiftDown()) {
+                            findPrevious();
+                        } else {
+                            findNext();
+                        }
                         event.consume();
                         break;
                 }

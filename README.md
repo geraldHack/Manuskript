@@ -18,7 +18,7 @@ Eine moderne JavaFX-Anwendung zur Verarbeitung und automatischen Nachbearbeitung
 - **Such- und Ersetzungsfunktionen:** Mit Regex-Unterstützung und Historie
 - **Datei-Operationen:** Öffnen, Speichern, Speichern als
 - **Export-Funktionen:** RTF/DOCX (nur Markdown), Markdown, HTML, TXT
-- **Keyboard-Shortcuts:** Grundlegende Tastenkombinationen (Ctrl+F, Ctrl+S, etc.)
+- **Keyboard-Shortcuts:** Professionelle Tastenkombinationen
 
 ### 🔧 Makro-System
 - **Automatische Text-Bereinigung:** 13 vordefinierte Schritte
@@ -167,6 +167,8 @@ mvn javafx:run
 
 ### Text-Editor
 - `Ctrl+F` - Suchen/Ersetzen-Panel öffnen/schließen
+- `F3` - Nächstes Suchergebnis
+- `Shift+F3` - Vorheriges Suchergebnis
 - `Ctrl+S` - Speichern
 - `Ctrl+O` - Datei öffnen
 - `Ctrl+N` - Neue Datei
@@ -219,7 +221,7 @@ src/
 - ✅ Regex-Filterung und -Suche
 - ✅ Theme-System (Hell/Dunkel)
 - ✅ Export-Funktionen (RTF/DOCX nur für Markdown, Markdown, HTML, TXT)
-- ✅ Grundlegende Keyboard-Shortcuts (Ctrl+F, Ctrl+S, etc.)
+- ✅ Keyboard-Shortcuts
 - ✅ Undo/Redo-System
 - ✅ Cursor-Navigation in Makro-Tabelle
 - ✅ Pattern-Speicherung für Such- und Ersetzungs-Patterns
