@@ -17,7 +17,7 @@ Eine moderne JavaFX-Anwendung zur Verarbeitung und automatischen Nachbearbeitung
 - **Vollwertiger Editor:** Syntax-Highlighting, Zeilennummern, Themes
 - **Such- und Ersetzungsfunktionen:** Mit Regex-Unterstützung und Historie
 - **Datei-Operationen:** Öffnen, Speichern, Speichern als
-- **Export-Funktionen:** RTF, DOCX, Markdown, HTML, TXT
+- **Export-Funktionen:** RTF/DOCX (nur Markdown), Markdown, HTML, TXT
 - **Keyboard-Shortcuts:** Professionelle Tastenkombinationen
 
 ### 🔧 Makro-System
@@ -33,7 +33,6 @@ Eine moderne JavaFX-Anwendung zur Verarbeitung und automatischen Nachbearbeitung
 - **DOCX-Extraktion:** Konvertiert DOCX-Dateien in lesbaren Text
 - **Regex-Filterung:** Erweiterte Filterung mit regulären Ausdrücken
 - **Verzeichnis-Memory:** Letztes Verzeichnis wird automatisch gespeichert
-- **Regex-Memory:** Letzte 10 Regex-Patterns werden gespeichert
 - **Mehrfachauswahl:** Einzelne oder alle Dateien zur Verarbeitung auswählen
 
 ### Text-Editor Features
@@ -43,10 +42,15 @@ Eine moderne JavaFX-Anwendung zur Verarbeitung und automatischen Nachbearbeitung
 - **Formatierung:** Fett, Kursiv und weitere Formatierungen
 - **Undo/Redo:** Vollständige Rückgängig-Funktion
 - **Status-Anzeige:** Zeilen, Wörter, Zeichen zählen
+- **Export-Funktionen:** 
+  - **RTF:** Nur für Markdown-Dokumente (mit Formatierung)
+  - **DOCX:** Nur für Markdown-Dokumente (mit Formatierung)
+  - **Markdown, HTML, TXT:** Für alle Formate
 
 ### Such- und Ersetzungsfunktionen
 - **Regex-Unterstützung:** Erweiterte Suche mit regulären Ausdrücken
 - **Such-Historie:** Letzte 20 Such- und Ersetzungs-Patterns
+- **Pattern-Speicherung:** Such- und Ersetzungs-Patterns können gespeichert werden
 - **Optionen:** Case-Sensitive, Ganzes Wort, Regex
 - **Navigation:** Vor/Zurück durch Suchergebnisse
 - **Ersetzen:** Einzeln oder Alle ersetzen
@@ -105,7 +109,10 @@ mvn javafx:run
 1. **Suchen/Ersetzen:** Ctrl+F oder Button "Suchen/Ersetzen"
 2. **Makros anwenden:** Button "Makros" für automatische Bereinigung
 3. **Datei speichern:** Ctrl+S oder Button "Speichern"
-4. **Exportieren:** RTF, DOCX, Markdown, HTML, TXT
+4. **Exportieren:** 
+   - **RTF:** Nur für Markdown-Dokumente verfügbar
+   - **DOCX:** Nur für Markdown-Dokumente verfügbar
+   - **Markdown, HTML, TXT:** Für alle Formate verfügbar
 
 ## 🔍 Regex-Filterung
 
@@ -218,10 +225,11 @@ src/
 - ✅ Drag & Drop Datei-Verwaltung
 - ✅ Regex-Filterung und -Suche
 - ✅ Theme-System (Hell/Dunkel)
-- ✅ Export-Funktionen (RTF, DOCX, Markdown, HTML, TXT)
+- ✅ Export-Funktionen (RTF/DOCX nur für Markdown, Markdown, HTML, TXT)
 - ✅ Keyboard-Shortcuts
 - ✅ Undo/Redo-System
 - ✅ Cursor-Navigation in Makro-Tabelle
+- ✅ Pattern-Speicherung für Such- und Ersetzungs-Patterns
 
 ## 🤝 Beitragen
 
