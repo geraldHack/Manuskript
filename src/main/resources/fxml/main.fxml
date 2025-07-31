@@ -95,7 +95,7 @@
       <HBox spacing="10" alignment="CENTER_LEFT">
          <children>
             <Label text="Ausgabeformat:" />
-            <ComboBox fx:id="cmbOutputFormat" prefWidth="120.0" />
+            <ComboBox fx:id="cmbOutputFormat" prefWidth="220.0" />
             <Region HBox.hgrow="ALWAYS" />
             <Button fx:id="btnProcessSelected" text="Ausgewählte verarbeiten" />
             <Button fx:id="btnProcessAll" text="Alle verarbeiten" />
