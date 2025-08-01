@@ -73,8 +73,8 @@ Eine moderne JavaFX-Anwendung zur Verarbeitung und automatischen Nachbearbeitung
 
 ### 1. Projekt klonen
 ```bash
-git clone https://github.com/geraldHack/SudowriteManuskript.git
-cd SudowriteManuskript
+git clone https://github.com/geraldHack/Manuskript.git
+cd Manuskript
 ```
 
 ### 2. Maven-Abhängigkeiten installieren
