@@ -1,6 +1,6 @@
 # Manuskript - DOCX Verarbeitung & Text-Editor
 
-**Hauptzweck:** JavaFX-Anwendung zum Zusammenführen mehrerer DOCX-Dateien zu einem Manuskript mit integriertem Text-Editor und automatischer Nachbearbeitung
+**Hauptzweck:** JavaFX-Anwendung zum Zusammenführen mehrerer DOCX-Dateien zu einem Manuskript mit integriertem Text-Editor und automatischer Nachbearbeitung. Gut geeignet für **Sudowrite** Projekt-Exporte
 
 Eine moderne JavaFX-Anwendung zur Verarbeitung und automatischen Nachbearbeitung von DOCX-Dateien zu einem zusammenhängenden Textdokument mit professionellem Text-Editor.
 
