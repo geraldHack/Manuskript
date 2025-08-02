@@ -4,7 +4,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox fx:id="mainContainer" spacing="10" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.manuskript.MainController">
+<VBox fx:id="mainContainer" spacing="10" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.manuskript.MainController" stylesheets="@../css/editor.css">
    <children>
       <!-- Verzeichnis-Auswahl -->
       <HBox spacing="10" alignment="CENTER_LEFT">
@@ -51,7 +51,7 @@
             <!-- Linke Tabelle: Verfügbare Dateien -->
             <VBox spacing="5" HBox.hgrow="ALWAYS">
                <children>
-                  <Label text="Verfügbare Dateien:" style="-fx-font-weight: bold;" />
+                  <Label text="Verfügbare Dateien:" styleClass="section-header" />
                   <TableView fx:id="tableViewAvailable" VBox.vgrow="ALWAYS">
                     <columns>
                       <TableColumn fx:id="colFileNameAvailable" text="Dateiname" prefWidth="200.0" />
@@ -73,8 +73,8 @@
             <!-- Rechte Tabelle: Ausgewählte Dateien -->
             <VBox spacing="5" HBox.hgrow="ALWAYS">
                <children>
-                  <Label text="Ausgewählte Dateien:" style="-fx-font-weight: bold;" />
-                  <Label text="Datei verschieben mit CTRL-Pfeiltaste" style="-fx-font-size: 10px; -fx-text-fill: #666666; -fx-font-style: italic;" />
+                  <Label text="Ausgewählte Dateien:" styleClass="section-header" />
+                  <Label text="Datei verschieben mit CTRL-Pfeiltaste" styleClass="info-text" />
                   <TableView fx:id="tableViewSelected" VBox.vgrow="ALWAYS">
                     <columns>
                       <TableColumn fx:id="colFileNameSelected" text="Dateiname" prefWidth="200.0" />
@@ -97,6 +97,11 @@
             <Label text="Ausgabeformat:" />
             <ComboBox fx:id="cmbOutputFormat" prefWidth="220.0" />
             <Region HBox.hgrow="ALWAYS" />
+            <Button fx:id="btnThemeToggle" text="🌙" prefWidth="50.0" prefHeight="35.0">
+                <tooltip>
+                   <Tooltip text="Theme wechseln" />
+                </tooltip>
+             </Button>
             <Button fx:id="btnProcessSelected" text="Ausgewählte verarbeiten" />
             <Button fx:id="btnProcessAll" text="Alle verarbeiten" />
          </children>
@@ -105,17 +110,7 @@
          </padding>
       </HBox>
       
-      <!-- Fortschrittsanzeige -->
-      <HBox spacing="10" alignment="CENTER_LEFT">
-         <children>
-            <Label text="Status:" />
-            <Label fx:id="lblStatus" text="Bereit" HBox.hgrow="ALWAYS" />
-            <ProgressBar fx:id="progressBar" prefWidth="200.0" />
-         </children>
-         <padding>
-            <Insets bottom="5.0" left="10.0" right="10.0" />
-         </padding>
-      </HBox>
+
       
 
    </children>

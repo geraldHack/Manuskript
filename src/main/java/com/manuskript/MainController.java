@@ -10,6 +10,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
@@ -17,6 +18,7 @@ import javafx.scene.input.TransferMode;
 import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
+import javafx.application.Platform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,10 +73,10 @@ public class MainController implements Initializable {
 
     @FXML private Button btnProcessSelected;
     @FXML private Button btnProcessAll;
+    @FXML private Button btnThemeToggle;
     
     // Status
-    @FXML private ProgressBar progressBar;
-    @FXML private Label lblStatus;
+    // ProgressBar und lblStatus wurden entfernt
     
     private Stage primaryStage;
     private ObservableList<DocxFile> allDocxFiles = FXCollections.observableArrayList();
@@ -85,6 +87,18 @@ public class MainController implements Initializable {
     private DocxProcessor docxProcessor;
     private Preferences preferences;
     
+    // Theme-System
+    private int currentThemeIndex = 0;
+    private static final String[][] THEMES = {
+        {"#ffffff", "#000000", "#e3f2fd", "#000000"}, // Weiß
+        {"#1a1a1a", "#ffffff", "#2d2d2d", "#ffffff"}, // Schwarz
+        {"#f3e5f5", "#000000", "#e1bee7", "#000000"}, // Pastell
+        {"#1e3a8a", "#ffffff", "#3b82f6", "#ffffff"}, // Blau
+        {"#064e3b", "#ffffff", "#10b981", "#ffffff"}, // Grün
+        {"#581c87", "#ffffff", "#8b5cf6", "#ffffff"}  // Lila
+    };
+    private static final String[] THEME_NAMES = {"Weiß", "Schwarz", "Pastell", "Blau", "Grün", "Lila"};
+    
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         preferences = Preferences.userNodeForPackage(MainController.class);
@@ -94,6 +108,9 @@ public class MainController implements Initializable {
         docxProcessor = new DocxProcessor();
         loadLastDirectory();
         loadRecentRegexList();
+        
+        // WICHTIG: Gespeichertes Theme laden und anwenden
+        loadSavedTheme();
     }
     
     private void setupUI() {
@@ -158,6 +175,7 @@ public class MainController implements Initializable {
         
         btnProcessSelected.setOnAction(e -> processSelectedFiles());
         btnProcessAll.setOnAction(e -> processAllFiles());
+        btnThemeToggle.setOnAction(e -> toggleTheme());
     }
     
     private void setupDragAndDrop() {
@@ -336,8 +354,8 @@ public class MainController implements Initializable {
     
     private void loadDocxFiles(File directory) {
         try {
-            updateStatus("Lade DOCX-Dateien...");
-            progressBar.setProgress(-1);
+                    updateStatus("Lade DOCX-Dateien...");
+        // progressBar wurde entfernt
             
             List<File> files = java.nio.file.Files.walk(directory.toPath())
                     .filter(path -> path.toString().toLowerCase().endsWith(".docx"))
@@ -354,7 +372,7 @@ public class MainController implements Initializable {
             }
             
             updateStatus(allDocxFiles.size() + " DOCX-Dateien gefunden");
-            progressBar.setProgress(0);
+            // progressBar wurde entfernt
             
         } catch (Exception e) {
             logger.error("Fehler beim Laden der DOCX-Dateien", e);
@@ -543,7 +561,7 @@ public class MainController implements Initializable {
     private void processFiles(ObservableList<DocxFile> files) {
         try {
             updateStatus("Verarbeite " + files.size() + " Dateien...");
-            progressBar.setProgress(0);
+            // progressBar wurde entfernt
             
             // Hole das ausgewählte Format
             DocxProcessor.OutputFormat format = cmbOutputFormat.getValue();
@@ -582,7 +600,7 @@ public class MainController implements Initializable {
                 result.append(content).append("\n\n");
                 
                 processed++;
-                progressBar.setProgress((double) processed / files.size());
+                // progressBar wurde entfernt
             }
             
             // HTML-Footer nur einmal am Ende (falls HTML-Format)
@@ -625,6 +643,9 @@ public class MainController implements Initializable {
             // Übergebe den DocxProcessor für DOCX-Export
             editorController.setDocxProcessor(docxProcessor);
             
+            // WICHTIG: Setze das aktuelle Theme vom Hauptfenster auf das Editorfenster
+            editorController.setThemeFromMainWindow(currentThemeIndex);
+            
             Stage editorStage = new Stage();
             editorStage.setTitle("Manuskript Editor");
             editorStage.setScene(new Scene(root));
@@ -649,7 +670,7 @@ public class MainController implements Initializable {
     }
     
     private void updateStatus(String message) {
-        lblStatus.setText(message);
+        // lblStatus wurde entfernt - nur noch Logging
         logger.info("Status: {}", message);
     }
     
@@ -764,6 +785,135 @@ public class MainController implements Initializable {
             logger.info("Dateiauswahl geladen: {}", jsonPath);
         } catch (Exception e) {
             logger.warn("Fehler beim Laden der Dateiauswahl", e);
+        }
+    }
+    
+
+    
+    /**
+     * Wechselt das Theme
+     */
+    private void toggleTheme() {
+        currentThemeIndex = (currentThemeIndex + 1) % THEMES.length;
+        applyTheme(currentThemeIndex);
+        updateThemeButtonIcon();
+        updateStatus("Theme gewechselt: " + THEME_NAMES[currentThemeIndex]);
+        
+        // WICHTIG: Theme auch in Preferences speichern für Editorfenster-Synchronisation
+        preferences.putInt("main_window_theme", currentThemeIndex);
+    }
+    
+    /**
+     * Wendet das Theme an
+     */
+    private void applyTheme(int themeIndex) {
+        if (mainContainer == null) return;
+        
+        String[] theme = THEMES[themeIndex];
+        String backgroundColor = theme[0];
+        String textColor = theme[1];
+        
+        // Root-Container Theme anwenden (direkt, ohne Platform.runLater für bessere Performance)
+        if (mainContainer.getScene() != null && mainContainer.getScene().getWindow() != null) {
+            Node root = mainContainer.getScene().getRoot();
+            root.getStyleClass().removeAll("theme-dark", "theme-light", "blau-theme", "gruen-theme", "lila-theme");
+            if (themeIndex == 0) { // Weiß - Keine CSS-Klasse (Standard)
+                // Keine CSS-Klasse hinzufügen - Standard-Styling
+            } else if (themeIndex == 1 || themeIndex >= 3) { // Dunkle Themes: Schwarz (1), Blau (3), Grün (4), Lila (5)
+                root.getStyleClass().add("theme-dark");
+                // Spezifische Theme-Klassen für dunkle Themes
+                if (themeIndex == 3) { // Blau
+                    root.getStyleClass().add("blau-theme");
+                } else if (themeIndex == 4) { // Grün
+                    root.getStyleClass().add("gruen-theme");
+                } else if (themeIndex == 5) { // Lila
+                    root.getStyleClass().add("lila-theme");
+                }
+            } else if (themeIndex == 2) { // Pastell - Helles Theme
+                root.getStyleClass().add("theme-light");
+            }
+        }
+        
+        // Alle UI-Elemente das Theme geben (direkt, ohne Platform.runLater)
+        applyThemeToNode(mainContainer, themeIndex);
+        applyThemeToNode(btnSelectDirectory, themeIndex);
+        applyThemeToNode(txtDirectoryPath, themeIndex);
+        applyThemeToNode(cmbSortBy, themeIndex);
+        applyThemeToNode(cmbRegexFilter, themeIndex);
+        applyThemeToNode(chkRegexMode, themeIndex);
+        applyThemeToNode(cmbRegexSort, themeIndex);
+        applyThemeToNode(cmbOutputFormat, themeIndex);
+        applyThemeToNode(btnAddToSelected, themeIndex);
+        applyThemeToNode(btnRemoveFromSelected, themeIndex);
+        applyThemeToNode(btnProcessSelected, themeIndex);
+        applyThemeToNode(btnProcessAll, themeIndex);
+        applyThemeToNode(btnThemeToggle, themeIndex);
+        
+        // Tabellen
+        applyThemeToNode(tableViewAvailable, themeIndex);
+        applyThemeToNode(tableViewSelected, themeIndex);
+        
+        // Force CSS refresh
+        if (mainContainer.getScene() != null) {
+            mainContainer.getScene().getStylesheets().clear();
+            mainContainer.getScene().getStylesheets().add(getClass().getResource("/css/editor.css").toExternalForm());
+        }
+    }
+    
+    /**
+     * Wendet das Theme auf ein einzelnes Node an
+     */
+    private void applyThemeToNode(javafx.scene.Node node, int themeIndex) {
+        if (node != null) {
+            node.getStyleClass().removeAll("theme-dark", "theme-light", "blau-theme", "gruen-theme", "lila-theme");
+            if (themeIndex == 0) { // Weiß - Keine CSS-Klasse (Standard)
+                // Keine CSS-Klasse hinzufügen - Standard-Styling
+            } else if (themeIndex == 1) { // Schwarz
+                node.getStyleClass().add("theme-dark");
+            } else if (themeIndex == 2) { // Pastell - Helles Theme
+                node.getStyleClass().add("theme-light");
+            } else if (themeIndex == 3) { // Blau
+                node.getStyleClass().add("theme-dark");
+                node.getStyleClass().add("blau-theme");
+            } else if (themeIndex == 4) { // Grün
+                node.getStyleClass().add("theme-dark");
+                node.getStyleClass().add("gruen-theme");
+            } else if (themeIndex == 5) { // Lila
+                node.getStyleClass().add("theme-dark");
+                node.getStyleClass().add("lila-theme");
+            }
+        }
+    }
+    
+    /**
+     * Lädt das gespeicherte Theme aus Preferences
+     */
+    private void loadSavedTheme() {
+        // Gespeichertes Theme aus Preferences laden
+        int savedTheme = preferences.getInt("main_window_theme", 0);
+        currentThemeIndex = savedTheme;
+        
+        // Theme anwenden
+        applyTheme(currentThemeIndex);
+        
+        // Theme-Button Icon aktualisieren
+        updateThemeButtonIcon();
+        
+        logger.info("Gespeichertes Theme geladen: {} ({})", currentThemeIndex, THEME_NAMES[currentThemeIndex]);
+    }
+    
+    /**
+     * Aktualisiert das Theme-Button Icon
+     */
+    private void updateThemeButtonIcon() {
+        if (btnThemeToggle != null) {
+            if (currentThemeIndex == 1 || currentThemeIndex >= 3) { // Dunkle Themes: Schwarz (1), Blau (3), Grün (4), Lila (5)
+                btnThemeToggle.setText("☀"); // Sonne für dunkle Themes (einfaches Symbol)
+                btnThemeToggle.setTooltip(new Tooltip("Zu hellem Theme wechseln"));
+            } else { // Helle Themes: Weiß (0), Pastell (2)
+                btnThemeToggle.setText("🌙"); // Mond für helle Themes
+                btnThemeToggle.setTooltip(new Tooltip("Zu dunklem Theme wechseln"));
+            }
         }
     }
 } 
