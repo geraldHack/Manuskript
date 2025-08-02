@@ -214,3 +214,24 @@
 .help-button:pressed {
     -fx-background-color: #004085;
 } 
+
+/* Wortwiederholungen-Markierung */
+/* RichTextFX-spezifische Markierung-Klassen */
+.code-area .search-match-first {
+    -rtfx-background-color: #ff9800 !important;
+    -fx-text-fill: #000000 !important;
+}
+.code-area .search-match-second {
+    -rtfx-background-color: #4fc3f7 !important;
+    -fx-text-fill: #000000 !important;
+}
+
+/* Neue Markierung-Klassen */
+.code-area .highlight-yellow {
+    -rtfx-background-color: #ffeb3b !important;
+    -fx-text-fill: #000000 !important;
+}
+.code-area .highlight-orange {
+    -rtfx-background-color: #ff9800 !important;
+    -fx-text-fill: #000000 !important;
+} 

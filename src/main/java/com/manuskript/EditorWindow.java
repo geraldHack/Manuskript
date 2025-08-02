@@ -10,6 +10,7 @@ import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -17,6 +18,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.control.Label;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import javafx.stage.Modality;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.input.KeyCode;
@@ -50,6 +52,19 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
 import javafx.scene.control.cell.PropertyValueFactory;
+import java.util.Properties;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
+import java.util.concurrent.atomic.AtomicBoolean;
+import org.fxmisc.richtext.model.StyleSpan;
 
 // Eigene Klassen
 import com.manuskript.Macro;
@@ -65,7 +80,6 @@ public class EditorWindow implements Initializable {
     @FXML private VBox mainContainer;
     @FXML private HBox searchReplaceContainer;
     @FXML private VBox searchReplacePanel;
-    @FXML private SplitPane mainSplitPane;
     @FXML private VBox macroPanel;
     
     // Such- und Ersetzungs-Controls
@@ -95,6 +109,7 @@ public class EditorWindow implements Initializable {
     @FXML private Button btnNew;
     @FXML private Button btnToggleSearch;
     @FXML private Button btnToggleMacro;
+    @FXML private Button btnTextAnalysis;
     @FXML private Button btnRegexHelp;
     
     // Font-Size Toolbar
@@ -106,37 +121,38 @@ public class EditorWindow implements Initializable {
     @FXML private Button btnThemeToggle;
     @FXML private Button btnMacroRegexHelp;
     
-    // Makro-UI-Elemente
-    @FXML private ComboBox<String> cmbMacroList;
-    @FXML private Button btnNewMacro;
-    @FXML private Button btnDeleteMacro;
-    @FXML private Button btnSaveMacro;
-    @FXML private Button btnRunMacro;
-    @FXML private VBox macroDetailsPanel;
-    @FXML private TableView<MacroStep> tblMacroSteps;
-    @FXML private TableColumn<MacroStep, Boolean> colEnabled;
-    @FXML private TableColumn<MacroStep, Integer> colStepNumber;
-    @FXML private TableColumn<MacroStep, String> colDescription;
-    @FXML private TableColumn<MacroStep, String> colSearchText;
-    @FXML private TableColumn<MacroStep, String> colReplaceText;
-    @FXML private TableColumn<MacroStep, String> colOptions;
-    @FXML private TableColumn<MacroStep, String> colStatus;
-    @FXML private TableColumn<MacroStep, String> colActions;
-    @FXML private Button btnAddStep;
-    @FXML private Button btnRemoveStep;
-    @FXML private Button btnMoveStepUp;
-    @FXML private Button btnMoveStepDown;
+    // Makro-UI-Elemente (werden programmatisch erstellt)
+    private ComboBox<String> cmbMacroList;
+    private Button btnNewMacro;
+    private Button btnDeleteMacro;
+    private Button btnSaveMacro;
+    private Button btnRunMacro;
+    private VBox macroDetailsPanel;
+    private TableView<MacroStep> tblMacroSteps;
+    private TableColumn<MacroStep, Boolean> colEnabled;
+    private TableColumn<MacroStep, Integer> colStepNumber;
+    private TableColumn<MacroStep, String> colDescription;
+    private TableColumn<MacroStep, String> colSearchText;
+    private TableColumn<MacroStep, String> colReplaceText;
+    private TableColumn<MacroStep, String> colOptions;
+    private TableColumn<MacroStep, String> colStatus;
+    private TableColumn<MacroStep, String> colActions;
+    private Button btnAddStep;
+    private Button btnRemoveStep;
+    private Button btnMoveStepUp;
+    private Button btnMoveStepDown;
     
     // Makro-Schritt-Eingabe
-    @FXML private TextField txtMacroSearch;
-    @FXML private TextField txtMacroReplace;
-
-    @FXML private TextField txtMacroStepDescription;
-    @FXML private CheckBox chkMacroRegex;
-    @FXML private CheckBox chkMacroCaseSensitive;
-    @FXML private CheckBox chkMacroWholeWord;
+    private TextField txtMacroSearch;
+    private TextField txtMacroReplace;
+    private TextField txtMacroStepDescription;
+    private CheckBox chkMacroRegex;
+    private CheckBox chkMacroCaseSensitive;
+    private CheckBox chkMacroWholeWord;
     
     private Stage stage;
+    private Stage macroStage;
+    private Stage textAnalysisStage;
     private Preferences preferences;
     private ObservableList<String> searchHistory = FXCollections.observableArrayList();
     private ObservableList<String> replaceHistory = FXCollections.observableArrayList();
@@ -145,8 +161,11 @@ public class EditorWindow implements Initializable {
     private int currentMatchIndex = -1;
     private int totalMatches = 0;
     private String lastSearchText = "";
+    private List<Integer> cachedMatchPositions = new ArrayList<>();
+    private Pattern cachedPattern = null;
     private boolean searchPanelVisible = false;
-    private boolean macroPanelVisible = false;
+    private boolean macroWindowVisible = false;
+    private boolean textAnalysisWindowVisible = false;
     private File currentFile = null;
     private DocxProcessor.OutputFormat outputFormat = DocxProcessor.OutputFormat.HTML;
     private DocxProcessor docxProcessor;
@@ -198,21 +217,32 @@ public class EditorWindow implements Initializable {
         setupMacroPanel();
         setupFontSizeComboBox();
         
-            // Checkboxen explizit auf false setzen (nach FXML-Load)
-    Platform.runLater(() -> {
-        if (chkRegexSearch != null) {
-            chkRegexSearch.setSelected(false);
-            chkRegexSearch.setIndeterminate(false);
-        }
-        if (chkCaseSensitive != null) {
-            chkCaseSensitive.setSelected(false);
-            chkCaseSensitive.setIndeterminate(false);
-        }
-        if (chkWholeWord != null) {
-            chkWholeWord.setSelected(false);
-            chkWholeWord.setIndeterminate(false);
-        }
-    });
+        // Checkboxen explizit auf false setzen (nach FXML-Load)
+        Platform.runLater(() -> {
+            if (chkRegexSearch != null) {
+                chkRegexSearch.setSelected(false);
+                chkRegexSearch.setIndeterminate(false);
+            }
+            if (chkCaseSensitive != null) {
+                chkCaseSensitive.setSelected(false);
+                chkCaseSensitive.setIndeterminate(false);
+            }
+            if (chkWholeWord != null) {
+                chkWholeWord.setSelected(false);
+                chkWholeWord.setIndeterminate(false);
+            }
+            
+            // WICHTIG: Theme und Font-Size aus Preferences laden (nach UI-Initialisierung)
+            loadToolbarSettings();
+            
+            // Zusätzlicher Theme-Refresh für bessere Kompatibilität
+            Platform.runLater(() -> {
+                if (currentThemeIndex > 0) { // Nicht das Standard-weiße Theme
+                    applyTheme(currentThemeIndex);
+                    logger.info("Zusätzlicher Theme-Refresh durchgeführt für Theme: {}", currentThemeIndex);
+                }
+            });
+        });
     }
     
     private void setupUI() {
@@ -268,8 +298,21 @@ public class EditorWindow implements Initializable {
         // CodeArea initialisieren
         codeArea = new CodeArea();
         codeArea.setWrapText(true);
+        codeArea.getStyleClass().add("code-area");
         codeArea.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px; -rtfx-background-color: #ffffff;");
         
+        // CSS-Dateien für CodeArea laden
+        String cssPath = getClass().getResource("/css/styles.css").toExternalForm();
+        String editorCssPath = getClass().getResource("/css/editor.css").toExternalForm();
+        codeArea.getStylesheets().add(cssPath);
+        codeArea.getStylesheets().add(editorCssPath);
+        
+        Node caret = codeArea.lookup(".caret");
+if (caret != null) {
+    caret.setStyle("-fx-stroke: red; -fx-fill: red;");
+}
+
+
         // Zeilennummern hinzufügen
         codeArea.setParagraphGraphicFactory(LineNumberFactory.get(codeArea));
         
@@ -284,15 +327,8 @@ public class EditorWindow implements Initializable {
         searchReplacePanel.setVisible(false);
         searchReplacePanel.setManaged(false);
         
-        // SplitPane initialisieren - EXPLIZIT vertikal setzen
-        mainSplitPane.setOrientation(Orientation.VERTICAL);
-        VBox.setVgrow(mainSplitPane, Priority.ALWAYS);
-        
-        // Makro-Panel initial aus dem SplitPane entfernen
-        mainSplitPane.getItems().remove(macroPanel);
-        
-        // Initial auf 100% setzen (nur Text-Editor sichtbar, Makro-Panel versteckt)
-        mainSplitPane.setDividerPositions(1.0);
+        // TextArea nimmt den gesamten verfügbaren Platz ein
+        VBox.setVgrow(textAreaContainer, Priority.ALWAYS);
         
         // ComboBoxes editierbar machen
         cmbSearchHistory.setEditable(true);
@@ -405,7 +441,12 @@ public class EditorWindow implements Initializable {
         btnBold.setOnAction(e -> formatTextBold());
         btnItalic.setOnAction(e -> formatTextItalic());
         btnThemeToggle.setOnAction(e -> toggleTheme());
-        btnMacroRegexHelp.setOnAction(e -> showRegexHelp());
+        if (btnMacroRegexHelp != null) {
+            btnMacroRegexHelp.setOnAction(e -> showRegexHelp());
+        }
+        
+        // Textanalyse-Button
+        btnTextAnalysis.setOnAction(e -> toggleTextAnalysisPanel());
         btnRegexHelp.setOnAction(e -> showRegexHelp());
         btnFindNext.setOnAction(e -> findNext());
         btnFindPrevious.setOnAction(e -> findPrevious());
@@ -536,20 +577,52 @@ public class EditorWindow implements Initializable {
             Pattern pattern = createSearchPattern(searchText.trim());
             String content = codeArea.getText();
             
-            // Wenn sich der Suchtext geändert hat, reset
+            // Wenn sich der Suchtext geändert hat, cache neu aufbauen
             if (!searchText.equals(lastSearchText)) {
                 totalMatches = 0;
                 currentMatchIndex = -1;
                 lastSearchText = searchText;
-                // Entferne alle bisherigen Markierungen
-                codeArea.setStyleSpans(0, content.length(), StyleSpans.singleton(new ArrayList<>(), 0));
-            }
-            
-            // Zähle alle Treffer wenn nötig
-            if (totalMatches == 0) {
-                Matcher countMatcher = pattern.matcher(content);
-                while (countMatcher.find()) {
-                    totalMatches++;
+                cachedPattern = pattern;
+                cachedMatchPositions.clear();
+                
+                // Sammle alle Treffer-Positionen
+                Matcher collectMatcher = pattern.matcher(content);
+                while (collectMatcher.find()) {
+                    cachedMatchPositions.add(collectMatcher.start());
+                }
+                totalMatches = cachedMatchPositions.size();
+                
+                // Markiere alle Treffer nur einmal
+                if (totalMatches > 0) {
+                    StyleSpansBuilder<Collection<String>> spansBuilder = new StyleSpansBuilder<>();
+                    int lastEnd = 0;
+                    
+                    for (int start : cachedMatchPositions) {
+                        Matcher matchMatcher = pattern.matcher(content);
+                        if (matchMatcher.find(start)) {
+                            int end = matchMatcher.end();
+                            
+                            // Füge normalen Text vor dem Treffer hinzu
+                            if (start > lastEnd) {
+                                spansBuilder.add(Collections.emptyList(), start - lastEnd);
+                            }
+                            
+                            // Füge markierten Text hinzu
+                            spansBuilder.add(Collections.singleton("search-match-first"), end - start);
+                            lastEnd = end;
+                        }
+                    }
+                    
+                    // Füge restlichen Text hinzu
+                    if (lastEnd < content.length()) {
+                        spansBuilder.add(Collections.emptyList(), content.length() - lastEnd);
+                    }
+                    
+                    // Wende die Markierungen an
+                    codeArea.setStyleSpans(0, spansBuilder.create());
+                } else {
+                    // Entferne alle Markierungen
+                    codeArea.setStyleSpans(0, content.length(), StyleSpans.singleton(new ArrayList<>(), 0));
                 }
             }
             
@@ -560,42 +633,13 @@ public class EditorWindow implements Initializable {
                 return;
             }
             
-            // Sammle alle Treffer-Positionen und markiere sie
-            List<Integer> matchPositions = new ArrayList<>();
-            StyleSpansBuilder<Collection<String>> spansBuilder = new StyleSpansBuilder<>();
-            Matcher collectMatcher = pattern.matcher(content);
-            int lastEnd = 0;
-            
-            while (collectMatcher.find()) {
-                int start = collectMatcher.start();
-                int end = collectMatcher.end();
-                matchPositions.add(start);
-                
-                // Füge normalen Text vor dem Treffer hinzu
-                if (start > lastEnd) {
-                    spansBuilder.add(Collections.emptyList(), start - lastEnd);
-                }
-                
-                // Füge markierten Text hinzu
-                spansBuilder.add(Collections.singleton("search-match"), end - start);
-                lastEnd = end;
-            }
-            
-            // Füge restlichen Text hinzu
-            if (lastEnd < content.length()) {
-                spansBuilder.add(Collections.emptyList(), content.length() - lastEnd);
-            }
-            
-            // Wende die Markierungen an
-            codeArea.setStyleSpans(0, spansBuilder.create());
-            
-            // Finde den nächsten Treffer
+            // Finde den nächsten Treffer aus dem Cache
             int currentPos = codeArea.getCaretPosition();
             int nextIndex = -1;
             
             // Suche den nächsten Treffer nach der aktuellen Position
-            for (int i = 0; i < matchPositions.size(); i++) {
-                if (matchPositions.get(i) > currentPos) {
+            for (int i = 0; i < cachedMatchPositions.size(); i++) {
+                if (cachedMatchPositions.get(i) > currentPos) {
                     nextIndex = i;
                     break;
                 }
@@ -607,8 +651,8 @@ public class EditorWindow implements Initializable {
             }
             
             // Markiere den gefundenen Treffer
-            int matchStart = matchPositions.get(nextIndex);
-            Matcher highlightMatcher = pattern.matcher(content);
+            int matchStart = cachedMatchPositions.get(nextIndex);
+            Matcher highlightMatcher = cachedPattern.matcher(content);
             if (highlightMatcher.find(matchStart)) {
                 highlightText(highlightMatcher.start(), highlightMatcher.end());
                 currentMatchIndex = nextIndex;
@@ -626,18 +670,10 @@ public class EditorWindow implements Initializable {
         if (searchText == null || searchText.trim().isEmpty()) return;
         
         try {
-            Pattern pattern = createSearchPattern(searchText.trim());
-            String content = codeArea.getText();
-            Matcher matcher = pattern.matcher(content);
-            
-            // Wenn es die erste Suche ist oder sich der Suchtext geändert hat, zähle alle Treffer
-            if (totalMatches == 0 || !searchText.equals(lastSearchText)) {
-                totalMatches = 0;
-                while (matcher.find()) {
-                    totalMatches++;
-                }
-                lastSearchText = searchText;
-                currentMatchIndex = -1; // Reset für neue Suche
+            // Verwende den Cache von findNext() - wenn noch nicht vorhanden, rufe findNext() auf
+            if (!searchText.equals(lastSearchText) || cachedMatchPositions.isEmpty()) {
+                findNext();
+                return;
             }
             
             if (totalMatches == 0) {
@@ -647,55 +683,26 @@ public class EditorWindow implements Initializable {
                 return;
             }
             
-            int start = codeArea.getCaretPosition();
-            boolean found = false;
-            
-            // Suche rückwärts
-            matcher.reset();
-            int lastStart = -1;
-            int lastEnd = -1;
-            int matchCount = 0;
-            
-            while (matcher.find()) {
-                if (matcher.start() < start) {
-                    lastStart = matcher.start();
-                    lastEnd = matcher.end();
-                    currentMatchIndex = matchCount;
-                } else {
-                    break;
-                }
-                matchCount++;
+            // Finde den vorherigen Treffer aus dem Cache
+            int previousIndex;
+            if (currentMatchIndex <= 0) {
+                // Wenn wir am Anfang sind oder noch keinen Index haben, gehe zum letzten Treffer
+                previousIndex = cachedMatchPositions.size() - 1;
+            } else {
+                // Gehe zum vorherigen Treffer
+                previousIndex = currentMatchIndex - 1;
             }
             
-            if (lastStart != -1) {
-                highlightText(lastStart, lastEnd);
-                updateMatchCount(currentMatchIndex + 1, totalMatches);
-                updateStatus("Treffer " + (currentMatchIndex + 1) + " von " + totalMatches);
-                found = true;
-            }
-            
-            if (!found) {
-                // Suche vom Ende (Wrap-around)
-                matcher.reset();
-                if (matcher.find()) {
-                    int lastMatchStart = -1;
-                    int lastMatchEnd = -1;
-                    int lastMatchIndex = 0;
-                    int count = 0;
-                    
-                    while (matcher.find()) {
-                        lastMatchStart = matcher.start();
-                        lastMatchEnd = matcher.end();
-                        lastMatchIndex = count;
-                        count++;
-                    }
-                    
-                    if (lastMatchStart != -1) {
-                        highlightText(lastMatchStart, lastMatchEnd);
-                        currentMatchIndex = lastMatchIndex;
-                        updateMatchCount(currentMatchIndex + 1, totalMatches);
-                        updateStatus("Treffer " + (currentMatchIndex + 1) + " von " + totalMatches);
-                    }
+            // Markiere den gefundenen Treffer
+            if (previousIndex >= 0 && previousIndex < cachedMatchPositions.size()) {
+                int matchStart = cachedMatchPositions.get(previousIndex);
+                String content = codeArea.getText();
+                Matcher highlightMatcher = cachedPattern.matcher(content);
+                if (highlightMatcher.find(matchStart)) {
+                    highlightText(highlightMatcher.start(), highlightMatcher.end());
+                    currentMatchIndex = previousIndex;
+                    updateMatchCount(currentMatchIndex + 1, totalMatches);
+                    updateStatus("Treffer " + (currentMatchIndex + 1) + " von " + totalMatches);
                 }
             }
             
@@ -1084,6 +1091,8 @@ public class EditorWindow implements Initializable {
             lblMatchCount.setText("");
         }
     }
+    
+
     
     private void applySearchOptions(String options) {
         try {
@@ -1624,6 +1633,7 @@ public class EditorWindow implements Initializable {
     // Public Methoden für externe Verwendung
     public void setText(String text) {
         codeArea.replaceText(text);
+        
         // Cursor an den Anfang setzen
         codeArea.displaceCaret(0);
         codeArea.requestFollowCaret();
@@ -1685,19 +1695,192 @@ public class EditorWindow implements Initializable {
         this.docxProcessor = docxProcessor;
     }
     
+    /**
+     * Setzt das Theme vom Hauptfenster - für Synchronisation
+     */
+    public void setThemeFromMainWindow(int themeIndex) {
+        // WICHTIG: Theme IMMER vom Hauptfenster übernehmen, nicht aus Preferences
+        this.currentThemeIndex = themeIndex;
+        // Theme sofort anwenden
+        applyTheme(themeIndex);
+        updateThemeButtonTooltip();
+        
+        // WICHTIG: Theme in Preferences speichern für Persistierung
+        preferences.putInt("editor_theme", themeIndex);
+        preferences.putInt("main_window_theme", themeIndex);
+        
+        logger.info("Theme vom Hauptfenster übernommen und gespeichert: {}", themeIndex);
+        
+        // Zusätzlicher verzögerter Theme-Refresh für bessere Kompatibilität
+        Platform.runLater(() -> {
+            Platform.runLater(() -> {
+                applyTheme(themeIndex);
+            });
+        });
+    }
+    
     // ===== MAKRO-FUNKTIONALITÄT =====
     
 
     
     private void setupMacroPanel() {
-        // Macro-Panel initial ausblenden
-        macroPanel.setVisible(false);
-        macroPanel.setManaged(false);
+        // Macro-Fenster erstellen
+        createMacroWindow();
+    }
+    
+    private void createMacroWindow() {
+        macroStage = new Stage();
+        macroStage.setTitle("Makro-Verwaltung");
+        macroStage.setWidth(1200);
+        macroStage.setHeight(800);
+        macroStage.initModality(Modality.NONE);
+        macroStage.initOwner(stage);
         
-        // Macro-Liste mit Namen füllen
-        cmbMacroList.setItems(FXCollections.observableArrayList());
+        // Makro-Panel programmatisch erstellen
+        VBox macroPanel = createMacroPanel();
         
-        // TableView für Macro-Schritte einrichten
+        Scene macroScene = new Scene(macroPanel);
+        macroScene.getStylesheets().add(getClass().getResource("/css/editor.css").toExternalForm());
+        macroStage.setScene(macroScene);
+        
+        // Fenster-Position speichern/laden
+        loadMacroWindowProperties();
+        
+        // Event-Handler für Fenster-Schließung
+        macroStage.setOnCloseRequest(event -> {
+            macroWindowVisible = false;
+            event.consume(); // Verhindert das tatsächliche Schließen
+            macroStage.hide();
+        });
+    }
+    
+    private VBox createMacroPanel() {
+        VBox macroPanel = new VBox(10);
+        macroPanel.getStyleClass().add("macro-panel");
+        
+        // Direkte Farbe basierend auf Theme setzen
+        if (currentThemeIndex == 0) { // Weiß-Theme
+            macroPanel.setStyle("-fx-background-color: #ffffff; -fx-border-color: #cccccc;");
+        } else if (currentThemeIndex == 1) { // Schwarz-Theme
+            macroPanel.setStyle("-fx-background-color: #1a1a1a; -fx-border-color: #333333;");
+        } else if (currentThemeIndex == 2) { // Pastell-Theme
+            macroPanel.setStyle("-fx-background-color: #f3e5f5; -fx-border-color: #e1bee7;");
+        } else if (currentThemeIndex == 3) { // Blau-Theme
+            macroPanel.setStyle("-fx-background-color: #1e3a8a; -fx-border-color: #3b82f6;");
+        } else if (currentThemeIndex == 4) { // Grün-Theme
+            macroPanel.setStyle("-fx-background-color: #166534; -fx-border-color: #22c55e;");
+        } else if (currentThemeIndex == 5) { // Lila-Theme
+            macroPanel.setStyle("-fx-background-color: #581c87; -fx-border-color: #a855f7;");
+        }
+        
+        // Theme-Klassen für das Makro-Panel hinzufügen
+        if (currentThemeIndex == 2) { // Pastell-Theme
+            macroPanel.getStyleClass().addAll("theme-light", "lila-theme");
+        } else if (currentThemeIndex == 0) { // Weiß-Theme
+            // Keine zusätzlichen CSS-Klassen
+        } else if (currentThemeIndex == 1) { // Schwarz-Theme
+            macroPanel.getStyleClass().add("theme-dark");
+        } else if (currentThemeIndex >= 3) { // Dunkle Themes: Blau (3), Grün (4), Lila (5)
+            macroPanel.getStyleClass().add("theme-dark");
+            if (currentThemeIndex == 3) {
+                macroPanel.getStyleClass().add("blau-theme");
+            } else if (currentThemeIndex == 4) {
+                macroPanel.getStyleClass().add("gruen-theme");
+            } else if (currentThemeIndex == 5) {
+                macroPanel.getStyleClass().add("lila-theme");
+            }
+        }
+        
+        macroPanel.setPadding(new Insets(10));
+        
+        // Makro-Liste und Steuerung
+        HBox macroControls = new HBox(10);
+        macroControls.setAlignment(Pos.CENTER_LEFT);
+        
+        Label macroLabel = new Label("Makros:");
+        macroLabel.setStyle("-fx-font-weight: bold;");
+        
+        ComboBox<String> cmbMacroList = new ComboBox<>();
+        cmbMacroList.setPromptText("Makro auswählen...");
+        cmbMacroList.setPrefWidth(200.0);
+        
+        Button btnNewMacro = new Button("Neues Makro");
+        btnNewMacro.getStyleClass().addAll("button", "primary");
+        
+        Button btnDeleteMacro = new Button("Makro löschen");
+        btnDeleteMacro.getStyleClass().addAll("button", "danger");
+        
+        Button btnSaveMacro = new Button("Makro speichern");
+        btnSaveMacro.getStyleClass().addAll("button", "primary");
+        
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        
+        Button btnRunMacro = new Button("Makro ausführen");
+        btnRunMacro.getStyleClass().addAll("button", "success");
+        
+        macroControls.getChildren().addAll(macroLabel, cmbMacroList, btnNewMacro, btnDeleteMacro, btnSaveMacro, spacer, btnRunMacro);
+        
+        // Makro-Details Panel
+        VBox macroDetailsPanel = new VBox(5);
+        macroDetailsPanel.setVisible(false);
+        VBox.setVgrow(macroDetailsPanel, Priority.ALWAYS);
+        
+        Label stepsLabel = new Label("Makro-Schritte:");
+        stepsLabel.setStyle("-fx-font-weight: bold;");
+        
+        // Makro-Schritt-Beschreibung
+        HBox descriptionBox = new HBox(10);
+        descriptionBox.setAlignment(Pos.CENTER_LEFT);
+        
+        Label descLabel = new Label("Schritt-Beschreibung:");
+        descLabel.setStyle("-fx-font-weight: bold;");
+        
+        TextField txtMacroStepDescription = new TextField();
+        txtMacroStepDescription.setPromptText("Beschreibung des Schritts...");
+        txtMacroStepDescription.setPrefWidth(400.0);
+        
+        descriptionBox.getChildren().addAll(descLabel, txtMacroStepDescription);
+        
+        // Makro-Schritt-Eingabe
+        HBox searchReplaceBox = new HBox(10);
+        searchReplaceBox.setAlignment(Pos.CENTER_LEFT);
+        
+        Label searchLabel = new Label("Suchen:");
+        searchLabel.setStyle("-fx-font-weight: bold;");
+        
+        TextField txtMacroSearch = new TextField();
+        txtMacroSearch.setPromptText("Suchtext eingeben...");
+        txtMacroSearch.setPrefWidth(200.0);
+        
+        Label replaceLabel = new Label("Ersetzen:");
+        replaceLabel.setStyle("-fx-font-weight: bold;");
+        
+        TextField txtMacroReplace = new TextField();
+        txtMacroReplace.setPromptText("Ersetzungstext eingeben...");
+        txtMacroReplace.setPrefWidth(200.0);
+        
+        CheckBox chkMacroRegex = new CheckBox("Regex");
+        CheckBox chkMacroCaseSensitive = new CheckBox("Case");
+        CheckBox chkMacroWholeWord = new CheckBox("Word");
+        
+        Button btnMacroRegexHelp = new Button("?");
+        btnMacroRegexHelp.getStyleClass().add("help-button");
+        btnMacroRegexHelp.setStyle("-fx-min-width: 25px; -fx-max-width: 25px; -fx-min-height: 25px; -fx-max-height: 25px; -fx-font-weight: bold;");
+        
+        searchReplaceBox.getChildren().addAll(searchLabel, txtMacroSearch, replaceLabel, txtMacroReplace, 
+                                             chkMacroRegex, chkMacroCaseSensitive, chkMacroWholeWord, btnMacroRegexHelp);
+        
+        // Makro-Schritte Tabelle
+        TableView<MacroStep> tblMacroSteps = new TableView<>();
+        VBox.setVgrow(tblMacroSteps, Priority.ALWAYS);
+        
+        TableColumn<MacroStep, Integer> colStepNumber = new TableColumn<>("Schritt");
+        colStepNumber.setPrefWidth(50.0);
+        colStepNumber.setCellValueFactory(new PropertyValueFactory<>("stepNumber"));
+        
+        TableColumn<MacroStep, Boolean> colEnabled = new TableColumn<>("Aktiv");
+        colEnabled.setPrefWidth(50.0);
         colEnabled.setCellValueFactory(new PropertyValueFactory<>("enabled"));
         colEnabled.setCellFactory(param -> new TableCell<MacroStep, Boolean>() {
             private final CheckBox checkBox = new CheckBox();
@@ -1706,7 +1889,6 @@ public class EditorWindow implements Initializable {
                     MacroStep step = getTableView().getItems().get(getIndex());
                     if (step != null) {
                         step.setEnabled(checkBox.isSelected());
-                        logger.info("CheckBox für Schritt " + step.getStepNumber() + " geändert zu: " + checkBox.isSelected());
                     }
                 });
             }
@@ -1720,29 +1902,33 @@ public class EditorWindow implements Initializable {
                     boolean isSelected = item != null && item;
                     checkBox.setSelected(isSelected);
                     setGraphic(checkBox);
-                    
-                    // Debug-Ausgabe für CheckBox-Status
-                    MacroStep step = getTableView().getItems().get(getIndex());
-                    if (step != null) {
-                        logger.debug("CheckBox für Schritt " + step.getStepNumber() + " gesetzt auf: " + isSelected);
-                    }
                 }
             }
         });
         
-        colStepNumber.setCellValueFactory(new PropertyValueFactory<>("stepNumber"));
+        TableColumn<MacroStep, String> colDescription = new TableColumn<>("Beschreibung");
+        colDescription.setPrefWidth(400.0);
         colDescription.setCellValueFactory(new PropertyValueFactory<>("description"));
+        
+        TableColumn<MacroStep, String> colSearchText = new TableColumn<>("Suchen");
+        colSearchText.setPrefWidth(150.0);
         colSearchText.setCellValueFactory(new PropertyValueFactory<>("searchText"));
+        
+        TableColumn<MacroStep, String> colReplaceText = new TableColumn<>("Ersetzen");
+        colReplaceText.setPrefWidth(150.0);
         colReplaceText.setCellValueFactory(new PropertyValueFactory<>("replaceText"));
+        
+        TableColumn<MacroStep, String> colOptions = new TableColumn<>("Optionen");
+        colOptions.setPrefWidth(100.0);
         colOptions.setCellValueFactory(new PropertyValueFactory<>("optionsString"));
+        
+        TableColumn<MacroStep, String> colStatus = new TableColumn<>("Status");
+        colStatus.setPrefWidth(120.0);
         colStatus.setCellValueFactory(param -> {
             MacroStep step = param.getValue();
             if (step == null) return new SimpleStringProperty("");
             
-            // Binde direkt an die replacementCount Property
             SimpleStringProperty statusProperty = new SimpleStringProperty();
-            
-            // Funktion zum Aktualisieren des Status
             Runnable updateStatus = () -> {
                 if (!step.isEnabled()) {
                     statusProperty.set("Deaktiviert");
@@ -1753,23 +1939,15 @@ public class EditorWindow implements Initializable {
                 }
             };
             
-            // Initialer Wert setzen
             updateStatus.run();
-            
-            // Listener für Änderungen der replacementCount
-            step.replacementCountProperty().addListener((obs, oldVal, newVal) -> {
-                updateStatus.run();
-            });
-            
-            // Listener für Änderungen der enabled Eigenschaft
-            step.enabledProperty().addListener((obs, oldVal, newVal) -> {
-                updateStatus.run();
-            });
+            step.replacementCountProperty().addListener((obs, oldVal, newVal) -> updateStatus.run());
+            step.enabledProperty().addListener((obs, oldVal, newVal) -> updateStatus.run());
             
             return statusProperty;
         });
         
-        // Bearbeiten-Button für jede Zeile
+        TableColumn<MacroStep, String> colActions = new TableColumn<>("Aktionen");
+        colActions.setPrefWidth(100.0);
         colActions.setCellFactory(param -> new TableCell<MacroStep, String>() {
             private final Button editButton = new Button("Bearbeiten");
             {
@@ -1790,7 +1968,30 @@ public class EditorWindow implements Initializable {
             }
         });
         
-        // Macro-Event-Handler
+        tblMacroSteps.getColumns().addAll(colStepNumber, colEnabled, colDescription, colSearchText, 
+                                         colReplaceText, colOptions, colStatus, colActions);
+        
+        // Makro-Schritt-Buttons
+        HBox stepButtons = new HBox(5);
+        stepButtons.setAlignment(Pos.CENTER_LEFT);
+        
+        Button btnAddStep = new Button("Schritt hinzufügen");
+        btnAddStep.getStyleClass().add("toolbar-button");
+        
+        Button btnRemoveStep = new Button("Schritt entfernen");
+        btnRemoveStep.getStyleClass().add("toolbar-button");
+        
+        Button btnMoveStepUp = new Button("↑");
+        btnMoveStepUp.getStyleClass().add("toolbar-button");
+        
+        Button btnMoveStepDown = new Button("↓");
+        btnMoveStepDown.getStyleClass().add("toolbar-button");
+        
+        stepButtons.getChildren().addAll(btnAddStep, btnRemoveStep, btnMoveStepUp, btnMoveStepDown);
+        
+        macroDetailsPanel.getChildren().addAll(stepsLabel, descriptionBox, searchReplaceBox, tblMacroSteps, stepButtons);
+        
+        // Event-Handler für Makro-Buttons
         btnNewMacro.setOnAction(e -> createNewMacro());
         btnDeleteMacro.setOnAction(e -> deleteCurrentMacro());
         btnSaveMacro.setOnAction(e -> saveMacroToCSV());
@@ -1799,33 +2000,1359 @@ public class EditorWindow implements Initializable {
         btnRemoveStep.setOnAction(e -> removeMacroStep());
         btnMoveStepUp.setOnAction(e -> moveMacroStepUp());
         btnMoveStepDown.setOnAction(e -> moveMacroStepDown());
+        btnMacroRegexHelp.setOnAction(e -> showRegexHelp());
         
-        // Macro-Auswahl
+        // Makro-Auswahl
         cmbMacroList.setOnAction(e -> selectMacro());
+        
+        // Referenzen für spätere Verwendung speichern
+        this.cmbMacroList = cmbMacroList;
+        this.btnNewMacro = btnNewMacro;
+        this.btnDeleteMacro = btnDeleteMacro;
+        this.btnSaveMacro = btnSaveMacro;
+        this.btnRunMacro = btnRunMacro;
+        this.macroDetailsPanel = macroDetailsPanel;
+        this.tblMacroSteps = tblMacroSteps;
+        this.txtMacroSearch = txtMacroSearch;
+        this.txtMacroReplace = txtMacroReplace;
+        this.txtMacroStepDescription = txtMacroStepDescription;
+        this.chkMacroRegex = chkMacroRegex;
+        this.chkMacroCaseSensitive = chkMacroCaseSensitive;
+        this.chkMacroWholeWord = chkMacroWholeWord;
+        this.btnAddStep = btnAddStep;
+        this.btnRemoveStep = btnRemoveStep;
+        this.btnMoveStepUp = btnMoveStepUp;
+        this.btnMoveStepDown = btnMoveStepDown;
+        this.btnMacroRegexHelp = btnMacroRegexHelp;
         
         // Makros laden
         loadMacros();
+        
+        macroPanel.getChildren().addAll(macroControls, macroDetailsPanel);
+        return macroPanel;
+    }
+    
+    private void loadMacroWindowProperties() {
+        if (preferences != null) {
+            double x = preferences.getDouble("macro_window_x", 100);
+            double y = preferences.getDouble("macro_window_y", 100);
+            double width = preferences.getDouble("macro_window_width", 1200);
+            double height = preferences.getDouble("macro_window_height", 800);
+            
+            macroStage.setX(x);
+            macroStage.setY(y);
+            macroStage.setWidth(width);
+            macroStage.setHeight(height);
+            
+            // Fenster-Position und Größe speichern
+            macroStage.xProperty().addListener((obs, oldVal, newVal) -> 
+                preferences.putDouble("macro_window_x", newVal.doubleValue()));
+            macroStage.yProperty().addListener((obs, oldVal, newVal) -> 
+                preferences.putDouble("macro_window_y", newVal.doubleValue()));
+            macroStage.widthProperty().addListener((obs, oldVal, newVal) -> 
+                preferences.putDouble("macro_window_width", newVal.doubleValue()));
+            macroStage.heightProperty().addListener((obs, oldVal, newVal) -> 
+                preferences.putDouble("macro_window_height", newVal.doubleValue()));
+        }
     }
     
     private void toggleMacroPanel() {
-        macroPanelVisible = !macroPanelVisible;
+        macroWindowVisible = !macroWindowVisible;
         
-        if (macroPanelVisible) {
-            // Makro-Panel öffnen - Panel zum SplitPane hinzufügen
-            if (!mainSplitPane.getItems().contains(macroPanel)) {
-                mainSplitPane.getItems().add(0, macroPanel); // An erster Position (oben) hinzufügen
-            }
-            macroPanel.setVisible(true);
-            macroPanel.setManaged(true);
-            
-            // Trenner auf 30% setzen (30% Makro-Panel oben, 70% Text-Editor unten)
-            mainSplitPane.setDividerPositions(0.3);
-            updateStatus("Makro-Panel geöffnet");
+        if (macroWindowVisible) {
+            // Makro-Fenster öffnen
+            macroStage.show();
+            macroStage.toFront();
+            updateStatus("Makro-Fenster geöffnet");
         } else {
-            // Makro-Panel schließen - Panel aus SplitPane entfernen
-            mainSplitPane.getItems().remove(macroPanel);
-            updateStatus("Makro-Panel geschlossen");
+            // Makro-Fenster schließen
+            macroStage.hide();
+            updateStatus("Makro-Fenster geschlossen");
         }
+    }
+    
+    private void toggleTextAnalysisPanel() {
+        textAnalysisWindowVisible = !textAnalysisWindowVisible;
+        
+        if (textAnalysisWindowVisible) {
+            // Textanalyse-Fenster öffnen
+            if (textAnalysisStage == null) {
+                createTextAnalysisWindow();
+            }
+            textAnalysisStage.show();
+            textAnalysisStage.toFront();
+            updateStatus("Textanalyse-Fenster geöffnet");
+        } else {
+            // Textanalyse-Fenster schließen
+            if (textAnalysisStage != null) {
+                textAnalysisStage.hide();
+            }
+            updateStatus("Textanalyse-Fenster geschlossen");
+        }
+    }
+    
+    private void createTextAnalysisWindow() {
+        textAnalysisStage = new Stage();
+        textAnalysisStage.setTitle("Textanalyse");
+        textAnalysisStage.setWidth(800);
+        textAnalysisStage.setHeight(600);
+        textAnalysisStage.initModality(Modality.NONE);
+        textAnalysisStage.initOwner(stage);
+        
+        // Textanalyse-Panel erstellen
+        VBox textAnalysisPanel = createTextAnalysisPanel();
+        
+        Scene textAnalysisScene = new Scene(textAnalysisPanel);
+        textAnalysisScene.getStylesheets().add(getClass().getResource("/css/editor.css").toExternalForm());
+        textAnalysisStage.setScene(textAnalysisScene);
+        
+        // Fenster-Position speichern/laden
+        loadTextAnalysisWindowProperties();
+        
+        // Event-Handler für Fenster-Schließung
+        textAnalysisStage.setOnCloseRequest(event -> {
+            textAnalysisWindowVisible = false;
+            event.consume(); // Verhindert das tatsächliche Schließen
+            textAnalysisStage.hide();
+        });
+    }
+    
+    private VBox createTextAnalysisPanel() {
+        VBox mainPanel = new VBox(10);
+        mainPanel.setPadding(new Insets(15));
+        mainPanel.getStyleClass().add("text-analysis-panel");
+        
+        // Korrekte Theme-Farben aus dem THEMES-Array verwenden
+        String[] themeColors = THEMES[currentThemeIndex];
+        String backgroundColor = themeColors[0];
+        String textColor = themeColors[1];
+        String accentColor = themeColors[2];
+        String highlightColor = themeColors[3];
+        
+        // Hauptpanel mit korrekter Theme-Farbe
+        mainPanel.setStyle(String.format("-fx-background-color: %s; -fx-border-color: %s;", backgroundColor, accentColor));
+        
+        // Titel
+        Label titleLabel = new Label("Textanalyse");
+        titleLabel.setStyle(String.format("-fx-font-size: 18px; -fx-font-weight: bold; -fx-padding: 0 0 10 0; -fx-text-fill: %s;", textColor));
+        
+        // Analyse-Buttons
+        VBox analysisButtons = new VBox(8);
+        
+        // Sprechwörter finden
+        HBox sprechwoerterBox = new HBox(10);
+        Button btnSprechwoerter = new Button("Sprechwörter finden");
+        btnSprechwoerter.getStyleClass().add("button");
+        btnSprechwoerter.setPrefWidth(200);
+        btnSprechwoerter.setStyle(String.format("-fx-background-color: %s; -fx-text-fill: %s;", accentColor, textColor));
+        Label lblSprechwoerter = new Label("Findet und markiert alle Sprechwörter (sagte, fragte, rief, etc.)");
+        lblSprechwoerter.setWrapText(true);
+        lblSprechwoerter.setStyle(String.format("-fx-text-fill: %s;", textColor));
+        HBox.setHgrow(lblSprechwoerter, Priority.ALWAYS);
+        sprechwoerterBox.getChildren().addAll(btnSprechwoerter, lblSprechwoerter);
+        
+        // Sprechantworten finden
+        HBox sprechantwortenBox = new HBox(10);
+        Button btnSprechantworten = new Button("Sprechantworten finden");
+        btnSprechantworten.getStyleClass().add("button");
+        btnSprechantworten.setPrefWidth(200);
+        btnSprechantworten.setStyle(String.format("-fx-background-color: %s; -fx-text-fill: %s;", accentColor, textColor));
+        Label lblSprechantworten = new Label("Findet einfache Sprechantworten (sagte Name., fragte Name., etc.)");
+        lblSprechantworten.setWrapText(true);
+        lblSprechantworten.setStyle(String.format("-fx-text-fill: %s;", textColor));
+        HBox.setHgrow(lblSprechantworten, Priority.ALWAYS);
+        sprechantwortenBox.getChildren().addAll(btnSprechantworten, lblSprechantworten);
+        
+        // Wortwiederholungen finden
+        HBox wortwiederholungenBox = new HBox(10);
+        Button btnWortwiederholungen = new Button("Wortwiederholungen finden");
+        btnWortwiederholungen.getStyleClass().add("button");
+        btnWortwiederholungen.setPrefWidth(200);
+        btnWortwiederholungen.setStyle(String.format("-fx-background-color: %s; -fx-text-fill: %s;", accentColor, textColor));
+        
+        VBox wortwiederholungenConfig = new VBox(5);
+        Label lblWortwiederholungen = new Label("Findet Wörter, die sich in kurzem Abstand wiederholen");
+        lblWortwiederholungen.setWrapText(true);
+        lblWortwiederholungen.setStyle(String.format("-fx-text-fill: %s;", textColor));
+        
+        HBox abstandBox = new HBox(5);
+        abstandBox.setAlignment(Pos.CENTER_LEFT);
+        Label lblAbstand = new Label("Max. Abstand:");
+        lblAbstand.setAlignment(Pos.CENTER_LEFT);
+        lblAbstand.setStyle(String.format("-fx-text-fill: %s;", textColor));
+        TextField txtAbstand = new TextField("50");
+        txtAbstand.setPrefWidth(40);
+        txtAbstand.setPromptText("50");
+        txtAbstand.setStyle(String.format("-fx-background-color: %s; -fx-text-fill: %s; -fx-prompt-text-fill: %s;", backgroundColor, textColor, highlightColor));
+        Label lblAbstandUnit = new Label("Wörter");
+        lblAbstandUnit.setAlignment(Pos.CENTER_LEFT);
+        lblAbstandUnit.setStyle(String.format("-fx-text-fill: %s;", textColor));
+        abstandBox.getChildren().addAll(lblAbstand, txtAbstand, lblAbstandUnit);
+        
+        wortwiederholungenConfig.getChildren().addAll(lblWortwiederholungen, abstandBox);
+        HBox.setHgrow(wortwiederholungenConfig, Priority.ALWAYS);
+        wortwiederholungenBox.getChildren().addAll(btnWortwiederholungen, wortwiederholungenConfig);
+        
+        // Wortwiederholung nah
+        HBox wortwiederholungNahBox = new HBox(10);
+        Button btnWortwiederholungNah = new Button("Wortwiederholung nah");
+        btnWortwiederholungNah.getStyleClass().add("button");
+        btnWortwiederholungNah.setPrefWidth(200);
+        btnWortwiederholungNah.setStyle(String.format("-fx-background-color: %s; -fx-text-fill: %s;", accentColor, textColor));
+        Label lblWortwiederholungNah = new Label("Findet alle Wortwiederholungen im Abstand bis zu 5 Wörtern (ohne Ignore-Liste)");
+        lblWortwiederholungNah.setWrapText(true);
+        lblWortwiederholungNah.setStyle(String.format("-fx-text-fill: %s;", textColor));
+        HBox.setHgrow(lblWortwiederholungNah, Priority.ALWAYS);
+        wortwiederholungNahBox.getChildren().addAll(btnWortwiederholungNah, lblWortwiederholungNah);
+        
+        // Füllwörter finden
+        HBox fuellwoerterBox = new HBox(10);
+        Button btnFuellwoerter = new Button("Füllwörter finden");
+        btnFuellwoerter.getStyleClass().add("button");
+        btnFuellwoerter.setPrefWidth(200);
+        btnFuellwoerter.setStyle(String.format("-fx-background-color: %s; -fx-text-fill: %s;", accentColor, textColor));
+        Label lblFuellwoerter = new Label("Findet typische Füllwörter (eigentlich, irgendwie, halt, etc.)");
+        lblFuellwoerter.setWrapText(true);
+        lblFuellwoerter.setStyle(String.format("-fx-text-fill: %s;", textColor));
+        HBox.setHgrow(lblFuellwoerter, Priority.ALWAYS);
+        fuellwoerterBox.getChildren().addAll(btnFuellwoerter, lblFuellwoerter);
+        
+        // Phrasen finden
+        HBox phrasenBox = new HBox(10);
+        Button btnPhrasen = new Button("Phrasen finden");
+        btnPhrasen.getStyleClass().add("button");
+        btnPhrasen.setPrefWidth(200);
+        btnPhrasen.setStyle(String.format("-fx-background-color: %s; -fx-text-fill: %s;", accentColor, textColor));
+        Label lblPhrasen = new Label("Findet typische Phrasen (begann zu, sagte er, etc.)");
+        lblPhrasen.setWrapText(true);
+        lblPhrasen.setStyle(String.format("-fx-text-fill: %s;", textColor));
+        HBox.setHgrow(lblPhrasen, Priority.ALWAYS);
+        phrasenBox.getChildren().addAll(btnPhrasen, lblPhrasen);
+        
+        analysisButtons.getChildren().addAll(sprechwoerterBox, sprechantwortenBox, wortwiederholungenBox, wortwiederholungNahBox, fuellwoerterBox, phrasenBox);
+        
+        // Navigation-Buttons
+        HBox navigationBox = new HBox(10);
+        Button btnNext = new Button("↓ Nächster Treffer");
+        btnNext.getStyleClass().add("button");
+        btnNext.setPrefWidth(150);
+        btnNext.setStyle(String.format("-fx-background-color: %s; -fx-text-fill: %s;", accentColor, textColor));
+        Button btnPrevious = new Button("↑ Vorheriger Treffer");
+        btnPrevious.getStyleClass().add("button");
+        btnPrevious.setPrefWidth(150);
+        btnPrevious.setStyle(String.format("-fx-background-color: %s; -fx-text-fill: %s;", accentColor, textColor));
+        navigationBox.getChildren().addAll(btnNext, btnPrevious);
+        
+        // Status-Box
+        TextArea statusArea = new TextArea();
+        statusArea.setPrefRowCount(8);
+        statusArea.setEditable(false);
+        statusArea.setWrapText(true);
+        statusArea.setPromptText("Analyse-Ergebnisse werden hier angezeigt...");
+        statusArea.getStyleClass().add("status-area");
+        statusArea.setStyle(String.format("-fx-background-color: %s !important; -fx-text-fill: %s !important; -fx-prompt-text-fill: %s !important;", backgroundColor, textColor, highlightColor));
+        
+        // Content-Bereich später setzen, wenn die TextArea vollständig initialisiert ist
+        Platform.runLater(() -> {
+            Node content = statusArea.lookup(".content");
+            if (content != null) {
+                content.setStyle(String.format("-fx-background-color: %s !important;", backgroundColor));
+            }
+        });
+        
+        // Event-Handler
+        btnSprechwoerter.setOnAction(e -> analyzeSprechwoerter(statusArea));
+        btnSprechantworten.setOnAction(e -> analyzeSprechantworten(statusArea));
+        btnWortwiederholungen.setOnAction(e -> {
+            try {
+                int abstand = Integer.parseInt(txtAbstand.getText());
+                // boolean limitWords = chkLimitWords.isSelected();
+                analyzeWortwiederholungen(statusArea, abstand, false);
+            } catch (NumberFormatException ex) {
+                statusArea.setText("Fehler: Bitte geben Sie eine gültige Zahl für den Abstand ein.");
+            }
+        });
+        btnWortwiederholungNah.setOnAction(e -> analyzeWortwiederholungNah(statusArea));
+        btnFuellwoerter.setOnAction(e -> analyzeFuellwoerter(statusArea));
+        btnPhrasen.setOnAction(e -> analyzePhrasen(statusArea));
+        btnNext.setOnAction(e -> findNext());
+        btnPrevious.setOnAction(e -> findPrevious());
+        
+        mainPanel.getChildren().addAll(titleLabel, analysisButtons, navigationBox, statusArea);
+        VBox.setVgrow(statusArea, Priority.ALWAYS);
+        
+        return mainPanel;
+    }
+    
+    private void analyzeSprechwoerter(TextArea statusArea) {
+        try {
+            Properties props = loadTextAnalysisProperties();
+            String sprechwoerter = props.getProperty("sprechwörter", "");
+            String[] woerter = sprechwoerter.split(",");
+            
+            if (woerter.length == 0 || woerter[0].trim().isEmpty()) {
+                statusArea.setText("Keine Sprechwörter in der Konfiguration gefunden.");
+                return;
+            }
+            
+            // Text aus dem Editor holen
+            String text = codeArea.getText();
+            
+            // Häufigkeit jedes Sprechworts zählen
+            Map<String, Integer> wordCount = new HashMap<>();
+            for (String word : woerter) {
+                String trimmedWord = word.trim();
+                if (!trimmedWord.isEmpty()) {
+                    // Regex-Pattern für das einzelne Wort
+                    Pattern wordPattern = Pattern.compile("\\b" + Pattern.quote(trimmedWord) + "\\b", Pattern.CASE_INSENSITIVE);
+                    Matcher matcher = wordPattern.matcher(text);
+                    int count = 0;
+                    while (matcher.find()) {
+                        count++;
+                    }
+                    if (count > 0) {
+                        wordCount.put(trimmedWord, count);
+                    }
+                }
+            }
+            
+            // Regex-Pattern für alle Sprechwörter erstellen (für Markierung)
+            StringBuilder patternBuilder = new StringBuilder();
+            for (int i = 0; i < woerter.length; i++) {
+                if (i > 0) patternBuilder.append("|");
+                patternBuilder.append("\\b").append(woerter[i].trim()).append("\\b");
+            }
+            
+            String pattern = patternBuilder.toString();
+            
+            // Suchtext in die Suchleiste setzen
+            cmbSearchHistory.setValue(pattern);
+            chkRegexSearch.setSelected(true);
+            chkCaseSensitive.setSelected(false);
+            chkWholeWord.setSelected(false);
+            
+            // Cache direkt aufbauen (ohne findText() zu verwenden)
+            Pattern searchPattern = createSearchPattern(pattern);
+            String content = codeArea.getText();
+            
+            // Cache zurücksetzen
+            totalMatches = 0;
+            currentMatchIndex = -1;
+            lastSearchText = pattern;
+            cachedPattern = searchPattern;
+            cachedMatchPositions.clear();
+            
+            // Sammle alle Treffer-Positionen
+            Matcher collectMatcher = searchPattern.matcher(content);
+            while (collectMatcher.find()) {
+                cachedMatchPositions.add(collectMatcher.start());
+            }
+            totalMatches = cachedMatchPositions.size();
+            
+            // Markiere alle Treffer
+            if (totalMatches > 0) {
+                StyleSpansBuilder<Collection<String>> spansBuilder = new StyleSpansBuilder<>();
+                int lastEnd = 0;
+                
+                for (int start : cachedMatchPositions) {
+                    Matcher matchMatcher = searchPattern.matcher(content);
+                    if (matchMatcher.find(start)) {
+                        int end = matchMatcher.end();
+                        
+                        // Füge normalen Text vor dem Treffer hinzu
+                        if (start > lastEnd) {
+                            spansBuilder.add(Collections.emptyList(), start - lastEnd);
+                        }
+                        
+                        // Füge markierten Text hinzu
+                        spansBuilder.add(Collections.singleton("search-match-first"), end - start);
+                        lastEnd = end;
+                    }
+                }
+                
+                // Füge restlichen Text hinzu
+                if (lastEnd < content.length()) {
+                    spansBuilder.add(Collections.emptyList(), content.length() - lastEnd);
+                }
+                
+                // Wende die Markierungen an
+                codeArea.setStyleSpans(0, spansBuilder.create());
+                
+                // Markiere den ersten Treffer
+                if (!cachedMatchPositions.isEmpty()) {
+                    int firstMatchStart = cachedMatchPositions.get(0);
+                    Matcher highlightMatcher = searchPattern.matcher(content);
+                    if (highlightMatcher.find(firstMatchStart)) {
+                        highlightText(highlightMatcher.start(), highlightMatcher.end());
+                        currentMatchIndex = 0;
+                        updateMatchCount(currentMatchIndex + 1, totalMatches);
+                    }
+                }
+            } else {
+                // Entferne alle Markierungen
+                codeArea.setStyleSpans(0, content.length(), StyleSpans.singleton(new ArrayList<>(), 0));
+                updateMatchCount(0, 0);
+            }
+            
+            // Ergebnisse anzeigen
+            StringBuilder result = new StringBuilder();
+            result.append("Sprechwörter-Analyse:\n");
+            result.append("Pattern: ").append(pattern).append("\n");
+            result.append("Gefundene Treffer: ").append(totalMatches).append("\n\n");
+            
+            if (!wordCount.isEmpty()) {
+                result.append("Gefundene Sprechwörter:\n");
+                result.append(String.format("%-20s %s\n", "Wort", "Häufigkeit"));
+                result.append(String.format("%-20s %s\n", "----", "----------"));
+                
+                // Nach Häufigkeit sortieren (absteigend)
+                wordCount.entrySet().stream()
+                    .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
+                    .forEach(entry -> {
+                        result.append(String.format("%-20s %d Mal\n", entry.getKey(), entry.getValue()));
+                    });
+                
+                result.append("\nVerwende 'Nächster Treffer' und 'Vorheriger Treffer' um durch die Ergebnisse zu navigieren.\n");
+                result.append("Gefundene Sprechwörter werden im Text markiert.\n");
+            } else {
+                result.append("Keine Sprechwörter im Text gefunden.\n");
+            }
+            
+            statusArea.setText(result.toString());
+            updateStatus("Sprechwörter-Analyse abgeschlossen: " + totalMatches + " Treffer");
+            
+        } catch (Exception e) {
+            logger.error("Fehler bei Sprechwörter-Analyse", e);
+            statusArea.setText("Fehler bei der Analyse: " + e.getMessage());
+        }
+    }
+    
+    private void analyzeSprechantworten(TextArea statusArea) {
+        try {
+            // Verwende ein einfaches, hart kodiertes Pattern für den Test
+            String regex = "(sagte|fragte|rief|murmelte|flüsterte|antwortete|erklärte|berichtete|erzählte|bemerkte|kommentierte|behauptete|versicherte|warnte|vermutete|leugnete|versprach|schwor|informierte|mitteilte|diskutierte|debattierte|argumentierte|streitete|besprach|plauderte|schwatzte|raunte|brüllte|schrie|heulte|weinte|lachte|grinste|seufzte|stöhnte|ächzte|wimmerte|schluchzte|keuchte|stotterte|stammelte|fluchte|schimpfte|donnerte|knurrte|fauchte|zischte|brummte|summte|pfiff|trällerte|sang|deklamierte|rezitierte|sprach|redete|plapperte|schwadronierte|faselte|laberte|quasselte|schwätzte|quatschte|konversierte)\\s+\\w+\\.";
+            
+            // Debug: Pattern anzeigen
+            logger.info("Sprechantworten-Pattern: " + regex);
+            
+            // Suchtext in die Suchleiste setzen
+            cmbSearchHistory.setValue(regex);
+            chkRegexSearch.setSelected(true);
+            chkCaseSensitive.setSelected(false);
+            chkWholeWord.setSelected(false);
+            
+            // Cache direkt aufbauen (ohne findText() zu verwenden)
+            Pattern searchPattern = createSearchPattern(regex);
+            String content = codeArea.getText();
+            
+            // Cache zurücksetzen
+            totalMatches = 0;
+            currentMatchIndex = -1;
+            lastSearchText = regex;
+            cachedPattern = searchPattern;
+            cachedMatchPositions.clear();
+            
+            // Sammle alle Treffer-Positionen
+            Matcher collectMatcher = searchPattern.matcher(content);
+            while (collectMatcher.find()) {
+                cachedMatchPositions.add(collectMatcher.start());
+            }
+            totalMatches = cachedMatchPositions.size();
+            
+            // Markiere alle Treffer
+            if (totalMatches > 0) {
+                StyleSpansBuilder<Collection<String>> spansBuilder = new StyleSpansBuilder<>();
+                int lastEnd = 0;
+                
+                for (int start : cachedMatchPositions) {
+                    Matcher matchMatcher = searchPattern.matcher(content);
+                    if (matchMatcher.find(start)) {
+                        int end = matchMatcher.end();
+                        
+                        // Füge normalen Text vor dem Treffer hinzu
+                        if (start > lastEnd) {
+                            spansBuilder.add(Collections.emptyList(), start - lastEnd);
+                        }
+                        
+                        // Füge markierten Text hinzu
+                        spansBuilder.add(Collections.singleton("search-match-first"), end - start);
+                        lastEnd = end;
+                    }
+                }
+                
+                // Füge restlichen Text hinzu
+                if (lastEnd < content.length()) {
+                    spansBuilder.add(Collections.emptyList(), content.length() - lastEnd);
+                }
+                
+                // Wende die Markierungen an
+                codeArea.setStyleSpans(0, spansBuilder.create());
+                
+                // Markiere den ersten Treffer
+                if (!cachedMatchPositions.isEmpty()) {
+                    int firstMatchStart = cachedMatchPositions.get(0);
+                    Matcher highlightMatcher = searchPattern.matcher(content);
+                    if (highlightMatcher.find(firstMatchStart)) {
+                        highlightText(highlightMatcher.start(), highlightMatcher.end());
+                        currentMatchIndex = 0;
+                        updateMatchCount(currentMatchIndex + 1, totalMatches);
+                    }
+                }
+            } else {
+                // Entferne alle Markierungen
+                codeArea.setStyleSpans(0, content.length(), StyleSpans.singleton(new ArrayList<>(), 0));
+                updateMatchCount(0, 0);
+            }
+            
+            // Ergebnisse anzeigen
+            StringBuilder result = new StringBuilder();
+            result.append("Sprechantworten-Analyse:\n");
+            result.append("Pattern: ").append(regex).append("\n");
+            result.append("Gefundene Treffer: ").append(totalMatches).append("\n\n");
+            
+            if (totalMatches > 0) {
+                result.append("Verwende 'Nächster Treffer' und 'Vorheriger Treffer' um durch die Ergebnisse zu navigieren.\n");
+            }
+            
+            statusArea.setText(result.toString());
+            updateStatus("Sprechantworten-Analyse abgeschlossen: " + totalMatches + " Treffer");
+            
+        } catch (Exception e) {
+            logger.error("Fehler bei Sprechantworten-Analyse", e);
+            statusArea.setText("Fehler bei der Analyse: " + e.getMessage());
+        }
+    }
+    
+    private void analyzeWortwiederholungen(TextArea statusArea, int abstand, boolean limitWords) {
+        try {
+            Properties props = loadTextAnalysisProperties();
+            int minLaenge = Integer.parseInt(props.getProperty("wortwiederholungen_min_laenge", "4"));
+            String ignoreWordsStr = props.getProperty("wortwiederholungen_ignoriere_woerter", "");
+            
+            Set<String> ignoreWords = new HashSet<>();
+            if (!ignoreWordsStr.isEmpty()) {
+                for (String word : ignoreWordsStr.split(",")) {
+                    ignoreWords.add(word.trim().toLowerCase());
+                }
+            }
+            
+            // Text aus dem Editor holen
+            String text = codeArea.getText();
+            
+            // Wörter mit Regex finden (besser als split)
+            Pattern wordPattern = Pattern.compile("\\b\\w+\\b", Pattern.CASE_INSENSITIVE);
+            Matcher wordMatcher = wordPattern.matcher(text);
+            
+            // Wörter filtern (nur relevante Wörter)
+            List<String> relevantWords = new ArrayList<>();
+            List<Integer> wordPositions = new ArrayList<>();
+            
+            while (wordMatcher.find()) {
+                String word = wordMatcher.group().toLowerCase();
+                if (word.length() >= minLaenge && !ignoreWords.contains(word)) {
+                    relevantWords.add(word);
+                    wordPositions.add(wordMatcher.start());
+                }
+            }
+            
+            // Wortwiederholungen finden (echt optimiert)
+            List<Wortwiederholung> wiederholungen = new ArrayList<>();
+            
+            // Verwende eine Map für O(1) Lookup
+            Map<String, List<Integer>> wordOccurrences = new HashMap<>();
+            
+            // Sammle alle Vorkommen jedes Wortes (vom Textanfang)
+            for (int i = 0; i < relevantWords.size(); i++) {
+                String word = relevantWords.get(i);
+                wordOccurrences.computeIfAbsent(word, k -> new ArrayList<>()).add(i);
+            }
+            
+            // Finde Wiederholungen nur für Wörter mit mehreren Vorkommen
+            for (Map.Entry<String, List<Integer>> entry : wordOccurrences.entrySet()) {
+                String word = entry.getKey();
+                List<Integer> positions = entry.getValue();
+                
+                // Nur prüfen wenn Wort mehrfach vorkommt
+                if (positions.size() > 1) {
+                    // Prüfe alle Paare innerhalb des Abstands
+                    for (int i = 0; i < positions.size() - 1; i++) {
+                        for (int j = i + 1; j < positions.size(); j++) {
+                            int pos1 = positions.get(i);
+                            int pos2 = positions.get(j);
+                            int distance = pos2 - pos1;
+                            
+                            if (distance <= abstand) {
+                                int charPos1 = wordPositions.get(pos1);
+                                int charPos2 = wordPositions.get(pos2);
+                                // Validiere, dass die Positionen gültig sind (nicht negativ)
+                                if (charPos1 >= 0 && charPos2 >= 0) {
+                                    wiederholungen.add(new Wortwiederholung(word, charPos1, charPos2, distance));
+                                }
+                            } else {
+                                // Wenn der Abstand zu groß ist, können wir die innere Schleife abbrechen
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Ergebnisse sortieren (nach Abstand, dann nach Wort)
+            wiederholungen.sort((a, b) -> {
+                if (a.distance != b.distance) {
+                    return Integer.compare(a.distance, b.distance);
+                }
+                return a.word.compareTo(b.word);
+            });
+            
+            // Cache für Markierung aufbauen (nur spezifische Positionen die in Paaren vorkommen)
+            if (!wiederholungen.isEmpty()) {
+                String content = codeArea.getText();
+                
+                // Sammle nur die spezifischen Positionen, die in Paaren innerhalb des Abstands vorkommen
+                Set<Integer> positionsToMark = new HashSet<>();
+                for (Wortwiederholung w : wiederholungen) {
+                    if (!ignoreWords.contains(w.word)) {
+                        // Zusätzliche Validierung: Positionen müssen im gültigen Bereich liegen
+                        if (w.pos1 >= 0 && w.pos1 < content.length()) {
+                            positionsToMark.add(w.pos1);
+                        } else {
+                            logger.warn("Ungültige Position für Markierung (pos1): {} für Wort '{}', content.length={} ", w.pos1, w.word, content.length());
+                        }
+                        if (w.pos2 >= 0 && w.pos2 < content.length()) {
+                            positionsToMark.add(w.pos2);
+                        } else {
+                            logger.warn("Ungültige Position für Markierung (pos2): {} für Wort '{}', content.length={} ", w.pos2, w.word, content.length());
+                        }
+                    }
+                }
+                
+                AtomicBoolean skippedMarking = new AtomicBoolean(false);
+                if (!positionsToMark.isEmpty()) {
+                    StyleSpansBuilder<Collection<String>> spansBuilder = new StyleSpansBuilder<>();
+                    List<Integer> allPositions = new ArrayList<>();
+                    
+                    // Sortiere die Positionen
+                    List<Integer> sortedPositions = new ArrayList<>(positionsToMark);
+                    Collections.sort(sortedPositions);
+                    
+                    // Robuste StyleSpans-Berechnung
+                    int currentPos = 0;
+                    for (int i = 0; i < sortedPositions.size(); i++) {
+                        int pos = sortedPositions.get(i);
+                        if (pos < currentPos) continue; // Überschneidung überspringen
+
+                        if (pos >= 0 && pos < content.length()) {
+                            String wordAtPos = findWordAtPosition(content, pos);
+                            if (wordAtPos != null && !wordAtPos.isEmpty()) {
+                                int start = pos;
+                                int end = pos + wordAtPos.length();
+                                if (end <= content.length()) {
+                                    allPositions.add(start);
+
+                                    // Leeren Bereich vor dem Treffer markieren
+                                    if (start > currentPos) {
+                                        spansBuilder.add(Collections.emptyList(), start - currentPos);
+                                    }
+
+                                    // Markierten Bereich hinzufügen
+                                    String styleClass = (i % 2 == 0) ? "search-match-first" : "search-match-second";
+                                    spansBuilder.add(Collections.singleton(styleClass), end - start);
+                                    currentPos = end;
+                                }
+                            }
+                        }
+                    }
+                    // Restlichen Text als leer markieren
+                    if (currentPos < content.length()) {
+                        spansBuilder.add(Collections.emptyList(), content.length() - currentPos);
+                    }
+                    
+                    // Wende die Markierungen an (im UI-Thread) - mit zusätzlicher Verzögerung für ersten Aufruf
+                    final AtomicBoolean finalSkippedMarking = skippedMarking;
+                    Platform.runLater(() -> {
+                        // Zusätzliche Verzögerung für den ersten Aufruf (CSS-Styles laden)
+                        Platform.runLater(() -> {
+                            try {
+                                StyleSpans<Collection<String>> spans = spansBuilder.create();
+                                int totalSpanLength = 0;
+                                for (StyleSpan<?> span : spans) {
+                                    totalSpanLength += span.getLength();
+                                }
+                                if (totalSpanLength == content.length()) {
+                                    codeArea.setStyleSpans(0, spans);
+                                    // Cache für Navigation setzen
+                                    totalMatches = allPositions.size();
+                                    currentMatchIndex = -1;
+                                    lastSearchText = "wortwiederholungen";
+                                    cachedMatchPositions = new ArrayList<>(allPositions);
+                                    if (finalSkippedMarking.get()) {
+                                        updateStatusError("Warnung: Einige Markierungen wurden übersprungen (siehe Log)");
+                                    }
+                                } else {
+                                    logger.error("StyleSpans-Länge stimmt nicht mit Textlänge überein! spans={}, text={}", totalSpanLength, content.length());
+                                    updateStatusError("Fehler: Markierungen konnten nicht angewendet werden (siehe Log).");
+                                }
+                            } catch (Exception e) {
+                                logger.error("Fehler beim Anwenden der Markierungen", e);
+                            }
+                        });
+                    });
+                    
+                    // Setze den Suchtext in die Suchleiste für F3-Navigation
+                    Platform.runLater(() -> {
+                        cmbSearchHistory.setValue("wortwiederholungen");
+                        chkRegexSearch.setSelected(true);
+                        chkCaseSensitive.setSelected(false);
+                        chkWholeWord.setSelected(false);
+                        
+                        // Pattern für Navigation erstellen (wie bei "Wortwiederholung nah")
+                        Set<String> wordsToMark = new HashSet<>();
+                        for (Wortwiederholung w : wiederholungen) {
+                            if (!ignoreWords.contains(w.word)) {
+                                wordsToMark.add(w.word);
+                            }
+                        }
+                        
+                        if (!wordsToMark.isEmpty()) {
+                            StringBuilder patternBuilder = new StringBuilder();
+                            for (String word : wordsToMark) {
+                                if (patternBuilder.length() > 0) patternBuilder.append("|");
+                                patternBuilder.append(Pattern.quote(word));
+                            }
+                            cachedPattern = Pattern.compile("\\b(" + patternBuilder.toString() + ")\\b", Pattern.CASE_INSENSITIVE);
+                        }
+                    });
+                }
+            }
+            
+            // Ergebnisse anzeigen (nur relevante Wörter, ohne ignorierten)
+            StringBuilder result = new StringBuilder();
+            result.append("Wortwiederholungen-Analyse:\n");
+            result.append("Konfiguration: Abstand ≤ ").append(abstand).append(" Wörter, Mindestlänge ≥ ").append(minLaenge).append(" Zeichen\n");
+            
+            // Zähle nur relevante Wiederholungen (ohne ignorierten Wörter)
+            long relevantWiederholungen = wiederholungen.stream()
+                .filter(w -> !ignoreWords.contains(w.word))
+                .count();
+            
+            result.append("Gefundene Wiederholungen: ").append(wiederholungen.size()).append(" (davon ").append(relevantWiederholungen).append(" relevante)\n\n");
+            
+            if (!wiederholungen.isEmpty()) {
+                result.append("Relevante Wortwiederholungen (sortiert nach Abstand):\n");
+                result.append(String.format("%-20s %-15s %-15s %-10s\n", "Wort", "Position 1", "Position 2", "Abstand"));
+                result.append(String.format("%-20s %-15s %-15s %-10s\n", "----", "----------", "----------", "--------"));
+                
+                for (Wortwiederholung w : wiederholungen) {
+                    // Nur relevante Wörter anzeigen (nicht ignorierten)
+                    if (!ignoreWords.contains(w.word)) {
+                        result.append(String.format("%-20s %-15d %-15d %-10d\n", 
+                            w.word, w.pos1, w.pos2, w.distance));
+                    }
+                }
+                
+                result.append("\nVerwende 'Nächster Treffer' und 'Vorheriger Treffer' um durch die Ergebnisse zu navigieren.\n");
+                result.append("Gefundene Wörter werden im Text markiert.\n");
+            } else {
+                result.append("Keine Wortwiederholungen im konfigurierten Abstand gefunden.\n");
+            }
+            
+            statusArea.setText(result.toString());
+            String limitText = " (alle Wörter)";
+            updateStatus("Wortwiederholungen-Analyse abgeschlossen: " + wiederholungen.size() + " Wiederholungen" + limitText);
+            
+        } catch (Exception e) {
+            logger.error("Fehler bei Wortwiederholungen-Analyse", e);
+            statusArea.setText("Fehler bei der Analyse: " + e.getMessage());
+        }
+    }
+    
+    private void analyzeWortwiederholungNah(TextArea statusArea) {
+        try {
+            Properties props = loadTextAnalysisProperties();
+            int minLaenge = Integer.parseInt(props.getProperty("wortwiederholungen_min_laenge", "4"));
+            
+            String content = codeArea.getText();
+            if (content.isEmpty()) {
+                statusArea.setText("Kein Text zum Analysieren vorhanden.");
+                return;
+            }
+            
+            // Tokenize text into words with positions (including German umlauts)
+            Pattern wordPattern = Pattern.compile("\\b[a-zA-ZäöüßÄÖÜ]+\\b");
+            Matcher wordMatcher = wordPattern.matcher(content);
+            List<String> words = new ArrayList<>();
+            List<Integer> wordPositions = new ArrayList<>();
+            
+            while (wordMatcher.find()) {
+                String word = wordMatcher.group().toLowerCase();
+                if (word.length() >= minLaenge) {  // Filter by length immediately
+                    words.add(word);
+                    wordPositions.add(wordMatcher.start());
+                }
+            }
+            
+            // Debug: Zeige die ersten 10 Wörter
+            System.out.println("DEBUG: Erste 10 Wörter:");
+            for (int i = 0; i < Math.min(10, words.size()); i++) {
+                System.out.println("  Index " + i + ": '" + words.get(i) + "'");
+            }
+            
+            // KOMPLETT NEUE LOGIK: Finde nur benachbarte Wiederholungen
+            List<Wortwiederholung> wiederholungen = new ArrayList<>();
+            int abstand = 5;
+            
+            // Gehe durch alle Wörter
+            for (int i = 0; i < words.size() - 1; i++) {
+                String currentWord = words.get(i);
+                
+                // Suche nur im nächsten Abstand-Bereich
+                for (int j = i + 1; j <= Math.min(i + abstand + 1, words.size() - 1); j++) {
+                    String nextWord = words.get(j);
+                    
+                    // Wenn das gleiche Wort gefunden wurde
+                    if (currentWord.equals(nextWord)) {
+                        int distance = j - i - 1; // Anzahl Wörter zwischen den Wiederholungen
+                        
+                        // Nur wenn der Abstand innerhalb des Limits liegt
+                        if (distance >= 0 && distance <= abstand) {
+                            int charPos1 = wordPositions.get(i);
+                            int charPos2 = wordPositions.get(j);
+                            
+                            // Validate positions
+                            if (charPos1 >= 0 && charPos1 < content.length() && 
+                                charPos2 >= 0 && charPos2 < content.length()) {
+                                
+                                // Nur echte Wiederholungen: Überprüfe, ob die Wörter wirklich an den berechneten Positionen stehen
+                                if (charPos1 >= 0 && charPos1 < content.length() && 
+                                    charPos2 >= 0 && charPos2 < content.length() &&
+                                    charPos1 != charPos2) { // Nicht die gleiche Position
+                                    
+                                    // Extrahiere das Wort an Position 1
+                                    int start1 = charPos1;
+                                    while (start1 > 0 && Character.isLetterOrDigit(content.charAt(start1 - 1))) {
+                                        start1--;
+                                    }
+                                    int end1 = charPos1;
+                                    while (end1 < content.length() && Character.isLetterOrDigit(content.charAt(end1))) {
+                                        end1++;
+                                    }
+                                    String word1 = content.substring(start1, end1).toLowerCase();
+                                    
+                                    // Extrahiere das Wort an Position 2
+                                    int start2 = charPos2;
+                                    while (start2 > 0 && Character.isLetterOrDigit(content.charAt(start2 - 1))) {
+                                        start2--;
+                                    }
+                                    int end2 = charPos2;
+                                    while (end2 < content.length() && Character.isLetterOrDigit(content.charAt(end2))) {
+                                        end2++;
+                                    }
+                                    String word2 = content.substring(start2, end2).toLowerCase();
+                                    
+                                    // Nur wenn beide Wörter exakt übereinstimmen
+                                    if (currentWord.equals(word1) && currentWord.equals(word2)) {
+                                        wiederholungen.add(new Wortwiederholung(currentWord, charPos1, charPos2, distance));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Sort results by distance, then by word
+            wiederholungen.sort((a, b) -> {
+                int distanceCompare = Integer.compare(a.distance, b.distance);
+                return distanceCompare != 0 ? distanceCompare : a.word.compareTo(b.word);
+            });
+            
+            // Apply marking
+            if (!wiederholungen.isEmpty()) {
+                String content2 = codeArea.getText();
+                
+                // Collect only specific positions to mark
+                Set<Integer> positionsToMark = new HashSet<>();
+                for (Wortwiederholung w : wiederholungen) {
+                    positionsToMark.add(w.pos1);
+                    positionsToMark.add(w.pos2);
+                }
+                
+                if (!positionsToMark.isEmpty()) {
+                    // Create a pattern for all words to be marked
+                    StringBuilder patternBuilder = new StringBuilder();
+                    Set<String> wordsToMark = new HashSet<>();
+                    for (Wortwiederholung w : wiederholungen) {
+                        wordsToMark.add(w.word);
+                    }
+                    
+                    for (String word : wordsToMark) {
+                        if (patternBuilder.length() > 0) patternBuilder.append("|");
+                        patternBuilder.append(Pattern.quote(word));
+                    }
+                    
+                    Pattern markPattern = Pattern.compile("\\b(" + patternBuilder.toString() + ")\\b", Pattern.CASE_INSENSITIVE);
+                    Matcher markMatcher = markPattern.matcher(content2);
+                    
+                    StyleSpansBuilder<Collection<String>> spansBuilder = new StyleSpansBuilder<>();
+                    int lastEnd = 0;
+                    
+                    while (markMatcher.find()) {
+                        int start = markMatcher.start();
+                        int end = markMatcher.end();
+                        String matchedWord = markMatcher.group(1).toLowerCase();
+                        
+                        // Check if this position should be marked
+                        boolean shouldMark = false;
+                        for (Wortwiederholung w : wiederholungen) {
+                            if (w.word.equals(matchedWord) && 
+                                ((start == w.pos1) || (start == w.pos2))) {
+                                shouldMark = true;
+                                break;
+                            }
+                        }
+                        
+                        if (shouldMark) {
+                            // Count previous occurrences of the same word to determine style
+                            int occurrenceCount = 0;
+                            for (Wortwiederholung w : wiederholungen) {
+                                if (w.word.equals(matchedWord) && w.pos1 < start) {
+                                    occurrenceCount++;
+                                }
+                            }
+                            
+                            String styleClass = occurrenceCount == 0 ? "search-match-first" : "search-match-second";
+                            
+                            spansBuilder.add(Collections.emptyList(), start - lastEnd);
+                            spansBuilder.add(Collections.singleton(styleClass), end - start);
+                            lastEnd = end;
+                        } else {
+                            spansBuilder.add(Collections.emptyList(), end - lastEnd);
+                            lastEnd = end;
+                        }
+                    }
+                    
+                    spansBuilder.add(Collections.emptyList(), content2.length() - lastEnd);
+                    
+                    // Apply styles on JavaFX Application Thread
+                    Platform.runLater(() -> {
+                        codeArea.setStyleSpans(0, spansBuilder.create());
+                        
+                        // Update cache for navigation
+                        List<Integer> allPositions = new ArrayList<>();
+                        for (Wortwiederholung w : wiederholungen) {
+                            allPositions.add(w.pos1);
+                            allPositions.add(w.pos2);
+                        }
+                        Collections.sort(allPositions);
+                        cachedMatchPositions = new ArrayList<>(allPositions);
+                        cachedPattern = markPattern;
+                        totalMatches = cachedMatchPositions.size();
+                        currentMatchIndex = -1;
+                        lastSearchText = "wortwiederholung_nah";
+                        
+                        // Setze den Suchtext in die Suchleiste für F3-Navigation
+                        cmbSearchHistory.setValue("wortwiederholung_nah");
+                        chkRegexSearch.setSelected(true);
+                        chkCaseSensitive.setSelected(false);
+                        chkWholeWord.setSelected(false);
+                    });
+                }
+            }
+            
+            // Display results - nur einzigartige Wortpaare
+            StringBuilder result = new StringBuilder();
+            result.append("=== WORTWIEDERHOLUNGEN NAH ===\n\n");
+            
+            if (!wiederholungen.isEmpty()) {
+                // Sammle einzigartige Wortpaare (Wort + Abstand)
+                Map<String, Integer> uniquePairs = new LinkedHashMap<>();
+                for (Wortwiederholung w : wiederholungen) {
+                    String pairKey = w.word + " (Abstand " + w.distance + ")";
+                    uniquePairs.put(pairKey, uniquePairs.getOrDefault(pairKey, 0) + 1);
+                }
+                
+                // Sortiere nach Häufigkeit, dann nach Wort
+                List<Map.Entry<String, Integer>> sortedPairs = new ArrayList<>(uniquePairs.entrySet());
+                sortedPairs.sort((a, b) -> {
+                    int countCompare = Integer.compare(b.getValue(), a.getValue());
+                    return countCompare != 0 ? countCompare : a.getKey().compareTo(b.getKey());
+                });
+                
+                result.append(String.format("%-30s %s\n", "Wortpaar", "Anzahl"));
+                result.append(String.format("%-30s %s\n", "--------", "------"));
+                
+                for (Map.Entry<String, Integer> entry : sortedPairs) {
+                    result.append(String.format("%-30s %dx\n", entry.getKey(), entry.getValue()));
+                }
+                
+                result.append("\n==============================\n");
+                result.append("GESAMT: ").append(wiederholungen.size()).append(" Wiederholungen gefunden\n");
+                result.append("==============================\n\n");
+                
+                result.append("💡 Verwende F3 oder die Navigation-Buttons zum Durchsuchen der Treffer.");
+            } else {
+                result.append("Keine Wortwiederholungen in der Nähe gefunden.");
+            }
+            
+            statusArea.setText(result.toString());
+            logger.info("Editor Status: Wortwiederholung nah-Analyse abgeschlossen: {} Wiederholungen", wiederholungen.size());
+            
+        } catch (Exception e) {
+            statusArea.setText("Fehler bei der Analyse: " + e.getMessage());
+            logger.error("Fehler bei Wortwiederholung nah-Analyse", e);
+        }
+    }
+    
+    // Hilfsklasse für Wortwiederholungen
+        private static class Wortwiederholung {
+        final String word;
+        final int pos1;
+        final int pos2;
+        final int distance;
+
+        Wortwiederholung(String word, int pos1, int pos2, int distance) {
+            this.word = word;
+            this.pos1 = pos1;
+            this.pos2 = pos2;
+            this.distance = distance;
+        }
+    }
+    
+    private String findWordAtPosition(String content, int position) {
+        if (position < 0 || position >= content.length()) {
+            return null;
+        }
+        
+        // Finde den Anfang des Wortes
+        int start = position;
+        while (start > 0 && Character.isLetterOrDigit(content.charAt(start - 1))) {
+            start--;
+        }
+        
+        // Finde das Ende des Wortes
+        int end = position;
+        while (end < content.length() && Character.isLetterOrDigit(content.charAt(end))) {
+            end++;
+        }
+        
+        if (start < end) {
+            return content.substring(start, end);
+        }
+        
+        return null;
+    }
+    
+    private Properties loadTextAnalysisProperties() throws IOException {
+        Properties props = new Properties();
+        try (InputStream input = getClass().getResourceAsStream("/textanalysis.properties")) {
+            if (input == null) {
+                throw new IOException("textanalysis.properties nicht gefunden");
+            }
+            props.load(new InputStreamReader(input, StandardCharsets.UTF_8));
+        }
+        return props;
+    }
+    
+    private void analyzeFuellwoerter(TextArea statusArea) {
+        try {
+            Properties props = loadTextAnalysisProperties();
+            String fuellwoerter = props.getProperty("fuellwoerter", "");
+            String[] woerter = fuellwoerter.split(",");
+            
+            if (woerter.length == 0 || woerter[0].trim().isEmpty()) {
+                statusArea.setText("Keine Füllwörter in der Konfiguration gefunden.");
+                return;
+            }
+            
+            String text = codeArea.getText();
+            Map<String, Integer> wordCount = new HashMap<>();
+            List<Integer> allPositions = new ArrayList<>();
+            
+            for (String word : woerter) {
+                String trimmedWord = word.trim();
+                if (!trimmedWord.isEmpty()) {
+                    Pattern wordPattern = Pattern.compile("\\b" + Pattern.quote(trimmedWord) + "\\b", Pattern.CASE_INSENSITIVE);
+                    Matcher matcher = wordPattern.matcher(text);
+                    int count = 0;
+                    while (matcher.find()) {
+                        count++;
+                        allPositions.add(matcher.start());
+                    }
+                    if (count > 0) {
+                        wordCount.put(trimmedWord, count);
+                    }
+                }
+            }
+            
+            // Markierungen setzen
+            if (!allPositions.isEmpty()) {
+                StyleSpansBuilder<Collection<String>> spansBuilder = new StyleSpansBuilder<>();
+                Collections.sort(allPositions);
+                
+                int currentPos = 0;
+                for (int pos : allPositions) {
+                    if (pos >= currentPos) {
+                        // Finde das Wort an dieser Position
+                        for (String word : woerter) {
+                            String trimmedWord = word.trim();
+                            if (!trimmedWord.isEmpty()) {
+                                Pattern wordPattern = Pattern.compile("\\b" + Pattern.quote(trimmedWord) + "\\b", Pattern.CASE_INSENSITIVE);
+                                Matcher matcher = wordPattern.matcher(text);
+                                matcher.region(pos, text.length());
+                                if (matcher.lookingAt()) {
+                                    int start = matcher.start();
+                                    int end = matcher.end();
+                                    if (start >= currentPos) {
+                                        spansBuilder.add(Collections.emptyList(), start - currentPos);
+                                        spansBuilder.add(Collections.singleton("fuellwoerter"), end - start);
+                                        currentPos = end;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                spansBuilder.add(Collections.emptyList(), text.length() - currentPos);
+                
+                StyleSpans<Collection<String>> spans = spansBuilder.create();
+                codeArea.setStyleSpans(0, spans);
+            }
+            
+            // Suchtext in die Suchleiste setzen (für F3-Navigation)
+            StringBuilder patternBuilder = new StringBuilder();
+            for (int i = 0; i < woerter.length; i++) {
+                if (i > 0) patternBuilder.append("|");
+                patternBuilder.append("\\b").append(woerter[i].trim()).append("\\b");
+            }
+            
+            String pattern = patternBuilder.toString();
+            cmbSearchHistory.setValue(pattern);
+            chkRegexSearch.setSelected(true);
+            chkCaseSensitive.setSelected(false);
+            chkWholeWord.setSelected(false);
+            
+            // Cache direkt aufbauen (ohne findText() zu verwenden)
+            Pattern searchPattern = createSearchPattern(pattern);
+            String content = codeArea.getText();
+            
+            // Cache zurücksetzen
+            totalMatches = 0;
+            currentMatchIndex = -1;
+            lastSearchText = pattern;
+            cachedPattern = searchPattern;
+            cachedMatchPositions.clear();
+            
+            // Alle Treffer finden und cachen
+            Matcher matcher = searchPattern.matcher(content);
+            while (matcher.find()) {
+                cachedMatchPositions.add(matcher.start());
+                totalMatches++;
+            }
+            
+            // Ergebnis anzeigen
+            StringBuilder result = new StringBuilder();
+            result.append("=== FÜLLWÖRTER-ANALYSE ===\n\n");
+            
+            // Sortiere nach Häufigkeit (absteigend)
+            List<Map.Entry<String, Integer>> sortedEntries = new ArrayList<>(wordCount.entrySet());
+            sortedEntries.sort((a, b) -> b.getValue().compareTo(a.getValue()));
+            
+            int totalCount = 0;
+            for (Map.Entry<String, Integer> entry : sortedEntries) {
+                String word = entry.getKey();
+                int count = entry.getValue();
+                result.append(String.format("%-20s %3dx\n", word, count));
+                totalCount += count;
+            }
+            
+            result.append("\n" + "=".repeat(30) + "\n");
+            result.append(String.format("GESAMT: %d Füllwörter gefunden\n", totalCount));
+            result.append("=".repeat(30) + "\n\n");
+            result.append("💡 Verwende F3 oder die Navigation-Buttons zum Durchsuchen der Treffer.");
+            statusArea.setText(result.toString());
+            
+            // Status aktualisieren
+            updateMatchCount(0, totalMatches);
+            updateStatus("Füllwörter-Analyse abgeschlossen: " + totalCount + " Füllwörter");
+            
+        } catch (Exception e) {
+            statusArea.setText("Fehler bei der Füllwörter-Analyse: " + e.getMessage());
+            logger.error("Fehler bei der Füllwörter-Analyse", e);
+        }
+    }
+    
+    private void analyzePhrasen(TextArea statusArea) {
+        try {
+            Properties props = loadTextAnalysisProperties();
+            String text = codeArea.getText();
+            Map<String, Integer> phraseCount = new HashMap<>();
+            List<Integer> allPositions = new ArrayList<>();
+            
+            // Alle Phrasen-Kategorien durchgehen
+            String[] categories = {"phrasen_begann", "phrasen_emotionen", "phrasen_dialog", "phrasen_denken", "phrasen_gefuehle", "phrasen_bewegung"};
+            
+            for (String category : categories) {
+                String phrases = props.getProperty(category, "");
+                String[] phraseArray = phrases.split(",");
+                
+                for (String phrase : phraseArray) {
+                    String trimmedPhrase = phrase.trim();
+                    if (!trimmedPhrase.isEmpty()) {
+                        // Wildcard-Unterstützung: * durch .* ersetzen
+                        String regexPattern = trimmedPhrase.replace("*", ".*");
+                        Pattern pattern = Pattern.compile(regexPattern, Pattern.CASE_INSENSITIVE);
+                        Matcher matcher = pattern.matcher(text);
+                        
+                        int count = 0;
+                        while (matcher.find()) {
+                            count++;
+                            allPositions.add(matcher.start());
+                        }
+                        
+                        if (count > 0) {
+                            phraseCount.put(trimmedPhrase, count);
+                        }
+                    }
+                }
+            }
+            
+            // Markierungen setzen
+            if (!allPositions.isEmpty()) {
+                StyleSpansBuilder<Collection<String>> spansBuilder = new StyleSpansBuilder<>();
+                Collections.sort(allPositions);
+                
+                int currentPos = 0;
+                for (int pos : allPositions) {
+                    if (pos >= currentPos) {
+                        // Finde die Phrase an dieser Position
+                        for (String category : categories) {
+                            String phrases = props.getProperty(category, "");
+                            String[] phraseArray = phrases.split(",");
+                            
+                            for (String phrase : phraseArray) {
+                                String trimmedPhrase = phrase.trim();
+                                if (!trimmedPhrase.isEmpty()) {
+                                    String regexPattern = trimmedPhrase.replace("*", ".*");
+                                    Pattern pattern = Pattern.compile(regexPattern, Pattern.CASE_INSENSITIVE);
+                                    Matcher matcher = pattern.matcher(text);
+                                    matcher.region(pos, text.length());
+                                    if (matcher.lookingAt()) {
+                                        int start = matcher.start();
+                                        int end = matcher.end();
+                                        if (start >= currentPos) {
+                                            spansBuilder.add(Collections.emptyList(), start - currentPos);
+                                            spansBuilder.add(Collections.singleton("phrasen"), end - start);
+                                            currentPos = end;
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                spansBuilder.add(Collections.emptyList(), text.length() - currentPos);
+                
+                StyleSpans<Collection<String>> spans = spansBuilder.create();
+                codeArea.setStyleSpans(0, spans);
+            }
+            
+            // Suchtext in die Suchleiste setzen (für F3-Navigation)
+            StringBuilder patternBuilder = new StringBuilder();
+            for (String category : categories) {
+                String phrases = props.getProperty(category, "");
+                String[] phraseArray = phrases.split(",");
+                
+                for (String phrase : phraseArray) {
+                    String trimmedPhrase = phrase.trim();
+                    if (!trimmedPhrase.isEmpty()) {
+                        if (patternBuilder.length() > 0) patternBuilder.append("|");
+                        // Wildcard-Unterstützung: * durch .* ersetzen
+                        String regexPattern = trimmedPhrase.replace("*", ".*");
+                        patternBuilder.append(regexPattern);
+                    }
+                }
+            }
+            
+            String pattern = patternBuilder.toString();
+            cmbSearchHistory.setValue(pattern);
+            chkRegexSearch.setSelected(true);
+            chkCaseSensitive.setSelected(false);
+            chkWholeWord.setSelected(false);
+            
+            // Cache direkt aufbauen (ohne findText() zu verwenden)
+            Pattern searchPattern = createSearchPattern(pattern);
+            String content = codeArea.getText();
+            
+            // Cache zurücksetzen
+            totalMatches = 0;
+            currentMatchIndex = -1;
+            lastSearchText = pattern;
+            cachedPattern = searchPattern;
+            cachedMatchPositions.clear();
+            
+            // Alle Treffer finden und cachen
+            Matcher matcher = searchPattern.matcher(content);
+            while (matcher.find()) {
+                cachedMatchPositions.add(matcher.start());
+                totalMatches++;
+            }
+            
+            // Ergebnis anzeigen
+            StringBuilder result = new StringBuilder();
+            result.append("=== PHRASEN-ANALYSE ===\n\n");
+            
+            // Sortiere nach Häufigkeit (absteigend)
+            List<Map.Entry<String, Integer>> sortedEntries = new ArrayList<>(phraseCount.entrySet());
+            sortedEntries.sort((a, b) -> b.getValue().compareTo(a.getValue()));
+            
+            int totalCount = 0;
+            for (Map.Entry<String, Integer> entry : sortedEntries) {
+                String phrase = entry.getKey();
+                int count = entry.getValue();
+                result.append(String.format("%-30s %3dx\n", phrase, count));
+                totalCount += count;
+            }
+            
+            result.append("\n" + "=".repeat(40) + "\n");
+            result.append(String.format("GESAMT: %d Phrasen gefunden\n", totalCount));
+            result.append("=".repeat(40) + "\n\n");
+            result.append("💡 Verwende F3 oder die Navigation-Buttons zum Durchsuchen der Treffer.");
+            statusArea.setText(result.toString());
+            
+            // Status aktualisieren
+            updateMatchCount(0, totalMatches);
+            updateStatus("Phrasen-Analyse abgeschlossen: " + totalCount + " Phrasen");
+            
+        } catch (Exception e) {
+            statusArea.setText("Fehler bei der Phrasen-Analyse: " + e.getMessage());
+            logger.error("Fehler bei der Phrasen-Analyse", e);
+        }
+    }
+    
+    private void loadTextAnalysisWindowProperties() {
+        // Fenster-Position und Größe laden
+        double x = preferences.getDouble("textanalysis_window_x", 100);
+        double y = preferences.getDouble("textanalysis_window_y", 100);
+        double width = preferences.getDouble("textanalysis_window_width", 800);
+        double height = preferences.getDouble("textanalysis_window_height", 600);
+        
+        textAnalysisStage.setX(x);
+        textAnalysisStage.setY(y);
+        textAnalysisStage.setWidth(width);
+        textAnalysisStage.setHeight(height);
+        
+        // Event-Handler für Fenster-Änderungen
+        textAnalysisStage.xProperty().addListener((obs, oldVal, newVal) -> 
+            preferences.putDouble("textanalysis_window_x", newVal.doubleValue()));
+        textAnalysisStage.yProperty().addListener((obs, oldVal, newVal) -> 
+            preferences.putDouble("textanalysis_window_y", newVal.doubleValue()));
+        textAnalysisStage.widthProperty().addListener((obs, oldVal, newVal) -> 
+            preferences.putDouble("textanalysis_window_width", newVal.doubleValue()));
+        textAnalysisStage.heightProperty().addListener((obs, oldVal, newVal) -> 
+            preferences.putDouble("textanalysis_window_height", newVal.doubleValue()));
     }
     
     private void createNewMacro() {
@@ -2371,19 +3898,19 @@ public class EditorWindow implements Initializable {
         textCleanupMacro.addStep(new MacroStep(10, "(?<=…)(?=\\p{L})", " ", "Buchstabe direkt nach Auslassungszeichen", true, false, false));
         textCleanupMacro.addStep(new MacroStep(11, "--", "—", "Gedankenstrich", false, false, false));
         textCleanupMacro.addStep(new MacroStep(12, ",\"«", "«,", "Komma vor Anführungszeichen", false, false, false));
-        textCleanupMacro.addStep(new MacroStep(13, "‘(.*?)’", "›$1‹", "Einfache Anführungszeichen Französisch", true, false, false));
+        textCleanupMacro.addStep(new MacroStep(13, "'(.*?)' ", "›$1‹", "Einfache Anführungszeichen Französisch", true, false, false));
         macros.add(textCleanupMacro);
         
         // Neues Makro: Französische zu deutsche Anführungszeichen
         Macro frenchToGermanQuotes = new Macro("Französische → Deutsche Anführungszeichen", "Konvertiert französische zu deutschen Anführungszeichen");
-        frenchToGermanQuotes.addStep(new MacroStep(1, "»(.*?)«", "„$1“", "Französische zu deutsche Anführungszeichen", true, false, false));
-        frenchToGermanQuotes.addStep(new MacroStep(2, "›(.*?)‹", "‚$1‘", "Französische zu deutsche einfache Anführungszeichen", true, false, false));
+        frenchToGermanQuotes.addStep(new MacroStep(1, "»(.*?)«", "\"$1\"", "Französische zu deutsche Anführungszeichen", true, false, false));
+        frenchToGermanQuotes.addStep(new MacroStep(2, "›(.*?)‹", "'$1'", "Französische zu deutsche einfache Anführungszeichen", true, false, false));
         macros.add(frenchToGermanQuotes);
         
         // Neues Makro: Deutsche zu französische Anführungszeichen
         Macro germanToFrenchQuotes = new Macro("Deutsche → Französische Anführungszeichen", "Konvertiert deutsche zu französischen Anführungszeichen");
-        germanToFrenchQuotes.addStep(new MacroStep(1, "„(.*?)“", "»$1«", "Deutsche zu französische Anführungszeichen", true, false, false));
-        germanToFrenchQuotes.addStep(new MacroStep(2, "‚(.*?)‘", "›$1‹", "Deutsche zu französische einfache Anführungszeichen", true, false, false));
+        germanToFrenchQuotes.addStep(new MacroStep(1, "\"(.*?)\"", "»$1«", "Deutsche zu französische Anführungszeichen", true, false, false));
+        germanToFrenchQuotes.addStep(new MacroStep(2, "'(.*?)'", "›$1‹", "Deutsche zu französische einfache Anführungszeichen", true, false, false));
         macros.add(germanToFrenchQuotes);
         
         // Neues Makro: Apostrophe korrigieren
@@ -2493,6 +4020,10 @@ public class EditorWindow implements Initializable {
             if (sizeText != null && !sizeText.isEmpty()) {
                 int size = Integer.parseInt(sizeText);
                 applyFontSize(size);
+                
+                // Font-Size in Preferences speichern
+                preferences.putInt("fontSize", size);
+                logger.info("Font-Size geändert und gespeichert: {}", size);
             }
         } catch (NumberFormatException e) {
             logger.warn("Ungültige Schriftgröße: {}", cmbFontSize.getValue());
@@ -2530,33 +4061,41 @@ public class EditorWindow implements Initializable {
             stage.setY(y);
         }
         
-        // Divider-Position laden und Listener hinzufügen
-        Platform.runLater(() -> {
-            double dividerPosition = preferences.getDouble("divider_position", 0.3);
-            mainSplitPane.setDividerPositions(dividerPosition);
-            
-            // Divider-Listener hinzufügen (nur wenn Dividers vorhanden sind)
-            if (!mainSplitPane.getDividers().isEmpty()) {
-                mainSplitPane.getDividers().get(0).positionProperty().addListener((obs, oldVal, newVal) -> {
-                    if (newVal != null && !newVal.equals(oldVal)) {
-                        preferences.putDouble("divider_position", newVal.doubleValue());
-                    }
-                });
-            }
-        });
+        // Divider-Position wird nicht mehr benötigt, da kein SplitPane mehr existiert
     }
     
     private void loadToolbarSettings() {
-        // Font-Size laden
+        // Font-Size laden und anwenden
         int fontSize = preferences.getInt("fontSize", 12);
         cmbFontSize.setValue(String.valueOf(fontSize));
         
-        // Theme laden
-        currentThemeIndex = preferences.getInt("editor_theme", 0);
+        // Font-Size sofort anwenden
+        applyFontSize(fontSize);
+        
+        // Theme laden - Priorität: main_window_theme > editor_theme > Standard (0)
+        int mainWindowTheme = preferences.getInt("main_window_theme", -1);
+        int editorTheme = preferences.getInt("editor_theme", -1);
+        
+        logger.info("Preferences gelesen: main_window_theme={}, editor_theme={}", mainWindowTheme, editorTheme);
+        
+        if (mainWindowTheme >= 0) {
+            currentThemeIndex = mainWindowTheme;
+            logger.info("Theme aus main_window_theme geladen: {}", currentThemeIndex);
+        } else if (editorTheme >= 0) {
+            currentThemeIndex = editorTheme;
+            logger.info("Theme aus editor_theme geladen: {}", currentThemeIndex);
+        } else {
+            currentThemeIndex = 0; // Standard weißes Theme
+            logger.info("Kein Theme in Preferences gefunden, verwende Standard: {}", currentThemeIndex);
+        }
+        
+        // Theme anwenden
         applyTheme(currentThemeIndex);
         
         // Theme-Button Tooltip aktualisieren
         updateThemeButtonTooltip();
+        
+        logger.info("Toolbar-Einstellungen geladen: Font-Size={}, Theme={} (final)", fontSize, currentThemeIndex);
     }
     
     private void updateThemeButtonTooltip() {
@@ -2594,6 +4133,12 @@ public class EditorWindow implements Initializable {
         
         String[] themeNames = {"Weiß", "Schwarz", "Pastell", "Blau", "Grün", "Lila"};
         updateStatus("Theme gewechselt: " + themeNames[currentThemeIndex]);
+        
+        // WICHTIG: Theme in Preferences speichern
+        preferences.putInt("editor_theme", currentThemeIndex);
+        preferences.putInt("main_window_theme", currentThemeIndex);
+        
+        logger.info("Theme gewechselt und gespeichert: {} ({})", currentThemeIndex, themeNames[currentThemeIndex]);
     }
     
     private void applyTheme(int themeIndex) {
@@ -2624,7 +4169,7 @@ public class EditorWindow implements Initializable {
             "-rtfx-background-color: %s;" +
             "-fx-highlight-fill: %s;" +
             "-fx-highlight-text-fill: %s;" +
-            "-fx-caret-color: %s;" +
+            "-fx-caret-color: %s !important;" +
             "-fx-font-family: 'Consolas', 'Monaco', monospace;" +
             "-fx-font-size: %dpx;" +
             "-fx-background-color: %s;",
@@ -2632,6 +4177,100 @@ public class EditorWindow implements Initializable {
         );
         
         codeArea.setStyle(cssStyle);
+        
+        // CSS-Klassen für Theme-spezifische Cursor-Farben
+        codeArea.getStyleClass().removeAll("theme-dark", "theme-light");
+        if (themeIndex == 1 || themeIndex >= 3) { // Dunkle Themes: Schwarz (1), Blau (3), Grün (4), Lila (5)
+            codeArea.getStyleClass().add("theme-dark");
+        } else if (themeIndex == 2) { // Pastell - Helles Theme
+            codeArea.getStyleClass().add("theme-light");
+        }
+        // Weiß-Theme (Index 0) - Keine CSS-Klasse (verwendet .root)
+        
+        // Dark Theme für alle UI-Elemente anwenden
+        Platform.runLater(() -> {
+            // Root-Container (Hauptfenster) - WICHTIG: Das ist der Hauptcontainer!
+            if (stage != null && stage.getScene() != null) {
+                Node root = stage.getScene().getRoot();
+                root.getStyleClass().removeAll("theme-dark", "theme-light");
+                if (themeIndex == 1 || themeIndex >= 3) { // Dunkle Themes: Schwarz (1), Blau (3), Grün (4), Lila (5)
+                    root.getStyleClass().add("theme-dark");
+                } else if (themeIndex == 2) { // Pastell - Helles Theme
+                    root.getStyleClass().add("theme-light");
+                }
+                // Weiß-Theme (Index 0) - Keine CSS-Klasse (verwendet .root)
+            }
+            
+            // Alle direkten UI-Elemente explizit anwenden
+            applyThemeToNode(mainContainer, themeIndex);
+            applyThemeToNode(searchReplacePanel, themeIndex);
+            applyThemeToNode(macroPanel, themeIndex);
+            applyThemeToNode(textAreaContainer, themeIndex);
+            applyThemeToNode(searchReplaceContainer, themeIndex);
+            
+            // Alle Buttons
+            applyThemeToNode(btnFind, themeIndex);
+            applyThemeToNode(btnReplace, themeIndex);
+            applyThemeToNode(btnReplaceAll, themeIndex);
+            applyThemeToNode(btnSaveSearch, themeIndex);
+            applyThemeToNode(btnSaveReplace, themeIndex);
+            applyThemeToNode(btnDeleteSearch, themeIndex);
+            applyThemeToNode(btnDeleteReplace, themeIndex);
+            applyThemeToNode(btnFindNext, themeIndex);
+            applyThemeToNode(btnFindPrevious, themeIndex);
+            applyThemeToNode(btnSave, themeIndex);
+            applyThemeToNode(btnSaveAs, themeIndex);
+            applyThemeToNode(btnExportRTF, themeIndex);
+            applyThemeToNode(btnExportDOCX, themeIndex);
+            applyThemeToNode(btnOpen, themeIndex);
+            applyThemeToNode(btnNew, themeIndex);
+            applyThemeToNode(btnToggleSearch, themeIndex);
+            applyThemeToNode(btnToggleMacro, themeIndex);
+            applyThemeToNode(btnTextAnalysis, themeIndex);
+            applyThemeToNode(btnRegexHelp, themeIndex);
+            applyThemeToNode(btnIncreaseFont, themeIndex);
+            applyThemeToNode(btnDecreaseFont, themeIndex);
+            applyThemeToNode(btnBold, themeIndex);
+            applyThemeToNode(btnItalic, themeIndex);
+            applyThemeToNode(btnThemeToggle, themeIndex);
+            applyThemeToNode(btnMacroRegexHelp, themeIndex);
+            
+            // Alle ComboBoxes
+            applyThemeToNode(cmbSearchHistory, themeIndex);
+            applyThemeToNode(cmbReplaceHistory, themeIndex);
+            applyThemeToNode(cmbFontSize, themeIndex);
+            
+            // Alle CheckBoxes
+            applyThemeToNode(chkRegexSearch, themeIndex);
+            applyThemeToNode(chkCaseSensitive, themeIndex);
+            applyThemeToNode(chkWholeWord, themeIndex);
+            
+            // Alle Labels
+            applyThemeToNode(lblStatus, themeIndex);
+            applyThemeToNode(lblMatchCount, themeIndex);
+            
+            // Text Analysis Panel
+            if (textAnalysisStage != null && textAnalysisStage.getScene() != null) {
+                textAnalysisStage.getScene().getRoot().getStyleClass().removeAll("theme-dark", "theme-light");
+                if (themeIndex == 1 || themeIndex >= 3) { // Dunkle Themes: Schwarz (1), Blau (3), Grün (4), Lila (5)
+                    textAnalysisStage.getScene().getRoot().getStyleClass().add("theme-dark");
+                } else if (themeIndex == 2) { // Pastell - Helles Theme
+                    textAnalysisStage.getScene().getRoot().getStyleClass().add("theme-light");
+                }
+                // Weiß-Theme (Index 0) - Keine CSS-Klasse (verwendet .root)
+            }
+            
+            // Macro Window
+            if (macroStage != null && macroStage.getScene() != null) {
+                applyThemeToNode(macroStage.getScene().getRoot(), themeIndex);
+                
+                // Makro-Panel direkt aktualisieren
+                Node macroPanel = macroStage.getScene().lookup(".macro-panel");
+                if (macroPanel != null) {
+                    applyThemeToNode(macroPanel, themeIndex);
+                }
+            }
+        });
         
         // Textfarbe über CSS-Stylesheet anwenden (RichTextFX-spezifisch)
         Platform.runLater(() -> {
@@ -2668,8 +4307,92 @@ public class EditorWindow implements Initializable {
         // Theme in Preferences speichern
         preferences.putInt("editor_theme", themeIndex);
         
+        // WICHTIG: CSS-Refresh erzwingen
+        if (stage != null && stage.getScene() != null) {
+            stage.getScene().getStylesheets().clear();
+            stage.getScene().getStylesheets().add(getClass().getResource("/css/editor.css").toExternalForm());
+            
+            // Zusätzlich: Root-Container explizit das Theme geben
+            Node root = stage.getScene().getRoot();
+            root.getStyleClass().removeAll("theme-dark", "theme-light", "blau-theme", "gruen-theme", "lila-theme");
+            if (themeIndex == 1 || themeIndex >= 3) { // Dunkle Themes: Schwarz (1), Blau (3), Grün (4), Lila (5)
+                root.getStyleClass().add("theme-dark");
+                // Spezifische Theme-Klassen für dunkle Themes
+                if (themeIndex == 3) { // Blau
+                    root.getStyleClass().add("blau-theme");
+                } else if (themeIndex == 4) { // Grün
+                    root.getStyleClass().add("gruen-theme");
+                } else if (themeIndex == 5) { // Lila
+                    root.getStyleClass().add("lila-theme");
+                }
+            } else if (themeIndex == 2) { // Pastell - Helles Theme
+                root.getStyleClass().add("theme-light");
+            }
+            // Weiß-Theme (Index 0) - Keine CSS-Klasse (verwendet .root)
+            
+            // Zusätzlicher CSS-Refresh nach einer kurzen Verzögerung
+            Platform.runLater(() -> {
+                stage.getScene().getStylesheets().clear();
+                stage.getScene().getStylesheets().add(getClass().getResource("/css/editor.css").toExternalForm());
+                
+                // Force layout refresh
+                if (root instanceof Parent) {
+                    ((Parent) root).requestLayout();
+                }
+                if (stage.getScene().getRoot() instanceof Parent) {
+                    ((Parent) stage.getScene().getRoot()).requestLayout();
+                }
+            });
+        }
+        
+        // Cursor-Farbe direkt über Node-Lookup setzen (funktioniert!)
+        Platform.runLater(() -> {
+            Node caret = codeArea.lookup(".caret");
+            if (caret != null) {
+                // Cursor-Farbe konträr zur Textfarbe setzen (immer sichtbar!)
+                String cursorColor;
+                if (textColor.equals("#ffffff")) { // Weißer Text
+                    cursorColor = "#ff0000"; // Roter Cursor (immer sichtbar)
+                } else { // Dunkler Text
+                    cursorColor = "#00ff00"; // Grüner Cursor (immer sichtbar)
+                }
+                // Cursor-Style mit besserer Sichtbarkeit
+                caret.setStyle("-fx-stroke: " + cursorColor + "; -fx-fill: " + cursorColor + "; -fx-stroke-width: 2;");
+                logger.info("Cursor-Farbe gesetzt: {} für Textfarbe: {}", cursorColor, textColor);
+            } else {
+                logger.warn("Caret-Element nicht gefunden!");
+            }
+            
+            // Zusätzlich: CodeArea-Padding anpassen für bessere Cursor-Sichtbarkeit
+            codeArea.setStyle(codeArea.getStyle() + "; -fx-padding: 5px;");
+        });
+        
         // Debug-Ausgabe
         logger.info("Theme angewendet: Index={}, Hintergrund={}, Text={}", themeIndex, backgroundColor, textColor);
+    }
+    
+    /**
+     * Wendet das Theme auf ein einzelnes Node an
+     */
+    private void applyThemeToNode(Node node, int themeIndex) {
+        if (node != null) {
+            // Alle Theme-Klassen entfernen
+            node.getStyleClass().removeAll("theme-dark", "theme-light", "blau-theme", "gruen-theme", "lila-theme");
+            
+            if (themeIndex == 0) { // Weiß-Theme
+                // Keine CSS-Klasse (verwendet .root)
+            } else if (themeIndex == 1) { // Schwarz-Theme
+                node.getStyleClass().add("theme-dark");
+            } else if (themeIndex == 2) { // Pastell-Theme
+                node.getStyleClass().addAll("theme-light", "lila-theme");
+            } else if (themeIndex == 3) { // Blau-Theme
+                node.getStyleClass().addAll("theme-dark", "blau-theme");
+            } else if (themeIndex == 4) { // Grün-Theme
+                node.getStyleClass().addAll("theme-dark", "gruen-theme");
+            } else if (themeIndex == 5) { // Lila-Theme
+                node.getStyleClass().addAll("theme-dark", "lila-theme");
+            }
+        }
     }
     
     private void formatTextAtCursor(String markdownStart, String markdownEnd, String htmlStart, String htmlEnd) {
