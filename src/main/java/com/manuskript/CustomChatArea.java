@@ -113,9 +113,12 @@ public class CustomChatArea extends VBox {
      * Lädt die Chat-Historie aus einem Array von QAPairs
      */
     public void loadSessionHistory(List<QAPair> sessionHistory) {
+        System.out.println("DEBUG: loadSessionHistory() aufgerufen mit " + sessionHistory.size() + " QAPairs");
         Platform.runLater(() -> {
             chatHistory.clear();
             chatHistory.addAll(sessionHistory);
+            
+            System.out.println("DEBUG: loadSessionHistory() - chatHistory.size(): " + chatHistory.size());
             
             // Zum letzten Eintrag springen
             currentIndex = chatHistory.size() - 1;
@@ -127,6 +130,7 @@ public class CustomChatArea extends VBox {
      * Gibt die aktuelle Chat-Historie zurück
      */
     public List<QAPair> getSessionHistory() {
+        System.out.println("DEBUG: getSessionHistory() - chatHistory.size(): " + chatHistory.size());
         return new ArrayList<>(chatHistory);
     }
     
@@ -143,12 +147,22 @@ public class CustomChatArea extends VBox {
     
     public void addAssistantResponse(String response) {
         Platform.runLater(() -> {
+            System.out.println("DEBUG: addAssistantResponse() aufgerufen mit: " + response.substring(0, Math.min(50, response.length())) + "...");
+            System.out.println("DEBUG: currentIndex: " + currentIndex + ", chatHistory.size(): " + chatHistory.size());
+            
             if (currentIndex >= 0 && currentIndex < chatHistory.size()) {
                 // Antwort zum aktuellen QAPair hinzufügen
-                chatHistory.get(currentIndex).setAnswer(response);
+                QAPair currentPair = chatHistory.get(currentIndex);
+                System.out.println("DEBUG: Vor setAnswer - Frage: " + currentPair.getQuestion() + ", Antwort: " + (currentPair.getAnswer() != null ? currentPair.getAnswer().length() + " Zeichen" : "null"));
+                
+                currentPair.setAnswer(response);
+                
+                System.out.println("DEBUG: Nach setAnswer - Frage: " + currentPair.getQuestion() + ", Antwort: " + (currentPair.getAnswer() != null ? currentPair.getAnswer().length() + " Zeichen" : "null"));
                 
                 // UI aktualisieren
                 updateDisplay();
+            } else {
+                System.out.println("DEBUG: Ungültiger Index - currentIndex: " + currentIndex + ", chatHistory.size(): " + chatHistory.size());
             }
         });
     }

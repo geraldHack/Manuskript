@@ -5,24 +5,7 @@
     -fx-background-color: #f5f5f5;
 }
 
-/* Button-Styling */
-.button {
-    -fx-background-color: #2196F3;
-    -fx-text-fill: white;
-    -fx-font-weight: bold;
-    -fx-padding: 8px 16px;
-    -fx-border-radius: 4px;
-    -fx-background-radius: 4px;
-    -fx-cursor: hand;
-}
-
-.button:hover {
-    -fx-background-color: #1976D2;
-}
-
-.button:pressed {
-    -fx-background-color: #0D47A1;
-}
+/* Button-Styling - Entfernt, damit Theme-spezifische Regeln greifen */
 
 
 
@@ -105,8 +88,8 @@
     -fx-background-color: #ddd;
 }
 
-/* TableView-Styling - Hell (Hauptmenü) */
-.table-view {
+/* TableView-Styling - Hell (Hauptmenü) - nur wenn kein Theme aktiv */
+.root:not(.theme-dark):not(.weiss-theme):not(.pastell-theme) .table-view {
     -fx-background-color: white;
     -fx-border-color: #ccc;
     -fx-border-width: 1px;

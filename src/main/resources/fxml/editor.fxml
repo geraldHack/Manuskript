@@ -1,10 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-
-<VBox fx:id="mainContainer" spacing="0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.manuskript.EditorWindow" stylesheets="@../css/editor.css">
+<VBox fx:id="mainContainer" spacing="0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.manuskript.EditorWindow">
    <children>
       <!-- Toolbar -->
       <HBox spacing="5" styleClass="toolbar" style="-fx-min-height: 40px;">
@@ -21,6 +19,7 @@
             <Button fx:id="btnToggleSearch" text="Suchen/Ersetzen" styleClass="button" />
             <Button fx:id="btnToggleMacro" text="Makros" styleClass="button" />
             <Button fx:id="btnTextAnalysis" text="Textanalyse" styleClass="button" />
+            <Button fx:id="btnChapterEditor" text="📝 Kapitel" styleClass="button" />
             <Button fx:id="btnKIAssistant" text="🤖 KI-Assistent" styleClass="button" />
             
             <Region HBox.hgrow="ALWAYS" />
@@ -66,16 +65,16 @@
                   <ComboBox fx:id="cmbSearchHistory" promptText="Suchtext eingeben..." prefWidth="250.0" editable="true" />
                   
                   <VBox spacing="2" alignment="CENTER">
-                                       <Button fx:id="btnSaveSearch" text="Pattern speichern" styleClass="button primary" />
-                  <Button fx:id="btnDeleteSearch" text="Pattern löschen" styleClass="button danger" />
+                     <Button fx:id="btnSaveSearch" text="Pattern speichern" styleClass="button primary" />
+                     <Button fx:id="btnDeleteSearch" text="Pattern löschen" styleClass="button danger" />
                   </VBox>
                   
                   <Label text="Ersetzen:" styleClass="search-label" />
                   <ComboBox fx:id="cmbReplaceHistory" promptText="Ersetzungstext eingeben..." prefWidth="250.0" editable="true" />
                   
                   <VBox spacing="2" alignment="CENTER">
-                                       <Button fx:id="btnSaveReplace" text="Pattern speichern" styleClass="button primary" />
-                  <Button fx:id="btnDeleteReplace" text="Pattern löschen" styleClass="button danger" />
+                     <Button fx:id="btnSaveReplace" text="Pattern speichern" styleClass="button primary" />
+                     <Button fx:id="btnDeleteReplace" text="Pattern löschen" styleClass="button danger" />
                   </VBox>
                </children>
             </HBox>
@@ -106,7 +105,28 @@
          </padding>
       </VBox>
       
-      <!-- Text-Editor Container -->
-      <VBox fx:id="textAreaContainer" />
+      <!-- SplitPane für Chapter-Editor und Haupt-Editor -->
+      <SplitPane fx:id="mainSplitPane" dividerPositions="0.05" visible="true" managed="true" VBox.vgrow="ALWAYS" orientation="VERTICAL">
+         <VBox fx:id="chapterEditorPanel" styleClass="chapter-editor-panel" minHeight="30" prefHeight="30">
+            <children>
+               <HBox spacing="5" styleClass="chapter-editor-header" style="-fx-min-height: 30px;">
+                  <children>
+                     <Label text="📝 Chapter-Beschreibung" styleClass="chapter-editor-title" />
+                     <Region HBox.hgrow="ALWAYS" />
+                     <Button fx:id="btnSaveChapter" text="💾 Speichern" styleClass="button" style="-fx-min-width: 120px; -fx-max-width: 120px;" />
+                  </children>
+                  <padding>
+                     <Insets top="5.0" bottom="5.0" left="10.0" right="10.0" />
+                  </padding>
+               </HBox>
+               <TextArea fx:id="chapterEditorArea" promptText="Kapitelbeschreibung und Szenen hier eingeben..." wrapText="true" VBox.vgrow="ALWAYS" visible="false" managed="false" styleClass="chapter-editor-text-area" />
+            </children>
+            <padding>
+               <Insets top="5.0" bottom="5.0" left="5.0" right="5.0" />
+            </padding>
+         </VBox>
+         
+         <VBox fx:id="textAreaContainer" minHeight="200" VBox.vgrow="ALWAYS" />
+      </SplitPane>
    </children>
-</VBox> 
+</VBox>

@@ -1,6 +1,8 @@
 package com.manuskript;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -8,6 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.Properties;
 import java.util.logging.Logger;
 import java.util.List;
 import java.util.ArrayList;
@@ -119,6 +122,7 @@ public class ResourceManager {
             createDefaultCssFile("css/styles.css");
             createDefaultCssFile("css/editor.css");
             createDefaultPropertiesFile("textanalysis.properties");
+            createDefaultPropertiesFile("parameters.properties");
             
         } catch (IOException e) {
             logger.warning("Fehler beim Initialisieren des Config-Ordners: " + e.getMessage());
@@ -312,6 +316,20 @@ public class ResourceManager {
                    "\n" +
                    "# Phrasen (durch Kommas getrennt)\n" +
                    "phrasen=es war einmal,in der tat,wie gesagt,wie bereits erwähnt,wie du weißt,wie du siehst\n";
+        } else if (configPath.equals("parameters.properties")) {
+            return "# Session-Management Parameter\n" +
+                   "# Maximale Anzahl von QAPairs pro Session bevor automatische Aufteilung erfolgt\n" +
+                   "session.max_qapairs_per_session=20\n" +
+                   "\n" +
+                   "# Ollama-Parameter\n" +
+                   "ollama.temperature=0.3\n" +
+                   "ollama.max_tokens=2048\n" +
+                   "ollama.top_p=0.7\n" +
+                   "ollama.repeat_penalty=1.3\n" +
+                   "\n" +
+                   "# UI-Parameter\n" +
+                   "ui.default_theme=4\n" +
+                   "ui.editor_font_size=16\n";
         }
         return "# Standard Properties\n";
     }
@@ -321,5 +339,88 @@ public class ResourceManager {
      */
     public static String getConfigDirectory() {
         return Paths.get(CONFIG_DIR).toAbsolutePath().toString();
+    }
+    
+    /**
+     * Lädt die parameters.properties und gibt einen Wert zurück
+     */
+    public static String getParameter(String key, String defaultValue) {
+        Properties props = new Properties();
+        File configFile = new File(CONFIG_DIR + File.separator + "parameters.properties");
+        
+        if (configFile.exists()) {
+            try (FileInputStream fis = new FileInputStream(configFile)) {
+                props.load(fis);
+            } catch (IOException e) {
+                logger.warning("Fehler beim Laden der parameters.properties: " + e.getMessage());
+            }
+        }
+        
+        return props.getProperty(key, defaultValue);
+    }
+    
+    /**
+     * Lädt die parameters.properties und gibt einen Integer-Wert zurück
+     */
+    public static int getIntParameter(String key, int defaultValue) {
+        String value = getParameter(key, String.valueOf(defaultValue));
+        try {
+            return Integer.parseInt(value);
+        } catch (NumberFormatException e) {
+            logger.warning("Ungültiger Integer-Wert für Parameter " + key + ": " + value + " - verwende Standard: " + defaultValue);
+            return defaultValue;
+        }
+    }
+    
+    /**
+     * Lädt die parameters.properties und gibt einen Double-Wert zurück
+     */
+    public static double getDoubleParameter(String key, double defaultValue) {
+        String value = getParameter(key, String.valueOf(defaultValue));
+        try {
+            return Double.parseDouble(value);
+        } catch (NumberFormatException e) {
+            logger.warning("Ungültiger Double-Wert für Parameter " + key + ": " + value + " - verwende Standard: " + defaultValue);
+            return defaultValue;
+        }
+    }
+    
+    /**
+     * Speichert einen Parameter in der parameters.properties
+     */
+    public static void saveParameter(String key, String value) {
+        Properties props = new Properties();
+        File configFile = new File(CONFIG_DIR + File.separator + "parameters.properties");
+        
+        // Bestehende Properties laden
+        if (configFile.exists()) {
+            try (FileInputStream fis = new FileInputStream(configFile)) {
+                props.load(fis);
+            } catch (IOException e) {
+                logger.warning("Fehler beim Laden der parameters.properties: " + e.getMessage());
+            }
+        }
+        
+        // Neuen Wert setzen
+        props.setProperty(key, value);
+        
+        // Properties speichern
+        try (FileOutputStream fos = new FileOutputStream(configFile)) {
+            props.store(fos, "Aktualisiert von Manuskript");
+            logger.info("Parameter gespeichert: " + key + " = " + value);
+        } catch (IOException e) {
+            logger.warning("Fehler beim Speichern der parameters.properties: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * Speichert alle Ollama-Parameter in der parameters.properties
+     */
+    public static void saveOllamaParameters(double temperature, int maxTokens, double topP, double repeatPenalty) {
+        saveParameter("ollama.temperature", String.valueOf(temperature));
+        saveParameter("ollama.max_tokens", String.valueOf(maxTokens));
+        saveParameter("ollama.top_p", String.valueOf(topP));
+        saveParameter("ollama.repeat_penalty", String.valueOf(repeatPenalty));
+        logger.info("Alle Ollama-Parameter gespeichert");
     }
 } 

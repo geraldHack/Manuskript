@@ -82,6 +82,13 @@ public class EditorWindow implements Initializable {
     @FXML private VBox searchReplacePanel;
     @FXML private VBox macroPanel;
     
+    // Chapter-Editor Components
+    @FXML private SplitPane mainSplitPane;
+    @FXML private VBox chapterEditorPanel;
+    @FXML private TextArea chapterEditorArea;
+    @FXML private Button btnChapterEditor;
+    @FXML private Button btnSaveChapter;
+    
     // Such- und Ersetzungs-Controls
     @FXML private CheckBox chkRegexSearch;
     @FXML private CheckBox chkCaseSensitive;
@@ -169,6 +176,9 @@ public class EditorWindow implements Initializable {
     private boolean macroWindowVisible = false;
     private boolean textAnalysisWindowVisible = false;
     private boolean ollamaWindowVisible = false;
+    private boolean chapterEditorVisible = false;
+    private String originalChapterContent = "";
+    private boolean chapterContentChanged = false;
     private File currentFile = null;
     private DocxProcessor.OutputFormat outputFormat = DocxProcessor.OutputFormat.HTML;
     private DocxProcessor docxProcessor;
@@ -311,6 +321,14 @@ public class EditorWindow implements Initializable {
         codeArea.getStylesheets().add(cssPath);
         codeArea.getStylesheets().add(editorCssPath);
         
+        // CSS auch für die gesamte Scene laden (für Chapter-Editor)
+        Platform.runLater(() -> {
+            if (stage != null && stage.getScene() != null) {
+                stage.getScene().getStylesheets().add(cssPath);
+                stage.getScene().getStylesheets().add(editorCssPath);
+            }
+        });
+        
         Node caret = codeArea.lookup(".caret");
 if (caret != null) {
     caret.setStyle("-fx-stroke: red; -fx-fill: red;");
@@ -323,9 +341,30 @@ if (caret != null) {
         // VirtualizedScrollPane für bessere Performance
         VirtualizedScrollPane<CodeArea> scrollPane = new VirtualizedScrollPane<>(codeArea);
         
-        // CodeArea zum Container hinzufügen
+        // CodeArea zum Container hinzufügen (im SplitPane)
         textAreaContainer.getChildren().add(scrollPane);
         VBox.setVgrow(scrollPane, Priority.ALWAYS);
+        
+        // VBox-Grow-Eigenschaften setzen
+        VBox.setVgrow(chapterEditorPanel, Priority.NEVER);
+        VBox.setVgrow(textAreaContainer, Priority.ALWAYS);
+        
+        // Chapter-Editor initial korrekt einrichten
+        chapterEditorPanel.setManaged(false);
+        chapterEditorPanel.setMinHeight(0);
+        chapterEditorPanel.setPrefHeight(0);
+        chapterEditorPanel.setMinWidth(200);
+        chapterEditorPanel.setPrefWidth(300);
+        
+        // SplitPane initial konfigurieren
+        mainSplitPane.setOrientation(Orientation.VERTICAL);
+        mainSplitPane.setVisible(true);
+        mainSplitPane.setManaged(true);
+        
+        // Divider-Position NACH dem FXML-Load setzen
+        Platform.runLater(() -> {
+            mainSplitPane.setDividerPositions(0.0); // Divider ganz nach oben
+        });
         
         // Such- und Ersetzungs-Panel initial ausblenden
         searchReplacePanel.setVisible(false);
@@ -454,6 +493,31 @@ if (caret != null) {
         
         // KI-Assistent-Button
         btnKIAssistant.setOnAction(e -> toggleOllamaWindow());
+        
+        // Chapter-Editor Event-Handler
+        btnChapterEditor.setOnAction(e -> toggleChapterEditor());
+        btnSaveChapter.setOnAction(e -> saveChapterContent());
+        
+        // Chapter-Editor Text-Change Listener
+        if (chapterEditorArea != null) {
+            chapterEditorArea.textProperty().addListener((obs, oldText, newText) -> {
+                if (chapterEditorVisible && !originalChapterContent.equals(newText)) {
+                    chapterContentChanged = true;
+                    // Rote Anzeige setzen
+                    if (lblStatus != null) {
+                        lblStatus.setText("Kapitelbeschreibung nicht gesichert");
+                        lblStatus.setStyle("-fx-text-fill: #ff0000; -fx-font-size: 11px; -fx-font-weight: bold;");
+                    }
+                } else if (chapterEditorVisible && originalChapterContent.equals(newText)) {
+                    chapterContentChanged = false;
+                    // Normale Anzeige zurücksetzen
+                    if (lblStatus != null) {
+                        lblStatus.setText("Bereit");
+                        lblStatus.setStyle("-fx-text-fill: #6c757d; -fx-font-size: 11px;");
+                    }
+                }
+            });
+        }
         btnRegexHelp.setOnAction(e -> showRegexHelp());
         btnFindNext.setOnAction(e -> findNext());
         btnFindPrevious.setOnAction(e -> findPrevious());
@@ -1094,7 +1158,10 @@ if (caret != null) {
     
     private void updateStatus(String message) {
         lblStatus.setText(message);
-        lblStatus.setStyle("-fx-text-fill: #6c757d; -fx-font-size: 11px;"); // Normale Farbe
+        // Normale Farbe setzen, außer wenn es "nicht gesichert" ist
+        if (!message.contains("nicht gesichert")) {
+            lblStatus.setStyle("-fx-text-fill: #6c757d; -fx-font-size: 11px;"); // Normale Farbe
+        }
         logger.info("Editor Status: {}", message);
     }
     
@@ -1666,6 +1733,10 @@ if (caret != null) {
         this.currentFile = file;
     }
     
+    public File getCurrentFile() {
+        return this.currentFile;
+    }
+    
     public String getText() {
         return codeArea.getText();
     }
@@ -2185,7 +2256,7 @@ if (caret != null) {
         btnSprechantworten.getStyleClass().add("button");
         btnSprechantworten.setPrefWidth(200);
         btnSprechantworten.setStyle(String.format("-fx-background-color: %s; -fx-text-fill: %s;", accentColor, textColor));
-        Label lblSprechantworten = new Label("Findet einfache Sprechantworten (sagte Name., fragte Name., etc.)");
+        Label lblSprechantworten = new Label("Findet einfache Sprechantworten (sagte er., fragte sie., etc.)");
         lblSprechantworten.setWrapText(true);
         lblSprechantworten.setStyle(String.format("-fx-text-fill: %s;", textColor));
         HBox.setHgrow(lblSprechantworten, Priority.ALWAYS);
@@ -4229,12 +4300,21 @@ if (caret != null) {
             if (stage != null && stage.getScene() != null) {
                 Node root = stage.getScene().getRoot();
                 root.getStyleClass().removeAll("theme-dark", "theme-light", "weiss-theme", "pastell-theme");
-                if (themeIndex == 0) { // Weiß-Theme
-                    root.getStyleClass().add("weiss-theme");
-                } else if (themeIndex == 1 || themeIndex >= 3) { // Dunkle Themes: Schwarz (1), Blau (3), Grün (4), Lila (5)
-                    root.getStyleClass().add("theme-dark");
-                } else if (themeIndex == 2) { // Pastell-Theme
-                    root.getStyleClass().add("pastell-theme");
+                
+                // Direkte inline Styles für Pastell-Theme
+                if (themeIndex == 2) { // Pastell-Theme
+                    root.setStyle("-fx-background-color: #f3e5f5; -fx-text-fill: #000000;");
+                    mainContainer.setStyle("-fx-background-color: #f3e5f5; -fx-text-fill: #000000;");
+                    logger.info("Pastell-Theme direkt angewendet (Editor)");
+                } else {
+                    root.setStyle(""); // Style zurücksetzen
+                    mainContainer.setStyle(""); // Style zurücksetzen
+                    
+                    if (themeIndex == 0) { // Weiß-Theme
+                        root.getStyleClass().add("weiss-theme");
+                    } else if (themeIndex == 1 || themeIndex >= 3) { // Dunkle Themes: Schwarz (1), Blau (3), Grün (4), Lila (5)
+                        root.getStyleClass().add("theme-dark");
+                    }
                 }
             }
             
@@ -4286,6 +4366,13 @@ if (caret != null) {
             // Alle Labels
             applyThemeToNode(lblStatus, themeIndex);
             applyThemeToNode(lblMatchCount, themeIndex);
+            
+            // Chapter-Editor Elemente
+            applyThemeToNode(chapterEditorPanel, themeIndex);
+            applyThemeToNode(chapterEditorArea, themeIndex);
+            applyThemeToNode(btnChapterEditor, themeIndex);
+            applyThemeToNode(btnSaveChapter, themeIndex);
+            applyThemeToNode(mainSplitPane, themeIndex);
             
             // Text Analysis Panel
             if (textAnalysisStage != null && textAnalysisStage.getScene() != null) {
@@ -4795,5 +4882,85 @@ if (caret != null) {
             return codeArea.getText();
         }
         return null;
+    }
+    
+    /**
+     * Toggle für den Chapter-Editor
+     */
+    private void toggleChapterEditor() {
+        chapterEditorVisible = !chapterEditorVisible;
+        
+        if (chapterEditorVisible) {
+            // Chapter-Editor anzeigen
+            chapterEditorPanel.setVisible(true);
+            chapterEditorPanel.setManaged(true);
+            chapterEditorPanel.setMinHeight(150);
+            chapterEditorPanel.setPrefHeight(200);
+            chapterEditorArea.setVisible(true);
+            chapterEditorArea.setManaged(true);
+            btnChapterEditor.setText("📝 Kapitel [ON]");
+            
+            // Chapter-Inhalt laden
+            loadChapterContent();
+            
+            // SplitPane-Position wiederherstellen und Style zurücksetzen
+            double savedPosition = preferences.getDouble("chapter_editor_divider_position", 0.8);
+            mainSplitPane.setDividerPositions(savedPosition);
+            mainSplitPane.setStyle(""); // Style zurücksetzen
+            
+            updateStatus("Chapter-Editor geöffnet");
+        } else {
+            // Aktuelle Divider-Position speichern
+            if (mainSplitPane.getDividerPositions().length > 0) {
+                preferences.putDouble("chapter_editor_divider_position", mainSplitPane.getDividerPositions()[0]);
+            }
+            
+            // Chapter-Editor ausblenden
+            chapterEditorPanel.setVisible(false);
+            chapterEditorPanel.setManaged(false);
+            chapterEditorPanel.setMinHeight(0);
+            chapterEditorPanel.setPrefHeight(0);
+            chapterEditorArea.setVisible(false);
+            chapterEditorArea.setManaged(false);
+            btnChapterEditor.setText("📝 Kapitel");
+            
+            // Divider fest auf 0.0 setzen und visuell verstecken
+            mainSplitPane.setDividerPositions(0.0);
+            mainSplitPane.setStyle("-fx-background-color: transparent; -fx-border-color: transparent;");
+            
+            updateStatus("Chapter-Editor geschlossen");
+        }
+    }
+    
+    /**
+     * Lädt den Chapter-Inhalt aus der entsprechenden Datei
+     */
+    private void loadChapterContent() {
+        if (currentFile != null) {
+            String chapterContent = NovelManager.loadChapter(currentFile.getAbsolutePath());
+            // Setze den gesamten Inhalt direkt
+            chapterEditorArea.setText(chapterContent);
+            originalChapterContent = chapterContent;
+            chapterContentChanged = false;
+            logger.info("Chapter-Inhalt geladen für: " + currentFile.getName());
+        }
+    }
+    
+    /**
+     * Speichert den Chapter-Inhalt in die entsprechende Datei
+     */
+    private void saveChapterContent() {
+        if (currentFile != null) {
+            String content = chapterEditorArea.getText();
+            NovelManager.saveChapter(currentFile.getAbsolutePath(), content);
+            originalChapterContent = content;
+            chapterContentChanged = false;
+            // Normale Anzeige zurücksetzen
+            if (lblStatus != null) {
+                lblStatus.setText("Chapter-Inhalt gespeichert: " + currentFile.getName());
+                lblStatus.setStyle("-fx-text-fill: #6c757d; -fx-font-size: 11px;");
+            }
+            logger.info("Chapter-Inhalt gespeichert für: " + currentFile.getName());
+        }
     }
 } 
