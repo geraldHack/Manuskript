@@ -111,6 +111,7 @@ public class EditorWindow implements Initializable {
     @FXML private Button btnToggleMacro;
     @FXML private Button btnTextAnalysis;
     @FXML private Button btnRegexHelp;
+    @FXML private Button btnKIAssistant;
     
     // Font-Size Toolbar
     @FXML private ComboBox<String> cmbFontSize;
@@ -153,6 +154,7 @@ public class EditorWindow implements Initializable {
     private Stage stage;
     private Stage macroStage;
     private Stage textAnalysisStage;
+    private OllamaWindow ollamaWindow;
     private Preferences preferences;
     private ObservableList<String> searchHistory = FXCollections.observableArrayList();
     private ObservableList<String> replaceHistory = FXCollections.observableArrayList();
@@ -166,6 +168,7 @@ public class EditorWindow implements Initializable {
     private boolean searchPanelVisible = false;
     private boolean macroWindowVisible = false;
     private boolean textAnalysisWindowVisible = false;
+    private boolean ollamaWindowVisible = false;
     private File currentFile = null;
     private DocxProcessor.OutputFormat outputFormat = DocxProcessor.OutputFormat.HTML;
     private DocxProcessor docxProcessor;
@@ -302,8 +305,9 @@ public class EditorWindow implements Initializable {
         codeArea.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px; -rtfx-background-color: #ffffff;");
         
         // CSS-Dateien für CodeArea laden
-        String cssPath = getClass().getResource("/css/styles.css").toExternalForm();
-        String editorCssPath = getClass().getResource("/css/editor.css").toExternalForm();
+        // CSS mit ResourceManager laden
+        String cssPath = ResourceManager.getCssResource("css/styles.css");
+        String editorCssPath = ResourceManager.getCssResource("css/editor.css");
         codeArea.getStylesheets().add(cssPath);
         codeArea.getStylesheets().add(editorCssPath);
         
@@ -447,6 +451,9 @@ if (caret != null) {
         
         // Textanalyse-Button
         btnTextAnalysis.setOnAction(e -> toggleTextAnalysisPanel());
+        
+        // KI-Assistent-Button
+        btnKIAssistant.setOnAction(e -> toggleOllamaWindow());
         btnRegexHelp.setOnAction(e -> showRegexHelp());
         btnFindNext.setOnAction(e -> findNext());
         btnFindPrevious.setOnAction(e -> findPrevious());
@@ -463,6 +470,19 @@ if (caret != null) {
         
         // Keyboard-Shortcuts
         setupKeyboardShortcuts();
+        
+        // Text-Selektion Event-Listener für KI-Assistent
+        codeArea.selectionProperty().addListener((obs, oldSelection, newSelection) -> {
+            if (ollamaWindow != null && ollamaWindow.isShowing()) {
+                String selectedText = codeArea.getSelectedText();
+                if (selectedText != null && !selectedText.trim().isEmpty()) {
+                    // Prüfe ob "Text umschreiben" aktiv ist
+                    if ("Text umschreiben".equals(ollamaWindow.getCurrentFunction())) {
+                        ollamaWindow.updateSelectedText(selectedText);
+                    }
+                }
+            }
+        });
     }
     
     private void setupKeyboardShortcuts() {
@@ -1740,7 +1760,11 @@ if (caret != null) {
         VBox macroPanel = createMacroPanel();
         
         Scene macroScene = new Scene(macroPanel);
-        macroScene.getStylesheets().add(getClass().getResource("/css/editor.css").toExternalForm());
+        // CSS mit ResourceManager laden
+        String cssPath = ResourceManager.getCssResource("css/editor.css");
+        if (cssPath != null) {
+            macroScene.getStylesheets().add(cssPath);
+        }
         macroStage.setScene(macroScene);
         
         // Fenster-Position speichern/laden
@@ -1774,12 +1798,12 @@ if (caret != null) {
         }
         
         // Theme-Klassen für das Makro-Panel hinzufügen
-        if (currentThemeIndex == 2) { // Pastell-Theme
-            macroPanel.getStyleClass().addAll("theme-light", "lila-theme");
-        } else if (currentThemeIndex == 0) { // Weiß-Theme
-            // Keine zusätzlichen CSS-Klassen
+        if (currentThemeIndex == 0) { // Weiß-Theme
+            macroPanel.getStyleClass().add("weiss-theme");
         } else if (currentThemeIndex == 1) { // Schwarz-Theme
             macroPanel.getStyleClass().add("theme-dark");
+        } else if (currentThemeIndex == 2) { // Pastell-Theme
+            macroPanel.getStyleClass().add("pastell-theme");
         } else if (currentThemeIndex >= 3) { // Dunkle Themes: Blau (3), Grün (4), Lila (5)
             macroPanel.getStyleClass().add("theme-dark");
             if (currentThemeIndex == 3) {
@@ -2103,7 +2127,11 @@ if (caret != null) {
         VBox textAnalysisPanel = createTextAnalysisPanel();
         
         Scene textAnalysisScene = new Scene(textAnalysisPanel);
-        textAnalysisScene.getStylesheets().add(getClass().getResource("/css/editor.css").toExternalForm());
+        // CSS mit ResourceManager laden
+        String cssPath = ResourceManager.getCssResource("css/editor.css");
+        if (cssPath != null) {
+            textAnalysisScene.getStylesheets().add(cssPath);
+        }
         textAnalysisStage.setScene(textAnalysisScene);
         
         // Fenster-Position speichern/laden
@@ -2180,9 +2208,9 @@ if (caret != null) {
         Label lblAbstand = new Label("Max. Abstand:");
         lblAbstand.setAlignment(Pos.CENTER_LEFT);
         lblAbstand.setStyle(String.format("-fx-text-fill: %s;", textColor));
-        TextField txtAbstand = new TextField("50");
+        TextField txtAbstand = new TextField("10");
         txtAbstand.setPrefWidth(40);
-        txtAbstand.setPromptText("50");
+        txtAbstand.setPromptText("10");
         txtAbstand.setStyle(String.format("-fx-background-color: %s; -fx-text-fill: %s; -fx-prompt-text-fill: %s;", backgroundColor, textColor, highlightColor));
         Label lblAbstandUnit = new Label("Wörter");
         lblAbstandUnit.setAlignment(Pos.CENTER_LEFT);
@@ -2250,7 +2278,7 @@ if (caret != null) {
         statusArea.setWrapText(true);
         statusArea.setPromptText("Analyse-Ergebnisse werden hier angezeigt...");
         statusArea.getStyleClass().add("status-area");
-        statusArea.setStyle(String.format("-fx-background-color: %s !important; -fx-text-fill: %s !important; -fx-prompt-text-fill: %s !important;", backgroundColor, textColor, highlightColor));
+        statusArea.setStyle(String.format("-fx-background-color: %s !important; -fx-text-fill: %s !important; -fx-prompt-text-fill: %s !important; -fx-font-family: 'Consolas', 'Monaco', 'Courier New', monospace !important;", backgroundColor, textColor, highlightColor));
         
         // Content-Bereich später setzen, wenn die TextArea vollständig initialisiert ist
         Platform.runLater(() -> {
@@ -2740,16 +2768,19 @@ if (caret != null) {
             
             if (!wiederholungen.isEmpty()) {
                 result.append("Relevante Wortwiederholungen (sortiert nach Abstand):\n");
-                result.append(String.format("%-20s %-15s %-15s %-10s\n", "Wort", "Position 1", "Position 2", "Abstand"));
-                result.append(String.format("%-20s %-15s %-15s %-10s\n", "----", "----------", "----------", "--------"));
+                result.append("=".repeat(75)).append("\n");
+                result.append(String.format("%-20s %8s %8s %8s\n", "Wort", "Pos 1", "Pos 2", "Abstand"));
+                result.append("-".repeat(75)).append("\n");
                 
                 for (Wortwiederholung w : wiederholungen) {
                     // Nur relevante Wörter anzeigen (nicht ignorierten)
                     if (!ignoreWords.contains(w.word)) {
-                        result.append(String.format("%-20s %-15d %-15d %-10d\n", 
-                            w.word, w.pos1, w.pos2, w.distance));
+                        String word = w.word.length() > 18 ? w.word.substring(0, 15) + "..." : w.word;
+                        result.append(String.format("%-20s %8d %8d %8d\n", word, w.pos1, w.pos2, w.distance));
                     }
                 }
+                
+                result.append("=".repeat(75)).append("\n");
                 
                 result.append("\nVerwende 'Nächster Treffer' und 'Vorheriger Treffer' um durch die Ergebnisse zu navigieren.\n");
                 result.append("Gefundene Wörter werden im Text markiert.\n");
@@ -2979,12 +3010,16 @@ if (caret != null) {
                     return countCompare != 0 ? countCompare : a.getKey().compareTo(b.getKey());
                 });
                 
-                result.append(String.format("%-30s %s\n", "Wortpaar", "Anzahl"));
-                result.append(String.format("%-30s %s\n", "--------", "------"));
+                result.append("=".repeat(50)).append("\n");
+                result.append(String.format("%-35s %s\n", "Wortpaar", "Anzahl"));
+                result.append("-".repeat(50)).append("\n");
                 
                 for (Map.Entry<String, Integer> entry : sortedPairs) {
-                    result.append(String.format("%-30s %dx\n", entry.getKey(), entry.getValue()));
+                    String pair = entry.getKey().length() > 32 ? entry.getKey().substring(0, 29) + "..." : entry.getKey();
+                    result.append(String.format("%-35s %dx\n", pair, entry.getValue()));
                 }
+                
+                result.append("=".repeat(50)).append("\n");
                 
                 result.append("\n==============================\n");
                 result.append("GESAMT: ").append(wiederholungen.size()).append(" Wiederholungen gefunden\n");
@@ -3045,7 +3080,7 @@ if (caret != null) {
     
     private Properties loadTextAnalysisProperties() throws IOException {
         Properties props = new Properties();
-        try (InputStream input = getClass().getResourceAsStream("/textanalysis.properties")) {
+        try (InputStream input = ResourceManager.getPropertiesResource("textanalysis.properties")) {
             if (input == null) {
                 throw new IOException("textanalysis.properties nicht gefunden");
             }
@@ -4179,26 +4214,28 @@ if (caret != null) {
         codeArea.setStyle(cssStyle);
         
         // CSS-Klassen für Theme-spezifische Cursor-Farben
-        codeArea.getStyleClass().removeAll("theme-dark", "theme-light");
-        if (themeIndex == 1 || themeIndex >= 3) { // Dunkle Themes: Schwarz (1), Blau (3), Grün (4), Lila (5)
+        codeArea.getStyleClass().removeAll("theme-dark", "theme-light", "weiss-theme", "pastell-theme");
+        if (themeIndex == 0) { // Weiß-Theme
+            codeArea.getStyleClass().add("weiss-theme");
+        } else if (themeIndex == 1 || themeIndex >= 3) { // Dunkle Themes: Schwarz (1), Blau (3), Grün (4), Lila (5)
             codeArea.getStyleClass().add("theme-dark");
-        } else if (themeIndex == 2) { // Pastell - Helles Theme
-            codeArea.getStyleClass().add("theme-light");
+        } else if (themeIndex == 2) { // Pastell-Theme
+            codeArea.getStyleClass().add("pastell-theme");
         }
-        // Weiß-Theme (Index 0) - Keine CSS-Klasse (verwendet .root)
         
         // Dark Theme für alle UI-Elemente anwenden
         Platform.runLater(() -> {
             // Root-Container (Hauptfenster) - WICHTIG: Das ist der Hauptcontainer!
             if (stage != null && stage.getScene() != null) {
                 Node root = stage.getScene().getRoot();
-                root.getStyleClass().removeAll("theme-dark", "theme-light");
-                if (themeIndex == 1 || themeIndex >= 3) { // Dunkle Themes: Schwarz (1), Blau (3), Grün (4), Lila (5)
+                root.getStyleClass().removeAll("theme-dark", "theme-light", "weiss-theme", "pastell-theme");
+                if (themeIndex == 0) { // Weiß-Theme
+                    root.getStyleClass().add("weiss-theme");
+                } else if (themeIndex == 1 || themeIndex >= 3) { // Dunkle Themes: Schwarz (1), Blau (3), Grün (4), Lila (5)
                     root.getStyleClass().add("theme-dark");
-                } else if (themeIndex == 2) { // Pastell - Helles Theme
-                    root.getStyleClass().add("theme-light");
+                } else if (themeIndex == 2) { // Pastell-Theme
+                    root.getStyleClass().add("pastell-theme");
                 }
-                // Weiß-Theme (Index 0) - Keine CSS-Klasse (verwendet .root)
             }
             
             // Alle direkten UI-Elemente explizit anwenden
@@ -4228,6 +4265,7 @@ if (caret != null) {
             applyThemeToNode(btnToggleMacro, themeIndex);
             applyThemeToNode(btnTextAnalysis, themeIndex);
             applyThemeToNode(btnRegexHelp, themeIndex);
+            applyThemeToNode(btnKIAssistant, themeIndex);
             applyThemeToNode(btnIncreaseFont, themeIndex);
             applyThemeToNode(btnDecreaseFont, themeIndex);
             applyThemeToNode(btnBold, themeIndex);
@@ -4255,7 +4293,7 @@ if (caret != null) {
                 if (themeIndex == 1 || themeIndex >= 3) { // Dunkle Themes: Schwarz (1), Blau (3), Grün (4), Lila (5)
                     textAnalysisStage.getScene().getRoot().getStyleClass().add("theme-dark");
                 } else if (themeIndex == 2) { // Pastell - Helles Theme
-                    textAnalysisStage.getScene().getRoot().getStyleClass().add("theme-light");
+                    textAnalysisStage.getScene().getRoot().getStyleClass().add("pastell-theme");
                 }
                 // Weiß-Theme (Index 0) - Keine CSS-Klasse (verwendet .root)
             }
@@ -4269,6 +4307,11 @@ if (caret != null) {
                 if (macroPanel != null) {
                     applyThemeToNode(macroPanel, themeIndex);
                 }
+            }
+            
+            // Ollama Window
+            if (ollamaWindow != null && ollamaWindow.isShowing()) {
+                ollamaWindow.setTheme(themeIndex);
             }
         });
         
@@ -4310,7 +4353,11 @@ if (caret != null) {
         // WICHTIG: CSS-Refresh erzwingen
         if (stage != null && stage.getScene() != null) {
             stage.getScene().getStylesheets().clear();
-            stage.getScene().getStylesheets().add(getClass().getResource("/css/editor.css").toExternalForm());
+            // CSS mit ResourceManager laden
+            String cssPath = ResourceManager.getCssResource("css/editor.css");
+            if (cssPath != null) {
+                stage.getScene().getStylesheets().add(cssPath);
+            }
             
             // Zusätzlich: Root-Container explizit das Theme geben
             Node root = stage.getScene().getRoot();
@@ -4326,14 +4373,18 @@ if (caret != null) {
                     root.getStyleClass().add("lila-theme");
                 }
             } else if (themeIndex == 2) { // Pastell - Helles Theme
-                root.getStyleClass().add("theme-light");
+                root.getStyleClass().add("pastell-theme");
             }
             // Weiß-Theme (Index 0) - Keine CSS-Klasse (verwendet .root)
             
             // Zusätzlicher CSS-Refresh nach einer kurzen Verzögerung
             Platform.runLater(() -> {
                 stage.getScene().getStylesheets().clear();
-                stage.getScene().getStylesheets().add(getClass().getResource("/css/editor.css").toExternalForm());
+                // CSS mit ResourceManager laden
+                String cssPathInner = ResourceManager.getCssResource("css/editor.css");
+                if (cssPathInner != null) {
+                    stage.getScene().getStylesheets().add(cssPathInner);
+                }
                 
                 // Force layout refresh
                 if (root instanceof Parent) {
@@ -4377,14 +4428,14 @@ if (caret != null) {
     private void applyThemeToNode(Node node, int themeIndex) {
         if (node != null) {
             // Alle Theme-Klassen entfernen
-            node.getStyleClass().removeAll("theme-dark", "theme-light", "blau-theme", "gruen-theme", "lila-theme");
+            node.getStyleClass().removeAll("theme-dark", "theme-light", "blau-theme", "gruen-theme", "lila-theme", "weiss-theme", "pastell-theme");
             
             if (themeIndex == 0) { // Weiß-Theme
-                // Keine CSS-Klasse (verwendet .root)
+                node.getStyleClass().add("weiss-theme");
             } else if (themeIndex == 1) { // Schwarz-Theme
                 node.getStyleClass().add("theme-dark");
             } else if (themeIndex == 2) { // Pastell-Theme
-                node.getStyleClass().addAll("theme-light", "lila-theme");
+                node.getStyleClass().add("pastell-theme");
             } else if (themeIndex == 3) { // Blau-Theme
                 node.getStyleClass().addAll("theme-dark", "blau-theme");
             } else if (themeIndex == 4) { // Grün-Theme
@@ -4686,5 +4737,63 @@ if (caret != null) {
         
         section.getChildren().addAll(titleLabel, examplesBox);
         return section;
+    }
+    
+    /**
+     * Toggle für das Ollama KI-Assistenten-Fenster
+     */
+    private void toggleOllamaWindow() {
+        if (ollamaWindow == null) {
+            ollamaWindow = new OllamaWindow();
+            ollamaWindow.setEditorReference(this);
+        }
+        
+        if (ollamaWindow.isShowing()) {
+            ollamaWindow.hide();
+            ollamaWindowVisible = false;
+            updateStatus("KI-Assistent geschlossen");
+        } else {
+            ollamaWindow.show();
+            ollamaWindowVisible = true;
+            updateStatus("KI-Assistent geöffnet");
+        }
+    }
+    
+    /**
+     * Methode zum Einfügen von Text aus dem KI-Assistenten
+     */
+    public void insertTextFromAI(String text) {
+        if (codeArea != null && text != null && !text.trim().isEmpty()) {
+            int caretPosition = codeArea.getCaretPosition();
+            codeArea.insertText(caretPosition, text);
+            updateStatus("Text vom KI-Assistenten eingefügt");
+        }
+    }
+    
+    /**
+     * Gibt den aktuellen Theme-Index zurück
+     */
+    public int getCurrentThemeIndex() {
+        return currentThemeIndex;
+    }
+    
+    /**
+     * Gibt den aktuell ausgewählten Text zurück
+     */
+    public String getSelectedText() {
+        if (codeArea != null) {
+            return codeArea.getSelectedText();
+        }
+        return null;
+    }
+    
+    /**
+     * Gibt den gesamten Text aus dem CodeArea zurück
+     */
+    public String getCodeAreaText() {
+        if (codeArea != null) {
+            return codeArea.getText();
+        }
+        return null;
     }
 } 

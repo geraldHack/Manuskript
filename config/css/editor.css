@@ -2,12 +2,150 @@
    MANUSKRIPT - SAUBERES CSS
    ======================================== */
 
+
+
 /* ========================================
    BASIS-STYLES (Weiß Theme - Standard)
    ======================================== */
-.root {
+/* Entfernt - wird von Theme-spezifischen Regeln überschrieben */
+
+/* Entfernt - allgemeine Regel */
+
+/* Entfernt - allgemeine Regeln */
+
+/* Entfernt - allgemeine Regeln */
+
+/* Entfernt - falsche allgemeine Regeln */
+
+/* Weiß Theme - spezifische Regeln */
+.weiss-theme {
     -fx-background-color: #ffffff;
     -fx-text-fill: #000000;
+}
+
+.weiss-theme .button {
+    -fx-background-color: #f0f0f0;
+    -fx-text-fill: #000000;
+    -fx-border-color: #cccccc;
+}
+
+.weiss-theme .button:hover {
+    -fx-background-color: #e0e0e0;
+    -fx-border-color: #999999;
+}
+
+.weiss-theme .toggle-button {
+    -fx-background-color: #f0f0f0;
+    -fx-text-fill: #000000;
+    -fx-border-color: #cccccc;
+}
+
+.weiss-theme .toggle-button:hover {
+    -fx-background-color: #e0e0e0;
+    -fx-border-color: #999999;
+}
+
+.weiss-theme .toggle-button:selected {
+    -fx-background-color: #d0d0d0;
+    -fx-border-color: #666666;
+}
+
+.weiss-theme .text-field {
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #000000;
+    -fx-border-color: #cccccc;
+}
+
+.weiss-theme .combo-box {
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #000000;
+    -fx-border-color: #cccccc;
+}
+
+.weiss-theme .combo-box .list-cell {
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #000000;
+}
+
+.weiss-theme .combo-box-popup .list-view {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #cccccc;
+}
+
+.weiss-theme .check-box {
+    -fx-text-fill: #000000;
+}
+
+.weiss-theme .check-box .box {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #cccccc;
+    -fx-min-width: 16px;
+    -fx-min-height: 16px;
+    -fx-max-width: 16px;
+    -fx-max-height: 16px;
+}
+
+.weiss-theme .check-box:selected .box {
+    -fx-background-color: #ffffff !important;
+    -fx-border-color: #000000 !important;
+}
+
+.weiss-theme .check-box .mark {
+    -fx-background-color: transparent;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z";
+    -fx-scale-x: 0.6;
+    -fx-scale-y: 0.6;
+    -fx-translate-x: 1px;
+    -fx-translate-y: 1px;
+}
+
+.weiss-theme .check-box:selected .mark {
+    -fx-background-color: #000000 !important;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z";
+    -fx-scale-x: 0.8;
+    -fx-scale-y: 0.8;
+    -fx-translate-x: 0px;
+    -fx-translate-y: 0px;
+}
+
+.weiss-theme .label {
+    -fx-text-fill: #000000;
+}
+
+.weiss-theme .table-view {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #cccccc;
+}
+
+.weiss-theme .table-view .column-header {
+    -fx-background-color: #f8f9fa;
+    -fx-border-color: #dee2e6;
+}
+
+
+
+/* Pastell Theme - spezifische Checkbox-Regel (Index 2) */
+.pastell-theme .check-box:selected .box {
+    -fx-background-color: #ba68c8 !important;
+    -fx-border-color: #ba68c8 !important;
+}
+
+.pastell-theme .check-box .mark {
+    -fx-background-color: transparent;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z";
+    -fx-scale-x: 0.6;
+    -fx-scale-y: 0.6;
+    -fx-translate-x: 1px;
+    -fx-translate-y: 1px;
+}
+
+.pastell-theme .check-box:selected .mark {
+    -fx-background-color: #ba68c8;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z";
+    -fx-scale-x: 0.6;
+    -fx-scale-y: 0.6;
+    -fx-translate-x: 1px;
+    -fx-translate-y: 1px;
 }
 
 /* ========================================
@@ -147,16 +285,24 @@
     -fx-border-color: #cccccc;
     -fx-border-radius: 2px;
     -fx-background-radius: 2px;
+    -fx-min-width: 16px;
+    -fx-min-height: 16px;
+    -fx-max-width: 16px;
+    -fx-max-height: 16px;
 }
 
-.root .check-box:selected .box {
-    -fx-background-color: #007bff;
-    -fx-border-color: #0056b3;
-}
+/* Entfernt - wird von Theme-spezifischen Regeln überschrieben */
 
 .root .check-box .mark {
     -fx-background-color: transparent;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z";
+    -fx-scale-x: 0.6;
+    -fx-scale-y: 0.6;
+    -fx-translate-x: 1px;
+    -fx-translate-y: 1px;
 }
+
+/* Entfernt - wird von Theme-spezifischen Regeln überschrieben */
 
 .root .label {
     -fx-text-fill: #000000;
@@ -207,73 +353,7 @@
     -fx-background-color: #999999;
 }
 
-/* ========================================
-   LIGHT THEME (Pastell)
-   ======================================== */
-.theme-light {
-    -fx-background-color: #f3e5f5;
-    -fx-text-fill: #000000;
-}
-
-.theme-light .button {
-    -fx-background-color: #e1bee7;
-    -fx-text-fill: #000000;
-    -fx-border-color: #ba68c8;
-}
-
-.theme-light .button:hover {
-    -fx-background-color: #ce93d8;
-    -fx-border-color: #ab47bc;
-}
-
-.theme-light .text-field {
-    -fx-background-color: #ffffff;
-    -fx-text-fill: #000000;
-    -fx-border-color: #ba68c8;
-}
-
-.theme-light .combo-box {
-    -fx-background-color: #ffffff;
-    -fx-text-fill: #000000;
-    -fx-border-color: #ba68c8;
-}
-
-.theme-light .combo-box .list-cell {
-    -fx-background-color: #ffffff;
-    -fx-text-fill: #000000;
-}
-
-.theme-light .combo-box-popup .list-view {
-    -fx-background-color: #ffffff;
-    -fx-border-color: #ba68c8;
-}
-
-.theme-light .check-box {
-    -fx-text-fill: #000000;
-}
-
-.theme-light .check-box .box {
-    -fx-background-color: #ffffff;
-    -fx-border-color: #ba68c8;
-}
-
-.theme-light .check-box .mark {
-    -fx-background-color: transparent;
-}
-
-.theme-light .label {
-    -fx-text-fill: #000000;
-}
-
-.theme-light .table-view {
-    -fx-background-color: #ffffff;
-    -fx-border-color: #ba68c8;
-}
-
-.theme-light .table-view .column-header {
-    -fx-background-color: #f3e5f5;
-    -fx-border-color: #ba68c8;
-}
+/* Entfernt - theme-light Block */
 
 /* ========================================
    DARK THEME (Schwarz)
@@ -298,6 +378,25 @@
 }
 
 .theme-dark .button:pressed {
+    -fx-background-color: #505050;
+    -fx-border-color: #606060;
+}
+
+.theme-dark .toggle-button {
+    -fx-background-color: #2d2d2d;
+    -fx-text-fill: #ffffff;
+    -fx-border-color: #404040;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+    -fx-padding: 8px 16px;
+}
+
+.theme-dark .toggle-button:hover {
+    -fx-background-color: #404040;
+    -fx-border-color: #505050;
+}
+
+.theme-dark .toggle-button:selected {
     -fx-background-color: #505050;
     -fx-border-color: #606060;
 }
@@ -360,15 +459,30 @@
     -fx-border-color: #404040;
     -fx-border-radius: 2px;
     -fx-background-radius: 2px;
+    -fx-min-width: 16px;
+    -fx-min-height: 16px;
+    -fx-max-width: 16px;
+    -fx-max-height: 16px;
 }
 
-.theme-dark .check-box:selected .box {
-    -fx-background-color: #007bff;
-    -fx-border-color: #0056b3;
-}
+/* Entfernt - wird von Theme-spezifischen Regeln überschrieben */
 
 .theme-dark .check-box .mark {
     -fx-background-color: transparent;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z";
+    -fx-scale-x: 0.6;
+    -fx-scale-y: 0.6;
+    -fx-translate-x: 1px;
+    -fx-translate-y: 1px;
+}
+
+.theme-dark .check-box:selected .mark {
+    -fx-background-color: white;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z";
+    -fx-scale-x: 0.6;
+    -fx-scale-y: 0.6;
+    -fx-translate-x: 1px;
+    -fx-translate-y: 1px;
 }
 
 .theme-dark .label {
@@ -453,6 +567,22 @@
     -fx-border-color: #1e40af;
 }
 
+.theme-dark.blau-theme .toggle-button {
+    -fx-background-color: #3b82f6;
+    -fx-text-fill: #ffffff;
+    -fx-border-color: #1d4ed8;
+}
+
+.theme-dark.blau-theme .toggle-button:hover {
+    -fx-background-color: #2563eb;
+    -fx-border-color: #1e40af;
+}
+
+.theme-dark.blau-theme .toggle-button:selected {
+    -fx-background-color: #1d4ed8;
+    -fx-border-color: #1e3a8a;
+}
+
 .theme-dark.blau-theme .text-field {
     -fx-background-color: #1e40af;
     -fx-text-fill: #ffffff;
@@ -482,6 +612,33 @@
 .theme-dark.blau-theme .check-box .box {
     -fx-background-color: #1e40af;
     -fx-border-color: #3b82f6;
+    -fx-min-width: 16px;
+    -fx-min-height: 16px;
+    -fx-max-width: 16px;
+    -fx-max-height: 16px;
+}
+
+.theme-dark.blau-theme .check-box:selected .box {
+    -fx-background-color: #007acc !important;
+    -fx-border-color: #007acc !important;
+}
+
+.theme-dark.blau-theme .check-box .mark {
+    -fx-background-color: transparent;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z";
+    -fx-scale-x: 0.6;
+    -fx-scale-y: 0.6;
+    -fx-translate-x: 1px;
+    -fx-translate-y: 1px;
+}
+
+.theme-dark.blau-theme .check-box:selected .mark {
+    -fx-background-color: white;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z";
+    -fx-scale-x: 0.6;
+    -fx-scale-y: 0.6;
+    -fx-translate-x: 1px;
+    -fx-translate-y: 1px;
 }
 
 .theme-dark.blau-theme .label {
@@ -540,6 +697,22 @@
     -fx-border-color: #065f46;
 }
 
+.theme-dark.gruen-theme .toggle-button {
+    -fx-background-color: #10b981;
+    -fx-text-fill: #ffffff;
+    -fx-border-color: #059669;
+}
+
+.theme-dark.gruen-theme .toggle-button:hover {
+    -fx-background-color: #059669;
+    -fx-border-color: #047857;
+}
+
+.theme-dark.gruen-theme .toggle-button:selected {
+    -fx-background-color: #047857;
+    -fx-border-color: #065f46;
+}
+
 .theme-dark.gruen-theme .text-field {
     -fx-background-color: #065f46;
     -fx-text-fill: #ffffff;
@@ -569,6 +742,33 @@
 .theme-dark.gruen-theme .check-box .box {
     -fx-background-color: #065f46;
     -fx-border-color: #059669;
+    -fx-min-width: 16px;
+    -fx-min-height: 16px;
+    -fx-max-width: 16px;
+    -fx-max-height: 16px;
+}
+
+.theme-dark.gruen-theme .check-box:selected .box {
+    -fx-background-color: #059669 !important;
+    -fx-border-color: #059669 !important;
+}
+
+.theme-dark.gruen-theme .check-box .mark {
+    -fx-background-color: transparent;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z";
+    -fx-scale-x: 0.6;
+    -fx-scale-y: 0.6;
+    -fx-translate-x: 1px;
+    -fx-translate-y: 1px;
+}
+
+.theme-dark.gruen-theme .check-box:selected .mark {
+    -fx-background-color: white;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z";
+    -fx-scale-x: 0.6;
+    -fx-scale-y: 0.6;
+    -fx-translate-x: 1px;
+    -fx-translate-y: 1px;
 }
 
 .theme-dark.gruen-theme .label {
@@ -627,6 +827,22 @@
     -fx-border-color: #5b21b6;
 }
 
+.theme-dark.lila-theme .toggle-button {
+    -fx-background-color: #8b5cf6;
+    -fx-text-fill: #ffffff;
+    -fx-border-color: #7c3aed;
+}
+
+.theme-dark.lila-theme .toggle-button:hover {
+    -fx-background-color: #7c3aed;
+    -fx-border-color: #6d28d9;
+}
+
+.theme-dark.lila-theme .toggle-button:selected {
+    -fx-background-color: #6d28d9;
+    -fx-border-color: #5b21b6;
+}
+
 .theme-dark.lila-theme .text-field {
     -fx-background-color: #5b21b6;
     -fx-text-fill: #ffffff;
@@ -656,6 +872,33 @@
 .theme-dark.lila-theme .check-box .box {
     -fx-background-color: #5b21b6;
     -fx-border-color: #7c3aed;
+    -fx-min-width: 16px;
+    -fx-min-height: 16px;
+    -fx-max-width: 16px;
+    -fx-max-height: 16px;
+}
+
+.theme-dark.lila-theme .check-box:selected .box {
+    -fx-background-color: #7c3aed !important;
+    -fx-border-color: #7c3aed !important;
+}
+
+.theme-dark.lila-theme .check-box .mark {
+    -fx-background-color: transparent;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z";
+    -fx-scale-x: 0.6;
+    -fx-scale-y: 0.6;
+    -fx-translate-x: 1px;
+    -fx-translate-y: 1px;
+}
+
+.theme-dark.lila-theme .check-box:selected .mark {
+    -fx-background-color: white;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z";
+    -fx-scale-x: 0.6;
+    -fx-scale-y: 0.6;
+    -fx-translate-x: 1px;
+    -fx-translate-y: 1px;
 }
 
 .theme-dark.lila-theme .label {
@@ -735,7 +978,7 @@
 
 
 .toolbar .button {
-    -fx-min-width: 80px;
+    -fx-min-width: 60px;
     -fx-min-height: 30px;
     -fx-padding: 6px 12px;
     -fx-font-size: 12px;
@@ -798,10 +1041,7 @@
 }
 
 /* Macro Panel im Pastell-Theme (helles Mauve) - nur wenn beide Klassen vorhanden sind */
-.theme-light.lila-theme .macro-panel {
-    -fx-background-color: #f3e5f5;
-    -fx-border-color: #e1bee7;
-}
+/* Entfernt - theme-light.lila-theme */
 
 /* ========================================
    RICHTEXTFX CODE AREA
@@ -844,5 +1084,199 @@
 .code-area .highlight-orange {
     -rtfx-background-color: #ff9800 !important;
     -fx-text-fill: #000000 !important;
+}
+
+/* ========================================
+   OLLAMA-FENSTER SPEZIELLE STYLES
+   ======================================== */
+
+/* Spezielle TextArea-Styles für Ollama-Fenster */
+.ollama-text-area {
+    -fx-min-width: 400px !important;
+    -fx-pref-width: 600px !important;
+    -fx-max-width: 800px !important;
+    -fx-resize: both !important;
+}
+
+/* Container-Styles für Ollama-Fenster */
+.scroll-pane {
+    -fx-min-width: 400px !important;
+    -fx-pref-width: 600px !important;
+    -fx-max-width: 800px !important;
+    -fx-resize: both !important;
+}
+
+/* VBox und HBox im Ollama-Fenster */
+.vbox, .hbox {
+    -fx-min-width: 400px !important;
+    -fx-pref-width: 600px !important;
+    -fx-max-width: 800px !important;
+}
+
+/* Spezielle Container-Klassen für Ollama */
+.ollama-container {
+    -fx-min-width: 400px !important;
+    -fx-pref-width: 600px !important;
+    -fx-max-width: 800px !important;
+}
+
+.ollama-scroll-pane {
+    -fx-min-width: 400px !important;
+    -fx-pref-width: 600px !important;
+    -fx-max-width: 800px !important;
+    -fx-resize: both !important;
+}
+
+/* Ollama-TextArea Theme-spezifische Styles - Höhere Spezifität */
+/* Weiß Theme - spezifische TextArea-Regel (Index 0) */
+.weiss-theme .ollama-text-area,
+.weiss-theme .ollama-text-area .content {
+    -fx-control-inner-background: #ffffff !important;
+    -fx-background-color: #ffffff !important;
+    -fx-text-fill: #000000 !important;
+    -fx-prompt-text-fill: #666666 !important;
+}
+
+/* Schwarz Theme - spezifische TextArea-Regel (Index 1) */
+.theme-dark .ollama-text-area,
+.theme-dark .ollama-text-area .content {
+    -fx-control-inner-background: #1a1a1a !important;
+    -fx-background-color: #1a1a1a !important;
+    -fx-text-fill: white !important;
+    -fx-prompt-text-fill: #cccccc !important;
+}
+
+/* Entfernt - theme-light.lila-theme */
+
+/* Pastell Theme - spezifische Regeln */
+.pastell-theme {
+    -fx-background-color: #f3e5f5;
+    -fx-text-fill: #000000;
+}
+
+.pastell-theme .button {
+    -fx-background-color: #e1bee7;
+    -fx-text-fill: #000000;
+    -fx-border-color: #ba68c8;
+}
+
+.pastell-theme .button:hover {
+    -fx-background-color: #ce93d8;
+    -fx-border-color: #ab47bc;
+}
+
+.pastell-theme .toggle-button {
+    -fx-background-color: #e1bee7;
+    -fx-text-fill: #000000;
+    -fx-border-color: #ba68c8;
+}
+
+.pastell-theme .toggle-button:hover {
+    -fx-background-color: #ce93d8;
+    -fx-border-color: #ab47bc;
+}
+
+.pastell-theme .toggle-button:selected {
+    -fx-background-color: #ba68c8;
+    -fx-border-color: #9c27b0;
+}
+
+.pastell-theme .text-field {
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #000000;
+    -fx-border-color: #ba68c8;
+}
+
+.pastell-theme .combo-box {
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #000000;
+    -fx-border-color: #ba68c8;
+}
+
+.pastell-theme .combo-box .list-cell {
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #000000;
+}
+
+.pastell-theme .combo-box-popup .list-view {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #ba68c8;
+}
+
+.pastell-theme .check-box {
+    -fx-text-fill: #000000;
+}
+
+.pastell-theme .check-box .box {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #ba68c8;
+    -fx-min-width: 16px;
+    -fx-min-height: 16px;
+    -fx-max-width: 16px;
+    -fx-max-height: 16px;
+}
+
+.pastell-theme .check-box .mark {
+    -fx-background-color: transparent;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z";
+    -fx-scale-x: 0.6;
+    -fx-scale-y: 0.6;
+    -fx-translate-x: 1px;
+    -fx-translate-y: 1px;
+}
+
+.pastell-theme .check-box:selected .mark {
+    -fx-background-color: #ba68c8;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z";
+    -fx-scale-x: 0.6;
+    -fx-scale-y: 0.6;
+    -fx-translate-x: 1px;
+    -fx-translate-y: 1px;
+}
+
+.pastell-theme .label {
+    -fx-text-fill: #000000;
+}
+
+.pastell-theme .table-view {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #ba68c8;
+}
+
+.pastell-theme .table-view .column-header {
+    -fx-background-color: #f3e5f5;
+    -fx-border-color: #ba68c8;
+}
+
+.pastell-theme .ollama-text-area,
+.pastell-theme .ollama-text-area .content {
+    -fx-control-inner-background: #f3e5f5 !important;
+    -fx-background-color: #f3e5f5 !important;
+    -fx-text-fill: #000000 !important;
+    -fx-prompt-text-fill: #e1bee7 !important;
+}
+
+.theme-dark.blau-theme .ollama-text-area,
+.theme-dark.blau-theme .ollama-text-area .content {
+    -fx-control-inner-background: #1e3a8a !important;
+    -fx-background-color: #1e3a8a !important;
+    -fx-text-fill: white !important;
+    -fx-prompt-text-fill: #93c5fd !important;
+}
+
+.theme-dark.gruen-theme .ollama-text-area,
+.theme-dark.gruen-theme .ollama-text-area .content {
+    -fx-control-inner-background: #064e3b !important;
+    -fx-background-color: #064e3b !important;
+    -fx-text-fill: white !important;
+    -fx-prompt-text-fill: #6ee7b7 !important;
+}
+
+.theme-dark.lila-theme .ollama-text-area,
+.theme-dark.lila-theme .ollama-text-area .content {
+    -fx-control-inner-background: #581c87 !important;
+    -fx-background-color: #581c87 !important;
+    -fx-text-fill: white !important;
+    -fx-prompt-text-fill: #c084fc !important;
 }
 

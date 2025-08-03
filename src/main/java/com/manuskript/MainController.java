@@ -649,7 +649,11 @@ public class MainController implements Initializable {
             Stage editorStage = new Stage();
             editorStage.setTitle("Manuskript Editor");
             editorStage.setScene(new Scene(root));
-            editorStage.getScene().getStylesheets().add(getClass().getResource("/css/editor.css").toExternalForm());
+            // CSS mit ResourceManager laden
+        String cssPath = ResourceManager.getCssResource("css/editor.css");
+        if (cssPath != null) {
+            editorStage.getScene().getStylesheets().add(cssPath);
+        }
             
             // Fenster-Größe und Position
             editorStage.setMinWidth(800);
@@ -816,9 +820,9 @@ public class MainController implements Initializable {
         // Root-Container Theme anwenden (direkt, ohne Platform.runLater für bessere Performance)
         if (mainContainer.getScene() != null && mainContainer.getScene().getWindow() != null) {
             Node root = mainContainer.getScene().getRoot();
-            root.getStyleClass().removeAll("theme-dark", "theme-light", "blau-theme", "gruen-theme", "lila-theme");
-            if (themeIndex == 0) { // Weiß - Keine CSS-Klasse (Standard)
-                // Keine CSS-Klasse hinzufügen - Standard-Styling
+            root.getStyleClass().removeAll("theme-dark", "theme-light", "blau-theme", "gruen-theme", "lila-theme", "weiss-theme", "pastell-theme");
+            if (themeIndex == 0) { // Weiß - Eigene CSS-Klasse
+                root.getStyleClass().add("weiss-theme");
             } else if (themeIndex == 1 || themeIndex >= 3) { // Dunkle Themes: Schwarz (1), Blau (3), Grün (4), Lila (5)
                 root.getStyleClass().add("theme-dark");
                 // Spezifische Theme-Klassen für dunkle Themes
@@ -829,8 +833,8 @@ public class MainController implements Initializable {
                 } else if (themeIndex == 5) { // Lila
                     root.getStyleClass().add("lila-theme");
                 }
-            } else if (themeIndex == 2) { // Pastell - Helles Theme
-                root.getStyleClass().add("theme-light");
+            } else if (themeIndex == 2) { // Pastell - Eigene CSS-Klasse
+                root.getStyleClass().add("pastell-theme");
             }
         }
         
@@ -856,7 +860,11 @@ public class MainController implements Initializable {
         // Force CSS refresh
         if (mainContainer.getScene() != null) {
             mainContainer.getScene().getStylesheets().clear();
-            mainContainer.getScene().getStylesheets().add(getClass().getResource("/css/editor.css").toExternalForm());
+            // CSS mit ResourceManager laden
+        String cssPath = ResourceManager.getCssResource("css/editor.css");
+        if (cssPath != null) {
+            mainContainer.getScene().getStylesheets().add(cssPath);
+        }
         }
     }
     
@@ -865,13 +873,13 @@ public class MainController implements Initializable {
      */
     private void applyThemeToNode(javafx.scene.Node node, int themeIndex) {
         if (node != null) {
-            node.getStyleClass().removeAll("theme-dark", "theme-light", "blau-theme", "gruen-theme", "lila-theme");
-            if (themeIndex == 0) { // Weiß - Keine CSS-Klasse (Standard)
-                // Keine CSS-Klasse hinzufügen - Standard-Styling
+            node.getStyleClass().removeAll("theme-dark", "theme-light", "blau-theme", "gruen-theme", "lila-theme", "weiss-theme", "pastell-theme");
+            if (themeIndex == 0) { // Weiß - Eigene CSS-Klasse
+                node.getStyleClass().add("weiss-theme");
             } else if (themeIndex == 1) { // Schwarz
                 node.getStyleClass().add("theme-dark");
-            } else if (themeIndex == 2) { // Pastell - Helles Theme
-                node.getStyleClass().add("theme-light");
+            } else if (themeIndex == 2) { // Pastell - Eigene CSS-Klasse
+                node.getStyleClass().add("pastell-theme");
             } else if (themeIndex == 3) { // Blau
                 node.getStyleClass().add("theme-dark");
                 node.getStyleClass().add("blau-theme");
