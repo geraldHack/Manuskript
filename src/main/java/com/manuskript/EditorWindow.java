@@ -106,6 +106,7 @@ public class EditorWindow implements Initializable {
     @FXML private Button btnFindPrevious;
     @FXML private Label lblStatus;
     @FXML private Label lblMatchCount;
+    @FXML private Label lblWindowTitle;
     
     // Toolbar-Buttons
     @FXML private Button btnSave;
@@ -1784,6 +1785,23 @@ if (caret != null) {
     
     public void setDocxProcessor(DocxProcessor docxProcessor) {
         this.docxProcessor = docxProcessor;
+    }
+    
+    /**
+     * Setzt den Titel des Editor-Fensters
+     */
+    public void setWindowTitle(String title) {
+        if (stage != null) {
+            stage.setTitle(title);
+        }
+        // NEU: Im Titelbalken-Label anzeigen
+        if (lblWindowTitle != null) {
+            lblWindowTitle.setText(title);
+        }
+        // Auch im Status-Label anzeigen
+        if (lblStatus != null) {
+            lblStatus.setText("Bereit");
+        }
     }
     
     /**
@@ -4157,17 +4175,67 @@ if (caret != null) {
         double x = preferences.getDouble("window_x", -1.0);
         double y = preferences.getDouble("window_y", -1.0);
         
+        // NEU: Validierung der Fenster-Größe
+        // Minimale und maximale Größen prüfen
+        double minWidth = 800.0;
+        double minHeight = 600.0;
+        double maxWidth = 3000.0;
+        double maxHeight = 2000.0;
+        
+        // Größe validieren und korrigieren
+        if (width < minWidth || width > maxWidth || Double.isNaN(width) || Double.isInfinite(width)) {
+            logger.warn("Ungültige Fenster-Breite: {} - verwende Standard: {}", width, minWidth);
+            width = minWidth;
+        }
+        if (height < minHeight || height > maxHeight || Double.isNaN(height) || Double.isInfinite(height)) {
+            logger.warn("Ungültige Fenster-Höhe: {} - verwende Standard: {}", height, minHeight);
+            height = minHeight;
+        }
+        
         // Fenster-Größe setzen
         stage.setWidth(width);
         stage.setHeight(height);
         
-        // Fenster-Position setzen (nur wenn gültige Werte vorhanden)
-        if (x >= 0 && y >= 0) {
-            stage.setX(x);
-            stage.setY(y);
+        // NEU: Validierung der Fenster-Position
+        // Prüfe, ob Position gültig ist und auf dem Bildschirm liegt
+        if (x >= 0 && y >= 0 && !Double.isNaN(x) && !Double.isNaN(y) && 
+            !Double.isInfinite(x) && !Double.isInfinite(y)) {
+            
+            // Grobe Prüfung: Position sollte nicht zu weit außerhalb des Bildschirms sein
+            if (x < -1000 || y < -1000 || x > 5000 || y > 5000) {
+                logger.warn("Fenster-Position außerhalb des Bildschirms: x={}, y={} - verwende zentriert", x, y);
+                stage.centerOnScreen();
+            } else {
+                stage.setX(x);
+                stage.setY(y);
+            }
+        } else {
+            logger.info("Keine gültige Fenster-Position gefunden - zentriere Fenster");
+            stage.centerOnScreen();
         }
         
-        // Divider-Position wird nicht mehr benötigt, da kein SplitPane mehr existiert
+        // NEU: Divider-Position nach Fenster-Größe setzen
+        Platform.runLater(() -> {
+            if (mainSplitPane != null) {
+                // Prüfe, ob Chapter-Editor sichtbar ist
+                if (chapterEditorVisible) {
+                    double savedPosition = preferences.getDouble("chapter_editor_divider_position", 0.8);
+                    
+                    // NEU: Validierung der Divider-Position
+                    if (savedPosition < 0.0 || savedPosition > 1.0 || 
+                        Double.isNaN(savedPosition) || Double.isInfinite(savedPosition)) {
+                        logger.warn("Ungültige Divider-Position: {} - verwende Standard: 0.8", savedPosition);
+                        savedPosition = 0.8;
+                    }
+                    
+                    mainSplitPane.setDividerPositions(savedPosition);
+                } else {
+                    mainSplitPane.setDividerPositions(0.0);
+                }
+            }
+        });
+        
+        logger.info("Fenster-Eigenschaften geladen: Größe={}x{}, Position=({}, {})", width, height, x, y);
     }
     
     private void loadToolbarSettings() {

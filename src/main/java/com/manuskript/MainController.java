@@ -16,11 +16,14 @@ import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.VBox;
+import javafx.scene.layout.HBox;
+import javafx.geometry.Insets;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 import javafx.application.Platform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import java.util.Optional;
 
 import java.io.File;
 import java.net.URL;
@@ -37,6 +40,7 @@ import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.nio.charset.StandardCharsets;
 
 public class MainController implements Initializable {
     
@@ -558,30 +562,165 @@ public class MainController implements Initializable {
 
     
     private void processSelectedFiles() {
-        ObservableList<DocxFile> selectedFiles = tableViewSelected.getSelectionModel().getSelectedItems();
-        if (selectedFiles.isEmpty()) {
-            showWarning("Keine Dateien ausgewählt", "Bitte wählen Sie mindestens eine Datei aus der rechten Tabelle aus.");
-            return;
-        }
-        
-        processFiles(selectedFiles);
-    }
-    
-    private void processAllFiles() {
+        // NEU: Gesamtdokument erstellen - ALLE Dateien aus der rechten Tabelle
         if (selectedDocxFiles.isEmpty()) {
             showWarning("Keine Dateien vorhanden", "Bitte fügen Sie zuerst Dateien zur rechten Tabelle hinzu.");
             return;
         }
         
-        processFiles(selectedDocxFiles);
+        // Prüfe auf existierende .gesamt Dateien
+        String directoryPath = selectedDocxFiles.get(0).getFile().getParent();
+        File directory = new File(directoryPath);
+        String directoryName = directory.getName();
+        File[] existingGesamtFiles = directory.listFiles((dir, name) ->
+            name.startsWith(directoryName + ".gesamt.") &&
+            (name.endsWith(".md") || name.endsWith(".txt") || name.endsWith(".html"))
+        );
+        
+        if (existingGesamtFiles != null && existingGesamtFiles.length > 0) {
+            showGesamtFileDialog(existingGesamtFiles, selectedDocxFiles);
+        } else {
+            // Direkt Gesamtdokument erstellen für ALLE Dateien aus der rechten Tabelle
+            processCompleteDocument(selectedDocxFiles);
+        }
     }
     
-    private void processFiles(ObservableList<DocxFile> files) {
+    private void processAllFiles() {
+        // NEU: Kapitel bearbeiten - alle Dateien aus der rechten Tabelle
+        if (selectedDocxFiles.isEmpty()) {
+            showWarning("Keine Dateien vorhanden", "Bitte fügen Sie zuerst Dateien zur rechten Tabelle hinzu.");
+            return;
+        }
+        
+        // NEU: Prüfe, ob eine Datei in der Tabelle ausgewählt ist
+        ObservableList<DocxFile> selectedInTable = tableViewSelected.getSelectionModel().getSelectedItems();
+        if (selectedInTable.isEmpty()) {
+            // Keine Auswahl in der Tabelle - nimm die erste Datei
+            processChaptersIndividually(selectedDocxFiles);
+        } else {
+            // Verwende die in der Tabelle ausgewählte Datei
+            processChaptersIndividually(selectedInTable);
+        }
+    }
+    
+    private void processChaptersIndividually(ObservableList<DocxFile> files) {
+        // NEU: Kapitel-basierte Bearbeitung - direkt aus der Tabelle
+        try {
+            // Speichere den Pfad zum DOCX-Verzeichnis
+            if (!files.isEmpty()) {
+                String docxDirectory = files.get(0).getFile().getParent();
+                ResourceManager.saveParameter("ui.last_docx_directory", docxDirectory);
+            }
+            
+            // Öffne direkt das erste ausgewählte Kapitel
+            if (!files.isEmpty()) {
+                openChapterEditor(files.get(0));
+            }
+            
+        } catch (Exception e) {
+            logger.error("Fehler bei der Kapitel-Verarbeitung", e);
+            showError("Verarbeitungsfehler", e.getMessage());
+            updateStatus("Fehler bei der Kapitel-Verarbeitung");
+        }
+    }
+    
+    private void openChapterEditor(DocxFile chapterFile) {
+        try {
+            // Verarbeite nur dieses eine Kapitel
+            DocxProcessor.OutputFormat format = cmbOutputFormat.getValue();
+            if (format == null) {
+                format = DocxProcessor.OutputFormat.MARKDOWN; // Standard
+            }
+            
+            String content = docxProcessor.processDocxFileContent(chapterFile.getFile(), 1, format);
+            
+            // Öffne Chapter-Editor für dieses Kapitel
+            openChapterEditorWindow(content, chapterFile, format);
+            
+            updateStatus("Kapitel-Editor geöffnet: " + chapterFile.getFileName());
+            
+        } catch (Exception e) {
+            logger.error("Fehler beim Öffnen des Kapitel-Editors", e);
+            showError("Editor-Fehler", e.getMessage());
+            updateStatus("Fehler beim Öffnen des Kapitel-Editors");
+        }
+    }
+    
+    private void openChapterEditorWindow(String text, DocxFile chapterFile, DocxProcessor.OutputFormat format) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/editor.fxml"));
+            Parent root = loader.load();
+            
+            EditorWindow editorController = loader.getController();
+            editorController.setText(text);
+            editorController.setOutputFormat(format);
+            
+            // Erstelle Datei-Referenz für das Kapitel
+            String chapterName = chapterFile.getFileName();
+            if (chapterName.toLowerCase().endsWith(".docx")) {
+                chapterName = chapterName.substring(0, chapterName.length() - 5);
+            }
+            
+            // Füge Dateiendung basierend auf Format hinzu
+            String fileExtension = "";
+            switch (format) {
+                case MARKDOWN:
+                    fileExtension = ".md";
+                    break;
+                case PLAIN_TEXT:
+                    fileExtension = ".txt";
+                    break;
+                case HTML:
+                default:
+                    fileExtension = ".html";
+                    break;
+            }
+            
+            String currentDirectory = txtDirectoryPath.getText();
+            File chapterFileRef = new File(currentDirectory, chapterName + fileExtension);
+            editorController.setCurrentFile(chapterFileRef);
+            
+            // Übergebe den DocxProcessor für DOCX-Export
+            editorController.setDocxProcessor(docxProcessor);
+            
+            // WICHTIG: Setze das aktuelle Theme vom Hauptfenster auf das Editorfenster
+            editorController.setThemeFromMainWindow(currentThemeIndex);
+            
+            Stage editorStage = new Stage();
+            editorStage.setTitle("Kapitel-Editor: " + chapterFile.getFileName());
+            editorStage.setScene(new Scene(root));
+            
+            // NEU: Titelbalken mit Dateinamen setzen
+            editorController.setWindowTitle("📄 " + chapterFile.getFileName());
+            
+            // NEU: Window-Preferences laden und anwenden
+            loadEditorWindowProperties(editorStage);
+            
+            // CSS mit ResourceManager laden
+            String cssPath = ResourceManager.getCssResource("css/editor.css");
+            if (cssPath != null) {
+                editorStage.getScene().getStylesheets().add(cssPath);
+            }
+            
+            // Auch styles.css laden für vollständige Theme-Unterstützung
+            String stylesPath = ResourceManager.getCssResource("css/styles.css");
+            if (stylesPath != null) {
+                editorStage.getScene().getStylesheets().add(stylesPath);
+            }
+            
+            editorStage.show();
+            
+        } catch (Exception e) {
+            logger.error("Fehler beim Öffnen des Kapitel-Editor-Fensters", e);
+            showError("Fenster-Fehler", e.getMessage());
+        }
+    }
+    
+    private void processCompleteDocument(ObservableList<DocxFile> files) {
+        // ALT: Gesamtdokument erstellen (wie bisher)
         try {
             updateStatus("Verarbeite " + files.size() + " Dateien...");
-            // progressBar wurde entfernt
             
-            // Hole das ausgewählte Format
             DocxProcessor.OutputFormat format = cmbOutputFormat.getValue();
             if (format == null) {
                 format = DocxProcessor.OutputFormat.HTML;
@@ -621,7 +760,6 @@ public class MainController implements Initializable {
                 result.append(content).append("\n\n");
                 
                 processed++;
-                // progressBar wurde entfernt
             }
             
             // HTML-Footer nur einmal am Ende (falls HTML-Format)
@@ -631,12 +769,10 @@ public class MainController implements Initializable {
             }
             
             // Öffne den Editor mit dem verarbeiteten Text
-            // Verwende den Namen des Verzeichnisses als Basis für den Dateinamen
             String baseFileName;
             if (files.isEmpty()) {
                 baseFileName = "manuskript";
             } else {
-                // Verwende den Namen des Verzeichnisses statt der ersten Datei
                 String directoryPath = files.get(0).getFile().getParent();
                 File directory = new File(directoryPath);
                 baseFileName = directory.getName();
@@ -649,7 +785,7 @@ public class MainController implements Initializable {
             }
             
             openEditor(result.toString(), baseFileName);
-            updateStatus(processed + " Dateien erfolgreich verarbeitet - Editor geöffnet");
+            updateStatus(processed + " Dateien erfolgreich verarbeitet - Gesamtdokument erstellt");
             
         } catch (Exception e) {
             logger.error("Fehler bei der Verarbeitung", e);
@@ -699,8 +835,11 @@ public class MainController implements Initializable {
             // WICHTIG: Setze das aktuelle Theme vom Hauptfenster auf das Editorfenster
             editorController.setThemeFromMainWindow(currentThemeIndex);
             
+            // NEU: Titelbalken für Gesamtdokument setzen
+            editorController.setWindowTitle("📚 Gesamtdokument: " + baseFileName);
+            
             Stage editorStage = new Stage();
-            editorStage.setTitle("Manuskript Editor");
+            editorStage.setTitle("Gesamtdokument: " + baseFileName);
             editorStage.setScene(new Scene(root));
             // CSS mit ResourceManager laden
             String cssPath = ResourceManager.getCssResource("css/editor.css");
@@ -1021,6 +1160,182 @@ public class MainController implements Initializable {
                 btnThemeToggle.setText("🌙"); // Mond für helle Themes
                 btnThemeToggle.setTooltip(new Tooltip("Zu dunklem Theme wechseln"));
             }
+        }
+    }
+    
+    /**
+     * Lädt die Editor-Window-Eigenschaften aus den Preferences
+     */
+    private void loadEditorWindowProperties(Stage editorStage) {
+        // Fenster-Größe und Position laden
+        double width = preferences.getDouble("editor_window_width", 1200.0);
+        double height = preferences.getDouble("editor_window_height", 800.0);
+        double x = preferences.getDouble("editor_window_x", -1.0);
+        double y = preferences.getDouble("editor_window_y", -1.0);
+        
+        // NEU: Validierung der Fenster-Größe
+        // Minimale und maximale Größen prüfen
+        double minWidth = 800.0;
+        double minHeight = 600.0;
+        double maxWidth = 3000.0;
+        double maxHeight = 2000.0;
+        
+        // Größe validieren und korrigieren
+        if (width < minWidth || width > maxWidth || Double.isNaN(width) || Double.isInfinite(width)) {
+            logger.warn("Ungültige Editor-Fenster-Breite: {} - verwende Standard: {}", width, minWidth);
+            width = minWidth;
+        }
+        if (height < minHeight || height > maxHeight || Double.isNaN(height) || Double.isInfinite(height)) {
+            logger.warn("Ungültige Editor-Fenster-Höhe: {} - verwende Standard: {}", height, minHeight);
+            height = minHeight;
+        }
+        
+        // Fenster-Größe setzen
+        editorStage.setWidth(width);
+        editorStage.setHeight(height);
+        
+        // NEU: Validierung der Fenster-Position
+        // Prüfe, ob Position gültig ist und auf dem Bildschirm liegt
+        if (x >= 0 && y >= 0 && !Double.isNaN(x) && !Double.isNaN(y) && 
+            !Double.isInfinite(x) && !Double.isInfinite(y)) {
+            
+            // Grobe Prüfung: Position sollte nicht zu weit außerhalb des Bildschirms sein
+            if (x < -1000 || y < -1000 || x > 5000 || y > 5000) {
+                logger.warn("Editor-Fenster-Position außerhalb des Bildschirms: x={}, y={} - verwende zentriert", x, y);
+                editorStage.centerOnScreen();
+            } else {
+                editorStage.setX(x);
+                editorStage.setY(y);
+            }
+        } else {
+            logger.info("Keine gültige Editor-Fenster-Position gefunden - zentriere Fenster");
+            editorStage.centerOnScreen();
+        }
+        
+        // Event-Handler für Fenster-Änderungen hinzufügen
+        editorStage.widthProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null && !newVal.equals(oldVal)) {
+                preferences.putDouble("editor_window_width", newVal.doubleValue());
+            }
+        });
+        
+        editorStage.heightProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null && !newVal.equals(oldVal)) {
+                preferences.putDouble("editor_window_height", newVal.doubleValue());
+            }
+        });
+        
+        editorStage.xProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null && !newVal.equals(oldVal)) {
+                preferences.putDouble("editor_window_x", newVal.doubleValue());
+            }
+        });
+        
+        editorStage.yProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null && !newVal.equals(oldVal)) {
+                preferences.putDouble("editor_window_y", newVal.doubleValue());
+            }
+        });
+        
+        logger.info("Editor-Fenster-Eigenschaften geladen: Größe={}x{}, Position=({}, {})", width, height, x, y);
+    }
+    
+    /**
+     * Zeigt Dialog für existierende .gesamt Dateien
+     */
+    private void showGesamtFileDialog(File[] existingGesamtFiles, ObservableList<DocxFile> selectedDocxFiles) {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Gesamtdokument existiert bereits");
+        alert.setHeaderText("Es wurde bereits ein Gesamtdokument erstellt:");
+        alert.setContentText("Möchten Sie das existierende Dokument laden oder ein neues erstellen?");
+        
+        ButtonType loadExistingButton = new ButtonType("Existierende laden");
+        ButtonType createNewButton = new ButtonType("Neues erstellen");
+        ButtonType cancelButton = new ButtonType("Abbrechen", ButtonBar.ButtonData.CANCEL_CLOSE);
+        
+        alert.getButtonTypes().setAll(loadExistingButton, createNewButton, cancelButton);
+        
+        // NEU: Theme direkt auf Dialog anwenden - INLINE STYLES
+        DialogPane dialogPane = alert.getDialogPane();
+        
+        // Theme-4 (Grün) direkt anwenden
+        if (currentThemeIndex == 4) {
+            dialogPane.setStyle("-fx-background-color: #064e3b;");
+            
+            // Alle Buttons im Dialog finden und stylen
+            Platform.runLater(() -> {
+                for (Node node : dialogPane.lookupAll(".button")) {
+                    if (node instanceof Button) {
+                        Button button = (Button) node;
+                        // Prüfe den Button-Text und setze unterschiedliche Breiten
+                        String buttonText = button.getText();
+                        if ("Existierende laden".equals(buttonText)) {
+                            button.setStyle("-fx-background-color: #065f46; -fx-text-fill: #ffffff; -fx-border-color: #047857; -fx-min-width: 120px; -fx-pref-width: 120px;");
+                        } else {
+                            // Andere Buttons schmaler machen
+                            button.setStyle("-fx-background-color: #065f46; -fx-text-fill: #ffffff; -fx-border-color: #047857; -fx-min-width: 80px; -fx-pref-width: 80px;");
+                        }
+                    }
+                }
+                // Header und Content stylen
+                Node header = dialogPane.lookup(".header-panel");
+                if (header != null) {
+                    header.setStyle("-fx-background-color: #064e3b;");
+                }
+                Node content = dialogPane.lookup(".content");
+                if (content != null) {
+                    content.setStyle("-fx-background-color: #064e3b;");
+                }
+                // Labels stylen
+                for (Node node : dialogPane.lookupAll(".label")) {
+                    if (node instanceof Label) {
+                        Label label = (Label) node;
+                        label.setStyle("-fx-text-fill: #ffffff;");
+                    }
+                }
+            });
+        }
+        
+        Optional<ButtonType> result = alert.showAndWait();
+        if (result.isPresent()) {
+            if (result.get() == loadExistingButton) {
+                loadExistingGesamtFile(existingGesamtFiles[0]);
+            } else if (result.get() == createNewButton) {
+                processCompleteDocument(selectedDocxFiles);
+            }
+        }
+    }
+    
+    /**
+     * Lädt eine existierende .gesamt Datei
+     */
+    private void loadExistingGesamtFile(File gesamtFile) {
+        try {
+            String content = new String(Files.readAllBytes(gesamtFile.toPath()), StandardCharsets.UTF_8);
+            
+            // Bestimme das Format aus der Dateiendung
+            DocxProcessor.OutputFormat format = DocxProcessor.OutputFormat.HTML;
+            String fileName = gesamtFile.getName().toLowerCase();
+            if (fileName.endsWith(".md")) {
+                format = DocxProcessor.OutputFormat.MARKDOWN;
+            } else if (fileName.endsWith(".txt")) {
+                format = DocxProcessor.OutputFormat.PLAIN_TEXT;
+            }
+            
+            // Extrahiere den Basis-Namen
+            String baseFileName = gesamtFile.getName();
+            if (baseFileName.contains(".gesamt.")) {
+                baseFileName = baseFileName.substring(0, baseFileName.indexOf(".gesamt."));
+            }
+            
+            // Öffne den Editor mit dem geladenen Inhalt
+            openEditor(content, baseFileName);
+            updateStatus("Gesamtdokument geladen: " + gesamtFile.getName());
+            
+        } catch (Exception e) {
+            logger.error("Fehler beim Laden der .gesamt Datei", e);
+            showError("Ladefehler", "Fehler beim Laden der Datei: " + e.getMessage());
+            updateStatus("Fehler beim Laden der .gesamt Datei");
         }
     }
 } 

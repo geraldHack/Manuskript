@@ -2,8 +2,84 @@
 .root {
     -fx-font-family: 'Segoe UI', Arial, sans-serif;
     -fx-font-size: 12px;
-    -fx-background-color: #f5f5f5;
+    -fx-background-color: #ffffff;
 }
+
+/* Dialog-Styling für alle Themes */
+.dialog-pane {
+    -fx-background-color: inherit;
+}
+
+.dialog-pane .header-panel {
+    -fx-background-color: inherit;
+}
+
+.dialog-pane .content {
+    -fx-background-color: inherit;
+}
+
+.dialog-pane .button {
+    -fx-background-color: inherit;
+    -fx-text-fill: inherit;
+    -fx-border-color: inherit;
+}
+
+.dialog-pane .button:hover {
+    -fx-background-color: inherit;
+    -fx-text-fill: inherit;
+}
+
+.dialog-pane .button:pressed {
+    -fx-background-color: inherit;
+    -fx-text-fill: inherit;
+}
+
+.dialog-pane .label {
+    -fx-text-fill: inherit;
+}
+
+.dialog-pane .text {
+    -fx-fill: inherit;
+}
+
+/* Spezielle Dialog-Regeln für Theme-4 (Grün) */
+.dialog-pane.theme-4 {
+    -fx-background-color: #064e3b;
+}
+
+.dialog-pane.theme-4 .header-panel {
+    -fx-background-color: #064e3b;
+}
+
+.dialog-pane.theme-4 .content {
+    -fx-background-color: #064e3b;
+}
+
+.dialog-pane.theme-4 .button {
+    -fx-background-color: #065f46;
+    -fx-text-fill: #ffffff;
+    -fx-border-color: #047857;
+}
+
+.dialog-pane.theme-4 .button:hover {
+    -fx-background-color: #047857;
+    -fx-text-fill: #ffffff;
+}
+
+.dialog-pane.theme-4 .button:pressed {
+    -fx-background-color: #065f46;
+    -fx-text-fill: #ffffff;
+}
+
+.dialog-pane.theme-4 .label {
+    -fx-text-fill: #ffffff;
+}
+
+.dialog-pane.theme-4 .text {
+    -fx-fill: #ffffff;
+}
+
+
 
 /* Button-Styling - Entfernt, damit Theme-spezifische Regeln greifen */
 
@@ -89,10 +165,53 @@
 }
 
 /* TableView-Styling - Hell (Hauptmenü) - nur wenn kein Theme aktiv */
-.root:not(.theme-dark):not(.weiss-theme):not(.pastell-theme) .table-view {
+/* Tabellen-Styling - Allgemein (weißes Theme) */
+.table-view {
     -fx-background-color: white;
-    -fx-border-color: #ccc;
+    -fx-border-color: #666;
     -fx-border-width: 1px;
+}
+
+/* Theme-spezifische Tabellen-Hintergründe - VirtualFlow */
+.theme-dark #tableViewAvailable .virtual-flow .clipped-container .sheet,
+.theme-dark #tableViewSelected .virtual-flow .clipped-container .sheet {
+    -fx-background-color: #2d3748;
+}
+
+.theme-4 #tableViewAvailable .virtual-flow .clipped-container .sheet,
+.theme-4 #tableViewSelected .virtual-flow .clipped-container .sheet {
+    -fx-background-color: #064e3b;
+}
+
+.theme-5 #tableViewAvailable .virtual-flow .clipped-container .sheet,
+.theme-5 #tableViewSelected .virtual-flow .clipped-container .sheet {
+    -fx-background-color: #1e3a8a;
+}
+
+.theme-6 #tableViewAvailable .virtual-flow .clipped-container .sheet,
+.theme-6 #tableViewSelected .virtual-flow .clipped-container .sheet {
+    -fx-background-color: #581c87;
+}
+
+/* Theme-spezifische Tabellen-Hintergründe - Direkt */
+.theme-dark #tableViewAvailable,
+.theme-dark #tableViewSelected {
+    -fx-background-color: #2d3748;
+}
+
+.theme-4 #tableViewAvailable,
+.theme-4 #tableViewSelected {
+    -fx-background-color: #064e3b;
+}
+
+.theme-5 #tableViewAvailable,
+.theme-5 #tableViewSelected {
+    -fx-background-color: #1e3a8a;
+}
+
+.theme-6 #tableViewAvailable,
+.theme-6 #tableViewSelected {
+    -fx-background-color: #581c87;
 }
 
 .table-view .column-header {
@@ -137,6 +256,170 @@
     -fx-text-fill: white;
 }
 
+/* Theme-spezifische Tabellen-Regeln */
+.theme-dark .table-view {
+    -fx-background-color: #2d3748 !important;
+    -fx-border-color: #4a5568 !important;
+}
+
+.theme-dark .table-view .column-header {
+    -fx-background-color: #4a5568;
+    -fx-border-color: #718096;
+}
+
+.theme-dark .table-view .column-header .label {
+    -fx-text-fill: #ffffff;
+}
+
+.theme-dark .table-view .table-row-cell {
+    -fx-background-color: #2d3748;
+    -fx-text-fill: #ffffff;
+}
+
+.theme-dark .table-view .table-row-cell:odd {
+    -fx-background-color: #4a5568;
+}
+
+.theme-dark .table-view .table-row-cell:selected {
+    -fx-background-color: #3182ce;
+    -fx-text-fill: #ffffff;
+}
+
+.theme-dark .table-view .table-row-cell:hover {
+    -fx-background-color: #4a5568;
+}
+
+.theme-dark .table-view .table-cell {
+    -fx-text-fill: #ffffff;
+}
+
+.theme-dark .table-view .table-row-cell:selected .table-cell {
+    -fx-text-fill: #ffffff;
+}
+
+/* Theme-4 (Grün) Tabellen-Regeln */
+.theme-4 .table-view {
+    -fx-background-color: #064e3b !important;
+    -fx-border-color: #047857 !important;
+}
+
+.theme-4 .table-view .column-header {
+    -fx-background-color: #065f46;
+    -fx-border-color: #047857;
+}
+
+.theme-4 .table-view .column-header .label {
+    -fx-text-fill: #ffffff;
+}
+
+.theme-4 .table-view .table-row-cell {
+    -fx-background-color: #064e3b;
+    -fx-text-fill: #ffffff;
+}
+
+.theme-4 .table-view .table-row-cell:odd {
+    -fx-background-color: #065f46;
+}
+
+.theme-4 .table-view .table-row-cell:selected {
+    -fx-background-color: #047857;
+    -fx-text-fill: #ffffff;
+}
+
+.theme-4 .table-view .table-row-cell:hover {
+    -fx-background-color: #065f46;
+}
+
+.theme-4 .table-view .table-cell {
+    -fx-text-fill: #ffffff;
+}
+
+.theme-4 .table-view .table-row-cell:selected .table-cell {
+    -fx-text-fill: #ffffff;
+}
+
+/* Theme-5 (Blau) Tabellen-Regeln */
+.theme-5 .table-view {
+    -fx-background-color: #1e3a8a !important;
+    -fx-border-color: #3b82f6 !important;
+}
+
+.theme-5 .table-view .column-header {
+    -fx-background-color: #2563eb;
+    -fx-border-color: #3b82f6;
+}
+
+.theme-5 .table-view .column-header .label {
+    -fx-text-fill: #ffffff;
+}
+
+.theme-5 .table-view .table-row-cell {
+    -fx-background-color: #1e3a8a;
+    -fx-text-fill: #ffffff;
+}
+
+.theme-5 .table-view .table-row-cell:odd {
+    -fx-background-color: #2563eb;
+}
+
+.theme-5 .table-view .table-row-cell:selected {
+    -fx-background-color: #3b82f6;
+    -fx-text-fill: #ffffff;
+}
+
+.theme-5 .table-view .table-row-cell:hover {
+    -fx-background-color: #2563eb;
+}
+
+.theme-5 .table-view .table-cell {
+    -fx-text-fill: #ffffff;
+}
+
+.theme-5 .table-view .table-row-cell:selected .table-cell {
+    -fx-text-fill: #ffffff;
+}
+
+/* Theme-6 (Lila) Tabellen-Regeln */
+.theme-6 .table-view {
+    -fx-background-color: #581c87 !important;
+    -fx-border-color: #8b5cf6 !important;
+}
+
+.theme-6 .table-view .column-header {
+    -fx-background-color: #7c3aed;
+    -fx-border-color: #8b5cf6;
+}
+
+.theme-6 .table-view .column-header .label {
+    -fx-text-fill: #ffffff;
+}
+
+.theme-6 .table-view .table-row-cell {
+    -fx-background-color: #581c87;
+    -fx-text-fill: #ffffff;
+}
+
+.theme-6 .table-view .table-row-cell:odd {
+    -fx-background-color: #7c3aed;
+}
+
+.theme-6 .table-view .table-row-cell:selected {
+    -fx-background-color: #8b5cf6;
+    -fx-text-fill: #ffffff;
+}
+
+.theme-6 .table-view .table-row-cell:hover {
+    -fx-background-color: #7c3aed;
+}
+
+.theme-6 .table-view .table-cell {
+    -fx-text-fill: #ffffff;
+}
+
+.theme-6 .table-view .table-row-cell:selected .table-cell {
+    -fx-text-fill: #ffffff;
+}
+
 /* TextArea-Styling */
 .text-area {
     -fx-background-color: white;
@@ -172,6 +455,94 @@
 /* VBox und HBox Styling */
 .vbox, .hbox {
     -fx-background-color: transparent;
+}
+
+/* Theme-Dark - Allgemeine Regeln */
+.theme-dark {
+    -fx-background-color: #2d3748;
+    -fx-text-fill: #ffffff;
+}
+
+.theme-dark .button {
+    -fx-background-color: #4a5568;
+    -fx-text-fill: #ffffff;
+    -fx-border-color: #718096;
+}
+
+.theme-dark .button:hover {
+    -fx-background-color: #718096;
+    -fx-text-fill: #ffffff;
+}
+
+.theme-dark .button:pressed {
+    -fx-background-color: #2d3748;
+    -fx-text-fill: #ffffff;
+}
+
+.theme-dark .text-field {
+    -fx-background-color: #4a5568;
+    -fx-text-fill: #ffffff;
+    -fx-border-color: #718096;
+}
+
+.theme-dark .text-field:focused {
+    -fx-border-color: #3182ce;
+    -fx-border-width: 2px;
+}
+
+.theme-dark .combo-box {
+    -fx-background-color: #4a5568;
+    -fx-text-fill: #ffffff;
+    -fx-border-color: #718096;
+}
+
+.theme-dark .combo-box .list-cell {
+    -fx-background-color: #4a5568;
+    -fx-text-fill: #ffffff;
+}
+
+.theme-dark .combo-box-popup .list-view {
+    -fx-background-color: #4a5568;
+}
+
+.theme-dark .combo-box-popup .list-view .list-cell {
+    -fx-background-color: #4a5568;
+    -fx-text-fill: #ffffff;
+}
+
+.theme-dark .combo-box-popup .list-view .list-cell:hover {
+    -fx-background-color: #718096;
+    -fx-text-fill: #ffffff;
+}
+
+.theme-dark .check-box {
+    -fx-text-fill: #ffffff;
+}
+
+.theme-dark .check-box .box {
+    -fx-background-color: #4a5568;
+    -fx-border-color: #718096;
+}
+
+.theme-dark .check-box:selected .box {
+    -fx-background-color: #3182ce;
+    -fx-border-color: #3182ce;
+}
+
+.theme-dark .check-box .mark {
+    -fx-background-color: transparent;
+}
+
+.theme-dark .check-box:selected .mark {
+    -fx-background-color: #ffffff;
+}
+
+.theme-dark .label {
+    -fx-text-fill: #ffffff;
+}
+
+.theme-dark .vbox, .theme-dark .hbox {
+    -fx-background-color: #2d3748;
 }
 
 /* Spezielle Styling für Status-Label */
