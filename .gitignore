@@ -29,3 +29,9 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.temp 
+
+# Session-Dateien ignorieren
+config/sessions/
+
+# Alle docx-Dateien ignorieren
+*.docx 
