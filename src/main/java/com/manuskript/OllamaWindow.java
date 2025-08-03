@@ -4,11 +4,13 @@ import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import java.io.File;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Logger;
 import java.util.Optional;
@@ -183,8 +185,9 @@ public class OllamaWindow {
         HBox tempBox = new HBox(10);
         tempBox.setAlignment(Pos.CENTER_LEFT);
         
-        temperatureLabel = new Label("Temperatur: 0.50");
-        temperatureSlider = new Slider(0.0, 2.0, 0.5);
+        double temperatureValue = ResourceManager.getDoubleParameter("ollama.temperature", 0.5);
+        temperatureLabel = new Label(String.format("Temperatur: %.2f", temperatureValue));
+        temperatureSlider = new Slider(0.0, 2.0, temperatureValue);
         temperatureSlider.setShowTickLabels(true);
         temperatureSlider.setShowTickMarks(true);
         temperatureSlider.setMajorTickUnit(0.5);
@@ -201,8 +204,9 @@ public class OllamaWindow {
         HBox tokensBox = new HBox(10);
         tokensBox.setAlignment(Pos.CENTER_LEFT);
         
-        maxTokensLabel = new Label("Max Tokens: 2048");
-        maxTokensSlider = new Slider(100, 4096, 2048);
+        int maxTokensValue = ResourceManager.getIntParameter("ollama.max_tokens", 2048);
+        maxTokensLabel = new Label(String.format("Max Tokens: %d", maxTokensValue));
+        maxTokensSlider = new Slider(100, 4096, maxTokensValue);
         maxTokensSlider.setShowTickLabels(true);
         maxTokensSlider.setShowTickMarks(true);
         maxTokensSlider.setMajorTickUnit(1000);
@@ -219,8 +223,9 @@ public class OllamaWindow {
         HBox topPBox = new HBox(10);
         topPBox.setAlignment(Pos.CENTER_LEFT);
         
-        topPLabel = new Label("Top-P: 0.80");
-        topPSlider = new Slider(0.0, 1.0, 0.8);
+        double topPValue = ResourceManager.getDoubleParameter("ollama.top_p", 0.8);
+        topPLabel = new Label(String.format("Top-P: %.2f", topPValue));
+        topPSlider = new Slider(0.0, 1.0, topPValue);
         topPSlider.setShowTickLabels(true);
         topPSlider.setShowTickMarks(true);
         topPSlider.setMajorTickUnit(0.2);
@@ -237,8 +242,9 @@ public class OllamaWindow {
         HBox penaltyBox = new HBox(10);
         penaltyBox.setAlignment(Pos.CENTER_LEFT);
         
-        repeatPenaltyLabel = new Label("Repeat Penalty: 1.20");
-        repeatPenaltySlider = new Slider(0.0, 2.0, 1.2);
+        double repeatPenaltyValue = ResourceManager.getDoubleParameter("ollama.repeat_penalty", 1.2);
+        repeatPenaltyLabel = new Label(String.format("Repeat Penalty: %.2f", repeatPenaltyValue));
+        repeatPenaltySlider = new Slider(0.0, 2.0, repeatPenaltyValue);
         repeatPenaltySlider.setShowTickLabels(true);
         repeatPenaltySlider.setShowTickMarks(true);
         repeatPenaltySlider.setMajorTickUnit(0.5);
@@ -307,15 +313,13 @@ public class OllamaWindow {
         sessionComboBox.setPromptText("Session wählen...");
         sessionComboBox.getItems().add("default");
         sessionComboBox.setValue("default");
-        sessionComboBox.setOnAction(e -> switchToSession(sessionComboBox.getValue()));
-        
-        // Sessions aus Config laden
-        loadAllSessions();
-        
-        // Default Session initialisieren falls nicht vorhanden
-        if (!sessionHistories.containsKey("default")) {
-            sessionHistories.put("default", new ArrayList<>());
-        }
+        sessionComboBox.valueProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null && !newVal.equals(oldVal)) {
+                switchToSession(newVal);
+                // Speichere die ausgewählte Session in den Preferences
+                ResourceManager.saveParameter("ui.selected_session", newVal);
+            }
+        });
         
         newSessionButton = new Button("Neue Session");
         newSessionButton.setOnAction(e -> createNewSession());
@@ -334,6 +338,17 @@ public class OllamaWindow {
         chatHistoryArea = new CustomChatArea();
         chatHistoryArea.setMinHeight(400);
         chatHistoryArea.getStyleClass().addAll("ollama-text-area");
+        
+        // Sessions aus Config laden (NACH der chatHistoryArea-Initialisierung)
+        loadAllSessions();
+        
+        // Default Session initialisieren falls nicht vorhanden
+        if (!sessionHistories.containsKey("default")) {
+            sessionHistories.put("default", new ArrayList<>());
+        }
+        
+        // Lade die zuletzt ausgewählte Session
+        loadSelectedSession();
         
         // Kein Auto-Scrolling mehr - wird jetzt manuell gesteuert
         
@@ -529,6 +544,12 @@ public class OllamaWindow {
         contextArea.textProperty().addListener((obs, oldText, newText) -> {
             Platform.runLater(() -> {
                 contextArea.setScrollTop(Double.MAX_VALUE);
+                
+                // Persistiere Kontext-Änderungen in die context.txt
+                String currentDocxFile = getCurrentDocxFileName();
+                if (currentDocxFile != null && !newText.trim().isEmpty()) {
+                    NovelManager.saveContext(currentDocxFile, newText);
+                }
             });
         });
         
@@ -786,7 +807,54 @@ public class OllamaWindow {
             // Zusätzlichen Kontext aus dem Context-Bereich holen
             String additionalContext = contextArea.getText().trim();
             
-            ollamaService.chatWithContext(userMessage, additionalContext)
+            // Chat-Historie als Kontext hinzufügen (nur vollständige QAPairs)
+            List<CustomChatArea.QAPair> sessionHistory = chatHistoryArea.getSessionHistory();
+            StringBuilder contextBuilder = new StringBuilder();
+            
+            if (!sessionHistory.isEmpty()) {
+                for (CustomChatArea.QAPair qaPair : sessionHistory) {
+                    // Nur vollständige QAPairs (mit Antworten) als Kontext verwenden
+                    if (qaPair.getAnswer() != null && !qaPair.getAnswer().trim().isEmpty()) {
+                        contextBuilder.append("Du: ").append(qaPair.getQuestion()).append("\n");
+                        contextBuilder.append("Assistent: ").append(qaPair.getAnswer()).append("\n");
+                    }
+                }
+            }
+            
+                    // Zusätzlichen Kontext hinzufügen
+        if (!additionalContext.isEmpty()) {
+            contextBuilder.append("\n").append(additionalContext);
+        }
+        
+        // Kontext aus der context.txt des aktuellen Romans laden
+        String currentDocxFile = getCurrentDocxFileName();
+        if (currentDocxFile != null) {
+            String novelContext = NovelManager.loadContext(currentDocxFile);
+            if (!novelContext.trim().isEmpty()) {
+                contextBuilder.append("\n").append("Roman-Kontext:\n").append(novelContext);
+            }
+        }
+            
+            String fullContext = contextBuilder.toString();
+            logger.info("DEBUG: Sende Kontext mit " + sessionHistory.size() + " QAPairs, vollständige: " + 
+                       sessionHistory.stream().filter(qa -> qa.getAnswer() != null && !qa.getAnswer().trim().isEmpty()).count());
+            
+            // Vollständigen Prompt mit Kontext erstellen
+            StringBuilder fullPromptBuilder = new StringBuilder();
+            fullPromptBuilder.append("Du bist ein hilfreicher deutscher Assistent. Antworte bitte auf Deutsch.\n\n");
+            
+            if (!fullContext.isEmpty()) {
+                fullPromptBuilder.append(fullContext).append("\n");
+            }
+            
+            fullPromptBuilder.append("Du: ").append(userMessage).append("\n");
+            fullPromptBuilder.append("Assistent: ");
+            
+            String fullPrompt = fullPromptBuilder.toString();
+            logger.info("DEBUG: Vollständiger Prompt: " + fullPrompt.substring(0, Math.min(200, fullPrompt.length())) + "...");
+            
+            // Direkt generateText verwenden statt chatWithContext
+            ollamaService.generateText(fullPrompt)
                 .thenApply(response -> {
                     Platform.runLater(() -> {
                         insertButton.setDisable(false);
@@ -794,14 +862,32 @@ public class OllamaWindow {
                         statusLabel.setText("✅ Antwort erhalten");
                         // Eingabe löschen nach erfolgreicher Antwort
                         inputArea.clear();
+                        // DEBUG: Antwort-Log
+                        logger.info("DEBUG: Antwort erhalten: " + response.substring(0, Math.min(50, response.length())) + "...");
+                        
                         // Antwort hinzufügen
                         chatHistoryArea.addAssistantResponse(response);
                         
-                        // Session-Historie aktualisieren
-                        sessionHistories.put(currentSessionName, chatHistoryArea.getSessionHistory());
-                        
-                        // Session persistent speichern
-                        ResourceManager.saveSession(currentSessionName, chatHistoryArea.getSessionHistory());
+                        // Session-Historie aktualisieren und speichern NACH der Antwort
+                        Platform.runLater(() -> {
+                            // Session-Historie aktualisieren
+                            List<CustomChatArea.QAPair> currentSessionHistory = chatHistoryArea.getSessionHistory();
+                            sessionHistories.put(currentSessionName, currentSessionHistory);
+                            
+                            // DEBUG: Session-Historie-Log
+                            logger.info("DEBUG: Session-Historie für " + currentSessionName + ": " + currentSessionHistory.size() + " QAPairs");
+                            for (int i = 0; i < currentSessionHistory.size(); i++) {
+                                CustomChatArea.QAPair qaPair = currentSessionHistory.get(i);
+                                logger.info("DEBUG: QAPair " + i + " - Frage: " + qaPair.getQuestion() + ", Antwort: " + (qaPair.getAnswer() != null ? qaPair.getAnswer().length() + " Zeichen" : "null"));
+                            }
+                            
+                            // Session persistent speichern
+                            ResourceManager.saveSession(currentSessionName, currentSessionHistory);
+                            logger.info("DEBUG: Session gespeichert: " + currentSessionName);
+                            
+                            // Prüfen ob Session aufgeteilt werden muss
+                            checkAndSplitSession(currentSessionName);
+                        });
                     });
                     return response;
                 })
@@ -926,9 +1012,11 @@ public class OllamaWindow {
                 } else {
                     updateStatus("Ollama nicht erreichbar");
                     generateButton.setDisable(true);
-                    showAlert("Ollama nicht verfügbar", 
-                        "Der Ollama-Server ist nicht erreichbar.\n" +
-                        "Bitte starten Sie Ollama und stellen Sie sicher, dass es auf localhost:11434 läuft.");
+                    
+                    // Zeige das verbesserte Installations-Dialog nur wenn gewünscht
+                    if (shouldShowOllamaDialog()) {
+                        showOllamaInstallationDialog();
+                    }
                 }
             });
         });
@@ -976,12 +1064,187 @@ public class OllamaWindow {
         alert.showAndWait();
     }
     
+    private void showOllamaInstallationDialog() {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Ollama Installation");
+        alert.setHeaderText("Ollama ist nicht installiert");
+        
+        // Erstelle einen detaillierten Content
+        VBox content = new VBox(10);
+        content.setPadding(new Insets(10));
+        
+        // Erklärung
+        Label explanationLabel = new Label(
+            "Ollama ist eine lokale KI-Plattform, die auf Ihrem Computer läuft.\n" +
+            "Es ermöglicht Ihnen, KI-Modelle lokal auszuführen, ohne Daten zu übertragen."
+        );
+        explanationLabel.setWrapText(true);
+        
+        // Hardware-Anforderungen
+        Label requirementsLabel = new Label(
+            "Hardware-Anforderungen:\n" +
+            "• Mindestens 8 GB RAM (16 GB empfohlen)\n" +
+            "• Moderne CPU (Intel i5/AMD Ryzen 5 oder besser)\n" +
+            "• 2 GB freier Speicherplatz\n" +
+            "• Windows 10/11, macOS oder Linux"
+        );
+        requirementsLabel.setWrapText(true);
+        
+        // Installations-Button
+        Button installButton = new Button("Ollama installieren");
+        installButton.setOnAction(e -> {
+            alert.setResult(ButtonType.OK);
+            alert.close();
+            openOllamaWebsite();
+        });
+        
+        // Abbrechen-Button
+        Button cancelButton = new Button("Später");
+        cancelButton.setOnAction(e -> {
+            alert.setResult(ButtonType.CANCEL);
+            alert.close();
+        });
+        
+        // "Nicht mehr anzeigen" Checkbox
+        CheckBox dontShowAgainCheckBox = new CheckBox("Dieses Dialog nicht mehr anzeigen");
+        
+        HBox buttonBox = new HBox(10);
+        buttonBox.getChildren().addAll(installButton, cancelButton);
+        
+        content.getChildren().addAll(explanationLabel, requirementsLabel, dontShowAgainCheckBox, buttonBox);
+        alert.getDialogPane().setContent(content);
+        
+        // Direkte Theme-Styles auf das Dialog anwenden
+        applyDialogTheme(alert, currentThemeIndex);
+        
+        Optional<ButtonType> result = alert.showAndWait();
+        
+        // Wenn "Nicht mehr anzeigen" aktiviert ist, speichere die Einstellung
+        if (result.isPresent() && dontShowAgainCheckBox.isSelected()) {
+            saveOllamaDialogPreference(true);
+        }
+    }
+    
+    private void saveOllamaDialogPreference(boolean dontShowAgain) {
+        try {
+            java.util.prefs.Preferences prefs = java.util.prefs.Preferences.userNodeForPackage(OllamaWindow.class);
+            prefs.putBoolean("dont_show_ollama_dialog", dontShowAgain);
+        } catch (Exception e) {
+            logger.warning("Konnte Ollama-Dialog-Einstellung nicht speichern: " + e.getMessage());
+        }
+    }
+    
+    private boolean shouldShowOllamaDialog() {
+        try {
+            java.util.prefs.Preferences prefs = java.util.prefs.Preferences.userNodeForPackage(OllamaWindow.class);
+            return !prefs.getBoolean("dont_show_ollama_dialog", false);
+        } catch (Exception e) {
+            logger.warning("Konnte Ollama-Dialog-Einstellung nicht laden: " + e.getMessage());
+            return true; // Standardmäßig anzeigen
+        }
+    }
+    
+    private void openOllamaWebsite() {
+        try {
+            // Öffne die Ollama-Website im Standard-Browser
+            java.awt.Desktop.getDesktop().browse(new java.net.URI("https://ollama.ai/download"));
+            updateStatus("Ollama-Website geöffnet - Bitte installieren Sie Ollama");
+        } catch (Exception e) {
+            logger.warning("Konnte Ollama-Website nicht öffnen: " + e.getMessage());
+            showAlert("Fehler", "Konnte Browser nicht öffnen. Bitte besuchen Sie manuell: https://ollama.ai/download");
+        }
+    }
+    
+    private void applyDialogTheme(Alert alert, int themeIndex) {
+        String dialogStyle = "";
+        String contentStyle = "";
+        String labelStyle = "";
+        String buttonStyle = "";
+        String checkboxStyle = "";
+        
+        switch (themeIndex) {
+            case 0: // Weiß
+                dialogStyle = "-fx-background-color: #ffffff; -fx-text-fill: #000000;";
+                contentStyle = "-fx-background-color: #ffffff; -fx-text-fill: #000000;";
+                labelStyle = "-fx-text-fill: #000000;";
+                buttonStyle = "-fx-background-color: #f0f0f0; -fx-text-fill: #000000; -fx-border-color: #cccccc;";
+                checkboxStyle = "-fx-text-fill: #000000;";
+                break;
+            case 1: // Schwarz
+                dialogStyle = "-fx-background-color: #1a1a1a; -fx-text-fill: #ffffff;";
+                contentStyle = "-fx-background-color: #1a1a1a; -fx-text-fill: #ffffff;";
+                labelStyle = "-fx-text-fill: #ffffff;";
+                buttonStyle = "-fx-background-color: #2d2d2d; -fx-text-fill: #ffffff; -fx-border-color: #404040;";
+                checkboxStyle = "-fx-text-fill: #ffffff;";
+                break;
+            case 2: // Pastell
+                dialogStyle = "-fx-background-color: #f3e5f5; -fx-text-fill: #000000;";
+                contentStyle = "-fx-background-color: #f3e5f5; -fx-text-fill: #000000;";
+                labelStyle = "-fx-text-fill: #000000;";
+                buttonStyle = "-fx-background-color: #e1bee7; -fx-text-fill: #000000; -fx-border-color: #ba68c8;";
+                checkboxStyle = "-fx-text-fill: #000000;";
+                break;
+            case 3: // Blau
+                dialogStyle = "-fx-background-color: #1e3a8a; -fx-text-fill: #ffffff;";
+                contentStyle = "-fx-background-color: #1e3a8a; -fx-text-fill: #ffffff;";
+                labelStyle = "-fx-text-fill: #ffffff;";
+                buttonStyle = "-fx-background-color: #3b82f6; -fx-text-fill: #ffffff; -fx-border-color: #1d4ed8;";
+                checkboxStyle = "-fx-text-fill: #ffffff;";
+                break;
+            case 4: // Grün
+                dialogStyle = "-fx-background-color: #064e3b; -fx-text-fill: #ffffff;";
+                contentStyle = "-fx-background-color: #064e3b; -fx-text-fill: #ffffff;";
+                labelStyle = "-fx-text-fill: #ffffff;";
+                buttonStyle = "-fx-background-color: #059669; -fx-text-fill: #ffffff; -fx-border-color: #047857;";
+                checkboxStyle = "-fx-text-fill: #ffffff;";
+                break;
+            case 5: // Lila
+                dialogStyle = "-fx-background-color: #581c87; -fx-text-fill: #ffffff;";
+                contentStyle = "-fx-background-color: #581c87; -fx-text-fill: #ffffff;";
+                labelStyle = "-fx-text-fill: #ffffff;";
+                buttonStyle = "-fx-background-color: #7c3aed; -fx-text-fill: #ffffff; -fx-border-color: #6d28d9;";
+                checkboxStyle = "-fx-text-fill: #ffffff;";
+                break;
+        }
+        
+        // Styles anwenden
+        alert.getDialogPane().setStyle(dialogStyle);
+        
+        // Alle Child-Elemente durchgehen und Styles anwenden
+        for (javafx.scene.Node node : alert.getDialogPane().getChildren()) {
+            if (node instanceof VBox) {
+                node.setStyle(contentStyle);
+                // Rekursiv durch alle Child-Elemente gehen
+                applyStyleToChildren(node, labelStyle, buttonStyle, checkboxStyle);
+            }
+        }
+    }
+    
+    private void applyStyleToChildren(javafx.scene.Node parent, String labelStyle, String buttonStyle, String checkboxStyle) {
+        if (parent instanceof Parent) {
+            for (javafx.scene.Node child : ((Parent) parent).getChildrenUnmodifiable()) {
+                if (child instanceof Label) {
+                    child.setStyle(labelStyle);
+                } else if (child instanceof Button) {
+                    child.setStyle(buttonStyle);
+                } else if (child instanceof CheckBox) {
+                    child.setStyle(checkboxStyle);
+                } else if (child instanceof HBox || child instanceof VBox) {
+                    // Rekursiv für Container
+                    applyStyleToChildren(child, labelStyle, buttonStyle, checkboxStyle);
+                }
+            }
+        }
+    }
+    
     public void show() {
         stage.show();
         stage.requestFocus();
     }
     
     public void hide() {
+        // Alle Sessions speichern bevor das Fenster geschlossen wird
+        saveAllSessions();
         stage.hide();
     }
     
@@ -1009,6 +1272,9 @@ public class OllamaWindow {
                 }
             }
         }
+        
+        // Lade Kontext aus der context.txt des aktuellen Romans
+        loadContextFromNovel();
     }
     
     /**
@@ -1361,7 +1627,7 @@ public class OllamaWindow {
         Optional<String> result = dialog.showAndWait();
         result.ifPresent(sessionName -> {
             if (!sessionName.trim().isEmpty() && !sessionHistories.containsKey(sessionName)) {
-                // Aktuelle Historie speichern
+                // Aktuelle Historie speichern (nur im Speicher, nicht persistent)
                 sessionHistories.put(currentSessionName, chatHistoryArea.getSessionHistory());
                 
                 // Neue Session erstellen
@@ -1375,8 +1641,8 @@ public class OllamaWindow {
                 // Chat-Historie zurücksetzen
                 chatHistoryArea.clearHistory();
                 
-                // Session persistent speichern
-                ResourceManager.saveSession(sessionName, new ArrayList<>());
+                // Session persistent speichern (nur die neue leere Session)
+                // ResourceManager.saveSession(sessionName, new ArrayList<>());
                 
                 updateStatus("Neue Session erstellt: " + sessionName);
             } else if (sessionHistories.containsKey(sessionName)) {
@@ -1390,7 +1656,7 @@ public class OllamaWindow {
      */
     private void deleteCurrentSession() {
         String currentSession = sessionComboBox.getValue();
-        if (currentSession != null && !currentSession.equals("default")) {
+        if (currentSession != null) {
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
             alert.setTitle("Session löschen");
             alert.setHeaderText("Session löschen?");
@@ -1406,16 +1672,23 @@ public class OllamaWindow {
                 
                 // ComboBox aktualisieren
                 sessionComboBox.getItems().remove(currentSession);
-                sessionComboBox.setValue("default");
                 
-                // Zur default Session wechseln
-                currentSessionName = "default";
-                chatHistoryArea.loadSessionHistory(sessionHistories.getOrDefault("default", new ArrayList<>()));
+                // Neue default Session erstellen falls die alte gelöscht wurde
+                if (currentSession.equals("default")) {
+                    sessionHistories.put("default", new ArrayList<>());
+                    sessionComboBox.getItems().add("default");
+                    sessionComboBox.setValue("default");
+                    currentSessionName = "default";
+                    chatHistoryArea.loadSessionHistory(new ArrayList<>());
+                } else {
+                    // Zur default Session wechseln
+                    sessionComboBox.setValue("default");
+                    currentSessionName = "default";
+                    chatHistoryArea.loadSessionHistory(sessionHistories.getOrDefault("default", new ArrayList<>()));
+                }
                 
                 updateStatus("Session gelöscht: " + currentSession);
             }
-        } else {
-            showAlert("Fehler", "Die Standard-Session 'default' kann nicht gelöscht werden.");
         }
     }
     
@@ -1451,14 +1724,26 @@ public class OllamaWindow {
      */
     private void switchToSession(String sessionName) {
         if (sessionName != null && !sessionName.isEmpty()) {
+            logger.info("DEBUG: switchToSession() - von " + currentSessionName + " zu " + sessionName);
+            
             // Aktuelle Historie speichern (nur im Speicher, nicht persistent)
-            sessionHistories.put(currentSessionName, chatHistoryArea.getSessionHistory());
+            List<CustomChatArea.QAPair> currentHistory = chatHistoryArea.getSessionHistory();
+            logger.info("DEBUG: Aktuelle Historie für " + currentSessionName + ": " + currentHistory.size() + " QAPairs");
+            
+            // Nur speichern wenn die Historie nicht leer ist oder es nicht die erste Session ist
+            if (currentHistory.size() > 0 || !currentSessionName.equals("default")) {
+                sessionHistories.put(currentSessionName, currentHistory);
+            } else {
+                logger.info("DEBUG: Überspringe Speichern der leeren default Session");
+            }
             
             // Session wechseln
             currentSessionName = sessionName;
             
             // Chat-Historie aus der Session laden
-            chatHistoryArea.loadSessionHistory(sessionHistories.getOrDefault(sessionName, new ArrayList<>()));
+            List<CustomChatArea.QAPair> newHistory = sessionHistories.getOrDefault(sessionName, new ArrayList<>());
+            logger.info("DEBUG: Neue Historie für " + sessionName + ": " + newHistory.size() + " QAPairs");
+            chatHistoryArea.loadSessionHistory(newHistory);
             
             updateStatus("Session gewechselt: " + sessionName);
         }
@@ -1468,22 +1753,88 @@ public class OllamaWindow {
      * Lädt alle Sessions aus dem Config-Ordner
      */
     private void loadAllSessions() {
+        // ComboBox leeren
+        sessionComboBox.getItems().clear();
+        
         List<String> availableSessions = ResourceManager.getAvailableSessions();
+        logger.info("DEBUG: Verfügbare Sessions: " + availableSessions);
         
         for (String sessionName : availableSessions) {
             List<CustomChatArea.QAPair> sessionData = ResourceManager.loadSession(sessionName);
             sessionHistories.put(sessionName, sessionData);
             sessionComboBox.getItems().add(sessionName);
+            logger.info("DEBUG: Session geladen: " + sessionName + " mit " + sessionData.size() + " QAPairs");
         }
         
-        // Default Session hinzufügen falls nicht vorhanden
-        if (!sessionComboBox.getItems().contains("default")) {
+        // Default Session hinzufügen falls nicht vorhanden (NUR wenn nicht aus Datei geladen)
+        if (!availableSessions.contains("default")) {
             sessionComboBox.getItems().add("default");
+            sessionHistories.put("default", new ArrayList<>());
+            logger.info("DEBUG: Default Session hinzugefügt (leer)");
+        } else {
+            logger.info("DEBUG: Default Session bereits aus Datei geladen mit " + sessionHistories.get("default").size() + " QAPairs");
         }
         
-        // Erste Session auswählen
+        // Erste Session auswählen und laden
         if (!sessionComboBox.getItems().isEmpty()) {
             sessionComboBox.setValue("default");
+            
+            // Initial die default Session in die chatHistoryArea laden
+            List<CustomChatArea.QAPair> defaultHistory = sessionHistories.get("default");
+            if (defaultHistory != null) {
+                logger.info("DEBUG: Lade initial default Session mit " + defaultHistory.size() + " QAPairs");
+                chatHistoryArea.loadSessionHistory(defaultHistory);
+            }
+        }
+    }
+    
+    /**
+     * Prüft ob eine Session aufgeteilt werden muss und führt die Aufteilung durch
+     */
+    private void checkAndSplitSession(String sessionName) {
+        List<CustomChatArea.QAPair> sessionData = sessionHistories.get(sessionName);
+        if (sessionData == null) return;
+        
+        // Session aufteilen wenn mehr als der konfigurierte Wert QAPairs vorhanden sind
+        final int MAX_QAPAIRS_PER_SESSION = ResourceManager.getIntParameter("session.max_qapairs_per_session", 20);
+        
+        if (sessionData.size() > MAX_QAPAIRS_PER_SESSION) {
+            logger.info("DEBUG: Session " + sessionName + " hat " + sessionData.size() + " QAPairs - Aufteilung erforderlich");
+            
+            // Neue Session-Namen generieren
+            String baseName = sessionName;
+            int partNumber = 1;
+            
+            // Finde den nächsten freien Teil-Namen
+            while (sessionHistories.containsKey(baseName + "." + partNumber)) {
+                partNumber++;
+            }
+            
+            String newSessionName = baseName + "." + partNumber;
+            
+            // Erste 20 QAPairs in der ursprünglichen Session behalten
+            List<CustomChatArea.QAPair> remainingData = new ArrayList<>(sessionData.subList(0, MAX_QAPAIRS_PER_SESSION));
+            sessionHistories.put(sessionName, remainingData);
+            
+            // Rest in neue Session verschieben
+            List<CustomChatArea.QAPair> newSessionData = new ArrayList<>(sessionData.subList(MAX_QAPAIRS_PER_SESSION, sessionData.size()));
+            sessionHistories.put(newSessionName, newSessionData);
+            
+            // ComboBox aktualisieren
+            if (!sessionComboBox.getItems().contains(newSessionName)) {
+                sessionComboBox.getItems().add(newSessionName);
+            }
+            
+            // Sessions speichern
+            ResourceManager.saveSession(sessionName, remainingData);
+            ResourceManager.saveSession(newSessionName, newSessionData);
+            
+            logger.info("DEBUG: Session aufgeteilt: " + sessionName + " (" + remainingData.size() + " QAPairs) und " + newSessionName + " (" + newSessionData.size() + " QAPairs)");
+            
+            // Benachrichtigung anzeigen
+            Platform.runLater(() -> {
+                updateStatus("Session " + sessionName + " wurde automatisch aufgeteilt in " + newSessionName);
+            });
         }
     }
     
@@ -1491,8 +1842,104 @@ public class OllamaWindow {
      * Speichert alle Sessions in den Config-Ordner
      */
     private void saveAllSessions() {
+        logger.info("DEBUG: saveAllSessions() aufgerufen");
         for (Map.Entry<String, List<CustomChatArea.QAPair>> entry : sessionHistories.entrySet()) {
-            ResourceManager.saveSession(entry.getKey(), entry.getValue());
+            String sessionName = entry.getKey();
+            List<CustomChatArea.QAPair> qaPairs = entry.getValue();
+            
+            logger.info("DEBUG: Prüfe Session: " + sessionName + " mit " + qaPairs.size() + " QAPairs");
+            
+            // Nur Sessions mit vollständigen Antworten speichern
+            boolean hasCompleteAnswers = true;
+            
+            for (int i = 0; i < qaPairs.size(); i++) {
+                CustomChatArea.QAPair qaPair = qaPairs.get(i);
+                logger.info("DEBUG: QAPair " + i + " - Frage: " + qaPair.getQuestion() + ", Antwort: " + (qaPair.getAnswer() != null ? qaPair.getAnswer().length() + " Zeichen" : "null"));
+                
+                if (qaPair.getAnswer() == null || qaPair.getAnswer().trim().isEmpty()) {
+                    hasCompleteAnswers = false;
+                    logger.info("DEBUG: Unvollständige Antwort gefunden - Session wird nicht gespeichert");
+                    break;
+                }
+            }
+            
+            if (hasCompleteAnswers) {
+                logger.info("DEBUG: Vollständige Session gefunden - speichere: " + sessionName);
+                ResourceManager.saveSession(sessionName, qaPairs);
+            } else {
+                logger.info("DEBUG: Unvollständige Session - überspringe: " + sessionName);
+            }
+        }
+    }
+    
+    /**
+     * Ermittelt den aktuellen DOCX-Dateinamen basierend auf dem Editor
+     */
+    private String getCurrentDocxFileName() {
+        if (editorWindow != null && editorWindow.getCurrentFile() != null) {
+            File currentFile = editorWindow.getCurrentFile();
+            
+            // Falls es eine virtuelle Datei ist, versuche den ursprünglichen Namen zu finden
+            if (currentFile.getName().endsWith(".docx")) {
+                // Da der Editor eine virtuelle Datei verwendet, müssen wir den ursprünglichen Pfad finden
+                // Verwende den Pfad aus der gespeicherten Dateiauswahl
+                String savedSelectionPath = ResourceManager.getParameter("ui.last_docx_directory", "");
+                
+                if (!savedSelectionPath.isEmpty()) {
+                    // Suche nach der DOCX-Datei im gespeicherten Verzeichnis
+                    File directory = new File(savedSelectionPath);
+                    
+                    if (directory.exists() && directory.isDirectory()) {
+                        File[] files = directory.listFiles((dir, name) -> name.endsWith(".docx"));
+                        
+                        if (files != null && files.length > 0) {
+                            // Verwende die erste gefundene DOCX-Datei
+                            return files[0].getAbsolutePath();
+                        }
+                    }
+                }
+                // Fallback: Verwende den aktuellen Pfad
+                return currentFile.getAbsolutePath();
+            }
+        }
+        return null;
+    }
+    
+    /**
+     * Lädt den Kontext aus der context.txt des aktuellen Romans
+     */
+    private void loadContextFromNovel() {
+        String currentDocxFile = getCurrentDocxFileName();
+        
+        if (currentDocxFile != null) {
+            String novelContext = NovelManager.loadContext(currentDocxFile);
+            
+            if (!novelContext.trim().isEmpty()) {
+                // Entferne den Standard-Header falls vorhanden
+                String cleanContext = novelContext.replaceAll("^# Zusätzlicher Kontext für .*\\n\\n", "");
+                
+                if (!cleanContext.trim().isEmpty()) {
+                    contextArea.setText(cleanContext);
+                    logger.info("Kontext aus context.txt geladen für: " + currentDocxFile);
+                }
+            }
+        }
+    }
+    
+    /**
+     * Lädt die zuletzt ausgewählte Session aus den Preferences
+     */
+    private void loadSelectedSession() {
+        String savedSession = ResourceManager.getParameter("ui.selected_session", "default");
+        if (sessionComboBox.getItems().contains(savedSession)) {
+            sessionComboBox.setValue(savedSession);
+            currentSessionName = savedSession;
+            logger.info("Gespeicherte Session geladen: " + savedSession);
+        } else {
+            // Fallback auf default wenn die gespeicherte Session nicht existiert
+            sessionComboBox.setValue("default");
+            currentSessionName = "default";
+            logger.info("Fallback auf default Session, da gespeicherte Session nicht gefunden: " + savedSession);
         }
     }
 } 

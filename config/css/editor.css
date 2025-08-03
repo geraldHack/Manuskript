@@ -363,6 +363,11 @@
     -fx-text-fill: #ffffff;
 }
 
+.theme-dark VBox,
+.theme-dark HBox {
+    -fx-background-color: #1a1a1a !important;
+}
+
 .theme-dark .button {
     -fx-background-color: #2d2d2d;
     -fx-text-fill: #ffffff;
@@ -998,6 +1003,11 @@
     -fx-text-fill: inherit;
 }
 
+.status-label.unsaved {
+    -fx-text-fill: #ff0000 !important;
+    -fx-font-weight: bold !important;
+}
+
 .font-size-label {
     -fx-text-fill: inherit;
 }
@@ -1154,6 +1164,103 @@
     -fx-text-fill: #000000;
 }
 
+.pastell-theme VBox,
+.pastell-theme HBox,
+.pastell-theme .root {
+    -fx-background-color: #f3e5f5 !important;
+    -fx-text-fill: #000000 !important;
+}
+
+/* Stärkere Regeln für Pastell-Theme */
+.pastell-theme {
+    -fx-background-color: #f3e5f5 !important;
+    -fx-text-fill: #000000 !important;
+}
+
+.pastell-theme * {
+    -fx-background-color: #f3e5f5 !important;
+    -fx-text-fill: #000000 !important;
+}
+
+/* Spezifische Regeln für TextAreas im Pastell-Theme */
+.pastell-theme .text-area {
+    -fx-background-color: #ffffff !important;
+    -fx-text-fill: #000000 !important;
+    -fx-border-color: #ba68c8 !important;
+}
+
+.pastell-theme .text-area .content {
+    -fx-background-color: #ffffff !important;
+    -fx-text-fill: #000000 !important;
+}
+
+/* Spezifische Regeln für TableViews im Pastell-Theme */
+.pastell-theme .table-view {
+    -fx-background-color: #ffffff !important;
+    -fx-text-fill: #000000 !important;
+    -fx-border-color: #ba68c8 !important;
+}
+
+.pastell-theme .table-view .table-cell {
+    -fx-background-color: #ffffff !important;
+    -fx-text-fill: #000000 !important;
+}
+
+/* Noch spezifischere Regeln für beide TableViews */
+#tableViewAvailable {
+    -fx-background-color: #ffffff !important;
+    -fx-text-fill: #000000 !important;
+    -fx-border-color: #ba68c8 !important;
+}
+
+#tableViewSelected {
+    -fx-background-color: #ffffff !important;
+    -fx-text-fill: #000000 !important;
+    -fx-border-color: #ba68c8 !important;
+}
+
+/* Und für alle Elemente im Pastell-Theme */
+.pastell-theme #tableViewAvailable,
+.pastell-theme #tableViewSelected {
+    -fx-background-color: #ffffff !important;
+    -fx-text-fill: #000000 !important;
+    -fx-border-color: #ba68c8 !important;
+}
+
+/* Spezifische Regeln für dunkle Themes - TableViews sollen immer weiß bleiben */
+.theme-dark #tableViewAvailable,
+.theme-dark #tableViewSelected,
+.theme-dark.blau-theme #tableViewAvailable,
+.theme-dark.blau-theme #tableViewSelected,
+.theme-dark.gruen-theme #tableViewAvailable,
+.theme-dark.gruen-theme #tableViewSelected,
+.theme-dark.lila-theme #tableViewAvailable,
+.theme-dark.lila-theme #tableViewSelected {
+    -fx-background-color: #ffffff !important;
+    -fx-text-fill: #000000 !important;
+    -fx-border-color: #ba68c8 !important;
+}
+
+/* Noch stärkere Regeln - direkt auf die IDs */
+#tableViewAvailable {
+    -fx-background-color: #ffffff !important;
+    -fx-text-fill: #000000 !important;
+    -fx-border-color: #ba68c8 !important;
+}
+
+#tableViewSelected {
+    -fx-background-color: #ffffff !important;
+    -fx-text-fill: #000000 !important;
+    -fx-border-color: #ba68c8 !important;
+}
+
+/* Universelle Regel für alle TableViews */
+.table-view {
+    -fx-background-color: #ffffff !important;
+    -fx-text-fill: #000000 !important;
+    -fx-border-color: #ba68c8 !important;
+}
+
 .pastell-theme .button {
     -fx-background-color: #e1bee7;
     -fx-text-fill: #000000;
@@ -1278,5 +1385,212 @@
     -fx-background-color: #581c87 !important;
     -fx-text-fill: white !important;
     -fx-prompt-text-fill: #c084fc !important;
+}
+
+/* ========================================
+   CHAPTER-EDITOR STYLES
+   ======================================== */
+
+.chapter-editor-panel {
+    -fx-background-color: transparent;
+    -fx-border-color: #cccccc;
+    -fx-border-width: 1px;
+    -fx-border-radius: 5px;
+    -fx-padding: 5px;
+}
+
+.chapter-editor-header {
+    -fx-background-color: #f8f9fa;
+    -fx-border-color: #dee2e6;
+    -fx-border-width: 0 0 1px 0;
+    -fx-border-radius: 5px 5px 0 0;
+}
+
+.chapter-editor-title {
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+}
+
+/* Chapter-Editor TextArea Styling */
+.chapter-editor-panel .text-area {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.chapter-editor-panel .text-area .content {
+    -fx-background-color: transparent;
+}
+
+.chapter-editor-text-area {
+    -fx-background-color: inherit;
+    -fx-text-fill: inherit;
+    -fx-control-inner-background: inherit;
+    -fx-prompt-text-fill: inherit;
+}
+
+.chapter-editor-text-area .content {
+    -fx-background-color: inherit;
+    -fx-text-fill: inherit;
+}
+
+/* Theme-spezifische Chapter-Editor Styles */
+.weiss-theme .chapter-editor-panel {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #cccccc;
+}
+
+.weiss-theme .chapter-editor-header {
+    -fx-background-color: #f8f9fa;
+    -fx-border-color: #dee2e6;
+}
+
+.weiss-theme .chapter-editor-title {
+    -fx-text-fill: #000000;
+}
+
+.weiss-theme .chapter-editor-panel .text-area,
+.weiss-theme .chapter-editor-panel .text-area .content,
+.weiss-theme .chapter-editor-text-area,
+.weiss-theme .chapter-editor-text-area .content {
+    -fx-control-inner-background: #ffffff;
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #000000;
+    -fx-prompt-text-fill: #666666;
+}
+
+.theme-dark .chapter-editor-panel {
+    -fx-background-color: #2d3748;
+    -fx-border-color: #4a5568;
+}
+
+.theme-dark .chapter-editor-header {
+    -fx-background-color: #4a5568;
+    -fx-border-color: #718096;
+}
+
+.theme-dark .chapter-editor-title {
+    -fx-text-fill: #ffffff;
+}
+
+.theme-dark .chapter-editor-panel .text-area,
+.theme-dark .chapter-editor-panel .text-area .content,
+.theme-dark .chapter-editor-text-area,
+.theme-dark .chapter-editor-text-area .content {
+    -fx-control-inner-background: #2d3748;
+    -fx-background-color: #2d3748;
+    -fx-text-fill: #ffffff;
+    -fx-prompt-text-fill: #a0aec0;
+}
+
+.theme-dark.blau-theme .chapter-editor-panel {
+    -fx-background-color: #1a365d;
+    -fx-border-color: #2d5a87;
+}
+
+.theme-dark.blau-theme .chapter-editor-header {
+    -fx-background-color: #2d5a87;
+    -fx-border-color: #4a7cba;
+}
+
+.theme-dark.blau-theme .chapter-editor-panel .text-area,
+.theme-dark.blau-theme .chapter-editor-panel .text-area .content {
+    -fx-control-inner-background: #1a365d;
+    -fx-background-color: #1a365d;
+    -fx-text-fill: #ffffff;
+    -fx-prompt-text-fill: #93c5fd;
+}
+
+.theme-dark.gruen-theme .chapter-editor-panel {
+    -fx-background-color: #064e3b;
+    -fx-border-color: #065f46;
+}
+
+.theme-dark.gruen-theme .chapter-editor-header {
+    -fx-background-color: #065f46;
+    -fx-border-color: #047857;
+}
+
+.theme-dark.gruen-theme .chapter-editor-panel .text-area,
+.theme-dark.gruen-theme .chapter-editor-panel .text-area .content {
+    -fx-control-inner-background: #064e3b;
+    -fx-background-color: #064e3b;
+    -fx-text-fill: #ffffff;
+    -fx-prompt-text-fill: #6ee7b7;
+}
+
+.theme-dark.lila-theme .chapter-editor-panel {
+    -fx-background-color: #2d1b69;
+    -fx-border-color: #4a2b8a;
+}
+
+.theme-dark.lila-theme .chapter-editor-header {
+    -fx-background-color: #4a2b8a;
+    -fx-border-color: #6b46c1;
+}
+
+.theme-dark.lila-theme .chapter-editor-panel .text-area,
+.theme-dark.lila-theme .chapter-editor-panel .text-area .content {
+    -fx-control-inner-background: #2d1b69;
+    -fx-background-color: #2d1b69;
+    -fx-text-fill: #ffffff;
+    -fx-prompt-text-fill: #c084fc;
+}
+
+.pastell-theme .chapter-editor-panel {
+    -fx-background-color: #fefefe;
+    -fx-border-color: #e2e8f0;
+}
+
+.pastell-theme .chapter-editor-header {
+    -fx-background-color: #f7fafc;
+    -fx-border-color: #e2e8f0;
+}
+
+.pastell-theme .chapter-editor-title {
+    -fx-text-fill: #2d3748;
+}
+
+.pastell-theme .chapter-editor-panel .text-area,
+.pastell-theme .chapter-editor-panel .text-area .content,
+.pastell-theme .chapter-editor-text-area,
+.pastell-theme .chapter-editor-text-area .content {
+    -fx-control-inner-background: #fefefe;
+    -fx-background-color: #fefefe;
+    -fx-text-fill: #2d3748;
+    -fx-prompt-text-fill: #718096;
+}
+
+/* ========================================
+   LEERE TABLEVIEWS - Überschreibt weißen Standard-Hintergrund
+   ======================================== */
+
+/* Spezielle Regeln für leere TableViews - diese überschreiben den weißen Standard-Hintergrund */
+.table-view:empty {
+    -fx-background-color: inherit !important;
+}
+
+/* Spezifische Regeln für leere TableViews in verschiedenen Themes */
+.theme-dark .table-view:empty {
+    -fx-background-color: #2d2d2d !important;
+}
+
+.theme-dark.blau-theme .table-view:empty {
+    -fx-background-color: #1e40af !important;
+}
+
+.theme-dark.gruen-theme .table-view:empty {
+    -fx-background-color: #065f46 !important;
+}
+
+.theme-dark.lila-theme .table-view:empty {
+    -fx-background-color: #5b21b6 !important;
+}
+
+.pastell-theme .table-view:empty {
+    -fx-background-color: #ffffff !important;
+}
+
+.weiss-theme .table-view:empty {
+    -fx-background-color: #ffffff !important;
 }
 

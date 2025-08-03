@@ -120,11 +120,39 @@ public class OllamaService {
     }
     
     public OllamaService() {
+        logger.info("DEBUG: OllamaService Konstruktor aufgerufen");
+        
         this.httpClient = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(30))
                 .version(HttpClient.Version.HTTP_1_1)
                 .followRedirects(HttpClient.Redirect.NORMAL)
                 .build();
+        
+        // Parameter aus der properties-Datei laden und in Instanzvariablen speichern
+        logger.info("DEBUG: Rufe loadParametersFromProperties() auf");
+        loadParametersFromProperties();
+        logger.info("DEBUG: loadParametersFromProperties() abgeschlossen");
+    }
+    
+    /**
+     * Lädt alle Parameter aus der parameters.properties und speichert sie in den Instanzvariablen
+     */
+    private void loadParametersFromProperties() {
+        logger.info("DEBUG: Lade Parameter aus properties.properties...");
+        
+        double temp = ResourceManager.getDoubleParameter("ollama.temperature", 0.3);
+        int tokens = ResourceManager.getIntParameter("ollama.max_tokens", 2048);
+        double topP = ResourceManager.getDoubleParameter("ollama.top_p", 0.7);
+        double penalty = ResourceManager.getDoubleParameter("ollama.repeat_penalty", 1.3);
+        
+        logger.info("DEBUG: Geladene Werte - Temperature: " + temp + ", MaxTokens: " + tokens + ", TopP: " + topP + ", RepeatPenalty: " + penalty);
+        
+        this.temperature = temp;
+        this.maxTokens = tokens;
+        this.topP = topP;
+        this.repeatPenalty = penalty;
+        
+        logger.info("Parameter aus properties.properties geladen: " + getCurrentParameters());
     }
     
     /**
@@ -141,6 +169,9 @@ public class OllamaService {
     public void setTemperature(double temperature) {
         this.temperature = Math.max(0.0, Math.min(2.0, temperature));
         logger.info("Temperatur gesetzt: " + this.temperature);
+        
+        // In properties-Datei speichern
+        ResourceManager.saveParameter("ollama.temperature", String.valueOf(this.temperature));
     }
     
     /**
@@ -149,6 +180,9 @@ public class OllamaService {
     public void setMaxTokens(int maxTokens) {
         this.maxTokens = Math.max(1, Math.min(8192, maxTokens));
         logger.info("Max Tokens gesetzt: " + this.maxTokens);
+        
+        // In properties-Datei speichern
+        ResourceManager.saveParameter("ollama.max_tokens", String.valueOf(this.maxTokens));
     }
     
     /**
@@ -157,6 +191,9 @@ public class OllamaService {
     public void setTopP(double topP) {
         this.topP = Math.max(0.0, Math.min(1.0, topP));
         logger.info("Top-P gesetzt: " + this.topP);
+        
+        // In properties-Datei speichern
+        ResourceManager.saveParameter("ollama.top_p", String.valueOf(this.topP));
     }
     
     /**
@@ -165,6 +202,9 @@ public class OllamaService {
     public void setRepeatPenalty(double repeatPenalty) {
         this.repeatPenalty = Math.max(0.0, Math.min(2.0, repeatPenalty));
         logger.info("Repeat Penalty gesetzt: " + this.repeatPenalty);
+        
+        // In properties-Datei speichern
+        ResourceManager.saveParameter("ollama.repeat_penalty", String.valueOf(this.repeatPenalty));
     }
     
     /**
@@ -173,6 +213,21 @@ public class OllamaService {
     public String getCurrentParameters() {
         return String.format("Modell: %s, Temperatur: %.2f, Max Tokens: %d, Top-P: %.2f, Repeat Penalty: %.2f",
                 currentModel, temperature, maxTokens, topP, repeatPenalty);
+    }
+    
+    /**
+     * Setzt alle Parameter auf einmal und speichert sie in der properties-Datei
+     */
+    public void setAllParameters(double temperature, int maxTokens, double topP, double repeatPenalty) {
+        this.temperature = Math.max(0.0, Math.min(2.0, temperature));
+        this.maxTokens = Math.max(1, Math.min(8192, maxTokens));
+        this.topP = Math.max(0.0, Math.min(1.0, topP));
+        this.repeatPenalty = Math.max(0.0, Math.min(2.0, repeatPenalty));
+        
+        logger.info("Alle Parameter gesetzt: " + getCurrentParameters());
+        
+        // Alle Parameter in properties-Datei speichern
+        ResourceManager.saveOllamaParameters(this.temperature, this.maxTokens, this.topP, this.repeatPenalty);
     }
     
     /**
@@ -187,15 +242,19 @@ public class OllamaService {
      * Verwendet niedrigere Temperatur und höhere Repeat Penalty um Schleifen zu vermeiden
      */
     public CompletableFuture<String> chatWithTrainedModel(String message, String context) {
-        // Spezielle Parameter für trainierte Modelle
+        // Parameter aus der properties-Datei laden
         double originalTemp = temperature;
         double originalTopP = topP;
         double originalRepeatPenalty = repeatPenalty;
         
-        // Optimierte Parameter für trainierte Modelle
-        setTemperature(0.3);  // Sehr niedrig für konsistente Ausgaben
-        setTopP(0.7);         // Reduziert für mehr Fokus
-        setRepeatPenalty(1.4); // Höher für bessere Schleifenvermeidung
+        // Optimierte Parameter für trainierte Modelle (aus properties oder Standard)
+        double trainedTemp = ResourceManager.getDoubleParameter("ollama.temperature", 0.3);
+        double trainedTopP = ResourceManager.getDoubleParameter("ollama.top_p", 0.7);
+        double trainedRepeatPenalty = ResourceManager.getDoubleParameter("ollama.repeat_penalty", 1.4);
+        
+        setTemperature(trainedTemp);
+        setTopP(trainedTopP);
+        setRepeatPenalty(trainedRepeatPenalty);
         
         CompletableFuture<String> result = chat(message, context);
         
@@ -213,6 +272,12 @@ public class OllamaService {
      * Generiert Text mit Kontext und aktuellen Parametern
      */
     public CompletableFuture<String> generateText(String prompt, String context) {
+        // Parameter aus den Instanzvariablen verwenden (die bereits aus properties geladen wurden)
+        int maxTokens = this.maxTokens;
+        double temperature = this.temperature;
+        double topP = this.topP;
+        double repeatPenalty = this.repeatPenalty;
+        
         // Erstelle vollständigen Prompt mit Kontext
         String fullPrompt = prompt;
         if (context != null && !context.trim().isEmpty()) {
@@ -228,6 +293,7 @@ public class OllamaService {
         );
         
         // Debug-Logging für JSON
+        logger.info("DEBUG: Verwende Parameter - Temperature: " + temperature + ", MaxTokens: " + maxTokens + ", TopP: " + topP + ", RepeatPenalty: " + repeatPenalty);
         logger.info("Sende JSON an Ollama: " + json);
         
         return sendRequest(GENERATE_ENDPOINT, json)
@@ -238,18 +304,28 @@ public class OllamaService {
      * Generiert Text mit spezifischen Parametern (Legacy-Methode)
      */
     public CompletableFuture<String> generateText(String prompt, int maxTokens, double temperature) {
+        // Zusätzliche Parameter aus der properties-Datei laden
+        double topP = ResourceManager.getDoubleParameter("ollama.top_p", 0.7);
+        double repeatPenalty = ResourceManager.getDoubleParameter("ollama.repeat_penalty", 1.3);
+        
         // Temporär Parameter setzen
         int originalMaxTokens = this.maxTokens;
         double originalTemperature = this.temperature;
+        double originalTopP = this.topP;
+        double originalRepeatPenalty = this.repeatPenalty;
         
         this.maxTokens = maxTokens;
         this.temperature = temperature;
+        this.topP = topP;
+        this.repeatPenalty = repeatPenalty;
         
         CompletableFuture<String> result = generateText(prompt, null);
         
         // Parameter zurücksetzen
         this.maxTokens = originalMaxTokens;
         this.temperature = originalTemperature;
+        this.topP = originalTopP;
+        this.repeatPenalty = originalRepeatPenalty;
         
         return result;
     }
@@ -258,6 +334,12 @@ public class OllamaService {
      * Chat-Funktion für kreatives Schreiben
      */
     public CompletableFuture<String> chat(String message, String context) {
+        // Parameter aus den Instanzvariablen verwenden (die bereits aus properties geladen wurden)
+        int maxTokens = this.maxTokens;
+        double temperature = this.temperature;
+        double topP = this.topP;
+        double repeatPenalty = this.repeatPenalty;
+        
         String systemPrompt = "Du bist ein kreativer Schreibassistent. Antworte auf Deutsch und sei hilfreich für das kreative Schreiben.";
         
         // Erstelle vollständigen Kontext
@@ -468,7 +550,7 @@ public class OllamaService {
     /**
      * Überprüft, ob Ollama läuft
      */
-    public CompletableFuture<Boolean> isOllamaRunning() {
+        public CompletableFuture<Boolean> isOllamaRunning() {
         return sendGetRequest("/api/tags")
                 .thenApply(response -> !response.contains("error"))
                 .exceptionally(ex -> {

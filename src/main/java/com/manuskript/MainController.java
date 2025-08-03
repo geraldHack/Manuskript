@@ -109,6 +109,20 @@ public class MainController implements Initializable {
         loadLastDirectory();
         loadRecentRegexList();
         
+        // CSS initial laden
+        Platform.runLater(() -> {
+            if (mainContainer != null && mainContainer.getScene() != null) {
+                String cssPath = ResourceManager.getCssResource("css/editor.css");
+                if (cssPath != null) {
+                    mainContainer.getScene().getStylesheets().add(cssPath);
+                }
+                String stylesCssPath = ResourceManager.getCssResource("css/styles.css");
+                if (stylesCssPath != null) {
+                    mainContainer.getScene().getStylesheets().add(stylesCssPath);
+                }
+            }
+        });
+        
         // WICHTIG: Gespeichertes Theme laden und anwenden
         loadSavedTheme();
     }
@@ -150,6 +164,10 @@ public class MainController implements Initializable {
         
         // Sortierung
         sortedAvailableFiles.comparatorProperty().bind(tableViewAvailable.comparatorProperty());
+        
+        // TableViews direkt stylen - vor CSS-Ladung
+        tableViewAvailable.setStyle("-fx-background-color: #ffffff; -fx-text-fill: #000000; -fx-border-color: #ba68c8;");
+        tableViewSelected.setStyle("-fx-background-color: #ffffff; -fx-text-fill: #000000; -fx-border-color: #ba68c8;");
         
         // Status initialisieren
         updateStatus("Bereit - Wählen Sie ein Verzeichnis aus");
@@ -596,6 +614,9 @@ public class MainController implements Initializable {
             for (DocxFile docxFile : files) {
                 updateStatus("Verarbeite: " + docxFile.getFileName());
                 
+                // Erstelle Roman-Ordner und TXT-Dateien
+                NovelManager.initializeNovelFolder(docxFile.getFile().getAbsolutePath());
+                
                 String content = docxProcessor.processDocxFileContent(docxFile.getFile(), processed + 1, format);
                 result.append(content).append("\n\n");
                 
@@ -610,8 +631,23 @@ public class MainController implements Initializable {
             }
             
             // Öffne den Editor mit dem verarbeiteten Text
-            // Verwende den Namen der ersten Datei als Basis für den Dateinamen
-            String baseFileName = files.isEmpty() ? "manuskript" : files.get(0).getFileName();
+            // Verwende den Namen des Verzeichnisses als Basis für den Dateinamen
+            String baseFileName;
+            if (files.isEmpty()) {
+                baseFileName = "manuskript";
+            } else {
+                // Verwende den Namen des Verzeichnisses statt der ersten Datei
+                String directoryPath = files.get(0).getFile().getParent();
+                File directory = new File(directoryPath);
+                baseFileName = directory.getName();
+            }
+            
+            // Speichere den Pfad zum DOCX-Verzeichnis für den NovelManager
+            if (!files.isEmpty()) {
+                String docxDirectory = files.get(0).getFile().getParent();
+                ResourceManager.saveParameter("ui.last_docx_directory", docxDirectory);
+            }
+            
             openEditor(result.toString(), baseFileName);
             updateStatus(processed + " Dateien erfolgreich verarbeitet - Editor geöffnet");
             
@@ -630,15 +666,32 @@ public class MainController implements Initializable {
             EditorWindow editorController = loader.getController();
             editorController.setText(text);
             
-            // Erstelle eine virtuelle Datei mit dem ursprünglichen Namen
-            File virtualFile = new File(baseFileName);
-            editorController.setCurrentFile(virtualFile);
-            
             // Setze das aktuelle Format für die Dateiendung
             DocxProcessor.OutputFormat currentFormat = cmbOutputFormat.getValue();
             if (currentFormat != null) {
                 editorController.setOutputFormat(currentFormat);
             }
+            
+            // Erstelle eine virtuelle Datei mit dem vollständigen Pfad
+            String currentDirectory = txtDirectoryPath.getText();
+            // Füge die korrekte Dateiendung basierend auf dem Format hinzu
+            String fileExtension = "";
+            if (currentFormat != null) {
+                switch (currentFormat) {
+                    case MARKDOWN:
+                        fileExtension = ".md";
+                        break;
+                    case PLAIN_TEXT:
+                        fileExtension = ".txt";
+                        break;
+                    case HTML:
+                    default:
+                        fileExtension = ".html";
+                        break;
+                }
+            }
+            File virtualFile = new File(currentDirectory, baseFileName + fileExtension);
+            editorController.setCurrentFile(virtualFile);
             
             // Übergebe den DocxProcessor für DOCX-Export
             editorController.setDocxProcessor(docxProcessor);
@@ -650,10 +703,10 @@ public class MainController implements Initializable {
             editorStage.setTitle("Manuskript Editor");
             editorStage.setScene(new Scene(root));
             // CSS mit ResourceManager laden
-        String cssPath = ResourceManager.getCssResource("css/editor.css");
-        if (cssPath != null) {
-            editorStage.getScene().getStylesheets().add(cssPath);
-        }
+            String cssPath = ResourceManager.getCssResource("css/editor.css");
+            if (cssPath != null) {
+                editorStage.getScene().getStylesheets().add(cssPath);
+            }
             
             // Fenster-Größe und Position
             editorStage.setMinWidth(800);
@@ -817,26 +870,7 @@ public class MainController implements Initializable {
         String backgroundColor = theme[0];
         String textColor = theme[1];
         
-        // Root-Container Theme anwenden (direkt, ohne Platform.runLater für bessere Performance)
-        if (mainContainer.getScene() != null && mainContainer.getScene().getWindow() != null) {
-            Node root = mainContainer.getScene().getRoot();
-            root.getStyleClass().removeAll("theme-dark", "theme-light", "blau-theme", "gruen-theme", "lila-theme", "weiss-theme", "pastell-theme");
-            if (themeIndex == 0) { // Weiß - Eigene CSS-Klasse
-                root.getStyleClass().add("weiss-theme");
-            } else if (themeIndex == 1 || themeIndex >= 3) { // Dunkle Themes: Schwarz (1), Blau (3), Grün (4), Lila (5)
-                root.getStyleClass().add("theme-dark");
-                // Spezifische Theme-Klassen für dunkle Themes
-                if (themeIndex == 3) { // Blau
-                    root.getStyleClass().add("blau-theme");
-                } else if (themeIndex == 4) { // Grün
-                    root.getStyleClass().add("gruen-theme");
-                } else if (themeIndex == 5) { // Lila
-                    root.getStyleClass().add("lila-theme");
-                }
-            } else if (themeIndex == 2) { // Pastell - Eigene CSS-Klasse
-                root.getStyleClass().add("pastell-theme");
-            }
-        }
+        // Root-Container Theme wird jetzt im CSS-Refresh-Bereich angewendet
         
         // Alle UI-Elemente das Theme geben (direkt, ohne Platform.runLater)
         applyThemeToNode(mainContainer, themeIndex);
@@ -857,14 +891,79 @@ public class MainController implements Initializable {
         applyThemeToNode(tableViewAvailable, themeIndex);
         applyThemeToNode(tableViewSelected, themeIndex);
         
-        // Force CSS refresh
+        // Force CSS refresh - erst Theme-Klassen setzen, dann CSS laden
         if (mainContainer.getScene() != null) {
+            // Erst alle Theme-Klassen entfernen und neue setzen
+            Node root = mainContainer.getScene().getRoot();
+            root.getStyleClass().removeAll("theme-dark", "theme-light", "blau-theme", "gruen-theme", "lila-theme", "weiss-theme", "pastell-theme");
+            
+            // Direkte inline Styles für Pastell-Theme
+            if (themeIndex == 2) { // Pastell
+                root.setStyle("-fx-background-color:rgb(115, 112, 115); -fx-text-fill: #000000;");
+                mainContainer.setStyle("-fx-background-color: #f3e5f5; -fx-text-fill: #000000;");
+                // TableViews direkt stylen
+                Platform.runLater(() -> {
+                    tableViewAvailable.setStyle("-fx-background-color: rgb(115, 112, 115);; -fx-text-fill: #000000; -fx-border-color: #ba68c8;");
+                    tableViewSelected.setStyle("-fx-background-color: rgb(115, 112, 115);; -fx-text-fill: #000000; -fx-border-color: #ba68c8;");
+                });
+                logger.info("Pastell-Theme direkt angewendet");
+            } else {
+                root.setStyle(""); // Style zurücksetzen
+                mainContainer.setStyle(""); // Style zurücksetzen
+
+                
+                if (themeIndex == 0) { // Weiß - Eigene CSS-Klasse
+                    tableViewAvailable.setStyle("-fx-background-color: rgb(115, 112, 115);; -fx-text-fill: #000000; -fx-border-color: #ba68c8;");
+                    tableViewSelected.setStyle("-fx-background-color: rgb(115, 112, 115);; -fx-text-fill: #000000; -fx-border-color: #ba68c8;");
+                    root.getStyleClass().add("weiss-theme");
+                } else if (themeIndex == 1) { // Schwarz
+                    tableViewAvailable.setStyle("-fx-background-color: rgb(115, 112, 115);; -fx-text-fill: #000000; -fx-border-color: #ba68c8;");
+                    tableViewSelected.setStyle("-fx-background-color: rgb(115, 112, 115); -fx-text-fill: #000000; -fx-border-color: #ba68c8;");
+                    root.getStyleClass().add("theme-dark");
+                } else if (themeIndex == 3) { // Blau
+                    tableViewAvailable.setStyle("-fx-background-color: rgb(115, 112, 115); -fx-text-fill: #000000; -fx-border-color: #ba68c8;");
+                    tableViewSelected.setStyle("-fx-background-color: rgb(115, 112, 115); -fx-text-fill: #000000; -fx-border-color: #ba68c8;");
+                    root.getStyleClass().add("theme-dark");
+                    root.getStyleClass().add("blau-theme");
+                } else if (themeIndex == 4) { // Grün
+                    tableViewAvailable.setStyle("-fx-background-color: rgb(115, 112, 115); -fx-text-fill: #000000; -fx-border-color: #ba68c8;");
+                    tableViewSelected.setStyle("-fx-background-color: rgb(115, 112, 115); -fx-text-fill: #000000; -fx-border-color: #ba68c8;");
+                    root.getStyleClass().add("theme-dark");
+                    root.getStyleClass().add("gruen-theme");
+                } else if (themeIndex == 5) { // Lila
+                    tableViewAvailable.setStyle("-fx-background-color:rgb(115, 112, 115); -fx-text-fill: #000000; -fx-border-color: #ba68c8;");
+                    tableViewSelected.setStyle("-fx-background-color: rgb(115, 112, 115); -fx-text-fill: #000000; -fx-border-color: #ba68c8;");
+                    root.getStyleClass().add("theme-dark");
+                    root.getStyleClass().add("lila-theme");
+                }
+            }
+            
+            // Dann CSS laden
             mainContainer.getScene().getStylesheets().clear();
             // CSS mit ResourceManager laden
-        String cssPath = ResourceManager.getCssResource("css/editor.css");
-        if (cssPath != null) {
-            mainContainer.getScene().getStylesheets().add(cssPath);
-        }
+            String cssPath = ResourceManager.getCssResource("css/editor.css");
+            if (cssPath != null) {
+                mainContainer.getScene().getStylesheets().add(cssPath);
+                logger.info("CSS geladen: {}", cssPath);
+            } else {
+                logger.warn("CSS-Datei editor.css nicht gefunden!");
+            }
+            // Auch styles.css laden für vollständige Theme-Unterstützung
+            String stylesCssPath = ResourceManager.getCssResource("css/styles.css");
+            if (stylesCssPath != null) {
+                mainContainer.getScene().getStylesheets().add(stylesCssPath);
+                logger.info("CSS geladen: {}", stylesCssPath);
+            } else {
+                logger.warn("CSS-Datei styles.css nicht gefunden!");
+            }
+            
+            // TableViews NACH CSS-Ladung stylen
+            tableViewAvailable.setStyle("-fx-background-color:rgb(68, 101, 109); -fx-text-fill: #000000; -fx-border-color: #ba68c8;");
+            tableViewSelected.setStyle("-fx-background-color:rgb(178, 36, 36); -fx-text-fill: #000000; -fx-border-color: #ba68c8;");
+            
+            // Debug: Aktuelle Stylesheets ausgeben
+            logger.info("Aktuelle Stylesheets: {}", mainContainer.getScene().getStylesheets());
+            logger.info("Root StyleClasses: {}", mainContainer.getScene().getRoot().getStyleClass());
         }
     }
     
