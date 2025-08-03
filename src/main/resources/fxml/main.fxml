@@ -102,8 +102,8 @@
                    <Tooltip text="Theme wechseln" />
                 </tooltip>
              </Button>
-            <Button fx:id="btnProcessSelected" text="Ausgewählte verarbeiten" />
-            <Button fx:id="btnProcessAll" text="Alle verarbeiten" />
+            <Button fx:id="btnProcessSelected" text="Gesamtdokument erstellen" prefWidth="200.0" />
+            <Button fx:id="btnProcessAll" text="Kapitel bearbeiten" prefWidth="150.0" />
          </children>
          <padding>
             <Insets bottom="5.0" left="10.0" right="10.0" />

@@ -31,6 +31,17 @@
          </padding>
       </HBox>
       
+      <!-- NEU: Titelbalken mit Dateinamen -->
+      <HBox spacing="5" styleClass="title-bar" style="-fx-min-height: 35px; -fx-background-color: #2c3e50; -fx-border-color: #34495e; -fx-border-width: 0 0 1 0;">
+         <children>
+            <Label fx:id="lblWindowTitle" text="📄 Dokument" styleClass="window-title-label" style="-fx-text-fill: #ffffff; -fx-font-size: 16px; -fx-font-weight: bold;" />
+            <Region HBox.hgrow="ALWAYS" />
+         </children>
+         <padding>
+            <Insets top="8.0" bottom="8.0" left="15.0" right="15.0" />
+         </padding>
+      </HBox>
+      
       <!-- Neue einfache Toolbar für Textgröße -->
       <HBox spacing="5" styleClass="font-toolbar" style="-fx-min-height: 30px;">
          <children>
