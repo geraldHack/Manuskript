@@ -24,7 +24,18 @@ public class Main extends Application {
             controller.setPrimaryStage(primaryStage);
             
             Scene scene = new Scene(root, 1200, 800);
-            scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
+            // Config-Ordner initialisieren (muss vor allen Ressourcen-Aufrufen passieren)
+        ResourceManager.initializeConfigDirectory();
+        
+        // CSS mit ResourceManager laden - WICHTIG: editor.css NACH styles.css laden
+        String stylesCssPath = ResourceManager.getCssResource("css/styles.css");
+        String editorCssPath = ResourceManager.getCssResource("css/editor.css");
+        if (stylesCssPath != null) {
+            scene.getStylesheets().add(stylesCssPath);
+        }
+        if (editorCssPath != null) {
+            scene.getStylesheets().add(editorCssPath);
+        }
             
             primaryStage.setTitle("Manuskript - DOCX Verarbeitung");
             primaryStage.setScene(scene);

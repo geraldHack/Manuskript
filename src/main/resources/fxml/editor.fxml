@@ -21,6 +21,7 @@
             <Button fx:id="btnToggleSearch" text="Suchen/Ersetzen" styleClass="button" />
             <Button fx:id="btnToggleMacro" text="Makros" styleClass="button" />
             <Button fx:id="btnTextAnalysis" text="Textanalyse" styleClass="button" />
+            <Button fx:id="btnKIAssistant" text="🤖 KI-Assistent" styleClass="button" />
             
             <Region HBox.hgrow="ALWAYS" />
             
