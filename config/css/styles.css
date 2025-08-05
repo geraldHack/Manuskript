@@ -256,6 +256,62 @@
     -fx-text-fill: white;
 }
 
+/* ========================================
+   PLACEHOLDER-STYLING (Leere Tabellen)
+   ======================================== */
+
+/* Standard Placeholder (Weißes Theme) */
+.table-view .placeholder {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #dee2e6;
+    -fx-border-width: 1px;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+}
+
+.table-view .placeholder .label {
+    -fx-text-fill: #6c757d;
+    -fx-font-size: 14px;
+    -fx-font-style: italic;
+}
+
+/* Theme-spezifische Placeholder-Regeln */
+.theme-dark .table-view .placeholder {
+    -fx-background-color: #2d3748;
+    -fx-border-color: #4a5568;
+}
+
+.theme-dark .table-view .placeholder .label {
+    -fx-text-fill: #e2e8f0;
+}
+
+.theme-4 .table-view .placeholder {
+    -fx-background-color: #064e3b;
+    -fx-border-color: #047857;
+}
+
+.theme-4 .table-view .placeholder .label {
+    -fx-text-fill: #d1fae5;
+}
+
+.theme-5 .table-view .placeholder {
+    -fx-background-color: #1e3a8a;
+    -fx-border-color: #3b82f6;
+}
+
+.theme-5 .table-view .placeholder .label {
+    -fx-text-fill: #dbeafe;
+}
+
+.theme-6 .table-view .placeholder {
+    -fx-background-color: #581c87;
+    -fx-border-color: #8b5cf6;
+}
+
+.theme-6 .table-view .placeholder .label {
+    -fx-text-fill: #f3e8ff;
+}
+
 /* Theme-spezifische Tabellen-Regeln */
 .theme-dark .table-view {
     -fx-background-color: #2d3748 !important;

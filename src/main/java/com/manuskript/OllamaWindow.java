@@ -109,6 +109,15 @@ public class OllamaWindow {
 
     private VBox lowerPanel;
     
+    // Labels und Ergebnis-TextArea für dynamisches Layout
+    private Label inputLabel;
+    private Label chatLabel;
+    private Label contextLabel;
+    private Label resultLabel;
+    private TextArea resultArea;
+    
+    // Flag entfernt - nicht mehr benötigt
+    
     public OllamaWindow() {
         this.ollamaService = new OllamaService();
         createWindow();
@@ -117,8 +126,10 @@ public class OllamaWindow {
     private void createWindow() {
         stage = new Stage();
         stage.setTitle("KI-Assistent - Ollama");
+        stage.setWidth(800);   // Standard-Breite (schmaler gemacht)
+        stage.setHeight(1100);  // Standard-Höhe (höher gemacht)
         stage.setMinWidth(400);
-        stage.setMinHeight(400);
+        stage.setMinHeight(700);
         stage.initStyle(StageStyle.DECORATED);
         
         // Haupt-Layout
@@ -141,8 +152,12 @@ public class OllamaWindow {
         modelBox.setAlignment(Pos.CENTER_LEFT);
         
         Label modelLabel = new Label("Modell:");
+        modelLabel.setPrefWidth(120);
+        modelLabel.setMinWidth(120);
+        modelLabel.setMaxWidth(120);
         modelComboBox = new ComboBox<>();
         modelComboBox.setPromptText("Lade Modelle...");
+        modelComboBox.setPrefWidth(200);
         
         // Modelle dynamisch laden
         loadAvailableModels();
@@ -159,9 +174,12 @@ public class OllamaWindow {
         functionBox.setAlignment(Pos.CENTER_LEFT);
         
         Label functionLabel = new Label("Funktion:");
+        functionLabel.setPrefWidth(120);
+        functionLabel.setMinWidth(120);
+        functionLabel.setMaxWidth(120);
         functionComboBox = new ComboBox<>();
+        functionComboBox.setPrefWidth(200);
         functionComboBox.getItems().addAll(
-            "Freier Text",
             "Dialog generieren",
             "Beschreibung erweitern", 
             "Plot-Ideen entwickeln",
@@ -187,6 +205,9 @@ public class OllamaWindow {
         
         double temperatureValue = ResourceManager.getDoubleParameter("ollama.temperature", 0.5);
         temperatureLabel = new Label(String.format("Temperatur: %.2f", temperatureValue));
+        temperatureLabel.setPrefWidth(120);
+        temperatureLabel.setMinWidth(120);
+        temperatureLabel.setMaxWidth(120);
         temperatureSlider = new Slider(0.0, 2.0, temperatureValue);
         temperatureSlider.setShowTickLabels(true);
         temperatureSlider.setShowTickMarks(true);
@@ -206,10 +227,15 @@ public class OllamaWindow {
         
         int maxTokensValue = ResourceManager.getIntParameter("ollama.max_tokens", 2048);
         maxTokensLabel = new Label(String.format("Max Tokens: %d", maxTokensValue));
-        maxTokensSlider = new Slider(100, 4096, maxTokensValue);
+        maxTokensLabel.setPrefWidth(120);
+        maxTokensLabel.setMinWidth(120);
+        maxTokensLabel.setMaxWidth(120);
+        maxTokensSlider = new Slider(100, 32768, maxTokensValue);
+        
+
         maxTokensSlider.setShowTickLabels(true);
         maxTokensSlider.setShowTickMarks(true);
-        maxTokensSlider.setMajorTickUnit(1000);
+        maxTokensSlider.setMajorTickUnit(5000);
         maxTokensSlider.setMinorTickCount(4);
         maxTokensSlider.valueProperty().addListener((obs, oldVal, newVal) -> {
             int tokens = newVal.intValue();
@@ -225,6 +251,9 @@ public class OllamaWindow {
         
         double topPValue = ResourceManager.getDoubleParameter("ollama.top_p", 0.8);
         topPLabel = new Label(String.format("Top-P: %.2f", topPValue));
+        topPLabel.setPrefWidth(120);
+        topPLabel.setMinWidth(120);
+        topPLabel.setMaxWidth(120);
         topPSlider = new Slider(0.0, 1.0, topPValue);
         topPSlider.setShowTickLabels(true);
         topPSlider.setShowTickMarks(true);
@@ -244,6 +273,9 @@ public class OllamaWindow {
         
         double repeatPenaltyValue = ResourceManager.getDoubleParameter("ollama.repeat_penalty", 1.2);
         repeatPenaltyLabel = new Label(String.format("Repeat Penalty: %.2f", repeatPenaltyValue));
+        repeatPenaltyLabel.setPrefWidth(120);
+        repeatPenaltyLabel.setMinWidth(120);
+        repeatPenaltyLabel.setMaxWidth(120);
         repeatPenaltySlider = new Slider(0.0, 2.0, repeatPenaltyValue);
         repeatPenaltySlider.setShowTickLabels(true);
         repeatPenaltySlider.setShowTickMarks(true);
@@ -257,13 +289,33 @@ public class OllamaWindow {
         
         penaltyBox.getChildren().addAll(repeatPenaltyLabel, repeatPenaltySlider);
         
-        parametersBox.getChildren().addAll(tempBox, tokensBox, topPBox, penaltyBox);
+        // Slider in perfekt symmetrischem 2x2 Layout anordnen
+        VBox leftColumn = new VBox(10);
+        leftColumn.setAlignment(Pos.BASELINE_LEFT);
+        leftColumn.setSpacing(10);
+        leftColumn.setPrefWidth(300);
+        leftColumn.getChildren().addAll(tempBox, tokensBox);
+        
+        VBox rightColumn = new VBox(10);
+        rightColumn.setAlignment(Pos.CENTER_LEFT);
+        rightColumn.setSpacing(10);
+        rightColumn.setPrefWidth(300);
+        rightColumn.getChildren().addAll(topPBox, penaltyBox);
+        
+        HBox sliderContainer = new HBox(40);
+        sliderContainer.setAlignment(Pos.CENTER_LEFT);
+        sliderContainer.getChildren().addAll(leftColumn, rightColumn);
+        
+        parametersBox.getChildren().addAll(sliderContainer);
         
         // Modell-Management
         HBox modelManagementBox = new HBox(10);
         modelManagementBox.setAlignment(Pos.CENTER_LEFT);
         
         Label deleteModelLabel = new Label("Modell löschen:");
+        deleteModelLabel.setPrefWidth(120);
+        deleteModelLabel.setMinWidth(120);
+        deleteModelLabel.setMaxWidth(120);      
         deleteModelComboBox = new ComboBox<>();
         deleteModelComboBox.setPromptText("Modell auswählen...");
         deleteModelComboBox.setPrefWidth(200);
@@ -280,6 +332,9 @@ public class OllamaWindow {
         modelInstallationBox.setAlignment(Pos.CENTER_LEFT);
         
         Label installModelLabel = new Label("Modell installieren:");
+        installModelLabel.setPrefWidth(120);
+        installModelLabel.setMinWidth(120);
+        installModelLabel.setMaxWidth(120);
         installModelComboBox = new ComboBox<>();
         installModelComboBox.setPromptText("Modell auswählen...");
         installModelComboBox.setPrefWidth(200);
@@ -451,6 +506,9 @@ public class OllamaWindow {
         trainingModelNameField.setPrefWidth(150);
         
         Label baseModelLabel = new Label("Basis-Modell:");
+        baseModelLabel.setPrefWidth(120);
+        baseModelLabel.setMinWidth(120);
+        baseModelLabel.setMaxWidth(120);
         baseModelComboBox = new ComboBox<>();
         baseModelComboBox.getItems().addAll("mistral:7b-instruct", "gemma3:4b", "llama3.1:8b-instruct");
         baseModelComboBox.setValue("mistral:7b-instruct");
@@ -500,12 +558,13 @@ public class OllamaWindow {
         specialFieldsBox.getChildren().addAll(dialogBox, descBox, plotBox, rewriteBox, trainingBox);
         
         // Eingabe-Bereich
-        Label inputLabel = new Label("Eingabe:");
         inputArea = new TextArea();
         inputArea.setPromptText("Geben Sie hier Ihren Text oder Prompt ein...");
         inputArea.setPrefRowCount(4);
         inputArea.setWrapText(true);
         inputArea.getStyleClass().add("ollama-text-area");
+        
+        // Click-Event für Chatverlauf wird später gesetzt, nach vollständiger Initialisierung
         
         // Buttons
         HBox buttonBox = new HBox(10);
@@ -529,7 +588,6 @@ public class OllamaWindow {
         buttonBox.getChildren().addAll(generateButton, insertButton, progressIndicator, statusLabel);
         
         // Kontext-Bereich (kleiner, da Chat-Verlauf wichtiger ist)
-        Label contextLabel = new Label("Zusätzlicher Kontext (editierbar):");
         contextArea = new TextArea();
         contextArea.setPromptText("Hier können Sie zusätzlichen Kontext eingeben, der bei jeder Anfrage an den Assistenten gesendet wird. " +
             "Z.B. Charaktere, Setting, Stil-Anweisungen, spezielle Anweisungen für den Assistenten, oder allgemeine Regeln für die Antworten. " +
@@ -540,39 +598,64 @@ public class OllamaWindow {
         contextArea.getStyleClass().add("ollama-text-area");
         contextArea.setEditable(true); // Jetzt editierbar
         
-        // Auto-Scroll für Kontext-Bereich
+        // Auto-Scroll für Kontext-Bereich und automatisches Speichern
         contextArea.textProperty().addListener((obs, oldText, newText) -> {
             Platform.runLater(() -> {
                 contextArea.setScrollTop(Double.MAX_VALUE);
                 
                 // Persistiere Kontext-Änderungen in die context.txt
-                String currentDocxFile = getCurrentDocxFileName();
-                if (currentDocxFile != null && !newText.trim().isEmpty()) {
-                    NovelManager.saveContext(currentDocxFile, newText);
+                String docxDirectory = getDocxDirectory();
+                if (docxDirectory != null) {
+                    try {
+                        File contextFile = new File(docxDirectory, "context.txt");
+                        java.nio.file.Files.write(contextFile.toPath(), newText.getBytes("UTF-8"));
+                    } catch (Exception e) {
+                        logger.warning("Fehler beim automatischen Speichern des Contexts: " + e.getMessage());
+                    }
                 }
             });
         });
         
         // Oberen Bereich mit allen Einstellungen füllen
         upperPanel.getChildren().addAll(
-            modelBox,
             functionBox,
-            parametersBox,
+            modelBox,
             modelManagementBox,
-            modelInstallationBox
+            modelInstallationBox,
+            parametersBox
         );
         
         // Unterer Bereich (immer sichtbar) - Chat-Verlauf ist das Hauptfeld
         lowerPanel = new VBox(10);
+        
+        // Labels für dynamische Verwaltung
+        inputLabel = new Label("Eingabe:");
+        chatLabel = new Label("Chat-Verlauf:");
+        contextLabel = new Label("Zusätzlicher Kontext (editierbar):");
+        resultLabel = new Label("Ergebnis:");
+        
+        // Ergebnis-TextArea für "Text umschreiben"
+        resultArea = new TextArea();
+        resultArea.setPromptText("Hier wird das umgeschriebene Ergebnis angezeigt...");
+        resultArea.setPrefRowCount(8);
+        resultArea.setWrapText(true);
+        resultArea.getStyleClass().add("ollama-text-area");
+        resultArea.setEditable(false); // Nur lesbar
+        
+        // Initiale Konfiguration
+        updateLowerPanelLayout("Chat-Assistent", inputLabel, chatLabel, contextLabel, resultLabel, resultArea);
+        
         lowerPanel.getChildren().addAll(
             specialFieldsBox,
             inputLabel,
             inputArea,
             buttonBox,
-            new Label("Chat-Verlauf:"), // Chat-Verlauf ist das Hauptfeld
-            chatHistoryArea, // Chat-Verlauf ist das Hauptfeld
+            chatLabel,
+            chatHistoryArea,
             contextLabel,
-            contextArea
+            contextArea,
+            resultLabel,
+            resultArea
         );
         
         // Chat-Session-Controls in den oberen Bereich (einklappbar)
@@ -619,6 +702,25 @@ public class OllamaWindow {
         
         // Initialisiere UI-Felder basierend auf Standard-Funktion
         updateInputFields();
+        
+                            // Click-Event für Frage-Bereich: Frage-Text in Eingabebox kopieren
+                    chatHistoryArea.getQuestionArea().setOnMouseClicked(e -> {
+                        System.out.println("DEBUG: Frage-Bereich wurde geklickt!");
+                        
+                        // NUR den Frage-Text aus CustomChatArea auslesen
+                        String questionText = chatHistoryArea.getCurrentQuestion();
+                        System.out.println("DEBUG: NUR Frage-Text: '" + questionText + "'");
+                        
+                        // Frage-Text in Eingabebox kopieren und Eingabebox leeren
+                        if (questionText != null && !questionText.trim().isEmpty()) {
+                            // Entferne alle Nummerierungen wie "(14)", "(15)" etc. am Ende
+                            String cleanQuestionText = questionText.replaceAll("\\s*\\(\\d+\\)\\s*$", "").trim();
+                            inputArea.setText(cleanQuestionText);
+                            System.out.println("DEBUG: Frage-Text (ohne Nummerierung) in Eingabebox kopiert: '" + cleanQuestionText + "'");
+                        } else {
+                            System.out.println("DEBUG: Kein Frage-Text gefunden!");
+                        }
+                    });
     }
     
     /**
@@ -638,6 +740,10 @@ public class OllamaWindow {
         contextArea.setPrefRowCount(2); // Noch kleiner gemacht
         contextArea.setMinHeight(60); // Noch kleiner gemacht
         contextArea.setMaxHeight(Double.MAX_VALUE);
+        
+        // Ergebnis-Bereich (für "Text umschreiben" und andere Funktionen)
+        resultArea.setMinHeight(300);
+        resultArea.setMaxHeight(Double.MAX_VALUE);
         
         // Training-Daten
         trainingDataArea.setPrefRowCount(8);
@@ -664,6 +770,140 @@ public class OllamaWindow {
      * Wechselt die Sichtbarkeit des Kontext-Panels
      */
 
+    /**
+     * Passt das Token-Limit basierend auf der ausgewählten Funktion an
+     */
+    private void adjustTokenLimitForFunction(String selectedFunction, String input) {
+        int inputTokens = input.split("\\s+").length; // Grobe Schätzung: 1 Token ≈ 1 Wort
+        int recommendedTokens;
+        
+        switch (selectedFunction) {
+            case "Text umschreiben":
+                // Textumschreibung braucht oft mehr Platz, besonders "Show don't tell"
+                recommendedTokens = Math.max(8192, inputTokens * 3); // Mindestens 8192, sonst 3x Input
+                break;
+                
+            case "Beschreibung erweitern":
+                // Beschreibungen werden oft deutlich länger
+                recommendedTokens = Math.max(6144, inputTokens * 4); // Mindestens 6144, sonst 4x Input
+                break;
+                
+            case "Dialog generieren":
+                // Dialoge können variabel lang sein
+                recommendedTokens = Math.max(4096, inputTokens * 2); // Mindestens 4096, sonst 2x Input
+                break;
+                
+            case "Plot-Ideen entwickeln":
+                // Plot-Ideen brauchen Platz für Entwicklung
+                recommendedTokens = Math.max(6144, inputTokens * 3); // Mindestens 6144, sonst 3x Input
+                break;
+                
+            case "Charakter entwickeln":
+                // Charakterentwicklung braucht viel Platz
+                recommendedTokens = Math.max(8192, inputTokens * 4); // Mindestens 8192, sonst 4x Input
+                break;
+                
+            case "Schreibstil analysieren":
+                // Analysen können detailliert sein
+                recommendedTokens = Math.max(4096, inputTokens * 2); // Mindestens 4096, sonst 2x Input
+                break;
+                
+            case "Chat-Assistent":
+                // Chat braucht moderaten Platz
+                recommendedTokens = Math.max(4096, inputTokens * 2); // Mindestens 4096, sonst 2x Input
+                break;
+                
+            default: // Freier Text
+                recommendedTokens = Math.max(4096, inputTokens * 2); // Standard
+                break;
+        }
+        
+        // Begrenzen auf maximal 32768 Tokens (sicherer Wert für die meisten Modelle)
+        recommendedTokens = Math.min(recommendedTokens, 32768);
+        
+        // Token-Limit setzen (immer, unabhängig vom Slider-Bereich)
+        ollamaService.setMaxTokens(recommendedTokens);
+        
+        // Slider-Wert aktualisieren (nur wenn er im sichtbaren Bereich ist)
+        if (recommendedTokens <= maxTokensSlider.getMax()) {
+            maxTokensSlider.setValue(recommendedTokens);
+        } else {
+            // Wenn der Wert außerhalb des Slider-Bereichs liegt, Slider auf Maximum setzen
+            maxTokensSlider.setValue(maxTokensSlider.getMax());
+        }
+        
+        // Label explizit aktualisieren (da der Slider-Listener nicht ausgelöst wird)
+        maxTokensLabel.setText(String.format("Max Tokens: %d", recommendedTokens));
+        
+        updateStatus("Token-Limit angepasst: " + recommendedTokens + " für " + selectedFunction);
+    }
+    
+    /**
+     * Aktualisiert das Layout des unteren Panels basierend auf der ausgewählten Funktion
+     */
+    private void updateLowerPanelLayout(String selectedFunction, Label inputLabel, Label chatLabel, 
+                                       Label contextLabel, Label resultLabel, TextArea resultArea) {
+        boolean isRewriteMode = "Text umschreiben".equals(selectedFunction);
+        boolean isChatMode = "Chat-Assistent".equals(selectedFunction);
+        
+        if (isRewriteMode) {
+            // Text umschreiben: Eingabe und Kontext anzeigen, Chat ausblenden, Ergebnis anzeigen
+            inputLabel.setText("Original-Text:");
+            inputLabel.setVisible(true);
+            inputArea.setVisible(true);
+            inputArea.setManaged(true);
+            
+            chatLabel.setVisible(false);
+            chatHistoryArea.setVisible(false);
+            chatHistoryArea.setManaged(false);
+            
+            contextLabel.setVisible(true);
+            contextArea.setVisible(true);
+            contextArea.setManaged(true);
+            
+            resultLabel.setVisible(true);
+            resultArea.setVisible(true);
+            resultArea.setManaged(true);
+            
+        } else if (isChatMode) {
+            // Chat-Assistent: Alle Elemente anzeigen
+            inputLabel.setText("Eingabe:");
+            inputLabel.setVisible(true);
+            inputArea.setVisible(true);
+            inputArea.setManaged(true);
+            
+            chatLabel.setVisible(true);
+            chatHistoryArea.setVisible(true);
+            chatHistoryArea.setManaged(true);
+            
+            contextLabel.setVisible(true);
+            contextArea.setVisible(true);
+            contextArea.setManaged(true);
+            
+            resultLabel.setVisible(false);
+            resultArea.setVisible(false);
+            resultArea.setManaged(false);
+            
+        } else {
+            // Andere Funktionen: Eingabe und Ergebnis anzeigen, Chat ausblenden
+            inputLabel.setText("Eingabe:");
+            inputLabel.setVisible(true);
+            inputArea.setVisible(true);
+            inputArea.setManaged(true);
+            
+            chatLabel.setVisible(false);
+            chatHistoryArea.setVisible(false);
+            chatHistoryArea.setManaged(false);
+            
+            contextLabel.setVisible(false);
+            contextArea.setVisible(false);
+            contextArea.setManaged(false);
+            
+            resultLabel.setVisible(true);
+            resultArea.setVisible(true);
+            resultArea.setManaged(true);
+        }
+    }
     
     private void updateInputFields() {
         String selectedFunction = functionComboBox.getValue();
@@ -679,6 +919,26 @@ public class OllamaWindow {
         rewriteBox.setManaged(false);
         trainingBox.setVisible(false);
         trainingBox.setManaged(false);
+        
+        // Chat-Elemente und Eingabe-Elemente für "Text umschreiben" ausblenden
+        boolean isRewriteMode = "Text umschreiben".equals(selectedFunction);
+        boolean isChatMode = "Chat-Assistent".equals(selectedFunction);
+        
+        // Chat-Session-Box nur für Chat-Assistent anzeigen
+        chatSessionBox.setVisible(isChatMode);
+        chatSessionBox.setManaged(isChatMode);
+        
+        // Layout des unteren Panels aktualisieren
+        updateLowerPanelLayout(selectedFunction, inputLabel, chatLabel, contextLabel, resultLabel, resultArea);
+        
+        // Token-Limit basierend auf der ausgewählten Funktion anpassen
+        String currentInput = inputArea.getText();
+        if (currentInput == null) {
+            currentInput = "";
+        }
+        adjustTokenLimitForFunction(selectedFunction, currentInput);
+        
+
         
         // Spezielle Felder nur für bestimmte Funktionen anzeigen
         boolean showSpecialFields = false;
@@ -786,6 +1046,15 @@ public class OllamaWindow {
             return;
         }
         
+        // Token-Limit basierend auf Funktion anpassen
+        adjustTokenLimitForFunction(selectedFunction, input);
+        
+        // DEBUG: Prompt-Zusammensetzung anzeigen
+        System.out.println("=== DEBUG: PROMPT-ZUSAMMENSETZUNG ===");
+        System.out.println("Funktion: " + selectedFunction);
+        System.out.println("Eingabe-Text: '" + input + "'");
+        System.out.println("Eingabe-Länge: " + input.length() + " Zeichen");
+        
         setGenerating(true);
         insertButton.setDisable(true);
         statusLabel.setText("⏳ Anfrage läuft...");
@@ -806,19 +1075,26 @@ public class OllamaWindow {
             
             // Zusätzlichen Kontext aus dem Context-Bereich holen
             String additionalContext = contextArea.getText().trim();
+            System.out.println("DEBUG: Zusätzlicher Kontext (Context-Box): '" + additionalContext + "'");
+            System.out.println("DEBUG: Zusätzlicher Kontext Länge: " + additionalContext.length() + " Zeichen");
             
             // Chat-Historie als Kontext hinzufügen (nur vollständige QAPairs)
             List<CustomChatArea.QAPair> sessionHistory = chatHistoryArea.getSessionHistory();
             StringBuilder contextBuilder = new StringBuilder();
             
+            System.out.println("DEBUG: Chat-Historie: " + sessionHistory.size() + " QAPairs insgesamt");
+            
             if (!sessionHistory.isEmpty()) {
+                int completePairs = 0;
                 for (CustomChatArea.QAPair qaPair : sessionHistory) {
                     // Nur vollständige QAPairs (mit Antworten) als Kontext verwenden
                     if (qaPair.getAnswer() != null && !qaPair.getAnswer().trim().isEmpty()) {
                         contextBuilder.append("Du: ").append(qaPair.getQuestion()).append("\n");
                         contextBuilder.append("Assistent: ").append(qaPair.getAnswer()).append("\n");
+                        completePairs++;
                     }
                 }
+                System.out.println("DEBUG: Vollständige QAPairs als Kontext: " + completePairs);
             }
             
                     // Zusätzlichen Kontext hinzufügen
@@ -828,14 +1104,22 @@ public class OllamaWindow {
         
         // Kontext aus der context.txt des aktuellen Romans laden
         String currentDocxFile = getCurrentDocxFileName();
+        System.out.println("DEBUG: Aktuelle DOCX-Datei: " + currentDocxFile);
+        
         if (currentDocxFile != null) {
             String novelContext = NovelManager.loadContext(currentDocxFile);
+            System.out.println("DEBUG: Roman-Kontext (context.txt): '" + novelContext + "'");
+            System.out.println("DEBUG: Roman-Kontext Länge: " + novelContext.length() + " Zeichen");
+            
             if (!novelContext.trim().isEmpty()) {
                 contextBuilder.append("\n").append("Roman-Kontext:\n").append(novelContext);
             }
         }
             
             String fullContext = contextBuilder.toString();
+            System.out.println("DEBUG: Gesammelter Kontext Länge: " + fullContext.length() + " Zeichen");
+            System.out.println("DEBUG: Gesammelter Kontext: '" + fullContext + "'");
+            
             logger.info("DEBUG: Sende Kontext mit " + sessionHistory.size() + " QAPairs, vollständige: " + 
                        sessionHistory.stream().filter(qa -> qa.getAnswer() != null && !qa.getAnswer().trim().isEmpty()).count());
             
@@ -851,6 +1135,10 @@ public class OllamaWindow {
             fullPromptBuilder.append("Assistent: ");
             
             String fullPrompt = fullPromptBuilder.toString();
+            System.out.println("DEBUG: Vollständiger Prompt Länge: " + fullPrompt.length() + " Zeichen");
+            System.out.println("DEBUG: Vollständiger Prompt: '" + fullPrompt + "'");
+            System.out.println("=== ENDE DEBUG: PROMPT-ZUSAMMENSETZUNG ===");
+            
             logger.info("DEBUG: Vollständiger Prompt: " + fullPrompt.substring(0, Math.min(200, fullPrompt.length())) + "...");
             
             // Direkt generateText verwenden statt chatWithContext
@@ -893,9 +1181,8 @@ public class OllamaWindow {
                 })
                 .exceptionally(ex -> {
                     Platform.runLater(() -> {
-                        contextArea.appendText("\n\n--- Fehler ---\n❌ Fehler: " + ex.getMessage());
+                        updateStatus("Fehler bei Anfrage: " + ex.getMessage());
                         setGenerating(false);
-                        statusLabel.setText("Fehler bei Anfrage");
                     });
                     return null;
                 });
@@ -971,18 +1258,30 @@ public class OllamaWindow {
         if (future != null) {
             future.thenAccept(result -> {
                 Platform.runLater(() -> {
-                    contextArea.appendText("\n\n--- Neue Antwort ---\n" + result);
                     insertButton.setDisable(false);
                     setGenerating(false);
-                    // Eingabe löschen nach erfolgreicher Antwort
-                    inputArea.clear();
-                    updateStatus("Fertig");
+                    
+                    // Ergebnis basierend auf Funktion behandeln
+                    String currentFunction = functionComboBox.getValue();
+                    if ("Text umschreiben".equals(currentFunction)) {
+                        // Bei "Text umschreiben": Ergebnis in resultArea schreiben, Eingabe NICHT löschen
+                        resultArea.setText(result);
+                        updateStatus("Text umgeschrieben: " + result.length() + " Zeichen");
+                    } else if ("Chat-Assistent".equals(currentFunction)) {
+                        // Bei Chat: Eingabe löschen, Ergebnis wird bereits in chatHistoryArea angezeigt
+                        inputArea.clear();
+                        updateStatus("Antwort generiert: " + result.length() + " Zeichen");
+                    } else {
+                        // Bei anderen Funktionen: Ergebnis in resultArea schreiben, Eingabe löschen
+                        resultArea.setText(result);
+                        inputArea.clear();
+                        updateStatus("Ergebnis generiert: " + result.length() + " Zeichen");
+                    }
                 });
             }).exceptionally(ex -> {
                 Platform.runLater(() -> {
-                    contextArea.appendText("\n\n--- Fehler ---\nFehler: " + ex.getMessage());
                     setGenerating(false);
-                    updateStatus("Fehler aufgetreten");
+                    updateStatus("Fehler aufgetreten: " + ex.getMessage());
                 });
                 return null;
             });
@@ -990,14 +1289,30 @@ public class OllamaWindow {
     }
     
     private void insertToEditor() {
-        String generatedText = contextArea.getText();
-        if (!generatedText.isEmpty()) {
+        String selectedFunction = functionComboBox.getValue();
+        String textToInsert = "";
+        
+        if ("Chat-Assistent".equals(selectedFunction)) {
+            // Bei Chat: Verwende den letzten Text aus der Chat-Historie
+            List<CustomChatArea.QAPair> history = chatHistoryArea.getSessionHistory();
+            if (!history.isEmpty()) {
+                CustomChatArea.QAPair lastPair = history.get(history.size() - 1);
+                textToInsert = lastPair.getAnswer();
+            }
+        } else {
+            // Bei anderen Funktionen: Verwende den Text aus der resultArea
+            textToInsert = resultArea.getText();
+        }
+        
+        if (!textToInsert.isEmpty()) {
             if (editorWindow != null) {
-                editorWindow.insertTextFromAI(generatedText);
-                updateStatus("Text in Editor eingefügt");
+                editorWindow.insertTextFromAI(textToInsert);
+                updateStatus("Text in Editor eingefügt: " + textToInsert.length() + " Zeichen");
             } else {
                 showAlert("Fehler", "Keine Verbindung zum Editor verfügbar.");
             }
+        } else {
+            showAlert("Kein Text verfügbar", "Es ist kein Text zum Einfügen verfügbar.");
         }
     }
     
@@ -1243,6 +1558,9 @@ public class OllamaWindow {
     }
     
     public void hide() {
+        // Context speichern bevor das Fenster geschlossen wird
+        saveContextToFile();
+        
         // Alle Sessions speichern bevor das Fenster geschlossen wird
         saveAllSessions();
         stage.hide();
@@ -1417,7 +1735,6 @@ public class OllamaWindow {
         ollamaService.startModelTraining(modelName, baseModel, trainingData, 0, additionalInstructions)
             .thenAccept(result -> {
                 Platform.runLater(() -> {
-                    contextArea.appendText("\n\n--- Training abgeschlossen ---\n" + result);
                     startTrainingButton.setDisable(false);
                     stopTrainingButton.setDisable(true);
                     trainingProgressIndicator.setVisible(false);
@@ -1434,7 +1751,6 @@ public class OllamaWindow {
             })
             .exceptionally(ex -> {
                 Platform.runLater(() -> {
-                    contextArea.appendText("\n\n--- Training-Fehler ---\nTraining-Fehler: " + ex.getMessage());
                     startTrainingButton.setDisable(false);
                     stopTrainingButton.setDisable(true);
                     trainingProgressIndicator.setVisible(false);
@@ -1462,7 +1778,6 @@ public class OllamaWindow {
                     trainingStatusLabel.setText("⏹️ Training gestoppt");
                     trainingStatusLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: #FF9800;");
                     updateStatus("Training gestoppt");
-                    contextArea.appendText("\n\n--- Training gestoppt ---\n");
                     
                     // Training-Bereich zurücksetzen
                     trainingBox.setStyle("");
@@ -1495,30 +1810,32 @@ public class OllamaWindow {
             deleteModelButton.setDisable(true);
             updateStatus("Lösche Modell...");
             
-            // Modell über OllamaService löschen
-            ollamaService.deleteModel(selectedModel)
-                .thenAccept(success -> {
-                    Platform.runLater(() -> {
-                        if (success) {
-                            contextArea.appendText("\n\n--- Modell gelöscht ---\n✅ Modell '" + selectedModel + "' erfolgreich gelöscht");
-                            updateStatus("Modell gelöscht");
-                            // Modell-Listen aktualisieren
-                            loadAvailableModels();
-                        } else {
-                            contextArea.appendText("\n\n--- Löschfehler ---\n❌ Fehler beim Löschen des Modells '" + selectedModel + "'");
-                            updateStatus("Modell-Löschung fehlgeschlagen");
-                        }
-                        deleteModelButton.setDisable(false);
-                    });
-                })
-                .exceptionally(throwable -> {
-                    Platform.runLater(() -> {
-                        contextArea.appendText("\n\n--- Löschfehler ---\n❌ Fehler beim Löschen des Modells: " + throwable.getMessage());
-                        deleteModelButton.setDisable(false);
-                        updateStatus("Modell-Löschung fehlgeschlagen");
-                    });
-                    return null;
-                });
+                         // Modell über OllamaService löschen
+             ollamaService.deleteModel(selectedModel)
+                 .thenAccept(success -> {
+                     Platform.runLater(() -> {
+                         if (success) {
+                             showAlert("Erfolg", "Modell '" + selectedModel + "' wurde erfolgreich gelöscht.");
+                             updateStatus("Modell gelöscht");
+                             // Modell-Listen aktualisieren
+                             loadAvailableModels();
+                             // ComboBox leeren
+                             deleteModelComboBox.setValue(null);
+                         } else {
+                             showAlert("Fehler", "Fehler beim Löschen des Modells '" + selectedModel + "'.");
+                             updateStatus("Modell-Löschung fehlgeschlagen");
+                         }
+                         deleteModelButton.setDisable(false);
+                     });
+                 })
+                 .exceptionally(throwable -> {
+                     Platform.runLater(() -> {
+                         showAlert("Fehler", "Fehler beim Löschen des Modells: " + throwable.getMessage());
+                         deleteModelButton.setDisable(false);
+                         updateStatus("Modell-Löschung fehlgeschlagen");
+                     });
+                     return null;
+                 });
         }
     }
     
@@ -1543,31 +1860,29 @@ public class OllamaWindow {
         ollamaService.installModel(selectedModel)
             .thenAccept(result -> {
                 Platform.runLater(() -> {
-                    contextArea.appendText("\n\n--- Modell-Installation ---\n" + result);
                     installModelButton.setDisable(false);
                     installProgressIndicator.setVisible(false);
                     
                     if (result.startsWith("✅")) {
                         installStatusLabel.setText("✅ Installation abgeschlossen");
                         installStatusLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: #44aa44;");
-                        updateStatus("Modell installiert: " + selectedModel);
+                        updateStatus("Modell installiert: " + selectedModel + " - " + result);
                         // Modell-Listen aktualisieren
                         loadAvailableModels();
                     } else {
                         installStatusLabel.setText("❌ Installation fehlgeschlagen");
                         installStatusLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: #ff4444;");
-                        updateStatus("Modell-Installation fehlgeschlagen");
+                        updateStatus("Modell-Installation fehlgeschlagen: " + result);
                     }
                 });
             })
             .exceptionally(throwable -> {
                 Platform.runLater(() -> {
-                    contextArea.appendText("\n\n--- Installationsfehler ---\n❌ Fehler bei der Installation: " + throwable.getMessage());
                     installModelButton.setDisable(false);
                     installProgressIndicator.setVisible(false);
                     installStatusLabel.setText("❌ Installation fehlgeschlagen");
                     installStatusLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: #ff4444;");
-                    updateStatus("Modell-Installation fehlgeschlagen");
+                    updateStatus("Modell-Installation fehlgeschlagen: " + throwable.getMessage());
                 });
                 return null;
             });
@@ -1873,6 +2188,22 @@ public class OllamaWindow {
     }
     
     /**
+     * Ermittelt das Verzeichnis, aus dem die DOCX-Dateien geladen wurden
+     */
+    private String getDocxDirectory() {
+        // Verwende den Pfad aus der gespeicherten Dateiauswahl
+        String savedSelectionPath = ResourceManager.getParameter("ui.last_docx_directory", "");
+        
+        if (!savedSelectionPath.isEmpty()) {
+            File directory = new File(savedSelectionPath);
+            if (directory.exists() && directory.isDirectory()) {
+                return savedSelectionPath;
+            }
+        }
+        return null;
+    }
+    
+    /**
      * Ermittelt den aktuellen DOCX-Dateinamen basierend auf dem Editor
      */
     private String getCurrentDocxFileName() {
@@ -1906,22 +2237,49 @@ public class OllamaWindow {
     }
     
     /**
-     * Lädt den Kontext aus der context.txt des aktuellen Romans
+     * Lädt den Kontext aus der context.txt des DOCX-Verzeichnisses
      */
     private void loadContextFromNovel() {
-        String currentDocxFile = getCurrentDocxFileName();
+        String docxDirectory = getDocxDirectory();
         
-        if (currentDocxFile != null) {
-            String novelContext = NovelManager.loadContext(currentDocxFile);
+        if (docxDirectory != null) {
+            File contextFile = new File(docxDirectory, "context.txt");
             
-            if (!novelContext.trim().isEmpty()) {
-                // Entferne den Standard-Header falls vorhanden
-                String cleanContext = novelContext.replaceAll("^# Zusätzlicher Kontext für .*\\n\\n", "");
-                
-                if (!cleanContext.trim().isEmpty()) {
-                    contextArea.setText(cleanContext);
-                    logger.info("Kontext aus context.txt geladen für: " + currentDocxFile);
+            if (contextFile.exists()) {
+                try {
+                    String context = new String(java.nio.file.Files.readAllBytes(contextFile.toPath()), "UTF-8");
+                    
+                    if (!context.trim().isEmpty()) {
+                        contextArea.setText(context);
+                        logger.info("Kontext aus context.txt geladen für: " + contextFile.getAbsolutePath());
+                    } else {
+                        logger.info("context.txt ist leer: " + contextFile.getAbsolutePath());
+                    }
+                } catch (Exception e) {
+                    logger.warning("Fehler beim Laden der context.txt: " + e.getMessage());
                 }
+            } else {
+                logger.info("Keine context.txt gefunden in: " + docxDirectory);
+            }
+        } else {
+            logger.info("Kein DOCX-Verzeichnis gefunden");
+        }
+    }
+    
+    /**
+     * Speichert den aktuellen Context in die context.txt Datei
+     */
+    private void saveContextToFile() {
+        String docxDirectory = getDocxDirectory();
+        if (docxDirectory != null && contextArea != null) {
+            String context = contextArea.getText();
+            
+            try {
+                File contextFile = new File(docxDirectory, "context.txt");
+                java.nio.file.Files.write(contextFile.toPath(), context.getBytes("UTF-8"));
+                logger.info("Context gespeichert für: " + contextFile.getAbsolutePath());
+            } catch (Exception e) {
+                logger.warning("Fehler beim Speichern des Contexts: " + e.getMessage());
             }
         }
     }

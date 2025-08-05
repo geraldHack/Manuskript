@@ -137,10 +137,20 @@ public class MainController implements Initializable {
         colFileSizeAvailable.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getFormattedSize()));
         colLastModifiedAvailable.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getFormattedLastModified()));
         
+        // Spaltenbreiten für verfügbare Dateien setzen
+        colFileNameAvailable.setPrefWidth(260);
+        colFileSizeAvailable.setPrefWidth(120);
+        colLastModifiedAvailable.setPrefWidth(180);
+        
         // Tabellen-Setup für ausgewählte Dateien
         colFileNameSelected.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getFileName()));
         colFileSizeSelected.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getFormattedSize()));
         colLastModifiedSelected.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getFormattedLastModified()));
+        
+        // Spaltenbreiten für ausgewählte Dateien setzen
+        colFileNameSelected.setPrefWidth(260);
+        colFileSizeSelected.setPrefWidth(120);
+        colLastModifiedSelected.setPrefWidth(180);
         
         // Sortierung
         cmbSortBy.getItems().addAll("Dateiname", "Dateigröße", "Änderungsdatum");
@@ -376,8 +386,8 @@ public class MainController implements Initializable {
     
     private void loadDocxFiles(File directory) {
         try {
-                    updateStatus("Lade DOCX-Dateien...");
-        // progressBar wurde entfernt
+            updateStatus("Lade DOCX-Dateien...");
+            // progressBar wurde entfernt
             
             List<File> files = java.nio.file.Files.walk(directory.toPath())
                     .filter(path -> path.toString().toLowerCase().endsWith(".docx"))
@@ -396,12 +406,16 @@ public class MainController implements Initializable {
             updateStatus(allDocxFiles.size() + " DOCX-Dateien gefunden");
             // progressBar wurde entfernt
             
+
+            
         } catch (Exception e) {
             logger.error("Fehler beim Laden der DOCX-Dateien", e);
             showError("Fehler beim Laden der Dateien", e.getMessage());
             updateStatus("Fehler beim Laden der Dateien");
         }
     }
+    
+
     
     private void applyFilters() {
         String regexFilter = cmbRegexFilter.getValue();
@@ -947,6 +961,9 @@ public class MainController implements Initializable {
             String json = new Gson().toJson(selectedNames);
             Files.write(jsonPath, json.getBytes(), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
             logger.info("Dateiauswahl gespeichert: {}", jsonPath);
+            
+
+            
         } catch (Exception e) {
             logger.warn("Fehler beim Speichern der Dateiauswahl", e);
         }
@@ -1175,8 +1192,8 @@ public class MainController implements Initializable {
         
         // NEU: Validierung der Fenster-Größe
         // Minimale und maximale Größen prüfen
-        double minWidth = 800.0;
-        double minHeight = 600.0;
+        double minWidth = 1200.0;  // Größere Standard-Breite für Editor
+        double minHeight = 800.0;  // Größere Standard-Höhe für Editor
         double maxWidth = 3000.0;
         double maxHeight = 2000.0;
         
@@ -1338,4 +1355,5 @@ public class MainController implements Initializable {
             updateStatus("Fehler beim Laden der .gesamt Datei");
         }
     }
+    
 } 

@@ -16,7 +16,7 @@ import java.util.List;
 
 public class CustomChatArea extends VBox {
     private TextArea chatHistoryArea;
-    private Label questionLabel;
+    private TextArea questionArea;  // Geändert von Label zu TextArea
     private Button upButton;
     private Button downButton;
     private VBox scrollIndicator;
@@ -28,11 +28,13 @@ public class CustomChatArea extends VBox {
     }
     
     private void initializeUI() {
-        // Frage-Label (oben, farblich hervorgehoben)
-        questionLabel = new Label("Keine Frage ausgewählt");
-        questionLabel.setFont(Font.font("System", FontWeight.BOLD, 14));
-        questionLabel.setWrapText(true);
-        questionLabel.setMaxWidth(Double.MAX_VALUE);
+        // Frage-TextArea (oben, farblich hervorgehoben)
+        questionArea = new TextArea("Keine Frage ausgewählt");
+        questionArea.setEditable(false);
+        questionArea.setWrapText(true);
+        questionArea.setPrefRowCount(2);  // Nur 2 Zeilen für die Frage
+        questionArea.setMaxHeight(60);    // Maximale Höhe begrenzen
+        questionArea.setStyle("-fx-font-family: 'System'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-background-color: transparent; -fx-border-color: #bdc3c7; -fx-border-width: 1px;");
         
         // TextArea für Antworten
         chatHistoryArea = new TextArea();
@@ -58,40 +60,45 @@ public class CustomChatArea extends VBox {
             }
         });
         
-        // Navigation-Buttons
+        // Navigation-Buttons (kleiner gemacht)
         upButton = new Button("↑");
-        upButton.setPrefWidth(40);
-        upButton.setPrefHeight(40);
+        upButton.setPrefWidth(25);
+        upButton.setPrefHeight(25);
         upButton.setDisable(true);
         upButton.setOnAction(e -> showPrevious());
         
         downButton = new Button("↓");
-        downButton.setPrefWidth(40);
-        downButton.setPrefHeight(40);
+        downButton.setPrefWidth(25);
+        downButton.setPrefHeight(25);
         downButton.setDisable(true);
         downButton.setOnAction(e -> showNext());
         
-        // Keyboard-Hinweis
+        // Keyboard-Hinweis (kleiner)
         Label keyboardHint = new Label("Ctrl+↑/↓");
-        keyboardHint.setFont(Font.font("System", 10));
+        keyboardHint.setFont(Font.font("System", 8));
         keyboardHint.setStyle("-fx-text-fill: #7f8c8d; -fx-font-style: italic;");
         
-        // VBox als Scroll-Indikator
+        // VBox als Scroll-Indikator (schmaler)
         scrollIndicator = new VBox();
-        scrollIndicator.setPrefWidth(20);
+        scrollIndicator.setPrefWidth(12);
         updateScrollIndicator();
         
-        // Navigation-Container
-        HBox navigationBox = new HBox(5);
+        // Navigation-Container (rechts neben der Antwort-TextArea)
+        VBox navigationBox = new VBox(5);
+        navigationBox.setAlignment(javafx.geometry.Pos.CENTER);
         navigationBox.getChildren().addAll(keyboardHint, upButton, downButton, scrollIndicator);
-        navigationBox.setAlignment(javafx.geometry.Pos.CENTER_RIGHT);
+        
+        // Antwort-Bereich mit Navigation (HBox für nebeneinander)
+        HBox answerSection = new HBox(10);
+        answerSection.getChildren().addAll(chatHistoryArea, navigationBox);
+        VBox.setVgrow(chatHistoryArea, javafx.scene.layout.Priority.ALWAYS);
+        HBox.setHgrow(chatHistoryArea, javafx.scene.layout.Priority.ALWAYS);
         
         // Haupt-Layout
         this.setSpacing(10);
         this.setPadding(new Insets(10));
-        this.getChildren().addAll(questionLabel, chatHistoryArea, navigationBox);
-        
-        VBox.setVgrow(chatHistoryArea, javafx.scene.layout.Priority.ALWAYS);
+        this.getChildren().addAll(questionArea, answerSection);
+        VBox.setVgrow(answerSection, javafx.scene.layout.Priority.ALWAYS);
         
         // Theme anwenden
         applyTheme();
@@ -99,14 +106,43 @@ public class CustomChatArea extends VBox {
     
     public void clearAndShowNewQuestion(String question) {
         Platform.runLater(() -> {
+            // Prüfen ob die Frage bereits existiert und Nummer hinzufügen
+            String numberedQuestion = addNumberIfDuplicate(question);
+            
             // Neue Frage zum Array hinzufügen
-            QAPair newPair = new QAPair(question, "");
+            QAPair newPair = new QAPair(numberedQuestion, "");
             chatHistory.add(newPair);
             currentIndex = chatHistory.size() - 1;
             
             // UI aktualisieren
             updateDisplay();
         });
+    }
+    
+    /**
+     * Prüft ob eine Frage bereits existiert und fügt eine Nummer hinzu falls nötig
+     */
+    private String addNumberIfDuplicate(String question) {
+        // Entferne eventuell vorhandene Nummer am Ende (z.B. "Frage (2)")
+        String baseQuestion = question.replaceAll("\\s*\\(\\d+\\)\\s*$", "").trim();
+        
+        int counter = 1;
+        String numberedQuestion = baseQuestion;
+        
+        // Prüfe ob die Frage bereits existiert
+        for (QAPair qaPair : chatHistory) {
+            String existingQuestion = qaPair.getQuestion().replaceAll("\\s*\\(\\d+\\)\\s*$", "").trim();
+            if (existingQuestion.equals(baseQuestion)) {
+                counter++;
+            }
+        }
+        
+        // Füge Nummer hinzu falls mehr als einmal vorhanden
+        if (counter > 1) {
+            numberedQuestion = baseQuestion + " (" + counter + ")";
+        }
+        
+        return numberedQuestion;
     }
     
     /**
@@ -186,7 +222,7 @@ public class CustomChatArea extends VBox {
             QAPair currentPair = chatHistory.get(currentIndex);
             
             // Frage anzeigen
-            questionLabel.setText("Frage: " + currentPair.getQuestion());
+            questionArea.setText("Frage: " + currentPair.getQuestion());
             
             // Antwort anzeigen
             chatHistoryArea.setText(currentPair.getAnswer());
@@ -210,11 +246,11 @@ public class CustomChatArea extends VBox {
         int totalPairs = chatHistory.size();
         int currentPos = currentIndex;
         
-        // Erstelle kleine Rechtecke für jeden Eintrag
+        // Erstelle kleine Rechtecke für jeden Eintrag (kleiner gemacht)
         for (int i = 0; i < totalPairs; i++) {
             Region indicator = new Region();
-            indicator.setPrefHeight(8);
-            indicator.setPrefWidth(16);
+            indicator.setPrefHeight(6);
+            indicator.setPrefWidth(10);
             
             if (i == currentPos) {
                 // Aktueller Eintrag - hervorgehoben
@@ -276,10 +312,10 @@ public class CustomChatArea extends VBox {
                 break;
         }
         
-        // Frage-Label Theme
-        questionLabel.setStyle(String.format(
-            "-fx-text-fill: %s; -fx-background-color: %s; -fx-padding: 10px; -fx-border-color: %s; -fx-border-width: 1px; -fx-border-radius: 4px; -fx-background-radius: 4px;",
-            textColor, backgroundColor, borderColor
+        // Frage-TextArea Theme
+        questionArea.setStyle(String.format(
+            "-fx-font-family: 'System'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: %s; -fx-background-color: %s; -fx-control-inner-background: %s; -fx-border-color: %s; -fx-border-width: 1px; -fx-border-radius: 4px; -fx-background-radius: 4px;",
+            textColor, backgroundColor, backgroundColor, borderColor
         ));
         
         // TextArea Theme
@@ -336,6 +372,22 @@ public class CustomChatArea extends VBox {
             return "Frage: " + currentPair.getQuestion() + "\n\nAntwort: " + currentPair.getAnswer();
         }
         return "";
+    }
+    
+    public String getCurrentQuestion() {
+        if (currentIndex >= 0 && currentIndex < chatHistory.size()) {
+            QAPair currentPair = chatHistory.get(currentIndex);
+            return currentPair.getQuestion();
+        }
+        return "";
+    }
+    
+    public TextArea getChatHistoryArea() {
+        return chatHistoryArea;
+    }
+    
+    public TextArea getQuestionArea() {
+        return questionArea;
     }
     
     // Innere Klasse für Frage-Antwort-Paare
