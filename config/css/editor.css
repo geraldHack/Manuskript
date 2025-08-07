@@ -543,6 +543,10 @@
     -fx-background-color: #505050;
 }
 
+.theme-dark .slider .axis {
+    -fx-tick-label-fill: white;
+}
+
 /* ========================================
    DARK THEME VARIANTS
    ======================================== */
@@ -677,6 +681,10 @@
     -fx-text-fill: #ffffff;
 }
 
+.theme-dark.blau-theme .slider .axis {
+    -fx-tick-label-fill: white;
+}
+
 /* Grün Theme */
 .theme-dark.gruen-theme {
     -fx-background-color: #064e3b;
@@ -805,6 +813,10 @@
 
 .theme-dark.gruen-theme .table-view .table-cell {
     -fx-text-fill: #ffffff;
+}
+
+.theme-dark.gruen-theme .slider .axis {
+    -fx-tick-label-fill: white;
 }
 
 /* Lila Theme */
@@ -1592,5 +1604,39 @@
 
 .weiss-theme .table-view:empty {
     -fx-background-color: #ffffff !important;
+}
+
+/* ========================================
+   SLIDER STYLES - JavaFX Slider-spezifische Regeln
+   ======================================== */
+
+/* Slider Labels (die Zahlen unter dem Slider) - Korrekte JavaFX CSS-Regel */
+.slider .axis {
+    -fx-tick-label-fill: white;
+}
+
+/* Theme-spezifische Slider Styles */
+.theme-dark .slider .axis {
+    -fx-tick-label-fill: white;
+}
+
+.theme-dark.blau-theme .slider .axis {
+    -fx-tick-label-fill: white;
+}
+
+.theme-dark.gruen-theme .slider .axis {
+    -fx-tick-label-fill: white;
+}
+
+.theme-dark.lila-theme .slider .axis {
+    -fx-tick-label-fill: white;
+}
+
+.weiss-theme .slider .axis {
+    -fx-tick-label-fill: black;
+}
+
+.pastell-theme .slider .axis {
+    -fx-tick-label-fill: black;
 }
 

@@ -697,6 +697,9 @@ public class MainController implements Initializable {
             // Übergebe den DocxProcessor für DOCX-Export
             editorController.setDocxProcessor(docxProcessor);
             
+            // WICHTIG: Setze die originale DOCX-Datei für Rückkonvertierung
+            editorController.setOriginalDocxFile(chapterFile.getFile());
+            
             // WICHTIG: Setze das aktuelle Theme vom Hauptfenster auf das Editorfenster
             editorController.setThemeFromMainWindow(currentThemeIndex);
             
@@ -721,6 +724,9 @@ public class MainController implements Initializable {
             if (stylesPath != null) {
                 editorStage.getScene().getStylesheets().add(stylesPath);
             }
+            
+            // WICHTIG: Stage setzen für Close-Request-Handler
+            editorController.setStage(editorStage);
             
             editorStage.show();
             
@@ -845,6 +851,13 @@ public class MainController implements Initializable {
             
             // Übergebe den DocxProcessor für DOCX-Export
             editorController.setDocxProcessor(docxProcessor);
+            
+            // WICHTIG: Setze die originale DOCX-Datei für Rückkonvertierung
+            // Da es ein Gesamtdokument ist, verwenden wir die erste Datei als Referenz
+            if (!selectedDocxFiles.isEmpty()) {
+                File firstDocxFile = selectedDocxFiles.get(0).getFile();
+                editorController.setOriginalDocxFile(firstDocxFile);
+            }
             
             // WICHTIG: Setze das aktuelle Theme vom Hauptfenster auf das Editorfenster
             editorController.setThemeFromMainWindow(currentThemeIndex);

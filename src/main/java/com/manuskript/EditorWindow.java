@@ -181,6 +181,8 @@ public class EditorWindow implements Initializable {
     private String originalChapterContent = "";
     private boolean chapterContentChanged = false;
     private File currentFile = null;
+    private File originalDocxFile = null; // Originale DOCX-Datei
+    private String originalContent = ""; // Kopie des ursprünglichen Inhalts für Vergleich
     private DocxProcessor.OutputFormat outputFormat = DocxProcessor.OutputFormat.HTML;
     private DocxProcessor docxProcessor;
     
@@ -1329,6 +1331,8 @@ if (caret != null) {
     private void saveFile() {
         if (currentFile != null) {
             saveToFile(currentFile);
+            // Kopie nach dem Speichern aktualisieren
+            originalContent = codeArea.getText();
         } else {
             saveFileAs();
         }
@@ -1440,11 +1444,264 @@ if (caret != null) {
     
     private void saveToFile(File file) {
         try {
-            Files.write(file.toPath(), codeArea.getText().getBytes());
+            Files.write(file.toPath(), codeArea.getText().getBytes(StandardCharsets.UTF_8));
             updateStatus("Datei gespeichert: " + file.getName());
         } catch (IOException e) {
             updateStatusError("Fehler beim Speichern: " + e.getMessage());
         }
+    }
+    
+    /**
+     * Prüft ob es ungespeicherte Änderungen gibt
+     */
+    private boolean hasUnsavedChanges() {
+        if (codeArea == null) return false;
+        
+        String currentContent = codeArea.getText();
+        
+        System.out.println("=== Änderungsprüfung ===");
+        System.out.println("Original Content Länge: " + originalContent.length());
+        System.out.println("Current Content Länge: " + currentContent.length());
+        System.out.println("Chapter Content Changed: " + chapterContentChanged);
+        System.out.println("Contents equal: " + currentContent.equals(originalContent));
+        
+        // Prüfe Chapter-Editor Änderungen
+        if (chapterContentChanged) {
+            System.out.println("Chapter-Editor hat Änderungen!");
+            return true;
+        }
+        
+        // Vergleiche mit der ursprünglichen Kopie
+        boolean hasChanges = !currentContent.equals(originalContent);
+        System.out.println("Hauptinhalt hat Änderungen: " + hasChanges);
+        return hasChanges;
+    }
+    
+    /**
+     * Zeigt den Speichern-Dialog beim Schließen
+     */
+    private void showSaveDialog() {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Ungespeicherte Änderungen");
+        alert.setHeaderText("Die Datei hat ungespeicherte Änderungen.");
+        alert.setContentText("Was möchten Sie speichern?");
+        
+        // Theme-Farben holen
+        String backgroundColor = THEMES[currentThemeIndex][0];
+        String textColor = THEMES[currentThemeIndex][1];
+        
+        // CSS-Styles für den Dialog direkt anwenden
+        String dialogStyle = String.format(
+            "-fx-background-color: %s; -fx-text-fill: %s; -fx-control-inner-background: %s;",
+            backgroundColor, textColor, backgroundColor
+        );
+        
+        alert.getDialogPane().setStyle(dialogStyle);
+        
+        // Checkboxen für Speicheroptionen
+        CheckBox saveCurrentFormat = new CheckBox("Als " + getFormatDisplayName() + " speichern");
+        CheckBox saveOriginalDocx = new CheckBox("Originale DOCX-Datei überschreiben");
+        
+        // Default: Nur aktuelles Format
+        saveCurrentFormat.setSelected(true);
+        saveOriginalDocx.setSelected(false);
+        
+        // Theme für Checkboxen
+        String checkboxStyle = String.format(
+            "-fx-background-color: %s; -fx-text-fill: %s; -fx-control-inner-background: %s;",
+            backgroundColor, textColor, backgroundColor
+        );
+        saveCurrentFormat.setStyle(checkboxStyle);
+        saveOriginalDocx.setStyle(checkboxStyle);
+        
+        VBox content = new VBox(10);
+        content.getChildren().addAll(saveCurrentFormat, saveOriginalDocx);
+        content.setPadding(new Insets(10));
+        
+        // Theme für Content-Container
+        content.setStyle(String.format("-fx-background-color: %s;", backgroundColor));
+        
+        alert.getDialogPane().setContent(content);
+        
+        ButtonType saveButton = new ButtonType("Speichern");
+        ButtonType discardButton = new ButtonType("Verwerfen");
+        ButtonType cancelButton = new ButtonType("Abbrechen");
+        
+        alert.getButtonTypes().setAll(saveButton, discardButton, cancelButton);
+        
+        // Theme für alle Buttons im Dialog anwenden
+        alert.setOnShown(event -> {
+            // Header-Text thematisieren - versuche verschiedene Selectors
+            Node headerLabel = alert.getDialogPane().lookup(".header-panel .label");
+            if (headerLabel == null) {
+                headerLabel = alert.getDialogPane().lookup(".header-panel");
+            }
+            if (headerLabel == null) {
+                headerLabel = alert.getDialogPane().lookup(".dialog-pane .header-panel");
+            }
+            if (headerLabel == null) {
+                // Versuche alle Labels im Dialog zu finden
+                for (Node node : alert.getDialogPane().lookupAll(".label")) {
+                    if (node instanceof Label) {
+                        Label label = (Label) node;
+                        if (label.getText() != null && label.getText().contains("ungespeicherte Änderungen")) {
+                            headerLabel = label;
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            if (headerLabel != null) {
+                headerLabel.setStyle(String.format(
+                    "-fx-background-color: %s; -fx-text-fill: %s;",
+                    backgroundColor, textColor
+                ));
+            }
+            
+            // Zusätzlich: Versuche das Header-Label über den Dialog-Titel zu finden
+            try {
+                // Verwende Reflection um auf das private Header-Label zuzugreifen
+                java.lang.reflect.Field headerField = alert.getDialogPane().getClass().getDeclaredField("header");
+                headerField.setAccessible(true);
+                Node header = (Node) headerField.get(alert.getDialogPane());
+                if (header != null) {
+                    header.setStyle(String.format(
+                        "-fx-background-color: %s; -fx-text-fill: %s;",
+                        backgroundColor, textColor
+                    ));
+                }
+            } catch (Exception e) {
+                // Reflection fehlgeschlagen, ignoriere
+            }
+            
+            // Buttons thematisieren
+            String buttonStyle = String.format(
+                "-fx-background-color: %s; -fx-text-fill: %s; -fx-border-color: %s;",
+                backgroundColor, textColor, textColor
+            );
+            
+            for (ButtonType buttonType : alert.getButtonTypes()) {
+                Button button = (Button) alert.getDialogPane().lookupButton(buttonType);
+                if (button != null) {
+                    button.setStyle(buttonStyle);
+                }
+            }
+        });
+        
+        Optional<ButtonType> result = alert.showAndWait();
+        
+        if (result.isPresent()) {
+            if (result.get() == saveButton) {
+                // Speichern basierend auf Auswahl
+                if (saveCurrentFormat.isSelected()) {
+                    saveFile();
+                }
+                if (saveOriginalDocx.isSelected() && originalDocxFile != null) {
+                    saveToOriginalDocx();
+                }
+                stage.close();
+            } else if (result.get() == discardButton) {
+                // Verwerfen und schließen
+                stage.close();
+            }
+            // Bei Abbrechen nichts tun (Dialog schließt nicht)
+        }
+    }
+    
+    /**
+     * Gibt den Anzeigenamen des aktuellen Formats zurück
+     */
+    private String getFormatDisplayName() {
+        switch (outputFormat) {
+            case MARKDOWN: return "Markdown (.md)";
+            case PLAIN_TEXT: return "Text (.txt)";
+            case HTML: return "HTML (.html)";
+            default: return "HTML (.html)";
+        }
+    }
+    
+    /**
+     * Speichert den Inhalt zurück in die originale DOCX-Datei
+     */
+    private void saveToOriginalDocx() {
+        if (originalDocxFile == null || docxProcessor == null) {
+            updateStatusError("Originale DOCX-Datei nicht verfügbar");
+            return;
+        }
+        
+        try {
+            // Konvertiere den aktuellen Inhalt zurück zu DOCX
+            String currentContent = codeArea.getText();
+            
+            // Konvertiere basierend auf dem aktuellen Format
+            if (outputFormat == DocxProcessor.OutputFormat.MARKDOWN) {
+                // Markdown kann direkt konvertiert werden
+                docxProcessor.exportMarkdownToDocx(currentContent, originalDocxFile);
+            } else if (outputFormat == DocxProcessor.OutputFormat.HTML) {
+                // HTML zu Markdown konvertieren, dann zu DOCX
+                String markdownContent = convertHtmlToMarkdown(currentContent);
+                docxProcessor.exportMarkdownToDocx(markdownContent, originalDocxFile);
+            } else if (outputFormat == DocxProcessor.OutputFormat.PLAIN_TEXT) {
+                // Text zu Markdown konvertieren, dann zu DOCX
+                String markdownContent = convertTextToMarkdown(currentContent);
+                docxProcessor.exportMarkdownToDocx(markdownContent, originalDocxFile);
+            }
+            
+            updateStatus("DOCX-Überschreibung erfolgreich: " + originalDocxFile.getName());
+        } catch (Exception e) {
+            updateStatusError("Fehler beim Überschreiben der DOCX: " + e.getMessage());
+            logger.error("Fehler beim DOCX-Überschreiben", e);
+        }
+    }
+    
+    /**
+     * Konvertiert HTML zu Markdown
+     */
+    private String convertHtmlToMarkdown(String htmlContent) {
+        String markdown = htmlContent;
+        
+        // Entferne HTML-Tags und konvertiere zu Markdown
+        markdown = markdown.replaceAll("<h1[^>]*>(.*?)</h1>", "# $1");
+        markdown = markdown.replaceAll("<h2[^>]*>(.*?)</h2>", "## $1");
+        markdown = markdown.replaceAll("<h3[^>]*>(.*?)</h3>", "### $1");
+        markdown = markdown.replaceAll("<p[^>]*>(.*?)</p>", "$1\n\n");
+        markdown = markdown.replaceAll("<br[^>]*>", "\n");
+        markdown = markdown.replaceAll("<strong[^>]*>(.*?)</strong>", "**$1**");
+        markdown = markdown.replaceAll("<b[^>]*>(.*?)</b>", "**$1**");
+        markdown = markdown.replaceAll("<em[^>]*>(.*?)</em>", "*$1*");
+        markdown = markdown.replaceAll("<i[^>]*>(.*?)</i>", "*$1*");
+        markdown = markdown.replaceAll("<u[^>]*>(.*?)</u>", "__$1__");
+        
+        // Entferne alle anderen HTML-Tags
+        markdown = markdown.replaceAll("<[^>]*>", "");
+        
+        // Entferne HTML-Header und Footer
+        markdown = markdown.replaceAll("<!DOCTYPE[^>]*>", "");
+        markdown = markdown.replaceAll("<html[^>]*>.*?</html>", markdown);
+        markdown = markdown.replaceAll("<head>.*?</head>", "");
+        markdown = markdown.replaceAll("<body[^>]*>", "");
+        markdown = markdown.replaceAll("</body>", "");
+        
+        return markdown.trim();
+    }
+    
+    /**
+     * Konvertiert Text zu Markdown
+     */
+    private String convertTextToMarkdown(String textContent) {
+        // Einfache Konvertierung: Jede Zeile wird zu einem Absatz
+        String[] lines = textContent.split("\n");
+        StringBuilder markdown = new StringBuilder();
+        
+        for (String line : lines) {
+            line = line.trim();
+            if (!line.isEmpty()) {
+                markdown.append(line).append("\n\n");
+            }
+        }
+        
+        return markdown.toString().trim();
     }
     
     private void exportAsRTF() {
@@ -1722,6 +1979,11 @@ if (caret != null) {
     public void setText(String text) {
         codeArea.replaceText(text);
         
+        // Kopie für Änderungsvergleich erstellen
+        originalContent = text;
+        System.out.println("=== setText aufgerufen ===");
+        System.out.println("Original Content gesetzt, Länge: " + originalContent.length());
+        
         // Cursor an den Anfang setzen
         codeArea.displaceCaret(0);
         codeArea.requestFollowCaret();
@@ -1732,6 +1994,13 @@ if (caret != null) {
     
     public void setCurrentFile(File file) {
         this.currentFile = file;
+    }
+    
+    /**
+     * Setzt die originale DOCX-Datei für Rückkonvertierung
+     */
+    public void setOriginalDocxFile(File docxFile) {
+        this.originalDocxFile = docxFile;
     }
     
     public File getCurrentFile() {
@@ -1747,6 +2016,21 @@ if (caret != null) {
         
         // Fenster-Eigenschaften laden und anwenden
         loadWindowProperties();
+        
+        // Close-Request-Handler für Speichern-Abfrage
+        stage.setOnCloseRequest(event -> {
+            System.out.println("=== Close-Request-Handler aufgerufen ===");
+            boolean hasChanges = hasUnsavedChanges();
+            System.out.println("Änderungen gefunden: " + hasChanges);
+            
+            if (hasChanges) {
+                System.out.println("Verhindere Schließen und zeige Dialog");
+                event.consume(); // Verhindere Schließen
+                showSaveDialog();
+            } else {
+                System.out.println("Keine Änderungen - Fenster wird geschlossen");
+            }
+        });
         
         // Listener für Fenster-Änderungen hinzufügen
         stage.widthProperty().addListener((obs, oldVal, newVal) -> {
