@@ -1,6 +1,7 @@
 package com.manuskript;
 
 import org.apache.poi.xwpf.usermodel.*;
+import org.apache.poi.xwpf.usermodel.UnderlinePatterns;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -123,19 +124,9 @@ public class DocxProcessor {
         } else if (fileName.toLowerCase().endsWith(".doc")) {
             chapterName = fileName.substring(0, fileName.length() - 4);
         }
-        switch (format) {
-            case MARKDOWN:
-                content.append("# ").append(chapterName).append("\n\n");
-                break;
-            case HTML:
-                content.append("<h1>").append(chapterName).append("</h1>\n");
-                break;
-            case PLAIN_TEXT:
-            default:
-                content.append(chapterName).append("\n\n");
-                break;
-        }
         
+        // Zuerst den Inhalt lesen
+        StringBuilder documentContent = new StringBuilder();
         try (FileInputStream fis = new FileInputStream(file);
              XWPFDocument document = new XWPFDocument(fis)) {
             
@@ -145,16 +136,65 @@ public class DocxProcessor {
                 String text = extractFormattedText(paragraph, format);
                 if (!text.trim().isEmpty()) {
                     if (format == OutputFormat.HTML) {
-                        content.append("<p>").append(text).append("</p>\n");
+                        documentContent.append("<p>").append(text).append("</p>\n");
                     } else {
-                        content.append(text).append("\n\n");
+                        documentContent.append(text).append("\n\n");
                     }
                 }
             }
         } catch (Exception e) {
             logger.error("Fehler beim Lesen der DOCX-Datei: {}", file.getName(), e);
             content.append("FEHLER: Konnte Datei nicht lesen - ").append(e.getMessage());
+            return content.toString();
         }
+        
+        String documentText = documentContent.toString();
+        
+        // Debug-Ausgabe für alle Kapitel
+        logger.info("Kapitel-Nummer: {}, Format: {}", chapterNumber, format);
+        
+        // Für alle Kapitel: Prüfen, ob bereits ein Titel vorhanden ist
+        boolean hasTitle = false;
+        
+        if (format == OutputFormat.MARKDOWN) {
+            // Prüfe, ob der Text bereits mit # beginnt
+            String trimmedText = documentText.trim();
+            hasTitle = trimmedText.startsWith("# ");
+            logger.info("Markdown-Titel-Prüfung: '{}' beginnt mit '# ' = {}", trimmedText.substring(0, Math.min(20, trimmedText.length())), hasTitle);
+        } else if (format == OutputFormat.HTML) {
+            // Prüfe, ob der Text bereits mit <h1> beginnt
+            hasTitle = documentText.trim().startsWith("<h1>");
+        } else {
+            // Für Plain Text: Prüfe, ob der erste Absatz wie ein Titel aussieht
+            String[] lines = documentText.split("\n");
+            if (lines.length > 0) {
+                String firstLine = lines[0].trim();
+                // Einfache Heuristik: Kurze Zeile ohne Punkt am Ende könnte ein Titel sein
+                hasTitle = firstLine.length() < 100 && !firstLine.endsWith(".") && !firstLine.endsWith("!") && !firstLine.endsWith("?");
+            }
+        }
+        
+        // Nur Titel hinzufügen, wenn noch keiner vorhanden ist
+        if (!hasTitle) {
+            logger.info("Füge Titel hinzu für Kapitel: {}", chapterName);
+            switch (format) {
+                case MARKDOWN:
+                    content.append("# ").append(chapterName).append("\n\n");
+                    break;
+                case HTML:
+                    content.append("<h1>").append(chapterName).append("</h1>\n");
+                    break;
+                case PLAIN_TEXT:
+                default:
+                    content.append(chapterName).append("\n\n");
+                    break;
+            }
+        } else {
+            logger.info("Titel bereits vorhanden, füge keinen hinzu");
+        }
+        
+        // Den Dokumentinhalt hinzufügen
+        content.append(documentText);
         
         return content.toString();
     }
@@ -375,116 +415,79 @@ public class DocxProcessor {
     public void exportMarkdownToDocx(String markdownText, File outputFile) throws IOException {
         logger.info("Exportiere Markdown zu DOCX: {}", outputFile.getName());
         
+        // WICHTIG: Prüfe ob der Markdown-Text leer ist!
+        if (markdownText == null || markdownText.trim().isEmpty()) {
+            logger.error("Versuch, leeren Markdown-Text zu DOCX zu exportieren!");
+            throw new IllegalArgumentException("Markdown-Text ist leer - kann nicht exportiert werden!");
+        }
+
+        // Schreibe zuerst in eine temporäre Datei im selben Verzeichnis und ersetze danach atomar
+        File parentDir = outputFile.getAbsoluteFile().getParentFile();
+        if (parentDir != null && !parentDir.exists()) {
+            if (!parentDir.mkdirs()) {
+                logger.warn("Konnte Ausgabeverzeichnis nicht erstellen: {}", parentDir.getAbsolutePath());
+            }
+        }
+        File tempFile = File.createTempFile("manuskript-", ".docx", parentDir);
+        
+        // Dokument erzeugen und in tempFile schreiben
         try (XWPFDocument document = new XWPFDocument()) {
             String[] lines = markdownText.split("\n");
-            boolean isFirstChapter = true;
+            boolean hasContent = false;
             
             for (String line : lines) {
-                line = line.trim();
-                if (line.isEmpty()) {
-                    // Leerzeile
+                String trimmed = line.trim();
+                if (trimmed.isEmpty()) {
                     document.createParagraph();
                     continue;
                 }
-                
-                // Überschriften
-                if (line.startsWith("# ")) {
-                    // Seitenumbruch vor Kapitel-Header (außer beim ersten Kapitel)
-                    if (!isFirstChapter) {
-                        XWPFParagraph pageBreak = document.createParagraph();
-                        pageBreak.setPageBreak(true);
-                    }
-                    isFirstChapter = false;
-                    
-                    XWPFParagraph heading = document.createParagraph();
-                    heading.setStyle("Heading1");
-                    XWPFRun run = heading.createRun();
-                    run.setText(line.substring(2));
-                    run.setBold(true);
-                    run.setFontSize(18);
-                } else if (line.startsWith("## ")) {
-                    XWPFParagraph heading = document.createParagraph();
-                    heading.setStyle("Heading2");
-                    XWPFRun run = heading.createRun();
-                    run.setText(line.substring(3));
-                    run.setBold(true);
-                    run.setFontSize(16);
-                } else if (line.startsWith("### ")) {
-                    XWPFParagraph heading = document.createParagraph();
-                    heading.setStyle("Heading3");
-                    XWPFRun run = heading.createRun();
-                    run.setText(line.substring(4));
-                    run.setBold(true);
-                    run.setFontSize(14);
-                } else if (line.startsWith("***") || line.startsWith("---") || line.startsWith("___")) {
-                    // Horizontale Linie
-                    XWPFParagraph hr = document.createParagraph();
-                    XWPFRun run = hr.createRun();
-                    run.setText("_________________________________________________________________");
-                    run.setFontSize(12);
-                    run.setColor("CCCCCC");
-                } else {
-                    // Normaler Text mit Markdown-Formatierung
-                    XWPFParagraph paragraph = document.createParagraph();
-                    XWPFRun run = paragraph.createRun();
-                    
-                    // Markdown-Formatierung verarbeiten
-                    String processedText = processMarkdownFormatting(line);
-                    run.setText(processedText);
-                    
-                    // Formatierung anwenden
-                    applyMarkdownFormatting(run, line);
-                }
+                XWPFParagraph paragraph = document.createParagraph();
+                XWPFRun run = paragraph.createRun();
+                run.setText(trimmed);
+                hasContent = true;
             }
             
-            // Dokument speichern
-            try (FileOutputStream fos = new FileOutputStream(outputFile)) {
+            if (!hasContent) {
+                logger.error("DOCX-Dokument hat keinen Inhalt - wird nicht gespeichert!");
+                throw new IllegalArgumentException("DOCX-Dokument ist leer - kann nicht gespeichert werden!");
+            }
+
+            try (FileOutputStream fos = new FileOutputStream(tempFile)) {
                 document.write(fos);
+                fos.flush();
             }
         }
-        
+
+        // Validierung: Versuche die temp-Datei als DOCX zu öffnen, bevor wir ersetzen
+        try (java.io.FileInputStream validateFis = new java.io.FileInputStream(tempFile);
+             XWPFDocument ignored = new XWPFDocument(validateFis)) {
+            // ok
+        } catch (Exception e) {
+            logger.error("Validierung fehlgeschlagen – erzeugte DOCX ist unlesbar: {}", e.getMessage());
+            // Temp-Datei aufräumen und Fehler werfen
+            try { tempFile.delete(); } catch (Exception ignored) {}
+            throw new IOException("Erzeugte DOCX konnte nicht validiert werden: " + e.getMessage(), e);
+        }
+
+        // Ersetzen: atomar wenn möglich, sonst normal
+        try {
+            java.nio.file.Files.move(
+                    tempFile.toPath(),
+                    outputFile.toPath(),
+                    java.nio.file.StandardCopyOption.REPLACE_EXISTING,
+                    java.nio.file.StandardCopyOption.ATOMIC_MOVE
+            );
+        } catch (Exception atomicEx) {
+            logger.warn("ATOMIC_MOVE nicht möglich – verwende normales Ersetzen: {}", atomicEx.getMessage());
+            java.nio.file.Files.move(
+                    tempFile.toPath(),
+                    outputFile.toPath(),
+                    java.nio.file.StandardCopyOption.REPLACE_EXISTING
+            );
+        }
+
         logger.info("DOCX-Export abgeschlossen: {}", outputFile.getAbsolutePath());
     }
     
-    /**
-     * Verarbeitet Markdown-Formatierung im Text
-     */
-    private String processMarkdownFormatting(String text) {
-        // Entferne Markdown-Syntax, behalte nur den Text
-        String processed = text;
-        
-        // **bold** -> normal
-        processed = processed.replaceAll("\\*\\*(.*?)\\*\\*", "$1");
-        
-        // *italic* -> normal
-        processed = processed.replaceAll("\\*(.*?)\\*", "$1");
-        
-        // __underline__ -> normal
-        processed = processed.replaceAll("__(.*?)__", "$1");
-        
-        // `code` -> normal
-        processed = processed.replaceAll("`(.*?)`", "$1");
-        
-        return processed;
-    }
-    
-    /**
-     * Wendet Markdown-Formatierung auf einen XWPFRun an
-     */
-    private void applyMarkdownFormatting(XWPFRun run, String text) {
-        // Fett: **text**
-        if (text.matches(".*\\*\\*.*\\*\\*.*")) {
-            run.setBold(true);
-        }
-        
-        // Kursiv: *text*
-        if (text.matches(".*\\*[^*].*[^*]\\*.*")) {
-            run.setItalic(true);
-        }
-        
-        // Unterstrichen: __text__
-        if (text.matches(".*__.*__.*")) {
-            run.setUnderline(UnderlinePatterns.SINGLE);
-        }
-    }
+    // Keine komplexe Markdown-Formatierung mehr - nur einfacher Text!
 } 

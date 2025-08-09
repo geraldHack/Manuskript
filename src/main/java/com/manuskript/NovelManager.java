@@ -23,6 +23,7 @@ public class NovelManager {
     public static final String CHARACTERS_FILE = "characters.txt";
     public static final String SYNOPSIS_FILE = "synopsis.txt";
     public static final String OUTLINE_FILE = "outline.txt";
+    public static final String WORLDBUILDING_FILE = "worldbuilding.txt";
     
     /**
      * Erstellt die TXT-Dateien für einen Roman im Verzeichnis
@@ -40,6 +41,7 @@ public class NovelManager {
             createFileIfNotExists(directory, CHARACTERS_FILE, "# Charaktere für " + novelName + "\n\n");
             createFileIfNotExists(directory, SYNOPSIS_FILE, "# Zusammenfassung für " + novelName + "\n\n");
             createFileIfNotExists(directory, OUTLINE_FILE, "# Gliederung für " + novelName + "\n\n");
+            createFileIfNotExists(directory, WORLDBUILDING_FILE, "# Worldbuilding für " + novelName + "\n\n");
             
             // Erstelle chapter.txt spezifisch für diese DOCX-Datei
             String chapterFileName = novelName + ".chapter.txt";
@@ -200,6 +202,20 @@ public class NovelManager {
     public static void saveOutline(String docxFilePath, String outline) {
         saveNovelFile(docxFilePath, OUTLINE_FILE, outline);
     }
+
+    /**
+     * Lädt das Worldbuilding für einen Roman
+     */
+    public static String loadWorldbuilding(String docxFilePath) {
+        return loadNovelFile(docxFilePath, WORLDBUILDING_FILE);
+    }
+
+    /**
+     * Speichert das Worldbuilding für einen Roman
+     */
+    public static void saveWorldbuilding(String docxFilePath, String worldbuilding) {
+        saveNovelFile(docxFilePath, WORLDBUILDING_FILE, worldbuilding);
+    }
     
     /**
      * Lädt die Kapitelbeschreibung für eine spezifische DOCX-Datei
@@ -226,7 +242,8 @@ public class NovelManager {
             return Files.exists(directory.resolve(CONTEXT_FILE)) &&
                    Files.exists(directory.resolve(CHARACTERS_FILE)) &&
                    Files.exists(directory.resolve(SYNOPSIS_FILE)) &&
-                   Files.exists(directory.resolve(OUTLINE_FILE));
+                   Files.exists(directory.resolve(OUTLINE_FILE)) &&
+                   Files.exists(directory.resolve(WORLDBUILDING_FILE));
         } catch (Exception e) {
             return false;
         }

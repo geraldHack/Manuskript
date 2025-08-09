@@ -1,0 +1,216 @@
+MACRO:Text-Bereinigung
+DESC:Professionelle Textbereinigung mit 12 Schritten
+STEP:1
+SEARCH:[ ]{2,}
+REPLACE_B64:IA==
+REGEX:1
+CASE:0
+WORD:0
+ENABLED:1
+STEPDESC:Mehrfache Leerzeichen reduzieren
+REPLACECOUNT:0
+STEP:2
+SEARCH:\n{2,}
+REPLACE_B64:XG4=
+REGEX:1
+CASE:0
+WORD:0
+ENABLED:1
+STEPDESC:Mehrfache Leerzeilen reduzieren
+REPLACECOUNT:3814
+STEP:3
+SEARCH:„
+REPLACE_B64:Ig==
+REGEX:0
+CASE:0
+WORD:0
+ENABLED:1
+STEPDESC:Gerade Anführungszeichen öffnen
+REPLACECOUNT:13
+STEP:4
+SEARCH:“
+REPLACE_B64:Ig==
+REGEX:0
+CASE:0
+WORD:0
+ENABLED:1
+STEPDESC:Gerade Anführungszeichen schließen
+REPLACECOUNT:96
+STEP:5
+SEARCH:,"
+REPLACE_B64:Iiw=
+REGEX:0
+CASE:0
+WORD:0
+ENABLED:1
+STEPDESC:Komma vor Anführungszeichen I
+REPLACECOUNT:0
+STEP:6
+SEARCH:'(.*?)'
+REPLACE_B64:4oC6JDHigLk=
+REGEX:1
+CASE:0
+WORD:0
+ENABLED:1
+STEPDESC:Einfache Anführungszeichen Französisch
+REPLACECOUNT:9
+STEP:7
+SEARCH:"(.*?)"
+REPLACE_B64:wrskMcKr
+REGEX:1
+CASE:0
+WORD:0
+ENABLED:1
+STEPDESC:Anführungszeichen Französisch
+REPLACECOUNT:48
+STEP:8
+SEARCH:...
+REPLACE_B64:4oCm
+REGEX:0
+CASE:0
+WORD:0
+ENABLED:1
+STEPDESC:Auslassungszeichen
+REPLACECOUNT:38
+STEP:9
+SEARCH:([A-Za-zÄÖÜäöüß])…
+REPLACE_B64:JDEgLi4u
+REGEX:1
+CASE:0
+WORD:0
+ENABLED:1
+STEPDESC:Buchstabe direkt an Auslassungszeichen
+REPLACECOUNT:13
+STEP:10
+SEARCH:(?<=…)(?=\p{L})
+REPLACE_B64:IA==
+REGEX:1
+CASE:0
+WORD:0
+ENABLED:1
+STEPDESC:Buchstabe direkt nach Auslassungszeichen
+REPLACECOUNT:0
+STEP:11
+SEARCH:--
+REPLACE_B64:4oCU
+REGEX:0
+CASE:0
+WORD:0
+ENABLED:1
+STEPDESC:Gedankenstrich
+REPLACECOUNT:1
+STEP:12
+SEARCH:,«
+REPLACE_B64:wqss
+REGEX:0
+CASE:0
+WORD:0
+ENABLED:1
+STEPDESC:Komma vor Anführungszeichen
+REPLACECOUNT:0
+STEP:13
+SEARCH:«.
+REPLACE_B64:LsKr
+REGEX:0
+CASE:0
+WORD:0
+ENABLED:1
+STEPDESC:Punkt nach Anführungszeichen
+REPLACECOUNT:0
+ENDMACRO
+MACRO:Französische → Deutsche Anführungszeichen
+DESC:Konvertiert französische zu deutschen Anführungszeichen
+STEP:1
+SEARCH:»(.*?)«
+REPLACE_B64:IiQxIg==
+REGEX:1
+CASE:0
+WORD:0
+ENABLED:1
+STEPDESC:Französische zu deutsche Anführungszeichen
+REPLACECOUNT:0
+STEP:2
+SEARCH:›(.*?)‹
+REPLACE_B64:JyQxJw==
+REGEX:1
+CASE:0
+WORD:0
+ENABLED:1
+STEPDESC:Französische zu deutsche einfache Anführungszeichen
+REPLACECOUNT:0
+ENDMACRO
+MACRO:Deutsche → Französische Anführungszeichen
+DESC:Konvertiert deutsche zu französischen Anführungszeichen
+STEP:1
+SEARCH:"(.*?)"
+REPLACE_B64:wrskMcKr
+REGEX:1
+CASE:0
+WORD:0
+ENABLED:1
+STEPDESC:Deutsche zu französische Anführungszeichen
+REPLACECOUNT:0
+STEP:2
+SEARCH:'(.*?)'
+REPLACE_B64:4oC6JDHigLk=
+REGEX:1
+CASE:0
+WORD:0
+ENABLED:1
+STEPDESC:Deutsche zu französische einfache Anführungszeichen
+REPLACECOUNT:0
+ENDMACRO
+MACRO:Apostrophe korrigieren
+DESC:Korrigiert verschiedene Apostrophe-Formen
+STEP:1
+SEARCH:([A-Za-zÄÖÜäöüß])'([A-Za-zÄÖÜäöüß])
+REPLACE_B64:JDEnJDI=
+REGEX:1
+CASE:0
+WORD:0
+ENABLED:1
+STEPDESC:Apostrophe zwischen Buchstaben korrigieren
+REPLACECOUNT:0
+STEP:2
+SEARCH:([A-Za-zÄÖÜäöüß])`([A-Za-zÄÖÜäöüß])
+REPLACE_B64:JDEnJDI=
+REGEX:1
+CASE:0
+WORD:0
+ENABLED:1
+STEPDESC:Grave-Akzent zu Apostrophe
+REPLACECOUNT:0
+STEP:3
+SEARCH:([A-Za-zÄÖÜäöüß])´([A-Za-zÄÖÜäöüß])
+REPLACE_B64:JDEnJDI=
+REGEX:1
+CASE:0
+WORD:0
+ENABLED:1
+STEPDESC:Akut-Akzent zu Apostrophe
+REPLACECOUNT:0
+STEP:4
+SEARCH:([A-Za-zÄÖÜäöüß])'([A-Za-zÄÖÜäöüß])
+REPLACE_B64:JDEnJDI=
+REGEX:1
+CASE:0
+WORD:0
+ENABLED:1
+STEPDESC:Typografisches Apostrophe korrigieren
+REPLACECOUNT:0
+ENDMACRO
+MACRO:Kapitelnamen finden und markieren (markdown)
+DESC:
+STEP:1
+SEARCH:^(?!\s*#)(.+[a-zA-ZäöüÄÖÜß)])$
+REPLACE_B64:IyAkMQ==
+REGEX:1
+CASE:0
+WORD:0
+ENABLED:1
+STEPDESC:Findet Zeilen die ohne Satzzeichen enden außer ')'  und markiert sie
+REPLACECOUNT:14
+ENDMACRO
+MACRO:Neues Makro
+DESC:
+ENDMACRO

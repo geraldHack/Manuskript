@@ -176,6 +176,9 @@ public class MainController implements Initializable {
         // Ausgewählte Dateien
         tableViewSelected.setItems(selectedDocxFiles);
         
+        // Sortierung für die rechte Tabelle deaktivieren (nur Header-Klicks)
+        tableViewSelected.setSortPolicy(param -> null);
+        
         // Sortierung
         sortedAvailableFiles.comparatorProperty().bind(tableViewAvailable.comparatorProperty());
         
@@ -703,6 +706,9 @@ public class MainController implements Initializable {
             // WICHTIG: Setze das aktuelle Theme vom Hauptfenster auf das Editorfenster
             editorController.setThemeFromMainWindow(currentThemeIndex);
             
+            // WICHTIG: Setze die Referenz zum MainController für Navigation
+            editorController.setMainController(this);
+            
             Stage editorStage = new Stage();
             editorStage.setTitle("Kapitel-Editor: " + chapterFile.getFileName());
             editorStage.setScene(new Scene(root));
@@ -862,6 +868,9 @@ public class MainController implements Initializable {
             // WICHTIG: Setze das aktuelle Theme vom Hauptfenster auf das Editorfenster
             editorController.setThemeFromMainWindow(currentThemeIndex);
             
+            // WICHTIG: Setze die Referenz zum MainController für Navigation
+            editorController.setMainController(this);
+            
             // NEU: Titelbalken für Gesamtdokument setzen
             editorController.setWindowTitle("📚 Gesamtdokument: " + baseFileName);
             
@@ -915,6 +924,9 @@ public class MainController implements Initializable {
     
     public void setPrimaryStage(Stage primaryStage) {
         this.primaryStage = primaryStage;
+        
+        // Hauptfenster-Properties laden und Event-Handler hinzufügen
+        loadMainWindowProperties();
     }
     
     // Recent Regex List Management
@@ -984,6 +996,15 @@ public class MainController implements Initializable {
 
     public TextField getTxtDirectoryPath() {
         return txtDirectoryPath;
+    }
+    
+    /**
+     * Gibt die Liste der ausgewählten DOCX-Dateien als File-Liste zurück
+     */
+    public List<File> getSelectedDocxFiles() {
+        return selectedDocxFiles.stream()
+            .map(DocxFile::getFile)
+            .collect(Collectors.toList());
     }
 
     private void loadSelection(File directory) {
@@ -1196,6 +1217,83 @@ public class MainController implements Initializable {
     /**
      * Lädt die Editor-Window-Eigenschaften aus den Preferences
      */
+    private void loadMainWindowProperties() {
+        if (primaryStage == null) {
+            logger.warn("PrimaryStage ist null - kann Hauptfenster-Properties nicht laden");
+            return;
+        }
+        
+        // Fenster-Größe und Position laden
+        double width = preferences.getDouble("main_window_width", 1400.0);
+        double height = preferences.getDouble("main_window_height", 900.0);
+        double x = preferences.getDouble("main_window_x", -1.0);
+        double y = preferences.getDouble("main_window_y", -1.0);
+        
+        // Validierung der Fenster-Größe
+        double minWidth = 1000.0;
+        double minHeight = 600.0;
+        double maxWidth = 3000.0;
+        double maxHeight = 2000.0;
+        
+        // Größe validieren und korrigieren
+        if (width < minWidth || width > maxWidth || Double.isNaN(width) || Double.isInfinite(width)) {
+            logger.warn("Ungültige Hauptfenster-Breite: {} - verwende Standard: {}", width, minWidth);
+            width = minWidth;
+        }
+        if (height < minHeight || height > maxHeight || Double.isNaN(height) || Double.isInfinite(height)) {
+            logger.warn("Ungültige Hauptfenster-Höhe: {} - verwende Standard: {}", height, minHeight);
+            height = minHeight;
+        }
+        
+        // Fenster-Größe setzen
+        primaryStage.setWidth(width);
+        primaryStage.setHeight(height);
+        
+        // Validierung der Fenster-Position
+        if (x >= 0 && y >= 0 && !Double.isNaN(x) && !Double.isNaN(y) && 
+            !Double.isInfinite(x) && !Double.isInfinite(y)) {
+            
+            // Grobe Prüfung: Position sollte nicht zu weit außerhalb des Bildschirms sein
+            if (x < -1000 || y < -1000 || x > 5000 || y > 5000) {
+                logger.warn("Hauptfenster-Position außerhalb des Bildschirms: x={}, y={} - verwende zentriert", x, y);
+                primaryStage.centerOnScreen();
+            } else {
+                primaryStage.setX(x);
+                primaryStage.setY(y);
+            }
+        } else {
+            logger.info("Keine gültige Hauptfenster-Position gefunden - zentriere Fenster");
+            primaryStage.centerOnScreen();
+        }
+        
+        // Event-Handler für Fenster-Änderungen hinzufügen
+        primaryStage.widthProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null && !newVal.equals(oldVal)) {
+                preferences.putDouble("main_window_width", newVal.doubleValue());
+            }
+        });
+        
+        primaryStage.heightProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null && !newVal.equals(oldVal)) {
+                preferences.putDouble("main_window_height", newVal.doubleValue());
+            }
+        });
+        
+        primaryStage.xProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null && !newVal.equals(oldVal)) {
+                preferences.putDouble("main_window_x", newVal.doubleValue());
+            }
+        });
+        
+        primaryStage.yProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null && !newVal.equals(oldVal)) {
+                preferences.putDouble("main_window_y", newVal.doubleValue());
+            }
+        });
+        
+        logger.info("Hauptfenster-Eigenschaften geladen: Größe={}x{}, Position=({}, {})", width, height, x, y);
+    }
+    
     private void loadEditorWindowProperties(Stage editorStage) {
         // Fenster-Größe und Position laden
         double width = preferences.getDouble("editor_window_width", 1200.0);

@@ -35,6 +35,7 @@ public class OllamaWindow {
     private ComboBox<String> modelComboBox;
     private ComboBox<String> functionComboBox;
     private Button generateButton;
+    private Button previewPromptButton;
     private Button insertButton;
     private ProgressIndicator progressIndicator;
     private Label statusLabel;
@@ -115,6 +116,33 @@ public class OllamaWindow {
     private Label contextLabel;
     private Label resultLabel;
     private TextArea resultArea;
+
+    // Kontext-Accordion und Bereiche
+    private Accordion contextAccordion;
+    private CheckBox cbUserContext;
+    private CheckBox cbEditorSnippet;
+    private CheckBox cbSynopsis;
+    private CheckBox cbCharacters;
+    private CheckBox cbWorldbuilding;
+    private CheckBox cbOutline;
+    private CheckBox cbChapterNotes;
+    private CheckBox cbStyle;
+
+    private TextArea synopsisArea;
+    private TextArea charactersArea;
+    private TextArea worldbuildingArea;
+    private TextArea outlineArea;
+    private TextArea chapterNotesArea;
+    private TextArea styleNotesArea;
+    private TitledPane tpSynopsis;
+    private TitledPane tpCharacters;
+    private TitledPane tpWorldbuilding;
+    private TitledPane tpOutline;
+    private TitledPane tpChapter;
+    private TitledPane tpStyle;
+    
+    // Merker: zuletzt automatisch übernommene Selektion
+    private String lastAutoFilledFromSelection;
     
     // Flag entfernt - nicht mehr benötigt
     
@@ -572,6 +600,25 @@ public class OllamaWindow {
         
         generateButton = new Button("Generieren");
         generateButton.setOnAction(e -> generateContent());
+        // Kleiner Icon-Button für Prompt-Vorschau
+        previewPromptButton = new Button("\uD83D\uDD0D"); // Lupe-Icon
+        previewPromptButton.setMinWidth(32);
+        previewPromptButton.setPrefWidth(32);
+        previewPromptButton.setMaxHeight(28);
+        previewPromptButton.setFocusTraversable(false);
+        // Farbkontrast über Theme
+        previewPromptButton.setStyle("-fx-font-size: 12px; -fx-padding: 2 6; -fx-background-radius: 6;");
+        previewPromptButton.getStyleClass().add("prompt-preview");
+        Tooltip.install(previewPromptButton, new Tooltip("Prompt-Vorschau anzeigen"));
+        previewPromptButton.setOnAction(e -> {
+            try {
+                String fullPrompt = buildCurrentFullPromptPreview();
+                String formatted = formatPromptSimple(fullPrompt);
+                showPromptPreviewStage("Anfrage an Ollama (Prompt)", formatted);
+            } catch (Exception ex) {
+                showAlert("Fehler", "Konnte Prompt nicht erzeugen: " + ex.getMessage());
+            }
+        });
         
         insertButton = new Button("In Editor einfügen");
         insertButton.setOnAction(e -> insertToEditor());
@@ -585,30 +632,27 @@ public class OllamaWindow {
         
         statusLabel = new Label("Bereit");
         
-        buttonBox.getChildren().addAll(generateButton, insertButton, progressIndicator, statusLabel);
+        buttonBox.getChildren().addAll(generateButton, previewPromptButton, insertButton, progressIndicator, statusLabel);
         
         // Kontext-Bereich (kleiner, da Chat-Verlauf wichtiger ist)
         contextArea = new TextArea();
         contextArea.setPromptText("Hier können Sie zusätzlichen Kontext eingeben, der bei jeder Anfrage an den Assistenten gesendet wird. " +
             "Z.B. Charaktere, Setting, Stil-Anweisungen, spezielle Anweisungen für den Assistenten, oder allgemeine Regeln für die Antworten. " +
             "Dieser Kontext wird automatisch zu jeder Chat-Nachricht hinzugefügt.");
-        contextArea.setPrefRowCount(2); // Noch kleiner gemacht
-        contextArea.setMinHeight(60);
+        contextArea.setPrefRowCount(6);
+        contextArea.setMinHeight(120);
         contextArea.setWrapText(true);
         contextArea.getStyleClass().add("ollama-text-area");
         contextArea.setEditable(true); // Jetzt editierbar
         
-        // Auto-Scroll für Kontext-Bereich und automatisches Speichern
+        // Auto-Scroll für Kontext-Bereich und automatisches Speichern (konsequent über NovelManager)
         contextArea.textProperty().addListener((obs, oldText, newText) -> {
             Platform.runLater(() -> {
                 contextArea.setScrollTop(Double.MAX_VALUE);
-                
-                // Persistiere Kontext-Änderungen in die context.txt
-                String docxDirectory = getDocxDirectory();
-                if (docxDirectory != null) {
+                String dir = getNovelDirectory();
+                if (dir != null && !dir.isEmpty()) {
                     try {
-                        File contextFile = new File(docxDirectory, "context.txt");
-                        java.nio.file.Files.write(contextFile.toPath(), newText.getBytes("UTF-8"));
+                        writeText(new File(dir, NovelManager.CONTEXT_FILE), newText);
                     } catch (Exception e) {
                         logger.warning("Fehler beim automatischen Speichern des Contexts: " + e.getMessage());
                     }
@@ -631,7 +675,7 @@ public class OllamaWindow {
         // Labels für dynamische Verwaltung
         inputLabel = new Label("Eingabe:");
         chatLabel = new Label("Chat-Verlauf:");
-        contextLabel = new Label("Zusätzlicher Kontext (editierbar):");
+        contextLabel = new Label("Zusätzlicher Kontext (Textbox) und Projekt-Kontexte:");
         resultLabel = new Label("Ergebnis:");
         
         // Ergebnis-TextArea für "Text umschreiben"
@@ -645,18 +689,126 @@ public class OllamaWindow {
         // Initiale Konfiguration
         updateLowerPanelLayout("Chat-Assistent", inputLabel, chatLabel, contextLabel, resultLabel, resultArea);
         
-        lowerPanel.getChildren().addAll(
+        // Kontext-Accordion und Master-Checkboxen
+        contextAccordion = new Accordion();
+        contextAccordion.setVisible(true);
+        contextAccordion.setManaged(true);
+        contextAccordion.setMinHeight(150);
+
+        // Checkbox-Gruppen untereinander für bessere Lesbarkeit
+        VBox contextCheckboxBar = new VBox(6);
+        HBox row1 = new HBox(10); row1.setAlignment(Pos.CENTER_LEFT);
+        HBox row2 = new HBox(10); row2.setAlignment(Pos.CENTER_LEFT);
+        HBox row3 = new HBox(10); row3.setAlignment(Pos.CENTER_LEFT);
+        cbUserContext = new CheckBox("Textbox"); cbUserContext.setSelected(true);
+        cbEditorSnippet = new CheckBox("Editor-Ausschnitt"); cbEditorSnippet.setSelected(true);
+        cbSynopsis = new CheckBox("Synopsis");
+        cbCharacters = new CheckBox("Charaktere");
+        cbWorldbuilding = new CheckBox("Worldbuilding");
+        cbOutline = new CheckBox("Outline");
+        cbChapterNotes = new CheckBox("Kapitelnotizen");
+        cbStyle = new CheckBox("Stil");
+        Button selectAll = new Button("Alle");
+        Button selectNone = new Button("Keine");
+        selectAll.setOnAction(e -> {
+            cbUserContext.setSelected(true);
+            cbEditorSnippet.setSelected(true);
+            cbSynopsis.setSelected(true);
+            cbCharacters.setSelected(true);
+            cbWorldbuilding.setSelected(true);
+            cbOutline.setSelected(true);
+            cbChapterNotes.setSelected(true);
+        });
+        selectNone.setOnAction(e -> {
+            cbUserContext.setSelected(false);
+            cbEditorSnippet.setSelected(false);
+            cbSynopsis.setSelected(false);
+            cbCharacters.setSelected(false);
+            cbWorldbuilding.setSelected(false);
+            cbOutline.setSelected(false);
+            cbChapterNotes.setSelected(false);
+        });
+        row1.getChildren().addAll(new Label("Kontextquellen:"), selectAll, selectNone);
+        row2.getChildren().addAll(cbUserContext, cbEditorSnippet, cbSynopsis, cbStyle);
+        row3.getChildren().addAll(cbCharacters, cbWorldbuilding, cbOutline, cbChapterNotes);
+        contextCheckboxBar.getChildren().addAll(row1, row2, row3);
+
+        synopsisArea = new TextArea(); synopsisArea.setWrapText(true);
+        charactersArea = new TextArea(); charactersArea.setWrapText(true);
+        worldbuildingArea = new TextArea(); worldbuildingArea.setWrapText(true);
+        outlineArea = new TextArea(); outlineArea.setWrapText(true);
+        chapterNotesArea = new TextArea(); chapterNotesArea.setWrapText(true);
+
+        tpSynopsis = new TitledPane("Synopsis", synopsisArea);
+        tpCharacters = new TitledPane("Charaktere", charactersArea);
+        tpWorldbuilding = new TitledPane("Worldbuilding", worldbuildingArea);
+        tpOutline = new TitledPane("Outline", outlineArea);
+        tpChapter = new TitledPane("Kapitelnotizen", chapterNotesArea);
+
+        // Neues Klappfeld: Stil
+        this.styleNotesArea = new TextArea();
+        styleNotesArea.setWrapText(true);
+        this.tpStyle = new TitledPane("Stil", styleNotesArea);
+        contextAccordion.getPanes().addAll(tpSynopsis, tpCharacters, tpWorldbuilding, tpOutline, tpChapter, tpStyle);
+
+        // Auto-Save der Projekt-Kontexte
+        setupAutoSave(synopsisArea, NovelManager.SYNOPSIS_FILE);
+        setupAutoSave(charactersArea, NovelManager.CHARACTERS_FILE);
+        setupAutoSave(worldbuildingArea, NovelManager.WORLDBUILDING_FILE);
+        setupAutoSave(outlineArea, NovelManager.OUTLINE_FILE);
+        // Stil-Notizen auto-speichern
+        styleNotesArea.textProperty().addListener((obs,o,n)->{
+            java.util.Timer t = resetTimer("style");
+            t.schedule(new java.util.TimerTask(){
+                @Override public void run(){
+                    Platform.runLater(() -> {
+                        String dir = getNovelDirectory();
+                        if (dir != null && !dir.isEmpty()) {
+                            try {
+                                writeText(new File(dir, "style.txt"), n);
+                                updateStatus("Gespeichert: style.txt");
+                            } catch(Exception e){ logger.warning("Fehler beim Speichern von style.txt: "+e.getMessage()); }
+                        }
+                    });
+                }
+            }, 600);
+        });
+        chapterNotesArea.textProperty().addListener((obs,o,n)->debouncedSaveChapter(n));
+
+        // Beim Start: Projekt-Kontexte laden
+        loadProjectContexts();
+
+        // Aufteilung: Links Hauptinhalt, Rechts Kontextbereich (besser sichtbar, frei skalierbar)
+        VBox leftContent = new VBox(10);
+        leftContent.getChildren().addAll(
             specialFieldsBox,
             inputLabel,
             inputArea,
             buttonBox,
             chatLabel,
             chatHistoryArea,
-            contextLabel,
-            contextArea,
             resultLabel,
             resultArea
         );
+        VBox.setVgrow(chatHistoryArea, Priority.ALWAYS);
+        VBox.setVgrow(resultArea, Priority.SOMETIMES);
+
+        VBox rightContext = new VBox(8);
+        rightContext.setPadding(new Insets(0, 0, 0, 8));
+        rightContext.getChildren().addAll(
+            contextLabel,
+            contextArea,
+            contextCheckboxBar,
+            contextAccordion
+        );
+        rightContext.setMinWidth(260);
+        VBox.setVgrow(contextAccordion, Priority.ALWAYS);
+
+        SplitPane splitPane = new SplitPane();
+        splitPane.setDividerPositions(0.68);
+        splitPane.getItems().addAll(leftContent, rightContext);
+
+        lowerPanel.getChildren().add(splitPane);
         
         // Chat-Session-Controls in den oberen Bereich (einklappbar)
         upperPanel.getChildren().add(chatSessionBox);
@@ -671,7 +823,7 @@ public class OllamaWindow {
         // VBox.setVgrow für besseres Resizing
         VBox.setVgrow(inputArea, Priority.SOMETIMES);
         VBox.setVgrow(chatHistoryArea, Priority.ALWAYS); // Chat-Verlauf ist das Hauptfeld
-        VBox.setVgrow(contextArea, Priority.NEVER); // Kontext ist klein und fest
+        // Kontextbereiche wachsen rechts im SplitPane
         VBox.setVgrow(lowerPanel, Priority.ALWAYS);
         VBox.setVgrow(upperPanel, Priority.NEVER); // Oberer Bereich ist fest (nur Einstellungen)
         
@@ -696,6 +848,37 @@ public class OllamaWindow {
         }
         
         stage.setScene(scene);
+
+        // Gespeicherte Position/Größe laden (falls vorhanden)
+        try {
+            String sx = ResourceManager.getParameter("ui.ollama_window_x", "");
+            String sy = ResourceManager.getParameter("ui.ollama_window_y", "");
+            String sw = ResourceManager.getParameter("ui.ollama_window_w", "");
+            String sh = ResourceManager.getParameter("ui.ollama_window_h", "");
+            if (!sx.isEmpty() && !sy.isEmpty()) {
+                stage.setX(Double.parseDouble(sx));
+                stage.setY(Double.parseDouble(sy));
+            }
+            if (!sw.isEmpty() && !sh.isEmpty()) {
+                double dw = Double.parseDouble(sw);
+                double dh = Double.parseDouble(sh);
+                if (dw >= stage.getMinWidth()) stage.setWidth(dw);
+                if (dh >= stage.getMinHeight()) stage.setHeight(dh);
+            }
+        } catch (Exception ignored) {}
+
+        // Beim Schließen: Debounce-Timer stoppen und alle Kontexte hart speichern + Geometrie sichern
+        stage.setOnCloseRequest(ev -> {
+            cancelAllDebounceTimers();
+            saveAllContextsNow();
+            saveAllSessions();
+            try {
+                ResourceManager.saveParameter("ui.ollama_window_x", String.valueOf(stage.getX()));
+                ResourceManager.saveParameter("ui.ollama_window_y", String.valueOf(stage.getY()));
+                ResourceManager.saveParameter("ui.ollama_window_w", String.valueOf(stage.getWidth()));
+                ResourceManager.saveParameter("ui.ollama_window_h", String.valueOf(stage.getHeight()));
+            } catch (Exception ignored) {}
+        });
         
         // Überprüfe Ollama-Status beim Start
         checkOllamaStatus();
@@ -736,9 +919,9 @@ public class OllamaWindow {
         chatHistoryArea.setMinHeight(400); // Noch größer gemacht
         chatHistoryArea.setMaxHeight(Double.MAX_VALUE);
         
-        // Kontext-Bereich (kleiner)
-        contextArea.setPrefRowCount(2); // Noch kleiner gemacht
-        contextArea.setMinHeight(60); // Noch kleiner gemacht
+        // Kontext-Bereich (höher, besser lesbar)
+        contextArea.setPrefRowCount(6);
+        contextArea.setMinHeight(120);
         contextArea.setMaxHeight(Double.MAX_VALUE);
         
         // Ergebnis-Bereich (für "Text umschreiben" und andere Funktionen)
@@ -895,9 +1078,10 @@ public class OllamaWindow {
             chatHistoryArea.setVisible(false);
             chatHistoryArea.setManaged(false);
             
-            contextLabel.setVisible(false);
-            contextArea.setVisible(false);
-            contextArea.setManaged(false);
+            // Kontext-Textbox auch hier anzeigen
+            contextLabel.setVisible(true);
+            contextArea.setVisible(true);
+            contextArea.setManaged(true);
             
             resultLabel.setVisible(true);
             resultArea.setVisible(true);
@@ -944,6 +1128,9 @@ public class OllamaWindow {
         boolean showSpecialFields = false;
         boolean isTrainingMode = false;
         
+        // Eingabe grundsätzlich editierbar machen (wird bei "Text umschreiben" gezielt deaktiviert)
+        inputArea.setEditable(true);
+
         // Aktualisiere Prompt-Text basierend auf Funktion
         switch (selectedFunction) {
             case "Dialog generieren":
@@ -1012,6 +1199,16 @@ public class OllamaWindow {
                 inputArea.setEditable(true);
                 break;
         }
+
+        // Wenn verfügbar: selektierten Editor-Text für andere Funktionen vorbefüllen (ohne Chat/Training)
+        if (!"Chat-Assistent".equals(selectedFunction) && !"Modell-Training".equals(selectedFunction)) {
+            if ((inputArea.getText() == null || inputArea.getText().isEmpty()) && editorWindow != null) {
+                String sel = editorWindow.getSelectedText();
+                if (sel != null && !sel.trim().isEmpty()) {
+                    inputArea.setText(sel);
+                }
+            }
+        }
         
         // Spezielle Felder Container nur anzeigen, wenn spezielle Felder sichtbar sind
         specialFieldsBox.setVisible(showSpecialFields);
@@ -1057,7 +1254,7 @@ public class OllamaWindow {
         
         setGenerating(true);
         insertButton.setDisable(true);
-        statusLabel.setText("⏳ Anfrage läuft...");
+        updateStatus("⏳ Anfrage läuft...");
 
         System.out.println("Selected Function: " + selectedFunction);
         if (selectedFunction != null && selectedFunction.equals("Chat-Assistent")) {
@@ -1066,7 +1263,7 @@ public class OllamaWindow {
             String userMessage = inputArea.getText();
             if (userMessage == null || userMessage.trim().isEmpty()) {
                 setGenerating(false);
-                statusLabel.setText("Bitte gib eine Nachricht ein.");
+                updateStatus("Bitte gib eine Nachricht ein.");
                 return;
             }
             
@@ -1074,7 +1271,7 @@ public class OllamaWindow {
             chatHistoryArea.clearAndShowNewQuestion(userMessage);
             
             // Zusätzlichen Kontext aus dem Context-Bereich holen
-            String additionalContext = contextArea.getText().trim();
+            String additionalContext = contextArea.getText() != null ? contextArea.getText().trim() : "";
             System.out.println("DEBUG: Zusätzlicher Kontext (Context-Box): '" + additionalContext + "'");
             System.out.println("DEBUG: Zusätzlicher Kontext Länge: " + additionalContext.length() + " Zeichen");
             
@@ -1097,24 +1294,70 @@ public class OllamaWindow {
                 System.out.println("DEBUG: Vollständige QAPairs als Kontext: " + completePairs);
             }
             
-                    // Zusätzlichen Kontext hinzufügen
-        if (!additionalContext.isEmpty()) {
-            contextBuilder.append("\n").append(additionalContext);
-        }
-        
-        // Kontext aus der context.txt des aktuellen Romans laden
-        String currentDocxFile = getCurrentDocxFileName();
-        System.out.println("DEBUG: Aktuelle DOCX-Datei: " + currentDocxFile);
-        
-        if (currentDocxFile != null) {
-            String novelContext = NovelManager.loadContext(currentDocxFile);
-            System.out.println("DEBUG: Roman-Kontext (context.txt): '" + novelContext + "'");
-            System.out.println("DEBUG: Roman-Kontext Länge: " + novelContext.length() + " Zeichen");
-            
-            if (!novelContext.trim().isEmpty()) {
-                contextBuilder.append("\n").append("Roman-Kontext:\n").append(novelContext);
+            // Checkbox-gesteuerte Kontexte hinzufügen
+            StringBuilder selectedContexts = new StringBuilder();
+            if (cbUserContext != null && cbUserContext.isSelected() && !additionalContext.isEmpty()) {
+                selectedContexts.append("\n=== BENUTZER-KONTEXT ===\n").append(limitText(additionalContext)).append("\n");
             }
-        }
+
+            if (cbEditorSnippet != null && cbEditorSnippet.isSelected() && editorWindow != null) {
+                try {
+                    String fullText = editorWindow.getText();
+                    String selected = editorWindow.getSelectedText();
+                    int caret = fullText != null ? Math.min(editorWindow.getCaretPosition(), Math.max(0, fullText.length())) : 0;
+                    String contextSnippet = null;
+                    if (fullText != null && !fullText.isEmpty()) {
+                        int window = 12000;
+                        int half = window / 2;
+                        int foundIndex = (selected != null && !selected.isEmpty()) ? fullText.indexOf(selected) : -1;
+                        int anchor = foundIndex >= 0 ? foundIndex : caret;
+                        int start = Math.max(0, anchor - half);
+                        int end = Math.min(fullText.length(), (foundIndex >= 0 ? (foundIndex + selected.length()) : caret) + half);
+                        if (end > start) {
+                            contextSnippet = fullText.substring(start, end);
+                        }
+                    }
+                    if (contextSnippet != null && !contextSnippet.isEmpty()) {
+                        selectedContexts.append("\n=== EDITOR-KONTEXT ===\n").append(limitText(contextSnippet)).append("\n");
+                    }
+                } catch (Exception ignored) {}
+            }
+
+            // Projekt-Kontexte aus den TextAreas je nach Auswahl
+            if (cbSynopsis != null && cbSynopsis.isSelected() && synopsisArea != null && !synopsisArea.getText().trim().isEmpty()) {
+                selectedContexts.append("\n=== SYNOPSIS ===\n").append(limitText(synopsisArea.getText().trim())).append("\n");
+            }
+            if (cbCharacters != null && cbCharacters.isSelected() && charactersArea != null && !charactersArea.getText().trim().isEmpty()) {
+                selectedContexts.append("\n=== CHARAKTERE ===\n").append(limitText(charactersArea.getText().trim())).append("\n");
+            }
+            if (cbWorldbuilding != null && cbWorldbuilding.isSelected() && worldbuildingArea != null && !worldbuildingArea.getText().trim().isEmpty()) {
+                selectedContexts.append("\n=== WORLDBUILDING ===\n").append(limitText(worldbuildingArea.getText().trim())).append("\n");
+            }
+            if (cbOutline != null && cbOutline.isSelected() && outlineArea != null && !outlineArea.getText().trim().isEmpty()) {
+                selectedContexts.append("\n=== OUTLINE ===\n").append(limitText(outlineArea.getText().trim())).append("\n");
+            }
+            if (cbChapterNotes != null && cbChapterNotes.isSelected() && chapterNotesArea != null && !chapterNotesArea.getText().trim().isEmpty()) {
+                selectedContexts.append("\n=== KAPITELNOTIZEN ===\n").append(limitText(chapterNotesArea.getText().trim())).append("\n");
+            }
+            if (cbStyle != null && cbStyle.isSelected() && styleNotesArea != null && !styleNotesArea.getText().trim().isEmpty()) {
+                selectedContexts.append("\n=== STIL ===\n").append(limitText(styleNotesArea.getText().trim())).append("\n");
+            }
+
+            // Kontext aus der context.txt des aktuellen Romans (immer zusätzlich zulässig)
+            String currentDocxFile = getCurrentDocxFileName();
+            System.out.println("DEBUG: Aktuelle DOCX-Datei: " + currentDocxFile);
+            if (currentDocxFile != null) {
+                String novelContext = NovelManager.loadContext(currentDocxFile);
+                System.out.println("DEBUG: Roman-Kontext (context.txt): '" + novelContext + "'");
+                System.out.println("DEBUG: Roman-Kontext Länge: " + novelContext.length() + " Zeichen");
+                if (!novelContext.trim().isEmpty()) {
+                    selectedContexts.append("\n=== ROMAN-KONTEXT ===\n").append(limitText(novelContext)).append("\n");
+                }
+            }
+
+            if (selectedContexts.length() > 0) {
+                contextBuilder.append("\n").append(selectedContexts);
+            }
             
             String fullContext = contextBuilder.toString();
             System.out.println("DEBUG: Gesammelter Kontext Länge: " + fullContext.length() + " Zeichen");
@@ -1125,7 +1368,7 @@ public class OllamaWindow {
             
             // Vollständigen Prompt mit Kontext erstellen
             StringBuilder fullPromptBuilder = new StringBuilder();
-            fullPromptBuilder.append("Du bist ein hilfreicher deutscher Assistent. Antworte bitte auf Deutsch.\n\n");
+            fullPromptBuilder.append("Du bist ein hilfreicher deutscher Assistent.\nAntworte bitte auf Deutsch.\n\n");
             
             if (!fullContext.isEmpty()) {
                 fullPromptBuilder.append(fullContext).append("\n");
@@ -1147,7 +1390,7 @@ public class OllamaWindow {
                     Platform.runLater(() -> {
                         insertButton.setDisable(false);
                         setGenerating(false);
-                        statusLabel.setText("✅ Antwort erhalten");
+                        updateStatus("✅ Antwort erhalten");
                         // Eingabe löschen nach erfolgreicher Antwort
                         inputArea.clear();
                         // DEBUG: Antwort-Log
@@ -1191,6 +1434,82 @@ public class OllamaWindow {
         System.out.println("Calling generateText");
         
         CompletableFuture<String> future = null;
+
+        // Kontext sammeln (außer bei Chat):
+        // - Benutzer-Kontext aus der kleinen Kontext-Textbox unten
+        // - Editor-Kontext (großzügiges Fenster um Selektion/Caret)
+        String combinedContext = null;
+        String userContext = null;
+        if (!"Chat-Assistent".equals(selectedFunction)) {
+            // Benutzer-Kontext holen
+            try {
+                if (contextArea != null) {
+                    String ctx = contextArea.getText();
+                    if (ctx != null && !ctx.trim().isEmpty()) {
+                        userContext = ctx.trim();
+                    }
+                }
+            } catch (Exception ignored) {}
+        }
+
+        String contextSnippet = null;
+        if (!"Chat-Assistent".equals(selectedFunction) && editorWindow != null) {
+            try {
+                String fullText = editorWindow.getText();
+                String selected = editorWindow.getSelectedText();
+                int caret = fullText != null ? Math.min(editorWindow.getCaretPosition(), Math.max(0, fullText.length())) : 0;
+
+                if (fullText != null && !fullText.isEmpty()) {
+                    int window = 12000; // großzügiger Kontext (~ein paar hundert Zeilen)
+                    int half = window / 2;
+                    int foundIndex = (selected != null && !selected.isEmpty()) ? fullText.indexOf(selected) : -1;
+                    int anchor = foundIndex >= 0 ? foundIndex : caret;
+                    int start = Math.max(0, anchor - half);
+                    int end = Math.min(fullText.length(), (foundIndex >= 0 ? (foundIndex + selected.length()) : caret) + half);
+                    if (end > start) {
+                        contextSnippet = fullText.substring(start, end);
+                    }
+                }
+            } catch (Exception ignored) {
+            }
+        }
+
+        if (!"Chat-Assistent".equals(selectedFunction)) {
+            StringBuilder sb = new StringBuilder();
+            if (userContext != null && cbUserContext != null && cbUserContext.isSelected()) {
+                sb.append("=== BENUTZER-KONTEXT ===\n");
+                sb.append(userContext).append("\n\n");
+            }
+            if (contextSnippet != null && !contextSnippet.isEmpty() && cbEditorSnippet != null && cbEditorSnippet.isSelected()) {
+                sb.append("=== EDITOR-KONTEXT ===\n");
+                sb.append(contextSnippet);
+            }
+            // Projekt-Kontexte
+            String currentDocx = getCurrentDocxFileName();
+            if (currentDocx != null) {
+                if (cbSynopsis != null && cbSynopsis.isSelected()) {
+                    String syn = synopsisArea != null ? synopsisArea.getText() : NovelManager.loadSynopsis(currentDocx);
+                    if (syn != null && !syn.trim().isEmpty()) sb.append("\n\n=== SYNOPSIS ===\n").append(limitText(syn));
+                }
+                if (cbCharacters != null && cbCharacters.isSelected()) {
+                    String chars = charactersArea != null ? charactersArea.getText() : NovelManager.loadCharacters(currentDocx);
+                    if (chars != null && !chars.trim().isEmpty()) sb.append("\n\n=== CHARAKTERE ===\n").append(limitText(chars));
+                }
+                if (cbWorldbuilding != null && cbWorldbuilding.isSelected()) {
+                    String wb = worldbuildingArea != null ? worldbuildingArea.getText() : NovelManager.loadWorldbuilding(currentDocx);
+                    if (wb != null && !wb.trim().isEmpty()) sb.append("\n\n=== WORLDBUILDING ===\n").append(limitText(wb));
+                }
+                if (cbOutline != null && cbOutline.isSelected()) {
+                    String ol = outlineArea != null ? outlineArea.getText() : NovelManager.loadOutline(currentDocx);
+                    if (ol != null && !ol.trim().isEmpty()) sb.append("\n\n=== OUTLINE ===\n").append(limitText(ol));
+                }
+                if (cbChapterNotes != null && cbChapterNotes.isSelected()) {
+                    String ch = chapterNotesArea != null ? chapterNotesArea.getText() : NovelManager.loadChapter(currentDocx);
+                    if (ch != null && !ch.trim().isEmpty()) sb.append("\n\n=== KAPITELNOTIZEN ===\n").append(limitText(ch));
+                }
+            }
+            combinedContext = sb.length() > 0 ? sb.toString() : null;
+        }
         
         switch (selectedFunction) {
             case "Dialog generieren":
@@ -1204,7 +1523,7 @@ public class OllamaWindow {
                     return;
                 }
                 
-                future = ollamaService.generateDialogue(character, situation, emotion);
+                future = ollamaService.generateDialogue(character, situation, emotion, combinedContext);
                 break;
                 
             case "Beschreibung erweitern":
@@ -1212,7 +1531,7 @@ public class OllamaWindow {
                 if (style.isEmpty()) {
                     style = "detailliert";
                 }
-                future = ollamaService.expandDescription(input, style);
+                future = ollamaService.expandDescription(input, style, combinedContext);
                 break;
                 
             case "Plot-Ideen entwickeln":
@@ -1220,7 +1539,7 @@ public class OllamaWindow {
                 if (genre.isEmpty()) {
                     genre = "Allgemein";
                 }
-                future = ollamaService.developPlotIdeas(genre, input);
+                future = ollamaService.developPlotIdeas(genre, input, combinedContext);
                 break;
                 
             case "Charakter entwickeln":
@@ -1228,11 +1547,11 @@ public class OllamaWindow {
                 if (characterName.isEmpty()) {
                     characterName = "Charakter";
                 }
-                future = ollamaService.developCharacter(characterName, input);
+                future = ollamaService.developCharacter(characterName, input, combinedContext);
                 break;
                 
             case "Schreibstil analysieren":
-                future = ollamaService.analyzeWritingStyle(input);
+                future = ollamaService.analyzeWritingStyle(input, combinedContext);
                 break;
                 
             case "Text umschreiben":
@@ -1245,13 +1564,22 @@ public class OllamaWindow {
                     return;
                 }
                 
-                future = ollamaService.rewriteText(input, rewriteType, additionalInstructions);
+                future = ollamaService.rewriteText(input, rewriteType, additionalInstructions, combinedContext);
                 break;
                 
             default: // Freier Text
                 // Verwende den eingegebenen Kontext
-                String freeContext = contextArea.getText().trim();
-                future = ollamaService.generateText(input, freeContext.isEmpty() ? null : freeContext);
+                // Auch beim freien Text: Benutzer- und Editor-Kontext kombinieren
+                String freeContext = contextArea.getText() != null ? contextArea.getText().trim() : "";
+                StringBuilder ctx = new StringBuilder();
+                if (!freeContext.isEmpty()) {
+                    ctx.append("=== BENUTZER-KONTEXT ===\n").append(freeContext).append("\n\n");
+                }
+                if (contextSnippet != null && !contextSnippet.isEmpty()) {
+                    ctx.append("=== EDITOR-KONTEXT ===\n").append(contextSnippet);
+                }
+                String finalContext = ctx.length() > 0 ? ctx.toString() : null;
+                future = ollamaService.generateText(input, finalContext);
                 break;
         }
         
@@ -1288,6 +1616,368 @@ public class OllamaWindow {
         }
     }
     
+    // Baut den vollständigen Prompt (inkl. Kontext) so, wie er an den Service übergeben würde
+    private String buildCurrentFullPromptPreview() {
+        String selectedFunction = functionComboBox.getValue();
+        String input = inputArea.getText() != null ? inputArea.getText().trim() : "";
+        if (input.isEmpty() && !"Chat-Assistent".equals(selectedFunction)) {
+            return "(Kein Eingabetext)";
+        }
+
+        // Kontext sammeln (für alle Funktionen, inkl. Chat)
+        StringBuilder selectedContexts = new StringBuilder();
+        // Benutzer-Kontext
+        if (cbUserContext != null && cbUserContext.isSelected() && contextArea != null) {
+            String u = contextArea.getText();
+            if (u != null && !u.trim().isEmpty()) {
+                selectedContexts.append("\n=== BENUTZER-KONTEXT ===\n").append(limitText(u.trim())).append("\n");
+            }
+        }
+        // Editor-Ausschnitt
+        if (cbEditorSnippet != null && cbEditorSnippet.isSelected() && editorWindow != null) {
+            try {
+                String fullText = editorWindow.getText();
+                String selected = editorWindow.getSelectedText();
+                int caret = fullText != null ? Math.min(editorWindow.getCaretPosition(), Math.max(0, fullText.length())) : 0;
+                if (fullText != null && !fullText.isEmpty()) {
+                    int window = 12000; int half = window / 2;
+                    int foundIndex = (selected != null && !selected.isEmpty()) ? fullText.indexOf(selected) : -1;
+                    int anchor = foundIndex >= 0 ? foundIndex : caret;
+                    int start = Math.max(0, anchor - half);
+                    int end = Math.min(fullText.length(), (foundIndex >= 0 ? (foundIndex + selected.length()) : caret) + half);
+                    if (end > start) {
+                        String snip = fullText.substring(start, end);
+                        selectedContexts.append("\n=== EDITOR-KONTEXT ===\n").append(limitText(snip)).append("\n");
+                    }
+                }
+            } catch (Exception ignored) {}
+        }
+        // Projekt-Kontexte
+        String currentDocx = getCurrentDocxFileName();
+        if (currentDocx != null) {
+            if (cbSynopsis != null && cbSynopsis.isSelected()) {
+                String syn = synopsisArea != null ? synopsisArea.getText() : NovelManager.loadSynopsis(currentDocx);
+                if (syn != null && !syn.trim().isEmpty()) selectedContexts.append("\n=== SYNOPSIS ===\n").append(limitText(syn)).append("\n");
+            }
+            if (cbCharacters != null && cbCharacters.isSelected()) {
+                String chars = charactersArea != null ? charactersArea.getText() : NovelManager.loadCharacters(currentDocx);
+                if (chars != null && !chars.trim().isEmpty()) selectedContexts.append("\n=== CHARAKTERE ===\n").append(limitText(chars)).append("\n");
+            }
+            if (cbWorldbuilding != null && cbWorldbuilding.isSelected()) {
+                String wb = worldbuildingArea != null ? worldbuildingArea.getText() : NovelManager.loadWorldbuilding(currentDocx);
+                if (wb != null && !wb.trim().isEmpty()) selectedContexts.append("\n=== WORLDBUILDING ===\n").append(limitText(wb)).append("\n");
+            }
+            if (cbOutline != null && cbOutline.isSelected()) {
+                String ol = outlineArea != null ? outlineArea.getText() : NovelManager.loadOutline(currentDocx);
+                if (ol != null && !ol.trim().isEmpty()) selectedContexts.append("\n=== OUTLINE ===\n").append(limitText(ol)).append("\n");
+            }
+            if (cbChapterNotes != null && cbChapterNotes.isSelected()) {
+                String ch = chapterNotesArea != null ? chapterNotesArea.getText() : NovelManager.loadChapter(currentDocx);
+                if (ch != null && !ch.trim().isEmpty()) selectedContexts.append("\n=== KAPITELNOTIZEN ===\n").append(limitText(ch)).append("\n");
+            }
+            if (cbStyle != null && cbStyle.isSelected()) {
+                String st;
+                if (styleNotesArea != null && styleNotesArea.getText() != null) {
+                    st = styleNotesArea.getText();
+                } else {
+                    String dir = getNovelDirectory();
+                    st = dir != null ? safeRead(new File(dir, "style.txt")) : "";
+                }
+                if (st != null && !st.trim().isEmpty()) selectedContexts.append("\n=== STIL ===\n").append(limitText(st)).append("\n");
+            }
+            String novelCtx = NovelManager.loadContext(currentDocx);
+            if (novelCtx != null && !novelCtx.trim().isEmpty()) selectedContexts.append("\n=== ROMAN-KONTEXT ===\n").append(limitText(novelCtx)).append("\n");
+        }
+
+        String fullContext = selectedContexts.length() > 0 ? selectedContexts.toString().trim() : "";
+
+        if ("Chat-Assistent".equals(selectedFunction)) {
+            String userMsg = inputArea.getText();
+            StringBuilder contextBuilder = new StringBuilder();
+            // Chat-Historie (nur vollständige Paare)
+            if (chatHistoryArea != null) {
+                List<CustomChatArea.QAPair> sessionHistory = chatHistoryArea.getSessionHistory();
+                if (sessionHistory != null && !sessionHistory.isEmpty()) {
+                    for (CustomChatArea.QAPair qaPair : sessionHistory) {
+                        if (qaPair.getAnswer() != null && !qaPair.getAnswer().trim().isEmpty()) {
+                            contextBuilder.append("Du: ").append(qaPair.getQuestion()).append("\n");
+                            contextBuilder.append("Assistent: ").append(qaPair.getAnswer()).append("\n");
+                        }
+                    }
+                }
+            }
+            if (!fullContext.isEmpty()) {
+                contextBuilder.append("\n").append(fullContext);
+            }
+            String ctx = contextBuilder.toString();
+            StringBuilder fullPromptBuilder = new StringBuilder();
+            fullPromptBuilder.append("Du bist ein hilfreicher deutscher Assistent.\nAntworte bitte auf Deutsch.\n\n");
+            if (!ctx.isEmpty()) fullPromptBuilder.append(ctx).append("\n");
+            fullPromptBuilder.append("Du: ").append(userMsg).append("\n");
+            fullPromptBuilder.append("Assistent: ");
+            return fullPromptBuilder.toString();
+        }
+
+        // Prompt je Funktion (ohne eigentliche Anfrage auszulösen)
+        String prompt;
+        switch (selectedFunction) {
+            case "Dialog generieren":
+                prompt = String.format("Schreibe einen authentischen Dialog...\n\nEingabe:\n%s", input);
+                break;
+            case "Beschreibung erweitern":
+                String style = styleField != null ? styleField.getText().trim() : "detailliert";
+                prompt = String.format("Erweitere diese kurze Beschreibung im Stil '%s':\n\n%s\n\nSchreibe eine detaillierte, atmosphärische Beschreibung (max. 3 Sätze).", style, input);
+                break;
+            case "Plot-Ideen entwickeln":
+                String genre = genreField != null ? genreField.getText().trim() : "Allgemein";
+                prompt = String.format("Entwickle Plot-Ideen für eine %s-Geschichte basierend auf dieser Grundidee:\n%s\n\nGib 3-5 konkrete Plot-Entwicklungen an.", genre, input);
+                break;
+            case "Charakter entwickeln":
+                String characterName = characterField != null && characterField.getText() != null && !characterField.getText().trim().isEmpty() ? characterField.getText().trim() : "Charakter";
+                prompt = String.format("Entwickle den Charakter '%s' weiter:\n\nGrundmerkmale: %s\n\nErstelle ein detailliertes Charakterprofil...", characterName, input);
+                break;
+            case "Schreibstil analysieren":
+                prompt = String.format("Analysiere NUR den Schreibstil dieses Textes:\n\n%s\n\nAntworte nur mit der Stil-Analyse!", input);
+                break;
+            case "Text umschreiben":
+                String rewriteType = rewriteTypeComboBox != null ? rewriteTypeComboBox.getValue() : "Umschreiben";
+                String add = additionalInstructionsField != null ? additionalInstructionsField.getText().trim() : "Keine";
+                prompt = String.format("DU BIST EIN EXPERTE FÜR TEXT-UMFORMULIERUNG!\n\nORIGINALTEXT (nur dieser Abschnitt darf verändert werden):\n%s\n\nUMSCHREIBUNGSART: %s\n\nZUSÄTZLICHE ANWEISUNGEN: %s\n\nAUFGABE: Umschreibe NUR den oben angegebenen ORIGINALTEXT. Nutze Kontext nur zum Verständnis. WICHTIG: Antworte ausschließlich mit der umgeschriebenen Version des ORIGINALTEXTES.", input, rewriteType, (add.isEmpty()?"Keine":add));
+                break;
+            default:
+                prompt = input;
+        }
+
+        if (!fullContext.isEmpty()) {
+            String rules = "Regeln: Du erhältst zuerst 'Kontext', dann 'Anweisung'. Der Kontext dient NUR dem Verständnis.\n" +
+                           "Gib NIEMALS den Kontext wieder.\n" +
+                           "Antworte ausschließlich mit dem Ergebnis aus der Anweisung.\n" +
+                           "Keine Erklärungen, kein Vor-/Nachtext, keine Anführungszeichen.";
+            return rules + "\n\nKontext:\n" + fullContext + "\n\nAnweisung:\n" + prompt;
+        }
+        return prompt;
+    }
+
+    // Liefert den kombinierten Kontext entsprechend der gesetzten Checkboxen
+    private String buildContextForPreview() {
+        StringBuilder selectedContexts = new StringBuilder();
+        // Benutzer-Kontext
+        if (cbUserContext != null && cbUserContext.isSelected() && contextArea != null) {
+            String u = contextArea.getText();
+            if (u != null && !u.trim().isEmpty()) {
+                selectedContexts.append("\n=== BENUTZER-KONTEXT ===\n").append(limitText(u.trim())).append("\n");
+            }
+        }
+        // Editor-Ausschnitt
+        if (cbEditorSnippet != null && cbEditorSnippet.isSelected() && editorWindow != null) {
+            try {
+                String fullText = editorWindow.getText();
+                String selected = editorWindow.getSelectedText();
+                int caret = fullText != null ? Math.min(editorWindow.getCaretPosition(), Math.max(0, fullText.length())) : 0;
+                if (fullText != null && !fullText.isEmpty()) {
+                    int window = 12000; int half = window / 2;
+                    int foundIndex = (selected != null && !selected.isEmpty()) ? fullText.indexOf(selected) : -1;
+                    int anchor = foundIndex >= 0 ? foundIndex : caret;
+                    int start = Math.max(0, anchor - half);
+                    int end = Math.min(fullText.length(), (foundIndex >= 0 ? (foundIndex + selected.length()) : caret) + half);
+                    if (end > start) {
+                        String snip = fullText.substring(start, end);
+                        selectedContexts.append("\n=== EDITOR-KONTEXT ===\n").append(limitText(snip)).append("\n");
+                    }
+                }
+            } catch (Exception ignored) {}
+        }
+        // Projekt-Kontexte
+        String currentDocx = getCurrentDocxFileName();
+        if (currentDocx != null) {
+            if (cbSynopsis != null && cbSynopsis.isSelected()) {
+                String syn = synopsisArea != null ? synopsisArea.getText() : NovelManager.loadSynopsis(currentDocx);
+                if (syn != null && !syn.trim().isEmpty()) selectedContexts.append("\n=== SYNOPSIS ===\n").append(limitText(syn)).append("\n");
+            }
+            if (cbCharacters != null && cbCharacters.isSelected()) {
+                String chars = charactersArea != null ? charactersArea.getText() : NovelManager.loadCharacters(currentDocx);
+                if (chars != null && !chars.trim().isEmpty()) selectedContexts.append("\n=== CHARAKTERE ===\n").append(limitText(chars)).append("\n");
+            }
+            if (cbWorldbuilding != null && cbWorldbuilding.isSelected()) {
+                String wb = worldbuildingArea != null ? worldbuildingArea.getText() : NovelManager.loadWorldbuilding(currentDocx);
+                if (wb != null && !wb.trim().isEmpty()) selectedContexts.append("\n=== WORLDBUILDING ===\n").append(limitText(wb)).append("\n");
+            }
+            if (cbOutline != null && cbOutline.isSelected()) {
+                String ol = outlineArea != null ? outlineArea.getText() : NovelManager.loadOutline(currentDocx);
+                if (ol != null && !ol.trim().isEmpty()) selectedContexts.append("\n=== OUTLINE ===\n").append(limitText(ol)).append("\n");
+            }
+            if (cbChapterNotes != null && cbChapterNotes.isSelected()) {
+                String ch = chapterNotesArea != null ? chapterNotesArea.getText() : NovelManager.loadChapter(currentDocx);
+                if (ch != null && !ch.trim().isEmpty()) selectedContexts.append("\n=== KAPITELNOTIZEN ===\n").append(limitText(ch)).append("\n");
+            }
+            if (cbStyle != null && cbStyle.isSelected()) {
+                String st;
+                if (styleNotesArea != null && styleNotesArea.getText() != null) {
+                    st = styleNotesArea.getText();
+                } else {
+                    String dir = getNovelDirectory();
+                    st = dir != null ? safeRead(new File(dir, "style.txt")) : "";
+                }
+                if (st != null && !st.trim().isEmpty()) selectedContexts.append("\n=== STIL ===\n").append(limitText(st)).append("\n");
+            }
+            String novelCtx = NovelManager.loadContext(currentDocx);
+            if (novelCtx != null && !novelCtx.trim().isEmpty()) selectedContexts.append("\n=== ROMAN-KONTEXT ===\n").append(limitText(novelCtx)).append("\n");
+        }
+        return selectedContexts.length() > 0 ? selectedContexts.toString().trim() : null;
+    }
+
+    // Zeigt eine themenfähige Stage mit einer read-only TextArea
+    private void showPromptPreviewStage(String title, String content) {
+        Stage s = new Stage();
+        s.setTitle(title);
+        TextArea ta = new TextArea(content == null ? "" : content);
+        ta.setWrapText(true);
+        ta.setEditable(false);
+        VBox box = new VBox(8, ta);
+        box.setPadding(new Insets(10));
+        Scene sc = new Scene(box, 900, 700);
+        // Styles anwenden (ResourceManager, damit Pfade konsistent sind)
+        String stylesCssPath = ResourceManager.getCssResource("css/styles.css");
+        String editorCssPath = ResourceManager.getCssResource("css/editor.css");
+        if (stylesCssPath != null) sc.getStylesheets().add(stylesCssPath);
+        if (editorCssPath != null) sc.getStylesheets().add(editorCssPath);
+        s.setScene(sc);
+        s.initOwner(stage);
+        s.initStyle(StageStyle.DECORATED);
+        s.show();
+        // Theme-Klasse spiegeln
+        applyThemeToNode(box, currentThemeIndex);
+        applyThemeToNode(ta, currentThemeIndex);
+    }
+
+    // Sehr einfache Lesbarmachung: ein paar Leerzeilen zwischen Abschnitten
+    private String formatPromptSimple(String prompt) {
+        if (prompt == null) return "";
+        String s = prompt.replace("\r\n", "\n").replace('\r', '\n');
+        // Abschnittsüberschriften optisch trennen
+        s = s.replace("\nKontext:\n", "\n\nKontext:\n");
+        s = s.replace("\nAnweisung:\n", "\n\nAnweisung:\n");
+        // Regeln ggf. umbrechen
+        if (s.startsWith("Regeln:")) {
+            s = s.replace("Regeln: ", "Regeln:\n");
+        }
+        // Mehr als zwei Leerzeilen vermeiden
+        s = s.replaceAll("\n{3,}", "\n\n");
+        return s.trim();
+    }
+
+    // Formatiert das JSON für Menschen: zeigt Modell, Optionen und ent-escapten Prompt separat
+    private String jsonToHuman(String json) {
+        if (json == null || json.isEmpty()) return "(leer)";
+        try {
+            String model = extractJsonValue(json, "model");
+            String promptEsc = extractJsonValue(json, "prompt");
+            String numPredict = extractJsonOption(json, "num_predict");
+            String temp = extractJsonOption(json, "temperature");
+            String topP = extractJsonOption(json, "top_p");
+            String repPen = extractJsonOption(json, "repeat_penalty");
+            String prompt = unescapeJson(promptEsc);
+            StringBuilder sb = new StringBuilder();
+            sb.append("Model: ").append(model).append("\n");
+            sb.append("Optionen:\n");
+            sb.append("  num_predict: ").append(numPredict).append("\n");
+            sb.append("  temperature: ").append(temp).append("\n");
+            sb.append("  top_p: ").append(topP).append("\n");
+            sb.append("  repeat_penalty: ").append(repPen).append("\n\n");
+
+            // Prompt in Abschnitte zerlegen
+            String rulesHeader = "Regeln:";
+            String anweisungHeader = "\n\nAnweisung:\n";
+            String contextHeader = "\n\nKontext:\n";
+            if (prompt.startsWith(rulesHeader)) {
+                int ctxIdx = prompt.indexOf(contextHeader);
+                int anwIdx = prompt.indexOf(anweisungHeader);
+                if (ctxIdx >= 0 && anwIdx > ctxIdx) {
+                    String rules = prompt.substring(0, ctxIdx).trim();
+                    String context = prompt.substring(ctxIdx + contextHeader.length(), anwIdx).trim();
+                    String instr = prompt.substring(anwIdx + anweisungHeader.length()).trim();
+                    sb.append("Regeln:\n").append(rules.replaceFirst("^Regeln: ", "")).append("\n\n");
+                    // Kontext gliedern
+                    sb.append("Kontext (gekürzt):\n");
+                    sb.append(context).append("\n\n");
+                    sb.append("Anweisung:\n").append(instr);
+                    return sb.toString();
+                }
+            }
+            // Fallback: kompletter Prompt
+            sb.append("Prompt:\n").append(prompt);
+            return sb.toString();
+        } catch (Exception e) {
+            return json; // Fallback: rohes JSON
+        }
+    }
+
+    private String extractJsonValue(String json, String key) {
+        String needle = "\"" + key + "\":\"";
+        int i = json.indexOf(needle);
+        if (i < 0) return "";
+        int start = i + needle.length();
+        StringBuilder sb = new StringBuilder();
+        boolean esc = false;
+        for (int p = start; p < json.length(); p++) {
+            char c = json.charAt(p);
+            if (esc) {
+                sb.append(c);
+                esc = false;
+            } else if (c == '\\') {
+                esc = true;
+            } else if (c == '"') {
+                break;
+            } else {
+                sb.append(c);
+            }
+        }
+        return sb.toString();
+    }
+
+    private String extractJsonOption(String json, String key) {
+        String needle = "\"" + key + "\":";
+        int i = json.indexOf(needle);
+        if (i < 0) return "";
+        int start = i + needle.length();
+        StringBuilder sb = new StringBuilder();
+        for (int p = start; p < json.length(); p++) {
+            char c = json.charAt(p);
+            if (c == ',' || c == '}' ) break;
+            sb.append(c);
+        }
+        return sb.toString().trim();
+    }
+
+    private String unescapeJson(String s) {
+        if (s == null) return null;
+        StringBuilder sb = new StringBuilder();
+        boolean esc = false;
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            if (esc) {
+                switch (c) {
+                    case '\\': sb.append('\\'); break;
+                    case '"': sb.append('"'); break;
+                    case 'n': sb.append('\n'); break;
+                    case 'r': sb.append('\r'); break;
+                    case 't': sb.append('\t'); break;
+                    case 'b': sb.append('\b'); break;
+                    case 'f': sb.append('\f'); break;
+                    default: sb.append(c); break;
+                }
+                esc = false;
+            } else if (c == '\\') {
+                esc = true;
+            } else {
+                sb.append(c);
+            }
+        }
+        return sb.toString();
+    }
+
+    // entfernt: prettyPrintJson (nicht mehr benötigt)
+    
     private void insertToEditor() {
         String selectedFunction = functionComboBox.getValue();
         String textToInsert = "";
@@ -1315,6 +2005,12 @@ public class OllamaWindow {
             showAlert("Kein Text verfügbar", "Es ist kein Text zum Einfügen verfügbar.");
         }
     }
+
+    private String limitText(String text) {
+        if (text == null) return null;
+        int max = 8000; // mehrere tausend Zeichen
+        return text.length() > max ? text.substring(0, max) + "\n..." : text;
+    }
     
     private void checkOllamaStatus() {
         updateStatus("Überprüfe Ollama-Status...");
@@ -1323,18 +2019,155 @@ public class OllamaWindow {
             Platform.runLater(() -> {
                 if (isRunning) {
                     updateStatus("Ollama läuft");
-                    generateButton.setDisable(false);
                 } else {
-                    updateStatus("Ollama nicht erreichbar");
-                    generateButton.setDisable(true);
-                    
-                    // Zeige das verbesserte Installations-Dialog nur wenn gewünscht
+                    updateStatus("Ollama nicht erreichbar – Generieren ist dennoch möglich, es erscheint ggf. eine Fehlermeldung.");
+                    // Button NICHT mehr global deaktivieren; Fehler wird beim Versuch abgefangen
                     if (shouldShowOllamaDialog()) {
                         showOllamaInstallationDialog();
                     }
                 }
+                // Immer sicherstellen, dass der Button klickbar ist (außer während setGenerating(true))
+                if (!progressIndicator.isVisible()) {
+                    generateButton.setDisable(false);
+                }
             });
         });
+    }
+
+    private void loadProjectContexts() {
+        try {
+            String dir = getNovelDirectory();
+            String currentDocx = getCurrentDocxFileName();
+            if (dir == null || dir.isEmpty()) return;
+
+            // Basisdateien still anlegen, falls sie fehlen
+            try { if (!new File(dir, NovelManager.SYNOPSIS_FILE).exists()) writeText(new File(dir, NovelManager.SYNOPSIS_FILE), ""); } catch (Exception ignored) {}
+            try { if (!new File(dir, NovelManager.CHARACTERS_FILE).exists()) writeText(new File(dir, NovelManager.CHARACTERS_FILE), ""); } catch (Exception ignored) {}
+            try { if (!new File(dir, NovelManager.WORLDBUILDING_FILE).exists()) writeText(new File(dir, NovelManager.WORLDBUILDING_FILE), ""); } catch (Exception ignored) {}
+            try { if (!new File(dir, NovelManager.OUTLINE_FILE).exists()) writeText(new File(dir, NovelManager.OUTLINE_FILE), ""); } catch (Exception ignored) {}
+            try { if (!new File(dir, NovelManager.CONTEXT_FILE).exists()) writeText(new File(dir, NovelManager.CONTEXT_FILE), ""); } catch (Exception ignored) {}
+            try { if (!new File(dir, "chapter.txt").exists()) writeText(new File(dir, "chapter.txt"), ""); } catch (Exception ignored) {}
+            try { if (!new File(dir, "style.txt").exists()) writeText(new File(dir, "style.txt"), ""); } catch (Exception ignored) {}
+
+            String syn = safeRead(new File(dir, NovelManager.SYNOPSIS_FILE));
+            String chars = safeRead(new File(dir, NovelManager.CHARACTERS_FILE));
+            String wb = safeRead(new File(dir, NovelManager.WORLDBUILDING_FILE));
+            String ol = safeRead(new File(dir, NovelManager.OUTLINE_FILE));
+            String chap = (currentDocx != null) ? NovelManager.loadChapter(currentDocx) : safeRead(new File(dir, "chapter.txt"));
+            String ctx = safeRead(new File(dir, NovelManager.CONTEXT_FILE));
+            String style = safeRead(new File(dir, "style.txt"));
+
+            if (synopsisArea != null) synopsisArea.setText(syn);
+            if (charactersArea != null) charactersArea.setText(chars);
+            if (worldbuildingArea != null) worldbuildingArea.setText(wb);
+            if (outlineArea != null) outlineArea.setText(ol);
+            if (chapterNotesArea != null) chapterNotesArea.setText(chap);
+            if (contextArea != null && !ctx.equals(contextArea.getText())) contextArea.setText(ctx);
+            if (styleNotesArea != null) styleNotesArea.setText(style);
+        } catch (Exception ignored) { }
+    }
+
+    // Debounced Auto-Save Hilfsfunktionen für Projekt-Kontexte
+    private java.util.Timer debounceTimerSynopsis;
+    private java.util.Timer debounceTimerCharacters;
+    private java.util.Timer debounceTimerWorldbuilding;
+    private java.util.Timer debounceTimerOutline;
+    private java.util.Timer debounceTimerChapter;
+
+    private void setupAutoSave(TextArea area, String fileName) {
+        area.textProperty().addListener((obs, o, n) -> {
+            debounceSave(area, fileName, n);
+        });
+    }
+
+    private void debounceSave(TextArea area, String fileName, String content) {
+        java.util.Timer timer;
+        if (fileName.equals(NovelManager.SYNOPSIS_FILE)) timer = resetTimer("synopsis");
+        else if (fileName.equals(NovelManager.CHARACTERS_FILE)) timer = resetTimer("characters");
+        else if (fileName.equals(NovelManager.WORLDBUILDING_FILE)) timer = resetTimer("worldbuilding");
+        else if (fileName.equals(NovelManager.OUTLINE_FILE)) timer = resetTimer("outline");
+        else timer = resetTimer("chapter");
+
+        timer.schedule(new java.util.TimerTask() {
+            @Override public void run() {
+                Platform.runLater(() -> {
+                    String dir = getNovelDirectory();
+                    if (dir != null && !dir.isEmpty()) {
+                        try {
+                            writeText(new File(dir, fileName), content);
+                            updateStatus("Gespeichert: " + fileName);
+                        } catch (Exception e) {
+                            logger.warning("Fehler beim Speichern von " + fileName + ": " + e.getMessage());
+                        }
+                    }
+                });
+            }
+        }, 600);
+    }
+
+    private java.util.Timer resetTimer(String key) {
+        java.util.Timer t;
+        switch (key) {
+            case "synopsis": if (debounceTimerSynopsis != null) debounceTimerSynopsis.cancel(); t = new java.util.Timer(); debounceTimerSynopsis = t; return t;
+            case "characters": if (debounceTimerCharacters != null) debounceTimerCharacters.cancel(); t = new java.util.Timer(); debounceTimerCharacters = t; return t;
+            case "worldbuilding": if (debounceTimerWorldbuilding != null) debounceTimerWorldbuilding.cancel(); t = new java.util.Timer(); debounceTimerWorldbuilding = t; return t;
+            case "outline": if (debounceTimerOutline != null) debounceTimerOutline.cancel(); t = new java.util.Timer(); debounceTimerOutline = t; return t;
+            case "style": return new java.util.Timer();
+            default: if (debounceTimerChapter != null) debounceTimerChapter.cancel(); t = new java.util.Timer(); debounceTimerChapter = t; return t;
+        }
+    }
+
+    private void debouncedSaveChapter(String content) {
+        java.util.Timer t = resetTimer("chapter");
+        t.schedule(new java.util.TimerTask() {
+            @Override public void run() {
+                Platform.runLater(() -> {
+                    String dir = getNovelDirectory();
+                    if (dir != null && !dir.isEmpty()) {
+                        try {
+                            writeText(new File(dir, "chapter.txt"), content);
+                            updateStatus("Gespeichert: Kapitelnotizen");
+                        } catch (Exception e) {
+                            logger.warning("Fehler beim Speichern der Kapitelnotizen: " + e.getMessage());
+                        }
+                    }
+                });
+            }
+        }, 600);
+    }
+    
+    private void cancelAllDebounceTimers() {
+        if (debounceTimerSynopsis != null) debounceTimerSynopsis.cancel();
+        if (debounceTimerCharacters != null) debounceTimerCharacters.cancel();
+        if (debounceTimerWorldbuilding != null) debounceTimerWorldbuilding.cancel();
+        if (debounceTimerOutline != null) debounceTimerOutline.cancel();
+        if (debounceTimerChapter != null) debounceTimerChapter.cancel();
+    }
+
+    private void saveAllContextsNow() {
+        String dir = getNovelDirectory();
+        if (dir == null || dir.isEmpty()) return;
+        try {
+            writeText(new File(dir, NovelManager.SYNOPSIS_FILE), synopsisArea != null ? synopsisArea.getText() : "");
+            writeText(new File(dir, NovelManager.CHARACTERS_FILE), charactersArea != null ? charactersArea.getText() : "");
+            writeText(new File(dir, NovelManager.WORLDBUILDING_FILE), worldbuildingArea != null ? worldbuildingArea.getText() : "");
+            writeText(new File(dir, NovelManager.OUTLINE_FILE), outlineArea != null ? outlineArea.getText() : "");
+            writeText(new File(dir, "chapter.txt"), chapterNotesArea != null ? chapterNotesArea.getText() : "");
+            writeText(new File(dir, NovelManager.CONTEXT_FILE), contextArea != null ? contextArea.getText() : "");
+            writeText(new File(dir, "style.txt"), styleNotesArea != null ? styleNotesArea.getText() : "");
+            updateStatus("Alle TextAreas gespeichert");
+        } catch (Exception e) {
+            logger.warning("Fehler beim Speichern der TextAreas beim Schließen: " + e.getMessage());
+        }
+    }
+
+    private static void writeText(File f, String content) throws java.io.IOException {
+        if (f == null) return;
+        java.nio.file.Files.writeString(f.toPath(), content != null ? content : "", java.nio.charset.StandardCharsets.UTF_8);
+    }
+    
+    private static String safeRead(File f) {
+        try { return (f != null && f.exists()) ? java.nio.file.Files.readString(f.toPath()) : ""; } catch (Exception e) { return ""; }
     }
     
     private void setGenerating(boolean generating) {
@@ -1348,7 +2181,9 @@ public class OllamaWindow {
     }
     
     private void updateStatus(String status) {
-        statusLabel.setText(status);
+        if (statusLabel != null) {
+            statusLabel.setText(status);
+        }
         logger.info("Ollama-Status: " + status);
     }
     
@@ -1558,11 +2393,9 @@ public class OllamaWindow {
     }
     
     public void hide() {
-        // Context speichern bevor das Fenster geschlossen wird
-        saveContextToFile();
-        
-        // Alle Sessions speichern bevor das Fenster geschlossen wird
-        saveAllSessions();
+        // Flush aller Kontexte und Timer stoppen
+        cancelAllDebounceTimers();
+        saveAllContextsNow();
         stage.hide();
     }
     
@@ -1613,8 +2446,22 @@ public class OllamaWindow {
             applyThemeToNode(functionComboBox, themeIndex);
             applyThemeToNode(generateButton, themeIndex);
             applyThemeToNode(insertButton, themeIndex);
+            applyThemeToNode(previewPromptButton, themeIndex);
             applyThemeToNode(inputArea, themeIndex);
             applyThemeToNode(contextArea, themeIndex);
+            applyThemeToNode(contextAccordion, themeIndex);
+            applyThemeToNode(tpSynopsis, themeIndex);
+            applyThemeToNode(tpCharacters, themeIndex);
+            applyThemeToNode(tpWorldbuilding, themeIndex);
+            applyThemeToNode(tpOutline, themeIndex);
+            applyThemeToNode(tpChapter, themeIndex);
+            applyThemeToNode(tpStyle, themeIndex);
+            applyThemeToNode(synopsisArea, themeIndex);
+            applyThemeToNode(charactersArea, themeIndex);
+            applyThemeToNode(worldbuildingArea, themeIndex);
+            applyThemeToNode(outlineArea, themeIndex);
+            applyThemeToNode(chapterNotesArea, themeIndex);
+            applyThemeToNode(styleNotesArea, themeIndex);
             applyThemeToNode(statusLabel, themeIndex);
             applyThemeToNode(characterField, themeIndex);
             applyThemeToNode(situationField, themeIndex);
@@ -1681,8 +2528,10 @@ public class OllamaWindow {
             } else if (themeIndex == 5) { // Lila-Theme
                 node.getStyleClass().addAll("theme-dark", "lila-theme");
             }
+
         }
     }
+
     
     /**
      * Gibt die aktuell ausgewählte Funktion zurück
@@ -2190,7 +3039,7 @@ public class OllamaWindow {
     /**
      * Ermittelt das Verzeichnis, aus dem die DOCX-Dateien geladen wurden
      */
-    private String getDocxDirectory() {
+    private String getNovelDirectory() {
         // Verwende den Pfad aus der gespeicherten Dateiauswahl
         String savedSelectionPath = ResourceManager.getParameter("ui.last_docx_directory", "");
         
@@ -2207,32 +3056,27 @@ public class OllamaWindow {
      * Ermittelt den aktuellen DOCX-Dateinamen basierend auf dem Editor
      */
     private String getCurrentDocxFileName() {
-        if (editorWindow != null && editorWindow.getCurrentFile() != null) {
-            File currentFile = editorWindow.getCurrentFile();
-            
-            // Falls es eine virtuelle Datei ist, versuche den ursprünglichen Namen zu finden
-            if (currentFile.getName().endsWith(".docx")) {
-                // Da der Editor eine virtuelle Datei verwendet, müssen wir den ursprünglichen Pfad finden
-                // Verwende den Pfad aus der gespeicherten Dateiauswahl
-                String savedSelectionPath = ResourceManager.getParameter("ui.last_docx_directory", "");
-                
-                if (!savedSelectionPath.isEmpty()) {
-                    // Suche nach der DOCX-Datei im gespeicherten Verzeichnis
-                    File directory = new File(savedSelectionPath);
-                    
-                    if (directory.exists() && directory.isDirectory()) {
-                        File[] files = directory.listFiles((dir, name) -> name.endsWith(".docx"));
-                        
-                        if (files != null && files.length > 0) {
-                            // Verwende die erste gefundene DOCX-Datei
-                            return files[0].getAbsolutePath();
-                        }
+        try {
+            // 1) Primär: vom Editor die originale DOCX holen
+            if (editorWindow != null) {
+                File original = editorWindow.getOriginalDocxFile();
+                if (original != null && original.exists()) {
+                    return original.getAbsolutePath();
+                }
+            }
+
+            // 2) Sekundär: verwende das gespeicherte DOCX-Verzeichnis und nimm die erste .docx
+            String savedSelectionPath = ResourceManager.getParameter("ui.last_docx_directory", "");
+            if (!savedSelectionPath.isEmpty()) {
+                File directory = new File(savedSelectionPath);
+                if (directory.exists() && directory.isDirectory()) {
+                    File[] files = directory.listFiles((dir, name) -> name.toLowerCase().endsWith(".docx"));
+                    if (files != null && files.length > 0) {
+                        return files[0].getAbsolutePath();
                     }
                 }
-                // Fallback: Verwende den aktuellen Pfad
-                return currentFile.getAbsolutePath();
             }
-        }
+        } catch (Exception ignored) {}
         return null;
     }
     
@@ -2240,7 +3084,7 @@ public class OllamaWindow {
      * Lädt den Kontext aus der context.txt des DOCX-Verzeichnisses
      */
     private void loadContextFromNovel() {
-        String docxDirectory = getDocxDirectory();
+        String docxDirectory = getNovelDirectory();
         
         if (docxDirectory != null) {
             File contextFile = new File(docxDirectory, "context.txt");
@@ -2270,7 +3114,7 @@ public class OllamaWindow {
      * Speichert den aktuellen Context in die context.txt Datei
      */
     private void saveContextToFile() {
-        String docxDirectory = getDocxDirectory();
+        String docxDirectory = getNovelDirectory();
         if (docxDirectory != null && contextArea != null) {
             String context = contextArea.getText();
             
