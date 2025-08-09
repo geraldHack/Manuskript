@@ -128,6 +128,8 @@ public class EditorWindow implements Initializable {
     @FXML private Button btnBold;
     @FXML private Button btnItalic;
     @FXML private Button btnThemeToggle;
+    @FXML private Button btnPreviousChapter;
+    @FXML private Button btnNextChapter;
     @FXML private Button btnMacroRegexHelp;
     
     // Makro-UI-Elemente (werden programmatisch erstellt)
@@ -185,6 +187,7 @@ public class EditorWindow implements Initializable {
     private String originalContent = ""; // Kopie des ursprünglichen Inhalts für Vergleich
     private DocxProcessor.OutputFormat outputFormat = DocxProcessor.OutputFormat.HTML;
     private DocxProcessor docxProcessor;
+    private MainController mainController; // Referenz zum MainController für Navigation
     
     // Theme-Management
     private int currentThemeIndex = 0;
@@ -496,6 +499,10 @@ if (caret != null) {
         
         // KI-Assistent-Button
         btnKIAssistant.setOnAction(e -> toggleOllamaWindow());
+        
+        // Kapitel-Navigation-Buttons
+        btnPreviousChapter.setOnAction(e -> navigateToPreviousChapter());
+        btnNextChapter.setOnAction(e -> navigateToNextChapter());
         
         // Chapter-Editor Event-Handler
         btnChapterEditor.setOnAction(e -> toggleChapterEditor());
@@ -1223,7 +1230,7 @@ if (caret != null) {
     private void saveStateForUndo() {
         if (!isUndoRedoOperation) {
             String currentText = codeArea.getText();
-            int currentCaretPosition = 0; // CodeArea handhabt Caret-Position anders
+            int currentCaretPosition = codeArea.getCaretPosition();
             undoStack.add(new UndoState(currentText, currentCaretPosition));
             
             // Begrenze die Anzahl der Undo-Schritte
@@ -1238,17 +1245,29 @@ if (caret != null) {
     
     private void undo() {
         if (!undoStack.isEmpty()) {
-            isUndoRedoOperation = true;
-            
             // Aktuellen Zustand für Redo speichern
             String currentText = codeArea.getText();
-            int currentCaretPosition = 0; // CodeArea handhabt Caret-Position anders
-            redoStack.add(new UndoState(currentText, currentCaretPosition));
+            int currentPosition = codeArea.getCaretPosition();
+            redoStack.add(new UndoState(currentText, currentPosition));
             
             // Letzten Zustand wiederherstellen
             UndoState previousState = undoStack.remove(undoStack.size() - 1);
+            logger.info("UNDO: Aktuelle Position: {}, Gespeicherte Position: {}, Text-Länge: {}", 
+                       currentPosition, previousState.caretPosition, previousState.text.length());
+            
+            // WICHTIG: isUndoRedoOperation VOR replaceText setzen!
+            isUndoRedoOperation = true;
             codeArea.replaceText(previousState.text);
-            // Caret-Position wird von CodeArea automatisch verwaltet
+            
+            // An die GESPEICHERTE Position aus dem Undo-Stack scrollen
+            Platform.runLater(() -> {
+                int targetPosition = Math.min(previousState.caretPosition, codeArea.getText().length());
+                logger.info("UNDO: Scrolle zu Position: {} (Text-Länge nach Ersetzen: {})", 
+                           targetPosition, codeArea.getText().length());
+                codeArea.moveTo(targetPosition);
+                codeArea.requestFocus();
+                logger.info("UNDO: Cursor-Position nach moveTo: {}", codeArea.getCaretPosition());
+            });
             
             isUndoRedoOperation = false;
             updateStatus("Undo ausgeführt");
@@ -1259,17 +1278,26 @@ if (caret != null) {
     
     private void redo() {
         if (!redoStack.isEmpty()) {
-            isUndoRedoOperation = true;
+            // JETZT die aktuelle Position speichern
+            int currentPosition = codeArea.getCaretPosition();
             
             // Aktuellen Zustand für Undo speichern
             String currentText = codeArea.getText();
-            int currentCaretPosition = 0; // CodeArea handhabt Caret-Position anders
-            undoStack.add(new UndoState(currentText, currentCaretPosition));
+            undoStack.add(new UndoState(currentText, currentPosition));
             
             // Letzten Redo-Zustand wiederherstellen
             UndoState nextState = redoStack.remove(redoStack.size() - 1);
+            
+            // WICHTIG: isUndoRedoOperation VOR replaceText setzen!
+            isUndoRedoOperation = true;
             codeArea.replaceText(nextState.text);
-            // Caret-Position wird von CodeArea automatisch verwaltet
+            
+            // An die GESPEICHERTE Position aus dem Redo-Stack scrollen
+            Platform.runLater(() -> {
+                int targetPosition = Math.min(nextState.caretPosition, codeArea.getText().length());
+                codeArea.moveTo(targetPosition);
+                codeArea.requestFocus();
+            });
             
             isUndoRedoOperation = false;
             updateStatus("Redo ausgeführt");
@@ -1329,11 +1357,18 @@ if (caret != null) {
     
     // Datei-Operationen
     private void saveFile() {
-        if (currentFile != null) {
-            saveToFile(currentFile);
-            // Kopie nach dem Speichern aktualisieren
+        // Niemals die originale DOCX-Datei mit Text überschreiben!
+        File target = currentFile;
+        if (target == null || (originalDocxFile != null && target.equals(originalDocxFile)) || isDocxFile(target)) {
+            // In ein Sidecar-File mit passender Erweiterung speichern (gleiches Verzeichnis, gleicher Basename)
+            target = deriveSidecarFileForCurrentFormat();
+        }
+        if (target != null) {
+            saveToFile(target);
+            currentFile = target; // künftige Saves gehen wieder hierhin
             originalContent = codeArea.getText();
         } else {
+            // Fallback auf Save As
             saveFileAs();
         }
     }
@@ -1404,8 +1439,10 @@ if (caret != null) {
                 preferences.put("lastSaveDirectory", directory);
             }
             
-            currentFile = file;
-            saveToFile(file);
+            // Falls versehentlich eine DOCX gewählt wurde: auf Sidecar umbiegen
+            File target = isDocxFile(file) ? deriveSidecarFileForCurrentFormat() : file;
+            currentFile = target;
+            saveToFile(target);
         }
     }
     
@@ -1444,11 +1481,45 @@ if (caret != null) {
     
     private void saveToFile(File file) {
         try {
-            Files.write(file.toPath(), codeArea.getText().getBytes(StandardCharsets.UTF_8));
+            String data = codeArea.getText();
+            if (data == null) data = "";
+            // Nie löschen: leere Dateien bleiben bestehen
+            Files.write(file.toPath(), data.getBytes(StandardCharsets.UTF_8));
             updateStatus("Datei gespeichert: " + file.getName());
         } catch (IOException e) {
             updateStatusError("Fehler beim Speichern: " + e.getMessage());
         }
+    }
+
+    private boolean isDocxFile(File f) {
+        if (f == null) return false;
+        String n = f.getName().toLowerCase();
+        return n.endsWith(".docx") || n.endsWith(".doc");
+    }
+
+    private File deriveSidecarFileForCurrentFormat() {
+        File base = (originalDocxFile != null) ? originalDocxFile : currentFile;
+        if (base == null) return null;
+        String baseName = base.getName();
+        int idx = baseName.lastIndexOf('.');
+        if (idx > 0) baseName = baseName.substring(0, idx);
+        String ext = getDefaultExtension();
+        return new File(base.getParentFile(), baseName + ext);
+    }
+
+    private File deriveSidecarFileFor(File docx, DocxProcessor.OutputFormat format) {
+        if (docx == null) return null;
+        File base = docx;
+        String baseName = base.getName();
+        int idx = baseName.lastIndexOf('.');
+        if (idx > 0) baseName = baseName.substring(0, idx);
+        String ext;
+        switch (format) {
+            case MARKDOWN: ext = ".md"; break;
+            case PLAIN_TEXT: ext = ".txt"; break;
+            case HTML: default: ext = ".html"; break;
+        }
+        return new File(base.getParentFile(), baseName + ext);
     }
     
     /**
@@ -1497,6 +1568,10 @@ if (caret != null) {
         );
         
         alert.getDialogPane().setStyle(dialogStyle);
+        // Einheitliches Styling (wie andere Dialoge)
+        styleDialog(alert);
+        // Einheitliches Styling (wie andere Dialoge)
+        styleDialog(alert);
         
         // Checkboxen für Speicheroptionen
         CheckBox saveCurrentFormat = new CheckBox("Als " + getFormatDisplayName() + " speichern");
@@ -1532,47 +1607,16 @@ if (caret != null) {
         // Theme für alle Buttons im Dialog anwenden
         alert.setOnShown(event -> {
             // Header-Text thematisieren - versuche verschiedene Selectors
-            Node headerLabel = alert.getDialogPane().lookup(".header-panel .label");
-            if (headerLabel == null) {
-                headerLabel = alert.getDialogPane().lookup(".header-panel");
-            }
-            if (headerLabel == null) {
-                headerLabel = alert.getDialogPane().lookup(".dialog-pane .header-panel");
-            }
-            if (headerLabel == null) {
-                // Versuche alle Labels im Dialog zu finden
-                for (Node node : alert.getDialogPane().lookupAll(".label")) {
-                    if (node instanceof Label) {
-                        Label label = (Label) node;
-                        if (label.getText() != null && label.getText().contains("ungespeicherte Änderungen")) {
-                            headerLabel = label;
-                            break;
-                        }
-                    }
-                }
-            }
-            
-            if (headerLabel != null) {
-                headerLabel.setStyle(String.format(
-                    "-fx-background-color: %s; -fx-text-fill: %s;",
-                    backgroundColor, textColor
+            Node headerPanel = alert.getDialogPane().lookup(".header-panel");
+            if (headerPanel != null) {
+                headerPanel.setStyle(String.format(
+                    "-fx-background-color: %s;",
+                    backgroundColor
                 ));
-            }
-            
-            // Zusätzlich: Versuche das Header-Label über den Dialog-Titel zu finden
-            try {
-                // Verwende Reflection um auf das private Header-Label zuzugreifen
-                java.lang.reflect.Field headerField = alert.getDialogPane().getClass().getDeclaredField("header");
-                headerField.setAccessible(true);
-                Node header = (Node) headerField.get(alert.getDialogPane());
-                if (header != null) {
-                    header.setStyle(String.format(
-                        "-fx-background-color: %s; -fx-text-fill: %s;",
-                        backgroundColor, textColor
-                    ));
+                Node headerLabel = headerPanel.lookup(".label");
+                if (headerLabel instanceof Label) {
+                    ((Label) headerLabel).setTextFill(javafx.scene.paint.Color.web(textColor));
                 }
-            } catch (Exception e) {
-                // Reflection fehlgeschlagen, ignoriere
             }
             
             // Buttons thematisieren
@@ -1610,6 +1654,127 @@ if (caret != null) {
     }
     
     /**
+     * Zeigt den Speichern-Dialog für Navigation (ohne Fenster zu schließen)
+     * @return true wenn Navigation fortgesetzt werden soll, false wenn abgebrochen
+     */
+    private boolean showSaveDialogForNavigation() {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Ungespeicherte Änderungen");
+        alert.setHeaderText("Die Datei hat ungespeicherte Änderungen.");
+        alert.setContentText("Was möchten Sie speichern, bevor Sie zum nächsten Kapitel wechseln?");
+        
+        // Theme-Farben holen
+        String backgroundColor = THEMES[currentThemeIndex][0];
+        String textColor = THEMES[currentThemeIndex][1];
+        
+        // CSS-Styles für den Dialog direkt anwenden
+        String dialogStyle = String.format(
+            "-fx-background-color: %s; -fx-text-fill: %s; -fx-control-inner-background: %s;",
+            backgroundColor, textColor, backgroundColor
+        );
+        
+        alert.getDialogPane().setStyle(dialogStyle);
+        
+        // Checkboxen für Speicheroptionen
+        CheckBox saveCurrentFormat = new CheckBox("Als " + getFormatDisplayName() + " speichern");
+        CheckBox saveOriginalDocx = new CheckBox("Originale DOCX-Datei überschreiben");
+        
+        // Default: Nur aktuelles Format
+        saveCurrentFormat.setSelected(true);
+        saveOriginalDocx.setSelected(false);
+        
+        // Theme für Checkboxen
+        String checkboxStyle = String.format(
+            "-fx-background-color: %s; -fx-text-fill: %s; -fx-control-inner-background: %s;",
+            backgroundColor, textColor, backgroundColor
+        );
+        saveCurrentFormat.setStyle(checkboxStyle);
+        saveOriginalDocx.setStyle(checkboxStyle);
+        
+        VBox content = new VBox(10);
+        content.getChildren().addAll(saveCurrentFormat, saveOriginalDocx);
+        content.setPadding(new Insets(10));
+        
+        // Theme für Content-Container
+        content.setStyle(String.format("-fx-background-color: %s;", backgroundColor));
+        
+        alert.getDialogPane().setContent(content);
+        
+        ButtonType saveButton = new ButtonType("Speichern & Weitermachen");
+        ButtonType discardButton = new ButtonType("Verwerfen & Weitermachen");
+        ButtonType cancelButton = new ButtonType("Abbrechen");
+        
+        alert.getButtonTypes().setAll(saveButton, discardButton, cancelButton);
+        
+        // Theme für alle Buttons im Dialog anwenden
+        alert.setOnShown(event -> {
+            // Header-Text thematisieren
+            Node headerLabel = alert.getDialogPane().lookup(".header-panel .label");
+            if (headerLabel == null) {
+                headerLabel = alert.getDialogPane().lookup(".header-panel");
+            }
+            if (headerLabel == null) {
+                headerLabel = alert.getDialogPane().lookup(".dialog-pane .header-panel");
+            }
+            if (headerLabel == null) {
+                // Versuche alle Labels im Dialog zu finden
+                for (Node node : alert.getDialogPane().lookupAll(".label")) {
+                    if (node instanceof Label) {
+                        Label label = (Label) node;
+                        if (label.getText() != null && label.getText().contains("ungespeicherte Änderungen")) {
+                            headerLabel = label;
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            if (headerLabel != null) {
+                headerLabel.setStyle(String.format(
+                    "-fx-background-color: %s; -fx-text-fill: %s;",
+                    backgroundColor, textColor
+                ));
+            }
+            
+            // Buttons thematisieren
+            String buttonStyle = String.format(
+                "-fx-background-color: %s; -fx-text-fill: %s; -fx-border-color: %s;",
+                backgroundColor, textColor, textColor
+            );
+            
+            for (ButtonType buttonType : alert.getButtonTypes()) {
+                Button button = (Button) alert.getDialogPane().lookupButton(buttonType);
+                if (button != null) {
+                    button.setStyle(buttonStyle);
+                }
+            }
+        });
+        
+        Optional<ButtonType> result = alert.showAndWait();
+        
+        if (result.isPresent()) {
+            if (result.get() == saveButton) {
+                // Speichern basierend auf Auswahl
+                if (saveCurrentFormat.isSelected()) {
+                    saveFile();
+                }
+                if (saveOriginalDocx.isSelected() && originalDocxFile != null) {
+                    saveToOriginalDocx();
+                }
+                return true; // Navigation fortsetzen
+            } else if (result.get() == discardButton) {
+                // Verwerfen und Navigation fortsetzen
+                return true; // Navigation fortsetzen
+            } else if (result.get() == cancelButton) {
+                // Abbrechen - keine Navigation
+                return false; // Navigation abbrechen
+            }
+        }
+        
+        return false; // Standard: Navigation abbrechen
+    }
+    
+    /**
      * Gibt den Anzeigenamen des aktuellen Formats zurück
      */
     private String getFormatDisplayName() {
@@ -1633,6 +1798,13 @@ if (caret != null) {
         try {
             // Konvertiere den aktuellen Inhalt zurück zu DOCX
             String currentContent = codeArea.getText();
+            
+            // WICHTIG: Prüfe ob der Inhalt leer ist!
+            if (currentContent == null || currentContent.trim().isEmpty()) {
+                updateStatusError("Kann leere Datei nicht speichern - Inhalt ist leer!");
+                logger.error("Versuch, leere Datei zu speichern: {}", originalDocxFile.getName());
+                return;
+            }
             
             // Konvertiere basierend auf dem aktuellen Format
             if (outputFormat == DocxProcessor.OutputFormat.MARKDOWN) {
@@ -2003,12 +2175,26 @@ if (caret != null) {
         this.originalDocxFile = docxFile;
     }
     
+    /**
+     * Gibt die originale DOCX-Datei zurück
+     */
+    public File getOriginalDocxFile() {
+        return this.originalDocxFile;
+    }
+    
     public File getCurrentFile() {
         return this.currentFile;
     }
     
     public String getText() {
         return codeArea.getText();
+    }
+
+    /**
+     * Cursor-Position für Kontext-Erzeugung in KI-Funktionen
+     */
+    public int getCaretPosition() {
+        return codeArea != null ? codeArea.getCaretPosition() : 0;
     }
     
     public void setStage(Stage stage) {
@@ -2112,6 +2298,15 @@ if (caret != null) {
         });
     }
     
+    public void setMainController(MainController mainController) {
+        this.mainController = mainController;
+        
+        // Aktualisiere die Navigation-Buttons nach dem Setzen des MainControllers
+        Platform.runLater(() -> {
+            updateNavigationButtons();
+        });
+    }
+    
     // ===== MAKRO-FUNKTIONALITÄT =====
     
 
@@ -2133,10 +2328,14 @@ if (caret != null) {
         VBox macroPanel = createMacroPanel();
         
         Scene macroScene = new Scene(macroPanel);
-        // CSS mit ResourceManager laden
-        String cssPath = ResourceManager.getCssResource("css/editor.css");
-        if (cssPath != null) {
-            macroScene.getStylesheets().add(cssPath);
+        // CSS mit ResourceManager laden (editor.css + styles.css, damit Tabellen-Themes greifen)
+        String editorCss = ResourceManager.getCssResource("css/editor.css");
+        if (editorCss != null) {
+            macroScene.getStylesheets().add(editorCss);
+        }
+        String stylesCss = ResourceManager.getCssResource("css/styles.css");
+        if (stylesCss != null) {
+            macroScene.getStylesheets().add(stylesCss);
         }
         macroStage.setScene(macroScene);
         
@@ -2203,18 +2402,26 @@ if (caret != null) {
         
         Button btnNewMacro = new Button("Neues Makro");
         btnNewMacro.getStyleClass().addAll("button", "primary");
+        btnNewMacro.setMinHeight(34);
+        btnNewMacro.setStyle("-fx-font-size: 13px; -fx-padding: 4 12;");
         
         Button btnDeleteMacro = new Button("Makro löschen");
         btnDeleteMacro.getStyleClass().addAll("button", "danger");
+        btnDeleteMacro.setMinHeight(34);
+        btnDeleteMacro.setStyle("-fx-font-size: 13px; -fx-padding: 4 12;");
         
         Button btnSaveMacro = new Button("Makro speichern");
         btnSaveMacro.getStyleClass().addAll("button", "primary");
+        btnSaveMacro.setMinHeight(34);
+        btnSaveMacro.setStyle("-fx-font-size: 13px; -fx-padding: 4 12;");
         
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
         
         Button btnRunMacro = new Button("Makro ausführen");
         btnRunMacro.getStyleClass().addAll("button", "success");
+        btnRunMacro.setMinHeight(34);
+        btnRunMacro.setStyle("-fx-font-size: 13px; -fx-padding: 4 12; -fx-font-weight: bold;");
         
         macroControls.getChildren().addAll(macroLabel, cmbMacroList, btnNewMacro, btnDeleteMacro, btnSaveMacro, spacer, btnRunMacro);
         
@@ -2270,6 +2477,8 @@ if (caret != null) {
         
         // Makro-Schritte Tabelle
         TableView<MacroStep> tblMacroSteps = new TableView<>();
+        // Eigene Style-Klasse, damit wir die Hintergrundfarbe sicher und isoliert stylen können
+        tblMacroSteps.getStyleClass().add("macro-table");
         VBox.setVgrow(tblMacroSteps, Priority.ALWAYS);
         
         TableColumn<MacroStep, Integer> colStepNumber = new TableColumn<>("Schritt");
@@ -2373,16 +2582,37 @@ if (caret != null) {
         stepButtons.setAlignment(Pos.CENTER_LEFT);
         
         Button btnAddStep = new Button("Schritt hinzufügen");
-        btnAddStep.getStyleClass().add("toolbar-button");
-        
+        // Entferne kompaktes Styling und setze klare Größen
+        btnAddStep.getStyleClass().remove("toolbar-button");
+        btnAddStep.setMinHeight(32);
+        btnAddStep.setPrefHeight(32);
+        btnAddStep.setMinWidth(200);
+        btnAddStep.setPrefWidth(220);
+        btnAddStep.setStyle("-fx-font-size: 14px; -fx-padding: 6 14; -fx-font-weight: bold;");
+
         Button btnRemoveStep = new Button("Schritt entfernen");
-        btnRemoveStep.getStyleClass().add("toolbar-button");
-        
+        btnRemoveStep.getStyleClass().remove("toolbar-button");
+        btnRemoveStep.setMinHeight(32);
+        btnRemoveStep.setPrefHeight(32);
+        btnRemoveStep.setMinWidth(200);
+        btnRemoveStep.setPrefWidth(220);
+        btnRemoveStep.setStyle("-fx-font-size: 14px; -fx-padding: 6 14; -fx-font-weight: bold;");
+
         Button btnMoveStepUp = new Button("↑");
-        btnMoveStepUp.getStyleClass().add("toolbar-button");
-        
+        btnMoveStepUp.getStyleClass().remove("toolbar-button");
+        btnMoveStepUp.setMinHeight(32);
+        btnMoveStepUp.setPrefHeight(32);
+        btnMoveStepUp.setMinWidth(48);
+        btnMoveStepUp.setPrefWidth(56);
+        btnMoveStepUp.setStyle("-fx-font-size: 16px; -fx-padding: 0 10; -fx-font-weight: bold;");
+
         Button btnMoveStepDown = new Button("↓");
-        btnMoveStepDown.getStyleClass().add("toolbar-button");
+        btnMoveStepDown.getStyleClass().remove("toolbar-button");
+        btnMoveStepDown.setMinHeight(32);
+        btnMoveStepDown.setPrefHeight(32);
+        btnMoveStepDown.setMinWidth(48);
+        btnMoveStepDown.setPrefWidth(56);
+        btnMoveStepDown.setStyle("-fx-font-size: 16px; -fx-padding: 0 10; -fx-font-weight: bold;");
         
         stepButtons.getChildren().addAll(btnAddStep, btnRemoveStep, btnMoveStepUp, btnMoveStepDown);
         
@@ -3768,6 +3998,8 @@ if (caret != null) {
         dialog.setTitle("Neues Makro erstellen");
         dialog.setHeaderText("Makro-Name eingeben");
         dialog.setContentText("Name:");
+        // Dialog themen-konsistent stylen
+        styleDialog(dialog);
         
         Optional<String> result = dialog.showAndWait();
         if (result.isPresent() && !result.get().trim().isEmpty()) {
@@ -3791,6 +4023,7 @@ if (caret != null) {
             alert.setTitle("Makro löschen");
             alert.setHeaderText("Makro löschen bestätigen");
             alert.setContentText("Möchten Sie das Makro '" + currentMacro.getName() + "' wirklich löschen?");
+            styleDialog(alert);
             
             Optional<ButtonType> result = alert.showAndWait();
             if (result.isPresent() && result.get() == ButtonType.OK) {
@@ -3805,6 +4038,44 @@ if (caret != null) {
                 updateStatus("Makro gelöscht: " + macroName);
             }
         }
+    }
+
+    private void styleDialog(Dialog<?> dialog) {
+        if (dialog == null) return;
+        DialogPane pane = dialog.getDialogPane();
+        // CSS hinzufügen (styles.css + editor.css), damit Theme greift
+        String stylesCss = ResourceManager.getCssResource("css/styles.css");
+        String editorCss = ResourceManager.getCssResource("css/editor.css");
+        if (stylesCss != null && !pane.getStylesheets().contains(stylesCss)) {
+            pane.getStylesheets().add(stylesCss);
+        }
+        if (editorCss != null && !pane.getStylesheets().contains(editorCss)) {
+            pane.getStylesheets().add(editorCss);
+        }
+
+        // Theme-Klassen vom Hauptfenster übernehmen
+        if (currentThemeIndex == 0) pane.getStyleClass().add("weiss-theme");
+        else if (currentThemeIndex == 2) pane.getStyleClass().add("pastell-theme");
+        else if (currentThemeIndex == 3) pane.getStyleClass().addAll("theme-dark", "blau-theme");
+        else if (currentThemeIndex == 4) pane.getStyleClass().addAll("theme-dark", "gruen-theme");
+        else if (currentThemeIndex == 5) pane.getStyleClass().addAll("theme-dark", "lila-theme");
+        else pane.getStyleClass().add("theme-dark");
+
+        // Zusätzlich: Header-Panel sicher inline stylen, sobald aufgebaut
+        final String backgroundColor = THEMES[currentThemeIndex][0];
+        final String textColor = THEMES[currentThemeIndex][1];
+        dialog.setOnShown(ev -> {
+            Node headerPanel = pane.lookup(".header-panel");
+            if (headerPanel != null) {
+                headerPanel.setStyle(String.format(
+                        "-fx-background-color: %s; -fx-background-insets: 0; -fx-padding: 8 12;",
+                        backgroundColor));
+                Node headerLabel = headerPanel.lookup(".label");
+                if (headerLabel instanceof Label) {
+                    ((Label) headerLabel).setTextFill(javafx.scene.paint.Color.web(textColor));
+                }
+            }
+        });
     }
     
     private void selectMacro() {
@@ -4132,27 +4403,41 @@ if (caret != null) {
     }
     
     private void loadMacros() {
-        // EINFACHE PERSISTIERUNG - Funktioniert garantiert
-        logger.info("Lade Makros - EINFACHES FORMAT");
-        
-        String savedMacros = preferences.get("savedMacros", "");
-        
-        // Wenn alte Daten vorhanden sind oder alle CheckBoxen deaktiviert sind, lösche sie
-        if (savedMacros.contains("|||") || savedMacros.contains("<<<MACRO>>>") || savedMacros.contains("ENABLED:0")) {
-            logger.info("Alte Makro-Daten oder deaktivierte CheckBoxen gefunden - lösche alle Makros");
-            try {
-                preferences.remove("savedMacros");
-                preferences.flush();
-            } catch (Exception e) {
-                logger.error("Fehler beim Löschen der Makro-Daten", e);
+        // Neue Persistenz: Datei im config/makros Ordner, mit Migration aus Preferences
+        logger.info("Lade Makros (Datei bevorzugt, Migration aus Preferences falls nötig)");
+
+        String savedMacros = "";
+        java.io.File macrosFile = getMacrosFile();
+
+        try {
+            if (macrosFile.exists()) {
+                savedMacros = new String(java.nio.file.Files.readAllBytes(macrosFile.toPath()), "UTF-8");
+            } else {
+                String legacy = preferences.get("savedMacros", "");
+                if (legacy != null && !legacy.isEmpty()) {
+                    savedMacros = legacy;
+                    java.nio.file.Files.createDirectories(macrosFile.getParentFile().toPath());
+                    java.nio.file.Files.writeString(macrosFile.toPath(), savedMacros, java.nio.charset.StandardCharsets.UTF_8);
+                    logger.info("Makros aus Preferences migriert nach: " + macrosFile.getAbsolutePath());
+                }
             }
+        } catch (Exception e) {
+            logger.error("Fehler beim Laden/Migrieren der Makros: ", e);
+        }
+
+        if (savedMacros == null) savedMacros = "";
+        // Alte/inkompatible Formate abfangen
+        if (savedMacros.contains("|||") || savedMacros.contains("<<<MACRO>>>") || savedMacros.contains("ENABLED:0")) {
+            logger.info("Alte/inkompatible Makro-Daten erkannt – setze zurück");
             savedMacros = "";
         }
-        
+
         if (savedMacros.isEmpty()) {
-            logger.info("Keine gespeicherten Makros - erstelle Beispiel-Makros");
+            logger.info("Keine Makros gefunden – erstelle Beispiel-Makros");
             createExampleMacros();
             updateMacroList();
+            // Direkt speichern, damit Datei existiert
+            saveMacros();
             return;
         }
         
@@ -4250,23 +4535,15 @@ if (caret != null) {
     }
     
     private void saveMacros() {
-        // EINFACHE PERSISTIERUNG - Funktioniert garantiert
+        // Primär in Datei, zusätzlich Preferences als Backup
         try {
             StringBuilder sb = new StringBuilder();
-            
             for (Macro macro : macros) {
                 sb.append("MACRO:").append(macro.getName()).append("\n");
                 sb.append("DESC:").append(macro.getDescription() != null ? macro.getDescription() : "").append("\n");
-                
                 for (MacroStep step : macro.getSteps()) {
                     String replaceText = step.getReplaceText() != null ? step.getReplaceText() : "";
-                    System.out.println("DEBUG SAVE: ReplaceText length: " + replaceText.length() + 
-                                       " | Bytes: " + Arrays.toString(replaceText.getBytes()) +
-                                       " | Is empty: " + replaceText.isEmpty());
-                    
-                    // Base64-kodiere den Ersetzungstext um Leerzeichen zu erhalten
                     String encodedReplaceText = java.util.Base64.getEncoder().encodeToString(replaceText.getBytes("UTF-8"));
-                    
                     sb.append("STEP:").append(step.getStepNumber()).append("\n");
                     sb.append("SEARCH:").append(step.getSearchText() != null ? step.getSearchText() : "").append("\n");
                     sb.append("REPLACE_B64:").append(encodedReplaceText).append("\n");
@@ -4279,14 +4556,24 @@ if (caret != null) {
                 }
                 sb.append("ENDMACRO\n");
             }
-            
             String macroData = sb.toString();
+
+            java.io.File macrosFile = getMacrosFile();
+            java.nio.file.Files.createDirectories(macrosFile.getParentFile().toPath());
+            java.nio.file.Files.writeString(macrosFile.toPath(), macroData, java.nio.charset.StandardCharsets.UTF_8);
+
             preferences.put("savedMacros", macroData);
             preferences.flush();
-            logger.info("Makros gespeichert: " + macros.size() + " Makros");
+            logger.info("Makros gespeichert (Datei & Preferences): " + macros.size() + " Makros");
         } catch (Exception e) {
             logger.error("Fehler beim Speichern der Makros", e);
         }
+    }
+
+    private java.io.File getMacrosFile() {
+        java.io.File dir = new java.io.File(com.manuskript.ResourceManager.getConfigDirectory(), "makros");
+        if (!dir.exists()) dir.mkdirs();
+        return new java.io.File(dir, "macros.txt");
     }
     
     // ALTE METHODEN GELÖSCHT - Waren kaputt
@@ -5202,11 +5489,22 @@ if (caret != null) {
      * Methode zum Einfügen von Text aus dem KI-Assistenten
      */
     public void insertTextFromAI(String text) {
-        if (codeArea != null && text != null && !text.trim().isEmpty()) {
+        if (codeArea == null || text == null || text.trim().isEmpty()) {
+            return;
+        }
+        // Wenn etwas markiert ist: Auswahl ersetzen, sonst am Cursor einfügen
+        int selStart = codeArea.getSelection() != null ? codeArea.getSelection().getStart() : codeArea.getCaretPosition();
+        int selEnd = codeArea.getSelection() != null ? codeArea.getSelection().getEnd() : codeArea.getCaretPosition();
+        if (selEnd > selStart) {
+            codeArea.replaceText(selStart, selEnd, text);
+            codeArea.moveTo(selStart + text.length());
+        } else {
             int caretPosition = codeArea.getCaretPosition();
             codeArea.insertText(caretPosition, text);
-            updateStatus("Text vom KI-Assistenten eingefügt");
+            codeArea.moveTo(caretPosition + text.length());
         }
+        codeArea.requestFocus();
+        updateStatus("Text vom KI-Assistenten eingefügt");
     }
     
     /**
@@ -5314,5 +5612,224 @@ if (caret != null) {
             }
             logger.info("Chapter-Inhalt gespeichert für: " + currentFile.getName());
         }
+    }
+    
+    /**
+     * Navigation zum vorherigen Kapitel
+     */
+    private void navigateToPreviousChapter() {
+        if (mainController == null) {
+            updateStatus("Navigation nicht verfügbar - MainController nicht gesetzt");
+            return;
+        }
+        
+        // Prüfe auf ungespeicherte Änderungen
+        if (hasUnsavedChanges()) {
+            if (!showSaveDialogForNavigation()) {
+                return; // Benutzer hat abgebrochen
+            }
+        }
+        
+        // Hole die aktuelle Dateiliste vom MainController (aus der rechten Tabelle)
+        List<File> selectedFiles = mainController.getSelectedDocxFiles();
+        if (selectedFiles.isEmpty()) {
+            updateStatus("Keine Dateien für Navigation verfügbar");
+            return;
+        }
+        
+        // Finde den aktuellen Index in der ausgewählten Dateiliste
+        int currentIndex = findCurrentFileIndex(selectedFiles);
+        
+        // Berechne den vorherigen Index
+        int previousIndex = (currentIndex > 0) ? currentIndex - 1 : selectedFiles.size() - 1;
+        
+        // Lade das vorherige Kapitel
+        File previousFile = selectedFiles.get(previousIndex);
+        loadChapterFile(previousFile);
+        
+        updateStatus("Vorheriges Kapitel geladen: " + previousFile.getName());
+    }
+    
+    /**
+     * Navigation zum nächsten Kapitel
+     */
+    private void navigateToNextChapter() {
+        if (mainController == null) {
+            updateStatus("Navigation nicht verfügbar - MainController nicht gesetzt");
+            return;
+        }
+        
+        // Prüfe auf ungespeicherte Änderungen
+        if (hasUnsavedChanges()) {
+            if (!showSaveDialogForNavigation()) {
+                return; // Benutzer hat abgebrochen
+            }
+        }
+        
+        // Hole die aktuelle Dateiliste vom MainController (aus der rechten Tabelle)
+        List<File> selectedFiles = mainController.getSelectedDocxFiles();
+        if (selectedFiles.isEmpty()) {
+            updateStatus("Keine Dateien für Navigation verfügbar");
+            return;
+        }
+        
+        // Finde den aktuellen Index in der ausgewählten Dateiliste
+        int currentIndex = findCurrentFileIndex(selectedFiles);
+        
+        // Berechne den nächsten Index (ohne Wrap-Around)
+        int nextIndex = currentIndex + 1;
+        
+        // Prüfe, ob wir nicht beim letzten Kapitel sind
+        if (nextIndex >= selectedFiles.size()) {
+            updateStatus("Kein nächstes Kapitel verfügbar");
+            return;
+        }
+        
+        // Lade das nächste Kapitel
+        File nextFile = selectedFiles.get(nextIndex);
+        loadChapterFile(nextFile);
+        
+        updateStatus("Nächstes Kapitel geladen: " + nextFile.getName());
+    }
+    
+    /**
+     * Findet den Index der aktuellen Datei in der ausgewählten Dateiliste
+     */
+    private int findCurrentFileIndex(List<File> selectedFiles) {
+        if (currentFile == null || selectedFiles.isEmpty()) {
+            return 0; // Fallback auf ersten Index
+        }
+        
+        // Debug-Ausgabe
+        logger.info("Suche aktuelle Datei: " + currentFile.getName());
+        logger.info("In ausgewählten Dateien:");
+        for (int i = 0; i < selectedFiles.size(); i++) {
+            logger.info("  [" + i + "] " + selectedFiles.get(i).getName());
+        }
+        
+        // Methode 1: Direkter Vergleich mit originalDocxFile
+        if (originalDocxFile != null) {
+            for (int i = 0; i < selectedFiles.size(); i++) {
+                if (selectedFiles.get(i).equals(originalDocxFile)) {
+                    logger.info("Gefunden über originalDocxFile: Index " + i);
+                    return i;
+                }
+            }
+        }
+        
+        // Methode 2: Vergleich der Basisnamen (ohne Endungen)
+        String currentBaseName = getBaseFileName(currentFile.getName());
+        for (int i = 0; i < selectedFiles.size(); i++) {
+            String selectedBaseName = getBaseFileName(selectedFiles.get(i).getName());
+            if (currentBaseName.equals(selectedBaseName)) {
+                logger.info("Gefunden über Basisname: Index " + i + " (" + currentBaseName + ")");
+                return i;
+            }
+        }
+        
+        // Methode 3: Fallback - verwende den ersten Index
+        logger.warn("Aktuelle Datei nicht in ausgewählten Dateien gefunden, verwende Index 0");
+        return 0;
+    }
+    
+    /**
+     * Entfernt Dateiendungen und gibt den Basisnamen zurück
+     */
+    private String getBaseFileName(String fileName) {
+        String baseName = fileName;
+        
+        // Entferne bekannte Dateiendungen
+        if (baseName.toLowerCase().endsWith(".docx")) {
+            baseName = baseName.substring(0, baseName.length() - 5);
+        } else if (baseName.toLowerCase().endsWith(".md")) {
+            baseName = baseName.substring(0, baseName.length() - 3);
+        } else if (baseName.toLowerCase().endsWith(".html")) {
+            baseName = baseName.substring(0, baseName.length() - 5);
+        } else if (baseName.toLowerCase().endsWith(".txt")) {
+            baseName = baseName.substring(0, baseName.length() - 4);
+        }
+        
+        return baseName;
+    }
+    
+    /**
+     * Lädt eine Kapitel-Datei in den Editor
+     */
+    private void loadChapterFile(File file) {
+        try {
+            // Bestimme die Kapitelnummer basierend auf der Position in der Dateiliste
+            int chapterNumber = 1; // Standard für das erste Kapitel (Gesamtdokument)
+            
+            if (mainController != null) {
+                List<File> selectedFiles = mainController.getSelectedDocxFiles();
+                for (int i = 0; i < selectedFiles.size(); i++) {
+                    if (selectedFiles.get(i).equals(file)) {
+                        chapterNumber = i + 1; // Kapitelnummer ist 1-basiert
+                        break;
+                    }
+                }
+            }
+            
+            // Bevorzugt Sidecar-Datei entsprechend aktuellem Format
+            File sidecar = deriveSidecarFileFor(file, outputFormat);
+            String content;
+            if (sidecar != null && sidecar.exists()) {
+                content = new String(java.nio.file.Files.readAllBytes(sidecar.toPath()), java.nio.charset.StandardCharsets.UTF_8);
+            } else {
+                // Fallback: aus DOCX extrahieren
+                content = docxProcessor.processDocxFileContent(file, chapterNumber, outputFormat);
+            }
+
+            // Setze den Inhalt und Dateireferenzen
+            setText(content);
+            setOriginalDocxFile(file);
+            // currentFile zeigt immer auf die Sidecar-Datei (auch wenn sie noch nicht existiert)
+            setCurrentFile(sidecar != null ? sidecar : deriveSidecarFileForCurrentFormat());
+            
+            // Aktualisiere den Fenstertitel
+            setWindowTitle("📄 " + file.getName());
+            
+            // Setze den ursprünglichen Inhalt für Change-Detection
+            originalContent = content;
+            
+            // Aktualisiere die Navigation-Buttons
+            updateNavigationButtons();
+            
+            logger.info("Kapitel geladen: " + file.getName() + " (Kapitel " + chapterNumber + ")");
+            
+        } catch (Exception e) {
+            updateStatusError("Fehler beim Laden des Kapitels: " + e.getMessage());
+            logger.error("Fehler beim Laden des Kapitels: " + file.getName(), e);
+        }
+    }
+    
+    /**
+     * Aktualisiert die Navigation-Buttons basierend auf der aktuellen Position
+     */
+    private void updateNavigationButtons() {
+        if (mainController == null) {
+            btnPreviousChapter.setDisable(true);
+            btnNextChapter.setDisable(true);
+            return;
+        }
+        
+        List<File> selectedFiles = mainController.getSelectedDocxFiles();
+        if (selectedFiles.isEmpty()) {
+            btnPreviousChapter.setDisable(true);
+            btnNextChapter.setDisable(true);
+            return;
+        }
+        
+        int currentIndex = findCurrentFileIndex(selectedFiles);
+        
+        // Deaktiviere "Vorheriges Kapitel" wenn beim ersten Kapitel
+        btnPreviousChapter.setDisable(currentIndex <= 0);
+        
+        // Deaktiviere "Nächstes Kapitel" wenn beim letzten Kapitel
+        btnNextChapter.setDisable(currentIndex >= selectedFiles.size() - 1);
+        
+        logger.info("Navigation-Buttons aktualisiert: Index=" + currentIndex + 
+                   ", Vorheriges=" + !btnPreviousChapter.isDisabled() + 
+                   ", Nächstes=" + !btnNextChapter.isDisabled());
     }
 } 

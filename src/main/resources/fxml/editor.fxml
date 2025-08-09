@@ -60,6 +60,11 @@
             <Button fx:id="btnThemeToggle" text="🎨" styleClass="toolbar-button" style="-fx-min-width: 45px; -fx-max-width: 45px; -fx-font-size: 18px;" />
             
             <Region HBox.hgrow="ALWAYS" />
+            
+            <Separator orientation="VERTICAL" style="-fx-background-color: #6c757d;" />
+            
+            <Button fx:id="btnPreviousChapter" text="◀ Vorheriges Kapitel" styleClass="toolbar-button" style="-fx-min-width: 140px; -fx-max-width: 140px;" />
+            <Button fx:id="btnNextChapter" text="Nächstes Kapitel ▶" styleClass="toolbar-button" style="-fx-min-width: 140px; -fx-max-width: 140px;" />
          </children>
          <padding>
             <Insets top="5.0" bottom="5.0" left="10.0" right="10.0" />

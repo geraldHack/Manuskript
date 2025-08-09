@@ -45,6 +45,12 @@ public class OllamaService {
     // Chat-Session-Management
     private Map<String, ChatSession> chatSessions = new HashMap<>();
     private String currentSessionId = "default";
+
+    // Debug: Letzte Anfrage
+    private volatile String lastRequestJson;
+    private volatile String lastEndpoint; // "/api/generate" oder "/api/chat"
+    private volatile String lastFullPrompt;
+    private volatile String lastContext;
     
     /**
      * Chat-Session für Kontext-Speicherung
@@ -281,16 +287,47 @@ public class OllamaService {
         // Erstelle vollständigen Prompt mit Kontext
         String fullPrompt = prompt;
         if (context != null && !context.trim().isEmpty()) {
-            fullPrompt = "Kontext:\n" + context + "\n\nAnweisung:\n" + prompt;
+            String rules = "Regeln: Du erhältst zuerst 'Kontext', dann 'Anweisung'. Der Kontext dient NUR dem Verständnis. " +
+                           "Gib NIEMALS den Kontext wieder. Antworte ausschließlich mit dem Ergebnis aus der Anweisung. " +
+                           "Keine Erklärungen, kein Vor-/Nachtext, keine Anführungszeichen.";
+            fullPrompt = rules + "\n\nKontext:\n" + context + "\n\nAnweisung:\n" + prompt;
         }
         
         // Korrekte JSON-Formatierung mit Escaping
+        // Debug: Prompt mit Erklärungen auf stdout ausgeben (gekürzt, um Log zu schonen)
+        try {
+            System.out.println("=== PROMPT DEBUG ===");
+            String[] parts = fullPrompt.split("\\n\\nAnweisung:\\n", 2);
+            if (parts.length == 2) {
+                // Kontext nicht komplett dumpen: nur Länge + ersten/letzten Ausschnitt
+                String ctx = parts[0];
+                System.out.println("[KONTEXT] Länge=" + ctx.length());
+                if (ctx.length() > 600) {
+                    String head = ctx.substring(0, 300);
+                    String tail = ctx.substring(ctx.length() - 300);
+                    System.out.println(head + "\n...\n" + tail);
+                } else {
+                    System.out.println(ctx);
+                }
+                System.out.println("\n[ANWEISUNG]\n" + (parts[1].length() > 2000 ? parts[1].substring(0, 2000) + "..." : parts[1]));
+            } else {
+                System.out.println("[VOLLER PROMPT]\n" + (fullPrompt.length() > 4000 ? fullPrompt.substring(0, 4000) + "..." : fullPrompt));
+            }
+            System.out.println("[PARAMETER] model=" + currentModel + ", maxTokens=" + maxTokens + ", temp=" + temperature + ", top_p=" + topP + ", repeat_penalty=" + repeatPenalty);
+            System.out.println("=== END PROMPT DEBUG ===");
+        } catch (Exception ignored) {}
+
         String escapedPrompt = escapeJson(fullPrompt);
         String json = String.format(
             "{\"model\":\"%s\",\"prompt\":\"%s\",\"stream\":false,\"options\":{\"num_predict\":%d,\"temperature\":%s,\"top_p\":%s,\"repeat_penalty\":%s}}",
             currentModel, escapedPrompt, maxTokens, 
             String.valueOf(temperature), String.valueOf(topP), String.valueOf(repeatPenalty)
         );
+        // Merken für UI
+        this.lastEndpoint = GENERATE_ENDPOINT;
+        this.lastRequestJson = json;
+        this.lastFullPrompt = fullPrompt;
+        this.lastContext = context;
         
         // Debug-Logging für JSON
         logger.info("DEBUG: Verwende Parameter - Temperature: " + temperature + ", MaxTokens: " + maxTokens + ", TopP: " + topP + ", RepeatPenalty: " + repeatPenalty);
@@ -298,6 +335,28 @@ public class OllamaService {
         
         return sendRequest(GENERATE_ENDPOINT, json)
                 .thenApply(this::parseGenerateResponse);
+    }
+
+    // Für UI-Vorschau: baue JSON genau wie generateText, ohne Request abzuschicken
+    public String buildGenerateJsonForPreview(String prompt, String context) {
+        int maxTokens = this.maxTokens;
+        double temperature = this.temperature;
+        double topP = this.topP;
+        double repeatPenalty = this.repeatPenalty;
+
+        String fullPrompt = prompt;
+        if (context != null && !context.trim().isEmpty()) {
+            String rules = "Regeln: Du erhältst zuerst 'Kontext', dann 'Anweisung'. Der Kontext dient NUR dem Verständnis. " +
+                           "Gib NIEMALS den Kontext wieder. Antworte ausschließlich mit dem Ergebnis aus der Anweisung. " +
+                           "Keine Erklärungen, kein Vor-/Nachtext, keine Anführungszeichen.";
+            fullPrompt = rules + "\n\nKontext:\n" + context + "\n\nAnweisung:\n" + prompt;
+        }
+        String escapedPrompt = escapeJson(fullPrompt);
+        return String.format(
+            "{\"model\":\"%s\",\"prompt\":\"%s\",\"stream\":false,\"options\":{\"num_predict\":%d,\"temperature\":%s,\"top_p\":%s,\"repeat_penalty\":%s}}",
+            currentModel, escapedPrompt, maxTokens, 
+            String.valueOf(temperature), String.valueOf(topP), String.valueOf(repeatPenalty)
+        );
     }
     
     /**
@@ -359,6 +418,10 @@ public class OllamaService {
             currentModel, escapedSystemPrompt, escapedUserContent, maxTokens, 
             String.valueOf(temperature), String.valueOf(topP), String.valueOf(repeatPenalty)
         );
+        this.lastEndpoint = CHAT_ENDPOINT;
+        this.lastRequestJson = json;
+        this.lastFullPrompt = fullContext;
+        this.lastContext = context;
         
         // Debug-Logging für JSON
         logger.info("Sende Chat-JSON an Ollama: " + json);
@@ -366,6 +429,38 @@ public class OllamaService {
         return sendRequest(CHAT_ENDPOINT, json)
                 .thenApply(this::parseChatResponse);
     }
+
+    // Für UI-Vorschau: baut das Chat-JSON ohne es zu senden
+    public String buildChatJsonForPreview(String message, String context) {
+        int maxTokens = this.maxTokens;
+        double temperature = this.temperature;
+        double topP = this.topP;
+        double repeatPenalty = this.repeatPenalty;
+
+        String systemPrompt = "Du bist ein kreativer Schreibassistent. Antworte auf Deutsch und sei hilfreich für das kreative Schreiben.";
+
+        String fullContext = context;
+        if (context != null && !context.trim().isEmpty()) {
+            fullContext = "Kontext: " + context + "\n\nFrage: " + message;
+        } else {
+            fullContext = message;
+        }
+
+        String escapedSystemPrompt = escapeJson(systemPrompt);
+        String escapedUserContent = escapeJson(fullContext);
+
+        return String.format(
+            "{\"model\":\"%s\",\"messages\":[{\"role\":\"system\",\"content\":\"%s\"},{\"role\":\"user\",\"content\":\"%s\"}],\"stream\":false,\"options\":{\"num_predict\":%d,\"temperature\":%s,\"top_p\":%s,\"repeat_penalty\":%s}}",
+            currentModel, escapedSystemPrompt, escapedUserContent, maxTokens,
+            String.valueOf(temperature), String.valueOf(topP), String.valueOf(repeatPenalty)
+        );
+    }
+
+    // Getter für Debug-Anzeige in UI
+    public String getLastRequestJson() { return lastRequestJson; }
+    public String getLastEndpoint() { return lastEndpoint; }
+    public String getLastFullPrompt() { return lastFullPrompt; }
+    public String getLastContext() { return lastContext; }
     
     /**
      * Spezielle Funktionen für kreatives Schreiben
@@ -395,6 +490,28 @@ public class OllamaService {
         
         return result;
     }
+
+    /**
+     * Generiert Dialoge für Charaktere (mit Kontext)
+     */
+    public CompletableFuture<String> generateDialogue(String character, String situation, String emotion, String context) {
+        String prompt = String.format("""
+            Schreibe einen authentischen Dialog für den Charakter '%s' in folgender Situation:
+            %s
+            
+            Emotion des Charakters: %s
+            
+            Schreibe nur den Dialog, ohne Erzählertext. Verwende natürliche, deutsche Sprache.
+            """, character, situation, emotion);
+        
+        double originalTemp = temperature;
+        setTemperature(0.8);
+        
+        CompletableFuture<String> result = generateText(prompt, context);
+        
+        setTemperature(originalTemp);
+        return result;
+    }
     
     /**
      * Erweitert Beschreibungen
@@ -419,6 +536,25 @@ public class OllamaService {
         
         return result;
     }
+
+    /**
+     * Erweitert Beschreibungen (mit Kontext)
+     */
+    public CompletableFuture<String> expandDescription(String shortDescription, String style, String context) {
+        String prompt = String.format("""
+            Erweitere diese kurze Beschreibung im Stil '%s':
+            
+            %s
+            
+            Schreibe eine detaillierte, atmosphärische Beschreibung (max. 3 Sätze).
+            """, style, shortDescription);
+        
+        double originalTemp = temperature;
+        setTemperature(0.6);
+        CompletableFuture<String> result = generateText(prompt, context);
+        setTemperature(originalTemp);
+        return result;
+    }
     
     /**
      * Entwickelt Plot-Ideen
@@ -440,6 +576,24 @@ public class OllamaService {
         // Temperatur zurücksetzen
         setTemperature(originalTemp);
         
+        return result;
+    }
+
+    /**
+     * Entwickelt Plot-Ideen (mit Kontext)
+     */
+    public CompletableFuture<String> developPlotIdeas(String genre, String basicIdea, String context) {
+        String prompt = String.format("""
+            Entwickle Plot-Ideen für eine %s-Geschichte basierend auf dieser Grundidee:
+            %s
+            
+            Gib 3-5 konkrete Plot-Entwicklungen an, die die Geschichte vorantreiben könnten.
+            """, genre, basicIdea);
+        
+        double originalTemp = temperature;
+        setTemperature(0.9);
+        CompletableFuture<String> result = generateText(prompt, context);
+        setTemperature(originalTemp);
         return result;
     }
     
@@ -468,6 +622,29 @@ public class OllamaService {
         // Temperatur zurücksetzen
         setTemperature(originalTemp);
         
+        return result;
+    }
+
+    /**
+     * Entwickelt Charaktere (mit Kontext)
+     */
+    public CompletableFuture<String> developCharacter(String characterName, String basicTraits, String context) {
+        String prompt = String.format("""
+            Entwickle den Charakter '%s' weiter:
+            
+            Grundmerkmale: %s
+            
+            Erstelle ein detailliertes Charakterprofil mit:
+            - Hintergrund/Geschichte
+            - Motivationen und Ziele
+            - Stärken und Schwächen
+            - Beziehungen zu anderen Charakteren
+            """, characterName, basicTraits);
+        
+        double originalTemp = temperature;
+        setTemperature(0.8);
+        CompletableFuture<String> result = generateText(prompt, context);
+        setTemperature(originalTemp);
         return result;
     }
     
@@ -511,6 +688,42 @@ public class OllamaService {
         
         return result;
     }
+
+    /**
+     * Analysiert den Schreibstil eines Textes (mit Kontext)
+     */
+    public CompletableFuture<String> analyzeWritingStyle(String text, String context) {
+        String prompt = String.format("""
+            DU BIST EIN EXPERTE FÜR SCHREIBSTIL-ANALYSE!
+            
+            AUFGABE: Analysiere NUR den Schreibstil, NICHT den Inhalt!
+            
+            Text zur Analyse:
+            %s
+            
+            FOKUSSIERE DICH AUSSCHLIESSLICH AUF:
+            1. Satzlänge (kurz/mittel/lang) und Satzstruktur (einfach/komplex)
+            2. Wortwahl (einfach/gehoben/technisch/emotional)
+            3. Erzählperspektive (Ich-Erzähler/Er-Erzähler/Allwissend)
+            4. Tonfall (ernst/humorvoll/dramatisch/nüchtern)
+            5. Atmosphäre (düster/hell/spannend/ruhig)
+            6. Besondere stilistische Merkmale (Metaphern, Wiederholungen, etc.)
+            7. Vergleich mit bekannten Autoren oder Stilen
+            
+            VERBOTEN: 
+            - Keine Inhaltszusammenfassung!
+            - Keine Handlungsanalyse!
+            - Keine Charakterbeschreibung!
+            
+            Antworte nur mit der Stil-Analyse!
+            """, text);
+        
+        double originalTemp = temperature;
+        setTemperature(0.5);
+        CompletableFuture<String> result = generateText(prompt, context);
+        setTemperature(originalTemp);
+        return result;
+    }
     
     /**
      * Umschreibt Text nach verschiedenen Kriterien
@@ -519,20 +732,20 @@ public class OllamaService {
         String prompt = String.format("""
             DU BIST EIN EXPERTE FÜR TEXT-UMFORMULIERUNG!
             
-            ORIGINALTEXT:
+            ORIGINALTEXT (nur dieser Abschnitt darf verändert werden):
             %s
             
             UMSCHREIBUNGSART: %s
             
             ZUSÄTZLICHE ANWEISUNGEN: %s
             
-            AUFGABE: Umschreibe den Text entsprechend der gewählten Art. Behalte die Grundaussage bei, aber ändere die Darstellung.
+            AUFGABE: Umschreibe NUR den oben angegebenen ORIGINALTEXT entsprechend der gewählten Art. Behalte die Grundaussage bei, aber ändere die Darstellung. Nutze den Kontext nur zum Verständnis, nicht zum Ergänzen.
             
             WICHTIG: 
             - Verwende natürliche, flüssige deutsche Sprache
             - Behalte den ursprünglichen Ton und Stil bei
             - Ändere nur die Darstellung, nicht die Kernaussage
-            - Antworte nur mit dem umgeschriebenen Text!
+            - Antworte ausschließlich mit der umgeschriebenen Version des ORIGINALTEXTES – ohne Ergänzungen vor oder nach dem Text, keine Kontextzitate.
             """, originalText, rewriteType, additionalInstructions.isEmpty() ? "Keine" : additionalInstructions);
         
         // Temporär mittlere Temperatur für ausgewogene Umschreibung
@@ -544,6 +757,36 @@ public class OllamaService {
         // Temperatur zurücksetzen
         setTemperature(originalTemp);
         
+        return result;
+    }
+
+    /**
+     * Umschreibt Text nach verschiedenen Kriterien (mit Kontext)
+     */
+    public CompletableFuture<String> rewriteText(String originalText, String rewriteType, String additionalInstructions, String context) {
+        String prompt = String.format("""
+            DU BIST EIN EXPERTE FÜR TEXT-UMFORMULIERUNG!
+            
+            ORIGINALTEXT (nur dieser Abschnitt darf verändert werden):
+            %s
+            
+            UMSCHREIBUNGSART: %s
+            
+            ZUSÄTZLICHE ANWEISUNGEN: %s
+            
+            AUFGABE: Umschreibe NUR den oben angegebenen ORIGINALTEXT entsprechend der gewählten Art. Behalte die Grundaussage bei, aber ändere die Darstellung. Nutze den Kontext nur zum Verständnis, nicht zum Ergänzen.
+            
+            WICHTIG: 
+            - Verwende natürliche, flüssige deutsche Sprache
+            - Behalte den ursprünglichen Ton und Stil bei
+            - Ändere nur die Darstellung, nicht die Kernaussage
+            - Antworte ausschließlich mit der umgeschriebenen Version des ORIGINALTEXTES – ohne Ergänzungen vor oder nach dem Text, keine Kontextzitate.
+            """, originalText, rewriteType, additionalInstructions.isEmpty() ? "Keine" : additionalInstructions);
+        
+        double originalTemp = temperature;
+        setTemperature(0.7);
+        CompletableFuture<String> result = generateText(prompt, context);
+        setTemperature(originalTemp);
         return result;
     }
     

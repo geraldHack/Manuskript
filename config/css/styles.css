@@ -476,6 +476,80 @@
     -fx-text-fill: #ffffff;
 }
 
+/* Neue Theme-Klassen (konsistent mit restlicher App) */
+/* Blau-Theme */
+.blau-theme .table-view,
+.blau-theme .table-view .virtual-flow .clipped-container .sheet,
+.blau-theme .table-view .placeholder,
+.blau-theme .table-view .corner,
+.blau-theme .table-view .filler {
+    -fx-background-color: #1e3a8a !important;
+}
+.blau-theme .table-view .column-header-background {
+    -fx-background-color: #2563eb !important;
+}
+.blau-theme .table-view .column-header .label { -fx-text-fill: #ffffff; }
+.blau-theme .table-view .table-row-cell { -fx-background-color: #1e3a8a; -fx-text-fill: #ffffff; }
+.blau-theme .table-view .table-row-cell:odd { -fx-background-color: #2563eb; }
+.blau-theme .table-view .table-row-cell:selected { -fx-background-color: #3b82f6; -fx-text-fill: #ffffff; }
+.blau-theme .table-view .placeholder .label { -fx-text-fill: #dbeafe; }
+
+/* Grün-Theme */
+.gruen-theme .table-view,
+.gruen-theme .table-view .virtual-flow .clipped-container .sheet,
+.gruen-theme .table-view .placeholder,
+.gruen-theme .table-view .corner,
+.gruen-theme .table-view .filler {
+    -fx-background-color: #064e3b !important;
+}
+.gruen-theme .table-view .column-header-background { -fx-background-color: #065f46 !important; }
+.gruen-theme .table-view .column-header .label { -fx-text-fill: #ffffff; }
+.gruen-theme .table-view .table-row-cell { -fx-background-color: #064e3b; -fx-text-fill: #ffffff; }
+.gruen-theme .table-view .table-row-cell:odd { -fx-background-color: #065f46; }
+.gruen-theme .table-view .table-row-cell:selected { -fx-background-color: #047857; -fx-text-fill: #ffffff; }
+.gruen-theme .table-view .placeholder .label { -fx-text-fill: #d1fae5; }
+
+/* Lila-Theme */
+.lila-theme .table-view,
+.lila-theme .table-view .virtual-flow .clipped-container .sheet,
+.lila-theme .table-view .placeholder,
+.lila-theme .table-view .corner,
+.lila-theme .table-view .filler {
+    -fx-background-color: #581c87 !important;
+}
+.lila-theme .table-view .column-header-background { -fx-background-color: #7c3aed !important; }
+.lila-theme .table-view .column-header .label { -fx-text-fill: #ffffff; }
+.lila-theme .table-view .table-row-cell { -fx-background-color: #581c87; -fx-text-fill: #ffffff; }
+.lila-theme .table-view .table-row-cell:odd { -fx-background-color: #7c3aed; }
+.lila-theme .table-view .table-row-cell:selected { -fx-background-color: #8b5cf6; -fx-text-fill: #ffffff; }
+.lila-theme .table-view .placeholder .label { -fx-text-fill: #f3e8ff; }
+
+/* Pastell-Theme (hell) */
+.pastell-theme .table-view,
+.pastell-theme .table-view .virtual-flow .clipped-container .sheet,
+.pastell-theme .table-view .placeholder,
+.pastell-theme .table-view .corner,
+.pastell-theme .table-view .filler {
+    -fx-background-color: #e5e7eb !important;
+}
+.pastell-theme .table-view .column-header-background { -fx-background-color: #d1d5db !important; }
+.pastell-theme .table-view .column-header .label { -fx-text-fill: #111827; }
+.pastell-theme .table-view .table-row-cell { -fx-background-color: #ffffff; -fx-text-fill: #111827; }
+.pastell-theme .table-view .table-row-cell:odd { -fx-background-color: #f3f4f6; }
+.pastell-theme .table-view .table-row-cell:selected { -fx-background-color: #93c5fd; -fx-text-fill: #111827; }
+.pastell-theme .table-view .placeholder .label { -fx-text-fill: #374151; }
+
+/* Weiß-Theme (explizit) */
+.weiss-theme .table-view,
+.weiss-theme .table-view .virtual-flow .clipped-container .sheet,
+.weiss-theme .table-view .placeholder,
+.weiss-theme .table-view .corner,
+.weiss-theme .table-view .filler {
+    -fx-background-color: #ffffff !important;
+}
+.weiss-theme .table-view .column-header-background { -fx-background-color: #f0f0f0 !important; }
+.weiss-theme .table-view .column-header .label { -fx-text-fill: #111827; }
+
 /* TextArea-Styling */
 .text-area {
     -fx-background-color: white;
@@ -489,6 +563,81 @@
 .text-area .content {
     -fx-background-color: white;
 }
+
+/* =============================
+   Theme-spezifisches Styling für Accordion/TitledPane/TextArea
+   ============================= */
+
+/* Helper: weiße Theme */
+.weiss-theme .titled-pane > .title {
+    -fx-background-color: #f5f5f5;
+    -fx-text-fill: #111827;
+}
+.weiss-theme .titled-pane > *.content {
+    -fx-background-color: #ffffff;
+}
+.weiss-theme .accordion {
+    -fx-background-color: #f5f5f5;
+}
+.weiss-theme .text-area {
+    -fx-text-fill: #111827;
+}
+.weiss-theme .text-area .content {
+    -fx-background-color: #ffffff;
+}
+
+/* Pastell */
+.pastell-theme .titled-pane > .title {
+    -fx-background-color: #e5e7eb;
+    -fx-text-fill: #111827;
+}
+.pastell-theme .titled-pane > *.content {
+    -fx-background-color: #ffffff;
+}
+.pastell-theme .accordion {
+    -fx-background-color: #e5e7eb;
+}
+.pastell-theme .text-area { -fx-text-fill: #111827; }
+.pastell-theme .text-area .content { -fx-background-color: #ffffff; }
+
+/* Schwarz (dark) */
+.theme-dark .titled-pane > .title {
+    -fx-background-color: #2b2b2b;
+    -fx-text-fill: #ffffff;
+}
+.theme-dark .titled-pane > *.content {
+    -fx-background-color: #1e1e1e;
+}
+.theme-dark .accordion { -fx-background-color: #2b2b2b; }
+.theme-dark .text-area { -fx-text-fill: #ffffff; }
+.theme-dark .text-area .content { -fx-background-color: #1e1e1e; }
+
+/* Grün */
+.gruen-theme .titled-pane > .title {
+    -fx-background-color: #065f46;
+    -fx-text-fill: #ffffff;
+}
+.gruen-theme .titled-pane > *.content { -fx-background-color: #064e3b; }
+.gruen-theme .accordion { -fx-background-color: #065f46; }
+.gruen-theme .text-area { -fx-text-fill: #ffffff; }
+.gruen-theme .text-area .content { -fx-background-color: #064e3b; }
+
+/* Lila */
+.lila-theme .titled-pane > .title {
+    -fx-background-color: #7c3aed;
+    -fx-text-fill: #ffffff;
+}
+.lila-theme .titled-pane > *.content { -fx-background-color: #581c87; }
+.lila-theme .accordion { -fx-background-color: #7c3aed; }
+.lila-theme .text-area { -fx-text-fill: #ffffff; }
+.lila-theme .text-area .content { -fx-background-color: #581c87; }
+
+/* Ungecheckte Checkboxes in Theme-Farbe (nur Box) */
+.weiss-theme .check-box .box { -fx-background-color: #ffffff !important; -fx-border-color: #9ca3af !important; }
+.pastell-theme .check-box .box { -fx-background-color: #e5e7eb !important; -fx-border-color: #9ca3af !important; }
+.theme-dark .check-box .box { -fx-background-color: #2b2b2b !important; -fx-border-color: #4b5563 !important; }
+.gruen-theme .check-box .box { -fx-background-color: #065f46 !important; -fx-border-color: #047857 !important; }
+.lila-theme .check-box .box { -fx-background-color: #7c3aed !important; -fx-border-color: #8b5cf6 !important; }
 
 /* ProgressBar-Styling */
 .progress-bar {
@@ -624,6 +773,203 @@
 .help-button:pressed {
     -fx-background-color: #004085;
 } 
+
+/* Dialog-Header themensicher (Ungespeicherte Änderungen etc.) */
+.weiss-theme.dialog-pane > .header-panel,
+.weiss-theme .dialog-pane > .header-panel {
+  -fx-background-color: #f3f4f6 !important;
+  -fx-background-insets: 0 !important;
+  -fx-padding: 8 12 8 12 !important;
+}
+.weiss-theme.dialog-pane > .header-panel > .label,
+.weiss-theme .dialog-pane > .header-panel > .label {
+  -fx-text-fill: #111827 !important;
+}
+
+.pastell-theme.dialog-pane > .header-panel,
+.pastell-theme .dialog-pane > .header-panel {
+  -fx-background-color: #e9d5ff !important;
+  -fx-background-insets: 0 !important;
+  -fx-padding: 8 12 8 12 !important;
+}
+.pastell-theme.dialog-pane > .header-panel > .label,
+.pastell-theme .dialog-pane > .header-panel > .label {
+  -fx-text-fill: #111827 !important;
+}
+
+.theme-dark.blau-theme.dialog-pane > .header-panel,
+.theme-dark.blau-theme .dialog-pane > .header-panel {
+  -fx-background-color: #1e3a8a !important;
+  -fx-background-insets: 0 !important;
+  -fx-padding: 8 12 8 12 !important;
+}
+.theme-dark.blau-theme.dialog-pane > .header-panel > .label,
+.theme-dark.blau-theme .dialog-pane > .header-panel > .label {
+  -fx-text-fill: #ffffff !important;
+}
+
+.theme-dark.gruen-theme.dialog-pane > .header-panel,
+.theme-dark.gruen-theme .dialog-pane > .header-panel {
+  -fx-background-color: #064e3b !important;
+  -fx-background-insets: 0 !important;
+  -fx-padding: 8 12 8 12 !important;
+}
+.theme-dark.gruen-theme.dialog-pane > .header-panel > .label,
+.theme-dark.gruen-theme .dialog-pane > .header-panel > .label {
+  -fx-text-fill: #ffffff !important;
+}
+
+.theme-dark.lila-theme.dialog-pane > .header-panel,
+.theme-dark.lila-theme .dialog-pane > .header-panel {
+  -fx-background-color: #581c87 !important;
+  -fx-background-insets: 0 !important;
+  -fx-padding: 8 12 8 12 !important;
+}
+.theme-dark.lila-theme.dialog-pane > .header-panel > .label,
+.theme-dark.lila-theme .dialog-pane > .header-panel > .label {
+  -fx-text-fill: #ffffff !important;
+}
+
+/* Prompt-Preview Button neben Generieren */
+.weiss-theme .button.prompt-preview,
+.pastell-theme .button.prompt-preview,
+.theme-dark.blau-theme .button.prompt-preview,
+.theme-dark.gruen-theme .button.prompt-preview,
+.theme-dark.lila-theme .button.prompt-preview,
+.theme-dark .button.prompt-preview {
+    -fx-font-size: 12px;
+    -fx-padding: 2 6;
+    -fx-background-radius: 6;
+}
+
+.weiss-theme .button.prompt-preview { -fx-background-color: #f0f0f0; -fx-text-fill: #111111; }
+.pastell-theme .button.prompt-preview { -fx-background-color: #e1bee7; -fx-text-fill: #111111; }
+.theme-dark.blau-theme .button.prompt-preview { -fx-background-color: #2563eb; -fx-text-fill: #ffffff; }
+.theme-dark.gruen-theme .button.prompt-preview { -fx-background-color: #059669; -fx-text-fill: #ffffff; }
+.theme-dark.lila-theme .button.prompt-preview { -fx-background-color: #7c3aed; -fx-text-fill: #ffffff; }
+.theme-dark .button.prompt-preview { -fx-background-color: #2d2d2d; -fx-text-fill: #ffffff; }
+
+/* Theme-spezifische ComboBox-Popups für das Makro-Fenster (isoliert über .macro-panel) */
+.pastell-theme .macro-panel .combo-box,
+.pastell-theme .macro-panel .combo-box .list-cell {
+    -fx-background-color: #e5e7eb !important;
+    -fx-text-fill: #111827 !important;
+}
+.pastell-theme .macro-panel .combo-box-popup .list-view,
+.pastell-theme .macro-panel .combo-box-popup .list-view .list-cell {
+    -fx-background-color: #f3f4f6 !important;
+    -fx-text-fill: #111827 !important;
+}
+.pastell-theme .macro-panel .combo-box-popup .list-view .list-cell:hover {
+    -fx-background-color: #d1d5db !important;
+}
+.pastell-theme .macro-panel .combo-box-popup .list-view .list-cell:selected {
+    -fx-background-color: #93c5fd !important;
+    -fx-text-fill: #111827 !important;
+}
+
+.blau-theme .macro-panel .combo-box,
+.blau-theme .macro-panel .combo-box .list-cell {
+    -fx-background-color: #1e3a8a !important;
+    -fx-text-fill: #ffffff !important;
+}
+.blau-theme .macro-panel .combo-box-popup .list-view,
+.blau-theme .macro-panel .combo-box-popup .list-view .list-cell {
+    -fx-background-color: #1e3a8a !important;
+    -fx-text-fill: #ffffff !important;
+}
+.blau-theme .macro-panel .combo-box-popup .list-view .list-cell:hover {
+    -fx-background-color: #2563eb !important;
+}
+.blau-theme .macro-panel .combo-box-popup .list-view .list-cell:selected {
+    -fx-background-color: #3b82f6 !important;
+    -fx-text-fill: #ffffff !important;
+}
+
+.gruen-theme .macro-panel .combo-box,
+.gruen-theme .macro-panel .combo-box .list-cell {
+    -fx-background-color: #064e3b !important;
+    -fx-text-fill: #ffffff !important;
+}
+.gruen-theme .macro-panel .combo-box-popup .list-view,
+.gruen-theme .macro-panel .combo-box-popup .list-view .list-cell {
+    -fx-background-color: #064e3b !important;
+    -fx-text-fill: #ffffff !important;
+}
+.gruen-theme .macro-panel .combo-box-popup .list-view .list-cell:hover {
+    -fx-background-color: #065f46 !important;
+}
+.gruen-theme .macro-panel .combo-box-popup .list-view .list-cell:selected {
+    -fx-background-color: #047857 !important;
+    -fx-text-fill: #ffffff !important;
+}
+
+.lila-theme .macro-panel .combo-box,
+.lila-theme .macro-panel .combo-box .list-cell {
+    -fx-background-color: #581c87 !important;
+    -fx-text-fill: #ffffff !important;
+}
+.lila-theme .macro-panel .combo-box-popup .list-view,
+.lila-theme .macro-panel .combo-box-popup .list-view .list-cell {
+    -fx-background-color: #581c87 !important;
+    -fx-text-fill: #ffffff !important;
+}
+.lila-theme .macro-panel .combo-box-popup .list-view .list-cell:hover {
+    -fx-background-color: #7c3aed !important;
+}
+.lila-theme .macro-panel .combo-box-popup .list-view .list-cell:selected {
+    -fx-background-color: #8b5cf6 !important;
+    -fx-text-fill: #ffffff !important;
+}
+/* Isoliertes Styling für die Makro-Tabelle, inkl. schwieriger Subregionen */
+.macro-table,
+.macro-table .virtual-flow .clipped-container .sheet,
+.macro-table .column-header-background,
+.macro-table .placeholder,
+.macro-table .corner,
+.macro-table .filler { -fx-background-color: inherit !important; }
+
+.weiss-theme .macro-table,
+.weiss-theme .macro-table .virtual-flow .clipped-container .sheet,
+.weiss-theme .macro-table .column-header-background,
+.weiss-theme .macro-table .placeholder,
+.weiss-theme .macro-table .corner,
+.weiss-theme .macro-table .filler { -fx-background-color: #ffffff !important; }
+
+.pastell-theme .macro-table,
+.pastell-theme .macro-table .virtual-flow .clipped-container .sheet,
+.pastell-theme .macro-table .column-header-background,
+.pastell-theme .macro-table .placeholder,
+.pastell-theme .macro-table .corner,
+.pastell-theme .macro-table .filler { -fx-background-color: #e5e7eb !important; }
+
+.theme-dark .macro-table,
+.theme-dark .macro-table .virtual-flow .clipped-container .sheet,
+.theme-dark .macro-table .column-header-background,
+.theme-dark .macro-table .placeholder,
+.theme-dark .macro-table .corner,
+.theme-dark .macro-table .filler { -fx-background-color: #2d3748 !important; }
+
+.blau-theme .macro-table,
+.blau-theme .macro-table .virtual-flow .clipped-container .sheet,
+.blau-theme .macro-table .column-header-background,
+.blau-theme .macro-table .placeholder,
+.blau-theme .macro-table .corner,
+.blau-theme .macro-table .filler { -fx-background-color: #1e3a8a !important; }
+
+.gruen-theme .macro-table,
+.gruen-theme .macro-table .virtual-flow .clipped-container .sheet,
+.gruen-theme .macro-table .column-header-background,
+.gruen-theme .macro-table .placeholder,
+.gruen-theme .macro-table .corner,
+.gruen-theme .macro-table .filler { -fx-background-color: #064e3b !important; }
+
+.lila-theme .macro-table,
+.lila-theme .macro-table .virtual-flow .clipped-container .sheet,
+.lila-theme .macro-table .column-header-background,
+.lila-theme .macro-table .placeholder,
+.lila-theme .macro-table .corner,
+.lila-theme .macro-table .filler { -fx-background-color: #581c87 !important; }
 
 /* Wortwiederholungen-Markierung */
 /* RichTextFX-spezifische Markierung-Klassen */

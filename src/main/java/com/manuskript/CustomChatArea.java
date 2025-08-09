@@ -76,7 +76,7 @@ public class CustomChatArea extends VBox {
         // Keyboard-Hinweis (kleiner)
         Label keyboardHint = new Label("Ctrl+↑/↓");
         keyboardHint.setFont(Font.font("System", 8));
-        keyboardHint.setStyle("-fx-text-fill: #7f8c8d; -fx-font-style: italic;");
+        keyboardHint.setStyle("-fx-font-style: italic;");
         
         // VBox als Scroll-Indikator (schmaler)
         scrollIndicator = new VBox();
@@ -279,31 +279,42 @@ public class CustomChatArea extends VBox {
         String backgroundColor, textColor, borderColor, highlightColor;
         
         switch (themeIndex) {
-            case 0: // Hell
+            case 0: // Weiß
                 backgroundColor = "#ffffff";
-                textColor = "#000000";
-                borderColor = "#cccccc";
-                highlightColor = "#e3f2fd";
+                textColor = "#111827";
+                borderColor = "#d1d5db";
+                highlightColor = "#e5e7eb";
                 break;
-            case 1: // Dunkel
-                backgroundColor = "#2c3e50";
-                textColor = "#ecf0f1";
-                borderColor = "#34495e";
-                highlightColor = "#3498db";
+            case 1: // Schwarz (Dark)
+                backgroundColor = "#2b2b2b";
+                textColor = "#ffffff";
+                borderColor = "#4b5563";
+                highlightColor = "#3182ce";
                 break;
-            case 2: // Blau
+            case 2: // Pastell
+                backgroundColor = "#e5e7eb";
+                textColor = "#111827";
+                borderColor = "#9ca3af";
+                highlightColor = "#9ca3af";
+                break;
+            case 3: // Blau
                 backgroundColor = "#1e3a8a";
                 textColor = "#ffffff";
                 borderColor = "#3b82f6";
                 highlightColor = "#60a5fa";
                 break;
-            case 3: // Rot
-                backgroundColor = "#7f1d1d";
-                textColor = "#ffffff";
-                borderColor = "#dc2626";
-                highlightColor = "#f87171";
-                break;
             case 4: // Grün
+                backgroundColor = "#064e3b";
+                textColor = "#ffffff";
+                borderColor = "#059669";
+                highlightColor = "#10b981";
+                break;
+            case 5: // Lila
+                backgroundColor = "#581c87";
+                textColor = "#ffffff";
+                borderColor = "#8b5cf6";
+                highlightColor = "#a78bfa";
+                break;
             default:
                 backgroundColor = "#064e3b";
                 textColor = "#ffffff";
@@ -324,16 +335,21 @@ public class CustomChatArea extends VBox {
             textColor, backgroundColor, backgroundColor, borderColor
         ));
         
-        // Buttons Theme
-        upButton.setStyle(String.format(
+        // Buttons Theme (Navigation)
+        String buttonStyle = String.format(
             "-fx-background-color: %s; -fx-text-fill: %s; -fx-border-color: %s; -fx-border-width: 1px; -fx-border-radius: 3px; -fx-background-radius: 3px;",
             backgroundColor, textColor, borderColor
-        ));
-        
-        downButton.setStyle(String.format(
-            "-fx-background-color: %s; -fx-text-fill: %s; -fx-border-color: %s; -fx-border-width: 1px; -fx-border-radius: 3px; -fx-background-radius: 3px;",
-            backgroundColor, textColor, borderColor
-        ));
+        );
+        upButton.setStyle(buttonStyle);
+        downButton.setStyle(buttonStyle);
+        // Hint-Farbe je Theme
+        // Hell/Pastell: dunkleres Grau, sonst helles Grau
+        String hintColor = (themeIndex == 0 || themeIndex == 2) ? "#6b7280" : "#d1d5db";
+        // keyboardHint ist das erste Kind der NavigationBox, daher über Parent suchen
+        try {
+            Label hint = (Label)((VBox)((HBox)this.getChildren().get(1)).getChildren().get(1)).getChildren().get(0);
+            hint.setStyle("-fx-text-fill: " + hintColor + "; -fx-font-style: italic;");
+        } catch (Exception ignored) {}
         
         // Scroll-Indikator Theme
         scrollIndicator.setStyle(String.format(
@@ -352,10 +368,11 @@ public class CustomChatArea extends VBox {
                         highlightColor, borderColor
                     ));
                 } else {
-                    // Andere Einträge - normal
+                    // Andere Einträge - normal (leicht abgesetzt je nach Theme)
+                    String normalBg = (themeIndex == 0 || themeIndex == 2) ? "#f3f4f6" : "#374151";
                     indicator.setStyle(String.format(
                         "-fx-background-color: %s; -fx-border-color: %s; -fx-border-width: 1px;",
-                        backgroundColor, borderColor
+                        normalBg, borderColor
                     ));
                 }
             }
