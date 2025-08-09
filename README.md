@@ -87,6 +87,36 @@ mvn clean install
 mvn javafx:run
 ```
 
+## ⚙️ Externe Konfiguration (config/)
+
+- Der Ordner `config/` wird beim ersten Start automatisch angelegt und enthält:
+  - `config/css/styles.css`, `config/css/editor.css` für anpassbares Styling
+  - `config/parameters.properties` für UI-, Session- und KI-Parameter
+  - `config/textanalysis.properties` für Textanalyse-Listen
+  - `config/sessions/*.json` für gespeicherte Chat-Sessions des KI-Assistenten
+- Wichtige Schlüssel in `parameters.properties`:
+  - `ui.default_theme`, `ui.editor_font_size`, `ui.last_docx_directory`
+  - `ui.ollama_window_{x,y,w,h}`, `ui.selected_session`
+  - `session.max_qapairs_per_session`
+  - `ollama.temperature`, `ollama.max_tokens`, `ollama.top_p`, `ollama.repeat_penalty`
+
+Beispiel `config/parameters.properties`:
+
+```properties
+# UI
+ui.default_theme=4
+ui.editor_font_size=16
+
+# Session
+session.max_qapairs_per_session=20
+
+# KI (Ollama)
+ollama.temperature=0.3
+ollama.max_tokens=2048
+ollama.top_p=0.7
+ollama.repeat_penalty=1.3
+```
+
 ## 📖 Verwendung
 
 ### Schritt 1: Verzeichnis auswählen
@@ -113,6 +143,54 @@ mvn javafx:run
    - **RTF:** Nur für Markdown-Dokumente verfügbar
    - **DOCX:** Nur für Markdown-Dokumente verfügbar
    - **Markdown, HTML, TXT:** Für alle Formate verfügbar
+
+## 🤖 KI-Assistent (Ollama)
+
+- Lokaler KI-Assistent mit Chat-Historie, Sessions und konfigurierbaren Parametern.
+- Start im Editor über den Button „🤖 KI-Assistent“. Fensterposition/-größe werden gespeichert.
+- Voraussetzungen:
+  - Installiere Ollama (siehe [Ollama-Website](https://ollama.com)) und starte den Dienst.
+  - Modelle können im KI-Fenster installiert, gelöscht und gelistet werden.
+- Kontext & Sessions:
+  - Session-Verläufe werden unter `config/sessions/<name>.json` gespeichert.
+  - Lange Verläufe werden bei `session.max_qapairs_per_session` automatisch aufgeteilt.
+- Parameter:
+  - Standardwerte kommen aus `parameters.properties`; Änderungen über die UI werden persistiert.
+  - Bei nicht erreichbarem Dienst wird ein Hinweisdialog gezeigt, Generieren schlägt andernfalls fehl.
+
+## 🧩 Textanalyse-Konfiguration
+
+- Datei: `config/textanalysis.properties`
+- Enthält Listen (Füllwörter, Sprechwörter, Phrasen); änderbar ohne Rebuild.
+
+Beispiel `config/textanalysis.properties`:
+
+```properties
+# Füllwörter
+fuellwoerter=und,oder,aber,auch,noch,schon,erst,denn,dann,so,wie,als,dass,da,wo,was,wer
+
+# Sprechwörter
+sprechwoerter=sagte,sprach,erzählte,berichtete,erklärte,antwortete,fragte,meinte,dachte
+
+# Phrasen
+phrasen=es war einmal,in der tat,wie gesagt,wie bereits erwähnt
+```
+
+## 🗂️ Kapitel-Editor
+
+- Im Editor blendet der Button „📝 Kapitel“ einen Bereich für Kapitelbeschreibung und Szenen/Notizen ein.
+- Inhalte werden mit dem Projektkontext konsistent gehalten.
+
+## 🎨 Themes & Styling überschreiben
+
+- Eigene Styles in `config/css/styles.css` und `config/css/editor.css` ablegen.
+- Fehlen die Dateien, erzeugt die Anwendung Defaults und lädt sie automatisch.
+
+## 🛠️ Troubleshooting
+
+- JavaFX startet nicht: Projekt-SDK auf JDK 17 stellen (IDE-Einstellungen).
+- Ollama-Fehler: Läuft der Dienst? Modell vorhanden? Firewall/Proxy prüfen. `parameters.properties` prüfen.
+- Styles greifen nicht: Existieren `config/css/*.css`? Anwendung neu starten.
 
 ## 🔍 Regex-Filterung
 
@@ -182,25 +260,37 @@ mvn javafx:run
 ## 🏗️ Projektstruktur
 
 ```
-src/
-├── main/
-│   ├── java/com/manuskript/
-│   │   ├── Main.java              # Hauptklasse
-│   │   ├── MainController.java    # Datei-Verwaltung Controller
-│   │   ├── EditorWindow.java      # Text-Editor Controller
-│   │   ├── DocxFile.java          # Datenmodell für DOCX-Dateien
-│   │   ├── DocxProcessor.java     # DOCX-Verarbeitung
-│   │   ├── Macro.java             # Makro-Datenmodell
-│   │   └── MacroStep.java         # Makro-Schritt-Datenmodell
-│   ├── resources/
-│   │   ├── fxml/
-│   │   │   ├── main.fxml          # Hauptfenster-Layout
-│   │   │   └── editor.fxml        # Editor-Fenster-Layout
-│   │   ├── css/
-│   │   │   ├── styles.css         # Hauptfenster-Styling
-│   │   │   └── editor.css         # Editor-Styling
-│   │   └── logback.xml            # Logging-Konfiguration
-└── test/                          # Unit-Tests (optional)
+src/main/java/com/manuskript/
+├── Main.java
+├── MainController.java
+├── EditorWindow.java
+├── DocxFile.java
+├── DocxProcessor.java
+├── Macro.java
+├── MacroStep.java
+├── OllamaWindow.java         # KI-Assistent UI
+├── OllamaService.java        # Kommunikation mit Ollama
+├── CustomChatArea.java       # Chat-UI mit Q/A-Verwaltung
+├── NovelManager.java         # Kontextdateien/Gliederung
+└── ResourceManager.java      # Config/CSS/Sessions-Handling
+
+src/main/resources/
+├── fxml/
+│   ├── main.fxml
+│   └── editor.fxml
+├── css/
+│   ├── styles.css
+│   └── editor.css
+└── logback.xml
+
+config/
+├── css/
+│   ├── styles.css
+│   └── editor.css
+├── parameters.properties
+├── textanalysis.properties
+└── sessions/
+    └── <name>.json
 ```
 
 ## 🛠️ Technologien
