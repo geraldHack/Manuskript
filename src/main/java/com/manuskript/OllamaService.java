@@ -20,6 +20,11 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
+import java.io.Closeable;
+import java.io.InputStream;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.util.function.Consumer;
 
 /**
  * Service-Klasse für die Kommunikation mit dem lokalen Ollama-Server
@@ -52,6 +57,19 @@ public class OllamaService {
     private volatile String lastFullPrompt;
     private volatile String lastContext;
     
+    /** Streaming-Handle zum Abbrechen laufender Streams */
+    public static class StreamHandle {
+        private volatile Closeable closeable;
+        private volatile CompletableFuture<?> future;
+
+        public void bind(Closeable c) { this.closeable = c; }
+        public void bindFuture(CompletableFuture<?> f) { this.future = f; }
+        public void cancel() {
+            try { if (closeable != null) closeable.close(); } catch (Exception ignored) {}
+            if (future != null) { future.cancel(true); }
+        }
+    }
+
     /**
      * Chat-Session für Kontext-Speicherung
      */
@@ -489,6 +507,117 @@ public class OllamaService {
         setTemperature(originalTemp);
         
         return result;
+    }
+
+    /**
+     * Streaming-Variante: sendet stream:true und liefert Chunks über Callback. Gibt ein Handle zurück, mit dem abgebrochen werden kann.
+     */
+    public StreamHandle generateTextStreaming(String prompt, String context,
+                                              Consumer<String> onChunk,
+                                              Runnable onDone,
+                                              Consumer<Throwable> onError) {
+        // Vollständigen Prompt wie in generateText aufbauen
+        String fullPrompt = prompt;
+        if (context != null && !context.trim().isEmpty()) {
+            String rules = "Regeln: Du erhältst zuerst 'Kontext', dann 'Anweisung'. Der Kontext dient NUR dem Verständnis. " +
+                           "Gib NIEMALS den Kontext wieder. Antworte ausschließlich mit dem Ergebnis aus der Anweisung. " +
+                           "Keine Erklärungen, kein Vor-/Nachtext, keine Anführungszeichen.";
+            fullPrompt = rules + "\n\nKontext:\n" + context + "\n\nAnweisung:\n" + prompt;
+        }
+
+        int maxTokens = this.maxTokens;
+        double temperature = this.temperature;
+        double topP = this.topP;
+        double repeatPenalty = this.repeatPenalty;
+
+        String escapedPrompt = escapeJson(fullPrompt);
+        String json = String.format(java.util.Locale.US,
+            "{\"model\":\"%s\",\"prompt\":\"%s\",\"stream\":true,\"options\":{\"num_predict\":%d,\"temperature\":%s,\"top_p\":%s,\"repeat_penalty\":%s,\"repeat_last_n\":512,\"penalize_newline\":true,\"num_gpu\":-1}}",
+            currentModel, escapedPrompt, maxTokens,
+            String.valueOf(temperature), String.valueOf(topP), String.valueOf(repeatPenalty)
+        );
+
+        this.lastEndpoint = GENERATE_ENDPOINT;
+        this.lastRequestJson = json;
+        this.lastFullPrompt = fullPrompt;
+        this.lastContext = context;
+
+        StreamHandle handle = new StreamHandle();
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(OLLAMA_BASE_URL + GENERATE_ENDPOINT))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(json))
+                    .timeout(Duration.ofSeconds(180))
+                    .build();
+
+            CompletableFuture<HttpResponse<InputStream>> fut = httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofInputStream());
+            handle.bindFuture(fut);
+            fut.whenComplete((resp, err) -> {
+                if (err != null) {
+                    if (onError != null) onError.accept(err);
+                    return;
+                }
+                if (resp.statusCode() != 200) {
+                    if (onError != null) onError.accept(new RuntimeException("HTTP " + resp.statusCode()));
+                    return;
+                }
+                InputStream in = resp.body();
+                handle.bind(in);
+                try (BufferedReader br = new BufferedReader(new InputStreamReader(in))) {
+                    String line;
+                    while ((line = br.readLine()) != null) {
+                        if (line.isEmpty()) continue;
+                        if (line.contains("\"response\":")) {
+                            String chunk = extractJsonValue(line, "response");
+                            if (chunk != null && !chunk.isEmpty() && onChunk != null) {
+                                onChunk.accept(chunk);
+                            }
+                        }
+                        if (line.contains("\"done\":true")) {
+                            if (onDone != null) onDone.run();
+                            break;
+                        }
+                    }
+                } catch (Exception ex) {
+                    if (onError != null) onError.accept(ex);
+                }
+            });
+        } catch (Exception e) {
+            if (onError != null) onError.accept(e);
+        }
+
+        return handle;
+    }
+
+    // Einfache JSON-Extraktion für Streaming-Zeilen: zieht den Stringwert eines Schlüssels heraus
+    private String extractJsonValue(String json, String key) {
+        if (json == null || key == null) return null;
+        String needle = "\"" + key + "\":\"";
+        int start = json.indexOf(needle);
+        if (start < 0) return null;
+        int i = start + needle.length();
+        StringBuilder sb = new StringBuilder();
+        boolean escaped = false;
+        while (i < json.length()) {
+            char c = json.charAt(i++);
+            if (escaped) {
+                switch (c) {
+                    case 'n': sb.append('\n'); break;
+                    case 'r': sb.append('\r'); break;
+                    case 't': sb.append('\t'); break;
+                    case '"': sb.append('"'); break;
+                    case '\\': sb.append('\\'); break;
+                    default: sb.append(c); break;
+                }
+                escaped = false;
+                continue;
+            }
+            if (c == '\\') { escaped = true; continue; }
+            if (c == '"') break; // Ende
+            sb.append(c);
+        }
+        return sb.toString();
     }
 
     /**
