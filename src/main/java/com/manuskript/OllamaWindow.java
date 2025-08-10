@@ -39,6 +39,13 @@ public class OllamaWindow {
     private Button insertButton;
     private ProgressIndicator progressIndicator;
     private Label statusLabel;
+    // Streaming-Handle für Abbrechen/Fortschritt
+    private OllamaService.StreamHandle currentStreamHandle;
+    private Button openResultWindowButton;
+    private HBox resultButtonRow;
+    // Persistentes Ergebnisfenster (WebView), damit es live aktualisiert werden kann
+    private Stage resultStage;
+    private javafx.scene.web.WebView resultWebView;
     
     // Spezielle Eingabefelder für verschiedene Funktionen
     private TextField characterField;
@@ -83,6 +90,9 @@ public class OllamaWindow {
     // Modell-Installation
     private Button installModelButton;
     private ComboBox<String> installModelComboBox;
+    private TextField installModelNameField; // Freitext-Eingabe für Modellnamen
+    private Button installModelByNameButton; // Install per Name
+    private Button openModelLibraryButton;   // Link zur Modellbibliothek
     private ProgressIndicator installProgressIndicator;
     private Label installStatusLabel;
     
@@ -384,7 +394,29 @@ public class OllamaWindow {
         installStatusLabel = new Label("Bereit für Installation");
         installStatusLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: #666;");
         
-        modelInstallationBox.getChildren().addAll(installModelLabel, installModelComboBox, installModelButton, installProgressIndicator, installStatusLabel);
+        // NEU: Freitextfeld + Install-by-name-Button + Link
+        installModelNameField = new TextField();
+        installModelNameField.setPromptText("oder Modellname eingeben, z. B. llama3:8b");
+        installModelNameField.setPrefWidth(200);
+
+        installModelByNameButton = new Button("Installieren (Name)");
+        installModelByNameButton.setOnAction(e -> installModelByName());
+        installModelByNameButton.setTooltip(new Tooltip("Installiert das Modell anhand des eingegebenen Namens"));
+
+        openModelLibraryButton = new Button("🔗 Modellbibliothek");
+        openModelLibraryButton.setOnAction(e -> openOllamaWebsite());
+        openModelLibraryButton.setTooltip(new Tooltip("Öffnet die Ollama Modell-Seite im Browser"));
+
+        modelInstallationBox.getChildren().addAll(
+            installModelLabel,
+            installModelComboBox,
+            installModelButton,
+            installModelNameField,
+            installModelByNameButton,
+            openModelLibraryButton,
+            installProgressIndicator,
+            installStatusLabel
+        );
         
         // Chat-Session-Management
         chatSessionBox = new VBox(10);
@@ -421,6 +453,13 @@ public class OllamaWindow {
         chatHistoryArea = new CustomChatArea();
         chatHistoryArea.setMinHeight(400);
         chatHistoryArea.getStyleClass().addAll("ollama-text-area");
+        chatHistoryArea.setOnDisplayChange(() -> {
+            if (resultStage != null && resultStage.isShowing() && resultWebView != null) {
+                String currentAnswer = chatHistoryArea.getCurrentAnswer();
+                if (currentAnswer == null) currentAnswer = "";
+                updateResultWebView(buildHtmlForAnswer(currentAnswer), false);
+            }
+        });
         
         // Sessions aus Config laden (NACH der chatHistoryArea-Initialisierung)
         loadAllSessions();
@@ -630,10 +669,36 @@ public class OllamaWindow {
         progressIndicator.setVisible(false);
         progressIndicator.setPrefSize(20, 20);
         
+        Button cancelButton = new Button("Abbrechen");
+        cancelButton.setDisable(true);
+        cancelButton.setOnAction(e -> cancelOllamaRequest());
+
         statusLabel = new Label("Bereit");
         
-        buttonBox.getChildren().addAll(generateButton, previewPromptButton, insertButton, progressIndicator, statusLabel);
+        VBox buttonArea = new VBox(6);
+        buttonArea.setAlignment(Pos.CENTER);
+        HBox statusRow = new HBox(statusLabel);
+        statusRow.setAlignment(Pos.CENTER);
+        buttonArea.getChildren().addAll(buttonBox, statusRow);
         
+        openResultWindowButton = new Button("Ergebnis in Fenster");
+        openResultWindowButton.setOnAction(e -> openResultInWindow());
+        buttonBox.getChildren().addAll(generateButton, previewPromptButton, insertButton, cancelButton, progressIndicator);
+        // Button mittig unter der Antwortbox (wird unten in leftContent eingefügt)
+        resultButtonRow = new HBox(openResultWindowButton);
+        resultButtonRow.setAlignment(Pos.CENTER);
+        resultButtonRow.setPadding(new Insets(0));
+        resultButtonRow.setSpacing(0);
+        resultButtonRow.setFillHeight(false);
+        VBox.setVgrow(resultButtonRow, Priority.NEVER);
+        resultButtonRow.setMinHeight(Region.USE_PREF_SIZE);
+        resultButtonRow.setPrefHeight(Region.USE_COMPUTED_SIZE);
+        resultButtonRow.setMaxHeight(Region.USE_PREF_SIZE);
+        // Box-Klasse für gezieltes Styling per CSS
+        resultButtonRow.getStyleClass().add("result-button-row");
+        
+        // Button-Bereich wird im linken Content-Bereich eingefügt, nicht direkt ins mainLayout
+
         // Kontext-Bereich (kleiner, da Chat-Verlauf wichtiger ist)
         contextArea = new TextArea();
         contextArea.setPromptText("Hier können Sie zusätzlichen Kontext eingeben, der bei jeder Anfrage an den Assistenten gesendet wird. " +
@@ -779,19 +844,24 @@ public class OllamaWindow {
         loadProjectContexts();
 
         // Aufteilung: Links Hauptinhalt, Rechts Kontextbereich (besser sichtbar, frei skalierbar)
-        VBox leftContent = new VBox(10);
+        VBox leftContent = new VBox(6);
         leftContent.getChildren().addAll(
             specialFieldsBox,
             inputLabel,
             inputArea,
-            buttonBox,
+            buttonArea,
             chatLabel,
             chatHistoryArea,
+            // Button direkt unter der Chat-Ausgabe platzieren
+            resultButtonRow,
+            // Nicht-Chat-Ergebnis weiter unten
             resultLabel,
             resultArea
         );
+        // Kleiner Abstand nur direkt über dem Button
+        VBox.setMargin(resultButtonRow, new Insets(2, 0, 0, 0));
         VBox.setVgrow(chatHistoryArea, Priority.ALWAYS);
-        VBox.setVgrow(resultArea, Priority.SOMETIMES);
+        VBox.setVgrow(resultArea, Priority.ALWAYS);
 
         VBox rightContext = new VBox(8);
         rightContext.setPadding(new Insets(0, 0, 0, 8));
@@ -809,6 +879,8 @@ public class OllamaWindow {
         splitPane.getItems().addAll(leftContent, rightContext);
 
         lowerPanel.getChildren().add(splitPane);
+        // Wichtiger Schritt: SplitPane soll im unteren Panel vertikal mitwachsen (am Boden „kleben“)
+        VBox.setVgrow(splitPane, Priority.ALWAYS);
         
         // Chat-Session-Controls in den oberen Bereich (einklappbar)
         upperPanel.getChildren().add(chatSessionBox);
@@ -1384,51 +1456,59 @@ public class OllamaWindow {
             
             logger.info("DEBUG: Vollständiger Prompt: " + fullPrompt.substring(0, Math.min(200, fullPrompt.length())) + "...");
             
-            // Direkt generateText verwenden statt chatWithContext
-            ollamaService.generateText(fullPrompt)
-                .thenApply(response -> {
-                    Platform.runLater(() -> {
-                        insertButton.setDisable(false);
-                        setGenerating(false);
-                        updateStatus("✅ Antwort erhalten");
-                        // Eingabe löschen nach erfolgreicher Antwort
-                        inputArea.clear();
-                        // DEBUG: Antwort-Log
-                        logger.info("DEBUG: Antwort erhalten: " + response.substring(0, Math.min(50, response.length())) + "...");
-                        
-                        // Antwort hinzufügen
-                        chatHistoryArea.addAssistantResponse(response);
-                        
-                        // Session-Historie aktualisieren und speichern NACH der Antwort
-                        Platform.runLater(() -> {
-                            // Session-Historie aktualisieren
-                            List<CustomChatArea.QAPair> currentSessionHistory = chatHistoryArea.getSessionHistory();
-                            sessionHistories.put(currentSessionName, currentSessionHistory);
-                            
-                            // DEBUG: Session-Historie-Log
-                            logger.info("DEBUG: Session-Historie für " + currentSessionName + ": " + currentSessionHistory.size() + " QAPairs");
-                            for (int i = 0; i < currentSessionHistory.size(); i++) {
-                                CustomChatArea.QAPair qaPair = currentSessionHistory.get(i);
-                                logger.info("DEBUG: QAPair " + i + " - Frage: " + qaPair.getQuestion() + ", Antwort: " + (qaPair.getAnswer() != null ? qaPair.getAnswer().length() + " Zeichen" : "null"));
-                            }
-                            
-                            // Session persistent speichern
-                            ResourceManager.saveSession(currentSessionName, currentSessionHistory);
-                            logger.info("DEBUG: Session gespeichert: " + currentSessionName);
-                            
-                            // Prüfen ob Session aufgeteilt werden muss
-                            checkAndSplitSession(currentSessionName);
-                        });
-                    });
-                    return response;
+            // Streaming verwenden: echte Fortschrittsanzeige
+            StringBuilder aggregated = new StringBuilder();
+            final int qaIndex = chatHistoryArea.getLastIndex(); // Index des frisch hinzugefügten Q&A sichern
+            currentStreamHandle = ollamaService.generateTextStreaming(
+                fullPrompt,
+                null,
+                chunk -> Platform.runLater(() -> {
+                    aggregated.append(chunk);
+                    statusLabel.setText("⏳ Läuft… " + aggregated.length() + " Zeichen");
+                    // Live: Antwort fortlaufend exakt in dem Q&A sichern, zu dem diese Antwort gehört
+                    try { chatHistoryArea.setAnswerAt(qaIndex, aggregated.toString()); } catch (Exception ignored) {}
+                    // Live-Update im externen Fenster (immer ans Ende scrollen)
+                    if (resultStage != null && resultStage.isShowing() && resultWebView != null) {
+                        updateResultWebView(buildHtmlForAnswer(aggregated.toString()), true);
+                    }
+                    // Auch im Standard-Output-Feld (Chat-Historie) immer ans Ende springen
+                    try {
+                        String txt = chatHistoryArea.getCurrentAnswer();
+                        int l = txt != null ? txt.length() : 0;
+                        chatHistoryArea.getChatHistoryArea().positionCaret(l);
+                        chatHistoryArea.getChatHistoryArea().setScrollTop(Double.MAX_VALUE);
+                    } catch (Exception ignored) {}
+                }),
+                () -> Platform.runLater(() -> {
+                    insertButton.setDisable(false);
+                    setGenerating(false);
+                    updateStatus("✅ Antwort erhalten");
+                    inputArea.clear();
+                    String header = String.format(java.util.Locale.US, "[%s | temp=%.2f, top_p=%.2f, repeat_penalty=%.2f]",
+                            ollamaService != null ? ollamaService.getCurrentParameters().split(",")[0].replace("Modell: ", "").trim() : modelComboBox.getValue(),
+                            ResourceManager.getDoubleParameter("ollama.temperature", 0.3),
+                            ResourceManager.getDoubleParameter("ollama.top_p", 0.7),
+                            ResourceManager.getDoubleParameter("ollama.repeat_penalty", 1.3)
+                    );
+                    // Finale Antwort-String
+                    String finalAnswer = header + "\n" + aggregated.toString();
+                    // UI aktualisieren (asynchron ok)
+                    chatHistoryArea.setAnswerAt(qaIndex, finalAnswer);
+                    // Persistenz: Snapshot holen und SICHER den betreffenden Index mit finaler Antwort überschreiben
+                    List<CustomChatArea.QAPair> snapshot = chatHistoryArea.getSessionHistory();
+                    if (qaIndex >= 0 && qaIndex < snapshot.size()) {
+                        CustomChatArea.QAPair original = snapshot.get(qaIndex);
+                        snapshot.set(qaIndex, new CustomChatArea.QAPair(original.getQuestion(), finalAnswer));
+                    }
+                    sessionHistories.put(currentSessionName, snapshot);
+                    ResourceManager.saveSession(currentSessionName, snapshot);
+                    checkAndSplitSession(currentSessionName);
+                }),
+                err -> Platform.runLater(() -> {
+                    setGenerating(false);
+                    updateStatus("Fehler: " + err.getMessage());
                 })
-                .exceptionally(ex -> {
-                    Platform.runLater(() -> {
-                        updateStatus("Fehler bei Anfrage: " + ex.getMessage());
-                        setGenerating(false);
-                    });
-                    return null;
-                });
+            );
             return;
         }
         System.out.println("Calling generateText");
@@ -1711,7 +1791,10 @@ public class OllamaWindow {
             }
             String ctx = contextBuilder.toString();
             StringBuilder fullPromptBuilder = new StringBuilder();
-            fullPromptBuilder.append("Du bist ein hilfreicher deutscher Assistent.\nAntworte bitte auf Deutsch.\n\n");
+            fullPromptBuilder.append("Du bist ein hilfreicher deutscher Assistent.\nAntworte bitte auf Deutsch.\n");
+            fullPromptBuilder.append("Regeln: Antworte ausschließlich mit der geforderten Ausgabe. Keine Erklärungen. ")
+                              .append("Kein Vor- oder Nachtext. Keine Anführungszeichen. ")
+                              .append("Gib niemals Kontext, Regeln oder die Frage wieder. Nur die reine Antwort.\n\n");
             if (!ctx.isEmpty()) fullPromptBuilder.append(ctx).append("\n");
             fullPromptBuilder.append("Du: ").append(userMsg).append("\n");
             fullPromptBuilder.append("Assistent: ");
@@ -1833,7 +1916,12 @@ public class OllamaWindow {
         TextArea ta = new TextArea(content == null ? "" : content);
         ta.setWrapText(true);
         ta.setEditable(false);
+        // Volle Ausnutzung des Fensters
+        ta.setMaxWidth(Double.MAX_VALUE);
+        ta.setMaxHeight(Double.MAX_VALUE);
         VBox box = new VBox(8, ta);
+        VBox.setVgrow(ta, Priority.ALWAYS);
+        box.setFillWidth(true);
         box.setPadding(new Insets(10));
         Scene sc = new Scene(box, 900, 700);
         // Styles anwenden (ResourceManager, damit Pfade konsistent sind)
@@ -2173,10 +2261,249 @@ public class OllamaWindow {
     private void setGenerating(boolean generating) {
         generateButton.setDisable(generating);
         progressIndicator.setVisible(generating);
+        // Cancel-Button aktivieren/deaktivieren
+        Node parent = generateButton.getParent();
+        if (parent instanceof HBox) {
+            for (javafx.scene.Node child : ((HBox) parent).getChildren()) {
+                if (child instanceof Button && "Abbrechen".equals(((Button) child).getText())) {
+                    child.setDisable(!generating);
+                }
+            }
+        }
         if (generating) {
             generateButton.setText("Generiere...");
         } else {
             generateButton.setText("Generieren");
+        }
+    }
+
+    // Bricht laufende Anfrage ab (UI-seitig)
+    private volatile boolean cancelRequested = false;
+    private void cancelOllamaRequest() {
+        cancelRequested = true;
+        if (currentStreamHandle != null) {
+            currentStreamHandle.cancel();
+        }
+        updateStatus("⏹️ Anfrage abgebrochen");
+        setGenerating(false);
+    }
+
+    // Öffnet ein Vollbild-Fenster (WebView) mit der aktuellen Antwort (intelligent gerendert)
+    private void openResultInWindow() {
+        try {
+            String answer = "";
+            if (chatHistoryArea != null) {
+                answer = chatHistoryArea.getCurrentAnswer();
+                if (answer == null) answer = "";
+            } else if (resultArea != null) {
+                answer = resultArea.getText();
+            }
+            if (resultStage == null) {
+                resultStage = new Stage();
+                resultStage.setTitle("Ergebnis (gerendert)");
+                resultWebView = new javafx.scene.web.WebView();
+                resultWebView.setContextMenuEnabled(true);
+                resultWebView.setPrefSize(1000, 800);
+                VBox box = new VBox(resultWebView);
+                VBox.setVgrow(resultWebView, Priority.ALWAYS);
+                Scene sc = new Scene(box, 1000, 800);
+                resultStage.setScene(sc);
+                resultStage.initOwner(stage);
+                resultStage.initStyle(StageStyle.DECORATED);
+                applyThemeToNode(box, currentThemeIndex);
+            }
+            // Inhalt laden/refreshen und anzeigen (kein Auto-Scroll beim Öffnen)
+            updateResultWebView(buildHtmlForAnswer(answer), false);
+            if (!resultStage.isShowing()) resultStage.show();
+        } catch (Exception e) {
+            showAlert("Fehler", "Konnte Ergebnisfenster nicht öffnen: " + e.getMessage());
+        }
+    }
+
+    private String buildHtmlForAnswer(String text) {
+        String bgColor;
+        String fgColor;
+        String codeBg;
+        switch (currentThemeIndex) {
+            case 0: bgColor = "#ffffff"; fgColor = "#111827"; codeBg = "#f5f5f5"; break; // Weiß
+            case 2: bgColor = "#ffffff"; fgColor = "#111827"; codeBg = "#f3f4f6"; break; // Pastell hell
+            case 3: bgColor = "#0b1220"; fgColor = "#e2e8f0"; codeBg = "#0f172a"; break; // Blau dunkel (etwas dunkler)
+            case 4: bgColor = "#064e3b"; fgColor = "#d1fae5"; codeBg = "#065f46"; break; // Grün (angepasst an Theme CSS)
+            case 5: bgColor = "#581c87"; fgColor = "#f3e8ff"; codeBg = "#7c3aed"; break; // Lila (angepasst)
+            default: bgColor = "#1f2937"; fgColor = "#e5e7eb"; codeBg = "#111827"; // Dark
+        }
+        if (text == null) text = "";
+
+        // Header-Zeile im Format: [model | param, param, ...] erkennen
+        String headerHtml = "";
+        String bodyText = text;
+        try {
+            String trimmed = text.replace("\r\n", "\n");
+            // erste nicht-leere Zeile
+            int idx = 0;
+            while (idx < trimmed.length() && (trimmed.charAt(idx) == '\n' || trimmed.charAt(idx) == '\r')) idx++;
+            int nl = trimmed.indexOf('\n', idx);
+            String firstLine = (nl >= 0 ? trimmed.substring(idx, nl) : trimmed.substring(idx)).trim();
+            if (firstLine.startsWith("[") && firstLine.contains("]")) {
+                int rb = firstLine.indexOf(']');
+                String inside = firstLine.substring(1, rb).trim();
+                bodyText = (nl >= 0 ? trimmed.substring(nl + 1) : "");
+                String model = inside;
+                String params = null;
+                int bar = inside.indexOf('|');
+                if (bar >= 0) {
+                    model = inside.substring(0, bar).trim();
+                    params = inside.substring(bar + 1).trim();
+                }
+                String chipBg = codeBg;
+                String chipBorder = (currentThemeIndex == 4) ? "#047857" : (currentThemeIndex == 3 ? "#1d4ed8" : (currentThemeIndex == 5 ? "#6d28d9" : "#9ca3af"));
+                String chipText = fgColor;
+                String modelChipBg = (currentThemeIndex == 4) ? "#065f46" : (currentThemeIndex == 3 ? "#0f172a" : (currentThemeIndex == 5 ? "#7c3aed" : chipBg));
+                String modelChipText = fgColor;
+                StringBuilder header = new StringBuilder();
+                header.append("<div class='answer-header'>");
+                header.append("<span class='chip model' style='background:").append(modelChipBg).append(";color:").append(modelChipText)
+                      .append(";border:1px solid ").append(chipBorder).append(";'>").append(escapeHtml(model)).append("</span>");
+                if (params != null && !params.isEmpty()) {
+                    for (String p : params.split(",")) {
+                        String t = p.trim();
+                        if (t.isEmpty()) continue;
+                        header.append("<span class='chip' style='background:").append(chipBg).append(";color:").append(chipText)
+                              .append(";border:1px solid ").append(chipBorder).append(";'>").append(escapeHtml(t)).append("</span>");
+                    }
+                }
+                header.append("</div>");
+                headerHtml = header.toString();
+            }
+        } catch (Exception ignored) {}
+
+        String htmlBody;
+        if (looksLikeJson(bodyText)) {
+            htmlBody = "<pre><code class='json'>" + escapeHtml(prettyJson(bodyText)) + "</code></pre>";
+        } else {
+            htmlBody = markdownToHtml(bodyText);
+        }
+        // Schönere Typographie/Abstände und zentrierte Inhaltsbreite
+        String linkColor = (currentThemeIndex == 4) ? "#34d399" : (currentThemeIndex == 3 ? "#60a5fa" : (currentThemeIndex == 5 ? "#c084fc" : "#2563eb"));
+        String borderColor = (currentThemeIndex == 4) ? "#047857" : (currentThemeIndex == 3 ? "#1d4ed8" : (currentThemeIndex == 5 ? "#6d28d9" : "#9ca3af"));
+        String muted = (currentThemeIndex == 4) ? "#a7f3d0" : (currentThemeIndex == 3 ? "#cbd5e1" : (currentThemeIndex == 5 ? "#e9d5ff" : "#6b7280"));
+
+        String css = "html,body{height:100%;} body{margin:0;background:"+bgColor+";color:"+fgColor+";font-family:Segoe UI,Arial,sans-serif;line-height:1.65;}"+
+                ".content{max-width:920px;margin:24px auto 28px auto;padding:0 18px;}"+
+                "h1{font-size:1.8rem;margin:1.2em 0 0.4em;} h2{font-size:1.5rem;margin:1.1em 0 0.4em;} h3{font-size:1.25rem;margin:1em 0 0.4em;} h4,h5,h6{margin:0.9em 0 0.35em;}"+
+                "p{margin:0.6em 0;} ul,ol{padding-left:24px;margin:0.4em 0;} li{margin:0.2em 0;}"+
+                "pre,code{background:"+codeBg+";border-radius:8px;} pre{padding:12px 14px;overflow:auto;border:1px solid "+borderColor+";} code{padding:2px 6px;border:1px solid "+borderColor+";}"+
+                "table{border-collapse:collapse;width:100%;margin:0.8em 0;} th,td{border:1px solid "+borderColor+";padding:8px 10px;} th{background:"+codeBg+";color:"+fgColor+";}"+
+                "a{color:"+linkColor+";text-decoration:none;} a:hover{text-decoration:underline;}"+
+                ".muted{color:"+muted+";}"+
+                ".answer-header{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px 0;} .chip{padding:4px 8px;border-radius:999px;font-size:12px;} .chip.model{font-weight:600;}";
+        return "<!doctype html><html><head><meta charset='utf-8'><style>"+css+"</style></head><body><div class='content'>"+headerHtml+htmlBody+"</div></body></html>";
+    }
+
+    private boolean looksLikeJson(String s) {
+        String t = s.trim();
+        return (t.startsWith("{") && t.endsWith("}")) || (t.startsWith("[") && t.endsWith("]"));
+    }
+
+    private String prettyJson(String s) {
+        try {
+            com.google.gson.JsonElement el = com.google.gson.JsonParser.parseString(s);
+            return new com.google.gson.GsonBuilder().setPrettyPrinting().create().toJson(el);
+        } catch (Exception e) {
+            return s;
+        }
+    }
+
+    private String markdownToHtml(String md) {
+        // Sehr einfache Markdown-Konvertierung (Headings, Code-Fences, Inline-Code, Bold/Italic, Links, Listen)
+        String s = md.replace("\r\n", "\n").replace('\r', '\n');
+        // Code-Fences ``` mittels Matcher ersetzen
+        try {
+            java.util.regex.Pattern fence = java.util.regex.Pattern.compile("(?s)```(\\w+)?\\n(.*?)```\n?");
+            java.util.regex.Matcher m = fence.matcher(s);
+            StringBuffer sb = new StringBuffer();
+            while (m.find()) {
+                String lang = m.group(1) == null ? "" : (" class='" + m.group(1) + "'");
+                String body = escapeHtml(m.group(2));
+                String repl = "<pre><code" + lang + ">" + body + "</code></pre>";
+                m.appendReplacement(sb, java.util.regex.Matcher.quoteReplacement(repl));
+            }
+            m.appendTail(sb);
+            s = sb.toString();
+        } catch (Exception ignore) {}
+        // Headings
+        s = s.replaceAll("(?m)^######\\s+(.*)$", "<h6>$1</h6>");
+        s = s.replaceAll("(?m)^#####\\s+(.*)$", "<h5>$1</h5>");
+        s = s.replaceAll("(?m)^####\\s+(.*)$", "<h4>$1</h4>");
+        s = s.replaceAll("(?m)^###\\s+(.*)$", "<h3>$1</h3>");
+        s = s.replaceAll("(?m)^##\\s+(.*)$", "<h2>$1</h2>");
+        s = s.replaceAll("(?m)^#\\s+(.*)$", "<h1>$1</h1>");
+        // Listen manuell gruppieren und Inline-Formatierungen anwenden
+        String[] lines = s.split("\n", -1);
+        StringBuilder html = new StringBuilder();
+        boolean inUl = false, inOl = false;
+        int ulIndent = -1;
+        int olIndent = -1;
+        StringBuilder para = new StringBuilder();
+        Runnable flushPara = () -> { if (para.length() > 0) { html.append("<p>").append(para.toString()).append("</p>"); para.setLength(0);} };
+        for (String line : lines) {
+            int leading = 0; while (leading < line.length() && line.charAt(leading) == ' ') leading++;
+            String bl = line.trim();
+            java.util.regex.Matcher mNum = java.util.regex.Pattern.compile("^(\\d+)\\.\\s+(.*)$").matcher(bl);
+            java.util.regex.Matcher mBul = java.util.regex.Pattern.compile("^(?:-|\\*)\\s+(.*)$").matcher(bl);
+            if (mBul.matches()) {
+                // Bullet unter Umständen als Unterliste innerhalb einer OL belassen: OL NICHT schließen
+                // UL je nach Einrückung öffnen
+                if (!inUl) { flushPara.run(); html.append("<ul>"); inUl = true; ulIndent = leading; }
+                html.append("<li>").append(applyInlineMd(mBul.group(1))).append("</li>");
+            } else if (mNum.matches()) {
+                // Falls gerade eine UL auf tieferer Einrückung offen ist und wir auf OL-Ebene zurückkehren, UL schließen
+                if (inUl && leading <= ulIndent) { html.append("</ul>"); inUl = false; ulIndent = -1; }
+                if (!inOl) { flushPara.run(); html.append("<ol>"); inOl = true; olIndent = leading; }
+                html.append("<li>").append(applyInlineMd(mNum.group(2))).append("</li>");
+            } else if (bl.isEmpty()) {
+                if (inUl) { html.append("</ul>"); inUl = false; ulIndent = -1; }
+                // OL bewusst offen lassen, damit Nummerierung nach Unterliste weiterläuft
+                flushPara.run();
+            } else {
+                if (inUl) { html.append("</ul>"); inUl = false; ulIndent = -1; }
+                if (inOl) { html.append("</ol>"); inOl = false; olIndent = -1; }
+                if (para.length() > 0) para.append("<br>");
+                para.append(applyInlineMd(bl));
+            }
+        }
+        if (inUl) html.append("</ul>");
+        if (inOl) html.append("</ol>");
+        if (para.length() > 0) html.append("<p>").append(para.toString()).append("</p>");
+        return html.toString();
+    }
+
+    private String applyInlineMd(String t) {
+        if (t == null) return "";
+        String r = t;
+        r = r.replaceAll("`([^`]+)`", "<code>$1</code>");
+        r = r.replaceAll("\\*\\*(.+?)\\*\\*", "<strong>$1</strong>");
+        r = r.replaceAll("_(.+?)_", "<em>$1</em>");
+        r = r.replaceAll("\\[(.*?)\\]\\((.*?)\\)", "<a href='$2' target='_blank' rel='noreferrer noopener'>$1</a>");
+        return r;
+    }
+
+    private String escapeHtml(String s) {
+        return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
+    }
+
+    // Lädt HTML in das Ergebnis-WebView und scrollt optional ans Ende (nach Render)
+    private void updateResultWebView(String html, boolean scrollToBottom) {
+        if (resultWebView == null) return;
+        resultWebView.getEngine().loadContent(html, "text/html");
+        if (scrollToBottom) {
+            resultWebView.getEngine().getLoadWorker().stateProperty().addListener((obs, old, state) -> {
+                if (state == javafx.concurrent.Worker.State.SUCCEEDED) {
+                    try {
+                        resultWebView.getEngine().executeScript("window.scrollTo(0, document.body.scrollHeight);");
+                    } catch (Exception ignored) {}
+                }
+            });
         }
     }
     
@@ -2211,6 +2538,8 @@ public class OllamaWindow {
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(message);
+        // Theme anwenden
+        applyDialogTheme(alert, currentThemeIndex);
         alert.showAndWait();
     }
     
@@ -2297,20 +2626,41 @@ public class OllamaWindow {
     private void openOllamaWebsite() {
         try {
             // Öffne die Ollama-Website im Standard-Browser
-            java.awt.Desktop.getDesktop().browse(new java.net.URI("https://ollama.ai/download"));
-            updateStatus("Ollama-Website geöffnet - Bitte installieren Sie Ollama");
+            java.awt.Desktop.getDesktop().browse(new java.net.URI("https://ollama.com/search"));
+            updateStatus("Ollama Modellbibliothek geöffnet");
         } catch (Exception e) {
             logger.warning("Konnte Ollama-Website nicht öffnen: " + e.getMessage());
-            showAlert("Fehler", "Konnte Browser nicht öffnen. Bitte besuchen Sie manuell: https://ollama.ai/download");
+            showAlert("Fehler", "Konnte Browser nicht öffnen. Bitte besuchen Sie manuell: https://ollama.com/search");
         }
     }
     
     private void applyDialogTheme(Alert alert, int themeIndex) {
+        DialogPane pane = alert.getDialogPane();
+        // CSS (styles.css + editor.css) hinzufügen, damit globale Dialog-Styles greifen
+        String stylesCss = ResourceManager.getCssResource("css/styles.css");
+        String editorCss = ResourceManager.getCssResource("css/editor.css");
+        if (stylesCss != null && !pane.getStylesheets().contains(stylesCss)) {
+            pane.getStylesheets().add(stylesCss);
+        }
+        if (editorCss != null && !pane.getStylesheets().contains(editorCss)) {
+            pane.getStylesheets().add(editorCss);
+        }
+
+        // Theme-Klassen am DialogPane setzen (wie im EditorWindow)
+        if (themeIndex == 0) pane.getStyleClass().add("weiss-theme");
+        else if (themeIndex == 2) pane.getStyleClass().add("pastell-theme");
+        else if (themeIndex == 3) pane.getStyleClass().addAll("theme-dark", "blau-theme");
+        else if (themeIndex == 4) pane.getStyleClass().addAll("theme-dark", "gruen-theme");
+        else if (themeIndex == 5) pane.getStyleClass().addAll("theme-dark", "lila-theme");
+        else pane.getStyleClass().add("theme-dark");
+
         String dialogStyle = "";
         String contentStyle = "";
         String labelStyle = "";
         String buttonStyle = "";
         String checkboxStyle = "";
+        String headerBg = "";
+        String headerText = "";
         
         switch (themeIndex) {
             case 0: // Weiß
@@ -2319,6 +2669,8 @@ public class OllamaWindow {
                 labelStyle = "-fx-text-fill: #000000;";
                 buttonStyle = "-fx-background-color: #f0f0f0; -fx-text-fill: #000000; -fx-border-color: #cccccc;";
                 checkboxStyle = "-fx-text-fill: #000000;";
+                headerBg = "#ffffff";
+                headerText = "#000000";
                 break;
             case 1: // Schwarz
                 dialogStyle = "-fx-background-color: #1a1a1a; -fx-text-fill: #ffffff;";
@@ -2326,6 +2678,8 @@ public class OllamaWindow {
                 labelStyle = "-fx-text-fill: #ffffff;";
                 buttonStyle = "-fx-background-color: #2d2d2d; -fx-text-fill: #ffffff; -fx-border-color: #404040;";
                 checkboxStyle = "-fx-text-fill: #ffffff;";
+                headerBg = "#1a1a1a";
+                headerText = "#ffffff";
                 break;
             case 2: // Pastell
                 dialogStyle = "-fx-background-color: #f3e5f5; -fx-text-fill: #000000;";
@@ -2333,6 +2687,8 @@ public class OllamaWindow {
                 labelStyle = "-fx-text-fill: #000000;";
                 buttonStyle = "-fx-background-color: #e1bee7; -fx-text-fill: #000000; -fx-border-color: #ba68c8;";
                 checkboxStyle = "-fx-text-fill: #000000;";
+                headerBg = "#f3e5f5";
+                headerText = "#000000";
                 break;
             case 3: // Blau
                 dialogStyle = "-fx-background-color: #1e3a8a; -fx-text-fill: #ffffff;";
@@ -2340,6 +2696,8 @@ public class OllamaWindow {
                 labelStyle = "-fx-text-fill: #ffffff;";
                 buttonStyle = "-fx-background-color: #3b82f6; -fx-text-fill: #ffffff; -fx-border-color: #1d4ed8;";
                 checkboxStyle = "-fx-text-fill: #ffffff;";
+                headerBg = "#1e3a8a";
+                headerText = "#ffffff";
                 break;
             case 4: // Grün
                 dialogStyle = "-fx-background-color: #064e3b; -fx-text-fill: #ffffff;";
@@ -2347,6 +2705,8 @@ public class OllamaWindow {
                 labelStyle = "-fx-text-fill: #ffffff;";
                 buttonStyle = "-fx-background-color: #059669; -fx-text-fill: #ffffff; -fx-border-color: #047857;";
                 checkboxStyle = "-fx-text-fill: #ffffff;";
+                headerBg = "#064e3b";
+                headerText = "#ffffff";
                 break;
             case 5: // Lila
                 dialogStyle = "-fx-background-color: #581c87; -fx-text-fill: #ffffff;";
@@ -2354,20 +2714,36 @@ public class OllamaWindow {
                 labelStyle = "-fx-text-fill: #ffffff;";
                 buttonStyle = "-fx-background-color: #7c3aed; -fx-text-fill: #ffffff; -fx-border-color: #6d28d9;";
                 checkboxStyle = "-fx-text-fill: #ffffff;";
+                headerBg = "#581c87";
+                headerText = "#ffffff";
                 break;
         }
         
         // Styles anwenden
-        alert.getDialogPane().setStyle(dialogStyle);
+        pane.setStyle(dialogStyle);
         
         // Alle Child-Elemente durchgehen und Styles anwenden
-        for (javafx.scene.Node node : alert.getDialogPane().getChildren()) {
+        for (javafx.scene.Node node : pane.getChildren()) {
             if (node instanceof VBox) {
                 node.setStyle(contentStyle);
                 // Rekursiv durch alle Child-Elemente gehen
                 applyStyleToChildren(node, labelStyle, buttonStyle, checkboxStyle);
             }
         }
+
+        // Header-Bereich gezielt einfärben, sobald der Dialog sichtbar ist
+        final String headerBgFinal = headerBg;
+        final String headerTextFinal = headerText;
+        alert.setOnShown(ev -> {
+            Node headerPanel = pane.lookup(".header-panel");
+            if (headerPanel != null && headerBgFinal != null && !headerBgFinal.isEmpty()) {
+                headerPanel.setStyle(String.format("-fx-background-color: %s; -fx-background-insets: 0; -fx-padding: 8 12;", headerBgFinal));
+                Node headerLabel = headerPanel.lookup(".label");
+                if (headerLabel instanceof Label) {
+                    ((Label) headerLabel).setTextFill(javafx.scene.paint.Color.web(headerTextFinal != null && !headerTextFinal.isEmpty() ? headerTextFinal : "#ffffff"));
+                }
+            }
+        });
     }
     
     private void applyStyleToChildren(javafx.scene.Node parent, String labelStyle, String buttonStyle, String checkboxStyle) {
@@ -2652,6 +3028,8 @@ public class OllamaWindow {
         alert.setContentText("Möchten Sie das Modell '" + selectedModel + "' wirklich löschen?\n\n" +
                            "⚠️  Diese Aktion kann nicht rückgängig gemacht werden!\n" +
                            "💾 Das Modell wird unwiderruflich von der Festplatte entfernt.");
+        // Theme anwenden
+        applyDialogTheme(alert, currentThemeIndex);
         
         Optional<ButtonType> result = alert.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
@@ -2736,6 +3114,47 @@ public class OllamaWindow {
                 return null;
             });
     }
+
+    // NEU: Installation anhand Freitext
+    private void installModelByName() {
+        String name = installModelNameField != null ? installModelNameField.getText() : null;
+        if (name == null || name.trim().isEmpty()) {
+            showAlert("Fehler", "Bitte geben Sie einen Modellnamen ein.");
+            return;
+        }
+        installModelButton.setDisable(true);
+        installModelByNameButton.setDisable(true);
+        installProgressIndicator.setVisible(true);
+        installStatusLabel.setText("🔄 Installiere " + name + "...");
+        updateStatus("Installiere Modell per Name: " + name);
+
+        ollamaService.installModel(name.trim())
+            .thenAccept(result -> {
+                Platform.runLater(() -> {
+                    installModelButton.setDisable(false);
+                    installModelByNameButton.setDisable(false);
+                    installProgressIndicator.setVisible(false);
+                    if (result.startsWith("✅")) {
+                        installStatusLabel.setText("✅ Installation abgeschlossen");
+                        updateStatus("Modell installiert: " + name);
+                        loadAvailableModels();
+                    } else {
+                        installStatusLabel.setText("❌ Installation fehlgeschlagen");
+                        showAlert("Fehler", result);
+                    }
+                });
+            })
+            .exceptionally(ex -> {
+                Platform.runLater(() -> {
+                    installModelButton.setDisable(false);
+                    installModelByNameButton.setDisable(false);
+                    installProgressIndicator.setVisible(false);
+                    installStatusLabel.setText("❌ Installation fehlgeschlagen");
+                    showAlert("Fehler", "Fehler bei der Installation: " + ex.getMessage());
+                });
+                return null;
+            });
+    }
     
     /**
      * Setzt den Training-Status zurück
@@ -2787,6 +3206,43 @@ public class OllamaWindow {
         dialog.setHeaderText("Session-Name eingeben");
         dialog.setContentText("Name der neuen Session:");
         dialog.getEditor().setPromptText("z.B. Projekt A, Charakter B, etc.");
+        // Dialog thematisch stylen
+        try {
+            // CSS hinzufügen
+            DialogPane pane = dialog.getDialogPane();
+            String stylesCss = ResourceManager.getCssResource("css/styles.css");
+            String editorCss = ResourceManager.getCssResource("css/editor.css");
+            if (stylesCss != null && !pane.getStylesheets().contains(stylesCss)) pane.getStylesheets().add(stylesCss);
+            if (editorCss != null && !pane.getStylesheets().contains(editorCss)) pane.getStylesheets().add(editorCss);
+            // Theme-Klassen
+            if (currentThemeIndex == 0) pane.getStyleClass().add("weiss-theme");
+            else if (currentThemeIndex == 2) pane.getStyleClass().add("pastell-theme");
+            else if (currentThemeIndex == 3) pane.getStyleClass().addAll("theme-dark", "blau-theme");
+            else if (currentThemeIndex == 4) pane.getStyleClass().addAll("theme-dark", "gruen-theme");
+            else if (currentThemeIndex == 5) pane.getStyleClass().addAll("theme-dark", "lila-theme");
+            else pane.getStyleClass().add("theme-dark");
+            // Header einfärben
+            String backgroundColor;
+            String textColor;
+            switch (currentThemeIndex) {
+                case 0: backgroundColor = "#ffffff"; textColor = "#000000"; break; // Weiß
+                case 2: backgroundColor = "#f3e5f5"; textColor = "#000000"; break; // Pastell
+                case 3: backgroundColor = "#1e3a8a"; textColor = "#ffffff"; break; // Blau
+                case 4: backgroundColor = "#064e3b"; textColor = "#ffffff"; break; // Grün
+                case 5: backgroundColor = "#581c87"; textColor = "#ffffff"; break; // Lila
+                default: backgroundColor = "#1a1a1a"; textColor = "#ffffff"; // Dark
+            }
+            dialog.setOnShown(ev -> {
+                Node headerPanel = pane.lookup(".header-panel");
+                if (headerPanel != null) {
+                    headerPanel.setStyle(String.format("-fx-background-color: %s; -fx-background-insets: 0; -fx-padding: 8 12;", backgroundColor));
+                    Node headerLabel = headerPanel.lookup(".label");
+                    if (headerLabel instanceof Label) {
+                        ((Label) headerLabel).setTextFill(javafx.scene.paint.Color.web(textColor));
+                    }
+                }
+            });
+        } catch (Exception ignored) {}
         
         Optional<String> result = dialog.showAndWait();
         result.ifPresent(sessionName -> {
@@ -2825,6 +3281,7 @@ public class OllamaWindow {
             alert.setTitle("Session löschen");
             alert.setHeaderText("Session löschen?");
             alert.setContentText("Möchten Sie die Session '" + currentSession + "' wirklich löschen?\n\nDie Chat-Historie wird unwiderruflich gelöscht.");
+            applyDialogTheme(alert, currentThemeIndex);
             
             Optional<ButtonType> result = alert.showAndWait();
             if (result.isPresent() && result.get() == ButtonType.OK) {
@@ -2837,19 +3294,15 @@ public class OllamaWindow {
                 // ComboBox aktualisieren
                 sessionComboBox.getItems().remove(currentSession);
                 
-                // Neue default Session erstellen falls die alte gelöscht wurde
-                if (currentSession.equals("default")) {
-                    sessionHistories.put("default", new ArrayList<>());
+                // Nach Löschung: auf eine verbleibende Session wechseln (falls keine vorhanden: lege 'default' leer an)
+                if (sessionComboBox.getItems().isEmpty()) {
                     sessionComboBox.getItems().add("default");
-                    sessionComboBox.setValue("default");
-                    currentSessionName = "default";
-                    chatHistoryArea.loadSessionHistory(new ArrayList<>());
-                } else {
-                    // Zur default Session wechseln
-                    sessionComboBox.setValue("default");
-                    currentSessionName = "default";
-                    chatHistoryArea.loadSessionHistory(sessionHistories.getOrDefault("default", new ArrayList<>()));
+                    sessionHistories.put("default", new ArrayList<>());
                 }
+                String pick = sessionComboBox.getItems().get(0);
+                sessionComboBox.setValue(pick);
+                currentSessionName = pick;
+                chatHistoryArea.loadSessionHistory(sessionHistories.getOrDefault(pick, new ArrayList<>()));
                 
                 updateStatus("Session gelöscht: " + currentSession);
             }
@@ -2866,6 +3319,7 @@ public class OllamaWindow {
             alert.setTitle("Kontext löschen");
             alert.setHeaderText("Chat-Historie löschen?");
             alert.setContentText("Möchten Sie die Chat-Historie der Session '" + currentSession + "' wirklich löschen?\n\nDie Session bleibt erhalten, aber alle Nachrichten werden gelöscht.");
+            applyDialogTheme(alert, currentThemeIndex);
             
             Optional<ButtonType> result = alert.showAndWait();
             if (result.isPresent() && result.get() == ButtonType.OK) {
@@ -2908,6 +3362,12 @@ public class OllamaWindow {
             List<CustomChatArea.QAPair> newHistory = sessionHistories.getOrDefault(sessionName, new ArrayList<>());
             logger.info("DEBUG: Neue Historie für " + sessionName + ": " + newHistory.size() + " QAPairs");
             chatHistoryArea.loadSessionHistory(newHistory);
+            // Externes Ergebnisfenster live aktualisieren (falls offen)
+            if (resultStage != null && resultStage.isShowing()) {
+                String currentAnswer = chatHistoryArea.getCurrentAnswer();
+                if (currentAnswer == null) currentAnswer = "";
+                resultWebView.getEngine().loadContent(buildHtmlForAnswer(currentAnswer), "text/html");
+            }
             
             updateStatus("Session gewechselt: " + sessionName);
         }
@@ -2930,26 +3390,14 @@ public class OllamaWindow {
             logger.info("DEBUG: Session geladen: " + sessionName + " mit " + sessionData.size() + " QAPairs");
         }
         
-        // Default Session hinzufügen falls nicht vorhanden (NUR wenn nicht aus Datei geladen)
-        if (!availableSessions.contains("default")) {
+        // Default NICHT automatisch hinzufügen, außer es gibt GAR KEINE Sessions
+        if (availableSessions.isEmpty()) {
             sessionComboBox.getItems().add("default");
             sessionHistories.put("default", new ArrayList<>());
-            logger.info("DEBUG: Default Session hinzugefügt (leer)");
-        } else {
-            logger.info("DEBUG: Default Session bereits aus Datei geladen mit " + sessionHistories.get("default").size() + " QAPairs");
+            logger.info("DEBUG: Keine Sessions vorhanden – lege leere 'default' an");
         }
         
-        // Erste Session auswählen und laden
-        if (!sessionComboBox.getItems().isEmpty()) {
-            sessionComboBox.setValue("default");
-            
-            // Initial die default Session in die chatHistoryArea laden
-            List<CustomChatArea.QAPair> defaultHistory = sessionHistories.get("default");
-            if (defaultHistory != null) {
-                logger.info("DEBUG: Lade initial default Session mit " + defaultHistory.size() + " QAPairs");
-                chatHistoryArea.loadSessionHistory(defaultHistory);
-            }
-        }
+        // Keine Auswahl hier treffen; Auswahl erfolgt in loadSelectedSession() nach Persistenz-Regel
     }
     
     /**
@@ -2995,9 +3443,18 @@ public class OllamaWindow {
             
             logger.info("DEBUG: Session aufgeteilt: " + sessionName + " (" + remainingData.size() + " QAPairs) und " + newSessionName + " (" + newSessionData.size() + " QAPairs)");
             
-            // Benachrichtigung anzeigen
+            // Nach dem Split automatisch in die neue Session wechseln,
+            // damit nicht bei jeder neuen Anfrage erneut ein weiterer Teil entsteht
             Platform.runLater(() -> {
-                updateStatus("Session " + sessionName + " wurde automatisch aufgeteilt in " + newSessionName);
+                // Session-Auswahl aktualisieren und wechseln
+                if (!sessionComboBox.getItems().contains(newSessionName)) {
+                    sessionComboBox.getItems().add(newSessionName);
+                }
+                sessionComboBox.setValue(newSessionName);
+                currentSessionName = newSessionName;
+                // Chat-Historie der neuen Session laden
+                chatHistoryArea.loadSessionHistory(newSessionData);
+                updateStatus("Session wurde aufgeteilt – weiter in '" + newSessionName + "'");
             });
         }
     }
@@ -3010,29 +3467,8 @@ public class OllamaWindow {
         for (Map.Entry<String, List<CustomChatArea.QAPair>> entry : sessionHistories.entrySet()) {
             String sessionName = entry.getKey();
             List<CustomChatArea.QAPair> qaPairs = entry.getValue();
-            
-            logger.info("DEBUG: Prüfe Session: " + sessionName + " mit " + qaPairs.size() + " QAPairs");
-            
-            // Nur Sessions mit vollständigen Antworten speichern
-            boolean hasCompleteAnswers = true;
-            
-            for (int i = 0; i < qaPairs.size(); i++) {
-                CustomChatArea.QAPair qaPair = qaPairs.get(i);
-                logger.info("DEBUG: QAPair " + i + " - Frage: " + qaPair.getQuestion() + ", Antwort: " + (qaPair.getAnswer() != null ? qaPair.getAnswer().length() + " Zeichen" : "null"));
-                
-                if (qaPair.getAnswer() == null || qaPair.getAnswer().trim().isEmpty()) {
-                    hasCompleteAnswers = false;
-                    logger.info("DEBUG: Unvollständige Antwort gefunden - Session wird nicht gespeichert");
-                    break;
-                }
-            }
-            
-            if (hasCompleteAnswers) {
-                logger.info("DEBUG: Vollständige Session gefunden - speichere: " + sessionName);
-                ResourceManager.saveSession(sessionName, qaPairs);
-            } else {
-                logger.info("DEBUG: Unvollständige Session - überspringe: " + sessionName);
-            }
+            logger.info("DEBUG: Speichere Session: " + sessionName + " mit " + qaPairs.size() + " QAPairs (ungefiltert)");
+            ResourceManager.saveSession(sessionName, qaPairs);
         }
     }
     
@@ -3132,16 +3568,29 @@ public class OllamaWindow {
      * Lädt die zuletzt ausgewählte Session aus den Preferences
      */
     private void loadSelectedSession() {
-        String savedSession = ResourceManager.getParameter("ui.selected_session", "default");
-        if (sessionComboBox.getItems().contains(savedSession)) {
-            sessionComboBox.setValue(savedSession);
-            currentSessionName = savedSession;
+        String savedSession = ResourceManager.getParameter("ui.selected_session", "");
+        String pick = null;
+        if (savedSession != null && !savedSession.isEmpty() && sessionComboBox.getItems().contains(savedSession)) {
+            pick = savedSession;
             logger.info("Gespeicherte Session geladen: " + savedSession);
         } else {
-            // Fallback auf default wenn die gespeicherte Session nicht existiert
-            sessionComboBox.setValue("default");
-            currentSessionName = "default";
-            logger.info("Fallback auf default Session, da gespeicherte Session nicht gefunden: " + savedSession);
+            // Fallback: höchste default.X, sonst 'default'
+            int bestPart = -1;
+            for (String name : sessionComboBox.getItems()) {
+                if ("default".equals(name)) continue;
+                if (name.startsWith("default.")) {
+                    try {
+                        int part = Integer.parseInt(name.substring("default.".length()));
+                        if (part > bestPart) { bestPart = part; pick = name; }
+                    } catch (NumberFormatException ignored) {}
+                }
+            }
+            if (pick == null) pick = sessionComboBox.getItems().contains("default") ? "default" : sessionComboBox.getItems().get(0);
+            logger.info("Fallback Session gewählt: " + pick + " (saved='" + savedSession + "')");
         }
+        sessionComboBox.setValue(pick);
+        currentSessionName = pick;
+        List<CustomChatArea.QAPair> hist = sessionHistories.getOrDefault(pick, new ArrayList<>());
+        chatHistoryArea.loadSessionHistory(hist);
     }
 } 

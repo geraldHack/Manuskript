@@ -22,6 +22,7 @@ public class CustomChatArea extends VBox {
     private VBox scrollIndicator;
     private List<QAPair> chatHistory = new ArrayList<>();
     private int currentIndex = -1;
+    private Runnable onDisplayChange;
     
     public CustomChatArea() {
         initializeUI();
@@ -32,8 +33,8 @@ public class CustomChatArea extends VBox {
         questionArea = new TextArea("Keine Frage ausgewählt");
         questionArea.setEditable(false);
         questionArea.setWrapText(true);
-        questionArea.setPrefRowCount(2);  // Nur 2 Zeilen für die Frage
-        questionArea.setMaxHeight(60);    // Maximale Höhe begrenzen
+        questionArea.setPrefRowCount(4);  // noch etwas höher
+        questionArea.setMaxHeight(108);   // angepasst
         questionArea.setStyle("-fx-font-family: 'System'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-background-color: transparent; -fx-border-color: #bdc3c7; -fx-border-width: 1px;");
         
         // TextArea für Antworten
@@ -105,18 +106,15 @@ public class CustomChatArea extends VBox {
     }
     
     public void clearAndShowNewQuestion(String question) {
-        Platform.runLater(() -> {
-            // Prüfen ob die Frage bereits existiert und Nummer hinzufügen
+        Runnable action = () -> {
             String numberedQuestion = addNumberIfDuplicate(question);
-            
-            // Neue Frage zum Array hinzufügen
             QAPair newPair = new QAPair(numberedQuestion, "");
             chatHistory.add(newPair);
             currentIndex = chatHistory.size() - 1;
-            
-            // UI aktualisieren
             updateDisplay();
-        });
+        };
+        if (Platform.isFxApplicationThread()) action.run();
+        else Platform.runLater(action);
     }
     
     /**
@@ -202,6 +200,29 @@ public class CustomChatArea extends VBox {
             }
         });
     }
+
+    /**
+     * Gibt den Index des letzten Frage-Antwort-Paares zurück
+     */
+    public int getLastIndex() {
+        return chatHistory.isEmpty() ? -1 : chatHistory.size() - 1;
+    }
+
+    /**
+     * Setzt die Antwort für ein bestimmtes QAPair anhand des Index –
+     * unabhängig davon, welcher Eintrag aktuell angezeigt wird.
+     */
+    public void setAnswerAt(int index, String response) {
+        Platform.runLater(() -> {
+            if (index >= 0 && index < chatHistory.size()) {
+                QAPair pair = chatHistory.get(index);
+                pair.setAnswer(response);
+                if (index == currentIndex) {
+                    updateDisplay();
+                }
+            }
+        });
+    }
     
     private void showPrevious() {
         if (currentIndex > 0) {
@@ -226,6 +247,10 @@ public class CustomChatArea extends VBox {
             
             // Antwort anzeigen
             chatHistoryArea.setText(currentPair.getAnswer());
+            // Beim Streamen automatisch nach unten scrollen
+            int len = chatHistoryArea.getText() != null ? chatHistoryArea.getText().length() : 0;
+            chatHistoryArea.positionCaret(len);
+            try { chatHistoryArea.setScrollTop(Double.MAX_VALUE); } catch (Exception ignored) {}
             
             // Navigation-Buttons aktualisieren
             upButton.setDisable(currentIndex <= 0);
@@ -233,7 +258,22 @@ public class CustomChatArea extends VBox {
             
             // Scroll-Indikator aktualisieren
             updateScrollIndicator();
+        } else {
+            // Leerer Zustand: Felder zurücksetzen
+            questionArea.setText("Keine Frage ausgewählt");
+            chatHistoryArea.clear();
+            upButton.setDisable(true);
+            downButton.setDisable(true);
+            scrollIndicator.getChildren().clear();
         }
+        // Callback benachrichtigen (z. B. externes Ergebnisfenster aktualisieren)
+        if (onDisplayChange != null) {
+            try { onDisplayChange.run(); } catch (Exception ignored) {}
+        }
+    }
+
+    public void setOnDisplayChange(Runnable callback) {
+        this.onDisplayChange = callback;
     }
     
     private void updateScrollIndicator() {
@@ -387,6 +427,14 @@ public class CustomChatArea extends VBox {
         if (currentIndex >= 0 && currentIndex < chatHistory.size()) {
             QAPair currentPair = chatHistory.get(currentIndex);
             return "Frage: " + currentPair.getQuestion() + "\n\nAntwort: " + currentPair.getAnswer();
+        }
+        return "";
+    }
+    
+    public String getCurrentAnswer() {
+        if (currentIndex >= 0 && currentIndex < chatHistory.size()) {
+            QAPair currentPair = chatHistory.get(currentIndex);
+            return currentPair.getAnswer() != null ? currentPair.getAnswer() : "";
         }
         return "";
     }

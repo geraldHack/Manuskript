@@ -4,6 +4,40 @@
 
 Eine moderne JavaFX-Anwendung zur Verarbeitung und automatischen Nachbearbeitung von DOCX-Dateien zu einem zusammenhängenden Textdokument mit professionellem Text-Editor.
 
+## ⚡ Schnellstart
+
+Voraussetzungen: Java 17+, Maven 3.6+
+
+```bash
+# Abhängigkeiten bauen
+mvn clean install
+# Anwendung starten
+mvn javafx:run
+```
+
+Erste Schritte:
+- Verzeichnis mit DOCX-Dateien wählen
+- Dateien filtern/auswählen und „Ausgewählte verarbeiten“ klicken
+- Ergebnis im Editor prüfen, optional Makros anwenden und exportieren
+
+### 🤖 KI-Assistent (optional) – Schnellstart
+
+Voraussetzung: Ollama installiert (siehe [Ollama-Website](https://ollama.com))
+
+```bash
+# Beispielmodell laden
+ollama pull llama3.2:3b
+# Dienst (falls nötig) starten
+ollama serve
+```
+
+In der Anwendung:
+- Button „🤖 KI-Assistent“ öffnen
+- Modell auswählen und Verbindung prüfen
+- Prompt eingeben und Antwort generieren
+
+Hinweis: Sessions und Parameter werden unter `config/` gespeichert; Details im Abschnitt „KI-Assistent (Ollama)“ unten.
+
 ## 🎯 Kernfunktionen
 
 ### 📁 Datei-Verwaltung
@@ -12,6 +46,7 @@ Eine moderne JavaFX-Anwendung zur Verarbeitung und automatischen Nachbearbeitung
 - **Zwei-Tabellen-Ansicht:** Verfügbare Dateien links, ausgewählte Dateien rechts
 - **Drag & Drop:** Intuitive Datei-Auswahl zwischen Tabellen
 - **Automatische Sortierung:** Zahlen in Dateinamen werden erkannt und sortiert
+- **Robuste Synchronisierung (neu):** Hash-basierter Vergleich (CRC32) zwischen Original-DOCX und Sidecar (MD/TXT/HTML) – zuverlässig auch bei unveränderten Zeitstempeln.
 
 ### 📝 Text-Editor
 - **Vollwertiger Editor:** Syntax-Highlighting, Zeilennummern, Themes
@@ -19,6 +54,8 @@ Eine moderne JavaFX-Anwendung zur Verarbeitung und automatischen Nachbearbeitung
 - **Datei-Operationen:** Öffnen, Speichern, Speichern als
 - **Export-Funktionen:** RTF/DOCX (nur Markdown), Markdown, HTML, TXT
 - **Keyboard-Shortcuts:** Professionelle Tastenkombinationen
+- **Diff & Merge (neu):** Seiten-by-Seiten-Diff bei extern geänderter DOCX mit Auswahl-Übernahme per Checkboxen (nur ins Sidecar, niemals in die DOCX).
+- **Sicheres Speichern (neu):** Speicherdialog mit klaren Optionen (Sidecar speichern, DOCX überschreiben, Diff anzeigen, Abbrechen). Sidecar-„Silent Save“ vermeidet Rekursion bei Navigation.
 
 ### 🔧 Makro-System
 - **Automatische Text-Bereinigung:** 13 vordefinierte Schritte
@@ -154,9 +191,49 @@ ollama.repeat_penalty=1.3
 - Kontext & Sessions:
   - Session-Verläufe werden unter `config/sessions/<name>.json` gespeichert.
   - Lange Verläufe werden bei `session.max_qapairs_per_session` automatisch aufgeteilt.
+- Streaming & UX (neu):
+  - Echte Streaming-Fortschrittsanzeige während der Generierung.
+  - Automatisches Scrollen ans Ende im normalen Ausgabefenster während des Streamings.
+  - Stabile Persistenz: Antworten werden am Ende zuverlässig gespeichert; laufende Antworten werden live in die aktuelle Q&A-Zeile geschrieben.
 - Parameter:
   - Standardwerte kommen aus `parameters.properties`; Änderungen über die UI werden persistiert.
   - Bei nicht erreichbarem Dienst wird ein Hinweisdialog gezeigt, Generieren schlägt andernfalls fehl.
+
+### Empfohlene Modelle & Parameter
+
+Schnellstart-Modelle (lokal, ressourcenschonend bis mittel):
+- `llama3.2:3b` (Allround, schnell)
+- `phi3:3.8b-mini-instruct` (kompakt, solide Antworten)
+- `qwen2.5:7b-instruct` (größer, bessere Qualität)
+
+
+
+Empfohlene Startparameter (werden in `config/parameters.properties` gespeichert):
+```properties
+# KI (Ollama)
+ollama.temperature=0.3
+ollama.max_tokens=2048
+ollama.top_p=0.7
+ollama.repeat_penalty=1.3
+```
+
+Hinweise:
+- Niedrigere `temperature` = präzisere, konsistentere Antworten.
+- Erhöhe `max_tokens`, wenn Antworten gekürzt sind.
+- `repeat_penalty` leicht > 1.0 gegen Wiederholungen.
+
+### Troubleshooting KI (Ollama)
+- **Dienst nicht erreichbar**: Läuft Ollama?
+  - Prüfen: `curl http://127.0.0.1:11434/api/tags`
+  - Starten: `ollama serve`
+- **Modell nicht gefunden**: Gewünschtes Modell per `ollama pull <name>` laden und in der UI auswählen.
+- **Langsam/Abbruch**: Größeres Modell gewählt? Wechsel auf kleineres (z. B. `llama3.2:3b`).
+- **Windows/WSL**: Stelle sicher, dass Ollama im selben Kontext läuft, in dem die App zugreift (Host vs. WSL). Notfalls 127.0.0.1 verwenden.
+- **Firewall/Proxy**: Lokale Verbindungen auf Port 11434 erlauben.
+
+### Screenshot
+![KI-Assistent](docs/images/ki-assistent.png)
+_(Platzhalter – Screenshot kann hier abgelegt werden)_
 
 ## 🧩 Textanalyse-Konfiguration
 
@@ -191,6 +268,8 @@ phrasen=es war einmal,in der tat,wie gesagt,wie bereits erwähnt
 - JavaFX startet nicht: Projekt-SDK auf JDK 17 stellen (IDE-Einstellungen).
 - Ollama-Fehler: Läuft der Dienst? Modell vorhanden? Firewall/Proxy prüfen. `parameters.properties` prüfen.
 - Styles greifen nicht: Existieren `config/css/*.css`? Anwendung neu starten.
+- Diff/Merge erscheint nicht: Externe Änderungen werden beim Öffnen des Kapitels erkannt; alternativ im Editor „Diff anzeigen“ nutzen.
+- Leere Antworten in Chat-Historie: Beim Stream-Abbruch werden unvollständige Antworten nicht gespeichert. Mit der Live-Aktualisierung sollten keine leeren Einträge mehr entstehen.
 
 ## 🔍 Regex-Filterung
 
@@ -315,6 +394,13 @@ config/
 - ✅ Undo/Redo-System
 - ✅ Cursor-Navigation in Makro-Tabelle
 - ✅ Pattern-Speicherung für Such- und Ersetzungs-Patterns
+
+#### Neu hinzugekommen
+- 🔐 Hash-basierte Erkennung externer DOCX-Änderungen (CRC32) mit Banner/Popup „DOCX extern geändert“.
+- 🧩 Seiten-by-Seiten-Diff mit Checkbox-Merge – Auswahl wird ausschließlich ins Sidecar übernommen, mit Backup im `.history/`-Ordner.
+- 💾 Überarbeitetes Speichern: Klarer Dialog, sicherer Sidecar-Only-Write, „Silent Save“ bei Navigation.
+- 📡 KI-Streaming mit Live-Progress und Autoscroll im Ausgabefenster.
+- 💬 Chat-Sessions: Zuverlässige Speicherung abgeschlossener Antworten; automatische Session-Splitting.
 
 ## 🤝 Beitragen
 
