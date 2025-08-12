@@ -624,13 +624,13 @@
 
 /* Lila */
 .lila-theme .titled-pane > .title {
-    -fx-background-color: #7c3aed;
+    -fx-background-color: #6d28d9; /* angepasstes Lila */
     -fx-text-fill: #ffffff;
 }
-.lila-theme .titled-pane > *.content { -fx-background-color: #581c87; }
+.lila-theme .titled-pane > *.content { -fx-background-color: #4c1d95; /* dunkleres Lila im Content */ }
 .lila-theme .accordion { -fx-background-color: #7c3aed; }
 .lila-theme .text-area { -fx-text-fill: #ffffff; }
-.lila-theme .text-area .content { -fx-background-color: #581c87; }
+.lila-theme .text-area .content { -fx-background-color: #4c1d95; }
 
 /* Ungecheckte Checkboxes in Theme-Farbe (nur Box) */
 .weiss-theme .check-box .box { -fx-background-color: #ffffff !important; -fx-border-color: #9ca3af !important; }
@@ -638,6 +638,33 @@
 .theme-dark .check-box .box { -fx-background-color: #2b2b2b !important; -fx-border-color: #4b5563 !important; }
 .gruen-theme .check-box .box { -fx-background-color: #065f46 !important; -fx-border-color: #047857 !important; }
 .lila-theme .check-box .box { -fx-background-color: #7c3aed !important; -fx-border-color: #8b5cf6 !important; }
+/* Ergänzung: dunkle Theme-Varianten auch für theme-4/5/6 und blau-theme */
+.theme-4 .check-box .box { -fx-background-color: #065f46 !important; -fx-border-color: #047857 !important; }
+.theme-5 .check-box .box { -fx-background-color: #1e3a8a !important; -fx-border-color: #3b82f6 !important; }
+.theme-6 .check-box .box { -fx-background-color: #7c3aed !important; -fx-border-color: #8b5cf6 !important; }
+.blau-theme .check-box .box { -fx-background-color: #1e3a8a !important; -fx-border-color: #3b82f6 !important; }
+.lila-theme .check-box .box { -fx-background-color: #7c3aed !important; -fx-border-color: #8b5cf6 !important; }
+.gruen-theme .check-box .box { -fx-background-color: #065f46 !important; -fx-border-color: #047857 !important; }
+
+/* Ausgewählte Checkboxes in dunklen Themes deutlicher hervorheben */
+.theme-4 .check-box:selected .box { -fx-background-color: #047857 !important; -fx-border-color: #047857 !important; }
+.theme-5 .check-box:selected .box { -fx-background-color: #3b82f6 !important; -fx-border-color: #3b82f6 !important; }
+.theme-6 .check-box:selected .box { -fx-background-color: #8b5cf6 !important; -fx-border-color: #8b5cf6 !important; }
+.blau-theme .check-box:selected .box { -fx-background-color: #3b82f6 !important; -fx-border-color: #3b82f6 !important; }
+.gruen-theme .check-box:selected .box { -fx-background-color: #047857 !important; -fx-border-color: #047857 !important; }
+.lila-theme .check-box:selected .box { -fx-background-color: #8b5cf6 !important; -fx-border-color: #8b5cf6 !important; }
+.theme-4 .check-box .mark,
+.theme-5 .check-box .mark,
+.theme-6 .check-box .mark,
+.blau-theme .check-box .mark,
+.gruen-theme .check-box .mark,
+.lila-theme .check-box .mark { -fx-background-color: transparent !important; }
+.theme-4 .check-box:selected .mark,
+.theme-5 .check-box:selected .mark,
+.theme-6 .check-box:selected .mark,
+.blau-theme .check-box:selected .mark,
+.gruen-theme .check-box:selected .mark,
+.lila-theme .check-box:selected .mark { -fx-background-color: #ffffff !important; }
 
 /* ProgressBar-Styling */
 .progress-bar {
@@ -720,6 +747,189 @@
     -fx-text-fill: #ffffff;
 }
 
+/* Dropdown/ComboBox-Popup in dunklen Farbschemata (blau/grün/lila) */
+.theme-5 .combo-box,
+.blau-theme .combo-box { -fx-background-color: #1e3a8a; -fx-text-fill: #ffffff; -fx-border-color: #3b82f6; }
+.theme-5 .combo-box .list-cell,
+.blau-theme .combo-box .list-cell { -fx-background-color: #1e3a8a; -fx-text-fill: #ffffff; }
+.theme-5 .combo-box-popup .list-view,
+.blau-theme .combo-box-popup .list-view { -fx-background-color: #1e3a8a; }
+.theme-5 .combo-box-popup .list-view .list-cell,
+.blau-theme .combo-box-popup .list-view .list-cell { -fx-background-color: #1e3a8a; -fx-text-fill: #ffffff; }
+.theme-5 .combo-box-popup .list-view .list-cell:hover,
+.blau-theme .combo-box-popup .list-view .list-cell:hover { -fx-background-color: #2563eb; -fx-text-fill: #ffffff; }
+.theme-5 .combo-box-popup .list-view .list-cell:selected,
+.blau-theme .combo-box-popup .list-view .list-cell:selected { -fx-background-color: #3b82f6; -fx-text-fill: #ffffff; }
+
+.theme-4 .combo-box,
+.gruen-theme .combo-box { -fx-background-color: #064e3b; -fx-text-fill: #ffffff; -fx-border-color: #047857; }
+.theme-4 .combo-box .list-cell,
+.gruen-theme .combo-box .list-cell { -fx-background-color: #064e3b; -fx-text-fill: #ffffff; }
+.theme-4 .combo-box-popup .list-view,
+.gruen-theme .combo-box-popup .list-view { -fx-background-color: #064e3b; }
+.theme-4 .combo-box-popup .list-view .list-cell,
+.gruen-theme .combo-box-popup .list-view .list-cell { -fx-background-color: #064e3b; -fx-text-fill: #ffffff; }
+.theme-4 .combo-box-popup .list-view .list-cell:hover,
+.gruen-theme .combo-box-popup .list-view .list-cell:hover { -fx-background-color: #065f46; -fx-text-fill: #ffffff; }
+.theme-4 .combo-box-popup .list-view .list-cell:selected,
+.gruen-theme .combo-box-popup .list-view .list-cell:selected { -fx-background-color: #047857; -fx-text-fill: #ffffff; }
+
+.theme-6 .combo-box,
+.lila-theme .combo-box { -fx-background-color: #581c87; -fx-text-fill: #ffffff; -fx-border-color: #8b5cf6; }
+.theme-6 .combo-box .list-cell,
+.lila-theme .combo-box .list-cell { -fx-background-color: #581c87; -fx-text-fill: #ffffff; }
+.theme-6 .combo-box-popup .list-view,
+.lila-theme .combo-box-popup .list-view { -fx-background-color: #581c87; }
+.theme-6 .combo-box-popup .list-view .list-cell,
+.lila-theme .combo-box-popup .list-view .list-cell { -fx-background-color: #581c87; -fx-text-fill: #ffffff; }
+.theme-6 .combo-box-popup .list-view .list-cell:hover,
+.lila-theme .combo-box-popup .list-view .list-cell:hover { -fx-background-color: #7c3aed; -fx-text-fill: #ffffff; }
+.theme-6 .combo-box-popup .list-view .list-cell:selected,
+.lila-theme .combo-box-popup .list-view .list-cell:selected { -fx-background-color: #8b5cf6; -fx-text-fill: #ffffff; }
+
+/* Fix: Dunkle Themes – Popup-Hintergründe und Zellen lesbar machen (global, für alle Fenster) */
+.theme-dark .combo-box-popup .list-view {
+  -fx-background-color: #2d2d2d !important;
+  -fx-border-color: #404040 !important;
+}
+.theme-dark .combo-box-popup .list-view .list-cell { -fx-background-color: #2d2d2d !important; -fx-text-fill: #ffffff !important; }
+.theme-dark .combo-box-popup .list-view .list-cell:hover { -fx-background-color: #404040 !important; }
+.theme-dark .combo-box-popup .list-view .list-cell:selected { -fx-background-color: #505050 !important; -fx-text-fill: #ffffff !important; }
+
+.theme-dark.blau-theme .combo-box-popup .list-view { -fx-background-color: #1e40af !important; -fx-border-color: #3b82f6 !important; }
+.theme-dark.blau-theme .combo-box-popup .list-view .list-cell { -fx-background-color: #1e40af !important; -fx-text-fill: #ffffff !important; }
+.theme-dark.blau-theme .combo-box-popup .list-view .list-cell:hover { -fx-background-color: #2563eb !important; }
+.theme-dark.blau-theme .combo-box-popup .list-view .list-cell:selected { -fx-background-color: #3b82f6 !important; -fx-text-fill: #ffffff !important; }
+
+.theme-dark.gruen-theme .combo-box-popup .list-view { -fx-background-color: #065f46 !important; -fx-border-color: #059669 !important; }
+.theme-dark.gruen-theme .combo-box-popup .list-view .list-cell { -fx-background-color: #065f46 !important; -fx-text-fill: #ffffff !important; }
+.theme-dark.gruen-theme .combo-box-popup .list-view .list-cell:hover { -fx-background-color: #047857 !important; }
+.theme-dark.gruen-theme .combo-box-popup .list-view .list-cell:selected { -fx-background-color: #059669 !important; -fx-text-fill: #ffffff !important; }
+
+.theme-dark.lila-theme .combo-box-popup .list-view { -fx-background-color: #5b21b6 !important; -fx-border-color: #7c3aed !important; }
+.theme-dark.lila-theme .combo-box-popup .list-view .list-cell { -fx-background-color: #5b21b6 !important; -fx-text-fill: #ffffff !important; }
+.theme-dark.lila-theme .combo-box-popup .list-view .list-cell:hover { -fx-background-color: #6d28d9 !important; }
+.theme-dark.lila-theme .combo-box-popup .list-view .list-cell:selected { -fx-background-color: #7c3aed !important; -fx-text-fill: #ffffff !important; }
+
+/* Fix: Dunkle Themes – Arrow-Button nicht transparent (global) */
+.theme-dark .combo-box .arrow-button { -fx-background-color: #4a5568 !important; }
+.theme-dark.blau-theme .combo-box .arrow-button { -fx-background-color: #2563eb !important; }
+.theme-dark.gruen-theme .combo-box .arrow-button { -fx-background-color: #059669 !important; }
+.theme-dark.lila-theme .combo-box .arrow-button { -fx-background-color: #7c3aed !important; }
+
+/* Einheitliche Pfeil-/Mark-Farbe in dunklen Themes (dauerhaft, nicht nur initial) */
+.theme-dark .combo-box-base { -fx-mark-color: #ffffff !important; }
+.blau-theme .combo-box-base { -fx-mark-color: #ffffff !important; }
+.gruen-theme .combo-box-base { -fx-mark-color: #ffffff !important; }
+.lila-theme .combo-box-base { -fx-mark-color: #ffffff !important; }
+
+/* Auch ChoiceBox und MenuButton in dunklen Themes */
+.theme-dark .choice-box, .blau-theme .choice-box, .gruen-theme .choice-box, .lila-theme .choice-box { -fx-mark-color: #ffffff !important; }
+.theme-dark .menu-button, .blau-theme .menu-button, .gruen-theme .menu-button, .lila-theme .menu-button { -fx-mark-color: #ffffff !important; }
+/* Generische Fallbacks für alle dunklen Themes (falls Farbkasse noch nicht gesetzt) */
+/* Entfernt auf Wunsch des Nutzers */
+.theme-dark .choice-box .arrow { -fx-background-color: #ffffff; }
+.theme-dark .choice-box .arrow-button { -fx-background-color: #4b5563; }
+.theme-dark .menu-button .arrow { -fx-background-color: #ffffff; }
+.theme-dark .menu-button .arrow-button { -fx-background-color: #4b5563; }
+
+/* Pfeil (Dreieck) im ComboBox-Button in dunklen Themes sichtbar machen */
+.theme-4 .combo-box .arrow-button,
+.gruen-theme .combo-box .arrow-button { -fx-background-color: #047857; }
+.theme-5 .combo-box .arrow-button,
+.blau-theme .combo-box .arrow-button { -fx-background-color: #2563eb; }
+.theme-6 .combo-box .arrow-button,
+.lila-theme .combo-box .arrow-button { -fx-background-color: #4c1d95; }
+.theme-4 .combo-box .arrow,
+.gruen-theme .combo-box .arrow,
+.theme-5 .combo-box .arrow,
+.blau-theme .combo-box .arrow,
+.theme-6 .combo-box .arrow,
+.lila-theme .combo-box .arrow { -fx-background-color: #ffffff; }
+
+/* Für lila-Theme Mark-Farbe explizit setzen (wirkt auf Pfeil in einigen Skins) */
+.theme-6 .combo-box,
+.lila-theme .combo-box { -fx-mark-color: #ffffff; }
+
+/* Hover-Zustand für Pfeilbutton (leicht heller) */
+.theme-4 .combo-box .arrow-button:hover,
+.gruen-theme .combo-box .arrow-button:hover { -fx-background-color: #059669; }
+.theme-5 .combo-box .arrow-button:hover,
+.blau-theme .combo-box .arrow-button:hover { -fx-background-color: #3b82f6; }
+.theme-6 .combo-box .arrow-button:hover,
+.lila-theme .combo-box .arrow-button:hover { -fx-background-color: #6d28d9; }
+
+/* Pastell-Theme: sichtbare ComboBox-Pfeile */
+.pastell-theme .combo-box { -fx-mark-color: #111827; }
+.pastell-theme .combo-box .arrow-button { -fx-background-color: #d1d5db; }
+.pastell-theme .combo-box .arrow { -fx-background-color: #111827; }
+.pastell-theme .combo-box .arrow-button:hover { -fx-background-color: #9ca3af; }
+/* Falls die Theme-Klasse direkt am Control hängt */
+.combo-box.pastell-theme { -fx-mark-color: #111827; }
+.combo-box.pastell-theme .arrow-button { -fx-background-color: #d1d5db; }
+.combo-box.pastell-theme .arrow { -fx-background-color: #111827 !important; -fx-background-insets: 0; }
+.combo-box.pastell-theme .arrow-button:hover { -fx-background-color: #9ca3af; }
+
+/* Zusätzliche Fallbacks für ähnliche Controls im Pastell-Theme */
+.pastell-theme .choice-box { -fx-mark-color: #111827; }
+.pastell-theme .choice-box .arrow-button { -fx-background-color: #d1d5db; }
+.pastell-theme .choice-box .arrow { -fx-background-color: #111827; }
+.choice-box.pastell-theme { -fx-mark-color: #111827; }
+.choice-box.pastell-theme .arrow-button { -fx-background-color: #d1d5db; }
+.choice-box.pastell-theme .arrow { -fx-background-color: #111827 !important; -fx-background-insets: 0; }
+
+.pastell-theme .menu-button .arrow-button { -fx-background-color: #d1d5db; }
+.pastell-theme .menu-button .arrow { -fx-background-color: #111827; }
+.menu-button.pastell-theme .arrow-button { -fx-background-color: #d1d5db; }
+.menu-button.pastell-theme .arrow { -fx-background-color: #111827 !important; -fx-background-insets: 0; }
+
+/* Falls ein Skin den Pfeil über -fx-shape zeichnet */
+.pastell-theme .combo-box .arrow, 
+.pastell-theme .choice-box .arrow, 
+.pastell-theme .menu-button .arrow {
+  -fx-shape: "M 0 0 L 6 0 L 3 4 z";
+}
+
+/* Scrollbar-Handle (Thumb) in ComboBox-Popups, damit sichtbar auf dunklem Hintergrund */
+.theme-4 .combo-box-popup .list-view .scroll-bar:vertical .thumb,
+.gruen-theme .combo-box-popup .list-view .scroll-bar:vertical .thumb { -fx-background-color: #10b981; -fx-background-insets: 0; -fx-background-radius: 4; }
+.theme-5 .combo-box-popup .list-view .scroll-bar:vertical .thumb,
+.blau-theme .combo-box-popup .list-view .scroll-bar:vertical .thumb { -fx-background-color: #60a5fa; -fx-background-insets: 0; -fx-background-radius: 4; }
+.theme-6 .combo-box-popup .list-view .scroll-bar:vertical .thumb,
+.lila-theme .combo-box-popup .list-view .scroll-bar:vertical .thumb { -fx-background-color: #c4b5fd; -fx-background-insets: 0; -fx-background-radius: 4; }
+
+/* Fallback: Popup erbt nicht immer Theme-Styleklassen → global helles Thumb setzen */
+.combo-box-popup .list-view .scroll-bar .thumb {
+    -fx-background-color: #9ca3af;
+    -fx-background-insets: 0;
+    -fx-background-radius: 4;
+}
+.combo-box-popup .list-view .scroll-bar .track {
+    -fx-background-color: rgba(255,255,255,0.15);
+}
+.combo-box-popup .list-view .scroll-bar .increment-button,
+.combo-box-popup .list-view .scroll-bar .decrement-button {
+    -fx-background-color: transparent;
+}
+
+/* SplitPane Divider/Handle in dunklen Themes sichtbar machen */
+.theme-4 .split-pane > .split-pane-divider,
+.gruen-theme .split-pane > .split-pane-divider,
+.theme-5 .split-pane > .split-pane-divider,
+.blau-theme .split-pane > .split-pane-divider,
+.theme-6 .split-pane > .split-pane-divider,
+.lila-theme .split-pane > .split-pane-divider {
+    -fx-background-color: rgba(255,255,255,0.20);
+}
+.theme-4 .split-pane > .split-pane-divider:hover,
+.gruen-theme .split-pane > .split-pane-divider:hover,
+.theme-5 .split-pane > .split-pane-divider:hover,
+.blau-theme .split-pane > .split-pane-divider:hover,
+.theme-6 .split-pane > .split-pane-divider:hover,
+.lila-theme .split-pane > .split-pane-divider:hover {
+    -fx-background-color: rgba(255,255,255,0.35);
+}
+
 .theme-dark .check-box {
     -fx-text-fill: #ffffff;
 }
@@ -758,21 +968,48 @@
 
 /* Help-Button Styling */
 .help-button {
-    -fx-background-color: #007bff;
-    -fx-text-fill: white;
+    -fx-background-color: #007bff !important;
+    -fx-text-fill: white !important;
     -fx-border-radius: 12px;
     -fx-background-radius: 12px;
     -fx-cursor: hand;
     -fx-font-weight: bold;
+    -fx-min-width: 25px;
+    -fx-min-height: 25px;
+    -fx-content-display: center; /* erzwinge Text/Graphic zentriert */
 }
 
-.help-button:hover {
-    -fx-background-color: #0056b3;
-}
+.help-button:hover { -fx-background-color: #0056b3 !important; }
+.help-button:pressed { -fx-background-color: #004085 !important; } 
 
-.help-button:pressed {
-    -fx-background-color: #004085;
-} 
+/* Theme-spezifische Hilfe-Buttons */
+.weiss-theme .help-button { -fx-background-color: #e5e7eb !important; -fx-text-fill: #111827 !important; }
+.pastell-theme .help-button { -fx-background-color: #d1d5db !important; -fx-text-fill: #111827 !important; }
+.theme-dark .help-button { -fx-background-color: #4a5568 !important; -fx-text-fill: #ffffff !important; }
+.blau-theme .help-button { -fx-background-color: #2563eb !important; -fx-text-fill: #ffffff !important; }
+.gruen-theme .help-button { -fx-background-color: #059669 !important; -fx-text-fill: #ffffff !important; }
+.lila-theme .help-button { -fx-background-color: #7c3aed !important; -fx-text-fill: #ffffff !important; }
+
+/* Regex-Hilfe Fensterelemente */
+.regex-help { -fx-background-color: #ffffff; }
+.weiss-theme .regex-help { -fx-background-color: #ffffff; }
+.pastell-theme .regex-help { -fx-background-color: #e5e7eb; }
+.theme-dark .regex-help { -fx-background-color: #2b2b2b; }
+.blau-theme .regex-help { -fx-background-color: #1e3a8a; }
+.gruen-theme .regex-help { -fx-background-color: #064e3b; }
+.lila-theme .regex-help { -fx-background-color: #581c87; }
+
+.regex-help-title { -fx-font-size: 18px; -fx-font-weight: bold; }
+.weiss-theme .regex-help-title, .pastell-theme .regex-help-title { -fx-text-fill: #111827; }
+.theme-dark .regex-help-title, .blau-theme .regex-help-title, .gruen-theme .regex-help-title, .lila-theme .regex-help-title { -fx-text-fill: #ffffff; }
+
+/* Textfarben im Regex-Hilfe-Inhalt theme-sicher (überschreibt Inline-Farben) */
+.weiss-theme .regex-help .label,
+.pastell-theme .regex-help .label { -fx-text-fill: #111827 !important; }
+.theme-dark .regex-help .label,
+.blau-theme .regex-help .label,
+.gruen-theme .regex-help .label,
+.lila-theme .regex-help .label { -fx-text-fill: #ffffff !important; }
 
 /* Dialog-Header themensicher (Ungespeicherte Änderungen etc.) */
 .weiss-theme.dialog-pane > .header-panel,

@@ -9,6 +9,7 @@ public class DocxFile {
     private final String fileName;
     private final long fileSize;
     private final long lastModified;
+    private boolean changed = false;
     
     public DocxFile(File file) {
         this.file = file;
@@ -46,6 +47,18 @@ public class DocxFile {
     public String getFormattedLastModified() {
         SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy HH:mm");
         return sdf.format(new Date(lastModified));
+    }
+    
+    public boolean isChanged() {
+        return changed;
+    }
+    
+    public void setChanged(boolean changed) {
+        this.changed = changed;
+    }
+    
+    public String getDisplayFileName() {
+        return changed ? "! " + fileName : fileName;
     }
     
     @Override

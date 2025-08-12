@@ -194,6 +194,7 @@ public class OllamaWindow {
         modelLabel.setMinWidth(120);
         modelLabel.setMaxWidth(120);
         modelComboBox = new ComboBox<>();
+        modelComboBox.setId("cmbModel");
         modelComboBox.setPromptText("Lade Modelle...");
         modelComboBox.setPrefWidth(200);
         
@@ -216,6 +217,7 @@ public class OllamaWindow {
         functionLabel.setMinWidth(120);
         functionLabel.setMaxWidth(120);
         functionComboBox = new ComboBox<>();
+        functionComboBox.setId("cmbFunction");
         functionComboBox.setPrefWidth(200);
         functionComboBox.getItems().addAll(
             "Dialog generieren",
@@ -358,8 +360,8 @@ public class OllamaWindow {
         deleteModelComboBox.setPromptText("Modell auswählen...");
         deleteModelComboBox.setPrefWidth(200);
         
-        deleteModelButton = new Button("🗑️ Löschen");
-        deleteModelButton.setStyle("-fx-background-color: #ff4444; -fx-text-fill: white;");
+        deleteModelButton = new Button("🗑 Löschen");
+        deleteModelButton.setStyle("-fx-background-color: #e57373; -fx-text-fill: white;");
         deleteModelButton.setOnAction(e -> deleteSelectedModel());
         deleteModelButton.setTooltip(new Tooltip("Löscht das ausgewählte Modell unwiderruflich"));
         
@@ -382,7 +384,7 @@ public class OllamaWindow {
         installModelComboBox.getItems().addAll(recommendedModels);
         
         installModelButton = new Button("📥 Installieren");
-        installModelButton.setStyle("-fx-background-color: #44aa44; -fx-text-fill: white;");
+        installModelButton.setStyle("-fx-background-color: #81c784; -fx-text-fill: white;");
         installModelButton.setOnAction(e -> installSelectedModel());
         installModelButton.setTooltip(new Tooltip("Installiert das ausgewählte Modell von Ollama"));
         
@@ -960,20 +962,14 @@ public class OllamaWindow {
         
                             // Click-Event für Frage-Bereich: Frage-Text in Eingabebox kopieren
                     chatHistoryArea.getQuestionArea().setOnMouseClicked(e -> {
-                        System.out.println("DEBUG: Frage-Bereich wurde geklickt!");
-                        
                         // NUR den Frage-Text aus CustomChatArea auslesen
                         String questionText = chatHistoryArea.getCurrentQuestion();
-                        System.out.println("DEBUG: NUR Frage-Text: '" + questionText + "'");
                         
                         // Frage-Text in Eingabebox kopieren und Eingabebox leeren
                         if (questionText != null && !questionText.trim().isEmpty()) {
                             // Entferne alle Nummerierungen wie "(14)", "(15)" etc. am Ende
                             String cleanQuestionText = questionText.replaceAll("\\s*\\(\\d+\\)\\s*$", "").trim();
                             inputArea.setText(cleanQuestionText);
-                            System.out.println("DEBUG: Frage-Text (ohne Nummerierung) in Eingabebox kopiert: '" + cleanQuestionText + "'");
-                        } else {
-                            System.out.println("DEBUG: Kein Frage-Text gefunden!");
                         }
                     });
     }
@@ -1318,19 +1314,15 @@ public class OllamaWindow {
         // Token-Limit basierend auf Funktion anpassen
         adjustTokenLimitForFunction(selectedFunction, input);
         
-        // DEBUG: Prompt-Zusammensetzung anzeigen
-        System.out.println("=== DEBUG: PROMPT-ZUSAMMENSETZUNG ===");
-        System.out.println("Funktion: " + selectedFunction);
-        System.out.println("Eingabe-Text: '" + input + "'");
-        System.out.println("Eingabe-Länge: " + input.length() + " Zeichen");
+        // DEBUG entfernt
         
         setGenerating(true);
         insertButton.setDisable(true);
         updateStatus("⏳ Anfrage läuft...");
 
-        System.out.println("Selected Function: " + selectedFunction);
+        // DEBUG entfernt
         if (selectedFunction != null && selectedFunction.equals("Chat-Assistent")) {
-            System.out.println("Calling chatWithContext");
+            // DEBUG entfernt
             // Chat-Modus mit manueller Verlaufsverwaltung
             String userMessage = inputArea.getText();
             if (userMessage == null || userMessage.trim().isEmpty()) {
@@ -1344,14 +1336,13 @@ public class OllamaWindow {
             
             // Zusätzlichen Kontext aus dem Context-Bereich holen
             String additionalContext = contextArea.getText() != null ? contextArea.getText().trim() : "";
-            System.out.println("DEBUG: Zusätzlicher Kontext (Context-Box): '" + additionalContext + "'");
-            System.out.println("DEBUG: Zusätzlicher Kontext Länge: " + additionalContext.length() + " Zeichen");
+            // DEBUG entfernt
             
             // Chat-Historie als Kontext hinzufügen (nur vollständige QAPairs)
             List<CustomChatArea.QAPair> sessionHistory = chatHistoryArea.getSessionHistory();
             StringBuilder contextBuilder = new StringBuilder();
             
-            System.out.println("DEBUG: Chat-Historie: " + sessionHistory.size() + " QAPairs insgesamt");
+            // DEBUG entfernt
             
             if (!sessionHistory.isEmpty()) {
                 int completePairs = 0;
@@ -1363,7 +1354,7 @@ public class OllamaWindow {
                         completePairs++;
                     }
                 }
-                System.out.println("DEBUG: Vollständige QAPairs als Kontext: " + completePairs);
+                // DEBUG entfernt
             }
             
             // Checkbox-gesteuerte Kontexte hinzufügen
@@ -1417,11 +1408,10 @@ public class OllamaWindow {
 
             // Kontext aus der context.txt des aktuellen Romans (immer zusätzlich zulässig)
             String currentDocxFile = getCurrentDocxFileName();
-            System.out.println("DEBUG: Aktuelle DOCX-Datei: " + currentDocxFile);
+            // DEBUG entfernt
             if (currentDocxFile != null) {
                 String novelContext = NovelManager.loadContext(currentDocxFile);
-                System.out.println("DEBUG: Roman-Kontext (context.txt): '" + novelContext + "'");
-                System.out.println("DEBUG: Roman-Kontext Länge: " + novelContext.length() + " Zeichen");
+                // DEBUG entfernt
                 if (!novelContext.trim().isEmpty()) {
                     selectedContexts.append("\n=== ROMAN-KONTEXT ===\n").append(limitText(novelContext)).append("\n");
                 }
@@ -1432,8 +1422,7 @@ public class OllamaWindow {
             }
             
             String fullContext = contextBuilder.toString();
-            System.out.println("DEBUG: Gesammelter Kontext Länge: " + fullContext.length() + " Zeichen");
-            System.out.println("DEBUG: Gesammelter Kontext: '" + fullContext + "'");
+            // DEBUG entfernt
             
             logger.info("DEBUG: Sende Kontext mit " + sessionHistory.size() + " QAPairs, vollständige: " + 
                        sessionHistory.stream().filter(qa -> qa.getAnswer() != null && !qa.getAnswer().trim().isEmpty()).count());
@@ -1450,9 +1439,7 @@ public class OllamaWindow {
             fullPromptBuilder.append("Assistent: ");
             
             String fullPrompt = fullPromptBuilder.toString();
-            System.out.println("DEBUG: Vollständiger Prompt Länge: " + fullPrompt.length() + " Zeichen");
-            System.out.println("DEBUG: Vollständiger Prompt: '" + fullPrompt + "'");
-            System.out.println("=== ENDE DEBUG: PROMPT-ZUSAMMENSETZUNG ===");
+            // DEBUG entfernt
             
             logger.info("DEBUG: Vollständiger Prompt: " + fullPrompt.substring(0, Math.min(200, fullPrompt.length())) + "...");
             
@@ -1511,7 +1498,7 @@ public class OllamaWindow {
             );
             return;
         }
-        System.out.println("Calling generateText");
+        // DEBUG entfernt
         
         CompletableFuture<String> future = null;
 
@@ -2333,6 +2320,9 @@ public class OllamaWindow {
             default: bgColor = "#1f2937"; fgColor = "#e5e7eb"; codeBg = "#111827"; // Dark
         }
         if (text == null) text = "";
+        
+        // Unicode-Escape-Sequenzen in echte HTML-Tags umwandeln (für gesamten Text)
+        text = text.replace("u003c", "<").replace("u003e", ">");
 
         // Header-Zeile im Format: [model | param, param, ...] erkennen
         String headerHtml = "";
@@ -2817,7 +2807,27 @@ public class OllamaWindow {
      */
     private void applyTheme(int themeIndex) {
         if (stage != null && stage.getScene() != null) {
-            applyThemeToNode(stage.getScene().getRoot(), themeIndex);
+            // Root zuerst vollständig setzen, damit Dropdown-Pfeile initial korrekt sind
+            javafx.scene.Node root = stage.getScene().getRoot();
+            root.getStyleClass().removeAll("theme-dark", "theme-light", "blau-theme", "gruen-theme", "lila-theme", "weiss-theme", "pastell-theme");
+            if (themeIndex == 0) root.getStyleClass().add("weiss-theme");
+            else if (themeIndex == 2) root.getStyleClass().add("pastell-theme");
+            else {
+                root.getStyleClass().add("theme-dark");
+                if (themeIndex == 3) root.getStyleClass().add("blau-theme");
+                if (themeIndex == 4) root.getStyleClass().add("gruen-theme");
+                if (themeIndex == 5) root.getStyleClass().add("lila-theme");
+            }
+            // Stylesheets neu anhängen (styles.css + editor.css), damit Mark-Farben greifen
+            String stylesCssPath = ResourceManager.getCssResource("css/styles.css");
+            String editorCssPath = ResourceManager.getCssResource("css/editor.css");
+            if (stylesCssPath != null && !stage.getScene().getStylesheets().contains(stylesCssPath)) {
+                stage.getScene().getStylesheets().add(stylesCssPath);
+            }
+            if (editorCssPath != null && !stage.getScene().getStylesheets().contains(editorCssPath)) {
+                stage.getScene().getStylesheets().add(editorCssPath);
+            }
+            applyThemeToNode(root, themeIndex);
             applyThemeToNode(modelComboBox, themeIndex);
             applyThemeToNode(functionComboBox, themeIndex);
             applyThemeToNode(generateButton, themeIndex);
@@ -2845,9 +2855,13 @@ public class OllamaWindow {
             applyThemeToNode(styleField, themeIndex);
             applyThemeToNode(genreField, themeIndex);
             
+            // Pfeile in dunklen Themes für wichtige Combos explizit erzwingen
+            // Entfernt: Code-seitige Pfeil-/Popup-Erzwingung – zurück zu CSS
 
         }
     }
+
+    // Entfernt: Code-seitiges Erzwingen der Pfeil-/Popupfarben – zurück zu CSS
     
     /**
      * Lädt die verfügbaren Modelle von Ollama
@@ -3575,6 +3589,7 @@ public class OllamaWindow {
             logger.info("Gespeicherte Session geladen: " + savedSession);
         } else {
             // Fallback: höchste default.X, sonst 'default'
+
             int bestPart = -1;
             for (String name : sessionComboBox.getItems()) {
                 if ("default".equals(name)) continue;

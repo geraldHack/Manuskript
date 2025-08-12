@@ -9,6 +9,7 @@ import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
+import javafx.scene.web.WebView;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.geometry.Orientation;
@@ -19,9 +20,11 @@ import javafx.scene.control.Label;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.stage.Modality;
+import javafx.stage.Window;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -128,6 +131,9 @@ public class EditorWindow implements Initializable {
     @FXML private Button btnBold;
     @FXML private Button btnItalic;
     @FXML private Button btnThemeToggle;
+    @FXML private ComboBox<String> cmbQuoteStyle;
+    @FXML private Button btnUndo;
+    @FXML private Button btnRedo;
     @FXML private Button btnPreviousChapter;
     @FXML private Button btnNextChapter;
     @FXML private Button btnMacroRegexHelp;
@@ -191,6 +197,8 @@ public class EditorWindow implements Initializable {
     
     // Theme-Management
     private int currentThemeIndex = 0;
+    private int currentQuoteStyleIndex = 0;
+    private boolean quoteToggleState = false; // false = öffnend, true = schließend
     private static final String[][] THEMES = {
         // Weißer Hintergrund / Schwarze Schrift
         {"#ffffff", "#000000", "#f8f9fa", "#e9ecef"},
@@ -204,6 +212,30 @@ public class EditorWindow implements Initializable {
         {"#064e3b", "#ffffff", "#059669", "#10b981"},
         // Lila mit weißer Schrift
         {"#581c87", "#ffffff", "#7c3aed", "#a855f7"}
+    };
+    
+    // Anführungszeichen-Styles
+    private static final String[][] QUOTE_STYLES = {
+        {"Deutsche Anführungszeichen", "deutsch"},
+        {"Französische Anführungszeichen", "französisch"},
+        {"Englische Anführungszeichen", "englisch"},
+        {"Schweizer Anführungszeichen", "schweizer"}
+    };
+    
+    // Anführungszeichen-Mapping (öffnend, schließend)
+    private static final String[][] QUOTE_MAPPING = {
+        {"„", "“"},        // Deutsch: U+201E, U+201C (Alt+0132, Alt+0147)
+        {"»", "«"},       // Französisch: U+00BB, U+00AB
+        {"\"", "\""},     // Englisch: U+0022, U+0022
+        {"«", "»"}        // Schweizer: U+00AB, U+00BB
+    };
+    
+    // Einfache Anführungszeichen-Mapping (öffnend, schließend)
+    private static final String[][] SINGLE_QUOTE_MAPPING = {
+        {"‚", "‘"},       // Deutsch: U+201A, U+2019
+        {"›", "‹"},       // Französisch: U+203A, U+2039
+        {"'", "'"},       // Englisch: U+0027, U+0027
+        {"‹", "›"}        // Schweizer: U+2039, U+203A
     };
     
     // Makro-Management
@@ -228,13 +260,17 @@ public class EditorWindow implements Initializable {
     
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        logger.info("=== EDITOR WINDOW INITIALIZE START ===");
         preferences = Preferences.userNodeForPackage(EditorWindow.class);
         setupUI();
+        logger.info("=== SETUP EVENT HANDLERS START ===");
         setupEventHandlers();
+        logger.info("=== SETUP EVENT HANDLERS END ===");
         loadSearchReplaceHistory();
         setupSearchReplacePanel();
         setupMacroPanel();
         setupFontSizeComboBox();
+        setupQuoteStyleComboBox();
         
         // Checkboxen explizit auf false setzen (nach FXML-Load)
         Platform.runLater(() -> {
@@ -490,6 +526,10 @@ if (caret != null) {
         btnBold.setOnAction(e -> formatTextBold());
         btnItalic.setOnAction(e -> formatTextItalic());
         btnThemeToggle.setOnAction(e -> toggleTheme());
+        
+        // Undo/Redo Event-Handler
+        btnUndo.setOnAction(e -> undo());
+        btnRedo.setOnAction(e -> redo());
         if (btnMacroRegexHelp != null) {
             btnMacroRegexHelp.setOnAction(e -> showRegexHelp());
         }
@@ -528,13 +568,28 @@ if (caret != null) {
                 }
             });
         }
-        btnRegexHelp.setOnAction(e -> showRegexHelp());
+        if (btnRegexHelp != null) {
+            // Sicherstellen, dass ein sichtbarer Inhalt vorhanden ist
+            btnRegexHelp.setText("?");
+            if (btnRegexHelp.getGraphic() == null) {
+                btnRegexHelp.setGraphic(new Label("?"));
+            }
+            btnRegexHelp.setContentDisplay(javafx.scene.control.ContentDisplay.CENTER);
+            btnRegexHelp.getStyleClass().add("help-button");
+            btnRegexHelp.setOnAction(e -> showRegexHelp());
+        }
         btnFindNext.setOnAction(e -> findNext());
         btnFindPrevious.setOnAction(e -> findPrevious());
         
         // Toolbar-Events
-        btnSave.setOnAction(e -> saveFile());
-        btnSaveAs.setOnAction(e -> saveFileAs());
+        btnSave.setOnAction(e -> {
+            System.out.println("=== SPEICHERN BUTTON GEDRÜCKT ===");
+            saveFile();
+        });
+        btnSaveAs.setOnAction(e -> {
+            System.out.println("=== SPEICHERN UNTER BUTTON GEDRÜCKT ===");
+            saveFileAs();
+        });
         btnExportRTF.setOnAction(e -> exportAsRTF());
         btnExportDOCX.setOnAction(e -> exportAsDOCX());
         btnOpen.setOnAction(e -> openFile());
@@ -603,6 +658,62 @@ if (caret != null) {
                 }
                 event.consume();
             }
+        });
+        
+        // Anführungszeichen-Ersetzung mit Event-Filter
+        codeArea.addEventFilter(KeyEvent.KEY_TYPED, event -> {
+            String character = event.getCharacter();
+            if (character.equals("\"") || character.equals("'")) {
+                event.consume();
+                handleQuoteReplacement(character);
+            }
+        });
+    }
+    
+    private void handleQuoteReplacement(String inputQuote) {
+        if (currentQuoteStyleIndex < 0 || currentQuoteStyleIndex >= QUOTE_MAPPING.length) {
+            return;
+        }
+        
+        String content = codeArea.getText();
+        int caretPosition = codeArea.getCaretPosition();
+        
+        // Bestimme ob öffnend oder schließend
+        boolean shouldBeClosing = false;
+        
+        if (caretPosition > 0) {
+            char charBefore = content.charAt(caretPosition - 1);
+            // Buchstabe, Punkt oder Auslassungszeichen davor -> schließend
+            if (Character.isLetterOrDigit(charBefore) || charBefore == '.' || charBefore == '…' || 
+                charBefore == '!' || charBefore == '?' || charBefore == ',' || charBefore == ';' || 
+                charBefore == ':' || charBefore == ')') {
+                shouldBeClosing = true;
+            }
+        }
+        
+        // Einfache Toggle-Logik: Wenn Kontext unklar, toggle
+        if (caretPosition == 0 || !shouldBeClosing) {
+            // Am Anfang oder nach Leerzeichen/Zeilenumbruch -> öffnend
+            quoteToggleState = false;
+        } else {
+            // Nach Buchstaben/Satzzeichen -> schließend
+            quoteToggleState = true;
+        }
+        
+        // Wähle das richtige Anführungszeichen
+        String replacement;
+        if (inputQuote.equals("\"")) {
+            replacement = quoteToggleState ? QUOTE_MAPPING[currentQuoteStyleIndex][1] : QUOTE_MAPPING[currentQuoteStyleIndex][0];
+        } else {
+            replacement = quoteToggleState ? SINGLE_QUOTE_MAPPING[currentQuoteStyleIndex][1] : SINGLE_QUOTE_MAPPING[currentQuoteStyleIndex][0];
+        }
+        
+        // Ersetze das Zeichen
+        codeArea.insertText(caretPosition, replacement);
+        
+        // Speichere den Zustand für Undo
+        Platform.runLater(() -> {
+            saveStateForUndo();
         });
     }
     
@@ -833,11 +944,9 @@ if (caret != null) {
                     Matcher replaceMatcher = replacePattern.matcher(foundText);
                     replacement = replaceMatcher.replaceFirst(replaceTextJava);
                     
-                    // Debug: Zeige die Konvertierung
-                    System.out.println("DEBUG REPLACE: Original: '" + replaceText + "' -> Java: '" + replaceTextJava + "' -> Found: '" + foundText + "' -> Result: '" + replacement + "'");
+                    // Debug entfernt
                 } else {
                     replacement = replaceText != null ? replaceText : "";
-                    System.out.println("DEBUG REPLACE: Direct replacement: '" + replacement + "'");
                 }
                 
                 codeArea.replaceText(matcher.start(), matcher.end(), replacement);
@@ -899,8 +1008,7 @@ if (caret != null) {
             }
             replacement = matcher.replaceAll(replaceTextJava);
             
-            // Debug: Zeige die Konvertierung
-            System.out.println("DEBUG: Original: '" + replaceText + "' -> Java: '" + replaceTextJava + "' -> Result: '" + replacement.substring(0, Math.min(50, replacement.length())) + "'");
+            // Debug entfernt
             
             codeArea.replaceText(replacement);
             lblStatus.setText("Alle Treffer ersetzt");
@@ -1264,12 +1372,32 @@ if (caret != null) {
                 int targetPosition = Math.min(previousState.caretPosition, codeArea.getText().length());
                 logger.info("UNDO: Scrolle zu Position: {} (Text-Länge nach Ersetzen: {})", 
                            targetPosition, codeArea.getText().length());
-                codeArea.moveTo(targetPosition);
-                codeArea.requestFocus();
-                logger.info("UNDO: Cursor-Position nach moveTo: {}", codeArea.getCaretPosition());
+                
+                // Position setzen und dann präzise scrollen
+                codeArea.displaceCaret(targetPosition);
+                
+                // Fokus und präzises Scrolling mit Verzögerung
+                Platform.runLater(() -> {
+                    // Position nochmal setzen
+                    codeArea.displaceCaret(targetPosition);
+                    codeArea.requestFocus();
+                    
+                    // Präzises Scrolling zur Zielposition
+                    int currentParagraph = codeArea.getCurrentParagraph();
+                    codeArea.showParagraphAtCenter(currentParagraph);
+                    
+                    logger.info("UNDO: Cursor-Position nach displaceCaret: {}, Paragraph: {}", 
+                               codeArea.getCaretPosition(), currentParagraph);
+                    
+                    // Finale Positionierung
+                    Platform.runLater(() -> {
+                        codeArea.displaceCaret(targetPosition);
+                        codeArea.requestFocus();
+                        // isUndoRedoOperation erst NACH dem Setzen der Position auf false setzen
+                        isUndoRedoOperation = false;
+                    });
+                });
             });
-            
-            isUndoRedoOperation = false;
             updateStatus("Undo ausgeführt");
         } else {
             updateStatus("Keine Undo-Aktionen verfügbar");
@@ -1295,11 +1423,29 @@ if (caret != null) {
             // An die GESPEICHERTE Position aus dem Redo-Stack scrollen
             Platform.runLater(() -> {
                 int targetPosition = Math.min(nextState.caretPosition, codeArea.getText().length());
-                codeArea.moveTo(targetPosition);
-                codeArea.requestFocus();
+                
+                // Position setzen und dann präzise scrollen
+                codeArea.displaceCaret(targetPosition);
+                
+                // Fokus und präzises Scrolling mit Verzögerung
+                Platform.runLater(() -> {
+                    // Position nochmal setzen
+                    codeArea.displaceCaret(targetPosition);
+                    codeArea.requestFocus();
+                    
+                    // Präzises Scrolling zur Zielposition
+                    int currentParagraph = codeArea.getCurrentParagraph();
+                    codeArea.showParagraphAtCenter(currentParagraph);
+                    
+                    // Finale Positionierung
+                    Platform.runLater(() -> {
+                        codeArea.displaceCaret(targetPosition);
+                        codeArea.requestFocus();
+                        // isUndoRedoOperation erst NACH dem Setzen der Position auf false setzen
+                        isUndoRedoOperation = false;
+                    });
+                });
             });
-            
-            isUndoRedoOperation = false;
             updateStatus("Redo ausgeführt");
         } else {
             updateStatus("Keine Redo-Aktionen verfügbar");
@@ -1330,7 +1476,6 @@ if (caret != null) {
             currentMacro = null;
             
             updateStatus("Alle Preferences und Makros gelöscht");
-            System.out.println("Alle User Preferences und Makros gelöscht");
         } catch (Exception e) {
             updateStatusError("Fehler beim Löschen der Preferences: " + e.getMessage());
         }
@@ -1349,7 +1494,6 @@ if (caret != null) {
             cmbReplaceHistory.setItems(replaceHistory);
             
             updateStatus("Search/Replace-Historie gelöscht");
-            System.out.println("Search/Replace-Historie gelöscht");
         } catch (Exception e) {
             updateStatusError("Fehler beim Löschen der Search/Replace-Historie: " + e.getMessage());
         }
@@ -1357,17 +1501,32 @@ if (caret != null) {
     
     // Datei-Operationen
     private void saveFile() {
+        System.out.println("=== saveFile() aufgerufen ===");
+        System.out.println("currentFile: " + (currentFile != null ? currentFile.getAbsolutePath() : "null"));
+        System.out.println("originalDocxFile: " + (originalDocxFile != null ? originalDocxFile.getAbsolutePath() : "null"));
+        
+        // Bei neuen Dateien (currentFile = null) direkt Save As verwenden
+        if (currentFile == null) {
+            System.out.println("Neue Datei - verwende Save As");
+            saveFileAs();
+            return;
+        }
+        
         // Niemals die originale DOCX-Datei mit Text überschreiben!
         File target = currentFile;
-        if (target == null || (originalDocxFile != null && target.equals(originalDocxFile)) || isDocxFile(target)) {
+        if ((originalDocxFile != null && target.equals(originalDocxFile)) || isDocxFile(target)) {
             // In ein Sidecar-File mit passender Erweiterung speichern (gleiches Verzeichnis, gleicher Basename)
             target = deriveSidecarFileForCurrentFormat();
+            System.out.println("Sidecar-Target: " + (target != null ? target.getAbsolutePath() : "null"));
         }
         if (target != null) {
+            System.out.println("Speichere in: " + target.getAbsolutePath());
             saveToFile(target);
             currentFile = target; // künftige Saves gehen wieder hierhin
             originalContent = codeArea.getText();
+            System.out.println("Speichern abgeschlossen");
         } else {
+            System.out.println("Fallback auf saveFileAs()");
             // Fallback auf Save As
             saveFileAs();
         }
@@ -1480,13 +1639,35 @@ if (caret != null) {
     }
     
     private void saveToFile(File file) {
+        System.out.println("=== saveToFile() aufgerufen ===");
+        System.out.println("Datei: " + file.getAbsolutePath());
+        System.out.println("Datei existiert: " + file.exists());
+        
         try {
             String data = codeArea.getText();
             if (data == null) data = "";
+            System.out.println("Datenlänge: " + data.length());
+            
             // Nie löschen: leere Dateien bleiben bestehen
             Files.write(file.toPath(), data.getBytes(StandardCharsets.UTF_8));
+            System.out.println("Datei erfolgreich geschrieben");
             updateStatus("Datei gespeichert: " + file.getName());
+            
+            // Benachrichtige MainController über die Änderung (für Watcher)
+            if (mainController != null) {
+                System.out.println("Benachrichtige MainController");
+                mainController.refreshDocxFiles();
+                
+                // WICHTIG: Markiere DOCX als behandelt nach dem Speichern
+                if (originalDocxFile != null) {
+                    mainController.updateDocxHashAfterAccept(originalDocxFile);
+                    mainController.markDocxFileAsUnchanged(originalDocxFile);
+                }
+            } else {
+                System.out.println("MainController ist null!");
+            }
         } catch (IOException e) {
+            System.out.println("Fehler beim Speichern: " + e.getMessage());
             updateStatusError("Fehler beim Speichern: " + e.getMessage());
         }
     }
@@ -1530,21 +1711,17 @@ if (caret != null) {
         
         String currentContent = codeArea.getText();
         
-        System.out.println("=== Änderungsprüfung ===");
-        System.out.println("Original Content Länge: " + originalContent.length());
-        System.out.println("Current Content Länge: " + currentContent.length());
-        System.out.println("Chapter Content Changed: " + chapterContentChanged);
-        System.out.println("Contents equal: " + currentContent.equals(originalContent));
+        // Debug entfernt
         
         // Prüfe Chapter-Editor Änderungen
         if (chapterContentChanged) {
-            System.out.println("Chapter-Editor hat Änderungen!");
+            // Debug entfernt
             return true;
         }
         
         // Vergleiche mit der ursprünglichen Kopie
         boolean hasChanges = !currentContent.equals(originalContent);
-        System.out.println("Hauptinhalt hat Änderungen: " + hasChanges);
+        // Debug entfernt
         return hasChanges;
     }
     
@@ -1600,9 +1777,10 @@ if (caret != null) {
         
         ButtonType saveButton = new ButtonType("Speichern");
         ButtonType discardButton = new ButtonType("Verwerfen");
+        ButtonType diffButton = new ButtonType("🔍 Diff anzeigen");
         ButtonType cancelButton = new ButtonType("Abbrechen");
         
-        alert.getButtonTypes().setAll(saveButton, discardButton, cancelButton);
+        alert.getButtonTypes().setAll(saveButton, discardButton, diffButton, cancelButton);
         
         // Theme für alle Buttons im Dialog anwenden
         alert.setOnShown(event -> {
@@ -1648,8 +1826,448 @@ if (caret != null) {
             } else if (result.get() == discardButton) {
                 // Verwerfen und schließen
                 stage.close();
+            } else if (result.get() == diffButton) {
+                // Diff anzeigen
+                showDiffForUnsavedChanges();
             }
-            // Bei Abbrechen nichts tun (Dialog schließt nicht)
+        }
+        // Bei Abbrechen nichts tun (Dialog schließt nicht)
+    }
+    
+    /**
+     * Zeigt NEUEN side-by-side Diff für ungespeicherte Änderungen
+     */
+    private void showDiffForUnsavedChanges() {
+        try {
+            if (originalDocxFile == null || currentFile == null) {
+                showErrorDialog("Fehler", "Keine Datei zum Vergleichen verfügbar.");
+                return;
+            }
+            
+            // Lade aktuellen DOCX-Inhalt
+            String docxContent = docxProcessor.processDocxFileContent(originalDocxFile, 1, outputFormat);
+            
+            // Aktueller Editor-Inhalt
+            String editorContent = getText();
+            
+            // Erstelle Diff
+            DiffProcessor.DiffResult diffResult = DiffProcessor.createDiff(docxContent, editorContent);
+            
+            if (!diffResult.hasChanges()) {
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("Keine Änderungen");
+                alert.setHeaderText(null);
+                alert.setContentText("Es wurden keine Änderungen gefunden.");
+                alert.showAndWait();
+                return;
+            }
+            
+            // Erstelle NEUEN side-by-side Diff-Dialog
+            Stage diffStage = new Stage();
+            diffStage.setTitle("Diff: Ungespeicherte Änderungen");
+            diffStage.initModality(Modality.APPLICATION_MODAL);
+            diffStage.initOwner(stage);
+            
+            VBox diffRoot = new VBox(10);
+            diffRoot.setPadding(new Insets(15));
+            diffRoot.setPrefWidth(1400);
+            diffRoot.setPrefHeight(800);
+            
+            Label titleLabel = new Label("Ungespeicherte Änderungen in " + originalDocxFile.getName());
+            titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #2c3e50;");
+            
+            // Erstelle SplitPane für nebeneinander Anzeige
+            SplitPane splitPane = new SplitPane();
+            splitPane.setPrefHeight(650);
+            splitPane.setStyle("-fx-background-color: #f8f9fa;");
+            
+            // Linke Seite: Editor-Version mit Checkboxen
+            VBox leftBox = new VBox(5);
+            leftBox.setStyle("-fx-background-color: white; -fx-border-color: #dee2e6; -fx-border-width: 1;");
+            leftBox.setPadding(new Insets(10));
+            
+            Label leftLabel = new Label("📝 Editor-Version - Wählen Sie aus:");
+            leftLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #495057;");
+            
+            ScrollPane leftScrollPane = new ScrollPane();
+            VBox leftContentBox = new VBox(0);
+            leftContentBox.setPadding(new Insets(5));
+            
+            // Rechte Seite: Originale Version (DOCX)
+            VBox rightBox = new VBox(5);
+            rightBox.setStyle("-fx-background-color: white; -fx-border-color: #dee2e6; -fx-border-width: 1;");
+            rightBox.setPadding(new Insets(10));
+            
+            Label rightLabel = new Label("📄 Originale Version (DOCX)");
+            rightLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #495057;");
+            
+            ScrollPane rightScrollPane = new ScrollPane();
+            VBox rightContentBox = new VBox(0);
+            rightContentBox.setPadding(new Insets(5));
+            
+            // Verwende echte DiffProcessor-Logik für intelligente Block-Erkennung
+            List<CheckBox> blockCheckBoxes = new ArrayList<>();
+            List<List<String>> blockTexts = new ArrayList<>();
+            
+            // Gruppiere zusammenhängende Änderungen zu Blöcken
+            List<DiffBlock> blocks = groupIntoBlocks(diffResult.getDiffLines());
+            
+            // Erstelle synchronisierte Anzeige basierend auf Blöcken
+            int leftLineNumber = 1;
+            int rightLineNumber = 1;
+            
+            for (DiffBlock block : blocks) {
+                // Checkbox nur für rote Blöcke (DELETED) - die rechts (DOCX) angezeigt werden
+                CheckBox blockCheckBox = null;
+                if (block.getType() == DiffBlockType.DELETED) {
+                    blockCheckBox = new CheckBox();
+                    blockCheckBox.setSelected(false); // Standardmäßig ungecheckt
+                    blockCheckBoxes.add(blockCheckBox);
+                    
+                    List<String> blockTextList = new ArrayList<>();
+                    for (DiffProcessor.DiffLine line : block.getLines()) {
+                        blockTextList.add(line.getOriginalText()); // DOCX-Text
+                    }
+                    blockTexts.add(blockTextList);
+                }
+                
+                // Erstelle Zeilen für diesen Block
+                for (DiffProcessor.DiffLine diffLine : block.getLines()) {
+                    HBox leftLineBox = new HBox(5);
+                    HBox rightLineBox = new HBox(5);
+                    
+                    // Zeilennummern
+                    Label leftLineNum = new Label(String.format("%3d", leftLineNumber));
+                    leftLineNum.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 10px; -fx-text-fill: #6c757d; -fx-min-width: 30px; -fx-alignment: center-right;");
+                    
+                    Label rightLineNum = new Label(String.format("%3d", rightLineNumber));
+                    rightLineNum.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 10px; -fx-text-fill: #6c757d; -fx-min-width: 30px; -fx-alignment: center-right;");
+                    
+                    // Linke Seite (Editor)
+                    Label leftLineLabel = new Label(diffLine.getNewText());
+                    leftLineLabel.setWrapText(true);
+                    leftLineLabel.setPrefWidth(600);
+                    leftLineLabel.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px;");
+                    
+                    // Rechte Seite (DOCX)
+                    Label rightLineLabel = new Label(diffLine.getOriginalText());
+                    rightLineLabel.setWrapText(true);
+                    rightLineLabel.setPrefWidth(600);
+                    rightLineLabel.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px;");
+                    
+                    // Markiere basierend auf Block-Typ
+                    switch (block.getType()) {
+                        case ADDED:
+                            // Neuer Block - nur links sichtbar (Editor)
+                            rightLineLabel.setText("");
+                            rightLineNum.setText("");
+                            leftLineLabel.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px; -fx-background-color: #d4edda; -fx-text-fill: #155724; -fx-font-weight: bold;");
+                            leftLineNum.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 10px; -fx-text-fill: #28a745; -fx-min-width: 30px; -fx-alignment: center-right; -fx-font-weight: bold;");
+                            rightLineLabel.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px; -fx-background-color: #d4edda; -fx-text-fill: #155724;");
+                            rightLineNum.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 10px; -fx-text-fill: #28a745; -fx-min-width: 30px; -fx-alignment: center-right;");
+                            leftLineNumber++;
+                            break;
+                            
+                        case DELETED:
+                            // Gelöschter Block - links leer, rechts rot (DOCX)
+                            leftLineLabel.setText("");
+                            leftLineNum.setText("");
+                            leftLineLabel.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px; -fx-background-color: #f8d7da; -fx-text-fill: #721c24;");
+                            leftLineNum.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 10px; -fx-text-fill: #dc3545; -fx-min-width: 30px; -fx-alignment: center-right;");
+                            rightLineLabel.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px; -fx-background-color: #f8d7da; -fx-text-fill: #721c24; -fx-font-weight: bold;");
+                            rightLineNum.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 10px; -fx-text-fill: #dc3545; -fx-min-width: 30px; -fx-alignment: center-right; -fx-font-weight: bold;");
+                            rightLineNumber++;
+                            break;
+                            
+                        case UNCHANGED:
+                            // Unveränderter Block
+                            leftLineLabel.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px; -fx-text-fill: #212529;");
+                            rightLineLabel.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px; -fx-text-fill: #212529;");
+                            leftLineNumber++;
+                            rightLineNumber++;
+                            break;
+                    }
+                    
+                    leftLineBox.getChildren().addAll(leftLineNum, leftLineLabel);
+                    
+                    // Checkbox RECHTS (DOCX) vertikal zentriert am Ende des Blocks
+                    if (blockCheckBox != null && block.getLines().indexOf(diffLine) == block.getLines().size() - 1) {
+                        // Container für vertikal zentrierte Checkbox
+                        VBox checkboxContainer = new VBox();
+                        checkboxContainer.setAlignment(Pos.CENTER);
+                        checkboxContainer.setMinWidth(30);
+                        checkboxContainer.setMaxWidth(30);
+                        checkboxContainer.getChildren().add(blockCheckBox);
+                        
+                        rightLineBox.getChildren().addAll(rightLineNum, rightLineLabel, checkboxContainer);
+                    } else {
+                        rightLineBox.getChildren().addAll(rightLineNum, rightLineLabel);
+                    }
+                    
+                    leftContentBox.getChildren().add(leftLineBox);
+                    rightContentBox.getChildren().add(rightLineBox);
+                }
+            }
+            
+            // Synchronisiere Scrollbars
+            leftScrollPane.vvalueProperty().bindBidirectional(rightScrollPane.vvalueProperty());
+            leftScrollPane.hvalueProperty().bindBidirectional(rightScrollPane.hvalueProperty());
+            
+            leftScrollPane.setContent(leftContentBox);
+            leftScrollPane.setFitToWidth(true);
+            leftScrollPane.setPrefHeight(600);
+            leftScrollPane.setStyle("-fx-background-color: transparent;");
+            
+            rightScrollPane.setContent(rightContentBox);
+            rightScrollPane.setFitToWidth(true);
+            rightScrollPane.setPrefHeight(600);
+            rightScrollPane.setStyle("-fx-background-color: transparent;");
+            
+            leftBox.getChildren().addAll(leftLabel, leftScrollPane);
+            rightBox.getChildren().addAll(rightLabel, rightScrollPane);
+            
+            splitPane.getItems().addAll(leftBox, rightBox);
+            splitPane.setDividerPositions(0.5);
+            
+            // Button-Box
+            HBox buttonBox = new HBox(15);
+            buttonBox.setAlignment(Pos.CENTER);
+            buttonBox.setPadding(new Insets(15, 0, 0, 0));
+            
+            Button btnApplySelected = new Button("✅ Ausgewählte Änderungen übernehmen");
+            btnApplySelected.setStyle("-fx-background-color: #28a745; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8px 16px;");
+            
+            Button btnAcceptAll = new Button("🔄 Alle Änderungen übernehmen");
+            btnAcceptAll.setStyle("-fx-background-color: #007bff; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8px 16px;");
+            
+            Button btnKeepOriginal = new Button("💾 Originale Version behalten");
+            btnKeepOriginal.setStyle("-fx-background-color: #6c757d; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8px 16px;");
+            
+            Button btnCancel = new Button("❌ Abbrechen");
+            btnCancel.setStyle("-fx-background-color: #dc3545; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8px 16px;");
+            
+            btnApplySelected.setOnAction(e -> {
+                try {
+                    // Erstelle neuen Inhalt basierend auf der Merge-Logik
+                    StringBuilder newContent = new StringBuilder();
+                    int checkboxIndex = 0;
+                    
+                    for (DiffBlock block : blocks) {
+                        switch (block.getType()) {
+                            case ADDED:
+                                // Grüne Blöcke: Übernehme Editor-Text (links) - immer
+                                for (DiffProcessor.DiffLine line : block.getLines()) {
+                                    if (!line.getNewText().isEmpty()) {
+                                        newContent.append(line.getNewText()).append("\n");
+                                    } else {
+                                        // Leerzeile hinzufügen
+                                        newContent.append("\n");
+                                    }
+                                }
+                                break;
+                                
+                            case DELETED:
+                                // Rote Blöcke: Übernehme DOCX-Text nur wenn gecheckt
+                                if (checkboxIndex < blockCheckBoxes.size() && blockCheckBoxes.get(checkboxIndex).isSelected()) {
+                                    for (DiffProcessor.DiffLine line : block.getLines()) {
+                                        if (!line.getOriginalText().isEmpty()) {
+                                            newContent.append(line.getOriginalText()).append("\n");
+                                        } else {
+                                            // Leerzeile hinzufügen
+                                            newContent.append("\n");
+                                        }
+                                    }
+                                } else {
+                                    // Wenn nicht gecheckt: ignoriere komplett (nichts hinzufügen)
+                                }
+                                checkboxIndex++;
+                                break;
+                                
+                            case UNCHANGED:
+                                // Unveränderte Blöcke: Übernehme Editor-Text (links) - immer
+                                for (DiffProcessor.DiffLine line : block.getLines()) {
+                                    if (!line.getNewText().isEmpty()) {
+                                        newContent.append(line.getNewText()).append("\n");
+                                    } else {
+                                        // Leerzeile hinzufügen
+                                        newContent.append("\n");
+                                    }
+                                }
+                                break;
+                        }
+                    }
+                    
+                    // Setze neuen Inhalt und überschreibe MD-Datei
+                    String finalContent = newContent.toString();
+                    setText(finalContent);
+                    
+                    // Überschreibe die existierende MD-Datei
+                    if (currentFile != null) {
+                        try {
+                            Files.write(currentFile.toPath(), finalContent.getBytes(StandardCharsets.UTF_8));
+                            logger.info("MD-Datei überschrieben: {}", currentFile.getName());
+                        } catch (IOException ex) {
+                            logger.error("Fehler beim Überschreiben der MD-Datei", ex);
+                            showErrorDialog("Fehler", "MD-Datei konnte nicht überschrieben werden: " + ex.getMessage());
+                        }
+                    }
+                    
+                    // WICHTIG: Markiere DOCX als behandelt und aktualisiere Hash
+                    if (mainController != null && originalDocxFile != null) {
+                        mainController.updateDocxHashAfterAccept(originalDocxFile);
+                        // Finde und markiere die entsprechende DocxFile als nicht geändert
+                        mainController.markDocxFileAsUnchanged(originalDocxFile);
+                    }
+                    
+                    diffStage.close();
+                } catch (Exception ex) {
+                    logger.error("Fehler beim Übernehmen ausgewählter Änderungen", ex);
+                    showErrorDialog("Fehler", "Änderungen konnten nicht übernommen werden: " + ex.getMessage());
+                }
+            });
+            
+            btnAcceptAll.setOnAction(e -> {
+                try {
+                    // Übernehme alle Änderungen aus DOCX
+                    setText(docxContent);
+                    
+                    // Überschreibe die existierende MD-Datei mit DOCX-Inhalt
+                    if (currentFile != null) {
+                        try {
+                            Files.write(currentFile.toPath(), docxContent.getBytes(StandardCharsets.UTF_8));
+                            logger.info("MD-Datei mit DOCX-Inhalt überschrieben: {}", currentFile.getName());
+                        } catch (IOException ex) {
+                            logger.error("Fehler beim Überschreiben der MD-Datei", ex);
+                            showErrorDialog("Fehler", "MD-Datei konnte nicht überschrieben werden: " + ex.getMessage());
+                        }
+                    }
+                    
+                    // WICHTIG: Markiere DOCX als behandelt und aktualisiere Hash
+                    if (mainController != null && originalDocxFile != null) {
+                        mainController.updateDocxHashAfterAccept(originalDocxFile);
+                        // Finde und markiere die entsprechende DocxFile als nicht geändert
+                        mainController.markDocxFileAsUnchanged(originalDocxFile);
+                    }
+                    
+                    diffStage.close();
+                } catch (Exception ex) {
+                    logger.error("Fehler beim Übernehmen aller Änderungen", ex);
+                    showErrorDialog("Fehler", "Änderungen konnten nicht übernommen werden: " + ex.getMessage());
+                }
+            });
+            
+            btnKeepOriginal.setOnAction(e -> {
+                try {
+                    // Behalte originale Version (DOCX-Inhalt)
+                    setText(docxContent);
+                    diffStage.close();
+                } catch (Exception ex) {
+                    logger.error("Fehler beim Behalten der originalen Version", ex);
+                    showErrorDialog("Fehler", "Originale Version konnte nicht behalten werden: " + ex.getMessage());
+                }
+            });
+            
+            btnCancel.setOnAction(e -> diffStage.close());
+            
+            buttonBox.getChildren().addAll(btnApplySelected, btnAcceptAll, btnKeepOriginal, btnCancel);
+            
+            diffRoot.getChildren().addAll(titleLabel, splitPane, buttonBox);
+            
+            Scene diffScene = new Scene(diffRoot);
+            
+            // Lade CSS und Theme
+            try {
+                String cssUrl = ResourceManager.getCssResource("config/css/styles.css");
+                if (cssUrl != null) {
+                    diffScene.getStylesheets().add(cssUrl);
+                }
+            } catch (Exception e) {
+                logger.warn("CSS konnte nicht geladen werden: {}", e.getMessage());
+            }
+            
+            diffStage.setScene(diffScene);
+            diffStage.showAndWait();
+            
+        } catch (Exception e) {
+            logger.error("Fehler beim Anzeigen des Diff für ungespeicherte Änderungen", e);
+            showErrorDialog("Diff-Fehler", e.getMessage());
+        }
+    }
+    
+    /**
+     * Gruppiert Diff-Linien zu zusammenhängenden Blöcken
+     */
+    private List<DiffBlock> groupIntoBlocks(List<DiffProcessor.DiffLine> diffLines) {
+        List<DiffBlock> blocks = new ArrayList<>();
+        if (diffLines.isEmpty()) return blocks;
+        
+        DiffBlock currentBlock = new DiffBlock(diffLines.get(0).getType());
+        currentBlock.addLine(diffLines.get(0));
+        
+        for (int i = 1; i < diffLines.size(); i++) {
+            DiffProcessor.DiffLine line = diffLines.get(i);
+            
+            // Wenn der Typ sich ändert, erstelle einen neuen Block
+            if (line.getType() != convertToDiffType(currentBlock.getType())) {
+                blocks.add(currentBlock);
+                currentBlock = new DiffBlock(line.getType());
+            }
+            currentBlock.addLine(line);
+        }
+        
+        blocks.add(currentBlock);
+        return blocks;
+    }
+    
+    /**
+     * Repräsentiert einen zusammenhängenden Diff-Block
+     */
+    private static class DiffBlock {
+        private final DiffBlockType type;
+        private final List<DiffProcessor.DiffLine> lines = new ArrayList<>();
+        
+        public DiffBlock(DiffProcessor.DiffType type) {
+            this.type = convertDiffType(type);
+        }
+        
+        public void addLine(DiffProcessor.DiffLine line) {
+            lines.add(line);
+        }
+        
+        public DiffBlockType getType() {
+            return type;
+        }
+        
+        public List<DiffProcessor.DiffLine> getLines() {
+            return lines;
+        }
+        
+        private DiffBlockType convertDiffType(DiffProcessor.DiffType diffType) {
+            switch (diffType) {
+                case ADDED: return DiffBlockType.ADDED;
+                case DELETED: return DiffBlockType.DELETED;
+                case UNCHANGED: return DiffBlockType.UNCHANGED;
+                default: return DiffBlockType.UNCHANGED;
+            }
+        }
+    }
+    
+    /**
+     * Block-Typen für Diff-Blöcke
+     */
+    private enum DiffBlockType {
+        ADDED, DELETED, UNCHANGED
+    }
+    
+    /**
+     * Konvertiert DiffBlockType zu DiffProcessor.DiffType
+     */
+    private DiffProcessor.DiffType convertToDiffType(DiffBlockType blockType) {
+        switch (blockType) {
+            case ADDED: return DiffProcessor.DiffType.ADDED;
+            case DELETED: return DiffProcessor.DiffType.DELETED;
+            case UNCHANGED: return DiffProcessor.DiffType.UNCHANGED;
+            default: return DiffProcessor.DiffType.UNCHANGED;
         }
     }
     
@@ -1702,9 +2320,10 @@ if (caret != null) {
         
         ButtonType saveButton = new ButtonType("Speichern & Weitermachen");
         ButtonType discardButton = new ButtonType("Verwerfen & Weitermachen");
+        ButtonType diffButton = new ButtonType("🔍 Diff anzeigen");
         ButtonType cancelButton = new ButtonType("Abbrechen");
         
-        alert.getButtonTypes().setAll(saveButton, discardButton, cancelButton);
+        alert.getButtonTypes().setAll(saveButton, discardButton, diffButton, cancelButton);
         
         // Theme für alle Buttons im Dialog anwenden
         alert.setOnShown(event -> {
@@ -1765,6 +2384,10 @@ if (caret != null) {
             } else if (result.get() == discardButton) {
                 // Verwerfen und Navigation fortsetzen
                 return true; // Navigation fortsetzen
+            } else if (result.get() == diffButton) {
+                // Diff anzeigen
+                showDiffForUnsavedChanges();
+                return false; // Navigation abbrechen (Dialog bleibt offen)
             } else if (result.get() == cancelButton) {
                 // Abbrechen - keine Navigation
                 return false; // Navigation abbrechen
@@ -2142,6 +2765,8 @@ if (caret != null) {
         codeArea.displaceCaret(0);
         codeArea.requestFollowCaret();
         currentFile = null;
+        // WICHTIG: Setze originalContent auf leeren String für ungespeicherte Änderungen
+        originalContent = "";
         // Lösche Undo/Redo-Stacks bei neuer Datei
         clearUndoRedoStacks();
         updateStatus("Neue Datei");
@@ -2153,8 +2778,7 @@ if (caret != null) {
         
         // Kopie für Änderungsvergleich erstellen
         originalContent = text;
-        System.out.println("=== setText aufgerufen ===");
-        System.out.println("Original Content gesetzt, Länge: " + originalContent.length());
+        // Debug entfernt
         
         // Cursor an den Anfang setzen
         codeArea.displaceCaret(0);
@@ -2166,6 +2790,41 @@ if (caret != null) {
     
     public void setCurrentFile(File file) {
         this.currentFile = file;
+    }
+    
+    /**
+     * Stellt sicher, dass eine MD-Datei existiert, wenn der Editor aufgerufen wird
+     * Legt die Datei sofort an, wenn sie noch nicht existiert
+     */
+    public void ensureMdFileExists() {
+        if (currentFile != null && !currentFile.exists()) {
+            try {
+                // Erstelle die Datei mit dem aktuellen Editor-Inhalt
+                String currentContent = getText();
+                if (currentContent == null) {
+                    currentContent = "";
+                }
+                
+                // Stelle sicher, dass das Verzeichnis existiert
+                File parentDir = currentFile.getParentFile();
+                if (parentDir != null && !parentDir.exists()) {
+                    parentDir.mkdirs();
+                }
+                
+                // Schreibe den aktuellen Inhalt in die Datei
+                Files.write(currentFile.toPath(), currentContent.getBytes(StandardCharsets.UTF_8));
+                
+                // Aktualisiere originalContent für Change-Detection
+                originalContent = currentContent;
+                
+                logger.info("MD-Datei automatisch angelegt: {}", currentFile.getName());
+                updateStatus("MD-Datei angelegt: " + currentFile.getName());
+                
+            } catch (IOException e) {
+                logger.error("Fehler beim automatischen Anlegen der MD-Datei: {}", e.getMessage());
+                updateStatusError("Fehler beim Anlegen der MD-Datei: " + e.getMessage());
+            }
+        }
     }
     
     /**
@@ -2205,16 +2864,29 @@ if (caret != null) {
         
         // Close-Request-Handler für Speichern-Abfrage
         stage.setOnCloseRequest(event -> {
-            System.out.println("=== Close-Request-Handler aufgerufen ===");
             boolean hasChanges = hasUnsavedChanges();
-            System.out.println("Änderungen gefunden: " + hasChanges);
             
             if (hasChanges) {
-                System.out.println("Verhindere Schließen und zeige Dialog");
                 event.consume(); // Verhindere Schließen
                 showSaveDialog();
             } else {
-                System.out.println("Keine Änderungen - Fenster wird geschlossen");
+                // Keine Änderungen - Fenster schließen und prüfen ob es das letzte ist
+                Platform.runLater(() -> {
+                    // Prüfe ob noch andere Fenster offen sind
+                    boolean hasOtherWindows = false;
+                    for (Window window : Window.getWindows()) {
+                        if (window != stage && window.isShowing()) {
+                            hasOtherWindows = true;
+                            break;
+                        }
+                    }
+                    
+                    // Wenn keine anderen Fenster offen sind, beende das Programm
+                    if (!hasOtherWindows) {
+                        Platform.exit();
+                        System.exit(0);
+                    }
+                });
             }
         });
         
@@ -2602,7 +3274,7 @@ if (caret != null) {
         btnMoveStepUp.getStyleClass().remove("toolbar-button");
         btnMoveStepUp.setMinHeight(32);
         btnMoveStepUp.setPrefHeight(32);
-        btnMoveStepUp.setMinWidth(48);
+        btnMoveStepUp.setMinWidth(56);
         btnMoveStepUp.setPrefWidth(56);
         btnMoveStepUp.setStyle("-fx-font-size: 16px; -fx-padding: 0 10; -fx-font-weight: bold;");
 
@@ -2610,7 +3282,7 @@ if (caret != null) {
         btnMoveStepDown.getStyleClass().remove("toolbar-button");
         btnMoveStepDown.setMinHeight(32);
         btnMoveStepDown.setPrefHeight(32);
-        btnMoveStepDown.setMinWidth(48);
+        btnMoveStepDown.setMinWidth(56);
         btnMoveStepDown.setPrefWidth(56);
         btnMoveStepDown.setStyle("-fx-font-size: 16px; -fx-padding: 0 10; -fx-font-weight: bold;");
         
@@ -3426,11 +4098,7 @@ if (caret != null) {
                 }
             }
             
-            // Debug: Zeige die ersten 10 Wörter
-            System.out.println("DEBUG: Erste 10 Wörter:");
-            for (int i = 0; i < Math.min(10, words.size()); i++) {
-                System.out.println("  Index " + i + ": '" + words.get(i) + "'");
-            }
+            // Debug entfernt
             
             // KOMPLETT NEUE LOGIK: Finde nur benachbarte Wiederholungen
             List<Wortwiederholung> wiederholungen = new ArrayList<>();
@@ -3743,7 +4411,8 @@ if (caret != null) {
                                     int end = matcher.end();
                                     if (start >= currentPos) {
                                         spansBuilder.add(Collections.emptyList(), start - currentPos);
-                                        spansBuilder.add(Collections.singleton("fuellwoerter"), end - start);
+                                        // Verwende vorhandene Hervorhebungs-Klasse, damit Styles sicher greifen
+                                        spansBuilder.add(Collections.singleton("highlight-yellow"), end - start);
                                         currentPos = end;
                                         break;
                                     }
@@ -3881,7 +4550,8 @@ if (caret != null) {
                                         int end = matcher.end();
                                         if (start >= currentPos) {
                                             spansBuilder.add(Collections.emptyList(), start - currentPos);
-                                            spansBuilder.add(Collections.singleton("phrasen"), end - start);
+                                            // Einheitliche Hervorhebung verwenden
+                                            spansBuilder.add(Collections.singleton("highlight-orange"), end - start);
                                             currentPos = end;
                                             break;
                                         }
@@ -4113,10 +4783,7 @@ if (caret != null) {
             String searchText = txtMacroSearch.getText() != null ? txtMacroSearch.getText().trim() : "";
             String replaceText = txtMacroReplace.getText() != null ? txtMacroReplace.getText() : "";
             
-            // Debug-Ausgabe für Leerzeichen-Problem
-            System.out.println("DEBUG ADD STEP: ReplaceText length: " + replaceText.length() + 
-                               " | Bytes: " + Arrays.toString(replaceText.getBytes()) +
-                               " | Is empty: " + replaceText.isEmpty());
+                // Debug entfernt
             
             if (searchText.isEmpty()) {
                 updateStatus("Bitte Suchtext eingeben");
@@ -4316,18 +4983,7 @@ if (caret != null) {
                 // Status auf "Läuft..." setzen
                 step.setRunning();
                 
-                // Debug-Ausgabe: Such- und Ersetzungstext mit sichtbaren Leerzeichen
-                String debugSearch = step.getSearchText() == null ? "<null>" : step.getSearchText().replace(" ", "␣");
-                String debugReplace = step.getReplaceText() == null ? "<null>" : step.getReplaceText().replace(" ", "␣");
-                System.out.println("DEBUG MACRO: Suche: '" + debugSearch + "' | Ersetze: '" + debugReplace + "'");
-                
-                // Zusätzliche Debug-Info für Leerzeichen-Problem
-                if (step.getReplaceText() != null) {
-                    System.out.println("DEBUG REPLACE LENGTH: " + step.getReplaceText().length() + 
-                               " | BYTES: " + Arrays.toString(step.getReplaceText().getBytes()) +
-                               " | IS_EMPTY: " + step.getReplaceText().isEmpty() +
-                               " | TRIM_LENGTH: " + step.getReplaceText().trim().length());
-                }
+                // Debug entfernt
                 
                 try {
                     // Erstelle Pattern basierend auf Schritt-Optionen
@@ -4475,9 +5131,7 @@ if (caret != null) {
                 // Alte Format - für Kompatibilität
                 if (currentStep != null) {
                     String replaceText = line.substring(8);
-                    System.out.println("DEBUG LOAD (OLD): ReplaceText length: " + replaceText.length() + 
-                                       " | Bytes: " + Arrays.toString(replaceText.getBytes()) +
-                                       " | Is empty: " + replaceText.isEmpty());
+                        
                     currentStep.setReplaceText(replaceText);
                 }
             } else if (line.startsWith("REPLACE_B64:")) {
@@ -4486,9 +5140,7 @@ if (caret != null) {
                     try {
                         String encodedText = line.substring(12);
                         String replaceText = new String(java.util.Base64.getDecoder().decode(encodedText), "UTF-8");
-                        System.out.println("DEBUG LOAD (B64): ReplaceText length: " + replaceText.length() + 
-                                           " | Bytes: " + Arrays.toString(replaceText.getBytes()) +
-                                           " | Is empty: " + replaceText.isEmpty());
+                        
                         currentStep.setReplaceText(replaceText);
                     } catch (Exception e) {
                         System.err.println("Fehler beim Dekodieren des Ersetzungstexts: " + e.getMessage());
@@ -4558,15 +5210,31 @@ if (caret != null) {
             }
             String macroData = sb.toString();
 
+            // Datei speichern
             java.io.File macrosFile = getMacrosFile();
-            java.nio.file.Files.createDirectories(macrosFile.getParentFile().toPath());
-            java.nio.file.Files.writeString(macrosFile.toPath(), macroData, java.nio.charset.StandardCharsets.UTF_8);
+            try {
+                java.nio.file.Files.createDirectories(macrosFile.getParentFile().toPath());
+                java.nio.file.Files.writeString(macrosFile.toPath(), macroData, java.nio.charset.StandardCharsets.UTF_8);
+                logger.info("Makros in Datei gespeichert: " + macrosFile.getAbsolutePath());
+            } catch (Exception fileError) {
+                logger.error("Fehler beim Speichern in Datei: " + fileError.getMessage());
+                // Fallback: Nur Preferences
+            }
 
-            preferences.put("savedMacros", macroData);
-            preferences.flush();
+            // Preferences als Backup speichern
+            try {
+                preferences.put("savedMacros", macroData);
+                preferences.flush();
+                logger.info("Makros in Preferences gespeichert");
+            } catch (Exception prefError) {
+                logger.error("Fehler beim Speichern in Preferences: " + prefError.getMessage());
+            }
+
+            updateStatus("Makros gespeichert: " + macros.size() + " Makros");
             logger.info("Makros gespeichert (Datei & Preferences): " + macros.size() + " Makros");
         } catch (Exception e) {
             logger.error("Fehler beim Speichern der Makros", e);
+            updateStatus("Fehler beim Speichern der Makros: " + e.getMessage());
         }
     }
 
@@ -4840,7 +5508,17 @@ if (caret != null) {
         // Theme-Button Tooltip aktualisieren
         updateThemeButtonTooltip();
         
-        logger.info("Toolbar-Einstellungen geladen: Font-Size={}, Theme={} (final)", fontSize, currentThemeIndex);
+        // Anführungszeichen-Style laden
+        currentQuoteStyleIndex = preferences.getInt("quoteStyle", 0);
+        if (currentQuoteStyleIndex >= 0 && currentQuoteStyleIndex < QUOTE_STYLES.length) {
+            cmbQuoteStyle.setValue(QUOTE_STYLES[currentQuoteStyleIndex][0]);
+        } else {
+            cmbQuoteStyle.setValue(QUOTE_STYLES[0][0]);
+            currentQuoteStyleIndex = 0;
+        }
+        
+        logger.info("Toolbar-Einstellungen geladen: Font-Size={}, Theme={}, Quote-Style={} (final)", 
+                   fontSize, currentThemeIndex, currentQuoteStyleIndex);
     }
     
     private void updateThemeButtonTooltip() {
@@ -4859,6 +5537,41 @@ if (caret != null) {
             sizes.add(String.valueOf(i));
         }
         cmbFontSize.setItems(sizes);
+    }
+    
+    private void setupQuoteStyleComboBox() {
+        if (cmbQuoteStyle != null) {
+            // Anführungszeichen-Styles hinzufügen
+            for (String[] style : QUOTE_STYLES) {
+                cmbQuoteStyle.getItems().add(style[0]);
+            }
+            
+            // Gespeicherten Wert laden
+            currentQuoteStyleIndex = preferences.getInt("quoteStyle", 0);
+            if (currentQuoteStyleIndex >= 0 && currentQuoteStyleIndex < QUOTE_STYLES.length) {
+                cmbQuoteStyle.setValue(QUOTE_STYLES[currentQuoteStyleIndex][0]);
+            } else {
+                cmbQuoteStyle.setValue(QUOTE_STYLES[0][0]);
+                currentQuoteStyleIndex = 0;
+            }
+            
+            // Event-Handler für Änderungen
+            cmbQuoteStyle.setOnAction(e -> {
+                String selected = cmbQuoteStyle.getValue();
+                for (int i = 0; i < QUOTE_STYLES.length; i++) {
+                    if (QUOTE_STYLES[i][0].equals(selected)) {
+                        currentQuoteStyleIndex = i;
+                        preferences.put("quoteStyle", String.valueOf(i));
+                        try {
+                            preferences.flush();
+                        } catch (java.util.prefs.BackingStoreException ex) {
+                            logger.warn("Konnte Quote-Style nicht speichern: " + ex.getMessage());
+                        }
+                        break;
+                    }
+                }
+            });
+        }
     }
     
     private void formatTextBold() {
@@ -4938,7 +5651,7 @@ if (caret != null) {
             // Root-Container (Hauptfenster) - WICHTIG: Das ist der Hauptcontainer!
             if (stage != null && stage.getScene() != null) {
                 Node root = stage.getScene().getRoot();
-                root.getStyleClass().removeAll("theme-dark", "theme-light", "weiss-theme", "pastell-theme");
+                root.getStyleClass().removeAll("theme-dark", "theme-light", "weiss-theme", "pastell-theme", "blau-theme", "gruen-theme", "lila-theme");
                 
                 // Direkte inline Styles für Pastell-Theme
                 if (themeIndex == 2) { // Pastell-Theme
@@ -4951,8 +5664,11 @@ if (caret != null) {
                     
                     if (themeIndex == 0) { // Weiß-Theme
                         root.getStyleClass().add("weiss-theme");
-                    } else if (themeIndex == 1 || themeIndex >= 3) { // Dunkle Themes: Schwarz (1), Blau (3), Grün (4), Lila (5)
+                    } else if (themeIndex == 1 || themeIndex >= 3) { // Dunkle Themes
                         root.getStyleClass().add("theme-dark");
+                        if (themeIndex == 3) root.getStyleClass().add("blau-theme");
+                        if (themeIndex == 4) root.getStyleClass().add("gruen-theme");
+                        if (themeIndex == 5) root.getStyleClass().add("lila-theme");
                     }
                 }
             }
@@ -4996,6 +5712,8 @@ if (caret != null) {
             applyThemeToNode(cmbSearchHistory, themeIndex);
             applyThemeToNode(cmbReplaceHistory, themeIndex);
             applyThemeToNode(cmbFontSize, themeIndex);
+
+            // Entfernt: Code-Seitiges Erzwingen – zurück zu reiner CSS-Steuerung
             
             // Alle CheckBoxes
             applyThemeToNode(chkRegexSearch, themeIndex);
@@ -5079,10 +5797,14 @@ if (caret != null) {
         // WICHTIG: CSS-Refresh erzwingen
         if (stage != null && stage.getScene() != null) {
             stage.getScene().getStylesheets().clear();
-            // CSS mit ResourceManager laden
-            String cssPath = ResourceManager.getCssResource("css/editor.css");
-            if (cssPath != null) {
-                stage.getScene().getStylesheets().add(cssPath);
+            // CSS mit ResourceManager laden (styles.css + editor.css)
+            String stylesCssPathRefresh = ResourceManager.getCssResource("css/styles.css");
+            String editorCssPathRefresh = ResourceManager.getCssResource("css/editor.css");
+            if (stylesCssPathRefresh != null) {
+                stage.getScene().getStylesheets().add(stylesCssPathRefresh);
+            }
+            if (editorCssPathRefresh != null) {
+                stage.getScene().getStylesheets().add(editorCssPathRefresh);
             }
             
             // Zusätzlich: Root-Container explizit das Theme geben
@@ -5106,10 +5828,14 @@ if (caret != null) {
             // Zusätzlicher CSS-Refresh nach einer kurzen Verzögerung
             Platform.runLater(() -> {
                 stage.getScene().getStylesheets().clear();
-                // CSS mit ResourceManager laden
-                String cssPathInner = ResourceManager.getCssResource("css/editor.css");
-                if (cssPathInner != null) {
-                    stage.getScene().getStylesheets().add(cssPathInner);
+                // CSS mit ResourceManager laden (styles.css + editor.css)
+                String stylesCssPathInner = ResourceManager.getCssResource("css/styles.css");
+                String editorCssPathInner = ResourceManager.getCssResource("css/editor.css");
+                if (stylesCssPathInner != null) {
+                    stage.getScene().getStylesheets().add(stylesCssPathInner);
+                }
+                if (editorCssPathInner != null) {
+                    stage.getScene().getStylesheets().add(editorCssPathInner);
                 }
                 
                 // Force layout refresh
@@ -5171,6 +5897,8 @@ if (caret != null) {
             }
         }
     }
+
+    // Entfernt: Code-seitige Popup-/Pfeilfarb-Erzwingung (zurück zu CSS)
     
     private void formatTextAtCursor(String markdownStart, String markdownEnd, String htmlStart, String htmlEnd) {
         if (codeArea == null) return;
@@ -5223,11 +5951,12 @@ if (caret != null) {
         
         VBox root = new VBox(15);
         root.setPadding(new Insets(20));
-        root.setStyle("-fx-background-color: #f8f9fa;");
+        // Theme anwenden
+        applyThemeToNode(root, currentThemeIndex);
         
         // Titel
         Label titleLabel = new Label("Java Regex - Syntax-Referenz");
-        titleLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;");
+        titleLabel.getStyleClass().add("regex-help-title");
         
         // ScrollPane für den Inhalt
         ScrollPane scrollPane = new ScrollPane();
@@ -5237,6 +5966,7 @@ if (caret != null) {
         
         VBox content = new VBox(15);
         content.setPadding(new Insets(10));
+        content.getStyleClass().add("regex-help");
         
         // Grundlegende Syntax
         content.getChildren().add(createSection("Grundlegende Zeichen", new String[][] {
@@ -5300,13 +6030,12 @@ if (caret != null) {
         
         // Wichtiger Hinweis
         VBox warningBox = new VBox(5);
-        warningBox.setStyle("-fx-background-color: #fff3cd; -fx-border-color: #ffeaa7; -fx-border-radius: 5px; -fx-background-radius: 5px; -fx-padding: 10px;");
+        warningBox.setPadding(new Insets(10));
         
         Label warningTitle = new Label("⚠️ Wichtiger Hinweis:");
-        warningTitle.setStyle("-fx-font-weight: bold; -fx-text-fill: #856404;");
+        warningTitle.setStyle("-fx-font-weight: bold;");
         
         Label warningText = new Label("Im Ersetzungstext verwenden Sie $1, $2, ... (nicht \\1, \\2, ...)");
-        warningText.setStyle("-fx-text-fill: #856404;");
         warningText.setWrapText(true);
         
         warningBox.getChildren().addAll(warningTitle, warningText);
@@ -5316,7 +6045,7 @@ if (caret != null) {
         
         // Schließen-Button
         Button closeButton = new Button("Schließen");
-        closeButton.setStyle("-fx-background-color: #6c757d; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8px 20px;");
+        applyThemeToNode(closeButton, currentThemeIndex);
         closeButton.setOnAction(e -> helpStage.close());
         
         HBox buttonBox = new HBox();
@@ -5326,7 +6055,14 @@ if (caret != null) {
         root.getChildren().addAll(titleLabel, scrollPane, buttonBox);
         
         Scene scene = new Scene(root, 700, 700);
+        // CSS-Dateien anhängen, damit Styles sicher greifen
+        String stylesCss = ResourceManager.getCssResource("css/styles.css");
+        String editorCss = ResourceManager.getCssResource("css/editor.css");
+        if (stylesCss != null && !scene.getStylesheets().contains(stylesCss)) scene.getStylesheets().add(stylesCss);
+        if (editorCss != null && !scene.getStylesheets().contains(editorCss)) scene.getStylesheets().add(editorCss);
         helpStage.setScene(scene);
+        // Root-Theme-Klasse ergänzen, damit CSS sicher greift
+        applyThemeToNode(scene.getRoot(), currentThemeIndex);
         helpStage.show();
     }
     
@@ -5602,9 +6338,12 @@ if (caret != null) {
     private void saveChapterContent() {
         if (currentFile != null) {
             String content = chapterEditorArea.getText();
+            
+            // Speichere in die Chapter-Datei (.chapter.txt) - nicht in die MD-Datei!
             NovelManager.saveChapter(currentFile.getAbsolutePath(), content);
             originalChapterContent = content;
             chapterContentChanged = false;
+            
             // Normale Anzeige zurücksetzen
             if (lblStatus != null) {
                 lblStatus.setText("Chapter-Inhalt gespeichert: " + currentFile.getName());
@@ -5772,6 +6511,13 @@ if (caret != null) {
             
             // Bevorzugt Sidecar-Datei entsprechend aktuellem Format
             File sidecar = deriveSidecarFileFor(file, outputFormat);
+            
+            // Prüfe ob DOCX geändert wurde - aber zeige nur Info, kein Zwangsdiff
+            if (DiffProcessor.hasDocxChanged(file, sidecar)) {
+                logger.info("DOCX-Datei wurde extern geändert: {} - aber kein Zwangsdiff", file.getName());
+                // Optional: Zeige Info-Dialog ohne Zwangsdiff (später implementiert)
+            }
+            
             String content;
             if (sidecar != null && sidecar.exists()) {
                 content = new String(java.nio.file.Files.readAllBytes(sidecar.toPath()), java.nio.charset.StandardCharsets.UTF_8);
@@ -5801,6 +6547,18 @@ if (caret != null) {
             updateStatusError("Fehler beim Laden des Kapitels: " + e.getMessage());
             logger.error("Fehler beim Laden des Kapitels: " + file.getName(), e);
         }
+    }
+    
+
+    
+
+    
+    private void showErrorDialog(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
     
     /**

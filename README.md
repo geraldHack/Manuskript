@@ -55,7 +55,9 @@ Hinweis: Sessions und Parameter werden unter `config/` gespeichert; Details im A
 - **Export-Funktionen:** RTF/DOCX (nur Markdown), Markdown, HTML, TXT
 - **Keyboard-Shortcuts:** Professionelle Tastenkombinationen
 - **Diff & Merge (neu):** Seiten-by-Seiten-Diff bei extern geänderter DOCX mit Auswahl-Übernahme per Checkboxen (nur ins Sidecar, niemals in die DOCX).
-- **Sicheres Speichern (neu):** Speicherdialog mit klaren Optionen (Sidecar speichern, DOCX überschreiben, Diff anzeigen, Abbrechen). Sidecar-„Silent Save“ vermeidet Rekursion bei Navigation.
+- **Sicheres Speichern (neu):** Speicherdialog mit klaren Optionen (Sidecar speichern, DOCX überschreiben, Diff anzeigen, Abbrechen). Sidecar-„Silent Save" vermeidet Rekursion bei Navigation
+- **Automatische MD-Erstellung (neu):** MD-Dateien werden automatisch beim ersten Editor-Aufruf angelegt
+- **Intelligente Änderungserkennung (neu):** Hash-basierte Erkennung von DOCX-Änderungen mit korrektem "!" Status-Management
 
 ### 🔧 Makro-System
 - **Automatische Text-Bereinigung:** 13 vordefinierte Schritte

@@ -427,18 +427,76 @@
     -fx-background-radius: 4px;
 }
 
+/* Sichtbare Markierungs-/Pfeilfarbe für Combo/Choice in dunklen Themes */
+.theme-dark .combo-box, .theme-dark .choice-box, .theme-dark .menu-button, .theme-dark .combo-box-base {
+    -fx-mark-color: #ffffff;
+}
+.theme-dark.blau-theme .combo-box, .theme-dark.blau-theme .choice-box, .theme-dark.blau-theme .menu-button, .theme-dark.blau-theme .combo-box-base { -fx-mark-color: #ffffff; }
+.theme-dark.gruen-theme .combo-box, .theme-dark.gruen-theme .choice-box, .theme-dark.gruen-theme .menu-button, .theme-dark.gruen-theme .combo-box-base { -fx-mark-color: #ffffff; }
+.theme-dark.lila-theme .combo-box, .theme-dark.lila-theme .choice-box, .theme-dark.lila-theme .menu-button, .theme-dark.lila-theme .combo-box-base { -fx-mark-color: #ffffff; }
+
+/* Zielgerichtete Fixes: Editor Toolbar & Suchen/Ersetzen */
+.theme-dark #cmbFontSize { -fx-mark-color: #ffffff !important; }
+.theme-dark #cmbFontSize .arrow { -fx-background-color: #ffffff !important; }
+.theme-dark #cmbFontSize .arrow-button { -fx-background-color: transparent !important; }
+
+.theme-dark #cmbSearchHistory { -fx-mark-color: #ffffff !important; }
+.theme-dark #cmbSearchHistory .arrow { -fx-background-color: #ffffff !important; }
+.theme-dark #cmbSearchHistory .arrow-button { -fx-background-color: transparent !important; }
+
+.theme-dark #cmbReplaceHistory { -fx-mark-color: #ffffff !important; }
+.theme-dark #cmbReplaceHistory .arrow { -fx-background-color: #ffffff !important; }
+.theme-dark #cmbReplaceHistory .arrow-button { -fx-background-color: transparent !important; }
+
+/* Zielgerichtete Fixes: KI-Assistent Combos */
+.theme-dark #cmbModel, .theme-dark #cmbFunction { -fx-mark-color: #ffffff !important; }
+.theme-dark #cmbModel .arrow, .theme-dark #cmbFunction .arrow { -fx-background-color: #ffffff !important; }
+.theme-dark #cmbModel .arrow-button, .theme-dark #cmbFunction .arrow-button { -fx-background-color: transparent !important; }
+.theme-dark.blau-theme #cmbModel .arrow-button, .theme-dark.blau-theme #cmbFunction .arrow-button { -fx-background-color: #2563eb !important; }
+.theme-dark.gruen-theme #cmbModel .arrow-button, .theme-dark.gruen-theme #cmbFunction .arrow-button { -fx-background-color: #059669 !important; }
+.theme-dark.lila-theme #cmbModel .arrow-button, .theme-dark.lila-theme #cmbFunction .arrow-button { -fx-background-color: #7c3aed !important; }
+
+/* Auch für blaue/grüne/lila Varianten explizit auf IDs */
+.theme-dark.blau-theme #cmbFontSize,
+.theme-dark.gruen-theme #cmbFontSize,
+.theme-dark.lila-theme #cmbFontSize,
+.theme-dark.blau-theme #cmbSearchHistory,
+.theme-dark.gruen-theme #cmbSearchHistory,
+.theme-dark.lila-theme #cmbSearchHistory,
+.theme-dark.blau-theme #cmbReplaceHistory,
+.theme-dark.gruen-theme #cmbReplaceHistory,
+.theme-dark.lila-theme #cmbReplaceHistory { -fx-mark-color: #ffffff !important; }
+.theme-dark.blau-theme #cmbFontSize .arrow,
+.theme-dark.gruen-theme #cmbFontSize .arrow,
+.theme-dark.lila-theme #cmbFontSize .arrow,
+.theme-dark.blau-theme #cmbSearchHistory .arrow,
+.theme-dark.gruen-theme #cmbSearchHistory .arrow,
+.theme-dark.lila-theme #cmbSearchHistory .arrow,
+.theme-dark.blau-theme #cmbReplaceHistory .arrow,
+.theme-dark.gruen-theme #cmbReplaceHistory .arrow,
+.theme-dark.lila-theme #cmbReplaceHistory .arrow { -fx-background-color: #ffffff !important; }
+
 .theme-dark .combo-box .list-cell {
     -fx-background-color: #2d2d2d;
     -fx-text-fill: #ffffff;
 }
 
-.theme-dark .combo-box .arrow-button {
-    -fx-background-color: #2d2d2d;
-}
+.theme-dark .combo-box .arrow-button { -fx-background-color: #4a5568; }
 
 .theme-dark .combo-box .arrow {
     -fx-background-color: #ffffff;
 }
+
+/* Varianten: Farbakzent für Pfeil-Button-Hintergrund */
+.theme-dark.blau-theme .combo-box .arrow-button { -fx-background-color: #2563eb; }
+.theme-dark.gruen-theme .combo-box .arrow-button { -fx-background-color: #059669; }
+.theme-dark.lila-theme .combo-box .arrow-button { -fx-background-color: #7c3aed; }
+
+/* Auch ChoiceBox/MenuButton anpassen */
+.theme-dark .choice-box .arrow-button, .theme-dark .menu-button .arrow-button { -fx-background-color: transparent; }
+.theme-dark.blau-theme .choice-box .arrow-button, .theme-dark.blau-theme .menu-button .arrow-button { -fx-background-color: #2563eb; }
+.theme-dark.gruen-theme .choice-box .arrow-button, .theme-dark.gruen-theme .menu-button .arrow-button { -fx-background-color: #059669; }
+.theme-dark.lila-theme .choice-box .arrow-button, .theme-dark.lila-theme .menu-button .arrow-button { -fx-background-color: #7c3aed; }
 
 .theme-dark .combo-box-popup .list-view {
     -fx-background-color: #2d2d2d;
@@ -613,6 +671,9 @@
     -fx-background-color: #1e40af;
     -fx-border-color: #3b82f6;
 }
+.theme-dark.blau-theme .combo-box-popup .list-view .list-cell { -fx-background-color: #1e40af; -fx-text-fill: #ffffff; }
+.theme-dark.blau-theme .combo-box-popup .list-view .list-cell:hover { -fx-background-color: #2563eb; }
+.theme-dark.blau-theme .combo-box-popup .list-view .list-cell:selected { -fx-background-color: #3b82f6; -fx-text-fill: #ffffff; }
 
 .theme-dark.blau-theme .check-box {
     -fx-text-fill: #ffffff;
@@ -747,6 +808,9 @@
     -fx-background-color: #065f46;
     -fx-border-color: #059669;
 }
+.theme-dark.gruen-theme .combo-box-popup .list-view .list-cell { -fx-background-color: #065f46; -fx-text-fill: #ffffff; }
+.theme-dark.gruen-theme .combo-box-popup .list-view .list-cell:hover { -fx-background-color: #047857; }
+.theme-dark.gruen-theme .combo-box-popup .list-view .list-cell:selected { -fx-background-color: #059669; -fx-text-fill: #ffffff; }
 
 .theme-dark.gruen-theme .check-box {
     -fx-text-fill: #ffffff;
@@ -881,6 +945,9 @@
     -fx-background-color: #5b21b6;
     -fx-border-color: #7c3aed;
 }
+.theme-dark.lila-theme .combo-box-popup .list-view .list-cell { -fx-background-color: #5b21b6; -fx-text-fill: #ffffff; }
+.theme-dark.lila-theme .combo-box-popup .list-view .list-cell:hover { -fx-background-color: #6d28d9; }
+.theme-dark.lila-theme .combo-box-popup .list-view .list-cell:selected { -fx-background-color: #7c3aed; -fx-text-fill: #ffffff; }
 
 .theme-dark.lila-theme .check-box {
     -fx-text-fill: #ffffff;
@@ -992,6 +1059,23 @@
     -fx-background-color: #581c87;
 }
 
+/* TitledPane/Accordion (KI-Bereiche wie Synopsis, Stil, ...) – explizit in editor.css, damit es greift */
+.theme-dark.blau-theme .titled-pane > .title { -fx-background-color: #2563eb; -fx-text-fill: #ffffff; }
+.theme-dark.blau-theme .titled-pane > *.content { -fx-background-color: #1e3a8a; }
+.theme-dark.blau-theme .titled-pane > .title > .arrow-button > .arrow { -fx-background-color: #ffffff; }
+
+/* Blaue Theme: ausgeklappte TextAreas (z. B. in Accordion-Inhalten) */
+.theme-dark.blau-theme .text-area { -fx-text-fill: #ffffff; }
+.theme-dark.blau-theme .text-area .content {
+    -fx-background-color: #1e3a8a !important;
+    -fx-control-inner-background: #1e3a8a !important;
+    -fx-text-fill: #ffffff !important;
+}
+
+.theme-dark.lila-theme .titled-pane > .title { -fx-background-color: #6d28d9; -fx-text-fill: #ffffff; }
+.theme-dark.lila-theme .titled-pane > *.content { -fx-background-color: #4c1d95; }
+.theme-dark.lila-theme .titled-pane > .title > .arrow-button > .arrow { -fx-background-color: #ffffff; }
+
 
 
 .toolbar .button {
@@ -999,6 +1083,105 @@
     -fx-min-height: 30px;
     -fx-padding: 6px 12px;
     -fx-font-size: 12px;
+}
+
+/* ChatArea Navigationspfeile wieder sichtbar machen */
+.chat-nav-button {
+    -fx-background-color: #4a5568 !important; /* neutral dunkelgrau */
+    -fx-text-fill: #ffffff !important;
+    -fx-font-size: 13px !important;
+    -fx-border-color: #718096 !important;
+    -fx-border-radius: 3px !important;
+    -fx-background-radius: 3px !important;
+    -fx-min-width: 28px !important;
+    -fx-min-height: 28px !important;
+    -fx-font-weight: bold !important;
+}
+.chat-nav-button .text { -fx-fill: #ffffff !important; }
+.chat-nav-button:hover { -fx-background-color: #718096 !important; }
+.chat-nav-button:pressed { -fx-background-color: #2d3748 !important; }
+
+/* Disabled-Zustand klar sichtbar machen */
+.chat-nav-button:disabled {
+  -fx-background-color: #4b5563 !important;
+  -fx-text-fill: #cbd5e1 !important;
+  -fx-opacity: 0.55 !important;
+  -fx-cursor: default !important;
+}
+.weiss-theme .chat-nav-button:disabled, .pastell-theme .chat-nav-button:disabled {
+  -fx-background-color: #d1d5db !important;
+  -fx-text-fill: #9ca3af !important;
+}
+.theme-dark.blau-theme .chat-nav-button:disabled { -fx-background-color: #1e3a8a !important; -fx-text-fill: #93c5fd !important; }
+.theme-dark.gruen-theme .chat-nav-button:disabled { -fx-background-color: #064e3b !important; -fx-text-fill: #a7f3d0 !important; }
+.theme-dark.lila-theme .chat-nav-button:disabled { -fx-background-color: #581c87 !important; -fx-text-fill: #c4b5fd !important; }
+
+.weiss-theme .chat-nav-button, .pastell-theme .chat-nav-button {
+    -fx-background-color: #e5e7eb !important;
+    -fx-text-fill: #111827 !important;
+    -fx-border-color: #9ca3af !important;
+}
+.weiss-theme .chat-nav-button .text, .pastell-theme .chat-nav-button .text { -fx-fill: #111827 !important; }
+.weiss-theme .chat-nav-button:hover, .pastell-theme .chat-nav-button:hover { -fx-background-color: #d1d5db !important; }
+.weiss-theme .chat-nav-button:pressed, .pastell-theme .chat-nav-button:pressed { -fx-background-color: #9ca3af !important; }
+
+.theme-dark.blau-theme .chat-nav-button { -fx-background-color: #2563eb !important; -fx-border-color: #1e40af !important; }
+.theme-dark.blau-theme .chat-nav-button:hover { -fx-background-color: #3b82f6 !important; }
+.theme-dark.blau-theme .chat-nav-button:pressed { -fx-background-color: #1e3a8a !important; }
+.theme-dark.blau-theme .chat-nav-button .text { -fx-fill: #ffffff !important; }
+
+.theme-dark.gruen-theme .chat-nav-button { -fx-background-color: #059669 !important; -fx-border-color: #047857 !important; }
+.theme-dark.gruen-theme .chat-nav-button:hover { -fx-background-color: #10b981 !important; }
+.theme-dark.gruen-theme .chat-nav-button:pressed { -fx-background-color: #064e3b !important; }
+.theme-dark.gruen-theme .chat-nav-button .text { -fx-fill: #ffffff !important; }
+
+.theme-dark.lila-theme .chat-nav-button { -fx-background-color: #7c3aed !important; -fx-border-color: #6d28d9 !important; }
+.theme-dark.lila-theme .chat-nav-button:hover { -fx-background-color: #8b5cf6 !important; }
+.theme-dark.lila-theme .chat-nav-button:pressed { -fx-background-color: #581c87 !important; }
+.theme-dark.lila-theme .chat-nav-button .text { -fx-fill: #ffffff !important; }
+
+/* IDs – HARTE Fallbacks, damit die Buttons immer sichtbar sind */
+#btnChatUp, #btnChatDown {
+  -fx-background-color: #4a5568 !important;
+  -fx-text-fill: #ffffff !important;
+  -fx-pref-width: 32px !important;
+  -fx-pref-height: 32px !important;
+  -fx-font-size: 13px !important;
+  -fx-border-color: #718096 !important;
+  /* Basis-Opacity, wird im :disabled überschrieben */
+  -fx-opacity: 1;
+  -fx-background-insets: 0 !important;
+}
+#btnChatUp:disabled, #btnChatDown:disabled {
+  -fx-background-color: #4b5563 !important;
+  -fx-text-fill: #cbd5e1 !important;
+  -fx-opacity: 0.55 !important;
+}
+#btnChatUp .text, #btnChatDown .text { -fx-fill: #ffffff !important; }
+
+.weiss-theme #btnChatUp, .weiss-theme #btnChatDown,
+.pastell-theme #btnChatUp, .pastell-theme #btnChatDown {
+  -fx-background-color: #e5e7eb !important;
+  -fx-text-fill: #111827 !important;
+  -fx-border-color: #9ca3af !important;
+}
+.weiss-theme #btnChatUp .text, .weiss-theme #btnChatDown .text,
+.pastell-theme #btnChatUp .text, .pastell-theme #btnChatDown .text { -fx-fill: #111827 !important; }
+
+.theme-dark.blau-theme #btnChatUp, .theme-dark.blau-theme #btnChatDown {
+  -fx-background-color: #2563eb !important;
+  -fx-text-fill: #ffffff !important;
+  -fx-border-color: #1e40af !important;
+}
+.theme-dark.gruen-theme #btnChatUp, .theme-dark.gruen-theme #btnChatDown {
+  -fx-background-color: #059669 !important;
+  -fx-text-fill: #ffffff !important;
+  -fx-border-color: #047857 !important;
+}
+.theme-dark.lila-theme #btnChatUp, .theme-dark.lila-theme #btnChatDown {
+  -fx-background-color: #7c3aed !important;
+  -fx-text-fill: #ffffff !important;
+  -fx-border-color: #6d28d9 !important;
 }
 
 .font-toolbar .button {
