@@ -63,14 +63,16 @@ public class CustomChatArea extends VBox {
         
         // Navigation-Buttons (kleiner gemacht)
         upButton = new Button("↑");
-        upButton.setPrefWidth(25);
-        upButton.setPrefHeight(25);
+        upButton.setId("btnChatUp");
+        upButton.setPrefWidth(32);
+        upButton.setPrefHeight(32);
         upButton.setDisable(true);
         upButton.setOnAction(e -> showPrevious());
         
         downButton = new Button("↓");
-        downButton.setPrefWidth(25);
-        downButton.setPrefHeight(25);
+        downButton.setId("btnChatDown");
+        downButton.setPrefWidth(32);
+        downButton.setPrefHeight(32);
         downButton.setDisable(true);
         downButton.setOnAction(e -> showNext());
         
@@ -147,24 +149,23 @@ public class CustomChatArea extends VBox {
      * Lädt die Chat-Historie aus einem Array von QAPairs
      */
     public void loadSessionHistory(List<QAPair> sessionHistory) {
-        System.out.println("DEBUG: loadSessionHistory() aufgerufen mit " + sessionHistory.size() + " QAPairs");
-        Platform.runLater(() -> {
+        Runnable apply = () -> {
             chatHistory.clear();
             chatHistory.addAll(sessionHistory);
-            
-            System.out.println("DEBUG: loadSessionHistory() - chatHistory.size(): " + chatHistory.size());
-            
-            // Zum letzten Eintrag springen
             currentIndex = chatHistory.size() - 1;
             updateDisplay();
-        });
+        };
+        if (javafx.application.Platform.isFxApplicationThread()) {
+            apply.run();
+        } else {
+            Platform.runLater(apply);
+        }
     }
     
     /**
      * Gibt die aktuelle Chat-Historie zurück
      */
     public List<QAPair> getSessionHistory() {
-        System.out.println("DEBUG: getSessionHistory() - chatHistory.size(): " + chatHistory.size());
         return new ArrayList<>(chatHistory);
     }
     

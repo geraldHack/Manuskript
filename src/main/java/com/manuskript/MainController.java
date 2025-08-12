@@ -17,9 +17,14 @@ import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.HBox;
+import javafx.scene.control.SplitPane;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
+import javafx.stage.Modality;
+import javafx.stage.Window;
+import javafx.scene.web.WebView;
 import javafx.application.Platform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,6 +95,9 @@ public class MainController implements Initializable {
     private SortedList<DocxFile> sortedAvailableFiles;
     private DocxProcessor docxProcessor;
     private Preferences preferences;
+    private java.nio.file.WatchService watchService;
+    private Thread watchThread;
+    private volatile boolean watchRunning = false;
     
     // Theme-System
     private int currentThemeIndex = 0;
@@ -113,22 +121,38 @@ public class MainController implements Initializable {
         loadLastDirectory();
         loadRecentRegexList();
         
-        // CSS initial laden
+        // CSS initial laden und Theme-Klassen setzen, bevor wir Theme anwenden
         Platform.runLater(() -> {
             if (mainContainer != null && mainContainer.getScene() != null) {
-                String cssPath = ResourceManager.getCssResource("css/editor.css");
-                if (cssPath != null) {
-                    mainContainer.getScene().getStylesheets().add(cssPath);
-                }
                 String stylesCssPath = ResourceManager.getCssResource("css/styles.css");
-                if (stylesCssPath != null) {
+                String editorCssPath = ResourceManager.getCssResource("css/editor.css");
+                if (stylesCssPath != null && !mainContainer.getScene().getStylesheets().contains(stylesCssPath)) {
                     mainContainer.getScene().getStylesheets().add(stylesCssPath);
                 }
+                if (editorCssPath != null && !mainContainer.getScene().getStylesheets().contains(editorCssPath)) {
+                    mainContainer.getScene().getStylesheets().add(editorCssPath);
+                }
+                // Theme-Klassen auf Root vorab setzen, damit Pfeile etc. initial korrekt sind
+                Node root = mainContainer.getScene().getRoot();
+                root.getStyleClass().removeAll("theme-dark", "theme-light", "blau-theme", "gruen-theme", "lila-theme", "weiss-theme", "pastell-theme");
+                int savedTheme = preferences.getInt("main_window_theme", 0);
+                if (savedTheme == 0) {
+                    root.getStyleClass().add("weiss-theme");
+                } else if (savedTheme == 2) {
+                    root.getStyleClass().add("pastell-theme");
+                } else {
+                    root.getStyleClass().add("theme-dark");
+                    if (savedTheme == 3) root.getStyleClass().add("blau-theme");
+                    if (savedTheme == 4) root.getStyleClass().add("gruen-theme");
+                    if (savedTheme == 5) root.getStyleClass().add("lila-theme");
+                }
+                // Danach das gespeicherte Theme normal anwenden
+                loadSavedTheme();
+            } else {
+                // Falls Scene noch nicht da, trotzdem Theme laden
+                loadSavedTheme();
             }
         });
-        
-        // WICHTIG: Gespeichertes Theme laden und anwenden
-        loadSavedTheme();
     }
     
     private void setupUI() {
@@ -143,7 +167,7 @@ public class MainController implements Initializable {
         colLastModifiedAvailable.setPrefWidth(180);
         
         // Tabellen-Setup für ausgewählte Dateien
-        colFileNameSelected.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getFileName()));
+        colFileNameSelected.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getDisplayFileName()));
         colFileSizeSelected.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getFormattedSize()));
         colLastModifiedSelected.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getFormattedLastModified()));
         
@@ -160,16 +184,19 @@ public class MainController implements Initializable {
         cmbRegexSort.getItems().addAll("Aufsteigend", "Absteigend");
         cmbRegexSort.setValue("Aufsteigend");
         
-        // Format-Auswahl
-        cmbOutputFormat.getItems().addAll(DocxProcessor.OutputFormat.values());
+        // Format-Auswahl - nur noch MD
+        cmbOutputFormat.getItems().addAll(DocxProcessor.OutputFormat.MARKDOWN);
         cmbOutputFormat.setValue(DocxProcessor.OutputFormat.MARKDOWN);
         
         // Mehrfachauswahl aktivieren
         tableViewAvailable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         tableViewSelected.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         
-        // Verfügbare Dateien (ohne ausgewählte)
-        availableFiles = new FilteredList<>(allDocxFiles, p -> !selectedDocxFiles.contains(p));
+        // Verfügbare Dateien (nur ohne MD-Datei)
+        availableFiles = new FilteredList<>(allDocxFiles, p -> {
+            File mdFile = deriveMdFileFor(p.getFile());
+            return mdFile == null || !mdFile.exists();
+        });
         sortedAvailableFiles = new SortedList<>(availableFiles);
         tableViewAvailable.setItems(sortedAvailableFiles);
         
@@ -329,20 +356,7 @@ public class MainController implements Initializable {
             }
         });
         
-        tableViewSelected.setOnMouseClicked(event -> {
-            if (event.getClickCount() == 2) {
-                // Doppelklick auf eine Zeile - verschiebe sie nach oben
-                DocxFile clickedFile = tableViewSelected.getSelectionModel().getSelectedItem();
-                if (clickedFile != null) {
-                    int currentIndex = selectedDocxFiles.indexOf(clickedFile);
-                    if (currentIndex > 0) {
-                        selectedDocxFiles.remove(currentIndex);
-                        selectedDocxFiles.add(0, clickedFile);
-                        updateStatus("Datei nach oben verschoben");
-                    }
-                }
-            }
-        });
+        // Doppelklick-Events für die rechte Tabelle wurden entfernt - keine automatische Sortierung
     }
     
 
@@ -371,7 +385,6 @@ public class MainController implements Initializable {
             // Speichere das ausgewählte Verzeichnis
             preferences.put("lastDirectory", selectedDirectory.getAbsolutePath());
             loadDocxFiles(selectedDirectory);
-            loadSelection(selectedDirectory);
         }
     }
     
@@ -382,7 +395,6 @@ public class MainController implements Initializable {
             if (lastDir.exists()) {
                 txtDirectoryPath.setText(lastDirectory);
                 loadDocxFiles(lastDir);
-                loadSelection(lastDir);
             }
         }
     }
@@ -390,7 +402,6 @@ public class MainController implements Initializable {
     private void loadDocxFiles(File directory) {
         try {
             updateStatus("Lade DOCX-Dateien...");
-            // progressBar wurde entfernt
             
             List<File> files = java.nio.file.Files.walk(directory.toPath())
                     .filter(path -> path.toString().toLowerCase().endsWith(".docx"))
@@ -400,16 +411,59 @@ public class MainController implements Initializable {
             allDocxFiles.clear();
             originalDocxFiles.clear();
             selectedDocxFiles.clear();
+            
             for (File file : files) {
                 DocxFile docxFile = new DocxFile(file);
                 allDocxFiles.add(docxFile);
-                originalDocxFiles.add(docxFile); // Speichere ursprüngliche Reihenfolge
+                originalDocxFiles.add(docxFile);
+            }
+            
+            // Lade gespeicherte Reihenfolge zuerst
+            loadSavedOrder(directory);
+            
+            // Dann prüfe Änderungen mit Hash-basierter Erkennung
+            for (DocxFile docxFile : allDocxFiles) {
+                File mdFile = deriveMdFileFor(docxFile.getFile());
+                boolean hasMdFile = mdFile != null && mdFile.exists();
+                
+                if (hasMdFile) {
+                    // Hash-basierte Erkennung: Berechne aktuellen Hash und vergleiche mit gespeichertem
+                    String savedHash = loadDocxHash(docxFile.getFile());
+                    
+                    if (savedHash == null) {
+                        // Kein gespeicherter Hash vorhanden - erste Verarbeitung
+                        String currentHash = calculateFileHash(docxFile.getFile());
+                        if (currentHash != null) {
+                            docxFile.setChanged(false);
+                            logger.info("DOCX neu: {} (kein gespeicherter Hash)", docxFile.getFileName());
+                            // Hash speichern für erste Verarbeitung
+                            saveDocxHash(docxFile.getFile(), currentHash);
+                        }
+                    } else {
+                        // Gespeicherter Hash vorhanden - vergleiche mit aktuellem Hash
+                        String currentHash = calculateFileHash(docxFile.getFile());
+                        if (currentHash != null && !currentHash.equals(savedHash)) {
+                            // Hash hat sich geändert - Datei wurde modifiziert
+                            docxFile.setChanged(true);
+                            logger.info("DOCX geändert: {} (Hash unterschiedlich)", docxFile.getFileName());
+                            // NICHT den neuen Hash speichern - behalte den alten für Vergleich
+                        } else {
+                            // Hash ist gleich - Datei unverändert
+                            docxFile.setChanged(false);
+                            logger.info("DOCX unverändert: {} (Hash gleich)", docxFile.getFileName());
+                        }
+                    }
+                } else {
+                    // Datei hat keine MD - bleibt links
+                    docxFile.setChanged(false);
+                    logger.info("Neue DOCX: {} (keine MD)", docxFile.getFileName());
+                }
             }
             
             updateStatus(allDocxFiles.size() + " DOCX-Dateien gefunden");
-            // progressBar wurde entfernt
             
-
+            // Starte automatische Datei-Überwachung
+            startFileWatcher(directory);
             
         } catch (Exception e) {
             logger.error("Fehler beim Laden der DOCX-Dateien", e);
@@ -424,20 +478,21 @@ public class MainController implements Initializable {
         String regexFilter = cmbRegexFilter.getValue();
         boolean regexMode = chkRegexMode.isSelected();
         
-        // Aktualisiere die verfügbaren Dateien (ohne ausgewählte)
+        // Aktualisiere die verfügbaren Dateien (nur Dateien ohne MD-Datei + Regex-Filter)
         availableFiles.setPredicate(docxFile -> {
-            // Datei ist bereits ausgewählt
-            if (selectedDocxFiles.contains(docxFile)) {
-                return false;
-            }
+            File mdFile = deriveMdFileFor(docxFile.getFile());
+            boolean hasMdFile = mdFile != null && mdFile.exists();
             
-            String fileName = docxFile.getFileName();
+            // Grundfilter: Nur Dateien ohne MD-Datei
+            if (hasMdFile) {
+                return false; // Datei hat MD -> gehört in rechte Tabelle
+            }
             
             // Regex-Filterung
             if (regexMode && regexFilter != null && !regexFilter.isEmpty()) {
                 try {
                     Pattern pattern = Pattern.compile(regexFilter, Pattern.CASE_INSENSITIVE);
-                    if (!pattern.matcher(fileName).find()) {
+                    if (!pattern.matcher(docxFile.getFileName()).find()) {
                         return false;
                     }
                 } catch (Exception e) {
@@ -464,10 +519,19 @@ public class MainController implements Initializable {
             String regexFilter = cmbRegexFilter.getValue();
             Pattern pattern = Pattern.compile(regexFilter, Pattern.CASE_INSENSITIVE);
             
-            // Erstelle eine sortierte Liste der verfügbaren Dateien
-            List<DocxFile> sortedList = new ArrayList<>(availableFiles);
+            // Erstelle eine sortierte Liste der verfügbaren Dateien (nur ohne MD)
+            List<DocxFile> availableWithoutMd = new ArrayList<>();
+            for (DocxFile docxFile : originalDocxFiles) {
+                File mdFile = deriveMdFileFor(docxFile.getFile());
+                boolean hasMdFile = mdFile != null && mdFile.exists();
+                
+                if (!hasMdFile) {
+                    availableWithoutMd.add(docxFile);
+                }
+            }
             
-            sortedList.sort((file1, file2) -> {
+            // Sortiere nur die verfügbaren Dateien
+            availableWithoutMd.sort((file1, file2) -> {
                 String name1 = file1.getFileName();
                 String name2 = file2.getFileName();
                 
@@ -486,10 +550,9 @@ public class MainController implements Initializable {
                 }
             });
             
-            // Ersetze nur die verfügbaren Dateien mit der sortierten Version
+            // Ersetze die verfügbaren Dateien mit der sortierten Version
             allDocxFiles.clear();
-            allDocxFiles.addAll(sortedList);
-            allDocxFiles.addAll(selectedDocxFiles);
+            allDocxFiles.addAll(availableWithoutMd);
             
             updateStatus("Gefilterte Ergebnisse automatisch sortiert");
             
@@ -501,14 +564,213 @@ public class MainController implements Initializable {
     private void restoreOriginalOrder() {
         try {
             // Stelle die ursprüngliche Reihenfolge wieder her
+            // Aber behalte die Trennung: Dateien mit MD rechts, ohne MD links
             allDocxFiles.clear();
-            allDocxFiles.addAll(originalDocxFiles);
+            
+            // Füge Dateien in ursprünglicher Reihenfolge hinzu
+            for (DocxFile docxFile : originalDocxFiles) {
+                File mdFile = deriveMdFileFor(docxFile.getFile());
+                boolean hasMdFile = mdFile != null && mdFile.exists();
+                
+                if (hasMdFile) {
+                    // Datei hat MD - nach rechts (egal ob geändert oder nicht)
+                    if (!selectedDocxFiles.contains(docxFile)) {
+                        selectedDocxFiles.add(docxFile);
+                    }
+                } else {
+                    // Datei hat keine MD - nach links
+                    allDocxFiles.add(docxFile);
+                }
+            }
             
             updateStatus("Ursprüngliche Reihenfolge wiederhergestellt");
             
         } catch (Exception e) {
             logger.warn("Fehler beim Wiederherstellen der ursprünglichen Reihenfolge: {}", e.getMessage());
         }
+    }
+    
+    private void startFileWatcher(File directory) {
+        try {
+            // Stoppe vorherige Überwachung
+            stopFileWatcher();
+            
+            // Erstelle neuen WatchService
+            watchService = java.nio.file.FileSystems.getDefault().newWatchService();
+            java.nio.file.Path dirPath = directory.toPath();
+            
+            // Registriere für Datei-Änderungen
+            dirPath.register(watchService, 
+                java.nio.file.StandardWatchEventKinds.ENTRY_CREATE,
+                java.nio.file.StandardWatchEventKinds.ENTRY_DELETE,
+                java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY);
+            
+            // Starte Überwachungs-Thread
+            watchRunning = true;
+            watchThread = new Thread(() -> {
+                try {
+                    while (watchRunning) {
+                        java.nio.file.WatchKey key = watchService.take();
+                        
+                        for (java.nio.file.WatchEvent<?> event : key.pollEvents()) {
+                            java.nio.file.WatchEvent.Kind<?> kind = event.kind();
+                            
+                            if (kind == java.nio.file.StandardWatchEventKinds.OVERFLOW) {
+                                continue;
+                            }
+                            
+                            @SuppressWarnings("unchecked")
+                            java.nio.file.WatchEvent<java.nio.file.Path> ev = 
+                                (java.nio.file.WatchEvent<java.nio.file.Path>) event;
+                            java.nio.file.Path fileName = ev.context();
+                            
+                            // Nur auf DOCX-Dateien reagieren
+                            if (fileName.toString().toLowerCase().endsWith(".docx")) {
+                                logger.info("DOCX-Datei-Änderung erkannt: {} - {}", kind.name(), fileName);
+                                
+                                // Kurze Verzögerung für überschriebene Dateien
+                                Thread.sleep(100);
+                                
+                                // Aktualisiere UI im JavaFX-Thread
+                                javafx.application.Platform.runLater(() -> {
+                                    refreshDocxFiles();
+                                });
+                                
+                                // Nur einmal pro Änderung aktualisieren
+                                break;
+                            }
+                        }
+                        
+                        if (!key.reset()) {
+                            break;
+                        }
+                    }
+                } catch (InterruptedException e) {
+                    logger.info("Datei-Überwachung unterbrochen");
+                } catch (Exception e) {
+                    logger.error("Fehler in der Datei-Überwachung", e);
+                }
+            });
+            
+            watchThread.setDaemon(true);
+            watchThread.start();
+            
+            logger.info("Automatische Datei-Überwachung gestartet für: {}", directory.getAbsolutePath());
+            
+        } catch (Exception e) {
+            logger.error("Fehler beim Starten der Datei-Überwachung", e);
+        }
+    }
+    
+    private void stopFileWatcher() {
+        logger.info("Stoppe File Watcher...");
+        watchRunning = false;
+        
+        if (watchThread != null) {
+            watchThread.interrupt();
+            try {
+                // Warte maximal 2 Sekunden auf Thread-Ende
+                watchThread.join(2000);
+                if (watchThread.isAlive()) {
+                    logger.warn("WatchThread konnte nicht beendet werden - erzwinge Beendigung");
+                }
+            } catch (InterruptedException e) {
+                logger.warn("Interrupted beim Warten auf WatchThread-Ende");
+                Thread.currentThread().interrupt();
+            }
+            watchThread = null;
+        }
+        
+        if (watchService != null) {
+            try {
+                watchService.close();
+                logger.info("WatchService erfolgreich geschlossen");
+            } catch (Exception e) {
+                logger.error("Fehler beim Schließen des WatchService", e);
+            }
+            watchService = null;
+        }
+        
+        logger.info("File Watcher gestoppt");
+    }
+    
+    public void refreshDocxFiles() {
+        try {
+            String currentPath = txtDirectoryPath.getText();
+            if (currentPath != null && !currentPath.isEmpty()) {
+                File directory = new File(currentPath);
+                if (directory.exists() && directory.isDirectory()) {
+                    // Lade Dateien neu (inkl. gespeicherter Reihenfolge)
+                    loadDocxFiles(directory);
+                    
+                    // Sofortige Hash-basierte Änderungsprüfung für ALLE DOCX-Dateien
+                    for (DocxFile docxFile : allDocxFiles) {
+                        File mdFile = deriveMdFileFor(docxFile.getFile());
+                        if (mdFile != null && mdFile.exists()) {
+                            // Hash-basierte Erkennung nur wenn Datei noch nicht als "nicht geändert" markiert ist
+                            if (docxFile.isChanged()) {
+                                String currentHash = calculateFileHash(docxFile.getFile());
+                                String savedHash = loadDocxHash(docxFile.getFile());
+                                
+                                if (currentHash != null && savedHash != null && !currentHash.equals(savedHash)) {
+                                    docxFile.setChanged(true);
+                                    logger.info("DOCX geändert erkannt: {} (Hash unterschiedlich)", docxFile.getFileName());
+                                    // NICHT den neuen Hash speichern - behalte den alten für Vergleich
+                                } else if (currentHash != null && savedHash == null) {
+                                    docxFile.setChanged(true);
+                                    logger.info("DOCX neu erkannt: {} (kein gespeicherter Hash)", docxFile.getFileName());
+                                    // Hash speichern für erste Verarbeitung
+                                    saveDocxHash(docxFile.getFile(), currentHash);
+                                } else {
+                                    docxFile.setChanged(false);
+                                    logger.info("DOCX unverändert erkannt: {} (Hash gleich)", docxFile.getFileName());
+                                    // Hash nur speichern wenn unverändert
+                                    saveDocxHash(docxFile.getFile(), currentHash);
+                                }
+                            }
+                        }
+                    }
+                    
+                    // UI aktualisieren nach Hash-Erkennung
+                    Platform.runLater(() -> {
+                        // Aktualisiere die Tabellen
+                        tableViewAvailable.refresh();
+                        tableViewSelected.refresh();
+                        
+                        // Aktualisiere die Filter
+                        applyFilters();
+                    });
+                    
+                    updateStatus("DOCX-Dateien automatisch aktualisiert");
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Fehler beim automatischen Aktualisieren der DOCX-Dateien", e);
+        }
+    }
+    
+    // checkAndMarkDocxChanges wurde in loadDocxFiles integriert
+    
+    private File deriveMdFileFor(File docx) {
+        if (docx == null) return null;
+        String baseName = docx.getName();
+        int idx = baseName.lastIndexOf('.');
+        if (idx > 0) baseName = baseName.substring(0, idx);
+        return new File(docx.getParentFile(), baseName + ".md");
+    }
+    
+    private File deriveSidecarFileFor(File docx, DocxProcessor.OutputFormat format) {
+        if (docx == null) return null;
+        String baseName = docx.getName();
+        int idx = baseName.lastIndexOf('.');
+        if (idx > 0) baseName = baseName.substring(0, idx);
+        String ext;
+        switch (format) {
+            case MARKDOWN: ext = ".md"; break;
+            case PLAIN_TEXT: ext = ".txt"; break;
+            case HTML: default: ext = ".html"; break;
+        }
+        return new File(docx.getParentFile(), baseName + ext);
     }
     
     private Integer extractNumberFromPattern(String fileName, Pattern pattern) {
@@ -527,6 +789,84 @@ public class MainController implements Initializable {
             logger.debug("Konnte keine Zahl aus '{}' extrahieren: {}", fileName, e.getMessage());
         }
         return null;
+    }
+    
+    /**
+     * Berechnet einen CRC32-Hash für eine Datei
+     */
+    private String calculateFileHash(File file) {
+        long hash = DiffProcessor.calculateFileHash(file);
+        return hash != -1 ? Long.toHexString(hash) : null;
+    }
+    
+    /**
+     * Speichert den Hash einer DOCX-Datei in einer .meta Datei
+     */
+    private void saveDocxHash(File docxFile, String hash) {
+        try {
+            File metaFile = new File(docxFile.getParentFile(), docxFile.getName() + ".meta");
+            java.nio.file.Files.write(metaFile.toPath(), hash.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            logger.debug("Hash gespeichert für {}: {}", docxFile.getName(), hash);
+        } catch (Exception e) {
+            logger.error("Fehler beim Speichern des Hash für {}: {}", docxFile.getName(), e.getMessage());
+        }
+    }
+    
+    /**
+     * Lädt den gespeicherten Hash einer DOCX-Datei
+     */
+    private String loadDocxHash(File docxFile) {
+        try {
+            File metaFile = new File(docxFile.getParentFile(), docxFile.getName() + ".meta");
+            if (metaFile.exists()) {
+                String hash = new String(java.nio.file.Files.readAllBytes(metaFile.toPath()), java.nio.charset.StandardCharsets.UTF_8);
+                logger.debug("Hash geladen für {}: {}", docxFile.getName(), hash);
+                return hash;
+            }
+        } catch (Exception e) {
+            logger.error("Fehler beim Laden des Hash für {}: {}", docxFile.getName(), e.getMessage());
+        }
+        return null;
+    }
+    
+    /**
+     * Aktualisiert den Hash einer DOCX-Datei nach erfolgreicher Übernahme
+     */
+    public void updateDocxHashAfterAccept(File docxFile) {
+        try {
+            String currentHash = calculateFileHash(docxFile);
+            if (currentHash != null) {
+                saveDocxHash(docxFile, currentHash);
+                logger.info("Hash aktualisiert nach Übernahme für: {}", docxFile.getName());
+            }
+        } catch (Exception e) {
+            logger.error("Fehler beim Aktualisieren des Hash für {}: {}", docxFile.getName(), e.getMessage());
+        }
+    }
+    
+    /**
+     * Markiert eine DOCX-Datei als unverändert (entfernt das "!")
+     */
+    public void markDocxFileAsUnchanged(File docxFile) {
+        try {
+            // Finde die entsprechende DocxFile in der Liste
+            for (DocxFile file : allDocxFiles) {
+                if (file.getFile().equals(docxFile)) {
+                    file.setChanged(false);
+                    logger.info("DOCX-Datei als unverändert markiert: {}", docxFile.getName());
+                    break;
+                }
+            }
+            
+            // Aktualisiere die UI
+            Platform.runLater(() -> {
+                tableViewAvailable.refresh();
+                tableViewSelected.refresh();
+            });
+            
+        } catch (Exception e) {
+            logger.error("Fehler beim Markieren der DOCX-Datei als unverändert: {}", e.getMessage());
+        }
     }
     
 
@@ -649,12 +989,31 @@ public class MainController implements Initializable {
                 format = DocxProcessor.OutputFormat.MARKDOWN; // Standard
             }
             
-            String content = docxProcessor.processDocxFileContent(chapterFile.getFile(), 1, format);
+            // Prüfe ob eine MD-Datei existiert
+            File mdFile = deriveMdFileFor(chapterFile.getFile());
             
-            // Öffne Chapter-Editor für dieses Kapitel
-            openChapterEditorWindow(content, chapterFile, format);
-            
-            updateStatus("Kapitel-Editor geöffnet: " + chapterFile.getFileName());
+            if (mdFile != null && mdFile.exists()) {
+                // MD-Datei existiert - lade MD-Inhalt
+                try {
+                    String mdContent = new String(java.nio.file.Files.readAllBytes(mdFile.toPath()), java.nio.charset.StandardCharsets.UTF_8);
+                    
+                    // Öffne Chapter-Editor mit MD-Inhalt (ohne Zwangsdiff)
+                    openChapterEditorWindow(mdContent, chapterFile, format);
+                    updateStatus("Kapitel-Editor geöffnet (MD): " + chapterFile.getFileName());
+                    
+                } catch (Exception e) {
+                    logger.error("Fehler beim Laden der MD-Datei", e);
+                    // Fallback: Lade DOCX-Inhalt
+                    String content = docxProcessor.processDocxFileContent(chapterFile.getFile(), 1, format);
+                    openChapterEditorWindow(content, chapterFile, format);
+                    updateStatus("Kapitel-Editor geöffnet (DOCX-Fallback): " + chapterFile.getFileName());
+                }
+            } else {
+                // Keine MD-Datei - lade DOCX-Inhalt
+                String content = docxProcessor.processDocxFileContent(chapterFile.getFile(), 1, format);
+                openChapterEditorWindow(content, chapterFile, format);
+                updateStatus("Kapitel-Editor geöffnet (DOCX): " + chapterFile.getFileName());
+            }
             
         } catch (Exception e) {
             logger.error("Fehler beim Öffnen des Kapitel-Editors", e);
@@ -663,12 +1022,370 @@ public class MainController implements Initializable {
         }
     }
     
+
+    
+    private void showDetailedDiffDialog(DocxFile chapterFile, File mdFile, DiffProcessor.DiffResult diffResult, 
+                                      DocxProcessor.OutputFormat format) {
+        try {
+            // Erstelle Diff-Fenster
+            Stage diffStage = new Stage();
+            diffStage.setTitle("Diff: " + chapterFile.getFileName());
+            diffStage.initModality(Modality.APPLICATION_MODAL);
+            diffStage.initOwner(primaryStage);
+            
+            VBox diffRoot = new VBox(10);
+            diffRoot.setPadding(new Insets(15));
+            diffRoot.setPrefWidth(1400);
+            diffRoot.setPrefHeight(800);
+            
+            Label titleLabel = new Label("Änderungen in " + chapterFile.getFileName());
+            titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #2c3e50;");
+            
+            // Lade beide Versionen
+            String mdContent = new String(java.nio.file.Files.readAllBytes(mdFile.toPath()), java.nio.charset.StandardCharsets.UTF_8);
+            String docxContent = docxProcessor.processDocxFileContent(chapterFile.getFile(), 1, format);
+            
+            // Erstelle SplitPane für nebeneinander Anzeige
+            SplitPane splitPane = new SplitPane();
+            splitPane.setPrefHeight(650);
+            splitPane.setStyle("-fx-background-color: #f8f9fa;");
+            
+            // Linke Seite: Aktuelle Version (MD)
+            VBox leftBox = new VBox(5);
+            leftBox.setStyle("-fx-background-color: white; -fx-border-color: #dee2e6; -fx-border-width: 1;");
+            leftBox.setPadding(new Insets(10));
+            
+            Label leftLabel = new Label("📄 Aktuelle Version (MD)");
+            leftLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #495057;");
+            
+            ScrollPane leftScrollPane = new ScrollPane();
+            VBox leftContentBox = new VBox(0);
+            leftContentBox.setPadding(new Insets(5));
+            
+            // Rechte Seite: Neue Version (DOCX) mit Checkboxen
+            VBox rightBox = new VBox(5);
+            rightBox.setStyle("-fx-background-color: white; -fx-border-color: #dee2e6; -fx-border-width: 1;");
+            rightBox.setPadding(new Insets(10));
+            
+            Label rightLabel = new Label("📝 Neue Version (DOCX) - Wähle Änderungen aus:");
+            rightLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #495057;");
+            
+            ScrollPane rightScrollPane = new ScrollPane();
+            VBox rightContentBox = new VBox(0);
+            rightContentBox.setPadding(new Insets(5));
+            
+            // Verwende echte DiffProcessor-Logik für intelligente Block-Erkennung
+            List<CheckBox> blockCheckBoxes = new ArrayList<>();
+            List<List<String>> blockTexts = new ArrayList<>();
+            
+            // Erstelle echten Diff mit Block-Erkennung
+            DiffProcessor.DiffResult realDiff = DiffProcessor.createDiff(mdContent, docxContent);
+            
+            // Gruppiere zusammenhängende Änderungen zu Blöcken
+            List<DiffBlock> blocks = groupIntoBlocks(realDiff.getDiffLines());
+            
+            // Erstelle synchronisierte Anzeige basierend auf Blöcken
+            int leftLineNumber = 1;
+            int rightLineNumber = 1;
+            
+            for (DiffBlock block : blocks) {
+                // Checkbox nur für grüne Blöcke (ADDED)
+                CheckBox blockCheckBox = null;
+                if (block.getType() == DiffBlockType.ADDED) {
+                    blockCheckBox = new CheckBox();
+                    blockCheckBox.setSelected(false); // Standardmäßig ungecheckt
+                    blockCheckBoxes.add(blockCheckBox);
+                    
+                    List<String> blockTextList = new ArrayList<>();
+                    for (DiffProcessor.DiffLine line : block.getLines()) {
+                        blockTextList.add(line.getNewText());
+                    }
+                    blockTexts.add(blockTextList);
+                }
+                
+                // Erstelle Zeilen für diesen Block
+                for (DiffProcessor.DiffLine diffLine : block.getLines()) {
+                    HBox leftLineBox = new HBox(5);
+                    HBox rightLineBox = new HBox(5);
+                    
+                    // Zeilennummern
+                    Label leftLineNum = new Label(String.format("%3d", leftLineNumber));
+                    leftLineNum.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 10px; -fx-text-fill: #6c757d; -fx-min-width: 30px; -fx-alignment: center-right;");
+                    
+                    Label rightLineNum = new Label(String.format("%3d", rightLineNumber));
+                    rightLineNum.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 10px; -fx-text-fill: #6c757d; -fx-min-width: 30px; -fx-alignment: center-right;");
+                    
+                    // Linke Seite (MD)
+                    Label leftLineLabel = new Label(diffLine.getOriginalText());
+                    leftLineLabel.setWrapText(true);
+                    leftLineLabel.setPrefWidth(600);
+                    leftLineLabel.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px;");
+                    
+                    // Rechte Seite (DOCX) - Checkbox nur am Anfang des Blocks
+                    Label rightLineLabel = new Label(diffLine.getNewText());
+                    rightLineLabel.setWrapText(true);
+                    rightLineLabel.setPrefWidth(600);
+                    rightLineLabel.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px;");
+                    
+                    // Markiere basierend auf Block-Typ
+                    switch (block.getType()) {
+                        case ADDED:
+                            // Neuer Block - nur rechts sichtbar
+                            leftLineLabel.setText("");
+                            leftLineNum.setText("");
+                            leftLineLabel.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px; -fx-background-color: #d4edda; -fx-text-fill: #155724;");
+                            rightLineLabel.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px; -fx-background-color: #d4edda; -fx-text-fill: #155724; -fx-font-weight: bold;");
+                            rightLineNum.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 10px; -fx-text-fill: #28a745; -fx-min-width: 30px; -fx-alignment: center-right; -fx-font-weight: bold;");
+                            rightLineNumber++;
+                            break;
+                            
+                        case DELETED:
+                            // Gelöschter Block - links rot, rechts leer aber sichtbar
+                            rightLineLabel.setText("");
+                            rightLineNum.setText("");
+                            leftLineLabel.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px; -fx-background-color: #f8d7da; -fx-text-fill: #721c24; -fx-font-weight: bold;");
+                            leftLineNum.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 10px; -fx-text-fill: #dc3545; -fx-min-width: 30px; -fx-alignment: center-right; -fx-font-weight: bold;");
+                            rightLineLabel.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px; -fx-background-color: #f8d7da; -fx-text-fill: #721c24;");
+                            rightLineNum.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 10px; -fx-text-fill: #dc3545; -fx-min-width: 30px; -fx-alignment: center-right;");
+                            leftLineNumber++;
+                            break;
+                            
+                        case UNCHANGED:
+                            // Unveränderter Block
+                            leftLineLabel.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px; -fx-text-fill: #212529;");
+                            rightLineLabel.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px; -fx-text-fill: #212529;");
+                            leftLineNumber++;
+                            rightLineNumber++;
+                            break;
+                    }
+                    
+                    leftLineBox.getChildren().addAll(leftLineNum, leftLineLabel);
+                    
+                    // Checkbox RECHTS vertikal zentriert am Ende des Blocks
+                    if (blockCheckBox != null && block.getLines().indexOf(diffLine) == block.getLines().size() - 1) {
+                        // Container für vertikal zentrierte Checkbox
+                        VBox checkboxContainer = new VBox();
+                        checkboxContainer.setAlignment(Pos.CENTER);
+                        checkboxContainer.setMinWidth(30);
+                        checkboxContainer.setMaxWidth(30);
+                        checkboxContainer.getChildren().add(blockCheckBox);
+                        
+                        rightLineBox.getChildren().addAll(rightLineNum, rightLineLabel, checkboxContainer);
+                    } else {
+                        rightLineBox.getChildren().addAll(rightLineNum, rightLineLabel);
+                    }
+                    
+                    leftContentBox.getChildren().add(leftLineBox);
+                    rightContentBox.getChildren().add(rightLineBox);
+                }
+            }
+            
+            // Synchronisiere Scrollbars
+            leftScrollPane.vvalueProperty().bindBidirectional(rightScrollPane.vvalueProperty());
+            leftScrollPane.hvalueProperty().bindBidirectional(rightScrollPane.hvalueProperty());
+            
+            leftScrollPane.setContent(leftContentBox);
+            leftScrollPane.setFitToWidth(true);
+            leftScrollPane.setPrefHeight(600);
+            leftScrollPane.setStyle("-fx-background-color: transparent;");
+            
+            rightScrollPane.setContent(rightContentBox);
+            rightScrollPane.setFitToWidth(true);
+            rightScrollPane.setPrefHeight(600);
+            rightScrollPane.setStyle("-fx-background-color: transparent;");
+            
+            leftBox.getChildren().addAll(leftLabel, leftScrollPane);
+            rightBox.getChildren().addAll(rightLabel, rightScrollPane);
+            
+            splitPane.getItems().addAll(leftBox, rightBox);
+            splitPane.setDividerPositions(0.5);
+            
+            // Button-Box
+            HBox buttonBox = new HBox(15);
+            buttonBox.setAlignment(Pos.CENTER);
+            buttonBox.setPadding(new Insets(15, 0, 0, 0));
+            
+            Button btnApplySelected = new Button("✅ Ausgewählte Änderungen übernehmen");
+            btnApplySelected.setStyle("-fx-background-color: #28a745; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8px 16px;");
+            
+            Button btnAcceptAll = new Button("🔄 Alle Änderungen übernehmen");
+            btnAcceptAll.setStyle("-fx-background-color: #007bff; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8px 16px;");
+            
+            Button btnKeepCurrent = new Button("💾 Aktuelle Version behalten");
+            btnKeepCurrent.setStyle("-fx-background-color: #6c757d; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8px 16px;");
+            
+            Button btnCancel = new Button("❌ Abbrechen");
+            btnCancel.setStyle("-fx-background-color: #dc3545; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8px 16px;");
+            
+            btnApplySelected.setOnAction(e -> {
+                try {
+                    // Erstelle neuen Inhalt basierend auf ausgewählten Blöcken
+                    StringBuilder newContent = new StringBuilder();
+                    for (int i = 0; i < blockCheckBoxes.size(); i++) {
+                        if (blockCheckBoxes.get(i).isSelected()) {
+                            List<String> blockTextList = blockTexts.get(i);
+                            for (String text : blockTextList) {
+                                if (!text.isEmpty()) {
+                                    newContent.append(text).append("\n");
+                                }
+                            }
+                        }
+                    }
+                    
+                    openChapterEditorWindow(newContent.toString(), chapterFile, format);
+                    chapterFile.setChanged(false);
+                    updateDocxHashAfterAccept(chapterFile.getFile());
+                    diffStage.close();
+                } catch (Exception ex) {
+                    logger.error("Fehler beim Übernehmen der ausgewählten Änderungen", ex);
+                    showError("Fehler", ex.getMessage());
+                }
+            });
+            
+            btnAcceptAll.setOnAction(e -> {
+                try {
+                    openChapterEditorWindow(docxContent, chapterFile, format);
+                    chapterFile.setChanged(false);
+                    updateDocxHashAfterAccept(chapterFile.getFile());
+                    diffStage.close();
+                } catch (Exception ex) {
+                    logger.error("Fehler beim Übernehmen aller Änderungen", ex);
+                    showError("Fehler", ex.getMessage());
+                }
+            });
+            
+            btnKeepCurrent.setOnAction(e -> {
+                try {
+                    openChapterEditorWindow(mdContent, chapterFile, format);
+                    chapterFile.setChanged(false);
+                    updateDocxHashAfterAccept(chapterFile.getFile());
+                    diffStage.close();
+                } catch (Exception ex) {
+                    logger.error("Fehler beim Behalten der aktuellen Version", ex);
+                    showError("Fehler", ex.getMessage());
+                }
+            });
+            
+            btnCancel.setOnAction(e -> diffStage.close());
+            
+            buttonBox.getChildren().addAll(btnApplySelected, btnAcceptAll, btnKeepCurrent, btnCancel);
+            
+            diffRoot.getChildren().addAll(titleLabel, splitPane, buttonBox);
+            
+            Scene diffScene = new Scene(diffRoot);
+            // CSS wird über ResourceManager geladen
+            diffScene.getStylesheets().add(ResourceManager.getCssResource("config/css/styles.css"));
+            
+            // Theme anwenden
+            String currentTheme = ResourceManager.getParameter("ui.theme", "default");
+            diffRoot.getStyleClass().add("theme-" + currentTheme);
+            
+            diffStage.setScene(diffScene);
+            diffStage.showAndWait();
+            
+        } catch (Exception e) {
+            logger.error("Fehler beim Anzeigen des detaillierten Diff-Dialogs", e);
+            showError("Diff-Fehler", e.getMessage());
+        }
+    }
+    
+    /**
+     * Gruppiert Diff-Linien zu zusammenhängenden Blöcken
+     */
+    private List<DiffBlock> groupIntoBlocks(List<DiffProcessor.DiffLine> diffLines) {
+        List<DiffBlock> blocks = new ArrayList<>();
+        if (diffLines.isEmpty()) return blocks;
+        
+        DiffBlock currentBlock = new DiffBlock(diffLines.get(0).getType());
+        currentBlock.addLine(diffLines.get(0));
+        
+        for (int i = 1; i < diffLines.size(); i++) {
+            DiffProcessor.DiffLine line = diffLines.get(i);
+            
+            // Wenn der Typ sich ändert, erstelle einen neuen Block
+            if (line.getType() != convertToDiffType(currentBlock.getType())) {
+                blocks.add(currentBlock);
+                currentBlock = new DiffBlock(line.getType());
+            }
+            currentBlock.addLine(line);
+        }
+        
+        blocks.add(currentBlock);
+        return blocks;
+    }
+    
+    /**
+     * Repräsentiert einen zusammenhängenden Diff-Block
+     */
+    private static class DiffBlock {
+        private final DiffBlockType type;
+        private final List<DiffProcessor.DiffLine> lines = new ArrayList<>();
+        
+        public DiffBlock(DiffProcessor.DiffType type) {
+            this.type = convertDiffType(type);
+        }
+        
+        public void addLine(DiffProcessor.DiffLine line) {
+            lines.add(line);
+        }
+        
+        public DiffBlockType getType() {
+            return type;
+        }
+        
+        public List<DiffProcessor.DiffLine> getLines() {
+            return lines;
+        }
+        
+        private DiffBlockType convertDiffType(DiffProcessor.DiffType diffType) {
+            switch (diffType) {
+                case ADDED: return DiffBlockType.ADDED;
+                case DELETED: return DiffBlockType.DELETED;
+                case UNCHANGED: return DiffBlockType.UNCHANGED;
+                default: return DiffBlockType.UNCHANGED;
+            }
+        }
+    }
+    
+    /**
+     * Block-Typen für Diff-Blöcke
+     */
+    private enum DiffBlockType {
+        ADDED, DELETED, UNCHANGED
+    }
+    
+    /**
+     * Konvertiert DiffBlockType zu DiffProcessor.DiffType
+     */
+    private DiffProcessor.DiffType convertToDiffType(DiffBlockType blockType) {
+        switch (blockType) {
+            case ADDED: return DiffProcessor.DiffType.ADDED;
+            case DELETED: return DiffProcessor.DiffType.DELETED;
+            case UNCHANGED: return DiffProcessor.DiffType.UNCHANGED;
+            default: return DiffProcessor.DiffType.UNCHANGED;
+        }
+    }
+    
+    private String getFormatExtension(DocxProcessor.OutputFormat format) {
+        switch (format) {
+            case MARKDOWN: return "md";
+            case PLAIN_TEXT: return "txt";
+            case HTML: default: return "html";
+        }
+    }
+    
+    // autoSortFiles wurde in loadDocxFiles integriert
+    
     private void openChapterEditorWindow(String text, DocxFile chapterFile, DocxProcessor.OutputFormat format) {
         try {
+            logger.info("=== ÖFFNE EDITOR FENSTER START ===");
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/editor.fxml"));
+            logger.info("=== FXML LOADER ERSTELLT ===");
             Parent root = loader.load();
+            logger.info("=== FXML GELADEN ===");
             
             EditorWindow editorController = loader.getController();
+            logger.info("=== EDITOR CONTROLLER ERHALTEN: " + (editorController != null ? "JA" : "NEIN") + " ===");
             editorController.setText(text);
             editorController.setOutputFormat(format);
             
@@ -696,6 +1413,9 @@ public class MainController implements Initializable {
             String currentDirectory = txtDirectoryPath.getText();
             File chapterFileRef = new File(currentDirectory, chapterName + fileExtension);
             editorController.setCurrentFile(chapterFileRef);
+            
+            // WICHTIG: Stelle sicher, dass die MD-Datei existiert
+            editorController.ensureMdFileExists();
             
             // Übergebe den DocxProcessor für DOCX-Export
             editorController.setDocxProcessor(docxProcessor);
@@ -927,6 +1647,34 @@ public class MainController implements Initializable {
         
         // Hauptfenster-Properties laden und Event-Handler hinzufügen
         loadMainWindowProperties();
+        
+        // Stoppe WatchService beim Schließen und prüfe ob es das letzte Fenster ist
+        primaryStage.setOnCloseRequest(event -> {
+            // Speichere die aktuelle Auswahl
+            String dir = txtDirectoryPath.getText();
+            if (dir != null && !dir.isEmpty()) {
+                saveSelection(new java.io.File(dir));
+            }
+            
+            // Stoppe den File Watcher
+            stopFileWatcher();
+            
+            // Prüfe ob noch andere Fenster offen sind
+            boolean hasOtherWindows = false;
+            for (Window window : Window.getWindows()) {
+                if (window != primaryStage && window.isShowing()) {
+                    hasOtherWindows = true;
+                    break;
+                }
+            }
+            
+            // Wenn keine anderen Fenster offen sind, beende das Programm
+            if (!hasOtherWindows) {
+                logger.info("Letztes Fenster geschlossen - beende Programm");
+                Platform.exit();
+                System.exit(0);
+            }
+        });
     }
     
     // Recent Regex List Management
@@ -1007,31 +1755,36 @@ public class MainController implements Initializable {
             .collect(Collectors.toList());
     }
 
-    private void loadSelection(File directory) {
+    private void loadSavedOrder(File directory) {
         try {
             if (directory == null) return;
             Path jsonPath = directory.toPath().resolve(".manuskript_selection.json");
             if (!Files.exists(jsonPath)) return;
+            
             String json = new String(Files.readAllBytes(jsonPath));
             Type listType = new TypeToken<List<String>>(){}.getType();
-            List<String> selectedNames = new Gson().fromJson(json, listType);
-            // Nur existierende Dateien übernehmen
-            List<DocxFile> toSelect = new ArrayList<>();
-            for (String name : selectedNames) {
-                for (DocxFile docx : allDocxFiles) {
-                    if (docx.getFileName().equals(name)) {
-                        toSelect.add(docx);
+            List<String> savedOrder = new Gson().fromJson(json, listType);
+            
+            // Stelle die gespeicherte Reihenfolge wieder her
+            selectedDocxFiles.clear();
+            
+            for (String fileName : savedOrder) {
+                for (DocxFile docxFile : allDocxFiles) {
+                    if (docxFile.getFileName().equals(fileName)) {
+                        // Prüfe ob die Datei noch eine MD-Datei hat
+                        File mdFile = deriveMdFileFor(docxFile.getFile());
+                        if (mdFile != null && mdFile.exists()) {
+                            selectedDocxFiles.add(docxFile);
+                        }
                         break;
                     }
                 }
             }
-            selectedDocxFiles.clear();
-            selectedDocxFiles.addAll(toSelect);
-            // Entferne ausgewählte aus links
-            availableFiles.setPredicate(docxFile -> !selectedDocxFiles.contains(docxFile));
-            logger.info("Dateiauswahl geladen: {}", jsonPath);
+            
+            logger.info("Gespeicherte Reihenfolge geladen: {} Dateien", selectedDocxFiles.size());
+            
         } catch (Exception e) {
-            logger.warn("Fehler beim Laden der Dateiauswahl", e);
+            logger.warn("Fehler beim Laden der gespeicherten Reihenfolge", e);
         }
     }
     

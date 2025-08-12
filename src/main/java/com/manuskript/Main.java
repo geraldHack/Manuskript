@@ -41,13 +41,7 @@ public class Main extends Application {
             primaryStage.setScene(scene);
             primaryStage.setMinWidth(800);
             primaryStage.setMinHeight(600);
-            // Speichern der Dateiauswahl beim Beenden
-            primaryStage.setOnCloseRequest(event -> {
-                String dir = controller.getTxtDirectoryPath().getText();
-                if (dir != null && !dir.isEmpty()) {
-                    controller.saveSelection(new java.io.File(dir));
-                }
-            });
+            // WICHTIG: Kein setOnCloseRequest hier - wird in MainController.setPrimaryStage() behandelt
             primaryStage.show();
             
             logger.info("Anwendung erfolgreich gestartet");

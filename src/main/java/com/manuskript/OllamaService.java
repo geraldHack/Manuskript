@@ -46,6 +46,8 @@ public class OllamaService {
     private int maxTokens = 2048;
     private double topP = 0.7;  // Reduziert für mehr Fokus und Sprachkontrolle
     private double repeatPenalty = 1.3;  // Erhöht für bessere Sprachkontrolle
+    private int httpConnectTimeoutSeconds = 30;  // Aus Properties
+    private int httpRequestTimeoutSeconds = 180; // Aus Properties
     
     // Chat-Session-Management
     private Map<String, ChatSession> chatSessions = new HashMap<>();
@@ -147,7 +149,7 @@ public class OllamaService {
         logger.info("DEBUG: OllamaService Konstruktor aufgerufen");
         
         this.httpClient = HttpClient.newBuilder()
-                .connectTimeout(Duration.ofSeconds(30))
+                .connectTimeout(Duration.ofSeconds(httpConnectTimeoutSeconds))
                 .version(HttpClient.Version.HTTP_1_1)
                 .followRedirects(HttpClient.Redirect.NORMAL)
                 .build();
@@ -168,6 +170,8 @@ public class OllamaService {
         int tokens = ResourceManager.getIntParameter("ollama.max_tokens", 2048);
         double topP = ResourceManager.getDoubleParameter("ollama.top_p", 0.7);
         double penalty = ResourceManager.getDoubleParameter("ollama.repeat_penalty", 1.3);
+        int connectTimeout = ResourceManager.getIntParameter("ollama.http_connect_timeout_secs", 30);
+        int requestTimeout = ResourceManager.getIntParameter("ollama.http_request_timeout_secs", 180);
         
         logger.info("DEBUG: Geladene Werte - Temperature: " + temp + ", MaxTokens: " + tokens + ", TopP: " + topP + ", RepeatPenalty: " + penalty);
         
@@ -175,8 +179,11 @@ public class OllamaService {
         this.maxTokens = tokens;
         this.topP = topP;
         this.repeatPenalty = penalty;
+        this.httpConnectTimeoutSeconds = Math.max(1, connectTimeout);
+        this.httpRequestTimeoutSeconds = Math.max(1, requestTimeout);
         
         logger.info("Parameter aus properties.properties geladen: " + getCurrentParameters());
+        logger.info("HTTP Timeouts: connect=" + httpConnectTimeoutSeconds + "s, request=" + httpRequestTimeoutSeconds + "s");
     }
     
     /**
@@ -312,28 +319,6 @@ public class OllamaService {
         }
         
         // Korrekte JSON-Formatierung mit Escaping
-        // Debug: Prompt mit Erklärungen auf stdout ausgeben (gekürzt, um Log zu schonen)
-        try {
-            System.out.println("=== PROMPT DEBUG ===");
-            String[] parts = fullPrompt.split("\\n\\nAnweisung:\\n", 2);
-            if (parts.length == 2) {
-                // Kontext nicht komplett dumpen: nur Länge + ersten/letzten Ausschnitt
-                String ctx = parts[0];
-                System.out.println("[KONTEXT] Länge=" + ctx.length());
-                if (ctx.length() > 600) {
-                    String head = ctx.substring(0, 300);
-                    String tail = ctx.substring(ctx.length() - 300);
-                    System.out.println(head + "\n...\n" + tail);
-                } else {
-                    System.out.println(ctx);
-                }
-                System.out.println("\n[ANWEISUNG]\n" + (parts[1].length() > 2000 ? parts[1].substring(0, 2000) + "..." : parts[1]));
-            } else {
-                System.out.println("[VOLLER PROMPT]\n" + (fullPrompt.length() > 4000 ? fullPrompt.substring(0, 4000) + "..." : fullPrompt));
-            }
-            System.out.println("[PARAMETER] model=" + currentModel + ", maxTokens=" + maxTokens + ", temp=" + temperature + ", top_p=" + topP + ", repeat_penalty=" + repeatPenalty);
-            System.out.println("=== END PROMPT DEBUG ===");
-        } catch (Exception ignored) {}
 
         String escapedPrompt = escapeJson(fullPrompt);
         String json = String.format(
@@ -548,7 +533,7 @@ public class OllamaService {
                     .uri(URI.create(OLLAMA_BASE_URL + GENERATE_ENDPOINT))
                     .header("Content-Type", "application/json")
                     .POST(HttpRequest.BodyPublishers.ofString(json))
-                    .timeout(Duration.ofSeconds(180))
+                    .timeout(Duration.ofSeconds(httpRequestTimeoutSeconds))
                     .build();
 
             CompletableFuture<HttpResponse<InputStream>> fut = httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofInputStream());
@@ -983,7 +968,7 @@ public class OllamaService {
                 HttpRequest request = HttpRequest.newBuilder()
                         .uri(URI.create(OLLAMA_BASE_URL + endpoint))
                         .GET()
-                        .timeout(Duration.ofSeconds(30))
+                        .timeout(Duration.ofSeconds(httpRequestTimeoutSeconds))
                         .build();
                 
                 HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
@@ -1010,7 +995,7 @@ public class OllamaService {
                         .uri(URI.create(OLLAMA_BASE_URL + endpoint))
                         .header("Content-Type", "application/json")
                         .POST(HttpRequest.BodyPublishers.ofString(requestBody))
-                        .timeout(Duration.ofSeconds(60))
+                        .timeout(Duration.ofSeconds(httpRequestTimeoutSeconds))
                         .build();
                 
                 HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());

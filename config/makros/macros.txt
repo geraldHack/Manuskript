@@ -15,9 +15,9 @@ REPLACE_B64:XG4=
 REGEX:1
 CASE:0
 WORD:0
-ENABLED:1
+ENABLED:0
 STEPDESC:Mehrfache Leerzeilen reduzieren
-REPLACECOUNT:3814
+REPLACECOUNT:0
 STEP:3
 SEARCH:„
 REPLACE_B64:Ig==
@@ -26,7 +26,7 @@ CASE:0
 WORD:0
 ENABLED:1
 STEPDESC:Gerade Anführungszeichen öffnen
-REPLACECOUNT:13
+REPLACECOUNT:0
 STEP:4
 SEARCH:“
 REPLACE_B64:Ig==
@@ -35,7 +35,7 @@ CASE:0
 WORD:0
 ENABLED:1
 STEPDESC:Gerade Anführungszeichen schließen
-REPLACECOUNT:96
+REPLACECOUNT:0
 STEP:5
 SEARCH:,"
 REPLACE_B64:Iiw=
@@ -44,7 +44,7 @@ CASE:0
 WORD:0
 ENABLED:1
 STEPDESC:Komma vor Anführungszeichen I
-REPLACECOUNT:0
+REPLACECOUNT:12
 STEP:6
 SEARCH:'(.*?)'
 REPLACE_B64:4oC6JDHigLk=
@@ -53,7 +53,7 @@ CASE:0
 WORD:0
 ENABLED:1
 STEPDESC:Einfache Anführungszeichen Französisch
-REPLACECOUNT:9
+REPLACECOUNT:0
 STEP:7
 SEARCH:"(.*?)"
 REPLACE_B64:wrskMcKr
@@ -62,7 +62,7 @@ CASE:0
 WORD:0
 ENABLED:1
 STEPDESC:Anführungszeichen Französisch
-REPLACECOUNT:48
+REPLACECOUNT:74
 STEP:8
 SEARCH:...
 REPLACE_B64:4oCm
@@ -71,7 +71,7 @@ CASE:0
 WORD:0
 ENABLED:1
 STEPDESC:Auslassungszeichen
-REPLACECOUNT:38
+REPLACECOUNT:1
 STEP:9
 SEARCH:([A-Za-zÄÖÜäöüß])…
 REPLACE_B64:JDEgLi4u
@@ -80,7 +80,7 @@ CASE:0
 WORD:0
 ENABLED:1
 STEPDESC:Buchstabe direkt an Auslassungszeichen
-REPLACECOUNT:13
+REPLACECOUNT:0
 STEP:10
 SEARCH:(?<=…)(?=\p{L})
 REPLACE_B64:IA==
@@ -98,9 +98,9 @@ CASE:0
 WORD:0
 ENABLED:1
 STEPDESC:Gedankenstrich
-REPLACECOUNT:1
+REPLACECOUNT:0
 STEP:12
-SEARCH:,«
+SEARCH:,"«
 REPLACE_B64:wqss
 REGEX:0
 CASE:0
@@ -109,17 +109,26 @@ ENABLED:1
 STEPDESC:Komma vor Anführungszeichen
 REPLACECOUNT:0
 STEP:13
-SEARCH:«.
-REPLACE_B64:LsKr
+SEARCH:'(.*?)'
+REPLACE_B64:4oC6JDHigLk=
+REGEX:1
+CASE:0
+WORD:0
+ENABLED:1
+STEPDESC:Einfache Anführungszeichen Französisch
+REPLACECOUNT:0
+STEP:14
+SEARCH:—
+REPLACE_B64:4oCT
 REGEX:0
 CASE:0
 WORD:0
 ENABLED:1
-STEPDESC:Punkt nach Anführungszeichen
+STEPDESC:Geviertstrich zu Gedankenstrich
 REPLACECOUNT:0
 ENDMACRO
-MACRO:Französische → Deutsche Anführungszeichen
-DESC:Konvertiert französische zu deutschen Anführungszeichen
+MACRO:Französische → englische Anführungszeichen
+DESC:Konvertiert französische in englische Anführungszeichen
 STEP:1
 SEARCH:»(.*?)«
 REPLACE_B64:IiQxIg==
@@ -127,7 +136,7 @@ REGEX:1
 CASE:0
 WORD:0
 ENABLED:1
-STEPDESC:Französische zu deutsche Anführungszeichen
+STEPDESC:Französische zu englischen Anführungszeichen
 REPLACECOUNT:0
 STEP:2
 SEARCH:›(.*?)‹
@@ -136,11 +145,11 @@ REGEX:1
 CASE:0
 WORD:0
 ENABLED:1
-STEPDESC:Französische zu deutsche einfache Anführungszeichen
+STEPDESC:einfache französische zu englischen Anführungszeichen
 REPLACECOUNT:0
 ENDMACRO
-MACRO:Deutsche → Französische Anführungszeichen
-DESC:Konvertiert deutsche zu französischen Anführungszeichen
+MACRO:Englische → französische Anführungszeichen
+DESC:Konvertiert englische in französische Anführungszeichen
 STEP:1
 SEARCH:"(.*?)"
 REPLACE_B64:wrskMcKr
@@ -148,7 +157,7 @@ REGEX:1
 CASE:0
 WORD:0
 ENABLED:1
-STEPDESC:Deutsche zu französische Anführungszeichen
+STEPDESC:Englische in französische Anführungszeichen
 REPLACECOUNT:0
 STEP:2
 SEARCH:'(.*?)'
@@ -157,7 +166,7 @@ REGEX:1
 CASE:0
 WORD:0
 ENABLED:1
-STEPDESC:Deutsche zu französische einfache Anführungszeichen
+STEPDESC:einfache englische in französische Anführungszeichen
 REPLACECOUNT:0
 ENDMACRO
 MACRO:Apostrophe korrigieren
@@ -199,18 +208,45 @@ ENABLED:1
 STEPDESC:Typografisches Apostrophe korrigieren
 REPLACECOUNT:0
 ENDMACRO
-MACRO:Kapitelnamen finden und markieren (markdown)
+MACRO:Englische Anführungszeichen → Deutsche Anführungszeichen
 DESC:
 STEP:1
-SEARCH:^(?!\s*#)(.+[a-zA-ZäöüÄÖÜß)])$
-REPLACE_B64:IyAkMQ==
+SEARCH:"(.*?)"
+REPLACE_B64:4oCeJDHigJw=
 REGEX:1
 CASE:0
 WORD:0
 ENABLED:1
-STEPDESC:Findet Zeilen die ohne Satzzeichen enden außer ')'  und markiert sie
-REPLACECOUNT:14
+STEPDESC:Englische Anführungszeichen in deutsche Anführungszeichen
+REPLACECOUNT:0
+STEP:2
+SEARCH:'(.*?)'
+REPLACE_B64:4oCaJDHigJg=
+REGEX:1
+CASE:0
+WORD:0
+ENABLED:1
+STEPDESC:Einfache Englische Abführungszeichen → Detusche Anführungszeichen
+REPLACECOUNT:0
 ENDMACRO
-MACRO:Neues Makro
+MACRO:Detusche Anführungszeichen → Englische Anführungszeichen
 DESC:
+STEP:1
+SEARCH:„(.*?)“
+REPLACE_B64:IiQxIg==
+REGEX:1
+CASE:0
+WORD:0
+ENABLED:1
+STEPDESC:Deutsche Anführungszeichen in engliche Anführungszeichen
+REPLACECOUNT:0
+STEP:2
+SEARCH:‚(.*?)‘
+REPLACE_B64:JyQxJw==
+REGEX:1
+CASE:0
+WORD:0
+ENABLED:1
+STEPDESC:Einfache deutsche Anführungszeichen in englische
+REPLACECOUNT:0
 ENDMACRO
