@@ -977,6 +977,7 @@
     -fx-min-width: 25px;
     -fx-min-height: 25px;
     -fx-content-display: center; /* erzwinge Text/Graphic zentriert */
+    -fx-font-size: 14px !important; /* Größere Schrift für bessere Sichtbarkeit */
 }
 
 .help-button:hover { -fx-background-color: #0056b3 !important; }
@@ -989,6 +990,48 @@
 .blau-theme .help-button { -fx-background-color: #2563eb !important; -fx-text-fill: #ffffff !important; }
 .gruen-theme .help-button { -fx-background-color: #059669 !important; -fx-text-fill: #ffffff !important; }
 .lila-theme .help-button { -fx-background-color: #7c3aed !important; -fx-text-fill: #ffffff !important; }
+
+/* Spezielle Regel für den Regex-Hilfebutton - Text muss IMMER sichtbar sein */
+#btnRegexHelp {
+    -fx-text-fill: inherit !important;
+    -fx-font-weight: bold !important;
+    -fx-font-size: 14px !important;
+    -fx-content-display: center !important;
+}
+
+/* Theme-spezifische Regex-Hilfebutton-Regeln */
+.weiss-theme #btnRegexHelp { -fx-text-fill: #111827 !important; }
+.pastell-theme #btnRegexHelp { -fx-text-fill: #111827 !important; }
+.theme-dark #btnRegexHelp { -fx-text-fill: #ffffff !important; }
+.blau-theme #btnRegexHelp { -fx-text-fill: #ffffff !important; }
+.gruen-theme #btnRegexHelp { -fx-text-fill: #ffffff !important; }
+.lila-theme #btnRegexHelp { -fx-text-fill: #ffffff !important; }
+
+/* WICHTIG: Help-Buttons überschreiben .root .button Regeln */
+.root .help-button {
+    -fx-background-color: #007bff !important;
+    -fx-text-fill: white !important;
+    -fx-border-radius: 12px !important;
+    -fx-background-radius: 12px !important;
+    -fx-cursor: hand !important;
+    -fx-font-weight: bold !important;
+    -fx-min-width: 25px !important;
+    -fx-min-height: 25px !important;
+    -fx-content-display: center !important;
+    -fx-font-size: 14px !important;
+    -fx-padding: 4px !important;
+}
+
+.root .help-button:hover { -fx-background-color: #0056b3 !important; }
+.root .help-button:pressed { -fx-background-color: #004085 !important; }
+
+/* Theme-spezifische Help-Button-Regeln für .root */
+.root .weiss-theme .help-button { -fx-background-color: #e5e7eb !important; -fx-text-fill: #111827 !important; }
+.root .pastell-theme .help-button { -fx-background-color: #d1d5db !important; -fx-text-fill: #111827 !important; }
+.root .theme-dark .help-button { -fx-background-color: #4a5568 !important; -fx-text-fill: #ffffff !important; }
+.root .blau-theme .help-button { -fx-background-color: #2563eb !important; -fx-text-fill: #ffffff !important; }
+.root .gruen-theme .help-button { -fx-background-color: #059669 !important; -fx-text-fill: #ffffff !important; }
+.root .lila-theme .help-button { -fx-background-color: #7c3aed !important; -fx-text-fill: #ffffff !important; }
 
 /* Regex-Hilfe Fensterelemente */
 .regex-help { -fx-background-color: #ffffff; }

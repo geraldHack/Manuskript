@@ -18,32 +18,7 @@
          </padding>
       </HBox>
       
-      <!-- Filter und Sortierung -->
-      <VBox spacing="5">
-         <children>
-            <!-- Erste Zeile: Sortierung -->
-            <HBox spacing="10" alignment="CENTER_LEFT">
-               <children>
-                  <Label text="Sortieren nach:" />
-                  <ComboBox fx:id="cmbSortBy" prefWidth="150.0" />
-               </children>
-            </HBox>
-            
-            <!-- Zweite Zeile: Regex-Filter -->
-            <HBox spacing="10" alignment="CENTER_LEFT">
-               <children>
-                  <Label text="Regex-Filter:" />
-                  <ComboBox fx:id="cmbRegexFilter" promptText="z.B. *[0-9][0-9]* für Dateien mit zwei Ziffern" HBox.hgrow="ALWAYS" editable="true" />
-                  <CheckBox fx:id="chkRegexMode" text="Regex aktiv" />
-                  <Label text="Sortierung:" />
-                  <ComboBox fx:id="cmbRegexSort" prefWidth="120.0" />
-               </children>
-            </HBox>
-         </children>
-         <padding>
-            <Insets bottom="5.0" left="10.0" right="10.0" />
-         </padding>
-      </VBox>
+      <!-- Filter und Sortierung entfernt - einfache Lösung -->
       
       <!-- Zwei Tabellen nebeneinander -->
       <HBox spacing="10" VBox.vgrow="ALWAYS">
@@ -75,6 +50,7 @@
                <children>
                   <Label text="Ausgewählte Dateien:" styleClass="section-header" />
                   <Label text="Datei verschieben mit CTRL-Pfeiltaste" styleClass="info-text" />
+                  <Label text="Extern geänderte Dateien werden mit einem ! markiert" styleClass="info-text" />
                   <TableView fx:id="tableViewSelected" VBox.vgrow="ALWAYS">
                     <columns>
                       <TableColumn fx:id="colFileNameSelected" text="Dateiname" prefWidth="200.0" />
@@ -91,11 +67,9 @@
          </padding>
       </HBox>
       
-      <!-- Format-Auswahl und Aktions-Buttons -->
+      <!-- Aktions-Buttons -->
       <HBox spacing="10" alignment="CENTER_LEFT">
          <children>
-            <Label text="Ausgabeformat:" />
-            <ComboBox fx:id="cmbOutputFormat" prefWidth="220.0" />
             <Region HBox.hgrow="ALWAYS" />
             <Button fx:id="btnThemeToggle" text="🌙" prefWidth="50.0" prefHeight="35.0">
                 <tooltip>

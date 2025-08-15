@@ -674,7 +674,7 @@ public class OllamaWindow {
         Button cancelButton = new Button("Abbrechen");
         cancelButton.setDisable(true);
         cancelButton.setOnAction(e -> cancelOllamaRequest());
-
+        
         statusLabel = new Label("Bereit");
         
         VBox buttonArea = new VBox(6);
@@ -700,7 +700,7 @@ public class OllamaWindow {
         resultButtonRow.getStyleClass().add("result-button-row");
         
         // Button-Bereich wird im linken Content-Bereich eingefügt, nicht direkt ins mainLayout
-
+        
         // Kontext-Bereich (kleiner, da Chat-Verlauf wichtiger ist)
         contextArea = new TextArea();
         contextArea.setPromptText("Hier können Sie zusätzlichen Kontext eingeben, der bei jeder Anfrage an den Assistenten gesendet wird. " +
@@ -1198,7 +1198,7 @@ public class OllamaWindow {
         
         // Eingabe grundsätzlich editierbar machen (wird bei "Text umschreiben" gezielt deaktiviert)
         inputArea.setEditable(true);
-
+        
         // Aktualisiere Prompt-Text basierend auf Funktion
         switch (selectedFunction) {
             case "Dialog generieren":
@@ -1409,13 +1409,13 @@ public class OllamaWindow {
             // Kontext aus der context.txt des aktuellen Romans (immer zusätzlich zulässig)
             String currentDocxFile = getCurrentDocxFileName();
             // DEBUG entfernt
-            if (currentDocxFile != null) {
-                String novelContext = NovelManager.loadContext(currentDocxFile);
+        if (currentDocxFile != null) {
+            String novelContext = NovelManager.loadContext(currentDocxFile);
                 // DEBUG entfernt
-                if (!novelContext.trim().isEmpty()) {
+            if (!novelContext.trim().isEmpty()) {
                     selectedContexts.append("\n=== ROMAN-KONTEXT ===\n").append(limitText(novelContext)).append("\n");
-                }
             }
+        }
 
             if (selectedContexts.length() > 0) {
                 contextBuilder.append("\n").append(selectedContexts);
@@ -1467,10 +1467,10 @@ public class OllamaWindow {
                     } catch (Exception ignored) {}
                 }),
                 () -> Platform.runLater(() -> {
-                    insertButton.setDisable(false);
-                    setGenerating(false);
+                        insertButton.setDisable(false);
+                        setGenerating(false);
                     updateStatus("✅ Antwort erhalten");
-                    inputArea.clear();
+                        inputArea.clear();
                     String header = String.format(java.util.Locale.US, "[%s | temp=%.2f, top_p=%.2f, repeat_penalty=%.2f]",
                             ollamaService != null ? ollamaService.getCurrentParameters().split(",")[0].replace("Modell: ", "").trim() : modelComboBox.getValue(),
                             ResourceManager.getDoubleParameter("ollama.temperature", 0.3),
@@ -1489,10 +1489,10 @@ public class OllamaWindow {
                     }
                     sessionHistories.put(currentSessionName, snapshot);
                     ResourceManager.saveSession(currentSessionName, snapshot);
-                    checkAndSplitSession(currentSessionName);
+                            checkAndSplitSession(currentSessionName);
                 }),
                 err -> Platform.runLater(() -> {
-                    setGenerating(false);
+                        setGenerating(false);
                     updateStatus("Fehler: " + err.getMessage());
                 })
             );
@@ -2499,7 +2499,7 @@ public class OllamaWindow {
     
     private void updateStatus(String status) {
         if (statusLabel != null) {
-            statusLabel.setText(status);
+        statusLabel.setText(status);
         }
         logger.info("Ollama-Status: " + status);
     }
@@ -3482,7 +3482,7 @@ public class OllamaWindow {
             String sessionName = entry.getKey();
             List<CustomChatArea.QAPair> qaPairs = entry.getValue();
             logger.info("DEBUG: Speichere Session: " + sessionName + " mit " + qaPairs.size() + " QAPairs (ungefiltert)");
-            ResourceManager.saveSession(sessionName, qaPairs);
+                ResourceManager.saveSession(sessionName, qaPairs);
         }
     }
     
@@ -3516,16 +3516,16 @@ public class OllamaWindow {
             }
 
             // 2) Sekundär: verwende das gespeicherte DOCX-Verzeichnis und nimm die erste .docx
-            String savedSelectionPath = ResourceManager.getParameter("ui.last_docx_directory", "");
-            if (!savedSelectionPath.isEmpty()) {
-                File directory = new File(savedSelectionPath);
-                if (directory.exists() && directory.isDirectory()) {
+                String savedSelectionPath = ResourceManager.getParameter("ui.last_docx_directory", "");
+                if (!savedSelectionPath.isEmpty()) {
+                    File directory = new File(savedSelectionPath);
+                    if (directory.exists() && directory.isDirectory()) {
                     File[] files = directory.listFiles((dir, name) -> name.toLowerCase().endsWith(".docx"));
-                    if (files != null && files.length > 0) {
-                        return files[0].getAbsolutePath();
+                        if (files != null && files.length > 0) {
+                            return files[0].getAbsolutePath();
+                        }
                     }
                 }
-            }
         } catch (Exception ignored) {}
         return null;
     }
