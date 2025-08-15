@@ -9,15 +9,15 @@ import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
-import javafx.scene.web.WebView;
+import javafx.scene.paint.Color;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.paint.Color;
 import javafx.scene.control.Label;
 import javafx.stage.FileChooser;
+import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 import javafx.stage.Modality;
 import javafx.stage.Window;
@@ -41,7 +41,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ResourceBundle;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -50,10 +49,6 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Objects;
 import javafx.scene.control.cell.PropertyValueFactory;
 import java.util.Properties;
 import java.io.InputStream;
@@ -64,19 +59,15 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Set;
 import java.util.HashSet;
-import java.util.regex.Pattern;
-import java.util.regex.Matcher;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.fxmisc.richtext.model.StyleSpan;
-
-// Eigene Klassen
-import com.manuskript.Macro;
-import com.manuskript.MacroStep;
-import com.manuskript.DocxProcessor;
 
 public class EditorWindow implements Initializable {
     
     private static final Logger logger = LoggerFactory.getLogger(EditorWindow.class);
+    
+    // Globale DOCX-Optionen für Export
+    private DocxOptions globalDocxOptions = new DocxOptions();
     
     @FXML private VBox textAreaContainer;
     private CodeArea codeArea;
@@ -114,8 +105,7 @@ public class EditorWindow implements Initializable {
     // Toolbar-Buttons
     @FXML private Button btnSave;
     @FXML private Button btnSaveAs;
-    @FXML private Button btnExportRTF;
-    @FXML private Button btnExportDOCX;
+    @FXML private Button btnExport;
     @FXML private Button btnOpen;
     @FXML private Button btnNew;
     @FXML private Button btnToggleSearch;
@@ -224,44 +214,35 @@ public class EditorWindow implements Initializable {
     
     // Anführungszeichen-Mapping (öffnend, schließend)
     private static final String[][] QUOTE_MAPPING = {
-        {"„", "“"},        // Deutsch: U+201E, U+201C (Alt+0132, Alt+0147)
-        {"»", "«"},       // Französisch: U+00BB, U+00AB
+        {"\u201E", "\u201C"},        // Deutsch: U+201E, U+201C (Alt+0132, Alt+0147)
+        {"\u00BB", "\u00AB"},       // Französisch: U+00BB, U+00AB
         {"\"", "\""},     // Englisch: U+0022, U+0022
-        {"«", "»"}        // Schweizer: U+00AB, U+00BB
+        {"\u00AB", "\u00BB"}        // Schweizer: U+00AB, U+00BB
     };
     
     // Einfache Anführungszeichen-Mapping (öffnend, schließend)
     private static final String[][] SINGLE_QUOTE_MAPPING = {
-        {"‚", "‘"},       // Deutsch: U+201A, U+2019
-        {"›", "‹"},       // Französisch: U+203A, U+2039
+        {"\u201A", "\u2019"},       // Deutsch: U+201A, U+2019
+        {"\u203A", "\u2039"},       // Französisch: U+203A, U+2039
         {"'", "'"},       // Englisch: U+0027, U+0027
-        {"‹", "›"}        // Schweizer: U+2039, U+203A
+        {"\u2039", "\u203A"}        // Schweizer: U+2039, U+203A
     };
     
     // Makro-Management
     private ObservableList<Macro> macros = FXCollections.observableArrayList();
     private Macro currentMacro = null;
     
-    // Undo/Redo-Funktionalität
-    private static class UndoState {
-        final String text;
-        final int caretPosition;
-        
-        UndoState(String text, int caretPosition) {
-            this.text = text;
-            this.caretPosition = caretPosition;
-        }
-    }
-    
-    private List<UndoState> undoStack = new ArrayList<>();
-    private List<UndoState> redoStack = new ArrayList<>();
-    private static final int MAX_UNDO_STEPS = 50;
-    private boolean isUndoRedoOperation = false;
+    // EINGEBAUTE UNDO/REDO-FUNKTIONALITÄT DER RICHTEXTFX CODEAREA VERWENDEN
     
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         logger.info("=== EDITOR WINDOW INITIALIZE START ===");
         preferences = Preferences.userNodeForPackage(EditorWindow.class);
+        
+        // DOCX-Optionen aus User Preferences laden
+        globalDocxOptions.loadFromPreferences();
+        logger.info("DOCX-Optionen aus User Preferences geladen");
+        
         setupUI();
         logger.info("=== SETUP EVENT HANDLERS START ===");
         setupEventHandlers();
@@ -318,13 +299,9 @@ public class EditorWindow implements Initializable {
             btnSaveAs.setVisible(true);
             btnSaveAs.setManaged(true);
         }
-        if (btnExportRTF != null) {
-            btnExportRTF.setVisible(true);
-            btnExportRTF.setManaged(true);
-        }
-        if (btnExportDOCX != null) {
-            btnExportDOCX.setVisible(true);
-            btnExportDOCX.setManaged(true);
+        if (btnExport != null) {
+            btnExport.setVisible(true);
+            btnExport.setManaged(true);
         }
         if (btnToggleSearch != null) {
             btnToggleSearch.setVisible(true);
@@ -355,6 +332,8 @@ public class EditorWindow implements Initializable {
         codeArea.setWrapText(true);
         codeArea.getStyleClass().add("code-area");
         codeArea.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px; -rtfx-background-color: #ffffff;");
+        
+        // EINGEBAUTE UNDO/REDO-FUNKTIONALITÄT VERWENDEN - keine eigene Implementierung
         
         // CSS-Dateien für CodeArea laden
         // CSS mit ResourceManager laden
@@ -419,12 +398,8 @@ if (caret != null) {
         cmbSearchHistory.setEditable(true);
         cmbReplaceHistory.setEditable(true);
         
-        // CodeArea Change-Listener für Undo/Redo
-        codeArea.textProperty().addListener((obs, oldText, newText) -> {
-            if (!isUndoRedoOperation) {
-                saveStateForUndo();
-            }
-        });
+        // WICHTIG: KEIN Change-Listener für Undo/Redo - das verursacht zu viele Aufrufe!
+        // Stattdessen wird saveStateForUndo() nur bei spezifischen Aktionen aufgerufen
         
         // Status-Label initialisieren
         updateStatus("Bereit");
@@ -527,9 +502,9 @@ if (caret != null) {
         btnItalic.setOnAction(e -> formatTextItalic());
         btnThemeToggle.setOnAction(e -> toggleTheme());
         
-        // Undo/Redo Event-Handler
-        btnUndo.setOnAction(e -> undo());
-        btnRedo.setOnAction(e -> redo());
+            // Undo/Redo Event-Handler - verwende eingebaute Funktionalität
+    btnUndo.setOnAction(e -> codeArea.undo());
+    btnRedo.setOnAction(e -> codeArea.redo());
         if (btnMacroRegexHelp != null) {
             btnMacroRegexHelp.setOnAction(e -> showRegexHelp());
         }
@@ -576,7 +551,7 @@ if (caret != null) {
             }
             btnRegexHelp.setContentDisplay(javafx.scene.control.ContentDisplay.CENTER);
             btnRegexHelp.getStyleClass().add("help-button");
-            btnRegexHelp.setOnAction(e -> showRegexHelp());
+        btnRegexHelp.setOnAction(e -> showRegexHelp());
         }
         btnFindNext.setOnAction(e -> findNext());
         btnFindPrevious.setOnAction(e -> findPrevious());
@@ -590,8 +565,7 @@ if (caret != null) {
             System.out.println("=== SPEICHERN UNTER BUTTON GEDRÜCKT ===");
             saveFileAs();
         });
-        btnExportRTF.setOnAction(e -> exportAsRTF());
-        btnExportDOCX.setOnAction(e -> exportAsDOCX());
+                    btnExport.setOnAction(e -> showExportDialog());
         btnOpen.setOnAction(e -> openFile());
         btnNew.setOnAction(e -> newFile());
         btnToggleSearch.setOnAction(e -> toggleSearchPanel());
@@ -639,11 +613,11 @@ if (caret != null) {
                         event.consume();
                         break;
                     case Z:
-                        undo();
+                        codeArea.undo();
                         event.consume();
                         break;
                     case Y:
-                        redo();
+                        codeArea.redo();
                         event.consume();
                         break;
                 }
@@ -711,10 +685,7 @@ if (caret != null) {
         // Ersetze das Zeichen
         codeArea.insertText(caretPosition, replacement);
         
-        // Speichere den Zustand für Undo
-        Platform.runLater(() -> {
-            saveStateForUndo();
-        });
+        // EINGEBAUTE UNDO-FUNKTIONALITÄT VERWENDEN - kein manueller Aufruf nötig
     }
     
     private void setupSearchReplacePanel() {
@@ -782,13 +753,16 @@ if (caret != null) {
             Pattern pattern = createSearchPattern(searchText.trim());
             String content = codeArea.getText();
             
-            // Wenn sich der Suchtext geändert hat, cache neu aufbauen
+            // Wenn sich der Suchtext geändert hat, cache neu aufbauen und von vorne anfangen
             if (!searchText.equals(lastSearchText)) {
                 totalMatches = 0;
                 currentMatchIndex = -1;
                 lastSearchText = searchText;
                 cachedPattern = pattern;
                 cachedMatchPositions.clear();
+                
+                // Cursor an den Anfang setzen für neue Suche
+                codeArea.displaceCaret(0);
                 
                 // Sammle alle Treffer-Positionen
                 Matcher collectMatcher = pattern.matcher(content);
@@ -829,6 +803,15 @@ if (caret != null) {
                     // Entferne alle Markierungen
                     codeArea.setStyleSpans(0, content.length(), StyleSpans.singleton(new ArrayList<>(), 0));
                 }
+                
+                // Bei neuer Suche nicht sofort zum ersten Treffer springen
+                updateMatchCount(totalMatches, totalMatches);
+                if (totalMatches > 0) {
+                    updateStatus(totalMatches + " Treffer gefunden - drücke F3 für den ersten Treffer");
+                } else {
+                    updateStatus("Keine Treffer gefunden");
+                }
+                return;
             }
             
             if (totalMatches == 0) {
@@ -922,8 +905,7 @@ if (caret != null) {
         
         if (searchText == null || searchText.trim().isEmpty()) return;
         
-        // Speichere Zustand für Undo
-        saveStateForUndo();
+        // EINGEBAUTE UNDO-FUNKTIONALITÄT VERWENDEN - kein manueller Aufruf nötig
         
         try {
             Pattern pattern = createSearchPattern(searchText.trim());
@@ -957,8 +939,49 @@ if (caret != null) {
                 codeArea.displaceCaret(matcher.start());
                 codeArea.requestFollowCaret();
                 
-                // Suche nach dem nächsten Treffer
-                findNext();
+                // Cache zurücksetzen und neu aufbauen, aber Cursor an der aktuellen Position lassen
+                lastSearchText = null;
+                
+                // Cache neu aufbauen ohne Cursor zu verschieben
+                Pattern newPattern = createSearchPattern(searchText.trim());
+                String newContent = codeArea.getText();
+                Matcher newMatcher = newPattern.matcher(newContent);
+                
+                cachedMatchPositions.clear();
+                while (newMatcher.find()) {
+                    cachedMatchPositions.add(newMatcher.start());
+                }
+                totalMatches = cachedMatchPositions.size();
+                cachedPattern = newPattern;
+                lastSearchText = searchText;
+                
+                // Finde den nächsten Treffer nach der aktuellen Position
+                int currentPos = codeArea.getCaretPosition();
+                int nextIndex = -1;
+                
+                for (int i = 0; i < cachedMatchPositions.size(); i++) {
+                    if (cachedMatchPositions.get(i) > currentPos) {
+                        nextIndex = i;
+                        break;
+                    }
+                }
+                
+                // Wenn kein Treffer nach der aktuellen Position, nimm den ersten
+                if (nextIndex == -1 && !cachedMatchPositions.isEmpty()) {
+                    nextIndex = 0;
+                }
+                
+                // Markiere den gefundenen Treffer
+                if (nextIndex >= 0 && nextIndex < cachedMatchPositions.size()) {
+                    int matchStart = cachedMatchPositions.get(nextIndex);
+                    Matcher highlightMatcher = cachedPattern.matcher(newContent);
+                    if (highlightMatcher.find(matchStart)) {
+                        highlightText(highlightMatcher.start(), highlightMatcher.end());
+                        currentMatchIndex = nextIndex;
+                        updateMatchCount(currentMatchIndex + 1, totalMatches);
+                        updateStatus("Treffer " + (currentMatchIndex + 1) + " von " + totalMatches);
+                    }
+                }
             }
             
         } catch (Exception e) {
@@ -972,8 +995,7 @@ if (caret != null) {
         
         if (searchText == null || searchText.trim().isEmpty()) return;
         
-        // Speichere Zustand für Undo
-        saveStateForUndo();
+        // EINGEBAUTE UNDO-FUNKTIONALITÄT VERWENDEN - kein manueller Aufruf nötig
         
         try {
             String content = codeArea.getText();
@@ -1010,7 +1032,16 @@ if (caret != null) {
             
             // Debug entfernt
             
-            codeArea.replaceText(replacement);
+            // Ersetze den gesamten Inhalt
+            codeArea.clear();
+            codeArea.appendText(replacement);
+            
+            // Visuelles Update erzwingen
+            Platform.runLater(() -> {
+                codeArea.requestLayout();
+                codeArea.requestFocus();
+            });
+            
             lblStatus.setText("Alle Treffer ersetzt");
             updateMatchCount(0, 0);
             
@@ -1334,129 +1365,1486 @@ if (caret != null) {
         }
     }
     
-    // Undo/Redo-Funktionalität
-    private void saveStateForUndo() {
-        if (!isUndoRedoOperation) {
-            String currentText = codeArea.getText();
-            int currentCaretPosition = codeArea.getCaretPosition();
-            undoStack.add(new UndoState(currentText, currentCaretPosition));
+    // EINGEBAUTE UNDO/REDO-FUNKTIONALITÄT DER RICHTEXTFX CODEAREA VERWENDEN
+    
+    // Export-Dialog
+    private void showExportDialog() {
+        if (outputFormat != DocxProcessor.OutputFormat.MARKDOWN) {
+            updateStatus("Export nur für Markdown-Dokumente verfügbar");
+            return;
+        }
+        
+        // Dialog erstellen
+        Dialog<ExportResult> dialog = new Dialog<>();
+        dialog.setTitle("📤 Exportieren");
+        dialog.setHeaderText("Wählen Sie die Export-Formate und Einstellungen");
+        
+        // Dialog-Größe setzen
+        dialog.getDialogPane().setMinWidth(600);
+        dialog.getDialogPane().setMinHeight(500);
+        
+        // Dialog mit existierender styleDialog-Methode stylen
+        styleDialog(dialog);
+        
+        // Hauptcontainer
+        VBox content = new VBox(15);
+        content.setPadding(new Insets(20));
+        
+        // Export-Formate
+        Label formatLabel = new Label("📄 Export-Formate (mehrere möglich):");
+        formatLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 14px;");
+        
+        VBox formatOptions = new VBox(8);
+        
+        CheckBox rtfCheck = new CheckBox("📄 RTF (Rich Text Format) - Für Word, LibreOffice");
+        
+        // DOCX mit Optionen-Button
+        HBox docxBox = new HBox(10);
+        docxBox.setAlignment(Pos.CENTER_LEFT);
+        CheckBox docxCheck = new CheckBox("📄 DOCX (Microsoft Word) - Für Word, LibreOffice");
+        Button docxOptionsBtn = new Button("⚙️ DOCX Optionen");
+        docxOptionsBtn.setStyle("-fx-font-size: 11px; -fx-padding: 4px 8px;");
+        
+        // Erst Button zum Layout hinzufügen
+        docxBox.getChildren().addAll(docxCheck, docxOptionsBtn);
+        
+        // Dann Event setzen
+        docxOptionsBtn.setOnAction(e -> {
+            logger.info("DOCX-Optionen Button geklickt!");
+            if (docxCheck.isSelected()) {
+                logger.info("DOCX ist ausgewählt, öffne Optionen-Dialog...");
+                showDocxOptionsDialog(docxCheck);
+            } else {
+                logger.info("DOCX ist nicht ausgewählt, zeige Warnung...");
+                // Warnung anzeigen
+                Alert alert = new Alert(Alert.AlertType.WARNING);
+                alert.setTitle("Warnung");
+                alert.setHeaderText("DOCX nicht ausgewählt");
+                alert.setContentText("Bitte aktivieren Sie zuerst die DOCX-Option, um die Einstellungen zu bearbeiten.");
+                alert.showAndWait();
+            }
+        });
+        
+        CheckBox htmlCheck = new CheckBox("🌐 HTML (Web-Format) - Für Browser, E-Mail");
+        CheckBox txtCheck = new CheckBox("📝 TXT (Plain Text) - Einfacher Text");
+        CheckBox mdCheck = new CheckBox("📝 MD (Markdown) - Für andere Markdown-Editoren");
+        CheckBox pdfCheck = new CheckBox("📄 PDF (Portable Document) - Für Druck, Teilen");
+        
+        // Standard: DOCX
+        docxCheck.setSelected(true);
+        
+        formatOptions.getChildren().addAll(rtfCheck, docxBox, htmlCheck, txtCheck, mdCheck, pdfCheck);
+        
+        // Verzeichnis-Optionen
+        Label dirLabel = new Label("📁 Export-Verzeichnis:");
+        dirLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 14px;");
+        
+        VBox dirOptions = new VBox(8);
+        
+        CheckBox createDirCheck = new CheckBox("Verzeichnis für Export anlegen (falls nicht vorhanden)");
+        createDirCheck.setSelected(true);
+        
+        HBox dirSelection = new HBox(10);
+        dirSelection.setAlignment(Pos.CENTER_LEFT);
+        
+        Label dirPathLabel = new Label("Unterverzeichnis:");
+        dirPathLabel.setStyle("-fx-font-weight: bold;");
+        
+        TextField dirPathField = new TextField();
+        dirPathField.setPromptText("Unterverzeichnis (optional) eingeben...");
+        dirPathField.setEditable(true);
+        dirPathField.setPrefWidth(400);
+        
+        dirSelection.getChildren().addAll(dirPathLabel, dirPathField);
+        
+        dirOptions.getChildren().addAll(createDirCheck, dirSelection);
+        
+        // Dateiname
+        Label filenameLabel = new Label("📄 Dateiname:");
+        filenameLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 14px;");
+        
+        HBox filenameBox = new HBox(10);
+        filenameBox.setAlignment(Pos.CENTER_LEFT);
+        
+        Label filenamePathLabel = new Label("Name:");
+        filenamePathLabel.setStyle("-fx-font-weight: bold;");
+        
+        TextField filenameField = new TextField();
+        filenameField.setPromptText("Dateiname eingeben...");
+        filenameField.setPrefWidth(300);
+        
+        // Standard-Dateiname setzen
+        if (currentFile != null) {
+            String baseName = currentFile.getName();
+            int lastDot = baseName.lastIndexOf('.');
+            if (lastDot > 0) {
+                baseName = baseName.substring(0, lastDot);
+            }
+            filenameField.setText(baseName);
+        } else {
+            filenameField.setText("manuskript");
+        }
+        
+        filenameBox.getChildren().addAll(filenamePathLabel, filenameField);
+        
+        // Alles zusammenfügen
+        content.getChildren().addAll(
+            formatLabel, formatOptions,
+            new Separator(),
+            dirLabel, dirOptions,
+            new Separator(),
+            filenameLabel, filenameBox
+        );
+        
+        dialog.getDialogPane().setContent(content);
+        
+        // Buttons
+        ButtonType exportButtonType = new ButtonType("📤 Exportieren", ButtonBar.ButtonData.OK_DONE);
+        ButtonType cancelButtonType = new ButtonType("❌ Abbrechen", ButtonBar.ButtonData.CANCEL_CLOSE);
+        dialog.getDialogPane().getButtonTypes().addAll(exportButtonType, cancelButtonType);
+        
+        // Export-Button ist immer aktiv - DirectoryChooser wird beim Export geöffnet
+        Button exportButton = (Button) dialog.getDialogPane().lookupButton(exportButtonType);
+        
+        // Dialog-Ergebnis verarbeiten
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == exportButtonType) {
+                // Alle ausgewählten Formate sammeln
+                List<ExportFormat> selectedFormats = new ArrayList<>();
+                if (rtfCheck.isSelected()) selectedFormats.add(ExportFormat.RTF);
+                if (docxCheck.isSelected()) selectedFormats.add(ExportFormat.DOCX);
+                if (htmlCheck.isSelected()) selectedFormats.add(ExportFormat.HTML);
+                if (txtCheck.isSelected()) selectedFormats.add(ExportFormat.TXT);
+                if (mdCheck.isSelected()) selectedFormats.add(ExportFormat.MD);
+                if (pdfCheck.isSelected()) selectedFormats.add(ExportFormat.PDF);
+                
+                        return new ExportResult(
+            selectedFormats,
+            dirPathField.getText(),
+            filenameField.getText(),
+            createDirCheck.isSelected(),
+            globalDocxOptions // Verwende die gespeicherten DOCX-Optionen
+        );
+            }
+            return null;
+        });
+        
+        // Dialog anzeigen und Export durchführen
+        Optional<ExportResult> result = dialog.showAndWait();
+        result.ifPresent(this::performExport);
+    }
+    
+    // Export-Format Enum
+    private enum ExportFormat {
+        RTF, DOCX, HTML, TXT, MD, PDF
+    }
+    
+    // Export-Ergebnis Klasse
+    private static class ExportResult {
+        final List<ExportFormat> formats;
+        final String directory;
+        final String filename;
+        final boolean createDirectory;
+        final DocxOptions docxOptions; // Neue DOCX-Optionen
+        
+        ExportResult(List<ExportFormat> formats, String directory, String filename, 
+                    boolean createDirectory, DocxOptions docxOptions) {
+            this.formats = formats;
+            this.directory = directory;
+            this.filename = filename;
+            this.createDirectory = createDirectory;
+            this.docxOptions = docxOptions;
+        }
+    }
+    
+
+    
+    // Export durchführen
+    private void performExport(ExportResult result) {
+        try {
+            // DirectoryChooser öffnen
+            DirectoryChooser dirChooser = new DirectoryChooser();
+            dirChooser.setTitle("Export-Verzeichnis wählen");
             
-            // Begrenze die Anzahl der Undo-Schritte
-            if (undoStack.size() > MAX_UNDO_STEPS) {
-                undoStack.remove(0);
+            // Lade das letzte Verzeichnis
+            String lastDirectory = preferences.get("lastExportDirectory", null);
+            if (lastDirectory != null) {
+                File dir = new File(lastDirectory);
+                if (dir.exists() && dir.isDirectory()) {
+                    dirChooser.setInitialDirectory(dir);
+                }
             }
             
-            // Lösche Redo-Stack bei neuer Aktion
-            redoStack.clear();
-        }
-    }
-    
-    private void undo() {
-        if (!undoStack.isEmpty()) {
-            // Aktuellen Zustand für Redo speichern
-            String currentText = codeArea.getText();
-            int currentPosition = codeArea.getCaretPosition();
-            redoStack.add(new UndoState(currentText, currentPosition));
+            File selectedDir = dirChooser.showDialog(stage);
+            if (selectedDir == null) {
+                updateStatus("Export abgebrochen");
+                return;
+            }
             
-            // Letzten Zustand wiederherstellen
-            UndoState previousState = undoStack.remove(undoStack.size() - 1);
-            logger.info("UNDO: Aktuelle Position: {}, Gespeicherte Position: {}, Text-Länge: {}", 
-                       currentPosition, previousState.caretPosition, previousState.text.length());
+            // Verzeichnis für Export speichern
+            preferences.put("lastExportDirectory", selectedDir.getAbsolutePath());
             
-            // WICHTIG: isUndoRedoOperation VOR replaceText setzen!
-            isUndoRedoOperation = true;
-            codeArea.replaceText(previousState.text);
-            
-            // An die GESPEICHERTE Position aus dem Undo-Stack scrollen
-            Platform.runLater(() -> {
-                int targetPosition = Math.min(previousState.caretPosition, codeArea.getText().length());
-                logger.info("UNDO: Scrolle zu Position: {} (Text-Länge nach Ersetzen: {})", 
-                           targetPosition, codeArea.getText().length());
-                
-                // Position setzen und dann präzise scrollen
-                codeArea.displaceCaret(targetPosition);
-                
-                // Fokus und präzises Scrolling mit Verzögerung
-                Platform.runLater(() -> {
-                    // Position nochmal setzen
-                    codeArea.displaceCaret(targetPosition);
-                    codeArea.requestFocus();
-                    
-                    // Präzises Scrolling zur Zielposition
-                    int currentParagraph = codeArea.getCurrentParagraph();
-                    codeArea.showParagraphAtCenter(currentParagraph);
-                    
-                    logger.info("UNDO: Cursor-Position nach displaceCaret: {}, Paragraph: {}", 
-                               codeArea.getCaretPosition(), currentParagraph);
-                    
-                    // Finale Positionierung
-                    Platform.runLater(() -> {
-                        codeArea.displaceCaret(targetPosition);
-                        codeArea.requestFocus();
-                        // isUndoRedoOperation erst NACH dem Setzen der Position auf false setzen
-                        isUndoRedoOperation = false;
-                    });
-                });
-            });
-            updateStatus("Undo ausgeführt");
+            // Zielverzeichnis bestimmen
+            File exportDir;
+            if (result.directory != null && !result.directory.trim().isEmpty()) {
+                // Unterverzeichnis im gewählten Verzeichnis erstellen
+                exportDir = new File(selectedDir, result.directory.trim());
+                if (result.createDirectory && !exportDir.exists()) {
+                    if (exportDir.mkdirs()) {
+                        updateStatus("Unterverzeichnis erstellt: " + exportDir.getAbsolutePath());
         } else {
-            updateStatus("Keine Undo-Aktionen verfügbar");
+                        updateStatusError("Konnte Unterverzeichnis nicht erstellen: " + exportDir.getAbsolutePath());
+                        return;
+                    }
+                }
+            } else {
+                // Direkt in das gewählte Verzeichnis exportieren
+                exportDir = selectedDir;
+            }
+            
+            // Export durchführen
+            String markdownContent = codeArea.getText();
+            
+            // Alle ausgewählten Formate exportieren
+            for (ExportFormat format : result.formats) {
+                String extension = getExtensionForFormat(format);
+                String fullFilename = result.filename + "." + extension;
+                File exportFile = new File(exportDir, fullFilename);
+                
+                switch (format) {
+                    case RTF:
+                        exportToRTF(markdownContent, exportFile, result);
+                        break;
+                    case DOCX:
+                        exportToDOCX(markdownContent, exportFile, result);
+                        break;
+                    case HTML:
+                        exportToHTML(markdownContent, exportFile, result);
+                        break;
+                    case TXT:
+                        exportToTXT(markdownContent, exportFile, result);
+                        break;
+                    case MD:
+                        exportToMD(markdownContent, exportFile, result);
+                        break;
+                    case PDF:
+                        exportToPDF(markdownContent, exportFile, result);
+                        break;
+                }
+            }
+            
+            updateStatus("Export erfolgreich: " + result.formats.size() + " Formate in " + exportDir.getAbsolutePath());
+            
+        } catch (Exception e) {
+            updateStatusError("Fehler beim Export: " + e.getMessage());
+            logger.error("Export-Fehler", e);
         }
     }
     
-    private void redo() {
-        if (!redoStack.isEmpty()) {
-            // JETZT die aktuelle Position speichern
-            int currentPosition = codeArea.getCaretPosition();
+    // Hilfsmethoden für Export
+    private String getExtensionForFormat(ExportFormat format) {
+        switch (format) {
+            case RTF: return "rtf";
+            case DOCX: return "docx";
+            case HTML: return "html";
+            case TXT: return "txt";
+            case MD: return "md";
+            case PDF: return "pdf";
+            default: return "txt";
+        }
+    }
+    
+    // DOCX-Optionen Dialog
+    private void showDocxOptionsDialog(CheckBox docxCheck) {
+        logger.info("showDocxOptionsDialog aufgerufen - erstelle Stage...");
+        Stage optionsStage = new Stage();
+        optionsStage.setTitle("⚙️ DOCX Export Optionen");
+        optionsStage.initModality(Modality.APPLICATION_MODAL);
+        optionsStage.initOwner(stage);
+        
+        // Hauptcontainer mit ScrollPane
+        ScrollPane scrollPane = new ScrollPane();
+        scrollPane.setFitToWidth(true);
+        scrollPane.setPrefWidth(800);
+        scrollPane.setPrefHeight(700);
+        
+        VBox mainContent = new VBox(20);
+        mainContent.setPadding(new Insets(20));
+        
+        // DOCX-Optionen Objekt - verwende das globale Objekt
+        DocxOptions options = globalDocxOptions;
+        
+        // === SCHRIFTARTEN ===
+        VBox fontsSection = createSection("🔤 Schriftarten & Größen", "Schriftarten und Größen für verschiedene Textelemente");
+        
+        // Standard-Schriftart
+        HBox defaultFontBox = new HBox(10);
+        defaultFontBox.setAlignment(Pos.CENTER_LEFT);
+        Label defaultFontLabel = new Label("Standard-Schriftart:");
+        ComboBox<String> defaultFontCombo = new ComboBox<>();
+        defaultFontCombo.getItems().addAll("Calibri", "Arial", "Times New Roman", "Cambria", "Segoe UI", "Verdana", "Georgia", "Tahoma");
+        defaultFontCombo.setValue(options.defaultFont);
+        defaultFontCombo.setOnAction(e -> options.defaultFont = defaultFontCombo.getValue());
+        defaultFontBox.getChildren().addAll(defaultFontLabel, defaultFontCombo);
+        
+        // Überschriften-Schriftart
+        HBox headingFontBox = new HBox(10);
+        headingFontBox.setAlignment(Pos.CENTER_LEFT);
+        Label headingFontLabel = new Label("Überschriften-Schriftart:");
+        ComboBox<String> headingFontCombo = new ComboBox<>();
+        headingFontCombo.getItems().addAll("Calibri", "Arial", "Times New Roman", "Cambria", "Segoe UI", "Verdana", "Georgia", "Tahoma");
+        headingFontCombo.setValue(options.headingFont);
+        headingFontCombo.setOnAction(e -> options.headingFont = headingFontCombo.getValue());
+        headingFontBox.getChildren().addAll(headingFontLabel, headingFontCombo);
+        
+        // Code-Schriftart
+        HBox codeFontBox = new HBox(10);
+        codeFontBox.setAlignment(Pos.CENTER_LEFT);
+        Label codeFontLabel = new Label("Code-Schriftart:");
+        ComboBox<String> codeFontCombo = new ComboBox<>();
+        codeFontCombo.getItems().addAll("Consolas", "Courier New", "Lucida Console", "Monaco", "Menlo", "Source Code Pro");
+        codeFontCombo.setValue(options.codeFont);
+        codeFontCombo.setOnAction(e -> options.codeFont = codeFontCombo.getValue());
+        codeFontBox.getChildren().addAll(codeFontLabel, codeFontCombo);
+        
+        // Schriftgrößen
+        HBox fontSizeBox = new HBox(20);
+        fontSizeBox.setAlignment(Pos.CENTER_LEFT);
+        
+        VBox defaultSizeBox = new VBox(5);
+        Label defaultSizeLabel = new Label("Standard:");
+        Spinner<Integer> defaultSizeSpinner = new Spinner<>(8, 20, options.defaultFontSize);
+        defaultSizeSpinner.setEditable(true);
+        defaultSizeSpinner.valueProperty().addListener((obs, oldVal, newVal) -> options.defaultFontSize = newVal);
+        defaultSizeBox.getChildren().addAll(defaultSizeLabel, defaultSizeSpinner);
+        
+        VBox h1SizeBox = new VBox(5);
+        Label h1SizeLabel = new Label("H1:");
+        Spinner<Integer> h1SizeSpinner = new Spinner<>(12, 36, options.heading1Size);
+        h1SizeSpinner.setEditable(true);
+        h1SizeSpinner.valueProperty().addListener((obs, oldVal, newVal) -> options.heading1Size = newVal);
+        h1SizeBox.getChildren().addAll(h1SizeLabel, h1SizeSpinner);
+        
+        VBox h2SizeBox = new VBox(5);
+        Label h2SizeLabel = new Label("H2:");
+        Spinner<Integer> h2SizeSpinner = new Spinner<>(10, 32, options.heading2Size);
+        h2SizeSpinner.setEditable(true);
+        h2SizeSpinner.valueProperty().addListener((obs, oldVal, newVal) -> options.heading2Size = newVal);
+        h2SizeBox.getChildren().addAll(h2SizeLabel, h2SizeSpinner);
+        
+        VBox h3SizeBox = new VBox(5);
+        Label h3SizeLabel = new Label("H3:");
+        Spinner<Integer> h3SizeSpinner = new Spinner<>(9, 28, options.heading3Size);
+        h3SizeSpinner.setEditable(true);
+        h3SizeSpinner.valueProperty().addListener((obs, oldVal, newVal) -> options.heading3Size = newVal);
+        h3SizeBox.getChildren().addAll(h3SizeLabel, h3SizeSpinner);
+        
+        fontSizeBox.getChildren().addAll(defaultSizeBox, h1SizeBox, h2SizeBox, h3SizeBox);
+        
+        fontsSection.getChildren().addAll(defaultFontBox, headingFontBox, codeFontBox, fontSizeBox);
+        
+        // === ABSATZFORMATIERUNG ===
+        VBox paragraphSection = createSection("📝 Absatzformatierung", "Formatierung von Absätzen und Text");
+        
+        CheckBox justifyCheck = new CheckBox("Blocksatz verwenden");
+        justifyCheck.setSelected(options.justifyText);
+        justifyCheck.setOnAction(e -> options.justifyText = justifyCheck.isSelected());
+        
+        CheckBox hyphenationCheck = new CheckBox("Silbentrennung aktivieren");
+        hyphenationCheck.setSelected(options.enableHyphenation);
+        hyphenationCheck.setOnAction(e -> options.enableHyphenation = hyphenationCheck.isSelected());
+        
+        CheckBox firstLineIndentCheck = new CheckBox("Erste Zeile einrücken");
+        firstLineIndentCheck.setSelected(options.firstLineIndent);
+        firstLineIndentCheck.setOnAction(e -> options.firstLineIndent = firstLineIndentCheck.isSelected());
+        
+        HBox spacingBox = new HBox(20);
+        spacingBox.setAlignment(Pos.CENTER_LEFT);
+        
+        VBox lineSpacingBox = new VBox(5);
+        Label lineSpacingLabel = new Label("Zeilenabstand:");
+        Spinner<Double> lineSpacingSpinner = new Spinner<>(1.0, 3.0, options.lineSpacing, 0.05);
+        lineSpacingSpinner.setEditable(true);
+        lineSpacingSpinner.valueProperty().addListener((obs, oldVal, newVal) -> options.lineSpacing = newVal);
+        lineSpacingBox.getChildren().addAll(lineSpacingLabel, lineSpacingSpinner);
+        
+        VBox paragraphSpacingBox = new VBox(5);
+        Label paragraphSpacingLabel = new Label("Absatzabstand:");
+        Spinner<Double> paragraphSpacingSpinner = new Spinner<>(0.5, 3.0, options.paragraphSpacing, 0.1);
+        paragraphSpacingSpinner.setEditable(true);
+        paragraphSpacingSpinner.valueProperty().addListener((obs, oldVal, newVal) -> options.paragraphSpacing = newVal);
+        paragraphSpacingBox.getChildren().addAll(paragraphSpacingLabel, paragraphSpacingSpinner);
+        
+        VBox firstLineIndentBox = new VBox(5);
+        Label firstLineIndentLabel = new Label("Einrückung (cm):");
+        Spinner<Double> firstLineIndentSpinner = new Spinner<>(0.5, 3.0, options.firstLineIndentSize, 0.1);
+        firstLineIndentSpinner.setEditable(true);
+        firstLineIndentSpinner.valueProperty().addListener((obs, oldVal, newVal) -> options.firstLineIndentSize = newVal);
+        firstLineIndentBox.getChildren().addAll(firstLineIndentLabel, firstLineIndentSpinner);
+        
+        spacingBox.getChildren().addAll(lineSpacingBox, paragraphSpacingBox, firstLineIndentBox);
+        
+        paragraphSection.getChildren().addAll(justifyCheck, hyphenationCheck, firstLineIndentCheck, spacingBox);
+        
+        // === ÜBERSCHRIFTEN ===
+        VBox headingsSection = createSection("📋 Überschriften", "Formatierung und Verhalten von Überschriften");
+        
+        CheckBox centerHeadersCheck = new CheckBox("Überschriften zentrieren");
+        centerHeadersCheck.setSelected(options.centerH1);
+        centerHeadersCheck.setOnAction(e -> options.centerH1 = centerHeadersCheck.isSelected());
+        
+        CheckBox newPageH1Check = new CheckBox("Neue Seite vor H1");
+        newPageH1Check.setSelected(options.newPageBeforeH1);
+        newPageH1Check.setOnAction(e -> options.newPageBeforeH1 = newPageH1Check.isSelected());
+        
+        CheckBox newPageH2Check = new CheckBox("Neue Seite vor H2");
+        newPageH2Check.setSelected(options.newPageBeforeH2);
+        newPageH2Check.setOnAction(e -> options.newPageBeforeH2 = newPageH2Check.isSelected());
+        
+        CheckBox boldHeadingsCheck = new CheckBox("Überschriften fett");
+        boldHeadingsCheck.setSelected(options.boldHeadings);
+        boldHeadingsCheck.setOnAction(e -> options.boldHeadings = boldHeadingsCheck.isSelected());
+        
+        HBox headingColorBox = new HBox(10);
+        headingColorBox.setAlignment(Pos.CENTER_LEFT);
+        Label headingColorLabel = new Label("Überschriften-Farbe:");
+        ColorPicker headingColorPicker = new ColorPicker(Color.web(options.headingColor));
+        headingColorPicker.setOnAction(e -> options.headingColor = String.format("%02X%02X%02X", 
+            (int)(headingColorPicker.getValue().getRed() * 255),
+            (int)(headingColorPicker.getValue().getGreen() * 255),
+            (int)(headingColorPicker.getValue().getBlue() * 255)));
+        headingColorBox.getChildren().addAll(headingColorLabel, headingColorPicker);
+        
+        headingsSection.getChildren().addAll(centerHeadersCheck, newPageH1Check, newPageH2Check, boldHeadingsCheck, headingColorBox);
+        
+        // === SEITENFORMAT ===
+        VBox pageSection = createSection("📄 Seitenformat", "Seitenränder und Seitenzahlen");
+        
+        HBox marginsBox = new HBox(20);
+        marginsBox.setAlignment(Pos.CENTER_LEFT);
+        
+        VBox topMarginBox = new VBox(5);
+        Label topMarginLabel = new Label("Oberer Rand (cm):");
+        Spinner<Double> topMarginSpinner = new Spinner<>(1.0, 5.0, options.topMargin, 0.1);
+        topMarginSpinner.setEditable(true);
+        topMarginSpinner.valueProperty().addListener((obs, oldVal, newVal) -> options.topMargin = newVal);
+        topMarginBox.getChildren().addAll(topMarginLabel, topMarginSpinner);
+        
+        VBox bottomMarginBox = new VBox(5);
+        Label bottomMarginLabel = new Label("Unterer Rand (cm):");
+        Spinner<Double> bottomMarginSpinner = new Spinner<>(1.0, 5.0, options.bottomMargin, 0.1);
+        bottomMarginSpinner.setEditable(true);
+        bottomMarginSpinner.valueProperty().addListener((obs, oldVal, newVal) -> options.bottomMargin = newVal);
+        bottomMarginBox.getChildren().addAll(bottomMarginLabel, bottomMarginSpinner);
+        
+        VBox leftMarginBox = new VBox(5);
+        Label leftMarginLabel = new Label("Linker Rand (cm):");
+        Spinner<Double> leftMarginSpinner = new Spinner<>(1.0, 5.0, options.leftMargin, 0.1);
+        leftMarginSpinner.setEditable(true);
+        leftMarginSpinner.valueProperty().addListener((obs, oldVal, newVal) -> options.leftMargin = newVal);
+        leftMarginBox.getChildren().addAll(leftMarginLabel, leftMarginSpinner);
+        
+        VBox rightMarginBox = new VBox(5);
+        Label rightMarginLabel = new Label("Rechter Rand (cm):");
+        Spinner<Double> rightMarginSpinner = new Spinner<>(1.0, 5.0, options.rightMargin, 0.1);
+        rightMarginSpinner.setEditable(true);
+        rightMarginSpinner.valueProperty().addListener((obs, oldVal, newVal) -> options.rightMargin = newVal);
+        rightMarginBox.getChildren().addAll(rightMarginLabel, rightMarginSpinner);
+        
+        marginsBox.getChildren().addAll(topMarginBox, bottomMarginBox, leftMarginBox, rightMarginBox);
+        
+        CheckBox pageNumbersCheck = new CheckBox("Seitenzahlen einfügen");
+        pageNumbersCheck.setSelected(options.includePageNumbers);
+        pageNumbersCheck.setOnAction(e -> options.includePageNumbers = pageNumbersCheck.isSelected());
+        
+        HBox pageNumberPosBox = new HBox(10);
+        pageNumberPosBox.setAlignment(Pos.CENTER_LEFT);
+        Label pageNumberPosLabel = new Label("Position:");
+        ComboBox<String> pageNumberPosCombo = new ComboBox<>();
+        pageNumberPosCombo.getItems().addAll("links", "zentriert", "rechts");
+        pageNumberPosCombo.setValue(options.pageNumberPosition);
+        pageNumberPosCombo.setOnAction(e -> options.pageNumberPosition = pageNumberPosCombo.getValue());
+        pageNumberPosBox.getChildren().addAll(pageNumberPosLabel, pageNumberPosCombo);
+        
+        pageSection.getChildren().addAll(marginsBox, pageNumbersCheck, pageNumberPosBox);
+        
+        // === TABELLEN ===
+        VBox tableSection = createSection("📊 Tabellen", "Formatierung von Tabellen");
+        
+        CheckBox tableBordersCheck = new CheckBox("Tabellen-Rahmen");
+        tableBordersCheck.setSelected(options.tableBorders);
+        tableBordersCheck.setOnAction(e -> options.tableBorders = tableBordersCheck.isSelected());
+        
+        HBox tableColorsBox = new HBox(20);
+        tableColorsBox.setAlignment(Pos.CENTER_LEFT);
+        
+        VBox headerColorBox = new VBox(5);
+        Label headerColorLabel = new Label("Header-Hintergrund:");
+        ColorPicker headerColorPicker = new ColorPicker(Color.web(options.tableHeaderColor));
+        headerColorPicker.setOnAction(e -> options.tableHeaderColor = String.format("%02X%02X%02X", 
+            (int)(headerColorPicker.getValue().getRed() * 255),
+            (int)(headerColorPicker.getValue().getGreen() * 255),
+            (int)(headerColorPicker.getValue().getBlue() * 255)));
+        headerColorBox.getChildren().addAll(headerColorLabel, headerColorPicker);
+        
+        VBox borderColorBox = new VBox(5);
+        Label borderColorLabel = new Label("Rahmen-Farbe:");
+        ColorPicker borderColorPicker = new ColorPicker(Color.web(options.tableBorderColor));
+        borderColorPicker.setOnAction(e -> options.tableBorderColor = String.format("%02X%02X%02X", 
+            (int)(borderColorPicker.getValue().getRed() * 255),
+            (int)(borderColorPicker.getValue().getGreen() * 255),
+            (int)(borderColorPicker.getValue().getBlue() * 255)));
+        borderColorBox.getChildren().addAll(borderColorLabel, borderColorPicker);
+        
+        tableColorsBox.getChildren().addAll(headerColorBox, borderColorBox);
+        
+        tableSection.getChildren().addAll(tableBordersCheck, tableColorsBox);
+        
+        // === CODE-BLÖCKE ===
+        VBox codeSection = createSection("💻 Code-Blöcke", "Formatierung von Code-Blöcken");
+        
+        HBox codeColorsBox = new HBox(20);
+        codeColorsBox.setAlignment(Pos.CENTER_LEFT);
+        
+        VBox codeBgColorBox = new VBox(5);
+        Label codeBgColorLabel = new Label("Hintergrund:");
+        ColorPicker codeBgColorPicker = new ColorPicker(Color.web(options.codeBackgroundColor));
+        codeBgColorPicker.setOnAction(e -> options.codeBackgroundColor = String.format("%02X%02X%02X", 
+            (int)(codeBgColorPicker.getValue().getRed() * 255),
+            (int)(codeBgColorPicker.getValue().getGreen() * 255),
+            (int)(codeBgColorPicker.getValue().getBlue() * 255)));
+        codeBgColorBox.getChildren().addAll(codeBgColorLabel, codeBgColorPicker);
+        
+        VBox codeBorderColorBox = new VBox(5);
+        Label codeBorderColorLabel = new Label("Rahmen:");
+        ColorPicker codeBorderColorPicker = new ColorPicker(Color.web(options.codeBorderColor));
+        codeBorderColorPicker.setOnAction(e -> options.codeBorderColor = String.format("%02X%02X%02X", 
+            (int)(codeBorderColorPicker.getValue().getRed() * 255),
+            (int)(codeBorderColorPicker.getValue().getGreen() * 255),
+            (int)(codeBorderColorPicker.getValue().getBlue() * 255)));
+        codeBorderColorBox.getChildren().addAll(codeBorderColorLabel, codeBorderColorPicker);
+        
+        codeColorsBox.getChildren().addAll(codeBgColorBox, codeBorderColorBox);
+        
+        CheckBox lineNumbersCheck = new CheckBox("Zeilennummern anzeigen");
+        lineNumbersCheck.setSelected(options.codeLineNumbers);
+        lineNumbersCheck.setOnAction(e -> options.codeLineNumbers = lineNumbersCheck.isSelected());
+        
+        codeSection.getChildren().addAll(codeColorsBox, lineNumbersCheck);
+        
+        // === BLOCKQUOTES ===
+        VBox quoteSection = createSection("💬 Blockquotes", "Formatierung von Zitaten");
+        
+        HBox quoteColorsBox = new HBox(20);
+        quoteColorsBox.setAlignment(Pos.CENTER_LEFT);
+        
+        VBox quoteBorderColorBox = new VBox(5);
+        Label quoteBorderColorLabel = new Label("Rahmen-Farbe:");
+        ColorPicker quoteBorderColorPicker = new ColorPicker(Color.web(options.quoteBorderColor));
+        quoteBorderColorPicker.setOnAction(e -> options.quoteBorderColor = String.format("%02X%02X%02X", 
+            (int)(quoteBorderColorPicker.getValue().getRed() * 255),
+            (int)(quoteBorderColorPicker.getValue().getGreen() * 255),
+            (int)(quoteBorderColorPicker.getValue().getBlue() * 255)));
+        quoteBorderColorBox.getChildren().addAll(quoteBorderColorLabel, quoteBorderColorPicker);
+        
+        VBox quoteBgColorBox = new VBox(5);
+        Label quoteBgColorLabel = new Label("Hintergrund:");
+        ColorPicker quoteBgColorPicker = new ColorPicker(Color.web(options.quoteBackgroundColor));
+        quoteBgColorPicker.setOnAction(e -> options.quoteBackgroundColor = String.format("%02X%02X%02X", 
+            (int)(quoteBgColorPicker.getValue().getRed() * 255),
+            (int)(quoteBgColorPicker.getValue().getGreen() * 255),
+            (int)(quoteBgColorPicker.getValue().getBlue() * 255)));
+        quoteBgColorBox.getChildren().addAll(quoteBgColorLabel, quoteBgColorPicker);
+        
+        quoteColorsBox.getChildren().addAll(quoteBorderColorBox, quoteBgColorBox);
+        
+        HBox quoteIndentBox = new HBox(10);
+        quoteIndentBox.setAlignment(Pos.CENTER_LEFT);
+        Label quoteIndentLabel = new Label("Einrückung (cm):");
+        Spinner<Double> quoteIndentSpinner = new Spinner<>(0.0, 3.0, options.quoteIndent, 0.1);
+        quoteIndentSpinner.setEditable(true);
+        quoteIndentSpinner.valueProperty().addListener((obs, oldVal, newVal) -> options.quoteIndent = newVal);
+        quoteIndentBox.getChildren().addAll(quoteIndentLabel, quoteIndentSpinner);
+        
+        quoteSection.getChildren().addAll(quoteColorsBox, quoteIndentBox);
+        
+        // === LISTEN ===
+        VBox listSection = createSection("📋 Listen", "Formatierung von Aufzählungen");
+        
+        HBox bulletStyleBox = new HBox(10);
+        bulletStyleBox.setAlignment(Pos.CENTER_LEFT);
+        Label bulletStyleLabel = new Label("Bullet-Style:");
+        ComboBox<String> bulletStyleCombo = new ComboBox<>();
+        bulletStyleCombo.getItems().addAll("•", "-", "*", "◦", "▪", "▫", "▸", "▹");
+        bulletStyleCombo.setValue(options.bulletStyle);
+        bulletStyleCombo.setOnAction(e -> options.bulletStyle = bulletStyleCombo.getValue());
+        bulletStyleBox.getChildren().addAll(bulletStyleLabel, bulletStyleCombo);
+        
+        CheckBox listIndentCheck = new CheckBox("Listen einrücken");
+        listIndentCheck.setSelected(options.listIndentation);
+        listIndentCheck.setOnAction(e -> options.listIndentation = listIndentCheck.isSelected());
+        
+        HBox listIndentSizeBox = new HBox(10);
+        listIndentSizeBox.setAlignment(Pos.CENTER_LEFT);
+        Label listIndentSizeLabel = new Label("Einrückung (cm):");
+        Spinner<Double> listIndentSizeSpinner = new Spinner<>(0.1, 2.0, options.listIndentSize, 0.1);
+        listIndentSizeSpinner.setEditable(true);
+        listIndentSizeSpinner.valueProperty().addListener((obs, oldVal, newVal) -> options.listIndentSize = newVal);
+        listIndentSizeBox.getChildren().addAll(listIndentSizeLabel, listIndentSizeSpinner);
+        
+        listSection.getChildren().addAll(bulletStyleBox, listIndentCheck, listIndentSizeBox);
+        
+        // === LINKS ===
+        VBox linkSection = createSection("🔗 Links", "Formatierung von Hyperlinks");
+        
+        HBox linkColorBox = new HBox(10);
+        linkColorBox.setAlignment(Pos.CENTER_LEFT);
+        Label linkColorLabel = new Label("Link-Farbe:");
+        ColorPicker linkColorPicker = new ColorPicker(Color.web(options.linkColor));
+        linkColorPicker.setOnAction(e -> options.linkColor = String.format("%02X%02X%02X", 
+            (int)(linkColorPicker.getValue().getRed() * 255),
+            (int)(linkColorPicker.getValue().getGreen() * 255),
+            (int)(linkColorPicker.getValue().getBlue() * 255)));
+        linkColorBox.getChildren().addAll(linkColorLabel, linkColorPicker);
+        
+        CheckBox underlineLinksCheck = new CheckBox("Links unterstrichen");
+        underlineLinksCheck.setSelected(options.underlineLinks);
+        underlineLinksCheck.setOnAction(e -> options.underlineLinks = underlineLinksCheck.isSelected());
+        
+        linkSection.getChildren().addAll(linkColorBox, underlineLinksCheck);
+        
+        // === METADATEN ===
+        VBox metadataSection = createSection("📋 Dokument-Metadaten", "Eigenschaften des Dokuments");
+        
+        HBox titleBox = new HBox(10);
+        titleBox.setAlignment(Pos.CENTER_LEFT);
+        Label titleLabel = new Label("Titel:");
+        TextField titleField = new TextField(options.documentTitle);
+        titleField.setPrefWidth(300);
+        titleField.textProperty().addListener((obs, oldVal, newVal) -> options.documentTitle = newVal);
+        titleBox.getChildren().addAll(titleLabel, titleField);
+        
+        HBox authorBox = new HBox(10);
+        authorBox.setAlignment(Pos.CENTER_LEFT);
+        Label authorLabel = new Label("Autor:");
+        TextField authorField = new TextField(options.documentAuthor);
+        authorField.setPrefWidth(300);
+        authorField.textProperty().addListener((obs, oldVal, newVal) -> options.documentAuthor = newVal);
+        authorBox.getChildren().addAll(authorLabel, authorField);
+        
+        HBox subjectBox = new HBox(10);
+        subjectBox.setAlignment(Pos.CENTER_LEFT);
+        Label subjectLabel = new Label("Betreff:");
+        TextField subjectField = new TextField(options.documentSubject);
+        subjectField.setPrefWidth(300);
+        subjectField.textProperty().addListener((obs, oldVal, newVal) -> options.documentSubject = newVal);
+        subjectBox.getChildren().addAll(subjectLabel, subjectField);
+        
+        HBox keywordsBox = new HBox(10);
+        keywordsBox.setAlignment(Pos.CENTER_LEFT);
+        Label keywordsLabel = new Label("Schlüsselwörter:");
+        TextField keywordsField = new TextField(options.documentKeywords);
+        keywordsField.setPrefWidth(300);
+        keywordsField.textProperty().addListener((obs, oldVal, newVal) -> options.documentKeywords = newVal);
+        keywordsBox.getChildren().addAll(keywordsLabel, keywordsField);
+        
+        HBox categoryBox = new HBox(10);
+        categoryBox.setAlignment(Pos.CENTER_LEFT);
+        Label categoryLabel = new Label("Kategorie:");
+        TextField categoryField = new TextField(options.documentCategory);
+        categoryField.setPrefWidth(300);
+        categoryField.textProperty().addListener((obs, oldVal, newVal) -> options.documentCategory = newVal);
+        categoryBox.getChildren().addAll(categoryLabel, categoryField);
+        
+        metadataSection.getChildren().addAll(titleBox, authorBox, subjectBox, keywordsBox, categoryBox);
+        
+        // === ERWEITERTE OPTIONEN ===
+        VBox advancedSection = createSection("⚙️ Erweiterte Optionen", "Zusätzliche Funktionen");
+        
+        CheckBox tocCheck = new CheckBox("Inhaltsverzeichnis einfügen");
+        tocCheck.setSelected(options.includeTableOfContents);
+        tocCheck.setOnAction(e -> options.includeTableOfContents = tocCheck.isSelected());
+        
+        CheckBox autoNumberCheck = new CheckBox("Überschriften automatisch nummerieren");
+        autoNumberCheck.setSelected(options.autoNumberHeadings);
+        autoNumberCheck.setOnAction(e -> options.autoNumberHeadings = autoNumberCheck.isSelected());
+        
+        CheckBox protectCheck = new CheckBox("Dokument schützen");
+        protectCheck.setSelected(options.protectDocument);
+        protectCheck.setOnAction(e -> options.protectDocument = protectCheck.isSelected());
+        
+        HBox passwordBox = new HBox(10);
+        passwordBox.setAlignment(Pos.CENTER_LEFT);
+        Label passwordLabel = new Label("Schutz-Passwort:");
+        PasswordField passwordField = new PasswordField();
+        passwordField.setPrefWidth(200);
+        passwordField.textProperty().addListener((obs, oldVal, newVal) -> options.protectionPassword = newVal);
+        passwordBox.getChildren().addAll(passwordLabel, passwordField);
+        
+        CheckBox trackChangesCheck = new CheckBox("Änderungen verfolgen");
+        trackChangesCheck.setSelected(options.trackChanges);
+        trackChangesCheck.setOnAction(e -> options.trackChanges = trackChangesCheck.isSelected());
+        
+        CheckBox showHiddenCheck = new CheckBox("Versteckten Text anzeigen");
+        showHiddenCheck.setSelected(options.showHiddenText);
+        showHiddenCheck.setOnAction(e -> options.showHiddenText = showHiddenCheck.isSelected());
+        
+        CheckBox commentsCheck = new CheckBox("Kommentare einfügen");
+        commentsCheck.setSelected(options.includeComments);
+        commentsCheck.setOnAction(e -> options.includeComments = commentsCheck.isSelected());
+        
+        HBox languageBox = new HBox(10);
+        languageBox.setAlignment(Pos.CENTER_LEFT);
+        Label languageLabel = new Label("Sprache:");
+        ComboBox<String> languageCombo = new ComboBox<>();
+        languageCombo.getItems().addAll("de-DE", "en-US", "en-GB", "fr-FR", "es-ES", "it-IT");
+        languageCombo.setValue(options.language);
+        languageCombo.setOnAction(e -> options.language = languageCombo.getValue());
+        languageBox.getChildren().addAll(languageLabel, languageCombo);
+        
+        HBox readingLevelBox = new HBox(10);
+        readingLevelBox.setAlignment(Pos.CENTER_LEFT);
+        Label readingLevelLabel = new Label("Leseniveau:");
+        ComboBox<String> readingLevelCombo = new ComboBox<>();
+        readingLevelCombo.getItems().addAll("standard", "simplified", "technical");
+        readingLevelCombo.setValue(options.readingLevel);
+        readingLevelCombo.setOnAction(e -> options.readingLevel = readingLevelCombo.getValue());
+        readingLevelBox.getChildren().addAll(readingLevelLabel, readingLevelCombo);
+        
+        advancedSection.getChildren().addAll(tocCheck, autoNumberCheck, protectCheck, passwordBox, 
+            trackChangesCheck, showHiddenCheck, commentsCheck, languageBox, readingLevelBox);
+        
+        // Alles zusammenfügen
+        mainContent.getChildren().addAll(
+            fontsSection,
+            paragraphSection,
+            headingsSection,
+            pageSection,
+            tableSection,
+            codeSection,
+            quoteSection,
+            listSection,
+            linkSection,
+            metadataSection,
+            advancedSection
+        );
+        
+        scrollPane.setContent(mainContent);
+        
+        // Buttons
+        HBox buttonBox = new HBox(10);
+        buttonBox.setAlignment(Pos.CENTER_RIGHT);
+        buttonBox.setPadding(new Insets(10));
+        
+        Button saveButton = new Button("💾 Speichern");
+        saveButton.setStyle("-fx-font-weight: bold; -fx-background-color: #4CAF50; -fx-text-fill: white;");
+        saveButton.setOnAction(e -> {
+            // Optionen in User Preferences speichern
+            globalDocxOptions.saveToPreferences();
+            logger.info("DOCX-Optionen in User Preferences gespeichert");
+            optionsStage.close();
+        });
+        
+        Button cancelButton = new Button("❌ Abbrechen");
+        cancelButton.setStyle("-fx-background-color: #f44336; -fx-text-fill: white;");
+        cancelButton.setOnAction(e -> {
+            // Optionen auf gespeicherte Werte zurücksetzen
+            globalDocxOptions.loadFromPreferences();
+            logger.info("DOCX-Optionen auf gespeicherte Werte zurückgesetzt");
+            optionsStage.close();
+        });
+        
+        Button resetButton = new Button("🔄 Zurücksetzen");
+        resetButton.setStyle("-fx-background-color: #ff9800; -fx-text-fill: white;");
+        resetButton.setOnAction(e -> {
+            // Alle Optionen auf Standard zurücksetzen
+            globalDocxOptions.resetToDefaults();
+            logger.info("DOCX-Optionen auf Standardwerte zurückgesetzt");
             
-            // Aktuellen Zustand für Undo speichern
-            String currentText = codeArea.getText();
-            undoStack.add(new UndoState(currentText, currentPosition));
-            
-            // Letzten Redo-Zustand wiederherstellen
-            UndoState nextState = redoStack.remove(redoStack.size() - 1);
-            
-            // WICHTIG: isUndoRedoOperation VOR replaceText setzen!
-            isUndoRedoOperation = true;
-            codeArea.replaceText(nextState.text);
-            
-            // An die GESPEICHERTE Position aus dem Redo-Stack scrollen
-            Platform.runLater(() -> {
-                int targetPosition = Math.min(nextState.caretPosition, codeArea.getText().length());
-                
-                // Position setzen und dann präzise scrollen
-                codeArea.displaceCaret(targetPosition);
-                
-                // Fokus und präzises Scrolling mit Verzögerung
-                Platform.runLater(() -> {
-                    // Position nochmal setzen
-                    codeArea.displaceCaret(targetPosition);
-                    codeArea.requestFocus();
-                    
-                    // Präzises Scrolling zur Zielposition
-                    int currentParagraph = codeArea.getCurrentParagraph();
-                    codeArea.showParagraphAtCenter(currentParagraph);
-                    
-                    // Finale Positionierung
-                    Platform.runLater(() -> {
-                        codeArea.displaceCaret(targetPosition);
-                        codeArea.requestFocus();
-                        // isUndoRedoOperation erst NACH dem Setzen der Position auf false setzen
-                        isUndoRedoOperation = false;
-                    });
-                });
-            });
-            updateStatus("Redo ausgeführt");
+            // Dialog neu laden mit Standardwerten
+            optionsStage.close();
+            showDocxOptionsDialog(docxCheck);
+        });
+        
+        buttonBox.getChildren().addAll(resetButton, cancelButton, saveButton);
+        
+        VBox root = new VBox();
+        root.getChildren().addAll(scrollPane, buttonBox);
+        
+        Scene scene = new Scene(root);
+        optionsStage.setScene(scene);
+        
+        // CSS-Stylesheets laden
+        String stylesCss = ResourceManager.getCssResource("css/styles.css");
+        String editorCss = ResourceManager.getCssResource("css/editor.css");
+        if (stylesCss != null && !scene.getStylesheets().contains(stylesCss)) scene.getStylesheets().add(stylesCss);
+        if (editorCss != null && !scene.getStylesheets().contains(editorCss)) scene.getStylesheets().add(editorCss);
+        
+        // Theme auf die Stage anwenden
+        applyThemeToNode(scene.getRoot(), currentThemeIndex);
+        
+        // Dialog anzeigen
+        logger.info("Zeige DOCX-Optionen Dialog...");
+        optionsStage.showAndWait();
+        logger.info("DOCX-Optionen Dialog geschlossen.");
+
+    }
+    
+    // Hilfsmethode zum Erstellen von Sektionen
+    private VBox createSection(String title, String description) {
+        VBox section = new VBox(10);
+        section.setPadding(new Insets(15));
+        section.setStyle("-fx-border-color: #ddd; -fx-border-width: 1px; -fx-border-radius: 5px; -fx-background-color: #f9f9f9;");
+        
+        Label titleLabel = new Label(title);
+        titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #2F5496;");
+        
+        Label descLabel = new Label(description);
+        descLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #666; -fx-font-style: italic;");
+        
+        section.getChildren().addAll(titleLabel, descLabel);
+        return section;
+    }
+    
+    private void exportToRTF(String content, File file, ExportResult result) throws IOException {
+        String rtfContent = convertMarkdownToRTF(content);
+        Files.write(file.toPath(), rtfContent.getBytes("Windows-1252"));
+        updateStatus("Als RTF exportiert: " + file.getName());
+    }
+    
+    private void exportToDOCX(String content, File file, ExportResult result) throws Exception {
+        if (docxProcessor == null) {
+            throw new Exception("DOCX-Processor nicht verfügbar");
+        }
+        
+        // DOCX-Optionen verwenden, falls vorhanden
+        if (result.docxOptions != null) {
+            logger.info("Verwende DOCX-Optionen für Export");
+            docxProcessor.exportMarkdownToDocxWithOptions(content, file, result.docxOptions);
         } else {
-            updateStatus("Keine Redo-Aktionen verfügbar");
+            // Standard-Export ohne Optionen
+            docxProcessor.exportMarkdownToDocx(content, file);
+        }
+        
+        updateStatus("Als DOCX exportiert: " + file.getName());
+    }
+    
+    private void exportToHTML(String content, File file, ExportResult result) throws IOException {
+        String htmlContent = convertMarkdownToHTML(content);
+        Files.write(file.toPath(), htmlContent.getBytes(StandardCharsets.UTF_8));
+        updateStatus("Als HTML exportiert: " + file.getName());
+    }
+    
+    private void exportToTXT(String content, File file, ExportResult result) throws IOException {
+        String plainText = convertMarkdownToPlainText(content);
+        Files.write(file.toPath(), plainText.getBytes(StandardCharsets.UTF_8));
+        updateStatus("Als TXT exportiert: " + file.getName());
+    }
+    
+    private void exportToMD(String content, File file, ExportResult result) throws IOException {
+        Files.write(file.toPath(), content.getBytes(StandardCharsets.UTF_8));
+        updateStatus("Als MD exportiert: " + file.getName());
+    }
+    
+        private void exportToPDF(String content, File file, ExportResult result) throws Exception {
+        try {
+            // OpenPDF verwenden für echten PDF-Export
+            com.lowagie.text.Document document = new com.lowagie.text.Document();
+            com.lowagie.text.pdf.PdfWriter.getInstance(document, new java.io.FileOutputStream(file));
+            
+            document.open();
+            
+            // Schriftarten definieren
+            com.lowagie.text.Font normalFont = new com.lowagie.text.Font(com.lowagie.text.Font.HELVETICA, 12);
+            com.lowagie.text.Font boldFont = new com.lowagie.text.Font(com.lowagie.text.Font.HELVETICA, 12, com.lowagie.text.Font.BOLD);
+            com.lowagie.text.Font italicFont = new com.lowagie.text.Font(com.lowagie.text.Font.HELVETICA, 12, com.lowagie.text.Font.ITALIC);
+            com.lowagie.text.Font codeFont = new com.lowagie.text.Font(com.lowagie.text.Font.COURIER, 10);
+            com.lowagie.text.Font h1Font = new com.lowagie.text.Font(com.lowagie.text.Font.HELVETICA, 18, com.lowagie.text.Font.BOLD);
+            com.lowagie.text.Font h2Font = new com.lowagie.text.Font(com.lowagie.text.Font.HELVETICA, 16, com.lowagie.text.Font.BOLD);
+            com.lowagie.text.Font h3Font = new com.lowagie.text.Font(com.lowagie.text.Font.HELVETICA, 14, com.lowagie.text.Font.BOLD);
+            com.lowagie.text.Font h4Font = new com.lowagie.text.Font(com.lowagie.text.Font.HELVETICA, 13, com.lowagie.text.Font.BOLD);
+            
+            // Markdown zu PDF konvertieren
+            String[] lines = content.split("\n");
+            boolean inCodeBlock = false;
+            boolean inBlockquote = false;
+            boolean inUnorderedList = false;
+            boolean inOrderedList = false;
+            
+            for (String line : lines) {
+                String trimmedLine = line.trim();
+                
+                // Code-Blöcke
+                if (trimmedLine.startsWith("```")) {
+                    if (inCodeBlock) {
+                        inCodeBlock = false;
+                        document.add(new com.lowagie.text.Paragraph(" "));
+                    } else {
+                        inCodeBlock = true;
+                        document.add(new com.lowagie.text.Paragraph(" "));
+                    }
+                    continue;
+                }
+                
+                if (inCodeBlock) {
+                    document.add(new com.lowagie.text.Paragraph(line, codeFont));
+                    continue;
+                }
+                
+                // Horizontale Linien
+                if (trimmedLine.matches("^[-*_]{3,}$")) {
+                    document.add(new com.lowagie.text.Paragraph("_".repeat(50), normalFont));
+                    document.add(new com.lowagie.text.Paragraph(" "));
+                    continue;
+                }
+                
+                // Blockquotes
+                if (trimmedLine.startsWith(">")) {
+                    if (!inBlockquote) {
+                        inBlockquote = true;
+                    }
+                    String quoteText = trimmedLine.substring(1).trim();
+                    com.lowagie.text.Paragraph quote = new com.lowagie.text.Paragraph(quoteText, italicFont);
+                    quote.setIndentationLeft(20);
+                    document.add(quote);
+                    continue;
+                } else if (inBlockquote) {
+                    inBlockquote = false;
+                    document.add(new com.lowagie.text.Paragraph(" "));
+                }
+                
+                // Listen
+                if (trimmedLine.matches("^[-*+]\\s+.*")) {
+                    if (!inUnorderedList) {
+                        if (inOrderedList) {
+                            inOrderedList = false;
+                        }
+                        inUnorderedList = true;
+                    }
+                    String listItem = trimmedLine.substring(trimmedLine.indexOf(" ") + 1);
+                    com.lowagie.text.ListItem item = new com.lowagie.text.ListItem(listItem, normalFont);
+                    com.lowagie.text.List list = new com.lowagie.text.List(com.lowagie.text.List.UNORDERED);
+                    list.add(item);
+                    document.add(list);
+                    continue;
+                } else if (trimmedLine.matches("^\\d+\\.\\s+.*")) {
+                    if (!inOrderedList) {
+                        if (inUnorderedList) {
+                            inUnorderedList = false;
+                        }
+                        inOrderedList = true;
+                    }
+                    String listItem = trimmedLine.substring(trimmedLine.indexOf(" ") + 1);
+                    com.lowagie.text.ListItem item = new com.lowagie.text.ListItem(listItem, normalFont);
+                    com.lowagie.text.List list = new com.lowagie.text.List(com.lowagie.text.List.ORDERED);
+                    list.add(item);
+                    continue;
+                } else {
+                    if (inUnorderedList || inOrderedList) {
+                        inUnorderedList = false;
+                        inOrderedList = false;
+                        document.add(new com.lowagie.text.Paragraph(" "));
+                    }
+                }
+                
+                // Überschriften
+                if (trimmedLine.startsWith("# ")) {
+                    document.add(new com.lowagie.text.Paragraph(trimmedLine.substring(2), h1Font));
+                    document.add(new com.lowagie.text.Paragraph(" "));
+                } else if (trimmedLine.startsWith("## ")) {
+                    document.add(new com.lowagie.text.Paragraph(trimmedLine.substring(3), h2Font));
+                    document.add(new com.lowagie.text.Paragraph(" "));
+                } else if (trimmedLine.startsWith("### ")) {
+                    document.add(new com.lowagie.text.Paragraph(trimmedLine.substring(4), h3Font));
+                    document.add(new com.lowagie.text.Paragraph(" "));
+                } else if (trimmedLine.startsWith("#### ")) {
+                    document.add(new com.lowagie.text.Paragraph(trimmedLine.substring(5), h4Font));
+                    document.add(new com.lowagie.text.Paragraph(" "));
+                } else if (trimmedLine.isEmpty()) {
+                    document.add(new com.lowagie.text.Paragraph(" "));
+                } else if (trimmedLine.contains("|") && !trimmedLine.startsWith("```")) {
+                    // Tabellen
+                    if (trimmedLine.matches("^\\|.*\\|$")) {
+                        String[] cells = trimmedLine.split("\\|");
+                        int columnCount = cells.length - 2; // Minus 2 für leere Zellen am Anfang und Ende
+                        
+                        if (columnCount > 0) {
+                            com.lowagie.text.pdf.PdfPTable table = new com.lowagie.text.pdf.PdfPTable(columnCount);
+                            table.setWidthPercentage(100);
+                            
+                            for (int j = 1; j < cells.length - 1; j++) {
+                                String cell = cells[j].trim();
+                                com.lowagie.text.pdf.PdfPCell pdfCell = new com.lowagie.text.pdf.PdfPCell(new com.lowagie.text.Phrase(cell, normalFont));
+                                pdfCell.setBorder(com.lowagie.text.Rectangle.BOX);
+                                pdfCell.setPadding(5);
+                                table.addCell(pdfCell);
+                            }
+                            document.add(table);
+                        }
+                    }
+                } else {
+                    // Normaler Text mit Markdown-Formatierung
+                    com.lowagie.text.Paragraph paragraph = new com.lowagie.text.Paragraph();
+                    addFormattedTextToParagraph(paragraph, line, normalFont, boldFont, italicFont, codeFont);
+                    document.add(paragraph);
+                }
+            }
+            
+            document.close();
+            updateStatus("PDF erfolgreich erstellt: " + file.getName());
+            
+        } catch (Exception e) {
+            updateStatusError("Fehler beim PDF-Export: " + e.getMessage());
+            logger.error("PDF Export error", e);
+            throw e;
         }
     }
     
-    private void clearUndoRedoStacks() {
-        undoStack.clear();
-        redoStack.clear();
-        isUndoRedoOperation = false;
+    private void addFormattedTextToParagraph(com.lowagie.text.Paragraph paragraph, String text, 
+                                           com.lowagie.text.Font normalFont, com.lowagie.text.Font boldFont, 
+                                           com.lowagie.text.Font italicFont, com.lowagie.text.Font codeFont) {
+        // Einfache Markdown-Formatierung für PDF - direkte Verarbeitung
+        int pos = 0;
+        boolean isBold = false;
+        boolean isItalic = false;
+        boolean isCode = false;
+        boolean isStrike = false;
+        boolean isHighlight = false;
+        
+        while (pos < text.length()) {
+            // Fett und kursiv (drei Sternchen)
+            if (pos + 2 < text.length() && text.substring(pos, pos + 3).equals("***")) {
+                if (isBold && isItalic) {
+                    isBold = false;
+                    isItalic = false;
+                } else {
+                    isBold = true;
+                    isItalic = true;
+                }
+                pos += 3;
+                continue;
+            }
+            
+            // Fett (zwei Sternchen)
+            if (pos + 1 < text.length() && text.substring(pos, pos + 2).equals("**")) {
+                isBold = !isBold;
+                pos += 2;
+                continue;
+            }
+            
+            // Kursiv (ein Sternchen)
+            if (text.charAt(pos) == '*') {
+                isItalic = !isItalic;
+                pos += 1;
+                continue;
+            }
+            
+            // Inline-Code (Backticks)
+            if (text.charAt(pos) == '`') {
+                isCode = !isCode;
+                pos += 1;
+                continue;
+            }
+            
+            // Durchgestrichen (zwei Tilden)
+            if (pos + 1 < text.length() && text.substring(pos, pos + 2).equals("~~")) {
+                isStrike = !isStrike;
+                pos += 2;
+                continue;
+            }
+            
+            // Bilder ![Alt-Text](URL)
+            if (text.charAt(pos) == '!' && pos + 1 < text.length() && text.charAt(pos + 1) == '[') {
+                int altEnd = text.indexOf(']', pos + 1);
+                if (altEnd != -1 && altEnd + 1 < text.length() && text.charAt(altEnd + 1) == '(') {
+                    int urlEnd = text.indexOf(')', altEnd + 1);
+                    if (urlEnd != -1) {
+                        String altText = text.substring(pos + 2, altEnd);
+                        String imageUrl = text.substring(altEnd + 2, urlEnd);
+                        
+                        // Bild als Text mit URL darstellen
+                        com.lowagie.text.Font imageFont = new com.lowagie.text.Font(com.lowagie.text.Font.HELVETICA, 10, com.lowagie.text.Font.ITALIC);
+                        com.lowagie.text.Chunk imageChunk = new com.lowagie.text.Chunk("[BILD: " + altText + " (" + imageUrl + ")]", imageFont);
+                        paragraph.add(imageChunk);
+                        
+                        pos = urlEnd + 1;
+                        continue;
+                    }
+                }
+            }
+            
+            // Links [Text](URL)
+            if (text.charAt(pos) == '[') {
+                int linkEnd = text.indexOf(']', pos);
+                if (linkEnd != -1 && linkEnd + 1 < text.length() && text.charAt(linkEnd + 1) == '(') {
+                    int urlEnd = text.indexOf(')', linkEnd + 1);
+                    if (urlEnd != -1) {
+                        String linkText = text.substring(pos + 1, linkEnd);
+                        String url = text.substring(linkEnd + 2, urlEnd);
+                        
+                        // Link als unterstrichener Text darstellen
+                        com.lowagie.text.Font linkFont = new com.lowagie.text.Font(com.lowagie.text.Font.HELVETICA, 12, com.lowagie.text.Font.UNDERLINE);
+                        com.lowagie.text.Chunk linkChunk = new com.lowagie.text.Chunk(linkText + " (" + url + ")", linkFont);
+                        paragraph.add(linkChunk);
+                        
+                        pos = urlEnd + 1;
+                        continue;
+                    }
+                }
+            }
+            
+            // Hervorgehoben (zwei Gleichheitszeichen) - aber nicht bei chemischen Formeln
+            if (pos + 1 < text.length() && text.substring(pos, pos + 2).equals("==")) {
+                // Prüfe, ob es sich um eine chemische Formel handelt (z.B. H2O)
+                boolean isChemicalFormula = false;
+                if (pos > 0) {
+                    char prevChar = text.charAt(pos - 1);
+                    if (Character.isLetter(prevChar)) {
+                        // Suche nach Zahlen nach dem Gleichheitszeichen
+                        int nextPos = pos + 2;
+                        while (nextPos < text.length() && Character.isDigit(text.charAt(nextPos))) {
+                            nextPos++;
+                        }
+                        if (nextPos < text.length() && Character.isLetter(text.charAt(nextPos))) {
+                            isChemicalFormula = true;
+                        }
+                    }
+                }
+                
+                if (!isChemicalFormula) {
+                    isHighlight = !isHighlight;
+                    pos += 2;
+                    continue;
+                }
+            }
+            
+            // Normaler Text - finde das Ende des aktuellen Textabschnitts
+            int endPos = pos;
+            while (endPos < text.length()) {
+                char c = text.charAt(endPos);
+                if (c == '*' || c == '`' || c == '~' || c == '=' || c == '[') {
+                    // Prüfe auf Markdown-Syntax
+                    if (c == '*' && endPos + 2 < text.length() && text.substring(endPos, endPos + 3).equals("***")) {
+                        break;
+                    }
+                    if (c == '*' && endPos + 1 < text.length() && text.substring(endPos, endPos + 2).equals("**")) {
+                        break;
+                    }
+                    if (c == '*' && endPos + 0 < text.length()) {
+                        break;
+                    }
+                    if (c == '`' && endPos + 0 < text.length()) {
+                        break;
+                    }
+                    if (c == '~' && endPos + 1 < text.length() && text.substring(endPos, endPos + 2).equals("~~")) {
+                        break;
+                    }
+                    if (c == '=' && endPos + 1 < text.length() && text.substring(endPos, endPos + 2).equals("==")) {
+                        break;
+                    }
+                    if (c == '[' && endPos + 0 < text.length()) {
+                        break;
+                    }
+                }
+                endPos++;
+            }
+            
+            // Text extrahieren und formatieren
+            String textPart = text.substring(pos, endPos);
+            if (!textPart.isEmpty()) {
+                // Font basierend auf Formatierung wählen
+                com.lowagie.text.Font font = normalFont;
+                if (isCode) {
+                    font = codeFont;
+                } else if (isBold && isItalic) {
+                    font = new com.lowagie.text.Font(com.lowagie.text.Font.HELVETICA, 12, com.lowagie.text.Font.BOLD | com.lowagie.text.Font.ITALIC);
+                } else if (isBold) {
+                    font = boldFont;
+                } else if (isItalic) {
+                    font = italicFont;
+                }
+                
+                com.lowagie.text.Chunk chunk = new com.lowagie.text.Chunk(textPart, font);
+                if (isStrike) {
+                    // Durchgestrichen durch Linie durch den Text
+                    chunk.setUnderline(0.1f, 6f);
+                }
+                if (isHighlight) {
+                    // Hervorhebung durch Unterstreichung
+                    chunk.setUnderline(0.2f, 0f);
+                }
+                paragraph.add(chunk);
+            }
+            
+            pos = endPos;
+        }
     }
+    
+    private String formatMarkdownForPDF(String text) {
+        // Markdown-Formatierung für PDF konvertieren
+        return text
+            // Fett (zwei Sternchen) - für PDF nur Text ohne **
+            .replaceAll("\\*\\*(.*?)\\*\\*", "$1")
+            // Kursiv (ein Sternchen) - aber nicht wenn es bereits fett ist
+            .replaceAll("(?<!\\*)\\*(?!\\*)(.*?)(?<!\\*)\\*(?!\\*)", "$1")
+            // Inline-Code (Backticks)
+            .replaceAll("`(.*?)`", "$1")
+            // Links
+            .replaceAll("\\[([^\\]]+)\\]\\(([^)]+)\\)", "$1 ($2)")
+            // Bilder
+            .replaceAll("!\\[([^\\]]*)\\]\\(([^)]+)\\)", "[Bild: $1]")
+            // Durchgestrichen (zwei Tilden)
+            .replaceAll("~~(.*?)~~", "$1")
+            // Hervorgehoben (zwei Gleichheitszeichen)
+            .replaceAll("==(.*?)==", "$1");
+    }
+    
+    private void exportToEPUB(String content, File file, ExportResult result) throws Exception {
+        // EPUB-Export (einfache Implementierung über HTML)
+        String htmlContent = convertMarkdownToHTML(content);
+        
+        // Erstelle eine HTML-Datei (kann später zu EPUB konvertiert werden)
+        File htmlFile = new File(file.getParentFile(), file.getName().replace(".epub", ".html"));
+        Files.write(htmlFile.toPath(), htmlContent.getBytes(StandardCharsets.UTF_8));
+        
+        updateStatus("EPUB-Export: HTML-Datei erstellt (kann zu EPUB konvertiert werden): " + htmlFile.getName());
+    }
+    
+    private String convertMarkdownToHTML(String markdown) {
+        StringBuilder html = new StringBuilder();
+        
+        // HTML-Header
+        html.append("<!DOCTYPE html>\n");
+        html.append("<html lang=\"de\">\n");
+        html.append("<head>\n");
+        html.append("    <meta charset=\"UTF-8\">\n");
+        html.append("    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n");
+        html.append("    <title>Exportiertes Dokument</title>\n");
+        html.append("    <style>\n");
+        html.append("        body { font-family: Arial, sans-serif; line-height: 1.6; margin: 40px; }\n");
+        html.append("        h1, h2, h3, h4 { color: #2c3e50; }\n");
+        html.append("        h1 { border-bottom: 2px solid #3498db; padding-bottom: 10px; }\n");
+        html.append("        h2 { border-bottom: 1px solid #bdc3c7; padding-bottom: 5px; }\n");
+        html.append("        code { background-color: #f8f9fa; padding: 2px 4px; border-radius: 3px; }\n");
+        html.append("        pre { background-color: #f8f9fa; padding: 15px; border-radius: 5px; overflow-x: auto; }\n");
+        html.append("        blockquote { border-left: 4px solid #3498db; margin: 10px 0; padding-left: 20px; color: #7f8c8d; }\n");
+        html.append("        hr { border: none; border-top: 2px solid #bdc3c7; margin: 20px 0; }\n");
+        html.append("        ul, ol { margin: 10px 0; padding-left: 20px; }\n");
+        html.append("        li { margin: 5px 0; }\n");
+        html.append("        table { border-collapse: collapse; width: 100%; margin: 15px 0; }\n");
+        html.append("        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }\n");
+        html.append("        th { background-color: #f2f2f2; }\n");
+        html.append("        .strikethrough { text-decoration: line-through; }\n");
+        html.append("        .highlight { background-color: yellow; }\n");
+        html.append("    </style>\n");
+        html.append("</head>\n");
+        html.append("<body>\n");
+        
+        // Markdown zu HTML konvertieren
+        String[] lines = markdown.split("\n");
+        boolean inCodeBlock = false;
+        boolean inBlockquote = false;
+        boolean inUnorderedList = false;
+        boolean inOrderedList = false;
+        boolean inTable = false;
+        StringBuilder tableContent = new StringBuilder();
+        
+        for (int i = 0; i < lines.length; i++) {
+            String line = lines[i];
+            String trimmedLine = line.trim();
+            
+            // Horizontale Linien
+            if (trimmedLine.matches("^[-*_]{3,}$")) {
+                html.append("<hr>\n");
+                continue;
+            }
+            
+            // Tabellen
+            if (trimmedLine.contains("|") && !trimmedLine.startsWith("```")) {
+                if (!inTable) {
+                    inTable = true;
+                    tableContent = new StringBuilder();
+                    tableContent.append("<table>\n");
+                }
+                
+                // Tabellen-Header oder -Zeile
+                if (trimmedLine.matches("^\\|.*\\|$")) {
+                    String[] cells = trimmedLine.split("\\|");
+                    tableContent.append("<tr>\n");
+                    for (int j = 1; j < cells.length - 1; j++) {
+                        String cell = cells[j].trim();
+                        if (i > 0 && lines[i-1].trim().matches("^\\|.*\\|$") && 
+                            lines[i+1].trim().matches("^\\|[-:]+\\|$")) {
+                            tableContent.append("<th>").append(convertInlineMarkdown(cell)).append("</th>\n");
+                        } else {
+                            tableContent.append("<td>").append(convertInlineMarkdown(cell)).append("</td>\n");
+                        }
+                    }
+                    tableContent.append("</tr>\n");
+                }
+                continue;
+            } else if (inTable) {
+                inTable = false;
+                tableContent.append("</table>\n");
+                html.append(tableContent.toString());
+            }
+            
+            if (trimmedLine.isEmpty()) {
+                if (inBlockquote) {
+                    html.append("</blockquote>\n");
+                    inBlockquote = false;
+                }
+                if (inUnorderedList) {
+                    html.append("</ul>\n");
+                    inUnorderedList = false;
+                }
+                if (inOrderedList) {
+                    html.append("</ol>\n");
+                    inOrderedList = false;
+                }
+                html.append("<br>\n");
+                continue;
+            }
+            
+            // Code-Blöcke
+            if (trimmedLine.startsWith("```")) {
+                if (inCodeBlock) {
+                    html.append("</pre></code>\n");
+                    inCodeBlock = false;
+                } else {
+                    html.append("<pre><code>\n");
+                    inCodeBlock = true;
+                }
+                continue;
+            }
+            
+            if (inCodeBlock) {
+                html.append(escapeHtml(line)).append("\n");
+                continue;
+            }
+            
+            // Blockquotes
+            if (trimmedLine.startsWith(">")) {
+                if (!inBlockquote) {
+                    html.append("<blockquote>\n");
+                    inBlockquote = true;
+                }
+                String quoteText = trimmedLine.substring(1).trim();
+                html.append("<p>").append(convertInlineMarkdown(quoteText)).append("</p>\n");
+                continue;
+            } else if (inBlockquote) {
+                html.append("</blockquote>\n");
+                inBlockquote = false;
+            }
+            
+            // Listen
+            if (trimmedLine.matches("^[-*+]\\s+.*")) {
+                if (!inUnorderedList) {
+                    if (inOrderedList) {
+                        html.append("</ol>\n");
+                        inOrderedList = false;
+                    }
+                    html.append("<ul>\n");
+                    inUnorderedList = true;
+                }
+                String listItem = trimmedLine.substring(trimmedLine.indexOf(" ") + 1);
+                html.append("<li>").append(convertInlineMarkdown(listItem)).append("</li>\n");
+                continue;
+            } else if (trimmedLine.matches("^\\d+\\.\\s+.*")) {
+                if (!inOrderedList) {
+                    if (inUnorderedList) {
+                        html.append("</ul>\n");
+                        inUnorderedList = false;
+                    }
+                    html.append("<ol>\n");
+                    inOrderedList = true;
+                }
+                String listItem = trimmedLine.substring(trimmedLine.indexOf(" ") + 1);
+                html.append("<li>").append(convertInlineMarkdown(listItem)).append("</li>\n");
+                continue;
+            } else {
+                if (inUnorderedList) {
+                    html.append("</ul>\n");
+                    inUnorderedList = false;
+                }
+                if (inOrderedList) {
+                    html.append("</ol>\n");
+                    inOrderedList = false;
+                }
+            }
+            
+            // Überschriften
+            if (trimmedLine.startsWith("# ")) {
+                html.append("<h1>").append(convertInlineMarkdown(trimmedLine.substring(2))).append("</h1>\n");
+            } else if (trimmedLine.startsWith("## ")) {
+                html.append("<h2>").append(convertInlineMarkdown(trimmedLine.substring(3))).append("</h2>\n");
+            } else if (trimmedLine.startsWith("### ")) {
+                html.append("<h3>").append(convertInlineMarkdown(trimmedLine.substring(4))).append("</h3>\n");
+            } else if (trimmedLine.startsWith("#### ")) {
+                html.append("<h4>").append(convertInlineMarkdown(trimmedLine.substring(5))).append("</h4>\n");
+            } else {
+                // Normaler Text mit Markdown-Formatierung
+                html.append("<p>").append(convertInlineMarkdown(line)).append("</p>\n");
+            }
+        }
+        
+        // Schließe offene Tags
+        if (inBlockquote) html.append("</blockquote>\n");
+        if (inUnorderedList) html.append("</ul>\n");
+        if (inOrderedList) html.append("</ol>\n");
+        if (inTable) {
+            tableContent.append("</table>\n");
+            html.append(tableContent.toString());
+        }
+        
+        html.append("</body>\n");
+        html.append("</html>");
+        
+        return html.toString();
+    }
+    
+    private String convertMarkdownToPlainText(String markdown) {
+        // Markdown-Formatierung entfernen
+        String text = markdown
+            .replaceAll("^#+\\s+", "") // Überschriften
+            .replaceAll("\\*\\*(.*?)\\*\\*", "$1") // Fett
+            .replaceAll("\\*(.*?)\\*", "$1") // Kursiv
+            .replaceAll("`(.*?)`", "$1") // Code
+            .replaceAll("\\[([^\\]]+)\\]\\([^)]+\\)", "$1") // Links
+            .replaceAll("^[-*+]\\s+", "• ") // Listen
+            .replaceAll("^\\d+\\.\\s+", ""); // Nummerierte Listen
+        
+        return text;
+    }
+    
+    private String convertInlineMarkdown(String text) {
+        return text
+            // Fett (zwei Sternchen)
+            .replaceAll("\\*\\*(.*?)\\*\\*", "<strong>$1</strong>")
+            // Kursiv (ein Sternchen) - aber nicht wenn es bereits fett ist
+            .replaceAll("(?<!\\*)\\*(?!\\*)(.*?)(?<!\\*)\\*(?!\\*)", "<em>$1</em>")
+            // Inline-Code (Backticks)
+            .replaceAll("`(.*?)`", "<code>$1</code>")
+            // Links
+            .replaceAll("\\[([^\\]]+)\\]\\(([^)]+)\\)", "<a href=\"$2\">$1</a>")
+            // Bilder
+            .replaceAll("!\\[([^\\]]*)\\]\\(([^)]+)\\)", "<img src=\"$2\" alt=\"$1\">")
+            // Durchgestrichen (zwei Tilden)
+            .replaceAll("~~(.*?)~~", "<span class=\"strikethrough\">$1</span>")
+            // Hervorgehoben (zwei Gleichheitszeichen)
+            .replaceAll("==(.*?)==", "<span class=\"highlight\">$1</span>");
+    }
+    
+    private String escapeHtml(String text) {
+        return text
+            .replace("&", "&amp;")
+            .replace("<", "&lt;")
+            .replace(">", "&gt;")
+            .replace("\"", "&quot;")
+            .replace("'", "&#39;");
+    }
+    
+
     
     // Methode zum Löschen aller Preferences
     public void clearAllPreferences() {
@@ -1685,7 +3073,13 @@ if (caret != null) {
         int idx = baseName.lastIndexOf('.');
         if (idx > 0) baseName = baseName.substring(0, idx);
         String ext = getDefaultExtension();
-        return new File(base.getParentFile(), baseName + ext);
+        
+        // Verwende data-Verzeichnis für Sidecar-Dateien
+        File dataDir = new File(base.getParentFile(), "data");
+        if (!dataDir.exists()) {
+            dataDir.mkdirs();
+        }
+        return new File(dataDir, baseName + ext);
     }
 
     private File deriveSidecarFileFor(File docx, DocxProcessor.OutputFormat format) {
@@ -1700,7 +3094,13 @@ if (caret != null) {
             case PLAIN_TEXT: ext = ".txt"; break;
             case HTML: default: ext = ".html"; break;
         }
-        return new File(base.getParentFile(), baseName + ext);
+        
+        // Verwende data-Verzeichnis für Sidecar-Dateien
+        File dataDir = new File(base.getParentFile(), "data");
+        if (!dataDir.exists()) {
+            dataDir.mkdirs();
+        }
+        return new File(dataDir, baseName + ext);
     }
     
     /**
@@ -1830,8 +3230,8 @@ if (caret != null) {
                 // Diff anzeigen
                 showDiffForUnsavedChanges();
             }
-        }
-        // Bei Abbrechen nichts tun (Dialog schließt nicht)
+            }
+            // Bei Abbrechen nichts tun (Dialog schließt nicht)
     }
     
     /**
@@ -1912,11 +3312,67 @@ if (caret != null) {
             // Gruppiere zusammenhängende Änderungen zu Blöcken
             List<DiffBlock> blocks = groupIntoBlocks(diffResult.getDiffLines());
             
+            // Intelligente Bereinigung von Leerzeilen (entfernt nur redundante, behält gewollte)
+            blocks = trimEmptyEdgesOfBlocks(blocks);
+            
+            // Erstelle finale Kopie für Lambda-Ausdrücke
+            final List<DiffBlock> finalBlocks = new ArrayList<>(blocks);
+            
             // Erstelle synchronisierte Anzeige basierend auf Blöcken
             int leftLineNumber = 1;
             int rightLineNumber = 1;
             
-            for (DiffBlock block : blocks) {
+            for (int blockIndex = 0; blockIndex < finalBlocks.size(); blockIndex++) {
+                DiffBlock block = finalBlocks.get(blockIndex);
+                DiffBlock nextBlock = (blockIndex + 1 < finalBlocks.size()) ? finalBlocks.get(blockIndex + 1) : null;
+                // SPEZIALFALL: Paarweise Darstellung DELETED (rechts) + ADDED (links) als EIN gemeinsamer Block
+                if (block.getType() == DiffBlockType.DELETED && nextBlock != null && nextBlock.getType() == DiffBlockType.ADDED) {
+                    String leftBlockText = joinNewTexts(nextBlock);
+                    String rightBlockText = joinOriginalTexts(block);
+
+                    // Links (grün)
+                    HBox leftLineBox = new HBox(5);
+                    Label leftLineNum = new Label("");
+                    leftLineNum.setStyle("-fx-min-width: 30px;");
+                    Label leftLineLabel = new Label(leftBlockText);
+                    leftLineLabel.setWrapText(true);
+                    leftLineLabel.setPrefWidth(600);
+                    leftLineLabel.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px; -fx-background-color: #d4edda; -fx-text-fill: #155724; -fx-font-weight: bold;");
+                    leftLineBox.getChildren().addAll(leftLineNum, leftLineLabel);
+
+                    // Rechts (rot)
+                    HBox rightLineBox = new HBox(5);
+                    Label rightLineNum = new Label("");
+                    rightLineNum.setStyle("-fx-min-width: 30px;");
+                    Label rightLineLabel = new Label(rightBlockText);
+                    rightLineLabel.setWrapText(true);
+                    rightLineLabel.setPrefWidth(600);
+                    rightLineLabel.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px; -fx-background-color: #f8d7da; -fx-text-fill: #721c24; -fx-font-weight: bold;");
+                    // Checkbox für dieses DELETED/ADDED-Paar erstellen und registrieren
+                    CheckBox pairCheckBox = new CheckBox();
+                    pairCheckBox.setSelected(false);
+                    blockCheckBoxes.add(pairCheckBox);
+                    // Optional: Texte für dieses Paar erfassen (wie bei DELETED-Blöcken)
+                    List<String> blockTextList = new ArrayList<>();
+                    for (DiffProcessor.DiffLine line : block.getLines()) {
+                        blockTextList.add(line.getOriginalText());
+                    }
+                    blockTexts.add(blockTextList);
+
+                    VBox checkboxContainer = new VBox();
+                    checkboxContainer.setAlignment(Pos.CENTER);
+                    checkboxContainer.setMinWidth(30);
+                    checkboxContainer.setMaxWidth(30);
+                    checkboxContainer.getChildren().add(pairCheckBox);
+                    rightLineBox.getChildren().addAll(rightLineNum, rightLineLabel, checkboxContainer);
+
+                    leftContentBox.getChildren().add(leftLineBox);
+                    rightContentBox.getChildren().add(rightLineBox);
+
+                    // Überspringe den nächsten Block, da bereits zusammen dargestellt
+                    blockIndex++;
+                    continue;
+                }
                 // Checkbox nur für rote Blöcke (DELETED) - die rechts (DOCX) angezeigt werden
                 CheckBox blockCheckBox = null;
                 if (block.getType() == DiffBlockType.DELETED) {
@@ -1932,7 +3388,18 @@ if (caret != null) {
                 }
                 
                 // Erstelle Zeilen für diesen Block
-                for (DiffProcessor.DiffLine diffLine : block.getLines()) {
+                for (int lineIndex = 0; lineIndex < block.getLines().size(); lineIndex++) {
+                    DiffProcessor.DiffLine diffLine = block.getLines().get(lineIndex);
+                    // Spezialfall: "rote leere Zeile" direkt VOR einem grünen Block entfernen
+                    if (block.getType() == DiffBlockType.DELETED
+                            && nextBlock != null && nextBlock.getType() == DiffBlockType.ADDED
+                            && lineIndex == block.getLines().size() - 1) {
+                        String original = diffLine.getOriginalText();
+                        if (original == null || original.trim().isEmpty()) {
+                                                    System.out.println("DEBUG: Überspringe leere Abschlusszeile vor grünem Block - Text: '" + original + "'");
+                        continue; // diese (leere) Abschlusszeile komplett überspringen
+                        }
+                    }
                     HBox leftLineBox = new HBox(5);
                     HBox rightLineBox = new HBox(5);
                     
@@ -1944,13 +3411,27 @@ if (caret != null) {
                     rightLineNum.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 10px; -fx-text-fill: #6c757d; -fx-min-width: 30px; -fx-alignment: center-right;");
                     
                     // Linke Seite (Editor)
-                    Label leftLineLabel = new Label(diffLine.getNewText());
+                    String leftText = diffLine.getNewText();
+                    String rightText = diffLine.getOriginalText();
+                    // Entferne nur WENNs am Ende reine EOL-Ketten sind, erhalte manuelle Leerzeilen zwischen Text
+                    leftText = stripTrailingEol(leftText);
+                    rightText = stripTrailingEol(rightText);
+
+                    // Sehr konservative Behandlung von Leerzeilen: Zeige alle Leerzeilen an
+                    boolean leftBlank = (leftText == null) || leftText.trim().isEmpty();
+                    boolean rightBlank = (rightText == null) || rightText.trim().isEmpty();
+                    
+                    // Zeige alle Leerzeilen an - keine Überspringung mehr
+                    // (Leerzeilen werden nur in trimEmptyEdgesOfBlocks bereinigt)
+
+                    // Intelligente Leerzeilen-Behandlung: Gewollte Leerzeilen bleiben erhalten
+                    Label leftLineLabel = new Label(leftText);
                     leftLineLabel.setWrapText(true);
                     leftLineLabel.setPrefWidth(600);
                     leftLineLabel.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px;");
                     
                     // Rechte Seite (DOCX)
-                    Label rightLineLabel = new Label(diffLine.getOriginalText());
+                    Label rightLineLabel = new Label(rightText);
                     rightLineLabel.setWrapText(true);
                     rightLineLabel.setPrefWidth(600);
                     rightLineLabel.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px;");
@@ -1963,8 +3444,7 @@ if (caret != null) {
                             rightLineNum.setText("");
                             leftLineLabel.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px; -fx-background-color: #d4edda; -fx-text-fill: #155724; -fx-font-weight: bold;");
                             leftLineNum.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 10px; -fx-text-fill: #28a745; -fx-min-width: 30px; -fx-alignment: center-right; -fx-font-weight: bold;");
-                            rightLineLabel.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px; -fx-background-color: #d4edda; -fx-text-fill: #155724;");
-                            rightLineNum.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 10px; -fx-text-fill: #28a745; -fx-min-width: 30px; -fx-alignment: center-right;");
+                            // Rechte Seite neutral lassen, keine farbige leere Zeile rendern
                             leftLineNumber++;
                             break;
                             
@@ -1972,8 +3452,7 @@ if (caret != null) {
                             // Gelöschter Block - links leer, rechts rot (DOCX)
                             leftLineLabel.setText("");
                             leftLineNum.setText("");
-                            leftLineLabel.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px; -fx-background-color: #f8d7da; -fx-text-fill: #721c24;");
-                            leftLineNum.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 10px; -fx-text-fill: #dc3545; -fx-min-width: 30px; -fx-alignment: center-right;");
+                            // Linke Seite neutral lassen, keine farbige leere Zeile rendern
                             rightLineLabel.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px; -fx-background-color: #f8d7da; -fx-text-fill: #721c24; -fx-font-weight: bold;");
                             rightLineNum.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 10px; -fx-text-fill: #dc3545; -fx-min-width: 30px; -fx-alignment: center-right; -fx-font-weight: bold;");
                             rightLineNumber++;
@@ -2051,50 +3530,55 @@ if (caret != null) {
                     // Erstelle neuen Inhalt basierend auf der Merge-Logik
                     StringBuilder newContent = new StringBuilder();
                     int checkboxIndex = 0;
-                    
-                    for (DiffBlock block : blocks) {
+                    for (int i = 0; i < finalBlocks.size(); ) {
+                        DiffBlock block = finalBlocks.get(i);
+                        DiffBlock next = (i + 1 < finalBlocks.size()) ? finalBlocks.get(i + 1) : null;
+
+                        // Paar: DELETED gefolgt von ADDED → entweder Original ODER Änderung übernehmen
+                        if (block.getType() == DiffBlockType.DELETED && next != null && next.getType() == DiffBlockType.ADDED) {
+                            boolean keepOriginal = checkboxIndex < blockCheckBoxes.size() && blockCheckBoxes.get(checkboxIndex).isSelected();
+                            if (keepOriginal) {
+                                for (DiffProcessor.DiffLine line : block.getLines()) {
+                                    String t = line.getOriginalText();
+                                    newContent.append(t == null ? "" : t).append("\n");
+                                }
+                            } else {
+                                for (DiffProcessor.DiffLine line : next.getLines()) {
+                                    String t = line.getNewText();
+                                    newContent.append(t == null ? "" : t).append("\n");
+                                }
+                            }
+                            checkboxIndex++;
+                            i += 2; // nächster Block übersprungen
+                            continue;
+                        }
+
+                        // Einzelblöcke
                         switch (block.getType()) {
                             case ADDED:
-                                // Grüne Blöcke: Übernehme Editor-Text (links) - immer
                                 for (DiffProcessor.DiffLine line : block.getLines()) {
-                                    if (!line.getNewText().isEmpty()) {
-                                        newContent.append(line.getNewText()).append("\n");
-                                    } else {
-                                        // Leerzeile hinzufügen
-                                        newContent.append("\n");
-                                    }
+                                    String t = line.getNewText();
+                                    newContent.append(t == null ? "" : t).append("\n");
                                 }
                                 break;
-                                
                             case DELETED:
-                                // Rote Blöcke: Übernehme DOCX-Text nur wenn gecheckt
+                                // Nur übernehmen, wenn explizit gecheckt (Original behalten)
                                 if (checkboxIndex < blockCheckBoxes.size() && blockCheckBoxes.get(checkboxIndex).isSelected()) {
                                     for (DiffProcessor.DiffLine line : block.getLines()) {
-                                        if (!line.getOriginalText().isEmpty()) {
-                                            newContent.append(line.getOriginalText()).append("\n");
-                                        } else {
-                                            // Leerzeile hinzufügen
-                                            newContent.append("\n");
-                                        }
+                                        String t = line.getOriginalText();
+                                        newContent.append(t == null ? "" : t).append("\n");
                                     }
-                                } else {
-                                    // Wenn nicht gecheckt: ignoriere komplett (nichts hinzufügen)
                                 }
                                 checkboxIndex++;
                                 break;
-                                
                             case UNCHANGED:
-                                // Unveränderte Blöcke: Übernehme Editor-Text (links) - immer
                                 for (DiffProcessor.DiffLine line : block.getLines()) {
-                                    if (!line.getNewText().isEmpty()) {
-                                        newContent.append(line.getNewText()).append("\n");
-                                    } else {
-                                        // Leerzeile hinzufügen
-                                        newContent.append("\n");
-                                    }
+                                    String t = line.getNewText();
+                                    newContent.append(t == null ? "" : t).append("\n");
                                 }
                                 break;
                         }
+                        i++;
                     }
                     
                     // Setze neuen Inhalt und überschreibe MD-Datei
@@ -2216,6 +3700,122 @@ if (caret != null) {
         }
         
         blocks.add(currentBlock);
+        return blocks;
+    }
+
+    // Entfernt ein einzelnes abschließendes \n oder \r\n aus Anzeigetexten
+    private String stripTrailingEol(String text) {
+        if (text == null || text.isEmpty()) return text;
+        if (text.endsWith("\r\n")) return text.substring(0, text.length() - 2);
+        if (text.endsWith("\n")) return text.substring(0, text.length() - 1);
+        return text;
+    }
+
+    private String joinNewTexts(DiffBlock addedBlock) {
+        StringBuilder sb = new StringBuilder();
+        for (DiffProcessor.DiffLine line : addedBlock.getLines()) {
+            String t = line.getNewText();
+            if (t != null) sb.append(t);
+        }
+        return sb.toString().replaceAll("[\r\n]+$", "");
+    }
+
+    private String joinOriginalTexts(DiffBlock deletedBlock) {
+        StringBuilder sb = new StringBuilder();
+        for (DiffProcessor.DiffLine line : deletedBlock.getLines()) {
+            String t = line.getOriginalText();
+            if (t != null) sb.append(t);
+        }
+        return sb.toString().replaceAll("[\r\n]+$", "");
+    }
+
+    /**
+     * Ultra-konservative Bereinigung von Leerzeilen in Diff-Blöcken.
+     * Entfernt NUR 5+ aufeinanderfolgende Leerzeilen (sehr konservativ).
+     */
+    private List<DiffBlock> trimEmptyEdgesOfBlocks(List<DiffBlock> blocks) {
+        if (blocks == null || blocks.isEmpty()) return blocks;
+
+        for (int i = 0; i < blocks.size(); i++) {
+            DiffBlock current = blocks.get(i);
+
+            // Ultra-konservative Leerzeilen-Behandlung
+            if (current.getType() == DiffBlockType.DELETED) {
+                // Bei DELETED-Blöcken: Entferne nur 5+ aufeinanderfolgende Leerzeilen am Ende
+                List<DiffProcessor.DiffLine> lines = current.getLines();
+                while (lines.size() >= 5) { // Mindestens 5 Zeilen für Redundanz-Check
+                    DiffProcessor.DiffLine last = lines.get(lines.size() - 1);
+                    DiffProcessor.DiffLine secondLast = lines.get(lines.size() - 2);
+                    DiffProcessor.DiffLine thirdLast = lines.get(lines.size() - 3);
+                    DiffProcessor.DiffLine fourthLast = lines.get(lines.size() - 4);
+                    DiffProcessor.DiffLine fifthLast = lines.get(lines.size() - 5);
+                    
+                    String lastText = last.getOriginalText();
+                    String secondLastText = secondLast.getOriginalText();
+                    String thirdLastText = thirdLast.getOriginalText();
+                    String fourthLastText = fourthLast.getOriginalText();
+                    String fifthLastText = fifthLast.getOriginalText();
+                    
+                    // Nur entfernen wenn 5 aufeinanderfolgende Zeilen leer sind
+                    if ((lastText == null || lastText.trim().isEmpty()) &&
+                        (secondLastText == null || secondLastText.trim().isEmpty()) &&
+                        (thirdLastText == null || thirdLastText.trim().isEmpty()) &&
+                        (fourthLastText == null || fourthLastText.trim().isEmpty()) &&
+                        (fifthLastText == null || fifthLastText.trim().isEmpty())) {
+                        System.out.println("DEBUG: Entferne redundante Leerzeile am Ende von DELETED Block - Text: '" + lastText + "'");
+                        lines.remove(lines.size() - 1);
+                    } else {
+                        break;
+                    }
+                }
+            } else if (current.getType() == DiffBlockType.ADDED) {
+                // Bei ADDED-Blöcken: Entferne nur 5+ aufeinanderfolgende Leerzeilen am Anfang
+                List<DiffProcessor.DiffLine> lines = current.getLines();
+                while (lines.size() >= 5) { // Mindestens 5 Zeilen für Redundanz-Check
+                    DiffProcessor.DiffLine first = lines.get(0);
+                    DiffProcessor.DiffLine second = lines.get(1);
+                    DiffProcessor.DiffLine third = lines.get(2);
+                    DiffProcessor.DiffLine fourth = lines.get(3);
+                    DiffProcessor.DiffLine fifth = lines.get(4);
+                    
+                    String firstText = first.getNewText();
+                    String secondText = second.getNewText();
+                    String thirdText = third.getNewText();
+                    String fourthText = fourth.getNewText();
+                    String fifthText = fifth.getNewText();
+                    
+                    // Nur entfernen wenn 5 aufeinanderfolgende Zeilen leer sind
+                    if ((firstText == null || firstText.trim().isEmpty()) &&
+                        (secondText == null || secondText.trim().isEmpty()) &&
+                        (thirdText == null || thirdText.trim().isEmpty()) &&
+                        (fourthText == null || fourthText.trim().isEmpty()) &&
+                        (fifthText == null || fifthText.trim().isEmpty())) {
+                        System.out.println("DEBUG: Entferne redundante Leerzeile am Anfang von ADDED Block - Text: '" + firstText + "'");
+                        lines.remove(0);
+                    } else {
+                        break;
+                    }
+                }
+            }
+
+            // Entferne nur komplett leere Blöcke (alle Zeilen sind leer)
+            boolean allLinesEmpty = true;
+            for (DiffProcessor.DiffLine line : current.getLines()) {
+                String text = (current.getType() == DiffBlockType.ADDED) ? 
+                    line.getNewText() : line.getOriginalText();
+                if (text != null && !text.trim().isEmpty()) {
+                    allLinesEmpty = false;
+                    break;
+                }
+            }
+            
+            if (allLinesEmpty && current.getLines().size() > 0) {
+                System.out.println("DEBUG: Entferne komplett leeren Block - Typ: " + current.getType());
+                blocks.remove(i);
+                i--;
+            }
+        }
+
         return blocks;
     }
     
@@ -2595,8 +4195,8 @@ if (caret != null) {
             } else if (trimmedLine.startsWith("### ")) {
                 rtf.append("\\b\\fs26 ").append(trimmedLine.substring(4)).append("\\b0\\fs24\\par\n");
             } else {
-                // Normaler Text mit Markdown-Formatierung
-                String formattedLine = convertMarkdownInlineToRTF(trimmedLine);
+                // Normaler Text mit Markdown-Formatierung - verwende die ursprüngliche Zeile für korrekte Leerzeichen
+                String formattedLine = convertMarkdownInlineToRTF(line);
                 rtf.append(formattedLine).append("\\par\n");
             }
         }
@@ -2746,6 +4346,8 @@ if (caret != null) {
                     preferences.put("lastOpenDirectory", directory);
                 }
                 
+                // EINGEBAUTE UNDO-FUNKTIONALITÄT VERWENDEN - kein manueller Aufruf nötig
+                
                 String content = new String(Files.readAllBytes(file.toPath()));
                 codeArea.replaceText(content);
                 // Cursor an den Anfang setzen
@@ -2767,13 +4369,14 @@ if (caret != null) {
         currentFile = null;
         // WICHTIG: Setze originalContent auf leeren String für ungespeicherte Änderungen
         originalContent = "";
-        // Lösche Undo/Redo-Stacks bei neuer Datei
-        clearUndoRedoStacks();
+        // EINGEBAUTE UNDO-FUNKTIONALITÄT VERWENDEN - kein manueller Aufruf nötig
         updateStatus("Neue Datei");
     }
     
     // Public Methoden für externe Verwendung
     public void setText(String text) {
+        // EINGEBAUTE UNDO-FUNKTIONALITÄT VERWENDEN - kein manueller Aufruf nötig
+        
         codeArea.replaceText(text);
         
         // Kopie für Änderungsvergleich erstellen
@@ -2783,8 +4386,6 @@ if (caret != null) {
         // Cursor an den Anfang setzen
         codeArea.displaceCaret(0);
         codeArea.requestFollowCaret();
-        // Lösche Undo/Redo-Stacks beim Laden neuer Dateien
-        clearUndoRedoStacks();
         updateStatus("Text geladen");
     }
     
@@ -2860,7 +4461,9 @@ if (caret != null) {
         this.stage = stage;
         
         // Fenster-Eigenschaften laden und anwenden
+        Platform.runLater(() -> {
         loadWindowProperties();
+        });
         
         // Close-Request-Handler für Speichern-Abfrage
         stage.setOnCloseRequest(event -> {
@@ -2894,24 +4497,48 @@ if (caret != null) {
         stage.widthProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null && !newVal.equals(oldVal)) {
                 preferences.putDouble("window_width", newVal.doubleValue());
+                try {
+                    preferences.flush(); // Sofort speichern
+                } catch (Exception e) {
+                    logger.warn("Konnte Fenster-Breite nicht speichern: {}", e.getMessage());
+                }
+                logger.debug("Fenster-Breite gespeichert: {}", newVal.doubleValue());
             }
         });
         
         stage.heightProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null && !newVal.equals(oldVal)) {
                 preferences.putDouble("window_height", newVal.doubleValue());
+                try {
+                    preferences.flush(); // Sofort speichern
+                } catch (Exception e) {
+                    logger.warn("Konnte Fenster-Höhe nicht speichern: {}", e.getMessage());
+                }
+                logger.debug("Fenster-Höhe gespeichert: {}", newVal.doubleValue());
             }
         });
         
         stage.xProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null && !newVal.equals(oldVal)) {
                 preferences.putDouble("window_x", newVal.doubleValue());
+                try {
+                    preferences.flush(); // Sofort speichern
+                } catch (Exception e) {
+                    logger.warn("Konnte Fenster-X-Position nicht speichern: {}", e.getMessage());
+                }
+                logger.debug("Fenster-X-Position gespeichert: {}", newVal.doubleValue());
             }
         });
         
         stage.yProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null && !newVal.equals(oldVal)) {
                 preferences.putDouble("window_y", newVal.doubleValue());
+                try {
+                    preferences.flush(); // Sofort speichern
+                } catch (Exception e) {
+                    logger.warn("Konnte Fenster-Y-Position nicht speichern: {}", e.getMessage());
+                }
+                logger.debug("Fenster-Y-Position gespeichert: {}", newVal.doubleValue());
             }
         });
     }
@@ -2921,8 +4548,7 @@ if (caret != null) {
         
         // Export-Buttons nur für Markdown anzeigen
         boolean isMarkdown = (format == DocxProcessor.OutputFormat.MARKDOWN);
-        btnExportRTF.setVisible(isMarkdown);
-        btnExportDOCX.setVisible(isMarkdown);
+                    btnExport.setVisible(isMarkdown);
     }
     
     public void setDocxProcessor(DocxProcessor docxProcessor) {
@@ -3167,6 +4793,9 @@ if (caret != null) {
                     MacroStep step = getTableView().getItems().get(getIndex());
                     if (step != null) {
                         step.setEnabled(checkBox.isSelected());
+                        // Automatisch speichern bei Änderung
+                        saveMacros();
+                        updateStatus("Schritt " + step.getStepNumber() + " " + (checkBox.isSelected() ? "aktiviert" : "deaktiviert"));
                     }
                 });
             }
@@ -3261,7 +4890,7 @@ if (caret != null) {
         btnAddStep.setMinWidth(200);
         btnAddStep.setPrefWidth(220);
         btnAddStep.setStyle("-fx-font-size: 14px; -fx-padding: 6 14; -fx-font-weight: bold;");
-
+        
         Button btnRemoveStep = new Button("Schritt entfernen");
         btnRemoveStep.getStyleClass().remove("toolbar-button");
         btnRemoveStep.setMinHeight(32);
@@ -3269,7 +4898,7 @@ if (caret != null) {
         btnRemoveStep.setMinWidth(200);
         btnRemoveStep.setPrefWidth(220);
         btnRemoveStep.setStyle("-fx-font-size: 14px; -fx-padding: 6 14; -fx-font-weight: bold;");
-
+        
         Button btnMoveStepUp = new Button("↑");
         btnMoveStepUp.getStyleClass().remove("toolbar-button");
         btnMoveStepUp.setMinHeight(32);
@@ -3277,7 +4906,7 @@ if (caret != null) {
         btnMoveStepUp.setMinWidth(56);
         btnMoveStepUp.setPrefWidth(56);
         btnMoveStepUp.setStyle("-fx-font-size: 16px; -fx-padding: 0 10; -fx-font-weight: bold;");
-
+        
         Button btnMoveStepDown = new Button("↓");
         btnMoveStepDown.getStyleClass().remove("toolbar-button");
         btnMoveStepDown.setMinHeight(32);
@@ -4750,6 +6379,7 @@ if (caret != null) {
     
     private void selectMacro() {
         String selectedMacroName = cmbMacroList.getValue();
+        
         if (selectedMacroName != null) {
             currentMacro = macros.stream()
                 .filter(m -> m.getName().equals(selectedMacroName))
@@ -4760,13 +6390,6 @@ if (caret != null) {
                 macroDetailsPanel.setVisible(true);
         
                 tblMacroSteps.setItems(currentMacro.getSteps());
-                
-                // Debug-Ausgabe für Makro-Schritte
-                logger.info("Makro ausgewählt: " + currentMacro.getName() + " mit " + currentMacro.getSteps().size() + " Schritten");
-                for (int i = 0; i < currentMacro.getSteps().size(); i++) {
-                    MacroStep step = currentMacro.getSteps().get(i);
-                    logger.info("Schritt " + (i+1) + ": " + step.getDescription() + " (enabled: " + step.isEnabled() + ")");
-                }
                 
                 updateStatus("Makro ausgewählt: " + currentMacro.getName());
             }
@@ -4783,8 +6406,6 @@ if (caret != null) {
             String searchText = txtMacroSearch.getText() != null ? txtMacroSearch.getText().trim() : "";
             String replaceText = txtMacroReplace.getText() != null ? txtMacroReplace.getText() : "";
             
-                // Debug entfernt
-            
             if (searchText.isEmpty()) {
                 updateStatus("Bitte Suchtext eingeben");
                 return;
@@ -4797,6 +6418,7 @@ if (caret != null) {
             String stepDescription = txtMacroStepDescription.getText();
             MacroStep step = new MacroStep(currentMacro.getSteps().size() + 1, 
                                          searchText, replaceText, stepDescription, useRegex, caseSensitive, wholeWord);
+            
             currentMacro.addStep(step);
             
             // Felder leeren für nächsten Schritt
@@ -4808,7 +6430,9 @@ if (caret != null) {
             chkMacroWholeWord.setSelected(false);
             
             saveMacros();
-            updateStatus("Schritt zum Makro hinzugefügt: " + searchText);
+            updateStatus("Schritt zum Makro hinzugefügt");
+        } else {
+            updateStatus("Bitte zuerst ein Makro auswählen");
         }
     }
     
@@ -4918,6 +6542,91 @@ if (caret != null) {
             
             dialog.getDialogPane().setContent(grid);
             
+            // WICHTIG: Dialog korrekt stylen
+            styleDialog(dialog);
+            
+            // Theme-spezifische Styles für Dialog-Inhalte
+            String backgroundColor = THEMES[currentThemeIndex][0];
+            String textColor = THEMES[currentThemeIndex][1];
+            String inputBgColor = THEMES[currentThemeIndex][2];
+            String borderColor = THEMES[currentThemeIndex][3];
+            
+            // Grid-Container stylen
+            grid.setStyle(String.format(
+                "-fx-background-color: %s; -fx-text-fill: %s;",
+                backgroundColor, textColor
+            ));
+            
+            // Labels stylen
+            for (javafx.scene.Node node : grid.getChildren()) {
+                if (node instanceof Label) {
+                    node.setStyle(String.format(
+                        "-fx-text-fill: %s; -fx-font-weight: bold;",
+                        textColor
+                    ));
+                }
+            }
+            
+            // TextFields stylen
+            String textFieldStyle = String.format(
+                "-fx-background-color: %s; -fx-text-fill: %s; -fx-border-color: %s; -fx-border-radius: 4px; -fx-background-radius: 4px; -fx-padding: 6px 8px;",
+                inputBgColor, textColor, borderColor
+            );
+            searchField.setStyle(textFieldStyle);
+            replaceField.setStyle(textFieldStyle);
+            descriptionField.setStyle(textFieldStyle);
+            
+            // CheckBoxes stylen
+            String checkboxStyle = String.format(
+                "-fx-text-fill: %s; -fx-background-color: transparent;",
+                textColor
+            );
+            regexCheckBox.setStyle(checkboxStyle);
+            caseCheckBox.setStyle(checkboxStyle);
+            wordCheckBox.setStyle(checkboxStyle);
+            
+            // OptionsBox stylen
+            optionsBox.setStyle(String.format(
+                "-fx-background-color: transparent; -fx-text-fill: %s;",
+                textColor
+            ));
+            
+            // Zusätzliche Theme-Anwendung nach dem Aufbau
+            dialog.setOnShown(event -> {
+                // Buttons im Dialog stylen
+                String buttonStyle = String.format(
+                    "-fx-background-color: %s; -fx-text-fill: %s; -fx-border-color: %s; -fx-border-radius: 4px; -fx-background-radius: 4px; -fx-padding: 8px 16px;",
+                    inputBgColor, textColor, borderColor
+                );
+                
+                for (ButtonType buttonType : dialog.getDialogPane().getButtonTypes()) {
+                    Button button = (Button) dialog.getDialogPane().lookupButton(buttonType);
+                    if (button != null) {
+                        button.setStyle(buttonStyle);
+                        
+                        // Hover-Effekt
+                        button.setOnMouseEntered(e -> button.setStyle(buttonStyle + " -fx-opacity: 0.8;"));
+                        button.setOnMouseExited(e -> button.setStyle(buttonStyle));
+                    }
+                }
+                
+                // TextField-Fokus-Effekte
+                String focusedStyle = String.format(
+                    "-fx-background-color: %s; -fx-text-fill: %s; -fx-border-color: %s; -fx-border-width: 2px; -fx-border-radius: 4px; -fx-background-radius: 4px; -fx-padding: 6px 8px;",
+                    inputBgColor, textColor, textColor
+                );
+                
+                searchField.focusedProperty().addListener((obs, oldVal, newVal) -> {
+                    searchField.setStyle(newVal ? focusedStyle : textFieldStyle);
+                });
+                replaceField.focusedProperty().addListener((obs, oldVal, newVal) -> {
+                    replaceField.setStyle(newVal ? focusedStyle : textFieldStyle);
+                });
+                descriptionField.focusedProperty().addListener((obs, oldVal, newVal) -> {
+                    descriptionField.setStyle(newVal ? focusedStyle : textFieldStyle);
+                });
+            });
+            
             // Fokus auf Suchfeld setzen
             Platform.runLater(() -> searchField.requestFocus());
             
@@ -4951,8 +6660,7 @@ if (caret != null) {
     
     private void runCurrentMacro() {
         if (currentMacro != null && !currentMacro.getSteps().isEmpty()) {
-            // Speichere Zustand für Undo
-            saveStateForUndo();
+            // EINGEBAUTE UNDO-FUNKTIONALITÄT VERWENDEN - kein manueller Aufruf nötig
             
             String content = codeArea.getText();
             
@@ -5077,9 +6785,9 @@ if (caret != null) {
                     logger.info("Makros aus Preferences migriert nach: " + macrosFile.getAbsolutePath());
                 }
             }
-        } catch (Exception e) {
+            } catch (Exception e) {
             logger.error("Fehler beim Laden/Migrieren der Makros: ", e);
-        }
+            }
 
         if (savedMacros == null) savedMacros = "";
         // Alte/inkompatible Formate abfangen
@@ -5087,13 +6795,11 @@ if (caret != null) {
             logger.info("Alte/inkompatible Makro-Daten erkannt – setze zurück");
             savedMacros = "";
         }
-
+        
         if (savedMacros.isEmpty()) {
-            logger.info("Keine Makros gefunden – erstelle Beispiel-Makros");
-            createExampleMacros();
+            // Keine gespeicherten Makros - lade nur deine eigenen
+            logger.info("Keine gespeicherten Makros gefunden");
             updateMacroList();
-            // Direkt speichern, damit Datei existiert
-            saveMacros();
             return;
         }
         
@@ -5128,14 +6834,13 @@ if (caret != null) {
                     currentStep.setSearchText(line.substring(7));
                 }
             } else if (line.startsWith("REPLACE:")) {
-                // Alte Format - für Kompatibilität
+                // Neues lesbares Format
                 if (currentStep != null) {
                     String replaceText = line.substring(8);
-                        
                     currentStep.setReplaceText(replaceText);
                 }
             } else if (line.startsWith("REPLACE_B64:")) {
-                // Neues Base64-Format
+                // Altes Base64-Format - für Kompatibilität
                 if (currentStep != null) {
                     try {
                         String encodedText = line.substring(12);
@@ -5195,10 +6900,9 @@ if (caret != null) {
                 sb.append("DESC:").append(macro.getDescription() != null ? macro.getDescription() : "").append("\n");
                 for (MacroStep step : macro.getSteps()) {
                     String replaceText = step.getReplaceText() != null ? step.getReplaceText() : "";
-                    String encodedReplaceText = java.util.Base64.getEncoder().encodeToString(replaceText.getBytes("UTF-8"));
                     sb.append("STEP:").append(step.getStepNumber()).append("\n");
                     sb.append("SEARCH:").append(step.getSearchText() != null ? step.getSearchText() : "").append("\n");
-                    sb.append("REPLACE_B64:").append(encodedReplaceText).append("\n");
+                    sb.append("REPLACE:").append(replaceText).append("\n");
                     sb.append("REGEX:").append(step.isUseRegex() ? "1" : "0").append("\n");
                     sb.append("CASE:").append(step.isCaseSensitive() ? "1" : "0").append("\n");
                     sb.append("WORD:").append(step.isWholeWord() ? "1" : "0").append("\n");
@@ -5223,8 +6927,8 @@ if (caret != null) {
 
             // Preferences als Backup speichern
             try {
-                preferences.put("savedMacros", macroData);
-                preferences.flush();
+            preferences.put("savedMacros", macroData);
+            preferences.flush();
                 logger.info("Makros in Preferences gespeichert");
             } catch (Exception prefError) {
                 logger.error("Fehler beim Speichern in Preferences: " + prefError.getMessage());
@@ -5244,48 +6948,8 @@ if (caret != null) {
         return new java.io.File(dir, "macros.txt");
     }
     
-    // ALTE METHODEN GELÖSCHT - Waren kaputt
-    
-    private void createExampleMacros() {
-        // Standard-Makro: Text-Bereinigung
-        Macro textCleanupMacro = new Macro("Text-Bereinigung", "Professionelle Textbereinigung mit 12 Schritten");
-        textCleanupMacro.addStep(new MacroStep(1, "[ ]{2,}", " ", "Mehrfache Leerzeichen reduzieren", true, false, false));
-        textCleanupMacro.addStep(new MacroStep(2, "\\n{2,}", "\\n", "Mehrfache Leerzeilen reduzieren", true, false, false));
-        textCleanupMacro.addStep(new MacroStep(3, "„", "\"", "Gerade Anführungszeichen öffnen", false, false, false));
-        textCleanupMacro.addStep(new MacroStep(4, "“", "\"", "Gerade Anführungszeichen schließen", false, false, false));
-        textCleanupMacro.addStep(new MacroStep(5, ",\"", "\",", "Komma vor Anführungszeichen I", false, false, false));
-        textCleanupMacro.addStep(new MacroStep(6, "'(.*?)'", "›$1‹", "Einfache Anführungszeichen Französisch", true, false, false));
-        textCleanupMacro.addStep(new MacroStep(7, "\"(.*?)\"", "»$1«", "Anführungszeichen Französisch", true, false, false));
-        textCleanupMacro.addStep(new MacroStep(8, "...", "…", "Auslassungszeichen", false, false, false));
-        textCleanupMacro.addStep(new MacroStep(9, "([A-Za-zÄÖÜäöüß])…", "$1 ...", "Buchstabe direkt an Auslassungszeichen", true, false, false));
-        textCleanupMacro.addStep(new MacroStep(10, "(?<=…)(?=\\p{L})", " ", "Buchstabe direkt nach Auslassungszeichen", true, false, false));
-        textCleanupMacro.addStep(new MacroStep(11, "--", "—", "Gedankenstrich", false, false, false));
-        textCleanupMacro.addStep(new MacroStep(12, ",\"«", "«,", "Komma vor Anführungszeichen", false, false, false));
-        textCleanupMacro.addStep(new MacroStep(13, "'(.*?)' ", "›$1‹", "Einfache Anführungszeichen Französisch", true, false, false));
-        macros.add(textCleanupMacro);
-        
-        // Neues Makro: Französische zu deutsche Anführungszeichen
-        Macro frenchToGermanQuotes = new Macro("Französische → Deutsche Anführungszeichen", "Konvertiert französische zu deutschen Anführungszeichen");
-        frenchToGermanQuotes.addStep(new MacroStep(1, "»(.*?)«", "\"$1\"", "Französische zu deutsche Anführungszeichen", true, false, false));
-        frenchToGermanQuotes.addStep(new MacroStep(2, "›(.*?)‹", "'$1'", "Französische zu deutsche einfache Anführungszeichen", true, false, false));
-        macros.add(frenchToGermanQuotes);
-        
-        // Neues Makro: Deutsche zu französische Anführungszeichen
-        Macro germanToFrenchQuotes = new Macro("Deutsche → Französische Anführungszeichen", "Konvertiert deutsche zu französischen Anführungszeichen");
-        germanToFrenchQuotes.addStep(new MacroStep(1, "\"(.*?)\"", "»$1«", "Deutsche zu französische Anführungszeichen", true, false, false));
-        germanToFrenchQuotes.addStep(new MacroStep(2, "'(.*?)'", "›$1‹", "Deutsche zu französische einfache Anführungszeichen", true, false, false));
-        macros.add(germanToFrenchQuotes);
-        
-        // Neues Makro: Apostrophe korrigieren
-        Macro apostropheCorrection = new Macro("Apostrophe korrigieren", "Korrigiert verschiedene Apostrophe-Formen");
-        apostropheCorrection.addStep(new MacroStep(1, "([A-Za-zÄÖÜäöüß])'([A-Za-zÄÖÜäöüß])", "$1'$2", "Apostrophe zwischen Buchstaben korrigieren", true, false, false));
-        apostropheCorrection.addStep(new MacroStep(2, "([A-Za-zÄÖÜäöüß])`([A-Za-zÄÖÜäöüß])", "$1'$2", "Grave-Akzent zu Apostrophe", true, false, false));
-        apostropheCorrection.addStep(new MacroStep(3, "([A-Za-zÄÖÜäöüß])´([A-Za-zÄÖÜäöüß])", "$1'$2", "Akut-Akzent zu Apostrophe", true, false, false));
-        apostropheCorrection.addStep(new MacroStep(4, "([A-Za-zÄÖÜäöüß])'([A-Za-zÄÖÜäöüß])", "$1'$2", "Typografisches Apostrophe korrigieren", true, false, false));
-        macros.add(apostropheCorrection);
-        
-        updateMacroList();
-    }
+    // Keine Beispiel-Makros mehr - nur deine eigenen Makros werden geladen
+   
     
     private void updateMacroList() {
         List<String> macroNames = macros.stream()
@@ -5413,6 +7077,8 @@ if (caret != null) {
         double height = preferences.getDouble("window_height", 800.0);
         double x = preferences.getDouble("window_x", -1.0);
         double y = preferences.getDouble("window_y", -1.0);
+        
+        logger.info("Lade Fenster-Eigenschaften: Größe={}x{}, Position=({}, {})", width, height, x, y);
         
         // NEU: Validierung der Fenster-Größe
         // Minimale und maximale Größen prüfen
@@ -5692,8 +7358,7 @@ if (caret != null) {
             applyThemeToNode(btnFindPrevious, themeIndex);
             applyThemeToNode(btnSave, themeIndex);
             applyThemeToNode(btnSaveAs, themeIndex);
-            applyThemeToNode(btnExportRTF, themeIndex);
-            applyThemeToNode(btnExportDOCX, themeIndex);
+            applyThemeToNode(btnExport, themeIndex);
             applyThemeToNode(btnOpen, themeIndex);
             applyThemeToNode(btnNew, themeIndex);
             applyThemeToNode(btnToggleSearch, themeIndex);
@@ -6240,7 +7905,7 @@ if (caret != null) {
             codeArea.moveTo(caretPosition + text.length());
         }
         codeArea.requestFocus();
-        updateStatus("Text vom KI-Assistenten eingefügt");
+            updateStatus("Text vom KI-Assistenten eingefügt");
     }
     
     /**

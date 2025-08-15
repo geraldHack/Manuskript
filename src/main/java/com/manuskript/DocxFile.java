@@ -65,4 +65,17 @@ public class DocxFile {
     public String toString() {
         return fileName;
     }
+    
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        DocxFile docxFile = (DocxFile) obj;
+        return file.equals(docxFile.file);
+    }
+    
+    @Override
+    public int hashCode() {
+        return file.hashCode();
+    }
 } 

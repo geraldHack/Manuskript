@@ -26,6 +26,7 @@ import javafx.stage.Modality;
 import javafx.stage.Window;
 import javafx.scene.web.WebView;
 import javafx.application.Platform;
+import javafx.scene.image.ImageView;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.Optional;
@@ -34,6 +35,8 @@ import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.HashSet;
 import java.util.ResourceBundle;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -67,14 +70,7 @@ public class MainController implements Initializable {
     @FXML private TableColumn<DocxFile, String> colFileSizeSelected;
     @FXML private TableColumn<DocxFile, String> colLastModifiedSelected;
     
-    // Filter und Sortierung
-    @FXML private ComboBox<String> cmbSortBy;
-    @FXML private ComboBox<String> cmbRegexFilter;
-    @FXML private CheckBox chkRegexMode;
-    @FXML private ComboBox<String> cmbRegexSort;
-    
-    // Format-Auswahl
-    @FXML private ComboBox<DocxProcessor.OutputFormat> cmbOutputFormat;
+    // Filter, Sortierung und Format-Auswahl entfernt - einfache Lösung
     
     // Buttons
     @FXML private Button btnAddToSelected;
@@ -91,8 +87,7 @@ public class MainController implements Initializable {
     private ObservableList<DocxFile> allDocxFiles = FXCollections.observableArrayList();
     private ObservableList<DocxFile> originalDocxFiles = FXCollections.observableArrayList(); // Ursprüngliche Reihenfolge
     private ObservableList<DocxFile> selectedDocxFiles = FXCollections.observableArrayList();
-    private FilteredList<DocxFile> availableFiles;
-    private SortedList<DocxFile> sortedAvailableFiles;
+    // SortedList entfernt - einfache Lösung
     private DocxProcessor docxProcessor;
     private Preferences preferences;
     private java.nio.file.WatchService watchService;
@@ -119,7 +114,7 @@ public class MainController implements Initializable {
         setupDragAndDrop();
         docxProcessor = new DocxProcessor();
         loadLastDirectory();
-        loadRecentRegexList();
+        // loadRecentRegexList entfernt - einfache Lösung
         
         // CSS initial laden und Theme-Klassen setzen, bevor wir Theme anwenden
         Platform.runLater(() -> {
@@ -150,7 +145,7 @@ public class MainController implements Initializable {
                 loadSavedTheme();
             } else {
                 // Falls Scene noch nicht da, trotzdem Theme laden
-                loadSavedTheme();
+        loadSavedTheme();
             }
         });
     }
@@ -176,38 +171,19 @@ public class MainController implements Initializable {
         colFileSizeSelected.setPrefWidth(120);
         colLastModifiedSelected.setPrefWidth(180);
         
-        // Sortierung
-        cmbSortBy.getItems().addAll("Dateiname", "Dateigröße", "Änderungsdatum");
-        cmbSortBy.setValue("Dateiname");
-        
-        // Regex-Sortierung
-        cmbRegexSort.getItems().addAll("Aufsteigend", "Absteigend");
-        cmbRegexSort.setValue("Aufsteigend");
-        
-        // Format-Auswahl - nur noch MD
-        cmbOutputFormat.getItems().addAll(DocxProcessor.OutputFormat.MARKDOWN);
-        cmbOutputFormat.setValue(DocxProcessor.OutputFormat.MARKDOWN);
+        // Sortierung und Format-Auswahl entfernt - einfache Lösung
         
         // Mehrfachauswahl aktivieren
         tableViewAvailable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         tableViewSelected.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         
-        // Verfügbare Dateien (nur ohne MD-Datei)
-        availableFiles = new FilteredList<>(allDocxFiles, p -> {
-            File mdFile = deriveMdFileFor(p.getFile());
-            return mdFile == null || !mdFile.exists();
-        });
-        sortedAvailableFiles = new SortedList<>(availableFiles);
-        tableViewAvailable.setItems(sortedAvailableFiles);
+        // Direkte Verbindung: allDocxFiles → linke Tabelle
+        tableViewAvailable.setItems(allDocxFiles);
         
         // Ausgewählte Dateien
         tableViewSelected.setItems(selectedDocxFiles);
         
-        // Sortierung für die rechte Tabelle deaktivieren (nur Header-Klicks)
-        tableViewSelected.setSortPolicy(param -> null);
-        
-        // Sortierung
-        sortedAvailableFiles.comparatorProperty().bind(tableViewAvailable.comparatorProperty());
+        // Sortierung über TableView-Header (Standard-JavaFX)
         
         // TableViews direkt stylen - vor CSS-Ladung
         tableViewAvailable.setStyle("-fx-background-color: #ffffff; -fx-text-fill: #000000; -fx-border-color: #ba68c8;");
@@ -219,17 +195,7 @@ public class MainController implements Initializable {
     
     private void setupEventHandlers() {
         btnSelectDirectory.setOnAction(e -> selectDirectory());
-        cmbRegexFilter.valueProperty().addListener((observable, oldValue, newValue) -> {
-            applyFilters();
-            // Füge zur Recent-Liste hinzu, wenn es ein neuer Wert ist
-            if (newValue != null && !newValue.trim().isEmpty() && 
-                (oldValue == null || !newValue.equals(oldValue))) {
-                addToRecentRegex(newValue.trim());
-            }
-        });
-        chkRegexMode.setOnAction(e -> applyFilters());
-        cmbRegexSort.setOnAction(e -> applyFilters());
-        cmbSortBy.setOnAction(e -> sortFiles());
+        // Filter, Sortierung und Format-Event-Handler entfernt - einfache Lösung
         btnAddToSelected.setOnAction(e -> addSelectedToRight());
         btnRemoveFromSelected.setOnAction(e -> removeSelectedFromRight());
         
@@ -266,9 +232,63 @@ public class MainController implements Initializable {
             boolean success = false;
             if (db.hasString() && "right-to-left".equals(db.getString())) {
                 ObservableList<DocxFile> selectedItems = tableViewSelected.getSelectionModel().getSelectedItems();
+                
+                // Prüfe, ob Dateien MD-Dateien haben
+                List<DocxFile> filesWithMd = new ArrayList<>();
+                for (DocxFile file : selectedItems) {
+                    File mdFile = deriveMdFileFor(file.getFile());
+                    if (mdFile != null && mdFile.exists()) {
+                        filesWithMd.add(file);
+                    }
+                }
+                
+                if (!filesWithMd.isEmpty()) {
+                    // Dialog für Dateien mit MD-Dateien
+                    boolean shouldDeleteMd = showMdDeletionDialog(filesWithMd);
+                    
+                    if (shouldDeleteMd) {
+                        // MD-Dateien löschen und Dateien nach links verschieben
+                        for (DocxFile file : filesWithMd) {
+                            File mdFile = deriveMdFileFor(file.getFile());
+                            if (mdFile != null && mdFile.exists()) {
+                                try {
+                                    mdFile.delete();
+                                    logger.info("MD-Datei gelöscht: {}", mdFile.getName());
+                                } catch (Exception e) {
+                                    logger.error("Fehler beim Löschen der MD-Datei {}: {}", mdFile.getName(), e.getMessage());
+                                }
+                            }
+                        }
+                        
+                        // Alle Dateien nach links verschieben
                 selectedDocxFiles.removeAll(selectedItems);
+                        for (DocxFile file : selectedItems) {
+                            if (!allDocxFiles.contains(file)) {
+                                allDocxFiles.add(file);
+                            }
+                        }
+                        
                 success = true;
-                updateStatus(selectedItems.size() + " Dateien aus der Auswahl entfernt");
+                        updateStatus(selectedItems.size() + " Dateien nach links verschoben (MD-Dateien gelöscht)");
+                    } else {
+                        // MD-Dateien behalten - Dateien bleiben rechts
+                        success = false;
+                        updateStatus("Verschoben abgebrochen - MD-Dateien behalten");
+                    }
+                } else {
+                    // Keine MD-Dateien - direkt nach links verschieben
+                    selectedDocxFiles.removeAll(selectedItems);
+                    for (DocxFile file : selectedItems) {
+                        if (!allDocxFiles.contains(file)) {
+                            allDocxFiles.add(file);
+                        }
+                    }
+                    
+                    success = true;
+                    updateStatus(selectedItems.size() + " Dateien nach links verschoben");
+                }
+                
+                // Keine Auswahl mehr speichern - MD-Erkennung ist ausreichend
             }
             event.setDropCompleted(success);
             event.consume();
@@ -305,11 +325,34 @@ public class MainController implements Initializable {
             if (db.hasString() && "left-to-right".equals(db.getString())) {
                 // Externer Drop von links nach rechts
                 ObservableList<DocxFile> selectedItems = tableViewAvailable.getSelectionModel().getSelectedItems();
-                for (DocxFile file : selectedItems) {
+                
+                // Erstelle eine Kopie der ausgewählten Dateien für das Entfernen
+                List<DocxFile> filesToMove = new ArrayList<>(selectedItems);
+                
+                for (DocxFile file : filesToMove) {
                     if (!selectedDocxFiles.contains(file)) {
                         selectedDocxFiles.add(file);
+                        
+                        // Automatisch MD-Datei erstellen, falls sie nicht existiert
+                        File mdFile = deriveMdFileFor(file.getFile());
+                        if (mdFile != null && !mdFile.exists()) {
+                            try {
+                                // DOCX zu MD konvertieren und speichern
+                                String mdContent = docxProcessor.processDocxFileContent(file.getFile(), 1, DocxProcessor.OutputFormat.MARKDOWN);
+                                java.nio.file.Files.write(mdFile.toPath(), mdContent.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                                logger.info("MD-Datei automatisch erstellt (Drag & Drop): {}", mdFile.getName());
+                            } catch (Exception e) {
+                                logger.error("Fehler beim Erstellen der MD-Datei für {}: {}", file.getFileName(), e.getMessage());
+                            }
+                        }
                     }
                 }
+                
+                // Entferne die Dateien aus der linken Tabelle
+                allDocxFiles.removeAll(filesToMove);
+                
+                // Keine Auswahl mehr speichern - MD-Erkennung ist ausreichend
+                
                 success = true;
                 updateStatus(selectedItems.size() + " Dateien zur Auswahl hinzugefügt");
             }
@@ -403,64 +446,75 @@ public class MainController implements Initializable {
         try {
             updateStatus("Lade DOCX-Dateien...");
             
-            List<File> files = java.nio.file.Files.walk(directory.toPath())
-                    .filter(path -> path.toString().toLowerCase().endsWith(".docx"))
+            logger.info("Scanne Verzeichnis für DOCX-Dateien: {}", directory.getAbsolutePath());
+            
+            // Alle DOCX-Dateien im Verzeichnis sammeln (nur flach, keine Unterverzeichnisse)
+            Set<File> fileSet = java.nio.file.Files.list(directory.toPath())
+                    .filter(path -> {
+                        boolean isDocx = path.toString().toLowerCase().endsWith(".docx");
+                        if (isDocx) {
+                            logger.info("DOCX-Datei gefunden: {}", path.getFileName());
+                        }
+                        return isDocx;
+                    })
                     .map(java.nio.file.Path::toFile)
-                    .collect(Collectors.toList());
+                    .collect(Collectors.toSet()); // Set statt List für keine Duplikate
+            
+            List<File> files = new ArrayList<>(fileSet);
+            
+            logger.info("Insgesamt {} DOCX-Dateien gefunden", files.size());
+            
+            // Alle Listen leeren
+            logger.info("=== DEBUG: Listen leeren ===");
+            logger.info("allDocxFiles vor clear: {}", allDocxFiles.size());
+            logger.info("originalDocxFiles vor clear: {}", originalDocxFiles.size());
+            logger.info("selectedDocxFiles vor clear: {}", selectedDocxFiles.size());
             
             allDocxFiles.clear();
             originalDocxFiles.clear();
             selectedDocxFiles.clear();
             
+            logger.info("allDocxFiles nach clear: {}", allDocxFiles.size());
+            logger.info("originalDocxFiles nach clear: {}", originalDocxFiles.size());
+            logger.info("selectedDocxFiles nach clear: {}", selectedDocxFiles.size());
+            
+            // Für jede Datei entscheiden: links oder rechts?
+            logger.info("=== DEBUG: Dateien verarbeiten ===");
             for (File file : files) {
                 DocxFile docxFile = new DocxFile(file);
-                allDocxFiles.add(docxFile);
                 originalDocxFiles.add(docxFile);
-            }
-            
-            // Lade gespeicherte Reihenfolge zuerst
-            loadSavedOrder(directory);
-            
-            // Dann prüfe Änderungen mit Hash-basierter Erkennung
-            for (DocxFile docxFile : allDocxFiles) {
+                
+                // Prüfe: Hat die Datei eine MD-Datei?
                 File mdFile = deriveMdFileFor(docxFile.getFile());
                 boolean hasMdFile = mdFile != null && mdFile.exists();
                 
                 if (hasMdFile) {
-                    // Hash-basierte Erkennung: Berechne aktuellen Hash und vergleiche mit gespeichertem
-                    String savedHash = loadDocxHash(docxFile.getFile());
-                    
-                    if (savedHash == null) {
-                        // Kein gespeicherter Hash vorhanden - erste Verarbeitung
-                        String currentHash = calculateFileHash(docxFile.getFile());
-                        if (currentHash != null) {
-                            docxFile.setChanged(false);
-                            logger.info("DOCX neu: {} (kein gespeicherter Hash)", docxFile.getFileName());
-                            // Hash speichern für erste Verarbeitung
-                            saveDocxHash(docxFile.getFile(), currentHash);
-                        }
-                    } else {
-                        // Gespeicherter Hash vorhanden - vergleiche mit aktuellem Hash
-                        String currentHash = calculateFileHash(docxFile.getFile());
-                        if (currentHash != null && !currentHash.equals(savedHash)) {
-                            // Hash hat sich geändert - Datei wurde modifiziert
-                            docxFile.setChanged(true);
-                            logger.info("DOCX geändert: {} (Hash unterschiedlich)", docxFile.getFileName());
-                            // NICHT den neuen Hash speichern - behalte den alten für Vergleich
-                        } else {
-                            // Hash ist gleich - Datei unverändert
-                            docxFile.setChanged(false);
-                            logger.info("DOCX unverändert: {} (Hash gleich)", docxFile.getFileName());
-                        }
-                    }
+                    // Datei hat MD-Datei → nach rechts
+                    selectedDocxFiles.add(docxFile);
+                    logger.info("Datei nach rechts: {} (hat MD-Datei)", docxFile.getFileName());
                 } else {
-                    // Datei hat keine MD - bleibt links
-                    docxFile.setChanged(false);
-                    logger.info("Neue DOCX: {} (keine MD)", docxFile.getFileName());
+                    // Datei hat keine MD-Datei → nach links
+                allDocxFiles.add(docxFile);
+                    logger.info("Datei nach links: {} (keine MD-Datei)", docxFile.getFileName());
                 }
             }
             
-            updateStatus(allDocxFiles.size() + " DOCX-Dateien gefunden");
+            logger.info("=== DEBUG: Finale Listen-Größen ===");
+            logger.info("allDocxFiles: {} Dateien", allDocxFiles.size());
+            logger.info("originalDocxFiles: {} Dateien", originalDocxFiles.size());
+            logger.info("selectedDocxFiles: {} Dateien", selectedDocxFiles.size());
+            
+            // Debug: Alle Dateien in allDocxFiles auflisten
+            logger.info("=== DEBUG: Dateien in allDocxFiles ===");
+            for (DocxFile docxFile : allDocxFiles) {
+                logger.info("  - {}", docxFile.getFileName());
+            }
+            
+            // NEU: Hash-basierte Änderungsprüfung für alle geladenen Dateien
+            checkAllDocxFilesForChanges();
+            
+            // Status aktualisieren
+            updateStatus(allDocxFiles.size() + " Dateien links, " + selectedDocxFiles.size() + " Dateien rechts");
             
             // Starte automatische Datei-Überwachung
             startFileWatcher(directory);
@@ -474,91 +528,74 @@ public class MainController implements Initializable {
     
 
     
-    private void applyFilters() {
-        String regexFilter = cmbRegexFilter.getValue();
-        boolean regexMode = chkRegexMode.isSelected();
+    // Filter-Methoden entfernt - einfache Lösung
+    
+    private boolean showMdDeletionDialog(List<DocxFile> filesWithMd) {
+        // Erstelle eine schön gestylte Dialog-Box
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("MD-Dateien löschen?");
+        alert.setHeaderText("Dateien mit MD-Dateien verschieben");
         
-        // Aktualisiere die verfügbaren Dateien (nur Dateien ohne MD-Datei + Regex-Filter)
-        availableFiles.setPredicate(docxFile -> {
-            File mdFile = deriveMdFileFor(docxFile.getFile());
-            boolean hasMdFile = mdFile != null && mdFile.exists();
-            
-            // Grundfilter: Nur Dateien ohne MD-Datei
-            if (hasMdFile) {
-                return false; // Datei hat MD -> gehört in rechte Tabelle
-            }
-            
-            // Regex-Filterung
-            if (regexMode && regexFilter != null && !regexFilter.isEmpty()) {
-                try {
-                    Pattern pattern = Pattern.compile(regexFilter, Pattern.CASE_INSENSITIVE);
-                    if (!pattern.matcher(docxFile.getFileName()).find()) {
-                        return false;
-                    }
-                } catch (Exception e) {
-                    logger.warn("Ungültiges Regex-Pattern: {}", regexFilter);
+        // Erstelle eine schöne Nachricht
+        StringBuilder message = new StringBuilder();
+        message.append("Die folgenden Dateien haben MD-Dateien:\n\n");
+        
+        for (DocxFile file : filesWithMd) {
+            File mdFile = deriveMdFileFor(file.getFile());
+            message.append("• ").append(file.getFileName()).append("\n");
+            message.append("  → ").append(mdFile != null ? mdFile.getName() : "unbekannt").append("\n\n");
+        }
+        
+        message.append("Wenn Sie die Dateien nach links verschieben möchten, müssen die MD-Dateien gelöscht werden.\n\n");
+        message.append("Möchten Sie fortfahren?");
+        
+        alert.setContentText(message.toString());
+        
+        // Dialog stylen wie andere Dialoge in der Anwendung
+        DialogPane dialogPane = alert.getDialogPane();
+        
+        // CSS hinzufügen (styles.css + editor.css), damit Theme greift
+        String stylesCss = ResourceManager.getCssResource("css/styles.css");
+        String editorCss = ResourceManager.getCssResource("css/editor.css");
+        if (stylesCss != null && !dialogPane.getStylesheets().contains(stylesCss)) {
+            dialogPane.getStylesheets().add(stylesCss);
+        }
+        if (editorCss != null && !dialogPane.getStylesheets().contains(editorCss)) {
+            dialogPane.getStylesheets().add(editorCss);
+        }
+
+        // Theme-Klassen vom Hauptfenster übernehmen
+        if (currentThemeIndex == 0) dialogPane.getStyleClass().add("weiss-theme");
+        else if (currentThemeIndex == 2) dialogPane.getStyleClass().add("pastell-theme");
+        else if (currentThemeIndex == 3) dialogPane.getStyleClass().addAll("theme-dark", "blau-theme");
+        else if (currentThemeIndex == 4) dialogPane.getStyleClass().addAll("theme-dark", "gruen-theme");
+        else if (currentThemeIndex == 5) dialogPane.getStyleClass().addAll("theme-dark", "lila-theme");
+        else dialogPane.getStyleClass().add("theme-dark");
+
+        // Zusätzlich: Header-Panel sicher inline stylen, sobald aufgebaut
+        final String backgroundColor = THEMES[currentThemeIndex][0];
+        final String textColor = THEMES[currentThemeIndex][1];
+        alert.setOnShown(ev -> {
+            Node headerPanel = dialogPane.lookup(".header-panel");
+            if (headerPanel != null) {
+                headerPanel.setStyle(String.format(
+                        "-fx-background-color: %s; -fx-background-insets: 0; -fx-padding: 8 12;",
+                        backgroundColor));
+                Node headerLabel = headerPanel.lookup(".label");
+                if (headerLabel instanceof Label) {
+                    ((Label) headerLabel).setTextFill(javafx.scene.paint.Color.web(textColor));
                 }
             }
-            
-            return true;
         });
         
-        // Automatische Sortierung nach Regex-Filter
-        if (regexMode && regexFilter != null && !regexFilter.isEmpty()) {
-            sortFilteredResults();
-        } else {
-            // Wenn Regex-Filter ausgeschaltet ist, stelle die ursprüngliche Reihenfolge wieder her
-            restoreOriginalOrder();
-        }
+        // Eigene Buttons mit deutschen Texten
+        ButtonType deleteButton = new ButtonType("MD-Dateien löschen", ButtonBar.ButtonData.OK_DONE);
+        ButtonType cancelButton = new ButtonType("Abbrechen", ButtonBar.ButtonData.CANCEL_CLOSE);
+        alert.getButtonTypes().setAll(deleteButton, cancelButton);
         
-        updateStatus("Filter angewendet - " + availableFiles.size() + " verfügbare Dateien");
-    }
-    
-    private void sortFilteredResults() {
-        try {
-            String regexFilter = cmbRegexFilter.getValue();
-            Pattern pattern = Pattern.compile(regexFilter, Pattern.CASE_INSENSITIVE);
-            
-            // Erstelle eine sortierte Liste der verfügbaren Dateien (nur ohne MD)
-            List<DocxFile> availableWithoutMd = new ArrayList<>();
-            for (DocxFile docxFile : originalDocxFiles) {
-                File mdFile = deriveMdFileFor(docxFile.getFile());
-                boolean hasMdFile = mdFile != null && mdFile.exists();
-                
-                if (!hasMdFile) {
-                    availableWithoutMd.add(docxFile);
-                }
-            }
-            
-            // Sortiere nur die verfügbaren Dateien
-            availableWithoutMd.sort((file1, file2) -> {
-                String name1 = file1.getFileName();
-                String name2 = file2.getFileName();
-                
-                Integer num1 = extractNumberFromPattern(name1, pattern);
-                Integer num2 = extractNumberFromPattern(name2, pattern);
-                
-                if (num1 != null && num2 != null) {
-                    int comparison = num1.compareTo(num2);
-                    return "Absteigend".equals(cmbRegexSort.getValue()) ? -comparison : comparison;
-                } else if (num1 != null) {
-                    return -1;
-                } else if (num2 != null) {
-                    return 1;
-                } else {
-                    return name1.compareToIgnoreCase(name2);
-                }
-            });
-            
-            // Ersetze die verfügbaren Dateien mit der sortierten Version
-            allDocxFiles.clear();
-            allDocxFiles.addAll(availableWithoutMd);
-            
-            updateStatus("Gefilterte Ergebnisse automatisch sortiert");
-            
-        } catch (Exception e) {
-            logger.warn("Fehler bei der automatischen Sortierung: {}", e.getMessage());
-        }
+        // Dialog anzeigen und Ergebnis zurückgeben
+        Optional<ButtonType> result = alert.showAndWait();
+        return result.isPresent() && result.get() == deleteButton;
     }
     
     private void restoreOriginalOrder() {
@@ -585,7 +622,7 @@ public class MainController implements Initializable {
             
             updateStatus("Ursprüngliche Reihenfolge wiederhergestellt");
             
-        } catch (Exception e) {
+                } catch (Exception e) {
             logger.warn("Fehler beim Wiederherstellen der ursprünglichen Reihenfolge: {}", e.getMessage());
         }
     }
@@ -700,36 +737,11 @@ public class MainController implements Initializable {
             if (currentPath != null && !currentPath.isEmpty()) {
                 File directory = new File(currentPath);
                 if (directory.exists() && directory.isDirectory()) {
-                    // Lade Dateien neu (inkl. gespeicherter Reihenfolge)
-                    loadDocxFiles(directory);
+                    // NEU: Nur neue DOCX-Dateien hinzufügen, nicht alles neu laden
+                    addNewDocxFiles(directory);
                     
-                    // Sofortige Hash-basierte Änderungsprüfung für ALLE DOCX-Dateien
-                    for (DocxFile docxFile : allDocxFiles) {
-                        File mdFile = deriveMdFileFor(docxFile.getFile());
-                        if (mdFile != null && mdFile.exists()) {
-                            // Hash-basierte Erkennung nur wenn Datei noch nicht als "nicht geändert" markiert ist
-                            if (docxFile.isChanged()) {
-                                String currentHash = calculateFileHash(docxFile.getFile());
-                                String savedHash = loadDocxHash(docxFile.getFile());
-                                
-                                if (currentHash != null && savedHash != null && !currentHash.equals(savedHash)) {
-                                    docxFile.setChanged(true);
-                                    logger.info("DOCX geändert erkannt: {} (Hash unterschiedlich)", docxFile.getFileName());
-                                    // NICHT den neuen Hash speichern - behalte den alten für Vergleich
-                                } else if (currentHash != null && savedHash == null) {
-                                    docxFile.setChanged(true);
-                                    logger.info("DOCX neu erkannt: {} (kein gespeicherter Hash)", docxFile.getFileName());
-                                    // Hash speichern für erste Verarbeitung
-                                    saveDocxHash(docxFile.getFile(), currentHash);
-                                } else {
-                                    docxFile.setChanged(false);
-                                    logger.info("DOCX unverändert erkannt: {} (Hash gleich)", docxFile.getFileName());
-                                    // Hash nur speichern wenn unverändert
-                                    saveDocxHash(docxFile.getFile(), currentHash);
-                                }
-                            }
-                        }
-                    }
+                    // NEU: Hash-basierte Änderungsprüfung für ALLE DOCX-Dateien (links und rechts)
+                    checkAllDocxFilesForChanges();
                     
                     // UI aktualisieren nach Hash-Erkennung
                     Platform.runLater(() -> {
@@ -737,8 +749,7 @@ public class MainController implements Initializable {
                         tableViewAvailable.refresh();
                         tableViewSelected.refresh();
                         
-                        // Aktualisiere die Filter
-                        applyFilters();
+                        // Filter entfernt - einfache Lösung
                     });
                     
                     updateStatus("DOCX-Dateien automatisch aktualisiert");
@@ -749,14 +760,123 @@ public class MainController implements Initializable {
         }
     }
     
+    private void addNewDocxFiles(File directory) {
+        try {
+            logger.info("Prüfe auf neue DOCX-Dateien in: {}", directory.getAbsolutePath());
+            
+            // Sammle alle DOCX-Dateien im Verzeichnis (nur flach)
+            Set<File> currentFiles = java.nio.file.Files.list(directory.toPath())
+                    .filter(path -> path.toString().toLowerCase().endsWith(".docx"))
+                    .map(java.nio.file.Path::toFile)
+                    .collect(Collectors.toSet());
+            
+            // Sammle alle bereits geladenen Dateien
+            Set<File> existingFiles = new HashSet<>();
+            for (DocxFile docxFile : allDocxFiles) {
+                existingFiles.add(docxFile.getFile());
+            }
+            for (DocxFile docxFile : selectedDocxFiles) {
+                existingFiles.add(docxFile.getFile());
+            }
+            
+            // Finde neue Dateien
+            Set<File> newFiles = new HashSet<>(currentFiles);
+            newFiles.removeAll(existingFiles);
+            
+            if (!newFiles.isEmpty()) {
+                logger.info("{} neue DOCX-Dateien gefunden", newFiles.size());
+                
+                // Füge neue Dateien hinzu
+                for (File file : newFiles) {
+                    DocxFile docxFile = new DocxFile(file);
+                    originalDocxFiles.add(docxFile);
+                    
+                    // Prüfe: Hat die Datei eine MD-Datei?
+                    File mdFile = deriveMdFileFor(docxFile.getFile());
+                    boolean hasMdFile = mdFile != null && mdFile.exists();
+                    
+                    if (hasMdFile) {
+                        // Datei hat MD-Datei → nach rechts
+                        selectedDocxFiles.add(docxFile);
+                        logger.info("Neue Datei nach rechts: {} (hat MD-Datei)", docxFile.getFileName());
+                    } else {
+                        // Datei hat keine MD-Datei → nach links
+                        allDocxFiles.add(docxFile);
+                        logger.info("Neue Datei nach links: {} (keine MD-Datei)", docxFile.getFileName());
+                    }
+                }
+                
+                updateStatus(newFiles.size() + " neue Dateien hinzugefügt");
+            } else {
+                logger.info("Keine neuen DOCX-Dateien gefunden");
+            }
+            
+        } catch (Exception e) {
+            logger.error("Fehler beim Hinzufügen neuer DOCX-Dateien", e);
+        }
+    }
+    
+    private void checkAllDocxFilesForChanges() {
+        try {
+            logger.info("Prüfe alle DOCX-Dateien auf Änderungen...");
+            
+            // Prüfe alle Dateien in beiden Listen
+            List<DocxFile> allFiles = new ArrayList<>();
+            allFiles.addAll(allDocxFiles);
+            allFiles.addAll(selectedDocxFiles);
+            
+            for (DocxFile docxFile : allFiles) {
+                String currentHash = calculateFileHash(docxFile.getFile());
+                String savedHash = loadDocxHash(docxFile.getFile());
+                
+                if (currentHash != null && savedHash != null && !currentHash.equals(savedHash)) {
+                    // Datei wurde geändert!
+                    docxFile.setChanged(true);
+                    logger.info("DOCX geändert erkannt: {} (Hash unterschiedlich)", docxFile.getFileName());
+                    // NICHT den neuen Hash speichern - behalte den alten für Vergleich
+                } else if (currentHash != null && savedHash == null) {
+                    // Neue Datei - noch nie verarbeitet
+                    docxFile.setChanged(true);
+                    logger.info("DOCX neu erkannt: {} (kein gespeicherter Hash)", docxFile.getFileName());
+                    // Hash speichern für erste Verarbeitung
+                    saveDocxHash(docxFile.getFile(), currentHash);
+                } else if (currentHash != null && savedHash != null && currentHash.equals(savedHash)) {
+                    // Datei unverändert
+                    docxFile.setChanged(false);
+                    logger.info("DOCX unverändert: {} (Hash gleich)", docxFile.getFileName());
+                    // Hash nur speichern wenn unverändert
+                    saveDocxHash(docxFile.getFile(), currentHash);
+                }
+            }
+            
+            logger.info("Änderungsprüfung abgeschlossen");
+            
+        } catch (Exception e) {
+            logger.error("Fehler bei der Änderungsprüfung", e);
+        }
+    }
+    
     // checkAndMarkDocxChanges wurde in loadDocxFiles integriert
+    
+    /**
+     * Erstellt das data-Verzeichnis im DOCX-Ordner falls es nicht existiert
+     */
+    private File getDataDirectory(File docxFile) {
+        if (docxFile == null) return null;
+        File dataDir = new File(docxFile.getParentFile(), "data");
+        if (!dataDir.exists()) {
+            dataDir.mkdirs();
+        }
+        return dataDir;
+    }
     
     private File deriveMdFileFor(File docx) {
         if (docx == null) return null;
         String baseName = docx.getName();
         int idx = baseName.lastIndexOf('.');
         if (idx > 0) baseName = baseName.substring(0, idx);
-        return new File(docx.getParentFile(), baseName + ".md");
+        File dataDir = getDataDirectory(docx);
+        return new File(dataDir, baseName + ".md");
     }
     
     private File deriveSidecarFileFor(File docx, DocxProcessor.OutputFormat format) {
@@ -770,7 +890,8 @@ public class MainController implements Initializable {
             case PLAIN_TEXT: ext = ".txt"; break;
             case HTML: default: ext = ".html"; break;
         }
-        return new File(docx.getParentFile(), baseName + ext);
+        File dataDir = getDataDirectory(docx);
+        return new File(dataDir, baseName + ext);
     }
     
     private Integer extractNumberFromPattern(String fileName, Pattern pattern) {
@@ -804,7 +925,8 @@ public class MainController implements Initializable {
      */
     private void saveDocxHash(File docxFile, String hash) {
         try {
-            File metaFile = new File(docxFile.getParentFile(), docxFile.getName() + ".meta");
+            File dataDir = getDataDirectory(docxFile);
+            File metaFile = new File(dataDir, docxFile.getName() + ".meta");
             java.nio.file.Files.write(metaFile.toPath(), hash.getBytes(java.nio.charset.StandardCharsets.UTF_8));
             logger.debug("Hash gespeichert für {}: {}", docxFile.getName(), hash);
         } catch (Exception e) {
@@ -817,7 +939,8 @@ public class MainController implements Initializable {
      */
     private String loadDocxHash(File docxFile) {
         try {
-            File metaFile = new File(docxFile.getParentFile(), docxFile.getName() + ".meta");
+            File dataDir = getDataDirectory(docxFile);
+            File metaFile = new File(dataDir, docxFile.getName() + ".meta");
             if (metaFile.exists()) {
                 String hash = new String(java.nio.file.Files.readAllBytes(metaFile.toPath()), java.nio.charset.StandardCharsets.UTF_8);
                 logger.debug("Hash geladen für {}: {}", docxFile.getName(), hash);
@@ -854,9 +977,9 @@ public class MainController implements Initializable {
                 if (file.getFile().equals(docxFile)) {
                     file.setChanged(false);
                     logger.info("DOCX-Datei als unverändert markiert: {}", docxFile.getName());
-                    break;
-                }
-            }
+                break;
+        }
+    }
             
             // Aktualisiere die UI
             Platform.runLater(() -> {
@@ -871,23 +994,7 @@ public class MainController implements Initializable {
     
 
     
-    private void sortFiles() {
-        String sortBy = cmbSortBy.getValue();
-        switch (sortBy) {
-            case "Dateiname":
-                tableViewAvailable.getSortOrder().clear();
-                tableViewAvailable.getSortOrder().add(colFileNameAvailable);
-                break;
-            case "Dateigröße":
-                tableViewAvailable.getSortOrder().clear();
-                tableViewAvailable.getSortOrder().add(colFileSizeAvailable);
-                break;
-            case "Änderungsdatum":
-                tableViewAvailable.getSortOrder().clear();
-                tableViewAvailable.getSortOrder().add(colLastModifiedAvailable);
-                break;
-        }
-    }
+    // sortFiles entfernt - einfache Lösung
     
     private void addSelectedToRight() {
         ObservableList<DocxFile> selectedFiles = tableViewAvailable.getSelectionModel().getSelectedItems();
@@ -896,24 +1003,205 @@ public class MainController implements Initializable {
             return;
         }
         
+        // Sammle alle erfolgreich verarbeiteten Dateien
+        List<DocxFile> successfullyProcessed = new ArrayList<>();
+        List<String> errors = new ArrayList<>();
+        
         for (DocxFile file : selectedFiles) {
             if (!selectedDocxFiles.contains(file)) {
+                // Prüfe, ob die DOCX-Datei existiert und lesbar ist
+                if (!file.getFile().exists()) {
+                    errors.add("Datei nicht gefunden: " + file.getFileName());
+                    continue;
+                }
+                
+                if (!file.getFile().canRead()) {
+                    errors.add("Datei nicht lesbar: " + file.getFileName());
+                    continue;
+                }
+                
+                // Automatisch MD-Datei erstellen, falls sie nicht existiert
+                File mdFile = deriveMdFileFor(file.getFile());
+                if (mdFile != null && !mdFile.exists()) {
+                    try {
+                        // Stelle sicher, dass das data-Verzeichnis existiert
+                        File dataDir = mdFile.getParentFile();
+                        if (!dataDir.exists() && !dataDir.mkdirs()) {
+                            errors.add("Konnte data-Verzeichnis nicht erstellen für: " + file.getFileName());
+                            continue;
+                        }
+                        
+                        // DOCX zu MD konvertieren und speichern
+                        String mdContent = docxProcessor.processDocxFileContent(file.getFile(), 1, DocxProcessor.OutputFormat.MARKDOWN);
+                        
+                        // Validiere den Inhalt
+                        if (mdContent == null || mdContent.trim().isEmpty()) {
+                            errors.add("Konvertierung ergab leeren Inhalt für: " + file.getFileName());
+                            continue;
+                        }
+                        
+                        // Schreibe atomar (erst temp-Datei, dann umbenennen)
+                        File tempFile = File.createTempFile("manuskript_md_", ".tmp", dataDir);
+                        java.nio.file.Files.write(tempFile.toPath(), mdContent.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                        java.nio.file.Files.move(tempFile.toPath(), mdFile.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                        
+                        logger.info("MD-Datei erfolgreich erstellt: {}", mdFile.getName());
+                        
+                    } catch (Exception e) {
+                        String errorMsg = "Fehler beim Erstellen der MD-Datei für " + file.getFileName() + ": " + e.getMessage();
+                        logger.error(errorMsg, e);
+                        errors.add(errorMsg);
+                        continue;
+                    }
+                }
+                
+                // Nur hinzufügen, wenn alles erfolgreich war
                 selectedDocxFiles.add(file);
+                successfullyProcessed.add(file);
             }
         }
         
-        updateStatus(selectedFiles.size() + " Dateien zur Auswahl hinzugefügt");
+        // Entferne nur die erfolgreich verarbeiteten Dateien aus der linken Tabelle
+        allDocxFiles.removeAll(successfullyProcessed);
+        
+        // Keine Auswahl mehr speichern - MD-Erkennung ist ausreichend
+        
+        // Benutzer-Feedback
+        if (!errors.isEmpty()) {
+            String errorMessage = "Fehler bei " + errors.size() + " Datei(en):\n" + String.join("\n", errors);
+            showError("Fehler beim Verarbeiten", errorMessage);
+        }
+        
+        if (!successfullyProcessed.isEmpty()) {
+            updateStatus(successfullyProcessed.size() + " Dateien erfolgreich zur Auswahl hinzugefügt");
+        } else {
+            updateStatus("Keine Dateien hinzugefügt - alle fehlgeschlagen");
+        }
     }
     
     private void removeSelectedFromRight() {
-        ObservableList<DocxFile> selectedFiles = tableViewSelected.getSelectionModel().getSelectedItems();
-        if (selectedFiles.isEmpty()) {
+        // NEU: Verwende direkte Indizes statt ObservableList
+        ObservableList<Integer> selectedIndices = tableViewSelected.getSelectionModel().getSelectedIndices();
+        if (selectedIndices.isEmpty()) {
             showWarning("Keine Dateien ausgewählt", "Bitte wählen Sie mindestens eine Datei aus.");
             return;
         }
         
+        // Sammle die ausgewählten Dateien über Indizes
+        List<DocxFile> selectedFiles = new ArrayList<>();
+        for (Integer index : selectedIndices) {
+            if (index >= 0 && index < selectedDocxFiles.size()) {
+                DocxFile file = selectedDocxFiles.get(index);
+                selectedFiles.add(file);
+            }
+        }
+        
+        if (selectedFiles.isEmpty()) {
+            showWarning("Keine gültigen Dateien ausgewählt", "Bitte wählen Sie mindestens eine Datei aus.");
+            return;
+        }
+        
+        logger.info("=== DEBUG: removeSelectedFromRight START ===");
+        logger.info("selectedFiles.size(): {}", selectedFiles.size());
+        logger.info("selectedDocxFiles.size(): {}", selectedDocxFiles.size());
+        logger.info("allDocxFiles.size(): {}", allDocxFiles.size());
+        
+        // Debug: Alle ausgewählten Dateien auflisten
+        for (int i = 0; i < selectedFiles.size(); i++) {
+            DocxFile file = selectedFiles.get(i);
+            logger.info("selectedFiles[{}]: {} (File: {})", i, file.getFileName(), file.getFile().getAbsolutePath());
+        }
+        
+        // Prüfe, ob Dateien MD-Dateien haben
+        List<DocxFile> filesWithMd = new ArrayList<>();
+        for (DocxFile file : selectedFiles) {
+            File mdFile = deriveMdFileFor(file.getFile());
+            if (mdFile != null && mdFile.exists()) {
+                filesWithMd.add(file);
+            }
+        }
+        
+        if (!filesWithMd.isEmpty()) {
+            // Dialog für Dateien mit MD-Dateien
+            boolean shouldDeleteMd = showMdDeletionDialog(filesWithMd);
+            
+            if (shouldDeleteMd) {
+                // MD-Dateien löschen und Dateien nach links verschieben
+                for (DocxFile file : filesWithMd) {
+                    File mdFile = deriveMdFileFor(file.getFile());
+                    if (mdFile != null && mdFile.exists()) {
+                        try {
+                            mdFile.delete();
+                            logger.info("MD-Datei gelöscht: {}", mdFile.getName());
+                        } catch (Exception e) {
+                            logger.error("Fehler beim Löschen der MD-Datei {}: {}", mdFile.getName(), e.getMessage());
+                        }
+                    }
+                }
+                
+                // Alle Dateien nach links verschieben
+                logger.info("=== DEBUG: Verschieben nach links ===");
+                logger.info("Ausgewählte Dateien: {}", selectedFiles.size());
+                for (DocxFile file : selectedFiles) {
+                    logger.info("  - {}", file.getFileName());
+        }
+        
         selectedDocxFiles.removeAll(selectedFiles);
-        updateStatus(selectedFiles.size() + " Dateien aus der Auswahl entfernt");
+                logger.info("Nach removeAll: selectedDocxFiles = {}", selectedDocxFiles.size());
+                
+                for (DocxFile file : selectedFiles) {
+                    if (!allDocxFiles.contains(file)) {
+                        allDocxFiles.add(file);
+                        logger.info("Hinzugefügt zu allDocxFiles: {}", file.getFileName());
+                    } else {
+                        logger.info("Datei bereits in allDocxFiles: {}", file.getFileName());
+                    }
+                }
+                
+                logger.info("Final: allDocxFiles = {}", allDocxFiles.size());
+                logger.info("=== DEBUG: Ende Verschieben ===");
+                
+                // Tabellen explizit aktualisieren
+                tableViewSelected.refresh();
+                tableViewAvailable.refresh();
+                
+                updateStatus(selectedFiles.size() + " Dateien nach links verschoben (MD-Dateien gelöscht)");
+            } else {
+                // MD-Dateien behalten - Dateien bleiben rechts
+                updateStatus("Verschoben abgebrochen - MD-Dateien behalten");
+                return;
+            }
+        } else {
+            // Keine MD-Dateien - direkt nach links verschieben
+            logger.info("=== DEBUG: Verschieben nach links (keine MD) ===");
+            logger.info("Ausgewählte Dateien: {}", selectedFiles.size());
+            for (DocxFile file : selectedFiles) {
+                logger.info("  - {}", file.getFileName());
+            }
+            
+            selectedDocxFiles.removeAll(selectedFiles);
+            logger.info("Nach removeAll: selectedDocxFiles = {}", selectedDocxFiles.size());
+            
+            for (DocxFile file : selectedFiles) {
+                if (!allDocxFiles.contains(file)) {
+                    allDocxFiles.add(file);
+                    logger.info("Hinzugefügt zu allDocxFiles: {}", file.getFileName());
+                } else {
+                    logger.info("Datei bereits in allDocxFiles: {}", file.getFileName());
+                }
+            }
+            
+            logger.info("Final: allDocxFiles = {}", allDocxFiles.size());
+            logger.info("=== DEBUG: Ende Verschieben (keine MD) ===");
+            
+            // Tabellen explizit aktualisieren
+            tableViewSelected.refresh();
+            tableViewAvailable.refresh();
+            
+            updateStatus(selectedFiles.size() + " Dateien nach links verschoben");
+        }
+        
+        // Keine Auswahl mehr speichern - MD-Erkennung ist ausreichend
     }
     
 
@@ -925,14 +1213,15 @@ public class MainController implements Initializable {
             return;
         }
         
-        // Prüfe auf existierende .gesamt Dateien
+        // Prüfe auf existierende .gesamt Dateien im data-Verzeichnis
         String directoryPath = selectedDocxFiles.get(0).getFile().getParent();
         File directory = new File(directoryPath);
+        File dataDir = new File(directory, "data");
         String directoryName = directory.getName();
-        File[] existingGesamtFiles = directory.listFiles((dir, name) ->
+        File[] existingGesamtFiles = dataDir.exists() ? dataDir.listFiles((dir, name) ->
             name.startsWith(directoryName + ".gesamt.") &&
             (name.endsWith(".md") || name.endsWith(".txt") || name.endsWith(".html"))
-        );
+        ) : new File[0];
         
         if (existingGesamtFiles != null && existingGesamtFiles.length > 0) {
             showGesamtFileDialog(existingGesamtFiles, selectedDocxFiles);
@@ -983,11 +1272,8 @@ public class MainController implements Initializable {
     
     private void openChapterEditor(DocxFile chapterFile) {
         try {
-            // Verarbeite nur dieses eine Kapitel
-            DocxProcessor.OutputFormat format = cmbOutputFormat.getValue();
-            if (format == null) {
-                format = DocxProcessor.OutputFormat.MARKDOWN; // Standard
-            }
+            // Verarbeite nur dieses eine Kapitel - nur noch MD
+            DocxProcessor.OutputFormat format = DocxProcessor.OutputFormat.MARKDOWN;
             
             // Prüfe ob eine MD-Datei existiert
             File mdFile = deriveMdFileFor(chapterFile.getFile());
@@ -1005,14 +1291,28 @@ public class MainController implements Initializable {
                     logger.error("Fehler beim Laden der MD-Datei", e);
                     // Fallback: Lade DOCX-Inhalt
                     String content = docxProcessor.processDocxFileContent(chapterFile.getFile(), 1, format);
-                    openChapterEditorWindow(content, chapterFile, format);
+            openChapterEditorWindow(content, chapterFile, format);
                     updateStatus("Kapitel-Editor geöffnet (DOCX-Fallback): " + chapterFile.getFileName());
                 }
             } else {
-                // Keine MD-Datei - lade DOCX-Inhalt
+                // Keine MD-Datei - konvertiere DOCX zu MD und speichere
+                logger.info("Keine MD-Datei gefunden, konvertiere DOCX zu MD: {}", chapterFile.getFileName());
                 String content = docxProcessor.processDocxFileContent(chapterFile.getFile(), 1, format);
+                
+                // Speichere als MD-Datei
+                if (mdFile != null) {
+                    try {
+                        java.nio.file.Files.write(mdFile.toPath(), content.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                        logger.info("MD-Datei erstellt: {}", mdFile.getAbsolutePath());
+                        updateStatus("MD-Datei erstellt: " + chapterFile.getFileName());
+                    } catch (Exception e) {
+                        logger.error("Fehler beim Speichern der MD-Datei", e);
+                    }
+                }
+                
+                // Öffne Chapter-Editor mit konvertiertem Inhalt
                 openChapterEditorWindow(content, chapterFile, format);
-                updateStatus("Kapitel-Editor geöffnet (DOCX): " + chapterFile.getFileName());
+                updateStatus("Kapitel-Editor geöffnet (DOCX→MD): " + chapterFile.getFileName());
             }
             
         } catch (Exception e) {
@@ -1232,6 +1532,8 @@ public class MainController implements Initializable {
                         }
                     }
                     
+                    // Keine MD-Datei speichern - nur den Inhalt verwenden
+                    
                     openChapterEditorWindow(newContent.toString(), chapterFile, format);
                     chapterFile.setChanged(false);
                     updateDocxHashAfterAccept(chapterFile.getFile());
@@ -1244,6 +1546,7 @@ public class MainController implements Initializable {
             
             btnAcceptAll.setOnAction(e -> {
                 try {
+                    // Übernehme den DOCX-Inhalt direkt (wie vorher)
                     openChapterEditorWindow(docxContent, chapterFile, format);
                     chapterFile.setChanged(false);
                     updateDocxHashAfterAccept(chapterFile.getFile());
@@ -1411,7 +1714,11 @@ public class MainController implements Initializable {
             }
             
             String currentDirectory = txtDirectoryPath.getText();
-            File chapterFileRef = new File(currentDirectory, chapterName + fileExtension);
+            File dataDir = new File(currentDirectory, "data");
+            if (!dataDir.exists()) {
+                dataDir.mkdirs();
+            }
+            File chapterFileRef = new File(dataDir, chapterName + fileExtension);
             editorController.setCurrentFile(chapterFileRef);
             
             // WICHTIG: Stelle sicher, dass die MD-Datei existiert
@@ -1467,10 +1774,8 @@ public class MainController implements Initializable {
         try {
             updateStatus("Verarbeite " + files.size() + " Dateien...");
             
-            DocxProcessor.OutputFormat format = cmbOutputFormat.getValue();
-            if (format == null) {
-                format = DocxProcessor.OutputFormat.HTML;
-            }
+            // Nur noch MD-Format
+            DocxProcessor.OutputFormat format = DocxProcessor.OutputFormat.MARKDOWN;
             
             StringBuilder result = new StringBuilder();
             int processed = 0;
@@ -1548,11 +1853,9 @@ public class MainController implements Initializable {
             EditorWindow editorController = loader.getController();
             editorController.setText(text);
             
-            // Setze das aktuelle Format für die Dateiendung
-            DocxProcessor.OutputFormat currentFormat = cmbOutputFormat.getValue();
-            if (currentFormat != null) {
+            // Nur noch MD-Format
+            DocxProcessor.OutputFormat currentFormat = DocxProcessor.OutputFormat.MARKDOWN;
                 editorController.setOutputFormat(currentFormat);
-            }
             
             // Erstelle eine virtuelle Datei mit dem vollständigen Pfad
             String currentDirectory = txtDirectoryPath.getText();
@@ -1572,7 +1875,11 @@ public class MainController implements Initializable {
                         break;
                 }
             }
-            File virtualFile = new File(currentDirectory, baseFileName + fileExtension);
+            File dataDir = new File(currentDirectory, "data");
+            if (!dataDir.exists()) {
+                dataDir.mkdirs();
+            }
+            File virtualFile = new File(dataDir, baseFileName + fileExtension);
             editorController.setCurrentFile(virtualFile);
             
             // Übergebe den DocxProcessor für DOCX-Export
@@ -1650,11 +1957,7 @@ public class MainController implements Initializable {
         
         // Stoppe WatchService beim Schließen und prüfe ob es das letzte Fenster ist
         primaryStage.setOnCloseRequest(event -> {
-            // Speichere die aktuelle Auswahl
-            String dir = txtDirectoryPath.getText();
-            if (dir != null && !dir.isEmpty()) {
-                saveSelection(new java.io.File(dir));
-            }
+            // Keine Auswahl mehr speichern - MD-Erkennung ist ausreichend
             
             // Stoppe den File Watcher
             stopFileWatcher();
@@ -1677,70 +1980,11 @@ public class MainController implements Initializable {
         });
     }
     
-    // Recent Regex List Management
-    private void loadRecentRegexList() {
-        try {
-            String recentRegexList = preferences.get("recentRegexList", "");
-            if (!recentRegexList.isEmpty()) {
-                String[] items = recentRegexList.split("\\|");
-                ObservableList<String> recentItems = FXCollections.observableArrayList();
-                for (String item : items) {
-                    if (!item.trim().isEmpty()) {
-                        recentItems.add(item.trim());
-                    }
-                }
-                cmbRegexFilter.setItems(recentItems);
-            }
-        } catch (Exception e) {
-            logger.warn("Fehler beim Laden der Recent Regex Liste: {}", e.getMessage());
-        }
-    }
+    // loadRecentRegexList entfernt - einfache Lösung
     
-    private void addToRecentRegex(String regex) {
-        try {
-            // Erstelle eine neue Liste basierend auf den aktuellen Items
-            ObservableList<String> currentItems = FXCollections.observableArrayList(cmbRegexFilter.getItems());
-            
-            // Entferne den Eintrag, falls er bereits existiert
-            currentItems.remove(regex);
-            
-            // Füge den neuen Eintrag am Anfang hinzu
-            currentItems.add(0, regex);
-            
-            // Begrenze auf maximal 10 Einträge
-            while (currentItems.size() > 10) {
-                currentItems.remove(currentItems.size() - 1);
-            }
-            
-            // Speichere in Preferences
-            String recentRegexList = String.join("|", currentItems);
-            preferences.put("recentRegexList", recentRegexList);
-            
-            // Aktualisiere das ComboBox mit der neuen Liste
-            cmbRegexFilter.setItems(currentItems);
-            
-        } catch (Exception e) {
-            logger.warn("Fehler beim Hinzufügen zur Recent Regex Liste: {}", e.getMessage());
-        }
-    }
+    // addToRecentRegex entfernt - einfache Lösung
 
-    public void saveSelection(File directory) {
-        try {
-            if (directory == null) return;
-            Path jsonPath = directory.toPath().resolve(".manuskript_selection.json");
-            List<String> selectedNames = selectedDocxFiles.stream()
-                .map(DocxFile::getFileName)
-                .collect(Collectors.toList());
-            String json = new Gson().toJson(selectedNames);
-            Files.write(jsonPath, json.getBytes(), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-            logger.info("Dateiauswahl gespeichert: {}", jsonPath);
-            
-
-            
-        } catch (Exception e) {
-            logger.warn("Fehler beim Speichern der Dateiauswahl", e);
-        }
-    }
+    // saveSelection entfernt - MD-Erkennung ist ausreichend
 
     public TextField getTxtDirectoryPath() {
         return txtDirectoryPath;
@@ -1758,7 +2002,8 @@ public class MainController implements Initializable {
     private void loadSavedOrder(File directory) {
         try {
             if (directory == null) return;
-            Path jsonPath = directory.toPath().resolve(".manuskript_selection.json");
+            File dataDir = new File(directory, "data");
+            Path jsonPath = dataDir.toPath().resolve(".manuskript_selection.json");
             if (!Files.exists(jsonPath)) return;
             
             String json = new String(Files.readAllBytes(jsonPath));
@@ -1771,11 +2016,8 @@ public class MainController implements Initializable {
             for (String fileName : savedOrder) {
                 for (DocxFile docxFile : allDocxFiles) {
                     if (docxFile.getFileName().equals(fileName)) {
-                        // Prüfe ob die Datei noch eine MD-Datei hat
-                        File mdFile = deriveMdFileFor(docxFile.getFile());
-                        if (mdFile != null && mdFile.exists()) {
-                            selectedDocxFiles.add(docxFile);
-                        }
+                        // Lade ALLE gespeicherten Dateien, egal ob sie MD-Dateien haben oder nicht
+                        selectedDocxFiles.add(docxFile);
                         break;
                     }
                 }
@@ -1819,11 +2061,7 @@ public class MainController implements Initializable {
         applyThemeToNode(mainContainer, themeIndex);
         applyThemeToNode(btnSelectDirectory, themeIndex);
         applyThemeToNode(txtDirectoryPath, themeIndex);
-        applyThemeToNode(cmbSortBy, themeIndex);
-        applyThemeToNode(cmbRegexFilter, themeIndex);
-        applyThemeToNode(chkRegexMode, themeIndex);
-        applyThemeToNode(cmbRegexSort, themeIndex);
-        applyThemeToNode(cmbOutputFormat, themeIndex);
+        // Sortierung und Format-UI-Elemente entfernt - einfache Lösung
         applyThemeToNode(btnAddToSelected, themeIndex);
         applyThemeToNode(btnRemoveFromSelected, themeIndex);
         applyThemeToNode(btnProcessSelected, themeIndex);

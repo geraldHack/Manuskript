@@ -179,6 +179,7 @@ public class DiffProcessor {
                 } else {
                     lcs[i][j] = Math.max(lcs[i - 1][j], lcs[i][j - 1]);
                 }
+
             }
         }
         
@@ -336,3 +337,4 @@ public class DiffProcessor {
         public void setHasChanges(boolean hasChanges) { this.hasChanges = hasChanges; }
     }
 }
+

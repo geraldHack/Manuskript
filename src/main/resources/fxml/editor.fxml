@@ -11,8 +11,7 @@
             <Button fx:id="btnOpen" text="Öffnen" styleClass="button primary" />
             <Button fx:id="btnSave" text="Speichern" styleClass="button primary" />
             <Button fx:id="btnSaveAs" text="Speichern als..." styleClass="button primary" />
-            <Button fx:id="btnExportRTF" text="Als RTF exportieren" styleClass="button" />
-            <Button fx:id="btnExportDOCX" text="Als DOCX exportieren" styleClass="button" />
+            <Button fx:id="btnExport" text="📤 Exportieren" styleClass="button primary" />
             
             <Separator orientation="VERTICAL" />
             
@@ -108,7 +107,7 @@
                   <CheckBox fx:id="chkCaseSensitive" text="Groß-/Kleinschreibung" selected="false" />
                   <CheckBox fx:id="chkWholeWord" text="Ganzes Wort" selected="false" />
                   
-                  <Button fx:id="btnRegexHelp" text="?" styleClass="button" style="-fx-min-width: 25px; -fx-max-width: 25px; -fx-min-height: 25px; -fx-max-height: 25px; -fx-font-weight: bold;" />
+                  <Button fx:id="btnRegexHelp" text="?" styleClass="button help-button" style="-fx-min-width: 25px; -fx-max-width: 25px; -fx-min-height: 25px; -fx-max-height: 25px; -fx-font-weight: bold;" />
                   
                   <Region HBox.hgrow="ALWAYS" />
                   
