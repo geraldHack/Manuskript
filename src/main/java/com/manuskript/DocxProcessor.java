@@ -153,16 +153,13 @@ public class DocxProcessor {
                     String paragraphText = extractTextFromParagraph(paragraph);
                     logger.info("Absatz {}: '{}'", paragraphCount, paragraphText.substring(0, Math.min(50, paragraphText.length())));
                     
-                                        if (!paragraphText.trim().isEmpty()) {
+                                                            // Leere Absätze als Leerzeilen erhalten (für "DOCX übernehmen")
                     if (format == OutputFormat.HTML) {
-                            documentContent.append("<p>").append(paragraphText).append("</p>\n");
-                        } else if (format == OutputFormat.MARKDOWN) {
-                            documentContent.append(paragraphText).append("\n\n");
-                        } else {
-                            documentContent.append(paragraphText).append("\n");
-                        }
+                        documentContent.append("<p>").append(paragraphText).append("</p>\n");
+                    } else if (format == OutputFormat.MARKDOWN) {
+                        documentContent.append(paragraphText).append("\n\n");
                     } else {
-                        logger.info("Leerer Absatz {} übersprungen", paragraphCount);
+                        documentContent.append(paragraphText).append("\n");
                     }
                 } else {
                     logger.debug("Nicht-Paragraph Objekt: {}", obj.getClass().getSimpleName());

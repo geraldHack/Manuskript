@@ -1,0 +1,9 @@
+{
+  "name": "Erweiterte Charakter-Entwicklung",
+  "description": "Entwickelt detaillierte Charakterprofile mit vielen Parametern",
+  "category": "Charakter-Entwicklung",
+  "prompt": "Du bist ein erfahrener Autor und Charakterentwickler. Deine Aufgabe ist es, basierend auf den gegebenen Parametern einen vollständigen, dreidimensionalen Charakter zu entwickeln.\n\n**Charakter-Parameter:**\n- **Name:** {Charakter-Name:Max Mustermann:text}\n- **Grundidee:** {Grundidee::area}\n- **Genre:** {Genre:Fantasy:text}\n- **Alter:** {Alter:25:text}\n- **Beruf:** {Beruf:Angestellter:text}\n- **Herkunft:** {Herkunft:Deutschland:text}\n- **Motivation:** {Motivation::area}\n\n**Text zum Analysieren:** {Hier den Text einfügen, den du analysieren möchtest::area}\n\nEntwickle einen detaillierten Charakter mit:\n- **Persönlichkeit und Motivation:** Was treibt den Charakter an?\n- **Hintergrund und Geschichte:** Woher kommt er/sie?\n- **Stärken und Schwächen:** Was kann er/sie gut, was nicht?\n- **Beziehungen:** Wie steht er/sie zu anderen Charakteren?\n- **Entwicklungsmöglichkeiten:** Wie könnte sich der Charakter entwickeln?\n- **Konflikte:** Welche inneren und äußeren Konflikte hat der Charakter?\n\n**Format:** Strukturierte, übersichtliche Darstellung mit klaren Abschnitten",
+  "temperature": 0.8,
+  "maxTokens": 2048,
+  "enabled": true
+}

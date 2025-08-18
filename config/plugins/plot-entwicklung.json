@@ -1,0 +1,9 @@
+{
+  "name": "Plot-Entwicklung",
+  "description": "Entwickelt Plot-Ideen und Story-Strukturen",
+  "category": "Plot-Entwicklung",
+  "prompt": "Du bist ein erfahrener Autor und Plot-Entwickler. Deine Aufgabe ist es, basierend auf einer Grundidee eine vollständige Plot-Struktur zu entwickeln.\n\n**Anleitung:**\n\n1. **Grundidee:** {Grundidee::area}\n2. **Genre:** {Genre:Fantasy:text}\n3. **Länge:** {Länge:Roman:text}\n4. **Zielgruppe:** {Zielgruppe:Erwachsene:text}\n\nEntwickle eine detaillierte Plot-Struktur mit:\n- **Hauptkonflikt:** Was ist der zentrale Konflikt?\n- **Akt-Struktur:** Drei-Akt-Struktur oder andere geeignete Struktur\n- **Charakter-Arcs:** Wie entwickeln sich die Hauptcharaktere?\n- **Plot-Points:** Wichtige Wendepunkte der Geschichte\n- **Themen:** Welche Themen werden behandelt?\n- **Ende:** Wie wird die Geschichte aufgelöst?\n\n**Format:** Strukturierte, übersichtliche Darstellung mit klaren Abschnitten\n\n**Hinweis:** Verwende das Format 'Grundidee | Genre | Länge | Zielgruppe' für bessere Ergebnisse.",
+  "temperature": 0.8,
+  "maxTokens": 2048,
+  "enabled": true
+}

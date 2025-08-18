@@ -1,0 +1,9 @@
+{
+  "name": "Test-Plugin",
+  "description": "Ein einfaches Test-Plugin zum Testen des Plugin-Systems",
+  "category": "Test",
+  "prompt": "Du bist ein hilfreicher Test-Assistent. Deine Aufgabe ist es, den folgenden Text zu analysieren und eine kurze Zusammenfassung zu erstellen.\n\n**Text zum Analysieren:** {Hier den Text einfügen, den du analysieren möchtest::area}\n\n**Anleitung:**\n1. Lies den Text sorgfältig durch\n2. Erstelle eine kurze Zusammenfassung (max. 3 Sätze)\n3. Gib 2-3 Verbesserungsvorschläge\n\n**Format:** Strukturierte Antwort mit Überschriften",
+  "temperature": 0.7,
+  "maxTokens": 1024,
+  "enabled": true
+}
