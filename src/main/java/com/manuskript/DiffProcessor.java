@@ -45,40 +45,96 @@ public class DiffProcessor {
      * Prüft ob eine DOCX-Datei seit der letzten Verarbeitung geändert wurde
      */
     public static boolean hasDocxChanged(File docxFile, File sidecarFile) {
+        System.out.println("=== DEBUG: hasDocxChanged() aufgerufen ===");
+        System.out.println("=== DEBUG: docxFile = " + (docxFile != null ? docxFile.getAbsolutePath() : "null") + " ===");
+        System.out.println("=== DEBUG: sidecarFile = " + (sidecarFile != null ? sidecarFile.getAbsolutePath() : "null") + " ===");
+        
         if (docxFile == null || !docxFile.exists()) {
+            System.out.println("=== DEBUG: docxFile ist null oder existiert nicht ===");
             return false;
         }
         
-        // Wenn keine Sidecar-Datei existiert, ist die DOCX "neu"
+        // Wenn keine Sidecar-Datei existiert, ist die DOCX "neu" - aber nur wenn auch .meta fehlt
         if (sidecarFile == null || !sidecarFile.exists()) {
-            return true;
+            // Prüfe ob .meta Datei existiert
+            File metaFile = new File(docxFile.getParent(), docxFile.getName() + ".meta");
+            if (!metaFile.exists()) {
+                return true; // Keine .meta Datei = DOCX wurde noch nie verarbeitet
+            }
+            return false; // .meta existiert, aber keine MD - das ist normal
         }
         
         // Lade gespeicherten Hash aus Sidecar-Metadaten
         long savedHash = loadSavedHash(sidecarFile);
         long currentHash = calculateFileHash(docxFile);
         
-        return savedHash != currentHash;
+        System.out.println("=== DEBUG: savedHash = " + savedHash + " ===");
+        System.out.println("=== DEBUG: currentHash = " + currentHash + " ===");
+        
+        // Wenn kein gespeicherter Hash existiert (savedHash = -1), betrachte DOCX als geändert
+        boolean result = (savedHash == -1) || (savedHash != -1 && currentHash != -1 && savedHash != currentHash);
+        System.out.println("=== DEBUG: hasDocxChanged() gibt " + result + " zurück ===");
+        
+        return result;
     }
     
     /**
      * Lädt den gespeicherten Hash aus Sidecar-Metadaten
      */
     private static long loadSavedHash(File sidecarFile) {
+        System.out.println("=== DEBUG: loadSavedHash() aufgerufen ===");
+        System.out.println("=== DEBUG: sidecarFile = " + sidecarFile.getAbsolutePath() + " ===");
+        
         try {
-            Path metadataPath = sidecarFile.toPath().resolveSibling(sidecarFile.getName() + ".meta");
+            // Suche nach DOCX-basierter .meta Datei, nicht MD-basierter
+            String docxFileName = sidecarFile.getName().replace(".md", ".docx");
+            Path metadataPath = sidecarFile.toPath().resolveSibling(docxFileName + ".meta");
+            System.out.println("=== DEBUG: metadataPath = " + metadataPath + " ===");
+            System.out.println("=== DEBUG: metadataPath.exists() = " + Files.exists(metadataPath) + " ===");
+            
             if (Files.exists(metadataPath)) {
                 String content = Files.readString(metadataPath);
+                System.out.println("=== DEBUG: .meta Datei Inhalt = " + content + " ===");
+                
                 // Suche nach Hash-Zeile
                 Pattern hashPattern = Pattern.compile("docx_hash=([0-9]+)");
                 Matcher matcher = hashPattern.matcher(content);
                 if (matcher.find()) {
-                    return Long.parseLong(matcher.group(1));
+                    long hash = Long.parseLong(matcher.group(1));
+                    System.out.println("=== DEBUG: Hash gefunden = " + hash + " ===");
+                    return hash;
+                } else {
+                    System.out.println("=== DEBUG: Kein Hash-Pattern gefunden ===");
+                    
+                    // Suche nach reinem Hash-Wert (Format: 123456789 oder e275e583)
+                    Pattern pureHashPattern = Pattern.compile("^([0-9a-fA-F]+)$");
+                    matcher = pureHashPattern.matcher(content.trim());
+                    if (matcher.find()) {
+                        try {
+                            long hash = Long.parseLong(matcher.group(1), 16); // Hexadezimal
+                            System.out.println("=== DEBUG: Hex-Hash gefunden = " + hash + " ===");
+                            return hash;
+                        } catch (NumberFormatException e) {
+                            try {
+                                long hash = Long.parseLong(matcher.group(1)); // Dezimal
+                                System.out.println("=== DEBUG: Dezimal-Hash gefunden = " + hash + " ===");
+                                return hash;
+                            } catch (NumberFormatException e2) {
+                                System.out.println("=== DEBUG: Hash-Wert kann nicht geparst werden: " + matcher.group(1) + " ===");
+                            }
+                        }
+                    } else {
+                        System.out.println("=== DEBUG: Auch kein reiner Hash-Wert gefunden ===");
+                    }
                 }
+            } else {
+                System.out.println("=== DEBUG: .meta Datei existiert nicht ===");
             }
         } catch (Exception e) {
+            System.out.println("=== DEBUG: Exception in loadSavedHash: " + e.getMessage() + " ===");
             logger.warn("Fehler beim Laden des gespeicherten Hashs: {}", e.getMessage());
         }
+        System.out.println("=== DEBUG: loadSavedHash() gibt -1 zurück ===");
         return -1;
     }
     
@@ -162,6 +218,8 @@ public class DiffProcessor {
         
         return result;
     }
+    
+
     
     /**
      * Berechnet die Longest Common Subsequence (LCS) Matrix

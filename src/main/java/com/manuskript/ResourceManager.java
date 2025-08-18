@@ -38,18 +38,16 @@ public class ResourceManager {
         File externalFile = new File(externalPath);
         
         if (externalFile.exists() && externalFile.isFile()) {
-            logger.info("Lade externe CSS-Datei: " + externalPath);
             return externalFile.toURI().toString();
         }
         
-        logger.warning("CSS-Datei nicht gefunden: " + externalPath + " - Erstelle Standard-Datei");
+
         
         // Standard-Datei erstellen
         createDefaultCssFile(resourcePath);
         
         // Erneut versuchen zu laden
         if (externalFile.exists() && externalFile.isFile()) {
-            logger.info("Lade erstellte Standard-CSS-Datei: " + externalPath);
             return externalFile.toURI().toString();
         }
         

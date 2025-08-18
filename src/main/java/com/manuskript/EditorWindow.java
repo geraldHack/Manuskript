@@ -34,6 +34,7 @@ import org.fxmisc.richtext.LineNumberFactory;
 import org.fxmisc.richtext.model.StyleSpans;
 import org.fxmisc.richtext.model.StyleSpansBuilder;
 import org.fxmisc.flowless.VirtualizedScrollPane;
+
 import java.util.Collection;
 import java.util.Collections;
 
@@ -61,6 +62,9 @@ import java.util.Set;
 import java.util.HashSet;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.fxmisc.richtext.model.StyleSpan;
+import javafx.animation.Timeline;
+import javafx.animation.KeyFrame;
+import javafx.util.Duration;
 
 public class EditorWindow implements Initializable {
     
@@ -122,11 +126,14 @@ public class EditorWindow implements Initializable {
     @FXML private Button btnItalic;
     @FXML private Button btnThemeToggle;
     @FXML private ComboBox<String> cmbQuoteStyle;
-    @FXML private Button btnUndo;
-    @FXML private Button btnRedo;
+
     @FXML private Button btnPreviousChapter;
     @FXML private Button btnNextChapter;
     @FXML private Button btnMacroRegexHelp;
+    
+    // Undo/Redo Buttons
+    @FXML private Button btnUndo;
+    @FXML private Button btnRedo;
     
     // Makro-UI-Elemente (werden programmatisch erstellt)
     private ComboBox<String> cmbMacroList;
@@ -232,8 +239,6 @@ public class EditorWindow implements Initializable {
     private ObservableList<Macro> macros = FXCollections.observableArrayList();
     private Macro currentMacro = null;
     
-    // EINGEBAUTE UNDO/REDO-FUNKTIONALITÄT DER RICHTEXTFX CODEAREA VERWENDEN
-    
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         logger.info("=== EDITOR WINDOW INITIALIZE START ===");
@@ -333,7 +338,14 @@ public class EditorWindow implements Initializable {
         codeArea.getStyleClass().add("code-area");
         codeArea.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px; -rtfx-background-color: #ffffff;");
         
-        // EINGEBAUTE UNDO/REDO-FUNKTIONALITÄT VERWENDEN - keine eigene Implementierung
+        // Timer für Markdown-Styling - immer starten
+        Timeline stylingTimer = new Timeline(new KeyFrame(Duration.seconds(1), event -> {
+            applySimpleMarkdownStyling();
+        }));
+        stylingTimer.setCycleCount(Timeline.INDEFINITE);
+        stylingTimer.play();
+        
+
         
         // CSS-Dateien für CodeArea laden
         // CSS mit ResourceManager laden
@@ -398,8 +410,7 @@ if (caret != null) {
         cmbSearchHistory.setEditable(true);
         cmbReplaceHistory.setEditable(true);
         
-        // WICHTIG: KEIN Change-Listener für Undo/Redo - das verursacht zu viele Aufrufe!
-        // Stattdessen wird saveStateForUndo() nur bei spezifischen Aktionen aufgerufen
+
         
         // Status-Label initialisieren
         updateStatus("Bereit");
@@ -502,9 +513,9 @@ if (caret != null) {
         btnItalic.setOnAction(e -> formatTextItalic());
         btnThemeToggle.setOnAction(e -> toggleTheme());
         
-            // Undo/Redo Event-Handler - verwende eingebaute Funktionalität
-    btnUndo.setOnAction(e -> codeArea.undo());
-    btnRedo.setOnAction(e -> codeArea.redo());
+
+        
+            
         if (btnMacroRegexHelp != null) {
             btnMacroRegexHelp.setOnAction(e -> showRegexHelp());
         }
@@ -571,6 +582,10 @@ if (caret != null) {
         btnToggleSearch.setOnAction(e -> toggleSearchPanel());
         btnToggleMacro.setOnAction(e -> toggleMacroPanel());
         
+        // Undo/Redo Event-Handler
+        btnUndo.setOnAction(e -> codeArea.undo());
+        btnRedo.setOnAction(e -> codeArea.redo());
+        
         // Keyboard-Shortcuts
         setupKeyboardShortcuts();
         
@@ -612,14 +627,7 @@ if (caret != null) {
                         newFile();
                         event.consume();
                         break;
-                    case Z:
-                        codeArea.undo();
-                        event.consume();
-                        break;
-                    case Y:
-                        codeArea.redo();
-                        event.consume();
-                        break;
+
                 }
             } else if (event.getCode() == KeyCode.F3) {
                 // F3 und Shift+F3 für Suchen-Navigation
@@ -1365,7 +1373,7 @@ if (caret != null) {
         }
     }
     
-    // EINGEBAUTE UNDO/REDO-FUNKTIONALITÄT DER RICHTEXTFX CODEAREA VERWENDEN
+    
     
     // Export-Dialog
     private void showExportDialog() {
@@ -4386,6 +4394,9 @@ if (caret != null) {
         // Cursor an den Anfang setzen
         codeArea.displaceCaret(0);
         codeArea.requestFollowCaret();
+        
+
+        
         updateStatus("Text geladen");
     }
     
@@ -7572,42 +7583,243 @@ if (caret != null) {
         int caretPosition = codeArea.getCaretPosition();
         
         if (selectedText != null && !selectedText.isEmpty()) {
-            // Text ist ausgewählt - formatiere den ausgewählten Text
+            // Text ist ausgewählt - prüfe ob bereits formatiert
             int start = codeArea.getSelection().getStart();
             int end = codeArea.getSelection().getEnd();
             
-            String formattedText;
             if (outputFormat == DocxProcessor.OutputFormat.MARKDOWN) {
-                formattedText = markdownStart + selectedText + markdownEnd;
+                if (isTextFormatted(selectedText, markdownStart, markdownEnd)) {
+                    // Formatierung entfernen
+                    String unformattedText = removeFormatting(selectedText, markdownStart, markdownEnd);
+                    codeArea.replaceText(start, end, unformattedText);
+                    codeArea.selectRange(start, start + unformattedText.length());
+                } else {
+                    // Formatierung hinzufügen
+                    String formattedText = markdownStart + selectedText + markdownEnd;
+                    codeArea.replaceText(start, end, formattedText);
+                    codeArea.selectRange(start, start + formattedText.length());
+                }
             } else {
-                formattedText = htmlStart + selectedText + htmlEnd;
+                if (isTextFormatted(selectedText, htmlStart, htmlEnd)) {
+                    // Formatierung entfernen
+                    String unformattedText = removeFormatting(selectedText, htmlStart, htmlEnd);
+                    codeArea.replaceText(start, end, unformattedText);
+                    codeArea.selectRange(start, start + unformattedText.length());
+                } else {
+                    // Formatierung hinzufügen
+                    String formattedText = htmlStart + selectedText + htmlEnd;
+                    codeArea.replaceText(start, end, formattedText);
+                    codeArea.selectRange(start, start + formattedText.length());
+                }
             }
-            
-            codeArea.replaceText(start, end, formattedText);
-            
-            // Markiere den formatierten Text
-            codeArea.selectRange(start, start + formattedText.length());
         } else {
-            // Kein Text ausgewählt - füge Formatierung an der Cursor-Position ein
-            String formatText;
-            if (outputFormat == DocxProcessor.OutputFormat.MARKDOWN) {
-                formatText = markdownStart + markdownEnd;
+            // Kein Text ausgewählt - finde und markiere das aktuelle Wort
+            int[] wordBounds = findCurrentWordBounds(caretPosition);
+            if (wordBounds != null) {
+                int wordStart = wordBounds[0];
+                int wordEnd = wordBounds[1];
+                String wordText = codeArea.getText(wordStart, wordEnd);
+                
+                // Prüfe ob das Wort bereits formatiert ist
+                if (outputFormat == DocxProcessor.OutputFormat.MARKDOWN) {
+                    if (isTextFormatted(wordText, markdownStart, markdownEnd)) {
+                        // Formatierung entfernen
+                        String unformattedText = removeFormatting(wordText, markdownStart, markdownEnd);
+                        codeArea.replaceText(wordStart, wordEnd, unformattedText);
+                        codeArea.selectRange(wordStart, wordStart + unformattedText.length());
+                    } else {
+                        // Formatierung hinzufügen
+                        String formattedText = markdownStart + wordText + markdownEnd;
+                        codeArea.replaceText(wordStart, wordEnd, formattedText);
+                        codeArea.selectRange(wordStart, wordStart + formattedText.length());
+                    }
+                } else {
+                    if (isTextFormatted(wordText, htmlStart, htmlEnd)) {
+                        // Formatierung entfernen
+                        String unformattedText = removeFormatting(wordText, htmlStart, htmlEnd);
+                        codeArea.replaceText(wordStart, wordEnd, unformattedText);
+                        codeArea.selectRange(wordStart, wordStart + unformattedText.length());
+                    } else {
+                        // Formatierung hinzufügen
+                        String formattedText = htmlStart + wordText + htmlEnd;
+                        codeArea.replaceText(wordStart, wordEnd, formattedText);
+                        codeArea.selectRange(wordStart, wordStart + formattedText.length());
+                    }
+                }
             } else {
-                formatText = htmlStart + htmlEnd;
-            }
-            
-            codeArea.insertText(caretPosition, formatText);
-            
-            // Setze Cursor zwischen die Formatierung
-            if (outputFormat == DocxProcessor.OutputFormat.MARKDOWN) {
-                codeArea.displaceCaret(caretPosition + markdownStart.length());
-            } else {
-                codeArea.displaceCaret(caretPosition + htmlStart.length());
+                // Kein Wort gefunden - füge Formatierung an der Cursor-Position ein
+                String formatText;
+                if (outputFormat == DocxProcessor.OutputFormat.MARKDOWN) {
+                    formatText = markdownStart + markdownEnd;
+                } else {
+                    formatText = htmlStart + htmlEnd;
+                }
+                
+                codeArea.insertText(caretPosition, formatText);
+                
+                // Setze Cursor zwischen die Formatierung
+                if (outputFormat == DocxProcessor.OutputFormat.MARKDOWN) {
+                    codeArea.displaceCaret(caretPosition + markdownStart.length());
+                } else {
+                    codeArea.displaceCaret(caretPosition + htmlStart.length());
+                }
             }
         }
         
         codeArea.requestFocus();
     }
+    
+    /**
+     * Findet die Grenzen des aktuellen Wortes an der Cursorposition.
+     * @param caretPosition Die aktuelle Cursorposition
+     * @return Array mit [start, end] Positionen des Wortes, oder null wenn kein Wort gefunden
+     */
+    private int[] findCurrentWordBounds(int caretPosition) {
+        if (codeArea == null) return null;
+        
+        String text = codeArea.getText();
+        if (text == null || text.isEmpty()) return null;
+        
+        // Wenn Cursor am Ende des Textes steht
+        if (caretPosition >= text.length()) {
+            caretPosition = text.length() - 1;
+        }
+        
+        // Wenn Cursor am Anfang steht
+        if (caretPosition < 0) {
+            caretPosition = 0;
+        }
+        
+        // Finde Wortanfang (rückwärts suchen)
+        int wordStart = caretPosition;
+        while (wordStart > 0 && isWordCharacter(text.charAt(wordStart - 1))) {
+            wordStart--;
+        }
+        
+        // Finde Wortende (vorwärts suchen)
+        int wordEnd = caretPosition;
+        while (wordEnd < text.length() && isWordCharacter(text.charAt(wordEnd))) {
+            wordEnd++;
+        }
+        
+        // Prüfe ob ein Wort gefunden wurde (mindestens 1 Zeichen)
+        if (wordStart < wordEnd) {
+            return new int[]{wordStart, wordEnd};
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Prüft ob ein Zeichen Teil eines Wortes ist.
+     * @param c Das zu prüfende Zeichen
+     * @return true wenn das Zeichen Teil eines Wortes ist
+     */
+    private boolean isWordCharacter(char c) {
+        return Character.isLetterOrDigit(c) || c == '_' || c == '-';
+    }
+    
+    /**
+     * Prüft ob ein Text bereits mit der angegebenen Formatierung versehen ist.
+     * @param text Der zu prüfende Text
+     * @param startTag Das Start-Tag der Formatierung
+     * @param endTag Das End-Tag der Formatierung
+     * @return true wenn der Text bereits formatiert ist
+     */
+    private boolean isTextFormatted(String text, String startTag, String endTag) {
+        if (text == null || text.isEmpty() || startTag == null || endTag == null) {
+            return false;
+        }
+        
+        return text.startsWith(startTag) && text.endsWith(endTag);
+    }
+    
+    /**
+     * Entfernt die Formatierung von einem Text.
+     * @param text Der formatierte Text
+     * @param startTag Das Start-Tag der Formatierung
+     * @param endTag Das End-Tag der Formatierung
+     * @return Der Text ohne Formatierung
+     */
+    private String removeFormatting(String text, String startTag, String endTag) {
+        if (text == null || text.isEmpty() || startTag == null || endTag == null) {
+            return text;
+        }
+        
+        if (isTextFormatted(text, startTag, endTag)) {
+            return text.substring(startTag.length(), text.length() - endTag.length());
+        }
+        
+        return text;
+    }
+    
+    /**
+     * Einfache Timer-basierte Markdown-Styling-Methode
+     * Verwendet setStyle() statt StyleSpans
+     */
+    private void applySimpleMarkdownStyling() {
+
+        
+        if (codeArea == null) {
+            System.out.println("=== CodeArea ist null ===");
+            return;
+        }
+        
+        String content = codeArea.getText();
+        if (content == null || content.isEmpty()) {
+            System.out.println("=== Content ist leer ===");
+            return;
+        }
+        
+
+        
+
+        
+        try {
+            StyleSpansBuilder<Collection<String>> spansBuilder = new StyleSpansBuilder<>();
+            int lastEnd = 0;
+            
+            // Bold-Pattern: **text**
+            Pattern boldPattern = Pattern.compile("\\*\\*(.*?)\\*\\*");
+            Matcher boldMatcher = boldPattern.matcher(content);
+            
+            while (boldMatcher.find()) {
+                int start = boldMatcher.start() + 2; // Nach **
+                int end = boldMatcher.end() - 2;     // Vor **
+                
+                if (end > start) {
+                    codeArea.setStyle(start, end, Collections.singleton("bold"));
+                }
+            }
+            
+            // Italic-Pattern: *text* (die nicht bereits Bold sind)
+            Pattern italicPattern = Pattern.compile("\\*(.*?)\\*");
+            Matcher italicMatcher = italicPattern.matcher(content);
+            
+            while (italicMatcher.find()) {
+                int start = italicMatcher.start() + 1; // Nach *
+                int end = italicMatcher.end() - 1;     // Vor *
+                
+                if (end > start) {
+                    codeArea.setStyle(start, end, Collections.singleton("italic"));
+                }
+            }
+            
+
+            
+        } catch (Exception e) {
+
+            logger.debug("Fehler beim einfachen Markdown-Styling: {}", e.getMessage());
+        }
+    }
+    
+
+    
+
+    
+
+    
+
     
     private void showRegexHelp() {
         Stage helpStage = new Stage();

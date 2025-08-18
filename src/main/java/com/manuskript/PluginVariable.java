@@ -1,0 +1,75 @@
+package com.manuskript;
+
+/**
+ * Repräsentiert eine Plugin-Variable mit verschiedenen Eingabetypen
+ */
+public class PluginVariable {
+    
+    public enum Type {
+        SINGLE_LINE,    // Einzeilige Eingabe (TextField)
+        MULTI_LINE,     // Mehrzeilige Eingabe (TextArea)
+        BOOLEAN         // Boolean-Eingabe (CheckBox)
+    }
+    
+    private String name;
+    private String displayName;
+    private Type type;
+    private String defaultValue;
+    private String description;
+    
+    public PluginVariable(String name, Type type) {
+        this.name = name;
+        this.type = type;
+        this.displayName = formatVariableName(name);
+    }
+    
+    public PluginVariable(String name, Type type, String defaultValue) {
+        this(name, type);
+        this.defaultValue = defaultValue;
+    }
+    
+    public PluginVariable(String name, Type type, String defaultValue, String description) {
+        this(name, type, defaultValue);
+        this.description = description;
+    }
+    
+    // Getter und Setter
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+    
+    public String getDisplayName() { return displayName; }
+    public void setDisplayName(String displayName) { this.displayName = displayName; }
+    
+    public Type getType() { return type; }
+    public void setType(Type type) { this.type = type; }
+    
+    public String getDefaultValue() { return defaultValue; }
+    public void setDefaultValue(String defaultValue) { this.defaultValue = defaultValue; }
+    
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
+    
+    /**
+     * Formatiert einen Variablen-Namen für die Anzeige
+     */
+    private String formatVariableName(String variableName) {
+        // Entferne geschweifte Klammern falls vorhanden
+        String name = variableName.replace("{", "").replace("}", "");
+        
+        // Ersetze Unterstriche durch Leerzeichen und mache erste Buchstaben groß
+        String[] words = name.split("_");
+        StringBuilder result = new StringBuilder();
+        
+        for (int i = 0; i < words.length; i++) {
+            if (i > 0) result.append(" ");
+            if (words[i].length() > 0) {
+                result.append(words[i].substring(0, 1).toUpperCase());
+                if (words[i].length() > 1) {
+                    result.append(words[i].substring(1).toLowerCase());
+                }
+            }
+        }
+        
+        return result.toString();
+    }
+}

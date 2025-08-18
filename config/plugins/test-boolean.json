@@ -1,0 +1,9 @@
+{
+  "name": "Test-Plugin mit Boolean",
+  "description": "Testet die neuen Boolean-Variablen",
+  "category": "Test",
+  "prompt": "Erstelle einen Bericht basierend auf den folgenden Parametern:\n\n**Parameter:**\n- **Name:** {Name:Test-Name:text}\n**Detailliert:** {Detailliert:true:boolean}\n- **Zeige Statistiken:** {ShowStats:false:boolean}\n- **Aktiv:** {Aktiv:true:boolean}\n- **Kommentar:** {Kommentar:Das ist ein Test-Kommentar:area}\n\n**Anweisung:**\nWenn 'Detailliert' aktiviert ist, erstelle einen ausführlichen Bericht.\nWenn 'Zeige Statistiken' aktiviert ist, füge numerische Daten hinzu.\nWenn 'Aktiv' deaktiviert ist, erstelle einen kurzen Statusbericht.\n\n**Format:** Strukturierte, übersichtliche Darstellung",
+  "temperature": 0.7,
+  "maxTokens": 1000,
+  "enabled": true
+}

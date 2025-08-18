@@ -1,0 +1,9 @@
+{
+  "name": "Charakter-Entwicklung",
+  "description": "Entwickelt detaillierte Charakterprofile basierend auf Grundideen",
+  "category": "Charakter-Entwicklung",
+  "prompt": "Du bist ein erfahrener Autor und Charakterentwickler. Deine Aufgabe ist es, basierend auf einer Grundidee einen vollständigen, dreidimensionalen Charakter zu entwickeln.\n\n**Anleitung:**\n\n1. **Charakter-Name:** {Charakter-Name:Max Mustermann:text}\n2. **Grundidee:** {Grundidee::area}\n3. **Genre:** {Genre:Fantasy:text}\n\nEntwickle einen detaillierten Charakter mit:\n- **Persönlichkeit und Motivation:** Was treibt den Charakter an?\n- **Hintergrund und Geschichte:** Woher kommt er/sie?\n- **Stärken und Schwächen:** Was kann er/sie gut, was nicht?\n- **Beziehungen:** Wie steht er/sie zu anderen Charakteren?\n- **Entwicklungsmöglichkeiten:** Wie könnte sich der Charakter entwickeln?\n\n**Format:** Strukturierte, übersichtliche Darstellung mit klaren Abschnitten\n\n**Hinweis:** Verwende das Format 'Name | Grundidee' für bessere Ergebnisse.",
+  "temperature": 0.8,
+  "maxTokens": 2048,
+  "enabled": true
+}

@@ -1823,3 +1823,50 @@
     -fx-tick-label-fill: black;
 }
 
+/* ========================================
+   MARKDOWN FORMATTING STYLES
+   ======================================== */
+
+/* RichTextFX Bold/Italic Styles */
+.bold {
+    -fx-font-weight: bold !important;
+    -fx-text-fill: #d63384 !important; /* Dezentes Pink/Magenta */
+    -fx-fill: #d63384 !important; /* Alternative Eigenschaft */
+}
+
+.italic {
+    -fx-font-style: italic !important;
+    -fx-text-fill: #0d6efd !important; /* Dezentes Blau */
+    -fx-fill: #0d6efd !important; /* Alternative Eigenschaft */
+}
+
+/* Theme-spezifische Anpassungen für Bold/Italic */
+.theme-dark .bold {
+    -fx-font-weight: bold !important;
+    -fx-text-fill: #ff6b9d !important; /* Helleres Pink für Dark Theme */
+}
+
+.theme-dark .italic {
+    -fx-font-style: italic !important;
+    -fx-text-fill: #6ea8fe !important; /* Helleres Blau für Dark Theme */
+}
+
+.weiss-theme .bold {
+    -fx-font-weight: bold !important;
+    -fx-text-fill: #d63384 !important; /* Standard Pink */
+}
+
+.weiss-theme .italic {
+    -fx-font-style: italic !important;
+    -fx-text-fill: #0d6efd !important; /* Standard Blau */
+}
+
+.pastell-theme .bold {
+    -fx-font-weight: bold !important;
+    -fx-text-fill: #e91e63 !important; /* Pastell Pink */
+}
+
+.pastell-theme .italic {
+    -fx-font-style: italic !important;
+    -fx-text-fill: #2196f3 !important; /* Pastell Blau */
+}

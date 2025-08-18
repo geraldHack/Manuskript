@@ -225,6 +225,22 @@ public class CustomChatArea extends VBox {
         });
     }
     
+    /**
+     * Setzt die Frage für ein bestimmtes QAPair anhand des Index –
+     * unabhängig davon, welcher Eintrag aktuell angezeigt wird.
+     */
+    public void setQuestionAt(int index, String question) {
+        Platform.runLater(() -> {
+            if (index >= 0 && index < chatHistory.size()) {
+                QAPair pair = chatHistory.get(index);
+                pair.setQuestion(question);
+                if (index == currentIndex) {
+                    updateDisplay();
+                }
+            }
+        });
+    }
+    
     private void showPrevious() {
         if (currentIndex > 0) {
             currentIndex--;
@@ -476,6 +492,10 @@ public class CustomChatArea extends VBox {
         
         public void setAnswer(String answer) {
             this.answer = answer;
+        }
+        
+        public void setQuestion(String question) {
+            this.question = question;
         }
     }
 } 

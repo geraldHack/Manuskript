@@ -194,6 +194,7 @@ public class MainController implements Initializable {
     }
     
     private void setupEventHandlers() {
+        System.out.println("=== DEBUG: setupEventHandlers() wird aufgerufen ===");
         btnSelectDirectory.setOnAction(e -> selectDirectory());
         // Filter, Sortierung und Format-Event-Handler entfernt - einfache Lösung
         btnAddToSelected.setOnAction(e -> addSelectedToRight());
@@ -202,7 +203,10 @@ public class MainController implements Initializable {
 
         
         btnProcessSelected.setOnAction(e -> processSelectedFiles());
-        btnProcessAll.setOnAction(e -> processAllFiles());
+        btnProcessAll.setOnAction(e -> {
+            System.out.println("=== DEBUG: btnProcessAll Event-Handler wurde aufgerufen ===");
+            processAllFiles();
+        });
         btnThemeToggle.setOnAction(e -> toggleTheme());
     }
     
@@ -971,15 +975,44 @@ public class MainController implements Initializable {
      * Markiert eine DOCX-Datei als unverändert (entfernt das "!")
      */
     public void markDocxFileAsUnchanged(File docxFile) {
+        System.out.println("=== DEBUG: markDocxFileAsUnchanged() aufgerufen für: " + docxFile.getAbsolutePath() + " ===");
         try {
-            // Finde die entsprechende DocxFile in der Liste
+            // Finde die entsprechende DocxFile in beiden Listen
+            System.out.println("=== DEBUG: Suche nach: " + docxFile.getAbsolutePath() + " ===");
+            System.out.println("=== DEBUG: allDocxFiles Größe: " + allDocxFiles.size() + " ===");
+            System.out.println("=== DEBUG: selectedDocxFiles Größe: " + selectedDocxFiles.size() + " ===");
+            
+            boolean found = false;
+            
+            // Suche in allDocxFiles
             for (DocxFile file : allDocxFiles) {
-                if (file.getFile().equals(docxFile)) {
+                System.out.println("=== DEBUG: Vergleiche allDocxFiles mit: " + file.getFile().getAbsolutePath() + " ===");
+                if (file.getFile().getAbsolutePath().equals(docxFile.getAbsolutePath())) {
+                    System.out.println("=== DEBUG: DocxFile in allDocxFiles gefunden, setze changed = false ===");
                     file.setChanged(false);
-                    logger.info("DOCX-Datei als unverändert markiert: {}", docxFile.getName());
-                break;
-        }
-    }
+                    logger.info("DOCX-Datei als unverändert markiert (allDocxFiles): {}", docxFile.getName());
+                    found = true;
+                    break;
+                }
+            }
+            
+            // Suche in selectedDocxFiles
+            if (!found) {
+                for (DocxFile file : selectedDocxFiles) {
+                    System.out.println("=== DEBUG: Vergleiche selectedDocxFiles mit: " + file.getFile().getAbsolutePath() + " ===");
+                    if (file.getFile().getAbsolutePath().equals(docxFile.getAbsolutePath())) {
+                        System.out.println("=== DEBUG: DocxFile in selectedDocxFiles gefunden, setze changed = false ===");
+                        file.setChanged(false);
+                        logger.info("DOCX-Datei als unverändert markiert (selectedDocxFiles): {}", docxFile.getName());
+                        found = true;
+                        break;
+                    }
+                }
+            }
+            
+            if (!found) {
+                System.out.println("=== DEBUG: DocxFile in keiner Liste gefunden ===");
+            }
             
             // Aktualisiere die UI
             Platform.runLater(() -> {
@@ -1232,6 +1265,8 @@ public class MainController implements Initializable {
     }
     
     private void processAllFiles() {
+        logger.info("=== DEBUG: 'Kapitel bearbeiten' Button wurde gedrückt ===");
+        System.out.println("=== DEBUG: 'Kapitel bearbeiten' Button wurde gedrückt ===");
         // NEU: Kapitel bearbeiten - alle Dateien aus der rechten Tabelle
         if (selectedDocxFiles.isEmpty()) {
             showWarning("Keine Dateien vorhanden", "Bitte fügen Sie zuerst Dateien zur rechten Tabelle hinzu.");
@@ -1279,19 +1314,75 @@ public class MainController implements Initializable {
             File mdFile = deriveMdFileFor(chapterFile.getFile());
             
             if (mdFile != null && mdFile.exists()) {
+                // MD-Datei existiert - PRÜFE OB DOCX EXTERN VERÄNDERT WURDE
+                System.out.println("=== DEBUG: Vor hasDocxChanged() Aufruf ===");
+                System.out.println("=== DEBUG: chapterFile.getFile() = " + chapterFile.getFile().getAbsolutePath() + " ===");
+                System.out.println("=== DEBUG: mdFile = " + mdFile.getAbsolutePath() + " ===");
+                if (DiffProcessor.hasDocxChanged(chapterFile.getFile(), mdFile)) {
+                    System.out.println("=== DEBUG: hasDocxChanged() gibt TRUE zurück - Dialog wird angezeigt ===");
+                    DocxChangeDecision decision = showDocxChangedDialogInMain(chapterFile);
+                    switch (decision) {
+                        case DIFF: {
+                            try {
+                                String docxContent = docxProcessor.processDocxFileContent(chapterFile.getFile(), 1, format);
+                                String mdContent = new String(java.nio.file.Files.readAllBytes(mdFile.toPath()), java.nio.charset.StandardCharsets.UTF_8);
+                                DiffProcessor.DiffResult diff = DiffProcessor.createDiff(docxContent, mdContent);
+                                showDetailedDiffDialog(chapterFile, mdFile, diff, format);
+                            } catch (Exception e) {
+                                logger.error("Fehler beim Anzeigen des DOCX/MD-Diffs", e);
+                                showError("Fehler", "Diff konnte nicht angezeigt werden: " + e.getMessage());
+                            }
+                            return; // nach Diff kein Editor öffnen
+                        }
+                        case DOCX: {
+                            System.out.println("=== DEBUG: DOCX übernehmen gewählt ===");
+                            try {
+                                String docxContent = docxProcessor.processDocxFileContent(chapterFile.getFile(), 1, format);
+                                openChapterEditorWindow(docxContent, chapterFile, format);
+                                updateStatus("Kapitel-Editor geöffnet (DOCX übernommen): " + chapterFile.getFileName());
+                                // Hash aktualisieren und "!" aus Tabelle entfernen
+                                updateDocxHashAfterAccept(chapterFile.getFile());
+                                markDocxFileAsUnchanged(chapterFile.getFile());
+                            } catch (Exception e) {
+                                logger.error("Fehler beim Übernehmen des DOCX-Inhalts", e);
+                                showError("Fehler", "DOCX-Inhalt konnte nicht übernommen werden: " + e.getMessage());
+                            }
+                            return; // Editor bereits geöffnet
+                        }
+                        case IGNORE: {
+                            System.out.println("=== DEBUG: Ignorieren gewählt ===");
+                            // Hash aktualisieren und mit MD fortfahren
+                            try {
+                                updateDocxHashAfterAccept(chapterFile.getFile());
+                                // "!" aus Tabelle entfernen
+                                markDocxFileAsUnchanged(chapterFile.getFile());
+                            } catch (Exception e) {
+                                logger.warn("Konnte DOCX-Hash nicht aktualisieren", e);
+                            }
+                            break; // weiter unten MD laden
+                        }
+                        case CANCEL:
+                        default:
+                            logger.info("Aktion abgebrochen – kein Editor geöffnet");
+                            return;
+                    }
+                } else {
+                    System.out.println("=== DEBUG: hasDocxChanged() gibt FALSE zurück - kein Dialog ===");
+                }
+
                 // MD-Datei existiert - lade MD-Inhalt
                 try {
                     String mdContent = new String(java.nio.file.Files.readAllBytes(mdFile.toPath()), java.nio.charset.StandardCharsets.UTF_8);
-                    
-                    // Öffne Chapter-Editor mit MD-Inhalt (ohne Zwangsdiff)
+
+                    // Öffne Chapter-Editor mit MD-Inhalt
                     openChapterEditorWindow(mdContent, chapterFile, format);
                     updateStatus("Kapitel-Editor geöffnet (MD): " + chapterFile.getFileName());
-                    
+
                 } catch (Exception e) {
                     logger.error("Fehler beim Laden der MD-Datei", e);
                     // Fallback: Lade DOCX-Inhalt
                     String content = docxProcessor.processDocxFileContent(chapterFile.getFile(), 1, format);
-            openChapterEditorWindow(content, chapterFile, format);
+                    openChapterEditorWindow(content, chapterFile, format);
                     updateStatus("Kapitel-Editor geöffnet (DOCX-Fallback): " + chapterFile.getFileName());
                 }
             } else {
@@ -1323,6 +1414,123 @@ public class MainController implements Initializable {
     }
     
 
+    
+    /**
+     * Wiederverwendbare Prozedur für Dialog-Styling (MainController) - EXAKT wie showSaveDialogForNavigation
+     */
+    private void applyThemeToDialog(Alert alert, String headerTextContains) {
+        // Theme-Farben holen
+        String backgroundColor = THEMES[currentThemeIndex][0];
+        String textColor = THEMES[currentThemeIndex][1];
+        
+        // CSS-Styles für den Dialog direkt anwenden
+        String dialogStyle = String.format(
+            "-fx-background-color: %s; -fx-text-fill: %s; -fx-control-inner-background: %s;",
+            backgroundColor, textColor, backgroundColor
+        );
+        
+        alert.getDialogPane().setStyle(dialogStyle);
+        
+        // EXAKT das gleiche Pattern wie in showSaveDialogForNavigation
+        alert.setOnShown(event -> {
+            // Header-Text thematisieren
+            Node headerLabel = alert.getDialogPane().lookup(".header-panel .label");
+            if (headerLabel == null) {
+                headerLabel = alert.getDialogPane().lookup(".header-panel");
+            }
+            if (headerLabel == null) {
+                headerLabel = alert.getDialogPane().lookup(".dialog-pane .header-panel");
+            }
+            // Falls noch nicht gefunden: direkt Header-Region stylen
+            Node headerRegion = alert.getDialogPane().lookup(".header-panel");
+            if (headerLabel == null) {
+                // Versuche alle Labels im Dialog zu finden
+                for (Node node : alert.getDialogPane().lookupAll(".label")) {
+                    if (node instanceof Label) {
+                        Label label = (Label) node;
+                        if (label.getText() != null && label.getText().contains(headerTextContains)) {
+                            headerLabel = label;
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            if (headerLabel != null) {
+                headerLabel.setStyle(String.format(
+                    "-fx-background-color: %s; -fx-text-fill: %s;",
+                    backgroundColor, textColor
+                ));
+            } else if (headerRegion != null) {
+                headerRegion.setStyle(String.format(
+                    "-fx-background-color: %s; -fx-text-fill: %s;",
+                    backgroundColor, textColor
+                ));
+            }
+            
+            // Buttons thematisieren
+            String buttonStyle = String.format(
+                "-fx-background-color: %s; -fx-text-fill: %s; -fx-border-color: %s;",
+                backgroundColor, textColor, textColor
+            );
+            
+            for (ButtonType buttonType : alert.getButtonTypes()) {
+                Button button = (Button) alert.getDialogPane().lookupButton(buttonType);
+                if (button != null) {
+                    button.setStyle(buttonStyle);
+                }
+            }
+        });
+    }
+    
+    /**
+     * Entscheidungsmöglichkeiten bei geänderter DOCX
+     */
+    private enum DocxChangeDecision { DIFF, DOCX, IGNORE, CANCEL }
+
+    /**
+     * Zeigt Dialog wenn DOCX-Datei extern verändert wurde (für MainController)
+     */
+    private DocxChangeDecision showDocxChangedDialogInMain(DocxFile chapterFile) {
+        System.out.println("=== DEBUG: showDocxChangedDialogInMain() aufgerufen ===");
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("DOCX-Datei wurde extern verändert");
+        alert.setHeaderText("Die DOCX-Datei '" + chapterFile.getFileName() + "' wurde extern verändert.");
+        alert.setContentText("Was möchten Sie tun?");
+
+        ButtonType diffButton = new ButtonType("🔍 Diff anzeigen");
+        ButtonType docxButton = new ButtonType("DOCX übernehmen");
+        ButtonType ignoreButton = new ButtonType("Ignorieren");
+        ButtonType cancelButton = new ButtonType("Abbrechen");
+
+        alert.getButtonTypes().setAll(diffButton, docxButton, ignoreButton, cancelButton);
+
+        // Wiederverwendbare Prozedur für Dialog-Styling verwenden
+        applyThemeToDialog(alert, "extern verändert");
+
+        Optional<ButtonType> result = alert.showAndWait();
+        System.out.println("=== DEBUG: Dialog geschlossen, Ergebnis: " + (result.isPresent() ? result.get().getText() : "null") + " ===");
+        if (!result.isPresent()) return DocxChangeDecision.CANCEL;
+
+        if (result.get() == diffButton) return DocxChangeDecision.DIFF;
+        if (result.get() == docxButton) return DocxChangeDecision.DOCX;
+        if (result.get() == ignoreButton) return DocxChangeDecision.IGNORE;
+        return DocxChangeDecision.CANCEL;
+    }
+    
+    // showDiffForDocxChangesInMain entfällt – Diff wird direkt im Aufrufer erstellt
+    
+    /**
+     * Findet DocxFile anhand des Dateinamens
+     */
+    private DocxFile findDocxFileByName(String fileName) {
+        for (DocxFile docxFile : selectedDocxFiles) {
+            if (docxFile.getFile().getName().equals(fileName)) {
+                return docxFile;
+            }
+        }
+        return null;
+    }
     
     private void showDetailedDiffDialog(DocxFile chapterFile, File mdFile, DiffProcessor.DiffResult diffResult, 
                                       DocxProcessor.OutputFormat format) {
@@ -1682,6 +1890,9 @@ public class MainController implements Initializable {
     private void openChapterEditorWindow(String text, DocxFile chapterFile, DocxProcessor.OutputFormat format) {
         try {
             logger.info("=== ÖFFNE EDITOR FENSTER START ===");
+            
+
+            
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/editor.fxml"));
             logger.info("=== FXML LOADER ERSTELLT ===");
             Parent root = loader.load();

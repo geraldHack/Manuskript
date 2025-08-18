@@ -99,6 +99,95 @@
     -fx-border-width: 2px;
 }
 
+/* Plugin Editor Window Styling */
+.plugin-editor-window {
+    -fx-background-color: #f8f9fa;
+}
+
+.plugin-editor-stage {
+    -fx-background-color: #f8f9fa;
+}
+
+.plugin-editor-window .tool-bar {
+    -fx-background-color: #e9ecef;
+    -fx-border-color: #dee2e6;
+    -fx-border-width: 0 0 1 0;
+}
+
+.plugin-editor-window .button {
+    -fx-background-color: #007bff;
+    -fx-text-fill: white;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+    -fx-padding: 8px 16px;
+    -fx-font-weight: bold;
+}
+
+.plugin-editor-window .button:hover {
+    -fx-background-color: #0056b3;
+}
+
+.plugin-editor-window .button:pressed {
+    -fx-background-color: #004085;
+}
+
+.plugin-editor-window .text-field {
+    -fx-background-color: white;
+    -fx-border-color: #ced4da;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+    -fx-padding: 8px 12px;
+}
+
+.plugin-editor-window .text-field:focused {
+    -fx-border-color: #007bff;
+    -fx-border-width: 2px;
+}
+
+.plugin-editor-window .text-area {
+    -fx-background-color: white;
+    -fx-border-color: #ced4da;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+    -fx-padding: 8px 12px;
+}
+
+.plugin-editor-window .text-area:focused {
+    -fx-border-color: #007bff;
+    -fx-border-width: 2px;
+}
+
+.plugin-editor-window .spinner {
+    -fx-background-color: white;
+    -fx-border-color: #ced4da;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+}
+
+.plugin-editor-window .spinner:focused {
+    -fx-border-color: #007bff;
+    -fx-border-width: 2px;
+}
+
+.plugin-editor-window .label {
+    -fx-text-fill: #495057;
+    -fx-font-weight: bold;
+}
+
+.plugin-editor-window .code-area {
+    -fx-background-color: #f8f9fa;
+    -fx-border-color: #dee2e6;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+    -fx-font-family: 'Consolas', 'Monaco', monospace;
+    -fx-font-size: 13px;
+}
+
+.plugin-editor-window .code-area:focused {
+    -fx-border-color: #007bff;
+    -fx-border-width: 2px;
+}
+
 /* ComboBox-Styling */
 .combo-box {
     -fx-background-color: white;
@@ -1270,4 +1359,410 @@
 .code-area .highlight-orange {
     -rtfx-background-color: #ff9800 !important;
     -fx-text-fill: #000000 !important;
+}
+
+/* Plugin Editor Styles */
+.plugin-editor-toolbar {
+    -fx-background-color: #f8f9fa;
+    -fx-border-color: #dee2e6;
+    -fx-border-width: 0 0 1 0;
+}
+
+.plugin-editor-button {
+    -fx-background-color: #007bff;
+    -fx-text-fill: #ffffff;
+    -fx-border-radius: 3;
+    -fx-padding: 5 10;
+}
+
+.plugin-editor-button:hover {
+    -fx-background-color: #0056b3;
+}
+
+.plugin-editor-metadata-panel {
+    -fx-background-color: #f8f9fa;
+    -fx-border-color: #dee2e6;
+    -fx-border-width: 1;
+    -fx-border-radius: 5;
+    -fx-padding: 15;
+}
+
+.plugin-editor-title {
+    -fx-font-weight: bold;
+    -fx-font-size: 16px;
+    -fx-text-fill: #495057;
+}
+
+.plugin-editor-prompt-panel {
+    -fx-background-color: #f5f5f5;
+    -fx-border-color: #ddd;
+    -fx-border-width: 1;
+    -fx-border-radius: 5;
+    -fx-padding: 10;
+}
+
+.plugin-editor-prompt-label {
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+}
+
+.plugin-editor-codearea {
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #000000;
+    -fx-border-color: #ddd;
+    -fx-border-radius: 3;
+}
+
+.plugin-editor-statusbar {
+    -fx-background-color: #f0f0f0;
+    -fx-border-color: #ddd;
+    -fx-border-width: 1 0 0 0;
+}
+
+.plugin-editor-status-label {
+    -fx-font-size: 12px;
+}
+
+/* Theme-spezifische Anpassungen für Plugin Editor */
+
+/* Weiß-Theme (Theme 0) */
+.weiss-theme .plugin-editor-toolbar {
+    -fx-background-color: #f8f9fa;
+    -fx-border-color: #dee2e6;
+}
+
+.weiss-theme .plugin-editor-button {
+    -fx-background-color: #007bff;
+    -fx-text-fill: #ffffff;
+}
+
+.weiss-theme .plugin-editor-button:hover {
+    -fx-background-color: #0056b3;
+}
+
+.weiss-theme .plugin-editor-metadata-panel {
+    -fx-background-color: #f8f9fa;
+    -fx-border-color: #dee2e6;
+}
+
+.weiss-theme .plugin-editor-title {
+    -fx-text-fill: #495057;
+}
+
+.weiss-theme .plugin-editor-prompt-panel {
+    -fx-background-color: #f5f5f5;
+    -fx-border-color: #ddd;
+}
+
+.weiss-theme .plugin-editor-prompt-label {
+    -fx-text-fill: #495057;
+}
+
+.weiss-theme .plugin-editor-codearea {
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #000000;
+    -fx-border-color: #ddd;
+}
+
+/* CodeArea Text-Farbe für Weiß-Theme */
+.weiss-theme .plugin-editor-codearea .text {
+    -fx-fill: #000000;
+}
+
+.weiss-theme .plugin-editor-codearea .paragraph-box:has-caret {
+    -fx-background-color: #e3f2fd;
+}
+
+.weiss-theme .plugin-editor-statusbar {
+    -fx-background-color: #f0f0f0;
+    -fx-border-color: #ddd;
+}
+
+.weiss-theme .plugin-editor-status-label {
+    -fx-text-fill: #495057;
+}
+
+/* Pastell-Theme (Theme 2) */
+.pastell-theme .plugin-editor-toolbar {
+    -fx-background-color: #f8f9fa;
+    -fx-border-color: #dee2e6;
+}
+
+.pastell-theme .plugin-editor-button {
+    -fx-background-color: #007bff;
+    -fx-text-fill: #ffffff;
+}
+
+.pastell-theme .plugin-editor-button:hover {
+    -fx-background-color: #0056b3;
+}
+
+.pastell-theme .plugin-editor-metadata-panel {
+    -fx-background-color: #f8f9fa;
+    -fx-border-color: #dee2e6;
+}
+
+.pastell-theme .plugin-editor-title {
+    -fx-text-fill: #495057;
+}
+
+.pastell-theme .plugin-editor-prompt-panel {
+    -fx-background-color: #f5f5f5;
+    -fx-border-color: #ddd;
+}
+
+.pastell-theme .plugin-editor-prompt-label {
+    -fx-text-fill: #495057;
+}
+
+.pastell-theme .plugin-editor-codearea {
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #000000;
+    -fx-border-color: #ddd;
+}
+
+/* CodeArea Text-Farbe für Pastell-Theme */
+.pastell-theme .plugin-editor-codearea .text {
+    -fx-fill: #000000;
+}
+
+.pastell-theme .plugin-editor-codearea .paragraph-box:has-caret {
+    -fx-background-color: #e3f2fd;
+}
+
+.pastell-theme .plugin-editor-statusbar {
+    -fx-background-color: #f0f0f0;
+    -fx-border-color: #ddd;
+}
+
+.pastell-theme .plugin-editor-status-label {
+    -fx-text-fill: #495057;
+}
+
+/* Dunkles Theme (Theme 1, 6+) */
+.theme-dark .plugin-editor-toolbar {
+    -fx-background-color: #2d3748;
+    -fx-border-color: #4a5568;
+}
+
+.theme-dark .plugin-editor-button {
+    -fx-background-color: #3182ce;
+    -fx-text-fill: #ffffff;
+}
+
+.theme-dark .plugin-editor-button:hover {
+    -fx-background-color: #2c5aa0;
+}
+
+.theme-dark .plugin-editor-metadata-panel {
+    -fx-background-color: #2d3748;
+    -fx-border-color: #4a5568;
+}
+
+.theme-dark .plugin-editor-title {
+    -fx-text-fill: #ffffff;
+}
+
+.theme-dark .plugin-editor-prompt-panel {
+    -fx-background-color: #2d3748;
+    -fx-border-color: #4a5568;
+}
+
+.theme-dark .plugin-editor-prompt-label {
+    -fx-text-fill: #ffffff;
+}
+
+.theme-dark .plugin-editor-codearea {
+    -fx-background-color: #1a202c;
+    -fx-text-fill: #ffffff;
+    -fx-border-color: #4a5568;
+}
+
+/* CodeArea Text-Farbe für Dunkles Theme */
+.theme-dark .plugin-editor-codearea .text {
+    -fx-fill: #ffffff;
+}
+
+.theme-dark .plugin-editor-codearea .paragraph-box:has-caret {
+    -fx-background-color: #2d3748;
+}
+
+.theme-dark .plugin-editor-statusbar {
+    -fx-background-color: #2d3748;
+    -fx-border-color: #4a5568;
+}
+
+.theme-dark .plugin-editor-status-label {
+    -fx-text-fill: #ffffff;
+}
+
+/* Blau-Theme (Theme 3) */
+.theme-dark.blau-theme .plugin-editor-toolbar {
+    -fx-background-color: #1e3a8a;
+    -fx-border-color: #3b82f6;
+}
+
+.theme-dark.blau-theme .plugin-editor-button {
+    -fx-background-color: #3b82f6;
+    -fx-text-fill: #ffffff;
+}
+
+.theme-dark.blau-theme .plugin-editor-button:hover {
+    -fx-background-color: #2563eb;
+}
+
+.theme-dark.blau-theme .plugin-editor-metadata-panel {
+    -fx-background-color: #1e3a8a;
+    -fx-border-color: #3b82f6;
+}
+
+.theme-dark.blau-theme .plugin-editor-title {
+    -fx-text-fill: #ffffff;
+}
+
+.theme-dark.blau-theme .plugin-editor-prompt-panel {
+    -fx-background-color: #1e3a8a;
+    -fx-border-color: #3b82f6;
+}
+
+.theme-dark.blau-theme .plugin-editor-prompt-label {
+    -fx-text-fill: #ffffff;
+}
+
+.theme-dark.blau-theme .plugin-editor-codearea {
+    -fx-background-color: #1e1b4b;
+    -fx-text-fill: #ffffff;
+    -fx-border-color: #3b82f6;
+}
+
+/* CodeArea Text-Farbe für Blau-Theme */
+.theme-dark.blau-theme .plugin-editor-codearea .text {
+    -fx-fill: #ffffff;
+}
+
+.theme-dark.blau-theme .plugin-editor-codearea .paragraph-box:has-caret {
+    -fx-background-color: #312e81;
+}
+
+.theme-dark.blau-theme .plugin-editor-statusbar {
+    -fx-background-color: #1e3a8a;
+    -fx-border-color: #3b82f6;
+}
+
+.theme-dark.blau-theme .plugin-editor-status-label {
+    -fx-text-fill: #ffffff;
+}
+
+/* Grün-Theme (Theme 4) */
+.theme-dark.gruen-theme .plugin-editor-toolbar {
+    -fx-background-color: #064e3b;
+    -fx-border-color: #047857;
+}
+
+.theme-dark.gruen-theme .plugin-editor-button {
+    -fx-background-color: #047857;
+    -fx-text-fill: #ffffff;
+}
+
+.theme-dark.gruen-theme .plugin-editor-button:hover {
+    -fx-background-color: #065f46;
+}
+
+.theme-dark.gruen-theme .plugin-editor-metadata-panel {
+    -fx-background-color: #064e3b;
+    -fx-border-color: #047857;
+}
+
+.theme-dark.gruen-theme .plugin-editor-title {
+    -fx-text-fill: #ffffff;
+}
+
+.theme-dark.gruen-theme .plugin-editor-prompt-panel {
+    -fx-background-color: #064e3b;
+    -fx-border-color: #047857;
+}
+
+.theme-dark.gruen-theme .plugin-editor-prompt-label {
+    -fx-text-fill: #ffffff;
+}
+
+.theme-dark.gruen-theme .plugin-editor-codearea {
+    -fx-background-color: #064e3b;
+    -fx-text-fill: #ffffff;
+    -fx-border-color: #047857;
+}
+
+/* CodeArea Text-Farbe für Grün-Theme - WICHTIG! */
+.theme-dark.gruen-theme .plugin-editor-codearea .text {
+    -fx-fill: #ffffff;
+}
+
+.theme-dark.gruen-theme .plugin-editor-codearea .paragraph-box:has-caret {
+    -fx-background-color: #065f46;
+}
+
+.theme-dark.gruen-theme .plugin-editor-statusbar {
+    -fx-background-color: #064e3b;
+    -fx-border-color: #047857;
+}
+
+.theme-dark.gruen-theme .plugin-editor-status-label {
+    -fx-text-fill: #ffffff;
+}
+
+/* Lila-Theme (Theme 5) */
+.theme-dark.lila-theme .plugin-editor-toolbar {
+    -fx-background-color: #581c87;
+    -fx-border-color: #8b5cf6;
+}
+
+.theme-dark.lila-theme .plugin-editor-button {
+    -fx-background-color: #8b5cf6;
+    -fx-text-fill: #ffffff;
+}
+
+.theme-dark.lila-theme .plugin-editor-button:hover {
+    -fx-background-color: #7c3aed;
+}
+
+.theme-dark.lila-theme .plugin-editor-metadata-panel {
+    -fx-background-color: #581c87;
+    -fx-border-color: #8b5cf6;
+}
+
+.theme-dark.lila-theme .plugin-editor-title {
+    -fx-text-fill: #ffffff;
+}
+
+.theme-dark.lila-theme .plugin-editor-prompt-panel {
+    -fx-background-color: #581c87;
+    -fx-border-color: #8b5cf6;
+}
+
+.theme-dark.lila-theme .plugin-editor-prompt-label {
+    -fx-text-fill: #ffffff;
+}
+
+.theme-dark.lila-theme .plugin-editor-codearea {
+    -fx-background-color: #2e1065;
+    -fx-text-fill: #ffffff;
+    -fx-border-color: #8b5cf6;
+}
+
+/* CodeArea Text-Farbe für Lila-Theme */
+.theme-dark.lila-theme .plugin-editor-codearea .text {
+    -fx-fill: #ffffff;
+}
+
+.theme-dark.lila-theme .plugin-editor-codearea .paragraph-box:has-caret {
+    -fx-background-color: #4c1d95;
+}
+
+.theme-dark.lila-theme .plugin-editor-statusbar {
+    -fx-background-color: #581c87;
+    -fx-border-color: #8b5cf6;
+}
+
+.theme-dark.lila-theme .plugin-editor-status-label {
+    -fx-text-fill: #ffffff;
 } 

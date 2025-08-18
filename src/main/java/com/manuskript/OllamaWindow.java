@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Fenster für den Ollama KI-Assistenten
@@ -29,6 +30,8 @@ public class OllamaWindow {
     private OllamaService ollamaService;
     private EditorWindow editorWindow;
     private int currentThemeIndex = 0;
+    private java.util.prefs.Preferences preferences;
+    private PluginManager pluginManager;
 
     private TextArea inputArea;
     private TextArea contextArea;
@@ -46,6 +49,7 @@ public class OllamaWindow {
     // Persistentes Ergebnisfenster (WebView), damit es live aktualisiert werden kann
     private Stage resultStage;
     private javafx.scene.web.WebView resultWebView;
+    private String lastPureChatAnswer = ""; // Speichert den reinen Chat-Text ohne Header
     
     // Spezielle Eingabefelder für verschiedene Funktionen
     private TextField characterField;
@@ -83,18 +87,22 @@ public class OllamaWindow {
     private Label repeatPenaltyLabel;
     private VBox parametersBox;
     
-    // Modell-Management
-    private Button deleteModelButton;
-    private ComboBox<String> deleteModelComboBox;
+            // Modell-Management
+        private Button deleteModelButton;
+        private ComboBox<String> deleteModelComboBox;
     
-    // Modell-Installation
-    private Button installModelButton;
-    private ComboBox<String> installModelComboBox;
-    private TextField installModelNameField; // Freitext-Eingabe für Modellnamen
-    private Button installModelByNameButton; // Install per Name
-    private Button openModelLibraryButton;   // Link zur Modellbibliothek
-    private ProgressIndicator installProgressIndicator;
-    private Label installStatusLabel;
+            // Modell-Installation
+        private Button installModelButton;
+        private ComboBox<String> installModelComboBox;
+        private TextField installModelNameField; // Freitext-Eingabe für Modellnamen
+        private Button installModelByNameButton; // Install per Name
+        private Button openModelLibraryButton;   // Link zur Modellbibliothek
+        private ProgressIndicator installProgressIndicator;
+        private Label installStatusLabel;
+        
+        // Plugin-Verwaltung
+        private Button openPluginFolderButton;
+        private Button reloadPluginsButton;
     
     // Training-Status
     private Label trainingStatusLabel;
@@ -158,6 +166,8 @@ public class OllamaWindow {
     
     public OllamaWindow() {
         this.ollamaService = new OllamaService();
+        this.preferences = java.util.prefs.Preferences.userNodeForPackage(OllamaWindow.class);
+        this.pluginManager = new PluginManager();
         createWindow();
     }
     
@@ -202,8 +212,10 @@ public class OllamaWindow {
         loadAvailableModels();
         
         modelComboBox.setOnAction(e -> {
-            ollamaService.setModel(modelComboBox.getValue());
-            updateStatus("Modell gewechselt: " + modelComboBox.getValue());
+            String selectedModel = modelComboBox.getValue();
+            ollamaService.setModel(selectedModel);
+            saveSelectedModel(selectedModel);
+            updateStatus("Modell gewechselt: " + selectedModel);
         });
         
         modelBox.getChildren().addAll(modelLabel, modelComboBox);
@@ -219,18 +231,61 @@ public class OllamaWindow {
         functionComboBox = new ComboBox<>();
         functionComboBox.setId("cmbFunction");
         functionComboBox.setPrefWidth(200);
-        functionComboBox.getItems().addAll(
-            "Dialog generieren",
-            "Beschreibung erweitern", 
-            "Plot-Ideen entwickeln",
-            "Charakter entwickeln",
-            "Schreibstil analysieren",
-            "Text umschreiben",
-            "Chat-Assistent",
-            "Modell-Training"
-        );
-        functionComboBox.setValue("Chat-Assistent");
-        functionComboBox.setOnAction(e -> updateInputFields());
+        // Funktionen laden
+        List<String> functionItems = new ArrayList<>();
+        functionItems.add("Dialog generieren");
+        functionItems.add("Beschreibung erweitern");
+        functionItems.add("Plot-Ideen entwickeln");
+        functionItems.add("Charakter entwickeln");
+        functionItems.add("Schreibstil analysieren");
+        functionItems.add("Text umschreiben");
+        functionItems.add("Chat-Assistent");
+        functionItems.add("Modell-Training");
+        
+        // Plugins hinzufügen
+        if (pluginManager != null) {
+            functionItems.add(""); // Trennlinie
+            functionItems.add("📦 Plugins");
+            
+            // Plugins nach Kategorien gruppieren
+            Set<String> categories = pluginManager.getCategories();
+            for (String category : categories) {
+                List<Plugin> categoryPlugins = pluginManager.getPluginsByCategory(category);
+                for (Plugin plugin : categoryPlugins) {
+                    functionItems.add("📦 " + plugin.getName());
+                }
+            }
+        }
+        
+        functionComboBox.getItems().addAll(functionItems);
+        // Lade die gespeicherte Funktion oder verwende "Chat-Assistent" als Standard
+        String savedFunction = loadSelectedFunction();
+        functionComboBox.setValue(savedFunction);
+        functionComboBox.setOnAction(e -> {
+            String selectedFunction = functionComboBox.getValue();
+            saveSelectedFunction(selectedFunction);
+            updateInputFields();
+            
+            // Plugin-Vorschau anzeigen
+            if (selectedFunction != null && selectedFunction.startsWith("📦 ")) {
+                String pluginName = selectedFunction.substring(2); // "📦 " entfernen
+                Plugin plugin = pluginManager.getPlugin(pluginName);
+                if (plugin != null) {
+                    // Plugin-Beschreibung in der Statusleiste anzeigen
+                    updateStatus("📦 " + plugin.getName() + ": " + plugin.getDescription());
+                    
+                    // Plugin-Prompt als Placeholder im Input-Bereich anzeigen
+                    String promptPreview = plugin.getPrompt();
+                    if (promptPreview.length() > 200) {
+                        promptPreview = promptPreview.substring(0, 200) + "...";
+                    }
+                    inputArea.setPromptText("Plugin: " + promptPreview);
+                }
+            } else {
+                // Normale Funktionen zurücksetzen
+                inputArea.setPromptText("Geben Sie hier Ihren Text ein...");
+            }
+        });
         
         functionBox.getChildren().addAll(functionLabel, functionComboBox);
         
@@ -419,6 +474,32 @@ public class OllamaWindow {
             installProgressIndicator,
             installStatusLabel
         );
+        
+        // Plugin-Verwaltung
+        HBox pluginBox = new HBox(10);
+        pluginBox.setAlignment(Pos.CENTER_LEFT);
+        
+        Label pluginLabel = new Label("Plugins:");
+        pluginLabel.setPrefWidth(120);
+        pluginLabel.setMinWidth(120);
+        pluginLabel.setMaxWidth(120);
+        
+        openPluginFolderButton = new Button("📁 Ordner öffnen");
+        openPluginFolderButton.setPrefWidth(120);
+        openPluginFolderButton.setOnAction(e -> openPluginFolder());
+        openPluginFolderButton.setTooltip(new Tooltip("Öffnet den Plugin-Ordner zum Bearbeiten"));
+        
+        reloadPluginsButton = new Button("🔄 Neu laden");
+        reloadPluginsButton.setPrefWidth(120);
+        reloadPluginsButton.setOnAction(e -> reloadPlugins());
+        reloadPluginsButton.setTooltip(new Tooltip("Lädt alle Plugins neu"));
+        
+        Button pluginEditorButton = new Button("✏️ Editor");
+        pluginEditorButton.setPrefWidth(120);
+        pluginEditorButton.setOnAction(e -> openPluginEditor());
+        pluginEditorButton.setTooltip(new Tooltip("Öffnet den Plugin Editor"));
+        
+        pluginBox.getChildren().addAll(pluginLabel, openPluginFolderButton, reloadPluginsButton, pluginEditorButton);
         
         // Chat-Session-Management
         chatSessionBox = new VBox(10);
@@ -733,6 +814,7 @@ public class OllamaWindow {
             modelBox,
             modelManagementBox,
             modelInstallationBox,
+            pluginBox,
             parametersBox
         );
         
@@ -881,7 +963,7 @@ public class OllamaWindow {
         splitPane.getItems().addAll(leftContent, rightContext);
 
         lowerPanel.getChildren().add(splitPane);
-        // Wichtiger Schritt: SplitPane soll im unteren Panel vertikal mitwachsen (am Boden „kleben“)
+        // Wichtiger Schritt: SplitPane soll im unteren Panel vertikal mitwachsen (am Boden "kleben")
         VBox.setVgrow(splitPane, Priority.ALWAYS);
         
         // Chat-Session-Controls in den oberen Bereich (einklappbar)
@@ -1306,13 +1388,14 @@ public class OllamaWindow {
         String selectedFunction = functionComboBox.getValue();
         String input = inputArea.getText().trim();
         
-        if (input.isEmpty()) {
+        // Bei Plugins ist keine Eingabe erforderlich, da der Dialog die Variablen abfragt
+        if (input.isEmpty() && (selectedFunction == null || !selectedFunction.startsWith("📦 "))) {
             showAlert("Eingabe erforderlich", "Bitte geben Sie einen Text ein.");
             return;
         }
         
-        // Token-Limit basierend auf Funktion anpassen
-        adjustTokenLimitForFunction(selectedFunction, input);
+        // Token-Limit basierend auf Funktion anpassen (nur beim Funktionswechsel, nicht beim Generieren)
+        // adjustTokenLimitForFunction(selectedFunction, input);
         
         // DEBUG entfernt
         
@@ -1320,16 +1403,34 @@ public class OllamaWindow {
         insertButton.setDisable(true);
         updateStatus("⏳ Anfrage läuft...");
 
-        // DEBUG entfernt
-        if (selectedFunction != null && selectedFunction.equals("Chat-Assistent")) {
+        // DEBUG: Plugin-Erkennung
+        logger.info("DEBUG: selectedFunction = " + selectedFunction);
+        if (selectedFunction != null && (selectedFunction.equals("Chat-Assistent") || selectedFunction.startsWith("📦 ") || selectedFunction.startsWith("? "))) {
+            // Plugin-Namen normalisieren (entferne "? " und füge "📦 " hinzu)
+            if (selectedFunction.startsWith("? ")) {
+                selectedFunction = "📦 " + selectedFunction.substring(2);
+            }
+            logger.info("DEBUG: Plugin-Namen normalisiert zu: " + selectedFunction);
             // DEBUG entfernt
             // Chat-Modus mit manueller Verlaufsverwaltung
             String userMessage = inputArea.getText();
-            if (userMessage == null || userMessage.trim().isEmpty()) {
-                setGenerating(false);
-                updateStatus("Bitte gib eine Nachricht ein.");
-                return;
+            
+            // Plugin-Logik: Wenn ein Plugin ausgewählt ist, erlaube leeren Input
+            if (selectedFunction.startsWith("📦 ") || selectedFunction.startsWith("? ")) {
+                // Plugin-Modus: Erlaube leeren Input
+                if (userMessage == null) {
+                    userMessage = "";
+                }
+            } else {
+                // Normaler Chat-Modus: Input erforderlich
+                if (userMessage == null || userMessage.trim().isEmpty()) {
+                    setGenerating(false);
+                    updateStatus("Bitte gib eine Nachricht ein.");
+                    return;
+                }
             }
+            
+            // Plugin-Logik wird nach der chatMessages Definition verschoben
             
             // UI-Verwaltung mit CustomChatArea - Frage hinzufügen (ohne Session zu speichern)
             chatHistoryArea.clearAndShowNewQuestion(userMessage);
@@ -1424,8 +1525,8 @@ public class OllamaWindow {
             String fullContext = contextBuilder.toString();
             // DEBUG entfernt
             
-            logger.info("DEBUG: Sende Kontext mit " + sessionHistory.size() + " QAPairs, vollständige: " + 
-                       sessionHistory.stream().filter(qa -> qa.getAnswer() != null && !qa.getAnswer().trim().isEmpty()).count());
+            // Anzahl der vollständigen QAPairs für Debug-Zwecke
+            long completeQAPairs = sessionHistory.stream().filter(qa -> qa.getAnswer() != null && !qa.getAnswer().trim().isEmpty()).count();
             
             // Vollständigen Prompt mit Kontext erstellen
             StringBuilder fullPromptBuilder = new StringBuilder();
@@ -1441,21 +1542,102 @@ public class OllamaWindow {
             String fullPrompt = fullPromptBuilder.toString();
             // DEBUG entfernt
             
-            logger.info("DEBUG: Vollständiger Prompt: " + fullPrompt.substring(0, Math.min(200, fullPrompt.length())) + "...");
+
             
-            // Streaming verwenden: echte Fortschrittsanzeige
+            // Chat-API mit echter Konversationshistorie verwenden
             StringBuilder aggregated = new StringBuilder();
             final int qaIndex = chatHistoryArea.getLastIndex(); // Index des frisch hinzugefügten Q&A sichern
-            currentStreamHandle = ollamaService.generateTextStreaming(
-                fullPrompt,
-                null,
+            
+            // Chat-Historie in ChatMessage-Format konvertieren
+            List<OllamaService.ChatMessage> chatMessages = new ArrayList<>();
+            for (CustomChatArea.QAPair qaPair : sessionHistory) {
+                if (qaPair.getAnswer() != null && !qaPair.getAnswer().trim().isEmpty()) {
+                    chatMessages.add(new OllamaService.ChatMessage("user", qaPair.getQuestion()));
+                    chatMessages.add(new OllamaService.ChatMessage("assistant", qaPair.getAnswer()));
+                }
+            }
+            // Plugin-Logik für Variablen-Ersetzung
+            String processedUserMessage = userMessage;
+            
+            // Normalisierung: ? zu 📦 konvertieren
+            if (selectedFunction.startsWith("? ")) {
+                selectedFunction = "📦 " + selectedFunction.substring(2);
+            }
+            
+            if (selectedFunction.startsWith("📦 ")) {
+                String pluginName = selectedFunction.substring(2).trim(); // "📦 " entfernen und trimmen
+                logger.info("DEBUG: Plugin erkannt: " + pluginName);
+    
+                Plugin plugin = pluginManager.getPlugin(pluginName);
+                if (plugin != null) {
+                    logger.info("DEBUG: Plugin gefunden: " + pluginName);
+
+                    // Selektierten Text aus Editor oder Chat-Input holen
+                    String selectedText = getSelectedTextFromEditor();
+                    if (selectedText == null || selectedText.trim().isEmpty()) {
+                        selectedText = userMessage; // Fallback auf Chat-Input
+                    }
+                    
+
+                    // Dialog für Plugin-Variablen anzeigen
+                    Map<String, String> variables = PluginVariableDialog.showDialog(plugin, selectedText, currentThemeIndex);
+                    if (variables != null) {
+                        // Debug: Ausgabe der Variablen
+                        logger.info("DEBUG: Plugin-Variablen: " + variables);
+                        
+                        // Plugin-Prompt mit Variablen verarbeiten
+                        String pluginPrompt = plugin.getProcessedPrompt(variables);
+                        logger.info("DEBUG: Verarbeiteter Plugin-Prompt: " + pluginPrompt.substring(0, Math.min(200, pluginPrompt.length())) + "...");
+
+                        
+                        // Plugin-Prompt als Benutzer-Nachricht hinzufügen (damit er in der Chat-Historie sichtbar ist)
+                        chatMessages.add(new OllamaService.ChatMessage("user", "Plugin: " + pluginPrompt));
+                        processedUserMessage = "Führe das Plugin aus.";
+                        
+                        // Plugin-Prompt in die Chat-Frage-Box einfügen
+                        chatHistoryArea.setQuestionAt(qaIndex, "Plugin: " + pluginPrompt);
+                        
+                        // Plugin-Prompt erfolgreich verarbeitet
+
+                    } else {
+
+                        setGenerating(false);
+                        updateStatus("Plugin-Ausführung abgebrochen");
+                        return; // Dialog abgebrochen
+                    }
+                } else {
+
+                }
+            }
+            
+            // Neue Nachricht hinzufügen
+            chatMessages.add(new OllamaService.ChatMessage("user", processedUserMessage));
+            
+            // Chat-Nachrichten bereit für Streaming
+            
+            currentStreamHandle = ollamaService.chatStreaming(
+                chatMessages,
+                fullContext,
                 chunk -> Platform.runLater(() -> {
                     aggregated.append(chunk);
                     statusLabel.setText("⏳ Läuft… " + aggregated.length() + " Zeichen");
                     // Live: Antwort fortlaufend exakt in dem Q&A sichern, zu dem diese Antwort gehört
-                    try { chatHistoryArea.setAnswerAt(qaIndex, aggregated.toString()); } catch (Exception ignored) {}
-                    // Live-Update im externen Fenster (immer ans Ende scrollen)
+                    try { 
+                        chatHistoryArea.setAnswerAt(qaIndex, aggregated.toString()); 
+                        // UI sofort aktualisieren - stärkere Aktualisierung für Plugins
+                        chatHistoryArea.getChatHistoryArea().requestLayout();
+                        chatHistoryArea.getChatHistoryArea().requestFocus();
+                        // Zusätzliche UI-Aktualisierung
+                        Platform.runLater(() -> {
+                            chatHistoryArea.getChatHistoryArea().requestLayout();
+                            chatHistoryArea.getChatHistoryArea().setScrollTop(Double.MAX_VALUE);
+                        });
+                    } catch (Exception e) {
+    
+                    }
+                    // Live-Update im externen Fenster (immer ans Ende scrollen) - OHNE Header
                     if (resultStage != null && resultStage.isShowing() && resultWebView != null) {
+                        // Nur den reinen Text ohne Header für das Fenster verwenden
                         updateResultWebView(buildHtmlForAnswer(aggregated.toString()), true);
                     }
                     // Auch im Standard-Output-Feld (Chat-Historie) immer ans Ende springen
@@ -1479,8 +1661,16 @@ public class OllamaWindow {
                     );
                     // Finale Antwort-String
                     String finalAnswer = header + "\n" + aggregated.toString();
+                    // Reinen Chat-Text für "Ergebnis in Fenster" speichern
+                    lastPureChatAnswer = aggregated.toString();
                     // UI aktualisieren (asynchron ok)
                     chatHistoryArea.setAnswerAt(qaIndex, finalAnswer);
+                    
+                    // "Ergebnis in Fenster" mit reinem Text (ohne Header) aktualisieren
+                    if (resultStage != null && resultStage.isShowing() && resultWebView != null) {
+                        updateResultWebView(buildHtmlForAnswer(lastPureChatAnswer), false);
+                    }
+                    
                     // Persistenz: Snapshot holen und SICHER den betreffenden Index mit finaler Antwort überschreiben
                     List<CustomChatArea.QAPair> snapshot = chatHistoryArea.getSessionHistory();
                     if (qaIndex >= 0 && qaIndex < snapshot.size()) {
@@ -1491,7 +1681,7 @@ public class OllamaWindow {
                     ResourceManager.saveSession(currentSessionName, snapshot);
                             checkAndSplitSession(currentSessionName);
                 }),
-                err -> Platform.runLater(() -> {
+                (Throwable err) -> Platform.runLater(() -> {
                         setGenerating(false);
                     updateStatus("Fehler: " + err.getMessage());
                 })
@@ -1578,6 +1768,9 @@ public class OllamaWindow {
             combinedContext = sb.length() > 0 ? sb.toString() : null;
         }
         
+        // Streaming für alle Funktionen verwenden (außer Chat, der bereits Streaming hat)
+        StringBuilder aggregated = new StringBuilder();
+        
         switch (selectedFunction) {
             case "Dialog generieren":
                 String character = characterField.getText().trim();
@@ -1590,36 +1783,140 @@ public class OllamaWindow {
                     return;
                 }
                 
-                future = ollamaService.generateDialogue(character, situation, emotion, combinedContext);
-                break;
+                // Streaming für Dialog generieren
+                currentStreamHandle = ollamaService.generateDialogueStreaming(character, situation, emotion, combinedContext,
+                    chunk -> Platform.runLater(() -> {
+                        aggregated.append(chunk);
+                        statusLabel.setText("⏳ Läuft… " + aggregated.length() + " Zeichen");
+                        resultArea.setText(aggregated.toString());
+                        // Live-Update im externen Fenster
+                        if (resultStage != null && resultStage.isShowing() && resultWebView != null) {
+                            updateResultWebView(buildHtmlForAnswer(aggregated.toString()), true);
+                        }
+                    }),
+                    () -> Platform.runLater(() -> {
+                        insertButton.setDisable(false);
+                        setGenerating(false);
+                        updateStatus("✅ Dialog generiert: " + aggregated.length() + " Zeichen");
+                        resultArea.setText(aggregated.toString());
+                    }),
+                    (Throwable err) -> Platform.runLater(() -> {
+                        setGenerating(false);
+                        updateStatus("Fehler: " + err.getMessage());
+                    })
+                );
+                return;
                 
             case "Beschreibung erweitern":
                 String style = styleField.getText().trim();
                 if (style.isEmpty()) {
                     style = "detailliert";
                 }
-                future = ollamaService.expandDescription(input, style, combinedContext);
-                break;
+                
+                // Streaming für Beschreibung erweitern
+                currentStreamHandle = ollamaService.expandDescriptionStreaming(input, style, combinedContext,
+                    chunk -> Platform.runLater(() -> {
+                        aggregated.append(chunk);
+                        statusLabel.setText("⏳ Läuft… " + aggregated.length() + " Zeichen");
+                        resultArea.setText(aggregated.toString());
+                        if (resultStage != null && resultStage.isShowing() && resultWebView != null) {
+                            updateResultWebView(buildHtmlForAnswer(aggregated.toString()), true);
+                        }
+                    }),
+                    () -> Platform.runLater(() -> {
+                        insertButton.setDisable(false);
+                        setGenerating(false);
+                        updateStatus("✅ Beschreibung erweitert: " + aggregated.length() + " Zeichen");
+                        resultArea.setText(aggregated.toString());
+                    }),
+                    (Throwable err) -> Platform.runLater(() -> {
+                        setGenerating(false);
+                        updateStatus("Fehler: " + err.getMessage());
+                    })
+                );
+                return;
                 
             case "Plot-Ideen entwickeln":
                 String genre = genreField.getText().trim();
                 if (genre.isEmpty()) {
                     genre = "Allgemein";
                 }
-                future = ollamaService.developPlotIdeas(genre, input, combinedContext);
-                break;
+                
+                // Streaming für Plot-Ideen
+                currentStreamHandle = ollamaService.developPlotIdeasStreaming(genre, input, combinedContext,
+                    chunk -> Platform.runLater(() -> {
+                        aggregated.append(chunk);
+                        statusLabel.setText("⏳ Läuft… " + aggregated.length() + " Zeichen");
+                        resultArea.setText(aggregated.toString());
+                        if (resultStage != null && resultStage.isShowing() && resultWebView != null) {
+                            updateResultWebView(buildHtmlForAnswer(aggregated.toString()), true);
+                        }
+                    }),
+                    () -> Platform.runLater(() -> {
+                        insertButton.setDisable(false);
+                        setGenerating(false);
+                        updateStatus("✅ Plot-Ideen entwickelt: " + aggregated.length() + " Zeichen");
+                        resultArea.setText(aggregated.toString());
+                    }),
+                    (Throwable err) -> Platform.runLater(() -> {
+                        setGenerating(false);
+                        updateStatus("Fehler: " + err.getMessage());
+                    })
+                );
+                return;
                 
             case "Charakter entwickeln":
                 String characterName = characterField.getText().trim();
                 if (characterName.isEmpty()) {
                     characterName = "Charakter";
                 }
-                future = ollamaService.developCharacter(characterName, input, combinedContext);
-                break;
+                
+                // Streaming für Charakter entwickeln
+                currentStreamHandle = ollamaService.developCharacterStreaming(characterName, input, combinedContext,
+                    chunk -> Platform.runLater(() -> {
+                        aggregated.append(chunk);
+                        statusLabel.setText("⏳ Läuft… " + aggregated.length() + " Zeichen");
+                        resultArea.setText(aggregated.toString());
+                        if (resultStage != null && resultStage.isShowing() && resultWebView != null) {
+                            updateResultWebView(buildHtmlForAnswer(aggregated.toString()), true);
+                        }
+                    }),
+                    () -> Platform.runLater(() -> {
+                        insertButton.setDisable(false);
+                        setGenerating(false);
+                        updateStatus("✅ Charakter entwickelt: " + aggregated.length() + " Zeichen");
+                        resultArea.setText(aggregated.toString());
+                    }),
+                    (Throwable err) -> Platform.runLater(() -> {
+                        setGenerating(false);
+                        updateStatus("Fehler: " + err.getMessage());
+                    })
+                );
+                return;
                 
             case "Schreibstil analysieren":
-                future = ollamaService.analyzeWritingStyle(input, combinedContext);
-                break;
+                // Streaming für Schreibstil analysieren
+                currentStreamHandle = ollamaService.analyzeWritingStyleStreaming(input, combinedContext,
+                    chunk -> Platform.runLater(() -> {
+                        aggregated.append(chunk);
+                        statusLabel.setText("⏳ Läuft… " + aggregated.length() + " Zeichen");
+                        resultArea.setText(aggregated.toString());
+                        if (resultStage != null && resultStage.isShowing() && resultWebView != null) {
+                            updateResultWebView(buildHtmlForAnswer(aggregated.toString()), true);
+                        }
+                    }),
+                    () -> Platform.runLater(() -> {
+                        insertButton.setDisable(false);
+                        setGenerating(false);
+                        updateStatus("✅ Schreibstil analysiert: " + aggregated.length() + " Zeichen");
+                        resultArea.setText(aggregated.toString());
+                    }),
+                    (Throwable err) -> Platform.runLater(() -> {
+                        setGenerating(false);
+                        updateStatus("Fehler: " + err.getMessage());
+                    })
+                );
+                return;
                 
             case "Text umschreiben":
                 String rewriteType = rewriteTypeComboBox.getValue();
@@ -1631,12 +1928,31 @@ public class OllamaWindow {
                     return;
                 }
                 
-                future = ollamaService.rewriteText(input, rewriteType, additionalInstructions, combinedContext);
-                break;
+                // Streaming für Text umschreiben
+                currentStreamHandle = ollamaService.rewriteTextStreaming(input, rewriteType, additionalInstructions, combinedContext,
+                    chunk -> Platform.runLater(() -> {
+                        aggregated.append(chunk);
+                        statusLabel.setText("⏳ Läuft… " + aggregated.length() + " Zeichen");
+                        resultArea.setText(aggregated.toString());
+                        if (resultStage != null && resultStage.isShowing() && resultWebView != null) {
+                            updateResultWebView(buildHtmlForAnswer(aggregated.toString()), true);
+                        }
+                    }),
+                    () -> Platform.runLater(() -> {
+                        insertButton.setDisable(false);
+                        setGenerating(false);
+                        updateStatus("✅ Text umgeschrieben: " + aggregated.length() + " Zeichen");
+                        resultArea.setText(aggregated.toString());
+                    }),
+                    (Throwable err) -> Platform.runLater(() -> {
+                        setGenerating(false);
+                        updateStatus("Fehler: " + err.getMessage());
+                    })
+                );
+                return;
                 
             default: // Freier Text
                 // Verwende den eingegebenen Kontext
-                // Auch beim freien Text: Benutzer- und Editor-Kontext kombinieren
                 String freeContext = contextArea.getText() != null ? contextArea.getText().trim() : "";
                 StringBuilder ctx = new StringBuilder();
                 if (!freeContext.isEmpty()) {
@@ -1646,41 +1962,32 @@ public class OllamaWindow {
                     ctx.append("=== EDITOR-KONTEXT ===\n").append(contextSnippet);
                 }
                 String finalContext = ctx.length() > 0 ? ctx.toString() : null;
-                future = ollamaService.generateText(input, finalContext);
-                break;
+                
+                // Streaming für freien Text
+                currentStreamHandle = ollamaService.generateTextStreaming(input, finalContext,
+                    chunk -> Platform.runLater(() -> {
+                        aggregated.append(chunk);
+                        statusLabel.setText("⏳ Läuft… " + aggregated.length() + " Zeichen");
+                        resultArea.setText(aggregated.toString());
+                        if (resultStage != null && resultStage.isShowing() && resultWebView != null) {
+                            updateResultWebView(buildHtmlForAnswer(aggregated.toString()), true);
+                        }
+                    }),
+                    () -> Platform.runLater(() -> {
+                        insertButton.setDisable(false);
+                        setGenerating(false);
+                        updateStatus("✅ Text generiert: " + aggregated.length() + " Zeichen");
+                        resultArea.setText(aggregated.toString());
+                    }),
+                    (Throwable err) -> Platform.runLater(() -> {
+                        setGenerating(false);
+                        updateStatus("Fehler: " + err.getMessage());
+                    })
+                );
+                return;
         }
         
-        if (future != null) {
-            future.thenAccept(result -> {
-                Platform.runLater(() -> {
-                    insertButton.setDisable(false);
-                    setGenerating(false);
-                    
-                    // Ergebnis basierend auf Funktion behandeln
-                    String currentFunction = functionComboBox.getValue();
-                    if ("Text umschreiben".equals(currentFunction)) {
-                        // Bei "Text umschreiben": Ergebnis in resultArea schreiben, Eingabe NICHT löschen
-                        resultArea.setText(result);
-                        updateStatus("Text umgeschrieben: " + result.length() + " Zeichen");
-                    } else if ("Chat-Assistent".equals(currentFunction)) {
-                        // Bei Chat: Eingabe löschen, Ergebnis wird bereits in chatHistoryArea angezeigt
-                        inputArea.clear();
-                        updateStatus("Antwort generiert: " + result.length() + " Zeichen");
-                    } else {
-                        // Bei anderen Funktionen: Ergebnis in resultArea schreiben, Eingabe löschen
-                        resultArea.setText(result);
-                        inputArea.clear();
-                        updateStatus("Ergebnis generiert: " + result.length() + " Zeichen");
-                    }
-                });
-            }).exceptionally(ex -> {
-                Platform.runLater(() -> {
-                    setGenerating(false);
-                    updateStatus("Fehler aufgetreten: " + ex.getMessage());
-                });
-                return null;
-            });
-        }
+        // Alle Funktionen verwenden jetzt Streaming, daher ist der future-Code nicht mehr nötig
     }
     
     // Baut den vollständigen Prompt (inkl. Kontext) so, wie er an den Service übergeben würde
@@ -2279,11 +2586,15 @@ public class OllamaWindow {
     private void openResultInWindow() {
         try {
             String answer = "";
-            if (chatHistoryArea != null) {
+            // Priorität: KI-Assistenten-Ergebnis (resultArea) vor Chat-Ergebnis
+            if (resultArea != null && !resultArea.getText().trim().isEmpty()) {
+                answer = resultArea.getText();
+            } else if (lastPureChatAnswer != null && !lastPureChatAnswer.trim().isEmpty()) {
+                // Für Chat: Reinen Text ohne Header verwenden
+                answer = lastPureChatAnswer;
+            } else if (chatHistoryArea != null) {
                 answer = chatHistoryArea.getCurrentAnswer();
                 if (answer == null) answer = "";
-            } else if (resultArea != null) {
-                answer = resultArea.getText();
             }
             if (resultStage == null) {
                 resultStage = new Stage();
@@ -2624,6 +2935,107 @@ public class OllamaWindow {
         }
     }
     
+    /**
+     * Öffnet den Plugin-Ordner im Datei-Explorer
+     */
+    private void openPluginFolder() {
+        try {
+            File pluginDir = new File("config/plugins");
+            if (!pluginDir.exists()) {
+                pluginDir.mkdirs();
+            }
+            java.awt.Desktop.getDesktop().open(pluginDir);
+        } catch (Exception e) {
+            showAlert("Fehler", "Konnte Plugin-Ordner nicht öffnen: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * Öffnet den Plugin Editor
+     */
+    private void openPluginEditor() {
+        try {
+            PluginEditorWindow editor = new PluginEditorWindow();
+            editor.show();
+            updateStatus("Plugin Editor geöffnet");
+        } catch (Exception e) {
+            logger.severe("Fehler beim Öffnen des Plugin Editors: " + e.getMessage());
+            updateStatus("Fehler beim Öffnen des Plugin Editors");
+        }
+    }
+    
+
+    
+    /**
+     * Holt den selektierten Text aus dem Editor
+     */
+    private String getSelectedTextFromEditor() {
+        if (editorWindow != null) {
+            try {
+                String selectedText = editorWindow.getSelectedText();
+                if (selectedText != null && !selectedText.trim().isEmpty()) {
+                    return selectedText.trim();
+                }
+            } catch (Exception e) {
+                logger.warning("Fehler beim Holen des selektierten Texts: " + e.getMessage());
+            }
+        }
+        return null;
+    }
+    
+
+    
+    /**
+     * Lädt alle Plugins neu und aktualisiert die Funktionsauswahl
+     */
+    private void reloadPlugins() {
+        try {
+            pluginManager.loadPlugins();
+            
+            // Funktionsauswahl neu laden
+            String currentSelection = functionComboBox.getValue();
+            functionComboBox.getItems().clear();
+            
+            // Funktionen laden
+            List<String> functionItems = new ArrayList<>();
+            functionItems.add("Dialog generieren");
+            functionItems.add("Beschreibung erweitern");
+            functionItems.add("Plot-Ideen entwickeln");
+            functionItems.add("Charakter entwickeln");
+            functionItems.add("Schreibstil analysieren");
+            functionItems.add("Text umschreiben");
+            functionItems.add("Chat-Assistent");
+            functionItems.add("Modell-Training");
+            
+            // Plugins hinzufügen
+            if (pluginManager != null) {
+                functionItems.add(""); // Trennlinie
+                functionItems.add("📦 Plugins");
+                
+                // Plugins nach Kategorien gruppieren
+                Set<String> categories = pluginManager.getCategories();
+                for (String category : categories) {
+                    List<Plugin> categoryPlugins = pluginManager.getPluginsByCategory(category);
+                    for (Plugin plugin : categoryPlugins) {
+                        functionItems.add("📦 " + plugin.getName());
+                    }
+                }
+            }
+            
+            functionComboBox.getItems().addAll(functionItems);
+            
+            // Vorherige Auswahl wiederherstellen falls möglich
+            if (currentSelection != null) {
+                functionComboBox.setValue(currentSelection);
+            }
+            
+            updateStatus("✅ Plugins neu geladen: " + pluginManager.getActivePlugins().size() + " aktiv");
+            
+        } catch (Exception e) {
+            showAlert("Fehler", "Fehler beim Neuladen der Plugins: " + e.getMessage());
+        }
+    }
+    
     private void applyDialogTheme(Alert alert, int themeIndex) {
         DialogPane pane = alert.getDialogPane();
         // CSS (styles.css + editor.css) hinzufügen, damit globale Dialog-Styles greifen
@@ -2876,11 +3288,29 @@ public class OllamaWindow {
                 deleteModelComboBox.getItems().clear();
                 deleteModelComboBox.getItems().addAll(models);
                 
-                // Setze das erste verfügbare Modell als Standard
+                // Lade das gespeicherte Modell oder setze das erste verfügbare als Standard
                 if (models.length > 0) {
-                    modelComboBox.setValue(models[0]);
-                    ollamaService.setModel(models[0]);
-                    updateStatus("Modelle geladen: " + models.length + " verfügbar");
+                    String savedModel = loadSelectedModel();
+                    String modelToUse = savedModel;
+                    
+                    // Prüfe ob das gespeicherte Modell noch verfügbar ist
+                    boolean modelAvailable = false;
+                    for (String model : models) {
+                        if (model.equals(savedModel)) {
+                            modelAvailable = true;
+                            break;
+                        }
+                    }
+                    
+                    // Wenn das gespeicherte Modell nicht verfügbar ist, verwende das erste
+                    if (!modelAvailable) {
+                        modelToUse = models[0];
+                        logger.info("Gespeichertes Modell '" + savedModel + "' nicht verfügbar, verwende '" + modelToUse + "'");
+                    }
+                    
+                    modelComboBox.setValue(modelToUse);
+                    ollamaService.setModel(modelToUse);
+                    updateStatus("Modelle geladen: " + models.length + " verfügbar, Modell: " + modelToUse);
                 } else {
                     updateStatus("Keine Modelle gefunden");
                 }
@@ -3356,17 +3786,17 @@ public class OllamaWindow {
      */
     private void switchToSession(String sessionName) {
         if (sessionName != null && !sessionName.isEmpty()) {
-            logger.info("DEBUG: switchToSession() - von " + currentSessionName + " zu " + sessionName);
+    
             
             // Aktuelle Historie speichern (nur im Speicher, nicht persistent)
             List<CustomChatArea.QAPair> currentHistory = chatHistoryArea.getSessionHistory();
-            logger.info("DEBUG: Aktuelle Historie für " + currentSessionName + ": " + currentHistory.size() + " QAPairs");
+
             
             // Nur speichern wenn die Historie nicht leer ist oder es nicht die erste Session ist
             if (currentHistory.size() > 0 || !currentSessionName.equals("default")) {
                 sessionHistories.put(currentSessionName, currentHistory);
             } else {
-                logger.info("DEBUG: Überspringe Speichern der leeren default Session");
+
             }
             
             // Session wechseln
@@ -3374,7 +3804,7 @@ public class OllamaWindow {
             
             // Chat-Historie aus der Session laden
             List<CustomChatArea.QAPair> newHistory = sessionHistories.getOrDefault(sessionName, new ArrayList<>());
-            logger.info("DEBUG: Neue Historie für " + sessionName + ": " + newHistory.size() + " QAPairs");
+
             chatHistoryArea.loadSessionHistory(newHistory);
             // Externes Ergebnisfenster live aktualisieren (falls offen)
             if (resultStage != null && resultStage.isShowing()) {
@@ -3395,20 +3825,20 @@ public class OllamaWindow {
         sessionComboBox.getItems().clear();
         
         List<String> availableSessions = ResourceManager.getAvailableSessions();
-        logger.info("DEBUG: Verfügbare Sessions: " + availableSessions);
+
         
         for (String sessionName : availableSessions) {
             List<CustomChatArea.QAPair> sessionData = ResourceManager.loadSession(sessionName);
             sessionHistories.put(sessionName, sessionData);
             sessionComboBox.getItems().add(sessionName);
-            logger.info("DEBUG: Session geladen: " + sessionName + " mit " + sessionData.size() + " QAPairs");
+
         }
         
         // Default NICHT automatisch hinzufügen, außer es gibt GAR KEINE Sessions
         if (availableSessions.isEmpty()) {
             sessionComboBox.getItems().add("default");
             sessionHistories.put("default", new ArrayList<>());
-            logger.info("DEBUG: Keine Sessions vorhanden – lege leere 'default' an");
+
         }
         
         // Keine Auswahl hier treffen; Auswahl erfolgt in loadSelectedSession() nach Persistenz-Regel
@@ -3425,7 +3855,7 @@ public class OllamaWindow {
         final int MAX_QAPAIRS_PER_SESSION = ResourceManager.getIntParameter("session.max_qapairs_per_session", 20);
         
         if (sessionData.size() > MAX_QAPAIRS_PER_SESSION) {
-            logger.info("DEBUG: Session " + sessionName + " hat " + sessionData.size() + " QAPairs - Aufteilung erforderlich");
+
             
             // Neue Session-Namen generieren
             String baseName = sessionName;
@@ -3455,7 +3885,7 @@ public class OllamaWindow {
             ResourceManager.saveSession(sessionName, remainingData);
             ResourceManager.saveSession(newSessionName, newSessionData);
             
-            logger.info("DEBUG: Session aufgeteilt: " + sessionName + " (" + remainingData.size() + " QAPairs) und " + newSessionName + " (" + newSessionData.size() + " QAPairs)");
+
             
             // Nach dem Split automatisch in die neue Session wechseln,
             // damit nicht bei jeder neuen Anfrage erneut ein weiterer Teil entsteht
@@ -3477,7 +3907,7 @@ public class OllamaWindow {
      * Speichert alle Sessions in den Config-Ordner
      */
     private void saveAllSessions() {
-        logger.info("DEBUG: saveAllSessions() aufgerufen");
+
         for (Map.Entry<String, List<CustomChatArea.QAPair>> entry : sessionHistories.entrySet()) {
             String sessionName = entry.getKey();
             List<CustomChatArea.QAPair> qaPairs = entry.getValue();
@@ -3607,5 +4037,65 @@ public class OllamaWindow {
         currentSessionName = pick;
         List<CustomChatArea.QAPair> hist = sessionHistories.getOrDefault(pick, new ArrayList<>());
         chatHistoryArea.loadSessionHistory(hist);
+    }
+    
+    /**
+     * Speichert das ausgewählte Modell in den Preferences
+     */
+    private void saveSelectedModel(String modelName) {
+        if (modelName != null && !modelName.trim().isEmpty()) {
+            try {
+                preferences.put("selected_model", modelName);
+                preferences.flush();
+                logger.info("Modell gespeichert: " + modelName);
+            } catch (Exception e) {
+                logger.warning("Fehler beim Speichern des Modells: " + e.getMessage());
+            }
+        }
+    }
+    
+    /**
+     * Lädt das gespeicherte Modell aus den Preferences
+     */
+    private String loadSelectedModel() {
+        String savedModel = preferences.get("selected_model", "");
+        if (savedModel != null && !savedModel.trim().isEmpty()) {
+            logger.info("Gespeichertes Modell geladen: " + savedModel);
+            return savedModel;
+        }
+        // Fallback auf Standard-Modell
+        String defaultModel = "gemma3:4b";
+        logger.info("Kein gespeichertes Modell gefunden, verwende Standard: " + defaultModel);
+        return defaultModel;
+    }
+    
+    /**
+     * Speichert die ausgewählte Funktion in den Preferences
+     */
+    private void saveSelectedFunction(String functionName) {
+        if (functionName != null && !functionName.trim().isEmpty()) {
+            try {
+                preferences.put("selected_function", functionName);
+                preferences.flush();
+                logger.info("Funktion gespeichert: " + functionName);
+            } catch (Exception e) {
+                logger.warning("Fehler beim Speichern der Funktion: " + e.getMessage());
+            }
+        }
+    }
+    
+    /**
+     * Lädt die gespeicherte Funktion aus den Preferences
+     */
+    private String loadSelectedFunction() {
+        String savedFunction = preferences.get("selected_function", "");
+        if (savedFunction != null && !savedFunction.trim().isEmpty()) {
+            logger.info("Gespeicherte Funktion geladen: " + savedFunction);
+            return savedFunction;
+        }
+        // Fallback auf Standard-Funktion
+        String defaultFunction = "Chat-Assistent";
+        logger.info("Keine gespeicherte Funktion gefunden, verwende Standard: " + defaultFunction);
+        return defaultFunction;
     }
 } 

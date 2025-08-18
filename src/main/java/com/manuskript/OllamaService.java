@@ -1536,4 +1536,256 @@ public class OllamaService {
         // Wenn es kein Standard-Modell ist, ist es wahrscheinlich ein trainiertes Modell
         return true;
     }
+    
+    // ===== STREAMING-VARIANTEN DER KI-ASSISTENTEN-FUNKTIONEN =====
+    
+    /**
+     * Streaming-Variante für Dialog-Generierung
+     */
+    public StreamHandle generateDialogueStreaming(String character, String situation, String emotion, String context,
+                                                 Consumer<String> onChunk, Runnable onComplete, Consumer<Throwable> onError) {
+        String prompt = String.format("""
+            Schreibe einen authentischen Dialog für den Charakter '%s' in folgender Situation:
+            %s
+            
+            Emotion des Charakters: %s
+            
+            Schreibe nur den Dialog, ohne Erzählertext. Verwende natürliche, deutsche Sprache.
+            """, character, situation, emotion);
+        
+        double originalTemp = temperature;
+        setTemperature(0.8);
+        
+        StreamHandle handle = generateTextStreaming(prompt, context, onChunk, onComplete, onError);
+        
+        setTemperature(originalTemp);
+        return handle;
+    }
+    
+    /**
+     * Streaming-Variante für Beschreibung erweitern
+     */
+    public StreamHandle expandDescriptionStreaming(String shortDescription, String style, String context,
+                                                  Consumer<String> onChunk, Runnable onComplete, Consumer<Throwable> onError) {
+        String prompt = String.format("""
+            Erweitere diese kurze Beschreibung im Stil '%s':
+            
+            %s
+            
+            Schreibe eine detaillierte, atmosphärische Beschreibung (max. 3 Sätze).
+            """, style, shortDescription);
+        
+        double originalTemp = temperature;
+        setTemperature(0.6);
+        
+        StreamHandle handle = generateTextStreaming(prompt, context, onChunk, onComplete, onError);
+        
+        setTemperature(originalTemp);
+        return handle;
+    }
+    
+    /**
+     * Streaming-Variante für Plot-Ideen entwickeln
+     */
+    public StreamHandle developPlotIdeasStreaming(String genre, String basicIdea, String context,
+                                                 Consumer<String> onChunk, Runnable onComplete, Consumer<Throwable> onError) {
+        String prompt = String.format("""
+            Entwickle Plot-Ideen für eine %s-Geschichte basierend auf dieser Grundidee:
+            %s
+            
+            Gib 3-5 konkrete Plot-Entwicklungen an, die die Geschichte vorantreiben könnten.
+            """, genre, basicIdea);
+        
+        double originalTemp = temperature;
+        setTemperature(0.9);
+        
+        StreamHandle handle = generateTextStreaming(prompt, context, onChunk, onComplete, onError);
+        
+        setTemperature(originalTemp);
+        return handle;
+    }
+    
+    /**
+     * Streaming-Variante für Charakter entwickeln
+     */
+    public StreamHandle developCharacterStreaming(String characterName, String basicTraits, String context,
+                                                 Consumer<String> onChunk, Runnable onComplete, Consumer<Throwable> onError) {
+        String prompt = String.format("""
+            Entwickle einen detaillierten Charakter basierend auf diesen Grundmerkmalen:
+            
+            Name: %s
+            Grundmerkmale: %s
+            
+            Erstelle eine umfassende Charakterbeschreibung mit:
+            - Persönlichkeit und Motivation
+            - Hintergrund und Geschichte
+            - Stärken und Schwächen
+            - Beziehungen zu anderen Charakteren
+            - Entwicklungsmöglichkeiten
+            
+            Schreibe in einem natürlichen, erzählenden Stil.
+            """, characterName, basicTraits);
+        
+        double originalTemp = temperature;
+        setTemperature(0.7);
+        
+        StreamHandle handle = generateTextStreaming(prompt, context, onChunk, onComplete, onError);
+        
+        setTemperature(originalTemp);
+        return handle;
+    }
+    
+    /**
+     * Streaming-Variante für Schreibstil analysieren
+     */
+    public StreamHandle analyzeWritingStyleStreaming(String text, String context,
+                                                    Consumer<String> onChunk, Runnable onComplete, Consumer<Throwable> onError) {
+        String prompt = String.format("""
+            Analysiere den Schreibstil des folgenden Textes:
+            
+            %s
+            
+            Gib eine detaillierte Analyse mit folgenden Punkten:
+            - Ton und Stimmung
+            - Satzstruktur und Rhythmus
+            - Wortwahl und Vokabular
+            - Erzählperspektive
+            - Besondere stilistische Merkmale
+            - Verbesserungsvorschläge
+            
+            Sei konstruktiv und hilfreich in deiner Analyse.
+            """, text);
+        
+        double originalTemp = temperature;
+        setTemperature(0.5);
+        
+        StreamHandle handle = generateTextStreaming(prompt, context, onChunk, onComplete, onError);
+        
+        setTemperature(originalTemp);
+        return handle;
+    }
+    
+    /**
+     * Streaming-Variante für Text umschreiben
+     */
+    public StreamHandle rewriteTextStreaming(String originalText, String rewriteType, String additionalInstructions, String context,
+                                            Consumer<String> onChunk, Runnable onComplete, Consumer<Throwable> onError) {
+        String prompt = String.format("""
+            Umschreibe den folgenden Text im Stil '%s':
+            
+            %s
+            
+            %s
+            
+            Schreibe nur den umgeschriebenen Text, ohne Erklärungen.
+            """, rewriteType, originalText, 
+            additionalInstructions != null && !additionalInstructions.trim().isEmpty() ? 
+            "Zusätzliche Anweisungen: " + additionalInstructions : "");
+        
+        double originalTemp = temperature;
+        setTemperature(0.7);
+        
+        StreamHandle handle = generateTextStreaming(prompt, context, onChunk, onComplete, onError);
+        
+        setTemperature(originalTemp);
+        return handle;
+    }
+    
+    /**
+     * Streaming-Variante der Chat-API mit echter Konversationshistorie
+     */
+    public StreamHandle chatStreaming(List<ChatMessage> messages, String additionalContext,
+                                     Consumer<String> onChunk, Runnable onComplete, Consumer<Throwable> onError) {
+        int maxTokens = this.maxTokens;
+        double temperature = this.temperature;
+        double topP = this.topP;
+        double repeatPenalty = this.repeatPenalty;
+        
+        String systemPrompt = "Du bist ein hilfreicher deutscher Assistent. Antworte bitte auf Deutsch.";
+        
+        // Erstelle Messages-Array mit System-Prompt und Kontext
+        List<ChatMessage> fullMessages = new ArrayList<>();
+        fullMessages.add(new ChatMessage("system", systemPrompt));
+        
+        // Zusätzlichen Kontext als separate Nachricht hinzufügen
+        if (additionalContext != null && !additionalContext.trim().isEmpty()) {
+            fullMessages.add(new ChatMessage("user", "Kontext: " + additionalContext));
+        }
+        
+        // Chat-Historie hinzufügen
+        fullMessages.addAll(messages);
+        
+        // JSON für Chat-API erstellen
+        StringBuilder jsonBuilder = new StringBuilder();
+        jsonBuilder.append("{\"model\":\"").append(currentModel).append("\",\"messages\":[");
+        
+        for (int i = 0; i < fullMessages.size(); i++) {
+            ChatMessage msg = fullMessages.get(i);
+            if (i > 0) jsonBuilder.append(",");
+            jsonBuilder.append("{\"role\":\"").append(msg.getRole()).append("\",\"content\":\"")
+                      .append(escapeJson(msg.getContent())).append("\"}");
+        }
+        
+        jsonBuilder.append("],\"stream\":true,\"options\":{\"num_predict\":").append(maxTokens)
+                  .append(",\"temperature\":").append(temperature)
+                  .append(",\"top_p\":").append(topP)
+                  .append(",\"repeat_penalty\":").append(repeatPenalty)
+                  .append(",\"repeat_last_n\":512,\"penalize_newline\":true,\"num_gpu\":-1}}");
+        
+        String json = jsonBuilder.toString();
+        
+        this.lastEndpoint = CHAT_ENDPOINT;
+        this.lastRequestJson = json;
+        this.lastFullPrompt = "Chat mit " + messages.size() + " Nachrichten";
+        this.lastContext = additionalContext;
+        
+        StreamHandle handle = new StreamHandle();
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(OLLAMA_BASE_URL + CHAT_ENDPOINT))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(json))
+                    .timeout(Duration.ofSeconds(httpRequestTimeoutSeconds))
+                    .build();
+
+            CompletableFuture<HttpResponse<InputStream>> fut = httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofInputStream());
+            handle.bindFuture(fut);
+            fut.whenComplete((resp, err) -> {
+                if (err != null) {
+                    if (onError != null) onError.accept(err);
+                    return;
+                }
+                if (resp.statusCode() != 200) {
+                    if (onError != null) onError.accept(new RuntimeException("HTTP " + resp.statusCode()));
+                    return;
+                }
+                InputStream in = resp.body();
+                handle.bind(in);
+                try (BufferedReader br = new BufferedReader(new InputStreamReader(in))) {
+                    String line;
+                    while ((line = br.readLine()) != null) {
+                        if (line.isEmpty()) continue;
+                        if (line.contains("\"message\":")) {
+                            // Chat-API verwendet "message" statt "response"
+                            String chunk = extractJsonValue(line, "content");
+                            if (chunk != null && !chunk.isEmpty() && onChunk != null) {
+                                onChunk.accept(chunk);
+                            }
+                        }
+                        if (line.contains("\"done\":true")) {
+                            if (onComplete != null) onComplete.run();
+                            break;
+                        }
+                    }
+                } catch (Exception ex) {
+                    if (onError != null) onError.accept(ex);
+                }
+            });
+        } catch (Exception e) {
+            if (onError != null) onError.accept(e);
+        }
+
+        return handle;
+    }
+    
 } 

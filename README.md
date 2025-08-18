@@ -2,7 +2,7 @@
 
 **Hauptzweck:** JavaFX-Anwendung zum Zusammenführen mehrerer DOCX-Dateien zu einem Manuskript mit integriertem Text-Editor und automatischer Nachbearbeitung. Gut geeignet für **Sudowrite** Projekt-Exporte
 
-Eine moderne JavaFX-Anwendung zur Verarbeitung und automatischen Nachbearbeitung von DOCX-Dateien zu einem zusammenhängenden Textdokument mit professionellem Text-Editor.
+Eine moderne JavaFX-Anwendung zur Verarbeitung und automatischen und mauellen Nachbearbeitung von DOCX-Dateien zu einem zusammenhängenden Textdokument mit professionellem Text-Editor. Findet und behebt typische Fehler (Auslassungszeichen, Zeichensetzungsfehler, Leerzeilen und -zeichen, findet Füllwörter, Phrasen, lokaler KI-Assistent [ollama])
 
 ## ⚡ Schnellstart
 
@@ -44,16 +44,14 @@ Hinweis: Sessions und Parameter werden unter `config/` gespeichert; Details im A
 - **Verzeichnis-Auswahl:** Verzeichnis mit DOCX-Dateien laden
 - **Intelligente Filterung:** Einfache Textsuche und Regex-Filterung
 - **Zwei-Tabellen-Ansicht:** Verfügbare Dateien links, ausgewählte Dateien rechts
-- **Drag & Drop:** Intuitive Datei-Auswahl zwischen Tabellen
-- **Automatische Sortierung:** Zahlen in Dateinamen werden erkannt und sortiert
-- **Robuste Synchronisierung (neu):** Hash-basierter Vergleich (CRC32) zwischen Original-DOCX und Sidecar (MD/TXT/HTML) – zuverlässig auch bei unveränderten Zeitstempeln.
+- **Robuste Synchronisierung (neu):** Hash-basierter Vergleich (CRC32) zwischen Original-DOCX und Sidecar (MD) – zuverlässig auch bei unveränderten Zeitstempeln.
 
 ### 📝 Text-Editor
-- **Vollwertiger Editor:** Syntax-Highlighting, Zeilennummern, Themes
+- **Vollwertiger Editor:** Highlighting, Zeilennummern, Themes
 - **Such- und Ersetzungsfunktionen:** Mit Regex-Unterstützung und Historie
 - **Datei-Operationen:** Öffnen, Speichern, Speichern als
-- **Export-Funktionen:** RTF/DOCX (nur Markdown), Markdown, HTML, TXT
-- **Keyboard-Shortcuts:** Professionelle Tastenkombinationen
+- **Export-Funktionen:** RTF/DOCX, Markdown, RTF, HTML, TXT
+- **Keyboard-Shortcuts:** die üblichen Tastenkombinationen
 - **Diff & Merge (neu):** Seiten-by-Seiten-Diff bei extern geänderter DOCX mit Auswahl-Übernahme per Checkboxen (nur ins Sidecar, niemals in die DOCX).
 - **Sicheres Speichern (neu):** Speicherdialog mit klaren Optionen (Sidecar speichern, DOCX überschreiben, Diff anzeigen, Abbrechen). Sidecar-„Silent Save" vermeidet Rekursion bei Navigation
 - **Automatische MD-Erstellung (neu):** MD-Dateien werden automatisch beim ersten Editor-Aufruf angelegt
@@ -75,7 +73,6 @@ Hinweis: Sessions und Parameter werden unter `config/` gespeichert; Details im A
 - **Mehrfachauswahl:** Einzelne oder alle Dateien zur Verarbeitung auswählen
 
 ### Text-Editor Features
-- **Syntax-Highlighting:** Für Markdown und andere Formate
 - **Theme-System:** Hell/Dunkel-Modi und weitere Themes
 - **Font-Größe:** Dynamische Schriftgrößen-Anpassung
 - **Formatierung:** Fett, Kursiv und weitere Formatierungen
@@ -179,10 +176,10 @@ ollama.repeat_penalty=1.3
 2. **Makros anwenden:** Button "Makros" für automatische Bereinigung
 3. **Datei speichern:** Ctrl+S oder Button "Speichern"
 4. **Exportieren:** 
-   - **RTF:** Nur für Markdown-Dokumente verfügbar
-   - **DOCX:** Nur für Markdown-Dokumente verfügbar
-   - **Markdown, HTML, TXT:** Für alle Formate verfügbar
-
+   - **RTF:** 
+   - **DOCX:** 
+   - **Markdown, HTML, TXT:** 
+   
 ## 🤖 KI-Assistent (Ollama)
 
 - Lokaler KI-Assistent mit Chat-Historie, Sessions und konfigurierbaren Parametern.
