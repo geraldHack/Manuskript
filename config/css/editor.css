@@ -1389,72 +1389,9 @@
     -fx-text-fill: #000000 !important;
 }
 
-/* Spezifische Regeln für TableViews im Pastell-Theme */
-.pastell-theme .table-view {
-    -fx-background-color: #ffffff !important;
-    -fx-text-fill: #000000 !important;
-    -fx-border-color: #ba68c8 !important;
-}
+/* TableView-Styling wird über styles.css gesteuert - keine konkurrierenden Regeln hier */
 
-.pastell-theme .table-view .table-cell {
-    -fx-background-color: #ffffff !important;
-    -fx-text-fill: #000000 !important;
-}
-
-/* Noch spezifischere Regeln für beide TableViews */
-#tableViewAvailable {
-    -fx-background-color: #ffffff !important;
-    -fx-text-fill: #000000 !important;
-    -fx-border-color: #ba68c8 !important;
-}
-
-#tableViewSelected {
-    -fx-background-color: #ffffff !important;
-    -fx-text-fill: #000000 !important;
-    -fx-border-color: #ba68c8 !important;
-}
-
-/* Und für alle Elemente im Pastell-Theme */
-.pastell-theme #tableViewAvailable,
-.pastell-theme #tableViewSelected {
-    -fx-background-color: #ffffff !important;
-    -fx-text-fill: #000000 !important;
-    -fx-border-color: #ba68c8 !important;
-}
-
-/* Spezifische Regeln für dunkle Themes - TableViews sollen immer weiß bleiben */
-.theme-dark #tableViewAvailable,
-.theme-dark #tableViewSelected,
-.theme-dark.blau-theme #tableViewAvailable,
-.theme-dark.blau-theme #tableViewSelected,
-.theme-dark.gruen-theme #tableViewAvailable,
-.theme-dark.gruen-theme #tableViewSelected,
-.theme-dark.lila-theme #tableViewAvailable,
-.theme-dark.lila-theme #tableViewSelected {
-    -fx-background-color: #ffffff !important;
-    -fx-text-fill: #000000 !important;
-    -fx-border-color: #ba68c8 !important;
-}
-
-/* Noch stärkere Regeln - direkt auf die IDs */
-#tableViewAvailable {
-    -fx-background-color: #ffffff !important;
-    -fx-text-fill: #000000 !important;
-    -fx-border-color: #ba68c8 !important;
-}
-
-#tableViewSelected {
-    -fx-background-color: #ffffff !important;
-    -fx-text-fill: #000000 !important;
-    -fx-border-color: #ba68c8 !important;
-}
-
-/* Universelle Regel für alle TableViews */
-.table-view {
-    -fx-background-color: #ffffff !important;
-    -fx-text-fill: #000000 !important;
-    -fx-border-color: #ba68c8 !important;
-}
+/* TableView-Styling wird über styles.css gesteuert - keine konkurrierenden Regeln hier */
 
 .pastell-theme .button {
     -fx-background-color: #e1bee7;

@@ -23,7 +23,7 @@ import com.manuskript.ResourceManager;
  */
 public class PluginVariableDialog {
     
-    private Stage dialog;
+    private CustomStage dialog;
     private Map<String, Control> variableFields = new HashMap<>();
     private Map<String, String> result = new HashMap<>();
     private boolean confirmed = false;
@@ -44,9 +44,8 @@ public class PluginVariableDialog {
     
     private Map<String, String> show(Plugin plugin, String selectedText) {
         // Dialog erstellen
-        dialog = new Stage();
+        dialog = StageManager.createStage("Plugin-Variablen");
         dialog.initModality(Modality.APPLICATION_MODAL);
-        dialog.initStyle(StageStyle.UTILITY);
         dialog.setTitle("Plugin-Variablen: " + plugin.getName());
         dialog.setResizable(false);
         
@@ -188,7 +187,7 @@ public class PluginVariableDialog {
         // Theme-Klassen setzen
         applyDialogTheme(mainContainer, currentThemeIndex);
         
-        dialog.setScene(scene);
+        dialog.setSceneWithTitleBar(scene);
         dialog.showAndWait();
         
         return confirmed ? result : null;

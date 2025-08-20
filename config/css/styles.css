@@ -401,243 +401,358 @@
     -fx-text-fill: #f3e8ff;
 }
 
-/* Theme-spezifische Tabellen-Regeln */
-.theme-dark .table-view {
-    -fx-background-color: #2d3748 !important;
-    -fx-border-color: #4a5568 !important;
-}
+/* Alte Theme-Regeln entfernt - werden durch neue .root-Regeln ersetzt */
 
-.theme-dark .table-view .column-header {
-    -fx-background-color: #4a5568;
-    -fx-border-color: #718096;
-}
-
-.theme-dark .table-view .column-header .label {
-    -fx-text-fill: #ffffff;
-}
-
-.theme-dark .table-view .table-row-cell {
-    -fx-background-color: #2d3748;
-    -fx-text-fill: #ffffff;
-}
-
-.theme-dark .table-view .table-row-cell:odd {
-    -fx-background-color: #4a5568;
-}
-
-.theme-dark .table-view .table-row-cell:selected {
-    -fx-background-color: #3182ce;
-    -fx-text-fill: #ffffff;
-}
-
-.theme-dark .table-view .table-row-cell:hover {
-    -fx-background-color: #4a5568;
-}
-
-.theme-dark .table-view .table-cell {
-    -fx-text-fill: #ffffff;
-}
-
-.theme-dark .table-view .table-row-cell:selected .table-cell {
-    -fx-text-fill: #ffffff;
-}
-
-/* Theme-4 (Grün) Tabellen-Regeln */
-.theme-4 .table-view {
-    -fx-background-color: #064e3b !important;
-    -fx-border-color: #047857 !important;
-}
-
-.theme-4 .table-view .column-header {
-    -fx-background-color: #065f46;
-    -fx-border-color: #047857;
-}
-
-.theme-4 .table-view .column-header .label {
-    -fx-text-fill: #ffffff;
-}
-
-.theme-4 .table-view .table-row-cell {
-    -fx-background-color: #064e3b;
-    -fx-text-fill: #ffffff;
-}
-
-.theme-4 .table-view .table-row-cell:odd {
-    -fx-background-color: #065f46;
-}
-
-.theme-4 .table-view .table-row-cell:selected {
-    -fx-background-color: #047857;
-    -fx-text-fill: #ffffff;
-}
-
-.theme-4 .table-view .table-row-cell:hover {
-    -fx-background-color: #065f46;
-}
-
-.theme-4 .table-view .table-cell {
-    -fx-text-fill: #ffffff;
-}
-
-.theme-4 .table-view .table-row-cell:selected .table-cell {
-    -fx-text-fill: #ffffff;
-}
-
-/* Theme-5 (Blau) Tabellen-Regeln */
-.theme-5 .table-view {
-    -fx-background-color: #1e3a8a !important;
-    -fx-border-color: #3b82f6 !important;
-}
-
-.theme-5 .table-view .column-header {
-    -fx-background-color: #2563eb;
-    -fx-border-color: #3b82f6;
-}
-
-.theme-5 .table-view .column-header .label {
-    -fx-text-fill: #ffffff;
-}
-
-.theme-5 .table-view .table-row-cell {
-    -fx-background-color: #1e3a8a;
-    -fx-text-fill: #ffffff;
-}
-
-.theme-5 .table-view .table-row-cell:odd {
-    -fx-background-color: #2563eb;
-}
-
-.theme-5 .table-view .table-row-cell:selected {
-    -fx-background-color: #3b82f6;
-    -fx-text-fill: #ffffff;
-}
-
-.theme-5 .table-view .table-row-cell:hover {
-    -fx-background-color: #2563eb;
-}
-
-.theme-5 .table-view .table-cell {
-    -fx-text-fill: #ffffff;
-}
-
-.theme-5 .table-view .table-row-cell:selected .table-cell {
-    -fx-text-fill: #ffffff;
-}
-
-/* Theme-6 (Lila) Tabellen-Regeln */
-.theme-6 .table-view {
-    -fx-background-color: #581c87 !important;
-    -fx-border-color: #8b5cf6 !important;
-}
-
-.theme-6 .table-view .column-header {
-    -fx-background-color: #7c3aed;
-    -fx-border-color: #8b5cf6;
-}
-
-.theme-6 .table-view .column-header .label {
-    -fx-text-fill: #ffffff;
-}
-
-.theme-6 .table-view .table-row-cell {
-    -fx-background-color: #581c87;
-    -fx-text-fill: #ffffff;
-}
-
-.theme-6 .table-view .table-row-cell:odd {
-    -fx-background-color: #7c3aed;
-}
-
-.theme-6 .table-view .table-row-cell:selected {
-    -fx-background-color: #8b5cf6;
-    -fx-text-fill: #ffffff;
-}
-
-.theme-6 .table-view .table-row-cell:hover {
-    -fx-background-color: #7c3aed;
-}
-
-.theme-6 .table-view .table-cell {
-    -fx-text-fill: #ffffff;
-}
-
-.theme-6 .table-view .table-row-cell:selected .table-cell {
-    -fx-text-fill: #ffffff;
-}
-
-/* Neue Theme-Klassen (konsistent mit restlicher App) */
+/* Neue Theme-Klassen (konsistent mit restlicher App) - PROFESSIONELLE Implementierung */
 /* Blau-Theme */
-.blau-theme .table-view,
-.blau-theme .table-view .virtual-flow .clipped-container .sheet,
-.blau-theme .table-view .placeholder,
-.blau-theme .table-view .corner,
-.blau-theme .table-view .filler {
+.root .blau-theme .table-view {
+    -fx-background-color: #1e3a8a !important;
+    -fx-text-fill: #ffffff !important;
+}
+
+.root .blau-theme .table-view .virtual-flow .clipped-container .sheet {
     -fx-background-color: #1e3a8a !important;
 }
-.blau-theme .table-view .column-header-background {
+
+.root .blau-theme .table-view .column-header-background {
     -fx-background-color: #2563eb !important;
 }
-.blau-theme .table-view .column-header .label { -fx-text-fill: #ffffff; }
-.blau-theme .table-view .table-row-cell { -fx-background-color: #1e3a8a; -fx-text-fill: #ffffff; }
-.blau-theme .table-view .table-row-cell:odd { -fx-background-color: #2563eb; }
-.blau-theme .table-view .table-row-cell:selected { -fx-background-color: #3b82f6; -fx-text-fill: #ffffff; }
-.blau-theme .table-view .placeholder .label { -fx-text-fill: #dbeafe; }
+
+.root .blau-theme .table-view .column-header .label {
+    -fx-text-fill: #ffffff !important;
+    -fx-font-weight: bold;
+}
+
+.root .blau-theme .table-view .table-row-cell {
+    -fx-background-color: #1e3a8a !important;
+    -fx-text-fill: #ffffff !important;
+}
+
+.root .blau-theme .table-view .table-row-cell .table-cell {
+    -fx-text-fill: #ffffff !important;
+}
+
+.root .blau-theme .table-view .table-row-cell:odd {
+    -fx-background-color: #2563eb !important;
+}
+
+.root .blau-theme .table-view .table-row-cell:selected {
+    -fx-background-color: #3b82f6 !important;
+}
+
+.root .blau-theme .table-view .table-row-cell:selected .table-cell {
+    -fx-text-fill: #ffffff !important;
+}
+
+.root .blau-theme .table-view .placeholder .label {
+    -fx-text-fill: #dbeafe !important;
+}
+
+/* Scrollbalken für Blau-Theme */
+.root .blau-theme .table-view .corner {
+    -fx-background-color: #1e3a8a !important;
+}
+
+.root .blau-theme .table-view .filler {
+    -fx-background-color: #1e3a8a !important;
+}
+
+.root .blau-theme .table-view .scroll-bar {
+    -fx-background-color: #1e3a8a !important;
+}
+
+.root .blau-theme .table-view .scroll-bar .thumb {
+    -fx-background-color: #60a5fa !important;
+}
+
+.root .blau-theme .table-view .scroll-bar .track {
+    -fx-background-color: #1e3a8a !important;
+}
+
+.root .blau-theme .table-view .scroll-bar .increment-button,
+.root .blau-theme .table-view .scroll-bar .decrement-button {
+    -fx-background-color: #1e3a8a !important;
+}
 
 /* Grün-Theme */
-.gruen-theme .table-view,
-.gruen-theme .table-view .virtual-flow .clipped-container .sheet,
-.gruen-theme .table-view .placeholder,
-.gruen-theme .table-view .corner,
-.gruen-theme .table-view .filler {
+.root .gruen-theme .table-view {
+    -fx-background-color: #064e3b !important;
+    -fx-text-fill: #ffffff !important;
+}
+
+.root .gruen-theme .table-view .virtual-flow .clipped-container .sheet {
     -fx-background-color: #064e3b !important;
 }
-.gruen-theme .table-view .column-header-background { -fx-background-color: #065f46 !important; }
-.gruen-theme .table-view .column-header .label { -fx-text-fill: #ffffff; }
-.gruen-theme .table-view .table-row-cell { -fx-background-color: #064e3b; -fx-text-fill: #ffffff; }
-.gruen-theme .table-view .table-row-cell:odd { -fx-background-color: #065f46; }
-.gruen-theme .table-view .table-row-cell:selected { -fx-background-color: #047857; -fx-text-fill: #ffffff; }
-.gruen-theme .table-view .placeholder .label { -fx-text-fill: #d1fae5; }
+
+.root .gruen-theme .table-view .column-header-background {
+    -fx-background-color: #065f46 !important;
+}
+
+.root .gruen-theme .table-view .column-header .label {
+    -fx-text-fill: #ffffff !important;
+    -fx-font-weight: bold;
+}
+
+.root .gruen-theme .table-view .table-row-cell {
+    -fx-background-color: #064e3b !important;
+    -fx-text-fill: #ffffff !important;
+}
+
+.root .gruen-theme .table-view .table-row-cell .table-cell {
+    -fx-text-fill: #ffffff !important;
+}
+
+.root .gruen-theme .table-view .table-row-cell:odd {
+    -fx-background-color: #065f46 !important;
+}
+
+.root .gruen-theme .table-view .table-row-cell:selected {
+    -fx-background-color: #047857 !important;
+}
+
+.root .gruen-theme .table-view .table-row-cell:selected .table-cell {
+    -fx-text-fill: #ffffff !important;
+}
+
+.root .gruen-theme .table-view .placeholder .label {
+    -fx-text-fill: #d1fae5 !important;
+}
+
+/* Scrollbalken für Grün-Theme */
+.root .gruen-theme .table-view .corner {
+    -fx-background-color: #064e3b !important;
+}
+
+.root .gruen-theme .table-view .filler {
+    -fx-background-color: #064e3b !important;
+}
+
+.root .gruen-theme .table-view .scroll-bar {
+    -fx-background-color: #064e3b !important;
+}
+
+.root .gruen-theme .table-view .scroll-bar .thumb {
+    -fx-background-color: #34d399 !important;
+}
+
+.root .gruen-theme .table-view .scroll-bar .track {
+    -fx-background-color: #064e3b !important;
+}
+
+.root .gruen-theme .table-view .scroll-bar .increment-button,
+.root .gruen-theme .table-view .scroll-bar .decrement-button {
+    -fx-background-color: #064e3b !important;
+}
 
 /* Lila-Theme */
-.lila-theme .table-view,
-.lila-theme .table-view .virtual-flow .clipped-container .sheet,
-.lila-theme .table-view .placeholder,
-.lila-theme .table-view .corner,
-.lila-theme .table-view .filler {
+.root .lila-theme .table-view {
+    -fx-background-color: #581c87 !important;
+    -fx-text-fill: #ffffff !important;
+}
+
+.root .lila-theme .table-view .virtual-flow .clipped-container .sheet {
     -fx-background-color: #581c87 !important;
 }
-.lila-theme .table-view .column-header-background { -fx-background-color: #7c3aed !important; }
-.lila-theme .table-view .column-header .label { -fx-text-fill: #ffffff; }
-.lila-theme .table-view .table-row-cell { -fx-background-color: #581c87; -fx-text-fill: #ffffff; }
-.lila-theme .table-view .table-row-cell:odd { -fx-background-color: #7c3aed; }
-.lila-theme .table-view .table-row-cell:selected { -fx-background-color: #8b5cf6; -fx-text-fill: #ffffff; }
-.lila-theme .table-view .placeholder .label { -fx-text-fill: #f3e8ff; }
 
-/* Pastell-Theme (hell) */
-.pastell-theme .table-view,
-.pastell-theme .table-view .virtual-flow .clipped-container .sheet,
-.pastell-theme .table-view .placeholder,
-.pastell-theme .table-view .corner,
-.pastell-theme .table-view .filler {
-    -fx-background-color: #e5e7eb !important;
+.root .lila-theme .table-view .column-header-background {
+    -fx-background-color: #7c3aed !important;
 }
-.pastell-theme .table-view .column-header-background { -fx-background-color: #d1d5db !important; }
-.pastell-theme .table-view .column-header .label { -fx-text-fill: #111827; }
-.pastell-theme .table-view .table-row-cell { -fx-background-color: #ffffff; -fx-text-fill: #111827; }
-.pastell-theme .table-view .table-row-cell:odd { -fx-background-color: #f3f4f6; }
-.pastell-theme .table-view .table-row-cell:selected { -fx-background-color: #93c5fd; -fx-text-fill: #111827; }
-.pastell-theme .table-view .placeholder .label { -fx-text-fill: #374151; }
+
+.root .lila-theme .table-view .column-header .label {
+    -fx-text-fill: #ffffff !important;
+    -fx-font-weight: bold;
+}
+
+.root .lila-theme .table-view .table-row-cell {
+    -fx-background-color: #581c87 !important;
+    -fx-text-fill: #ffffff !important;
+}
+
+.root .lila-theme .table-view .table-row-cell .table-cell {
+    -fx-text-fill: #ffffff !important;
+}
+
+.root .lila-theme .table-view .table-row-cell:odd {
+    -fx-background-color: #7c3aed !important;
+}
+
+.root .lila-theme .table-view .table-row-cell:selected {
+    -fx-background-color: #8b5cf6 !important;
+}
+
+.root .lila-theme .table-view .table-row-cell:selected .table-cell {
+    -fx-text-fill: #ffffff !important;
+}
+
+.root .lila-theme .table-view .placeholder .label {
+    -fx-text-fill: #f3e8ff !important;
+}
+
+/* Scrollbalken für Lila-Theme */
+.root .lila-theme .table-view .corner {
+    -fx-background-color: #581c87 !important;
+}
+
+.root .lila-theme .table-view .filler {
+    -fx-background-color: #581c87 !important;
+}
+
+.root .lila-theme .table-view .scroll-bar {
+    -fx-background-color: #581c87 !important;
+}
+
+.root .lila-theme .table-view .scroll-bar .thumb {
+    -fx-background-color: #a855f7 !important;
+}
+
+.root .lila-theme .table-view .scroll-bar .track {
+    -fx-background-color: #581c87 !important;
+}
+
+.root .lila-theme .table-view .scroll-bar .increment-button,
+.root .lila-theme .table-view .scroll-bar .decrement-button {
+    -fx-background-color: #581c87 !important;
+}
+
+/* TableView-Styling für Pastell-Theme - PROFESSIONELLE Implementierung */
+.root .pastell-theme .table-view {
+    -fx-background-color: #fef3c7 !important;
+    -fx-text-fill: #92400e !important;
+}
+
+.root .pastell-theme .table-view .virtual-flow .clipped-container .sheet {
+    -fx-background-color: #fef3c7 !important;
+}
+
+.root .pastell-theme .table-view .column-header-background {
+    -fx-background-color: #fde68a !important;
+}
+
+.root .pastell-theme .table-view .column-header .label {
+    -fx-text-fill: #92400e !important;
+    -fx-font-weight: bold;
+}
+
+.root .pastell-theme .table-view .table-row-cell {
+    -fx-background-color: #e1bee7 !important;
+    -fx-text-fill: #000000 !important;
+}
+
+.root .pastell-theme .table-view .table-row-cell .table-cell {
+    -fx-text-fill: #000000 !important;
+}
+
+.root .pastell-theme .table-view .table-row-cell:odd {
+    -fx-background-color: #f3e5f5 !important;
+}
+
+
+
+/* Zusätzliche Selektoren für TableView-Hintergründe */
+.root .pastell-theme .table-view .corner {
+    -fx-background-color: #f3e5f5 !important;
+}
+
+.root .pastell-theme .table-view .filler {
+    -fx-background-color: #f3e5f5 !important;
+}
+
+.root .pastell-theme .table-view .scroll-bar {
+    -fx-background-color: #f3e5f5 !important;
+}
+
+.root .pastell-theme .table-view .scroll-bar .thumb {
+    -fx-background-color: #ba68c8 !important;
+}
+
+
+
+.root .pastell-theme .table-view .scroll-bar .track {
+    -fx-background-color: #f3e5f5 !important;
+}
+
+.root .pastell-theme .table-view .scroll-bar .increment-button,
+.root .pastell-theme .table-view .scroll-bar .decrement-button {
+    -fx-background-color: #f3e5f5 !important;
+}
+
+.root .pastell-theme .table-view .table-row-cell:selected {
+    -fx-background-color: #ba68c8 !important;
+}
+
+.root .pastell-theme .table-view .table-row-cell:selected .table-cell {
+    -fx-text-fill: #ffffff !important;
+}
+
+.root .pastell-theme .table-view .placeholder .label {
+    -fx-text-fill: #92400e !important;
+}
 
 /* Weiß-Theme (explizit) */
-.weiss-theme .table-view,
-.weiss-theme .table-view .virtual-flow .clipped-container .sheet,
-.weiss-theme .table-view .placeholder,
-.weiss-theme .table-view .corner,
-.weiss-theme .table-view .filler {
+/* TableView-Styling für Weiss-Theme - PROFESSIONELLE Implementierung */
+.root .weiss-theme .table-view {
+    -fx-background-color: #ffffff !important;
+    -fx-text-fill: #111827 !important;
+}
+
+.root .weiss-theme .table-view .virtual-flow .clipped-container .sheet {
     -fx-background-color: #ffffff !important;
 }
-.weiss-theme .table-view .column-header-background { -fx-background-color: #f0f0f0 !important; }
-.weiss-theme .table-view .column-header .label { -fx-text-fill: #111827; }
+
+.root .weiss-theme .table-view .column-header-background {
+    -fx-background-color: #f8f9fa !important;
+}
+
+.root .weiss-theme .table-view .column-header .label {
+    -fx-text-fill: #111827 !important;
+    -fx-font-weight: bold;
+}
+
+.root .weiss-theme .table-view .table-row-cell {
+    -fx-background-color: #ffffff !important;
+    -fx-text-fill: #111827 !important;
+}
+
+.root .weiss-theme .table-view .table-row-cell .table-cell {
+    -fx-text-fill: #111827 !important;
+}
+
+.root .weiss-theme .table-view .table-row-cell:odd {
+    -fx-background-color: #f8f9fa !important;
+}
+
+/* Zusätzliche Selektoren für TableView-Hintergründe */
+.root .weiss-theme .table-view .corner {
+    -fx-background-color: #ffffff !important;
+}
+
+.root .weiss-theme .table-view .filler {
+    -fx-background-color: #ffffff !important;
+}
+
+.root .weiss-theme .table-view .scroll-bar {
+    -fx-background-color: #ffffff !important;
+}
+
+.root .weiss-theme .table-view .scroll-bar .thumb {
+    -fx-background-color: #d1d5db !important;
+}
+
+.root .weiss-theme .table-view .scroll-bar .track {
+    -fx-background-color: #ffffff !important;
+}
+
+.root .weiss-theme .table-view .table-row-cell:selected {
+    -fx-background-color: #dbeafe !important;
+}
+
+.root .weiss-theme .table-view .table-row-cell:selected .table-cell {
+    -fx-text-fill: #111827 !important;
+}
+
+.root .weiss-theme .table-view .placeholder .label {
+    -fx-text-fill: #111827 !important;
+}
 
 /* TextArea-Styling */
 .text-area {
@@ -669,10 +784,93 @@
     -fx-background-color: #f5f5f5;
 }
 .weiss-theme .text-area {
-    -fx-text-fill: #111827;
+    -fx-text-fill: #111827 !important;
+    -fx-background-color: #ffffff;
 }
 .weiss-theme .text-area .content {
-    -fx-background-color: #ffffff;
+    -fx-background-color: #ffffff !important;
+    -fx-text-fill: #111827 !important;
+}
+.weiss-theme .text-field {
+    -fx-text-fill: #111827 !important;
+    -fx-background-color: #ffffff !important;
+}
+.weiss-theme .label {
+    -fx-text-fill: #111827 !important;
+}
+.weiss-theme .button {
+    -fx-text-fill: #111827 !important;
+}
+.weiss-theme .combo-box {
+    -fx-text-fill: #111827 !important;
+}
+.weiss-theme .combo-box .list-cell {
+    -fx-text-fill: #111827 !important;
+}
+.weiss-theme .vbox,
+.weiss-theme .hbox,
+.weiss-theme .border-pane,
+.weiss-theme .split-pane,
+.weiss-theme .scroll-pane,
+.weiss-theme .pane,
+.weiss-theme .region,
+.weiss-theme .stack-pane,
+.weiss-theme .grid-pane,
+.weiss-theme .flow-pane,
+.weiss-theme .tile-pane,
+.weiss-theme .anchor-pane {
+    -fx-background-color: #ffffff !important;
+}
+.weiss-theme .vbox .label,
+.weiss-theme .hbox .label,
+.weiss-theme .border-pane .label,
+.weiss-theme .split-pane .label,
+.weiss-theme .scroll-pane .label {
+    -fx-text-fill: #111827 !important;
+}
+
+/* SplitPane-Divider für helle Themes */
+.weiss-theme .split-pane-divider {
+    -fx-background-color: #d1d5db !important;
+}
+.weiss-theme .split-pane-divider:hover {
+    -fx-background-color: #9ca3af !important;
+}
+
+/* Spezielle Styles für Kapiteltitel-Box im Editor */
+.weiss-theme .chapter-title-box,
+.weiss-theme .chapter-title-panel,
+.weiss-theme .chapter-title-container,
+.weiss-theme .chapter-header,
+.weiss-theme .chapter-header-panel,
+.weiss-theme .chapter-header-container {
+    -fx-background-color: #ffffff !important;
+}
+
+.weiss-theme .chapter-title-box .label,
+.weiss-theme .chapter-title-panel .label,
+.weiss-theme .chapter-title-container .label,
+.weiss-theme .chapter-header .label,
+.weiss-theme .chapter-header-panel .label,
+.weiss-theme .chapter-header-container .label {
+    -fx-text-fill: #111827 !important;
+}
+
+/* RichTextFX CodeArea für helle Themes */
+.weiss-theme .code-area {
+    -fx-background-color: #ffffff !important;
+}
+.weiss-theme .code-area .paragraph-box {
+    -fx-background-color: #ffffff !important;
+}
+.weiss-theme .code-area .paragraph-box .paragraph-text {
+    -fx-fill: #111827 !important;
+}
+.weiss-theme .code-area .caret {
+    -fx-stroke: #111827 !important;
+}
+.weiss-theme .code-area .selection {
+    -fx-fill: #dbeafe !important;
 }
 
 /* Pastell */
@@ -686,8 +884,90 @@
 .pastell-theme .accordion {
     -fx-background-color: #e5e7eb;
 }
-.pastell-theme .text-area { -fx-text-fill: #111827; }
-.pastell-theme .text-area .content { -fx-background-color: #ffffff; }
+.pastell-theme .text-area { 
+    -fx-text-fill: #111827 !important; 
+    -fx-background-color: #ffffff;
+}
+.pastell-theme .text-area .content { 
+    -fx-background-color: #ffffff !important; 
+    -fx-text-fill: #111827 !important;
+}
+.pastell-theme .text-field {
+    -fx-text-fill: #111827 !important;
+    -fx-background-color: #ffffff !important;
+}
+.pastell-theme .label {
+    -fx-text-fill: #111827 !important;
+}
+.pastell-theme .button {
+    -fx-text-fill: #111827 !important;
+}
+.pastell-theme .combo-box {
+    -fx-text-fill: #111827 !important;
+}
+.pastell-theme .combo-box .list-cell {
+    -fx-text-fill: #111827 !important;
+}
+
+/* Umschließende Boxen für Pastell-Theme */
+.pastell-theme .vbox,
+.pastell-theme .hbox,
+.pastell-theme .border-pane,
+.pastell-theme .split-pane,
+.pastell-theme .scroll-pane,
+.pastell-theme .pane,
+.pastell-theme .region,
+.pastell-theme .stack-pane,
+.pastell-theme .grid-pane,
+.pastell-theme .flow-pane,
+.pastell-theme .tile-pane,
+.pastell-theme .anchor-pane {
+    -fx-background-color: #f3e5f5 !important;
+}
+
+/* SplitPane-Divider für Pastell-Theme */
+.pastell-theme .split-pane-divider {
+    -fx-background-color: #e1bee7 !important;
+}
+.pastell-theme .split-pane-divider:hover {
+    -fx-background-color: #ce93d8 !important;
+}
+
+/* Spezielle Styles für Kapiteltitel-Box im Editor (Pastell) */
+.pastell-theme .chapter-title-box,
+.pastell-theme .chapter-title-panel,
+.pastell-theme .chapter-title-container,
+.pastell-theme .chapter-header,
+.pastell-theme .chapter-header-panel,
+.pastell-theme .chapter-header-container {
+    -fx-background-color: #f3e5f5 !important;
+}
+
+.pastell-theme .chapter-title-box .label,
+.pastell-theme .chapter-title-panel .label,
+.pastell-theme .chapter-title-container .label,
+.pastell-theme .chapter-header .label,
+.pastell-theme .chapter-header-panel .label,
+.pastell-theme .chapter-header-container .label {
+    -fx-text-fill: #111827 !important;
+}
+
+/* RichTextFX CodeArea für Pastell-Theme */
+.pastell-theme .code-area {
+    -fx-background-color: #ffffff !important;
+}
+.pastell-theme .code-area .paragraph-box {
+    -fx-background-color: #ffffff !important;
+}
+.pastell-theme .code-area .paragraph-box .paragraph-text {
+    -fx-fill: #111827 !important;
+}
+.pastell-theme .code-area .caret {
+    -fx-stroke: #111827 !important;
+}
+.pastell-theme .code-area .selection {
+    -fx-fill: #f3e8ff !important;
+}
 
 /* Schwarz (dark) */
 .theme-dark .titled-pane > .title {

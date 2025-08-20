@@ -94,17 +94,7 @@ public class MainController implements Initializable {
     private Thread watchThread;
     private volatile boolean watchRunning = false;
     
-    // Theme-System
-    private int currentThemeIndex = 0;
-    private static final String[][] THEMES = {
-        {"#ffffff", "#000000", "#e3f2fd", "#000000"}, // Weiß
-        {"#1a1a1a", "#ffffff", "#2d2d2d", "#ffffff"}, // Schwarz
-        {"#f3e5f5", "#000000", "#e1bee7", "#000000"}, // Pastell
-        {"#1e3a8a", "#ffffff", "#3b82f6", "#ffffff"}, // Blau
-        {"#064e3b", "#ffffff", "#10b981", "#ffffff"}, // Grün
-        {"#581c87", "#ffffff", "#8b5cf6", "#ffffff"}  // Lila
-    };
-    private static final String[] THEME_NAMES = {"Weiß", "Schwarz", "Pastell", "Blau", "Grün", "Lila"};
+    // Theme wird jetzt zentral vom ThemeManager verwaltet
     
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -116,38 +106,8 @@ public class MainController implements Initializable {
         loadLastDirectory();
         // loadRecentRegexList entfernt - einfache Lösung
         
-        // CSS initial laden und Theme-Klassen setzen, bevor wir Theme anwenden
-        Platform.runLater(() -> {
-            if (mainContainer != null && mainContainer.getScene() != null) {
-                String stylesCssPath = ResourceManager.getCssResource("css/styles.css");
-                String editorCssPath = ResourceManager.getCssResource("css/editor.css");
-                if (stylesCssPath != null && !mainContainer.getScene().getStylesheets().contains(stylesCssPath)) {
-                    mainContainer.getScene().getStylesheets().add(stylesCssPath);
-                }
-                if (editorCssPath != null && !mainContainer.getScene().getStylesheets().contains(editorCssPath)) {
-                    mainContainer.getScene().getStylesheets().add(editorCssPath);
-                }
-                // Theme-Klassen auf Root vorab setzen, damit Pfeile etc. initial korrekt sind
-                Node root = mainContainer.getScene().getRoot();
-                root.getStyleClass().removeAll("theme-dark", "theme-light", "blau-theme", "gruen-theme", "lila-theme", "weiss-theme", "pastell-theme");
-                int savedTheme = preferences.getInt("main_window_theme", 0);
-                if (savedTheme == 0) {
-                    root.getStyleClass().add("weiss-theme");
-                } else if (savedTheme == 2) {
-                    root.getStyleClass().add("pastell-theme");
-                } else {
-                    root.getStyleClass().add("theme-dark");
-                    if (savedTheme == 3) root.getStyleClass().add("blau-theme");
-                    if (savedTheme == 4) root.getStyleClass().add("gruen-theme");
-                    if (savedTheme == 5) root.getStyleClass().add("lila-theme");
-                }
-                // Danach das gespeicherte Theme normal anwenden
-                loadSavedTheme();
-            } else {
-                // Falls Scene noch nicht da, trotzdem Theme laden
-        loadSavedTheme();
-            }
-        });
+        // ThemeManager initialisieren
+        ThemeManager.initialize();
     }
     
     private void setupUI() {
@@ -183,8 +143,6 @@ public class MainController implements Initializable {
         // Ausgewählte Dateien
         tableViewSelected.setItems(selectedDocxFiles);
         
-
-        
         // Sortierung über TableView-Header (Standard-JavaFX)
         
         // TableViews direkt stylen - vor CSS-Ladung
@@ -209,7 +167,7 @@ public class MainController implements Initializable {
             System.out.println("=== DEBUG: btnProcessAll Event-Handler wurde aufgerufen ===");
             processAllFiles();
         });
-        btnThemeToggle.setOnAction(e -> toggleTheme());
+        btnThemeToggle.setOnAction(e -> ThemeManager.nextTheme());
     }
     
     private void setupDragAndDrop() {
@@ -2159,19 +2117,14 @@ public class MainController implements Initializable {
     }
     
     public void setPrimaryStage(CustomStage primaryStage) {
+        logger.info("DEBUG: setPrimaryStage() aufgerufen");
         this.primaryStage = primaryStage;
         
         // Hauptfenster-Properties laden und Event-Handler hinzufügen
         loadMainWindowProperties();
         
-        // CustomStage Theme-Synchronisation
-        if (primaryStage instanceof CustomStage) {
-            CustomStage customStage = (CustomStage) primaryStage;
-            // Theme aus Preferences laden und anwenden
-            int savedTheme = preferences.getInt("main_window_theme", 0);
-            customStage.setTitleBarTheme(savedTheme);
-            currentThemeIndex = savedTheme;
-        }
+        // ThemeManager auf alle Stages anwenden
+        ThemeManager.applyCurrentThemeToStage(primaryStage);
         
         // Stoppe WatchService beim Schließen und prüfe ob es das letzte Fenster ist
         primaryStage.setOnCloseRequest(event -> {
@@ -2250,108 +2203,9 @@ public class MainController implements Initializable {
     
 
     
-    /**
-     * Wechselt das Theme
-     */
-    private void toggleTheme() {
-        currentThemeIndex = (currentThemeIndex + 1) % THEMES.length;
-        applyTheme(currentThemeIndex);
-        updateThemeButtonIcon();
-        updateStatus("Theme gewechselt: " + THEME_NAMES[currentThemeIndex]);
-        
-        // WICHTIG: Theme auch in Preferences speichern für Editorfenster-Synchronisation
-        preferences.putInt("main_window_theme", currentThemeIndex);
-        
-        // CustomStage Theme aktualisieren
-        if (primaryStage instanceof CustomStage) {
-            CustomStage customStage = (CustomStage) primaryStage;
-            customStage.setTitleBarTheme(currentThemeIndex);
-        }
-        
-        // WICHTIG: Alle anderen Stages aktualisieren
-        StageManager.applyThemeToAllStages(currentThemeIndex);
-    }
+    // Theme-Wechsel wird jetzt zentral vom ThemeManager verwaltet
     
-    /**
-     * Wendet das Theme an
-     */
-    private void applyTheme(int themeIndex) {
-        if (mainContainer == null) return;
-        
-        String[] theme = THEMES[themeIndex];
-        String backgroundColor = theme[0];
-        String textColor = theme[1];
-        
-        // Root-Container Theme wird jetzt im CSS-Refresh-Bereich angewendet
-        
-        // Alle UI-Elemente das Theme geben (direkt, ohne Platform.runLater)
-        applyThemeToNode(mainContainer, themeIndex);
-        applyThemeToNode(btnSelectDirectory, themeIndex);
-        applyThemeToNode(txtDirectoryPath, themeIndex);
-        // Sortierung und Format-UI-Elemente entfernt - einfache Lösung
-        applyThemeToNode(btnAddToSelected, themeIndex);
-        applyThemeToNode(btnRemoveFromSelected, themeIndex);
-        applyThemeToNode(btnProcessSelected, themeIndex);
-        applyThemeToNode(btnProcessAll, themeIndex);
-        applyThemeToNode(btnThemeToggle, themeIndex);
-        
-        // Tabellen
-        applyThemeToNode(tableViewAvailable, themeIndex);
-        applyThemeToNode(tableViewSelected, themeIndex);
-        
-        // Force CSS refresh - erst Theme-Klassen setzen, dann CSS laden
-        if (mainContainer.getScene() != null) {
-            // Erst alle Theme-Klassen entfernen und neue setzen
-            Node root = mainContainer.getScene().getRoot();
-            root.getStyleClass().removeAll("theme-dark", "theme-light", "blau-theme", "gruen-theme", "lila-theme", "weiss-theme", "pastell-theme");
-            
-            // Pastell-Theme über CSS-Klasse anwenden
-            if (themeIndex == 2) { // Pastell
-                root.getStyleClass().add("pastell-theme");
-                root.setStyle(""); // Inline Styles entfernen
-                mainContainer.setStyle(""); // Inline Styles entfernen
-                // KEINE Inline Styles - nur CSS-Klasse
-                Platform.runLater(() -> {
-                    tableViewAvailable.setStyle("");
-                    tableViewSelected.setStyle("");
-                });
-                logger.info("Pastell-Theme über CSS-Klasse angewendet");
-                logger.info("DEBUG: Root StyleClasses: " + root.getStyleClass().toString());
-                logger.info("DEBUG: MainContainer StyleClasses: " + mainContainer.getStyleClass().toString());
-            } else {
-                root.setStyle(""); // Style zurücksetzen
-                mainContainer.setStyle(""); // Style zurücksetzen
-
-                
-                if (themeIndex == 0) { // Weiß - Eigene CSS-Klasse
-                    tableViewAvailable.setStyle("-fx-background-color: rgb(115, 112, 115);; -fx-text-fill: #000000; -fx-border-color: #ba68c8;");
-                    tableViewSelected.setStyle("-fx-background-color: rgb(115, 112, 115);; -fx-text-fill: #000000; -fx-border-color: #ba68c8;");
-                    root.getStyleClass().add("weiss-theme");
-                } else if (themeIndex == 1) { // Schwarz
-                    tableViewAvailable.setStyle("-fx-background-color: rgb(115, 112, 115);; -fx-text-fill: #000000; -fx-border-color: #ba68c8;");
-                    tableViewSelected.setStyle("-fx-background-color: rgb(115, 112, 115); -fx-text-fill: #000000; -fx-border-color: #ba68c8;");
-                    root.getStyleClass().add("theme-dark");
-                } else if (themeIndex == 3) { // Blau
-                    tableViewAvailable.setStyle("-fx-background-color: rgb(115, 112, 115); -fx-text-fill: #000000; -fx-border-color: #ba68c8;");
-                    tableViewSelected.setStyle("-fx-background-color: rgb(115, 112, 115); -fx-text-fill: #000000; -fx-border-color: #ba68c8;");
-                    root.getStyleClass().add("theme-dark");
-                    root.getStyleClass().add("blau-theme");
-                } else if (themeIndex == 4) { // Grün
-                    tableViewAvailable.setStyle("-fx-background-color: rgb(115, 112, 115); -fx-text-fill: #000000; -fx-border-color: #ba68c8;");
-                    tableViewSelected.setStyle("-fx-background-color: rgb(115, 112, 115); -fx-text-fill: #000000; -fx-border-color: #ba68c8;");
-                    root.getStyleClass().add("theme-dark");
-                    root.getStyleClass().add("gruen-theme");
-                } else if (themeIndex == 5) { // Lila
-                    tableViewAvailable.setStyle("-fx-background-color:rgb(115, 112, 115); -fx-text-fill: #000000; -fx-border-color: #ba68c8;");
-                    tableViewSelected.setStyle("-fx-background-color: rgb(115, 112, 115); -fx-text-fill: #000000; -fx-border-color: #ba68c8;");
-                    root.getStyleClass().add("theme-dark");
-                    root.getStyleClass().add("lila-theme");
-                }
-            }
-            
-            // Dann CSS laden
-            mainContainer.getScene().getStylesheets().clear();
-            // CSS mit ResourceManager laden
+    // Theme-Anwendung wird jetzt zentral vom ThemeManager verwaltet
             String cssPath = ResourceManager.getCssResource("css/editor.css");
             if (cssPath != null) {
                 mainContainer.getScene().getStylesheets().add(cssPath);
@@ -2368,9 +2222,9 @@ public class MainController implements Initializable {
                 logger.warn("CSS-Datei styles.css nicht gefunden!");
             }
             
-            // TableViews über CSS stylen - keine inline Styles
-            tableViewAvailable.setStyle("");
-            tableViewSelected.setStyle("");
+            // TableViews NACH CSS-Ladung stylen
+            tableViewAvailable.setStyle("-fx-background-color:rgb(68, 101, 109); -fx-text-fill: #000000; -fx-border-color: #ba68c8;");
+            tableViewSelected.setStyle("-fx-background-color:rgb(178, 36, 36); -fx-text-fill: #000000; -fx-border-color: #ba68c8;");
             
             // Debug: Aktuelle Stylesheets ausgeben
             logger.info("Aktuelle Stylesheets: {}", mainContainer.getScene().getStylesheets());
@@ -2408,19 +2262,12 @@ public class MainController implements Initializable {
      */
     private void loadSavedTheme() {
         // Gespeichertes Theme aus Preferences laden
-        int savedTheme = preferences.getInt("main_window_theme", 0);
-        currentThemeIndex = savedTheme;
+        // Theme wird jetzt zentral vom ThemeManager verwaltet
         
-        // Theme anwenden
-        applyTheme(currentThemeIndex);
+        // Theme wird jetzt zentral vom ThemeManager verwaltet
         
-        // Theme-Button Icon aktualisieren
-        updateThemeButtonIcon();
-        
-        logger.info("Gespeichertes Theme geladen: {} ({})", currentThemeIndex, THEME_NAMES[currentThemeIndex]);
+        // Theme wird jetzt zentral vom ThemeManager verwaltet
     }
-    
-
     
     /**
      * Aktualisiert das Theme-Button Icon

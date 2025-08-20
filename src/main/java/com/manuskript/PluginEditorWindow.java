@@ -28,7 +28,7 @@ public class PluginEditorWindow {
     
     private static final Logger logger = Logger.getLogger(PluginEditorWindow.class.getName());
     
-    private Stage stage;
+    private CustomStage stage;
     private TextField nameField;
     private TextField categoryField;
     private TextArea descriptionArea;
@@ -49,15 +49,14 @@ public class PluginEditorWindow {
      * Erstellt die Benutzeroberfläche
      */
     private void createUI() {
-        stage = new Stage();
-        stage.setTitle("Plugin Editor");
+        stage = StageManager.createStage("Plugin Editor");
         stage.setMinWidth(800);
         stage.setMinHeight(600);
-        stage.initStyle(StageStyle.DECORATED);
         
         // Haupt-Container
         BorderPane mainContainer = new BorderPane();
         mainContainer.setPadding(new Insets(10));
+        mainContainer.getStyleClass().add("plugin-editor-window");
         
         // Obere Toolbar
         ToolBar toolbar = createToolbar();
@@ -86,28 +85,37 @@ public class PluginEditorWindow {
                 logger.info("Editor-CSS geladen: " + editorCss);
             }
             
-            // Zusätzliche Theme-Anpassungen - KORREKTE IMPLEMENTIERUNG WIE IM OLLAMAWINDOW!
-            // Theme vom Editor übernehmen (wie im OllamaWindow)
-            int editorTheme = ResourceManager.getIntParameter("ui.editor_theme", 4);
+            // Theme aus main_window_theme laden (NICHT editor_theme!)
+            int mainTheme = ResourceManager.getIntParameter("main_window_theme", 0);
             
-            // KORREKTE THEME-LOGIK WIE IN OLLAMAWINDOW.JAVA
-            if (editorTheme == 0) scene.getRoot().getStyleClass().add("weiss-theme");
-            else if (editorTheme == 2) scene.getRoot().getStyleClass().add("pastell-theme");
-            else if (editorTheme == 3) scene.getRoot().getStyleClass().addAll("theme-dark", "blau-theme");
-            else if (editorTheme == 4) scene.getRoot().getStyleClass().addAll("theme-dark", "gruen-theme");
-            else if (editorTheme == 5) scene.getRoot().getStyleClass().addAll("theme-dark", "lila-theme");
+            // Theme-Klassen setzen
+            if (mainTheme == 0) scene.getRoot().getStyleClass().add("weiss-theme");
+            else if (mainTheme == 2) scene.getRoot().getStyleClass().add("pastell-theme");
+            else if (mainTheme == 3) scene.getRoot().getStyleClass().addAll("theme-dark", "blau-theme");
+            else if (mainTheme == 4) scene.getRoot().getStyleClass().addAll("theme-dark", "gruen-theme");
+            else if (mainTheme == 5) scene.getRoot().getStyleClass().addAll("theme-dark", "lila-theme");
             else scene.getRoot().getStyleClass().add("theme-dark");
+
+            // Titelleiste passend zum Theme einfärben
+            stage.setTitleBarTheme(mainTheme);
             
         } catch (Exception e) {
             logger.severe("KRITISCHER FEHLER beim Laden der CSS-Styles: " + e.getMessage());
             e.printStackTrace();
         }
         
-        stage.setScene(scene);
+        stage.setSceneWithTitleBar(scene);
+        
+        // WICHTIG: Theme wird bereits von StageManager.createStage() gesetzt!
+        // Keine zusätzlichen Theme-Aufrufe nötig!
+        
+
         
         // Event-Handler
         setupEventHandlers();
     }
+    
+
     
     /**
      * Erstellt die Toolbar
@@ -735,5 +743,29 @@ public class PluginEditorWindow {
         }
         
         stage.show();
+    }
+    
+    /**
+     * Setzt das Theme für das Plugin-Editor-Fenster
+     */
+    public void setTheme(int themeIndex) {
+        // Titelleiste themen
+        if (stage != null) {
+            stage.setTitleBarTheme(themeIndex);
+        }
+        
+        // Root-Container themen
+        if (stage != null && stage.getScene() != null) {
+            Node root = stage.getScene().getRoot();
+            root.getStyleClass().removeAll("theme-dark", "theme-light", "blau-theme", "gruen-theme", "lila-theme", "weiss-theme", "pastell-theme");
+            if (themeIndex == 0) root.getStyleClass().add("weiss-theme");
+            else if (themeIndex == 2) root.getStyleClass().add("pastell-theme");
+            else {
+                root.getStyleClass().add("theme-dark");
+                if (themeIndex == 3) root.getStyleClass().add("blau-theme");
+                if (themeIndex == 4) root.getStyleClass().add("gruen-theme");
+                if (themeIndex == 5) root.getStyleClass().add("lila-theme");
+            }
+        }
     }
 }
