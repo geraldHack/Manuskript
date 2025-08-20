@@ -164,9 +164,9 @@ public class EditorWindow implements Initializable {
     private CheckBox chkMacroCaseSensitive;
     private CheckBox chkMacroWholeWord;
     
-    private Stage stage;
-    private Stage macroStage;
-    private Stage textAnalysisStage;
+    private CustomStage stage;
+    private CustomStage macroStage;
+    private CustomStage textAnalysisStage;
     private OllamaWindow ollamaWindow;
     private Preferences preferences;
     private ObservableList<String> searchHistory = FXCollections.observableArrayList();
@@ -594,10 +594,8 @@ if (caret != null) {
             if (ollamaWindow != null && ollamaWindow.isShowing()) {
                 String selectedText = codeArea.getSelectedText();
                 if (selectedText != null && !selectedText.trim().isEmpty()) {
-                    // Prüfe ob "Text umschreiben" aktiv ist
-                    if ("Text umschreiben".equals(ollamaWindow.getCurrentFunction())) {
-                        ollamaWindow.updateSelectedText(selectedText);
-                    }
+                    // Automatisch selektierten Text in das Eingabefeld kopieren
+                    ollamaWindow.updateSelectedText(selectedText);
                 }
             }
         });
@@ -1665,7 +1663,7 @@ if (caret != null) {
     // DOCX-Optionen Dialog
     private void showDocxOptionsDialog(CheckBox docxCheck) {
         logger.info("showDocxOptionsDialog aufgerufen - erstelle Stage...");
-        Stage optionsStage = new Stage();
+        CustomStage optionsStage = StageManager.createModalStage("DocX-Optionen", stage);
         optionsStage.setTitle("⚙️ DOCX Export Optionen");
         optionsStage.initModality(Modality.APPLICATION_MODAL);
         optionsStage.initOwner(stage);
@@ -2180,7 +2178,7 @@ if (caret != null) {
         root.getChildren().addAll(scrollPane, buttonBox);
         
         Scene scene = new Scene(root);
-        optionsStage.setScene(scene);
+        optionsStage.setSceneWithTitleBar(scene);
         
         // CSS-Stylesheets laden
         String stylesCss = ResourceManager.getCssResource("css/styles.css");
@@ -3271,7 +3269,7 @@ if (caret != null) {
             }
             
             // Erstelle NEUEN side-by-side Diff-Dialog
-            Stage diffStage = new Stage();
+            CustomStage diffStage = StageManager.createModalStage("Detaillierte Unterschiede", stage);
             diffStage.setTitle("Diff: Ungespeicherte Änderungen");
             diffStage.initModality(Modality.APPLICATION_MODAL);
             diffStage.initOwner(stage);
@@ -3677,7 +3675,7 @@ if (caret != null) {
                 logger.warn("CSS konnte nicht geladen werden: {}", e.getMessage());
             }
             
-            diffStage.setScene(diffScene);
+            diffStage.setSceneWithTitleBar(diffScene);
             diffStage.showAndWait();
             
         } catch (Exception e) {
@@ -4468,7 +4466,7 @@ if (caret != null) {
         return codeArea != null ? codeArea.getCaretPosition() : 0;
     }
     
-    public void setStage(Stage stage) {
+    public void setStage(CustomStage stage) {
         this.stage = stage;
         
         // Fenster-Eigenschaften laden und anwenden
@@ -4626,7 +4624,7 @@ if (caret != null) {
     }
     
     private void createMacroWindow() {
-        macroStage = new Stage();
+        macroStage = StageManager.createStage("Makros");
         macroStage.setTitle("Makro-Verwaltung");
         macroStage.setWidth(1200);
         macroStage.setHeight(800);
@@ -4646,7 +4644,7 @@ if (caret != null) {
         if (stylesCss != null) {
             macroScene.getStylesheets().add(stylesCss);
         }
-        macroStage.setScene(macroScene);
+        macroStage.setSceneWithTitleBar(macroScene);
         
         // Fenster-Position speichern/laden
         loadMacroWindowProperties();
@@ -4669,7 +4667,7 @@ if (caret != null) {
         } else if (currentThemeIndex == 1) { // Schwarz-Theme
             macroPanel.setStyle("-fx-background-color: #1a1a1a; -fx-border-color: #333333;");
         } else if (currentThemeIndex == 2) { // Pastell-Theme
-            macroPanel.setStyle("-fx-background-color: #f3e5f5; -fx-border-color: #e1bee7;");
+            macroPanel.setStyle(""); // CSS-Klassen verwenden
         } else if (currentThemeIndex == 3) { // Blau-Theme
             macroPanel.setStyle("-fx-background-color: #1e3a8a; -fx-border-color: #3b82f6;");
         } else if (currentThemeIndex == 4) { // Grün-Theme
@@ -5031,7 +5029,7 @@ if (caret != null) {
     }
     
     private void createTextAnalysisWindow() {
-        textAnalysisStage = new Stage();
+        textAnalysisStage = StageManager.createStage("Textanalyse");
         textAnalysisStage.setTitle("Textanalyse");
         textAnalysisStage.setWidth(800);
         textAnalysisStage.setHeight(600);
@@ -5047,7 +5045,7 @@ if (caret != null) {
         if (cssPath != null) {
             textAnalysisScene.getStylesheets().add(cssPath);
         }
-        textAnalysisStage.setScene(textAnalysisScene);
+        textAnalysisStage.setSceneWithTitleBar(textAnalysisScene);
         
         // Fenster-Position speichern/laden
         loadTextAnalysisWindowProperties();
@@ -7273,6 +7271,15 @@ if (caret != null) {
         preferences.putInt("editor_theme", currentThemeIndex);
         preferences.putInt("main_window_theme", currentThemeIndex);
         
+        // WICHTIG: CustomStage Titelleiste aktualisieren
+        if (stage instanceof CustomStage) {
+            CustomStage customStage = (CustomStage) stage;
+            customStage.setTitleBarTheme(currentThemeIndex);
+        }
+        
+        // WICHTIG: Alle anderen Stages aktualisieren
+        StageManager.applyThemeToAllStages(currentThemeIndex);
+        
         logger.info("Theme gewechselt und gespeichert: {} ({})", currentThemeIndex, themeNames[currentThemeIndex]);
     }
     
@@ -7332,8 +7339,8 @@ if (caret != null) {
                 
                 // Direkte inline Styles für Pastell-Theme
                 if (themeIndex == 2) { // Pastell-Theme
-                    root.setStyle("-fx-background-color: #f3e5f5; -fx-text-fill: #000000;");
-                    mainContainer.setStyle("-fx-background-color: #f3e5f5; -fx-text-fill: #000000;");
+                    root.setStyle(""); // CSS-Klassen verwenden
+                    mainContainer.setStyle(""); // CSS-Klassen verwenden
                     logger.info("Pastell-Theme direkt angewendet (Editor)");
                 } else {
                     root.setStyle(""); // Style zurücksetzen
@@ -7822,7 +7829,7 @@ if (caret != null) {
 
     
     private void showRegexHelp() {
-        Stage helpStage = new Stage();
+        CustomStage helpStage = StageManager.createModalStage("Hilfe", stage);
         helpStage.setTitle("Java Regex - Syntax-Hilfe");
         helpStage.setResizable(false);
         
@@ -7937,7 +7944,7 @@ if (caret != null) {
         String editorCss = ResourceManager.getCssResource("css/editor.css");
         if (stylesCss != null && !scene.getStylesheets().contains(stylesCss)) scene.getStylesheets().add(stylesCss);
         if (editorCss != null && !scene.getStylesheets().contains(editorCss)) scene.getStylesheets().add(editorCss);
-        helpStage.setScene(scene);
+        helpStage.setSceneWithTitleBar(scene);
         // Root-Theme-Klasse ergänzen, damit CSS sicher greift
         applyThemeToNode(scene.getRoot(), currentThemeIndex);
         helpStage.show();

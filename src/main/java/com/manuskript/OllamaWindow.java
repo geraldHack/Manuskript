@@ -26,7 +26,7 @@ import java.util.Set;
 public class OllamaWindow {
     private static final Logger logger = Logger.getLogger(OllamaWindow.class.getName());
     
-    private Stage stage;
+    private CustomStage stage;
     private OllamaService ollamaService;
     private EditorWindow editorWindow;
     private int currentThemeIndex = 0;
@@ -47,7 +47,7 @@ public class OllamaWindow {
     private Button openResultWindowButton;
     private HBox resultButtonRow;
     // Persistentes Ergebnisfenster (WebView), damit es live aktualisiert werden kann
-    private Stage resultStage;
+    private CustomStage resultStage;
     private javafx.scene.web.WebView resultWebView;
     private String lastPureChatAnswer = ""; // Speichert den reinen Chat-Text ohne Header
     
@@ -172,13 +172,11 @@ public class OllamaWindow {
     }
     
     private void createWindow() {
-        stage = new Stage();
-        stage.setTitle("KI-Assistent - Ollama");
+        stage = StageManager.createStage("KI-Assistent - Ollama");
         stage.setWidth(800);   // Standard-Breite (schmaler gemacht)
         stage.setHeight(1100);  // Standard-Höhe (höher gemacht)
         stage.setMinWidth(400);
         stage.setMinHeight(700);
-        stage.initStyle(StageStyle.DECORATED);
         
         // Haupt-Layout
         VBox mainLayout = new VBox(5);
@@ -1003,7 +1001,7 @@ public class OllamaWindow {
             scene.getStylesheets().add(editorCssPath);
         }
         
-        stage.setScene(scene);
+        stage.setSceneWithTitleBar(scene);
 
         // Gespeicherte Position/Größe laden (falls vorhanden)
         try {
@@ -2205,7 +2203,7 @@ public class OllamaWindow {
 
     // Zeigt eine themenfähige Stage mit einer read-only TextArea
     private void showPromptPreviewStage(String title, String content) {
-        Stage s = new Stage();
+        CustomStage s = StageManager.createStage(title);
         s.setTitle(title);
         TextArea ta = new TextArea(content == null ? "" : content);
         ta.setWrapText(true);
@@ -2223,9 +2221,8 @@ public class OllamaWindow {
         String editorCssPath = ResourceManager.getCssResource("css/editor.css");
         if (stylesCssPath != null) sc.getStylesheets().add(stylesCssPath);
         if (editorCssPath != null) sc.getStylesheets().add(editorCssPath);
-        s.setScene(sc);
+        s.setSceneWithTitleBar(sc);
         s.initOwner(stage);
-        s.initStyle(StageStyle.DECORATED);
         s.show();
         // Theme-Klasse spiegeln
         applyThemeToNode(box, currentThemeIndex);
@@ -2597,7 +2594,7 @@ public class OllamaWindow {
                 if (answer == null) answer = "";
             }
             if (resultStage == null) {
-                resultStage = new Stage();
+                resultStage = StageManager.createStage("Ergebnis (gerendert)");
                 resultStage.setTitle("Ergebnis (gerendert)");
                 resultWebView = new javafx.scene.web.WebView();
                 resultWebView.setContextMenuEnabled(true);
@@ -2605,9 +2602,8 @@ public class OllamaWindow {
                 VBox box = new VBox(resultWebView);
                 VBox.setVgrow(resultWebView, Priority.ALWAYS);
                 Scene sc = new Scene(box, 1000, 800);
-                resultStage.setScene(sc);
+                resultStage.setSceneWithTitleBar(sc);
                 resultStage.initOwner(stage);
-                resultStage.initStyle(StageStyle.DECORATED);
                 applyThemeToNode(box, currentThemeIndex);
             }
             // Inhalt laden/refreshen und anzeigen (kein Auto-Scroll beim Öffnen)
