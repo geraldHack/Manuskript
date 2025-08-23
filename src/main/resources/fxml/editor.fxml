@@ -21,7 +21,7 @@
             <Button fx:id="btnChapterEditor" text="📝 Kapitel" styleClass="button" />
             <Button fx:id="btnKIAssistant" text="🤖 KI-Assistent" styleClass="button" />
             
-            <Region HBox.hgrow="ALWAYS" />
+            <Region HBox.hgrow="ALWAYS" style="-fx-background-color: transparent;" />
             
             <Label fx:id="lblStatus" text="Bereit" styleClass="status-label" />
          </children>
@@ -30,17 +30,7 @@
          </padding>
       </HBox>
       
-      <!-- NEU: Titelbalken mit Dateinamen -->
-      <HBox spacing="5" styleClass="title-bar" style="-fx-min-height: 35px; -fx-background-color: #2c3e50; -fx-border-color: #34495e; -fx-border-width: 0 0 1 0;">
-         <children>
-            <Label fx:id="lblWindowTitle" text="📄 Dokument" styleClass="window-title-label" style="-fx-text-fill: #ffffff; -fx-font-size: 16px; -fx-font-weight: bold;" />
-            <Region HBox.hgrow="ALWAYS" />
-         </children>
-         <padding>
-            <Insets top="8.0" bottom="8.0" left="15.0" right="15.0" />
-         </padding>
-      </HBox>
-      
+
       <!-- Neue einfache Toolbar für Textgröße -->
       <HBox spacing="5" styleClass="font-toolbar" style="-fx-min-height: 30px;">
          <children>
@@ -56,6 +46,11 @@
             
             <Separator orientation="VERTICAL" style="-fx-background-color: #6c757d;" />
             
+            <Label text="Absatz:" styleClass="font-size-label" />
+            <ComboBox fx:id="cmbParagraphSpacing" promptText="10px" prefWidth="80.0" />
+            
+            <Separator orientation="VERTICAL" style="-fx-background-color: #6c757d;" />
+            
             <Button fx:id="btnThemeToggle" text="🎨" styleClass="toolbar-button" style="-fx-min-width: 45px; -fx-max-width: 45px; -fx-font-size: 18px;" />
             <ComboBox fx:id="cmbQuoteStyle" promptText="Anführungszeichen" prefWidth="220.0" />
             
@@ -64,7 +59,7 @@
             <Button fx:id="btnUndo" text="↶" styleClass="toolbar-button" style="-fx-min-width: 35px; -fx-max-width: 35px; -fx-font-size: 16px;" />
             <Button fx:id="btnRedo" text="↷" styleClass="toolbar-button" style="-fx-min-width: 35px; -fx-max-width: 35px; -fx-font-size: 16px;" />
             
-            <Region HBox.hgrow="ALWAYS" />
+            <Region HBox.hgrow="ALWAYS" style="-fx-background-color: transparent;" />
             
             <Separator orientation="VERTICAL" style="-fx-background-color: #6c757d;" />
             
@@ -109,7 +104,7 @@
                   
                   <Button fx:id="btnRegexHelp" text="?" styleClass="button help-button" style="-fx-min-width: 25px; -fx-max-width: 25px; -fx-min-height: 25px; -fx-max-height: 25px; -fx-font-weight: bold;" />
                   
-                  <Region HBox.hgrow="ALWAYS" />
+                  <Region HBox.hgrow="ALWAYS" style="-fx-background-color: transparent;" />
                   
                   <Button fx:id="btnFindPrevious" text="↑ Vorheriger" styleClass="button" />
                   <Button fx:id="btnFindNext" text="↓ Nächster" styleClass="button" />
@@ -133,7 +128,7 @@
                <HBox spacing="5" styleClass="chapter-editor-header" style="-fx-min-height: 30px;">
                   <children>
                      <Label text="📝 Chapter-Beschreibung" styleClass="chapter-editor-title" />
-                     <Region HBox.hgrow="ALWAYS" />
+                     <Region HBox.hgrow="ALWAYS" style="-fx-background-color: transparent;" />
                      <Button fx:id="btnSaveChapter" text="💾 Speichern" styleClass="button" style="-fx-min-width: 120px; -fx-max-width: 120px;" />
                   </children>
                   <padding>

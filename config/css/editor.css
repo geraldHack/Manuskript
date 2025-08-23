@@ -1,0 +1,14 @@
+/* Standard Editor Styles für Manuskript */
+.code-area {
+    -fx-font-family: 'Consolas', 'Monaco', monospace;
+    -fx-font-size: 12px;
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #000000;
+}
+
+.text-area {
+    -fx-font-family: 'Consolas', 'Monaco', monospace;
+    -fx-font-size: 12px;
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #000000;
+}

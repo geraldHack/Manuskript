@@ -31,14 +31,10 @@ public class Main extends Application {
             // Config-Ordner initialisieren (muss vor allen Ressourcen-Aufrufen passieren)
             ResourceManager.initializeConfigDirectory();
             
-            // CSS mit ResourceManager laden - WICHTIG: editor.css NACH styles.css laden
-            String stylesCssPath = ResourceManager.getCssResource("css/styles.css");
-            String editorCssPath = ResourceManager.getCssResource("css/editor.css");
-            if (stylesCssPath != null) {
-                scene.getStylesheets().add(stylesCssPath);
-            }
-            if (editorCssPath != null) {
-                scene.getStylesheets().add(editorCssPath);
+            // CSS mit ResourceManager laden
+            String cssPath = ResourceManager.getCssResource("css/manuskript.css");
+            if (cssPath != null) {
+                scene.getStylesheets().add(cssPath);
             }
             
             // CustomStage konfigurieren

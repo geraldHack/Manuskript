@@ -65,7 +65,9 @@ import org.fxmisc.richtext.model.StyleSpan;
 import javafx.animation.Timeline;
 import javafx.animation.KeyFrame;
 import javafx.util.Duration;
+import java.io.FileInputStream;
 
+@SuppressWarnings("unchecked")
 public class EditorWindow implements Initializable {
     
     private static final Logger logger = LoggerFactory.getLogger(EditorWindow.class);
@@ -104,12 +106,13 @@ public class EditorWindow implements Initializable {
     @FXML private Button btnFindPrevious;
     @FXML private Label lblStatus;
     @FXML private Label lblMatchCount;
-    @FXML private Label lblWindowTitle;
+    // @FXML private Label lblWindowTitle; // Entfernt - CustomStage hat eigene Titelleiste
     
     // Toolbar-Buttons
     @FXML private Button btnSave;
     @FXML private Button btnSaveAs;
     @FXML private Button btnExport;
+
     @FXML private Button btnOpen;
     @FXML private Button btnNew;
     @FXML private Button btnToggleSearch;
@@ -126,6 +129,8 @@ public class EditorWindow implements Initializable {
     @FXML private Button btnItalic;
     @FXML private Button btnThemeToggle;
     @FXML private ComboBox<String> cmbQuoteStyle;
+    // Zeilenabstand-ComboBox entfernt - wird von RichTextFX nicht unterstützt
+    @FXML private ComboBox<String> cmbParagraphSpacing;
 
     @FXML private Button btnPreviousChapter;
     @FXML private Button btnNextChapter;
@@ -249,14 +254,22 @@ public class EditorWindow implements Initializable {
         logger.info("DOCX-Optionen aus User Preferences geladen");
         
         setupUI();
-        logger.info("=== SETUP EVENT HANDLERS START ===");
-        setupEventHandlers();
-        logger.info("=== SETUP EVENT HANDLERS END ===");
         loadSearchReplaceHistory();
         setupSearchReplacePanel();
         setupMacroPanel();
         setupFontSizeComboBox();
         setupQuoteStyleComboBox();
+        
+        // ComboBox-Initialisierung direkt hier
+        // setupLineSpacingComboBox entfernt - wird von RichTextFX nicht unterstützt
+        logger.info("=== COMBODEBUG: Vor setupParagraphSpacingComboBox() ===");
+        logger.info("=== COMBODEBUG: cmbParagraphSpacing ist " + (cmbParagraphSpacing == null ? "NULL" : "NICHT NULL") + " ===");
+        setupParagraphSpacingComboBox();
+        
+        // Event-Handler setzen
+        logger.info("=== SETUP EVENT HANDLERS START ===");
+        setupEventHandlers();
+        logger.info("=== SETUP EVENT HANDLERS END ===");
         
         // Checkboxen explizit auf false setzen (nach FXML-Load)
         Platform.runLater(() -> {
@@ -273,6 +286,28 @@ public class EditorWindow implements Initializable {
                 chkWholeWord.setIndeterminate(false);
             }
             
+            // WICHTIG: CSS-Datei laden, wenn die Scene verfügbar ist
+            if (mainContainer != null && mainContainer.getScene() != null) {
+                String cssPath = ResourceManager.getCssResource("css/manuskript.css");
+                if (cssPath != null && !mainContainer.getScene().getStylesheets().contains(cssPath)) {
+                    mainContainer.getScene().getStylesheets().add(cssPath);
+                    logger.info("CSS-Datei in initialize geladen: {}", cssPath);
+                } else {
+                    logger.warn("CSS-Datei konnte in initialize nicht geladen werden: {}", cssPath);
+                }
+            }
+            
+            // WICHTIG: Zusätzlicher CSS-Load nach einer kurzen Verzögerung
+            Platform.runLater(() -> {
+                if (mainContainer != null && mainContainer.getScene() != null) {
+                    String cssPath = ResourceManager.getCssResource("css/manuskript.css");
+                    if (cssPath != null && !mainContainer.getScene().getStylesheets().contains(cssPath)) {
+                        mainContainer.getScene().getStylesheets().add(cssPath);
+                        logger.info("CSS-Datei in initialize (verzögert) geladen: {}", cssPath);
+                    }
+                }
+            });
+            
             // WICHTIG: Theme und Font-Size aus Preferences laden (nach UI-Initialisierung)
             loadToolbarSettings();
             
@@ -282,11 +317,28 @@ public class EditorWindow implements Initializable {
                     applyTheme(currentThemeIndex);
                     logger.info("Zusätzlicher Theme-Refresh durchgeführt für Theme: {}", currentThemeIndex);
                 }
+                
+                // Editor-Abstände beim Start anwenden
+                applyEditorSpacing();
             });
         });
     }
     
     private void setupUI() {
+        // WICHTIG: CSS-Datei laden, bevor die UI erstellt wird
+        Platform.runLater(() -> {
+            if (mainContainer != null && mainContainer.getScene() != null) {
+                // CSS-Datei laden
+                String cssPath = ResourceManager.getCssResource("css/manuskript.css");
+                if (cssPath != null && !mainContainer.getScene().getStylesheets().contains(cssPath)) {
+                    mainContainer.getScene().getStylesheets().add(cssPath);
+                    logger.info("CSS-Datei geladen: {}", cssPath);
+                } else {
+                    logger.warn("CSS-Datei konnte nicht geladen werden: {}", cssPath);
+                }
+            }
+        });
+        
         // Toolbar explizit sichtbar machen
         if (btnNew != null) {
             btnNew.setVisible(true);
@@ -338,9 +390,9 @@ public class EditorWindow implements Initializable {
         codeArea.getStyleClass().add("code-area");
         codeArea.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px; -rtfx-background-color: #ffffff;");
         
-        // Timer für Markdown-Styling - immer starten
+        // Timer für Markdown-Styling - IMMER anwenden aber existierende Styles bewahren
         Timeline stylingTimer = new Timeline(new KeyFrame(Duration.seconds(1), event -> {
-            applySimpleMarkdownStyling();
+            applyCombinedStyling();
         }));
         stylingTimer.setCycleCount(Timeline.INDEFINITE);
         stylingTimer.play();
@@ -349,16 +401,13 @@ public class EditorWindow implements Initializable {
         
         // CSS-Dateien für CodeArea laden
         // CSS mit ResourceManager laden
-        String cssPath = ResourceManager.getCssResource("css/styles.css");
-        String editorCssPath = ResourceManager.getCssResource("css/editor.css");
+        String cssPath = ResourceManager.getCssResource("css/manuskript.css");
         codeArea.getStylesheets().add(cssPath);
-        codeArea.getStylesheets().add(editorCssPath);
         
         // CSS auch für die gesamte Scene laden (für Chapter-Editor)
         Platform.runLater(() -> {
             if (stage != null && stage.getScene() != null) {
                 stage.getScene().getStylesheets().add(cssPath);
-                stage.getScene().getStylesheets().add(editorCssPath);
             }
         });
         
@@ -508,10 +557,18 @@ if (caret != null) {
         btnDecreaseFont.setOnAction(e -> changeFontSize(-2));
         cmbFontSize.setOnAction(e -> changeFontSizeFromComboBox());
         
+        // Zeilenabstand-ComboBox entfernt - wird von RichTextFX nicht unterstützt
+        cmbParagraphSpacing.setOnAction(e -> {
+            logger.info("cmbParagraphSpacing Event-Handler: Wurde aufgerufen!");
+            changeParagraphSpacingFromComboBox();
+        });
+        
         // Text-Formatting Event-Handler
         btnBold.setOnAction(e -> formatTextBold());
         btnItalic.setOnAction(e -> formatTextItalic());
         btnThemeToggle.setOnAction(e -> toggleTheme());
+        
+        // Abstandskonfiguration Event-Handler werden direkt in den Setup-Methoden gesetzt
         
 
         
@@ -569,11 +626,11 @@ if (caret != null) {
         
         // Toolbar-Events
         btnSave.setOnAction(e -> {
-            System.out.println("=== SPEICHERN BUTTON GEDRÜCKT ===");
+
             saveFile();
         });
         btnSaveAs.setOnAction(e -> {
-            System.out.println("=== SPEICHERN UNTER BUTTON GEDRÜCKT ===");
+
             saveFileAs();
         });
                     btnExport.setOnAction(e -> showExportDialog());
@@ -1373,28 +1430,38 @@ if (caret != null) {
     
     
     
-    // Export-Dialog
+    // Export-Dialog - EXAKT WIE FUNKTIONIERENDER TEST-DIALOG
     private void showExportDialog() {
         if (outputFormat != DocxProcessor.OutputFormat.MARKDOWN) {
             updateStatus("Export nur für Markdown-Dokumente verfügbar");
             return;
         }
         
-        // Dialog erstellen
-        Dialog<ExportResult> dialog = new Dialog<>();
-        dialog.setTitle("📤 Exportieren");
-        dialog.setHeaderText("Wählen Sie die Export-Formate und Einstellungen");
+        logger.info("showExportDialog aufgerufen - erstelle Stage...");
+        CustomStage exportStage = StageManager.createModalStage("Export", stage);
+        exportStage.setTitle("📤 Exportieren");
+        exportStage.initModality(Modality.APPLICATION_MODAL);
+        exportStage.initOwner(stage);
         
-        // Dialog-Größe setzen
-        dialog.getDialogPane().setMinWidth(600);
-        dialog.getDialogPane().setMinHeight(500);
-        
-        // Dialog mit existierender styleDialog-Methode stylen
-        styleDialog(dialog);
+        // CSS-Styles für den Dialog anwenden (nach der Scene-Initialisierung)
+        Platform.runLater(() -> {
+            try {
+                String cssPath = ResourceManager.getCssResource("css/manuskript.css");
+                if (exportStage.getScene() != null) {
+                    exportStage.getScene().getStylesheets().add(cssPath);
+                    logger.info("CSS-Styles für Export-Dialog hinzugefügt");
+                }
+                
+                // Theme für den Dialog setzen
+                exportStage.setTitleBarTheme(currentThemeIndex);
+            } catch (Exception e) {
+                logger.error("Fehler beim Anwenden der CSS-Styles für Export-Dialog", e);
+            }
+        });
         
         // Hauptcontainer
-        VBox content = new VBox(15);
-        content.setPadding(new Insets(20));
+        VBox exportContent = new VBox(15);
+        exportContent.setPadding(new Insets(20));
         
         // Export-Formate
         Label formatLabel = new Label("📄 Export-Formate (mehrere möglich):");
@@ -1423,10 +1490,11 @@ if (caret != null) {
             } else {
                 logger.info("DOCX ist nicht ausgewählt, zeige Warnung...");
                 // Warnung anzeigen
-                Alert alert = new Alert(Alert.AlertType.WARNING);
+                CustomAlert alert = new CustomAlert(Alert.AlertType.WARNING, "Bitte aktivieren Sie zuerst die DOCX-Option, um die Einstellungen zu bearbeiten.");
                 alert.setTitle("Warnung");
                 alert.setHeaderText("DOCX nicht ausgewählt");
-                alert.setContentText("Bitte aktivieren Sie zuerst die DOCX-Option, um die Einstellungen zu bearbeiten.");
+                alert.applyTheme(currentThemeIndex);
+                alert.initOwner(stage);
                 alert.showAndWait();
             }
         });
@@ -1494,7 +1562,7 @@ if (caret != null) {
         filenameBox.getChildren().addAll(filenamePathLabel, filenameField);
         
         // Alles zusammenfügen
-        content.getChildren().addAll(
+        exportContent.getChildren().addAll(
             formatLabel, formatOptions,
             new Separator(),
             dirLabel, dirOptions,
@@ -1502,42 +1570,72 @@ if (caret != null) {
             filenameLabel, filenameBox
         );
         
-        dialog.getDialogPane().setContent(content);
+        // Buttons für CustomStage
+        HBox buttonBox = new HBox(10);
+        buttonBox.setAlignment(Pos.CENTER_RIGHT);
+        buttonBox.setPadding(new Insets(20, 0, 0, 0));
         
-        // Buttons
-        ButtonType exportButtonType = new ButtonType("📤 Exportieren", ButtonBar.ButtonData.OK_DONE);
-        ButtonType cancelButtonType = new ButtonType("❌ Abbrechen", ButtonBar.ButtonData.CANCEL_CLOSE);
-        dialog.getDialogPane().getButtonTypes().addAll(exportButtonType, cancelButtonType);
+        Button exportButton = new Button("📤 Exportieren");
+        exportButton.setDefaultButton(true);
+        Button cancelButton = new Button("❌ Abbrechen");
+        cancelButton.setCancelButton(true);
         
-        // Export-Button ist immer aktiv - DirectoryChooser wird beim Export geöffnet
-        Button exportButton = (Button) dialog.getDialogPane().lookupButton(exportButtonType);
+        buttonBox.getChildren().addAll(cancelButton, exportButton);
         
-        // Dialog-Ergebnis verarbeiten
-        dialog.setResultConverter(dialogButton -> {
-            if (dialogButton == exportButtonType) {
-                // Alle ausgewählten Formate sammeln
-                List<ExportFormat> selectedFormats = new ArrayList<>();
-                if (rtfCheck.isSelected()) selectedFormats.add(ExportFormat.RTF);
-                if (docxCheck.isSelected()) selectedFormats.add(ExportFormat.DOCX);
-                if (htmlCheck.isSelected()) selectedFormats.add(ExportFormat.HTML);
-                if (txtCheck.isSelected()) selectedFormats.add(ExportFormat.TXT);
-                if (mdCheck.isSelected()) selectedFormats.add(ExportFormat.MD);
-                if (pdfCheck.isSelected()) selectedFormats.add(ExportFormat.PDF);
-                
-                        return new ExportResult(
-            selectedFormats,
-            dirPathField.getText(),
-            filenameField.getText(),
-            createDirCheck.isSelected(),
-            globalDocxOptions // Verwende die gespeicherten DOCX-Optionen
-        );
-            }
-            return null;
+        // Content mit Buttons kombinieren
+        VBox mainContent = new VBox(15);
+        mainContent.getChildren().addAll(exportContent, buttonBox);
+        mainContent.setPadding(new Insets(20));
+        mainContent.getStyleClass().add("export-dialog-content");
+        
+        // Theme auf den Content anwenden
+        applyThemeToNode(mainContent, currentThemeIndex);
+        
+        // Event-Handler für Buttons
+        cancelButton.setOnAction(e -> {
+            exportStage.close();
         });
         
-        // Dialog anzeigen und Export durchführen
-        Optional<ExportResult> result = dialog.showAndWait();
-        result.ifPresent(this::performExport);
+        exportButton.setOnAction(e -> {
+            // Alle ausgewählten Formate sammeln
+            List<ExportFormat> selectedFormats = new ArrayList<>();
+            if (rtfCheck.isSelected()) selectedFormats.add(ExportFormat.RTF);
+            if (docxCheck.isSelected()) selectedFormats.add(ExportFormat.DOCX);
+            if (htmlCheck.isSelected()) selectedFormats.add(ExportFormat.HTML);
+            if (txtCheck.isSelected()) selectedFormats.add(ExportFormat.TXT);
+            if (mdCheck.isSelected()) selectedFormats.add(ExportFormat.MD);
+            if (pdfCheck.isSelected()) selectedFormats.add(ExportFormat.PDF);
+            
+            ExportResult result = new ExportResult(
+                selectedFormats,
+                dirPathField.getText(),
+                filenameField.getText(),
+                createDirCheck.isSelected(),
+                globalDocxOptions
+            );
+            
+            // Export direkt durchführen
+            exportStage.close();
+            performExport(result);
+        });
+        
+        // SCENE SETZEN - EXAKT WIE FUNKTIONIERENDER TEST-DIALOG
+        Scene scene = new Scene(mainContent);
+        exportStage.setSceneWithTitleBar(scene);
+        
+        // CSS-Stylesheets laden - EXAKT WIE FUNKTIONIERENDER TEST-DIALOG
+        String stylesCss = ResourceManager.getCssResource("css/styles.css");
+        String editorCss = ResourceManager.getCssResource("css/editor.css");
+        if (stylesCss != null && !scene.getStylesheets().contains(stylesCss)) scene.getStylesheets().add(stylesCss);
+        if (editorCss != null && !scene.getStylesheets().contains(editorCss)) scene.getStylesheets().add(editorCss);
+        
+        // Theme auf die Stage anwenden - EXAKT WIE FUNKTIONIERENDER TEST-DIALOG
+        applyThemeToNode(scene.getRoot(), currentThemeIndex);
+        
+        // DIALOG ANZEIGEN - EXAKT WIE FUNKTIONIERENDER TEST-DIALOG
+        logger.info("Zeige Export-Dialog...");
+        exportStage.showAndWait();
+        logger.info("Export-Dialog geschlossen.");
     }
     
     // Export-Format Enum
@@ -1668,14 +1766,32 @@ if (caret != null) {
         optionsStage.initModality(Modality.APPLICATION_MODAL);
         optionsStage.initOwner(stage);
         
+        // CSS-Styles für den Dialog anwenden (nach der Scene-Initialisierung)
+        Platform.runLater(() -> {
+            try {
+                String cssPath = ResourceManager.getCssResource("css/manuskript.css");
+                if (optionsStage.getScene() != null) {
+                    optionsStage.getScene().getStylesheets().add(cssPath);
+                    logger.info("CSS-Styles für DOCX-Options-Dialog hinzugefügt");
+                }
+                
+                // Theme für den Dialog setzen
+                optionsStage.setTitleBarTheme(currentThemeIndex);
+            } catch (Exception e) {
+                logger.error("Fehler beim Anwenden der CSS-Styles für DOCX-Options-Dialog", e);
+            }
+        });
+        
         // Hauptcontainer mit ScrollPane
         ScrollPane scrollPane = new ScrollPane();
         scrollPane.setFitToWidth(true);
         scrollPane.setPrefWidth(800);
         scrollPane.setPrefHeight(700);
+        scrollPane.getStyleClass().add("docx-options-scroll-pane");
         
         VBox mainContent = new VBox(20);
         mainContent.setPadding(new Insets(20));
+        mainContent.getStyleClass().add("docx-options-content");
         
         // DOCX-Optionen Objekt - verwende das globale Objekt
         DocxOptions options = globalDocxOptions;
@@ -2200,13 +2316,13 @@ if (caret != null) {
     private VBox createSection(String title, String description) {
         VBox section = new VBox(10);
         section.setPadding(new Insets(15));
-        section.setStyle("-fx-border-color: #ddd; -fx-border-width: 1px; -fx-border-radius: 5px; -fx-background-color: #f9f9f9;");
+        section.getStyleClass().add("docx-options-section");
         
         Label titleLabel = new Label(title);
-        titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #2F5496;");
+        titleLabel.getStyleClass().add("docx-options-section-title");
         
         Label descLabel = new Label(description);
-        descLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #666; -fx-font-style: italic;");
+        descLabel.getStyleClass().add("docx-options-section-description");
         
         section.getChildren().addAll(titleLabel, descLabel);
         return section;
@@ -2895,7 +3011,7 @@ if (caret != null) {
     
     // Datei-Operationen
     private void saveFile() {
-        System.out.println("=== saveFile() aufgerufen ===");
+
         System.out.println("currentFile: " + (currentFile != null ? currentFile.getAbsolutePath() : "null"));
         System.out.println("originalDocxFile: " + (originalDocxFile != null ? originalDocxFile.getAbsolutePath() : "null"));
         
@@ -3033,7 +3149,7 @@ if (caret != null) {
     }
     
     private void saveToFile(File file) {
-        System.out.println("=== saveToFile() aufgerufen ===");
+
         System.out.println("Datei: " + file.getAbsolutePath());
         System.out.println("Datei existiert: " + file.exists());
         
@@ -3113,21 +3229,19 @@ if (caret != null) {
      * Prüft ob es ungespeicherte Änderungen gibt
      */
     private boolean hasUnsavedChanges() {
-        if (codeArea == null) return false;
+        if (codeArea == null) {
+            return false;
+        }
         
         String currentContent = codeArea.getText();
         
-        // Debug entfernt
-        
         // Prüfe Chapter-Editor Änderungen
         if (chapterContentChanged) {
-            // Debug entfernt
             return true;
         }
         
         // Vergleiche mit der ursprünglichen Kopie
         boolean hasChanges = !currentContent.equals(originalContent);
-        // Debug entfernt
         return hasChanges;
     }
     
@@ -3135,27 +3249,6 @@ if (caret != null) {
      * Zeigt den Speichern-Dialog beim Schließen
      */
     private void showSaveDialog() {
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("Ungespeicherte Änderungen");
-        alert.setHeaderText("Die Datei hat ungespeicherte Änderungen.");
-        alert.setContentText("Was möchten Sie speichern?");
-        
-        // Theme-Farben holen
-        String backgroundColor = THEMES[currentThemeIndex][0];
-        String textColor = THEMES[currentThemeIndex][1];
-        
-        // CSS-Styles für den Dialog direkt anwenden
-        String dialogStyle = String.format(
-            "-fx-background-color: %s; -fx-text-fill: %s; -fx-control-inner-background: %s;",
-            backgroundColor, textColor, backgroundColor
-        );
-        
-        alert.getDialogPane().setStyle(dialogStyle);
-        // Einheitliches Styling (wie andere Dialoge)
-        styleDialog(alert);
-        // Einheitliches Styling (wie andere Dialoge)
-        styleDialog(alert);
-        
         // Checkboxen für Speicheroptionen
         CheckBox saveCurrentFormat = new CheckBox("Als " + getFormatDisplayName() + " speichern");
         CheckBox saveOriginalDocx = new CheckBox("Originale DOCX-Datei überschreiben");
@@ -3164,21 +3257,22 @@ if (caret != null) {
         saveCurrentFormat.setSelected(true);
         saveOriginalDocx.setSelected(false);
         
-        // Theme für Checkboxen
-        String checkboxStyle = String.format(
-            "-fx-background-color: %s; -fx-text-fill: %s; -fx-control-inner-background: %s;",
-            backgroundColor, textColor, backgroundColor
-        );
-        saveCurrentFormat.setStyle(checkboxStyle);
-        saveOriginalDocx.setStyle(checkboxStyle);
-        
         VBox content = new VBox(10);
         content.getChildren().addAll(saveCurrentFormat, saveOriginalDocx);
         content.setPadding(new Insets(10));
         
-        // Theme für Content-Container
-        content.setStyle(String.format("-fx-background-color: %s;", backgroundColor));
+        // CustomAlert verwenden
+        CustomAlert alert = new CustomAlert(Alert.AlertType.CONFIRMATION, "Was möchten Sie speichern?");
+        alert.setTitle("Ungespeicherte Änderungen");
+        alert.setHeaderText("Die Datei hat ungespeicherte Änderungen.");
         
+        // Theme anwenden
+        alert.applyTheme(currentThemeIndex);
+        
+        // Owner setzen
+        alert.initOwner(stage);
+        
+        // Content setzen
         alert.getDialogPane().setContent(content);
         
         ButtonType saveButton = new ButtonType("Speichern");
@@ -3186,36 +3280,7 @@ if (caret != null) {
         ButtonType diffButton = new ButtonType("🔍 Diff anzeigen");
         ButtonType cancelButton = new ButtonType("Abbrechen");
         
-        alert.getButtonTypes().setAll(saveButton, discardButton, diffButton, cancelButton);
-        
-        // Theme für alle Buttons im Dialog anwenden
-        alert.setOnShown(event -> {
-            // Header-Text thematisieren - versuche verschiedene Selectors
-            Node headerPanel = alert.getDialogPane().lookup(".header-panel");
-            if (headerPanel != null) {
-                headerPanel.setStyle(String.format(
-                    "-fx-background-color: %s;",
-                    backgroundColor
-                ));
-                Node headerLabel = headerPanel.lookup(".label");
-                if (headerLabel instanceof Label) {
-                    ((Label) headerLabel).setTextFill(javafx.scene.paint.Color.web(textColor));
-                }
-            }
-            
-            // Buttons thematisieren
-            String buttonStyle = String.format(
-                "-fx-background-color: %s; -fx-text-fill: %s; -fx-border-color: %s;",
-                backgroundColor, textColor, textColor
-            );
-            
-            for (ButtonType buttonType : alert.getButtonTypes()) {
-                Button button = (Button) alert.getDialogPane().lookupButton(buttonType);
-                if (button != null) {
-                    button.setStyle(buttonStyle);
-                }
-            }
-        });
+        alert.setButtonTypes(saveButton, discardButton, diffButton, cancelButton);
         
         Optional<ButtonType> result = alert.showAndWait();
         
@@ -3260,10 +3325,11 @@ if (caret != null) {
             DiffProcessor.DiffResult diffResult = DiffProcessor.createDiff(docxContent, editorContent);
             
             if (!diffResult.hasChanges()) {
-                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                CustomAlert alert = new CustomAlert(Alert.AlertType.INFORMATION, "Es wurden keine Änderungen gefunden.");
                 alert.setTitle("Keine Änderungen");
                 alert.setHeaderText(null);
-                alert.setContentText("Es wurden keine Änderungen gefunden.");
+                alert.applyTheme(currentThemeIndex);
+                alert.initOwner(stage);
                 alert.showAndWait();
                 return;
             }
@@ -3279,37 +3345,91 @@ if (caret != null) {
             diffRoot.setPrefWidth(1400);
             diffRoot.setPrefHeight(800);
             
+            // ECHTE THEME-FARBEN für Container
+            String themeBgColor = THEMES[currentThemeIndex][0]; // Hauptfarbe
+            String themeBorderColor = THEMES[currentThemeIndex][2]; // Akzentfarbe
+            
+            diffRoot.setStyle(String.format("-fx-background-color: %s; -fx-border-color: %s; -fx-border-width: 2px;", themeBgColor, themeBorderColor));
+            
             Label titleLabel = new Label("Ungespeicherte Änderungen in " + originalDocxFile.getName());
-            titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #2c3e50;");
+            titleLabel.setStyle(String.format("-fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: %s;", THEMES[currentThemeIndex][1]));
             
             // Erstelle SplitPane für nebeneinander Anzeige
             SplitPane splitPane = new SplitPane();
             splitPane.setPrefHeight(650);
-            splitPane.setStyle("-fx-background-color: #f8f9fa;");
+            splitPane.setStyle("-fx-background-color: transparent;");
             
             // Linke Seite: Editor-Version mit Checkboxen
             VBox leftBox = new VBox(5);
-            leftBox.setStyle("-fx-background-color: white; -fx-border-color: #dee2e6; -fx-border-width: 1;");
+            leftBox.setStyle(String.format("-fx-background-color: %s; -fx-border-color: %s; -fx-border-width: 2px;", themeBgColor, themeBorderColor));
             leftBox.setPadding(new Insets(10));
             
             Label leftLabel = new Label("📝 Editor-Version - Wählen Sie aus:");
-            leftLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #495057;");
+            leftLabel.setStyle(String.format("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: %s;", THEMES[currentThemeIndex][1]));
             
             ScrollPane leftScrollPane = new ScrollPane();
+            leftScrollPane.setStyle(
+                "-fx-fit-to-width: true; -fx-fit-to-height: false; -fx-pannable: true; " +
+                "-fx-hbar-policy: as-needed; -fx-vbar-policy: always; -fx-background-color: transparent;"
+            );
+
+            // Scrollbar-Styling nach dem UI-Aufbau
+            Platform.runLater(() -> {
+                /* Viewport-Hintergrund */
+                javafx.scene.Node vp = leftScrollPane.lookup(".viewport");
+                if (vp instanceof javafx.scene.layout.Region r)
+                    r.setStyle("-fx-background-color: transparent; -fx-background-radius: 6;");
+
+                /* Scrollbars stylen (Track/Thumb etc.): */
+                javafx.scene.control.ScrollBar vbar =
+                    (javafx.scene.control.ScrollBar) leftScrollPane.lookup(".scroll-bar:vertical");
+                if (vbar != null) {
+                    vbar.setStyle("-fx-pref-width: 10;");                            // Breite
+                    javafx.scene.layout.Region thumb = (javafx.scene.layout.Region) vbar.lookup(".thumb");
+                    if (thumb != null) thumb.setStyle(String.format("-fx-background-color: %s; -fx-background-radius: 6;", THEMES[currentThemeIndex][2]));
+                    javafx.scene.layout.Region track = (javafx.scene.layout.Region) vbar.lookup(".track");
+                    if (track != null) track.setStyle("-fx-background-color: transparent;");
+                }
+            });
             VBox leftContentBox = new VBox(0);
             leftContentBox.setPadding(new Insets(5));
+            leftContentBox.setStyle("-fx-background-color: transparent;");
             
             // Rechte Seite: Originale Version (DOCX)
             VBox rightBox = new VBox(5);
-            rightBox.setStyle("-fx-background-color: white; -fx-border-color: #dee2e6; -fx-border-width: 1;");
+            rightBox.setStyle(String.format("-fx-background-color: %s; -fx-border-color: %s; -fx-border-width: 2px;", themeBgColor, themeBorderColor));
             rightBox.setPadding(new Insets(10));
             
             Label rightLabel = new Label("📄 Originale Version (DOCX)");
-            rightLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #495057;");
+            rightLabel.setStyle(String.format("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: %s;", THEMES[currentThemeIndex][1]));
             
             ScrollPane rightScrollPane = new ScrollPane();
+            rightScrollPane.setStyle(
+                "-fx-fit-to-width: true; -fx-fit-to-height: false; -fx-pannable: true; " +
+                "-fx-hbar-policy: as-needed; -fx-vbar-policy: always; -fx-background-color: transparent;"
+            );
+
+            // Scrollbar-Styling nach dem UI-Aufbau
+            Platform.runLater(() -> {
+                /* Viewport-Hintergrund */
+                javafx.scene.Node vp2 = rightScrollPane.lookup(".viewport");
+                if (vp2 instanceof javafx.scene.layout.Region r2)
+                    r2.setStyle("-fx-background-color: transparent; -fx-background-radius: 6;");
+
+                /* Scrollbars stylen (Track/Thumb etc.): */
+                javafx.scene.control.ScrollBar vbar2 =
+                    (javafx.scene.control.ScrollBar) rightScrollPane.lookup(".scroll-bar:vertical");
+                if (vbar2 != null) {
+                    vbar2.setStyle("-fx-pref-width: 10;");                            // Breite
+                    javafx.scene.layout.Region thumb2 = (javafx.scene.layout.Region) vbar2.lookup(".thumb");
+                    if (thumb2 != null) thumb2.setStyle(String.format("-fx-background-color: %s; -fx-background-radius: 6;", THEMES[currentThemeIndex][2]));
+                    javafx.scene.layout.Region track2 = (javafx.scene.layout.Region) vbar2.lookup(".track");
+                    if (track2 != null) track2.setStyle("-fx-background-color: transparent;");
+                }
+            });
             VBox rightContentBox = new VBox(0);
             rightContentBox.setPadding(new Insets(5));
+            rightContentBox.setStyle("-fx-background-color: transparent;");
             
             // Verwende echte DiffProcessor-Logik für intelligente Block-Erkennung
             List<CheckBox> blockCheckBoxes = new ArrayList<>();
@@ -3465,9 +3585,10 @@ if (caret != null) {
                             break;
                             
                         case UNCHANGED:
-                            // Unveränderter Block
-                            leftLineLabel.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px; -fx-text-fill: #212529;");
-                            rightLineLabel.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px; -fx-text-fill: #212529;");
+                            // Unveränderter Block - viel heller und unaufdringlicher (aber Theme-Textfarbe für Konsistenz)
+                            String lightOpacity = "0.4"; // Sehr transparent für unaufdringlichen Look
+                            leftLineLabel.setStyle(String.format("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px; -fx-text-fill: %s; -fx-background-color: rgba(240,240,240,0.2); -fx-opacity: %s;", THEMES[currentThemeIndex][1], lightOpacity));
+                            rightLineLabel.setStyle(String.format("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px; -fx-text-fill: %s; -fx-background-color: rgba(240,240,240,0.2); -fx-opacity: %s;", THEMES[currentThemeIndex][1], lightOpacity));
                             leftLineNumber++;
                             rightLineNumber++;
                             break;
@@ -3520,16 +3641,16 @@ if (caret != null) {
             buttonBox.setPadding(new Insets(15, 0, 0, 0));
             
             Button btnApplySelected = new Button("✅ Ausgewählte Änderungen übernehmen");
-            btnApplySelected.setStyle("-fx-background-color: #28a745; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8px 16px;");
+            btnApplySelected.setStyle("-fx-background-color: rgba(40,167,69,0.8); -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8px 16px;");
             
             Button btnAcceptAll = new Button("🔄 Alle Änderungen übernehmen");
-            btnAcceptAll.setStyle("-fx-background-color: #007bff; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8px 16px;");
+            btnAcceptAll.setStyle("-fx-background-color: rgba(0,123,255,0.8); -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8px 16px;");
             
             Button btnKeepOriginal = new Button("💾 Originale Version behalten");
-            btnKeepOriginal.setStyle("-fx-background-color: #6c757d; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8px 16px;");
+            btnKeepOriginal.setStyle("-fx-background-color: rgba(108,117,125,0.8); -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8px 16px;");
             
             Button btnCancel = new Button("❌ Abbrechen");
-            btnCancel.setStyle("-fx-background-color: #dc3545; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8px 16px;");
+            btnCancel.setStyle("-fx-background-color: rgba(220,53,69,0.8); -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8px 16px;");
             
             btnApplySelected.setOnAction(e -> {
                 try {
@@ -3882,23 +4003,6 @@ if (caret != null) {
      * @return true wenn Navigation fortgesetzt werden soll, false wenn abgebrochen
      */
     private boolean showSaveDialogForNavigation() {
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("Ungespeicherte Änderungen");
-        alert.setHeaderText("Die Datei hat ungespeicherte Änderungen.");
-        alert.setContentText("Was möchten Sie speichern, bevor Sie zum nächsten Kapitel wechseln?");
-        
-        // Theme-Farben holen
-        String backgroundColor = THEMES[currentThemeIndex][0];
-        String textColor = THEMES[currentThemeIndex][1];
-        
-        // CSS-Styles für den Dialog direkt anwenden
-        String dialogStyle = String.format(
-            "-fx-background-color: %s; -fx-text-fill: %s; -fx-control-inner-background: %s;",
-            backgroundColor, textColor, backgroundColor
-        );
-        
-        alert.getDialogPane().setStyle(dialogStyle);
-        
         // Checkboxen für Speicheroptionen
         CheckBox saveCurrentFormat = new CheckBox("Als " + getFormatDisplayName() + " speichern");
         CheckBox saveOriginalDocx = new CheckBox("Originale DOCX-Datei überschreiben");
@@ -3907,21 +4011,22 @@ if (caret != null) {
         saveCurrentFormat.setSelected(true);
         saveOriginalDocx.setSelected(false);
         
-        // Theme für Checkboxen
-        String checkboxStyle = String.format(
-            "-fx-background-color: %s; -fx-text-fill: %s; -fx-control-inner-background: %s;",
-            backgroundColor, textColor, backgroundColor
-        );
-        saveCurrentFormat.setStyle(checkboxStyle);
-        saveOriginalDocx.setStyle(checkboxStyle);
-        
         VBox content = new VBox(10);
         content.getChildren().addAll(saveCurrentFormat, saveOriginalDocx);
         content.setPadding(new Insets(10));
         
-        // Theme für Content-Container
-        content.setStyle(String.format("-fx-background-color: %s;", backgroundColor));
+        // CustomAlert verwenden
+        CustomAlert alert = new CustomAlert(Alert.AlertType.CONFIRMATION, "Was möchten Sie speichern, bevor Sie zum nächsten Kapitel wechseln?");
+        alert.setTitle("Ungespeicherte Änderungen");
+        alert.setHeaderText("Die Datei hat ungespeicherte Änderungen.");
         
+        // Theme anwenden
+        alert.applyTheme(currentThemeIndex);
+        
+        // Owner setzen
+        alert.initOwner(stage);
+        
+        // Content setzen
         alert.getDialogPane().setContent(content);
         
         ButtonType saveButton = new ButtonType("Speichern & Weitermachen");
@@ -3929,51 +4034,7 @@ if (caret != null) {
         ButtonType diffButton = new ButtonType("🔍 Diff anzeigen");
         ButtonType cancelButton = new ButtonType("Abbrechen");
         
-        alert.getButtonTypes().setAll(saveButton, discardButton, diffButton, cancelButton);
-        
-        // Theme für alle Buttons im Dialog anwenden
-        alert.setOnShown(event -> {
-            // Header-Text thematisieren
-            Node headerLabel = alert.getDialogPane().lookup(".header-panel .label");
-            if (headerLabel == null) {
-                headerLabel = alert.getDialogPane().lookup(".header-panel");
-            }
-            if (headerLabel == null) {
-                headerLabel = alert.getDialogPane().lookup(".dialog-pane .header-panel");
-            }
-            if (headerLabel == null) {
-                // Versuche alle Labels im Dialog zu finden
-                for (Node node : alert.getDialogPane().lookupAll(".label")) {
-                    if (node instanceof Label) {
-                        Label label = (Label) node;
-                        if (label.getText() != null && label.getText().contains("ungespeicherte Änderungen")) {
-                            headerLabel = label;
-                            break;
-                        }
-                    }
-                }
-            }
-            
-            if (headerLabel != null) {
-                headerLabel.setStyle(String.format(
-                    "-fx-background-color: %s; -fx-text-fill: %s;",
-                    backgroundColor, textColor
-                ));
-            }
-            
-            // Buttons thematisieren
-            String buttonStyle = String.format(
-                "-fx-background-color: %s; -fx-text-fill: %s; -fx-border-color: %s;",
-                backgroundColor, textColor, textColor
-            );
-            
-            for (ButtonType buttonType : alert.getButtonTypes()) {
-                Button button = (Button) alert.getDialogPane().lookupButton(buttonType);
-                if (button != null) {
-                    button.setStyle(buttonStyle);
-                }
-            }
-        });
+        alert.setButtonTypes(saveButton, discardButton, diffButton, cancelButton);
         
         Optional<ButtonType> result = alert.showAndWait();
         
@@ -4469,9 +4530,21 @@ if (caret != null) {
     public void setStage(CustomStage stage) {
         this.stage = stage;
         
-        // Fenster-Eigenschaften laden und anwenden
+        // WICHTIG: CSS-Datei laden, wenn die Stage gesetzt wird
         Platform.runLater(() -> {
-        loadWindowProperties();
+            if (stage.getScene() != null) {
+                // CSS-Datei laden
+                String cssPath = ResourceManager.getCssResource("css/manuskript.css");
+                if (cssPath != null && !stage.getScene().getStylesheets().contains(cssPath)) {
+                    stage.getScene().getStylesheets().add(cssPath);
+                    logger.info("CSS-Datei in setStage geladen: {}", cssPath);
+                } else {
+                    logger.warn("CSS-Datei konnte in setStage nicht geladen werden: {}", cssPath);
+                }
+            }
+            
+            // Fenster-Eigenschaften laden und anwenden
+            loadWindowProperties();
         });
         
         // Close-Request-Handler für Speichern-Abfrage
@@ -4571,9 +4644,10 @@ if (caret != null) {
         if (stage != null) {
             stage.setTitle(title);
         }
-        // NEU: Im Titelbalken-Label anzeigen
-        if (lblWindowTitle != null) {
-            lblWindowTitle.setText(title);
+        // CustomStage-Titel setzen (FXML-Titelleiste entfernt)
+        if (stage instanceof CustomStage) {
+            CustomStage customStage = (CustomStage) stage;
+            customStage.setCustomTitle(title);
         }
         // Auch im Status-Label anzeigen
         if (lblStatus != null) {
@@ -4587,9 +4661,12 @@ if (caret != null) {
     public void setThemeFromMainWindow(int themeIndex) {
         // WICHTIG: Theme IMMER vom Hauptfenster übernehmen, nicht aus Preferences
         this.currentThemeIndex = themeIndex;
-        // Theme sofort anwenden
-        applyTheme(themeIndex);
-        updateThemeButtonTooltip();
+        
+        // WICHTIG: CustomStage Theme aktualisieren
+        if (stage instanceof CustomStage) {
+            CustomStage customStage = (CustomStage) stage;
+            customStage.setFullTheme(themeIndex);
+        }
         
         // WICHTIG: Theme in Preferences speichern für Persistierung
         preferences.putInt("editor_theme", themeIndex);
@@ -4597,8 +4674,14 @@ if (caret != null) {
         
         logger.info("Theme vom Hauptfenster übernommen und gespeichert: {}", themeIndex);
         
+        // WICHTIG: Theme sofort anwenden
+        applyTheme(themeIndex);
+        updateThemeButtonTooltip();
+        
         // Zusätzlicher verzögerter Theme-Refresh für bessere Kompatibilität
+        // Dies stellt sicher, dass die RichTextFX CodeArea korrekt aktualisiert wird
         Platform.runLater(() -> {
+            applyTheme(themeIndex);
             Platform.runLater(() -> {
                 applyTheme(themeIndex);
             });
@@ -4635,14 +4718,10 @@ if (caret != null) {
         VBox macroPanel = createMacroPanel();
         
         Scene macroScene = new Scene(macroPanel);
-        // CSS mit ResourceManager laden (editor.css + styles.css, damit Tabellen-Themes greifen)
-        String editorCss = ResourceManager.getCssResource("css/editor.css");
-        if (editorCss != null) {
-            macroScene.getStylesheets().add(editorCss);
-        }
-        String stylesCss = ResourceManager.getCssResource("css/styles.css");
-        if (stylesCss != null) {
-            macroScene.getStylesheets().add(stylesCss);
+        // CSS mit ResourceManager laden (manuskript.css für alle Themes)
+        String manuskriptCss = ResourceManager.getCssResource("css/manuskript.css");
+        if (manuskriptCss != null) {
+            macroScene.getStylesheets().add(manuskriptCss);
         }
         macroStage.setSceneWithTitleBar(macroScene);
         
@@ -4661,20 +4740,8 @@ if (caret != null) {
         VBox macroPanel = new VBox(10);
         macroPanel.getStyleClass().add("macro-panel");
         
-        // Direkte Farbe basierend auf Theme setzen
-        if (currentThemeIndex == 0) { // Weiß-Theme
-            macroPanel.setStyle("-fx-background-color: #ffffff; -fx-border-color: #cccccc;");
-        } else if (currentThemeIndex == 1) { // Schwarz-Theme
-            macroPanel.setStyle("-fx-background-color: #1a1a1a; -fx-border-color: #333333;");
-        } else if (currentThemeIndex == 2) { // Pastell-Theme
-            macroPanel.setStyle(""); // CSS-Klassen verwenden
-        } else if (currentThemeIndex == 3) { // Blau-Theme
-            macroPanel.setStyle("-fx-background-color: #1e3a8a; -fx-border-color: #3b82f6;");
-        } else if (currentThemeIndex == 4) { // Grün-Theme
-            macroPanel.setStyle("-fx-background-color: #166534; -fx-border-color: #22c55e;");
-        } else if (currentThemeIndex == 5) { // Lila-Theme
-            macroPanel.setStyle("-fx-background-color: #581c87; -fx-border-color: #a855f7;");
-        }
+        // CSS-Klassen verwenden statt inline Styles
+        macroPanel.setStyle(""); // CSS-Klassen verwenden
         
         // Theme-Klassen für das Makro-Panel hinzufügen
         if (currentThemeIndex == 0) { // Weiß-Theme
@@ -4701,7 +4768,6 @@ if (caret != null) {
         macroControls.setAlignment(Pos.CENTER_LEFT);
         
         Label macroLabel = new Label("Makros:");
-        macroLabel.setStyle("-fx-font-weight: bold;");
         
         ComboBox<String> cmbMacroList = new ComboBox<>();
         cmbMacroList.setPromptText("Makro auswählen...");
@@ -4710,25 +4776,22 @@ if (caret != null) {
         Button btnNewMacro = new Button("Neues Makro");
         btnNewMacro.getStyleClass().addAll("button", "primary");
         btnNewMacro.setMinHeight(34);
-        btnNewMacro.setStyle("-fx-font-size: 13px; -fx-padding: 4 12;");
         
         Button btnDeleteMacro = new Button("Makro löschen");
         btnDeleteMacro.getStyleClass().addAll("button", "danger");
         btnDeleteMacro.setMinHeight(34);
-        btnDeleteMacro.setStyle("-fx-font-size: 13px; -fx-padding: 4 12;");
         
         Button btnSaveMacro = new Button("Makro speichern");
         btnSaveMacro.getStyleClass().addAll("button", "primary");
         btnSaveMacro.setMinHeight(34);
-        btnSaveMacro.setStyle("-fx-font-size: 13px; -fx-padding: 4 12;");
         
         Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
+spacer.setStyle("-fx-background-color: transparent;");
+HBox.setHgrow(spacer, Priority.ALWAYS);
         
         Button btnRunMacro = new Button("Makro ausführen");
         btnRunMacro.getStyleClass().addAll("button", "success");
         btnRunMacro.setMinHeight(34);
-        btnRunMacro.setStyle("-fx-font-size: 13px; -fx-padding: 4 12; -fx-font-weight: bold;");
         
         macroControls.getChildren().addAll(macroLabel, cmbMacroList, btnNewMacro, btnDeleteMacro, btnSaveMacro, spacer, btnRunMacro);
         
@@ -4738,14 +4801,12 @@ if (caret != null) {
         VBox.setVgrow(macroDetailsPanel, Priority.ALWAYS);
         
         Label stepsLabel = new Label("Makro-Schritte:");
-        stepsLabel.setStyle("-fx-font-weight: bold;");
         
         // Makro-Schritt-Beschreibung
         HBox descriptionBox = new HBox(10);
         descriptionBox.setAlignment(Pos.CENTER_LEFT);
         
         Label descLabel = new Label("Schritt-Beschreibung:");
-        descLabel.setStyle("-fx-font-weight: bold;");
         
         TextField txtMacroStepDescription = new TextField();
         txtMacroStepDescription.setPromptText("Beschreibung des Schritts...");
@@ -4758,14 +4819,12 @@ if (caret != null) {
         searchReplaceBox.setAlignment(Pos.CENTER_LEFT);
         
         Label searchLabel = new Label("Suchen:");
-        searchLabel.setStyle("-fx-font-weight: bold;");
         
         TextField txtMacroSearch = new TextField();
         txtMacroSearch.setPromptText("Suchtext eingeben...");
         txtMacroSearch.setPrefWidth(200.0);
         
         Label replaceLabel = new Label("Ersetzen:");
-        replaceLabel.setStyle("-fx-font-weight: bold;");
         
         TextField txtMacroReplace = new TextField();
         txtMacroReplace.setPromptText("Ersetzungstext eingeben...");
@@ -4776,8 +4835,11 @@ if (caret != null) {
         CheckBox chkMacroWholeWord = new CheckBox("Word");
         
         Button btnMacroRegexHelp = new Button("?");
-        btnMacroRegexHelp.getStyleClass().add("help-button");
-        btnMacroRegexHelp.setStyle("-fx-min-width: 25px; -fx-max-width: 25px; -fx-min-height: 25px; -fx-max-height: 25px; -fx-font-weight: bold;");
+        btnMacroRegexHelp.getStyleClass().add("button");
+        btnMacroRegexHelp.setMinWidth(25);
+        btnMacroRegexHelp.setMaxWidth(25);
+        btnMacroRegexHelp.setMinHeight(25);
+        btnMacroRegexHelp.setMaxHeight(25);
         
         searchReplaceBox.getChildren().addAll(searchLabel, txtMacroSearch, replaceLabel, txtMacroReplace, 
                                              chkMacroRegex, chkMacroCaseSensitive, chkMacroWholeWord, btnMacroRegexHelp);
@@ -4799,7 +4861,7 @@ if (caret != null) {
             private final CheckBox checkBox = new CheckBox();
             {
                 checkBox.setOnAction(event -> {
-                    MacroStep step = getTableView().getItems().get(getIndex());
+                    MacroStep step = ((TableView<MacroStep>) getTableView()).getItems().get(getIndex());
                     if (step != null) {
                         step.setEnabled(checkBox.isSelected());
                         // Automatisch speichern bei Änderung
@@ -4868,7 +4930,7 @@ if (caret != null) {
             private final Button editButton = new Button("Bearbeiten");
             {
                 editButton.setOnAction(event -> {
-                    MacroStep step = getTableView().getItems().get(getIndex());
+                    MacroStep step = ((TableView<MacroStep>) getTableView()).getItems().get(getIndex());
                     editMacroStep(step);
                 });
             }
@@ -4892,37 +4954,32 @@ if (caret != null) {
         stepButtons.setAlignment(Pos.CENTER_LEFT);
         
         Button btnAddStep = new Button("Schritt hinzufügen");
-        // Entferne kompaktes Styling und setze klare Größen
-        btnAddStep.getStyleClass().remove("toolbar-button");
+        btnAddStep.getStyleClass().add("button");
         btnAddStep.setMinHeight(32);
         btnAddStep.setPrefHeight(32);
         btnAddStep.setMinWidth(200);
         btnAddStep.setPrefWidth(220);
-        btnAddStep.setStyle("-fx-font-size: 14px; -fx-padding: 6 14; -fx-font-weight: bold;");
         
         Button btnRemoveStep = new Button("Schritt entfernen");
-        btnRemoveStep.getStyleClass().remove("toolbar-button");
+        btnRemoveStep.getStyleClass().add("button");
         btnRemoveStep.setMinHeight(32);
         btnRemoveStep.setPrefHeight(32);
         btnRemoveStep.setMinWidth(200);
         btnRemoveStep.setPrefWidth(220);
-        btnRemoveStep.setStyle("-fx-font-size: 14px; -fx-padding: 6 14; -fx-font-weight: bold;");
         
         Button btnMoveStepUp = new Button("↑");
-        btnMoveStepUp.getStyleClass().remove("toolbar-button");
+        btnMoveStepUp.getStyleClass().add("button");
         btnMoveStepUp.setMinHeight(32);
         btnMoveStepUp.setPrefHeight(32);
         btnMoveStepUp.setMinWidth(56);
         btnMoveStepUp.setPrefWidth(56);
-        btnMoveStepUp.setStyle("-fx-font-size: 16px; -fx-padding: 0 10; -fx-font-weight: bold;");
         
         Button btnMoveStepDown = new Button("↓");
-        btnMoveStepDown.getStyleClass().remove("toolbar-button");
+        btnMoveStepDown.getStyleClass().add("button");
         btnMoveStepDown.setMinHeight(32);
         btnMoveStepDown.setPrefHeight(32);
         btnMoveStepDown.setMinWidth(56);
         btnMoveStepDown.setPrefWidth(56);
-        btnMoveStepDown.setStyle("-fx-font-size: 16px; -fx-padding: 0 10; -fx-font-weight: bold;");
         
         stepButtons.getChildren().addAll(btnAddStep, btnRemoveStep, btnMoveStepUp, btnMoveStepDown);
         
@@ -6327,11 +6384,11 @@ if (caret != null) {
     
     private void deleteCurrentMacro() {
         if (currentMacro != null) {
-            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            CustomAlert alert = new CustomAlert(Alert.AlertType.CONFIRMATION, "Möchten Sie das Makro '" + currentMacro.getName() + "' wirklich löschen?");
             alert.setTitle("Makro löschen");
             alert.setHeaderText("Makro löschen bestätigen");
-            alert.setContentText("Möchten Sie das Makro '" + currentMacro.getName() + "' wirklich löschen?");
-            styleDialog(alert);
+            alert.applyTheme(currentThemeIndex);
+            alert.initOwner(stage);
             
             Optional<ButtonType> result = alert.showAndWait();
             if (result.isPresent() && result.get() == ButtonType.OK) {
@@ -6351,14 +6408,18 @@ if (caret != null) {
     private void styleDialog(Dialog<?> dialog) {
         if (dialog == null) return;
         DialogPane pane = dialog.getDialogPane();
-        // CSS hinzufügen (styles.css + editor.css), damit Theme greift
+        // CSS hinzufügen (styles.css + editor.css + manuskript.css), damit Theme greift
         String stylesCss = ResourceManager.getCssResource("css/styles.css");
         String editorCss = ResourceManager.getCssResource("css/editor.css");
+        String manuskriptCss = ResourceManager.getCssResource("css/manuskript.css");
         if (stylesCss != null && !pane.getStylesheets().contains(stylesCss)) {
             pane.getStylesheets().add(stylesCss);
         }
         if (editorCss != null && !pane.getStylesheets().contains(editorCss)) {
             pane.getStylesheets().add(editorCss);
+        }
+        if (manuskriptCss != null && !pane.getStylesheets().contains(manuskriptCss)) {
+            pane.getStylesheets().add(manuskriptCss);
         }
 
         // Theme-Klassen vom Hauptfenster übernehmen
@@ -6530,12 +6591,15 @@ if (caret != null) {
             
             CheckBox regexCheckBox = new CheckBox("Regex");
             regexCheckBox.setSelected(step.isUseRegex());
+            regexCheckBox.getStyleClass().add("macro-checkbox");
             
             CheckBox caseCheckBox = new CheckBox("Case-Sensitive");
             caseCheckBox.setSelected(step.isCaseSensitive());
+            caseCheckBox.getStyleClass().add("macro-checkbox");
             
             CheckBox wordCheckBox = new CheckBox("Ganzes Wort");
             wordCheckBox.setSelected(step.isWholeWord());
+            wordCheckBox.getStyleClass().add("macro-checkbox");
             
             grid.add(new Label("Suchen:"), 0, 0);
             grid.add(searchField, 1, 0);
@@ -6585,14 +6649,10 @@ if (caret != null) {
             replaceField.setStyle(textFieldStyle);
             descriptionField.setStyle(textFieldStyle);
             
-            // CheckBoxes stylen
-            String checkboxStyle = String.format(
-                "-fx-text-fill: %s; -fx-background-color: transparent;",
-                textColor
-            );
-            regexCheckBox.setStyle(checkboxStyle);
-            caseCheckBox.setStyle(checkboxStyle);
-            wordCheckBox.setStyle(checkboxStyle);
+            // CheckBoxes werden durch CSS gestylt - keine programmatischen Styles
+            // regexCheckBox.setStyle(checkboxStyle);
+            // caseCheckBox.setStyle(checkboxStyle);
+            // wordCheckBox.setStyle(checkboxStyle);
             
             // OptionsBox stylen
             optionsBox.setStyle(String.format(
@@ -6799,8 +6859,8 @@ if (caret != null) {
             }
 
         if (savedMacros == null) savedMacros = "";
-        // Alte/inkompatible Formate abfangen
-        if (savedMacros.contains("|||") || savedMacros.contains("<<<MACRO>>>") || savedMacros.contains("ENABLED:0")) {
+        // Alte/inkompatible Formate abfangen (aber ENABLED:0/1 ist VALID!)
+        if (savedMacros.contains("|||") || savedMacros.contains("<<<MACRO>>>")) {
             logger.info("Alte/inkompatible Makro-Daten erkannt – setze zurück");
             savedMacros = "";
         }
@@ -7180,6 +7240,12 @@ if (caret != null) {
         // Theme anwenden
         applyTheme(currentThemeIndex);
         
+        // WICHTIG: CustomStage Theme aktualisieren
+        if (stage instanceof CustomStage) {
+            CustomStage customStage = (CustomStage) stage;
+            customStage.setFullTheme(currentThemeIndex);
+        }
+        
         // Theme-Button Tooltip aktualisieren
         updateThemeButtonTooltip();
         
@@ -7212,6 +7278,31 @@ if (caret != null) {
             sizes.add(String.valueOf(i));
         }
         cmbFontSize.setItems(sizes);
+    }
+    
+    // setupLineSpacingComboBox entfernt - wird von RichTextFX nicht unterstützt
+    
+    private void setupParagraphSpacingComboBox() {
+        if (cmbParagraphSpacing != null) {
+            // Absatzabstand-Optionen hinzufügen
+            ObservableList<String> spacings = FXCollections.observableArrayList();
+            spacings.addAll("0", "5", "10", "15", "20", "25", "30", "40", "50");
+            cmbParagraphSpacing.setItems(spacings);
+            
+            // Aktuellen Wert aus Konfiguration laden
+            try {
+                Properties config = new Properties();
+                try (InputStream input = new FileInputStream("config/parameters.properties")) {
+                    config.load(new InputStreamReader(input, StandardCharsets.UTF_8));
+                }
+                String currentSpacing = config.getProperty("editor.paragraph-spacing", "10");
+                cmbParagraphSpacing.setValue(currentSpacing);
+            } catch (Exception e) {
+                cmbParagraphSpacing.setValue("10"); // Fallback
+            }
+            
+            logger.info("setupParagraphSpacingComboBox: ComboBox initialisiert");
+        }
     }
     
     private void setupQuoteStyleComboBox() {
@@ -7259,17 +7350,6 @@ if (caret != null) {
     
     private void toggleTheme() {
         currentThemeIndex = (currentThemeIndex + 1) % THEMES.length;
-        applyTheme(currentThemeIndex);
-        
-        // Update Button-Tooltip
-        updateThemeButtonTooltip();
-        
-        String[] themeNames = {"Weiß", "Schwarz", "Pastell", "Blau", "Grün", "Lila"};
-        updateStatus("Theme gewechselt: " + themeNames[currentThemeIndex]);
-        
-        // WICHTIG: Theme in Preferences speichern
-        preferences.putInt("editor_theme", currentThemeIndex);
-        preferences.putInt("main_window_theme", currentThemeIndex);
         
         // WICHTIG: CustomStage Titelleiste aktualisieren
         if (stage instanceof CustomStage) {
@@ -7280,7 +7360,26 @@ if (caret != null) {
         // WICHTIG: Alle anderen Stages aktualisieren
         StageManager.applyThemeToAllStages(currentThemeIndex);
         
+        // WICHTIG: Theme in Preferences speichern
+        preferences.putInt("editor_theme", currentThemeIndex);
+        preferences.putInt("main_window_theme", currentThemeIndex);
+        
+        // WICHTIG: Theme sofort anwenden
+        applyTheme(currentThemeIndex);
+        
+        // Update Button-Tooltip
+        updateThemeButtonTooltip();
+        
+        String[] themeNames = {"Weiß", "Schwarz", "Pastell", "Blau", "Grün", "Lila"};
+        updateStatus("Theme gewechselt: " + themeNames[currentThemeIndex]);
+        
         logger.info("Theme gewechselt und gespeichert: {} ({})", currentThemeIndex, themeNames[currentThemeIndex]);
+        
+        // Zusätzlicher verzögerter Theme-Refresh für bessere Kompatibilität
+        // Dies stellt sicher, dass die RichTextFX CodeArea korrekt aktualisiert wird
+        Platform.runLater(() -> {
+            applyTheme(currentThemeIndex);
+        });
     }
     
     private void applyTheme(int themeIndex) {
@@ -7307,6 +7406,7 @@ if (caret != null) {
         }
         
         // RichTextFX CodeArea Theme anwenden - spezielle CSS-Eigenschaften
+        // WICHTIG: Alle RichTextFX-spezifischen Eigenschaften explizit setzen
         String cssStyle = String.format(
             "-rtfx-background-color: %s;" +
             "-fx-highlight-fill: %s;" +
@@ -7314,21 +7414,69 @@ if (caret != null) {
             "-fx-caret-color: %s !important;" +
             "-fx-font-family: 'Consolas', 'Monaco', monospace;" +
             "-fx-font-size: %dpx;" +
-            "-fx-background-color: %s;",
-            backgroundColor, selectionColor, textColor, caretColor, fontSize, backgroundColor
+            "-fx-background-color: %s;" +
+            "-fx-text-fill: %s !important;" +
+            "-fx-control-inner-background: %s;",
+            backgroundColor, selectionColor, textColor, caretColor, fontSize, backgroundColor, textColor, backgroundColor
         );
         
-        codeArea.setStyle(cssStyle);
+        // WICHTIG: Erst alle bestehenden Styles entfernen, dann neue setzen
+        codeArea.setStyle("");
+        
+        // WICHTIG: Mehrfache Anwendung der Styles für bessere Kompatibilität
+        Platform.runLater(() -> {
+            codeArea.setStyle(cssStyle);
+            
+            // Zusätzlich: Explizit die Textfarbe über die RichTextFX API setzen
+            // Dies stellt sicher, dass die Textfärbung korrekt angewendet wird
+            codeArea.setStyle(cssStyle);
+            
+            // Zusätzlicher verzögerter Refresh für bessere Kompatibilität
+            Platform.runLater(() -> {
+                codeArea.setStyle(cssStyle);
+            });
+        });
         
         // CSS-Klassen für Theme-spezifische Cursor-Farben
-        codeArea.getStyleClass().removeAll("theme-dark", "theme-light", "weiss-theme", "pastell-theme");
+        codeArea.getStyleClass().removeAll("theme-dark", "theme-light", "weiss-theme", "pastell-theme", "blau-theme", "gruen-theme", "lila-theme");
         if (themeIndex == 0) { // Weiß-Theme
             codeArea.getStyleClass().add("weiss-theme");
-        } else if (themeIndex == 1 || themeIndex >= 3) { // Dunkle Themes: Schwarz (1), Blau (3), Grün (4), Lila (5)
+        } else if (themeIndex == 1) { // Schwarz-Theme
             codeArea.getStyleClass().add("theme-dark");
         } else if (themeIndex == 2) { // Pastell-Theme
             codeArea.getStyleClass().add("pastell-theme");
+        } else if (themeIndex == 3) { // Blau-Theme
+            codeArea.getStyleClass().add("theme-dark");
+            codeArea.getStyleClass().add("blau-theme");
+        } else if (themeIndex == 4) { // Grün-Theme
+            codeArea.getStyleClass().add("theme-dark");
+            codeArea.getStyleClass().add("gruen-theme");
+        } else if (themeIndex == 5) { // Lila-Theme
+            codeArea.getStyleClass().add("theme-dark");
+            codeArea.getStyleClass().add("lila-theme");
         }
+        
+        // WICHTIG: Zusätzliche CSS-Klassen-Anwendung für bessere Kompatibilität
+        Platform.runLater(() -> {
+            // CSS-Klassen erneut anwenden
+            codeArea.getStyleClass().removeAll("theme-dark", "theme-light", "weiss-theme", "pastell-theme", "blau-theme", "gruen-theme", "lila-theme");
+            if (themeIndex == 0) { // Weiß-Theme
+                codeArea.getStyleClass().add("weiss-theme");
+            } else if (themeIndex == 1) { // Schwarz-Theme
+                codeArea.getStyleClass().add("theme-dark");
+            } else if (themeIndex == 2) { // Pastell-Theme
+                codeArea.getStyleClass().add("pastell-theme");
+            } else if (themeIndex == 3) { // Blau-Theme
+                codeArea.getStyleClass().add("theme-dark");
+                codeArea.getStyleClass().add("blau-theme");
+            } else if (themeIndex == 4) { // Grün-Theme
+                codeArea.getStyleClass().add("theme-dark");
+                codeArea.getStyleClass().add("gruen-theme");
+            } else if (themeIndex == 5) { // Lila-Theme
+                codeArea.getStyleClass().add("theme-dark");
+                codeArea.getStyleClass().add("lila-theme");
+            }
+        });
         
         // Dark Theme für alle UI-Elemente anwenden
         Platform.runLater(() -> {
@@ -7393,8 +7541,10 @@ if (caret != null) {
             
             // Alle ComboBoxes
             applyThemeToNode(cmbSearchHistory, themeIndex);
-            applyThemeToNode(cmbReplaceHistory, themeIndex);
-            applyThemeToNode(cmbFontSize, themeIndex);
+                    applyThemeToNode(cmbReplaceHistory, themeIndex);
+        applyThemeToNode(cmbFontSize, themeIndex);
+        // cmbLineSpacing entfernt
+        applyThemeToNode(cmbParagraphSpacing, themeIndex);
 
             // Entfernt: Code-Seitiges Erzwingen – zurück zu reiner CSS-Steuerung
             
@@ -7453,8 +7603,11 @@ if (caret != null) {
                 textColor, textColor, textColor, textColor, textColor, textColor, textColor, textColor
             );
             
-            // Stylesheet zur CodeArea hinzufügen
-            codeArea.getStylesheets().clear();
+            // Stylesheet zur CodeArea hinzufügen (OHNE clear() - das löscht unsere Markdown-Styles!)
+            // codeArea.getStylesheets().clear(); // ENTFERNT - interferiert mit Markdown-Styling
+            
+            // Nur den dynamischen Textfarben-CSS hinzufügen
+            codeArea.getStylesheets().removeIf(css -> css.startsWith("data:text/css,"));
             codeArea.getStylesheets().add("data:text/css," + textColorCSS);
             
             // Zeilennummern mit benutzerdefinierten Farben erstellen
@@ -7477,18 +7630,14 @@ if (caret != null) {
         // Theme in Preferences speichern
         preferences.putInt("editor_theme", themeIndex);
         
-        // WICHTIG: CSS-Refresh erzwingen
-        if (stage != null && stage.getScene() != null) {
-            stage.getScene().getStylesheets().clear();
-            // CSS mit ResourceManager laden (styles.css + editor.css)
-            String stylesCssPathRefresh = ResourceManager.getCssResource("css/styles.css");
-            String editorCssPathRefresh = ResourceManager.getCssResource("css/editor.css");
-            if (stylesCssPathRefresh != null) {
-                stage.getScene().getStylesheets().add(stylesCssPathRefresh);
-            }
-            if (editorCssPathRefresh != null) {
-                stage.getScene().getStylesheets().add(editorCssPathRefresh);
-            }
+                    // WICHTIG: CSS-Refresh erzwingen
+            if (stage != null && stage.getScene() != null) {
+                stage.getScene().getStylesheets().clear();
+                // CSS mit ResourceManager laden
+                String cssPathRefresh = ResourceManager.getCssResource("css/manuskript.css");
+                if (cssPathRefresh != null) {
+                    stage.getScene().getStylesheets().add(cssPathRefresh);
+                }
             
             // Zusätzlich: Root-Container explizit das Theme geben
             Node root = stage.getScene().getRoot();
@@ -7511,14 +7660,10 @@ if (caret != null) {
             // Zusätzlicher CSS-Refresh nach einer kurzen Verzögerung
             Platform.runLater(() -> {
                 stage.getScene().getStylesheets().clear();
-                // CSS mit ResourceManager laden (styles.css + editor.css)
-                String stylesCssPathInner = ResourceManager.getCssResource("css/styles.css");
-                String editorCssPathInner = ResourceManager.getCssResource("css/editor.css");
-                if (stylesCssPathInner != null) {
-                    stage.getScene().getStylesheets().add(stylesCssPathInner);
-                }
-                if (editorCssPathInner != null) {
-                    stage.getScene().getStylesheets().add(editorCssPathInner);
+                // CSS mit ResourceManager laden
+                String cssPathInner = ResourceManager.getCssResource("css/manuskript.css");
+                if (cssPathInner != null) {
+                    stage.getScene().getStylesheets().add(cssPathInner);
                 }
                 
                 // Force layout refresh
@@ -7761,64 +7906,169 @@ if (caret != null) {
     }
     
     /**
-     * Einfache Timer-basierte Markdown-Styling-Methode
-     * Verwendet setStyle() statt StyleSpans
+     * Hilfsklasse für Markdown-Matches
      */
-    private void applySimpleMarkdownStyling() {
-
+    private static class MarkdownMatch {
+        final int start;
+        final int end;
+        final String styleClass;
         
+        MarkdownMatch(int start, int end, String styleClass) {
+            this.start = start;
+            this.end = end;
+            this.styleClass = styleClass;
+        }
+    }
+    
+    
+    
+    /**
+     * Einfache Timer-basierte Markdown-Styling-Methode
+     * Verwendet setStyleSpans() wie bei der Suche
+     */
+    private void applyCombinedStyling() {
         if (codeArea == null) {
-            System.out.println("=== CodeArea ist null ===");
             return;
         }
-        
-        String content = codeArea.getText();
-        if (content == null || content.isEmpty()) {
-            System.out.println("=== Content ist leer ===");
-            return;
-        }
-        
-
-        
-
         
         try {
-            StyleSpansBuilder<Collection<String>> spansBuilder = new StyleSpansBuilder<>();
-            int lastEnd = 0;
+            String content = codeArea.getText();
+            if (content.isEmpty()) {
+                return;
+            }
             
-            // Bold-Pattern: **text**
-            Pattern boldPattern = Pattern.compile("\\*\\*(.*?)\\*\\*");
+            // Sammle Markdown-Matches
+            List<MarkdownMatch> markdownMatches = new ArrayList<>();
+            
+            // Bold-Italic-Pattern: ***text***
+            Pattern boldItalicPattern = Pattern.compile("\\*\\*\\*([\\s\\S]*?)\\*\\*\\*", Pattern.DOTALL);
+            Matcher boldItalicMatcher = boldItalicPattern.matcher(content);
+            
+            while (boldItalicMatcher.find()) {
+                int start = boldItalicMatcher.start() + 3; // Nach ***
+                int end = boldItalicMatcher.end() - 3;     // Vor ***
+                if (end > start) {
+                    markdownMatches.add(new MarkdownMatch(start, end, "markdown-bold-italic"));
+                }
+            }
+            
+            // Bold-Pattern: **text** (aber nicht ***text***)
+            Pattern boldPattern = Pattern.compile("(?<!\\*)\\*\\*(?!\\*)([\\s\\S]*?)(?<!\\*)\\*\\*(?!\\*)", Pattern.DOTALL);
             Matcher boldMatcher = boldPattern.matcher(content);
             
             while (boldMatcher.find()) {
                 int start = boldMatcher.start() + 2; // Nach **
                 int end = boldMatcher.end() - 2;     // Vor **
-                
                 if (end > start) {
-                    codeArea.setStyle(start, end, Collections.singleton("bold"));
+                    // Überprüfe, ob dieser Bereich bereits von bold-italic abgedeckt ist
+                    boolean alreadyCovered = markdownMatches.stream().anyMatch(m -> 
+                        (start >= m.start && start < m.end) || (end > m.start && end <= m.end) ||
+                        (start <= m.start && end >= m.end));
+                    if (!alreadyCovered) {
+                        markdownMatches.add(new MarkdownMatch(start, end, "markdown-bold"));
+                    }
                 }
             }
             
-            // Italic-Pattern: *text* (die nicht bereits Bold sind)
-            Pattern italicPattern = Pattern.compile("\\*(.*?)\\*");
+            // Italic-Pattern: *text* (aber nicht **text** oder ***text***)
+            Pattern italicPattern = Pattern.compile("(?<!\\*)\\*(?!\\*)([\\s\\S]*?)(?<!\\*)\\*(?!\\*)", Pattern.DOTALL);
             Matcher italicMatcher = italicPattern.matcher(content);
             
             while (italicMatcher.find()) {
                 int start = italicMatcher.start() + 1; // Nach *
                 int end = italicMatcher.end() - 1;     // Vor *
-                
                 if (end > start) {
-                    codeArea.setStyle(start, end, Collections.singleton("italic"));
+                    // Überprüfe, ob dieser Bereich bereits abgedeckt ist
+                    boolean alreadyCovered = markdownMatches.stream().anyMatch(m -> 
+                        (start >= m.start && start < m.end) || (end > m.start && end <= m.end) ||
+                        (start <= m.start && end >= m.end));
+                    if (!alreadyCovered) {
+                        markdownMatches.add(new MarkdownMatch(start, end, "markdown-italic"));
+                    }
                 }
             }
             
-
+            // Sortiere Markdown-Matches nach Position
+            markdownMatches.sort((a, b) -> Integer.compare(a.start, b.start));
+            
+            // Wenn keine Markdown-Matches vorhanden sind, nichts tun
+            if (markdownMatches.isEmpty()) {
+                return; // Keine Markdown-Matches = keine Änderungen
+            }
+            
+            // Hole existierende StyleSpans (Textanalyse-Markierungen)
+            StyleSpans<Collection<String>> existingSpans = codeArea.getStyleSpans(0, codeArea.getLength());
+            
+            // Prüfe ob Textanalyse-Markierungen vorhanden sind
+            boolean hasTextAnalysis = false;
+            for (StyleSpan<Collection<String>> span : existingSpans) {
+                for (String style : span.getStyle()) {
+                    if (style.startsWith("search-") || style.startsWith("highlight-") || 
+                        style.equals("word-repetition") || style.startsWith("analysis-")) {
+                        hasTextAnalysis = true;
+                        break;
+                    }
+                }
+                if (hasTextAnalysis) break;
+            }
+            
+            // EINFACHE LÖSUNG: Sammle alle existierenden Styles und füge Markdown hinzu
+            StyleSpansBuilder<Collection<String>> spansBuilder = new StyleSpansBuilder<>();
+            int currentPos = 0;
+            
+            // Sammle alle existierenden Styles (Suchen, Textanalyse, etc.)
+            Map<Integer, Set<String>> existingStyles = new HashMap<>();
+            for (StyleSpan<Collection<String>> span : existingSpans) {
+                for (int i = 0; i < span.getLength(); i++) {
+                    int pos = currentPos + i;
+                    existingStyles.put(pos, new HashSet<>(span.getStyle()));
+                }
+                currentPos += span.getLength();
+            }
+            
+            // Füge Markdown-Styles zu existierenden Styles hinzu
+            for (MarkdownMatch match : markdownMatches) {
+                for (int i = match.start; i < match.end; i++) {
+                    existingStyles.computeIfAbsent(i, k -> new HashSet<>()).add(match.styleClass);
+                }
+            }
+            
+            // Baue neue StyleSpans mit allen Styles
+            currentPos = 0;
+            Set<String> currentStyles = new HashSet<>();
+            
+            for (int i = 0; i < content.length(); i++) {
+                Set<String> stylesAtPos = existingStyles.getOrDefault(i, new HashSet<>());
+                
+                if (!stylesAtPos.equals(currentStyles)) {
+                    // Style-Änderung - füge bisherige Styles hinzu
+                    if (!currentStyles.isEmpty()) {
+                        spansBuilder.add(currentStyles, i - currentPos);
+                    } else {
+                        spansBuilder.add(Collections.emptyList(), i - currentPos);
+                    }
+                    currentPos = i;
+                    currentStyles = new HashSet<>(stylesAtPos);
+                }
+            }
+            
+            // Letzte Styles hinzufügen
+            if (!currentStyles.isEmpty()) {
+                spansBuilder.add(currentStyles, content.length() - currentPos);
+            } else {
+                spansBuilder.add(Collections.emptyList(), content.length() - currentPos);
+            }
+            
+            // Anwenden
+            StyleSpans<Collection<String>> spans = spansBuilder.create();
+            codeArea.setStyleSpans(0, spans);
             
         } catch (Exception e) {
-
-            logger.debug("Fehler beim einfachen Markdown-Styling: {}", e.getMessage());
+            logger.debug("Fehler beim kombinierten Styling: {}", e.getMessage());
         }
     }
+    
+
     
 
     
@@ -8438,10 +8688,11 @@ if (caret != null) {
 
     
     private void showErrorDialog(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
+        CustomAlert alert = new CustomAlert(Alert.AlertType.ERROR, message);
         alert.setTitle(title);
         alert.setHeaderText(null);
-        alert.setContentText(message);
+        alert.applyTheme(currentThemeIndex);
+        alert.initOwner(stage);
         alert.showAndWait();
     }
     
@@ -8474,4 +8725,137 @@ if (caret != null) {
                    ", Vorheriges=" + !btnPreviousChapter.isDisabled() + 
                    ", Nächstes=" + !btnNextChapter.isDisabled());
     }
-} 
+    
+    /**
+     * Ändert den Zeilenabstand basierend auf ComboBox-Auswahl
+     */
+    // changeLineSpacingFromComboBox entfernt - wird von RichTextFX nicht unterstützt
+    
+    /**
+     * Ändert den Absatzabstand basierend auf ComboBox-Auswahl
+     */
+    private void changeParagraphSpacingFromComboBox() {
+        if (cmbParagraphSpacing.getValue() != null && !cmbParagraphSpacing.getValue().trim().isEmpty()) {
+            try {
+                int newSpacing = Integer.parseInt(cmbParagraphSpacing.getValue());
+                
+                // Speichere neue Konfiguration
+                Properties config = new Properties();
+                try (InputStream input = new FileInputStream("config/parameters.properties")) {
+                    config.load(new InputStreamReader(input, StandardCharsets.UTF_8));
+                }
+                config.setProperty("editor.paragraph-spacing", String.valueOf(newSpacing));
+                try (java.io.FileOutputStream output = new java.io.FileOutputStream("config/parameters.properties")) {
+                    config.store(output, "Editor-Konfiguration");
+                }
+                
+                // Wende neue Konfiguration an
+                applyEditorSpacing();
+                updateStatus("Absatzabstand auf " + newSpacing + "px gesetzt");
+                
+                logger.info("Absatzabstand geändert auf: " + newSpacing + "px");
+            } catch (NumberFormatException e) {
+                logger.error("Ungültiger Absatzabstand: " + cmbParagraphSpacing.getValue());
+                cmbParagraphSpacing.setValue("10"); // Fallback
+            } catch (Exception e) {
+                logger.error("Fehler beim Ändern des Absatzabstands", e);
+            }
+        }
+    }
+    
+    /**
+     * Wendet die konfigurierten Editor-Abstände an
+     */
+    private void applyEditorSpacing() {
+        if (codeArea == null) {
+            logger.warn("applyEditorSpacing: codeArea ist null!");
+            return;
+        }
+
+        try {
+            logger.info("applyEditorSpacing: Starte Anwendung der Abstände...");
+            
+            // Lade Konfiguration aus parameters.properties
+            Properties config = new Properties();
+            try (InputStream input = new FileInputStream("config/parameters.properties")) {
+                config.load(new InputStreamReader(input, StandardCharsets.UTF_8));
+            }
+
+            // Hole konfigurierte Werte (mit Fallbacks)
+            double lineSpacing = Double.parseDouble(config.getProperty("editor.line-spacing", "1.5"));
+            int paragraphSpacing = Integer.parseInt(config.getProperty("editor.paragraph-spacing", "10"));
+            
+            logger.info("applyEditorSpacing: Gelesene Werte - Zeilenabstand=" + lineSpacing + ", Absatzabstand=" + paragraphSpacing);
+
+            // Wende Abstände an
+            Platform.runLater(() -> {
+                try {
+                    // Sicherheitscheck: codeArea und Scene müssen verfügbar sein
+                    if (codeArea == null || codeArea.getScene() == null) {
+                        logger.warn("applyEditorSpacing: codeArea oder Scene ist null - überspringe Anwendung");
+                        return;
+                    }
+                    // Debug-Text entfernt - nur noch CSS-Styling
+                 
+                    // Inline-Style für RichTextFX setzen
+                    String currentStyle = codeArea.getStyle();
+                    logger.info("applyEditorSpacing: Aktueller Style: " + currentStyle);
+                    
+                    // Entferne alte Spacing-Eigenschaften aus dem Style
+                    String cleanStyle = currentStyle
+                        .replaceAll("-fx-line-spacing:\\s*[^;]*;", "")
+                        .replaceAll("line-height:\\s*[^;]*;", "")
+                        .replaceAll("padding-bottom:\\s*[^;]*;", "")
+                        .trim();
+                    
+                    // RICHTIGE LÖSUNG: CSS-Stylesheet verwenden statt Inline-Style
+                    
+                    // WORKING SOLUTION: Nur Absatzabstand funktioniert mit RichTextFX
+                    // Zeilenabstand ist ein bekanntes Problem mit RichTextFX CodeArea
+                    String cssContent = String.format(
+                        ".code-area .paragraph-box { -fx-padding: 0 0 %dpx 0; }",
+                        paragraphSpacing);
+                    
+                    logger.info("RichTextFX CodeArea: Nur Absatzabstand wird unterstützt");
+                    logger.info("Zeilenabstand wird von RichTextFX CodeArea nicht unterstützt");
+                    
+                    // Füge CSS als Stylesheet hinzu
+                    try {
+                        // Erstelle temporäre CSS-Datei
+                        java.io.File tempCssFile = java.io.File.createTempFile("line-spacing", ".css");
+                        tempCssFile.deleteOnExit();
+                        
+                        try (java.io.FileWriter writer = new java.io.FileWriter(tempCssFile)) {
+                            writer.write(cssContent);
+                        }
+                        
+                        // Füge Stylesheet zur CodeArea hinzu
+                        codeArea.getStylesheets().add(tempCssFile.toURI().toString());
+                        
+                        logger.info("RichTextFX CodeArea: CSS-Stylesheet hinzugefügt: " + tempCssFile.getAbsolutePath());
+                        logger.info("RichTextFX CodeArea: CSS-Inhalt: " + cssContent);
+                        
+                    } catch (Exception e) {
+                        logger.error("Fehler beim Erstellen des CSS-Stylesheets", e);
+                    } catch (Throwable t) {
+                        logger.error("Unerwarteter Fehler beim CSS-Stylesheet", t);
+                    }
+                    
+                    // Force Layout-Update für sofortige Anzeige
+                    codeArea.requestLayout();
+                    
+                    logger.info("Editor-Abstände angewendet: Zeilenabstand=" + lineSpacing +
+                               ", Absatzabstand=" + paragraphSpacing + "px");
+                } catch (Exception e) {
+                    logger.error("Fehler beim Anwenden der Abstände in Platform.runLater", e);
+                }
+            });
+
+        } catch (Exception e) {
+            logger.error("Fehler beim Anwenden der Editor-Abstände", e);
+        }
+    }
+    
+
+}
+

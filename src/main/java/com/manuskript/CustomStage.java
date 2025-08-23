@@ -66,10 +66,13 @@ public class CustomStage extends Stage {
         
         // Titel-Label
         titleLabel = new Label("Manuskript");
-        titleLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px; -fx-padding: 0 10px;");
+        titleLabel.setStyle("-fx-text-fill: green; -fx-font-weight: bold; -fx-font-size: 14px; -fx-padding: 0 10px; -fx-background-color: transparent; -fx-background-radius: 0; -fx-opacity: 1;");
+        titleLabel.setBackground(null);
+        titleLabel.setOpacity(1.0);
         
         // Spacer für flexible Positionierung
         Region spacer = new Region();
+        spacer.setStyle("-fx-background-color: transparent;");
         HBox.setHgrow(spacer, Priority.ALWAYS);
         
         // Window-Buttons
@@ -84,22 +87,9 @@ public class CustomStage extends Stage {
         closeBtn = new Button("✕");
         closeBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 18px; -fx-min-width: 35px; -fx-min-height: 30px; -fx-border-color: transparent; -fx-border-radius: 4px; -fx-background-radius: 4px;");
         closeBtn.setOnAction(e -> {
-            // Prüfe, ob es andere offene Fenster gibt
-            boolean hasOtherWindows = false;
-            for (javafx.stage.Window window : javafx.stage.Window.getWindows()) {
-                if (window != this && window.isShowing()) {
-                    hasOtherWindows = true;
-                    break;
-                }
-            }
-            
-            // Wenn es das letzte Fenster ist, beende die Anwendung
-            if (!hasOtherWindows) {
-                javafx.application.Platform.exit();
-                System.exit(0);
-            } else {
-                close();
-            }
+            // WICHTIG: Close-Request-Event auslösen statt direkt schließen!
+            // Das ermöglicht dem Close-Request-Handler, ungespeicherte Änderungen zu prüfen
+            fireEvent(new javafx.stage.WindowEvent(this, javafx.stage.WindowEvent.WINDOW_CLOSE_REQUEST));
         });
         
         // Hover-Effekte
@@ -138,25 +128,30 @@ public class CustomStage extends Stage {
      */
     private void setupDragAndDrop() {
         titleBar.setOnMousePressed(event -> {
-            if (event.getClickCount() == 1) {
+            if (event.getClickCount() == 1 && !isResizing) {
                 xOffset = event.getSceneX();
                 yOffset = event.getSceneY();
+                logger.debug("Drag gestartet: Offset=({},{})", xOffset, yOffset);
             }
         });
         
         titleBar.setOnMouseDragged(event -> {
-            if (!isMaximized) {
-                setX(event.getScreenX() - xOffset);
-                setY(event.getScreenY() - yOffset);
+            if (!isMaximized && !isResizing) {
+                double newX = event.getScreenX() - xOffset;
+                double newY = event.getScreenY() - yOffset;
+                setX(newX);
+                setY(newY);
             }
         });
         
         // Doppelklick zum Maximieren/Minimieren
         titleBar.setOnMouseClicked(event -> {
-            if (event.getClickCount() == 2) {
+            if (event.getClickCount() == 2 && !isResizing) {
                 toggleMaximize();
             }
         });
+        
+
     }
     
     /**
@@ -214,64 +209,106 @@ public class CustomStage extends Stage {
      * Richtet Resize-Handles für das Fenster ein
      */
     private void setupResizeHandles(Scene scene) {
-        final int RESIZE_BORDER = 8;
+        final int RESIZE_BORDER = 5; // Reduziert für präzisere Kontrolle
         
-        // Resize-Handles für alle Ränder
-        scene.setOnMouseMoved(event -> {
+        // WICHTIG: EventFilter verwenden, um Events VOR anderen Handlern abzufangen
+        scene.addEventFilter(MouseEvent.MOUSE_MOVED, event -> {
             if (isMaximized) {
                 scene.setCursor(javafx.scene.Cursor.DEFAULT);
                 return;
             }
             
-            double x = event.getX();
-            double y = event.getY();
+            // Prüfe, ob wir uns in der Titelleiste befinden - dann kein Resize
+            if (event.getY() < titleBar.getHeight()) {
+                scene.setCursor(javafx.scene.Cursor.DEFAULT);
+                return;
+            }
+            
+            // Prüfe, ob wir uns in einem Textbereich befinden - dann kein Resize
+            if (event.getTarget() instanceof Node) {
+                Node target = (Node) event.getTarget();
+                if (target != null && (target.getStyleClass().contains("code-area") || 
+                                      target.getStyleClass().contains("text-area") ||
+                                      target.getStyleClass().contains("text-field") ||
+                                      target.getStyleClass().contains("editor"))) {
+                    scene.setCursor(javafx.scene.Cursor.TEXT);
+                    return;
+                }
+            }
+            
+            double x = event.getSceneX();
+            double y = event.getSceneY();
             double width = scene.getWidth();
             double height = scene.getHeight();
             
-            if (x < RESIZE_BORDER && y < RESIZE_BORDER) {
-                scene.setCursor(javafx.scene.Cursor.NW_RESIZE);
-            } else if (x > width - RESIZE_BORDER && y < RESIZE_BORDER) {
+            // Nur an den äußersten Rändern Resize-Cursor anzeigen - LINKS DEAKTIVIERT
+            if (x >= width - RESIZE_BORDER && y <= RESIZE_BORDER) {
                 scene.setCursor(javafx.scene.Cursor.NE_RESIZE);
-            } else if (x < RESIZE_BORDER && y > height - RESIZE_BORDER) {
-                scene.setCursor(javafx.scene.Cursor.SW_RESIZE);
-            } else if (x > width - RESIZE_BORDER && y > height - RESIZE_BORDER) {
+            } else if (x >= width - RESIZE_BORDER && y >= height - RESIZE_BORDER) {
                 scene.setCursor(javafx.scene.Cursor.SE_RESIZE);
-            } else if (x < RESIZE_BORDER) {
-                scene.setCursor(javafx.scene.Cursor.W_RESIZE);
-            } else if (x > width - RESIZE_BORDER) {
+            } else if (x >= width - RESIZE_BORDER) {
                 scene.setCursor(javafx.scene.Cursor.E_RESIZE);
-            } else if (y < RESIZE_BORDER) {
+            } else if (y <= RESIZE_BORDER) {
                 scene.setCursor(javafx.scene.Cursor.N_RESIZE);
-            } else if (y > height - RESIZE_BORDER) {
+            } else if (y >= height - RESIZE_BORDER) {
                 scene.setCursor(javafx.scene.Cursor.S_RESIZE);
             } else {
                 scene.setCursor(javafx.scene.Cursor.DEFAULT);
             }
         });
         
-        // Resize-Funktionalität
-        scene.setOnMousePressed(event -> {
+        // WICHTIG: EventFilter für Mouse-Press verwenden
+        scene.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
             if (isMaximized) return;
             
-            double x = event.getX();
-            double y = event.getY();
-            double width = scene.getWidth();
-            double height = scene.getHeight();
+            // Prüfe, ob wir uns in der Titelleiste befinden - dann kein Resize
+            if (event.getY() < titleBar.getHeight()) {
+                return;
+            }
             
-            if (x < RESIZE_BORDER || x > width - RESIZE_BORDER || 
-                y < RESIZE_BORDER || y > height - RESIZE_BORDER) {
+            // Prüfe, ob wir uns in einem Textbereich befinden - dann kein Resize
+            if (event.getTarget() instanceof Node) {
+                Node target = (Node) event.getTarget();
+                if (target != null && (target.getStyleClass().contains("code-area") || 
+                                      target.getStyleClass().contains("text-area") ||
+                                      target.getStyleClass().contains("text-field") ||
+                                      target.getStyleClass().contains("editor"))) {
+                    return; // Textbereich - kein Resize
+                }
+            }
+            
+            // WICHTIG: Resize NUR starten, wenn der Cursor bereits auf einem Resize-Cursor steht - LINKS DEAKTIVIERT
+            if (scene.getCursor() == javafx.scene.Cursor.E_RESIZE ||
+                scene.getCursor() == javafx.scene.Cursor.N_RESIZE ||
+                scene.getCursor() == javafx.scene.Cursor.S_RESIZE ||
+                scene.getCursor() == javafx.scene.Cursor.NE_RESIZE ||
+                scene.getCursor() == javafx.scene.Cursor.SE_RESIZE) {
+                
+                double x = event.getSceneX();
+                double y = event.getSceneY();
+                double width = scene.getWidth();
+                double height = scene.getHeight();
+                
                 startResize(event, x, y, width, height);
+                event.consume(); // WICHTIG: Event konsumieren, damit ScrollPane es nicht bekommt
             }
         });
         
-        scene.setOnMouseDragged(event -> {
+        // WICHTIG: EventFilter für Mouse-Drag verwenden
+        scene.addEventFilter(MouseEvent.MOUSE_DRAGGED, event -> {
             if (isResizing) {
                 performResize(event);
+                event.consume(); // WICHTIG: Event konsumieren während Resize
             }
         });
         
-        scene.setOnMouseReleased(event -> {
-            isResizing = false;
+        // WICHTIG: EventFilter für Mouse-Release verwenden
+        scene.addEventFilter(MouseEvent.MOUSE_RELEASED, event -> {
+            if (isResizing) {
+                isResizing = false;
+                scene.setCursor(javafx.scene.Cursor.DEFAULT);
+                event.consume(); // WICHTIG: Event konsumieren
+            }
         });
     }
     
@@ -290,27 +327,24 @@ public class CustomStage extends Stage {
         resizeStartWidth = getWidth();
         resizeStartHeight = getHeight();
         
-        // Bestimme Resize-Richtung
-        final int RESIZE_BORDER = 8;
-        if (x < RESIZE_BORDER && y < RESIZE_BORDER) {
-            resizeDirection = "NW";
-        } else if (x > width - RESIZE_BORDER && y < RESIZE_BORDER) {
+        // Bestimme Resize-Richtung - LINKS DEAKTIVIERT
+        final int RESIZE_BORDER = 5; // Gleicher Wert wie in setupResizeHandles
+        if (x >= width - RESIZE_BORDER && y <= RESIZE_BORDER) {
             resizeDirection = "NE";
-        } else if (x < RESIZE_BORDER && y > height - RESIZE_BORDER) {
-            resizeDirection = "SW";
-        } else if (x > width - RESIZE_BORDER && y > height - RESIZE_BORDER) {
+        } else if (x >= width - RESIZE_BORDER && y >= height - RESIZE_BORDER) {
             resizeDirection = "SE";
-        } else if (x < RESIZE_BORDER) {
-            resizeDirection = "W";
-        } else if (x > width - RESIZE_BORDER) {
+        } else if (x >= width - RESIZE_BORDER) {
             resizeDirection = "E";
-        } else if (y < RESIZE_BORDER) {
+        } else if (y <= RESIZE_BORDER) {
             resizeDirection = "N";
-        } else if (y > height - RESIZE_BORDER) {
+        } else if (y >= height - RESIZE_BORDER) {
             resizeDirection = "S";
         }
         
         isResizing = true;
+        
+        logger.debug("Resize gestartet: Richtung={}, Position=({},{}), Größe=({},{})", 
+                    resizeDirection, x, y, width, height);
     }
     
     /**
@@ -327,48 +361,53 @@ public class CustomStage extends Stage {
         double newX = getX();
         double newY = getY();
         
+        // Mindestgröße definieren
+        double minWidth = Math.max(getMinWidth(), 300.0);
+        double minHeight = Math.max(getMinHeight(), 200.0);
+        
         // Resize basierend auf Richtung
         switch (resizeDirection) {
             case "SE":
-                newWidth = Math.max(getMinWidth(), resizeStartWidth + deltaX);
-                newHeight = Math.max(getMinHeight(), resizeStartHeight + deltaY);
+                newWidth = Math.max(minWidth, resizeStartWidth + deltaX);
+                newHeight = Math.max(minHeight, resizeStartHeight + deltaY);
                 break;
             case "SW":
-                newWidth = Math.max(getMinWidth(), resizeStartWidth - deltaX);
-                newHeight = Math.max(getMinHeight(), resizeStartHeight + deltaY);
+                newWidth = Math.max(minWidth, resizeStartWidth - deltaX);
+                newHeight = Math.max(minHeight, resizeStartHeight + deltaY);
                 newX = getX() + (resizeStartWidth - newWidth);
                 break;
             case "NE":
-                newWidth = Math.max(getMinWidth(), resizeStartWidth + deltaX);
-                newHeight = Math.max(getMinHeight(), resizeStartHeight - deltaY);
+                newWidth = Math.max(minWidth, resizeStartWidth + deltaX);
+                newHeight = Math.max(minHeight, resizeStartHeight - deltaY);
                 newY = getY() + (resizeStartHeight - newHeight);
                 break;
             case "NW":
-                newWidth = Math.max(getMinWidth(), resizeStartWidth - deltaX);
-                newHeight = Math.max(getMinHeight(), resizeStartHeight - deltaY);
+                newWidth = Math.max(minWidth, resizeStartWidth - deltaX);
+                newHeight = Math.max(minHeight, resizeStartHeight - deltaY);
                 newX = getX() + (resizeStartWidth - newWidth);
                 newY = getY() + (resizeStartHeight - newHeight);
                 break;
             case "E":
-                newWidth = Math.max(getMinWidth(), resizeStartWidth + deltaX);
+                newWidth = Math.max(minWidth, resizeStartWidth + deltaX);
                 break;
             case "W":
-                newWidth = Math.max(getMinWidth(), resizeStartWidth - deltaX);
+                newWidth = Math.max(minWidth, resizeStartWidth - deltaX);
                 newX = getX() + (resizeStartWidth - newWidth);
                 break;
             case "S":
-                newHeight = Math.max(getMinHeight(), resizeStartHeight + deltaY);
+                newHeight = Math.max(minHeight, resizeStartHeight + deltaY);
                 break;
             case "N":
-                newHeight = Math.max(getMinHeight(), resizeStartHeight - deltaY);
+                newHeight = Math.max(minHeight, resizeStartHeight - deltaY);
                 newY = getY() + (resizeStartHeight - newHeight);
                 break;
         }
         
-        setX(newX);
-        setY(newY);
-        setWidth(newWidth);
-        setHeight(newHeight);
+        // Nur ändern, wenn es tatsächlich neue Werte sind
+        if (Math.abs(getX() - newX) > 0.1) setX(newX);
+        if (Math.abs(getY() - newY) > 0.1) setY(newY);
+        if (Math.abs(getWidth() - newWidth) > 0.1) setWidth(newWidth);
+        if (Math.abs(getHeight() - newHeight) > 0.1) setHeight(newHeight);
     }
     
     /**
@@ -399,15 +438,23 @@ public class CustomStage extends Stage {
      * Ändert die Farbe der Titelleiste mit Textfarbe
      */
     public void setTitleBarColor(String backgroundColor, String textColor) {
+        setTitleBarColor(backgroundColor, textColor, "#1a252f"); // Standard Border-Farbe
+    }
+    
+    /**
+     * Ändert die Farbe der Titelleiste mit Textfarbe und Border-Farbe
+     */
+    public void setTitleBarColor(String backgroundColor, String textColor, String borderColor) {
         // Aktuelle Textfarbe für Hover-Effekte speichern
         currentTextColor = textColor;
         
         if (titleBar != null) {
-            titleBar.setStyle("-fx-background-color: " + backgroundColor + "; -fx-padding: 5px; -fx-spacing: 5px; -fx-border-color: #1a252f; -fx-border-width: 0 0 1 0;");
+            // Dünne Border um die gesamte Titlebar (nicht nur unten)
+            titleBar.setStyle("-fx-background-color: " + backgroundColor + "; -fx-padding: 5px; -fx-spacing: 5px; -fx-border-color: " + borderColor + "; -fx-border-width: 1px; -fx-border-radius: 0;");
             
             // Textfarben für alle Elemente anpassen
             if (titleLabel != null) {
-                titleLabel.setStyle("-fx-text-fill: " + textColor + "; -fx-font-weight: bold; -fx-font-size: 14px; -fx-padding: 0 10px;");
+                titleLabel.setStyle("-fx-text-fill: " + textColor + "; -fx-font-weight: bold; -fx-font-size: 14px; -fx-padding: 0 10px; -fx-background-color: transparent; -fx-background-radius: 0;");
             }
             
             // Button-Styles mit neuer Textfarbe
@@ -456,38 +503,46 @@ public class CustomStage extends Stage {
     public void setTitleBarTheme(int themeIndex) {
         String backgroundColor;
         String textColor;
+        String borderColor; // Neue Border-Farbe
         
         switch (themeIndex) {
             case 0: // Weiß
                 backgroundColor = "linear-gradient(from 0% 0% to 0% 100%, #ffffff 0%, #f8f9fa 100%)";
                 textColor = "black";
+                borderColor = "black"; // Schwarze Border für weiße Themes
                 break;
             case 1: // Schwarz
-                backgroundColor = "linear-gradient(from 0% 0% to 0% 100%, #1a1a1a 0%, #2d2d2d 100%)";
+                backgroundColor = "#1a1a1a"; // Komplett schwarz, kein Gradient
                 textColor = "white";
+                borderColor = "white"; // Weiße Border für schwarze Themes
                 break;
             case 2: // Pastell
                 backgroundColor = "linear-gradient(from 0% 0% to 0% 100%, #f3e5f5 0%, #e1bee7 100%)";
                 textColor = "black";
+                borderColor = "black"; // Schwarze Border für helle Themes
                 break;
             case 3: // Blau
                 backgroundColor = "linear-gradient(from 0% 0% to 0% 100%, #1e3a8a 0%, #3b82f6 100%)";
                 textColor = "white";
+                borderColor = "white"; // Weiße Border für dunkle Themes
                 break;
             case 4: // Grün
                 backgroundColor = "linear-gradient(from 0% 0% to 0% 100%, #064e3b 0%, #10b981 100%)";
                 textColor = "white";
+                borderColor = "white"; // Weiße Border für dunkle Themes
                 break;
             case 5: // Lila
                 backgroundColor = "linear-gradient(from 0% 0% to 0% 100%, #581c87 0%, #8b5cf6 100%)";
                 textColor = "white";
+                borderColor = "white"; // Weiße Border für dunkle Themes
                 break;
             default:
                 backgroundColor = "linear-gradient(from 0% 0% to 0% 100%, #2c3e50 0%, #34495e 100%)";
                 textColor = "white";
+                borderColor = "white"; // Weiße Border für dunkle Themes
                 break;
         }
-        setTitleBarColor(backgroundColor, textColor);
+        setTitleBarColor(backgroundColor, textColor, borderColor);
     }
     
     /**

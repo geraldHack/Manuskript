@@ -58,7 +58,7 @@ public class StageManager {
         
         // Theme aus Preferences laden und anwenden
         int currentTheme = preferences.getInt("main_window_theme", 0);
-        stage.setTitleBarTheme(currentTheme);
+        stage.setFullTheme(currentTheme); // WICHTIG: setFullTheme für vollständige Theme-Anwendung
         
         logger.debug("CustomStage erstellt: '{}', Modal: {}, Theme: {}", title, modal, currentTheme);
         
@@ -90,14 +90,10 @@ public class StageManager {
         
         // CSS-Ressourcen laden
         try {
-            String stylesCssPath = ResourceManager.getCssResource("css/styles.css");
-            String editorCssPath = ResourceManager.getCssResource("css/editor.css");
+            String cssPath = ResourceManager.getCssResource("css/manuskript.css");
             
-            if (stylesCssPath != null) {
-                scene.getStylesheets().add(stylesCssPath);
-            }
-            if (editorCssPath != null) {
-                scene.getStylesheets().add(editorCssPath);
+            if (cssPath != null) {
+                scene.getStylesheets().add(cssPath);
             }
         } catch (Exception e) {
             logger.warn("Fehler beim Laden der CSS-Ressourcen", e);

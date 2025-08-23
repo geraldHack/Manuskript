@@ -826,11 +826,11 @@ public class DocxProcessor {
                 
                 if (run.getRPr() != null) {
                     RPr rpr = run.getRPr();
-                    if (rpr.getB() != null) {
+                    if (rpr.getB() != null && rpr.getB().isVal()) {
                         isBold = true;
                         logger.debug("Fett-Formatierung erkannt");
                     }
-                    if (rpr.getI() != null) {
+                    if (rpr.getI() != null && rpr.getI().isVal()) {
                         isItalic = true;
                         logger.debug("Kursiv-Formatierung erkannt");
                     }

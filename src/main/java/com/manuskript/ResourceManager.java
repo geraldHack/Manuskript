@@ -117,8 +117,8 @@ public class ResourceManager {
             }
             
             // Standard-Dateien erstellen falls nicht vorhanden
-            createDefaultCssFile("css/styles.css");
-            createDefaultCssFile("css/editor.css");
+            // createDefaultCssFile("css/styles.css"); // Deaktiviert - verursacht CSS-Konflikte
+            // createDefaultCssFile("css/editor.css"); // Deaktiviert - verursacht CSS-Konflikte
             createDefaultPropertiesFile("textanalysis.properties");
             createDefaultPropertiesFile("parameters.properties");
             
@@ -420,5 +420,33 @@ public class ResourceManager {
         saveParameter("ollama.top_p", String.valueOf(topP));
         saveParameter("ollama.repeat_penalty", String.valueOf(repeatPenalty));
         logger.info("Alle Ollama-Parameter gespeichert");
+    }
+    
+    /**
+     * Lädt den letzten verwendeten Datei-Pfad
+     */
+    public static String getLastFilePath() {
+        return getParameter("ui.last_file_path", "");
+    }
+    
+    /**
+     * Speichert den letzten verwendeten Datei-Pfad
+     */
+    public static void setLastFilePath(String path) {
+        saveParameter("ui.last_file_path", path);
+    }
+    
+    /**
+     * Lädt den letzten verwendeten Ausgabe-Pfad
+     */
+    public static String getLastOutputPath() {
+        return getParameter("ui.last_output_path", "");
+    }
+    
+    /**
+     * Speichert den letzten verwendeten Ausgabe-Pfad
+     */
+    public static void setLastOutputPath(String path) {
+        saveParameter("ui.last_output_path", path);
     }
 } 
