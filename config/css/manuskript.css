@@ -1,0 +1,3835 @@
+/* ========================================
+   MANUSKRIPT - ZUSAMMENGEFÜHRTE CSS-DATEI
+   Alle Styles aus styles.css und editor.css
+   ======================================== */
+
+/* ========================================
+   BASIS-STYLES (Weiß Theme - Standard)
+   ======================================== */
+
+/* Markdown-Styling für RichTextFX CodeArea */
+.bold {
+    -fx-font-weight: bold;
+    -fx-fill: #d63384; /* Pink für bold Text */
+}
+
+.italic {
+    -fx-font-style: italic;
+    -fx-fill: #0d6efd; /* Blau für kursiv Text */
+}
+
+.bold-italic {
+    -fx-font-weight: bold;
+    -fx-font-style: italic;
+    -fx-fill: #6f42c1; /* Lila für bold+kursiv Text */
+}
+
+/* Markdown-Styling mit RichTextFX-spezifischen Klassen */
+.code-area .markdown-bold {
+    -fx-font-weight: bold;
+    -fx-fill: #d63384 !important;
+}
+
+.code-area .markdown-italic {
+    -fx-font-style: italic;
+    -fx-fill: #0d6efd !important;
+}
+
+.code-area .markdown-bold-italic {
+    -fx-font-weight: bold;
+    -fx-font-style: italic;
+    -fx-fill: #6f42c1 !important;
+}
+
+/* Hauptstil für die Anwendung */
+.root {
+    -fx-font-family: 'Segoe UI', Arial, sans-serif;
+    -fx-font-size: 12px;
+    -fx-background-color: #ffffff;
+}
+
+/* ComboBox-Dropdown-Pfeile sichtbar machen */
+.combo-box .arrow-button {
+    -fx-background-color: transparent;
+}
+
+.combo-box .arrow-button .arrow {
+    -fx-background-color: #666666;
+    -fx-shape: "M 0 0 L 4 4 L 8 0 Z";
+    -fx-padding: 4px;
+}
+
+.combo-box .arrow-button:hover .arrow {
+    -fx-background-color: #333333;
+}
+
+.combo-box .arrow-button:pressed .arrow {
+    -fx-background-color: #000000;
+}
+
+/* ComboBox-Dropdown-Liste */
+.combo-box-popup .list-view {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #cccccc;
+    -fx-border-width: 1px;
+}
+
+.combo-box-popup .list-view .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: #000000;
+    -fx-padding: 8px 12px;
+}
+
+.combo-box-popup .list-view .list-cell:hover {
+    -fx-background-color: #f0f0f0;
+}
+
+.combo-box-popup .list-view .list-cell:selected {
+    -fx-background-color: #007bff;
+    -fx-text-fill: #ffffff;
+}
+
+/* Dialog-Styling für alle Themes */
+.dialog-pane {
+    -fx-background-color: inherit;
+}
+
+.dialog-pane .header-panel {
+    -fx-background-color: inherit;
+}
+
+/* Alternierende Listen-Styling - AKTIVIERT */
+.alternating-list .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: inherit;
+    -fx-padding: 8px 12px;
+}
+
+.alternating-list .list-cell:odd {
+    -fx-background-color: rgba(0, 0, 0, 0.05);
+}
+
+.alternating-list .list-cell:even {
+    -fx-background-color: transparent;
+}
+
+.alternating-list .list-cell:hover {
+    -fx-background-color: rgba(0, 123, 255, 0.1);
+}
+
+.alternating-list .list-cell:selected {
+    -fx-background-color: rgba(0, 123, 255, 0.2);
+    -fx-text-fill: inherit;
+}
+
+/* Dark Theme alternierende Listen - AKTIVIERT */
+.theme-dark.alternating-list .list-cell:odd {
+    -fx-background-color: rgba(255, 255, 255, 0.1);
+}
+
+.theme-dark.alternating-list .list-cell:even {
+    -fx-background-color: transparent;
+}
+
+.theme-dark.alternating-list .list-cell:hover {
+    -fx-background-color: rgba(59, 130, 246, 0.2);
+}
+
+.theme-dark.alternating-list .list-cell:selected {
+    -fx-background-color: rgba(59, 130, 246, 0.3);
+    -fx-text-fill: #ffffff;
+}
+
+.theme-dark.blau-theme.alternating-list .list-cell:odd {
+    -fx-background-color: rgba(59, 130, 246, 0.15);
+}
+
+.theme-dark.blau-theme.alternating-list .list-cell:hover {
+    -fx-background-color: rgba(59, 130, 246, 0.3);
+}
+
+.theme-dark.blau-theme.alternating-list .list-cell:selected {
+    -fx-background-color: rgba(59, 130, 246, 0.4);
+}
+
+.theme-dark.gruen-theme.alternating-list .list-cell:odd {
+    -fx-background-color: rgba(34, 197, 94, 0.15);
+}
+
+.theme-dark.gruen-theme.alternating-list .list-cell:hover {
+    -fx-background-color: rgba(34, 197, 94, 0.3);
+}
+
+.theme-dark.gruen-theme.alternating-list .list-cell:selected {
+    -fx-background-color: rgba(34, 197, 94, 0.4);
+}
+
+.theme-dark.lila-theme.alternating-list .list-cell:odd {
+    -fx-background-color: rgba(147, 51, 234, 0.15);
+}
+
+.theme-dark.lila-theme.alternating-list .list-cell:hover {
+    -fx-background-color: rgba(147, 51, 234, 0.3);
+}
+
+.theme-dark.lila-theme.alternating-list .list-cell:selected {
+    -fx-background-color: rgba(147, 51, 234, 0.4);
+}
+
+.dialog-pane .content {
+    -fx-background-color: inherit;
+}
+
+.dialog-pane .button {
+    -fx-background-color: inherit;
+    -fx-text-fill: inherit;
+    -fx-border-color: inherit;
+}
+
+.dialog-pane .button:hover {
+    -fx-background-color: inherit;
+    -fx-text-fill: inherit;
+}
+
+.dialog-pane .button:pressed {
+    -fx-background-color: inherit;
+    -fx-text-fill: inherit;
+}
+
+.dialog-pane .label {
+    -fx-text-fill: inherit;
+}
+
+.dialog-pane .text {
+    -fx-fill: inherit;
+}
+
+/* Spezielle Dialog-Regeln für Theme-4 (Grün) */
+.dialog-pane.theme-4 {
+    -fx-background-color: #064e3b;
+}
+
+.dialog-pane.theme-4 .header-panel {
+    -fx-background-color: #064e3b;
+}
+
+.dialog-pane.theme-4 .content {
+    -fx-background-color: #064e3b;
+}
+
+.dialog-pane.theme-4 .button {
+    -fx-background-color: #065f46;
+    -fx-text-fill: #ffffff;
+    -fx-border-color: #047857;
+}
+
+.dialog-pane.theme-4 .button:hover {
+    -fx-background-color: #047857;
+    -fx-text-fill: #ffffff;
+}
+
+.dialog-pane.theme-4 .button:pressed {
+    -fx-background-color: #065f46;
+    -fx-text-fill: #ffffff;
+}
+
+.dialog-pane.theme-4 .label {
+    -fx-text-fill: #ffffff;
+}
+
+.dialog-pane.theme-4 .text {
+    -fx-fill: #ffffff;
+}
+
+/* TextField-Styling */
+.text-field {
+    -fx-background-color: white;
+    -fx-border-color: #ddd;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+    -fx-padding: 6px 8px;
+}
+
+.text-field:focused {
+    -fx-border-color: #2196F3;
+    -fx-border-width: 2px;
+}
+
+/* ========================================
+   THEME-SPEZIFISCHE STYLES
+   ======================================== */
+
+/* Weiß Theme - spezifische Regeln */
+.weiss-theme {
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #000000;
+}
+
+.weiss-theme .button {
+    -fx-background-color: #f0f0f0;
+    -fx-text-fill: #000000;
+    -fx-border-color: #cccccc;
+}
+
+.weiss-theme .button:hover {
+    -fx-background-color: #e0e0e0;
+    -fx-border-color: #999999;
+}
+
+.weiss-theme .toggle-button {
+    -fx-background-color: #f0f0f0;
+    -fx-text-fill: #000000;
+    -fx-border-color: #cccccc;
+}
+
+.weiss-theme .toggle-button:hover {
+    -fx-background-color: #e0e0e0;
+    -fx-border-color: #999999;
+}
+
+.weiss-theme .toggle-button:selected {
+    -fx-background-color: #d0d0d0;
+    -fx-border-color: #666666;
+}
+
+.weiss-theme .text-field {
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #000000;
+    -fx-border-color: #cccccc;
+}
+
+.weiss-theme .combo-box {
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #000000;
+    -fx-border-color: #cccccc;
+}
+
+.weiss-theme .combo-box .arrow-button .arrow {
+    -fx-background-color: #666666;
+}
+
+.weiss-theme .combo-box .arrow-button:hover .arrow {
+    -fx-background-color: #333333;
+}
+
+.weiss-theme .combo-box .list-cell {
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #000000;
+}
+
+.weiss-theme .combo-box-popup .list-view {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #cccccc;
+}
+
+.weiss-theme .check-box {
+    -fx-text-fill: #000000;
+}
+
+.weiss-theme .check-box .box {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #cccccc;
+    -fx-min-width: 16px;
+    -fx-min-height: 16px;
+    -fx-max-width: 16px;
+    -fx-max-height: 16px;
+}
+
+.weiss-theme .check-box:selected .box {
+    -fx-background-color: #ffffff !important;
+    -fx-border-color: #000000 !important;
+}
+
+.weiss-theme .check-box .mark {
+    -fx-background-color: transparent;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z";
+    -fx-scale-x: 0.6;
+    -fx-scale-y: 0.6;
+    -fx-translate-x: 1px;
+    -fx-translate-y: 1px;
+}
+
+.weiss-theme .check-box:selected .mark {
+    -fx-background-color: #000000 !important;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z";
+    -fx-scale-x: 0.8;
+    -fx-scale-y: 0.8;
+    -fx-translate-x: 0px;
+    -fx-translate-y: 0px;
+}
+
+.weiss-theme .label {
+    -fx-text-fill: #000000;
+}
+
+.weiss-theme .table-view {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #cccccc;
+}
+
+.weiss-theme .table-view .column-header {
+    -fx-background-color: #f8f9fa;
+    -fx-border-color: #dee2e6;
+}
+
+/* Pastell Theme - spezifische Regeln */
+.pastell-theme {
+    -fx-background-color: #e8d5f2;
+    -fx-text-fill: #000000;
+}
+
+.pastell-theme VBox,
+.pastell-theme HBox,
+.pastell-theme .root,
+.pastell-theme .mainContainer,
+.pastell-theme * VBox,
+.pastell-theme * HBox {
+    -fx-background-color: #e8d5f2 !important;
+    -fx-text-fill: #000000 !important;
+}
+
+.pastell-theme .button {
+    -fx-background-color: #e1bee7;
+    -fx-text-fill: #000000;
+    -fx-border-color: #ba68c8;
+}
+
+.pastell-theme .button:hover {
+    -fx-background-color: #ce93d8;
+    -fx-border-color: #ab47bc;
+}
+
+.pastell-theme .toggle-button {
+    -fx-background-color: #e1bee7;
+    -fx-text-fill: #000000;
+    -fx-border-color: #ba68c8;
+}
+
+.pastell-theme .toggle-button:hover {
+    -fx-background-color: #ce93d8;
+    -fx-border-color: #ab47bc;
+}
+
+/* Pastell Theme - Labels (überall) */
+.pastell-theme .label,
+.pastell-theme * .label {
+    -fx-background-color: #e1bee7 !important;
+    -fx-text-fill: #000000 !important;
+    -fx-padding: 4px 8px;
+    -fx-background-radius: 4px;
+}
+
+/* Pastell Theme - Textfelder (überall) */
+.pastell-theme .text-field,
+.pastell-theme * .text-field {
+    -fx-background-color: #e1bee7 !important;
+    -fx-text-fill: #000000 !important;
+    -fx-border-color: #ba68c8 !important;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+    -fx-padding: 6px 8px;
+}
+
+.pastell-theme .text-field:focused,
+.pastell-theme * .text-field:focused {
+    -fx-border-color: #9c27b0 !important;
+    -fx-border-width: 2px;
+}
+
+/* Pastell Theme - Combo-Boxen (Dropdowns) - überall */
+.pastell-theme .combo-box,
+.pastell-theme * .combo-box {
+    -fx-background-color: #e1bee7 !important;
+    -fx-text-fill: #000000 !important;
+    -fx-border-color: #ba68c8 !important;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+}
+
+.pastell-theme .combo-box .list-cell,
+.pastell-theme * .combo-box .list-cell {
+    -fx-background-color: #e1bee7 !important;
+    -fx-text-fill: #000000 !important;
+}
+
+.pastell-theme .combo-box .arrow,
+.pastell-theme * .combo-box .arrow {
+    -fx-background-color: #9c27b0 !important;
+    -fx-shape: "M 0 0 L 4 4 L 8 0 Z";
+    -fx-scale-x: 0.8;
+    -fx-scale-y: 0.8;
+}
+
+.pastell-theme .combo-box-popup .list-view,
+.pastell-theme * .combo-box-popup .list-view {
+    -fx-background-color: #e1bee7 !important;
+    -fx-border-color: #ba68c8 !important;
+}
+
+.pastell-theme .combo-box-popup .list-view .list-cell,
+.pastell-theme * .combo-box-popup .list-view .list-cell {
+    -fx-background-color: #e1bee7 !important;
+    -fx-text-fill: #000000 !important;
+}
+
+.pastell-theme .combo-box-popup .list-view .list-cell:hover,
+.pastell-theme * .combo-box-popup .list-view .list-cell:hover {
+    -fx-background-color: #ce93d8 !important;
+}
+
+.pastell-theme .combo-box-popup .list-view .list-cell:selected,
+.pastell-theme * .combo-box-popup .list-view .list-cell:selected {
+    -fx-background-color: #ba68c8 !important;
+    -fx-text-fill: #000000 !important;
+}
+
+/* Pastell Theme - Check-Boxen (überall) */
+.pastell-theme .check-box,
+.pastell-theme * .check-box {
+    -fx-text-fill: #000000 !important;
+}
+
+.pastell-theme .check-box .box,
+.pastell-theme * .check-box .box {
+    -fx-background-color: #e1bee7 !important;
+    -fx-border-color: #ba68c8 !important;
+    -fx-border-radius: 2px;
+    -fx-background-radius: 2px;
+    -fx-min-width: 16px;
+    -fx-min-height: 16px;
+    -fx-max-width: 16px;
+    -fx-max-height: 16px;
+}
+
+.pastell-theme .check-box:selected .box,
+.pastell-theme * .check-box:selected .box {
+    -fx-background-color: #ba68c8 !important;
+    -fx-border-color: #9c27b0 !important;
+}
+
+.pastell-theme .check-box .mark,
+.pastell-theme * .check-box .mark {
+    -fx-background-color: transparent;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z";
+    -fx-scale-x: 0.6;
+    -fx-scale-y: 0.6;
+    -fx-translate-x: 1px;
+    -fx-translate-y: 1px;
+}
+
+.pastell-theme .check-box:selected .mark,
+.pastell-theme * .check-box:selected .mark {
+    -fx-background-color: #ffffff !important;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z";
+    -fx-scale-x: 0.6;
+    -fx-scale-y: 0.6;
+    -fx-translate-x: 1px;
+    -fx-translate-y: 1px;
+}
+
+/* Pastell Theme - Text-Areas (überall) */
+.pastell-theme .text-area,
+.pastell-theme * .text-area {
+    -fx-background-color: #e1bee7 !important;
+    -fx-text-fill: #000000 !important;
+    -fx-border-color: #ba68c8 !important;
+}
+
+.pastell-theme .text-area .content,
+.pastell-theme * .text-area .content {
+    -fx-background-color: #e1bee7 !important;
+    -fx-text-fill: #000000 !important;
+}
+
+/* ========================================
+   TABLEVIEW-STYLING FÜR ALLE THEMES
+   ======================================== */
+
+/* Weiß-Theme TableView */
+.weiss-theme .table-view {
+    -fx-background-color: #ffffff !important;
+    -fx-text-fill: #000000 !important;
+}
+
+.weiss-theme .table-view .virtual-flow .clipped-container .sheet {
+    -fx-background-color: #ffffff !important;
+}
+
+.weiss-theme .table-view .column-header-background {
+    -fx-background-color: #f5f5f5 !important;
+}
+
+.weiss-theme .table-view .column-header .label {
+    -fx-text-fill: #000000 !important;
+    -fx-font-weight: bold;
+}
+
+.weiss-theme .table-view .table-row-cell {
+    -fx-background-color: #ffffff !important;
+    -fx-text-fill: #000000 !important;
+}
+
+.weiss-theme .table-view .table-row-cell .table-cell {
+    -fx-text-fill: #000000 !important;
+}
+
+.weiss-theme .table-view .table-row-cell:odd,
+.weiss-theme .table-view .table-row-cell:nth-child(odd) {
+    -fx-background-color: #f9f9f9 !important;
+}
+
+.weiss-theme .table-view .table-row-cell:selected {
+    -fx-background-color: #9b9292 !important;
+}
+
+.weiss-theme .table-view .table-row-cell:selected .table-cell {
+    -fx-text-fill: #ffffff !important;
+}
+
+.weiss-theme .table-view .table-row-cell:hover {
+    -fx-background-color: #9b9292 !important;
+}
+
+/* Weiß-Theme TableView - Hover über selektierte Zeile */
+.weiss-theme .table-view .table-row-cell:selected:hover {
+    -fx-background-color: #9b9292 !important;
+}
+
+.weiss-theme .table-view .table-row-cell:selected:hover .table-cell {
+    -fx-text-fill: #000000 !important;
+}
+
+/* Weiß-Theme TableView - Scrollbalken */
+.weiss-theme .table-view .scroll-bar {
+    -fx-background-color: #ffffff !important;
+}
+
+.weiss-theme .table-view .scroll-bar .thumb {
+    -fx-background-color: #9ca3af !important;
+}
+
+.weiss-theme .table-view .scroll-bar .track {
+    -fx-background-color: #f3f4f6 !important;
+}
+
+.weiss-theme .table-view .scroll-bar .increment-button,
+.weiss-theme .table-view .scroll-bar .decrement-button {
+    -fx-background-color: #ffffff !important;
+}
+
+/* ========================================
+   PASTELL-THEME TABLEVIEW - KOMPLETT NEU
+   ======================================== */
+
+/* Pastell-Theme TableView - Basis */
+.pastell-theme .table-view {
+    -fx-background-color: #f8f9fa !important;
+    -fx-text-fill: #000000 !important;
+    -fx-border-color: #ba68c8 !important;
+}
+
+.pastell-theme .table-view .virtual-flow .clipped-container .sheet {
+    -fx-background-color: #f8f9fa !important;
+}
+
+.pastell-theme .table-view .column-header-background {
+    -fx-background-color: #e9ecef !important;
+}
+
+.pastell-theme .table-view .column-header .label {
+    -fx-text-fill: #000000 !important;
+    -fx-font-weight: bold;
+}
+
+/* Pastell-Theme TableView - Zeilen */
+.pastell-theme .table-view .table-row-cell {
+    -fx-text-fill: #000000 !important;
+}
+
+.pastell-theme .table-view .table-row-cell .table-cell {
+    -fx-text-fill: #000000 !important;
+}
+
+/* Pastell-Theme TableView - Ungerade Zeilen */
+.pastell-theme .table-view .table-row-cell:odd {
+    -fx-background-color: #e1bee7 !important;
+}
+
+.pastell-theme .table-view .table-row-cell:even {
+    -fx-background-color: #dda5e7 !important;
+}
+
+.pastell-theme .table-view .table-row-cell:nth-child(odd) {
+    -fx-background-color: #e1bee7 !important;
+}
+
+/* Pastell-Theme TableView - Gerade Zeilen */
+.pastell-theme .table-view .table-row-cell:nth-child(even) {
+    -fx-background-color: #f3e5f5 !important;
+}
+
+/* Pastell-Theme TableView - Selektion (sofort sichtbar) */
+.pastell-theme .table-view .table-row-cell:selected,
+.pastell-theme .table-view .table-row-cell:selected:focused {
+    -fx-background-color: #ba68c8 !important;
+}
+
+.pastell-theme .table-view .table-row-cell:selected .table-cell,
+.pastell-theme .table-view .table-row-cell:selected:focused .table-cell {
+    -fx-text-fill: #000000 !important;
+}
+
+/* Pastell-Theme TableView - Hover */
+.pastell-theme .table-view .table-row-cell:hover {
+    -fx-background-color: #ce93d8 !important;
+}
+
+/* Pastell-Theme TableView - Hover über selektierte Zeile */
+.pastell-theme .table-view .table-row-cell:selected:hover,
+.pastell-theme .table-view .table-row-cell:selected:focused:hover {
+    -fx-background-color: #ce93d8 !important;
+}
+
+.pastell-theme .table-view .table-row-cell:selected:hover .table-cell,
+.pastell-theme .table-view .table-row-cell:selected:focused:hover .table-cell {
+    -fx-text-fill: #000000 !important;
+}
+
+/* Pastell-Theme TableView - Scrollbalken */
+.pastell-theme .table-view .scroll-bar {
+    -fx-background-color: #e8d5f2 !important;
+}
+
+.pastell-theme .table-view .scroll-bar .thumb {
+    -fx-background-color: #ba68c8 !important;
+}
+
+.pastell-theme .table-view .scroll-bar .track {
+    -fx-background-color: #e1bee7 !important;
+}
+
+.pastell-theme .table-view .scroll-bar .increment-button,
+.pastell-theme .table-view .scroll-bar .decrement-button {
+    -fx-background-color: #e8d5f2 !important;
+}
+
+/* Pastell-Theme TableView - Ecken und Füller */
+.pastell-theme .table-view .corner {
+    -fx-background-color: #e8d5f2 !important;
+}
+
+.pastell-theme .table-view .filler {
+    -fx-background-color: #e8d5f2 !important;
+}
+
+/* Blau-Theme TableView - MAXIMALE Spezifität */
+.root .theme-dark.blau-theme .table-view {
+    -fx-background-color: #1e3a8a !important;
+    -fx-text-fill: #ffffff !important;
+}
+
+.root .theme-dark.blau-theme .table-view .virtual-flow .clipped-container .sheet {
+    -fx-background-color: #1e3a8a !important;
+}
+
+.root .theme-dark.blau-theme .table-view .column-header-background {
+    -fx-background-color: #1e40af !important;
+}
+
+.root .theme-dark.blau-theme .table-view .column-header .label {
+    -fx-text-fill: #ffffff !important;
+    -fx-font-weight: bold;
+}
+
+/* BASISREGEL für ALLE Zeilen (wie bei anderen Themes) */
+.root .theme-dark.blau-theme .table-view .table-row-cell {
+    -fx-background-color: #1e3a8a !important;
+    -fx-text-fill: #ffffff !important;
+}
+
+.root .theme-dark.blau-theme .table-view .table-row-cell .table-cell {
+    -fx-text-fill: #ffffff !important;
+}
+
+/* Nur UNGERADE Zeilen überschreiben (wie bei anderen Themes) */
+.root .theme-dark.blau-theme .table-view .table-row-cell:odd,
+.root .theme-dark.blau-theme .table-view .table-row-cell:nth-child(odd) {
+    -fx-background-color: #1e40af !important;
+}
+
+.root .theme-dark.blau-theme .table-view .table-row-cell:selected {
+    -fx-background-color: #3b82f6 !important;
+}
+
+.root .theme-dark.blau-theme .table-view .table-row-cell:selected .table-cell {
+    -fx-text-fill: #ffffff !important;
+}
+
+.root .theme-dark.blau-theme .table-view .table-row-cell:hover {
+    -fx-background-color: #2563eb !important;
+}
+
+/* Blau-Theme TableView - Scrollbalken */
+.root .theme-dark.blau-theme .table-view .scroll-bar {
+    -fx-background-color: #1e3a8a !important;
+}
+
+.root .theme-dark.blau-theme .table-view .scroll-bar .thumb {
+    -fx-background-color: #3b82f6 !important;
+}
+
+.root .theme-dark.blau-theme .table-view .scroll-bar .track {
+    -fx-background-color: #1e40af !important;
+}
+
+.root .theme-dark.blau-theme .table-view .scroll-bar .increment-button,
+.root .theme-dark.blau-theme .table-view .scroll-bar .decrement-button {
+    -fx-background-color: #1e3a8a !important;
+}
+
+/* Grün-Theme TableView - MAXIMALE Spezifität */
+.root .theme-dark.gruen-theme .table-view {
+    -fx-background-color: #064e3b !important;
+    -fx-text-fill: #ffffff !important;
+}
+
+.root .theme-dark.gruen-theme .table-view .virtual-flow .clipped-container .sheet {
+    -fx-background-color: #064e3b !important;
+}
+
+.root .theme-dark.gruen-theme .table-view .column-header-background {
+    -fx-background-color: #065f46 !important;
+}
+
+.root .theme-dark.gruen-theme .table-view .column-header .label {
+    -fx-text-fill: #ffffff !important;
+    -fx-font-weight: bold !important;
+}
+
+.root .theme-dark.gruen-theme .table-view .table-row-cell {
+    -fx-background-color: #064e3b !important;
+    -fx-text-fill: #ffffff !important;
+}
+
+.root .theme-dark.gruen-theme .table-view .table-row-cell .table-cell {
+    -fx-text-fill: #ffffff !important;
+}
+
+.root .theme-dark.gruen-theme .table-view .table-row-cell:odd,
+.root .theme-dark.gruen-theme .table-view .table-row-cell:nth-child(odd) {
+    -fx-background-color: #065f46 !important;
+}
+
+.root .theme-dark.gruen-theme .table-view .table-row-cell:selected {
+    -fx-background-color: #059669 !important;
+}
+
+.root .theme-dark.gruen-theme .table-view .table-row-cell:selected .table-cell {
+    -fx-text-fill: #ffffff !important;
+}
+
+.root .theme-dark.gruen-theme .table-view .table-row-cell:hover {
+    -fx-background-color: #047857 !important;
+}
+
+/* Grün-Theme TableView - Scrollbalken */
+.root .theme-dark.gruen-theme .table-view .scroll-bar {
+    -fx-background-color: #064e3b !important;
+}
+
+.root .theme-dark.gruen-theme .table-view .scroll-bar .thumb {
+    -fx-background-color: #10b981 !important;
+}
+
+.root .theme-dark.gruen-theme .table-view .scroll-bar .track {
+    -fx-background-color: #065f46 !important;
+}
+
+.root .theme-dark.gruen-theme .table-view .scroll-bar .increment-button,
+.root .theme-dark.gruen-theme .table-view .scroll-bar .decrement-button {
+    -fx-background-color: #064e3b !important;
+}
+
+/* Lila-Theme TableView - MAXIMALE Spezifität */
+.root .theme-dark.lila-theme .table-view {
+    -fx-background-color: #4c1d95 !important;
+    -fx-text-fill: #ffffff !important;
+}
+
+.root .theme-dark.lila-theme .table-view .virtual-flow .clipped-container .sheet {
+    -fx-background-color: #4c1d95 !important;
+}
+
+.root .theme-dark.lila-theme .table-view .column-header-background {
+    -fx-background-color: #5b21b6 !important;
+}
+
+.root .theme-dark.lila-theme .table-view .column-header .label {
+    -fx-text-fill: #ffffff !important;
+    -fx-font-weight: bold !important;
+}
+
+.root .theme-dark.lila-theme .table-view .table-row-cell {
+    -fx-background-color: #4c1d95 !important;
+    -fx-text-fill: #ffffff !important;
+}
+
+.root .theme-dark.lila-theme .table-view .table-row-cell .table-cell {
+    -fx-text-fill: #ffffff !important;
+}
+
+.root .theme-dark.lila-theme .table-view .table-row-cell:odd,
+.root .theme-dark.lila-theme .table-view .table-row-cell:nth-child(odd) {
+    -fx-background-color: #5b21b6 !important;
+}
+
+.root .theme-dark.lila-theme .table-view .table-row-cell:selected {
+    -fx-background-color: #7c3aed !important;
+}
+
+.root .theme-dark.lila-theme .table-view .table-row-cell:selected .table-cell {
+    -fx-text-fill: #ffffff !important;
+}
+
+.root .theme-dark.lila-theme .table-view .table-row-cell:hover {
+    -fx-background-color: #6d28d9 !important;
+}
+
+/* Lila-Theme TableView - Scrollbalken */
+.root .theme-dark.lila-theme .table-view .scroll-bar {
+    -fx-background-color: #4c1d95 !important;
+}
+
+.root .theme-dark.lila-theme .table-view .scroll-bar .thumb {
+    -fx-background-color: #8b5cf6 !important;
+}
+
+.root .theme-dark.lila-theme .table-view .scroll-bar .track {
+    -fx-background-color: #5b21b6 !important;
+}
+
+.root .theme-dark.lila-theme .table-view .scroll-bar .increment-button,
+.root .theme-dark.lila-theme .table-view .scroll-bar .decrement-button {
+    -fx-background-color: #4c1d95 !important;
+}
+
+/* Schwarz-Theme TableView */
+.theme-dark .table-view {
+    -fx-background-color: #1a1a1a !important;
+    -fx-text-fill: #ffffff !important;
+}
+
+.theme-dark .table-view .virtual-flow .clipped-container .sheet {
+    -fx-background-color: #1a1a1a !important;
+}
+
+.theme-dark .table-view .column-header-background {
+    -fx-background-color: #2d2d2d !important;
+}
+
+.theme-dark .table-view .column-header .label {
+    -fx-text-fill: #ffffff !important;
+    -fx-font-weight: bold;
+}
+
+.theme-dark .table-view .table-row-cell {
+    -fx-background-color: #1a1a1a !important;
+    -fx-text-fill: #ffffff !important;
+}
+
+.theme-dark .table-view .table-row-cell .table-cell {
+    -fx-text-fill: #ffffff !important;
+}
+
+/* WICHTIG: Höhere Spezifität für ungerade Zeilen */
+.theme-dark .table-view .table-row-cell:odd {
+    -fx-background-color: #2d2d2d !important;
+}
+
+/* Zusätzliche Regel für bessere Kompatibilität */
+.theme-dark .table-view .table-row-cell:nth-child(odd) {
+    -fx-background-color: #2d2d2d !important;
+}
+
+/* MAXIMALE SPEZIFITÄT für TableView-Zeilen im schwarzen Theme */
+.root .theme-dark .table-view .table-row-cell:odd {
+    -fx-background-color: #2d2d2d !important;
+}
+
+.root .theme-dark .table-view .table-row-cell:nth-child(odd) {
+    -fx-background-color: #2d2d2d !important;
+}
+
+.theme-dark .table-view .table-row-cell:selected {
+    -fx-background-color: #4a5568 !important;
+}
+
+.theme-dark .table-view .table-row-cell:selected .table-cell {
+    -fx-text-fill: #ffffff !important;
+}
+
+.theme-dark .table-view .table-row-cell:hover {
+    -fx-background-color: #374151 !important;
+}
+
+.theme-dark .table-view .placeholder .label {
+    -fx-text-fill: #9ca3af !important;
+}
+
+/* Scrollbalken für schwarzes Theme */
+.theme-dark .table-view .corner {
+    -fx-background-color: #1a1a1a !important;
+}
+
+.theme-dark .table-view .filler {
+    -fx-background-color: #1a1a1a !important;
+}
+
+.theme-dark .table-view .scroll-bar {
+    -fx-background-color: #1a1a1a !important;
+}
+
+.theme-dark .table-view .scroll-bar .thumb {
+    -fx-background-color: #4a5568 !important;
+}
+
+.theme-dark .table-view .scroll-bar .track {
+    -fx-background-color: #1a1a1a !important;
+}
+
+.theme-dark .table-view .scroll-bar .increment-button,
+.theme-dark .table-view .scroll-bar .decrement-button {
+    -fx-background-color: #1a1a1a !important;
+}
+
+/* ========================================
+   DARK THEME - ALLGEMEINE STYLES
+   ======================================== */
+
+/* Allgemeine dunkle Theme-Styles */
+.theme-dark {
+    -fx-background-color: #1a1a1a;
+    -fx-text-fill: #ffffff;
+}
+
+/* Buttons im dunklen Theme */
+.theme-dark .button {
+    -fx-background-color: #2d2d2d;
+    -fx-text-fill: #ffffff;
+    -fx-border-color: #4a5568;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+}
+
+.theme-dark .button:hover {
+    -fx-background-color: #4a5568;
+    -fx-text-fill: #ffffff;
+}
+
+.theme-dark .button:pressed {
+    -fx-background-color: #374151;
+    -fx-text-fill: #ffffff;
+}
+
+/* Toggle-Buttons im dunklen Theme */
+.theme-dark .toggle-button {
+    -fx-background-color: #2d2d2d;
+    -fx-text-fill: #ffffff;
+    -fx-border-color: #4a5568;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+}
+
+.theme-dark .toggle-button:hover {
+    -fx-background-color: #4a5568;
+    -fx-text-fill: #ffffff;
+}
+
+.theme-dark .toggle-button:selected {
+    -fx-background-color: #3b82f6;
+    -fx-text-fill: #ffffff;
+}
+
+/* Text-Felder im dunklen Theme */
+.theme-dark .text-field {
+    -fx-background-color: #2d2d2d;
+    -fx-text-fill: #ffffff;
+    -fx-border-color: #4a5568;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+}
+
+.theme-dark .text-field:focused {
+    -fx-border-color: #3b82f6;
+}
+
+/* Combo-Boxen im dunklen Theme */
+.theme-dark .combo-box {
+    -fx-background-color: #2d2d2d;
+    -fx-text-fill: #ffffff;
+    -fx-border-color: #4a5568;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+}
+
+.theme-dark .combo-box .arrow-button .arrow {
+    -fx-background-color: #cccccc;
+}
+
+.theme-dark .combo-box .arrow-button:hover .arrow {
+    -fx-background-color: #ffffff;
+}
+
+.theme-dark .combo-box .list-cell {
+    -fx-background-color: #2d2d2d;
+    -fx-text-fill: #ffffff;
+}
+
+.theme-dark .combo-box-popup .list-view {
+    -fx-background-color: #2d2d2d;
+    -fx-border-color: #4a5568;
+}
+
+.theme-dark .combo-box-popup .list-view .list-cell {
+    -fx-background-color: #2d2d2d;
+    -fx-text-fill: #ffffff;
+}
+
+.theme-dark .combo-box-popup .list-view .list-cell:hover {
+    -fx-background-color: #4a5568;
+}
+
+.theme-dark .combo-box-popup .list-view .list-cell:selected {
+    -fx-background-color: #3b82f6;
+    -fx-text-fill: #ffffff;
+}
+
+/* Check-Boxen im dunklen Theme */
+.theme-dark .check-box {
+    -fx-text-fill: #ffffff;
+}
+
+.theme-dark .check-box .box {
+    -fx-background-color: #2d2d2d;
+    -fx-border-color: #4a5568;
+    -fx-border-radius: 2px;
+    -fx-background-radius: 2px;
+}
+
+.theme-dark .check-box:selected .box {
+    -fx-background-color: #3b82f6;
+    -fx-border-color: #3b82f6;
+}
+
+.theme-dark .check-box .mark {
+    -fx-background-color: transparent;
+}
+
+.theme-dark .check-box:selected .mark {
+    -fx-background-color: #ffffff;
+}
+
+/* Labels im dunklen Theme */
+.theme-dark .label {
+    -fx-text-fill: #ffffff;
+    -fx-background-color: transparent;
+}
+
+/* Text-Areas im dunklen Theme */
+.theme-dark .text-area {
+    -fx-background-color: #2d2d2d;
+    -fx-text-fill: #ffffff;
+    -fx-border-color: #4a5568;
+}
+
+.theme-dark .text-area .content {
+    -fx-background-color: #2d2d2d;
+}
+
+/* Split-Panes im dunklen Theme */
+.theme-dark .split-pane {
+    -fx-background-color: #1a1a1a;
+}
+
+.theme-dark .split-pane-divider {
+    -fx-background-color: #4a5568;
+}
+
+/* Tab-Panes im dunklen Theme */
+.theme-dark .tab-pane {
+    -fx-background-color: #1a1a1a;
+}
+
+.theme-dark .tab-header-background {
+    -fx-background-color: #2d2d2d;
+}
+
+.theme-dark .tab {
+    -fx-background-color: #2d2d2d;
+    -fx-text-fill: #ffffff;
+}
+
+.theme-dark .tab:selected {
+    -fx-background-color: #4a5568;
+}
+
+/* Menu-Bars im dunklen Theme */
+.theme-dark .menu-bar {
+    -fx-background-color: #2d2d2d;
+}
+
+.theme-dark .menu {
+    -fx-background-color: #2d2d2d;
+}
+
+.theme-dark .menu-item {
+    -fx-background-color: #2d2d2d;
+    -fx-text-fill: #ffffff;
+}
+
+.theme-dark .menu-item:hover {
+    -fx-background-color: #4a5568;
+}
+
+/* Tooltips im dunklen Theme */
+.theme-dark .tooltip {
+    -fx-background-color: #2d2d2d;
+    -fx-text-fill: #ffffff;
+    -fx-border-color: #4a5568;
+}
+
+/* Scroll-Balken im dunklen Theme */
+.theme-dark .scroll-bar {
+    -fx-background-color: #1a1a1a;
+}
+
+.theme-dark .scroll-bar .thumb {
+    -fx-background-color: #4a5568;
+}
+
+.theme-dark .scroll-bar .track {
+    -fx-background-color: #1a1a1a;
+}
+
+.theme-dark .scroll-bar .increment-button,
+.theme-dark .scroll-bar .decrement-button {
+    -fx-background-color: #1a1a1a;
+}
+
+/* ========================================
+   DARK THEME VARIANTS
+   ======================================== */
+
+/* Blau Theme */
+.theme-dark.blau-theme {
+    -fx-background-color: #1e3a8a;
+    -fx-text-fill: #ffffff;
+}
+
+.theme-dark.blau-theme VBox,
+.theme-dark.blau-theme HBox,
+.theme-dark.blau-theme .mainContainer {
+    -fx-background-color: #1e3a8a;
+}
+
+.theme-dark.blau-theme .button {
+    -fx-background-color: #3b82f6;
+    -fx-text-fill: #ffffff;
+    -fx-border-color: #1d4ed8;
+}
+
+.theme-dark.blau-theme .button:hover {
+    -fx-background-color: #2563eb;
+    -fx-border-color: #1e40af;
+}
+
+.theme-dark.blau-theme .toggle-button {
+    -fx-background-color: #3b82f6;
+    -fx-text-fill: #ffffff;
+    -fx-border-color: #1d4ed8;
+}
+
+.theme-dark.blau-theme .toggle-button:hover {
+    -fx-background-color: #2563eb;
+    -fx-border-color: #1e40af;
+}
+
+.theme-dark.blau-theme .toggle-button:selected {
+    -fx-background-color: #1d4ed8;
+    -fx-border-color: #1e3a8a;
+}
+
+.theme-dark.blau-theme .text-field {
+    -fx-background-color: #1e40af;
+    -fx-text-fill: #ffffff;
+    -fx-border-color: #3b82f6;
+}
+
+.theme-dark.blau-theme .combo-box {
+    -fx-background-color: #1e40af;
+    -fx-text-fill: #ffffff;
+    -fx-border-color: #3b82f6;
+}
+
+.theme-dark.blau-theme .combo-box .list-cell {
+    -fx-background-color: #1e40af;
+    -fx-text-fill: #ffffff;
+}
+
+.theme-dark.blau-theme .combo-box-popup .list-view {
+    -fx-background-color: #1e40af;
+    -fx-border-color: #3b82f6;
+}
+
+.theme-dark.blau-theme .combo-box-popup .list-view .list-cell { 
+    -fx-background-color: #1e40af; 
+    -fx-text-fill: #ffffff; 
+}
+
+.theme-dark.blau-theme .combo-box-popup .list-view .list-cell:hover { 
+    -fx-background-color: #2563eb; 
+}
+
+.theme-dark.blau-theme .combo-box-popup .list-view .list-cell:selected { 
+    -fx-background-color: #3b82f6; 
+    -fx-text-fill: #ffffff; 
+}
+
+/* Grün Theme */
+.theme-dark.gruen-theme {
+    -fx-background-color: #064e3b;
+    -fx-text-fill: #ffffff;
+}
+
+.theme-dark.gruen-theme VBox,
+.theme-dark.gruen-theme HBox,
+.theme-dark.gruen-theme .mainContainer {
+    -fx-background-color: #064e3b;
+}
+
+.theme-dark.gruen-theme .button {
+    -fx-background-color: #10b981;
+    -fx-text-fill: #ffffff;
+    -fx-border-color: #059669;
+}
+
+.theme-dark.gruen-theme .button:hover {
+    -fx-background-color: #059669;
+    -fx-border-color: #047857;
+}
+
+.theme-dark.gruen-theme .toggle-button {
+    -fx-background-color: #10b981;
+    -fx-text-fill: #ffffff;
+    -fx-border-color: #059669;
+}
+
+.theme-dark.gruen-theme .toggle-button:hover {
+    -fx-background-color: #059669;
+    -fx-border-color: #047857;
+}
+
+.theme-dark.gruen-theme .toggle-button:selected {
+    -fx-background-color: #047857;
+    -fx-border-color: #064e3b;
+}
+
+.theme-dark.gruen-theme .text-field {
+    -fx-background-color: #065f46;
+    -fx-text-fill: #ffffff;
+    -fx-border-color: #10b981;
+}
+
+.theme-dark.gruen-theme .combo-box {
+    -fx-background-color: #065f46;
+    -fx-text-fill: #ffffff;
+    -fx-border-color: #10b981;
+}
+
+.theme-dark.gruen-theme .combo-box .list-cell {
+    -fx-background-color: #065f46;
+    -fx-text-fill: #ffffff;
+}
+
+.theme-dark.gruen-theme .combo-box-popup .list-view {
+    -fx-background-color: #065f46;
+    -fx-border-color: #10b981;
+}
+
+.theme-dark.gruen-theme .combo-box-popup .list-view .list-cell { 
+    -fx-background-color: #065f46; 
+    -fx-text-fill: #ffffff; 
+}
+
+.theme-dark.gruen-theme .combo-box-popup .list-view .list-cell:hover { 
+    -fx-background-color: #047857; 
+}
+
+.theme-dark.gruen-theme .combo-box-popup .list-view .list-cell:selected { 
+    -fx-background-color: #10b981; 
+    -fx-text-fill: #ffffff; 
+}
+
+/* Lila Theme */
+.theme-dark.lila-theme {
+    -fx-background-color: #4c1d95;
+    -fx-text-fill: #ffffff;
+}
+
+.theme-dark.lila-theme VBox,
+.theme-dark.lila-theme HBox,
+.theme-dark.lila-theme .mainContainer {
+    -fx-background-color: #4c1d95;
+}
+
+.theme-dark.lila-theme .button {
+    -fx-background-color: #8b5cf6;
+    -fx-text-fill: #ffffff;
+    -fx-border-color: #7c3aed;
+}
+
+.theme-dark.lila-theme .button:hover {
+    -fx-background-color: #7c3aed;
+    -fx-border-color: #6d28d9;
+}
+
+.theme-dark.lila-theme .toggle-button {
+    -fx-background-color: #8b5cf6;
+    -fx-text-fill: #ffffff;
+    -fx-border-color: #7c3aed;
+}
+
+.theme-dark.lila-theme .toggle-button:hover {
+    -fx-background-color: #7c3aed;
+    -fx-border-color: #6d28d9;
+}
+
+.theme-dark.lila-theme .toggle-button:selected {
+    -fx-background-color: #6d28d9;
+    -fx-border-color: #581c87;
+}
+
+.theme-dark.lila-theme .text-field {
+    -fx-background-color: #5b21b6;
+    -fx-text-fill: #ffffff;
+    -fx-border-color: #8b5cf6;
+}
+
+.theme-dark.lila-theme .combo-box {
+    -fx-background-color: #5b21b6;
+    -fx-text-fill: #ffffff;
+    -fx-border-color: #8b5cf6;
+}
+
+.theme-dark.lila-theme .combo-box .list-cell {
+    -fx-background-color: #5b21b6;
+    -fx-text-fill: #ffffff;
+}
+
+.theme-dark.lila-theme .combo-box-popup .list-view {
+    -fx-background-color: #5b21b6;
+    -fx-border-color: #8b5cf6;
+}
+
+.theme-dark.lila-theme .combo-box-popup .list-view .list-cell { 
+    -fx-background-color: #5b21b6; 
+    -fx-text-fill: #ffffff; 
+}
+
+.theme-dark.lila-theme .combo-box-popup .list-view .list-cell:hover { 
+    -fx-background-color: #6d28d9; 
+}
+
+.theme-dark.lila-theme .combo-box-popup .list-view .list-cell:selected { 
+    -fx-background-color: #8b5cf6; 
+    -fx-text-fill: #ffffff; 
+}
+
+/* ========================================
+   EDITOR-SPEZIFISCHE STYLES
+   ======================================== */
+
+/* Chapter-Editor Panel */
+.chapter-editor-panel {
+    -fx-background-color: #f8f9fa;
+    -fx-border-color: #dee2e6;
+    -fx-border-width: 1px;
+    -fx-padding: 10px;
+}
+
+.chapter-editor-header {
+    -fx-background-color: #e9ecef;
+    -fx-border-color: #dee2e6;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 8px;
+}
+
+.chapter-editor-title {
+    -fx-text-fill: #495057;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+}
+
+.chapter-editor-panel .text-area,
+.chapter-editor-panel .text-area .content,
+.chapter-editor-text-area,
+.chapter-editor-text-area .content {
+    -fx-control-inner-background: #ffffff;
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #212529;
+    -fx-prompt-text-fill: #6c757d;
+}
+
+/* Theme-spezifische Chapter-Editor-Regeln */
+.theme-dark .chapter-editor-panel {
+    -fx-background-color: #2d2d2d;
+    -fx-border-color: #404040;
+}
+
+.theme-dark .chapter-editor-header {
+    -fx-background-color: #404040;
+    -fx-border-color: #505050;
+}
+
+.theme-dark .chapter-editor-title {
+    -fx-text-fill: #e2e8f0;
+}
+
+.theme-dark .chapter-editor-panel .text-area,
+.theme-dark .chapter-editor-panel .text-area .content {
+    -fx-control-inner-background: #2d2d2d;
+    -fx-background-color: #2d2d2d;
+    -fx-text-fill: #ffffff;
+    -fx-prompt-text-fill: #9ca3af;
+}
+
+.theme-dark.blau-theme .chapter-editor-panel {
+    -fx-background-color: #1e40af;
+    -fx-border-color: #3b82f6;
+}
+
+.theme-dark.blau-theme .chapter-editor-header {
+    -fx-background-color: #2563eb;
+    -fx-border-color: #60a5fa;
+}
+
+.theme-dark.blau-theme .chapter-editor-panel .text-area,
+.theme-dark.blau-theme .chapter-editor-panel .text-area .content {
+    -fx-control-inner-background: #1e40af;
+    -fx-background-color: #1e40af;
+    -fx-text-fill: #ffffff;
+    -fx-prompt-text-fill: #93c5fd;
+}
+
+.theme-dark.gruen-theme .chapter-editor-panel {
+    -fx-background-color: #065f46;
+    -fx-border-color: #10b981;
+}
+
+.theme-dark.gruen-theme .chapter-editor-header {
+    -fx-background-color: #047857;
+    -fx-border-color: #34d399;
+}
+
+.theme-dark.gruen-theme .chapter-editor-panel .text-area,
+.theme-dark.gruen-theme .chapter-editor-panel .text-area .content {
+    -fx-control-inner-background: #065f46;
+    -fx-background-color: #065f46;
+    -fx-text-fill: #ffffff;
+    -fx-prompt-text-fill: #6ee7b7;
+}
+
+.theme-dark.lila-theme .chapter-editor-panel {
+    -fx-background-color: #2d1b69;
+    -fx-border-color: #4a2b8a;
+}
+
+.theme-dark.lila-theme .chapter-editor-header {
+    -fx-background-color: #4a2b8a;
+    -fx-border-color: #6b46c1;
+}
+
+.theme-dark.lila-theme .chapter-editor-panel .text-area,
+.theme-dark.lila-theme .chapter-editor-panel .text-area .content {
+    -fx-control-inner-background: #2d1b69;
+    -fx-background-color: #2d1b69;
+    -fx-text-fill: #ffffff;
+    -fx-prompt-text-fill: #c084fc;
+}
+
+.pastell-theme .chapter-editor-panel {
+    -fx-background-color: #fefefe;
+    -fx-border-color: #e2e8f0;
+}
+
+.pastell-theme .chapter-editor-header {
+    -fx-background-color: #f7fafc;
+    -fx-border-color: #e2e8f0;
+}
+
+.pastell-theme .chapter-editor-title {
+    -fx-text-fill: #2d3748;
+}
+
+.pastell-theme .chapter-editor-panel .text-area,
+.pastell-theme .chapter-editor-panel .text-area .content,
+.pastell-theme .chapter-editor-text-area,
+.pastell-theme .chapter-editor-text-area .content {
+    -fx-control-inner-background: #fefefe;
+    -fx-background-color: #fefefe;
+    -fx-text-fill: #2d3748;
+    -fx-prompt-text-fill: #718096;
+}
+
+/* ========================================
+   LEERE TABLEVIEWS - Überschreibt weißen Standard-Hintergrund
+   ======================================== */
+
+/* Spezielle Regeln für leere TableViews - diese überschreiben den weißen Standard-Hintergrund */
+.table-view:empty {
+    -fx-background-color: inherit !important;
+}
+
+/* Spezifische Regeln für leere TableViews in verschiedenen Themes */
+.theme-dark .table-view:empty {
+    -fx-background-color: #2d2d2d !important;
+}
+
+.theme-dark.blau-theme .table-view:empty {
+    -fx-background-color: #1e40af !important;
+}
+
+.theme-dark.gruen-theme .table-view:empty {
+    -fx-background-color: #065f46 !important;
+}
+
+.theme-dark.lila-theme .table-view:empty {
+    -fx-background-color: #4c1d95 !important;
+}
+
+.weiss-theme .table-view:empty {
+    -fx-background-color: #ffffff !important;
+}
+
+.pastell-theme .table-view:empty {
+    -fx-background-color: #f8f9fa !important;
+}
+
+/* ========================================
+   MACRO-TABELLE STYLING
+   ======================================== */
+
+/* Isoliertes Styling für die Makro-Tabelle, inkl. schwieriger Subregionen */
+.macro-table,
+.macro-table .virtual-flow .clipped-container .sheet,
+.macro-table .column-header-background,
+.macro-table .placeholder,
+.macro-table .corner,
+.macro-table .filler { -fx-background-color: inherit !important; }
+
+.weiss-theme .macro-table,
+.weiss-theme .macro-table .virtual-flow .clipped-container .sheet,
+.weiss-theme .macro-table .column-header-background,
+.weiss-theme .macro-table .placeholder,
+.weiss-theme .macro-table .corner,
+.weiss-theme .macro-table .filler { -fx-background-color: #ffffff !important; }
+
+.pastell-theme .macro-table,
+.pastell-theme .macro-table .virtual-flow .clipped-container .sheet,
+.pastell-theme .macro-table .column-header-background,
+.pastell-theme .macro-table .placeholder,
+.pastell-theme .macro-table .corner,
+.pastell-theme .macro-table .filler { -fx-background-color: #e5e7eb !important; }
+
+.theme-dark .macro-table,
+.theme-dark .macro-table .virtual-flow .clipped-container .sheet,
+.theme-dark .macro-table .column-header-background,
+.theme-dark .macro-table .placeholder,
+.theme-dark .macro-table .corner,
+.theme-dark .macro-table .filler { -fx-background-color: #2d3748 !important; }
+
+.blau-theme .macro-table,
+.blau-theme .macro-table .virtual-flow .clipped-container .sheet,
+.blau-theme .macro-table .column-header-background,
+.blau-theme .macro-table .placeholder,
+.blau-theme .macro-table .corner,
+.blau-theme .macro-table .filler { -fx-background-color: #1e3a8a !important; }
+
+.gruen-theme .macro-table,
+.gruen-theme .macro-table .virtual-flow .clipped-container .sheet,
+.gruen-theme .macro-table .column-header-background,
+.gruen-theme .macro-table .placeholder,
+.gruen-theme .macro-table .corner,
+.gruen-theme .macro-table .filler { -fx-background-color: #064e3b !important; }
+
+.lila-theme .macro-table,
+.lila-theme .macro-table .virtual-flow .clipped-container .sheet,
+.lila-theme .macro-table .column-header-background,
+.lila-theme .macro-table .placeholder,
+.lila-theme .macro-table .corner,
+.lila-theme .macro-table .filler { -fx-background-color: #4c1d95 !important; }
+
+/* ========================================
+   OLLAMA-SPEZIFISCHE STYLES
+   ======================================== */
+
+/* Ollama TextArea Styling */
+.ollama-text-area,
+.ollama-text-area .content {
+    -fx-control-inner-background: #ffffff !important;
+    -fx-background-color: #ffffff !important;
+    -fx-text-fill: #000000 !important;
+    -fx-prompt-text-fill: #666666 !important;
+}
+
+/* Schwarz Theme - spezifische TextArea-Regel (Index 1) */
+.theme-dark .ollama-text-area,
+.theme-dark .ollama-text-area .content {
+    -fx-control-inner-background: #1a1a1a !important;
+    -fx-background-color: #1a1a1a !important;
+    -fx-text-fill: white !important;
+    -fx-prompt-text-fill: #cccccc !important;
+}
+
+/* Pastell Theme - Ollama TextArea */
+.pastell-theme .ollama-text-area,
+.pastell-theme .ollama-text-area .content {
+    -fx-control-inner-background: #e1bee7 !important;
+    -fx-background-color: #e1bee7 !important;
+    -fx-text-fill: #000000 !important;
+    -fx-prompt-text-fill: #666666 !important;
+}
+
+/* Blau Theme - Ollama TextArea */
+.theme-dark.blau-theme .ollama-text-area,
+.theme-dark.blau-theme .ollama-text-area .content {
+    -fx-control-inner-background: #1e3a8a !important;
+    -fx-background-color: #1e3a8a !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-prompt-text-fill: #cccccc !important;
+}
+
+/* Grün Theme - Ollama TextArea */
+.theme-dark.gruen-theme .ollama-text-area,
+.theme-dark.gruen-theme .ollama-text-area .content {
+    -fx-control-inner-background: #064e3b !important;
+    -fx-background-color: #064e3b !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-prompt-text-fill: #cccccc !important;
+}
+
+/* Lila Theme - Ollama TextArea */
+.theme-dark.lila-theme .ollama-text-area,
+.theme-dark.lila-theme .ollama-text-area .content {
+    -fx-control-inner-background: #4c1d95 !important;
+    -fx-background-color: #4c1d95 !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-prompt-text-fill: #cccccc !important;
+}
+
+/* Pastell Theme - spezifische Regeln */
+.pastell-theme {
+    -fx-background-color: #f3e5f5;
+    -fx-text-fill: #000000;
+}
+
+
+
+/* Spezifische Regeln für TextAreas im Pastell-Theme */
+.pastell-theme .text-area {
+    -fx-background-color: #ffffff !important;
+    -fx-text-fill: #000000 !important;
+    -fx-border-color: #ba68c8 !important;
+}
+
+.pastell-theme .text-area .content {
+    -fx-background-color: #ffffff !important;
+    -fx-text-fill: #000000 !important;
+}
+
+/* ========================================
+   CODE-AREA STYLING (RichTextFX)
+   ======================================== */
+
+/* Caret (Cursor) Styling */
+.code-area .caret {
+    -fx-stroke: #000000;
+    -fx-fill: #000000;
+}
+
+.theme-dark .code-area .caret {
+    -fx-stroke: #ffffff;
+    -fx-fill: #ffffff;
+}
+
+.pastell-theme .code-area .caret {
+    -fx-stroke: #000000;
+    -fx-fill: #000000;
+}
+
+/* Line Numbers */
+.code-area .lineno {
+    -fx-background-color: #f8f9fa;
+    -fx-text-fill: #6c757d;
+    -fx-border-color: #dee2e6;
+    -fx-border-width: 0 1 0 0;
+}
+
+.theme-dark .code-area .lineno {
+    -fx-background-color: #2d2d2d;
+    -fx-text-fill: #9ca3af;
+    -fx-border-color: #404040;
+}
+
+.pastell-theme .code-area .lineno {
+    -fx-background-color: #f3e5f5;
+    -fx-text-fill: #6c757d;
+    -fx-border-color: #ba68c8;
+}
+
+/* ========================================
+   PLACEHOLDER-STYLING (Leere Tabellen)
+   ======================================== */
+
+/* Standard Placeholder (Weißes Theme) */
+.table-view .placeholder {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #dee2e6;
+    -fx-border-width: 1px;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+}
+
+.table-view .placeholder .label {
+    -fx-text-fill: #6c757d;
+    -fx-font-size: 14px;
+    -fx-font-style: italic;
+}
+
+/* Theme-spezifische Placeholder-Regeln */
+.theme-dark .table-view .placeholder {
+    -fx-background-color: #2d3748;
+    -fx-border-color: #4a5568;
+}
+
+.theme-dark .table-view .placeholder .label {
+    -fx-text-fill: #e2e8f0;
+}
+
+.theme-4 .table-view .placeholder {
+    -fx-background-color: #064e3b;
+    -fx-border-color: #047857;
+}
+
+.theme-4 .table-view .placeholder .label {
+    -fx-text-fill: #d1fae5;
+}
+
+.theme-5 .table-view .placeholder {
+    -fx-background-color: #1e3a8a;
+    -fx-border-color: #3b82f6;
+}
+
+.theme-5 .table-view .placeholder .label {
+    -fx-text-fill: #dbeafe;
+}
+
+.theme-6 .table-view .placeholder {
+    -fx-background-color: #581c87;
+    -fx-border-color: #8b5cf6;
+}
+
+.theme-6 .table-view .placeholder .label {
+    -fx-text-fill: #f3e8ff;
+}
+
+/* ========================================
+   RICHTEXTFX CODEAREA THEME-STYLES
+   ======================================== */
+
+/* Basis-Styles für RichTextFX CodeArea */
+.code-area {
+    -fx-font-family: 'Consolas', 'Monaco', monospace;
+    -fx-font-size: 12px;
+    -rtfx-background-color: #ffffff;
+    -fx-text-fill: #000000;
+    -fx-caret-color: #000000;
+    -fx-highlight-fill: #add6ff;
+    -fx-highlight-text-fill: #000000;
+    -fx-padding: 0 0 0 10px; /* Links 10px Padding */
+}
+
+/* Zeilenabstand-Klassen für RichTextFX */
+.code-area.line-spacing-1-0 { -fx-line-spacing: 1.0; }
+.code-area.line-spacing-1-2 { -fx-line-spacing: 1.2; }
+.code-area.line-spacing-1-5 { -fx-line-spacing: 1.5; }
+.code-area.line-spacing-1-8 { -fx-line-spacing: 1.8; }
+.code-area.line-spacing-2-0 { -fx-line-spacing: 2.0; }
+.code-area.line-spacing-2-5 { -fx-line-spacing: 2.5; }
+.code-area.line-spacing-3-0 { -fx-line-spacing: 3.0; }
+
+/* DOCX-Options-Dialog Styling */
+.docx-options-scroll-pane {
+    -fx-background-color: transparent;
+}
+
+.docx-options-content {
+    -fx-background-color: transparent;
+}
+
+.docx-options-content .label {
+    -fx-font-size: 12px;
+    -fx-font-weight: normal;
+}
+
+.docx-options-content .combo-box {
+    -fx-font-size: 11px;
+    -fx-min-width: 150px;
+}
+
+.docx-options-content .spinner {
+    -fx-font-size: 11px;
+    -fx-min-width: 80px;
+}
+
+.docx-options-content .check-box {
+    -fx-font-size: 11px;
+}
+
+/* DOCX-Options Sektionen Styling */
+.docx-options-section {
+    -fx-border-color: #ddd;
+    -fx-border-width: 1px;
+    -fx-border-radius: 5px;
+    -fx-background-color: transparent;
+    -fx-background-radius: 5px;
+}
+
+.docx-options-section-title {
+    -fx-font-weight: bold;
+    -fx-font-size: 16px;
+    -fx-text-fill: #2F5496;
+}
+
+.docx-options-section-description {
+    -fx-font-size: 12px;
+    -fx-text-fill: #666;
+    -fx-font-style: italic;
+}
+
+/* Export-Dialog Styling */
+.export-dialog-content {
+    -fx-background-color: inherit;
+}
+
+.export-dialog-content .button {
+    -fx-font-size: 12px;
+    -fx-min-width: 80px;
+}
+
+.export-dialog-content .check-box {
+    -fx-font-size: 12px;
+}
+
+.export-dialog-content .text-field {
+    -fx-font-size: 12px;
+}
+
+.export-dialog-content .label {
+    -fx-font-size: 12px;
+}
+
+/* CodeArea Content-Bereich für besseres Padding */
+.code-area .content {
+    -fx-padding: 0 0 0 10px; /* Links 10px Padding */
+}
+
+/* ScrollPane für CodeArea */
+.code-area .scroll-pane {
+    -fx-padding: 0 0 0 10px; /* Links 10px Padding */
+}
+
+/* Viewport für CodeArea */
+.code-area .viewport {
+    -fx-padding: 0 0 0 10px; /* Links 10px Padding */
+}
+
+/* Theme-spezifische CodeArea-Styles */
+.theme-dark .code-area {
+    -rtfx-background-color: #1a1a1a;
+    -fx-text-fill: #ffffff;
+    -fx-caret-color: #ffffff;
+}
+
+.theme-dark.blau-theme .code-area {
+    -rtfx-background-color: #1e3a8a;
+    -fx-text-fill: #ffffff;
+    -fx-caret-color: #ffffff;
+}
+
+.theme-dark.gruen-theme .code-area {
+    -rtfx-background-color: #064e3b;
+    -fx-text-fill: #ffffff;
+    -fx-caret-color: #ffffff;
+}
+
+.theme-dark.lila-theme .code-area {
+    -rtfx-background-color: #581c87;
+    -fx-text-fill: #ffffff;
+    -fx-caret-color: #ffffff;
+}
+
+.weiss-theme .code-area {
+    -rtfx-background-color: #ffffff;
+    -fx-text-fill: #000000;
+    -fx-caret-color: #000000;
+}
+
+.pastell-theme .code-area {
+    -rtfx-background-color: #f3e5f5;
+    -fx-text-fill: #000000;
+    -fx-caret-color: #000000;
+}
+
+/* ========================================
+   WORTWIEDERHOLUNGEN-MARKIERUNG
+   ======================================== */
+
+/* RichTextFX-spezifische Markierung-Klassen */
+.code-area .search-match-first {
+    -rtfx-background-color: #ff9800 !important;
+}
+
+.code-area .search-match {
+    -rtfx-background-color: #ffeb3b !important;
+}
+
+.theme-dark .code-area .search-match-first {
+    -rtfx-background-color: #ff9800 !important;
+}
+
+.theme-dark .code-area .search-match {
+    -rtfx-background-color: #ffeb3b !important;
+}
+
+.pastell-theme .code-area .search-match-first {
+    -rtfx-background-color: #ff9800 !important;
+}
+
+.pastell-theme .code-area .search-match {
+    -rtfx-background-color: #ffeb3b !important;
+}
+
+/* ========================================
+   TOOLBAR-STYLING FÜR PASTELL-THEME
+   ======================================== */
+
+/* Toolbar-Hintergrund im Pastell-Theme */
+.pastell-theme .toolbar,
+.pastell-theme .font-toolbar {
+    -fx-background-color: #e1bee7 !important;
+    -fx-background-radius: 0 !important;
+    -fx-background-insets: 0 !important;
+}
+
+/* Toolbar-Buttons im Pastell-Theme */
+.pastell-theme .toolbar .button,
+.pastell-theme .font-toolbar .button {
+    -fx-background-color: #e1bee7 !important;
+    -fx-text-fill: #000000 !important;
+    -fx-border-color: #ba68c8 !important;
+    -fx-border-radius: 4px !important;
+    -fx-background-radius: 4px !important;
+}
+
+.pastell-theme .toolbar .button:hover,
+.pastell-theme .font-toolbar .button:hover {
+    -fx-background-color: #ce93d8 !important;
+}
+
+.pastell-theme .toolbar .button:pressed,
+.pastell-theme .font-toolbar .button:pressed {
+    -fx-background-color: #ba68c8 !important;
+}
+
+/* Toolbar-Labels im Pastell-Theme */
+.pastell-theme .toolbar .label,
+.pastell-theme .font-toolbar .label {
+    -fx-background-color: transparent !important;
+    -fx-text-fill: #000000 !important;
+}
+
+/* Toolbar-ComboBoxen im Pastell-Theme */
+.pastell-theme .toolbar .combo-box,
+.pastell-theme .font-toolbar .combo-box {
+    -fx-background-color: #e1bee7 !important;
+    -fx-text-fill: #000000 !important;
+    -fx-border-color: #ba68c8 !important;
+}
+
+/* Toolbar-Separatoren im Pastell-Theme */
+.pastell-theme .toolbar .separator,
+.pastell-theme .font-toolbar .separator {
+    -fx-background-color: #ba68c8 !important;
+}
+
+/* ========================================
+   MAKROS-STAGE STYLING FÜR ALLE THEMES
+   ======================================== */
+
+/* Makro-Panel Basis-Styling */
+.macro-panel {
+    -fx-padding: 10px;
+    -fx-spacing: 10px;
+}
+
+/* Weiß-Theme Makros */
+.weiss-theme.macro-panel {
+    -fx-background-color: #ffffff !important;
+    -fx-border-color: #cccccc !important;
+}
+
+.weiss-theme.macro-panel .button {
+    -fx-background-color: #f0f0f0 !important;
+    -fx-text-fill: #000000 !important;
+    -fx-border-color: #cccccc !important;
+    -fx-border-radius: 4px !important;
+    -fx-background-radius: 4px !important;
+}
+
+.weiss-theme.macro-panel .button:hover {
+    -fx-background-color: #e0e0e0 !important;
+}
+
+.weiss-theme.macro-panel .button.primary {
+    -fx-background-color: #007bff !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-border-color: #0056b3 !important;
+}
+
+.weiss-theme.macro-panel .button.danger {
+    -fx-background-color:#cf8b8b !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-border-color: #c82333 !important;
+}
+
+.weiss-theme.macro-panel .button.success {
+    -fx-background-color: #28a745 !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-border-color: #1e7e34 !important;
+}
+
+.weiss-theme.macro-panel .text-field {
+    -fx-background-color: #ffffff !important;
+    -fx-text-fill: #000000 !important;
+    -fx-border-color: #cccccc !important;
+}
+
+.weiss-theme.macro-panel .combo-box {
+    -fx-background-color: #ffffff !important;
+    -fx-text-fill: #000000 !important;
+    -fx-border-color: #cccccc !important;
+}
+
+.weiss-theme.macro-panel .combo-box .arrow-button .arrow {
+    -fx-background-color: #666666 !important;
+}
+
+.weiss-theme.macro-panel .combo-box .arrow-button:hover .arrow {
+    -fx-background-color: #333333 !important;
+}
+
+.weiss-theme.macro-panel .check-box {
+    -fx-text-fill: #000000 !important;
+}
+
+.weiss-theme.macro-panel .label {
+    -fx-text-fill: #000000 !important;
+}
+
+/* Schwarz-Theme Makros */
+.theme-dark.macro-panel {
+    -fx-background-color: #1a1a1a !important;
+    -fx-border-color: #333333 !important;
+}
+
+.theme-dark.macro-panel .button {
+    -fx-background-color: #2d2d2d !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-border-color: #4a5568 !important;
+    -fx-border-radius: 4px !important;
+    -fx-background-radius: 4px !important;
+}
+
+.theme-dark.macro-panel .button:hover {
+    -fx-background-color: #4a5568 !important;
+}
+
+.theme-dark.macro-panel .button.primary {
+    -fx-background-color: #3b82f6 !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-border-color: #1d4ed8 !important;
+}
+
+.theme-dark.macro-panel .button.danger {
+    -fx-background-color: #ef4444 !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-border-color: #cf8b8b !important;
+}
+
+.theme-dark.macro-panel .button.success {
+    -fx-background-color: #10b981 !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-border-color: #059669 !important;
+}
+
+.theme-dark.macro-panel .text-field {
+    -fx-background-color: #2d2d2d !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-border-color: #4a5568 !important;
+}
+
+.theme-dark.macro-panel .combo-box {
+    -fx-background-color: #2d2d2d !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-border-color: #4a5568 !important;
+}
+
+.theme-dark.macro-panel .combo-box .arrow-button .arrow {
+    -fx-background-color: #cccccc !important;
+}
+
+.theme-dark.macro-panel .combo-box .arrow-button:hover .arrow {
+    -fx-background-color: #ffffff !important;
+}
+
+.theme-dark.macro-panel .check-box {
+    -fx-text-fill: #ffffff !important;
+}
+
+.theme-dark.macro-panel .label {
+    -fx-text-fill: #ffffff !important;
+}
+
+/* Pastell-Theme Makros */
+.pastell-theme.macro-panel {
+    -fx-background-color: #e8d5f2 !important;
+    -fx-border-color: #ba68c8 !important;
+}
+
+.pastell-theme.macro-panel .button {
+    -fx-background-color: #e1bee7 !important;
+    -fx-text-fill: #000000 !important;
+    -fx-border-color: #ba68c8 !important;
+    -fx-border-radius: 4px !important;
+    -fx-background-radius: 4px !important;
+}
+
+.pastell-theme.macro-panel .button:hover {
+    -fx-background-color: #ce93d8 !important;
+}
+
+.pastell-theme.macro-panel .button.primary {
+    -fx-background-color: #ba68c8 !important;
+    -fx-text-fill: #000000 !important;
+    -fx-border-color: #9c27b0 !important;
+}
+
+.pastell-theme.macro-panel .button.danger {
+    -fx-background-color: #f48fb1 !important;
+    -fx-text-fill: #000000 !important;
+    -fx-border-color: #e692ae !important;
+}
+
+.pastell-theme.macro-panel .button.success {
+    -fx-background-color: #a5d6a7 !important;
+    -fx-text-fill: #000000 !important;
+    -fx-border-color: #4caf50 !important;
+}
+
+.pastell-theme.macro-panel .text-field {
+    -fx-background-color: #e1bee7 !important;
+    -fx-text-fill: #000000 !important;
+    -fx-border-color: #ba68c8 !important;
+}
+
+.pastell-theme.macro-panel .combo-box {
+    -fx-background-color: #e1bee7 !important;
+    -fx-text-fill: #000000 !important;
+    -fx-border-color: #ba68c8 !important;
+}
+
+.pastell-theme.macro-panel .check-box {
+    -fx-text-fill: #000000 !important;
+}
+
+.pastell-theme.macro-panel .label {
+    -fx-text-fill: #000000 !important;
+}
+
+/* Blau-Theme Makros */
+.theme-dark.blau-theme.macro-panel {
+    -fx-background-color: #1e3a8a !important;
+    -fx-border-color: #3b82f6 !important;
+}
+
+.theme-dark.blau-theme.macro-panel .button {
+    -fx-background-color: #3b82f6 !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-border-color: #1d4ed8 !important;
+    -fx-border-radius: 4px !important;
+    -fx-background-radius: 4px !important;
+}
+
+.theme-dark.blau-theme.macro-panel .button:hover {
+    -fx-background-color: #2563eb !important;
+}
+
+.theme-dark.blau-theme.macro-panel .button.primary {
+    -fx-background-color: #1d4ed8 !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-border-color: #1e3a8a !important;
+}
+
+.theme-dark.blau-theme.macro-panel .button.danger {
+    -fx-background-color: #cf8b8b !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-border-color: #b91c1c !important;
+}
+
+.theme-dark.blau-theme.macro-panel .button.success {
+    -fx-background-color: #059669 !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-border-color: #047857 !important;
+}
+
+.theme-dark.blau-theme.macro-panel .text-field {
+    -fx-background-color: #1e40af !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-border-color: #3b82f6 !important;
+}
+
+.theme-dark.blau-theme.macro-panel .combo-box {
+    -fx-background-color: #1e40af !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-border-color: #3b82f6 !important;
+}
+
+.theme-dark.blau-theme.macro-panel .check-box {
+    -fx-text-fill: #ffffff !important;
+}
+
+.theme-dark.blau-theme.macro-panel .label {
+    -fx-text-fill: #ffffff !important;
+}
+
+/* Grün-Theme Makros */
+.theme-dark.gruen-theme.macro-panel {
+    -fx-background-color: #064e3b !important;
+    -fx-border-color: #10b981 !important;
+}
+
+.theme-dark.gruen-theme.macro-panel .button {
+    -fx-background-color: #10b981 !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-border-color: #059669 !important;
+    -fx-border-radius: 4px !important;
+    -fx-background-radius: 4px !important;
+}
+
+.theme-dark.gruen-theme.macro-panel .button:hover {
+    -fx-background-color: #059669 !important;
+}
+
+.theme-dark.gruen-theme.macro-panel .button.primary {
+    -fx-background-color: #047857 !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-border-color: #064e3b !important;
+}
+
+.theme-dark.gruen-theme.macro-panel .button.danger {
+    -fx-background-color: #cf8b8b !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-border-color: #b91c1c !important;
+}
+
+.theme-dark.gruen-theme.macro-panel .button.success {
+    -fx-background-color: #16a34a !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-border-color: #15803d !important;
+}
+
+.theme-dark.gruen-theme.macro-panel .text-field {
+    -fx-background-color: #065f46 !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-border-color: #10b981 !important;
+}
+
+.theme-dark.gruen-theme.macro-panel .combo-box {
+    -fx-background-color: #065f46 !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-border-color: #10b981 !important;
+}
+
+.theme-dark.gruen-theme.macro-panel .check-box {
+    -fx-text-fill: #ffffff !important;
+}
+
+.theme-dark.gruen-theme.macro-panel .label {
+    -fx-text-fill: #ffffff !important;
+}
+
+/* Lila-Theme Makros */
+.theme-dark.lila-theme.macro-panel {
+    -fx-background-color: #4c1d95 !important;
+    -fx-border-color: #8b5cf6 !important;
+}
+
+.theme-dark.lila-theme.macro-panel .button {
+    -fx-background-color: #8b5cf6 !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-border-color: #7c3aed !important;
+    -fx-border-radius: 4px !important;
+    -fx-background-radius: 4px !important;
+}
+
+.theme-dark.lila-theme.macro-panel .button:hover {
+    -fx-background-color: #7c3aed !important;
+}
+
+.theme-dark.lila-theme.macro-panel .button.primary {
+    -fx-background-color: #6d28d9 !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-border-color: #4c1d95 !important;
+}
+
+.theme-dark.lila-theme.macro-panel .button.danger {
+    -fx-background-color: #cf8b8b !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-border-color: #b91c1c !important;
+}
+
+.theme-dark.lila-theme.macro-panel .button.success {
+    -fx-background-color: #10b981 !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-border-color: #059669 !important;
+}
+
+.theme-dark.lila-theme.macro-panel .text-field {
+    -fx-background-color: #5b21b6 !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-border-color: #8b5cf6 !important;
+}
+
+.theme-dark.lila-theme.macro-panel .combo-box {
+    -fx-background-color: #5b21b6 !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-border-color: #8b5cf6 !important;
+}
+
+.theme-dark.lila-theme.macro-panel .check-box {
+    -fx-text-fill: #ffffff !important;
+}
+
+.theme-dark.lila-theme.macro-panel .label {
+    -fx-text-fill: #ffffff !important;
+}
+
+/* Makro-Table-Buttons in allen Themes */
+.macro-panel .table-view .button {
+    -fx-min-height: 24px !important;
+    -fx-max-height: 24px !important;
+    -fx-min-width: 60px !important;
+    -fx-max-width: 80px !important;
+    -fx-font-size: 11px !important;
+    -fx-padding: 2 6 !important;
+}
+
+/* Makro-Table-CheckBoxen in allen Themes */
+.macro-panel .table-view .check-box {
+    -fx-min-width: 16px !important;
+    -fx-max-width: 16px !important;
+    -fx-min-height: 16px !important;
+    -fx-max-height: 16px !important;
+}
+
+/* ========================================
+   MAKRO-TABELLEN-CHECKBOXEN STYLING FÜR ALLE THEMES
+   ======================================== */
+
+/* Weiß-Theme Makro-Tabellen-Checkboxen */
+.weiss-theme.macro-panel .table-view .check-box {
+    -fx-text-fill: #000000 !important;
+}
+
+.weiss-theme.macro-panel .table-view .check-box .box {
+    -fx-background-color: #ffffff !important;
+    -fx-border-color: #cccccc !important;
+    -fx-border-radius: 2px !important;
+    -fx-background-radius: 2px !important;
+    -fx-min-width: 16px !important;
+    -fx-min-height: 16px !important;
+    -fx-max-width: 16px !important;
+    -fx-max-height: 16px !important;
+}
+
+.weiss-theme.macro-panel .table-view .check-box:selected .box {
+    -fx-background-color: #007bff !important;
+    -fx-border-color: #0056b3 !important;
+}
+
+.weiss-theme.macro-panel .table-view .check-box .mark {
+    -fx-background-color: transparent !important;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z" !important;
+    -fx-scale-x: 0.6 !important;
+    -fx-scale-y: 0.6 !important;
+}
+
+.weiss-theme.macro-panel .table-view .check-box:selected .mark {
+    -fx-background-color: #ffffff !important;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z" !important;
+    -fx-scale-x: 0.6 !important;
+    -fx-scale-y: 0.6 !important;
+}
+
+/* Schwarz-Theme Makro-Tabellen-Checkboxen */
+.theme-dark.macro-panel .table-view .check-box {
+    -fx-text-fill: #ffffff !important;
+}
+
+.theme-dark.macro-panel .table-view .check-box .box {
+    -fx-background-color: #2d2d2d !important;
+    -fx-border-color: #4a5568 !important;
+    -fx-border-radius: 2px !important;
+    -fx-background-radius: 2px !important;
+    -fx-min-width: 16px !important;
+    -fx-min-height: 16px !important;
+    -fx-max-width: 16px !important;
+    -fx-max-height: 16px !important;
+}
+
+.theme-dark.macro-panel .table-view .check-box:selected .box {
+    -fx-background-color: #3b82f6 !important;
+    -fx-border-color: #1d4ed8 !important;
+}
+
+.theme-dark.macro-panel .table-view .check-box .mark {
+    -fx-background-color: transparent !important;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z" !important;
+    -fx-scale-x: 0.6 !important;
+    -fx-scale-y: 0.6 !important;
+}
+
+.theme-dark.macro-panel .table-view .check-box:selected .mark {
+    -fx-background-color: #ffffff !important;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z" !important;
+    -fx-scale-x: 0.6 !important;
+    -fx-scale-y: 0.6 !important;
+}
+
+/* Pastell-Theme Makro-Tabellen-Checkboxen */
+.pastell-theme.macro-panel .table-view .check-box {
+    -fx-text-fill: #000000 !important;
+}
+
+.pastell-theme.macro-panel .table-view .check-box .box {
+    -fx-background-color: #e1bee7 !important;
+    -fx-border-color: #ba68c8 !important;
+    -fx-border-radius: 2px !important;
+    -fx-background-radius: 2px !important;
+    -fx-min-width: 16px !important;
+    -fx-min-height: 16px !important;
+    -fx-max-width: 16px !important;
+    -fx-max-height: 16px !important;
+}
+
+.pastell-theme.macro-panel .table-view .check-box:selected .box {
+    -fx-background-color: #ba68c8 !important;
+    -fx-border-color: #9c27b0 !important;
+}
+
+.pastell-theme.macro-panel .table-view .check-box .mark {
+    -fx-background-color: transparent !important;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z" !important;
+    -fx-scale-x: 0.6 !important;
+    -fx-scale-y: 0.6 !important;
+}
+
+.pastell-theme.macro-panel .table-view .check-box:selected .mark {
+    -fx-background-color: #ffffff !important;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z" !important;
+    -fx-scale-x: 0.6 !important;
+    -fx-scale-y: 0.6 !important;
+}
+
+/* Blau-Theme Makro-Tabellen-Checkboxen */
+.theme-dark.blau-theme.macro-panel .table-view .check-box {
+    -fx-text-fill: #ffffff !important;
+}
+
+.theme-dark.blau-theme.macro-panel .table-view .check-box .box {
+    -fx-background-color: #1e40af !important;
+    -fx-border-color: #3b82f6 !important;
+    -fx-border-radius: 2px !important;
+    -fx-background-radius: 2px !important;
+    -fx-min-width: 16px !important;
+    -fx-min-height: 16px !important;
+    -fx-max-width: 16px !important;
+    -fx-max-height: 16px !important;
+}
+
+.theme-dark.blau-theme.macro-panel .table-view .check-box:selected .box {
+    -fx-background-color: #3b82f6 !important;
+    -fx-border-color: #1d4ed8 !important;
+}
+
+.theme-dark.blau-theme.macro-panel .table-view .check-box .mark {
+    -fx-background-color: transparent !important;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z" !important;
+    -fx-scale-x: 0.6 !important;
+    -fx-scale-y: 0.6 !important;
+}
+
+.theme-dark.blau-theme.macro-panel .table-view .check-box:selected .mark {
+    -fx-background-color: #ffffff !important;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z" !important;
+    -fx-scale-x: 0.6 !important;
+    -fx-scale-y: 0.6 !important;
+}
+
+/* Grün-Theme Makro-Tabellen-Checkboxen */
+.theme-dark.gruen-theme.macro-panel .table-view .check-box {
+    -fx-text-fill: #ffffff !important;
+}
+
+.theme-dark.gruen-theme.macro-panel .table-view .check-box .box {
+    -fx-background-color: #065f46 !important;
+    -fx-border-color: #10b981 !important;
+    -fx-border-radius: 2px !important;
+    -fx-background-radius: 2px !important;
+    -fx-min-width: 16px !important;
+    -fx-min-height: 16px !important;
+    -fx-max-width: 16px !important;
+    -fx-max-height: 16px !important;
+}
+
+.theme-dark.gruen-theme.macro-panel .table-view .check-box:selected .box {
+    -fx-background-color: #10b981 !important;
+    -fx-border-color: #059669 !important;
+}
+
+.theme-dark.gruen-theme.macro-panel .table-view .check-box .mark {
+    -fx-background-color: transparent !important;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z" !important;
+    -fx-scale-x: 0.6 !important;
+    -fx-scale-y: 0.6 !important;
+}
+
+.theme-dark.gruen-theme.macro-panel .table-view .check-box:selected .mark {
+    -fx-background-color: #ffffff !important;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z" !important;
+    -fx-scale-x: 0.6 !important;
+    -fx-scale-y: 0.6 !important;
+}
+
+/* Lila-Theme Makro-Tabellen-Checkboxen */
+.theme-dark.lila-theme.macro-panel .table-view .check-box {
+    -fx-text-fill: #ffffff !important;
+}
+
+.theme-dark.lila-theme.macro-panel .table-view .check-box .box {
+    -fx-background-color: #5b21b6 !important;
+    -fx-border-color: #8b5cf6 !important;
+    -fx-border-radius: 2px !important;
+    -fx-background-radius: 2px !important;
+    -fx-min-width: 16px !important;
+    -fx-min-height: 16px !important;
+    -fx-max-width: 16px !important;
+    -fx-max-height: 16px !important;
+}
+
+.theme-dark.lila-theme.macro-panel .table-view .check-box:selected .box {
+    -fx-background-color: #8b5cf6 !important;
+    -fx-border-color: #7c3aed !important;
+}
+
+.theme-dark.lila-theme.macro-panel .table-view .check-box .mark {
+    -fx-background-color: transparent !important;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z" !important;
+    -fx-scale-x: 0.6 !important;
+    -fx-scale-y: 0.6 !important;
+}
+
+.theme-dark.lila-theme.macro-panel .table-view .check-box:selected .mark {
+    -fx-background-color: #ffffff !important;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z" !important;
+    -fx-scale-x: 0.6 !important;
+    -fx-scale-y: 0.6 !important;
+}
+
+/* ========================================
+   MAKRO-TABELLEN-CHECKBOXEN STYLING FÜR ALLE THEMES - ERWEITERT
+   ======================================== */
+
+/* Zusätzliche Regeln für alle Checkboxen in Makro-Tabellen */
+.macro-panel .table-view .check-box {
+    -fx-text-fill: inherit !important;
+}
+
+.macro-panel .table-view .check-box .box {
+    -fx-background-color: inherit !important;
+    -fx-border-color: inherit !important;
+    -fx-border-radius: 2px !important;
+    -fx-background-radius: 2px !important;
+    -fx-min-width: 16px !important;
+    -fx-min-height: 16px !important;
+    -fx-max-width: 16px !important;
+    -fx-max-height: 16px !important;
+}
+
+.macro-panel .table-view .check-box:selected .box {
+    -fx-background-color: inherit !important;
+    -fx-border-color: inherit !important;
+}
+
+.macro-panel .table-view .check-box .mark {
+    -fx-background-color: transparent !important;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z" !important;
+    -fx-scale-x: 0.6 !important;
+    -fx-scale-y: 0.6 !important;
+}
+
+.macro-panel .table-view .check-box:selected .mark {
+    -fx-background-color: #ffffff !important;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z" !important;
+    -fx-scale-x: 0.6 !important;
+    -fx-scale-y: 0.6 !important;
+}
+
+/* ========================================
+   MAKRO-TABELLEN-CHECKBOXEN STYLING FÜR ALLE THEMES - MAXIMALE SPEZIFITÄT
+   ======================================== */
+
+/* Weiß-Theme Makro-Tabellen-Checkboxen - MAXIMALE SPEZIFITÄT */
+.weiss-theme.macro-panel .table-view .check-box {
+    -fx-text-fill: #000000 !important;
+}
+
+.weiss-theme.macro-panel .table-view .check-box .box {
+    -fx-background-color: #ffffff !important;
+    -fx-border-color: #cccccc !important;
+    -fx-border-radius: 2px !important;
+    -fx-background-radius: 2px !important;
+    -fx-min-width: 16px !important;
+    -fx-min-height: 16px !important;
+    -fx-max-width: 16px !important;
+    -fx-max-height: 16px !important;
+}
+
+.weiss-theme.macro-panel .table-view .check-box:selected .box {
+    -fx-background-color: #007bff !important;
+    -fx-border-color: #0056b3 !important;
+}
+
+.weiss-theme.macro-panel .table-view .check-box .mark {
+    -fx-background-color: transparent !important;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z" !important;
+    -fx-scale-x: 0.6 !important;
+    -fx-scale-y: 0.6 !important;
+}
+
+.weiss-theme.macro-panel .table-view .check-box:selected .mark {
+    -fx-background-color: #ffffff !important;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z" !important;
+    -fx-scale-x: 0.6 !important;
+    -fx-scale-y: 0.6 !important;
+}
+
+/* Schwarz-Theme Makro-Tabellen-Checkboxen - MAXIMALE SPEZIFITÄT */
+.theme-dark.macro-panel .table-view .check-box {
+    -fx-text-fill: #ffffff !important;
+}
+
+.theme-dark.macro-panel .table-view .check-box .box {
+    -fx-background-color: #2d2d2d !important;
+    -fx-border-color: #4a5568 !important;
+    -fx-border-radius: 2px !important;
+    -fx-background-radius: 2px !important;
+    -fx-min-width: 16px !important;
+    -fx-min-height: 16px !important;
+    -fx-max-width: 16px !important;
+    -fx-max-height: 16px !important;
+}
+
+.theme-dark.macro-panel .table-view .check-box:selected .box {
+    -fx-background-color: #3b82f6 !important;
+    -fx-border-color: #1d4ed8 !important;
+}
+
+.theme-dark.macro-panel .table-view .check-box .mark {
+    -fx-background-color: transparent !important;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z" !important;
+    -fx-scale-x: 0.6 !important;
+    -fx-scale-y: 0.6 !important;
+}
+
+.theme-dark.macro-panel .table-view .check-box:selected .mark {
+    -fx-background-color: #ffffff !important;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z" !important;
+    -fx-scale-x: 0.6 !important;
+    -fx-scale-y: 0.6 !important;
+}
+
+/* Pastell-Theme Makro-Tabellen-Checkboxen - MAXIMALE SPEZIFITÄT */
+.pastell-theme.macro-panel .table-view .check-box {
+    -fx-text-fill: #000000 !important;
+}
+
+.pastell-theme.macro-panel .table-view .check-box .box {
+    -fx-background-color: #e1bee7 !important;
+    -fx-border-color: #ba68c8 !important;
+    -fx-border-radius: 2px !important;
+    -fx-background-radius: 2px !important;
+    -fx-min-width: 16px !important;
+    -fx-min-height: 16px !important;
+    -fx-max-width: 16px !important;
+    -fx-max-height: 16px !important;
+}
+
+.pastell-theme.macro-panel .table-view .check-box:selected .box {
+    -fx-background-color: #ba68c8 !important;
+    -fx-border-color: #9c27b0 !important;
+}
+
+.pastell-theme.macro-panel .table-view .check-box .mark {
+    -fx-background-color: transparent !important;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z" !important;
+    -fx-scale-x: 0.6 !important;
+    -fx-scale-y: 0.6 !important;
+}
+
+.pastell-theme.macro-panel .table-view .check-box:selected .mark {
+    -fx-background-color: #ffffff !important;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z" !important;
+    -fx-scale-x: 0.6 !important;
+    -fx-scale-y: 0.6 !important;
+}
+
+/* Blau-Theme Makro-Tabellen-Checkboxen - MAXIMALE SPEZIFITÄT */
+.theme-dark.blau-theme.macro-panel .table-view .check-box {
+    -fx-text-fill: #ffffff !important;
+}
+
+.theme-dark.blau-theme.macro-panel .table-view .check-box .box {
+    -fx-background-color: #1e40af !important;
+    -fx-border-color: #3b82f6 !important;
+    -fx-border-radius: 2px !important;
+    -fx-background-radius: 2px !important;
+    -fx-min-width: 16px !important;
+    -fx-min-height: 16px !important;
+    -fx-max-width: 16px !important;
+    -fx-max-height: 16px !important;
+}
+
+.theme-dark.blau-theme.macro-panel .table-view .check-box:selected .box {
+    -fx-background-color: #3b82f6 !important;
+    -fx-border-color: #1d4ed8 !important;
+}
+
+.theme-dark.blau-theme.macro-panel .table-view .check-box .mark {
+    -fx-background-color: transparent !important;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z" !important;
+    -fx-scale-x: 0.6 !important;
+    -fx-scale-y: 0.6 !important;
+}
+
+.theme-dark.blau-theme.macro-panel .table-view .check-box:selected .mark {
+    -fx-background-color: #ffffff !important;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z" !important;
+    -fx-scale-x: 0.6 !important;
+    -fx-scale-y: 0.6 !important;
+}
+
+/* Grün-Theme Makro-Tabellen-Checkboxen - MAXIMALE SPEZIFITÄT */
+.theme-dark.gruen-theme.macro-panel .table-view .check-box {
+    -fx-text-fill: #ffffff !important;
+}
+
+.theme-dark.gruen-theme.macro-panel .table-view .check-box .box {
+    -fx-background-color: #065f46 !important;
+    -fx-border-color: #10b981 !important;
+    -fx-border-radius: 2px !important;
+    -fx-background-radius: 2px !important;
+    -fx-min-width: 16px !important;
+    -fx-min-height: 16px !important;
+    -fx-max-width: 16px !important;
+    -fx-max-height: 16px !important;
+}
+
+.theme-dark.gruen-theme.macro-panel .table-view .check-box:selected .box {
+    -fx-background-color: #10b981 !important;
+    -fx-border-color: #059669 !important;
+}
+
+.theme-dark.gruen-theme.macro-panel .table-view .check-box .mark {
+    -fx-background-color: transparent !important;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z" !important;
+    -fx-scale-x: 0.6 !important;
+    -fx-scale-y: 0.6 !important;
+}
+
+.theme-dark.gruen-theme.macro-panel .table-view .check-box:selected .mark {
+    -fx-background-color: #ffffff !important;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z" !important;
+    -fx-scale-x: 0.6 !important;
+    -fx-scale-y: 0.6 !important;
+}
+
+/* Lila-Theme Makro-Tabellen-Checkboxen - MAXIMALE SPEZIFITÄT */
+.theme-dark.lila-theme.macro-panel .table-view .check-box {
+    -fx-text-fill: #ffffff !important;
+}
+
+.theme-dark.lila-theme.macro-panel .table-view .check-box .box {
+    -fx-background-color: #5b21b6 !important;
+    -fx-border-color: #8b5cf6 !important;
+    -fx-border-radius: 2px !important;
+    -fx-background-radius: 2px !important;
+    -fx-min-width: 16px !important;
+    -fx-min-height: 16px !important;
+    -fx-max-width: 16px !important;
+    -fx-max-height: 16px !important;
+}
+
+.theme-dark.lila-theme.macro-panel .table-view .check-box:selected .box {
+    -fx-background-color: #8b5cf6 !important;
+    -fx-border-color: #7c3aed !important;
+}
+
+.theme-dark.lila-theme.macro-panel .table-view .check-box .mark {
+    -fx-background-color: transparent !important;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z" !important;
+    -fx-scale-x: 0.6 !important;
+    -fx-scale-y: 0.6 !important;
+}
+
+.theme-dark.lila-theme.macro-panel .table-view .check-box:selected .mark {
+    -fx-background-color: #ffffff !important;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z" !important;
+    -fx-scale-x: 0.6 !important;
+    -fx-scale-y: 0.6 !important;
+}
+
+/* ========================================
+   MAKRO-TABELLEN-HEADER STYLING FÜR ALLE THEMES
+   ======================================== */
+
+/* Weiß-Theme Makro-Tabellen-Header - MAXIMALE SPEZIFITÄT */
+.weiss-theme.macro-panel .table-view .column-header-background,
+.weiss-theme.macro-panel .table-view .column-header {
+    -fx-background-color: #f5f5f5 !important;
+}
+
+.weiss-theme.macro-panel .table-view .column-header .label,
+.weiss-theme.macro-panel .table-view .column-header-background .label {
+    -fx-text-fill: #000000 !important;
+    -fx-font-weight: bold !important;
+    -fx-background-color: #f5f5f5 !important;
+}
+
+/* Schwarz-Theme Makro-Tabellen-Header - MAXIMALE SPEZIFITÄT */
+.theme-dark.macro-panel .table-view .column-header-background,
+.theme-dark.macro-panel .table-view .column-header {
+    -fx-background-color: #2d2d2d !important;
+}
+
+.theme-dark.macro-panel .table-view .column-header .label,
+.theme-dark.macro-panel .table-view .column-header-background .label {
+    -fx-text-fill: #ffffff !important;
+    -fx-font-weight: bold !important;
+    -fx-background-color: #2d2d2d !important;
+}
+
+/* Pastell-Theme Makro-Tabellen-Header - MAXIMALE SPEZIFITÄT */
+.pastell-theme.macro-panel .table-view .column-header-background,
+.pastell-theme.macro-panel .table-view .column-header {
+    -fx-background-color: #e9ecef !important;
+}
+
+.pastell-theme.macro-panel .table-view .column-header .label,
+.pastell-theme.macro-panel .table-view .column-header-background .label {
+    -fx-text-fill: #000000 !important;
+    -fx-font-weight: bold !important;
+    -fx-background-color: #e9ecef !important;
+}
+
+/* Blau-Theme Makro-Tabellen-Header - MAXIMALE SPEZIFITÄT */
+.theme-dark.blau-theme.macro-panel .table-view .column-header-background,
+.theme-dark.blau-theme.macro-panel .table-view .column-header {
+    -fx-background-color: #1e40af !important;
+}
+
+.theme-dark.blau-theme.macro-panel .table-view .column-header .label,
+.theme-dark.blau-theme.macro-panel .table-view .column-header-background .label {
+    -fx-text-fill: #ffffff !important;
+    -fx-font-weight: bold !important;
+    -fx-background-color: #1e40af !important;
+}
+
+/* Grün-Theme Makro-Tabellen-Header - MAXIMALE SPEZIFITÄT */
+.theme-dark.gruen-theme.macro-panel .table-view .column-header-background,
+.theme-dark.gruen-theme.macro-panel .table-view .column-header {
+    -fx-background-color: #065f46 !important;
+}
+
+.theme-dark.gruen-theme.macro-panel .table-view .column-header .label,
+.theme-dark.gruen-theme.macro-panel .table-view .column-header-background .label {
+    -fx-text-fill: #ffffff !important;
+    -fx-font-weight: bold !important;
+    -fx-background-color: #065f46 !important;
+}
+
+/* Lila-Theme Makro-Tabellen-Header - MAXIMALE SPEZIFITÄT */
+.theme-dark.lila-theme.macro-panel .table-view .column-header-background,
+.theme-dark.lila-theme.macro-panel .table-view .column-header {
+    -fx-background-color: #5b21b6 !important;
+}
+
+.theme-dark.lila-theme.macro-panel .table-view .column-header .label,
+.theme-dark.lila-theme.macro-panel .table-view .column-header-background .label {
+    -fx-text-fill: #ffffff !important;
+    -fx-font-weight: bold !important;
+    -fx-background-color: #5b21b6 !important;
+}
+
+/* ========================================
+   MAKRO-TABELLEN-HINTERGRUND STYLING FÜR ALLE THEMES
+   ======================================== */
+
+/* Weiß-Theme Makro-Tabellen-Hintergrund */
+.weiss-theme.macro-panel .table-view {
+    -fx-background-color: #ffffff !important;
+}
+
+.weiss-theme.macro-panel .table-view .virtual-flow .clipped-container .sheet {
+    -fx-background-color: #ffffff !important;
+}
+
+/* Schwarz-Theme Makro-Tabellen-Hintergrund */
+.theme-dark.macro-panel .table-view {
+    -fx-background-color: #1a1a1a !important;
+}
+
+.theme-dark.macro-panel .table-view .virtual-flow .clipped-container .sheet {
+    -fx-background-color: #1a1a1a !important;
+}
+
+/* Pastell-Theme Makro-Tabellen-Hintergrund */
+.pastell-theme.macro-panel .table-view {
+    -fx-background-color: #f3e5f5 !important;
+}
+
+.pastell-theme.macro-panel .table-view .virtual-flow .clipped-container .sheet {
+    -fx-background-color: #f3e5f5 !important;
+}
+
+/* Blau-Theme Makro-Tabellen-Hintergrund */
+.theme-dark.blau-theme.macro-panel .table-view {
+    -fx-background-color: #1e3a8a !important;
+}
+
+.theme-dark.blau-theme.macro-panel .table-view .virtual-flow .clipped-container .sheet {
+    -fx-background-color: #1e3a8a !important;
+}
+
+/* Grün-Theme Makro-Tabellen-Hintergrund */
+.theme-dark.gruen-theme.macro-panel .table-view {
+    -fx-background-color: #064e3b !important;
+}
+
+.theme-dark.gruen-theme.macro-panel .table-view .virtual-flow .clipped-container .sheet {
+    -fx-background-color: #064e3b !important;
+}
+
+/* Lila-Theme Makro-Tabellen-Hintergrund */
+.theme-dark.lila-theme.macro-panel .table-view {
+    -fx-background-color: #4c1d95 !important;
+}
+
+.theme-dark.lila-theme.macro-panel .table-view .virtual-flow .clipped-container .sheet {
+    -fx-background-color: #4c1d95 !important;
+}
+
+/* ========================================
+   MAKRO-TABELLEN-ZEILEN STYLING FÜR ALLE THEMES
+   ======================================== */
+
+/* Weiß-Theme Makro-Tabellen-Zeilen */
+.weiss-theme.macro-panel .table-view .table-row-cell {
+    -fx-background-color: #ffffff !important;
+    -fx-text-fill: #000000 !important;
+}
+
+.weiss-theme.macro-panel .table-view .table-row-cell:odd {
+    -fx-background-color: #f9f9f9 !important;
+}
+
+.weiss-theme.macro-panel .table-view .table-row-cell:selected {
+    -fx-background-color: #6b7280 !important;
+}
+
+.weiss-theme.macro-panel .table-view .table-row-cell:selected .table-cell {
+    -fx-text-fill: #ffffff !important;
+}
+
+/* Schwarz-Theme Makro-Tabellen-Zeilen */
+.theme-dark.macro-panel .table-view .table-row-cell {
+    -fx-background-color: #1a1a1a !important;
+    -fx-text-fill: #ffffff !important;
+}
+
+.theme-dark.macro-panel .table-view .table-row-cell:odd {
+    -fx-background-color: #2d2d2d !important;
+}
+
+.theme-dark.macro-panel .table-view .table-row-cell:selected {
+    -fx-background-color: #4a5568 !important;
+}
+
+.theme-dark.macro-panel .table-view .table-row-cell:selected .table-cell {
+    -fx-text-fill: #ffffff !important;
+}
+
+/* Pastell-Theme Makro-Tabellen-Zeilen */
+.pastell-theme.macro-panel .table-view .table-row-cell {
+    -fx-background-color: #f3e5f5 !important;
+    -fx-text-fill: #000000 !important;
+}
+
+.pastell-theme.macro-panel .table-view .table-row-cell:odd {
+    -fx-background-color: #e1bee7 !important;
+}
+
+.pastell-theme.macro-panel .table-view .table-row-cell:selected {
+    -fx-background-color: #ba68c8 !important;
+}
+
+.pastell-theme.macro-panel .table-view .table-row-cell:selected .table-cell {
+    -fx-text-fill: #000000 !important;
+}
+
+/* Blau-Theme Makro-Tabellen-Zeilen */
+.theme-dark.blau-theme.macro-panel .table-view .table-row-cell {
+    -fx-background-color: #1e3a8a !important;
+    -fx-text-fill: #ffffff !important;
+}
+
+.theme-dark.blau-theme.macro-panel .table-view .table-row-cell:odd {
+    -fx-background-color: #1e40af !important;
+}
+
+.theme-dark.blau-theme.macro-panel .table-view .table-row-cell:selected {
+    -fx-background-color: #3b82f6 !important;
+}
+
+.theme-dark.blau-theme.macro-panel .table-view .table-row-cell:selected .table-cell {
+    -fx-text-fill: #ffffff !important;
+}
+
+/* Grün-Theme Makro-Tabellen-Zeilen */
+.theme-dark.gruen-theme.macro-panel .table-view .table-row-cell {
+    -fx-background-color: #064e3b !important;
+    -fx-text-fill: #ffffff !important;
+}
+
+.theme-dark.gruen-theme.macro-panel .table-view .table-row-cell:odd {
+    -fx-background-color: #065f46 !important;
+}
+
+.theme-dark.gruen-theme.macro-panel .table-view .table-row-cell:selected {
+    -fx-background-color: #059669 !important;
+}
+
+.theme-dark.gruen-theme.macro-panel .table-view .table-row-cell:selected .table-cell {
+    -fx-text-fill: #ffffff !important;
+}
+
+/* Lila-Theme Makro-Tabellen-Zeilen */
+.theme-dark.lila-theme.macro-panel .table-view .table-row-cell {
+    -fx-background-color: #4c1d95 !important;
+    -fx-text-fill: #ffffff !important;
+}
+
+.theme-dark.lila-theme.macro-panel .table-view .table-row-cell:odd {
+    -fx-background-color: #5b21b6 !important;
+}
+
+.theme-dark.lila-theme.macro-panel .table-view .table-row-cell:selected {
+    -fx-background-color: #7c3aed !important;
+}
+
+.theme-dark.lila-theme.macro-panel .table-view .table-row-cell:selected .table-cell {
+    -fx-text-fill: #ffffff !important;
+}
+
+/* ========================================
+   GLOBALE CHECKBOX-BOX TRANSPARENZ
+   ======================================== */
+
+/* Globale Regel: Alle Checkbox-Boxen transparent machen */
+.check-box .box {
+    -fx-background-color: transparent !important;
+}
+
+/* ========================================
+   MACRO-CHECKBOX STYLING FÜR DIALOGE - MAXIMALE SPEZIFITÄT
+   ======================================== */
+
+/* Weiß-Theme Macro-Checkboxen - MAXIMALE SPEZIFITÄT */
+.dialog-pane .weiss-theme .macro-checkbox {
+    -fx-text-fill: #000000 !important;
+}
+
+.dialog-pane .weiss-theme .macro-checkbox .box {
+    -fx-background-color: #ffffff !important;
+    -fx-border-color: #cccccc !important;
+    -fx-border-radius: 2px !important;
+    -fx-background-radius: 2px !important;
+    -fx-min-width: 16px !important;
+    -fx-min-height: 16px !important;
+    -fx-max-width: 16px !important;
+    -fx-max-height: 16px !important;
+}
+
+.dialog-pane .weiss-theme .macro-checkbox:selected .box {
+    -fx-background-color: #007bff !important;
+    -fx-border-color: #0056b3 !important;
+}
+
+.dialog-pane .weiss-theme .macro-checkbox .mark {
+    -fx-background-color: transparent !important;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z" !important;
+    -fx-scale-x: 0.6 !important;
+    -fx-scale-y: 0.6 !important;
+}
+
+.dialog-pane .weiss-theme .macro-checkbox:selected .mark {
+    -fx-background-color: #ffffff !important;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z" !important;
+    -fx-scale-x: 0.6 !important;
+    -fx-scale-y: 0.6 !important;
+}
+
+/* Schwarz-Theme Macro-Checkboxen - MAXIMALE SPEZIFITÄT */
+.dialog-pane .theme-dark .macro-checkbox {
+    -fx-text-fill: #ffffff !important;
+}
+
+.dialog-pane .theme-dark .macro-checkbox .box {
+    -fx-background-color: #2d2d2d !important;
+    -fx-border-color: #4a5568 !important;
+    -fx-border-radius: 2px !important;
+    -fx-background-radius: 2px !important;
+    -fx-min-width: 16px !important;
+    -fx-min-height: 16px !important;
+    -fx-max-width: 16px !important;
+    -fx-max-height: 16px !important;
+}
+
+.dialog-pane .theme-dark .macro-checkbox:selected .box {
+    -fx-background-color: #3b82f6 !important;
+    -fx-border-color: #1d4ed8 !important;
+}
+
+.dialog-pane .theme-dark .macro-checkbox .mark {
+    -fx-background-color: transparent !important;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z" !important;
+    -fx-scale-x: 0.6 !important;
+    -fx-scale-y: 0.6 !important;
+}
+
+.dialog-pane .theme-dark .macro-checkbox:selected .mark {
+    -fx-background-color: #ffffff !important;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z" !important;
+    -fx-scale-x: 0.6 !important;
+    -fx-scale-y: 0.6 !important;
+}
+
+/* Pastell-Theme Macro-Checkboxen - MAXIMALE SPEZIFITÄT */
+.dialog-pane .pastell-theme .macro-checkbox {
+    -fx-text-fill: #000000 !important;
+}
+
+.dialog-pane .pastell-theme .macro-checkbox .box {
+    -fx-background-color: #e1bee7 !important;
+    -fx-border-color: #ba68c8 !important;
+    -fx-border-radius: 2px !important;
+    -fx-background-radius: 2px !important;
+    -fx-min-width: 16px !important;
+    -fx-min-height: 16px !important;
+    -fx-max-width: 16px !important;
+    -fx-max-height: 16px !important;
+}
+
+.dialog-pane .pastell-theme .macro-checkbox:selected .box {
+    -fx-background-color: #ba68c8 !important;
+    -fx-border-color: #9c27b0 !important;
+}
+
+.dialog-pane .pastell-theme .macro-checkbox .mark {
+    -fx-background-color: transparent !important;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z" !important;
+    -fx-scale-x: 0.6 !important;
+    -fx-scale-y: 0.6 !important;
+}
+
+.dialog-pane .pastell-theme .macro-checkbox:selected .mark {
+    -fx-background-color: #ffffff !important;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z" !important;
+    -fx-scale-x: 0.6 !important;
+    -fx-scale-y: 0.6 !important;
+}
+
+/* Blau-Theme Macro-Checkboxen - MAXIMALE SPEZIFITÄT */
+.dialog-pane .theme-dark.blau-theme .macro-checkbox {
+    -fx-text-fill: #ffffff !important;
+}
+
+.dialog-pane .theme-dark.blau-theme .macro-checkbox .box {
+    -fx-background-color: #1e40af !important;
+    -fx-border-color: #3b82f6 !important;
+    -fx-border-radius: 2px !important;
+    -fx-background-radius: 2px !important;
+    -fx-min-width: 16px !important;
+    -fx-min-height: 16px !important;
+    -fx-max-width: 16px !important;
+    -fx-max-height: 16px !important;
+}
+
+.dialog-pane .theme-dark.blau-theme .macro-checkbox:selected .box {
+    -fx-background-color: #3b82f6 !important;
+    -fx-border-color: #1d4ed8 !important;
+}
+
+.dialog-pane .theme-dark.blau-theme .macro-checkbox .mark {
+    -fx-background-color: transparent !important;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z" !important;
+    -fx-scale-x: 0.6 !important;
+    -fx-scale-y: 0.6 !important;
+}
+
+.dialog-pane .theme-dark.blau-theme .macro-checkbox:selected .mark {
+    -fx-background-color: #ffffff !important;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z" !important;
+    -fx-scale-x: 0.6 !important;
+    -fx-scale-y: 0.6 !important;
+}
+
+/* Grün-Theme Macro-Checkboxen - MAXIMALE SPEZIFITÄT */
+.dialog-pane .theme-dark.gruen-theme .macro-checkbox {
+    -fx-text-fill: #ffffff !important;
+}
+
+.dialog-pane .theme-dark.gruen-theme .macro-checkbox .box {
+    -fx-background-color: #065f46 !important;
+    -fx-border-color: #10b981 !important;
+    -fx-border-radius: 2px !important;
+    -fx-background-radius: 2px !important;
+    -fx-min-width: 16px !important;
+    -fx-min-height: 16px !important;
+    -fx-max-width: 16px !important;
+    -fx-max-height: 16px !important;
+}
+
+.dialog-pane .theme-dark.gruen-theme .macro-checkbox:selected .box {
+    -fx-background-color: #10b981 !important;
+    -fx-border-color: #059669 !important;
+}
+
+.dialog-pane .theme-dark.gruen-theme .macro-checkbox .mark {
+    -fx-background-color: transparent !important;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z" !important;
+    -fx-scale-x: 0.6 !important;
+    -fx-scale-y: 0.6 !important;
+}
+
+.dialog-pane .theme-dark.gruen-theme .macro-checkbox:selected .mark {
+    -fx-background-color: #ffffff !important;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z" !important;
+    -fx-scale-x: 0.6 !important;
+    -fx-scale-y: 0.6 !important;
+}
+
+/* Lila-Theme Macro-Checkboxen - MAXIMALE SPEZIFITÄT */
+.dialog-pane .theme-dark.lila-theme .macro-checkbox {
+    -fx-text-fill: #ffffff !important;
+}
+
+.dialog-pane .theme-dark.lila-theme .macro-checkbox .box {
+    -fx-background-color: #5b21b6 !important;
+    -fx-border-color: #8b5cf6 !important;
+    -fx-border-radius: 2px !important;
+    -fx-background-radius: 2px !important;
+    -fx-min-width: 16px !important;
+    -fx-min-height: 16px !important;
+    -fx-max-width: 16px !important;
+    -fx-max-height: 16px !important;
+}
+
+.dialog-pane .theme-dark.lila-theme .macro-checkbox:selected .box {
+    -fx-background-color: #8b5cf6 !important;
+    -fx-border-color: #7c3aed !important;
+}
+
+.dialog-pane .theme-dark.lila-theme .macro-checkbox .mark {
+    -fx-background-color: transparent !important;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z" !important;
+    -fx-scale-x: 0.6 !important;
+    -fx-scale-y: 0.6 !important;
+}
+
+.dialog-pane .theme-dark.lila-theme .macro-checkbox:selected .mark {
+    -fx-background-color: #ffffff !important;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z" !important;
+    -fx-scale-x: 0.6 !important;
+    -fx-scale-y: 0.6 !important;
+}
+
+/* ========================================
+   OLLAMA TITLED-PANE STYLING FÜR ALLE THEMES
+   ======================================== */
+
+/* Weiß-Theme TitledPane */
+.weiss-theme .ollama-titled-pane {
+    -fx-background-color: #ffffff !important;
+    -fx-border-color: #cccccc !important;
+    -fx-border-radius: 4px !important;
+    -fx-background-radius: 4px !important;
+}
+
+.weiss-theme .ollama-titled-pane .title {
+    -fx-background-color: #f8f9fa !important;
+    -fx-border-color: #dee2e6 !important;
+    -fx-border-width: 0 0 1 0 !important;
+}
+
+.weiss-theme .ollama-titled-pane .title .text {
+    -fx-fill: #000000 !important;
+    -fx-font-weight: bold !important;
+}
+
+.weiss-theme .ollama-titled-pane .title .arrow-button {
+    -fx-background-color: transparent !important;
+}
+
+.weiss-theme .ollama-titled-pane .title .arrow-button .arrow {
+    -fx-background-color: #6c757d !important;
+}
+
+/* Schwarz-Theme TitledPane */
+.theme-dark .ollama-titled-pane {
+    -fx-background-color: #1a1a1a !important;
+    -fx-border-color: #404040 !important;
+    -fx-border-radius: 4px !important;
+    -fx-background-radius: 4px !important;
+}
+
+.theme-dark .ollama-titled-pane .title {
+    -fx-background-color: #2d2d2d !important;
+    -fx-border-color: #404040 !important;
+    -fx-border-width: 0 0 1 0 !important;
+}
+
+.theme-dark .ollama-titled-pane .title .text {
+    -fx-fill: #ffffff !important;
+    -fx-font-weight: bold !important;
+}
+
+.theme-dark .ollama-titled-pane .title .arrow-button {
+    -fx-background-color: transparent !important;
+}
+
+.theme-dark .ollama-titled-pane .title .arrow-button .arrow {
+    -fx-background-color: #9ca3af !important;
+}
+
+/* Pastell-Theme TitledPane */
+.pastell-theme .ollama-titled-pane {
+    -fx-background-color: #e8d5f2 !important;
+    -fx-border-color: #ba68c8 !important;
+    -fx-border-radius: 4px !important;
+    -fx-background-radius: 4px !important;
+}
+
+.pastell-theme .ollama-titled-pane .title {
+    -fx-background-color: #e1bee7 !important;
+    -fx-border-color: #ba68c8 !important;
+    -fx-border-width: 0 0 1 0 !important;
+}
+
+.pastell-theme .ollama-titled-pane .title .text {
+    -fx-fill: #000000 !important;
+    -fx-font-weight: bold !important;
+}
+
+.pastell-theme .ollama-titled-pane .title .arrow-button {
+    -fx-background-color: transparent !important;
+}
+
+.pastell-theme .ollama-titled-pane .title .arrow-button .arrow {
+    -fx-background-color: #9c27b0 !important;
+}
+
+/* Blau-Theme TitledPane */
+.theme-dark.blau-theme .ollama-titled-pane {
+    -fx-background-color: #1e3a8a !important;
+    -fx-border-color: #3b82f6 !important;
+    -fx-border-radius: 4px !important;
+    -fx-background-radius: 4px !important;
+}
+
+.theme-dark.blau-theme .ollama-titled-pane .title {
+    -fx-background-color: #1e40af !important;
+    -fx-border-color: #3b82f6 !important;
+    -fx-border-width: 0 0 1 0 !important;
+}
+
+.theme-dark.blau-theme .ollama-titled-pane .title .text {
+    -fx-fill: #ffffff !important;
+    -fx-font-weight: bold !important;
+}
+
+.theme-dark.blau-theme .ollama-titled-pane .title .arrow-button {
+    -fx-background-color: transparent !important;
+}
+
+.theme-dark.blau-theme .ollama-titled-pane .title .arrow-button .arrow {
+    -fx-background-color: #60a5fa !important;
+}
+
+/* Grün-Theme TitledPane */
+.theme-dark.gruen-theme .ollama-titled-pane {
+    -fx-background-color: #064e3b !important;
+    -fx-border-color: #10b981 !important;
+    -fx-border-radius: 4px !important;
+    -fx-background-radius: 4px !important;
+}
+
+.theme-dark.gruen-theme .ollama-titled-pane .title {
+    -fx-background-color: #065f46 !important;
+    -fx-border-color: #10b981 !important;
+    -fx-border-width: 0 0 1 0 !important;
+}
+
+.theme-dark.gruen-theme .ollama-titled-pane .title .text {
+    -fx-fill: #ffffff !important;
+    -fx-font-weight: bold !important;
+}
+
+.theme-dark.gruen-theme .ollama-titled-pane .title .arrow-button {
+    -fx-background-color: transparent !important;
+}
+
+.theme-dark.gruen-theme .ollama-titled-pane .title .arrow-button .arrow {
+    -fx-background-color: #34d399 !important;
+}
+
+/* Lila-Theme TitledPane */
+.theme-dark.lila-theme .ollama-titled-pane {
+    -fx-background-color: #4c1d95 !important;
+    -fx-border-color: #8b5cf6 !important;
+    -fx-border-radius: 4px !important;
+    -fx-background-radius: 4px !important;
+}
+
+.theme-dark.lila-theme .ollama-titled-pane .title {
+    -fx-background-color: #5b21b6 !important;
+    -fx-border-color: #8b5cf6 !important;
+    -fx-border-width: 0 0 1 0 !important;
+}
+
+.theme-dark.lila-theme .ollama-titled-pane .title .text {
+    -fx-fill: #ffffff !important;
+    -fx-font-weight: bold !important;
+}
+
+.theme-dark.lila-theme .ollama-titled-pane .title .arrow-button {
+    -fx-background-color: transparent !important;
+}
+
+.theme-dark.lila-theme .ollama-titled-pane .title .arrow-button .arrow {
+    -fx-background-color: #a78bfa !important;
+}
+
+/* ========================================
+   DIFF-FENSTER THEME-STYLING
+   ======================================== */
+
+/* SplitPane transparent machen */
+.diff-split-pane {
+    -fx-background-color: transparent !important;
+}
+
+/* TEST: Sehr auffällige Farben zum Testen */
+.diff-root {
+    -fx-background-color: #ff0000 !important;
+    -fx-border-color: #00ff00 !important;
+    -fx-border-width: 5px !important;
+}
+
+.diff-left-box {
+    -fx-background-color: #00ff00 !important;
+    -fx-border-color: #0000ff !important;
+    -fx-border-width: 5px !important;
+}
+
+.diff-right-box {
+    -fx-background-color: #0000ff !important;
+    -fx-border-color: #ffff00 !important;
+    -fx-border-width: 5px !important;
+}
+
+/* Weiß-Theme - normale Theme-Farben */
+.weiss-theme .diff-root {
+    -fx-background-color: #f8f9fa !important;
+    -fx-border-color: #dee2e6 !important;
+    -fx-border-width: 2px !important;
+}
+
+.weiss-theme .diff-left-box {
+    -fx-background-color: #fff3cd !important;
+    -fx-border-color: #ffc107 !important;
+    -fx-border-width: 2px !important;
+}
+
+.weiss-theme .diff-right-box {
+    -fx-background-color: #d1ecf1 !important;
+    -fx-border-color: #17a2b8 !important;
+    -fx-border-width: 2px !important;
+}
+
+/* Schwarz-Theme - normale Theme-Farben */
+.theme-dark .diff-root {
+    -fx-background-color: #2d3748 !important;
+    -fx-border-color: #4a5568 !important;
+    -fx-border-width: 2px !important;
+}
+
+.theme-dark .diff-left-box {
+    -fx-background-color: #4a5568 !important;
+    -fx-border-color: #718096 !important;
+    -fx-border-width: 2px !important;
+}
+
+.theme-dark .diff-right-box {
+    -fx-background-color: #4a5568 !important;
+    -fx-border-color: #718096 !important;
+    -fx-border-width: 2px !important;
+}
+
+/* Pastell-Theme - normale Theme-Farben */
+.pastell-theme .diff-root {
+    -fx-background-color: #f3e5f5 !important;
+    -fx-border-color: #ba68c8 !important;
+    -fx-border-width: 2px !important;
+}
+
+.pastell-theme .diff-left-box {
+    -fx-background-color: #e8d5f2 !important;
+    -fx-border-color: #9c27b0 !important;
+    -fx-border-width: 2px !important;
+}
+
+.pastell-theme .diff-right-box {
+    -fx-background-color: #e8d5f2 !important;
+    -fx-border-color: #9c27b0 !important;
+    -fx-border-width: 2px !important;
+}
+
+/* Blau-Theme - normale Theme-Farben */
+.theme-dark.blau-theme .diff-root {
+    -fx-background-color: #1e3a8a !important;
+    -fx-border-color: #3b82f6 !important;
+    -fx-border-width: 2px !important;
+}
+
+.theme-dark.blau-theme .diff-left-box {
+    -fx-background-color: #1e40af !important;
+    -fx-border-color: #60a5fa !important;
+    -fx-border-width: 2px !important;
+}
+
+.theme-dark.blau-theme .diff-right-box {
+    -fx-background-color: #1e40af !important;
+    -fx-border-color: #60a5fa !important;
+    -fx-border-width: 2px !important;
+}
+
+/* Grün-Theme - normale Theme-Farben */
+.theme-dark.gruen-theme .diff-root {
+    -fx-background-color: #064e3b !important;
+    -fx-border-color: #10b981 !important;
+    -fx-border-width: 2px !important;
+}
+
+.theme-dark.gruen-theme .diff-left-box {
+    -fx-background-color: #065f46 !important;
+    -fx-border-color: #34d399 !important;
+    -fx-border-width: 2px !important;
+}
+
+.theme-dark.gruen-theme .diff-right-box {
+    -fx-background-color: #065f46 !important;
+    -fx-border-color: #34d399 !important;
+    -fx-border-width: 2px !important;
+}
+
+/* Lila-Theme - normale Theme-Farben */
+.theme-dark.lila-theme .diff-root {
+    -fx-background-color: #581c87 !important;
+    -fx-border-color: #8b5cf6 !important;
+    -fx-border-width: 2px !important;
+}
+
+.theme-dark.lila-theme .diff-left-box {
+    -fx-background-color: #6b21a8 !important;
+    -fx-border-color: #a78bfa !important;
+    -fx-border-width: 2px !important;
+}
+
+.theme-dark.lila-theme .diff-right-box {
+    -fx-background-color: #6b21a8 !important;
+    -fx-border-color: #a78bfa !important;
+    -fx-border-width: 2px !important;
+}
+
+/* ========================================
+   SUCH- UND ERSETZUNGS-PANEL STYLING
+   ======================================== */
+
+/* Such- und Ersetzungs-Panel Haupt-Container theme-gerecht färben */
+
+/* Weiß-Theme */
+.weiss-theme .search-replace-panel {
+    -fx-background-color: #ffffff !important;
+    -fx-border-color: #e9ecef !important;
+    -fx-border-width: 1px !important;
+    -fx-border-radius: 6px !important;
+    -fx-background-radius: 6px !important;
+}
+
+/* Schwarz-Theme */
+.theme-dark .search-replace-panel {
+    -fx-background-color: #1a1a1a !important;
+    -fx-border-color: #404040 !important;
+    -fx-border-width: 1px !important;
+    -fx-border-radius: 6px !important;
+    -fx-background-radius: 6px !important;
+}
+
+/* Pastell-Theme */
+.pastell-theme .search-replace-panel {
+    -fx-background-color: #f3e5f5 !important;
+    -fx-border-color: #ce93d8 !important;
+    -fx-border-width: 1px !important;
+    -fx-border-radius: 6px !important;
+    -fx-background-radius: 6px !important;
+}
+
+/* Blau-Theme */
+.theme-dark.blau-theme .search-replace-panel {
+    -fx-background-color: #1e3a8a !important;
+    -fx-border-color: #60a5fa !important;
+    -fx-border-width: 1px !important;
+    -fx-border-radius: 6px !important;
+    -fx-background-radius: 6px !important;
+}
+
+/* Grün-Theme */
+.theme-dark.gruen-theme .search-replace-panel {
+    -fx-background-color: #064e3b !important;
+    -fx-border-color: #10b981 !important;
+    -fx-border-width: 1px !important;
+    -fx-border-radius: 6px !important;
+    -fx-background-radius: 6px !important;
+}
+
+/* Lila-Theme */
+.theme-dark.lila-theme .search-replace-panel {
+    -fx-background-color: #581c87 !important;
+    -fx-border-color: #a855f7 !important;
+    -fx-border-width: 1px !important;
+    -fx-border-radius: 6px !important;
+    -fx-background-radius: 6px !important;
+}
+
+/* Such- und Ersetzungs-Panel Container theme-gerecht färben */
+
+/* Weiß-Theme */
+.weiss-theme .search-replace-panel .search-input-row,
+.weiss-theme .search-replace-panel .search-toolbar-row {
+    -fx-background-color: #f8f9fa !important;
+    -fx-border-color: #e9ecef !important;
+    -fx-border-width: 1px !important;
+    -fx-border-radius: 4px !important;
+    -fx-background-radius: 4px !important;
+    -fx-padding: 8px !important;
+}
+
+/* Schwarz-Theme */
+.theme-dark .search-replace-panel .search-input-row,
+.theme-dark .search-replace-panel .search-toolbar-row {
+    -fx-background-color: #2d2d2d !important;
+    -fx-border-color: #404040 !important;
+    -fx-border-width: 1px !important;
+    -fx-border-radius: 4px !important;
+    -fx-background-radius: 4px !important;
+    -fx-padding: 8px !important;
+}
+
+/* Pastell-Theme */
+.pastell-theme .search-replace-panel .search-input-row,
+.pastell-theme .search-replace-panel .search-toolbar-row {
+    -fx-background-color: #e1bee7 !important;
+    -fx-border-color: #ce93d8 !important;
+    -fx-border-width: 1px !important;
+    -fx-border-radius: 4px !important;
+    -fx-background-radius: 4px !important;
+    -fx-padding: 8px !important;
+}
+
+/* Blau-Theme */
+.theme-dark.blau-theme .search-replace-panel .search-input-row,
+.theme-dark.blau-theme .search-replace-panel .search-toolbar-row {
+    -fx-background-color: #3b82f6 !important;
+    -fx-border-color: #60a5fa !important;
+    -fx-border-width: 1px !important;
+    -fx-border-radius: 4px !important;
+    -fx-background-radius: 4px !important;
+    -fx-padding: 8px !important;
+}
+
+/* Grün-Theme */
+.theme-dark.gruen-theme .search-replace-panel .search-input-row,
+.theme-dark.gruen-theme .search-replace-panel .search-toolbar-row {
+    -fx-background-color: #059669 !important;
+    -fx-border-color: #10b981 !important;
+    -fx-border-width: 1px !important;
+    -fx-border-radius: 4px !important;
+    -fx-background-radius: 4px !important;
+    -fx-padding: 8px !important;
+}
+
+/* Lila-Theme */
+.theme-dark.lila-theme .search-replace-panel .search-input-row,
+.theme-dark.lila-theme .search-replace-panel .search-toolbar-row {
+    -fx-background-color: #7c3aed !important;
+    -fx-border-color: #a855f7 !important;
+    -fx-border-width: 1px !important;
+    -fx-border-radius: 4px !important;
+    -fx-background-radius: 4px !important;
+    -fx-padding: 8px !important;
+}
+
+
+

@@ -881,21 +881,33 @@ public class OllamaWindow {
         contextCheckboxBar.getChildren().addAll(row1, row2, row3);
 
         synopsisArea = new TextArea(); synopsisArea.setWrapText(true);
+        synopsisArea.getStyleClass().add("ollama-text-area");
         charactersArea = new TextArea(); charactersArea.setWrapText(true);
+        charactersArea.getStyleClass().add("ollama-text-area");
         worldbuildingArea = new TextArea(); worldbuildingArea.setWrapText(true);
+        worldbuildingArea.getStyleClass().add("ollama-text-area");
         outlineArea = new TextArea(); outlineArea.setWrapText(true);
+        outlineArea.getStyleClass().add("ollama-text-area");
         chapterNotesArea = new TextArea(); chapterNotesArea.setWrapText(true);
+        chapterNotesArea.getStyleClass().add("ollama-text-area");
 
         tpSynopsis = new TitledPane("Synopsis", synopsisArea);
+        tpSynopsis.getStyleClass().add("ollama-titled-pane");
         tpCharacters = new TitledPane("Charaktere", charactersArea);
+        tpCharacters.getStyleClass().add("ollama-titled-pane");
         tpWorldbuilding = new TitledPane("Worldbuilding", worldbuildingArea);
+        tpWorldbuilding.getStyleClass().add("ollama-titled-pane");
         tpOutline = new TitledPane("Outline", outlineArea);
+        tpOutline.getStyleClass().add("ollama-titled-pane");
         tpChapter = new TitledPane("Kapitelnotizen", chapterNotesArea);
+        tpChapter.getStyleClass().add("ollama-titled-pane");
 
         // Neues Klappfeld: Stil
         this.styleNotesArea = new TextArea();
         styleNotesArea.setWrapText(true);
+        styleNotesArea.getStyleClass().add("ollama-text-area");
         this.tpStyle = new TitledPane("Stil", styleNotesArea);
+        tpStyle.getStyleClass().add("ollama-titled-pane");
         contextAccordion.getPanes().addAll(tpSynopsis, tpCharacters, tpWorldbuilding, tpOutline, tpChapter, tpStyle);
 
         // Auto-Save der Projekt-Kontexte
@@ -991,14 +1003,10 @@ public class OllamaWindow {
         
         // CSS-Dateien laden
         // CSS mit ResourceManager laden
-        String stylesCssPath = ResourceManager.getCssResource("css/styles.css");
-        String editorCssPath = ResourceManager.getCssResource("css/editor.css");
+        String cssPath = ResourceManager.getCssResource("css/manuskript.css");
         
-        if (stylesCssPath != null) {
-            scene.getStylesheets().add(stylesCssPath);
-        }
-        if (editorCssPath != null) {
-            scene.getStylesheets().add(editorCssPath);
+        if (cssPath != null) {
+            scene.getStylesheets().add(cssPath);
         }
         
         stage.setSceneWithTitleBar(scene);
@@ -2831,20 +2839,15 @@ public class OllamaWindow {
     }
     
     private void showAlert(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        CustomAlert alert = new CustomAlert(Alert.AlertType.INFORMATION, message);
         alert.setTitle(title);
         alert.setHeaderText(null);
-        alert.setContentText(message);
-        // Theme anwenden
-        applyDialogTheme(alert, currentThemeIndex);
+        alert.applyTheme(currentThemeIndex);
+        alert.initOwner(stage);
         alert.showAndWait();
     }
     
     private void showOllamaInstallationDialog() {
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("Ollama Installation");
-        alert.setHeaderText("Ollama ist nicht installiert");
-        
         // Erstelle einen detaillierten Content
         VBox content = new VBox(10);
         content.setPadding(new Insets(10));
@@ -2866,38 +2869,35 @@ public class OllamaWindow {
         );
         requirementsLabel.setWrapText(true);
         
-        // Installations-Button
-        Button installButton = new Button("Ollama installieren");
-        installButton.setOnAction(e -> {
-            alert.setResult(ButtonType.OK);
-            alert.close();
-            openOllamaWebsite();
-        });
-        
-        // Abbrechen-Button
-        Button cancelButton = new Button("Später");
-        cancelButton.setOnAction(e -> {
-            alert.setResult(ButtonType.CANCEL);
-            alert.close();
-        });
-        
         // "Nicht mehr anzeigen" Checkbox
         CheckBox dontShowAgainCheckBox = new CheckBox("Dieses Dialog nicht mehr anzeigen");
         
-        HBox buttonBox = new HBox(10);
-        buttonBox.getChildren().addAll(installButton, cancelButton);
+        content.getChildren().addAll(explanationLabel, requirementsLabel, dontShowAgainCheckBox);
         
-        content.getChildren().addAll(explanationLabel, requirementsLabel, dontShowAgainCheckBox, buttonBox);
+        CustomAlert alert = new CustomAlert(Alert.AlertType.CONFIRMATION, "Möchten Sie Ollama installieren?");
+        alert.setTitle("Ollama Installation");
+        alert.setHeaderText("Ollama ist nicht installiert");
+        alert.applyTheme(currentThemeIndex);
+        alert.initOwner(stage);
+        
+        // Content setzen
         alert.getDialogPane().setContent(content);
         
-        // Direkte Theme-Styles auf das Dialog anwenden
-        applyDialogTheme(alert, currentThemeIndex);
+        // Button-Typen setzen
+        ButtonType installButtonType = new ButtonType("Ollama installieren");
+        ButtonType cancelButtonType = new ButtonType("Später");
+        alert.setButtonTypes(installButtonType, cancelButtonType);
         
         Optional<ButtonType> result = alert.showAndWait();
         
         // Wenn "Nicht mehr anzeigen" aktiviert ist, speichere die Einstellung
         if (result.isPresent() && dontShowAgainCheckBox.isSelected()) {
             saveOllamaDialogPreference(true);
+        }
+        
+        // Aktion basierend auf Ergebnis
+        if (result.isPresent() && result.get() == installButtonType) {
+            openOllamaWebsite();
         }
     }
     
@@ -3226,14 +3226,10 @@ public class OllamaWindow {
                 if (themeIndex == 4) root.getStyleClass().add("gruen-theme");
                 if (themeIndex == 5) root.getStyleClass().add("lila-theme");
             }
-            // Stylesheets neu anhängen (styles.css + editor.css), damit Mark-Farben greifen
-            String stylesCssPath = ResourceManager.getCssResource("css/styles.css");
-            String editorCssPath = ResourceManager.getCssResource("css/editor.css");
-            if (stylesCssPath != null && !stage.getScene().getStylesheets().contains(stylesCssPath)) {
-                stage.getScene().getStylesheets().add(stylesCssPath);
-            }
-            if (editorCssPath != null && !stage.getScene().getStylesheets().contains(editorCssPath)) {
-                stage.getScene().getStylesheets().add(editorCssPath);
+            // Stylesheets neu anhängen, damit Mark-Farben greifen
+            String cssPath = ResourceManager.getCssResource("css/manuskript.css");
+            if (cssPath != null && !stage.getScene().getStylesheets().contains(cssPath)) {
+                stage.getScene().getStylesheets().add(cssPath);
             }
             applyThemeToNode(root, themeIndex);
             applyThemeToNode(modelComboBox, themeIndex);
@@ -3462,14 +3458,13 @@ public class OllamaWindow {
         }
         
         // Bestätigungsdialog
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("Modell löschen");
-        alert.setHeaderText("Modell löschen bestätigen");
-        alert.setContentText("Möchten Sie das Modell '" + selectedModel + "' wirklich löschen?\n\n" +
+        CustomAlert alert = new CustomAlert(Alert.AlertType.CONFIRMATION, "Möchten Sie das Modell '" + selectedModel + "' wirklich löschen?\n\n" +
                            "⚠️  Diese Aktion kann nicht rückgängig gemacht werden!\n" +
                            "💾 Das Modell wird unwiderruflich von der Festplatte entfernt.");
-        // Theme anwenden
-        applyDialogTheme(alert, currentThemeIndex);
+        alert.setTitle("Modell löschen");
+        alert.setHeaderText("Modell löschen bestätigen");
+        alert.applyTheme(currentThemeIndex);
+        alert.initOwner(stage);
         
         Optional<ButtonType> result = alert.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
@@ -3717,11 +3712,11 @@ public class OllamaWindow {
     private void deleteCurrentSession() {
         String currentSession = sessionComboBox.getValue();
         if (currentSession != null) {
-            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            CustomAlert alert = new CustomAlert(Alert.AlertType.CONFIRMATION, "Möchten Sie die Session '" + currentSession + "' wirklich löschen?\n\nDie Chat-Historie wird unwiderruflich gelöscht.");
             alert.setTitle("Session löschen");
             alert.setHeaderText("Session löschen?");
-            alert.setContentText("Möchten Sie die Session '" + currentSession + "' wirklich löschen?\n\nDie Chat-Historie wird unwiderruflich gelöscht.");
-            applyDialogTheme(alert, currentThemeIndex);
+            alert.applyTheme(currentThemeIndex);
+            alert.initOwner(stage);
             
             Optional<ButtonType> result = alert.showAndWait();
             if (result.isPresent() && result.get() == ButtonType.OK) {
@@ -3755,11 +3750,11 @@ public class OllamaWindow {
     private void clearCurrentSession() {
         String currentSession = sessionComboBox.getValue();
         if (currentSession != null) {
-            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            CustomAlert alert = new CustomAlert(Alert.AlertType.CONFIRMATION, "Möchten Sie die Chat-Historie der Session '" + currentSession + "' wirklich löschen?\n\nDie Session bleibt erhalten, aber alle Nachrichten werden gelöscht.");
             alert.setTitle("Kontext löschen");
             alert.setHeaderText("Chat-Historie löschen?");
-            alert.setContentText("Möchten Sie die Chat-Historie der Session '" + currentSession + "' wirklich löschen?\n\nDie Session bleibt erhalten, aber alle Nachrichten werden gelöscht.");
-            applyDialogTheme(alert, currentThemeIndex);
+            alert.applyTheme(currentThemeIndex);
+            alert.initOwner(stage);
             
             Optional<ButtonType> result = alert.showAndWait();
             if (result.isPresent() && result.get() == ButtonType.OK) {

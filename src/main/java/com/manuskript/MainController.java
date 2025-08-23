@@ -17,6 +17,11 @@ import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
+import javafx.stage.FileChooser;
+import javafx.stage.DirectoryChooser;
+import javafx.scene.control.ListCell;
 import javafx.scene.control.SplitPane;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -49,6 +54,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.nio.charset.StandardCharsets;
+import com.manuskript.DocxSplitProcessor;
+import com.manuskript.DocxSplitProcessor.Chapter;
 
 public class MainController implements Initializable {
     
@@ -79,6 +86,7 @@ public class MainController implements Initializable {
     @FXML private Button btnProcessSelected;
     @FXML private Button btnProcessAll;
     @FXML private Button btnThemeToggle;
+    @FXML private Button btnSplit;
     
     // Status
     // ProgressBar und lblStatus wurden entfernt
@@ -116,17 +124,13 @@ public class MainController implements Initializable {
         loadLastDirectory();
         // loadRecentRegexList entfernt - einfache Lösung
         
-        // CSS initial laden und Theme-Klassen setzen, bevor wir Theme anwenden
-        Platform.runLater(() -> {
-            if (mainContainer != null && mainContainer.getScene() != null) {
-                String stylesCssPath = ResourceManager.getCssResource("css/styles.css");
-                String editorCssPath = ResourceManager.getCssResource("css/editor.css");
-                if (stylesCssPath != null && !mainContainer.getScene().getStylesheets().contains(stylesCssPath)) {
-                    mainContainer.getScene().getStylesheets().add(stylesCssPath);
-                }
-                if (editorCssPath != null && !mainContainer.getScene().getStylesheets().contains(editorCssPath)) {
-                    mainContainer.getScene().getStylesheets().add(editorCssPath);
-                }
+                    // CSS initial laden und Theme-Klassen setzen, bevor wir Theme anwenden
+            Platform.runLater(() -> {
+                if (mainContainer != null && mainContainer.getScene() != null) {
+                    String cssPath = ResourceManager.getCssResource("css/manuskript.css");
+                    if (cssPath != null && !mainContainer.getScene().getStylesheets().contains(cssPath)) {
+                        mainContainer.getScene().getStylesheets().add(cssPath);
+                    }
                 // Theme-Klassen auf Root vorab setzen, damit Pfeile etc. initial korrekt sind
                 Node root = mainContainer.getScene().getRoot();
                 root.getStyleClass().removeAll("theme-dark", "theme-light", "blau-theme", "gruen-theme", "lila-theme", "weiss-theme", "pastell-theme");
@@ -187,9 +191,9 @@ public class MainController implements Initializable {
         
         // Sortierung über TableView-Header (Standard-JavaFX)
         
-        // TableViews direkt stylen - vor CSS-Ladung
-        tableViewAvailable.setStyle("-fx-background-color: #ffffff; -fx-text-fill: #000000; -fx-border-color: #ba68c8;");
-        tableViewSelected.setStyle("-fx-background-color: #ffffff; -fx-text-fill: #000000; -fx-border-color: #ba68c8;");
+        // TableViews nur Border stylen - Hintergrund über CSS
+        tableViewAvailable.setStyle("-fx-border-color: #ba68c8;");
+        tableViewSelected.setStyle("-fx-border-color: #ba68c8;");
         
         // Status initialisieren
         updateStatus("Bereit - Wählen Sie ein Verzeichnis aus");
@@ -210,6 +214,7 @@ public class MainController implements Initializable {
             processAllFiles();
         });
         btnThemeToggle.setOnAction(e -> toggleTheme());
+        btnSplit.setOnAction(e -> openSplitStage());
     }
     
     private void setupDragAndDrop() {
@@ -357,7 +362,11 @@ public class MainController implements Initializable {
                 // Entferne die Dateien aus der linken Tabelle
                 allDocxFiles.removeAll(filesToMove);
                 
-                // Keine Auswahl mehr speichern - MD-Erkennung ist ausreichend
+                // WICHTIG: Reihenfolge speichern
+                String currentDir = preferences.get("lastDirectory", "");
+                if (!currentDir.isEmpty()) {
+                    saveSelection(new File(currentDir));
+                }
                 
                 success = true;
                 updateStatus(selectedItems.size() + " Dateien zur Auswahl hinzugefügt");
@@ -386,6 +395,13 @@ public class MainController implements Initializable {
                                 selectedDocxFiles.set(currentIndex, previousFile);
                                 tableViewSelected.getSelectionModel().select(fileToMove);
                                 updateStatus("Datei nach oben verschoben (Strg+↑)");
+                                
+                                // WICHTIG: Reihenfolge speichern
+                                String currentDir = preferences.get("lastDirectory", "");
+                                if (!currentDir.isEmpty()) {
+                                    saveSelection(new File(currentDir));
+                                }
+                                
                                 event.consume();
                             }
                             break;
@@ -397,6 +413,13 @@ public class MainController implements Initializable {
                                 selectedDocxFiles.set(currentIndex, nextFile);
                                 tableViewSelected.getSelectionModel().select(fileToMove);
                                 updateStatus("Datei nach unten verschoben (Strg+↓)");
+                                
+                                // WICHTIG: Reihenfolge speichern
+                                String currentDir = preferences.get("lastDirectory", "");
+                                if (!currentDir.isEmpty()) {
+                                    saveSelection(new File(currentDir));
+                                }
+                                
                                 event.consume();
                             }
                             break;
@@ -519,6 +542,9 @@ public class MainController implements Initializable {
             // NEU: Hash-basierte Änderungsprüfung für alle geladenen Dateien
             checkAllDocxFilesForChanges();
             
+            // WICHTIG: Gespeicherte Reihenfolge laden (falls vorhanden)
+            loadSavedOrder(directory);
+            
             // Status aktualisieren
             updateStatus(allDocxFiles.size() + " Dateien links, " + selectedDocxFiles.size() + " Dateien rechts");
             
@@ -537,11 +563,6 @@ public class MainController implements Initializable {
     // Filter-Methoden entfernt - einfache Lösung
     
     private boolean showMdDeletionDialog(List<DocxFile> filesWithMd) {
-        // Erstelle eine schön gestylte Dialog-Box
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("MD-Dateien löschen?");
-        alert.setHeaderText("Dateien mit MD-Dateien verschieben");
-        
         // Erstelle eine schöne Nachricht
         StringBuilder message = new StringBuilder();
         message.append("Die folgenden Dateien haben MD-Dateien:\n\n");
@@ -555,49 +576,21 @@ public class MainController implements Initializable {
         message.append("Wenn Sie die Dateien nach links verschieben möchten, müssen die MD-Dateien gelöscht werden.\n\n");
         message.append("Möchten Sie fortfahren?");
         
-        alert.setContentText(message.toString());
+        // CustomAlert verwenden
+        CustomAlert alert = new CustomAlert(Alert.AlertType.CONFIRMATION, message.toString());
+        alert.setTitle("MD-Dateien löschen?");
+        alert.setHeaderText("Dateien mit MD-Dateien verschieben");
         
-        // Dialog stylen wie andere Dialoge in der Anwendung
-        DialogPane dialogPane = alert.getDialogPane();
+        // Theme anwenden
+        alert.applyTheme(currentThemeIndex);
         
-        // CSS hinzufügen (styles.css + editor.css), damit Theme greift
-        String stylesCss = ResourceManager.getCssResource("css/styles.css");
-        String editorCss = ResourceManager.getCssResource("css/editor.css");
-        if (stylesCss != null && !dialogPane.getStylesheets().contains(stylesCss)) {
-            dialogPane.getStylesheets().add(stylesCss);
-        }
-        if (editorCss != null && !dialogPane.getStylesheets().contains(editorCss)) {
-            dialogPane.getStylesheets().add(editorCss);
-        }
-
-        // Theme-Klassen vom Hauptfenster übernehmen
-        if (currentThemeIndex == 0) dialogPane.getStyleClass().add("weiss-theme");
-        else if (currentThemeIndex == 2) dialogPane.getStyleClass().add("pastell-theme");
-        else if (currentThemeIndex == 3) dialogPane.getStyleClass().addAll("theme-dark", "blau-theme");
-        else if (currentThemeIndex == 4) dialogPane.getStyleClass().addAll("theme-dark", "gruen-theme");
-        else if (currentThemeIndex == 5) dialogPane.getStyleClass().addAll("theme-dark", "lila-theme");
-        else dialogPane.getStyleClass().add("theme-dark");
-
-        // Zusätzlich: Header-Panel sicher inline stylen, sobald aufgebaut
-        final String backgroundColor = THEMES[currentThemeIndex][0];
-        final String textColor = THEMES[currentThemeIndex][1];
-        alert.setOnShown(ev -> {
-            Node headerPanel = dialogPane.lookup(".header-panel");
-            if (headerPanel != null) {
-                headerPanel.setStyle(String.format(
-                        "-fx-background-color: %s; -fx-background-insets: 0; -fx-padding: 8 12;",
-                        backgroundColor));
-                Node headerLabel = headerPanel.lookup(".label");
-                if (headerLabel instanceof Label) {
-                    ((Label) headerLabel).setTextFill(javafx.scene.paint.Color.web(textColor));
-                }
-            }
-        });
+        // Owner setzen
+        alert.initOwner(primaryStage);
         
         // Eigene Buttons mit deutschen Texten
         ButtonType deleteButton = new ButtonType("MD-Dateien löschen", ButtonBar.ButtonData.OK_DONE);
         ButtonType cancelButton = new ButtonType("Abbrechen", ButtonBar.ButtonData.CANCEL_CLOSE);
-        alert.getButtonTypes().setAll(deleteButton, cancelButton);
+        alert.setButtonTypes(deleteButton, cancelButton);
         
         // Dialog anzeigen und Ergebnis zurückgeben
         Optional<ButtonType> result = alert.showAndWait();
@@ -1495,20 +1488,24 @@ public class MainController implements Initializable {
      */
     private DocxChangeDecision showDocxChangedDialogInMain(DocxFile chapterFile) {
         System.out.println("=== DEBUG: showDocxChangedDialogInMain() aufgerufen ===");
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        
+        // CustomAlert verwenden
+        CustomAlert alert = new CustomAlert(Alert.AlertType.CONFIRMATION, "Was möchten Sie tun?");
         alert.setTitle("DOCX-Datei wurde extern verändert");
         alert.setHeaderText("Die DOCX-Datei '" + chapterFile.getFileName() + "' wurde extern verändert.");
-        alert.setContentText("Was möchten Sie tun?");
+        
+        // Theme anwenden
+        alert.applyTheme(currentThemeIndex);
+        
+        // Owner setzen
+        alert.initOwner(primaryStage);
 
         ButtonType diffButton = new ButtonType("🔍 Diff anzeigen");
         ButtonType docxButton = new ButtonType("DOCX übernehmen");
         ButtonType ignoreButton = new ButtonType("Ignorieren");
         ButtonType cancelButton = new ButtonType("Abbrechen");
 
-        alert.getButtonTypes().setAll(diffButton, docxButton, ignoreButton, cancelButton);
-
-        // Wiederverwendbare Prozedur für Dialog-Styling verwenden
-        applyThemeToDialog(alert, "extern verändert");
+        alert.setButtonTypes(diffButton, docxButton, ignoreButton, cancelButton);
 
         Optional<ButtonType> result = alert.showAndWait();
         System.out.println("=== DEBUG: Dialog geschlossen, Ergebnis: " + (result.isPresent() ? result.get().getText() : "null") + " ===");
@@ -1548,8 +1545,14 @@ public class MainController implements Initializable {
             diffRoot.setPrefWidth(1400);
             diffRoot.setPrefHeight(800);
             
+            // ECHTE THEME-FARBEN für Container
+            String themeBgColor = THEMES[currentThemeIndex][0]; // Hauptfarbe
+            String themeBorderColor = THEMES[currentThemeIndex][2]; // Akzentfarbe
+            
+            diffRoot.setStyle(String.format("-fx-background-color: %s; -fx-border-color: %s; -fx-border-width: 2px;", themeBgColor, themeBorderColor));
+            
             Label titleLabel = new Label("Änderungen in " + chapterFile.getFileName());
-            titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #2c3e50;");
+            titleLabel.setStyle(String.format("-fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: %s;", THEMES[currentThemeIndex][1]));
             
             // Lade beide Versionen
             String mdContent = new String(java.nio.file.Files.readAllBytes(mdFile.toPath()), java.nio.charset.StandardCharsets.UTF_8);
@@ -1558,31 +1561,79 @@ public class MainController implements Initializable {
             // Erstelle SplitPane für nebeneinander Anzeige
             SplitPane splitPane = new SplitPane();
             splitPane.setPrefHeight(650);
-            splitPane.setStyle("-fx-background-color: #f8f9fa;");
+            splitPane.setStyle("-fx-background-color: transparent;");
             
             // Linke Seite: Aktuelle Version (MD)
             VBox leftBox = new VBox(5);
-            leftBox.setStyle("-fx-background-color: white; -fx-border-color: #dee2e6; -fx-border-width: 1;");
+            leftBox.setStyle(String.format("-fx-background-color: %s; -fx-border-color: %s; -fx-border-width: 2px;", themeBgColor, themeBorderColor));
             leftBox.setPadding(new Insets(10));
             
             Label leftLabel = new Label("📄 Aktuelle Version (MD)");
-            leftLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #495057;");
+            leftLabel.setStyle(String.format("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: %s;", THEMES[currentThemeIndex][1]));
             
             ScrollPane leftScrollPane = new ScrollPane();
+            leftScrollPane.setStyle(
+                "-fx-fit-to-width: true; -fx-fit-to-height: false; -fx-pannable: true; " +
+                "-fx-hbar-policy: as-needed; -fx-vbar-policy: always; -fx-background-color: transparent;"
+            );
+
+            // Scrollbar-Styling nach dem UI-Aufbau
+            Platform.runLater(() -> {
+                /* Viewport-Hintergrund */
+                javafx.scene.Node vp = leftScrollPane.lookup(".viewport");
+                if (vp instanceof javafx.scene.layout.Region r)
+                    r.setStyle("-fx-background-color: transparent; -fx-background-radius: 6;");
+
+                /* Scrollbars stylen (Track/Thumb etc.): */
+                javafx.scene.control.ScrollBar vbar =
+                    (javafx.scene.control.ScrollBar) leftScrollPane.lookup(".scroll-bar:vertical");
+                if (vbar != null) {
+                    vbar.setStyle("-fx-pref-width: 10;");                            // Breite
+                    javafx.scene.layout.Region thumb = (javafx.scene.layout.Region) vbar.lookup(".thumb");
+                    if (thumb != null) thumb.setStyle(String.format("-fx-background-color: %s; -fx-background-radius: 6;", THEMES[currentThemeIndex][2]));
+                    javafx.scene.layout.Region track = (javafx.scene.layout.Region) vbar.lookup(".track");
+                    if (track != null) track.setStyle("-fx-background-color: transparent;");
+                }
+            });
             VBox leftContentBox = new VBox(0);
             leftContentBox.setPadding(new Insets(5));
+            leftContentBox.setStyle("-fx-background-color: transparent;");
             
             // Rechte Seite: Neue Version (DOCX) mit Checkboxen
             VBox rightBox = new VBox(5);
-            rightBox.setStyle("-fx-background-color: white; -fx-border-color: #dee2e6; -fx-border-width: 1;");
+            rightBox.setStyle(String.format("-fx-background-color: %s; -fx-border-color: %s; -fx-border-width: 2px;", themeBgColor, themeBorderColor));
             rightBox.setPadding(new Insets(10));
             
             Label rightLabel = new Label("📝 Neue Version (DOCX) - Wähle Änderungen aus:");
-            rightLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #495057;");
+            rightLabel.setStyle(String.format("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: %s;", THEMES[currentThemeIndex][1]));
             
             ScrollPane rightScrollPane = new ScrollPane();
+            rightScrollPane.setStyle(
+                "-fx-fit-to-width: true; -fx-fit-to-height: false; -fx-pannable: true; " +
+                "-fx-hbar-policy: as-needed; -fx-vbar-policy: always; -fx-background-color: transparent;"
+            );
+
+            // Scrollbar-Styling nach dem UI-Aufbau
+            Platform.runLater(() -> {
+                /* Viewport-Hintergrund */
+                javafx.scene.Node vp2 = rightScrollPane.lookup(".viewport");
+                if (vp2 instanceof javafx.scene.layout.Region r2)
+                    r2.setStyle("-fx-background-color: transparent; -fx-background-radius: 6;");
+
+                /* Scrollbars stylen (Track/Thumb etc.): */
+                javafx.scene.control.ScrollBar vbar2 =
+                    (javafx.scene.control.ScrollBar) rightScrollPane.lookup(".scroll-bar:vertical");
+                if (vbar2 != null) {
+                    vbar2.setStyle("-fx-pref-width: 10;");                            // Breite
+                    javafx.scene.layout.Region thumb2 = (javafx.scene.layout.Region) vbar2.lookup(".thumb");
+                    if (thumb2 != null) thumb2.setStyle(String.format("-fx-background-color: %s; -fx-background-radius: 6;", THEMES[currentThemeIndex][2]));
+                    javafx.scene.layout.Region track2 = (javafx.scene.layout.Region) vbar2.lookup(".track");
+                    if (track2 != null) track2.setStyle("-fx-background-color: transparent;");
+                }
+            });
             VBox rightContentBox = new VBox(0);
             rightContentBox.setPadding(new Insets(5));
+            rightContentBox.setStyle("-fx-background-color: transparent;");
             
             // Verwende echte DiffProcessor-Logik für intelligente Block-Erkennung
             List<CheckBox> blockCheckBoxes = new ArrayList<>();
@@ -1661,9 +1712,10 @@ public class MainController implements Initializable {
                             break;
                             
                         case UNCHANGED:
-                            // Unveränderter Block
-                            leftLineLabel.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px; -fx-text-fill: #212529;");
-                            rightLineLabel.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px; -fx-text-fill: #212529;");
+                            // Unveränderter Block - viel heller und unaufdringlicher (aber Theme-Textfarbe für Konsistenz)
+                            String lightOpacity = "0.4"; // Sehr transparent für unaufdringlichen Look
+                            leftLineLabel.setStyle(String.format("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px; -fx-text-fill: %s; -fx-background-color: rgba(240,240,240,0.2); -fx-opacity: %s;", THEMES[currentThemeIndex][1], lightOpacity));
+                            rightLineLabel.setStyle(String.format("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px; -fx-text-fill: %s; -fx-background-color: rgba(240,240,240,0.2); -fx-opacity: %s;", THEMES[currentThemeIndex][1], lightOpacity));
                             leftLineNumber++;
                             rightLineNumber++;
                             break;
@@ -1697,12 +1749,12 @@ public class MainController implements Initializable {
             leftScrollPane.setContent(leftContentBox);
             leftScrollPane.setFitToWidth(true);
             leftScrollPane.setPrefHeight(600);
-            leftScrollPane.setStyle("-fx-background-color: transparent;");
+            // leftScrollPane.setStyle("-fx-background-color: transparent;"); // Entfernt - überschreibt CSS
             
             rightScrollPane.setContent(rightContentBox);
             rightScrollPane.setFitToWidth(true);
             rightScrollPane.setPrefHeight(600);
-            rightScrollPane.setStyle("-fx-background-color: transparent;");
+            // rightScrollPane.setStyle("-fx-background-color: transparent;"); // Entfernt - überschreibt CSS
             
             leftBox.getChildren().addAll(leftLabel, leftScrollPane);
             rightBox.getChildren().addAll(rightLabel, rightScrollPane);
@@ -1716,16 +1768,16 @@ public class MainController implements Initializable {
             buttonBox.setPadding(new Insets(15, 0, 0, 0));
             
             Button btnApplySelected = new Button("✅ Ausgewählte Änderungen übernehmen");
-            btnApplySelected.setStyle("-fx-background-color: #28a745; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8px 16px;");
+            btnApplySelected.setStyle("-fx-background-color: rgba(40,167,69,0.8); -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8px 16px;");
             
             Button btnAcceptAll = new Button("🔄 Alle Änderungen übernehmen");
-            btnAcceptAll.setStyle("-fx-background-color: #007bff; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8px 16px;");
+            btnAcceptAll.setStyle("-fx-background-color: rgba(0,123,255,0.8); -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8px 16px;");
             
             Button btnKeepCurrent = new Button("💾 Aktuelle Version behalten");
-            btnKeepCurrent.setStyle("-fx-background-color: #6c757d; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8px 16px;");
+            btnKeepCurrent.setStyle("-fx-background-color: rgba(108,117,125,0.8); -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8px 16px;");
             
             Button btnCancel = new Button("❌ Abbrechen");
-            btnCancel.setStyle("-fx-background-color: #dc3545; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8px 16px;");
+            btnCancel.setStyle("-fx-background-color: rgba(220,53,69,0.8); -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8px 16px;");
             
             btnApplySelected.setOnAction(e -> {
                 try {
@@ -1787,11 +1839,23 @@ public class MainController implements Initializable {
             
             Scene diffScene = new Scene(diffRoot);
             // CSS wird über ResourceManager geladen
-            diffScene.getStylesheets().add(ResourceManager.getCssResource("config/css/styles.css"));
+            diffScene.getStylesheets().add(ResourceManager.getCssResource("config/css/manuskript.css"));
             
             // Theme anwenden
             String currentTheme = ResourceManager.getParameter("ui.theme", "default");
-            diffRoot.getStyleClass().add("theme-" + currentTheme);
+            if ("weiss".equals(currentTheme)) {
+                diffRoot.getStyleClass().add("weiss-theme");
+            } else if ("pastell".equals(currentTheme)) {
+                diffRoot.getStyleClass().add("pastell-theme");
+            } else if ("blau".equals(currentTheme)) {
+                diffRoot.getStyleClass().addAll("theme-dark", "blau-theme");
+            } else if ("gruen".equals(currentTheme)) {
+                diffRoot.getStyleClass().addAll("theme-dark", "gruen-theme");
+            } else if ("lila".equals(currentTheme)) {
+                diffRoot.getStyleClass().addAll("theme-dark", "lila-theme");
+            } else {
+                diffRoot.getStyleClass().add("theme-dark");
+            }
             
             diffStage.setSceneWithTitleBar(diffScene);
             diffStage.showAndWait();
@@ -1949,7 +2013,7 @@ public class MainController implements Initializable {
             // WICHTIG: Setze die Referenz zum MainController für Navigation
             editorController.setMainController(this);
             
-            CustomStage editorStage = StageManager.createStageWithScene("Kapitel-Editor: " + chapterFile.getFileName(), new Scene(root));
+            CustomStage editorStage = StageManager.createStage("Kapitel-Editor: " + chapterFile.getFileName());
             
             // NEU: Titelbalken mit Dateinamen setzen
             editorController.setWindowTitle("📄 " + chapterFile.getFileName());
@@ -1957,16 +2021,14 @@ public class MainController implements Initializable {
             // NEU: Window-Preferences laden und anwenden
             loadEditorWindowProperties(editorStage);
             
-            // CSS mit ResourceManager laden
-            String cssPath = ResourceManager.getCssResource("css/editor.css");
-            if (cssPath != null) {
-                editorStage.getScene().getStylesheets().add(cssPath);
-            }
+            // Scene erstellen und mit CustomStage-Titelleiste setzen
+            Scene scene = new Scene(root);
+            editorStage.setSceneWithTitleBar(scene);
             
-            // Auch styles.css laden für vollständige Theme-Unterstützung
-            String stylesPath = ResourceManager.getCssResource("css/styles.css");
-            if (stylesPath != null) {
-                editorStage.getScene().getStylesheets().add(stylesPath);
+            // CSS mit ResourceManager laden
+            String cssPath = ResourceManager.getCssResource("css/manuskript.css");
+            if (cssPath != null) {
+                scene.getStylesheets().add(cssPath);
             }
             
             // WICHTIG: Stage setzen für Close-Request-Handler
@@ -2112,11 +2174,16 @@ public class MainController implements Initializable {
             // NEU: Titelbalken für Gesamtdokument setzen
             editorController.setWindowTitle("📚 Gesamtdokument: " + baseFileName);
             
-            CustomStage editorStage = StageManager.createStageWithScene("Gesamtdokument: " + baseFileName, new Scene(root));
+            CustomStage editorStage = StageManager.createStage("Gesamtdokument: " + baseFileName);
+            
+            // Scene erstellen und mit CustomStage-Titelleiste setzen
+            Scene scene = new Scene(root);
+            editorStage.setSceneWithTitleBar(scene);
+            
             // CSS mit ResourceManager laden
-            String cssPath = ResourceManager.getCssResource("css/editor.css");
+            String cssPath = ResourceManager.getCssResource("css/manuskript.css");
             if (cssPath != null) {
-                editorStage.getScene().getStylesheets().add(cssPath);
+                scene.getStylesheets().add(cssPath);
             }
             
             // Fenster-Größe und Position
@@ -2143,18 +2210,20 @@ public class MainController implements Initializable {
     }
     
     private void showError(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
+        CustomAlert alert = new CustomAlert(Alert.AlertType.ERROR, message);
         alert.setTitle(title);
         alert.setHeaderText(null);
-        alert.setContentText(message);
+        alert.applyTheme(currentThemeIndex);
+        alert.initOwner(primaryStage);
         alert.showAndWait();
     }
     
     private void showWarning(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.WARNING);
+        CustomAlert alert = new CustomAlert(Alert.AlertType.WARNING, message);
         alert.setTitle(title);
         alert.setHeaderText(null);
-        alert.setContentText(message);
+        alert.applyTheme(currentThemeIndex);
+        alert.initOwner(primaryStage);
         alert.showAndWait();
     }
     
@@ -2202,7 +2271,34 @@ public class MainController implements Initializable {
     
     // addToRecentRegex entfernt - einfache Lösung
 
-    // saveSelection entfernt - MD-Erkennung ist ausreichend
+    /**
+     * Speichert die aktuelle Reihenfolge der ausgewählten Dateien
+     */
+    private void saveSelection(File directory) {
+        try {
+            if (directory == null || selectedDocxFiles.isEmpty()) return;
+            
+            File dataDir = new File(directory, "data");
+            if (!dataDir.exists()) {
+                dataDir.mkdirs();
+            }
+            
+            // Extrahiere nur die Dateinamen in der aktuellen Reihenfolge
+            List<String> fileNames = selectedDocxFiles.stream()
+                .map(DocxFile::getFileName)
+                .collect(Collectors.toList());
+            
+            // Als JSON speichern
+            String json = new Gson().toJson(fileNames);
+            Path jsonPath = dataDir.toPath().resolve(".manuskript_selection.json");
+            Files.write(jsonPath, json.getBytes(StandardCharsets.UTF_8));
+            
+            logger.info("Reihenfolge gespeichert: {} Dateien", fileNames.size());
+            
+        } catch (Exception e) {
+            logger.warn("Fehler beim Speichern der Reihenfolge", e);
+        }
+    }
 
     public TextField getTxtDirectoryPath() {
         return txtDirectoryPath;
@@ -2231,11 +2327,16 @@ public class MainController implements Initializable {
             // Stelle die gespeicherte Reihenfolge wieder her
             selectedDocxFiles.clear();
             
+            // WICHTIG: Suche in ALLEN verfügbaren Dateien (originalDocxFiles)
             for (String fileName : savedOrder) {
-                for (DocxFile docxFile : allDocxFiles) {
+                for (DocxFile docxFile : originalDocxFiles) {
                     if (docxFile.getFileName().equals(fileName)) {
                         // Lade ALLE gespeicherten Dateien, egal ob sie MD-Dateien haben oder nicht
                         selectedDocxFiles.add(docxFile);
+                        
+                        // WICHTIG: Entferne die Datei aus allDocxFiles, falls sie dort ist
+                        allDocxFiles.remove(docxFile);
+                        
                         break;
                     }
                 }
@@ -2265,7 +2366,7 @@ public class MainController implements Initializable {
         // CustomStage Theme aktualisieren
         if (primaryStage instanceof CustomStage) {
             CustomStage customStage = (CustomStage) primaryStage;
-            customStage.setTitleBarTheme(currentThemeIndex);
+            customStage.setFullTheme(currentThemeIndex);
         }
         
         // WICHTIG: Alle anderen Stages aktualisieren
@@ -2310,10 +2411,10 @@ public class MainController implements Initializable {
                 root.getStyleClass().add("pastell-theme");
                 root.setStyle(""); // Inline Styles entfernen
                 mainContainer.setStyle(""); // Inline Styles entfernen
-                // KEINE Inline Styles - nur CSS-Klasse
+                // Nur Border setzen - Rest über CSS
                 Platform.runLater(() -> {
-                    tableViewAvailable.setStyle("");
-                    tableViewSelected.setStyle("");
+                    tableViewAvailable.setStyle("-fx-border-color: #ba68c8;");
+                    tableViewSelected.setStyle("-fx-border-color: #ba68c8;");
                 });
                 logger.info("Pastell-Theme über CSS-Klasse angewendet");
                 logger.info("DEBUG: Root StyleClasses: " + root.getStyleClass().toString());
@@ -2324,53 +2425,48 @@ public class MainController implements Initializable {
 
                 
                 if (themeIndex == 0) { // Weiß - Eigene CSS-Klasse
-                    tableViewAvailable.setStyle("-fx-background-color: rgb(115, 112, 115);; -fx-text-fill: #000000; -fx-border-color: #ba68c8;");
-                    tableViewSelected.setStyle("-fx-background-color: rgb(115, 112, 115);; -fx-text-fill: #000000; -fx-border-color: #ba68c8;");
                     root.getStyleClass().add("weiss-theme");
                 } else if (themeIndex == 1) { // Schwarz
-                    tableViewAvailable.setStyle("-fx-background-color: rgb(115, 112, 115);; -fx-text-fill: #000000; -fx-border-color: #ba68c8;");
-                    tableViewSelected.setStyle("-fx-background-color: rgb(115, 112, 115); -fx-text-fill: #000000; -fx-border-color: #ba68c8;");
                     root.getStyleClass().add("theme-dark");
                 } else if (themeIndex == 3) { // Blau
-                    tableViewAvailable.setStyle("-fx-background-color: rgb(115, 112, 115); -fx-text-fill: #000000; -fx-border-color: #ba68c8;");
-                    tableViewSelected.setStyle("-fx-background-color: rgb(115, 112, 115); -fx-text-fill: #000000; -fx-border-color: #ba68c8;");
                     root.getStyleClass().add("theme-dark");
                     root.getStyleClass().add("blau-theme");
                 } else if (themeIndex == 4) { // Grün
-                    tableViewAvailable.setStyle("-fx-background-color: rgb(115, 112, 115); -fx-text-fill: #000000; -fx-border-color: #ba68c8;");
-                    tableViewSelected.setStyle("-fx-background-color: rgb(115, 112, 115); -fx-text-fill: #000000; -fx-border-color: #ba68c8;");
                     root.getStyleClass().add("theme-dark");
                     root.getStyleClass().add("gruen-theme");
                 } else if (themeIndex == 5) { // Lila
-                    tableViewAvailable.setStyle("-fx-background-color:rgb(115, 112, 115); -fx-text-fill: #000000; -fx-border-color: #ba68c8;");
-                    tableViewSelected.setStyle("-fx-background-color: rgb(115, 112, 115); -fx-text-fill: #000000; -fx-border-color: #ba68c8;");
                     root.getStyleClass().add("theme-dark");
                     root.getStyleClass().add("lila-theme");
                 }
             }
             
-            // Dann CSS laden
+            // Dann CSS laden - zusammengeführte CSS-Datei
             mainContainer.getScene().getStylesheets().clear();
-            // CSS mit ResourceManager laden
-            String cssPath = ResourceManager.getCssResource("css/editor.css");
+            
+            // Zusammengeführte CSS-Datei laden
+            String cssPath = ResourceManager.getCssResource("css/manuskript.css");
             if (cssPath != null) {
                 mainContainer.getScene().getStylesheets().add(cssPath);
                 logger.info("CSS geladen: {}", cssPath);
             } else {
-                logger.warn("CSS-Datei editor.css nicht gefunden!");
-            }
-            // Auch styles.css laden für vollständige Theme-Unterstützung
-            String stylesCssPath = ResourceManager.getCssResource("css/styles.css");
-            if (stylesCssPath != null) {
-                mainContainer.getScene().getStylesheets().add(stylesCssPath);
-                logger.info("CSS geladen: {}", stylesCssPath);
-            } else {
-                logger.warn("CSS-Datei styles.css nicht gefunden!");
+                logger.warn("CSS-Datei manuskript.css nicht gefunden!");
             }
             
-            // TableViews über CSS stylen - keine inline Styles
-            tableViewAvailable.setStyle("");
-            tableViewSelected.setStyle("");
+            // TableViews über CSS stylen - nur Border setzen, Rest über CSS
+            if (themeIndex != 2) { // Nicht für Pastell-Theme, das wird separat behandelt
+                tableViewAvailable.setStyle("-fx-border-color: #ba68c8;");
+                tableViewSelected.setStyle("-fx-border-color: #ba68c8;");
+            }
+            
+            // TableViews auch Theme-Klassen geben
+            applyThemeToNode(tableViewAvailable, themeIndex);
+            applyThemeToNode(tableViewSelected, themeIndex);
+            
+            // WICHTIG: TableViews explizit aktualisieren für Theme-Änderungen
+            Platform.runLater(() -> {
+                tableViewAvailable.refresh();
+                tableViewSelected.refresh();
+            });
             
             // Debug: Aktuelle Stylesheets ausgeben
             logger.info("Aktuelle Stylesheets: {}", mainContainer.getScene().getStylesheets());
@@ -2413,6 +2509,12 @@ public class MainController implements Initializable {
         
         // Theme anwenden
         applyTheme(currentThemeIndex);
+        
+        // CustomStage Theme aktualisieren
+        if (primaryStage instanceof CustomStage) {
+            CustomStage customStage = (CustomStage) primaryStage;
+            customStage.setFullTheme(currentThemeIndex);
+        }
         
         // Theme-Button Icon aktualisieren
         updateThemeButtonIcon();
@@ -2595,57 +2697,21 @@ public class MainController implements Initializable {
      * Zeigt Dialog für existierende .gesamt Dateien
      */
     private void showGesamtFileDialog(File[] existingGesamtFiles, ObservableList<DocxFile> selectedDocxFiles) {
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        CustomAlert alert = new CustomAlert(Alert.AlertType.CONFIRMATION, "Möchten Sie das existierende Dokument laden oder ein neues erstellen?");
         alert.setTitle("Gesamtdokument existiert bereits");
         alert.setHeaderText("Es wurde bereits ein Gesamtdokument erstellt:");
-        alert.setContentText("Möchten Sie das existierende Dokument laden oder ein neues erstellen?");
+        
+        // Theme anwenden
+        alert.applyTheme(currentThemeIndex);
+        
+        // Owner setzen
+        alert.initOwner(primaryStage);
         
         ButtonType loadExistingButton = new ButtonType("Existierende laden");
         ButtonType createNewButton = new ButtonType("Neues erstellen");
         ButtonType cancelButton = new ButtonType("Abbrechen", ButtonBar.ButtonData.CANCEL_CLOSE);
         
-        alert.getButtonTypes().setAll(loadExistingButton, createNewButton, cancelButton);
-        
-        // NEU: Theme direkt auf Dialog anwenden - INLINE STYLES
-        DialogPane dialogPane = alert.getDialogPane();
-        
-        // Theme-4 (Grün) direkt anwenden
-        if (currentThemeIndex == 4) {
-            dialogPane.setStyle("-fx-background-color: #064e3b;");
-            
-            // Alle Buttons im Dialog finden und stylen
-            Platform.runLater(() -> {
-                for (Node node : dialogPane.lookupAll(".button")) {
-                    if (node instanceof Button) {
-                        Button button = (Button) node;
-                        // Prüfe den Button-Text und setze unterschiedliche Breiten
-                        String buttonText = button.getText();
-                        if ("Existierende laden".equals(buttonText)) {
-                            button.setStyle("-fx-background-color: #065f46; -fx-text-fill: #ffffff; -fx-border-color: #047857; -fx-min-width: 120px; -fx-pref-width: 120px;");
-                        } else {
-                            // Andere Buttons schmaler machen
-                            button.setStyle("-fx-background-color: #065f46; -fx-text-fill: #ffffff; -fx-border-color: #047857; -fx-min-width: 80px; -fx-pref-width: 80px;");
-                        }
-                    }
-                }
-                // Header und Content stylen
-                Node header = dialogPane.lookup(".header-panel");
-                if (header != null) {
-                    header.setStyle("-fx-background-color: #064e3b;");
-                }
-                Node content = dialogPane.lookup(".content");
-                if (content != null) {
-                    content.setStyle("-fx-background-color: #064e3b;");
-                }
-                // Labels stylen
-                for (Node node : dialogPane.lookupAll(".label")) {
-                    if (node instanceof Label) {
-                        Label label = (Label) node;
-                        label.setStyle("-fx-text-fill: #ffffff;");
-                    }
-                }
-            });
-        }
+        alert.setButtonTypes(loadExistingButton, createNewButton, cancelButton);
         
         Optional<ButtonType> result = alert.showAndWait();
         if (result.isPresent()) {
@@ -2688,6 +2754,388 @@ public class MainController implements Initializable {
             showError("Ladefehler", "Fehler beim Laden der Datei: " + e.getMessage());
             updateStatus("Fehler beim Laden der .gesamt Datei");
         }
+    }
+    
+    /**
+     * Test-Methode für CustomAlert
+     */
+        private void testCustomAlert() {
+        CustomAlert alert = new CustomAlert(Alert.AlertType.INFORMATION, "Dies ist ein Test-Content für die neue CustomAlert-Klasse mit eigener Titelzeile, Gradient-Hintergrund und vollständiger Theme-Integration.");
+
+        // Titel und Header setzen
+        alert.setTitle("Test CustomAlert");
+        alert.setHeaderText("Dies ist ein Test");
+
+        // Button-Typen setzen
+        alert.setButtonTypes(ButtonType.OK, ButtonType.CANCEL);
+
+        // Theme anwenden (aktuelles Theme)
+        alert.applyTheme(currentThemeIndex);
+
+        // Owner setzen
+        alert.initOwner(primaryStage);
+
+        // Alert anzeigen
+        Optional<ButtonType> result = alert.showAndWait();
+
+        if (result.isPresent()) {
+            if (result.get() == ButtonType.OK) {
+                logger.info("CustomAlert: OK gedrückt");
+            } else {
+                logger.info("CustomAlert: Abgebrochen");
+            }
+        }
+    }
+    
+    /**
+     * Öffnet die Split-Stage (nach korrektem Muster wie Makros)
+     */
+    private void openSplitStage() {
+        try {
+            CustomStage splitStage = StageManager.createStage("Kapitel-Split");
+            splitStage.setTitle("Kapitel-Split");
+            splitStage.setWidth(800);
+            splitStage.setHeight(600);
+            splitStage.initModality(Modality.NONE);
+            splitStage.initOwner(primaryStage);
+            
+            // Split-Panel programmatisch erstellen (wie Makros!)
+            VBox splitPanel = createSplitPanel();
+            
+            Scene splitScene = new Scene(splitPanel);
+            // CSS mit ResourceManager laden (manuskript.css für alle Themes)
+            String manuskriptCss = ResourceManager.getCssResource("css/manuskript.css");
+            if (manuskriptCss != null) {
+                splitScene.getStylesheets().add(manuskriptCss);
+                logger.info("CSS geladen: {}", manuskriptCss);
+            } else {
+                logger.error("CSS konnte nicht geladen werden!");
+            }
+            splitStage.setSceneWithTitleBar(splitScene);
+            
+            splitStage.centerOnScreen();
+            splitStage.show();
+            
+            logger.info("Split-Stage erfolgreich geöffnet");
+            
+        } catch (Exception e) {
+            logger.error("Fehler beim Öffnen der Split-Stage: {}", e.getMessage(), e);
+            showError("Fehler", "Konnte Split-Stage nicht öffnen: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * Erstellt das Split-Panel programmatisch (wie createMacroPanel)
+     */
+    private VBox createSplitPanel() {
+        VBox splitPanel = new VBox(15);
+        splitPanel.getStyleClass().add("split-panel");
+        
+        // CSS-Klassen verwenden statt inline Styles
+        splitPanel.setStyle(""); // CSS-Klassen verwenden
+        
+        // Theme-Klassen für das Split-Panel hinzufügen
+        if (currentThemeIndex == 0) { // Weiß-Theme
+            splitPanel.getStyleClass().add("weiss-theme");
+        } else if (currentThemeIndex == 1) { // Schwarz-Theme
+            splitPanel.getStyleClass().add("theme-dark");
+        } else if (currentThemeIndex == 2) { // Pastell-Theme
+            splitPanel.getStyleClass().add("pastell-theme");
+        } else if (currentThemeIndex >= 3) { // Dunkle Themes: Blau (3), Grün (4), Lila (5)
+            splitPanel.getStyleClass().add("theme-dark");
+            if (currentThemeIndex == 3) {
+                splitPanel.getStyleClass().add("blau-theme");
+            } else if (currentThemeIndex == 4) {
+                splitPanel.getStyleClass().add("gruen-theme");
+            } else if (currentThemeIndex == 5) {
+                splitPanel.getStyleClass().add("lila-theme");
+            }
+        }
+        
+        splitPanel.setPadding(new Insets(20));
+        
+        // Header
+        VBox headerBox = new VBox(5);
+        Label headerLabel = new Label("Kapitel-Split");
+        headerLabel.getStyleClass().add("section-header");
+        Label infoLabel = new Label("Wähle eine DOCX/TXT-Datei aus und teile sie in Kapitel auf");
+        infoLabel.getStyleClass().add("info-text");
+        headerBox.getChildren().addAll(headerLabel, infoLabel);
+        
+        // Datei-Auswahl
+        VBox fileBox = new VBox(10);
+        Label fileLabel = new Label("1. Datei auswählen:");
+        fileLabel.getStyleClass().add("section-title");
+        
+        HBox fileHBox = new HBox(10);
+        fileHBox.setAlignment(Pos.CENTER_LEFT);
+        
+        final TextField txtFilePath = new TextField();
+        txtFilePath.setPromptText("DOCX oder TXT-Datei auswählen...");
+        txtFilePath.setPrefWidth(400);
+        txtFilePath.setEditable(false);
+        
+        Button btnSelectFile = new Button("Datei auswählen");
+        btnSelectFile.getStyleClass().addAll("button", "primary");
+        
+        fileHBox.getChildren().addAll(txtFilePath, btnSelectFile);
+        fileBox.getChildren().addAll(fileLabel, fileHBox);
+        
+        // Ausgabe-Verzeichnis
+        VBox outputBox = new VBox(10);
+        Label outputLabel = new Label("2. Ausgabe-Verzeichnis:");
+        outputLabel.getStyleClass().add("section-title");
+        
+        HBox outputHBox = new HBox(10);
+        outputHBox.setAlignment(Pos.CENTER_LEFT);
+        
+        final TextField txtOutputPath = new TextField();
+        txtOutputPath.setPromptText("Verzeichnis für Kapitel-Dateien...");
+        txtOutputPath.setPrefWidth(400);
+        txtOutputPath.setEditable(false);
+        
+        Button btnSelectOutput = new Button("Verzeichnis auswählen");
+        btnSelectOutput.getStyleClass().addAll("button", "secondary");
+        
+        outputHBox.getChildren().addAll(txtOutputPath, btnSelectOutput);
+        outputBox.getChildren().addAll(outputLabel, outputHBox);
+        
+        // Kapitel-Liste
+        VBox listBox = new VBox(10);
+        VBox.setVgrow(listBox, Priority.ALWAYS);
+        Label listLabel = new Label("3. Gefundene Kapitel:");
+        listLabel.getStyleClass().add("section-title");
+        
+        final ListView<CheckBox> listChapters = new ListView<>();
+        listChapters.setPrefHeight(300);
+        listChapters.getStyleClass().add("alternating-list"); // CSS-Klasse für alternierende Zeilen
+        
+        // Theme-Klassen auch auf die ListView anwenden
+        if (currentThemeIndex == 0) { // Weiß-Theme
+            listChapters.getStyleClass().add("weiss-theme");
+        } else if (currentThemeIndex == 1) { // Schwarz-Theme
+            listChapters.getStyleClass().add("theme-dark");
+        } else if (currentThemeIndex == 2) { // Pastell-Theme
+            listChapters.getStyleClass().add("pastell-theme");
+        } else if (currentThemeIndex >= 3) { // Dunkle Themes: Blau (3), Grün (4), Lila (5)
+            listChapters.getStyleClass().add("theme-dark");
+            if (currentThemeIndex == 3) {
+                listChapters.getStyleClass().add("blau-theme");
+            } else if (currentThemeIndex == 4) {
+                listChapters.getStyleClass().add("gruen-theme");
+            } else if (currentThemeIndex == 5) {
+                listChapters.getStyleClass().add("lila-theme");
+            }
+        }
+        
+        CheckBox noFileCheckBox = new CheckBox("Keine Datei ausgewählt");
+        noFileCheckBox.setDisable(true);
+        listChapters.getItems().add(noFileCheckBox);
+        
+        listBox.getChildren().addAll(listLabel, listChapters);
+        
+        // Buttons
+        HBox buttonBox = new HBox(15);
+        buttonBox.setAlignment(Pos.CENTER_RIGHT);
+        
+        Region spacer = new Region();
+        spacer.setStyle("-fx-background-color: transparent;");
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        
+        Button btnSplit = new Button("Kapitel aufteilen");
+        btnSplit.getStyleClass().addAll("button", "success");
+        btnSplit.setPrefWidth(150);
+        btnSplit.setDisable(true);
+        
+        Button btnClose = new Button("Schließen");
+        btnClose.getStyleClass().addAll("button", "danger");
+        btnClose.setPrefWidth(100);
+        
+        buttonBox.getChildren().addAll(spacer, btnSplit, btnClose);
+        
+        // Event-Handler
+        btnSelectFile.setOnAction(e -> {
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("DOCX-Datei auswählen");
+            fileChooser.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("DOCX-Dateien", "*.docx"),
+                new FileChooser.ExtensionFilter("Alle Dateien", "*.*")
+            );
+            
+            // Letzten Pfad wiederherstellen
+            String lastPath = ResourceManager.getLastFilePath();
+            if (lastPath != null && !lastPath.isEmpty()) {
+                File lastDir = new File(lastPath);
+                if (lastDir.exists() && lastDir.isDirectory()) {
+                    fileChooser.setInitialDirectory(lastDir);
+                }
+            }
+            
+            File selectedFile = fileChooser.showOpenDialog(splitPanel.getScene().getWindow());
+            if (selectedFile != null) {
+                txtFilePath.setText(selectedFile.getAbsolutePath());
+                
+                // Pfad für nächste Verwendung speichern
+                ResourceManager.setLastFilePath(selectedFile.getParent());
+                
+                // DOCX-Datei analysieren und Kapitel extrahieren
+                try {
+                    DocxSplitProcessor processor = new DocxSplitProcessor();
+                    List<Chapter> chapters = processor.analyzeDocument(selectedFile);
+                    
+                    listChapters.getItems().clear();
+                    if (chapters.isEmpty()) {
+                        CheckBox noChaptersCheckBox = new CheckBox("Keine Kapitel gefunden");
+                        noChaptersCheckBox.setDisable(true);
+                        listChapters.getItems().add(noChaptersCheckBox);
+                        btnSplit.setDisable(true);
+                    } else {
+                        for (Chapter chapter : chapters) {
+                            CheckBox chapterCheckBox = new CheckBox(chapter.toString());
+                            chapterCheckBox.setSelected(true); // Standardmäßig ausgewählt
+                            chapterCheckBox.setUserData(chapter); // Kapitel-Objekt speichern
+                            listChapters.getItems().add(chapterCheckBox);
+                        }
+                        btnSplit.setDisable(false);
+                        logger.info("{} Kapitel in DOCX-Datei gefunden", chapters.size());
+                    }
+                } catch (Exception ex) {
+                    logger.error("Fehler beim Analysieren der DOCX-Datei: {}", ex.getMessage(), ex);
+                    listChapters.getItems().clear();
+                    CheckBox errorCheckBox = new CheckBox("Fehler beim Lesen der Datei: " + ex.getMessage());
+                    errorCheckBox.setDisable(true);
+                    listChapters.getItems().add(errorCheckBox);
+                    btnSplit.setDisable(true);
+                }
+            }
+        });
+        
+        btnSelectOutput.setOnAction(e -> {
+            DirectoryChooser dirChooser = new DirectoryChooser();
+            dirChooser.setTitle("Ausgabe-Verzeichnis auswählen");
+            
+            // Letzten Pfad wiederherstellen
+            String lastPath = ResourceManager.getLastOutputPath();
+            if (lastPath != null && !lastPath.isEmpty()) {
+                File lastDir = new File(lastPath);
+                if (lastDir.exists() && lastDir.isDirectory()) {
+                    dirChooser.setInitialDirectory(lastDir);
+                }
+            }
+            
+            File selectedDir = dirChooser.showDialog(splitPanel.getScene().getWindow());
+            if (selectedDir != null) {
+                txtOutputPath.setText(selectedDir.getAbsolutePath());
+                
+                // Pfad für nächste Verwendung speichern
+                ResourceManager.setLastOutputPath(selectedDir.getAbsolutePath());
+            }
+        });
+        
+        btnSplit.setOnAction(e -> {
+            // Kapitel aufteilen und speichern
+            try {
+                String filePath = txtFilePath.getText();
+                String outputPath = txtOutputPath.getText();
+                
+                if (filePath.isEmpty() || outputPath.isEmpty()) {
+                    showError("Fehler", "Bitte wähle eine Datei und ein Ausgabe-Verzeichnis aus.");
+                    return;
+                }
+                
+                File docxFile = new File(filePath);
+                File outputDir = new File(outputPath);
+                
+                if (!docxFile.exists()) {
+                    showError("Fehler", "Die ausgewählte Datei existiert nicht.");
+                    return;
+                }
+                
+                // Split-Button deaktivieren während der Verarbeitung
+                btnSplit.setDisable(true);
+                btnSplit.setText("Verarbeite...");
+                
+                // Alle Kapitel mit Auswahl-Status sammeln
+                List<Chapter> allChapters = new ArrayList<>();
+                List<Boolean> selectionStatus = new ArrayList<>();
+                
+                for (CheckBox checkBox : listChapters.getItems()) {
+                    if (checkBox.getUserData() instanceof Chapter) {
+                        allChapters.add((Chapter) checkBox.getUserData());
+                        selectionStatus.add(checkBox.isSelected());
+                    }
+                }
+                
+                if (allChapters.isEmpty()) {
+                    showError("Fehler", "Keine Kapitel zum Verarbeiten gefunden.");
+                    btnSplit.setDisable(false);
+                    btnSplit.setText("Kapitel aufteilen");
+                    return;
+                }
+                
+                // DOCX-Split in separatem Thread ausführen (mit Text-Zusammenführung)
+                new Thread(() -> {
+                    try {
+                        DocxSplitProcessor processor = new DocxSplitProcessor();
+                        
+                        // Ausgabe-Verzeichnis erstellen falls nicht vorhanden
+                        if (!outputDir.exists()) {
+                            outputDir.mkdirs();
+                        }
+                        
+                        // Basis-Dateiname (ohne .docx)
+                        String baseFileName = docxFile.getName().replaceFirst("\\.docx$", "");
+                        
+                        // Kapitel mit nicht-ausgewählten Inhalten zusammenführen
+                        List<Chapter> mergedChapters = processor.mergeChaptersWithUnselectedContent(allChapters, selectionStatus);
+                        
+                        // Zusammengeführte Kapitel speichern
+                        for (Chapter chapter : mergedChapters) {
+                            processor.saveChapter(chapter, outputDir, baseFileName);
+                        }
+                        
+                        // UI-Update im JavaFX-Thread
+                        Platform.runLater(() -> {
+                            btnSplit.setDisable(false);
+                            btnSplit.setText("Kapitel aufteilen");
+                            showError("Erfolg", String.format("%d finale Kapitel wurden erfolgreich aufgeteilt und gespeichert!", mergedChapters.size()));
+                        });
+                        
+                    } catch (Exception ex) {
+                        logger.error("Fehler beim DOCX-Split: {}", ex.getMessage(), ex);
+                        
+                        // UI-Update im JavaFX-Thread
+                        Platform.runLater(() -> {
+                            btnSplit.setDisable(false);
+                            btnSplit.setText("Kapitel aufteilen");
+                            showError("Fehler", "Fehler beim Aufteilen der Kapitel: " + ex.getMessage());
+                        });
+                    }
+                }).start();
+                
+            } catch (Exception ex) {
+                logger.error("Fehler beim Starten des DOCX-Splits: {}", ex.getMessage(), ex);
+                showError("Fehler", "Fehler beim Starten des Splits: " + ex.getMessage());
+            }
+        });
+        
+        btnClose.setOnAction(e -> {
+            // Stage schließen
+            for (Window window : Window.getWindows()) {
+                if (window instanceof CustomStage) {
+                    CustomStage stage = (CustomStage) window;
+                    if ("Kapitel-Split".equals(stage.getTitle())) {
+                        stage.close();
+                        break;
+                    }
+                }
+            }
+        });
+        
+        // Alles zusammen
+        splitPanel.getChildren().addAll(headerBox, fileBox, outputBox, listBox, buttonBox);
+        
+        return splitPanel;
     }
     
 } 

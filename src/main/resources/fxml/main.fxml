@@ -12,6 +12,7 @@
             <Label text="Verzeichnis:" />
             <TextField fx:id="txtDirectoryPath" promptText="Wählen Sie ein Verzeichnis mit DOCX-Dateien" HBox.hgrow="ALWAYS" />
             <Button fx:id="btnSelectDirectory" text="Verzeichnis auswählen" />
+            <Button fx:id="btnSplit" text="Kapitel-Split" prefWidth="120.0" />
          </children>
          <padding>
             <Insets bottom="5.0" left="10.0" right="10.0" top="10.0" />
@@ -70,12 +71,13 @@
       <!-- Aktions-Buttons -->
       <HBox spacing="10" alignment="CENTER_LEFT">
          <children>
-            <Region HBox.hgrow="ALWAYS" />
+            <Region HBox.hgrow="ALWAYS" style="-fx-background-color: transparent;" />
             <Button fx:id="btnThemeToggle" text="🌙" prefWidth="50.0" prefHeight="35.0">
                 <tooltip>
                    <Tooltip text="Theme wechseln" />
                 </tooltip>
              </Button>
+            
             <Button fx:id="btnProcessSelected" text="Gesamtdokument erstellen" prefWidth="200.0" />
             <Button fx:id="btnProcessAll" text="Kapitel bearbeiten" prefWidth="150.0" />
          </children>

@@ -74,15 +74,10 @@ public class PluginEditorWindow {
         
         // CSS-Styles laden - KORREKT STYLEN!
         try {
-            String stylesCss = ResourceManager.getCssResource("css/styles.css");
-            String editorCss = ResourceManager.getCssResource("css/editor.css");
-            if (stylesCss != null) {
-                scene.getStylesheets().add(stylesCss);
-                logger.info("CSS-Styles geladen: " + stylesCss);
-            }
-            if (editorCss != null) {
-                scene.getStylesheets().add(editorCss);
-                logger.info("Editor-CSS geladen: " + editorCss);
+            String cssPath = ResourceManager.getCssResource("css/manuskript.css");
+            if (cssPath != null) {
+                scene.getStylesheets().add(cssPath);
+                logger.info("CSS-Styles geladen: " + cssPath);
             }
             
             // Theme aus main_window_theme laden (NICHT editor_theme!)
