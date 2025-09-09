@@ -209,7 +209,7 @@ public class CustomStage extends Stage {
      * Richtet Resize-Handles für das Fenster ein
      */
     private void setupResizeHandles(Scene scene) {
-        final int RESIZE_BORDER = 5; // Reduziert für präzisere Kontrolle
+        final int RESIZE_BORDER = 10; // Vergrößert für bessere Erkennung
         
         // WICHTIG: EventFilter verwenden, um Events VOR anderen Handlern abzufangen
         scene.addEventFilter(MouseEvent.MOUSE_MOVED, event -> {
@@ -241,7 +241,7 @@ public class CustomStage extends Stage {
             double width = scene.getWidth();
             double height = scene.getHeight();
             
-            // Nur an den äußersten Rändern Resize-Cursor anzeigen - LINKS DEAKTIVIERT
+            // Resize-Cursor anzeigen - LINKS DEAKTIVIERT
             if (x >= width - RESIZE_BORDER && y <= RESIZE_BORDER) {
                 scene.setCursor(javafx.scene.Cursor.NE_RESIZE);
             } else if (x >= width - RESIZE_BORDER && y >= height - RESIZE_BORDER) {
@@ -328,7 +328,7 @@ public class CustomStage extends Stage {
         resizeStartHeight = getHeight();
         
         // Bestimme Resize-Richtung - LINKS DEAKTIVIERT
-        final int RESIZE_BORDER = 5; // Gleicher Wert wie in setupResizeHandles
+        final int RESIZE_BORDER = 10; // Gleicher Wert wie in setupResizeHandles
         if (x >= width - RESIZE_BORDER && y <= RESIZE_BORDER) {
             resizeDirection = "NE";
         } else if (x >= width - RESIZE_BORDER && y >= height - RESIZE_BORDER) {

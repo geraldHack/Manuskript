@@ -145,6 +145,7 @@ public class OllamaWindow {
     private CheckBox cbOutline;
     private CheckBox cbChapterNotes;
     private CheckBox cbStyle;
+    private CheckBox cbNovelContext;
 
     private TextArea synopsisArea;
     private TextArea charactersArea;
@@ -855,6 +856,7 @@ public class OllamaWindow {
         cbOutline = new CheckBox("Outline");
         cbChapterNotes = new CheckBox("Kapitelnotizen");
         cbStyle = new CheckBox("Stil");
+        cbNovelContext = new CheckBox("Roman-Kontext"); cbNovelContext.setSelected(false); // Standardmäßig deaktiviert
         Button selectAll = new Button("Alle");
         Button selectNone = new Button("Keine");
         selectAll.setOnAction(e -> {
@@ -865,6 +867,8 @@ public class OllamaWindow {
             cbWorldbuilding.setSelected(true);
             cbOutline.setSelected(true);
             cbChapterNotes.setSelected(true);
+            cbStyle.setSelected(true);
+            cbNovelContext.setSelected(true);
         });
         selectNone.setOnAction(e -> {
             cbUserContext.setSelected(false);
@@ -874,10 +878,12 @@ public class OllamaWindow {
             cbWorldbuilding.setSelected(false);
             cbOutline.setSelected(false);
             cbChapterNotes.setSelected(false);
+            cbStyle.setSelected(false);
+            cbNovelContext.setSelected(false);
         });
         row1.getChildren().addAll(new Label("Kontextquellen:"), selectAll, selectNone);
         row2.getChildren().addAll(cbUserContext, cbEditorSnippet, cbSynopsis, cbStyle);
-        row3.getChildren().addAll(cbCharacters, cbWorldbuilding, cbOutline, cbChapterNotes);
+        row3.getChildren().addAll(cbCharacters, cbWorldbuilding, cbOutline, cbChapterNotes, cbNovelContext);
         contextCheckboxBar.getChildren().addAll(row1, row2, row3);
 
         synopsisArea = new TextArea(); synopsisArea.setWrapText(true);
@@ -1511,24 +1517,31 @@ public class OllamaWindow {
             }
             if (cbStyle != null && cbStyle.isSelected() && styleNotesArea != null && !styleNotesArea.getText().trim().isEmpty()) {
                 selectedContexts.append("\n=== STIL ===\n").append(limitText(styleNotesArea.getText().trim())).append("\n");
+                logger.info("DEBUG: Stil-Kontext hinzugefügt: " + styleNotesArea.getText().trim().substring(0, Math.min(100, styleNotesArea.getText().trim().length())));
+            } else {
+                logger.info("DEBUG: Stil-Kontext nicht hinzugefügt - cbStyle: " + (cbStyle != null ? cbStyle.isSelected() : "null") + 
+                           ", styleNotesArea: " + (styleNotesArea != null ? "not null" : "null") + 
+                           ", text: " + (styleNotesArea != null ? styleNotesArea.getText().trim().isEmpty() : "null"));
             }
 
-            // Kontext aus der context.txt des aktuellen Romans (immer zusätzlich zulässig)
-            String currentDocxFile = getCurrentDocxFileName();
-            // DEBUG entfernt
-        if (currentDocxFile != null) {
-            String novelContext = NovelManager.loadContext(currentDocxFile);
-                // DEBUG entfernt
-            if (!novelContext.trim().isEmpty()) {
-                    selectedContexts.append("\n=== ROMAN-KONTEXT ===\n").append(limitText(novelContext)).append("\n");
+            // Kontext aus der context.txt des aktuellen Romans (nur wenn Checkbox aktiviert)
+            if (cbNovelContext != null && cbNovelContext.isSelected()) {
+                String currentDocxFile = getCurrentDocxFileName();
+                if (currentDocxFile != null) {
+                    String novelContext = NovelManager.loadContext(currentDocxFile);
+                    if (!novelContext.trim().isEmpty()) {
+                        selectedContexts.append("\n=== ROMAN-KONTEXT ===\n").append(limitText(novelContext)).append("\n");
+                    }
+                }
             }
-        }
 
             if (selectedContexts.length() > 0) {
                 contextBuilder.append("\n").append(selectedContexts);
+                logger.info("DEBUG: selectedContexts hinzugefügt: " + selectedContexts.toString().substring(0, Math.min(200, selectedContexts.length())));
             }
             
             String fullContext = contextBuilder.toString();
+            logger.info("DEBUG: Finaler Kontext (erste 500 Zeichen): " + fullContext.substring(0, Math.min(500, fullContext.length())));
             // DEBUG entfernt
             
             // Anzahl der vollständigen QAPairs für Debug-Zwecke
@@ -1621,12 +1634,22 @@ public class OllamaWindow {
             
             // Chat-Nachrichten bereit für Streaming
             
+            // Finale Variablen für Lambda-Ausdrücke
+            final String finalSelectedFunction = selectedFunction;
+            final TextArea finalResultArea = resultArea;
+            
             currentStreamHandle = ollamaService.chatStreaming(
                 chatMessages,
                 fullContext,
                 chunk -> Platform.runLater(() -> {
                     aggregated.append(chunk);
                     statusLabel.setText("⏳ Läuft… " + aggregated.length() + " Zeichen");
+                    
+                    // Plugin-Ergebnis auch in resultArea schreiben für Ergebnis-Fenster
+                    if (finalSelectedFunction != null && finalSelectedFunction.startsWith("📦 ")) {
+                        finalResultArea.setText(aggregated.toString());
+                    }
+                    
                     // Live: Antwort fortlaufend exakt in dem Q&A sichern, zu dem diese Antwort gehört
                     try { 
                         chatHistoryArea.setAnswerAt(qaIndex, aggregated.toString()); 
@@ -1669,6 +1692,15 @@ public class OllamaWindow {
                     String finalAnswer = header + "\n" + aggregated.toString();
                     // Reinen Chat-Text für "Ergebnis in Fenster" speichern
                     lastPureChatAnswer = aggregated.toString();
+                    
+                    // Plugin-Ergebnis auch in resultArea schreiben für Ergebnis-Fenster
+                    if (finalSelectedFunction != null && finalSelectedFunction.startsWith("📦 ")) {
+                        finalResultArea.setText(aggregated.toString());
+                        // Ergebnis-Fenster sichtbar machen
+                        finalResultArea.setVisible(true);
+                        finalResultArea.setManaged(true);
+                    }
+                    
                     // UI aktualisieren (asynchron ok)
                     chatHistoryArea.setAnswerAt(qaIndex, finalAnswer);
                     
@@ -2395,7 +2427,7 @@ public class OllamaWindow {
 
     private String limitText(String text) {
         if (text == null) return null;
-        int max = 8000; // mehrere tausend Zeichen
+        int max = 2000; // Reduziert von 8000 auf 2000 Zeichen pro Kontext-Bereich
         return text.length() > max ? text.substring(0, max) + "\n..." : text;
     }
     
@@ -2951,7 +2983,14 @@ public class OllamaWindow {
      */
     private void openPluginEditor() {
         try {
-            PluginEditorWindow editor = new PluginEditorWindow();
+            // Theme vom Editor holen
+            int currentTheme = 0;
+            if (editorWindow != null) {
+                currentTheme = editorWindow.getCurrentThemeIndex();
+                logger.info("Theme vom Editor übernommen: " + currentTheme);
+            }
+            
+            PluginEditorWindow editor = new PluginEditorWindow(currentTheme);
             editor.show();
             updateStatus("Plugin Editor geöffnet");
         } catch (Exception e) {

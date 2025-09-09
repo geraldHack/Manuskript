@@ -3,7 +3,7 @@
   "description": "Überprüft Valenz, Idiomatik, Korrektheit und bietet präzise Alternativen",
   "category": "Grammatik",
   "prompt": "Analysiere den folgenden Textausschnitt streng sprachlich. \n\n1. **Grammatik / Valenz**: Prüfe Rektion (z. B. „jemandem erscheint“, „auf etwas reagieren“), Kasus, Kongruenz. Markiere fehlerhafte Konstruktionen. \n2. **Kollokationen / Idiomatik**: Prüfe, ob die Wortverbindungen im Deutschen üblich und korrekt sind (z. B. „sich vor etwas schützen“ statt „sich vor etwas wehren“). \n3. **Wortwahl / Stilbrüche**: Achte auf missratene Abtönungspartikeln, Mischformen („nun einmal mehr“), überflüssige Füllwörter. \n4. **Präzision**: Zeige, wo Ausdrücke schwammig oder unnötig wirken. \n5. **Verbesserungsvorschläge**: Liefere 2–3 präzise Alternativen pro Problemstelle. \n\n Keine inhaltliche Interpretation. \n Keine dramaturgischen Tipps. \nNur sprachliche Sauberkeit. \nText: \n{selektierter Text} ",
-  "temperature": 0.7,
+  "temperature": 0.0,
   "maxTokens": 2048,
   "enabled": true
 }

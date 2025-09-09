@@ -200,7 +200,6 @@ public class MainController implements Initializable {
     }
     
     private void setupEventHandlers() {
-        System.out.println("=== DEBUG: setupEventHandlers() wird aufgerufen ===");
         btnSelectDirectory.setOnAction(e -> selectDirectory());
         // Filter, Sortierung und Format-Event-Handler entfernt - einfache Lösung
         btnAddToSelected.setOnAction(e -> addSelectedToRight());
@@ -210,7 +209,6 @@ public class MainController implements Initializable {
         
         btnProcessSelected.setOnAction(e -> processSelectedFiles());
         btnProcessAll.setOnAction(e -> {
-            System.out.println("=== DEBUG: btnProcessAll Event-Handler wurde aufgerufen ===");
             processAllFiles();
         });
         btnThemeToggle.setOnAction(e -> toggleTheme());
@@ -970,20 +968,13 @@ public class MainController implements Initializable {
      * Markiert eine DOCX-Datei als unverändert (entfernt das "!")
      */
     public void markDocxFileAsUnchanged(File docxFile) {
-        System.out.println("=== DEBUG: markDocxFileAsUnchanged() aufgerufen für: " + docxFile.getAbsolutePath() + " ===");
         try {
             // Finde die entsprechende DocxFile in beiden Listen
-            System.out.println("=== DEBUG: Suche nach: " + docxFile.getAbsolutePath() + " ===");
-            System.out.println("=== DEBUG: allDocxFiles Größe: " + allDocxFiles.size() + " ===");
-            System.out.println("=== DEBUG: selectedDocxFiles Größe: " + selectedDocxFiles.size() + " ===");
-            
             boolean found = false;
             
             // Suche in allDocxFiles
             for (DocxFile file : allDocxFiles) {
-                System.out.println("=== DEBUG: Vergleiche allDocxFiles mit: " + file.getFile().getAbsolutePath() + " ===");
                 if (file.getFile().getAbsolutePath().equals(docxFile.getAbsolutePath())) {
-                    System.out.println("=== DEBUG: DocxFile in allDocxFiles gefunden, setze changed = false ===");
                     file.setChanged(false);
                     logger.info("DOCX-Datei als unverändert markiert (allDocxFiles): {}", docxFile.getName());
                     found = true;
@@ -994,9 +985,7 @@ public class MainController implements Initializable {
             // Suche in selectedDocxFiles
             if (!found) {
                 for (DocxFile file : selectedDocxFiles) {
-                    System.out.println("=== DEBUG: Vergleiche selectedDocxFiles mit: " + file.getFile().getAbsolutePath() + " ===");
                     if (file.getFile().getAbsolutePath().equals(docxFile.getAbsolutePath())) {
-                        System.out.println("=== DEBUG: DocxFile in selectedDocxFiles gefunden, setze changed = false ===");
                         file.setChanged(false);
                         logger.info("DOCX-Datei als unverändert markiert (selectedDocxFiles): {}", docxFile.getName());
                         found = true;
@@ -1005,14 +994,31 @@ public class MainController implements Initializable {
                 }
             }
             
-            if (!found) {
-                System.out.println("=== DEBUG: DocxFile in keiner Liste gefunden ===");
-            }
-            
-            // Aktualisiere die UI
+            // SOFORT die UI aktualisieren
             Platform.runLater(() -> {
-                tableViewAvailable.refresh();
-                tableViewSelected.refresh();
+                try {
+                    // Beide Tabellen aktualisieren
+                    if (tableViewAvailable != null) {
+                        tableViewAvailable.refresh();
+                    }
+                    if (tableViewSelected != null) {
+                        tableViewSelected.refresh();
+                    }
+                    
+                    // Zusätzlich: Alle Zellen neu rendern
+                    if (tableViewAvailable != null) {
+                        tableViewAvailable.getColumns().forEach(col -> col.setVisible(false));
+                        tableViewAvailable.getColumns().forEach(col -> col.setVisible(true));
+                    }
+                    if (tableViewSelected != null) {
+                        tableViewSelected.getColumns().forEach(col -> col.setVisible(false));
+                        tableViewSelected.getColumns().forEach(col -> col.setVisible(true));
+                    }
+                    
+                    logger.info("UI sofort aktualisiert für: {}", docxFile.getName());
+                } catch (Exception e) {
+                    logger.error("Fehler beim Aktualisieren der UI: {}", e.getMessage());
+                }
             });
             
         } catch (Exception e) {
@@ -1261,7 +1267,7 @@ public class MainController implements Initializable {
     
     private void processAllFiles() {
         logger.info("=== DEBUG: 'Kapitel bearbeiten' Button wurde gedrückt ===");
-        System.out.println("=== DEBUG: 'Kapitel bearbeiten' Button wurde gedrückt ===");
+
         // NEU: Kapitel bearbeiten - alle Dateien aus der rechten Tabelle
         if (selectedDocxFiles.isEmpty()) {
             showWarning("Keine Dateien vorhanden", "Bitte fügen Sie zuerst Dateien zur rechten Tabelle hinzu.");
@@ -1310,11 +1316,7 @@ public class MainController implements Initializable {
             
             if (mdFile != null && mdFile.exists()) {
                 // MD-Datei existiert - PRÜFE OB DOCX EXTERN VERÄNDERT WURDE
-                System.out.println("=== DEBUG: Vor hasDocxChanged() Aufruf ===");
-                System.out.println("=== DEBUG: chapterFile.getFile() = " + chapterFile.getFile().getAbsolutePath() + " ===");
-                System.out.println("=== DEBUG: mdFile = " + mdFile.getAbsolutePath() + " ===");
                 if (DiffProcessor.hasDocxChanged(chapterFile.getFile(), mdFile)) {
-                    System.out.println("=== DEBUG: hasDocxChanged() gibt TRUE zurück - Dialog wird angezeigt ===");
                     DocxChangeDecision decision = showDocxChangedDialogInMain(chapterFile);
                     switch (decision) {
                         case DIFF: {
@@ -1330,7 +1332,7 @@ public class MainController implements Initializable {
                             return; // nach Diff kein Editor öffnen
                         }
                         case DOCX: {
-                            System.out.println("=== DEBUG: DOCX übernehmen gewählt ===");
+
                             try {
                                 String docxContent = docxProcessor.processDocxFileContent(chapterFile.getFile(), 1, format);
                                 openChapterEditorWindow(docxContent, chapterFile, format);
@@ -1345,7 +1347,7 @@ public class MainController implements Initializable {
                             return; // Editor bereits geöffnet
                         }
                         case IGNORE: {
-                            System.out.println("=== DEBUG: Ignorieren gewählt ===");
+
                             // Hash aktualisieren und mit MD fortfahren
                             try {
                                 updateDocxHashAfterAccept(chapterFile.getFile());
@@ -1362,7 +1364,6 @@ public class MainController implements Initializable {
                             return;
                     }
                 } else {
-                    System.out.println("=== DEBUG: hasDocxChanged() gibt FALSE zurück - kein Dialog ===");
                 }
 
                 // MD-Datei existiert - lade MD-Inhalt
@@ -1481,21 +1482,18 @@ public class MainController implements Initializable {
     /**
      * Entscheidungsmöglichkeiten bei geänderter DOCX
      */
-    private enum DocxChangeDecision { DIFF, DOCX, IGNORE, CANCEL }
+    public enum DocxChangeDecision { DIFF, DOCX, IGNORE, CANCEL }
 
     /**
      * Zeigt Dialog wenn DOCX-Datei extern verändert wurde (für MainController)
      */
-    private DocxChangeDecision showDocxChangedDialogInMain(DocxFile chapterFile) {
-        System.out.println("=== DEBUG: showDocxChangedDialogInMain() aufgerufen ===");
+    public DocxChangeDecision showDocxChangedDialogInMain(DocxFile chapterFile) {
+
         
-        // CustomAlert verwenden
-        CustomAlert alert = new CustomAlert(Alert.AlertType.CONFIRMATION, "Was möchten Sie tun?");
+        CustomAlert alert = new CustomAlert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("DOCX-Datei wurde extern verändert");
         alert.setHeaderText("Die DOCX-Datei '" + chapterFile.getFileName() + "' wurde extern verändert.");
-        
-        // Theme anwenden
-        alert.applyTheme(currentThemeIndex);
+        alert.setContentText("Was möchten Sie tun?");
         
         // Owner setzen
         alert.initOwner(primaryStage);
@@ -1505,10 +1503,13 @@ public class MainController implements Initializable {
         ButtonType ignoreButton = new ButtonType("Ignorieren");
         ButtonType cancelButton = new ButtonType("Abbrechen");
 
-        alert.setButtonTypes(diffButton, docxButton, ignoreButton, cancelButton);
+        alert.getDialogPane().getButtonTypes().setAll(diffButton, docxButton, ignoreButton, cancelButton);
+
+        // Theme explizit anwenden, bevor der Dialog angezeigt wird
+        alert.applyTheme(currentThemeIndex);
 
         Optional<ButtonType> result = alert.showAndWait();
-        System.out.println("=== DEBUG: Dialog geschlossen, Ergebnis: " + (result.isPresent() ? result.get().getText() : "null") + " ===");
+
         if (!result.isPresent()) return DocxChangeDecision.CANCEL;
 
         if (result.get() == diffButton) return DocxChangeDecision.DIFF;
@@ -1531,7 +1532,7 @@ public class MainController implements Initializable {
         return null;
     }
     
-    private void showDetailedDiffDialog(DocxFile chapterFile, File mdFile, DiffProcessor.DiffResult diffResult, 
+    public void showDetailedDiffDialog(DocxFile chapterFile, File mdFile, DiffProcessor.DiffResult diffResult, 
                                       DocxProcessor.OutputFormat format) {
         try {
             // Erstelle Diff-Fenster
@@ -1558,13 +1559,16 @@ public class MainController implements Initializable {
             String mdContent = new String(java.nio.file.Files.readAllBytes(mdFile.toPath()), java.nio.charset.StandardCharsets.UTF_8);
             String docxContent = docxProcessor.processDocxFileContent(chapterFile.getFile(), 1, format);
             
-            // Erstelle SplitPane für nebeneinander Anzeige
-            SplitPane splitPane = new SplitPane();
-            splitPane.setPrefHeight(650);
-            splitPane.setStyle("-fx-background-color: transparent;");
+            // Erstelle HBox für feste nebeneinander Anzeige (beide Seiten immer gleich breit)
+            HBox contentBox = new HBox(10);
+            contentBox.setPrefHeight(650);
+            contentBox.setStyle("-fx-background-color: transparent;");
             
-            // Linke Seite: Aktuelle Version (MD)
+            // Linke Seite: Aktuelle Version (MD) - feste Breite
             VBox leftBox = new VBox(5);
+            leftBox.setPrefWidth(650); // Feste Breite
+            leftBox.setMinWidth(650);
+            leftBox.setMaxWidth(650);
             leftBox.setStyle(String.format("-fx-background-color: %s; -fx-border-color: %s; -fx-border-width: 2px;", themeBgColor, themeBorderColor));
             leftBox.setPadding(new Insets(10));
             
@@ -1599,8 +1603,11 @@ public class MainController implements Initializable {
             leftContentBox.setPadding(new Insets(5));
             leftContentBox.setStyle("-fx-background-color: transparent;");
             
-            // Rechte Seite: Neue Version (DOCX) mit Checkboxen
+            // Rechte Seite: Neue Version (DOCX) mit Checkboxen - breiter für bessere Checkbox-Sichtbarkeit
             VBox rightBox = new VBox(5);
+            rightBox.setPrefWidth(750); // Breiter für Checkbox + Padding
+            rightBox.setMinWidth(750);
+            rightBox.setMaxWidth(750);
             rightBox.setStyle(String.format("-fx-background-color: %s; -fx-border-color: %s; -fx-border-width: 2px;", themeBgColor, themeBorderColor));
             rightBox.setPadding(new Insets(10));
             
@@ -1646,8 +1653,6 @@ public class MainController implements Initializable {
             List<DiffBlock> blocks = groupIntoBlocks(realDiff.getDiffLines());
             
             // Erstelle synchronisierte Anzeige basierend auf Blöcken
-            int leftLineNumber = 1;
-            int rightLineNumber = 1;
             
             for (DiffBlock block : blocks) {
                 // Checkbox nur für grüne Blöcke (ADDED)
@@ -1669,46 +1674,56 @@ public class MainController implements Initializable {
                     HBox leftLineBox = new HBox(5);
                     HBox rightLineBox = new HBox(5);
                     
-                    // Zeilennummern
-                    Label leftLineNum = new Label(String.format("%3d", leftLineNumber));
+                    // Zeilennummern aus DiffLine verwenden
+                    Label leftLineNum = new Label(String.format("%3d", diffLine.getLeftLineNumber()));
                     leftLineNum.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 10px; -fx-text-fill: #6c757d; -fx-min-width: 30px; -fx-alignment: center-right;");
                     
-                    Label rightLineNum = new Label(String.format("%3d", rightLineNumber));
+                    Label rightLineNum = new Label(String.format("%3d", diffLine.getRightLineNumber()));
                     rightLineNum.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 10px; -fx-text-fill: #6c757d; -fx-min-width: 30px; -fx-alignment: center-right;");
                     
                     // Linke Seite (MD)
                     Label leftLineLabel = new Label(diffLine.getOriginalText());
                     leftLineLabel.setWrapText(true);
-                    leftLineLabel.setPrefWidth(600);
+                    leftLineLabel.setPrefWidth(620); // Gleiche Breite wie rechtes Label
+                    leftLineLabel.setMinHeight(Region.USE_PREF_SIZE);
+                    leftLineLabel.setMaxHeight(Region.USE_PREF_SIZE);
                     leftLineLabel.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px;");
                     
                     // Rechte Seite (DOCX) - Checkbox nur am Anfang des Blocks
                     Label rightLineLabel = new Label(diffLine.getNewText());
                     rightLineLabel.setWrapText(true);
-                    rightLineLabel.setPrefWidth(600);
+                    rightLineLabel.setPrefWidth(620); // Reduziert für Checkbox-Platz
+                    rightLineLabel.setMinHeight(Region.USE_PREF_SIZE);
+                    rightLineLabel.setMaxHeight(Region.USE_PREF_SIZE);
                     rightLineLabel.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px;");
+                    
+                    // Synchronisiere die Höhen beider Labels
+                    Platform.runLater(() -> {
+                        double maxHeight = Math.max(leftLineLabel.getHeight(), rightLineLabel.getHeight());
+                        leftLineLabel.setMinHeight(maxHeight);
+                        leftLineLabel.setMaxHeight(maxHeight);
+                        rightLineLabel.setMinHeight(maxHeight);
+                        rightLineLabel.setMaxHeight(maxHeight);
+                    });
                     
                     // Markiere basierend auf Block-Typ
                     switch (block.getType()) {
                         case ADDED:
-                            // Neuer Block - nur rechts sichtbar
+                            // Neuer Block - nur rechts sichtbar, aber Zeilennummern auf beiden Seiten
                             leftLineLabel.setText("");
-                            leftLineNum.setText("");
                             leftLineLabel.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px; -fx-background-color: #d4edda; -fx-text-fill: #155724;");
                             rightLineLabel.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px; -fx-background-color: #d4edda; -fx-text-fill: #155724; -fx-font-weight: bold;");
+                            leftLineNum.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 10px; -fx-text-fill: #6c757d; -fx-min-width: 30px; -fx-alignment: center-right;");
                             rightLineNum.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 10px; -fx-text-fill: #28a745; -fx-min-width: 30px; -fx-alignment: center-right; -fx-font-weight: bold;");
-                            rightLineNumber++;
                             break;
                             
                         case DELETED:
-                            // Gelöschter Block - links rot, rechts leer aber sichtbar
+                            // Gelöschter Block - links rot, rechts leer aber sichtbar, Zeilennummern auf beiden Seiten
                             rightLineLabel.setText("");
-                            rightLineNum.setText("");
                             leftLineLabel.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px; -fx-background-color: #f8d7da; -fx-text-fill: #721c24; -fx-font-weight: bold;");
                             leftLineNum.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 10px; -fx-text-fill: #dc3545; -fx-min-width: 30px; -fx-alignment: center-right; -fx-font-weight: bold;");
                             rightLineLabel.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px; -fx-background-color: #f8d7da; -fx-text-fill: #721c24;");
-                            rightLineNum.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 10px; -fx-text-fill: #dc3545; -fx-min-width: 30px; -fx-alignment: center-right;");
-                            leftLineNumber++;
+                            rightLineNum.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 10px; -fx-text-fill: #6c757d; -fx-min-width: 30px; -fx-alignment: center-right;");
                             break;
                             
                         case UNCHANGED:
@@ -1716,8 +1731,6 @@ public class MainController implements Initializable {
                             String lightOpacity = "0.4"; // Sehr transparent für unaufdringlichen Look
                             leftLineLabel.setStyle(String.format("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px; -fx-text-fill: %s; -fx-background-color: rgba(240,240,240,0.2); -fx-opacity: %s;", THEMES[currentThemeIndex][1], lightOpacity));
                             rightLineLabel.setStyle(String.format("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px; -fx-text-fill: %s; -fx-background-color: rgba(240,240,240,0.2); -fx-opacity: %s;", THEMES[currentThemeIndex][1], lightOpacity));
-                            leftLineNumber++;
-                            rightLineNumber++;
                             break;
                     }
                     
@@ -1759,8 +1772,7 @@ public class MainController implements Initializable {
             leftBox.getChildren().addAll(leftLabel, leftScrollPane);
             rightBox.getChildren().addAll(rightLabel, rightScrollPane);
             
-            splitPane.getItems().addAll(leftBox, rightBox);
-            splitPane.setDividerPositions(0.5);
+            contentBox.getChildren().addAll(leftBox, rightBox);
             
             // Button-Box
             HBox buttonBox = new HBox(15);
@@ -1812,6 +1824,8 @@ public class MainController implements Initializable {
                     openChapterEditorWindow(docxContent, chapterFile, format);
                     chapterFile.setChanged(false);
                     updateDocxHashAfterAccept(chapterFile.getFile());
+                    // WICHTIG: Das "!" aus der Tabelle entfernen
+                    markDocxFileAsUnchanged(chapterFile.getFile());
                     diffStage.close();
                 } catch (Exception ex) {
                     logger.error("Fehler beim Übernehmen aller Änderungen", ex);
@@ -1824,6 +1838,8 @@ public class MainController implements Initializable {
                     openChapterEditorWindow(mdContent, chapterFile, format);
                     chapterFile.setChanged(false);
                     updateDocxHashAfterAccept(chapterFile.getFile());
+                    // WICHTIG: Das "!" aus der Tabelle entfernen
+                    markDocxFileAsUnchanged(chapterFile.getFile());
                     diffStage.close();
                 } catch (Exception ex) {
                     logger.error("Fehler beim Behalten der aktuellen Version", ex);
@@ -1835,7 +1851,7 @@ public class MainController implements Initializable {
             
             buttonBox.getChildren().addAll(btnApplySelected, btnAcceptAll, btnKeepCurrent, btnCancel);
             
-            diffRoot.getChildren().addAll(titleLabel, splitPane, buttonBox);
+            diffRoot.getChildren().addAll(titleLabel, contentBox, buttonBox);
             
             Scene diffScene = new Scene(diffRoot);
             // CSS wird über ResourceManager geladen
@@ -2025,6 +2041,13 @@ public class MainController implements Initializable {
             Scene scene = new Scene(root);
             editorStage.setSceneWithTitleBar(scene);
             
+            // NEU: Mindestgrößen VOR loadEditorWindowProperties() setzen
+            editorStage.setMinWidth(800);
+            editorStage.setMinHeight(600);
+            
+            // NEU: Window-Preferences NACH setSceneWithTitleBar() laden und anwenden
+            loadEditorWindowProperties(editorStage);
+            
             // CSS mit ResourceManager laden
             String cssPath = ResourceManager.getCssResource("css/manuskript.css");
             if (cssPath != null) {
@@ -2186,9 +2209,7 @@ public class MainController implements Initializable {
                 scene.getStylesheets().add(cssPath);
             }
             
-            // Fenster-Größe und Position
-            editorStage.setMinWidth(800);
-            editorStage.setMinHeight(600);
+            // Fenster-Größe und Position (nur noch Breite und Höhe, Min-Werte sind bereits gesetzt)
             editorStage.setWidth(1200);
             editorStage.setHeight(800);
             
@@ -2794,7 +2815,7 @@ public class MainController implements Initializable {
         try {
             CustomStage splitStage = StageManager.createStage("Kapitel-Split");
             splitStage.setTitle("Kapitel-Split");
-            splitStage.setWidth(800);
+            splitStage.setWidth(1000);
             splitStage.setHeight(600);
             splitStage.initModality(Modality.NONE);
             splitStage.initOwner(primaryStage);
@@ -2858,7 +2879,7 @@ public class MainController implements Initializable {
         VBox headerBox = new VBox(5);
         Label headerLabel = new Label("Kapitel-Split");
         headerLabel.getStyleClass().add("section-header");
-        Label infoLabel = new Label("Wähle eine DOCX/TXT-Datei aus und teile sie in Kapitel auf");
+        Label infoLabel = new Label("Wähle eine DOCX-Datei aus, die mehrere Kapitel (ein ganzer Roman?) enthält und teile sie in einzelne DOCX-Dateien auf, die jeweils ein Kapitel enthalten.");
         infoLabel.getStyleClass().add("info-text");
         headerBox.getChildren().addAll(headerLabel, infoLabel);
         

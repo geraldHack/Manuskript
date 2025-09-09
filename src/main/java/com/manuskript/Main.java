@@ -7,7 +7,11 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.classic.joran.JoranConfigurator;
+import ch.qos.logback.core.util.StatusPrinter;
 
+import java.io.File;
 import java.io.IOException;
 
 public class Main extends Application {
@@ -56,6 +60,32 @@ public class Main extends Application {
     }
     
     public static void main(String[] args) {
+        // Logback-Konfiguration aus config/logback.xml laden
+        setupLogging();
+        
         launch(args);
+    }
+    
+    private static void setupLogging() {
+        try {
+            // Config-Ordner initialisieren
+            ResourceManager.initializeConfigDirectory();
+            
+            // Logback-Konfiguration aus config/logback.xml laden
+            File configFile = new File("config/logback.xml");
+            if (configFile.exists()) {
+                LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
+                JoranConfigurator configurator = new JoranConfigurator();
+                configurator.setContext(context);
+                context.reset();
+                configurator.doConfigure(configFile);
+                StatusPrinter.printInCaseOfErrorsOrWarnings(context);
+                System.out.println("Logging-Konfiguration aus config/logback.xml geladen");
+            } else {
+                System.out.println("config/logback.xml nicht gefunden, verwende Standard-Konfiguration");
+            }
+        } catch (Exception e) {
+            System.err.println("Fehler beim Laden der Logging-Konfiguration: " + e.getMessage());
+        }
     }
 } 

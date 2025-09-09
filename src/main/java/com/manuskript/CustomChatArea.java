@@ -182,22 +182,15 @@ public class CustomChatArea extends VBox {
     
     public void addAssistantResponse(String response) {
         Platform.runLater(() -> {
-            System.out.println("DEBUG: addAssistantResponse() aufgerufen mit: " + response.substring(0, Math.min(50, response.length())) + "...");
-            System.out.println("DEBUG: currentIndex: " + currentIndex + ", chatHistory.size(): " + chatHistory.size());
+            
             
             if (currentIndex >= 0 && currentIndex < chatHistory.size()) {
                 // Antwort zum aktuellen QAPair hinzufügen
                 QAPair currentPair = chatHistory.get(currentIndex);
-                System.out.println("DEBUG: Vor setAnswer - Frage: " + currentPair.getQuestion() + ", Antwort: " + (currentPair.getAnswer() != null ? currentPair.getAnswer().length() + " Zeichen" : "null"));
-                
                 currentPair.setAnswer(response);
-                
-                System.out.println("DEBUG: Nach setAnswer - Frage: " + currentPair.getQuestion() + ", Antwort: " + (currentPair.getAnswer() != null ? currentPair.getAnswer().length() + " Zeichen" : "null"));
                 
                 // UI aktualisieren
                 updateDisplay();
-            } else {
-                System.out.println("DEBUG: Ungültiger Index - currentIndex: " + currentIndex + ", chatHistory.size(): " + chatHistory.size());
             }
         });
     }

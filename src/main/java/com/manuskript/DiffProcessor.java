@@ -45,12 +45,7 @@ public class DiffProcessor {
      * Prüft ob eine DOCX-Datei seit der letzten Verarbeitung geändert wurde
      */
     public static boolean hasDocxChanged(File docxFile, File sidecarFile) {
-        System.out.println("=== DEBUG: hasDocxChanged() aufgerufen ===");
-        System.out.println("=== DEBUG: docxFile = " + (docxFile != null ? docxFile.getAbsolutePath() : "null") + " ===");
-        System.out.println("=== DEBUG: sidecarFile = " + (sidecarFile != null ? sidecarFile.getAbsolutePath() : "null") + " ===");
-        
         if (docxFile == null || !docxFile.exists()) {
-            System.out.println("=== DEBUG: docxFile ist null oder existiert nicht ===");
             return false;
         }
         
@@ -68,12 +63,8 @@ public class DiffProcessor {
         long savedHash = loadSavedHash(sidecarFile);
         long currentHash = calculateFileHash(docxFile);
         
-        System.out.println("=== DEBUG: savedHash = " + savedHash + " ===");
-        System.out.println("=== DEBUG: currentHash = " + currentHash + " ===");
-        
         // Wenn kein gespeicherter Hash existiert (savedHash = -1), betrachte DOCX als geändert
         boolean result = (savedHash == -1) || (savedHash != -1 && currentHash != -1 && savedHash != currentHash);
-        System.out.println("=== DEBUG: hasDocxChanged() gibt " + result + " zurück ===");
         
         return result;
     }
@@ -82,59 +73,42 @@ public class DiffProcessor {
      * Lädt den gespeicherten Hash aus Sidecar-Metadaten
      */
     private static long loadSavedHash(File sidecarFile) {
-        System.out.println("=== DEBUG: loadSavedHash() aufgerufen ===");
-        System.out.println("=== DEBUG: sidecarFile = " + sidecarFile.getAbsolutePath() + " ===");
-        
         try {
             // Suche nach DOCX-basierter .meta Datei, nicht MD-basierter
             String docxFileName = sidecarFile.getName().replace(".md", ".docx");
             Path metadataPath = sidecarFile.toPath().resolveSibling(docxFileName + ".meta");
-            System.out.println("=== DEBUG: metadataPath = " + metadataPath + " ===");
-            System.out.println("=== DEBUG: metadataPath.exists() = " + Files.exists(metadataPath) + " ===");
             
             if (Files.exists(metadataPath)) {
                 String content = Files.readString(metadataPath);
-                System.out.println("=== DEBUG: .meta Datei Inhalt = " + content + " ===");
                 
                 // Suche nach Hash-Zeile
                 Pattern hashPattern = Pattern.compile("docx_hash=([0-9]+)");
                 Matcher matcher = hashPattern.matcher(content);
                 if (matcher.find()) {
                     long hash = Long.parseLong(matcher.group(1));
-                    System.out.println("=== DEBUG: Hash gefunden = " + hash + " ===");
                     return hash;
                 } else {
-                    System.out.println("=== DEBUG: Kein Hash-Pattern gefunden ===");
-                    
                     // Suche nach reinem Hash-Wert (Format: 123456789 oder e275e583)
                     Pattern pureHashPattern = Pattern.compile("^([0-9a-fA-F]+)$");
                     matcher = pureHashPattern.matcher(content.trim());
                     if (matcher.find()) {
                         try {
                             long hash = Long.parseLong(matcher.group(1), 16); // Hexadezimal
-                            System.out.println("=== DEBUG: Hex-Hash gefunden = " + hash + " ===");
                             return hash;
                         } catch (NumberFormatException e) {
                             try {
                                 long hash = Long.parseLong(matcher.group(1)); // Dezimal
-                                System.out.println("=== DEBUG: Dezimal-Hash gefunden = " + hash + " ===");
                                 return hash;
                             } catch (NumberFormatException e2) {
-                                System.out.println("=== DEBUG: Hash-Wert kann nicht geparst werden: " + matcher.group(1) + " ===");
+                                // Hash-Wert kann nicht geparst werden
                             }
                         }
-                    } else {
-                        System.out.println("=== DEBUG: Auch kein reiner Hash-Wert gefunden ===");
                     }
                 }
-            } else {
-                System.out.println("=== DEBUG: .meta Datei existiert nicht ===");
             }
         } catch (Exception e) {
-            System.out.println("=== DEBUG: Exception in loadSavedHash: " + e.getMessage() + " ===");
             logger.warn("Fehler beim Laden des gespeicherten Hashs: {}", e.getMessage());
         }
-        System.out.println("=== DEBUG: loadSavedHash() gibt -1 zurück ===");
         return -1;
     }
     
@@ -162,7 +136,7 @@ public class DiffProcessor {
     }
     
     /**
-     * Erstellt ein Diff zwischen zwei Texten
+     * Erstellt ein Diff zwischen zwei Texten mit echtem Myers-Diff-Algorithmus
      */
     public static DiffResult createDiff(String originalText, String newText) {
         DiffResult result = new DiffResult();
@@ -170,45 +144,48 @@ public class DiffProcessor {
         if (originalText == null) originalText = "";
         if (newText == null) newText = "";
         
-        // Echter Myers-Diff-Algorithmus für intelligente Block-Erkennung
         String[] originalLines = originalText.split("\n", -1);
         String[] newLines = newText.split("\n", -1);
         
         List<DiffLine> diffLines = new ArrayList<>();
         
-        // Myers-Diff-Algorithmus implementieren
+        // LCS-basierter Diff-Algorithmus für intelligente Block-Erkennung
         int[][] lcs = computeLCS(originalLines, newLines);
         List<DiffOperation> operations = backtrackLCS(originalLines, newLines, lcs);
         
         int originalIndex = 0;
         int newIndex = 0;
-        int lineNumber = 1;
+        int leftLineNumber = 1;
+        int rightLineNumber = 1;
         
         for (DiffOperation op : operations) {
             switch (op.getType()) {
                 case KEEP:
                     // Beide Zeilen sind gleich
-                    diffLines.add(new DiffLine(lineNumber, DiffType.UNCHANGED, 
+                    diffLines.add(new DiffLine(leftLineNumber, rightLineNumber, DiffType.UNCHANGED, 
                         originalLines[originalIndex], newLines[newIndex]));
                     originalIndex++;
                     newIndex++;
-                    lineNumber++;
+                    leftLineNumber++;
+                    rightLineNumber++;
                     break;
                     
                 case DELETE:
                     // Zeile wurde gelöscht
-                    diffLines.add(new DiffLine(lineNumber, DiffType.DELETED, 
+                    diffLines.add(new DiffLine(leftLineNumber, rightLineNumber, DiffType.DELETED, 
                         originalLines[originalIndex], ""));
                     originalIndex++;
-                    lineNumber++;
+                    leftLineNumber++;
+                    rightLineNumber++; // Rechte Seite auch erhöhen für Synchronisation
                     break;
                     
                 case INSERT:
                     // Zeile wurde hinzugefügt
-                    diffLines.add(new DiffLine(lineNumber, DiffType.ADDED, 
+                    diffLines.add(new DiffLine(leftLineNumber, rightLineNumber, DiffType.ADDED, 
                         "", newLines[newIndex]));
                     newIndex++;
-                    lineNumber++;
+                    leftLineNumber++; // Linke Seite auch erhöhen für Synchronisation
+                    rightLineNumber++;
                     break;
             }
         }
@@ -225,6 +202,10 @@ public class DiffProcessor {
      * Berechnet die Longest Common Subsequence (LCS) Matrix
      */
     private static int[][] computeLCS(String[] original, String[] modified) {
+        // Null-Checks für Arrays
+        if (original == null) original = new String[0];
+        if (modified == null) modified = new String[0];
+        
         int m = original.length;
         int n = modified.length;
         int[][] lcs = new int[m + 1][n + 1];
@@ -232,12 +213,13 @@ public class DiffProcessor {
         // LCS-Matrix aufbauen
         for (int i = 1; i <= m; i++) {
             for (int j = 1; j <= n; j++) {
-                if (original[i - 1].equals(modified[j - 1])) {
+                String origLine = original[i - 1] != null ? original[i - 1] : "";
+                String modLine = modified[j - 1] != null ? modified[j - 1] : "";
+                if (origLine.equals(modLine)) {
                     lcs[i][j] = lcs[i - 1][j - 1] + 1;
                 } else {
                     lcs[i][j] = Math.max(lcs[i - 1][j], lcs[i][j - 1]);
                 }
-
             }
         }
         
@@ -249,23 +231,113 @@ public class DiffProcessor {
      */
     private static List<DiffOperation> backtrackLCS(String[] original, String[] modified, int[][] lcs) {
         List<DiffOperation> operations = new ArrayList<>();
+        
+        // Null-Checks für Arrays
+        if (original == null) original = new String[0];
+        if (modified == null) modified = new String[0];
+        
         int i = original.length;
         int j = modified.length;
         
         while (i > 0 || j > 0) {
-            if (i > 0 && j > 0 && original[i - 1].equals(modified[j - 1])) {
-                // Gleiche Zeile - KEEP
-                operations.add(0, new DiffOperation(DiffOpType.KEEP));
-                i--;
-                j--;
-            } else if (j > 0 && (i == 0 || lcs[i][j - 1] >= lcs[i - 1][j])) {
-                // Zeile wurde hinzugefügt - INSERT
-                operations.add(0, new DiffOperation(DiffOpType.INSERT));
-                j--;
-            } else if (i > 0 && (j == 0 || lcs[i][j - 1] < lcs[i - 1][j])) {
-                // Zeile wurde gelöscht - DELETE
+            if (i > 0 && j > 0) {
+                String origLine = original[i - 1] != null ? original[i - 1] : "";
+                String modLine = modified[j - 1] != null ? modified[j - 1] : "";
+                if (origLine.equals(modLine)) {
+                    operations.add(0, new DiffOperation(DiffOpType.KEEP));
+                    i--;
+                    j--;
+                } else if (lcs[i - 1][j] > lcs[i][j - 1]) {
+                    operations.add(0, new DiffOperation(DiffOpType.DELETE));
+                    i--;
+                } else {
+                    operations.add(0, new DiffOperation(DiffOpType.INSERT));
+                    j--;
+                }
+            } else if (i > 0) {
                 operations.add(0, new DiffOperation(DiffOpType.DELETE));
                 i--;
+            } else {
+                operations.add(0, new DiffOperation(DiffOpType.INSERT));
+                j--;
+            }
+        }
+        
+        return operations;
+    }
+    
+    /**
+     * Einfacher line-by-line Diff als Fallback
+     */
+    private static List<DiffOperation> simpleLineByLineDiff(String[] original, String[] modified) {
+        List<DiffOperation> operations = new ArrayList<>();
+        
+        // Null-Checks für Arrays
+        if (original == null) original = new String[0];
+        if (modified == null) modified = new String[0];
+        
+        int i = 0, j = 0;
+        
+        while (i < original.length || j < modified.length) {
+            if (i >= original.length) {
+                // Nur noch neue Zeilen
+                operations.add(new DiffOperation(DiffOpType.INSERT));
+                j++;
+            } else if (j >= modified.length) {
+                // Nur noch alte Zeilen
+                operations.add(new DiffOperation(DiffOpType.DELETE));
+                i++;
+            } else {
+                // Null-Checks für einzelne Zeilen
+                String origLine = original[i] != null ? original[i] : "";
+                String modLine = modified[j] != null ? modified[j] : "";
+                
+                if (origLine.equals(modLine)) {
+                    // Gleiche Zeile
+                    operations.add(new DiffOperation(DiffOpType.KEEP));
+                    i++;
+                    j++;
+                } else {
+                    // Verschiedene Zeilen - versuche zu finden, wo die nächste Übereinstimmung ist
+                    boolean found = false;
+                    
+                    // Suche in den nächsten Zeilen nach einer Übereinstimmung
+                    for (int k = 1; k <= 3 && i + k < original.length; k++) {
+                        String nextOrigLine = original[i + k] != null ? original[i + k] : "";
+                        if (nextOrigLine.equals(modLine)) {
+                            // Füge k DELETE-Operationen hinzu
+                            for (int l = 0; l < k; l++) {
+                                operations.add(new DiffOperation(DiffOpType.DELETE));
+                            }
+                            i += k;
+                            found = true;
+                            break;
+                        }
+                    }
+                    
+                    if (!found) {
+                        for (int k = 1; k <= 3 && j + k < modified.length; k++) {
+                            String nextModLine = modified[j + k] != null ? modified[j + k] : "";
+                            if (origLine.equals(nextModLine)) {
+                                // Füge k INSERT-Operationen hinzu
+                                for (int l = 0; l < k; l++) {
+                                    operations.add(new DiffOperation(DiffOpType.INSERT));
+                                }
+                                j += k;
+                                found = true;
+                                break;
+                            }
+                        }
+                    }
+                    
+                    if (!found) {
+                        // Keine Übereinstimmung gefunden - behandle als DELETE + INSERT
+                        operations.add(new DiffOperation(DiffOpType.DELETE));
+                        operations.add(new DiffOperation(DiffOpType.INSERT));
+                        i++;
+                        j++;
+                    }
+                }
             }
         }
         
@@ -357,19 +429,22 @@ public class DiffProcessor {
      * Diff-Linie
      */
     public static class DiffLine {
-        private final int lineNumber;
+        private final int leftLineNumber;
+        private final int rightLineNumber;
         private final DiffType type;
         private final String originalText;
         private final String newText;
         
-        public DiffLine(int lineNumber, DiffType type, String originalText, String newText) {
-            this.lineNumber = lineNumber;
+        public DiffLine(int leftLineNumber, int rightLineNumber, DiffType type, String originalText, String newText) {
+            this.leftLineNumber = leftLineNumber;
+            this.rightLineNumber = rightLineNumber;
             this.type = type;
             this.originalText = originalText;
             this.newText = newText;
         }
         
-        public int getLineNumber() { return lineNumber; }
+        public int getLeftLineNumber() { return leftLineNumber; }
+        public int getRightLineNumber() { return rightLineNumber; }
         public DiffType getType() { return type; }
         public String getOriginalText() { return originalText; }
         public String getNewText() { return newText; }

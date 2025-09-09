@@ -1597,20 +1597,20 @@ if (caret != null) {
         });
         
         exportButton.setOnAction(e -> {
-            // Alle ausgewählten Formate sammeln
-            List<ExportFormat> selectedFormats = new ArrayList<>();
-            if (rtfCheck.isSelected()) selectedFormats.add(ExportFormat.RTF);
-            if (docxCheck.isSelected()) selectedFormats.add(ExportFormat.DOCX);
-            if (htmlCheck.isSelected()) selectedFormats.add(ExportFormat.HTML);
-            if (txtCheck.isSelected()) selectedFormats.add(ExportFormat.TXT);
-            if (mdCheck.isSelected()) selectedFormats.add(ExportFormat.MD);
-            if (pdfCheck.isSelected()) selectedFormats.add(ExportFormat.PDF);
-            
+                // Alle ausgewählten Formate sammeln
+                List<ExportFormat> selectedFormats = new ArrayList<>();
+                if (rtfCheck.isSelected()) selectedFormats.add(ExportFormat.RTF);
+                if (docxCheck.isSelected()) selectedFormats.add(ExportFormat.DOCX);
+                if (htmlCheck.isSelected()) selectedFormats.add(ExportFormat.HTML);
+                if (txtCheck.isSelected()) selectedFormats.add(ExportFormat.TXT);
+                if (mdCheck.isSelected()) selectedFormats.add(ExportFormat.MD);
+                if (pdfCheck.isSelected()) selectedFormats.add(ExportFormat.PDF);
+                
             ExportResult result = new ExportResult(
-                selectedFormats,
-                dirPathField.getText(),
-                filenameField.getText(),
-                createDirCheck.isSelected(),
+            selectedFormats,
+            dirPathField.getText(),
+            filenameField.getText(),
+            createDirCheck.isSelected(),
                 globalDocxOptions
             );
             
@@ -3011,13 +3011,8 @@ if (caret != null) {
     
     // Datei-Operationen
     private void saveFile() {
-
-        System.out.println("currentFile: " + (currentFile != null ? currentFile.getAbsolutePath() : "null"));
-        System.out.println("originalDocxFile: " + (originalDocxFile != null ? originalDocxFile.getAbsolutePath() : "null"));
-        
         // Bei neuen Dateien (currentFile = null) direkt Save As verwenden
         if (currentFile == null) {
-            System.out.println("Neue Datei - verwende Save As");
             saveFileAs();
             return;
         }
@@ -3027,16 +3022,12 @@ if (caret != null) {
         if ((originalDocxFile != null && target.equals(originalDocxFile)) || isDocxFile(target)) {
             // In ein Sidecar-File mit passender Erweiterung speichern (gleiches Verzeichnis, gleicher Basename)
             target = deriveSidecarFileForCurrentFormat();
-            System.out.println("Sidecar-Target: " + (target != null ? target.getAbsolutePath() : "null"));
         }
         if (target != null) {
-            System.out.println("Speichere in: " + target.getAbsolutePath());
             saveToFile(target);
             currentFile = target; // künftige Saves gehen wieder hierhin
             originalContent = codeArea.getText();
-            System.out.println("Speichern abgeschlossen");
         } else {
-            System.out.println("Fallback auf saveFileAs()");
             // Fallback auf Save As
             saveFileAs();
         }
@@ -3156,16 +3147,12 @@ if (caret != null) {
         try {
             String data = codeArea.getText();
             if (data == null) data = "";
-            System.out.println("Datenlänge: " + data.length());
-            
             // Nie löschen: leere Dateien bleiben bestehen
             Files.write(file.toPath(), data.getBytes(StandardCharsets.UTF_8));
-            System.out.println("Datei erfolgreich geschrieben");
             updateStatus("Datei gespeichert: " + file.getName());
             
             // Benachrichtige MainController über die Änderung (für Watcher)
             if (mainController != null) {
-                System.out.println("Benachrichtige MainController");
                 mainController.refreshDocxFiles();
                 
                 // WICHTIG: Markiere DOCX als behandelt nach dem Speichern
@@ -3173,11 +3160,8 @@ if (caret != null) {
                     mainController.updateDocxHashAfterAccept(originalDocxFile);
                     mainController.markDocxFileAsUnchanged(originalDocxFile);
                 }
-            } else {
-                System.out.println("MainController ist null!");
             }
         } catch (IOException e) {
-            System.out.println("Fehler beim Speichern: " + e.getMessage());
             updateStatusError("Fehler beim Speichern: " + e.getMessage());
         }
     }
@@ -3445,8 +3429,6 @@ if (caret != null) {
             final List<DiffBlock> finalBlocks = new ArrayList<>(blocks);
             
             // Erstelle synchronisierte Anzeige basierend auf Blöcken
-            int leftLineNumber = 1;
-            int rightLineNumber = 1;
             
             for (int blockIndex = 0; blockIndex < finalBlocks.size(); blockIndex++) {
                 DiffBlock block = finalBlocks.get(blockIndex);
@@ -3522,18 +3504,18 @@ if (caret != null) {
                             && lineIndex == block.getLines().size() - 1) {
                         String original = diffLine.getOriginalText();
                         if (original == null || original.trim().isEmpty()) {
-                                                    System.out.println("DEBUG: Überspringe leere Abschlusszeile vor grünem Block - Text: '" + original + "'");
+                                    
                         continue; // diese (leere) Abschlusszeile komplett überspringen
                         }
                     }
                     HBox leftLineBox = new HBox(5);
                     HBox rightLineBox = new HBox(5);
                     
-                    // Zeilennummern
-                    Label leftLineNum = new Label(String.format("%3d", leftLineNumber));
+                    // Zeilennummern aus DiffLine verwenden
+                    Label leftLineNum = new Label(String.format("%3d", diffLine.getLeftLineNumber()));
                     leftLineNum.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 10px; -fx-text-fill: #6c757d; -fx-min-width: 30px; -fx-alignment: center-right;");
                     
-                    Label rightLineNum = new Label(String.format("%3d", rightLineNumber));
+                    Label rightLineNum = new Label(String.format("%3d", diffLine.getRightLineNumber()));
                     rightLineNum.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 10px; -fx-text-fill: #6c757d; -fx-min-width: 30px; -fx-alignment: center-right;");
                     
                     // Linke Seite (Editor)
@@ -3889,7 +3871,7 @@ if (caret != null) {
                         (thirdLastText == null || thirdLastText.trim().isEmpty()) &&
                         (fourthLastText == null || fourthLastText.trim().isEmpty()) &&
                         (fifthLastText == null || fifthLastText.trim().isEmpty())) {
-                        System.out.println("DEBUG: Entferne redundante Leerzeile am Ende von DELETED Block - Text: '" + lastText + "'");
+        
                         lines.remove(lines.size() - 1);
                     } else {
                         break;
@@ -3917,7 +3899,7 @@ if (caret != null) {
                         (thirdText == null || thirdText.trim().isEmpty()) &&
                         (fourthText == null || fourthText.trim().isEmpty()) &&
                         (fifthText == null || fifthText.trim().isEmpty())) {
-                        System.out.println("DEBUG: Entferne redundante Leerzeile am Anfang von ADDED Block - Text: '" + firstText + "'");
+        
                         lines.remove(0);
                     } else {
                         break;
@@ -3937,7 +3919,7 @@ if (caret != null) {
             }
             
             if (allLinesEmpty && current.getLines().size() > 0) {
-                System.out.println("DEBUG: Entferne komplett leeren Block - Typ: " + current.getType());
+
                 blocks.remove(i);
                 i--;
             }
@@ -4040,6 +4022,7 @@ if (caret != null) {
         
         if (result.isPresent()) {
             if (result.get() == saveButton) {
+                try {
                 // Speichern basierend auf Auswahl
                 if (saveCurrentFormat.isSelected()) {
                     saveFile();
@@ -4048,6 +4031,10 @@ if (caret != null) {
                     saveToOriginalDocx();
                 }
                 return true; // Navigation fortsetzen
+                } catch (Exception e) {
+                    logger.error("Fehler beim Speichern: {}", e.getMessage());
+                    return false; // Navigation abbrechen bei Fehler
+                }
             } else if (result.get() == discardButton) {
                 // Verwerfen und Navigation fortsetzen
                 return true; // Navigation fortsetzen
@@ -4544,7 +4531,7 @@ if (caret != null) {
             }
             
             // Fenster-Eigenschaften laden und anwenden
-            loadWindowProperties();
+        loadWindowProperties();
         });
         
         // Close-Request-Handler für Speichern-Abfrage
@@ -4741,7 +4728,7 @@ if (caret != null) {
         macroPanel.getStyleClass().add("macro-panel");
         
         // CSS-Klassen verwenden statt inline Styles
-        macroPanel.setStyle(""); // CSS-Klassen verwenden
+            macroPanel.setStyle(""); // CSS-Klassen verwenden
         
         // Theme-Klassen für das Makro-Panel hinzufügen
         if (currentThemeIndex == 0) { // Weiß-Theme
@@ -4787,7 +4774,7 @@ if (caret != null) {
         
         Region spacer = new Region();
 spacer.setStyle("-fx-background-color: transparent;");
-HBox.setHgrow(spacer, Priority.ALWAYS);
+        HBox.setHgrow(spacer, Priority.ALWAYS);
         
         Button btnRunMacro = new Button("Makro ausführen");
         btnRunMacro.getStyleClass().addAll("button", "success");
@@ -5588,6 +5575,7 @@ HBox.setHgrow(spacer, Priority.ALWAYS);
                                 }
                             } else {
                                 // Wenn der Abstand zu groß ist, können wir die innere Schleife abbrechen
+                                // (da die Positionen sortiert sind, werden alle weiteren auch zu weit sein)
                                 break;
                             }
                         }
@@ -5603,27 +5591,27 @@ HBox.setHgrow(spacer, Priority.ALWAYS);
                 return a.word.compareTo(b.word);
             });
             
-            // Cache für Markierung aufbauen (nur spezifische Positionen die in Paaren vorkommen)
-            if (!wiederholungen.isEmpty()) {
-                String content = codeArea.getText();
-                
-                // Sammle nur die spezifischen Positionen, die in Paaren innerhalb des Abstands vorkommen
-                Set<Integer> positionsToMark = new HashSet<>();
-                for (Wortwiederholung w : wiederholungen) {
-                    if (!ignoreWords.contains(w.word)) {
-                        // Zusätzliche Validierung: Positionen müssen im gültigen Bereich liegen
-                        if (w.pos1 >= 0 && w.pos1 < content.length()) {
-                            positionsToMark.add(w.pos1);
-                        } else {
-                            logger.warn("Ungültige Position für Markierung (pos1): {} für Wort '{}', content.length={} ", w.pos1, w.word, content.length());
-                        }
-                        if (w.pos2 >= 0 && w.pos2 < content.length()) {
-                            positionsToMark.add(w.pos2);
-                        } else {
-                            logger.warn("Ungültige Position für Markierung (pos2): {} für Wort '{}', content.length={} ", w.pos2, w.word, content.length());
+                            // Cache für Markierung aufbauen (nur spezifische Positionen die in Paaren vorkommen)
+                if (!wiederholungen.isEmpty()) {
+                    String content = codeArea.getText();
+                    
+                    // Sammle nur die spezifischen Positionen, die in Paaren innerhalb des Abstands vorkommen
+                    Set<Integer> positionsToMark = new HashSet<>();
+                    for (Wortwiederholung w : wiederholungen) {
+                        if (!ignoreWords.contains(w.word)) {
+                            // Zusätzliche Validierung: Positionen müssen im gültigen Bereich liegen
+                            if (w.pos1 >= 0 && w.pos1 < content.length()) {
+                                positionsToMark.add(w.pos1);
+                            } else {
+                                logger.warn("Ungültige Position für Markierung (pos1): {} für Wort '{}', content.length={} ", w.pos1, w.word, content.length());
+                            }
+                            if (w.pos2 >= 0 && w.pos2 < content.length()) {
+                                positionsToMark.add(w.pos2);
+                            } else {
+                                logger.warn("Ungültige Position für Markierung (pos2): {} für Wort '{}', content.length={} ", w.pos2, w.word, content.length());
+                            }
                         }
                     }
-                }
                 
                 AtomicBoolean skippedMarking = new AtomicBoolean(false);
                 if (!positionsToMark.isEmpty()) {
@@ -5653,7 +5641,7 @@ HBox.setHgrow(spacer, Priority.ALWAYS);
                                         spansBuilder.add(Collections.emptyList(), start - currentPos);
                                     }
 
-                                    // Markierten Bereich hinzufügen
+                                    // Markierten Bereich hinzufügen - einfach abwechselnd gelb/blau
                                     String styleClass = (i % 2 == 0) ? "search-match-first" : "search-match-second";
                                     spansBuilder.add(Collections.singleton(styleClass), end - start);
                                     currentPos = end;
@@ -5864,26 +5852,20 @@ HBox.setHgrow(spacer, Priority.ALWAYS);
                 return distanceCompare != 0 ? distanceCompare : a.word.compareTo(b.word);
             });
             
-            // Apply marking
+            // Apply marking - ALLE Vorkommen der Wörter markieren, die in Wiederholungen gefunden wurden
             if (!wiederholungen.isEmpty()) {
                 String content2 = codeArea.getText();
                 
-                // Collect only specific positions to mark
-                Set<Integer> positionsToMark = new HashSet<>();
+                // Sammle ALLE Wörter, die in Wiederholungen gefunden wurden
+                Set<String> repeatedWords = new HashSet<>();
                 for (Wortwiederholung w : wiederholungen) {
-                    positionsToMark.add(w.pos1);
-                    positionsToMark.add(w.pos2);
+                    repeatedWords.add(w.word);
                 }
                 
-                if (!positionsToMark.isEmpty()) {
+                if (!repeatedWords.isEmpty()) {
                     // Create a pattern for all words to be marked
                     StringBuilder patternBuilder = new StringBuilder();
-                    Set<String> wordsToMark = new HashSet<>();
-                    for (Wortwiederholung w : wiederholungen) {
-                        wordsToMark.add(w.word);
-                    }
-                    
-                    for (String word : wordsToMark) {
+                    for (String word : repeatedWords) {
                         if (patternBuilder.length() > 0) patternBuilder.append("|");
                         patternBuilder.append(Pattern.quote(word));
                     }
@@ -5899,26 +5881,19 @@ HBox.setHgrow(spacer, Priority.ALWAYS);
                         int end = markMatcher.end();
                         String matchedWord = markMatcher.group(1).toLowerCase();
                         
-                        // Check if this position should be marked
-                        boolean shouldMark = false;
-                        for (Wortwiederholung w : wiederholungen) {
-                            if (w.word.equals(matchedWord) && 
-                                ((start == w.pos1) || (start == w.pos2))) {
-                                shouldMark = true;
-                                break;
-                            }
-                        }
-                        
-                        if (shouldMark) {
+                        // Markiere ALLE Vorkommen der Wörter, die in Wiederholungen gefunden wurden
+                        if (repeatedWords.contains(matchedWord)) {
                             // Count previous occurrences of the same word to determine style
                             int occurrenceCount = 0;
-                            for (Wortwiederholung w : wiederholungen) {
-                                if (w.word.equals(matchedWord) && w.pos1 < start) {
+                            Matcher countMatcher = markPattern.matcher(content2.substring(0, start));
+                            while (countMatcher.find()) {
+                                if (countMatcher.group(1).toLowerCase().equals(matchedWord)) {
                                     occurrenceCount++;
                                 }
                             }
                             
-                            String styleClass = occurrenceCount == 0 ? "search-match-first" : "search-match-second";
+                            // Erste Wiederholung eines Wortes = gelb, zweite = blau, dritte = gelb, etc.
+                            String styleClass = (occurrenceCount % 2 == 0) ? "search-match-first" : "search-match-second";
                             
                             spansBuilder.add(Collections.emptyList(), start - lastEnd);
                             spansBuilder.add(Collections.singleton(styleClass), end - start);
@@ -5935,11 +5910,13 @@ HBox.setHgrow(spacer, Priority.ALWAYS);
                     Platform.runLater(() -> {
                         codeArea.setStyleSpans(0, spansBuilder.create());
                         
-                        // Update cache for navigation
+                        // Update cache for navigation - ALLE Vorkommen der Wörter
                         List<Integer> allPositions = new ArrayList<>();
-                        for (Wortwiederholung w : wiederholungen) {
-                            allPositions.add(w.pos1);
-                            allPositions.add(w.pos2);
+                        Matcher navMatcher = markPattern.matcher(content2);
+                        while (navMatcher.find()) {
+                            if (repeatedWords.contains(navMatcher.group(1).toLowerCase())) {
+                                allPositions.add(navMatcher.start());
+                            }
                         }
                         Collections.sort(allPositions);
                         cachedMatchPositions = new ArrayList<>(allPositions);
@@ -7425,7 +7402,7 @@ HBox.setHgrow(spacer, Priority.ALWAYS);
         
         // WICHTIG: Mehrfache Anwendung der Styles für bessere Kompatibilität
         Platform.runLater(() -> {
-            codeArea.setStyle(cssStyle);
+        codeArea.setStyle(cssStyle);
             
             // Zusätzlich: Explizit die Textfarbe über die RichTextFX API setzen
             // Dies stellt sicher, dass die Textfärbung korrekt angewendet wird
@@ -7541,8 +7518,8 @@ HBox.setHgrow(spacer, Priority.ALWAYS);
             
             // Alle ComboBoxes
             applyThemeToNode(cmbSearchHistory, themeIndex);
-                    applyThemeToNode(cmbReplaceHistory, themeIndex);
-        applyThemeToNode(cmbFontSize, themeIndex);
+            applyThemeToNode(cmbReplaceHistory, themeIndex);
+            applyThemeToNode(cmbFontSize, themeIndex);
         // cmbLineSpacing entfernt
         applyThemeToNode(cmbParagraphSpacing, themeIndex);
 
@@ -7932,11 +7909,11 @@ HBox.setHgrow(spacer, Priority.ALWAYS);
         }
         
         try {
-            String content = codeArea.getText();
+        String content = codeArea.getText();
             if (content.isEmpty()) {
-                return;
-            }
-            
+            return;
+        }
+        
             // Sammle Markdown-Matches
             List<MarkdownMatch> markdownMatches = new ArrayList<>();
             
@@ -8648,8 +8625,58 @@ HBox.setHgrow(spacer, Priority.ALWAYS);
             
             // Prüfe ob DOCX geändert wurde - aber zeige nur Info, kein Zwangsdiff
             if (DiffProcessor.hasDocxChanged(file, sidecar)) {
-                logger.info("DOCX-Datei wurde extern geändert: {} - aber kein Zwangsdiff", file.getName());
-                // Optional: Zeige Info-Dialog ohne Zwangsdiff (später implementiert)
+                logger.info("DOCX-Datei wurde extern geändert: {} - zeige Dialog", file.getName());
+                
+                // WICHTIG: Dialog für externe Änderungen anzeigen (auch beim Weiterblättern)
+                // Wir müssen den Dialog synchron machen, damit wir das Ergebnis verarbeiten können
+                try {
+                    // Dialog über MainController anzeigen und Entscheidung verarbeiten
+                    if (mainController != null) {
+                        // File zu DocxFile konvertieren
+                        DocxFile docxFile = new DocxFile(file);
+                        MainController.DocxChangeDecision decision = mainController.showDocxChangedDialogInMain(docxFile);
+                        
+                        logger.info("Benutzer-Entscheidung für {}: {}", file.getName(), decision);
+                        
+                        switch (decision) {
+                            case DIFF:
+                                logger.info("Zeige Diff für {}", file.getName());
+                                // Diff-Fenster über MainController öffnen
+                                if (mainController != null) {
+                                    File mdFile = deriveSidecarFileFor(file, outputFormat);
+                                    mainController.showDetailedDiffDialog(docxFile, mdFile, null, outputFormat);
+                                }
+                                // Bei DIFF warten - kein weiterer Ladeprozess
+                                return;
+                            case DOCX:
+                                logger.info("Übernehme DOCX-Inhalt für {}", file.getName());
+                                // DOCX-Inhalt laden und anzeigen
+                                String docxContent = docxProcessor.processDocxFileContent(file, chapterNumber, outputFormat);
+                                setText(docxContent);
+                                setOriginalDocxFile(file);
+                                setCurrentFile(deriveSidecarFileForCurrentFormat());
+                                setWindowTitle("📄 " + file.getName());
+                                originalContent = docxContent;
+                                updateNavigationButtons();
+                                // Bei DOCX-Übernahme normalen Ladeprozess fortsetzen
+                                logger.info("Setze normalen Ladeprozess fort für {}", file.getName());
+                                break;
+                            case IGNORE:
+                                logger.info("Ignoriere Änderungen für {}", file.getName());
+                                // Bestehenden Inhalt beibehalten - normalen Ladeprozess fortsetzen
+                                logger.info("Setze normalen Ladeprozess fort für {}", file.getName());
+                                break;
+                            case CANCEL:
+                                logger.info("Abbruch für {}", file.getName());
+                                // Bei CANCEL warten
+                                return;
+                        }
+                    }
+                } catch (Exception e) {
+                    logger.error("Fehler beim Anzeigen des DOCX-Änderungs-Dialogs", e);
+                    // Bei Fehler normalen Ladeprozess fortsetzen
+                    logger.info("Setze normalen Ladeprozess fort nach Fehler für {}", file.getName());
+                }
             }
             
             String content;

@@ -102,6 +102,10 @@ public class StageManager {
         // Scene mit Titelleiste setzen
         stage.setSceneWithTitleBar(scene);
         
+        // WICHTIG: Theme NACH dem Setzen der Scene anwenden!
+        int currentTheme = preferences.getInt("main_window_theme", 0);
+        stage.setFullTheme(currentTheme);
+        
         return stage;
     }
     
