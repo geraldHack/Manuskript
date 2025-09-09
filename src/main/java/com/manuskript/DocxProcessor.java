@@ -811,14 +811,10 @@ public class DocxProcessor {
     private static String extractTextFromParagraph(P paragraph) {
         StringBuilder text = new StringBuilder();
         
-        logger.debug("Verarbeite Absatz mit {} Inhalten", paragraph.getContent().size());
-        
         for (Object obj : paragraph.getContent()) {
-            logger.debug("Absatz-Objekt: {}", obj.getClass().getSimpleName());
             
             if (obj instanceof R) {
                 R run = (R) obj;
-                logger.debug("Run mit {} Inhalten", run.getContent().size());
                 
                 // Prüfe Formatierung des Runs
                 boolean isBold = false;
@@ -826,17 +822,29 @@ public class DocxProcessor {
                 
                 if (run.getRPr() != null) {
                     RPr rpr = run.getRPr();
-                    if (rpr.getB() != null && rpr.getB().isVal()) {
-                        isBold = true;
-                        logger.debug("Fett-Formatierung erkannt");
+                    
+                    // Bold-Erkennung - verschiedene Ansätze
+                    if (rpr.getB() != null) {
+                        // Bei BooleanDefaultTrue: Objekt existiert = Bold aktiv
+                        if (rpr.getB().getClass().getSimpleName().equals("BooleanDefaultTrue")) {
+                            isBold = true;
+                        } else if (rpr.getB().isVal()) {
+                            isBold = true;
+                        }
                     }
-                    if (rpr.getI() != null && rpr.getI().isVal()) {
-                        isItalic = true;
-                        logger.debug("Kursiv-Formatierung erkannt");
+                    
+                    // Italic-Erkennung - verschiedene Ansätze
+                    if (rpr.getI() != null) {
+                        // Bei BooleanDefaultTrue: Objekt existiert = Italic aktiv
+                        if (rpr.getI().getClass().getSimpleName().equals("BooleanDefaultTrue")) {
+                            isItalic = true;
+                        } else if (rpr.getI().isVal()) {
+                            isItalic = true;
+                        }
                     }
                 }
                 
-                // Markdown-Formatierung hinzufügen
+                // Markdown-Formatierung VOR dem Text hinzufügen
                 if (isBold && isItalic) {
                     text.append("***");
                 } else if (isBold) {
@@ -846,35 +854,29 @@ public class DocxProcessor {
                 }
                 
                 for (Object runObj : run.getContent()) {
-                    logger.debug("Run-Objekt: {}", runObj.getClass().getSimpleName());
-                    
                     if (runObj instanceof org.docx4j.wml.Text) {
                         org.docx4j.wml.Text t = (org.docx4j.wml.Text) runObj;
                         String value = t.getValue();
                         text.append(value);
-                        logger.debug("Extrahierter Text: '{}'", value);
                     } else if (runObj.getClass().getSimpleName().equals("JAXBElement")) {
                         try {
                             Object value = runObj.getClass().getMethod("getValue").invoke(runObj);
-                            logger.debug("JAXBElement-Wert: {}", value.getClass().getSimpleName());
                             
                             if (value instanceof org.docx4j.wml.Text) {
                                 org.docx4j.wml.Text t = (org.docx4j.wml.Text) value;
                                 String textValue = t.getValue();
                                 text.append(textValue);
-                                logger.debug("Extrahierter Text aus JAXBElement: '{}'", textValue);
                             }
                         } catch (Exception e) {
-                            logger.debug("Fehler beim Extrahieren aus JAXBElement: {}", e.getMessage());
+                            // Fehler beim Extrahieren ignorieren
                         }
                     } else if (runObj instanceof org.docx4j.wml.Br) {
                         // Zeilenumbruch
                         text.append("\n");
-                        logger.debug("Zeilenumbruch hinzugefügt");
                     }
                 }
                 
-                // Markdown-Formatierung schließen
+                // Markdown-Formatierung NACH dem Text schließen
                 if (isBold && isItalic) {
                     text.append("***");
                 } else if (isBold) {
@@ -886,7 +888,6 @@ public class DocxProcessor {
         }
         
         String result = text.toString();
-        logger.debug("Absatz-Inhalt: '{}'", result);
         return result;
     }
 } 

@@ -1,6 +1,15 @@
 MACRO:Text-Bereinigung
 DESC:Professionelle Textbereinigung mit 12 Schritten
 STEP:1
+SEARCH:”
+REPLACE:"
+REGEX:0
+CASE:0
+WORD:0
+ENABLED:1
+STEPDESC:Falsches Deutschen Anführungszeichen oben
+REPLACECOUNT:0
+STEP:2
 SEARCH:[ ]{2,}
 REPLACE:
 REGEX:1
@@ -9,16 +18,16 @@ WORD:0
 ENABLED:1
 STEPDESC:Mehrfache Leerzeichen reduzieren
 REPLACECOUNT:0
-STEP:2
+STEP:3
 SEARCH:\n{2,}
 REPLACE:\n
 REGEX:1
 CASE:0
 WORD:0
-ENABLED:1
+ENABLED:0
 STEPDESC:Mehrfache Leerzeilen reduzieren
 REPLACECOUNT:0
-STEP:3
+STEP:4
 SEARCH:„
 REPLACE:"
 REGEX:0
@@ -27,7 +36,7 @@ WORD:0
 ENABLED:1
 STEPDESC:Gerade Anführungszeichen öffnen
 REPLACECOUNT:0
-STEP:4
+STEP:5
 SEARCH:“
 REPLACE:"
 REGEX:0
@@ -36,7 +45,7 @@ WORD:0
 ENABLED:1
 STEPDESC:Gerade Anführungszeichen schließen
 REPLACECOUNT:0
-STEP:5
+STEP:6
 SEARCH:,"
 REPLACE:",
 REGEX:0
@@ -45,7 +54,7 @@ WORD:0
 ENABLED:1
 STEPDESC:Komma vor Anführungszeichen I
 REPLACECOUNT:0
-STEP:6
+STEP:7
 SEARCH:'(.*?)'
 REPLACE:›$1‹
 REGEX:1
@@ -54,7 +63,7 @@ WORD:0
 ENABLED:1
 STEPDESC:Einfache Anführungszeichen Französisch
 REPLACECOUNT:0
-STEP:7
+STEP:8
 SEARCH:"(.*?)"
 REPLACE:»$1«
 REGEX:1
@@ -63,7 +72,7 @@ WORD:0
 ENABLED:1
 STEPDESC:Anführungszeichen Französisch
 REPLACECOUNT:0
-STEP:8
+STEP:9
 SEARCH:...
 REPLACE:…
 REGEX:0
@@ -72,7 +81,7 @@ WORD:0
 ENABLED:1
 STEPDESC:Auslassungszeichen
 REPLACECOUNT:0
-STEP:9
+STEP:10
 SEARCH:([A-Za-zÄÖÜäöüß])…
 REPLACE:$1 ...
 REGEX:1
@@ -81,7 +90,7 @@ WORD:0
 ENABLED:1
 STEPDESC:Buchstabe direkt an Auslassungszeichen
 REPLACECOUNT:0
-STEP:10
+STEP:11
 SEARCH:(?<=…)(?=\p{L})
 REPLACE:
 REGEX:1
@@ -90,7 +99,7 @@ WORD:0
 ENABLED:1
 STEPDESC:Buchstabe direkt nach Auslassungszeichen
 REPLACECOUNT:0
-STEP:11
+STEP:12
 SEARCH:--
 REPLACE:—
 REGEX:0
@@ -99,7 +108,7 @@ WORD:0
 ENABLED:1
 STEPDESC:Gedankenstrich
 REPLACECOUNT:0
-STEP:12
+STEP:13
 SEARCH:,"«
 REPLACE:«,
 REGEX:0
@@ -108,7 +117,7 @@ WORD:0
 ENABLED:1
 STEPDESC:Komma vor Anführungszeichen
 REPLACECOUNT:0
-STEP:13
+STEP:14
 SEARCH:'(.*?)'
 REPLACE:›$1‹
 REGEX:1

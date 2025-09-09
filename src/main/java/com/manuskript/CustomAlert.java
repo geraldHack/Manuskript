@@ -18,6 +18,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import javafx.stage.Modality;
 import javafx.stage.Window;
+import javafx.event.EventHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -85,8 +86,9 @@ public class CustomAlert {
         // Eigene Scene mit Titelzeile erstellen
         setupCustomScene();
         
-        // Theme anwenden (Standard: Theme 0)
-        applyTheme(0);
+        // Theme anwenden (aktuelles Theme verwenden, nicht immer Theme 0)
+        int currentTheme = ThemeManager.getCurrentThemeIndex();
+        applyTheme(currentTheme);
     }
     
     /**
@@ -184,7 +186,13 @@ public class CustomAlert {
             if (button != null) {
                 button.setOnAction(e -> {
                     result = buttonType;
-                    close();
+                    try {
+                        if (customStage != null && customStage.isShowing()) {
+                            customStage.close();
+                        }
+                    } catch (Exception ex) {
+                        // Fehler beim Schließen ignorieren
+                    }
                 });
             }
         }
@@ -230,77 +238,99 @@ public class CustomAlert {
     private void setupResizeHandles(Scene scene) {
         final int RESIZE_BORDER = 8;
         
-        scene.addEventFilter(MouseEvent.MOUSE_MOVED, event -> {
-            if (isMaximized) {
-                scene.setCursor(javafx.scene.Cursor.DEFAULT);
-                return;
+        mouseMovedHandler = event -> {
+            try {
+                if (isMaximized || scene == null) {
+                    scene.setCursor(javafx.scene.Cursor.DEFAULT);
+                    return;
+                }
+                
+                // Prüfe, ob wir uns in der Titelzeile befinden
+                if (titleBar != null && event.getY() < titleBar.getHeight()) {
+                    scene.setCursor(javafx.scene.Cursor.DEFAULT);
+                    return;
+                }
+                
+                double x = event.getSceneX();
+                double y = event.getSceneY();
+                double width = scene.getWidth();
+                double height = scene.getHeight();
+                
+                if (x < RESIZE_BORDER && y < RESIZE_BORDER) {
+                    scene.setCursor(javafx.scene.Cursor.NW_RESIZE);
+                } else if (x > width - RESIZE_BORDER && y < RESIZE_BORDER) {
+                    scene.setCursor(javafx.scene.Cursor.NE_RESIZE);
+                } else if (x < RESIZE_BORDER && y > height - RESIZE_BORDER) {
+                    scene.setCursor(javafx.scene.Cursor.SW_RESIZE);
+                } else if (x > width - RESIZE_BORDER && y > height - RESIZE_BORDER) {
+                    scene.setCursor(javafx.scene.Cursor.SE_RESIZE);
+                } else if (x < RESIZE_BORDER) {
+                    scene.setCursor(javafx.scene.Cursor.W_RESIZE);
+                } else if (x > width - RESIZE_BORDER) {
+                    scene.setCursor(javafx.scene.Cursor.E_RESIZE);
+                } else if (y < RESIZE_BORDER) {
+                    scene.setCursor(javafx.scene.Cursor.N_RESIZE);
+                } else if (y > height - RESIZE_BORDER) {
+                    scene.setCursor(javafx.scene.Cursor.S_RESIZE);
+                } else {
+                    scene.setCursor(javafx.scene.Cursor.DEFAULT);
+                }
+            } catch (Exception e) {
+                // Fehler beim Resize-Handling ignorieren
             }
-            
-            // Prüfe, ob wir uns in der Titelzeile befinden
-            if (event.getY() < titleBar.getHeight()) {
-                scene.setCursor(javafx.scene.Cursor.DEFAULT);
-                return;
-            }
-            
-            double x = event.getSceneX();
-            double y = event.getSceneY();
-            double width = scene.getWidth();
-            double height = scene.getHeight();
-            
-            if (x < RESIZE_BORDER && y < RESIZE_BORDER) {
-                scene.setCursor(javafx.scene.Cursor.NW_RESIZE);
-            } else if (x > width - RESIZE_BORDER && y < RESIZE_BORDER) {
-                scene.setCursor(javafx.scene.Cursor.NE_RESIZE);
-            } else if (x < RESIZE_BORDER && y > height - RESIZE_BORDER) {
-                scene.setCursor(javafx.scene.Cursor.SW_RESIZE);
-            } else if (x > width - RESIZE_BORDER && y > height - RESIZE_BORDER) {
-                scene.setCursor(javafx.scene.Cursor.SE_RESIZE);
-            } else if (x < RESIZE_BORDER) {
-                scene.setCursor(javafx.scene.Cursor.W_RESIZE);
-            } else if (x > width - RESIZE_BORDER) {
-                scene.setCursor(javafx.scene.Cursor.E_RESIZE);
-            } else if (y < RESIZE_BORDER) {
-                scene.setCursor(javafx.scene.Cursor.N_RESIZE);
-            } else if (y > height - RESIZE_BORDER) {
-                scene.setCursor(javafx.scene.Cursor.S_RESIZE);
-            } else {
-                scene.setCursor(javafx.scene.Cursor.DEFAULT);
-            }
-        });
+        };
+        scene.addEventFilter(MouseEvent.MOUSE_MOVED, mouseMovedHandler);
         
-        scene.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
-            if (isMaximized) return;
-            
-            if (event.getY() < titleBar.getHeight()) {
-                return;
+        mousePressedHandler = event -> {
+            try {
+                if (isMaximized || scene == null) return;
+                
+                if (titleBar != null && event.getY() < titleBar.getHeight()) {
+                    return;
+                }
+                
+                double x = event.getSceneX();
+                double y = event.getSceneY();
+                double width = scene.getWidth();
+                double height = scene.getHeight();
+                
+                if (x < RESIZE_BORDER || x > width - RESIZE_BORDER || 
+                    y < RESIZE_BORDER || y > height - RESIZE_BORDER) {
+                    startResize(event, x, y, width, height);
+                    event.consume();
+                }
+            } catch (Exception e) {
+                // Fehler beim Resize-Handling ignorieren
             }
-            
-            double x = event.getSceneX();
-            double y = event.getSceneY();
-            double width = scene.getWidth();
-            double height = scene.getHeight();
-            
-            if (x < RESIZE_BORDER || x > width - RESIZE_BORDER || 
-                y < RESIZE_BORDER || y > height - RESIZE_BORDER) {
-                startResize(event, x, y, width, height);
-                event.consume();
-            }
-        });
+        };
+        scene.addEventFilter(MouseEvent.MOUSE_PRESSED, mousePressedHandler);
         
-        scene.addEventFilter(MouseEvent.MOUSE_DRAGGED, event -> {
-            if (isResizing) {
-                performResize(event);
-                event.consume();
+        mouseDraggedHandler = event -> {
+            try {
+                if (isResizing) {
+                    performResize(event);
+                    event.consume();
+                }
+            } catch (Exception e) {
+                // Fehler beim Resize-Handling ignorieren
             }
-        });
+        };
+        scene.addEventFilter(MouseEvent.MOUSE_DRAGGED, mouseDraggedHandler);
         
-        scene.addEventFilter(MouseEvent.MOUSE_RELEASED, event -> {
-            if (isResizing) {
-                isResizing = false;
-                scene.setCursor(javafx.scene.Cursor.DEFAULT);
-                event.consume();
+        mouseReleasedHandler = event -> {
+            try {
+                if (isResizing) {
+                    isResizing = false;
+                    if (scene != null) {
+                        scene.setCursor(javafx.scene.Cursor.DEFAULT);
+                    }
+                    event.consume();
+                }
+            } catch (Exception e) {
+                // Fehler beim Resize-Handling ignorieren
             }
-        });
+        };
+        scene.addEventFilter(MouseEvent.MOUSE_RELEASED, mouseReleasedHandler);
     }
     
     private double resizeStartX, resizeStartY, resizeStartWidth, resizeStartHeight;
@@ -309,6 +339,12 @@ public class CustomAlert {
     private int currentThemeIndex = 0;
     private String currentBackgroundColor = "";
     private String currentTextColor = "";
+    
+    // Event-Handler für sauberes Entfernen
+    private EventHandler<MouseEvent> mouseMovedHandler;
+    private EventHandler<MouseEvent> mousePressedHandler;
+    private EventHandler<MouseEvent> mouseDraggedHandler;
+    private EventHandler<MouseEvent> mouseReleasedHandler;
 
     /**
      * Startet das Resizing
@@ -672,36 +708,71 @@ public class CustomAlert {
      * Zeigt den Alert an und wartet auf Benutzerinteraktion
      */
     public Optional<ButtonType> showAndWait() {
-        // Titel aktualisieren
-        if (originalAlert.getTitle() != null) {
-            titleLabel.setText(originalAlert.getTitle());
+        try {
+            // Prüfe ob customStage noch existiert
+            if (customStage == null) {
+                return Optional.empty();
+            }
+            
+            // Titel aktualisieren
+            if (originalAlert.getTitle() != null && titleLabel != null) {
+                titleLabel.setText(originalAlert.getTitle());
+            }
+            
+            // CustomStage anzeigen
+            customStage.showAndWait();
+            
+            // Ergebnis zurückgeben
+            return Optional.ofNullable(result);
+        } catch (Exception e) {
+            return Optional.empty();
         }
-        
-        // CustomStage anzeigen
-        customStage.showAndWait();
-        
-        // Ergebnis zurückgeben
-        return Optional.ofNullable(result);
     }
     
     /**
      * Zeigt den Alert an
      */
     public void show() {
-        // Titel aktualisieren
-        if (originalAlert.getTitle() != null) {
-            titleLabel.setText(originalAlert.getTitle());
+        try {
+            // Titel aktualisieren
+            if (originalAlert.getTitle() != null) {
+                titleLabel.setText(originalAlert.getTitle());
+            }
+            
+            // CustomStage anzeigen
+            customStage.show();
+        } catch (Exception e) {
+            // Fehler ignorieren
         }
-        
-        // CustomStage anzeigen
-        customStage.show();
     }
     
     /**
      * Schließt den Alert
      */
     public void close() {
-        customStage.close();
+        try {
+            if (customStage != null && customStage.isShowing()) {
+                // Event-Filter entfernen, um NullPointerException zu vermeiden
+                Scene scene = customStage.getScene();
+                if (scene != null) {
+                    if (mouseMovedHandler != null) {
+                        scene.removeEventFilter(MouseEvent.MOUSE_MOVED, mouseMovedHandler);
+                    }
+                    if (mousePressedHandler != null) {
+                        scene.removeEventFilter(MouseEvent.MOUSE_PRESSED, mousePressedHandler);
+                    }
+                    if (mouseDraggedHandler != null) {
+                        scene.removeEventFilter(MouseEvent.MOUSE_DRAGGED, mouseDraggedHandler);
+                    }
+                    if (mouseReleasedHandler != null) {
+                        scene.removeEventFilter(MouseEvent.MOUSE_RELEASED, mouseReleasedHandler);
+                    }
+                }
+                customStage.close();
+            }
+        } catch (Exception e) {
+            // Ignoriere Fehler beim Schließen
+        }
     }
     
     /**

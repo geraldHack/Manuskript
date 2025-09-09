@@ -13,8 +13,12 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
+import org.fxmisc.richtext.model.StyleSpans;
+import org.fxmisc.richtext.model.StyleSpansBuilder;
 
 import java.io.File;
+import java.util.Collection;
+import java.util.Collections;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -40,8 +44,14 @@ public class PluginEditorWindow {
     private Plugin currentPlugin;
     private String currentFilePath;
     private boolean isModified = false;
+    private int currentThemeIndex = 0;
     
     public PluginEditorWindow() {
+        createUI();
+    }
+    
+    public PluginEditorWindow(int themeIndex) {
+        this.currentThemeIndex = themeIndex;
         createUI();
     }
     
@@ -56,7 +66,7 @@ public class PluginEditorWindow {
         // Haupt-Container
         BorderPane mainContainer = new BorderPane();
         mainContainer.setPadding(new Insets(10));
-        mainContainer.getStyleClass().add("plugin-editor-window");
+        mainContainer.getStyleClass().add("plugin-editor-container");
         
         // Obere Toolbar
         ToolBar toolbar = createToolbar();
@@ -72,28 +82,13 @@ public class PluginEditorWindow {
         
         Scene scene = new Scene(mainContainer);
         
-        // CSS-Styles laden - KORREKT STYLEN!
+        // CSS-Styles laden
         try {
             String cssPath = ResourceManager.getCssResource("css/manuskript.css");
             if (cssPath != null) {
                 scene.getStylesheets().add(cssPath);
                 logger.info("CSS-Styles geladen: " + cssPath);
             }
-            
-            // Theme aus main_window_theme laden (NICHT editor_theme!)
-            int mainTheme = ResourceManager.getIntParameter("main_window_theme", 0);
-            
-            // Theme-Klassen setzen
-            if (mainTheme == 0) scene.getRoot().getStyleClass().add("weiss-theme");
-            else if (mainTheme == 2) scene.getRoot().getStyleClass().add("pastell-theme");
-            else if (mainTheme == 3) scene.getRoot().getStyleClass().addAll("theme-dark", "blau-theme");
-            else if (mainTheme == 4) scene.getRoot().getStyleClass().addAll("theme-dark", "gruen-theme");
-            else if (mainTheme == 5) scene.getRoot().getStyleClass().addAll("theme-dark", "lila-theme");
-            else scene.getRoot().getStyleClass().add("theme-dark");
-
-            // Titelleiste passend zum Theme einfärben
-            stage.setTitleBarTheme(mainTheme);
-            
         } catch (Exception e) {
             logger.severe("KRITISCHER FEHLER beim Laden der CSS-Styles: " + e.getMessage());
             e.printStackTrace();
@@ -101,14 +96,141 @@ public class PluginEditorWindow {
         
         stage.setSceneWithTitleBar(scene);
         
-        // WICHTIG: Theme wird bereits von StageManager.createStage() gesetzt!
-        // Keine zusätzlichen Theme-Aufrufe nötig!
+        // WICHTIG: Keine manuellen Theme-Aufrufe - der zentrale ThemeManager macht das!
+        
+        // DEBUG: Prüfen, ob Theme-Klassen angewendet wurden
+        if (stage.getScene() != null && stage.getScene().getRoot() != null) {
+            Node root = stage.getScene().getRoot();
+            logger.info("Plugin Editor Root StyleClasses: " + root.getStyleClass());
+            logger.info("Plugin Editor Root Style: " + root.getStyle());
+            
+            // DEBUG: Prüfen, ob Theme-Klassen auf der Stage sind
+            logger.info("Plugin Editor Stage StyleClasses: " + stage.getScene().getRoot().getStyleClass());
+            
+                    // DEBUG: Prüfen, ob das Theme gesetzt wurde
+        logger.info("Plugin Editor Current Theme: " + currentThemeIndex);
+        
+        // Theme-Klassen anwenden
+        applyThemeToRoot(mainContainer);
+        }
         
 
         
         // Event-Handler
         setupEventHandlers();
     }
+    
+    /**
+     * Wendet das Theme auf den Root-Container an
+     */
+    private void applyThemeToRoot(BorderPane mainContainer) {
+        // Theme-Klassen am Root-Container setzen
+        if (currentThemeIndex == 0) {
+            mainContainer.getStyleClass().add("weiss-theme");
+        } else if (currentThemeIndex == 2) {
+            mainContainer.getStyleClass().add("pastell-theme");
+        } else if (currentThemeIndex == 3) {
+            mainContainer.getStyleClass().addAll("theme-dark", "blau-theme");
+        } else if (currentThemeIndex == 4) {
+            mainContainer.getStyleClass().addAll("theme-dark", "gruen-theme");
+        } else if (currentThemeIndex == 5) {
+            mainContainer.getStyleClass().addAll("theme-dark", "lila-theme");
+        }
+        
+        // CodeArea mit Theme stylen
+        if (promptArea != null) {
+            applyThemeToCodeArea(promptArea);
+        }
+        
+        logger.info("Theme-Klassen angewendet: " + mainContainer.getStyleClass());
+    }
+    
+    /**
+     * Wendet das Theme auf die CodeArea an
+     */
+    private void applyThemeToCodeArea(CodeArea codeArea) {
+        // RichTextFX CodeArea programmatisch stylen
+        String backgroundColor, textColor;
+        
+        switch (currentThemeIndex) {
+            case 0: // Weiß
+                backgroundColor = "#ffffff";
+                textColor = "#000000";
+                break;
+            case 2: // Pastell
+                backgroundColor = "#f3e5f5";
+                textColor = "#000000";
+                break;
+            case 3: // Blau
+                backgroundColor = "#1e3a8a";
+                textColor = "#ffffff";
+                break;
+            case 4: // Grün
+                backgroundColor = "#064e3b";
+                textColor = "#ffffff";
+                break;
+            case 5: // Lila
+                backgroundColor = "#581c87";
+                textColor = "#ffffff";
+                break;
+            default:
+                backgroundColor = "#ffffff";
+                textColor = "#000000";
+                break;
+        }
+        
+        // WICHTIG: Erst alle bestehenden Styles entfernen, dann neue setzen
+        codeArea.setStyle("");
+        
+        // RichTextFX-spezifische Styling-Methode verwenden
+        // setStyle() mit -rtfx-background-color für RichTextFX
+        String rtfxStyle = String.format(
+            "-fx-font-family: 'Consolas', 'Monaco', monospace;" +
+            "-fx-font-size: 12px;" +
+            "-rtfx-background-color: %s;" +
+            "-fx-text-fill: %s !important;" +
+            "-fx-caret-color: %s !important;",
+            backgroundColor, textColor, textColor
+        );
+        
+        // WICHTIG: RichTextFX CodeArea mit CSS-Regeln stylen
+        Platform.runLater(() -> {
+            // Erst normale Styles setzen
+            codeArea.setStyle(rtfxStyle);
+            
+            // Dann CSS-Regeln für die CodeArea hinzufügen
+            String cssRules = String.format(
+                ".code-area { -fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px; }" +
+                ".code-area .text { -fx-fill: %s !important; }" +
+                ".code-area .content { -fx-fill: %s !important; }" +
+                ".code-area .paragraph-text { -fx-fill: %s !important; }",
+                textColor, textColor, textColor
+            );
+            
+            // CSS-Regeln zur Scene hinzufügen
+            if (stage.getScene() != null) {
+                stage.getScene().getStylesheets().add("data:text/css," + cssRules);
+            }
+        });
+        
+        // CSS-Klassen für Theme-spezifische Styling
+        codeArea.getStyleClass().removeAll("theme-dark", "theme-light", "weiss-theme", "pastell-theme", "blau-theme", "gruen-theme", "lila-theme");
+        if (currentThemeIndex == 0) { // Weiß-Theme
+            codeArea.getStyleClass().add("weiss-theme");
+        } else if (currentThemeIndex == 2) { // Pastell-Theme
+            codeArea.getStyleClass().add("pastell-theme");
+        } else if (currentThemeIndex == 3) { // Blau-Theme
+            codeArea.getStyleClass().addAll("theme-dark", "blau-theme");
+        } else if (currentThemeIndex == 4) { // Grün-Theme
+            codeArea.getStyleClass().addAll("theme-dark", "gruen-theme");
+        } else if (currentThemeIndex == 5) { // Lila-Theme
+            codeArea.getStyleClass().addAll("theme-dark", "lila-theme");
+        }
+        
+        logger.info("CodeArea Theme programmatisch angewendet: " + currentThemeIndex + " -> BG: " + backgroundColor + ", Text: " + textColor);
+    }
+    
+
     
 
     
@@ -117,27 +239,26 @@ public class PluginEditorWindow {
      */
     private ToolBar createToolbar() {
         ToolBar toolbar = new ToolBar();
-        toolbar.getStyleClass().add("plugin-editor-toolbar");
         
         Button newButton = new Button("🆕 Neu");
         newButton.setOnAction(e -> newPlugin());
         newButton.setTooltip(new Tooltip("Neues Plugin erstellen"));
-        newButton.getStyleClass().add("plugin-editor-button");
+        newButton.getStyleClass().add("plugin-button");
         
         Button saveButton = new Button("💾 Speichern");
         saveButton.setOnAction(e -> savePlugin());
         saveButton.setTooltip(new Tooltip("Plugin speichern"));
-        saveButton.getStyleClass().add("plugin-editor-button");
+        saveButton.getStyleClass().add("plugin-button");
         
         Button openButton = new Button("📂 Öffnen");
         openButton.setOnAction(e -> openPlugin());
         openButton.setTooltip(new Tooltip("Bestehendes Plugin laden"));
-        openButton.getStyleClass().add("plugin-editor-button");
+        openButton.getStyleClass().add("plugin-button");
         
         Button saveAsButton = new Button("💾 Speichern als...");
         saveAsButton.setOnAction(e -> savePluginAs());
         saveAsButton.setTooltip(new Tooltip("Plugin unter neuem Namen speichern"));
-        saveAsButton.getStyleClass().add("plugin-editor-button");
+        saveAsButton.getStyleClass().add("plugin-button");
         
         Separator separator = new Separator();
         separator.setOrientation(javafx.geometry.Orientation.VERTICAL);
@@ -171,10 +292,8 @@ public class PluginEditorWindow {
      */
     private VBox createMetadataPanel() {
         VBox panel = new VBox(10);
-        panel.getStyleClass().add("plugin-editor-metadata-panel");
         
         Label titleLabel = new Label("Plugin-Metadaten");
-        titleLabel.getStyleClass().add("plugin-editor-title");
         
         // Name
         Label nameLabel = new Label("Name:");
@@ -230,10 +349,8 @@ public class PluginEditorWindow {
      */
     private VBox createPromptPanel() {
         VBox panel = new VBox(5);
-        panel.getStyleClass().add("plugin-editor-prompt-panel");
         
         Label promptLabel = new Label("Prompt:");
-        promptLabel.getStyleClass().add("plugin-editor-prompt-label");
         
         // CodeArea für den Prompt - OHNE SYNTAX-HIGHLIGHTING!
         promptArea = new CodeArea();
@@ -267,10 +384,8 @@ public class PluginEditorWindow {
         HBox statusBar = new HBox(10);
         statusBar.setPadding(new Insets(5, 10, 5, 10));
         statusBar.setAlignment(Pos.CENTER_LEFT);
-        statusBar.getStyleClass().add("plugin-editor-statusbar");
         
         statusLabel = new Label("Bereit");
-        statusLabel.getStyleClass().add("plugin-editor-status-label");
         
         statusBar.getChildren().add(statusLabel);
         
@@ -309,7 +424,7 @@ public class PluginEditorWindow {
      */
     private void newPlugin() {
         if (isModified) {
-            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            CustomAlert alert = new CustomAlert(Alert.AlertType.CONFIRMATION);
             alert.setTitle("Ungespeicherte Änderungen");
             alert.setHeaderText("Möchten Sie die aktuellen Änderungen speichern?");
             alert.setContentText("Es gibt ungespeicherte Änderungen.");
@@ -318,10 +433,7 @@ public class PluginEditorWindow {
             ButtonType saveButton = new ButtonType("Ja, speichern");
             ButtonType noButton = new ButtonType("Nein, verwerfen");
             ButtonType cancelButton = new ButtonType("Abbrechen", ButtonBar.ButtonData.CANCEL_CLOSE);
-            alert.getButtonTypes().setAll(saveButton, noButton, cancelButton);
-            
-            // Dialog stylen wie andere Dialoge in der Anwendung
-            applyDialogTheme(alert);
+            alert.getDialogPane().getButtonTypes().setAll(saveButton, noButton, cancelButton);
             
             var result = alert.showAndWait();
             if (result.isPresent()) {
@@ -368,7 +480,7 @@ public class PluginEditorWindow {
      */
     private void openPlugin() {
         if (isModified) {
-            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            CustomAlert alert = new CustomAlert(Alert.AlertType.CONFIRMATION);
             alert.setTitle("Ungespeicherte Änderungen");
             alert.setHeaderText("Möchten Sie die aktuellen Änderungen speichern?");
             alert.setContentText("Es gibt ungespeicherte Änderungen.");
@@ -377,10 +489,7 @@ public class PluginEditorWindow {
             ButtonType saveButton = new ButtonType("Ja, speichern");
             ButtonType noButton = new ButtonType("Nein, verwerfen");
             ButtonType cancelButton = new ButtonType("Abbrechen", ButtonBar.ButtonData.CANCEL_CLOSE);
-            alert.getButtonTypes().setAll(saveButton, noButton, cancelButton);
-            
-            // Dialog stylen wie andere Dialoge in der Anwendung
-            applyDialogTheme(alert);
+            alert.getDialogPane().getButtonTypes().setAll(saveButton, noButton, cancelButton);
             
             var result = alert.showAndWait();
             if (result.isPresent()) {
