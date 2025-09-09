@@ -399,7 +399,7 @@ public class DiffProcessor {
             }
             
             html.append("<div class='diff-line ").append(cssClass).append("'>");
-            html.append("<span class='line-number'>").append(line.getLineNumber()).append("</span>");
+            html.append("<span class='line-number'>").append(line.getLeftLineNumber()).append("</span>");
             
             if (line.getType() == DiffType.DELETED) {
                 html.append("- ").append(escapeHtml(line.getOriginalText()));

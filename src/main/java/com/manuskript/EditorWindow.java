@@ -8,6 +8,8 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.Separator;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.Node;
@@ -74,6 +76,10 @@ public class EditorWindow implements Initializable {
     
     // Globale DOCX-Optionen für Export
     private DocxOptions globalDocxOptions = new DocxOptions();
+    
+    // Gesamtdokument-Unterstützung
+    private File currentFile;
+    private boolean isCompleteDocument = false;
     
     @FXML private VBox textAreaContainer;
     private CodeArea codeArea;
@@ -190,7 +196,6 @@ public class EditorWindow implements Initializable {
     private boolean chapterEditorVisible = false;
     private String originalChapterContent = "";
     private boolean chapterContentChanged = false;
-    private File currentFile = null;
     private File originalDocxFile = null; // Originale DOCX-Datei
     private String originalContent = ""; // Kopie des ursprünglichen Inhalts für Vergleich
     private DocxProcessor.OutputFormat outputFormat = DocxProcessor.OutputFormat.HTML;
@@ -252,6 +257,12 @@ public class EditorWindow implements Initializable {
         // DOCX-Optionen aus User Preferences laden
         globalDocxOptions.loadFromPreferences();
         logger.info("DOCX-Optionen aus User Preferences geladen");
+        
+        // DocxProcessor initialisieren
+        if (docxProcessor == null) {
+            docxProcessor = new DocxProcessor();
+            logger.info("DocxProcessor initialisiert");
+        }
         
         setupUI();
         loadSearchReplaceHistory();
@@ -340,14 +351,7 @@ public class EditorWindow implements Initializable {
         });
         
         // Toolbar explizit sichtbar machen
-        if (btnNew != null) {
-            btnNew.setVisible(true);
-            btnNew.setManaged(true);
-        }
-        if (btnOpen != null) {
-            btnOpen.setVisible(true);
-            btnOpen.setManaged(true);
-        }
+        // btnNew und btnOpen sind in FXML auf visible="false" managed="false" gesetzt
         if (btnSave != null) {
             btnSave.setVisible(true);
             btnSave.setManaged(true);
@@ -634,8 +638,7 @@ if (caret != null) {
             saveFileAs();
         });
                     btnExport.setOnAction(e -> showExportDialog());
-        btnOpen.setOnAction(e -> openFile());
-        btnNew.setOnAction(e -> newFile());
+        // btnOpen und btnNew Event-Handler entfernt - Buttons sind unsichtbar
         btnToggleSearch.setOnAction(e -> toggleSearchPanel());
         btnToggleMacro.setOnAction(e -> toggleMacroPanel());
         
@@ -3011,6 +3014,38 @@ if (caret != null) {
     
     // Datei-Operationen
     private void saveFile() {
+        System.out.println("=== SAVE FILE CALLED ===");
+        System.out.println("isCompleteDocument: " + isCompleteDocument);
+        System.out.println("currentFile: " + (currentFile != null ? currentFile.getAbsolutePath() : "null"));
+        
+        // Spezielle Behandlung für Gesamtdokumente
+        if (isCompleteDocument) {
+            System.out.println("Gesamtdokument-Speicherung gestartet");
+            // Für Gesamtdokumente: MD speichern UND Dialog für DOCX anzeigen
+            if (currentFile != null) {
+                String data = codeArea.getText();
+                if (data == null) data = "";
+                
+                // MD-Datei speichern
+                try {
+                    Files.write(currentFile.toPath(), data.getBytes(StandardCharsets.UTF_8));
+                    updateStatus("Gesamtdokument gespeichert: " + currentFile.getName());
+                    System.out.println("MD-Datei gespeichert: " + currentFile.getAbsolutePath());
+                } catch (IOException e) {
+                    updateStatusError("Fehler beim Speichern: " + e.getMessage());
+                    System.out.println("Fehler beim Speichern: " + e.getMessage());
+                    return;
+                }
+                
+                // Dialog für DOCX-Export anzeigen
+                System.out.println("Zeige DOCX-Dialog");
+                showDocxExportDialog();
+            } else {
+                System.out.println("currentFile ist null!");
+            }
+            return;
+        }
+        
         // Bei neuen Dateien (currentFile = null) direkt Save As verwenden
         if (currentFile == null) {
             saveFileAs();
@@ -3147,6 +3182,15 @@ if (caret != null) {
         try {
             String data = codeArea.getText();
             if (data == null) data = "";
+            
+            // Spezielle Behandlung für Gesamtdokumente
+            if (isCompleteDocument) {
+                // Für Gesamtdokumente: Nur DOCX erstellen, kein MD speichern
+                createDocxFile(file, data);
+                return;
+            }
+            
+            // Normale Dateien: MD speichern
             // Nie löschen: leere Dateien bleiben bestehen
             Files.write(file.toPath(), data.getBytes(StandardCharsets.UTF_8));
             updateStatus("Datei gespeichert: " + file.getName());
@@ -3553,7 +3597,6 @@ if (caret != null) {
                             leftLineLabel.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px; -fx-background-color: #d4edda; -fx-text-fill: #155724; -fx-font-weight: bold;");
                             leftLineNum.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 10px; -fx-text-fill: #28a745; -fx-min-width: 30px; -fx-alignment: center-right; -fx-font-weight: bold;");
                             // Rechte Seite neutral lassen, keine farbige leere Zeile rendern
-                            leftLineNumber++;
                             break;
                             
                         case DELETED:
@@ -3563,7 +3606,6 @@ if (caret != null) {
                             // Linke Seite neutral lassen, keine farbige leere Zeile rendern
                             rightLineLabel.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px; -fx-background-color: #f8d7da; -fx-text-fill: #721c24; -fx-font-weight: bold;");
                             rightLineNum.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 10px; -fx-text-fill: #dc3545; -fx-min-width: 30px; -fx-alignment: center-right; -fx-font-weight: bold;");
-                            rightLineNumber++;
                             break;
                             
                         case UNCHANGED:
@@ -3571,8 +3613,6 @@ if (caret != null) {
                             String lightOpacity = "0.4"; // Sehr transparent für unaufdringlichen Look
                             leftLineLabel.setStyle(String.format("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px; -fx-text-fill: %s; -fx-background-color: rgba(240,240,240,0.2); -fx-opacity: %s;", THEMES[currentThemeIndex][1], lightOpacity));
                             rightLineLabel.setStyle(String.format("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px; -fx-text-fill: %s; -fx-background-color: rgba(240,240,240,0.2); -fx-opacity: %s;", THEMES[currentThemeIndex][1], lightOpacity));
-                            leftLineNumber++;
-                            rightLineNumber++;
                             break;
                     }
                     
@@ -4448,6 +4488,280 @@ if (caret != null) {
     
     public void setCurrentFile(File file) {
         this.currentFile = file;
+    }
+    
+    public void setIsCompleteDocument(boolean isCompleteDocument) {
+        this.isCompleteDocument = isCompleteDocument;
+        
+        // Verstecke Navigation-Buttons für Gesamtdokumente
+        if (isCompleteDocument) {
+            hideNavigationButtons();
+        }
+    }
+    
+    private void hideNavigationButtons() {
+        if (btnPreviousChapter != null) {
+            btnPreviousChapter.setVisible(false);
+            btnPreviousChapter.setManaged(false);
+        }
+        if (btnNextChapter != null) {
+            btnNextChapter.setVisible(false);
+            btnNextChapter.setManaged(false);
+        }
+    }
+    
+    private void showDocxExportDialog() {
+        // Erweiterter Dialog für Gesamtdokumente mit DOCX-Optionen
+        logger.info("showDocxExportDialog aufgerufen - erstelle Stage...");
+        CustomStage exportStage = StageManager.createModalStage("DOCX-Export", stage);
+        exportStage.setTitle("📤 DOCX-Export für Gesamtdokument");
+        exportStage.initModality(Modality.APPLICATION_MODAL);
+        exportStage.initOwner(stage);
+        
+        // CSS-Styles für den Dialog anwenden
+        Platform.runLater(() -> {
+            try {
+                String cssPath = ResourceManager.getCssResource("css/manuskript.css");
+                if (exportStage.getScene() != null) {
+                    exportStage.getScene().getStylesheets().add(cssPath);
+                    logger.info("CSS-Styles für DOCX-Export-Dialog hinzugefügt");
+                }
+                
+                // Theme für den Dialog setzen
+                exportStage.setTitleBarTheme(currentThemeIndex);
+            } catch (Exception e) {
+                logger.error("Fehler beim Anwenden der CSS-Styles für DOCX-Export-Dialog", e);
+            }
+        });
+        
+        // Hauptcontainer
+        VBox exportContent = new VBox(15);
+        exportContent.setPadding(new Insets(20));
+        
+        // Info-Text
+        Label infoLabel = new Label("✅ Gesamtdokument erfolgreich gespeichert!\n\nMöchten Sie auch eine DOCX-Datei erstellen?");
+        infoLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #2e7d32;");
+        infoLabel.setWrapText(true);
+        
+        // DOCX-Optionen
+        Label optionsLabel = new Label("📄 DOCX-Optionen:");
+        optionsLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 14px;");
+        
+        VBox optionsBox = new VBox(10);
+        
+        // DOCX-Optionen Button
+        HBox docxOptionsBox = new HBox(10);
+        docxOptionsBox.setAlignment(Pos.CENTER_LEFT);
+        Button docxOptionsBtn = new Button("⚙️ DOCX-Optionen anpassen");
+        docxOptionsBtn.setStyle("-fx-font-size: 12px; -fx-padding: 6px 12px;");
+        
+        docxOptionsBtn.setOnAction(e -> {
+            logger.info("DOCX-Optionen Button geklickt!");
+            showDocxOptionsDialog(null); // null da wir keine CheckBox haben
+        });
+        
+        docxOptionsBox.getChildren().add(docxOptionsBtn);
+        optionsBox.getChildren().add(docxOptionsBox);
+        
+        // Export-Verzeichnis
+        Label dirLabel = new Label("📁 Export-Verzeichnis:");
+        dirLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 14px;");
+        
+        VBox dirOptions = new VBox(8);
+        
+        HBox dirSelection = new HBox(10);
+        dirSelection.setAlignment(Pos.CENTER_LEFT);
+        
+        Label dirPathLabel = new Label("Unterverzeichnis:");
+        dirPathLabel.setStyle("-fx-font-weight: bold;");
+        
+        TextField dirPathField = new TextField();
+        dirPathField.setPromptText("Unterverzeichnis (optional) eingeben...");
+        dirPathField.setEditable(true);
+        dirPathField.setPrefWidth(300);
+        
+        dirSelection.getChildren().addAll(dirPathLabel, dirPathField);
+        dirOptions.getChildren().add(dirSelection);
+        
+        // Dateiname
+        Label filenameLabel = new Label("📄 Dateiname:");
+        filenameLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 14px;");
+        
+        HBox filenameBox = new HBox(10);
+        filenameBox.setAlignment(Pos.CENTER_LEFT);
+        
+        Label filenamePrefixLabel = new Label("Präfix:");
+        filenamePrefixLabel.setStyle("-fx-font-weight: bold;");
+        
+        TextField filenameField = new TextField();
+        filenameField.setPromptText("Dateiname (ohne Endung)...");
+        filenameField.setEditable(true);
+        filenameField.setPrefWidth(300);
+        
+        // Standard-Dateiname setzen
+        if (currentFile != null) {
+            String fileName = currentFile.getName();
+            // Entferne .md und .gesamt
+            String baseName = fileName.replace(".md", "").replace(".gesamt", "");
+            // Nur " Gesamtdokument" hinzufügen, wenn es noch nicht enthalten ist
+            if (!baseName.contains("Gesamtdokument")) {
+                baseName = baseName + " Gesamtdokument";
+            }
+            filenameField.setText(baseName);
+        }
+        
+        filenameBox.getChildren().addAll(filenamePrefixLabel, filenameField);
+        
+        // Alle Inhalte zusammenfassen
+        exportContent.getChildren().addAll(
+            infoLabel,
+            new Separator(),
+            optionsLabel,
+            optionsBox,
+            new Separator(),
+            dirLabel,
+            dirOptions,
+            new Separator(),
+            filenameLabel,
+            filenameBox
+        );
+        
+        // Buttons
+        HBox buttonBox = new HBox(15);
+        buttonBox.setAlignment(Pos.CENTER_RIGHT);
+        buttonBox.setPadding(new Insets(20, 20, 0, 20));
+        
+        Button cancelButton = new Button("❌ Abbrechen");
+        cancelButton.setStyle("-fx-padding: 8px 16px;");
+        
+        Button exportButton = new Button("📤 DOCX erstellen");
+        exportButton.setStyle("-fx-padding: 8px 16px; -fx-background-color: #4caf50; -fx-text-fill: white;");
+        
+        // Content mit Buttons kombinieren
+        VBox mainContent = new VBox(15);
+        mainContent.getChildren().addAll(exportContent, buttonBox);
+        mainContent.setPadding(new Insets(20));
+        mainContent.getStyleClass().add("export-dialog-content");
+        
+        // Theme auf den Content anwenden
+        applyThemeToNode(mainContent, currentThemeIndex);
+        
+        // Event-Handler für Buttons
+        cancelButton.setOnAction(e -> {
+            logger.info("DOCX-Export abgebrochen");
+            exportStage.close();
+        });
+        
+        exportButton.setOnAction(e -> {
+            logger.info("DOCX-Export gestartet");
+            
+            // Erstelle DOCX-Datei mit den Optionen
+            if (currentFile != null) {
+                String data = codeArea.getText();
+                if (data == null) data = "";
+                
+                // Bestimme den Ausgabedateinamen
+                String filename = filenameField.getText().trim();
+                if (filename.isEmpty()) {
+                    // Standard: Basis-Name + " Gesamtdokument"
+                    String baseName = currentFile.getName().replace(".md", "").replace(".gesamt", "");
+                    filename = baseName + " Gesamtdokument";
+                }
+                
+                // Bestimme das Ausgabeverzeichnis - verwende das gleiche Verzeichnis wie die MD-Datei
+                File outputDir = currentFile.getParentFile(); // Gleiches Verzeichnis wie die MD-Datei
+                String subDir = dirPathField.getText().trim();
+                if (!subDir.isEmpty()) {
+                    outputDir = new File(outputDir, subDir);
+                    if (!outputDir.exists()) {
+                        outputDir.mkdirs();
+                    }
+                }
+                
+                File docxFile = new File(outputDir, filename + ".docx");
+                
+                System.out.println("=== DOCX-EXPORT ===");
+                System.out.println("Filename: " + filename);
+                System.out.println("OutputDir: " + outputDir.getAbsolutePath());
+                System.out.println("DOCX-File: " + docxFile.getAbsolutePath());
+                System.out.println("Content length: " + data.length());
+                
+                // Erstelle DOCX-Datei
+                createDocxFileWithOptions(docxFile, data);
+            }
+            
+            exportStage.close();
+        });
+        
+        buttonBox.getChildren().addAll(cancelButton, exportButton);
+        
+        Scene scene = new Scene(mainContent);
+        exportStage.setSceneWithTitleBar(scene);
+        
+        // CSS-Stylesheets laden
+        String stylesCss = ResourceManager.getCssResource("css/styles.css");
+        String editorCss = ResourceManager.getCssResource("css/editor.css");
+        if (stylesCss != null && !scene.getStylesheets().contains(stylesCss)) scene.getStylesheets().add(stylesCss);
+        if (editorCss != null && !scene.getStylesheets().contains(editorCss)) scene.getStylesheets().add(editorCss);
+        
+        // Theme auf die Stage anwenden
+        applyThemeToNode(scene.getRoot(), currentThemeIndex);
+        
+        // Dialog anzeigen
+        logger.info("Zeige DOCX-Export-Dialog...");
+        exportStage.showAndWait();
+        logger.info("DOCX-Export-Dialog geschlossen.");
+    }
+    
+    private void createDocxFileWithOptions(File docxFile, String content) {
+        // Erstelle DOCX-Datei mit den globalen DOCX-Optionen
+        try {
+            if (docxProcessor == null) {
+                docxProcessor = new DocxProcessor();
+            }
+            
+            // Stelle sicher, dass globalDocxOptions nicht null ist
+            if (globalDocxOptions == null) {
+                globalDocxOptions = new DocxOptions();
+                System.out.println("globalDocxOptions war null, neue Instanz erstellt");
+            }
+            
+            System.out.println("Erstelle DOCX mit " + content.length() + " Zeichen");
+            
+            // Exportiere Markdown zu DOCX mit den globalen Optionen
+            docxProcessor.exportMarkdownToDocxWithOptions(content, docxFile, globalDocxOptions);
+            
+            updateStatus("DOCX-Datei erstellt: " + docxFile.getName());
+            logger.info("DOCX-Datei erfolgreich erstellt: " + docxFile.getAbsolutePath());
+            System.out.println("DOCX erfolgreich erstellt: " + docxFile.getAbsolutePath());
+            
+        } catch (Exception e) {
+            logger.error("Fehler beim Erstellen der DOCX-Datei", e);
+            updateStatusError("Fehler beim Erstellen der DOCX-Datei: " + e.getMessage());
+            System.out.println("FEHLER beim DOCX-Export: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+    
+    private void createDocxFile(File mdFile, String content) {
+        // Erstelle DOCX-Datei automatisch ohne nachzufragen
+        String baseName = mdFile.getName().replace(".md", "");
+        File docxFile = new File(mdFile.getParent(), baseName + ".docx");
+        
+        try {
+            // Erstelle DocxProcessor falls nicht vorhanden
+            if (docxProcessor == null) {
+                docxProcessor = new DocxProcessor();
+            }
+            
+            // Verwende den DocxProcessor für den Export
+            docxProcessor.exportMarkdownToDocx(content, docxFile);
+            updateStatus("DOCX-Datei erstellt: " + docxFile.getName());
+            
+        } catch (Exception e) {
+            logger.error("Fehler beim DOCX-Export", e);
+            updateStatusError("Fehler beim DOCX-Export: " + e.getMessage());
+        }
     }
     
     /**
@@ -7359,7 +7673,7 @@ spacer.setStyle("-fx-background-color: transparent;");
         });
     }
     
-    private void applyTheme(int themeIndex) {
+    public void applyTheme(int themeIndex) {
         if (codeArea == null) return;
         
         String[] theme = THEMES[themeIndex];
@@ -7502,8 +7816,7 @@ spacer.setStyle("-fx-background-color: transparent;");
             applyThemeToNode(btnSave, themeIndex);
             applyThemeToNode(btnSaveAs, themeIndex);
             applyThemeToNode(btnExport, themeIndex);
-            applyThemeToNode(btnOpen, themeIndex);
-            applyThemeToNode(btnNew, themeIndex);
+            // btnOpen und btnNew sind unsichtbar - keine Theme-Anwendung nötig
             applyThemeToNode(btnToggleSearch, themeIndex);
             applyThemeToNode(btnToggleMacro, themeIndex);
             applyThemeToNode(btnTextAnalysis, themeIndex);

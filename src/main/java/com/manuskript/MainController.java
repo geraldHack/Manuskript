@@ -1247,15 +1247,14 @@ public class MainController implements Initializable {
             return;
         }
         
-        // Prüfe auf existierende .gesamt Dateien im data-Verzeichnis
+        // Prüfe auf existierende .gesamt Dateien im Hauptverzeichnis
         String directoryPath = selectedDocxFiles.get(0).getFile().getParent();
         File directory = new File(directoryPath);
-        File dataDir = new File(directory, "data");
         String directoryName = directory.getName();
-        File[] existingGesamtFiles = dataDir.exists() ? dataDir.listFiles((dir, name) ->
-            name.startsWith(directoryName + ".gesamt.") &&
+        File[] existingGesamtFiles = directory.listFiles((dir, name) ->
+            (name.startsWith(directoryName + ".gesamt.") || name.equals(directoryName + " Gesamtdokument.md")) &&
             (name.endsWith(".md") || name.endsWith(".txt") || name.endsWith(".html"))
-        ) : new File[0];
+        );
         
         if (existingGesamtFiles != null && existingGesamtFiles.length > 0) {
             showGesamtFileDialog(existingGesamtFiles, selectedDocxFiles);
@@ -1507,8 +1506,12 @@ public class MainController implements Initializable {
 
         // Theme explizit anwenden, bevor der Dialog angezeigt wird
         alert.applyTheme(currentThemeIndex);
+            Optional<ButtonType> result = null;
+            try {
+         result = alert.showAndWait();
 
-        Optional<ButtonType> result = alert.showAndWait();
+        } catch (Exception e) {
+        }
 
         if (!result.isPresent()) return DocxChangeDecision.CANCEL;
 
@@ -2131,13 +2134,78 @@ public class MainController implements Initializable {
                 ResourceManager.saveParameter("ui.last_docx_directory", docxDirectory);
             }
             
-            openEditor(result.toString(), baseFileName);
-            updateStatus(processed + " Dateien erfolgreich verarbeitet - Gesamtdokument erstellt");
+            // Erstelle das Gesamtdokument als echte Datei
+            String currentDirectory = txtDirectoryPath.getText();
+            File completeDocumentFile = new File(currentDirectory, baseFileName + " Gesamtdokument.md");
+            
+            try {
+                // Schreibe das Gesamtdokument in die Datei
+                Files.write(completeDocumentFile.toPath(), result.toString().getBytes(StandardCharsets.UTF_8));
+                logger.info("Gesamtdokument erstellt: " + completeDocumentFile.getAbsolutePath());
+                
+                // Öffne den Editor mit der echten Datei
+                openEditorWithFile(completeDocumentFile, true); // true = ist Gesamtdokument
+                updateStatus(processed + " Dateien erfolgreich verarbeitet - Gesamtdokument erstellt: " + completeDocumentFile.getName());
+                
+            } catch (Exception e) {
+                logger.error("Fehler beim Erstellen des Gesamtdokuments", e);
+                showError("Fehler", "Konnte Gesamtdokument nicht erstellen: " + e.getMessage());
+            }
             
         } catch (Exception e) {
             logger.error("Fehler bei der Verarbeitung", e);
             showError("Verarbeitungsfehler", e.getMessage());
             updateStatus("Fehler bei der Verarbeitung");
+        }
+    }
+    
+    private void openEditorWithFile(File file, boolean isCompleteDocument) {
+        try {
+            System.out.println("=== OPEN EDITOR WITH FILE ===");
+            System.out.println("File: " + file.getAbsolutePath());
+            System.out.println("isCompleteDocument: " + isCompleteDocument);
+            System.out.println("File exists: " + file.exists());
+            System.out.println("File size: " + file.length() + " bytes");
+            
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/editor.fxml"));
+            Parent root = loader.load();
+            
+            EditorWindow editorController = loader.getController();
+            
+            // Lade den Inhalt der Datei
+            String content = Files.readString(file.toPath(), StandardCharsets.UTF_8);
+            System.out.println("Content loaded: " + content.length() + " characters");
+            System.out.println("First 100 chars: " + content.substring(0, Math.min(100, content.length())));
+            
+            editorController.setText(content);
+            
+            // Setze die Datei-Informationen
+            editorController.setCurrentFile(file);
+            editorController.setIsCompleteDocument(isCompleteDocument);
+            
+            // Nur noch MD-Format
+            DocxProcessor.OutputFormat currentFormat = DocxProcessor.OutputFormat.MARKDOWN;
+            editorController.setOutputFormat(currentFormat);
+            
+            // Erstelle Stage
+            Stage editorStage = new Stage();
+            editorStage.setTitle("Editor - " + file.getName());
+            editorStage.setScene(new Scene(root));
+            editorStage.setWidth(1200);
+            editorStage.setHeight(800);
+            editorStage.setMinWidth(1000);
+            editorStage.setMinHeight(700);
+            editorStage.initModality(Modality.NONE);
+            
+            // Theme anwenden
+            editorController.applyTheme(currentThemeIndex);
+            
+            // Zeige den Editor
+            editorStage.show();
+            
+        } catch (Exception e) {
+            logger.error("Fehler beim Öffnen des Editors", e);
+            showError("Editor-Fehler", "Konnte Editor nicht öffnen: " + e.getMessage());
         }
     }
     
@@ -2766,8 +2834,8 @@ public class MainController implements Initializable {
                 baseFileName = baseFileName.substring(0, baseFileName.indexOf(".gesamt."));
             }
             
-            // Öffne den Editor mit dem geladenen Inhalt
-            openEditor(content, baseFileName);
+            // Öffne den Spezialeditor für Gesamtdokumente
+            openEditorWithFile(gesamtFile, true);
             updateStatus("Gesamtdokument geladen: " + gesamtFile.getName());
             
         } catch (Exception e) {

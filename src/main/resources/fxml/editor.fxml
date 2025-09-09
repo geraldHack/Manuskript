@@ -7,8 +7,8 @@
       <!-- Toolbar -->
       <HBox spacing="5" styleClass="toolbar" style="-fx-min-height: 40px;">
          <children>
-            <Button fx:id="btnNew" text="Neu" styleClass="button primary" />
-            <Button fx:id="btnOpen" text="Öffnen" styleClass="button primary" />
+            <Button fx:id="btnNew" text="Neu" styleClass="button primary" visible="false" managed="false" />
+            <Button fx:id="btnOpen" text="Öffnen" styleClass="button primary" visible="false" managed="false" />
             <Button fx:id="btnSave" text="Speichern" styleClass="button primary" />
             <Button fx:id="btnSaveAs" text="Speichern als..." styleClass="button primary" />
             <Button fx:id="btnExport" text="📤 Exportieren" styleClass="button primary" />
