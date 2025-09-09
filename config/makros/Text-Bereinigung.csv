@@ -1,0 +1,16 @@
+Schritt,Aktiv,Beschreibung,Suchen,Ersetzen,Regex,Case,Word
+1,Ja,"Falsches Deutschen Anführungszeichen oben","”","""",Nein,Nein,Nein
+2,Ja,"Mehrfache Leerzeichen reduzieren","[ ]{2,}","",Ja,Nein,Nein
+3,Ja,"Mehrfache Leerzeilen reduzieren","\n{2,}","\n",Ja,Nein,Nein
+4,Ja,"Einfache Anführungszeichen deutsch","‘(.*?)’","'$1'",Ja,Nein,Nein
+5,Ja,"Gerade Anführungszeichen öffnen","„","""",Nein,Nein,Nein
+6,Ja,"Gerade Anführungszeichen schließen","“","""",Nein,Nein,Nein
+7,Ja,"Komma vor Anführungszeichen I",",""",""",",Nein,Nein,Nein
+8,Ja,"Einfache Anführungszeichen Französisch","'(.*?)'","›$1‹",Ja,Nein,Nein
+9,Ja,"Anführungszeichen Französisch","""(.*?)""","»$1«",Ja,Nein,Nein
+10,Ja,"Auslassungszeichen","...","…",Nein,Nein,Nein
+11,Ja,"Buchstabe direkt an Auslassungszeichen","([A-Za-zÄÖÜäöüß])…","$1 ...",Ja,Nein,Nein
+12,Ja,"Buchstabe direkt nach Auslassungszeichen","(?<=…)(?=\p{L})","",Ja,Nein,Nein
+13,Ja,"Gedankenstrich","(?<!-)--(?!-)","—",Ja,Nein,Nein
+14,Ja,"Komma vor Anführungszeichen",",""«","«,",Nein,Nein,Nein
+15,Ja,"Einfache Anführungszeichen Französisch","'(.*?)'","›$1‹",Ja,Nein,Nein
