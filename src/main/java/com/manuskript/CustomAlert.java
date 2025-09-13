@@ -1,857 +1,655 @@
 package com.manuskript;
 
+import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.*;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.*;
 import javafx.scene.Node;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.DialogPane;
-import javafx.scene.control.Label;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
-import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import javafx.scene.text.TextAlignment;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import javafx.geometry.Pos;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.paint.Color;
-import javafx.stage.Modality;
 import javafx.stage.Window;
-import javafx.event.EventHandler;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * Eigene Alert-Klasse mit benutzerdefinierter Titelleiste
- * Wrapper um die Standard JavaFX Alert-Klasse
+ * Komplett eigene Alert-Implementierung mit schöner Titelleiste und Themeing
+ * Völlig unabhängig von JavaFX's Alert-Klasse
  */
 public class CustomAlert {
     
-    private static final Logger logger = LoggerFactory.getLogger(CustomAlert.class);
+    // Theme-Konstanten
+    private static final String[] THEME_BACKGROUNDS = {
+        "#ffffff", // Weiß
+        "#1a1a1a", // Schwarz
+        "#f3e5f5", // Pastell
+        "#1e3a8a", // Blau
+        "#064e3b", // Grün
+        "#581c87"  // Lila
+    };
     
-    private Alert originalAlert;
-    private CustomStage customStage;
+    private static final String[] THEME_TITLES = {
+        "#2c3e50", // Weiß
+        "#ffffff", // Schwarz
+        "#4a148c", // Pastell
+        "#ffffff", // Blau
+        "#ffffff", // Grün
+        "#ffffff"  // Lila
+    };
+    
+    private static final String[] THEME_TEXTS = {
+        "#2c3e50", // Weiß
+        "#ffffff", // Schwarz
+        "#4a148c", // Pastell
+        "#ffffff", // Blau
+        "#ffffff", // Grün
+        "#ffffff"  // Lila
+    };
+    
+    // UI-Komponenten
+    private Stage stage;
+    private VBox rootContainer;
     private HBox titleBar;
     private Label titleLabel;
-    private Button minimizeBtn;
-    private Button maximizeBtn;
-    private Button closeBtn;
+    private Button minimizeBtn, maximizeBtn, closeBtn;
+    private VBox contentContainer;
+    private Label headerLabel, contentLabel;
+    private ImageView graphicView;
+    private HBox buttonContainer;
     
-    private double xOffset = 0;
-    private double yOffset = 0;
-    private boolean isMaximized = false;
-    
+    // Alert-Eigenschaften
+    private String title = "Alert";
+    private String headerText = "";
+    private String contentText = "";
+    private javafx.scene.image.Image graphic;
+    private ObservableList<ButtonType> buttonTypes = FXCollections.observableArrayList();
+    private boolean hasCustomContent = false;
+    private TextField textField = null;
+    private VBox customContentBox = null;
     private ButtonType result = null;
     
+    // Theme
+    private int currentTheme = 0;
+    
+    // Drag-Funktionalität
+    private double dragOffsetX = 0;
+    private double dragOffsetY = 0;
+    private boolean isMaximized = false;
+    private double originalX, originalY, originalWidth, originalHeight;
+    
     /**
-     * Erstellt einen neuen CustomAlert
+     * Konstruktor
      */
-    public CustomAlert(Alert.AlertType alertType) {
-        this.originalAlert = new Alert(alertType);
-        setupCustomAlert();
+    public CustomAlert() {
+        this(AlertType.INFORMATION);
     }
     
     /**
-     * Erstellt einen neuen CustomAlert mit Titel und Content
+     * Konstruktor mit AlertType
      */
-    public CustomAlert(Alert.AlertType alertType, String contentText) {
-        this.originalAlert = new Alert(alertType, contentText);
-        setupCustomAlert();
-    }
-    
-    /**
-     * Erstellt einen neuen CustomAlert mit allen Parametern
-     */
-    public CustomAlert(Alert.AlertType alertType, String contentText, ButtonType... buttonTypes) {
-        this.originalAlert = new Alert(alertType, contentText, buttonTypes);
-        setupCustomAlert();
-    }
-    
-    /**
-     * Richtet den CustomAlert ein
-     */
-    private void setupCustomAlert() {
-        // CustomStage erstellen
-        customStage = new CustomStage();
-        
-        // Stage-Konfiguration
-        customStage.initModality(Modality.APPLICATION_MODAL);
-        customStage.setResizable(true);
-        customStage.setMinWidth(400);
-        customStage.setMinHeight(200);
-        
-        // Eigene Scene mit Titelzeile erstellen
-        setupCustomScene();
-        
-        // Theme anwenden (aktuelles Theme verwenden, nicht immer Theme 0)
-        int currentTheme = ThemeManager.getCurrentThemeIndex();
+    public CustomAlert(AlertType alertType) {
+        initializeUI();
+        setDefaultButtonTypes(alertType);
         applyTheme(currentTheme);
+        // WICHTIG: Content und Buttons nach der Initialisierung aktualisieren
+        updateContent();
+        updateButtons();
     }
     
     /**
-     * Richtet die eigene Scene mit Titelzeile ein
+     * Konstruktor mit AlertType und Titel (für Kompatibilität)
      */
-    private void setupCustomScene() {
-        // Originale DialogPane holen
-        DialogPane originalDialogPane = originalAlert.getDialogPane();
+    public CustomAlert(javafx.scene.control.Alert.AlertType alertType, String title) {
+        this(convertAlertType(alertType));
+        setTitle(title);
+    }
+    
+    /**
+     * JavaFX AlertType zu CustomAlert AlertType konvertieren
+     */
+    private static AlertType convertAlertType(javafx.scene.control.Alert.AlertType javafxType) {
+        switch (javafxType) {
+            case CONFIRMATION: return AlertType.CONFIRMATION;
+            case WARNING: return AlertType.WARNING;
+            case ERROR: return AlertType.ERROR;
+            case INFORMATION: return AlertType.INFORMATION;
+            default: return AlertType.INFORMATION;
+        }
+    }
+    
+    /**
+     * UI initialisieren
+     */
+    private void initializeUI() {
+        // Stage erstellen
+        stage = new Stage();
+        stage.initStyle(StageStyle.UNDECORATED);
+        stage.setResizable(true);
+        stage.setMinWidth(400);
+        stage.setMinHeight(200);
         
-        // Hauptcontainer
-        VBox mainContainer = new VBox();
-        mainContainer.setStyle("-fx-background-color: transparent; -fx-spacing: 0;");
+        // Root Container
+        rootContainer = new VBox();
+        rootContainer.setSpacing(0);
         
-        // Titelzeile erstellen
-        setupTitleBar();
+        // Titelleiste erstellen
+        createTitleBar();
         
-        // Button-Handler werden später in show()/showAndWait() eingerichtet
+        // Content Container
+        contentContainer = new VBox();
+        contentContainer.setSpacing(15);
+        contentContainer.setPadding(new Insets(20));
+        
+        // Button Container
+        buttonContainer = new HBox();
+        buttonContainer.setSpacing(10);
+        buttonContainer.setAlignment(Pos.CENTER_RIGHT);
+        buttonContainer.setPadding(new Insets(10, 20, 20, 20));
         
         // Alles zusammenfügen
-        mainContainer.getChildren().addAll(titleBar, originalDialogPane);
-        VBox.setVgrow(originalDialogPane, Priority.ALWAYS);
+        rootContainer.getChildren().addAll(titleBar, contentContainer, buttonContainer);
         
         // Scene erstellen
-        Scene scene = new Scene(mainContainer);
-        customStage.setScene(scene);
-        
-        // Resize-Handles hinzufügen
-        setupResizeHandles(scene);
-        
-        // Theme und Button-Handler nach der Anzeige anwenden
-        customStage.setOnShown(event -> {
-            javafx.application.Platform.runLater(() -> {
-                try {
-                    // Button-Handler einrichten
-                    setupDialogButtonHandlers();
-                    // Theme anwenden
-                    applyDialogPaneTheme(getCurrentThemeIndex(), getCurrentBackgroundColor(), getCurrentTextColor());
-                } catch (Exception e) {
-                    // Ignoriere Fehler beim DialogPane-Styling
-                }
-            });
-        });
-    }
-    
-    /**
-     * Richtet die Titelzeile ein
-     */
-    private void setupTitleBar() {
-        titleBar = new HBox();
-        titleBar.setStyle("-fx-background-color: linear-gradient(from 0% 0% to 0% 100%, #2c3e50 0%, #34495e 100%); -fx-padding: 8px; -fx-spacing: 5px; -fx-border-color: #1a252f; -fx-border-width: 0 0 1 0;");
-        titleBar.setAlignment(Pos.CENTER_LEFT);
-        titleBar.setMinHeight(35);
-        
-        // Titel-Label
-        titleLabel = new Label(originalAlert.getTitle() != null ? originalAlert.getTitle() : "Alert");
-        titleLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px; -fx-padding: 0 10px; -fx-background-color: transparent;");
-        
-        // Spacer
-        Region spacer = new Region();
-        spacer.setStyle("-fx-background-color: transparent;");
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-        
-        // Window-Buttons
-        minimizeBtn = new Button("🗕");
-        minimizeBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 16px; -fx-min-width: 35px; -fx-min-height: 30px; -fx-border-color: transparent; -fx-border-radius: 4px; -fx-background-radius: 4px;");
-        minimizeBtn.setOnAction(e -> customStage.setIconified(true));
-        
-        maximizeBtn = new Button("🗗");
-        maximizeBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 16px; -fx-min-width: 35px; -fx-min-height: 30px; -fx-border-color: transparent; -fx-border-radius: 4px; -fx-background-radius: 4px;");
-        maximizeBtn.setOnAction(e -> toggleMaximize());
-        
-        closeBtn = new Button("✕");
-        closeBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 18px; -fx-min-width: 35px; -fx-min-height: 30px; -fx-border-color: transparent; -fx-border-radius: 4px; -fx-background-radius: 4px;");
-        closeBtn.setOnAction(e -> {
-            result = ButtonType.CANCEL;
-            close();
-        });
-        
-        // Hover-Effekte für Buttons
-        setupButtonHoverEffects();
+        Scene scene = new Scene(rootContainer);
+        stage.setScene(scene);
         
         // Drag-Funktionalität
         setupDragFunctionality();
-        
-        titleBar.getChildren().addAll(titleLabel, spacer, minimizeBtn, maximizeBtn, closeBtn);
     }
     
     /**
-     * Richtet die Button-Handler für die Dialog-Buttons ein
+     * Titelleiste erstellen
      */
-    private void setupDialogButtonHandlers() {
-        // Alle Buttons im DialogPane finden und Handler hinzufügen
-        for (ButtonType buttonType : originalAlert.getButtonTypes()) {
-            Button button = (Button) originalAlert.getDialogPane().lookupButton(buttonType);
-            if (button != null) {
-                button.setOnAction(e -> {
-                    result = buttonType;
-                    try {
-                        if (customStage != null && customStage.isShowing()) {
-                            customStage.close();
-                        }
-                    } catch (Exception ex) {
-                        // Fehler beim Schließen ignorieren
-                    }
-                });
-            }
-        }
+    private void createTitleBar() {
+        titleBar = new HBox();
+        titleBar.setPrefHeight(35);
+        titleBar.setAlignment(Pos.CENTER_LEFT);
+        titleBar.setPadding(new Insets(0, 0, 0, 15));
+        
+        // Titel
+        titleLabel = new Label(title);
+        titleLabel.setFont(Font.font("System", FontWeight.BOLD, 14));
+        titleLabel.setAlignment(Pos.CENTER_LEFT);
+        
+        // Spacer
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        
+        // Window Buttons
+        HBox buttonBox = new HBox();
+        buttonBox.setSpacing(0);
+        
+        // Minimize Button
+        minimizeBtn = new Button("−");
+        minimizeBtn.setPrefSize(35, 35);
+        minimizeBtn.setFont(Font.font("System", FontWeight.BOLD, 16));
+        minimizeBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: white; -fx-border-color: transparent;");
+        
+        // Maximize Button
+        maximizeBtn = new Button("□");
+        maximizeBtn.setPrefSize(35, 35);
+        maximizeBtn.setFont(Font.font("System", FontWeight.BOLD, 14));
+        maximizeBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: white; -fx-border-color: transparent;");
+        
+        // Close Button
+        closeBtn = new Button("✕");
+        closeBtn.setPrefSize(45, 35); // Breiter gemacht
+        closeBtn.setFont(Font.font("System", FontWeight.BOLD, 18)); // Größere Schrift
+        closeBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: white; -fx-border-color: transparent;");
+        
+        // Button Actions
+        minimizeBtn.setOnAction(e -> stage.setIconified(true));
+        maximizeBtn.setOnAction(e -> toggleMaximize());
+        closeBtn.setOnAction(e -> {
+            result = ButtonType.CANCEL;
+            stage.close();
+        });
+        
+        // Hover Effects
+        setupButtonHoverEffects();
+        
+        buttonBox.getChildren().addAll(minimizeBtn, maximizeBtn, closeBtn);
+        titleBar.getChildren().addAll(titleLabel, spacer, buttonBox);
     }
     
     /**
-     * Richtet Hover-Effekte für die Window-Buttons ein
+     * Button Hover Effects
      */
     private void setupButtonHoverEffects() {
-        String hoverStyle = "-fx-background-color: rgba(255, 255, 255, 0.2); -fx-text-fill: " + currentTextColor + "; -fx-font-weight: bold; -fx-font-size: 16px; -fx-min-width: 35px; -fx-min-height: 30px; -fx-border-color: transparent; -fx-border-radius: 4px; -fx-background-radius: 4px;";
-        String closeHoverStyle = "-fx-background-color: rgba(231, 76, 60, 0.8); -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 18px; -fx-min-width: 35px; -fx-min-height: 30px; -fx-border-color: transparent; -fx-border-radius: 4px; -fx-background-radius: 4px;";
+        String hoverStyle = "-fx-background-color: rgba(255,255,255,0.1);";
+        String closeHoverStyle = "-fx-background-color: #e74c3c;";
         
-        minimizeBtn.setOnMouseEntered(e -> minimizeBtn.setStyle(hoverStyle));
-        minimizeBtn.setOnMouseExited(e -> minimizeBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: " + currentTextColor + "; -fx-font-weight: bold; -fx-font-size: 16px; -fx-min-width: 35px; -fx-min-height: 30px; -fx-border-color: transparent; -fx-border-radius: 4px; -fx-background-radius: 4px;"));
+        minimizeBtn.setOnMouseEntered(e -> minimizeBtn.setStyle(minimizeBtn.getStyle() + hoverStyle));
+        minimizeBtn.setOnMouseExited(e -> minimizeBtn.setStyle(minimizeBtn.getStyle().replace(hoverStyle, "")));
         
-        maximizeBtn.setOnMouseEntered(e -> maximizeBtn.setStyle(hoverStyle));
-        maximizeBtn.setOnMouseExited(e -> maximizeBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: " + currentTextColor + "; -fx-font-weight: bold; -fx-font-size: 16px; -fx-min-width: 35px; -fx-min-height: 30px; -fx-border-color: transparent; -fx-border-radius: 4px; -fx-background-radius: 4px;"));
+        maximizeBtn.setOnMouseEntered(e -> maximizeBtn.setStyle(maximizeBtn.getStyle() + hoverStyle));
+        maximizeBtn.setOnMouseExited(e -> maximizeBtn.setStyle(maximizeBtn.getStyle().replace(hoverStyle, "")));
         
-        closeBtn.setOnMouseEntered(e -> closeBtn.setStyle(closeHoverStyle));
-        closeBtn.setOnMouseExited(e -> closeBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: " + currentTextColor + "; -fx-font-weight: bold; -fx-font-size: 18px; -fx-min-width: 35px; -fx-min-height: 30px; -fx-border-color: transparent; -fx-border-radius: 4px; -fx-background-radius: 4px;"));
+        closeBtn.setOnMouseEntered(e -> closeBtn.setStyle(closeBtn.getStyle() + closeHoverStyle));
+        closeBtn.setOnMouseExited(e -> closeBtn.setStyle(closeBtn.getStyle().replace(closeHoverStyle, "")));
     }
     
     /**
-     * Richtet Drag-Funktionalität ein
+     * Drag-Funktionalität einrichten
      */
     private void setupDragFunctionality() {
-        titleBar.setOnMousePressed(event -> {
-            xOffset = event.getSceneX();
-            yOffset = event.getSceneY();
+        titleBar.setOnMousePressed(e -> {
+            dragOffsetX = e.getSceneX();
+            dragOffsetY = e.getSceneY();
         });
         
-        titleBar.setOnMouseDragged(event -> {
+        titleBar.setOnMouseDragged(e -> {
             if (!isMaximized) {
-                customStage.setX(event.getScreenX() - xOffset);
-                customStage.setY(event.getScreenY() - yOffset);
+                stage.setX(e.getScreenX() - dragOffsetX);
+                stage.setY(e.getScreenY() - dragOffsetY);
+            }
+        });
+        
+        titleBar.setOnMouseReleased(e -> {
+            if (e.getClickCount() == 2) {
+                toggleMaximize();
             }
         });
     }
     
     /**
-     * Richtet Resize-Handles ein
-     */
-    private void setupResizeHandles(Scene scene) {
-        final int RESIZE_BORDER = 8;
-        
-        mouseMovedHandler = event -> {
-            try {
-                if (isMaximized || scene == null) {
-                    scene.setCursor(javafx.scene.Cursor.DEFAULT);
-                    return;
-                }
-                
-                // Prüfe, ob wir uns in der Titelzeile befinden
-                if (titleBar != null && event.getY() < titleBar.getHeight()) {
-                    scene.setCursor(javafx.scene.Cursor.DEFAULT);
-                    return;
-                }
-                
-                double x = event.getSceneX();
-                double y = event.getSceneY();
-                double width = scene.getWidth();
-                double height = scene.getHeight();
-                
-                if (x < RESIZE_BORDER && y < RESIZE_BORDER) {
-                    scene.setCursor(javafx.scene.Cursor.NW_RESIZE);
-                } else if (x > width - RESIZE_BORDER && y < RESIZE_BORDER) {
-                    scene.setCursor(javafx.scene.Cursor.NE_RESIZE);
-                } else if (x < RESIZE_BORDER && y > height - RESIZE_BORDER) {
-                    scene.setCursor(javafx.scene.Cursor.SW_RESIZE);
-                } else if (x > width - RESIZE_BORDER && y > height - RESIZE_BORDER) {
-                    scene.setCursor(javafx.scene.Cursor.SE_RESIZE);
-                } else if (x < RESIZE_BORDER) {
-                    scene.setCursor(javafx.scene.Cursor.W_RESIZE);
-                } else if (x > width - RESIZE_BORDER) {
-                    scene.setCursor(javafx.scene.Cursor.E_RESIZE);
-                } else if (y < RESIZE_BORDER) {
-                    scene.setCursor(javafx.scene.Cursor.N_RESIZE);
-                } else if (y > height - RESIZE_BORDER) {
-                    scene.setCursor(javafx.scene.Cursor.S_RESIZE);
-                } else {
-                    scene.setCursor(javafx.scene.Cursor.DEFAULT);
-                }
-            } catch (Exception e) {
-                // Fehler beim Resize-Handling ignorieren
-            }
-        };
-        scene.addEventFilter(MouseEvent.MOUSE_MOVED, mouseMovedHandler);
-        
-        mousePressedHandler = event -> {
-            try {
-                if (isMaximized || scene == null) return;
-                
-                if (titleBar != null && event.getY() < titleBar.getHeight()) {
-                    return;
-                }
-                
-                double x = event.getSceneX();
-                double y = event.getSceneY();
-                double width = scene.getWidth();
-                double height = scene.getHeight();
-                
-                if (x < RESIZE_BORDER || x > width - RESIZE_BORDER || 
-                    y < RESIZE_BORDER || y > height - RESIZE_BORDER) {
-                    startResize(event, x, y, width, height);
-                    event.consume();
-                }
-            } catch (Exception e) {
-                // Fehler beim Resize-Handling ignorieren
-            }
-        };
-        scene.addEventFilter(MouseEvent.MOUSE_PRESSED, mousePressedHandler);
-        
-        mouseDraggedHandler = event -> {
-            try {
-                if (isResizing) {
-                    performResize(event);
-                    event.consume();
-                }
-            } catch (Exception e) {
-                // Fehler beim Resize-Handling ignorieren
-            }
-        };
-        scene.addEventFilter(MouseEvent.MOUSE_DRAGGED, mouseDraggedHandler);
-        
-        mouseReleasedHandler = event -> {
-            try {
-                if (isResizing) {
-                    isResizing = false;
-                    if (scene != null) {
-                        scene.setCursor(javafx.scene.Cursor.DEFAULT);
-                    }
-                    event.consume();
-                }
-            } catch (Exception e) {
-                // Fehler beim Resize-Handling ignorieren
-            }
-        };
-        scene.addEventFilter(MouseEvent.MOUSE_RELEASED, mouseReleasedHandler);
-    }
-    
-    private double resizeStartX, resizeStartY, resizeStartWidth, resizeStartHeight;
-    private boolean isResizing = false;
-    private String resizeDirection = "";
-    private int currentThemeIndex = 0;
-    private String currentBackgroundColor = "";
-    private String currentTextColor = "";
-    
-    // Event-Handler für sauberes Entfernen
-    private EventHandler<MouseEvent> mouseMovedHandler;
-    private EventHandler<MouseEvent> mousePressedHandler;
-    private EventHandler<MouseEvent> mouseDraggedHandler;
-    private EventHandler<MouseEvent> mouseReleasedHandler;
-
-    /**
-     * Startet das Resizing
-     */
-    private void startResize(MouseEvent event, double x, double y, double width, double height) {
-        if (isMaximized) return;
-        
-        resizeStartX = event.getScreenX();
-        resizeStartY = event.getScreenY();
-        resizeStartWidth = customStage.getWidth();
-        resizeStartHeight = customStage.getHeight();
-        
-        final int RESIZE_BORDER = 8;
-        if (x < RESIZE_BORDER && y < RESIZE_BORDER) {
-            resizeDirection = "NW";
-        } else if (x > width - RESIZE_BORDER && y < RESIZE_BORDER) {
-            resizeDirection = "NE";
-        } else if (x < RESIZE_BORDER && y > height - RESIZE_BORDER) {
-            resizeDirection = "SW";
-        } else if (x > width - RESIZE_BORDER && y > height - RESIZE_BORDER) {
-            resizeDirection = "SE";
-        } else if (x < RESIZE_BORDER) {
-            resizeDirection = "W";
-        } else if (x > width - RESIZE_BORDER) {
-            resizeDirection = "E";
-        } else if (y < RESIZE_BORDER) {
-            resizeDirection = "N";
-        } else if (y > height - RESIZE_BORDER) {
-            resizeDirection = "S";
-        }
-        
-        isResizing = true;
-    }
-    
-    /**
-     * Führt das Resizing durch
-     */
-    private void performResize(MouseEvent event) {
-        if (!isResizing || isMaximized) return;
-        
-        double deltaX = event.getScreenX() - resizeStartX;
-        double deltaY = event.getScreenY() - resizeStartY;
-        
-        double newWidth = resizeStartWidth;
-        double newHeight = resizeStartHeight;
-        double newX = customStage.getX();
-        double newY = customStage.getY();
-        
-        double minWidth = Math.max(customStage.getMinWidth(), 300.0);
-        double minHeight = Math.max(customStage.getMinHeight(), 200.0);
-        
-        switch (resizeDirection) {
-            case "SE":
-                newWidth = Math.max(minWidth, resizeStartWidth + deltaX);
-                newHeight = Math.max(minHeight, resizeStartHeight + deltaY);
-                break;
-            case "SW":
-                newWidth = Math.max(minWidth, resizeStartWidth - deltaX);
-                newHeight = Math.max(minHeight, resizeStartHeight + deltaY);
-                newX = customStage.getX() + (resizeStartWidth - newWidth);
-                break;
-            case "NE":
-                newWidth = Math.max(minWidth, resizeStartWidth + deltaX);
-                newHeight = Math.max(minHeight, resizeStartHeight - deltaY);
-                newY = customStage.getY() + (resizeStartHeight - newHeight);
-                break;
-            case "NW":
-                newWidth = Math.max(minWidth, resizeStartWidth - deltaX);
-                newHeight = Math.max(minHeight, resizeStartHeight - deltaY);
-                newX = customStage.getX() + (resizeStartWidth - newWidth);
-                newY = customStage.getY() + (resizeStartHeight - newHeight);
-                break;
-            case "E":
-                newWidth = Math.max(minWidth, resizeStartWidth + deltaX);
-                break;
-            case "W":
-                newWidth = Math.max(minWidth, resizeStartWidth - deltaX);
-                newX = customStage.getX() + (resizeStartWidth - newWidth);
-                break;
-            case "S":
-                newHeight = Math.max(minHeight, resizeStartHeight + deltaY);
-                break;
-            case "N":
-                newHeight = Math.max(minHeight, resizeStartHeight - deltaY);
-                newY = customStage.getY() + (resizeStartHeight - newHeight);
-                break;
-        }
-        
-        customStage.setX(newX);
-        customStage.setY(newY);
-        customStage.setWidth(newWidth);
-        customStage.setHeight(newHeight);
-    }
-    
-    /**
-     * Wechselt zwischen maximiert und normal
+     * Maximize/Minimize umschalten
      */
     private void toggleMaximize() {
         if (isMaximized) {
-            customStage.setMaximized(false);
+            // Restore
+            stage.setX(originalX);
+            stage.setY(originalY);
+            stage.setWidth(originalWidth);
+            stage.setHeight(originalHeight);
+            maximizeBtn.setText("□");
             isMaximized = false;
-            maximizeBtn.setText("🗗");
         } else {
-            customStage.setMaximized(true);
+            // Maximize
+            originalX = stage.getX();
+            originalY = stage.getY();
+            originalWidth = stage.getWidth();
+            originalHeight = stage.getHeight();
+            
+            stage.setMaximized(true);
+            maximizeBtn.setText("❐");
             isMaximized = true;
-            maximizeBtn.setText("🗖");
         }
     }
     
     /**
-     * Wendet ein Theme an
+     * Standard Button Types setzen
      */
-    public void applyTheme(int themeIndex) {
-        String backgroundColor;
-        String textColor;
-        String borderColor;
-        
-        switch (themeIndex) {
-            case 0: // Weiß
-                backgroundColor = "linear-gradient(from 0% 0% to 0% 100%, #ffffff 0%, #f8f9fa 100%)";
-                textColor = "black";
-                borderColor = "black";
+    private void setDefaultButtonTypes(AlertType alertType) {
+        buttonTypes.clear();
+        switch (alertType) {
+            case CONFIRMATION:
+                buttonTypes.addAll(ButtonType.OK, ButtonType.CANCEL);
                 break;
-            case 1: // Schwarz
-                backgroundColor = "#1a1a1a";
-                textColor = "white";
-                borderColor = "white";
-                break;
-            case 2: // Pastell
-                backgroundColor = "linear-gradient(from 0% 0% to 0% 100%, #f3e5f5 0%, #e1bee7 100%)";
-                textColor = "black";
-                borderColor = "black";
-                break;
-            case 3: // Blau
-                backgroundColor = "linear-gradient(from 0% 0% to 0% 100%, #1e3a8a 0%, #3b82f6 100%)";
-                textColor = "white";
-                borderColor = "white";
-                break;
-            case 4: // Grün
-                backgroundColor = "linear-gradient(from 0% 0% to 0% 100%, #064e3b 0%, #10b981 100%)";
-                textColor = "white";
-                borderColor = "white";
-                break;
-            case 5: // Lila
-                backgroundColor = "linear-gradient(from 0% 0% to 0% 100%, #581c87 0%, #8b5cf6 100%)";
-                textColor = "white";
-                borderColor = "white";
+            case WARNING:
+            case ERROR:
+                buttonTypes.addAll(ButtonType.OK);
                 break;
             default:
-                backgroundColor = "linear-gradient(from 0% 0% to 0% 100%, #2c3e50 0%, #34495e 100%)";
-                textColor = "white";
-                borderColor = "white";
+                buttonTypes.addAll(ButtonType.OK);
                 break;
         }
-        
-        // Titelzeile
-        titleBar.setStyle("-fx-background-color: " + backgroundColor + "; -fx-padding: 8px; -fx-spacing: 5px; -fx-border-color: " + borderColor + "; -fx-border-width: 0 0 1 0;");
-        
-        // Titel-Label
-        titleLabel.setStyle("-fx-text-fill: " + textColor + "; -fx-font-weight: bold; -fx-font-size: 14px; -fx-padding: 0 10px; -fx-background-color: transparent;");
-        
-        // Button-Styles aktualisieren
-        String buttonStyle = "-fx-background-color: transparent; -fx-text-fill: " + textColor + "; -fx-font-weight: bold; -fx-font-size: 16px; -fx-min-width: 35px; -fx-min-height: 30px; -fx-border-color: transparent; -fx-border-radius: 4px; -fx-background-radius: 4px;";
-        String closeButtonStyle = "-fx-background-color: transparent; -fx-text-fill: " + textColor + "; -fx-font-weight: bold; -fx-font-size: 18px; -fx-min-width: 35px; -fx-min-height: 30px; -fx-border-color: transparent; -fx-border-radius: 4px; -fx-background-radius: 4px;";
-        
-        minimizeBtn.setStyle(buttonStyle);
-        maximizeBtn.setStyle(buttonStyle);
-        closeBtn.setStyle(closeButtonStyle);
-        
-        currentTextColor = textColor;
-        setupButtonHoverEffects();
-        
-        // Aktuelle Theme-Werte speichern
-        currentThemeIndex = themeIndex;
-        currentBackgroundColor = backgroundColor;
-        currentTextColor = textColor;
-        
-        // CustomStage Theme anwenden
-        customStage.setTitleBarTheme(themeIndex);
-        
-        // DialogPane Theme anwenden
-        applyDialogPaneTheme(themeIndex, backgroundColor, textColor);
     }
     
+    
     /**
-     * Wendet das Theme auf die DialogPane an
+     * Button Styles aktualisieren
      */
-    private void applyDialogPaneTheme(int themeIndex, String backgroundColor, String textColor) {
-        DialogPane dialogPane = originalAlert.getDialogPane();
-        if (dialogPane == null) return;
-        
-        // Bestimme Solid-Color für DialogPane (ohne Gradient)
-        String solidBackgroundColor;
-        switch (themeIndex) {
-            case 0: // Weiß
-                solidBackgroundColor = "#ffffff";
-                break;
-            case 1: // Schwarz
-                solidBackgroundColor = "#1a1a1a";
-                break;
-            case 2: // Pastell
-                solidBackgroundColor = "#f3e5f5";
-                break;
-            case 3: // Blau
-                solidBackgroundColor = "#1e3a8a";
-                break;
-            case 4: // Grün
-                solidBackgroundColor = "#064e3b";
-                break;
-            case 5: // Lila
-                solidBackgroundColor = "#581c87";
-                break;
-            default:
-                solidBackgroundColor = "#2c3e50";
-                break;
-        }
-        
-        // DialogPane Hintergrund setzen
-        dialogPane.setStyle("-fx-background-color: " + solidBackgroundColor + "; -fx-text-fill: " + textColor + ";");
-        
-        // Alle Labels in der DialogPane thematisieren
-        for (javafx.scene.Node node : dialogPane.lookupAll(".label")) {
-            if (node instanceof javafx.scene.control.Label) {
-                javafx.scene.control.Label label = (javafx.scene.control.Label) node;
-                label.setStyle("-fx-text-fill: " + textColor + "; -fx-background-color: transparent;");
-            }
-        }
-        
-        // Alle Buttons in der DialogPane thematisieren
-        for (javafx.scene.Node node : dialogPane.lookupAll(".button")) {
-            if (node instanceof javafx.scene.control.Button) {
-                javafx.scene.control.Button button = (javafx.scene.control.Button) node;
-                String buttonBgColor = (themeIndex == 0 || themeIndex == 2) ? "#e9ecef" : "#495057";
-                button.setStyle("-fx-background-color: " + buttonBgColor + "; -fx-text-fill: " + textColor + "; -fx-border-color: " + textColor + "; -fx-border-radius: 4px; -fx-background-radius: 4px;");
-            }
-        }
-        
-        // Content-Bereich thematisieren
-        javafx.scene.Node content = dialogPane.lookup(".content");
-        if (content != null) {
-            content.setStyle("-fx-background-color: " + solidBackgroundColor + "; -fx-text-fill: " + textColor + ";");
-        }
-        
-        // Header-Bereich thematisieren
-        javafx.scene.Node header = dialogPane.lookup(".header-panel");
-        if (header != null) {
-            header.setStyle("-fx-background-color: " + solidBackgroundColor + "; -fx-text-fill: " + textColor + ";");
-        }
-        
-        // Icon-Bereich thematisieren (für das ! Icon)
-        try {
-            javafx.scene.Node graphicContainer = dialogPane.lookup(".graphic-container");
-            if (graphicContainer != null) {
-                graphicContainer.setStyle("-fx-background-color: " + solidBackgroundColor + "; -fx-text-fill: " + textColor + ";");
-            }
-        } catch (Exception e) {
-            // Ignoriere Fehler beim Icon-Styling
-        }
-        
-        // Alle Checkboxen in der DialogPane thematisieren
-        for (javafx.scene.Node node : dialogPane.lookupAll(".check-box")) {
-            if (node instanceof javafx.scene.control.CheckBox) {
-                javafx.scene.control.CheckBox checkBox = (javafx.scene.control.CheckBox) node;
-                checkBox.setStyle("-fx-text-fill: " + textColor + "; -fx-background-color: transparent;");
-            }
-        }
-        
-        // Alle Checkbox-Labels thematisieren
-        for (javafx.scene.Node node : dialogPane.lookupAll(".check-box .label")) {
-            if (node instanceof javafx.scene.control.Label) {
-                javafx.scene.control.Label label = (javafx.scene.control.Label) node;
-                label.setStyle("-fx-text-fill: " + textColor + "; -fx-background-color: transparent;");
-            }
-        }
-        
-        // Text-Eingabefelder thematisieren
-        for (javafx.scene.Node node : dialogPane.lookupAll(".text-field")) {
-            if (node instanceof javafx.scene.control.TextField) {
-                javafx.scene.control.TextField textField = (javafx.scene.control.TextField) node;
-                textField.setStyle("-fx-text-fill: " + textColor + "; -fx-background-color: " + solidBackgroundColor + "; -fx-border-color: " + textColor + ";");
-            }
-        }
-        
-        // TextArea thematisieren
-        for (javafx.scene.Node node : dialogPane.lookupAll(".text-area")) {
-            if (node instanceof javafx.scene.control.TextArea) {
-                javafx.scene.control.TextArea textArea = (javafx.scene.control.TextArea) node;
-                textArea.setStyle("-fx-text-fill: " + textColor + "; -fx-background-color: " + solidBackgroundColor + "; -fx-border-color: " + textColor + ";");
-            }
-        }
-        
-        // PasswordField thematisieren
-        for (javafx.scene.Node node : dialogPane.lookupAll(".password-field")) {
-            if (node instanceof javafx.scene.control.PasswordField) {
-                javafx.scene.control.PasswordField passwordField = (javafx.scene.control.PasswordField) node;
-                passwordField.setStyle("-fx-text-fill: " + textColor + "; -fx-background-color: " + solidBackgroundColor + "; -fx-border-color: " + textColor + ";");
-            }
-        }
-        
-        // ComboBox thematisieren
-        for (javafx.scene.Node node : dialogPane.lookupAll(".combo-box")) {
-            if (node instanceof javafx.scene.control.ComboBox) {
-                javafx.scene.control.ComboBox<?> comboBox = (javafx.scene.control.ComboBox<?>) node;
-                comboBox.setStyle("-fx-text-fill: " + textColor + "; -fx-background-color: " + solidBackgroundColor + "; -fx-border-color: " + textColor + ";");
-            }
-        }
-        
-        // ListView thematisieren
-        for (javafx.scene.Node node : dialogPane.lookupAll(".list-view")) {
-            if (node instanceof javafx.scene.control.ListView) {
-                javafx.scene.control.ListView<?> listView = (javafx.scene.control.ListView<?>) node;
-                listView.setStyle("-fx-text-fill: " + textColor + "; -fx-background-color: " + solidBackgroundColor + "; -fx-border-color: " + textColor + ";");
-            }
-        }
-        
-        // TableView thematisieren
-        for (javafx.scene.Node node : dialogPane.lookupAll(".table-view")) {
-            if (node instanceof javafx.scene.control.TableView) {
-                javafx.scene.control.TableView<?> tableView = (javafx.scene.control.TableView<?>) node;
-                tableView.setStyle("-fx-text-fill: " + textColor + "; -fx-background-color: " + solidBackgroundColor + "; -fx-border-color: " + textColor + ";");
-            }
-        }
-        
-        // Slider thematisieren
-        for (javafx.scene.Node node : dialogPane.lookupAll(".slider")) {
-            if (node instanceof javafx.scene.control.Slider) {
-                javafx.scene.control.Slider slider = (javafx.scene.control.Slider) node;
-                slider.setStyle("-fx-text-fill: " + textColor + ";");
-            }
-        }
-        
-        // ScrollPane thematisieren
-        for (javafx.scene.Node node : dialogPane.lookupAll(".scroll-pane")) {
-            if (node instanceof javafx.scene.control.ScrollPane) {
-                javafx.scene.control.ScrollPane scrollPane = (javafx.scene.control.ScrollPane) node;
-                scrollPane.setStyle("-fx-background-color: " + solidBackgroundColor + "; -fx-border-color: " + textColor + ";");
-            }
-        }
-        
-        // TabPane thematisieren
-        for (javafx.scene.Node node : dialogPane.lookupAll(".tab-pane")) {
-            if (node instanceof javafx.scene.control.TabPane) {
-                javafx.scene.control.TabPane tabPane = (javafx.scene.control.TabPane) node;
-                tabPane.setStyle("-fx-background-color: " + solidBackgroundColor + "; -fx-border-color: " + textColor + ";");
-            }
-        }
-        
-        // Alle weiteren Labels thematisieren (falls noch nicht abgedeckt)
-        for (javafx.scene.Node node : dialogPane.lookupAll(".label")) {
-            if (node instanceof javafx.scene.control.Label) {
-                javafx.scene.control.Label label = (javafx.scene.control.Label) node;
-                // Nur stylen wenn noch kein Style gesetzt ist
-                if (label.getStyle() == null || label.getStyle().isEmpty()) {
-                    label.setStyle("-fx-text-fill: " + textColor + "; -fx-background-color: transparent;");
-                }
+    private void updateButtonStyles(String textColor, String backgroundColor) {
+        for (javafx.scene.Node node : buttonContainer.getChildren()) {
+            if (node instanceof Button) {
+                Button button = (Button) node;
+                String buttonStyle = String.format(
+                    "-fx-background-color: %s; -fx-text-fill: %s; -fx-border-color: %s; -fx-border-width: 1; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 10 20; -fx-font-size: 12px; -fx-font-weight: bold; -fx-cursor: hand;",
+                    backgroundColor, textColor, textColor
+                );
+                button.setStyle(buttonStyle);
             }
         }
     }
     
     /**
-     * Zeigt den Alert an und wartet auf Benutzerinteraktion
+     * Content aktualisieren
      */
-    public Optional<ButtonType> showAndWait() {
-        try {
-            // Prüfe ob customStage noch existiert
-            if (customStage == null) {
-                return Optional.empty();
+    private void updateContent() {
+        
+        contentContainer.getChildren().clear();
+        
+        // Header
+        if (headerText != null && !headerText.isEmpty() && !headerText.equals("null")) {
+            headerLabel = new Label(headerText);
+            headerLabel.setWrapText(true);
+            headerLabel.setTextAlignment(TextAlignment.LEFT);
+            headerLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: " + THEME_TEXTS[currentTheme] + ";");
+            contentContainer.getChildren().add(headerLabel);
+        }
+        
+        // Graphic
+        if (graphic != null) {
+            graphicView = new ImageView(graphic);
+            graphicView.setFitWidth(64);
+            graphicView.setFitHeight(64);
+            graphicView.setPreserveRatio(true);
+            contentContainer.getChildren().add(graphicView);
+        }
+        
+        // Content ODER TextField ODER Custom Content
+        if (hasCustomContent) {
+            if (customContentBox != null) {
+                // Mehrere Controls anzeigen
+                contentContainer.getChildren().add(customContentBox);
+            } else if (textField != null) {
+                // Einzelnes TextField anzeigen
+                contentContainer.getChildren().add(textField);
             }
+        } else if (contentText != null && !contentText.isEmpty() && !contentText.equals("null")) {
+            // Normaler Content anzeigen
+            contentLabel = new Label(contentText);
+            contentLabel.setWrapText(true);
+            contentLabel.setTextAlignment(TextAlignment.LEFT);
+            contentLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: " + THEME_TEXTS[currentTheme] + ";");
+            contentContainer.getChildren().add(contentLabel);
+        }
+        
+    }
+    
+    /**
+     * Buttons aktualisieren
+     */
+    private void updateButtons() {
+        
+        buttonContainer.getChildren().clear();
+        
+        // Prüfe ob buttonTypes leer ist
+        if (buttonTypes == null || buttonTypes.isEmpty()) {
+            return;
+        }
+        
+        for (ButtonType buttonType : buttonTypes) {
+            Button button = new Button(buttonType.getText());
+            button.setOnAction(e -> {
+                result = buttonType;
+                stage.close();
+            });
             
-            // Titel aktualisieren
-            if (originalAlert.getTitle() != null && titleLabel != null) {
-                titleLabel.setText(originalAlert.getTitle());
-            }
+            // Button sofort stylen
+            String textColor = THEME_TEXTS[currentTheme];
+            String backgroundColor = THEME_BACKGROUNDS[currentTheme];
+            String buttonStyle = String.format(
+                "-fx-background-color: %s; -fx-text-fill: %s; -fx-border-color: %s; -fx-border-width: 1; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 10 20; -fx-font-size: 12px; -fx-font-weight: bold; -fx-cursor: hand;",
+                backgroundColor, textColor, textColor
+            );
+            button.setStyle(buttonStyle);
             
-            // CustomStage anzeigen
-            customStage.showAndWait();
-            
-            // Ergebnis zurückgeben
-            return Optional.ofNullable(result);
-        } catch (Exception e) {
-            return Optional.empty();
+            buttonContainer.getChildren().add(button);
         }
+        
+        
+        // WICHTIG: Theme NACH dem Hinzufügen der Buttons anwenden
+        // applyTheme(currentTheme); // Wird in showAndWait() aufgerufen
     }
     
-    /**
-     * Zeigt den Alert an
-     */
-    public void show() {
-        try {
-            // Titel aktualisieren
-            if (originalAlert.getTitle() != null) {
-                titleLabel.setText(originalAlert.getTitle());
-            }
-            
-            // CustomStage anzeigen
-            customStage.show();
-        } catch (Exception e) {
-            // Fehler ignorieren
-        }
-    }
-    
-    /**
-     * Schließt den Alert
-     */
-    public void close() {
-        try {
-            if (customStage != null && customStage.isShowing()) {
-                // Event-Filter entfernen, um NullPointerException zu vermeiden
-                Scene scene = customStage.getScene();
-                if (scene != null) {
-                    if (mouseMovedHandler != null) {
-                        scene.removeEventFilter(MouseEvent.MOUSE_MOVED, mouseMovedHandler);
-                    }
-                    if (mousePressedHandler != null) {
-                        scene.removeEventFilter(MouseEvent.MOUSE_PRESSED, mousePressedHandler);
-                    }
-                    if (mouseDraggedHandler != null) {
-                        scene.removeEventFilter(MouseEvent.MOUSE_DRAGGED, mouseDraggedHandler);
-                    }
-                    if (mouseReleasedHandler != null) {
-                        scene.removeEventFilter(MouseEvent.MOUSE_RELEASED, mouseReleasedHandler);
-                    }
-                }
-                customStage.close();
-            }
-        } catch (Exception e) {
-            // Ignoriere Fehler beim Schließen
-        }
-    }
-    
-    /**
-     * Setzt den Owner-Window
-     */
-    public void initOwner(Window owner) {
-        customStage.initOwner(owner);
-    }
-    
-    /**
-     * Setzt die Größe
-     */
-    public void setSize(double width, double height) {
-        customStage.setWidth(width);
-        customStage.setHeight(height);
-    }
-    
-    /**
-     * Setzt die Position
-     */
-    public void setPosition(double x, double y) {
-        customStage.setX(x);
-        customStage.setY(y);
-    }
-    
-    /**
-     * Zentriert den Alert auf dem Bildschirm
-     */
-    public void centerOnScreen() {
-        customStage.centerOnScreen();
-    }
-    
-    // Wrapper-Methoden für die Original-Alert-Funktionalität
-    
-    public void setTitle(String title) {
-        originalAlert.setTitle(title);
+    // Getter und Setter
+    public String getTitle() { return title; }
+    public void setTitle(String title) { 
+        this.title = title; 
         if (titleLabel != null) {
             titleLabel.setText(title);
         }
     }
     
-    public String getTitle() {
-        return originalAlert.getTitle();
+    public String getHeaderText() { return headerText; }
+    public void setHeaderText(String headerText) { 
+        this.headerText = headerText; 
+        // WICHTIG: updateContent() wird in showAndWait()/show() aufgerufen
     }
     
-    public void setHeaderText(String headerText) {
-        originalAlert.setHeaderText(headerText);
+    public String getContentText() { return contentText; }
+    public void setContentText(String contentText) { 
+        this.contentText = contentText; 
+        // WICHTIG: updateContent() wird in showAndWait()/show() aufgerufen
     }
     
-    public String getHeaderText() {
-        return originalAlert.getHeaderText();
+    public javafx.scene.image.Image getGraphic() { return graphic; }
+    public void setGraphic(javafx.scene.image.Image graphic) { 
+        this.graphic = graphic; 
+        // WICHTIG: updateContent() wird in showAndWait()/show() aufgerufen
     }
     
-    public void setContentText(String contentText) {
-        originalAlert.setContentText(contentText);
+    public ObservableList<ButtonType> getButtonTypes() { return buttonTypes; }
+    public void setButtonTypes(ObservableList<ButtonType> buttonTypes) { 
+        this.buttonTypes = buttonTypes; 
+        // WICHTIG: updateButtons() wird in showAndWait()/show() aufgerufen
     }
     
-    public String getContentText() {
-        return originalAlert.getContentText();
+    public int getCurrentTheme() { return currentTheme; }
+    public void setCurrentTheme(int themeIndex) { 
+        applyTheme(themeIndex);
     }
     
-    public void setButtonTypes(ButtonType... buttonTypes) {
-        originalAlert.getButtonTypes().setAll(buttonTypes);
+    /**
+     * Theme anwenden (public für Kompatibilität)
+     */
+    public void applyTheme(int themeIndex) {
+        if (themeIndex < 0 || themeIndex >= THEME_BACKGROUNDS.length) {
+            themeIndex = 0;
+        }
+        
+        currentTheme = themeIndex;
+        String backgroundColor = THEME_BACKGROUNDS[themeIndex];
+        String titleColor = THEME_TITLES[themeIndex];
+        String textColor = THEME_TEXTS[themeIndex];
+        
+        // Root Container
+        rootContainer.setStyle("-fx-background-color: " + backgroundColor + ";");
+        
+        // Titelleiste
+        titleBar.setStyle("-fx-background-color: " + backgroundColor + "; -fx-border-color: " + titleColor + "; -fx-border-width: 0 0 1 0;");
+        titleLabel.setStyle("-fx-text-fill: " + titleColor + ";");
+        
+        // Window Buttons
+        String buttonStyle = "-fx-background-color: transparent; -fx-text-fill: " + titleColor + "; -fx-border-color: transparent;";
+        minimizeBtn.setStyle(buttonStyle);
+        maximizeBtn.setStyle(buttonStyle);
+        closeBtn.setStyle(buttonStyle);
+        
+        // Content - WICHTIG: Nur anwenden wenn Labels existieren
+        if (headerLabel != null) {
+            headerLabel.setStyle("-fx-text-fill: " + textColor + "; -fx-font-weight: bold; -fx-font-size: 16px;");
+        }
+        if (contentLabel != null) {
+            contentLabel.setStyle("-fx-text-fill: " + textColor + "; -fx-font-size: 14px;");
+        }
+        
+        // Buttons
+        updateButtonStyles(textColor, backgroundColor);
+        
+        // Border für den gesamten Dialog
+        String borderColor = textColor;
+        rootContainer.setStyle(String.format(
+            "-fx-background-color: %s; -fx-border-color: %s; -fx-border-width: 2; -fx-border-radius: 8; -fx-background-radius: 8;",
+            backgroundColor, borderColor
+        ));
     }
     
+    /**
+     * Owner setzen (für Kompatibilität)
+     */
+    public void initOwner(Window owner) {
+        if (stage != null) {
+            stage.initOwner(owner);
+        }
+    }
+    
+    /**
+     * Dummy DialogPane für Kompatibilität
+     */
     public DialogPane getDialogPane() {
-        return originalAlert.getDialogPane();
+        // Erstelle ein Dummy DialogPane für Kompatibilität
+        DialogPane dummyPane = new DialogPane();
+        dummyPane.setContent(contentContainer);
+        return dummyPane;
     }
     
-    // Helper-Methoden für Theme-Anwendung
-    private int getCurrentThemeIndex() {
-        return currentThemeIndex;
+    /**
+     * Setzt ein TextField für Eingabe (für TextInputDialog-Ersatz)
+     */
+    public void setTextField(TextField textField) {
+        hasCustomContent = true;
+        this.textField = textField;
+        
+        // TextField stylen
+        textField.setStyle("-fx-background-color: white; -fx-text-fill: black; -fx-border-color: #cccccc; -fx-border-width: 1; -fx-border-radius: 4; -fx-background-radius: 4; -fx-padding: 8 12; -fx-font-size: 12px;");
     }
     
-    private String getCurrentBackgroundColor() {
-        return currentBackgroundColor;
+    /**
+     * Setzt mehrere Textfelder/Controls (für komplexe Dialoge)
+     */
+    public void setCustomContent(VBox contentBox) {
+        hasCustomContent = true;
+        this.customContentBox = contentBox;
+        
+        // Alle TextFields in der VBox stylen
+        for (Node node : contentBox.getChildren()) {
+            if (node instanceof TextField) {
+                TextField tf = (TextField) node;
+                tf.setStyle("-fx-background-color: white; -fx-text-fill: black; -fx-border-color: #cccccc; -fx-border-width: 1; -fx-border-radius: 4; -fx-background-radius: 4; -fx-padding: 8 12; -fx-font-size: 12px;");
+            } else if (node instanceof TextArea) {
+                TextArea ta = (TextArea) node;
+                ta.setStyle("-fx-background-color: white; -fx-text-fill: black; -fx-border-color: #cccccc; -fx-border-width: 1; -fx-border-radius: 4; -fx-background-radius: 4; -fx-padding: 8 12; -fx-font-size: 12px;");
+            } else if (node instanceof Label) {
+                Label label = (Label) node;
+                label.setStyle("-fx-font-size: 12px; -fx-text-fill: " + THEME_TEXTS[currentTheme] + ";");
+            }
+        }
     }
     
-    private String getCurrentTextColor() {
-        return currentTextColor;
+    /**
+     * Gibt das TextField zurück (für TextInputDialog-Ersatz)
+     */
+    public TextField getTextField() {
+        return textField;
+    }
+    
+    /**
+     * Gibt die Custom Content Box zurück
+     */
+    public VBox getCustomContent() {
+        return customContentBox;
+    }
+    
+    /**
+     * ButtonTypes setzen (varargs für Kompatibilität)
+     */
+    public void setButtonTypes(ButtonType... buttonTypes) {
+        this.buttonTypes.clear();
+        this.buttonTypes.addAll(buttonTypes);
+        // WICHTIG: updateButtons() wird in showAndWait()/show() aufgerufen
+    }
+    
+    /**
+     * Alert anzeigen und warten
+     */
+    public Optional<ButtonType> showAndWait() {
+        return showAndWait(null);
+    }
+    
+    /**
+     * Alert anzeigen und warten (mit Owner)
+     */
+    public Optional<ButtonType> showAndWait(Window owner) {
+        
+        if (owner != null) {
+            stage.initOwner(owner);
+            stage.initModality(Modality.WINDOW_MODAL);
+        } else {
+            stage.initModality(Modality.APPLICATION_MODAL);
+        }
+        
+        // WICHTIG: Content und Buttons IMMER aktualisieren vor dem Anzeigen
+        updateContent();
+        updateButtons();
+        
+        
+        // Anzeigen
+        stage.showAndWait();
+        
+        
+        return Optional.ofNullable(result);
+    }
+    
+    /**
+     * Alert anzeigen (nicht blockierend)
+     */
+    public void show() {
+        show(null);
+    }
+    
+    /**
+     * Alert anzeigen (nicht blockierend, mit Owner)
+     */
+    public void show(Window owner) {
+        if (owner != null) {
+            stage.initOwner(owner);
+            stage.initModality(Modality.WINDOW_MODAL);
+        } else {
+            stage.initModality(Modality.NONE);
+        }
+        
+        // WICHTIG: Content und Buttons IMMER aktualisieren vor dem Anzeigen
+        updateContent();
+        updateButtons();
+        
+        // Anzeigen
+        stage.show();
+    }
+    
+    /**
+     * Alert schließen
+     */
+    public void close() {
+        if (stage != null) {
+            stage.close();
+        }
+    }
+    
+    /**
+     * Debug-Methode zum Testen
+     */
+    public void debugInfo() {
+        System.out.println("  Title: '" + title + "'");
+        System.out.println("  HeaderText: '" + headerText + "'");
+        System.out.println("  ContentText: '" + contentText + "'");
+        System.out.println("  ButtonTypes: " + buttonTypes.size() + " buttons");
+        for (ButtonType bt : buttonTypes) {
+            System.out.println("    - " + bt.getText());
+        }
+    }
+    
+    /**
+     * Alert-Typen (kompatibel mit JavaFX AlertType)
+     */
+    public enum AlertType {
+        NONE,
+        INFORMATION,
+        WARNING,
+        CONFIRMATION,
+        ERROR
     }
 }

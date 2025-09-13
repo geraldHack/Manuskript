@@ -5,7 +5,6 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -15,7 +14,6 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.geometry.Pos;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.paint.Color;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -225,14 +223,27 @@ public class CustomStage extends Stage {
             }
             
             // Prüfe, ob wir uns in einem Textbereich befinden - dann kein Resize
+            // ABER: Nur wenn wir nicht am Rand sind
             if (event.getTarget() instanceof Node) {
                 Node target = (Node) event.getTarget();
                 if (target != null && (target.getStyleClass().contains("code-area") || 
                                       target.getStyleClass().contains("text-area") ||
                                       target.getStyleClass().contains("text-field") ||
                                       target.getStyleClass().contains("editor"))) {
-                    scene.setCursor(javafx.scene.Cursor.TEXT);
-                    return;
+                    // Nur TEXT-Cursor setzen, wenn wir nicht am Rand sind
+                    double x = event.getSceneX();
+                    double y = event.getSceneY();
+                    double width = scene.getWidth();
+                    double height = scene.getHeight();
+                    
+                    // Wenn wir am Rand sind, Resize-Cursor verwenden
+                    if (x < RESIZE_BORDER || x >= width - RESIZE_BORDER || 
+                        y < RESIZE_BORDER || y >= height - RESIZE_BORDER) {
+                        // Resize-Cursor wird weiter unten gesetzt
+                    } else {
+                        scene.setCursor(javafx.scene.Cursor.TEXT);
+                        return;
+                    }
                 }
             }
             
@@ -241,14 +252,20 @@ public class CustomStage extends Stage {
             double width = scene.getWidth();
             double height = scene.getHeight();
             
-            // Resize-Cursor anzeigen - LINKS DEAKTIVIERT
-            if (x >= width - RESIZE_BORDER && y <= RESIZE_BORDER) {
+            // Resize-Cursor anzeigen - ALLE RICHTUNGEN AKTIVIERT
+            if (x < RESIZE_BORDER && y < RESIZE_BORDER) {
+                scene.setCursor(javafx.scene.Cursor.NW_RESIZE);
+            } else if (x >= width - RESIZE_BORDER && y < RESIZE_BORDER) {
                 scene.setCursor(javafx.scene.Cursor.NE_RESIZE);
+            } else if (x < RESIZE_BORDER && y >= height - RESIZE_BORDER) {
+                scene.setCursor(javafx.scene.Cursor.SW_RESIZE);
             } else if (x >= width - RESIZE_BORDER && y >= height - RESIZE_BORDER) {
                 scene.setCursor(javafx.scene.Cursor.SE_RESIZE);
+            } else if (x < RESIZE_BORDER) {
+                scene.setCursor(javafx.scene.Cursor.W_RESIZE);
             } else if (x >= width - RESIZE_BORDER) {
                 scene.setCursor(javafx.scene.Cursor.E_RESIZE);
-            } else if (y <= RESIZE_BORDER) {
+            } else if (y < RESIZE_BORDER) {
                 scene.setCursor(javafx.scene.Cursor.N_RESIZE);
             } else if (y >= height - RESIZE_BORDER) {
                 scene.setCursor(javafx.scene.Cursor.S_RESIZE);
@@ -277,12 +294,15 @@ public class CustomStage extends Stage {
                 }
             }
             
-            // WICHTIG: Resize NUR starten, wenn der Cursor bereits auf einem Resize-Cursor steht - LINKS DEAKTIVIERT
+            // WICHTIG: Resize NUR starten, wenn der Cursor bereits auf einem Resize-Cursor steht - ALLE RICHTUNGEN AKTIVIERT
             if (scene.getCursor() == javafx.scene.Cursor.E_RESIZE ||
+                scene.getCursor() == javafx.scene.Cursor.W_RESIZE ||
                 scene.getCursor() == javafx.scene.Cursor.N_RESIZE ||
                 scene.getCursor() == javafx.scene.Cursor.S_RESIZE ||
                 scene.getCursor() == javafx.scene.Cursor.NE_RESIZE ||
-                scene.getCursor() == javafx.scene.Cursor.SE_RESIZE) {
+                scene.getCursor() == javafx.scene.Cursor.NW_RESIZE ||
+                scene.getCursor() == javafx.scene.Cursor.SE_RESIZE ||
+                scene.getCursor() == javafx.scene.Cursor.SW_RESIZE) {
                 
                 double x = event.getSceneX();
                 double y = event.getSceneY();
@@ -327,15 +347,21 @@ public class CustomStage extends Stage {
         resizeStartWidth = getWidth();
         resizeStartHeight = getHeight();
         
-        // Bestimme Resize-Richtung - LINKS DEAKTIVIERT
+        // Bestimme Resize-Richtung - ALLE RICHTUNGEN AKTIVIERT
         final int RESIZE_BORDER = 10; // Gleicher Wert wie in setupResizeHandles
-        if (x >= width - RESIZE_BORDER && y <= RESIZE_BORDER) {
+        if (x < RESIZE_BORDER && y < RESIZE_BORDER) {
+            resizeDirection = "NW";
+        } else if (x >= width - RESIZE_BORDER && y < RESIZE_BORDER) {
             resizeDirection = "NE";
+        } else if (x < RESIZE_BORDER && y >= height - RESIZE_BORDER) {
+            resizeDirection = "SW";
         } else if (x >= width - RESIZE_BORDER && y >= height - RESIZE_BORDER) {
             resizeDirection = "SE";
+        } else if (x < RESIZE_BORDER) {
+            resizeDirection = "W";
         } else if (x >= width - RESIZE_BORDER) {
             resizeDirection = "E";
-        } else if (y <= RESIZE_BORDER) {
+        } else if (y < RESIZE_BORDER) {
             resizeDirection = "N";
         } else if (y >= height - RESIZE_BORDER) {
             resizeDirection = "S";

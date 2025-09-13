@@ -1,12 +1,14 @@
 # Manuskript - DOCX Verarbeitung & Text-Editor
 
-**Hauptzweck:** JavaFX-Anwendung zum Zusammenführen mehrerer DOCX-Dateien zu einem Manuskript mit integriertem Text-Editor und automatischer Nachbearbeitung. Gut geeignet für **Sudowrite** Projekt-Exporte
+**Hauptzweck:** JavaFX-Anwendung zum Zusammenführen mehrerer DOCX-Dateien zu einem Manuskript mit integriertem Text-Editor und automatischer Nachbearbeitung. Gut geeignet z.B. für **Sudowrite** Projekt-Exporte
 
 Eine moderne JavaFX-Anwendung zur Verarbeitung und automatischen und mauellen Nachbearbeitung von DOCX-Dateien zu einem zusammenhängenden Textdokument mit professionellem Text-Editor. Findet und behebt typische Fehler (Auslassungszeichen, Zeichensetzungsfehler, Leerzeilen und -zeichen, findet Füllwörter, Phrasen, lokaler KI-Assistent [ollama])
+Grammatikprüfungen, Lektorat, ein chatbot ... alles inklusive. 
+Das Ganze kostet nix und telefoniert nicht nachhause. 
 
 ## ⚡ Schnellstart
 
-Voraussetzungen: Java 17+, Maven 3.6+
+Voraussetzungen: Java 17+, Maven 3.6+, für den KI-Assistenten eine kräftige Grafikkarte und ordentlich RAM.
 
 ```bash
 # Abhängigkeiten bauen

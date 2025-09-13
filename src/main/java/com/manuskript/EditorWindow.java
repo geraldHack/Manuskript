@@ -1493,9 +1493,9 @@ if (caret != null) {
             } else {
                 logger.info("DOCX ist nicht ausgewählt, zeige Warnung...");
                 // Warnung anzeigen
-                CustomAlert alert = new CustomAlert(Alert.AlertType.WARNING, "Bitte aktivieren Sie zuerst die DOCX-Option, um die Einstellungen zu bearbeiten.");
-                alert.setTitle("Warnung");
+                CustomAlert alert = new CustomAlert(Alert.AlertType.WARNING, "Warnung");
                 alert.setHeaderText("DOCX nicht ausgewählt");
+                alert.setContentText("Bitte aktivieren Sie zuerst die DOCX-Option, um die Einstellungen zu bearbeiten.");
                 alert.applyTheme(currentThemeIndex);
                 alert.initOwner(stage);
                 alert.showAndWait();
@@ -3290,9 +3290,9 @@ if (caret != null) {
         content.setPadding(new Insets(10));
         
         // CustomAlert verwenden
-        CustomAlert alert = new CustomAlert(Alert.AlertType.CONFIRMATION, "Was möchten Sie speichern?");
-        alert.setTitle("Ungespeicherte Änderungen");
+        CustomAlert alert = new CustomAlert(Alert.AlertType.CONFIRMATION, "Ungespeicherte Änderungen");
         alert.setHeaderText("Die Datei hat ungespeicherte Änderungen.");
+        alert.setContentText("Was möchten Sie speichern?");
         
         // Theme anwenden
         alert.applyTheme(currentThemeIndex);
@@ -3353,25 +3353,22 @@ if (caret != null) {
             DiffProcessor.DiffResult diffResult = DiffProcessor.createDiff(docxContent, editorContent);
             
             if (!diffResult.hasChanges()) {
-                CustomAlert alert = new CustomAlert(Alert.AlertType.INFORMATION, "Es wurden keine Änderungen gefunden.");
-                alert.setTitle("Keine Änderungen");
-                alert.setHeaderText(null);
+                CustomAlert alert = new CustomAlert(Alert.AlertType.INFORMATION, "Keine Änderungen");
+                alert.setContentText("Es wurden keine Änderungen gefunden.");
+                // alert.setHeaderText(null); // ENTFERNT: Setzt 'null' String
                 alert.applyTheme(currentThemeIndex);
                 alert.initOwner(stage);
                 alert.showAndWait();
                 return;
             }
             
-            // Erstelle NEUEN side-by-side Diff-Dialog
-            CustomStage diffStage = StageManager.createModalStage("Detaillierte Unterschiede", stage);
-            diffStage.setTitle("Diff: Ungespeicherte Änderungen");
-            diffStage.initModality(Modality.APPLICATION_MODAL);
-            diffStage.initOwner(stage);
+            // Erstelle NEUEN side-by-side Diff-Dialog mit spezieller Diff-Stage
+            CustomStage diffStage = StageManager.createDiffStage("Diff: Ungespeicherte Änderungen", stage);
             
             VBox diffRoot = new VBox(10);
             diffRoot.setPadding(new Insets(15));
-            diffRoot.setPrefWidth(1400);
-            diffRoot.setPrefHeight(800);
+            diffRoot.setPrefWidth(1600);  // Angepasst an neue Diff-Fenster Größe
+            diffRoot.setPrefHeight(900);
             
             // ECHTE THEME-FARBEN für Container
             String themeBgColor = THEMES[currentThemeIndex][0]; // Hauptfarbe
@@ -3384,7 +3381,7 @@ if (caret != null) {
             
             // Erstelle SplitPane für nebeneinander Anzeige
             SplitPane splitPane = new SplitPane();
-            splitPane.setPrefHeight(650);
+            splitPane.setPrefHeight(750);  // Angepasst an neue Diff-Fenster Größe
             splitPane.setStyle("-fx-background-color: transparent;");
             
             // Linke Seite: Editor-Version mit Checkboxen
@@ -4038,9 +4035,9 @@ if (caret != null) {
         content.setPadding(new Insets(10));
         
         // CustomAlert verwenden
-        CustomAlert alert = new CustomAlert(Alert.AlertType.CONFIRMATION, "Was möchten Sie speichern, bevor Sie zum nächsten Kapitel wechseln?");
-        alert.setTitle("Ungespeicherte Änderungen");
+        CustomAlert alert = new CustomAlert(Alert.AlertType.CONFIRMATION, "Ungespeicherte Änderungen");
         alert.setHeaderText("Die Datei hat ungespeicherte Änderungen.");
+        alert.setContentText("Was möchten Sie speichern, bevor Sie zum nächsten Kapitel wechseln?");
         
         // Theme anwenden
         alert.applyTheme(currentThemeIndex);
@@ -4879,7 +4876,7 @@ if (caret != null) {
         // Listener für Fenster-Änderungen hinzufügen
         stage.widthProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null && !newVal.equals(oldVal)) {
-                preferences.putDouble("window_width", newVal.doubleValue());
+                PreferencesManager.putEditorWidth(preferences, "window_width", newVal.doubleValue());
                 try {
                     preferences.flush(); // Sofort speichern
                 } catch (Exception e) {
@@ -4891,7 +4888,7 @@ if (caret != null) {
         
         stage.heightProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null && !newVal.equals(oldVal)) {
-                preferences.putDouble("window_height", newVal.doubleValue());
+                PreferencesManager.putEditorHeight(preferences, "window_height", newVal.doubleValue());
                 try {
                     preferences.flush(); // Sofort speichern
                 } catch (Exception e) {
@@ -4903,7 +4900,7 @@ if (caret != null) {
         
         stage.xProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null && !newVal.equals(oldVal)) {
-                preferences.putDouble("window_x", newVal.doubleValue());
+                PreferencesManager.putWindowPosition(preferences, "window_x", newVal.doubleValue());
                 try {
                     preferences.flush(); // Sofort speichern
                 } catch (Exception e) {
@@ -4915,7 +4912,7 @@ if (caret != null) {
         
         stage.yProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null && !newVal.equals(oldVal)) {
-                preferences.putDouble("window_y", newVal.doubleValue());
+                PreferencesManager.putWindowPosition(preferences, "window_y", newVal.doubleValue());
                 try {
                     preferences.flush(); // Sofort speichern
                 } catch (Exception e) {
@@ -5329,38 +5326,95 @@ spacer.setStyle("-fx-background-color: transparent;");
     
     private void loadMacroWindowProperties() {
         if (preferences != null) {
+            // Robuste Validierung der Preferences mit sinnvollen Standardwerten
             double x = preferences.getDouble("macro_window_x", 100);
             double y = preferences.getDouble("macro_window_y", 100);
             double width = preferences.getDouble("macro_window_width", 1200);
             double height = preferences.getDouble("macro_window_height", 800);
+            
+            // Validierung: Position muss auf dem Bildschirm sein
+            if (x < 0 || x > 3000 || y < 0 || y > 2000) {
+                logger.warn("Ungültige Position ({},{}) für Makro-Fenster, setze Standard 100,100", x, y);
+                x = 100;
+                y = 100;
+            }
+            
+            // Validierung: Größe muss sinnvoll sein
+            if (width < 400 || width > 2000 || height < 300 || height > 1500) {
+                logger.warn("Ungültige Größe ({}x{}) für Makro-Fenster, setze Standard 1200x800", width, height);
+                width = 1200;
+                height = 800;
+            }
             
             macroStage.setX(x);
             macroStage.setY(y);
             macroStage.setWidth(width);
             macroStage.setHeight(height);
             
-            // Fenster-Position und Größe speichern
-            macroStage.xProperty().addListener((obs, oldVal, newVal) -> 
-                preferences.putDouble("macro_window_x", newVal.doubleValue()));
-            macroStage.yProperty().addListener((obs, oldVal, newVal) -> 
-                preferences.putDouble("macro_window_y", newVal.doubleValue()));
-            macroStage.widthProperty().addListener((obs, oldVal, newVal) -> 
-                preferences.putDouble("macro_window_width", newVal.doubleValue()));
-            macroStage.heightProperty().addListener((obs, oldVal, newVal) -> 
-                preferences.putDouble("macro_window_height", newVal.doubleValue()));
+            logger.info("Makro-Fenster: Position {},{} Größe {}x{}", x, y, width, height);
+            
+            // Fenster-Position und Größe speichern (nur wenn gültig)
+            macroStage.xProperty().addListener((obs, oldVal, newVal) -> {
+                if (newVal.doubleValue() >= 0 && newVal.doubleValue() <= 3000) {
+                    preferences.putDouble("macro_window_x", newVal.doubleValue());
+                }
+            });
+            macroStage.yProperty().addListener((obs, oldVal, newVal) -> {
+                if (newVal.doubleValue() >= 0 && newVal.doubleValue() <= 2000) {
+                    preferences.putDouble("macro_window_y", newVal.doubleValue());
+                }
+            });
+            macroStage.widthProperty().addListener((obs, oldVal, newVal) -> {
+                if (newVal.doubleValue() >= 400 && newVal.doubleValue() <= 2000) {
+                    preferences.putDouble("macro_window_width", newVal.doubleValue());
+                }
+            });
+            macroStage.heightProperty().addListener((obs, oldVal, newVal) -> {
+                if (newVal.doubleValue() >= 300 && newVal.doubleValue() <= 1500) {
+                    preferences.putDouble("macro_window_height", newVal.doubleValue());
+                }
+            });
         }
     }
     
     private void toggleMacroPanel() {
+        logger.debug("Toggle Makro-Panel: macroStage null={}, visible vorher={}", 
+                    macroStage == null, macroWindowVisible);
+        
+        // Makro-Fenster erstellen, falls es noch nicht existiert
+        if (macroStage == null) {
+            logger.info("Erstelle Makro-Fenster...");
+            createMacroWindow();
+            logger.info("Makro-Fenster erstellt: {}", macroStage != null);
+        }
+        
         macroWindowVisible = !macroWindowVisible;
+        logger.debug("macroWindowVisible nachher: {}", macroWindowVisible);
         
         if (macroWindowVisible) {
             // Makro-Fenster öffnen
+            logger.debug("Zeige Makro-Fenster...");
+            
+            // Position und Größe auf Bildschirm setzen, falls außerhalb oder zu klein
+            if (macroStage.getX() < 0 || macroStage.getY() < 0 || 
+                macroStage.getX() > 2000 || macroStage.getY() > 2000 ||
+                macroStage.getWidth() < 800 || macroStage.getHeight() < 600) {
+                logger.warn("Position/Größe außerhalb des Bildschirms, setze auf 100,100 mit 1200x800");
+                macroStage.setX(100);
+                macroStage.setY(100);
+                macroStage.setWidth(1200);
+                macroStage.setHeight(800);
+            }
+            
             macroStage.show();
             macroStage.toFront();
+            logger.info("Makro-Fenster gezeigt: sichtbar={}, Position={},{}, Größe={}x{}", 
+                       macroStage.isShowing(), macroStage.getX(), macroStage.getY(), 
+                       macroStage.getWidth(), macroStage.getHeight());
             updateStatus("Makro-Fenster geöffnet");
         } else {
             // Makro-Fenster schließen
+            logger.debug("Verstecke Makro-Fenster...");
             macroStage.hide();
             updateStatus("Makro-Fenster geschlossen");
         }
@@ -6675,9 +6729,9 @@ spacer.setStyle("-fx-background-color: transparent;");
     
     private void deleteCurrentMacro() {
         if (currentMacro != null) {
-            CustomAlert alert = new CustomAlert(Alert.AlertType.CONFIRMATION, "Möchten Sie das Makro '" + currentMacro.getName() + "' wirklich löschen?");
-            alert.setTitle("Makro löschen");
+            CustomAlert alert = new CustomAlert(Alert.AlertType.CONFIRMATION, "Makro löschen");
             alert.setHeaderText("Makro löschen bestätigen");
+            alert.setContentText("Möchten Sie das Makro '" + currentMacro.getName() + "' wirklich löschen?");
             alert.applyTheme(currentThemeIndex);
             alert.initOwner(stage);
             
@@ -7432,30 +7486,21 @@ spacer.setStyle("-fx-background-color: transparent;");
     private void loadWindowProperties() {
         if (stage == null) return;
         
-        // Fenster-Größe und Position laden
-        double width = preferences.getDouble("window_width", 1200.0);
-        double height = preferences.getDouble("window_height", 800.0);
-        double x = preferences.getDouble("window_x", -1.0);
-        double y = preferences.getDouble("window_y", -1.0);
+        // Fenster-Größe und Position mit robuster Validierung laden
+        double width = PreferencesManager.getEditorWidth(preferences, "window_width", PreferencesManager.DEFAULT_EDITOR_WIDTH);
+        double height = PreferencesManager.getEditorHeight(preferences, "window_height", PreferencesManager.DEFAULT_EDITOR_HEIGHT);
+        double x = PreferencesManager.getWindowPosition(preferences, "window_x", -1.0);
+        double y = PreferencesManager.getWindowPosition(preferences, "window_y", -1.0);
         
         logger.info("Lade Fenster-Eigenschaften: Größe={}x{}, Position=({}, {})", width, height, x, y);
         
-        // NEU: Validierung der Fenster-Größe
-        // Minimale und maximale Größen prüfen
-        double minWidth = 800.0;
-        double minHeight = 600.0;
-        double maxWidth = 3000.0;
-        double maxHeight = 2000.0;
+        // Mindestgrößen für Editor-Fenster
+        double minWidth = PreferencesManager.MIN_EDITOR_WIDTH;
+        double minHeight = PreferencesManager.MIN_EDITOR_HEIGHT;
         
-        // Größe validieren und korrigieren
-        if (width < minWidth || width > maxWidth || Double.isNaN(width) || Double.isInfinite(width)) {
-            logger.warn("Ungültige Fenster-Breite: {} - verwende Standard: {}", width, minWidth);
-            width = minWidth;
-        }
-        if (height < minHeight || height > maxHeight || Double.isNaN(height) || Double.isInfinite(height)) {
-            logger.warn("Ungültige Fenster-Höhe: {} - verwende Standard: {}", height, minHeight);
-            height = minHeight;
-        }
+        // WICHTIG: Mindestgröße für CustomStage setzen
+        stage.setMinWidth(minWidth);
+        stage.setMinHeight(minHeight);
         
         // Fenster-Größe setzen
         stage.setWidth(width);
@@ -9028,9 +9073,9 @@ spacer.setStyle("-fx-background-color: transparent;");
 
     
     private void showErrorDialog(String title, String message) {
-        CustomAlert alert = new CustomAlert(Alert.AlertType.ERROR, message);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
+        CustomAlert alert = new CustomAlert(Alert.AlertType.ERROR, title);
+        alert.setContentText(message);
+        // alert.setHeaderText(null); // ENTFERNT: Setzt 'null' String
         alert.applyTheme(currentThemeIndex);
         alert.initOwner(stage);
         alert.showAndWait();

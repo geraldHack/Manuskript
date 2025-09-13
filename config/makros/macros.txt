@@ -1,6 +1,15 @@
 MACRO:Text-Bereinigung
 DESC:Professionelle Textbereinigung mit 12 Schritten
 STEP:1
+SEARCH:‚(.*?)‘
+REPLACE:›$1‹
+REGEX:1
+CASE:0
+WORD:0
+ENABLED:1
+STEPDESC:einfache Deutsche Anführungszeichen
+REPLACECOUNT:0
+STEP:2
 SEARCH:”
 REPLACE:"
 REGEX:0
@@ -8,8 +17,8 @@ CASE:0
 WORD:0
 ENABLED:1
 STEPDESC:Falsches Deutschen Anführungszeichen oben
-REPLACECOUNT:0
-STEP:2
+REPLACECOUNT:2
+STEP:3
 SEARCH:[ ]{2,}
 REPLACE:
 REGEX:1
@@ -18,7 +27,7 @@ WORD:0
 ENABLED:1
 STEPDESC:Mehrfache Leerzeichen reduzieren
 REPLACECOUNT:0
-STEP:3
+STEP:4
 SEARCH:\n{2,}
 REPLACE:\n
 REGEX:1
@@ -26,8 +35,8 @@ CASE:0
 WORD:0
 ENABLED:1
 STEPDESC:Mehrfache Leerzeilen reduzieren
-REPLACECOUNT:0
-STEP:4
+REPLACECOUNT:31
+STEP:5
 SEARCH:‘(.*?)’
 REPLACE:'$1'
 REGEX:1
@@ -35,8 +44,8 @@ CASE:0
 WORD:0
 ENABLED:1
 STEPDESC:Einfache Anführungszeichen deutsch
-REPLACECOUNT:0
-STEP:5
+REPLACECOUNT:1
+STEP:6
 SEARCH:„
 REPLACE:"
 REGEX:0
@@ -45,7 +54,7 @@ WORD:0
 ENABLED:1
 STEPDESC:Gerade Anführungszeichen öffnen
 REPLACECOUNT:0
-STEP:6
+STEP:7
 SEARCH:“
 REPLACE:"
 REGEX:0
@@ -53,8 +62,8 @@ CASE:0
 WORD:0
 ENABLED:1
 STEPDESC:Gerade Anführungszeichen schließen
-REPLACECOUNT:0
-STEP:7
+REPLACECOUNT:5
+STEP:8
 SEARCH:,"
 REPLACE:",
 REGEX:0
@@ -63,7 +72,7 @@ WORD:0
 ENABLED:1
 STEPDESC:Komma vor Anführungszeichen I
 REPLACECOUNT:0
-STEP:8
+STEP:9
 SEARCH:'(.*?)'
 REPLACE:›$1‹
 REGEX:1
@@ -71,8 +80,8 @@ CASE:0
 WORD:0
 ENABLED:1
 STEPDESC:Einfache Anführungszeichen Französisch
-REPLACECOUNT:0
-STEP:9
+REPLACECOUNT:1
+STEP:10
 SEARCH:"(.*?)"
 REPLACE:»$1«
 REGEX:1
@@ -80,8 +89,8 @@ CASE:0
 WORD:0
 ENABLED:1
 STEPDESC:Anführungszeichen Französisch
-REPLACECOUNT:0
-STEP:10
+REPLACECOUNT:3
+STEP:11
 SEARCH:...
 REPLACE:…
 REGEX:0
@@ -89,8 +98,8 @@ CASE:0
 WORD:0
 ENABLED:1
 STEPDESC:Auslassungszeichen
-REPLACECOUNT:14
-STEP:11
+REPLACECOUNT:0
+STEP:12
 SEARCH:([A-Za-zÄÖÜäöüß])…
 REPLACE:$1 ...
 REGEX:1
@@ -99,7 +108,7 @@ WORD:0
 ENABLED:1
 STEPDESC:Buchstabe direkt an Auslassungszeichen
 REPLACECOUNT:0
-STEP:12
+STEP:13
 SEARCH:(?<=…)(?=\p{L})
 REPLACE:
 REGEX:1
@@ -108,7 +117,7 @@ WORD:0
 ENABLED:1
 STEPDESC:Buchstabe direkt nach Auslassungszeichen
 REPLACECOUNT:0
-STEP:13
+STEP:14
 SEARCH:(?<!-)--(?!-)
 REPLACE:—
 REGEX:1
@@ -117,7 +126,7 @@ WORD:0
 ENABLED:1
 STEPDESC:Gedankenstrich
 REPLACECOUNT:0
-STEP:14
+STEP:15
 SEARCH:,"«
 REPLACE:«,
 REGEX:0
@@ -126,7 +135,7 @@ WORD:0
 ENABLED:1
 STEPDESC:Komma vor Anführungszeichen
 REPLACECOUNT:0
-STEP:15
+STEP:16
 SEARCH:'(.*?)'
 REPLACE:›$1‹
 REGEX:1
@@ -134,6 +143,15 @@ CASE:0
 WORD:0
 ENABLED:1
 STEPDESC:Einfache Anführungszeichen Französisch
+REPLACECOUNT:0
+STEP:17
+SEARCH:^\s*\*\s*$
+REPLACE:---
+REGEX:1
+CASE:0
+WORD:0
+ENABLED:1
+STEPDESC:* als Trenner in --- ändern
 REPLACECOUNT:0
 ENDMACRO
 MACRO:Französische → Deutsche Anführungszeichen
