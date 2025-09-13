@@ -1,8 +1,8 @@
 # Manuskript - DOCX Verarbeitung & Text-Editor
 
-**Hauptzweck:** JavaFX-Anwendung zum Zusammenführen mehrerer DOCX-Dateien zu einem Manuskript mit integriertem Text-Editor und automatischer Nachbearbeitung. Gut geeignet z.B. für **Sudowrite** Projekt-Exporte
+**Hauptzweck:** JavaFX-Anwendung zum Zusammenführen mehrerer DOCX-Dateien  zu einem Manuskript mit integriertem Text-Editor und automatischer Nachbearbeitung. Gut geeignet z.B. für **Sudowrite** Projekt-Exporte. Ein Split eines .docx in Kapitel ist auch möglich. 
 
-Eine moderne JavaFX-Anwendung zur Verarbeitung und automatischen und mauellen Nachbearbeitung von DOCX-Dateien zu einem zusammenhängenden Textdokument mit professionellem Text-Editor. Findet und behebt typische Fehler (Auslassungszeichen, Zeichensetzungsfehler, Leerzeilen und -zeichen, findet Füllwörter, Phrasen, lokaler KI-Assistent [ollama])
+Eine moderne JavaFX-Anwendung zur Verarbeitung und automatischen und mauellen Nachbearbeitung von DOCX-Dateien zu einem zusammenhängenden Textdokument mit professionellem Text-Editor. Findet und behebt typische Fehler: Auslassungszeichen, Zeichensetzungsfehler, Leerzeilen und -zeichen, findet Füllwörter, Phrasen, lokaler KI-Assistent [ollama]
 Grammatikprüfungen, Lektorat, ein chatbot ... alles inklusive. 
 Das Ganze kostet nix und telefoniert nicht nachhause. 
 
@@ -24,7 +24,7 @@ Erste Schritte:
 
 ### 🤖 KI-Assistent (optional) – Schnellstart
 
-Voraussetzung: Ollama installiert (siehe [Ollama-Website](https://ollama.com))
+Voraussetzung: Ollama installieren. Kann vom Programm aus gestartet werden (siehe [Ollama-Website](https://ollama.com)).
 
 ```bash
 # Beispielmodell laden
@@ -39,6 +39,13 @@ In der Anwendung:
 - Prompt eingeben und Antwort generieren
 
 Hinweis: Sessions und Parameter werden unter `config/` gespeichert; Details im Abschnitt „KI-Assistent (Ollama)“ unten.
+
+Bestes Modeel zurzeit auf Ollama für kreatives scheiben auf Deutsch: jobautomation/OpenEuroLLM-German 
+Einfach in "Modell installieren" eintragen oder:
+
+```cmd
+ollama run jobautomation/OpenEuroLLM-German
+```
 
 ## 🎯 Kernfunktionen
 
