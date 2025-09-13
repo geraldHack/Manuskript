@@ -2871,9 +2871,9 @@ public class OllamaWindow {
     }
     
     private void showAlert(String title, String message) {
-        CustomAlert alert = new CustomAlert(Alert.AlertType.INFORMATION, message);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
+        CustomAlert alert = new CustomAlert(Alert.AlertType.INFORMATION, title);
+        alert.setContentText(message); // KORRIGIERT: message als Content setzen
+        // alert.setHeaderText(null); // ENTFERNT: Setzt 'null' String
         alert.applyTheme(currentThemeIndex);
         alert.initOwner(stage);
         alert.showAndWait();
@@ -2906,9 +2906,9 @@ public class OllamaWindow {
         
         content.getChildren().addAll(explanationLabel, requirementsLabel, dontShowAgainCheckBox);
         
-        CustomAlert alert = new CustomAlert(Alert.AlertType.CONFIRMATION, "Möchten Sie Ollama installieren?");
-        alert.setTitle("Ollama Installation");
+        CustomAlert alert = new CustomAlert(Alert.AlertType.CONFIRMATION, "Ollama Installation");
         alert.setHeaderText("Ollama ist nicht installiert");
+        alert.setContentText("Möchten Sie Ollama installieren?");
         alert.applyTheme(currentThemeIndex);
         alert.initOwner(stage);
         
@@ -3672,55 +3672,42 @@ public class OllamaWindow {
     // ==== Session-Verwaltung ====
     
     /**
+     * Textfarbe für aktuelles Theme
+     */
+    private String getTextColorForTheme() {
+        switch (currentThemeIndex) {
+            case 0: return "#000000"; // Weiß
+            case 2: return "#000000"; // Pastell
+            case 3: return "#ffffff"; // Blau
+            case 4: return "#ffffff"; // Grün
+            case 5: return "#ffffff"; // Lila
+            default: return "#ffffff"; // Dark
+        }
+    }
+    
+    /**
      * Erstellt eine neue Chat-Session mit Namenseingabe
      */
     private void createNewSession() {
-        TextInputDialog dialog = new TextInputDialog();
-        dialog.setTitle("Neue Chat-Session");
-        dialog.setHeaderText("Session-Name eingeben");
-        dialog.setContentText("Name der neuen Session:");
-        dialog.getEditor().setPromptText("z.B. Projekt A, Charakter B, etc.");
-        // Dialog thematisch stylen
-        try {
-            // CSS hinzufügen
-            DialogPane pane = dialog.getDialogPane();
-            String stylesCss = ResourceManager.getCssResource("css/styles.css");
-            String editorCss = ResourceManager.getCssResource("css/editor.css");
-            if (stylesCss != null && !pane.getStylesheets().contains(stylesCss)) pane.getStylesheets().add(stylesCss);
-            if (editorCss != null && !pane.getStylesheets().contains(editorCss)) pane.getStylesheets().add(editorCss);
-            // Theme-Klassen
-            if (currentThemeIndex == 0) pane.getStyleClass().add("weiss-theme");
-            else if (currentThemeIndex == 2) pane.getStyleClass().add("pastell-theme");
-            else if (currentThemeIndex == 3) pane.getStyleClass().addAll("theme-dark", "blau-theme");
-            else if (currentThemeIndex == 4) pane.getStyleClass().addAll("theme-dark", "gruen-theme");
-            else if (currentThemeIndex == 5) pane.getStyleClass().addAll("theme-dark", "lila-theme");
-            else pane.getStyleClass().add("theme-dark");
-            // Header einfärben
-            String backgroundColor;
-            String textColor;
-            switch (currentThemeIndex) {
-                case 0: backgroundColor = "#ffffff"; textColor = "#000000"; break; // Weiß
-                case 2: backgroundColor = "#f3e5f5"; textColor = "#000000"; break; // Pastell
-                case 3: backgroundColor = "#1e3a8a"; textColor = "#ffffff"; break; // Blau
-                case 4: backgroundColor = "#064e3b"; textColor = "#ffffff"; break; // Grün
-                case 5: backgroundColor = "#581c87"; textColor = "#ffffff"; break; // Lila
-                default: backgroundColor = "#1a1a1a"; textColor = "#ffffff"; // Dark
-            }
-            dialog.setOnShown(ev -> {
-                Node headerPanel = pane.lookup(".header-panel");
-                if (headerPanel != null) {
-                    headerPanel.setStyle(String.format("-fx-background-color: %s; -fx-background-insets: 0; -fx-padding: 8 12;", backgroundColor));
-                    Node headerLabel = headerPanel.lookup(".label");
-                    if (headerLabel instanceof Label) {
-                        ((Label) headerLabel).setTextFill(javafx.scene.paint.Color.web(textColor));
-                    }
-                }
-            });
-        } catch (Exception ignored) {}
+        // TextField für Session-Name
+        TextField sessionNameField = new TextField();
+        sessionNameField.setPromptText("z.B. Projekt A, Charakter B, etc.");
+        sessionNameField.setPrefWidth(300);
         
-        Optional<String> result = dialog.showAndWait();
-        result.ifPresent(sessionName -> {
-            if (!sessionName.trim().isEmpty() && !sessionHistories.containsKey(sessionName)) {
+        // CustomAlert verwenden
+        CustomAlert alert = new CustomAlert(Alert.AlertType.INFORMATION, "Neue Chat-Session");
+        alert.setHeaderText("Session-Name eingeben");
+        alert.setTextField(sessionNameField); // TextField setzen
+        alert.setButtonTypes(ButtonType.OK, ButtonType.CANCEL);
+        
+        // Theme anwenden
+        alert.applyTheme(currentThemeIndex);
+        alert.initOwner(stage);
+        
+        Optional<ButtonType> result = alert.showAndWait();
+        if (result.isPresent() && result.get() == ButtonType.OK) {
+            String sessionName = sessionNameField.getText().trim();
+            if (!sessionName.isEmpty() && !sessionHistories.containsKey(sessionName)) {
                 // Aktuelle Historie speichern (nur im Speicher, nicht persistent)
                 sessionHistories.put(currentSessionName, chatHistoryArea.getSessionHistory());
                 
@@ -3735,14 +3722,11 @@ public class OllamaWindow {
                 // Chat-Historie zurücksetzen
                 chatHistoryArea.clearHistory();
                 
-                // Session persistent speichern (nur die neue leere Session)
-                // ResourceManager.saveSession(sessionName, new ArrayList<>());
-                
                 updateStatus("Neue Session erstellt: " + sessionName);
             } else if (sessionHistories.containsKey(sessionName)) {
                 showAlert("Fehler", "Eine Session mit diesem Namen existiert bereits.");
             }
-        });
+        }
     }
     
     /**
@@ -3751,9 +3735,9 @@ public class OllamaWindow {
     private void deleteCurrentSession() {
         String currentSession = sessionComboBox.getValue();
         if (currentSession != null) {
-            CustomAlert alert = new CustomAlert(Alert.AlertType.CONFIRMATION, "Möchten Sie die Session '" + currentSession + "' wirklich löschen?\n\nDie Chat-Historie wird unwiderruflich gelöscht.");
-            alert.setTitle("Session löschen");
+            CustomAlert alert = new CustomAlert(Alert.AlertType.CONFIRMATION, "Session löschen");
             alert.setHeaderText("Session löschen?");
+            alert.setContentText("Möchten Sie die Session '" + currentSession + "' wirklich löschen?\n\nDie Chat-Historie wird unwiderruflich gelöscht.");
             alert.applyTheme(currentThemeIndex);
             alert.initOwner(stage);
             
@@ -3789,9 +3773,9 @@ public class OllamaWindow {
     private void clearCurrentSession() {
         String currentSession = sessionComboBox.getValue();
         if (currentSession != null) {
-            CustomAlert alert = new CustomAlert(Alert.AlertType.CONFIRMATION, "Möchten Sie die Chat-Historie der Session '" + currentSession + "' wirklich löschen?\n\nDie Session bleibt erhalten, aber alle Nachrichten werden gelöscht.");
-            alert.setTitle("Kontext löschen");
+            CustomAlert alert = new CustomAlert(Alert.AlertType.CONFIRMATION, "Kontext löschen");
             alert.setHeaderText("Chat-Historie löschen?");
+            alert.setContentText("Möchten Sie die Chat-Historie der Session '" + currentSession + "' wirklich löschen?\n\nDie Session bleibt erhalten, aber alle Nachrichten werden gelöscht.");
             alert.applyTheme(currentThemeIndex);
             alert.initOwner(stage);
             

@@ -424,9 +424,9 @@ public class PluginEditorWindow {
      */
     private void newPlugin() {
         if (isModified) {
-            CustomAlert alert = new CustomAlert(Alert.AlertType.CONFIRMATION);
-            alert.setTitle("Ungespeicherte Änderungen");
+            CustomAlert alert = new CustomAlert(Alert.AlertType.CONFIRMATION, "Ungespeicherte Änderungen");
             alert.setHeaderText("Möchten Sie die aktuellen Änderungen speichern?");
+            alert.setContentText("Bestätigung");
             alert.setContentText("Es gibt ungespeicherte Änderungen.");
             
             // Drei Buttons: Ja, Nein, Abbrechen
@@ -480,9 +480,9 @@ public class PluginEditorWindow {
      */
     private void openPlugin() {
         if (isModified) {
-            CustomAlert alert = new CustomAlert(Alert.AlertType.CONFIRMATION);
-            alert.setTitle("Ungespeicherte Änderungen");
+            CustomAlert alert = new CustomAlert(Alert.AlertType.CONFIRMATION, "Ungespeicherte Änderungen");
             alert.setHeaderText("Möchten Sie die aktuellen Änderungen speichern?");
+            alert.setContentText("Bestätigung");
             alert.setContentText("Es gibt ungespeicherte Änderungen.");
             
             // Drei Buttons: Ja, Nein, Abbrechen

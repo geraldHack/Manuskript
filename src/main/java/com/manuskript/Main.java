@@ -50,6 +50,7 @@ public class Main extends Application {
             // Scene mit benutzerdefinierter Titelleiste setzen
             customStage.setSceneWithTitleBar(scene);
             
+            
             // WICHTIG: Kein setOnCloseRequest hier - wird in MainController.setPrimaryStage() behandelt
             customStage.show();
             

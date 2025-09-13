@@ -575,9 +575,9 @@ public class MainController implements Initializable {
         message.append("Möchten Sie fortfahren?");
         
         // CustomAlert verwenden
-        CustomAlert alert = new CustomAlert(Alert.AlertType.CONFIRMATION, message.toString());
-        alert.setTitle("MD-Dateien löschen?");
+        CustomAlert alert = new CustomAlert(Alert.AlertType.CONFIRMATION, "MD-Dateien löschen?");
         alert.setHeaderText("Dateien mit MD-Dateien verschieben");
+        alert.setContentText(message.toString());
         
         // Theme anwenden
         alert.applyTheme(currentThemeIndex);
@@ -1489,8 +1489,7 @@ public class MainController implements Initializable {
     public DocxChangeDecision showDocxChangedDialogInMain(DocxFile chapterFile) {
 
         
-        CustomAlert alert = new CustomAlert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("DOCX-Datei wurde extern verändert");
+        CustomAlert alert = new CustomAlert(Alert.AlertType.CONFIRMATION, "DOCX-Datei wurde extern verändert");
         alert.setHeaderText("Die DOCX-Datei '" + chapterFile.getFileName() + "' wurde extern verändert.");
         alert.setContentText("Was möchten Sie tun?");
         
@@ -1502,7 +1501,7 @@ public class MainController implements Initializable {
         ButtonType ignoreButton = new ButtonType("Ignorieren");
         ButtonType cancelButton = new ButtonType("Abbrechen");
 
-        alert.getDialogPane().getButtonTypes().setAll(diffButton, docxButton, ignoreButton, cancelButton);
+        alert.setButtonTypes(diffButton, docxButton, ignoreButton, cancelButton);
 
         // Theme explizit anwenden, bevor der Dialog angezeigt wird
         alert.applyTheme(currentThemeIndex);
@@ -1538,16 +1537,13 @@ public class MainController implements Initializable {
     public void showDetailedDiffDialog(DocxFile chapterFile, File mdFile, DiffProcessor.DiffResult diffResult, 
                                       DocxProcessor.OutputFormat format) {
         try {
-            // Erstelle Diff-Fenster
-            CustomStage diffStage = StageManager.createModalStage("Detaillierte Unterschiede", primaryStage);
-            diffStage.setTitle("Diff: " + chapterFile.getFileName());
-            diffStage.initModality(Modality.APPLICATION_MODAL);
-            diffStage.initOwner(primaryStage);
+            // Erstelle Diff-Fenster mit spezieller Diff-Stage
+            CustomStage diffStage = StageManager.createDiffStage("Diff: " + chapterFile.getFileName(), primaryStage);
             
             VBox diffRoot = new VBox(10);
             diffRoot.setPadding(new Insets(15));
-            diffRoot.setPrefWidth(1400);
-            diffRoot.setPrefHeight(800);
+            diffRoot.setPrefWidth(1600);  // Angepasst an neue Diff-Fenster Größe
+            diffRoot.setPrefHeight(900);
             
             // ECHTE THEME-FARBEN für Container
             String themeBgColor = THEMES[currentThemeIndex][0]; // Hauptfarbe
@@ -1564,7 +1560,7 @@ public class MainController implements Initializable {
             
             // Erstelle HBox für feste nebeneinander Anzeige (beide Seiten immer gleich breit)
             HBox contentBox = new HBox(10);
-            contentBox.setPrefHeight(650);
+            contentBox.setPrefHeight(750);  // Angepasst an neue Diff-Fenster Größe
             contentBox.setStyle("-fx-background-color: transparent;");
             
             // Linke Seite: Aktuelle Version (MD) - feste Breite
@@ -2299,18 +2295,18 @@ public class MainController implements Initializable {
     }
     
     private void showError(String title, String message) {
-        CustomAlert alert = new CustomAlert(Alert.AlertType.ERROR, message);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
+        CustomAlert alert = new CustomAlert(Alert.AlertType.ERROR, title);
+        alert.setContentText(message);
+        // alert.setHeaderText(null); // ENTFERNT: Setzt 'null' String
         alert.applyTheme(currentThemeIndex);
         alert.initOwner(primaryStage);
         alert.showAndWait();
     }
     
     private void showWarning(String title, String message) {
-        CustomAlert alert = new CustomAlert(Alert.AlertType.WARNING, message);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
+        CustomAlert alert = new CustomAlert(Alert.AlertType.WARNING, title);
+        alert.setContentText(message);
+        // alert.setHeaderText(null); // ENTFERNT: Setzt 'null' String
         alert.applyTheme(currentThemeIndex);
         alert.initOwner(primaryStage);
         alert.showAndWait();
@@ -2420,11 +2416,19 @@ public class MainController implements Initializable {
             for (String fileName : savedOrder) {
                 for (DocxFile docxFile : originalDocxFiles) {
                     if (docxFile.getFileName().equals(fileName)) {
-                        // Lade ALLE gespeicherten Dateien, egal ob sie MD-Dateien haben oder nicht
-                        selectedDocxFiles.add(docxFile);
+                        // WICHTIG: Nur Dateien mit MD-Dateien zu selectedDocxFiles hinzufügen
+                        File mdFile = deriveMdFileFor(docxFile.getFile());
+                        boolean hasMdFile = mdFile != null && mdFile.exists();
                         
-                        // WICHTIG: Entferne die Datei aus allDocxFiles, falls sie dort ist
-                        allDocxFiles.remove(docxFile);
+                        if (hasMdFile) {
+                            // Datei hat MD-Datei → nach rechts (selectedDocxFiles)
+                            selectedDocxFiles.add(docxFile);
+                            logger.info("Gespeicherte Datei nach rechts: {} (hat MD-Datei)", docxFile.getFileName());
+                        } else {
+                            // Datei hat keine MD-Datei → nach links (allDocxFiles)
+                            allDocxFiles.add(docxFile);
+                            logger.info("Gespeicherte Datei nach links: {} (keine MD-Datei)", docxFile.getFileName());
+                        }
                         
                         break;
                     }
@@ -2709,28 +2713,19 @@ public class MainController implements Initializable {
     }
     
     private void loadEditorWindowProperties(CustomStage editorStage) {
-        // Fenster-Größe und Position laden
-        double width = preferences.getDouble("editor_window_width", 1200.0);
-        double height = preferences.getDouble("editor_window_height", 800.0);
-        double x = preferences.getDouble("editor_window_x", -1.0);
-        double y = preferences.getDouble("editor_window_y", -1.0);
+        // Fenster-Größe und Position mit robuster Validierung laden
+        double width = PreferencesManager.getEditorWidth(preferences, "editor_window_width", PreferencesManager.DEFAULT_EDITOR_WIDTH);
+        double height = PreferencesManager.getEditorHeight(preferences, "editor_window_height", PreferencesManager.DEFAULT_EDITOR_HEIGHT);
+        double x = PreferencesManager.getWindowPosition(preferences, "editor_window_x", -1.0);
+        double y = PreferencesManager.getWindowPosition(preferences, "editor_window_y", -1.0);
         
-        // NEU: Validierung der Fenster-Größe
-        // Minimale und maximale Größen prüfen
-        double minWidth = 1200.0;  // Größere Standard-Breite für Editor
-        double minHeight = 800.0;  // Größere Standard-Höhe für Editor
-        double maxWidth = 3000.0;
-        double maxHeight = 2000.0;
+        // Mindestgrößen für Editor-Fenster
+        double minWidth = PreferencesManager.MIN_EDITOR_WIDTH;
+        double minHeight = PreferencesManager.MIN_EDITOR_HEIGHT;
         
-        // Größe validieren und korrigieren
-        if (width < minWidth || width > maxWidth || Double.isNaN(width) || Double.isInfinite(width)) {
-            logger.warn("Ungültige Editor-Fenster-Breite: {} - verwende Standard: {}", width, minWidth);
-            width = minWidth;
-        }
-        if (height < minHeight || height > maxHeight || Double.isNaN(height) || Double.isInfinite(height)) {
-            logger.warn("Ungültige Editor-Fenster-Höhe: {} - verwende Standard: {}", height, minHeight);
-            height = minHeight;
-        }
+        // Mindestgröße für CustomStage setzen
+        editorStage.setMinWidth(minWidth);
+        editorStage.setMinHeight(minHeight);
         
         // Fenster-Größe setzen
         editorStage.setWidth(width);
@@ -2757,25 +2752,25 @@ public class MainController implements Initializable {
         // Event-Handler für Fenster-Änderungen hinzufügen
         editorStage.widthProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null && !newVal.equals(oldVal)) {
-                preferences.putDouble("editor_window_width", newVal.doubleValue());
+                PreferencesManager.putEditorWidth(preferences, "editor_window_width", newVal.doubleValue());
             }
         });
         
         editorStage.heightProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null && !newVal.equals(oldVal)) {
-                preferences.putDouble("editor_window_height", newVal.doubleValue());
+                PreferencesManager.putEditorHeight(preferences, "editor_window_height", newVal.doubleValue());
             }
         });
         
         editorStage.xProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null && !newVal.equals(oldVal)) {
-                preferences.putDouble("editor_window_x", newVal.doubleValue());
+                PreferencesManager.putWindowPosition(preferences, "editor_window_x", newVal.doubleValue());
             }
         });
         
         editorStage.yProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null && !newVal.equals(oldVal)) {
-                preferences.putDouble("editor_window_y", newVal.doubleValue());
+                PreferencesManager.putWindowPosition(preferences, "editor_window_y", newVal.doubleValue());
             }
         });
         
@@ -2783,12 +2778,19 @@ public class MainController implements Initializable {
     }
     
     /**
+     * Setzt alle Editor-Fenster-Preferences auf Standardwerte zurück
+     */
+    public void resetEditorWindowPreferences() {
+        PreferencesManager.resetEditorWindowPreferences(preferences);
+    }
+    
+    /**
      * Zeigt Dialog für existierende .gesamt Dateien
      */
     private void showGesamtFileDialog(File[] existingGesamtFiles, ObservableList<DocxFile> selectedDocxFiles) {
-        CustomAlert alert = new CustomAlert(Alert.AlertType.CONFIRMATION, "Möchten Sie das existierende Dokument laden oder ein neues erstellen?");
-        alert.setTitle("Gesamtdokument existiert bereits");
+        CustomAlert alert = new CustomAlert(Alert.AlertType.CONFIRMATION, "Gesamtdokument existiert bereits");
         alert.setHeaderText("Es wurde bereits ein Gesamtdokument erstellt:");
+        alert.setContentText("Möchten Sie das existierende Dokument laden oder ein neues erstellen?");
         
         // Theme anwenden
         alert.applyTheme(currentThemeIndex);
