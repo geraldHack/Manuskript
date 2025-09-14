@@ -480,6 +480,11 @@ public class CustomAlert {
         // Buttons
         updateButtonStyles(textColor, backgroundColor);
         
+        // Custom Content Controls stylen (falls vorhanden) - rekursiv
+        if (hasCustomContent && customContentBox != null) {
+            applyThemeToNodesRecursively(customContentBox, textColor, backgroundColor);
+        }
+        
         // Border für den gesamten Dialog
         String borderColor = textColor;
         rootContainer.setStyle(String.format(
@@ -525,8 +530,41 @@ public class CustomAlert {
         hasCustomContent = true;
         this.customContentBox = contentBox;
         
-        // Alle TextFields in der VBox stylen
-        for (Node node : contentBox.getChildren()) {
+        // Alle Controls in der VBox stylen (rekursiv für HBox/VBox)
+        styleNodesRecursively(contentBox);
+    }
+    
+    /**
+     * Wendet Theme rekursiv auf alle Nodes an
+     */
+    private void applyThemeToNodesRecursively(javafx.scene.Parent parent, String textColor, String backgroundColor) {
+        for (Node node : parent.getChildrenUnmodifiable()) {
+            if (node instanceof Label) {
+                Label label = (Label) node;
+                label.setStyle("-fx-font-size: 12px; -fx-text-fill: " + textColor + ";");
+            } else if (node instanceof CheckBox) {
+                CheckBox cb = (CheckBox) node;
+                cb.setStyle("-fx-text-fill: " + textColor + "; -fx-font-size: 12px;");
+            } else if (node instanceof Button) {
+                Button btn = (Button) node;
+                // Theme-spezifisches Button-Styling
+                String customButtonStyle = String.format(
+                    "-fx-background-color: %s; -fx-text-fill: %s; -fx-border-color: %s; -fx-border-width: 1; -fx-border-radius: 4; -fx-background-radius: 4; -fx-padding: 4px 8px; -fx-font-size: 11px; -fx-font-weight: bold;",
+                    backgroundColor, textColor, textColor
+                );
+                btn.setStyle(customButtonStyle);
+            } else if (node instanceof javafx.scene.Parent) {
+                // Rekursiv für Container (HBox, VBox, etc.)
+                applyThemeToNodesRecursively((javafx.scene.Parent) node, textColor, backgroundColor);
+            }
+        }
+    }
+    
+    /**
+     * Stylt alle Nodes rekursiv (für HBox/VBox Container)
+     */
+    private void styleNodesRecursively(javafx.scene.Parent parent) {
+        for (Node node : parent.getChildrenUnmodifiable()) {
             if (node instanceof TextField) {
                 TextField tf = (TextField) node;
                 tf.setStyle("-fx-background-color: white; -fx-text-fill: black; -fx-border-color: #cccccc; -fx-border-width: 1; -fx-border-radius: 4; -fx-background-radius: 4; -fx-padding: 8 12; -fx-font-size: 12px;");
@@ -536,6 +574,22 @@ public class CustomAlert {
             } else if (node instanceof Label) {
                 Label label = (Label) node;
                 label.setStyle("-fx-font-size: 12px; -fx-text-fill: " + THEME_TEXTS[currentTheme] + ";");
+            } else if (node instanceof CheckBox) {
+                CheckBox cb = (CheckBox) node;
+                cb.setStyle("-fx-text-fill: " + THEME_TEXTS[currentTheme] + "; -fx-font-size: 12px;");
+            } else if (node instanceof Button) {
+                Button btn = (Button) node;
+                // Theme-spezifisches Button-Styling
+                String backgroundColor = THEME_BACKGROUNDS[currentTheme];
+                String textColor = THEME_TEXTS[currentTheme];
+                String buttonStyle = String.format(
+                    "-fx-background-color: %s; -fx-text-fill: %s; -fx-border-color: %s; -fx-border-width: 1; -fx-border-radius: 4; -fx-background-radius: 4; -fx-padding: 4px 8px; -fx-font-size: 11px; -fx-font-weight: bold;",
+                    backgroundColor, textColor, textColor
+                );
+                btn.setStyle(buttonStyle);
+            } else if (node instanceof javafx.scene.Parent) {
+                // Rekursiv für Container (HBox, VBox, etc.)
+                styleNodesRecursively((javafx.scene.Parent) node);
             }
         }
     }

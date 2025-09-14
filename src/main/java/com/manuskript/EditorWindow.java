@@ -3285,8 +3285,32 @@ if (caret != null) {
         saveCurrentFormat.setSelected(true);
         saveOriginalDocx.setSelected(false);
         
+        // DOCX-Optionen Button
+        Button docxOptionsBtn = new Button("DOCX-Optionen");
+        docxOptionsBtn.setStyle("-fx-font-size: 11px; -fx-padding: 4px 8px;");
+        docxOptionsBtn.setOnAction(e -> {
+            logger.info("DOCX-Optionen Button geklickt!");
+            if (saveOriginalDocx.isSelected()) {
+                logger.info("DOCX ist ausgewählt, öffne Optionen-Dialog...");
+                showDocxOptionsDialog(saveOriginalDocx);
+            } else {
+                logger.info("DOCX ist nicht ausgewählt, zeige Warnung...");
+                // Warnung anzeigen
+                CustomAlert alert = new CustomAlert(Alert.AlertType.WARNING, "Warnung");
+                alert.setHeaderText("DOCX nicht ausgewählt");
+                alert.setContentText("Bitte aktivieren Sie zuerst die DOCX-Option, um die Einstellungen zu bearbeiten.");
+                alert.applyTheme(currentThemeIndex);
+                alert.initOwner(stage);
+                alert.showAndWait();
+            }
+        });
+        
+        // DOCX-Optionen in HBox mit Checkbox
+        HBox docxBox = new HBox(10);
+        docxBox.getChildren().addAll(saveOriginalDocx, docxOptionsBtn);
+        
         VBox content = new VBox(10);
-        content.getChildren().addAll(saveCurrentFormat, saveOriginalDocx);
+        content.getChildren().addAll(saveCurrentFormat, docxBox);
         content.setPadding(new Insets(10));
         
         // CustomAlert verwenden
@@ -3300,8 +3324,8 @@ if (caret != null) {
         // Owner setzen
         alert.initOwner(stage);
         
-        // Content setzen
-        alert.getDialogPane().setContent(content);
+        // Content setzen - verwende setCustomContent für CustomAlert
+        alert.setCustomContent(content);
         
         ButtonType saveButton = new ButtonType("Speichern");
         ButtonType discardButton = new ButtonType("Verwerfen");
@@ -4030,8 +4054,32 @@ if (caret != null) {
         saveCurrentFormat.setSelected(true);
         saveOriginalDocx.setSelected(false);
         
+        // DOCX-Optionen Button
+        Button docxOptionsBtn = new Button("DOCX-Optionen");
+        docxOptionsBtn.setStyle("-fx-font-size: 11px; -fx-padding: 4px 8px;");
+        docxOptionsBtn.setOnAction(e -> {
+            logger.info("DOCX-Optionen Button geklickt!");
+            if (saveOriginalDocx.isSelected()) {
+                logger.info("DOCX ist ausgewählt, öffne Optionen-Dialog...");
+                showDocxOptionsDialog(saveOriginalDocx);
+            } else {
+                logger.info("DOCX ist nicht ausgewählt, zeige Warnung...");
+                // Warnung anzeigen
+                CustomAlert alert = new CustomAlert(Alert.AlertType.WARNING, "Warnung");
+                alert.setHeaderText("DOCX nicht ausgewählt");
+                alert.setContentText("Bitte aktivieren Sie zuerst die DOCX-Option, um die Einstellungen zu bearbeiten.");
+                alert.applyTheme(currentThemeIndex);
+                alert.initOwner(stage);
+                alert.showAndWait();
+            }
+        });
+        
+        // DOCX-Optionen in HBox mit Checkbox
+        HBox docxBox = new HBox(10);
+        docxBox.getChildren().addAll(saveOriginalDocx, docxOptionsBtn);
+        
         VBox content = new VBox(10);
-        content.getChildren().addAll(saveCurrentFormat, saveOriginalDocx);
+        content.getChildren().addAll(saveCurrentFormat, docxBox);
         content.setPadding(new Insets(10));
         
         // CustomAlert verwenden
@@ -4045,8 +4093,8 @@ if (caret != null) {
         // Owner setzen
         alert.initOwner(stage);
         
-        // Content setzen
-        alert.getDialogPane().setContent(content);
+        // Content setzen - verwende setCustomContent für CustomAlert
+        alert.setCustomContent(content);
         
         ButtonType saveButton = new ButtonType("Speichern & Weitermachen");
         ButtonType discardButton = new ButtonType("Verwerfen & Weitermachen");
@@ -4122,16 +4170,28 @@ if (caret != null) {
             
             // Konvertiere basierend auf dem aktuellen Format
             if (outputFormat == DocxProcessor.OutputFormat.MARKDOWN) {
-                // Markdown kann direkt konvertiert werden
-                docxProcessor.exportMarkdownToDocx(currentContent, originalDocxFile);
+                // Markdown kann direkt konvertiert werden - mit DOCX-Optionen
+                if (globalDocxOptions != null) {
+                    docxProcessor.exportMarkdownToDocxWithOptions(currentContent, originalDocxFile, globalDocxOptions);
+                } else {
+                    docxProcessor.exportMarkdownToDocx(currentContent, originalDocxFile);
+                }
             } else if (outputFormat == DocxProcessor.OutputFormat.HTML) {
-                // HTML zu Markdown konvertieren, dann zu DOCX
+                // HTML zu Markdown konvertieren, dann zu DOCX - mit DOCX-Optionen
                 String markdownContent = convertHtmlToMarkdown(currentContent);
-                docxProcessor.exportMarkdownToDocx(markdownContent, originalDocxFile);
+                if (globalDocxOptions != null) {
+                    docxProcessor.exportMarkdownToDocxWithOptions(markdownContent, originalDocxFile, globalDocxOptions);
+                } else {
+                    docxProcessor.exportMarkdownToDocx(markdownContent, originalDocxFile);
+                }
             } else if (outputFormat == DocxProcessor.OutputFormat.PLAIN_TEXT) {
-                // Text zu Markdown konvertieren, dann zu DOCX
+                // Text zu Markdown konvertieren, dann zu DOCX - mit DOCX-Optionen
                 String markdownContent = convertTextToMarkdown(currentContent);
-                docxProcessor.exportMarkdownToDocx(markdownContent, originalDocxFile);
+                if (globalDocxOptions != null) {
+                    docxProcessor.exportMarkdownToDocxWithOptions(markdownContent, originalDocxFile, globalDocxOptions);
+                } else {
+                    docxProcessor.exportMarkdownToDocx(markdownContent, originalDocxFile);
+                }
             }
             
             updateStatus("DOCX-Überschreibung erfolgreich: " + originalDocxFile.getName());
