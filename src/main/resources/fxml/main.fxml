@@ -72,7 +72,7 @@
       <HBox spacing="10" alignment="CENTER_LEFT">
          <children>
             <Region HBox.hgrow="ALWAYS" style="-fx-background-color: transparent;" />
-            <Button fx:id="btnThemeToggle" text="🌙" prefWidth="50.0" prefHeight="35.0">
+            <Button fx:id="btnThemeToggle" text="☀" prefWidth="50.0" prefHeight="35.0">
                 <tooltip>
                    <Tooltip text="Theme wechseln" />
                 </tooltip>
