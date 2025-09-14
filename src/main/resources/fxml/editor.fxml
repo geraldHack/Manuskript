@@ -11,15 +11,15 @@
             <Button fx:id="btnOpen" text="Öffnen" styleClass="button primary" visible="false" managed="false" />
             <Button fx:id="btnSave" text="Speichern" styleClass="button primary" />
             <Button fx:id="btnSaveAs" text="Speichern als..." styleClass="button primary" />
-            <Button fx:id="btnExport" text="📤 Exportieren" styleClass="button primary" />
+            <Button fx:id="btnExport" text="⬇ Exportieren" styleClass="button primary" />
             
             <Separator orientation="VERTICAL" />
             
             <Button fx:id="btnToggleSearch" text="Suchen/Ersetzen" styleClass="button" />
             <Button fx:id="btnToggleMacro" text="Makros" styleClass="button" />
             <Button fx:id="btnTextAnalysis" text="Textanalyse" styleClass="button" />
-            <Button fx:id="btnChapterEditor" text="📝 Kapitel" styleClass="button" />
-            <Button fx:id="btnKIAssistant" text="🤖 KI-Assistent" styleClass="button" />
+            <Button fx:id="btnChapterEditor" text="✏ Kapitel" styleClass="button" />
+            <Button fx:id="btnKIAssistant" text="⚡ KI-Assistent" styleClass="button" />
             
             <Region HBox.hgrow="ALWAYS" style="-fx-background-color: transparent;" />
             
@@ -51,7 +51,7 @@
             
             <Separator orientation="VERTICAL" style="-fx-background-color: #6c757d;" />
             
-            <Button fx:id="btnThemeToggle" text="🎨" styleClass="toolbar-button" style="-fx-min-width: 45px; -fx-max-width: 45px; -fx-font-size: 18px;" />
+            <Button fx:id="btnThemeToggle" text="☀" styleClass="toolbar-button" style="-fx-min-width: 45px; -fx-max-width: 45px; -fx-font-size: 18px;" />
             <ComboBox fx:id="cmbQuoteStyle" promptText="Anführungszeichen" prefWidth="220.0" />
             
             <Separator orientation="VERTICAL" style="-fx-background-color: #6c757d;" />
@@ -127,7 +127,7 @@
             <children>
                <HBox spacing="5" styleClass="chapter-editor-header" style="-fx-min-height: 30px;">
                   <children>
-                     <Label text="📝 Chapter-Beschreibung" styleClass="chapter-editor-title" />
+                     <Label text="✏ Chapter-Beschreibung" styleClass="chapter-editor-title" />
                      <Region HBox.hgrow="ALWAYS" style="-fx-background-color: transparent;" />
                      <Button fx:id="btnSaveChapter" text="💾 Speichern" styleClass="button" style="-fx-min-width: 120px; -fx-max-width: 120px;" />
                   </children>

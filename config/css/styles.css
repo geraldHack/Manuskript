@@ -1,7 +1,10 @@
-/* Standard Styles für Manuskript */
+/* Standard Styles für Manuskript - macOS optimiert */
 .root {
     -fx-background-color: #ffffff;
     -fx-text-fill: #000000;
+    /* Plattformübergreifende Font-Rendering-Einstellungen */
+    -fx-font-smoothing-type: gray;
+    -fx-font-family: "SF Pro Display", "Segoe UI", "Helvetica Neue", "Arial", sans-serif;
 }
 
 .button {
@@ -11,6 +14,9 @@
     -fx-border-width: 1px;
     -fx-border-radius: 3px;
     -fx-background-radius: 3px;
+    /* Bessere Font-Darstellung für Buttons */
+    -fx-font-smoothing-type: gray;
+    -fx-font-family: "SF Pro Display", "Segoe UI", "Helvetica Neue", "Arial", sans-serif;
 }
 
 .button:hover {

@@ -17,7 +17,7 @@ CASE:0
 WORD:0
 ENABLED:1
 STEPDESC:Falsches Deutschen Anführungszeichen oben
-REPLACECOUNT:2
+REPLACECOUNT:0
 STEP:3
 SEARCH:[ ]{2,}
 REPLACE:
@@ -35,7 +35,7 @@ CASE:0
 WORD:0
 ENABLED:1
 STEPDESC:Mehrfache Leerzeilen reduzieren
-REPLACECOUNT:31
+REPLACECOUNT:94
 STEP:5
 SEARCH:‘(.*?)’
 REPLACE:'$1'
@@ -44,7 +44,7 @@ CASE:0
 WORD:0
 ENABLED:1
 STEPDESC:Einfache Anführungszeichen deutsch
-REPLACECOUNT:1
+REPLACECOUNT:0
 STEP:6
 SEARCH:„
 REPLACE:"
@@ -62,7 +62,7 @@ CASE:0
 WORD:0
 ENABLED:1
 STEPDESC:Gerade Anführungszeichen schließen
-REPLACECOUNT:5
+REPLACECOUNT:0
 STEP:8
 SEARCH:,"
 REPLACE:",
@@ -80,7 +80,7 @@ CASE:0
 WORD:0
 ENABLED:1
 STEPDESC:Einfache Anführungszeichen Französisch
-REPLACECOUNT:1
+REPLACECOUNT:0
 STEP:10
 SEARCH:"(.*?)"
 REPLACE:»$1«
@@ -89,7 +89,7 @@ CASE:0
 WORD:0
 ENABLED:1
 STEPDESC:Anführungszeichen Französisch
-REPLACECOUNT:3
+REPLACECOUNT:0
 STEP:11
 SEARCH:...
 REPLACE:…
@@ -152,6 +152,15 @@ CASE:0
 WORD:0
 ENABLED:1
 STEPDESC:* als Trenner in --- ändern
+REPLACECOUNT:0
+STEP:18
+SEARCH:^\s*\*\*\*\s*$
+REPLACE:---
+REGEX:1
+CASE:0
+WORD:0
+ENABLED:1
+STEPDESC:*** als Trenner
 REPLACECOUNT:0
 ENDMACRO
 MACRO:Französische → Deutsche Anführungszeichen
