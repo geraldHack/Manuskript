@@ -1598,8 +1598,34 @@ public class OllamaWindow {
                     }
                     
 
-                    // Dialog für Plugin-Variablen anzeigen
-                    Map<String, String> variables = PluginVariableDialog.showDialog(plugin, selectedText, currentThemeIndex);
+                    // Prüfe ob Plugin Variablen hat
+                    List<PluginVariable> variableDefinitions = plugin.getVariableDefinitions();
+                    boolean hasUserVariables = false;
+                    
+                    // Prüfe ob es User-Variablen gibt (nicht nur "selektierter Text")
+                    for (PluginVariable varDef : variableDefinitions) {
+                        if (!isSelectedTextVariable(varDef.getName())) {
+                            hasUserVariables = true;
+                            break;
+                        }
+                    }
+                    
+                    Map<String, String> variables;
+                    if (hasUserVariables) {
+                        // Dialog für Plugin-Variablen anzeigen
+                        variables = PluginVariableDialog.showDialog(plugin, selectedText, currentThemeIndex);
+                    } else {
+                        // Plugin ohne User-Variablen: automatisch ausführen
+                        variables = new HashMap<>();
+                        // "selektierter Text" automatisch setzen falls vorhanden
+                        for (PluginVariable varDef : variableDefinitions) {
+                            if (isSelectedTextVariable(varDef.getName())) {
+                                variables.put(varDef.getName(), selectedText != null ? selectedText : "");
+                            }
+                        }
+                        logger.info("DEBUG: Plugin ohne User-Variablen - automatische Ausführung");
+                    }
+                    
                     if (variables != null) {
                         // Debug: Ausgabe der Variablen
                         logger.info("DEBUG: Plugin-Variablen: " + variables);
@@ -3000,6 +3026,18 @@ public class OllamaWindow {
     }
     
 
+    
+    /**
+     * Prüft ob eine Variable eine "selektierter Text" Variable ist
+     */
+    private boolean isSelectedTextVariable(String variableName) {
+        if (variableName == null) return false;
+        String lower = variableName.toLowerCase();
+        return lower.contains("selektierter text") || 
+               lower.contains("selected text") || 
+               lower.contains("hier den text einfügen") ||
+               lower.contains("text zum analysieren");
+    }
     
     /**
      * Holt den selektierten Text aus dem Editor
