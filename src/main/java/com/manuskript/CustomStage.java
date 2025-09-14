@@ -73,28 +73,53 @@ public class CustomStage extends Stage {
         spacer.setStyle("-fx-background-color: transparent;");
         HBox.setHgrow(spacer, Priority.ALWAYS);
         
-        // Window-Buttons
-        minimizeBtn = new Button("🗕");
-        minimizeBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 16px; -fx-min-width: 35px; -fx-min-height: 30px; -fx-border-color: transparent; -fx-border-radius: 4px; -fx-background-radius: 4px;");
-        minimizeBtn.setOnAction(e -> setIconified(true));
+        // Window-Buttons mit macOS-Style (links, rot-gelb-grün)
+        String osName = System.getProperty("os.name").toLowerCase();
+        boolean isMac = osName.contains("mac");
         
-        maximizeBtn = new Button("🗗");
-        maximizeBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 16px; -fx-min-width: 35px; -fx-min-height: 30px; -fx-border-color: transparent; -fx-border-radius: 4px; -fx-background-radius: 4px;");
-        maximizeBtn.setOnAction(e -> toggleMaximize());
-        
-        closeBtn = new Button("✕");
-        closeBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 18px; -fx-min-width: 35px; -fx-min-height: 30px; -fx-border-color: transparent; -fx-border-radius: 4px; -fx-background-radius: 4px;");
-        closeBtn.setOnAction(e -> {
-            // WICHTIG: Close-Request-Event auslösen statt direkt schließen!
-            // Das ermöglicht dem Close-Request-Handler, ungespeicherte Änderungen zu prüfen
-            fireEvent(new javafx.stage.WindowEvent(this, javafx.stage.WindowEvent.WINDOW_CLOSE_REQUEST));
-        });
+        if (isMac) {
+            // macOS-Style: Links, rot-gelb-grün
+            closeBtn = new Button("×");
+            closeBtn.setStyle("-fx-background-color: #ff5f57; -fx-text-fill: #4d0000; -fx-font-weight: bold; -fx-font-size: 12px; -fx-min-width: 12px; -fx-min-height: 12px; -fx-border-color: transparent; -fx-border-radius: 6px; -fx-background-radius: 6px;");
+            closeBtn.setOnAction(e -> {
+                fireEvent(new javafx.stage.WindowEvent(this, javafx.stage.WindowEvent.WINDOW_CLOSE_REQUEST));
+            });
+            
+            minimizeBtn = new Button("−");
+            minimizeBtn.setStyle("-fx-background-color: #ffbd2e; -fx-text-fill: #975500; -fx-font-weight: bold; -fx-font-size: 12px; -fx-min-width: 12px; -fx-min-height: 12px; -fx-border-color: transparent; -fx-border-radius: 6px; -fx-background-radius: 6px;");
+            minimizeBtn.setOnAction(e -> setIconified(true));
+            
+            maximizeBtn = new Button("□");
+            maximizeBtn.setStyle("-fx-background-color: #28ca42; -fx-text-fill: #003300; -fx-font-weight: bold; -fx-font-size: 10px; -fx-min-width: 12px; -fx-min-height: 12px; -fx-border-color: transparent; -fx-border-radius: 6px; -fx-background-radius: 6px;");
+            maximizeBtn.setOnAction(e -> toggleMaximize());
+        } else {
+            // Windows/Linux-Style: Rechts, grau
+            minimizeBtn = new Button("−");
+            minimizeBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 18px; -fx-min-width: 35px; -fx-min-height: 30px; -fx-border-color: transparent; -fx-border-radius: 4px; -fx-background-radius: 4px;");
+            minimizeBtn.setOnAction(e -> setIconified(true));
+            
+            maximizeBtn = new Button("□");
+            maximizeBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 16px; -fx-min-width: 35px; -fx-min-height: 30px; -fx-border-color: transparent; -fx-border-radius: 4px; -fx-background-radius: 4px;");
+            maximizeBtn.setOnAction(e -> toggleMaximize());
+            
+            closeBtn = new Button("×");
+            closeBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 20px; -fx-min-width: 35px; -fx-min-height: 30px; -fx-border-color: transparent; -fx-border-radius: 4px; -fx-background-radius: 4px;");
+            closeBtn.setOnAction(e -> {
+                fireEvent(new javafx.stage.WindowEvent(this, javafx.stage.WindowEvent.WINDOW_CLOSE_REQUEST));
+            });
+        }
         
         // Hover-Effekte
         setupHoverEffects();
         
-        // Titelleiste zusammenbauen
-        titleBar.getChildren().addAll(iconLabel, titleLabel, spacer, minimizeBtn, maximizeBtn, closeBtn);
+        // Titelleiste zusammenbauen - Button-Reihenfolge je nach OS
+        if (isMac) {
+            // macOS: Links rot-gelb-grün, dann Titel
+            titleBar.getChildren().addAll(closeBtn, minimizeBtn, maximizeBtn, spacer, titleLabel);
+        } else {
+            // Windows/Linux: Links Titel, rechts Buttons
+            titleBar.getChildren().addAll(iconLabel, titleLabel, spacer, minimizeBtn, maximizeBtn, closeBtn);
+        }
         
         // Drag & Drop für Titelleiste
         setupDragAndDrop();
@@ -108,17 +133,30 @@ public class CustomStage extends Stage {
      * Richtet Hover-Effekte für die Buttons ein
      */
     private void setupHoverEffects() {
-        // Minimize-Button
-        minimizeBtn.setOnMouseEntered(e -> minimizeBtn.setStyle("-fx-background-color: #34495e; -fx-text-fill: " + currentTextColor + "; -fx-font-weight: bold; -fx-font-size: 16px; -fx-min-width: 35px; -fx-min-height: 30px; -fx-border-color: transparent; -fx-border-radius: 4px; -fx-background-radius: 4px;"));
-        minimizeBtn.setOnMouseExited(e -> minimizeBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: " + currentTextColor + "; -fx-font-weight: bold; -fx-font-size: 16px; -fx-min-width: 35px; -fx-min-height: 30px; -fx-border-color: transparent; -fx-border-radius: 4px; -fx-background-radius: 4px;"));
+        String osName = System.getProperty("os.name").toLowerCase();
+        boolean isMac = osName.contains("mac");
         
-        // Maximize-Button
-        maximizeBtn.setOnMouseEntered(e -> maximizeBtn.setStyle("-fx-background-color: #34495e; -fx-text-fill: " + currentTextColor + "; -fx-font-weight: bold; -fx-font-size: 16px; -fx-min-width: 35px; -fx-min-height: 30px; -fx-border-color: transparent; -fx-border-radius: 4px; -fx-background-radius: 4px;"));
-        maximizeBtn.setOnMouseExited(e -> maximizeBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: " + currentTextColor + "; -fx-font-weight: bold; -fx-font-size: 16px; -fx-min-width: 35px; -fx-min-height: 30px; -fx-border-color: transparent; -fx-border-radius: 4px; -fx-background-radius: 4px;"));
-        
-        // Close-Button
-        closeBtn.setOnMouseEntered(e -> closeBtn.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: " + currentTextColor + "; -fx-font-weight: bold; -fx-font-size: 18px; -fx-min-width: 35px; -fx-min-height: 30px; -fx-border-color: transparent; -fx-border-radius: 4px; -fx-background-radius: 4px;"));
-        closeBtn.setOnMouseExited(e -> closeBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: " + currentTextColor + "; -fx-font-weight: bold; -fx-font-size: 18px; -fx-min-width: 35px; -fx-min-height: 30px; -fx-border-color: transparent; -fx-border-radius: 4px; -fx-background-radius: 4px;"));
+        if (isMac) {
+            // macOS-Style Hover-Effekte
+            closeBtn.setOnMouseEntered(e -> closeBtn.setStyle("-fx-background-color: #ff3b30; -fx-text-fill: #4d0000; -fx-font-weight: bold; -fx-font-size: 12px; -fx-min-width: 12px; -fx-min-height: 12px; -fx-border-color: transparent; -fx-border-radius: 6px; -fx-background-radius: 6px;"));
+            closeBtn.setOnMouseExited(e -> closeBtn.setStyle("-fx-background-color: #ff5f57; -fx-text-fill: #4d0000; -fx-font-weight: bold; -fx-font-size: 12px; -fx-min-width: 12px; -fx-min-height: 12px; -fx-border-color: transparent; -fx-border-radius: 6px; -fx-background-radius: 6px;"));
+            
+            minimizeBtn.setOnMouseEntered(e -> minimizeBtn.setStyle("-fx-background-color: #ff9500; -fx-text-fill: #975500; -fx-font-weight: bold; -fx-font-size: 12px; -fx-min-width: 12px; -fx-min-height: 12px; -fx-border-color: transparent; -fx-border-radius: 6px; -fx-background-radius: 6px;"));
+            minimizeBtn.setOnMouseExited(e -> minimizeBtn.setStyle("-fx-background-color: #ffbd2e; -fx-text-fill: #975500; -fx-font-weight: bold; -fx-font-size: 12px; -fx-min-width: 12px; -fx-min-height: 12px; -fx-border-color: transparent; -fx-border-radius: 6px; -fx-background-radius: 6px;"));
+            
+            maximizeBtn.setOnMouseEntered(e -> maximizeBtn.setStyle("-fx-background-color: #30d158; -fx-text-fill: #003300; -fx-font-weight: bold; -fx-font-size: 10px; -fx-min-width: 12px; -fx-min-height: 12px; -fx-border-color: transparent; -fx-border-radius: 6px; -fx-background-radius: 6px;"));
+            maximizeBtn.setOnMouseExited(e -> maximizeBtn.setStyle("-fx-background-color: #28ca42; -fx-text-fill: #003300; -fx-font-weight: bold; -fx-font-size: 10px; -fx-min-width: 12px; -fx-min-height: 12px; -fx-border-color: transparent; -fx-border-radius: 6px; -fx-background-radius: 6px;"));
+        } else {
+            // Windows/Linux-Style Hover-Effekte
+            minimizeBtn.setOnMouseEntered(e -> minimizeBtn.setStyle("-fx-background-color: #34495e; -fx-text-fill: " + currentTextColor + "; -fx-font-weight: bold; -fx-font-size: 18px; -fx-min-width: 35px; -fx-min-height: 30px; -fx-border-color: transparent; -fx-border-radius: 4px; -fx-background-radius: 4px;"));
+            minimizeBtn.setOnMouseExited(e -> minimizeBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: " + currentTextColor + "; -fx-font-weight: bold; -fx-font-size: 18px; -fx-min-width: 35px; -fx-min-height: 30px; -fx-border-color: transparent; -fx-border-radius: 4px; -fx-background-radius: 4px;"));
+            
+            maximizeBtn.setOnMouseEntered(e -> maximizeBtn.setStyle("-fx-background-color: #34495e; -fx-text-fill: " + currentTextColor + "; -fx-font-weight: bold; -fx-font-size: 16px; -fx-min-width: 35px; -fx-min-height: 30px; -fx-border-color: transparent; -fx-border-radius: 4px; -fx-background-radius: 4px;"));
+            maximizeBtn.setOnMouseExited(e -> maximizeBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: " + currentTextColor + "; -fx-font-weight: bold; -fx-font-size: 16px; -fx-min-width: 35px; -fx-min-height: 30px; -fx-border-color: transparent; -fx-border-radius: 4px; -fx-background-radius: 4px;"));
+            
+            closeBtn.setOnMouseEntered(e -> closeBtn.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: " + currentTextColor + "; -fx-font-weight: bold; -fx-font-size: 20px; -fx-min-width: 35px; -fx-min-height: 30px; -fx-border-color: transparent; -fx-border-radius: 4px; -fx-background-radius: 4px;"));
+            closeBtn.setOnMouseExited(e -> closeBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: " + currentTextColor + "; -fx-font-weight: bold; -fx-font-size: 20px; -fx-min-width: 35px; -fx-min-height: 30px; -fx-border-color: transparent; -fx-border-radius: 4px; -fx-background-radius: 4px;"));
+        }
     }
     
     /**
@@ -158,11 +196,11 @@ public class CustomStage extends Stage {
     private void toggleMaximize() {
         if (isMaximized) {
             setMaximized(false);
-            maximizeBtn.setText("🗗");
+            maximizeBtn.setText("□");
             isMaximized = false;
         } else {
             setMaximized(true);
-            maximizeBtn.setText("🗖");
+            maximizeBtn.setText("⧉");
             isMaximized = true;
         }
     }
@@ -483,13 +521,25 @@ public class CustomStage extends Stage {
                 titleLabel.setStyle("-fx-text-fill: " + textColor + "; -fx-font-weight: bold; -fx-font-size: 14px; -fx-padding: 0 10px; -fx-background-color: transparent; -fx-background-radius: 0;");
             }
             
-            // Button-Styles mit neuer Textfarbe
-            String buttonStyle = "-fx-background-color: transparent; -fx-text-fill: " + textColor + "; -fx-font-weight: bold; -fx-font-size: 16px; -fx-min-width: 35px; -fx-min-height: 30px; -fx-border-color: transparent; -fx-border-radius: 4px; -fx-background-radius: 4px;";
-            String closeButtonStyle = "-fx-background-color: transparent; -fx-text-fill: " + textColor + "; -fx-font-weight: bold; -fx-font-size: 18px; -fx-min-width: 35px; -fx-min-height: 30px; -fx-border-color: transparent; -fx-border-radius: 4px; -fx-background-radius: 4px;";
+            // Button-Styles je nach OS
+            String osName = System.getProperty("os.name").toLowerCase();
+            boolean isMac = osName.contains("mac");
             
-            if (minimizeBtn != null) minimizeBtn.setStyle(buttonStyle);
-            if (maximizeBtn != null) maximizeBtn.setStyle(buttonStyle);
-            if (closeBtn != null) closeBtn.setStyle(closeButtonStyle);
+            if (isMac) {
+                // macOS-Style Buttons (rot-gelb-grün)
+                if (closeBtn != null) closeBtn.setStyle("-fx-background-color: #ff5f57; -fx-text-fill: #4d0000; -fx-font-weight: bold; -fx-font-size: 12px; -fx-min-width: 12px; -fx-min-height: 12px; -fx-border-color: transparent; -fx-border-radius: 6px; -fx-background-radius: 6px;");
+                if (minimizeBtn != null) minimizeBtn.setStyle("-fx-background-color: #ffbd2e; -fx-text-fill: #975500; -fx-font-weight: bold; -fx-font-size: 12px; -fx-min-width: 12px; -fx-min-height: 12px; -fx-border-color: transparent; -fx-border-radius: 6px; -fx-background-radius: 6px;");
+                if (maximizeBtn != null) maximizeBtn.setStyle("-fx-background-color: #28ca42; -fx-text-fill: #003300; -fx-font-weight: bold; -fx-font-size: 10px; -fx-min-width: 12px; -fx-min-height: 12px; -fx-border-color: transparent; -fx-border-radius: 6px; -fx-background-radius: 6px;");
+            } else {
+                // Windows/Linux-Style Buttons
+                String minimizeButtonStyle = "-fx-background-color: transparent; -fx-text-fill: " + textColor + "; -fx-font-weight: bold; -fx-font-size: 18px; -fx-min-width: 35px; -fx-min-height: 30px; -fx-border-color: transparent; -fx-border-radius: 4px; -fx-background-radius: 4px;";
+                String maximizeButtonStyle = "-fx-background-color: transparent; -fx-text-fill: " + textColor + "; -fx-font-weight: bold; -fx-font-size: 16px; -fx-min-width: 35px; -fx-min-height: 30px; -fx-border-color: transparent; -fx-border-radius: 4px; -fx-background-radius: 4px;";
+                String closeButtonStyle = "-fx-background-color: transparent; -fx-text-fill: " + textColor + "; -fx-font-weight: bold; -fx-font-size: 20px; -fx-min-width: 35px; -fx-min-height: 30px; -fx-border-color: transparent; -fx-border-radius: 4px; -fx-background-radius: 4px;";
+                
+                if (minimizeBtn != null) minimizeBtn.setStyle(minimizeButtonStyle);
+                if (maximizeBtn != null) maximizeBtn.setStyle(maximizeButtonStyle);
+                if (closeBtn != null) closeBtn.setStyle(closeButtonStyle);
+            }
             
             // Hover-Effekte neu setzen
             setupHoverEffects();

@@ -62,10 +62,39 @@ public class Main extends Application {
     }
     
     public static void main(String[] args) {
+        // macOS-spezifische JavaFX-Einstellungen
+        setupMacOSCompatibility();
+        
         // Logback-Konfiguration aus config/logback.xml laden
         setupLogging();
         
         launch(args);
+    }
+    
+    private static void setupMacOSCompatibility() {
+        // Plattformübergreifende System-Properties für besseres Rendering
+        System.setProperty("prism.lcdtext", "false"); // Deaktiviert LCD-Subpixel-Rendering
+        System.setProperty("prism.text", "t2k"); // Verwendet T2K-Text-Rendering
+        System.setProperty("javafx.platform", "desktop");
+        
+        // Plattform-spezifische Einstellungen
+        String osName = System.getProperty("os.name").toLowerCase();
+        if (osName.contains("mac")) {
+            // macOS-spezifische Einstellungen
+            System.setProperty("apple.awt.application.name", "Manuskript");
+            System.setProperty("apple.laf.useScreenMenuBar", "true");
+            System.out.println("macOS-Kompatibilitäts-Einstellungen geladen");
+        } else if (osName.contains("windows")) {
+            // Windows-spezifische Einstellungen
+            System.setProperty("prism.order", "d3d,sw"); // Direkt3D mit Software-Fallback
+            System.out.println("Windows-Kompatibilitäts-Einstellungen geladen");
+        } else {
+            // Linux/andere Plattformen
+            System.out.println("Linux/andere Plattform-Kompatibilitäts-Einstellungen geladen");
+        }
+        
+        // Deaktiviert Hardware-Beschleunigung falls Probleme auftreten
+        // System.setProperty("prism.order", "sw");
     }
     
     private static void setupLogging() {
