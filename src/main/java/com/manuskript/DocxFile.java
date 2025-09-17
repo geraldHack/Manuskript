@@ -58,11 +58,20 @@ public class DocxFile {
     }
     
     public String getDisplayFileName() {
-        return changed ? "! " + fileName : fileName;
+        // Entferne .docx Erweiterung für die Anzeige
+        String displayName = fileName;
+        if (fileName.toLowerCase().endsWith(".docx")) {
+            displayName = fileName.substring(0, fileName.length() - 5);
+        }
+        return changed ? "! " + displayName : displayName;
     }
     
     @Override
     public String toString() {
+        // Entferne .docx Erweiterung für die Anzeige
+        if (fileName.toLowerCase().endsWith(".docx")) {
+            return fileName.substring(0, fileName.length() - 5);
+        }
         return fileName;
     }
     

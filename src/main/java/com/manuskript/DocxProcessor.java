@@ -25,6 +25,9 @@ public class DocxProcessor {
     
     private static final Logger logger = LoggerFactory.getLogger(DocxProcessor.class);
     
+    // Zähler für verschachtelte Nummerierung (wird pro Exportdurchlauf verwendet)
+    private static java.util.List<Integer> numberingLevels;
+    
     public enum OutputFormat {
         PLAIN_TEXT("Einfacher Text"),
         MARKDOWN("Markdown mit Export"),
@@ -266,95 +269,8 @@ public class DocxProcessor {
                 }
             }
             
-            // Einfache String-Verarbeitung statt Flexmark
-            String[] lines = markdownText.split("\r?\n");
-            
-            // Zähler für automatische Nummerierung
-            int h1Counter = 0;
-            int h2Counter = 0;
-            int h3Counter = 0;
-            boolean firstH1Seen = false;
-            boolean lastWasHeading = false;
-            
-            // Zeilen verarbeiten
-            for (int i = 0; i < lines.length; i++) {
-                String line = lines[i].trim();
-                
-                if (line.isEmpty()) {
-                    continue; // Leere Zeilen überspringen
-                }
-                
-                // Überschriften erkennen
-                if (line.startsWith("# ")) {
-                    // H1
-                    String headingText = line.substring(2);
-                    h1Counter++;
-                    h2Counter = 0;
-                    h3Counter = 0;
-                    
-                    if (options != null && options.autoNumberHeadings) {
-                        headingText = h1Counter + ". " + headingText;
-                    }
-                    
-                    addHeading(pkg, f, headingText, 1, firstH1Seen, options);
-                    if (!firstH1Seen) firstH1Seen = true;
-                    lastWasHeading = true;
-                    
-                } else if (line.startsWith("## ")) {
-                    // H2
-                    String headingText = line.substring(3);
-                    h2Counter++;
-                    h3Counter = 0;
-                    
-                    if (options != null && options.autoNumberHeadings) {
-                        headingText = h1Counter + "." + h2Counter + " " + headingText;
-                    }
-                    
-                    addHeading(pkg, f, headingText, 2, firstH1Seen, options);
-                    lastWasHeading = true;
-                    
-                } else if (line.startsWith("### ")) {
-                    // H3
-                    String headingText = line.substring(4);
-                    h3Counter++;
-                    
-                    if (options != null && options.autoNumberHeadings) {
-                        headingText = h1Counter + "." + h2Counter + "." + h3Counter + " " + headingText;
-                    }
-                    
-                    addHeading(pkg, f, headingText, 3, firstH1Seen, options);
-                    lastWasHeading = true;
-                    
-                } else if (line.startsWith("```")) {
-                    // Code-Block
-                    StringBuilder codeBlock = new StringBuilder();
-                    i++; // Nächste Zeile
-                    while (i < lines.length && !lines[i].trim().startsWith("```")) {
-                        codeBlock.append(lines[i]).append("\n");
-                        i++;
-                    }
-                    addCodeBlock(pkg, f, codeBlock.toString().trim(), options);
-                    lastWasHeading = false;
-                    
-                } else if (line.equals("---") || line.equals("***")) {
-                    // Horizontale Linie
-                    addHorizontalRule(pkg, f);
-                    lastWasHeading = false;
-                    
-                } else {
-                    // Normaler Text/Absatz
-                    boolean shouldIndent = (options != null && options.firstLineIndent && !lastWasHeading);
-                    
-                    if (shouldIndent) {
-                        logger.info("Einrückung für Absatz: '{}'", line.substring(0, Math.min(30, line.length())));
-                        addParagraph(pkg, f, line, options);
-                    } else {
-                        logger.info("Keine Einrückung für Absatz: '{}'", line.substring(0, Math.min(30, line.length())));
-                        addParagraphWithoutIndent(pkg, f, line, options);
-                    }
-                    lastWasHeading = false;
-                }
-            }
+            // Verbesserte Markdown-Verarbeitung
+            processMarkdownContent(pkg, f, markdownText, options);
             
             // Dokument speichern
             Docx4J.save(pkg, tempFile);
@@ -392,6 +308,559 @@ public class DocxProcessor {
             logger.error("Fehler beim DOCX-Export mit Docx4J: {}", e.getMessage(), e);
             throw new IOException("DOCX-Export fehlgeschlagen: " + e.getMessage(), e);
         }
+    }
+    
+    /**
+     * Verarbeitet Markdown-Text mit verbesserter Formatierungsunterstützung
+     */
+    private static void processMarkdownContent(WordprocessingMLPackage pkg, ObjectFactory f, String markdownText, DocxOptions options) {
+        logger.info("=== NEUE MARKDOWN-VERARBEITUNG WIRD VERWENDET ===");
+        logger.info("Markdown-Text Länge: {}", markdownText.length());
+            String[] lines = markdownText.split("\r?\n");
+            
+            // Zähler für automatische Nummerierung
+            int h1Counter = 0;
+            int h2Counter = 0;
+            int h3Counter = 0;
+        int h4Counter = 0;
+        int h5Counter = 0;
+        int h6Counter = 0;
+            boolean firstH1Seen = false;
+            boolean lastWasHeading = false;
+        boolean inCodeBlock = false;
+        boolean inTable = false;
+        boolean inBlockquote = false;
+            
+            // Zeilen verarbeiten
+            for (int i = 0; i < lines.length; i++) {
+            String line = lines[i];
+            String trimmedLine = line.trim();
+            
+            // Code-Block Erkennung
+            if (trimmedLine.startsWith("```")) {
+                inCodeBlock = !inCodeBlock;
+                if (inCodeBlock) {
+                    // Code-Block startet
+                    StringBuilder codeBlock = new StringBuilder();
+                    i++; // Nächste Zeile
+                    while (i < lines.length && !lines[i].trim().startsWith("```")) {
+                        codeBlock.append(lines[i]).append("\n");
+                        i++;
+                    }
+                    addCodeBlock(pkg, f, codeBlock.toString().trim(), options);
+                    lastWasHeading = false;
+                }
+                continue;
+            }
+            
+            if (inCodeBlock) {
+                continue; // Code-Block Inhalt wird bereits verarbeitet
+            }
+            
+            // Leere Zeilen
+            if (trimmedLine.isEmpty()) {
+                inTable = false;
+                inBlockquote = false;
+                continue;
+            }
+            
+            // Blockquotes
+            if (trimmedLine.startsWith(">")) {
+                String blockquoteText = trimmedLine.substring(1).trim();
+                addBlockquote(pkg, f, blockquoteText, options);
+                inBlockquote = true;
+                lastWasHeading = false;
+                continue;
+            }
+            
+            // Tabellen
+            if (trimmedLine.contains("|")) {
+                if (!inTable) {
+                    // Tabellen-Header
+                    String[] headers = parseTableRow(trimmedLine);
+                    i++; // Nächste Zeile (Trennlinie)
+                    if (i < lines.length && lines[i].trim().contains("|")) {
+                        i++; // Überspringe Trennlinie
+                        // Tabellen-Daten sammeln
+                        java.util.List<String[]> tableData = new java.util.ArrayList<>();
+                        while (i < lines.length && lines[i].trim().contains("|")) {
+                            tableData.add(parseTableRow(lines[i].trim()));
+                            i++;
+                        }
+                        i--; // Korrigiere Index
+                        addTable(pkg, f, headers, tableData, options);
+                        inTable = true;
+                        lastWasHeading = false;
+                        continue;
+                    }
+                }
+            }
+            
+            // Listen
+            if (trimmedLine.matches("^\\s*[-*+]\\s+.*") || trimmedLine.matches("^\\s*\\d+\\.\\s+.*")) {
+                logger.info("LISTE GEFUNDEN: '{}'", trimmedLine);
+
+                // Verschachtelte Nummerierung aufbauen
+                boolean isOrdered = trimmedLine.matches("^\\s*\\d+\\.\\s+.*");
+                int level = computeIndentLevel(line);
+
+                // Statische Stack-/Zählerstruktur (lokal pro Exportdurchlauf)
+                if (numberingLevels == null) {
+                    numberingLevels = new java.util.ArrayList<>();
+                }
+                // Stelle sicher, dass Größe > level
+                while (numberingLevels.size() <= level) numberingLevels.add(0);
+                // Kappe tiefe Ebenen, wenn wir weniger tief sind
+                for (int lv = numberingLevels.size() - 1; lv > level; lv--) numberingLevels.remove(lv);
+
+                String prefix = "";
+                if (isOrdered) {
+                    // Aktuelle Nummer extrahieren oder fortschreiben
+                    int current = numberingLevels.get(level);
+                    current = current + 1;
+                    numberingLevels.set(level, current);
+                    // Nachfolgende Ebenen zurücksetzen
+                    for (int lv = level + 1; lv < numberingLevels.size(); lv++) numberingLevels.set(lv, 0);
+
+                    // Präfix wie 1. / 2.1. / 2.1.3.
+                    StringBuilder sb = new StringBuilder();
+                    for (int lv = 0; lv <= level; lv++) {
+                        int n = numberingLevels.get(lv);
+                        if (n == 0 && lv == level) n = current; // Sicherheit
+                        if (n > 0) {
+                            if (sb.length() > 0) sb.append('.');
+                            sb.append(n);
+                        }
+                    }
+                    if (sb.length() > 0) sb.append(' ');
+                    prefix = sb.toString();
+                } else {
+                    // Unordered: einfacher Bullet je Ebene
+                    prefix = "• ";
+                }
+
+                addListItemWithPrefix(pkg, f, line, prefix, options);
+                lastWasHeading = false;
+                continue;
+            }
+            
+            // Überschriften (H1-H6)
+            if (trimmedLine.startsWith("#")) {
+                int level = 0;
+                while (level < trimmedLine.length() && trimmedLine.charAt(level) == '#') {
+                    level++;
+                }
+                
+                if (level > 0 && level <= 6 && (level == trimmedLine.length() || trimmedLine.charAt(level) == ' ')) {
+                    String headingText = trimmedLine.substring(level).trim();
+                    
+                    // Zähler aktualisieren
+                    if (level == 1) {
+                        h1Counter++;
+                        h2Counter = h3Counter = h4Counter = h5Counter = h6Counter = 0;
+                    } else if (level == 2) {
+                        h2Counter++;
+                        h3Counter = h4Counter = h5Counter = h6Counter = 0;
+                    } else if (level == 3) {
+                    h3Counter++;
+                        h4Counter = h5Counter = h6Counter = 0;
+                    } else if (level == 4) {
+                        h4Counter++;
+                        h5Counter = h6Counter = 0;
+                    } else if (level == 5) {
+                        h5Counter++;
+                        h6Counter = 0;
+                    } else if (level == 6) {
+                        h6Counter++;
+                    }
+                    
+                    // Automatische Nummerierung
+                    if (options != null && options.autoNumberHeadings) {
+                        String number = "";
+                        if (level == 1) number = h1Counter + ". ";
+                        else if (level == 2) number = h1Counter + "." + h2Counter + " ";
+                        else if (level == 3) number = h1Counter + "." + h2Counter + "." + h3Counter + " ";
+                        else if (level == 4) number = h1Counter + "." + h2Counter + "." + h3Counter + "." + h4Counter + " ";
+                        else if (level == 5) number = h1Counter + "." + h2Counter + "." + h3Counter + "." + h4Counter + "." + h5Counter + " ";
+                        else if (level == 6) number = h1Counter + "." + h2Counter + "." + h3Counter + "." + h4Counter + "." + h5Counter + "." + h6Counter + " ";
+                        headingText = number + headingText;
+                    }
+                    
+                    addHeading(pkg, f, headingText, level, firstH1Seen, options);
+                    if (!firstH1Seen) firstH1Seen = true;
+                    lastWasHeading = true;
+                    continue;
+                }
+            }
+            
+            // Horizontale Linien
+            if (trimmedLine.equals("---") || trimmedLine.equals("***") || trimmedLine.equals("___")) {
+                    addHorizontalRule(pkg, f);
+                    lastWasHeading = false;
+                continue;
+            }
+                    
+                    // Normaler Text/Absatz
+                    boolean shouldIndent = (options != null && options.firstLineIndent && !lastWasHeading);
+                    
+                    if (shouldIndent) {
+                addParagraphWithFormatting(pkg, f, trimmedLine, options);
+                    } else {
+                addParagraphWithoutIndentWithFormatting(pkg, f, trimmedLine, options);
+                    }
+                    lastWasHeading = false;
+                }
+            }
+            
+    /**
+     * Parst eine Tabellenzeile
+     */
+    private static String[] parseTableRow(String line) {
+        String[] parts = line.split("\\|");
+        String[] result = new String[parts.length - 2]; // Erste und letzte sind leer
+        for (int i = 1; i < parts.length - 1; i++) {
+            result[i - 1] = parts[i].trim();
+        }
+        return result;
+    }
+    
+    /**
+     * Fügt eine Tabelle hinzu
+     */
+    private static void addTable(WordprocessingMLPackage pkg, ObjectFactory f, String[] headers, java.util.List<String[]> data, DocxOptions options) {
+        try {
+            Tbl table = f.createTbl();
+            
+            // Tabellen-Eigenschaften vereinfacht
+            TblPr tblPr = f.createTblPr();
+            
+            // Tabellen-Ränder
+            TblBorders borders = f.createTblBorders();
+            CTBorder border = f.createCTBorder();
+            border.setVal(STBorder.SINGLE);
+            border.setSz(BigInteger.valueOf(4));
+            border.setColor("000000");
+            borders.setTop(border);
+            borders.setBottom(border);
+            borders.setLeft(border);
+            borders.setRight(border);
+            borders.setInsideH(border);
+            borders.setInsideV(border);
+            tblPr.setTblBorders(borders);
+            table.setTblPr(tblPr);
+            
+            // Header-Zeile
+            Tr headerRow = f.createTr();
+            for (String header : headers) {
+                Tc cell = f.createTc();
+                TcPr cellPr = f.createTcPr();
+                cell.setTcPr(cellPr);
+                
+                P paragraph = f.createP();
+                PPr ppr = f.createPPr();
+                Jc jc = f.createJc();
+                jc.setVal(JcEnumeration.CENTER);
+                ppr.setJc(jc);
+                paragraph.setPPr(ppr);
+                
+                R run = f.createR();
+                RPr rpr = f.createRPr();
+                BooleanDefaultTrue bold = new BooleanDefaultTrue();
+                rpr.setB(bold);
+                run.setRPr(rpr);
+                
+                org.docx4j.wml.Text text = f.createText();
+                text.setValue(header);
+                run.getContent().add(text);
+                paragraph.getContent().add(run);
+                cell.getContent().add(paragraph);
+                headerRow.getContent().add(cell);
+            }
+            table.getContent().add(headerRow);
+            
+            // Daten-Zeilen
+            for (String[] row : data) {
+                Tr dataRow = f.createTr();
+                for (int i = 0; i < Math.min(row.length, headers.length); i++) {
+                    Tc cell = f.createTc();
+                    TcPr cellPr = f.createTcPr();
+                    cell.setTcPr(cellPr);
+                    
+                    P paragraph = f.createP();
+                    R run = f.createR();
+                    org.docx4j.wml.Text text = f.createText();
+                    text.setValue(row[i]);
+                    run.getContent().add(text);
+                    paragraph.getContent().add(run);
+                    cell.getContent().add(paragraph);
+                    dataRow.getContent().add(cell);
+                }
+                table.getContent().add(dataRow);
+            }
+            
+            pkg.getMainDocumentPart().addObject(table);
+            
+        } catch (Exception e) {
+            logger.error("Fehler beim Erstellen der Tabelle: {}", e.getMessage());
+        }
+    }
+    
+    /**
+     * Fügt ein Blockquote hinzu
+     */
+    private static void addBlockquote(WordprocessingMLPackage pkg, ObjectFactory f, String text, DocxOptions options) {
+        P p = f.createP();
+        PPr ppr = f.createPPr();
+        
+        // Einrückung für Blockquote
+        PPrBase.Ind ind = f.createPPrBaseInd();
+        ind.setLeft(BigInteger.valueOf(720)); // 0.5 Zoll
+        ppr.setInd(ind);
+        
+        // Kursiver Text für Blockquote
+        R r = f.createR();
+        RPr rpr = f.createRPr();
+        BooleanDefaultTrue italic = new BooleanDefaultTrue();
+        rpr.setI(italic);
+        
+        // Schriftart
+        if (options != null) {
+            RFonts rFonts = f.createRFonts();
+            rFonts.setAscii(options.defaultFont);
+            rFonts.setHAnsi(options.defaultFont);
+            rFonts.setCs(options.defaultFont);
+            rpr.setRFonts(rFonts);
+        }
+        
+        r.setRPr(rpr);
+        org.docx4j.wml.Text t = f.createText();
+        t.setValue(text);
+        r.getContent().add(t);
+        p.getContent().add(r);
+        p.setPPr(ppr);
+        
+        pkg.getMainDocumentPart().addObject(p);
+    }
+    
+    /**
+     * Fügt ein Listenelement hinzu - NEUE EINFACHE LÖSUNG
+     */
+    private static void addListItem(WordprocessingMLPackage pkg, ObjectFactory f, String line, DocxOptions options) {
+        P p = f.createP();
+        PPr ppr = f.createPPr();
+        
+        // EINFACHE Einrückung: Zähle führende Leerzeichen
+        int indentLevel = 0;
+        for (int i = 0; i < line.length(); i++) {
+            if (line.charAt(i) == ' ') {
+                indentLevel++;
+            } else if (line.charAt(i) == '\t') {
+                indentLevel += 4;
+            } else {
+                break;
+            }
+        }
+        
+        // Einrückung setzen
+        PPrBase.Ind ind = f.createPPrBaseInd();
+        ind.setLeft(BigInteger.valueOf(720 + (indentLevel * 200))); // Einfache Einrückung
+        ppr.setInd(ind);
+        
+        // Text verarbeiten
+        String text = line.trim();
+        String prefix = "";
+        
+        // Aufzählungsliste: - * +
+        if (text.startsWith("- ") || text.startsWith("* ") || text.startsWith("+ ")) {
+            prefix = "• ";
+            text = text.substring(2);
+        }
+        // Nummerierte Liste: 1. 2. etc.
+        else if (text.matches("^\\d+\\.\\s+.*")) {
+            String number = text.substring(0, text.indexOf('.'));
+            prefix = number + ". ";
+            text = text.substring(text.indexOf('.') + 2);
+        }
+        
+        // Text hinzufügen
+        addFormattedTextToParagraph(p, f, prefix + text, options);
+        p.setPPr(ppr);
+        
+        pkg.getMainDocumentPart().addObject(p);
+    }
+    
+    /**
+     * Fügt formatierten Text zu einem Absatz hinzu (mit Bold/Italic/Links)
+     */
+    private static void addFormattedTextToParagraph(P paragraph, ObjectFactory f, String text, DocxOptions options) {
+        // Debug-Ausgabe
+        logger.info("PARSING TEXT: '{}'", text);
+        
+        // Einfache Regex-basierte Formatierung
+        java.util.List<TextSegment> segments = parseFormattedText(text);
+        
+        for (TextSegment segment : segments) {
+            logger.info("SEGMENT: '{}' bold={} italic={}", segment.text, segment.isBold, segment.isItalic);
+            R run = f.createR();
+            RPr rpr = f.createRPr();
+            
+            // Sprache
+            CTLanguage lang = new CTLanguage();
+            lang.setVal("de-DE");
+            rpr.setLang(lang);
+            
+            // Schriftart und -größe
+            if (options != null) {
+                RFonts rFonts = f.createRFonts();
+                rFonts.setAscii(options.defaultFont);
+                rFonts.setHAnsi(options.defaultFont);
+                rFonts.setCs(options.defaultFont);
+                rpr.setRFonts(rFonts);
+                
+                HpsMeasure fontSize = new HpsMeasure();
+                fontSize.setVal(BigInteger.valueOf(options.defaultFontSize * 2));
+                rpr.setSz(fontSize);
+                rpr.setSzCs(fontSize);
+            }
+            
+            // Formatierung anwenden
+            if (segment.isBold) {
+                BooleanDefaultTrue bold = new BooleanDefaultTrue();
+                rpr.setB(bold);
+            }
+            if (segment.isItalic) {
+                BooleanDefaultTrue italic = new BooleanDefaultTrue();
+                rpr.setI(italic);
+            }
+            
+            run.setRPr(rpr);
+            
+            if (segment.isLink) {
+                // Kompatible Link-Darstellung: nur blaue Farbe
+                Color color = f.createColor();
+                color.setVal("0000FF");
+                rpr.setColor(color);
+                
+                org.docx4j.wml.Text t = f.createText();
+                t.setSpace("preserve");
+                t.setValue(segment.text + " (" + segment.linkUrl + ")");
+                run.getContent().add(t);
+                paragraph.getContent().add(run);
+            } else {
+                org.docx4j.wml.Text t = f.createText();
+                t.setSpace("preserve");
+                t.setValue(segment.text);
+                run.getContent().add(t);
+                paragraph.getContent().add(run);
+            }
+        }
+    }
+    
+    /**
+     * Parst formatierten Text in Segmente - Toggle-Parser für ** und *
+     */
+    private static java.util.List<TextSegment> parseFormattedText(String text) {
+        java.util.List<TextSegment> segments = new java.util.ArrayList<>();
+        StringBuilder current = new StringBuilder();
+        boolean bold = false;
+        boolean italic = false;
+        int i = 0;
+        while (i < text.length()) {
+            char c = text.charAt(i);
+            // Bold-Marker **
+            if (c == '*' && i + 1 < text.length() && text.charAt(i + 1) == '*') {
+                if (current.length() > 0) {
+                    segments.add(new TextSegment(current.toString(), bold, italic, false, null));
+                    current.setLength(0);
+                }
+                bold = !bold;
+                i += 2;
+                continue;
+            }
+            // Italic-Marker *
+            if (c == '*') {
+                if (current.length() > 0) {
+                    segments.add(new TextSegment(current.toString(), bold, italic, false, null));
+                    current.setLength(0);
+                }
+                italic = !italic;
+                i += 1;
+                continue;
+            }
+            // Normales Zeichen (inkl. Leerzeichen)
+            current.append(c);
+            i += 1;
+        }
+        if (current.length() > 0) {
+            segments.add(new TextSegment(current.toString(), bold, italic, false, null));
+        }
+        return segments;
+    }
+    
+    
+    /**
+     * Hilfsklasse für Textsegmente
+     */
+    private static class TextSegment {
+        String text;
+        boolean isBold;
+        boolean isItalic;
+        boolean isLink;
+        String linkUrl;
+        
+        TextSegment(String text, boolean isBold, boolean isItalic, boolean isLink, String linkUrl) {
+            this.text = text;
+            this.isBold = isBold;
+            this.isItalic = isItalic;
+            this.isLink = isLink;
+            this.linkUrl = linkUrl;
+        }
+    }
+    
+    /**
+     * Fügt einen Absatz mit Formatierung hinzu
+     */
+    private static void addParagraphWithFormatting(WordprocessingMLPackage pkg, ObjectFactory f, String text, DocxOptions options) {
+        P p = f.createP();
+        PPr ppr = f.createPPr();
+        p.setPPr(ppr);
+
+        // Blocksatz, falls gewünscht
+        if (options != null && options.justifyText) {
+            Jc jc = f.createJc();
+            jc.setVal(JcEnumeration.BOTH);
+            ppr.setJc(jc);
+        }
+        
+        // Einrückung erste Zeile, falls gewünscht
+        if (options != null && options.firstLineIndent) {
+            PPrBase.Ind ind = f.createPPrBaseInd();
+            int indentTwips = (int)(options.firstLineIndentSize * 567);
+            ind.setFirstLine(BigInteger.valueOf(indentTwips));
+            ppr.setInd(ind);
+        }
+
+        addFormattedTextToParagraph(p, f, text, options);
+        pkg.getMainDocumentPart().addObject(p);
+    }
+    
+    /**
+     * Fügt einen Absatz ohne Einrückung mit Formatierung hinzu
+     */
+    private static void addParagraphWithoutIndentWithFormatting(WordprocessingMLPackage pkg, ObjectFactory f, String text, DocxOptions options) {
+        P p = f.createP();
+        PPr ppr = f.createPPr();
+        p.setPPr(ppr);
+
+        // Blocksatz, falls gewünscht
+        if (options != null && options.justifyText) {
+            Jc jc = f.createJc();
+            jc.setVal(JcEnumeration.BOTH);
+            ppr.setJc(jc);
+        }
+
+        addFormattedTextToParagraph(p, f, text, options);
+        pkg.getMainDocumentPart().addObject(p);
     }
     
     private static void ensureHyphenationEnabled(WordprocessingMLPackage pkg) throws Exception {
@@ -889,5 +1358,45 @@ public class DocxProcessor {
         
         String result = text.toString();
         return result;
+    }
+
+    // Hilfsfunktion: führende Whitespaces zählen
+    private static int countLeadingSpacesAndTabs(String line) {
+        int count = 0;
+        for (int i = 0; i < line.length(); i++) {
+            char c = line.charAt(i);
+            if (c == ' ') count += 1;
+            else if (c == '\t') count += 4;
+            else break;
+        }
+        return count;
+    }
+
+    // Hilfsfunktion: Einrückungs-Level (2 Spaces = 1 Level)
+    private static int computeIndentLevel(String line) {
+        int spaces = countLeadingSpacesAndTabs(line);
+        return Math.max(0, spaces / 2);
+    }
+
+    /**
+     * Fügt ein Listenelement mit vorgegebenem Präfix (z.B. "2.1 ") hinzu
+     */
+    private static void addListItemWithPrefix(WordprocessingMLPackage pkg, ObjectFactory f, String line, String prefix, DocxOptions options) {
+        P p = f.createP();
+        PPr ppr = f.createPPr();
+
+        // Einrückung analog zu addListItem
+        int indentLevelSpaces = countLeadingSpacesAndTabs(line);
+        PPrBase.Ind ind = f.createPPrBaseInd();
+        ind.setLeft(BigInteger.valueOf(720 + (indentLevelSpaces * 200)));
+        ppr.setInd(ind);
+
+        String text = line.trim();
+        // Entferne führendes Listen-Muster
+        text = text.replaceFirst("^[-*+]\\s+", "").replaceFirst("^\\d+\\.\\s+", "");
+
+        addFormattedTextToParagraph(p, f, prefix + text, options);
+        p.setPPr(ppr);
+        pkg.getMainDocumentPart().addObject(p);
     }
 } 
