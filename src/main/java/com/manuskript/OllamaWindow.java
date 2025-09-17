@@ -17,6 +17,7 @@ import java.util.Optional;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
 
@@ -233,11 +234,8 @@ public class OllamaWindow {
         // Funktionen laden
         List<String> functionItems = new ArrayList<>();
         functionItems.add("Dialog generieren");
-        functionItems.add("Beschreibung erweitern");
-        functionItems.add("Plot-Ideen entwickeln");
         functionItems.add("Charakter entwickeln");
         functionItems.add("Schreibstil analysieren");
-        functionItems.add("Text umschreiben");
         functionItems.add("Chat-Assistent");
         functionItems.add("Modell-Training");
         
@@ -259,6 +257,10 @@ public class OllamaWindow {
         functionComboBox.getItems().addAll(functionItems);
         // Lade die gespeicherte Funktion oder verwende "Chat-Assistent" als Standard
         String savedFunction = loadSelectedFunction();
+        // Prüfe, ob die gespeicherte Funktion noch verfügbar ist
+        if (!functionComboBox.getItems().contains(savedFunction)) {
+            savedFunction = "Chat-Assistent"; // Fallback
+        }
         functionComboBox.setValue(savedFunction);
         functionComboBox.setOnAction(e -> {
             String selectedFunction = functionComboBox.getValue();
@@ -1123,25 +1125,12 @@ public class OllamaWindow {
         int recommendedTokens;
         
         switch (selectedFunction) {
-            case "Text umschreiben":
-                // Textumschreibung braucht oft mehr Platz, besonders "Show don't tell"
-                recommendedTokens = Math.max(8192, inputTokens * 3); // Mindestens 8192, sonst 3x Input
-                break;
-                
-            case "Beschreibung erweitern":
-                // Beschreibungen werden oft deutlich länger
-                recommendedTokens = Math.max(6144, inputTokens * 4); // Mindestens 6144, sonst 4x Input
-                break;
                 
             case "Dialog generieren":
                 // Dialoge können variabel lang sein
                 recommendedTokens = Math.max(4096, inputTokens * 2); // Mindestens 4096, sonst 2x Input
                 break;
                 
-            case "Plot-Ideen entwickeln":
-                // Plot-Ideen brauchen Platz für Entwicklung
-                recommendedTokens = Math.max(6144, inputTokens * 3); // Mindestens 6144, sonst 3x Input
-                break;
                 
             case "Charakter entwickeln":
                 // Charakterentwicklung braucht viel Platz
@@ -1152,6 +1141,7 @@ public class OllamaWindow {
                 // Analysen können detailliert sein
                 recommendedTokens = Math.max(4096, inputTokens * 2); // Mindestens 4096, sonst 2x Input
                 break;
+                
                 
             case "Chat-Assistent":
                 // Chat braucht moderaten Platz
@@ -1269,6 +1259,7 @@ public class OllamaWindow {
         // Chat-Elemente und Eingabe-Elemente für "Text umschreiben" ausblenden
         boolean isRewriteMode = "Text umschreiben".equals(selectedFunction);
         boolean isChatMode = "Chat-Assistent".equals(selectedFunction);
+        boolean isPlotHolesMode = "Plot-Holes Detection".equals(selectedFunction);
         
         // Chat-Session-Box nur für Chat-Assistent anzeigen
         chatSessionBox.setVisible(isChatMode);
@@ -1301,37 +1292,11 @@ public class OllamaWindow {
                 dialogBox.setManaged(true);
                 showSpecialFields = true;
                 break;
-            case "Beschreibung erweitern":
-                inputArea.setPromptText("Geben Sie hier die kurze Beschreibung ein, die erweitert werden soll...");
-                descBox.setVisible(true);
-                descBox.setManaged(true);
-                showSpecialFields = true;
-                break;
-            case "Plot-Ideen entwickeln":
-                inputArea.setPromptText("Geben Sie hier die Grundidee für die Geschichte ein...");
-                plotBox.setVisible(true);
-                plotBox.setManaged(true);
-                showSpecialFields = true;
-                break;
             case "Charakter entwickeln":
                 inputArea.setPromptText("Geben Sie hier die Grundmerkmale des Charakters ein...");
                 break;
             case "Schreibstil analysieren":
                 inputArea.setPromptText("Fügen Sie hier den Text ein, dessen Schreibstil analysiert werden soll...");
-                break;
-            case "Text umschreiben":
-                inputArea.setPromptText("<Selektierter Text>");
-                inputArea.setEditable(false);
-                rewriteBox.setVisible(true);
-                rewriteBox.setManaged(true);
-                showSpecialFields = true;
-                // Automatisch selektierten Text aus Editor laden
-                if (editorWindow != null) {
-                    String selectedText = editorWindow.getSelectedText();
-                    if (selectedText != null && !selectedText.trim().isEmpty()) {
-                        inputArea.setText(selectedText);
-                    }
-                }
                 break;
             case "Chat-Assistent":
                 inputArea.setPromptText("Stellen Sie hier Ihre Frage an den KI-Assistenten...");
@@ -1400,14 +1365,19 @@ public class OllamaWindow {
         String selectedFunction = functionComboBox.getValue();
         String input = inputArea.getText().trim();
         
-        // Bei Plugins ist keine Eingabe erforderlich, da der Dialog die Variablen abfragt
-        if (input.isEmpty() && (selectedFunction == null || !selectedFunction.startsWith("📦 "))) {
+        // Bei Plugins und Plot-Holes Detection ist keine Eingabe erforderlich
+        if (input.isEmpty() && (selectedFunction == null || (!selectedFunction.startsWith("📦 ") && !"Plot-Holes Detection".equals(selectedFunction)))) {
             showAlert("Eingabe erforderlich", "Bitte geben Sie einen Text ein.");
             return;
         }
         
         // Token-Limit basierend auf Funktion anpassen (nur beim Funktionswechsel, nicht beim Generieren)
         // adjustTokenLimitForFunction(selectedFunction, input);
+        
+        // Für Plot-Holes Detection: Token-Limit explizit anpassen
+        if ("Plot-Holes Detection".equals(selectedFunction)) {
+            adjustTokenLimitForFunction(selectedFunction, input);
+        }
         
         // DEBUG entfernt
         
@@ -3072,11 +3042,8 @@ public class OllamaWindow {
             // Funktionen laden
             List<String> functionItems = new ArrayList<>();
             functionItems.add("Dialog generieren");
-            functionItems.add("Beschreibung erweitern");
-            functionItems.add("Plot-Ideen entwickeln");
             functionItems.add("Charakter entwickeln");
             functionItems.add("Schreibstil analysieren");
-            functionItems.add("Text umschreiben");
             functionItems.add("Chat-Assistent");
             functionItems.add("Modell-Training");
             
@@ -4119,6 +4086,184 @@ public class OllamaWindow {
         String defaultModel = "gemma3:4b";
         logger.info("Kein gespeichertes Modell gefunden, verwende Standard: " + defaultModel);
         return defaultModel;
+    }
+    
+    /**
+     * Behandelt die Plot-Holes Detection Funktion
+     */
+    private void handlePlotHolesDetection() {
+        try {
+            // Lade alle Kapitel aus dem MainController
+            String allChapters = loadAllChapters();
+            if (allChapters == null || allChapters.trim().isEmpty()) {
+                showAlert("Keine Kapitel", "Bitte wählen Sie zuerst Kapitel aus dem Hauptfenster aus.");
+                setGenerating(false);
+                return;
+            }
+            
+            // Zeige nur eine kurze Info im Input-Bereich
+            // Extrahiere die Kapitel-Anzahl aus dem Text
+            int chapterCount = 0;
+            if (allChapters.contains("__CHAPTER_COUNT__:")) {
+                String countPart = allChapters.substring(allChapters.indexOf("__CHAPTER_COUNT__:") + 18);
+                try {
+                    chapterCount = Integer.parseInt(countPart.trim());
+                } catch (NumberFormatException e) {
+                    chapterCount = 0;
+                }
+            }
+            inputArea.setText("Analysiere " + chapterCount + " Kapitel auf Plot-Löcher und Inkonsistenzen...");
+            
+            // Erstelle speziellen Prompt für Plot-Holes Detection
+            // Begrenze Text VOR der Prompt-Erstellung
+            String limitedChapters = allChapters;
+            if (allChapters.length() > 50000) {
+                limitedChapters = allChapters.substring(0, 50000) + "\n\n[Text wurde auf 50.000 Zeichen begrenzt um Memory-Problem zu vermeiden]";
+            }
+            
+            String prompt = buildPlotHolesPrompt(limitedChapters);
+            
+            // Debug-Informationen
+            logger.info("=== PLOT-HOLES DEBUG ===");
+            logger.info("Original-Text-Länge: " + allChapters.length() + " Zeichen");
+            logger.info("Begrenzte Text-Länge: " + limitedChapters.length() + " Zeichen");
+            logger.info("Prompt-Länge: " + prompt.length() + " Zeichen");
+            logger.info("Anzahl Kapitel: " + chapterCount);
+            
+            // Debug: Zeige den ersten Teil des Prompts
+            String promptStart = prompt.length() > 500 ? prompt.substring(0, 500) + "..." : prompt;
+            logger.info("Prompt-Start: " + promptStart);
+            
+            // Zeige Text-Länge im Status
+            updateStatus("Lade " + chapterCount + " Kapitel (" + allChapters.length() + " Zeichen) für Plot-Holes Analyse...");
+            
+            // Streaming für Plot-Holes Detection - verwende Chat API für bessere Anweisungsbefolgung
+            StringBuilder aggregated = new StringBuilder();
+            List<OllamaService.ChatMessage> messages = Arrays.asList(
+                new OllamaService.ChatMessage("user", prompt)
+            );
+            currentStreamHandle = ollamaService.chatStreaming(messages, null,
+                chunk -> Platform.runLater(() -> {
+                    aggregated.append(chunk);
+                    statusLabel.setText("⏳ Analysiere Plot-Holes... " + aggregated.length() + " Zeichen");
+                    resultArea.setText(aggregated.toString());
+                    if (resultStage != null && resultStage.isShowing() && resultWebView != null) {
+                        updateResultWebView(buildHtmlForAnswer(aggregated.toString()), true);
+                    }
+                }),
+                () -> Platform.runLater(() -> {
+                    insertButton.setDisable(false);
+                    setGenerating(false);
+                    updateStatus("✅ Plot-Holes Analyse abgeschlossen: " + aggregated.length() + " Zeichen");
+                    resultArea.setText(aggregated.toString());
+                }),
+                (Throwable err) -> Platform.runLater(() -> {
+                    setGenerating(false);
+                    updateStatus("Fehler bei Plot-Holes Analyse: " + err.getMessage());
+                })
+            );
+            
+        } catch (Exception e) {
+            logger.severe("Fehler bei Plot-Holes Detection: " + e.getMessage());
+            setGenerating(false);
+            updateStatus("Fehler: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * Lädt alle Kapitel aus dem aktuellen Verzeichnis
+     */
+    private String loadAllChapters() {
+        try {
+            // Hole das DOCX-Verzeichnis direkt aus den gespeicherten Einstellungen
+            String savedSelectionPath = ResourceManager.getParameter("ui.last_docx_directory", "");
+            if (!savedSelectionPath.isEmpty()) {
+                File directory = new File(savedSelectionPath);
+                if (directory.exists() && directory.isDirectory()) {
+                    // Lade alle DOCX-Dateien im Verzeichnis
+                    File[] docxFiles = directory.listFiles((dir, name) -> name.toLowerCase().endsWith(".docx"));
+                    if (docxFiles != null && docxFiles.length > 0) {
+                        StringBuilder allText = new StringBuilder();
+                        logger.info("Lade " + docxFiles.length + " DOCX-Dateien für Plot-Holes Detection");
+                        
+                        for (File docxFile : docxFiles) {
+                            // Lade den Markdown-Inhalt der entsprechenden MD-Datei
+                            File mdFile = deriveMdFileFor(docxFile);
+                            if (mdFile != null && mdFile.exists()) {
+                                String content = java.nio.file.Files.readString(mdFile.toPath(), java.nio.charset.StandardCharsets.UTF_8);
+                                allText.append("=== ").append(docxFile.getName()).append(" ===\n");
+                                allText.append(content).append("\n\n");
+                                logger.info("Kapitel geladen: " + docxFile.getName() + " (" + content.length() + " Zeichen)");
+                            } else {
+                                logger.warning("Keine MD-Datei gefunden für: " + docxFile.getName());
+                            }
+                        }
+                        // Speichere die Anzahl der geladenen Kapitel für die Anzeige
+                        allText.append("__CHAPTER_COUNT__:").append(docxFiles.length);
+                        return allText.toString();
+                    } else {
+                        logger.warning("Keine DOCX-Dateien im Verzeichnis gefunden: " + directory.getAbsolutePath());
+                    }
+                } else {
+                    logger.warning("Verzeichnis existiert nicht: " + savedSelectionPath);
+                }
+            } else {
+                logger.warning("Kein gespeichertes DOCX-Verzeichnis gefunden");
+            }
+        } catch (Exception e) {
+            logger.severe("Fehler beim Laden der Kapitel: " + e.getMessage());
+        }
+        return null;
+    }
+    
+    /**
+     * Leitet eine DOCX-Datei zur entsprechenden MD-Datei ab
+     */
+    private File deriveMdFileFor(File docxFile) {
+        String baseName = docxFile.getName().replaceAll("\\.docx$", "");
+        return new File(docxFile.getParent(), baseName + ".md");
+    }
+    
+    /**
+     * Erstellt den speziellen Prompt für Plot-Holes Detection
+     */
+    private String buildPlotHolesPrompt(String allChapters) {
+        // Entferne die Kapitel-Anzahl aus dem Text für die KI
+        String cleanChapters = allChapters;
+        if (allChapters.contains("__CHAPTER_COUNT__:")) {
+            cleanChapters = allChapters.substring(0, allChapters.indexOf("__CHAPTER_COUNT__:"));
+        }
+        
+        // Text wurde bereits begrenzt, keine weitere Begrenzung nötig
+        
+        // Einfacher, direkter Prompt
+        String timestamp = java.time.LocalDateTime.now().toString();
+        
+        return "ANALYSE-AUFTRAG " + timestamp + " ID:" + System.currentTimeMillis() + "\n\n" +
+               "Du bist ein erfahrener Lektor und Literaturkritiker. Analysiere diesen Roman gründlich und ausführlich.\n\n" +
+               "WICHTIG: Antworte ausschließlich auf Deutsch!\n\n" +
+               "1. ZUERST: Erstelle eine detaillierte Zusammenfassung mit:\n" +
+               "   - Vollständiger Titel des Romans\n" +
+               "   - Alle Hauptcharaktere mit Namen und kurzer Beschreibung\n" +
+               "   - Detaillierte Handlung Kapitel für Kapitel (mindestens 2-3 Sätze pro Kapitel)\n" +
+               "   - Vollständiges Ende der Geschichte\n\n" +
+               "2. DANN: Finde konkrete Plot-Löcher und Inkonsistenzen:\n" +
+               "   - Zeitliche Widersprüche (z.B. Charakter ist an zwei Orten gleichzeitig)\n" +
+               "   - Charakter-Inkonsistenzen (Verhalten passt nicht zur Persönlichkeit)\n" +
+               "   - Logikfehler (Handlungen sind unmöglich oder widersprüchlich)\n" +
+               "   - Lose Enden (Handlungsstränge werden nicht abgeschlossen)\n" +
+               "   - Weltbau-Inkonsistenzen (Regeln der Welt werden gebrochen)\n\n" +
+               "3. ZUSÄTZLICH: Bewerte auch:\n" +
+               "   - Charakterentwicklung (sind die Charaktere glaubwürdig?)\n" +
+               "   - Spannungsaufbau (funktioniert die Dramaturgie?)\n" +
+               "   - Dialoge (sind sie natürlich und charakteristisch?)\n\n" +
+               "Nenne bei jedem gefundenen Problem:\n" +
+               "- Spezifische Stellen (Kapitel, Szene)\n" +
+               "- Betroffene Charakternamen\n" +
+               "- Konkrete Beschreibung des Problems\n" +
+               "- Mögliche Lösungsvorschläge\n\n" +
+               "Sei gründlich und detailliert in deiner Analyse!\n\n" +
+               "ROMAN:\n" + cleanChapters;
     }
     
     /**
