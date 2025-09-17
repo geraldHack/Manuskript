@@ -87,6 +87,7 @@ public class MainController implements Initializable {
     @FXML private Button btnProcessAll;
     @FXML private Button btnThemeToggle;
     @FXML private Button btnSplit;
+    @FXML private Button btnNewChapter;
     
     // Status
     // ProgressBar und lblStatus wurden entfernt
@@ -213,6 +214,7 @@ public class MainController implements Initializable {
         });
         btnThemeToggle.setOnAction(e -> toggleTheme());
         btnSplit.setOnAction(e -> openSplitStage());
+        btnNewChapter.setOnAction(e -> createNewChapter());
     }
     
     private void setupDragAndDrop() {
@@ -2876,6 +2878,126 @@ public class MainController implements Initializable {
                 logger.info("CustomAlert: Abgebrochen");
             }
         }
+    }
+    
+    /**
+     * Erstellt ein neues Kapitel mit Dialog für Kapitelname
+     */
+    private void createNewChapter() {
+        // Dialog für Kapitelname anzeigen
+        CustomAlert alert = new CustomAlert(Alert.AlertType.CONFIRMATION, "Neues Kapitel erstellen");
+        alert.setHeaderText("Geben Sie den Namen für das neue Kapitel ein:");
+        
+        // TextField für Kapitelname
+        TextField chapterNameField = new TextField();
+        chapterNameField.setPromptText("z.B. Kapitel 1, Einleitung, etc.");
+        chapterNameField.setPrefWidth(300);
+        
+        VBox content = new VBox(10);
+        content.getChildren().add(chapterNameField);
+        content.setPadding(new Insets(10));
+        
+        alert.setCustomContent(content);
+        alert.applyTheme(currentThemeIndex);
+        alert.initOwner(primaryStage);
+        
+        ButtonType createButton = new ButtonType("Erstellen");
+        ButtonType cancelButton = new ButtonType("Abbrechen");
+        alert.setButtonTypes(createButton, cancelButton);
+        
+        Optional<ButtonType> result = alert.showAndWait();
+        
+        if (result.isPresent() && result.get() == createButton) {
+            String chapterName = chapterNameField.getText().trim();
+            if (chapterName.isEmpty()) {
+                showError("Fehler", "Bitte geben Sie einen Kapitelnamen ein.");
+                return;
+            }
+            
+            // Prüfe ob Verzeichnis ausgewählt ist
+            String directoryPath = txtDirectoryPath.getText();
+            if (directoryPath == null || directoryPath.trim().isEmpty()) {
+                showError("Fehler", "Bitte wählen Sie zuerst ein Verzeichnis aus.");
+                return;
+            }
+            
+            try {
+                File docxFile = createChapterFiles(directoryPath, chapterName);
+                
+                // Füge das neue Kapitel automatisch zu den ausgewählten Dateien hinzu
+                DocxFile newDocxFile = new DocxFile(docxFile);
+                
+                // Erstelle Hash für das neue Kapitel (damit es als "unverändert" markiert wird)
+                try {
+                    String hash = calculateFileHash(docxFile);
+                    if (hash != null) {
+                        saveDocxHash(docxFile, hash);
+                        logger.info("Hash für neues Kapitel erstellt: {}", hash);
+                    }
+                } catch (Exception hashException) {
+                    logger.warn("Konnte Hash für neues Kapitel nicht erstellen: {}", hashException.getMessage());
+                }
+                
+                selectedDocxFiles.add(newDocxFile);
+                updateStatus("Neues Kapitel '" + chapterName + "' erstellt und zur Bearbeitung hinzugefügt");
+                
+                // Speichere die neue Reihenfolge (damit das Kapitel beim Neustart erhalten bleibt)
+                File directory = new File(directoryPath);
+                saveSelection(directory);
+                
+                // Aktualisiere die Dateiliste (neues Kapitel wird NICHT in linker Liste erscheinen, da es bereits in rechter Liste ist)
+                refreshDocxFiles();
+            } catch (Exception e) {
+                logger.error("Fehler beim Erstellen des neuen Kapitels", e);
+                showError("Fehler", "Fehler beim Erstellen des Kapitels: " + e.getMessage());
+            }
+        }
+    }
+    
+    /**
+     * Erstellt DOCX und MD Dateien für ein neues Kapitel
+     * @return Die erstellte DOCX-Datei
+     */
+    private File createChapterFiles(String directoryPath, String chapterName) throws Exception {
+        File directory = new File(directoryPath);
+        if (!directory.exists() || !directory.isDirectory()) {
+            throw new Exception("Verzeichnis existiert nicht: " + directoryPath);
+        }
+        
+        // Bereinige Kapitelname (entferne ungültige Zeichen)
+        String cleanChapterName = chapterName.replaceAll("[<>:\"/\\\\|?*]", "_");
+        
+        // Erstelle DOCX-Datei
+        File docxFile = new File(directory, cleanChapterName + ".docx");
+        if (docxFile.exists()) {
+            throw new Exception("Datei existiert bereits: " + docxFile.getName());
+        }
+        
+        // Erstelle leere DOCX-Datei mit DocxProcessor
+        if (docxProcessor == null) {
+            docxProcessor = new DocxProcessor();
+        }
+        
+        // Erstelle leeren Inhalt
+        String emptyContent = "# " + chapterName + "\n\n";
+        
+        // Erstelle DOCX mit globalen Optionen
+        DocxOptions options = new DocxOptions();
+        options.loadFromPreferences(); // Lade gespeicherte Optionen
+        docxProcessor.exportMarkdownToDocxWithOptions(emptyContent, docxFile, options);
+        
+        // Erstelle MD-Datei
+        File mdFile = new File(directory, cleanChapterName + ".md");
+        if (mdFile.exists()) {
+            throw new Exception("Datei existiert bereits: " + mdFile.getName());
+        }
+        
+        // Schreibe leeren Inhalt in MD-Datei
+        java.nio.file.Files.write(mdFile.toPath(), emptyContent.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        
+        logger.info("Neues Kapitel erstellt: {} (DOCX: {}, MD: {})", chapterName, docxFile.getName(), mdFile.getName());
+        
+        return docxFile; // DOCX-Datei zurückgeben
     }
     
     /**
