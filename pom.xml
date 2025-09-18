@@ -95,12 +95,19 @@
         <dependency>
             <groupId>org.docx4j</groupId>
             <artifactId>docx4j-core</artifactId>
-            <version>11.4.9</version>
+            <version>11.5.4</version>
         </dependency>
         <dependency>
             <groupId>org.docx4j</groupId>
             <artifactId>docx4j-JAXB-ReferenceImpl</artifactId>
-            <version>11.4.9</version>
+            <version>11.5.4</version>
+        </dependency>
+        
+        <!-- Apache Commons Compress - explizite Version für Docx4J Kompatibilität -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-compress</artifactId>
+            <version>1.26.0</version>
         </dependency>
         
         <!-- Flexmark für Markdown-Parsing -->
