@@ -544,7 +544,7 @@
 
 .weiss-theme .table-view {
     -fx-background-color: #ffffff;
-    -fx-border-color: #cccccc;
+    -fx-border-color: #000000;
 }
 
 .weiss-theme .table-view .column-header {
@@ -554,7 +554,7 @@
 
 /* Pastell Theme - spezifische Regeln */
 .pastell-theme {
-    -fx-background-color: #e8d5f2;
+    -fx-background-color: #f3e5f5;
     -fx-text-fill: #000000;
 }
 
@@ -564,7 +564,7 @@
 .pastell-theme .mainContainer,
 .pastell-theme * VBox,
 .pastell-theme * HBox {
-    -fx-background-color: #e8d5f2 !important;
+    -fx-background-color: #f3e5f5 !important;
     -fx-text-fill: #000000 !important;
 }
 
@@ -593,7 +593,7 @@
 /* Pastell Theme - Labels (überall) */
 .pastell-theme .label,
 .pastell-theme * .label {
-    -fx-background-color: #e1bee7 !important;
+    -fx-background-color: #f3e5f5 !important;
     -fx-text-fill: #000000 !important;
     -fx-padding: 4px 8px;
     -fx-background-radius: 4px;
@@ -729,6 +729,7 @@
 .weiss-theme .table-view {
     -fx-background-color: #ffffff !important;
     -fx-text-fill: #000000 !important;
+    -fx-border-color: #000000 !important;
 }
 
 .weiss-theme .table-view .virtual-flow .clipped-container .sheet {
@@ -908,6 +909,7 @@
     -fx-text-fill: #ffffff !important;
 }
 
+
 .root .theme-dark.blau-theme .table-view .virtual-flow .clipped-container .sheet {
     -fx-background-color: #1e3a8a !important;
 }
@@ -980,7 +982,9 @@
 .root .theme-dark.gruen-theme .table-view {
     -fx-background-color: #064e3b !important;
     -fx-text-fill: #ffffff !important;
+    -fx-border-color: #064e3b !important;
 }
+
 
 .root .theme-dark.gruen-theme .table-view .virtual-flow .clipped-container .sheet {
     -fx-background-color: #064e3b !important;
@@ -1052,7 +1056,9 @@
 .root .theme-dark.lila-theme .table-view {
     -fx-background-color: #4c1d95 !important;
     -fx-text-fill: #ffffff !important;
+    -fx-border-color: #905bdf !important;
 }
+
 
 .root .theme-dark.lila-theme .table-view .virtual-flow .clipped-container .sheet {
     -fx-background-color: #4c1d95 !important;
@@ -1124,7 +1130,9 @@
 .theme-dark .table-view {
     -fx-background-color: #1a1a1a !important;
     -fx-text-fill: #ffffff !important;
+    -fx-border-color: #ffffff !important;
 }
+
 
 .theme-dark .table-view .virtual-flow .clipped-container .sheet {
     -fx-background-color: #1a1a1a !important;
@@ -1800,17 +1808,22 @@
     -fx-background-color: inherit !important;
 }
 
+/* Alternative Lösung: Placeholder-Styling für leere Tabellen */
+.table-view .placeholder {
+    -fx-background-color: inherit !important;
+}
+
 /* Spezifische Regeln für leere TableViews in verschiedenen Themes */
 .theme-dark .table-view:empty {
-    -fx-background-color: #2d2d2d !important;
+    -fx-background-color: #1a1a1a !important;
 }
 
 .theme-dark.blau-theme .table-view:empty {
-    -fx-background-color: #1e40af !important;
+    -fx-background-color: #1e3a8a !important;
 }
 
 .theme-dark.gruen-theme .table-view:empty {
-    -fx-background-color: #065f46 !important;
+    -fx-background-color: #064e3b !important;
 }
 
 .theme-dark.lila-theme .table-view:empty {
@@ -1822,7 +1835,57 @@
 }
 
 .pastell-theme .table-view:empty {
-    -fx-background-color: #f8f9fa !important;
+    -fx-background-color: #f3e5f5 !important;
+}
+
+/* Placeholder-Regeln für leere Tabellen - Alternative Lösung */
+.theme-dark .table-view .placeholder {
+    -fx-background-color: #1a1a1a !important;
+}
+
+.theme-dark.blau-theme .table-view .placeholder {
+    -fx-background-color: #1e3a8a !important;
+}
+
+.theme-dark.gruen-theme .table-view .placeholder {
+    -fx-background-color: #064e3b !important;
+}
+
+.theme-dark.lila-theme .table-view .placeholder {
+    -fx-background-color: #4c1d95 !important;
+}
+
+.weiss-theme .table-view .placeholder {
+    -fx-background-color: #ffffff !important;
+}
+
+.pastell-theme .table-view .placeholder {
+    -fx-background-color: #f3e5f5 !important;
+}
+
+/* Zusätzliche Regeln für leere Tabellen - Virtual Flow Container */
+.theme-dark .table-view .virtual-flow .clipped-container .sheet:empty {
+    -fx-background-color: #1a1a1a !important;
+}
+
+.theme-dark.blau-theme .table-view .virtual-flow .clipped-container .sheet:empty {
+    -fx-background-color: #1e3a8a !important;
+}
+
+.theme-dark.gruen-theme .table-view .virtual-flow .clipped-container .sheet:empty {
+    -fx-background-color: #064e3b !important;
+}
+
+.theme-dark.lila-theme .table-view .virtual-flow .clipped-container .sheet:empty {
+    -fx-background-color: #4c1d95 !important;
+}
+
+.weiss-theme .table-view .virtual-flow .clipped-container .sheet:empty {
+    -fx-background-color: #ffffff !important;
+}
+
+.pastell-theme .table-view .virtual-flow .clipped-container .sheet:empty {
+    -fx-background-color: #f3e5f5 !important;
 }
 
 /* ========================================
@@ -1846,6 +1909,7 @@
 
 .root .theme-dark.blau-theme .table-view {
     -fx-background-color: #1e40af !important;
+    -fx-border-color: #1e40af !important;
 }
 
 .root .theme-dark.blau-theme .table-view .virtual-flow .clipped-container .sheet {
@@ -1854,6 +1918,7 @@
 
 .root .theme-dark.gruen-theme .table-view {
     -fx-background-color: #065f46 !important;
+    -fx-border-color: #065f46 !important;
 }
 
 .root .theme-dark.gruen-theme .table-view .virtual-flow .clipped-container .sheet {
@@ -1862,6 +1927,7 @@
 
 .root .theme-dark.lila-theme .table-view {
     -fx-background-color: #4c1d95 !important;
+    -fx-border-color: #905bdf !important;
 }
 
 .root .theme-dark.lila-theme .table-view .virtual-flow .clipped-container .sheet {
@@ -1877,7 +1943,19 @@
 /* Hauptmenü-Tabellen - Pastell Theme */
 .pastell-theme #tableViewAvailable:empty,
 .pastell-theme #tableViewSelected:empty {
-    -fx-background-color: #f8f9fa !important;
+    -fx-background-color: #f3e5f5 !important;
+}
+
+/* Hauptmenü-Tabellen - Dark Theme */
+.theme-dark #tableViewAvailable:empty,
+.theme-dark #tableViewSelected:empty {
+    -fx-background-color: #1a1a1a !important;
+}
+
+/* Hauptmenü-Tabellen - Blau Theme */
+.theme-dark.blau-theme #tableViewAvailable:empty,
+.theme-dark.blau-theme #tableViewSelected:empty {
+    -fx-background-color: #1e3a8a !important;
 }
 
 /* ========================================
@@ -1959,8 +2037,8 @@
 /* Pastell Theme - Ollama TextArea */
 .pastell-theme .ollama-text-area,
 .pastell-theme .ollama-text-area .content {
-    -fx-control-inner-background: #e1bee7 !important;
-    -fx-background-color: #e1bee7 !important;
+    -fx-control-inner-background: #f3e5f5 !important;
+    -fx-background-color: #f3e5f5 !important;
     -fx-text-fill: #000000 !important;
     -fx-prompt-text-fill: #666666 !important;
 }
@@ -2153,6 +2231,132 @@
    RICHTEXTFX CODEAREA THEME-STYLES
    ======================================== */
 
+/* CodeArea Scrollbalken - Standard */
+.code-area .scroll-bar {
+    -fx-background-color: #f3f4f6 !important;
+}
+
+.code-area .scroll-bar .thumb {
+    -fx-background-color: #9ca3af !important;
+}
+
+.code-area .scroll-bar .track {
+    -fx-background-color: #f3f4f6 !important;
+}
+
+.code-area .scroll-bar .increment-button,
+.code-area .scroll-bar .decrement-button {
+    -fx-background-color: #f3f4f6 !important;
+}
+
+/* CodeArea Scrollbalken - Dark Theme */
+.theme-dark .code-area .scroll-bar {
+    -fx-background-color: #1a1a1a !important;
+}
+
+.theme-dark .code-area .scroll-bar .thumb {
+    -fx-background-color: #4a5568 !important;
+}
+
+.theme-dark .code-area .scroll-bar .track {
+    -fx-background-color: #1a1a1a !important;
+}
+
+.theme-dark .code-area .scroll-bar .increment-button,
+.theme-dark .code-area .scroll-bar .decrement-button {
+    -fx-background-color: #1a1a1a !important;
+}
+
+/* CodeArea Scrollbalken - Blau Theme */
+.theme-dark.blau-theme .code-area .scroll-bar {
+    -fx-background-color: #1e3a8a !important;
+}
+
+.theme-dark.blau-theme .code-area .scroll-bar .thumb {
+    -fx-background-color: #3b82f6 !important;
+}
+
+.theme-dark.blau-theme .code-area .scroll-bar .track {
+    -fx-background-color: #1e40af !important;
+}
+
+.theme-dark.blau-theme .code-area .scroll-bar .increment-button,
+.theme-dark.blau-theme .code-area .scroll-bar .decrement-button {
+    -fx-background-color: #1e3a8a !important;
+}
+
+/* CodeArea Scrollbalken - Grün Theme */
+.theme-dark.gruen-theme .code-area .scroll-bar {
+    -fx-background-color: #064e3b !important;
+}
+
+.theme-dark.gruen-theme .code-area .scroll-bar .thumb {
+    -fx-background-color: #10b981 !important;
+}
+
+.theme-dark.gruen-theme .code-area .scroll-bar .track {
+    -fx-background-color: #065f46 !important;
+}
+
+.theme-dark.gruen-theme .code-area .scroll-bar .increment-button,
+.theme-dark.gruen-theme .code-area .scroll-bar .decrement-button {
+    -fx-background-color: #064e3b !important;
+}
+
+/* CodeArea Scrollbalken - Lila Theme */
+.theme-dark.lila-theme .code-area .scroll-bar {
+    -fx-background-color: #4c1d95 !important;
+}
+
+.theme-dark.lila-theme .code-area .scroll-bar .thumb {
+    -fx-background-color: #8b5cf6 !important;
+}
+
+.theme-dark.lila-theme .code-area .scroll-bar .track {
+    -fx-background-color: #5b21b6 !important;
+}
+
+.theme-dark.lila-theme .code-area .scroll-bar .increment-button,
+.theme-dark.lila-theme .code-area .scroll-bar .decrement-button {
+    -fx-background-color: #4c1d95 !important;
+}
+
+/* CodeArea Scrollbalken - Weiß Theme */
+.weiss-theme .code-area .scroll-bar {
+    -fx-background-color: #ffffff !important;
+}
+
+.weiss-theme .code-area .scroll-bar .thumb {
+    -fx-background-color: #9ca3af !important;
+}
+
+.weiss-theme .code-area .scroll-bar .track {
+    -fx-background-color: #f3f4f6 !important;
+}
+
+.weiss-theme .code-area .scroll-bar .increment-button,
+.weiss-theme .code-area .scroll-bar .decrement-button {
+    -fx-background-color: #ffffff !important;
+}
+
+/* CodeArea Scrollbalken - Pastell Theme */
+.pastell-theme .code-area .scroll-bar {
+    -fx-background-color: #e8d5f2 !important;
+}
+
+.pastell-theme .code-area .scroll-bar .thumb {
+    -fx-background-color: #ba68c8 !important;
+}
+
+.pastell-theme .code-area .scroll-bar .track {
+    -fx-background-color: #e1bee7 !important;
+}
+
+.pastell-theme .code-area .scroll-bar .increment-button,
+.pastell-theme .code-area .scroll-bar .decrement-button {
+    -fx-background-color: #e8d5f2 !important;
+}
+
 /* Basis-Styles für RichTextFX CodeArea */
 .code-area {
     -fx-font-family: 'Consolas', 'Monaco', monospace;
@@ -2163,6 +2367,9 @@
     -fx-highlight-fill: #add6ff;
     -fx-highlight-text-fill: #000000;
     -fx-padding: 0 0 0 10px; /* Links 10px Padding */
+    -fx-border-color: #d1d5db;
+    -fx-border-width: 1px;
+    -fx-border-radius: 4px;
 }
 
 /* Zeilenabstand-Klassen für RichTextFX */
@@ -2255,9 +2462,53 @@
     -fx-padding: 0 0 0 10px; /* Links 10px Padding */
 }
 
+/* RichTextFX CodeArea VirtualizedScrollPane Scrollbalken - Standard */
+.code-area .scroll-bar {
+    -fx-background-color: #f3f4f6 !important;
+}
+
+.code-area .scroll-bar .thumb {
+    -fx-background-color: #9ca3af !important;
+    -fx-background-insets: 2, 0, 0;
+    -fx-background-radius: 2em;
+}
+
+.code-area .scroll-bar .track {
+    -fx-background-color: #f3f4f6 !important;
+    -fx-background-insets: 2, 0, 0;
+    -fx-background-radius: 2em;
+}
+
+.code-area .scroll-bar .increment-button,
+.code-area .scroll-bar .decrement-button {
+    -fx-background-color: #f3f4f6 !important;
+}
+
 /* Viewport für CodeArea */
 .code-area .viewport {
     -fx-padding: 0 0 0 10px; /* Links 10px Padding */
+}
+
+/* RichTextFX CodeArea VirtualizedScrollPane Scrollbalken - Dark Theme */
+.theme-dark .code-area .scroll-bar {
+    -fx-background-color: #1a1a1a !important;
+}
+
+.theme-dark .code-area .scroll-bar .thumb {
+    -fx-background-color: #4a5568 !important;
+    -fx-background-insets: 2, 0, 0;
+    -fx-background-radius: 2em;
+}
+
+.theme-dark .code-area .scroll-bar .track {
+    -fx-background-color: #1a1a1a !important;
+    -fx-background-insets: 2, 0, 0;
+    -fx-background-radius: 2em;
+}
+
+.theme-dark .code-area .scroll-bar .increment-button,
+.theme-dark .code-area .scroll-bar .decrement-button {
+    -fx-background-color: #1a1a1a !important;
 }
 
 /* Theme-spezifische CodeArea-Styles */
@@ -2265,36 +2516,164 @@
     -rtfx-background-color: #1a1a1a;
     -fx-text-fill: #ffffff;
     -fx-caret-color: #ffffff;
+    -fx-border-color: #4a5568;
+    -fx-border-width: 1px;
+    -fx-border-radius: 4px;
+}
+
+/* RichTextFX CodeArea VirtualizedScrollPane Scrollbalken - Blau Theme */
+.theme-dark.blau-theme .code-area .scroll-bar {
+    -fx-background-color: #1e3a8a !important;
+}
+
+.theme-dark.blau-theme .code-area .scroll-bar .thumb {
+    -fx-background-color: #3b82f6 !important;
+    -fx-background-insets: 2, 0, 0;
+    -fx-background-radius: 2em;
+}
+
+.theme-dark.blau-theme .code-area .scroll-bar .track {
+    -fx-background-color: #1e40af !important;
+    -fx-background-insets: 2, 0, 0;
+    -fx-background-radius: 2em;
+}
+
+.theme-dark.blau-theme .code-area .scroll-bar .increment-button,
+.theme-dark.blau-theme .code-area .scroll-bar .decrement-button {
+    -fx-background-color: #1e3a8a !important;
 }
 
 .theme-dark.blau-theme .code-area {
     -rtfx-background-color: #1e3a8a;
     -fx-text-fill: #ffffff;
     -fx-caret-color: #ffffff;
+    -fx-border-color: #3b82f6;
+    -fx-border-width: 1px;
+    -fx-border-radius: 4px;
+}
+
+/* RichTextFX CodeArea VirtualizedScrollPane Scrollbalken - Grün Theme */
+.theme-dark.gruen-theme .code-area .scroll-bar {
+    -fx-background-color: #064e3b !important;
+}
+
+.theme-dark.gruen-theme .code-area .scroll-bar .thumb {
+    -fx-background-color: #10b981 !important;
+    -fx-background-insets: 2, 0, 0;
+    -fx-background-radius: 2em;
+}
+
+.theme-dark.gruen-theme .code-area .scroll-bar .track {
+    -fx-background-color: #065f46 !important;
+    -fx-background-insets: 2, 0, 0;
+    -fx-background-radius: 2em;
+}
+
+.theme-dark.gruen-theme .code-area .scroll-bar .increment-button,
+.theme-dark.gruen-theme .code-area .scroll-bar .decrement-button {
+    -fx-background-color: #064e3b !important;
 }
 
 .theme-dark.gruen-theme .code-area {
     -rtfx-background-color: #064e3b;
     -fx-text-fill: #ffffff;
     -fx-caret-color: #ffffff;
+    -fx-border-color: #10b981;
+    -fx-border-width: 1px;
+    -fx-border-radius: 4px;
+}
+
+/* RichTextFX CodeArea VirtualizedScrollPane Scrollbalken - Lila Theme */
+.theme-dark.lila-theme .code-area .scroll-bar {
+    -fx-background-color: #4c1d95 !important;
+}
+
+.theme-dark.lila-theme .code-area .scroll-bar .thumb {
+    -fx-background-color: #8b5cf6 !important;
+    -fx-background-insets: 2, 0, 0;
+    -fx-background-radius: 2em;
+}
+
+.theme-dark.lila-theme .code-area .scroll-bar .track {
+    -fx-background-color: #5b21b6 !important;
+    -fx-background-insets: 2, 0, 0;
+    -fx-background-radius: 2em;
+}
+
+.theme-dark.lila-theme .code-area .scroll-bar .increment-button,
+.theme-dark.lila-theme .code-area .scroll-bar .decrement-button {
+    -fx-background-color: #4c1d95 !important;
 }
 
 .theme-dark.lila-theme .code-area {
     -rtfx-background-color: #581c87;
     -fx-text-fill: #ffffff;
     -fx-caret-color: #ffffff;
+    -fx-border-color: #8b5cf6;
+    -fx-border-width: 1px;
+    -fx-border-radius: 4px;
+}
+
+/* RichTextFX CodeArea VirtualizedScrollPane Scrollbalken - Weiß Theme */
+.weiss-theme .code-area .scroll-bar {
+    -fx-background-color: #ffffff !important;
+}
+
+.weiss-theme .code-area .scroll-bar .thumb {
+    -fx-background-color: #9ca3af !important;
+    -fx-background-insets: 2, 0, 0;
+    -fx-background-radius: 2em;
+}
+
+.weiss-theme .code-area .scroll-bar .track {
+    -fx-background-color: #f3f4f6 !important;
+    -fx-background-insets: 2, 0, 0;
+    -fx-background-radius: 2em;
+}
+
+.weiss-theme .code-area .scroll-bar .increment-button,
+.weiss-theme .code-area .scroll-bar .decrement-button {
+    -fx-background-color: #ffffff !important;
 }
 
 .weiss-theme .code-area {
     -rtfx-background-color: #ffffff;
     -fx-text-fill: #000000;
     -fx-caret-color: #000000;
+    -fx-border-color: #d1d5db;
+    -fx-border-width: 1px;
+    -fx-border-radius: 4px;
+}
+
+/* RichTextFX CodeArea VirtualizedScrollPane Scrollbalken - Pastell Theme */
+.pastell-theme .code-area .scroll-bar {
+    -fx-background-color: #e8d5f2 !important;
+}
+
+.pastell-theme .code-area .scroll-bar .thumb {
+    -fx-background-color: #ba68c8 !important;
+    -fx-background-insets: 2, 0, 0;
+    -fx-background-radius: 2em;
+}
+
+.pastell-theme .code-area .scroll-bar .track {
+    -fx-background-color: #e1bee7 !important;
+    -fx-background-insets: 2, 0, 0;
+    -fx-background-radius: 2em;
+}
+
+.pastell-theme .code-area .scroll-bar .increment-button,
+.pastell-theme .code-area .scroll-bar .decrement-button {
+    -fx-background-color: #e8d5f2 !important;
 }
 
 .pastell-theme .code-area {
     -rtfx-background-color: #f3e5f5;
     -fx-text-fill: #000000;
     -fx-caret-color: #000000;
+    -fx-border-color: #ba68c8;
+    -fx-border-width: 1px;
+    -fx-border-radius: 4px;
 }
 
 /* Plugin Editor CodeArea Theme-Styles */
@@ -3847,14 +4226,19 @@
 
 /* Pastell-Theme TitledPane */
 .pastell-theme .ollama-titled-pane {
-    -fx-background-color: #e8d5f2 !important;
+    -fx-background-color: #f3e5f5 !important;
     -fx-border-color: #ba68c8 !important;
     -fx-border-radius: 4px !important;
     -fx-background-radius: 4px !important;
 }
 
+/* Pastell-Theme Hauptfenster Titelleiste */
+.pastell-theme .title-bar {
+    -fx-background-color: linear-gradient(to bottom, #f3e5f5, #ce93d8) !important;
+}
+
 .pastell-theme .ollama-titled-pane .title {
-    -fx-background-color: #e1bee7 !important;
+    -fx-background-color: linear-gradient(to right, #f3e5f5, #e1bee7, #ce93d8) !important;
     -fx-border-color: #ba68c8 !important;
     -fx-border-width: 0 0 1 0 !important;
 }

@@ -593,7 +593,7 @@ public class CustomStage extends Stage {
                 borderColor = "white"; // Weiße Border für schwarze Themes
                 break;
             case 2: // Pastell
-                backgroundColor = "linear-gradient(from 0% 0% to 0% 100%, #f3e5f5 0%, #e1bee7 100%)";
+                backgroundColor = "#ce93d8"; // Einfache Farbe statt Gradienten
                 textColor = "black";
                 borderColor = "black"; // Schwarze Border für helle Themes
                 break;

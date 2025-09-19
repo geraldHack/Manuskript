@@ -426,6 +426,7 @@ if (caret != null) {
         
         // VirtualizedScrollPane für bessere Performance
         VirtualizedScrollPane<CodeArea> scrollPane = new VirtualizedScrollPane<>(codeArea);
+        scrollPane.getStyleClass().add("code-area");
         
         // CodeArea zum Container hinzufügen (im SplitPane)
         textAreaContainer.getChildren().add(scrollPane);
