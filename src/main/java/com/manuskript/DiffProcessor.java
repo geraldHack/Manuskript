@@ -144,8 +144,12 @@ public class DiffProcessor {
         if (originalText == null) originalText = "";
         if (newText == null) newText = "";
         
-        String[] originalLines = originalText.split("\n", -1);
-        String[] newLines = newText.split("\n", -1);
+        // Normalisiere Leerzeilen - entferne leere Zeilen am Ende und normalisiere Leerzeilen
+        String normalizedOriginal = originalText.replaceAll("\n+$", "").replaceAll("\n\n+", "\n");
+        String normalizedNew = newText.replaceAll("\n+$", "").replaceAll("\n\n+", "\n");
+        
+        String[] originalLines = normalizedOriginal.split("\n", -1);
+        String[] newLines = normalizedNew.split("\n", -1);
         
         List<DiffLine> diffLines = new ArrayList<>();
         

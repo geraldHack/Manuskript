@@ -102,6 +102,7 @@ public class MainController implements Initializable {
     private java.nio.file.WatchService watchService;
     private Thread watchThread;
     private volatile boolean watchRunning = false;
+    private volatile boolean suppressExternalChangeDialog = false;
     
     // Theme-System
     private int currentThemeIndex = 0;
@@ -626,7 +627,7 @@ public class MainController implements Initializable {
         }
     }
     
-    private void startFileWatcher(File directory) {
+    public void startFileWatcher(File directory) {
         try {
             // Stoppe vorherige Überwachung
             stopFileWatcher();
@@ -698,7 +699,7 @@ public class MainController implements Initializable {
         }
     }
     
-    private void stopFileWatcher() {
+    public void stopFileWatcher() {
         logger.info("Stoppe File Watcher...");
         watchRunning = false;
         
@@ -1489,6 +1490,11 @@ public class MainController implements Initializable {
      * Zeigt Dialog wenn DOCX-Datei extern verändert wurde (für MainController)
      */
     public DocxChangeDecision showDocxChangedDialogInMain(DocxFile chapterFile) {
+        // WICHTIG: Dialog unterdrücken wenn suppressExternalChangeDialog aktiv ist
+        if (suppressExternalChangeDialog) {
+            logger.info("External Change Dialog unterdrückt für: {}", chapterFile.getFileName());
+            return DocxChangeDecision.IGNORE;
+        }
 
         
         CustomAlert alert = new CustomAlert(Alert.AlertType.CONFIRMATION, "DOCX-Datei wurde extern verändert");
@@ -1794,23 +1800,53 @@ public class MainController implements Initializable {
             
             btnApplySelected.setOnAction(e -> {
                 try {
-                    // Erstelle neuen Inhalt basierend auf ausgewählten Blöcken
+                    // WICHTIG: Baue den vollständigen Text aus ALLEN Blöcken zusammen
+                    // Verwende die gleiche Logik wie beim Erstellen der Diff-Anzeige
                     StringBuilder newContent = new StringBuilder();
-                    for (int i = 0; i < blockCheckBoxes.size(); i++) {
-                        if (blockCheckBoxes.get(i).isSelected()) {
-                            List<String> blockTextList = blockTexts.get(i);
-                            for (String text : blockTextList) {
-                                if (!text.isEmpty()) {
-                                    newContent.append(text).append("\n");
+                    int checkboxIndex = 0;
+                    
+                    // Gehe durch alle Blöcke und baue den Text zusammen
+                    for (DiffBlock block : blocks) {
+                        switch (block.getType()) {
+                            case ADDED:
+                                // Neue Blöcke nur hinzufügen, wenn ausgewählt
+                                if (checkboxIndex < blockCheckBoxes.size() && blockCheckBoxes.get(checkboxIndex).isSelected()) {
+                                    for (DiffProcessor.DiffLine line : block.getLines()) {
+                                        String text = line.getNewText();
+                                        if (text != null && !text.isEmpty()) {
+                                            newContent.append(text).append("\n");
+                                        }
+                                    }
                                 }
-                            }
+                                checkboxIndex++;
+                                break;
+                            case DELETED:
+                                // Gelöschte Blöcke überspringen (werden nicht hinzugefügt)
+                                break;
+                            case UNCHANGED:
+                                // Unveränderte Blöcke immer hinzufügen
+                                for (DiffProcessor.DiffLine line : block.getLines()) {
+                                    String text = line.getNewText();
+                                    if (text != null && !text.isEmpty()) {
+                                        newContent.append(text).append("\n");
+                                    }
+                                }
+                                break;
                         }
                     }
                     
                     // Keine MD-Datei speichern - nur den Inhalt verwenden
                     
-                    openChapterEditorWindow(newContent.toString(), chapterFile, format);
-                    chapterFile.setChanged(false);
+                    // 1. EditorWindow mit Originaltext erstellen
+                    EditorWindow editorController = openChapterEditorWindow(mdContent, chapterFile, format);
+                    
+                    // 2. Nach Diff-Auswahl den Text ersetzen (damit Änderungen erkannt werden)
+                    if (editorController != null) {
+                        Platform.runLater(() -> {
+                            editorController.replaceTextWithoutUpdatingOriginal(newContent.toString());
+                        });
+                    }
+                    
                     updateDocxHashAfterAccept(chapterFile.getFile());
                     diffStage.close();
                 } catch (Exception ex) {
@@ -1873,6 +1909,10 @@ public class MainController implements Initializable {
             } else {
                 diffRoot.getStyleClass().add("theme-dark");
             }
+            
+            // WICHTIG: Setze Owner und Modality um "Popping" zu verhindern
+            diffStage.initOwner(primaryStage);
+            diffStage.initModality(Modality.WINDOW_MODAL);
             
             diffStage.setSceneWithTitleBar(diffScene);
             diffStage.showAndWait();
@@ -1970,7 +2010,7 @@ public class MainController implements Initializable {
     
     // autoSortFiles wurde in loadDocxFiles integriert
     
-    private void openChapterEditorWindow(String text, DocxFile chapterFile, DocxProcessor.OutputFormat format) {
+    private EditorWindow openChapterEditorWindow(String text, DocxFile chapterFile, DocxProcessor.OutputFormat format) {
         try {
             logger.info("=== ÖFFNE EDITOR FENSTER START ===");
             
@@ -2060,9 +2100,12 @@ public class MainController implements Initializable {
             
             editorStage.show();
             
+            return editorController;
+            
         } catch (Exception e) {
             logger.error("Fehler beim Öffnen des Kapitel-Editor-Fensters", e);
             showError("Fenster-Fehler", e.getMessage());
+            return null;
         }
     }
     
@@ -2312,6 +2355,20 @@ public class MainController implements Initializable {
         alert.applyTheme(currentThemeIndex);
         alert.initOwner(primaryStage);
         alert.showAndWait();
+    }
+    
+    /**
+     * Gibt den aktuellen Verzeichnispfad zurück
+     */
+    public String getCurrentDirectoryPath() {
+        return txtDirectoryPath.getText();
+    }
+    
+    /**
+     * Setzt die Flag zum Unterdrücken des External Change Dialogs
+     */
+    public void setSuppressExternalChangeDialog(boolean suppress) {
+        this.suppressExternalChangeDialog = suppress;
     }
     
     public void setPrimaryStage(CustomStage primaryStage) {

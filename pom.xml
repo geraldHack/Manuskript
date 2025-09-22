@@ -165,6 +165,40 @@
                     <mainClass>com.manuskript.Main</mainClass>
                 </configuration>
             </plugin>
+            
+            <!-- Maven Shade Plugin für Fat JAR -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.4.1</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>com.manuskript.Main</mainClass>
+                                </transformer>
+                            </transformers>
+                            <finalName>manuskript-standalone</finalName>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            
+            <!-- JLink Plugin für native Images (Java 17+) -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jlink-plugin</artifactId>
+                <version>3.1.0</version>
+                <configuration>
+                    <launcher>manuskript=com.manuskript.Main</launcher>
+                    <addModules>javafx.controls,javafx.fxml,javafx.web,javafx.swing</addModules>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 </project> 

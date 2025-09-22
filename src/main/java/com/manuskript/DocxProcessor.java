@@ -1344,6 +1344,31 @@ public class DocxProcessor {
     private static String extractTextFromParagraph(P paragraph) {
         StringBuilder text = new StringBuilder();
         
+        // Prüfe Paragraph-Style für Überschriften
+        int headingLevel = 0;
+        if (paragraph.getPPr() != null && paragraph.getPPr().getPStyle() != null) {
+            String styleName = paragraph.getPPr().getPStyle().getVal();
+            if (styleName != null) {
+                if (styleName.startsWith("Heading")) {
+                    try {
+                        headingLevel = Integer.parseInt(styleName.substring(7));
+                    } catch (NumberFormatException e) {
+                        // Fallback für andere Heading-Styles
+                        if (styleName.equals("Title")) headingLevel = 1;
+                        else if (styleName.equals("Subtitle")) headingLevel = 2;
+                    }
+                }
+            }
+        }
+        
+        // Überschriften-Markdown hinzufügen
+        if (headingLevel > 0) {
+            for (int i = 0; i < headingLevel; i++) {
+                text.append("#");
+            }
+            text.append(" ");
+        }
+        
         for (Object obj : paragraph.getContent()) {
             
             if (obj instanceof R) {
@@ -1377,13 +1402,15 @@ public class DocxProcessor {
                     }
                 }
                 
-                // Markdown-Formatierung VOR dem Text hinzufügen
-                if (isBold && isItalic) {
-                    text.append("***");
-                } else if (isBold) {
-                    text.append("**");
-                } else if (isItalic) {
-                    text.append("*");
+                // Markdown-Formatierung VOR dem Text hinzufügen (nur wenn nicht bereits Überschrift)
+                if (headingLevel == 0) {
+                    if (isBold && isItalic) {
+                        text.append("***");
+                    } else if (isBold) {
+                        text.append("**");
+                    } else if (isItalic) {
+                        text.append("*");
+                    }
                 }
                 
                 for (Object runObj : run.getContent()) {
@@ -1409,13 +1436,15 @@ public class DocxProcessor {
                     }
                 }
                 
-                // Markdown-Formatierung NACH dem Text schließen
-                if (isBold && isItalic) {
-                    text.append("***");
-                } else if (isBold) {
-                    text.append("**");
-                } else if (isItalic) {
-                    text.append("*");
+                // Markdown-Formatierung NACH dem Text schließen (nur wenn nicht bereits Überschrift)
+                if (headingLevel == 0) {
+                    if (isBold && isItalic) {
+                        text.append("***");
+                    } else if (isBold) {
+                        text.append("**");
+                    } else if (isItalic) {
+                        text.append("*");
+                    }
                 }
             }
         }
