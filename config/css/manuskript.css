@@ -710,14 +710,14 @@
 /* Pastell Theme - Text-Areas (überall) */
 .pastell-theme .text-area,
 .pastell-theme * .text-area {
-    -fx-background-color: #e1bee7 !important;
+    -fx-background-color: #f3e5f5 !important;
     -fx-text-fill: #000000 !important;
     -fx-border-color: #ba68c8 !important;
 }
 
 .pastell-theme .text-area .content,
 .pastell-theme * .text-area .content {
-    -fx-background-color: #e1bee7 !important;
+    -fx-background-color: #f3e5f5 !important;
     -fx-text-fill: #000000 !important;
 }
 
@@ -2080,13 +2080,13 @@
 
 /* Spezifische Regeln für TextAreas im Pastell-Theme */
 .pastell-theme .text-area {
-    -fx-background-color: #ffffff !important;
+    -fx-background-color: #f3e5f5 !important;
     -fx-text-fill: #000000 !important;
     -fx-border-color: #ba68c8 !important;
 }
 
 .pastell-theme .text-area .content {
-    -fx-background-color: #ffffff !important;
+    -fx-background-color: #f3e5f5 !important;
     -fx-text-fill: #000000 !important;
 }
 
@@ -2366,7 +2366,7 @@
     -fx-caret-color: #000000;
     -fx-highlight-fill: #add6ff;
     -fx-highlight-text-fill: #000000;
-    -fx-padding: 0 0 0 10px; /* Links 10px Padding */
+    -fx-padding: 0 15px 0 10px !important; /* Links 10px, rechts 15px Padding */
     -fx-border-color: #d1d5db;
     -fx-border-width: 1px;
     -fx-border-radius: 4px;
@@ -2454,12 +2454,12 @@
 
 /* CodeArea Content-Bereich für besseres Padding */
 .code-area .content {
-    -fx-padding: 0 0 0 10px; /* Links 10px Padding */
+    -fx-padding: 0 15px 0 10px; /* Links 10px, rechts 15px Padding */
 }
 
 /* ScrollPane für CodeArea */
 .code-area .scroll-pane {
-    -fx-padding: 0 0 0 10px; /* Links 10px Padding */
+    -fx-padding: 0 15px 0 10px; /* Links 10px, rechts 15px Padding */
 }
 
 /* RichTextFX CodeArea VirtualizedScrollPane Scrollbalken - Standard */
@@ -2486,7 +2486,7 @@
 
 /* Viewport für CodeArea */
 .code-area .viewport {
-    -fx-padding: 0 0 0 10px; /* Links 10px Padding */
+    -fx-padding: 0 15px 0 10px; /* Links 10px, rechts 15px Padding */
 }
 
 /* RichTextFX CodeArea VirtualizedScrollPane Scrollbalken - Dark Theme */
@@ -2748,6 +2748,18 @@
     -rtfx-background-color: #f3e5f5;
     -fx-text-fill: #000000;
     -fx-caret-color: #000000;
+}
+
+/* Selection-Label Styling */
+.selection-label {
+    -fx-font-size: 11px;
+    -fx-text-fill: #495057;
+    -fx-font-weight: normal;
+    -fx-padding: 0 5px 0 5px;
+}
+
+.theme-dark .selection-label {
+    -fx-text-fill: #e2e8f0;
 }
 
 /* ========================================
@@ -4232,9 +4244,191 @@
     -fx-background-radius: 4px !important;
 }
 
+/* Pastell-Theme normale TitledPanes */
+.pastell-theme .titled-pane,
+.pastell-theme * .titled-pane {
+    -fx-background-color: #f3e5f5 !important;
+    -fx-border-color: #ba68c8 !important;
+    -fx-border-radius: 4px !important;
+    -fx-background-radius: 4px !important;
+}
+
+.pastell-theme .titled-pane .title,
+.pastell-theme * .titled-pane .title {
+    -fx-background-color: linear-gradient(to right, #f3e5f5, #e1bee7, #ce93d8) !important;
+    -fx-border-color: #ba68c8 !important;
+    -fx-border-width: 0 0 1 0 !important;
+}
+
+.pastell-theme .titled-pane .title .text,
+.pastell-theme * .titled-pane .title .text {
+    -fx-fill: #000000 !important;
+    -fx-font-weight: bold !important;
+}
+
+.pastell-theme .titled-pane .title .arrow-button,
+.pastell-theme * .titled-pane .title .arrow-button {
+    -fx-background-color: transparent !important;
+}
+
+.pastell-theme .titled-pane .title .arrow-button .arrow,
+.pastell-theme * .titled-pane .title .arrow-button .arrow {
+    -fx-background-color: #9c27b0 !important;
+}
+
+.pastell-theme .titled-pane .content,
+.pastell-theme * .titled-pane .content {
+    -fx-background-color: #f3e5f5 !important;
+}
+
 /* Pastell-Theme Hauptfenster Titelleiste */
 .pastell-theme .title-bar {
     -fx-background-color: linear-gradient(to bottom, #f3e5f5, #ce93d8) !important;
+    -fx-min-height: 35px !important;
+    -fx-pref-height: 35px !important;
+}
+
+.pastell-theme .title-bar .title-text {
+    -fx-fill: #000000 !important;
+    -fx-font-weight: bold !important;
+    -fx-font-size: 14px !important;
+}
+
+.pastell-theme .title-bar .window-controls {
+    -fx-background-color: transparent !important;
+}
+
+.pastell-theme .title-bar .button {
+    -fx-background-color: transparent !important;
+    -fx-border-color: #ba68c8 !important;
+    -fx-border-width: 1px !important;
+    -fx-border-radius: 3px !important;
+    -fx-background-radius: 3px !important;
+    -fx-min-width: 35px !important;
+    -fx-min-height: 25px !important;
+    -fx-pref-width: 35px !important;
+    -fx-pref-height: 25px !important;
+    -fx-text-fill: #000000 !important;
+    -fx-font-size: 18px !important;
+}
+
+.pastell-theme .title-bar .button:hover {
+    -fx-background-color: #e1bee7 !important;
+}
+
+/* Spezifische Selektoren für die Windows-Controls im Pastell-Theme */
+.pastell-theme .title-bar .button:minimize,
+.pastell-theme .title-bar .button:maximize,
+.pastell-theme .title-bar .button:close {
+    -fx-background-color: transparent !important;
+    -fx-border-color: #ba68c8 !important;
+    -fx-border-width: 1px !important;
+    -fx-border-radius: 3px !important;
+    -fx-background-radius: 3px !important;
+    -fx-min-width: 35px !important;
+    -fx-min-height: 25px !important;
+    -fx-pref-width: 35px !important;
+    -fx-pref-height: 25px !important;
+    -fx-text-fill: #000000 !important;
+    -fx-font-size: 18px !important;
+}
+
+.pastell-theme .title-bar .button:minimize:hover,
+.pastell-theme .title-bar .button:maximize:hover,
+.pastell-theme .title-bar .button:close:hover {
+    -fx-background-color: #e1bee7 !important;
+}
+
+/* Noch spezifischere Selektoren für die Windows-Controls */
+.pastell-theme .title-bar .button:minimize:minimize,
+.pastell-theme .title-bar .button:maximize:maximize,
+.pastell-theme .title-bar .button:close:close {
+    -fx-background-color: transparent !important;
+    -fx-border-color: #ba68c8 !important;
+    -fx-border-width: 1px !important;
+    -fx-border-radius: 3px !important;
+    -fx-background-radius: 3px !important;
+    -fx-min-width: 35px !important;
+    -fx-min-height: 25px !important;
+    -fx-pref-width: 35px !important;
+    -fx-pref-height: 25px !important;
+    -fx-text-fill: #000000 !important;
+    -fx-font-size: 18px !important;
+}
+
+.pastell-theme .title-bar .button:minimize:minimize:hover,
+.pastell-theme .title-bar .button:maximize:maximize:hover,
+.pastell-theme .title-bar .button:close:close:hover {
+    -fx-background-color: #e1bee7 !important;
+}
+
+/* Ultra-spezifische Selektoren für die Windows-Controls */
+.pastell-theme .title-bar .button:minimize:minimize:minimize,
+.pastell-theme .title-bar .button:maximize:maximize:maximize,
+.pastell-theme .title-bar .button:close:close:close {
+    -fx-background-color: transparent !important;
+    -fx-border-color: #ba68c8 !important;
+    -fx-border-width: 1px !important;
+    -fx-border-radius: 3px !important;
+    -fx-background-radius: 3px !important;
+    -fx-min-width: 35px !important;
+    -fx-min-height: 25px !important;
+    -fx-pref-width: 35px !important;
+    -fx-pref-height: 25px !important;
+    -fx-text-fill: #000000 !important;
+    -fx-font-size: 18px !important;
+}
+
+.pastell-theme .title-bar .button:minimize:minimize:minimize:hover,
+.pastell-theme .title-bar .button:maximize:maximize:maximize:hover,
+.pastell-theme .title-bar .button:close:close:close:hover {
+    -fx-background-color: #e1bee7 !important;
+}
+
+/* Mega-spezifische Selektoren für die Windows-Controls */
+.pastell-theme .title-bar .button:minimize:minimize:minimize:minimize,
+.pastell-theme .title-bar .button:maximize:maximize:maximize:maximize,
+.pastell-theme .title-bar .button:close:close:close:close {
+    -fx-background-color: transparent !important;
+    -fx-border-color: #ba68c8 !important;
+    -fx-border-width: 1px !important;
+    -fx-border-radius: 3px !important;
+    -fx-background-radius: 3px !important;
+    -fx-min-width: 35px !important;
+    -fx-min-height: 25px !important;
+    -fx-pref-width: 35px !important;
+    -fx-pref-height: 25px !important;
+    -fx-text-fill: #000000 !important;
+    -fx-font-size: 18px !important;
+}
+
+.pastell-theme .title-bar .button:minimize:minimize:minimize:minimize:hover,
+.pastell-theme .title-bar .button:maximize:maximize:maximize:maximize:hover,
+.pastell-theme .title-bar .button:close:close:close:close:hover {
+    -fx-background-color: #e1bee7 !important;
+}
+
+/* Giga-spezifische Selektoren für die Windows-Controls */
+.pastell-theme .title-bar .button:minimize:minimize:minimize:minimize:minimize,
+.pastell-theme .title-bar .button:maximize:maximize:maximize:maximize:maximize,
+.pastell-theme .title-bar .button:close:close:close:close:close {
+    -fx-background-color: transparent !important;
+    -fx-border-color: #ba68c8 !important;
+    -fx-border-width: 1px !important;
+    -fx-border-radius: 3px !important;
+    -fx-background-radius: 3px !important;
+    -fx-min-width: 35px !important;
+    -fx-min-height: 25px !important;
+    -fx-pref-width: 35px !important;
+    -fx-pref-height: 25px !important;
+    -fx-text-fill: #000000 !important;
+    -fx-font-size: 18px !important;
+}
+
+.pastell-theme .title-bar .button:minimize:minimize:minimize:minimize:minimize:hover,
+.pastell-theme .title-bar .button:maximize:maximize:maximize:maximize:maximize:hover,
+.pastell-theme .title-bar .button:close:close:close:close:close:hover {
+    -fx-background-color: #e1bee7 !important;
 }
 
 .pastell-theme .ollama-titled-pane .title {
@@ -4255,6 +4449,7 @@
 .pastell-theme .ollama-titled-pane .title .arrow-button .arrow {
     -fx-background-color: #9c27b0 !important;
 }
+
 
 /* Blau-Theme TitledPane */
 .theme-dark.blau-theme .ollama-titled-pane {

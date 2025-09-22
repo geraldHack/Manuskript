@@ -40,6 +40,40 @@ public class StageManager {
     }
     
     /**
+     * Erstellt eine neue CustomStage speziell für Export-Dialoge mit kleinerer Größe
+     */
+    public static CustomStage createExportStage(String title, Window owner) {
+        CustomStage stage = new CustomStage();
+        
+        // Titel setzen
+        if (title != null && !title.trim().isEmpty()) {
+            stage.setCustomTitle(title);
+        }
+        
+        // Modal-Verhalten
+        if (owner != null) {
+            stage.initModality(Modality.WINDOW_MODAL);
+            stage.initOwner(owner);
+        }
+        
+        // Export-Dialog spezifische Größen
+        stage.setMinWidth(700);
+        stage.setMinHeight(500);
+        stage.setWidth(800);
+        stage.setHeight(600);
+        stage.setMaxWidth(1000);
+        stage.setMaxHeight(800);
+        
+        // Theme aus Preferences laden und anwenden
+        int currentTheme = preferences.getInt("main_window_theme", 0);
+        stage.setFullTheme(currentTheme);
+        
+        logger.debug("Export-Stage erstellt: '{}', Größe: {}x{}", title, 600, 500);
+        
+        return stage;
+    }
+    
+    /**
      * Erstellt eine neue CustomStage speziell für Diff-Fenster mit größerer Standardbreite
      */
     public static CustomStage createDiffStage(String title, Window owner) {

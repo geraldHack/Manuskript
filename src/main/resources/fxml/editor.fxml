@@ -23,6 +23,8 @@
             
             <Region HBox.hgrow="ALWAYS" style="-fx-background-color: transparent;" />
             
+            <Label fx:id="lblSelectionCount" text="Auswahl: 0 Zeichen" styleClass="selection-label" />
+            <Separator orientation="VERTICAL" />
             <Label fx:id="lblStatus" text="Bereit" styleClass="status-label" />
          </children>
          <padding>

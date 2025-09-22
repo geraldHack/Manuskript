@@ -9,6 +9,12 @@ dependency-reduced-pom.xml
 buildNumber.properties
 .mvn/timing.properties
 .mvn/wrapper/maven-wrapper.jar
+create-standalone.sh
+create-standalone.bat 
+manuskript-standalone/
+javafx-sdk-21.0.6/
+manuskript-standalone.jar
+
 
 # IDE
 .idea/

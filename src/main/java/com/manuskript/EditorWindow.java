@@ -112,6 +112,7 @@ public class EditorWindow implements Initializable {
     @FXML private Button btnFindPrevious;
     @FXML private Label lblStatus;
     @FXML private Label lblMatchCount;
+    @FXML private Label lblSelectionCount;
     // @FXML private Label lblWindowTitle; // Entfernt - CustomStage hat eigene Titelleiste
     
     // Toolbar-Buttons
@@ -428,6 +429,12 @@ if (caret != null) {
         VirtualizedScrollPane<CodeArea> scrollPane = new VirtualizedScrollPane<>(codeArea);
         scrollPane.getStyleClass().add("code-area");
         
+        // Padding direkt auf der CodeArea setzen
+        codeArea.setStyle(codeArea.getStyle() + " -fx-padding: 0 15px 0 10px;"); // Links 10px, rechts 15px
+        
+        // Padding auf dem äußeren Container setzen
+        textAreaContainer.setStyle("-fx-padding: 0 15px 0 0px;"); // Links 10px, rechts 15px
+        
         // CodeArea zum Container hinzufügen (im SplitPane)
         textAreaContainer.getChildren().add(scrollPane);
         VBox.setVgrow(scrollPane, Priority.ALWAYS);
@@ -470,8 +477,50 @@ if (caret != null) {
         updateStatus("Bereit");
         updateMatchCount(0, 0);
         
+        // Selektion-Überwachung einrichten
+        setupSelectionMonitoring();
+        
         // Toolbar-Einstellungen laden (Font-Size, Theme, etc.)
         loadToolbarSettings();
+    }
+    
+    private void setupSelectionMonitoring() {
+        if (codeArea != null && lblSelectionCount != null) {
+            // Überwache Änderungen in der Selektion
+            codeArea.selectionProperty().addListener((obs, oldSelection, newSelection) -> {
+                updateSelectionCount();
+            });
+            
+            // Überwache Änderungen im Text (falls Selektion durch Textänderung beeinflusst wird)
+            codeArea.textProperty().addListener((obs, oldText, newText) -> {
+                updateSelectionCount();
+            });
+            
+            // Initiale Aktualisierung
+            updateSelectionCount();
+        }
+    }
+    
+    private void updateSelectionCount() {
+        if (codeArea != null && lblSelectionCount != null) {
+            String selectedText = codeArea.getSelectedText();
+            if (selectedText != null && !selectedText.isEmpty()) {
+                int charCount = selectedText.length();
+                int wordCount = countWords(selectedText);
+                lblSelectionCount.setText("Auswahl: " + charCount + " Zeichen, " + wordCount + " Wörter");
+            } else {
+                lblSelectionCount.setText("Auswahl: 0 Zeichen, 0 Wörter");
+            }
+        }
+    }
+    
+    private int countWords(String text) {
+        if (text == null || text.trim().isEmpty()) {
+            return 0;
+        }
+        // Teile den Text in Wörter auf (getrennt durch Whitespace)
+        String[] words = text.trim().split("\\s+");
+        return words.length;
     }
     
     private void setupEventHandlers() {
@@ -486,6 +535,16 @@ if (caret != null) {
                     applySearchOptions(options);
                 }
                 findNext(); // Suche zum nächsten Treffer, nicht zum ersten
+            }
+        });
+        
+        // ENTER-Taste im Suchfeld - macht dasselbe wie "Nächster" Button
+        cmbSearchHistory.setOnKeyPressed(e -> {
+            if (e.getCode() == KeyCode.ENTER) {
+                String searchText = cmbSearchHistory.getValue();
+                if (searchText != null && !searchText.trim().isEmpty()) {
+                    findNext(); // Genau wie der "Nächster" Button
+                }
             }
         });
         
@@ -871,11 +930,19 @@ if (caret != null) {
                     codeArea.setStyleSpans(0, content.length(), StyleSpans.singleton(new ArrayList<>(), 0));
                 }
                 
-                // Bei neuer Suche nicht sofort zum ersten Treffer springen
-                updateMatchCount(totalMatches, totalMatches);
+                // Bei neuer Suche sofort zum ersten Treffer springen
                 if (totalMatches > 0) {
-                    updateStatus(totalMatches + " Treffer gefunden - drücke F3 für den ersten Treffer");
+                    // Springe zum ersten Treffer
+                    int firstMatchStart = cachedMatchPositions.get(0);
+                    Matcher firstMatcher = cachedPattern.matcher(content);
+                    if (firstMatcher.find(firstMatchStart)) {
+                        highlightText(firstMatcher.start(), firstMatcher.end());
+                        currentMatchIndex = 0;
+                        updateMatchCount(currentMatchIndex + 1, totalMatches);
+                        updateStatus("Treffer " + (currentMatchIndex + 1) + " von " + totalMatches);
+                    }
                 } else {
+                    updateMatchCount(0, 0);
                     updateStatus("Keine Treffer gefunden");
                 }
                 return;
@@ -979,8 +1046,25 @@ if (caret != null) {
             String content = codeArea.getText();
             Matcher matcher = pattern.matcher(content);
             
+            // Verwende die Position des aktuell markierten Treffers
+            int matchStart = -1;
+            int matchEnd = -1;
+            
+            if (currentMatchIndex >= 0 && currentMatchIndex < cachedMatchPositions.size()) {
+                // Verwende die Position des aktuell markierten Treffers
+                matchStart = cachedMatchPositions.get(currentMatchIndex);
+                matcher.find(matchStart);
+                matchEnd = matcher.end();
+            } else {
+                // Fallback: Suche ab der aktuellen Cursor-Position
             int start = codeArea.getCaretPosition();
             if (matcher.find(start)) {
+                    matchStart = matcher.start();
+                    matchEnd = matcher.end();
+                }
+            }
+            
+            if (matchStart >= 0) {
                 // Für Regex-Ersetzung müssen wir die Backreferences manuell ersetzen
                 String replacement;
                 if (chkRegexSearch.isSelected() && replaceText != null && replaceText.contains("\\")) {
@@ -998,57 +1082,14 @@ if (caret != null) {
                     replacement = replaceText != null ? replaceText : "";
                 }
                 
-                codeArea.replaceText(matcher.start(), matcher.end(), replacement);
+                codeArea.replaceText(matchStart, matchEnd, replacement);
                 updateStatus("Ersetzt");
                 
-                // Nach dem Ersetzen müssen wir die Suche neu starten
-                // Setze die Position auf den Anfang des ersetzten Texts
-                codeArea.displaceCaret(matcher.start());
-                codeArea.requestFollowCaret();
-                
-                // Cache zurücksetzen und neu aufbauen, aber Cursor an der aktuellen Position lassen
+                // Cache komplett zurücksetzen, da sich der Text geändert hat
                 lastSearchText = null;
-                
-                // Cache neu aufbauen ohne Cursor zu verschieben
-                Pattern newPattern = createSearchPattern(searchText.trim());
-                String newContent = codeArea.getText();
-                Matcher newMatcher = newPattern.matcher(newContent);
-                
                 cachedMatchPositions.clear();
-                while (newMatcher.find()) {
-                    cachedMatchPositions.add(newMatcher.start());
-                }
-                totalMatches = cachedMatchPositions.size();
-                cachedPattern = newPattern;
-                lastSearchText = searchText;
-                
-                // Finde den nächsten Treffer nach der aktuellen Position
-                int currentPos = codeArea.getCaretPosition();
-                int nextIndex = -1;
-                
-                for (int i = 0; i < cachedMatchPositions.size(); i++) {
-                    if (cachedMatchPositions.get(i) > currentPos) {
-                        nextIndex = i;
-                        break;
-                    }
-                }
-                
-                // Wenn kein Treffer nach der aktuellen Position, nimm den ersten
-                if (nextIndex == -1 && !cachedMatchPositions.isEmpty()) {
-                    nextIndex = 0;
-                }
-                
-                // Markiere den gefundenen Treffer
-                if (nextIndex >= 0 && nextIndex < cachedMatchPositions.size()) {
-                    int matchStart = cachedMatchPositions.get(nextIndex);
-                    Matcher highlightMatcher = cachedPattern.matcher(newContent);
-                    if (highlightMatcher.find(matchStart)) {
-                        highlightText(highlightMatcher.start(), highlightMatcher.end());
-                        currentMatchIndex = nextIndex;
-                        updateMatchCount(currentMatchIndex + 1, totalMatches);
-                        updateStatus("Treffer " + (currentMatchIndex + 1) + " von " + totalMatches);
-                    }
-                }
+                totalMatches = 0;
+                currentMatchIndex = -1;
             }
             
         } catch (Exception e) {
@@ -1174,16 +1215,14 @@ if (caret != null) {
             // Setze den Cursor an die Position und markiere den Text
             codeArea.displaceCaret(start);
             codeArea.selectRange(start, end);
-            codeArea.requestFocus();
             
-            // RichTextFX: Zeige Cursor und scrolle automatisch
-            codeArea.requestFollowCaret();
+            // RichTextFX: Zeige den gefundenen Text in der Mitte des Fensters
+            int currentParagraph = codeArea.getCurrentParagraph();
+            codeArea.showParagraphAtCenter(currentParagraph);
             
-            // Zusätzliches Scrollen für bessere Sichtbarkeit am unteren Rand
+            // Focus zurück zum Suchfeld, damit ENTER weiter funktioniert
             Platform.runLater(() -> {
-                // Zeige die aktuelle Zeile in der Mitte, aber mit etwas Abstand nach unten
-                int currentParagraph = codeArea.getCurrentParagraph();
-                codeArea.showParagraphAtCenter(currentParagraph + 2);
+                cmbSearchHistory.requestFocus();
             });
         }
     }
@@ -1442,7 +1481,7 @@ if (caret != null) {
         }
         
         logger.info("showExportDialog aufgerufen - erstelle Stage...");
-        CustomStage exportStage = StageManager.createModalStage("Export", stage);
+        CustomStage exportStage = StageManager.createExportStage("Export", stage);
         exportStage.setTitle("📤 Exportieren");
         exportStage.initModality(Modality.APPLICATION_MODAL);
         exportStage.initOwner(stage);
@@ -3351,503 +3390,18 @@ if (caret != null) {
                 // Verwerfen und schließen
                 stage.close();
             } else if (result.get() == diffButton) {
-                // Diff anzeigen
-                showDiffForUnsavedChanges();
+                // Diff anzeigen - verwende MainController Diff
+                    if (mainController != null && originalDocxFile != null) {
+                    File mdFile = deriveSidecarFileFor(originalDocxFile, outputFormat);
+                    DocxFile docxFile = new DocxFile(originalDocxFile);
+                    mainController.showDetailedDiffDialog(docxFile, mdFile, null, outputFormat);
+                }
             }
             }
             // Bei Abbrechen nichts tun (Dialog schließt nicht)
     }
     
-    /**
-     * Zeigt NEUEN side-by-side Diff für ungespeicherte Änderungen
-     */
-    private void showDiffForUnsavedChanges() {
-        try {
-            if (originalDocxFile == null || currentFile == null) {
-                showErrorDialog("Fehler", "Keine Datei zum Vergleichen verfügbar.");
-                return;
-            }
-            
-            // Lade aktuellen DOCX-Inhalt
-            String docxContent = docxProcessor.processDocxFileContent(originalDocxFile, 1, outputFormat);
-            
-            // Aktueller Editor-Inhalt
-            String editorContent = getText();
-            
-            // Erstelle Diff
-            DiffProcessor.DiffResult diffResult = DiffProcessor.createDiff(docxContent, editorContent);
-            
-            if (!diffResult.hasChanges()) {
-                CustomAlert alert = new CustomAlert(Alert.AlertType.INFORMATION, "Keine Änderungen");
-                alert.setContentText("Es wurden keine Änderungen gefunden.");
-                // alert.setHeaderText(null); // ENTFERNT: Setzt 'null' String
-                alert.applyTheme(currentThemeIndex);
-                alert.initOwner(stage);
-                alert.showAndWait();
-                return;
-            }
-            
-            // Erstelle NEUEN side-by-side Diff-Dialog mit spezieller Diff-Stage
-            CustomStage diffStage = StageManager.createDiffStage("Diff: Ungespeicherte Änderungen", stage);
-            
-            VBox diffRoot = new VBox(10);
-            diffRoot.setPadding(new Insets(15));
-            diffRoot.setPrefWidth(1600);  // Angepasst an neue Diff-Fenster Größe
-            diffRoot.setPrefHeight(900);
-            
-            // ECHTE THEME-FARBEN für Container
-            String themeBgColor = THEMES[currentThemeIndex][0]; // Hauptfarbe
-            String themeBorderColor = THEMES[currentThemeIndex][2]; // Akzentfarbe
-            
-            diffRoot.setStyle(String.format("-fx-background-color: %s; -fx-border-color: %s; -fx-border-width: 2px;", themeBgColor, themeBorderColor));
-            
-            Label titleLabel = new Label("Ungespeicherte Änderungen in " + originalDocxFile.getName());
-            titleLabel.setStyle(String.format("-fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: %s;", THEMES[currentThemeIndex][1]));
-            
-            // Erstelle SplitPane für nebeneinander Anzeige
-            SplitPane splitPane = new SplitPane();
-            splitPane.setPrefHeight(750);  // Angepasst an neue Diff-Fenster Größe
-            splitPane.setStyle("-fx-background-color: transparent;");
-            
-            // Linke Seite: Editor-Version mit Checkboxen
-            VBox leftBox = new VBox(5);
-            leftBox.setStyle(String.format("-fx-background-color: %s; -fx-border-color: %s; -fx-border-width: 2px;", themeBgColor, themeBorderColor));
-            leftBox.setPadding(new Insets(10));
-            
-            Label leftLabel = new Label("📝 Editor-Version - Wählen Sie aus:");
-            leftLabel.setStyle(String.format("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: %s;", THEMES[currentThemeIndex][1]));
-            
-            ScrollPane leftScrollPane = new ScrollPane();
-            leftScrollPane.setStyle(
-                "-fx-fit-to-width: true; -fx-fit-to-height: false; -fx-pannable: true; " +
-                "-fx-hbar-policy: as-needed; -fx-vbar-policy: always; -fx-background-color: transparent;"
-            );
-
-            // Scrollbar-Styling nach dem UI-Aufbau
-            Platform.runLater(() -> {
-                /* Viewport-Hintergrund */
-                javafx.scene.Node vp = leftScrollPane.lookup(".viewport");
-                if (vp instanceof javafx.scene.layout.Region r)
-                    r.setStyle("-fx-background-color: transparent; -fx-background-radius: 6;");
-
-                /* Scrollbars stylen (Track/Thumb etc.): */
-                javafx.scene.control.ScrollBar vbar =
-                    (javafx.scene.control.ScrollBar) leftScrollPane.lookup(".scroll-bar:vertical");
-                if (vbar != null) {
-                    vbar.setStyle("-fx-pref-width: 10;");                            // Breite
-                    javafx.scene.layout.Region thumb = (javafx.scene.layout.Region) vbar.lookup(".thumb");
-                    if (thumb != null) thumb.setStyle(String.format("-fx-background-color: %s; -fx-background-radius: 6;", THEMES[currentThemeIndex][2]));
-                    javafx.scene.layout.Region track = (javafx.scene.layout.Region) vbar.lookup(".track");
-                    if (track != null) track.setStyle("-fx-background-color: transparent;");
-                }
-            });
-            VBox leftContentBox = new VBox(0);
-            leftContentBox.setPadding(new Insets(5));
-            leftContentBox.setStyle("-fx-background-color: transparent;");
-            
-            // Rechte Seite: Originale Version (DOCX)
-            VBox rightBox = new VBox(5);
-            rightBox.setStyle(String.format("-fx-background-color: %s; -fx-border-color: %s; -fx-border-width: 2px;", themeBgColor, themeBorderColor));
-            rightBox.setPadding(new Insets(10));
-            
-            Label rightLabel = new Label("📄 Originale Version (DOCX)");
-            rightLabel.setStyle(String.format("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: %s;", THEMES[currentThemeIndex][1]));
-            
-            ScrollPane rightScrollPane = new ScrollPane();
-            rightScrollPane.setStyle(
-                "-fx-fit-to-width: true; -fx-fit-to-height: false; -fx-pannable: true; " +
-                "-fx-hbar-policy: as-needed; -fx-vbar-policy: always; -fx-background-color: transparent;"
-            );
-
-            // Scrollbar-Styling nach dem UI-Aufbau
-            Platform.runLater(() -> {
-                /* Viewport-Hintergrund */
-                javafx.scene.Node vp2 = rightScrollPane.lookup(".viewport");
-                if (vp2 instanceof javafx.scene.layout.Region r2)
-                    r2.setStyle("-fx-background-color: transparent; -fx-background-radius: 6;");
-
-                /* Scrollbars stylen (Track/Thumb etc.): */
-                javafx.scene.control.ScrollBar vbar2 =
-                    (javafx.scene.control.ScrollBar) rightScrollPane.lookup(".scroll-bar:vertical");
-                if (vbar2 != null) {
-                    vbar2.setStyle("-fx-pref-width: 10;");                            // Breite
-                    javafx.scene.layout.Region thumb2 = (javafx.scene.layout.Region) vbar2.lookup(".thumb");
-                    if (thumb2 != null) thumb2.setStyle(String.format("-fx-background-color: %s; -fx-background-radius: 6;", THEMES[currentThemeIndex][2]));
-                    javafx.scene.layout.Region track2 = (javafx.scene.layout.Region) vbar2.lookup(".track");
-                    if (track2 != null) track2.setStyle("-fx-background-color: transparent;");
-                }
-            });
-            VBox rightContentBox = new VBox(0);
-            rightContentBox.setPadding(new Insets(5));
-            rightContentBox.setStyle("-fx-background-color: transparent;");
-            
-            // Verwende echte DiffProcessor-Logik für intelligente Block-Erkennung
-            List<CheckBox> blockCheckBoxes = new ArrayList<>();
-            List<List<String>> blockTexts = new ArrayList<>();
-            
-            // Gruppiere zusammenhängende Änderungen zu Blöcken
-            List<DiffBlock> blocks = groupIntoBlocks(diffResult.getDiffLines());
-            
-            // Intelligente Bereinigung von Leerzeilen (entfernt nur redundante, behält gewollte)
-            blocks = trimEmptyEdgesOfBlocks(blocks);
-            
-            // Erstelle finale Kopie für Lambda-Ausdrücke
-            final List<DiffBlock> finalBlocks = new ArrayList<>(blocks);
-            
-            // Erstelle synchronisierte Anzeige basierend auf Blöcken
-            
-            for (int blockIndex = 0; blockIndex < finalBlocks.size(); blockIndex++) {
-                DiffBlock block = finalBlocks.get(blockIndex);
-                DiffBlock nextBlock = (blockIndex + 1 < finalBlocks.size()) ? finalBlocks.get(blockIndex + 1) : null;
-                // SPEZIALFALL: Paarweise Darstellung DELETED (rechts) + ADDED (links) als EIN gemeinsamer Block
-                if (block.getType() == DiffBlockType.DELETED && nextBlock != null && nextBlock.getType() == DiffBlockType.ADDED) {
-                    String leftBlockText = joinNewTexts(nextBlock);
-                    String rightBlockText = joinOriginalTexts(block);
-
-                    // Links (grün)
-                    HBox leftLineBox = new HBox(5);
-                    Label leftLineNum = new Label("");
-                    leftLineNum.setStyle("-fx-min-width: 30px;");
-                    Label leftLineLabel = new Label(leftBlockText);
-                    leftLineLabel.setWrapText(true);
-                    leftLineLabel.setPrefWidth(600);
-                    leftLineLabel.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px; -fx-background-color: #d4edda; -fx-text-fill: #155724; -fx-font-weight: bold;");
-                    leftLineBox.getChildren().addAll(leftLineNum, leftLineLabel);
-
-                    // Rechts (rot)
-                    HBox rightLineBox = new HBox(5);
-                    Label rightLineNum = new Label("");
-                    rightLineNum.setStyle("-fx-min-width: 30px;");
-                    Label rightLineLabel = new Label(rightBlockText);
-                    rightLineLabel.setWrapText(true);
-                    rightLineLabel.setPrefWidth(600);
-                    rightLineLabel.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px; -fx-background-color: #f8d7da; -fx-text-fill: #721c24; -fx-font-weight: bold;");
-                    // Checkbox für dieses DELETED/ADDED-Paar erstellen und registrieren
-                    CheckBox pairCheckBox = new CheckBox();
-                    pairCheckBox.setSelected(false);
-                    blockCheckBoxes.add(pairCheckBox);
-                    // Optional: Texte für dieses Paar erfassen (wie bei DELETED-Blöcken)
-                    List<String> blockTextList = new ArrayList<>();
-                    for (DiffProcessor.DiffLine line : block.getLines()) {
-                        blockTextList.add(line.getOriginalText());
-                    }
-                    blockTexts.add(blockTextList);
-
-                    VBox checkboxContainer = new VBox();
-                    checkboxContainer.setAlignment(Pos.CENTER);
-                    checkboxContainer.setMinWidth(30);
-                    checkboxContainer.setMaxWidth(30);
-                    checkboxContainer.getChildren().add(pairCheckBox);
-                    rightLineBox.getChildren().addAll(rightLineNum, rightLineLabel, checkboxContainer);
-
-                    leftContentBox.getChildren().add(leftLineBox);
-                    rightContentBox.getChildren().add(rightLineBox);
-
-                    // Überspringe den nächsten Block, da bereits zusammen dargestellt
-                    blockIndex++;
-                    continue;
-                }
-                // Checkbox nur für rote Blöcke (DELETED) - die rechts (DOCX) angezeigt werden
-                CheckBox blockCheckBox = null;
-                if (block.getType() == DiffBlockType.DELETED) {
-                    blockCheckBox = new CheckBox();
-                    blockCheckBox.setSelected(false); // Standardmäßig ungecheckt
-                    blockCheckBoxes.add(blockCheckBox);
-                    
-                    List<String> blockTextList = new ArrayList<>();
-                    for (DiffProcessor.DiffLine line : block.getLines()) {
-                        blockTextList.add(line.getOriginalText()); // DOCX-Text
-                    }
-                    blockTexts.add(blockTextList);
-                }
-                
-                // Erstelle Zeilen für diesen Block
-                for (int lineIndex = 0; lineIndex < block.getLines().size(); lineIndex++) {
-                    DiffProcessor.DiffLine diffLine = block.getLines().get(lineIndex);
-                    // Spezialfall: "rote leere Zeile" direkt VOR einem grünen Block entfernen
-                    if (block.getType() == DiffBlockType.DELETED
-                            && nextBlock != null && nextBlock.getType() == DiffBlockType.ADDED
-                            && lineIndex == block.getLines().size() - 1) {
-                        String original = diffLine.getOriginalText();
-                        if (original == null || original.trim().isEmpty()) {
-                                    
-                        continue; // diese (leere) Abschlusszeile komplett überspringen
-                        }
-                    }
-                    HBox leftLineBox = new HBox(5);
-                    HBox rightLineBox = new HBox(5);
-                    
-                    // Zeilennummern aus DiffLine verwenden
-                    Label leftLineNum = new Label(String.format("%3d", diffLine.getLeftLineNumber()));
-                    leftLineNum.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 10px; -fx-text-fill: #6c757d; -fx-min-width: 30px; -fx-alignment: center-right;");
-                    
-                    Label rightLineNum = new Label(String.format("%3d", diffLine.getRightLineNumber()));
-                    rightLineNum.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 10px; -fx-text-fill: #6c757d; -fx-min-width: 30px; -fx-alignment: center-right;");
-                    
-                    // Linke Seite (Editor)
-                    String leftText = diffLine.getNewText();
-                    String rightText = diffLine.getOriginalText();
-                    // Entferne nur WENNs am Ende reine EOL-Ketten sind, erhalte manuelle Leerzeilen zwischen Text
-                    leftText = stripTrailingEol(leftText);
-                    rightText = stripTrailingEol(rightText);
-
-                    // Sehr konservative Behandlung von Leerzeilen: Zeige alle Leerzeilen an
-                    boolean leftBlank = (leftText == null) || leftText.trim().isEmpty();
-                    boolean rightBlank = (rightText == null) || rightText.trim().isEmpty();
-                    
-                    // Zeige alle Leerzeilen an - keine Überspringung mehr
-                    // (Leerzeilen werden nur in trimEmptyEdgesOfBlocks bereinigt)
-
-                    // Intelligente Leerzeilen-Behandlung: Gewollte Leerzeilen bleiben erhalten
-                    Label leftLineLabel = new Label(leftText);
-                    leftLineLabel.setWrapText(true);
-                    leftLineLabel.setPrefWidth(600);
-                    leftLineLabel.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px;");
-                    
-                    // Rechte Seite (DOCX)
-                    Label rightLineLabel = new Label(rightText);
-                    rightLineLabel.setWrapText(true);
-                    rightLineLabel.setPrefWidth(600);
-                    rightLineLabel.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px;");
-                    
-                    // Markiere basierend auf Block-Typ
-                    switch (block.getType()) {
-                        case ADDED:
-                            // Neuer Block - nur links sichtbar (Editor)
-                            rightLineLabel.setText("");
-                            rightLineNum.setText("");
-                            leftLineLabel.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px; -fx-background-color: #d4edda; -fx-text-fill: #155724; -fx-font-weight: bold;");
-                            leftLineNum.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 10px; -fx-text-fill: #28a745; -fx-min-width: 30px; -fx-alignment: center-right; -fx-font-weight: bold;");
-                            // Rechte Seite neutral lassen, keine farbige leere Zeile rendern
-                            break;
-                            
-                        case DELETED:
-                            // Gelöschter Block - links leer, rechts rot (DOCX)
-                            leftLineLabel.setText("");
-                            leftLineNum.setText("");
-                            // Linke Seite neutral lassen, keine farbige leere Zeile rendern
-                            rightLineLabel.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px; -fx-background-color: #f8d7da; -fx-text-fill: #721c24; -fx-font-weight: bold;");
-                            rightLineNum.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 10px; -fx-text-fill: #dc3545; -fx-min-width: 30px; -fx-alignment: center-right; -fx-font-weight: bold;");
-                            break;
-                            
-                        case UNCHANGED:
-                            // Unveränderter Block - viel heller und unaufdringlicher (aber Theme-Textfarbe für Konsistenz)
-                            String lightOpacity = "0.4"; // Sehr transparent für unaufdringlichen Look
-                            leftLineLabel.setStyle(String.format("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px; -fx-text-fill: %s; -fx-background-color: rgba(240,240,240,0.2); -fx-opacity: %s;", THEMES[currentThemeIndex][1], lightOpacity));
-                            rightLineLabel.setStyle(String.format("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px; -fx-text-fill: %s; -fx-background-color: rgba(240,240,240,0.2); -fx-opacity: %s;", THEMES[currentThemeIndex][1], lightOpacity));
-                            break;
-                    }
-                    
-                    leftLineBox.getChildren().addAll(leftLineNum, leftLineLabel);
-                    
-                    // Checkbox RECHTS (DOCX) vertikal zentriert am Ende des Blocks
-                    if (blockCheckBox != null && block.getLines().indexOf(diffLine) == block.getLines().size() - 1) {
-                        // Container für vertikal zentrierte Checkbox
-                        VBox checkboxContainer = new VBox();
-                        checkboxContainer.setAlignment(Pos.CENTER);
-                        checkboxContainer.setMinWidth(30);
-                        checkboxContainer.setMaxWidth(30);
-                        checkboxContainer.getChildren().add(blockCheckBox);
-                        
-                        rightLineBox.getChildren().addAll(rightLineNum, rightLineLabel, checkboxContainer);
-                    } else {
-                        rightLineBox.getChildren().addAll(rightLineNum, rightLineLabel);
-                    }
-                    
-                    leftContentBox.getChildren().add(leftLineBox);
-                    rightContentBox.getChildren().add(rightLineBox);
-                }
-            }
-            
-            // Synchronisiere Scrollbars
-            leftScrollPane.vvalueProperty().bindBidirectional(rightScrollPane.vvalueProperty());
-            leftScrollPane.hvalueProperty().bindBidirectional(rightScrollPane.hvalueProperty());
-            
-            leftScrollPane.setContent(leftContentBox);
-            leftScrollPane.setFitToWidth(true);
-            leftScrollPane.setPrefHeight(600);
-            leftScrollPane.setStyle("-fx-background-color: transparent;");
-            
-            rightScrollPane.setContent(rightContentBox);
-            rightScrollPane.setFitToWidth(true);
-            rightScrollPane.setPrefHeight(600);
-            rightScrollPane.setStyle("-fx-background-color: transparent;");
-            
-            leftBox.getChildren().addAll(leftLabel, leftScrollPane);
-            rightBox.getChildren().addAll(rightLabel, rightScrollPane);
-            
-            splitPane.getItems().addAll(leftBox, rightBox);
-            splitPane.setDividerPositions(0.5);
-            
-            // Button-Box
-            HBox buttonBox = new HBox(15);
-            buttonBox.setAlignment(Pos.CENTER);
-            buttonBox.setPadding(new Insets(15, 0, 0, 0));
-            
-            Button btnApplySelected = new Button("✅ Ausgewählte Änderungen übernehmen");
-            btnApplySelected.setStyle("-fx-background-color: rgba(40,167,69,0.8); -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8px 16px;");
-            
-            Button btnAcceptAll = new Button("🔄 Alle Änderungen übernehmen");
-            btnAcceptAll.setStyle("-fx-background-color: rgba(0,123,255,0.8); -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8px 16px;");
-            
-            Button btnKeepOriginal = new Button("💾 Originale Version behalten");
-            btnKeepOriginal.setStyle("-fx-background-color: rgba(108,117,125,0.8); -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8px 16px;");
-            
-            Button btnCancel = new Button("❌ Abbrechen");
-            btnCancel.setStyle("-fx-background-color: rgba(220,53,69,0.8); -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8px 16px;");
-            
-            btnApplySelected.setOnAction(e -> {
-                try {
-                    // Erstelle neuen Inhalt basierend auf der Merge-Logik
-                    StringBuilder newContent = new StringBuilder();
-                    int checkboxIndex = 0;
-                    for (int i = 0; i < finalBlocks.size(); ) {
-                        DiffBlock block = finalBlocks.get(i);
-                        DiffBlock next = (i + 1 < finalBlocks.size()) ? finalBlocks.get(i + 1) : null;
-
-                        // Paar: DELETED gefolgt von ADDED → entweder Original ODER Änderung übernehmen
-                        if (block.getType() == DiffBlockType.DELETED && next != null && next.getType() == DiffBlockType.ADDED) {
-                            boolean keepOriginal = checkboxIndex < blockCheckBoxes.size() && blockCheckBoxes.get(checkboxIndex).isSelected();
-                            if (keepOriginal) {
-                                for (DiffProcessor.DiffLine line : block.getLines()) {
-                                    String t = line.getOriginalText();
-                                    newContent.append(t == null ? "" : t).append("\n");
-                                }
-                            } else {
-                                for (DiffProcessor.DiffLine line : next.getLines()) {
-                                    String t = line.getNewText();
-                                    newContent.append(t == null ? "" : t).append("\n");
-                                }
-                            }
-                            checkboxIndex++;
-                            i += 2; // nächster Block übersprungen
-                            continue;
-                        }
-
-                        // Einzelblöcke
-                        switch (block.getType()) {
-                            case ADDED:
-                                for (DiffProcessor.DiffLine line : block.getLines()) {
-                                    String t = line.getNewText();
-                                    newContent.append(t == null ? "" : t).append("\n");
-                                }
-                                break;
-                            case DELETED:
-                                // Nur übernehmen, wenn explizit gecheckt (Original behalten)
-                                if (checkboxIndex < blockCheckBoxes.size() && blockCheckBoxes.get(checkboxIndex).isSelected()) {
-                                    for (DiffProcessor.DiffLine line : block.getLines()) {
-                                        String t = line.getOriginalText();
-                                        newContent.append(t == null ? "" : t).append("\n");
-                                    }
-                                }
-                                checkboxIndex++;
-                                break;
-                            case UNCHANGED:
-                                for (DiffProcessor.DiffLine line : block.getLines()) {
-                                    String t = line.getNewText();
-                                    newContent.append(t == null ? "" : t).append("\n");
-                                }
-                                break;
-                        }
-                        i++;
-                    }
-                    
-                    // Setze neuen Inhalt und überschreibe MD-Datei
-                    String finalContent = newContent.toString();
-                    setText(finalContent);
-                    
-                    // Überschreibe die existierende MD-Datei
-                    if (currentFile != null) {
-                        try {
-                            Files.write(currentFile.toPath(), finalContent.getBytes(StandardCharsets.UTF_8));
-                            logger.info("MD-Datei überschrieben: {}", currentFile.getName());
-                        } catch (IOException ex) {
-                            logger.error("Fehler beim Überschreiben der MD-Datei", ex);
-                            showErrorDialog("Fehler", "MD-Datei konnte nicht überschrieben werden: " + ex.getMessage());
-                        }
-                    }
-                    
-                    // WICHTIG: Markiere DOCX als behandelt und aktualisiere Hash
-                    if (mainController != null && originalDocxFile != null) {
-                        mainController.updateDocxHashAfterAccept(originalDocxFile);
-                        // Finde und markiere die entsprechende DocxFile als nicht geändert
-                        mainController.markDocxFileAsUnchanged(originalDocxFile);
-                    }
-                    
-                    diffStage.close();
-                } catch (Exception ex) {
-                    logger.error("Fehler beim Übernehmen ausgewählter Änderungen", ex);
-                    showErrorDialog("Fehler", "Änderungen konnten nicht übernommen werden: " + ex.getMessage());
-                }
-            });
-            
-            btnAcceptAll.setOnAction(e -> {
-                try {
-                    // Übernehme alle Änderungen aus DOCX
-                    setText(docxContent);
-                    
-                    // Überschreibe die existierende MD-Datei mit DOCX-Inhalt
-                    if (currentFile != null) {
-                        try {
-                            Files.write(currentFile.toPath(), docxContent.getBytes(StandardCharsets.UTF_8));
-                            logger.info("MD-Datei mit DOCX-Inhalt überschrieben: {}", currentFile.getName());
-                        } catch (IOException ex) {
-                            logger.error("Fehler beim Überschreiben der MD-Datei", ex);
-                            showErrorDialog("Fehler", "MD-Datei konnte nicht überschrieben werden: " + ex.getMessage());
-                        }
-                    }
-                    
-                    // WICHTIG: Markiere DOCX als behandelt und aktualisiere Hash
-                    if (mainController != null && originalDocxFile != null) {
-                        mainController.updateDocxHashAfterAccept(originalDocxFile);
-                        // Finde und markiere die entsprechende DocxFile als nicht geändert
-                        mainController.markDocxFileAsUnchanged(originalDocxFile);
-                    }
-                    
-                    diffStage.close();
-                } catch (Exception ex) {
-                    logger.error("Fehler beim Übernehmen aller Änderungen", ex);
-                    showErrorDialog("Fehler", "Änderungen konnten nicht übernommen werden: " + ex.getMessage());
-                }
-            });
-            
-            btnKeepOriginal.setOnAction(e -> {
-                try {
-                    // Behalte originale Version (DOCX-Inhalt)
-                    setText(docxContent);
-                    diffStage.close();
-                } catch (Exception ex) {
-                    logger.error("Fehler beim Behalten der originalen Version", ex);
-                    showErrorDialog("Fehler", "Originale Version konnte nicht behalten werden: " + ex.getMessage());
-                }
-            });
-            
-            btnCancel.setOnAction(e -> diffStage.close());
-            
-            buttonBox.getChildren().addAll(btnApplySelected, btnAcceptAll, btnKeepOriginal, btnCancel);
-            
-            diffRoot.getChildren().addAll(titleLabel, splitPane, buttonBox);
-            
-            Scene diffScene = new Scene(diffRoot);
-            
-            // Lade CSS und Theme
-            try {
-                String cssUrl = ResourceManager.getCssResource("config/css/styles.css");
-                if (cssUrl != null) {
-                    diffScene.getStylesheets().add(cssUrl);
-                }
-            } catch (Exception e) {
-                logger.warn("CSS konnte nicht geladen werden: {}", e.getMessage());
-            }
-            
-            diffStage.setSceneWithTitleBar(diffScene);
-            diffStage.showAndWait();
-            
-        } catch (Exception e) {
-            logger.error("Fehler beim Anzeigen des Diff für ungespeicherte Änderungen", e);
-            showErrorDialog("Diff-Fehler", e.getMessage());
-        }
-    }
+    // showDiffForUnsavedChanges() wurde entfernt - verwende MainController Diff
     
     /**
      * Gruppiert Diff-Linien zu zusammenhängenden Blöcken
@@ -4125,8 +3679,12 @@ if (caret != null) {
                 // Verwerfen und Navigation fortsetzen
                 return true; // Navigation fortsetzen
             } else if (result.get() == diffButton) {
-                // Diff anzeigen
-                showDiffForUnsavedChanges();
+                // Diff anzeigen - verwende MainController Diff
+                if (mainController != null && originalDocxFile != null) {
+                    File mdFile = deriveSidecarFileFor(originalDocxFile, outputFormat);
+                    DocxFile docxFile = new DocxFile(originalDocxFile);
+                    mainController.showDetailedDiffDialog(docxFile, mdFile, null, outputFormat);
+                }
                 return false; // Navigation abbrechen (Dialog bleibt offen)
             } else if (result.get() == cancelButton) {
                 // Abbrechen - keine Navigation
@@ -4159,6 +3717,23 @@ if (caret != null) {
         }
         
         try {
+            // WICHTIG: File Watcher VOR dem DOCX-Export stoppen
+            if (mainController != null) {
+                mainController.stopFileWatcher();
+                logger.info("File Watcher gestoppt vor DOCX-Export");
+                
+                // KRITISCH: Dialog unterdrücken während DOCX-Export
+                mainController.setSuppressExternalChangeDialog(true);
+                logger.info("External Change Dialog unterdrückt");
+                
+                // Zusätzlich: Verhindere refreshDocxFiles() Aufrufe
+                try {
+                    Thread.sleep(100); // Kurze Verzögerung
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+            
             // Konvertiere den aktuellen Inhalt zurück zu DOCX
             String currentContent = codeArea.getText();
             
@@ -4175,7 +3750,7 @@ if (caret != null) {
                 if (globalDocxOptions != null) {
                     docxProcessor.exportMarkdownToDocxWithOptions(currentContent, originalDocxFile, globalDocxOptions);
                 } else {
-                    docxProcessor.exportMarkdownToDocx(currentContent, originalDocxFile);
+                docxProcessor.exportMarkdownToDocx(currentContent, originalDocxFile);
                 }
             } else if (outputFormat == DocxProcessor.OutputFormat.HTML) {
                 // HTML zu Markdown konvertieren, dann zu DOCX - mit DOCX-Optionen
@@ -4183,7 +3758,7 @@ if (caret != null) {
                 if (globalDocxOptions != null) {
                     docxProcessor.exportMarkdownToDocxWithOptions(markdownContent, originalDocxFile, globalDocxOptions);
                 } else {
-                    docxProcessor.exportMarkdownToDocx(markdownContent, originalDocxFile);
+                docxProcessor.exportMarkdownToDocx(markdownContent, originalDocxFile);
                 }
             } else if (outputFormat == DocxProcessor.OutputFormat.PLAIN_TEXT) {
                 // Text zu Markdown konvertieren, dann zu DOCX - mit DOCX-Optionen
@@ -4191,11 +3766,41 @@ if (caret != null) {
                 if (globalDocxOptions != null) {
                     docxProcessor.exportMarkdownToDocxWithOptions(markdownContent, originalDocxFile, globalDocxOptions);
                 } else {
-                    docxProcessor.exportMarkdownToDocx(markdownContent, originalDocxFile);
+                docxProcessor.exportMarkdownToDocx(markdownContent, originalDocxFile);
                 }
             }
             
             updateStatus("DOCX-Überschreibung erfolgreich: " + originalDocxFile.getName());
+            
+            // KRITISCH: Hash NACH dem DOCX-Export aktualisieren
+            if (mainController != null) {
+                mainController.updateDocxHashAfterAccept(originalDocxFile);
+                mainController.markDocxFileAsUnchanged(originalDocxFile);
+                logger.info("Hash NACH DOCX-Export aktualisiert für: {}", originalDocxFile.getName());
+            }
+            
+            // File Watcher nach kurzer Verzögerung wieder aktivieren
+            if (mainController != null) {
+                Platform.runLater(() -> {
+                    try {
+                        Thread.sleep(500); // Längere Verzögerung für File Watcher
+                        // Dialog-Unterdrückung wieder deaktivieren
+                        mainController.setSuppressExternalChangeDialog(false);
+                        logger.info("External Change Dialog wieder aktiviert");
+                        
+                        // File Watcher wieder aktivieren
+                        String currentPath = mainController.getCurrentDirectoryPath();
+                        if (currentPath != null && !currentPath.isEmpty()) {
+                            File directory = new File(currentPath);
+                            if (directory.exists() && directory.isDirectory()) {
+                                mainController.startFileWatcher(directory);
+                            }
+                        }
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+                });
+            }
         } catch (Exception e) {
             updateStatusError("Fehler beim Überschreiben der DOCX: " + e.getMessage());
             logger.error("Fehler beim DOCX-Überschreiben", e);
@@ -4544,6 +4149,19 @@ if (caret != null) {
         updateStatus("Text geladen");
     }
     
+    /**
+     * Ersetzt den Text ohne originalContent zu ändern (für Diff-Änderungen)
+     */
+    public void replaceTextWithoutUpdatingOriginal(String text) {
+        codeArea.replaceText(text);
+        
+        // Cursor an den Anfang setzen
+        codeArea.displaceCaret(0);
+        codeArea.requestFollowCaret();
+        
+        updateStatus("Text geändert");
+    }
+    
     public void setCurrentFile(File file) {
         this.currentFile = file;
     }
@@ -4571,7 +4189,7 @@ if (caret != null) {
     private void showDocxExportDialog() {
         // Erweiterter Dialog für Gesamtdokumente mit DOCX-Optionen
         logger.info("showDocxExportDialog aufgerufen - erstelle Stage...");
-        CustomStage exportStage = StageManager.createModalStage("DOCX-Export", stage);
+        CustomStage exportStage = StageManager.createExportStage("DOCX-Export", stage);
         exportStage.setTitle("📤 DOCX-Export für Gesamtdokument");
         exportStage.initModality(Modality.APPLICATION_MODAL);
         exportStage.initOwner(stage);

@@ -95,18 +95,36 @@ public class CustomStage extends Stage {
         } else {
             // Windows/Linux-Style: Rechts, grau
             minimizeBtn = new Button("−");
+            // Standard-Style für normale Fenster
             minimizeBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 18px; -fx-min-width: 35px; -fx-min-height: 30px; -fx-border-color: transparent; -fx-border-radius: 4px; -fx-background-radius: 4px;");
             minimizeBtn.setOnAction(e -> setIconified(true));
             
             maximizeBtn = new Button("□");
-            maximizeBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 16px; -fx-min-width: 35px; -fx-min-height: 30px; -fx-border-color: transparent; -fx-border-radius: 4px; -fx-background-radius: 4px;");
+            // Standard-Style für normale Fenster
+            maximizeBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 18px; -fx-min-width: 35px; -fx-min-height: 30px; -fx-border-color: transparent; -fx-border-radius: 4px; -fx-background-radius: 4px;");
             maximizeBtn.setOnAction(e -> toggleMaximize());
             
             closeBtn = new Button("×");
-            closeBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 20px; -fx-min-width: 35px; -fx-min-height: 30px; -fx-border-color: transparent; -fx-border-radius: 4px; -fx-background-radius: 4px;");
+            // Standard-Style für normale Fenster
+            closeBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 18px; -fx-min-width: 35px; -fx-min-height: 30px; -fx-border-color: transparent; -fx-border-radius: 4px; -fx-background-radius: 4px;");
             closeBtn.setOnAction(e -> {
                 fireEvent(new javafx.stage.WindowEvent(this, javafx.stage.WindowEvent.WINDOW_CLOSE_REQUEST));
             });
+        }
+        
+        // Spezielle Behandlung für KI-Assistenten
+        if (getTitle() != null && getTitle().contains("KI-Assistent")) {
+            // Für KI-Assistenten: Theme-spezifische Styles werden später in setTitleBarColor() gesetzt
+            // Hier nur die Größen anpassen
+            if (minimizeBtn != null) {
+                minimizeBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 18px; -fx-min-width: 35px; -fx-min-height: 30px; -fx-pref-width: 35px; -fx-pref-height: 30px; -fx-border-color: transparent; -fx-border-radius: 4px; -fx-background-radius: 4px;");
+            }
+            if (maximizeBtn != null) {
+                maximizeBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 18px; -fx-min-width: 35px; -fx-min-height: 30px; -fx-pref-width: 35px; -fx-pref-height: 30px; -fx-border-color: transparent; -fx-border-radius: 4px; -fx-background-radius: 4px;");
+            }
+            if (closeBtn != null) {
+                closeBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 18px; -fx-min-width: 35px; -fx-min-height: 30px; -fx-pref-width: 35px; -fx-pref-height: 30px; -fx-border-color: transparent; -fx-border-radius: 4px; -fx-background-radius: 4px;");
+            }
         }
         
         // Hover-Effekte
@@ -519,6 +537,19 @@ public class CustomStage extends Stage {
             // Textfarben für alle Elemente anpassen
             if (titleLabel != null) {
                 titleLabel.setStyle("-fx-text-fill: " + textColor + "; -fx-font-weight: bold; -fx-font-size: 14px; -fx-padding: 0 10px; -fx-background-color: transparent; -fx-background-radius: 0;");
+            }
+            
+            // Nur für KI-Assistenten: Windows-Controls anpassen
+            if (getTitle() != null && getTitle().contains("KI-Assistent")) {
+                if (minimizeBtn != null) {
+                    minimizeBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: " + textColor + "; -fx-font-weight: bold; -fx-font-size: 18px; -fx-min-width: 35px; -fx-min-height: 30px; -fx-pref-width: 35px; -fx-pref-height: 30px; -fx-border-color: " + borderColor + "; -fx-border-width: 1px; -fx-border-radius: 3px; -fx-background-radius: 3px;");
+                }
+                if (maximizeBtn != null) {
+                    maximizeBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: " + textColor + "; -fx-font-weight: bold; -fx-font-size: 18px; -fx-min-width: 35px; -fx-min-height: 30px; -fx-pref-width: 35px; -fx-pref-height: 30px; -fx-border-color: " + borderColor + "; -fx-border-width: 1px; -fx-border-radius: 3px; -fx-background-radius: 3px;");
+                }
+                if (closeBtn != null) {
+                    closeBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: " + textColor + "; -fx-font-weight: bold; -fx-font-size: 18px; -fx-min-width: 35px; -fx-min-height: 30px; -fx-pref-width: 35px; -fx-pref-height: 30px; -fx-border-color: " + borderColor + "; -fx-border-width: 1px; -fx-border-radius: 3px; -fx-background-radius: 3px;");
+                }
             }
             
             // Button-Styles je nach OS
