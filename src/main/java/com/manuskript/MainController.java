@@ -1789,7 +1789,7 @@ public class MainController implements Initializable {
             Button btnApplySelected = new Button("✅ Ausgewählte Änderungen übernehmen");
             btnApplySelected.setStyle("-fx-background-color: rgba(40,167,69,0.8); -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8px 16px;");
             
-            Button btnAcceptAll = new Button("🔄 Alle Änderungen übernehmen");
+            Button btnAcceptAll = new Button("🔄 docx übernehmen");
             btnAcceptAll.setStyle("-fx-background-color: rgba(0,123,255,0.8); -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8px 16px;");
             
             Button btnKeepCurrent = new Button("💾 Aktuelle Version behalten");
@@ -1893,7 +1893,7 @@ public class MainController implements Initializable {
             Scene diffScene = new Scene(diffRoot);
             // CSS wird über ResourceManager geladen
             diffScene.getStylesheets().add(ResourceManager.getCssResource("config/css/manuskript.css"));
-            
+             
             // Theme anwenden
             String currentTheme = ResourceManager.getParameter("ui.theme", "default");
             if ("weiss".equals(currentTheme)) {
@@ -1909,12 +1909,16 @@ public class MainController implements Initializable {
             } else {
                 diffRoot.getStyleClass().add("theme-dark");
             }
-            
+          
             // WICHTIG: Setze Owner und Modality um "Popping" zu verhindern
             diffStage.initOwner(primaryStage);
             diffStage.initModality(Modality.WINDOW_MODAL);
             
             diffStage.setSceneWithTitleBar(diffScene);
+            // Theme nach dem Setzen der Scene erneut anwenden, damit Titelleiste korrekte Textfarbe hat
+            try {
+                diffStage.setFullTheme(currentThemeIndex);
+            } catch (Exception ignore) {}
             diffStage.showAndWait();
             
         } catch (Exception e) {

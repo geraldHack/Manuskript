@@ -78,6 +78,9 @@ public class StageManager {
      */
     public static CustomStage createDiffStage(String title, Window owner) {
         CustomStage stage = new CustomStage();
+        // Markiere als Diff-Fenster für gezielte Diagnose/Styling
+        stage.getProperties().put("isDiffStage", true);
+        
         
         // Titel setzen
         if (title != null && !title.trim().isEmpty()) {
@@ -103,7 +106,7 @@ public class StageManager {
         // Diff-Fenster Preferences laden und anwenden
         loadDiffWindowProperties(stage);
         
-        logger.debug("Diff-Stage erstellt: '{}', Größe: {}x{}", title, 1600, 900);
+        
         
         return stage;
     }

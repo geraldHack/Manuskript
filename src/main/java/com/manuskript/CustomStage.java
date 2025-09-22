@@ -85,7 +85,7 @@ public class CustomStage extends Stage {
                 fireEvent(new javafx.stage.WindowEvent(this, javafx.stage.WindowEvent.WINDOW_CLOSE_REQUEST));
             });
             
-            minimizeBtn = new Button("−");
+            minimizeBtn = new Button("");
             minimizeBtn.setStyle("-fx-background-color: #ffbd2e; -fx-text-fill: #975500; -fx-font-weight: bold; -fx-font-size: 12px; -fx-min-width: 12px; -fx-min-height: 12px; -fx-border-color: transparent; -fx-border-radius: 6px; -fx-background-radius: 6px;");
             minimizeBtn.setOnAction(e -> setIconified(true));
             
@@ -244,6 +244,27 @@ public class CustomStage extends Stage {
             newRoot.getChildren().addAll(titleBar, originalRoot);
             VBox.setVgrow(originalRoot, Priority.ALWAYS);
             
+            // Nur für Diff-Fenster: Kinder mittig links ausrichten und Buttons vereinheitlichen (Theme bleibt unangetastet)
+            if (titleBar != null && Boolean.TRUE.equals(getProperties().get("isDiffStage"))) {
+                titleBar.setAlignment(Pos.CENTER_LEFT);
+                // Windows-Buttons im Diff-Fenster konsistent in Größe/Font und zentriert
+                String osNameDbg = System.getProperty("os.name").toLowerCase();
+                boolean isMacDbg = osNameDbg.contains("mac");
+                if (!isMacDbg) {
+                    // Stelle sicher, dass currentTextColor gesetzt ist
+                    if (currentTextColor == null || currentTextColor.isEmpty()) currentTextColor = "white";
+                    String unifiedBtnStyle = "-fx-background-color: transparent; -fx-text-fill: " + currentTextColor +
+                            "; -fx-font-weight: bold; -fx-font-size: 18px; -fx-min-width: 35px; -fx-min-height: 30px; -fx-pref-width: 35px; -fx-pref-height: 30px; -fx-alignment: center; -fx-border-color: transparent; -fx-border-radius: 4px; -fx-background-radius: 4px;";
+                    if (minimizeBtn != null) { minimizeBtn.setAlignment(Pos.CENTER); minimizeBtn.setStyle(unifiedBtnStyle); minimizeBtn.setOpacity(1.0); minimizeBtn.setVisible(true); }
+                    if (maximizeBtn != null) { maximizeBtn.setAlignment(Pos.CENTER); maximizeBtn.setStyle(unifiedBtnStyle); maximizeBtn.setOpacity(1.0); maximizeBtn.setVisible(true); }
+                    if (closeBtn != null)    { closeBtn.setAlignment(Pos.CENTER);    closeBtn.setStyle(unifiedBtnStyle);    closeBtn.setOpacity(1.0);    closeBtn.setVisible(true); }
+                    // Hover-Handler neutralisieren, damit Styles nicht überschrieben werden
+                    if (minimizeBtn != null) { minimizeBtn.setOnMouseEntered(null); minimizeBtn.setOnMouseExited(null); }
+                    if (maximizeBtn != null) { maximizeBtn.setOnMouseEntered(null); maximizeBtn.setOnMouseExited(null); }
+                    if (closeBtn != null)    { closeBtn.setOnMouseEntered(null);    closeBtn.setOnMouseExited(null); }
+                }
+            }
+            
             // Neue Scene mit Titelleiste erstellen
             Scene newScene = new Scene(newRoot);
             newScene.getStylesheets().addAll(scene.getStylesheets());
@@ -253,11 +274,14 @@ public class CustomStage extends Stage {
             // Resize-Handles hinzufügen
             setupResizeHandles(newScene);
             
+            // Debug entfernt
+            
             logger.info("Scene mit benutzerdefinierter Titelleiste gesetzt");
         } else {
             super.setScene(null);
         }
     }
+    // Debug vollständig entfernt
     
     /**
      * Richtet Resize-Handles für das Fenster ein
