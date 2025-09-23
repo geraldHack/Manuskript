@@ -2635,8 +2635,17 @@ public class OllamaWindow {
                 resultWebView = new javafx.scene.web.WebView();
                 resultWebView.setContextMenuEnabled(true);
                 resultWebView.setPrefSize(1000, 800);
-                VBox box = new VBox(resultWebView);
+                
+                // Button für Text-Ersetzung hinzufügen
+                Button replaceSelectedButton = new Button("📝 Markierten Text ersetzen");
+                replaceSelectedButton.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8px 16px;");
+                replaceSelectedButton.setOnAction(e -> replaceSelectedTextInEditor());
+                
+                VBox box = new VBox(5);
+                box.getChildren().addAll(replaceSelectedButton, resultWebView);
                 VBox.setVgrow(resultWebView, Priority.ALWAYS);
+                box.setPadding(new Insets(10));
+                
                 Scene sc = new Scene(box, 1000, 800);
                 resultStage.setSceneWithTitleBar(sc);
                 resultStage.initOwner(stage);
@@ -2837,6 +2846,75 @@ public class OllamaWindow {
                     } catch (Exception ignored) {}
                 }
             });
+        }
+    }
+    
+    /**
+     * Ersetzt den markierten Text im WebView mit dem markierten Text im Editor
+     */
+    private void replaceSelectedTextInEditor() {
+        try {
+            if (resultWebView == null || editorWindow == null) {
+                showAlert("Fehler", "WebView oder Editor nicht verfügbar");
+                return;
+            }
+            
+            // JavaScript ausführen um markierten Text zu holen
+            String selectedText = (String) resultWebView.getEngine().executeScript(
+                "window.getSelection().toString()"
+            );
+            
+            if (selectedText == null || selectedText.trim().isEmpty()) {
+                showAlert("Hinweis", "Kein Text im WebView markiert. Bitte markieren Sie zuerst Text im gerenderten Fenster.");
+                return;
+            }
+            
+            // Prüfe ob im Editor Text markiert ist
+            String editorSelectedText = editorWindow.getSelectedText();
+            boolean hasSelection = editorSelectedText != null && !editorSelectedText.trim().isEmpty();
+            
+            // Bestätigung anzeigen
+            CustomAlert confirmAlert = new CustomAlert(Alert.AlertType.CONFIRMATION, "Text einfügen");
+            confirmAlert.setHeaderText(hasSelection ? "Text ersetzen" : "Text einfügen");
+            
+            String contentText;
+            if (hasSelection) {
+                contentText = "Soll der markierte Text im Editor:\n\n" +
+                             "\"" + editorSelectedText + "\"\n\n" +
+                             "durch den markierten Text aus dem WebView:\n\n" +
+                             "\"" + selectedText + "\"\n\n" +
+                             "ersetzt werden?";
+            } else {
+                contentText = "Soll der markierte Text aus dem WebView:\n\n" +
+                             "\"" + selectedText + "\"\n\n" +
+                             "an der Cursor-Position im Editor eingefügt werden?";
+            }
+            
+            confirmAlert.setContentText(contentText);
+            confirmAlert.applyTheme(currentThemeIndex);
+            confirmAlert.initOwner(resultStage);
+            
+            Optional<ButtonType> result = confirmAlert.showAndWait();
+            if (result.isPresent() && result.get() == ButtonType.OK) {
+                if (hasSelection) {
+                    // Text im Editor ersetzen
+                    editorWindow.replaceSelectedText(selectedText);
+                    updateStatus("Text erfolgreich ersetzt");
+                } else {
+                    // Text an Cursor-Position einfügen
+                    editorWindow.insertTextAtCursor(selectedText);
+                    updateStatus("Text erfolgreich eingefügt");
+                }
+                
+                // WebView-Fenster schließen
+                if (resultStage != null && resultStage.isShowing()) {
+                    resultStage.hide();
+                }
+            }
+            
+        } catch (Exception e) {
+            logger.severe("Fehler beim Ersetzen des Textes: " + e.getMessage());
+            showAlert("Fehler", "Fehler beim Ersetzen des Textes: " + e.getMessage());
         }
     }
     
