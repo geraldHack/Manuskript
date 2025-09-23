@@ -105,9 +105,15 @@ public class Plugin {
     }
     
     /**
-     * Erstellt automatisch PluginVariable-Objekte basierend auf den Variablen im Prompt
+     * Gibt die Plugin-Variablen zurück (aus JSON oder aus Prompt extrahiert)
      */
     public List<PluginVariable> getVariableDefinitions() {
+        // Falls explizite Variablen-Definitionen vorhanden sind (aus JSON), verwende diese
+        if (variableDefinitions != null && !variableDefinitions.isEmpty()) {
+            return new ArrayList<>(variableDefinitions);
+        }
+        
+        // Fallback: Erstelle automatisch PluginVariable-Objekte basierend auf den Variablen im Prompt
         List<PluginVariable> definitions = new ArrayList<>();
         if (prompt != null) {
             int start = 0;

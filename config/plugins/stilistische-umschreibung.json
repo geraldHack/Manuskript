@@ -1,0 +1,58 @@
+{
+  "name": "Stilistische Umschreibung",
+  "description": "Umschreibt markierten Text nach stilistischen Gesichtspunkten mit Erläuterung",
+  "category": "Stil",
+  "prompt": "Du bist ein erfahrener Lektor und Stilist. Deine Aufgabe ist es, den markierten Text stilistisch zu verbessern und umzuschreiben.\n\n**AUFGABE:**\nAnalysiere den folgenden Text und erstelle {Anzahl Varianten} stilistische Umschreibungsvarianten im Stil \"{Umschreibungsstil}\" mit Fokus auf \"{Fokus-Bereich}\".\n\n**ORIGINALTEXT:**\n{selektierter Text}\n\n**FORMAT:**\n**Original:** [Originaltext]\n\n**Variante 1:** [Umschreibung]\n**Erläuterung:** [Kurze Begründung der Änderungen]\n\n**Variante 2:** [Umschreibung]\n**Erläuterung:** [Kurze Begründung der Änderungen]\n\n**RICHTLINIEN:**\n- Behalte die ursprüngliche Bedeutung bei\n- Verbessere Stil, Klarheit und Lesbarkeit\n- Erkläre jede Änderung kurz und präzise\n- Achte auf natürlichen Sprachfluss\n- Berücksichtige den gewählten Stil ({Umschreibungsstil})\n- Fokussiere auf: {Fokus-Bereich}\n\n**BEISPIEL:**\n**Original:** »Vielleicht …«, murmelte Kata und begann auf dem gläsernen Buch mit ihrem Finger herumzuwischen.\n\n**Variante 1:** »Vielleicht …«, murmelte Kata und begann mit ihrem Finger auf dem gläsernen Buch herumzuwischen.\n**Erläuterung:** Natürlich klingender Reihenfolge - das Verb \"begann\" steht näher zum Subjekt.\n\nErstelle jetzt {Anzahl Varianten} Varianten für den gegebenen Text:",
+  "temperature": 0.1,
+  "maxTokens": 512,
+  "enabled": true,
+  "variables": [
+    {
+      "name": "selektierter Text",
+      "type": "multiline",
+      "label": "Selektierter Text",
+      "description": "Der Text, der umgeschrieben werden soll",
+      "default": ""
+    },
+    {
+      "name": "Umschreibungsstil",
+      "type": "choice",
+      "label": "Umschreibungsstil",
+      "description": "Wähle den gewünschten Stil für die Umschreibung",
+      "default": "natürlich",
+      "options": [
+        {"value": "natürlich", "label": "Natürlich klingend"},
+        {"value": "präzise", "label": "Präzise und klar"},
+        {"value": "elegant", "label": "Elegant und flüssig"},
+        {"value": "dynamisch", "label": "Dynamisch und lebendig"},
+        {"value": "formal", "label": "Formal und distanziert"},
+        {"value": "umgangssprachlich", "label": "Umgangssprachlich und locker"}
+      ]
+    },
+    {
+      "name": "Fokus-Bereich",
+      "type": "choice", 
+      "label": "Fokus-Bereich",
+      "description": "Worauf soll sich die Umschreibung konzentrieren?",
+      "default": "allgemein",
+      "options": [
+        {"value": "allgemein", "label": "Allgemeine Verbesserung"},
+        {"value": "satzbau", "label": "Satzbau und Struktur"},
+        {"value": "wortwahl", "label": "Wortwahl und Ausdruck"},
+        {"value": "fluss", "label": "Textfluss und Rhythmus"},
+        {"value": "klarheit", "label": "Klarheit und Verständlichkeit"},
+        {"value": "emotion", "label": "Emotionale Wirkung"}
+      ]
+    },
+    {
+      "name": "Anzahl Varianten",
+      "type": "number",
+      "label": "Anzahl Varianten",
+      "description": "Wie viele Umschreibungsvarianten sollen erstellt werden?",
+      "default": 2,
+      "min": 1,
+      "max": 5
+    }
+  ]
+}
+

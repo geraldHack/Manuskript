@@ -89,7 +89,84 @@ public class PluginManager {
             plugin.setMaxTokens(getIntOrDefault(json, "maxTokens", 2048));
             plugin.setEnabled(getBooleanOrDefault(json, "enabled", true));
             
+            // Lade Variablen-Definitionen falls vorhanden
+            if (json.has("variables") && json.get("variables").isJsonArray()) {
+                List<PluginVariable> variables = new ArrayList<>();
+                for (var variableJson : json.getAsJsonArray("variables")) {
+                    if (variableJson.isJsonObject()) {
+                        PluginVariable variable = parsePluginVariable(variableJson.getAsJsonObject());
+                        if (variable != null) {
+                            variables.add(variable);
+                        }
+                    }
+                }
+                plugin.setVariableDefinitions(variables);
+            }
+            
             return plugin;
+        }
+    }
+    
+    /**
+     * Parst eine Plugin-Variable aus JSON
+     */
+    private PluginVariable parsePluginVariable(JsonObject variableJson) {
+        try {
+            String name = getStringOrDefault(variableJson, "name", "");
+            String typeStr = getStringOrDefault(variableJson, "type", "text").toLowerCase();
+            String defaultValue = getStringOrDefault(variableJson, "default", "");
+            String description = getStringOrDefault(variableJson, "description", "");
+            
+            PluginVariable.Type type;
+            switch (typeStr) {
+                case "choice":
+                    type = PluginVariable.Type.CHOICE;
+                    break;
+                case "number":
+                    type = PluginVariable.Type.NUMBER;
+                    break;
+                case "boolean":
+                case "bool":
+                    type = PluginVariable.Type.BOOLEAN;
+                    break;
+                case "area":
+                case "multiline":
+                    type = PluginVariable.Type.MULTI_LINE;
+                    break;
+                default:
+                    type = PluginVariable.Type.SINGLE_LINE;
+                    break;
+            }
+            
+            PluginVariable variable = new PluginVariable(name, type, defaultValue, description);
+            
+            // Lade Optionen für Choice-Variablen
+            if (type == PluginVariable.Type.CHOICE && variableJson.has("options")) {
+                List<PluginVariable.Option> options = new ArrayList<>();
+                for (var optionJson : variableJson.getAsJsonArray("options")) {
+                    if (optionJson.isJsonObject()) {
+                        String value = getStringOrDefault(optionJson.getAsJsonObject(), "value", "");
+                        String label = getStringOrDefault(optionJson.getAsJsonObject(), "label", value);
+                        options.add(new PluginVariable.Option(value, label));
+                    }
+                }
+                variable.setOptions(options);
+            }
+            
+            // Lade Min/Max für Number-Variablen
+            if (type == PluginVariable.Type.NUMBER) {
+                if (variableJson.has("min")) {
+                    variable.setMinValue(variableJson.get("min").getAsDouble());
+                }
+                if (variableJson.has("max")) {
+                    variable.setMaxValue(variableJson.get("max").getAsDouble());
+                }
+            }
+            
+            return variable;
+        } catch (Exception e) {
+            logger.warning("Fehler beim Parsen der Plugin-Variable: " + e.getMessage());
+            return null;
         }
     }
     

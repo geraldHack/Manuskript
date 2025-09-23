@@ -28,6 +28,7 @@ public class PluginVariableDialog {
     private Map<String, String> result = new HashMap<>();
     private boolean confirmed = false;
     private int currentThemeIndex = 0;
+    private Plugin currentPlugin;
     
     /**
      * Zeigt einen Dialog für Plugin-Variablen an
@@ -43,6 +44,8 @@ public class PluginVariableDialog {
     }
     
     private Map<String, String> show(Plugin plugin, String selectedText) {
+        this.currentPlugin = plugin; // Plugin speichern für spätere Verwendung
+        
         // Dialog erstellen
         dialog = StageManager.createStage("Plugin-Variablen");
         dialog.initModality(Modality.APPLICATION_MODAL);
@@ -136,6 +139,18 @@ public class PluginVariableDialog {
                     ((CheckBox) control).selectedProperty().addListener((obs, oldVal, newVal) -> {
                         updatePreview(previewArea, plugin);
                     });
+                } else if (control instanceof ComboBox) {
+                    @SuppressWarnings("unchecked")
+                    ComboBox<String> comboBox = (ComboBox<String>) control;
+                    comboBox.valueProperty().addListener((obs, oldVal, newVal) -> {
+                        updatePreview(previewArea, plugin);
+                    });
+                } else if (control instanceof Spinner) {
+                    @SuppressWarnings("unchecked")
+                    Spinner<Double> spinner = (Spinner<Double>) control;
+                    spinner.valueProperty().addListener((obs, oldVal, newVal) -> {
+                        updatePreview(previewArea, plugin);
+                    });
                 }
             }
             
@@ -199,12 +214,43 @@ public class PluginVariableDialog {
     private void collectResults() {
         for (Map.Entry<String, Control> entry : variableFields.entrySet()) {
             String value = "";
-            if (entry.getValue() instanceof TextField) {
-                value = ((TextField) entry.getValue()).getText().trim();
-            } else if (entry.getValue() instanceof TextArea) {
-                value = ((TextArea) entry.getValue()).getText().trim();
-            } else if (entry.getValue() instanceof CheckBox) {
-                value = String.valueOf(((CheckBox) entry.getValue()).isSelected());
+            Control control = entry.getValue();
+            
+            if (control instanceof TextField) {
+                value = ((TextField) control).getText().trim();
+            } else if (control instanceof TextArea) {
+                value = ((TextArea) control).getText().trim();
+            } else if (control instanceof CheckBox) {
+                value = String.valueOf(((CheckBox) control).isSelected());
+            } else if (control instanceof ComboBox) {
+                @SuppressWarnings("unchecked")
+                ComboBox<String> comboBox = (ComboBox<String>) control;
+                String selectedLabel = comboBox.getValue();
+                
+                // Konvertiere Label zurück zu Value für die Verwendung im Prompt
+                if (selectedLabel != null) {
+                    String variableName = entry.getKey();
+                    PluginVariable varDef = findVariableDefinition(currentPlugin, variableName);
+                    
+                    // Suche nach dem Value zum ausgewählten Label
+                    if (varDef != null && varDef.getOptions() != null) {
+                        for (PluginVariable.Option option : varDef.getOptions()) {
+                            if (option.getLabel().equals(selectedLabel)) {
+                                value = option.getValue();
+                                break;
+                            }
+                        }
+                    }
+                    
+                    // Fallback: Falls keine Option gefunden, verwende das Label
+                    if (value.isEmpty()) {
+                        value = selectedLabel;
+                    }
+                }
+            } else if (control instanceof Spinner) {
+                @SuppressWarnings("unchecked")
+                Spinner<Double> spinner = (Spinner<Double>) control;
+                value = String.valueOf(spinner.getValue());
             }
             
             // Alle Werte speichern, auch leere (damit Platzhalter ersetzt werden)
@@ -257,8 +303,71 @@ public class PluginVariableDialog {
             }
             
             return checkBox;
+        } else if (varDef.getType() == PluginVariable.Type.CHOICE) {
+            // ComboBox für Auswahl-Eingaben
+            ComboBox<String> comboBox = new ComboBox<>();
+            comboBox.setPrefWidth(300);
+            
+            // Optionen hinzufügen
+            if (varDef.getOptions() != null && !varDef.getOptions().isEmpty()) {
+                for (PluginVariable.Option option : varDef.getOptions()) {
+                    comboBox.getItems().add(option.getLabel());
+                }
+                // ComboBox editierbar machen falls gewünscht
+                comboBox.setEditable(false);
+                
+                // Standard-Wert setzen
+                String defaultValue = varDef.getDefaultValue();
+                if (defaultValue != null && !defaultValue.isEmpty()) {
+                    // Suche nach dem Label zum Default-Value
+                    for (PluginVariable.Option option : varDef.getOptions()) {
+                        if (option.getValue().equals(defaultValue)) {
+                            comboBox.setValue(option.getLabel());
+                            break;
+                        }
+                    }
+                    // Fallback: Falls Label nicht gefunden, versuche direkt zu setzen
+                    if (comboBox.getValue() == null) {
+                        comboBox.setValue(defaultValue);
+                    }
+                }
+            } else {
+                // Fallback falls keine Optionen definiert
+                comboBox.setEditable(true);
+                comboBox.setPromptText("Wert für " + varDef.getDisplayName());
+                String defaultValue = varDef.getDefaultValue();
+                if (defaultValue != null && !defaultValue.isEmpty()) {
+                    comboBox.setValue(defaultValue);
+                }
+            }
+            
+            return comboBox;
+        } else if (varDef.getType() == PluginVariable.Type.NUMBER) {
+            // Spinner für Zahlen-Eingaben
+            double min = varDef.getMinValue() != null ? varDef.getMinValue() : 0;
+            double max = varDef.getMaxValue() != null ? varDef.getMaxValue() : 100;
+            double initialValue = min;
+            
+            // Standard-Wert setzen
+            String defaultValue = varDef.getDefaultValue();
+            if (defaultValue != null && !defaultValue.isEmpty()) {
+                try {
+                    initialValue = Double.parseDouble(defaultValue);
+                    // Sicherstellen dass der Wert im gültigen Bereich liegt
+                    initialValue = Math.max(min, Math.min(max, initialValue));
+                } catch (NumberFormatException e) {
+                    // Falls Parsing fehlschlägt, verwende Minimum
+                    initialValue = min;
+                }
+            }
+            
+            Spinner<Double> spinner = new Spinner<>(min, max, initialValue, 1.0);
+            spinner.setPrefWidth(300);
+            spinner.setEditable(true);
+            
+            return spinner;
         } else {
-            // TextField für einzeilige Eingaben
+            // TextField für einzeilige Eingaben (SINGLE_LINE)
             TextField textField = new TextField();
             textField.setPrefWidth(300);
             textField.setPromptText("Wert für " + varDef.getDisplayName());
@@ -277,9 +386,12 @@ public class PluginVariableDialog {
      * Prüft ob es sich um eine "selektierter Text" Variable handelt
      */
     private boolean isSelectedTextVariable(String variable) {
-        return variable.toLowerCase().contains("selektierter") || 
-               variable.toLowerCase().contains("selected") ||
-               variable.toLowerCase().contains("text") ||
+        String lowerVar = variable.toLowerCase();
+        return lowerVar.contains("selektierter") || 
+               lowerVar.contains("selected") ||
+               lowerVar.contains("text") ||
+               lowerVar.equals("selektierter text") ||
+               lowerVar.equals("selected text") ||
                variable.equals("Hier den Text einfügen, den du analysieren möchtest");
     }
     
@@ -336,6 +448,34 @@ public class PluginVariableDialog {
                         value = ((TextArea) control).getText().trim();
                     } else if (control instanceof CheckBox) {
                         value = String.valueOf(((CheckBox) control).isSelected());
+                    } else if (control instanceof ComboBox) {
+                        @SuppressWarnings("unchecked")
+                        ComboBox<String> comboBox = (ComboBox<String>) control;
+                        String selectedLabel = comboBox.getValue();
+                        
+                        // Konvertiere Label zurück zu Value für die Verwendung im Prompt
+                        if (selectedLabel != null) {
+                            PluginVariable varDef = findVariableDefinition(currentPlugin, variable);
+                            
+                            // Suche nach dem Value zum ausgewählten Label
+                            if (varDef != null && varDef.getOptions() != null) {
+                                for (PluginVariable.Option option : varDef.getOptions()) {
+                                    if (option.getLabel().equals(selectedLabel)) {
+                                        value = option.getValue();
+                                        break;
+                                    }
+                                }
+                            }
+                            
+                            // Fallback: Falls keine Option gefunden, verwende das Label
+                            if (value.isEmpty()) {
+                                value = selectedLabel;
+                            }
+                        }
+                    } else if (control instanceof Spinner) {
+                        @SuppressWarnings("unchecked")
+                        Spinner<Double> spinner = (Spinner<Double>) control;
+                        value = String.valueOf(spinner.getValue());
                     }
                     // Alle Werte speichern, auch leere (damit Platzhalter ersetzt werden)
                     currentValues.put(variable, value);

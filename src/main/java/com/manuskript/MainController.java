@@ -43,6 +43,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.ResourceBundle;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -103,6 +105,9 @@ public class MainController implements Initializable {
     private Thread watchThread;
     private volatile boolean watchRunning = false;
     private volatile boolean suppressExternalChangeDialog = false;
+    
+    // Map zur Verfolgung geöffneter Editoren
+    private static final Map<String, EditorWindow> openEditors = new HashMap<>();
     
     // Theme-System
     private int currentThemeIndex = 0;
@@ -1542,6 +1547,30 @@ public class MainController implements Initializable {
         return null;
     }
     
+    /**
+     * Findet den aktuell geöffneten Editor für ein Kapitel
+     */
+    private EditorWindow findCurrentEditorForChapter(DocxFile chapterFile) {
+        logger.info("Suche Editor für Kapitel: {}", chapterFile.getFileName());
+        
+        String chapterName = chapterFile.getFileName();
+        if (chapterName.toLowerCase().endsWith(".docx")) {
+            chapterName = chapterName.substring(0, chapterName.length() - 5);
+        }
+        
+        String editorKey = chapterName + ".md";
+        EditorWindow editor = openEditors.get(editorKey);
+        
+        if (editor != null) {
+            logger.info("Editor für Kapitel '{}' in Map gefunden", chapterName);
+            return editor;
+        } else {
+            logger.info("Kein Editor für Kapitel '{}' in Map gefunden", chapterName);
+            logger.info("Verfügbare Editoren: {}", openEditors.keySet());
+            return null;
+        }
+    }
+    
     public void showDetailedDiffDialog(DocxFile chapterFile, File mdFile, DiffProcessor.DiffResult diffResult, 
                                       DocxProcessor.OutputFormat format) {
         try {
@@ -1563,8 +1592,20 @@ public class MainController implements Initializable {
             titleLabel.setStyle(String.format("-fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: %s;", THEMES[currentThemeIndex][1]));
             
             // Lade beide Versionen
-            String mdContent = new String(java.nio.file.Files.readAllBytes(mdFile.toPath()), java.nio.charset.StandardCharsets.UTF_8);
+            String mdContent;
             String docxContent = docxProcessor.processDocxFileContent(chapterFile.getFile(), 1, format);
+            
+            // Prüfe ob ein Editor für dieses Kapitel geöffnet ist
+            EditorWindow currentEditor = findCurrentEditorForChapter(chapterFile);
+            if (currentEditor != null) {
+                // Verwende den aktuellen Editor-Inhalt statt der gespeicherten Datei
+                mdContent = currentEditor.getText();
+                logger.info("Verwende aktuellen Editor-Inhalt für Diff ({} Zeichen)", mdContent.length());
+            } else {
+                // Fallback: Verwende die gespeicherte Datei
+                mdContent = new String(java.nio.file.Files.readAllBytes(mdFile.toPath()), java.nio.charset.StandardCharsets.UTF_8);
+                logger.info("Kein Editor gefunden, verwende gespeicherte Datei für Diff");
+            }
             
             // Erstelle HBox für feste nebeneinander Anzeige (beide Seiten immer gleich breit)
             HBox contentBox = new HBox(10);
@@ -1813,7 +1854,7 @@ public class MainController implements Initializable {
                                 if (checkboxIndex < blockCheckBoxes.size() && blockCheckBoxes.get(checkboxIndex).isSelected()) {
                                     for (DiffProcessor.DiffLine line : block.getLines()) {
                                         String text = line.getNewText();
-                                        if (text != null && !text.isEmpty()) {
+                                        if (text != null) {
                                             newContent.append(text).append("\n");
                                         }
                                     }
@@ -1827,12 +1868,19 @@ public class MainController implements Initializable {
                                 // Unveränderte Blöcke immer hinzufügen
                                 for (DiffProcessor.DiffLine line : block.getLines()) {
                                     String text = line.getNewText();
-                                    if (text != null && !text.isEmpty()) {
+                                    if (text != null) {
                                         newContent.append(text).append("\n");
                                     }
                                 }
                                 break;
                         }
+                    }
+                    
+                    // Entferne überflüssige Leerzeilen am Ende
+                    String finalContent = newContent.toString();
+                    // Entferne alle Leerzeilen am Ende
+                    while (finalContent.endsWith("\n")) {
+                        finalContent = finalContent.substring(0, finalContent.length() - 1);
                     }
                     
                     // Keine MD-Datei speichern - nur den Inhalt verwenden
@@ -1842,8 +1890,21 @@ public class MainController implements Initializable {
                     
                     // 2. Nach Diff-Auswahl den Text ersetzen (damit Änderungen erkannt werden)
                     if (editorController != null) {
+                        final String finalContentForLambda = finalContent;
                         Platform.runLater(() -> {
-                            editorController.replaceTextWithoutUpdatingOriginal(newContent.toString());
+                            editorController.replaceTextWithoutUpdatingOriginal(finalContentForLambda);
+                            // WICHTIG: Editor in den Vordergrund bringen
+                            // Finde die Stage über die Window-Liste
+                            for (Window window : Window.getWindows()) {
+                                if (window instanceof CustomStage && window.isShowing()) {
+                                    CustomStage customStage = (CustomStage) window;
+                                    if (customStage.getTitle().contains(chapterFile.getFileName())) {
+                                        customStage.toFront();
+                                        customStage.requestFocus();
+                                        break;
+                                    }
+                                }
+                            }
                         });
                     }
                     
@@ -1859,6 +1920,21 @@ public class MainController implements Initializable {
                 try {
                     // Übernehme den DOCX-Inhalt direkt (wie vorher)
                     openChapterEditorWindow(docxContent, chapterFile, format);
+                    
+                    // WICHTIG: Editor in den Vordergrund bringen
+                    Platform.runLater(() -> {
+                        for (Window window : Window.getWindows()) {
+                            if (window instanceof CustomStage && window.isShowing()) {
+                                CustomStage customStage = (CustomStage) window;
+                                if (customStage.getTitle().contains(chapterFile.getFileName())) {
+                                    customStage.toFront();
+                                    customStage.requestFocus();
+                                    break;
+                                }
+                            }
+                        }
+                    });
+                    
                     chapterFile.setChanged(false);
                     updateDocxHashAfterAccept(chapterFile.getFile());
                     // WICHTIG: Das "!" aus der Tabelle entfernen
@@ -1873,6 +1949,21 @@ public class MainController implements Initializable {
             btnKeepCurrent.setOnAction(e -> {
                 try {
                     openChapterEditorWindow(mdContent, chapterFile, format);
+                    
+                    // WICHTIG: Editor in den Vordergrund bringen
+                    Platform.runLater(() -> {
+                        for (Window window : Window.getWindows()) {
+                            if (window instanceof CustomStage && window.isShowing()) {
+                                CustomStage customStage = (CustomStage) window;
+                                if (customStage.getTitle().contains(chapterFile.getFileName())) {
+                                    customStage.toFront();
+                                    customStage.requestFocus();
+                                    break;
+                                }
+                            }
+                        }
+                    });
+                    
                     chapterFile.setChanged(false);
                     updateDocxHashAfterAccept(chapterFile.getFile());
                     // WICHTIG: Das "!" aus der Tabelle entfernen
@@ -2079,19 +2170,20 @@ public class MainController implements Initializable {
             // NEU: Titelbalken mit Dateinamen setzen
             editorController.setWindowTitle("📄 " + chapterFile.getFileName());
             
-            // NEU: Window-Preferences laden und anwenden
-            loadEditorWindowProperties(editorStage);
-            
             // Scene erstellen und mit CustomStage-Titelleiste setzen
             Scene scene = new Scene(root);
             editorStage.setSceneWithTitleBar(scene);
             
-            // NEU: Mindestgrößen VOR loadEditorWindowProperties() setzen
-            editorStage.setMinWidth(800);
-            editorStage.setMinHeight(600);
+            // EditorWindow-Instanz mit UserData verknüpfen für spätere Suche
+            root.setUserData(editorController);
             
-            // NEU: Window-Preferences NACH setSceneWithTitleBar() laden und anwenden
-            loadEditorWindowProperties(editorStage);
+            // Editor in Map speichern für spätere Suche
+            String editorKey = chapterName + ".md";
+            openEditors.put(editorKey, editorController);
+            logger.info("Editor gespeichert: {}", editorKey);
+            
+            // WICHTIG: EditorWindow übernimmt die Fenster-Eigenschaften
+            // EditorWindow.loadWindowProperties() wird automatisch aufgerufen
             
             // CSS mit ResourceManager laden
             String cssPath = ResourceManager.getCssResource("css/manuskript.css");
@@ -2101,6 +2193,13 @@ public class MainController implements Initializable {
             
             // WICHTIG: Stage setzen für Close-Request-Handler
             editorController.setStage(editorStage);
+            
+            // Cleanup-Handler für Editor-Map
+            final String finalEditorKey = chapterName + ".md";
+            editorStage.setOnCloseRequest(e -> {
+                openEditors.remove(finalEditorKey);
+                logger.info("Editor aus Map entfernt: {}", finalEditorKey);
+            });
             
             editorStage.show();
             
@@ -2235,7 +2334,11 @@ public class MainController implements Initializable {
             // Erstelle Stage
             Stage editorStage = new Stage();
             editorStage.setTitle("Editor - " + file.getName());
-            editorStage.setScene(new Scene(root));
+            Scene scene = new Scene(root);
+            editorStage.setScene(scene);
+            
+            // EditorWindow-Instanz mit UserData verknüpfen für spätere Suche
+            root.setUserData(editorController);
             editorStage.setWidth(1200);
             editorStage.setHeight(800);
             editorStage.setMinWidth(1000);
@@ -2315,6 +2418,9 @@ public class MainController implements Initializable {
             // Scene erstellen und mit CustomStage-Titelleiste setzen
             Scene scene = new Scene(root);
             editorStage.setSceneWithTitleBar(scene);
+            
+            // EditorWindow-Instanz mit UserData verknüpfen für spätere Suche
+            root.setUserData(editorController);
             
             // CSS mit ResourceManager laden
             String cssPath = ResourceManager.getCssResource("css/manuskript.css");
@@ -2775,70 +2881,6 @@ public class MainController implements Initializable {
         logger.info("Hauptfenster-Eigenschaften geladen: Größe={}x{}, Position=({}, {})", width, height, x, y);
     }
     
-    private void loadEditorWindowProperties(CustomStage editorStage) {
-        // Fenster-Größe und Position mit robuster Validierung laden
-        double width = PreferencesManager.getEditorWidth(preferences, "editor_window_width", PreferencesManager.DEFAULT_EDITOR_WIDTH);
-        double height = PreferencesManager.getEditorHeight(preferences, "editor_window_height", PreferencesManager.DEFAULT_EDITOR_HEIGHT);
-        double x = PreferencesManager.getWindowPosition(preferences, "editor_window_x", -1.0);
-        double y = PreferencesManager.getWindowPosition(preferences, "editor_window_y", -1.0);
-        
-        // Mindestgrößen für Editor-Fenster
-        double minWidth = PreferencesManager.MIN_EDITOR_WIDTH;
-        double minHeight = PreferencesManager.MIN_EDITOR_HEIGHT;
-        
-        // Mindestgröße für CustomStage setzen
-        editorStage.setMinWidth(minWidth);
-        editorStage.setMinHeight(minHeight);
-        
-        // Fenster-Größe setzen
-        editorStage.setWidth(width);
-        editorStage.setHeight(height);
-        
-        // NEU: Validierung der Fenster-Position
-        // Prüfe, ob Position gültig ist und auf dem Bildschirm liegt
-        if (x >= 0 && y >= 0 && !Double.isNaN(x) && !Double.isNaN(y) && 
-            !Double.isInfinite(x) && !Double.isInfinite(y)) {
-            
-            // Grobe Prüfung: Position sollte nicht zu weit außerhalb des Bildschirms sein
-            if (x < -1000 || y < -1000 || x > 5000 || y > 5000) {
-                logger.warn("Editor-Fenster-Position außerhalb des Bildschirms: x={}, y={} - verwende zentriert", x, y);
-                editorStage.centerOnScreen();
-            } else {
-                editorStage.setX(x);
-                editorStage.setY(y);
-            }
-        } else {
-            logger.info("Keine gültige Editor-Fenster-Position gefunden - zentriere Fenster");
-            editorStage.centerOnScreen();
-        }
-        
-        // Event-Handler für Fenster-Änderungen hinzufügen
-        editorStage.widthProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal != null && !newVal.equals(oldVal)) {
-                PreferencesManager.putEditorWidth(preferences, "editor_window_width", newVal.doubleValue());
-            }
-        });
-        
-        editorStage.heightProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal != null && !newVal.equals(oldVal)) {
-                PreferencesManager.putEditorHeight(preferences, "editor_window_height", newVal.doubleValue());
-            }
-        });
-        
-        editorStage.xProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal != null && !newVal.equals(oldVal)) {
-                PreferencesManager.putWindowPosition(preferences, "editor_window_x", newVal.doubleValue());
-            }
-        });
-        
-        editorStage.yProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal != null && !newVal.equals(oldVal)) {
-                PreferencesManager.putWindowPosition(preferences, "editor_window_y", newVal.doubleValue());
-            }
-        });
-        
-        logger.info("Editor-Fenster-Eigenschaften geladen: Größe={}x{}, Position=({}, {})", width, height, x, y);
-    }
     
     /**
      * Setzt alle Editor-Fenster-Preferences auf Standardwerte zurück
