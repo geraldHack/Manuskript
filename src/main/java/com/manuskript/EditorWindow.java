@@ -4524,7 +4524,7 @@ if (caret != null) {
                 }
             }
         });
-        
+            
         // WICHTIG: Fenster-Eigenschaften SOFORT laden (nicht in Platform.runLater)
         loadWindowProperties();
         
@@ -8419,6 +8419,33 @@ spacer.setStyle("-fx-background-color: transparent;");
             return codeArea.getSelectedText();
         }
         return null;
+    }
+    
+    /**
+     * Ersetzt den aktuell ausgewählten Text mit dem gegebenen Text
+     */
+    public void replaceSelectedText(String newText) {
+        if (codeArea != null && codeArea.getSelection() != null) {
+            int start = codeArea.getSelection().getStart();
+            int end = codeArea.getSelection().getEnd();
+            codeArea.replaceText(start, end, newText);
+            // Neue Auswahl setzen
+            codeArea.selectRange(start, start + newText.length());
+            codeArea.requestFocus();
+        }
+    }
+    
+    /**
+     * Fügt Text an der aktuellen Cursor-Position ein
+     */
+    public void insertTextAtCursor(String text) {
+        if (codeArea != null && text != null) {
+            int caretPosition = codeArea.getCaretPosition();
+            codeArea.insertText(caretPosition, text);
+            // Cursor nach dem eingefügten Text positionieren
+            codeArea.moveTo(caretPosition + text.length());
+            codeArea.requestFocus();
+        }
     }
     
     /**
