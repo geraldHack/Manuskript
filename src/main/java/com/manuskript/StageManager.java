@@ -128,8 +128,7 @@ public class StageManager {
             stage.initOwner(owner);
         }
         
-        // WICHTIG: Editor-Fenster-Preferences laden und anwenden
-        loadEditorWindowProperties(stage);
+        // WICHTIG: Editor-Fenster-Preferences werden in EditorWindow.loadWindowProperties() geladen
         
         // Theme aus Preferences laden und anwenden
         int currentTheme = preferences.getInt("main_window_theme", 0);
@@ -213,75 +212,6 @@ public class StageManager {
         }
     }
     
-    /**
-     * Lädt und wendet Editor-Fenster Preferences an
-     */
-    private static void loadEditorWindowProperties(CustomStage stage) {
-        if (preferences != null) {
-            // Fenster-Größe und Position mit robuster Validierung laden
-            double width = PreferencesManager.getEditorWidth(preferences, "editor_window_width", PreferencesManager.DEFAULT_EDITOR_WIDTH);
-            double height = PreferencesManager.getEditorHeight(preferences, "editor_window_height", PreferencesManager.DEFAULT_EDITOR_HEIGHT);
-            double x = PreferencesManager.getWindowPosition(preferences, "editor_window_x", -1.0);
-            double y = PreferencesManager.getWindowPosition(preferences, "editor_window_y", -1.0);
-            
-            // Mindestgrößen für Editor-Fenster
-            double minWidth = PreferencesManager.MIN_EDITOR_WIDTH;
-            double minHeight = PreferencesManager.MIN_EDITOR_HEIGHT;
-            
-            // Mindestgröße für CustomStage setzen
-            stage.setMinWidth(minWidth);
-            stage.setMinHeight(minHeight);
-            
-            // Fenster-Größe setzen
-            stage.setWidth(width);
-            stage.setHeight(height);
-            
-            // NEU: Validierung der Fenster-Position
-            // Prüfe, ob Position gültig ist und auf dem Bildschirm liegt
-            if (x >= 0 && y >= 0 && !Double.isNaN(x) && !Double.isNaN(y) &&
-                !Double.isInfinite(x) && !Double.isInfinite(y)) {
-                
-                // Grobe Prüfung: Position sollte nicht zu weit außerhalb des Bildschirms sein
-                if (x < -1000 || y < -1000 || x > 5000 || y > 5000) {
-                    logger.warn("Editor-Fenster-Position außerhalb des Bildschirms: x={}, y={} - verwende zentriert", x, y);
-                    stage.centerOnScreen();
-                } else {
-                    stage.setX(x);
-                    stage.setY(y);
-                }
-            } else {
-                logger.info("Keine gültige Editor-Fenster-Position gefunden - zentriere Fenster");
-                stage.centerOnScreen();
-            }
-            
-            // Event-Handler für Fenster-Änderungen hinzufügen
-            stage.widthProperty().addListener((obs, oldVal, newVal) -> {
-                if (newVal != null && !newVal.equals(oldVal)) {
-                    PreferencesManager.putEditorWidth(preferences, "editor_window_width", newVal.doubleValue());
-                }
-            });
-            
-            stage.heightProperty().addListener((obs, oldVal, newVal) -> {
-                if (newVal != null && !newVal.equals(oldVal)) {
-                    PreferencesManager.putEditorHeight(preferences, "editor_window_height", newVal.doubleValue());
-                }
-            });
-            
-            stage.xProperty().addListener((obs, oldVal, newVal) -> {
-                if (newVal != null && !newVal.equals(oldVal)) {
-                    PreferencesManager.putWindowPosition(preferences, "editor_window_x", newVal.doubleValue());
-                }
-            });
-            
-            stage.yProperty().addListener((obs, oldVal, newVal) -> {
-                if (newVal != null && !newVal.equals(oldVal)) {
-                    PreferencesManager.putWindowPosition(preferences, "editor_window_y", newVal.doubleValue());
-                }
-            });
-            
-            logger.info("Editor-Fenster-Eigenschaften geladen: Größe={}x{}, Position=({}, {})", width, height, x, y);
-        }
-    }
     
     /**
      * Erstellt eine CustomStage und setzt Scene mit CSS-Styling

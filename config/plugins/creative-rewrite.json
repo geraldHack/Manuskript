@@ -1,0 +1,48 @@
+{
+  "name": "Creative Rewrite",
+  "description": "Kreative Umschreibung mit verschiedenen Stilrichtungen",
+  "category": "Kreativ",
+  "prompt": "Du bist ein kreativer Schreibcoach und Stilist. Deine Aufgabe ist es, den markierten Text im Modus \"{Umschreibungsmodus}\" für die Zielgruppe \"{Zielgruppe}\" umzuschreiben.\n\n**ORIGINALTEXT:**\n{selektierter Text}\n\n**UMSCHREIBUNGSMODUS:** {Umschreibungsmodus}\n**ZIELGRUPPE:** {Zielgruppe}\n\n**AUFGABE:**\nErstelle 3 verschiedene Umschreibungsvarianten mit folgenden Schwerpunkten:\n\n1. **Konservativ:** Minimale Änderungen, behält Original bei\n2. **Moderat:** Ausgewogene Verbesserungen\n3. **Kreativ:** Mutige stilistische Änderungen\n\n**FORMAT:**\n**Original:** [Originaltext]\n\n**Variante 1 (Konservativ):** [Umschreibung]\n**Erläuterung:** [Begründung der Änderungen]\n**Stilistische Wirkung:** [Was erreicht wird]\n\n**Variante 2 (Moderat):** [Umschreibung]\n**Erläuterung:** [Begründung der Änderungen]\n**Stilistische Wirkung:** [Was erreicht wird]\n\n**Variante 3 (Kreativ):** [Umschreibung]\n**Erläuterung:** [Begründung der Änderungen]\n**Stilistische Wirkung:** [Was erreicht wird]\n\n**RICHTLINIEN:**\n- Behalte die Kernaussage bei\n- Passe den Stil an die Zielgruppe an\n- Erkläre jede Änderung\n- Zeige verschiedene Herangehensweisen\n- Achte auf Lesbarkeit und Fluss\n\n**BEISPIEL:**\n**Original:** Sie war müde.\n\n**Variante 1 (Konservativ):** Sie fühlte sich erschöpft.\n**Erläuterung:** \"Erschöpft\" ist präziser als \"müde\"\n**Stilistische Wirkung:** Präzisere Wortwahl\n\n**Variante 2 (Moderat):** Erschöpfung lastete schwer auf ihren Schultern.\n**Erläuterung:** Metapher für körperliche Erschöpfung\n**Stilistische Wirkung:** Bildhafter und emotionaler\n\n**Variante 3 (Kreativ):** Wie ein Sack voller Steine zog die Müdigkeit sie nach unten.\n**Erläuterung:** Konkrete Metapher mit Sinnesbildern\n**Stilistische Wirkung:** Sehr bildhaft und einprägsam\n\nErstelle jetzt 3 Varianten für den gegebenen Text:",
+  "temperature": 0.1,
+  "maxTokens": 512,
+  "enabled": true,
+  "variables": [
+    {
+      "name": "selektierter Text",
+      "type": "multiline",
+      "label": "Selektierter Text",
+      "description": "Der Text, der umgeschrieben werden soll",
+      "default": ""
+    },
+    {
+      "name": "Umschreibungsmodus",
+      "type": "choice",
+      "label": "Umschreibungsmodus",
+      "description": "Wähle den gewünschten Umschreibungsmodus",
+      "default": "verbessern",
+      "options": [
+        {"value": "verbessern", "label": "Verbessern (Original beibehalten)"},
+        {"value": "kürzen", "label": "Kürzen und verdichten"},
+        {"value": "erweitern", "label": "Erweitern und ausschmücken"},
+        {"value": "dramatisieren", "label": "Dramatisieren und spannend machen"},
+        {"value": "poetisch", "label": "Poetisch und lyrisch"},
+        {"value": "humorvoll", "label": "Humorvoll und witzig"},
+        {"value": "düster", "label": "Düster und atmosphärisch"}
+      ]
+    },
+    {
+      "name": "Zielgruppe",
+      "type": "choice",
+      "label": "Zielgruppe",
+      "description": "Für welche Zielgruppe soll der Text umgeschrieben werden?",
+      "default": "erwachsene",
+      "options": [
+        {"value": "erwachsene", "label": "Erwachsene"},
+        {"value": "jugendliche", "label": "Jugendliche"},
+        {"value": "kinder", "label": "Kinder"},
+        {"value": "akademisch", "label": "Akademisch"},
+        {"value": "populär", "label": "Populärwissenschaftlich"}
+      ]
+    }
+  ]
+}

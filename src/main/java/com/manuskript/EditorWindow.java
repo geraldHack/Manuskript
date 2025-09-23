@@ -4504,6 +4504,10 @@ if (caret != null) {
         return codeArea != null ? codeArea.getCaretPosition() : 0;
     }
     
+    public CustomStage getStage() {
+        return stage;
+    }
+    
     public void setStage(CustomStage stage) {
         this.stage = stage;
         
@@ -4519,10 +4523,10 @@ if (caret != null) {
                     logger.warn("CSS-Datei konnte in setStage nicht geladen werden: {}", cssPath);
                 }
             }
-            
-            // Fenster-Eigenschaften laden und anwenden
-        loadWindowProperties();
         });
+        
+        // WICHTIG: Fenster-Eigenschaften SOFORT laden (nicht in Platform.runLater)
+        loadWindowProperties();
         
         // Close-Request-Handler für Speichern-Abfrage
         stage.setOnCloseRequest(event -> {
@@ -4552,54 +4556,7 @@ if (caret != null) {
             }
         });
         
-        // Listener für Fenster-Änderungen hinzufügen
-        stage.widthProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal != null && !newVal.equals(oldVal)) {
-                PreferencesManager.putEditorWidth(preferences, "window_width", newVal.doubleValue());
-                try {
-                    preferences.flush(); // Sofort speichern
-                } catch (Exception e) {
-                    logger.warn("Konnte Fenster-Breite nicht speichern: {}", e.getMessage());
-                }
-                logger.debug("Fenster-Breite gespeichert: {}", newVal.doubleValue());
-            }
-        });
-        
-        stage.heightProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal != null && !newVal.equals(oldVal)) {
-                PreferencesManager.putEditorHeight(preferences, "window_height", newVal.doubleValue());
-                try {
-                    preferences.flush(); // Sofort speichern
-                } catch (Exception e) {
-                    logger.warn("Konnte Fenster-Höhe nicht speichern: {}", e.getMessage());
-                }
-                logger.debug("Fenster-Höhe gespeichert: {}", newVal.doubleValue());
-            }
-        });
-        
-        stage.xProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal != null && !newVal.equals(oldVal)) {
-                PreferencesManager.putWindowPosition(preferences, "window_x", newVal.doubleValue());
-                try {
-                    preferences.flush(); // Sofort speichern
-                } catch (Exception e) {
-                    logger.warn("Konnte Fenster-X-Position nicht speichern: {}", e.getMessage());
-                }
-                logger.debug("Fenster-X-Position gespeichert: {}", newVal.doubleValue());
-            }
-        });
-        
-        stage.yProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal != null && !newVal.equals(oldVal)) {
-                PreferencesManager.putWindowPosition(preferences, "window_y", newVal.doubleValue());
-                try {
-                    preferences.flush(); // Sofort speichern
-                } catch (Exception e) {
-                    logger.warn("Konnte Fenster-Y-Position nicht speichern: {}", e.getMessage());
-                }
-                logger.debug("Fenster-Y-Position gespeichert: {}", newVal.doubleValue());
-            }
-        });
+        // WICHTIG: Listener werden in addWindowPropertyListeners() hinzugefügt
     }
     
     public void setOutputFormat(DocxProcessor.OutputFormat format) {
@@ -7166,10 +7123,10 @@ spacer.setStyle("-fx-background-color: transparent;");
         if (stage == null) return;
         
         // Fenster-Größe und Position mit robuster Validierung laden
-        double width = PreferencesManager.getEditorWidth(preferences, "window_width", PreferencesManager.DEFAULT_EDITOR_WIDTH);
-        double height = PreferencesManager.getEditorHeight(preferences, "window_height", PreferencesManager.DEFAULT_EDITOR_HEIGHT);
-        double x = PreferencesManager.getWindowPosition(preferences, "window_x", -1.0);
-        double y = PreferencesManager.getWindowPosition(preferences, "window_y", -1.0);
+        double width = PreferencesManager.getEditorWidth(preferences, "editor_window_width", PreferencesManager.DEFAULT_EDITOR_WIDTH);
+        double height = PreferencesManager.getEditorHeight(preferences, "editor_window_height", PreferencesManager.DEFAULT_EDITOR_HEIGHT);
+        double x = PreferencesManager.getWindowPosition(preferences, "editor_window_x", -1.0);
+        double y = PreferencesManager.getWindowPosition(preferences, "editor_window_y", -1.0);
         
         logger.info("Lade Fenster-Eigenschaften: Größe={}x{}, Position=({}, {})", width, height, x, y);
         
@@ -7224,7 +7181,63 @@ spacer.setStyle("-fx-background-color: transparent;");
             }
         });
         
+        // WICHTIG: Listener für Fenster-Änderungen hinzufügen
+        addWindowPropertyListeners();
+        
         logger.info("Fenster-Eigenschaften geladen: Größe={}x{}, Position=({}, {})", width, height, x, y);
+    }
+    
+    private void addWindowPropertyListeners() {
+        if (stage == null) return;
+        
+        // Listener für Fenster-Änderungen hinzufügen
+        stage.widthProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null && !newVal.equals(oldVal)) {
+                PreferencesManager.putEditorWidth(preferences, "editor_window_width", newVal.doubleValue());
+                try {
+                    preferences.flush(); // Sofort speichern
+                } catch (Exception e) {
+                    logger.warn("Konnte Fenster-Breite nicht speichern: {}", e.getMessage());
+                }
+                logger.debug("Fenster-Breite gespeichert: {}", newVal.doubleValue());
+            }
+        });
+        
+        stage.heightProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null && !newVal.equals(oldVal)) {
+                PreferencesManager.putEditorHeight(preferences, "editor_window_height", newVal.doubleValue());
+                try {
+                    preferences.flush(); // Sofort speichern
+                } catch (Exception e) {
+                    logger.warn("Konnte Fenster-Höhe nicht speichern: {}", e.getMessage());
+                }
+                logger.debug("Fenster-Höhe gespeichert: {}", newVal.doubleValue());
+            }
+        });
+        
+        stage.xProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null && !newVal.equals(oldVal)) {
+                PreferencesManager.putWindowPosition(preferences, "editor_window_x", newVal.doubleValue());
+                try {
+                    preferences.flush(); // Sofort speichern
+                } catch (Exception e) {
+                    logger.warn("Konnte Fenster-X-Position nicht speichern: {}", e.getMessage());
+                }
+                logger.debug("Fenster-X-Position gespeichert: {}", newVal.doubleValue());
+            }
+        });
+        
+        stage.yProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null && !newVal.equals(oldVal)) {
+                PreferencesManager.putWindowPosition(preferences, "editor_window_y", newVal.doubleValue());
+                try {
+                    preferences.flush(); // Sofort speichern
+                } catch (Exception e) {
+                    logger.warn("Konnte Fenster-Y-Position nicht speichern: {}", e.getMessage());
+                }
+                logger.debug("Fenster-Y-Position gespeichert: {}", newVal.doubleValue());
+            }
+        });
     }
     
     private void loadToolbarSettings() {

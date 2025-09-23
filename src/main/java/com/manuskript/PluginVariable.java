@@ -8,7 +8,9 @@ public class PluginVariable {
     public enum Type {
         SINGLE_LINE,    // Einzeilige Eingabe (TextField)
         MULTI_LINE,     // Mehrzeilige Eingabe (TextArea)
-        BOOLEAN         // Boolean-Eingabe (CheckBox)
+        BOOLEAN,        // Boolean-Eingabe (CheckBox)
+        CHOICE,         // Auswahl (ComboBox)
+        NUMBER          // Zahleneingabe (Spinner/TextField)
     }
     
     private String name;
@@ -16,6 +18,25 @@ public class PluginVariable {
     private Type type;
     private String defaultValue;
     private String description;
+    private java.util.List<Option> options;
+    private Double minValue;
+    private Double maxValue;
+    
+    /**
+     * Repräsentiert eine Option für Choice-Variablen
+     */
+    public static class Option {
+        private String value;
+        private String label;
+        
+        public Option(String value, String label) {
+            this.value = value;
+            this.label = label;
+        }
+        
+        public String getValue() { return value; }
+        public String getLabel() { return label; }
+    }
     
     public PluginVariable(String name, Type type) {
         this.name = name;
@@ -48,6 +69,15 @@ public class PluginVariable {
     
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
+    
+    public java.util.List<Option> getOptions() { return options; }
+    public void setOptions(java.util.List<Option> options) { this.options = options; }
+    
+    public Double getMinValue() { return minValue; }
+    public void setMinValue(Double minValue) { this.minValue = minValue; }
+    
+    public Double getMaxValue() { return maxValue; }
+    public void setMaxValue(Double maxValue) { this.maxValue = maxValue; }
     
     /**
      * Formatiert einen Variablen-Namen für die Anzeige

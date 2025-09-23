@@ -41,13 +41,13 @@ public class OllamaService {
     private final HttpClient httpClient;
     private String currentModel = "gemma3:4b";
     
-    // Konfigurierbare Parameter
-    private double temperature = 0.3;  // Noch reduzierter für bessere Sprachkontrolle
-    private int maxTokens = 2048;
-    private double topP = 0.7;  // Reduziert für mehr Fokus und Sprachkontrolle
-    private double repeatPenalty = 1.3;  // Erhöht für bessere Sprachkontrolle
-    private int httpConnectTimeoutSeconds = 30;  // Aus Properties
-    private int httpRequestTimeoutSeconds = 180; // Aus Properties
+    // Konfigurierbare Parameter - OPTIMIERT FÜR PERFORMANCE
+    private double temperature = 0.1;  // Sehr niedrig für schnellere, deterministischere Antworten
+    private int maxTokens = 1024;      // Reduziert für schnellere Generierung
+    private double topP = 0.5;         // Reduziert für fokussiertere Antworten
+    private double repeatPenalty = 1.1; // Reduziert für weniger Rechenaufwand
+    private int httpConnectTimeoutSeconds = 10;  // Schnellere Verbindung
+    private int httpRequestTimeoutSeconds = 60;  // Reduziertes Timeout
     
     // Chat-Session-Management
     private Map<String, ChatSession> chatSessions = new HashMap<>();
