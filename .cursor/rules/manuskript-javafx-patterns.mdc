@@ -1,0 +1,34 @@
+---
+globs: *.java
+description: JavaFX development patterns and conventions for Manuskript
+---
+
+# JavaFX Development Patterns
+
+## Stage Management
+- Use `CustomStage` from `StageManager` for consistent window behavior
+- Always call `loadWindowProperties()` after stage creation for user preferences
+- Use `setOnCloseRequest()` handlers to clean up resources and remove from tracking maps
+
+## UI Component Patterns
+- **CodeArea**: Use RichTextFX `CodeArea` for text editing with `LineNumberFactory`
+- **WebView**: For HTML rendering with JavaScript integration (`window.getSelection().toString()`)
+- **SplitPane**: For resizable layouts between editor and preview
+- **VirtualizedScrollPane**: For better performance with large text content
+
+## Event Handling
+- Use `Platform.runLater()` for UI updates from background threads
+- Implement proper cleanup in `setOnCloseRequest()` handlers
+- Use `Optional<ButtonType>` for dialog results
+- Apply themes consistently with `applyTheme()` methods
+
+## Text Operations
+- Use `codeArea.getSelectedText()` and `codeArea.replaceText()` for text manipulation
+- Implement `insertTextAtCursor()` for cursor-based text insertion
+- Use `codeArea.getSelection().getStart()` and `getEnd()` for selection bounds
+- Always call `codeArea.requestFocus()` after text operations
+
+## Error Handling
+- Use `CustomAlert` for user notifications with theme support
+- Log errors with appropriate log levels (`logger.severe()` for errors)
+- Provide meaningful error messages to users

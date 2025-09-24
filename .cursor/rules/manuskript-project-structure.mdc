@@ -1,0 +1,32 @@
+---
+alwaysApply: true
+description: Manuskript project structure and architecture guide
+---
+
+# Manuskript Project Structure
+
+## Core Architecture
+Manuskript is a JavaFX-based manuscript editing application with AI integration. The main components are:
+
+- **MainController** ([src/main/java/com/manuskript/MainController.java](mdc:src/main/java/com/manuskript/MainController.java)) - Central controller managing file operations, diff functionality, and editor window management
+- **EditorWindow** ([src/main/java/com/manuskript/EditorWindow.java](mdc:src/main/java/com/manuskript/EditorWindow.java)) - Individual editor instances for chapters with RichTextFX CodeArea
+- **OllamaWindow** ([src/main/java/com/manuskript/OllamaWindow.java](mdc:src/main/java/com/manuskript/OllamaWindow.java)) - AI assistant window with WebView integration for text selection and replacement
+
+## Key Features
+- **Diff System**: Compares current editor content with saved files using `findCurrentEditorForChapter()`
+- **AI Integration**: Ollama service integration with plugin system for text rewriting
+- **WebView Text Selection**: JavaScript-based text selection in rendered HTML with editor integration
+- **Plugin System**: JSON-based AI plugins with variable types (CHOICE, NUMBER, BOOLEAN, etc.)
+- **Theme System**: Multiple UI themes with consistent styling
+
+## File Structure
+- `src/main/java/com/manuskript/` - Main application classes
+- `config/plugins/` - AI plugin JSON configurations
+- `config/sessions/` - User session data
+- `export/` - Generated output files
+- `src/main/resources/fxml/` - JavaFX FXML layouts
+
+## Editor Management
+- Static `Map<String, EditorWindow> openEditors` tracks open editor instances
+- `setOnCloseRequest` handlers clean up editor references
+- Window properties (position, size) saved in user preferences

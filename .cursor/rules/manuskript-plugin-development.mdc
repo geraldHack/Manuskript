@@ -1,0 +1,53 @@
+---
+globs: *.json,*.java
+description: Plugin development patterns and JSON configuration structure
+---
+
+# Plugin Development Patterns
+
+## JSON Plugin Configuration
+```json
+{
+  "name": "Plugin Name",
+  "description": "Plugin description",
+  "prompt": "Template with {variableName} placeholders",
+  "temperature": 0.1,
+  "maxTokens": 512,
+  "variables": [
+    {
+      "name": "variableName",
+      "type": "CHOICE|NUMBER|BOOLEAN|SINGLE_LINE|MULTI_LINE",
+      "default": "defaultValue",
+      "description": "Variable description",
+      "options": [{"value": "val", "label": "Label"}],
+      "min": 0,
+      "max": 10
+    }
+  ]
+}
+```
+
+## Variable Type Implementation
+- **CHOICE**: Use `ComboBox<String>` with options array
+- **NUMBER**: Use `Spinner<Double>` with min/max values
+- **BOOLEAN**: Use `CheckBox` for true/false values
+- **SINGLE_LINE**: Use `TextField` for short text input
+- **MULTI_LINE**: Use `TextArea` for longer text input
+
+## Plugin Processing
+- Use `PluginManager.loadPluginFromFile()` for JSON parsing
+- Implement `parsePluginVariable()` for individual variable parsing
+- Use `PluginVariable.Type` enum for type checking
+- Apply `options` array for CHOICE variables with value/label pairs
+
+## UI Generation Patterns
+- Use `createInputField()` for dynamic UI component creation
+- Implement `collectResults()` to gather user input from different control types
+- Use `updatePreview()` for live prompt preview updates
+- Apply proper event listeners for all control types
+
+## Text Integration
+- Use `isSelectedTextVariable()` to detect text input fields
+- Implement automatic text selection detection
+- Apply proper text replacement in prompts
+- Use `{selektierter Text}` for selected text variables

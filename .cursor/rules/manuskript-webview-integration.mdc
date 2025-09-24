@@ -1,0 +1,43 @@
+---
+globs: *.java
+description: WebView integration patterns for text selection and HTML rendering
+---
+
+# WebView Integration Patterns
+
+## WebView Setup
+- Use `javafx.scene.web.WebView` for HTML content rendering
+- Enable `setContextMenuEnabled(true)` for user interaction
+- Use `getEngine().loadContent(html, "text/html")` for content loading
+- Implement `setPrefSize()` for proper sizing
+
+## JavaScript Integration
+- Use `executeScript("window.getSelection().toString()")` for text selection
+- Implement proper error handling for JavaScript execution
+- Use `getLoadWorker().stateProperty()` for load state monitoring
+- Apply `window.scrollTo(0, document.body.scrollHeight)` for auto-scrolling
+
+## HTML Generation
+- Use `buildHtmlForAnswer()` for dynamic HTML content
+- Apply theme colors dynamically based on `currentThemeIndex`
+- Implement proper CSS styling for consistent appearance
+- Use `escapeHtml()` for safe HTML content
+
+## Text Selection Workflow
+1. User selects text in WebView using mouse
+2. JavaScript `window.getSelection().toString()` captures selection
+3. Check for editor text selection with `getSelectedText()`
+4. Show confirmation dialog with both texts
+5. Use `replaceSelectedText()` or `insertTextAtCursor()` for editor integration
+
+## Button Integration
+- Add buttons to WebView container using `VBox` layout
+- Use `setOnAction()` for button event handling
+- Apply consistent styling with theme colors
+- Implement proper focus management after operations
+
+## Error Handling
+- Check for null WebView and editor references
+- Provide meaningful error messages for missing selections
+- Use try-catch blocks for JavaScript execution
+- Implement graceful fallbacks for failed operations
