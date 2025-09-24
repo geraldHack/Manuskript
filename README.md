@@ -232,8 +232,8 @@ Hinweise:
 - **Firewall/Proxy**: Lokale Verbindungen auf Port 11434 erlauben.
 
 ### Screenshot
-![KI-Assistent](docs/images/ki-assistent.png)
-_(Platzhalter – Screenshot kann hier abgelegt werden)_
+![KI-Assistent](KI-Assistent.png)
+*KI-Assistent Fenster mit Chat-Historie, Modell-Auswahl und Streaming-Ausgabe*
 
 ## 📥 Downloads-Monitor
 
