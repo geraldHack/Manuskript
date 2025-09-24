@@ -1,0 +1,36 @@
+---
+globs: *.java,*.json
+description: AI integration patterns and plugin system for Manuskript
+---
+
+# AI Integration Patterns
+
+## Ollama Service Integration
+- Use `OllamaService` for AI model communication
+- Implement streaming responses with `StreamHandle` for real-time updates
+- Use `CompletableFuture` for asynchronous operations
+- Apply performance optimizations: `temperature=0.1`, `maxTokens=512`, `topP=0.5`
+
+## Plugin System Architecture
+- **Plugin Configuration**: JSON files in `config/plugins/` with `variables` array
+- **Variable Types**: `SINGLE_LINE`, `MULTI_LINE`, `BOOLEAN`, `CHOICE`, `NUMBER`
+- **PluginVariable**: Use `options` for CHOICE types, `minValue`/`maxValue` for NUMBER types
+- **UI Generation**: Dynamic creation of `ComboBox`, `Spinner`, `TextField`, `TextArea` based on variable types
+
+## WebView Integration
+- Use JavaScript `window.getSelection().toString()` for text selection
+- Implement `updateResultWebView()` for HTML content updates
+- Use `executeScript()` for JavaScript execution in WebView
+- Apply theme colors dynamically in HTML generation
+
+## Text Processing Patterns
+- **Selected Text Detection**: Use `isSelectedTextVariable()` to identify text input fields
+- **Prompt Processing**: Replace variables in prompts with `{variableName}` syntax
+- **Live Preview**: Update prompt preview on variable changes
+- **Result Integration**: Use `insertTextAtCursor()` and `replaceSelectedText()` for editor integration
+
+## Session Management
+- Save user sessions in `config/sessions/` as JSON files
+- Implement session switching with `loadSession()` and `saveSession()`
+- Use `QAPair` objects for chat history management
+- Apply session filtering and cleanup as needed

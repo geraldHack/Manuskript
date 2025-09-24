@@ -1,0 +1,36 @@
+---
+globs: *.java
+description: Diff system implementation and editor tracking patterns
+---
+
+# Diff System Implementation
+
+## Editor Tracking
+- Use static `Map<String, EditorWindow> openEditors` for editor instance tracking
+- Key format: `chapterName + ".md"` (remove .docx extension, add .md)
+- Implement `findCurrentEditorForChapter()` to locate open editors
+- Use `setOnCloseRequest()` to remove editors from tracking map
+
+## Diff Dialog Implementation
+- Use `showDetailedDiffDialog()` for comparing current editor content with saved files
+- Implement `findCurrentEditorForChapter()` to get live editor content
+- Use `currentEditor.getText()` instead of reading from file for real-time comparison
+- Apply proper text cleanup to prevent extra blank lines
+
+## Text Processing
+- Remove trailing newlines with `while (finalContent.endsWith("\n"))` loops
+- Use `trim()` operations to clean up text boundaries
+- Implement proper line ending handling for cross-platform compatibility
+- Apply text reconstruction logic to prevent double blank lines
+
+## Window Management
+- Use `CustomStage` for diff dialogs with proper theming
+- Implement proper cleanup in close handlers
+- Use `Platform.runLater()` for UI updates after text operations
+- Apply theme colors consistently across diff interfaces
+
+## Error Handling
+- Handle cases where no editor is found gracefully
+- Provide meaningful error messages for diff failures
+- Implement proper logging for diff operations
+- Use try-catch blocks for file operations and text processing
