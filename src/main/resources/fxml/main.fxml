@@ -19,6 +19,16 @@
          </padding>
       </HBox>
       
+      <!-- Downloads-Monitor -->
+       <HBox spacing="10" alignment="CENTER_LEFT">
+          <children>
+             <CheckBox fx:id="chkDownloadsMonitor" text="📥 Downloads-Monitor: Neue Dateien automatisch überwachen" styleClass="downloads-monitor-checkbox" />
+          </children>
+          <padding>
+             <Insets bottom="5.0" left="10.0" right="10.0" />
+          </padding>
+       </HBox>
+      
       <!-- Filter und Sortierung entfernt - einfache Lösung -->
       
       <!-- Zwei Tabellen nebeneinander -->

@@ -3451,6 +3451,215 @@
 }
 
 /* ========================================
+   DOWNLOADS-MONITOR CHECKBOX STYLING
+   ======================================== */
+
+/* Downloads-Monitor Checkbox - Allgemeine Styles */
+.downloads-monitor-checkbox {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-padding: 8px 12px;
+}
+
+/* Weiß-Theme Downloads-Monitor Checkbox */
+.weiss-theme .downloads-monitor-checkbox {
+    -fx-text-fill: #000000 !important;
+}
+
+.weiss-theme .downloads-monitor-checkbox .box {
+    -fx-background-color: #ffffff !important;
+    -fx-border-color: #cccccc !important;
+    -fx-border-radius: 3px !important;
+    -fx-border-width: 2px !important;
+    -fx-min-width: 18px !important;
+    -fx-min-height: 18px !important;
+}
+
+.weiss-theme .downloads-monitor-checkbox:selected .box {
+    -fx-background-color: #4CAF50 !important;
+    -fx-border-color: #2E7D32 !important;
+}
+
+.weiss-theme .downloads-monitor-checkbox .mark {
+    -fx-background-color: transparent !important;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z" !important;
+    -fx-scale-x: 0.7 !important;
+    -fx-scale-y: 0.7 !important;
+}
+
+.weiss-theme .downloads-monitor-checkbox:selected .mark {
+    -fx-background-color: #ffffff !important;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z" !important;
+    -fx-scale-x: 0.7 !important;
+    -fx-scale-y: 0.7 !important;
+}
+
+/* Schwarz-Theme Downloads-Monitor Checkbox */
+.theme-dark .downloads-monitor-checkbox {
+    -fx-text-fill: #ffffff !important;
+}
+
+.theme-dark .downloads-monitor-checkbox .box {
+    -fx-background-color: #2d2d2d !important;
+    -fx-border-color: #4a5568 !important;
+    -fx-border-radius: 3px !important;
+    -fx-border-width: 2px !important;
+    -fx-min-width: 18px !important;
+    -fx-min-height: 18px !important;
+}
+
+.theme-dark .downloads-monitor-checkbox:selected .box {
+    -fx-background-color: #4CAF50 !important;
+    -fx-border-color: #2E7D32 !important;
+}
+
+.theme-dark .downloads-monitor-checkbox .mark {
+    -fx-background-color: transparent !important;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z" !important;
+    -fx-scale-x: 0.7 !important;
+    -fx-scale-y: 0.7 !important;
+}
+
+.theme-dark .downloads-monitor-checkbox:selected .mark {
+    -fx-background-color: #ffffff !important;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z" !important;
+    -fx-scale-x: 0.7 !important;
+    -fx-scale-y: 0.7 !important;
+}
+
+/* Pastell-Theme Downloads-Monitor Checkbox */
+.pastell-theme .downloads-monitor-checkbox {
+    -fx-text-fill: #000000 !important;
+}
+
+.pastell-theme .downloads-monitor-checkbox .box {
+    -fx-background-color: #e1bee7 !important;
+    -fx-border-color: #ba68c8 !important;
+    -fx-border-radius: 3px !important;
+    -fx-border-width: 2px !important;
+    -fx-min-width: 18px !important;
+    -fx-min-height: 18px !important;
+}
+
+.pastell-theme .downloads-monitor-checkbox:selected .box {
+    -fx-background-color: #4CAF50 !important;
+    -fx-border-color: #2E7D32 !important;
+}
+
+.pastell-theme .downloads-monitor-checkbox .mark {
+    -fx-background-color: transparent !important;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z" !important;
+    -fx-scale-x: 0.7 !important;
+    -fx-scale-y: 0.7 !important;
+}
+
+.pastell-theme .downloads-monitor-checkbox:selected .mark {
+    -fx-background-color: #ffffff !important;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z" !important;
+    -fx-scale-x: 0.7 !important;
+    -fx-scale-y: 0.7 !important;
+}
+
+/* Blau-Theme Downloads-Monitor Checkbox */
+.theme-dark.blau-theme .downloads-monitor-checkbox {
+    -fx-text-fill: #ffffff !important;
+}
+
+.theme-dark.blau-theme .downloads-monitor-checkbox .box {
+    -fx-background-color: #1e40af !important;
+    -fx-border-color: #3b82f6 !important;
+    -fx-border-radius: 3px !important;
+    -fx-border-width: 2px !important;
+    -fx-min-width: 18px !important;
+    -fx-min-height: 18px !important;
+}
+
+.theme-dark.blau-theme .downloads-monitor-checkbox:selected .box {
+    -fx-background-color: #4CAF50 !important;
+    -fx-border-color: #2E7D32 !important;
+}
+
+.theme-dark.blau-theme .downloads-monitor-checkbox .mark {
+    -fx-background-color: transparent !important;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z" !important;
+    -fx-scale-x: 0.7 !important;
+    -fx-scale-y: 0.7 !important;
+}
+
+.theme-dark.blau-theme .downloads-monitor-checkbox:selected .mark {
+    -fx-background-color: #ffffff !important;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z" !important;
+    -fx-scale-x: 0.7 !important;
+    -fx-scale-y: 0.7 !important;
+}
+
+/* Grün-Theme Downloads-Monitor Checkbox */
+.theme-dark.gruen-theme .downloads-monitor-checkbox {
+    -fx-text-fill: #ffffff !important;
+}
+
+.theme-dark.gruen-theme .downloads-monitor-checkbox .box {
+    -fx-background-color: #065f46 !important;
+    -fx-border-color: #10b981 !important;
+    -fx-border-radius: 3px !important;
+    -fx-border-width: 2px !important;
+    -fx-min-width: 18px !important;
+    -fx-min-height: 18px !important;
+}
+
+.theme-dark.gruen-theme .downloads-monitor-checkbox:selected .box {
+    -fx-background-color: #4CAF50 !important;
+    -fx-border-color: #2E7D32 !important;
+}
+
+.theme-dark.gruen-theme .downloads-monitor-checkbox .mark {
+    -fx-background-color: transparent !important;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z" !important;
+    -fx-scale-x: 0.7 !important;
+    -fx-scale-y: 0.7 !important;
+}
+
+.theme-dark.gruen-theme .downloads-monitor-checkbox:selected .mark {
+    -fx-background-color: #ffffff !important;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z" !important;
+    -fx-scale-x: 0.7 !important;
+    -fx-scale-y: 0.7 !important;
+}
+
+/* Lila-Theme Downloads-Monitor Checkbox */
+.theme-dark.lila-theme .downloads-monitor-checkbox {
+    -fx-text-fill: #ffffff !important;
+}
+
+.theme-dark.lila-theme .downloads-monitor-checkbox .box {
+    -fx-background-color: #5b21b6 !important;
+    -fx-border-color: #8b5cf6 !important;
+    -fx-border-radius: 3px !important;
+    -fx-border-width: 2px !important;
+    -fx-min-width: 18px !important;
+    -fx-min-height: 18px !important;
+}
+
+.theme-dark.lila-theme .downloads-monitor-checkbox:selected .box {
+    -fx-background-color: #4CAF50 !important;
+    -fx-border-color: #2E7D32 !important;
+}
+
+.theme-dark.lila-theme .downloads-monitor-checkbox .mark {
+    -fx-background-color: transparent !important;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z" !important;
+    -fx-scale-x: 0.7 !important;
+    -fx-scale-y: 0.7 !important;
+}
+
+.theme-dark.lila-theme .downloads-monitor-checkbox:selected .mark {
+    -fx-background-color: #ffffff !important;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z" !important;
+    -fx-scale-x: 0.7 !important;
+    -fx-scale-y: 0.7 !important;
+}
+
+/* ========================================
    MAKRO-TABELLEN-CHECKBOXEN STYLING FÜR ALLE THEMES - ERWEITERT
    ======================================== */
 

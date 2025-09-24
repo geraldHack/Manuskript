@@ -17,9 +17,12 @@ mvn clean install
 mvn javafx:run
 ```
 
+![Manuskript Hauptfenster](Screenshot.png)
+*Manuskript Hauptfenster mit Downloads-Monitor, Datei-Verwaltung und Text-Editor*
+
 Erste Schritte:
 - Verzeichnis mit DOCX-Dateien wählen
-- Dateien filtern/auswählen und „Ausgewählte verarbeiten“ klicken
+- Dateien filtern/auswählen und „Ausgewählte verarbeiten" klicken
 - Ergebnis im Editor prüfen, optional Makros anwenden und exportieren
 
 ### 🤖 KI-Assistent (optional) – Schnellstart
@@ -51,9 +54,8 @@ ollama run jobautomation/OpenEuroLLM-German
 
 ### 📁 Datei-Verwaltung
 - **Verzeichnis-Auswahl:** Verzeichnis mit DOCX-Dateien laden
-- **Intelligente Filterung:** Einfache Textsuche und Regex-Filterung
 - **Zwei-Tabellen-Ansicht:** Verfügbare Dateien links, ausgewählte Dateien rechts
-- **Robuste Synchronisierung (neu):** Hash-basierter Vergleich (CRC32) zwischen Original-DOCX und Sidecar (MD) – zuverlässig auch bei unveränderten Zeitstempeln.
+- **📥 Downloads-Monitor (neu):** Automatische Überwachung des Downloads-Verzeichnisses auf neue DOCX-Dateien mit intelligenter Namenserkennung und Backup-System. Ideal für Sudowrite exports.
 
 ### 📝 Text-Editor
 - **Vollwertiger Editor:** Highlighting, Zeilennummern, Themes
@@ -61,10 +63,10 @@ ollama run jobautomation/OpenEuroLLM-German
 - **Datei-Operationen:** Öffnen, Speichern, Speichern als
 - **Export-Funktionen:** RTF/DOCX, Markdown, RTF, HTML, TXT
 - **Keyboard-Shortcuts:** die üblichen Tastenkombinationen
-- **Diff & Merge (neu):** Seiten-by-Seiten-Diff bei extern geänderter DOCX mit Auswahl-Übernahme per Checkboxen (nur ins Sidecar, niemals in die DOCX).
-- **Sicheres Speichern (neu):** Speicherdialog mit klaren Optionen (Sidecar speichern, DOCX überschreiben, Diff anzeigen, Abbrechen). Sidecar-„Silent Save" vermeidet Rekursion bei Navigation
-- **Automatische MD-Erstellung (neu):** MD-Dateien werden automatisch beim ersten Editor-Aufruf angelegt
-- **Intelligente Änderungserkennung (neu):** Hash-basierte Erkennung von DOCX-Änderungen mit korrektem "!" Status-Management
+- **Diff & Merge: ** Seiten-by-Seiten-Diff bei extern geänderter DOCX mit Auswahl-Übernahme per Checkboxen (nur ins Sidecar, niemals in die DOCX).
+- **Sicheres Speichern: ** Speicherdialog mit klaren Optionen (Sidecar speichern, DOCX überschreiben, Diff anzeigen, Abbrechen). 
+- **Automatische MD-Erstellung:** MD-Dateien werden automatisch beim ersten Editor-Aufruf angelegt
+- **Intelligente Änderungserkennung:** Hash-basierte Erkennung von DOCX-Änderungen mit korrektem "!" Status-Management
 
 ### 🔧 Makro-System
 - **Automatische Text-Bereinigung:** 13 vordefinierte Schritte
@@ -101,12 +103,11 @@ ollama run jobautomation/OpenEuroLLM-German
 - **Ersetzen:** Einzeln oder Alle ersetzen
 
 ### Makro-System
-- **Text-Bereinigung:** 13 Schritte zur professionellen Nachbearbeitung
+- **Text-Bereinigung:** 18 Schritte zur professionellen Nachbearbeitung
 - **Anführungszeichen:** Französische ↔ Deutsche Konvertierung
 - **Apostrophe:** Korrektur verschiedener Apostrophe-Formen
 - **Makro-Editor:** Übersichtliche Verwaltung und Bearbeitung
 - **Schritt-für-Schritt:** Einzelne Schritte aktivieren/deaktivieren
-- **Cursor-Navigation:** Automatisches Folgen verschobener Schritte
 
 ## 📦 Voraussetzungen
 
@@ -140,12 +141,9 @@ mvn javafx:run
   - `config/textanalysis.properties` für Textanalyse-Listen
   - `config/sessions/*.json` für gespeicherte Chat-Sessions des KI-Assistenten
 - Wichtige Schlüssel in `parameters.properties`:
-  - `ui.default_theme`, `ui.editor_font_size`, `ui.last_docx_directory`
-  - `ui.ollama_window_{x,y,w,h}`, `ui.selected_session`
   - `session.max_qapairs_per_session`
   - `ollama.temperature`, `ollama.max_tokens`, `ollama.top_p`, `ollama.repeat_penalty`
 
-Beispiel `config/parameters.properties`:
 
 ```properties
 # UI
@@ -170,17 +168,11 @@ ollama.repeat_penalty=1.3
 3. Das letzte Verzeichnis wird automatisch vorgeschlagen
 
 ### Schritt 2: Dateien filtern und auswählen
-1. **Einfache Suche:** Verwenden Sie das Suchfeld für Textsuche
-2. **Regex-Filterung:** Aktivieren Sie "Regex aktiv" für erweiterte Filterung
-3. **Dateien auswählen:** Drag & Drop zwischen den Tabellen
-4. **Sortierung:** Wählen Sie "Aufsteigend" oder "Absteigend"
+1. **Dateien auswählen:** Drag & Drop zwischen den Tabellen
+2. **Sortierung:** In der rechten Tabelle können Dateien mit CTRL-Cursortasten verschoben werden
 
-### Schritt 3: Verarbeitung starten
-1. Wählen Sie Dateien aus der rechten Tabelle
-2. Klicken Sie auf "Ausgewählte verarbeiten" oder "Alle verarbeiten"
-3. Das Ergebnis wird im Text-Editor angezeigt
 
-### Schritt 4: Text bearbeiten
+### Schritt 3: Text bearbeiten
 1. **Suchen/Ersetzen:** Ctrl+F oder Button "Suchen/Ersetzen"
 2. **Makros anwenden:** Button "Makros" für automatische Bereinigung
 3. **Datei speichern:** Ctrl+S oder Button "Speichern"
@@ -227,7 +219,7 @@ ollama.repeat_penalty=1.3
 
 Hinweise:
 - Niedrigere `temperature` = präzisere, konsistentere Antworten.
-- Erhöhe `max_tokens`, wenn Antworten gekürzt sind.
+- Erhöhe `max_tokens`, wenn Antworten gekürzt werden sollen.
 - `repeat_penalty` leicht > 1.0 gegen Wiederholungen.
 
 ### Troubleshooting KI (Ollama)
@@ -242,6 +234,48 @@ Hinweise:
 ### Screenshot
 ![KI-Assistent](docs/images/ki-assistent.png)
 _(Platzhalter – Screenshot kann hier abgelegt werden)_
+
+## 📥 Downloads-Monitor
+
+Der Downloads-Monitor überwacht automatisch Ihr Downloads-Verzeichnis auf neue DOCX-Dateien und ersetzt passende Dateien in Ihrem Projektverzeichnis.
+
+### Funktionsweise
+- **Automatische Überwachung:** Prüft alle 5 Sekunden das Downloads-Verzeichnis
+- **Intelligente Namenserkennung:** Vergleicht Dateinamen (ohne Erweiterung) mit vorhandenen DOCX-Dateien
+- **Sichere Ersetzung:** Erstellt automatisch Backups der ursprünglichen Dateien
+- **Zwei Modi:**
+  - **Namensvergleich:** Ersetzt nur passende Dateien
+  - **Alle DOCX kopieren:** Kopiert alle DOCX-Dateien ohne Namensvergleich
+
+### Aktivierung
+1. **Checkbox aktivieren:** "📥 Downloads-Monitor: Neue Dateien automatisch überwachen"
+2. **Downloads-Verzeichnis wählen:** Dialog erscheint beim ersten Aktivieren
+3. **Optionen konfigurieren:** 
+   - Standard: Namensvergleich und Ersetzung
+   - "Alle DOCX kopieren": Kopiert alle DOCX-Dateien ohne Namensvergleich
+4. **Automatischer Start:** Monitor läuft im Hintergrund
+
+### Backup-System
+- **Automatische Backups:** Ersetzte Dateien werden in `backup/` gespeichert
+- **Zeitstempel:** Backup-Dateien erhalten Datum/Zeit-Suffix
+- **Sichere Ersetzung:** Original wird erst nach erfolgreichem Backup ersetzt
+
+### Konfiguration
+Einstellungen werden in `config/parameters.properties` gespeichert:
+```properties
+# Downloads-Monitor
+downloads_directory=C:\Users\Benutzer\Downloads
+backup_directory=G:\workspace\Manuskript\backup
+copy_all_docx=false
+```
+
+### Beispiel-Workflow
+1. **Datei herunterladen:** Neue DOCX-Datei erscheint im Downloads-Verzeichnis
+2. **Automatische Erkennung:** Monitor erkennt die neue Datei
+3. **Namensvergleich:** Sucht nach passender Datei im Projektverzeichnis
+4. **Backup erstellen:** Original-Datei wird als Backup gesichert
+5. **Ersetzung:** Neue Datei ersetzt die Original-Datei
+6. **UI-Aktualisierung:** Datei-Liste wird automatisch aktualisiert
 
 ## 🧩 Textanalyse-Konfiguration
 
@@ -404,11 +438,12 @@ config/
 - ✅ Pattern-Speicherung für Such- und Ersetzungs-Patterns
 
 #### Neu hinzugekommen
-- 🔐 Hash-basierte Erkennung externer DOCX-Änderungen (CRC32) mit Banner/Popup „DOCX extern geändert“.
+- 🔐 Hash-basierte Erkennung externer DOCX-Änderungen (CRC32) mit Banner/Popup „DOCX extern geändert".
 - 🧩 Seiten-by-Seiten-Diff mit Checkbox-Merge – Auswahl wird ausschließlich ins Sidecar übernommen, mit Backup im `.history/`-Ordner.
-- 💾 Überarbeitetes Speichern: Klarer Dialog, sicherer Sidecar-Only-Write, „Silent Save“ bei Navigation.
+- 💾 Überarbeitetes Speichern: Klarer Dialog, sicherer Sidecar-Only-Write, „Silent Save" bei Navigation.
 - 📡 KI-Streaming mit Live-Progress und Autoscroll im Ausgabefenster.
 - 💬 Chat-Sessions: Zuverlässige Speicherung abgeschlossener Antworten; automatische Session-Splitting.
+- 📥 Downloads-Monitor: Automatische Überwachung des Downloads-Verzeichnisses mit intelligenter Namenserkennung, Backup-System und zwei Modi (Namensvergleich / Alle DOCX kopieren).
 
 ## 🤝 Beitragen
 
