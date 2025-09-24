@@ -56,6 +56,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.StandardCopyOption;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.atomic.AtomicBoolean;
 import com.manuskript.DocxSplitProcessor;
 import com.manuskript.DocxSplitProcessor.Chapter;
 
@@ -90,6 +96,7 @@ public class MainController implements Initializable {
     @FXML private Button btnThemeToggle;
     @FXML private Button btnSplit;
     @FXML private Button btnNewChapter;
+    @FXML private CheckBox chkDownloadsMonitor;
     
     // Status
     // ProgressBar und lblStatus wurden entfernt
@@ -108,6 +115,12 @@ public class MainController implements Initializable {
     
     // Map zur Verfolgung geöffneter Editoren
     private static final Map<String, EditorWindow> openEditors = new HashMap<>();
+    
+    // Downloads-Monitor
+    private Timer downloadsMonitorTimer;
+    private File downloadsDirectory;
+    private File backupDirectory;
+    private AtomicBoolean isMonitoring = new AtomicBoolean(false);
     
     // Theme-System
     private int currentThemeIndex = 0;
@@ -129,6 +142,7 @@ public class MainController implements Initializable {
         setupDragAndDrop();
         docxProcessor = new DocxProcessor();
         loadLastDirectory();
+        loadDownloadsMonitorSettings();
         // loadRecentRegexList entfernt - einfache Lösung
         
                     // CSS initial laden und Theme-Klassen setzen, bevor wir Theme anwenden
@@ -210,6 +224,10 @@ public class MainController implements Initializable {
         btnSelectDirectory.setOnAction(e -> selectDirectory());
         // Filter, Sortierung und Format-Event-Handler entfernt - einfache Lösung
         btnAddToSelected.setOnAction(e -> addSelectedToRight());
+        
+        // Downloads-Monitor Event-Handler
+        chkDownloadsMonitor.setOnAction(e -> toggleDownloadsMonitor());
+        
         btnRemoveFromSelected.setOnAction(e -> removeSelectedFromRight());
         
 
@@ -2481,6 +2499,427 @@ public class MainController implements Initializable {
         this.suppressExternalChangeDialog = suppress;
     }
     
+    /**
+     * Schaltet den Downloads-Monitor ein/aus
+     */
+    private void toggleDownloadsMonitor() {
+        if (chkDownloadsMonitor.isSelected()) {
+            // Downloads-Monitor aktivieren
+            if (downloadsDirectory == null) {
+                // Erstes Mal - Downloads-Verzeichnis auswählen
+                showDownloadsDirectoryDialog();
+            } else {
+                // Verzeichnis bereits gesetzt - Dialog trotzdem anzeigen für Änderung
+                showDownloadsDirectoryDialog();
+            }
+            
+            if (downloadsDirectory != null) {
+                startDownloadsMonitor();
+                updateStatus("Downloads-Monitor aktiviert: " + downloadsDirectory.getAbsolutePath());
+            } else {
+                // Benutzer hat abgebrochen
+                chkDownloadsMonitor.setSelected(false);
+            }
+        } else {
+            // Downloads-Monitor deaktivieren
+            stopDownloadsMonitor();
+            updateStatus("Downloads-Monitor deaktiviert");
+        }
+    }
+    
+    /**
+     * Zeigt Dialog zur Auswahl des Downloads-Verzeichnisses
+     */
+    private void showDownloadsDirectoryDialog() {
+        // Checkbox erstellen
+        CheckBox chkCopyAllDocx = new CheckBox("Alle DOCX-Dateien kopieren (ohne Namensvergleich)");
+        chkCopyAllDocx.setStyle("-fx-font-size: 12px; -fx-padding: 5px;");
+        
+        // VBox mit Text und Checkbox erstellen
+        VBox customContentBox = new VBox(10);
+        Label textLabel = new Label(
+            "Der Downloads-Monitor überwacht automatisch das Downloads-Verzeichnis auf neue DOCX-Dateien.\n\n" +
+            "• Neue Dateien werden automatisch erkannt\n" +
+            "• Passende Dateien werden automatisch ersetzt\n" +
+            "• Alte Dateien werden als Backup gesichert\n\n" +
+            "Bitte wählen Sie das Downloads-Verzeichnis aus:"
+        );
+        textLabel.setWrapText(true);
+        textLabel.setStyle("-fx-font-size: 12px;");
+        
+        customContentBox.getChildren().addAll(textLabel, chkCopyAllDocx);
+        
+        // Dialog mit Custom Content
+        CustomAlert infoAlert = new CustomAlert(Alert.AlertType.CONFIRMATION, "📥 Downloads-Monitor");
+        infoAlert.setHeaderText("Downloads-Monitor einrichten");
+        
+        // Custom Content setzen (das ist der Trick!)
+        infoAlert.setCustomContent(customContentBox);
+        infoAlert.applyTheme(currentThemeIndex);
+        infoAlert.initOwner(primaryStage);
+        
+        // Warnung bei "Alle DOCX kopieren"
+        chkCopyAllDocx.setOnAction(e -> {
+            if (chkCopyAllDocx.isSelected()) {
+                CustomAlert warningAlert = new CustomAlert(Alert.AlertType.WARNING, "⚠️ Warnung");
+                warningAlert.setHeaderText("Alle DOCX-Dateien werden kopiert");
+                warningAlert.setContentText(
+                    "ACHTUNG: Wenn diese Option aktiviert ist, werden ALLE DOCX-Dateien aus dem Downloads-Verzeichnis " +
+                    "in Ihr Projektverzeichnis kopiert - OHNE Namensvergleich!\n\n" +
+                    "• Alle DOCX-Dateien werden verschoben\n" +
+                    "• Keine Überprüfung auf passende Namen\n" +
+                    "• Möglicherweise unerwünschte Dateien\n\n" +
+                    "Sind Sie sicher, dass Sie fortfahren möchten?"
+                );
+                warningAlert.applyTheme(currentThemeIndex);
+                warningAlert.initOwner(primaryStage);
+                Optional<ButtonType> warningResult = warningAlert.showAndWait();
+                if (warningResult.isEmpty() || warningResult.get() != ButtonType.OK) {
+                    chkCopyAllDocx.setSelected(false);
+                }
+            }
+        });
+        
+        Optional<ButtonType> result = infoAlert.showAndWait();
+        if (result.isEmpty() || result.get() != ButtonType.OK) {
+            // Abgebrochen - Checkbox wieder deaktivieren
+            chkDownloadsMonitor.setSelected(false);
+            updateStatus("Downloads-Monitor deaktiviert");
+            return;
+        }
+        
+        // DirectoryChooser mit besserem Styling
+        DirectoryChooser directoryChooser = new DirectoryChooser();
+        directoryChooser.setTitle("📁 Downloads-Verzeichnis auswählen");
+        
+        // Vorheriges Downloads-Verzeichnis vorausfüllen falls vorhanden
+        String lastDownloadsDir = preferences.get("downloads_directory", null);
+        if (lastDownloadsDir != null) {
+            File lastDir = new File(lastDownloadsDir);
+            if (lastDir.exists()) {
+                directoryChooser.setInitialDirectory(lastDir);
+            } else {
+                // Fallback auf Standard-Downloads-Verzeichnis
+                String userHome = System.getProperty("user.home");
+                File defaultDownloads = new File(userHome, "Downloads");
+                if (defaultDownloads.exists()) {
+                    directoryChooser.setInitialDirectory(defaultDownloads);
+                }
+            }
+        } else {
+            // Standard-Downloads-Verzeichnis vorschlagen
+            String userHome = System.getProperty("user.home");
+            File defaultDownloads = new File(userHome, "Downloads");
+            if (defaultDownloads.exists()) {
+                directoryChooser.setInitialDirectory(defaultDownloads);
+            }
+        }
+        
+        File selectedDirectory = directoryChooser.showDialog(primaryStage);
+        if (selectedDirectory != null) {
+            downloadsDirectory = selectedDirectory;
+            // Backup-Verzeichnis im aktuellen Arbeitsverzeichnis erstellen
+            backupDirectory = new File(txtDirectoryPath.getText(), "backup");
+            if (!backupDirectory.exists()) {
+                backupDirectory.mkdirs();
+            }
+            
+            // Einstellungen speichern (Checkbox-Wert aus dem Dialog)
+            preferences.put("downloads_directory", downloadsDirectory.getAbsolutePath());
+            preferences.put("backup_directory", backupDirectory.getAbsolutePath());
+            preferences.put("copy_all_docx", String.valueOf(chkCopyAllDocx.isSelected()));
+            try {
+                preferences.flush();
+            } catch (Exception e) {
+                logger.warn("Konnte Downloads-Einstellungen nicht speichern: {}", e.getMessage());
+            }
+            
+            // Erfolgs-Dialog mit Bestätigung
+            CustomAlert successAlert = new CustomAlert(Alert.AlertType.CONFIRMATION, "✅ Downloads-Monitor aktiviert");
+            successAlert.setHeaderText("Downloads-Monitor erfolgreich eingerichtet");
+            successAlert.setContentText(
+                "Downloads-Verzeichnis: " + downloadsDirectory.getAbsolutePath() + "\n" +
+                "Backup-Verzeichnis: " + backupDirectory.getAbsolutePath() + "\n\n" +
+                "Der Monitor überwacht jetzt alle 5 Sekunden auf neue DOCX-Dateien."
+            );
+            successAlert.applyTheme(currentThemeIndex);
+            successAlert.initOwner(primaryStage);
+            successAlert.showAndWait();
+        } else {
+            // Benutzer hat abgebrochen
+            CustomAlert cancelAlert = new CustomAlert(Alert.AlertType.WARNING, "❌ Downloads-Monitor abgebrochen");
+            cancelAlert.setHeaderText("Downloads-Monitor nicht aktiviert");
+            cancelAlert.setContentText("Sie können den Downloads-Monitor jederzeit über die Checkbox aktivieren.");
+            cancelAlert.applyTheme(currentThemeIndex);
+            cancelAlert.initOwner(primaryStage);
+            cancelAlert.showAndWait();
+        }
+    }
+    
+    /**
+     * Startet den Downloads-Monitor
+     */
+    private void startDownloadsMonitor() {
+        if (isMonitoring.get()) {
+            logger.warn("Downloads-Monitor bereits aktiv");
+            return; // Bereits aktiv
+        }
+        
+        logger.info("Starte Downloads-Monitor...");
+        isMonitoring.set(true);
+        downloadsMonitorTimer = new Timer("DownloadsMonitor", true);
+        
+        // Alle 5 Sekunden prüfen
+        downloadsMonitorTimer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                logger.debug("Downloads-Monitor Timer-Tick");
+                checkForNewFiles();
+            }
+        }, 0, 5000); // Sofort starten, dann alle 5 Sekunden
+        
+        logger.info("Downloads-Monitor gestartet für: {}", downloadsDirectory.getAbsolutePath());
+        logger.info("Downloads-Monitor Status: isMonitoring={}, timer={}", isMonitoring.get(), downloadsMonitorTimer != null);
+    }
+    
+    /**
+     * Stoppt den Downloads-Monitor
+     */
+    private void stopDownloadsMonitor() {
+        if (downloadsMonitorTimer != null) {
+            downloadsMonitorTimer.cancel();
+            downloadsMonitorTimer = null;
+        }
+        isMonitoring.set(false);
+        logger.info("Downloads-Monitor gestoppt");
+    }
+    
+    /**
+     * Prüft auf neue Dateien im Downloads-Verzeichnis
+     */
+    private void checkForNewFiles() {
+        logger.info("=== Downloads-Monitor Test gestartet ===");
+        
+        if (!isMonitoring.get() || downloadsDirectory == null) {
+            logger.warn("Downloads-Monitor nicht aktiv oder Verzeichnis null");
+            logger.warn("isMonitoring: {}, downloadsDirectory: {}", isMonitoring.get(), downloadsDirectory);
+            return;
+        }
+        
+        try {
+            logger.info("Prüfe Downloads-Verzeichnis: {}", downloadsDirectory.getAbsolutePath());
+            logger.info("Verzeichnis existiert: {}", downloadsDirectory.exists());
+            logger.info("Verzeichnis ist lesbar: {}", downloadsDirectory.canRead());
+            
+            File[] files = downloadsDirectory.listFiles((dir, name) -> 
+                name.toLowerCase().endsWith(".docx") && new File(dir, name).isFile());
+            
+            logger.info("listFiles() Ergebnis: {}", files != null ? files.length : "null");
+            
+            if (files == null) {
+                logger.warn("Keine Dateien im Downloads-Verzeichnis - listFiles() returned null");
+                return;
+            }
+            
+            logger.info("Gefundene DOCX-Dateien: {}", files.length);
+            if (files.length == 0) {
+                logger.info("Keine DOCX-Dateien gefunden");
+                return;
+            }
+            
+            // Prüfe ob "Alle DOCX kopieren" aktiviert ist
+            boolean copyAllDocx = Boolean.parseBoolean(preferences.get("copy_all_docx", "false"));
+            logger.info("Alle DOCX kopieren aktiviert: {}", copyAllDocx);
+            
+            logger.info("Starte Schleife über {} Dateien", files.length);
+            for (int i = 0; i < files.length; i++) {
+                File downloadFile = files[i];
+                logger.info("Schleife Iteration {}/{}: {}", i+1, files.length, downloadFile.getName());
+                logger.info("Prüfe Datei: {} (Größe: {} bytes)", downloadFile.getName(), downloadFile.length());
+                
+                // Prüfe ob Datei vollständig ist (nicht mehr geschrieben wird)
+                if (isFileComplete(downloadFile)) {
+                    logger.info("Vollständige Datei gefunden: {}", downloadFile.getName());
+                    
+                    if (copyAllDocx) {
+                        // Alle DOCX-Dateien kopieren ohne Namensvergleich
+                        logger.info("Alle DOCX kopieren aktiviert - kopiere: {}", downloadFile.getName());
+                        Platform.runLater(() -> copyAllDocxFile(downloadFile));
+                    } else {
+                        // Normale Logik mit Namensvergleich
+                        String fileName = downloadFile.getName();
+                        String baseName = fileName.substring(0, fileName.lastIndexOf('.'));
+                        logger.info("Suche nach Basis-Name: {}", baseName);
+                        
+                        // Suche in ALLEN Dateien im Verzeichnis (nicht nur in allDocxFiles)
+                        boolean found = false;
+                        File currentDir = new File(txtDirectoryPath.getText());
+                        if (currentDir.exists()) {
+                            File[] allFiles = currentDir.listFiles((dir, name) -> 
+                                name.toLowerCase().endsWith(".docx") && new File(dir, name).isFile());
+                            
+                            if (allFiles != null) {
+                                logger.info("Prüfe {} Dateien im Verzeichnis", allFiles.length);
+                                for (File existingFile : allFiles) {
+                                    String existingName = existingFile.getName();
+                                    if (existingName.toLowerCase().endsWith(".docx")) {
+                                        existingName = existingName.substring(0, existingName.lastIndexOf('.'));
+                                    }
+                                    
+                                    logger.info("Vergleiche mit vorhandener Datei: {}", existingName);
+                                    
+                                    // Name-Vergleich (ignoriere Groß-/Kleinschreibung und normalisiere Leerzeichen)
+                                    String normalizedBaseName = baseName.trim().replaceAll("\\s+", " ");
+                                    String normalizedExistingName = existingName.trim().replaceAll("\\s+", " ");
+                                    if (normalizedBaseName.equalsIgnoreCase(normalizedExistingName)) {
+                                        logger.info("Passende Datei gefunden! Ersetze: {} -> {}", existingName, baseName);
+                                        // Datei gefunden - verschieben
+                                        Platform.runLater(() -> replaceFileWithDownload(existingFile, downloadFile));
+                                        found = true;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        
+                        if (!found) {
+                            logger.info("Keine passende Datei für {} gefunden", baseName);
+                        }
+                    }
+                } else {
+                    logger.info("Datei {} noch nicht vollständig", downloadFile.getName());
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Fehler beim Prüfen der Downloads: {}", e.getMessage(), e);
+        }
+        
+        logger.info("=== Downloads-Monitor Test beendet ===");
+    }
+    
+    /**
+     * Prüft ob eine Datei vollständig ist (nicht mehr geschrieben wird)
+     */
+    private boolean isFileComplete(File file) {
+        try {
+            long size1 = file.length();
+            logger.debug("Datei {} - Größe: {} bytes", file.getName(), size1);
+            // Vereinfachte Prüfung: nur Größe > 0
+            boolean isComplete = size1 > 0;
+            logger.debug("Datei {} vollständig: {}", file.getName(), isComplete);
+            return isComplete;
+        } catch (Exception e) {
+            logger.error("Fehler beim Prüfen der Datei-Vollständigkeit: {}", e.getMessage());
+            return false;
+        }
+    }
+    
+    /**
+     * Lädt die Downloads-Monitor-Einstellungen
+     */
+    private void loadDownloadsMonitorSettings() {
+        String downloadsDir = preferences.get("downloads_directory", null);
+        String backupDir = preferences.get("backup_directory", null);
+        
+        if (downloadsDir != null && backupDir != null) {
+            downloadsDirectory = new File(downloadsDir);
+            backupDirectory = new File(backupDir);
+            
+            // Prüfe ob Verzeichnisse noch existieren
+            if (downloadsDirectory.exists() && backupDirectory.exists()) {
+                // Automatisch aktivieren wenn Verzeichnisse noch existieren
+                chkDownloadsMonitor.setSelected(true);
+                startDownloadsMonitor();
+                updateStatus("Downloads-Monitor automatisch aktiviert");
+            } else {
+                // Verzeichnisse nicht mehr vorhanden - Einstellungen zurücksetzen
+                preferences.remove("downloads_directory");
+                preferences.remove("backup_directory");
+                try {
+                    preferences.flush();
+                } catch (Exception e) {
+                    logger.warn("Konnte Downloads-Einstellungen nicht zurücksetzen: {}", e.getMessage());
+                }
+            }
+        }
+    }
+    
+    /**
+     * Kopiert alle DOCX-Dateien ohne Namensvergleich
+     */
+    private void copyAllDocxFile(File downloadFile) {
+        try {
+            File targetFile = new File(txtDirectoryPath.getText(), downloadFile.getName());
+            
+            // Prüfe ob Datei bereits existiert
+            if (targetFile.exists()) {
+                // Backup der alten Datei erstellen
+                String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss"));
+                String backupFileName = targetFile.getName().replace(".docx", "_" + timestamp + ".docx");
+                File backupFile = new File(backupDirectory, backupFileName);
+                
+                // Alte Datei nach Backup verschieben
+                Files.move(targetFile.toPath(), backupFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                logger.info("Alte Datei nach Backup verschoben: {} -> {}", targetFile.getName(), backupFileName);
+            }
+            
+            // Download-Datei an Zielort verschieben
+            Files.move(downloadFile.toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            
+            // Datei-Liste aktualisieren
+            Platform.runLater(() -> {
+                File currentDir = new File(txtDirectoryPath.getText());
+                if (currentDir.exists()) {
+                    loadDocxFiles(currentDir);
+                }
+                updateStatus("Alle DOCX kopiert: " + downloadFile.getName());
+            });
+            
+            logger.info("Alle DOCX kopiert: {} -> {}", downloadFile.getName(), targetFile.getAbsolutePath());
+        } catch (Exception e) {
+            logger.error("Fehler beim Kopieren aller DOCX: {}", e.getMessage(), e);
+            Platform.runLater(() -> updateStatus("Fehler beim Kopieren: " + e.getMessage()));
+        }
+    }
+    
+    /**
+     * Ersetzt eine vorhandene Datei mit der Download-Datei
+     */
+    private void replaceFileWithDownload(File existingFile, File downloadFile) {
+        try {
+            File targetFile = existingFile;
+            
+            // Backup der alten Datei erstellen
+            String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss"));
+            String backupFileName = targetFile.getName().replace(".docx", "_" + timestamp + ".docx");
+            File backupFile = new File(backupDirectory, backupFileName);
+            
+            // Alte Datei nach Backup verschieben
+            Files.move(targetFile.toPath(), backupFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            
+            // Download-Datei an Zielort verschieben
+            Files.move(downloadFile.toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            
+            // Datei-Liste aktualisieren
+            Platform.runLater(() -> {
+                File currentDir = new File(txtDirectoryPath.getText());
+                if (currentDir.exists()) {
+                    loadDocxFiles(currentDir);
+                }
+                updateStatus("Datei ersetzt: " + targetFile.getName() + " (Backup: " + backupFileName + ")");
+            });
+            
+            logger.info("Datei ersetzt: {} -> {} (Backup: {})", 
+                downloadFile.getName(), targetFile.getName(), backupFileName);
+                
+        } catch (Exception e) {
+            logger.error("Fehler beim Ersetzen der Datei: {}", e.getMessage());
+            Platform.runLater(() -> {
+                updateStatus("Fehler beim Ersetzen der Datei: " + e.getMessage());
+            });
+        }
+    }
+    
     public void setPrimaryStage(CustomStage primaryStage) {
         this.primaryStage = primaryStage;
         
@@ -2502,6 +2941,9 @@ public class MainController implements Initializable {
             
             // Stoppe den File Watcher
             stopFileWatcher();
+            
+            // Stoppe den Downloads-Monitor
+            stopDownloadsMonitor();
             
             // Prüfe ob noch andere Fenster offen sind
             boolean hasOtherWindows = false;
