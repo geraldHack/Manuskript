@@ -14,6 +14,7 @@ import ch.qos.logback.core.util.StatusPrinter;
 
 import java.io.File;
 import java.io.IOException;
+import com.manuskript.ResourceManager;
 
 public class Main extends Application {
     
