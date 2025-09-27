@@ -59,9 +59,9 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.Set;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.fxmisc.richtext.model.StyleSpan;
 import javafx.animation.Timeline;
@@ -7361,11 +7361,135 @@ spacer.setStyle("-fx-background-color: transparent;");
                         } catch (java.util.prefs.BackingStoreException ex) {
                             logger.warn("Konnte Quote-Style nicht speichern: " + ex.getMessage());
                         }
+                        
+                        // NEUE FUNKTIONALITÄT: Konvertiere alle Anführungszeichen im Text
+                        convertAllQuotationMarksInText(selected);
                         break;
                     }
                 }
             });
         }
+    }
+    
+    /**
+     * Konvertiert alle Anführungszeichen im Text zu einem einheitlichen Stil
+     */
+    private void convertAllQuotationMarksInText(String selectedStyle) {
+        if (codeArea == null) return;
+        
+        String currentText = codeArea.getText();
+        if (currentText == null || currentText.isEmpty()) return;
+        
+        // Bestimme den Ziel-Stil
+        String targetStyle = getTargetStyleFromSelected(selectedStyle);
+        if (targetStyle == null) return;
+        
+        // Finde alle Anführungszeichen und markiere sie
+        List<QuotationMarkConverter.QuotationMark> marks = QuotationMarkConverter.findQuotationMarks(currentText);
+        List<QuotationMarkConverter.Inconsistency> inconsistencies = QuotationMarkConverter.findInconsistencies(currentText);
+        
+        // Markiere alle gefundenen Anführungszeichen
+        markQuotationMarks(marks, inconsistencies);
+        
+        // Konvertiere alle Anführungszeichen
+        String convertedText = QuotationMarkConverter.convertQuotationMarks(currentText, targetStyle);
+        
+        // Prüfe ob Änderungen vorgenommen wurden
+        if (!currentText.equals(convertedText)) {
+            // Speichere Cursor-Position
+            int caretPosition = codeArea.getCaretPosition();
+            
+            // Ersetze den Text
+            codeArea.replaceText(0, currentText.length(), convertedText);
+            
+            // Stelle Cursor-Position wieder her
+            if (caretPosition <= convertedText.length()) {
+                codeArea.moveTo(caretPosition);
+            } else {
+                codeArea.moveTo(convertedText.length());
+            }
+            
+            // Zeige Erfolgsmeldung
+            logger.info("Alle Anführungszeichen zu " + selectedStyle + " konvertiert");
+        }
+    }
+    
+    /**
+     * Markiert alle gefundenen Anführungszeichen im Editor
+     */
+    private void markQuotationMarks(List<QuotationMarkConverter.QuotationMark> marks, 
+                                    List<QuotationMarkConverter.Inconsistency> inconsistencies) {
+        if (codeArea == null || marks == null) return;
+        
+        // Erstelle eine Map für Inkonsistenzen für schnellen Zugriff
+        Set<Integer> inconsistencyPositions = new HashSet<>();
+        for (QuotationMarkConverter.Inconsistency inconsistency : inconsistencies) {
+            inconsistencyPositions.add(inconsistency.mark.position);
+        }
+        
+        // Erstelle StyleSpans für alle Markierungen
+        StyleSpansBuilder<Collection<String>> spansBuilder = new StyleSpansBuilder<>();
+        int lastEnd = 0;
+        
+        for (QuotationMarkConverter.QuotationMark mark : marks) {
+            int position = mark.position;
+            int length = mark.mark.length();
+            int end = position + length;
+            
+            // Füge unmarkierten Text hinzu
+            if (position > lastEnd) {
+                spansBuilder.add(Collections.emptyList(), position - lastEnd);
+            }
+            
+            // Bestimme den Style direkt
+            Collection<String> style;
+            if (inconsistencyPositions.contains(position)) {
+                // Rote Markierung für Inkonsistenzen
+                style = Collections.singleton("-rtfx-background-color: #ffcccc; -rtfx-border-color: #ff0000; -rtfx-border-width: 2px;");
+            } else {
+                // Blaue Markierung für normale Anführungszeichen
+                style = Collections.singleton("-rtfx-background-color: #cceeff; -rtfx-border-color: #0066cc; -rtfx-border-width: 1px;");
+            }
+            
+            // Füge markierten Text hinzu
+            spansBuilder.add(style, length);
+            lastEnd = end;
+        }
+        
+        // Füge restlichen Text hinzu
+        String text = codeArea.getText();
+        if (lastEnd < text.length()) {
+            spansBuilder.add(Collections.emptyList(), text.length() - lastEnd);
+        }
+        
+        // Wende die Styles an
+        StyleSpans<Collection<String>> styleSpans = spansBuilder.create();
+        codeArea.setStyleSpans(0, styleSpans);
+        
+        // Zeige Zusammenfassung
+        logger.info("Gefundene Anführungszeichen: " + marks.size() + 
+                   ", Inkonsistenzen: " + inconsistencies.size());
+    }
+    
+    
+    /**
+     * Bestimmt den Ziel-Stil basierend auf der ausgewählten Option
+     */
+    private String getTargetStyleFromSelected(String selected) {
+        if (selected == null) return null;
+        
+        // Mappe die ausgewählten Stile zu den QuotationMarkConverter-Stilen
+        if (selected.contains("Deutsch")) {
+            return "deutsch";
+        } else if (selected.contains("Französisch")) {
+            return "französisch";
+        } else if (selected.contains("Englisch")) {
+            return "englisch";
+        } else if (selected.contains("Schweizer")) {
+            return "schweizer";
+        }
+        
+        return null;
     }
     
     private void formatTextBold() {
@@ -8960,18 +9084,6 @@ spacer.setStyle("-fx-background-color: transparent;");
         }
     }
     
-    /**
-     * Setzt Text ohne originalContent zu ändern (für Diff-Änderungen)
-     */
-    public void setTextWithoutUpdatingOriginal(String text) {
-        codeArea.replaceText(text);
-        
-        // Cursor an den Anfang setzen
-        codeArea.displaceCaret(0);
-        codeArea.requestFollowCaret();
-        
-        updateStatus("Text gesetzt (ohne Original-Update)");
-    }
 
 }
 
