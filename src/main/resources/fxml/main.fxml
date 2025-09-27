@@ -4,8 +4,11 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox fx:id="mainContainer" spacing="10" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.manuskript.MainController">
-   <children>
+<BorderPane fx:id="mainContainer" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.manuskript.MainController">
+   <center>
+      <!-- Haupt-Container -->
+      <VBox spacing="10">
+         <children>
       <!-- Verzeichnis-Auswahl -->
       <HBox spacing="10" alignment="CENTER_LEFT">
          <children>
@@ -96,9 +99,7 @@
             <Insets bottom="5.0" left="10.0" right="10.0" />
          </padding>
       </HBox>
-      
-
-      
-
-   </children>
-</VBox> 
+         </children>
+      </VBox>
+   </center>
+</BorderPane> 
