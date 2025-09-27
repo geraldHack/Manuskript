@@ -104,7 +104,7 @@ public class DocxProcessor {
             } else if (fileName.toLowerCase().endsWith(".doc")) {
                 chapterName = fileName.substring(0, fileName.length() - 4);
             }
-            content.append("# ").append(chapterName).append("\n\n");
+            content.append("# ").append(chapterName).append("\n");
         }
         
         // DOCX-Lesen mit Docx4J
@@ -121,7 +121,8 @@ public class DocxProcessor {
                     if (format == OutputFormat.HTML) {
                             content.append("<p>").append(paragraphText).append("</p>\n");
                         } else if (format == OutputFormat.MARKDOWN) {
-                            content.append(paragraphText).append("\n\n");
+                            // Nur eine Leerzeile zwischen Absätzen, nicht zwei
+                            content.append(paragraphText).append("\n");
                     } else {
                             content.append(paragraphText).append("\n");
                         }
@@ -184,7 +185,8 @@ public class DocxProcessor {
                     if (format == OutputFormat.HTML) {
                         documentContent.append("<p>").append(paragraphText).append("</p>\n");
                     } else if (format == OutputFormat.MARKDOWN) {
-                        documentContent.append(paragraphText).append("\n\n");
+                        // Nur eine Leerzeile zwischen Absätzen, nicht zwei
+                        documentContent.append(paragraphText).append("\n");
                     } else {
                         documentContent.append(paragraphText).append("\n");
                     }

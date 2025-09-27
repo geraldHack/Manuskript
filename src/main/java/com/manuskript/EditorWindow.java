@@ -8960,6 +8960,18 @@ spacer.setStyle("-fx-background-color: transparent;");
         }
     }
     
+    /**
+     * Setzt Text ohne originalContent zu ändern (für Diff-Änderungen)
+     */
+    public void setTextWithoutUpdatingOriginal(String text) {
+        codeArea.replaceText(text);
+        
+        // Cursor an den Anfang setzen
+        codeArea.displaceCaret(0);
+        codeArea.requestFollowCaret();
+        
+        updateStatus("Text gesetzt (ohne Original-Update)");
+    }
 
 }
 

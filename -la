@@ -1,5 +1,0 @@
-[33mbc35063[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m chore(repo): entferne verbleibenden Index-Eintrag 'für bessere Sichtbarkeit'
-[33m4d9c773[m chore(repo): entferne lokale Artefakte und Testdateien (Unter der Stadt.md, für bessere Sichtbarkeit, test-modelfile, test-simple.modelfile)
-[33m5fc3f7b[m chore(repo): entferne gelöschte Manuskript-Dateien dauerhaft (Der Gott von Demirantha.md, Machtergeifung.*)
-[33mdcf0b51[m build: add javafx-web; feat(ollama): add streaming API and fix build; chore(params): minor parameters.properties update
-[33mf56e50b[m docs(README): beschreibung aktualisiert; feat(chat): autoscroll im output + live-antwort persistenz; feat(diff): hash-check, diff/merge-hinweise; chore(save): sessions zuverlässig speichern

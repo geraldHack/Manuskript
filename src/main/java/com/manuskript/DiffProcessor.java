@@ -180,7 +180,7 @@ public class DiffProcessor {
                         originalLines[originalIndex], ""));
                     originalIndex++;
                     leftLineNumber++;
-                    rightLineNumber++; // Rechte Seite auch erhöhen für Synchronisation
+                    // Rechte Zeilennummer NICHT erhöhen bei DELETE
                     break;
                     
                 case INSERT:

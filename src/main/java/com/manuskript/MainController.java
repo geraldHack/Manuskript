@@ -12,6 +12,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.Node;
 import javafx.scene.control.*;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
@@ -19,6 +20,10 @@ import javafx.scene.layout.VBox;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.stage.FileChooser;
 import javafx.stage.DirectoryChooser;
 import javafx.scene.control.ListCell;
@@ -69,7 +74,8 @@ public class MainController implements Initializable {
     
     private static final Logger logger = LoggerFactory.getLogger(MainController.class);
     
-    @FXML private VBox mainContainer;
+    @FXML private BorderPane mainContainer;
+    private ImageView coverImageView;
     @FXML private Button btnSelectDirectory;
     @FXML private TextField txtDirectoryPath;
     
@@ -143,6 +149,42 @@ public class MainController implements Initializable {
         docxProcessor = new DocxProcessor();
         loadLastDirectory();
         loadDownloadsMonitorSettings();
+        
+        // Erstelle ImageView programmatisch und füge es direkt hinzu
+        coverImageView = new ImageView();
+        coverImageView.setFitWidth(200);
+        coverImageView.setFitHeight(250);
+        coverImageView.setPreserveRatio(true);
+        coverImageView.setOpacity(1.0);
+        coverImageView.setStyle("-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 15, 0, 0, 0);");
+        
+        // Zentriere das ImageView mit HBox
+        HBox imageContainer = new HBox();
+        imageContainer.setAlignment(Pos.CENTER);
+        imageContainer.setPrefHeight(300); // Noch größere Höhe für den Container-Bereich
+        imageContainer.getChildren().add(coverImageView);
+        
+        // Feste Größe für das Cover-Bild (keine Property-Bindings)
+        // coverImageView.fitWidthProperty().bind(imageContainer.widthProperty().subtract(40));
+        // coverImageView.fitHeightProperty().bind(imageContainer.heightProperty().subtract(40));
+        
+        // Wichtig: Container muss wachsen können!
+        imageContainer.setMaxHeight(Double.MAX_VALUE);
+        imageContainer.setMinHeight(300);
+        
+        // Füge ImageView-Container zur BorderPane hinzu
+        if (mainContainer instanceof BorderPane) {
+            ((BorderPane) mainContainer).setTop(imageContainer);
+        }
+        
+        // Debug: Prüfe ob ImageView korrekt erstellt wurde
+        if (coverImageView != null) {
+            logger.info("ImageView programmatisch erstellt und hinzugefügt: {}", coverImageView);
+            // Lade das letzte Cover-Bild beim Start
+            loadLastCoverImage();
+        } else {
+            logger.error("ImageView konnte nicht erstellt werden!");
+        }
         // loadRecentRegexList entfernt - einfache Lösung
         
                     // CSS initial laden und Theme-Klassen setzen, bevor wir Theme anwenden
@@ -458,30 +500,209 @@ public class MainController implements Initializable {
 
     
     private void selectDirectory() {
-        DirectoryChooser directoryChooser = new DirectoryChooser();
-        directoryChooser.setTitle("Verzeichnis mit DOCX-Dateien auswählen");
+        // Erstelle einen benutzerdefinierten Dialog für Verzeichnis + Cover-Bild
+        CustomAlert directoryAlert = new CustomAlert(CustomAlert.AlertType.INFORMATION);
+        directoryAlert.setTitle("Verzeichnis und Cover-Bild auswählen");
+        directoryAlert.setHeaderText("Wählen Sie ein Verzeichnis mit DOCX-Dateien und optional ein Cover-Bild");
         
-        // Verwende das gespeicherte Verzeichnis oder das aktuelle
-        String lastDirectory = preferences.get("lastDirectory", "");
-        if (!lastDirectory.isEmpty()) {
-            File lastDir = new File(lastDirectory);
-            if (lastDir.exists()) {
-                directoryChooser.setInitialDirectory(lastDir);
+        // Layout für den Dialog
+        VBox contentBox = new VBox(15);
+        contentBox.setPadding(new Insets(20));
+        
+        // Verzeichnis-Auswahl
+        HBox directoryBox = new HBox(10);
+        directoryBox.setAlignment(Pos.CENTER_LEFT);
+        
+        Label dirLabel = new Label("Verzeichnis:");
+        TextField dirField = new TextField();
+        dirField.setPromptText("Wählen Sie ein Verzeichnis mit DOCX-Dateien");
+        dirField.setPrefWidth(400);
+        
+        Button btnBrowseDir = new Button("Durchsuchen");
+        btnBrowseDir.setOnAction(e -> {
+            DirectoryChooser directoryChooser = new DirectoryChooser();
+            directoryChooser.setTitle("Verzeichnis mit DOCX-Dateien auswählen");
+            
+            String lastDirectory = preferences.get("lastDirectory", "");
+            if (!lastDirectory.isEmpty()) {
+                File lastDir = new File(lastDirectory);
+                if (lastDir.exists()) {
+                    directoryChooser.setInitialDirectory(lastDir);
+                }
+            } else if (txtDirectoryPath.getText() != null && !txtDirectoryPath.getText().isEmpty()) {
+                File currentDir = new File(txtDirectoryPath.getText());
+                if (currentDir.exists()) {
+                    directoryChooser.setInitialDirectory(currentDir);
+                }
             }
-        } else if (txtDirectoryPath.getText() != null && !txtDirectoryPath.getText().isEmpty()) {
-            File currentDir = new File(txtDirectoryPath.getText());
-            if (currentDir.exists()) {
-                directoryChooser.setInitialDirectory(currentDir);
+            
+            File selectedDirectory = directoryChooser.showDialog(primaryStage);
+            if (selectedDirectory != null) {
+                dirField.setText(selectedDirectory.getAbsolutePath());
             }
+        });
+        
+        directoryBox.getChildren().addAll(dirLabel, dirField, btnBrowseDir);
+        
+        // Cover-Bild-Auswahl
+        HBox coverBox = new HBox(10);
+        coverBox.setAlignment(Pos.CENTER_LEFT);
+        
+        Label coverLabel = new Label("Cover-Bild (optional):");
+        TextField coverField = new TextField();
+        coverField.setPromptText("Pfad zum Cover-Bild");
+        coverField.setPrefWidth(400);
+        
+        Button btnBrowseCover = new Button("Durchsuchen");
+        btnBrowseCover.setOnAction(e -> {
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("Cover-Bild auswählen");
+            fileChooser.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("Bilddateien", "*.png", "*.jpg", "*.jpeg", "*.gif", "*.bmp"),
+                new FileChooser.ExtensionFilter("Alle Dateien", "*.*")
+            );
+            
+            String lastCoverPath = ResourceManager.getParameter("ui.cover_image_path", "");
+            if (!lastCoverPath.isEmpty()) {
+                File lastCoverDir = new File(lastCoverPath).getParentFile();
+                if (lastCoverDir != null && lastCoverDir.exists()) {
+                    fileChooser.setInitialDirectory(lastCoverDir);
+                }
+            }
+            
+            File selectedFile = fileChooser.showOpenDialog(primaryStage);
+            if (selectedFile != null) {
+                coverField.setText(selectedFile.getAbsolutePath());
+            }
+        });
+        
+        coverBox.getChildren().addAll(coverLabel, coverField, btnBrowseCover);
+        
+        // Lade vorherige Werte
+        String lastDir = preferences.get("lastDirectory", "");
+        if (!lastDir.isEmpty()) {
+            dirField.setText(lastDir);
         }
         
-        File selectedDirectory = directoryChooser.showDialog(primaryStage);
-        if (selectedDirectory != null) {
-            txtDirectoryPath.setText(selectedDirectory.getAbsolutePath());
-            // Speichere das ausgewählte Verzeichnis
-            preferences.put("lastDirectory", selectedDirectory.getAbsolutePath());
-            loadDocxFiles(selectedDirectory);
+        String lastCover = ResourceManager.getParameter("ui.cover_image_path", "");
+        if (!lastCover.isEmpty()) {
+            coverField.setText(lastCover);
         }
+        
+        contentBox.getChildren().addAll(directoryBox, coverBox);
+        directoryAlert.setCustomContent(contentBox);
+        
+        // Dialog anzeigen
+        Optional<ButtonType> result = directoryAlert.showAndWait();
+        if (result.isPresent() && result.get() == ButtonType.OK) {
+            String selectedDir = dirField.getText();
+            String selectedCover = coverField.getText();
+            
+            if (!selectedDir.isEmpty()) {
+                File directory = new File(selectedDir);
+                if (directory.exists() && directory.isDirectory()) {
+                    txtDirectoryPath.setText(selectedDir);
+                    loadDocxFiles(directory);
+                    
+                    // Speichere den Pfad in den Einstellungen
+                    preferences.put("lastDirectory", selectedDir);
+                }
+            }
+            
+            // Cover-Bild behandeln
+            if (!selectedCover.isEmpty()) {
+                // Neues Cover-Bild ausgewählt
+                File coverFile = new File(selectedCover);
+                if (coverFile.exists()) {
+                    loadCoverImage(coverFile);
+                    ResourceManager.saveParameter("ui.cover_image_path", selectedCover);
+                }
+            } else {
+                // Kein neues Cover-Bild - entferne das aktuelle nur wenn Verzeichnis gewechselt wurde
+                if (!selectedDir.isEmpty()) {
+                    setPlaceholderImage();
+                }
+            }
+            
+            // WICHTIG: Lade das Cover-Bild für das neue Verzeichnis, falls vorhanden
+            if (!selectedDir.isEmpty()) {
+                // Suche nach Cover-Bild im neuen Verzeichnis
+                File newDirectory = new File(selectedDir);
+                if (newDirectory.exists() && newDirectory.isDirectory()) {
+                    // Suche nach Bilddateien im Verzeichnis
+                    File[] imageFiles = newDirectory.listFiles((dir, name) -> 
+                        name.toLowerCase().endsWith(".png") || 
+                        name.toLowerCase().endsWith(".jpg") || 
+                        name.toLowerCase().endsWith(".jpeg") ||
+                        name.toLowerCase().endsWith(".gif") ||
+                        name.toLowerCase().endsWith(".bmp"));
+                    
+                    if (imageFiles != null && imageFiles.length > 0) {
+                        // Lade das erste gefundene Bild
+                        loadCoverImage(imageFiles[0]);
+                        ResourceManager.saveParameter("ui.cover_image_path", imageFiles[0].getAbsolutePath());
+                    } else {
+                        // Kein Bild im Verzeichnis gefunden - lade das letzte gespeicherte
+                        loadLastCoverImage();
+                    }
+                }
+            }
+        }
+    }
+    
+    private void loadCoverImage(File coverFile) {
+        try {
+            Image coverImage = new Image(coverFile.toURI().toString());
+            coverImageView.setImage(coverImage);
+            coverImageView.setVisible(true);
+            coverImageView.setOpacity(1.0);
+            coverImageView.getStyleClass().add("cover-image");
+            
+            // Entferne grünlichen Farbstich durch explizite Farbkorrektur
+            coverImageView.setStyle("-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 15, 0, 0, 0); -fx-color: white;");
+            
+            logger.info("Cover-Bild geladen: {}", coverFile.getName());
+        } catch (Exception e) {
+            logger.error("Fehler beim Laden des Cover-Bildes", e);
+            coverImageView.setVisible(false);
+            showError("Cover-Bild Fehler", "Das Cover-Bild konnte nicht geladen werden: " + e.getMessage());
+        }
+    }
+    
+    private void loadLastCoverImage() {
+        String lastCoverPath = ResourceManager.getParameter("ui.cover_image_path", "");
+        if (!lastCoverPath.isEmpty()) {
+            File coverFile = new File(lastCoverPath);
+            if (coverFile.exists()) {
+                logger.info("Lade Cover-Bild beim Start: {}", lastCoverPath);
+                loadCoverImage(coverFile);
+            } else {
+                logger.warn("Cover-Bild nicht gefunden: {}", lastCoverPath);
+                // Setze ein Platzhalter-Bild wenn die Datei nicht existiert
+                setPlaceholderImage();
+            }
+        } else {
+            logger.info("Kein Cover-Bild-Pfad gespeichert");
+            // Setze ein Platzhalter-Bild wenn kein Pfad gespeichert ist
+            setPlaceholderImage();
+        }
+    }
+    
+    private void setPlaceholderImage() {
+        // Entferne das ImageView komplett wenn kein Bild vorhanden ist
+        if (coverImageView.getParent() != null) {
+            if (coverImageView.getParent() instanceof HBox) {
+                HBox parentHBox = (HBox) coverImageView.getParent();
+                parentHBox.getChildren().remove(coverImageView);
+                
+                // Entferne auch den HBox-Container aus der BorderPane
+                if (parentHBox.getParent() instanceof BorderPane) {
+                    BorderPane borderPane = (BorderPane) parentHBox.getParent();
+                    borderPane.setTop(null);
+                }
+            }
+        }
+        logger.info("ImageView entfernt - kein Bild vorhanden");
     }
     
     private void loadLastDirectory() {
@@ -1357,10 +1578,34 @@ public class MainController implements Initializable {
                             return; // nach Diff kein Editor öffnen
                         }
                         case DOCX: {
-
+                            logger.info("=== DEBUG: DOCX übernehmen Handler gestartet");
                             try {
                                 String docxContent = docxProcessor.processDocxFileContent(chapterFile.getFile(), 1, format);
-                                openChapterEditorWindow(docxContent, chapterFile, format);
+                                logger.info("=== DEBUG: DOCX-Content Länge: {}", docxContent.length());
+                                
+                                EditorWindow editorController = openChapterEditorWindow(docxContent, chapterFile, format);
+                                logger.info("=== DEBUG: Editor-Controller: {}", editorController != null ? "JA" : "NEIN");
+                                
+                                if (editorController != null) {
+                                    logger.info("=== DEBUG: Speichere Editor-Inhalt als MD");
+                                    try {
+                                        String editorContent = editorController.getText();
+                                        logger.info("=== DEBUG: Editor-Inhalt Länge: {}", editorContent.length());
+                                        File mdFileToSave = deriveMdFileFor(chapterFile.getFile());
+                                        logger.info("=== DEBUG: MD-Datei Pfad: {}", mdFileToSave != null ? mdFileToSave.getAbsolutePath() : "NULL");
+                                        if (mdFileToSave != null) {
+                                            java.nio.file.Files.write(mdFileToSave.toPath(), editorContent.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                                            logger.info("=== DEBUG: Editor-Inhalt als MD gespeichert: {}", mdFileToSave.getName());
+                                        } else {
+                                            logger.error("=== DEBUG: MD-Datei Pfad ist NULL!");
+                                        }
+                                    } catch (Exception saveException) {
+                                        logger.error("=== DEBUG: Fehler beim Speichern der MD-Datei", saveException);
+                                    }
+                                } else {
+                                    logger.error("=== DEBUG: Editor-Controller ist NULL!");
+                                }
+                                
                                 updateStatus("Kapitel-Editor geöffnet (DOCX übernommen): " + chapterFile.getFileName());
                                 // Hash aktualisieren und "!" aus Tabelle entfernen
                                 updateDocxHashAfterAccept(chapterFile.getFile());
@@ -1937,7 +2182,39 @@ public class MainController implements Initializable {
             btnAcceptAll.setOnAction(e -> {
                 try {
                     // Übernehme den DOCX-Inhalt direkt (wie vorher)
-                    openChapterEditorWindow(docxContent, chapterFile, format);
+                    EditorWindow editorController = openChapterEditorWindow(docxContent, chapterFile, format);
+                    
+                    // WICHTIG: Text NORMAL setzen für Konvertierung
+                    if (editorController != null) {
+                        editorController.setText(docxContent); // NORMAL setzen für Konvertierung
+                        // originalContent wird automatisch auf den neuen Text gesetzt
+                    }
+                    
+                    // WICHTIG: Editor-Inhalt SOFORT als MD speichern, da wir "DOCX übernehmen" gesagt haben
+                    logger.info("=== DEBUG: Editor-Controller: {}", editorController != null ? "JA" : "NEIN");
+                    if (editorController != null) {
+                        logger.info("=== DEBUG: Speichere Editor-Inhalt als MD");
+                        try {
+                            String editorContent = editorController.getText();
+                            logger.info("=== DEBUG: Editor-Inhalt Länge: {}", editorContent.length());
+                            File mdFileToSave = deriveMdFileFor(chapterFile.getFile());
+                            logger.info("=== DEBUG: MD-Datei Pfad: {}", mdFileToSave != null ? mdFileToSave.getAbsolutePath() : "NULL");
+                            if (mdFileToSave != null) {
+                                java.nio.file.Files.write(mdFileToSave.toPath(), editorContent.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                                logger.info("=== DEBUG: Editor-Inhalt als MD gespeichert: {}", mdFileToSave.getName());
+                                
+                                // Hash aktualisieren, damit keine "extern geändert" Dialoge mehr kommen
+                                updateDocxHashAfterAccept(chapterFile.getFile());
+                                markDocxFileAsUnchanged(chapterFile.getFile());
+                            } else {
+                                logger.error("=== DEBUG: MD-Datei Pfad ist NULL!");
+                            }
+                        } catch (Exception saveException) {
+                            logger.error("=== DEBUG: Fehler beim Speichern der MD-Datei", saveException);
+                        }
+                    } else {
+                        logger.error("=== DEBUG: Editor-Controller ist NULL!");
+                    }
                     
                     // WICHTIG: Editor in den Vordergrund bringen
                     Platform.runLater(() -> {
@@ -2054,6 +2331,7 @@ public class MainController implements Initializable {
                 blocks.add(currentBlock);
                 currentBlock = new DiffBlock(line.getType());
             }
+            // Zeile nur zum aktuellen Block hinzufügen
             currentBlock.addLine(line);
         }
         

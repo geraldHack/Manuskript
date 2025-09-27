@@ -4884,6 +4884,31 @@
 }
 
 /* ========================================
+   COVER-BILD STYLING
+   ======================================== */
+
+/* Cover-Bild im Hauptmenü */
+.cover-image {
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 15, 0, 0, 0);
+    -fx-opacity: 1.0;
+    -fx-cursor: hand;
+    -fx-fit-width: 150;
+    -fx-fit-height: 100;
+}
+
+.cover-image:hover {
+    -fx-opacity: 1.0;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.7), 20, 0, 0, 0);
+}
+
+/* Cover-Bild-Container */
+.cover-image-container {
+    -fx-background-color: transparent;
+    -fx-padding: 5;
+    -fx-pref-height: 120;
+}
+
+/* ========================================
    SUCH- UND ERSETZUNGS-PANEL STYLING
    ======================================== */
 
