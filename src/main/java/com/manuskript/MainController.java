@@ -592,6 +592,10 @@ public class MainController implements Initializable {
         contentBox.getChildren().addAll(directoryBox, coverBox);
         directoryAlert.setCustomContent(contentBox);
         
+        // Theme anwenden (wie andere CustomAlert-Dialoge)
+        directoryAlert.applyTheme(currentThemeIndex);
+        directoryAlert.initOwner(primaryStage);
+        
         // Dialog anzeigen
         Optional<ButtonType> result = directoryAlert.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
@@ -1965,11 +1969,14 @@ public class MainController implements Initializable {
             
             // Erstelle synchronisierte Anzeige basierend auf Blöcken
             
-            for (DiffBlock block : blocks) {
+            for (int i1=0; i1<blocks.size(); i1++) {
+                DiffBlock block = blocks.get(i1);
+
+                
                 // Checkbox nur für grüne Blöcke (ADDED)
                 CheckBox blockCheckBox = null;
                 if (block.getType() == DiffBlockType.ADDED) {
-                    blockCheckBox = new CheckBox();
+                        blockCheckBox = new CheckBox();
                     blockCheckBox.setSelected(false); // Standardmäßig ungecheckt
                     blockCheckBoxes.add(blockCheckBox);
                     
@@ -1981,7 +1988,8 @@ public class MainController implements Initializable {
                 }
                 
                 // Erstelle Zeilen für diesen Block
-                for (DiffProcessor.DiffLine diffLine : block.getLines()) {
+                for (int i = 0; i < block.getLines().size(); i++) {
+                    DiffProcessor.DiffLine diffLine = block.getLines().get(i);
                     HBox leftLineBox = new HBox(5);
                     HBox rightLineBox = new HBox(5);
                     
@@ -2026,6 +2034,7 @@ public class MainController implements Initializable {
                             rightLineLabel.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px; -fx-background-color: #d4edda; -fx-text-fill: #155724; -fx-font-weight: bold;");
                             leftLineNum.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 10px; -fx-text-fill: #6c757d; -fx-min-width: 30px; -fx-alignment: center-right;");
                             rightLineNum.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 10px; -fx-text-fill: #28a745; -fx-min-width: 30px; -fx-alignment: center-right; -fx-font-weight: bold;");
+
                             break;
                             
                         case DELETED:
