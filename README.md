@@ -56,6 +56,7 @@ ollama run jobautomation/OpenEuroLLM-German
 - **Verzeichnis-Auswahl:** Verzeichnis mit DOCX-Dateien laden
 - **Zwei-Tabellen-Ansicht:** Verfügbare Dateien links, ausgewählte Dateien rechts
 - **📥 Downloads-Monitor (neu):** Automatische Überwachung des Downloads-Verzeichnisses auf neue DOCX-Dateien mit intelligenter Namenserkennung und Backup-System. Ideal für Sudowrite exports.
+- **📦 Sudowrite ZIP-Import:** Automatische Erkennung und Entpackung von Sudowrite ZIP-Exporten mit Projektnamen-Matching und automatischer DOCX-Integration.
 
 ### 📝 Text-Editor
 - **Vollwertiger Editor:** Highlighting, Zeilennummern, Themes
@@ -247,6 +248,13 @@ Der Downloads-Monitor überwacht automatisch Ihr Downloads-Verzeichnis auf neue 
   - **Namensvergleich:** Ersetzt nur passende Dateien
   - **Alle DOCX kopieren:** Kopiert alle DOCX-Dateien ohne Namensvergleich
 
+### 📦 Sudowrite ZIP-Import
+- **Automatische ZIP-Erkennung:** Erkennt ZIP-Dateien mit Projektnamen-Matching
+- **Intelligente Entpackung:** Entpackt DOCX-Dateien direkt ins Projektverzeichnis
+- **Projektname-Matching:** ZIP-Dateien werden erkannt, wenn der Name mit dem Projektverzeichnis übereinstimmt
+- **Automatische Integration:** Entpackte DOCX-Dateien werden automatisch in die Projektdatei-Liste integriert
+- **ZIP-Bereinigung:** Original ZIP-Datei wird nach erfolgreichem Import automatisch gelöscht
+
 ### Aktivierung
 1. **Checkbox aktivieren:** "📥 Downloads-Monitor: Neue Dateien automatisch überwachen"
 2. **Downloads-Verzeichnis wählen:** Dialog erscheint beim ersten Aktivieren
@@ -270,12 +278,22 @@ copy_all_docx=false
 ```
 
 ### Beispiel-Workflow
+
+#### Standard DOCX-Import
 1. **Datei herunterladen:** Neue DOCX-Datei erscheint im Downloads-Verzeichnis
 2. **Automatische Erkennung:** Monitor erkennt die neue Datei
 3. **Namensvergleich:** Sucht nach passender Datei im Projektverzeichnis
 4. **Backup erstellen:** Original-Datei wird als Backup gesichert
 5. **Ersetzung:** Neue Datei ersetzt die Original-Datei
 6. **UI-Aktualisierung:** Datei-Liste wird automatisch aktualisiert
+
+#### Sudowrite ZIP-Import
+1. **Sudowrite Export:** "Export as xx docs" in Sudowrite ausführen
+2. **ZIP-Download:** ZIP-Datei erscheint im Downloads-Verzeichnis (z.B. "Mein_Projekt.zip")
+3. **Projektname-Matching:** Monitor erkennt ZIP mit Projektnamen
+4. **Automatische Entpackung:** ZIP wird entpackt, DOCX-Dateien ins Projekt kopiert
+5. **ZIP-Bereinigung:** Original ZIP wird automatisch gelöscht
+6. **Projekt-Integration:** Neue DOCX-Dateien werden automatisch in die Projektdatei-Liste integriert
 
 ## 🧩 Textanalyse-Konfiguration
 
@@ -444,6 +462,7 @@ config/
 - 📡 KI-Streaming mit Live-Progress und Autoscroll im Ausgabefenster.
 - 💬 Chat-Sessions: Zuverlässige Speicherung abgeschlossener Antworten; automatische Session-Splitting.
 - 📥 Downloads-Monitor: Automatische Überwachung des Downloads-Verzeichnisses mit intelligenter Namenserkennung, Backup-System und zwei Modi (Namensvergleich / Alle DOCX kopieren).
+- 📦 Sudowrite ZIP-Import: Automatische Erkennung und Entpackung von Sudowrite ZIP-Exporten mit Projektnamen-Matching, automatischer DOCX-Integration und ZIP-Bereinigung.
 
 ## 🤝 Beitragen
 
