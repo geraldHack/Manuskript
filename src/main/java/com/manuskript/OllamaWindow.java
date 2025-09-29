@@ -1386,13 +1386,11 @@ public class OllamaWindow {
         updateStatus("⏳ Anfrage läuft...");
 
         // DEBUG: Plugin-Erkennung
-        logger.info("DEBUG: selectedFunction = " + selectedFunction);
         if (selectedFunction != null && (selectedFunction.equals("Chat-Assistent") || selectedFunction.startsWith("📦 ") || selectedFunction.startsWith("? "))) {
             // Plugin-Namen normalisieren (entferne "? " und füge "📦 " hinzu)
             if (selectedFunction.startsWith("? ")) {
                 selectedFunction = "📦 " + selectedFunction.substring(2);
             }
-            logger.info("DEBUG: Plugin-Namen normalisiert zu: " + selectedFunction);
             // DEBUG entfernt
             // Chat-Modus mit manueller Verlaufsverwaltung
             String userMessage = inputArea.getText();
@@ -1487,11 +1485,6 @@ public class OllamaWindow {
             }
             if (cbStyle != null && cbStyle.isSelected() && styleNotesArea != null && !styleNotesArea.getText().trim().isEmpty()) {
                 selectedContexts.append("\n=== STIL ===\n").append(limitText(styleNotesArea.getText().trim())).append("\n");
-                logger.info("DEBUG: Stil-Kontext hinzugefügt: " + styleNotesArea.getText().trim().substring(0, Math.min(100, styleNotesArea.getText().trim().length())));
-            } else {
-                logger.info("DEBUG: Stil-Kontext nicht hinzugefügt - cbStyle: " + (cbStyle != null ? cbStyle.isSelected() : "null") + 
-                           ", styleNotesArea: " + (styleNotesArea != null ? "not null" : "null") + 
-                           ", text: " + (styleNotesArea != null ? styleNotesArea.getText().trim().isEmpty() : "null"));
             }
 
             // Kontext aus der context.txt des aktuellen Romans (nur wenn Checkbox aktiviert)
@@ -1593,16 +1586,13 @@ public class OllamaWindow {
                                 variables.put(varDef.getName(), selectedText != null ? selectedText : "");
                             }
                         }
-                        logger.info("DEBUG: Plugin ohne User-Variablen - automatische Ausführung");
                     }
                     
                     if (variables != null) {
                         // Debug: Ausgabe der Variablen
-                        logger.info("DEBUG: Plugin-Variablen: " + variables);
                         
                         // Plugin-Prompt mit Variablen verarbeiten
                         String pluginPrompt = plugin.getProcessedPrompt(variables);
-                        logger.info("DEBUG: Verarbeiteter Plugin-Prompt: " + pluginPrompt.substring(0, Math.min(200, pluginPrompt.length())) + "...");
 
                         
                         // Plugin-Prompt als Benutzer-Nachricht hinzufügen (damit er in der Chat-Historie sichtbar ist)
@@ -4008,7 +3998,6 @@ public class OllamaWindow {
         for (Map.Entry<String, List<CustomChatArea.QAPair>> entry : sessionHistories.entrySet()) {
             String sessionName = entry.getKey();
             List<CustomChatArea.QAPair> qaPairs = entry.getValue();
-            logger.info("DEBUG: Speichere Session: " + sessionName + " mit " + qaPairs.size() + " QAPairs (ungefiltert)");
                 ResourceManager.saveSession(sessionName, qaPairs);
         }
     }
@@ -4202,15 +4191,9 @@ public class OllamaWindow {
             String prompt = buildPlotHolesPrompt(limitedChapters);
             
             // Debug-Informationen
-            logger.info("=== PLOT-HOLES DEBUG ===");
-            logger.info("Original-Text-Länge: " + allChapters.length() + " Zeichen");
-            logger.info("Begrenzte Text-Länge: " + limitedChapters.length() + " Zeichen");
-            logger.info("Prompt-Länge: " + prompt.length() + " Zeichen");
-            logger.info("Anzahl Kapitel: " + chapterCount);
             
             // Debug: Zeige den ersten Teil des Prompts
             String promptStart = prompt.length() > 500 ? prompt.substring(0, 500) + "..." : prompt;
-            logger.info("Prompt-Start: " + promptStart);
             
             // Zeige Text-Länge im Status
             updateStatus("Lade " + chapterCount + " Kapitel (" + allChapters.length() + " Zeichen) für Plot-Holes Analyse...");

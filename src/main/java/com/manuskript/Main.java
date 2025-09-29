@@ -84,15 +84,10 @@ public class Main extends Application {
             // macOS-spezifische Einstellungen
             System.setProperty("apple.awt.application.name", "Manuskript");
             System.setProperty("apple.laf.useScreenMenuBar", "true");
-            System.out.println("macOS-Kompatibilitäts-Einstellungen geladen");
         } else if (osName.contains("windows")) {
             // Windows-spezifische Einstellungen
             System.setProperty("prism.order", "d3d,sw"); // Direkt3D mit Software-Fallback
-            System.out.println("Windows-Kompatibilitäts-Einstellungen geladen");
-        } else {
-            // Linux/andere Plattformen
-            System.out.println("Linux/andere Plattform-Kompatibilitäts-Einstellungen geladen");
-        }
+        } 
         
         // Deaktiviert Hardware-Beschleunigung falls Probleme auftreten
         // System.setProperty("prism.order", "sw");
@@ -112,10 +107,7 @@ public class Main extends Application {
                 context.reset();
                 configurator.doConfigure(configFile);
                 StatusPrinter.printInCaseOfErrorsOrWarnings(context);
-                System.out.println("Logging-Konfiguration aus config/logback.xml geladen");
-            } else {
-                System.out.println("config/logback.xml nicht gefunden, verwende Standard-Konfiguration");
-            }
+            } 
         } catch (Exception e) {
             System.err.println("Fehler beim Laden der Logging-Konfiguration: " + e.getMessage());
         }

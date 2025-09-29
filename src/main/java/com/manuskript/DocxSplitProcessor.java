@@ -127,12 +127,7 @@ public class DocxSplitProcessor {
         try {
             if (paragraph.getCTP() != null && paragraph.getCTP().getPPr() != null && 
                 paragraph.getCTP().getPPr().getPStyle() != null) {
-                String pStyleVal = paragraph.getCTP().getPPr().getPStyle().getVal();
-                logger.info("STYLE DEBUG: Text='{}' | Style='{}' | PStyleVal='{}' | NumId='{}'", 
-                           text.substring(0, Math.min(50, text.length())), styleName, pStyleVal, numId);
-            } else {
-                logger.info("STYLE DEBUG: Text='{}' | Style='{}' | PStyleVal=NULL | NumId='{}'", 
-                           text.substring(0, Math.min(50, text.length())), styleName, numId);
+                
             }
         } catch (Exception e) {
             logger.info("STYLE DEBUG: Text='{}' | Style='{}' | ERROR='{}' | NumId='{}'", 

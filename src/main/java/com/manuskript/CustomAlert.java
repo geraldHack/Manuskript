@@ -706,19 +706,7 @@ public class CustomAlert {
         }
     }
     
-    /**
-     * Debug-Methode zum Testen
-     */
-    public void debugInfo() {
-        System.out.println("  Title: '" + title + "'");
-        System.out.println("  HeaderText: '" + headerText + "'");
-        System.out.println("  ContentText: '" + contentText + "'");
-        System.out.println("  ButtonTypes: " + buttonTypes.size() + " buttons");
-        for (ButtonType bt : buttonTypes) {
-            System.out.println("    - " + bt.getText());
-        }
-    }
-    
+  
     /**
      * Alert-Typen (kompatibel mit JavaFX AlertType)
      */
