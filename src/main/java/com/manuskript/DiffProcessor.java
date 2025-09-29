@@ -180,7 +180,7 @@ public class DiffProcessor {
                         originalLines[originalIndex], ""));
                     originalIndex++;
                     leftLineNumber++;
-                    // Rechte Zeilennummer NICHT erhöhen bei DELETE
+                    rightLineNumber++;
                     break;
                     
                 case INSERT:
@@ -189,7 +189,6 @@ public class DiffProcessor {
                         "", newLines[newIndex]));
                     newIndex++;
                     leftLineNumber++; // Linke Seite auch erhöhen für Synchronisation
-                    rightLineNumber++;
                     break;
             }
         }

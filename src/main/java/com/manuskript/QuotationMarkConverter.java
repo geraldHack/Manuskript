@@ -187,7 +187,7 @@ public class QuotationMarkConverter {
      * Vereinfachte Version - nur die eindeutigsten Apostrophe
      */
     private static String markApostrophes(String text) {
-        System.out.println("DEBUG: markApostrophes - Input: " + text);
+       
         
         // Erst alle typographischen Anführungszeichen zu geraden ' konvertieren
         text = text.replace("\u203A", "'"); // ›
@@ -197,120 +197,16 @@ public class QuotationMarkConverter {
         text = text.replace("\u201C", "'"); // "
         text = text.replace("\u201D", "'"); // "
         
-        System.out.println("DEBUG: Nach Konvertierung zu geraden ': " + text);
         
         // Nur die eindeutigsten Apostrophe markieren
         // 1. ' zwischen Buchstaben (z.B. "don't", "I'm")
         String result = text.replaceAll("([a-zA-ZäöüÄÖÜß])'([a-zA-ZäöüÄÖÜß])", "$1ApOsTrOpH$2");
         
-        if (!result.equals(text)) {
-            System.out.println("DEBUG: Änderung gefunden: " + result);
-        } else {
-            System.out.println("DEBUG: Keine Änderung");
-        }
-        
+       
         return result;
     }
-    
-    /**
-     * Intelligente Apostroph-Erkennung für komplexe Fälle
-     * Algorithmus: Suche den gesamten Satz, ignoriere von vorne kommend alle Paare von '
-     * Ist dann hinten ein "Pärchen" ist es ein Anführungszeichen, ist es einzeln ein Apostroph
-     */
-    private static String markApostrophesIntelligent(String text) {
-        // Finde alle ' im Text
-        Pattern pattern = Pattern.compile("'");
-        Matcher matcher = pattern.matcher(text);
-        
-        StringBuilder result = new StringBuilder(text);
-        int offset = 0;
-        
-        while (matcher.find()) {
-            int pos = matcher.start();
-            
-            // Finde den Satz, in dem dieses ' vorkommt
-            String sentence = findSentenceContaining(text, pos);
-            if (sentence != null) {
-                // Analysiere den Satz
-                boolean isApostrophe = analyzeApostropheInSentence(sentence, pos);
-                
-                if (isApostrophe) {
-                    // Markiere als Apostroph
-                    result.setCharAt(pos + offset, 'A');
-                    result.insert(pos + offset + 1, "pOsTrOpH");
-                    offset += 8; // "pOsTrOpH".length()
-                }
-            }
-        }
-        
-        return result.toString();
-    }
-    
-    /**
-     * Findet den Satz, der die Position enthält
-     */
-    private static String findSentenceContaining(String text, int pos) {
-        // Finde Satzanfang (vorheriger Punkt, Ausrufezeichen, Fragezeichen oder Anfang)
-        int start = pos;
-        while (start > 0 && !".!?".contains(text.substring(start - 1, start))) {
-            start--;
-        }
-        
-        // Finde Satzende (nächster Punkt, Ausrufezeichen, Fragezeichen oder Ende)
-        int end = pos;
-        while (end < text.length() && !".!?".contains(text.substring(end, end + 1))) {
-            end++;
-        }
-        
-        return text.substring(start, end);
-    }
-    
-    /**
-     * Analysiert, ob ein ' in einem Satz ein Apostroph oder Anführungszeichen ist
-     */
-    private static boolean analyzeApostropheInSentence(String sentence, int pos) {
-        // Zähle alle ' im Satz
-        int count = 0;
-        for (char c : sentence.toCharArray()) {
-            if (c == '\'') count++;
-        }
-        
-        // Wenn ungerade Anzahl, ist das letzte ein Apostroph
-        if (count % 2 == 1) {
-            // Finde die Position des letzten '
-            int lastPos = sentence.lastIndexOf('\'');
-            return pos == lastPos;
-        }
-        
-        // Wenn gerade Anzahl, prüfe ob es in einem Paar ist
-        // Vereinfachte Heuristik: Wenn es am Ende eines Wortes steht, ist es ein Apostroph
-        return sentence.charAt(pos - 1) != ' ' && sentence.charAt(pos + 1) != ' ';
-    }
-    
-    
-    /**
-     * Intelligente Apostroph-Erkennung für bessere Unterscheidung
-     */
-    private static String markApostrophesSmart(String text) {
-        // Erste Phase: Markiere eindeutige Apostrophe
-        // 1. ' zwischen Buchstaben (z.B. "don't", "I'm")
-        text = text.replaceAll("([a-zA-ZäöüÄÖÜß])'([a-zA-ZäöüÄÖÜß])", "$1ApOsTrOpH$2");
-        
-        // 2. ' nach Buchstabe, vor Leerzeichen oder Satzzeichen (z.B. "John's", "it's")
-        text = text.replaceAll("([a-zA-ZäöüÄÖÜß])'([\\s\\p{Punct}])", "$1ApOsTrOpH$2");
-        
-        // Zweite Phase: Markiere wahrscheinliche Apostrophe am Ende
-        // 3. ' am Ende von Wörtern (nur wenn es ein Apostroph ist, nicht Anführungszeichen)
-        // Apostrophe am Ende enden meist mit 's' (Genitiv) oder sind bekannte Namen
-        text = text.replaceAll("([a-zA-ZäöüÄÖÜß]+)'([\\s\\p{Punct}]|$)", "$1ApOsTrOpH$2");
-        
-        // Dritte Phase: Markiere Apostrophe vor Anführungszeichen
-        // 4. ' nach Buchstabe, vor Anführungszeichen (z.B. "Letos'\"")
-        text = text.replaceAll("([a-zA-ZäöüÄÖÜß])'([\\u201E\\u201C\\u201D\\u201A\\u2018\\u2019\\u2039\\u203A\\u00AB\\u00BB])", "$1ApOsTrOpH$2");
-        
-        return text;
-    }
-    
+ 
+      
     /**
      * Konvertiert alle übrigen ' zu Anführungszeichen
      */

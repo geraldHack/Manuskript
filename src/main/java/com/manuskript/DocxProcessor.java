@@ -112,21 +112,35 @@ public class DocxProcessor {
             WordprocessingMLPackage pkg = WordprocessingMLPackage.load(file);
             List<Object> document = pkg.getMainDocumentPart().getContent();
             
+            boolean lastParagraphWasEmpty = false;
             for (Object obj : document) {
                 if (obj instanceof P) {
                     P paragraph = (P) obj;
                     String paragraphText = extractTextFromParagraph(paragraph);
+                    boolean isEmpty = paragraphText.trim().isEmpty();
                     
-                    if (!paragraphText.trim().isEmpty()) {
                     if (format == OutputFormat.HTML) {
+                        if (!isEmpty) {
                             content.append("<p>").append(paragraphText).append("</p>\n");
                         } else if (format == OutputFormat.MARKDOWN) {
                             // Nur eine Leerzeile zwischen Absätzen, nicht zwei
                             content.append(paragraphText).append("\n");
+                        }
+                    } else if (format == OutputFormat.MARKDOWN) {
+                        if (!isEmpty) {
+                            // Nur bei nicht-leeren Absätzen: Text + Zeilenumbruch
+                            content.append(paragraphText).append("\n");
+                        } else if (!lastParagraphWasEmpty) {
+                            // Nur bei erstem leeren Absatz: eine Leerzeile
+                            content.append("\n");
+                        }
+                        // Bei mehreren leeren Absätzen hintereinander: keine zusätzlichen Leerzeilen
                     } else {
+                        if (!isEmpty) {
                             content.append(paragraphText).append("\n");
                         }
                     }
+                    lastParagraphWasEmpty = isEmpty;
                 }
             }
         } catch (Exception e) {
@@ -174,22 +188,31 @@ public class DocxProcessor {
             logger.info("DOCX-Datei geladen, {} Objekte gefunden", document.size());
             
             int paragraphCount = 0;
+            boolean lastParagraphWasEmpty = false;
             for (Object obj : document) {
                 if (obj instanceof P) {
                     paragraphCount++;
                     P paragraph = (P) obj;
                     String paragraphText = extractTextFromParagraph(paragraph);
-                    logger.info("Absatz {}: '{}'", paragraphCount, paragraphText.substring(0, Math.min(50, paragraphText.length())));
+                    boolean isEmpty = paragraphText.trim().isEmpty();
+                    logger.info("Absatz {}: '{}' (leer: {})", paragraphCount, 
+                               paragraphText.substring(0, Math.min(50, paragraphText.length())), isEmpty);
                     
-                                                            // Leere Absätze als Leerzeilen erhalten (für "DOCX übernehmen")
                     if (format == OutputFormat.HTML) {
                         documentContent.append("<p>").append(paragraphText).append("</p>\n");
                     } else if (format == OutputFormat.MARKDOWN) {
-                        // Nur eine Leerzeile zwischen Absätzen, nicht zwei
-                        documentContent.append(paragraphText).append("\n");
+                        if (!isEmpty) {
+                            // Nur eine Leerzeile zwischen Absätzen, nicht zwei
+                            documentContent.append(paragraphText).append("\n");
+                        } else if (!lastParagraphWasEmpty) {
+                            // Nur bei erstem leeren Absatz: eine Leerzeile
+                            documentContent.append("\n");
+                        }
+                        // Bei mehreren leeren Absätzen hintereinander: keine zusätzlichen Leerzeilen
                     } else {
                         documentContent.append(paragraphText).append("\n");
                     }
+                    lastParagraphWasEmpty = isEmpty;
                 } else {
                     logger.debug("Nicht-Paragraph Objekt: {}", obj.getClass().getSimpleName());
                 }
@@ -201,6 +224,18 @@ public class DocxProcessor {
         }
         
         String documentText = documentContent.toString();
+        
+        // Bereinige überflüssige Leerzeilen am Ende
+        if (format == OutputFormat.MARKDOWN) {
+            // Entferne überflüssige Leerzeilen am Ende
+            while (documentText.endsWith("\n\n")) {
+                documentText = documentText.substring(0, documentText.length() - 1);
+            }
+            // Stelle sicher, dass am Ende nur eine Leerzeile steht
+            if (!documentText.endsWith("\n")) {
+                documentText += "\n";
+            }
+        }
         
         // Debug-Ausgabe für alle Kapitel
         logger.info("Kapitel-Nummer: {}, Format: {}", chapterNumber, format);

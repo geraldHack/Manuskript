@@ -544,7 +544,18 @@ public class CustomAlert {
                 label.setStyle("-fx-font-size: 12px; -fx-text-fill: " + textColor + ";");
             } else if (node instanceof CheckBox) {
                 CheckBox cb = (CheckBox) node;
-                cb.setStyle("-fx-text-fill: " + textColor + "; -fx-font-size: 12px;");
+                String checkBoxStyle = String.format(
+                    "-fx-text-fill: %s; -fx-font-size: 12px; -fx-background-color: %s; -fx-border-color: %s; -fx-border-width: 1; -fx-border-radius: 3; -fx-background-radius: 3;",
+                    textColor, backgroundColor, textColor
+                );
+                cb.setStyle(checkBoxStyle);
+            } else if (node instanceof TextField) {
+                TextField tf = (TextField) node;
+                String textFieldStyle = String.format(
+                    "-fx-background-color: %s; -fx-text-fill: %s; -fx-border-color: %s; -fx-border-width: 1; -fx-border-radius: 4; -fx-background-radius: 4; -fx-padding: 8 12; -fx-font-size: 12px;",
+                    backgroundColor, textColor, textColor
+                );
+                tf.setStyle(textFieldStyle);
             } else if (node instanceof Button) {
                 Button btn = (Button) node;
                 // Theme-spezifisches Button-Styling
@@ -567,10 +578,22 @@ public class CustomAlert {
         for (Node node : parent.getChildrenUnmodifiable()) {
             if (node instanceof TextField) {
                 TextField tf = (TextField) node;
-                tf.setStyle("-fx-background-color: white; -fx-text-fill: black; -fx-border-color: #cccccc; -fx-border-width: 1; -fx-border-radius: 4; -fx-background-radius: 4; -fx-padding: 8 12; -fx-font-size: 12px;");
+                String backgroundColor = THEME_BACKGROUNDS[currentTheme];
+                String textColor = THEME_TEXTS[currentTheme];
+                String borderColor = textColor;
+                tf.setStyle(String.format(
+                    "-fx-background-color: %s; -fx-text-fill: %s; -fx-border-color: %s; -fx-border-width: 1; -fx-border-radius: 4; -fx-background-radius: 4; -fx-padding: 8 12; -fx-font-size: 12px;",
+                    backgroundColor, textColor, borderColor
+                ));
             } else if (node instanceof TextArea) {
                 TextArea ta = (TextArea) node;
-                ta.setStyle("-fx-background-color: white; -fx-text-fill: black; -fx-border-color: #cccccc; -fx-border-width: 1; -fx-border-radius: 4; -fx-background-radius: 4; -fx-padding: 8 12; -fx-font-size: 12px;");
+                String backgroundColor = THEME_BACKGROUNDS[currentTheme];
+                String textColor = THEME_TEXTS[currentTheme];
+                String borderColor = textColor;
+                ta.setStyle(String.format(
+                    "-fx-background-color: %s; -fx-text-fill: %s; -fx-border-color: %s; -fx-border-width: 1; -fx-border-radius: 4; -fx-background-radius: 4; -fx-padding: 8 12; -fx-font-size: 12px;",
+                    backgroundColor, textColor, borderColor
+                ));
             } else if (node instanceof Label) {
                 Label label = (Label) node;
                 label.setStyle("-fx-font-size: 12px; -fx-text-fill: " + THEME_TEXTS[currentTheme] + ";");
