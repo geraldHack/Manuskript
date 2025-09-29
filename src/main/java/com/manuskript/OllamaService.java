@@ -146,7 +146,6 @@ public class OllamaService {
     }
     
     public OllamaService() {
-        logger.info("DEBUG: OllamaService Konstruktor aufgerufen");
         
         this.httpClient = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(httpConnectTimeoutSeconds))
@@ -155,9 +154,7 @@ public class OllamaService {
                 .build();
         
         // Parameter aus der properties-Datei laden und in Instanzvariablen speichern
-        logger.info("DEBUG: Rufe loadParametersFromProperties() auf");
         loadParametersFromProperties();
-        logger.info("DEBUG: loadParametersFromProperties() abgeschlossen");
     }
     
     /**
@@ -173,7 +170,6 @@ public class OllamaService {
         int connectTimeout = ResourceManager.getIntParameter("ollama.http_connect_timeout_secs", 30);
         int requestTimeout = ResourceManager.getIntParameter("ollama.http_request_timeout_secs", 180);
         
-        logger.info("DEBUG: Geladene Werte - Temperature: " + temp + ", MaxTokens: " + tokens + ", TopP: " + topP + ", RepeatPenalty: " + penalty);
         
         this.temperature = temp;
         this.maxTokens = tokens;
@@ -182,8 +178,6 @@ public class OllamaService {
         this.httpConnectTimeoutSeconds = Math.max(1, connectTimeout);
         this.httpRequestTimeoutSeconds = Math.max(1, requestTimeout);
         
-        logger.info("Parameter aus properties.properties geladen: " + getCurrentParameters());
-        logger.info("HTTP Timeouts: connect=" + httpConnectTimeoutSeconds + "s, request=" + httpRequestTimeoutSeconds + "s");
     }
     
     /**

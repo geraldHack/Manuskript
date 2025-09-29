@@ -274,14 +274,10 @@ public class EditorWindow implements Initializable {
         
         // ComboBox-Initialisierung direkt hier
         // setupLineSpacingComboBox entfernt - wird von RichTextFX nicht unterstützt
-        logger.info("=== COMBODEBUG: Vor setupParagraphSpacingComboBox() ===");
-        logger.info("=== COMBODEBUG: cmbParagraphSpacing ist " + (cmbParagraphSpacing == null ? "NULL" : "NICHT NULL") + " ===");
         setupParagraphSpacingComboBox();
         
         // Event-Handler setzen
-        logger.info("=== SETUP EVENT HANDLERS START ===");
         setupEventHandlers();
-        logger.info("=== SETUP EVENT HANDLERS END ===");
         
         // Checkboxen explizit auf false setzen (nach FXML-Load)
         Platform.runLater(() -> {
@@ -3054,13 +3050,9 @@ if (caret != null) {
     
     // Datei-Operationen
     private void saveFile() {
-        System.out.println("=== SAVE FILE CALLED ===");
-        System.out.println("isCompleteDocument: " + isCompleteDocument);
-        System.out.println("currentFile: " + (currentFile != null ? currentFile.getAbsolutePath() : "null"));
         
         // Spezielle Behandlung für Gesamtdokumente
         if (isCompleteDocument) {
-            System.out.println("Gesamtdokument-Speicherung gestartet");
             // Für Gesamtdokumente: MD speichern UND Dialog für DOCX anzeigen
             if (currentFile != null) {
                 String data = codeArea.getText();
@@ -3070,20 +3062,14 @@ if (caret != null) {
                 try {
                     Files.write(currentFile.toPath(), data.getBytes(StandardCharsets.UTF_8));
                     updateStatus("Gesamtdokument gespeichert: " + currentFile.getName());
-                    System.out.println("MD-Datei gespeichert: " + currentFile.getAbsolutePath());
                 } catch (IOException e) {
                     updateStatusError("Fehler beim Speichern: " + e.getMessage());
-                    System.out.println("Fehler beim Speichern: " + e.getMessage());
                     return;
                 }
                 
                 // Dialog für DOCX-Export anzeigen
-                System.out.println("Zeige DOCX-Dialog");
                 showDocxExportDialog();
-            } else {
-                System.out.println("currentFile ist null!");
-            }
-            return;
+            }             return;
         }
         
         // Bei neuen Dateien (currentFile = null) direkt Save As verwenden
@@ -3216,9 +3202,7 @@ if (caret != null) {
     
     private void saveToFile(File file) {
 
-        System.out.println("Datei: " + file.getAbsolutePath());
-        System.out.println("Datei existiert: " + file.exists());
-        
+      
         try {
             String data = codeArea.getText();
             if (data == null) data = "";
@@ -4355,12 +4339,7 @@ if (caret != null) {
                 }
                 
                 File docxFile = new File(outputDir, filename + ".docx");
-                
-                System.out.println("=== DOCX-EXPORT ===");
-                System.out.println("Filename: " + filename);
-                System.out.println("OutputDir: " + outputDir.getAbsolutePath());
-                System.out.println("DOCX-File: " + docxFile.getAbsolutePath());
-                System.out.println("Content length: " + data.length());
+         
                 
                 // Erstelle DOCX-Datei
                 createDocxFileWithOptions(docxFile, data);
@@ -4399,22 +4378,18 @@ if (caret != null) {
             // Stelle sicher, dass globalDocxOptions nicht null ist
             if (globalDocxOptions == null) {
                 globalDocxOptions = new DocxOptions();
-                System.out.println("globalDocxOptions war null, neue Instanz erstellt");
             }
             
-            System.out.println("Erstelle DOCX mit " + content.length() + " Zeichen");
             
             // Exportiere Markdown zu DOCX mit den globalen Optionen
             docxProcessor.exportMarkdownToDocxWithOptions(content, docxFile, globalDocxOptions);
             
             updateStatus("DOCX-Datei erstellt: " + docxFile.getName());
             logger.info("DOCX-Datei erfolgreich erstellt: " + docxFile.getAbsolutePath());
-            System.out.println("DOCX erfolgreich erstellt: " + docxFile.getAbsolutePath());
             
         } catch (Exception e) {
             logger.error("Fehler beim Erstellen der DOCX-Datei", e);
             updateStatusError("Fehler beim Erstellen der DOCX-Datei: " + e.getMessage());
-            System.out.println("FEHLER beim DOCX-Export: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -6847,8 +6822,9 @@ spacer.setStyle("-fx-background-color: transparent;");
         }
         
         if (savedMacros.isEmpty()) {
-            // Keine gespeicherten Makros - lade nur deine eigenen
-            logger.info("Keine gespeicherten Makros gefunden");
+            // Keine gespeicherten Makros - lade Standard-Makros
+            logger.info("Keine gespeicherten Makros gefunden - lade Standard-Makros");
+            loadDefaultMacros();
             updateMacroList();
             return;
         }
@@ -6998,8 +6974,94 @@ spacer.setStyle("-fx-background-color: transparent;");
         return new java.io.File(dir, "macros.txt");
     }
     
-    // Keine Beispiel-Makros mehr - nur deine eigenen Makros werden geladen
-   
+    /**
+     * Lädt Standard-Makros (Text-Bereinigung)
+     */
+    private void loadDefaultMacros() {
+        logger.info("Lade Standard-Makros");
+        
+        // Text-Bereinigung-Makro aus Datei laden
+        java.io.File defaultMacroFile = new java.io.File(com.manuskript.ResourceManager.getConfigDirectory(), "makros/macros.txt");
+        if (defaultMacroFile.exists()) {
+            try {
+                String macroContent = new String(java.nio.file.Files.readAllBytes(defaultMacroFile.toPath()), "UTF-8");
+                parseMacroContent(macroContent);
+                logger.info("Standard-Makros aus Datei geladen: " + macros.size() + " Makros");
+            } catch (Exception e) {
+                logger.error("Fehler beim Laden der Standard-Makros", e);
+            }
+        } else {
+            logger.warn("Standard-Makro-Datei nicht gefunden: " + defaultMacroFile.getAbsolutePath());
+        }
+    }
+    
+    /**
+     * Parst Makro-Inhalt und fügt sie zur Liste hinzu
+     */
+    private void parseMacroContent(String macroContent) {
+        String[] lines = macroContent.split("\n");
+        Macro currentMacro = null;
+        MacroStep currentStep = null;
+        
+        for (String line : lines) {
+            line = line.trim();
+            
+            if (line.startsWith("MACRO:")) {
+                currentMacro = new Macro(line.substring(6));
+                macros.add(currentMacro);
+            } else if (line.startsWith("DESC:")) {
+                if (currentMacro != null) {
+                    currentMacro.setDescription(line.substring(5));
+                }
+            } else if (line.startsWith("STEP:")) {
+                if (currentMacro != null) {
+                    currentStep = new MacroStep();
+                    currentMacro.addStep(currentStep);
+                }
+            } else if (line.startsWith("SEARCH:")) {
+                if (currentStep != null) {
+                    currentStep.setSearchText(line.substring(7));
+                }
+            } else if (line.startsWith("REPLACE:")) {
+                if (currentStep != null) {
+                    currentStep.setReplaceText(line.substring(8));
+                }
+            } else if (line.startsWith("REGEX:")) {
+                if (currentStep != null) {
+                    currentStep.setUseRegex("1".equals(line.substring(6)));
+                }
+            } else if (line.startsWith("CASE:")) {
+                if (currentStep != null) {
+                    currentStep.setCaseSensitive("1".equals(line.substring(5)));
+                }
+            } else if (line.startsWith("WORD:")) {
+                if (currentStep != null) {
+                    currentStep.setWholeWord("1".equals(line.substring(5)));
+                }
+            } else if (line.startsWith("ENABLED:")) {
+                if (currentStep != null) {
+                    currentStep.setEnabled("1".equals(line.substring(8)));
+                }
+            } else if (line.startsWith("STEPDESC:")) {
+                if (currentStep != null) {
+                    currentStep.setDescription(line.substring(9));
+                }
+            } else if (line.startsWith("REPLACECOUNT:")) {
+                if (currentStep != null) {
+                    try {
+                        int count = Integer.parseInt(line.substring(13));
+                        currentStep.setReplacementCount(count);
+                    } catch (NumberFormatException e) {
+                        currentStep.setReplacementCount(0);
+                    }
+                }
+            } else if (line.equals("ENDMACRO")) {
+                currentMacro = null;
+                currentStep = null;
+            }
+        }
+    }
+    
     
     private void updateMacroList() {
         List<String> macroNames = macros.stream()
@@ -7007,6 +7069,13 @@ spacer.setStyle("-fx-background-color: transparent;");
             .collect(Collectors.toList());
         cmbMacroList.getItems().clear();
         cmbMacroList.getItems().addAll(macroNames);
+        
+        // Erstes Makro automatisch auswählen
+        if (!macroNames.isEmpty()) {
+            cmbMacroList.setValue(macroNames.get(0));
+            // Makro auch in currentMacro setzen
+            currentMacro = macros.get(0);
+        }
     }
     
     private void saveMacroToCSV() {

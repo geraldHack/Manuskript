@@ -720,6 +720,124 @@ public class MainController implements Initializable {
         }
     }
     
+    /**
+     * Überwacht Downloads-Verzeichnis auf Sudowrite-ZIP-Dateien und importiert sie automatisch
+     */
+    private void checkAndImportSudowriteFiles(File projectDirectory) {
+        try {
+            logger.info("=== SUDOWRITE DEBUG START ===");
+            logger.info("Projekt-Verzeichnis: {}", projectDirectory.getAbsolutePath());
+            logger.info("Downloads-Verzeichnis: {}", downloadsDirectory != null ? downloadsDirectory.getAbsolutePath() : "NULL");
+            
+            // Verwende das bereits konfigurierte Downloads-Verzeichnis
+            if (downloadsDirectory == null || !downloadsDirectory.exists()) {
+                logger.warn("Downloads-Verzeichnis nicht konfiguriert oder nicht gefunden");
+                logger.warn("downloadsDirectory == null: {}", downloadsDirectory == null);
+                if (downloadsDirectory != null) {
+                    logger.warn("downloadsDirectory.exists(): {}", downloadsDirectory.exists());
+                }
+                return;
+            }
+            
+            // Projektname aus Verzeichnis ableiten
+            String projectName = projectDirectory.getName();
+            logger.info("Projektname: {}", projectName);
+            logger.info("Suche nach Sudowrite-ZIP für Projekt: {}", projectName);
+            
+            // Alle Dateien im Downloads-Verzeichnis auflisten
+            File[] allFiles = downloadsDirectory.listFiles();
+            logger.info("Alle Dateien im Downloads-Verzeichnis:");
+            if (allFiles != null) {
+                for (File file : allFiles) {
+                    logger.info("  - {} (ZIP: {})", file.getName(), file.getName().toLowerCase().endsWith(".zip"));
+                }
+            } else {
+                logger.warn("Downloads-Verzeichnis ist leer oder nicht lesbar");
+            }
+            
+            // Alle ZIP-Dateien im Downloads-Verzeichnis durchsuchen
+            File[] zipFiles = downloadsDirectory.listFiles((dir, name) -> 
+                name.toLowerCase().endsWith(".zip") && 
+                (name.contains(projectName) || name.contains(projectName.replaceAll("\\s+", "_")))
+            );
+            
+            logger.info("Gefundene ZIP-Dateien: {}", zipFiles != null ? zipFiles.length : "null");
+            if (zipFiles != null && zipFiles.length > 0) {
+                for (File zipFile : zipFiles) {
+                    logger.info("  ZIP gefunden: {}", zipFile.getName());
+                }
+                logger.info("Importiere erste ZIP: {}", zipFiles[0].getName());
+                importSudowriteZip(zipFiles[0], projectDirectory);
+            } else {
+                logger.info("Keine passende ZIP-Datei gefunden");
+            }
+            
+            logger.info("=== SUDOWRITE DEBUG END ===");
+            
+        } catch (Exception e) {
+            logger.error("Fehler beim Überwachen der Sudowrite-Dateien", e);
+        }
+    }
+    
+    /**
+     * Importiert eine Sudowrite-ZIP-Datei ins Projektverzeichnis
+     */
+    private void importSudowriteZip(File zipFile, File projectDirectory) {
+        try {
+            logger.info("Importiere Sudowrite-ZIP: {} -> {}", zipFile.getName(), projectDirectory.getName());
+            
+            // ZIP entpacken
+            java.util.zip.ZipFile zip = new java.util.zip.ZipFile(zipFile);
+            java.util.Enumeration<? extends java.util.zip.ZipEntry> entries = zip.entries();
+            
+            int importedCount = 0;
+            while (entries.hasMoreElements()) {
+                java.util.zip.ZipEntry entry = entries.nextElement();
+                
+                // Nur DOCX-Dateien importieren
+                if (entry.getName().toLowerCase().endsWith(".docx") && !entry.isDirectory()) {
+                    String fileName = new File(entry.getName()).getName();
+                    File targetFile = new File(projectDirectory, fileName);
+                    
+                    // Datei extrahieren
+                    try (java.io.InputStream is = zip.getInputStream(entry);
+                         java.io.FileOutputStream fos = new java.io.FileOutputStream(targetFile)) {
+                        
+                        byte[] buffer = new byte[1024];
+                        int length;
+                        while ((length = is.read(buffer)) > 0) {
+                            fos.write(buffer, 0, length);
+                        }
+                        
+                        logger.info("DOCX importiert: {}", fileName);
+                        importedCount++;
+                    }
+                }
+            }
+            zip.close();
+            
+            // Original ZIP-Datei löschen
+            if (zipFile.delete()) {
+                logger.info("Original ZIP-Datei gelöscht: {}", zipFile.getName());
+            }
+            
+            // Projekt neu laden
+            if (importedCount > 0) {
+                loadDocxFiles(projectDirectory);
+                updateStatus("Sudowrite-Import abgeschlossen: " + importedCount + " Dateien importiert");
+                
+                // Benutzer benachrichtigen
+                showInfo("Sudowrite-Import", 
+                    "Erfolgreich " + importedCount + " DOCX-Dateien aus Sudowrite importiert!");
+            }
+            
+        } catch (Exception e) {
+            logger.error("Fehler beim Importieren der Sudowrite-ZIP", e);
+            showError("Sudowrite-Import Fehler", 
+                "Fehler beim Importieren der ZIP-Datei: " + e.getMessage());
+        }
+    }
+
     private void loadDocxFiles(File directory) {
         try {
             updateStatus("Lade DOCX-Dateien...");
@@ -741,6 +859,11 @@ public class MainController implements Initializable {
             List<File> files = new ArrayList<>(fileSet);
             
             logger.info("Insgesamt {} DOCX-Dateien gefunden", files.size());
+            
+            // Sudowrite-ZIP-Dateien überprüfen und importieren (nur wenn Downloads-Monitor aktiv)
+            if (downloadsDirectory != null && downloadsDirectory.exists()) {
+                checkAndImportSudowriteFiles(directory);
+            }
             
             // Alle Listen leeren
             logger.info("=== DEBUG: Listen leeren ===");
@@ -2763,6 +2886,14 @@ public class MainController implements Initializable {
         alert.showAndWait();
     }
     
+    private void showInfo(String title, String message) {
+        CustomAlert alert = new CustomAlert(Alert.AlertType.INFORMATION, title);
+        alert.setContentText(message);
+        alert.applyTheme(currentThemeIndex);
+        alert.initOwner(primaryStage);
+        alert.showAndWait();
+    }
+    
     private void showWarning(String title, String message) {
         CustomAlert alert = new CustomAlert(Alert.AlertType.WARNING, title);
         alert.setContentText(message);
@@ -2825,10 +2956,16 @@ public class MainController implements Initializable {
         // VBox mit Text und Checkbox erstellen
         VBox customContentBox = new VBox(10);
         Label textLabel = new Label(
-            "Der Downloads-Monitor überwacht automatisch das Downloads-Verzeichnis auf neue DOCX-Dateien.\n\n" +
+            "Der Downloads-Monitor überwacht automatisch das Downloads-Verzeichnis auf neue Dateien.\n\n" +
+            "📄 DOCX-Dateien:\n" +
             "• Neue Dateien werden automatisch erkannt\n" +
             "• Passende Dateien werden automatisch ersetzt\n" +
             "• Alte Dateien werden als Backup gesichert\n\n" +
+            "📦 Sudowrite-ZIP-Export (export as xx docs):\n" +
+            "• ZIP-Dateien mit Projektnamen werden automatisch erkannt\n" +
+            "• Beispiel: 'Mein_Projekt.zip' für Projekt 'Mein Projekt'\n" +
+            "• ZIP wird entpackt und DOCX-Dateien ins Projekt kopiert\n" +
+            "• Original ZIP wird nach Import gelöscht\n\n" +
             "Bitte wählen Sie das Downloads-Verzeichnis aus:"
         );
         textLabel.setWrapText(true);
@@ -2991,6 +3128,16 @@ public class MainController implements Initializable {
             logger.warn("Downloads-Monitor nicht aktiv oder Verzeichnis null");
             logger.warn("isMonitoring: {}, downloadsDirectory: {}", isMonitoring.get(), downloadsDirectory);
             return;
+        }
+        
+        // Sudowrite-ZIP-Import prüfen
+        String currentDirPath = txtDirectoryPath.getText();
+        if (currentDirPath != null && !currentDirPath.isEmpty()) {
+            File projectDir = new File(currentDirPath);
+            if (projectDir.exists()) {
+                logger.info("Prüfe Sudowrite-ZIP für Projekt: {}", projectDir.getName());
+                checkAndImportSudowriteFiles(projectDir);
+            }
         }
         
         try {

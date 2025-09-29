@@ -3,7 +3,7 @@
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>logs/manuskript.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>logs/manuskript.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <fileNamePattern>logs/manuskript.%d{yyyy-MM-dd}.log.gz</fileNamePattern>
             <maxHistory>30</maxHistory>
         </rollingPolicy>
         <encoder>

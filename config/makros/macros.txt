@@ -1,23 +1,23 @@
 MACRO:Text-Bereinigung
-DESC:Professionelle Textbereinigung mit 12 Schritten
+DESC:Professionelle Textbereinigung mit Unicode-Normalisierung und Sprachkonvertierung
 STEP:1
-SEARCH:‚(.*?)‘
-REPLACE:›$1‹
+SEARCH:[\u201C\u201D\u201E\u201F\u00AB\u00BB]
+REPLACE:"
 REGEX:1
 CASE:0
 WORD:0
 ENABLED:1
-STEPDESC:einfache Deutsche Anführungszeichen
-REPLACECOUNT:0
+STEPDESC:ALLE Unicode doppelte Anführungszeichen zu englisch
+REPLACECOUNT:178
 STEP:2
-SEARCH:”
-REPLACE:"
-REGEX:0
+SEARCH:[\u2018\u2019\u201A\u201B\u2039\u203A]
+REPLACE:'
+REGEX:1
 CASE:0
 WORD:0
 ENABLED:1
-STEPDESC:Falsches Deutschen Anführungszeichen oben
-REPLACECOUNT:0
+STEPDESC:ALLE Unicode einfache Anführungszeichen zu englisch
+REPLACECOUNT:7
 STEP:3
 SEARCH:[ ]{2,}
 REPLACE:
@@ -35,62 +35,8 @@ CASE:0
 WORD:0
 ENABLED:1
 STEPDESC:Mehrfache Leerzeilen reduzieren
-REPLACECOUNT:94
+REPLACECOUNT:1
 STEP:5
-SEARCH:‘(.*?)’
-REPLACE:'$1'
-REGEX:1
-CASE:0
-WORD:0
-ENABLED:1
-STEPDESC:Einfache Anführungszeichen deutsch
-REPLACECOUNT:0
-STEP:6
-SEARCH:„
-REPLACE:"
-REGEX:0
-CASE:0
-WORD:0
-ENABLED:1
-STEPDESC:Gerade Anführungszeichen öffnen
-REPLACECOUNT:0
-STEP:7
-SEARCH:“
-REPLACE:"
-REGEX:0
-CASE:0
-WORD:0
-ENABLED:1
-STEPDESC:Gerade Anführungszeichen schließen
-REPLACECOUNT:0
-STEP:8
-SEARCH:,"
-REPLACE:",
-REGEX:0
-CASE:0
-WORD:0
-ENABLED:1
-STEPDESC:Komma vor Anführungszeichen I
-REPLACECOUNT:0
-STEP:9
-SEARCH:'(.*?)'
-REPLACE:›$1‹
-REGEX:1
-CASE:0
-WORD:0
-ENABLED:1
-STEPDESC:Einfache Anführungszeichen Französisch
-REPLACECOUNT:0
-STEP:10
-SEARCH:"(.*?)"
-REPLACE:»$1«
-REGEX:1
-CASE:0
-WORD:0
-ENABLED:1
-STEPDESC:Anführungszeichen Französisch
-REPLACECOUNT:0
-STEP:11
 SEARCH:...
 REPLACE:…
 REGEX:0
@@ -99,7 +45,7 @@ WORD:0
 ENABLED:1
 STEPDESC:Auslassungszeichen
 REPLACECOUNT:0
-STEP:12
+STEP:6
 SEARCH:([A-Za-zÄÖÜäöüß])…
 REPLACE:$1 ...
 REGEX:1
@@ -108,7 +54,7 @@ WORD:0
 ENABLED:1
 STEPDESC:Buchstabe direkt an Auslassungszeichen
 REPLACECOUNT:0
-STEP:13
+STEP:7
 SEARCH:(?<=…)(?=\p{L})
 REPLACE:
 REGEX:1
@@ -117,7 +63,7 @@ WORD:0
 ENABLED:1
 STEPDESC:Buchstabe direkt nach Auslassungszeichen
 REPLACECOUNT:0
-STEP:14
+STEP:8
 SEARCH:(?<!-)--(?!-)
 REPLACE:—
 REGEX:1
@@ -126,25 +72,7 @@ WORD:0
 ENABLED:1
 STEPDESC:Gedankenstrich
 REPLACECOUNT:0
-STEP:15
-SEARCH:,"«
-REPLACE:«,
-REGEX:0
-CASE:0
-WORD:0
-ENABLED:1
-STEPDESC:Komma vor Anführungszeichen
-REPLACECOUNT:0
-STEP:16
-SEARCH:'(.*?)'
-REPLACE:›$1‹
-REGEX:1
-CASE:0
-WORD:0
-ENABLED:1
-STEPDESC:Einfache Anführungszeichen Französisch
-REPLACECOUNT:0
-STEP:17
+STEP:9
 SEARCH:^\s*\*\s*$
 REPLACE:---
 REGEX:1
@@ -153,106 +81,67 @@ WORD:0
 ENABLED:1
 STEPDESC:* als Trenner in --- ändern
 REPLACECOUNT:0
-STEP:18
-SEARCH:^\s*\*\*\*\s*$
-REPLACE:---
+STEP:10
+SEARCH:,\"
+REPLACE:\",
 REGEX:1
 CASE:0
 WORD:0
 ENABLED:1
-STEPDESC:*** als Trenner
+STEPDESC:Komma vor Anführungszeichen
 REPLACECOUNT:0
-ENDMACRO
-MACRO:Französische → Deutsche Anführungszeichen
-DESC:Konvertiert französische zu deutschen Anführungszeichen
-STEP:1
-SEARCH:»(.*?)«
-REPLACE:„$1“
-REGEX:1
-CASE:0
-WORD:0
-ENABLED:1
-STEPDESC:Französische zu deutsche Anführungszeichen
-REPLACECOUNT:0
-STEP:2
-SEARCH:›(.*?)‹
-REPLACE:‚$1‘
-REGEX:1
-CASE:0
-WORD:0
-ENABLED:1
-STEPDESC:Französische zu deutsche einfache Anführungszeichen
-REPLACECOUNT:0
-ENDMACRO
-MACRO:Deutsche → Französische Anführungszeichen
-DESC:Konvertiert deutsche zu französischen Anführungszeichen
-STEP:1
-SEARCH:„(.*?)“
+STEP:11
+SEARCH:"(.*?)"
 REPLACE:»$1«
 REGEX:1
 CASE:0
 WORD:0
 ENABLED:1
-STEPDESC:Deutsche zu französische Anführungszeichen
+STEPDESC:Englisch zu Französisch - doppelte Anführungszeichen
 REPLACECOUNT:0
-STEP:2
-SEARCH:‚(.*?)‘
+STEP:12
+SEARCH:'(.*?)'
 REPLACE:›$1‹
 REGEX:1
 CASE:0
 WORD:0
 ENABLED:1
-STEPDESC:Deutsche zu französische einfache Anführungszeichen
+STEPDESC:Englisch zu Französisch - einfache Anführungszeichen
 REPLACECOUNT:0
-ENDMACRO
-MACRO:Apostrophe korrigieren
-DESC:Korrigiert verschiedene Apostrophe-Formen
-STEP:1
-SEARCH:([A-Za-zÄÖÜäöüß])'([A-Za-zÄÖÜäöüß])
-REPLACE:$1'$2
+STEP:13
+SEARCH:"(.*?)"
+REPLACE:„$1"
 REGEX:1
 CASE:0
 WORD:0
-ENABLED:1
-STEPDESC:Apostrophe zwischen Buchstaben korrigieren
+ENABLED:0
+STEPDESC:Englisch zu Deutsch - doppelte Anführungszeichen
 REPLACECOUNT:0
-STEP:2
-SEARCH:([A-Za-zÄÖÜäöüß])`([A-Za-zÄÖÜäöüß])
-REPLACE:$1'$2
+STEP:14
+SEARCH:'(.*?)'
+REPLACE:‚$1'
 REGEX:1
 CASE:0
 WORD:0
-ENABLED:1
-STEPDESC:Grave-Akzent zu Apostrophe
+ENABLED:0
+STEPDESC:Englisch zu Deutsch - einfache Anführungszeichen
 REPLACECOUNT:0
-STEP:3
-SEARCH:([A-Za-zÄÖÜäöüß])´([A-Za-zÄÖÜäöüß])
-REPLACE:$1'$2
+STEP:15
+SEARCH:"(.*?)"
+REPLACE:«$1»
 REGEX:1
 CASE:0
 WORD:0
-ENABLED:1
-STEPDESC:Akut-Akzent zu Apostrophe
+ENABLED:0
+STEPDESC:Englisch zu Schweizer - doppelte Anführungszeichen
 REPLACECOUNT:0
-STEP:4
-SEARCH:([A-Za-zÄÖÜäöüß])'([A-Za-zÄÖÜäöüß])
-REPLACE:$1'$2
+STEP:16
+SEARCH:'(.*?)'
+REPLACE:‹$1›
 REGEX:1
 CASE:0
 WORD:0
-ENABLED:1
-STEPDESC:Typografisches Apostrophe korrigieren
-REPLACECOUNT:0
-ENDMACRO
-MACRO:asdsad
-DESC:
-STEP:1
-SEARCH:sadsa
-REPLACE:sadasd
-REGEX:0
-CASE:0
-WORD:0
-ENABLED:1
-STEPDESC:adsasd
+ENABLED:0
+STEPDESC:Englisch zu Schweizer - einfache Anführungszeichen
 REPLACECOUNT:0
 ENDMACRO
