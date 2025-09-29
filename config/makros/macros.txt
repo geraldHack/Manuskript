@@ -8,7 +8,7 @@ CASE:0
 WORD:0
 ENABLED:1
 STEPDESC:ALLE Unicode doppelte Anführungszeichen zu englisch
-REPLACECOUNT:178
+REPLACECOUNT:122
 STEP:2
 SEARCH:[\u2018\u2019\u201A\u201B\u2039\u203A]
 REPLACE:'
@@ -17,7 +17,7 @@ CASE:0
 WORD:0
 ENABLED:1
 STEPDESC:ALLE Unicode einfache Anführungszeichen zu englisch
-REPLACECOUNT:7
+REPLACECOUNT:4
 STEP:3
 SEARCH:[ ]{2,}
 REPLACE:
@@ -35,7 +35,7 @@ CASE:0
 WORD:0
 ENABLED:1
 STEPDESC:Mehrfache Leerzeilen reduzieren
-REPLACECOUNT:1
+REPLACECOUNT:0
 STEP:5
 SEARCH:...
 REPLACE:…
@@ -116,7 +116,7 @@ CASE:0
 WORD:0
 ENABLED:0
 STEPDESC:Englisch zu Deutsch - doppelte Anführungszeichen
-REPLACECOUNT:0
+REPLACECOUNT:61
 STEP:14
 SEARCH:'(.*?)'
 REPLACE:‚$1'
@@ -125,7 +125,7 @@ CASE:0
 WORD:0
 ENABLED:0
 STEPDESC:Englisch zu Deutsch - einfache Anführungszeichen
-REPLACECOUNT:0
+REPLACECOUNT:2
 STEP:15
 SEARCH:"(.*?)"
 REPLACE:«$1»

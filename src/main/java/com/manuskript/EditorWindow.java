@@ -81,6 +81,9 @@ public class EditorWindow implements Initializable {
     private File currentFile;
     private boolean isCompleteDocument = false;
     
+    // Ungespeicherte Änderungen
+    private boolean hasUnsavedChanges = false;
+    
     @FXML private VBox textAreaContainer;
     private CodeArea codeArea;
     @FXML private VBox mainContainer;
@@ -490,6 +493,15 @@ if (caret != null) {
             // Überwache Änderungen im Text (falls Selektion durch Textänderung beeinflusst wird)
             codeArea.textProperty().addListener((obs, oldText, newText) -> {
                 updateSelectionCount();
+                // Prüfe, ob Text sich geändert hat
+                if (!newText.equals(oldText)) {
+                    // Prüfe, ob Text wieder zum Originalzustand zurückgekehrt ist
+                    if (newText.equals(originalContent)) {
+                        markAsSaved();
+                    } else {
+                        markAsChanged();
+                    }
+                }
             });
             
             // Initiale Aktualisierung
@@ -686,12 +698,12 @@ if (caret != null) {
         
         // Toolbar-Events
         btnSave.setOnAction(e -> {
-
             saveFile();
+            markAsSaved();
         });
         btnSaveAs.setOnAction(e -> {
-
             saveFileAs();
+            markAsSaved();
         });
                     btnExport.setOnAction(e -> showExportDialog());
         // btnOpen und btnNew Event-Handler entfernt - Buttons sind unsichtbar
@@ -4124,6 +4136,9 @@ if (caret != null) {
         originalContent = text;
         // Debug entfernt
         
+        // Status zurücksetzen beim Laden neuer Inhalte
+        markAsSaved();
+        
         // Cursor an den Anfang setzen
         codeArea.displaceCaret(0);
         codeArea.requestFollowCaret();
@@ -4558,10 +4573,61 @@ if (caret != null) {
             CustomStage customStage = (CustomStage) stage;
             customStage.setCustomTitle(title);
         }
-        // Auch im Status-Label anzeigen
-        if (lblStatus != null) {
-            lblStatus.setText("Bereit");
+        // Status aktualisieren
+        updateStatusDisplay();
+    }
+    
+    /**
+     * Aktualisiert die Anzeige für ungespeicherte Änderungen
+     */
+    private void updateStatusDisplay() {
+        // Aktualisiere den Fenstertitel mit ungespeicherten Änderungen
+        if (stage != null) {
+            String currentTitle = stage.getTitle();
+            if (currentTitle != null) {
+                // Entferne vorherige Änderungsanzeige
+                String cleanTitle = currentTitle.replace(" ⚠", "");
+                
+                if (hasUnsavedChanges) {
+                    stage.setTitle(cleanTitle + " ⚠");
+                } else {
+                    stage.setTitle(cleanTitle);
+                }
+                
+                // Auch CustomStage aktualisieren
+                if (stage instanceof CustomStage) {
+                    CustomStage customStage = (CustomStage) stage;
+                    customStage.setCustomTitle(hasUnsavedChanges ? cleanTitle + " ⚠" : cleanTitle);
+                }
+            }
         }
+        
+        // Zusätzlich: Farbige Anzeige im Status-Label (falls verfügbar)
+        if (lblStatus != null) {
+            if (hasUnsavedChanges) {
+                lblStatus.setText("⚠ Ungespeicherte Änderungen");
+                lblStatus.setStyle("-fx-text-fill: #ff6b35; -fx-font-weight: bold; -fx-background-color: #fff3cd; -fx-padding: 2 6 2 6; -fx-background-radius: 3;");
+            } else {
+                lblStatus.setText("Bereit");
+                lblStatus.setStyle("-fx-text-fill: #28a745; -fx-font-weight: normal; -fx-background-color: #d4edda; -fx-padding: 2 6 2 6; -fx-background-radius: 3;");
+            }
+        }
+    }
+    
+    /**
+     * Markiert das Dokument als geändert
+     */
+    private void markAsChanged() {
+        hasUnsavedChanges = true;
+        updateStatusDisplay();
+    }
+    
+    /**
+     * Markiert das Dokument als gespeichert
+     */
+    private void markAsSaved() {
+        hasUnsavedChanges = false;
+        updateStatusDisplay();
     }
     
     /**
@@ -4639,6 +4705,13 @@ if (caret != null) {
         
         // Event-Handler für Fenster-Schließung
         macroStage.setOnCloseRequest(event -> {
+            // Position beim Schließen explizit speichern
+            if (preferences != null) {
+                preferences.putDouble("macro_window_x", macroStage.getX());
+                preferences.putDouble("macro_window_y", macroStage.getY());
+                preferences.putDouble("macro_window_width", macroStage.getWidth());
+                preferences.putDouble("macro_window_height", macroStage.getHeight());
+            }
             macroWindowVisible = false;
             event.consume(); // Verhindert das tatsächliche Schließen
             macroStage.hide();
@@ -6913,6 +6986,27 @@ spacer.setStyle("-fx-background-color: transparent;");
             }
         }
         
+        
+        // Stelle sicher, dass Text-Bereinigung Makro vorhanden ist
+        boolean hasTextBereinigung = macros.stream().anyMatch(macro -> "Text-Bereinigung".equals(macro.getName()));
+        if (!hasTextBereinigung) {
+            logger.info("Text-Bereinigung Makro nicht gefunden - lade Standard-Makros");
+            loadDefaultMacros();
+        }
+        
+        // Text-Bereinigung Makro automatisch laden und anzeigen
+        if (hasTextBereinigung) {
+            for (Macro macro : macros) {
+                if ("Text-Bereinigung".equals(macro.getName())) {
+                    currentMacro = macro;
+                    // Dropdown setzen und dann Makro anzeigen
+                    cmbMacroList.setValue("Text-Bereinigung");
+                    selectMacro();
+                    break;
+                }
+            }
+        }
+        
         logger.info("Makros geladen: " + macros.size() + " Makros");
         updateMacroList();
     }
@@ -7070,11 +7164,16 @@ spacer.setStyle("-fx-background-color: transparent;");
         cmbMacroList.getItems().clear();
         cmbMacroList.getItems().addAll(macroNames);
         
-        // Erstes Makro automatisch auswählen
+        // Text-Bereinigung Makro automatisch auswählen, falls vorhanden
         if (!macroNames.isEmpty()) {
-            cmbMacroList.setValue(macroNames.get(0));
-            // Makro auch in currentMacro setzen
-            currentMacro = macros.get(0);
+            if (macroNames.contains("Text-Bereinigung")) {
+                cmbMacroList.setValue("Text-Bereinigung");
+                // currentMacro wurde bereits in loadMacros() gesetzt
+            } else {
+                // Fallback: Erstes Makro auswählen
+                cmbMacroList.setValue(macroNames.get(0));
+                currentMacro = macros.get(0);
+            }
         }
     }
     
