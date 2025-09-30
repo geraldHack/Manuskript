@@ -4769,6 +4769,20 @@
     -fx-border-width: 5px !important;
 }
 
+/* Kleinere Checkbox für grüne rechte Diff-Blöcke */
+.diff-green-checkbox .box {
+    -fx-min-width: 12px;
+    -fx-min-height: 12px;
+    -fx-pref-width: 12px;
+    -fx-pref-height: 12px;
+    -fx-max-width: 12px;
+    -fx-max-height: 12px;
+}
+.diff-green-checkbox .mark {
+    -fx-scale-x: 0.6;
+    -fx-scale-y: 0.6;
+}
+
 /* Weiß-Theme - normale Theme-Farben */
 .weiss-theme .diff-root {
     -fx-background-color: #f8f9fa !important;
