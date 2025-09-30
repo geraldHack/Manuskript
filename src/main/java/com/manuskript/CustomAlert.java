@@ -141,6 +141,18 @@ public class CustomAlert {
         
         // Root Container
         rootContainer = new VBox();
+        // Klassen für Dialog-Styling
+        if (!rootContainer.getStyleClass().contains("dialog-pane")) {
+            rootContainer.getStyleClass().add("dialog-pane");
+        }
+        // Theme-Klassen analog CustomStage
+        rootContainer.getStyleClass().removeAll("weiss-theme", "theme-dark", "pastell-theme", "blau-theme", "gruen-theme", "lila-theme");
+        if (currentTheme == 0) rootContainer.getStyleClass().add("weiss-theme");
+        else if (currentTheme == 2) rootContainer.getStyleClass().add("pastell-theme");
+        else if (currentTheme == 3) rootContainer.getStyleClass().addAll("theme-dark", "blau-theme");
+        else if (currentTheme == 4) rootContainer.getStyleClass().addAll("theme-dark", "gruen-theme");
+        else if (currentTheme == 5) rootContainer.getStyleClass().addAll("theme-dark", "lila-theme");
+        else rootContainer.getStyleClass().add("theme-dark");
         rootContainer.setSpacing(0);
         
         // Titelleiste erstellen
@@ -148,6 +160,9 @@ public class CustomAlert {
         
         // Content Container
         contentContainer = new VBox();
+        if (!contentContainer.getStyleClass().contains("content")) {
+            contentContainer.getStyleClass().add("content");
+        }
         contentContainer.setSpacing(15);
         contentContainer.setPadding(new Insets(20));
         
@@ -162,6 +177,13 @@ public class CustomAlert {
         
         // Scene erstellen
         Scene scene = new Scene(rootContainer);
+        // Zentrales CSS laden, damit Theme-Regeln greifen
+        try {
+            String cssPath = ResourceManager.getCssResource("css/manuskript.css");
+            if (cssPath != null && !cssPath.isEmpty() && !scene.getStylesheets().contains(cssPath)) {
+                scene.getStylesheets().add(cssPath);
+            }
+        } catch (Exception ignored) {}
         stage.setScene(scene);
         
         // Drag-Funktionalität
@@ -176,6 +198,12 @@ public class CustomAlert {
         titleBar.setPrefHeight(35);
         titleBar.setAlignment(Pos.CENTER_LEFT);
         titleBar.setPadding(new Insets(0, 0, 0, 15));
+        if (!titleBar.getStyleClass().contains("header-panel")) {
+            titleBar.getStyleClass().add("header-panel");
+        }
+        if (!titleBar.getStyleClass().contains("title-bar")) {
+            titleBar.getStyleClass().add("title-bar");
+        }
         
         // Titel
         titleLabel = new Label(title);
@@ -189,24 +217,69 @@ public class CustomAlert {
         // Window Buttons
         HBox buttonBox = new HBox();
         buttonBox.setSpacing(0);
+        if (!buttonBox.getStyleClass().contains("window-controls")) {
+            buttonBox.getStyleClass().add("window-controls");
+        }
         
         // Minimize Button
         minimizeBtn = new Button("−");
         minimizeBtn.setPrefSize(35, 35);
+        minimizeBtn.setMinSize(35, 35);
+        minimizeBtn.setMaxSize(35, 35);
         minimizeBtn.setFont(Font.font("System", FontWeight.BOLD, 16));
-        minimizeBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: white; -fx-border-color: transparent;");
+        minimizeBtn.setTextOverrun(OverrunStyle.CLIP);
+        if (!minimizeBtn.getStyleClass().contains("button")) {
+            minimizeBtn.getStyleClass().add("button");
+        }
+        if (!minimizeBtn.getStyleClass().contains("minimize")) {
+            minimizeBtn.getStyleClass().add("minimize");
+        }
+        minimizeBtn.setFocusTraversable(false);
+        minimizeBtn.setContentDisplay(javafx.scene.control.ContentDisplay.TEXT_ONLY);
+        // Pastell-Theme: Buttons transparent machen
+        if (currentTheme == 2) { // Pastell-Theme
+            minimizeBtn.setStyle("-fx-background-color: transparent; -fx-border-color: transparent; -fx-text-fill: #000000;");
+        }
         
         // Maximize Button
         maximizeBtn = new Button("□");
         maximizeBtn.setPrefSize(35, 35);
-        maximizeBtn.setFont(Font.font("System", FontWeight.BOLD, 14));
-        maximizeBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: white; -fx-border-color: transparent;");
+        maximizeBtn.setMinSize(35, 35);
+        maximizeBtn.setMaxSize(35, 35);
+        maximizeBtn.setFont(Font.font("System", FontWeight.BOLD, 16));
+        maximizeBtn.setTextOverrun(OverrunStyle.CLIP);
+        if (!maximizeBtn.getStyleClass().contains("button")) {
+            maximizeBtn.getStyleClass().add("button");
+        }
+        if (!maximizeBtn.getStyleClass().contains("maximize")) {
+            maximizeBtn.getStyleClass().add("maximize");
+        }
+        maximizeBtn.setFocusTraversable(false);
+        maximizeBtn.setContentDisplay(javafx.scene.control.ContentDisplay.TEXT_ONLY);
+        // Pastell-Theme: Buttons transparent machen
+        if (currentTheme == 2) { // Pastell-Theme
+            maximizeBtn.setStyle("-fx-background-color: transparent; -fx-border-color: transparent; -fx-text-fill: #000000;");
+        }
         
         // Close Button
-        closeBtn = new Button("✕");
-        closeBtn.setPrefSize(45, 35); // Breiter gemacht
-        closeBtn.setFont(Font.font("System", FontWeight.BOLD, 18)); // Größere Schrift
-        closeBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: white; -fx-border-color: transparent;");
+        closeBtn = new Button("×");
+        closeBtn.setPrefSize(45, 35);
+        closeBtn.setMinSize(45, 35);
+        closeBtn.setMaxSize(45, 35);
+        closeBtn.setFont(Font.font("System", FontWeight.BOLD, 18));
+        closeBtn.setTextOverrun(OverrunStyle.CLIP);
+        if (!closeBtn.getStyleClass().contains("button")) {
+            closeBtn.getStyleClass().add("button");
+        }
+        if (!closeBtn.getStyleClass().contains("close")) {
+            closeBtn.getStyleClass().add("close");
+        }
+        closeBtn.setFocusTraversable(false);
+        closeBtn.setContentDisplay(javafx.scene.control.ContentDisplay.TEXT_ONLY);
+        // Pastell-Theme: Buttons transparent machen
+        if (currentTheme == 2) { // Pastell-Theme
+            closeBtn.setStyle("-fx-background-color: transparent; -fx-border-color: transparent; -fx-text-fill: #000000;");
+        }
         
         // Button Actions
         minimizeBtn.setOnAction(e -> stage.setIconified(true));
@@ -230,14 +303,12 @@ public class CustomAlert {
         String hoverStyle = "-fx-background-color: rgba(255,255,255,0.1);";
         String closeHoverStyle = "-fx-background-color: #e74c3c;";
         
-        minimizeBtn.setOnMouseEntered(e -> minimizeBtn.setStyle(minimizeBtn.getStyle() + hoverStyle));
-        minimizeBtn.setOnMouseExited(e -> minimizeBtn.setStyle(minimizeBtn.getStyle().replace(hoverStyle, "")));
-        
-        maximizeBtn.setOnMouseEntered(e -> maximizeBtn.setStyle(maximizeBtn.getStyle() + hoverStyle));
-        maximizeBtn.setOnMouseExited(e -> maximizeBtn.setStyle(maximizeBtn.getStyle().replace(hoverStyle, "")));
-        
-        closeBtn.setOnMouseEntered(e -> closeBtn.setStyle(closeBtn.getStyle() + closeHoverStyle));
-        closeBtn.setOnMouseExited(e -> closeBtn.setStyle(closeBtn.getStyle().replace(closeHoverStyle, "")));
+        minimizeBtn.setOnMouseEntered(null);
+        minimizeBtn.setOnMouseExited(null);
+        maximizeBtn.setOnMouseEntered(null);
+        maximizeBtn.setOnMouseExited(null);
+        closeBtn.setOnMouseEntered(null);
+        closeBtn.setOnMouseExited(null);
     }
     
     /**
@@ -387,16 +458,10 @@ public class CustomAlert {
                 result = buttonType;
                 stage.close();
             });
-            
-            // Button sofort stylen
-            String textColor = THEME_TEXTS[currentTheme];
-            String backgroundColor = THEME_BACKGROUNDS[currentTheme];
-            String buttonStyle = String.format(
-                "-fx-background-color: %s; -fx-text-fill: %s; -fx-border-color: %s; -fx-border-width: 1; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 10 20; -fx-font-size: 12px; -fx-font-weight: bold; -fx-cursor: hand;",
-                backgroundColor, textColor, textColor
-            );
-            button.setStyle(buttonStyle);
-            
+            // Standard-Button-Styling über Theme/CSS
+            if (!button.getStyleClass().contains("button")) {
+                button.getStyleClass().add("button");
+            }
             buttonContainer.getChildren().add(button);
         }
         
@@ -452,44 +517,45 @@ public class CustomAlert {
         }
         
         currentTheme = themeIndex;
-        String backgroundColor = THEME_BACKGROUNDS[themeIndex];
-        String titleColor = THEME_TITLES[themeIndex];
-        String textColor = THEME_TEXTS[themeIndex];
+        // Theme-Klassen analog CustomStage
+        rootContainer.getStyleClass().removeAll("weiss-theme", "theme-dark", "pastell-theme", "blau-theme", "gruen-theme", "lila-theme");
+        if (currentTheme == 0) rootContainer.getStyleClass().add("weiss-theme");
+        else if (currentTheme == 2) rootContainer.getStyleClass().add("pastell-theme");
+        else if (currentTheme == 3) rootContainer.getStyleClass().addAll("theme-dark", "blau-theme");
+        else if (currentTheme == 4) rootContainer.getStyleClass().addAll("theme-dark", "gruen-theme");
+        else if (currentTheme == 5) rootContainer.getStyleClass().addAll("theme-dark", "lila-theme");
+        else rootContainer.getStyleClass().add("theme-dark");
         
-        // Root Container
-        rootContainer.setStyle("-fx-background-color: " + backgroundColor + ";");
-        
-        // Titelleiste
-        titleBar.setStyle("-fx-background-color: " + backgroundColor + "; -fx-border-color: " + titleColor + "; -fx-border-width: 0 0 1 0;");
-        titleLabel.setStyle("-fx-text-fill: " + titleColor + ";");
+        // Inline-Styles entfernen – CSS/Theme übernimmt
+        rootContainer.setStyle(null);
+        titleBar.setStyle(null);
+        if (titleLabel != null) titleLabel.setStyle(null);
+        if (headerLabel != null) headerLabel.setStyle(null);
+        if (contentLabel != null) contentLabel.setStyle(null);
+        if (minimizeBtn != null) minimizeBtn.setStyle(null);
+        if (maximizeBtn != null) maximizeBtn.setStyle(null);
+        if (closeBtn != null) closeBtn.setStyle(null);
         
         // Window Buttons
-        String buttonStyle = "-fx-background-color: transparent; -fx-text-fill: " + titleColor + "; -fx-border-color: transparent;";
-        minimizeBtn.setStyle(buttonStyle);
-        maximizeBtn.setStyle(buttonStyle);
-        closeBtn.setStyle(buttonStyle);
+        // keine Inline-Styles für Titlebar-Buttons – CSS/Theme übernimmt
+        minimizeBtn.getStyleClass().add("button");
+        maximizeBtn.getStyleClass().add("button");
+        closeBtn.getStyleClass().add("button");
         
         // Content - WICHTIG: Nur anwenden wenn Labels existieren
-        if (headerLabel != null) {
-            headerLabel.setStyle("-fx-text-fill: " + textColor + "; -fx-font-weight: bold; -fx-font-size: 16px;");
-        }
-        if (contentLabel != null) {
-            contentLabel.setStyle("-fx-text-fill: " + textColor + "; -fx-font-size: 14px;");
-        }
+        // keine Inline-Styles auf Labels – CSS/Theme übernimmt
         
         // Buttons
-        updateButtonStyles(textColor, backgroundColor);
+        updateButtonStyles(THEME_TEXTS[currentTheme], THEME_BACKGROUNDS[currentTheme]);
         
         // Custom Content Controls stylen (falls vorhanden) - rekursiv
-        if (hasCustomContent && customContentBox != null) {
-            applyThemeToNodesRecursively(customContentBox, textColor, backgroundColor);
-        }
+        // kein rekursives Inline-Styling – CSS/Theme übernimmt
         
         // Border für den gesamten Dialog
-        String borderColor = textColor;
+        String borderColor = THEME_TEXTS[currentTheme];
         rootContainer.setStyle(String.format(
             "-fx-background-color: %s; -fx-border-color: %s; -fx-border-width: 2; -fx-border-radius: 8; -fx-background-radius: 8;",
-            backgroundColor, borderColor
+            THEME_BACKGROUNDS[currentTheme], borderColor
         ));
     }
     
@@ -519,8 +585,7 @@ public class CustomAlert {
         hasCustomContent = true;
         this.textField = textField;
         
-        // TextField stylen
-        textField.setStyle("-fx-background-color: white; -fx-text-fill: black; -fx-border-color: #cccccc; -fx-border-width: 1; -fx-border-radius: 4; -fx-background-radius: 4; -fx-padding: 8 12; -fx-font-size: 12px;");
+        // kein Inline-Styling – CSS/Theme übernimmt
     }
     
     /**
@@ -530,8 +595,7 @@ public class CustomAlert {
         hasCustomContent = true;
         this.customContentBox = contentBox;
         
-        // Alle Controls in der VBox stylen (rekursiv für HBox/VBox)
-        styleNodesRecursively(contentBox);
+        // kein rekursives Inline-Styling – CSS/Theme übernimmt
     }
     
     /**
@@ -558,12 +622,7 @@ public class CustomAlert {
                 tf.setStyle(textFieldStyle);
             } else if (node instanceof Button) {
                 Button btn = (Button) node;
-                // Theme-spezifisches Button-Styling
-                String customButtonStyle = String.format(
-                    "-fx-background-color: %s; -fx-text-fill: %s; -fx-border-color: %s; -fx-border-width: 1; -fx-border-radius: 4; -fx-background-radius: 4; -fx-padding: 4px 8px; -fx-font-size: 11px; -fx-font-weight: bold;",
-                    backgroundColor, textColor, textColor
-                );
-                btn.setStyle(customButtonStyle);
+                // kein Inline-Styling – CSS/Theme übernimmt
             } else if (node instanceof javafx.scene.Parent) {
                 // Rekursiv für Container (HBox, VBox, etc.)
                 applyThemeToNodesRecursively((javafx.scene.Parent) node, textColor, backgroundColor);
@@ -602,14 +661,7 @@ public class CustomAlert {
                 cb.setStyle("-fx-text-fill: " + THEME_TEXTS[currentTheme] + "; -fx-font-size: 12px;");
             } else if (node instanceof Button) {
                 Button btn = (Button) node;
-                // Theme-spezifisches Button-Styling
-                String backgroundColor = THEME_BACKGROUNDS[currentTheme];
-                String textColor = THEME_TEXTS[currentTheme];
-                String buttonStyle = String.format(
-                    "-fx-background-color: %s; -fx-text-fill: %s; -fx-border-color: %s; -fx-border-width: 1; -fx-border-radius: 4; -fx-background-radius: 4; -fx-padding: 4px 8px; -fx-font-size: 11px; -fx-font-weight: bold;",
-                    backgroundColor, textColor, textColor
-                );
-                btn.setStyle(buttonStyle);
+                // kein Inline-Styling – CSS/Theme übernimmt
             } else if (node instanceof javafx.scene.Parent) {
                 // Rekursiv für Container (HBox, VBox, etc.)
                 styleNodesRecursively((javafx.scene.Parent) node);
