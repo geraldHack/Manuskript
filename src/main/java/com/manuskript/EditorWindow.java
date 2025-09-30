@@ -3214,7 +3214,7 @@ if (caret != null) {
     
     private void saveToFile(File file) {
 
-      
+        
         try {
             String data = codeArea.getText();
             if (data == null) data = "";
@@ -4354,7 +4354,7 @@ if (caret != null) {
                 }
                 
                 File docxFile = new File(outputDir, filename + ".docx");
-         
+                
                 
                 // Erstelle DOCX-Datei
                 createDocxFileWithOptions(docxFile, data);
@@ -4608,7 +4608,7 @@ if (caret != null) {
                 lblStatus.setText("⚠ Ungespeicherte Änderungen");
                 lblStatus.setStyle("-fx-text-fill: #ff6b35; -fx-font-weight: bold; -fx-background-color: #fff3cd; -fx-padding: 2 6 2 6; -fx-background-radius: 3;");
             } else {
-                lblStatus.setText("Bereit");
+            lblStatus.setText("Bereit");
                 lblStatus.setStyle("-fx-text-fill: #28a745; -fx-font-weight: normal; -fx-background-color: #d4edda; -fx-padding: 2 6 2 6; -fx-background-radius: 3;");
             }
         }
@@ -7155,7 +7155,7 @@ spacer.setStyle("-fx-background-color: transparent;");
             }
         }
     }
-    
+   
     
     private void updateMacroList() {
         List<String> macroNames = macros.stream()

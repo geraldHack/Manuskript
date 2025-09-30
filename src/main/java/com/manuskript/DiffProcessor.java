@@ -189,6 +189,7 @@ public class DiffProcessor {
                         "", newLines[newIndex]));
                     newIndex++;
                     leftLineNumber++; // Linke Seite auch erhöhen für Synchronisation
+                    rightLineNumber++; // Rechte Seite auch erhöhen
                     break;
             }
         }

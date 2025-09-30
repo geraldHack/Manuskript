@@ -2100,6 +2100,15 @@ public class MainController implements Initializable {
                 CheckBox blockCheckBox = null;
                 if (block.getType() == DiffBlockType.ADDED) {
                         blockCheckBox = new CheckBox();
+                    // kleinere Checkbox für rechte grüne Blöcke
+                    blockCheckBox.getStyleClass().add("diff-green-checkbox");
+                    blockCheckBox.setStyle("-fx-padding: 0;");
+                    blockCheckBox.setPadding(Insets.EMPTY);
+                    blockCheckBox.setMinSize(12, 12);
+                    blockCheckBox.setPrefSize(12, 12);
+                    blockCheckBox.setMaxSize(12, 12);
+                    blockCheckBox.setScaleX(0.8);
+                    blockCheckBox.setScaleY(0.8);
                     blockCheckBox.setSelected(false); // Standardmäßig ungecheckt
                     blockCheckBoxes.add(blockCheckBox);
                     
@@ -2184,8 +2193,10 @@ public class MainController implements Initializable {
                         // Container für vertikal zentrierte Checkbox
                         VBox checkboxContainer = new VBox();
                         checkboxContainer.setAlignment(Pos.CENTER);
-                        checkboxContainer.setMinWidth(30);
-                        checkboxContainer.setMaxWidth(30);
+                        checkboxContainer.setSpacing(0);
+                        checkboxContainer.setPadding(Insets.EMPTY);
+                        checkboxContainer.setMinWidth(16);
+                        checkboxContainer.setMaxWidth(16);
                         checkboxContainer.getChildren().add(blockCheckBox);
                         
                         rightLineBox.getChildren().addAll(rightLineNum, rightLineLabel, checkboxContainer);
@@ -2197,6 +2208,9 @@ public class MainController implements Initializable {
                     rightContentBox.getChildren().add(rightLineBox);
                 }
             }
+            
+            // Tausche leere rote Boxen mit nachfolgenden grünen Boxen für bessere Lesbarkeit
+            optimizeRightContentOrder(rightContentBox);
             
             // Synchronisiere Scrollbars
             leftScrollPane.vvalueProperty().bindBidirectional(rightScrollPane.vvalueProperty());
@@ -2469,6 +2483,78 @@ public class MainController implements Initializable {
         
         blocks.add(currentBlock);
         return blocks;
+    }
+    
+    /**
+     * Debug: Zeigt nur ROT und GRÜN Blöcke mit ihren Zeilennummern
+     */
+    private void optimizeRightContentOrder(VBox rightContentBox) {
+        if (rightContentBox.getChildren().size() < 2) return;
+        
+        boolean changed;
+        do {
+            changed = false;
+            int i = 0;
+            while (i < rightContentBox.getChildren().size()) {
+                HBox box = (HBox) rightContentBox.getChildren().get(i);
+                if (box.getChildren().size() < 2) { i++; continue; }
+                Label label = (Label) box.getChildren().get(1);
+                boolean isRed = label.getText().isEmpty();
+                boolean isGreen = !label.getText().isEmpty() && label.getStyle().contains("d4edda");
+                
+                if (!isRed) { i++; continue; }
+                
+                int rStart = i;
+                int rEnd = i;
+                // erweitere ROT-Lauf
+                while (rEnd + 1 < rightContentBox.getChildren().size()) {
+                    HBox nextBox = (HBox) rightContentBox.getChildren().get(rEnd + 1);
+                    if (nextBox.getChildren().size() < 2) break;
+                    Label nextLabel = (Label) nextBox.getChildren().get(1);
+                    if (nextLabel.getText().isEmpty()) {
+                        rEnd++;
+                    } else {
+                        break;
+                    }
+                }
+                
+                int gStart = rEnd + 1;
+                if (gStart >= rightContentBox.getChildren().size()) { i = rEnd + 1; continue; }
+                HBox gStartBox = (HBox) rightContentBox.getChildren().get(gStart);
+                if (gStartBox.getChildren().size() < 2) { i = rEnd + 1; continue; }
+                Label gStartLabel = (Label) gStartBox.getChildren().get(1);
+                if (!( !gStartLabel.getText().isEmpty() && gStartLabel.getStyle().contains("d4edda"))) { i = rEnd + 1; continue; }
+                
+                int gEnd = gStart;
+                while (gEnd + 1 < rightContentBox.getChildren().size()) {
+                    HBox nb = (HBox) rightContentBox.getChildren().get(gEnd + 1);
+                    if (nb.getChildren().size() < 2) break;
+                    Label nl = (Label) nb.getChildren().get(1);
+                    if (!nl.getText().isEmpty() && nl.getStyle().contains("d4edda")) {
+                        gEnd++;
+                    } else {
+                        break;
+                    }
+                }
+                
+                // swap [rStart..rEnd][gStart..gEnd] -> [gStart..gEnd][rStart..rEnd]
+                List<HBox> greenBlocks = new ArrayList<>();
+                for (int idx = gStart; idx <= gEnd; idx++) {
+                    greenBlocks.add((HBox) rightContentBox.getChildren().get(idx));
+                }
+                // entferne GRÜN-Blöcke (von hinten nach vorne)
+                for (int idx = gEnd; idx >= gStart; idx--) {
+                    rightContentBox.getChildren().remove(idx);
+                }
+                // füge GRÜN-Blöcke an rStart ein
+                rightContentBox.getChildren().addAll(rStart, greenBlocks);
+                
+                int redsCount = rEnd - rStart + 1;
+                int greensCount = greenBlocks.size();
+                i = rStart + redsCount + greensCount;
+                changed = true;
+            }
+        } while (changed);
     }
     
     /**
