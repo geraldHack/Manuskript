@@ -513,12 +513,19 @@ public class MainController implements Initializable {
         HBox directoryBox = new HBox(10);
         directoryBox.setAlignment(Pos.CENTER_LEFT);
         
+        final int LABEL_COL_WIDTH = 150; // gleiche Spaltenbreite für Labels
+        
         Label dirLabel = new Label("Verzeichnis:");
+        dirLabel.setMinWidth(LABEL_COL_WIDTH);
+        dirLabel.setPrefWidth(LABEL_COL_WIDTH);
+        dirLabel.setAlignment(Pos.CENTER_RIGHT);
         TextField dirField = new TextField();
         dirField.setPromptText("Wählen Sie ein Verzeichnis mit DOCX-Dateien");
-        dirField.setPrefWidth(400);
+        dirField.setPrefWidth(500);
         
         Button btnBrowseDir = new Button("Durchsuchen");
+        btnBrowseDir.setMinWidth(110);
+        btnBrowseDir.setPrefWidth(110);
         btnBrowseDir.setOnAction(e -> {
             DirectoryChooser directoryChooser = new DirectoryChooser();
             directoryChooser.setTitle("Verzeichnis mit DOCX-Dateien auswählen");
@@ -549,11 +556,16 @@ public class MainController implements Initializable {
         coverBox.setAlignment(Pos.CENTER_LEFT);
         
         Label coverLabel = new Label("Cover-Bild (optional):");
+        coverLabel.setMinWidth(LABEL_COL_WIDTH);
+        coverLabel.setPrefWidth(LABEL_COL_WIDTH);
+        coverLabel.setAlignment(Pos.CENTER_RIGHT);
         TextField coverField = new TextField();
         coverField.setPromptText("Pfad zum Cover-Bild");
-        coverField.setPrefWidth(400);
+        coverField.setPrefWidth(500);
         
         Button btnBrowseCover = new Button("Durchsuchen");
+        btnBrowseCover.setMinWidth(110);
+        btnBrowseCover.setPrefWidth(110);
         btnBrowseCover.setOnAction(e -> {
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle("Cover-Bild auswählen");
@@ -2091,6 +2103,30 @@ public class MainController implements Initializable {
             List<DiffBlock> blocks = groupIntoBlocks(realDiff.getDiffLines());
             
             // Erstelle synchronisierte Anzeige basierend auf Blöcken
+            // Hover-Vorschau: kleines undekoriertes Fenster mit WebView pro Dialog
+            final javafx.stage.Stage hoverPreviewStage = new javafx.stage.Stage(javafx.stage.StageStyle.UNDECORATED);
+            hoverPreviewStage.initOwner(diffStage);
+            hoverPreviewStage.setAlwaysOnTop(true);
+            javafx.scene.web.WebView hoverWebView = new javafx.scene.web.WebView();
+            hoverWebView.setPrefSize(500, 300);
+            javafx.scene.Scene hoverScene = new javafx.scene.Scene(hoverWebView);
+            
+            // Theme-Styling für das Hover-Fenster
+            try {
+                String cssPath = ResourceManager.getCssResource("css/manuskript.css");
+                if (cssPath != null && !cssPath.isEmpty()) {
+                    hoverScene.getStylesheets().add(cssPath);
+                }
+            } catch (Exception ignored) {}
+            
+            hoverPreviewStage.setScene(hoverScene);
+            javafx.animation.PauseTransition hoverHideTimer = new javafx.animation.PauseTransition(javafx.util.Duration.seconds(3));
+            hoverHideTimer.setOnFinished(ev -> hoverPreviewStage.hide());
+
+            diffStage.setOnCloseRequest(e -> {
+                hoverHideTimer.stop();
+                hoverPreviewStage.hide();
+            });
             
             for (int i1=0; i1<blocks.size(); i1++) {
                 DiffBlock block = blocks.get(i1);
@@ -2119,6 +2155,60 @@ public class MainController implements Initializable {
                     blockTexts.add(blockTextList);
                 }
                 
+                // Gesamten Text des Blocks für Hover-Vorschau vorbereiten (nur für grüne Blöcke)
+                final String combinedBlockText;
+                final String pairedDeletedText;
+                if (block.getType() == DiffBlockType.ADDED) {
+                    StringBuilder sb = new StringBuilder();
+                    for (DiffProcessor.DiffLine l : block.getLines()) {
+                        String t = l.getNewText();
+                        if (t != null) sb.append(t).append("\n");
+                    }
+                    combinedBlockText = sb.toString();
+
+                    // Suche den korrespondierenden roten Block links (gleicher Index in der Blockliste)
+                    StringBuilder del = new StringBuilder();
+                    
+                    // DEBUG: Zeige alle Blöcke und ihre Indices
+                    System.out.println("=== DEBUG BLOCK MATCHING ===");
+                    System.out.println("Aktueller grüner Block Index: " + i1);
+                    System.out.println("Grüner Block Text (gekürzt): " + 
+                        (combinedBlockText.length() > 50 ? combinedBlockText.substring(0, 50) + "..." : combinedBlockText));
+                    
+                    // Zeige alle Blöcke mit ihren Indices und Typen
+                    System.out.println("Alle Blöcke in der Liste:");
+                    for (int b = 0; b < blocks.size(); b++) {
+                        DiffBlock blockItem = blocks.get(b);
+                        System.out.println("  Block " + b + ": " + blockItem.getType() + " (" + blockItem.getLines().size() + " Zeilen)");
+                    }
+                    
+                    // Suche den korrespondierenden DELETED Block basierend auf der Position
+                    // Der grüne Block ist an Index i1, suche den DELETED Block davor
+                    for (int scan = i1 - 1; scan >= 0; scan--) {
+                        DiffBlock prevBlock = blocks.get(scan);
+                        if (prevBlock.getType() == DiffBlockType.DELETED) {
+                            System.out.println("FOUND DELETED Block at index " + scan + " (vor grünem Block " + i1 + ")");
+                            for (DiffProcessor.DiffLine l : prevBlock.getLines()) {
+                                String t = l.getOriginalText();
+                                if (t != null) del.append(t).append("\n");
+                            }
+                            break;
+                        }
+                    }
+                    
+                    if (del.length() > 0) {
+                        System.out.println("MATCHED: Grüner Block " + i1 + " mit DELETED Block davor");
+                    } else {
+                        System.out.println("NO MATCH: Kein DELETED Block vor grünem Block " + i1 + " gefunden");
+                    }
+                    System.out.println("=== END DEBUG ===");
+                    
+                    pairedDeletedText = del.toString();
+                } else {
+                    combinedBlockText = null;
+                    pairedDeletedText = null;
+                }
+
                 // Erstelle Zeilen für diesen Block
                 for (int i = 0; i < block.getLines().size(); i++) {
                     DiffProcessor.DiffLine diffLine = block.getLines().get(i);
@@ -2203,6 +2293,27 @@ public class MainController implements Initializable {
                     } else {
                         rightLineBox.getChildren().addAll(rightLineNum, rightLineLabel);
                     }
+
+                    // Hover-Vorschau nur für GRÜNE Blöcke (rechte Seite) aktivieren
+                    if (block.getType() == DiffBlockType.ADDED && combinedBlockText != null && !combinedBlockText.trim().isEmpty()) {
+                        final String html = (pairedDeletedText != null && !pairedDeletedText.trim().isEmpty())
+                                ? buildHtmlDiffPreview(pairedDeletedText, combinedBlockText)
+                                : buildHtmlPreview(combinedBlockText);
+                        javafx.event.EventHandler<javafx.scene.input.MouseEvent> enterHandler = evt -> {
+                            hoverHideTimer.stop();
+                            hoverWebView.getEngine().loadContent(html, "text/html");
+                            double x = evt.getScreenX() + 12;
+                            double y = evt.getScreenY() + 12;
+                            hoverPreviewStage.setX(x);
+                            hoverPreviewStage.setY(y);
+                            if (!hoverPreviewStage.isShowing()) hoverPreviewStage.show();
+                        };
+                        javafx.event.EventHandler<javafx.scene.input.MouseEvent> exitHandler = evt -> hoverPreviewStage.hide();
+                        rightLineBox.setOnMouseEntered(enterHandler);
+                        rightLineBox.setOnMouseExited(exitHandler);
+                        rightLineLabel.setOnMouseEntered(enterHandler);
+                        rightLineLabel.setOnMouseExited(exitHandler);
+                    }
                     
                     leftContentBox.getChildren().add(leftLineBox);
                     rightContentBox.getChildren().add(rightLineBox);
@@ -2211,6 +2322,7 @@ public class MainController implements Initializable {
             
             // Tausche leere rote Boxen mit nachfolgenden grünen Boxen für bessere Lesbarkeit
             optimizeRightContentOrder(rightContentBox);
+            
             
             // Synchronisiere Scrollbars
             leftScrollPane.vvalueProperty().bindBidirectional(rightScrollPane.vvalueProperty());
@@ -2458,6 +2570,107 @@ public class MainController implements Initializable {
             showError("Diff-Fehler", e.getMessage());
         }
     }
+
+    // Baut simples HTML für die Hover-Vorschau
+    private String buildHtmlPreview(String text) {
+        String escaped = text
+            .replace("&", "&amp;")
+            .replace("<", "&lt;")
+            .replace(">", "&gt;")
+            .replace("\n", "<br>");
+        return "<html><head><meta charset=\"UTF-8\"></head><body style=\"font-family:Segoe UI,Arial,sans-serif;font-size:13px;margin:8px;\">"
+                + escaped + "</body></html>";
+    }
+
+    // HTML Diff-Vorschau: gelöscht rot durchgestrichen, hinzugefügt grün unterstrichen
+    private String buildHtmlDiffPreview(String originalText, String newText) {
+        List<String> a = tokenizeWords(originalText);
+        List<String> b = tokenizeWords(newText);
+        List<DiffOp> ops = diff(a, b);
+        StringBuilder sb = new StringBuilder();
+        
+        // Theme-Hintergrundfarbe für das Hover-Fenster
+        String themeBgColor = THEMES[currentThemeIndex][0];
+        String themeTextColor = THEMES[currentThemeIndex][1];
+        
+        sb.append("<html><head><meta charset=\"UTF-8\"></head><body style=\"")
+          .append("font-family:Segoe UI,Arial,sans-serif;font-size:13px;margin:8px;line-height:1.4;")
+          .append("background-color:").append(themeBgColor).append(";")
+          .append("color:").append(themeTextColor).append(";\">");
+        
+        for (DiffOp op : ops) {
+            switch (op.type) {
+                case EQUAL:
+                    sb.append(escape(op.token));
+                    break;
+                case DELETE:
+                    sb.append("<span style=\"color:#c0392b;text-decoration:line-through;\">")
+                      .append(escape(op.token)).append("</span>");
+                    break;
+                case INSERT:
+                    sb.append("<span style=\"color:#2e7d32;text-decoration:underline;\">")
+                      .append(escape(op.token)).append("</span>");
+                    break;
+            }
+        }
+        sb.append("</body></html>");
+        return sb.toString();
+    }
+
+    private String escape(String s) {
+        return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\n", "<br>");
+    }
+
+    private static class DiffOp {
+        enum Type { EQUAL, INSERT, DELETE }
+        final Type type; final String token;
+        DiffOp(Type t, String tok) { this.type = t; this.token = tok; }
+    }
+
+    // Sehr einfache Wort-Tokenisierung (Whitespace-sensitiv, Zeilenumbrüche erhalten)
+    private List<String> tokenizeWords(String s) {
+        List<String> tokens = new ArrayList<>();
+        if (s == null || s.isEmpty()) return tokens;
+        StringBuilder cur = new StringBuilder();
+        for (int i = 0; i < s.length(); i++) {
+            char ch = s.charAt(i);
+            if (Character.isWhitespace(ch)) {
+                if (cur.length() > 0) { tokens.add(cur.toString()); cur.setLength(0); }
+                tokens.add(String.valueOf(ch));
+            } else {
+                cur.append(ch);
+            }
+        }
+        if (cur.length() > 0) tokens.add(cur.toString());
+        return tokens;
+    }
+
+    // LCS-basierter Diff auf Token-Ebene (einfach, ausreichend für Vorschau)
+    private List<DiffOp> diff(List<String> a, List<String> b) {
+        int n = a.size(), m = b.size();
+        int[][] dp = new int[n + 1][m + 1];
+        for (int i = n - 1; i >= 0; i--) {
+            for (int j = m - 1; j >= 0; j--) {
+                if (a.get(i).equals(b.get(j))) dp[i][j] = dp[i + 1][j + 1] + 1;
+                else dp[i][j] = Math.max(dp[i + 1][j], dp[i][j + 1]);
+            }
+        }
+        List<DiffOp> ops = new ArrayList<>();
+        int i = 0, j = 0;
+        while (i < n && j < m) {
+            if (a.get(i).equals(b.get(j))) {
+                ops.add(new DiffOp(DiffOp.Type.EQUAL, a.get(i++)));
+                j++;
+            } else if (dp[i + 1][j] >= dp[i][j + 1]) {
+                ops.add(new DiffOp(DiffOp.Type.DELETE, a.get(i++)));
+            } else {
+                ops.add(new DiffOp(DiffOp.Type.INSERT, b.get(j++)));
+            }
+        }
+        while (i < n) ops.add(new DiffOp(DiffOp.Type.DELETE, a.get(i++)));
+        while (j < m) ops.add(new DiffOp(DiffOp.Type.INSERT, b.get(j++)));
+        return ops;
+    }
     
     /**
      * Gruppiert Diff-Linien zu zusammenhängenden Blöcken
@@ -2556,6 +2769,8 @@ public class MainController implements Initializable {
             }
         } while (changed);
     }
+    
+
     
     /**
      * Repräsentiert einen zusammenhängenden Diff-Block
