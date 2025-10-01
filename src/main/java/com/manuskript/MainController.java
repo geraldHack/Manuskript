@@ -22,6 +22,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.GridPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.stage.FileChooser;
@@ -158,11 +159,37 @@ public class MainController implements Initializable {
         coverImageView.setOpacity(1.0);
         coverImageView.setStyle("-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 15, 0, 0, 0);");
         
-        // Zentriere das ImageView mit HBox
-        HBox imageContainer = new HBox();
-        imageContainer.setAlignment(Pos.CENTER);
+        // Erstelle Zurück-Button mit Pfeil-Symbol
+        Button backButton = new Button("← Zurück");
+        backButton.setId("backButton");
+        backButton.setPrefSize(120, 40);
+        backButton.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-border-radius: 8px;");
+        backButton.getStyleClass().add("back-button");
+        
+        // Zurück-Funktionalität
+        backButton.setOnAction(e -> {
+            logger.info("Zurück-Button geklickt - schließe Hauptfenster und öffne Projektauswahl");
+            primaryStage.hide();
+            showProjectSelectionMenu();
+        });
+        
+        
+        // Erstelle BorderPane: Button links, Bild center, Dummy rechts
+        BorderPane imageContainer = new BorderPane();
         imageContainer.setPrefHeight(300); // Noch größere Höhe für den Container-Bereich
-        imageContainer.getChildren().add(coverImageView);
+        
+        // Button links
+        imageContainer.setLeft(backButton);
+        
+        // Bild in der Mitte
+        imageContainer.setCenter(coverImageView);
+        
+        // Dummy rechts (genauso breit wie Button)
+        HBox dummyBox = new HBox();
+        dummyBox.setPrefWidth(120); // Gleiche Breite wie der Button
+        dummyBox.setMinWidth(120);
+        dummyBox.setMaxWidth(120);
+        imageContainer.setRight(dummyBox);
         
         // Feste Größe für das Cover-Bild (keine Property-Bindings)
         // coverImageView.fitWidthProperty().bind(imageContainer.widthProperty().subtract(40));
@@ -177,11 +204,36 @@ public class MainController implements Initializable {
             ((BorderPane) mainContainer).setTop(imageContainer);
         }
         
+        
         // Debug: Prüfe ob ImageView korrekt erstellt wurde
         if (coverImageView != null) {
             logger.info("ImageView programmatisch erstellt und hinzugefügt: {}", coverImageView);
-            // Lade das letzte Cover-Bild beim Start
-            loadLastCoverImage();
+            // Kein Cover-Bild beim Start laden - zeige nur Zurück-Button ohne Bild
+            if (mainContainer instanceof BorderPane) {
+                // Erstelle imageContainer mit nur Zurück-Button (ohne Bild)
+                BorderPane startImageContainer = new BorderPane();
+                startImageContainer.setPrefHeight(60); // Nur so hoch wie der Button
+                
+                // Erstelle Zurück-Button
+                Button startBackButton = new Button("← Zurück");
+                startBackButton.setId("backButton");
+                startBackButton.setPrefSize(120, 40);
+                startBackButton.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-border-radius: 8px;");
+                startBackButton.getStyleClass().add("back-button");
+                startBackButton.setOnAction(e -> {
+                    logger.info("Zurück-Button geklickt - schließe Hauptfenster und öffne Projektauswahl");
+                    primaryStage.hide();
+                    showProjectSelectionMenu();
+                });
+                
+                startImageContainer.setLeft(startBackButton);
+                startImageContainer.setCenter(null); // Kein Bild
+                HBox startDummyBox = new HBox();
+                startDummyBox.setPrefWidth(120);
+                startImageContainer.setRight(startDummyBox);
+                
+                ((BorderPane) mainContainer).setTop(startImageContainer);
+            }
         } else {
             logger.error("ImageView konnte nicht erstellt werden!");
         }
@@ -622,6 +674,9 @@ public class MainController implements Initializable {
                     
                     // Speichere den Pfad in den Einstellungen
                     preferences.put("lastDirectory", selectedDir);
+                    
+                    // WICHTIG: Lade das Cover-Bild für das neue Verzeichnis
+                    loadCoverImageFromCurrentDirectory();
                 }
             }
             
@@ -631,7 +686,10 @@ public class MainController implements Initializable {
                 File coverFile = new File(selectedCover);
                 if (coverFile.exists()) {
                     loadCoverImage(coverFile);
-                    ResourceManager.saveParameter("ui.cover_image_path", selectedCover);
+                    // Speichere als cover_image.png im aktuellen Verzeichnis
+                    if (!selectedDir.isEmpty()) {
+                        saveCoverImageAsPng(coverFile);
+                    }
                 }
             } else {
                 // Kein neues Cover-Bild - entferne das aktuelle nur wenn Verzeichnis gewechselt wurde
@@ -640,29 +698,6 @@ public class MainController implements Initializable {
                 }
             }
             
-            // WICHTIG: Lade das Cover-Bild für das neue Verzeichnis, falls vorhanden
-            if (!selectedDir.isEmpty()) {
-                // Suche nach Cover-Bild im neuen Verzeichnis
-                File newDirectory = new File(selectedDir);
-                if (newDirectory.exists() && newDirectory.isDirectory()) {
-                    // Suche nach Bilddateien im Verzeichnis
-                    File[] imageFiles = newDirectory.listFiles((dir, name) -> 
-                        name.toLowerCase().endsWith(".png") || 
-                        name.toLowerCase().endsWith(".jpg") || 
-                        name.toLowerCase().endsWith(".jpeg") ||
-                        name.toLowerCase().endsWith(".gif") ||
-                        name.toLowerCase().endsWith(".bmp"));
-                    
-                    if (imageFiles != null && imageFiles.length > 0) {
-                        // Lade das erste gefundene Bild
-                        loadCoverImage(imageFiles[0]);
-                        ResourceManager.saveParameter("ui.cover_image_path", imageFiles[0].getAbsolutePath());
-                    } else {
-                        // Kein Bild im Verzeichnis gefunden - lade das letzte gespeicherte
-                        loadLastCoverImage();
-                    }
-                }
-            }
         }
     }
     
@@ -685,7 +720,48 @@ public class MainController implements Initializable {
         }
     }
     
+    /**
+     * Kopiert ein Bild als cover_image.png in das aktuelle Verzeichnis
+     */
+    private void saveCoverImageAsPng(File sourceImage) {
+        try {
+            String currentDir = txtDirectoryPath.getText();
+            if (currentDir != null && !currentDir.isEmpty()) {
+                File targetDir = new File(currentDir);
+                if (targetDir.exists() && targetDir.isDirectory()) {
+                    File targetFile = new File(targetDir, "cover_image.png");
+                    
+                    // Kopiere die Datei
+                    java.nio.file.Files.copy(sourceImage.toPath(), targetFile.toPath(), 
+                        java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                    
+                    // Aktualisiere den gespeicherten Pfad
+                    
+                    logger.info("Cover-Bild als cover_image.png gespeichert: {}", targetFile.getAbsolutePath());
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Fehler beim Speichern des Cover-Bildes als PNG", e);
+            showError("Cover-Bild Fehler", "Das Cover-Bild konnte nicht als cover_image.png gespeichert werden: " + e.getMessage());
+        }
+    }
+    
     private void loadLastCoverImage() {
+        // PRIORITÄT: Suche zuerst nach cover_image.png im aktuellen Verzeichnis
+        String currentDir = txtDirectoryPath.getText();
+        if (currentDir != null && !currentDir.isEmpty()) {
+            File currentDirectory = new File(currentDir);
+            if (currentDirectory.exists() && currentDirectory.isDirectory()) {
+                File coverImagePng = new File(currentDirectory, "cover_image.png");
+                if (coverImagePng.exists()) {
+                    logger.info("cover_image.png im aktuellen Verzeichnis gefunden: {}", coverImagePng.getAbsolutePath());
+                    loadCoverImage(coverImagePng);
+                    return;
+                }
+            }
+        }
+        
+        // Fallback: Lade das gespeicherte Cover-Bild
         String lastCoverPath = ResourceManager.getParameter("ui.cover_image_path", "");
         if (!lastCoverPath.isEmpty()) {
             File coverFile = new File(lastCoverPath);
@@ -4629,6 +4705,337 @@ public class MainController implements Initializable {
         splitPanel.getChildren().addAll(headerBox, fileBox, outputBox, listBox, buttonBox);
         
         return splitPanel;
+    }
+    
+    /**
+     * Zeigt das übergeordnete Projektauswahl-Menü
+     */
+    private void showProjectSelectionMenu() {
+        try {
+            // Erstelle CustomStage für Projektauswahl
+            CustomStage projectStage = new CustomStage();
+            projectStage.setCustomTitle("Projektauswahl");
+            projectStage.setMinWidth(800);
+            projectStage.setMinHeight(600);
+            projectStage.setWidth(1000);
+            projectStage.setHeight(700);
+            
+            
+            // Haupt-Layout
+            VBox mainLayout = new VBox(20);
+            mainLayout.setPadding(new Insets(20));
+            mainLayout.getStyleClass().add("project-selection-container");
+            
+            // Titel
+            Label titleLabel = new Label("📚 Wähle ein Projekt");
+            titleLabel.getStyleClass().add("project-title");
+            // Entferne inline styling - CSS übernimmt das
+            
+            // Projekt-Grid
+            GridPane projectGrid = new GridPane();
+            projectGrid.setHgap(20);
+            projectGrid.setVgap(20);
+            projectGrid.setAlignment(Pos.CENTER);
+            projectGrid.getStyleClass().add("project-grid");
+            
+            // Lade verfügbare Projekte
+            loadAndDisplayProjects(projectGrid, projectStage);
+            
+            // Abbrechen-Button
+            Button cancelButton = new Button("❌ Abbrechen");
+            cancelButton.getStyleClass().add("cancel-button");
+            cancelButton.setPrefSize(150, 40);
+            cancelButton.setOnAction(e -> projectStage.close());
+            
+            // Layout zusammenbauen
+            mainLayout.getChildren().addAll(titleLabel, projectGrid, cancelButton);
+            
+            // Scene erstellen
+            Scene scene = new Scene(mainLayout);
+            
+            // CSS laden
+            String cssPath = ResourceManager.getCssResource("css/manuskript.css");
+            if (cssPath != null) {
+                scene.getStylesheets().add(cssPath);
+            }
+            
+            projectStage.setSceneWithTitleBar(scene);
+            
+            // CustomStage Theme anwenden NACH setSceneWithTitleBar
+            projectStage.setFullTheme(currentThemeIndex);
+            projectStage.initOwner(primaryStage);
+            projectStage.showAndWait();
+            
+        } catch (Exception e) {
+            logger.error("Fehler beim Öffnen der Projektauswahl", e);
+            showError("Fehler", "Projektauswahl konnte nicht geöffnet werden: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * Lädt und zeigt verfügbare Projekte im Grid an
+     */
+    private void loadAndDisplayProjects(GridPane projectGrid, CustomStage projectStage) {
+        try {
+            // Suche nach Projekt-Verzeichnissen
+            String lastDir = preferences.get("lastDirectory", "");
+            File searchDir = new File(lastDir).getParentFile();
+            
+            if (searchDir == null || !searchDir.exists()) {
+                // Fallback: Suche in typischen Verzeichnissen
+                String userHome = System.getProperty("user.home");
+                searchDir = new File(userHome, "Documents");
+            }
+            
+            File[] directories = searchDir.listFiles(File::isDirectory);
+            if (directories == null) {
+                directories = new File[0];
+            }
+            
+            int row = 0;
+            int col = 0;
+            int maxCols = 3; // 3 Projekte pro Zeile
+            
+            for (File dir : directories) {
+                // Prüfe ob Verzeichnis ein Projekt ist (enthält DOCX-Dateien)
+                File[] docxFiles = dir.listFiles((d, name) -> name.toLowerCase().endsWith(".docx"));
+                if (docxFiles != null && docxFiles.length > 0) {
+                    // Erstelle Projekt-Karte
+                    VBox projectCard = createProjectCard(dir, docxFiles, projectStage);
+                    projectGrid.add(projectCard, col, row);
+                    
+                    col++;
+                    if (col >= maxCols) {
+                        col = 0;
+                        row++;
+                    }
+                }
+            }
+            
+            if (row == 0 && col == 0) {
+                // Keine Projekte gefunden
+                Label noProjectsLabel = new Label("Keine Projekte gefunden");
+                noProjectsLabel.getStyleClass().add("no-projects-label");
+                projectGrid.add(noProjectsLabel, 0, 0);
+            }
+            
+        } catch (Exception e) {
+            logger.error("Fehler beim Laden der Projekte", e);
+        }
+    }
+    
+    /**
+     * Erstellt eine Projekt-Karte für die Auswahl
+     */
+    private VBox createProjectCard(File projectDir, File[] docxFiles, CustomStage projectStage) {
+        VBox card = new VBox(10);
+        card.getStyleClass().add("project-card");
+        card.setPrefSize(300, 250);
+        card.setAlignment(Pos.CENTER);
+        
+        // Projekt-Bild
+        ImageView projectImage = new ImageView();
+        projectImage.setFitWidth(200);
+        projectImage.setFitHeight(150);
+        projectImage.setPreserveRatio(true);
+        projectImage.setStyle("-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 5, 0, 2, 2);");
+        
+        // Suche nach cover_image.png im Projekt
+        File coverImageFile = new File(projectDir, "cover_image.png");
+        if (coverImageFile.exists()) {
+            try {
+                Image image = new Image(coverImageFile.toURI().toString());
+                projectImage.setImage(image);
+            } catch (Exception e) {
+                logger.warn("Fehler beim Laden des Projekt-Bildes: " + coverImageFile.getName());
+                // Kein Bild anzeigen bei Fehler
+                projectImage.setImage(null);
+            }
+        } else {
+            // Kein cover_image.png gefunden - kein Bild anzeigen
+            projectImage.setImage(null);
+        }
+        
+        // Projekt-Name
+        Label projectName = new Label(projectDir.getName());
+        projectName.getStyleClass().add("project-name");
+        projectName.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;");
+        projectName.setWrapText(true);
+        projectName.setMaxWidth(200);
+        
+        // Projekt-Info
+        Label projectInfo = new Label(docxFiles.length + " Dokument(e)");
+        projectInfo.getStyleClass().add("project-info");
+        projectInfo.setStyle("-fx-font-size: 12px; -fx-text-fill: #7f8c8d;");
+        
+        // Auswählen-Button
+        Button selectButton = new Button("📂 Öffnen");
+        selectButton.getStyleClass().add("select-project-button");
+        selectButton.setPrefSize(120, 35);
+        selectButton.setOnAction(e -> {
+            // Projekt auswählen
+            selectProject(projectDir, projectStage);
+        });
+        
+        // Layout zusammenbauen
+        card.getChildren().addAll(projectImage, projectName, projectInfo, selectButton);
+        
+        return card;
+    }
+    
+    /**
+     * Wählt ein Projekt aus und lädt es
+     */
+    private void selectProject(File projectDir, CustomStage projectStage) {
+        try {
+            // Lade das ausgewählte Projekt
+            txtDirectoryPath.setText(projectDir.getAbsolutePath());
+            loadDocxFiles(projectDir);
+            
+            // Speichere den Pfad
+            preferences.put("lastDirectory", projectDir.getAbsolutePath());
+            
+            // Lade das Cover-Bild für das neue Projekt (nur cover_image.png aus dem aktuellen Verzeichnis)
+            loadCoverImageFromCurrentDirectory();
+            
+            // Prüfe ob ein Cover-Bild geladen wurde
+            if (coverImageView.getImage() == null) {
+                // Kein Bild gefunden - zeige nur Zurück-Button (kleine Höhe)
+                if (mainContainer instanceof BorderPane) {
+                    // Erstelle imageContainer mit nur Zurück-Button (ohne Bild)
+                    BorderPane imageContainer = new BorderPane();
+                    imageContainer.setPrefHeight(60); // Nur so hoch wie der Button
+                    
+                    // Erstelle Zurück-Button
+                    Button backButton = new Button("← Zurück");
+                    backButton.setId("backButton");
+                    backButton.setPrefSize(120, 40);
+                    backButton.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-border-radius: 8px;");
+                    backButton.getStyleClass().add("back-button");
+                    backButton.setOnAction(e -> {
+                        logger.info("Zurück-Button geklickt - schließe Hauptfenster und öffne Projektauswahl");
+                        primaryStage.hide();
+                        showProjectSelectionMenu();
+                    });
+                    
+                    imageContainer.setLeft(backButton);
+                    imageContainer.setCenter(null); // Kein Bild
+                    HBox dummyBox = new HBox();
+                    dummyBox.setPrefWidth(120);
+                    imageContainer.setRight(dummyBox);
+                    ((BorderPane) mainContainer).setTop(imageContainer);
+                }
+                logger.info("Kein Cover-Bild gefunden - nur Zurück-Button angezeigt");
+            } else {
+                // Bild gefunden - zeige den Bildbereich
+                if (mainContainer instanceof BorderPane) {
+                    // Erstelle imageContainer neu mit Zurück-Button
+                    BorderPane imageContainer = new BorderPane();
+                    imageContainer.setPrefHeight(300);
+                    
+                    // Erstelle Zurück-Button
+                    Button backButton = new Button("← Zurück");
+                    backButton.setId("backButton");
+                    backButton.setPrefSize(120, 40);
+                    backButton.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-border-radius: 8px;");
+                    backButton.getStyleClass().add("back-button");
+                    backButton.setOnAction(e -> {
+                        logger.info("Zurück-Button geklickt - schließe Hauptfenster und öffne Projektauswahl");
+                        primaryStage.hide();
+                        showProjectSelectionMenu();
+                    });
+                    
+                    imageContainer.setLeft(backButton);
+                    imageContainer.setCenter(coverImageView);
+                    HBox dummyBox = new HBox();
+                    dummyBox.setPrefWidth(120);
+                    imageContainer.setRight(dummyBox);
+                    ((BorderPane) mainContainer).setTop(imageContainer);
+                }
+                logger.info("Cover-Bild gefunden - Bildbereich wird angezeigt");
+            }
+            
+            // Schließe die Projektauswahl
+            projectStage.close();
+            
+            // Zeige das Hauptfenster wieder an
+            primaryStage.show();
+            
+            logger.info("Projekt ausgewählt: " + projectDir.getName());
+            
+        } catch (Exception e) {
+            logger.error("Fehler beim Laden des Projekts", e);
+            showError("Fehler", "Projekt konnte nicht geladen werden: " + e.getMessage());
+        }
+    }
+    
+    
+    /**
+     * Lädt das Cover-Bild nur aus dem aktuellen Verzeichnis (cover_image.png)
+     */
+    private void loadCoverImageFromCurrentDirectory() {
+        try {
+            String currentDir = txtDirectoryPath.getText();
+            if (currentDir != null && !currentDir.isEmpty()) {
+                File currentDirectory = new File(currentDir);
+                if (currentDirectory.exists() && currentDirectory.isDirectory()) {
+                    File coverImageFile = new File(currentDirectory, "cover_image.png");
+                    if (coverImageFile.exists()) {
+                        Image image = new Image(coverImageFile.toURI().toString());
+                        coverImageView.setImage(image);
+                        logger.info("Cover-Bild aus aktuellem Verzeichnis geladen: {}", coverImageFile.getAbsolutePath());
+                    } else {
+                        coverImageView.setImage(null);
+                        logger.info("Kein cover_image.png im aktuellen Verzeichnis gefunden: {}", currentDirectory.getAbsolutePath());
+                    }
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Fehler beim Laden des Cover-Bildes aus aktuellem Verzeichnis", e);
+            coverImageView.setImage(null);
+        }
+    }
+    
+    /**
+     * TEST: Zeigt eine einfache CustomStage mit nur Text
+     */
+    private void showTestCustomStage() {
+        try {
+            // Erstelle CustomStage
+            CustomStage testStage = new CustomStage();
+            testStage.setCustomTitle("Test CustomStage");
+            testStage.setMinWidth(400);
+            testStage.setMinHeight(300);
+            testStage.setWidth(500);
+            testStage.setHeight(400);
+            
+            // Einfacher Text
+            Label testLabel = new Label("Das ist ein Test-Text");
+            testLabel.setStyle("-fx-font-size: 16px; -fx-padding: 20px;");
+            
+            VBox testLayout = new VBox(20);
+            testLayout.setPadding(new Insets(20));
+            testLayout.getChildren().add(testLabel);
+            
+            // Scene erstellen
+            Scene testScene = new Scene(testLayout);
+            
+            // CSS laden
+            String cssPath = ResourceManager.getCssResource("css/manuskript.css");
+            if (cssPath != null) {
+                testScene.getStylesheets().add(cssPath);
+            }
+            
+            testStage.setSceneWithTitleBar(testScene);
+            
+            // CustomStage Theme anwenden NACH setSceneWithTitleBar
+            testStage.setFullTheme(currentThemeIndex);
+            testStage.initOwner(primaryStage);
+            testStage.showAndWait();
+            
+        } catch (Exception e) {
+            logger.error("Fehler beim Öffnen der Test-CustomStage", e);
+        }
     }
     
 } 
