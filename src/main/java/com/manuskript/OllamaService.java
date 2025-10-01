@@ -918,6 +918,7 @@ public class OllamaService {
                 .thenApply(this::parseModelsResponse)
                 .exceptionally(ex -> {
                     logger.warning("Fehler beim Abrufen der Modelle: " + ex.getMessage());
+                    ex.printStackTrace();
                     return new String[]{"mistral:7b-instruct"}; // Fallback
                 });
     }
@@ -927,11 +928,13 @@ public class OllamaService {
      */
     private String[] parseModelsResponse(String response) {
         try {
+            logger.info("Models-Response erhalten: " + (response != null ? response.substring(0, Math.min(200, response.length())) + "..." : "null"));
+            
             // Einfache JSON-Parsing für "models" Array
             // Erwartetes Format: {"models":[{"name":"model1"},{"name":"model2"}]}
             String[] models = new String[0];
             
-            if (response.contains("\"models\"")) {
+            if (response != null && response.contains("\"models\"")) {
                 // Extrahiere alle "name" Felder
                 String[] parts = response.split("\"name\":\"");
                 models = new String[parts.length - 1];
@@ -943,12 +946,15 @@ public class OllamaService {
                         models[i - 1] = part.substring(0, endQuote);
                     }
                 }
+            } else {
+                logger.warning("Keine 'models' in der Response gefunden oder Response ist null");
             }
             
             logger.info("Verfügbare Modelle gefunden: " + String.join(", ", models));
             return models;
         } catch (Exception e) {
             logger.warning("Fehler beim Parsen der Models-Antwort: " + e.getMessage());
+            e.printStackTrace();
             return new String[]{"mistral:7b-instruct"}; // Fallback
         }
     }
