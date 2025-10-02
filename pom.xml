@@ -97,6 +97,8 @@
             <artifactId>docx4j-core</artifactId>
             <version>11.5.4</version>
         </dependency>
+        
+        
         <dependency>
             <groupId>org.docx4j</groupId>
             <artifactId>docx4j-JAXB-ReferenceImpl</artifactId>

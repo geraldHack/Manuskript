@@ -5157,7 +5157,7 @@
     -fx-border-color: #e9ecef;
     -fx-border-radius: 12px;
     -fx-border-width: 2px;
-    -fx-padding: 20px;
+    -fx-padding: 10px; /* Weniger Padding für mehr Platz für Labels */
     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 8, 0, 2, 4);
     -fx-cursor: hand;
     -fx-pref-width: 300px;
@@ -5184,8 +5184,8 @@
     -fx-font-size: 16px;
     -fx-font-weight: bold;
     -fx-text-fill: #2c3e50;
-    -fx-wrap-text: true;
-    -fx-max-width: 200px;
+    -fx-wrap-text: false;
+    /* -fx-max-width entfernt - Label nutzt volle Kartenbreite */
 }
 
 /* Serien-Name (spezielle Regel) */

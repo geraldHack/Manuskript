@@ -48,16 +48,20 @@ public class RtfSplitProcessor {
     
     /**
      * Analysiert eine RTF-Datei und findet alle Kapitel
+     * Konvertiert RTF zu temporärer Markdown-Datei für saubere Verarbeitung
      */
     public List<Chapter> analyzeDocument(File rtfFile) throws IOException {
         logger.info("Analysiere RTF-Datei: {}", rtfFile.getAbsolutePath());
         
+        // RTF zu temporärer Markdown-Datei konvertieren
+        File tempMdFile = convertRtfToMarkdown(rtfFile);
+        
         List<Chapter> chapters = new ArrayList<>();
         List<String> allLines = new ArrayList<>();
         
-        // RTF-Datei lesen
+        // Markdown-Datei lesen
         try (BufferedReader reader = new BufferedReader(
-                new InputStreamReader(new FileInputStream(rtfFile), StandardCharsets.UTF_8))) {
+                new FileReader(tempMdFile, StandardCharsets.UTF_8))) {
             
             String line;
             while ((line = reader.readLine()) != null) {
@@ -70,15 +74,14 @@ public class RtfSplitProcessor {
         // Kapitel finden
         for (int i = 0; i < allLines.size(); i++) {
             String line = allLines.get(i);
-            String cleanLine = cleanRtfLine(line);
             
             // Debug: Zeige alle nicht-leeren Zeilen
-            if (!cleanLine.trim().isEmpty() && cleanLine.length() < 100) {
-                logger.debug("Zeile {}: '{}'", i, cleanLine);
+            if (!line.trim().isEmpty() && line.length() < 100) {
+                logger.debug("MD-Zeile {}: '{}'", i, line);
             }
             
-            if (!cleanLine.trim().isEmpty()) {
-                Chapter chapter = detectChapter(cleanLine, i, allLines);
+            if (!line.trim().isEmpty()) {
+                Chapter chapter = detectChapter(line, i, allLines);
                 if (chapter != null) {
                     chapters.add(chapter);
                     logger.info("Kapitel gefunden: {}", chapter);
@@ -86,28 +89,185 @@ public class RtfSplitProcessor {
             }
         }
         
+        // Temporäre Datei NICHT löschen - für Debugging behalten
+        // tempMdFile.delete();
+        
         logger.info("Insgesamt {} Kapitel gefunden", chapters.size());
         return chapters;
     }
     
     /**
-     * Vereinfachte RTF-Bereinigung - nur das Nötigste
+     * Konvertiert RTF zu temporärer Markdown-Datei mit Formatierung
+     */
+    private File convertRtfToMarkdown(File rtfFile) throws IOException {
+        logger.info("Konvertiere RTF zu Markdown mit Formatierung...");
+        logger.info("RTF-Datei: {}", rtfFile.getAbsolutePath());
+        logger.info("RTF-Datei existiert: {}", rtfFile.exists());
+        
+        // Temporäre Datei nach G:\ ablegen (sichtbar und NICHT löschen)
+        File tempMdFile = new File("G:\\", "rtf_konvertiert.md");
+        logger.info("Temporäre MD-Datei: {}", tempMdFile.getAbsolutePath());
+        
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(new FileInputStream(rtfFile), StandardCharsets.UTF_8));
+             FileWriter writer = new FileWriter(tempMdFile, StandardCharsets.UTF_8)) {
+            
+            logger.info("Beginne RTF-Parsing mit Formatierung...");
+            
+            String line;
+            StringBuilder content = new StringBuilder();
+            boolean inBold = false;
+            boolean inItalic = false;
+            int lineCount = 0;
+            
+            while ((line = reader.readLine()) != null) {
+                lineCount++;
+                
+                // RTF-Formatierung zu Markdown konvertieren
+                String processedLine = convertRtfToMarkdownLine(line);
+                content.append(processedLine).append("\n");
+                
+                if (lineCount % 100 == 0) {
+                    logger.debug("Verarbeitet {} Zeilen", lineCount);
+                }
+            }
+            
+            // Inhalt schreiben
+            writer.write(content.toString());
+            logger.info("Markdown-Datei geschrieben: {} bytes", tempMdFile.length());
+            logger.info("Verarbeitet {} Zeilen", lineCount);
+            
+            // DEBUG: Zeige ersten Teil des Inhalts
+            logger.info("=== KONVERTIERTER INHALT (erste 500 Zeichen) ===");
+            String preview = content.length() > 500 ? content.substring(0, 500) + "..." : content.toString();
+            logger.info("'{}'", preview);
+            logger.info("=== ENDE KONVERTIERTER INHALT ===");
+            
+        }
+        
+        return tempMdFile;
+    }
+    
+    /**
+     * Konvertiert eine RTF-Zeile zu Markdown mit Formatierung
+     */
+    private String convertRtfToMarkdownLine(String rtfLine) {
+        if (rtfLine == null || rtfLine.trim().isEmpty()) {
+            return "";
+        }
+        
+        String result = rtfLine;
+        
+        // RTF-Header entfernen
+        result = result.replaceAll("\\{[^}]*\\\\rtf1[^}]*\\}", "");
+        result = result.replaceAll("\\{[^}]*\\\\fonttbl[^}]*\\}", "");
+        result = result.replaceAll("\\{[^}]*\\\\colortbl[^}]*\\}", "");
+        
+        // Formatierungs-Codes zu Markdown konvertieren
+        result = result.replaceAll("\\\\b\\s*", "**"); // Bold
+        result = result.replaceAll("\\\\i\\s*", "*");  // Italic
+        result = result.replaceAll("\\\\u\\d+\\s*", ""); // Unicode escapes
+        
+        // Paragraphen
+        result = result.replaceAll("\\\\par", "\n\n");
+        result = result.replaceAll("\\\\line", "\n");
+        
+        // Geschweifte Klammern entfernen
+        result = result.replaceAll("\\{[^}]*\\}", "");
+        result = result.replaceAll("\\\\[{}]", "");
+        
+        // Unicode-Escape-Sequenzen dekodieren
+        result = decodeUnicodeEscapes(result);
+        
+        // Mehrfache Leerzeichen bereinigen
+        result = result.replaceAll("\\s+", " ");
+        result = result.trim();
+        
+        return result;
+    }
+    
+    /**
+     * Verbesserte RTF-Bereinigung für saubere Markdown-Konvertierung
      */
     private String cleanRtfLine(String rtfLine) {
         if (rtfLine == null || rtfLine.trim().isEmpty()) {
             return "";
         }
         
-        // Sehr einfache Bereinigung - nur RTF-Header entfernen
-        String clean = rtfLine
-            .replaceAll("\\\\[a-z]+\\d*", "") // RTF-Codes
-            .replaceAll("\\\\[{}]", "") // Geschweifte Klammern
-            .replaceAll("\\{[^}]*\\}", "") // Geschweifte Klammern mit Inhalt
-            .replaceAll("\\\\par", "\n") // Paragraphen
-            .replaceAll("\\\\line", "\n") // Zeilen
-            .trim();
+        String clean = rtfLine;
+        
+        // 1. RTF-Header und Gruppierungen entfernen
+        clean = clean.replaceAll("\\{[^}]*\\\\rtf1[^}]*\\}", ""); // RTF-Header
+        clean = clean.replaceAll("\\{[^}]*\\\\fonttbl[^}]*\\}", ""); // Font-Tabelle
+        clean = clean.replaceAll("\\{[^}]*\\\\colortbl[^}]*\\}", ""); // Farb-Tabelle
+        
+        // 2. Formatierungs-Codes entfernen
+        clean = clean.replaceAll("\\\\[a-z]+\\d*", ""); // Alle RTF-Codes wie \b, \fs24, etc.
+        clean = clean.replaceAll("\\\\[{}]", ""); // Geschweifte Klammern
+        clean = clean.replaceAll("\\{[^}]*\\}", ""); // Geschweifte Klammern mit Inhalt
+        
+        // 3. Paragraphen und Zeilen-Trenner
+        clean = clean.replaceAll("\\\\par", "\n"); // Paragraphen
+        clean = clean.replaceAll("\\\\line", "\n"); // Zeilen
+        clean = clean.replaceAll("\\\\tab", "\t"); // Tabs
+        
+        // 4. Unicode-Escape-Sequenzen dekodieren
+        clean = decodeUnicodeEscapes(clean);
+        
+        // 5. Mehrfache Leerzeichen und Zeilenumbrüche bereinigen
+        clean = clean.replaceAll("\\s+", " "); // Mehrfache Leerzeichen zu einem
+        clean = clean.replaceAll("\\n\\s*\\n", "\n\n"); // Mehrfache Zeilenumbrüche zu doppelten
+        clean = clean.trim();
         
         return clean;
+    }
+    
+    /**
+     * Dekodiert Unicode-Escape-Sequenzen in RTF-Text
+     */
+    private String decodeUnicodeEscapes(String input) {
+        if (input == null || input.isEmpty()) {
+            return "";
+        }
+        
+        StringBuilder result = new StringBuilder();
+        int len = input.length();
+        
+        for (int i = 0; i < len; i++) {
+            char c = input.charAt(i);
+            if (c == '\\' && i + 3 < len && input.charAt(i + 1) == '\'') {
+                // Unicode-Escape: \'XX
+                String hex = input.substring(i + 2, i + 4);
+                if (isHexSequence(hex)) {
+                    try {
+                        result.append((char) Integer.parseInt(hex, 16));
+                        i += 3; // Skip \'XX
+                        continue;
+                    } catch (NumberFormatException e) {
+                        // Fallback: Original beibehalten
+                    }
+                }
+            }
+            result.append(c);
+        }
+        
+        return result.toString();
+    }
+    
+    /**
+     * Prüft ob ein String eine gültige Hex-Sequenz ist
+     */
+    private boolean isHexSequence(String hex) {
+        if (hex == null || hex.length() != 2) {
+            return false;
+        }
+        for (int i = 0; i < hex.length(); i++) {
+            char ch = hex.charAt(i);
+            if (!((ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'f') || (ch >= 'A' && ch <= 'F'))) {
+                return false;
+            }
+        }
+        return true;
     }
     
     /**
@@ -137,26 +297,42 @@ public class RtfSplitProcessor {
             return false;
         }
         
-        String lowerText = text.toLowerCase().trim();
+        String trimmedText = text.trim();
         
-        // Nur sehr spezifische Kapitel-Muster akzeptieren
+        // Kapitel-Erkennung für zentrierte Texte ohne Punkte
         // 1. "Kapitel X" oder "Chapter X" am Anfang
-        if (lowerText.matches("^kapitel\\s+\\d+.*") || 
-            lowerText.matches("^chapter\\s+\\d+.*")) {
+        if (trimmedText.matches("^[Kk]apitel\\s+\\d+.*") || 
+            trimmedText.matches("^[Cc]hapter\\s+\\d+.*")) {
             logger.debug("Gefunden durch Schlüsselwort: {}", text);
             return true;
         }
         
         // 2. Einfache Nummerierung: "1. Titel" oder "1 - Titel"
-        if (lowerText.matches("^\\d{1,2}\\s*[.:\\-]\\s+[A-Z].*")) {
+        if (trimmedText.matches("^\\d{1,2}\\s*[.:\\-]\\s+[A-Z].*")) {
             logger.debug("Gefunden durch Nummerierung: {}", text);
             return true;
         }
         
         // 3. Römische Zahlen: "I. Titel" oder "I - Titel"
-        if (lowerText.matches("^[IVX]+\\s*[.:\\-]\\s+[A-Z].*")) {
+        if (trimmedText.matches("^[IVX]+\\s*[.:\\-]\\s+[A-Z].*")) {
             logger.debug("Gefunden durch römische Zahlen: {}", text);
             return true;
+        }
+        
+        // 4. NEU: Zentrierte Texte ohne Punkte (für Markdown nach RTF-Konvertierung)
+        // Prüfe ob es ein sinnvoller Titel ist (keine Leerzeile, nicht zu kurz, nicht zu lang)
+        if (trimmedText.length() >= 3 && trimmedText.length() <= 100 && 
+            !trimmedText.endsWith(".") && 
+            !trimmedText.matches("^\\s*$") &&
+            !trimmedText.matches("^\\d+$") && // Nicht nur Zahlen
+            !trimmedText.matches("^[\\s\\-_]+$")) { // Nicht nur Sonderzeichen
+            
+            // Zusätzliche Prüfung: Ist es wahrscheinlich ein Titel?
+            // (enthält Buchstaben, nicht nur Sonderzeichen)
+            if (trimmedText.matches(".*[a-zA-ZäöüÄÖÜß].*")) {
+                logger.debug("Gefunden als zentrierter Titel: {}", text);
+                return true;
+            }
         }
         
         logger.debug("NICHT als Kapitel erkannt: '{}'", text);
