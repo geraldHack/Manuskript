@@ -1255,6 +1255,58 @@ if (caret != null) {
         cmbSearchHistory.setItems(searchHistory);
         cmbSearchHistory.setValue(text);
     }
+
+    public void pushSearchTermAndHighlight(String text) {
+        if (text == null) {
+            return;
+        }
+        String trimmed = text.trim();
+        if (trimmed.isEmpty()) {
+            return;
+        }
+        boolean wasVisible = searchPanelVisible;
+        if (!searchPanelVisible) {
+            toggleSearchPanel();
+        }
+
+        boolean found = applySearchTerm(trimmed);
+        if (!found) {
+            String normalized = normalizeSearchText(trimmed);
+            if (!normalized.equals(trimmed)) {
+                found = applySearchTerm(normalized);
+            }
+        }
+
+        if (!found) {
+            updateStatus("Der markierte Text wurde nicht im Editor gefunden.");
+        }
+
+        if (!wasVisible) {
+            Platform.runLater(() -> cmbSearchHistory.getEditor().selectAll());
+        }
+    }
+
+    private String normalizeSearchText(String text) {
+        String trimmed = text.trim();
+        if ((trimmed.startsWith("\"") && trimmed.endsWith("\"")) ||
+            (trimmed.startsWith("'") && trimmed.endsWith("'")) ||
+            (trimmed.startsWith("“") && trimmed.endsWith("”")) ||
+            (trimmed.startsWith("„") && trimmed.endsWith("“"))) {
+            return trimmed.substring(1, trimmed.length() - 1).trim();
+        }
+        return trimmed;
+    }
+
+    private boolean applySearchTerm(String term) {
+        String trimmed = term.trim();
+        if (trimmed.isEmpty()) {
+            return false;
+        }
+        addToSearchHistory(trimmed);
+        cmbSearchHistory.setValue(trimmed);
+        findText();
+        return totalMatches > 0;
+    }
     
     private void addToReplaceHistory(String text) {
         if (!replaceHistory.contains(text)) {
