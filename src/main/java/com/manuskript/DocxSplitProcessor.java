@@ -1,8 +1,21 @@
 package com.manuskript;
 
 import org.apache.poi.xwpf.usermodel.*;
+import org.docx4j.XmlUtils;
+import org.docx4j.openpackaging.exceptions.Docx4JException;
+import org.docx4j.openpackaging.packages.WordprocessingMLPackage;
+import org.docx4j.openpackaging.parts.WordprocessingML.MainDocumentPart;
+import org.docx4j.openpackaging.parts.WordprocessingML.NumberingDefinitionsPart;
+import org.docx4j.openpackaging.parts.WordprocessingML.StyleDefinitionsPart;
+import org.docx4j.wml.Body;
+import org.docx4j.jaxb.Context;
+import org.docx4j.wml.Numbering;
+import org.docx4j.wml.P;
+import org.docx4j.wml.SectPr;
+import org.docx4j.wml.Styles;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import jakarta.xml.bind.JAXBElement;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -21,6 +34,7 @@ public class DocxSplitProcessor {
     
     // Kapitel-Erkennung basierend auf Formatierung und Inhalt
     // Keine starren Regex-Patterns mehr - flexiblere Erkennung
+
     
     /**
      * Repräsentiert ein gefundenes Kapitel
@@ -48,22 +62,35 @@ public class DocxSplitProcessor {
         
         @Override
         public String toString() {
-            return String.format("Kapitel %d: %s", number, title);
+            return title;
         }
     }
     
+    private File sourceDocxFile;
+    private WordprocessingMLPackage cachedSourcePackage;
+
+    public void setSourceDocxFile(File docxFile) {
+        this.sourceDocxFile = docxFile;
+        this.cachedSourcePackage = null;
+    }
+
     /**
      * Analysiert eine DOCX-Datei und findet alle Kapitel
      */
     public List<Chapter> analyzeDocument(File docxFile) throws IOException {
         logger.info("Analysiere DOCX-Datei: {}", docxFile.getAbsolutePath());
         
+        this.sourceDocxFile = docxFile;
+
         List<Chapter> chapters = new ArrayList<>();
         List<XWPFParagraph> allParagraphs = new ArrayList<>();
         
         try (FileInputStream fis = new FileInputStream(docxFile);
              XWPFDocument document = new XWPFDocument(fis)) {
             
+            this.sourceDocxFile = docxFile;
+            this.cachedSourcePackage = null;
+
             // Alle Absätze sammeln
             for (XWPFParagraph paragraph : document.getParagraphs()) {
                 allParagraphs.add(paragraph);
@@ -77,7 +104,7 @@ public class DocxSplitProcessor {
                 String text = paragraph.getText().trim();
                 
                 if (!text.isEmpty()) {
-                    Chapter chapter = detectChapter(text, i, allParagraphs);
+                    Chapter chapter = detectChapter(text, i, allParagraphs, chapters.size() + 1);
                     if (chapter != null) {
                         chapters.add(chapter);
                         logger.info("Kapitel gefunden: {}", chapter);
@@ -93,14 +120,14 @@ public class DocxSplitProcessor {
     /**
      * Erkennt ob ein Absatz ein Kapitel-Start ist (flexible Erkennung)
      */
-    private Chapter detectChapter(String text, int paragraphIndex, List<XWPFParagraph> allParagraphs) {
+    private Chapter detectChapter(String text, int paragraphIndex, List<XWPFParagraph> allParagraphs, int chapterNumber) {
         XWPFParagraph paragraph = allParagraphs.get(paragraphIndex);
         
         // Kapitel-Kandidaten basierend auf verschiedenen Kriterien
         if (isLikelyChapter(paragraph, text)) {
-            // Versuche Kapitelnummer zu extrahieren
-            int chapterNumber = extractChapterNumber(text, paragraphIndex);
-            String chapterTitle = extractChapterTitle(text, paragraph);
+            // Extrahiere den ursprünglichen Titel (ohne Nummer)
+            String originalTitle = extractOriginalTitle(text);
+            String chapterTitle = originalTitle;
             
             // Kapitel-Inhalt bestimmen (bis zum nächsten Kapitel oder Ende)
             int endParagraph = findChapterEnd(paragraphIndex, allParagraphs);
@@ -217,55 +244,10 @@ public class DocxSplitProcessor {
     }
     
     /**
-     * Extrahiert die Kapitelnummer aus dem Text
+     * Gibt den ursprünglichen Text zurück (ohne Bearbeitung)
      */
-    private int extractChapterNumber(String text, int paragraphIndex) {
-        // Versuche verschiedene Formate zu erkennen
-        String[] patterns = {
-            "(\\d+)", // Einfache Zahl
-            "kapitel\\s+(\\d+)", // Kapitel X
-            "chapter\\s+(\\d+)", // Chapter X
-            "teil\\s+(\\d+)", // Teil X
-            "part\\s+(\\d+)" // Part X
-        };
-        
-        for (String pattern : patterns) {
-            Matcher matcher = Pattern.compile(pattern, Pattern.CASE_INSENSITIVE).matcher(text);
-            if (matcher.find()) {
-                try {
-                    return Integer.parseInt(matcher.group(1));
-                } catch (NumberFormatException e) {
-                    // Ignoriere und versuche nächsten Pattern
-                }
-            }
-        }
-        
-        // Fallback: Verwende Paragraph-Index als Nummer
-        return paragraphIndex + 1;
-    }
-    
-    /**
-     * Extrahiert den Kapiteltitel aus dem Text
-     */
-    private String extractChapterTitle(String text, XWPFParagraph paragraph) {
-        // Entferne Kapitel-Schlüsselwörter und Zahlen am Anfang
-        String title = text.trim();
-        
-        // Entferne "Kapitel X:", "Chapter X:", etc.
-        title = title.replaceAll("(?i)^(kapitel|chapter|teil|part)\\s+\\d+\\s*[:\\-]?\\s*", "");
-        
-        // Entferne Zahlen am Anfang mit Punkt/Doppelpunkt
-        title = title.replaceAll("^\\d+\\s*[.:\\-]?\\s*", "");
-        
-        // Entferne führende/trailing Whitespace
-        title = title.trim();
-        
-        if (title.isEmpty()) {
-            // Fallback: Verwende den ursprünglichen Text
-            title = text.trim();
-        }
-        
-        return title;
+    private String extractOriginalTitle(String text) {
+        return text.trim();
     }
     
     /**
@@ -289,23 +271,73 @@ public class DocxSplitProcessor {
      * Speichert ein Kapitel als separate DOCX-Datei
      */
     public void saveChapter(Chapter chapter, File outputDir, String baseFileName) throws IOException {
-        String fileName = String.format("%s_Kapitel_%02d.docx", baseFileName, chapter.getNumber());
+        String fileName = String.format("%s_%02d.docx", baseFileName, chapter.getNumber());
         File outputFile = new File(outputDir, fileName);
         
         logger.info("Speichere Kapitel {} als: {}", chapter.getNumber(), outputFile.getAbsolutePath());
         
-        try (XWPFDocument newDocument = new XWPFDocument();
-             FileOutputStream fos = new FileOutputStream(outputFile)) {
+        try {
+            if (cachedSourcePackage == null) {
+                cachedSourcePackage = WordprocessingMLPackage.load(sourceDocxFile);
+            }
+            WordprocessingMLPackage sourcePackage = cachedSourcePackage;
+            WordprocessingMLPackage targetPackage = WordprocessingMLPackage.createPackage();
 
-            // Kapitel-Inhalt in neues Dokument kopieren
-            for (XWPFParagraph oldParagraph : chapter.getParagraphs()) {
-                XWPFParagraph newParagraph = newDocument.createParagraph();
-
-                // Kopiere die komplette Paragraph-Struktur inklusive Runs
-                newParagraph.getCTP().set(oldParagraph.getCTP().copy());
+            // Styles und Numberings übertragen
+            StyleDefinitionsPart styles = sourcePackage.getMainDocumentPart().getStyleDefinitionsPart(false);
+            if (styles != null) {
+                StyleDefinitionsPart stylePart = new StyleDefinitionsPart();
+                stylePart.setPackage(targetPackage);
+                Styles stylesClone = (Styles) XmlUtils.deepCopy(styles.getJaxbElement());
+                stylePart.setJaxbElement(stylesClone);
+                targetPackage.getMainDocumentPart().addTargetPart(stylePart);
             }
 
-            newDocument.write(fos);
+            NumberingDefinitionsPart numbering = sourcePackage.getMainDocumentPart().getNumberingDefinitionsPart();
+            if (numbering != null) {
+                NumberingDefinitionsPart numberingPart = new NumberingDefinitionsPart();
+                numberingPart.setPackage(targetPackage);
+                Numbering numberingClone = (Numbering) XmlUtils.deepCopy(numbering.getJaxbElement());
+                numberingPart.setJaxbElement(numberingClone);
+                targetPackage.getMainDocumentPart().addTargetPart(numberingPart);
+            }
+
+            MainDocumentPart sourceMain = sourcePackage.getMainDocumentPart();
+            MainDocumentPart targetMain = targetPackage.getMainDocumentPart();
+
+            // Neues Body erzeugen
+            Body newBody = Context.getWmlObjectFactory().createBody();
+
+            int start = chapter.getStartParagraph();
+            int end = chapter.getEndParagraph();
+
+            List<Object> sourceContent = sourceMain.getContents().getBody().getContent();
+            for (int i = start; i < end; i++) {
+                Object paragraphObject = sourceContent.get(i);
+                Object unwrapped = XmlUtils.unwrap(paragraphObject);
+                P paragraph;
+                if (unwrapped instanceof P) {
+                    paragraph = (P) XmlUtils.deepCopy(unwrapped);
+                } else if (unwrapped instanceof JAXBElement) {
+                    Object value = ((JAXBElement<?>) unwrapped).getValue();
+                    paragraph = (P) XmlUtils.deepCopy(value);
+                } else {
+                    throw new IllegalArgumentException("Unexpected element type: " + unwrapped.getClass());
+                }
+                newBody.getContent().add(paragraph);
+            }
+
+            targetMain.getContents().setBody(newBody);
+
+            // Abschnitts-Eigenschaften übernehmen
+            SectPr sectPr = sourceMain.getContents().getBody().getSectPr();
+            if (sectPr != null) {
+                targetMain.getContents().getBody().setSectPr((SectPr) XmlUtils.deepCopy(sectPr));
+            }
+
+            targetPackage.save(outputFile);
+        } catch (Docx4JException e) {
+            throw new IOException("Fehler beim Speichern des Kapitels", e);
         }
         
         logger.info("Kapitel {} erfolgreich gespeichert", chapter.getNumber());

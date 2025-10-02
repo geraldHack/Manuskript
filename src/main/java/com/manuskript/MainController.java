@@ -4602,6 +4602,7 @@ public class MainController implements Initializable {
                     if (fileName.endsWith(".docx")) {
                         // DOCX-Datei
                         DocxSplitProcessor processor = new DocxSplitProcessor();
+                        processor.setSourceDocxFile(selectedFile);
                         List<Chapter> chapters = processor.analyzeDocument(selectedFile);
                         
                         if (chapters.isEmpty()) {
@@ -4737,6 +4738,7 @@ public class MainController implements Initializable {
                         } else {
                             // DOCX-Split
                             DocxSplitProcessor processor = new DocxSplitProcessor();
+                            processor.setSourceDocxFile(inputFile);
                             
                             // Ausgabe-Verzeichnis erstellen falls nicht vorhanden
                             if (!outputDir.exists()) {
@@ -4999,7 +5001,7 @@ public class MainController implements Initializable {
         int bookCount = seriesBooks.size();
         int bookWidth = 300; // Breite einer Buch-Karte
         int bookSpacing = 20; // Abstand zwischen Büchern
-        int padding = 40; // Padding links/rechts
+        int padding = 60; // Padding links/rechts (etwas größer, damit 3 Bücher sicher passen)
         
         // Berechne benötigte Breite
         int totalBookWidth = (bookCount * bookWidth) + ((bookCount - 1) * bookSpacing);
@@ -5014,7 +5016,7 @@ public class MainController implements Initializable {
         // ScrollPane-Größe - Angepasst für 300x250 Buch-Karten
         booksScrollPane.setFitToWidth(false);
         booksScrollPane.setFitToHeight(false);
-        booksScrollPane.setPrefViewportWidth(cardWidth - 40); // Breite der Serien-Karte minus Padding
+        booksScrollPane.setPrefViewportWidth(cardWidth - 60); // Breite der Serien-Karte minus Padding
         booksScrollPane.setPrefViewportHeight(300); // Höher als Buch-Karten (250px) für bessere Sichtbarkeit
         
         // Serien-Name ohne Breitenbeschränkung - Label behält natürliche Breite
@@ -5028,6 +5030,54 @@ public class MainController implements Initializable {
         card.getChildren().addAll(seriesName, booksScrollPane, seriesInfo);
         
         return card;
+    }
+    
+    /**
+     * Erstellt ein Dummy-Buch-Bild für Projekte ohne Cover
+     */
+    private void createDummyBookImage(ImageView imageView, String projectName) {
+        try {
+            // Erstelle ein schmales Canvas (120x150 - schmal wie ein Buch)
+            javafx.scene.canvas.Canvas canvas = new javafx.scene.canvas.Canvas(120, 150);
+            javafx.scene.canvas.GraphicsContext gc = canvas.getGraphicsContext2D();
+            
+            // Hintergrund
+            gc.setFill(javafx.scene.paint.Color.LIGHTGRAY);
+            gc.fillRoundRect(0, 0, 120, 150, 8, 8);
+            
+            // Rand
+            gc.setStroke(javafx.scene.paint.Color.GRAY);
+            gc.setLineWidth(2);
+            gc.strokeRoundRect(1, 1, 118, 148, 8, 8);
+            
+            // Buch-Icon (viel größer, füllt fast das ganze Bild)
+            gc.setFill(javafx.scene.paint.Color.WHITE);
+            gc.fillRect(5, 10, 110, 130);
+            gc.setStroke(javafx.scene.paint.Color.BLACK);
+            gc.setLineWidth(2);
+            gc.strokeRect(5, 10, 110, 130);
+            
+            // Linien für Buchseiten
+            gc.setStroke(javafx.scene.paint.Color.LIGHTGRAY);
+            for (int i = 0; i < 6; i++) {
+                gc.strokeLine(15, 20 + i * 18, 105, 20 + i * 18);
+            }
+            
+            // Text (doppelt so groß und zentriert)
+            gc.setFill(javafx.scene.paint.Color.BLACK);
+            gc.setFont(javafx.scene.text.Font.font("Arial", 48));
+            gc.fillText("📚", 36, 80); // Horizontal zentriert für größeres Icon
+            
+            // Canvas zu Image konvertieren
+            javafx.scene.image.WritableImage image = new javafx.scene.image.WritableImage(120, 150);
+            canvas.snapshot(null, image);
+            imageView.setImage(image);
+            
+        } catch (Exception e) {
+            logger.warn("Fehler beim Erstellen des Dummy-Bildes: " + e.getMessage());
+            // Fallback: Einfaches Icon
+            imageView.setStyle("-fx-background-color: #f0f0f0; -fx-border-color: #ccc; -fx-border-width: 1px;");
+        }
     }
     
     /**
@@ -5127,16 +5177,17 @@ public class MainController implements Initializable {
                 projectImage.setImage(null);
             }
         } else {
-            // Kein cover_image.png gefunden - kein Bild anzeigen
-            projectImage.setImage(null);
+            // Kein cover_image.png gefunden - Dummy-Bild erstellen
+            createDummyBookImage(projectImage, projectDir.getName());
         }
         
         // Projekt-Name
         Label projectName = new Label(projectDir.getName());
         projectName.getStyleClass().add("project-name");
-        projectName.setWrapText(true);
-        projectName.setMaxWidth(200);
+        projectName.setWrapText(false); // KEIN Umbrechen
+        // Keine setMaxWidth - Label nutzt die volle Kartenbreite
         projectName.setAlignment(Pos.CENTER);
+        // Blauer Hintergrund entfernt - Problem gelöst
         
         // Projekt-Info
         Label projectInfo = new Label(docxFiles.length + " Dokument(e)");

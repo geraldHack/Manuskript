@@ -329,8 +329,6 @@ public class OllamaWindow {
         maxTokensLabel.setMaxWidth(120);
         maxTokensSlider = new Slider(100, 32768, maxTokensValue);
         maxTokensSlider.getStyleClass().add("ollama-slider");
-        
-
         maxTokensSlider.setShowTickLabels(true);
         maxTokensSlider.setShowTickMarks(true);
         maxTokensSlider.setMajorTickUnit(5000);

@@ -19,6 +19,7 @@ import org.docx4j.openpackaging.parts.WordprocessingML.FooterPart;
 import org.docx4j.relationships.Relationship;
 import org.docx4j.openpackaging.parts.DocPropsCorePart;
 import org.docx4j.openpackaging.parts.PartName;
+import org.docx4j.openpackaging.parts.WordprocessingML.StyleDefinitionsPart;
 import org.docx4j.wml.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,7 +36,11 @@ import java.math.BigInteger;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -116,7 +121,7 @@ public class DocxProcessor {
             for (Object obj : document) {
                 if (obj instanceof P) {
                     P paragraph = (P) obj;
-                    String paragraphText = extractTextFromParagraph(paragraph);
+                    String paragraphText = extractTextFromParagraph(paragraph, null);
                     boolean isEmpty = paragraphText.trim().isEmpty();
                     
                     if (format == OutputFormat.HTML) {
@@ -185,6 +190,8 @@ public class DocxProcessor {
             logger.info("Lade DOCX-Datei: {}", file.getAbsolutePath());
             WordprocessingMLPackage pkg = WordprocessingMLPackage.load(file);
             List<Object> document = pkg.getMainDocumentPart().getContent();
+            StyleDefinitionsPart stylePart = pkg.getMainDocumentPart().getStyleDefinitionsPart();
+            Map<String, Style> styleMap = buildStyleMap(stylePart);
             logger.info("DOCX-Datei geladen, {} Objekte gefunden", document.size());
             
             int paragraphCount = 0;
@@ -193,7 +200,7 @@ public class DocxProcessor {
                 if (obj instanceof P) {
                     paragraphCount++;
                     P paragraph = (P) obj;
-                    String paragraphText = extractTextFromParagraph(paragraph);
+                    String paragraphText = extractTextFromParagraph(paragraph, styleMap);
                     boolean isEmpty = paragraphText.trim().isEmpty();
                     logger.info("Absatz {}: '{}' (leer: {})", paragraphCount, 
                                paragraphText.substring(0, Math.min(50, paragraphText.length())), isEmpty);
@@ -286,6 +293,19 @@ public class DocxProcessor {
         return content.toString();
     }
     
+    private Map<String, Style> buildStyleMap(StyleDefinitionsPart stylePart) {
+        Map<String, Style> styleMap = new HashMap<>();
+        if (stylePart != null && stylePart.getJaxbElement() != null) {
+            List<Style> stylesList = stylePart.getJaxbElement().getStyle();
+            for (Style style : stylesList) {
+                if (style.getStyleId() != null) {
+                    styleMap.put(style.getStyleId(), style);
+                }
+            }
+        }
+        return styleMap;
+    }
+
     public void exportMarkdownToDocx(String markdownText, File outputFile) throws IOException {
         // Standard-Export ohne Optionen
         exportMarkdownToDocxWithOptions(markdownText, outputFile, null);
@@ -1378,7 +1398,7 @@ public class DocxProcessor {
         logger.info("Horizontale Linie hinzugefügt");
     }
     
-    private static String extractTextFromParagraph(P paragraph) {
+    private static String extractTextFromParagraph(P paragraph, Map<String, Style> styleMap) {
         StringBuilder text = new StringBuilder();
         
         // Prüfe Paragraph-Style für Überschriften
@@ -1407,39 +1427,49 @@ public class DocxProcessor {
         }
         
         for (Object obj : paragraph.getContent()) {
-            
             if (obj instanceof R) {
                 R run = (R) obj;
-                
-                // Prüfe Formatierung des Runs
+
                 boolean isBold = false;
                 boolean isItalic = false;
-                
-                if (run.getRPr() != null) {
-                    RPr rpr = run.getRPr();
-                    
-                    // Bold-Erkennung - verschiedene Ansätze
-                    if (rpr.getB() != null) {
-                        // Bei BooleanDefaultTrue: Objekt existiert = Bold aktiv
-                        if (rpr.getB().getClass().getSimpleName().equals("BooleanDefaultTrue")) {
-                            isBold = true;
-                        } else if (rpr.getB().isVal()) {
-                            isBold = true;
-                        }
+                Set<String> charStyles = new HashSet<>();
+
+                RPr rpr = run.getRPr();
+                if (rpr != null) {
+                    if (rpr.getB() != null && rpr.getB().isVal()) {
+                        isBold = true;
+                    } else if (rpr.getB() != null && rpr.getB().isVal() == false) {
+                        // explicit false -> leave as false
+                    } else if (rpr.getB() != null) {
+                        isBold = true;
                     }
-                    
-                    // Italic-Erkennung - verschiedene Ansätze
-                    if (rpr.getI() != null) {
-                        // Bei BooleanDefaultTrue: Objekt existiert = Italic aktiv
-                        if (rpr.getI().getClass().getSimpleName().equals("BooleanDefaultTrue")) {
-                            isItalic = true;
-                        } else if (rpr.getI().isVal()) {
-                            isItalic = true;
+                    if (rpr.getI() != null && rpr.getI().isVal()) {
+                        isItalic = true;
+                    } else if (rpr.getI() != null && rpr.getI().isVal() == false) {
+                        // explicit false
+                    } else if (rpr.getI() != null) {
+                        isItalic = true;
+                    }
+                    if (rpr.getRStyle() != null && rpr.getRStyle().getVal() != null) {
+                        charStyles.add(rpr.getRStyle().getVal());
+                    }
+                }
+
+                if (!charStyles.isEmpty() && styleMap != null) {
+                    for (String styleId : charStyles) {
+                        Style style = styleMap.get(styleId);
+                        if (style != null && style.getRPr() != null) {
+                            RPr styleRPr = style.getRPr();
+                        if (!isBold && styleRPr.getB() != null) {
+                            isBold = styleRPr.getB().isVal();
+                        }
+                        if (!isItalic && styleRPr.getI() != null) {
+                            isItalic = styleRPr.getI().isVal();
+                        }
                         }
                     }
                 }
-                
-                // Markdown-Formatierung VOR dem Text hinzufügen (nur wenn nicht bereits Überschrift)
+
                 if (headingLevel == 0) {
                     if (isBold && isItalic) {
                         text.append("***");
@@ -1449,31 +1479,21 @@ public class DocxProcessor {
                         text.append("*");
                     }
                 }
-                
+
                 for (Object runObj : run.getContent()) {
                     if (runObj instanceof org.docx4j.wml.Text) {
                         org.docx4j.wml.Text t = (org.docx4j.wml.Text) runObj;
-                        String value = t.getValue();
-                        text.append(value);
-                    } else if (runObj.getClass().getSimpleName().equals("JAXBElement")) {
-                        try {
-                            Object value = runObj.getClass().getMethod("getValue").invoke(runObj);
-                            
-                            if (value instanceof org.docx4j.wml.Text) {
-                                org.docx4j.wml.Text t = (org.docx4j.wml.Text) value;
-                                String textValue = t.getValue();
-                                text.append(textValue);
-                            }
-                        } catch (Exception e) {
-                            // Fehler beim Extrahieren ignorieren
+                        text.append(t.getValue());
+                    } else if (runObj instanceof JAXBElement) {
+                        Object value = ((JAXBElement<?>) runObj).getValue();
+                        if (value instanceof org.docx4j.wml.Text) {
+                            text.append(((org.docx4j.wml.Text) value).getValue());
                         }
                     } else if (runObj instanceof org.docx4j.wml.Br) {
-                        // Zeilenumbruch
                         text.append("\n");
                     }
                 }
-                
-                // Markdown-Formatierung NACH dem Text schließen (nur wenn nicht bereits Überschrift)
+
                 if (headingLevel == 0) {
                     if (isBold && isItalic) {
                         text.append("***");
