@@ -296,48 +296,15 @@ public class DocxSplitProcessor {
         
         try (XWPFDocument newDocument = new XWPFDocument();
              FileOutputStream fos = new FileOutputStream(outputFile)) {
-            
+
             // Kapitel-Inhalt in neues Dokument kopieren
             for (XWPFParagraph oldParagraph : chapter.getParagraphs()) {
                 XWPFParagraph newParagraph = newDocument.createParagraph();
-                
-                // Formatierung kopieren
-                newParagraph.setAlignment(oldParagraph.getAlignment());
-                newParagraph.setSpacingBefore(oldParagraph.getSpacingBefore());
-                newParagraph.setSpacingAfter(oldParagraph.getSpacingAfter());
-                
-                // Text und Formatierung kopieren (nur wenn explizit gesetzt)
-                for (XWPFRun oldRun : oldParagraph.getRuns()) {
-                    XWPFRun newRun = newParagraph.createRun();
-                    newRun.setText(oldRun.getText(0));
-                    
-                    // Nur Bold setzen wenn es explizit true ist
-                    if (oldRun.isBold()) {
-                        newRun.setBold(true);
-                    }
-                    
-                    // Nur Italic setzen wenn es explizit true ist
-                    if (oldRun.isItalic()) {
-                        newRun.setItalic(true);
-                    }
-                    
-                    // Nur Underline setzen wenn es explizit gesetzt ist
-                    if (oldRun.getUnderline() != UnderlinePatterns.NONE) {
-                        newRun.setUnderline(oldRun.getUnderline());
-                    }
-                    
-                    // Nur FontSize setzen wenn es explizit gesetzt ist
-                    if (oldRun.getFontSize() != -1) {
-                        newRun.setFontSize(oldRun.getFontSize());
-                    }
-                    
-                    // Nur FontFamily setzen wenn es explizit gesetzt ist
-                    if (oldRun.getFontFamily() != null && !oldRun.getFontFamily().isEmpty()) {
-                        newRun.setFontFamily(oldRun.getFontFamily());
-                    }
-                }
+
+                // Kopiere die komplette Paragraph-Struktur inklusive Runs
+                newParagraph.getCTP().set(oldParagraph.getCTP().copy());
             }
-            
+
             newDocument.write(fos);
         }
         

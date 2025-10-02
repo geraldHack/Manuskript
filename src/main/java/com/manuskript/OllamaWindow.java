@@ -305,6 +305,7 @@ public class OllamaWindow {
         temperatureLabel.setMinWidth(120);
         temperatureLabel.setMaxWidth(120);
         temperatureSlider = new Slider(0.0, 2.0, temperatureValue);
+        temperatureSlider.getStyleClass().add("ollama-slider");
         temperatureSlider.setShowTickLabels(true);
         temperatureSlider.setShowTickMarks(true);
         temperatureSlider.setMajorTickUnit(0.5);
@@ -327,6 +328,7 @@ public class OllamaWindow {
         maxTokensLabel.setMinWidth(120);
         maxTokensLabel.setMaxWidth(120);
         maxTokensSlider = new Slider(100, 32768, maxTokensValue);
+        maxTokensSlider.getStyleClass().add("ollama-slider");
         
 
         maxTokensSlider.setShowTickLabels(true);
@@ -351,6 +353,7 @@ public class OllamaWindow {
         topPLabel.setMinWidth(120);
         topPLabel.setMaxWidth(120);
         topPSlider = new Slider(0.0, 1.0, topPValue);
+        topPSlider.getStyleClass().add("ollama-slider");
         topPSlider.setShowTickLabels(true);
         topPSlider.setShowTickMarks(true);
         topPSlider.setMajorTickUnit(0.2);
@@ -373,6 +376,7 @@ public class OllamaWindow {
         repeatPenaltyLabel.setMinWidth(120);
         repeatPenaltyLabel.setMaxWidth(120);
         repeatPenaltySlider = new Slider(0.0, 2.0, repeatPenaltyValue);
+        repeatPenaltySlider.getStyleClass().add("ollama-slider");
         repeatPenaltySlider.setShowTickLabels(true);
         repeatPenaltySlider.setShowTickMarks(true);
         repeatPenaltySlider.setMajorTickUnit(0.5);
@@ -2623,19 +2627,41 @@ public class OllamaWindow {
                 resultStage = StageManager.createStage("Ergebnis (gerendert)");
                 resultStage.setTitle("Ergebnis (gerendert)");
                 resultWebView = new javafx.scene.web.WebView();
-                resultWebView.setContextMenuEnabled(true);
-                resultWebView.setPrefSize(1000, 800);
-                
+                resultWebView.setContextMenuEnabled(false);
+                resultWebView.setMinSize(0, 0);
+                resultWebView.setPrefSize(Region.USE_COMPUTED_SIZE, Region.USE_COMPUTED_SIZE);
+                resultWebView.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+                VBox.setVgrow(resultWebView, Priority.ALWAYS);
+                HBox.setHgrow(resultWebView, Priority.ALWAYS);
+                ContextMenu resultContextMenu = createResultContextMenu();
+                resultWebView.setOnContextMenuRequested(event -> {
+                    if (resultContextMenu != null) {
+                        resultContextMenu.show(resultWebView, event.getScreenX(), event.getScreenY());
+                    }
+                    event.consume();
+                });
+                resultWebView.focusedProperty().addListener((obs, oldVal, newVal) -> {
+                    if (!newVal && resultContextMenu != null) {
+                        resultContextMenu.hide();
+                    }
+                });
+
                 // Button für Text-Ersetzung hinzufügen
                 Button replaceSelectedButton = new Button("📝 Markierten Text ersetzen");
                 replaceSelectedButton.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8px 16px;");
+                replaceSelectedButton.setMaxWidth(Double.MAX_VALUE);
+                HBox.setHgrow(replaceSelectedButton, Priority.NEVER);
                 replaceSelectedButton.setOnAction(e -> replaceSelectedTextInEditor());
-                
-                VBox box = new VBox(5);
-                box.getChildren().addAll(replaceSelectedButton, resultWebView);
-                VBox.setVgrow(resultWebView, Priority.ALWAYS);
+
+                HBox headerRow = new HBox(10, replaceSelectedButton);
+                headerRow.setAlignment(Pos.CENTER_LEFT);
+
+                VBox box = new VBox(5, headerRow, resultWebView);
                 box.setPadding(new Insets(10));
-                
+                box.setFillWidth(true);
+                resultWebView.prefWidthProperty().bind(box.widthProperty());
+                resultWebView.prefHeightProperty().bind(box.heightProperty().subtract(headerRow.heightProperty()).subtract(10));
+
                 Scene sc = new Scene(box, 1000, 800);
                 resultStage.setSceneWithTitleBar(sc);
                 resultStage.initOwner(stage);
@@ -2710,10 +2736,13 @@ public class OllamaWindow {
         } catch (Exception ignored) {}
 
         String htmlBody;
-        if (looksLikeJson(bodyText)) {
-            htmlBody = "<pre><code class='json'>" + escapeHtml(prettyJson(bodyText)) + "</code></pre>";
+        String sanitizedBody = sanitizeGeneratedHtml(bodyText);
+        if (looksLikeJson(sanitizedBody)) {
+            htmlBody = "<pre><code class='json'>" + escapeHtml(prettyJson(sanitizedBody)) + "</code></pre>";
+        } else if (isLikelyHtmlContent(sanitizedBody)) {
+            htmlBody = sanitizedBody;
         } else {
-            htmlBody = markdownToHtml(bodyText);
+            htmlBody = markdownToHtml(sanitizedBody);
         }
         // Schönere Typographie/Abstände und zentrierte Inhaltsbreite
         String linkColor = (currentThemeIndex == 4) ? "#34d399" : (currentThemeIndex == 3 ? "#60a5fa" : (currentThemeIndex == 5 ? "#c084fc" : "#2563eb"));
@@ -2721,7 +2750,7 @@ public class OllamaWindow {
         String muted = (currentThemeIndex == 4) ? "#a7f3d0" : (currentThemeIndex == 3 ? "#cbd5e1" : (currentThemeIndex == 5 ? "#e9d5ff" : "#6b7280"));
 
         String css = "html,body{height:100%;} body{margin:0;background:"+bgColor+";color:"+fgColor+";font-family:Segoe UI,Arial,sans-serif;line-height:1.65;}"+
-                ".content{max-width:920px;margin:24px auto 28px auto;padding:0 18px;}"+
+                ".content{width:100%;max-width:none;margin:24px auto 28px auto;padding:0 18px;box-sizing:border-box;}"+
                 "h1{font-size:1.8rem;margin:1.2em 0 0.4em;} h2{font-size:1.5rem;margin:1.1em 0 0.4em;} h3{font-size:1.25rem;margin:1em 0 0.4em;} h4,h5,h6{margin:0.9em 0 0.35em;}"+
                 "p{margin:0.6em 0;} ul,ol{padding-left:24px;margin:0.4em 0;} li{margin:0.2em 0;}"+
                 "pre,code{background:"+codeBg+";border-radius:8px;} pre{padding:12px 14px;overflow:auto;border:1px solid "+borderColor+";} code{padding:2px 6px;border:1px solid "+borderColor+";}"+
@@ -2824,6 +2853,69 @@ public class OllamaWindow {
         return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
     }
 
+    private String sanitizeGeneratedHtml(String raw) {
+        if (raw == null) {
+            return "";
+        }
+        String cleaned = raw.trim();
+        cleaned = cleaned.replace("```html", "").replace("```HTML", "")
+                .replace("```", "");
+        cleaned = decodeUnicodeEscapes(cleaned);
+        cleaned = cleaned.replaceAll("\\*(.*?)\\*", "<em>$1</em>");
+        if (cleaned.contains("<html") && cleaned.contains("</html>")) {
+            int start = cleaned.toLowerCase().indexOf("<html");
+            int end = cleaned.toLowerCase().lastIndexOf("</html>");
+            if (end >= 0) {
+                cleaned = cleaned.substring(start, end + 7);
+            }
+        }
+        return cleaned.trim();
+    }
+
+    private String decodeUnicodeEscapes(String input) {
+        if (input == null || input.isEmpty()) {
+            return "";
+        }
+        StringBuilder result = new StringBuilder();
+        int len = input.length();
+        for (int i = 0; i < len;) {
+            char c = input.charAt(i);
+            if (c == '\\' && i + 5 < len && (input.charAt(i + 1) == 'u' || input.charAt(i + 1) == 'U')) {
+                String hex = input.substring(i + 2, i + 6);
+                if (isHexSequence(hex)) {
+                    result.append((char) Integer.parseInt(hex, 16));
+                    i += 6;
+                    continue;
+                }
+            }
+            if ((c == 'u' || c == 'U') && i + 4 < len) {
+                String hex = input.substring(i + 1, i + 5);
+                if (isHexSequence(hex)) {
+                    result.append((char) Integer.parseInt(hex, 16));
+                    i += 5;
+                    continue;
+                }
+            }
+            result.append(c);
+            i++;
+        }
+        return result.toString();
+    }
+
+    private boolean isHexSequence(String hex) {
+        if (hex == null || hex.length() != 4) {
+            return false;
+        }
+        for (int i = 0; i < hex.length(); i++) {
+            char ch = hex.charAt(i);
+            boolean isHex = (ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'f') || (ch >= 'A' && ch <= 'F');
+            if (!isHex) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     // Lädt HTML in das Ergebnis-WebView und scrollt optional ans Ende (nach Render)
     private void updateResultWebView(String html, boolean scrollToBottom) {
         if (resultWebView == null) return;
@@ -2848,60 +2940,22 @@ public class OllamaWindow {
                 showAlert("Fehler", "WebView oder Editor nicht verfügbar");
                 return;
             }
-            
-            // JavaScript ausführen um markierten Text zu holen
             String selectedText = (String) resultWebView.getEngine().executeScript(
                 "window.getSelection().toString()"
             );
-            
             if (selectedText == null || selectedText.trim().isEmpty()) {
                 showAlert("Hinweis", "Kein Text im WebView markiert. Bitte markieren Sie zuerst Text im gerenderten Fenster.");
                 return;
             }
-            
-            // Prüfe ob im Editor Text markiert ist
+            selectedText = selectedText.trim();
             String editorSelectedText = editorWindow.getSelectedText();
             boolean hasSelection = editorSelectedText != null && !editorSelectedText.trim().isEmpty();
-            
-            // Bestätigung anzeigen
-            CustomAlert confirmAlert = new CustomAlert(Alert.AlertType.CONFIRMATION, "Text einfügen");
-            confirmAlert.setHeaderText(hasSelection ? "Text ersetzen" : "Text einfügen");
-            
-            String contentText;
             if (hasSelection) {
-                contentText = "Soll der markierte Text im Editor:\n\n" +
-                             "\"" + editorSelectedText + "\"\n\n" +
-                             "durch den markierten Text aus dem WebView:\n\n" +
-                             "\"" + selectedText + "\"\n\n" +
-                             "ersetzt werden?";
+                editorWindow.replaceSelectedText(selectedText);
             } else {
-                contentText = "Soll der markierte Text aus dem WebView:\n\n" +
-                             "\"" + selectedText + "\"\n\n" +
-                             "an der Cursor-Position im Editor eingefügt werden?";
+                editorWindow.insertTextAtCursor(selectedText);
             }
-            
-            confirmAlert.setContentText(contentText);
-            confirmAlert.applyTheme(currentThemeIndex);
-            confirmAlert.initOwner(resultStage);
-            
-            Optional<ButtonType> result = confirmAlert.showAndWait();
-            if (result.isPresent() && result.get() == ButtonType.OK) {
-                if (hasSelection) {
-                    // Text im Editor ersetzen
-                    editorWindow.replaceSelectedText(selectedText);
-                    updateStatus("Text erfolgreich ersetzt");
-                } else {
-                    // Text an Cursor-Position einfügen
-                    editorWindow.insertTextAtCursor(selectedText);
-                    updateStatus("Text erfolgreich eingefügt");
-                }
-                
-                // WebView-Fenster schließen
-                if (resultStage != null && resultStage.isShowing()) {
-                    resultStage.hide();
-                }
-            }
-            
+            updateStatus("Text ersetzt");
         } catch (Exception e) {
             logger.severe("Fehler beim Ersetzen des Textes: " + e.getMessage());
             showAlert("Fehler", "Fehler beim Ersetzen des Textes: " + e.getMessage());
@@ -4355,5 +4409,71 @@ public class OllamaWindow {
         String defaultFunction = "Chat-Assistent";
         logger.info("Keine gespeicherte Funktion gefunden, verwende Standard: " + defaultFunction);
         return defaultFunction;
+    }
+
+    private boolean isLikelyHtmlContent(String s) {
+        if (s == null) {
+            return false;
+        }
+        String t = s.trim().toLowerCase();
+        return t.startsWith("<table") || t.startsWith("<html") ||
+               (t.contains("<table") && t.contains("<tr"));
+    }
+
+    private ContextMenu createResultContextMenu() {
+        MenuItem findItem = new MenuItem("Suchtext");
+        findItem.setOnAction(evt -> performWebViewSearch());
+        MenuItem replaceItem = new MenuItem("Einfügen");
+        replaceItem.setOnAction(evt -> replaceSelectedTextInEditor());
+        ContextMenu menu = new ContextMenu(findItem, replaceItem);
+        return menu;
+    }
+
+    private String getSelectedWebViewText() {
+        if (resultWebView == null) {
+            return "";
+        }
+        try {
+            Object selection = resultWebView.getEngine().executeScript("window.getSelection().toString()");
+            return selection == null ? "" : selection.toString();
+        } catch (Exception e) {
+            logger.warning("Fehler beim Lesen des markierten Textes aus dem WebView: " + e.getMessage());
+            return "";
+        }
+    }
+
+    private void performWebViewSearch() {
+        String selected = getSelectedWebViewText();
+        if (selected == null || selected.trim().isEmpty()) {
+            showAlert("Hinweis", "Bitte markieren Sie zunächst Text im WebView für die Suche.");
+            return;
+        }
+        if (resultArea != null) {
+            resultArea.requestFocus();
+        }
+        if (editorWindow != null) {
+            editorWindow.pushSearchTermAndHighlight(selected);
+        }
+    }
+
+    private void insertEditorTextIntoWebViewSelection() {
+        if (editorWindow == null) {
+            showAlert("Fehler", "Kein Editorfenster verfügbar.");
+            return;
+        }
+        String editorText = editorWindow.getSelectedText();
+        if (editorText == null || editorText.isEmpty()) {
+            showAlert("Hinweis", "Im Editor ist kein Text ausgewählt.");
+            return;
+        }
+        try {
+            resultWebView.getEngine().executeScript(
+                "(function(t){var sel=window.getSelection(); if(!sel||sel.rangeCount==0) return false; var range=sel.getRangeAt(0); range.deleteContents(); range.insertNode(document.createTextNode(t)); sel.removeAllRanges(); return true;})(" +
+                org.apache.commons.lang3.StringEscapeUtils.escapeEcmaScript(editorText) +
+                ")"
+            );
+        } catch (Exception e) {
+            logger.warning("Fehler beim Einfügen in den WebView: " + e.getMessage());
+        }
     }
 } 

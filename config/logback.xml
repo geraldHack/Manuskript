@@ -11,9 +11,9 @@
         </encoder>
     </appender>
     
-    <root level="INFO">
+    <root level="DEBUG">
         <appender-ref ref="FILE" />
     </root>
     
-    <logger name="com.manuskript" level="INFO" />
+    <logger name="com.manuskript" level="DEBUG" />
 </configuration>

@@ -13,6 +13,7 @@ import javafx.scene.Scene;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.Cursor;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
@@ -22,7 +23,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.GridPane;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.stage.FileChooser;
@@ -70,6 +71,7 @@ import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicBoolean;
 import com.manuskript.DocxSplitProcessor;
 import com.manuskript.DocxSplitProcessor.Chapter;
+import com.manuskript.RtfSplitProcessor;
 
 public class MainController implements Initializable {
     
@@ -208,31 +210,75 @@ public class MainController implements Initializable {
         // Debug: Prüfe ob ImageView korrekt erstellt wurde
         if (coverImageView != null) {
             logger.info("ImageView programmatisch erstellt und hinzugefügt: {}", coverImageView);
-            // Kein Cover-Bild beim Start laden - zeige nur Zurück-Button ohne Bild
-            if (mainContainer instanceof BorderPane) {
-                // Erstelle imageContainer mit nur Zurück-Button (ohne Bild)
-                BorderPane startImageContainer = new BorderPane();
-                startImageContainer.setPrefHeight(60); // Nur so hoch wie der Button
+            
+            // Prüfe beim Start, ob Root-Verzeichnis konfiguriert ist
+            String rootDir = ResourceManager.getParameter("project.root.directory", "");
+            if (rootDir == null || rootDir.trim().isEmpty()) {
+                // Root-Verzeichnis nicht gesetzt - Benutzer fragen
+                logger.info("Root-Verzeichnis nicht gesetzt beim Start, zeige Dialog");
+                showRootDirectoryChooser();
                 
-                // Erstelle Zurück-Button
-                Button startBackButton = new Button("← Zurück");
-                startBackButton.setId("backButton");
-                startBackButton.setPrefSize(120, 40);
-                startBackButton.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-border-radius: 8px;");
-                startBackButton.getStyleClass().add("back-button");
-                startBackButton.setOnAction(e -> {
-                    logger.info("Zurück-Button geklickt - schließe Hauptfenster und öffne Projektauswahl");
+                // Nach dem Dialog automatisch Projektauswahl öffnen
+                Platform.runLater(() -> {
                     primaryStage.hide();
                     showProjectSelectionMenu();
                 });
-                
-                startImageContainer.setLeft(startBackButton);
-                startImageContainer.setCenter(null); // Kein Bild
-                HBox startDummyBox = new HBox();
-                startDummyBox.setPrefWidth(120);
-                startImageContainer.setRight(startDummyBox);
-                
-                ((BorderPane) mainContainer).setTop(startImageContainer);
+            }
+            
+            // Prüfe beim Start, ob ein cover_image.png im aktuellen Verzeichnis vorhanden ist
+            loadCoverImageFromCurrentDirectory();
+            
+            // Erstelle das Layout basierend auf dem Bildstatus
+            if (mainContainer instanceof BorderPane) {
+                if (coverImageView.getImage() == null) {
+                    // Kein Bild - zeige nur Zurück-Button (kleine Höhe)
+                    BorderPane startImageContainer = new BorderPane();
+                    startImageContainer.setPrefHeight(60); // Nur so hoch wie der Button
+                    
+                    // Erstelle Zurück-Button
+                    Button startBackButton = new Button("← Zurück");
+                    startBackButton.setId("backButton");
+                    startBackButton.setPrefSize(120, 40);
+                    startBackButton.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-border-radius: 8px;");
+                    startBackButton.getStyleClass().add("back-button");
+                    startBackButton.setOnAction(e -> {
+                        logger.info("Zurück-Button geklickt - schließe Hauptfenster und öffne Projektauswahl");
+                        primaryStage.hide();
+                        showProjectSelectionMenu();
+                    });
+                    
+                    startImageContainer.setLeft(startBackButton);
+                    startImageContainer.setCenter(null); // Kein Bild
+                    HBox startDummyBox = new HBox();
+                    startDummyBox.setPrefWidth(120);
+                    startImageContainer.setRight(startDummyBox);
+                    
+                    ((BorderPane) mainContainer).setTop(startImageContainer);
+                } else {
+                    // Bild vorhanden - zeige normales Layout
+                    BorderPane startImageContainer = new BorderPane();
+                    startImageContainer.setPrefHeight(300);
+                    
+                    // Erstelle Zurück-Button
+                    Button startBackButton = new Button("← Zurück");
+                    startBackButton.setId("backButton");
+                    startBackButton.setPrefSize(120, 40);
+                    startBackButton.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-border-radius: 8px;");
+                    startBackButton.getStyleClass().add("back-button");
+                    startBackButton.setOnAction(e -> {
+                        logger.info("Zurück-Button geklickt - schließe Hauptfenster und öffne Projektauswahl");
+                        primaryStage.hide();
+                        showProjectSelectionMenu();
+                    });
+                    
+                    startImageContainer.setLeft(startBackButton);
+                    startImageContainer.setCenter(coverImageView);
+                    HBox startDummyBox = new HBox();
+                    startDummyBox.setPrefWidth(120);
+                    startImageContainer.setRight(startDummyBox);
+                    
+                    ((BorderPane) mainContainer).setTop(startImageContainer);
+                }
             }
         } else {
             logger.error("ImageView konnte nicht erstellt werden!");
@@ -4525,9 +4571,10 @@ public class MainController implements Initializable {
         // Event-Handler
         btnSelectFile.setOnAction(e -> {
             FileChooser fileChooser = new FileChooser();
-            fileChooser.setTitle("DOCX-Datei auswählen");
+            fileChooser.setTitle("Datei auswählen (DOCX oder RTF)");
             fileChooser.getExtensionFilters().addAll(
                 new FileChooser.ExtensionFilter("DOCX-Dateien", "*.docx"),
+                new FileChooser.ExtensionFilter("RTF-Dateien", "*.rtf"),
                 new FileChooser.ExtensionFilter("Alle Dateien", "*.*")
             );
             
@@ -4547,29 +4594,59 @@ public class MainController implements Initializable {
                 // Pfad für nächste Verwendung speichern
                 ResourceManager.setLastFilePath(selectedFile.getParent());
                 
-                // DOCX-Datei analysieren und Kapitel extrahieren
+                // Datei analysieren und Kapitel extrahieren (DOCX oder RTF)
                 try {
-                    DocxSplitProcessor processor = new DocxSplitProcessor();
-                    List<Chapter> chapters = processor.analyzeDocument(selectedFile);
-                    
                     listChapters.getItems().clear();
-                    if (chapters.isEmpty()) {
-                        CheckBox noChaptersCheckBox = new CheckBox("Keine Kapitel gefunden");
-                        noChaptersCheckBox.setDisable(true);
-                        listChapters.getItems().add(noChaptersCheckBox);
-                        btnSplit.setDisable(true);
-                    } else {
-                        for (Chapter chapter : chapters) {
-                            CheckBox chapterCheckBox = new CheckBox(chapter.toString());
-                            chapterCheckBox.setSelected(true); // Standardmäßig ausgewählt
-                            chapterCheckBox.setUserData(chapter); // Kapitel-Objekt speichern
-                            listChapters.getItems().add(chapterCheckBox);
+                    
+                    String fileName = selectedFile.getName().toLowerCase();
+                    if (fileName.endsWith(".docx")) {
+                        // DOCX-Datei
+                        DocxSplitProcessor processor = new DocxSplitProcessor();
+                        List<Chapter> chapters = processor.analyzeDocument(selectedFile);
+                        
+                        if (chapters.isEmpty()) {
+                            CheckBox noChaptersCheckBox = new CheckBox("Keine Kapitel gefunden");
+                            noChaptersCheckBox.setDisable(true);
+                            listChapters.getItems().add(noChaptersCheckBox);
+                            btnSplit.setDisable(true);
+                        } else {
+                            for (Chapter chapter : chapters) {
+                                CheckBox chapterCheckBox = new CheckBox(chapter.toString());
+                                chapterCheckBox.setSelected(true); // Standardmäßig ausgewählt
+                                chapterCheckBox.setUserData(chapter); // Kapitel-Objekt speichern
+                                listChapters.getItems().add(chapterCheckBox);
+                            }
+                            btnSplit.setDisable(false);
+                            logger.info("{} Kapitel in DOCX-Datei gefunden", chapters.size());
                         }
-                        btnSplit.setDisable(false);
-                        logger.info("{} Kapitel in DOCX-Datei gefunden", chapters.size());
+                    } else if (fileName.endsWith(".rtf")) {
+                        // RTF-Datei
+                        RtfSplitProcessor processor = new RtfSplitProcessor();
+                        List<RtfSplitProcessor.Chapter> chapters = processor.analyzeDocument(selectedFile);
+                        
+                        if (chapters.isEmpty()) {
+                            CheckBox noChaptersCheckBox = new CheckBox("Keine Kapitel gefunden");
+                            noChaptersCheckBox.setDisable(true);
+                            listChapters.getItems().add(noChaptersCheckBox);
+                            btnSplit.setDisable(true);
+                        } else {
+                            for (RtfSplitProcessor.Chapter chapter : chapters) {
+                                CheckBox chapterCheckBox = new CheckBox(chapter.toString());
+                                chapterCheckBox.setSelected(true); // Standardmäßig ausgewählt
+                                chapterCheckBox.setUserData(chapter); // Kapitel-Objekt speichern
+                                listChapters.getItems().add(chapterCheckBox);
+                            }
+                            btnSplit.setDisable(false);
+                            logger.info("{} Kapitel in RTF-Datei gefunden", chapters.size());
+                        }
+                    } else {
+                        CheckBox errorCheckBox = new CheckBox("Unsupported file format. Please select DOCX or RTF.");
+                        errorCheckBox.setDisable(true);
+                        listChapters.getItems().add(errorCheckBox);
+                        btnSplit.setDisable(true);
                     }
                 } catch (Exception ex) {
-                    logger.error("Fehler beim Analysieren der DOCX-Datei: {}", ex.getMessage(), ex);
+                    logger.error("Fehler beim Analysieren der Datei: {}", ex.getMessage(), ex);
                     listChapters.getItems().clear();
                     CheckBox errorCheckBox = new CheckBox("Fehler beim Lesen der Datei: " + ex.getMessage());
                     errorCheckBox.setDisable(true);
@@ -4612,10 +4689,10 @@ public class MainController implements Initializable {
                     return;
                 }
                 
-                File docxFile = new File(filePath);
+                File inputFile = new File(filePath);
                 File outputDir = new File(outputPath);
                 
-                if (!docxFile.exists()) {
+                if (!inputFile.exists()) {
                     showError("Fehler", "Die ausgewählte Datei existiert nicht.");
                     return;
                 }
@@ -4642,18 +4719,32 @@ public class MainController implements Initializable {
                     return;
                 }
                 
-                // DOCX-Split in separatem Thread ausführen (mit Text-Zusammenführung)
+                // Split in separatem Thread ausführen
                 new Thread(() -> {
                     try {
-                        DocxSplitProcessor processor = new DocxSplitProcessor();
-                        
-                        // Ausgabe-Verzeichnis erstellen falls nicht vorhanden
-                        if (!outputDir.exists()) {
-                            outputDir.mkdirs();
-                        }
-                        
-                        // Basis-Dateiname (ohne .docx)
-                        String baseFileName = docxFile.getName().replaceFirst("\\.docx$", "");
+                        String fileName = inputFile.getName().toLowerCase();
+                        if (fileName.endsWith(".rtf")) {
+                            // RTF-Split
+                            RtfSplitProcessor processor = new RtfSplitProcessor();
+                            processor.splitDocument(inputFile, outputDir);
+                            
+                            // UI-Update im JavaFX-Thread
+                            Platform.runLater(() -> {
+                                btnSplit.setDisable(false);
+                                btnSplit.setText("Kapitel aufteilen");
+                                showError("Erfolg", "RTF-Datei wurde erfolgreich in Kapitel aufgeteilt!");
+                            });
+                        } else {
+                            // DOCX-Split
+                            DocxSplitProcessor processor = new DocxSplitProcessor();
+                            
+                            // Ausgabe-Verzeichnis erstellen falls nicht vorhanden
+                            if (!outputDir.exists()) {
+                                outputDir.mkdirs();
+                            }
+                            
+                            // Basis-Dateiname (ohne .docx)
+                            String baseFileName = inputFile.getName().replaceFirst("\\.docx$", "");
                         
                         // Kapitel mit nicht-ausgewählten Inhalten zusammenführen
                         List<Chapter> mergedChapters = processor.mergeChaptersWithUnselectedContent(allChapters, selectionStatus);
@@ -4663,12 +4754,13 @@ public class MainController implements Initializable {
                             processor.saveChapter(chapter, outputDir, baseFileName);
                         }
                         
-                        // UI-Update im JavaFX-Thread
-                        Platform.runLater(() -> {
-                            btnSplit.setDisable(false);
-                            btnSplit.setText("Kapitel aufteilen");
-                            showError("Erfolg", String.format("%d finale Kapitel wurden erfolgreich aufgeteilt und gespeichert!", mergedChapters.size()));
-                        });
+                            // UI-Update im JavaFX-Thread
+                            Platform.runLater(() -> {
+                                btnSplit.setDisable(false);
+                                btnSplit.setText("Kapitel aufteilen");
+                                showError("Erfolg", String.format("%d finale Kapitel wurden erfolgreich aufgeteilt und gespeichert!", mergedChapters.size()));
+                            });
+                        }
                         
                     } catch (Exception ex) {
                         logger.error("Fehler beim DOCX-Split: {}", ex.getMessage(), ex);
@@ -4715,14 +4807,17 @@ public class MainController implements Initializable {
             // Erstelle CustomStage für Projektauswahl
             CustomStage projectStage = new CustomStage();
             projectStage.setCustomTitle("Projektauswahl");
-            projectStage.setMinWidth(800);
-            projectStage.setMinHeight(600);
-            projectStage.setWidth(1000);
-            projectStage.setHeight(700);
+            projectStage.setMinWidth(1200);
+            projectStage.setMaxWidth(1200);
+            projectStage.setMinHeight(800);
+            projectStage.setMaxHeight(800);
+            projectStage.setWidth(1200);
+            projectStage.setHeight(800);
+            projectStage.setResizable(false);
             
             
             // Haupt-Layout
-            VBox mainLayout = new VBox(20);
+            VBox mainLayout = new VBox(10);
             mainLayout.setPadding(new Insets(20));
             mainLayout.getStyleClass().add("project-selection-container");
             
@@ -4731,15 +4826,25 @@ public class MainController implements Initializable {
             titleLabel.getStyleClass().add("project-title");
             // Entferne inline styling - CSS übernimmt das
             
-            // Projekt-Grid
-            GridPane projectGrid = new GridPane();
-            projectGrid.setHgap(20);
-            projectGrid.setVgap(20);
-            projectGrid.setAlignment(Pos.CENTER);
-            projectGrid.getStyleClass().add("project-grid");
+            // Projekt-FlowPane in ScrollPane
+            FlowPane projectFlow = new FlowPane();
+            projectFlow.setHgap(20);
+            projectFlow.setVgap(20);
+            projectFlow.setAlignment(Pos.CENTER);
+            projectFlow.setPrefWrapLength(Double.MAX_VALUE); // Keine Größenbeschränkung
+            projectFlow.getStyleClass().add("project-grid");
+            
+            // ScrollPane für das gesamte Projekt-FlowPane
+            ScrollPane mainScrollPane = new ScrollPane();
+            mainScrollPane.setContent(projectFlow);
+            mainScrollPane.setFitToWidth(true);
+            mainScrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+            mainScrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+            mainScrollPane.getStyleClass().add("scroll-pane"); // CSS-Styling hinzufügen
+            // Keine feste Größe - soll sich ausdehnen
             
             // Lade verfügbare Projekte
-            loadAndDisplayProjects(projectGrid, projectStage);
+            loadAndDisplayProjects(projectFlow, projectStage);
             
             // Abbrechen-Button
             Button cancelButton = new Button("❌ Abbrechen");
@@ -4747,8 +4852,17 @@ public class MainController implements Initializable {
             cancelButton.setPrefSize(150, 40);
             cancelButton.setOnAction(e -> projectStage.close());
             
-            // Layout zusammenbauen
-            mainLayout.getChildren().addAll(titleLabel, projectGrid, cancelButton);
+            // Abbrechen-Button nach unten rechts
+            HBox buttonContainer = new HBox();
+            buttonContainer.setAlignment(Pos.BOTTOM_RIGHT);
+            buttonContainer.setPrefHeight(50); // Minimale Höhe
+            buttonContainer.getChildren().add(cancelButton);
+            
+            // Layout zusammenbauen (ohne Spacer)
+            mainLayout.getChildren().addAll(titleLabel, mainScrollPane, buttonContainer);
+            
+            // ScrollPane soll sich ausdehnen
+            VBox.setVgrow(mainScrollPane, Priority.ALWAYS);
             
             // Scene erstellen
             Scene scene = new Scene(mainLayout);
@@ -4775,13 +4889,20 @@ public class MainController implements Initializable {
     /**
      * Lädt und zeigt verfügbare Projekte im Grid an
      */
-    private void loadAndDisplayProjects(GridPane projectGrid, CustomStage projectStage) {
+    private void loadAndDisplayProjects(FlowPane projectFlow, CustomStage projectStage) {
         try {
-            // Suche nach Projekt-Verzeichnissen
-            String lastDir = preferences.get("lastDirectory", "");
-            File searchDir = new File(lastDir).getParentFile();
+            // Prüfe ob Root-Verzeichnis konfiguriert ist
+            String rootDir = ResourceManager.getParameter("project.root.directory", "");
+            if (rootDir == null || rootDir.trim().isEmpty()) {
+                // Root-Verzeichnis nicht gesetzt - Benutzer fragen
+                logger.info("Root-Verzeichnis nicht gesetzt, zeige Dialog");
+                showRootDirectoryChooser();
+                rootDir = ResourceManager.getParameter("project.root.directory", "");
+                logger.info("Root-Verzeichnis nach Dialog: " + rootDir);
+            }
             
-            if (searchDir == null || !searchDir.exists()) {
+            File searchDir = new File(rootDir);
+            if (!searchDir.exists()) {
                 // Fallback: Suche in typischen Verzeichnissen
                 String userHome = System.getProperty("user.home");
                 searchDir = new File(userHome, "Documents");
@@ -4792,35 +4913,189 @@ public class MainController implements Initializable {
                 directories = new File[0];
             }
             
-            int row = 0;
-            int col = 0;
-            int maxCols = 3; // 3 Projekte pro Zeile
-            
             for (File dir : directories) {
-                // Prüfe ob Verzeichnis ein Projekt ist (enthält DOCX-Dateien)
-                File[] docxFiles = dir.listFiles((d, name) -> name.toLowerCase().endsWith(".docx"));
-                if (docxFiles != null && docxFiles.length > 0) {
-                    // Erstelle Projekt-Karte
-                    VBox projectCard = createProjectCard(dir, docxFiles, projectStage);
-                    projectGrid.add(projectCard, col, row);
-                    
-                    col++;
-                    if (col >= maxCols) {
-                        col = 0;
-                        row++;
+                // Prüfe ob Verzeichnis eine Serie ist (enthält Unterordner mit DOCX-Dateien)
+                File[] subDirs = dir.listFiles(File::isDirectory);
+                List<File> seriesBooks = new ArrayList<>();
+                
+                if (subDirs != null && subDirs.length > 0) {
+                    // Prüfe ob es eine Serie ist (Unterordner enthalten DOCX-Dateien)
+                    for (File subDir : subDirs) {
+                        File[] docxFiles = subDir.listFiles((d, name) -> name.toLowerCase().endsWith(".docx"));
+                        if (docxFiles != null && docxFiles.length > 0) {
+                            seriesBooks.add(subDir);
+                        }
                     }
+                }
+                
+                // Prüfe auch direkte DOCX-Dateien im Verzeichnis
+                File[] directDocxFiles = dir.listFiles((d, name) -> name.toLowerCase().endsWith(".docx"));
+                
+                if (!seriesBooks.isEmpty()) {
+                    // Erstelle Serien-Karte
+                    VBox seriesCard = createSeriesCard(dir, seriesBooks, projectStage);
+                    projectFlow.getChildren().add(seriesCard);
+                } else if (directDocxFiles != null && directDocxFiles.length > 0) {
+                    // Erstelle Einzelprojekt-Karte
+                    VBox projectCard = createProjectCard(dir, directDocxFiles, projectStage);
+                    projectFlow.getChildren().add(projectCard);
                 }
             }
             
-            if (row == 0 && col == 0) {
+            if (projectFlow.getChildren().isEmpty()) {
                 // Keine Projekte gefunden
                 Label noProjectsLabel = new Label("Keine Projekte gefunden");
                 noProjectsLabel.getStyleClass().add("no-projects-label");
-                projectGrid.add(noProjectsLabel, 0, 0);
+                projectFlow.getChildren().add(noProjectsLabel);
             }
             
         } catch (Exception e) {
             logger.error("Fehler beim Laden der Projekte", e);
+        }
+    }
+    
+    /**
+     * Erstellt eine Serien-Karte für die Projektauswahl
+     */
+    private VBox createSeriesCard(File seriesDir, List<File> seriesBooks, CustomStage projectStage) {
+        VBox card = new VBox(5); // Weniger Abstand zwischen Elementen
+        card.getStyleClass().add("project-card");
+        card.setAlignment(Pos.CENTER);
+        
+        // Serien-Name (vollständig)
+        Label seriesName = new Label("📚 " + seriesDir.getName());
+        seriesName.setWrapText(false); // KEIN Umbrechen
+        seriesName.setAlignment(Pos.CENTER);
+        // Keine CSS-Klassen, keine Inline-Styles - nur Java-Eigenschaften
+        
+        // Bücher horizontal scrollbar
+        ScrollPane booksScrollPane = new ScrollPane();
+        booksScrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        booksScrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        booksScrollPane.getStyleClass().add("series-scroll-pane"); // CSS-Styling für Serien-ScrollPane
+        
+        HBox booksContainer = new HBox(20);
+        booksContainer.setPadding(new Insets(5)); // Weniger Padding
+        
+        // Bücher als normale Projekt-Karten
+        for (File book : seriesBooks) {
+            File[] docxFiles = book.listFiles((d, name) -> name.toLowerCase().endsWith(".docx"));
+            if (docxFiles != null && docxFiles.length > 0) {
+                VBox bookCard = createProjectCard(book, docxFiles, projectStage);
+                booksContainer.getChildren().add(bookCard);
+            }
+        }
+        
+        // Auch Einzelprojekte in der Serie hinzufügen
+        File[] singleProjects = seriesDir.listFiles((d, name) -> name.toLowerCase().endsWith(".docx"));
+        if (singleProjects != null && singleProjects.length > 0) {
+            VBox singleProjectCard = createProjectCard(seriesDir, singleProjects, projectStage);
+            booksContainer.getChildren().add(singleProjectCard);
+        }
+        
+        booksScrollPane.setContent(booksContainer);
+        
+        // Dynamische Größenberechnung
+        int bookCount = seriesBooks.size();
+        int bookWidth = 300; // Breite einer Buch-Karte
+        int bookSpacing = 20; // Abstand zwischen Büchern
+        int padding = 40; // Padding links/rechts
+        
+        // Berechne benötigte Breite
+        int totalBookWidth = (bookCount * bookWidth) + ((bookCount - 1) * bookSpacing);
+        int cardWidth = Math.max(600, totalBookWidth + padding); // Mindestens 600px breit für bessere Proportionen
+        int cardHeight = 450; // Höher für ScrollPane (300px) + Serien-Name + Info
+        
+        // Setze dynamische Größen
+        card.setPrefSize(cardWidth, cardHeight);
+        card.setMinSize(cardWidth, cardHeight);
+        card.setMaxSize(cardWidth, cardHeight);
+        
+        // ScrollPane-Größe - Angepasst für 300x250 Buch-Karten
+        booksScrollPane.setFitToWidth(false);
+        booksScrollPane.setFitToHeight(false);
+        booksScrollPane.setPrefViewportWidth(cardWidth - 40); // Breite der Serien-Karte minus Padding
+        booksScrollPane.setPrefViewportHeight(300); // Höher als Buch-Karten (250px) für bessere Sichtbarkeit
+        
+        // Serien-Name ohne Breitenbeschränkung - Label behält natürliche Breite
+        
+        // Serien-Info
+        Label seriesInfo = new Label(seriesBooks.size() + " Bücher in der Serie");
+        seriesInfo.getStyleClass().add("project-info");
+        seriesInfo.setAlignment(Pos.CENTER);
+        
+        // Layout zusammenbauen
+        card.getChildren().addAll(seriesName, booksScrollPane, seriesInfo);
+        
+        return card;
+    }
+    
+    /**
+     * Zeigt die Bücher-Auswahl für eine Serie
+     */
+    private void showSeriesBookSelection(File seriesDir, List<File> seriesBooks, CustomStage projectStage) {
+        try {
+            // Erstelle CustomStage für Bücher-Auswahl
+            CustomStage booksStage = new CustomStage();
+            booksStage.setCustomTitle("Bücher-Auswahl: " + seriesDir.getName());
+            booksStage.setMinWidth(800);
+            booksStage.setMaxWidth(800);
+            booksStage.setMinHeight(600);
+            booksStage.setMaxHeight(600);
+            booksStage.setWidth(800);
+            booksStage.setHeight(600);
+            booksStage.setResizable(false);
+            
+            // Layout
+            VBox mainLayout = new VBox(20);
+            mainLayout.setPadding(new Insets(20));
+            mainLayout.setAlignment(Pos.CENTER);
+            
+            // Titel
+            Label titleLabel = new Label("📚 " + seriesDir.getName());
+            titleLabel.getStyleClass().add("project-title");
+            
+            // Bücher-FlowPane
+            FlowPane booksFlow = new FlowPane();
+            booksFlow.setHgap(20);
+            booksFlow.setVgap(20);
+            booksFlow.setAlignment(Pos.CENTER);
+            booksFlow.getStyleClass().add("project-grid");
+            
+            for (File book : seriesBooks) {
+                File[] docxFiles = book.listFiles((d, name) -> name.toLowerCase().endsWith(".docx"));
+                if (docxFiles != null && docxFiles.length > 0) {
+                    VBox bookCard = createProjectCard(book, docxFiles, booksStage);
+                    booksFlow.getChildren().add(bookCard);
+                }
+            }
+            
+            // Abbrechen-Button
+            Button cancelButton = new Button("❌ Abbrechen");
+            cancelButton.getStyleClass().add("cancel-button");
+            cancelButton.setPrefSize(150, 40);
+            cancelButton.setOnAction(e -> booksStage.close());
+            
+            // Layout zusammenbauen
+            mainLayout.getChildren().addAll(titleLabel, booksFlow, cancelButton);
+            
+            // Scene erstellen
+            Scene scene = new Scene(mainLayout);
+            
+            // CSS laden
+            String cssPath = ResourceManager.getCssResource("css/manuskript.css");
+            if (cssPath != null) {
+                scene.getStylesheets().add(cssPath);
+            }
+            
+            booksStage.setSceneWithTitleBar(scene);
+            booksStage.setFullTheme(currentThemeIndex);
+            booksStage.initOwner(projectStage);
+            booksStage.showAndWait();
+            
+        } catch (Exception e) {
+            logger.error("Fehler beim Öffnen der Bücher-Auswahl", e);
+            showError("Fehler", "Bücher-Auswahl konnte nicht geöffnet werden: " + e.getMessage());
         }
     }
     
@@ -4859,14 +5134,14 @@ public class MainController implements Initializable {
         // Projekt-Name
         Label projectName = new Label(projectDir.getName());
         projectName.getStyleClass().add("project-name");
-        projectName.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;");
         projectName.setWrapText(true);
         projectName.setMaxWidth(200);
+        projectName.setAlignment(Pos.CENTER);
         
         // Projekt-Info
         Label projectInfo = new Label(docxFiles.length + " Dokument(e)");
         projectInfo.getStyleClass().add("project-info");
-        projectInfo.setStyle("-fx-font-size: 12px; -fx-text-fill: #7f8c8d;");
+        projectInfo.setAlignment(Pos.CENTER);
         
         // Auswählen-Button
         Button selectButton = new Button("📂 Öffnen");
@@ -4993,6 +5268,126 @@ public class MainController implements Initializable {
         } catch (Exception e) {
             logger.error("Fehler beim Laden des Cover-Bildes aus aktuellem Verzeichnis", e);
             coverImageView.setImage(null);
+        }
+    }
+    
+    /**
+     * Zeigt einen Dialog zur Auswahl des Root-Verzeichnisses für Projekte
+     */
+    private void showRootDirectoryChooser() {
+        try {
+            // Erstelle CustomStage für Root-Verzeichnis-Auswahl
+            CustomStage chooserStage = new CustomStage();
+            chooserStage.setCustomTitle("Projekt-Root-Verzeichnis auswählen");
+            chooserStage.setMinWidth(600);
+            chooserStage.setMaxWidth(600);
+            chooserStage.setMinHeight(400);
+            chooserStage.setMaxHeight(400);
+            chooserStage.setWidth(600);
+            chooserStage.setHeight(400);
+            chooserStage.setResizable(false);
+            
+            // Layout
+            VBox mainLayout = new VBox(20);
+            mainLayout.setPadding(new Insets(20));
+            mainLayout.setAlignment(Pos.CENTER);
+            
+            // Willkommen-Titel
+            Label titleLabel = new Label("🎭 Willkommen zu Manuskript");
+            titleLabel.getStyleClass().add("project-title");
+            titleLabel.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;");
+            
+            // Beeindruckende Beschreibung
+            Label descLabel = new Label("Das Tool für das Importieren, Editieren, Fehler suchen, Lektorieren und Exportieren von Prosa-Texten.\n\n" +
+                "Wähle das Root-Verzeichnis für deine Manuskript-Projekte. Serien werden als Unterordner erkannt und " +
+                "automatisch organisiert. Jedes Projekt kann mehrere Kapitel enthalten und wird intelligent verwaltet.");
+            descLabel.getStyleClass().add("project-info");
+            descLabel.setWrapText(true);
+            descLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #34495e; -fx-line-spacing: 2px;");
+            
+            // Verzeichnis-Auswahl
+            HBox dirBox = new HBox(10);
+            dirBox.setAlignment(Pos.CENTER);
+            
+            TextField dirField = new TextField("manuskripte");
+            dirField.setPrefWidth(300);
+            dirField.setPromptText("Verzeichnisname (z.B. 'manuskripte')");
+            
+            Button browseButton = new Button("📂 Durchsuchen");
+            browseButton.getStyleClass().add("select-project-button");
+            browseButton.setOnAction(e -> {
+                DirectoryChooser chooser = new DirectoryChooser();
+                chooser.setTitle("Root-Verzeichnis auswählen");
+                File selectedDir = chooser.showDialog(chooserStage);
+                if (selectedDir != null) {
+                    dirField.setText(selectedDir.getAbsolutePath());
+                }
+            });
+            
+            dirBox.getChildren().addAll(dirField, browseButton);
+            
+            // Buttons
+            HBox buttonBox = new HBox(20);
+            buttonBox.setAlignment(Pos.CENTER);
+            
+            Button okButton = new Button("🚀 Los geht's!");
+            okButton.getStyleClass().add("select-project-button");
+            okButton.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-padding: 10px 20px;");
+            okButton.setDisable(true); // Initial deaktiviert
+            
+            // Text-Change-Listener für Button-Aktivierung
+            dirField.textProperty().addListener((observable, oldValue, newValue) -> {
+                String path = newValue.trim();
+                boolean isValid = !path.isEmpty() && new File(path).exists() && new File(path).isDirectory();
+                okButton.setDisable(!isValid);
+                
+                // Visuelles Feedback
+                if (isValid) {
+                    dirField.setStyle("-fx-border-color: #27ae60; -fx-border-width: 2px;");
+                } else if (!path.isEmpty()) {
+                    dirField.setStyle("-fx-border-color: #e74c3c; -fx-border-width: 2px;");
+                } else {
+                    dirField.setStyle("-fx-border-color: #bdc3c7; -fx-border-width: 1px;");
+                }
+            });
+            
+            okButton.setOnAction(e -> {
+                String selectedPath = dirField.getText().trim();
+                if (!selectedPath.isEmpty()) {
+                    // Speichere das Root-Verzeichnis
+                    ResourceManager.saveParameter("project.root.directory", selectedPath);
+                    chooserStage.close();
+                } else {
+                    showError("Fehler", "Bitte wähle ein Verzeichnis aus.");
+                }
+            });
+            
+            Button cancelButton = new Button("❌ Abbrechen");
+            cancelButton.getStyleClass().add("cancel-button");
+            cancelButton.setOnAction(e -> chooserStage.close());
+            
+            buttonBox.getChildren().addAll(okButton, cancelButton);
+            
+            // Layout zusammenbauen
+            mainLayout.getChildren().addAll(titleLabel, descLabel, dirBox, buttonBox);
+            
+            // Scene erstellen
+            Scene scene = new Scene(mainLayout);
+            
+            // CSS laden
+            String cssPath = ResourceManager.getCssResource("css/manuskript.css");
+            if (cssPath != null) {
+                scene.getStylesheets().add(cssPath);
+            }
+            
+            chooserStage.setSceneWithTitleBar(scene);
+            chooserStage.setFullTheme(currentThemeIndex);
+            chooserStage.initOwner(primaryStage);
+            chooserStage.showAndWait();
+            
+        } catch (Exception e) {
+            logger.error("Fehler beim Öffnen des Root-Verzeichnis-Chooser", e);
+            showError("Fehler", "Root-Verzeichnis-Chooser konnte nicht geöffnet werden: " + e.getMessage());
         }
     }
     
