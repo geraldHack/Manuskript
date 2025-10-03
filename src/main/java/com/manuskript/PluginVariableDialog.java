@@ -7,6 +7,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.layout.Priority;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
@@ -50,12 +51,14 @@ public class PluginVariableDialog {
         dialog = StageManager.createStage("Plugin-Variablen");
         dialog.initModality(Modality.APPLICATION_MODAL);
         dialog.setTitle("Plugin-Variablen: " + plugin.getName());
-        dialog.setResizable(false);
+        dialog.setResizable(true);
+        dialog.setMinWidth(600);
+        dialog.setMinHeight(400);
         
         // Haupt-Container
         VBox mainContainer = new VBox(15);
         mainContainer.setPadding(new Insets(20));
-        mainContainer.setAlignment(Pos.CENTER);
+        mainContainer.setAlignment(Pos.TOP_CENTER);
         
         // Plugin-Header mit Name und Beschreibung
         VBox headerBox = new VBox(5);
@@ -113,17 +116,17 @@ public class PluginVariableDialog {
         // Prompt-Vorschau (nur wenn Variablen vorhanden)
         VBox previewBox = new VBox(5);
         if (!variableDefinitions.isEmpty()) {
-            Label previewLabel = new Label("Prompt-Vorschau:");
+            Label previewLabel = new Label("📝 Generierter Prompt:");
             previewLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #333;");
             
             TextArea previewArea = new TextArea();
-            previewArea.setPrefRowCount(4);
             previewArea.setEditable(false);
             previewArea.setWrapText(true);
             previewArea.setStyle("-fx-font-family: 'Consolas', monospace; -fx-font-size: 11px;");
+            VBox.setVgrow(previewArea, Priority.ALWAYS);
             
             // Live-Vorschau aktualisieren
-            previewArea.setText("Fülle die Variablen aus, um den Prompt zu sehen...");
+            updatePreview(previewArea, plugin);
             
             // Listener für Live-Vorschau
             for (Control control : variableFields.values()) {
@@ -179,8 +182,20 @@ public class PluginVariableDialog {
         
         buttonBox.getChildren().addAll(okButton, cancelButton);
         
-        // Alles zusammenfügen
-        mainContainer.getChildren().addAll(headerBox, instructionLabel, grid, previewBox, buttonBox);
+        // Layout-Struktur für bessere Größenanpassung
+        VBox contentBox = new VBox(15);
+        contentBox.getChildren().addAll(headerBox, instructionLabel, grid);
+        
+        // Preview-Box separat hinzufügen mit VBox.setVgrow
+        if (!variableDefinitions.isEmpty()) {
+            VBox.setVgrow(previewBox, Priority.ALWAYS);
+        }
+        
+        // Alles zusammenfügen - contentBox wächst, previewBox wächst, buttonBox bleibt unten
+        mainContainer.getChildren().addAll(contentBox, previewBox, buttonBox);
+        
+        // Border um das gesamte Fenster hinzufügen - auf den mainContainer
+        mainContainer.setStyle(mainContainer.getStyle() + " -fx-border-color: #cccccc; -fx-border-width: 1px; -fx-border-style: solid;");
         
         // Dialog anzeigen
         Scene scene = new Scene(mainContainer);
@@ -203,6 +218,10 @@ public class PluginVariableDialog {
         applyDialogTheme(mainContainer, currentThemeIndex);
         
         dialog.setSceneWithTitleBar(scene);
+        
+        // WICHTIG: Theme anwenden, damit die Border gesetzt wird
+        dialog.setTitleBarTheme(currentThemeIndex);
+        
         dialog.showAndWait();
         
         return confirmed ? result : null;
@@ -485,12 +504,8 @@ public class PluginVariableDialog {
             // Verarbeite den Prompt mit den aktuellen Werten
             String processedPrompt = plugin.getProcessedPrompt(currentValues);
             
-            // Zeige den verarbeiteten Prompt an
-            if (processedPrompt.length() > 500) {
-                previewArea.setText(processedPrompt.substring(0, 500) + "\n\n... (gekürzt)");
-            } else {
-                previewArea.setText(processedPrompt);
-            }
+            // Zeige den verarbeiteten Prompt an (vollständig)
+            previewArea.setText(processedPrompt);
         } catch (Exception e) {
             previewArea.setText("Fehler beim Generieren der Vorschau: " + e.getMessage());
         }
@@ -563,25 +578,62 @@ public class PluginVariableDialog {
         // Styles anwenden
         mainContainer.setStyle(dialogStyle);
         
-        // Alle Labels stylen
-        for (javafx.scene.Node node : mainContainer.getChildren()) {
-            if (node instanceof Label) {
-                node.setStyle(labelStyle);
-            } else if (node instanceof GridPane) {
-                GridPane grid = (GridPane) node;
-                for (javafx.scene.Node gridNode : grid.getChildren()) {
-                    if (gridNode instanceof Label) {
-                        gridNode.setStyle(labelStyle);
-                    } else if (gridNode instanceof TextField) {
-                        gridNode.setStyle(textFieldStyle);
-                    }
+        // Alle Labels stylen - rekursiv durch alle Container
+        styleAllNodes(mainContainer, labelStyle, buttonStyle, textFieldStyle, themeIndex);
+    }
+    
+    /**
+     * Stylt alle Nodes rekursiv
+     */
+    private void styleAllNodes(javafx.scene.Node node, String labelStyle, String buttonStyle, String textFieldStyle, int themeIndex) {
+        if (node instanceof Label) {
+            node.setStyle(labelStyle);
+        } else if (node instanceof Button) {
+            node.setStyle(buttonStyle);
+        } else if (node instanceof TextField) {
+            node.setStyle(textFieldStyle);
+        } else if (node instanceof TextArea) {
+            // Spezielle TextArea-Styles - verwende die Theme-Farben direkt
+            String textAreaStyle = "";
+            switch (themeIndex) {
+                case 0: // Weiß
+                    textAreaStyle = "-fx-control-inner-background: #ffffff; -fx-text-inner-color: #000000; -fx-background-color: #ffffff; -fx-text-fill: #000000; -fx-border-color: #cccccc; -fx-font-family: 'Consolas', monospace; -fx-font-size: 11px;";
+                    break;
+                case 1: // Schwarz
+                    textAreaStyle = "-fx-control-inner-background: #2d2d2d; -fx-text-inner-color: #ffffff; -fx-background-color: #2d2d2d; -fx-text-fill: #ffffff; -fx-border-color: #404040; -fx-font-family: 'Consolas', monospace; -fx-font-size: 11px;";
+                    break;
+                case 2: // Pastell
+                    textAreaStyle = "-fx-control-inner-background: #ffffff; -fx-text-inner-color: #000000; -fx-background-color: #ffffff; -fx-text-fill: #000000; -fx-border-color: #ba68c8; -fx-font-family: 'Consolas', monospace; -fx-font-size: 11px;";
+                    break;
+                case 3: // Blau
+                    textAreaStyle = "-fx-control-inner-background: #1e3a8a; -fx-text-inner-color: #ffffff; -fx-background-color: #1e3a8a; -fx-text-fill: #ffffff; -fx-border-color: #3b82f6; -fx-font-family: 'Consolas', monospace; -fx-font-size: 11px;";
+                    break;
+                case 4: // Grün
+                    textAreaStyle = "-fx-control-inner-background: #064e3b; -fx-text-inner-color: #ffffff; -fx-background-color: #064e3b; -fx-text-fill: #ffffff; -fx-border-color: #059669; -fx-font-family: 'Consolas', monospace; -fx-font-size: 11px;";
+                    break;
+                case 5: // Lila
+                    textAreaStyle = "-fx-control-inner-background: #581c87; -fx-text-inner-color: #ffffff; -fx-background-color: #581c87; -fx-text-fill: #ffffff; -fx-border-color: #7c3aed; -fx-font-family: 'Consolas', monospace; -fx-font-size: 11px;";
+                    break;
+                default:
+                    textAreaStyle = "-fx-control-inner-background: #2d2d2d; -fx-text-inner-color: #ffffff; -fx-background-color: #2d2d2d; -fx-text-fill: #ffffff; -fx-border-color: #404040; -fx-font-family: 'Consolas', monospace; -fx-font-size: 11px;";
+            }
+            node.setStyle(textAreaStyle);
+        } else if (node instanceof VBox || node instanceof HBox || node instanceof GridPane) {
+            // Rekursiv durch alle Kinder
+            if (node instanceof VBox) {
+                VBox vbox = (VBox) node;
+                for (javafx.scene.Node child : vbox.getChildren()) {
+                    styleAllNodes(child, labelStyle, buttonStyle, textFieldStyle, themeIndex);
                 }
             } else if (node instanceof HBox) {
-                HBox buttonBox = (HBox) node;
-                for (javafx.scene.Node buttonNode : buttonBox.getChildren()) {
-                    if (buttonNode instanceof Button) {
-                        buttonNode.setStyle(buttonStyle);
-                    }
+                HBox hbox = (HBox) node;
+                for (javafx.scene.Node child : hbox.getChildren()) {
+                    styleAllNodes(child, labelStyle, buttonStyle, textFieldStyle, themeIndex);
+                }
+            } else if (node instanceof GridPane) {
+                GridPane grid = (GridPane) node;
+                for (javafx.scene.Node child : grid.getChildren()) {
+                    styleAllNodes(child, labelStyle, buttonStyle, textFieldStyle, themeIndex);
                 }
             }
         }
