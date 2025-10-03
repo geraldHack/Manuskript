@@ -134,6 +134,9 @@ public class StageManager {
         int currentTheme = preferences.getInt("main_window_theme", 0);
         stage.setFullTheme(currentTheme); // WICHTIG: setFullTheme für vollständige Theme-Anwendung
         
+        // DEBUG: Zusätzlich setTitleBarTheme aufrufen für Border
+        stage.setTitleBarTheme(currentTheme);
+        
         logger.debug("CustomStage erstellt: '{}', Modal: {}, Theme: {}, Größe: {}x{}", title, modal, currentTheme, stage.getWidth(), stage.getHeight());
         
         return stage;

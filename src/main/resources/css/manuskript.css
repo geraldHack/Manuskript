@@ -1,0 +1,6 @@
+/* Editor-Fenster Border */
+.editor-window {
+    -fx-border-color: #333333;
+    -fx-border-width: 2px;
+    -fx-border-radius: 0px;
+}
