@@ -1026,23 +1026,50 @@ public class OllamaWindow {
         
         stage.setSceneWithTitleBar(scene);
 
-        // Gespeicherte Position/Größe laden (falls vorhanden)
+        // Gespeicherte Position/Größe laden (falls vorhanden) mit Validierung
         try {
             String sx = ResourceManager.getParameter("ui.ollama_window_x", "");
             String sy = ResourceManager.getParameter("ui.ollama_window_y", "");
             String sw = ResourceManager.getParameter("ui.ollama_window_w", "");
             String sh = ResourceManager.getParameter("ui.ollama_window_h", "");
+            
+            // Position validieren und setzen
             if (!sx.isEmpty() && !sy.isEmpty()) {
-                stage.setX(Double.parseDouble(sx));
-                stage.setY(Double.parseDouble(sy));
+                double x = Double.parseDouble(sx);
+                double y = Double.parseDouble(sy);
+                // Validierung: Position muss auf dem Bildschirm sein
+                if (x >= 0 && x <= 3000 && y >= 0 && y <= 2000) {
+                    stage.setX(x);
+                    stage.setY(y);
+                } else {
+                    logger.warning("Ungültige Position (" + x + "," + y + ") für Ollama-Fenster, setze Standard 100,100");
+                    stage.setX(100);
+                    stage.setY(100);
+                }
             }
+            
+            // Größe validieren und setzen
             if (!sw.isEmpty() && !sh.isEmpty()) {
                 double dw = Double.parseDouble(sw);
                 double dh = Double.parseDouble(sh);
-                if (dw >= stage.getMinWidth()) stage.setWidth(dw);
-                if (dh >= stage.getMinHeight()) stage.setHeight(dh);
+                // Validierung: Größe muss sinnvoll sein
+                if (dw >= 400 && dw <= 2000 && dh >= 300 && dh <= 1500) {
+                    stage.setWidth(dw);
+                    stage.setHeight(dh);
+                } else {
+                    logger.warning("Ungültige Größe (" + dw + "x" + dh + ") für Ollama-Fenster, setze Standard 1200x800");
+                    stage.setWidth(1200);
+                    stage.setHeight(800);
+                }
             }
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            logger.warning("Fehler beim Laden der Ollama-Fenster-Properties: " + e.getMessage());
+            // Standardwerte setzen
+            stage.setX(100);
+            stage.setY(100);
+            stage.setWidth(1200);
+            stage.setHeight(800);
+        }
 
         // Beim Schließen: Debounce-Timer stoppen und alle Kontexte hart speichern + Geometrie sichern
         stage.setOnCloseRequest(ev -> {
@@ -2678,7 +2705,7 @@ public class OllamaWindow {
                 box.setPadding(new Insets(10));
                 box.setFillWidth(true);
                 // Theme-gerechter Hintergrund
-                String[] themeColors = {"#ffffff", "#1f2937", "#f8fafc", "#0b1220", "#064e3b", "#581c87"};
+                String[] themeColors = {"#ffffff", "#1f2937", "#f3e5f5", "#0b1220", "#064e3b", "#581c87"};
                 box.setStyle("-fx-background-color: " + themeColors[currentThemeIndex] + ";");
                 resultWebView.prefWidthProperty().bind(box.widthProperty());
                 resultWebView.prefHeightProperty().bind(box.heightProperty().subtract(headerRow.heightProperty()).subtract(10));
@@ -2688,6 +2715,10 @@ public class OllamaWindow {
                 resultStage.initOwner(stage);
                 resultStage.setFullTheme(currentThemeIndex);
                 applyThemeToNode(box, currentThemeIndex);
+                // Pastell-Theme Klasse auf Root hinzufügen für konsistente Styles
+                if (currentThemeIndex == 2 && sc.getRoot() != null) {
+                    sc.getRoot().getStyleClass().add("pastell-theme");
+                }
             }
             // Inhalt laden/refreshen und anzeigen (kein Auto-Scroll beim Öffnen)
             updateResultWebView(buildHtmlForAnswer(answer), false);
@@ -2703,7 +2734,7 @@ public class OllamaWindow {
         String codeBg;
         switch (currentThemeIndex) {
             case 0: bgColor = "#ffffff"; fgColor = "#111827"; codeBg = "#f5f5f5"; break; // Weiß
-            case 2: bgColor = "#ffffff"; fgColor = "#111827"; codeBg = "#f3f4f6"; break; // Pastell hell
+            case 2: bgColor = "#f3e5f5"; fgColor = "#311b92"; codeBg = "#ede7f6"; break; // Pastell
             case 3: bgColor = "#0b1220"; fgColor = "#e2e8f0"; codeBg = "#0f172a"; break; // Blau dunkel (etwas dunkler)
             case 4: bgColor = "#064e3b"; fgColor = "#d1fae5"; codeBg = "#065f46"; break; // Grün (angepasst an Theme CSS)
             case 5: bgColor = "#581c87"; fgColor = "#f3e8ff"; codeBg = "#7c3aed"; break; // Lila (angepasst)
@@ -2767,9 +2798,35 @@ public class OllamaWindow {
             htmlBody = markdownToHtml(sanitizedBody);
         }
         // Schönere Typographie/Abstände und zentrierte Inhaltsbreite
-        String linkColor = (currentThemeIndex == 4) ? "#34d399" : (currentThemeIndex == 3 ? "#60a5fa" : (currentThemeIndex == 5 ? "#c084fc" : "#2563eb"));
-        String borderColor = (currentThemeIndex == 4) ? "#047857" : (currentThemeIndex == 3 ? "#1d4ed8" : (currentThemeIndex == 5 ? "#6d28d9" : "#9ca3af"));
-        String muted = (currentThemeIndex == 4) ? "#a7f3d0" : (currentThemeIndex == 3 ? "#cbd5e1" : (currentThemeIndex == 5 ? "#e9d5ff" : "#6b7280"));
+        String linkColor;
+        String borderColor;
+        String muted;
+        switch (currentThemeIndex) {
+            case 2: // Pastell
+                linkColor = "#7e57c2";
+                borderColor = "#b39ddb";
+                muted = "#7e57c2";
+                break;
+            case 4: // Grün
+                linkColor = "#34d399";
+                borderColor = "#047857";
+                muted = "#a7f3d0";
+                break;
+            case 3: // Blau
+                linkColor = "#60a5fa";
+                borderColor = "#1d4ed8";
+                muted = "#cbd5e1";
+                break;
+            case 5: // Lila
+                linkColor = "#c084fc";
+                borderColor = "#6d28d9";
+                muted = "#e9d5ff";
+                break;
+            default:
+                linkColor = "#2563eb";
+                borderColor = "#9ca3af";
+                muted = "#6b7280";
+        }
 
         String css = "html,body{height:100%;} body{margin:0;background:"+bgColor+";color:"+fgColor+";font-family:Segoe UI,Arial,sans-serif;line-height:1.65;}"+
                 ".content{width:100%;max-width:none;margin:24px auto 28px auto;padding:0 18px;box-sizing:border-box;}"+

@@ -63,17 +63,17 @@ public class PluginVariableDialog {
         // Plugin-Header mit Name und Beschreibung
         VBox headerBox = new VBox(5);
         Label nameLabel = new Label("📦 " + plugin.getName());
-        nameLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #2E86AB;");
+        nameLabel.getStyleClass().add("plugin-dialog-title");
         
         Label descriptionLabel = new Label(plugin.getDescription());
         descriptionLabel.setWrapText(true);
-        descriptionLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #666;");
+        descriptionLabel.getStyleClass().add("plugin-dialog-description");
         
         headerBox.getChildren().addAll(nameLabel, descriptionLabel);
         
         // Anleitung
         Label instructionLabel = new Label("Fülle die folgenden Variablen aus, um das Plugin zu verwenden:");
-        instructionLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #333;");
+        instructionLabel.getStyleClass().add("plugin-dialog-instruction");
         
         // Variablen-Grid
         GridPane grid = new GridPane();
@@ -95,7 +95,7 @@ public class PluginVariableDialog {
             
             // Label für Variable
             Label label = new Label(varDef.getDisplayName() + ":");
-            label.setStyle("-fx-font-weight: bold;");
+            label.getStyleClass().add("plugin-dialog-variable-label");
             
             // Tooltip mit Beschreibung falls vorhanden
             if (varDef.getDescription() != null && !varDef.getDescription().isEmpty()) {
@@ -204,11 +204,15 @@ public class PluginVariableDialog {
         try {
             String stylesCss = com.manuskript.ResourceManager.getCssResource("css/styles.css");
             String editorCss = com.manuskript.ResourceManager.getCssResource("css/editor.css");
+            String manuskriptCss = com.manuskript.ResourceManager.getCssResource("css/manuskript.css");
             if (stylesCss != null) {
                 scene.getStylesheets().add(stylesCss);
             }
             if (editorCss != null) {
                 scene.getStylesheets().add(editorCss);
+            }
+            if (manuskriptCss != null) {
+                scene.getStylesheets().add(manuskriptCss);
             }
         } catch (Exception e) {
             Logger.getLogger(PluginVariableDialog.class.getName()).warning("Fehler beim Laden der CSS-Styles: " + e.getMessage());
@@ -216,6 +220,11 @@ public class PluginVariableDialog {
         
         // Theme-Klassen setzen
         applyDialogTheme(mainContainer, currentThemeIndex);
+        
+        // Auch die Scene-Root mit Theme-Klasse versehen
+        if (currentThemeIndex == 2) {
+            scene.getRoot().getStyleClass().add("pastell-theme");
+        }
         
         dialog.setSceneWithTitleBar(scene);
         

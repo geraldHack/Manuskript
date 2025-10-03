@@ -7865,6 +7865,8 @@ spacer.setStyle("-fx-background-color: transparent;");
                 
                 // Direkte inline Styles für Pastell-Theme
                 if (themeIndex == 2) { // Pastell-Theme
+                    root.getStyleClass().add("pastell-theme");
+                    mainContainer.getStyleClass().add("pastell-theme");
                     root.setStyle(""); // CSS-Klassen verwenden
                     mainContainer.setStyle(""); // CSS-Klassen verwenden
                     logger.info("Pastell-Theme direkt angewendet (Editor)");
@@ -7940,6 +7942,14 @@ spacer.setStyle("-fx-background-color: transparent;");
             applyThemeToNode(btnChapterEditor, themeIndex);
             applyThemeToNode(btnSaveChapter, themeIndex);
             applyThemeToNode(mainSplitPane, themeIndex);
+            
+            // Chapter-Editor-Titel explizit thematisieren
+            if (stage != null && stage.getScene() != null) {
+                Node chapterTitle = stage.getScene().lookup(".chapter-editor-title");
+                if (chapterTitle != null) {
+                    applyThemeToNode(chapterTitle, themeIndex);
+                }
+            }
             
             // Text Analysis Panel
             if (textAnalysisStage != null && textAnalysisStage.getScene() != null) {
