@@ -63,6 +63,9 @@ public class PluginEditorWindow {
         stage.setMinWidth(800);
         stage.setMinHeight(600);
         
+        // WICHTIG: Theme sofort setzen
+        stage.setTitleBarTheme(currentThemeIndex);
+        
         // Haupt-Container
         BorderPane mainContainer = new BorderPane();
         mainContainer.setPadding(new Insets(10));

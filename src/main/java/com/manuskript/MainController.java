@@ -3025,6 +3025,25 @@ public class MainController implements Initializable {
             Scene scene = new Scene(root);
             editorStage.setSceneWithTitleBar(scene);
             
+            // WICHTIG: Theme sofort setzen für Border
+            editorStage.setTitleBarTheme(currentThemeIndex);
+            
+            // CSS-Klasse für Border auf innerem Container hinzufügen
+            // Suche nach dem Haupt-Container (meist VBox oder BorderPane)
+            if (root instanceof javafx.scene.layout.VBox) {
+                root.getStyleClass().add("editor-container");
+                root.getStyleClass().add("theme-" + currentThemeIndex);
+            } else {
+                // Falls es ein anderes Layout ist, suche nach dem ersten Container
+                for (javafx.scene.Node child : root.getChildrenUnmodifiable()) {
+                    if (child instanceof javafx.scene.Parent) {
+                        child.getStyleClass().add("editor-container");
+                        child.getStyleClass().add("theme-" + currentThemeIndex);
+                        break;
+                    }
+                }
+            }
+            
             // EditorWindow-Instanz mit UserData verknüpfen für spätere Suche
             root.setUserData(editorController);
             
@@ -3269,6 +3288,25 @@ public class MainController implements Initializable {
             // Scene erstellen und mit CustomStage-Titelleiste setzen
             Scene scene = new Scene(root);
             editorStage.setSceneWithTitleBar(scene);
+            
+            // WICHTIG: Theme sofort setzen für Border
+            editorStage.setTitleBarTheme(currentThemeIndex);
+            
+            // CSS-Klasse für Border auf innerem Container hinzufügen
+            // Suche nach dem Haupt-Container (meist VBox oder BorderPane)
+            if (root instanceof javafx.scene.layout.VBox) {
+                root.getStyleClass().add("editor-container");
+                root.getStyleClass().add("theme-" + currentThemeIndex);
+            } else {
+                // Falls es ein anderes Layout ist, suche nach dem ersten Container
+                for (javafx.scene.Node child : root.getChildrenUnmodifiable()) {
+                    if (child instanceof javafx.scene.Parent) {
+                        child.getStyleClass().add("editor-container");
+                        child.getStyleClass().add("theme-" + currentThemeIndex);
+                        break;
+                    }
+                }
+            }
             
             // EditorWindow-Instanz mit UserData verknüpfen für spätere Suche
             root.setUserData(editorController);
@@ -4411,6 +4449,9 @@ public class MainController implements Initializable {
             splitStage.setTitle("Kapitel-Split");
             splitStage.setWidth(1000);
             splitStage.setHeight(600);
+            
+            // WICHTIG: Theme sofort setzen
+            splitStage.setTitleBarTheme(currentThemeIndex);
             splitStage.initModality(Modality.NONE);
             splitStage.initOwner(primaryStage);
             
@@ -4811,6 +4852,9 @@ public class MainController implements Initializable {
             projectStage.setCustomTitle("Projektauswahl");
             projectStage.setMinWidth(1200);
             projectStage.setMaxWidth(1200);
+            
+            // WICHTIG: Theme sofort setzen
+            projectStage.setTitleBarTheme(currentThemeIndex);
             projectStage.setMinHeight(800);
             projectStage.setMaxHeight(800);
             projectStage.setWidth(1200);
@@ -5090,6 +5134,9 @@ public class MainController implements Initializable {
             booksStage.setCustomTitle("Bücher-Auswahl: " + seriesDir.getName());
             booksStage.setMinWidth(800);
             booksStage.setMaxWidth(800);
+            
+            // WICHTIG: Theme sofort setzen
+            booksStage.setTitleBarTheme(currentThemeIndex);
             booksStage.setMinHeight(600);
             booksStage.setMaxHeight(600);
             booksStage.setWidth(800);
@@ -5332,6 +5379,9 @@ public class MainController implements Initializable {
             chooserStage.setCustomTitle("Projekt-Root-Verzeichnis auswählen");
             chooserStage.setMinWidth(600);
             chooserStage.setMaxWidth(600);
+            
+            // WICHTIG: Theme sofort setzen
+            chooserStage.setTitleBarTheme(currentThemeIndex);
             chooserStage.setMinHeight(400);
             chooserStage.setMaxHeight(400);
             chooserStage.setWidth(600);

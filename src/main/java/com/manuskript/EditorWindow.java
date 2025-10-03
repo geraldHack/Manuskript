@@ -4738,6 +4738,9 @@ if (caret != null) {
         macroStage.setTitle("Makro-Verwaltung");
         macroStage.setWidth(1200);
         macroStage.setHeight(800);
+        
+        // WICHTIG: Theme sofort setzen
+        macroStage.setTitleBarTheme(currentThemeIndex);
         macroStage.initModality(Modality.NONE);
         macroStage.initOwner(stage);
         
@@ -5181,6 +5184,9 @@ spacer.setStyle("-fx-background-color: transparent;");
         textAnalysisStage.setTitle("Textanalyse");
         textAnalysisStage.setWidth(800);
         textAnalysisStage.setHeight(600);
+        
+        // WICHTIG: Theme sofort setzen
+        textAnalysisStage.setTitleBarTheme(currentThemeIndex);
         textAnalysisStage.initModality(Modality.NONE);
         textAnalysisStage.initOwner(stage);
         

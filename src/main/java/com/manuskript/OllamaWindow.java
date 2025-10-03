@@ -182,6 +182,9 @@ public class OllamaWindow {
         stage.setMinWidth(400);
         stage.setMinHeight(700);
         
+        // WICHTIG: Theme sofort nach der Erstellung anwenden
+        stage.setTitleBarTheme(currentThemeIndex);
+        
         // Haupt-Layout
         VBox mainLayout = new VBox(5);
         mainLayout.setPadding(new Insets(15));
@@ -2235,6 +2238,10 @@ public class OllamaWindow {
     private void showPromptPreviewStage(String title, String content) {
         CustomStage s = StageManager.createStage(title);
         s.setTitle(title);
+        
+        // WICHTIG: Theme sofort setzen
+        s.setTitleBarTheme(currentThemeIndex);
+        
         TextArea ta = new TextArea(content == null ? "" : content);
         ta.setWrapText(true);
         ta.setEditable(false);
@@ -2628,6 +2635,9 @@ public class OllamaWindow {
                 resultStage.getProperties().put("hideIcon", true);
                 resultStage.getProperties().put("useSimpleActions", true);
                 resultStage.setTitle("Ergebnis (gerendert)");
+                
+                // WICHTIG: Theme sofort setzen
+                resultStage.setTitleBarTheme(currentThemeIndex);
                 resultWebView = new javafx.scene.web.WebView();
                 resultWebView.setContextMenuEnabled(false);
                 resultWebView.setMinSize(0, 0);
@@ -3340,6 +3350,8 @@ public class OllamaWindow {
     }
     
     public void show() {
+        // WICHTIG: Theme vor dem Anzeigen nochmal setzen
+        stage.setTitleBarTheme(currentThemeIndex);
         stage.show();
         stage.requestFocus();
     }
@@ -3386,6 +3398,11 @@ public class OllamaWindow {
     public void setTheme(int themeIndex) {
         this.currentThemeIndex = themeIndex;
         applyTheme(themeIndex);
+        
+        // WICHTIG: Theme auch auf die Stage anwenden
+        if (stage != null) {
+            stage.setTitleBarTheme(themeIndex);
+        }
     }
     
     /**
@@ -4051,7 +4068,7 @@ public class OllamaWindow {
                 currentSessionName = newSessionName;
                 // Chat-Historie der neuen Session laden
                 chatHistoryArea.loadSessionHistory(newSessionData);
-                updateStatus("Session wurde aufgeteilt – weiter in '" + newSessionName + "'");
+                updateStatus("Session wurde aufgeteilt – weiter in '" + newSessionName + "' (" + newSessionData.size() + " Einträge)");
             });
         }
     }
@@ -4171,7 +4188,6 @@ public class OllamaWindow {
             logger.info("Gespeicherte Session geladen: " + savedSession);
         } else {
             // Fallback: höchste default.X, sonst 'default'
-
             int bestPart = -1;
             for (String name : sessionComboBox.getItems()) {
                 if ("default".equals(name)) continue;
@@ -4189,6 +4205,9 @@ public class OllamaWindow {
         currentSessionName = pick;
         List<CustomChatArea.QAPair> hist = sessionHistories.getOrDefault(pick, new ArrayList<>());
         chatHistoryArea.loadSessionHistory(hist);
+        
+        // WICHTIG: Status-Update für bessere Transparenz
+        updateStatus("Session geladen: " + pick + " (" + hist.size() + " Einträge)");
     }
     
     /**
