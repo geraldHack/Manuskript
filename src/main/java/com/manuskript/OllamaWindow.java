@@ -2667,6 +2667,9 @@ public class OllamaWindow {
                 VBox box = new VBox(5, headerRow, resultWebView);
                 box.setPadding(new Insets(10));
                 box.setFillWidth(true);
+                // Theme-gerechter Hintergrund
+                String[] themeColors = {"#ffffff", "#1f2937", "#f8fafc", "#0b1220", "#064e3b", "#581c87"};
+                box.setStyle("-fx-background-color: " + themeColors[currentThemeIndex] + ";");
                 resultWebView.prefWidthProperty().bind(box.widthProperty());
                 resultWebView.prefHeightProperty().bind(box.heightProperty().subtract(headerRow.heightProperty()).subtract(10));
 
