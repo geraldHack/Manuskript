@@ -28,6 +28,8 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.stage.FileChooser;
 import javafx.stage.DirectoryChooser;
+import javafx.stage.Screen;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.SplitPane;
 import javafx.geometry.Insets;
@@ -56,6 +58,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.prefs.Preferences;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import javafx.scene.text.TextAlignment;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
@@ -4153,18 +4158,17 @@ public class MainController implements Initializable {
         double x = preferences.getDouble("main_window_x", -1.0);
         double y = preferences.getDouble("main_window_y", -1.0);
         
-        // Validierung der Fenster-Größe
+        // Validierung der Fenster-Größe (nur Mindestgrößen)
         double minWidth = 1000.0;
         double minHeight = 600.0;
-        double maxWidth = 3000.0;
-        double maxHeight = 2000.0;
+        // KEINE maxWidth/maxHeight Begrenzung für ultrawide Monitore
         
-        // Größe validieren und korrigieren
-        if (width < minWidth || width > maxWidth || Double.isNaN(width) || Double.isInfinite(width)) {
+        // Größe validieren und korrigieren (nur Mindestgrößen)
+        if (width < minWidth || Double.isNaN(width) || Double.isInfinite(width)) {
             logger.warn("Ungültige Hauptfenster-Breite: {} - verwende Standard: {}", width, minWidth);
             width = minWidth;
         }
-        if (height < minHeight || height > maxHeight || Double.isNaN(height) || Double.isInfinite(height)) {
+        if (height < minHeight || Double.isNaN(height) || Double.isInfinite(height)) {
             logger.warn("Ungültige Hauptfenster-Höhe: {} - verwende Standard: {}", height, minHeight);
             height = minHeight;
         }
@@ -4843,6 +4847,110 @@ public class MainController implements Initializable {
     }
     
     /**
+     * Lädt die Projektfenster-Eigenschaften aus den Preferences
+     */
+    private void loadProjectWindowProperties(CustomStage projectStage) {
+        if (preferences != null) {
+            // Bildschirmabmessungen abfragen
+            Screen primaryScreen = Screen.getPrimary();
+            Rectangle2D screenBounds = primaryScreen.getBounds();
+            double screenWidth = screenBounds.getWidth();
+            double screenHeight = screenBounds.getHeight();
+            
+            logger.info("Bildschirmabmessungen: {}x{}", screenWidth, screenHeight);
+            
+            // Robuste Validierung der Preferences mit sinnvollen Standardwerten
+            double x = preferences.getDouble("project_window_x", 100);
+            double y = preferences.getDouble("project_window_y", 100);
+            double width = preferences.getDouble("project_window_width", 1200);  // KEINE Begrenzung
+            double height = preferences.getDouble("project_window_height", 800);  // KEINE Begrenzung
+            
+            logger.info("DEBUG: Geladene Werte - Position: ({},{}) Größe: {}x{}", x, y, width, height);
+            
+            // Validierung: Position muss auf dem Bildschirm sein (lockerer)
+            if (x < -100 || x > screenWidth + 100 || y < -100 || y > screenHeight + 100) {
+                logger.warn("Ungültige Position ({},{}) für Projekt-Fenster, setze Standard 100,100", x, y);
+                x = 100;
+                y = 100;
+            }
+            
+            // Validierung: Größe muss sinnvoll sein (nur Mindestgrößen prüfen)
+            if (width < 400 || height < 300) {
+                logger.warn("Ungültige Größe ({}x{}) für Projekt-Fenster, setze Standard 1200x800", width, height);
+                width = 1200;  // KEINE Breitenbegrenzung für ultrawide Monitore
+                height = 800;  // KEINE Höhenbegrenzung für ultrawide Monitore
+            }
+            
+            // KEINE Höhenbegrenzung - erlaube auch größere Fenster (für ultrawide Monitore)
+            logger.info("Höhe {} - Bildschirmhöhe {} (keine Begrenzung)", height, screenHeight);
+            
+            // Debug: Warum wird die Größe als illegal betrachtet?
+            logger.info("DEBUG: Validierung - Breite: {} (min: 400, max: {}), Höhe: {} (min: 300, max: {})", 
+                width, screenWidth, height, screenHeight);
+            
+            logger.info("DEBUG: Finale Werte - Position: ({},{}) Größe: {}x{}", x, y, width, height);
+            
+            projectStage.setX(x);
+            projectStage.setY(y);
+            projectStage.setWidth(width);
+            projectStage.setHeight(height);
+            projectStage.setMinWidth(800);
+            projectStage.setMinHeight(600);
+            projectStage.setResizable(true);
+            
+            logger.info("Projekt-Fenster: Position {},{} Größe {}x{}", x, y, width, height);
+            
+            // Listener werden in addProjectWindowListeners() hinzugefügt
+        }
+    }
+    
+    /**
+     * Fügt Listener für Projekt-Fenster hinzu
+     */
+    private void addProjectWindowListeners(CustomStage projectStage) {
+        Preferences preferences = Preferences.userNodeForPackage(MainController.class);
+        Screen primaryScreen = Screen.getPrimary();
+        Rectangle2D screenBounds = primaryScreen.getBounds();
+        double screenWidth = screenBounds.getWidth();
+        double screenHeight = screenBounds.getHeight();
+        
+        logger.info("Füge Listener für Projekt-Fenster hinzu - Bildschirm: {}x{}", screenWidth, screenHeight);
+        
+        // Fenster-Position und Größe speichern (lockere Validierung für große Bildschirme)
+        projectStage.xProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal.doubleValue() >= -100 && newVal.doubleValue() <= screenWidth + 100) {
+                preferences.putDouble("project_window_x", newVal.doubleValue());
+                logger.info("X-Position gespeichert: {}", newVal.doubleValue());
+            }
+        });
+        projectStage.yProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal.doubleValue() >= -100 && newVal.doubleValue() <= screenHeight + 100) {
+                preferences.putDouble("project_window_y", newVal.doubleValue());
+                logger.info("Y-Position gespeichert: {}", newVal.doubleValue());
+            }
+        });
+        projectStage.widthProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal.doubleValue() >= 800) {
+                preferences.putDouble("project_window_width", newVal.doubleValue());
+                logger.info("Fenster-Breite gespeichert: {}", newVal.doubleValue());
+            }
+        });
+        projectStage.heightProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal.doubleValue() >= 600) {
+                preferences.putDouble("project_window_height", newVal.doubleValue());
+                logger.info("Fenster-Höhe gespeichert: {}", newVal.doubleValue());
+            }
+        });
+        projectStage.maximizedProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal) {
+                preferences.putDouble("project_window_width", screenWidth);
+                preferences.putDouble("project_window_height", screenHeight);
+                logger.info("Maximiertes Fenster gespeichert: {}x{}", screenWidth, screenHeight);
+            }
+        });
+    }
+    
+    /**
      * Zeigt das übergeordnete Projektauswahl-Menü
      */
     private void showProjectSelectionMenu() {
@@ -4850,17 +4958,12 @@ public class MainController implements Initializable {
             // Erstelle CustomStage für Projektauswahl
             CustomStage projectStage = new CustomStage();
             projectStage.setCustomTitle("Projektauswahl");
-            projectStage.setMinWidth(1200);
-            projectStage.setMaxWidth(1200);
             
             // WICHTIG: Theme sofort setzen
             projectStage.setTitleBarTheme(currentThemeIndex);
-            projectStage.setMinHeight(800);
-            projectStage.setMaxHeight(800);
-            projectStage.setWidth(1200);
-            projectStage.setHeight(800);
-            projectStage.setResizable(false);
             
+            // Lade Fenster-Eigenschaften aus Preferences
+            loadProjectWindowProperties(projectStage);
             
             // Haupt-Layout
             VBox mainLayout = new VBox(10);
@@ -4870,12 +4973,13 @@ public class MainController implements Initializable {
             // Titel
             Label titleLabel = new Label("📚 Wähle ein Projekt");
             titleLabel.getStyleClass().add("project-title");
-            // Entferne inline styling - CSS übernimmt das
+            titleLabel.setTextAlignment(TextAlignment.CENTER);
+            titleLabel.setAlignment(Pos.CENTER);
             
             // Projekt-FlowPane in ScrollPane
             FlowPane projectFlow = new FlowPane();
-            projectFlow.setHgap(20);
-            projectFlow.setVgap(20);
+            projectFlow.setHgap(5);
+            projectFlow.setVgap(16);
             projectFlow.setAlignment(Pos.CENTER);
             projectFlow.setPrefWrapLength(Double.MAX_VALUE); // Keine Größenbeschränkung
             projectFlow.getStyleClass().add("project-grid");
@@ -4919,7 +5023,15 @@ public class MainController implements Initializable {
                 scene.getStylesheets().add(cssPath);
             }
             
+            // Pastell-Theme CSS-Klasse auf Scene-Root setzen
+            if (currentThemeIndex == 2) {
+                scene.getRoot().getStyleClass().add("pastell-theme");
+            }
+            
             projectStage.setSceneWithTitleBar(scene);
+            
+            // WICHTIG: Listener NACH setSceneWithTitleBar hinzufügen
+            addProjectWindowListeners(projectStage);
             
             // CustomStage Theme anwenden NACH setSceneWithTitleBar
             projectStage.setFullTheme(currentThemeIndex);
@@ -4977,14 +5089,17 @@ public class MainController implements Initializable {
                 // Prüfe auch direkte DOCX-Dateien im Verzeichnis
                 File[] directDocxFiles = dir.listFiles((d, name) -> name.toLowerCase().endsWith(".docx"));
                 
+                final double targetCardHeight = 400;
                 if (!seriesBooks.isEmpty()) {
-                    // Erstelle Serien-Karte
+                    // Erstelle Serien-Karte (ohne Debug-Spacer)
                     VBox seriesCard = createSeriesCard(dir, seriesBooks, projectStage);
                     projectFlow.getChildren().add(seriesCard);
                 } else if (directDocxFiles != null && directDocxFiles.length > 0) {
                     // Erstelle Einzelprojekt-Karte
                     VBox projectCard = createProjectCard(dir, directDocxFiles, projectStage);
-                    projectFlow.getChildren().add(projectCard);
+                    Region spacerBefore = createDebugSpacer(targetCardHeight);
+                    Region spacerAfter = createDebugSpacer(targetCardHeight);
+                    projectFlow.getChildren().addAll(spacerBefore, projectCard, spacerAfter);
                 }
             }
             
@@ -5012,6 +5127,7 @@ public class MainController implements Initializable {
         Label seriesName = new Label("📚 " + seriesDir.getName());
         seriesName.setWrapText(false); // KEIN Umbrechen
         seriesName.setAlignment(Pos.CENTER);
+        seriesName.setFont(Font.font(seriesName.getFont().getFamily(), FontWeight.BOLD, seriesName.getFont().getSize() + 4));
         // Keine CSS-Klassen, keine Inline-Styles - nur Java-Eigenschaften
         
         // Bücher horizontal scrollbar
@@ -5024,6 +5140,7 @@ public class MainController implements Initializable {
         booksContainer.setPadding(new Insets(5)); // Weniger Padding
         
         // Bücher als normale Projekt-Karten
+        final double targetCardHeight = 450;
         for (File book : seriesBooks) {
             File[] docxFiles = book.listFiles((d, name) -> name.toLowerCase().endsWith(".docx"));
             if (docxFiles != null && docxFiles.length > 0) {
@@ -5035,7 +5152,7 @@ public class MainController implements Initializable {
         // Auch Einzelprojekte in der Serie hinzufügen
         File[] singleProjects = seriesDir.listFiles((d, name) -> name.toLowerCase().endsWith(".docx"));
         if (singleProjects != null && singleProjects.length > 0) {
-            VBox singleProjectCard = createProjectCard(seriesDir, singleProjects, projectStage);
+             VBox singleProjectCard = createProjectCard(seriesDir, singleProjects, projectStage);
             booksContainer.getChildren().add(singleProjectCard);
         }
         
@@ -5050,7 +5167,7 @@ public class MainController implements Initializable {
         // Berechne benötigte Breite
         int totalBookWidth = (bookCount * bookWidth) + ((bookCount - 1) * bookSpacing);
         int cardWidth = Math.max(600, totalBookWidth + padding); // Mindestens 600px breit für bessere Proportionen
-        int cardHeight = 450; // Höher für ScrollPane (300px) + Serien-Name + Info
+        int cardHeight = 440; // Etwas kompakter: ScrollPane + Serien-Name + Info
         
         // Setze dynamische Größen
         card.setPrefSize(cardWidth, cardHeight);
@@ -5061,7 +5178,7 @@ public class MainController implements Initializable {
         booksScrollPane.setFitToWidth(false);
         booksScrollPane.setFitToHeight(false);
         booksScrollPane.setPrefViewportWidth(cardWidth - 60); // Breite der Serien-Karte minus Padding
-        booksScrollPane.setPrefViewportHeight(300); // Höher als Buch-Karten (250px) für bessere Sichtbarkeit
+        booksScrollPane.setPrefViewportHeight(320); // Eingekürzt passend zur geringeren Kartenhöhe
         
         // Serien-Name ohne Breitenbeschränkung - Label behält natürliche Breite
         
@@ -5076,6 +5193,16 @@ public class MainController implements Initializable {
         return card;
     }
     
+    private Region createDebugSpacer(double targetHeight) {
+        double height = Double.isNaN(targetHeight) || targetHeight <= 0 ? 250 : targetHeight;
+        Region spacer = new Region();
+        spacer.setPrefSize(6, height);
+        spacer.setMinSize(6, height);
+        spacer.setMaxSize(6, height);
+        spacer.getStyleClass().add("project-card-debug-spacer");
+        return spacer;
+    }
+
     /**
      * Erstellt ein Dummy-Buch-Bild für Projekte ohne Cover
      */
@@ -5133,12 +5260,12 @@ public class MainController implements Initializable {
             CustomStage booksStage = new CustomStage();
             booksStage.setCustomTitle("Bücher-Auswahl: " + seriesDir.getName());
             booksStage.setMinWidth(800);
-            booksStage.setMaxWidth(800);
+            // KEINE setMaxWidth - erlaube große Fenster
             
             // WICHTIG: Theme sofort setzen
             booksStage.setTitleBarTheme(currentThemeIndex);
             booksStage.setMinHeight(600);
-            booksStage.setMaxHeight(600);
+            // KEINE setMaxHeight - erlaube große Fenster
             booksStage.setWidth(800);
             booksStage.setHeight(600);
             booksStage.setResizable(false);
@@ -5378,12 +5505,12 @@ public class MainController implements Initializable {
             CustomStage chooserStage = new CustomStage();
             chooserStage.setCustomTitle("Projekt-Root-Verzeichnis auswählen");
             chooserStage.setMinWidth(600);
-            chooserStage.setMaxWidth(600);
+            // KEINE setMaxWidth - erlaube große Fenster
             
             // WICHTIG: Theme sofort setzen
             chooserStage.setTitleBarTheme(currentThemeIndex);
             chooserStage.setMinHeight(400);
-            chooserStage.setMaxHeight(400);
+            // KEINE setMaxHeight - erlaube große Fenster
             chooserStage.setWidth(600);
             chooserStage.setHeight(400);
             chooserStage.setResizable(false);

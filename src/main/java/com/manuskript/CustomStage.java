@@ -5,7 +5,6 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -28,6 +27,7 @@ public class CustomStage extends Stage {
     
     private static final String DEFAULT_TEXT_COLOR = "white";
     private static final String DEFAULT_BORDER_COLOR = "#1a252f";
+    private static final String DEFAULT_ICON_BACKGROUND = "#3498db";
     private static final String DEFAULT_TITLEBAR_STYLE =
             "-fx-background-color: linear-gradient(from 0% 0% to 0% 100%, #2c3e50 0%, #34495e 100%); " +
             "-fx-padding: 5px; -fx-spacing: 5px; -fx-border-color: " + DEFAULT_BORDER_COLOR + "; -fx-border-width: 0 0 1 0;";
@@ -63,11 +63,11 @@ public class CustomStage extends Stage {
     private double yOffset = 0;
     private boolean isMaximized = false;
     private String currentTextColor = DEFAULT_TEXT_COLOR; // Aktuelle Textfarbe für Hover-Effekte
+    private int activeThemeIndex = -1;
     
     private HBox titleBar;
     private Label titleLabel;
     private Label iconLabel;
-    private ImageView appIcon;
     private Button minimizeBtn;
     private Button maximizeBtn;
     private Button closeBtn;
@@ -77,12 +77,28 @@ public class CustomStage extends Stage {
         super();
         initStyle(StageStyle.UNDECORATED);
         setupCustomTitleBar();
+        
+        // Synchronisiere isMaximized mit der JavaFX maximizedProperty
+        maximizedProperty().addListener((obs, oldVal, newVal) -> {
+            isMaximized = newVal;
+            if (maximizeBtn != null) {
+                maximizeBtn.setText(newVal ? DEFAULT_MAXIMIZE_SYMBOL_MAXIMIZED : DEFAULT_MAXIMIZE_SYMBOL);
+            }
+        });
     }
     
     public CustomStage(StageStyle style) {
         super(style);
         initStyle(StageStyle.UNDECORATED);
         setupCustomTitleBar();
+        
+        // Synchronisiere isMaximized mit der JavaFX maximizedProperty
+        maximizedProperty().addListener((obs, oldVal, newVal) -> {
+            isMaximized = newVal;
+            if (maximizeBtn != null) {
+                maximizeBtn.setText(newVal ? DEFAULT_MAXIMIZE_SYMBOL_MAXIMIZED : DEFAULT_MAXIMIZE_SYMBOL);
+            }
+        });
     }
     
     /**
@@ -91,15 +107,20 @@ public class CustomStage extends Stage {
     private void setupCustomTitleBar() {
         titleBar = new HBox();
         titleBar.setAlignment(Pos.CENTER_LEFT);
-        titleBar.setStyle(DEFAULT_TITLEBAR_STYLE + " -fx-min-height: " + (ICON_SIZE + 4) + "px; -fx-pref-height: " + (ICON_SIZE + 4) + "px; -fx-alignment: center-left; -fx-valignment: center;");
-        titleBar.setMinHeight(ICON_SIZE + 4);
-        titleBar.setPrefHeight(ICON_SIZE + 4);
+        titleBar.setStyle(DEFAULT_TITLEBAR_STYLE + " -fx-min-height: 48px; -fx-pref-height: 48px; -fx-alignment: center-left; -fx-valignment: center; -fx-padding: 0 12px;");
+        titleBar.setMinHeight(48);
+        titleBar.setPrefHeight(48);
+        if (!titleBar.getStyleClass().contains("title-bar")) {
+            titleBar.getStyleClass().add("title-bar");
+        }
 
         iconLabel = createIconLabel(DEFAULT_ICON_TEXT);
-        appIcon = new ImageView();
 
         titleLabel = new Label(DEFAULT_TITLE);
         titleLabel.setStyle(createTitleLabelStyle(currentTextColor));
+        if (!titleLabel.getStyleClass().contains("title-text")) {
+            titleLabel.getStyleClass().add("title-text");
+        }
         titleLabel.setBackground(null);
         titleLabel.setOpacity(1.0);
 
@@ -128,6 +149,9 @@ public class CustomStage extends Stage {
         button.setMaxSize(getButtonWidth(), getButtonHeight());
         button.setAlignment(Pos.CENTER);
         button.setFocusTraversable(false);
+        if (!button.getStyleClass().contains("window-control-button")) {
+            button.getStyleClass().add("window-control-button");
+        }
         return button;
     }
     
@@ -155,6 +179,15 @@ public class CustomStage extends Stage {
             applyHoverStyle(minimizeBtn, defaultStyle, hoverStyle);
             applyHoverStyle(maximizeBtn, defaultStyle, hoverStyle);
             applyHoverStyle(closeBtn, defaultStyle, buildCloseHoverStyle());
+        }
+
+        if (activeThemeIndex == 2) {
+            minimizeBtn.setOnMouseEntered(null);
+            minimizeBtn.setOnMouseExited(null);
+            maximizeBtn.setOnMouseEntered(null);
+            maximizeBtn.setOnMouseExited(null);
+            closeBtn.setOnMouseEntered(null);
+            closeBtn.setOnMouseExited(null);
         }
     }
 
@@ -228,12 +261,10 @@ public class CustomStage extends Stage {
     private void toggleMaximize() {
         if (isMaximized) {
             setMaximized(false);
-            maximizeBtn.setText(DEFAULT_MAXIMIZE_SYMBOL);
-            isMaximized = false;
+            // isMaximized wird automatisch durch den Listener aktualisiert
         } else {
             setMaximized(true);
-            maximizeBtn.setText(DEFAULT_MAXIMIZE_SYMBOL_MAXIMIZED);
-            isMaximized = true;
+            // isMaximized wird automatisch durch den Listener aktualisiert
         }
     }
     
@@ -262,17 +293,23 @@ public class CustomStage extends Stage {
             Scene newScene = new Scene(newRoot);
             newScene.getStylesheets().addAll(scene.getStylesheets());
             
+            // Explizit keine Border, Padding oder Margin auf der Scene-Root setzen
+            newRoot.setStyle("-fx-border-width: 0px; -fx-border-color: transparent; -fx-padding: 0px; -fx-margin: 0px; -fx-spacing: 0px;");
+            
             super.setScene(newScene);
             
             // Resize-Handles hinzufügen
             setupResizeHandles(newScene);
             
             // WICHTIG: Border sofort nach setScene setzen
-            if (currentTextColor != null) {
+            if (currentTextColor != null && activeThemeIndex != 2) { // Kein Border für Pastell-Theme
                 // Border basierend auf aktueller Textfarbe setzen
                 String borderColor = currentTextColor.equals("white") ? "white" : "black";
                 setStageBorder(borderColor);
                 logger.info("Border automatisch gesetzt nach setSceneWithTitleBar: {}", borderColor);
+            } else if (activeThemeIndex == 2) {
+                // Pastell-Theme: Kein Border setzen
+                logger.info("Pastell-Theme: Kein Border gesetzt");
             }
             
             logger.info("Scene mit benutzerdefinierter Titelleiste gesetzt");
@@ -477,9 +514,9 @@ public class CustomStage extends Stage {
                 newHeight = Math.max(minHeight, resizeStartHeight + deltaY);
                 break;
             case "SW":
-                newWidth = Math.max(minWidth, resizeStartWidth - deltaX);
+                newX = event.getScreenX();
+                newWidth = Math.max(minWidth, getX() + getWidth() - newX);
                 newHeight = Math.max(minHeight, resizeStartHeight + deltaY);
-                newX = getX() + (resizeStartWidth - newWidth);
                 break;
             case "NE":
                 newWidth = Math.max(minWidth, resizeStartWidth + deltaX);
@@ -496,8 +533,8 @@ public class CustomStage extends Stage {
                 newWidth = Math.max(minWidth, resizeStartWidth + deltaX);
                 break;
             case "W":
-                newWidth = Math.max(minWidth, resizeStartWidth - deltaX);
-                newX = getX() + (resizeStartWidth - newWidth);
+                newX = event.getScreenX();
+                newWidth = Math.max(minWidth, getX() + getWidth() - newX);
                 break;
             case "S":
                 newHeight = Math.max(minHeight, resizeStartHeight + deltaY);
@@ -553,7 +590,11 @@ public class CustomStage extends Stage {
         currentTextColor = textColor;
 
         if (titleBar != null) {
-            titleBar.setStyle("-fx-background-color: " + backgroundColor + "; -fx-padding: 5px; -fx-spacing: 5px; -fx-border-color: " + borderColor + "; -fx-border-width: 1px; -fx-border-radius: 0; -fx-min-height: " + (ICON_SIZE + 4) + "px; -fx-pref-height: " + (ICON_SIZE + 4) + "px;");
+            if (backgroundColor == null) {
+                titleBar.setStyle("-fx-padding: 5px; -fx-spacing: 5px; -fx-border-color: " + borderColor + "; -fx-border-width: 1px; -fx-border-radius: 0; -fx-min-height: " + (ICON_SIZE + 4) + "px; -fx-pref-height: " + (ICON_SIZE + 4) + "px; -fx-background-color: transparent;");
+            } else {
+                titleBar.setStyle("-fx-background-color: " + backgroundColor + "; -fx-padding: 5px; -fx-spacing: 5px; -fx-border-color: " + borderColor + "; -fx-border-width: 1px; -fx-border-radius: 0; -fx-min-height: " + (ICON_SIZE + 4) + "px; -fx-pref-height: " + (ICON_SIZE + 4) + "px;");
+            }
             iconLabel.setStyle(createIconStyle(textColor));
             titleLabel.setStyle(createTitleLabelStyle(textColor));
 
@@ -575,6 +616,12 @@ public class CustomStage extends Stage {
      * Setzt einen dünnen Rand um die gesamte Stage
      */
     private void setStageBorder(String borderColor) {
+        // Pastell-Theme: Keine Border setzen
+        if (activeThemeIndex == 2) {
+            logger.info("Pastell-Theme: setStageBorder übersprungen");
+            return;
+        }
+        
         if (getScene() != null && getScene().getRoot() != null) {
             Node root = getScene().getRoot();
             String currentStyle = root.getStyle();
@@ -588,12 +635,16 @@ public class CustomStage extends Stage {
             currentStyle = currentStyle.replaceAll("-fx-border-width:[^;]+;?", "");
             currentStyle = currentStyle.replaceAll("-fx-border-radius:[^;]+;?", "");
 
-            String newBorderStyle = "-fx-border-color: " + borderColor + "; -fx-border-width: 2px; -fx-border-radius: 0px;";
-
-            if (currentStyle.trim().isEmpty()) {
-                root.setStyle(newBorderStyle);
+            if (borderColor == null || borderColor.trim().isEmpty()) {
+                root.setStyle(currentStyle.trim());
             } else {
-                root.setStyle(currentStyle + "; " + newBorderStyle);
+                String newBorderStyle = "-fx-border-color: " + borderColor + "; -fx-border-width: 2px; -fx-border-radius: 0px;";
+
+                if (currentStyle.trim().isEmpty()) {
+                    root.setStyle(newBorderStyle);
+                } else {
+                    root.setStyle(currentStyle + "; " + newBorderStyle);
+                }
             }
             
             logger.info("Neuer Style gesetzt: {}", root.getStyle());
@@ -610,6 +661,8 @@ public class CustomStage extends Stage {
         String textColor;
         String borderColor; // Neue Border-Farbe
         
+        activeThemeIndex = themeIndex;
+
         switch (themeIndex) {
             case 0: // Weiß
                 backgroundColor = "linear-gradient(from 0% 0% to 0% 100%, #ffffff 0%, #f8f9fa 100%)";
@@ -622,9 +675,9 @@ public class CustomStage extends Stage {
                 borderColor = "white"; // Weiße Border für schwarze Themes
                 break;
             case 2: // Pastell
-                backgroundColor = "#ce93d8"; // Einfache Farbe statt Gradienten
-                textColor = "black";
-                borderColor = "black"; // Schwarze Border für helle Themes
+                backgroundColor = null; // CSS übernimmt Hintergrund
+                textColor = "#311b92";
+                borderColor = null; // Kein Border für Pastell-Theme
                 break;
             case 3: // Blau
                 backgroundColor = "linear-gradient(from 0% 0% to 0% 100%, #1e3a8a 0%, #3b82f6 100%)";
@@ -822,13 +875,15 @@ public class CustomStage extends Stage {
         label.setMaxSize(ICON_SIZE, ICON_SIZE);
         label.setAlignment(Pos.CENTER);
         label.setStyle(createIconStyle(DEFAULT_TEXT_COLOR));
-        // Debug: Größe explizit setzen
-        System.out.println("Icon size set to: " + ICON_SIZE + " for text: " + text);
         return label;
     }
 
     private String createIconStyle(String textColor) {
-        return "-fx-text-fill: " + textColor + "; -fx-font-weight: bold; -fx-background-color: #3498db; -fx-background-radius: 3px; -fx-padding: 2px; -fx-min-width: " + ICON_SIZE + "px; -fx-min-height: " + ICON_SIZE + "px; -fx-pref-width: " + ICON_SIZE + "px; -fx-pref-height: " + ICON_SIZE + "px;";
+        String backgroundColor = DEFAULT_ICON_BACKGROUND;
+        if (activeThemeIndex == 2) {
+            backgroundColor = "#ba68c8";
+        }
+        return "-fx-text-fill: " + textColor + "; -fx-font-weight: bold; -fx-background-color: " + backgroundColor + "; -fx-background-radius: 3px; -fx-padding: 2px; -fx-min-width: " + ICON_SIZE + "px; -fx-min-height: " + ICON_SIZE + "px; -fx-pref-width: " + ICON_SIZE + "px; -fx-pref-height: " + ICON_SIZE + "px;";
     }
 
     private void updateButtonStyles(String textColor, int fontSize) {
