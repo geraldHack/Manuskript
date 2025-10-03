@@ -175,6 +175,8 @@ public class OllamaWindow {
     
     private void createWindow() {
         stage = StageManager.createStage("KI-Assistent - Ollama");
+        stage.getProperties().put("hideIcon", true);
+        stage.getProperties().put("useSimpleActions", true);
         stage.setWidth(800);   // Standard-Breite (schmaler gemacht)
         stage.setHeight(1100);  // Standard-Höhe (höher gemacht)
         stage.setMinWidth(400);
@@ -2623,6 +2625,8 @@ public class OllamaWindow {
             }
             if (resultStage == null) {
                 resultStage = StageManager.createStage("Ergebnis (gerendert)");
+                resultStage.getProperties().put("hideIcon", true);
+                resultStage.getProperties().put("useSimpleActions", true);
                 resultStage.setTitle("Ergebnis (gerendert)");
                 resultWebView = new javafx.scene.web.WebView();
                 resultWebView.setContextMenuEnabled(false);
@@ -2644,14 +2648,20 @@ public class OllamaWindow {
                     }
                 });
 
-                // Button für Text-Ersetzung hinzufügen
-                Button replaceSelectedButton = new Button("📝 Markierten Text ersetzen");
-                replaceSelectedButton.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8px 16px;");
-                replaceSelectedButton.setMaxWidth(Double.MAX_VALUE);
-                HBox.setHgrow(replaceSelectedButton, Priority.NEVER);
-                replaceSelectedButton.setOnAction(e -> replaceSelectedTextInEditor());
+                // Buttons für Text-Ersetzung hinzufügen
+                Button searchButton = new Button("🔍 Suchen/Markieren im Editor");
+                searchButton.setStyle("-fx-background-color: #2196F3; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8px 16px;");
+                searchButton.setMaxWidth(Double.MAX_VALUE);
+                HBox.setHgrow(searchButton, Priority.ALWAYS);
+                searchButton.setOnAction(e -> performWebViewSearch());
+                
+                Button insertButton = new Button("📝 Markierten Text im Editor ersetzen");
+                insertButton.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8px 16px;");
+                insertButton.setMaxWidth(Double.MAX_VALUE);
+                HBox.setHgrow(insertButton, Priority.ALWAYS);
+                insertButton.setOnAction(e -> replaceSelectedTextInEditor());
 
-                HBox headerRow = new HBox(10, replaceSelectedButton);
+                HBox headerRow = new HBox(10, searchButton, insertButton);
                 headerRow.setAlignment(Pos.CENTER_LEFT);
 
                 VBox box = new VBox(5, headerRow, resultWebView);
@@ -2663,6 +2673,7 @@ public class OllamaWindow {
                 Scene sc = new Scene(box, 1000, 800);
                 resultStage.setSceneWithTitleBar(sc);
                 resultStage.initOwner(stage);
+                resultStage.setFullTheme(currentThemeIndex);
                 applyThemeToNode(box, currentThemeIndex);
             }
             // Inhalt laden/refreshen und anzeigen (kein Auto-Scroll beim Öffnen)
@@ -4443,7 +4454,7 @@ public class OllamaWindow {
     private void performWebViewSearch() {
         String selected = getSelectedWebViewText();
         if (selected == null || selected.trim().isEmpty()) {
-            showAlert("Hinweis", "Bitte markieren Sie zunächst Text im WebView für die Suche.");
+            showAlert("Hinweis", "Bitte markieren Sie zunächst Text im WebView für die Suche im Editor.");
             return;
         }
         if (resultArea != null) {
