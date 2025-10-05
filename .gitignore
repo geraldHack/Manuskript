@@ -14,6 +14,8 @@ create-standalone.bat
 manuskript-standalone/
 javafx-sdk-21.0.6/
 manuskript-standalone.jar
+pandoc-3.8.1/pandoc.exe
+
 
 
 # IDE
