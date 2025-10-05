@@ -148,6 +148,10 @@ public class DiffProcessor {
         String normalizedOriginal = originalText.replaceAll("\n+$", "").replaceAll("\n\n+", "\n");
         String normalizedNew = newText.replaceAll("\n+$", "").replaceAll("\n\n+", "\n");
         
+        // Normalisiere Whitespace am Ende von Zeilen - entferne nur Leerzeichen/Tabs am Zeilenende
+        normalizedOriginal = normalizedOriginal.replaceAll("(?m)\\s+$", "");
+        normalizedNew = normalizedNew.replaceAll("(?m)\\s+$", "");
+        
         String[] originalLines = normalizedOriginal.split("\n", -1);
         String[] newLines = normalizedNew.split("\n", -1);
         

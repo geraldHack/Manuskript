@@ -37,6 +37,15 @@ ENABLED:1
 STEPDESC:Mehrfache Leerzeilen reduzieren
 REPLACECOUNT:0
 STEP:5
+SEARCH:(?m)([^\r\n])\r?\n([^\r\n])
+REPLACE:$1\n\n$2
+REGEX:1
+CASE:0
+WORD:0
+ENABLED:1
+STEPDESC:Absatzformat markdown-konform
+REPLACECOUNT:0
+STEP:6
 SEARCH:...
 REPLACE:…
 REGEX:0
@@ -45,7 +54,7 @@ WORD:0
 ENABLED:1
 STEPDESC:Auslassungszeichen
 REPLACECOUNT:0
-STEP:6
+STEP:7
 SEARCH:([A-Za-zÄÖÜäöüß])…
 REPLACE:$1 ...
 REGEX:1
@@ -54,7 +63,7 @@ WORD:0
 ENABLED:1
 STEPDESC:Buchstabe direkt an Auslassungszeichen
 REPLACECOUNT:0
-STEP:7
+STEP:8
 SEARCH:(?<=…)(?=\p{L})
 REPLACE:
 REGEX:1
@@ -63,7 +72,7 @@ WORD:0
 ENABLED:1
 STEPDESC:Buchstabe direkt nach Auslassungszeichen
 REPLACECOUNT:0
-STEP:8
+STEP:9
 SEARCH:(?<!-)--(?!-)
 REPLACE:—
 REGEX:1
@@ -72,7 +81,7 @@ WORD:0
 ENABLED:1
 STEPDESC:Gedankenstrich
 REPLACECOUNT:0
-STEP:9
+STEP:10
 SEARCH:^\s*\*\s*$
 REPLACE:---
 REGEX:1
@@ -81,7 +90,7 @@ WORD:0
 ENABLED:1
 STEPDESC:* als Trenner in --- ändern
 REPLACECOUNT:0
-STEP:10
+STEP:11
 SEARCH:,\"
 REPLACE:\",
 REGEX:1
@@ -90,7 +99,7 @@ WORD:0
 ENABLED:1
 STEPDESC:Komma vor Anführungszeichen
 REPLACECOUNT:0
-STEP:11
+STEP:12
 SEARCH:"(.*?)"
 REPLACE:»$1«
 REGEX:1
@@ -99,7 +108,7 @@ WORD:0
 ENABLED:1
 STEPDESC:Englisch zu Französisch - doppelte Anführungszeichen
 REPLACECOUNT:0
-STEP:12
+STEP:13
 SEARCH:'(.*?)'
 REPLACE:›$1‹
 REGEX:1
@@ -108,7 +117,7 @@ WORD:0
 ENABLED:1
 STEPDESC:Englisch zu Französisch - einfache Anführungszeichen
 REPLACECOUNT:0
-STEP:13
+STEP:14
 SEARCH:"(.*?)"
 REPLACE:„$1"
 REGEX:1
@@ -117,7 +126,7 @@ WORD:0
 ENABLED:0
 STEPDESC:Englisch zu Deutsch - doppelte Anführungszeichen
 REPLACECOUNT:61
-STEP:14
+STEP:15
 SEARCH:'(.*?)'
 REPLACE:‚$1'
 REGEX:1
@@ -126,7 +135,7 @@ WORD:0
 ENABLED:0
 STEPDESC:Englisch zu Deutsch - einfache Anführungszeichen
 REPLACECOUNT:2
-STEP:15
+STEP:16
 SEARCH:"(.*?)"
 REPLACE:«$1»
 REGEX:1
@@ -135,7 +144,7 @@ WORD:0
 ENABLED:0
 STEPDESC:Englisch zu Schweizer - doppelte Anführungszeichen
 REPLACECOUNT:0
-STEP:16
+STEP:17
 SEARCH:'(.*?)'
 REPLACE:‹$1›
 REGEX:1

@@ -17,6 +17,10 @@ import javafx.scene.Cursor;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.input.MouseButton;
+import javafx.event.Event;
+import javafx.scene.input.DragEvent;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -54,6 +58,8 @@ import java.util.HashSet;
 import java.util.ResourceBundle;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -71,12 +77,17 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Locale;
+import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicBoolean;
 import com.manuskript.DocxSplitProcessor;
 import com.manuskript.DocxSplitProcessor.Chapter;
 import com.manuskript.RtfSplitProcessor;
+import java.util.LinkedHashMap;
+import javafx.geometry.Bounds;
+import javafx.geometry.Point2D;
 
 public class MainController implements Initializable {
     
@@ -116,9 +127,15 @@ public class MainController implements Initializable {
     // ProgressBar und lblStatus wurden entfernt
     
     private CustomStage primaryStage;
+    private FlowPane currentProjectFlow;
+    private CustomStage currentProjectStage;
     private ObservableList<DocxFile> allDocxFiles = FXCollections.observableArrayList();
     private ObservableList<DocxFile> originalDocxFiles = FXCollections.observableArrayList(); // Ursprüngliche Reihenfolge
     private ObservableList<DocxFile> selectedDocxFiles = FXCollections.observableArrayList();
+    private List<ProjectDisplayItem> projectItems = new ArrayList<>();
+    private ProjectDisplayItem draggingProjectItem;
+    private File draggingSeriesBook;
+    private File projectRootDirectory;
     // SortedList entfernt - einfache Lösung
     private DocxProcessor docxProcessor;
     private Preferences preferences;
@@ -4994,6 +5011,8 @@ public class MainController implements Initializable {
             // Keine feste Größe - soll sich ausdehnen
             
             // Lade verfügbare Projekte
+            currentProjectFlow = projectFlow;
+            currentProjectStage = projectStage;
             loadAndDisplayProjects(projectFlow, projectStage);
             
             // Abbrechen-Button
@@ -5051,27 +5070,37 @@ public class MainController implements Initializable {
         try {
             // Prüfe ob Root-Verzeichnis konfiguriert ist
             String rootDir = ResourceManager.getParameter("project.root.directory", "");
-            if (rootDir == null || rootDir.trim().isEmpty()) {
-                // Root-Verzeichnis nicht gesetzt - Benutzer fragen
-                logger.info("Root-Verzeichnis nicht gesetzt, zeige Dialog");
-                showRootDirectoryChooser();
-                rootDir = ResourceManager.getParameter("project.root.directory", "");
-                logger.info("Root-Verzeichnis nach Dialog: " + rootDir);
+            if (rootDir == null || rootDir.isEmpty()) {
+                showError("Kein Projektverzeichnis", "Bitte wähle zuerst ein Projektverzeichnis aus.");
+                return;
             }
             
             File searchDir = new File(rootDir);
             if (!searchDir.exists()) {
-                // Fallback: Suche in typischen Verzeichnissen
-                String userHome = System.getProperty("user.home");
-                searchDir = new File(userHome, "Documents");
+                showError("Verzeichnis nicht gefunden", "Das Projektverzeichnis existiert nicht mehr.");
+                return;
             }
+
+            projectRootDirectory = searchDir;
+            loadProjectOrder(searchDir);
             
             File[] directories = searchDir.listFiles(File::isDirectory);
             if (directories == null) {
                 directories = new File[0];
             }
+
+            Map<String, ProjectDisplayItem> existingItems = projectItems.stream()
+                .collect(Collectors.toMap(ProjectDisplayItem::getId, item -> item, (a, b) -> a, LinkedHashMap::new));
+            projectItems = new ArrayList<>(existingItems.values());
+
+            Set<String> seenIds = new HashSet<>(existingItems.keySet());
             
             for (File dir : directories) {
+                String id = dir.getAbsolutePath();
+                if (seenIds.contains(id)) {
+                    continue;
+                }
+
                 // Prüfe ob Verzeichnis eine Serie ist (enthält Unterordner mit DOCX-Dateien)
                 File[] subDirs = dir.listFiles(File::isDirectory);
                 List<File> seriesBooks = new ArrayList<>();
@@ -5089,19 +5118,15 @@ public class MainController implements Initializable {
                 // Prüfe auch direkte DOCX-Dateien im Verzeichnis
                 File[] directDocxFiles = dir.listFiles((d, name) -> name.toLowerCase().endsWith(".docx"));
                 
-                final double targetCardHeight = 400;
                 if (!seriesBooks.isEmpty()) {
-                    // Erstelle Serien-Karte (ohne Debug-Spacer)
-                    VBox seriesCard = createSeriesCard(dir, seriesBooks, projectStage);
-                    projectFlow.getChildren().add(seriesCard);
+                    projectItems.add(new ProjectDisplayItem(dir, seriesBooks));
                 } else if (directDocxFiles != null && directDocxFiles.length > 0) {
-                    // Erstelle Einzelprojekt-Karte
-                    VBox projectCard = createProjectCard(dir, directDocxFiles, projectStage);
-                    Region spacerBefore = createDebugSpacer(targetCardHeight);
-                    Region spacerAfter = createDebugSpacer(targetCardHeight);
-                    projectFlow.getChildren().addAll(spacerBefore, projectCard, spacerAfter);
+                    projectItems.add(new ProjectDisplayItem(dir, directDocxFiles));
                 }
             }
+
+            renderProjectItems(projectFlow, projectStage);
+            setupFlowPaneDragHandlers(projectFlow, projectStage);
             
             if (projectFlow.getChildren().isEmpty()) {
                 // Keine Projekte gefunden
@@ -5118,10 +5143,13 @@ public class MainController implements Initializable {
     /**
      * Erstellt eine Serien-Karte für die Projektauswahl
      */
-    private VBox createSeriesCard(File seriesDir, List<File> seriesBooks, CustomStage projectStage) {
+    private VBox createSeriesCard(ProjectDisplayItem item, CustomStage projectStage) {
+        File seriesDir = item.getDirectory();
         VBox card = new VBox(5); // Weniger Abstand zwischen Elementen
         card.getStyleClass().add("project-card");
         card.setAlignment(Pos.CENTER);
+        card.setUserData(item);
+        attachDragHandlers(card, null);
         
         // Serien-Name (vollständig)
         Label seriesName = new Label("📚 " + seriesDir.getName());
@@ -5135,37 +5163,35 @@ public class MainController implements Initializable {
         booksScrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         booksScrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         booksScrollPane.getStyleClass().add("series-scroll-pane"); // CSS-Styling für Serien-ScrollPane
-        
+        booksScrollPane.setOnDragOver(event -> {
+            if (draggingSeriesBook != null && event.getGestureSource() != booksScrollPane) {
+                event.acceptTransferModes(TransferMode.MOVE);
+                logger.debug("Series container drag over – book={} target={}", draggingSeriesBook != null ? draggingSeriesBook.getName() : "null", item.getDirectory().getName());
+            }
+            event.consume();
+        });
         HBox booksContainer = new HBox(20);
         booksContainer.setPadding(new Insets(5)); // Weniger Padding
-        
-        // Bücher als normale Projekt-Karten
-        final double targetCardHeight = 450;
-        for (File book : seriesBooks) {
-            File[] docxFiles = book.listFiles((d, name) -> name.toLowerCase().endsWith(".docx"));
-            if (docxFiles != null && docxFiles.length > 0) {
-                VBox bookCard = createProjectCard(book, docxFiles, projectStage);
-                booksContainer.getChildren().add(bookCard);
-            }
-        }
-        
-        // Auch Einzelprojekte in der Serie hinzufügen
-        File[] singleProjects = seriesDir.listFiles((d, name) -> name.toLowerCase().endsWith(".docx"));
-        if (singleProjects != null && singleProjects.length > 0) {
-             VBox singleProjectCard = createProjectCard(seriesDir, singleProjects, projectStage);
-            booksContainer.getChildren().add(singleProjectCard);
-        }
+        booksContainer.setPickOnBounds(true);
+
+        populateSeriesBooks(booksContainer, item, projectStage);
+        setupSeriesContainerDragHandlers(booksContainer, item, projectStage);
         
         booksScrollPane.setContent(booksContainer);
+
+        booksScrollPane.setOnDragDropped(event -> {
+            logger.debug("Series container drag dropped – book={} target={}", draggingSeriesBook != null ? draggingSeriesBook.getName() : "null", item.getDirectory().getName());
+            setupSeriesDrop(booksContainer, item, projectStage, event);
+        });
         
         // Dynamische Größenberechnung
-        int bookCount = seriesBooks.size();
+        int bookCount = item.getSeriesBooks().size();
         int bookWidth = 300; // Breite einer Buch-Karte
         int bookSpacing = 20; // Abstand zwischen Büchern
         int padding = 60; // Padding links/rechts (etwas größer, damit 3 Bücher sicher passen)
         
         // Berechne benötigte Breite
-        int totalBookWidth = (bookCount * bookWidth) + ((bookCount - 1) * bookSpacing);
+        int totalBookWidth = (bookCount * bookWidth) + (Math.max(0, bookCount - 1) * bookSpacing);
         int cardWidth = Math.max(600, totalBookWidth + padding); // Mindestens 600px breit für bessere Proportionen
         int cardHeight = 440; // Etwas kompakter: ScrollPane + Serien-Name + Info
         
@@ -5180,10 +5206,8 @@ public class MainController implements Initializable {
         booksScrollPane.setPrefViewportWidth(cardWidth - 60); // Breite der Serien-Karte minus Padding
         booksScrollPane.setPrefViewportHeight(320); // Eingekürzt passend zur geringeren Kartenhöhe
         
-        // Serien-Name ohne Breitenbeschränkung - Label behält natürliche Breite
-        
         // Serien-Info
-        Label seriesInfo = new Label(seriesBooks.size() + " Bücher in der Serie");
+        Label seriesInfo = new Label(item.getSeriesBooks().size() + " Bücher in der Serie");
         seriesInfo.getStyleClass().add("project-info");
         seriesInfo.setAlignment(Pos.CENTER);
         
@@ -5191,6 +5215,243 @@ public class MainController implements Initializable {
         card.getChildren().addAll(seriesName, booksScrollPane, seriesInfo);
         
         return card;
+    }
+
+    private void populateSeriesBooks(HBox container, ProjectDisplayItem item, CustomStage projectStage) {
+        container.getChildren().clear();
+        for (File bookDir : item.getSeriesBooks()) {
+            File[] docxFiles = bookDir.listFiles((d, name) -> name.toLowerCase().endsWith(".docx"));
+            if (docxFiles != null && docxFiles.length > 0) {
+                VBox bookCard = createProjectCard(bookDir, docxFiles, projectStage);
+                bookCard.setUserData(bookDir);
+                bookCard.setCursor(Cursor.OPEN_HAND);
+                setupSeriesBookDragHandlers(bookCard, container, item, projectStage);
+                container.getChildren().add(bookCard);
+            }
+        }
+    }
+
+    private void setupSeriesContainerDragHandlers(HBox container, ProjectDisplayItem item, CustomStage projectStage) {
+        container.setOnDragOver(event -> {
+            if (draggingSeriesBook != null && event.getGestureSource() != container) {
+                event.acceptTransferModes(TransferMode.MOVE);
+            }
+            event.consume();
+        });
+
+        container.setOnDragDropped(event -> {
+            logger.debug("Series container drag dropped – book={} target={}", draggingSeriesBook != null ? draggingSeriesBook.getName() : "null", item.getDirectory().getName());
+            setupSeriesDrop(container, item, projectStage, event);
+        });
+    }
+
+    private void setupSeriesDrop(HBox container, ProjectDisplayItem item, CustomStage projectStage, DragEvent event) {
+        if (draggingSeriesBook == null) {
+            return;
+        }
+
+        List<File> books = item.getSeriesBooks();
+        int fromIndex = books.indexOf(draggingSeriesBook);
+        if (fromIndex < 0) {
+            return;
+        }
+
+        Point2D localPoint = container.sceneToLocal(event.getSceneX(), event.getSceneY());
+        double dropX = localPoint.getX();
+
+        List<Node> bookNodes = container.getChildren().stream()
+                .filter(child -> child instanceof VBox)
+                .collect(Collectors.toList());
+
+        int toIndex = books.size();
+        for (int i = 0; i < bookNodes.size(); i++) {
+            VBox card = (VBox) bookNodes.get(i);
+            Bounds bounds = card.getBoundsInParent();
+
+            double gap = 15;
+            double hitLeft = bounds.getMinX() - gap;
+            double hitRight = bounds.getMaxX() + gap;
+
+            if (dropX < hitLeft) {
+                toIndex = Math.max(0, i);
+                break;
+            }
+
+            if (dropX <= hitRight) {
+                double cardCenter = bounds.getMinX() + bounds.getWidth() / 2;
+                if (dropX < cardCenter) {
+                    toIndex = i;
+                } else {
+                    toIndex = i + 1;
+                }
+                break;
+            }
+        }
+
+        if (toIndex < 0) {
+            toIndex = 0;
+        }
+        if (toIndex > books.size()) {
+            toIndex = books.size();
+        }
+
+        if (fromIndex == toIndex) {
+            logger.debug("Series drop no-op – fromIndex={} toIndex={} (book stays)", fromIndex, toIndex);
+            event.setDropCompleted(true);
+            event.consume();
+            return;
+        }
+
+        books.remove(fromIndex);
+        if (fromIndex < toIndex) {
+            toIndex--;
+        }
+        if (toIndex < 0) {
+            toIndex = 0;
+        }
+        if (toIndex > books.size()) {
+            toIndex = books.size();
+        }
+        books.add(toIndex, draggingSeriesBook);
+        logger.debug("Series drop applied – fromIndex={} toIndex={} order={}", fromIndex, toIndex, books.stream().map(File::getName).collect(Collectors.toList()));
+
+        populateSeriesBooks(container, item, projectStage);
+        saveProjectOrder();
+        event.setDropCompleted(true);
+        event.consume();
+    }
+
+    private void setupSeriesDragHandlers(Node card, Parent container, ProjectDisplayItem item, CustomStage projectStage) {
+        if (card instanceof VBox vbox && container instanceof HBox hbox) {
+            setupSeriesBookDragHandlers(vbox, hbox, item, projectStage);
+        }
+    }
+
+    private void setupSeriesBookDragHandlers(VBox bookCard, HBox container, ProjectDisplayItem item, CustomStage projectStage) {
+        bookCard.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
+            if (!event.isPrimaryButtonDown()) {
+                return;
+            }
+
+            Node targetNode = event.getPickResult() != null ? event.getPickResult().getIntersectedNode() : null;
+            while (targetNode != null && targetNode != bookCard) {
+                if (targetNode instanceof ButtonBase || targetNode instanceof TextInputControl) {
+                    bookCard.setCursor(Cursor.OPEN_HAND);
+                    draggingSeriesBook = null;
+                    bookCard.setOpacity(1.0);
+                    return;
+                }
+                targetNode = targetNode.getParent();
+            }
+
+            File targetBook = (File) bookCard.getUserData();
+            if (targetBook == null) {
+                return;
+            }
+
+            bookCard.setCursor(Cursor.CLOSED_HAND);
+            draggingSeriesBook = targetBook;
+            Dragboard dragboard = bookCard.startDragAndDrop(TransferMode.MOVE);
+            ClipboardContent content = new ClipboardContent();
+            content.putString(targetBook.getAbsolutePath());
+            dragboard.setContent(content);
+            bookCard.setOpacity(0.4);
+            logger.debug("Series mouse pressed – card={} book={} source={}", item.getDirectory().getName(), targetBook.getName(), event.getSource().getClass().getSimpleName());
+            event.consume();
+        });
+
+        bookCard.addEventFilter(MouseEvent.MOUSE_RELEASED, event -> {
+            bookCard.setCursor(Cursor.OPEN_HAND);
+            bookCard.setOpacity(1.0);
+            if (draggingSeriesBook == null) {
+                return;
+            }
+            if (!event.isStillSincePress()) {
+                draggingSeriesBook = null;
+                event.consume();
+                return;
+            }
+
+            draggingSeriesBook = null;
+        });
+
+        bookCard.addEventFilter(DragEvent.DRAG_OVER, event -> {
+            if (draggingSeriesBook != null && event.getGestureSource() != bookCard) {
+                event.acceptTransferModes(TransferMode.MOVE);
+                logger.debug("Series drag over book card – card={} book={}", item.getDirectory().getName(), draggingSeriesBook.getName());
+                event.consume();
+            }
+        });
+
+        bookCard.addEventFilter(DragEvent.DRAG_DROPPED, event -> {
+            if (draggingSeriesBook != null) {
+                logger.debug("Series drag dropped on book card – card={} targetBook={} draggingBook={}",
+                        item.getDirectory().getName(),
+                        bookCard.getUserData() instanceof File f ? f.getName() : "unknown",
+                        draggingSeriesBook.getName());
+                setupSeriesDrop(container, item, projectStage, event);
+                event.setDropCompleted(true);
+                event.consume();
+            }
+        });
+
+        bookCard.addEventFilter(DragEvent.DRAG_DONE, event -> {
+            bookCard.setOpacity(1.0);
+            bookCard.setCursor(Cursor.OPEN_HAND);
+            draggingSeriesBook = null;
+            event.consume();
+        });
+
+        propagateSeriesDragHandlers(bookCard, bookCard);
+    }
+
+    private void propagateSeriesDragHandlers(Node root, VBox bookCard) {
+        if (!(root instanceof Parent parent)) {
+            return;
+        }
+        for (Node child : parent.getChildrenUnmodifiable()) {
+            if (isWithinInteractiveControl(child)) {
+                continue;
+            }
+            child.addEventHandler(MouseEvent.MOUSE_PRESSED, event -> {
+                MouseEvent redirected = event.copyFor(bookCard, bookCard);
+                Event.fireEvent(bookCard, redirected);
+            });
+            propagateSeriesDragHandlers(child, bookCard);
+        }
+    }
+
+    private boolean isWithinInteractiveControl(Node node) {
+        Node current = node;
+        while (current != null) {
+            if (current instanceof ButtonBase || current instanceof TextInputControl) {
+                return true;
+            }
+            current = current.getParent();
+        }
+        return false;
+    }
+
+    private File findBookForNode(Node node) {
+        Node current = node;
+        while (current != null) {
+            Object data = current.getUserData();
+            if (data instanceof File file) {
+                return file;
+            }
+            Parent parent = current.getParent();
+            current = parent;
+        }
+        return null;
+    }
+
+    private Node findCardNode(Node node) {
+        Node current = node;
+        while (current != null && !(current instanceof VBox)) {
+            Parent parent = current.getParent();
+            current = parent;
+        }
+        return current;
     }
     
     private Region createDebugSpacer(double targetHeight) {
@@ -5202,7 +5463,7 @@ public class MainController implements Initializable {
         spacer.getStyleClass().add("project-card-debug-spacer");
         return spacer;
     }
-
+    
     /**
      * Erstellt ein Dummy-Buch-Bild für Projekte ohne Cover
      */
@@ -5250,6 +5511,32 @@ public class MainController implements Initializable {
             imageView.setStyle("-fx-background-color: #f0f0f0; -fx-border-color: #ccc; -fx-border-width: 1px;");
         }
     }
+
+    private Image loadRandomDefaultCover() {
+        try {
+            File defaultCoverDir = new File("config/defaultCovers");
+            if (!defaultCoverDir.exists() || !defaultCoverDir.isDirectory()) {
+                return null;
+            }
+
+            File[] imageFiles = defaultCoverDir.listFiles((dir, name) -> {
+                String lowerName = name.toLowerCase(Locale.ROOT);
+                return lowerName.endsWith(".png") || lowerName.endsWith(".jpg") || lowerName.endsWith(".jpeg") || lowerName.endsWith(".gif") || lowerName.endsWith(".bmp");
+            });
+
+            if (imageFiles == null || imageFiles.length == 0) {
+                return null;
+            }
+
+            int index = new Random().nextInt(imageFiles.length);
+            File selected = imageFiles[index];
+            logger.debug("Default-Cover ausgewählt: {}", selected.getAbsolutePath());
+            return new Image(selected.toURI().toString());
+        } catch (Exception ex) {
+            logger.warn("Fehler beim Laden eines Default-Covers", ex);
+            return null;
+        }
+    }
     
     /**
      * Zeigt die Bücher-Auswahl für eine Serie
@@ -5290,6 +5577,7 @@ public class MainController implements Initializable {
                 File[] docxFiles = book.listFiles((d, name) -> name.toLowerCase().endsWith(".docx"));
                 if (docxFiles != null && docxFiles.length > 0) {
                     VBox bookCard = createProjectCard(book, docxFiles, booksStage);
+                    setupSeriesDragHandlers(bookCard, booksFlow, new ProjectDisplayItem(book, docxFiles), booksStage);
                     booksFlow.getChildren().add(bookCard);
                 }
             }
@@ -5346,13 +5634,16 @@ public class MainController implements Initializable {
                 Image image = new Image(coverImageFile.toURI().toString());
                 projectImage.setImage(image);
             } catch (Exception e) {
-                logger.warn("Fehler beim Laden des Projekt-Bildes: " + coverImageFile.getName());
-                // Kein Bild anzeigen bei Fehler
-                projectImage.setImage(null);
+                logger.warn("Fehler beim Laden des Projekt-Bildes: {}", coverImageFile.getName());
+                projectImage.setImage(loadRandomDefaultCover());
             }
-        } else {
-            // Kein cover_image.png gefunden - Dummy-Bild erstellen
-            createDummyBookImage(projectImage, projectDir.getName());
+        }
+
+        if (projectImage.getImage() == null) {
+            Image fallbackImage = loadRandomDefaultCover();
+            if (fallbackImage != null) {
+                projectImage.setImage(fallbackImage);
+            }
         }
         
         // Projekt-Name
@@ -5485,8 +5776,14 @@ public class MainController implements Initializable {
                         coverImageView.setImage(image);
                         logger.info("Cover-Bild aus aktuellem Verzeichnis geladen: {}", coverImageFile.getAbsolutePath());
                     } else {
-                        coverImageView.setImage(null);
-                        logger.info("Kein cover_image.png im aktuellen Verzeichnis gefunden: {}", currentDirectory.getAbsolutePath());
+                        Image fallbackImage = loadRandomDefaultCover();
+                        if (fallbackImage != null) {
+                            coverImageView.setImage(fallbackImage);
+                            logger.info("Kein cover_image.png im aktuellen Verzeichnis gefunden – Default-Cover gesetzt: {}", currentDirectory.getAbsolutePath());
+                        } else {
+                            coverImageView.setImage(null);
+                            logger.info("Kein cover_image.png im aktuellen Verzeichnis gefunden: {}", currentDirectory.getAbsolutePath());
+                        }
                     }
                 }
             }
@@ -5661,4 +5958,242 @@ public class MainController implements Initializable {
         }
     }
     
-} 
+    private void setupFlowPaneDragHandlers(FlowPane projectFlow, CustomStage projectStage) {
+        projectFlow.setOnDragOver(event -> {
+            if (draggingProjectItem != null && event.getGestureSource() != projectFlow) {
+                event.acceptTransferModes(TransferMode.MOVE);
+            }
+            event.consume();
+        });
+
+        projectFlow.setOnDragDropped(event -> {
+            if (draggingProjectItem == null) {
+                return;
+            }
+
+            Node targetNode = event.getPickResult().getIntersectedNode();
+            if (targetNode == null) {
+                return;
+            }
+
+            while (targetNode != projectFlow && (targetNode.getUserData() == null || !(targetNode.getUserData() instanceof ProjectDisplayItem))) {
+                targetNode = targetNode.getParent();
+            }
+
+            if (targetNode == null || targetNode == projectFlow) {
+                return;
+            }
+
+            ProjectDisplayItem targetItem = (ProjectDisplayItem) targetNode.getUserData();
+            if (targetItem == null || targetItem == draggingProjectItem) {
+                return;
+            }
+
+            int fromIndex = projectItems.indexOf(draggingProjectItem);
+            int toIndex = projectItems.indexOf(targetItem);
+
+            if (fromIndex >= 0 && toIndex >= 0 && fromIndex != toIndex) {
+                projectItems.remove(fromIndex);
+                if (fromIndex < toIndex) {
+                    toIndex--;
+                }
+                if (toIndex < 0) {
+                    toIndex = 0;
+                }
+                if (toIndex > projectItems.size()) {
+                    toIndex = projectItems.size();
+                }
+                projectItems.add(toIndex, draggingProjectItem);
+                renderProjectItems(projectFlow, currentProjectStage);
+                saveProjectOrder();
+            }
+
+            event.setDropCompleted(true);
+            event.consume();
+        });
+    }
+
+    private void attachDragHandlers(Node card, FlowPane projectFlow) {
+        card.addEventFilter(MouseEvent.DRAG_DETECTED, event -> {
+            if (!(card instanceof VBox)) {
+                return;
+            }
+            ProjectDisplayItem item = (ProjectDisplayItem) card.getUserData();
+            if (item == null) {
+                return;
+            }
+            draggingProjectItem = item;
+            card.setCursor(Cursor.CLOSED_HAND);
+            Dragboard dragboard = card.startDragAndDrop(TransferMode.MOVE);
+            ClipboardContent content = new ClipboardContent();
+            content.putString(item.getDirectory().getAbsolutePath());
+            dragboard.setContent(content);
+            card.setOpacity(0.4);
+            event.consume();
+        });
+
+        card.addEventFilter(DragEvent.DRAG_DONE, event -> {
+            card.setOpacity(1.0);
+            card.setCursor(Cursor.DEFAULT);
+            draggingProjectItem = null;
+            event.consume();
+        });
+    }
+
+    private static class ProjectDisplayItem {
+        private final File directory;
+        private final List<File> seriesBooks;
+        private final File[] docxFiles;
+
+        ProjectDisplayItem(File directory, List<File> seriesBooks) {
+            this.directory = directory;
+            this.seriesBooks = new ArrayList<>(seriesBooks);
+            this.docxFiles = null;
+        }
+
+        ProjectDisplayItem(File directory, File[] docxFiles) {
+            this.directory = directory;
+            this.docxFiles = docxFiles.clone();
+            this.seriesBooks = null;
+        }
+
+        boolean isSeries() {
+            return seriesBooks != null;
+        }
+
+        File getDirectory() {
+            return directory;
+        }
+
+        List<File> getSeriesBooks() {
+            if (seriesBooks == null) {
+                return new ArrayList<>();
+            }
+            return seriesBooks;
+        }
+
+        File[] getDocxFiles() {
+            return docxFiles;
+        }
+
+        String getId() {
+            return directory.getAbsolutePath();
+        }
+    }
+
+    private void renderProjectItems(FlowPane projectFlow, CustomStage projectStage) {
+        projectFlow.getChildren().clear();
+        final double targetCardHeight = 400;
+
+
+        for (ProjectDisplayItem item : projectItems) {
+            if (item.isSeries()) {
+                VBox seriesCard = createSeriesCard(item, projectStage);
+                seriesCard.setUserData(item);
+                seriesCard.setCursor(Cursor.OPEN_HAND);
+                attachDragHandlers(seriesCard, projectFlow);
+                projectFlow.getChildren().add(seriesCard);
+            } else {
+                VBox projectCard = createProjectCard(item.getDirectory(), item.getDocxFiles(), projectStage);
+                Region spacerBefore = createDebugSpacer(targetCardHeight);
+                Region spacerAfter = createDebugSpacer(targetCardHeight);
+                projectCard.setUserData(item);
+                projectCard.setCursor(Cursor.OPEN_HAND);
+                attachDragHandlers(projectCard, projectFlow);
+                projectFlow.getChildren().addAll(spacerBefore, projectCard, spacerAfter);
+            }
+        }
+    }
+
+    private void saveProjectOrder(File baseDirectory) {
+        if (baseDirectory == null) {
+            return;
+        }
+        try {
+            List<Map<String, Object>> serialized = new ArrayList<>();
+            for (ProjectDisplayItem item : projectItems) {
+                Map<String, Object> entry = new HashMap<>();
+                entry.put("directory", item.getDirectory().getAbsolutePath());
+                if (item.isSeries()) {
+                    entry.put("type", "series");
+                    List<String> bookPaths = item.getSeriesBooks().stream()
+                            .map(File::getAbsolutePath)
+                            .collect(Collectors.toList());
+                    entry.put("books", bookPaths);
+                } else {
+                    entry.put("type", "single");
+                }
+                serialized.add(entry);
+            }
+            String json = new Gson().toJson(serialized);
+            Path orderFile = getProjectOrderPath(baseDirectory);
+            Files.createDirectories(orderFile.getParent());
+            Files.writeString(orderFile, json, StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+        } catch (Exception e) {
+            logger.warn("Konnte Projekt-Reihenfolge nicht speichern: {}", e.getMessage());
+        }
+    }
+
+    private void saveProjectOrder() {
+        if (projectRootDirectory != null) {
+            saveProjectOrder(projectRootDirectory);
+        }
+    }
+
+    private void loadProjectOrder(File searchDir) {
+        try {
+            Path orderFile = getProjectOrderPath(searchDir);
+            if (!Files.exists(orderFile)) {
+                projectItems = new ArrayList<>();
+                return;
+            }
+            String json = Files.readString(orderFile, StandardCharsets.UTF_8);
+            Type listType = new TypeToken<List<Map<String, Object>>>(){}.getType();
+            List<Map<String, Object>> serialized = new Gson().fromJson(json, listType);
+            projectItems = new ArrayList<>();
+            for (Map<String, Object> entry : serialized) {
+                String directoryPath = (String) entry.get("directory");
+                File directory = new File(directoryPath);
+                if (!directory.exists() || !directory.isDirectory()) {
+                    continue;
+                }
+                String type = (String) entry.get("type");
+                if ("series".equals(type)) {
+                    List<String> bookPaths = (List<String>) entry.get("books");
+                    List<File> seriesBooks = new ArrayList<>();
+                    if (bookPaths != null) {
+                        for (String path : bookPaths) {
+                            File bookDir = new File(path);
+                            if (bookDir.exists() && bookDir.isDirectory()) {
+                                seriesBooks.add(bookDir);
+                            }
+                        }
+                    }
+                    projectItems.add(new ProjectDisplayItem(directory, seriesBooks));
+                } else {
+                    File[] docxFiles = directory.listFiles((d, name) -> name.toLowerCase().endsWith(".docx"));
+                    if (docxFiles != null && docxFiles.length > 0) {
+                        projectItems.add(new ProjectDisplayItem(directory, docxFiles));
+                    }
+                }
+            }
+        } catch (Exception e) {
+            logger.warn("Konnte Projekt-Reihenfolge nicht laden: {}", e.getMessage());
+            projectItems = new ArrayList<>();
+        }
+    }
+
+    private Path getProjectOrderPath(File baseDirectory) {
+        Path configDir = Path.of(ResourceManager.getConfigDirectory(), "sessions");
+        String sanitized = baseDirectory.getAbsolutePath()
+                .replace(':', '_')
+                .replace('\\', '_')
+                .replace('/', '_');
+        return configDir.resolve("project_order_" + sanitized + ".json");
+    }
+
+    public File getProjectRootDirectory() {
+        return projectRootDirectory;
+    }   
+
+}

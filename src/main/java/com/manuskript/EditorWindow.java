@@ -1079,6 +1079,9 @@ if (caret != null) {
                     // Java uses $1, $2, etc. for backreferences, not \1, \2
                     String replaceTextJava = replaceText.replace("\\1", "$1").replace("\\2", "$2").replace("\\3", "$3").replace("\\4", "$4").replace("\\5", "$5");
                     
+                    // Ersetze \n durch echte Zeilenumbrüche
+                    replaceTextJava = replaceTextJava.replace("\\n", "\n");
+                    
                     // Erstelle einen neuen Matcher für die Ersetzung des gefundenen Teils
                     String foundText = content.substring(matcher.start(), matcher.end());
                     Pattern replacePattern = Pattern.compile(pattern.pattern(), pattern.flags());
@@ -1144,6 +1147,9 @@ if (caret != null) {
             if (replaceTextJava.contains("\\")) {
                 replaceTextJava = replaceTextJava.replace("\\1", "$1").replace("\\2", "$2").replace("\\3", "$3").replace("\\4", "$4").replace("\\5", "$5");
             }
+            
+            // Ersetze \n durch echte Zeilenumbrüche
+            replaceTextJava = replaceTextJava.replace("\\n", "\n");
             replacement = matcher.replaceAll(replaceTextJava);
             
             // Debug entfernt
