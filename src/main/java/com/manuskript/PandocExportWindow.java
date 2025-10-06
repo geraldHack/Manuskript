@@ -1,0 +1,986 @@
+package com.manuskript;
+
+import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
+import javafx.scene.layout.*;
+import javafx.stage.DirectoryChooser;
+import javafx.stage.FileChooser;
+import javafx.stage.Stage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.prefs.Preferences;
+import com.manuskript.PreferencesManager;
+import java.io.FileWriter;
+import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
+
+public class PandocExportWindow extends CustomStage {
+    private static final Logger logger = LoggerFactory.getLogger(PandocExportWindow.class);
+    
+    // UI Components
+    private ComboBox<String> formatComboBox;
+    private ComboBox<String> templateComboBox;
+    private TextArea templateDescription;
+    private TextField titleField;
+    private TextField subtitleField;
+    private TextField authorField;
+    private TextField rightsField;
+    private TextField dateField;
+    private TextArea abstractArea;
+    private TextField outputDirectoryField;
+    private TextField fileNameField;
+    private Button browseButton;
+    private Button exportButton;
+    private Button cancelButton;
+    
+    // EPUB-spezifische Felder
+    private HBox coverImageBox;
+    private TextField coverImageField;
+    private Button coverImageBrowseButton;
+    
+    // Template-Felder
+    private HBox templateBox;
+    
+    // Data
+    private File inputMarkdownFile;
+    private List<File> referenceTemplates;
+    private String projectName;
+    private Preferences preferences;
+    private int currentThemeIndex;
+    
+    public PandocExportWindow(File inputMarkdownFile, String projectName) {
+        super();
+        this.inputMarkdownFile = inputMarkdownFile;
+        this.projectName = projectName;
+        this.preferences = Preferences.userNodeForPackage(this.getClass());
+        this.currentThemeIndex = preferences.getInt("main_window_theme", 0);
+        this.setCustomTitle("Manuskript - Buch exportieren");
+        
+        setTitle("Pandoc Export - " + projectName);
+        setWidth(700);
+        setHeight(900);
+        setResizable(true);
+        
+        initializeUI();
+        loadReferenceTemplates();
+        loadProjectMetadata();
+        loadWindowProperties();
+        setupWindowListeners();
+        
+        // Initiale Format-spezifische Felder setzen (Template und Cover sind bereits im Layout)
+        updateFormatSpecificFields();
+
+        // Titel nochmal setzen nach der Initialisierung
+        setTitle("Buch exportieren - " + projectName);
+    }
+    
+    private void initializeUI() {
+        VBox root = new VBox(20);
+        root.setPadding(new Insets(20));
+        root.getStyleClass().add("pandoc-export-dialog");
+        
+        // Format Selection
+        HBox formatBox = new HBox(10);
+        formatBox.setAlignment(Pos.CENTER_LEFT);
+        Label formatLabel = new Label("Export-Format:");
+        formatLabel.getStyleClass().add("dialog-label");
+        
+        formatComboBox = new ComboBox<>();
+        formatComboBox.getItems().addAll("docx", "epub3", "html5", "rtf", "pdf", "latex");
+        formatComboBox.setValue("docx");
+        formatComboBox.getStyleClass().add("dialog-combobox");
+        formatComboBox.setOnAction(e -> {
+            updateFormatSpecificFields();
+            updateFileNameExtension();
+        });
+        
+        formatBox.getChildren().addAll(formatLabel, formatComboBox);
+        
+        // Template Selection
+        templateBox = new HBox(10);
+        templateBox.setAlignment(Pos.CENTER_LEFT);
+        Label templateLabel = new Label("Vorlage:");
+        templateLabel.getStyleClass().add("dialog-label");
+        
+        templateComboBox = new ComboBox<>();
+        templateComboBox.getStyleClass().add("dialog-combobox");
+        templateComboBox.setOnAction(e -> updateTemplateDescription());
+        
+        templateDescription = new TextArea();
+        templateDescription.setPrefRowCount(15);
+        templateDescription.setMinHeight(120); // Mindesthöhe setzen
+        templateDescription.setEditable(false);
+        templateDescription.getStyleClass().add("dialog-textarea");
+        templateDescription.setVisible(false); // Initial ausgeblendet
+
+        templateBox.getChildren().addAll(templateLabel, templateComboBox);
+        
+        // Cover Image für EPUB
+        coverImageBox = new HBox(10);
+        coverImageBox.setAlignment(Pos.CENTER_LEFT);
+        Label coverImageLabel = new Label("Cover-Bild:");
+        coverImageLabel.setPrefWidth(100);
+        coverImageField = new TextField();
+        coverImageField.setPromptText("Bild für EPUB-Cover");
+        coverImageField.setPrefWidth(400);
+        coverImageBrowseButton = new Button("📁");
+        coverImageBrowseButton.getStyleClass().add("dialog-button-icon");
+        coverImageBrowseButton.setOnAction(e -> browseCoverImage());
+        coverImageBox.getChildren().addAll(coverImageLabel, coverImageField, coverImageBrowseButton);
+        
+        // Metadata Section
+        VBox metadataBox = createMetadataSection();
+        
+        // Output Section
+        VBox outputBox = createOutputSection();
+        
+        // Buttons
+        HBox buttonBox = new HBox(10);
+        buttonBox.setAlignment(Pos.CENTER_RIGHT);
+        
+        cancelButton = new Button("Abbrechen");
+        cancelButton.getStyleClass().add("dialog-button-secondary");
+        cancelButton.setOnAction(e -> close());
+        
+        exportButton = new Button("Export starten");
+        exportButton.getStyleClass().add("dialog-button-primary");
+        exportButton.setOnAction(e -> startExport());
+        
+        buttonBox.getChildren().addAll(cancelButton, exportButton);
+        
+        // Layout
+        root.getChildren().addAll(
+            formatBox,
+            templateBox,
+            templateDescription,
+            coverImageBox,
+            new Separator(),
+            metadataBox,
+            new Separator(),
+            outputBox,
+            buttonBox
+        );
+        
+        setSceneWithTitleBar(new Scene(root));
+        centerOnScreen();
+
+        // Titel sicherstellen nach dem Erstellen der Szene
+        setTitle("Buch exportieren - " + projectName);
+        
+        // CSS-Stylesheets laden
+        String stylesCss = ResourceManager.getCssResource("css/styles.css");
+        String editorCss = ResourceManager.getCssResource("css/editor.css");
+        String manuskriptCss = ResourceManager.getCssResource("css/manuskript.css");
+        
+        if (stylesCss != null) {
+            getScene().getStylesheets().add(stylesCss);
+        }
+        if (editorCss != null) {
+            getScene().getStylesheets().add(editorCss);
+        }
+        if (manuskriptCss != null) {
+            getScene().getStylesheets().add(manuskriptCss);
+        }
+    }
+    
+    private VBox createMetadataSection() {
+        VBox metadataBox = new VBox(15);
+        metadataBox.getStyleClass().add("metadata-section");
+        
+        Label metadataLabel = new Label("Metadaten");
+        metadataLabel.getStyleClass().add("section-title");
+        
+        // Title
+        HBox titleBox = new HBox(10);
+        titleBox.setAlignment(Pos.CENTER_LEFT);
+        Label titleLabel = new Label("Titel:");
+        titleLabel.setPrefWidth(100);
+        titleField = new TextField();
+        titleField.setPromptText("Titel des Werks");
+        titleField.setPrefWidth(400);
+        titleBox.getChildren().addAll(titleLabel, titleField);
+        
+        // Subtitle
+        HBox subtitleBox = new HBox(10);
+        subtitleBox.setAlignment(Pos.CENTER_LEFT);
+        Label subtitleLabel = new Label("Untertitel:");
+        subtitleLabel.setPrefWidth(100);
+        subtitleField = new TextField();
+        subtitleField.setPromptText("Untertitel (optional)");
+        subtitleField.setPrefWidth(400);
+        subtitleBox.getChildren().addAll(subtitleLabel, subtitleField);
+        
+        // Author
+        HBox authorBox = new HBox(10);
+        authorBox.setAlignment(Pos.CENTER_LEFT);
+        Label authorLabel = new Label("Autor:");
+        authorLabel.setPrefWidth(100);
+        authorField = new TextField();
+        authorField.setPromptText("Name des Autors");
+        authorField.setPrefWidth(400);
+        authorBox.getChildren().addAll(authorLabel, authorField);
+        
+        // Rights
+        HBox rightsBox = new HBox(10);
+        rightsBox.setAlignment(Pos.CENTER_LEFT);
+        Label rightsLabel = new Label("Rechte:");
+        rightsLabel.setPrefWidth(100);
+        rightsField = new TextField();
+        rightsField.setPromptText("© 2025 Autor");
+        rightsField.setPrefWidth(400);
+        rightsBox.getChildren().addAll(rightsLabel, rightsField);
+        
+        // Date
+        HBox dateBox = new HBox(10);
+        dateBox.setAlignment(Pos.CENTER_LEFT);
+        Label dateLabel = new Label("Datum:");
+        dateLabel.setPrefWidth(100);
+        dateField = new TextField();
+        dateField.setPromptText("Oktober 2025");
+        dateField.setPrefWidth(400);
+        dateBox.getChildren().addAll(dateLabel, dateField);
+        
+        // Abstract
+        VBox abstractBox = new VBox(5);
+        Label abstractLabel = new Label("Abstract:");
+        abstractArea = new TextArea();
+        abstractArea.setPrefRowCount(20);
+        abstractArea.setMinHeight(160); // Mindesthöhe setzen (20 Zeilen * 8px pro Zeile)
+        abstractArea.setWrapText(true); // Umbruch aktivieren
+        abstractArea.setPromptText("Kurze Beschreibung des Werks...");
+        abstractBox.getChildren().addAll(abstractLabel, abstractArea);
+        
+        metadataBox.getChildren().addAll(
+            metadataLabel,
+            titleBox,
+            subtitleBox,
+            authorBox,
+            rightsBox,
+            dateBox,
+            abstractBox
+        );
+        
+        return metadataBox;
+    }
+    
+    private VBox createOutputSection() {
+        VBox outputBox = new VBox(15);
+        outputBox.getStyleClass().add("output-section");
+        
+        Label outputLabel = new Label("Ausgabe");
+        outputLabel.getStyleClass().add("section-title");
+        
+        // Output Directory
+        HBox directoryBox = new HBox(10);
+        directoryBox.setAlignment(Pos.CENTER_LEFT);
+        Label directoryLabel = new Label("Zielverzeichnis:");
+        directoryLabel.setPrefWidth(100);
+        outputDirectoryField = new TextField();
+        outputDirectoryField.setPromptText("Verzeichnis für die Ausgabedatei");
+        outputDirectoryField.setPrefWidth(400);
+        browseButton = new Button("📁");
+        browseButton.getStyleClass().add("dialog-button-icon");
+        browseButton.setOnAction(e -> browseOutputDirectory());
+        directoryBox.getChildren().addAll(directoryLabel, outputDirectoryField, browseButton);
+        
+        // File Name
+        HBox fileNameBox = new HBox(10);
+        fileNameBox.setAlignment(Pos.CENTER_LEFT);
+        Label fileNameLabel = new Label("Dateiname:");
+        fileNameLabel.setPrefWidth(100);
+        fileNameField = new TextField();
+        fileNameField.setPromptText("dateiname.docx");
+        fileNameField.setPrefWidth(400);
+        fileNameBox.getChildren().addAll(fileNameLabel, fileNameField);
+        
+        outputBox.getChildren().addAll(outputLabel, directoryBox, fileNameBox);
+        
+        return outputBox;
+    }
+    
+    private void loadReferenceTemplates() {
+        referenceTemplates = new ArrayList<>();
+        File pandocDir = new File("pandoc-3.8.1");
+        
+        if (pandocDir.exists() && pandocDir.isDirectory()) {
+            File[] files = pandocDir.listFiles((dir, name) -> 
+                name.toLowerCase(Locale.ROOT).startsWith("reference-") && 
+                name.toLowerCase(Locale.ROOT).endsWith(".docx"));
+            
+            if (files != null) {
+                for (File file : files) {
+                    referenceTemplates.add(file);
+                    String displayName = file.getName().replace("reference-", "").replace(".docx", "");
+                    templateComboBox.getItems().add(displayName);
+                }
+            }
+        }
+        
+        if (!templateComboBox.getItems().isEmpty()) {
+            templateComboBox.setValue(templateComboBox.getItems().get(0));
+            updateTemplateDescription();
+        }
+    }
+    
+    private void updateTemplateDescription() {
+        String selectedTemplate = templateComboBox.getValue();
+        if (selectedTemplate != null) {
+            // Look for description file
+            String descriptionFile = "pandoc-3.8.1/reference-" + selectedTemplate + ".txt";
+            try {
+                if (Files.exists(Paths.get(descriptionFile))) {
+                    String description = Files.readString(Paths.get(descriptionFile));
+                    templateDescription.setText(description);
+                } else {
+                    templateDescription.setText("Keine Beschreibung verfügbar für: " + selectedTemplate);
+                }
+            } catch (IOException e) {
+                templateDescription.setText("Fehler beim Laden der Beschreibung: " + e.getMessage());
+            }
+        }
+    }
+    
+    private void loadProjectMetadata() {
+        // Load existing metadata from project session
+        titleField.setText(preferences.get("pandoc_title", projectName));
+        subtitleField.setText(preferences.get("pandoc_subtitle", ""));
+        
+        // Persistierte Werte laden
+        authorField.setText(preferences.get("pandoc_author", "Gerald Leonard"));
+        rightsField.setText(preferences.get("pandoc_rights", "© 2025 Gerald Leonard"));
+        dateField.setText(preferences.get("pandoc_date", "Oktober 2025"));
+        outputDirectoryField.setText(preferences.get("pandoc_output_directory", ""));
+        
+        // Abstract laden
+        abstractArea.setText(preferences.get("pandoc_abstract", ""));
+        
+        // Cover-Bild laden
+        coverImageField.setText(preferences.get("pandoc_cover_image", ""));
+        
+        // Format laden
+        String savedFormat = preferences.get("pandoc_format", "docx");
+        formatComboBox.setValue(savedFormat);
+        
+        // Template laden
+        String savedTemplate = preferences.get("pandoc_template", "");
+        if (!savedTemplate.isEmpty()) {
+            templateComboBox.setValue(savedTemplate);
+        }
+        
+        // Dateiname basierend auf Format setzen
+        String fileName = projectName.replaceAll("[^a-zA-Z0-9\\s]", "").replaceAll("\\s+", "_");
+        String extension = getFileExtensionForFormat(savedFormat);
+        fileNameField.setText(fileName + "." + extension);
+    }
+    
+    private void browseOutputDirectory() {
+        DirectoryChooser chooser = new DirectoryChooser();
+        chooser.setTitle("Zielverzeichnis wählen");
+        
+        // Letztes Verzeichnis als Startverzeichnis verwenden
+        String lastDirectory = preferences.get("pandoc_output_directory", "");
+        if (!lastDirectory.isEmpty() && new File(lastDirectory).exists()) {
+            chooser.setInitialDirectory(new File(lastDirectory));
+        }
+        
+        File selectedDir = chooser.showDialog(this);
+        if (selectedDir != null) {
+            outputDirectoryField.setText(selectedDir.getAbsolutePath());
+            // Verzeichnis für nächste Verwendung speichern
+            preferences.put("pandoc_output_directory", selectedDir.getAbsolutePath());
+        }
+    }
+    
+    private void startExport() {
+        // Validate inputs
+        if (titleField.getText().trim().isEmpty()) {
+            showAlert("Fehler", "Bitte geben Sie einen Titel ein.");
+            return;
+        }
+        
+        if (outputDirectoryField.getText().trim().isEmpty()) {
+            showAlert("Fehler", "Bitte wählen Sie ein Zielverzeichnis.");
+            return;
+        }
+        
+        if (fileNameField.getText().trim().isEmpty()) {
+            showAlert("Fehler", "Bitte geben Sie einen Dateinamen ein.");
+            return;
+        }
+        
+        try {
+            // Export-Button deaktivieren während des Exports
+            exportButton.setDisable(true);
+            exportButton.setText("Export läuft...");
+            
+            // YAML-Datei erstellen
+            File yamlFile = createYamlFile();
+            if (yamlFile == null) {
+                showAlert("Fehler", "Konnte YAML-Datei nicht erstellen.");
+                return;
+            }
+            
+            // Pandoc-Aufruf
+            boolean success = runPandocExport(yamlFile);
+            
+            if (success) {
+                showAlert("Erfolg", "Export erfolgreich abgeschlossen!");
+                close();
+            } else {
+                showAlert("Fehler", "Export fehlgeschlagen. Siehe Logs für Details.");
+            }
+            
+        } catch (Exception e) {
+            logger.error("Fehler beim Export", e);
+            showAlert("Fehler", "Export fehlgeschlagen: " + e.getMessage());
+        } finally {
+            // Export-Button wieder aktivieren
+            exportButton.setDisable(false);
+            exportButton.setText("Export starten");
+        }
+    }
+    
+    private void loadWindowProperties() {
+        // Fenster-Position und -Größe laden
+        double x = PreferencesManager.getWindowPosition(preferences, "pandoc_window_x", -1);
+        double y = PreferencesManager.getWindowPosition(preferences, "pandoc_window_y", -1);
+        double width = PreferencesManager.getWindowWidth(preferences, "pandoc_window_width", 700);
+        double height = PreferencesManager.getWindowHeight(preferences, "pandoc_window_height", 900);
+        
+        if (x >= 0 && y >= 0) {
+            setX(x);
+            setY(y);
+        }
+        setWidth(width);
+        setHeight(height);
+    }
+    
+    private void setupWindowListeners() {
+        // Fenster-Position speichern
+        xProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null && !newVal.equals(oldVal)) {
+                PreferencesManager.putWindowPosition(preferences, "pandoc_window_x", newVal.doubleValue());
+            }
+        });
+        
+        yProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null && !newVal.equals(oldVal)) {
+                PreferencesManager.putWindowPosition(preferences, "pandoc_window_y", newVal.doubleValue());
+            }
+        });
+        
+        // Fenster-Größe speichern
+        widthProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null && !newVal.equals(oldVal)) {
+                PreferencesManager.putWindowWidth(preferences, "pandoc_window_width", newVal.doubleValue());
+            }
+        });
+        
+        heightProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null && !newVal.equals(oldVal)) {
+                PreferencesManager.putWindowHeight(preferences, "pandoc_window_height", newVal.doubleValue());
+            }
+        });
+        
+        // Metadaten speichern bei Änderung
+        authorField.textProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null && !newVal.trim().isEmpty()) {
+                preferences.put("pandoc_author", newVal.trim());
+            }
+        });
+        
+        rightsField.textProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null && !newVal.trim().isEmpty()) {
+                preferences.put("pandoc_rights", newVal.trim());
+            }
+        });
+        
+        dateField.textProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null && !newVal.trim().isEmpty()) {
+                preferences.put("pandoc_date", newVal.trim());
+            }
+        });
+        
+        // Titel und Untertitel speichern
+        titleField.textProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null && !newVal.trim().isEmpty()) {
+                preferences.put("pandoc_title", newVal.trim());
+            }
+        });
+        
+        subtitleField.textProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null && !newVal.trim().isEmpty()) {
+                preferences.put("pandoc_subtitle", newVal.trim());
+            }
+        });
+        
+        // Abstract speichern
+        abstractArea.textProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null && !newVal.trim().isEmpty()) {
+                preferences.put("pandoc_abstract", newVal.trim());
+            }
+        });
+        
+        // Output-Verzeichnis speichern
+        outputDirectoryField.textProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null && !newVal.trim().isEmpty()) {
+                preferences.put("pandoc_output_directory", newVal.trim());
+            }
+        });
+        
+        // Cover-Bild speichern
+        coverImageField.textProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null && !newVal.trim().isEmpty()) {
+                preferences.put("pandoc_cover_image", newVal.trim());
+            }
+        });
+        
+        // Format speichern
+        formatComboBox.valueProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null) {
+                preferences.put("pandoc_format", newVal);
+            }
+        });
+        
+        // Template speichern
+        templateComboBox.valueProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null) {
+                preferences.put("pandoc_template", newVal);
+            }
+        });
+    }
+    
+    private File createYamlFile() {
+        try {
+            // YAML-Datei im Arbeitsverzeichnis erstellen (nicht temporär)
+            File yamlFile = new File("pandoc_metadata.yaml");
+            if (yamlFile.exists()) {
+                yamlFile.delete(); // Alte Datei löschen
+            }
+            
+            try (PrintWriter writer = new PrintWriter(new FileWriter(yamlFile, StandardCharsets.UTF_8))) {
+                writer.println("title: \"" + escapeYamlString(titleField.getText().trim()) + "\"");
+                
+                if (!subtitleField.getText().trim().isEmpty()) {
+                    writer.println("subtitle: \"" + escapeYamlString(subtitleField.getText().trim()) + "\"");
+                }
+                
+                if (!authorField.getText().trim().isEmpty()) {
+                    writer.println("author: \"" + escapeYamlString(authorField.getText().trim()) + "\"");
+                }
+                
+                if (!rightsField.getText().trim().isEmpty()) {
+                    writer.println("rights: \"" + escapeYamlString(rightsField.getText().trim()) + "\"");
+                }
+                
+                if (!dateField.getText().trim().isEmpty()) {
+                    writer.println("date: \"" + escapeYamlString(dateField.getText().trim()) + "\"");
+                }
+                
+                if (!abstractArea.getText().trim().isEmpty()) {
+                    writer.println("abstract: |");
+                    String[] lines = abstractArea.getText().trim().split("\n");
+                    for (String line : lines) {
+                        writer.println("  " + line);
+                    }
+                    writer.println("abstract-title: \"Zusammenfassung\"");
+                }
+
+                // Cover-Bild für HTML5 hinzufügen (falls vorhanden)
+                if ("html5".equals(formatComboBox.getValue()) && !coverImageField.getText().trim().isEmpty()) {
+                    File coverImageFile = new File(coverImageField.getText().trim());
+                    if (coverImageFile.exists()) {
+                        String baseName = fileNameField.getText().replace(".html", "");
+                        File htmlDir = new File(outputDirectoryField.getText(), baseName + "_html");
+                        String coverFileName = "cover." + getFileExtension(coverImageFile.getName());
+                        File targetCover = new File(htmlDir, coverFileName);
+                        writer.println("cover-image: \"" + targetCover.getName() + "\"");
+                    }
+                }
+                
+                // Leerzeile am Ende für korrektes YAML
+                writer.println();
+            }
+            
+            
+            // YAML-Datei-Inhalt für Debug ausgeben
+            try {
+                String content = Files.readString(yamlFile.toPath());
+                logger.debug("YAML-Inhalt:\n{}", content);
+            } catch (IOException e) {
+                logger.warn("Konnte YAML-Inhalt nicht lesen: {}", e.getMessage());
+            }
+            
+            return yamlFile;
+            
+        } catch (IOException e) {
+            logger.error("Fehler beim Erstellen der YAML-Datei", e);
+            return null;
+        }
+    }
+    
+    private String escapeYamlString(String input) {
+        if (input == null) return "";
+        // YAML-sichere Escaping
+        return input.replace("\\", "\\\\")
+                   .replace("\"", "\\\"")
+                   .replace("\n", "\\n")
+                   .replace("\r", "\\r")
+                   .replace("\t", "\\t");
+    }
+    
+    private boolean runPandocExport(File yamlFile) {
+        try {
+            // Pandoc-Pfad
+            File pandocExe = new File("pandoc-3.8.1", "pandoc.exe");
+            if (!pandocExe.exists()) {
+                logger.error("Pandoc nicht gefunden: {}", pandocExe.getAbsolutePath());
+                return false;
+            }
+            
+            // Ausgabedatei
+            String outputDir = outputDirectoryField.getText().trim();
+            String fileName = fileNameField.getText().trim();
+            File outputFile = new File(outputDir, fileName);
+            
+            // Template-Datei
+            String selectedTemplate = templateComboBox.getValue();
+            File templateFile = null;
+            if (selectedTemplate != null && !referenceTemplates.isEmpty()) {
+                for (File template : referenceTemplates) {
+                    if (template.getName().contains(selectedTemplate)) {
+                        templateFile = template;
+                        break;
+                    }
+                }
+            }
+            
+            // Format ermitteln
+            String format = formatComboBox.getValue();
+
+            // Pandoc-Befehl zusammenbauen (wie von Hand erfolgreich verwendet)
+            List<String> command = new ArrayList<>();
+            command.add(pandocExe.getAbsolutePath());
+            command.add("\"" + inputMarkdownFile.getAbsolutePath() + "\"");
+            command.add("-o");
+
+            // Für HTML5: Ausgabe ins Unterverzeichnis
+            String finalOutputPath;
+            if ("html5".equals(format)) {
+                String baseName = fileNameField.getText().replace(".html", "");
+                File htmlDir = new File(outputDirectoryField.getText(), baseName + "_html");
+                File htmlFile = new File(htmlDir, fileNameField.getText());
+                finalOutputPath = htmlFile.getAbsolutePath();
+            } else {
+                finalOutputPath = outputFile.getAbsolutePath();
+            }
+
+            command.add("\"" + finalOutputPath + "\"");
+
+            // Grundlegende Optionen
+            command.add("--metadata-file=\"" + yamlFile.getAbsolutePath() + "\"");
+            command.add("--from=markdown-yaml_metadata_block");
+            command.add("--to=" + getOutputFormat());
+
+            // Format-spezifische Optionen
+            if ("epub3".equals(format)) {
+                // EPUB3-spezifische Optionen (wie von Hand erfolgreich verwendet)
+                command.add("--toc");
+                command.add("--epub-chapter-level=1"); // Verwende References für Kapitel-Struktur
+                command.add("--css=epub.css");
+
+                // Cover-Bild für EPUB3
+                if (!coverImageField.getText().trim().isEmpty()) {
+                    File coverImageFile = new File(coverImageField.getText().trim());
+                    if (coverImageFile.exists()) {
+                        File pandocDir = new File("pandoc-3.8.1");
+                        if (pandocDir.exists()) {
+                            try {
+                                String coverFileName = "cover." + getFileExtension(coverImageFile.getName());
+                                File targetCover = new File(pandocDir, coverFileName);
+                                Files.copy(coverImageFile.toPath(), targetCover.toPath(),
+                                    java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                                command.add("--epub-cover-image=\"" + targetCover.getAbsolutePath() + "\"");
+                            } catch (IOException e) {
+                                logger.error("Fehler beim Kopieren des Cover-Bildes", e);
+                            }
+                        }
+                    }
+                }
+            } else if ("docx".equals(format)) {
+                // DOCX-spezifische Optionen für bessere Titelei
+                if (templateFile != null) {
+                    command.add("--reference-doc=\"" + templateFile.getAbsolutePath() + "\"");
+                }
+                command.add("--highlight-style=tango");
+                command.add("--reference-links");
+            } else if ("html5".equals(format)) {
+                // HTML5-spezifische Optionen
+                command.add("--toc"); // Inhaltsverzeichnis für HTML
+                command.add("--standalone"); // Vollständiges HTML-Dokument
+
+                // HTML-Unterverzeichnis erstellen
+                String baseName = fileNameField.getText().replace(".html", "");
+                File htmlDir = new File(outputDirectoryField.getText(), baseName + "_html");
+                htmlDir.mkdirs();
+
+                // HTML-Datei ins Unterverzeichnis legen
+                String htmlFileName = fileNameField.getText();
+                File htmlFile = new File(htmlDir, htmlFileName);
+
+                        // CSS-Datei ins Unterverzeichnis kopieren
+                        File sourceCss = new File("pandoc-3.8.1", "epub.css");
+                        File targetCss = new File(htmlDir, "styles.css");
+                        if (sourceCss.exists()) {
+                            try {
+                                Files.copy(sourceCss.toPath(), targetCss.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                                command.add("--css=styles.css"); // Lokale CSS-Datei verwenden
+                            } catch (IOException e) {
+                                logger.error("Fehler beim Kopieren der CSS-Datei für HTML", e);
+                            }
+                        }
+
+                        // HTML-Template für Cover-Bild erstellen
+                        String htmlTemplate = createHtmlTemplate(htmlDir, htmlFileName);
+                        if (htmlTemplate != null) {
+                            command.add("--template=" + htmlTemplate);
+                        }
+
+                // Cover-Bild ins Unterverzeichnis kopieren (falls vorhanden)
+                if (!coverImageField.getText().trim().isEmpty()) {
+                    File coverImageFile = new File(coverImageField.getText().trim());
+                    if (coverImageFile.exists()) {
+                        try {
+                            String coverFileName = "cover." + getFileExtension(coverImageFile.getName());
+                            File targetCover = new File(htmlDir, coverFileName);
+                            Files.copy(coverImageFile.toPath(), targetCover.toPath(),
+                                java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+
+                        } catch (IOException e) {
+                            logger.error("Fehler beim Kopieren des Cover-Bildes für HTML", e);
+                        }
+                    }
+                }
+            }
+
+            // Standalone für vollständiges Dokument (wenn nicht bereits hinzugefügt)
+            if (!command.contains("--standalone")) {
+                command.add("--standalone");
+            }
+            
+            
+            // Lösche die bestehende Ausgabedatei vor dem Export, um sicherzustellen, dass sie neu erstellt wird
+            File fileToCheck = "html5".equals(format) ?
+                new File(finalOutputPath) : outputFile;
+
+            if (fileToCheck.exists()) {
+                try {
+                    Files.delete(fileToCheck.toPath());
+                    logger.debug("Bestehende Ausgabedatei gelöscht: {}", fileToCheck.getName());
+                } catch (IOException e) {
+                    logger.warn("Konnte bestehende Ausgabedatei nicht löschen: {}", e.getMessage());
+                }
+            }
+
+            // Prozess starten - Arbeitsverzeichnis auf Pandoc-Verzeichnis setzen
+            ProcessBuilder pb = new ProcessBuilder(command);
+            pb.directory(new File("pandoc-3.8.1")); // Arbeitsverzeichnis auf Pandoc setzen
+            pb.environment().put("PATH", System.getenv("PATH")); // PATH weitergeben
+
+            Process process = pb.start();
+
+            // Warten auf Beendigung
+            int exitCode = process.waitFor();
+
+            // Prüfe ob die Ausgabedatei jetzt existiert und größer als 0 ist
+            File resultFile = "html5".equals(format) ?
+                new File(finalOutputPath) : outputFile;
+
+            if (resultFile.exists() && resultFile.length() > 0) {
+
+
+                return true;
+            } else {
+                logger.error("Pandoc-Export fehlgeschlagen - Datei nicht erstellt (Exit-Code: {})", exitCode);
+                return false;
+            }
+            
+        } catch (Exception e) {
+            logger.error("Fehler beim Pandoc-Export", e);
+            return false;
+        }
+    }
+    
+    private String getOutputFormat() {
+        String format = formatComboBox.getValue();
+        switch (format) {
+            case "docx": return "docx";
+            case "odt": return "odt";
+            case "epub": return "epub";
+            case "epub3": return "epub3";
+            case "html": return "html";
+            case "html5": return "html5";
+            case "rtf": return "rtf";
+            case "pdf": return "pdf";
+            case "latex": return "latex";
+            default: return "docx";
+        }
+    }
+    
+    private void updateFormatSpecificFields() {
+        String format = formatComboBox.getValue();
+
+        // Template-Felder für EPUB3 und HTML5 ausblenden
+        boolean showTemplate = !format.equals("epub3") && !format.equals("html5");
+        templateBox.setVisible(showTemplate);
+        templateBox.setManaged(showTemplate);
+        templateDescription.setVisible(showTemplate);
+        templateDescription.setManaged(showTemplate);
+
+        // Cover-Bild für EPUB3 und HTML5 anzeigen
+        boolean showCover = format.equals("epub3") || format.equals("html5");
+        coverImageBox.setVisible(showCover);
+        coverImageBox.setManaged(showCover);
+    }
+    
+    private void browseCoverImage() {
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle("Cover-Bild auswählen");
+        chooser.getExtensionFilters().addAll(
+            new FileChooser.ExtensionFilter("Bilddateien", "*.png", "*.jpg", "*.jpeg", "*.gif", "*.bmp"),
+            new FileChooser.ExtensionFilter("Alle Dateien", "*.*")
+        );
+        
+        File selectedFile = chooser.showOpenDialog(this);
+        if (selectedFile != null) {
+            coverImageField.setText(selectedFile.getAbsolutePath());
+        }
+    }
+    
+    private String getFileExtension(String fileName) {
+        int lastDot = fileName.lastIndexOf('.');
+        if (lastDot > 0 && lastDot < fileName.length() - 1) {
+            return fileName.substring(lastDot + 1).toLowerCase();
+        }
+        return "png"; // Fallback
+    }
+    
+    private void updateFileNameExtension() {
+        String format = formatComboBox.getValue();
+        String currentFileName = fileNameField.getText();
+        
+        // Aktuelle Dateiendung entfernen
+        String baseName = currentFileName;
+        int lastDot = currentFileName.lastIndexOf('.');
+        if (lastDot > 0) {
+            baseName = currentFileName.substring(0, lastDot);
+        }
+        
+        // Neue Endung hinzufügen
+        String newExtension = getFileExtensionForFormat(format);
+        fileNameField.setText(baseName + "." + newExtension);
+    }
+    
+    private String getFileExtensionForFormat(String format) {
+        switch (format) {
+            case "docx": return "docx";
+            case "epub3": return "epub";
+            case "html5": return "html";
+            case "rtf": return "rtf";
+            case "pdf": return "pdf";
+            case "latex": return "tex";
+            default: return "docx";
+        }
+    }
+    
+    private void addCoverImageToYaml(File yamlFile, String coverFileName) {
+        // Diese Methode wird nicht mehr verwendet, da wir --epub-cover-image verwenden
+        // YAML wird nicht mehr für Cover-Bild verwendet
+    }
+    
+    private String createHtmlTemplate(File htmlDir, String htmlFileName) {
+        try {
+            // HTML-Template-Datei erstellen
+            File templateFile = new File(htmlDir, "template.html");
+
+            // Basis-HTML-Template mit Cover-Bild-Unterstützung
+            String template = """
+                <!DOCTYPE html>
+                <html xmlns="http://www.w3.org/1999/xhtml" lang="$lang$" xml:lang="$lang$">
+                <head>
+                  <meta charset="utf-8" />
+                  <meta name="generator" content="pandoc" />
+                  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+                  $for(author-meta)$
+                  <meta name="author" content="$author-meta$" />
+                  $endfor$
+                  $if(date-meta)$
+                  <meta name="dcterms.date" content="$date-meta$" />
+                  $endif$
+                  $if(keywords)$
+                  <meta name="keywords" content="$for(keywords)$$keywords$$sep$, $endfor$" />
+                  $endif$
+                  $if(title)$
+                  <title>$title$</title>
+                  $endif$
+                  $for(css)$
+                  <link rel="stylesheet" href="$css$" />
+                  $endfor$
+                  $if(math)$
+                  $math$
+                  $endif$
+                  <style>
+                    .cover-image {
+                      max-width: 100%;
+                      height: auto;
+                      display: block;
+                      margin: 2em auto;
+                      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+                    }
+                  </style>
+                </head>
+                <body>
+                  $if(cover-image)$
+                  <div style="text-align: center; margin: 2em 0;">
+                    <img src="$cover-image$" alt="Cover" class="cover-image" />
+                  </div>
+                  $endif$
+                  $body$
+                </body>
+                </html>
+                """;
+
+            // Template in Datei schreiben
+            Files.write(templateFile.toPath(), template.getBytes(StandardCharsets.UTF_8));
+
+            return templateFile.getAbsolutePath();
+
+        } catch (IOException e) {
+            logger.error("Fehler beim Erstellen des HTML-Templates", e);
+            return null;
+        }
+    }
+
+    private void showAlert(String title, String message) {
+        CustomAlert alert = new CustomAlert(Alert.AlertType.INFORMATION, title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.applyTheme(currentThemeIndex);
+        alert.initOwner(this);
+        alert.showAndWait();
+    }
+}

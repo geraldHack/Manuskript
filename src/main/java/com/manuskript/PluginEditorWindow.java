@@ -90,7 +90,6 @@ public class PluginEditorWindow {
             String cssPath = ResourceManager.getCssResource("css/manuskript.css");
             if (cssPath != null) {
                 scene.getStylesheets().add(cssPath);
-                logger.info("CSS-Styles geladen: " + cssPath);
             }
         } catch (Exception e) {
             logger.severe("KRITISCHER FEHLER beim Laden der CSS-Styles: " + e.getMessage());
@@ -104,14 +103,10 @@ public class PluginEditorWindow {
         // DEBUG: Prüfen, ob Theme-Klassen angewendet wurden
         if (stage.getScene() != null && stage.getScene().getRoot() != null) {
             Node root = stage.getScene().getRoot();
-            logger.info("Plugin Editor Root StyleClasses: " + root.getStyleClass());
-            logger.info("Plugin Editor Root Style: " + root.getStyle());
             
             // DEBUG: Prüfen, ob Theme-Klassen auf der Stage sind
-            logger.info("Plugin Editor Stage StyleClasses: " + stage.getScene().getRoot().getStyleClass());
             
                     // DEBUG: Prüfen, ob das Theme gesetzt wurde
-        logger.info("Plugin Editor Current Theme: " + currentThemeIndex);
         
         // Theme-Klassen anwenden
         applyThemeToRoot(mainContainer);
@@ -145,7 +140,6 @@ public class PluginEditorWindow {
             applyThemeToCodeArea(promptArea);
         }
         
-        logger.info("Theme-Klassen angewendet: " + mainContainer.getStyleClass());
     }
     
     /**
@@ -230,7 +224,6 @@ public class PluginEditorWindow {
             codeArea.getStyleClass().addAll("theme-dark", "lila-theme");
         }
         
-        logger.info("CodeArea Theme programmatisch angewendet: " + currentThemeIndex + " -> BG: " + backgroundColor + ", Text: " + textColor);
     }
     
 

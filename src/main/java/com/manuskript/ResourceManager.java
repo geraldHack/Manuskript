@@ -64,7 +64,6 @@ public class ResourceManager {
         
         if (externalFile.exists() && externalFile.isFile()) {
             try {
-                logger.info("Lade externe Properties-Datei: " + externalPath);
                 return Files.newInputStream(externalFile.toPath());
             } catch (IOException e) {
                 logger.warning("Fehler beim Laden der externen Properties-Datei: " + e.getMessage());
@@ -79,7 +78,6 @@ public class ResourceManager {
         // Erneut versuchen zu laden
         if (externalFile.exists() && externalFile.isFile()) {
             try {
-                logger.info("Lade erstellte Standard-Properties-Datei: " + externalPath);
                 return Files.newInputStream(externalFile.toPath());
             } catch (IOException e) {
                 logger.warning("Fehler beim Laden der erstellten Properties-Datei: " + e.getMessage());
@@ -99,21 +97,18 @@ public class ResourceManager {
             // Config-Ordner erstellen falls nicht vorhanden
             if (!Files.exists(configPath)) {
                 Files.createDirectories(configPath);
-                logger.info("Config-Ordner erstellt: " + configPath.toAbsolutePath());
             }
             
             // CSS-Unterordner erstellen
             Path cssPath = configPath.resolve("css");
             if (!Files.exists(cssPath)) {
                 Files.createDirectories(cssPath);
-                logger.info("CSS-Ordner erstellt: " + cssPath.toAbsolutePath());
             }
             
             // Sessions-Unterordner erstellen
             Path sessionsPath = configPath.resolve(SESSIONS_DIR);
             if (!Files.exists(sessionsPath)) {
                 Files.createDirectories(sessionsPath);
-                logger.info("Sessions-Ordner erstellt: " + sessionsPath.toAbsolutePath());
             }
             
             // Standard-Dateien erstellen falls nicht vorhanden
@@ -139,7 +134,6 @@ public class ResourceManager {
             String json = gson.toJson(qaPairs);
             Files.write(sessionFile, json.getBytes());
             
-            logger.info("Session gespeichert: " + sessionName + " -> " + sessionFile);
         } catch (IOException e) {
             logger.warning("Fehler beim Speichern der Session " + sessionName + ": " + e.getMessage());
         }
@@ -158,7 +152,6 @@ public class ResourceManager {
                 List<CustomChatArea.QAPair> qaPairs = gson.fromJson(json, 
                     new TypeToken<List<CustomChatArea.QAPair>>(){}.getType());
                 
-                logger.info("Session geladen: " + sessionName + " <- " + sessionFile);
                 return qaPairs != null ? qaPairs : new ArrayList<>();
             }
         } catch (IOException e) {
@@ -178,7 +171,6 @@ public class ResourceManager {
             
             if (Files.exists(sessionFile)) {
                 Files.delete(sessionFile);
-                logger.info("Session gelöscht: " + sessionName + " -> " + sessionFile);
             }
         } catch (IOException e) {
             logger.warning("Fehler beim Löschen der Session " + sessionName + ": " + e.getMessage());
@@ -227,7 +219,6 @@ public class ResourceManager {
                 // Standard-CSS-Inhalt erstellen
                 String cssContent = getDefaultCssContent(configPath);
                 Files.write(targetPath, cssContent.getBytes());
-                logger.info("Standard-CSS-Datei erstellt: " + targetPath);
             }
         } catch (IOException e) {
             logger.warning("Fehler beim Erstellen der CSS-Datei " + configPath + ": " + e.getMessage());
@@ -246,7 +237,6 @@ public class ResourceManager {
                 // Standard-Properties-Inhalt erstellen
                 String propertiesContent = getDefaultPropertiesContent(configPath);
                 Files.write(targetPath, propertiesContent.getBytes());
-                logger.info("Standard-Properties-Datei erstellt: " + targetPath);
             }
         } catch (IOException e) {
             logger.warning("Fehler beim Erstellen der Properties-Datei " + configPath + ": " + e.getMessage());
@@ -405,7 +395,6 @@ public class ResourceManager {
         // Properties speichern
         try (FileOutputStream fos = new FileOutputStream(configFile)) {
             props.store(fos, "Aktualisiert von Manuskript");
-            logger.info("Parameter gespeichert: " + key + " = " + value);
         } catch (IOException e) {
             logger.warning("Fehler beim Speichern der parameters.properties: " + e.getMessage());
         }
@@ -419,7 +408,6 @@ public class ResourceManager {
         saveParameter("ollama.max_tokens", String.valueOf(maxTokens));
         saveParameter("ollama.top_p", String.valueOf(topP));
         saveParameter("ollama.repeat_penalty", String.valueOf(repeatPenalty));
-        logger.info("Alle Ollama-Parameter gespeichert");
     }
     
     /**

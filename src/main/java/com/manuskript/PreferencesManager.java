@@ -248,13 +248,11 @@ public class PreferencesManager {
      * Setzt alle Editor-Fenster-Preferences auf Standardwerte zurück
      */
     public static void resetEditorWindowPreferences(Preferences prefs) {
-        logger.info("Setze alle Editor-Fenster-Preferences auf Standardwerte zurück");
         try {
             prefs.putDouble("editor_window_width", DEFAULT_EDITOR_WIDTH);
             prefs.putDouble("editor_window_height", DEFAULT_EDITOR_HEIGHT);
             prefs.remove("editor_window_x");
             prefs.remove("editor_window_y");
-            logger.info("Editor-Fenster-Preferences zurückgesetzt");
         } catch (Exception e) {
             logger.error("Fehler beim Zurücksetzen der Editor-Fenster-Preferences: {}", e.getMessage());
         }
@@ -264,13 +262,11 @@ public class PreferencesManager {
      * Setzt alle Hauptfenster-Preferences auf Standardwerte zurück
      */
     public static void resetMainWindowPreferences(Preferences prefs) {
-        logger.info("Setze alle Hauptfenster-Preferences auf Standardwerte zurück");
         try {
             prefs.putDouble("window_width", DEFAULT_WINDOW_WIDTH);
             prefs.putDouble("window_height", DEFAULT_WINDOW_HEIGHT);
             prefs.remove("window_x");
             prefs.remove("window_y");
-            logger.info("Hauptfenster-Preferences zurückgesetzt");
         } catch (Exception e) {
             logger.error("Fehler beim Zurücksetzen der Hauptfenster-Preferences: {}", e.getMessage());
         }

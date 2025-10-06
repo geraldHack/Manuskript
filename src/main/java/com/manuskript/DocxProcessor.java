@@ -75,7 +75,6 @@ public class DocxProcessor {
     }
     
     public String processDocxFile(File file, int chapterNumber, OutputFormat format) throws IOException {
-        logger.info("Verarbeite Datei: {} im Format: {}", file.getName(), format);
         
         StringBuilder content = new StringBuilder();
         
@@ -169,7 +168,6 @@ public class DocxProcessor {
     
     // Neue Methode für Verarbeitung ohne Header/Footer (für mehrere Dateien)
     public String processDocxFileContent(File file, int chapterNumber, OutputFormat format) throws IOException {
-        logger.info("Verarbeite Datei-Inhalt: {} im Format: {}", file.getName(), format);
         
         StringBuilder content = new StringBuilder();
 
@@ -187,12 +185,10 @@ public class DocxProcessor {
         
         // DOCX-Lesen mit Docx4J
         try {
-            logger.info("Lade DOCX-Datei: {}", file.getAbsolutePath());
             WordprocessingMLPackage pkg = WordprocessingMLPackage.load(file);
             List<Object> document = pkg.getMainDocumentPart().getContent();
             StyleDefinitionsPart stylePart = pkg.getMainDocumentPart().getStyleDefinitionsPart();
             Map<String, Style> styleMap = buildStyleMap(stylePart);
-            logger.info("DOCX-Datei geladen, {} Objekte gefunden", document.size());
             
             int paragraphCount = 0;
             boolean lastParagraphWasEmpty = false;
@@ -202,8 +198,6 @@ public class DocxProcessor {
                     P paragraph = (P) obj;
                     String paragraphText = extractTextFromParagraph(paragraph, styleMap);
                     boolean isEmpty = paragraphText.trim().isEmpty();
-                    logger.info("Absatz {}: '{}' (leer: {})", paragraphCount, 
-                               paragraphText.substring(0, Math.min(50, paragraphText.length())), isEmpty);
                     
                     if (format == OutputFormat.HTML) {
                         documentContent.append("<p>").append(paragraphText).append("</p>\n");
@@ -220,11 +214,8 @@ public class DocxProcessor {
                         documentContent.append(paragraphText).append("\n");
                     }
                     lastParagraphWasEmpty = isEmpty;
-                } else {
-                    logger.debug("Nicht-Paragraph Objekt: {}", obj.getClass().getSimpleName());
-                }
+                } 
             }
-            logger.info("Insgesamt {} Absätze verarbeitet", paragraphCount);
         } catch (Exception e) {
             logger.error("Fehler beim Lesen der DOCX-Datei: {}", e.getMessage(), e);
             documentContent.append("Fehler beim Lesen der DOCX-Datei: ").append(e.getMessage());
@@ -245,7 +236,6 @@ public class DocxProcessor {
         }
         
         // Debug-Ausgabe für alle Kapitel
-        logger.info("Kapitel-Nummer: {}, Format: {}", chapterNumber, format);
         
         // Für alle Kapitel: Prüfen, ob bereits ein Titel vorhanden ist
         boolean hasTitle = false;
@@ -254,7 +244,6 @@ public class DocxProcessor {
             // Prüfe, ob der Text bereits mit # beginnt
             String trimmedText = documentText.trim();
             hasTitle = trimmedText.startsWith("# ");
-            logger.info("Markdown-Titel-Prüfung: '{}' beginnt mit '# ' = {}", trimmedText.substring(0, Math.min(20, trimmedText.length())), hasTitle);
         } else if (format == OutputFormat.HTML) {
             // Prüfe, ob der Text bereits mit <h1> beginnt
             hasTitle = documentText.trim().startsWith("<h1>");
@@ -270,7 +259,6 @@ public class DocxProcessor {
         
         // Nur Titel hinzufügen, wenn noch keiner vorhanden ist
         if (!hasTitle) {
-            logger.info("Füge Titel hinzu für Kapitel: {}", chapterName);
             switch (format) {
                 case MARKDOWN:
                     content.append("# ").append(chapterName).append("\n\n");
@@ -284,7 +272,6 @@ public class DocxProcessor {
                     break;
             }
         } else {
-            logger.info("Titel bereits vorhanden, füge keinen hinzu");
         }
         
         // Den Dokumentinhalt hinzufügen
@@ -312,7 +299,6 @@ public class DocxProcessor {
     }
     
     public void exportMarkdownToDocxWithOptions(String markdownText, File outputFile, DocxOptions options) throws IOException {
-        logger.info("Exportiere Markdown zu DOCX mit Docx4J: {}", outputFile.getName());
         
         // WICHTIG: Prüfe ob der Markdown-Text leer ist!
         if (markdownText == null || markdownText.trim().isEmpty()) {
@@ -336,8 +322,6 @@ public class DocxProcessor {
             
             // Optionen anwenden
             if (options != null) {
-                logger.info("Wende DOCX-Optionen an: Schriftart={}, Blocksatz={}, Zentrierte H1={}", 
-                    options.defaultFont, options.justifyText, options.centerH1);
                 
                 // Seitenformat anwenden
                 applyPageSettings(pkg, f, options);
@@ -387,7 +371,6 @@ public class DocxProcessor {
                 );
             }
             
-            logger.info("DOCX-Export mit Docx4J abgeschlossen: {}", outputFile.getAbsolutePath());
             
         } catch (Exception e) {
             logger.error("Fehler beim DOCX-Export mit Docx4J: {}", e.getMessage(), e);
@@ -399,8 +382,6 @@ public class DocxProcessor {
      * Verarbeitet Markdown-Text mit verbesserter Formatierungsunterstützung
      */
     private static void processMarkdownContent(WordprocessingMLPackage pkg, ObjectFactory f, String markdownText, DocxOptions options) {
-        logger.info("=== NEUE MARKDOWN-VERARBEITUNG WIRD VERWENDET ===");
-        logger.info("Markdown-Text Länge: {}", markdownText.length());
             String[] lines = markdownText.split("\r?\n");
             
             // Zähler für automatische Nummerierung
@@ -483,7 +464,6 @@ public class DocxProcessor {
             
             // Listen
             if (trimmedLine.matches("^\\s*[-*+]\\s+.*") || trimmedLine.matches("^\\s*\\d+\\.\\s+.*")) {
-                logger.info("LISTE GEFUNDEN: '{}'", trimmedLine);
 
                 // Verschachtelte Nummerierung aufbauen
                 boolean isOrdered = trimmedLine.matches("^\\s*\\d+\\.\\s+.*");
@@ -807,13 +787,11 @@ public class DocxProcessor {
      */
     private static void addFormattedTextToParagraph(P paragraph, ObjectFactory f, String text, DocxOptions options) {
         // Debug-Ausgabe
-        logger.info("PARSING TEXT: '{}'", text);
         
         // Einfache Regex-basierte Formatierung
         java.util.List<TextSegment> segments = parseFormattedText(text);
         
         for (TextSegment segment : segments) {
-            logger.info("SEGMENT: '{}' bold={} italic={}", segment.text, segment.isBold, segment.isItalic);
             R run = f.createR();
             RPr rpr = f.createRPr();
             
@@ -1058,7 +1036,6 @@ public class DocxProcessor {
             // Seitenumbruch
             addPageBreak(pkg, f);
             
-            logger.info("Echtes TOC-Feld erstellt - Word wird es beim Öffnen aktualisieren");
             
         } catch (Exception e) {
             logger.error("Fehler beim Erstellen des TOC: {}", e.getMessage());
@@ -1353,12 +1330,10 @@ public class DocxProcessor {
     
     private static void addList(WordprocessingMLPackage pkg, ObjectFactory f, Node listNode, DocxOptions options) {
         // TODO: Implementiere Listen-Verarbeitung
-        logger.info("Listen-Verarbeitung noch nicht implementiert");
     }
     
     private static void addBlockQuote(WordprocessingMLPackage pkg, ObjectFactory f, Node quoteNode, DocxOptions options) {
         // TODO: Implementiere Blockquote-Verarbeitung
-        logger.info("Blockquote-Verarbeitung noch nicht implementiert");
     }
     
     private static void addPageBreak(WordprocessingMLPackage pkg, ObjectFactory f) {
@@ -1395,7 +1370,6 @@ public class DocxProcessor {
         p.getContent().add(r);
         pkg.getMainDocumentPart().addObject(p);
         
-        logger.info("Horizontale Linie hinzugefügt");
     }
     
     private static String extractTextFromParagraph(P paragraph, Map<String, Style> styleMap) {
@@ -1555,7 +1529,6 @@ public class DocxProcessor {
      */
     private static void applyPageSettings(WordprocessingMLPackage pkg, ObjectFactory f, DocxOptions options) {
         try {
-            logger.info("Starte applyPageSettings...");
             // Dokument-Eigenschaften abrufen
             Document document = pkg.getMainDocumentPart().getJaxbElement();
             Body body = document.getBody();
@@ -1609,12 +1582,10 @@ public class DocxProcessor {
      */
     private static void addPageNumbers(WordprocessingMLPackage pkg, ObjectFactory f, DocxOptions options) {
         try {
-            logger.info("Starte Hinzufügen der Seitenzahlen...");
             
             // Footer-Part erzeugen
             FooterPart footerPart = new FooterPart();
             Relationship relFooter = pkg.getMainDocumentPart().addTargetPart(footerPart);
-            logger.info("Footer-Part erstellt mit ID: {}", relFooter.getId());
             
             // Footer-Inhalt: "Seite X"
             P footerP = f.createP();
@@ -1656,26 +1627,20 @@ public class DocxProcessor {
             Ftr ftr = f.createFtr();
             ftr.getContent().add(footerP);
             footerPart.setJaxbElement(ftr);
-            logger.info("Footer-Inhalt erstellt");
             
             // Footer in den Abschnitts-Properties verankern
             SectPr sectPr = pkg.getMainDocumentPart().getJaxbElement().getBody().getSectPr();
             if (sectPr == null) {
                 sectPr = f.createSectPr();
                 pkg.getMainDocumentPart().getJaxbElement().getBody().setSectPr(sectPr);
-                logger.info("Neue SectPr erstellt");
-            } else {
-                logger.info("Bestehende SectPr gefunden");
-            }
+            } 
             
             // Footer-Referenz
             FooterReference footerRef = f.createFooterReference();
             footerRef.setId(relFooter.getId());
             footerRef.setType(HdrFtrRef.DEFAULT);
             sectPr.getEGHdrFtrReferences().add(footerRef);
-            logger.info("Footer-Referenz hinzugefügt");
             
-            logger.info("Seitenzahlen erfolgreich hinzugefügt");
         } catch (Exception e) {
             logger.error("Fehler beim Hinzufügen der Seitenzahlen: {}", e.getMessage(), e);
         }

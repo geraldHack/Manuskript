@@ -192,7 +192,6 @@ public class MainController implements Initializable {
         
         // Zurück-Funktionalität
         backButton.setOnAction(e -> {
-            logger.info("Zurück-Button geklickt - schließe Hauptfenster und öffne Projektauswahl");
             primaryStage.hide();
             showProjectSelectionMenu();
         });
@@ -231,13 +230,11 @@ public class MainController implements Initializable {
         
         // Debug: Prüfe ob ImageView korrekt erstellt wurde
         if (coverImageView != null) {
-            logger.info("ImageView programmatisch erstellt und hinzugefügt: {}", coverImageView);
             
             // Prüfe beim Start, ob Root-Verzeichnis konfiguriert ist
             String rootDir = ResourceManager.getParameter("project.root.directory", "");
             if (rootDir == null || rootDir.trim().isEmpty()) {
                 // Root-Verzeichnis nicht gesetzt - Benutzer fragen
-                logger.info("Root-Verzeichnis nicht gesetzt beim Start, zeige Dialog");
                 showRootDirectoryChooser();
                 
                 // Nach dem Dialog automatisch Projektauswahl öffnen
@@ -264,7 +261,6 @@ public class MainController implements Initializable {
                     startBackButton.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-border-radius: 8px;");
                     startBackButton.getStyleClass().add("back-button");
                     startBackButton.setOnAction(e -> {
-                        logger.info("Zurück-Button geklickt - schließe Hauptfenster und öffne Projektauswahl");
                         primaryStage.hide();
                         showProjectSelectionMenu();
                     });
@@ -288,7 +284,6 @@ public class MainController implements Initializable {
                     startBackButton.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-border-radius: 8px;");
                     startBackButton.getStyleClass().add("back-button");
                     startBackButton.setOnAction(e -> {
-                        logger.info("Zurück-Button geklickt - schließe Hauptfenster und öffne Projektauswahl");
                         primaryStage.hide();
                         showProjectSelectionMenu();
                     });
@@ -450,7 +445,6 @@ public class MainController implements Initializable {
                             if (mdFile != null && mdFile.exists()) {
                                 try {
                                     mdFile.delete();
-                                    logger.info("MD-Datei gelöscht: {}", mdFile.getName());
                                 } catch (Exception e) {
                                     logger.error("Fehler beim Löschen der MD-Datei {}: {}", mdFile.getName(), e.getMessage());
                                 }
@@ -537,7 +531,6 @@ public class MainController implements Initializable {
                                 // DOCX zu MD konvertieren und speichern
                                 String mdContent = docxProcessor.processDocxFileContent(file.getFile(), 1, DocxProcessor.OutputFormat.MARKDOWN);
                                 java.nio.file.Files.write(mdFile.toPath(), mdContent.getBytes(java.nio.charset.StandardCharsets.UTF_8));
-                                logger.info("MD-Datei automatisch erstellt (Drag & Drop): {}", mdFile.getName());
                             } catch (Exception e) {
                                 logger.error("Fehler beim Erstellen der MD-Datei für {}: {}", file.getFileName(), e.getMessage());
                             }
@@ -780,7 +773,6 @@ public class MainController implements Initializable {
             // Entferne grünlichen Farbstich durch explizite Farbkorrektur
             coverImageView.setStyle("-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 15, 0, 0, 0); -fx-color: white;");
             
-            logger.info("Cover-Bild geladen: {}", coverFile.getName());
         } catch (Exception e) {
             logger.error("Fehler beim Laden des Cover-Bildes", e);
             coverImageView.setVisible(false);
@@ -805,7 +797,6 @@ public class MainController implements Initializable {
                     
                     // Aktualisiere den gespeicherten Pfad
                     
-                    logger.info("Cover-Bild als cover_image.png gespeichert: {}", targetFile.getAbsolutePath());
                 }
             }
         } catch (Exception e) {
@@ -822,7 +813,6 @@ public class MainController implements Initializable {
             if (currentDirectory.exists() && currentDirectory.isDirectory()) {
                 File coverImagePng = new File(currentDirectory, "cover_image.png");
                 if (coverImagePng.exists()) {
-                    logger.info("cover_image.png im aktuellen Verzeichnis gefunden: {}", coverImagePng.getAbsolutePath());
                     loadCoverImage(coverImagePng);
                     return;
                 }
@@ -834,7 +824,6 @@ public class MainController implements Initializable {
         if (!lastCoverPath.isEmpty()) {
             File coverFile = new File(lastCoverPath);
             if (coverFile.exists()) {
-                logger.info("Lade Cover-Bild beim Start: {}", lastCoverPath);
                 loadCoverImage(coverFile);
             } else {
                 logger.warn("Cover-Bild nicht gefunden: {}", lastCoverPath);
@@ -842,7 +831,6 @@ public class MainController implements Initializable {
                 setPlaceholderImage();
             }
         } else {
-            logger.info("Kein Cover-Bild-Pfad gespeichert");
             // Setze ein Platzhalter-Bild wenn kein Pfad gespeichert ist
             setPlaceholderImage();
         }
@@ -862,7 +850,6 @@ public class MainController implements Initializable {
                 }
             }
         }
-        logger.info("ImageView entfernt - kein Bild vorhanden");
     }
     
     private void loadLastDirectory() {
@@ -881,9 +868,6 @@ public class MainController implements Initializable {
      */
     private void checkAndImportSudowriteFiles(File projectDirectory) {
         try {
-            logger.info("=== SUDOWRITE DEBUG START ===");
-            logger.info("Projekt-Verzeichnis: {}", projectDirectory.getAbsolutePath());
-            logger.info("Downloads-Verzeichnis: {}", downloadsDirectory != null ? downloadsDirectory.getAbsolutePath() : "NULL");
             
             // Verwende das bereits konfigurierte Downloads-Verzeichnis
             if (downloadsDirectory == null || !downloadsDirectory.exists()) {
@@ -897,19 +881,6 @@ public class MainController implements Initializable {
             
             // Projektname aus Verzeichnis ableiten
             String projectName = projectDirectory.getName();
-            logger.info("Projektname: {}", projectName);
-            logger.info("Suche nach Sudowrite-ZIP für Projekt: {}", projectName);
-            
-            // Alle Dateien im Downloads-Verzeichnis auflisten
-            File[] allFiles = downloadsDirectory.listFiles();
-            logger.info("Alle Dateien im Downloads-Verzeichnis:");
-            if (allFiles != null) {
-                for (File file : allFiles) {
-                    logger.info("  - {} (ZIP: {})", file.getName(), file.getName().toLowerCase().endsWith(".zip"));
-                }
-            } else {
-                logger.warn("Downloads-Verzeichnis ist leer oder nicht lesbar");
-            }
             
             // Alle ZIP-Dateien im Downloads-Verzeichnis durchsuchen
             File[] zipFiles = downloadsDirectory.listFiles((dir, name) -> 
@@ -917,18 +888,10 @@ public class MainController implements Initializable {
                 (name.contains(projectName) || name.contains(projectName.replaceAll("\\s+", "_")))
             );
             
-            logger.info("Gefundene ZIP-Dateien: {}", zipFiles != null ? zipFiles.length : "null");
             if (zipFiles != null && zipFiles.length > 0) {
-                for (File zipFile : zipFiles) {
-                    logger.info("  ZIP gefunden: {}", zipFile.getName());
-                }
-                logger.info("Importiere erste ZIP: {}", zipFiles[0].getName());
                 importSudowriteZip(zipFiles[0], projectDirectory);
-            } else {
-                logger.info("Keine passende ZIP-Datei gefunden");
-            }
+            } 
             
-            logger.info("=== SUDOWRITE DEBUG END ===");
             
         } catch (Exception e) {
             logger.error("Fehler beim Überwachen der Sudowrite-Dateien", e);
@@ -940,7 +903,6 @@ public class MainController implements Initializable {
      */
     private void importSudowriteZip(File zipFile, File projectDirectory) {
         try {
-            logger.info("Importiere Sudowrite-ZIP: {} -> {}", zipFile.getName(), projectDirectory.getName());
             
             // ZIP entpacken
             java.util.zip.ZipFile zip = new java.util.zip.ZipFile(zipFile);
@@ -965,17 +927,12 @@ public class MainController implements Initializable {
                             fos.write(buffer, 0, length);
                         }
                         
-                        logger.info("DOCX importiert: {}", fileName);
                         importedCount++;
                     }
                 }
             }
             zip.close();
             
-            // Original ZIP-Datei löschen
-            if (zipFile.delete()) {
-                logger.info("Original ZIP-Datei gelöscht: {}", zipFile.getName());
-            }
             
             // Projekt neu laden
             if (importedCount > 0) {
@@ -998,15 +955,11 @@ public class MainController implements Initializable {
         try {
             updateStatus("Lade DOCX-Dateien...");
             
-            logger.info("Scanne Verzeichnis für DOCX-Dateien: {}", directory.getAbsolutePath());
             
             // Alle DOCX-Dateien im Verzeichnis sammeln (nur flach, keine Unterverzeichnisse)
             Set<File> fileSet = java.nio.file.Files.list(directory.toPath())
                     .filter(path -> {
                         boolean isDocx = path.toString().toLowerCase().endsWith(".docx");
-                        if (isDocx) {
-                            logger.info("DOCX-Datei gefunden: {}", path.getFileName());
-                        }
                         return isDocx;
                     })
                     .map(java.nio.file.Path::toFile)
@@ -1014,7 +967,6 @@ public class MainController implements Initializable {
             
             List<File> files = new ArrayList<>(fileSet);
             
-            logger.info("Insgesamt {} DOCX-Dateien gefunden", files.size());
             
             // Sudowrite-ZIP-Dateien überprüfen und importieren (nur wenn Downloads-Monitor aktiv)
             if (downloadsDirectory != null && downloadsDirectory.exists()) {
@@ -1022,21 +974,12 @@ public class MainController implements Initializable {
             }
             
             // Alle Listen leeren
-            logger.info("=== DEBUG: Listen leeren ===");
-            logger.info("allDocxFiles vor clear: {}", allDocxFiles.size());
-            logger.info("originalDocxFiles vor clear: {}", originalDocxFiles.size());
-            logger.info("selectedDocxFiles vor clear: {}", selectedDocxFiles.size());
             
             allDocxFiles.clear();
             originalDocxFiles.clear();
             selectedDocxFiles.clear();
             
-            logger.info("allDocxFiles nach clear: {}", allDocxFiles.size());
-            logger.info("originalDocxFiles nach clear: {}", originalDocxFiles.size());
-            logger.info("selectedDocxFiles nach clear: {}", selectedDocxFiles.size());
-            
             // Für jede Datei entscheiden: links oder rechts?
-            logger.info("=== DEBUG: Dateien verarbeiten ===");
             for (File file : files) {
                 DocxFile docxFile = new DocxFile(file);
                 originalDocxFiles.add(docxFile);
@@ -1048,24 +991,14 @@ public class MainController implements Initializable {
                 if (hasMdFile) {
                     // Datei hat MD-Datei → nach rechts
                     selectedDocxFiles.add(docxFile);
-                    logger.info("Datei nach rechts: {} (hat MD-Datei)", docxFile.getFileName());
                 } else {
                     // Datei hat keine MD-Datei → nach links
                 allDocxFiles.add(docxFile);
-                    logger.info("Datei nach links: {} (keine MD-Datei)", docxFile.getFileName());
                 }
             }
             
-            logger.info("=== DEBUG: Finale Listen-Größen ===");
-            logger.info("allDocxFiles: {} Dateien", allDocxFiles.size());
-            logger.info("originalDocxFiles: {} Dateien", originalDocxFiles.size());
-            logger.info("selectedDocxFiles: {} Dateien", selectedDocxFiles.size());
             
             // Debug: Alle Dateien in allDocxFiles auflisten
-            logger.info("=== DEBUG: Dateien in allDocxFiles ===");
-            for (DocxFile docxFile : allDocxFiles) {
-                logger.info("  - {}", docxFile.getFileName());
-            }
             
             // NEU: Hash-basierte Änderungsprüfung für alle geladenen Dateien
             checkAllDocxFilesForChanges();
@@ -1190,7 +1123,6 @@ public class MainController implements Initializable {
                             
                             // Nur auf DOCX-Dateien reagieren
                             if (fileName.toString().toLowerCase().endsWith(".docx")) {
-                                logger.info("DOCX-Datei-Änderung erkannt: {} - {}", kind.name(), fileName);
                                 
                                 // Kurze Verzögerung für überschriebene Dateien
                                 Thread.sleep(100);
@@ -1210,7 +1142,6 @@ public class MainController implements Initializable {
                         }
                     }
                 } catch (InterruptedException e) {
-                    logger.info("Datei-Überwachung unterbrochen");
                 } catch (Exception e) {
                     logger.error("Fehler in der Datei-Überwachung", e);
                 }
@@ -1219,15 +1150,12 @@ public class MainController implements Initializable {
             watchThread.setDaemon(true);
             watchThread.start();
             
-            logger.info("Automatische Datei-Überwachung gestartet für: {}", directory.getAbsolutePath());
-            
         } catch (Exception e) {
             logger.error("Fehler beim Starten der Datei-Überwachung", e);
         }
     }
     
     public void stopFileWatcher() {
-        logger.info("Stoppe File Watcher...");
         watchRunning = false;
         
         if (watchThread != null) {
@@ -1248,14 +1176,12 @@ public class MainController implements Initializable {
         if (watchService != null) {
             try {
                 watchService.close();
-                logger.info("WatchService erfolgreich geschlossen");
             } catch (Exception e) {
                 logger.error("Fehler beim Schließen des WatchService", e);
             }
             watchService = null;
         }
         
-        logger.info("File Watcher gestoppt");
     }
     
     public void refreshDocxFiles() {
@@ -1289,7 +1215,6 @@ public class MainController implements Initializable {
     
     private void addNewDocxFiles(File directory) {
         try {
-            logger.info("Prüfe auf neue DOCX-Dateien in: {}", directory.getAbsolutePath());
             
             // Sammle alle DOCX-Dateien im Verzeichnis (nur flach)
             Set<File> currentFiles = java.nio.file.Files.list(directory.toPath())
@@ -1311,7 +1236,6 @@ public class MainController implements Initializable {
             newFiles.removeAll(existingFiles);
             
             if (!newFiles.isEmpty()) {
-                logger.info("{} neue DOCX-Dateien gefunden", newFiles.size());
                 
                 // Füge neue Dateien hinzu
                 for (File file : newFiles) {
@@ -1325,17 +1249,14 @@ public class MainController implements Initializable {
                     if (hasMdFile) {
                         // Datei hat MD-Datei → nach rechts
                         selectedDocxFiles.add(docxFile);
-                        logger.info("Neue Datei nach rechts: {} (hat MD-Datei)", docxFile.getFileName());
                     } else {
                         // Datei hat keine MD-Datei → nach links
                         allDocxFiles.add(docxFile);
-                        logger.info("Neue Datei nach links: {} (keine MD-Datei)", docxFile.getFileName());
                     }
                 }
                 
                 updateStatus(newFiles.size() + " neue Dateien hinzugefügt");
             } else {
-                logger.info("Keine neuen DOCX-Dateien gefunden");
             }
             
         } catch (Exception e) {
@@ -1345,7 +1266,6 @@ public class MainController implements Initializable {
     
     private void checkAllDocxFilesForChanges() {
         try {
-            logger.info("Prüfe alle DOCX-Dateien auf Änderungen...");
             
             // Prüfe alle Dateien in beiden Listen
             List<DocxFile> allFiles = new ArrayList<>();
@@ -1359,24 +1279,20 @@ public class MainController implements Initializable {
                 if (currentHash != null && savedHash != null && !currentHash.equals(savedHash)) {
                     // Datei wurde geändert!
                     docxFile.setChanged(true);
-                    logger.info("DOCX geändert erkannt: {} (Hash unterschiedlich)", docxFile.getFileName());
                     // NICHT den neuen Hash speichern - behalte den alten für Vergleich
                 } else if (currentHash != null && savedHash == null) {
                     // Neue Datei - noch nie verarbeitet
                     docxFile.setChanged(true);
-                    logger.info("DOCX neu erkannt: {} (kein gespeicherter Hash)", docxFile.getFileName());
                     // Hash speichern für erste Verarbeitung
                     saveDocxHash(docxFile.getFile(), currentHash);
                 } else if (currentHash != null && savedHash != null && currentHash.equals(savedHash)) {
                     // Datei unverändert
                     docxFile.setChanged(false);
-                    logger.info("DOCX unverändert: {} (Hash gleich)", docxFile.getFileName());
                     // Hash nur speichern wenn unverändert
                     saveDocxHash(docxFile.getFile(), currentHash);
                 }
             }
             
-            logger.info("Änderungsprüfung abgeschlossen");
             
         } catch (Exception e) {
             logger.error("Fehler bei der Änderungsprüfung", e);
@@ -1455,7 +1371,6 @@ public class MainController implements Initializable {
             File dataDir = getDataDirectory(docxFile);
             File metaFile = new File(dataDir, docxFile.getName() + ".meta");
             java.nio.file.Files.write(metaFile.toPath(), hash.getBytes(java.nio.charset.StandardCharsets.UTF_8));
-            logger.debug("Hash gespeichert für {}: {}", docxFile.getName(), hash);
         } catch (Exception e) {
             logger.error("Fehler beim Speichern des Hash für {}: {}", docxFile.getName(), e.getMessage());
         }
@@ -1470,7 +1385,6 @@ public class MainController implements Initializable {
             File metaFile = new File(dataDir, docxFile.getName() + ".meta");
             if (metaFile.exists()) {
                 String hash = new String(java.nio.file.Files.readAllBytes(metaFile.toPath()), java.nio.charset.StandardCharsets.UTF_8);
-                logger.debug("Hash geladen für {}: {}", docxFile.getName(), hash);
                 return hash;
             }
         } catch (Exception e) {
@@ -1487,7 +1401,6 @@ public class MainController implements Initializable {
             String currentHash = calculateFileHash(docxFile);
             if (currentHash != null) {
                 saveDocxHash(docxFile, currentHash);
-                logger.info("Hash aktualisiert nach Übernahme für: {}", docxFile.getName());
             }
         } catch (Exception e) {
             logger.error("Fehler beim Aktualisieren des Hash für {}: {}", docxFile.getName(), e.getMessage());
@@ -1506,7 +1419,6 @@ public class MainController implements Initializable {
             for (DocxFile file : allDocxFiles) {
                 if (file.getFile().getAbsolutePath().equals(docxFile.getAbsolutePath())) {
                     file.setChanged(false);
-                    logger.info("DOCX-Datei als unverändert markiert (allDocxFiles): {}", docxFile.getName());
                     found = true;
                     break;
                 }
@@ -1517,7 +1429,6 @@ public class MainController implements Initializable {
                 for (DocxFile file : selectedDocxFiles) {
                     if (file.getFile().getAbsolutePath().equals(docxFile.getAbsolutePath())) {
                         file.setChanged(false);
-                        logger.info("DOCX-Datei als unverändert markiert (selectedDocxFiles): {}", docxFile.getName());
                         found = true;
                         break;
                     }
@@ -1545,7 +1456,6 @@ public class MainController implements Initializable {
                         tableViewSelected.getColumns().forEach(col -> col.setVisible(true));
                     }
                     
-                    logger.info("UI sofort aktualisiert für: {}", docxFile.getName());
                 } catch (Exception e) {
                     logger.error("Fehler beim Aktualisieren der UI: {}", e.getMessage());
                 }
@@ -1609,7 +1519,6 @@ public class MainController implements Initializable {
                         java.nio.file.Files.write(tempFile.toPath(), mdContent.getBytes(java.nio.charset.StandardCharsets.UTF_8));
                         java.nio.file.Files.move(tempFile.toPath(), mdFile.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
                         
-                        logger.info("MD-Datei erfolgreich erstellt: {}", mdFile.getName());
                         
                     } catch (Exception e) {
                         String errorMsg = "Fehler beim Erstellen der MD-Datei für " + file.getFileName() + ": " + e.getMessage();
@@ -1665,15 +1574,10 @@ public class MainController implements Initializable {
             return;
         }
         
-        logger.info("=== DEBUG: removeSelectedFromRight START ===");
-        logger.info("selectedFiles.size(): {}", selectedFiles.size());
-        logger.info("selectedDocxFiles.size(): {}", selectedDocxFiles.size());
-        logger.info("allDocxFiles.size(): {}", allDocxFiles.size());
         
         // Debug: Alle ausgewählten Dateien auflisten
         for (int i = 0; i < selectedFiles.size(); i++) {
             DocxFile file = selectedFiles.get(i);
-            logger.info("selectedFiles[{}]: {} (File: {})", i, file.getFileName(), file.getFile().getAbsolutePath());
         }
         
         // Prüfe, ob Dateien MD-Dateien haben
@@ -1696,7 +1600,6 @@ public class MainController implements Initializable {
                     if (mdFile != null && mdFile.exists()) {
                         try {
                             mdFile.delete();
-                            logger.info("MD-Datei gelöscht: {}", mdFile.getName());
                         } catch (Exception e) {
                             logger.error("Fehler beim Löschen der MD-Datei {}: {}", mdFile.getName(), e.getMessage());
                         }
@@ -1704,26 +1607,15 @@ public class MainController implements Initializable {
                 }
                 
                 // Alle Dateien nach links verschieben
-                logger.info("=== DEBUG: Verschieben nach links ===");
-                logger.info("Ausgewählte Dateien: {}", selectedFiles.size());
-                for (DocxFile file : selectedFiles) {
-                    logger.info("  - {}", file.getFileName());
-        }
         
         selectedDocxFiles.removeAll(selectedFiles);
-                logger.info("Nach removeAll: selectedDocxFiles = {}", selectedDocxFiles.size());
                 
                 for (DocxFile file : selectedFiles) {
                     if (!allDocxFiles.contains(file)) {
                         allDocxFiles.add(file);
-                        logger.info("Hinzugefügt zu allDocxFiles: {}", file.getFileName());
-                    } else {
-                        logger.info("Datei bereits in allDocxFiles: {}", file.getFileName());
-                    }
+                    } 
                 }
                 
-                logger.info("Final: allDocxFiles = {}", allDocxFiles.size());
-                logger.info("=== DEBUG: Ende Verschieben ===");
                 
                 // Tabellen explizit aktualisieren
                 tableViewSelected.refresh();
@@ -1737,26 +1629,15 @@ public class MainController implements Initializable {
             }
         } else {
             // Keine MD-Dateien - direkt nach links verschieben
-            logger.info("=== DEBUG: Verschieben nach links (keine MD) ===");
-            logger.info("Ausgewählte Dateien: {}", selectedFiles.size());
-            for (DocxFile file : selectedFiles) {
-                logger.info("  - {}", file.getFileName());
-            }
             
             selectedDocxFiles.removeAll(selectedFiles);
-            logger.info("Nach removeAll: selectedDocxFiles = {}", selectedDocxFiles.size());
             
             for (DocxFile file : selectedFiles) {
                 if (!allDocxFiles.contains(file)) {
                     allDocxFiles.add(file);
-                    logger.info("Hinzugefügt zu allDocxFiles: {}", file.getFileName());
-                } else {
-                    logger.info("Datei bereits in allDocxFiles: {}", file.getFileName());
                 }
             }
             
-            logger.info("Final: allDocxFiles = {}", allDocxFiles.size());
-            logger.info("=== DEBUG: Ende Verschieben (keine MD) ===");
             
             // Tabellen explizit aktualisieren
             tableViewSelected.refresh();
@@ -1771,7 +1652,7 @@ public class MainController implements Initializable {
 
     
     private void processSelectedFiles() {
-        // NEU: Gesamtdokument erstellen - ALLE Dateien aus der rechten Tabelle
+        // NEU: Buch exportieren - ALLE Dateien aus der rechten Tabelle
         if (selectedDocxFiles.isEmpty()) {
             showWarning("Keine Dateien vorhanden", "Bitte fügen Sie zuerst Dateien zur rechten Tabelle hinzu.");
             return;
@@ -1782,20 +1663,19 @@ public class MainController implements Initializable {
         File directory = new File(directoryPath);
         String directoryName = directory.getName();
         File[] existingGesamtFiles = directory.listFiles((dir, name) ->
-            (name.startsWith(directoryName + ".gesamt.") || name.equals(directoryName + " Gesamtdokument.md")) &&
+            (name.startsWith(directoryName + ".gesamt.") || name.equals(directoryName + " Buch.md")) &&
             (name.endsWith(".md") || name.endsWith(".txt") || name.endsWith(".html"))
         );
         
         if (existingGesamtFiles != null && existingGesamtFiles.length > 0) {
             showGesamtFileDialog(existingGesamtFiles, selectedDocxFiles);
         } else {
-            // Direkt Gesamtdokument erstellen für ALLE Dateien aus der rechten Tabelle
+            // Direkt Buch exportieren für ALLE Dateien aus der rechten Tabelle
             processCompleteDocument(selectedDocxFiles);
         }
     }
     
     private void processAllFiles() {
-        logger.info("=== DEBUG: 'Kapitel bearbeiten' Button wurde gedrückt ===");
 
         // NEU: Kapitel bearbeiten - alle Dateien aus der rechten Tabelle
         if (selectedDocxFiles.isEmpty()) {
@@ -1861,24 +1741,17 @@ public class MainController implements Initializable {
                             return; // nach Diff kein Editor öffnen
                         }
                         case DOCX: {
-                            logger.info("=== DEBUG: DOCX übernehmen Handler gestartet");
                             try {
                                 String docxContent = docxProcessor.processDocxFileContent(chapterFile.getFile(), 1, format);
-                                logger.info("=== DEBUG: DOCX-Content Länge: {}", docxContent.length());
                                 
                                 EditorWindow editorController = openChapterEditorWindow(docxContent, chapterFile, format);
-                                logger.info("=== DEBUG: Editor-Controller: {}", editorController != null ? "JA" : "NEIN");
                                 
                                 if (editorController != null) {
-                                    logger.info("=== DEBUG: Speichere Editor-Inhalt als MD");
                                     try {
                                         String editorContent = editorController.getText();
-                                        logger.info("=== DEBUG: Editor-Inhalt Länge: {}", editorContent.length());
                                         File mdFileToSave = deriveMdFileFor(chapterFile.getFile());
-                                        logger.info("=== DEBUG: MD-Datei Pfad: {}", mdFileToSave != null ? mdFileToSave.getAbsolutePath() : "NULL");
                                         if (mdFileToSave != null) {
                                             java.nio.file.Files.write(mdFileToSave.toPath(), editorContent.getBytes(java.nio.charset.StandardCharsets.UTF_8));
-                                            logger.info("=== DEBUG: Editor-Inhalt als MD gespeichert: {}", mdFileToSave.getName());
                                         } else {
                                             logger.error("=== DEBUG: MD-Datei Pfad ist NULL!");
                                         }
@@ -1913,7 +1786,6 @@ public class MainController implements Initializable {
                         }
                         case CANCEL:
                         default:
-                            logger.info("Aktion abgebrochen – kein Editor geöffnet");
                             return;
                     }
                 } else {
@@ -1936,14 +1808,12 @@ public class MainController implements Initializable {
                 }
             } else {
                 // Keine MD-Datei - konvertiere DOCX zu MD und speichere
-                logger.info("Keine MD-Datei gefunden, konvertiere DOCX zu MD: {}", chapterFile.getFileName());
                 String content = docxProcessor.processDocxFileContent(chapterFile.getFile(), 1, format);
                 
                 // Speichere als MD-Datei
                 if (mdFile != null) {
                     try {
                         java.nio.file.Files.write(mdFile.toPath(), content.getBytes(java.nio.charset.StandardCharsets.UTF_8));
-                        logger.info("MD-Datei erstellt: {}", mdFile.getAbsolutePath());
                         updateStatus("MD-Datei erstellt: " + chapterFile.getFileName());
                     } catch (Exception e) {
                         logger.error("Fehler beim Speichern der MD-Datei", e);
@@ -2043,7 +1913,6 @@ public class MainController implements Initializable {
     public DocxChangeDecision showDocxChangedDialogInMain(DocxFile chapterFile) {
         // WICHTIG: Dialog unterdrücken wenn suppressExternalChangeDialog aktiv ist
         if (suppressExternalChangeDialog) {
-            logger.info("External Change Dialog unterdrückt für: {}", chapterFile.getFileName());
             return DocxChangeDecision.IGNORE;
         }
 
@@ -2097,7 +1966,6 @@ public class MainController implements Initializable {
      * Findet den aktuell geöffneten Editor für ein Kapitel
      */
     private EditorWindow findCurrentEditorForChapter(DocxFile chapterFile) {
-        logger.info("Suche Editor für Kapitel: {}", chapterFile.getFileName());
         
         String chapterName = chapterFile.getFileName();
         if (chapterName.toLowerCase().endsWith(".docx")) {
@@ -2108,11 +1976,8 @@ public class MainController implements Initializable {
         EditorWindow editor = openEditors.get(editorKey);
         
         if (editor != null) {
-            logger.info("Editor für Kapitel '{}' in Map gefunden", chapterName);
             return editor;
         } else {
-            logger.info("Kein Editor für Kapitel '{}' in Map gefunden", chapterName);
-            logger.info("Verfügbare Editoren: {}", openEditors.keySet());
             return null;
         }
     }
@@ -2146,11 +2011,9 @@ public class MainController implements Initializable {
             if (currentEditor != null) {
                 // Verwende den aktuellen Editor-Inhalt statt der gespeicherten Datei
                 mdContent = currentEditor.getText();
-                logger.info("Verwende aktuellen Editor-Inhalt für Diff ({} Zeichen)", mdContent.length());
             } else {
                 // Fallback: Verwende die gespeicherte Datei
                 mdContent = new String(java.nio.file.Files.readAllBytes(mdFile.toPath()), java.nio.charset.StandardCharsets.UTF_8);
-                logger.info("Kein Editor gefunden, verwende gespeicherte Datei für Diff");
             }
             
             // Erstelle HBox für feste nebeneinander Anzeige (beide Seiten immer gleich breit)
@@ -2593,17 +2456,12 @@ public class MainController implements Initializable {
                     }
                     
                     // WICHTIG: Editor-Inhalt SOFORT als MD speichern, da wir "DOCX übernehmen" gesagt haben
-                    logger.info("=== DEBUG: Editor-Controller: {}", editorController != null ? "JA" : "NEIN");
                     if (editorController != null) {
-                        logger.info("=== DEBUG: Speichere Editor-Inhalt als MD");
                         try {
                             String editorContent = editorController.getText();
-                            logger.info("=== DEBUG: Editor-Inhalt Länge: {}", editorContent.length());
                             File mdFileToSave = deriveMdFileFor(chapterFile.getFile());
-                            logger.info("=== DEBUG: MD-Datei Pfad: {}", mdFileToSave != null ? mdFileToSave.getAbsolutePath() : "NULL");
                             if (mdFileToSave != null) {
                                 java.nio.file.Files.write(mdFileToSave.toPath(), editorContent.getBytes(java.nio.charset.StandardCharsets.UTF_8));
-                                logger.info("=== DEBUG: Editor-Inhalt als MD gespeichert: {}", mdFileToSave.getName());
                                 
                                 // Hash aktualisieren, damit keine "extern geändert" Dialoge mehr kommen
                                 updateDocxHashAfterAccept(chapterFile.getFile());
@@ -2980,17 +2838,13 @@ public class MainController implements Initializable {
     
     private EditorWindow openChapterEditorWindow(String text, DocxFile chapterFile, DocxProcessor.OutputFormat format) {
         try {
-            logger.info("=== ÖFFNE EDITOR FENSTER START ===");
             
 
             
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/editor.fxml"));
-            logger.info("=== FXML LOADER ERSTELLT ===");
             Parent root = loader.load();
-            logger.info("=== FXML GELADEN ===");
             
             EditorWindow editorController = loader.getController();
-            logger.info("=== EDITOR CONTROLLER ERHALTEN: " + (editorController != null ? "JA" : "NEIN") + " ===");
             editorController.setText(text);
             editorController.setOutputFormat(format);
             
@@ -3072,7 +2926,6 @@ public class MainController implements Initializable {
             // Editor in Map speichern für spätere Suche
             String editorKey = chapterName + ".md";
             openEditors.put(editorKey, editorController);
-            logger.info("Editor gespeichert: {}", editorKey);
             
             // WICHTIG: EditorWindow übernimmt die Fenster-Eigenschaften
             // EditorWindow.loadWindowProperties() wird automatisch aufgerufen
@@ -3090,7 +2943,6 @@ public class MainController implements Initializable {
             final String finalEditorKey = chapterName + ".md";
             editorStage.setOnCloseRequest(e -> {
                 openEditors.remove(finalEditorKey);
-                logger.info("Editor aus Map entfernt: {}", finalEditorKey);
             });
             
             editorStage.show();
@@ -3105,7 +2957,7 @@ public class MainController implements Initializable {
     }
     
     private void processCompleteDocument(ObservableList<DocxFile> files) {
-        // ALT: Gesamtdokument erstellen (wie bisher)
+        // Buch exportieren (wie bisher)
         try {
             updateStatus("Verarbeite " + files.size() + " Dateien...");
             
@@ -3139,13 +2991,49 @@ public class MainController implements Initializable {
             for (DocxFile docxFile : files) {
                 updateStatus("Verarbeite: " + docxFile.getFileName());
                 
-                // Erstelle Roman-Ordner und TXT-Dateien
-                NovelManager.initializeNovelFolder(docxFile.getFile().getAbsolutePath());
-                
-                String content = docxProcessor.processDocxFileContent(docxFile.getFile(), processed + 1, format);
-                result.append(content).append("\n\n");
-                
-                processed++;
+                // Finde die entsprechende MD-Datei
+                File mdFile = deriveMdFileFor(docxFile.getFile());
+                if (mdFile != null && mdFile.exists()) {
+                    try {
+                        // Lade MD-Inhalt
+                        String mdContent = Files.readString(mdFile.toPath(), StandardCharsets.UTF_8);
+                        
+                        // Prüfe ob MD-Datei bereits mit Überschrift beginnt
+                        String trimmedContent = mdContent.trim();
+                        boolean hasHeading = trimmedContent.startsWith("#");
+                        
+                        if (!hasHeading) {
+                            // Erstelle Kapitel-Überschrift nur wenn keine vorhanden
+                            String chapterName = docxFile.getFileName().replace(".docx", "");
+                            result.append("## ").append(chapterName).append("\n\n");
+                        }
+                        
+                        // MD-Inhalt formatieren (Leerzeilen zwischen Absätzen sicherstellen)
+                        String formattedContent = formatMarkdownParagraphs(mdContent);
+
+                        // Füge MD-Inhalt hinzu
+                        result.append(formattedContent).append("\n\n");
+                        
+                        processed++;
+                        
+                    } catch (Exception e) {
+                        logger.error("Fehler beim Laden der MD-Datei: {}", mdFile.getName(), e);
+                        // Fallback: Konvertiere DOCX zu MD
+                        String content = docxProcessor.processDocxFileContent(docxFile.getFile(), processed + 1, format);
+                        String formattedContent = formatMarkdownParagraphs(content);
+                        result.append("## ").append(docxFile.getFileName().replace(".docx", "")).append("\n\n");
+                        result.append(formattedContent).append("\n\n");
+                        processed++;
+                    }
+                } else {
+                    logger.warn("Keine MD-Datei gefunden für: {}", docxFile.getFileName());
+                    // Fallback: Konvertiere DOCX zu MD
+                    String content = docxProcessor.processDocxFileContent(docxFile.getFile(), processed + 1, format);
+                    String formattedContent = formatMarkdownParagraphs(content);
+                    result.append("## ").append(docxFile.getFileName().replace(".docx", "")).append("\n\n");
+                    result.append(formattedContent).append("\n\n");
+                    processed++;
+                }
             }
             
             // HTML-Footer nur einmal am Ende (falls HTML-Format)
@@ -3170,22 +3058,24 @@ public class MainController implements Initializable {
                 ResourceManager.saveParameter("ui.last_docx_directory", docxDirectory);
             }
             
-            // Erstelle das Gesamtdokument als echte Datei
+            // Erstelle das Buch als echte Datei
             String currentDirectory = txtDirectoryPath.getText();
-            File completeDocumentFile = new File(currentDirectory, baseFileName + " Gesamtdokument.md");
+            File completeDocumentFile = new File(currentDirectory, baseFileName + " Buch.md");
             
             try {
-                // Schreibe das Gesamtdokument in die Datei
+                // Schreibe das Buch in die Datei
                 Files.write(completeDocumentFile.toPath(), result.toString().getBytes(StandardCharsets.UTF_8));
-                logger.info("Gesamtdokument erstellt: " + completeDocumentFile.getAbsolutePath());
-                
+
                 // Öffne den Editor mit der echten Datei
-                openEditorWithFile(completeDocumentFile, true); // true = ist Gesamtdokument
-                updateStatus(processed + " Dateien erfolgreich verarbeitet - Gesamtdokument erstellt: " + completeDocumentFile.getName());
+                openEditorWithFile(completeDocumentFile, true); // true = ist Buch
+                updateStatus(processed + " Dateien erfolgreich verarbeitet - Buch erstellt: " + completeDocumentFile.getName());
+
+                // Pandoc Export Dialog anbieten
+                showPandocExportDialog(completeDocumentFile, baseFileName);
                 
             } catch (Exception e) {
-                logger.error("Fehler beim Erstellen des Gesamtdokuments", e);
-                showError("Fehler", "Konnte Gesamtdokument nicht erstellen: " + e.getMessage());
+                logger.error("Fehler beim Erstellen des Buches", e);
+                showError("Fehler", "Konnte Buch nicht erstellen: " + e.getMessage());
             }
             
         } catch (Exception e) {
@@ -3290,7 +3180,7 @@ public class MainController implements Initializable {
             editorController.setDocxProcessor(docxProcessor);
             
             // WICHTIG: Setze die originale DOCX-Datei für Rückkonvertierung
-            // Da es ein Gesamtdokument ist, verwenden wir die erste Datei als Referenz
+            // Da es ein Buch ist, verwenden wir die erste Datei als Referenz
             if (!selectedDocxFiles.isEmpty()) {
                 File firstDocxFile = selectedDocxFiles.get(0).getFile();
                 editorController.setOriginalDocxFile(firstDocxFile);
@@ -3302,10 +3192,10 @@ public class MainController implements Initializable {
             // WICHTIG: Setze die Referenz zum MainController für Navigation
             editorController.setMainController(this);
             
-            // NEU: Titelbalken für Gesamtdokument setzen
-            editorController.setWindowTitle("📚 Gesamtdokument: " + baseFileName);
-            
-            CustomStage editorStage = StageManager.createStage("Gesamtdokument: " + baseFileName);
+            // NEU: Titelbalken für Buch setzen
+            editorController.setWindowTitle("📚 Buch: " + baseFileName);
+
+            CustomStage editorStage = StageManager.createStage("Buch: " + baseFileName);
             
             // Scene erstellen und mit CustomStage-Titelleiste setzen
             Scene scene = new Scene(root);
@@ -3357,7 +3247,6 @@ public class MainController implements Initializable {
     
     private void updateStatus(String message) {
         // lblStatus wurde entfernt - nur noch Logging
-        logger.info("Status: {}", message);
     }
     
     private void showError(String title, String message) {
@@ -3572,7 +3461,6 @@ public class MainController implements Initializable {
             return; // Bereits aktiv
         }
         
-        logger.info("Starte Downloads-Monitor...");
         isMonitoring.set(true);
         downloadsMonitorTimer = new Timer("DownloadsMonitor", true);
         
@@ -3580,13 +3468,10 @@ public class MainController implements Initializable {
         downloadsMonitorTimer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
-                logger.debug("Downloads-Monitor Timer-Tick");
                 checkForNewFiles();
             }
         }, 0, 5000); // Sofort starten, dann alle 5 Sekunden
         
-        logger.info("Downloads-Monitor gestartet für: {}", downloadsDirectory.getAbsolutePath());
-        logger.info("Downloads-Monitor Status: isMonitoring={}, timer={}", isMonitoring.get(), downloadsMonitorTimer != null);
     }
     
     /**
@@ -3598,14 +3483,12 @@ public class MainController implements Initializable {
             downloadsMonitorTimer = null;
         }
         isMonitoring.set(false);
-        logger.info("Downloads-Monitor gestoppt");
     }
     
     /**
      * Prüft auf neue Dateien im Downloads-Verzeichnis
      */
     private void checkForNewFiles() {
-        logger.info("=== Downloads-Monitor Test gestartet ===");
         
         if (!isMonitoring.get() || downloadsDirectory == null) {
             logger.warn("Downloads-Monitor nicht aktiv oder Verzeichnis null");
@@ -3618,55 +3501,40 @@ public class MainController implements Initializable {
         if (currentDirPath != null && !currentDirPath.isEmpty()) {
             File projectDir = new File(currentDirPath);
             if (projectDir.exists()) {
-                logger.info("Prüfe Sudowrite-ZIP für Projekt: {}", projectDir.getName());
                 checkAndImportSudowriteFiles(projectDir);
             }
         }
         
         try {
-            logger.info("Prüfe Downloads-Verzeichnis: {}", downloadsDirectory.getAbsolutePath());
-            logger.info("Verzeichnis existiert: {}", downloadsDirectory.exists());
-            logger.info("Verzeichnis ist lesbar: {}", downloadsDirectory.canRead());
             
             File[] files = downloadsDirectory.listFiles((dir, name) -> 
                 name.toLowerCase().endsWith(".docx") && new File(dir, name).isFile());
             
-            logger.info("listFiles() Ergebnis: {}", files != null ? files.length : "null");
             
             if (files == null) {
                 logger.warn("Keine Dateien im Downloads-Verzeichnis - listFiles() returned null");
                 return;
             }
             
-            logger.info("Gefundene DOCX-Dateien: {}", files.length);
             if (files.length == 0) {
-                logger.info("Keine DOCX-Dateien gefunden");
                 return;
             }
             
             // Prüfe ob "Alle DOCX kopieren" aktiviert ist
             boolean copyAllDocx = Boolean.parseBoolean(preferences.get("copy_all_docx", "false"));
-            logger.info("Alle DOCX kopieren aktiviert: {}", copyAllDocx);
             
-            logger.info("Starte Schleife über {} Dateien", files.length);
             for (int i = 0; i < files.length; i++) {
                 File downloadFile = files[i];
-                logger.info("Schleife Iteration {}/{}: {}", i+1, files.length, downloadFile.getName());
-                logger.info("Prüfe Datei: {} (Größe: {} bytes)", downloadFile.getName(), downloadFile.length());
-                
                 // Prüfe ob Datei vollständig ist (nicht mehr geschrieben wird)
                 if (isFileComplete(downloadFile)) {
-                    logger.info("Vollständige Datei gefunden: {}", downloadFile.getName());
                     
                     if (copyAllDocx) {
                         // Alle DOCX-Dateien kopieren ohne Namensvergleich
-                        logger.info("Alle DOCX kopieren aktiviert - kopiere: {}", downloadFile.getName());
                         Platform.runLater(() -> copyAllDocxFile(downloadFile));
                     } else {
                         // Normale Logik mit Namensvergleich
                         String fileName = downloadFile.getName();
                         String baseName = fileName.substring(0, fileName.lastIndexOf('.'));
-                        logger.info("Suche nach Basis-Name: {}", baseName);
                         
                         // Suche in ALLEN Dateien im Verzeichnis (nicht nur in allDocxFiles)
                         boolean found = false;
@@ -3676,20 +3544,17 @@ public class MainController implements Initializable {
                                 name.toLowerCase().endsWith(".docx") && new File(dir, name).isFile());
                             
                             if (allFiles != null) {
-                                logger.info("Prüfe {} Dateien im Verzeichnis", allFiles.length);
                                 for (File existingFile : allFiles) {
                                     String existingName = existingFile.getName();
                                     if (existingName.toLowerCase().endsWith(".docx")) {
                                         existingName = existingName.substring(0, existingName.lastIndexOf('.'));
                                     }
                                     
-                                    logger.info("Vergleiche mit vorhandener Datei: {}", existingName);
                                     
                                     // Name-Vergleich (ignoriere Groß-/Kleinschreibung und normalisiere Leerzeichen)
                                     String normalizedBaseName = baseName.trim().replaceAll("\\s+", " ");
                                     String normalizedExistingName = existingName.trim().replaceAll("\\s+", " ");
                                     if (normalizedBaseName.equalsIgnoreCase(normalizedExistingName)) {
-                                        logger.info("Passende Datei gefunden! Ersetze: {} -> {}", existingName, baseName);
                                         // Datei gefunden - verschieben
                                         Platform.runLater(() -> replaceFileWithDownload(existingFile, downloadFile));
                                         found = true;
@@ -3699,19 +3564,13 @@ public class MainController implements Initializable {
                             }
                         }
                         
-                        if (!found) {
-                            logger.info("Keine passende Datei für {} gefunden", baseName);
-                        }
                     }
-                } else {
-                    logger.info("Datei {} noch nicht vollständig", downloadFile.getName());
-                }
+                } 
             }
         } catch (Exception e) {
             logger.error("Fehler beim Prüfen der Downloads: {}", e.getMessage(), e);
         }
         
-        logger.info("=== Downloads-Monitor Test beendet ===");
     }
     
     /**
@@ -3720,10 +3579,8 @@ public class MainController implements Initializable {
     private boolean isFileComplete(File file) {
         try {
             long size1 = file.length();
-            logger.debug("Datei {} - Größe: {} bytes", file.getName(), size1);
             // Vereinfachte Prüfung: nur Größe > 0
             boolean isComplete = size1 > 0;
-            logger.debug("Datei {} vollständig: {}", file.getName(), isComplete);
             return isComplete;
         } catch (Exception e) {
             logger.error("Fehler beim Prüfen der Datei-Vollständigkeit: {}", e.getMessage());
@@ -3777,7 +3634,6 @@ public class MainController implements Initializable {
                 
                 // Alte Datei nach Backup verschieben
                 Files.move(targetFile.toPath(), backupFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                logger.info("Alte Datei nach Backup verschoben: {} -> {}", targetFile.getName(), backupFileName);
             }
             
             // Download-Datei an Zielort verschieben
@@ -3792,7 +3648,6 @@ public class MainController implements Initializable {
                 updateStatus("Alle DOCX kopiert: " + downloadFile.getName());
             });
             
-            logger.info("Alle DOCX kopiert: {} -> {}", downloadFile.getName(), targetFile.getAbsolutePath());
         } catch (Exception e) {
             logger.error("Fehler beim Kopieren aller DOCX: {}", e.getMessage(), e);
             Platform.runLater(() -> updateStatus("Fehler beim Kopieren: " + e.getMessage()));
@@ -3826,8 +3681,6 @@ public class MainController implements Initializable {
                 updateStatus("Datei ersetzt: " + targetFile.getName() + " (Backup: " + backupFileName + ")");
             });
             
-            logger.info("Datei ersetzt: {} -> {} (Backup: {})", 
-                downloadFile.getName(), targetFile.getName(), backupFileName);
                 
         } catch (Exception e) {
             logger.error("Fehler beim Ersetzen der Datei: {}", e.getMessage());
@@ -3873,7 +3726,6 @@ public class MainController implements Initializable {
             
             // Wenn keine anderen Fenster offen sind, beende das Programm
             if (!hasOtherWindows) {
-                logger.info("Letztes Fenster geschlossen - beende Programm");
                 Platform.exit();
                 System.exit(0);
             }
@@ -3906,7 +3758,6 @@ public class MainController implements Initializable {
             Path jsonPath = dataDir.toPath().resolve(".manuskript_selection.json");
             Files.write(jsonPath, json.getBytes(StandardCharsets.UTF_8));
             
-            logger.info("Reihenfolge gespeichert: {} Dateien", fileNames.size());
             
         } catch (Exception e) {
             logger.warn("Fehler beim Speichern der Reihenfolge", e);
@@ -3951,11 +3802,9 @@ public class MainController implements Initializable {
                         if (hasMdFile) {
                             // Datei hat MD-Datei → nach rechts (selectedDocxFiles)
                             selectedDocxFiles.add(docxFile);
-                            logger.info("Gespeicherte Datei nach rechts: {} (hat MD-Datei)", docxFile.getFileName());
                         } else {
                             // Datei hat keine MD-Datei → nach links (allDocxFiles)
                             allDocxFiles.add(docxFile);
-                            logger.info("Gespeicherte Datei nach links: {} (keine MD-Datei)", docxFile.getFileName());
                         }
                         
                         break;
@@ -3963,7 +3812,6 @@ public class MainController implements Initializable {
                 }
             }
             
-            logger.info("Gespeicherte Reihenfolge geladen: {} Dateien", selectedDocxFiles.size());
             
         } catch (Exception e) {
             logger.warn("Fehler beim Laden der gespeicherten Reihenfolge", e);
@@ -4037,9 +3885,6 @@ public class MainController implements Initializable {
                     tableViewAvailable.setStyle("-fx-border-color: #ba68c8;");
                     tableViewSelected.setStyle("-fx-border-color: #ba68c8;");
                 });
-                logger.info("Pastell-Theme über CSS-Klasse angewendet");
-                logger.info("DEBUG: Root StyleClasses: " + root.getStyleClass().toString());
-                logger.info("DEBUG: MainContainer StyleClasses: " + mainContainer.getStyleClass().toString());
             } else {
                 root.setStyle(""); // Style zurücksetzen
                 mainContainer.setStyle(""); // Style zurücksetzen
@@ -4068,7 +3913,6 @@ public class MainController implements Initializable {
             String cssPath = ResourceManager.getCssResource("css/manuskript.css");
             if (cssPath != null) {
                 mainContainer.getScene().getStylesheets().add(cssPath);
-                logger.info("CSS geladen: {}", cssPath);
             } else {
                 logger.warn("CSS-Datei manuskript.css nicht gefunden!");
             }
@@ -4090,8 +3934,6 @@ public class MainController implements Initializable {
             });
             
             // Debug: Aktuelle Stylesheets ausgeben
-            logger.info("Aktuelle Stylesheets: {}", mainContainer.getScene().getStylesheets());
-            logger.info("Root StyleClasses: {}", mainContainer.getScene().getRoot().getStyleClass());
         }
     }
     
@@ -4140,7 +3982,6 @@ public class MainController implements Initializable {
         // Theme-Button Icon aktualisieren
         updateThemeButtonIcon();
         
-        logger.info("Gespeichertes Theme geladen: {} ({})", currentThemeIndex, THEME_NAMES[currentThemeIndex]);
     }
     
 
@@ -4207,7 +4048,6 @@ public class MainController implements Initializable {
                 primaryStage.setY(y);
             }
         } else {
-            logger.info("Keine gültige Hauptfenster-Position gefunden - zentriere Fenster");
             primaryStage.centerOnScreen();
         }
         
@@ -4236,7 +4076,6 @@ public class MainController implements Initializable {
             }
         });
         
-        logger.info("Hauptfenster-Eigenschaften geladen: Größe={}x{}, Position=({}, {})", width, height, x, y);
     }
     
     
@@ -4248,11 +4087,11 @@ public class MainController implements Initializable {
     }
     
     /**
-     * Zeigt Dialog für existierende .gesamt Dateien
+     * Zeigt Dialog für existierende Buch-Dateien
      */
     private void showGesamtFileDialog(File[] existingGesamtFiles, ObservableList<DocxFile> selectedDocxFiles) {
-        CustomAlert alert = new CustomAlert(Alert.AlertType.CONFIRMATION, "Gesamtdokument existiert bereits");
-        alert.setHeaderText("Es wurde bereits ein Gesamtdokument erstellt:");
+        CustomAlert alert = new CustomAlert(Alert.AlertType.CONFIRMATION, "Buch existiert bereits");
+        alert.setHeaderText("Es wurde bereits ein Buch erstellt:");
         alert.setContentText("Möchten Sie das existierende Dokument laden oder ein neues erstellen?");
         
         // Theme anwenden
@@ -4278,6 +4117,20 @@ public class MainController implements Initializable {
     }
     
     /**
+     * Zeigt den Pandoc Export Dialog
+     */
+    private void showPandocExportDialog(File markdownFile, String projectName) {
+        try {
+            PandocExportWindow exportWindow = new PandocExportWindow(markdownFile, projectName);
+            exportWindow.setFullTheme(currentThemeIndex);
+            exportWindow.show();
+        } catch (Exception e) {
+            logger.error("Fehler beim Öffnen des Pandoc Export Dialogs", e);
+            showError("Fehler", "Konnte Pandoc Export Dialog nicht öffnen: " + e.getMessage());
+        }
+    }
+    
+    /**
      * Lädt eine existierende .gesamt Datei
      */
     private void loadExistingGesamtFile(File gesamtFile) {
@@ -4299,14 +4152,14 @@ public class MainController implements Initializable {
                 baseFileName = baseFileName.substring(0, baseFileName.indexOf(".gesamt."));
             }
             
-            // Öffne den Spezialeditor für Gesamtdokumente
+            // Öffne den Spezialeditor für Bücher
             openEditorWithFile(gesamtFile, true);
-            updateStatus("Gesamtdokument geladen: " + gesamtFile.getName());
+            updateStatus("Buch geladen: " + gesamtFile.getName());
             
         } catch (Exception e) {
-            logger.error("Fehler beim Laden der .gesamt Datei", e);
+            logger.error("Fehler beim Laden des Buches", e);
             showError("Ladefehler", "Fehler beim Laden der Datei: " + e.getMessage());
-            updateStatus("Fehler beim Laden der .gesamt Datei");
+            updateStatus("Fehler beim Laden des Buches");
         }
     }
     
@@ -4334,10 +4187,7 @@ public class MainController implements Initializable {
 
         if (result.isPresent()) {
             if (result.get() == ButtonType.OK) {
-                logger.info("CustomAlert: OK gedrückt");
-            } else {
-                logger.info("CustomAlert: Abgebrochen");
-            }
+            } 
         }
     }
     
@@ -4393,7 +4243,6 @@ public class MainController implements Initializable {
                     String hash = calculateFileHash(docxFile);
                     if (hash != null) {
                         saveDocxHash(docxFile, hash);
-                        logger.info("Hash für neues Kapitel erstellt: {}", hash);
                     }
                 } catch (Exception hashException) {
                     logger.warn("Konnte Hash für neues Kapitel nicht erstellen: {}", hashException.getMessage());
@@ -4456,7 +4305,6 @@ public class MainController implements Initializable {
         // Schreibe leeren Inhalt in MD-Datei
         java.nio.file.Files.write(mdFile.toPath(), emptyContent.getBytes(java.nio.charset.StandardCharsets.UTF_8));
         
-        logger.info("Neues Kapitel erstellt: {} (DOCX: {}, MD: {})", chapterName, docxFile.getName(), mdFile.getName());
         
         return docxFile; // DOCX-Datei zurückgeben
     }
@@ -4484,7 +4332,6 @@ public class MainController implements Initializable {
             String manuskriptCss = ResourceManager.getCssResource("css/manuskript.css");
             if (manuskriptCss != null) {
                 splitScene.getStylesheets().add(manuskriptCss);
-                logger.info("CSS geladen: {}", manuskriptCss);
             } else {
                 logger.error("CSS konnte nicht geladen werden!");
             }
@@ -4493,7 +4340,6 @@ public class MainController implements Initializable {
             splitStage.centerOnScreen();
             splitStage.show();
             
-            logger.info("Split-Stage erfolgreich geöffnet");
             
         } catch (Exception e) {
             logger.error("Fehler beim Öffnen der Split-Stage: {}", e.getMessage(), e);
@@ -4680,7 +4526,6 @@ public class MainController implements Initializable {
                                 listChapters.getItems().add(chapterCheckBox);
                             }
                             btnSplit.setDisable(false);
-                            logger.info("{} Kapitel in DOCX-Datei gefunden", chapters.size());
                         }
                     } else if (fileName.endsWith(".rtf")) {
                         // RTF-Datei
@@ -4700,7 +4545,6 @@ public class MainController implements Initializable {
                                 listChapters.getItems().add(chapterCheckBox);
                             }
                             btnSplit.setDisable(false);
-                            logger.info("{} Kapitel in RTF-Datei gefunden", chapters.size());
                         }
                     } else {
                         CheckBox errorCheckBox = new CheckBox("Unsupported file format. Please select DOCX or RTF.");
@@ -4874,7 +4718,6 @@ public class MainController implements Initializable {
             double screenWidth = screenBounds.getWidth();
             double screenHeight = screenBounds.getHeight();
             
-            logger.info("Bildschirmabmessungen: {}x{}", screenWidth, screenHeight);
             
             // Robuste Validierung der Preferences mit sinnvollen Standardwerten
             double x = preferences.getDouble("project_window_x", 100);
@@ -4882,7 +4725,6 @@ public class MainController implements Initializable {
             double width = preferences.getDouble("project_window_width", 1200);  // KEINE Begrenzung
             double height = preferences.getDouble("project_window_height", 800);  // KEINE Begrenzung
             
-            logger.info("DEBUG: Geladene Werte - Position: ({},{}) Größe: {}x{}", x, y, width, height);
             
             // Validierung: Position muss auf dem Bildschirm sein (lockerer)
             if (x < -100 || x > screenWidth + 100 || y < -100 || y > screenHeight + 100) {
@@ -4899,13 +4741,8 @@ public class MainController implements Initializable {
             }
             
             // KEINE Höhenbegrenzung - erlaube auch größere Fenster (für ultrawide Monitore)
-            logger.info("Höhe {} - Bildschirmhöhe {} (keine Begrenzung)", height, screenHeight);
             
             // Debug: Warum wird die Größe als illegal betrachtet?
-            logger.info("DEBUG: Validierung - Breite: {} (min: 400, max: {}), Höhe: {} (min: 300, max: {})", 
-                width, screenWidth, height, screenHeight);
-            
-            logger.info("DEBUG: Finale Werte - Position: ({},{}) Größe: {}x{}", x, y, width, height);
             
             projectStage.setX(x);
             projectStage.setY(y);
@@ -4915,7 +4752,6 @@ public class MainController implements Initializable {
             projectStage.setMinHeight(600);
             projectStage.setResizable(true);
             
-            logger.info("Projekt-Fenster: Position {},{} Größe {}x{}", x, y, width, height);
             
             // Listener werden in addProjectWindowListeners() hinzugefügt
         }
@@ -4931,38 +4767,32 @@ public class MainController implements Initializable {
         double screenWidth = screenBounds.getWidth();
         double screenHeight = screenBounds.getHeight();
         
-        logger.info("Füge Listener für Projekt-Fenster hinzu - Bildschirm: {}x{}", screenWidth, screenHeight);
         
         // Fenster-Position und Größe speichern (lockere Validierung für große Bildschirme)
         projectStage.xProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal.doubleValue() >= -100 && newVal.doubleValue() <= screenWidth + 100) {
                 preferences.putDouble("project_window_x", newVal.doubleValue());
-                logger.info("X-Position gespeichert: {}", newVal.doubleValue());
             }
         });
         projectStage.yProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal.doubleValue() >= -100 && newVal.doubleValue() <= screenHeight + 100) {
                 preferences.putDouble("project_window_y", newVal.doubleValue());
-                logger.info("Y-Position gespeichert: {}", newVal.doubleValue());
             }
         });
         projectStage.widthProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal.doubleValue() >= 800) {
                 preferences.putDouble("project_window_width", newVal.doubleValue());
-                logger.info("Fenster-Breite gespeichert: {}", newVal.doubleValue());
             }
         });
         projectStage.heightProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal.doubleValue() >= 600) {
                 preferences.putDouble("project_window_height", newVal.doubleValue());
-                logger.info("Fenster-Höhe gespeichert: {}", newVal.doubleValue());
             }
         });
         projectStage.maximizedProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal) {
                 preferences.putDouble("project_window_width", screenWidth);
                 preferences.putDouble("project_window_height", screenHeight);
-                logger.info("Maximiertes Fenster gespeichert: {}x{}", screenWidth, screenHeight);
             }
         });
     }
@@ -5166,7 +4996,6 @@ public class MainController implements Initializable {
         booksScrollPane.setOnDragOver(event -> {
             if (draggingSeriesBook != null && event.getGestureSource() != booksScrollPane) {
                 event.acceptTransferModes(TransferMode.MOVE);
-                logger.debug("Series container drag over – book={} target={}", draggingSeriesBook != null ? draggingSeriesBook.getName() : "null", item.getDirectory().getName());
             }
             event.consume();
         });
@@ -5180,7 +5009,6 @@ public class MainController implements Initializable {
         booksScrollPane.setContent(booksContainer);
 
         booksScrollPane.setOnDragDropped(event -> {
-            logger.debug("Series container drag dropped – book={} target={}", draggingSeriesBook != null ? draggingSeriesBook.getName() : "null", item.getDirectory().getName());
             setupSeriesDrop(booksContainer, item, projectStage, event);
         });
         
@@ -5240,7 +5068,6 @@ public class MainController implements Initializable {
         });
 
         container.setOnDragDropped(event -> {
-            logger.debug("Series container drag dropped – book={} target={}", draggingSeriesBook != null ? draggingSeriesBook.getName() : "null", item.getDirectory().getName());
             setupSeriesDrop(container, item, projectStage, event);
         });
     }
@@ -5296,7 +5123,6 @@ public class MainController implements Initializable {
         }
 
         if (fromIndex == toIndex) {
-            logger.debug("Series drop no-op – fromIndex={} toIndex={} (book stays)", fromIndex, toIndex);
             event.setDropCompleted(true);
             event.consume();
             return;
@@ -5313,7 +5139,6 @@ public class MainController implements Initializable {
             toIndex = books.size();
         }
         books.add(toIndex, draggingSeriesBook);
-        logger.debug("Series drop applied – fromIndex={} toIndex={} order={}", fromIndex, toIndex, books.stream().map(File::getName).collect(Collectors.toList()));
 
         populateSeriesBooks(container, item, projectStage);
         saveProjectOrder();
@@ -5356,7 +5181,6 @@ public class MainController implements Initializable {
             content.putString(targetBook.getAbsolutePath());
             dragboard.setContent(content);
             bookCard.setOpacity(0.4);
-            logger.debug("Series mouse pressed – card={} book={} source={}", item.getDirectory().getName(), targetBook.getName(), event.getSource().getClass().getSimpleName());
             event.consume();
         });
 
@@ -5378,18 +5202,12 @@ public class MainController implements Initializable {
         bookCard.addEventFilter(DragEvent.DRAG_OVER, event -> {
             if (draggingSeriesBook != null && event.getGestureSource() != bookCard) {
                 event.acceptTransferModes(TransferMode.MOVE);
-                logger.debug("Series drag over book card – card={} book={}", item.getDirectory().getName(), draggingSeriesBook.getName());
                 event.consume();
             }
         });
 
         bookCard.addEventFilter(DragEvent.DRAG_DROPPED, event -> {
             if (draggingSeriesBook != null) {
-                logger.debug("Series drag dropped on book card – card={} targetBook={} draggingBook={}",
-                        item.getDirectory().getName(),
-                        bookCard.getUserData() instanceof File f ? f.getName() : "unknown",
-                        draggingSeriesBook.getName());
-                setupSeriesDrop(container, item, projectStage, event);
                 event.setDropCompleted(true);
                 event.consume();
             }
@@ -5530,7 +5348,6 @@ public class MainController implements Initializable {
 
             int index = new Random().nextInt(imageFiles.length);
             File selected = imageFiles[index];
-            logger.debug("Default-Cover ausgewählt: {}", selected.getAbsolutePath());
             return new Image(selected.toURI().toString());
         } catch (Exception ex) {
             logger.warn("Fehler beim Laden eines Default-Covers", ex);
@@ -5704,7 +5521,6 @@ public class MainController implements Initializable {
                     backButton.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-border-radius: 8px;");
                     backButton.getStyleClass().add("back-button");
                     backButton.setOnAction(e -> {
-                        logger.info("Zurück-Button geklickt - schließe Hauptfenster und öffne Projektauswahl");
                         primaryStage.hide();
                         showProjectSelectionMenu();
                     });
@@ -5716,7 +5532,6 @@ public class MainController implements Initializable {
                     imageContainer.setRight(dummyBox);
                     ((BorderPane) mainContainer).setTop(imageContainer);
                 }
-                logger.info("Kein Cover-Bild gefunden - nur Zurück-Button angezeigt");
             } else {
                 // Bild gefunden - zeige den Bildbereich
                 if (mainContainer instanceof BorderPane) {
@@ -5731,7 +5546,6 @@ public class MainController implements Initializable {
                     backButton.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-border-radius: 8px;");
                     backButton.getStyleClass().add("back-button");
                     backButton.setOnAction(e -> {
-                        logger.info("Zurück-Button geklickt - schließe Hauptfenster und öffne Projektauswahl");
                         primaryStage.hide();
                         showProjectSelectionMenu();
                     });
@@ -5743,7 +5557,6 @@ public class MainController implements Initializable {
                     imageContainer.setRight(dummyBox);
                     ((BorderPane) mainContainer).setTop(imageContainer);
                 }
-                logger.info("Cover-Bild gefunden - Bildbereich wird angezeigt");
             }
             
             // Schließe die Projektauswahl
@@ -5752,7 +5565,6 @@ public class MainController implements Initializable {
             // Zeige das Hauptfenster wieder an
             primaryStage.show();
             
-            logger.info("Projekt ausgewählt: " + projectDir.getName());
             
         } catch (Exception e) {
             logger.error("Fehler beim Laden des Projekts", e);
@@ -5774,15 +5586,12 @@ public class MainController implements Initializable {
                     if (coverImageFile.exists()) {
                         Image image = new Image(coverImageFile.toURI().toString());
                         coverImageView.setImage(image);
-                        logger.info("Cover-Bild aus aktuellem Verzeichnis geladen: {}", coverImageFile.getAbsolutePath());
                     } else {
                         Image fallbackImage = loadRandomDefaultCover();
                         if (fallbackImage != null) {
                             coverImageView.setImage(fallbackImage);
-                            logger.info("Kein cover_image.png im aktuellen Verzeichnis gefunden – Default-Cover gesetzt: {}", currentDirectory.getAbsolutePath());
                         } else {
                             coverImageView.setImage(null);
-                            logger.info("Kein cover_image.png im aktuellen Verzeichnis gefunden: {}", currentDirectory.getAbsolutePath());
                         }
                     }
                 }
@@ -6194,6 +6003,33 @@ public class MainController implements Initializable {
 
     public File getProjectRootDirectory() {
         return projectRootDirectory;
-    }   
+    }
 
+    /**
+     * Formatiert Markdown-Inhalt, um sicherzustellen, dass zwischen Absätzen Leerzeilen stehen.
+     * Einfache Version für bessere EPUB-Darstellung auf Apple-Geräten.
+     */
+    private String formatMarkdownParagraphs(String content) {
+        if (content == null || content.trim().isEmpty()) {
+            return content;
+        }
+
+        try {
+            // Einfache Lösung: Füge Leerzeilen zwischen Absätzen hinzu
+            // Ersetze einzelne Zeilenumbrüche durch doppelte
+            String formatted = content.replaceAll("([^\n])\n([^\n#])", "$1\n\n$2");
+
+            // Stelle sicher, dass am Ende eine Leerzeile steht
+            if (!formatted.endsWith("\n\n")) {
+                formatted += "\n";
+            }
+
+            return formatted;
+
+        } catch (Exception e) {
+            logger.warn("Fehler bei der Markdown-Formatierung: {}", e.getMessage());
+            // Bei Fehler gib den Original-Inhalt zurück
+            return content;
+        }
+    }
 }

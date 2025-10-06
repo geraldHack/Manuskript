@@ -161,7 +161,6 @@ public class OllamaService {
      * Lädt alle Parameter aus der parameters.properties und speichert sie in den Instanzvariablen
      */
     private void loadParametersFromProperties() {
-        logger.info("DEBUG: Lade Parameter aus properties.properties...");
         
         double temp = ResourceManager.getDoubleParameter("ollama.temperature", 0.3);
         int tokens = ResourceManager.getIntParameter("ollama.max_tokens", 2048);
@@ -185,7 +184,6 @@ public class OllamaService {
      */
     public void setModel(String model) {
         this.currentModel = model;
-        logger.info("Ollama-Modell gesetzt: " + model);
     }
     
     /**
@@ -193,7 +191,6 @@ public class OllamaService {
      */
     public void setTemperature(double temperature) {
         this.temperature = Math.max(0.0, Math.min(2.0, temperature));
-        logger.info("Temperatur gesetzt: " + this.temperature);
         
         // In properties-Datei speichern
         ResourceManager.saveParameter("ollama.temperature", String.valueOf(this.temperature));
@@ -204,7 +201,6 @@ public class OllamaService {
      */
     public void setMaxTokens(int maxTokens) {
         this.maxTokens = Math.max(1, Math.min(8192, maxTokens));
-        logger.info("Max Tokens gesetzt: " + this.maxTokens);
         
         // In properties-Datei speichern
         ResourceManager.saveParameter("ollama.max_tokens", String.valueOf(this.maxTokens));
@@ -215,7 +211,6 @@ public class OllamaService {
      */
     public void setTopP(double topP) {
         this.topP = Math.max(0.0, Math.min(1.0, topP));
-        logger.info("Top-P gesetzt: " + this.topP);
         
         // In properties-Datei speichern
         ResourceManager.saveParameter("ollama.top_p", String.valueOf(this.topP));
@@ -226,7 +221,6 @@ public class OllamaService {
      */
     public void setRepeatPenalty(double repeatPenalty) {
         this.repeatPenalty = Math.max(0.0, Math.min(2.0, repeatPenalty));
-        logger.info("Repeat Penalty gesetzt: " + this.repeatPenalty);
         
         // In properties-Datei speichern
         ResourceManager.saveParameter("ollama.repeat_penalty", String.valueOf(this.repeatPenalty));
@@ -249,7 +243,6 @@ public class OllamaService {
         this.topP = Math.max(0.0, Math.min(1.0, topP));
         this.repeatPenalty = Math.max(0.0, Math.min(2.0, repeatPenalty));
         
-        logger.info("Alle Parameter gesetzt: " + getCurrentParameters());
         
         // Alle Parameter in properties-Datei speichern
         ResourceManager.saveOllamaParameters(this.temperature, this.maxTokens, this.topP, this.repeatPenalty);
@@ -327,9 +320,6 @@ public class OllamaService {
         this.lastContext = context;
         
         // Debug-Logging für JSON
-        logger.info("DEBUG: Verwende Parameter - Temperature: " + temperature + ", MaxTokens: " + maxTokens + ", TopP: " + topP + ", RepeatPenalty: " + repeatPenalty);
-        logger.info("Sende JSON an Ollama: " + json);
-        
         return sendRequest(GENERATE_ENDPOINT, json)
                 .thenApply(this::parseGenerateResponse);
     }
@@ -421,7 +411,6 @@ public class OllamaService {
         this.lastContext = context;
         
         // Debug-Logging für JSON
-        logger.info("Sende Chat-JSON an Ollama: " + json);
         
         return sendRequest(CHAT_ENDPOINT, json)
                 .thenApply(this::parseChatResponse);
@@ -928,7 +917,6 @@ public class OllamaService {
      */
     private String[] parseModelsResponse(String response) {
         try {
-            logger.info("Models-Response erhalten: " + (response != null ? response.substring(0, Math.min(200, response.length())) + "..." : "null"));
             
             // Einfache JSON-Parsing für "models" Array
             // Erwartetes Format: {"models":[{"name":"model1"},{"name":"model2"}]}
@@ -950,7 +938,6 @@ public class OllamaService {
                 logger.warning("Keine 'models' in der Response gefunden oder Response ist null");
             }
             
-            logger.info("Verfügbare Modelle gefunden: " + String.join(", ", models));
             return models;
         } catch (Exception e) {
             logger.warning("Fehler beim Parsen der Models-Antwort: " + e.getMessage());
@@ -1164,12 +1151,9 @@ public class OllamaService {
                 String modelfile = createModelfile(modelName, baseModel, trainingData, epochs, additionalInstructions);
                 
                 // Debug: Zeige das Modelfile
-                logger.info("Erstelle Modelfile:");
-                logger.info(modelfile);
                 
                 // Erstelle temporäre Modelfile-Datei
                 String modelfilePath = createTempModelfile(modelfile);
-                logger.info("Modelfile gespeichert in: " + modelfilePath);
                 
                 // Führe ollama create Kommando aus
                 String response = executeOllamaCreate(modelName, modelfilePath);
@@ -1224,7 +1208,6 @@ public class OllamaService {
                 int exitCode = process.waitFor();
                 
                 if (exitCode == 0) {
-                    logger.info("Modell erfolgreich gelöscht: " + modelName);
                     return true;
                 } else {
                     logger.warning("Fehler beim Löschen des Modells: " + modelName);
@@ -1261,7 +1244,6 @@ public class OllamaService {
                 int exitCode = process.waitFor();
                 
                 if (exitCode == 0) {
-                    logger.info("Modell erfolgreich installiert: " + modelName);
                     return "✅ Modell erfolgreich installiert: " + modelName;
                 } else {
                     logger.warning("Fehler beim Installieren des Modells: " + modelName);
@@ -1412,7 +1394,6 @@ public class OllamaService {
     public ChatSession getOrCreateSession(String sessionId) {
         if (!chatSessions.containsKey(sessionId)) {
             chatSessions.put(sessionId, new ChatSession(sessionId));
-            logger.info("Neue Chat-Session erstellt: " + sessionId);
         }
         return chatSessions.get(sessionId);
     }
@@ -1423,7 +1404,6 @@ public class OllamaService {
     public void setCurrentSession(String sessionId) {
         this.currentSessionId = sessionId;
         getOrCreateSession(sessionId);
-        logger.info("Aktuelle Chat-Session gesetzt: " + sessionId);
     }
     
     /**
@@ -1439,7 +1419,6 @@ public class OllamaService {
     public void addContext(String key, String value) {
         ChatSession session = getCurrentSession();
         session.addContext(key, value);
-        logger.info("Kontext hinzugefügt: " + key + " = " + value);
     }
     
     /**
@@ -1447,7 +1426,6 @@ public class OllamaService {
      */
     public void deleteSession(String sessionId) {
         chatSessions.remove(sessionId);
-        logger.info("Chat-Session gelöscht: " + sessionId);
     }
     
     /**
@@ -1455,7 +1433,6 @@ public class OllamaService {
      */
     public void clearAllSessions() {
         chatSessions.clear();
-        logger.info("Alle Chat-Sessions gelöscht");
     }
     
     /**

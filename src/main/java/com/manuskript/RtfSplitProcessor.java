@@ -51,7 +51,6 @@ public class RtfSplitProcessor {
      * Konvertiert RTF zu temporärer Markdown-Datei für saubere Verarbeitung
      */
     public List<Chapter> analyzeDocument(File rtfFile) throws IOException {
-        logger.info("Analysiere RTF-Datei: {}", rtfFile.getAbsolutePath());
         
         // RTF zu temporärer Markdown-Datei konvertieren
         File tempMdFile = convertRtfToMarkdown(rtfFile);
@@ -69,22 +68,15 @@ public class RtfSplitProcessor {
             }
         }
         
-        logger.info("Gefundene Zeilen: {}", allLines.size());
         
         // Kapitel finden
         for (int i = 0; i < allLines.size(); i++) {
             String line = allLines.get(i);
-            
-            // Debug: Zeige alle nicht-leeren Zeilen
-            if (!line.trim().isEmpty() && line.length() < 100) {
-                logger.debug("MD-Zeile {}: '{}'", i, line);
-            }
-            
+           
             if (!line.trim().isEmpty()) {
                 Chapter chapter = detectChapter(line, i, allLines);
                 if (chapter != null) {
                     chapters.add(chapter);
-                    logger.info("Kapitel gefunden: {}", chapter);
                 }
             }
         }
@@ -92,7 +84,6 @@ public class RtfSplitProcessor {
         // Temporäre Datei NICHT löschen - für Debugging behalten
         // tempMdFile.delete();
         
-        logger.info("Insgesamt {} Kapitel gefunden", chapters.size());
         return chapters;
     }
     
@@ -100,19 +91,14 @@ public class RtfSplitProcessor {
      * Konvertiert RTF zu temporärer Markdown-Datei mit Formatierung
      */
     private File convertRtfToMarkdown(File rtfFile) throws IOException {
-        logger.info("Konvertiere RTF zu Markdown mit Formatierung...");
-        logger.info("RTF-Datei: {}", rtfFile.getAbsolutePath());
-        logger.info("RTF-Datei existiert: {}", rtfFile.exists());
         
         // Temporäre Datei nach G:\ ablegen (sichtbar und NICHT löschen)
         File tempMdFile = new File("G:\\", "rtf_konvertiert.md");
-        logger.info("Temporäre MD-Datei: {}", tempMdFile.getAbsolutePath());
         
         try (BufferedReader reader = new BufferedReader(
                 new InputStreamReader(new FileInputStream(rtfFile), StandardCharsets.UTF_8));
              FileWriter writer = new FileWriter(tempMdFile, StandardCharsets.UTF_8)) {
             
-            logger.info("Beginne RTF-Parsing mit Formatierung...");
             
             String line;
             StringBuilder content = new StringBuilder();
@@ -127,21 +113,13 @@ public class RtfSplitProcessor {
                 String processedLine = convertRtfToMarkdownLine(line);
                 content.append(processedLine).append("\n");
                 
-                if (lineCount % 100 == 0) {
-                    logger.debug("Verarbeitet {} Zeilen", lineCount);
-                }
             }
             
             // Inhalt schreiben
             writer.write(content.toString());
-            logger.info("Markdown-Datei geschrieben: {} bytes", tempMdFile.length());
-            logger.info("Verarbeitet {} Zeilen", lineCount);
             
             // DEBUG: Zeige ersten Teil des Inhalts
-            logger.info("=== KONVERTIERTER INHALT (erste 500 Zeichen) ===");
             String preview = content.length() > 500 ? content.substring(0, 500) + "..." : content.toString();
-            logger.info("'{}'", preview);
-            logger.info("=== ENDE KONVERTIERTER INHALT ===");
             
         }
         
@@ -303,19 +281,16 @@ public class RtfSplitProcessor {
         // 1. "Kapitel X" oder "Chapter X" am Anfang
         if (trimmedText.matches("^[Kk]apitel\\s+\\d+.*") || 
             trimmedText.matches("^[Cc]hapter\\s+\\d+.*")) {
-            logger.debug("Gefunden durch Schlüsselwort: {}", text);
             return true;
         }
         
         // 2. Einfache Nummerierung: "1. Titel" oder "1 - Titel"
         if (trimmedText.matches("^\\d{1,2}\\s*[.:\\-]\\s+[A-Z].*")) {
-            logger.debug("Gefunden durch Nummerierung: {}", text);
             return true;
         }
         
         // 3. Römische Zahlen: "I. Titel" oder "I - Titel"
         if (trimmedText.matches("^[IVX]+\\s*[.:\\-]\\s+[A-Z].*")) {
-            logger.debug("Gefunden durch römische Zahlen: {}", text);
             return true;
         }
         
@@ -330,12 +305,10 @@ public class RtfSplitProcessor {
             // Zusätzliche Prüfung: Ist es wahrscheinlich ein Titel?
             // (enthält Buchstaben, nicht nur Sonderzeichen)
             if (trimmedText.matches(".*[a-zA-ZäöüÄÖÜß].*")) {
-                logger.debug("Gefunden als zentrierter Titel: {}", text);
                 return true;
             }
         }
         
-        logger.debug("NICHT als Kapitel erkannt: '{}'", text);
         return false;
     }
     
@@ -415,7 +388,6 @@ public class RtfSplitProcessor {
         String fileName = String.format("%s_Kapitel_%02d.rtf", baseFileName, chapter.getNumber());
         File outputFile = new File(outputDir, fileName);
         
-        logger.info("Speichere Kapitel {} als: {}", chapter.getNumber(), outputFile.getAbsolutePath());
         
         try (FileWriter writer = new FileWriter(outputFile, StandardCharsets.UTF_8)) {
             // RTF-Header
@@ -441,14 +413,12 @@ public class RtfSplitProcessor {
             writer.write("}");
         }
         
-        logger.info("Kapitel {} erfolgreich gespeichert", chapter.getNumber());
     }
     
     /**
      * Splittet ein RTF-Dokument in Kapitel
      */
     public void splitDocument(File rtfFile, File outputDir) throws IOException {
-        logger.info("Starte RTF-Split: {} -> {}", rtfFile.getAbsolutePath(), outputDir.getAbsolutePath());
 
         // Kapitel analysieren
         List<Chapter> chapters = analyzeDocument(rtfFile);
@@ -471,6 +441,5 @@ public class RtfSplitProcessor {
             saveChapter(chapter, outputDir, baseFileName);
         }
 
-        logger.info("RTF-Split erfolgreich abgeschlossen: {} Kapitel", chapters.size());
     }
 }

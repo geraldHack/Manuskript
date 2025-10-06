@@ -68,8 +68,6 @@ public class StageManager {
         int currentTheme = preferences.getInt("main_window_theme", 0);
         stage.setFullTheme(currentTheme);
         
-        logger.debug("Export-Stage erstellt: '{}', Größe: {}x{}", title, 600, 500);
-        
         return stage;
     }
     
@@ -137,7 +135,6 @@ public class StageManager {
         // DEBUG: Zusätzlich setTitleBarTheme aufrufen für Border
         stage.setTitleBarTheme(currentTheme);
         
-        logger.debug("CustomStage erstellt: '{}', Modal: {}, Theme: {}, Größe: {}x{}", title, modal, currentTheme, stage.getWidth(), stage.getHeight());
         
         return stage;
     }
@@ -156,7 +153,6 @@ public class StageManager {
             }
         }
         
-        logger.info("Theme {} auf alle offenen CustomStages angewendet", themeIndex);
     }
     
     /**
@@ -189,7 +185,6 @@ public class StageManager {
             stage.setWidth(width);
             stage.setHeight(height);
             
-            logger.info("Diff-Fenster: Position {},{} Größe {}x{}", x, y, width, height);
             
             // Fenster-Position und Größe speichern (nur wenn gültig)
             stage.xProperty().addListener((obs, oldVal, newVal) -> {

@@ -47,7 +47,6 @@ public class NovelManager {
             String chapterFileName = novelName + ".chapter.txt";
             createFileIfNotExists(directory, chapterFileName, "# Kapitelbeschreibung und Szenen für " + novelName + "\n\n");
             
-            logger.info("Roman-Dateien initialisiert in: " + directory);
             
         } catch (IOException e) {
             logger.warning("Fehler beim Erstellen der Roman-Dateien: " + e.getMessage());
@@ -61,7 +60,6 @@ public class NovelManager {
         Path filePath = directory.resolve(fileName);
         if (!Files.exists(filePath)) {
             Files.write(filePath, defaultContent.getBytes(StandardCharsets.UTF_8));
-            logger.info("Datei erstellt: " + filePath);
         }
     }
     
@@ -76,7 +74,6 @@ public class NovelManager {
             
             if (Files.exists(filePath)) {
                 String content = Files.readString(filePath, StandardCharsets.UTF_8);
-                logger.info("Datei geladen: " + filePath);
                 return content;
             } else {
                 logger.warning("Datei nicht gefunden: " + filePath);
@@ -98,7 +95,6 @@ public class NovelManager {
             Path filePath = directory.resolve(fileName);
             
             Files.write(filePath, content.getBytes(StandardCharsets.UTF_8));
-            logger.info("Datei gespeichert: " + filePath);
         } catch (IOException e) {
             logger.warning("Fehler beim Speichern der Datei: " + e.getMessage());
         }
@@ -117,7 +113,6 @@ public class NovelManager {
             
             if (Files.exists(filePath)) {
                 String content = Files.readString(filePath, StandardCharsets.UTF_8);
-                logger.info("Kapitel-Datei geladen: " + filePath);
                 return content;
             } else {
                 logger.warning("Kapitel-Datei nicht gefunden: " + filePath);
@@ -141,7 +136,6 @@ public class NovelManager {
             Path filePath = directory.resolve(chapterFileName);
             
             Files.write(filePath, content.getBytes(StandardCharsets.UTF_8));
-            logger.info("Kapitel-Datei gespeichert: " + filePath);
         } catch (IOException e) {
             logger.warning("Fehler beim Speichern der Kapitel-Datei: " + e.getMessage());
         }
@@ -268,7 +262,6 @@ public class NovelManager {
             String chapterFileName = novelName + ".chapter.txt";
             deleteFileIfExists(directory, chapterFileName);
             
-            logger.info("Roman-Dateien gelöscht in: " + directory);
         } catch (IOException e) {
             logger.warning("Fehler beim Löschen der Roman-Dateien: " + e.getMessage());
         }
@@ -281,7 +274,6 @@ public class NovelManager {
         Path filePath = directory.resolve(fileName);
         if (Files.exists(filePath)) {
             Files.delete(filePath);
-            logger.info("Datei gelöscht: " + filePath);
         }
     }
 } 

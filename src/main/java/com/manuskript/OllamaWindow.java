@@ -1534,11 +1534,9 @@ public class OllamaWindow {
 
             if (selectedContexts.length() > 0) {
                 contextBuilder.append("\n").append(selectedContexts);
-                logger.info("DEBUG: selectedContexts hinzugefügt: " + selectedContexts.toString().substring(0, Math.min(200, selectedContexts.length())));
             }
             
             String fullContext = contextBuilder.toString();
-            logger.info("DEBUG: Finaler Kontext (erste 500 Zeichen): " + fullContext.substring(0, Math.min(500, fullContext.length())));
             // DEBUG entfernt
             
             // Anzahl der vollständigen QAPairs für Debug-Zwecke
@@ -1582,11 +1580,9 @@ public class OllamaWindow {
             
             if (selectedFunction.startsWith("📦 ")) {
                 String pluginName = selectedFunction.substring(2).trim(); // "📦 " entfernen und trimmen
-                logger.info("DEBUG: Plugin erkannt: " + pluginName);
     
                 Plugin plugin = pluginManager.getPlugin(pluginName);
                 if (plugin != null) {
-                    logger.info("DEBUG: Plugin gefunden: " + pluginName);
 
                     // Selektierten Text aus Editor oder Chat-Input holen
                     String selectedText = getSelectedTextFromEditor();
@@ -3045,7 +3041,6 @@ public class OllamaWindow {
         if (statusLabel != null) {
         statusLabel.setText(status);
         }
-        logger.info("Ollama-Status: " + status);
     }
     
     /**
@@ -3184,7 +3179,6 @@ public class OllamaWindow {
             int currentTheme = 0;
             if (editorWindow != null) {
                 currentTheme = editorWindow.getCurrentThemeIndex();
-                logger.info("Theme vom Editor übernommen: " + currentTheme);
             }
             
             PluginEditorWindow editor = new PluginEditorWindow(currentTheme);
@@ -3426,14 +3420,12 @@ public class OllamaWindow {
     
     public void setEditorReference(EditorWindow editorWindow) {
         this.editorWindow = editorWindow;
-        logger.info("Editor-Referenz gesetzt");
         
         // Theme vom Editor übernehmen
         if (editorWindow != null) {
             // Hole das aktuelle Theme vom Editor
             int currentTheme = editorWindow.getCurrentThemeIndex();
             setTheme(currentTheme);
-            logger.info("Theme vom Editor übernommen: " + currentTheme);
             
             // Wenn "Text umschreiben" aktiv ist, automatisch selektierten Text laden
             if ("Text umschreiben".equals(functionComboBox.getValue())) {
@@ -3549,7 +3541,6 @@ public class OllamaWindow {
                     // Wenn das gespeicherte Modell nicht verfügbar ist, verwende das erste
                     if (!modelAvailable) {
                         modelToUse = models[0];
-                        logger.info("Gespeichertes Modell '" + savedModel + "' nicht verfügbar, verwende '" + modelToUse + "'");
                     }
                     
                     modelComboBox.setValue(modelToUse);
@@ -4201,19 +4192,12 @@ public class OllamaWindow {
                     
                     if (!context.trim().isEmpty()) {
                         contextArea.setText(context);
-                        logger.info("Kontext aus context.txt geladen für: " + contextFile.getAbsolutePath());
-                    } else {
-                        logger.info("context.txt ist leer: " + contextFile.getAbsolutePath());
-                    }
+                    } 
                 } catch (Exception e) {
                     logger.warning("Fehler beim Laden der context.txt: " + e.getMessage());
                 }
-            } else {
-                logger.info("Keine context.txt gefunden in: " + docxDirectory);
-            }
-        } else {
-            logger.info("Kein DOCX-Verzeichnis gefunden");
-        }
+            } 
+        } 
     }
     
     /**
@@ -4227,7 +4211,6 @@ public class OllamaWindow {
             try {
                 File contextFile = new File(docxDirectory, "context.txt");
                 java.nio.file.Files.write(contextFile.toPath(), context.getBytes("UTF-8"));
-                logger.info("Context gespeichert für: " + contextFile.getAbsolutePath());
             } catch (Exception e) {
                 logger.warning("Fehler beim Speichern des Contexts: " + e.getMessage());
             }
@@ -4242,7 +4225,6 @@ public class OllamaWindow {
         String pick = null;
         if (savedSession != null && !savedSession.isEmpty() && sessionComboBox.getItems().contains(savedSession)) {
             pick = savedSession;
-            logger.info("Gespeicherte Session geladen: " + savedSession);
         } else {
             // Fallback: höchste default.X, sonst 'default'
             int bestPart = -1;
@@ -4256,7 +4238,6 @@ public class OllamaWindow {
                 }
             }
             if (pick == null) pick = sessionComboBox.getItems().contains("default") ? "default" : sessionComboBox.getItems().get(0);
-            logger.info("Fallback Session gewählt: " + pick + " (saved='" + savedSession + "')");
         }
         sessionComboBox.setValue(pick);
         currentSessionName = pick;
@@ -4275,7 +4256,6 @@ public class OllamaWindow {
             try {
                 preferences.put("selected_model", modelName);
                 preferences.flush();
-                logger.info("Modell gespeichert: " + modelName);
             } catch (Exception e) {
                 logger.warning("Fehler beim Speichern des Modells: " + e.getMessage());
             }
@@ -4288,12 +4268,10 @@ public class OllamaWindow {
     private String loadSelectedModel() {
         String savedModel = preferences.get("selected_model", "");
         if (savedModel != null && !savedModel.trim().isEmpty()) {
-            logger.info("Gespeichertes Modell geladen: " + savedModel);
             return savedModel;
         }
         // Fallback auf Standard-Modell
         String defaultModel = "gemma3:4b";
-        logger.info("Kein gespeichertes Modell gefunden, verwende Standard: " + defaultModel);
         return defaultModel;
     }
     
@@ -4387,7 +4365,6 @@ public class OllamaWindow {
                     File[] docxFiles = directory.listFiles((dir, name) -> name.toLowerCase().endsWith(".docx"));
                     if (docxFiles != null && docxFiles.length > 0) {
                         StringBuilder allText = new StringBuilder();
-                        logger.info("Lade " + docxFiles.length + " DOCX-Dateien für Plot-Holes Detection");
                         
                         for (File docxFile : docxFiles) {
                             // Lade den Markdown-Inhalt der entsprechenden MD-Datei
@@ -4396,7 +4373,6 @@ public class OllamaWindow {
                                 String content = java.nio.file.Files.readString(mdFile.toPath(), java.nio.charset.StandardCharsets.UTF_8);
                                 allText.append("=== ").append(docxFile.getName()).append(" ===\n");
                                 allText.append(content).append("\n\n");
-                                logger.info("Kapitel geladen: " + docxFile.getName() + " (" + content.length() + " Zeichen)");
                             } else {
                                 logger.warning("Keine MD-Datei gefunden für: " + docxFile.getName());
                             }
@@ -4477,7 +4453,6 @@ public class OllamaWindow {
             try {
                 preferences.put("selected_function", functionName);
                 preferences.flush();
-                logger.info("Funktion gespeichert: " + functionName);
             } catch (Exception e) {
                 logger.warning("Fehler beim Speichern der Funktion: " + e.getMessage());
             }
@@ -4490,12 +4465,10 @@ public class OllamaWindow {
     private String loadSelectedFunction() {
         String savedFunction = preferences.get("selected_function", "");
         if (savedFunction != null && !savedFunction.trim().isEmpty()) {
-            logger.info("Gespeicherte Funktion geladen: " + savedFunction);
             return savedFunction;
         }
         // Fallback auf Standard-Funktion
         String defaultFunction = "Chat-Assistent";
-        logger.info("Keine gespeicherte Funktion gefunden, verwende Standard: " + defaultFunction);
         return defaultFunction;
     }
 

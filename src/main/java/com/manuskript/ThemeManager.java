@@ -35,7 +35,6 @@ public class ThemeManager {
     public static void setTheme(int themeIndex) {
         if (themeIndex >= 0 && themeIndex < THEMES.length) {
             currentThemeIndex = themeIndex;
-            logger.info("Theme auf Index {} gesetzt", themeIndex);
         } else {
             logger.warn("Ungültiger Theme-Index: {}", themeIndex);
         }
@@ -117,7 +116,6 @@ public class ThemeManager {
                 }
             }
             
-            logger.debug("Theme auf CustomStage angewendet: Index={}", currentThemeIndex);
         }
     }
     
@@ -127,7 +125,6 @@ public class ThemeManager {
     public static void applyThemeToAlert(CustomAlert alert) {
         if (alert != null) {
             alert.applyTheme(currentThemeIndex);
-            logger.debug("Theme auf CustomAlert angewendet: Index={}", currentThemeIndex);
         }
     }
     
@@ -142,7 +139,6 @@ public class ThemeManager {
             }
         }
         
-        logger.info("Theme auf alle Custom-Komponenten angewendet: Index={}", currentThemeIndex);
     }
     
     /**

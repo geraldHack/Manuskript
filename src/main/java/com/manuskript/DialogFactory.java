@@ -32,7 +32,6 @@ public class DialogFactory {
         // Theme anwenden
         ThemeManager.applyThemeToAlert(alert);
         
-        logger.debug("CustomAlert erstellt: {}", title);
         return alert;
     }
     
@@ -52,7 +51,6 @@ public class DialogFactory {
         // Theme anwenden
         ThemeManager.applyThemeToAlert(alert);
         
-        logger.debug("Info-Alert erstellt: {}", title);
         return alert;
     }
     
@@ -72,7 +70,6 @@ public class DialogFactory {
         // Theme anwenden
         ThemeManager.applyThemeToAlert(alert);
         
-        logger.debug("Warning-Alert erstellt: {}", title);
         return alert;
     }
     
@@ -92,7 +89,6 @@ public class DialogFactory {
         // Theme anwenden
         ThemeManager.applyThemeToAlert(alert);
         
-        logger.debug("Error-Alert erstellt: {}", title);
         return alert;
     }
     
@@ -142,7 +138,6 @@ public class DialogFactory {
         // Theme direkt anwenden
         ThemeManager.applyThemeToAlert(alert);
         
-        logger.debug("DOCX-Changed-Alert direkt erstellt für: {} mit Theme angewendet", fileName);
         return alert;
     }
     

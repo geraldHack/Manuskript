@@ -55,7 +55,6 @@ public class Main extends Application {
             // WICHTIG: Kein setOnCloseRequest hier - wird in MainController.setPrimaryStage() behandelt
             customStage.show();
             
-            logger.info("Anwendung erfolgreich mit CustomStage gestartet");
             
         } catch (IOException e) {
             logger.error("Fehler beim Laden der FXML-Datei", e);

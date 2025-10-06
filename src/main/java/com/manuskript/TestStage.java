@@ -31,7 +31,6 @@ public class TestStage implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         setupEventHandlers();
         setupUI();
-        logger.info("TestStage Controller initialisiert");
     }
     
     private void setupEventHandlers() {
@@ -47,12 +46,10 @@ public class TestStage implements Initializable {
     }
     
     private void test1Action() {
-        logger.info("Test 1 Button geklickt");
         txtTest.setText("Test 1 ausgeführt!");
     }
     
     private void test2Action() {
-        logger.info("Test 2 Button geklickt");
         listTest.getItems().add("Neues Test Item: " + System.currentTimeMillis());
     }
     

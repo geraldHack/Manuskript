@@ -16,4 +16,6 @@
     </root>
     
     <logger name="com.manuskript" level="DEBUG" />
+    <logger name="DownloadsMonitor" level="WARN" />
+    <logger name="com.manuskript.MainController" level="INFO" />
 </configuration>

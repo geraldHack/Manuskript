@@ -77,7 +77,7 @@ public class EditorWindow implements Initializable {
     // Globale DOCX-Optionen für Export
     private DocxOptions globalDocxOptions = new DocxOptions();
     
-    // Gesamtdokument-Unterstützung
+    // Buch-Unterstützung
     private File currentFile;
     private boolean isCompleteDocument = false;
     
@@ -255,17 +255,14 @@ public class EditorWindow implements Initializable {
     
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        logger.info("=== EDITOR WINDOW INITIALIZE START ===");
         preferences = Preferences.userNodeForPackage(EditorWindow.class);
         
         // DOCX-Optionen aus User Preferences laden
         globalDocxOptions.loadFromPreferences();
-        logger.info("DOCX-Optionen aus User Preferences geladen");
         
         // DocxProcessor initialisieren
         if (docxProcessor == null) {
             docxProcessor = new DocxProcessor();
-            logger.info("DocxProcessor initialisiert");
         }
         
         setupUI();
@@ -302,7 +299,6 @@ public class EditorWindow implements Initializable {
                 String cssPath = ResourceManager.getCssResource("css/manuskript.css");
                 if (cssPath != null && !mainContainer.getScene().getStylesheets().contains(cssPath)) {
                     mainContainer.getScene().getStylesheets().add(cssPath);
-                    logger.info("CSS-Datei in initialize geladen: {}", cssPath);
                 } else {
                     logger.warn("CSS-Datei konnte in initialize nicht geladen werden: {}", cssPath);
                 }
@@ -314,7 +310,6 @@ public class EditorWindow implements Initializable {
                     String cssPath = ResourceManager.getCssResource("css/manuskript.css");
                     if (cssPath != null && !mainContainer.getScene().getStylesheets().contains(cssPath)) {
                         mainContainer.getScene().getStylesheets().add(cssPath);
-                        logger.info("CSS-Datei in initialize (verzögert) geladen: {}", cssPath);
                     }
                 }
             });
@@ -326,7 +321,6 @@ public class EditorWindow implements Initializable {
             Platform.runLater(() -> {
                 if (currentThemeIndex > 0) { // Nicht das Standard-weiße Theme
                     applyTheme(currentThemeIndex);
-                    logger.info("Zusätzlicher Theme-Refresh durchgeführt für Theme: {}", currentThemeIndex);
                 }
                 
                 // Editor-Abstände beim Start anwenden
@@ -343,7 +337,6 @@ public class EditorWindow implements Initializable {
                 String cssPath = ResourceManager.getCssResource("css/manuskript.css");
                 if (cssPath != null && !mainContainer.getScene().getStylesheets().contains(cssPath)) {
                     mainContainer.getScene().getStylesheets().add(cssPath);
-                    logger.info("CSS-Datei geladen: {}", cssPath);
                 } else {
                     logger.warn("CSS-Datei konnte nicht geladen werden: {}", cssPath);
                 }
@@ -631,7 +624,6 @@ if (caret != null) {
         
         // Zeilenabstand-ComboBox entfernt - wird von RichTextFX nicht unterstützt
         cmbParagraphSpacing.setOnAction(e -> {
-            logger.info("cmbParagraphSpacing Event-Handler: Wurde aufgerufen!");
             changeParagraphSpacingFromComboBox();
         });
         
@@ -733,7 +725,6 @@ if (caret != null) {
         // Keyboard-Shortcuts für den Editor
         codeArea.setOnKeyPressed(event -> {
             // Debug-Ausgabe für Keyboard-Events
-            logger.debug("Key pressed: " + event.getCode() + ", Shift: " + event.isShiftDown() + ", Ctrl: " + event.isControlDown());
             
             if (event.isControlDown()) {
                 switch (event.getCode()) {
@@ -758,10 +749,8 @@ if (caret != null) {
             } else if (event.getCode() == KeyCode.F3) {
                 // F3 und Shift+F3 für Suchen-Navigation
                 if (event.isShiftDown()) {
-                    logger.debug("Shift+F3 pressed - calling findPrevious()");
                     findPrevious();
                 } else {
-                    logger.debug("F3 pressed - calling findNext()");
                     findNext();
                 }
                 event.consume();
@@ -1370,7 +1359,6 @@ if (caret != null) {
                             searchHistory.add(decodedItem);
                         } catch (Exception e) {
                             // Ignoriere ungültige Einträge
-                            logger.debug("Ungültiger Base64-Eintrag in Search-Historie: {}", item);
                         }
                     }
                 }
@@ -1386,7 +1374,6 @@ if (caret != null) {
                             replaceHistory.add(decodedItem);
                         } catch (Exception e) {
                             // Ignoriere ungültige Einträge
-                            logger.debug("Ungültiger Base64-Eintrag in Replace-Historie: {}", item);
                         }
                     }
                 }
@@ -1401,7 +1388,6 @@ if (caret != null) {
                             String decodedItem = new String(java.util.Base64.getDecoder().decode(item.trim()));
                             searchOptions.add(decodedItem);
                         } catch (Exception e) {
-                            logger.debug("Ungültiger Base64-Eintrag in Search-Optionen: {}", item);
                         }
                     }
                 }
@@ -1415,7 +1401,6 @@ if (caret != null) {
                             String decodedItem = new String(java.util.Base64.getDecoder().decode(item.trim()));
                             replaceOptions.add(decodedItem);
                         } catch (Exception e) {
-                            logger.debug("Ungültiger Base64-Eintrag in Replace-Optionen: {}", item);
                         }
                     }
                 }
@@ -1483,7 +1468,6 @@ if (caret != null) {
         if (!message.contains("nicht gesichert")) {
             lblStatus.setStyle("-fx-text-fill: #6c757d; -fx-font-size: 11px;"); // Normale Farbe
         }
-        logger.info("Editor Status: {}", message);
     }
     
     private void updateStatusError(String message) {
@@ -1533,7 +1517,6 @@ if (caret != null) {
                 }
             }
         } catch (Exception e) {
-            logger.debug("Fehler beim Parsen der Search-Optionen: {}", options);
         }
     }
     
@@ -1546,7 +1529,6 @@ if (caret != null) {
             return;
         }
         
-        logger.info("showExportDialog aufgerufen - erstelle Stage...");
         CustomStage exportStage = StageManager.createExportStage("Export", stage);
         exportStage.setTitle("📤 Exportieren");
         exportStage.initModality(Modality.APPLICATION_MODAL);
@@ -1558,7 +1540,6 @@ if (caret != null) {
                 String cssPath = ResourceManager.getCssResource("css/manuskript.css");
                 if (exportStage.getScene() != null) {
                     exportStage.getScene().getStylesheets().add(cssPath);
-                    logger.info("CSS-Styles für Export-Dialog hinzugefügt");
                 }
                 
                 // Theme für den Dialog setzen
@@ -1592,12 +1573,9 @@ if (caret != null) {
         
         // Dann Event setzen
         docxOptionsBtn.setOnAction(e -> {
-            logger.info("DOCX-Optionen Button geklickt!");
             if (docxCheck.isSelected()) {
-                logger.info("DOCX ist ausgewählt, öffne Optionen-Dialog...");
                 showDocxOptionsDialog(docxCheck);
             } else {
-                logger.info("DOCX ist nicht ausgewählt, zeige Warnung...");
                 // Warnung anzeigen
                 CustomAlert alert = new CustomAlert(Alert.AlertType.WARNING, "Warnung");
                 alert.setHeaderText("DOCX nicht ausgewählt");
@@ -1742,9 +1720,7 @@ if (caret != null) {
         applyThemeToNode(scene.getRoot(), currentThemeIndex);
         
         // DIALOG ANZEIGEN - EXAKT WIE FUNKTIONIERENDER TEST-DIALOG
-        logger.info("Zeige Export-Dialog...");
         exportStage.showAndWait();
-        logger.info("Export-Dialog geschlossen.");
     }
     
     // Export-Format Enum
@@ -1869,7 +1845,6 @@ if (caret != null) {
     
     // DOCX-Optionen Dialog
     private void showDocxOptionsDialog(CheckBox docxCheck) {
-        logger.info("showDocxOptionsDialog aufgerufen - erstelle Stage...");
         CustomStage optionsStage = StageManager.createModalStage("DocX-Optionen", stage);
         optionsStage.setTitle("⚙️ DOCX Export Optionen");
         optionsStage.initModality(Modality.APPLICATION_MODAL);
@@ -1881,7 +1856,6 @@ if (caret != null) {
                 String cssPath = ResourceManager.getCssResource("css/manuskript.css");
                 if (optionsStage.getScene() != null) {
                     optionsStage.getScene().getStylesheets().add(cssPath);
-                    logger.info("CSS-Styles für DOCX-Options-Dialog hinzugefügt");
                 }
                 
                 // Theme für den Dialog setzen
@@ -2372,7 +2346,6 @@ if (caret != null) {
         saveButton.setOnAction(e -> {
             // Optionen in User Preferences speichern
             globalDocxOptions.saveToPreferences();
-            logger.info("DOCX-Optionen in User Preferences gespeichert");
             optionsStage.close();
         });
         
@@ -2381,7 +2354,6 @@ if (caret != null) {
         cancelButton.setOnAction(e -> {
             // Optionen auf gespeicherte Werte zurücksetzen
             globalDocxOptions.loadFromPreferences();
-            logger.info("DOCX-Optionen auf gespeicherte Werte zurückgesetzt");
             optionsStage.close();
         });
         
@@ -2390,7 +2362,6 @@ if (caret != null) {
         resetButton.setOnAction(e -> {
             // Alle Optionen auf Standard zurücksetzen
             globalDocxOptions.resetToDefaults();
-            logger.info("DOCX-Optionen auf Standardwerte zurückgesetzt");
             
             // Dialog neu laden mit Standardwerten
             optionsStage.close();
@@ -2415,9 +2386,7 @@ if (caret != null) {
         applyThemeToNode(scene.getRoot(), currentThemeIndex);
         
         // Dialog anzeigen
-        logger.info("Zeige DOCX-Optionen Dialog...");
         optionsStage.showAndWait();
-        logger.info("DOCX-Optionen Dialog geschlossen.");
 
     }
     
@@ -2450,7 +2419,6 @@ if (caret != null) {
         
         // DOCX-Optionen verwenden, falls vorhanden
         if (result.docxOptions != null) {
-            logger.info("Verwende DOCX-Optionen für Export");
             docxProcessor.exportMarkdownToDocxWithOptions(content, file, result.docxOptions);
         } else {
             // Standard-Export ohne Optionen
@@ -3121,9 +3089,9 @@ if (caret != null) {
     // Datei-Operationen
     private void saveFile() {
         
-        // Spezielle Behandlung für Gesamtdokumente
+        // Spezielle Behandlung für Bücher
         if (isCompleteDocument) {
-            // Für Gesamtdokumente: MD speichern UND Dialog für DOCX anzeigen
+            // Für Bücher: MD speichern UND Dialog für DOCX anzeigen
             if (currentFile != null) {
                 String data = codeArea.getText();
                 if (data == null) data = "";
@@ -3131,7 +3099,7 @@ if (caret != null) {
                 // MD-Datei speichern
                 try {
                     Files.write(currentFile.toPath(), data.getBytes(StandardCharsets.UTF_8));
-                    updateStatus("Gesamtdokument gespeichert: " + currentFile.getName());
+                    updateStatus("Buch gespeichert: " + currentFile.getName());
                 } catch (IOException e) {
                     updateStatusError("Fehler beim Speichern: " + e.getMessage());
                     return;
@@ -3277,9 +3245,9 @@ if (caret != null) {
             String data = codeArea.getText();
             if (data == null) data = "";
             
-            // Spezielle Behandlung für Gesamtdokumente
+            // Spezielle Behandlung für Bücher
             if (isCompleteDocument) {
-                // Für Gesamtdokumente: Nur DOCX erstellen, kein MD speichern
+                // Für Bücher: Nur DOCX erstellen, kein MD speichern
                 createDocxFile(file, data);
                 return;
             }
@@ -3383,12 +3351,9 @@ if (caret != null) {
         Button docxOptionsBtn = new Button("DOCX-Optionen");
         docxOptionsBtn.setStyle("-fx-font-size: 11px; -fx-padding: 4px 8px;");
         docxOptionsBtn.setOnAction(e -> {
-            logger.info("DOCX-Optionen Button geklickt!");
             if (saveOriginalDocx.isSelected()) {
-                logger.info("DOCX ist ausgewählt, öffne Optionen-Dialog...");
                 showDocxOptionsDialog(saveOriginalDocx);
             } else {
-                logger.info("DOCX ist nicht ausgewählt, zeige Warnung...");
                 // Warnung anzeigen
                 CustomAlert alert = new CustomAlert(Alert.AlertType.WARNING, "Warnung");
                 alert.setHeaderText("DOCX nicht ausgewählt");
@@ -3667,12 +3632,9 @@ if (caret != null) {
         Button docxOptionsBtn = new Button("DOCX-Optionen");
         docxOptionsBtn.setStyle("-fx-font-size: 11px; -fx-padding: 4px 8px;");
         docxOptionsBtn.setOnAction(e -> {
-            logger.info("DOCX-Optionen Button geklickt!");
             if (saveOriginalDocx.isSelected()) {
-                logger.info("DOCX ist ausgewählt, öffne Optionen-Dialog...");
                 showDocxOptionsDialog(saveOriginalDocx);
             } else {
-                logger.info("DOCX ist nicht ausgewählt, zeige Warnung...");
                 // Warnung anzeigen
                 CustomAlert alert = new CustomAlert(Alert.AlertType.WARNING, "Warnung");
                 alert.setHeaderText("DOCX nicht ausgewählt");
@@ -3774,11 +3736,9 @@ if (caret != null) {
             // WICHTIG: File Watcher VOR dem DOCX-Export stoppen
             if (mainController != null) {
                 mainController.stopFileWatcher();
-                logger.info("File Watcher gestoppt vor DOCX-Export");
                 
                 // KRITISCH: Dialog unterdrücken während DOCX-Export
                 mainController.setSuppressExternalChangeDialog(true);
-                logger.info("External Change Dialog unterdrückt");
                 
                 // Zusätzlich: Verhindere refreshDocxFiles() Aufrufe
                 try {
@@ -3830,7 +3790,6 @@ if (caret != null) {
             if (mainController != null) {
                 mainController.updateDocxHashAfterAccept(originalDocxFile);
                 mainController.markDocxFileAsUnchanged(originalDocxFile);
-                logger.info("Hash NACH DOCX-Export aktualisiert für: {}", originalDocxFile.getName());
             }
             
             // File Watcher nach kurzer Verzögerung wieder aktivieren
@@ -3840,7 +3799,6 @@ if (caret != null) {
                         Thread.sleep(500); // Längere Verzögerung für File Watcher
                         // Dialog-Unterdrückung wieder deaktivieren
                         mainController.setSuppressExternalChangeDialog(false);
-                        logger.info("External Change Dialog wieder aktiviert");
                         
                         // File Watcher wieder aktivieren
                         String currentPath = mainController.getCurrentDirectoryPath();
@@ -4226,7 +4184,7 @@ if (caret != null) {
     public void setIsCompleteDocument(boolean isCompleteDocument) {
         this.isCompleteDocument = isCompleteDocument;
         
-        // Verstecke Navigation-Buttons für Gesamtdokumente
+        // Verstecke Navigation-Buttons für Bücher
         if (isCompleteDocument) {
             hideNavigationButtons();
         }
@@ -4244,10 +4202,9 @@ if (caret != null) {
     }
     
     private void showDocxExportDialog() {
-        // Erweiterter Dialog für Gesamtdokumente mit DOCX-Optionen
-        logger.info("showDocxExportDialog aufgerufen - erstelle Stage...");
+        // Erweiterter Dialog für Bücher mit DOCX-Optionen
         CustomStage exportStage = StageManager.createExportStage("DOCX-Export", stage);
-        exportStage.setTitle("📤 DOCX-Export für Gesamtdokument");
+        exportStage.setTitle("📤 DOCX-Export für Buch");
         exportStage.initModality(Modality.APPLICATION_MODAL);
         exportStage.initOwner(stage);
         
@@ -4257,7 +4214,6 @@ if (caret != null) {
                 String cssPath = ResourceManager.getCssResource("css/manuskript.css");
                 if (exportStage.getScene() != null) {
                     exportStage.getScene().getStylesheets().add(cssPath);
-                    logger.info("CSS-Styles für DOCX-Export-Dialog hinzugefügt");
                 }
                 
                 // Theme für den Dialog setzen
@@ -4272,7 +4228,7 @@ if (caret != null) {
         exportContent.setPadding(new Insets(20));
         
         // Info-Text
-        Label infoLabel = new Label("✅ Gesamtdokument erfolgreich gespeichert!\n\nMöchten Sie auch eine DOCX-Datei erstellen?");
+        Label infoLabel = new Label("✅ Buch erfolgreich gespeichert!\n\nMöchten Sie auch eine DOCX-Datei erstellen?");
         infoLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #2e7d32;");
         infoLabel.setWrapText(true);
         
@@ -4289,7 +4245,6 @@ if (caret != null) {
         docxOptionsBtn.setStyle("-fx-font-size: 12px; -fx-padding: 6px 12px;");
         
         docxOptionsBtn.setOnAction(e -> {
-            logger.info("DOCX-Optionen Button geklickt!");
             showDocxOptionsDialog(null); // null da wir keine CheckBox haben
         });
         
@@ -4336,9 +4291,9 @@ if (caret != null) {
             String fileName = currentFile.getName();
             // Entferne .md und .gesamt
             String baseName = fileName.replace(".md", "").replace(".gesamt", "");
-            // Nur " Gesamtdokument" hinzufügen, wenn es noch nicht enthalten ist
-            if (!baseName.contains("Gesamtdokument")) {
-                baseName = baseName + " Gesamtdokument";
+            // Nur " Buch" hinzufügen, wenn es noch nicht enthalten ist
+            if (!baseName.contains("Buch")) {
+                baseName = baseName + " Buch";
             }
             filenameField.setText(baseName);
         }
@@ -4381,12 +4336,10 @@ if (caret != null) {
         
         // Event-Handler für Buttons
         cancelButton.setOnAction(e -> {
-            logger.info("DOCX-Export abgebrochen");
             exportStage.close();
         });
         
         exportButton.setOnAction(e -> {
-            logger.info("DOCX-Export gestartet");
             
             // Erstelle DOCX-Datei mit den Optionen
             if (currentFile != null) {
@@ -4396,9 +4349,9 @@ if (caret != null) {
                 // Bestimme den Ausgabedateinamen
                 String filename = filenameField.getText().trim();
                 if (filename.isEmpty()) {
-                    // Standard: Basis-Name + " Gesamtdokument"
+                    // Standard: Basis-Name + " Buch"
                     String baseName = currentFile.getName().replace(".md", "").replace(".gesamt", "");
-                    filename = baseName + " Gesamtdokument";
+                    filename = baseName + " Buch";
                 }
                 
                 // Bestimme das Ausgabeverzeichnis - verwende das gleiche Verzeichnis wie die MD-Datei
@@ -4436,9 +4389,7 @@ if (caret != null) {
         applyThemeToNode(scene.getRoot(), currentThemeIndex);
         
         // Dialog anzeigen
-        logger.info("Zeige DOCX-Export-Dialog...");
         exportStage.showAndWait();
-        logger.info("DOCX-Export-Dialog geschlossen.");
     }
     
     private void createDocxFileWithOptions(File docxFile, String content) {
@@ -4458,7 +4409,6 @@ if (caret != null) {
             docxProcessor.exportMarkdownToDocxWithOptions(content, docxFile, globalDocxOptions);
             
             updateStatus("DOCX-Datei erstellt: " + docxFile.getName());
-            logger.info("DOCX-Datei erfolgreich erstellt: " + docxFile.getAbsolutePath());
             
         } catch (Exception e) {
             logger.error("Fehler beim Erstellen der DOCX-Datei", e);
@@ -4513,7 +4463,6 @@ if (caret != null) {
                 // Aktualisiere originalContent für Change-Detection
                 originalContent = currentContent;
                 
-                logger.info("MD-Datei automatisch angelegt: {}", currentFile.getName());
                 updateStatus("MD-Datei angelegt: " + currentFile.getName());
                 
             } catch (IOException e) {
@@ -4566,7 +4515,6 @@ if (caret != null) {
                 String cssPath = ResourceManager.getCssResource("css/manuskript.css");
                 if (cssPath != null && !stage.getScene().getStylesheets().contains(cssPath)) {
                     stage.getScene().getStylesheets().add(cssPath);
-                    logger.info("CSS-Datei in setStage geladen: {}", cssPath);
                 } else {
                     logger.warn("CSS-Datei konnte in setStage nicht geladen werden: {}", cssPath);
                 }
@@ -4705,7 +4653,6 @@ if (caret != null) {
         preferences.putInt("editor_theme", themeIndex);
         preferences.putInt("main_window_theme", themeIndex);
         
-        logger.info("Theme vom Hauptfenster übernommen und gespeichert: {}", themeIndex);
         
         // WICHTIG: Theme sofort anwenden
         applyTheme(themeIndex);
@@ -5096,7 +5043,6 @@ spacer.setStyle("-fx-background-color: transparent;");
             macroStage.setWidth(width);
             macroStage.setHeight(height);
             
-            logger.info("Makro-Fenster: Position {},{} Größe {}x{}", x, y, width, height);
             
             // Fenster-Position und Größe speichern (nur wenn gültig)
             macroStage.xProperty().addListener((obs, oldVal, newVal) -> {
@@ -5123,22 +5069,16 @@ spacer.setStyle("-fx-background-color: transparent;");
     }
     
     private void toggleMacroPanel() {
-        logger.debug("Toggle Makro-Panel: macroStage null={}, visible vorher={}", 
-                    macroStage == null, macroWindowVisible);
         
         // Makro-Fenster erstellen, falls es noch nicht existiert
         if (macroStage == null) {
-            logger.info("Erstelle Makro-Fenster...");
             createMacroWindow();
-            logger.info("Makro-Fenster erstellt: {}", macroStage != null);
         }
         
         macroWindowVisible = !macroWindowVisible;
-        logger.debug("macroWindowVisible nachher: {}", macroWindowVisible);
         
         if (macroWindowVisible) {
             // Makro-Fenster öffnen
-            logger.debug("Zeige Makro-Fenster...");
             
             // Position und Größe auf Bildschirm setzen, falls außerhalb oder zu klein
             if (macroStage.getX() < 0 || macroStage.getY() < 0 || 
@@ -5153,13 +5093,9 @@ spacer.setStyle("-fx-background-color: transparent;");
             
             macroStage.show();
             macroStage.toFront();
-            logger.info("Makro-Fenster gezeigt: sichtbar={}, Position={},{}, Größe={}x{}", 
-                       macroStage.isShowing(), macroStage.getX(), macroStage.getY(), 
-                       macroStage.getWidth(), macroStage.getHeight());
             updateStatus("Makro-Fenster geöffnet");
         } else {
             // Makro-Fenster schließen
-            logger.debug("Verstecke Makro-Fenster...");
             macroStage.hide();
             updateStatus("Makro-Fenster geschlossen");
         }
@@ -5534,7 +5470,6 @@ spacer.setStyle("-fx-background-color: transparent;");
             String regex = "(sagte|fragte|rief|murmelte|flüsterte|antwortete|erklärte|berichtete|erzählte|bemerkte|kommentierte|behauptete|versicherte|warnte|vermutete|leugnete|versprach|schwor|informierte|mitteilte|diskutierte|debattierte|argumentierte|streitete|besprach|plauderte|schwatzte|raunte|brüllte|schrie|heulte|weinte|lachte|grinste|seufzte|stöhnte|ächzte|wimmerte|schluchzte|keuchte|stotterte|stammelte|fluchte|schimpfte|donnerte|knurrte|fauchte|zischte|brummte|summte|pfiff|trällerte|sang|deklamierte|rezitierte|sprach|redete|plapperte|schwadronierte|faselte|laberte|quasselte|schwätzte|quatschte|konversierte)\\s+\\w+\\.";
             
             // Debug: Pattern anzeigen
-            logger.info("Sprechantworten-Pattern: " + regex);
             
             // Suchtext in die Suchleiste setzen
             cmbSearchHistory.setValue(regex);
@@ -6090,7 +6025,6 @@ spacer.setStyle("-fx-background-color: transparent;");
             }
             
             statusArea.setText(result.toString());
-            logger.info("Editor Status: Wortwiederholung nah-Analyse abgeschlossen: {} Wiederholungen", wiederholungen.size());
             
         } catch (Exception e) {
             statusArea.setText("Fehler bei der Analyse: " + e.getMessage());
@@ -6912,7 +6846,6 @@ spacer.setStyle("-fx-background-color: transparent;");
             if (step.isUseRegex()) {
                 // Für Regex: \1 muss als $1 behandelt werden
                 String processedSearch = searchText.replace("\\1", "$1").replace("\\2", "$2").replace("\\3", "$3");
-                logger.debug("DEBUG: Original: '" + searchText + "' -> Java: '" + processedSearch + "'");
                 return Pattern.compile(processedSearch, flags);
             } else {
                 // Escape special regex characters for literal search
@@ -6930,7 +6863,6 @@ spacer.setStyle("-fx-background-color: transparent;");
     
     private void loadMacros() {
         // Neue Persistenz: Datei im config/makros Ordner, mit Migration aus Preferences
-        logger.info("Lade Makros (Datei bevorzugt, Migration aus Preferences falls nötig)");
 
         String savedMacros = "";
         java.io.File macrosFile = getMacrosFile();
@@ -6944,7 +6876,6 @@ spacer.setStyle("-fx-background-color: transparent;");
                     savedMacros = legacy;
                     java.nio.file.Files.createDirectories(macrosFile.getParentFile().toPath());
                     java.nio.file.Files.writeString(macrosFile.toPath(), savedMacros, java.nio.charset.StandardCharsets.UTF_8);
-                    logger.info("Makros aus Preferences migriert nach: " + macrosFile.getAbsolutePath());
                 }
             }
             } catch (Exception e) {
@@ -6954,13 +6885,11 @@ spacer.setStyle("-fx-background-color: transparent;");
         if (savedMacros == null) savedMacros = "";
         // Alte/inkompatible Formate abfangen (aber ENABLED:0/1 ist VALID!)
         if (savedMacros.contains("|||") || savedMacros.contains("<<<MACRO>>>")) {
-            logger.info("Alte/inkompatible Makro-Daten erkannt – setze zurück");
             savedMacros = "";
         }
         
         if (savedMacros.isEmpty()) {
             // Keine gespeicherten Makros - lade Standard-Makros
-            logger.info("Keine gespeicherten Makros gefunden - lade Standard-Makros");
             loadDefaultMacros();
             updateMacroList();
             return;
@@ -7054,7 +6983,6 @@ spacer.setStyle("-fx-background-color: transparent;");
         // Stelle sicher, dass Text-Bereinigung Makro vorhanden ist
         boolean hasTextBereinigung = macros.stream().anyMatch(macro -> "Text-Bereinigung".equals(macro.getName()));
         if (!hasTextBereinigung) {
-            logger.info("Text-Bereinigung Makro nicht gefunden - lade Standard-Makros");
             loadDefaultMacros();
         }
         
@@ -7071,7 +6999,6 @@ spacer.setStyle("-fx-background-color: transparent;");
             }
         }
         
-        logger.info("Makros geladen: " + macros.size() + " Makros");
         updateMacroList();
     }
     
@@ -7103,7 +7030,6 @@ spacer.setStyle("-fx-background-color: transparent;");
             try {
                 java.nio.file.Files.createDirectories(macrosFile.getParentFile().toPath());
                 java.nio.file.Files.writeString(macrosFile.toPath(), macroData, java.nio.charset.StandardCharsets.UTF_8);
-                logger.info("Makros in Datei gespeichert: " + macrosFile.getAbsolutePath());
             } catch (Exception fileError) {
                 logger.error("Fehler beim Speichern in Datei: " + fileError.getMessage());
                 // Fallback: Nur Preferences
@@ -7113,13 +7039,11 @@ spacer.setStyle("-fx-background-color: transparent;");
             try {
             preferences.put("savedMacros", macroData);
             preferences.flush();
-                logger.info("Makros in Preferences gespeichert");
             } catch (Exception prefError) {
                 logger.error("Fehler beim Speichern in Preferences: " + prefError.getMessage());
             }
 
             updateStatus("Makros gespeichert: " + macros.size() + " Makros");
-            logger.info("Makros gespeichert (Datei & Preferences): " + macros.size() + " Makros");
         } catch (Exception e) {
             logger.error("Fehler beim Speichern der Makros", e);
             updateStatus("Fehler beim Speichern der Makros: " + e.getMessage());
@@ -7136,7 +7060,6 @@ spacer.setStyle("-fx-background-color: transparent;");
      * Lädt Standard-Makros (Text-Bereinigung)
      */
     private void loadDefaultMacros() {
-        logger.info("Lade Standard-Makros");
         
         // Text-Bereinigung-Makro aus Datei laden
         java.io.File defaultMacroFile = new java.io.File(com.manuskript.ResourceManager.getConfigDirectory(), "makros/macros.txt");
@@ -7144,7 +7067,6 @@ spacer.setStyle("-fx-background-color: transparent;");
             try {
                 String macroContent = new String(java.nio.file.Files.readAllBytes(defaultMacroFile.toPath()), "UTF-8");
                 parseMacroContent(macroContent);
-                logger.info("Standard-Makros aus Datei geladen: " + macros.size() + " Makros");
             } catch (Exception e) {
                 logger.error("Fehler beim Laden der Standard-Makros", e);
             }
@@ -7288,7 +7210,6 @@ spacer.setStyle("-fx-background-color: transparent;");
             Files.write(file.toPath(), csv.toString().getBytes("UTF-8"));
             
             updateStatus("Makro '" + currentMacro.getName() + "' als CSV gespeichert: " + file.getName());
-            logger.info("Makro als CSV gespeichert: " + file.getAbsolutePath());
             
         } catch (Exception e) {
             logger.error("Fehler beim Speichern der CSV-Datei", e);
@@ -7332,7 +7253,6 @@ spacer.setStyle("-fx-background-color: transparent;");
                 
                 // Font-Size in Preferences speichern
                 preferences.putInt("fontSize", size);
-                logger.info("Font-Size geändert und gespeichert: {}", size);
             }
         } catch (NumberFormatException e) {
             logger.warn("Ungültige Schriftgröße: {}", cmbFontSize.getValue());
@@ -7360,7 +7280,6 @@ spacer.setStyle("-fx-background-color: transparent;");
         double x = PreferencesManager.getWindowPosition(preferences, "editor_window_x", -1.0);
         double y = PreferencesManager.getWindowPosition(preferences, "editor_window_y", -1.0);
         
-        logger.info("Lade Fenster-Eigenschaften: Größe={}x{}, Position=({}, {})", width, height, x, y);
         
         // Mindestgrößen für Editor-Fenster
         double minWidth = PreferencesManager.MIN_EDITOR_WIDTH;
@@ -7388,7 +7307,6 @@ spacer.setStyle("-fx-background-color: transparent;");
                 stage.setY(y);
             }
         } else {
-            logger.info("Keine gültige Fenster-Position gefunden - zentriere Fenster");
             stage.centerOnScreen();
         }
         
@@ -7416,7 +7334,6 @@ spacer.setStyle("-fx-background-color: transparent;");
         // WICHTIG: Listener für Fenster-Änderungen hinzufügen
         addWindowPropertyListeners();
         
-        logger.info("Fenster-Eigenschaften geladen: Größe={}x{}, Position=({}, {})", width, height, x, y);
     }
     
     private void addWindowPropertyListeners() {
@@ -7431,7 +7348,6 @@ spacer.setStyle("-fx-background-color: transparent;");
                 } catch (Exception e) {
                     logger.warn("Konnte Fenster-Breite nicht speichern: {}", e.getMessage());
                 }
-                logger.debug("Fenster-Breite gespeichert: {}", newVal.doubleValue());
             }
         });
         
@@ -7443,7 +7359,6 @@ spacer.setStyle("-fx-background-color: transparent;");
                 } catch (Exception e) {
                     logger.warn("Konnte Fenster-Höhe nicht speichern: {}", e.getMessage());
                 }
-                logger.debug("Fenster-Höhe gespeichert: {}", newVal.doubleValue());
             }
         });
         
@@ -7455,7 +7370,6 @@ spacer.setStyle("-fx-background-color: transparent;");
                 } catch (Exception e) {
                     logger.warn("Konnte Fenster-X-Position nicht speichern: {}", e.getMessage());
                 }
-                logger.debug("Fenster-X-Position gespeichert: {}", newVal.doubleValue());
             }
         });
         
@@ -7467,7 +7381,6 @@ spacer.setStyle("-fx-background-color: transparent;");
                 } catch (Exception e) {
                     logger.warn("Konnte Fenster-Y-Position nicht speichern: {}", e.getMessage());
                 }
-                logger.debug("Fenster-Y-Position gespeichert: {}", newVal.doubleValue());
             }
         });
     }
@@ -7484,17 +7397,13 @@ spacer.setStyle("-fx-background-color: transparent;");
         int mainWindowTheme = preferences.getInt("main_window_theme", -1);
         int editorTheme = preferences.getInt("editor_theme", -1);
         
-        logger.info("Preferences gelesen: main_window_theme={}, editor_theme={}", mainWindowTheme, editorTheme);
         
         if (mainWindowTheme >= 0) {
             currentThemeIndex = mainWindowTheme;
-            logger.info("Theme aus main_window_theme geladen: {}", currentThemeIndex);
         } else if (editorTheme >= 0) {
             currentThemeIndex = editorTheme;
-            logger.info("Theme aus editor_theme geladen: {}", currentThemeIndex);
         } else {
             currentThemeIndex = 0; // Standard weißes Theme
-            logger.info("Kein Theme in Preferences gefunden, verwende Standard: {}", currentThemeIndex);
         }
         
         // Theme anwenden
@@ -7518,8 +7427,6 @@ spacer.setStyle("-fx-background-color: transparent;");
             currentQuoteStyleIndex = 0;
         }
         
-        logger.info("Toolbar-Einstellungen geladen: Font-Size={}, Theme={}, Quote-Style={} (final)", 
-                   fontSize, currentThemeIndex, currentQuoteStyleIndex);
     }
     
     private void updateThemeButtonTooltip() {
@@ -7561,7 +7468,6 @@ spacer.setStyle("-fx-background-color: transparent;");
                 cmbParagraphSpacing.setValue("10"); // Fallback
             }
             
-            logger.info("setupParagraphSpacingComboBox: ComboBox initialisiert");
         }
     }
     
@@ -7642,7 +7548,6 @@ spacer.setStyle("-fx-background-color: transparent;");
             }
             
             // Zeige Erfolgsmeldung
-            logger.info("Alle Anführungszeichen zu " + selectedStyle + " konvertiert");
         }
     }
     
@@ -7699,8 +7604,6 @@ spacer.setStyle("-fx-background-color: transparent;");
         codeArea.setStyleSpans(0, styleSpans);
         
         // Zeige Zusammenfassung
-        logger.info("Gefundene Anführungszeichen: " + marks.size() + 
-                   ", Inkonsistenzen: " + inconsistencies.size());
     }
     
     
@@ -7757,7 +7660,6 @@ spacer.setStyle("-fx-background-color: transparent;");
         String[] themeNames = {"Weiß", "Schwarz", "Pastell", "Blau", "Grün", "Lila"};
         updateStatus("Theme gewechselt: " + themeNames[currentThemeIndex]);
         
-        logger.info("Theme gewechselt und gespeichert: {} ({})", currentThemeIndex, themeNames[currentThemeIndex]);
         
         // Zusätzlicher verzögerter Theme-Refresh für bessere Kompatibilität
         // Dies stellt sicher, dass die RichTextFX CodeArea korrekt aktualisiert wird
@@ -7875,7 +7777,6 @@ spacer.setStyle("-fx-background-color: transparent;");
                     mainContainer.getStyleClass().add("pastell-theme");
                     root.setStyle(""); // CSS-Klassen verwenden
                     mainContainer.setStyle(""); // CSS-Klassen verwenden
-                    logger.info("Pastell-Theme direkt angewendet (Editor)");
                 } else {
                     root.setStyle(""); // Style zurücksetzen
                     mainContainer.setStyle(""); // Style zurücksetzen
@@ -8082,7 +7983,6 @@ spacer.setStyle("-fx-background-color: transparent;");
                 }
                 // Cursor-Style mit besserer Sichtbarkeit
                 caret.setStyle("-fx-stroke: " + cursorColor + "; -fx-fill: " + cursorColor + "; -fx-stroke-width: 2;");
-                logger.info("Cursor-Farbe gesetzt: {} für Textfarbe: {}", cursorColor, textColor);
             } else {
                 logger.warn("Caret-Element nicht gefunden!");
             }
@@ -8091,8 +7991,6 @@ spacer.setStyle("-fx-background-color: transparent;");
             codeArea.setStyle(codeArea.getStyle() + "; -fx-padding: 5px;");
         });
         
-        // Debug-Ausgabe
-        logger.info("Theme angewendet: Index={}, Hintergrund={}, Text={}", themeIndex, backgroundColor, textColor);
     }
     
     /**
@@ -8882,7 +8780,6 @@ spacer.setStyle("-fx-background-color: transparent;");
             chapterEditorArea.setText(chapterContent);
             originalChapterContent = chapterContent;
             chapterContentChanged = false;
-            logger.info("Chapter-Inhalt geladen für: " + currentFile.getName());
         }
     }
     
@@ -8903,7 +8800,6 @@ spacer.setStyle("-fx-background-color: transparent;");
                 lblStatus.setText("Chapter-Inhalt gespeichert: " + currentFile.getName());
                 lblStatus.setStyle("-fx-text-fill: #6c757d; -fx-font-size: 11px;");
             }
-            logger.info("Chapter-Inhalt gespeichert für: " + currentFile.getName());
         }
     }
     
@@ -8993,18 +8889,11 @@ spacer.setStyle("-fx-background-color: transparent;");
             return 0; // Fallback auf ersten Index
         }
         
-        // Debug-Ausgabe
-        logger.info("Suche aktuelle Datei: " + currentFile.getName());
-        logger.info("In ausgewählten Dateien:");
-        for (int i = 0; i < selectedFiles.size(); i++) {
-            logger.info("  [" + i + "] " + selectedFiles.get(i).getName());
-        }
         
         // Methode 1: Direkter Vergleich mit originalDocxFile
         if (originalDocxFile != null) {
             for (int i = 0; i < selectedFiles.size(); i++) {
                 if (selectedFiles.get(i).equals(originalDocxFile)) {
-                    logger.info("Gefunden über originalDocxFile: Index " + i);
                     return i;
                 }
             }
@@ -9015,7 +8904,6 @@ spacer.setStyle("-fx-background-color: transparent;");
         for (int i = 0; i < selectedFiles.size(); i++) {
             String selectedBaseName = getBaseFileName(selectedFiles.get(i).getName());
             if (currentBaseName.equals(selectedBaseName)) {
-                logger.info("Gefunden über Basisname: Index " + i + " (" + currentBaseName + ")");
                 return i;
             }
         }
@@ -9051,7 +8939,7 @@ spacer.setStyle("-fx-background-color: transparent;");
     private void loadChapterFile(File file) {
         try {
             // Bestimme die Kapitelnummer basierend auf der Position in der Dateiliste
-            int chapterNumber = 1; // Standard für das erste Kapitel (Gesamtdokument)
+            int chapterNumber = 1; // Standard für das erste Kapitel (Buch)
             
             if (mainController != null) {
                 List<File> selectedFiles = mainController.getSelectedDocxFiles();
@@ -9068,7 +8956,6 @@ spacer.setStyle("-fx-background-color: transparent;");
             
             // Prüfe ob DOCX geändert wurde - aber zeige nur Info, kein Zwangsdiff
             if (DiffProcessor.hasDocxChanged(file, sidecar)) {
-                logger.info("DOCX-Datei wurde extern geändert: {} - zeige Dialog", file.getName());
                 
                 // WICHTIG: Dialog für externe Änderungen anzeigen (auch beim Weiterblättern)
                 // Wir müssen den Dialog synchron machen, damit wir das Ergebnis verarbeiten können
@@ -9079,11 +8966,9 @@ spacer.setStyle("-fx-background-color: transparent;");
                         DocxFile docxFile = new DocxFile(file);
                         MainController.DocxChangeDecision decision = mainController.showDocxChangedDialogInMain(docxFile);
                         
-                        logger.info("Benutzer-Entscheidung für {}: {}", file.getName(), decision);
                         
                         switch (decision) {
                             case DIFF:
-                                logger.info("Zeige Diff für {}", file.getName());
                                 // Diff-Fenster über MainController öffnen
                                 if (mainController != null) {
                                     File mdFile = deriveSidecarFileFor(file, outputFormat);
@@ -9092,7 +8977,6 @@ spacer.setStyle("-fx-background-color: transparent;");
                                 // Bei DIFF warten - kein weiterer Ladeprozess
                                 return;
                             case DOCX:
-                                logger.info("Übernehme DOCX-Inhalt für {}", file.getName());
                                 // DOCX-Inhalt laden und anzeigen
                                 String docxContent = docxProcessor.processDocxFileContent(file, chapterNumber, outputFormat);
                                 setText(docxContent);
@@ -9102,23 +8986,17 @@ spacer.setStyle("-fx-background-color: transparent;");
                                 originalContent = docxContent;
                                 updateNavigationButtons();
                                 // Bei DOCX-Übernahme normalen Ladeprozess fortsetzen
-                                logger.info("Setze normalen Ladeprozess fort für {}", file.getName());
                                 break;
                             case IGNORE:
-                                logger.info("Ignoriere Änderungen für {}", file.getName());
                                 // Bestehenden Inhalt beibehalten - normalen Ladeprozess fortsetzen
-                                logger.info("Setze normalen Ladeprozess fort für {}", file.getName());
                                 break;
                             case CANCEL:
-                                logger.info("Abbruch für {}", file.getName());
                                 // Bei CANCEL warten
                                 return;
                         }
                     }
                 } catch (Exception e) {
                     logger.error("Fehler beim Anzeigen des DOCX-Änderungs-Dialogs", e);
-                    // Bei Fehler normalen Ladeprozess fortsetzen
-                    logger.info("Setze normalen Ladeprozess fort nach Fehler für {}", file.getName());
                 }
             }
             
@@ -9145,7 +9023,6 @@ spacer.setStyle("-fx-background-color: transparent;");
             // Aktualisiere die Navigation-Buttons
             updateNavigationButtons();
             
-            logger.info("Kapitel geladen: " + file.getName() + " (Kapitel " + chapterNumber + ")");
             
         } catch (Exception e) {
             updateStatusError("Fehler beim Laden des Kapitels: " + e.getMessage());
@@ -9191,9 +9068,6 @@ spacer.setStyle("-fx-background-color: transparent;");
         // Deaktiviere "Nächstes Kapitel" wenn beim letzten Kapitel
         btnNextChapter.setDisable(currentIndex >= selectedFiles.size() - 1);
         
-        logger.info("Navigation-Buttons aktualisiert: Index=" + currentIndex + 
-                   ", Vorheriges=" + !btnPreviousChapter.isDisabled() + 
-                   ", Nächstes=" + !btnNextChapter.isDisabled());
     }
     
     /**
@@ -9223,7 +9097,6 @@ spacer.setStyle("-fx-background-color: transparent;");
                 applyEditorSpacing();
                 updateStatus("Absatzabstand auf " + newSpacing + "px gesetzt");
                 
-                logger.info("Absatzabstand geändert auf: " + newSpacing + "px");
             } catch (NumberFormatException e) {
                 logger.error("Ungültiger Absatzabstand: " + cmbParagraphSpacing.getValue());
                 cmbParagraphSpacing.setValue("10"); // Fallback
@@ -9243,7 +9116,6 @@ spacer.setStyle("-fx-background-color: transparent;");
         }
 
         try {
-            logger.info("applyEditorSpacing: Starte Anwendung der Abstände...");
             
             // Lade Konfiguration aus parameters.properties
             Properties config = new Properties();
@@ -9255,7 +9127,6 @@ spacer.setStyle("-fx-background-color: transparent;");
             double lineSpacing = Double.parseDouble(config.getProperty("editor.line-spacing", "1.5"));
             int paragraphSpacing = Integer.parseInt(config.getProperty("editor.paragraph-spacing", "10"));
             
-            logger.info("applyEditorSpacing: Gelesene Werte - Zeilenabstand=" + lineSpacing + ", Absatzabstand=" + paragraphSpacing);
 
             // Wende Abstände an
             Platform.runLater(() -> {
@@ -9269,7 +9140,6 @@ spacer.setStyle("-fx-background-color: transparent;");
                  
                     // Inline-Style für RichTextFX setzen
                     String currentStyle = codeArea.getStyle();
-                    logger.info("applyEditorSpacing: Aktueller Style: " + currentStyle);
                     
                     // Entferne alte Spacing-Eigenschaften aus dem Style
                     String cleanStyle = currentStyle
@@ -9286,8 +9156,6 @@ spacer.setStyle("-fx-background-color: transparent;");
                         ".code-area .paragraph-box { -fx-padding: 0 0 %dpx 0; }",
                         paragraphSpacing);
                     
-                    logger.info("RichTextFX CodeArea: Nur Absatzabstand wird unterstützt");
-                    logger.info("Zeilenabstand wird von RichTextFX CodeArea nicht unterstützt");
                     
                     // Füge CSS als Stylesheet hinzu
                     try {
@@ -9302,8 +9170,6 @@ spacer.setStyle("-fx-background-color: transparent;");
                         // Füge Stylesheet zur CodeArea hinzu
                         codeArea.getStylesheets().add(tempCssFile.toURI().toString());
                         
-                        logger.info("RichTextFX CodeArea: CSS-Stylesheet hinzugefügt: " + tempCssFile.getAbsolutePath());
-                        logger.info("RichTextFX CodeArea: CSS-Inhalt: " + cssContent);
                         
                     } catch (Exception e) {
                         logger.error("Fehler beim Erstellen des CSS-Stylesheets", e);
@@ -9314,8 +9180,6 @@ spacer.setStyle("-fx-background-color: transparent;");
                     // Force Layout-Update für sofortige Anzeige
                     codeArea.requestLayout();
                     
-                    logger.info("Editor-Abstände angewendet: Zeilenabstand=" + lineSpacing +
-                               ", Absatzabstand=" + paragraphSpacing + "px");
                 } catch (Exception e) {
                     logger.error("Fehler beim Anwenden der Abstände in Platform.runLater", e);
                 }

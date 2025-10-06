@@ -128,7 +128,6 @@ public class DiffProcessor {
                 hash, docxFile.getAbsolutePath(), System.currentTimeMillis());
             
             Files.writeString(metadataPath, metadata);
-            logger.info("DOCX-Hash gespeichert: {} -> {}", docxFile.getName(), hash);
             
         } catch (Exception e) {
             logger.error("Fehler beim Speichern des DOCX-Hashs: {}", e.getMessage());

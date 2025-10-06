@@ -58,7 +58,6 @@ public class PluginManager {
                         if (plugin != null && plugin.isEnabled()) {
                             plugins.add(plugin);
                             pluginMap.put(plugin.getName(), plugin);
-                            logger.info("Plugin geladen: " + plugin.getName());
                         }
                     } catch (Exception e) {
                         logger.warning("Fehler beim Laden von Plugin " + pluginFile.getName() + ": " + e.getMessage());
@@ -66,7 +65,6 @@ public class PluginManager {
                 }
             }
             
-            logger.info("Plugins geladen: " + plugins.size() + " aktiv");
             
         } catch (Exception e) {
             logger.severe("Fehler beim Laden der Plugins: " + e.getMessage());
@@ -191,7 +189,6 @@ public class PluginManager {
                 gson.toJson(json, writer);
             }
             
-            logger.info("Plugin gespeichert: " + plugin.getName());
             
         } catch (Exception e) {
             logger.severe("Fehler beim Speichern von Plugin " + plugin.getName() + ": " + e.getMessage());

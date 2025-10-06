@@ -78,7 +78,6 @@ public class DocxSplitProcessor {
      * Analysiert eine DOCX-Datei und findet alle Kapitel
      */
     public List<Chapter> analyzeDocument(File docxFile) throws IOException {
-        logger.info("Analysiere DOCX-Datei: {}", docxFile.getAbsolutePath());
         
         this.sourceDocxFile = docxFile;
 
@@ -96,7 +95,6 @@ public class DocxSplitProcessor {
                 allParagraphs.add(paragraph);
             }
             
-            logger.info("Gefundene Absätze: {}", allParagraphs.size());
             
             // Kapitel finden
             for (int i = 0; i < allParagraphs.size(); i++) {
@@ -107,13 +105,11 @@ public class DocxSplitProcessor {
                     Chapter chapter = detectChapter(text, i, allParagraphs, chapters.size() + 1);
                     if (chapter != null) {
                         chapters.add(chapter);
-                        logger.info("Kapitel gefunden: {}", chapter);
                     }
                 }
             }
         }
         
-        logger.info("Insgesamt {} Kapitel gefunden", chapters.size());
         return chapters;
     }
     
@@ -157,8 +153,6 @@ public class DocxSplitProcessor {
                 
             }
         } catch (Exception e) {
-            logger.info("STYLE DEBUG: Text='{}' | Style='{}' | ERROR='{}' | NumId='{}'", 
-                       text.substring(0, Math.min(50, text.length())), styleName, e.getMessage(), numId);
         }
         
         // 1. PRIMÄR: Echte DOCX-Absatzformat-Stile prüfen
@@ -169,7 +163,6 @@ public class DocxSplitProcessor {
                 lowerStyle.contains("kapitel") || lowerStyle.contains("chapter") ||
                 lowerStyle.contains("teil") || lowerStyle.contains("part") ||
                 lowerStyle.startsWith("heading") || lowerStyle.startsWith("h")) {
-                logger.info("GEFUNDEN durch Style: {} -> {}", styleName, text);
                 return true;
             }
         }
@@ -185,7 +178,6 @@ public class DocxSplitProcessor {
                         lowerPStyle.contains("title") || lowerPStyle.contains("titel") ||
                         lowerPStyle.contains("kapitel") || lowerPStyle.contains("chapter") ||
                         lowerPStyle.contains("teil") || lowerPStyle.contains("part")) {
-                        logger.info("GEFUNDEN durch PStyleVal: {} -> {}", pStyleVal, text);
                         return true;
                     }
                 }
@@ -198,7 +190,6 @@ public class DocxSplitProcessor {
         
         // 3. PRIMÄR: Nummerierte Listen
         if (paragraph.getNumID() != null) {
-            logger.debug("Gefunden durch NumId: {}", numId);
             return true;
         }
         
@@ -220,7 +211,6 @@ public class DocxSplitProcessor {
         
         // Fett UND große Schrift UND kurzer Text = wahrscheinlich Überschrift
         if (isBold && isLargeFont && text.length() < 100) {
-            logger.debug("Gefunden durch Formatierung: fett={}, groß={}, länge={}", isBold, isLargeFont, text.length());
             return true;
         }
         
@@ -229,17 +219,14 @@ public class DocxSplitProcessor {
         
         // Nur wenn explizit "Kapitel" oder "Chapter" enthalten UND kurz
         if ((lowerText.contains("kapitel") || lowerText.contains("chapter")) && text.length() < 50) {
-            logger.debug("Gefunden durch Schlüsselwort: {}", text);
             return true;
         }
         
         // Nur wenn Zahlen am Anfang UND sehr kurz (weniger als 20 Zeichen) UND keine Satzzeichen am Ende
         if (text.matches("^\\d+.*") && text.length() < 20 && !text.matches(".*[.!?:;]\\s*$")) {
-            logger.debug("Gefunden durch Zahlen: {}", text);
             return true;
         }
         
-        logger.debug("NICHT als Kapitel erkannt: {}", text);
         return false;
     }
     
@@ -274,7 +261,6 @@ public class DocxSplitProcessor {
         String fileName = String.format("%s_%02d.docx", baseFileName, chapter.getNumber());
         File outputFile = new File(outputDir, fileName);
         
-        logger.info("Speichere Kapitel {} als: {}", chapter.getNumber(), outputFile.getAbsolutePath());
         
         try {
             if (cachedSourcePackage == null) {
@@ -340,14 +326,12 @@ public class DocxSplitProcessor {
             throw new IOException("Fehler beim Speichern des Kapitels", e);
         }
         
-        logger.info("Kapitel {} erfolgreich gespeichert", chapter.getNumber());
     }
     
                     /**
                  * Fügt nicht-ausgewählte Kapitel dem vorherigen ausgewählten Kapitel hinzu
                  */
                 public List<Chapter> mergeChaptersWithUnselectedContent(List<Chapter> allChapters, List<Boolean> selectionStatus) {
-                    logger.info("Starte Kapitel-Zusammenführung: {} Kapitel, {} Auswahl-Status", allChapters.size(), selectionStatus.size());
                     
                     List<Chapter> mergedChapters = new ArrayList<>();
                     Chapter currentMergedChapter = null;
@@ -360,7 +344,6 @@ public class DocxSplitProcessor {
                             // Neues ausgewähltes Kapitel - speichere das vorherige und starte ein neues
                             if (currentMergedChapter != null) {
                                 mergedChapters.add(currentMergedChapter);
-                                logger.info("Zusammengefügtes Kapitel hinzugefügt: {}", currentMergedChapter.getTitle());
                             }
                             
                             // Neues Kapitel starten (mit ursprünglicher Nummer)
@@ -385,7 +368,6 @@ public class DocxSplitProcessor {
                                     chapter.getEndParagraph(),
                                     currentMergedChapter.getParagraphs()
                                 );
-                                logger.info("Kapitel '{}' zu '{}' hinzugefügt", chapter.getTitle(), currentMergedChapter.getTitle());
                             } else {
                                 // Erstes Kapitel ist nicht ausgewählt - als eigenes Kapitel behandeln
                                 currentMergedChapter = new Chapter(
@@ -395,7 +377,6 @@ public class DocxSplitProcessor {
                                     chapter.getEndParagraph(),
                                     new ArrayList<>(chapter.getParagraphs())
                                 );
-                                logger.info("Nicht-ausgewähltes Kapitel als 'Unbenanntes Kapitel' behandelt: {}", chapter.getTitle());
                             }
                         }
                     }
@@ -403,10 +384,8 @@ public class DocxSplitProcessor {
                     // Letztes zusammengefügtes Kapitel hinzufügen
                     if (currentMergedChapter != null) {
                         mergedChapters.add(currentMergedChapter);
-                        logger.info("Letztes zusammengefügtes Kapitel hinzugefügt: {}", currentMergedChapter.getTitle());
                     }
                     
-                    logger.info("Kapitel-Zusammenführung abgeschlossen: {} finale Kapitel", mergedChapters.size());
                     return mergedChapters;
                 }
 
@@ -414,7 +393,6 @@ public class DocxSplitProcessor {
                  * Speichert alle Kapitel als separate DOCX-Dateien
                  */
                 public void splitDocument(File docxFile, File outputDir) throws IOException {
-                    logger.info("Starte DOCX-Split: {} -> {}", docxFile.getAbsolutePath(), outputDir.getAbsolutePath());
 
                     // Kapitel analysieren
                     List<Chapter> chapters = analyzeDocument(docxFile);
@@ -437,6 +415,5 @@ public class DocxSplitProcessor {
                         saveChapter(chapter, outputDir, baseFileName);
                     }
 
-                    logger.info("DOCX-Split abgeschlossen: {} Kapitel gespeichert", chapters.size());
                 }
 }

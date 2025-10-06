@@ -135,7 +135,6 @@ public class CustomStage extends Stage {
         setupHoverEffects();
         setupDragAndDrop();
 
-        logger.info("Benutzerdefinierte Titelleiste erstellt");
     }
     
     /**
@@ -232,7 +231,6 @@ public class CustomStage extends Stage {
             if (event.getClickCount() == 1 && !isResizing) {
                 xOffset = event.getSceneX();
                 yOffset = event.getSceneY();
-                logger.debug("Drag gestartet: Offset=({},{})", xOffset, yOffset);
             }
         });
         
@@ -306,13 +304,10 @@ public class CustomStage extends Stage {
                 // Border basierend auf aktueller Textfarbe setzen
                 String borderColor = currentTextColor.equals("white") ? "white" : "black";
                 setStageBorder(borderColor);
-                logger.info("Border automatisch gesetzt nach setSceneWithTitleBar: {}", borderColor);
             } else if (activeThemeIndex == 2) {
                 // Pastell-Theme: Kein Border setzen
-                logger.info("Pastell-Theme: Kein Border gesetzt");
             }
             
-            logger.info("Scene mit benutzerdefinierter Titelleiste gesetzt");
         } else {
             super.setScene(null);
         }
@@ -485,8 +480,6 @@ public class CustomStage extends Stage {
         
         isResizing = true;
         
-        logger.debug("Resize gestartet: Richtung={}, Position=({},{}), Größe=({},{})", 
-                    resizeDirection, x, y, width, height);
     }
     
     /**
@@ -618,7 +611,6 @@ public class CustomStage extends Stage {
     private void setStageBorder(String borderColor) {
         // Pastell-Theme: Keine Border setzen
         if (activeThemeIndex == 2) {
-            logger.info("Pastell-Theme: setStageBorder übersprungen");
             return;
         }
         
@@ -627,10 +619,6 @@ public class CustomStage extends Stage {
             String currentStyle = root.getStyle();
             
             // Debug: Logging hinzufügen
-            logger.info("setStageBorder aufgerufen mit Farbe: {}", borderColor);
-            logger.info("Root-Klasse: {}", root.getClass().getSimpleName());
-            logger.info("Aktueller Style: {}", currentStyle);
-            
             currentStyle = currentStyle.replaceAll("-fx-border-color:[^;]+;?", "");
             currentStyle = currentStyle.replaceAll("-fx-border-width:[^;]+;?", "");
             currentStyle = currentStyle.replaceAll("-fx-border-radius:[^;]+;?", "");
@@ -647,7 +635,6 @@ public class CustomStage extends Stage {
                 }
             }
             
-            logger.info("Neuer Style gesetzt: {}", root.getStyle());
         } else {
             logger.warn("setStageBorder: Scene oder Root ist null!");
         }
