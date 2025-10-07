@@ -637,24 +637,24 @@ public class MainController implements Initializable {
         btnBrowseDir.setMinWidth(110);
         btnBrowseDir.setPrefWidth(110);
         btnBrowseDir.setOnAction(e -> {
-            DirectoryChooser directoryChooser = new DirectoryChooser();
-            directoryChooser.setTitle("Verzeichnis mit DOCX-Dateien auswählen");
-            
-            String lastDirectory = preferences.get("lastDirectory", "");
-            if (!lastDirectory.isEmpty()) {
-                File lastDir = new File(lastDirectory);
-                if (lastDir.exists()) {
-                    directoryChooser.setInitialDirectory(lastDir);
-                }
-            } else if (txtDirectoryPath.getText() != null && !txtDirectoryPath.getText().isEmpty()) {
-                File currentDir = new File(txtDirectoryPath.getText());
-                if (currentDir.exists()) {
-                    directoryChooser.setInitialDirectory(currentDir);
-                }
+        DirectoryChooser directoryChooser = new DirectoryChooser();
+        directoryChooser.setTitle("Verzeichnis mit DOCX-Dateien auswählen");
+        
+        String lastDirectory = preferences.get("lastDirectory", "");
+        if (!lastDirectory.isEmpty()) {
+            File lastDir = new File(lastDirectory);
+            if (lastDir.exists()) {
+                directoryChooser.setInitialDirectory(lastDir);
             }
-            
-            File selectedDirectory = directoryChooser.showDialog(primaryStage);
-            if (selectedDirectory != null) {
+        } else if (txtDirectoryPath.getText() != null && !txtDirectoryPath.getText().isEmpty()) {
+            File currentDir = new File(txtDirectoryPath.getText());
+            if (currentDir.exists()) {
+                directoryChooser.setInitialDirectory(currentDir);
+            }
+        }
+        
+        File selectedDirectory = directoryChooser.showDialog(primaryStage);
+        if (selectedDirectory != null) {
                 dirField.setText(selectedDirectory.getAbsolutePath());
             }
         });
@@ -851,13 +851,25 @@ public class MainController implements Initializable {
     
     private void loadLastDirectory() {
         String lastDirectory = preferences.get("lastDirectory", "");
-        if (!lastDirectory.isEmpty()) {
-            File lastDir = new File(lastDirectory);
-            if (lastDir.exists()) {
-                txtDirectoryPath.setText(lastDirectory);
-                loadDocxFiles(lastDir);
-            }
+        if (lastDirectory == null || lastDirectory.isEmpty()) {
+            Platform.runLater(() -> {
+                showWarning("Kein Arbeitsverzeichnis", "Bitte wählen Sie ein Verzeichnis mit DOCX-Dateien.");
+                showProjectSelectionMenu();
+            });
+            return;
         }
+
+        File lastDir = new File(lastDirectory);
+        if (!lastDir.exists() || !lastDir.isDirectory()) {
+            Platform.runLater(() -> {
+                showWarning("Arbeitsverzeichnis nicht gefunden", "Das zuletzt verwendete Verzeichnis existiert nicht mehr. Bitte wählen Sie ein neues.");
+                showProjectSelectionMenu();
+            });
+            return;
+        }
+
+        txtDirectoryPath.setText(lastDirectory);
+        loadDocxFiles(lastDir);
     }
     
     /**
@@ -947,9 +959,16 @@ public class MainController implements Initializable {
                 "Fehler beim Importieren der ZIP-Datei: " + e.getMessage());
         }
     }
-
+    
     private void loadDocxFiles(File directory) {
         try {
+            if (directory == null || !directory.exists() || !directory.isDirectory()) {
+                Platform.runLater(() -> {
+                    showWarning("Ungültiges Verzeichnis", "Das Arbeitsverzeichnis ist ungültig oder nicht erreichbar. Bitte wählen Sie ein anderes.");
+                    showProjectSelectionMenu();
+                });
+                return;
+            }
             updateStatus("Lade DOCX-Dateien...");
             
             
@@ -1610,7 +1629,7 @@ public class MainController implements Initializable {
                 for (DocxFile file : selectedFiles) {
                     if (!allDocxFiles.contains(file)) {
                         allDocxFiles.add(file);
-                    } 
+                    }
                 }
                 
                 
@@ -2139,7 +2158,7 @@ public class MainController implements Initializable {
                 // Checkbox nur für grüne Blöcke (ADDED)
                 CheckBox blockCheckBox = null;
                 if (block.getType() == DiffBlockType.ADDED) {
-                        blockCheckBox = new CheckBox();
+                    blockCheckBox = new CheckBox();
                     // kleinere Checkbox für rechte grüne Blöcke
                     blockCheckBox.getStyleClass().add("diff-green-checkbox");
                     blockCheckBox.setStyle("-fx-padding: 0;");
@@ -2212,7 +2231,7 @@ public class MainController implements Initializable {
                     combinedBlockText = null;
                     pairedDeletedText = null;
                 }
-
+                
                 // Erstelle Zeilen für diesen Block
                 for (int i = 0; i < block.getLines().size(); i++) {
                     DiffProcessor.DiffLine diffLine = block.getLines().get(i);
@@ -3010,8 +3029,8 @@ public class MainController implements Initializable {
 
                         // Füge MD-Inhalt hinzu
                         result.append(formattedContent).append("\n\n");
-                        
-                        processed++;
+                
+                processed++;
                         
                     } catch (Exception e) {
                         logger.error("Fehler beim Laden der MD-Datei: {}", mdFile.getName(), e);
@@ -3020,7 +3039,7 @@ public class MainController implements Initializable {
                         String formattedContent = formatMarkdownParagraphs(content);
                         result.append("## ").append(docxFile.getFileName().replace(".docx", "")).append("\n\n");
                         result.append(formattedContent).append("\n\n");
-                        processed++;
+                processed++;
                     }
                 } else {
                     logger.warn("Keine MD-Datei gefunden für: {}", docxFile.getFileName());
@@ -3062,7 +3081,7 @@ public class MainController implements Initializable {
             try {
                 // Schreibe das Buch in die Datei
                 Files.write(completeDocumentFile.toPath(), result.toString().getBytes(StandardCharsets.UTF_8));
-
+                
                 // Öffne den Editor mit der echten Datei
                 openEditorWithFile(completeDocumentFile, true); // true = ist Buch
                 updateStatus(processed + " Dateien erfolgreich verarbeitet - Buch erstellt: " + completeDocumentFile.getName());
@@ -3191,7 +3210,7 @@ public class MainController implements Initializable {
             
             // NEU: Titelbalken für Buch setzen
             editorController.setWindowTitle("📚 Buch: " + baseFileName);
-
+            
             CustomStage editorStage = StageManager.createStage("Buch: " + baseFileName);
             
             // Scene erstellen und mit CustomStage-Titelleiste setzen
@@ -3561,8 +3580,8 @@ public class MainController implements Initializable {
                             }
                         }
                         
-                    }
-                } 
+                        }
+                }
             }
         } catch (Exception e) {
             logger.error("Fehler beim Prüfen der Downloads: {}", e.getMessage(), e);
@@ -4184,7 +4203,7 @@ public class MainController implements Initializable {
 
         if (result.isPresent()) {
             if (result.get() == ButtonType.OK) {
-            } 
+            }
         }
     }
     
@@ -4506,23 +4525,23 @@ public class MainController implements Initializable {
                     String fileName = selectedFile.getName().toLowerCase();
                     if (fileName.endsWith(".docx")) {
                         // DOCX-Datei
-                        DocxSplitProcessor processor = new DocxSplitProcessor();
+                    DocxSplitProcessor processor = new DocxSplitProcessor();
                         processor.setSourceDocxFile(selectedFile);
-                        List<Chapter> chapters = processor.analyzeDocument(selectedFile);
-                        
-                        if (chapters.isEmpty()) {
-                            CheckBox noChaptersCheckBox = new CheckBox("Keine Kapitel gefunden");
-                            noChaptersCheckBox.setDisable(true);
-                            listChapters.getItems().add(noChaptersCheckBox);
-                            btnSplit.setDisable(true);
-                        } else {
-                            for (Chapter chapter : chapters) {
-                                CheckBox chapterCheckBox = new CheckBox(chapter.toString());
-                                chapterCheckBox.setSelected(true); // Standardmäßig ausgewählt
-                                chapterCheckBox.setUserData(chapter); // Kapitel-Objekt speichern
-                                listChapters.getItems().add(chapterCheckBox);
-                            }
-                            btnSplit.setDisable(false);
+                    List<Chapter> chapters = processor.analyzeDocument(selectedFile);
+                    
+                    if (chapters.isEmpty()) {
+                        CheckBox noChaptersCheckBox = new CheckBox("Keine Kapitel gefunden");
+                        noChaptersCheckBox.setDisable(true);
+                        listChapters.getItems().add(noChaptersCheckBox);
+                        btnSplit.setDisable(true);
+                    } else {
+                        for (Chapter chapter : chapters) {
+                            CheckBox chapterCheckBox = new CheckBox(chapter.toString());
+                            chapterCheckBox.setSelected(true); // Standardmäßig ausgewählt
+                            chapterCheckBox.setUserData(chapter); // Kapitel-Objekt speichern
+                            listChapters.getItems().add(chapterCheckBox);
+                        }
+                        btnSplit.setDisable(false);
                         }
                     } else if (fileName.endsWith(".rtf")) {
                         // RTF-Datei
@@ -4640,15 +4659,15 @@ public class MainController implements Initializable {
                             });
                         } else {
                             // DOCX-Split
-                            DocxSplitProcessor processor = new DocxSplitProcessor();
+                        DocxSplitProcessor processor = new DocxSplitProcessor();
                             processor.setSourceDocxFile(inputFile);
-                            
-                            // Ausgabe-Verzeichnis erstellen falls nicht vorhanden
-                            if (!outputDir.exists()) {
-                                outputDir.mkdirs();
-                            }
-                            
-                            // Basis-Dateiname (ohne .docx)
+                        
+                        // Ausgabe-Verzeichnis erstellen falls nicht vorhanden
+                        if (!outputDir.exists()) {
+                            outputDir.mkdirs();
+                        }
+                        
+                        // Basis-Dateiname (ohne .docx)
                             String baseFileName = inputFile.getName().replaceFirst("\\.docx$", "");
                         
                         // Kapitel mit nicht-ausgewählten Inhalten zusammenführen
@@ -4659,12 +4678,12 @@ public class MainController implements Initializable {
                             processor.saveChapter(chapter, outputDir, baseFileName);
                         }
                         
-                            // UI-Update im JavaFX-Thread
-                            Platform.runLater(() -> {
-                                btnSplit.setDisable(false);
-                                btnSplit.setText("Kapitel aufteilen");
-                                showError("Erfolg", String.format("%d finale Kapitel wurden erfolgreich aufgeteilt und gespeichert!", mergedChapters.size()));
-                            });
+                        // UI-Update im JavaFX-Thread
+                        Platform.runLater(() -> {
+                            btnSplit.setDisable(false);
+                            btnSplit.setText("Kapitel aufteilen");
+                            showError("Erfolg", String.format("%d finale Kapitel wurden erfolgreich aufgeteilt und gespeichert!", mergedChapters.size()));
+                        });
                         }
                         
                     } catch (Exception ex) {
@@ -4840,11 +4859,6 @@ public class MainController implements Initializable {
             // Lade verfügbare Projekte
             currentProjectFlow = projectFlow;
             currentProjectStage = projectStage;
-
-            // WICHTIG: Fenster anzeigen, bevor Dialoge (DirectoryChooser/Alerts) geöffnet werden
-            if (!projectStage.isShowing()) {
-                projectStage.show();
-            }
 
             loadAndDisplayProjects(projectFlow, projectStage);
             

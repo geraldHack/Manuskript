@@ -2705,7 +2705,7 @@ public class OllamaWindow {
                 box.setStyle("-fx-background-color: " + themeColors[currentThemeIndex] + ";");
                 resultWebView.prefWidthProperty().bind(box.widthProperty());
                 resultWebView.prefHeightProperty().bind(box.heightProperty().subtract(headerRow.heightProperty()).subtract(10));
-
+                
                 Scene sc = new Scene(box, 1000, 800);
                 resultStage.setSceneWithTitleBar(sc);
                 resultStage.initOwner(stage);
@@ -3026,9 +3026,9 @@ public class OllamaWindow {
             String editorSelectedText = editorWindow.getSelectedText();
             boolean hasSelection = editorSelectedText != null && !editorSelectedText.trim().isEmpty();
             if (hasSelection) {
-                editorWindow.replaceSelectedText(selectedText);
-            } else {
-                editorWindow.insertTextAtCursor(selectedText);
+                    editorWindow.replaceSelectedText(selectedText);
+                } else {
+                    editorWindow.insertTextAtCursor(selectedText);
             }
             updateStatus("Text ersetzt");
         } catch (Exception e) {
@@ -4192,12 +4192,12 @@ public class OllamaWindow {
                     
                     if (!context.trim().isEmpty()) {
                         contextArea.setText(context);
-                    } 
+                    }
                 } catch (Exception e) {
                     logger.warning("Fehler beim Laden der context.txt: " + e.getMessage());
                 }
-            } 
-        } 
+            }
+        }
     }
     
     /**

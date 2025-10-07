@@ -64,4 +64,4 @@ du benutzt  mvn clean compile ohne -q
 du startet mit mvn javafx:run
 mache vor dem Start immer einen taskkill auf java
 du machst niemals ungefragt einen git checkout
-solltest du gefragt, werden eine stage oider einen altert zumachen, benutze immer CustomStage und CustomAlerts und beutzt die darin enthaltenene Przeduren zum stylen.
+solltest du gefragt werden, eine stage oider einen altert zu machen, benutze immer CustomStage und CustomAlerts und benutze die darin enthaltenene Prozeduren zum stylen.
