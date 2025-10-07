@@ -2192,25 +2192,14 @@ public class MainController implements Initializable {
                     // Suche den korrespondierenden roten Block links (gleicher Index in der Blockliste)
                     StringBuilder del = new StringBuilder();
                     
-                    // DEBUG: Zeige alle Blöcke und ihre Indices
-                    System.out.println("=== DEBUG BLOCK MATCHING ===");
-                    System.out.println("Aktueller grüner Block Index: " + i1);
-                    System.out.println("Grüner Block Text (gekürzt): " + 
-                        (combinedBlockText.length() > 50 ? combinedBlockText.substring(0, 50) + "..." : combinedBlockText));
-                    
-                    // Zeige alle Blöcke mit ihren Indices und Typen
-                    System.out.println("Alle Blöcke in der Liste:");
-                    for (int b = 0; b < blocks.size(); b++) {
-                        DiffBlock blockItem = blocks.get(b);
-                        System.out.println("  Block " + b + ": " + blockItem.getType() + " (" + blockItem.getLines().size() + " Zeilen)");
-                    }
+                    // Debug entfernt
                     
                     // Suche den korrespondierenden DELETED Block basierend auf der Position
                     // Der grüne Block ist an Index i1, suche den DELETED Block davor
                     for (int scan = i1 - 1; scan >= 0; scan--) {
                         DiffBlock prevBlock = blocks.get(scan);
                         if (prevBlock.getType() == DiffBlockType.DELETED) {
-                            System.out.println("FOUND DELETED Block at index " + scan + " (vor grünem Block " + i1 + ")");
+                            // Debug entfernt
                             for (DiffProcessor.DiffLine l : prevBlock.getLines()) {
                                 String t = l.getOriginalText();
                                 if (t != null) del.append(t).append("\n");
@@ -2219,20 +2208,121 @@ public class MainController implements Initializable {
                         }
                     }
                     
-                    if (del.length() > 0) {
-                        System.out.println("MATCHED: Grüner Block " + i1 + " mit DELETED Block davor");
-                    } else {
-                        System.out.println("NO MATCH: Kein DELETED Block vor grünem Block " + i1 + " gefunden");
-                    }
-                    System.out.println("=== END DEBUG ===");
+                    // Debug entfernt
                     
                     pairedDeletedText = del.toString();
+                    
+                    // Popupgröße dynamisch an den Text anpassen
+                    final int[] sz = computePopupSize((pairedDeletedText != null && !pairedDeletedText.trim().isEmpty())
+                            ? (pairedDeletedText + "\n" + combinedBlockText)
+                            : combinedBlockText);
                 } else {
                     combinedBlockText = null;
                     pairedDeletedText = null;
                 }
+<<<<<<< Updated upstream
                 
                 // Erstelle Zeilen für diesen Block
+=======
+
+                // Falls aktueller Block DELETED ist und der nächste ADDED: gepaarte, minimale Höhe rendern
+                if (block.getType() == DiffBlockType.DELETED && i1 + 1 < blocks.size() && blocks.get(i1 + 1).getType() == DiffBlockType.ADDED) {
+                    DiffBlock deletedBlock = block;
+                    DiffBlock addedBlock = blocks.get(i1 + 1);
+                    int dSize = deletedBlock.getLines().size();
+                    int aSize = addedBlock.getLines().size();
+                    int maxSize = Math.max(dSize, aSize);
+                    // Kombinierte Texte für Hover-Popup vorbereiten (wie bei grünen Blöcken)
+                    StringBuilder delSb = new StringBuilder();
+                    for (int k = 0; k < dSize; k++) {
+                        String t = deletedBlock.getLines().get(k).getOriginalText();
+                        if (t != null) delSb.append(t).append("\n");
+                    }
+                    StringBuilder addSb = new StringBuilder();
+                    for (int k = 0; k < aSize; k++) {
+                        String t = addedBlock.getLines().get(k).getNewText();
+                        if (t != null) addSb.append(t).append("\n");
+                    }
+                    final String pairedDeletedTextPaired = delSb.toString();
+                    final String combinedBlockTextPaired = addSb.toString();
+                    final String hoverHtmlPaired = (pairedDeletedTextPaired != null && !pairedDeletedTextPaired.trim().isEmpty())
+                            ? buildHtmlDiffPreview(pairedDeletedTextPaired, combinedBlockTextPaired)
+                            : buildHtmlPreview(combinedBlockTextPaired);
+                    for (int i = 0; i < maxSize; i++) {
+                        DiffProcessor.DiffLine dLine = i < dSize ? deletedBlock.getLines().get(i) : null;
+                        DiffProcessor.DiffLine aLine = i < aSize ? addedBlock.getLines().get(i) : null;
+
+                        HBox leftLineBox = new HBox(5);
+                        HBox rightLineBox = new HBox(5);
+
+                        Label leftLineNum = new Label(String.format("%3d", dLine != null ? dLine.getLeftLineNumber() : (i > 0 && dSize > 0 ? deletedBlock.getLines().get(dSize - 1).getLeftLineNumber() + i - dSize + 1 : 0)));
+                        leftLineNum.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 10px; -fx-text-fill: #6c757d; -fx-min-width: 30px; -fx-alignment: center-right;");
+
+                        Label rightLineNum = new Label(String.format("%3d", aLine != null ? aLine.getRightLineNumber() : (i > 0 && aSize > 0 ? addedBlock.getLines().get(aSize - 1).getRightLineNumber() + i - aSize + 1 : 0)));
+                        rightLineNum.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 10px; -fx-text-fill: #6c757d; -fx-min-width: 30px; -fx-alignment: center-right;");
+
+                        Label leftLineLabel = new Label(dLine != null ? dLine.getOriginalText() : "");
+                        leftLineLabel.setWrapText(true);
+                        leftLineLabel.setPrefWidth(620);
+                        leftLineLabel.setMinHeight(Region.USE_PREF_SIZE);
+                        leftLineLabel.setMaxHeight(Region.USE_PREF_SIZE);
+                        leftLineLabel.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px;");
+
+                        Label rightLineLabel = new Label(aLine != null ? aLine.getNewText() : "");
+                        rightLineLabel.setWrapText(true);
+                        rightLineLabel.setPrefWidth(620);
+                        rightLineLabel.setMinHeight(Region.USE_PREF_SIZE);
+                        rightLineLabel.setMaxHeight(Region.USE_PREF_SIZE);
+                        rightLineLabel.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px;");
+
+                        // Styles je Seite setzen, wenn Inhalt existiert
+                        if (dLine != null) {
+                            leftLineLabel.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px; -fx-background-color: #f8d7da; -fx-text-fill: #721c24; -fx-font-weight: bold;");
+                            leftLineNum.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 10px; -fx-text-fill: #dc3545; -fx-min-width: 30px; -fx-alignment: center-right; -fx-font-weight: bold;");
+                        }
+                        if (aLine != null) {
+                            rightLineLabel.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px; -fx-background-color: #d4edda; -fx-text-fill: #155724; -fx-font-weight: bold;");
+                            rightLineNum.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 10px; -fx-text-fill: #28a745; -fx-min-width: 30px; -fx-alignment: center-right; -fx-font-weight: bold;");
+                            // Hover-Vorschau für die gepaarte grüne Seite aktivieren
+                            javafx.event.EventHandler<javafx.scene.input.MouseEvent> enterHandler = evt -> {
+                                hoverHideTimer.stop();
+                                int[] ps = computePopupSize(pairedDeletedTextPaired + "\n" + combinedBlockTextPaired);
+                                hoverWebView.setPrefSize(ps[0], ps[1]);
+                                hoverWebView.getEngine().loadContent(hoverHtmlPaired, "text/html");
+                                double x = evt.getScreenX() + 12;
+                                double y = evt.getScreenY() + 12;
+                                hoverPreviewStage.setX(x);
+                                hoverPreviewStage.setY(y);
+                                if (!hoverPreviewStage.isShowing()) hoverPreviewStage.show();
+                            };
+                            javafx.event.EventHandler<javafx.scene.input.MouseEvent> exitHandler = evt -> hoverPreviewStage.hide();
+                            rightLineBox.setOnMouseEntered(enterHandler);
+                            rightLineBox.setOnMouseExited(exitHandler);
+                            rightLineLabel.setOnMouseEntered(enterHandler);
+                            rightLineLabel.setOnMouseExited(exitHandler);
+                        }
+
+                        Platform.runLater(() -> {
+                            double maxHeight = Math.max(leftLineLabel.getHeight(), rightLineLabel.getHeight());
+                            leftLineLabel.setMinHeight(maxHeight);
+                            leftLineLabel.setMaxHeight(maxHeight);
+                            rightLineLabel.setMinHeight(maxHeight);
+                            rightLineLabel.setMaxHeight(maxHeight);
+                        });
+
+                        leftLineBox.getChildren().addAll(leftLineNum, leftLineLabel);
+                        rightLineBox.getChildren().addAll(rightLineNum, rightLineLabel);
+
+                        leftContentBox.getChildren().add(leftLineBox);
+                        rightContentBox.getChildren().add(rightLineBox);
+                    }
+                    // Überspringe den nächsten (ADDED), da bereits gepaart gerendert
+                    i1++;
+                    continue;
+                }
+
+                // Erstelle Zeilen für diesen Block (Standard)
+>>>>>>> Stashed changes
                 for (int i = 0; i < block.getLines().size(); i++) {
                     DiffProcessor.DiffLine diffLine = block.getLines().get(i);
                     HBox leftLineBox = new HBox(5);
@@ -2322,8 +2412,12 @@ public class MainController implements Initializable {
                         final String html = (pairedDeletedText != null && !pairedDeletedText.trim().isEmpty())
                                 ? buildHtmlDiffPreview(pairedDeletedText, combinedBlockText)
                                 : buildHtmlPreview(combinedBlockText);
+                        final int[] sz = computePopupSize((pairedDeletedText != null && !pairedDeletedText.trim().isEmpty())
+                                ? (pairedDeletedText + "\n" + combinedBlockText)
+                                : combinedBlockText);
                         javafx.event.EventHandler<javafx.scene.input.MouseEvent> enterHandler = evt -> {
                             hoverHideTimer.stop();
+                            hoverWebView.setPrefSize(sz[0], sz[1]);
                             hoverWebView.getEngine().loadContent(html, "text/html");
                             double x = evt.getScreenX() + 12;
                             double y = evt.getScreenY() + 12;
@@ -2633,6 +2727,19 @@ public class MainController implements Initializable {
         }
         sb.append("</body></html>");
         return sb.toString();
+    }
+
+    // Schätzt eine sinnvolle Popupgröße auf Basis der Zeilenanzahl und maximaler Zeilenlänge
+    private int[] computePopupSize(String text) {
+        if (text == null) return new int[]{400, 240};
+        String[] lines = text.split("\n", -1);
+        int maxLen = 0;
+        for (String l : lines) {
+            if (l.length() > maxLen) maxLen = l.length();
+        }
+        int width = Math.min(800, Math.max(300, maxLen * 7)); // grobe Schätzung 7px/Zeichen
+        int height = Math.min(600, Math.max(160, lines.length * 18 + 20)); // grob 18px/Zeile + Padding
+        return new int[]{width, height};
     }
 
     private String escape(String s) {
@@ -3103,11 +3210,7 @@ public class MainController implements Initializable {
     
     private void openEditorWithFile(File file, boolean isCompleteDocument) {
         try {
-            System.out.println("=== OPEN EDITOR WITH FILE ===");
-            System.out.println("File: " + file.getAbsolutePath());
-            System.out.println("isCompleteDocument: " + isCompleteDocument);
-            System.out.println("File exists: " + file.exists());
-            System.out.println("File size: " + file.length() + " bytes");
+            // Debug entfernt
             
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/editor.fxml"));
             Parent root = loader.load();
@@ -3116,8 +3219,7 @@ public class MainController implements Initializable {
             
             // Lade den Inhalt der Datei
             String content = Files.readString(file.toPath(), StandardCharsets.UTF_8);
-            System.out.println("Content loaded: " + content.length() + " characters");
-            System.out.println("First 100 chars: " + content.substring(0, Math.min(100, content.length())));
+            // Debug entfernt
             
             editorController.setText(content);
             

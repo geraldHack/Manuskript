@@ -43,3 +43,5 @@ config/sessions/
 
 # Alle docx-Dateien ignorieren
 *.docx 
+
+!pandoc-3.8.1/*.docx
