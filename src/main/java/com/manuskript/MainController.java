@@ -190,9 +190,8 @@ public class MainController implements Initializable {
         backButton.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-border-radius: 8px;");
         backButton.getStyleClass().add("back-button");
         
-        // Zurück-Funktionalität
+        // Zurück-Funktionalität: Hauptfenster nicht ausblenden
         backButton.setOnAction(e -> {
-            primaryStage.hide();
             showProjectSelectionMenu();
         });
         
@@ -261,7 +260,6 @@ public class MainController implements Initializable {
                     startBackButton.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-border-radius: 8px;");
                     startBackButton.getStyleClass().add("back-button");
                     startBackButton.setOnAction(e -> {
-                        primaryStage.hide();
                         showProjectSelectionMenu();
                     });
                     
@@ -284,7 +282,6 @@ public class MainController implements Initializable {
                     startBackButton.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-border-radius: 8px;");
                     startBackButton.getStyleClass().add("back-button");
                     startBackButton.setOnAction(e -> {
-                        primaryStage.hide();
                         showProjectSelectionMenu();
                     });
                     
@@ -4843,6 +4840,12 @@ public class MainController implements Initializable {
             // Lade verfügbare Projekte
             currentProjectFlow = projectFlow;
             currentProjectStage = projectStage;
+
+            // WICHTIG: Fenster anzeigen, bevor Dialoge (DirectoryChooser/Alerts) geöffnet werden
+            if (!projectStage.isShowing()) {
+                projectStage.show();
+            }
+
             loadAndDisplayProjects(projectFlow, projectStage);
             
             // Abbrechen-Button
@@ -4901,14 +4904,45 @@ public class MainController implements Initializable {
             // Prüfe ob Root-Verzeichnis konfiguriert ist
             String rootDir = ResourceManager.getParameter("project.root.directory", "");
             if (rootDir == null || rootDir.isEmpty()) {
-                showError("Kein Projektverzeichnis", "Bitte wähle zuerst ein Projektverzeichnis aus.");
-                return;
+                // Sinnvolle Reaktion: Verzeichnis wählen lassen
+                // Vorab-Hinweis anzeigen, damit klar ist, was zu tun ist
+                Platform.runLater(() -> showInfo(
+                    "Projektverzeichnis wählen",
+                    "Bitte wählen Sie das Projektwurzel-Verzeichnis.\n\nDarin werden die einzelnen Projekte (Unterordner mit DOCX-Dateien) gesucht."));
+                DirectoryChooser chooser = new DirectoryChooser();
+                chooser.setTitle("Projektwurzel auswählen");
+                File chosen = chooser.showDialog(projectStage);
+                if (chosen == null) {
+                    Platform.runLater(() -> showWarning("Kein Verzeichnis ausgewählt", "Ohne Projektverzeichnis können keine Projekte angezeigt werden."));
+                    // Stelle sicher, dass das Hauptfenster sichtbar bleibt
+                    if (primaryStage != null) {
+                        primaryStage.show();
+                    }
+                    return;
+                }
+                ResourceManager.saveParameter("project.root.directory", chosen.getAbsolutePath());
+                rootDir = chosen.getAbsolutePath();
             }
             
             File searchDir = new File(rootDir);
             if (!searchDir.exists()) {
-                showError("Verzeichnis nicht gefunden", "Das Projektverzeichnis existiert nicht mehr.");
-                return;
+                // Verzeichnis existiert nicht mehr → erneut wählen lassen
+                Platform.runLater(() -> showWarning(
+                    "Projektwurzel nicht gefunden",
+                    "Das gespeicherte Projektverzeichnis existiert nicht mehr. Bitte wählen Sie ein neues."));
+                DirectoryChooser chooser = new DirectoryChooser();
+                chooser.setTitle("Projektwurzel nicht gefunden – bitte erneut auswählen");
+                File chosen = chooser.showDialog(projectStage);
+                if (chosen == null) {
+                    Platform.runLater(() -> showWarning("Projektverzeichnis fehlt", "Bitte wählen Sie später unter Projekteinstellungen eine gültige Projektwurzel."));
+                    // Stelle sicher, dass das Hauptfenster sichtbar bleibt
+                    if (primaryStage != null) {
+                        primaryStage.show();
+                    }
+                    return;
+                }
+                ResourceManager.saveParameter("project.root.directory", chosen.getAbsolutePath());
+                searchDir = chosen;
             }
 
             projectRootDirectory = searchDir;
@@ -5521,7 +5555,6 @@ public class MainController implements Initializable {
                     backButton.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-border-radius: 8px;");
                     backButton.getStyleClass().add("back-button");
                     backButton.setOnAction(e -> {
-                        primaryStage.hide();
                         showProjectSelectionMenu();
                     });
                     

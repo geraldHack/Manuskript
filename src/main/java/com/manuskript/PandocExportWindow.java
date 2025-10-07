@@ -27,6 +27,10 @@ import com.manuskript.PreferencesManager;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 
 public class PandocExportWindow extends CustomStage {
     private static final Logger logger = LoggerFactory.getLogger(PandocExportWindow.class);
@@ -61,6 +65,7 @@ public class PandocExportWindow extends CustomStage {
     private String projectName;
     private Preferences preferences;
     private int currentThemeIndex;
+    private File pandocHome; // Ordner, in dem sich pandoc.exe befindet
     
     public PandocExportWindow(File inputMarkdownFile, String projectName) {
         super();
@@ -313,8 +318,10 @@ public class PandocExportWindow extends CustomStage {
     }
     
     private void loadReferenceTemplates() {
+        // Stelle sicher, dass Pandoc vorhanden ist (entpacke ggf. pandoc.zip)
+        ensurePandocAvailable();
         referenceTemplates = new ArrayList<>();
-        File pandocDir = new File("pandoc-3.8.1");
+        File pandocDir = (pandocHome != null) ? pandocHome : new File("pandoc-3.8.1");
         
         if (pandocDir.exists() && pandocDir.isDirectory()) {
             File[] files = pandocDir.listFiles((dir, name) -> 
@@ -645,12 +652,16 @@ public class PandocExportWindow extends CustomStage {
     
     private boolean runPandocExport(File yamlFile) {
         try {
-            // Pandoc-Pfad
-            File pandocExe = new File("pandoc-3.8.1", "pandoc.exe");
-            if (!pandocExe.exists()) {
-                logger.error("Pandoc nicht gefunden: {}", pandocExe.getAbsolutePath());
+            // Sicherstellen, dass Pandoc verfügbar ist
+            if (!ensurePandocAvailable()) {
+                showAlert("Pandoc fehlt", "Pandoc konnte nicht gefunden oder installiert werden. Bitte stellen Sie sicher, dass 'pandoc.zip' im Programmverzeichnis liegt.");
                 return false;
             }
+
+            // Pandoc-Pfad
+            File pandocExe = (pandocHome != null)
+                ? new File(pandocHome, "pandoc.exe")
+                : new File("pandoc-3.8.1", "pandoc.exe");
             
             // Ausgabedatei
             String outputDir = outputDirectoryField.getText().trim();
@@ -798,7 +809,7 @@ public class PandocExportWindow extends CustomStage {
 
             // Prozess starten - Arbeitsverzeichnis auf Pandoc-Verzeichnis setzen
             ProcessBuilder pb = new ProcessBuilder(command);
-            pb.directory(new File("pandoc-3.8.1")); // Arbeitsverzeichnis auf Pandoc setzen
+            pb.directory(pandocHome != null ? pandocHome : new File("pandoc-3.8.1")); // Arbeitsverzeichnis auf Pandoc setzen
             pb.environment().put("PATH", System.getenv("PATH")); // PATH weitergeben
 
             Process process = pb.start();
@@ -821,6 +832,98 @@ public class PandocExportWindow extends CustomStage {
             
         } catch (Exception e) {
             logger.error("Fehler beim Pandoc-Export", e);
+            return false;
+        }
+    }
+
+    /**
+     * Prüft, ob pandoc.exe verfügbar ist. Wenn nicht, versucht es, die Datei pandoc.zip
+     * aus dem Programmverzeichnis zu entpacken. Gibt true zurück, wenn pandoc.exe danach existiert.
+     */
+    private boolean ensurePandocAvailable() {
+        try {
+            // 1) Prüfe Standardpfad
+            File pandocExe = new File("pandoc-3.8.1", "pandoc.exe");
+            if (pandocExe.exists()) {
+                pandocHome = pandocExe.getParentFile();
+                return true;
+            }
+
+            // 2) Versuche, pandoc.zip in pandoc-3.8.1 zu finden und dort zu entpacken
+            File zip = new File("pandoc-3.8.1", "pandoc.zip");
+            if (!zip.exists()) {
+                // Fallback: im Programmverzeichnis
+                zip = new File("pandoc.zip");
+            }
+            if (!zip.exists()) {
+                logger.warn("pandoc.zip nicht gefunden – kann Pandoc nicht automatisch installieren");
+                return false;
+            }
+
+            // Zielordner ist pandoc-3.8.1
+            File targetDir = new File("pandoc-3.8.1");
+            if (!targetDir.exists()) targetDir.mkdirs();
+            boolean ok = unzip(zip, targetDir);
+            if (!ok) {
+                logger.error("Entpacken von pandoc.zip fehlgeschlagen");
+                return false;
+            }
+
+            // Nach dem Entpacken erneut prüfen
+            pandocExe = new File("pandoc-3.8.1", "pandoc.exe");
+            if (pandocExe.exists()) {
+                pandocHome = pandocExe.getParentFile();
+                logger.info("Pandoc erfolgreich entpackt: {}", pandocExe.getAbsolutePath());
+                return true;
+            }
+
+            // Fallback: Manche ZIPs enthalten einen Unterordner – versuche zu finden
+            File[] candidates = new File(".").listFiles((dir, name) -> name.toLowerCase().startsWith("pandoc"));
+            if (candidates != null) {
+                for (File c : candidates) {
+                    File exe = new File(c, "pandoc.exe");
+                    if (exe.exists()) {
+                        pandocHome = c;
+                        logger.info("Pandoc in '{}' gefunden", c.getAbsolutePath());
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        } catch (Exception e) {
+            logger.error("Fehler beim Prüfen/Installieren von Pandoc", e);
+            return false;
+        }
+    }
+
+    private boolean unzip(File zipFile, File destDir) {
+        try (ZipInputStream zis = new ZipInputStream(new FileInputStream(zipFile))) {
+            ZipEntry entry;
+            byte[] buffer = new byte[8192];
+            while ((entry = zis.getNextEntry()) != null) {
+                File outFile = new File(destDir, entry.getName());
+                if (entry.isDirectory()) {
+                    if (!outFile.exists() && !outFile.mkdirs()) {
+                        logger.warn("Konnte Verzeichnis nicht erstellen: {}", outFile.getAbsolutePath());
+                    }
+                } else {
+                    File parent = outFile.getParentFile();
+                    if (parent != null && !parent.exists() && !parent.mkdirs()) {
+                        logger.warn("Konnte Verzeichnis nicht erstellen: {}", parent.getAbsolutePath());
+                    }
+                    try (FileOutputStream fos = new FileOutputStream(outFile)) {
+                        int len;
+                        while ((len = zis.read(buffer)) > 0) {
+                            fos.write(buffer, 0, len);
+                        }
+                    }
+                }
+                zis.closeEntry();
+            }
+            return true;
+        } catch (Exception e) {
+            logger.error("Fehler beim Entpacken von {}", zipFile.getName(), e);
             return false;
         }
     }
