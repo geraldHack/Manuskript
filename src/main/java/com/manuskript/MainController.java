@@ -254,7 +254,7 @@ public class MainController implements Initializable {
                     startImageContainer.setPrefHeight(60); // Nur so hoch wie der Button
                     
                     // Erstelle Zurück-Button
-                    Button startBackButton = new Button("← Zurück");
+                    Button startBackButton = new Button("← Zurück1");
                     startBackButton.setId("backButton");
                     startBackButton.setPrefSize(120, 40);
                     startBackButton.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-border-radius: 8px;");
@@ -276,16 +276,21 @@ public class MainController implements Initializable {
                     startImageContainer.setPrefHeight(300);
                     
                     // Erstelle Zurück-Button
-                    Button startBackButton = new Button("← Zurück");
+                    Button startBackButton = new Button("← Projektauswahl");
                     startBackButton.setId("backButton");
-                    startBackButton.setPrefSize(120, 40);
+                    startBackButton.setPrefSize(150, 40);
                     startBackButton.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-border-radius: 8px;");
                     startBackButton.getStyleClass().add("back-button");
                     startBackButton.setOnAction(e -> {
                         showProjectSelectionMenu();
                     });
                     
-                    startImageContainer.setLeft(startBackButton);
+                    // HBox für Abstand um den Button
+                    HBox buttonContainer = new HBox();
+                    buttonContainer.setPadding(new Insets(10, 10, 10, 10)); // Abstand um den Button
+                    buttonContainer.getChildren().add(startBackButton);
+                    
+                    startImageContainer.setLeft(buttonContainer);
                     startImageContainer.setCenter(coverImageView);
                     HBox startDummyBox = new HBox();
                     startDummyBox.setPrefWidth(120);
@@ -2220,10 +2225,8 @@ public class MainController implements Initializable {
                     combinedBlockText = null;
                     pairedDeletedText = null;
                 }
-<<<<<<< Updated upstream
                 
                 // Erstelle Zeilen für diesen Block
-=======
 
                 // Falls aktueller Block DELETED ist und der nächste ADDED: gepaarte, minimale Höhe rendern
                 if (block.getType() == DiffBlockType.DELETED && i1 + 1 < blocks.size() && blocks.get(i1 + 1).getType() == DiffBlockType.ADDED) {
@@ -2322,7 +2325,6 @@ public class MainController implements Initializable {
                 }
 
                 // Erstelle Zeilen für diesen Block (Standard)
->>>>>>> Stashed changes
                 for (int i = 0; i < block.getLines().size(); i++) {
                     DiffProcessor.DiffLine diffLine = block.getLines().get(i);
                     HBox leftLineBox = new HBox(5);
@@ -5265,6 +5267,7 @@ public class MainController implements Initializable {
             }
         }
 
+        // Grenzen überprüfen
         if (toIndex < 0) {
             toIndex = 0;
         }
@@ -5282,12 +5285,6 @@ public class MainController implements Initializable {
         if (fromIndex < toIndex) {
             toIndex--;
         }
-        if (toIndex < 0) {
-            toIndex = 0;
-        }
-        if (toIndex > books.size()) {
-            toIndex = books.size();
-        }
         books.add(toIndex, draggingSeriesBook);
 
         populateSeriesBooks(container, item, projectStage);
@@ -5303,74 +5300,60 @@ public class MainController implements Initializable {
     }
 
     private void setupSeriesBookDragHandlers(VBox bookCard, HBox container, ProjectDisplayItem item, CustomStage projectStage) {
-        bookCard.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
-            if (!event.isPrimaryButtonDown()) {
-                return;
-            }
-
-            Node targetNode = event.getPickResult() != null ? event.getPickResult().getIntersectedNode() : null;
-            while (targetNode != null && targetNode != bookCard) {
-                if (targetNode instanceof ButtonBase || targetNode instanceof TextInputControl) {
-                    bookCard.setCursor(Cursor.OPEN_HAND);
-                    draggingSeriesBook = null;
-                    bookCard.setOpacity(1.0);
-                    return;
+        // Mouse Pressed - Start Drag
+        bookCard.setOnMousePressed(event -> {
+            if (event.isPrimaryButtonDown()) {
+                File targetBook = (File) bookCard.getUserData();
+                if (targetBook != null) {
+                    draggingSeriesBook = targetBook;
+                    bookCard.setCursor(Cursor.CLOSED_HAND);
+                    bookCard.setOpacity(0.7);
                 }
-                targetNode = targetNode.getParent();
             }
-
-            File targetBook = (File) bookCard.getUserData();
-            if (targetBook == null) {
-                return;
-            }
-
-            bookCard.setCursor(Cursor.CLOSED_HAND);
-            draggingSeriesBook = targetBook;
-            Dragboard dragboard = bookCard.startDragAndDrop(TransferMode.MOVE);
-            ClipboardContent content = new ClipboardContent();
-            content.putString(targetBook.getAbsolutePath());
-            dragboard.setContent(content);
-            bookCard.setOpacity(0.4);
-            event.consume();
         });
 
-        bookCard.addEventFilter(MouseEvent.MOUSE_RELEASED, event -> {
+        // Mouse Released - End Drag
+        bookCard.setOnMouseReleased(event -> {
             bookCard.setCursor(Cursor.OPEN_HAND);
             bookCard.setOpacity(1.0);
-            if (draggingSeriesBook == null) {
-                return;
-            }
-            if (!event.isStillSincePress()) {
-                draggingSeriesBook = null;
-                event.consume();
-                return;
-            }
-
             draggingSeriesBook = null;
         });
 
-        bookCard.addEventFilter(DragEvent.DRAG_OVER, event -> {
+        // Drag Detected - Start Drag and Drop
+        bookCard.setOnDragDetected(event -> {
+            File targetBook = (File) bookCard.getUserData();
+            if (targetBook != null && draggingSeriesBook != null) {
+                Dragboard dragboard = bookCard.startDragAndDrop(TransferMode.MOVE);
+                ClipboardContent content = new ClipboardContent();
+                content.putString("series-book:" + targetBook.getAbsolutePath());
+                dragboard.setContent(content);
+                bookCard.setOpacity(0.4);
+                event.consume();
+            }
+        });
+
+        // Drag Over - Accept drops
+        bookCard.setOnDragOver(event -> {
             if (draggingSeriesBook != null && event.getGestureSource() != bookCard) {
                 event.acceptTransferModes(TransferMode.MOVE);
                 event.consume();
             }
         });
 
-        bookCard.addEventFilter(DragEvent.DRAG_DROPPED, event -> {
+        // Drag Dropped - Handle drop
+        bookCard.setOnDragDropped(event -> {
             if (draggingSeriesBook != null) {
-                event.setDropCompleted(true);
-                event.consume();
+                setupSeriesDrop(container, item, projectStage, event);
             }
         });
 
-        bookCard.addEventFilter(DragEvent.DRAG_DONE, event -> {
+        // Drag Done - Cleanup
+        bookCard.setOnDragDone(event -> {
             bookCard.setOpacity(1.0);
             bookCard.setCursor(Cursor.OPEN_HAND);
             draggingSeriesBook = null;
             event.consume();
         });
-
-        propagateSeriesDragHandlers(bookCard, bookCard);
     }
 
     private void propagateSeriesDragHandlers(Node root, VBox bookCard) {
@@ -5656,58 +5639,6 @@ public class MainController implements Initializable {
             // Lade das Cover-Bild für das neue Projekt (nur cover_image.png aus dem aktuellen Verzeichnis)
             loadCoverImageFromCurrentDirectory();
             
-            // Prüfe ob ein Cover-Bild geladen wurde
-            if (coverImageView.getImage() == null) {
-                // Kein Bild gefunden - zeige nur Zurück-Button (kleine Höhe)
-                if (mainContainer instanceof BorderPane) {
-                    // Erstelle imageContainer mit nur Zurück-Button (ohne Bild)
-                    BorderPane imageContainer = new BorderPane();
-                    imageContainer.setPrefHeight(60); // Nur so hoch wie der Button
-                    
-                    // Erstelle Zurück-Button
-                    Button backButton = new Button("← Zurück");
-                    backButton.setId("backButton");
-                    backButton.setPrefSize(120, 40);
-                    backButton.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-border-radius: 8px;");
-                    backButton.getStyleClass().add("back-button");
-                    backButton.setOnAction(e -> {
-                        showProjectSelectionMenu();
-                    });
-                    
-                    imageContainer.setLeft(backButton);
-                    imageContainer.setCenter(null); // Kein Bild
-                    HBox dummyBox = new HBox();
-                    dummyBox.setPrefWidth(120);
-                    imageContainer.setRight(dummyBox);
-                    ((BorderPane) mainContainer).setTop(imageContainer);
-                }
-            } else {
-                // Bild gefunden - zeige den Bildbereich
-                if (mainContainer instanceof BorderPane) {
-                    // Erstelle imageContainer neu mit Zurück-Button
-                    BorderPane imageContainer = new BorderPane();
-                    imageContainer.setPrefHeight(300);
-                    
-                    // Erstelle Zurück-Button
-                    Button backButton = new Button("← Zurück");
-                    backButton.setId("backButton");
-                    backButton.setPrefSize(120, 40);
-                    backButton.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-border-radius: 8px;");
-                    backButton.getStyleClass().add("back-button");
-                    backButton.setOnAction(e -> {
-                        primaryStage.hide();
-                        showProjectSelectionMenu();
-                    });
-                    
-                    imageContainer.setLeft(backButton);
-                    imageContainer.setCenter(coverImageView);
-                    HBox dummyBox = new HBox();
-                    dummyBox.setPrefWidth(120);
-                    imageContainer.setRight(dummyBox);
-                    ((BorderPane) mainContainer).setTop(imageContainer);
-                }
-            }
-            
             // Schließe die Projektauswahl
             projectStage.close();
             
@@ -5951,6 +5882,17 @@ public class MainController implements Initializable {
             int toIndex = projectItems.indexOf(targetItem);
 
             if (fromIndex >= 0 && toIndex >= 0 && fromIndex != toIndex) {
+                // Berechne die tatsächliche Drop-Position basierend auf der Maus-Position
+                Point2D localPoint = projectFlow.sceneToLocal(event.getSceneX(), event.getSceneY());
+                double dropX = localPoint.getX();
+                double dropY = localPoint.getY();
+                
+                // Finde die beste Position basierend auf der Maus-Position
+                int calculatedToIndex = calculateDropIndex(projectFlow, dropX, dropY, targetItem);
+                if (calculatedToIndex >= 0) {
+                    toIndex = calculatedToIndex;
+                }
+                
                 projectItems.remove(fromIndex);
                 if (fromIndex < toIndex) {
                     toIndex--;
@@ -5969,6 +5911,46 @@ public class MainController implements Initializable {
             event.setDropCompleted(true);
             event.consume();
         });
+    }
+
+    private int calculateDropIndex(FlowPane projectFlow, double dropX, double dropY, ProjectDisplayItem targetItem) {
+        List<Node> projectNodes = projectFlow.getChildren().stream()
+                .filter(child -> child instanceof VBox)
+                .collect(Collectors.toList());
+        
+        int targetIndex = projectItems.indexOf(targetItem);
+        if (targetIndex < 0) {
+            return -1;
+        }
+        
+        // Finde die beste Position basierend auf der Maus-Position
+        for (int i = 0; i < projectNodes.size(); i++) {
+            VBox card = (VBox) projectNodes.get(i);
+            Bounds bounds = card.getBoundsInParent();
+            
+            double gap = 20;
+            double hitLeft = bounds.getMinX() - gap;
+            double hitRight = bounds.getMaxX() + gap;
+            double hitTop = bounds.getMinY() - gap;
+            double hitBottom = bounds.getMaxY() + gap;
+            
+            if (dropX >= hitLeft && dropX <= hitRight && dropY >= hitTop && dropY <= hitBottom) {
+                // Maus ist über dieser Karte
+                double cardCenterX = bounds.getMinX() + bounds.getWidth() / 2;
+                double cardCenterY = bounds.getMinY() + bounds.getHeight() / 2;
+                
+                if (dropX < cardCenterX) {
+                    // Links von der Mitte - vor diese Karte einfügen
+                    return i;
+                } else {
+                    // Rechts von der Mitte - nach dieser Karte einfügen
+                    return i + 1;
+                }
+            }
+        }
+        
+        // Fallback: Am Ende einfügen
+        return projectItems.size();
     }
 
     private void attachDragHandlers(Node card, FlowPane projectFlow) {
