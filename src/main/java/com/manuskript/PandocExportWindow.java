@@ -1,8 +1,5 @@
 package com.manuskript;
 
-import javafx.application.Platform;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -10,7 +7,6 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
-import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,7 +19,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.prefs.Preferences;
-import com.manuskript.PreferencesManager;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
@@ -434,15 +429,15 @@ public class PandocExportWindow extends CustomStage {
             exportButton.setDisable(true);
             exportButton.setText("Export läuft...");
             
-            // YAML-Datei erstellen
-            File yamlFile = createYamlFile();
-            if (yamlFile == null) {
-                showAlert("Fehler", "Konnte YAML-Datei nicht erstellen.");
+            // YAML-Metadaten direkt in Markdown-Datei einfügen
+            File markdownWithMetadata = createMarkdownWithMetadata();
+            if (markdownWithMetadata == null) {
+                showAlert("Fehler", "Konnte Markdown-Datei mit Metadaten nicht erstellen.");
                 return;
             }
             
             // Pandoc-Aufruf
-            boolean success = runPandocExport(yamlFile);
+            boolean success = runPandocExport(markdownWithMetadata);
             
             if (success) {
                 showAlert("Erfolg", "Export erfolgreich abgeschlossen!");
@@ -640,17 +635,113 @@ public class PandocExportWindow extends CustomStage {
         }
     }
     
+    private File createMarkdownWithMetadata() {
+        try {
+            // Temporäre Markdown-Datei mit YAML-Metadaten erstellen
+            File tempMarkdownFile = File.createTempFile("manuskript_export_", ".md");
+            tempMarkdownFile.deleteOnExit(); // Automatisch löschen nach Programmende
+            
+            try (PrintWriter writer = new PrintWriter(new FileWriter(tempMarkdownFile, StandardCharsets.UTF_8))) {
+                // YAML-Frontmatter schreiben - korrekte YAML-Syntax
+                writer.println("---");
+                
+                // Titel (immer erforderlich)
+                String title = titleField.getText().trim();
+                if (!title.isEmpty()) {
+                    writer.println("title: \"" + escapeYamlString(title) + "\"");
+                } else {
+                    // Fallback-Titel falls leer
+                    writer.println("title: \"Manuskript\"");
+                }
+                
+                // Untertitel
+                String subtitle = subtitleField.getText().trim();
+                if (!subtitle.isEmpty()) {
+                    writer.println("subtitle: \"" + escapeYamlString(subtitle) + "\"");
+                }
+                
+                // Autor
+                String author = authorField.getText().trim();
+                if (!author.isEmpty()) {
+                    writer.println("author: \"" + escapeYamlString(author) + "\"");
+                }
+                
+                // Datum
+                String date = dateField.getText().trim();
+                if (!date.isEmpty()) {
+                    writer.println("date: \"" + escapeYamlString(date) + "\"");
+                }
+                
+                // Rechte
+                String rights = rightsField.getText().trim();
+                if (!rights.isEmpty()) {
+                    writer.println("rights: \"" + escapeYamlString(rights) + "\"");
+                }
+                
+                // PDF-spezifische Metadaten
+                String format = formatComboBox.getValue();
+                if ("pdf".equals(format)) {
+                    writer.println("lang: de");
+                    writer.println("mainfont: DejaVu Serif");
+                    writer.println("sansfont: DejaVu Sans");
+                    writer.println("monofont: DejaVu Sans Mono");
+                    writer.println("toc: true");
+                }
+                
+                // Abstract (mehrzeilig)
+                String abstractText = abstractArea.getText().trim();
+                if (!abstractText.isEmpty()) {
+                    writer.println("abstract: |");
+                    String[] lines = abstractText.split("\n");
+                    for (String line : lines) {
+                        writer.println("  " + line);
+                    }
+                }
+                
+                writer.println("---");
+                writer.println(); // Leerzeile nach YAML
+                
+                // Original Markdown-Inhalt hinzufügen
+                String originalContent = Files.readString(inputMarkdownFile.toPath());
+                writer.print(originalContent);
+            }
+            
+            // Debug-Ausgabe - zeige das komplette YAML-Frontmatter
+            try {
+                String content = Files.readString(tempMarkdownFile.toPath());
+                // Finde das Ende des YAML-Frontmatters
+                int yamlEnd = content.indexOf("---", 3); // Zweites "---" finden
+                if (yamlEnd > 0) {
+                    String yamlPart = content.substring(0, yamlEnd + 3);
+                    logger.info("YAML-Frontmatter:\n{}", yamlPart);
+                } else {
+                    logger.warn("YAML-Frontmatter nicht gefunden! Erste 1000 Zeichen:\n{}", 
+                        content.substring(0, Math.min(1000, content.length())));
+                }
+            } catch (IOException e) {
+                logger.warn("Konnte Markdown-Inhalt nicht lesen: {}", e.getMessage());
+            }
+            
+            return tempMarkdownFile;
+            
+        } catch (IOException e) {
+            logger.error("Fehler beim Erstellen der Markdown-Datei mit Metadaten", e);
+            return null;
+        }
+    }
+    
     private String escapeYamlString(String input) {
         if (input == null) return "";
-        // YAML-sichere Escaping
+        // YAML-sichere Escaping für Strings in Anführungszeichen
         return input.replace("\\", "\\\\")
                    .replace("\"", "\\\"")
                    .replace("\n", "\\n")
                    .replace("\r", "\\r")
                    .replace("\t", "\\t");
+                   // Doppelpunkte müssen nicht escaped werden, da sie in Anführungszeichen stehen
     }
     
-    private boolean runPandocExport(File yamlFile) {
+    private boolean runPandocExport(File markdownFile) {
         try {
             // Sicherstellen, dass Pandoc verfügbar ist
             if (!ensurePandocAvailable()) {
@@ -686,7 +777,7 @@ public class PandocExportWindow extends CustomStage {
             // Pandoc-Befehl zusammenbauen (wie von Hand erfolgreich verwendet)
             List<String> command = new ArrayList<>();
             command.add(pandocExe.getAbsolutePath());
-            command.add("\"" + inputMarkdownFile.getAbsolutePath() + "\"");
+            command.add("\"" + markdownFile.getAbsolutePath() + "\"");
             command.add("-o");
 
             // Für HTML5: Ausgabe ins Unterverzeichnis
@@ -702,9 +793,8 @@ public class PandocExportWindow extends CustomStage {
 
             command.add("\"" + finalOutputPath + "\"");
 
-            // Grundlegende Optionen
-            command.add("--metadata-file=\"" + yamlFile.getAbsolutePath() + "\"");
-            command.add("--from=markdown-yaml_metadata_block");
+            // Grundlegende Optionen - YAML-Metadaten explizit aktivieren
+            command.add("--from=markdown+yaml_metadata_block");
             command.add("--to=" + getOutputFormat());
 
             // Format-spezifische Optionen
@@ -786,6 +876,32 @@ public class PandocExportWindow extends CustomStage {
                         }
                     }
                 }
+            } else if ("pdf".equals(format)) {
+                // PDF-spezifische Optionen für professionelle Formatierung
+                command.add("--pdf-engine=xelatex");
+                command.add("--toc"); // Inhaltsverzeichnis für PDF
+                
+                // Template für PDF verwenden (vereinfachtes XeLaTeX-Template)
+                File pdfTemplate = new File("pandoc-3.8.1", "simple-xelatex-template.tex");
+                if (pdfTemplate.exists()) {
+                    command.add("--template=" + pdfTemplate.getAbsolutePath());
+                    logger.info("Verwende vereinfachtes XeLaTeX-Template: {}", pdfTemplate.getName());
+                } else {
+                    logger.info("Kein XeLaTeX-Template gefunden, verwende Standard-Template");
+                }
+                
+                // XeLaTeX-spezifische Optionen für bessere Kompatibilität
+                command.add("--variable=lang:de");
+                
+                // LaTeX-Optionen für bessere Kompatibilität (Template definiert bereits Fonts)
+                command.add("--variable=geometry:margin=2.5cm");
+                command.add("--variable=fontsize:12pt");
+                command.add("--variable=documentclass:article");
+                command.add("--variable=linestretch:1.2");
+                
+                // XeLaTeX-spezifische Engine-Optionen
+                command.add("--pdf-engine-opt=-shell-escape");
+                command.add("--pdf-engine-opt=-interaction=nonstopmode");
             }
 
             // Standalone für vollständiges Dokument (wenn nicht bereits hinzugefügt)
@@ -811,22 +927,88 @@ public class PandocExportWindow extends CustomStage {
             ProcessBuilder pb = new ProcessBuilder(command);
             pb.directory(pandocHome != null ? pandocHome : new File("pandoc-3.8.1")); // Arbeitsverzeichnis auf Pandoc setzen
             pb.environment().put("PATH", System.getenv("PATH")); // PATH weitergeben
+            
+            // MiKTeX-Update-Warnungen deaktivieren
+            pb.environment().put("MIKTEX_DISABLE_UPDATE_CHECK", "1");
+            pb.environment().put("MIKTEX_DISABLE_INSTALLER", "1");
+            pb.environment().put("MIKTEX_DISABLE_AUTO_INSTALL", "1");
 
             Process process = pb.start();
 
+            // Standard-Output und Standard-Error auslesen für bessere Fehlerdiagnose
+            StringBuilder output = new StringBuilder();
+            StringBuilder error = new StringBuilder();
+            
+            // Threads für paralleles Auslesen von Output und Error
+            Thread outputThread = new Thread(() -> {
+                try (java.io.BufferedReader reader = new java.io.BufferedReader(
+                        new java.io.InputStreamReader(process.getInputStream()))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        output.append(line).append("\n");
+                    }
+                } catch (IOException e) {
+                    logger.warn("Fehler beim Lesen des pandoc-Outputs: {}", e.getMessage());
+                }
+            });
+            
+            Thread errorThread = new Thread(() -> {
+                try (java.io.BufferedReader reader = new java.io.BufferedReader(
+                        new java.io.InputStreamReader(process.getErrorStream()))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        error.append(line).append("\n");
+                    }
+                } catch (IOException e) {
+                    logger.warn("Fehler beim Lesen des pandoc-Error-Streams: {}", e.getMessage());
+                }
+            });
+            
+            outputThread.start();
+            errorThread.start();
+
             // Warten auf Beendigung
             int exitCode = process.waitFor();
+            
+            // Warten bis beide Threads fertig sind
+            try {
+                outputThread.join(5000); // Max 5 Sekunden warten
+                errorThread.join(5000);
+            } catch (InterruptedException e) {
+                logger.warn("Threads für pandoc-Output konnten nicht beendet werden");
+            }
+
+            // Debug-Ausgabe der pandoc-Befehle und -Ausgabe
+            logger.debug("Pandoc-Befehl: {}", String.join(" ", command));
+            if (output.length() > 0) {
+                logger.debug("Pandoc-Output:\n{}", output.toString());
+            }
+            if (error.length() > 0) {
+                logger.error("Pandoc-Error:\n{}", error.toString());
+            }
 
             // Prüfe ob die Ausgabedatei jetzt existiert und größer als 0 ist
             File resultFile = "html5".equals(format) ?
                 new File(finalOutputPath) : outputFile;
 
             if (resultFile.exists() && resultFile.length() > 0) {
-
-
+                logger.info("PDF erfolgreich erstellt: {}", resultFile.getAbsolutePath());
                 return true;
             } else {
                 logger.error("Pandoc-Export fehlgeschlagen - Datei nicht erstellt (Exit-Code: {})", exitCode);
+                if (error.length() > 0) {
+                    logger.error("Detaillierte Fehlermeldung:\n{}", error.toString());
+                }
+                
+                // Fallback für PDF: Versuche alternative PDF-Engine
+                if ("pdf".equals(format) && (exitCode == 43 || exitCode == 47)) {
+                    logger.warn("XeLaTeX fehlgeschlagen (Exit-Code: {}), versuche Fallback mit pdflatex...", exitCode);
+                    if (error.length() > 0) {
+                        logger.warn("XeLaTeX-Fehlerdetails:\n{}", error.toString());
+                    }
+                    return tryPdfFallback(markdownFile, outputFile, command);
+                }
+                
                 return false;
             }
             
@@ -835,7 +1017,57 @@ public class PandocExportWindow extends CustomStage {
             return false;
         }
     }
-
+    
+    /**
+     * Fallback-Methode für PDF-Export bei XeLaTeX-Fehlern
+     */
+    private boolean tryPdfFallback(File markdownFile, File outputFile, List<String> originalCommand) {
+        try {
+            // Neuen Befehl mit pdflatex statt xelatex erstellen (ohne Template)
+            List<String> fallbackCommand = new ArrayList<>();
+            fallbackCommand.add(originalCommand.get(0)); // pandoc.exe
+            fallbackCommand.add(originalCommand.get(1)); // input file
+            fallbackCommand.add("-o");
+            fallbackCommand.add("\"" + outputFile.getAbsolutePath() + "\"");
+            fallbackCommand.add("--from=markdown-yaml_metadata_block");
+            fallbackCommand.add("--to=pdf");
+            fallbackCommand.add("--pdf-engine=pdflatex");
+            fallbackCommand.add("--toc");
+            fallbackCommand.add("--standalone");
+            
+            // Vereinfachte LaTeX-Optionen für bessere Kompatibilität (ohne XeLaTeX-spezifische Fonts)
+            fallbackCommand.add("--variable=lang:de");
+            fallbackCommand.add("--variable=geometry:margin=2.5cm");
+            fallbackCommand.add("--variable=fontsize:11pt");
+            fallbackCommand.add("--variable=documentclass:article");
+            fallbackCommand.add("--variable=linestretch:1.2");
+            
+            // pdflatex-spezifische Optionen
+            fallbackCommand.add("--pdf-engine-opt=-interaction=nonstopmode");
+            
+            logger.info("Versuche PDF-Fallback mit pdflatex (ohne Template)...");
+            
+            ProcessBuilder pb = new ProcessBuilder(fallbackCommand);
+            pb.directory(pandocHome != null ? pandocHome : new File("pandoc-3.8.1"));
+            pb.environment().put("PATH", System.getenv("PATH"));
+            
+            Process process = pb.start();
+            int exitCode = process.waitFor();
+            
+            if (outputFile.exists() && outputFile.length() > 0) {
+                logger.info("PDF-Fallback erfolgreich mit pdflatex erstellt: {}", outputFile.getAbsolutePath());
+                return true;
+            } else {
+                logger.error("PDF-Fallback mit pdflatex ebenfalls fehlgeschlagen (Exit-Code: {})", exitCode);
+                return false;
+            }
+            
+        } catch (Exception e) {
+            logger.error("Fehler beim PDF-Fallback", e);
+            return false;
+        }
+    }
+    
     /**
      * Prüft, ob pandoc.exe verfügbar ist. Wenn nicht, versucht es, die Datei pandoc.zip
      * aus dem Programmverzeichnis zu entpacken. Gibt true zurück, wenn pandoc.exe danach existiert.

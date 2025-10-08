@@ -1,0 +1,69 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage{fontspec}
+\usepackage{polyglossia}
+\setmainlanguage{german}
+
+% Einfache Schriftarten ohne spezifische Font-Namen
+\setmainfont{Latin Modern Roman}
+\setsansfont{Latin Modern Sans}
+\setmonofont{Latin Modern Mono}
+
+\usepackage{geometry}
+\geometry{margin=2.5cm}
+
+\usepackage{titlesec}
+\titleformat{\section}{\normalfont\Large\bfseries}{\thesection}{1em}{}
+\titleformat{\subsection}{\normalfont\large\bfseries}{\thesubsection}{1em}{}
+
+% Pandoc-kompatible Pakete für Tabellen und Formatierung
+\usepackage{longtable}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{calc}
+\usepackage{colortbl}
+\usepackage{multirow}
+\usepackage{hhline}
+\usepackage{ifthen}
+\usepackage{ltxtable}
+\usepackage{graphicx}
+\usepackage{grffile}
+\usepackage{textcomp}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{url}
+\usepackage{listings}
+\usepackage{fancyvrb}
+\usepackage{footnote}
+\usepackage{parskip}
+\usepackage{setspace}
+
+\usepackage{hyperref}
+\hypersetup{colorlinks=true, linkcolor=black, urlcolor=blue}
+
+\begin{document}
+
+% --- Titelseite ---
+\begin{titlepage}
+  \centering
+  {\Huge \bfseries $title$ \par}
+  \vspace{1cm}
+  {\Large $author$ \par}
+  \vspace{1cm}
+  {\large $date$ \par}
+  \vfill
+\end{titlepage}
+
+% --- Abstract ---
+\newpage
+\begin{abstract}
+$abstract$
+\end{abstract}
+
+% --- Inhaltsverzeichnis ---
+\newpage
+\tableofcontents
+\newpage
+
+$body$
+
+\end{document}

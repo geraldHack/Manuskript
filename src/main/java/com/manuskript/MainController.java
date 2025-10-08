@@ -2000,9 +2000,13 @@ public class MainController implements Initializable {
         }
     }
     
-    public void showDetailedDiffDialog(DocxFile chapterFile, File mdFile, DiffProcessor.DiffResult diffResult, 
+    public void showDetailedDiffDialog(DocxFile chapterFile, File mdFile, DiffProcessor.DiffResult diffResult,
                                       DocxProcessor.OutputFormat format) {
         try {
+            System.out.println("DEBUG: showDetailedDiffDialog aufgerufen für Kapitel: " + chapterFile.getFileName());
+            System.out.println("DEBUG: diffResult hasChanges: " + (diffResult != null ? diffResult.hasChanges() : "null"));
+            System.out.println("DEBUG: diffResult diffLines count: " + (diffResult != null && diffResult.getDiffLines() != null ? diffResult.getDiffLines().size() : "null"));
+
             // Erstelle Diff-Fenster mit spezieller Diff-Stage
             CustomStage diffStage = StageManager.createDiffStage("Diff: " + chapterFile.getFileName(), primaryStage);
             
@@ -2153,13 +2157,16 @@ public class MainController implements Initializable {
                 hoverPreviewStage.hide();
             });
             
+            System.out.println("DEBUG: Verarbeite " + blocks.size() + " Blöcke");
             for (int i1=0; i1<blocks.size(); i1++) {
                 DiffBlock block = blocks.get(i1);
+                System.out.println("DEBUG: Block " + i1 + " Typ: " + block.getType() + " Zeilen: " + block.getLines().size());
 
                 
                 // Checkbox nur für grüne Blöcke (ADDED)
                 CheckBox blockCheckBox = null;
                 if (block.getType() == DiffBlockType.ADDED) {
+                    System.out.println("DEBUG: ADDED-Block gefunden mit " + block.getLines().size() + " Zeilen");
                     blockCheckBox = new CheckBox();
                     // kleinere Checkbox für rechte grüne Blöcke
                     blockCheckBox.getStyleClass().add("diff-green-checkbox");
@@ -2172,7 +2179,8 @@ public class MainController implements Initializable {
                     blockCheckBox.setScaleY(0.8);
                     blockCheckBox.setSelected(false); // Standardmäßig ungecheckt
                     blockCheckBoxes.add(blockCheckBox);
-                    
+                    System.out.println("DEBUG: Checkbox erstellt und zu blockCheckBoxes hinzugefügt");
+
                     List<String> blockTextList = new ArrayList<>();
                     for (DiffProcessor.DiffLine line : block.getLines()) {
                         blockTextList.add(line.getNewText());
@@ -2248,6 +2256,26 @@ public class MainController implements Initializable {
                     final String hoverHtmlPaired = (pairedDeletedTextPaired != null && !pairedDeletedTextPaired.trim().isEmpty())
                             ? buildHtmlDiffPreview(pairedDeletedTextPaired, combinedBlockTextPaired)
                             : buildHtmlPreview(combinedBlockTextPaired);
+                    CheckBox pairedBlockCheckBox = new CheckBox();
+                    pairedBlockCheckBox.getStyleClass().add("diff-green-checkbox");
+                    pairedBlockCheckBox.setStyle("-fx-padding: 0;");
+                    pairedBlockCheckBox.setPadding(Insets.EMPTY);
+                    pairedBlockCheckBox.setMinSize(12, 12);
+                    pairedBlockCheckBox.setPrefSize(12, 12);
+                    pairedBlockCheckBox.setMaxSize(12, 12);
+                    pairedBlockCheckBox.setScaleX(0.8);
+                    pairedBlockCheckBox.setScaleY(0.8);
+                    pairedBlockCheckBox.setSelected(false);
+                    blockCheckBoxes.add(pairedBlockCheckBox);
+
+                    List<String> pairedBlockTextList = new ArrayList<>();
+                    for (DiffProcessor.DiffLine line : addedBlock.getLines()) {
+                        pairedBlockTextList.add(line.getNewText());
+                    }
+                    blockTexts.add(pairedBlockTextList);
+
+                    final CheckBox checkboxForPairing = pairedBlockCheckBox;
+
                     for (int i = 0; i < maxSize; i++) {
                         DiffProcessor.DiffLine dLine = i < dSize ? deletedBlock.getLines().get(i) : null;
                         DiffProcessor.DiffLine aLine = i < aSize ? addedBlock.getLines().get(i) : null;
@@ -2311,7 +2339,23 @@ public class MainController implements Initializable {
                         });
 
                         leftLineBox.getChildren().addAll(leftLineNum, leftLineLabel);
-                        rightLineBox.getChildren().addAll(rightLineNum, rightLineLabel);
+                        
+                        // Checkbox für gepaarte ADDED-Blöcke hinzufügen
+                        if (aLine != null && i == 0 && checkboxForPairing != null) { // Nur bei der ersten Zeile des ADDED-Blocks
+                            System.out.println("DEBUG: Gepaarte Checkbox wird hinzugefügt");
+                            VBox checkboxContainer = new VBox();
+                            checkboxContainer.setAlignment(Pos.CENTER);
+                            checkboxContainer.setSpacing(0);
+                            checkboxContainer.setPadding(Insets.EMPTY);
+                            checkboxContainer.setMinWidth(16);
+                            checkboxContainer.setMaxWidth(16);
+                            checkboxContainer.getChildren().add(checkboxForPairing);
+
+                            rightLineBox.getChildren().addAll(rightLineNum, rightLineLabel, checkboxContainer);
+                            System.out.println("DEBUG: Gepaarte Checkbox hinzugefügt");
+                        } else {
+                            rightLineBox.getChildren().addAll(rightLineNum, rightLineLabel);
+                        }
 
                         leftContentBox.getChildren().add(leftLineBox);
                         rightContentBox.getChildren().add(rightLineBox);
@@ -2392,6 +2436,7 @@ public class MainController implements Initializable {
                     
                     // Checkbox RECHTS vertikal zentriert am Ende des Blocks
                     if (blockCheckBox != null && block.getLines().indexOf(diffLine) == block.getLines().size() - 1) {
+                        System.out.println("DEBUG: Checkbox wird hinzugefügt für Block mit " + block.getLines().size() + " Zeilen bei Zeile " + block.getLines().indexOf(diffLine));
                         // Container für vertikal zentrierte Checkbox
                         VBox checkboxContainer = new VBox();
                         checkboxContainer.setAlignment(Pos.CENTER);
@@ -2400,8 +2445,9 @@ public class MainController implements Initializable {
                         checkboxContainer.setMinWidth(16);
                         checkboxContainer.setMaxWidth(16);
                         checkboxContainer.getChildren().add(blockCheckBox);
-                        
+
                         rightLineBox.getChildren().addAll(rightLineNum, rightLineLabel, checkboxContainer);
+                        System.out.println("DEBUG: Checkbox hinzugefügt zur rightLineBox");
                     } else {
                         rightLineBox.getChildren().addAll(rightLineNum, rightLineLabel);
                     }
@@ -2482,34 +2528,69 @@ public class MainController implements Initializable {
                     // Verwende die gleiche Logik wie beim Erstellen der Diff-Anzeige
                     StringBuilder newContent = new StringBuilder();
                     int checkboxIndex = 0;
-                    
+
                     // Gehe durch alle Blöcke und baue den Text zusammen
-                    for (DiffBlock block : blocks) {
-                        switch (block.getType()) {
-                            case ADDED:
-                                // Neue Blöcke nur hinzufügen, wenn ausgewählt
-                                if (checkboxIndex < blockCheckBoxes.size() && blockCheckBoxes.get(checkboxIndex).isSelected()) {
-                                    for (DiffProcessor.DiffLine line : block.getLines()) {
-                                        String text = line.getNewText();
-                                        if (text != null) {
-                                            newContent.append(text).append("\n");
-                                        }
+                    for (int i = 0; i < blocks.size(); i++) {
+                        DiffBlock block = blocks.get(i);
+
+                        if (block.getType() == DiffBlockType.DELETED && i + 1 < blocks.size()
+                                && blocks.get(i + 1).getType() == DiffBlockType.ADDED) {
+                            DiffBlock addedBlock = blocks.get(i + 1);
+                            boolean isSelected = checkboxIndex < blockCheckBoxes.size()
+                                    && blockCheckBoxes.get(checkboxIndex).isSelected();
+
+                            if (isSelected) {
+                                for (DiffProcessor.DiffLine line : addedBlock.getLines()) {
+                                    String text = line.getNewText();
+                                    if (text != null) {
+                                        newContent.append(text).append("\n");
                                     }
                                 }
-                                checkboxIndex++;
-                                break;
-                            case DELETED:
-                                // Gelöschte Blöcke überspringen (werden nicht hinzugefügt)
-                                break;
-                            case UNCHANGED:
-                                // Unveränderte Blöcke immer hinzufügen
+                            } else {
+                                for (DiffProcessor.DiffLine line : block.getLines()) {
+                                    String text = line.getOriginalText();
+                                    if (text != null) {
+                                        newContent.append(text).append("\n");
+                                    }
+                                }
+                            }
+
+                            checkboxIndex++;
+                            i++; // ADDED-Block wurde mitverarbeitet
+                            continue;
+                        }
+
+                        if (block.getType() == DiffBlockType.ADDED) {
+                            boolean isSelected = checkboxIndex < blockCheckBoxes.size()
+                                    && blockCheckBoxes.get(checkboxIndex).isSelected();
+                            if (isSelected) {
                                 for (DiffProcessor.DiffLine line : block.getLines()) {
                                     String text = line.getNewText();
                                     if (text != null) {
                                         newContent.append(text).append("\n");
                                     }
                                 }
-                                break;
+                            }
+                            checkboxIndex++;
+                            continue;
+                        }
+
+                        if (block.getType() == DiffBlockType.DELETED) {
+                            for (DiffProcessor.DiffLine line : block.getLines()) {
+                                String text = line.getOriginalText();
+                                if (text != null) {
+                                    newContent.append(text).append("\n");
+                                }
+                            }
+                            continue;
+                        }
+
+                        // UNCHANGED
+                        for (DiffProcessor.DiffLine line : block.getLines()) {
+                            String text = line.getNewText();
+                            if (text != null) {
+                                newContent.append(text).append("\n");
+                            }
                         }
                     }
                     

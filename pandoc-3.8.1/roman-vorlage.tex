@@ -1,0 +1,49 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage{fontspec}
+\usepackage{polyglossia}
+\setmainlanguage{german}
+\usepackage{setspace}
+\usepackage{geometry}
+\geometry{margin=2.5cm}
+\setstretch{1.2}
+\usepackage{titlesec}
+\titleformat{\section}{\normalfont\Large\bfseries}{\thesection}{1em}{}
+\titleformat{\subsection}{\normalfont\large\bfseries}{\thesubsection}{1em}{}
+\usepackage{fancyhdr}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true, linkcolor=black, urlcolor=blue}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\textit{$title$}}
+\fancyhead[R]{\textit{$author$}}
+\fancyfoot[C]{\thepage}
+
+\begin{document}
+
+% --- Titelseite ---
+\begin{titlepage}
+  \centering
+  {\Huge \bfseries $title$ \par}
+  \vspace{1cm}
+  {\Large $author$ \par}
+  \vspace{1cm}
+  {\large $date$ \par}
+  \vfill
+  {\itshape Ein Pandoc-Layout mit Abstract und Inhaltsverzeichnis}
+  \vspace{1cm}
+\end{titlepage}
+
+% --- Abstract ---
+\newpage
+\begin{abstract}
+$abstract$
+\end{abstract}
+
+% --- Inhaltsverzeichnis ---
+\newpage
+\tableofcontents
+\newpage
+
+$body$
+
+\end{document}
