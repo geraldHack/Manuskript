@@ -51,9 +51,15 @@ h1 + p:first-letter {
   font-size: 2.8em;
   line-height: 0.9;
   padding-right: 0.15em;
+  margin-top: 0.1em;
   font-weight: bold;
   font-family: "Georgia", serif;
   color: inherit;
+}
+
+/* Textabsatz direkt nach H1: keinen Erstzeileneinzug, normales Block-Layout */
+h1 + p {
+  text-indent: 0;
 }
 
 
@@ -62,6 +68,15 @@ p {
   text-indent: 1.2em;
   margin: 0 0 0.6em 0;
   text-align: justify;
+  
+  /* Verhindert Überlaufen am Zeilenende */
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: normal;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+  -ms-hyphens: auto;
+  -moz-hyphens: auto;
 }
 
 p:first-child,

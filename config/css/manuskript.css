@@ -299,6 +299,7 @@
     -fx-text-fill: #ffffff;
 }
 
+
 .theme-dark .button {
     -fx-background-color: #495057;
     -fx-text-fill: #ffffff;
@@ -312,6 +313,7 @@
 .theme-dark .button:hover {
     -fx-background-color: #6c757d;
 }
+
 
 .theme-dark .text-field {
     -fx-background-color: #495057;
@@ -5150,106 +5152,9 @@
     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.7), 20, 0, 0, 0);
 }
 
-/* Zurück-Button Styling */
-.back-button {
-    -fx-background-color: #6c757d;
-    -fx-text-fill: white;
-    -fx-font-size: 14px;
-    -fx-font-weight: bold;
-    -fx-background-radius: 8px;
-    -fx-border-radius: 8px;
-    -fx-border-color: #495057;
-    -fx-border-width: 2px;
-    -fx-padding: 8px 16px;
-    -fx-cursor: hand;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 5, 0, 2, 2);
-}
 
-.back-button:hover {
-    -fx-background-color: #5a6268;
-    -fx-border-color: #343a40;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 8, 0, 3, 3);
-}
 
-.back-button:pressed {
-    -fx-background-color: #495057;
-    -fx-border-color: #212529;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 3, 0, 1, 1);
-}
 
-/* Theme-spezifische Zurück-Button Styling */
-
-/* Weiß-Theme */
-.weiss-theme .back-button {
-    -fx-background-color: #6c757d;
-    -fx-text-fill: white;
-    -fx-border-color: #495057;
-}
-
-.weiss-theme .back-button:hover {
-    -fx-background-color: #5a6268;
-    -fx-border-color: #343a40;
-}
-
-/* Schwarz-Theme */
-.theme-dark .back-button {
-    -fx-background-color: #495057;
-    -fx-text-fill: white;
-    -fx-border-color: #6c757d;
-}
-
-.theme-dark .back-button:hover {
-    -fx-background-color: #6c757d;
-    -fx-border-color: #868e96;
-}
-
-/* Pastell-Theme */
-.pastell-theme .back-button {
-    -fx-background-color: #ce93d8;
-    -fx-text-fill: #4a148c;
-    -fx-border-color: #ab47bc;
-}
-
-.pastell-theme .back-button:hover {
-    -fx-background-color: #ba68c8;
-    -fx-border-color: #9c27b0;
-}
-
-/* Blau-Theme */
-.theme-dark.blau-theme .back-button {
-    -fx-background-color: #1e40af;
-    -fx-text-fill: white;
-    -fx-border-color: #3b82f6;
-}
-
-.theme-dark.blau-theme .back-button:hover {
-    -fx-background-color: #3b82f6;
-    -fx-border-color: #60a5fa;
-}
-
-/* Grün-Theme */
-.theme-dark.gruen-theme .back-button {
-    -fx-background-color: #065f46;
-    -fx-text-fill: white;
-    -fx-border-color: #10b981;
-}
-
-.theme-dark.gruen-theme .back-button:hover {
-    -fx-background-color: #10b981;
-    -fx-border-color: #34d399;
-}
-
-/* Lila-Theme */
-.theme-dark.lila-theme .back-button {
-    -fx-background-color: #6b21a8;
-    -fx-text-fill: white;
-    -fx-border-color: #8b5cf6;
-}
-
-.theme-dark.lila-theme .back-button:hover {
-    -fx-background-color: #8b5cf6;
-    -fx-border-color: #a78bfa;
-}
 
 /* ========================================
    PROJEKTAUSWAHL STYLING

@@ -187,7 +187,6 @@ public class MainController implements Initializable {
         Button backButton = new Button("← Zurück");
         backButton.setId("backButton");
         backButton.setPrefSize(120, 40);
-        backButton.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-border-radius: 8px;");
         backButton.getStyleClass().add("back-button");
         
         // Zurück-Funktionalität: Hauptfenster nicht ausblenden
@@ -257,7 +256,6 @@ public class MainController implements Initializable {
                     Button startBackButton = new Button("← Zurück1");
                     startBackButton.setId("backButton");
                     startBackButton.setPrefSize(120, 40);
-                    startBackButton.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-border-radius: 8px;");
                     startBackButton.getStyleClass().add("back-button");
                     startBackButton.setOnAction(e -> {
                         showProjectSelectionMenu();
@@ -279,7 +277,6 @@ public class MainController implements Initializable {
                     Button startBackButton = new Button("← Projektauswahl");
                     startBackButton.setId("backButton");
                     startBackButton.setPrefSize(150, 40);
-                    startBackButton.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-border-radius: 8px;");
                     startBackButton.getStyleClass().add("back-button");
                     startBackButton.setOnAction(e -> {
                         showProjectSelectionMenu();
@@ -3191,11 +3188,9 @@ public class MainController implements Initializable {
                 // Schreibe das Buch in die Datei
                 Files.write(completeDocumentFile.toPath(), result.toString().getBytes(StandardCharsets.UTF_8));
                 
-                // Öffne den Editor mit der echten Datei
-                openEditorWithFile(completeDocumentFile, true); // true = ist Buch
                 updateStatus(processed + " Dateien erfolgreich verarbeitet - Buch erstellt: " + completeDocumentFile.getName());
 
-                // Pandoc Export Dialog anbieten
+                // Pandoc Export Dialog anbieten (ohne Editor zu öffnen)
                 showPandocExportDialog(completeDocumentFile, baseFileName);
                 
             } catch (Exception e) {
