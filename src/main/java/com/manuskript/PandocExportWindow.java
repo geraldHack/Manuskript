@@ -902,6 +902,15 @@ public class PandocExportWindow extends CustomStage {
                 // XeLaTeX-spezifische Engine-Optionen
                 command.add("--pdf-engine-opt=-shell-escape");
                 command.add("--pdf-engine-opt=-interaction=nonstopmode");
+                
+                // Lua-Filter für automatische Initialen
+                File luaFilter = new File("pandoc-3.8.1", "dropcaps.lua");
+                if (luaFilter.exists()) {
+                    command.add("--lua-filter=" + luaFilter.getAbsolutePath());
+                    logger.info("Verwende Lua-Filter für automatische Initialen: {}", luaFilter.getName());
+                } else {
+                    logger.warn("Lua-Filter für Initialen nicht gefunden: {}", luaFilter.getAbsolutePath());
+                }
             }
 
             // Standalone für vollständiges Dokument (wenn nicht bereits hinzugefügt)

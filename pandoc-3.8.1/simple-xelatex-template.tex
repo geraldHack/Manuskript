@@ -1,44 +1,53 @@
 \documentclass[12pt,a4paper]{article}
+
+% --- Fonts & Sprache (XeLaTeX) ---
 \usepackage{fontspec}
 \usepackage{polyglossia}
 \setmainlanguage{german}
-
-% Einfache Schriftarten ohne spezifische Font-Namen
 \setmainfont{Latin Modern Roman}
 \setsansfont{Latin Modern Sans}
 \setmonofont{Latin Modern Mono}
 
+% --- Layout ---
 \usepackage{geometry}
 \geometry{margin=2.5cm}
+\usepackage{setspace}
+\setstretch{1.2}
 
+% --- Überschriften ---
 \usepackage{titlesec}
 \titleformat{\section}{\normalfont\Large\bfseries}{\thesection}{1em}{}
 \titleformat{\subsection}{\normalfont\large\bfseries}{\thesubsection}{1em}{}
 
-% Pandoc-kompatible Pakete für Tabellen und Formatierung
-\usepackage{longtable}
-\usepackage{booktabs}
-\usepackage{array}
-\usepackage{calc}
-\usepackage{colortbl}
-\usepackage{multirow}
-\usepackage{hhline}
-\usepackage{ifthen}
-\usepackage{ltxtable}
-\usepackage{graphicx}
-\usepackage{grffile}
-\usepackage{textcomp}
-\usepackage{amsmath}
-\usepackage{amssymb}
-\usepackage{url}
-\usepackage{listings}
-\usepackage{fancyvrb}
-\usepackage{footnote}
-\usepackage{parskip}
-\usepackage{setspace}
+% --- Seitenumbruch vor Kapiteln (Sections) ---
+\newcommand{\sectionbreak}{\clearpage}
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd{\section}{\if@noskipsec}{\if@noskipsec\clearpage}{}{}
+\makeatother
 
+% --- Initialen (Drop Caps) Styling ---
+\usepackage{lettrine}
+% Grundstil für alle Initialen (vom Lua-Filter gesetzt)
+\renewcommand{\LettrineTextFont}{\bfseries\color{black}}
+\renewcommand{\LettrineFont}{\fontsize{48}{48}\selectfont\bfseries} % etwas kleiner
+\setlength{\DefaultNindent}{0.3em}   % linker Einzug
+\setlength{\DefaultFindent}{0.2em}   % Abstand Initiale/Text
+\setcounter{DefaultLines}{3}         % über 3 Zeilen
+\renewcommand{\DefaultLraise}{0.2}   % leicht angehoben
+\renewcommand{\DefaultLoversize}{0.12} % etwas kompakter
+
+% --- Pandoc-kompatible Pakete ---
+\usepackage{longtable,booktabs,array,calc,colortbl,multirow,hhline,ifthen,ltxtable}
+\usepackage{graphicx,grffile,textcomp,amsmath,amssymb,url,listings,fancyvrb,footnote,parskip}
+
+% --- Links ---
 \usepackage{hyperref}
 \hypersetup{colorlinks=true, linkcolor=black, urlcolor=blue}
+
+% --- Pandoc-spezifische Befehle ---
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
 
 \begin{document}
 
@@ -64,6 +73,7 @@ $abstract$
 \tableofcontents
 \newpage
 
+% --- Inhalt ---
 $body$
 
 \end{document}
