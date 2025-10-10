@@ -18,8 +18,12 @@
             <Button fx:id="btnToggleSearch" text="Suchen/Ersetzen" styleClass="button" />
             <Button fx:id="btnToggleMacro" text="Makros" styleClass="button" />
             <Button fx:id="btnTextAnalysis" text="Textanalyse" styleClass="button" />
-            <Button fx:id="btnChapterEditor" text="✏ Kapitel" styleClass="button" />
             <Button fx:id="btnKIAssistant" text="⚡ KI-Assistent" styleClass="button" />
+            
+            <!-- Help-Buttons für Haupt-Buttons -->
+            <Separator orientation="VERTICAL" />
+            <Button fx:id="btnHelpMain" text="?" styleClass="help-button" style="-fx-min-width: 24px; -fx-max-width: 24px; -fx-min-height: 24px; -fx-max-height: 24px;" />
+            <Button fx:id="btnHelpMarkdown" text="📝" styleClass="help-button" style="-fx-min-width: 24px; -fx-max-width: 24px; -fx-min-height: 24px; -fx-max-height: 24px;" />
             
             <Region HBox.hgrow="ALWAYS" style="-fx-background-color: transparent;" />
             
@@ -45,10 +49,11 @@
             
             <Button fx:id="btnBold" text="B" styleClass="toolbar-button" style="-fx-min-width: 35px; -fx-max-width: 35px; -fx-font-weight: bold; -fx-font-size: 14px;" />
             <Button fx:id="btnItalic" text="I" styleClass="toolbar-button" style="-fx-min-width: 35px; -fx-max-width: 35px; -fx-font-style: italic; -fx-font-size: 14px;" />
+            <Button fx:id="btnUnderline" text="U" styleClass="toolbar-button" style="-fx-min-width: 35px; -fx-max-width: 35px; -fx-text-decoration: underline; -fx-font-size: 14px;" />
             
             <Separator orientation="VERTICAL" style="-fx-background-color: #6c757d;" />
             
-            <Label text="Absatz:" styleClass="font-size-label" />
+            <Label text="Zeilenabstand:" styleClass="font-size-label" />
             <ComboBox fx:id="cmbParagraphSpacing" promptText="10px" prefWidth="80.0" />
             
             <Separator orientation="VERTICAL" style="-fx-background-color: #6c757d;" />
@@ -60,6 +65,14 @@
             
             <Button fx:id="btnUndo" text="↶" styleClass="toolbar-button" style="-fx-min-width: 35px; -fx-max-width: 35px; -fx-font-size: 16px;" />
             <Button fx:id="btnRedo" text="↷" styleClass="toolbar-button" style="-fx-min-width: 35px; -fx-max-width: 35px; -fx-font-size: 16px;" />
+            
+            <Separator orientation="VERTICAL" style="-fx-background-color: #6c757d;" />
+            
+            <Button fx:id="btnToggleParagraphMarking" text="¶" styleClass="toolbar-button" style="-fx-min-width: 35px; -fx-max-width: 35px; -fx-font-size: 16px;" />
+            
+            <!-- Help-Button für Tools -->
+            <Separator orientation="VERTICAL" style="-fx-background-color: #6c757d;" />
+            <Button fx:id="btnHelpTools" text="?" styleClass="help-button" style="-fx-min-width: 24px; -fx-max-width: 24px; -fx-min-height: 24px; -fx-max-height: 24px;" />
             
             <Region HBox.hgrow="ALWAYS" style="-fx-background-color: transparent;" />
             

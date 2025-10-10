@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .help-container {
+            background: white;
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #2C3E50;
+            border-bottom: 3px solid #4A90E2;
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+        h2 {
+            color: #34495E;
+            margin-top: 25px;
+        }
+        p {
+            margin-bottom: 15px;
+        }
+        a {
+            color: #4A90E2;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .highlight {
+            background-color: #E8F4FD;
+            padding: 15px;
+            border-left: 4px solid #4A90E2;
+            margin: 15px 0;
+            border-radius: 0 4px 4px 0;
+        }
+        .code {
+            background-color: #F8F9FA;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        ul {
+            padding-left: 20px;
+        }
+        li {
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="help-container">
+        <h1>Pandoc DOCX-Reference-System</h1>
+        
+        <p>Das pandoc DOCX-Reference-System verwendet Word-Dokumente als Vorlagen für die Formatierung von DOCX-Exporten.</p>
+        
+        <h2>Wie es funktioniert:</h2>
+        <ul>
+            <li><strong>Reference-Dokument:</strong> Ein Word-Dokument (.docx) dient als Formatierungsvorlage</li>
+            <li><strong>Pandoc analysiert:</strong> pandoc liest die Formatierung aus dem Reference-Dokument</li>
+            <li><strong>Anwendung:</strong> Diese Formatierung wird auf den exportierten Inhalt angewendet</li>
+        </ul>
+        
+        <h2>Verfügbare Reference-Dokumente:</h2>
+        <ul>
+            <li><strong>custom-reference.docx:</strong> Standard-Referenzdokument</li>
+            <li><strong>Weitere .docx-Dateien:</strong> Alle DOCX-Dateien im pandoc-3.8.1 Verzeichnis</li>
+            <li><strong>Es können eigene Wordvorlagen im  pandoc-3.8.1 Verzeichnis abgelegt werden.</li>
+            <li><strong>Die Dateinamen der Vorlagen müssen mit "reference-" beginnen und mit ".docx" enden.</li>
+            <li><strong>Es kann eine .txt Datei im pandoc-3.8.1 Verzeichnis abgelegt werden, die die Beschreibung der Vorlage enthält.</li>
+
+        </ul>
+        
+        <h2>Man setzt in dem Dokument einfach alle Formate, die man will (Header, Footer, Seitenzahlen, etc.). Das wird übertragen:</h2>
+        <ul>
+            <li>Schriftarten und -größen</li>
+            <li>Überschriften-Formatierung</li>
+            <li>Absatz-Formatierung</li>
+            <li>Seitenlayout und Ränder</li>
+            <li>Tabellen-Formatierung</li>
+        </ul>
+        
+        <div class="highlight">
+            <strong>Wichtig:</strong> Das Reference-Dokument muss die gewünschten Formatierungen bereits enthalten. pandoc kopiert diese dann in den Export. Es wird kein Text übertragen
+        </div>
+    </div>
+</body>
+</html>

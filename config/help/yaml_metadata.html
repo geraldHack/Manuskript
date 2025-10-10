@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .help-container {
+            background: white;
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #2C3E50;
+            border-bottom: 3px solid #4A90E2;
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+        h2 {
+            color: #34495E;
+            margin-top: 25px;
+        }
+        p {
+            margin-bottom: 15px;
+        }
+        a {
+            color: #4A90E2;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .highlight {
+            background-color: #E8F4FD;
+            padding: 15px;
+            border-left: 4px solid #4A90E2;
+            margin: 15px 0;
+            border-radius: 0 4px 4px 0;
+        }
+        .code {
+            background-color: #F8F9FA;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        ul {
+            padding-left: 20px;
+        }
+        li {
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="help-container">
+        <h1>YAML-Metadaten</h1>
+        
+        <p>Die YAML-Metadaten werden automatisch in Ihr PDF eingefügt und erscheinen auf der Titelseite.</p>
+        
+        <h2>Verfügbare Felder:</h2>
+        <ul>
+            <li><strong>Titel:</strong> Der Haupttitel Ihres Buches</li>
+            <li><strong>Untertitel:</strong> Optionaler Untertitel</li>
+            <li><strong>Autor:</strong> Name des Autors</li>
+            <li><strong>Datum:</strong> Veröffentlichungsdatum</li>
+            <li><strong>Rechte:</strong> Copyright-Informationen</li>
+            <li><strong>Abstract:</strong> Kurze Zusammenfassung des Inhalts</li>
+        </ul>
+        
+        <h2>PDF-spezifische Einstellungen:</h2>
+        <p>Für PDF-Export werden automatisch folgende Einstellungen hinzugefügt:</p>
+        <ul>
+            <li>Sprache: Deutsch</li>
+            <li>Schriftarten: DejaVu Serif, Sans, Mono</li>
+            <li>Inhaltsverzeichnis: Aktiviert</li>
+        </ul>
+        
+        <div class="highlight">
+            <strong>Hinweis:</strong> Alle Felder sind optional. Mindestens der Titel sollte ausgefüllt werden.
+        </div>
+    </div>
+</body>
+</html>

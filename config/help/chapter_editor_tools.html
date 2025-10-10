@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 5px;
+        }
+        .tool-section {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #3498db;
+        }
+        .tool-name {
+            font-weight: bold;
+            color: #2c3e50;
+            font-size: 1.1em;
+        }
+        .tool-description {
+            margin: 8px 0;
+            color: #555;
+        }
+        .tool-shortcut {
+            background-color: #e9ecef;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        ul, ol {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        li {
+            margin: 5px 0;
+        }
+        .icon {
+            font-size: 1.2em;
+            margin-right: 8px;
+        }
+        .highlight {
+            background-color: #E8F4FD;
+            padding: 15px;
+            border-left: 4px solid #4A90E2;
+            margin: 15px 0;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .warning {
+            background-color: #FFF3CD;
+            padding: 15px;
+            border-left: 4px solid #FFC107;
+            margin: 15px 0;
+            border-radius: 0 4px 4px 0;
+        }
+
+    </style>
+</head>
+<body>
+    <h1>■ Kapitel-Editor Tools</h1>
+    
+    <p>Hier findest du eine Übersicht aller verfügbaren Tools im Kapitel-Editor:</p>
+    
+    <div class="tool-section">
+        <h2>● Textformatierung</h2>
+        
+        <div class="tool-name">■ Textgröße</div>
+        <div class="tool-description">
+            <strong>Dropdown:</strong> Wähle eine Schriftgröße aus der Liste<br>
+            <strong>A+ Button:</strong> Vergrößert die Schrift um 2pt<br>
+            <strong>A- Button:</strong> Verkleinert die Schrift um 2pt<br>
+            Geht auch mit <span class="tool-shortcut">Strg + Mausrad</span> 
+        </div>
+        
+        <div class="tool-name">■ Fett und Kursiv</div>
+        <div class="tool-description">
+            <strong>B Button:</strong> Macht markierten Text fett<br>
+            <strong>I Button:</strong> Macht markierten Text kursiv<br>
+            <span class="tool-shortcut">Strg+B</span> für Fett, <span class="tool-shortcut">Strg+I</span> für Kursiv
+        </div>
+    </div>
+    
+    <div class="tool-section">
+        <h2>● Zeilenabstand</h2>
+        
+        <div class="tool-name">■ Zeilenabstand</div>
+        <div class="tool-description">
+            <strong>Dropdown:</strong> Wähle den Abstand zwischen Zeilen (5px, 10px, 15px, 20px)<br>
+        </div>
+        <div class="warning">
+            <strong>Wichtig:</strong> Absätze müssen in markdown durch Leerzeilen getrennt werden. Ein großer Zeilenabstand könnte mit einem Abstatz verwechselt Werden. Bitte das Makro  'Textbereinigung' ausführen.
+        </div>
+
+    </div>
+    
+    <div class="tool-section">
+        <h2>● Navigation und Navigation</h2>
+        
+        <div class="tool-name">■ Kapitel-Navigation</div>
+        <div class="tool-description">
+            <strong>◀ Vorheriges Kapitel:</strong> Springt zum vorherigen Kapitel<br>
+            <strong>Nächstes Kapitel ▶:</strong> Springt zum nächsten Kapitel<br>
+            Funktioniert nur, wenn mehrere Kapitel geöffnet sind
+        </div>
+    </div>
+    
+    <div class="tool-section">
+        <h2>● Rückgängig/Wiederholen</h2>
+        
+        <div class="tool-name">■ Rückgängig (↶)</div>
+        <div class="tool-description">
+            <strong>Funktion:</strong> Macht die letzte Aktion rückgängig<br>
+            <strong>Verwendung:</strong> Klicke auf den ↶ Button oder verwende <span class="tool-shortcut">Strg+Z</span><br>
+            <strong>Hinweis:</strong> Funktioniert mit allen Textänderungen (Eingabe, Formatierung, Löschen, etc.)<br>
+            <strong>Mehrfach:</strong> Kann mehrfach verwendet werden, um mehrere Aktionen rückgängig zu machen
+        </div>
+        
+        <div class="tool-name">■ Wiederholen (↷)</div>
+        <div class="tool-description">
+            <strong>Funktion:</strong> Wiederholt die letzte rückgängig gemachte Aktion<br>
+            <strong>Verwendung:</strong> Klicke auf den ↷ Button oder verwende <span class="tool-shortcut">Strg+Y</span><br>
+            <strong>Hinweis:</strong> Funktioniert nur, wenn zuvor eine Aktion rückgängig gemacht wurde<br>
+            <strong>Mehrfach:</strong> Kann mehrfach verwendet werden, um mehrere Aktionen wieder zu wiederholen
+        </div>
+    </div>
+    
+    <div class="tool-section">
+        <h2>● Theme und Anführungszeichen</h2>
+        
+        <div class="tool-name">■ Theme-Toggle (☀)</div>
+        <div class="tool-description">
+            Wechselt zwischen Hell- und Dunkelmodus<br>
+            Einstellung wird gespeichert und beim nächsten Start wiederhergestellt<br>
+            <strong>Verwendung:</strong> Klicke auf das Sonnen-/Mond-Symbol in der Toolbar
+        </div>
+        
+        <div class="tool-name">■ Anführungszeichen-Styling</div>
+        <div class="tool-description">
+            <strong>Dropdown:</strong> Wähle den Stil der Anführungszeichen für dein Dokument<br>
+            <strong>Verfügbare Optionen:</strong><br>
+            • Deutsche Anführungszeichen: „Text"<br>
+            • Französische Anführungszeichen: «Text»<br>
+            • Englische Anführungszeichen: "Text"<br>
+            • Schweizer Anführungszeichen: «Text»<br>
+            • Typografische Anführungszeichen: "Text"<br>
+            <strong>Wichtig:</strong> Diese Einstellung wird beim Export automatisch angewendet und betrifft den gesamten Text
+        </div>
+    </div>
+    
+    <div class="tool-section">
+        <h2>● Status-Anzeigen</h2>
+        
+        <div class="tool-name">■ Auswahl-Anzeige</div>
+        <div class="tool-description">
+            <strong>Funktion:</strong> Zeigt die Anzahl der markierten Zeichen an<br>
+            <strong>Format:</strong> "Auswahl: X Zeichen"<br>
+            <strong>Verwendung:</strong> Markiere Text, um die Zeichenanzahl zu sehen
+        </div>
+        
+        <div class="tool-name">■ Status-Label</div>
+        <div class="tool-description">
+            <strong>Funktion:</strong> Zeigt den aktuellen Status des Editors an<br>
+            <strong>Mögliche Status:</strong><br>
+            • "Bereit" - Editor ist bereit für Eingaben<br>
+            • "Speichern..." - Datei wird gespeichert<br>
+            • "Fehler" - Ein Fehler ist aufgetreten<br>
+            • "Gespeichert" - Datei wurde erfolgreich gespeichert
+        </div>
+    </div>
+    
+    <div class="tool-section">
+        <h2>● Weitere wichtige Funktionen</h2>
+        
+        <div class="tool-name">■ Kapitel-Editor (✏)</div>
+        <div class="tool-description">
+            <strong>Funktion:</strong> Beschreibung und Szenen für das aktuelle Kapitel<br>
+            <strong>Verwendung:</strong> Klicke auf "✏ Chapter-Beschreibung" um den Editor zu öffnen<br>
+            <strong>Speichern:</strong> Verwende den "💾 Speichern" Button<br>
+            <strong>Hinweis:</strong> Diese Beschreibung wird beim Export als Metadaten verwendet
+        </div>
+        
+        <div class="tool-name">■ Haupt-Buttons</div>
+        <div class="tool-description">
+            <strong>Speichern:</strong> Speichert das aktuelle Kapitel<br>
+            <strong>Speichern als...:</strong> Speichert unter neuem Namen<br>
+            <strong>Exportieren:</strong> Exportiert in verschiedene Formate (DOCX, PDF, etc.)<br>
+            <strong>Suchen/Ersetzen:</strong> Öffnet das Such- und Ersetzungs-Panel<br>
+            <strong>Makros:</strong> Öffnet das Makro-System<br>
+            <strong>Textanalyse:</strong> Öffnet die Textanalyse-Funktionen<br>
+            <strong>KI-Assistent:</strong> Öffnet den KI-Assistenten für Textverbesserungen
+        </div>
+    </div>
+    
+    <h2>● Tipps für effizientes Arbeiten</h2>
+    
+    <ul>
+        <li>■ Verwende die Tastenkürzel für häufige Aktionen</li>
+        <li>■ Speichere regelmäßig mit <span class="tool-shortcut">Strg+S</span></li>
+        <li>■ Nutze die Kapitel-Navigation für große Projekte</li>
+        <li>■ Experimentiere mit verschiedenen Schriftgrößen für bessere Lesbarkeit</li>
+        <li>■ Der Theme-Wechsel hilft bei längerem Schreiben</li>
+        <li>■ Die Anführungszeichen-Einstellung wird für den gesamten Text übernommen</li>
+    </ul>
+    
+   
+</body>
+</html>

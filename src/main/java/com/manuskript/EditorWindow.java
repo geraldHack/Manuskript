@@ -27,6 +27,7 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.ScrollEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -95,7 +96,6 @@ public class EditorWindow implements Initializable {
     @FXML private SplitPane mainSplitPane;
     @FXML private VBox chapterEditorPanel;
     @FXML private TextArea chapterEditorArea;
-    @FXML private Button btnChapterEditor;
     @FXML private Button btnSaveChapter;
     
     // Such- und Ersetzungs-Controls
@@ -131,12 +131,19 @@ public class EditorWindow implements Initializable {
     @FXML private Button btnRegexHelp;
     @FXML private Button btnKIAssistant;
     
+    // Help-Buttons
+    @FXML private Button btnHelpMain;
+    @FXML private Button btnHelpMarkdown;
+    @FXML private Button btnHelpTools;
+    @FXML private Button btnToggleParagraphMarking;
+    
     // Font-Size Toolbar
     @FXML private ComboBox<String> cmbFontSize;
     @FXML private Button btnIncreaseFont;
     @FXML private Button btnDecreaseFont;
     @FXML private Button btnBold;
     @FXML private Button btnItalic;
+    @FXML private Button btnUnderline;
     @FXML private Button btnThemeToggle;
     @FXML private ComboBox<String> cmbQuoteStyle;
     // Zeilenabstand-ComboBox entfernt - wird von RichTextFX nicht unterstützt
@@ -144,7 +151,6 @@ public class EditorWindow implements Initializable {
 
     @FXML private Button btnPreviousChapter;
     @FXML private Button btnNextChapter;
-    @FXML private Button btnMacroRegexHelp;
     
     // Undo/Redo Buttons
     @FXML private Button btnUndo;
@@ -202,6 +208,7 @@ public class EditorWindow implements Initializable {
     private boolean chapterContentChanged = false;
     private File originalDocxFile = null; // Originale DOCX-Datei
     private String originalContent = ""; // Kopie des ursprünglichen Inhalts für Vergleich
+    private boolean paragraphMarkingEnabled = true; // Absatz-Markierung aktiviert
     private DocxProcessor.OutputFormat outputFormat = DocxProcessor.OutputFormat.HTML;
     private DocxProcessor docxProcessor;
     private MainController mainController; // Referenz zum MainController für Navigation
@@ -215,7 +222,7 @@ public class EditorWindow implements Initializable {
         {"#ffffff", "#000000", "#f8f9fa", "#e9ecef"},
         // Schwarzer Hintergrund / Weiße Schrift  
         {"#1a1a1a", "#ffffff", "#2d2d2d", "#404040"},
-        // Kräftigeres Mauve mit schwarzer Schrift
+        // Pastell mit schwarzer Schrift
         {"#f3e5f5", "#000000", "#e1bee7", "#ce93d8"},
         // Blau mit weißer Schrift
         {"#1e3a8a", "#ffffff", "#3b82f6", "#60a5fa"},
@@ -271,6 +278,13 @@ public class EditorWindow implements Initializable {
         setupMacroPanel();
         setupFontSizeComboBox();
         setupQuoteStyleComboBox();
+        
+        // Help-Button-Verwaltung
+        setupHelpButtons();
+        
+        // Absatz-Markierung initialisieren
+        loadParagraphMarkingSetting();
+        initializeParagraphMarkingButton();
         
         // ComboBox-Initialisierung direkt hier
         // setupLineSpacingComboBox entfernt - wird von RichTextFX nicht unterstützt
@@ -417,6 +431,9 @@ if (caret != null) {
         // Zeilennummern hinzufügen
         codeArea.setParagraphGraphicFactory(LineNumberFactory.get(codeArea));
         
+        // Leerzeilen-Markierung hinzufügen
+        setupEmptyLineMarking();
+        
         // VirtualizedScrollPane für bessere Performance
         VirtualizedScrollPane<CodeArea> scrollPane = new VirtualizedScrollPane<>(codeArea);
         scrollPane.getStyleClass().add("code-area");
@@ -489,7 +506,7 @@ if (caret != null) {
                 // Prüfe, ob Text sich geändert hat
                 if (!newText.equals(oldText)) {
                     // Prüfe, ob Text wieder zum Originalzustand zurückgekehrt ist
-                    if (newText.equals(originalContent)) {
+                    if (cleanTextForComparison(newText).equals(originalContent)) {
                         markAsSaved();
                     } else {
                         markAsChanged();
@@ -563,23 +580,56 @@ if (caret != null) {
         });
         
         btnFind.setOnAction(e -> {
+            // Absatz-Markierung temporär deaktivieren für Suche
+            boolean wasParagraphMarkingEnabled = paragraphMarkingEnabled;
+            paragraphMarkingEnabled = false;
+            removeAllParagraphMarkings();
+            
             String searchText = cmbSearchHistory.getValue();
             if (searchText != null && !searchText.trim().isEmpty()) {
                 findNext(); // Suche zum nächsten Treffer, nicht zum ersten
             }
+            
+            // Absatz-Markierung wieder aktivieren, wenn sie vorher aktiviert war
+            if (wasParagraphMarkingEnabled) {
+                paragraphMarkingEnabled = true;
+                markEmptyLines();
+            }
         });
         btnReplace.setOnAction(e -> {
+            // Absatz-Markierung temporär deaktivieren für Ersetzen
+            boolean wasParagraphMarkingEnabled = paragraphMarkingEnabled;
+            paragraphMarkingEnabled = false;
+            removeAllParagraphMarkings();
+            
             String searchText = cmbSearchHistory.getValue();
             String replaceText = cmbReplaceHistory.getValue();
             if (searchText != null && !searchText.trim().isEmpty()) {
                 replaceText();
             }
+            
+            // Absatz-Markierung wieder aktivieren, wenn sie vorher aktiviert war
+            if (wasParagraphMarkingEnabled) {
+                paragraphMarkingEnabled = true;
+                markEmptyLines();
+            }
         });
         btnReplaceAll.setOnAction(e -> {
+            // Absatz-Markierung temporär deaktivieren für Alle ersetzen
+            boolean wasParagraphMarkingEnabled = paragraphMarkingEnabled;
+            paragraphMarkingEnabled = false;
+            removeAllParagraphMarkings();
+            
             String searchText = cmbSearchHistory.getValue();
             String replaceText = cmbReplaceHistory.getValue();
             if (searchText != null && !searchText.trim().isEmpty()) {
                 replaceAllText();
+            }
+            
+            // Absatz-Markierung wieder aktivieren, wenn sie vorher aktiviert war
+            if (wasParagraphMarkingEnabled) {
+                paragraphMarkingEnabled = true;
+                markEmptyLines();
             }
         });
         
@@ -630,6 +680,7 @@ if (caret != null) {
         // Text-Formatting Event-Handler
         btnBold.setOnAction(e -> formatTextBold());
         btnItalic.setOnAction(e -> formatTextItalic());
+        btnUnderline.setOnAction(e -> formatTextUnderline());
         btnThemeToggle.setOnAction(e -> toggleTheme());
         
         // Abstandskonfiguration Event-Handler werden direkt in den Setup-Methoden gesetzt
@@ -637,9 +688,7 @@ if (caret != null) {
 
         
             
-        if (btnMacroRegexHelp != null) {
-            btnMacroRegexHelp.setOnAction(e -> showRegexHelp());
-        }
+        // btnMacroRegexHelp wurde entfernt
         
         // Textanalyse-Button
         btnTextAnalysis.setOnAction(e -> toggleTextAnalysisPanel());
@@ -647,12 +696,100 @@ if (caret != null) {
         // KI-Assistent-Button
         btnKIAssistant.setOnAction(e -> toggleOllamaWindow());
         
+        // Help-Buttons
+        if (btnHelpMain != null) {
+            btnHelpMain.setOnAction(e -> {
+                logger.debug("Help-Button geklickt!");
+                HelpSystem.showHelpWindow("chapter_editor.html");
+            });
+        }
+        if (btnHelpMarkdown != null) {
+            btnHelpMarkdown.setOnAction(e -> {
+                logger.debug("Markdown-Help-Button geklickt!");
+                HelpSystem.showHelpWindow("markdown_syntax.html");
+            });
+        }
+        if (btnHelpTools != null) {
+            btnHelpTools.setOnAction(e -> {
+                logger.debug("Tools-Help-Button geklickt!");
+                HelpSystem.showHelpWindow("chapter_editor_tools.html");
+            });
+        }
+    }
+    
+    /**
+     * Setup für Help-Buttons mit globalem Toggle
+     */
+    private void setupHelpButtons() {
+        // Help-Button-Styling
+        if (btnHelpMain != null) {
+            btnHelpMain.setStyle(
+                "-fx-background-color: #4A90E2 !important; " +
+                "-fx-text-fill: white !important; " +
+                "-fx-font-weight: bold !important; " +
+                "-fx-font-size: 14px !important; " +
+                "-fx-min-width: 24px !important; " +
+                "-fx-min-height: 24px !important; " +
+                "-fx-max-width: 24px !important; " +
+                "-fx-max-height: 24px !important; " +
+                "-fx-background-radius: 12px !important; " +
+                "-fx-border-radius: 12px !important; " +
+                "-fx-cursor: hand !important; " +
+                "-fx-border: none !important; " +
+                "-fx-padding: 0 !important;"
+            );
+            btnHelpMain.setTooltip(new Tooltip("Hilfe zu Haupt-Buttons"));
+        }
+        
+        if (btnHelpMarkdown != null) {
+            btnHelpMarkdown.setStyle(
+                "-fx-background-color: #28A745 !important; " +
+                "-fx-text-fill: white !important; " +
+                "-fx-font-weight: bold !important; " +
+                "-fx-font-size: 14px !important; " +
+                "-fx-min-width: 24px !important; " +
+                "-fx-min-height: 24px !important; " +
+                "-fx-max-width: 24px !important; " +
+                "-fx-max-height: 24px !important; " +
+                "-fx-background-radius: 12px !important; " +
+                "-fx-border-radius: 12px !important; " +
+                "-fx-cursor: hand !important; " +
+                "-fx-border: none !important; " +
+                "-fx-padding: 0 !important;"
+            );
+            btnHelpMarkdown.setTooltip(new Tooltip("Markdown-Syntax Hilfe"));
+        }
+        
+        // Globaler Help-Toggle
+        updateHelpButtonVisibility();
+    }
+    
+    /**
+     * Aktualisiert die Sichtbarkeit der Help-Buttons basierend auf dem globalen Toggle
+     */
+    private void updateHelpButtonVisibility() {
+        boolean helpEnabled = HelpSystem.isHelpEnabled();
+        
+        if (btnHelpMain != null) {
+            btnHelpMain.setVisible(helpEnabled);
+            btnHelpMain.setManaged(helpEnabled);
+        }
+        
+        if (btnHelpMarkdown != null) {
+            btnHelpMarkdown.setVisible(helpEnabled);
+            btnHelpMarkdown.setManaged(helpEnabled);
+        }
+        
+        if (btnHelpTools != null) {
+            btnHelpTools.setVisible(helpEnabled);
+            btnHelpTools.setManaged(helpEnabled);
+        }
+        
         // Kapitel-Navigation-Buttons
         btnPreviousChapter.setOnAction(e -> navigateToPreviousChapter());
         btnNextChapter.setOnAction(e -> navigateToNextChapter());
         
         // Chapter-Editor Event-Handler
-        btnChapterEditor.setOnAction(e -> toggleChapterEditor());
         btnSaveChapter.setOnAction(e -> saveChapterContent());
         
         // Chapter-Editor Text-Change Listener
@@ -685,8 +822,34 @@ if (caret != null) {
             btnRegexHelp.getStyleClass().add("help-button");
         btnRegexHelp.setOnAction(e -> showRegexHelp());
         }
-        btnFindNext.setOnAction(e -> findNext());
-        btnFindPrevious.setOnAction(e -> findPrevious());
+        btnFindNext.setOnAction(e -> {
+            // Absatz-Markierung temporär deaktivieren für Suche
+            boolean wasParagraphMarkingEnabled = paragraphMarkingEnabled;
+            paragraphMarkingEnabled = false;
+            removeAllParagraphMarkings();
+            
+            findNext();
+            
+            // Absatz-Markierung wieder aktivieren, wenn sie vorher aktiviert war
+            if (wasParagraphMarkingEnabled) {
+                paragraphMarkingEnabled = true;
+                markEmptyLines();
+            }
+        });
+        btnFindPrevious.setOnAction(e -> {
+            // Absatz-Markierung temporär deaktivieren für Suche
+            boolean wasParagraphMarkingEnabled = paragraphMarkingEnabled;
+            paragraphMarkingEnabled = false;
+            removeAllParagraphMarkings();
+            
+            findPrevious();
+            
+            // Absatz-Markierung wieder aktivieren, wenn sie vorher aktiviert war
+            if (wasParagraphMarkingEnabled) {
+                paragraphMarkingEnabled = true;
+                markEmptyLines();
+            }
+        });
         
         // Toolbar-Events
         btnSave.setOnAction(e -> {
@@ -701,6 +864,7 @@ if (caret != null) {
         // btnOpen und btnNew Event-Handler entfernt - Buttons sind unsichtbar
         btnToggleSearch.setOnAction(e -> toggleSearchPanel());
         btnToggleMacro.setOnAction(e -> toggleMacroPanel());
+        btnToggleParagraphMarking.setOnAction(e -> toggleParagraphMarking());
         
         // Undo/Redo Event-Handler
         btnUndo.setOnAction(e -> codeArea.undo());
@@ -754,6 +918,26 @@ if (caret != null) {
                     findNext();
                 }
                 event.consume();
+            }
+        });
+        
+        // Mausrad-Event-Filter für Schriftgröße (Strg + Mausrad)
+        codeArea.addEventFilter(ScrollEvent.SCROLL, event -> {
+            if (event.isControlDown()) {
+                event.consume();
+                
+                double deltaY = event.getDeltaY();
+                logger.debug("Mausrad-Event: deltaY={}, Strg gedrückt={}", deltaY, event.isControlDown());
+                
+                if (deltaY > 0) {
+                    // Mausrad nach oben - Schriftgröße erhöhen
+                    logger.debug("Schriftgröße erhöhen um 2");
+                    changeFontSize(2);
+                } else if (deltaY < 0) {
+                    // Mausrad nach unten - Schriftgröße verringern
+                    logger.debug("Schriftgröße verringern um 2");
+                    changeFontSize(-2);
+                }
             }
         });
         
@@ -1792,7 +1976,7 @@ if (caret != null) {
             }
             
             // Export durchführen
-            String markdownContent = codeArea.getText();
+            String markdownContent = cleanTextForExport(codeArea.getText());
             
             // Alle ausgewählten Formate exportieren
             for (ExportFormat format : result.formats) {
@@ -3093,7 +3277,7 @@ if (caret != null) {
         if (isCompleteDocument) {
             // Für Bücher: MD speichern UND Dialog für DOCX anzeigen
             if (currentFile != null) {
-                String data = codeArea.getText();
+                String data = cleanTextForExport(codeArea.getText());
                 if (data == null) data = "";
                 
                 // MD-Datei speichern
@@ -3125,7 +3309,7 @@ if (caret != null) {
         if (target != null) {
             saveToFile(target);
             currentFile = target; // künftige Saves gehen wieder hierhin
-            originalContent = codeArea.getText();
+            originalContent = cleanTextForComparison(codeArea.getText());
         } else {
             // Fallback auf Save As
             saveFileAs();
@@ -3242,7 +3426,7 @@ if (caret != null) {
 
         
         try {
-            String data = codeArea.getText();
+            String data = cleanTextForExport(codeArea.getText());
             if (data == null) data = "";
             
             // Spezielle Behandlung für Bücher
@@ -3330,8 +3514,8 @@ if (caret != null) {
             return true;
         }
         
-        // Vergleiche mit der ursprünglichen Kopie
-        boolean hasChanges = !currentContent.equals(originalContent);
+        // Vergleiche mit der ursprünglichen Kopie (ohne Absatz-Markierungen)
+        boolean hasChanges = !cleanTextForComparison(currentContent).equals(originalContent);
         return hasChanges;
     }
     
@@ -3917,7 +4101,7 @@ if (caret != null) {
                     preferences.put("lastSaveDirectory", directory);
                 }
                 
-                String markdownContent = codeArea.getText();
+                String markdownContent = cleanTextForExport(codeArea.getText());
                 String rtfContent = convertMarkdownToRTF(markdownContent);
                 
                 // Verwende Windows-1252 Encoding für bessere RTF-Kompatibilität
@@ -4051,7 +4235,7 @@ if (caret != null) {
                     preferences.put("lastSaveDirectory", directory);
                 }
                 
-                String markdownContent = codeArea.getText();
+                String markdownContent = cleanTextForExport(codeArea.getText());
                 docxProcessor.exportMarkdownToDocx(markdownContent, file);
                 
                 updateStatus("Als DOCX exportiert: " + file.getName());
@@ -4149,7 +4333,7 @@ if (caret != null) {
         codeArea.replaceText(text);
         
         // Kopie für Änderungsvergleich erstellen
-        originalContent = text;
+        originalContent = cleanTextForComparison(text);
         // Debug entfernt
         
         // Status zurücksetzen beim Laden neuer Inhalte
@@ -4343,7 +4527,7 @@ if (caret != null) {
             
             // Erstelle DOCX-Datei mit den Optionen
             if (currentFile != null) {
-                String data = codeArea.getText();
+                String data = cleanTextForExport(codeArea.getText());
                 if (data == null) data = "";
                 
                 // Bestimme den Ausgabedateinamen
@@ -4461,7 +4645,7 @@ if (caret != null) {
                 Files.write(currentFile.toPath(), currentContent.getBytes(StandardCharsets.UTF_8));
                 
                 // Aktualisiere originalContent für Change-Detection
-                originalContent = currentContent;
+                originalContent = cleanTextForComparison(currentContent);
                 
                 updateStatus("MD-Datei angelegt: " + currentFile.getName());
                 
@@ -4824,15 +5008,10 @@ spacer.setStyle("-fx-background-color: transparent;");
         CheckBox chkMacroCaseSensitive = new CheckBox("Case");
         CheckBox chkMacroWholeWord = new CheckBox("Word");
         
-        Button btnMacroRegexHelp = new Button("?");
-        btnMacroRegexHelp.getStyleClass().add("button");
-        btnMacroRegexHelp.setMinWidth(25);
-        btnMacroRegexHelp.setMaxWidth(25);
-        btnMacroRegexHelp.setMinHeight(25);
-        btnMacroRegexHelp.setMaxHeight(25);
+        // btnMacroRegexHelp wurde entfernt
         
         searchReplaceBox.getChildren().addAll(searchLabel, txtMacroSearch, replaceLabel, txtMacroReplace, 
-                                             chkMacroRegex, chkMacroCaseSensitive, chkMacroWholeWord, btnMacroRegexHelp);
+                                             chkMacroRegex, chkMacroCaseSensitive, chkMacroWholeWord);
         
         // Makro-Schritte Tabelle
         TableView<MacroStep> tblMacroSteps = new TableView<>();
@@ -4984,7 +5163,7 @@ spacer.setStyle("-fx-background-color: transparent;");
         btnRemoveStep.setOnAction(e -> removeMacroStep());
         btnMoveStepUp.setOnAction(e -> moveMacroStepUp());
         btnMoveStepDown.setOnAction(e -> moveMacroStepDown());
-        btnMacroRegexHelp.setOnAction(e -> showRegexHelp());
+        // btnMacroRegexHelp wurde entfernt
         
         // Makro-Auswahl
         cmbMacroList.setOnAction(e -> selectMacro());
@@ -5007,7 +5186,7 @@ spacer.setStyle("-fx-background-color: transparent;");
         this.btnRemoveStep = btnRemoveStep;
         this.btnMoveStepUp = btnMoveStepUp;
         this.btnMoveStepDown = btnMoveStepDown;
-        this.btnMacroRegexHelp = btnMacroRegexHelp;
+        // btnMacroRegexHelp wurde entfernt
         
         // Makros laden
         loadMacros();
@@ -6756,6 +6935,13 @@ spacer.setStyle("-fx-background-color: transparent;");
     
     private void runCurrentMacro() {
         if (currentMacro != null && !currentMacro.getSteps().isEmpty()) {
+            // Absatz-Markierung temporär deaktivieren für Makro-Ausführung
+            boolean wasParagraphMarkingEnabled = paragraphMarkingEnabled;
+            paragraphMarkingEnabled = false;
+            
+            // Alle Absatz-Markierungen entfernen
+            removeAllParagraphMarkings();
+            
             // EINGEBAUTE UNDO-FUNKTIONALITÄT VERWENDEN - kein manueller Aufruf nötig
             
             String content = codeArea.getText();
@@ -6824,8 +7010,17 @@ spacer.setStyle("-fx-background-color: transparent;");
                 }
             }
             
-            codeArea.replaceText(content);
+            // HTML-Tag-Normalisierung nach Makro-Ausführung (wie beim Anführungszeichen-Dropdown)
+            // WICHTIG: Vor codeArea.replaceText() aufrufen, damit es auf dem content-String arbeitet
+            String normalizedContent = normalizeHtmlTagsInContent(content);
+            codeArea.replaceText(normalizedContent);
             updateStatus("Makro erfolgreich ausgeführt: " + currentMacro.getName());
+            
+            // Absatz-Markierung wieder aktivieren, wenn sie vorher aktiviert war
+            if (wasParagraphMarkingEnabled) {
+                paragraphMarkingEnabled = true;
+                markEmptyLines();
+            }
         } else {
             updateStatus("Kein Makro ausgewählt oder Makro ist leer");
         }
@@ -7548,7 +7743,221 @@ spacer.setStyle("-fx-background-color: transparent;");
             }
             
             // Zeige Erfolgsmeldung
+            
+            // NORMALISIERE HTML-TAGS: Rufe nach der Anführungszeichen-Konvertierung auf
+            normalizeHtmlTagsInText();
         }
+    }
+    
+    /**
+     * Normalisiert Anführungszeichen innerhalb von HTML-Tags in einem String
+     * Konvertiert typographische Anführungszeichen in HTML-Tags zurück zu normalen "
+     */
+    private String normalizeHtmlTagsInContent(String content) {
+        System.out.println("=== NORMALIZE HTML TAGS IN CONTENT - START ===");
+        
+        if (content == null || content.isEmpty()) {
+            return content;
+        }
+        
+        System.out.println("DEBUG: Content-Länge vor Normalisierung: " + content.length());
+        System.out.println("DEBUG: Erste 500 Zeichen: " + content.substring(0, Math.min(500, content.length())));
+        
+        // Finde alle HTML-Tags im Text
+        java.util.regex.Pattern htmlTagPattern = java.util.regex.Pattern.compile("<[^>]*>");
+        java.util.regex.Matcher matcher = htmlTagPattern.matcher(content);
+        
+        StringBuffer result = new StringBuffer();
+        while (matcher.find()) {
+            String htmlTag = matcher.group();
+            String normalizedTag = normalizeQuotesInHtmlAttributes(htmlTag);
+            matcher.appendReplacement(result, java.util.regex.Matcher.quoteReplacement(normalizedTag));
+        }
+        matcher.appendTail(result);
+        
+        String normalizedContent = result.toString();
+        System.out.println("DEBUG: Content nach Normalisierung: " + normalizedContent.substring(0, Math.min(500, normalizedContent.length())));
+        
+        if (!content.equals(normalizedContent)) {
+            System.out.println("DEBUG: Änderungen gefunden, wende Normalisierung an");
+            System.out.println("DEBUG: Normalisierung abgeschlossen");
+        } else {
+            System.out.println("DEBUG: Keine Änderungen nötig");
+        }
+        
+        System.out.println("=== ENDE NORMALIZE HTML TAGS IN CONTENT ===");
+        return normalizedContent;
+    }
+    
+    /**
+     * Normalisiert Anführungszeichen innerhalb von HTML-Tags
+     * Konvertiert typographische Anführungszeichen in HTML-Tags zurück zu normalen "
+     */
+    private void normalizeHtmlTagsInText() {
+        System.out.println("=== NORMALIZE HTML TAGS - START ===");
+        
+        if (codeArea == null) {
+            System.out.println("DEBUG: codeArea ist null");
+            return;
+        }
+        
+        String currentText = codeArea.getText();
+        if (currentText == null || currentText.isEmpty()) {
+            System.out.println("DEBUG: Text ist leer oder null");
+            return;
+        }
+        
+        System.out.println("DEBUG: Text-Länge vor Normalisierung: " + currentText.length());
+        System.out.println("DEBUG: Erste 500 Zeichen: " + currentText.substring(0, Math.min(500, currentText.length())));
+        
+        // Finde alle HTML-Tags und normalisiere Anführungszeichen darin
+        String normalizedText = normalizeQuotesInHtmlTags(currentText);
+        
+        System.out.println("DEBUG: Text nach Normalisierung: " + normalizedText.substring(0, Math.min(500, normalizedText.length())));
+        
+        // Prüfe ob Änderungen vorgenommen wurden
+        if (!currentText.equals(normalizedText)) {
+            System.out.println("DEBUG: Änderungen gefunden, wende Normalisierung an");
+            
+            // Speichere Cursor-Position
+            int caretPosition = codeArea.getCaretPosition();
+            
+            // Ersetze den Text
+            codeArea.replaceText(0, currentText.length(), normalizedText);
+            
+            // Stelle Cursor-Position wieder her
+            if (caretPosition <= normalizedText.length()) {
+                codeArea.moveTo(caretPosition);
+            } else {
+                codeArea.moveTo(normalizedText.length());
+            }
+            
+            System.out.println("DEBUG: Normalisierung abgeschlossen");
+        } else {
+            System.out.println("DEBUG: Keine Änderungen nötig");
+        }
+        
+        System.out.println("=== ENDE NORMALIZE HTML TAGS ===");
+    }
+    
+    /**
+     * Normalisiert Anführungszeichen innerhalb von HTML-Tags
+     * Konvertiert typographische Anführungszeichen zu normalen " in HTML-Attributen
+     */
+    private String normalizeQuotesInHtmlTags(String text) {
+        // Finde alle HTML-Tags mit Pattern und Matcher
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("<[^>]*>");
+        java.util.regex.Matcher matcher = pattern.matcher(text);
+        
+        StringBuffer result = new StringBuffer();
+        while (matcher.find()) {
+            String tag = matcher.group();
+            System.out.println("DEBUG: Gefundener HTML-Tag: " + tag);
+            
+            // Prüfe ob der Tag typographische Anführungszeichen enthält
+            if (containsTypographicQuotes(tag)) {
+                // Normalisiere Anführungszeichen in HTML-Attributen
+                String normalizedTag = normalizeQuotesInHtmlAttributes(tag);
+                
+                if (!tag.equals(normalizedTag)) {
+                    System.out.println("DEBUG: Tag normalisiert: " + tag + " -> " + normalizedTag);
+                }
+                
+                matcher.appendReplacement(result, java.util.regex.Matcher.quoteReplacement(normalizedTag));
+            } else {
+                // Tag ist korrekt, nicht ändern
+                matcher.appendReplacement(result, java.util.regex.Matcher.quoteReplacement(tag));
+            }
+        }
+        matcher.appendTail(result);
+        
+        return result.toString();
+    }
+    
+    /**
+     * Prüft ob ein HTML-Tag typographische Anführungszeichen enthält
+     */
+    private boolean containsTypographicQuotes(String tag) {
+        // Prüfe auf alle typographischen Anführungszeichen
+        return tag.contains("\u2557") || tag.contains("\u00BD") || tag.contains("\u201E") || 
+               tag.contains("\u201C") || tag.contains("\u201D") || tag.contains("\u2018") || 
+               tag.contains("\u2019") || tag.contains("\u201A") || tag.contains("\u2019") ||
+               tag.contains("\u00AB") || tag.contains("\u00BB") || tag.contains("\u2039") || 
+               tag.contains("\u203A") || tag.contains("\u201A") || tag.contains("\u201B");
+    }
+    
+    /**
+     * Normalisiert Anführungszeichen in HTML-Attributen
+     * Konvertiert typographische Anführungszeichen zu normalen " in Attributwerten
+     */
+    private String normalizeQuotesInHtmlAttributes(String htmlTag) {
+        System.out.println("DEBUG: Normalisiere HTML-Tag: " + htmlTag);
+        
+        // Einfacher Ansatz: Normalisiere alle typographischen Anführungszeichen im gesamten Tag
+        String normalizedTag = normalizeQuotesInText(htmlTag);
+        
+        if (!htmlTag.equals(normalizedTag)) {
+            System.out.println("DEBUG: Tag normalisiert: " + htmlTag + " -> " + normalizedTag);
+        }
+        
+        return normalizedTag;
+    }
+    
+    /**
+     * Normalisiert Anführungszeichen in einem HTML-Attributwert
+     */
+    private String normalizeQuotesInAttributeValue(String attribute) {
+        // Finde den Attributwert zwischen den Anführungszeichen
+        String valuePattern = "=\\s*[\"']([^\"']*)[\"']";
+        
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(valuePattern);
+        java.util.regex.Matcher matcher = pattern.matcher(attribute);
+        
+        StringBuffer result = new StringBuffer();
+        while (matcher.find()) {
+            String fullMatch = matcher.group();
+            String value = matcher.group(1);
+            
+            // Normalisiere Anführungszeichen im Wert
+            String normalizedValue = normalizeQuotesInText(value);
+            
+            // Erstelle neuen Attributstring mit normalisierten Anführungszeichen
+            String newAttribute = fullMatch.replace(value, normalizedValue);
+            
+            System.out.println("DEBUG: Attributwert normalisiert: '" + value + "' -> '" + normalizedValue + "'");
+            
+            matcher.appendReplacement(result, java.util.regex.Matcher.quoteReplacement(newAttribute));
+        }
+        matcher.appendTail(result);
+        
+        return result.toString();
+    }
+    
+    /**
+     * Normalisiert typographische Anführungszeichen zu normalen Anführungszeichen
+     */
+    private String normalizeQuotesInText(String text) {
+        String result = text;
+        
+        // Konvertiere alle typographischen Anführungszeichen zu normalen "
+        // Doppelte Anführungszeichen
+        result = result.replace("\u201E", "\""); // „ (deutsche öffnende)
+        result = result.replace("\u201C", "\""); // " (deutsche schließende)
+        result = result.replace("\u201D", "\""); // " (englische schließende)
+        result = result.replace("\u201F", "\""); // ‟ (deutsche schließende)
+        result = result.replace("\u00AB", "\""); // « (französische öffnende)
+        result = result.replace("\u00BB", "\""); // » (französische schließende)
+        result = result.replace("\u2557", "\""); // ╗ (Box-Drawing)
+        result = result.replace("\u00BD", "\""); // ½ (Vulgar Fraction)
+        
+        // Konvertiere einfache Anführungszeichen zu normalen '
+        result = result.replace("\u201A", "'"); // ‚ (deutsche öffnende)
+        result = result.replace("\u2018", "'"); // ' (englische öffnende)
+        result = result.replace("\u2019", "'"); // ' (englische schließende)
+        result = result.replace("\u2039", "'"); // ‹ (französische öffnende)
+        result = result.replace("\u203A", "'"); // › (französische schließende)
+        
+        return result;
     }
     
     /**
@@ -7635,6 +8044,10 @@ spacer.setStyle("-fx-background-color: transparent;");
         formatTextAtCursor("*", "*", "<i>", "</i>");
     }
     
+    private void formatTextUnderline() {
+        formatTextAtCursor("<u>", "</u>", "<u>", "</u>");
+    }
+    
     private void toggleTheme() {
         currentThemeIndex = (currentThemeIndex + 1) % THEMES.length;
         
@@ -7656,6 +8069,15 @@ spacer.setStyle("-fx-background-color: transparent;");
         
         // Update Button-Tooltip
         updateThemeButtonTooltip();
+        
+        // Absatz-Toggle optisch aktualisieren
+        if (btnToggleParagraphMarking != null) {
+            if (paragraphMarkingEnabled) {
+                btnToggleParagraphMarking.setStyle("-fx-min-width: 35px; -fx-max-width: 35px; -fx-font-size: 16px;" + getParagraphToggleActiveStyle());
+            } else {
+                btnToggleParagraphMarking.setStyle("-fx-min-width: 35px; -fx-max-width: 35px; -fx-font-size: 16px;");
+            }
+        }
         
         String[] themeNames = {"Weiß", "Schwarz", "Pastell", "Blau", "Grün", "Lila"};
         updateStatus("Theme gewechselt: " + themeNames[currentThemeIndex]);
@@ -7711,6 +8133,10 @@ spacer.setStyle("-fx-background-color: transparent;");
         
         // WICHTIG: Mehrfache Anwendung der Styles für bessere Kompatibilität
         Platform.runLater(() -> {
+            // Erst alle Styles entfernen
+            codeArea.setStyle("");
+            
+            // Dann neue Styles setzen
         codeArea.setStyle(cssStyle);
             
             // Zusätzlich: Explizit die Textfarbe über die RichTextFX API setzen
@@ -7719,6 +8145,8 @@ spacer.setStyle("-fx-background-color: transparent;");
             
             // Zusätzlicher verzögerter Refresh für bessere Kompatibilität
             Platform.runLater(() -> {
+                // Nochmal explizit setzen
+                codeArea.setStyle(cssStyle);
                 codeArea.setStyle(cssStyle);
             });
         });
@@ -7818,12 +8246,20 @@ spacer.setStyle("-fx-background-color: transparent;");
             applyThemeToNode(btnTextAnalysis, themeIndex);
             applyThemeToNode(btnRegexHelp, themeIndex);
             applyThemeToNode(btnKIAssistant, themeIndex);
+            
+            // Help-Buttons
+            if (btnHelpMain != null) {
+                applyThemeToNode(btnHelpMain, themeIndex);
+            }
+            if (btnHelpMarkdown != null) {
+                applyThemeToNode(btnHelpMarkdown, themeIndex);
+            }
             applyThemeToNode(btnIncreaseFont, themeIndex);
             applyThemeToNode(btnDecreaseFont, themeIndex);
             applyThemeToNode(btnBold, themeIndex);
             applyThemeToNode(btnItalic, themeIndex);
             applyThemeToNode(btnThemeToggle, themeIndex);
-            applyThemeToNode(btnMacroRegexHelp, themeIndex);
+            // btnMacroRegexHelp wurde entfernt
             
             // Alle ComboBoxes
             applyThemeToNode(cmbSearchHistory, themeIndex);
@@ -7846,7 +8282,6 @@ spacer.setStyle("-fx-background-color: transparent;");
             // Chapter-Editor Elemente
             applyThemeToNode(chapterEditorPanel, themeIndex);
             applyThemeToNode(chapterEditorArea, themeIndex);
-            applyThemeToNode(btnChapterEditor, themeIndex);
             applyThemeToNode(btnSaveChapter, themeIndex);
             applyThemeToNode(mainSplitPane, themeIndex);
             
@@ -8231,6 +8666,25 @@ spacer.setStyle("-fx-background-color: transparent;");
             // Sammle Markdown-Matches
             List<MarkdownMatch> markdownMatches = new ArrayList<>();
             
+            // Heading-Pattern: # ## ### #### #####
+            Pattern headingPattern = Pattern.compile("^(#{1,5})\\s+(.+)$", Pattern.MULTILINE);
+            Matcher headingMatcher = headingPattern.matcher(content);
+            
+            while (headingMatcher.find()) {
+                String hashes = headingMatcher.group(1);
+                int headingLevel = hashes.length();
+                if (headingLevel >= 1 && headingLevel <= 5) {
+                    int start = headingMatcher.start(2); // Nach den # und Leerzeichen
+                    int end = headingMatcher.end(2);     // Ende des Textes
+                    if (end > start) {
+                        markdownMatches.add(new MarkdownMatch(start, end, "heading-" + headingLevel));
+                        
+                        // Zentrierung wird über CSS-Klassen gehandhabt
+                        // Die CSS-Klassen .heading-1 bis .heading-5 haben bereits -fx-alignment: center
+                    }
+                }
+            }
+            
             // Bold-Italic-Pattern: ***text***
             Pattern boldItalicPattern = Pattern.compile("\\*\\*\\*([\\s\\S]*?)\\*\\*\\*", Pattern.DOTALL);
             Matcher boldItalicMatcher = boldItalicPattern.matcher(content);
@@ -8275,6 +8729,110 @@ spacer.setStyle("-fx-background-color: transparent;");
                         (start <= m.start && end >= m.end));
                     if (!alreadyCovered) {
                         markdownMatches.add(new MarkdownMatch(start, end, "markdown-italic"));
+                    }
+                }
+            }
+            
+            // Underline-Pattern: <u>text</u>
+            Pattern underlinePattern = Pattern.compile("<u>([\\s\\S]*?)</u>", Pattern.DOTALL);
+            Matcher underlineMatcher = underlinePattern.matcher(content);
+            
+            while (underlineMatcher.find()) {
+                int start = underlineMatcher.start() + 3; // Nach <u>
+                int end = underlineMatcher.end() - 4;     // Vor </u>
+                if (end > start) {
+                    // Überprüfe, ob dieser Bereich bereits abgedeckt ist
+                    boolean alreadyCovered = markdownMatches.stream().anyMatch(m -> 
+                        (start >= m.start && start < m.end) || (end > m.start && end <= m.end) ||
+                        (start <= m.start && end >= m.end));
+                    if (!alreadyCovered) {
+                        markdownMatches.add(new MarkdownMatch(start, end, "markdown-underline"));
+                    }
+                }
+            }
+            
+            // HTML Bold/Strong-Pattern: <b>text</b> oder <strong>text</strong>
+            Pattern htmlBoldPattern = Pattern.compile("<(b|strong)>([\\s\\S]*?)</(b|strong)>", Pattern.DOTALL);
+            Matcher htmlBoldMatcher = htmlBoldPattern.matcher(content);
+            
+            while (htmlBoldMatcher.find()) {
+                int start = htmlBoldMatcher.start() + 3; // Nach <b> oder <strong>
+                int end = htmlBoldMatcher.end() - 4;     // Vor </b> oder </strong>
+                if (end > start) {
+                    boolean alreadyCovered = markdownMatches.stream().anyMatch(m -> 
+                        (start >= m.start && start < m.end) || (end > m.start && end <= m.end) ||
+                        (start <= m.start && end >= m.end));
+                    if (!alreadyCovered) {
+                        markdownMatches.add(new MarkdownMatch(start, end, "markdown-bold"));
+                    }
+                }
+            }
+            
+            // HTML Italic/Em-Pattern: <i>text</i> oder <em>text</em>
+            Pattern htmlItalicPattern = Pattern.compile("<(i|em)>([\\s\\S]*?)</(i|em)>", Pattern.DOTALL);
+            Matcher htmlItalicMatcher = htmlItalicPattern.matcher(content);
+            
+            while (htmlItalicMatcher.find()) {
+                int start = htmlItalicMatcher.start() + 3; // Nach <i> oder <em>
+                int end = htmlItalicMatcher.end() - 4;     // Vor </i> oder </em>
+                if (end > start) {
+                    boolean alreadyCovered = markdownMatches.stream().anyMatch(m -> 
+                        (start >= m.start && start < m.end) || (end > m.start && end <= m.end) ||
+                        (start <= m.start && end >= m.end));
+                    if (!alreadyCovered) {
+                        markdownMatches.add(new MarkdownMatch(start, end, "markdown-italic"));
+                    }
+                }
+            }
+            
+            // HTML Strike-through-Pattern: <s>text</s> oder <del>text</del>
+            Pattern htmlStrikePattern = Pattern.compile("<(s|del)>([\\s\\S]*?)</(s|del)>", Pattern.DOTALL);
+            Matcher htmlStrikeMatcher = htmlStrikePattern.matcher(content);
+            
+            while (htmlStrikeMatcher.find()) {
+                int start = htmlStrikeMatcher.start() + 3; // Nach <s> oder <del>
+                int end = htmlStrikeMatcher.end() - 4;     // Vor </s> oder </del>
+                if (end > start) {
+                    boolean alreadyCovered = markdownMatches.stream().anyMatch(m -> 
+                        (start >= m.start && start < m.end) || (end > m.start && end <= m.end) ||
+                        (start <= m.start && end >= m.end));
+                    if (!alreadyCovered) {
+                        markdownMatches.add(new MarkdownMatch(start, end, "markdown-strikethrough"));
+                    }
+                }
+            }
+            
+            // HTML Mark/Highlight-Pattern: <mark>text</mark>
+            Pattern htmlMarkPattern = Pattern.compile("<mark>([\\s\\S]*?)</mark>", Pattern.DOTALL);
+            Matcher htmlMarkMatcher = htmlMarkPattern.matcher(content);
+            
+            while (htmlMarkMatcher.find()) {
+                int start = htmlMarkMatcher.start() + 6; // Nach <mark>
+                int end = htmlMarkMatcher.end() - 7;     // Vor </mark>
+                if (end > start) {
+                    boolean alreadyCovered = markdownMatches.stream().anyMatch(m -> 
+                        (start >= m.start && start < m.end) || (end > m.start && end <= m.end) ||
+                        (start <= m.start && end >= m.end));
+                    if (!alreadyCovered) {
+                        markdownMatches.add(new MarkdownMatch(start, end, "markdown-highlight"));
+                    }
+                }
+            }
+            
+            // HTML Small/Big-Pattern: <small>text</small> oder <big>text</big>
+            Pattern htmlSizePattern = Pattern.compile("<(small|big)>([\\s\\S]*?)</(small|big)>", Pattern.DOTALL);
+            Matcher htmlSizeMatcher = htmlSizePattern.matcher(content);
+            
+            while (htmlSizeMatcher.find()) {
+                int start = htmlSizeMatcher.start() + 7; // Nach <small> oder <big>
+                int end = htmlSizeMatcher.end() - 8;     // Vor </small> oder </big>
+                if (end > start) {
+                    String tag = htmlSizeMatcher.group(1);
+                    boolean alreadyCovered = markdownMatches.stream().anyMatch(m -> 
+                        (start >= m.start && start < m.end) || (end > m.start && end <= m.end) ||
+                        (start <= m.start && end >= m.end));
+                    if (!alreadyCovered) {
+                        markdownMatches.add(new MarkdownMatch(start, end, "markdown-" + tag));
                     }
                 }
             }
@@ -8736,7 +9294,6 @@ spacer.setStyle("-fx-background-color: transparent;");
             chapterEditorPanel.setPrefHeight(200);
             chapterEditorArea.setVisible(true);
             chapterEditorArea.setManaged(true);
-            btnChapterEditor.setText("📝 Kapitel [ON]");
             
             // Chapter-Inhalt laden
             loadChapterContent();
@@ -8760,7 +9317,6 @@ spacer.setStyle("-fx-background-color: transparent;");
             chapterEditorPanel.setPrefHeight(0);
             chapterEditorArea.setVisible(false);
             chapterEditorArea.setManaged(false);
-            btnChapterEditor.setText("📝 Kapitel");
             
             // Divider fest auf 0.0 setzen und visuell verstecken
             mainSplitPane.setDividerPositions(0.0);
@@ -8983,7 +9539,7 @@ spacer.setStyle("-fx-background-color: transparent;");
                                 setOriginalDocxFile(file);
                                 setCurrentFile(deriveSidecarFileForCurrentFormat());
                                 setWindowTitle("📄 " + file.getName());
-                                originalContent = docxContent;
+                                originalContent = cleanTextForComparison(docxContent);
                                 updateNavigationButtons();
                                 // Bei DOCX-Übernahme normalen Ladeprozess fortsetzen
                                 break;
@@ -9018,7 +9574,7 @@ spacer.setStyle("-fx-background-color: transparent;");
             setWindowTitle("📄 " + file.getName());
             
             // Setze den ursprünglichen Inhalt für Change-Detection
-            originalContent = content;
+            originalContent = cleanTextForComparison(content);
             
             // Aktualisiere die Navigation-Buttons
             updateNavigationButtons();
@@ -9190,6 +9746,231 @@ spacer.setStyle("-fx-background-color: transparent;");
         }
     }
     
+    /**
+     * Markiert Leerzeilen mit unsichtbaren Zeichen für bessere Sichtbarkeit
+     */
+    private void setupEmptyLineMarking() {
+        // Event-Handler für Textänderungen
+        codeArea.textProperty().addListener((obs, oldText, newText) -> {
+            Platform.runLater(() -> {
+                try {
+                    if (paragraphMarkingEnabled) {
+                        markEmptyLines();
+                    }
+                } catch (Exception e) {
+                    logger.debug("Fehler beim Markieren von Leerzeilen: {}", e.getMessage());
+                }
+            });
+        });
+        
+        // Event-Handler für Cursor-Position - entfernt ¶ wenn Benutzer zu tippen beginnt
+        codeArea.caretPositionProperty().addListener((obs, oldPos, newPos) -> {
+            if (paragraphMarkingEnabled && newPos != null) {
+                Platform.runLater(() -> {
+                    try {
+                        String text = codeArea.getText();
+                        if (text != null && newPos.intValue() < text.length()) {
+                            // Prüfe ob Cursor in einer Zeile mit ¶ ist
+                            int lineStart = text.lastIndexOf('\n', newPos.intValue() - 1) + 1;
+                            int lineEnd = text.indexOf('\n', newPos.intValue());
+                            if (lineEnd == -1) lineEnd = text.length();
+                            
+                            String currentLine = text.substring(lineStart, lineEnd);
+                            if (currentLine.contains("¶") && !currentLine.trim().equals("¶")) {
+                                // Zeile enthält ¶ und anderen Text - entferne ¶
+                                String cleanedLine = currentLine.replace("¶", "");
+                                
+                                // Speichere Cursor-Position relativ zum Zeilenanfang
+                                int relativeCursorPos = newPos.intValue() - lineStart;
+                                int newCursorPos = lineStart + relativeCursorPos - 1; // -1 weil ¶ entfernt wurde
+                                
+                                // Ersetze nur die betroffene Zeile (erhält Undo-Historie)
+                                codeArea.replaceText(lineStart, lineEnd, cleanedLine);
+                                codeArea.moveTo(newCursorPos);
+                            }
+                        }
+                    } catch (Exception e) {
+                        logger.debug("Fehler beim Entfernen von ¶: {}", e.getMessage());
+                    }
+                });
+            }
+        });
+        
+        // Initiale Markierung
+        Platform.runLater(() -> {
+            if (paragraphMarkingEnabled) {
+                markEmptyLines();
+            }
+        });
+    }
+    
+    /**
+     * Markiert alle Leerzeilen mit einem unsichtbaren Absatz-Symbol
+     */
+    private void markEmptyLines() {
+        String text = codeArea.getText();
+        if (text == null || text.isEmpty()) return;
+        
+        String[] lines = text.split("\n", -1);
+        StringBuilder newText = new StringBuilder();
+        boolean textChanged = false;
+        
+        for (int i = 0; i < lines.length; i++) {
+            String line = lines[i];
+            
+            // Leerzeile erkannt (nur Whitespace oder komplett leer)
+            if (line.trim().isEmpty() && !line.contains("¶")) {
+                // Füge unsichtbares Absatz-Symbol hinzu
+                newText.append("¶");
+                textChanged = true;
+            } else {
+                newText.append(line);
+            }
+            
+            // Zeilenumbruch hinzufügen (außer bei der letzten Zeile)
+            if (i < lines.length - 1) {
+                newText.append("\n");
+            }
+        }
+        
+        // Text nur aktualisieren, wenn sich etwas geändert hat
+        if (textChanged && !newText.toString().equals(text)) {
+            // Cursor-Position merken
+            int caretPosition = codeArea.getCaretPosition();
+            
+            // Text aktualisieren
+            codeArea.replaceText(0, text.length(), newText.toString());
+            
+            // Cursor-Position wiederherstellen
+            if (caretPosition <= newText.length()) {
+                codeArea.moveTo(caretPosition);
+            }
+        }
+    }
+    
+    /**
+     * Entfernt alle Absatz-Markierungen vor dem Speichern/Export
+     */
+    public String cleanTextForExport(String text) {
+        if (text == null) return "";
+        return text.replace("¶", "");
+    }
+    
+    /**
+     * Bereinigt Text für Vergleich (entfernt Absatz-Markierungen)
+     * Wird verwendet, um zu bestimmen, ob sich der Text wirklich geändert hat
+     */
+    private String cleanTextForComparison(String text) {
+        if (text == null) return "";
+        return text.replace("¶", "");
+    }
+    
+    /**
+     * Toggle für Absatz-Markierung
+     */
+    private void toggleParagraphMarking() {
+        paragraphMarkingEnabled = !paragraphMarkingEnabled;
+        
+        // Button-Text und Styling aktualisieren
+        if (paragraphMarkingEnabled) {
+            btnToggleParagraphMarking.setText("¶");
+            btnToggleParagraphMarking.setStyle("-fx-min-width: 35px; -fx-max-width: 35px; -fx-font-size: 16px;" + getParagraphToggleActiveStyle());
+            btnToggleParagraphMarking.setTooltip(new Tooltip("Absatz-Markierung aktiviert"));
+            
+            // Alle Leerzeilen markieren
+            markEmptyLines();
+        } else {
+            btnToggleParagraphMarking.setText("¶");
+            btnToggleParagraphMarking.setStyle("-fx-min-width: 35px; -fx-max-width: 35px; -fx-font-size: 16px;");
+            btnToggleParagraphMarking.setTooltip(new Tooltip("Absatz-Markierung deaktiviert"));
+            
+            // Alle Absatz-Markierungen entfernen
+            removeAllParagraphMarkings();
+        }
+        
+        // Einstellung speichern
+        saveParagraphMarkingSetting();
+        
+        updateStatus(paragraphMarkingEnabled ? "Absatz-Markierung aktiviert" : "Absatz-Markierung deaktiviert");
+    }
+
+    /**
+     * Liefert theme-abhängigen Stil für den aktiven Absatz-Toggle
+     */
+    private String getParagraphToggleActiveStyle() {
+        // deutlichere Hinterlegung passend zum Theme
+        switch (currentThemeIndex) {
+            case 1: // Schwarz / Dark
+                return " -fx-background-color: rgba(255,255,255,0.3);";
+            case 2: // Pastell
+                return " -fx-background-color: rgba(100,100,255,0.4);";
+            case 3: // Blau
+                return " -fx-background-color: rgba(58,123,213,0.4);";
+            case 4: // Grün
+                return " -fx-background-color: rgba(46,204,113,0.4);";
+            case 5: // Lila
+                return " -fx-background-color: rgba(155,89,182,0.4);";
+            default: // Weiß / Light
+                return " -fx-background-color: rgba(0,0,0,0.15);";
+        }
+    }
+    
+    /**
+     * Entfernt alle Absatz-Markierungen aus dem Text
+     */
+    private void removeAllParagraphMarkings() {
+        String text = codeArea.getText();
+        if (text == null || text.isEmpty()) return;
+        
+        String cleanedText = text.replace("¶", "");
+        if (!cleanedText.equals(text)) {
+            int caretPosition = codeArea.getCaretPosition();
+            codeArea.replaceText(0, text.length(), cleanedText);
+            if (caretPosition <= cleanedText.length()) {
+                codeArea.moveTo(caretPosition);
+            }
+        }
+    }
+    
+    /**
+     * Speichert die Absatz-Markierung-Einstellung
+     */
+    private void saveParagraphMarkingSetting() {
+        try {
+            Preferences preferences = Preferences.userNodeForPackage(MainController.class);
+            preferences.putBoolean("paragraph_marking_enabled", paragraphMarkingEnabled);
+        } catch (Exception e) {
+            logger.warn("Konnte Absatz-Markierung-Einstellung nicht speichern: {}", e.getMessage());
+        }
+    }
+    
+    /**
+     * Lädt die Absatz-Markierung-Einstellung
+     */
+    private void loadParagraphMarkingSetting() {
+        try {
+            Preferences preferences = Preferences.userNodeForPackage(MainController.class);
+            paragraphMarkingEnabled = preferences.getBoolean("paragraph_marking_enabled", true);
+        } catch (Exception e) {
+            logger.warn("Konnte Absatz-Markierung-Einstellung nicht laden: {}", e.getMessage());
+            paragraphMarkingEnabled = true; // Standard: aktiviert
+        }
+    }
+    
+    /**
+     * Initialisiert den Absatz-Markierung-Button
+     */
+    private void initializeParagraphMarkingButton() {
+        if (btnToggleParagraphMarking != null) {
+            btnToggleParagraphMarking.setText("¶");
+            btnToggleParagraphMarking.setStyle("-fx-min-width: 35px; -fx-max-width: 35px; -fx-font-size: 16px;" + (paragraphMarkingEnabled ? getParagraphToggleActiveStyle() : ""));
+            if (paragraphMarkingEnabled) {
+                btnToggleParagraphMarking.setTooltip(new Tooltip("Absatz-Markierung aktiviert"));
+            } else {
+                btnToggleParagraphMarking.setTooltip(new Tooltip("Absatz-Markierung deaktiviert"));
+            }
+        }
+    }
 
 }
 

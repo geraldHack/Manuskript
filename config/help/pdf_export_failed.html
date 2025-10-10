@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .help-container {
+            background: white;
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #2C3E50;
+            border-bottom: 3px solid #4A90E2;
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+        h2 {
+            color: #34495E;
+            margin-top: 25px;
+        }
+        p {
+            margin-bottom: 15px;
+        }
+        a {
+            color: #4A90E2;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .highlight {
+            background-color: #E8F4FD;
+            padding: 15px;
+            border-left: 4px solid #4A90E2;
+            margin: 15px 0;
+            border-radius: 0 4px 4px 0;
+        }
+        .code {
+            background-color: #F8F9FA;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        ul {
+            padding-left: 20px;
+        }
+        li {
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="help-container">
+        <h1>PDF-Export fehlgeschlagen</h1>
+        
+        <div class="highlight">
+            <strong>Problem:</strong> Der PDF-Export ist fehlgeschlagen. Dies liegt meist an fehlenden LaTeX-Komponenten.
+        </div>
+        
+        <h2>Lösung: MiKTeX installieren</h2>
+        <p>Um ein Buch in PDF exportieren zu können, muss <strong>MiKTeX</strong> installiert werden.</p>
+        
+        <p><strong>Download:</strong> <a href="https://miktex.org/download" target="_blank">https://miktex.org/download</a></p>
+        
+        <h2>Installation:</h2>
+        <ol>
+            <li>Laden Sie den <strong>Basic MiKTeX Installer</strong> herunter</li>
+            <li>Führen Sie die Installation als Administrator aus</li>
+            <li>Starten Sie nach der Installation <strong>MiKTeX Console</strong></li>
+            <li>Klicken Sie auf <strong>"Upgrade"</strong> für eine vollständige Installation</li>
+        </ol>
+        
+        <h2>Alternative: TeX Live</h2>
+        <p>Alternativ können Sie auch <strong>TeX Live</strong> verwenden:</p>
+        <p><a href="https://tug.org/texlive/" target="_blank">https://tug.org/texlive/</a></p>
+        
+        <div class="highlight">
+            <strong>Tipp:</strong> Nach der Installation sollten Sie das Programm neu starten, damit die LaTeX-Engines erkannt werden.
+        </div>
+    </div>
+</body>
+</html>

@@ -26,6 +26,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import com.manuskript.HelpSystem;
 
 public class PandocExportWindow extends CustomStage {
     private static final Logger logger = LoggerFactory.getLogger(PandocExportWindow.class);
@@ -127,7 +128,13 @@ public class PandocExportWindow extends CustomStage {
         templateDescription.getStyleClass().add("dialog-textarea");
         templateDescription.setVisible(false); // Initial ausgeblendet
 
-        templateBox.getChildren().addAll(templateLabel, templateComboBox);
+        // Hilfebutton für Template-System
+        Button templateHelpButton = HelpSystem.createHelpButton(
+            "Was ist das Template-System?",
+            "template_system.html"
+        );
+        
+        templateBox.getChildren().addAll(templateLabel, templateComboBox, templateHelpButton);
         
         // Cover Image für EPUB
         coverImageBox = new HBox(10);
@@ -212,7 +219,13 @@ public class PandocExportWindow extends CustomStage {
         titleField = new TextField();
         titleField.setPromptText("Titel des Werks");
         titleField.setPrefWidth(400);
-        titleBox.getChildren().addAll(titleLabel, titleField);
+        // Hilfebutton für YAML-Metadaten
+        Button titleHelpButton = HelpSystem.createHelpButton(
+            "Was sind YAML-Metadaten?",
+            "yaml_metadata.html"
+        );
+        
+        titleBox.getChildren().addAll(titleLabel, titleField, titleHelpButton);
         
         // Subtitle
         HBox subtitleBox = new HBox(10);
@@ -443,7 +456,8 @@ public class PandocExportWindow extends CustomStage {
                 showAlert("Erfolg", "Export erfolgreich abgeschlossen!");
                 close();
             } else {
-                showAlert("Fehler", "Export fehlgeschlagen. Siehe Logs für Details.");
+                // Fehler-Dialog mit Hilfebutton
+                showErrorWithHelp("Export fehlgeschlagen. Siehe Logs für Details.");
             }
             
         } catch (Exception e) {
@@ -741,12 +755,66 @@ public class PandocExportWindow extends CustomStage {
                    // Doppelpunkte müssen nicht escaped werden, da sie in Anführungszeichen stehen
     }
     
+    /**
+     * Ersetzt HTML-Tags in der Markdown-Datei durch format-spezifische Befehle
+     */
+    private void replaceHtmlTagsInMarkdown(File markdownFile, String format) {
+        try {
+            String content = Files.readString(markdownFile.toPath(), StandardCharsets.UTF_8);
+            String originalContent = content;
+            
+            // HTML-Tags ersetzen basierend auf dem Ausgabeformat
+            if ("pdf".equals(format)) {
+                // Für PDF: LaTeX-Befehle verwenden
+                content = content.replaceAll("<u>([^<]+)</u>", "\\\\underline{$1}");
+                content = content.replaceAll("<b>([^<]+)</b>", "\\\\textbf{$1}");
+                content = content.replaceAll("<i>([^<]+)</i>", "\\\\textit{$1}");
+                content = content.replaceAll("<strong>([^<]+)</strong>", "\\\\textbf{$1}");
+                content = content.replaceAll("<em>([^<]+)</em>", "\\\\textit{$1}");
+                content = content.replaceAll("<s>([^<]+)</s>", "\\\\sout{$1}");
+                content = content.replaceAll("<del>([^<]+)</del>", "\\\\sout{$1}");
+                content = content.replaceAll("<mark>([^<]+)</mark>", "\\\\hl{$1}");
+                content = content.replaceAll("<small>([^<]+)</small>", "\\\\small $1");
+                content = content.replaceAll("<big>([^<]+)</big>", "\\\\large $1");
+            } else if ("docx".equals(format)) {
+                // Für DOCX: Pandoc-native Befehle verwenden
+                content = content.replaceAll("<u>([^<]+)</u>", "[$1]{.underline}");
+                content = content.replaceAll("<b>([^<]+)</b>", "**$1**");
+                content = content.replaceAll("<i>([^<]+)</i>", "*$1*");
+                content = content.replaceAll("<strong>([^<]+)</strong>", "**$1**");
+                content = content.replaceAll("<em>([^<]+)</em>", "*$1*");
+                content = content.replaceAll("<s>([^<]+)</s>", "~~$1~~");
+                content = content.replaceAll("<del>([^<]+)</del>", "~~$1~~");
+                content = content.replaceAll("<mark>([^<]+)</mark>", "[$1]{.highlight}");
+                content = content.replaceAll("<small>([^<]+)</small>", "[$1]{.small}");
+                content = content.replaceAll("<big>([^<]+)</big>", "[$1]{.large}");
+            } else if ("epub3".equals(format) || "html5".equals(format) || "epub".equals(format) || "html".equals(format)) {
+                // Für EPUB/HTML: HTML-Tags beibehalten
+                // Keine Ersetzung nötig
+            }
+            
+            // Nur schreiben wenn sich etwas geändert hat
+            if (!content.equals(originalContent)) {
+                Files.write(markdownFile.toPath(), content.getBytes(StandardCharsets.UTF_8));
+                logger.debug("HTML-Tags in Markdown-Datei ersetzt für Format: {}", format);
+            }
+        } catch (IOException e) {
+            logger.error("Fehler beim Ersetzen von HTML-Tags: {}", e.getMessage());
+        }
+    }
+    
     private boolean runPandocExport(File markdownFile) {
         try {
             // Sicherstellen, dass Pandoc verfügbar ist
             if (!ensurePandocAvailable()) {
                 showAlert("Pandoc fehlt", "Pandoc konnte nicht gefunden oder installiert werden. Bitte stellen Sie sicher, dass 'pandoc.zip' im Programmverzeichnis liegt.");
                 return false;
+            }
+            
+            // HTML-Tags durch format-spezifische Befehle ersetzen
+            String format = formatComboBox.getValue();
+            if (format != null) {
+                replaceHtmlTagsInMarkdown(markdownFile, format);
             }
 
             // Pandoc-Pfad
@@ -770,9 +838,6 @@ public class PandocExportWindow extends CustomStage {
                     }
                 }
             }
-            
-            // Format ermitteln
-            String format = formatComboBox.getValue();
 
             // Pandoc-Befehl zusammenbauen (wie von Hand erfolgreich verwendet)
             List<String> command = new ArrayList<>();
@@ -1188,8 +1253,8 @@ public class PandocExportWindow extends CustomStage {
     private void updateFormatSpecificFields() {
         String format = formatComboBox.getValue();
 
-        // Template-Felder für EPUB3 und HTML5 ausblenden
-        boolean showTemplate = !format.equals("epub3") && !format.equals("html5");
+        // Template-Felder für EPUB3, HTML5 und PDF ausblenden
+        boolean showTemplate = !format.equals("epub3") && !format.equals("html5") && !format.equals("pdf");
         templateBox.setVisible(showTemplate);
         templateBox.setManaged(showTemplate);
         templateDescription.setVisible(showTemplate);
@@ -1326,5 +1391,23 @@ public class PandocExportWindow extends CustomStage {
         alert.applyTheme(currentThemeIndex);
         alert.initOwner(this);
         alert.showAndWait();
+    }
+    
+    private void showErrorWithHelp(String message) {
+        CustomAlert alert = new CustomAlert(Alert.AlertType.ERROR, "Fehler");
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.applyTheme(currentThemeIndex);
+        alert.initOwner(this);
+        
+        // Hilfebutton hinzufügen
+        ButtonType helpButtonType = new ButtonType("Hilfe", ButtonBar.ButtonData.HELP);
+        alert.getButtonTypes().add(helpButtonType);
+        
+        alert.showAndWait().ifPresent(buttonType -> {
+            if (buttonType == helpButtonType) {
+                HelpSystem.showHelpWindow("pdf_export_failed.html");
+            }
+        });
     }
 }

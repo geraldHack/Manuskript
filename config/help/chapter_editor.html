@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .help-container {
+            background: white;
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #2C3E50;
+            border-bottom: 3px solid #4A90E2;
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+        h2 {
+            color: #34495E;
+            margin-top: 30px;
+            border-bottom: 2px solid #E8F4FD;
+            padding-bottom: 5px;
+        }
+        h3 {
+            color: #2C3E50;
+            margin-top: 20px;
+        }
+        p {
+            margin-bottom: 15px;
+        }
+        .highlight {
+            background-color: #E8F4FD;
+            padding: 15px;
+            border-left: 4px solid #4A90E2;
+            margin: 15px 0;
+            border-radius: 0 4px 4px 0;
+        }
+        .warning {
+            background-color: #FFF3CD;
+            padding: 15px;
+            border-left: 4px solid #FFC107;
+            margin: 15px 0;
+            border-radius: 0 4px 4px 0;
+        }
+        .success {
+            background-color: #D4EDDA;
+            padding: 15px;
+            border-left: 4px solid #28A745;
+            margin: 15px 0;
+            border-radius: 0 4px 4px 0;
+        }
+        ul {
+            padding-left: 20px;
+        }
+        li {
+            margin-bottom: 8px;
+        }
+        .button-section {
+            background-color: #F8F9FA;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .tool-section {
+            background-color: #F1F3F4;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .tool-item {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 6px;
+            border-left: 4px solid #4A90E2;
+        }
+    </style>
+</head>
+<body>
+    <div class="help-container">
+        <h1>■ Kapitel-Editor Hilfe</h1>
+        
+        <p>Der Kapitel-Editor ist Ihr zentrales Werkzeug zum Bearbeiten von Kapiteln. Hier können Sie Text bearbeiten, KI-Unterstützung nutzen und verschiedene Tools verwenden.</p>
+        
+        <div class="button-section">
+            <h2>● Haupt-Buttons</h2>
+            
+             <div class="tool-item">
+                 <h3>◆ Speichern</h3>
+                 <p><strong>Funktion:</strong> Speichert den aktuellen Text in die Markdown-Datei (lokale Kopie des DOCX im Markdown-Format)</p>
+                 <ul>
+                     <li><strong>Markdown-Datei:</strong> Speichert als .md-Datei im data-Verzeichnis</li>
+                     <li><strong>Lokale Kopie:</strong> Arbeitet mit Markdown-Version des ursprünglichen DOCX</li>
+                     <li><strong>Diff-System:</strong> Zeigt Unterschiede zwischen gespeicherter und aktueller Version</li>
+                     <li><strong>Backup:</strong> Erstellt automatisch Sicherungskopien</li>
+                 </ul>
+                 <div class="highlight">
+                     <strong>Tipp:</strong> Speichern Sie regelmäßig, um Ihre Arbeit nicht zu verlieren!
+                 </div>
+             </div>
+             
+             <div class="tool-item">
+                 <h3>Speichern als...</h3>
+                 <p><strong>Funktion:</strong> Speichert den Text unter einem neuen Namen als Markdown-Datei</p>
+                 <ul>
+                     <li><strong>Neuer Dateiname:</strong> Wählen Sie einen anderen Namen für die Datei</li>
+                     <li><strong>Speicherort:</strong> Wählen Sie einen anderen Ordner</li>
+                 </ul>
+             </div>
+             
+             <div class="tool-item">
+                 <h3>Exportieren</h3>
+                 <p><strong>Funktion:</strong> Exportiert den Text in verschiedene Formate</p>
+                 <ul>
+                     <li><strong>DOCX:</strong> Zurück zu Word-Format</li>
+                     <li><strong>HTML:</strong> HTML</li>
+                 </ul>
+             </div>
+            
+            <div class="tool-item">
+                <h3>Suchen/Ersetzen</h3>
+                <p><strong>Funktion:</strong> Öffnet das Suchen & Ersetzen-Panel</p>
+                <ul>
+                    <li><strong>Suchen:</strong> Findet Text im Dokument</li>
+                    <li><strong>Ersetzen:</strong> Ersetzt gefundenen Text</li>
+                    <li><strong>Reguläre Ausdrücke:</strong> Unterstützt komplexe Suchmuster</li>
+                    <li><strong>Historie:</strong> Speichert häufig verwendete Suchbegriffe</li>
+                </ul>
+            </div>
+            
+            <div class="tool-item">
+                <h3>Makros</h3>
+                <p><strong>Funktion:</strong> Öffnet das Makro-Panel für automatisierte Textverarbeitung</p>
+                <ul>
+                    <li><strong>Makro erstellen:</strong> Definieren Sie wiederkehrende Textoperationen</li>
+                    <li><strong>Makro ausführen:</strong> Wenden Sie gespeicherte Makros an</li>
+                    <li>Wichtigstes Makro: "Text-Bereinigung" - Dieses Makro wird automatisch ausgewählt</li>
+                </ul>
+            </div>
+            
+            <div class="tool-item">
+                <h3>Textanalyse</h3>
+                <p><strong>Funktion:</strong> Öffnet das Textanalyse-Panel für detaillierte Textstatistiken</p>
+                <ul>
+                    <li><strong>Wortanzahl:</strong> Zeigt Anzahl der Wörter, Zeichen, Zeilen</li>
+                    <li><strong>Lesbarkeit:</strong> Analysiert die Lesbarkeit des Textes</li>
+                    <li><strong>Häufige Wörter:</strong> Findet häufig verwendete Begriffe</li>
+                    <li><strong>Textqualität:</strong> Bewertet Grammatik und Stil</li>
+                </ul>
+            </div>
+            
+            <div class="tool-item">
+                <h3>KI-Assistent</h3>
+                <p><strong>Funktion:</strong> Öffnet den KI-Assistenten für Textverbesserungen</p>
+                <ul>
+                    <li><strong>Text-Auswahl:</strong> Markieren Sie Text und wählen Sie eine KI-Funktion</li>
+                    <li><strong>Verfügbare Funktionen:</strong> Grammatik, Stil, Lektorat, Charakterentwicklung</li>
+                    <li><strong>Integration:</strong> Änderungen werden direkt in den Editor übernommen</li>
+                </ul>
+                <div class="success">
+                    <strong>Hinweis:</strong> Der KI-Assistent arbeitet mit dem markierten Text und kann ihn verbessern oder umschreiben.
+                </div>
+            </div>
+        </div>
+        
+        <div class="tool-section">
+            <h2>Editor-Tools</h2>
+            
+            <div class="tool-item">
+                <h3>Text-Formatierung</h3>
+                <ul>
+                    <li><strong>Fett:</strong> Markieren Sie Text und drücken Sie Strg+B</li>
+                    <li><strong>Kursiv:</strong> Markieren Sie Text und drücken Sie Strg+I</li>
+                    <li><strong>Unterstrichen:</strong> Markieren Sie Text und drücken Sie Strg+U</li>
+                </ul>
+            </div>
+            
+            <div class="tool-item">
+                <h3>Suchen & Ersetzen</h3>
+                <ul>
+                    <li><strong>Suchen:</strong> Strg+F öffnet die Suchfunktion</li>
+                    <li><strong>Ersetzen:</strong> Strg+H öffnet Suchen & Ersetzen</li>
+                    <li><strong>Reguläre Ausdrücke:</strong> Unterstützt komplexe Suchmuster</li>
+                </ul>
+            </div>
+            
+            <div class="tool-item">
+                <h3>Zwischenablage</h3>
+                <ul>
+                    <li><strong>Kopieren:</strong> Strg+C</li>
+                    <li><strong>Einfügen:</strong> Strg+V</li>
+                    <li><strong>Ausschneiden:</strong> Strg+X</li>
+                    <li><strong>Rückgängig:</strong> Strg+Z</li>
+                </ul>
+            </div>
+            
+            <div class="tool-item">
+                <h3>Statistiken</h3>
+                <ul>
+                    <li><strong>Wortanzahl:</strong> Zeigt aktuelle Wortanzahl an</li>
+                    <li><strong>Zeichen:</strong> Anzahl der Zeichen (mit/ohne Leerzeichen)</li>
+                    <li><strong>Zeilen:</strong> Anzahl der Zeilen</li>
+                </ul>
+            </div>
+            
+            <div class="tool-item">
+                <h3>Themes</h3>
+                <ul>
+                    <li><strong>Theme wechseln:</strong> Rechtsklick im Editor für Theme-Menü</li>
+                    <li><strong>Verfügbare Themes:</strong> Hell, Dunkel, Pastell, Blau, Grün, Lila</li>
+                    <li><strong>Automatisch speichern:</strong> Theme wird für zukünftige Sitzungen gespeichert</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="warning">
+            <strong>Wichtig:</strong> Vergessen Sie nicht, regelmäßig zu speichern! Ihre Änderungen sind erst nach dem Speichern dauerhaft gesichert.
+        </div>
+        
+        <div class="highlight">
+            <strong>Profi-Tipp:</strong> Nutzen Sie die KI-Unterstützung für bessere Texte. Markieren Sie problematische Stellen und lassen Sie die KI helfen!
+        </div>
+    </div>
+</body>
+</html>

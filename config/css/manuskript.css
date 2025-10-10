@@ -74,6 +74,99 @@
     -fx-fill: #6f42c1 !important;
 }
 
+/* Heading-Styling für H1-H5 - Standard Theme */
+.code-area .heading-1 {
+    -fx-font-size: 24px !important;
+    -fx-font-weight: bold !important;
+    -fx-fill: #2c3e50 !important;
+}
+
+.code-area .heading-2 {
+    -fx-font-size: 20px !important;
+    -fx-font-weight: bold !important;
+    -fx-fill: #34495e !important;
+}
+
+.code-area .heading-3 {
+    -fx-font-size: 18px !important;
+    -fx-font-weight: bold !important;
+    -fx-fill: #7f8c8d !important;
+}
+
+.code-area .heading-4 {
+    -fx-font-size: 16px !important;
+    -fx-font-weight: bold !important;
+    -fx-fill: #95a5a6 !important;
+}
+
+.code-area .heading-5 {
+    -fx-font-size: 14px !important;
+    -fx-font-weight: bold !important;
+    -fx-fill: #bdc3c7 !important;
+}
+
+/* Dark Theme Headings */
+.theme-dark .code-area .heading-1 {
+    -fx-font-size: 24px !important;
+    -fx-font-weight: bold !important;
+    -fx-fill: #ffffff !important;
+}
+
+.theme-dark .code-area .heading-2 {
+    -fx-font-size: 20px !important;
+    -fx-font-weight: bold !important;
+    -fx-fill: #e9ecef !important;
+}
+
+.theme-dark .code-area .heading-3 {
+    -fx-font-size: 18px !important;
+    -fx-font-weight: bold !important;
+    -fx-fill: #ced4da !important;
+}
+
+.theme-dark .code-area .heading-4 {
+    -fx-font-size: 16px !important;
+    -fx-font-weight: bold !important;
+    -fx-fill: #adb5bd !important;
+}
+
+.theme-dark .code-area .heading-5 {
+    -fx-font-size: 14px !important;
+    -fx-font-weight: bold !important;
+    -fx-fill: #6c757d !important;
+}
+
+/* Pastell Theme Headings */
+.pastell-theme .code-area .heading-1 {
+    -fx-font-size: 24px !important;
+    -fx-font-weight: bold !important;
+    -fx-fill: #6a1b9a !important;
+}
+
+.pastell-theme .code-area .heading-2 {
+    -fx-font-size: 20px !important;
+    -fx-font-weight: bold !important;
+    -fx-fill: #8e24aa !important;
+}
+
+.pastell-theme .code-area .heading-3 {
+    -fx-font-size: 18px !important;
+    -fx-font-weight: bold !important;
+    -fx-fill: #ab47bc !important;
+}
+
+.pastell-theme .code-area .heading-4 {
+    -fx-font-size: 16px !important;
+    -fx-font-weight: bold !important;
+    -fx-fill: #ba68c8 !important;
+}
+
+.pastell-theme .code-area .heading-5 {
+    -fx-font-size: 14px !important;
+    -fx-font-weight: bold !important;
+    -fx-fill: #ce93d8 !important;
+}
+
 /* Hauptstil für die Anwendung */
 .root {
     -fx-font-family: 'Segoe UI', Arial, sans-serif;
@@ -5687,6 +5780,61 @@
     -fx-border-radius: 4px !important;
     -fx-background-radius: 4px !important;
     -fx-padding: 8px !important;
+}
+
+/* Help-Button Styling */
+.help-button {
+    -fx-background-color: #4A90E2 !important;
+    -fx-text-fill: white !important;
+    -fx-font-weight: bold !important;
+    -fx-font-size: 14px !important;
+    -fx-background-radius: 12px !important;
+    -fx-border-radius: 12px !important;
+    -fx-cursor: hand !important;
+    -fx-border: none !important;
+    -fx-padding: 0 !important;
+}
+
+.help-button:hover {
+    -fx-background-color: #357ABD !important;
+}
+
+.help-button:pressed {
+    -fx-background-color: #2E6BA8 !important;
+}
+
+/* U-Button (Unterstreichung) Styling */
+#btnUnderline {
+    -fx-text-decoration: underline;
+    -fx-underline: true;
+}
+
+/* Markdown-Unterstreichung im Editor */
+.code-area .markdown-underline {
+    -fx-underline: true;
+    -fx-text-decoration: underline;
+}
+
+/* Markdown-Durchgestrichen im Editor */
+.code-area .markdown-strikethrough {
+    -fx-strikethrough: true;
+    -fx-text-decoration: line-through;
+}
+
+/* Markdown-Hervorhebung im Editor */
+.code-area .markdown-highlight {
+    -fx-background-color: #ffff00;
+    -fx-background-radius: 2px;
+}
+
+/* Markdown-Kleinschrift im Editor */
+.code-area .markdown-small {
+    -fx-font-size: 0.8em;
+}
+
+/* Markdown-Großschrift im Editor */
+.code-area .markdown-big {
+    -fx-font-size: 1.2em;
 }
 
 

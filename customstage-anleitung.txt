@@ -1,0 +1,74 @@
+# CustomStage Anleitung für Manuskript
+
+## Schritte für ein gestyltes CustomStage
+
+1. **CustomStage erstellen**
+   ```java
+   CustomStage stage = new CustomStage();
+   stage.setCustomTitle("Titel");
+   stage.setResizable(true);
+   stage.setWidth(800);
+   stage.setHeight(600);
+   ```
+
+2. **UI-Elemente mit CSS-Klassen erstellen**
+   ```java
+   Label label = new Label("Text");
+   label.getStyleClass().add("dialog-title");
+   
+   Button button = new Button("Button");
+   button.getStyleClass().add("primary-button");
+   ```
+
+3. **Layout-Container erstellen**
+   ```java
+   VBox root = new VBox(20);
+   root.setPadding(new Insets(30));
+   root.setAlignment(Pos.CENTER);
+   root.getStyleClass().add("dialog-container");
+   root.getChildren().addAll(label, button);
+   ```
+
+4. **Scene mit CSS erstellen**
+   ```java
+   Scene scene = new Scene(root);
+   String cssPath = ResourceManager.getCssResource("css/manuskript.css");
+   if (cssPath != null) {
+       scene.getStylesheets().add(cssPath);
+   }
+   ```
+
+5. **Scene mit Titelleiste setzen**
+   ```java
+   stage.setSceneWithTitleBar(scene);
+   ```
+
+6. **Theme setzen (NACH setSceneWithTitleBar!)**
+   ```java
+   int currentTheme = preferences.getInt("main_window_theme", 0);
+   stage.setFullTheme(currentTheme);
+   ```
+
+7. **Fenster anzeigen**
+   ```java
+   stage.show();
+   ```
+
+## WICHTIGE REIHENFOLGE:
+- Erst `setSceneWithTitleBar()`
+- Dann `setFullTheme()`
+- CSS mit `ResourceManager.getCssResource()` laden
+- Theme aus Preferences holen
+
+## Imports benötigt:
+```java
+import com.manuskript.CustomStage;
+import com.manuskript.ResourceManager;
+import java.util.prefs.Preferences;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.layout.VBox;
+```

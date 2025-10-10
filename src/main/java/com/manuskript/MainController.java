@@ -64,6 +64,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.prefs.Preferences;
+import com.manuskript.HelpSystem;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.TextAlignment;
@@ -122,6 +123,8 @@ public class MainController implements Initializable {
     @FXML private Button btnSplit;
     @FXML private Button btnNewChapter;
     @FXML private CheckBox chkDownloadsMonitor;
+    // Help-Toggle Button (programmatisch erstellt)
+    private Button btnHelpToggle;
     
     // Status
     // ProgressBar und lblStatus wurden entfernt
@@ -155,6 +158,9 @@ public class MainController implements Initializable {
     
     // Theme-System
     private int currentThemeIndex = 0;
+    
+    // Help-System
+    private boolean helpEnabled = true;
     private static final String[][] THEMES = {
         {"#ffffff", "#000000", "#e3f2fd", "#000000"}, // Weiß
         {"#1a1a1a", "#ffffff", "#2d2d2d", "#ffffff"}, // Schwarz
@@ -174,6 +180,12 @@ public class MainController implements Initializable {
         docxProcessor = new DocxProcessor();
         loadLastDirectory();
         loadDownloadsMonitorSettings();
+        
+        // Alte Hilfe-Dateien bereinigen
+        HelpSystem.cleanupOldHelpFiles();
+        
+        // Help-Einstellungen laden
+        loadHelpSettings();
         
         // Erstelle ImageView programmatisch und füge es direkt hinzu
         coverImageView = new ImageView();
@@ -374,6 +386,9 @@ public class MainController implements Initializable {
         
         // Status initialisieren
         updateStatus("Bereit - Wählen Sie ein Verzeichnis aus");
+        
+        // Help-Toggle-Button programmatisch erstellen (nach UI-Setup)
+        Platform.runLater(() -> createHelpToggleButton());
     }
     
     private void setupEventHandlers() {
@@ -395,6 +410,7 @@ public class MainController implements Initializable {
         btnThemeToggle.setOnAction(e -> toggleTheme());
         btnSplit.setOnAction(e -> openSplitStage());
         btnNewChapter.setOnAction(e -> createNewChapter());
+        // btnHelpToggle Event-Handler wird in createHelpToggleButton() gesetzt
     }
     
     private void setupDragAndDrop() {
@@ -627,6 +643,12 @@ public class MainController implements Initializable {
         
         final int LABEL_COL_WIDTH = 150; // gleiche Spaltenbreite für Labels
         
+        // Help-Button für Verzeichnis-Auswahl
+        Button dirHelpButton = HelpSystem.createHelpButton(
+            "Hilfe zur Verzeichnis-Auswahl",
+            "directory_selection.html"
+        );
+        
         Label dirLabel = new Label("Verzeichnis:");
         dirLabel.setMinWidth(LABEL_COL_WIDTH);
         dirLabel.setPrefWidth(LABEL_COL_WIDTH);
@@ -661,11 +683,17 @@ public class MainController implements Initializable {
             }
         });
         
-        directoryBox.getChildren().addAll(dirLabel, dirField, btnBrowseDir);
+        directoryBox.getChildren().addAll(dirHelpButton, dirLabel, dirField, btnBrowseDir);
         
         // Cover-Bild-Auswahl
         HBox coverBox = new HBox(10);
         coverBox.setAlignment(Pos.CENTER_LEFT);
+        
+        // Help-Button für Cover-Bild-Auswahl
+        Button coverHelpButton = HelpSystem.createHelpButton(
+            "Hilfe zur Cover-Bild-Auswahl",
+            "directory_selection.html"
+        );
         
         Label coverLabel = new Label("Cover-Bild (optional):");
         coverLabel.setMinWidth(LABEL_COL_WIDTH);
@@ -700,7 +728,7 @@ public class MainController implements Initializable {
             }
         });
         
-        coverBox.getChildren().addAll(coverLabel, coverField, btnBrowseCover);
+        coverBox.getChildren().addAll(coverHelpButton, coverLabel, coverField, btnBrowseCover);
         
         // Lade vorherige Werte
         String lastDir = preferences.get("lastDirectory", "");
@@ -4017,6 +4045,66 @@ public class MainController implements Initializable {
 
     
     /**
+     * Wechselt das Help-System ein/aus
+     */
+    private void toggleHelp() {
+        helpEnabled = !helpEnabled;
+        
+        // In Preferences speichern
+        preferences.putBoolean("help_enabled", helpEnabled);
+        
+        // Button-Text aktualisieren
+        updateHelpButtonIcon();
+        
+        // Help-Buttons in allen Fenstern aktualisieren
+        HelpSystem.setHelpEnabled(helpEnabled);
+        
+        updateStatus("Hilfe " + (helpEnabled ? "eingeschaltet" : "ausgeschaltet"));
+    }
+    
+    /**
+     * Aktualisiert das Help-Button Icon
+     */
+    private void updateHelpButtonIcon() {
+        if (btnHelpToggle != null) {
+            if (helpEnabled) {
+                btnHelpToggle.setText("❓");
+                btnHelpToggle.setTooltip(new Tooltip("Hilfe ausschalten"));
+            } else {
+                btnHelpToggle.setText("❌");
+                btnHelpToggle.setTooltip(new Tooltip("Hilfe einschalten"));
+            }
+        }
+    }
+    
+    /**
+     * Lädt Help-Einstellung aus Preferences
+     */
+    private void loadHelpSettings() {
+        helpEnabled = preferences.getBoolean("help_enabled", true);
+        updateHelpButtonIcon();
+        HelpSystem.setHelpEnabled(helpEnabled);
+    }
+    
+    /**
+     * Erstellt den Help-Toggle-Button programmatisch
+     */
+    private void createHelpToggleButton() {
+        btnHelpToggle = new Button("❓");
+        btnHelpToggle.setPrefSize(40, 40);
+        btnHelpToggle.getStyleClass().add("help-toggle-button");
+        btnHelpToggle.setOnAction(e -> toggleHelp());
+        
+        // Button zum Layout hinzufügen (neben Theme-Button)
+        if (btnThemeToggle != null && btnThemeToggle.getParent() != null) {
+            HBox parentBox = (HBox) btnThemeToggle.getParent();
+            parentBox.getChildren().add(btnHelpToggle);
+        }
+        
+        updateHelpButtonIcon();
+    }
+    
+    /**
      * Wechselt das Theme
      */
     private void toggleTheme() {
@@ -4284,32 +4372,11 @@ public class MainController implements Initializable {
     
     /**
      * Zeigt Dialog für existierende Buch-Dateien
+     * ENTFERNT: Dialog wird nicht mehr angezeigt, Buch wird direkt erstellt
      */
     private void showGesamtFileDialog(File[] existingGesamtFiles, ObservableList<DocxFile> selectedDocxFiles) {
-        CustomAlert alert = new CustomAlert(Alert.AlertType.CONFIRMATION, "Buch existiert bereits");
-        alert.setHeaderText("Es wurde bereits ein Buch erstellt:");
-        alert.setContentText("Möchten Sie das existierende Dokument laden oder ein neues erstellen?");
-        
-        // Theme anwenden
-        alert.applyTheme(currentThemeIndex);
-        
-        // Owner setzen
-        alert.initOwner(primaryStage);
-        
-        ButtonType loadExistingButton = new ButtonType("Existierende laden");
-        ButtonType createNewButton = new ButtonType("Neues erstellen");
-        ButtonType cancelButton = new ButtonType("Abbrechen", ButtonBar.ButtonData.CANCEL_CLOSE);
-        
-        alert.setButtonTypes(loadExistingButton, createNewButton, cancelButton);
-        
-        Optional<ButtonType> result = alert.showAndWait();
-        if (result.isPresent()) {
-            if (result.get() == loadExistingButton) {
-                loadExistingGesamtFile(existingGesamtFiles[0]);
-            } else if (result.get() == createNewButton) {
-                processCompleteDocument(selectedDocxFiles);
-            }
-        }
+        // Dialog entfernt - Buch wird direkt erstellt
+        processCompleteDocument(selectedDocxFiles);
     }
     
     /**
@@ -4589,6 +4656,12 @@ public class MainController implements Initializable {
         HBox fileHBox = new HBox(10);
         fileHBox.setAlignment(Pos.CENTER_LEFT);
         
+        // Help-Button für Datei-Auswahl
+        Button fileHelpButton = HelpSystem.createHelpButton(
+            "Hilfe zur Datei-Auswahl",
+            "chapter_split.html"
+        );
+        
         final TextField txtFilePath = new TextField();
         txtFilePath.setPromptText("DOCX oder TXT-Datei auswählen...");
         txtFilePath.setPrefWidth(400);
@@ -4597,7 +4670,7 @@ public class MainController implements Initializable {
         Button btnSelectFile = new Button("Datei auswählen");
         btnSelectFile.getStyleClass().addAll("button", "primary");
         
-        fileHBox.getChildren().addAll(txtFilePath, btnSelectFile);
+        fileHBox.getChildren().addAll(fileHelpButton, txtFilePath, btnSelectFile);
         fileBox.getChildren().addAll(fileLabel, fileHBox);
         
         // Ausgabe-Verzeichnis
@@ -4608,6 +4681,12 @@ public class MainController implements Initializable {
         HBox outputHBox = new HBox(10);
         outputHBox.setAlignment(Pos.CENTER_LEFT);
         
+        // Help-Button für Ausgabe-Verzeichnis
+        Button outputHelpButton = HelpSystem.createHelpButton(
+            "Hilfe zum Ausgabe-Verzeichnis",
+            "chapter_split.html"
+        );
+        
         final TextField txtOutputPath = new TextField();
         txtOutputPath.setPromptText("Verzeichnis für Kapitel-Dateien...");
         txtOutputPath.setPrefWidth(400);
@@ -4616,7 +4695,7 @@ public class MainController implements Initializable {
         Button btnSelectOutput = new Button("Verzeichnis auswählen");
         btnSelectOutput.getStyleClass().addAll("button", "secondary");
         
-        outputHBox.getChildren().addAll(txtOutputPath, btnSelectOutput);
+        outputHBox.getChildren().addAll(outputHelpButton, txtOutputPath, btnSelectOutput);
         outputBox.getChildren().addAll(outputLabel, outputHBox);
         
         // Kapitel-Liste
