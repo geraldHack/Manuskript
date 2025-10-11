@@ -2631,16 +2631,20 @@ public class MainController implements Initializable {
                     
                     // Keine MD-Datei speichern - nur den Inhalt verwenden
                     
-                    // 1. EditorWindow mit Originaltext erstellen
-                    EditorWindow editorController = openChapterEditorWindow(mdContent, chapterFile, format);
+                    // Prüfe ob bereits ein Editor für dieses Kapitel geöffnet ist
+                    String chapterName = chapterFile.getFileName();
+                    if (chapterName.toLowerCase().endsWith(".docx")) {
+                        chapterName = chapterName.substring(0, chapterName.length() - 5);
+                    }
+                    String editorKey = chapterName + ".md";
+                    EditorWindow existingEditor = openEditors.get(editorKey);
                     
-                    // 2. Nach Diff-Auswahl den Text ersetzen (damit Änderungen erkannt werden)
-                    if (editorController != null) {
+                    if (existingEditor != null) {
+                        // Bestehenden Editor aktualisieren - KEIN neues Fenster öffnen
                         final String finalContentForLambda = finalContent;
                         Platform.runLater(() -> {
-                            editorController.replaceTextWithoutUpdatingOriginal(finalContentForLambda);
-                            // WICHTIG: Editor in den Vordergrund bringen
-                            // Finde die Stage über die Window-Liste
+                            existingEditor.replaceTextWithoutUpdatingOriginal(finalContentForLambda);
+                            // Editor in den Vordergrund bringen
                             for (Window window : Window.getWindows()) {
                                 if (window instanceof CustomStage && window.isShowing()) {
                                     CustomStage customStage = (CustomStage) window;
@@ -2652,6 +2656,28 @@ public class MainController implements Initializable {
                                 }
                             }
                         });
+                    } else {
+                        // Nur wenn KEIN bestehender Editor existiert - dann neuen erstellen
+                        EditorWindow editorController = openChapterEditorWindow(mdContent, chapterFile, format);
+                        
+                        // Nach Diff-Auswahl den Text ersetzen
+                        if (editorController != null) {
+                            final String finalContentForLambda = finalContent;
+                            Platform.runLater(() -> {
+                                editorController.replaceTextWithoutUpdatingOriginal(finalContentForLambda);
+                                // Editor in den Vordergrund bringen
+                                for (Window window : Window.getWindows()) {
+                                    if (window instanceof CustomStage && window.isShowing()) {
+                                        CustomStage customStage = (CustomStage) window;
+                                        if (customStage.getTitle().contains(chapterFile.getFileName())) {
+                                            customStage.toFront();
+                                            customStage.requestFocus();
+                                            break;
+                                        }
+                                    }
+                                }
+                            });
+                        }
                     }
                     
                     updateDocxHashAfterAccept(chapterFile.getFile());
@@ -2664,13 +2690,22 @@ public class MainController implements Initializable {
             
             btnAcceptAll.setOnAction(e -> {
                 try {
-                    // Übernehme den DOCX-Inhalt direkt (wie vorher)
-                    EditorWindow editorController = openChapterEditorWindow(docxContent, chapterFile, format);
+                    // Prüfe ob bereits ein Editor für dieses Kapitel geöffnet ist
+                    String chapterName = chapterFile.getFileName();
+                    if (chapterName.toLowerCase().endsWith(".docx")) {
+                        chapterName = chapterName.substring(0, chapterName.length() - 5);
+                    }
+                    String editorKey = chapterName + ".md";
+                    EditorWindow existingEditor = openEditors.get(editorKey);
                     
-                    // WICHTIG: Text NORMAL setzen für Konvertierung
-                    if (editorController != null) {
-                        editorController.setText(docxContent); // NORMAL setzen für Konvertierung
-                        // originalContent wird automatisch auf den neuen Text gesetzt
+                    EditorWindow editorController;
+                    if (existingEditor != null) {
+                        // Bestehenden Editor aktualisieren - KEIN neues Fenster öffnen
+                        editorController = existingEditor;
+                        editorController.setText(docxContent);
+                    } else {
+                        // Nur wenn KEIN bestehender Editor existiert - dann neuen erstellen
+                        editorController = openChapterEditorWindow(docxContent, chapterFile, format);
                     }
                     
                     // WICHTIG: Editor-Inhalt SOFORT als MD speichern, da wir "DOCX übernehmen" gesagt haben
@@ -2721,21 +2756,46 @@ public class MainController implements Initializable {
             
             btnKeepCurrent.setOnAction(e -> {
                 try {
-                    openChapterEditorWindow(mdContent, chapterFile, format);
+                    // Prüfe ob bereits ein Editor für dieses Kapitel geöffnet ist
+                    String chapterName = chapterFile.getFileName();
+                    if (chapterName.toLowerCase().endsWith(".docx")) {
+                        chapterName = chapterName.substring(0, chapterName.length() - 5);
+                    }
+                    String editorKey = chapterName + ".md";
+                    EditorWindow existingEditor = openEditors.get(editorKey);
                     
-                    // WICHTIG: Editor in den Vordergrund bringen
-                    Platform.runLater(() -> {
-                        for (Window window : Window.getWindows()) {
-                            if (window instanceof CustomStage && window.isShowing()) {
-                                CustomStage customStage = (CustomStage) window;
-                                if (customStage.getTitle().contains(chapterFile.getFileName())) {
-                                    customStage.toFront();
-                                    customStage.requestFocus();
-                                    break;
+                    if (existingEditor != null) {
+                        // Bestehenden Editor in den Vordergrund bringen
+                        Platform.runLater(() -> {
+                            for (Window window : Window.getWindows()) {
+                                if (window instanceof CustomStage && window.isShowing()) {
+                                    CustomStage customStage = (CustomStage) window;
+                                    if (customStage.getTitle().contains(chapterFile.getFileName())) {
+                                        customStage.toFront();
+                                        customStage.requestFocus();
+                                        break;
+                                    }
                                 }
                             }
-                        }
-                    });
+                        });
+                    } else {
+                        // Neuen Editor erstellen
+                        openChapterEditorWindow(mdContent, chapterFile, format);
+                        
+                        // WICHTIG: Editor in den Vordergrund bringen
+                        Platform.runLater(() -> {
+                            for (Window window : Window.getWindows()) {
+                                if (window instanceof CustomStage && window.isShowing()) {
+                                    CustomStage customStage = (CustomStage) window;
+                                    if (customStage.getTitle().contains(chapterFile.getFileName())) {
+                                        customStage.toFront();
+                                        customStage.requestFocus();
+                                        break;
+                                    }
+                                }
+                            }
+                        });
+                    }
                     
                     chapterFile.setChanged(false);
                     updateDocxHashAfterAccept(chapterFile.getFile());
@@ -6301,14 +6361,37 @@ public class MainController implements Initializable {
         }
 
         try {
-            // Einfache Lösung: Füge Leerzeilen zwischen Absätzen hinzu
-            // Ersetze einzelne Zeilenumbrüche durch doppelte
-            String formatted = content.replaceAll("([^\n])\n([^\n#])", "$1\n\n$2");
-
-            // Stelle sicher, dass am Ende eine Leerzeile steht
-            if (!formatted.endsWith("\n\n")) {
-                formatted += "\n";
+            // Schütze Tabellen vor Leerzeilen-Einfügung
+            // Teile den Inhalt in Tabellen und Nicht-Tabellen-Bereiche
+            String[] lines = content.split("\n");
+            StringBuilder result = new StringBuilder();
+            boolean inTable = false;
+            
+            for (int i = 0; i < lines.length; i++) {
+                String line = lines[i];
+                
+                // Prüfe, ob wir in einer Tabelle sind
+                if (line.trim().startsWith("|") && line.trim().endsWith("|")) {
+                    inTable = true;
+                    result.append(line).append("\n");
+                } else if (inTable && (line.trim().isEmpty() || !line.trim().startsWith("|"))) {
+                    // Tabelle ist zu Ende
+                    inTable = false;
+                    result.append("\n").append(line).append("\n");
+                } else if (!inTable) {
+                    // Normaler Text - füge Leerzeilen zwischen Absätzen hinzu
+                    if (i > 0 && !lines[i-1].trim().isEmpty() && !line.trim().isEmpty() && 
+                        !line.trim().startsWith("#") && !lines[i-1].trim().startsWith("#")) {
+                        result.append("\n");
+                    }
+                    result.append(line).append("\n");
+                } else {
+                    // In Tabelle - keine Leerzeilen einfügen
+                    result.append(line).append("\n");
+                }
             }
+            
+            String formatted = result.toString();
 
             return formatted;
 

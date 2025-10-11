@@ -14,6 +14,11 @@
 \usepackage{setspace}
 \setstretch{1.2}
 
+% --- Text-Formatierung ---
+\usepackage{ulem}  % Für \sout (durchgestrichener Text)
+\usepackage{soul}  % Für \hl (Hervorhebungen)
+\usepackage{graphicx}  % Für Bilder
+
 % --- Überschriften ---
 \usepackage{titlesec}
 \titleformat{\section}{\normalfont\Large\bfseries}{\thesection}{1em}{}
@@ -54,17 +59,31 @@
 % --- Titelseite ---
 \begin{titlepage}
   \centering
+  $if(cover-image)$
+  \includegraphics[width=0.6\textwidth,keepaspectratio]{$cover-image$}
+  \vspace{1cm}
+  \newpage
+  $endif$
   {\Huge \bfseries $title$ \par}
+  $if(subtitle)$
+  \vspace{0.5cm}
+  {\Large \textit{$subtitle$} \par}
+  $endif$
   \vspace{1cm}
   {\Large $author$ \par}
   \vspace{1cm}
   {\large $date$ \par}
+  $if(rights)$
+  \vspace{1cm}
+  {\small $rights$ \par}
+  $endif$
   \vfill
 \end{titlepage}
 
 % --- Abstract ---
 \newpage
 \begin{abstract}
+\noindent\textbf{Zusammenfassung}\\[0.5em]
 $abstract$
 \end{abstract}
 

@@ -635,9 +635,7 @@ public class CustomStage extends Stage {
                 }
             }
             
-        } else {
-            logger.debug("setStageBorder: Scene oder Root ist null!");
-        }
+        } 
     }
     
     /**

@@ -9780,13 +9780,20 @@ spacer.setStyle("-fx-background-color: transparent;");
                                 // Zeile enthält ¶ und anderen Text - entferne ¶
                                 String cleanedLine = currentLine.replace("¶", "");
                                 
-                                // Speichere Cursor-Position relativ zum Zeilenanfang
+                                // Speichere Cursor-Position relativ zum Zeilenanfang VOR dem Ersetzen
                                 int relativeCursorPos = newPos.intValue() - lineStart;
-                                int newCursorPos = lineStart + relativeCursorPos - 1; // -1 weil ¶ entfernt wurde
                                 
                                 // Ersetze nur die betroffene Zeile (erhält Undo-Historie)
                                 codeArea.replaceText(lineStart, lineEnd, cleanedLine);
-                                codeArea.moveTo(newCursorPos);
+                                
+                                // Cursor-Position korrigieren
+                                if (relativeCursorPos == 0) {
+                                    // Wir waren ganz vorne - Cursor nach dem getippten Zeichen setzen
+                                    Platform.runLater(() -> {
+                                        codeArea.moveTo(lineStart + 1);
+                                    });
+                                }
+                                // Wenn relativeCursorPos > 0: Mache NICHTS mit der Cursor-Position
                             }
                         }
                     } catch (Exception e) {

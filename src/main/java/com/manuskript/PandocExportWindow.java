@@ -24,8 +24,20 @@ import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+
+// Apache POI für DOCX-Bearbeitung
+import org.apache.poi.xwpf.usermodel.XWPFDocument;
+import org.apache.poi.xwpf.usermodel.XWPFParagraph;
+import org.apache.poi.xwpf.usermodel.XWPFRun;
+import org.apache.poi.xwpf.usermodel.XWPFTable;
+import org.apache.poi.xwpf.usermodel.XWPFTableRow;
+import org.apache.poi.xwpf.usermodel.XWPFTableCell;
+import org.apache.poi.xwpf.usermodel.ParagraphAlignment;
+import org.apache.poi.util.Units;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.util.ArrayList;
+import java.util.List;
 import com.manuskript.HelpSystem;
 
 public class PandocExportWindow extends CustomStage {
@@ -50,6 +62,7 @@ public class PandocExportWindow extends CustomStage {
     // EPUB-spezifische Felder
     private HBox coverImageBox;
     private TextField coverImageField;
+    private CheckBox initialsCheckBox;
     private Button coverImageBrowseButton;
     
     // Template-Felder
@@ -149,6 +162,11 @@ public class PandocExportWindow extends CustomStage {
         coverImageBrowseButton.setOnAction(e -> browseCoverImage());
         coverImageBox.getChildren().addAll(coverImageLabel, coverImageField, coverImageBrowseButton);
         
+        // Initialen-Checkbox (nur für DOCX) - separater Bereich
+        initialsCheckBox = new CheckBox("Initialen hinzufügen");
+        initialsCheckBox.setSelected(true); // Standardmäßig aktiviert
+        initialsCheckBox.setTooltip(new Tooltip("Fügt Initialen zu den ersten Absätzen nach Headern hinzu"));
+        
         // Metadata Section
         VBox metadataBox = createMetadataSection();
         
@@ -175,6 +193,7 @@ public class PandocExportWindow extends CustomStage {
             templateBox,
             templateDescription,
             coverImageBox,
+            initialsCheckBox,
             new Separator(),
             metadataBox,
             new Separator(),
@@ -633,13 +652,6 @@ public class PandocExportWindow extends CustomStage {
             }
             
             
-            // YAML-Datei-Inhalt für Debug ausgeben
-            try {
-                String content = Files.readString(yamlFile.toPath());
-                logger.debug("YAML-Inhalt:\n{}", content);
-            } catch (IOException e) {
-                logger.warn("Konnte YAML-Inhalt nicht lesen: {}", e.getMessage());
-            }
             
             return yamlFile;
             
@@ -713,28 +725,13 @@ public class PandocExportWindow extends CustomStage {
                 }
                 
                 writer.println("---");
-                writer.println(); // Leerzeile nach YAML
                 
                 // Original Markdown-Inhalt hinzufügen
                 String originalContent = Files.readString(inputMarkdownFile.toPath());
+                // Schreibe den Inhalt direkt, ohne zusätzliche Zeilenumbrüche
                 writer.print(originalContent);
             }
             
-            // Debug-Ausgabe - zeige das komplette YAML-Frontmatter
-            try {
-                String content = Files.readString(tempMarkdownFile.toPath());
-                // Finde das Ende des YAML-Frontmatters
-                int yamlEnd = content.indexOf("---", 3); // Zweites "---" finden
-                if (yamlEnd > 0) {
-                    String yamlPart = content.substring(0, yamlEnd + 3);
-                    logger.info("YAML-Frontmatter:\n{}", yamlPart);
-                } else {
-                    logger.warn("YAML-Frontmatter nicht gefunden! Erste 1000 Zeichen:\n{}", 
-                        content.substring(0, Math.min(1000, content.length())));
-                }
-            } catch (IOException e) {
-                logger.warn("Konnte Markdown-Inhalt nicht lesen: {}", e.getMessage());
-            }
             
             return tempMarkdownFile;
             
@@ -796,7 +793,6 @@ public class PandocExportWindow extends CustomStage {
             // Nur schreiben wenn sich etwas geändert hat
             if (!content.equals(originalContent)) {
                 Files.write(markdownFile.toPath(), content.getBytes(StandardCharsets.UTF_8));
-                logger.debug("HTML-Tags in Markdown-Datei ersetzt für Format: {}", format);
             }
         } catch (IOException e) {
             logger.error("Fehler beim Ersetzen von HTML-Tags: {}", e.getMessage());
@@ -888,12 +884,36 @@ public class PandocExportWindow extends CustomStage {
                     }
                 }
             } else if ("docx".equals(format)) {
-                // DOCX-spezifische Optionen für bessere Titelei
-                if (templateFile != null) {
-                    command.add("--reference-doc=\"" + templateFile.getAbsolutePath() + "\"");
-                }
+            // DOCX-spezifische Optionen für bessere Titelei
+            // Reference-DOC temporär deaktiviert, da es Probleme verursacht
+            // if (templateFile != null) {
+                command.add("--reference-doc=\"" + templateFile.getAbsolutePath() + "\"");
+            // }
                 command.add("--highlight-style=tango");
                 command.add("--reference-links");
+                
+                // Cover-Bild für DOCX hinzufügen (falls vorhanden)
+                if (!coverImageField.getText().trim().isEmpty()) {
+                    File coverImageFile = new File(coverImageField.getText().trim());
+                    if (coverImageFile.exists()) {
+                        try {
+                            // Cover-Bild ins pandoc-Verzeichnis kopieren
+                            String coverFileName = "cover." + getFileExtension(coverImageFile.getName());
+                            File pandocDir = new File("pandoc-3.8.1");
+                            File targetCover = new File(pandocDir, coverFileName);
+                            Files.copy(coverImageFile.toPath(), targetCover.toPath(),
+                                java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                            
+                        // Cover-Bild wird im Post-Processing hinzugefügt, nicht über Pandoc
+                            
+                        } catch (IOException e) {
+                            logger.error("Fehler beim Kopieren des Cover-Bildes für DOCX", e);
+                        }
+                    }
+                }
+                
+                // Post-Processing für DOCX: Abstract-Titel ersetzen
+                // Das wird nach dem Pandoc-Export durchgeführt
             } else if ("html5".equals(format)) {
                 // HTML5-spezifische Optionen
                 command.add("--toc"); // Inhaltsverzeichnis für HTML
@@ -935,10 +955,15 @@ public class PandocExportWindow extends CustomStage {
                             File targetCover = new File(htmlDir, coverFileName);
                             Files.copy(coverImageFile.toPath(), targetCover.toPath(),
                                 java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                            
+                            // Cover-Bild als Pandoc-Variable übergeben (relativer Pfad für HTML)
+                            command.add("--variable=cover-image:" + targetCover.getName());
 
                         } catch (IOException e) {
                             logger.error("Fehler beim Kopieren des Cover-Bildes für HTML", e);
                         }
+                    } else {
+                        logger.warn("Cover-Bild existiert nicht: {}", coverImageFile.getAbsolutePath());
                     }
                 }
             } else if ("pdf".equals(format)) {
@@ -963,6 +988,27 @@ public class PandocExportWindow extends CustomStage {
                 command.add("--variable=fontsize:12pt");
                 command.add("--variable=documentclass:article");
                 command.add("--variable=linestretch:1.2");
+                
+                // Cover-Bild für PDF hinzufügen (falls vorhanden)
+                if (!coverImageField.getText().trim().isEmpty()) {
+                    File coverImageFile = new File(coverImageField.getText().trim());
+                    if (coverImageFile.exists()) {
+                        try {
+                            // Cover-Bild ins pandoc-Verzeichnis kopieren
+                            String coverFileName = "cover." + getFileExtension(coverImageFile.getName());
+                            File pandocDir = new File("pandoc-3.8.1");
+                            File targetCover = new File(pandocDir, coverFileName);
+                            Files.copy(coverImageFile.toPath(), targetCover.toPath(),
+                                java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                            
+                            // Cover-Bild als LaTeX-Variable übergeben
+                            command.add("--variable=cover-image:" + targetCover.getName());
+                            
+                        } catch (IOException e) {
+                            logger.error("Fehler beim Kopieren des Cover-Bildes für PDF", e);
+                        }
+                    }
+                }
                 
                 // XeLaTeX-spezifische Engine-Optionen
                 command.add("--pdf-engine-opt=-shell-escape");
@@ -991,7 +1037,6 @@ public class PandocExportWindow extends CustomStage {
             if (fileToCheck.exists()) {
                 try {
                     Files.delete(fileToCheck.toPath());
-                    logger.debug("Bestehende Ausgabedatei gelöscht: {}", fileToCheck.getName());
                 } catch (IOException e) {
                     logger.warn("Konnte bestehende Ausgabedatei nicht löschen: {}", e.getMessage());
                 }
@@ -1052,11 +1097,6 @@ public class PandocExportWindow extends CustomStage {
                 logger.warn("Threads für pandoc-Output konnten nicht beendet werden");
             }
 
-            // Debug-Ausgabe der pandoc-Befehle und -Ausgabe
-            logger.debug("Pandoc-Befehl: {}", String.join(" ", command));
-            if (output.length() > 0) {
-                logger.debug("Pandoc-Output:\n{}", output.toString());
-            }
             if (error.length() > 0) {
                 logger.error("Pandoc-Error:\n{}", error.toString());
             }
@@ -1066,7 +1106,13 @@ public class PandocExportWindow extends CustomStage {
                 new File(finalOutputPath) : outputFile;
 
             if (resultFile.exists() && resultFile.length() > 0) {
-                logger.info("PDF erfolgreich erstellt: {}", resultFile.getAbsolutePath());
+                logger.info("Export erfolgreich erstellt: {}", resultFile.getAbsolutePath());
+                
+                // Post-Processing für DOCX: Abstract-Titel ersetzen und Cover-Bild hinzufügen
+                if ("docx".equals(format)) {
+                    postProcessDocx(resultFile);
+                }
+                
                 return true;
             } else {
                 logger.error("Pandoc-Export fehlgeschlagen - Datei nicht erstellt (Exit-Code: {})", exitCode);
@@ -1264,6 +1310,16 @@ public class PandocExportWindow extends CustomStage {
         boolean showCover = format.equals("epub3") || format.equals("html5");
         coverImageBox.setVisible(showCover);
         coverImageBox.setManaged(showCover);
+        
+        // Initialen-Checkbox nur für DOCX anzeigen
+        updateInitialsVisibility();
+    }
+    
+    private void updateInitialsVisibility() {
+        String format = formatComboBox.getValue();
+        boolean showInitials = "docx".equals(format);
+        initialsCheckBox.setVisible(showInitials);
+        initialsCheckBox.setManaged(showInitials);
     }
     
     private void browseCoverImage() {
@@ -1360,6 +1416,107 @@ public class PandocExportWindow extends CustomStage {
                       margin: 2em auto;
                       box-shadow: 0 4px 8px rgba(0,0,0,0.1);
                     }
+                    
+                    /* Schöne Tabellen-Styles */
+                    table {
+                      border-collapse: collapse;
+                      width: auto;
+                      margin: 1em 0;
+                      font-family: Arial, sans-serif;
+                      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                      max-width: 80%;
+                    }
+                    
+                    th, td {
+                      border: 1px solid #ddd;
+                      padding: 12px;
+                      text-align: left;
+                    }
+                    
+                    th {
+                      background-color: #f8f9fa;
+                      font-weight: bold;
+                      color: #333;
+                    }
+                    
+                    tr:nth-child(even) {
+                      background-color: #f8f9fa;
+                    }
+                    
+                    tr:hover {
+                      background-color: #e9ecef;
+                    }
+                    
+                    /* Responsive Tabellen */
+                    @media (max-width: 768px) {
+                      table {
+                        font-size: 14px;
+                      }
+                      th, td {
+                        padding: 8px;
+                      }
+                    }
+                    
+                    /* Titelseite Styles */
+                    .title-page {
+                      text-align: center;
+                      margin: 4em 0;
+                      padding: 2em;
+                      border-bottom: 2px solid #ddd;
+                    }
+                    
+                    .title {
+                      font-size: 2.5em;
+                      font-weight: bold;
+                      color: #333;
+                      margin-bottom: 0.5em;
+                      line-height: 1.2;
+                    }
+                    
+                    .subtitle {
+                      font-size: 1.5em;
+                      color: #666;
+                      margin-bottom: 1em;
+                      font-style: italic;
+                    }
+                    
+                    .author {
+                      font-size: 1.2em;
+                      color: #555;
+                      margin-bottom: 0.5em;
+                      text-align: center;
+                    }
+                    
+                    .date {
+                      font-size: 1em;
+                      color: #777;
+                      margin-bottom: 0;
+                      text-align: center;
+                    }
+                    
+                    .abstract {
+                      margin-top: 2em;
+                      padding: 1.5em;
+                      background-color: #f8f9fa;
+                      border-left: 4px solid #007bff;
+                      text-align: left;
+                      max-width: 600px;
+                      margin-left: auto;
+                      margin-right: auto;
+                    }
+                    
+                    .abstract h3 {
+                      margin-top: 0;
+                      margin-bottom: 1em;
+                      color: #333;
+                      font-size: 1.2em;
+                    }
+                    
+                    .abstract p {
+                      margin: 0;
+                      line-height: 1.6;
+                      color: #555;
+                    }
                   </style>
                 </head>
                 <body>
@@ -1368,6 +1525,29 @@ public class PandocExportWindow extends CustomStage {
                     <img src="$cover-image$" alt="Cover" class="cover-image" />
                   </div>
                   $endif$
+                  
+                  <!-- Titelseite -->
+                  <div class="title-page">
+                    $if(title)$
+                    <h1 class="title">$title$</h1>
+                    $endif$
+                    $if(subtitle)$
+                    <h2 class="subtitle">$subtitle$</h2>
+                    $endif$
+                    $if(author)$
+                    <p class="author">$for(author)$$author$$sep$, $endfor$</p>
+                    $endif$
+                    $if(date)$
+                    <p class="date">$date$</p>
+                    $endif$
+                    $if(abstract)$
+                    <div class="abstract">
+                      <h3>Zusammenfassung</h3>
+                      <p>$abstract$</p>
+                    </div>
+                    $endif$
+                  </div>
+                  
                   $body$
                 </body>
                 </html>
@@ -1409,5 +1589,295 @@ public class PandocExportWindow extends CustomStage {
                 HelpSystem.showHelpWindow("pdf_export_failed.html");
             }
         });
+    }
+    
+    /**
+     * Post-Processing für DOCX: Ersetzt "Abstract" durch "Zusammenfassung" und fügt Cover-Bild hinzu
+     */
+    private void postProcessDocx(File docxFile) {
+        try {
+            logger.info("Post-Processing für DOCX: {}", docxFile.getName());
+            
+            // DOCX mit Apache POI öffnen und bearbeiten
+            try (FileInputStream fis = new FileInputStream(docxFile);
+                 XWPFDocument document = new XWPFDocument(fis)) {
+                
+                // ZUERST: "Abstract" durch "Zusammenfassung" ersetzen
+                for (XWPFParagraph paragraph : document.getParagraphs()) {
+                    for (XWPFRun run : paragraph.getRuns()) {
+                        String text = run.getText(0);
+                        if (text != null && text.contains("Abstract")) {
+                            String newText = text.replace("Abstract", "Zusammenfassung");
+                            run.setText(newText, 0);
+                        }
+                    }
+                }
+                
+                // Alle Tabellen durchgehen
+                for (XWPFTable table : document.getTables()) {
+                    for (XWPFTableRow row : table.getRows()) {
+                        for (XWPFTableCell cell : row.getTableCells()) {
+                            for (XWPFParagraph paragraph : cell.getParagraphs()) {
+                                for (XWPFRun run : paragraph.getRuns()) {
+                                    String text = run.getText(0);
+                                    if (text != null && text.contains("Abstract")) {
+                                        String newText = text.replace("Abstract", "Zusammenfassung");
+                                        run.setText(newText, 0);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                // DANN: Initialen für "First Paragraph" Absätze hinzufügen (nur wenn aktiviert)
+                if (initialsCheckBox != null && initialsCheckBox.isSelected()) {
+                    logger.debug("Initialen-Checkbox ist aktiviert - füge Initialen hinzu");
+                    addInitialsToFirstParagraphs(document);
+                } else {
+                    logger.debug("Initialen-Checkbox ist deaktiviert - überspringe Initialen");
+                }
+                
+                // DANN: Cover-Bild hinzufügen (falls vorhanden)
+                if (!coverImageField.getText().trim().isEmpty()) {
+                    File coverImageFile = new File(coverImageField.getText().trim());
+                    if (coverImageFile.exists()) {
+                        try {
+                            // Cover-Bild am Anfang einfügen (ohne Dokument neu aufzubauen)
+                            // Cursor an den Anfang des Dokuments setzen
+                            org.apache.xmlbeans.XmlCursor cursor = document.getDocument().getBody().newCursor();
+                            cursor.toFirstChild();
+                            
+                            // Neuen Absatz am Anfang einfügen
+                            XWPFParagraph coverParagraph = document.insertNewParagraph(cursor);
+                            coverParagraph.setAlignment(ParagraphAlignment.CENTER);
+                            
+                            XWPFRun coverRun = coverParagraph.createRun();
+                            
+                            // Bildtyp basierend auf Dateiendung bestimmen
+                            int pictureType = XWPFDocument.PICTURE_TYPE_PNG;
+                            String fileName = coverImageFile.getName().toLowerCase();
+                            if (fileName.endsWith(".jpg") || fileName.endsWith(".jpeg")) {
+                                pictureType = XWPFDocument.PICTURE_TYPE_JPEG;
+                            } else if (fileName.endsWith(".gif")) {
+                                pictureType = XWPFDocument.PICTURE_TYPE_GIF;
+                            }
+                            
+                            // Bild einfügen - bessere Proportionen (nicht gequetscht)
+                            coverRun.addPicture(
+                                new FileInputStream(coverImageFile),
+                                pictureType,
+                                coverImageFile.getName(),
+                                Units.toEMU(400), // Breite - nicht zu schmal
+                                Units.toEMU(600)  // Höhe - höher für bessere Proportionen
+                            );
+                            
+                            // Seitenumbruch NUR nach dem Cover-Bild (ohne Kapitel-Formatierung zu beeinträchtigen)
+                            coverRun.addBreak();
+                            coverRun.addBreak(); // Zusätzlicher Umbruch für Seitenumbruch
+                            
+                            // Leerzeile nach Cover-Bild
+                            XWPFParagraph spacerParagraph = document.insertNewParagraph(cursor);
+                            spacerParagraph.createRun().addBreak();
+                            
+                            // Cursor schließen
+                            cursor.dispose();
+                            
+                            logger.info("Cover-Bild in DOCX eingefügt: {}", coverImageFile.getName());
+                            
+                        } catch (Exception e) {
+                            logger.warn("Fehler beim Einfügen des Cover-Bildes: {}", e.getMessage());
+                        }
+                    }
+                }
+                
+                // Dokument speichern
+                try (FileOutputStream fos = new FileOutputStream(docxFile)) {
+                    document.write(fos);
+                }
+            }
+            
+            logger.info("DOCX Post-Processing abgeschlossen - 'Abstract' durch 'Zusammenfassung' ersetzt und Cover-Bild hinzugefügt");
+            
+        } catch (Exception e) {
+            logger.warn("DOCX Post-Processing fehlgeschlagen: {}", e.getMessage());
+        }
+    }
+    
+    /**
+     * Fügt Initialen (Drop Caps) zu Absätzen mit "First Paragraph" Format hinzu
+     */
+    private void addInitialsToFirstParagraphs(XWPFDocument document) {
+        try {
+            logger.info("Suche nach Headern in DOCX und füge Initialen zu den ersten Absätzen hinzu...");
+            
+            int processedCount = 0;
+            boolean foundHeader = false;
+            boolean isFirstHeader = true; // Flag für den ersten Header (Titel)
+            
+            // Alle Absätze durchgehen
+            for (XWPFParagraph paragraph : document.getParagraphs()) {
+                String text = paragraph.getText();
+                if (text != null && !text.trim().isEmpty()) {
+                    String firstLine = text.split("\n")[0].trim();
+                    
+                    // Prüfe ob es ein Header ist (Word-Formatierung)
+                    // Header haben meist Heading-Styles oder sind fett formatiert
+                    boolean isHeader = false;
+                    
+                    // Prüfe auf Heading-Style
+                    String styleName = paragraph.getStyle();
+                    if (styleName != null && (styleName.contains("Heading") || styleName.contains("Title"))) {
+                        isHeader = true;
+                    }
+                    
+                    // Prüfe auf fett formatierte kurze Zeilen (wahrscheinlich Header)
+                    if (!isHeader && firstLine.length() < 100) {
+                        for (XWPFRun run : paragraph.getRuns()) {
+                            if (run.isBold() && run.getText(0) != null && !run.getText(0).trim().isEmpty()) {
+                                isHeader = true;
+                                break;
+                            }
+                        }
+                    }
+                    
+                    if (isHeader) {
+                        if (isFirstHeader) {
+                            logger.info("Erster Header (Titel) gefunden - überspringe: '{}' (Style: {})", firstLine, styleName);
+                            isFirstHeader = false; // Nach dem ersten Header sind alle anderen gültig
+                        } else {
+                            foundHeader = true;
+                            logger.info("Header gefunden: '{}' (Style: {})", firstLine, styleName);
+                        }
+                        continue; // Überspringe den Header selbst
+                    }
+                    
+                    // Wenn wir nach einem Header sind, prüfe auf den ersten Absatz
+                    if (foundHeader) {
+                        // Einfache Prüfung: Ist es ein normaler Absatz
+                        if (firstLine.length() > 20) {
+                            logger.info("Erster Absatz nach Header gefunden - füge Initialen hinzu: '{}'", firstLine.substring(0, Math.min(50, firstLine.length())));
+                            addInitialsToParagraph(paragraph);
+                            processedCount++;
+                            foundHeader = false; // Nur den ersten Absatz nach Header
+                        }
+                    }
+                }
+            }
+            
+            logger.info("Initialen-Verarbeitung abgeschlossen - {} Absätze bearbeitet", processedCount);
+            
+        } catch (Exception e) {
+            logger.warn("Fehler beim Hinzufügen von Initialen: {}", e.getMessage());
+        }
+    }
+    
+    /**
+     * Prüft ob ein Absatz ein guter Kandidat für Initialen ist
+     */
+    private boolean isGoodInitialsCandidate(XWPFParagraph paragraph) {
+        try {
+            String text = paragraph.getText();
+            if (text == null || text.trim().isEmpty()) {
+                return false;
+            }
+            
+            // Erste Zeile des Absatzes
+            String firstLine = text.split("\n")[0].trim();
+            if (firstLine.length() < 10) {
+                return false; // Zu kurz für Initialen
+            }
+            
+            // Einfache Kriterien für Initialen-Kandidaten:
+            // 1. Beginnt mit Großbuchstaben
+            // 2. Ist nicht eine Liste oder spezielle Formatierung
+            // 3. Ist lang genug für einen echten Absatz
+            if (Character.isUpperCase(firstLine.charAt(0))) {
+                if (!firstLine.startsWith("*") &&
+                    !firstLine.startsWith("-") &&
+                    !firstLine.startsWith(">") &&
+                    !firstLine.startsWith("|") &&
+                    !firstLine.matches("^\\d+\\.") &&
+                    firstLine.length() > 20) { // Mindestens 20 Zeichen für bessere Erkennung
+                    
+                    logger.debug("Guter Initialen-Kandidat: '{}'", firstLine.substring(0, Math.min(40, firstLine.length())));
+                    return true;
+                }
+            }
+            
+            return false;
+        } catch (Exception e) {
+            logger.debug("Fehler beim Prüfen des Absatzes: {}", e.getMessage());
+            return false;
+        }
+    }
+    
+    /**
+     * Fügt Initialen zu einem Absatz hinzu
+     */
+    private void addInitialsToParagraph(XWPFParagraph paragraph) {
+        try {
+            String text = paragraph.getText();
+            if (text == null || text.trim().isEmpty()) {
+                logger.debug("Absatz ist leer - überspringe Initialen");
+                return;
+            }
+            
+            // Erste Zeile des Absatzes
+            String firstLine = text.split("\n")[0].trim();
+            if (firstLine.length() == 0) {
+                logger.debug("Erste Zeile ist leer - überspringe Initialen");
+                return;
+            }
+            
+            logger.debug("Verarbeite Absatz für Initialen: '{}'", firstLine.substring(0, Math.min(30, firstLine.length())));
+            
+            // Ersten Buchstaben extrahieren
+            char firstChar = firstLine.charAt(0);
+            String restOfText = firstLine.substring(1);
+            
+            // Bestehende Runs löschen - sicherere Methode
+            try {
+                // Alle bestehenden Runs durchgehen und Text löschen
+                for (XWPFRun run : paragraph.getRuns()) {
+                    run.setText("", 0);
+                }
+            } catch (Exception e) {
+                logger.debug("Fehler beim Löschen bestehender Runs: {}", e.getMessage());
+            }
+            
+            // Initiale (großer Buchstabe) erstellen
+            XWPFRun initialRun = paragraph.createRun();
+            if (initialRun != null) {
+                initialRun.setText(String.valueOf(firstChar));
+                initialRun.setFontSize(48); // Größere Schrift für bessere Sichtbarkeit
+                initialRun.setBold(true);
+                initialRun.setColor("000000"); // Schwarz für maximale Sichtbarkeit
+                initialRun.setFontFamily("Times New Roman"); // Serifenschrift für Initiale
+                initialRun.setItalic(false);
+            }
+            
+            // Rest des Textes
+            if (!restOfText.isEmpty()) {
+                XWPFRun restRun = paragraph.createRun();
+                if (restRun != null) {
+                    restRun.setText(restOfText);
+                    restRun.setFontSize(12); // Normale Schriftgröße
+                    restRun.setFontFamily("Times New Roman");
+                }
+            }
+            
+            // Absatz-Formatierung für Initialen
+            paragraph.setSpacingAfter(200); // Abstand nach dem Absatz
+            paragraph.setSpacingBefore(0);
+            
+            logger.info("Initialen erfolgreich hinzugefügt für Absatz: '{}'", firstLine.substring(0, Math.min(50, firstLine.length())));
+            
+        } catch (Exception e) {
+            logger.warn("Fehler beim Hinzufügen von Initialen zu Absatz: {}", e.getMessage());
+            if (e.getCause() != null) {
+                logger.warn("Ursache: {}", e.getCause().getMessage());
+            }
+        }
     }
 }
