@@ -136,28 +136,11 @@
          </padding>
       </VBox>
       
-      <!-- SplitPane für Chapter-Editor und Haupt-Editor -->
-      <SplitPane fx:id="mainSplitPane" dividerPositions="0.05" visible="true" managed="true" VBox.vgrow="ALWAYS" orientation="VERTICAL">
-         <VBox fx:id="chapterEditorPanel" styleClass="chapter-editor-panel" minHeight="30" prefHeight="30">
-            <children>
-               <HBox spacing="5" styleClass="chapter-editor-header" style="-fx-min-height: 30px;">
-                  <children>
-                     <Label text="✏ Chapter-Beschreibung" styleClass="chapter-editor-title" />
-                     <Region HBox.hgrow="ALWAYS" style="-fx-background-color: transparent;" />
-                     <Button fx:id="btnSaveChapter" text="💾 Speichern" styleClass="button" style="-fx-min-width: 120px; -fx-max-width: 120px;" />
-                  </children>
-                  <padding>
-                     <Insets top="5.0" bottom="5.0" left="10.0" right="10.0" />
-                  </padding>
-               </HBox>
-               <TextArea fx:id="chapterEditorArea" promptText="Kapitelbeschreibung und Szenen hier eingeben..." wrapText="true" VBox.vgrow="ALWAYS" visible="false" managed="false" styleClass="chapter-editor-text-area" />
-            </children>
-            <padding>
-               <Insets top="5.0" bottom="5.0" left="5.0" right="5.0" />
-            </padding>
-         </VBox>
-         
-         <VBox fx:id="textAreaContainer" minHeight="200" VBox.vgrow="ALWAYS" />
-      </SplitPane>
+      <!-- Haupt-Editor (ohne Split Pane) -->
+      <VBox fx:id="textAreaContainer" minHeight="200" VBox.vgrow="ALWAYS">
+         <padding>
+            <Insets top="5.0" bottom="5.0" left="5.0" right="5.0" />
+         </padding>
+      </VBox>
    </children>
 </VBox>

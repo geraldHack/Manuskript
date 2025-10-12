@@ -83,6 +83,7 @@ import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import com.manuskript.DocxSplitProcessor;
 import com.manuskript.DocxSplitProcessor.Chapter;
 import com.manuskript.RtfSplitProcessor;
@@ -364,6 +365,18 @@ public class MainController implements Initializable {
         colFileSizeSelected.setPrefWidth(120);
         colLastModifiedSelected.setPrefWidth(180);
         
+        // Sortierung für rechte Tabelle deaktivieren
+        tableViewSelected.setSortPolicy(null);
+        colFileNameSelected.setSortable(false);
+        colFileSizeSelected.setSortable(false);
+        colLastModifiedSelected.setSortable(false);
+        
+        // Selektion sichtbar halten auch ohne Focus
+        tableViewSelected.setFocusTraversable(false);
+        
+        // CSS für sichtbare Selektion auch ohne Focus - explizit für rechte Tabelle
+        tableViewSelected.setStyle("-fx-border-color: #ba68c8; -fx-selection-bar: #ba68c8; -fx-selection-bar-non-focused: #ba68c8; -fx-selection-bar-non-focused: #ba68c8; -fx-selection-bar-non-focused: #ba68c8;");
+        
         // Sortierung und Format-Auswahl entfernt - einfache Lösung
         
         // Mehrfachauswahl aktivieren
@@ -381,8 +394,8 @@ public class MainController implements Initializable {
         // Sortierung über TableView-Header (Standard-JavaFX)
         
         // TableViews nur Border stylen - Hintergrund über CSS
-        tableViewAvailable.setStyle("-fx-border-color: #ba68c8;");
-        tableViewSelected.setStyle("-fx-border-color: #ba68c8;");
+        tableViewAvailable.setStyle("-fx-border-color: #ba68c8; -fx-selection-bar: #ba68c8; -fx-selection-bar-non-focused: #ba68c8;");
+        tableViewSelected.setStyle("-fx-border-color: #ba68c8; -fx-selection-bar: #ba68c8; -fx-selection-bar-non-focused: #ba68c8;");
         
         // Status initialisieren
         updateStatus("Bereit - Wählen Sie ein Verzeichnis aus");
@@ -570,6 +583,11 @@ public class MainController implements Initializable {
             event.consume();
         });
         
+        // Mouse-Click-Handler für sofortige Selektion
+        tableViewSelected.setOnMouseClicked(event -> {
+            tableViewSelected.refresh();
+        });
+        
         // Doppelklick für schnelle Umsortierung
         // Tastatur-Pfeiltasten für interne Umsortierung (mit Modifier-Tasten)
         tableViewSelected.setOnKeyPressed(event -> {
@@ -588,6 +606,7 @@ public class MainController implements Initializable {
                                 selectedDocxFiles.set(currentIndex - 1, fileToMove);
                                 selectedDocxFiles.set(currentIndex, previousFile);
                                 tableViewSelected.getSelectionModel().select(fileToMove);
+                                tableViewSelected.refresh();
                                 updateStatus("Datei nach oben verschoben (Strg+↑)");
                                 
                                 // WICHTIG: Reihenfolge speichern
@@ -606,6 +625,7 @@ public class MainController implements Initializable {
                                 selectedDocxFiles.set(currentIndex + 1, fileToMove);
                                 selectedDocxFiles.set(currentIndex, nextFile);
                                 tableViewSelected.getSelectionModel().select(fileToMove);
+                                tableViewSelected.refresh();
                                 updateStatus("Datei nach unten verschoben (Strg+↓)");
                                 
                                 // WICHTIG: Reihenfolge speichern
@@ -975,7 +995,7 @@ public class MainController implements Initializable {
             
             // Projekt neu laden
             if (importedCount > 0) {
-                loadDocxFiles(projectDirectory);
+                // WICHTIG: Keine loadDocxFiles() hier - das verursacht Endlosschleifen!
                 updateStatus("Sudowrite-Import abgeschlossen: " + importedCount + " Dateien importiert");
                 
                 // Benutzer benachrichtigen
@@ -1011,6 +1031,10 @@ public class MainController implements Initializable {
                     .map(java.nio.file.Path::toFile)
                     .collect(Collectors.toSet()); // Set statt List für keine Duplikate
             
+            // Debug: Alle gefundenen DOCX-Dateien ausgeben
+            logger.info("Gefundene DOCX-Dateien in {}: {}", directory.getAbsolutePath(), 
+                fileSet.stream().map(File::getName).collect(Collectors.toList()));
+            
             List<File> files = new ArrayList<>(fileSet);
             
             
@@ -1034,6 +1058,12 @@ public class MainController implements Initializable {
                 File mdFile = deriveMdFileFor(docxFile.getFile());
                 boolean hasMdFile = mdFile != null && mdFile.exists();
                 
+                // Debug: MD-Datei-Status für jede Datei
+                logger.info("Datei: {} - MD-Datei: {} - Existiert: {}", 
+                    docxFile.getFileName(), 
+                    mdFile != null ? mdFile.getAbsolutePath() : "null", 
+                    hasMdFile);
+                
                 if (hasMdFile) {
                     // Datei hat MD-Datei → nach rechts
                     selectedDocxFiles.add(docxFile);
@@ -1046,11 +1076,28 @@ public class MainController implements Initializable {
             
             // Debug: Alle Dateien in allDocxFiles auflisten
             
-            // NEU: Hash-basierte Änderungsprüfung für alle geladenen Dateien
+            // WICHTIG: Hash-basierte Änderungsprüfung für alle geladenen Dateien
             checkAllDocxFilesForChanges();
             
             // WICHTIG: Gespeicherte Reihenfolge laden (falls vorhanden)
             loadSavedOrder(directory);
+            
+            // WICHTIG: Alle Dateien mit MD-Dateien in die rechte Tabelle laden (auch neue)
+            for (DocxFile docxFile : originalDocxFiles) {
+                File mdFile = deriveMdFileFor(docxFile.getFile());
+                boolean hasMdFile = mdFile != null && mdFile.exists();
+                
+                if (hasMdFile && !selectedDocxFiles.contains(docxFile)) {
+                    selectedDocxFiles.add(docxFile);
+                    logger.info("Neue Datei mit MD-Datei hinzugefügt: {}", docxFile.getFileName());
+                }
+            }
+            
+            // Debug: Finale Listen nach loadSavedOrder
+            logger.info("Nach loadSavedOrder - Links: {} Dateien, Rechts: {} Dateien", 
+                allDocxFiles.size(), selectedDocxFiles.size());
+            logger.info("Rechte Tabelle Dateien: {}", 
+                selectedDocxFiles.stream().map(DocxFile::getFileName).collect(Collectors.toList()));
             
             // Status aktualisieren
             updateStatus(allDocxFiles.size() + " Dateien links, " + selectedDocxFiles.size() + " Dateien rechts");
@@ -1310,13 +1357,17 @@ public class MainController implements Initializable {
         }
     }
     
-    private void checkAllDocxFilesForChanges() {
+    public void checkAllDocxFilesForChanges() {
         try {
             
             // Prüfe alle Dateien in beiden Listen
             List<DocxFile> allFiles = new ArrayList<>();
             allFiles.addAll(allDocxFiles);
             allFiles.addAll(selectedDocxFiles);
+            
+            // Entferne gelöschte DOCX-Dateien aus beiden Listen
+            allDocxFiles.removeIf(docxFile -> !docxFile.getFile().exists());
+            selectedDocxFiles.removeIf(docxFile -> !docxFile.getFile().exists());
             
             for (DocxFile docxFile : allFiles) {
                 String currentHash = calculateFileHash(docxFile.getFile());
@@ -1325,7 +1376,7 @@ public class MainController implements Initializable {
                 if (currentHash != null && savedHash != null && !currentHash.equals(savedHash)) {
                     // Datei wurde geändert!
                     docxFile.setChanged(true);
-                    // NICHT den neuen Hash speichern - behalte den alten für Vergleich
+                    // Hash NICHT automatisch aktualisieren - nur manuell beim Speichern
                 } else if (currentHash != null && savedHash == null) {
                     // Neue Datei - noch nie verarbeitet
                     docxFile.setChanged(true);
@@ -3130,7 +3181,100 @@ public class MainController implements Initializable {
     private EditorWindow openChapterEditorWindow(String text, DocxFile chapterFile, DocxProcessor.OutputFormat format) {
         try {
             
-
+            // WICHTIG: Prüfe ob Editor bereits geöffnet ist
+            String chapterName = chapterFile.getFileName();
+            if (chapterName.toLowerCase().endsWith(".docx")) {
+                chapterName = chapterName.substring(0, chapterName.length() - 5);
+            }
+            String editorKey = chapterName + ".md";
+            EditorWindow existingEditor = openEditors.get(editorKey);
+            
+            if (existingEditor != null) {
+                // Editor bereits geöffnet - prüfe auf ungespeicherte Änderungen
+                if (existingEditor.hasUnsavedChanges()) {
+                    // Dialog: Was tun mit ungespeicherten Änderungen?
+                    CustomAlert editorDialog = new CustomAlert(Alert.AlertType.CONFIRMATION, "Editor bereits geöffnet");
+                    editorDialog.setHeaderText("Der Editor für '" + chapterFile.getFileName() + "' ist bereits geöffnet.");
+                    editorDialog.setContentText("Es gibt ungespeicherte Änderungen. Was möchten Sie tun?");
+                    
+                    ButtonType btnSaveAndReopen = new ButtonType("Speichern und neu öffnen");
+                    ButtonType btnDiscardAndReopen = new ButtonType("Verwerfen und neu öffnen");
+                    ButtonType btnJustFocus = new ButtonType("Nur fokussieren");
+                    ButtonType btnCancel = new ButtonType("Abbrechen", ButtonBar.ButtonData.CANCEL_CLOSE);
+                    
+                    editorDialog.setButtonTypes(btnSaveAndReopen, btnDiscardAndReopen, btnJustFocus, btnCancel);
+                    
+                    // Theme anwenden
+                    editorDialog.applyTheme(currentThemeIndex);
+                    editorDialog.initOwner(primaryStage);
+                    
+                    Optional<ButtonType> result = editorDialog.showAndWait();
+                    
+                    if (result.isPresent()) {
+                        switch (result.get().getText()) {
+                            case "Speichern und neu öffnen":
+                                // Speichern und dann neu öffnen
+                                existingEditor.saveFile();
+                                // Editor schließen und neu öffnen
+                                existingEditor.closeWindow();
+                                openEditors.remove(editorKey);
+                                // WICHTIG: Neuen Editor mit gespeichertem Inhalt öffnen
+                                // Lade den gespeicherten Inhalt aus der MD-Datei
+                                try {
+                                    File mdFile = deriveMdFileFor(chapterFile.getFile());
+                                    if (mdFile != null && mdFile.exists()) {
+                                        String savedContent = new String(java.nio.file.Files.readAllBytes(mdFile.toPath()), java.nio.charset.StandardCharsets.UTF_8);
+                                        return openChapterEditorWindow(savedContent, chapterFile, format);
+                                    }
+                                } catch (Exception e) {
+                                    logger.error("Fehler beim Laden des gespeicherten Inhalts: {}", e.getMessage());
+                                }
+                                // Fallback: Neuen Editor mit ursprünglichem Inhalt
+                                return openChapterEditorWindow(text, chapterFile, format);
+                            case "Verwerfen und neu öffnen":
+                                // Editor schließen ohne zu speichern
+                                existingEditor.closeWindow();
+                                openEditors.remove(editorKey);
+                                break;
+                            case "Nur fokussieren":
+                                // Bestehenden Editor in den Vordergrund bringen
+                                Platform.runLater(() -> {
+                                    for (Window window : Window.getWindows()) {
+                                        if (window instanceof CustomStage && window.isShowing()) {
+                                            CustomStage customStage = (CustomStage) window;
+                                            if (customStage.getTitle().contains(chapterFile.getFileName())) {
+                                                customStage.toFront();
+                                                customStage.requestFocus();
+                                                break;
+                                            }
+                                        }
+                                    }
+                                });
+                                return existingEditor; // Bestehenden Editor zurückgeben
+                            case "Abbrechen":
+                            default:
+                                return existingEditor; // Bestehenden Editor zurückgeben
+                        }
+                    } else {
+                        return existingEditor; // Bestehenden Editor zurückgeben
+                    }
+                } else {
+                    // Keine ungespeicherten Änderungen - Editor in den Vordergrund bringen
+                    Platform.runLater(() -> {
+                        for (Window window : Window.getWindows()) {
+                            if (window instanceof CustomStage && window.isShowing()) {
+                                CustomStage customStage = (CustomStage) window;
+                                if (customStage.getTitle().contains(chapterFile.getFileName())) {
+                                    customStage.toFront();
+                                    customStage.requestFocus();
+                                    break;
+                                }
+                            }
+                        }
+                    });
+                    return existingEditor; // Bestehenden Editor zurückgeben
+                }
+            }
             
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/editor.fxml"));
             Parent root = loader.load();
@@ -3140,9 +3284,9 @@ public class MainController implements Initializable {
             editorController.setOutputFormat(format);
             
             // Erstelle Datei-Referenz für das Kapitel
-            String chapterName = chapterFile.getFileName();
-            if (chapterName.toLowerCase().endsWith(".docx")) {
-                chapterName = chapterName.substring(0, chapterName.length() - 5);
+            String chapterNameForFile = chapterFile.getFileName();
+            if (chapterNameForFile.toLowerCase().endsWith(".docx")) {
+                chapterNameForFile = chapterNameForFile.substring(0, chapterNameForFile.length() - 5);
             }
             
             // Füge Dateiendung basierend auf Format hinzu
@@ -3165,7 +3309,7 @@ public class MainController implements Initializable {
             if (!dataDir.exists()) {
                 dataDir.mkdirs();
             }
-            File chapterFileRef = new File(dataDir, chapterName + fileExtension);
+            File chapterFileRef = new File(dataDir, chapterNameForFile + fileExtension);
             editorController.setCurrentFile(chapterFileRef);
             
             // WICHTIG: Stelle sicher, dass die MD-Datei existiert
@@ -3215,8 +3359,8 @@ public class MainController implements Initializable {
             root.setUserData(editorController);
             
             // Editor in Map speichern für spätere Suche
-            String editorKey = chapterName + ".md";
-            openEditors.put(editorKey, editorController);
+            String editorKeyForMap = chapterName + ".md";
+            openEditors.put(editorKeyForMap, editorController);
             
             // WICHTIG: EditorWindow übernimmt die Fenster-Eigenschaften
             // EditorWindow.loadWindowProperties() wird automatisch aufgerufen
@@ -3267,7 +3411,7 @@ public class MainController implements Initializable {
                 result.append("    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n");
                 result.append("    <title>Manuskript</title>\n");
                 result.append("    <style>\n");
-                result.append("        body { font-family: Arial, sans-serif; line-height: 1.6; margin: 40px; }\n");
+                result.append("        body { font-family: Arial, sans-serif; line-height: 1.6; margin: 0; padding: 2em 4em; max-width: 1200px; margin-left: auto; margin-right: auto; }\n");
                 result.append("        h1 { color: #333; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 30px; }\n");
                 result.append("        p { margin: 0 0 15px 0; text-align: justify; }\n");
                 result.append("        hr { border: none; border-top: 1px solid #ccc; margin: 20px 0; }\n");
@@ -3352,6 +3496,7 @@ public class MainController implements Initializable {
             // Erstelle das Buch als echte Datei
             String currentDirectory = txtDirectoryPath.getText();
             File completeDocumentFile = new File(currentDirectory, baseFileName + " Buch.md");
+            
             
             try {
                 // Schreibe das Buch in die Datei
@@ -3788,6 +3933,9 @@ public class MainController implements Initializable {
                 checkAndImportSudowriteFiles(projectDir);
             }
         }
+        
+        // WICHTIG: Nur neue Dateien hinzufügen, nicht alles neu laden
+        addNewDocxFiles(downloadsDirectory);
         
         try {
             
@@ -4226,8 +4374,8 @@ public class MainController implements Initializable {
                 mainContainer.setStyle(""); // Inline Styles entfernen
                 // Nur Border setzen - Rest über CSS
                 Platform.runLater(() -> {
-                    tableViewAvailable.setStyle("-fx-border-color: #ba68c8;");
-                    tableViewSelected.setStyle("-fx-border-color: #ba68c8;");
+                    tableViewAvailable.setStyle("-fx-border-color: #ba68c8; -fx-selection-bar: #ba68c8; -fx-selection-bar-non-focused: #ba68c8;");
+                    tableViewSelected.setStyle("-fx-border-color: #ba68c8; -fx-selection-bar: #ba68c8; -fx-selection-bar-non-focused: #ba68c8;");
                 });
             } else {
                 root.setStyle(""); // Style zurücksetzen
@@ -4263,8 +4411,8 @@ public class MainController implements Initializable {
             
             // TableViews über CSS stylen - nur Border setzen, Rest über CSS
             if (themeIndex != 2) { // Nicht für Pastell-Theme, das wird separat behandelt
-                tableViewAvailable.setStyle("-fx-border-color: #ba68c8;");
-                tableViewSelected.setStyle("-fx-border-color: #ba68c8;");
+                tableViewAvailable.setStyle("-fx-border-color: #ba68c8; -fx-selection-bar: #ba68c8; -fx-selection-bar-non-focused: #ba68c8;");
+                tableViewSelected.setStyle("-fx-border-color: #ba68c8; -fx-selection-bar: #ba68c8; -fx-selection-bar-non-focused: #ba68c8;");
             }
             
             // TableViews auch Theme-Klassen geben

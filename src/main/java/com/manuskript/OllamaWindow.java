@@ -47,6 +47,7 @@ public class OllamaWindow {
     private OllamaService.StreamHandle currentStreamHandle;
     private Button openResultWindowButton;
     private HBox resultButtonRow;
+    private HBox topStatusBar;
     // Persistentes Ergebnisfenster (WebView), damit es live aktualisiert werden kann
     private CustomStage resultStage;
     private javafx.scene.web.WebView resultWebView;
@@ -108,6 +109,9 @@ public class OllamaWindow {
     // Training-Status
     private Label trainingStatusLabel;
     
+    // Ollama-Status für Restart
+    private Label ollamaStatusLabel;
+    
     // Chat-Session-Management
     private ComboBox<String> sessionComboBox;
     private Button newSessionButton;
@@ -144,7 +148,6 @@ public class OllamaWindow {
     private CheckBox cbCharacters;
     private CheckBox cbWorldbuilding;
     private CheckBox cbOutline;
-    private CheckBox cbChapterNotes;
     private CheckBox cbStyle;
     private CheckBox cbNovelContext;
 
@@ -152,13 +155,11 @@ public class OllamaWindow {
     private TextArea charactersArea;
     private TextArea worldbuildingArea;
     private TextArea outlineArea;
-    private TextArea chapterNotesArea;
     private TextArea styleNotesArea;
     private TitledPane tpSynopsis;
     private TitledPane tpCharacters;
     private TitledPane tpWorldbuilding;
     private TitledPane tpOutline;
-    private TitledPane tpChapter;
     private TitledPane tpStyle;
     
     // Merker: zuletzt automatisch übernommene Selektion
@@ -189,11 +190,14 @@ public class OllamaWindow {
         VBox mainLayout = new VBox(5);
         mainLayout.setPadding(new Insets(15));
         mainLayout.getStyleClass().add("ollama-container");
+        mainLayout.setStyle("-fx-background-color: transparent;");
         
         // Toggle-Button für oberen Bereich
         toggleUpperPanelButton = new ToggleButton("⚙️ Einstellungen ein-/ausblenden");
         toggleUpperPanelButton.setSelected(true);
         toggleUpperPanelButton.setOnAction(e -> toggleUpperPanel());
+        // Button-Style direkt setzen um weißen Hintergrund zu vermeiden
+        toggleUpperPanelButton.setStyle("-fx-background-color: transparent; -fx-border-color: transparent;");
         
         // Oberer Bereich (einklappbar)
         upperPanel = new VBox(10);
@@ -457,7 +461,7 @@ public class OllamaWindow {
         installProgressIndicator.setStyle("-fx-progress-color: #44aa44;");
         
         installStatusLabel = new Label("Bereit für Installation");
-        installStatusLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: #666;");
+        installStatusLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: #666666;");
         
         // NEU: Freitextfeld + Install-by-name-Button + Link
         installModelNameField = new TextField();
@@ -508,6 +512,27 @@ public class OllamaWindow {
         pluginEditorButton.setTooltip(new Tooltip("Öffnet den Plugin Editor"));
         
         pluginBox.getChildren().addAll(pluginLabel, openPluginFolderButton, reloadPluginsButton, pluginEditorButton);
+        
+        // Ollama-Restart-Button
+        HBox ollamaRestartBox = new HBox(10);
+        ollamaRestartBox.setAlignment(Pos.CENTER_LEFT);
+        
+        Label ollamaRestartLabel = new Label("Ollama:");
+        ollamaRestartLabel.setPrefWidth(120);
+        ollamaRestartLabel.setMinWidth(120);
+        ollamaRestartLabel.setMaxWidth(120);
+        
+        Button ollamaRestartButton = new Button("🔄 Ollama neu starten");
+        ollamaRestartButton.setStyle("-fx-background-color: #ff9800; -fx-text-fill: white; -fx-font-weight: bold;");
+        ollamaRestartButton.setPrefWidth(150);
+        ollamaRestartButton.setOnAction(e -> restartOllamaService());
+        ollamaRestartButton.setTooltip(new Tooltip("Beendet alle Ollama-Prozesse und startet Ollama neu (Notfall-Restart)"));
+        
+        ollamaRestartBox.getChildren().addAll(ollamaRestartLabel, ollamaRestartButton);
+        
+        // Status-Label für Ollama-Restart (dezent in rechter oberer Ecke)
+        ollamaStatusLabel = new Label("Bereit");
+        ollamaStatusLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: #666666;");
         
         // Chat-Session-Management
         chatSessionBox = new VBox(10);
@@ -703,7 +728,7 @@ public class OllamaWindow {
         
         // Status-Label für Training
         trainingStatusLabel = new Label("Bereit für Training");
-        trainingStatusLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: #666;");
+        trainingStatusLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: #666666;");
         
         HBox trainingStatusBox = new HBox(10);
         trainingStatusBox.setAlignment(Pos.CENTER);
@@ -765,6 +790,7 @@ public class OllamaWindow {
         cancelButton.setOnAction(e -> cancelOllamaRequest());
         
         statusLabel = new Label("Bereit");
+        statusLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: #666666;");
         
         VBox buttonArea = new VBox(6);
         buttonArea.setAlignment(Pos.CENTER);
@@ -823,6 +849,7 @@ public class OllamaWindow {
             modelManagementBox,
             modelInstallationBox,
             pluginBox,
+            ollamaRestartBox,
             parametersBox
         );
         
@@ -863,7 +890,6 @@ public class OllamaWindow {
         cbCharacters = new CheckBox("Charaktere");
         cbWorldbuilding = new CheckBox("Worldbuilding");
         cbOutline = new CheckBox("Outline");
-        cbChapterNotes = new CheckBox("Kapitelnotizen");
         cbStyle = new CheckBox("Stil");
         cbNovelContext = new CheckBox("Roman-Kontext"); cbNovelContext.setSelected(false); // Standardmäßig deaktiviert
         Button selectAll = new Button("Alle");
@@ -875,7 +901,6 @@ public class OllamaWindow {
             cbCharacters.setSelected(true);
             cbWorldbuilding.setSelected(true);
             cbOutline.setSelected(true);
-            cbChapterNotes.setSelected(true);
             cbStyle.setSelected(true);
             cbNovelContext.setSelected(true);
         });
@@ -886,13 +911,12 @@ public class OllamaWindow {
             cbCharacters.setSelected(false);
             cbWorldbuilding.setSelected(false);
             cbOutline.setSelected(false);
-            cbChapterNotes.setSelected(false);
             cbStyle.setSelected(false);
             cbNovelContext.setSelected(false);
         });
         row1.getChildren().addAll(new Label("Kontextquellen:"), selectAll, selectNone);
         row2.getChildren().addAll(cbUserContext, cbEditorSnippet, cbSynopsis, cbStyle);
-        row3.getChildren().addAll(cbCharacters, cbWorldbuilding, cbOutline, cbChapterNotes, cbNovelContext);
+        row3.getChildren().addAll(cbCharacters, cbWorldbuilding, cbOutline, cbNovelContext);
         contextCheckboxBar.getChildren().addAll(row1, row2, row3);
 
         synopsisArea = new TextArea(); synopsisArea.setWrapText(true);
@@ -903,8 +927,6 @@ public class OllamaWindow {
         worldbuildingArea.getStyleClass().add("ollama-text-area");
         outlineArea = new TextArea(); outlineArea.setWrapText(true);
         outlineArea.getStyleClass().add("ollama-text-area");
-        chapterNotesArea = new TextArea(); chapterNotesArea.setWrapText(true);
-        chapterNotesArea.getStyleClass().add("ollama-text-area");
 
         tpSynopsis = new TitledPane("Synopsis", synopsisArea);
         tpSynopsis.getStyleClass().add("ollama-titled-pane");
@@ -914,8 +936,6 @@ public class OllamaWindow {
         tpWorldbuilding.getStyleClass().add("ollama-titled-pane");
         tpOutline = new TitledPane("Outline", outlineArea);
         tpOutline.getStyleClass().add("ollama-titled-pane");
-        tpChapter = new TitledPane("Kapitelnotizen", chapterNotesArea);
-        tpChapter.getStyleClass().add("ollama-titled-pane");
 
         // Neues Klappfeld: Stil
         this.styleNotesArea = new TextArea();
@@ -923,7 +943,7 @@ public class OllamaWindow {
         styleNotesArea.getStyleClass().add("ollama-text-area");
         this.tpStyle = new TitledPane("Stil", styleNotesArea);
         tpStyle.getStyleClass().add("ollama-titled-pane");
-        contextAccordion.getPanes().addAll(tpSynopsis, tpCharacters, tpWorldbuilding, tpOutline, tpChapter, tpStyle);
+        contextAccordion.getPanes().addAll(tpSynopsis, tpCharacters, tpWorldbuilding, tpOutline, tpStyle);
 
         // Auto-Save der Projekt-Kontexte
         setupAutoSave(synopsisArea, NovelManager.SYNOPSIS_FILE);
@@ -947,7 +967,6 @@ public class OllamaWindow {
                 }
             }, 600);
         });
-        chapterNotesArea.textProperty().addListener((obs,o,n)->debouncedSaveChapter(n));
 
         // Beim Start: Projekt-Kontexte laden
         loadProjectContexts();
@@ -994,8 +1013,14 @@ public class OllamaWindow {
         // Chat-Session-Controls in den oberen Bereich (einklappbar)
         upperPanel.getChildren().add(chatSessionBox);
         
+        // Status in rechter oberer Ecke
+        topStatusBar = new HBox();
+        topStatusBar.setAlignment(Pos.CENTER_RIGHT);
+        topStatusBar.getChildren().add(ollamaStatusLabel);
+        
         // Alles zusammen
         mainLayout.getChildren().addAll(
+            topStatusBar,
             toggleUpperPanelButton,
             upperPanel,
             lowerPanel
@@ -1514,9 +1539,6 @@ public class OllamaWindow {
             if (cbOutline != null && cbOutline.isSelected() && outlineArea != null && !outlineArea.getText().trim().isEmpty()) {
                 selectedContexts.append("\n=== OUTLINE ===\n").append(limitText(outlineArea.getText().trim())).append("\n");
             }
-            if (cbChapterNotes != null && cbChapterNotes.isSelected() && chapterNotesArea != null && !chapterNotesArea.getText().trim().isEmpty()) {
-                selectedContexts.append("\n=== KAPITELNOTIZEN ===\n").append(limitText(chapterNotesArea.getText().trim())).append("\n");
-            }
             if (cbStyle != null && cbStyle.isSelected() && styleNotesArea != null && !styleNotesArea.getText().trim().isEmpty()) {
                 selectedContexts.append("\n=== STIL ===\n").append(limitText(styleNotesArea.getText().trim())).append("\n");
             }
@@ -1627,7 +1649,7 @@ public class OllamaWindow {
                         
                         // Plugin-Prompt als Benutzer-Nachricht hinzufügen (damit er in der Chat-Historie sichtbar ist)
                         chatMessages.add(new OllamaService.ChatMessage("user", "Plugin: " + pluginPrompt));
-                        processedUserMessage = "Führe das Plugin aus.";
+                        processedUserMessage = pluginPrompt;
                         
                         // Plugin-Prompt in die Chat-Frage-Box einfügen
                         chatHistoryArea.setQuestionAt(qaIndex, "Plugin: " + pluginPrompt);
@@ -1813,10 +1835,6 @@ public class OllamaWindow {
                 if (cbOutline != null && cbOutline.isSelected()) {
                     String ol = outlineArea != null ? outlineArea.getText() : NovelManager.loadOutline(currentDocx);
                     if (ol != null && !ol.trim().isEmpty()) sb.append("\n\n=== OUTLINE ===\n").append(limitText(ol));
-                }
-                if (cbChapterNotes != null && cbChapterNotes.isSelected()) {
-                    String ch = chapterNotesArea != null ? chapterNotesArea.getText() : NovelManager.loadChapter(currentDocx);
-                    if (ch != null && !ch.trim().isEmpty()) sb.append("\n\n=== KAPITELNOTIZEN ===\n").append(limitText(ch));
                 }
             }
             combinedContext = sb.length() > 0 ? sb.toString() : null;
@@ -2099,10 +2117,6 @@ public class OllamaWindow {
                 String ol = outlineArea != null ? outlineArea.getText() : NovelManager.loadOutline(currentDocx);
                 if (ol != null && !ol.trim().isEmpty()) selectedContexts.append("\n=== OUTLINE ===\n").append(limitText(ol)).append("\n");
             }
-            if (cbChapterNotes != null && cbChapterNotes.isSelected()) {
-                String ch = chapterNotesArea != null ? chapterNotesArea.getText() : NovelManager.loadChapter(currentDocx);
-                if (ch != null && !ch.trim().isEmpty()) selectedContexts.append("\n=== KAPITELNOTIZEN ===\n").append(limitText(ch)).append("\n");
-            }
             if (cbStyle != null && cbStyle.isSelected()) {
                 String st;
                 if (styleNotesArea != null && styleNotesArea.getText() != null) {
@@ -2236,10 +2250,6 @@ public class OllamaWindow {
             if (cbOutline != null && cbOutline.isSelected()) {
                 String ol = outlineArea != null ? outlineArea.getText() : NovelManager.loadOutline(currentDocx);
                 if (ol != null && !ol.trim().isEmpty()) selectedContexts.append("\n=== OUTLINE ===\n").append(limitText(ol)).append("\n");
-            }
-            if (cbChapterNotes != null && cbChapterNotes.isSelected()) {
-                String ch = chapterNotesArea != null ? chapterNotesArea.getText() : NovelManager.loadChapter(currentDocx);
-                if (ch != null && !ch.trim().isEmpty()) selectedContexts.append("\n=== KAPITELNOTIZEN ===\n").append(limitText(ch)).append("\n");
             }
             if (cbStyle != null && cbStyle.isSelected()) {
                 String st;
@@ -2500,7 +2510,6 @@ public class OllamaWindow {
             if (charactersArea != null) charactersArea.setText(chars);
             if (worldbuildingArea != null) worldbuildingArea.setText(wb);
             if (outlineArea != null) outlineArea.setText(ol);
-            if (chapterNotesArea != null) chapterNotesArea.setText(chap);
             if (contextArea != null && !ctx.equals(contextArea.getText())) contextArea.setText(ctx);
             if (styleNotesArea != null) styleNotesArea.setText(style);
         } catch (Exception ignored) { }
@@ -2591,7 +2600,6 @@ public class OllamaWindow {
             writeText(new File(dir, NovelManager.CHARACTERS_FILE), charactersArea != null ? charactersArea.getText() : "");
             writeText(new File(dir, NovelManager.WORLDBUILDING_FILE), worldbuildingArea != null ? worldbuildingArea.getText() : "");
             writeText(new File(dir, NovelManager.OUTLINE_FILE), outlineArea != null ? outlineArea.getText() : "");
-            writeText(new File(dir, "chapter.txt"), chapterNotesArea != null ? chapterNotesArea.getText() : "");
             writeText(new File(dir, NovelManager.CONTEXT_FILE), contextArea != null ? contextArea.getText() : "");
             writeText(new File(dir, "style.txt"), styleNotesArea != null ? styleNotesArea.getText() : "");
             updateStatus("Alle TextAreas gespeichert");
@@ -2654,10 +2662,9 @@ public class OllamaWindow {
                 if (answer == null) answer = "";
             }
             if (resultStage == null) {
-                resultStage = StageManager.createStage("Ergebnis (gerendert)");
-                resultStage.getProperties().put("hideIcon", true);
+                resultStage = StageManager.createStage("Ergebnis");
+                // resultStage.getProperties().put("hideIcon", true); // Entfernt - Icon soll sichtbar sein
                 resultStage.getProperties().put("useSimpleActions", true);
-                resultStage.setTitle("Ergebnis (gerendert)");
                 
                 // WICHTIG: Theme sofort setzen
                 resultStage.setTitleBarTheme(currentThemeIndex);
@@ -2708,6 +2715,7 @@ public class OllamaWindow {
                 
                 Scene sc = new Scene(box, 1000, 800);
                 resultStage.setSceneWithTitleBar(sc);
+                resultStage.setTitleWithIcon("🔍", "Ergebnis Xgerendert)");
                 resultStage.initOwner(stage);
                 resultStage.setFullTheme(currentThemeIndex);
                 applyThemeToNode(box, currentThemeIndex);
@@ -3488,15 +3496,32 @@ public class OllamaWindow {
             applyThemeToNode(tpCharacters, themeIndex);
             applyThemeToNode(tpWorldbuilding, themeIndex);
             applyThemeToNode(tpOutline, themeIndex);
-            applyThemeToNode(tpChapter, themeIndex);
             applyThemeToNode(tpStyle, themeIndex);
             applyThemeToNode(synopsisArea, themeIndex);
             applyThemeToNode(charactersArea, themeIndex);
             applyThemeToNode(worldbuildingArea, themeIndex);
             applyThemeToNode(outlineArea, themeIndex);
-            applyThemeToNode(chapterNotesArea, themeIndex);
             applyThemeToNode(styleNotesArea, themeIndex);
             applyThemeToNode(statusLabel, themeIndex);
+            applyThemeToNode(installStatusLabel, themeIndex);
+            applyThemeToNode(trainingStatusLabel, themeIndex);
+            applyThemeToNode(ollamaStatusLabel, themeIndex);
+            applyThemeToNode(upperPanel, themeIndex);
+            applyThemeToNode(toggleUpperPanelButton, themeIndex);
+            applyThemeToNode(topStatusBar, themeIndex);
+            
+            // Spezielle Theme-Anpassung für topStatusBar und toggleUpperPanelButton
+            if (topStatusBar != null) {
+                String[] themeColors = {"#ffffff", "#1f2937", "#f3e5f5", "#0b1220", "#064e3b", "#581c87"};
+                String[] textColors = {"#000000", "#ffffff", "#000000", "#ffffff", "#ffffff", "#ffffff"};
+                topStatusBar.setStyle("-fx-background-color: " + themeColors[themeIndex] + "; -fx-text-fill: " + textColors[themeIndex] + ";");
+            }
+            if (toggleUpperPanelButton != null) {
+                String[] themeColors = {"#ffffff", "#1f2937", "#f3e5f5", "#0b1220", "#064e3b", "#581c87"};
+                String[] textColors = {"#000000", "#ffffff", "#000000", "#ffffff", "#ffffff", "#ffffff"};
+                toggleUpperPanelButton.setStyle("-fx-background-color: " + themeColors[themeIndex] + "; -fx-text-fill: " + textColors[themeIndex] + ";");
+            }
+            
             applyThemeToNode(characterField, themeIndex);
             applyThemeToNode(situationField, themeIndex);
             applyThemeToNode(emotionField, themeIndex);
@@ -4536,5 +4561,110 @@ public class OllamaWindow {
         } catch (Exception e) {
             logger.warning("Fehler beim Einfügen in den WebView: " + e.getMessage());
         }
+    }
+    
+    /**
+     * Notfall-Restart für Ollama Service
+     * Beendet alle Ollama-Prozesse und startet Ollama neu
+     */
+    private void restartOllamaService() {
+        // Asynchroner Restart mit sichtbaren Updates
+        new Thread(() -> {
+            try {
+                // 1. Start
+                Platform.runLater(() -> {
+                    if (ollamaStatusLabel != null) {
+                        ollamaStatusLabel.setText("🔄 Ollama wird neu gestartet...");
+                    }
+                });
+                Thread.sleep(1000);
+                
+                // 2. Prozesse beenden
+                Platform.runLater(() -> {
+                    if (ollamaStatusLabel != null) {
+                        ollamaStatusLabel.setText("🔄 Beende alle Ollama-Prozesse...");
+                    }
+                });
+                logger.info("Beende alle Ollama-Prozesse...");
+                ProcessBuilder killProcess = new ProcessBuilder("taskkill", "/f", "/im", "ollama.exe");
+                Process killResult = killProcess.start();
+                int killExitCode = killResult.waitFor();
+                
+                if (killExitCode == 0) {
+                    logger.info("Ollama-Prozesse erfolgreich beendet");
+                    Platform.runLater(() -> {
+                        if (ollamaStatusLabel != null) {
+                            ollamaStatusLabel.setText("✅ Ollama-Prozesse erfolgreich beendet");
+                        }
+                    });
+                } else {
+                    logger.info("Keine Ollama-Prozesse gefunden oder bereits beendet");
+                    Platform.runLater(() -> {
+                        if (ollamaStatusLabel != null) {
+                            ollamaStatusLabel.setText("ℹ️ Keine Ollama-Prozesse gefunden");
+                        }
+                    });
+                }
+                Thread.sleep(1500);
+                
+                // 3. Warten
+                Platform.runLater(() -> {
+                    if (ollamaStatusLabel != null) {
+                        ollamaStatusLabel.setText("⏳ Warte 2 Sekunden...");
+                    }
+                });
+                Thread.sleep(2000);
+                
+                // 4. Neustart
+                Platform.runLater(() -> {
+                    if (ollamaStatusLabel != null) {
+                        ollamaStatusLabel.setText("🚀 Starte Ollama neu...");
+                    }
+                });
+                logger.info("Starte Ollama neu...");
+                ProcessBuilder startProcess = new ProcessBuilder("ollama", "serve");
+                startProcess.start();
+                Thread.sleep(1000);
+                
+                // 5. Warten auf Start
+                Platform.runLater(() -> {
+                    if (ollamaStatusLabel != null) {
+                        ollamaStatusLabel.setText("⏳ Warte auf Ollama-Start...");
+                    }
+                });
+                Thread.sleep(3000);
+                
+                // 6. Status prüfen
+                Platform.runLater(() -> {
+                    if (ollamaStatusLabel != null) {
+                        ollamaStatusLabel.setText("🔍 Prüfe Ollama-Status...");
+                    }
+                });
+                Thread.sleep(1000);
+                
+                // 7. Finale Prüfung
+                ollamaService.isOllamaRunning().thenAccept(isRunning -> {
+                    Platform.runLater(() -> {
+                        if (ollamaStatusLabel != null) {
+                            if (isRunning) {
+                                ollamaStatusLabel.setText("✅ Ollama erfolgreich neu gestartet");
+                                // Modelle neu laden
+                                loadAvailableModels();
+                            } else {
+                                ollamaStatusLabel.setText("⚠️ Ollama-Restart abgeschlossen, aber Status unklar");
+                            }
+                        }
+                    });
+                });
+                
+            } catch (Exception e) {
+                logger.severe("Fehler beim Ollama-Restart: " + e.getMessage());
+                Platform.runLater(() -> {
+                    if (ollamaStatusLabel != null) {
+                        ollamaStatusLabel.setText("❌ Fehler beim Ollama-Restart: " + e.getMessage());
+                    }
+                });
+            }
+        }).start();
     }
 } 

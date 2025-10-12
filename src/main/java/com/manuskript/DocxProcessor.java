@@ -87,7 +87,7 @@ public class DocxProcessor {
             content.append("    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n");
             content.append("    <title>").append(file.getName().replaceAll("\\.docx?$", "")).append("</title>\n");
             content.append("    <style>\n");
-            content.append("        body { font-family: Arial, sans-serif; line-height: 1.6; margin: 40px; }\n");
+            content.append("        body { font-family: Arial, sans-serif; line-height: 1.6; margin: 0; padding: 2em 4em; max-width: 1200px; margin-left: auto; margin-right: auto; }\n");
             content.append("        h1 { color: #333; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 30px; }\n");
             content.append("        p { margin: 0 0 15px 0; text-align: justify; }\n");
             content.append("        hr { border: none; border-top: 1px solid #ccc; margin: 20px 0; }\n");

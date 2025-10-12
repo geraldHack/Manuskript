@@ -22,15 +22,7 @@
          </padding>
       </HBox>
       
-      <!-- Downloads-Monitor -->
-       <HBox spacing="10" alignment="CENTER_LEFT">
-          <children>
-             <CheckBox fx:id="chkDownloadsMonitor" text="📥 Downloads-Monitor: Neue Dateien automatisch überwachen" styleClass="downloads-monitor-checkbox" />
-          </children>
-          <padding>
-             <Insets bottom="5.0" left="10.0" right="10.0" />
-          </padding>
-       </HBox>
+      <!-- Downloads-Monitor entfernt - wird jetzt bei der rechten Tabelle platziert -->
       
       <!-- Filter und Sortierung entfernt - einfache Lösung -->
       
@@ -41,6 +33,7 @@
             <VBox spacing="5" HBox.hgrow="ALWAYS">
                <children>
                   <Label text="Verfügbare Dateien:" styleClass="section-header" />
+                  <CheckBox fx:id="chkDownloadsMonitor" text="📥 Downloads-Monitor: Neue Dateien automatisch überwachen" styleClass="downloads-monitor-checkbox" />
                   <TableView fx:id="tableViewAvailable" VBox.vgrow="ALWAYS">
                     <columns>
                       <TableColumn fx:id="colFileNameAvailable" text="Dateiname" prefWidth="200.0" />
@@ -64,7 +57,7 @@
                <children>
                   <Label text="Ausgewählte Dateien:" styleClass="section-header" />
                   <Label text="Datei verschieben mit CTRL-Pfeiltaste" styleClass="info-text" />
-                  <Label text="Extern geänderte Dateien werden mit einem ! markiert" styleClass="info-text" />
+                  <Label text="Extern geänderte Dateien werden mit einem ! markiert" styleClass="info-text" style="-fx-padding: 0 0 4 0;" />
                   <TableView fx:id="tableViewSelected" VBox.vgrow="ALWAYS">
                     <columns>
                       <TableColumn fx:id="colFileNameSelected" text="Dateiname" prefWidth="200.0" />

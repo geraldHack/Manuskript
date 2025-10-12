@@ -92,11 +92,7 @@ public class EditorWindow implements Initializable {
     @FXML private VBox searchReplacePanel;
     @FXML private VBox macroPanel;
     
-    // Chapter-Editor Components
-    @FXML private SplitPane mainSplitPane;
-    @FXML private VBox chapterEditorPanel;
-    @FXML private TextArea chapterEditorArea;
-    @FXML private Button btnSaveChapter;
+    // Chapter-Editor Components (entfernt - Split Pane nicht mehr vorhanden)
     
     // Such- und Ersetzungs-Controls
     @FXML private CheckBox chkRegexSearch;
@@ -203,9 +199,7 @@ public class EditorWindow implements Initializable {
     private boolean macroWindowVisible = false;
     private boolean textAnalysisWindowVisible = false;
     private boolean ollamaWindowVisible = false;
-    private boolean chapterEditorVisible = false;
-    private String originalChapterContent = "";
-    private boolean chapterContentChanged = false;
+    // Chapter-Editor-Variablen entfernt - Split Pane nicht mehr vorhanden
     private File originalDocxFile = null; // Originale DOCX-Datei
     private String originalContent = ""; // Kopie des ursprünglichen Inhalts für Vergleich
     private boolean paragraphMarkingEnabled = true; // Absatz-Markierung aktiviert
@@ -438,36 +432,15 @@ if (caret != null) {
         VirtualizedScrollPane<CodeArea> scrollPane = new VirtualizedScrollPane<>(codeArea);
         scrollPane.getStyleClass().add("code-area");
         
-        // Padding direkt auf der CodeArea setzen
-        codeArea.setStyle(codeArea.getStyle() + " -fx-padding: 0 15px 0 10px;"); // Links 10px, rechts 15px
-        
-        // Padding auf dem äußeren Container setzen
-        textAreaContainer.setStyle("-fx-padding: 0 15px 0 0px;"); // Links 10px, rechts 15px
+        // 5px Padding für die ScrollPane
+        scrollPane.setStyle("-fx-padding: 5px;");
         
         // CodeArea zum Container hinzufügen (im SplitPane)
         textAreaContainer.getChildren().add(scrollPane);
         VBox.setVgrow(scrollPane, Priority.ALWAYS);
         
         // VBox-Grow-Eigenschaften setzen
-        VBox.setVgrow(chapterEditorPanel, Priority.NEVER);
         VBox.setVgrow(textAreaContainer, Priority.ALWAYS);
-        
-        // Chapter-Editor initial korrekt einrichten
-        chapterEditorPanel.setManaged(false);
-        chapterEditorPanel.setMinHeight(0);
-        chapterEditorPanel.setPrefHeight(0);
-        chapterEditorPanel.setMinWidth(200);
-        chapterEditorPanel.setPrefWidth(300);
-        
-        // SplitPane initial konfigurieren
-        mainSplitPane.setOrientation(Orientation.VERTICAL);
-        mainSplitPane.setVisible(true);
-        mainSplitPane.setManaged(true);
-        
-        // Divider-Position NACH dem FXML-Load setzen
-        Platform.runLater(() -> {
-            mainSplitPane.setDividerPositions(0.0); // Divider ganz nach oben
-        });
         
         // Such- und Ersetzungs-Panel initial ausblenden
         searchReplacePanel.setVisible(false);
@@ -789,29 +762,9 @@ if (caret != null) {
         btnPreviousChapter.setOnAction(e -> navigateToPreviousChapter());
         btnNextChapter.setOnAction(e -> navigateToNextChapter());
         
-        // Chapter-Editor Event-Handler
-        btnSaveChapter.setOnAction(e -> saveChapterContent());
+        // Chapter-Editor entfernt - keine Event-Handler mehr nötig
         
-        // Chapter-Editor Text-Change Listener
-        if (chapterEditorArea != null) {
-            chapterEditorArea.textProperty().addListener((obs, oldText, newText) -> {
-                if (chapterEditorVisible && !originalChapterContent.equals(newText)) {
-                    chapterContentChanged = true;
-                    // Rote Anzeige setzen
-                    if (lblStatus != null) {
-                        lblStatus.setText("Kapitelbeschreibung nicht gesichert");
-                        lblStatus.setStyle("-fx-text-fill: #ff0000; -fx-font-size: 11px; -fx-font-weight: bold;");
-                    }
-                } else if (chapterEditorVisible && originalChapterContent.equals(newText)) {
-                    chapterContentChanged = false;
-                    // Normale Anzeige zurücksetzen
-                    if (lblStatus != null) {
-                        lblStatus.setText("Bereit");
-                        lblStatus.setStyle("-fx-text-fill: #6c757d; -fx-font-size: 11px;");
-                    }
-                }
-            });
-        }
+        // Chapter-Editor entfernt - keine Text-Change Listener mehr nötig
         if (btnRegexHelp != null) {
             // Sicherstellen, dass ein sichtbarer Inhalt vorhanden ist
             btnRegexHelp.setText("?");
@@ -3004,7 +2957,7 @@ if (caret != null) {
         html.append("    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n");
         html.append("    <title>Exportiertes Dokument</title>\n");
         html.append("    <style>\n");
-        html.append("        body { font-family: Arial, sans-serif; line-height: 1.6; margin: 40px; }\n");
+        html.append("        body { font-family: Arial, sans-serif; line-height: 1.6; margin: 0; padding: 2em 4em; max-width: 1200px; margin-left: auto; margin-right: auto; }\n");
         html.append("        h1, h2, h3, h4 { color: #2c3e50; }\n");
         html.append("        h1 { border-bottom: 2px solid #3498db; padding-bottom: 10px; }\n");
         html.append("        h2 { border-bottom: 1px solid #bdc3c7; padding-bottom: 5px; }\n");
@@ -3271,7 +3224,7 @@ if (caret != null) {
     }
     
     // Datei-Operationen
-    private void saveFile() {
+    public void saveFile() {
         
         // Spezielle Behandlung für Bücher
         if (isCompleteDocument) {
@@ -3449,6 +3402,9 @@ if (caret != null) {
                 if (originalDocxFile != null) {
                     mainController.updateDocxHashAfterAccept(originalDocxFile);
                     mainController.markDocxFileAsUnchanged(originalDocxFile);
+                    
+                    // WICHTIG: Hash-Erkennung neu ausführen
+                    mainController.checkAllDocxFilesForChanges();
                 }
             }
         } catch (IOException e) {
@@ -3502,17 +3458,14 @@ if (caret != null) {
     /**
      * Prüft ob es ungespeicherte Änderungen gibt
      */
-    private boolean hasUnsavedChanges() {
+    public boolean hasUnsavedChanges() {
         if (codeArea == null) {
             return false;
         }
         
         String currentContent = codeArea.getText();
         
-        // Prüfe Chapter-Editor Änderungen
-        if (chapterContentChanged) {
-            return true;
-        }
+        // Chapter-Editor entfernt - keine Änderungsprüfung mehr nötig
         
         // Vergleiche mit der ursprünglichen Kopie (ohne Absatz-Markierungen)
         boolean hasChanges = !cleanTextForComparison(currentContent).equals(originalContent);
@@ -4818,6 +4771,15 @@ if (caret != null) {
     private void markAsSaved() {
         hasUnsavedChanges = false;
         updateStatusDisplay();
+    }
+    
+    /**
+     * Schließt das Editor-Fenster programmatisch
+     */
+    public void closeWindow() {
+        if (stage != null) {
+            stage.close();
+        }
     }
     
     /**
@@ -7505,26 +7467,7 @@ spacer.setStyle("-fx-background-color: transparent;");
             stage.centerOnScreen();
         }
         
-        // NEU: Divider-Position nach Fenster-Größe setzen
-        Platform.runLater(() -> {
-            if (mainSplitPane != null) {
-                // Prüfe, ob Chapter-Editor sichtbar ist
-                if (chapterEditorVisible) {
-                    double savedPosition = preferences.getDouble("chapter_editor_divider_position", 0.8);
-                    
-                    // NEU: Validierung der Divider-Position
-                    if (savedPosition < 0.0 || savedPosition > 1.0 || 
-                        Double.isNaN(savedPosition) || Double.isInfinite(savedPosition)) {
-                        logger.warn("Ungültige Divider-Position: {} - verwende Standard: 0.8", savedPosition);
-                        savedPosition = 0.8;
-                    }
-                    
-                    mainSplitPane.setDividerPositions(savedPosition);
-                } else {
-                    mainSplitPane.setDividerPositions(0.0);
-                }
-            }
-        });
+        // Split Pane entfernt - keine Divider-Position-Logik mehr nötig
         
         // WICHTIG: Listener für Fenster-Änderungen hinzufügen
         addWindowPropertyListeners();
@@ -8279,11 +8222,7 @@ spacer.setStyle("-fx-background-color: transparent;");
             applyThemeToNode(lblStatus, themeIndex);
             applyThemeToNode(lblMatchCount, themeIndex);
             
-            // Chapter-Editor Elemente
-            applyThemeToNode(chapterEditorPanel, themeIndex);
-            applyThemeToNode(chapterEditorArea, themeIndex);
-            applyThemeToNode(btnSaveChapter, themeIndex);
-            applyThemeToNode(mainSplitPane, themeIndex);
+            // Chapter-Editor Elemente entfernt - keine Theme-Anwendung mehr nötig
             
             // Chapter-Editor-Titel explizit thematisieren
             if (stage != null && stage.getScene() != null) {
@@ -9280,84 +9219,7 @@ spacer.setStyle("-fx-background-color: transparent;");
         return null;
     }
     
-    /**
-     * Toggle für den Chapter-Editor
-     */
-    private void toggleChapterEditor() {
-        chapterEditorVisible = !chapterEditorVisible;
-        
-        if (chapterEditorVisible) {
-            // Chapter-Editor anzeigen
-            chapterEditorPanel.setVisible(true);
-            chapterEditorPanel.setManaged(true);
-            chapterEditorPanel.setMinHeight(150);
-            chapterEditorPanel.setPrefHeight(200);
-            chapterEditorArea.setVisible(true);
-            chapterEditorArea.setManaged(true);
-            
-            // Chapter-Inhalt laden
-            loadChapterContent();
-            
-            // SplitPane-Position wiederherstellen und Style zurücksetzen
-            double savedPosition = preferences.getDouble("chapter_editor_divider_position", 0.8);
-            mainSplitPane.setDividerPositions(savedPosition);
-            mainSplitPane.setStyle(""); // Style zurücksetzen
-            
-            updateStatus("Chapter-Editor geöffnet");
-        } else {
-            // Aktuelle Divider-Position speichern
-            if (mainSplitPane.getDividerPositions().length > 0) {
-                preferences.putDouble("chapter_editor_divider_position", mainSplitPane.getDividerPositions()[0]);
-            }
-            
-            // Chapter-Editor ausblenden
-            chapterEditorPanel.setVisible(false);
-            chapterEditorPanel.setManaged(false);
-            chapterEditorPanel.setMinHeight(0);
-            chapterEditorPanel.setPrefHeight(0);
-            chapterEditorArea.setVisible(false);
-            chapterEditorArea.setManaged(false);
-            
-            // Divider fest auf 0.0 setzen und visuell verstecken
-            mainSplitPane.setDividerPositions(0.0);
-            mainSplitPane.setStyle("-fx-background-color: transparent; -fx-border-color: transparent;");
-            
-            updateStatus("Chapter-Editor geschlossen");
-        }
-    }
-    
-    /**
-     * Lädt den Chapter-Inhalt aus der entsprechenden Datei
-     */
-    private void loadChapterContent() {
-        if (currentFile != null) {
-            String chapterContent = NovelManager.loadChapter(currentFile.getAbsolutePath());
-            // Setze den gesamten Inhalt direkt
-            chapterEditorArea.setText(chapterContent);
-            originalChapterContent = chapterContent;
-            chapterContentChanged = false;
-        }
-    }
-    
-    /**
-     * Speichert den Chapter-Inhalt in die entsprechende Datei
-     */
-    private void saveChapterContent() {
-        if (currentFile != null) {
-            String content = chapterEditorArea.getText();
-            
-            // Speichere in die Chapter-Datei (.chapter.txt) - nicht in die MD-Datei!
-            NovelManager.saveChapter(currentFile.getAbsolutePath(), content);
-            originalChapterContent = content;
-            chapterContentChanged = false;
-            
-            // Normale Anzeige zurücksetzen
-            if (lblStatus != null) {
-                lblStatus.setText("Chapter-Inhalt gespeichert: " + currentFile.getName());
-                lblStatus.setStyle("-fx-text-fill: #6c757d; -fx-font-size: 11px;");
-            }
-        }
-    }
+    // Chapter-Editor-Methoden entfernt - Split Pane nicht mehr vorhanden
     
     /**
      * Navigation zum vorherigen Kapitel

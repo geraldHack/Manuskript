@@ -64,8 +64,8 @@ public class QuotationMarkConverter {
         // DRITTER DURCHLAUF: Gerade Apostrophe zu einfachen Anführungszeichen (nur wenn Anführungszeichen)
         text = convertStraightApostrophesToQuotations(text, "›", "‹");
         
-        // Apostrophe: ' (gerader Apostroph)
-        text = text.replaceAll("[\\u2019\\u00B4\\u0060]", "'");
+        // Apostrophe: ' (gerader Apostroph) - NUR für echte Apostrophe, NICHT für typographische!
+        text = text.replaceAll("[\\u00B4\\u0060]", "'");
         
         return text;
     }
@@ -80,8 +80,8 @@ public class QuotationMarkConverter {
         // ZWEITER DURCHLAUF: Einfache Anführungszeichen (nur typografische zu geraden)
         text = convertSingleQuotationPairs(text, "'", "'");
         
-        // Apostrophe: ' (gerader Apostroph) - nur für echte Apostrophe
-        text = text.replaceAll("[\\u2019\\u00B4\\u0060]", "'");
+        // Apostrophe: ' (gerader Apostroph) - nur für echte Apostrophe, NICHT für typographische!
+        text = text.replaceAll("[\\u00B4\\u0060]", "'");
         
         return text;
     }
@@ -99,8 +99,8 @@ public class QuotationMarkConverter {
         // DRITTER DURCHLAUF: Gerade Apostrophe zu einfachen Anführungszeichen (nur wenn Anführungszeichen)
         text = convertStraightApostrophesToQuotations(text, "‹", "›");
         
-        // Apostrophe: ' (gerader Apostroph)
-        text = text.replaceAll("[\\u0027\\u2019\\u00B4\\u0060]", "'");
+        // Apostrophe: ' (gerader Apostroph) - nur für echte Apostrophe, NICHT für typographische!
+        text = text.replaceAll("[\\u0027\\u00B4\\u0060]", "'");
         
         return text;
     }
@@ -138,8 +138,8 @@ public class QuotationMarkConverter {
      * Unterscheidet zwischen Apostrophen und echten Anführungszeichen
      */
     private static String convertSingleQuotationPairs(String text, String openChar, String closeChar) {
-        // Finde alle einfachen Anführungszeichen (inklusive gerade Apostrophe)
-        String pattern = "[\\u201A\\u2018\\u2019\\u2039\\u203A\\u0027]";
+        // Finde alle einfachen Anführungszeichen (NICHT Apostrophe!)
+        String pattern = "[\\u201A\\u2018\\u2039\\u203A\\u0027]";
         Pattern regex = Pattern.compile(pattern);
         Matcher matcher = regex.matcher(text);
         
@@ -158,6 +158,8 @@ public class QuotationMarkConverter {
                 result.setCharAt(positions.get(i + 1), closeChar.charAt(0));
             }
         }
+        
+        // WICHTIG: Apostrophe (U+2019) werden NICHT konvertiert - sie bleiben unverändert!
         
         return result.toString();
     }
@@ -233,8 +235,8 @@ public class QuotationMarkConverter {
     public static List<QuotationMark> findQuotationMarks(String text) {
         List<QuotationMark> marks = new ArrayList<>();
         
-        // Regex für alle Anführungszeichen
-        String pattern = "[\u201E\u201C\u201D\u00AB\u00BB\u201A\u2018\u2019\u2039\u203A\u0027\u00B4\u0060\"]";
+        // Regex für alle Anführungszeichen (NICHT Apostrophe!)
+        String pattern = "[\u201E\u201C\u201D\u00AB\u00BB\u201A\u2018\u2039\u203A\u0027\u00B4\u0060\"]";
         Pattern regex = Pattern.compile(pattern);
         Matcher matcher = regex.matcher(text);
         

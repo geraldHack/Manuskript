@@ -37,6 +37,20 @@
 }
 
 /* ========================================
+   STATUS-LABELS - Einheitlich grau für alle Themes
+   ======================================== */
+.status-label {
+    -fx-font-weight: bold;
+    -fx-font-size: 12px;
+    -fx-text-fill: #666666;
+    -fx-background-color: #e8e8e8;
+    -fx-padding: 3px 8px;
+    -fx-border-radius: 3px;
+    -fx-border-color: #cccccc;
+    -fx-border-width: 1px;
+}
+
+/* ========================================
    BASIS-STYLES (Weiß Theme - Standard)
    ======================================== */
 
@@ -979,8 +993,11 @@
 
 /* Pastell-Theme TableView - Selektion (sofort sichtbar) */
 .pastell-theme .table-view .table-row-cell:selected,
-.pastell-theme .table-view .table-row-cell:selected:focused {
+.pastell-theme .table-view .table-row-cell:selected:focused,
+.pastell-theme .table-view .table-row-cell:selected:non-focused {
     -fx-background-color: #ba68c8 !important;
+    -fx-selection-bar: #ba68c8 !important;
+    -fx-selection-bar-non-focused: #ba68c8 !important;
 }
 
 .pastell-theme .table-view .table-row-cell:selected .table-cell,

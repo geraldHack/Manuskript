@@ -107,6 +107,9 @@ public class PandocExportWindow extends CustomStage {
         root.setPadding(new Insets(20));
         root.getStyleClass().add("pandoc-export-dialog");
         
+        // Nur Padding für root, Border kommt auf outerContainer
+        root.setStyle("-fx-padding: 5px;");
+        
         // Format Selection
         HBox formatBox = new HBox(10);
         formatBox.setAlignment(Pos.CENTER_LEFT);
@@ -201,11 +204,24 @@ public class PandocExportWindow extends CustomStage {
             buttonBox
         );
         
-        setSceneWithTitleBar(new Scene(root));
+        // Wrapper mit Padding für äußeren Abstand
+        StackPane wrapper = new StackPane();
+        wrapper.setPadding(new Insets(10)); // 10px Abstand zum Fensterrand
+        wrapper.setStyle("-fx-padding: 10;"); // CSS-Überschreibung verhindern
+        
+        // Border auf den root setzen
+        root.setStyle("-fx-border-width: 1px; -fx-border-radius: 5px;");
+        
+        wrapper.getChildren().add(root);
+        
+        setSceneWithTitleBar(new Scene(wrapper));
         centerOnScreen();
 
         // Titel sicherstellen nach dem Erstellen der Szene
         setTitle("Buch exportieren - " + projectName);
+        
+        // Theme-spezifische Border-Farbe setzen
+        applyThemeBorder(root);
         
         // CSS-Stylesheets laden
         String stylesCss = ResourceManager.getCssResource("css/styles.css");
@@ -221,6 +237,41 @@ public class PandocExportWindow extends CustomStage {
         if (manuskriptCss != null) {
             getScene().getStylesheets().add(manuskriptCss);
         }
+    }
+    
+    /**
+     * Wendet eine theme-spezifische Border-Farbe auf den Root-Container an
+     */
+    private void applyThemeBorder(VBox root) {
+        String borderColor;
+        switch (currentThemeIndex) {
+            case 0: // Weiß
+                borderColor = "#cccccc";
+                break;
+            case 1: // Schwarz
+                borderColor = "#404040";
+                break;
+            case 2: // Pastell
+                borderColor = "#ba68c8";
+                break;
+            case 3: // Blau
+                borderColor = "#1d4ed8";
+                break;
+            case 4: // Grün
+                borderColor = "#047857";
+                break;
+            case 5: // Lila
+                borderColor = "#6d28d9";
+                break;
+            default:
+                borderColor = "#404040";
+        }
+        
+        String currentStyle = root.getStyle();
+        if (currentStyle == null) {
+            currentStyle = "";
+        }
+        root.setStyle(currentStyle + " -fx-border-color: " + borderColor + ";");
     }
     
     private VBox createMetadataSection() {
@@ -773,6 +824,10 @@ public class PandocExportWindow extends CustomStage {
                 content = content.replaceAll("<mark>([^<]+)</mark>", "\\\\hl{$1}");
                 content = content.replaceAll("<small>([^<]+)</small>", "\\\\small $1");
                 content = content.replaceAll("<big>([^<]+)</big>", "\\\\large $1");
+                
+                // Markdown-Kursiv zu LaTeX-Kursiv konvertieren (wichtig für PDF!)
+                // Pandoc macht das automatisch: *text* → \emph{text}
+                // Das ist korrekt! \emph{} ist die richtige LaTeX-Formatierung für Kursiv
             } else if ("docx".equals(format)) {
                 // Für DOCX: Pandoc-native Befehle verwenden
                 content = content.replaceAll("<u>([^<]+)</u>", "[$1]{.underline}");
@@ -971,6 +1026,10 @@ public class PandocExportWindow extends CustomStage {
                 command.add("--pdf-engine=xelatex");
                 command.add("--toc"); // Inhaltsverzeichnis für PDF
                 
+                // Markdown-Formatierung explizit aktivieren
+                command.add("--from=markdown+yaml_metadata_block+smart");
+                command.add("--to=latex");
+                
                 // Template für PDF verwenden (vereinfachtes XeLaTeX-Template)
                 File pdfTemplate = new File("pandoc-3.8.1", "simple-xelatex-template.tex");
                 if (pdfTemplate.exists()) {
@@ -1112,6 +1171,7 @@ public class PandocExportWindow extends CustomStage {
                 if ("docx".equals(format)) {
                     postProcessDocx(resultFile);
                 }
+                
                 
                 return true;
             } else {
@@ -1409,6 +1469,15 @@ public class PandocExportWindow extends CustomStage {
                   $math$
                   $endif$
                   <style>
+                    /* Text-Offset für bessere Lesbarkeit */
+                    body {
+                      margin: 0;
+                      padding: 2em 4em;
+                      max-width: 1200px;
+                      margin-left: auto;
+                      margin-right: auto;
+                    }
+                    
                     .cover-image {
                       max-width: 100%;
                       height: auto;
@@ -1594,6 +1663,7 @@ public class PandocExportWindow extends CustomStage {
     /**
      * Post-Processing für DOCX: Ersetzt "Abstract" durch "Zusammenfassung" und fügt Cover-Bild hinzu
      */
+    
     private void postProcessDocx(File docxFile) {
         try {
             logger.info("Post-Processing für DOCX: {}", docxFile.getName());

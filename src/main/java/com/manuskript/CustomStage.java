@@ -42,7 +42,7 @@ public class CustomStage extends Stage {
     private static final String DEFAULT_CLOSE_SYMBOL = "×";
     private static final String DEFAULT_TITLE = "Manuskript";
     private static final String DEFAULT_ICON_TEXT = "M";
-    private static final double ICON_SIZE = 40.0;
+    private static final double ICON_SIZE = 30.0;
     private static final double MAC_BUTTON_SIZE = 12.0;
     private static final String MAC_CLOSE_COLOR = "#ff5f57";
     private static final String MAC_CLOSE_HOVER_COLOR = "#ff3b30";
