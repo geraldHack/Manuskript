@@ -3562,6 +3562,8 @@ public class MainController implements Initializable {
             // Zeige den Editor
             editorStage.show();
             
+            // Status wird bereits in der setText-Methode gesetzt
+            
         } catch (Exception e) {
             logger.error("Fehler beim Öffnen des Editors", e);
             showError("Editor-Fehler", "Konnte Editor nicht öffnen: " + e.getMessage());

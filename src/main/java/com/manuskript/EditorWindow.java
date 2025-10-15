@@ -1599,7 +1599,7 @@ if (caret != null) {
         }
     }
     
-    private void updateStatus(String message) {
+    public void updateStatus(String message) {
         lblStatus.setText(message);
         // Normale Farbe setzen, außer wenn es "nicht gesichert" ist
         if (!message.contains("nicht gesichert")) {
@@ -4005,6 +4005,115 @@ if (caret != null) {
         return markdown.toString().trim();
     }
     
+    /**
+     * Auto-Formatierung für Markdown: Konvertiert einfache Zeilenumbrüche zu doppelten,
+     * aber respektiert Code-Blöcke, Tabellen und andere spezielle Bereiche
+     */
+    private String autoFormatMarkdown(String text) {
+        if (text == null || text.isEmpty()) {
+            return text;
+        }
+        
+        // Debug: Zeige Eingabetext
+        System.out.println("DEBUG: autoFormatMarkdown aufgerufen mit " + text.length() + " Zeichen");
+        
+        String[] lines = text.split("\n");
+        StringBuilder result = new StringBuilder();
+        
+        boolean inCodeBlock = false;
+        boolean inTable = false;
+        boolean inBlockquote = false;
+        boolean inList = false;
+        boolean inHorizontalRule = false;
+        
+        for (int i = 0; i < lines.length; i++) {
+            String line = lines[i];
+            String trimmedLine = line.trim();
+            
+            // Prüfe auf Code-Blöcke
+            if (trimmedLine.startsWith("```")) {
+                inCodeBlock = !inCodeBlock;
+                result.append(line).append("\n");
+                continue;
+            }
+            
+            // Prüfe auf Tabellen (Zeile mit |)
+            if (!inCodeBlock && trimmedLine.contains("|") && !trimmedLine.startsWith("```")) {
+                if (!inTable) {
+                    inTable = true;
+                }
+                result.append(line).append("\n");
+                continue;
+            } else if (inTable && !trimmedLine.contains("|")) {
+                inTable = false;
+                // Füge Leerzeile nach Tabelle hinzu
+                result.append("\n");
+            }
+            
+            // Prüfe auf Blockquotes
+            if (!inCodeBlock && !inTable && trimmedLine.startsWith(">")) {
+                if (!inBlockquote) {
+                    inBlockquote = true;
+                }
+                result.append(line).append("\n");
+                continue;
+            } else if (inBlockquote && !trimmedLine.startsWith(">") && !trimmedLine.isEmpty()) {
+                inBlockquote = false;
+            }
+            
+            // Prüfe auf Listen
+            if (!inCodeBlock && !inTable && !inBlockquote && 
+                (trimmedLine.startsWith("- ") || trimmedLine.startsWith("* ") || 
+                 trimmedLine.startsWith("+ ") || trimmedLine.matches("^\\d+\\.\\s.*"))) {
+                if (!inList) {
+                    inList = true;
+                }
+                result.append(line).append("\n");
+                continue;
+            } else if (inList && !trimmedLine.startsWith("- ") && !trimmedLine.startsWith("* ") && 
+                      !trimmedLine.startsWith("+ ") && !trimmedLine.matches("^\\d+\\.\\s.*") && 
+                      !trimmedLine.isEmpty()) {
+                inList = false;
+            }
+            
+            // Prüfe auf horizontale Linien
+            if (!inCodeBlock && !inTable && trimmedLine.matches("^[-*_]{3,}$")) {
+                inHorizontalRule = true;
+                result.append(line).append("\n");
+                continue;
+            } else if (inHorizontalRule && !trimmedLine.isEmpty()) {
+                inHorizontalRule = false;
+            }
+            
+            // Prüfe auf Überschriften
+            if (!inCodeBlock && !inTable && !inBlockquote && !inList && 
+                trimmedLine.startsWith("#")) {
+                result.append(line).append("\n");
+                continue;
+            }
+            
+            // Normale Zeilen - füge doppelten Zeilenumbruch hinzu wenn nötig
+            if (!inCodeBlock && !inTable && !inBlockquote && !inList && !inHorizontalRule) {
+                if (trimmedLine.isEmpty()) {
+                    result.append("\n");
+                } else {
+                    // Prüfe ob die nächste Zeile auch Inhalt hat
+                    boolean nextLineHasContent = (i + 1 < lines.length) && !lines[i + 1].trim().isEmpty();
+                    if (nextLineHasContent) {
+                        // Füge doppelten Zeilenumbruch hinzu
+                        result.append(line).append("\n\n");
+                    } else {
+                        result.append(line).append("\n");
+                    }
+                }
+            } else {
+                result.append(line).append("\n");
+            }
+        }
+        
+        return result.toString();
+    }
+    
     private void exportAsRTF() {
         if (outputFormat != DocxProcessor.OutputFormat.MARKDOWN) {
             updateStatus("RTF-Export nur für Markdown-Dokumente verfügbar");
@@ -4283,22 +4392,39 @@ if (caret != null) {
     public void setText(String text) {
         // EINGEBAUTE UNDO-FUNKTIONALITÄT VERWENDEN - kein manueller Aufruf nötig
         
-        codeArea.replaceText(text);
+        // Auto-Formatierung für Markdown anwenden
+        String formattedText = autoFormatMarkdown(text);
+        boolean wasFormatted = !text.equals(formattedText);
+        
+        // Debug: Zeige Auto-Formatierung Status
+        if (wasFormatted) {
+            System.out.println("DEBUG: Auto-Formatierung angewendet - " + text.length() + " -> " + formattedText.length() + " Zeichen");
+            System.out.println("DEBUG: hasUnsavedChanges wird auf true gesetzt");
+        }
+        
+        codeArea.replaceText(formattedText);
         
         // Kopie für Änderungsvergleich erstellen
-        originalContent = cleanTextForComparison(text);
+        originalContent = cleanTextForComparison(formattedText);
         // Debug entfernt
         
         // Status zurücksetzen beim Laden neuer Inhalte
-        markAsSaved();
+        if (wasFormatted) {
+            markAsChanged(); // Markiere als ungespeichert wenn Auto-Formatierung angewendet wurde
+            // Status mit Verzögerung setzen, um Initialisierungen zu umgehen
+            Platform.runLater(() -> {
+                Platform.runLater(() -> {
+                    updateStatus("⚠ Ungespeicherte Änderungen (auto-formatiert)");
+                });
+            });
+        } else {
+            markAsSaved();
+            updateStatus("Text geladen");
+        }
         
         // Cursor an den Anfang setzen
         codeArea.displaceCaret(0);
         codeArea.requestFollowCaret();
-        
-
-        
-        updateStatus("Text geladen");
     }
     
     /**
@@ -9218,6 +9344,7 @@ spacer.setStyle("-fx-background-color: transparent;");
         }
         return null;
     }
+    
     
     // Chapter-Editor-Methoden entfernt - Split Pane nicht mehr vorhanden
     
