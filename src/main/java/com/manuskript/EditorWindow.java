@@ -272,6 +272,7 @@ public class EditorWindow implements Initializable {
         setupMacroPanel();
         setupFontSizeComboBox();
         setupQuoteStyleComboBox();
+        setupDynamicQuoteCheck();
         
         // Help-Button-Verwaltung
         setupHelpButtons();
@@ -871,6 +872,9 @@ if (caret != null) {
                     findNext();
                 }
                 event.consume();
+            } else if (event.getCode() == KeyCode.DELETE) {
+                // Delete-Taste: Standard-Verhalten beibehalten
+                // RichTextFX macht das automatisch richtig
             }
         });
         
@@ -946,6 +950,173 @@ if (caret != null) {
         codeArea.insertText(caretPosition, replacement);
         
         // EINGEBAUTE UNDO-FUNKTIONALITÄT VERWENDEN - kein manueller Aufruf nötig
+    }
+    
+    /**
+     * Dynamische Überprüfung für französische und schweizer Anführungszeichen
+     * Konvertiert automatisch zwischen Anführungszeichen und Apostrophen basierend auf nachfolgenden Buchstaben
+     */
+    private void setupDynamicQuoteCheck() {
+        // Event-Handler für kontinuierliche Überprüfung während des Tippens
+        codeArea.textProperty().addListener((obs, oldText, newText) -> {
+            // Nur für französische und schweizer Modi
+            if (currentQuoteStyleIndex != 1 && currentQuoteStyleIndex != 3) { // 1 = französisch, 3 = schweizer
+                return;
+            }
+            
+            // Überprüfe alle französischen und schweizer Anführungszeichen
+            checkAndConvertQuotes(newText);
+        });
+    }
+    
+    /**
+     * Überprüft und konvertiert französische und schweizer Anführungszeichen zu Apostrophen und umgekehrt
+     */
+    private void checkAndConvertQuotes(String text) {
+        if (text == null || text.isEmpty()) return;
+        
+        StringBuilder result = new StringBuilder(text);
+        boolean hasChanges = false;
+        
+        // Für französischen Modus (Index 1): ›‹ (schließend, öffnend)
+        if (currentQuoteStyleIndex == 1) {
+            // Überprüfe › (U+203A) - französisches schließendes einfaches Anführungszeichen
+            for (int i = 0; i < result.length(); i++) {
+                if (result.charAt(i) == '\u203A') { // ›
+                    // Prüfe ob ein Buchstabe davor UND dahinter steht
+                    boolean hasLetterBefore = i > 0 && Character.isLetter(result.charAt(i - 1));
+                    boolean hasLetterAfter = i + 1 < result.length() && Character.isLetter(result.charAt(i + 1));
+                    
+                    if (hasLetterBefore && hasLetterAfter) {
+                        // Buchstabe davor UND dahinter -> zu Apostroph konvertieren
+                        result.setCharAt(i, '\'');
+                        hasChanges = true;
+                    }
+                }
+            }
+            
+            // Überprüfe ‹ (U+2039) - französisches öffnendes einfaches Anführungszeichen
+            for (int i = 0; i < result.length(); i++) {
+                if (result.charAt(i) == '\u2039') { // ‹
+                    // Prüfe ob ein Buchstabe davor UND dahinter steht
+                    boolean hasLetterBefore = i > 0 && Character.isLetter(result.charAt(i - 1));
+                    boolean hasLetterAfter = i + 1 < result.length() && Character.isLetter(result.charAt(i + 1));
+                    
+                    if (hasLetterBefore && hasLetterAfter) {
+                        // Buchstabe davor UND dahinter -> zu Apostroph konvertieren
+                        result.setCharAt(i, '\'');
+                        hasChanges = true;
+                    }
+                }
+            }
+            
+            // Überprüfe Apostrophe - konvertiere zu Anführungszeichen wenn NICHT Buchstabe davor UND dahinter
+            for (int i = 0; i < result.length(); i++) {
+                if (result.charAt(i) == '\'') {
+                    // Prüfe ob ein Buchstabe davor UND dahinter steht
+                    boolean hasLetterBefore = i > 0 && Character.isLetter(result.charAt(i - 1));
+                    boolean hasLetterAfter = i + 1 < result.length() && Character.isLetter(result.charAt(i + 1));
+                    
+                    if (!(hasLetterBefore && hasLetterAfter)) {
+                        // NICHT Buchstabe davor UND dahinter -> zu französischem Anführungszeichen konvertieren
+                        // Bestimme ob öffnend oder schließend basierend auf Kontext
+                        boolean shouldBeClosing = false;
+                        if (i > 0) {
+                            char charBefore = result.charAt(i - 1);
+                            if (Character.isLetterOrDigit(charBefore) || charBefore == '.' || charBefore == '…' || 
+                                charBefore == '!' || charBefore == '?' || charBefore == ',' || charBefore == ';' || 
+                                charBefore == ':' || charBefore == ')') {
+                                shouldBeClosing = true;
+                            }
+                        }
+                        
+                        // Französisch: › (schließend) oder ‹ (öffnend)
+                        char replacement = shouldBeClosing ? '\u203A' : '\u2039'; // › oder ‹
+                        result.setCharAt(i, replacement);
+                        hasChanges = true;
+                    }
+                }
+            }
+        }
+        
+        // Für schweizer Modus (Index 3): ‹ und ›
+        if (currentQuoteStyleIndex == 3) {
+            // Überprüfe ‹ (U+2039) - schweizer öffnendes einfaches Anführungszeichen
+            for (int i = 0; i < result.length(); i++) {
+                if (result.charAt(i) == '\u2039') { // ‹
+                    // Prüfe ob ein Buchstabe davor UND dahinter steht
+                    boolean hasLetterBefore = i > 0 && Character.isLetter(result.charAt(i - 1));
+                    boolean hasLetterAfter = i + 1 < result.length() && Character.isLetter(result.charAt(i + 1));
+                    
+                    if (hasLetterBefore && hasLetterAfter) {
+                        // Buchstabe davor UND dahinter -> zu Apostroph konvertieren
+                        result.setCharAt(i, '\'');
+                        hasChanges = true;
+                    }
+                }
+            }
+            
+            // Überprüfe › (U+203A) - schweizer schließendes einfaches Anführungszeichen
+            for (int i = 0; i < result.length(); i++) {
+                if (result.charAt(i) == '\u203A') { // ›
+                    // Prüfe ob ein Buchstabe davor UND dahinter steht
+                    boolean hasLetterBefore = i > 0 && Character.isLetter(result.charAt(i - 1));
+                    boolean hasLetterAfter = i + 1 < result.length() && Character.isLetter(result.charAt(i + 1));
+                    
+                    if (hasLetterBefore && hasLetterAfter) {
+                        // Buchstabe davor UND dahinter -> zu Apostroph konvertieren
+                        result.setCharAt(i, '\'');
+                        hasChanges = true;
+                    }
+                }
+            }
+            
+            // Überprüfe Apostrophe - konvertiere zu Anführungszeichen wenn NICHT Buchstabe davor UND dahinter
+            for (int i = 0; i < result.length(); i++) {
+                if (result.charAt(i) == '\'') {
+                    // Prüfe ob ein Buchstabe davor UND dahinter steht
+                    boolean hasLetterBefore = i > 0 && Character.isLetter(result.charAt(i - 1));
+                    boolean hasLetterAfter = i + 1 < result.length() && Character.isLetter(result.charAt(i + 1));
+                    
+                    if (!(hasLetterBefore && hasLetterAfter)) {
+                        // NICHT Buchstabe davor UND dahinter -> zu schweizer Anführungszeichen konvertieren
+                        // Bestimme ob öffnend oder schließend basierend auf Kontext
+                        boolean shouldBeClosing = false;
+                        if (i > 0) {
+                            char charBefore = result.charAt(i - 1);
+                            if (Character.isLetterOrDigit(charBefore) || charBefore == '.' || charBefore == '…' || 
+                                charBefore == '!' || charBefore == '?' || charBefore == ',' || charBefore == ';' || 
+                                charBefore == ':' || charBefore == ')') {
+                                shouldBeClosing = true;
+                            }
+                        }
+                        
+                        char replacement = shouldBeClosing ? '\u203A' : '\u2039'; // › oder ‹
+                        result.setCharAt(i, replacement);
+                        hasChanges = true;
+                    }
+                }
+            }
+        }
+        
+        // Wende Änderungen an wenn welche gefunden wurden
+        if (hasChanges) {
+            String newText = result.toString();
+            if (!text.equals(newText)) {
+                // Speichere Cursor-Position
+                int caretPosition = codeArea.getCaretPosition();
+                
+                // Ersetze den Text
+                codeArea.replaceText(newText);
+                
+                // Stelle Cursor-Position wieder her
+                if (caretPosition <= newText.length()) {
+                    codeArea.moveTo(caretPosition);
+                } else {
+                    codeArea.moveTo(newText.length());
+                }
+            }
+        }
     }
     
     private void setupSearchReplacePanel() {
@@ -4392,30 +4563,35 @@ if (caret != null) {
     public void setText(String text) {
         // EINGEBAUTE UNDO-FUNKTIONALITÄT VERWENDEN - kein manueller Aufruf nötig
         
+        // WICHTIG: Original-Content vor Auto-Formatierung speichern
+        String originalTextBeforeFormatting = cleanTextForComparison(text);
+        
         // Auto-Formatierung für Markdown anwenden
         String formattedText = autoFormatMarkdown(text);
         boolean wasFormatted = !text.equals(formattedText);
         
-        // Debug: Zeige Auto-Formatierung Status
-        if (wasFormatted) {
-            System.out.println("DEBUG: Auto-Formatierung angewendet - " + text.length() + " -> " + formattedText.length() + " Zeichen");
-            System.out.println("DEBUG: hasUnsavedChanges wird auf true gesetzt");
-        }
         
         codeArea.replaceText(formattedText);
         
-        // Kopie für Änderungsvergleich erstellen
-        originalContent = cleanTextForComparison(formattedText);
+        // WICHTIG: originalContent auf den ORIGINALEN Text setzen (vor Auto-Formatierung)
+        // Nur wenn Auto-Formatierung angewendet wurde, sonst normal
+        if (wasFormatted) {
+            originalContent = originalTextBeforeFormatting; // Original vor Auto-Formatierung
+        } else {
+            originalContent = cleanTextForComparison(formattedText); // Normal
+        }
         // Debug entfernt
         
         // Status zurücksetzen beim Laden neuer Inhalte
         if (wasFormatted) {
             markAsChanged(); // Markiere als ungespeichert wenn Auto-Formatierung angewendet wurde
-            // Status mit Verzögerung setzen, um Initialisierungen zu umgehen
+            // WICHTIG: updateStatusDisplay() wird bereits von markAsChanged() aufgerufen
+            // Zusätzlich: Status-Label mit korrekter Farbe setzen
             Platform.runLater(() -> {
-                Platform.runLater(() -> {
-                    updateStatus("⚠ Ungespeicherte Änderungen (auto-formatiert)");
-                });
+                if (lblStatus != null) {
+                    lblStatus.setText("⚠ Ungespeicherte Änderungen (auto-formatiert)");
+                    lblStatus.setStyle("-fx-text-fill: #ff6b35; -fx-font-weight: bold; -fx-background-color: #fff3cd; -fx-padding: 2 6 2 6; -fx-background-radius: 3;");
+                }
             });
         } else {
             markAsSaved();
@@ -7823,7 +7999,6 @@ spacer.setStyle("-fx-background-color: transparent;");
      * Konvertiert typographische Anführungszeichen in HTML-Tags zurück zu normalen "
      */
     private String normalizeHtmlTagsInContent(String content) {
-        System.out.println("=== NORMALIZE HTML TAGS IN CONTENT - START ===");
         
         if (content == null || content.isEmpty()) {
             return content;
@@ -7845,16 +8020,12 @@ spacer.setStyle("-fx-background-color: transparent;");
         matcher.appendTail(result);
         
         String normalizedContent = result.toString();
-        System.out.println("DEBUG: Content nach Normalisierung: " + normalizedContent.substring(0, Math.min(500, normalizedContent.length())));
         
         if (!content.equals(normalizedContent)) {
-            System.out.println("DEBUG: Änderungen gefunden, wende Normalisierung an");
-            System.out.println("DEBUG: Normalisierung abgeschlossen");
         } else {
-            System.out.println("DEBUG: Keine Änderungen nötig");
+            return content;
         }
         
-        System.out.println("=== ENDE NORMALIZE HTML TAGS IN CONTENT ===");
         return normalizedContent;
     }
     
@@ -7863,30 +8034,23 @@ spacer.setStyle("-fx-background-color: transparent;");
      * Konvertiert typographische Anführungszeichen in HTML-Tags zurück zu normalen "
      */
     private void normalizeHtmlTagsInText() {
-        System.out.println("=== NORMALIZE HTML TAGS - START ===");
         
         if (codeArea == null) {
-            System.out.println("DEBUG: codeArea ist null");
             return;
         }
         
         String currentText = codeArea.getText();
         if (currentText == null || currentText.isEmpty()) {
-            System.out.println("DEBUG: Text ist leer oder null");
             return;
         }
         
-        System.out.println("DEBUG: Text-Länge vor Normalisierung: " + currentText.length());
-        System.out.println("DEBUG: Erste 500 Zeichen: " + currentText.substring(0, Math.min(500, currentText.length())));
         
         // Finde alle HTML-Tags und normalisiere Anführungszeichen darin
         String normalizedText = normalizeQuotesInHtmlTags(currentText);
         
-        System.out.println("DEBUG: Text nach Normalisierung: " + normalizedText.substring(0, Math.min(500, normalizedText.length())));
         
         // Prüfe ob Änderungen vorgenommen wurden
         if (!currentText.equals(normalizedText)) {
-            System.out.println("DEBUG: Änderungen gefunden, wende Normalisierung an");
             
             // Speichere Cursor-Position
             int caretPosition = codeArea.getCaretPosition();
@@ -7901,12 +8065,8 @@ spacer.setStyle("-fx-background-color: transparent;");
                 codeArea.moveTo(normalizedText.length());
             }
             
-            System.out.println("DEBUG: Normalisierung abgeschlossen");
-        } else {
-            System.out.println("DEBUG: Keine Änderungen nötig");
         }
         
-        System.out.println("=== ENDE NORMALIZE HTML TAGS ===");
     }
     
     /**
@@ -7921,16 +8081,12 @@ spacer.setStyle("-fx-background-color: transparent;");
         StringBuffer result = new StringBuffer();
         while (matcher.find()) {
             String tag = matcher.group();
-            System.out.println("DEBUG: Gefundener HTML-Tag: " + tag);
             
             // Prüfe ob der Tag typographische Anführungszeichen enthält
             if (containsTypographicQuotes(tag)) {
                 // Normalisiere Anführungszeichen in HTML-Attributen
                 String normalizedTag = normalizeQuotesInHtmlAttributes(tag);
-                
-                if (!tag.equals(normalizedTag)) {
-                    System.out.println("DEBUG: Tag normalisiert: " + tag + " -> " + normalizedTag);
-                }
+               
                 
                 matcher.appendReplacement(result, java.util.regex.Matcher.quoteReplacement(normalizedTag));
             } else {
@@ -7960,14 +8116,11 @@ spacer.setStyle("-fx-background-color: transparent;");
      * Konvertiert typographische Anführungszeichen zu normalen " in Attributwerten
      */
     private String normalizeQuotesInHtmlAttributes(String htmlTag) {
-        System.out.println("DEBUG: Normalisiere HTML-Tag: " + htmlTag);
         
         // Einfacher Ansatz: Normalisiere alle typographischen Anführungszeichen im gesamten Tag
         String normalizedTag = normalizeQuotesInText(htmlTag);
         
-        if (!htmlTag.equals(normalizedTag)) {
-            System.out.println("DEBUG: Tag normalisiert: " + htmlTag + " -> " + normalizedTag);
-        }
+       
         
         return normalizedTag;
     }

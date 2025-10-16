@@ -41,12 +41,11 @@ public class QuotationMarkConverter {
      * Konvertiert zu deutschen Anführungszeichen: „" und ‚'
      */
     private static String convertToGerman(String text) {
-        text = convertToFrench(text);
+        // ERSTER DURCHLAUF: Alle zu englischen Anführungszeichen
+        text = convertToEnglish(text);
         
-        text = text.replace("»", "\u201E");
-        text = text.replace("«", "\u201D");
-        text = text.replace("›", "\u201A");
-        text = text.replace("‹", "\u2019");
+        // ZWEITER DURCHLAUF: Englische zu deutschen Anführungszeichen (nur Paare!)
+        text = convertQuotationPairs(text, "\u201E", "\u201C", "\u201A", "\u2019"); // „" und ‚'
         
         return text;
     }
@@ -55,17 +54,11 @@ public class QuotationMarkConverter {
      * Konvertiert zu französischen Anführungszeichen: »« und ›‹
      */
     private static String convertToFrench(String text) {
-        // ERSTER DURCHLAUF: Doppelte Anführungszeichen
-        text = convertDoubleQuotationPairs(text, "»", "«");
+        // ERSTER DURCHLAUF: Alle zu englischen Anführungszeichen
+        text = convertToEnglish(text);
         
-        // ZWEITER DURCHLAUF: Einfache Anführungszeichen
-        text = convertSingleQuotationPairs(text, "›", "‹");
-        
-        // DRITTER DURCHLAUF: Gerade Apostrophe zu einfachen Anführungszeichen (nur wenn Anführungszeichen)
-        text = convertStraightApostrophesToQuotations(text, "›", "‹");
-        
-        // Apostrophe: ' (gerader Apostroph) - NUR für echte Apostrophe, NICHT für typographische!
-        text = text.replaceAll("[\\u00B4\\u0060]", "'");
+        // ZWEITER DURCHLAUF: Englische zu französischen Anführungszeichen (nur Paare!)
+        text = convertQuotationPairs(text, "\u00BB", "\u00AB", "\u203A", "\u2039"); // »« und ›‹
         
         return text;
     }
@@ -74,14 +67,24 @@ public class QuotationMarkConverter {
      * Konvertiert zu englischen Anführungszeichen: "" und ''
      */
     private static String convertToEnglish(String text) {
-        // ERSTER DURCHLAUF: Doppelte Anführungszeichen
-        text = convertDoubleQuotationPairs(text, "\"", "\"");
+        // ERSTER DURCHLAUF: Alle typographischen Anführungszeichen zu englischen
+        // Doppelte Anführungszeichen
+        text = text.replace("\u201E", "\""); // „ zu "
+        text = text.replace("\u201C", "\""); // " zu "
+        text = text.replace("\u201D", "\""); // " zu "
+        text = text.replace("\u00AB", "\""); // « zu "
+        text = text.replace("\u00BB", "\""); // » zu "
         
-        // ZWEITER DURCHLAUF: Einfache Anführungszeichen (nur typografische zu geraden)
-        text = convertSingleQuotationPairs(text, "'", "'");
+        // Einfache Anführungszeichen
+        text = text.replace("\u201A", "'"); // ‚ zu '
+        text = text.replace("\u2018", "'"); // ' zu '
+        text = text.replace("\u2019", "'"); // ' zu '
+        text = text.replace("\u2039", "'"); // ‹ zu '
+        text = text.replace("\u203A", "'"); // › zu '
         
-        // Apostrophe: ' (gerader Apostroph) - nur für echte Apostrophe, NICHT für typographische!
-        text = text.replaceAll("[\\u00B4\\u0060]", "'");
+        // Andere Apostrophe
+        text = text.replace("\u00B4", "'"); // ´ zu '
+        text = text.replace("\u0060", "'"); // ` zu '
         
         return text;
     }
@@ -90,17 +93,31 @@ public class QuotationMarkConverter {
      * Konvertiert zu schweizer Anführungszeichen: «» und ‹›
      */
     private static String convertToSwiss(String text) {
-        // ERSTER DURCHLAUF: Doppelte Anführungszeichen
-        text = convertDoubleQuotationPairs(text, "«", "»");
+        // ERSTER DURCHLAUF: Alle zu englischen Anführungszeichen
+        text = convertToEnglish(text);
         
-        // ZWEITER DURCHLAUF: Einfache Anführungszeichen
-        text = convertSingleQuotationPairs(text, "‹", "›");
+        // ZWEITER DURCHLAUF: Englische zu schweizer Anführungszeichen (nur Paare!)
+        text = convertQuotationPairs(text, "\u00AB", "\u00BB", "\u2039", "\u203A"); // «» und ‹›
         
-        // DRITTER DURCHLAUF: Gerade Apostrophe zu einfachen Anführungszeichen (nur wenn Anführungszeichen)
-        text = convertStraightApostrophesToQuotations(text, "‹", "›");
+        return text;
+    }
+    
+    /**
+     * Konvertiert Anführungszeichen-Paare (doppelte und einfache) zu gewünschten Zeichen
+     * Unterscheidet zwischen echten Apostrophen und Anführungszeichen
+     */
+    private static String convertQuotationPairs(String text, String doubleOpen, String doubleClose, String singleOpen, String singleClose) {
+        // ERSTE SCHLEIFE: Markiere echte Apostrophe
+        text = markApostrophes(text);
         
-        // Apostrophe: ' (gerader Apostroph) - nur für echte Apostrophe, NICHT für typographische!
-        text = text.replaceAll("[\\u0027\\u00B4\\u0060]", "'");
+        // ZWEITE SCHLEIFE: Konvertiere doppelte Anführungszeichen
+        text = convertDoubleQuotationPairs(text, doubleOpen, doubleClose);
+        
+        // DRITTE SCHLEIFE: Konvertiere einfache Anführungszeichen (nur Paare!)
+        text = convertSingleQuotationPairs(text, singleOpen, singleClose);
+        
+        // VIERTE SCHLEIFE: Stelle echte Apostrophe wieder her
+        text = text.replace("ApOsTrOpH", "'");
         
         return text;
     }
@@ -123,9 +140,9 @@ public class QuotationMarkConverter {
         StringBuilder result = new StringBuilder(text);
         for (int i = 0; i < positions.size(); i += 2) {
             if (i + 1 < positions.size()) {
-                // Öffnendes Anführungszeichen
+                // Erstes = öffnend
                 result.setCharAt(positions.get(i), openChar.charAt(0));
-                // Schließendes Anführungszeichen
+                // Zweites = schließend
                 result.setCharAt(positions.get(i + 1), closeChar.charAt(0));
             }
         }
@@ -138,7 +155,7 @@ public class QuotationMarkConverter {
      * Unterscheidet zwischen Apostrophen und echten Anführungszeichen
      */
     private static String convertSingleQuotationPairs(String text, String openChar, String closeChar) {
-        // Finde alle einfachen Anführungszeichen (NICHT Apostrophe!)
+        // Finde alle einfachen Anführungszeichen (INCLUDING gerade Apostrophe!)
         String pattern = "[\\u201A\\u2018\\u2039\\u203A\\u0027]";
         Pattern regex = Pattern.compile(pattern);
         Matcher matcher = regex.matcher(text);
@@ -152,14 +169,41 @@ public class QuotationMarkConverter {
         StringBuilder result = new StringBuilder(text);
         for (int i = 0; i < positions.size(); i += 2) {
             if (i + 1 < positions.size()) {
-                // Öffnendes Anführungszeichen
+                // Erstes = öffnend
                 result.setCharAt(positions.get(i), openChar.charAt(0));
-                // Schließendes Anführungszeichen
+                // Zweites = schließend
                 result.setCharAt(positions.get(i + 1), closeChar.charAt(0));
             }
         }
         
-        // WICHTIG: Apostrophe (U+2019) werden NICHT konvertiert - sie bleiben unverändert!
+        return result.toString();
+    }
+    
+    /**
+     * Spezielle Konvertierung für französische einfache Anführungszeichen: ›‹ (schließend, öffnend)
+     */
+    private static String convertSingleQuotationPairsFrench(String text) {
+        // Finde alle einfachen Anführungszeichen (NICHT Apostrophe!)
+        String pattern = "[\\u201A\\u2018\\u2039\\u203A\\u0027]";
+        Pattern regex = Pattern.compile(pattern);
+        Matcher matcher = regex.matcher(text);
+        
+        List<Integer> positions = new ArrayList<>();
+        while (matcher.find()) {
+            positions.add(matcher.start());
+        }
+        
+        // Konvertiere Paare für französisch: ›‹ (schließend, öffnend)
+        // Das bedeutet: erstes ' wird zu ›, zweites ' wird zu ‹
+        StringBuilder result = new StringBuilder(text);
+        for (int i = 0; i < positions.size(); i += 2) {
+            if (i + 1 < positions.size()) {
+                // Erstes = schließend (›) - weil französisch ›‹ verwendet
+                result.setCharAt(positions.get(i), '\u203A'); // ›
+                // Zweites = öffnend (‹) - weil französisch ›‹ verwendet  
+                result.setCharAt(positions.get(i + 1), '\u2039'); // ‹
+            }
+        }
         
         return result.toString();
     }
