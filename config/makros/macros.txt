@@ -171,4 +171,13 @@ WORD:0
 ENABLED:1
 STEPDESC:Falsche Leerzeichen innen an  Anführungszeichen entfernen 2
 REPLACECOUNT:0
+STEP:20
+SEARCH:(?<!\\n\\n)(\\n)(-{3,}|\*{3,}|_{3,})(\\n)(?!\\n)
+REPLACE:$1\n$2$3\n
+REGEX:1
+CASE:0
+WORD:0
+ENABLED:1
+STEPDESC:Markdown-Trenner mit Leerzeilen umgeben
+REPLACECOUNT:0
 ENDMACRO

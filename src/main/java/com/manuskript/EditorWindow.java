@@ -28,6 +28,10 @@ import javafx.event.EventHandler;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.ScrollEvent;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
+import java.util.Timer;
+import java.util.TimerTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,6 +69,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.fxmisc.richtext.model.StyleSpan;
+import org.fxmisc.richtext.model.TwoDimensional.Bias;
 import javafx.animation.Timeline;
 import javafx.animation.KeyFrame;
 import javafx.util.Duration;
@@ -677,6 +682,8 @@ if (caret != null) {
                 HelpSystem.showHelpWindow("chapter_editor.html");
             });
         }
+        
+        
         if (btnHelpMarkdown != null) {
             btnHelpMarkdown.setOnAction(e -> {
                 logger.debug("Markdown-Help-Button geklickt!");
@@ -840,6 +847,16 @@ if (caret != null) {
     }
     
     private void setupKeyboardShortcuts() {
+        // Globaler Event-Filter für CTRL+F überall im Editor-Fenster
+        if (mainContainer != null) {
+            mainContainer.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+                if (event.isControlDown() && event.getCode() == KeyCode.F) {
+                    showSearchPanel();
+                    event.consume();
+                }
+            });
+        }
+        
         // Keyboard-Shortcuts für den Editor
         codeArea.setOnKeyPressed(event -> {
             // Debug-Ausgabe für Keyboard-Events
@@ -964,9 +981,258 @@ if (caret != null) {
                 return;
             }
             
+            // Verhindere Endlosschleife: Nur wenn Text sich wirklich geändert hat
+            if (oldText != null && oldText.equals(newText)) {
+                return;
+            }
+            
             // Überprüfe alle französischen und schweizer Anführungszeichen
             checkAndConvertQuotes(newText);
         });
+    }
+    
+    // Fehler-Sammlung für Anführungszeichen
+    private List<QuoteError> quoteErrors = new ArrayList<>();
+    private boolean quoteErrorsDialogShown = false; // Flag um mehrfaches Öffnen zu verhindern
+    
+    /**
+     * Sammelt Anführungszeichen-Fehler für die Anzeige
+     */
+    private void collectQuoteErrors(String paragraph, String type, int count) {
+        quoteErrors.add(new QuoteError(paragraph, type, count));
+    }
+    
+    /**
+     * Zeigt eine CustomStage mit den gefundenen Anführungszeichen-Fehlern an
+     */
+    private void showQuoteErrorsDialog() {
+        if (quoteErrors.isEmpty()) {
+            updateStatus("ℹ️ Keine Anführungszeichen-Fehler gefunden.");
+            return;
+        }
+        
+        // Verhindere mehrfaches Öffnen
+        if (quoteErrorsDialogShown) {
+            return;
+        }
+        quoteErrorsDialogShown = true;
+        
+        // CustomStage erstellen
+        CustomStage errorStage = new CustomStage();
+        errorStage.setCustomTitle("Anführungszeichen-Fehler");
+        errorStage.setWidth(800);
+        errorStage.setHeight(600);
+        
+        
+        // Haupt-Container
+        VBox mainContainer = new VBox(20);
+        mainContainer.setPadding(new Insets(20));
+        
+        // Titel
+        Label titleLabel = new Label("⚠️ Anführungszeichen-Fehler gefunden");
+        titleLabel.getStyleClass().add("full-title");
+        
+        // Beschreibung
+        Label descriptionLabel = new Label("Die folgenden Absätze haben eine ungerade Anzahl von Anführungszeichen:");
+        descriptionLabel.getStyleClass().add("full-description");
+        
+        // ScrollPane für Fehler-Liste
+        ScrollPane scrollPane = new ScrollPane();
+        scrollPane.getStyleClass().add("full-scroll-pane");
+        VBox errorList = new VBox(10);
+        errorList.getStyleClass().add("full-content");
+        
+        for (QuoteError error : quoteErrors) {
+            VBox errorItem = new VBox(5);
+            errorItem.getStyleClass().add("full-error-item");
+            
+            // Fehler-Typ
+            Label typeLabel = new Label(error.getType() + " (" + error.getCount() + " Stück)");
+            typeLabel.getStyleClass().add("full-error-type");
+            
+            // Absatz-Text mit Klick-Funktionalität
+            TextArea paragraphArea = new TextArea(error.getParagraph());
+            paragraphArea.setEditable(false);
+            paragraphArea.setPrefRowCount(3);
+            paragraphArea.setWrapText(true); // Text wrappen
+            paragraphArea.getStyleClass().add("full-text-area");
+            
+            // Klick-Handler für Sprung zum Absatz im Editor
+            paragraphArea.setOnMouseClicked(e -> {
+                jumpToParagraphInEditor(error.getParagraph());
+                // Dialog NICHT schließen - es gibt noch mehr Fehler!
+            });
+            
+            // Tooltip für Benutzer-Hinweis
+            paragraphArea.setTooltip(new Tooltip("Klicken zum Springen zum Absatz im Editor"));
+            
+            errorItem.getChildren().addAll(typeLabel, paragraphArea);
+            errorList.getChildren().add(errorItem);
+        }
+        
+        scrollPane.setContent(errorList);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setPrefHeight(400);
+        
+        // Buttons
+        HBox buttonBox = new HBox(10);
+        Button closeButton = new Button("Schließen");
+        closeButton.getStyleClass().add("full-button");
+        closeButton.setOnAction(e -> {
+            quoteErrors.clear(); // Fehler-Liste leeren
+            quoteErrorsDialogShown = false; // Flag zurücksetzen
+            errorStage.close();
+        });
+        
+        Button clearButton = new Button("Fehler-Liste leeren");
+        clearButton.getStyleClass().add("full-button-danger");
+        clearButton.setOnAction(e -> {
+            quoteErrors.clear();
+            quoteErrorsDialogShown = false; // Flag zurücksetzen
+            errorStage.close();
+            updateStatus("✅ Fehler-Liste geleert.");
+        });
+        
+        buttonBox.getChildren().addAll(closeButton, clearButton);
+        buttonBox.setAlignment(Pos.CENTER_RIGHT);
+        
+        // Alles zusammenfügen
+        mainContainer.getChildren().addAll(titleLabel, descriptionLabel, scrollPane, buttonBox);
+        
+        // Scene erstellen und anzeigen
+        Scene scene = new Scene(mainContainer);
+        
+        // CSS laden - EXAKT WIE ALLE ANDEREN STAGES
+        String cssPath = ResourceManager.getCssResource("css/manuskript.css");
+        if (cssPath != null) {
+            scene.getStylesheets().add(cssPath);
+        }
+        
+        errorStage.setSceneWithTitleBar(scene);
+        
+        // Theme anwenden - EXAKT WIE ALLE ANDEREN STAGES
+        errorStage.setFullTheme(currentThemeIndex);
+        
+        // Fenster anzeigen
+        errorStage.show();
+        
+        // Status aktualisieren
+        updateStatus("⚠️ " + quoteErrors.size() + " Anführungszeichen-Fehler gefunden und angezeigt.");
+    }
+    
+    /**
+     * Springt zum angegebenen Absatz im Editor
+     */
+    private void jumpToParagraphInEditor(String targetParagraph) {
+        if (targetParagraph == null || targetParagraph.trim().isEmpty()) {
+            return;
+        }
+        
+        String editorText = codeArea.getText();
+        if (editorText == null || editorText.isEmpty()) {
+            return;
+        }
+        
+        // Suche nach dem Absatz im Editor-Text
+        int paragraphIndex = editorText.indexOf(targetParagraph);
+        if (paragraphIndex == -1) {
+            // Fallback: Suche nach ähnlichem Text (erste 50 Zeichen)
+            String searchText = targetParagraph.length() > 50 ? 
+                targetParagraph.substring(0, 50) : targetParagraph;
+            paragraphIndex = editorText.indexOf(searchText);
+        }
+        
+        if (paragraphIndex != -1) {
+            // Cursor setzen
+            codeArea.moveTo(paragraphIndex);
+            
+            // Dann zum Absatz scrollen - ein bisschen weiter nach unten
+            final int finalParagraphIndex = codeArea.offsetToPosition(paragraphIndex, Bias.Forward).getMajor();
+            Platform.runLater(() -> {
+                // Erst zum Absatz scrollen
+                codeArea.showParagraphInViewport(finalParagraphIndex);
+                // Dann noch ein bisschen weiter nach unten scrollen
+                Platform.runLater(() -> {
+                    codeArea.showParagraphInViewport(finalParagraphIndex + 10);
+                });
+            });
+            
+            // Fokus auf Editor setzen - verstärkt
+            Platform.runLater(() -> {
+                codeArea.requestFocus();
+                stage.requestFocus(); // Hauptfenster-Fokus
+                codeArea.requestFocus(); // Editor-Fokus verstärken
+            });
+            
+            // Status-Meldung
+            updateStatus("📍 Zu fehlerhaftem Absatz gesprungen");
+        } else {
+            updateStatus("⚠️ Absatz im Editor nicht gefunden");
+        }
+    }
+    
+    /**
+     * Hilfsklasse für Anführungszeichen-Fehler
+     */
+    private static class QuoteError {
+        private String paragraph;
+        private String type;
+        private int count;
+        
+        public QuoteError(String paragraph, String type, int count) {
+            this.paragraph = paragraph;
+            this.type = type;
+            this.count = count;
+        }
+        
+        public String getParagraph() { return paragraph; }
+        public String getType() { return type; }
+        public int getCount() { return count; }
+    }
+    
+    /**
+     * Überprüft Anführungszeichen beim Laden und sammelt Fehler für Dialog
+     */
+    private void checkAndConvertQuotesOnLoad(String text) {
+        if (text == null || text.isEmpty()) return;
+        
+        // Fehler-Liste für diese Überprüfung leeren
+        quoteErrors.clear();
+        
+        // ZUVERLÄSSIGKEITS-CHECK: Überprüfe jeden Absatz auf ungerade Anführungszeichen (nur Warnung, keine automatische Korrektur)
+        String[] paragraphs = text.split("\n");
+        for (String paragraph : paragraphs) {
+            if (paragraph.trim().isEmpty()) continue;
+            
+            // Zähle doppelte Anführungszeichen
+            int doubleQuotes = 0;
+            for (char c : paragraph.toCharArray()) {
+                if (c == '"' || c == '\u201E' || c == '\u201C' || c == '\u201D' || c == '\u00AB' || c == '\u00BB') { // " „ " " « »
+                    doubleQuotes++;
+                }
+            }
+            
+            // Zähle einfache Anführungszeichen
+            int singleQuotes = 0;
+            for (char c : paragraph.toCharArray()) {
+                if (c == '\u2039' || c == '\u203A') { // ‹ oder ›
+                    singleQuotes++;
+                }
+            }
+            
+            // Wenn ungerade Anzahl -> Fehler sammeln für Anzeige
+            if (doubleQuotes % 2 != 0) {
+                System.out.println("WARNUNG: Ungerade Anzahl doppelter Anführungszeichen in Absatz: " + doubleQuotes);
+                // Fehler für Anzeige sammeln
+                collectQuoteErrors(paragraph, "Doppelte Anführungszeichen", doubleQuotes);
+            }
+            
+            if (singleQuotes % 2 != 0) {
+                System.out.println("WARNUNG: Ungerade Anzahl einfacher Anführungszeichen in Absatz: " + singleQuotes);
+                // Fehler für Anzeige sammeln
+                collectQuoteErrors(paragraph, "Einfache Anführungszeichen", singleQuotes);
+            }
+        }
     }
     
     /**
@@ -975,11 +1241,79 @@ if (caret != null) {
     private void checkAndConvertQuotes(String text) {
         if (text == null || text.isEmpty()) return;
         
+        // Fehler-Liste für diese Überprüfung leeren
+        quoteErrors.clear();
+        
         StringBuilder result = new StringBuilder(text);
         boolean hasChanges = false;
         
-        // Für französischen Modus (Index 1): ›‹ (schließend, öffnend)
+        // ZUVERLÄSSIGKEITS-CHECK: Überprüfe jeden Absatz auf ungerade Anführungszeichen (nur Warnung, keine automatische Korrektur)
+        String[] paragraphs = text.split("\n");
+        for (String paragraph : paragraphs) {
+            if (paragraph.trim().isEmpty()) continue;
+            
+            // Zähle doppelte Anführungszeichen
+            int doubleQuotes = 0;
+            for (char c : paragraph.toCharArray()) {
+                if (c == '"' || c == '\u201E' || c == '\u201C' || c == '\u201D' || c == '\u00AB' || c == '\u00BB') { // " „ " " « »
+                    doubleQuotes++;
+                }
+            }
+            
+            // Zähle einfache Anführungszeichen
+            int singleQuotes = 0;
+            for (char c : paragraph.toCharArray()) {
+                if (c == '\u2039' || c == '\u203A') { // ‹ oder ›
+                    singleQuotes++;
+                }
+            }
+            
+            // Wenn ungerade Anzahl -> Fehler sammeln für Anzeige
+            if (doubleQuotes % 2 != 0) {
+                System.out.println("WARNUNG: Ungerade Anzahl doppelter Anführungszeichen in Absatz: " + doubleQuotes);
+                // Fehler für Anzeige sammeln
+                collectQuoteErrors(paragraph, "Doppelte Anführungszeichen", doubleQuotes);
+            }
+            
+            if (singleQuotes % 2 != 0) {
+                System.out.println("WARNUNG: Ungerade Anzahl einfacher Anführungszeichen in Absatz: " + singleQuotes);
+                // Fehler für Anzeige sammeln
+                collectQuoteErrors(paragraph, "Einfache Anführungszeichen", singleQuotes);
+            }
+        }
+        
+        // Für französischen Modus (Index 1): ›‹ und »«
         if (currentQuoteStyleIndex == 1) {
+            // Überprüfe » (U+00BB) - französisches schließendes doppeltes Anführungszeichen
+            for (int i = 0; i < result.length(); i++) {
+                if (result.charAt(i) == '\u00BB') { // »
+                    // Prüfe ob ein Buchstabe davor UND dahinter steht
+                    boolean hasLetterBefore = i > 0 && Character.isLetter(result.charAt(i - 1));
+                    boolean hasLetterAfter = i + 1 < result.length() && Character.isLetter(result.charAt(i + 1));
+                    
+                    if (hasLetterBefore && hasLetterAfter) {
+                        // Buchstabe davor UND dahinter -> zu Apostroph konvertieren
+                        result.setCharAt(i, '\'');
+                        hasChanges = true;
+                    }
+                }
+            }
+            
+            // Überprüfe « (U+00AB) - französisches öffnendes doppeltes Anführungszeichen
+            for (int i = 0; i < result.length(); i++) {
+                if (result.charAt(i) == '\u00AB') { // «
+                    // Prüfe ob ein Buchstabe davor UND dahinter steht
+                    boolean hasLetterBefore = i > 0 && Character.isLetter(result.charAt(i - 1));
+                    boolean hasLetterAfter = i + 1 < result.length() && Character.isLetter(result.charAt(i + 1));
+                    
+                    if (hasLetterBefore && hasLetterAfter) {
+                        // Buchstabe davor UND dahinter -> zu Apostroph konvertieren
+                        result.setCharAt(i, '\'');
+                        hasChanges = true;
+                    }
+                }
+            }
+            
             // Überprüfe › (U+203A) - französisches schließendes einfaches Anführungszeichen
             for (int i = 0; i < result.length(); i++) {
                 if (result.charAt(i) == '\u203A') { // ›
@@ -1030,8 +1364,27 @@ if (caret != null) {
                             }
                         }
                         
-                        // Französisch: › (schließend) oder ‹ (öffnend)
-                        char replacement = shouldBeClosing ? '\u203A' : '\u2039'; // › oder ‹
+                        // Französisch: Bestimme ob doppelt oder einfach basierend auf Kontext
+                        // Wenn nach Leerzeichen oder Satzzeichen -> doppelt, sonst einfach
+                        boolean shouldBeDouble = false;
+                        if (i > 0) {
+                            char charBefore = result.charAt(i - 1);
+                            if (charBefore == ' ' || charBefore == '\n' || charBefore == '\t' || 
+                                charBefore == '.' || charBefore == '!' || charBefore == '?' || 
+                                charBefore == ',' || charBefore == ';' || charBefore == ':' || 
+                                charBefore == ')' || charBefore == ']' || charBefore == '}') {
+                                shouldBeDouble = true;
+                            }
+                        }
+                        
+                        char replacement;
+                        if (shouldBeDouble) {
+                            // Doppelte Anführungszeichen: » (schließend) oder « (öffnend)
+                            replacement = shouldBeClosing ? '\u00BB' : '\u00AB'; // » oder «
+                        } else {
+                            // Einfache Anführungszeichen: › (schließend) oder ‹ (öffnend)
+                            replacement = shouldBeClosing ? '\u203A' : '\u2039'; // › oder ‹
+                        }
                         result.setCharAt(i, replacement);
                         hasChanges = true;
                     }
@@ -1117,6 +1470,7 @@ if (caret != null) {
                 }
             }
         }
+        
     }
     
     private void setupSearchReplacePanel() {
@@ -1138,6 +1492,16 @@ if (caret != null) {
         searchReplacePanel.setManaged(searchPanelVisible);
         
         if (searchPanelVisible) {
+            cmbSearchHistory.requestFocus();
+            cmbSearchHistory.getEditor().selectAll();
+        }
+    }
+    
+    private void showSearchPanel() {
+        if (!searchPanelVisible) {
+            searchPanelVisible = true;
+            searchReplacePanel.setVisible(true);
+            searchReplacePanel.setManaged(true);
             cmbSearchHistory.requestFocus();
             cmbSearchHistory.getEditor().selectAll();
         }
@@ -1975,7 +2339,31 @@ if (caret != null) {
         Button cancelButton = new Button("❌ Abbrechen");
         cancelButton.setCancelButton(true);
         
-        buttonBox.getChildren().addAll(cancelButton, exportButton);
+        // Button für "In Zwischenablage kopieren" hinzufügen
+        Button copyToClipboardButton = new Button("📋 In Zwischenablage kopieren");
+        copyToClipboardButton.setOnAction(e -> {
+            try {
+                // Markdown zu HTML konvertieren
+                String markdownContent = cleanTextForExport(codeArea.getText());
+                String htmlContent = convertMarkdownToHTML(markdownContent);
+                
+                // HTML in Zwischenablage kopieren
+                Clipboard clipboard = Clipboard.getSystemClipboard();
+                ClipboardContent content = new ClipboardContent();
+                content.putHtml(htmlContent);
+                content.putString(convertMarkdownToPlainText(markdownContent)); // Fallback als Plain Text
+                clipboard.setContent(content);
+                
+                updateStatus("✅ Kapitel in Zwischenablage kopiert (mit Formatierung)");
+                exportStage.close();
+                
+            } catch (Exception ex) {
+                updateStatusError("Fehler beim Kopieren in Zwischenablage: " + ex.getMessage());
+                logger.error("Fehler beim Kopieren in Zwischenablage", ex);
+            }
+        });
+        
+        buttonBox.getChildren().addAll(cancelButton, copyToClipboardButton, exportButton);
         
         // Content mit Buttons kombinieren
         VBox mainContent = new VBox(15);
@@ -4594,7 +4982,7 @@ if (caret != null) {
                 }
             });
         } else {
-            markAsSaved();
+        markAsSaved();
             updateStatus("Text geladen");
         }
         
@@ -7208,6 +7596,9 @@ spacer.setStyle("-fx-background-color: transparent;");
     
     private void runCurrentMacro() {
         if (currentMacro != null && !currentMacro.getSteps().isEmpty()) {
+            // Fokus vor Makro-Ausführung sicherstellen
+            codeArea.requestFocus();
+            
             // Absatz-Markierung temporär deaktivieren für Makro-Ausführung
             boolean wasParagraphMarkingEnabled = paragraphMarkingEnabled;
             paragraphMarkingEnabled = false;
@@ -7215,9 +7606,14 @@ spacer.setStyle("-fx-background-color: transparent;");
             // Alle Absatz-Markierungen entfernen
             removeAllParagraphMarkings();
             
+            // Cursor-Position NACH removeAllParagraphMarkings() speichern
+            int caretPosition = codeArea.getCaretPosition();
+            System.out.println("DEBUG: Cursor-Position vor Makro: " + caretPosition);
+            
             // EINGEBAUTE UNDO-FUNKTIONALITÄT VERWENDEN - kein manueller Aufruf nötig
             
             String content = codeArea.getText();
+            System.out.println("DEBUG: Text-Länge vor Makro: " + content.length());
             
             // Nur aktivierte Schritte zählen
             List<MacroStep> enabledSteps = currentMacro.getSteps().stream()
@@ -7286,7 +7682,36 @@ spacer.setStyle("-fx-background-color: transparent;");
             // HTML-Tag-Normalisierung nach Makro-Ausführung (wie beim Anführungszeichen-Dropdown)
             // WICHTIG: Vor codeArea.replaceText() aufrufen, damit es auf dem content-String arbeitet
             String normalizedContent = normalizeHtmlTagsInContent(content);
-            codeArea.replaceText(normalizedContent);
+            System.out.println("DEBUG: Text-Länge nach Makro: " + normalizedContent.length());
+            System.out.println("DEBUG: Gespeicherte Cursor-Position: " + caretPosition);
+            
+            // Text ersetzen mit spezifischen Positionen (wie in anderen Teilen des Codes)
+            codeArea.replaceText(0, codeArea.getLength(), normalizedContent);
+            System.out.println("DEBUG: Text ersetzt, aktuelle Cursor-Position: " + codeArea.getCaretPosition());
+            
+            // Cursor-Position wiederherstellen
+            if (caretPosition <= normalizedContent.length()) {
+                codeArea.moveTo(caretPosition);
+                System.out.println("DEBUG: Cursor an Position " + caretPosition + " gesetzt");
+            } else {
+                codeArea.moveTo(normalizedContent.length());
+                System.out.println("DEBUG: Cursor ans Ende gesetzt (Position " + caretPosition + " zu groß)");
+            }
+            
+            // Fokus wiederherstellen und zum Cursor scrollen
+            Platform.runLater(() -> {
+                // Fokus verstärken
+                codeArea.requestFocus();
+                stage.requestFocus();
+                codeArea.requestFocus();
+                
+                // Zum Cursor scrollen - sanft in die Mitte des sichtbaren Bereichs
+                int currentParagraph = codeArea.getCurrentParagraph();
+                codeArea.showParagraphInViewport(currentParagraph);
+                
+                System.out.println("DEBUG: Fokus wiederhergestellt, finale Cursor-Position: " + codeArea.getCaretPosition());
+            });
+            
             updateStatus("Makro erfolgreich ausgeführt: " + currentMacro.getName());
             
             // Absatz-Markierung wieder aktivieren, wenn sie vorher aktiviert war
@@ -7876,6 +8301,19 @@ spacer.setStyle("-fx-background-color: transparent;");
             currentQuoteStyleIndex = 0;
         }
         
+        // Anführungszeichen-Überprüfung beim Laden
+        Platform.runLater(() -> {
+            String currentText = codeArea.getText();
+            if (currentText != null && !currentText.isEmpty()) {
+                checkAndConvertQuotesOnLoad(currentText);
+                
+                // Automatisch Fehler-Dialog anzeigen, wenn Fehler gefunden wurden
+                if (!quoteErrors.isEmpty()) {
+                    showQuoteErrorsDialog();
+                }
+            }
+        });
+        
     }
     
     private void updateThemeButtonTooltip() {
@@ -7948,6 +8386,7 @@ spacer.setStyle("-fx-background-color: transparent;");
                         } catch (java.util.prefs.BackingStoreException ex) {
                             logger.warn("Konnte Quote-Style nicht speichern: " + ex.getMessage());
                         }
+                        
                         
                         // NEUE FUNKTIONALITÄT: Konvertiere alle Anführungszeichen im Text
                         convertAllQuotationMarksInText(selected);

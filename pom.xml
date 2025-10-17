@@ -18,6 +18,7 @@
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <javafx.version>21.0.1</javafx.version>
+        <javafx.runtime.path>${project.basedir}/javafx-sdk-21.0.6/lib</javafx.runtime.path>
     </properties>
 
     <dependencies>
@@ -176,6 +177,8 @@
                 <version>0.0.8</version>
                 <configuration>
                     <mainClass>com.manuskript.Main</mainClass>
+                    <modulePath>${javafx.runtime.path}</modulePath>
+                    <addModules>javafx.controls,javafx.fxml,javafx.web,javafx.swing</addModules>
                 </configuration>
             </plugin>
             <plugin>
@@ -184,6 +187,7 @@
                 <version>3.1.0</version>
                 <configuration>
                     <mainClass>com.manuskript.Main</mainClass>
+                    <commandlineArgs>--module-path ${javafx.runtime.path} --add-modules javafx.controls,javafx.fxml,javafx.web,javafx.swing</commandlineArgs>
                 </configuration>
             </plugin>
             

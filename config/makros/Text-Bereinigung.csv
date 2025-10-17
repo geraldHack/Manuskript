@@ -16,3 +16,4 @@ Schritt,Aktiv,Beschreibung,Suchen,Ersetzen,Regex,Case,Word
 15,Nein,"Englisch zu Deutsch - einfache Anführungszeichen","'(.*?)'","‚$1'",Ja,Nein,Nein
 16,Nein,"Englisch zu Schweizer - doppelte Anführungszeichen","""(.*?)""","«$1»",Ja,Nein,Nein
 17,Nein,"Englisch zu Schweizer - einfache Anführungszeichen","'(.*?)'","‹$1›",Ja,Nein,Nein
+18,Ja,"Markdown-Trenner mit Leerzeilen umgeben","(?<!\\n\\n)(?<!^\\n)(\\n|^)(-{3,}|\\*{3,}|_{3,})(\\n|$)","$1\n$2\n$3",Ja,Nein,Nein
