@@ -4613,7 +4613,16 @@ if (caret != null) {
         codeArea.displaceCaret(0);
         codeArea.requestFollowCaret();
         
-        updateStatus("Text geändert");
+        // WICHTIG: Markiere als geändert, damit "ungespeicherte Änderungen" angezeigt wird
+        markAsChanged();
+        
+        // Überschreibe den Status mit der richtigen Farbe (nach markAsChanged)
+        Platform.runLater(() -> {
+            if (lblStatus != null) {
+                lblStatus.setText("⚠ Text wurde durch Diff geändert");
+                lblStatus.setStyle("-fx-text-fill: #ff6b35; -fx-font-weight: bold; -fx-background-color: #fff3cd; -fx-padding: 2 6 2 6; -fx-background-radius: 3;");
+            }
+        });
     }
     
     public void setCurrentFile(File file) {

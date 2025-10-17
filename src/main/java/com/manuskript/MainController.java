@@ -2680,6 +2680,9 @@ public class MainController implements Initializable {
                         finalContent = finalContent.substring(0, finalContent.length() - 1);
                     }
                     
+                    // Füge Leerzeilen zwischen Absätzen hinzu, wenn nötig
+                    finalContent = addParagraphSpacing(finalContent);
+                    
                     // Keine MD-Datei speichern - nur den Inhalt verwenden
                     
                     // Prüfe ob bereits ein Editor für dieses Kapitel geöffnet ist
@@ -6550,5 +6553,43 @@ public class MainController implements Initializable {
             // Bei Fehler gib den Original-Inhalt zurück
             return content;
         }
+    }
+    
+    /**
+     * Fügt Leerzeilen zwischen Absätzen hinzu, wenn nötig
+     * Erkennt Absätze anhand von Satzendezeichen und fügt eine Leerzeile hinzu
+     */
+    private String addParagraphSpacing(String text) {
+        if (text == null || text.isEmpty()) return text;
+        
+        String[] lines = text.split("\n");
+        StringBuilder result = new StringBuilder();
+        
+        for (int i = 0; i < lines.length; i++) {
+            String line = lines[i];
+            result.append(line);
+            
+            // Füge Leerzeile hinzu, wenn:
+            // 1. Die Zeile mit Satzendezeichen endet (. ! ?)
+            // 2. Es ist nicht die letzte Zeile
+            // 3. Die nächste Zeile ist nicht leer
+            // 4. Die nächste Zeile beginnt mit Großbuchstaben
+            if (i < lines.length - 1 && 
+                !line.trim().isEmpty() && 
+                (line.trim().endsWith(".") || line.trim().endsWith("!") || line.trim().endsWith("?")) &&
+                !lines[i + 1].trim().isEmpty() &&
+                lines[i + 1].trim().length() > 0 &&
+                Character.isUpperCase(lines[i + 1].trim().charAt(0))) {
+                
+                result.append("\n"); // Leerzeile zwischen Absätzen
+            }
+            
+            // Füge normale Zeilenumbruch hinzu (außer bei der letzten Zeile)
+            if (i < lines.length - 1) {
+                result.append("\n");
+            }
+        }
+        
+        return result.toString();
     }
 }

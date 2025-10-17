@@ -138,6 +138,14 @@
             <artifactId>flexmark-ext-gfm-tasklist</artifactId>
             <version>0.64.8</version>
         </dependency>
+        
+        <!-- JUnit 5 für Tests -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>5.9.2</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -176,6 +184,19 @@
                 <version>3.1.0</version>
                 <configuration>
                     <mainClass>com.manuskript.Main</mainClass>
+                </configuration>
+            </plugin>
+            
+            <!-- Maven Surefire Plugin für JUnit 5 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.2.5</version>
+                <configuration>
+                    <includes>
+                        <include>**/*Test.java</include>
+                        <include>**/*Tests.java</include>
+                    </includes>
                 </configuration>
             </plugin>
             

@@ -116,6 +116,9 @@ public class QuotationMarkConverter {
         // DRITTE SCHLEIFE: Konvertiere einfache Anführungszeichen (nur Paare!)
         text = convertSingleQuotationPairs(text, singleOpen, singleClose);
         
+        // FÜNFTE SCHLEIFE: Konvertiere auch gerade Anführungszeichen zu Paaren
+        text = convertStraightQuotationPairs(text, singleOpen, singleClose);
+        
         // VIERTE SCHLEIFE: Stelle echte Apostrophe wieder her
         text = text.replace("ApOsTrOpH", "'");
         
@@ -157,6 +160,34 @@ public class QuotationMarkConverter {
     private static String convertSingleQuotationPairs(String text, String openChar, String closeChar) {
         // Finde alle einfachen Anführungszeichen (INCLUDING gerade Apostrophe!)
         String pattern = "[\\u201A\\u2018\\u2039\\u203A\\u0027]";
+        Pattern regex = Pattern.compile(pattern);
+        Matcher matcher = regex.matcher(text);
+        
+        List<Integer> positions = new ArrayList<>();
+        while (matcher.find()) {
+            positions.add(matcher.start());
+        }
+        
+        // Konvertiere Paare: erstes = öffnend, zweites = schließend
+        StringBuilder result = new StringBuilder(text);
+        for (int i = 0; i < positions.size(); i += 2) {
+            if (i + 1 < positions.size()) {
+                // Erstes = öffnend
+                result.setCharAt(positions.get(i), openChar.charAt(0));
+                // Zweites = schließend
+                result.setCharAt(positions.get(i + 1), closeChar.charAt(0));
+            }
+        }
+        
+        return result.toString();
+    }
+    
+    /**
+     * Konvertiert gerade Anführungszeichen zu typographischen Paaren
+     */
+    private static String convertStraightQuotationPairs(String text, String openChar, String closeChar) {
+        // Finde alle geraden Anführungszeichen
+        String pattern = "['\"]";
         Pattern regex = Pattern.compile(pattern);
         Matcher matcher = regex.matcher(text);
         
@@ -233,22 +264,10 @@ public class QuotationMarkConverter {
      * Vereinfachte Version - nur die eindeutigsten Apostrophe
      */
     private static String markApostrophes(String text) {
-       
-        
-        // Erst alle typographischen Anführungszeichen zu geraden ' konvertieren
-        text = text.replace("\u203A", "'"); // ›
-        text = text.replace("\u2039", "'"); // ‹
-        text = text.replace("\u201A", "'"); // ‚
-        text = text.replace("\u2018", "'"); // '
-        text = text.replace("\u201C", "'"); // "
-        text = text.replace("\u201D", "'"); // "
-        
-        
         // Nur die eindeutigsten Apostrophe markieren
         // 1. ' zwischen Buchstaben (z.B. "don't", "I'm")
         String result = text.replaceAll("([a-zA-ZäöüÄÖÜß])'([a-zA-ZäöüÄÖÜß])", "$1ApOsTrOpH$2");
         
-       
         return result;
     }
  
