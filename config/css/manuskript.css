@@ -1321,15 +1321,32 @@
 }
 
 .theme-dark .table-view .table-row-cell:selected {
-    -fx-background-color: #4a5568 !important;
+    -fx-background-color: #007bff !important;
 }
 
 .theme-dark .table-view .table-row-cell:selected .table-cell {
     -fx-text-fill: #ffffff !important;
 }
 
+/* Zusätzliche Regeln für bessere Selektionssichtbarkeit */
+.theme-dark .table-view .table-row-cell:selected:focused {
+    -fx-background-color: #007bff !important;
+}
+
+.theme-dark .table-view .table-row-cell:selected:non-focused {
+    -fx-background-color: #007bff !important;
+}
+
+.theme-dark .table-view .table-row-cell:selected:focused .table-cell {
+    -fx-text-fill: #ffffff !important;
+}
+
+.theme-dark .table-view .table-row-cell:selected:non-focused .table-cell {
+    -fx-text-fill: #ffffff !important;
+}
+
 .theme-dark .table-view .table-row-cell:hover {
-    -fx-background-color: #374151 !important;
+    -fx-background-color: #0056b3 !important;
 }
 
 .theme-dark .table-view .placeholder .label {
@@ -2069,6 +2086,35 @@
 
 .root .theme-dark .table-view .virtual-flow .clipped-container .sheet {
     -fx-background-color: #2d2d2d !important;
+}
+
+/* Hauptmenü-Tabellen - Selektionsfarben für bessere Sichtbarkeit */
+.root .theme-dark .table-view .table-row-cell:selected {
+    -fx-background-color: #007bff !important;
+}
+
+.root .theme-dark .table-view .table-row-cell:selected .table-cell {
+    -fx-text-fill: #ffffff !important;
+}
+
+.root .theme-dark .table-view .table-row-cell:selected:focused {
+    -fx-background-color: #007bff !important;
+}
+
+.root .theme-dark .table-view .table-row-cell:selected:non-focused {
+    -fx-background-color: #007bff !important;
+}
+
+.root .theme-dark .table-view .table-row-cell:selected:focused .table-cell {
+    -fx-text-fill: #ffffff !important;
+}
+
+.root .theme-dark .table-view .table-row-cell:selected:non-focused .table-cell {
+    -fx-text-fill: #ffffff !important;
+}
+
+.root .theme-dark .table-view .table-row-cell:hover {
+    -fx-background-color: #0056b3 !important;
 }
 
 .root .theme-dark.blau-theme .table-view {
@@ -5282,6 +5328,196 @@
     -fx-border-color: transparent !important;
     -fx-border-width: 0px !important;
     -fx-padding: 0px !important; /* Kein Padding für Pastell-Theme */
+}
+
+/* Schwarz-Theme Projektauswahl */
+.theme-dark .project-selection-container {
+    -fx-background-color: #1a1a1a !important;
+    -fx-border-color: transparent !important;
+    -fx-border-width: 0px !important;
+    -fx-padding: 20px !important;
+}
+
+/* Schwarz-Theme Projekt-Grid */
+.theme-dark .project-grid {
+    -fx-background-color: #1a1a1a !important;
+    -fx-border-color: transparent !important;
+    -fx-border-width: 0px !important;
+    -fx-padding: 20px !important;
+}
+
+/* Schwarz-Theme ScrollPane */
+.theme-dark .scroll-pane {
+    -fx-background-color: #1a1a1a !important;
+    -fx-border-color: transparent !important;
+    -fx-border-width: 0px !important;
+}
+
+.theme-dark .scroll-pane .viewport {
+    -fx-background-color: #1a1a1a !important;
+}
+
+.theme-dark .scroll-pane .scroll-bar:vertical .track {
+    -fx-background-color: #2d2d2d !important;
+    -fx-border-color: transparent !important;
+    -fx-background-radius: 5px !important;
+}
+
+.theme-dark .scroll-pane .scroll-bar:vertical .thumb {
+    -fx-background-color: #6c757d !important;
+    -fx-background-radius: 5px !important;
+}
+
+.theme-dark .scroll-pane .scroll-bar:vertical .thumb:hover {
+    -fx-background-color: #495057 !important;
+}
+
+.theme-dark .scroll-pane .scroll-bar:vertical .increment-arrow,
+.theme-dark .scroll-pane .scroll-bar:vertical .decrement-arrow {
+    -fx-background-color: #6c757d !important;
+}
+
+/* Schwarz-Theme Serien-ScrollPane */
+.theme-dark .series-scroll-pane {
+    -fx-background-color: #2d2d2d !important;
+    -fx-border-color: #404040 !important;
+    -fx-border-width: 1px !important;
+    -fx-border-radius: 8px !important;
+    -fx-background-radius: 8px !important;
+}
+
+.theme-dark .series-scroll-pane .viewport {
+    -fx-background-color: #2d2d2d !important;
+}
+
+.theme-dark .series-scroll-pane .scroll-bar:horizontal .track {
+    -fx-background-color: #2d2d2d !important;
+    -fx-border-color: transparent !important;
+    -fx-background-radius: 5px !important;
+}
+
+.theme-dark .series-scroll-pane .scroll-bar:horizontal .thumb {
+    -fx-background-color: #6c757d !important;
+    -fx-background-radius: 5px !important;
+}
+
+.theme-dark .series-scroll-pane .scroll-bar:horizontal .thumb:hover {
+    -fx-background-color: #495057 !important;
+}
+
+.theme-dark .series-scroll-pane .scroll-bar:horizontal .increment-arrow,
+.theme-dark .series-scroll-pane .scroll-bar:horizontal .decrement-arrow {
+    -fx-background-color: #6c757d !important;
+}
+
+/* Schwarz-Theme Projekt-Karten */
+.theme-dark .project-card {
+    -fx-background-color: #2d2d2d !important;
+    -fx-border-color: #404040 !important;
+    -fx-border-radius: 12px !important;
+    -fx-border-width: 2px !important;
+    -fx-background-radius: 12px !important;
+}
+
+.theme-dark .project-card:hover {
+    -fx-background-color: #404040 !important;
+    -fx-border-color: #007bff !important;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 12, 0, 4, 6) !important;
+}
+
+/* Schwarz-Theme Projekt-Titel */
+.theme-dark .project-title {
+    -fx-text-fill: #ffffff !important;
+    -fx-font-weight: bold !important;
+}
+
+/* Schwarz-Theme Projekt-Name */
+.theme-dark .project-name {
+    -fx-text-fill: #ffffff !important;
+    -fx-font-weight: bold !important;
+}
+
+/* Schwarz-Theme Projekt-Info */
+.theme-dark .project-info {
+    -fx-text-fill: #cccccc !important;
+}
+
+/* Schwarz-Theme Serienkarte Labels */
+.theme-dark .project-card .label {
+    -fx-text-fill: #ffffff !important;
+    -fx-font-weight: bold !important;
+    -fx-background-color: transparent !important;
+}
+
+/* Schwarz-Theme Serien-Name */
+.theme-dark .project-card .label:first-child {
+    -fx-text-fill: #ffffff !important;
+    -fx-font-size: 18px !important;
+    -fx-font-weight: bold !important;
+    -fx-background-color: transparent !important;
+}
+
+/* Schwarz-Theme Serien-Info */
+.theme-dark .project-card .label:last-child {
+    -fx-text-fill: #cccccc !important;
+    -fx-font-size: 14px !important;
+    -fx-font-weight: normal !important;
+    -fx-background-color: transparent !important;
+}
+
+/* Schwarz-Theme Bücherkarten in Serienkarte */
+.theme-dark .series-scroll-pane .project-card {
+    -fx-background-color: #2d2d2d !important;
+    -fx-border-color: #404040 !important;
+    -fx-border-width: 1px !important;
+    -fx-padding: 10px !important;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 8, 0, 2, 4) !important;
+    -fx-cursor: hand !important;
+    -fx-pref-width: 300px !important;
+    -fx-pref-height: 300px !important;
+}
+
+/* Schwarz-Theme Bücherkarten Labels in Serienkarte */
+.theme-dark .series-scroll-pane .project-card .label {
+    -fx-text-fill: #ffffff !important;
+    -fx-font-weight: bold !important;
+    -fx-background-color: transparent !important;
+}
+
+/* Schwarz-Theme Bücherkarten Titel */
+.theme-dark .series-scroll-pane .project-card .project-title {
+    -fx-text-fill: #ffffff !important;
+    -fx-font-weight: bold !important;
+    -fx-font-size: 16px !important;
+}
+
+/* Schwarz-Theme Bücherkarten Name */
+.theme-dark .series-scroll-pane .project-card .project-name {
+    -fx-text-fill: #ffffff !important;
+    -fx-font-weight: bold !important;
+    -fx-font-size: 14px !important;
+}
+
+/* Schwarz-Theme Bücherkarten Info */
+.theme-dark .series-scroll-pane .project-card .project-info {
+    -fx-text-fill: #cccccc !important;
+    -fx-font-size: 12px !important;
+    -fx-font-weight: normal !important;
+}
+
+/* Schwarz-Theme VBox (Scene-Root) */
+.theme-dark .vbox {
+    -fx-padding: 0px !important;
+    -fx-spacing: 0px !important;
+    -fx-border-width: 0px !important;
+    -fx-border-color: transparent !important;
+}
+
+/* Schwarz-Theme Keine Projekte Label */
+.theme-dark .no-projects-label {
+    -fx-text-fill: #cccccc !important;
+    -fx-font-size: 18px !important;
+    -fx-font-style: italic !important;
 }
 
 /* Projekt-Grid */

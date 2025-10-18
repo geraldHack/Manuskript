@@ -56,6 +56,7 @@ public class QuotationMarkConverter {
     private static String convertToFrench(String text) {
         // ERSTER DURCHLAUF: Alle zu englischen Anführungszeichen
         text = convertToEnglish(text);
+       
         
         // ZWEITER DURCHLAUF: Englische zu französischen Anführungszeichen (nur Paare!)
         text = convertQuotationPairs(text, "\u00BB", "\u00AB", "\u203A", "\u2039"); // »« und ›‹
@@ -149,7 +150,6 @@ public class QuotationMarkConverter {
                 result.setCharAt(positions.get(i + 1), closeChar.charAt(0));
             }
         }
-        
         return result.toString();
     }
     
@@ -178,7 +178,6 @@ public class QuotationMarkConverter {
                 result.setCharAt(positions.get(i + 1), closeChar.charAt(0));
             }
         }
-        
         return result.toString();
     }
     

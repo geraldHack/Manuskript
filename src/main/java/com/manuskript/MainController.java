@@ -42,12 +42,18 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 import javafx.stage.Modality;
 import javafx.stage.Window;
+import javafx.stage.WindowEvent;
 import javafx.scene.web.WebView;
 import javafx.application.Platform;
 import javafx.scene.image.ImageView;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.Optional;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.Set;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import java.io.File;
 import java.net.URL;
@@ -94,6 +100,10 @@ import javafx.geometry.Point2D;
 public class MainController implements Initializable {
     
     private static final Logger logger = LoggerFactory.getLogger(MainController.class);
+    
+    // Liste der gesperrten Dateien mit Zeitstempel
+    private static final Map<String, Long> lockedFiles = new ConcurrentHashMap<>();
+    private static final long LOCK_TIMEOUT = 1 * 60 * 1000; // 5 Minuten
     
     @FXML private BorderPane mainContainer;
     private ImageView coverImageView;
@@ -371,8 +381,10 @@ public class MainController implements Initializable {
         colFileSizeSelected.setSortable(false);
         colLastModifiedSelected.setSortable(false);
         
-        // Selektion sichtbar halten auch ohne Focus
-        tableViewSelected.setFocusTraversable(false);
+        // Tabelle fokussierbar machen für KeyEvents, aber Sortierung verhindern
+        tableViewSelected.setFocusTraversable(true);
+        // Verhindere Sortierung durch Klick auf Spalten-Header
+        tableViewSelected.setOnSort(event -> event.consume());
         
         // CSS für sichtbare Selektion auch ohne Focus - explizit für rechte Tabelle
         tableViewSelected.setStyle("-fx-border-color: #ba68c8; -fx-selection-bar: #ba68c8; -fx-selection-bar-non-focused: #ba68c8; -fx-selection-bar-non-focused: #ba68c8; -fx-selection-bar-non-focused: #ba68c8;");
@@ -975,6 +987,38 @@ public class MainController implements Initializable {
                 if (entry.getName().toLowerCase().endsWith(".docx") && !entry.isDirectory()) {
                     String fileName = new File(entry.getName()).getName();
                     File targetFile = new File(projectDirectory, fileName);
+                    
+                    // Prüfe ob Zieldatei gesperrt ist (z.B. in Word geöffnet)
+                    if (targetFile.exists()) {
+                        try {
+                            // Versuche die Datei zu löschen um zu prüfen ob sie gesperrt ist
+                            if (!targetFile.delete()) {
+                                // Datei kann nicht gelöscht werden = gesperrt
+                                Platform.runLater(() -> {
+                                    CustomAlert alert = new CustomAlert(CustomAlert.AlertType.ERROR);
+                                    alert.setTitle("Datei gesperrt");
+                                    alert.setHeaderText("Die Zieldatei ist gesperrt");
+                                    alert.setContentText("Die Datei '" + targetFile.getName() + "' ist möglicherweise in Word oder einem anderen Programm geöffnet.\n\nBitte schließen Sie die Datei und versuchen Sie es erneut.");
+                                    alert.applyTheme(currentThemeIndex);
+                                    alert.initOwner(primaryStage);
+                                    alert.showAndWait();
+                                });
+                                continue; // Überspringe diese Datei
+                            }
+                        } catch (Exception e) {
+                            // Datei ist gesperrt
+                            Platform.runLater(() -> {
+                                CustomAlert alert = new CustomAlert(CustomAlert.AlertType.ERROR);
+                                alert.setTitle("Datei gesperrt");
+                                alert.setHeaderText("Die Zieldatei ist gesperrt");
+                                alert.setContentText("Die Datei '" + targetFile.getName() + "' ist möglicherweise in Word oder einem anderen Programm geöffnet.\n\nBitte schließen Sie die Datei und versuchen Sie es erneut.");
+                                alert.applyTheme(currentThemeIndex);
+                                alert.initOwner(primaryStage);
+                                alert.showAndWait();
+                            });
+                            continue; // Überspringe diese Datei
+                        }
+                    }
                     
                     // Datei extrahieren
                     try (java.io.InputStream is = zip.getInputStream(entry);
@@ -2082,9 +2126,6 @@ public class MainController implements Initializable {
     public void showDetailedDiffDialog(DocxFile chapterFile, File mdFile, DiffProcessor.DiffResult diffResult,
                                       DocxProcessor.OutputFormat format) {
         try {
-            System.out.println("DEBUG: showDetailedDiffDialog aufgerufen für Kapitel: " + chapterFile.getFileName());
-            System.out.println("DEBUG: diffResult hasChanges: " + (diffResult != null ? diffResult.hasChanges() : "null"));
-            System.out.println("DEBUG: diffResult diffLines count: " + (diffResult != null && diffResult.getDiffLines() != null ? diffResult.getDiffLines().size() : "null"));
 
             // Erstelle Diff-Fenster mit spezieller Diff-Stage
             CustomStage diffStage = StageManager.createDiffStage("Diff: " + chapterFile.getFileName(), primaryStage);
@@ -2236,16 +2277,13 @@ public class MainController implements Initializable {
                 hoverPreviewStage.hide();
             });
             
-            System.out.println("DEBUG: Verarbeite " + blocks.size() + " Blöcke");
             for (int i1=0; i1<blocks.size(); i1++) {
                 DiffBlock block = blocks.get(i1);
-                System.out.println("DEBUG: Block " + i1 + " Typ: " + block.getType() + " Zeilen: " + block.getLines().size());
 
                 
                 // Checkbox nur für grüne Blöcke (ADDED)
                 CheckBox blockCheckBox = null;
                 if (block.getType() == DiffBlockType.ADDED) {
-                    System.out.println("DEBUG: ADDED-Block gefunden mit " + block.getLines().size() + " Zeilen");
                     blockCheckBox = new CheckBox();
                     // kleinere Checkbox für rechte grüne Blöcke
                     blockCheckBox.getStyleClass().add("diff-green-checkbox");
@@ -2258,7 +2296,6 @@ public class MainController implements Initializable {
                     blockCheckBox.setScaleY(0.8);
                     blockCheckBox.setSelected(false); // Standardmäßig ungecheckt
                     blockCheckBoxes.add(blockCheckBox);
-                    System.out.println("DEBUG: Checkbox erstellt und zu blockCheckBoxes hinzugefügt");
 
                     List<String> blockTextList = new ArrayList<>();
                     for (DiffProcessor.DiffLine line : block.getLines()) {
@@ -2421,7 +2458,6 @@ public class MainController implements Initializable {
                         
                         // Checkbox für gepaarte ADDED-Blöcke hinzufügen
                         if (aLine != null && i == 0 && checkboxForPairing != null) { // Nur bei der ersten Zeile des ADDED-Blocks
-                            System.out.println("DEBUG: Gepaarte Checkbox wird hinzugefügt");
                             VBox checkboxContainer = new VBox();
                             checkboxContainer.setAlignment(Pos.CENTER);
                             checkboxContainer.setSpacing(0);
@@ -2431,7 +2467,6 @@ public class MainController implements Initializable {
                             checkboxContainer.getChildren().add(checkboxForPairing);
 
                             rightLineBox.getChildren().addAll(rightLineNum, rightLineLabel, checkboxContainer);
-                            System.out.println("DEBUG: Gepaarte Checkbox hinzugefügt");
                         } else {
                             rightLineBox.getChildren().addAll(rightLineNum, rightLineLabel);
                         }
@@ -2515,7 +2550,6 @@ public class MainController implements Initializable {
                     
                     // Checkbox RECHTS vertikal zentriert am Ende des Blocks
                     if (blockCheckBox != null && block.getLines().indexOf(diffLine) == block.getLines().size() - 1) {
-                        System.out.println("DEBUG: Checkbox wird hinzugefügt für Block mit " + block.getLines().size() + " Zeilen bei Zeile " + block.getLines().indexOf(diffLine));
                         // Container für vertikal zentrierte Checkbox
                         VBox checkboxContainer = new VBox();
                         checkboxContainer.setAlignment(Pos.CENTER);
@@ -2526,7 +2560,6 @@ public class MainController implements Initializable {
                         checkboxContainer.getChildren().add(blockCheckBox);
 
                         rightLineBox.getChildren().addAll(rightLineNum, rightLineLabel, checkboxContainer);
-                        System.out.println("DEBUG: Checkbox hinzugefügt zur rightLineBox");
                     } else {
                         rightLineBox.getChildren().addAll(rightLineNum, rightLineLabel);
                     }
@@ -2759,6 +2792,7 @@ public class MainController implements Initializable {
                         editorController.setText(docxContent);
                     } else {
                         // Nur wenn KEIN bestehender Editor existiert - dann neuen erstellen
+                        // WICHTIG: Immer über openChapterEditorWindow gehen für Dialog-Logik
                         editorController = openChapterEditorWindow(docxContent, chapterFile, format);
                     }
                     
@@ -3262,20 +3296,10 @@ public class MainController implements Initializable {
                         return existingEditor; // Bestehenden Editor zurückgeben
                     }
                 } else {
-                    // Keine ungespeicherten Änderungen - Editor in den Vordergrund bringen
-                    Platform.runLater(() -> {
-                        for (Window window : Window.getWindows()) {
-                            if (window instanceof CustomStage && window.isShowing()) {
-                                CustomStage customStage = (CustomStage) window;
-                                if (customStage.getTitle().contains(chapterFile.getFileName())) {
-                                    customStage.toFront();
-                                    customStage.requestFocus();
-                                    break;
-                                }
-                            }
-                        }
-                    });
-                    return existingEditor; // Bestehenden Editor zurückgeben
+                    // Keine ungespeicherten Änderungen - alten Editor einfach schließen und neuen erstellen
+                    existingEditor.closeWindow();
+                    openEditors.remove(editorKey);
+                    // Weiter mit der normalen Editor-Erstellung
                 }
             }
             
@@ -3377,10 +3401,17 @@ public class MainController implements Initializable {
             // WICHTIG: Stage setzen für Close-Request-Handler
             editorController.setStage(editorStage);
             
-            // Cleanup-Handler für Editor-Map
+            // Cleanup-Handler für Editor-Map - NACH setStage, damit der Speichern-Handler funktioniert
             final String finalEditorKey = chapterName + ".md";
-            editorStage.setOnCloseRequest(e -> {
-                openEditors.remove(finalEditorKey);
+            // Verwende addEventHandler statt setOnCloseRequest, um den bestehenden Handler nicht zu überschreiben
+            editorStage.addEventHandler(WindowEvent.WINDOW_CLOSE_REQUEST, e -> {
+                // Nur aus Map entfernen, wenn das Fenster wirklich geschlossen wird
+                // (nicht wenn der Speichern-Dialog das Schließen verhindert)
+                Platform.runLater(() -> {
+                    if (!editorStage.isShowing()) {
+                        openEditors.remove(finalEditorKey);
+                    }
+                });
             });
             
             editorStage.show();
@@ -3940,7 +3971,7 @@ public class MainController implements Initializable {
         }
         
         // WICHTIG: Nur neue Dateien hinzufügen, nicht alles neu laden
-        addNewDocxFiles(downloadsDirectory);
+        addNewDocxFiles(new File(txtDirectoryPath.getText()));
         
         try {
             
@@ -3962,12 +3993,32 @@ public class MainController implements Initializable {
             
             for (int i = 0; i < files.length; i++) {
                 File downloadFile = files[i];
+                
+                // Prüfe ob diese Datei gesperrt ist (ignoriere sie)
+                String downloadFileName = downloadFile.getName();
+                Long lockTime = lockedFiles.get(downloadFileName);
+                if (lockTime != null) {
+                    long currentTime = System.currentTimeMillis();
+                    if (currentTime - lockTime < LOCK_TIMEOUT) {
+                        continue;
+                    } else {
+                        // Sperre ist abgelaufen - entferne sie
+                        lockedFiles.remove(downloadFileName);
+                    }
+                }
+                
                 // Prüfe ob Datei vollständig ist (nicht mehr geschrieben wird)
                 if (isFileComplete(downloadFile)) {
                     
                     if (copyAllDocx) {
                         // Alle DOCX-Dateien kopieren ohne Namensvergleich
-                        Platform.runLater(() -> copyAllDocxFile(downloadFile));
+                        Platform.runLater(() -> {
+                            try {
+                                copyAllDocxFile(downloadFile);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        });
                     } else {
                         // Normale Logik mit Namensvergleich
                         String fileName = downloadFile.getName();
@@ -3988,9 +4039,9 @@ public class MainController implements Initializable {
                                     }
                                     
                                     
-                                    // Name-Vergleich (ignoriere Groß-/Kleinschreibung und normalisiere Leerzeichen)
-                                    String normalizedBaseName = baseName.trim().replaceAll("\\s+", " ");
-                                    String normalizedExistingName = existingName.trim().replaceAll("\\s+", " ");
+                                    // Name-Vergleich (ignoriere Groß-/Kleinschreibung und normalisiere Leerzeichen und Unterstriche)
+                                    String normalizedBaseName = baseName.trim().replaceAll("[\\s_]+", " ");
+                                    String normalizedExistingName = existingName.trim().replaceAll("[\\s_]+", " ");
                                     if (normalizedBaseName.equalsIgnoreCase(normalizedExistingName)) {
                                         // Datei gefunden - verschieben
                                         Platform.runLater(() -> replaceFileWithDownload(existingFile, downloadFile));
@@ -4062,7 +4113,8 @@ public class MainController implements Initializable {
         try {
             File targetFile = new File(txtDirectoryPath.getText(), downloadFile.getName());
             
-            // Prüfe ob Datei bereits existiert
+            
+            // Prüfe ob Datei bereits existiert (nach Sperrprüfung)
             if (targetFile.exists()) {
                 // Backup der alten Datei erstellen
                 String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss"));
@@ -4070,11 +4122,50 @@ public class MainController implements Initializable {
                 File backupFile = new File(backupDirectory, backupFileName);
                 
                 // Alte Datei nach Backup verschieben
-                Files.move(targetFile.toPath(), backupFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                try {
+                    Files.move(targetFile.toPath(), backupFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                } catch (Exception backupException) {
+                    // Datei ist gesperrt - kann nicht verschoben werden
+                    Platform.runLater(() -> {
+                        CustomAlert alert = new CustomAlert(CustomAlert.AlertType.ERROR);
+                        alert.setTitle("Datei gesperrt");
+                        alert.setHeaderText("Die Zieldatei ist gesperrt");
+                        alert.setContentText("Die Datei '" + targetFile.getName() + "' ist möglicherweise in Word oder einem anderen Programm geöffnet.\n\nBitte schließen Sie die Datei und versuchen Sie es erneut.");
+                        alert.applyTheme(currentThemeIndex);
+                        alert.initOwner(primaryStage);
+                        alert.showAndWait();
+                    });
+                    
+                    // Import fehlgeschlagen - Datei zur gesperrten Liste hinzufügen
+                    String lockedFileName = targetFile.getName();
+                    lockedFiles.put(lockedFileName, System.currentTimeMillis());
+                    return;
+                }
             }
             
             // Download-Datei an Zielort verschieben
-            Files.move(downloadFile.toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            try {
+                Files.move(downloadFile.toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            } catch (Exception moveException) {
+                // Prüfe ob es ein Sperrfehler ist
+                if (moveException.getMessage().contains("being used by another process") || 
+                    moveException.getMessage().contains("cannot access") ||
+                    moveException.getMessage().contains("Access is denied")) {
+                    Platform.runLater(() -> {
+                        CustomAlert alert = new CustomAlert(CustomAlert.AlertType.ERROR);
+                        alert.setTitle("Datei gesperrt");
+                        alert.setHeaderText("Die Zieldatei ist gesperrt");
+                        alert.setContentText("Die Datei '" + targetFile.getName() + "' ist möglicherweise in Word oder einem anderen Programm geöffnet.\n\nBitte schließen Sie die Datei und versuchen Sie es erneut.");
+                        alert.applyTheme(currentThemeIndex);
+                        alert.initOwner(primaryStage);
+                        alert.showAndWait();
+                    });
+                    return;
+                } else {
+                    // Anderer Fehler - weiterwerfen
+                    throw moveException;
+                }
+            }
             
             // Datei-Liste aktualisieren
             Platform.runLater(() -> {
@@ -4084,6 +4175,11 @@ public class MainController implements Initializable {
                 }
                 updateStatus("Alle DOCX kopiert: " + downloadFile.getName());
             });
+            
+            // WICHTIG: Lösche die Download-Datei um Endlosschleife zu vermeiden
+            if (downloadFile.exists()) {
+                downloadFile.delete();
+            }
             
         } catch (Exception e) {
             logger.error("Fehler beim Kopieren aller DOCX: {}", e.getMessage(), e);
@@ -5450,6 +5546,17 @@ public class MainController implements Initializable {
                 if (seenIds.contains(id)) {
                     continue;
                 }
+                
+                // Ausnahmeliste für Verzeichnisse, die nicht als Projekte angezeigt werden sollen
+                String dirName = dir.getName().toLowerCase();
+                if (dirName.equals("data") || dirName.equals("backup") || 
+                    dirName.equals("config") || dirName.equals("logs") || 
+                    dirName.equals("export") || dirName.equals("target") ||
+                    dirName.equals("src") || dirName.equals("node_modules") ||
+                    dirName.equals(".git") || dirName.equals(".idea") ||
+                    dirName.equals("__pycache__") || dirName.equals(".vscode")) {
+                    continue;
+                }
 
                 // Prüfe ob Verzeichnis eine Serie ist (enthält Unterordner mit DOCX-Dateien)
                 File[] subDirs = dir.listFiles(File::isDirectory);
@@ -5458,6 +5565,17 @@ public class MainController implements Initializable {
                 if (subDirs != null && subDirs.length > 0) {
                     // Prüfe ob es eine Serie ist (Unterordner enthalten DOCX-Dateien)
                     for (File subDir : subDirs) {
+                        // Ausnahmeliste auch für Unterordner in Serien anwenden
+                        String subDirName = subDir.getName().toLowerCase();
+                        if (subDirName.equals("data") || subDirName.equals("backup") || 
+                            subDirName.equals("config") || subDirName.equals("logs") || 
+                            subDirName.equals("export") || subDirName.equals("target") ||
+                            subDirName.equals("src") || subDirName.equals("node_modules") ||
+                            subDirName.equals(".git") || subDirName.equals(".idea") ||
+                            subDirName.equals("__pycache__") || subDirName.equals(".vscode")) {
+                            continue;
+                        }
+                        
                         File[] docxFiles = subDir.listFiles((d, name) -> name.toLowerCase().endsWith(".docx"));
                         if (docxFiles != null && docxFiles.length > 0) {
                             seriesBooks.add(subDir);

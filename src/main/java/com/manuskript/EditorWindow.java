@@ -426,8 +426,6 @@ public class EditorWindow implements Initializable {
 if (caret != null) {
     caret.setStyle("-fx-stroke: red; -fx-fill: red;");
 }
-
-
         // Zeilennummern hinzufügen
         codeArea.setParagraphGraphicFactory(LineNumberFactory.get(codeArea));
         
@@ -1189,7 +1187,6 @@ if (caret != null) {
         public String getType() { return type; }
         public int getCount() { return count; }
     }
-    
     /**
      * Überprüft Anführungszeichen beim Laden und sammelt Fehler für Dialog
      */
@@ -1222,13 +1219,11 @@ if (caret != null) {
             
             // Wenn ungerade Anzahl -> Fehler sammeln für Anzeige
             if (doubleQuotes % 2 != 0) {
-                System.out.println("WARNUNG: Ungerade Anzahl doppelter Anführungszeichen in Absatz: " + doubleQuotes);
                 // Fehler für Anzeige sammeln
                 collectQuoteErrors(paragraph, "Doppelte Anführungszeichen", doubleQuotes);
             }
             
             if (singleQuotes % 2 != 0) {
-                System.out.println("WARNUNG: Ungerade Anzahl einfacher Anführungszeichen in Absatz: " + singleQuotes);
                 // Fehler für Anzeige sammeln
                 collectQuoteErrors(paragraph, "Einfache Anführungszeichen", singleQuotes);
             }
@@ -1270,13 +1265,11 @@ if (caret != null) {
             
             // Wenn ungerade Anzahl -> Fehler sammeln für Anzeige
             if (doubleQuotes % 2 != 0) {
-                System.out.println("WARNUNG: Ungerade Anzahl doppelter Anführungszeichen in Absatz: " + doubleQuotes);
                 // Fehler für Anzeige sammeln
                 collectQuoteErrors(paragraph, "Doppelte Anführungszeichen", doubleQuotes);
             }
             
             if (singleQuotes % 2 != 0) {
-                System.out.println("WARNUNG: Ungerade Anzahl einfacher Anführungszeichen in Absatz: " + singleQuotes);
                 // Fehler für Anzeige sammeln
                 collectQuoteErrors(paragraph, "Einfache Anführungszeichen", singleQuotes);
             }
@@ -1336,8 +1329,15 @@ if (caret != null) {
                     boolean hasLetterBefore = i > 0 && Character.isLetter(result.charAt(i - 1));
                     boolean hasLetterAfter = i + 1 < result.length() && Character.isLetter(result.charAt(i + 1));
                     
-                    if (hasLetterBefore && hasLetterAfter) {
-                        // Buchstabe davor UND dahinter -> zu Apostroph konvertieren
+                    // Prüfe auf Possessivpronomen (Buchstabe davor, aber kein Buchstabe dahinter)
+                    boolean isPossessiveEnd = hasLetterBefore && !hasLetterAfter && 
+                        (i + 1 >= result.length() || Character.isWhitespace(result.charAt(i + 1)) || 
+                         result.charAt(i + 1) == '.' || result.charAt(i + 1) == ',' || 
+                         result.charAt(i + 1) == '!' || result.charAt(i + 1) == '?' || 
+                         result.charAt(i + 1) == ';' || result.charAt(i + 1) == ':');
+                    
+                    if ((hasLetterBefore && hasLetterAfter) || isPossessiveEnd) {
+                        // Buchstabe davor UND dahinter ODER Possessivpronomen -> zu Apostroph konvertieren
                         result.setCharAt(i, '\'');
                         hasChanges = true;
                     }
@@ -1351,7 +1351,37 @@ if (caret != null) {
                     boolean hasLetterBefore = i > 0 && Character.isLetter(result.charAt(i - 1));
                     boolean hasLetterAfter = i + 1 < result.length() && Character.isLetter(result.charAt(i + 1));
                     
-                    if (!(hasLetterBefore && hasLetterAfter)) {
+                    // Prüfe auf Possessivpronomen-Apostroph (Buchstabe davor, aber kein Buchstabe dahinter)
+                    boolean isPossessiveApostrophe = hasLetterBefore && !hasLetterAfter && 
+                        (i + 1 >= result.length() || Character.isWhitespace(result.charAt(i + 1)) || 
+                         result.charAt(i + 1) == '.' || result.charAt(i + 1) == ',' || 
+                         result.charAt(i + 1) == '!' || result.charAt(i + 1) == '?' || 
+                         result.charAt(i + 1) == ';' || result.charAt(i + 1) == ':');
+                    
+                    // Prüfe ob es ein öffnendes Anführungszeichen im selben Satz gibt
+                    boolean hasOpeningQuoteInSentence = false;
+                    if (isPossessiveApostrophe) {
+                        // Finde den Anfang des Satzes (zurück bis zum letzten Satzende oder Anfang)
+                        int sentenceStart = i;
+                        for (int j = i - 1; j >= 0; j--) {
+                            char c = result.charAt(j);
+                            if (c == '.' || c == '!' || c == '?' || c == '\n') {
+                                sentenceStart = j + 1;
+                                break;
+                            }
+                        }
+                        
+                        // Suche nach öffnenden Anführungszeichen im Satz
+                        for (int j = sentenceStart; j < i; j++) {
+                            char c = result.charAt(j);
+                            if (c == '\u00AB' || c == '\u203A') { // « oder ›
+                                hasOpeningQuoteInSentence = true;
+                                break;
+                            }
+                        }
+                    }
+                    
+                    if (!(hasLetterBefore && hasLetterAfter) && !(isPossessiveApostrophe && !hasOpeningQuoteInSentence)) {
                         // NICHT Buchstabe davor UND dahinter -> zu französischem Anführungszeichen konvertieren
                         // Bestimme ob öffnend oder schließend basierend auf Kontext
                         boolean shouldBeClosing = false;
@@ -1382,8 +1412,8 @@ if (caret != null) {
                             // Doppelte Anführungszeichen: » (schließend) oder « (öffnend)
                             replacement = shouldBeClosing ? '\u00BB' : '\u00AB'; // » oder «
                         } else {
-                            // Einfache Anführungszeichen: › (schließend) oder ‹ (öffnend)
-                            replacement = shouldBeClosing ? '\u203A' : '\u2039'; // › oder ‹
+                            // Einfache Anführungszeichen: › (öffnend) oder ‹ (schließend)
+                            replacement = shouldBeClosing ? '\u2039' : '\u203A'; // ‹ oder ›
                         }
                         result.setCharAt(i, replacement);
                         hasChanges = true;
@@ -1938,30 +1968,12 @@ if (caret != null) {
 
         boolean found = applySearchTerm(trimmed);
         if (!found) {
-            String normalized = normalizeSearchText(trimmed);
-            if (!normalized.equals(trimmed)) {
-                found = applySearchTerm(normalized);
-            }
-        }
-
-        if (!found) {
             updateStatus("Der markierte Text wurde nicht im Editor gefunden.");
         }
 
         if (!wasVisible) {
             Platform.runLater(() -> cmbSearchHistory.getEditor().selectAll());
         }
-    }
-
-    private String normalizeSearchText(String text) {
-        String trimmed = text.trim();
-        if ((trimmed.startsWith("\"") && trimmed.endsWith("\"")) ||
-            (trimmed.startsWith("'") && trimmed.endsWith("'")) ||
-            (trimmed.startsWith("“") && trimmed.endsWith("”")) ||
-            (trimmed.startsWith("„") && trimmed.endsWith("“"))) {
-            return trimmed.substring(1, trimmed.length() - 1).trim();
-        }
-        return trimmed;
     }
 
     private boolean applySearchTerm(String term) {
@@ -1974,7 +1986,6 @@ if (caret != null) {
         findText();
         return totalMatches > 0;
     }
-    
     private void addToReplaceHistory(String text) {
         if (!replaceHistory.contains(text)) {
             replaceHistory.add(0, text);
@@ -2001,7 +2012,6 @@ if (caret != null) {
         saveSearchHistory();
         cmbSearchHistory.setValue("");
     }
-    
     private void removeFromReplaceHistory(String text) {
         replaceHistory.remove(text);
         saveReplaceHistory();
@@ -2215,7 +2225,7 @@ if (caret != null) {
                 }
                 
                 // Theme für den Dialog setzen
-                exportStage.setTitleBarTheme(currentThemeIndex);
+                exportStage.setFullTheme(currentThemeIndex);
             } catch (Exception e) {
                 logger.error("Fehler beim Anwenden der CSS-Styles für Export-Dialog", e);
             }
@@ -2333,6 +2343,7 @@ if (caret != null) {
         HBox buttonBox = new HBox(10);
         buttonBox.setAlignment(Pos.CENTER_RIGHT);
         buttonBox.setPadding(new Insets(20, 0, 0, 0));
+        buttonBox.getStyleClass().add("export-dialog-buttons");
         
         Button exportButton = new Button("📤 Exportieren");
         exportButton.setDefaultButton(true);
@@ -2365,11 +2376,17 @@ if (caret != null) {
         
         buttonBox.getChildren().addAll(cancelButton, copyToClipboardButton, exportButton);
         
+        // Theme auf Button-Box anwenden
+        applyThemeToNode(buttonBox, currentThemeIndex);
+        
         // Content mit Buttons kombinieren
         VBox mainContent = new VBox(15);
         mainContent.getChildren().addAll(exportContent, buttonBox);
         mainContent.setPadding(new Insets(20));
         mainContent.getStyleClass().add("export-dialog-content");
+        // Theme-Hintergrund direkt setzen
+        String[] themeBackgrounds = {"#ffffff", "#1a1a1a", "#f3e5f5", "#1e3a8a", "#064e3b", "#581c87"};
+        mainContent.setStyle("-fx-background-color: " + themeBackgrounds[currentThemeIndex] + ";");
         
         // Theme auf den Content anwenden
         applyThemeToNode(mainContent, currentThemeIndex);
@@ -2538,7 +2555,6 @@ if (caret != null) {
             default: return "txt";
         }
     }
-    
     // DOCX-Optionen Dialog
     private void showDocxOptionsDialog(CheckBox docxCheck) {
         CustomStage optionsStage = StageManager.createModalStage("DocX-Optionen", stage);
@@ -3294,7 +3310,6 @@ if (caret != null) {
             throw e;
         }
     }
-    
     private void addFormattedTextToParagraph(com.lowagie.text.Paragraph paragraph, String text, 
                                            com.lowagie.text.Font normalFont, com.lowagie.text.Font boldFont, 
                                            com.lowagie.text.Font italicFont, com.lowagie.text.Font codeFont) {
@@ -4030,7 +4045,6 @@ if (caret != null) {
         boolean hasChanges = !cleanTextForComparison(currentContent).equals(originalContent);
         return hasChanges;
     }
-    
     /**
      * Zeigt den Speichern-Dialog beim Schließen
      */
@@ -4574,7 +4588,6 @@ if (caret != null) {
         }
         
         // Debug: Zeige Eingabetext
-        System.out.println("DEBUG: autoFormatMarkdown aufgerufen mit " + text.length() + " Zeichen");
         
         String[] lines = text.split("\n");
         StringBuilder result = new StringBuilder();
@@ -4801,7 +4814,6 @@ if (caret != null) {
         
         return text;
     }
-    
     private void exportAsDOCX() {
         if (outputFormat != DocxProcessor.OutputFormat.MARKDOWN) {
             updateStatus("DOCX-Export nur für Markdown-Dokumente verfügbar");
@@ -5053,7 +5065,7 @@ if (caret != null) {
                 }
                 
                 // Theme für den Dialog setzen
-                exportStage.setTitleBarTheme(currentThemeIndex);
+                exportStage.setFullTheme(currentThemeIndex);
             } catch (Exception e) {
                 logger.error("Fehler beim Anwenden der CSS-Styles für DOCX-Export-Dialog", e);
             }
@@ -5166,6 +5178,9 @@ if (caret != null) {
         mainContent.getChildren().addAll(exportContent, buttonBox);
         mainContent.setPadding(new Insets(20));
         mainContent.getStyleClass().add("export-dialog-content");
+        // Theme-Hintergrund direkt setzen
+        String[] themeBackgrounds = {"#ffffff", "#1a1a1a", "#f3e5f5", "#1e3a8a", "#064e3b", "#581c87"};
+        mainContent.setStyle("-fx-background-color: " + themeBackgrounds[currentThemeIndex] + ";");
         
         // Theme auf den Content anwenden
         applyThemeToNode(mainContent, currentThemeIndex);
@@ -5570,7 +5585,6 @@ if (caret != null) {
             macroStage.hide();
         });
     }
-    
     private VBox createMacroPanel() {
         VBox macroPanel = new VBox(10);
         macroPanel.getStyleClass().add("macro-panel");
@@ -6303,7 +6317,6 @@ spacer.setStyle("-fx-background-color: transparent;");
             statusArea.setText("Fehler bei der Analyse: " + e.getMessage());
         }
     }
-    
     private void analyzeSprechantworten(TextArea statusArea) {
         try {
             // Verwende ein einfaches, hart kodiertes Pattern für den Test
@@ -7051,7 +7064,6 @@ spacer.setStyle("-fx-background-color: transparent;");
             logger.error("Fehler bei der Füllwörter-Analyse", e);
         }
     }
-    
     private void analyzePhrasen(TextArea statusArea) {
         try {
             Properties props = loadTextAnalysisProperties();
@@ -7608,12 +7620,10 @@ spacer.setStyle("-fx-background-color: transparent;");
             
             // Cursor-Position NACH removeAllParagraphMarkings() speichern
             int caretPosition = codeArea.getCaretPosition();
-            System.out.println("DEBUG: Cursor-Position vor Makro: " + caretPosition);
             
             // EINGEBAUTE UNDO-FUNKTIONALITÄT VERWENDEN - kein manueller Aufruf nötig
             
             String content = codeArea.getText();
-            System.out.println("DEBUG: Text-Länge vor Makro: " + content.length());
             
             // Nur aktivierte Schritte zählen
             List<MacroStep> enabledSteps = currentMacro.getSteps().stream()
@@ -7682,20 +7692,18 @@ spacer.setStyle("-fx-background-color: transparent;");
             // HTML-Tag-Normalisierung nach Makro-Ausführung (wie beim Anführungszeichen-Dropdown)
             // WICHTIG: Vor codeArea.replaceText() aufrufen, damit es auf dem content-String arbeitet
             String normalizedContent = normalizeHtmlTagsInContent(content);
-            System.out.println("DEBUG: Text-Länge nach Makro: " + normalizedContent.length());
-            System.out.println("DEBUG: Gespeicherte Cursor-Position: " + caretPosition);
             
             // Text ersetzen mit spezifischen Positionen (wie in anderen Teilen des Codes)
             codeArea.replaceText(0, codeArea.getLength(), normalizedContent);
-            System.out.println("DEBUG: Text ersetzt, aktuelle Cursor-Position: " + codeArea.getCaretPosition());
+            
+            // Markiere als geändert, da das Makro Änderungen vorgenommen hat
+            markAsChanged();
             
             // Cursor-Position wiederherstellen
             if (caretPosition <= normalizedContent.length()) {
                 codeArea.moveTo(caretPosition);
-                System.out.println("DEBUG: Cursor an Position " + caretPosition + " gesetzt");
             } else {
                 codeArea.moveTo(normalizedContent.length());
-                System.out.println("DEBUG: Cursor ans Ende gesetzt (Position " + caretPosition + " zu groß)");
             }
             
             // Fokus wiederherstellen und zum Cursor scrollen
@@ -7709,10 +7717,25 @@ spacer.setStyle("-fx-background-color: transparent;");
                 int currentParagraph = codeArea.getCurrentParagraph();
                 codeArea.showParagraphInViewport(currentParagraph);
                 
-                System.out.println("DEBUG: Fokus wiederhergestellt, finale Cursor-Position: " + codeArea.getCaretPosition());
             });
             
             updateStatus("Makro erfolgreich ausgeführt: " + currentMacro.getName());
+            
+            // Timer für Status-Reset nach 5 Sekunden
+            Timer statusResetTimer = new Timer();
+            statusResetTimer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    Platform.runLater(() -> {
+                        // Prüfe ob es ungespeicherte Änderungen gibt
+                        if (hasUnsavedChanges) {
+                            updateStatusDisplay(); // Zeigt "⚠ Ungespeicherte Änderungen"
+                        } else {
+                            updateStatus("Bereit");
+                        }
+                    });
+                }
+            }, 5000); // 5 Sekunden
             
             // Absatz-Markierung wieder aktivieren, wenn sie vorher aktiviert war
             if (wasParagraphMarkingEnabled) {
@@ -7753,7 +7776,6 @@ spacer.setStyle("-fx-background-color: transparent;");
             return null;
         }
     }
-    
     private void loadMacros() {
         // Neue Persistenz: Datei im config/makros Ordner, mit Migration aus Preferences
 
@@ -8444,7 +8466,7 @@ spacer.setStyle("-fx-background-color: transparent;");
     
     /**
      * Normalisiert Anführungszeichen innerhalb von HTML-Tags in einem String
-     * Konvertiert typographische Anführungszeichen in HTML-Tags zurück zu normalen "
+     * Konvertiert typographische Anführungszeichen in HTML-Tags zurück zu normal "
      */
     private String normalizeHtmlTagsInContent(String content) {
         
@@ -8452,8 +8474,6 @@ spacer.setStyle("-fx-background-color: transparent;");
             return content;
         }
         
-        System.out.println("DEBUG: Content-Länge vor Normalisierung: " + content.length());
-        System.out.println("DEBUG: Erste 500 Zeichen: " + content.substring(0, Math.min(500, content.length())));
         
         // Finde alle HTML-Tags im Text
         java.util.regex.Pattern htmlTagPattern = java.util.regex.Pattern.compile("<[^>]*>");
@@ -8479,7 +8499,7 @@ spacer.setStyle("-fx-background-color: transparent;");
     
     /**
      * Normalisiert Anführungszeichen innerhalb von HTML-Tags
-     * Konvertiert typographische Anführungszeichen in HTML-Tags zurück zu normalen "
+     * Konvertiert typographische Anführungszeichen in HTML-Tags zurück zu normal "
      */
     private void normalizeHtmlTagsInText() {
         
@@ -8546,7 +8566,6 @@ spacer.setStyle("-fx-background-color: transparent;");
         
         return result.toString();
     }
-    
     /**
      * Prüft ob ein HTML-Tag typographische Anführungszeichen enthält
      */
@@ -8569,7 +8588,6 @@ spacer.setStyle("-fx-background-color: transparent;");
         String normalizedTag = normalizeQuotesInText(htmlTag);
         
        
-        
         return normalizedTag;
     }
     
@@ -8594,7 +8612,6 @@ spacer.setStyle("-fx-background-color: transparent;");
             // Erstelle neuen Attributstring mit normalisierten Anführungszeichen
             String newAttribute = fullMatch.replace(value, normalizedValue);
             
-            System.out.println("DEBUG: Attributwert normalisiert: '" + value + "' -> '" + normalizedValue + "'");
             
             matcher.appendReplacement(result, java.util.regex.Matcher.quoteReplacement(newAttribute));
         }
@@ -9311,9 +9328,6 @@ spacer.setStyle("-fx-background-color: transparent;");
             this.styleClass = styleClass;
         }
     }
-    
-    
-    
     /**
      * Einfache Timer-basierte Markdown-Styling-Methode
      * Verwendet setStyleSpans() wie bei der Suche
@@ -9451,13 +9465,13 @@ spacer.setStyle("-fx-background-color: transparent;");
                 }
             }
             
-            // HTML Strike-through-Pattern: <s>text</s> oder <del>text</del>
+            // HTML Strike-through-Pattern:  text  oder <del>text</del>
             Pattern htmlStrikePattern = Pattern.compile("<(s|del)>([\\s\\S]*?)</(s|del)>", Pattern.DOTALL);
             Matcher htmlStrikeMatcher = htmlStrikePattern.matcher(content);
             
             while (htmlStrikeMatcher.find()) {
-                int start = htmlStrikeMatcher.start() + 3; // Nach <s> oder <del>
-                int end = htmlStrikeMatcher.end() - 4;     // Vor </s> oder </del>
+                int start = htmlStrikeMatcher.start() + 3; // Nach   oder <del>
+                int end = htmlStrikeMatcher.end() - 4;     // Vor   oder </del>
                 if (end > start) {
                     boolean alreadyCovered = markdownMatches.stream().anyMatch(m -> 
                         (start >= m.start && start < m.end) || (end > m.start && end <= m.end) ||
@@ -10035,7 +10049,6 @@ spacer.setStyle("-fx-background-color: transparent;");
             return 0; // Fallback auf ersten Index
         }
         
-        
         // Methode 1: Direkter Vergleich mit originalDocxFile
         if (originalDocxFile != null) {
             for (int i = 0; i < selectedFiles.size(); i++) {
@@ -10078,7 +10091,6 @@ spacer.setStyle("-fx-background-color: transparent;");
         
         return baseName;
     }
-    
     /**
      * Lädt eine Kapitel-Datei in den Editor
      */
@@ -10570,4 +10582,3 @@ spacer.setStyle("-fx-background-color: transparent;");
     }
 
 }
-
