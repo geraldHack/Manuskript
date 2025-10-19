@@ -2684,7 +2684,7 @@ public class MainController implements Initializable {
             Button btnAcceptAll = new Button("🔄 docx übernehmen");
             btnAcceptAll.setStyle("-fx-background-color: rgba(0,123,255,0.8); -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8px 16px;");
             
-            Button btnKeepCurrent = new Button("💾 Aktuelle Version behalten");
+            Button btnKeepCurrent = new Button("💾 Aktuellen Zustand beibehalten");
             btnKeepCurrent.setStyle("-fx-background-color: rgba(108,117,125,0.8); -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8px 16px;");
             
             Button btnCancel = new Button("❌ Abbrechen");
@@ -2924,7 +2924,7 @@ public class MainController implements Initializable {
                         });
                     } else {
                         // Neuen Editor erstellen
-                        openChapterEditorWindow(mdContent, chapterFile, format);
+                        EditorWindow newEditor = openChapterEditorWindow(mdContent, chapterFile, format);
                         
                         // WICHTIG: Editor in den Vordergrund bringen
                         Platform.runLater(() -> {
@@ -2945,6 +2945,8 @@ public class MainController implements Initializable {
                     updateDocxHashAfterAccept(chapterFile.getFile());
                     // WICHTIG: Das "!" aus der Tabelle entfernen
                     markDocxFileAsUnchanged(chapterFile.getFile());
+                    
+                    
                     diffStage.close();
                 } catch (Exception ex) {
                     logger.error("Fehler beim Behalten der aktuellen Version", ex);

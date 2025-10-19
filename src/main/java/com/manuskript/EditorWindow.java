@@ -4037,13 +4037,9 @@ if (caret != null) {
             return false;
         }
         
-        String currentContent = codeArea.getText();
-        
-        // Chapter-Editor entfernt - keine Änderungsprüfung mehr nötig
-        
-        // Vergleiche mit der ursprünglichen Kopie (ohne Absatz-Markierungen)
-        boolean hasChanges = !cleanTextForComparison(currentContent).equals(originalContent);
-        return hasChanges;
+        // WICHTIG: Verwende das hasUnsavedChanges Flag für bessere Erkennung
+        // Das Flag wird bei markAsChanged() gesetzt und bei markAsSaved() zurückgesetzt
+        return hasUnsavedChanges;
     }
     /**
      * Zeigt den Speichern-Dialog beim Schließen
@@ -5485,6 +5481,13 @@ if (caret != null) {
     private void markAsSaved() {
         hasUnsavedChanges = false;
         updateStatusDisplay();
+    }
+    
+    /**
+     * Markiert das Dokument als gespeichert (public für externe Aufrufe)
+     */
+    public void markAsSavedPublic() {
+        markAsSaved();
     }
     
     /**
