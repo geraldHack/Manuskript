@@ -5330,9 +5330,89 @@
     -fx-padding: 0px !important; /* Kein Padding für Pastell-Theme */
 }
 
+/* Weiß-Theme Projektauswahl */
+.weiss-theme .project-selection-container {
+    -fx-background-color: #ffffff !important;
+    -fx-border-color: transparent !important;
+    -fx-border-width: 0px !important;
+    -fx-padding: 20px !important;
+}
+
+/* Weiß-Theme Projektauswahl - höhere Spezifität */
+.root .weiss-theme .project-selection-container {
+    -fx-background-color: #ffffff !important;
+    -fx-border-color: transparent !important;
+    -fx-border-width: 0px !important;
+    -fx-padding: 20px !important;
+}
+
 /* Schwarz-Theme Projektauswahl */
 .theme-dark .project-selection-container {
-    -fx-background-color: #1a1a1a !important;
+    -fx-background-color: #2d2d2d !important;
+    -fx-border-color: transparent !important;
+    -fx-border-width: 0px !important;
+    -fx-padding: 20px !important;
+}
+
+/* Schwarz-Theme Projektauswahl - höhere Spezifität */
+.root .theme-dark .project-selection-container {
+    -fx-background-color: #2d2d2d !important;
+    -fx-border-color: transparent !important;
+    -fx-border-width: 0px !important;
+    -fx-padding: 20px !important;
+}
+
+/* Blau-Theme Projektauswahl */
+.theme-dark.blau-theme .project-selection-container {
+    -fx-background-color: #1e40af !important;
+    -fx-border-color: transparent !important;
+    -fx-border-width: 0px !important;
+    -fx-padding: 20px !important;
+}
+
+/* Blau-Theme Projektauswahl - höhere Spezifität */
+.root .theme-dark.blau-theme .project-selection-container {
+    -fx-background-color: #1e40af !important;
+    -fx-border-color: transparent !important;
+    -fx-border-width: 0px !important;
+    -fx-padding: 20px !important;
+}
+
+/* Grün-Theme Projektauswahl */
+.theme-dark.gruen-theme .project-selection-container {
+    -fx-background-color: #065f46 !important;
+    -fx-border-color: transparent !important;
+    -fx-border-width: 0px !important;
+    -fx-padding: 20px !important;
+}
+
+/* Grün-Theme Projektauswahl - höhere Spezifität */
+.root .theme-dark.gruen-theme .project-selection-container {
+    -fx-background-color: #065f46 !important;
+    -fx-border-color: transparent !important;
+    -fx-border-width: 0px !important;
+    -fx-padding: 20px !important;
+}
+
+/* Lila-Theme Projektauswahl */
+.theme-dark.lila-theme .project-selection-container {
+    -fx-background-color: #4c1d95 !important;
+    -fx-border-color: transparent !important;
+    -fx-border-width: 0px !important;
+    -fx-padding: 20px !important;
+}
+
+/* Lila-Theme Projektauswahl - höhere Spezifität */
+.root .theme-dark.lila-theme .project-selection-container {
+    -fx-background-color: #4c1d95 !important;
+    -fx-border-color: transparent !important;
+    -fx-border-width: 0px !important;
+    -fx-padding: 20px !important;
+}
+
+/* Weiß-Theme Projekt-Grid */
+.weiss-theme .project-grid {
+    -fx-background-color: #ffffff !important;
     -fx-border-color: transparent !important;
     -fx-border-width: 0px !important;
     -fx-padding: 20px !important;
@@ -5340,23 +5420,113 @@
 
 /* Schwarz-Theme Projekt-Grid */
 .theme-dark .project-grid {
-    -fx-background-color: #1a1a1a !important;
+    -fx-background-color: #2d2d2d !important;
     -fx-border-color: transparent !important;
     -fx-border-width: 0px !important;
     -fx-padding: 20px !important;
 }
 
+/* Blau-Theme Projekt-Grid */
+.theme-dark.blau-theme .project-grid {
+    -fx-background-color: #1e40af !important;
+    -fx-border-color: transparent !important;
+    -fx-border-width: 0px !important;
+    -fx-padding: 20px !important;
+}
+
+/* Grün-Theme Projekt-Grid */
+.theme-dark.gruen-theme .project-grid {
+    -fx-background-color: #065f46 !important;
+    -fx-border-color: transparent !important;
+    -fx-border-width: 0px !important;
+    -fx-padding: 20px !important;
+}
+
+/* Lila-Theme Projekt-Grid */
+.theme-dark.lila-theme .project-grid {
+    -fx-background-color: #4c1d95 !important;
+    -fx-border-color: transparent !important;
+    -fx-border-width: 0px !important;
+    -fx-padding: 20px !important;
+}
+
+/* Weiß-Theme ScrollPane */
+.weiss-theme .scroll-pane {
+    -fx-background-color: #ffffff !important;
+    -fx-border-color: transparent !important;
+    -fx-border-width: 0px !important;
+}
+
+.weiss-theme .scroll-pane .viewport {
+    -fx-background-color: #ffffff !important;
+}
+
 /* Schwarz-Theme ScrollPane */
 .theme-dark .scroll-pane {
-    -fx-background-color: #1a1a1a !important;
+    -fx-background-color: #2d2d2d !important;
     -fx-border-color: transparent !important;
     -fx-border-width: 0px !important;
 }
 
 .theme-dark .scroll-pane .viewport {
-    -fx-background-color: #1a1a1a !important;
+    -fx-background-color: #2d2d2d !important;
 }
 
+/* Blau-Theme ScrollPane */
+.theme-dark.blau-theme .scroll-pane {
+    -fx-background-color: #1e40af !important;
+    -fx-border-color: transparent !important;
+    -fx-border-width: 0px !important;
+}
+
+.theme-dark.blau-theme .scroll-pane .viewport {
+    -fx-background-color: #1e40af !important;
+}
+
+/* Grün-Theme ScrollPane */
+.theme-dark.gruen-theme .scroll-pane {
+    -fx-background-color: #065f46 !important;
+    -fx-border-color: transparent !important;
+    -fx-border-width: 0px !important;
+}
+
+.theme-dark.gruen-theme .scroll-pane .viewport {
+    -fx-background-color: #065f46 !important;
+}
+
+/* Lila-Theme ScrollPane */
+.theme-dark.lila-theme .scroll-pane {
+    -fx-background-color: #4c1d95 !important;
+    -fx-border-color: transparent !important;
+    -fx-border-width: 0px !important;
+}
+
+.theme-dark.lila-theme .scroll-pane .viewport {
+    -fx-background-color: #4c1d95 !important;
+}
+
+/* Weiß-Theme ScrollBalken */
+.weiss-theme .scroll-pane .scroll-bar:vertical .track {
+    -fx-background-color: #f8f9fa !important;
+    -fx-border-color: transparent !important;
+    -fx-background-radius: 5px !important;
+}
+
+.weiss-theme .scroll-pane .scroll-bar:vertical .thumb {
+    -fx-background-color: #6c757d !important;
+    -fx-background-radius: 5px !important;
+}
+
+.weiss-theme .scroll-pane .scroll-bar:vertical .thumb:hover {
+    -fx-background-color: #495057 !important;
+}
+
+.weiss-theme .scroll-pane .scroll-bar:vertical .increment-arrow,
+.weiss-theme .scroll-pane .scroll-bar:vertical .decrement-arrow {
+    -fx-background-color: #6c757d !important;
+}
+
+/* Schwarz-Theme ScrollBalken */
 .theme-dark .scroll-pane .scroll-bar:vertical .track {
     -fx-background-color: #2d2d2d !important;
     -fx-border-color: transparent !important;
@@ -5377,6 +5547,82 @@
     -fx-background-color: #6c757d !important;
 }
 
+/* Blau-Theme ScrollBalken */
+.theme-dark.blau-theme .scroll-pane .scroll-bar:vertical .track {
+    -fx-background-color: #1e40af !important;
+    -fx-border-color: transparent !important;
+    -fx-background-radius: 5px !important;
+}
+
+.theme-dark.blau-theme .scroll-pane .scroll-bar:vertical .thumb {
+    -fx-background-color: #3b82f6 !important;
+    -fx-background-radius: 5px !important;
+}
+
+.theme-dark.blau-theme .scroll-pane .scroll-bar:vertical .thumb:hover {
+    -fx-background-color: #2563eb !important;
+}
+
+.theme-dark.blau-theme .scroll-pane .scroll-bar:vertical .increment-arrow,
+.theme-dark.blau-theme .scroll-pane .scroll-bar:vertical .decrement-arrow {
+    -fx-background-color: #3b82f6 !important;
+}
+
+/* Grün-Theme ScrollBalken */
+.theme-dark.gruen-theme .scroll-pane .scroll-bar:vertical .track {
+    -fx-background-color: #065f46 !important;
+    -fx-border-color: transparent !important;
+    -fx-background-radius: 5px !important;
+}
+
+.theme-dark.gruen-theme .scroll-pane .scroll-bar:vertical .thumb {
+    -fx-background-color: #10b981 !important;
+    -fx-background-radius: 5px !important;
+}
+
+.theme-dark.gruen-theme .scroll-pane .scroll-bar:vertical .thumb:hover {
+    -fx-background-color: #059669 !important;
+}
+
+.theme-dark.gruen-theme .scroll-pane .scroll-bar:vertical .increment-arrow,
+.theme-dark.gruen-theme .scroll-pane .scroll-bar:vertical .decrement-arrow {
+    -fx-background-color: #10b981 !important;
+}
+
+/* Lila-Theme ScrollBalken */
+.theme-dark.lila-theme .scroll-pane .scroll-bar:vertical .track {
+    -fx-background-color: #4c1d95 !important;
+    -fx-border-color: transparent !important;
+    -fx-background-radius: 5px !important;
+}
+
+.theme-dark.lila-theme .scroll-pane .scroll-bar:vertical .thumb {
+    -fx-background-color: #8b5cf6 !important;
+    -fx-background-radius: 5px !important;
+}
+
+.theme-dark.lila-theme .scroll-pane .scroll-bar:vertical .thumb:hover {
+    -fx-background-color: #7c3aed !important;
+}
+
+.theme-dark.lila-theme .scroll-pane .scroll-bar:vertical .increment-arrow,
+.theme-dark.lila-theme .scroll-pane .scroll-bar:vertical .decrement-arrow {
+    -fx-background-color: #8b5cf6 !important;
+}
+
+/* Weiß-Theme Serien-ScrollPane */
+.weiss-theme .series-scroll-pane {
+    -fx-background-color: #ffffff !important;
+    -fx-border-color: #e9ecef !important;
+    -fx-border-width: 1px !important;
+    -fx-border-radius: 8px !important;
+    -fx-background-radius: 8px !important;
+}
+
+.weiss-theme .series-scroll-pane .viewport {
+    -fx-background-color: #ffffff !important;
+}
+
 /* Schwarz-Theme Serien-ScrollPane */
 .theme-dark .series-scroll-pane {
     -fx-background-color: #2d2d2d !important;
@@ -5388,6 +5634,45 @@
 
 .theme-dark .series-scroll-pane .viewport {
     -fx-background-color: #2d2d2d !important;
+}
+
+/* Blau-Theme Serien-ScrollPane */
+.theme-dark.blau-theme .series-scroll-pane {
+    -fx-background-color: #1e40af !important;
+    -fx-border-color: #3b82f6 !important;
+    -fx-border-width: 1px !important;
+    -fx-border-radius: 8px !important;
+    -fx-background-radius: 8px !important;
+}
+
+.theme-dark.blau-theme .series-scroll-pane .viewport {
+    -fx-background-color: #1e40af !important;
+}
+
+/* Grün-Theme Serien-ScrollPane */
+.theme-dark.gruen-theme .series-scroll-pane {
+    -fx-background-color: #065f46 !important;
+    -fx-border-color: #10b981 !important;
+    -fx-border-width: 1px !important;
+    -fx-border-radius: 8px !important;
+    -fx-background-radius: 8px !important;
+}
+
+.theme-dark.gruen-theme .series-scroll-pane .viewport {
+    -fx-background-color: #065f46 !important;
+}
+
+/* Lila-Theme Serien-ScrollPane */
+.theme-dark.lila-theme .series-scroll-pane {
+    -fx-background-color: #4c1d95 !important;
+    -fx-border-color: #8b5cf6 !important;
+    -fx-border-width: 1px !important;
+    -fx-border-radius: 8px !important;
+    -fx-background-radius: 8px !important;
+}
+
+.theme-dark.lila-theme .series-scroll-pane .viewport {
+    -fx-background-color: #4c1d95 !important;
 }
 
 .theme-dark .series-scroll-pane .scroll-bar:horizontal .track {
@@ -5425,10 +5710,49 @@
     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 12, 0, 4, 6) !important;
 }
 
+/* Weiß-Theme Projekt-Titel */
+.weiss-theme .project-title {
+    -fx-text-fill: #000000 !important;
+    -fx-font-weight: bold !important;
+    -fx-background-color: #ffffff !important;
+    -fx-border-color: transparent !important;
+    -fx-border-width: 0px !important;
+}
+
 /* Schwarz-Theme Projekt-Titel */
 .theme-dark .project-title {
     -fx-text-fill: #ffffff !important;
     -fx-font-weight: bold !important;
+    -fx-background-color: #2d2d2d !important;
+    -fx-border-color: transparent !important;
+    -fx-border-width: 0px !important;
+}
+
+/* Blau-Theme Projekt-Titel */
+.theme-dark.blau-theme .project-title {
+    -fx-text-fill: #ffffff !important;
+    -fx-font-weight: bold !important;
+    -fx-background-color: #1e40af !important;
+    -fx-border-color: transparent !important;
+    -fx-border-width: 0px !important;
+}
+
+/* Grün-Theme Projekt-Titel */
+.theme-dark.gruen-theme .project-title {
+    -fx-text-fill: #ffffff !important;
+    -fx-font-weight: bold !important;
+    -fx-background-color: #065f46 !important;
+    -fx-border-color: transparent !important;
+    -fx-border-width: 0px !important;
+}
+
+/* Lila-Theme Projekt-Titel */
+.theme-dark.lila-theme .project-title {
+    -fx-text-fill: #ffffff !important;
+    -fx-font-weight: bold !important;
+    -fx-background-color: #4c1d95 !important;
+    -fx-border-color: transparent !important;
+    -fx-border-width: 0px !important;
 }
 
 /* Schwarz-Theme Projekt-Name */
@@ -5465,6 +5789,18 @@
     -fx-background-color: transparent !important;
 }
 
+/* Weiß-Theme Bücherkarten in Serienkarte */
+.weiss-theme .series-scroll-pane .project-card {
+    -fx-background-color: #ffffff !important;
+    -fx-border-color: #e9ecef !important;
+    -fx-border-width: 1px !important;
+    -fx-padding: 10px !important;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 8, 0, 2, 4) !important;
+    -fx-cursor: hand !important;
+    -fx-pref-width: 300px !important;
+    -fx-pref-height: 300px !important;
+}
+
 /* Schwarz-Theme Bücherkarten in Serienkarte */
 .theme-dark .series-scroll-pane .project-card {
     -fx-background-color: #2d2d2d !important;
@@ -5477,11 +5813,96 @@
     -fx-pref-height: 300px !important;
 }
 
+/* Blau-Theme Bücherkarten in Serienkarte */
+.theme-dark.blau-theme .series-scroll-pane .project-card {
+    -fx-background-color: #1e40af !important;
+    -fx-border-color: #3b82f6 !important;
+    -fx-border-width: 1px !important;
+    -fx-padding: 10px !important;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 8, 0, 2, 4) !important;
+    -fx-cursor: hand !important;
+    -fx-pref-width: 300px !important;
+    -fx-pref-height: 300px !important;
+}
+
+/* Grün-Theme Bücherkarten in Serienkarte */
+.theme-dark.gruen-theme .series-scroll-pane .project-card {
+    -fx-background-color: #065f46 !important;
+    -fx-border-color: #10b981 !important;
+    -fx-border-width: 1px !important;
+    -fx-padding: 10px !important;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 8, 0, 2, 4) !important;
+    -fx-cursor: hand !important;
+    -fx-pref-width: 300px !important;
+    -fx-pref-height: 300px !important;
+}
+
+/* Lila-Theme Bücherkarten in Serienkarte */
+.theme-dark.lila-theme .series-scroll-pane .project-card {
+    -fx-background-color: #4c1d95 !important;
+    -fx-border-color: #8b5cf6 !important;
+    -fx-border-width: 1px !important;
+    -fx-padding: 10px !important;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 8, 0, 2, 4) !important;
+    -fx-cursor: hand !important;
+    -fx-pref-width: 300px !important;
+    -fx-pref-height: 300px !important;
+}
+
+/* Weiß-Theme Bücherkarten Labels in Serienkarte */
+.weiss-theme .series-scroll-pane .project-card .label {
+    -fx-text-fill: #000000 !important;
+    -fx-font-weight: bold !important;
+    -fx-background-color: transparent !important;
+}
+
 /* Schwarz-Theme Bücherkarten Labels in Serienkarte */
 .theme-dark .series-scroll-pane .project-card .label {
     -fx-text-fill: #ffffff !important;
     -fx-font-weight: bold !important;
     -fx-background-color: transparent !important;
+}
+
+/* Blau-Theme Bücherkarten Labels in Serienkarte */
+.theme-dark.blau-theme .series-scroll-pane .project-card .label {
+    -fx-text-fill: #ffffff !important;
+    -fx-font-weight: bold !important;
+    -fx-background-color: transparent !important;
+}
+
+/* Grün-Theme Bücherkarten Labels in Serienkarte */
+.theme-dark.gruen-theme .series-scroll-pane .project-card .label {
+    -fx-text-fill: #ffffff !important;
+    -fx-font-weight: bold !important;
+    -fx-background-color: transparent !important;
+}
+
+/* Lila-Theme Bücherkarten Labels in Serienkarte */
+.theme-dark.lila-theme .series-scroll-pane .project-card .label {
+    -fx-text-fill: #ffffff !important;
+    -fx-font-weight: bold !important;
+    -fx-background-color: transparent !important;
+}
+
+/* Weiß-Theme Bücherkarten Titel */
+.weiss-theme .series-scroll-pane .project-card .project-title {
+    -fx-text-fill: #000000 !important;
+    -fx-font-weight: bold !important;
+    -fx-font-size: 16px !important;
+}
+
+/* Weiß-Theme Bücherkarten Name */
+.weiss-theme .series-scroll-pane .project-card .project-name {
+    -fx-text-fill: #000000 !important;
+    -fx-font-weight: bold !important;
+    -fx-font-size: 14px !important;
+}
+
+/* Weiß-Theme Bücherkarten Info */
+.weiss-theme .series-scroll-pane .project-card .project-info {
+    -fx-text-fill: #666666 !important;
+    -fx-font-size: 12px !important;
+    -fx-font-weight: normal !important;
 }
 
 /* Schwarz-Theme Bücherkarten Titel */
@@ -5501,6 +5922,69 @@
 /* Schwarz-Theme Bücherkarten Info */
 .theme-dark .series-scroll-pane .project-card .project-info {
     -fx-text-fill: #cccccc !important;
+    -fx-font-size: 12px !important;
+    -fx-font-weight: normal !important;
+}
+
+/* Blau-Theme Bücherkarten Titel */
+.theme-dark.blau-theme .series-scroll-pane .project-card .project-title {
+    -fx-text-fill: #ffffff !important;
+    -fx-font-weight: bold !important;
+    -fx-font-size: 16px !important;
+}
+
+/* Blau-Theme Bücherkarten Name */
+.theme-dark.blau-theme .series-scroll-pane .project-card .project-name {
+    -fx-text-fill: #ffffff !important;
+    -fx-font-weight: bold !important;
+    -fx-font-size: 14px !important;
+}
+
+/* Blau-Theme Bücherkarten Info */
+.theme-dark.blau-theme .series-scroll-pane .project-card .project-info {
+    -fx-text-fill: #e0e7ff !important;
+    -fx-font-size: 12px !important;
+    -fx-font-weight: normal !important;
+}
+
+/* Grün-Theme Bücherkarten Titel */
+.theme-dark.gruen-theme .series-scroll-pane .project-card .project-title {
+    -fx-text-fill: #ffffff !important;
+    -fx-font-weight: bold !important;
+    -fx-font-size: 16px !important;
+}
+
+/* Grün-Theme Bücherkarten Name */
+.theme-dark.gruen-theme .series-scroll-pane .project-card .project-name {
+    -fx-text-fill: #ffffff !important;
+    -fx-font-weight: bold !important;
+    -fx-font-size: 14px !important;
+}
+
+/* Grün-Theme Bücherkarten Info */
+.theme-dark.gruen-theme .series-scroll-pane .project-card .project-info {
+    -fx-text-fill: #d1fae5 !important;
+    -fx-font-size: 12px !important;
+    -fx-font-weight: normal !important;
+}
+
+/* Lila-Theme Bücherkarten Titel */
+.theme-dark.lila-theme .series-scroll-pane .project-card .project-title {
+    -fx-text-fill: #ffffff !important;
+    -fx-font-weight: bold !important;
+    -fx-font-size: 16px !important;
+}
+
+/* Lila-Theme Bücherkarten Name */
+.theme-dark.lila-theme .series-scroll-pane .project-card .project-name {
+    -fx-text-fill: #ffffff !important;
+    -fx-font-weight: bold !important;
+    -fx-font-size: 14px !important;
+}
+
+/* Lila-Theme Bücherkarten Info */
+.theme-dark.lila-theme .series-scroll-pane .project-card .project-info {
+    -fx-text-fill: #e9d5ff !important;
     -fx-font-size: 12px !important;
     -fx-font-weight: normal !important;
 }
@@ -5615,6 +6099,42 @@
     -fx-border-color: #e9ecef;
     -fx-border-radius: 12px;
     -fx-border-width: 2px;
+}
+
+/* Weiß-Theme Projekt-Karten */
+.weiss-theme .project-card {
+    -fx-background-color: #ffffff !important;
+    -fx-border-color: #e9ecef !important;
+    -fx-border-radius: 12px !important;
+    -fx-border-width: 2px !important;
+    -fx-background-radius: 12px !important;
+}
+
+/* Blau-Theme Projekt-Karten */
+.theme-dark.blau-theme .project-card {
+    -fx-background-color: #1e40af !important;
+    -fx-border-color: #3b82f6 !important;
+    -fx-border-radius: 12px !important;
+    -fx-border-width: 2px !important;
+    -fx-background-radius: 12px !important;
+}
+
+/* Grün-Theme Projekt-Karten */
+.theme-dark.gruen-theme .project-card {
+    -fx-background-color: #065f46 !important;
+    -fx-border-color: #10b981 !important;
+    -fx-border-radius: 12px !important;
+    -fx-border-width: 2px !important;
+    -fx-background-radius: 12px !important;
+}
+
+/* Lila-Theme Projekt-Karten */
+.theme-dark.lila-theme .project-card {
+    -fx-background-color: #4c1d95 !important;
+    -fx-border-color: #8b5cf6 !important;
+    -fx-border-radius: 12px !important;
+    -fx-border-width: 2px !important;
+    -fx-background-radius: 12px !important;
 }
 
 /* Pastell-Theme Projekt-Karten */
@@ -5818,6 +6338,47 @@
     -fx-font-size: 24px;
     -fx-font-weight: bold;
     -fx-padding: 0 0 20px 0;
+}
+
+/* Button-Container */
+.button-container {
+    -fx-background-color: transparent;
+    -fx-padding: 10px;
+}
+
+/* Weiß-Theme Button-Container */
+.weiss-theme .button-container {
+    -fx-background-color: #ffffff !important;
+    -fx-border-color: transparent !important;
+    -fx-border-width: 0px !important;
+}
+
+/* Schwarz-Theme Button-Container */
+.theme-dark .button-container {
+    -fx-background-color: #2d2d2d !important;
+    -fx-border-color: transparent !important;
+    -fx-border-width: 0px !important;
+}
+
+/* Blau-Theme Button-Container */
+.theme-dark.blau-theme .button-container {
+    -fx-background-color: #1e40af !important;
+    -fx-border-color: transparent !important;
+    -fx-border-width: 0px !important;
+}
+
+/* Grün-Theme Button-Container */
+.theme-dark.gruen-theme .button-container {
+    -fx-background-color: #065f46 !important;
+    -fx-border-color: transparent !important;
+    -fx-border-width: 0px !important;
+}
+
+/* Lila-Theme Button-Container */
+.theme-dark.lila-theme .button-container {
+    -fx-background-color: #4c1d95 !important;
+    -fx-border-color: transparent !important;
+    -fx-border-width: 0px !important;
 }
 
 /* Projekt-Name */

@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.prefs.Preferences;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
@@ -330,84 +331,268 @@ public class ResourceManager {
     }
     
     /**
-     * Lädt die parameters.properties und gibt einen Wert zurück
+     * Lädt einen Parameter - zuerst aus User Preferences, dann aus parameters.properties
      */
     public static String getParameter(String key, String defaultValue) {
-        Properties props = new Properties();
-        File configFile = new File(CONFIG_DIR + File.separator + "parameters.properties");
-        
-        if (configFile.exists()) {
-            try (FileInputStream fis = new FileInputStream(configFile)) {
-                props.load(fis);
-            } catch (IOException e) {
-                logger.warning("Fehler beim Laden der parameters.properties: " + e.getMessage());
+        try {
+            Preferences preferences = Preferences.userNodeForPackage(ResourceManager.class);
+            String value = preferences.get(key, null);
+            
+            // Wenn in User Preferences gefunden, verwende diesen Wert
+            if (value != null) {
+                return value;
             }
+            
+            // Fallback: Aus parameters.properties laden
+            Properties props = new Properties();
+            File configFile = new File(CONFIG_DIR + File.separator + "parameters.properties");
+            
+            if (configFile.exists()) {
+                try (FileInputStream fis = new FileInputStream(configFile)) {
+                    props.load(fis);
+                    String propValue = props.getProperty(key);
+                    if (propValue != null) {
+                        // Automatisch zu User Preferences migrieren
+                        preferences.put(key, propValue);
+                        return propValue;
+                    }
+                } catch (IOException e) {
+                    logger.warning("Fehler beim Laden der parameters.properties: " + e.getMessage());
+                }
+            }
+            
+            return defaultValue;
+        } catch (Exception e) {
+            logger.warning("Fehler beim Laden der User Preference " + key + ": " + e.getMessage());
+            return defaultValue;
         }
-        
-        return props.getProperty(key, defaultValue);
     }
     
     /**
-     * Lädt die parameters.properties und gibt einen Integer-Wert zurück
+     * Lädt einen Integer-Parameter - zuerst aus User Preferences, dann aus parameters.properties
      */
     public static int getIntParameter(String key, int defaultValue) {
-        String value = getParameter(key, String.valueOf(defaultValue));
         try {
-            return Integer.parseInt(value);
-        } catch (NumberFormatException e) {
-            logger.warning("Ungültiger Integer-Wert für Parameter " + key + ": " + value + " - verwende Standard: " + defaultValue);
+            Preferences preferences = Preferences.userNodeForPackage(ResourceManager.class);
+            int value = preferences.getInt(key, Integer.MIN_VALUE);
+            
+            // Wenn in User Preferences gefunden, verwende diesen Wert
+            if (value != Integer.MIN_VALUE) {
+                return value;
+            }
+            
+            // Fallback: Aus parameters.properties laden
+            String stringValue = getParameter(key, String.valueOf(defaultValue));
+            try {
+                return Integer.parseInt(stringValue);
+            } catch (NumberFormatException e) {
+                logger.warning("Ungültiger Integer-Wert für Parameter " + key + ": " + stringValue + " - verwende Standard: " + defaultValue);
+                return defaultValue;
+            }
+        } catch (Exception e) {
+            logger.warning("Fehler beim Laden der User Preference " + key + ": " + e.getMessage());
             return defaultValue;
         }
     }
     
     /**
-     * Lädt die parameters.properties und gibt einen Double-Wert zurück
+     * Lädt einen Double-Parameter aus User Preferences
      */
     public static double getDoubleParameter(String key, double defaultValue) {
-        String value = getParameter(key, String.valueOf(defaultValue));
         try {
-            return Double.parseDouble(value);
-        } catch (NumberFormatException e) {
-            logger.warning("Ungültiger Double-Wert für Parameter " + key + ": " + value + " - verwende Standard: " + defaultValue);
+            Preferences preferences = Preferences.userNodeForPackage(ResourceManager.class);
+            return preferences.getDouble(key, defaultValue);
+        } catch (Exception e) {
+            logger.warning("Fehler beim Laden der User Preference " + key + ": " + e.getMessage());
             return defaultValue;
         }
     }
     
     /**
-     * Speichert einen Parameter in der parameters.properties
+     * Speichert einen Parameter in User Preferences (vereinheitlichte Konfiguration)
      */
     public static void saveParameter(String key, String value) {
-        Properties props = new Properties();
-        File configFile = new File(CONFIG_DIR + File.separator + "parameters.properties");
-        
-        // Bestehende Properties laden
-        if (configFile.exists()) {
-            try (FileInputStream fis = new FileInputStream(configFile)) {
-                props.load(fis);
-            } catch (IOException e) {
-                logger.warning("Fehler beim Laden der parameters.properties: " + e.getMessage());
-            }
-        }
-        
-        // Neuen Wert setzen
-        props.setProperty(key, value);
-        
-        // Properties speichern
-        try (FileOutputStream fos = new FileOutputStream(configFile)) {
-            props.store(fos, "Aktualisiert von Manuskript");
-        } catch (IOException e) {
-            logger.warning("Fehler beim Speichern der parameters.properties: " + e.getMessage());
+        try {
+            Preferences preferences = Preferences.userNodeForPackage(ResourceManager.class);
+            preferences.put(key, value);
+        } catch (Exception e) {
+            logger.warning("Fehler beim Speichern der User Preference " + key + ": " + e.getMessage());
         }
     }
     
     /**
-     * Speichert alle Ollama-Parameter in der parameters.properties
+     * Speichert alle Ollama-Parameter in User Preferences
      */
     public static void saveOllamaParameters(double temperature, int maxTokens, double topP, double repeatPenalty) {
         saveParameter("ollama.temperature", String.valueOf(temperature));
         saveParameter("ollama.max_tokens", String.valueOf(maxTokens));
         saveParameter("ollama.top_p", String.valueOf(topP));
         saveParameter("ollama.repeat_penalty", String.valueOf(repeatPenalty));
+    }
+    
+    /**
+     * Migriert alle parameters.properties zu User Preferences (einmalig beim Start)
+     */
+    public static void migrateParametersToPreferences() {
+        try {
+            File configFile = new File(CONFIG_DIR + File.separator + "parameters.properties");
+            if (!configFile.exists()) {
+                return; // Keine Migration nötig
+            }
+            
+            Properties props = new Properties();
+            try (FileInputStream fis = new FileInputStream(configFile)) {
+                props.load(fis);
+            } catch (IOException e) {
+                logger.warning("Fehler beim Laden der parameters.properties für Migration: " + e.getMessage());
+                return;
+            }
+            
+            Preferences preferences = Preferences.userNodeForPackage(ResourceManager.class);
+            int migratedCount = 0;
+            
+            // Alle Properties zu User Preferences migrieren
+            for (String key : props.stringPropertyNames()) {
+                String value = props.getProperty(key);
+                if (value != null && !value.trim().isEmpty()) {
+                    // Prüfen ob bereits in User Preferences vorhanden
+                    String existingValue = preferences.get(key, null);
+                    if (existingValue == null) {
+                        preferences.put(key, value);
+                        migratedCount++;
+                        logger.info("Migriert: " + key + " = " + value);
+                    } else {
+                        logger.info("Bereits vorhanden: " + key + " = " + existingValue);
+                    }
+                }
+            }
+            
+            // Zusätzlich: Prüfe spezifisch session.max_qapairs_per_session
+            String sessionMaxQaPairs = props.getProperty("session.max_qapairs_per_session");
+            if (sessionMaxQaPairs != null && !sessionMaxQaPairs.trim().isEmpty()) {
+                String existingSessionValue = preferences.get("session.max_qapairs_per_session", null);
+                if (existingSessionValue == null) {
+                    preferences.put("session.max_qapairs_per_session", sessionMaxQaPairs);
+                    migratedCount++;
+                    logger.info("Spezifisch migriert: session.max_qapairs_per_session = " + sessionMaxQaPairs);
+                } else {
+                    logger.info("session.max_qapairs_per_session bereits vorhanden: " + existingSessionValue);
+                }
+            }
+            
+            if (migratedCount > 0) {
+                logger.info("Migration abgeschlossen: " + migratedCount + " Parameter zu User Preferences migriert");
+                
+                // Backup der alten parameters.properties erstellen
+                File backupFile = new File(CONFIG_DIR + File.separator + "parameters.properties.backup");
+                try {
+                    Files.copy(configFile.toPath(), backupFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                    logger.info("Backup erstellt: " + backupFile.getAbsolutePath());
+                } catch (IOException e) {
+                    logger.warning("Fehler beim Erstellen des Backups: " + e.getMessage());
+                }
+            }
+            
+        } catch (Exception e) {
+            logger.warning("Fehler bei der Migration von parameters.properties: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * Liest einen Parameter direkt aus der parameters.properties Datei
+     */
+    private static String getParameterFromProperties(String key, String defaultValue) {
+        try {
+            File configFile = new File(CONFIG_DIR + File.separator + "parameters.properties");
+            if (!configFile.exists()) {
+                return defaultValue;
+            }
+            
+            Properties props = new Properties();
+            try (FileInputStream fis = new FileInputStream(configFile)) {
+                props.load(fis);
+                return props.getProperty(key, defaultValue);
+            }
+        } catch (IOException e) {
+            logger.warning("Fehler beim Lesen der parameters.properties: " + e.getMessage());
+            return defaultValue;
+        }
+    }
+    
+    /**
+     * Stellt Standardwerte für wichtige Parameter wieder her, falls sie fehlen
+     * Wird bei jedem Start aufgerufen, um sicherzustellen, dass wichtige Parameter vorhanden sind
+     */
+    public static void restoreDefaultParameters() {
+        try {
+            // Wichtige Parameter mit Standardwerten wiederherstellen
+            String[][] defaultParams = {
+                {"project.root.directory", System.getProperty("user.home") + File.separator + "Manuskripte"},
+                {"session.max_qapairs_per_session", "20"},
+                {"ollama.temperature", "0.17"},
+                {"ollama.max_tokens", "8192"},
+                {"ollama.top_p", "0.83"},
+                {"ollama.repeat_penalty", "1.85"},
+                {"ollama.http_connect_timeout_secs", "30"},
+                {"ollama.http_request_timeout_secs", "360"},
+                {"ui.selected_session", "default"},
+                {"main_window_theme", "0"},
+                {"editor_theme", "0"},
+                {"help_enabled", "true"},
+                {"paragraph_marking_enabled", "false"}
+            };
+            
+            int restoredCount = 0;
+            for (String[] param : defaultParams) {
+                String key = param[0];
+                String defaultValue = param[1];
+                
+                // Prüfe in ResourceManager Preferences
+                Preferences resourcePrefs = Preferences.userNodeForPackage(ResourceManager.class);
+                String existingValue = resourcePrefs.get(key, null);
+                if (existingValue == null || existingValue.trim().isEmpty()) {
+                    // Prüfe zuerst in parameters.properties, bevor Standardwert gesetzt wird
+                    String paramValue = getParameterFromProperties(key, null);
+                    if (paramValue != null && !paramValue.trim().isEmpty()) {
+                        resourcePrefs.put(key, paramValue);
+                        logger.info("Wert aus parameters.properties übernommen (ResourceManager): " + key + " = " + paramValue);
+                    } else {
+                        resourcePrefs.put(key, defaultValue);
+                        logger.info("Standardwert wiederhergestellt (ResourceManager): " + key + " = " + defaultValue);
+                    }
+                    restoredCount++;
+                }
+                
+                // Prüfe auch in MainController Preferences (für UI-spezifische Parameter)
+                if (key.startsWith("ui.") || key.startsWith("project.") || key.startsWith("session.") || 
+                    key.startsWith("main_") || key.startsWith("editor_") || key.startsWith("help_") || 
+                    key.startsWith("paragraph_")) {
+                    Preferences mainPrefs = Preferences.userNodeForPackage(com.manuskript.MainController.class);
+                    String mainValue = mainPrefs.get(key, null);
+                    if (mainValue == null || mainValue.trim().isEmpty()) {
+                        // Prüfe zuerst in parameters.properties, bevor Standardwert gesetzt wird
+                        String paramValue = getParameterFromProperties(key, null);
+                        if (paramValue != null && !paramValue.trim().isEmpty()) {
+                            mainPrefs.put(key, paramValue);
+                            logger.info("Wert aus parameters.properties übernommen (MainController): " + key + " = " + paramValue);
+                        } else {
+                            mainPrefs.put(key, defaultValue);
+                            logger.info("Standardwert wiederhergestellt (MainController): " + key + " = " + defaultValue);
+                        }
+                        restoredCount++;
+                    }
+                }
+            }
+            
+            if (restoredCount > 0) {
+                logger.info("Standardwerte wiederhergestellt: " + restoredCount + " Parameter");
+            } else {
+                logger.info("Alle Standardwerte sind bereits vorhanden");
+            }
+            
+        } catch (Exception e) {
+            logger.warning("Fehler beim Wiederherstellen der Standardwerte: " + e.getMessage());
+        }
     }
     
     /**

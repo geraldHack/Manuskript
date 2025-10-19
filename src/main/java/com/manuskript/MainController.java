@@ -133,6 +133,7 @@ public class MainController implements Initializable {
     @FXML private Button btnThemeToggle;
     @FXML private Button btnSplit;
     @FXML private Button btnNewChapter;
+    @FXML private Button btnDeleteFile;
     @FXML private CheckBox chkDownloadsMonitor;
     // Help-Toggle Button (programmatisch erstellt)
     private Button btnHelpToggle;
@@ -170,6 +171,9 @@ public class MainController implements Initializable {
     // Theme-System
     private int currentThemeIndex = 0;
     
+    // Initialisierungs-Flag
+    private boolean isInitializing = false;
+    
     // Help-System
     private boolean helpEnabled = true;
     private static final String[][] THEMES = {
@@ -185,11 +189,26 @@ public class MainController implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         preferences = Preferences.userNodeForPackage(MainController.class);
+        
+        // Migration von parameters.properties zu User Preferences
+        ResourceManager.migrateParametersToPreferences();
+        
+        // Standardwerte wiederherstellen, falls Parameter fehlen
+        ResourceManager.restoreDefaultParameters();
+        
+        // Flag setzen, dass Initialisierung läuft
+        isInitializing = true;
+        
         setupUI();
         setupEventHandlers();
         setupDragAndDrop();
         docxProcessor = new DocxProcessor();
-        loadLastDirectory();
+        
+        // loadLastDirectory() nur aufrufen, wenn nicht initialisiert wird
+        if (!isInitializing) {
+            loadLastDirectory();
+        }
+        
         loadDownloadsMonitorSettings();
         
         // Alte Hilfe-Dateien bereinigen
@@ -252,21 +271,57 @@ public class MainController implements Initializable {
         // Debug: Prüfe ob ImageView korrekt erstellt wurde
         if (coverImageView != null) {
             
-            // Prüfe beim Start, ob Root-Verzeichnis konfiguriert ist
-            String rootDir = ResourceManager.getParameter("project.root.directory", "");
-            if (rootDir == null || rootDir.trim().isEmpty()) {
-                // Root-Verzeichnis nicht gesetzt - Benutzer fragen
-                showRootDirectoryChooser();
+            // Prüfe beim Start, ob Root-Verzeichnis konfiguriert ist (nur während Initialisierung)
+            if (isInitializing) {
+                String rootDir = ResourceManager.getParameter("project.root.directory", "");
+                if (rootDir == null || rootDir.trim().isEmpty()) {
+                    // Root-Verzeichnis nicht gesetzt - Benutzer fragen
+                    logger.info("Root-Verzeichnis nicht gesetzt - zeige Welcome Screen");
+                    showRootDirectoryChooser();
+                    
+                    // Nach dem Dialog automatisch Projektauswahl öffnen
+                    Platform.runLater(() -> {
+                        primaryStage.hide();
+                        showProjectSelectionMenu();
+                    });
+                } else {
+                    // Root-Verzeichnis ist gesetzt - prüfe ob es existiert
+                    File rootDirFile = new File(rootDir);
+                    if (!rootDirFile.exists()) {
+                        logger.info("Root-Verzeichnis existiert nicht: " + rootDir + " - zeige Welcome Screen");
+                        showRootDirectoryChooser();
+                        
+                        // Nach dem Dialog automatisch Projektauswahl öffnen
+                        Platform.runLater(() -> {
+                            primaryStage.hide();
+                            showProjectSelectionMenu();
+                        });
+                    } else {
+                        logger.info("Root-Verzeichnis gefunden: " + rootDir);
+                    }
+                }
                 
-                // Nach dem Dialog automatisch Projektauswahl öffnen
-                Platform.runLater(() -> {
-                    primaryStage.hide();
-                    showProjectSelectionMenu();
-                });
+                // Initialisierung abgeschlossen
+                isInitializing = false;
+                
+                // Jetzt loadLastDirectory() aufrufen, falls kein Welcome Screen gezeigt wurde
+                if (rootDir != null && !rootDir.trim().isEmpty()) {
+                    File rootDirFile = new File(rootDir);
+                    if (rootDirFile.exists()) {
+                        // Root-Verzeichnis ist korrekt - lade letztes Verzeichnis
+                        loadLastDirectory();
+                        
+                        // Nach loadLastDirectory() das Cover-Bild laden
+                        loadCoverImageFromCurrentDirectory();
+                    }
+                }
             }
             
             // Prüfe beim Start, ob ein cover_image.png im aktuellen Verzeichnis vorhanden ist
-            loadCoverImageFromCurrentDirectory();
+            // WICHTIG: Nur aufrufen, wenn txtDirectoryPath bereits gesetzt ist
+            if (txtDirectoryPath.getText() != null && !txtDirectoryPath.getText().trim().isEmpty()) {
+                loadCoverImageFromCurrentDirectory();
+            }
             
             // Erstelle das Layout basierend auf dem Bildstatus
             if (mainContainer instanceof BorderPane) {
@@ -435,6 +490,7 @@ public class MainController implements Initializable {
         btnThemeToggle.setOnAction(e -> toggleTheme());
         btnSplit.setOnAction(e -> openSplitStage());
         btnNewChapter.setOnAction(e -> createNewChapter());
+        btnDeleteFile.setOnAction(e -> deleteSelectedFile());
         // btnHelpToggle Event-Handler wird in createHelpToggleButton() gesetzt
     }
     
@@ -5390,8 +5446,8 @@ public class MainController implements Initializable {
             CustomStage projectStage = new CustomStage();
             projectStage.setCustomTitle("Projektauswahl");
             
-            // WICHTIG: Theme sofort setzen
-            projectStage.setTitleBarTheme(currentThemeIndex);
+            // WICHTIG: Theme sofort setzen (vollständiges Theme)
+            projectStage.setFullTheme(currentThemeIndex);
             
             // Lade Fenster-Eigenschaften aus Preferences
             loadProjectWindowProperties(projectStage);
@@ -5440,6 +5496,7 @@ public class MainController implements Initializable {
             HBox buttonContainer = new HBox();
             buttonContainer.setAlignment(Pos.BOTTOM_RIGHT);
             buttonContainer.setPrefHeight(50); // Minimale Höhe
+            buttonContainer.getStyleClass().add("button-container"); // CSS-Styling hinzufügen
             buttonContainer.getChildren().add(cancelButton);
             
             // Layout zusammenbauen (ohne Spacer)
@@ -5457,9 +5514,25 @@ public class MainController implements Initializable {
                 scene.getStylesheets().add(cssPath);
             }
             
-            // Pastell-Theme CSS-Klasse auf Scene-Root setzen
-            if (currentThemeIndex == 2) {
-                scene.getRoot().getStyleClass().add("pastell-theme");
+            // Theme-Klassen auf Scene-Root setzen
+            Node root = scene.getRoot();
+            root.getStyleClass().removeAll("theme-dark", "theme-light", "blau-theme", "gruen-theme", "lila-theme", "weiss-theme", "pastell-theme");
+            
+            if (currentThemeIndex == 0) { // Weiß
+                root.getStyleClass().add("weiss-theme");
+            } else if (currentThemeIndex == 1) { // Schwarz
+                root.getStyleClass().add("theme-dark");
+            } else if (currentThemeIndex == 2) { // Pastell
+                root.getStyleClass().add("pastell-theme");
+            } else if (currentThemeIndex == 3) { // Blau
+                root.getStyleClass().add("theme-dark");
+                root.getStyleClass().add("blau-theme");
+            } else if (currentThemeIndex == 4) { // Grün
+                root.getStyleClass().add("theme-dark");
+                root.getStyleClass().add("gruen-theme");
+            } else if (currentThemeIndex == 5) { // Lila
+                root.getStyleClass().add("theme-dark");
+                root.getStyleClass().add("lila-theme");
             }
             
             projectStage.setSceneWithTitleBar(scene);
@@ -5985,8 +6058,8 @@ public class MainController implements Initializable {
             booksStage.setMinWidth(800);
             // KEINE setMaxWidth - erlaube große Fenster
             
-            // WICHTIG: Theme sofort setzen
-            booksStage.setTitleBarTheme(currentThemeIndex);
+            // WICHTIG: Theme sofort setzen (vollständiges Theme)
+            booksStage.setFullTheme(currentThemeIndex);
             booksStage.setMinHeight(600);
             // KEINE setMaxHeight - erlaube große Fenster
             booksStage.setWidth(800);
@@ -6709,5 +6782,95 @@ public class MainController implements Initializable {
         }
         
         return result.toString();
+    }
+    
+    private void deleteSelectedFile() {
+        // Prüfen, ob eine Datei in der linken Tabelle ausgewählt ist
+        DocxFile selectedFile = tableViewAvailable.getSelectionModel().getSelectedItem();
+        if (selectedFile == null) {
+            CustomAlert alert = new CustomAlert(Alert.AlertType.WARNING, "Keine Datei ausgewählt");
+            alert.setHeaderText("Bitte wählen Sie eine Datei aus der linken Tabelle aus, die archiviert werden soll.");
+            alert.applyTheme(currentThemeIndex);
+            alert.initOwner(primaryStage);
+            alert.showAndWait();
+            return;
+        }
+        
+        // Bestätigungsdialog
+        CustomAlert confirmAlert = new CustomAlert(Alert.AlertType.CONFIRMATION, "Datei archivieren");
+        confirmAlert.setHeaderText("Möchten Sie die Datei ins Archiv verschieben?");
+        confirmAlert.setContentText("Datei: " + selectedFile.getFileName() + "\n\nDie Datei wird in das 'archiv' Verzeichnis verschoben.");
+        confirmAlert.applyTheme(currentThemeIndex);
+        confirmAlert.initOwner(primaryStage);
+        
+        if (confirmAlert.showAndWait().orElse(null) == ButtonType.OK) {
+            try {
+                File sourceFile = selectedFile.getFile();
+                if (sourceFile.exists()) {
+                    // Archiv-Verzeichnis erstellen
+                    File projectDir = new File(txtDirectoryPath.getText());
+                    File archiveDir = new File(projectDir, "archiv");
+                    if (!archiveDir.exists()) {
+                        archiveDir.mkdirs();
+                    }
+                    
+                    // Ziel-Datei im Archiv
+                    File targetFile = new File(archiveDir, sourceFile.getName());
+                    
+                    // Falls Datei bereits existiert, umbenennen
+                    int counter = 1;
+                    String baseName = sourceFile.getName();
+                    String extension = "";
+                    int dotIndex = baseName.lastIndexOf('.');
+                    if (dotIndex > 0) {
+                        extension = baseName.substring(dotIndex);
+                        baseName = baseName.substring(0, dotIndex);
+                    }
+                    
+                    while (targetFile.exists()) {
+                        targetFile = new File(archiveDir, baseName + "_" + counter + extension);
+                        counter++;
+                    }
+                    
+                    // Datei verschieben
+                    if (sourceFile.renameTo(targetFile)) {
+                        // Datei erfolgreich archiviert - aus der Tabelle entfernen
+                        tableViewAvailable.getItems().remove(selectedFile);
+                        
+                        // Erfolgsmeldung
+                        CustomAlert successAlert = new CustomAlert(Alert.AlertType.INFORMATION, "Datei archiviert");
+                        successAlert.setHeaderText("Die Datei wurde erfolgreich archiviert.");
+                        successAlert.setContentText("Ziel: " + targetFile.getName());
+                        successAlert.applyTheme(currentThemeIndex);
+                        successAlert.initOwner(primaryStage);
+                        successAlert.showAndWait();
+                        
+                        // Tabellen aktualisieren
+                        tableViewAvailable.refresh();
+                        tableViewSelected.refresh();
+                    } else {
+                        CustomAlert errorAlert = new CustomAlert(Alert.AlertType.ERROR, "Fehler beim Archivieren");
+                        errorAlert.setHeaderText("Die Datei konnte nicht archiviert werden.");
+                        errorAlert.setContentText("Möglicherweise ist die Datei gesperrt oder Sie haben keine Berechtigung.");
+                        errorAlert.applyTheme(currentThemeIndex);
+                        errorAlert.initOwner(primaryStage);
+                        errorAlert.showAndWait();
+                    }
+                } else {
+                    CustomAlert errorAlert = new CustomAlert(Alert.AlertType.ERROR, "Datei nicht gefunden");
+                    errorAlert.setHeaderText("Die Datei existiert nicht mehr.");
+                    errorAlert.applyTheme(currentThemeIndex);
+                    errorAlert.initOwner(primaryStage);
+                    errorAlert.showAndWait();
+                }
+            } catch (Exception e) {
+                CustomAlert errorAlert = new CustomAlert(Alert.AlertType.ERROR, "Fehler beim Archivieren");
+                errorAlert.setHeaderText("Ein Fehler ist aufgetreten:");
+                errorAlert.setContentText(e.getMessage());
+                errorAlert.applyTheme(currentThemeIndex);
+                errorAlert.initOwner(primaryStage);
+                errorAlert.showAndWait();
+            }
+        }
     }
 }

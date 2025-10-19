@@ -77,6 +77,12 @@
       <!-- Aktions-Buttons -->
       <HBox spacing="10" alignment="CENTER_LEFT">
          <children>
+            <Button fx:id="btnDeleteFile" text="📁 Datei archivieren" prefWidth="150.0">
+                <tooltip>
+                   <Tooltip text="Ausgewählte Datei ins Archiv verschieben" />
+                </tooltip>
+            </Button>
+            
             <Region HBox.hgrow="ALWAYS" style="-fx-background-color: transparent;" />
             <Button fx:id="btnThemeToggle" text="☀" prefWidth="50.0" prefHeight="35.0">
                 <tooltip>
