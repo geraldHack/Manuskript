@@ -63,4 +63,5 @@ ollama.max_tokens=8192
 ollama.repeat_penalty=1.85
 ollama.temperature=0.17
 ollama.top_p=0.83
+session.max_qapairs_per_session=20
 

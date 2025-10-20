@@ -31,12 +31,26 @@
     </appender>
     
     
-    <root level="DEBUG">
+    <!-- Console-Appender explizit deaktivieren -->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>WARN</level>
+        </filter>
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+    
+    <!-- Root auf INFO: schreibt INFO+ in FILE, DEBUG separat in DEBUG_FILE -->
+    <root level="INFO">
         <appender-ref ref="FILE" />
         <appender-ref ref="DEBUG_FILE" />
+        <!-- Konsole nur für WARN und höher -->
+        <appender-ref ref="STDOUT" />
     </root>
     
-    <logger name="com.manuskript" level="DEBUG" />
+    <!-- Projekt-Logger explizit auf INFO (Konsole trotzdem über Threshold=WARN begrenzt) -->
+    <logger name="com.manuskript" level="INFO" />
     <logger name="DownloadsMonitor" level="WARN" />
     <logger name="com.manuskript.MainController" level="INFO" />
 </configuration>

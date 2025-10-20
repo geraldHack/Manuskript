@@ -3570,28 +3570,40 @@ if (caret != null) {
             }
             
             // Tabellen
-            if (trimmedLine.contains("|") && !trimmedLine.startsWith("```")) {
+            if (trimmedLine.contains("|") && !trimmedLine.startsWith("```") ) {
                 if (!inTable) {
                     inTable = true;
                     tableContent = new StringBuilder();
                     tableContent.append("<table>\n");
                 }
                 
-                // Tabellen-Header oder -Zeile
-                if (trimmedLine.matches("^\\|.*\\|$")) {
-                    String[] cells = trimmedLine.split("\\|");
-                    tableContent.append("<tr>\n");
-                    for (int j = 1; j < cells.length - 1; j++) {
-                        String cell = cells[j].trim();
-                        if (i > 0 && lines[i-1].trim().matches("^\\|.*\\|$") && 
-                            lines[i+1].trim().matches("^\\|[-:]+\\|$")) {
-                            tableContent.append("<th>").append(convertInlineMarkdown(cell)).append("</th>\n");
-                        } else {
-                            tableContent.append("<td>").append(convertInlineMarkdown(cell)).append("</td>\n");
-                        }
-                    }
-                    tableContent.append("</tr>\n");
+                // Separator-Zeile (z. B. |---|:---:|---|) erkennen und überspringen
+                boolean isSeparator = trimmedLine.matches("^\\s*\\|?\\s*(?::?-+\\s*\\|\\s*)+(?::?-+)\\s*\\|?\\s*$");
+                if (isSeparator) {
+                    continue;
                 }
+                
+                // Header-Zeile: wenn die nächste Zeile ein Separator ist
+                boolean isHeaderRow = false;
+                if (i + 1 < lines.length) {
+                    String nextTrimmed = lines[i + 1].trim();
+                    isHeaderRow = nextTrimmed.matches("^\\s*\\|?\\s*(?::?-+\\s*\\|\\s*)+(?::?-+)\\s*\\|?\\s*$");
+                }
+                
+                // Führende / nachlaufende Pipes entfernen, dann spaltenweise splitten
+                String normalized = trimmedLine.replaceAll("^\\|", "").replaceAll("\\|$", "");
+                String[] cells = normalized.split("\\|");
+                
+                tableContent.append("<tr>\n");
+                for (String rawCell : cells) {
+                    String cell = rawCell.trim();
+                    if (isHeaderRow) {
+                        tableContent.append("<th>").append(convertInlineMarkdown(cell)).append("</th>\n");
+                    } else {
+                        tableContent.append("<td>").append(convertInlineMarkdown(cell)).append("</td>\n");
+                    }
+                }
+                tableContent.append("</tr>\n");
                 continue;
             } else if (inTable) {
                 inTable = false;
@@ -8502,7 +8514,7 @@ spacer.setStyle("-fx-background-color: transparent;");
     
     /**
      * Normalisiert Anführungszeichen innerhalb von HTML-Tags
-     * Konvertiert typographische Anführungszeichen in HTML-Tags zurück zu normal "
+     * Konvertiert typographische Anführungszeichen in HTML-Attributen zu normalen "
      */
     private void normalizeHtmlTagsInText() {
         
@@ -8580,7 +8592,6 @@ spacer.setStyle("-fx-background-color: transparent;");
                tag.contains("\u00AB") || tag.contains("\u00BB") || tag.contains("\u2039") || 
                tag.contains("\u203A") || tag.contains("\u201A") || tag.contains("\u201B");
     }
-    
     /**
      * Normalisiert Anführungszeichen in HTML-Attributen
      * Konvertiert typographische Anführungszeichen zu normalen " in Attributwerten

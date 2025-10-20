@@ -439,25 +439,44 @@ public class DocxProcessor {
                 continue;
             }
             
-            // Tabellen
+            // Tabellen (robust mit Separator-Erkennung)
             if (trimmedLine.contains("|")) {
                 if (!inTable) {
-                    // Tabellen-Header
-                    String[] headers = parseTableRow(trimmedLine);
-                    i++; // Nächste Zeile (Trennlinie)
-                    if (i < lines.length && lines[i].trim().contains("|")) {
-                        i++; // Überspringe Trennlinie
+                    String headerLine = trimmedLine;
+                    // Prüfe, ob nächste Zeile eine Separator-Zeile ist
+                    if (i + 1 < lines.length && isTableSeparatorLine(lines[i + 1].trim())) {
+                        String[] headers = parseTableRow(headerLine);
+                        i += 2; // Überspringe Header- und Separator-Zeile
                         // Tabellen-Daten sammeln
                         java.util.List<String[]> tableData = new java.util.ArrayList<>();
-                        while (i < lines.length && lines[i].trim().contains("|")) {
+                        while (i < lines.length && lines[i].trim().contains("|") && !isTableSeparatorLine(lines[i].trim())) {
                             tableData.add(parseTableRow(lines[i].trim()));
                             i++;
                         }
-                        i--; // Korrigiere Index
+                        i--; // Korrigiere Index, da for-Schleife i++ macht
                         addTable(pkg, f, headers, tableData, options);
                         inTable = true;
                         lastWasHeading = false;
                         continue;
+                    } else {
+                        // Fallback: Tabelle ohne Separator-Zeile
+                        java.util.List<String[]> rows = new java.util.ArrayList<>();
+                        rows.add(parseTableRow(headerLine));
+                        i++;
+                        while (i < lines.length && lines[i].trim().contains("|") && !isTableSeparatorLine(lines[i].trim())) {
+                            rows.add(parseTableRow(lines[i].trim()));
+                            i++;
+                        }
+                        i--; // Korrigiere Index
+                        if (!rows.isEmpty()) {
+                            String[] headers = rows.get(0);
+                            java.util.List<String[]> data = new java.util.ArrayList<>();
+                            for (int r = 1; r < rows.size(); r++) data.add(rows.get(r));
+                            addTable(pkg, f, headers, data, options);
+                            inTable = true;
+                            lastWasHeading = false;
+                            continue;
+                        }
                     }
                 }
             }
@@ -581,12 +600,18 @@ public class DocxProcessor {
      * Parst eine Tabellenzeile
      */
     private static String[] parseTableRow(String line) {
-        String[] parts = line.split("\\|");
-        String[] result = new String[parts.length - 2]; // Erste und letzte sind leer
-        for (int i = 1; i < parts.length - 1; i++) {
-            result[i - 1] = parts[i].trim();
+        // Entferne führende/abschließende Pipes, splitte dann auf |
+        String normalized = line.replaceAll("^\\|", "").replaceAll("\\|$", "");
+        String[] parts = normalized.split("\\|");
+        for (int i = 0; i < parts.length; i++) {
+            parts[i] = parts[i].trim();
         }
-        return result;
+        return parts;
+    }
+
+    private static boolean isTableSeparatorLine(String line) {
+        // Erkennt Zeilen wie: |---|:---:|---| oder ---|--- oder :---
+        return line.matches("^\\s*\\|?\\s*(?::?-+\\s*\\|\\s*)+(?::?-+)\\s*\\|?\\s*$");
     }
     
     /**
@@ -654,10 +679,11 @@ public class DocxProcessor {
             }
             table.getContent().add(headerRow);
             
-            // Daten-Zeilen
+            // Daten-Zeilen (Spaltenzahl angleichen)
             for (String[] row : data) {
                 Tr dataRow = f.createTr();
-                for (int i = 0; i < Math.min(row.length, headers.length); i++) {
+                int cols = Math.max(headers.length, row.length);
+                for (int i = 0; i < cols; i++) {
                     Tc cell = f.createTc();
                     TcPr cellPr = f.createTcPr();
                     cell.setTcPr(cellPr);
@@ -665,7 +691,8 @@ public class DocxProcessor {
                     P paragraph = f.createP();
                     R run = f.createR();
                     org.docx4j.wml.Text text = f.createText();
-                    text.setValue(row[i]);
+                    String value = (i < row.length) ? row[i] : "";
+                    text.setValue(value);
                     run.getContent().add(text);
                     paragraph.getContent().add(run);
                     cell.getContent().add(paragraph);

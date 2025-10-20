@@ -109,6 +109,7 @@ public class MainController implements Initializable {
     private ImageView coverImageView;
     @FXML private Button btnSelectDirectory;
     @FXML private TextField txtDirectoryPath;
+    private Label projectTitleLabel;
     
     // Tabellen für verfügbare Dateien (links)
     @FXML private TableView<DocxFile> tableViewAvailable;
@@ -225,6 +226,15 @@ public class MainController implements Initializable {
         coverImageView.setOpacity(1.0);
         coverImageView.setStyle("-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 15, 0, 0, 0);");
         
+        // Label für Projekttitel vorbereiten
+        if (projectTitleLabel == null) {
+            projectTitleLabel = new Label("");
+            projectTitleLabel.getStyleClass().add("project-name");
+            projectTitleLabel.setAlignment(Pos.CENTER);
+            projectTitleLabel.setMaxWidth(Double.MAX_VALUE);
+            projectTitleLabel.setWrapText(false);
+        }
+        
         // Erstelle Zurück-Button mit Pfeil-Symbol
         Button backButton = new Button("← Zurück");
         backButton.setId("backButton");
@@ -244,8 +254,11 @@ public class MainController implements Initializable {
         // Button links
         imageContainer.setLeft(backButton);
         
-        // Bild in der Mitte
-        imageContainer.setCenter(coverImageView);
+        // Bild in der Mitte mit Projekttitel darüber
+        VBox centerBox = new VBox(5);
+        centerBox.setAlignment(Pos.CENTER);
+        centerBox.getChildren().addAll(projectTitleLabel, coverImageView);
+        imageContainer.setCenter(centerBox);
         
         // Dummy rechts (genauso breit wie Button)
         HBox dummyBox = new HBox();
@@ -276,7 +289,7 @@ public class MainController implements Initializable {
                 String rootDir = ResourceManager.getParameter("project.root.directory", "");
                 if (rootDir == null || rootDir.trim().isEmpty()) {
                     // Root-Verzeichnis nicht gesetzt - Benutzer fragen
-                    logger.info("Root-Verzeichnis nicht gesetzt - zeige Welcome Screen");
+                    logger.debug("Root-Verzeichnis nicht gesetzt - zeige Welcome Screen");
                     showRootDirectoryChooser();
                     
                     // Nach dem Dialog automatisch Projektauswahl öffnen
@@ -288,7 +301,7 @@ public class MainController implements Initializable {
                     // Root-Verzeichnis ist gesetzt - prüfe ob es existiert
                     File rootDirFile = new File(rootDir);
                     if (!rootDirFile.exists()) {
-                        logger.info("Root-Verzeichnis existiert nicht: " + rootDir + " - zeige Welcome Screen");
+                        logger.debug("Root-Verzeichnis existiert nicht: " + rootDir + " - zeige Welcome Screen");
                         showRootDirectoryChooser();
                         
                         // Nach dem Dialog automatisch Projektauswahl öffnen
@@ -297,7 +310,7 @@ public class MainController implements Initializable {
                             showProjectSelectionMenu();
                         });
                     } else {
-                        logger.info("Root-Verzeichnis gefunden: " + rootDir);
+                        logger.debug("Root-Verzeichnis gefunden: " + rootDir);
                     }
                 }
                 
@@ -366,7 +379,11 @@ public class MainController implements Initializable {
                     buttonContainer.getChildren().add(startBackButton);
                     
                     startImageContainer.setLeft(buttonContainer);
-                    startImageContainer.setCenter(coverImageView);
+                    // Bild mit Projekttitel darüber
+                    VBox startCenterBox = new VBox(5);
+                    startCenterBox.setAlignment(Pos.CENTER);
+                    startCenterBox.getChildren().addAll(projectTitleLabel, coverImageView);
+                    startImageContainer.setCenter(startCenterBox);
                     HBox startDummyBox = new HBox();
                     startDummyBox.setPrefWidth(120);
                     startImageContainer.setRight(startDummyBox);
@@ -846,6 +863,7 @@ public class MainController implements Initializable {
                 File directory = new File(selectedDir);
                 if (directory.exists() && directory.isDirectory()) {
                     txtDirectoryPath.setText(selectedDir);
+                    updateProjectTitleFromCurrentPath();
                     loadDocxFiles(directory);
                     
                     // Speichere den Pfad in den Einstellungen
@@ -966,6 +984,17 @@ public class MainController implements Initializable {
             }
         }
     }
+
+    private void updateProjectTitleFromCurrentPath() {
+        if (projectTitleLabel == null) return;
+        String currentDir = txtDirectoryPath != null ? txtDirectoryPath.getText() : null;
+        String name = "";
+        if (currentDir != null && !currentDir.trim().isEmpty()) {
+            File dir = new File(currentDir);
+            name = dir.getName();
+        }
+        projectTitleLabel.setText(name);
+    }
     
     private void loadLastDirectory() {
         String lastDirectory = preferences.get("lastDirectory", "");
@@ -987,6 +1016,7 @@ public class MainController implements Initializable {
         }
 
         txtDirectoryPath.setText(lastDirectory);
+        updateProjectTitleFromCurrentPath();
         loadDocxFiles(lastDir);
     }
     
@@ -1132,7 +1162,7 @@ public class MainController implements Initializable {
                     .collect(Collectors.toSet()); // Set statt List für keine Duplikate
             
             // Debug: Alle gefundenen DOCX-Dateien ausgeben
-            logger.info("Gefundene DOCX-Dateien in {}: {}", directory.getAbsolutePath(), 
+            logger.debug("Gefundene DOCX-Dateien in {}: {}", directory.getAbsolutePath(), 
                 fileSet.stream().map(File::getName).collect(Collectors.toList()));
             
             List<File> files = new ArrayList<>(fileSet);
@@ -1159,7 +1189,7 @@ public class MainController implements Initializable {
                 boolean hasMdFile = mdFile != null && mdFile.exists();
                 
                 // Debug: MD-Datei-Status für jede Datei
-                logger.info("Datei: {} - MD-Datei: {} - Existiert: {}", 
+                logger.debug("Datei: {} - MD-Datei: {} - Existiert: {}", 
                     docxFile.getFileName(), 
                     mdFile != null ? mdFile.getAbsolutePath() : "null", 
                     hasMdFile);
@@ -1189,15 +1219,12 @@ public class MainController implements Initializable {
                 
                 if (hasMdFile && !selectedDocxFiles.contains(docxFile)) {
                     selectedDocxFiles.add(docxFile);
-                    logger.info("Neue Datei mit MD-Datei hinzugefügt: {}", docxFile.getFileName());
+                    logger.debug("Neue Datei mit MD-Datei hinzugefügt: {}", docxFile.getFileName());
                 }
             }
             
-            // Debug: Finale Listen nach loadSavedOrder
-            logger.info("Nach loadSavedOrder - Links: {} Dateien, Rechts: {} Dateien", 
-                allDocxFiles.size(), selectedDocxFiles.size());
-            logger.info("Rechte Tabelle Dateien: {}", 
-                selectedDocxFiles.stream().map(DocxFile::getFileName).collect(Collectors.toList()));
+              
+          
             
             // Status aktualisieren
             updateStatus(allDocxFiles.size() + " Dateien links, " + selectedDocxFiles.size() + " Dateien rechts");
@@ -2962,7 +2989,7 @@ public class MainController implements Initializable {
             
             Scene diffScene = new Scene(diffRoot);
             // CSS wird über ResourceManager geladen
-            diffScene.getStylesheets().add(ResourceManager.getCssResource("config/css/manuskript.css"));
+            diffScene.getStylesheets().add(ResourceManager.getCssResource("css/manuskript.css"));
              
             // Theme anwenden
             String currentTheme = ResourceManager.getParameter("ui.theme", "default");
@@ -6193,6 +6220,7 @@ public class MainController implements Initializable {
             // Lade das ausgewählte Projekt
             txtDirectoryPath.setText(projectDir.getAbsolutePath());
             loadDocxFiles(projectDir);
+            updateProjectTitleFromCurrentPath();
             
             // Speichere den Pfad
             preferences.put("lastDirectory", projectDir.getAbsolutePath());
@@ -6223,6 +6251,8 @@ public class MainController implements Initializable {
             if (currentDir != null && !currentDir.isEmpty()) {
                 File currentDirectory = new File(currentDir);
                 if (currentDirectory.exists() && currentDirectory.isDirectory()) {
+                    // Titel bei jedem Bild-Ladevorgang aktualisieren
+                    updateProjectTitleFromCurrentPath();
                     File coverImageFile = new File(currentDirectory, "cover_image.png");
                     if (coverImageFile.exists()) {
                         Image image = new Image(coverImageFile.toURI().toString());
