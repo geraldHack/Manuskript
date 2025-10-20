@@ -16,7 +16,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.List;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.manuskript.ResourceManager;
 
 /**
@@ -215,7 +216,7 @@ public class PluginVariableDialog {
                 scene.getStylesheets().add(manuskriptCss);
             }
         } catch (Exception e) {
-            Logger.getLogger(PluginVariableDialog.class.getName()).warning("Fehler beim Laden der CSS-Styles: " + e.getMessage());
+            LoggerFactory.getLogger(PluginVariableDialog.class).warn("Fehler beim Laden der CSS-Styles: {}", e.getMessage());
         }
         
         // Theme-Klassen setzen

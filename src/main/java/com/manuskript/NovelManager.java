@@ -7,7 +7,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Verwaltet die TXT-Dateien für jeden Roman
@@ -16,7 +17,7 @@ import java.util.logging.Logger;
  */
 public class NovelManager {
     
-    private static final Logger logger = Logger.getLogger(NovelManager.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(NovelManager.class);
     
     // Dateinamen für die TXT-Dateien (einmal pro Verzeichnis)
     public static final String CONTEXT_FILE = "context.txt";
@@ -49,7 +50,7 @@ public class NovelManager {
             
             
         } catch (IOException e) {
-            logger.warning("Fehler beim Erstellen der Roman-Dateien: " + e.getMessage());
+            logger.warn("Fehler beim Erstellen der Roman-Dateien", e);
         }
     }
     
@@ -76,11 +77,11 @@ public class NovelManager {
                 String content = Files.readString(filePath, StandardCharsets.UTF_8);
                 return content;
             } else {
-                logger.warning("Datei nicht gefunden: " + filePath);
+                logger.warn("Datei nicht gefunden: " + filePath);
                 return "";
             }
         } catch (IOException e) {
-            logger.warning("Fehler beim Laden der Datei: " + e.getMessage());
+            logger.warn("Fehler beim Laden der Datei: " + e.getMessage());
             return "";
         }
     }
@@ -96,7 +97,7 @@ public class NovelManager {
             
             Files.write(filePath, content.getBytes(StandardCharsets.UTF_8));
         } catch (IOException e) {
-            logger.warning("Fehler beim Speichern der Datei: " + e.getMessage());
+            logger.warn("Fehler beim Speichern der Datei: " + e.getMessage());
         }
     }
     
@@ -115,11 +116,11 @@ public class NovelManager {
                 String content = Files.readString(filePath, StandardCharsets.UTF_8);
                 return content;
             } else {
-                logger.warning("Kapitel-Datei nicht gefunden: " + filePath);
+                logger.warn("Kapitel-Datei nicht gefunden: " + filePath);
                 return "";
             }
         } catch (IOException e) {
-            logger.warning("Fehler beim Laden der Kapitel-Datei: " + e.getMessage());
+            logger.warn("Fehler beim Laden der Kapitel-Datei: " + e.getMessage());
             return "";
         }
     }
@@ -137,7 +138,7 @@ public class NovelManager {
             
             Files.write(filePath, content.getBytes(StandardCharsets.UTF_8));
         } catch (IOException e) {
-            logger.warning("Fehler beim Speichern der Kapitel-Datei: " + e.getMessage());
+            logger.warn("Fehler beim Speichern der Kapitel-Datei: " + e.getMessage());
         }
     }
     
@@ -263,7 +264,7 @@ public class NovelManager {
             deleteFileIfExists(directory, chapterFileName);
             
         } catch (IOException e) {
-            logger.warning("Fehler beim Löschen der Roman-Dateien: " + e.getMessage());
+            logger.warn("Fehler beim Löschen der Roman-Dateien: " + e.getMessage());
         }
     }
     

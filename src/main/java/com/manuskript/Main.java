@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.joran.JoranConfigurator;
 import ch.qos.logback.core.util.StatusPrinter;
+import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import java.io.File;
 import java.io.IOException;
@@ -103,6 +104,12 @@ public class Main extends Application {
                 LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
                 JoranConfigurator configurator = new JoranConfigurator();
                 configurator.setContext(context);
+
+                // Bridge java.util.logging (JUL) zu SLF4J/Logback
+                java.util.logging.LogManager.getLogManager().reset();
+                SLF4JBridgeHandler.removeHandlersForRootLogger();
+                SLF4JBridgeHandler.install();
+
                 context.reset();
                 configurator.doConfigure(configFile);
                 StatusPrinter.printInCaseOfErrorsOrWarnings(context);

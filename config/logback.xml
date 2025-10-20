@@ -3,8 +3,8 @@
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>logs/manuskript.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>logs/manuskript.%d{yyyy-MM-dd}.log.gz</fileNamePattern>
-            <maxHistory>10</maxHistory>
+            <fileNamePattern>logs/manuskript.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
         </rollingPolicy>
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
             <level>INFO</level>
@@ -13,12 +13,12 @@
             <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
-    
+
     <appender name="DEBUG_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>logs/debug.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>logs/debug.%d{yyyy-MM-dd}.log.gz</fileNamePattern>
-            <maxHistory>10</maxHistory>
+            <fileNamePattern>logs/debug.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
         </rollingPolicy>
         <filter class="ch.qos.logback.classic.filter.LevelFilter">
             <level>DEBUG</level>
@@ -30,27 +30,12 @@
         </encoder>
     </appender>
     
-    
-    <!-- Console-Appender explizit deaktivieren -->
-    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-            <level>WARN</level>
-        </filter>
-        <encoder>
-            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
-        </encoder>
-    </appender>
-    
-    <!-- Root auf INFO: schreibt INFO+ in FILE, DEBUG separat in DEBUG_FILE -->
-    <root level="INFO">
+    <root level="DEBUG">
         <appender-ref ref="FILE" />
         <appender-ref ref="DEBUG_FILE" />
-        <!-- Konsole nur für WARN und höher -->
-        <appender-ref ref="STDOUT" />
     </root>
     
-    <!-- Projekt-Logger explizit auf INFO (Konsole trotzdem über Threshold=WARN begrenzt) -->
-    <logger name="com.manuskript" level="INFO" />
+    <logger name="com.manuskript" level="DEBUG" />
     <logger name="DownloadsMonitor" level="WARN" />
     <logger name="com.manuskript.MainController" level="INFO" />
 </configuration>

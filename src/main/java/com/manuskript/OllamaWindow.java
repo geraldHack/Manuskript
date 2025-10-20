@@ -12,7 +12,8 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import java.io.File;
 import java.util.concurrent.CompletableFuture;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.Optional;
 import java.util.HashMap;
 import java.util.List;
@@ -25,7 +26,7 @@ import java.util.Set;
  * Fenster für den Ollama KI-Assistenten
  */
 public class OllamaWindow {
-    private static final Logger logger = Logger.getLogger(OllamaWindow.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(OllamaWindow.class);
     
     private CustomStage stage;
     private OllamaService ollamaService;
@@ -836,7 +837,7 @@ public class OllamaWindow {
                     try {
                         writeText(new File(dir, NovelManager.CONTEXT_FILE), newText);
                     } catch (Exception e) {
-                        logger.warning("Fehler beim automatischen Speichern des Contexts: " + e.getMessage());
+                        logger.warn("Fehler beim automatischen Speichern des Contexts: " + e.getMessage());
                     }
                 }
             });
@@ -961,7 +962,7 @@ public class OllamaWindow {
                             try {
                                 writeText(new File(dir, "style.txt"), n);
                                 updateStatus("Gespeichert: style.txt");
-                            } catch(Exception e){ logger.warning("Fehler beim Speichern von style.txt: "+e.getMessage()); }
+                            } catch(Exception e){ logger.warn("Fehler beim Speichern von style.txt: "+e.getMessage()); }
                         }
                     });
                 }
@@ -1067,7 +1068,7 @@ public class OllamaWindow {
                     stage.setX(x);
                     stage.setY(y);
                 } else {
-                    logger.warning("Ungültige Position (" + x + "," + y + ") für Ollama-Fenster, setze Standard 100,100");
+                    logger.warn("Ungültige Position (" + x + "," + y + ") für Ollama-Fenster, setze Standard 100,100");
                     stage.setX(100);
                     stage.setY(100);
                 }
@@ -1082,13 +1083,13 @@ public class OllamaWindow {
                     stage.setWidth(dw);
                     stage.setHeight(dh);
                 } else {
-                    logger.warning("Ungültige Größe (" + dw + "x" + dh + ") für Ollama-Fenster, setze Standard 1200x800");
+                    logger.warn("Ungültige Größe (" + dw + "x" + dh + ") für Ollama-Fenster, setze Standard 1200x800");
                     stage.setWidth(1200);
                     stage.setHeight(800);
                 }
             }
         } catch (Exception e) {
-            logger.warning("Fehler beim Laden der Ollama-Fenster-Properties: " + e.getMessage());
+            logger.warn("Fehler beim Laden der Ollama-Fenster-Properties: " + e.getMessage());
             // Standardwerte setzen
             stage.setX(100);
             stage.setY(100);
@@ -2545,7 +2546,7 @@ public class OllamaWindow {
                             writeText(new File(dir, fileName), content);
                             updateStatus("Gespeichert: " + fileName);
                         } catch (Exception e) {
-                            logger.warning("Fehler beim Speichern von " + fileName + ": " + e.getMessage());
+                            logger.warn("Fehler beim Speichern von " + fileName + ": " + e.getMessage());
                         }
                     }
                 });
@@ -2576,7 +2577,7 @@ public class OllamaWindow {
                             writeText(new File(dir, "chapter.txt"), content);
                             updateStatus("Gespeichert: Kapitelnotizen");
                         } catch (Exception e) {
-                            logger.warning("Fehler beim Speichern der Kapitelnotizen: " + e.getMessage());
+                            logger.warn("Fehler beim Speichern der Kapitelnotizen: " + e.getMessage());
                         }
                     }
                 });
@@ -2604,7 +2605,7 @@ public class OllamaWindow {
             writeText(new File(dir, "style.txt"), styleNotesArea != null ? styleNotesArea.getText() : "");
             updateStatus("Alle TextAreas gespeichert");
         } catch (Exception e) {
-            logger.warning("Fehler beim Speichern der TextAreas beim Schließen: " + e.getMessage());
+            logger.warn("Fehler beim Speichern der TextAreas beim Schließen: " + e.getMessage());
         }
     }
 
@@ -3040,7 +3041,7 @@ public class OllamaWindow {
             }
             updateStatus("Text ersetzt");
         } catch (Exception e) {
-            logger.severe("Fehler beim Ersetzen des Textes: " + e.getMessage());
+            logger.error("Fehler beim Ersetzen des Textes", e);
             showAlert("Fehler", "Fehler beim Ersetzen des Textes: " + e.getMessage());
         }
     }
@@ -3138,7 +3139,7 @@ public class OllamaWindow {
             java.util.prefs.Preferences prefs = java.util.prefs.Preferences.userNodeForPackage(OllamaWindow.class);
             prefs.putBoolean("dont_show_ollama_dialog", dontShowAgain);
         } catch (Exception e) {
-            logger.warning("Konnte Ollama-Dialog-Einstellung nicht speichern: " + e.getMessage());
+            logger.warn("Konnte Ollama-Dialog-Einstellung nicht speichern: " + e.getMessage());
         }
     }
     
@@ -3147,7 +3148,7 @@ public class OllamaWindow {
             java.util.prefs.Preferences prefs = java.util.prefs.Preferences.userNodeForPackage(OllamaWindow.class);
             return !prefs.getBoolean("dont_show_ollama_dialog", false);
         } catch (Exception e) {
-            logger.warning("Konnte Ollama-Dialog-Einstellung nicht laden: " + e.getMessage());
+            logger.warn("Konnte Ollama-Dialog-Einstellung nicht laden: " + e.getMessage());
             return true; // Standardmäßig anzeigen
         }
     }
@@ -3158,7 +3159,7 @@ public class OllamaWindow {
             java.awt.Desktop.getDesktop().browse(new java.net.URI("https://ollama.com/search"));
             updateStatus("Ollama Modellbibliothek geöffnet");
         } catch (Exception e) {
-            logger.warning("Konnte Ollama-Website nicht öffnen: " + e.getMessage());
+            logger.warn("Konnte Ollama-Website nicht öffnen: " + e.getMessage());
             showAlert("Fehler", "Konnte Browser nicht öffnen. Bitte besuchen Sie manuell: https://ollama.com/search");
         }
     }
@@ -3193,7 +3194,7 @@ public class OllamaWindow {
             editor.show();
             updateStatus("Plugin Editor geöffnet");
         } catch (Exception e) {
-            logger.severe("Fehler beim Öffnen des Plugin Editors: " + e.getMessage());
+            logger.error("Fehler beim Öffnen des Plugin Editors", e);
             updateStatus("Fehler beim Öffnen des Plugin Editors");
         }
     }
@@ -3223,7 +3224,7 @@ public class OllamaWindow {
                     return selectedText.trim();
                 }
             } catch (Exception e) {
-                logger.warning("Fehler beim Holen des selektierten Texts: " + e.getMessage());
+                logger.warn("Fehler beim Holen des selektierten Texts: " + e.getMessage());
             }
         }
         return null;
@@ -4219,7 +4220,7 @@ public class OllamaWindow {
                         contextArea.setText(context);
                     }
                 } catch (Exception e) {
-                    logger.warning("Fehler beim Laden der context.txt: " + e.getMessage());
+                    logger.warn("Fehler beim Laden der context.txt: " + e.getMessage());
                 }
             }
         }
@@ -4237,7 +4238,7 @@ public class OllamaWindow {
                 File contextFile = new File(docxDirectory, "context.txt");
                 java.nio.file.Files.write(contextFile.toPath(), context.getBytes("UTF-8"));
             } catch (Exception e) {
-                logger.warning("Fehler beim Speichern des Contexts: " + e.getMessage());
+                logger.warn("Fehler beim Speichern des Contexts: " + e.getMessage());
             }
         }
     }
@@ -4282,7 +4283,7 @@ public class OllamaWindow {
                 preferences.put("selected_model", modelName);
                 preferences.flush();
             } catch (Exception e) {
-                logger.warning("Fehler beim Speichern des Modells: " + e.getMessage());
+                logger.warn("Fehler beim Speichern des Modells: " + e.getMessage());
             }
         }
     }
@@ -4370,7 +4371,7 @@ public class OllamaWindow {
             );
             
         } catch (Exception e) {
-            logger.severe("Fehler bei Plot-Holes Detection: " + e.getMessage());
+            logger.error("Fehler bei Plot-Holes Detection", e);
             setGenerating(false);
             updateStatus("Fehler: " + e.getMessage());
         }
@@ -4399,23 +4400,23 @@ public class OllamaWindow {
                                 allText.append("=== ").append(docxFile.getName()).append(" ===\n");
                                 allText.append(content).append("\n\n");
                             } else {
-                                logger.warning("Keine MD-Datei gefunden für: " + docxFile.getName());
+                                logger.warn("Keine MD-Datei gefunden für: " + docxFile.getName());
                             }
                         }
                         // Speichere die Anzahl der geladenen Kapitel für die Anzeige
                         allText.append("__CHAPTER_COUNT__:").append(docxFiles.length);
                         return allText.toString();
                     } else {
-                        logger.warning("Keine DOCX-Dateien im Verzeichnis gefunden: " + directory.getAbsolutePath());
+                        logger.warn("Keine DOCX-Dateien im Verzeichnis gefunden: " + directory.getAbsolutePath());
                     }
                 } else {
-                    logger.warning("Verzeichnis existiert nicht: " + savedSelectionPath);
+                    logger.warn("Verzeichnis existiert nicht: " + savedSelectionPath);
                 }
             } else {
-                logger.warning("Kein gespeichertes DOCX-Verzeichnis gefunden");
+                logger.warn("Kein gespeichertes DOCX-Verzeichnis gefunden");
             }
         } catch (Exception e) {
-            logger.severe("Fehler beim Laden der Kapitel: " + e.getMessage());
+            logger.error("Fehler beim Laden der Kapitel", e);
         }
         return null;
     }
@@ -4479,7 +4480,7 @@ public class OllamaWindow {
                 preferences.put("selected_function", functionName);
                 preferences.flush();
             } catch (Exception e) {
-                logger.warning("Fehler beim Speichern der Funktion: " + e.getMessage());
+                logger.warn("Fehler beim Speichern der Funktion: " + e.getMessage());
             }
         }
     }
@@ -4523,7 +4524,7 @@ public class OllamaWindow {
             Object selection = resultWebView.getEngine().executeScript("window.getSelection().toString()");
             return selection == null ? "" : selection.toString();
         } catch (Exception e) {
-            logger.warning("Fehler beim Lesen des markierten Textes aus dem WebView: " + e.getMessage());
+            logger.warn("Fehler beim Lesen des markierten Textes aus dem WebView: " + e.getMessage());
             return "";
         }
     }
@@ -4559,7 +4560,7 @@ public class OllamaWindow {
                 ")"
             );
         } catch (Exception e) {
-            logger.warning("Fehler beim Einfügen in den WebView: " + e.getMessage());
+            logger.warn("Fehler beim Einfügen in den WebView: " + e.getMessage());
         }
     }
     
@@ -4658,7 +4659,7 @@ public class OllamaWindow {
                 });
                 
             } catch (Exception e) {
-                logger.severe("Fehler beim Ollama-Restart: " + e.getMessage());
+                logger.error("Fehler beim Ollama-Restart", e);
                 Platform.runLater(() -> {
                     if (ollamaStatusLabel != null) {
                         ollamaStatusLabel.setText("❌ Fehler beim Ollama-Restart: " + e.getMessage());

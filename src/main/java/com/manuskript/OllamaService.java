@@ -11,7 +11,8 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.logging.Level;
 import java.util.Set;
 import java.util.LinkedHashSet;
@@ -30,7 +31,7 @@ import java.util.function.Consumer;
  * Service-Klasse für die Kommunikation mit dem lokalen Ollama-Server
  */
 public class OllamaService {
-    private static final Logger logger = Logger.getLogger(OllamaService.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(OllamaService.class);
     
     private static final String OLLAMA_BASE_URL = "http://localhost:11434";
     private static final String GENERATE_ENDPOINT = "/api/generate";
@@ -894,7 +895,7 @@ public class OllamaService {
         return sendGetRequest("/api/tags")
                 .thenApply(response -> !response.contains("error"))
                 .exceptionally(ex -> {
-                    logger.warning("Ollama-Server nicht erreichbar: " + ex.getMessage());
+                    logger.warn("Ollama-Server nicht erreichbar: {}", ex.getMessage());
                     return false;
                 });
     }
@@ -906,7 +907,7 @@ public class OllamaService {
         return sendGetRequest(MODELS_ENDPOINT)
                 .thenApply(this::parseModelsResponse)
                 .exceptionally(ex -> {
-                    logger.warning("Fehler beim Abrufen der Modelle: " + ex.getMessage());
+                    logger.warn("Fehler beim Abrufen der Modelle: {}", ex.getMessage());
                     ex.printStackTrace();
                     return new String[]{"mistral:7b-instruct"}; // Fallback
                 });
@@ -935,12 +936,12 @@ public class OllamaService {
                     }
                 }
             } else {
-                logger.warning("Keine 'models' in der Response gefunden oder Response ist null");
+                logger.warn("Keine 'models' in der Response gefunden oder Response ist null");
             }
             
             return models;
         } catch (Exception e) {
-            logger.warning("Fehler beim Parsen der Models-Antwort: " + e.getMessage());
+            logger.warn("Fehler beim Parsen der Models-Antwort: {}", e.getMessage());
             e.printStackTrace();
             return new String[]{"mistral:7b-instruct"}; // Fallback
         }
@@ -966,7 +967,7 @@ public class OllamaService {
                     throw new IOException("HTTP " + response.statusCode() + ": " + response.body());
                 }
             } catch (Exception e) {
-                logger.log(Level.SEVERE, "Fehler beim Ollama-GET-Request", e);
+                logger.error("Fehler beim Ollama-GET-Request", e);
                 throw new RuntimeException("Ollama-GET-Request fehlgeschlagen: " + e.getMessage(), e);
             }
         });
@@ -993,7 +994,7 @@ public class OllamaService {
                     throw new IOException("HTTP " + response.statusCode() + ": " + response.body());
                 }
             } catch (Exception e) {
-                logger.log(Level.SEVERE, "Fehler beim Ollama-Request", e);
+                logger.error("Fehler beim Ollama-Request", e);
                 throw new RuntimeException("Ollama-Request fehlgeschlagen: " + e.getMessage(), e);
             }
         });
@@ -1059,7 +1060,7 @@ public class OllamaService {
             
             return result.toString();
         } catch (Exception e) {
-            logger.warning("Fehler beim Parsen der Generate-Antwort: " + e.getMessage());
+            logger.warn("Fehler beim Parsen der Generate-Antwort: {}", e.getMessage());
             return "Fehler beim Parsen der Antwort: " + e.getMessage();
         }
     }
@@ -1124,7 +1125,7 @@ public class OllamaService {
             
             return result.toString();
         } catch (Exception e) {
-            logger.warning("Fehler beim Parsen der Chat-Antwort: " + e.getMessage());
+            logger.warn("Fehler beim Parsen der Chat-Antwort: {}", e.getMessage());
             return "Fehler beim Parsen der Chat-Antwort: " + e.getMessage();
         }
     }
@@ -1171,7 +1172,7 @@ public class OllamaService {
                         "📝 Antwort vom Server:\n" + response;
                 
             } catch (Exception e) {
-                logger.log(Level.SEVERE, "Fehler beim Modell-Training", e);
+                logger.error("Fehler beim Modell-Training", e);
                 throw new RuntimeException("Modell-Training fehlgeschlagen: " + e.getMessage(), e);
             }
         });
@@ -1189,7 +1190,7 @@ public class OllamaService {
                        "⚠️  Hinweis: Das Training läuft möglicherweise noch weiter.\n" +
                        "💡 Verwende 'ollama list' um den Status zu prüfen.";
             } catch (Exception e) {
-                logger.log(Level.SEVERE, "Fehler beim Stoppen des Trainings", e);
+                logger.error("Fehler beim Stoppen des Trainings", e);
                 throw new RuntimeException("Training-Stop fehlgeschlagen: " + e.getMessage(), e);
             }
         });
@@ -1210,11 +1211,11 @@ public class OllamaService {
                 if (exitCode == 0) {
                     return true;
                 } else {
-                    logger.warning("Fehler beim Löschen des Modells: " + modelName);
+                    logger.warn("Fehler beim Löschen des Modells: {}", modelName);
                     return false;
                 }
             } catch (Exception e) {
-                logger.warning("Exception beim Löschen des Modells: " + e.getMessage());
+                logger.warn("Exception beim Löschen des Modells: {}", e.getMessage());
                 return false;
             }
         });
@@ -1246,11 +1247,11 @@ public class OllamaService {
                 if (exitCode == 0) {
                     return "✅ Modell erfolgreich installiert: " + modelName;
                 } else {
-                    logger.warning("Fehler beim Installieren des Modells: " + modelName);
+                    logger.warn("Fehler beim Installieren des Modells: {}", modelName);
                     return "❌ Fehler beim Installieren: " + output.toString();
                 }
             } catch (Exception e) {
-                logger.warning("Exception beim Installieren des Modells: " + e.getMessage());
+                logger.warn("Exception beim Installieren des Modells: {}", e.getMessage());
                 return "❌ Exception: " + e.getMessage();
             }
         });
@@ -1303,7 +1304,7 @@ public class OllamaService {
             CompletableFuture<String[]> future = getAvailableModels();
             return future.get(5, TimeUnit.SECONDS); // 5 Sekunden Timeout
         } catch (Exception e) {
-            logger.warning("Fehler beim Laden verfügbarer Modelle: " + e.getMessage());
+            logger.warn("Fehler beim Laden verfügbarer Modelle: {}", e.getMessage());
             return new String[0];
         }
     }
@@ -1384,7 +1385,7 @@ public class OllamaService {
          try {
              Files.deleteIfExists(Path.of(modelfilePath));
          } catch (IOException e) {
-             logger.warning("Konnte temporäre Modelfile-Datei nicht löschen: " + e.getMessage());
+             logger.warn("Konnte temporäre Modelfile-Datei nicht löschen", e);
          }
      }
 

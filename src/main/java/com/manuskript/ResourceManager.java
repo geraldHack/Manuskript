@@ -11,7 +11,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Properties;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
@@ -20,12 +21,13 @@ import java.util.prefs.Preferences;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+import java.util.Objects;
 
 /**
  * Verwaltet den Zugriff auf Ressourcen mit Priorität für externe Config-Dateien
  */
 public class ResourceManager {
-    private static final Logger logger = Logger.getLogger(ResourceManager.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(ResourceManager.class);
     private static final String CONFIG_DIR = "config";
     private static final String SESSIONS_DIR = "sessions";
     private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
@@ -67,11 +69,11 @@ public class ResourceManager {
             try {
                 return Files.newInputStream(externalFile.toPath());
             } catch (IOException e) {
-                logger.warning("Fehler beim Laden der externen Properties-Datei: " + e.getMessage());
+                logger.warn("Fehler beim Laden der externen Properties-Datei", e);
             }
         }
         
-        logger.warning("Properties-Datei nicht gefunden: " + externalPath + " - Erstelle Standard-Datei");
+        logger.warn("Properties-Datei nicht gefunden: {} - Erstelle Standard-Datei", externalPath);
         
         // Standard-Datei erstellen
         createDefaultPropertiesFile(resourcePath);
@@ -81,7 +83,7 @@ public class ResourceManager {
             try {
                 return Files.newInputStream(externalFile.toPath());
             } catch (IOException e) {
-                logger.warning("Fehler beim Laden der erstellten Properties-Datei: " + e.getMessage());
+                logger.warn("Fehler beim Laden der erstellten Properties-Datei", e);
             }
         }
         
@@ -119,7 +121,7 @@ public class ResourceManager {
             createDefaultPropertiesFile("parameters.properties");
             
         } catch (IOException e) {
-            logger.warning("Fehler beim Initialisieren des Config-Ordners: " + e.getMessage());
+            logger.warn("Fehler beim Initialisieren des Config-Ordners", e);
         }
     }
     
@@ -136,7 +138,7 @@ public class ResourceManager {
             Files.write(sessionFile, json.getBytes());
             
         } catch (IOException e) {
-            logger.warning("Fehler beim Speichern der Session " + sessionName + ": " + e.getMessage());
+            logger.warn("Fehler beim Speichern der Session {}", sessionName, e);
         }
     }
     
@@ -156,7 +158,7 @@ public class ResourceManager {
                 return qaPairs != null ? qaPairs : new ArrayList<>();
             }
         } catch (IOException e) {
-            logger.warning("Fehler beim Laden der Session " + sessionName + ": " + e.getMessage());
+            logger.warn("Fehler beim Laden der Session {}", sessionName, e);
         }
         
         return new ArrayList<>();
@@ -174,7 +176,7 @@ public class ResourceManager {
                 Files.delete(sessionFile);
             }
         } catch (IOException e) {
-            logger.warning("Fehler beim Löschen der Session " + sessionName + ": " + e.getMessage());
+            logger.warn("Fehler beim Löschen der Session {}", sessionName, e);
         }
     }
     
@@ -196,7 +198,7 @@ public class ResourceManager {
                     });
             }
         } catch (IOException e) {
-            logger.warning("Fehler beim Laden der verfügbaren Sessions: " + e.getMessage());
+            logger.warn("Fehler beim Laden der verfügbaren Sessions", e);
         }
         
         return sessions;
@@ -222,7 +224,7 @@ public class ResourceManager {
                 Files.write(targetPath, cssContent.getBytes());
             }
         } catch (IOException e) {
-            logger.warning("Fehler beim Erstellen der CSS-Datei " + configPath + ": " + e.getMessage());
+            logger.warn("Fehler beim Erstellen der CSS-Datei {}", configPath, e);
         }
     }
     
@@ -231,16 +233,12 @@ public class ResourceManager {
      */
     private static void createDefaultPropertiesFile(String configPath) {
         try {
-            Path targetPath = Paths.get(CONFIG_DIR, configPath);
-            
-            // Nur erstellen falls Ziel-Datei nicht existiert
-            if (!Files.exists(targetPath)) {
-                // Standard-Properties-Inhalt erstellen
-                String propertiesContent = getDefaultPropertiesContent(configPath);
-                Files.write(targetPath, propertiesContent.getBytes());
+            Path filePath = Paths.get(CONFIG_DIR, configPath);
+            if (!Files.exists(filePath)) {
+                Files.copy(Objects.requireNonNull(ResourceManager.class.getResourceAsStream("/" + configPath)), filePath);
             }
         } catch (IOException e) {
-            logger.warning("Fehler beim Erstellen der Properties-Datei " + configPath + ": " + e.getMessage());
+            logger.warn("Fehler beim Erstellen der Properties-Datei {}", configPath, e);
         }
     }
     
@@ -357,13 +355,13 @@ public class ResourceManager {
                         return propValue;
                     }
                 } catch (IOException e) {
-                    logger.warning("Fehler beim Laden der parameters.properties: " + e.getMessage());
+                    logger.warn("Fehler beim Laden der parameters.properties", e);
                 }
             }
             
             return defaultValue;
         } catch (Exception e) {
-            logger.warning("Fehler beim Laden der User Preference " + key + ": " + e.getMessage());
+            logger.warn("Fehler beim Laden der User Preference {}", key, e);
             return defaultValue;
         }
     }
@@ -386,11 +384,11 @@ public class ResourceManager {
             try {
                 return Integer.parseInt(stringValue);
             } catch (NumberFormatException e) {
-                logger.warning("Ungültiger Integer-Wert für Parameter " + key + ": " + stringValue + " - verwende Standard: " + defaultValue);
+                logger.warn("Ungültiger Integer-Wert für Parameter {}: {} - verwende Standard {}", key, stringValue, defaultValue);
                 return defaultValue;
             }
         } catch (Exception e) {
-            logger.warning("Fehler beim Laden der User Preference " + key + ": " + e.getMessage());
+            logger.warn("Fehler beim Laden der User Preference {}", key, e);
             return defaultValue;
         }
     }
@@ -403,7 +401,7 @@ public class ResourceManager {
             Preferences preferences = Preferences.userNodeForPackage(ResourceManager.class);
             return preferences.getDouble(key, defaultValue);
         } catch (Exception e) {
-            logger.warning("Fehler beim Laden der User Preference " + key + ": " + e.getMessage());
+            logger.warn("Fehler beim Laden der User Preference {}", key, e);
             return defaultValue;
         }
     }
@@ -416,7 +414,7 @@ public class ResourceManager {
             Preferences preferences = Preferences.userNodeForPackage(ResourceManager.class);
             preferences.put(key, value);
         } catch (Exception e) {
-            logger.warning("Fehler beim Speichern der User Preference " + key + ": " + e.getMessage());
+            logger.warn("Fehler beim Speichern der User Preference {}", key, e);
         }
     }
     
@@ -444,7 +442,7 @@ public class ResourceManager {
             try (FileInputStream fis = new FileInputStream(configFile)) {
                 props.load(fis);
             } catch (IOException e) {
-                logger.warning("Fehler beim Laden der parameters.properties für Migration: " + e.getMessage());
+                logger.warn("Fehler beim Laden der parameters.properties für Migration: " + e.getMessage());
                 return;
             }
             
@@ -460,9 +458,9 @@ public class ResourceManager {
                     if (existingValue == null) {
                         preferences.put(key, value);
                         migratedCount++;
-                        logger.info("Migriert: " + key + " = " + value);
+                        logger.debug("Migriert: " + key + " = " + value);
                     } else {
-                        logger.info("Bereits vorhanden: " + key + " = " + existingValue);
+                        logger.debug("Bereits vorhanden: " + key + " = " + existingValue);
                     }
                 }
             }
@@ -474,27 +472,27 @@ public class ResourceManager {
                 if (existingSessionValue == null) {
                     preferences.put("session.max_qapairs_per_session", sessionMaxQaPairs);
                     migratedCount++;
-                    logger.info("Spezifisch migriert: session.max_qapairs_per_session = " + sessionMaxQaPairs);
+                    logger.debug("Spezifisch migriert: session.max_qapairs_per_session = " + sessionMaxQaPairs);
                 } else {
-                    logger.info("session.max_qapairs_per_session bereits vorhanden: " + existingSessionValue);
+                    logger.debug("session.max_qapairs_per_session bereits vorhanden: " + existingSessionValue);
                 }
             }
             
             if (migratedCount > 0) {
-                logger.info("Migration abgeschlossen: " + migratedCount + " Parameter zu User Preferences migriert");
+                logger.debug("Migration abgeschlossen: " + migratedCount + " Parameter zu User Preferences migriert");
                 
                 // Backup der alten parameters.properties erstellen
                 File backupFile = new File(CONFIG_DIR + File.separator + "parameters.properties.backup");
                 try {
                     Files.copy(configFile.toPath(), backupFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                    logger.info("Backup erstellt: " + backupFile.getAbsolutePath());
+                    logger.debug("Backup erstellt: " + backupFile.getAbsolutePath());
                 } catch (IOException e) {
-                    logger.warning("Fehler beim Erstellen des Backups: " + e.getMessage());
+                    logger.warn("Fehler beim Erstellen des Backups: " + e.getMessage());
                 }
             }
             
         } catch (Exception e) {
-            logger.warning("Fehler bei der Migration von parameters.properties: " + e.getMessage());
+            logger.warn("Fehler bei der Migration von parameters.properties: " + e.getMessage());
         }
     }
     
@@ -514,7 +512,7 @@ public class ResourceManager {
                 return props.getProperty(key, defaultValue);
             }
         } catch (IOException e) {
-            logger.warning("Fehler beim Lesen der parameters.properties: " + e.getMessage());
+            logger.warn("Fehler beim Lesen der parameters.properties: " + e.getMessage());
             return defaultValue;
         }
     }
@@ -555,10 +553,10 @@ public class ResourceManager {
                     String paramValue = getParameterFromProperties(key, null);
                     if (paramValue != null && !paramValue.trim().isEmpty()) {
                         resourcePrefs.put(key, paramValue);
-                        logger.info("Wert aus parameters.properties übernommen (ResourceManager): " + key + " = " + paramValue);
+                        logger.debug("Wert aus parameters.properties übernommen (ResourceManager): " + key + " = " + paramValue);
                     } else {
                         resourcePrefs.put(key, defaultValue);
-                        logger.info("Standardwert wiederhergestellt (ResourceManager): " + key + " = " + defaultValue);
+                        logger.debug("Standardwert wiederhergestellt (ResourceManager): " + key + " = " + defaultValue);
                     }
                     restoredCount++;
                 }
@@ -574,10 +572,10 @@ public class ResourceManager {
                         String paramValue = getParameterFromProperties(key, null);
                         if (paramValue != null && !paramValue.trim().isEmpty()) {
                             mainPrefs.put(key, paramValue);
-                            logger.info("Wert aus parameters.properties übernommen (MainController): " + key + " = " + paramValue);
+                            logger.debug("Wert aus parameters.properties übernommen (MainController): " + key + " = " + paramValue);
                         } else {
                             mainPrefs.put(key, defaultValue);
-                            logger.info("Standardwert wiederhergestellt (MainController): " + key + " = " + defaultValue);
+                            logger.debug("Standardwert wiederhergestellt (MainController): " + key + " = " + defaultValue);
                         }
                         restoredCount++;
                     }
@@ -585,13 +583,13 @@ public class ResourceManager {
             }
             
             if (restoredCount > 0) {
-                logger.info("Standardwerte wiederhergestellt: " + restoredCount + " Parameter");
+                logger.debug("Standardwerte wiederhergestellt: " + restoredCount + " Parameter");
             } else {
-                logger.info("Alle Standardwerte sind bereits vorhanden");
+                logger.debug("Alle Standardwerte sind bereits vorhanden");
             }
             
         } catch (Exception e) {
-            logger.warning("Fehler beim Wiederherstellen der Standardwerte: " + e.getMessage());
+            logger.warn("Fehler beim Wiederherstellen der Standardwerte: " + e.getMessage());
         }
     }
     

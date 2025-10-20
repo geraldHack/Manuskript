@@ -22,7 +22,8 @@ import java.util.Collections;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.manuskript.ResourceManager;
 
 /**
@@ -30,7 +31,7 @@ import com.manuskript.ResourceManager;
  */
 public class PluginEditorWindow {
     
-    private static final Logger logger = Logger.getLogger(PluginEditorWindow.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(PluginEditorWindow.class);
     
     private CustomStage stage;
     private TextField nameField;
@@ -92,8 +93,7 @@ public class PluginEditorWindow {
                 scene.getStylesheets().add(cssPath);
             }
         } catch (Exception e) {
-            logger.severe("KRITISCHER FEHLER beim Laden der CSS-Styles: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("KRITISCHER FEHLER beim Laden der CSS-Styles", e);
         }
         
         stage.setSceneWithTitleBar(scene);
@@ -549,7 +549,7 @@ public class PluginEditorWindow {
                 updateStatus("Fehler beim Laden: Ungültiges Plugin-Format");
             }
         } catch (IOException e) {
-            logger.severe("Fehler beim Laden: " + e.getMessage());
+            logger.error("Fehler beim Laden", e);
             updateStatus("Fehler beim Laden");
         }
     }
@@ -584,8 +584,8 @@ public class PluginEditorWindow {
             plugin.setEnabled(true);
             
             return plugin;
-        } catch (Exception e) {
-            logger.severe("Fehler beim Parsen des Plugins: " + e.getMessage());
+        } catch (RuntimeException e) {
+            logger.error("Fehler beim Parsen des Plugins", e);
             return null;
         }
     }
@@ -666,7 +666,7 @@ public class PluginEditorWindow {
             isModified = false;
             updateStatus("Gespeichert: " + new File(filePath).getName());
         } catch (IOException e) {
-            logger.severe("Fehler beim Speichern: " + e.getMessage());
+            logger.error("Fehler beim Speichern", e);
             updateStatus("Fehler beim Speichern");
         }
     }

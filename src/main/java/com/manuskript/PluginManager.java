@@ -13,13 +13,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Verwaltet Plugins für den KI-Assistenten
  */
 public class PluginManager {
-    private static final Logger logger = Logger.getLogger(PluginManager.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(PluginManager.class);
     private static final String PLUGIN_DIR = "config/plugins";
     private static final String PLUGIN_SETTINGS_FILE = "config/plugin-settings.json";
     
@@ -60,14 +61,14 @@ public class PluginManager {
                             pluginMap.put(plugin.getName(), plugin);
                         }
                     } catch (Exception e) {
-                        logger.warning("Fehler beim Laden von Plugin " + pluginFile.getName() + ": " + e.getMessage());
+                        logger.warn("Fehler beim Laden von Plugin {}", pluginFile.getName(), e);
                     }
                 }
             }
             
             
         } catch (Exception e) {
-            logger.severe("Fehler beim Laden der Plugins: " + e.getMessage());
+            logger.error("Fehler beim Laden der Plugins", e);
         }
     }
     
@@ -162,8 +163,8 @@ public class PluginManager {
             }
             
             return variable;
-        } catch (Exception e) {
-            logger.warning("Fehler beim Parsen der Plugin-Variable: " + e.getMessage());
+        } catch (RuntimeException e) {
+            logger.warn("Fehler beim Parsen der Plugin-Variable", e);
             return null;
         }
     }
@@ -190,8 +191,8 @@ public class PluginManager {
             }
             
             
-        } catch (Exception e) {
-            logger.severe("Fehler beim Speichern von Plugin " + plugin.getName() + ": " + e.getMessage());
+        } catch (IOException e) {
+            logger.error("Fehler beim Speichern von Plugin {}", plugin.getName(), e);
         }
     }
     
