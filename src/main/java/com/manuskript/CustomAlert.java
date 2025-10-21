@@ -569,6 +569,36 @@ public class CustomAlert {
     }
     
     /**
+     * Zentriert den Alert auf dem Owner-Fenster
+     */
+    private void centerOnOwner(Window owner) {
+        if (owner != null && stage != null) {
+            // Warte bis Stage sichtbar ist, dann zentriere
+            Platform.runLater(() -> {
+                double ownerX = owner.getX();
+                double ownerY = owner.getY();
+                double ownerWidth = owner.getWidth();
+                double ownerHeight = owner.getHeight();
+                
+                // Berechne Zentrum des Owner-Fensters
+                double centerX = ownerX + (ownerWidth / 2);
+                double centerY = ownerY + (ownerHeight / 2);
+                
+                // Berechne Position für Alert (zentriert)
+                double alertX = centerX - (stage.getWidth() / 2);
+                double alertY = centerY - (stage.getHeight() / 2);
+                
+                // Stelle sicher, dass Alert im sichtbaren Bereich bleibt
+                alertX = Math.max(0, Math.min(alertX, javafx.stage.Screen.getPrimary().getVisualBounds().getWidth() - stage.getWidth()));
+                alertY = Math.max(0, Math.min(alertY, javafx.stage.Screen.getPrimary().getVisualBounds().getHeight() - stage.getHeight()));
+                
+                stage.setX(alertX);
+                stage.setY(alertY);
+            });
+        }
+    }
+    
+    /**
      * Dummy DialogPane für Kompatibilität
      */
     public DialogPane getDialogPane() {
@@ -707,6 +737,9 @@ public class CustomAlert {
         if (owner != null) {
             stage.initOwner(owner);
             stage.initModality(Modality.WINDOW_MODAL);
+              
+            // Zentriere auf dem Owner-Fenster
+            centerOnOwner(owner);
         } else {
             stage.initModality(Modality.APPLICATION_MODAL);
         }
@@ -737,6 +770,9 @@ public class CustomAlert {
         if (owner != null) {
             stage.initOwner(owner);
             stage.initModality(Modality.WINDOW_MODAL);
+            
+            // Zentriere auf dem Owner-Fenster
+            centerOnOwner(owner);
         } else {
             stage.initModality(Modality.NONE);
         }
