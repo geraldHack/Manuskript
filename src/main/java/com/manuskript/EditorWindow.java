@@ -23,6 +23,8 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 import javafx.stage.Modality;
 import javafx.stage.Window;
+import javafx.stage.Screen;
+import javafx.geometry.Rectangle2D;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.input.KeyCode;
@@ -877,6 +879,26 @@ if (caret != null) {
                         newFile();
                         event.consume();
                         break;
+                    case I:
+                        toggleItalic();
+                        event.consume();
+                        break;
+                    case B:
+                        toggleBold();
+                        event.consume();
+                        break;
+                    case Z:
+                        undo();
+                        event.consume();
+                        break;
+                    case Y:
+                        redo();
+                        event.consume();
+                        break;
+                    case U:
+                        toggleUnderline();
+                        event.consume();
+                        break;
 
                 }
             } else if (event.getCode() == KeyCode.F3) {
@@ -921,6 +943,71 @@ if (caret != null) {
                 handleQuoteReplacement(character);
             }
         });
+    }
+    
+    /**
+     * Toggle für kursiven Text (Ctrl+I)
+     */
+    private void toggleItalic() {
+        String selectedText = codeArea.getSelectedText();
+        if (selectedText != null && !selectedText.isEmpty()) {
+            // Text ist ausgewählt - umschließen mit *
+            String newText = "*" + selectedText + "*";
+            codeArea.replaceSelection(newText);
+        } else {
+            // Kein Text ausgewählt - * einfügen
+            codeArea.insertText(codeArea.getCaretPosition(), "**");
+            // Cursor zwischen die Sterne setzen
+            codeArea.moveTo(codeArea.getCaretPosition() - 1);
+        }
+    }
+    
+    /**
+     * Toggle für fetten Text (Ctrl+B)
+     */
+    private void toggleBold() {
+        String selectedText = codeArea.getSelectedText();
+        if (selectedText != null && !selectedText.isEmpty()) {
+            // Text ist ausgewählt - umschließen mit **
+            String newText = "**" + selectedText + "**";
+            codeArea.replaceSelection(newText);
+        } else {
+            // Kein Text ausgewählt - ** einfügen
+            codeArea.insertText(codeArea.getCaretPosition(), "****");
+            // Cursor zwischen die Sterne setzen
+            codeArea.moveTo(codeArea.getCaretPosition() - 2);
+        }
+    }
+    
+    /**
+     * Undo-Funktion (Ctrl+Z)
+     */
+    private void undo() {
+        codeArea.undo();
+    }
+    
+    /**
+     * Redo-Funktion (Ctrl+Y)
+     */
+    private void redo() {
+        codeArea.redo();
+    }
+    
+    /**
+     * Toggle für unterstrichenen Text (Ctrl+U)
+     */
+    private void toggleUnderline() {
+        String selectedText = codeArea.getSelectedText();
+        if (selectedText != null && !selectedText.isEmpty()) {
+            // Text ist ausgewählt - umschließen mit <u> tags
+            String newText = "<u>" + selectedText + "</u>";
+            codeArea.replaceSelection(newText);
+        } else {
+            // Kein Text ausgewählt - <u></u> einfügen
+            codeArea.insertText(codeArea.getCaretPosition(), "<u></u>");
+            // Cursor zwischen die Tags setzen
+            codeArea.moveTo(codeArea.getCaretPosition() - 4);
+        }
     }
     
     private void handleQuoteReplacement(String inputQuote) {
@@ -2263,8 +2350,7 @@ if (caret != null) {
                 alert.setHeaderText("DOCX nicht ausgewählt");
                 alert.setContentText("Bitte aktivieren Sie zuerst die DOCX-Option, um die Einstellungen zu bearbeiten.");
                 alert.applyTheme(currentThemeIndex);
-                alert.initOwner(stage);
-                alert.showAndWait();
+                alert.showAndWait(stage);
             }
         });
         
@@ -3594,16 +3680,16 @@ if (caret != null) {
                 String normalized = trimmedLine.replaceAll("^\\|", "").replaceAll("\\|$", "");
                 String[] cells = normalized.split("\\|");
                 
-                tableContent.append("<tr>\n");
+                    tableContent.append("<tr>\n");
                 for (String rawCell : cells) {
                     String cell = rawCell.trim();
                     if (isHeaderRow) {
-                        tableContent.append("<th>").append(convertInlineMarkdown(cell)).append("</th>\n");
-                    } else {
-                        tableContent.append("<td>").append(convertInlineMarkdown(cell)).append("</td>\n");
+                            tableContent.append("<th>").append(convertInlineMarkdown(cell)).append("</th>\n");
+                        } else {
+                            tableContent.append("<td>").append(convertInlineMarkdown(cell)).append("</td>\n");
+                        }
                     }
-                }
-                tableContent.append("</tr>\n");
+                    tableContent.append("</tr>\n");
                 continue;
             } else if (inTable) {
                 inTable = false;
@@ -4077,8 +4163,7 @@ if (caret != null) {
                 alert.setHeaderText("DOCX nicht ausgewählt");
                 alert.setContentText("Bitte aktivieren Sie zuerst die DOCX-Option, um die Einstellungen zu bearbeiten.");
                 alert.applyTheme(currentThemeIndex);
-                alert.initOwner(stage);
-                alert.showAndWait();
+                alert.showAndWait(stage);
             }
         });
         
@@ -4098,9 +4183,6 @@ if (caret != null) {
         // Theme anwenden
         alert.applyTheme(currentThemeIndex);
         
-        // Owner setzen
-        alert.initOwner(stage);
-        
         // Content setzen - verwende setCustomContent für CustomAlert
         alert.setCustomContent(content);
         
@@ -4111,7 +4193,7 @@ if (caret != null) {
         
         alert.setButtonTypes(saveButton, discardButton, diffButton, cancelButton);
         
-        Optional<ButtonType> result = alert.showAndWait();
+        Optional<ButtonType> result = alert.showAndWait(stage);
         
         if (result.isPresent()) {
             if (result.get() == saveButton) {
@@ -4358,8 +4440,7 @@ if (caret != null) {
                 alert.setHeaderText("DOCX nicht ausgewählt");
                 alert.setContentText("Bitte aktivieren Sie zuerst die DOCX-Option, um die Einstellungen zu bearbeiten.");
                 alert.applyTheme(currentThemeIndex);
-                alert.initOwner(stage);
-                alert.showAndWait();
+                alert.showAndWait(stage);
             }
         });
         
@@ -4379,9 +4460,6 @@ if (caret != null) {
         // Theme anwenden
         alert.applyTheme(currentThemeIndex);
         
-        // Owner setzen
-        alert.initOwner(stage);
-        
         // Content setzen - verwende setCustomContent für CustomAlert
         alert.setCustomContent(content);
         
@@ -4392,7 +4470,7 @@ if (caret != null) {
         
         alert.setButtonTypes(saveButton, discardButton, diffButton, cancelButton);
         
-        Optional<ButtonType> result = alert.showAndWait();
+        Optional<ButtonType> result = alert.showAndWait(stage);
         
         if (result.isPresent()) {
             if (result.get() == saveButton) {
@@ -5564,8 +5642,6 @@ if (caret != null) {
     private void createMacroWindow() {
         macroStage = StageManager.createStage("Makros");
         macroStage.setTitle("Makro-Verwaltung");
-        macroStage.setWidth(1200);
-        macroStage.setHeight(800);
         
         // WICHTIG: Theme sofort setzen
         macroStage.setTitleBarTheme(currentThemeIndex);
@@ -5583,7 +5659,7 @@ if (caret != null) {
         }
         macroStage.setSceneWithTitleBar(macroScene);
         
-        // Fenster-Position speichern/laden
+        // WICHTIG: Fenster-Position NACH der Stage-Erstellung laden
         loadMacroWindowProperties();
         
         // Event-Handler für Fenster-Schließung
@@ -5887,14 +5963,20 @@ spacer.setStyle("-fx-background-color: transparent;");
     
     private void loadMacroWindowProperties() {
         if (preferences != null) {
+            // Bildschirmabmessungen abfragen
+            Screen primaryScreen = Screen.getPrimary();
+            Rectangle2D screenBounds = primaryScreen.getBounds();
+            double screenWidth = screenBounds.getWidth();
+            double screenHeight = screenBounds.getHeight();
+            
             // Robuste Validierung der Preferences mit sinnvollen Standardwerten
             double x = preferences.getDouble("macro_window_x", 100);
             double y = preferences.getDouble("macro_window_y", 100);
             double width = preferences.getDouble("macro_window_width", 1200);
             double height = preferences.getDouble("macro_window_height", 800);
             
-            // Validierung: Position muss auf dem Bildschirm sein
-            if (x < 0 || x > 3000 || y < 0 || y > 2000) {
+            // Validierung: Position muss auf dem Bildschirm sein (basierend auf tatsächlichen Bildschirmabmessungen)
+            if (x < -100 || x > screenWidth + 100 || y < -100 || y > screenHeight + 100) {
                 logger.warn("Ungültige Position ({},{}) für Makro-Fenster, setze Standard 100,100", x, y);
                 x = 100;
                 y = 100;
@@ -5913,14 +5995,14 @@ spacer.setStyle("-fx-background-color: transparent;");
             macroStage.setHeight(height);
             
             
-            // Fenster-Position und Größe speichern (nur wenn gültig)
+            // Fenster-Position und Größe speichern (basierend auf tatsächlichen Bildschirmabmessungen)
             macroStage.xProperty().addListener((obs, oldVal, newVal) -> {
-                if (newVal.doubleValue() >= 0 && newVal.doubleValue() <= 3000) {
+                if (newVal.doubleValue() >= -100 && newVal.doubleValue() <= screenWidth + 100) {
                     preferences.putDouble("macro_window_x", newVal.doubleValue());
                 }
             });
             macroStage.yProperty().addListener((obs, oldVal, newVal) -> {
-                if (newVal.doubleValue() >= 0 && newVal.doubleValue() <= 2000) {
+                if (newVal.doubleValue() >= -100 && newVal.doubleValue() <= screenHeight + 100) {
                     preferences.putDouble("macro_window_y", newVal.doubleValue());
                 }
             });
@@ -7282,9 +7364,8 @@ spacer.setStyle("-fx-background-color: transparent;");
             alert.setHeaderText("Makro löschen bestätigen");
             alert.setContentText("Möchten Sie das Makro '" + currentMacro.getName() + "' wirklich löschen?");
             alert.applyTheme(currentThemeIndex);
-            alert.initOwner(stage);
             
-            Optional<ButtonType> result = alert.showAndWait();
+            Optional<ButtonType> result = alert.showAndWait(stage);
             if (result.isPresent() && result.get() == ButtonType.OK) {
                 String macroName = currentMacro.getName();
                 macros.remove(currentMacro);
@@ -8223,13 +8304,18 @@ spacer.setStyle("-fx-background-color: transparent;");
         stage.setWidth(width);
         stage.setHeight(height);
         
-        // NEU: Validierung der Fenster-Position
-        // Prüfe, ob Position gültig ist und auf dem Bildschirm liegt
+        // NEU: Validierung der Fenster-Position basierend auf tatsächlichen Bildschirmabmessungen
         if (x >= 0 && y >= 0 && !Double.isNaN(x) && !Double.isNaN(y) && 
             !Double.isInfinite(x) && !Double.isInfinite(y)) {
             
-            // Grobe Prüfung: Position sollte nicht zu weit außerhalb des Bildschirms sein
-            if (x < -1000 || y < -1000 || x > 5000 || y > 5000) {
+            // Bildschirmabmessungen abfragen
+            Screen primaryScreen = Screen.getPrimary();
+            Rectangle2D screenBounds = primaryScreen.getBounds();
+            double screenWidth = screenBounds.getWidth();
+            double screenHeight = screenBounds.getHeight();
+            
+            // Prüfung: Position sollte auf dem Bildschirm oder knapp außerhalb sein
+            if (x < -100 || x > screenWidth + 100 || y < -100 || y > screenHeight + 100) {
                 logger.warn("Fenster-Position außerhalb des Bildschirms: x={}, y={} - verwende zentriert", x, y);
                 stage.centerOnScreen();
             } else {
@@ -10211,8 +10297,7 @@ spacer.setStyle("-fx-background-color: transparent;");
         alert.setContentText(message);
         // alert.setHeaderText(null); // ENTFERNT: Setzt 'null' String
         alert.applyTheme(currentThemeIndex);
-        alert.initOwner(stage);
-        alert.showAndWait();
+        alert.showAndWait(stage);
     }
     
     /**

@@ -4713,12 +4713,18 @@ public class MainController implements Initializable {
         primaryStage.setWidth(width);
         primaryStage.setHeight(height);
         
-        // Validierung der Fenster-Position
+        // Validierung der Fenster-Position basierend auf tatsächlichen Bildschirmabmessungen
         if (x >= 0 && y >= 0 && !Double.isNaN(x) && !Double.isNaN(y) && 
             !Double.isInfinite(x) && !Double.isInfinite(y)) {
             
-            // Grobe Prüfung: Position sollte nicht zu weit außerhalb des Bildschirms sein
-            if (x < -1000 || y < -1000 || x > 5000 || y > 5000) {
+            // Bildschirmabmessungen abfragen
+            Screen primaryScreen = Screen.getPrimary();
+            Rectangle2D screenBounds = primaryScreen.getBounds();
+            double screenWidth = screenBounds.getWidth();
+            double screenHeight = screenBounds.getHeight();
+            
+            // Prüfung: Position sollte auf dem Bildschirm oder knapp außerhalb sein
+            if (x < -100 || x > screenWidth + 100 || y < -100 || y > screenHeight + 100) {
                 logger.warn("Hauptfenster-Position außerhalb des Bildschirms: x={}, y={} - verwende zentriert", x, y);
                 primaryStage.centerOnScreen();
             } else {
@@ -6823,8 +6829,7 @@ public class MainController implements Initializable {
             CustomAlert alert = new CustomAlert(Alert.AlertType.WARNING, "Keine Datei ausgewählt");
             alert.setHeaderText("Bitte wählen Sie eine Datei aus der linken Tabelle aus, die archiviert werden soll.");
             alert.applyTheme(currentThemeIndex);
-            alert.initOwner(primaryStage);
-            alert.showAndWait();
+            alert.showAndWait(primaryStage);
             return;
         }
         
@@ -6833,9 +6838,8 @@ public class MainController implements Initializable {
         confirmAlert.setHeaderText("Möchten Sie die Datei ins Archiv verschieben?");
         confirmAlert.setContentText("Datei: " + selectedFile.getFileName() + "\n\nDie Datei wird in das 'archiv' Verzeichnis verschoben.");
         confirmAlert.applyTheme(currentThemeIndex);
-        confirmAlert.initOwner(primaryStage);
         
-        if (confirmAlert.showAndWait().orElse(null) == ButtonType.OK) {
+        if (confirmAlert.showAndWait(primaryStage).orElse(null) == ButtonType.OK) {
             try {
                 File sourceFile = selectedFile.getFile();
                 if (sourceFile.exists()) {
@@ -6874,8 +6878,7 @@ public class MainController implements Initializable {
                         successAlert.setHeaderText("Die Datei wurde erfolgreich archiviert.");
                         successAlert.setContentText("Ziel: " + targetFile.getName());
                         successAlert.applyTheme(currentThemeIndex);
-                        successAlert.initOwner(primaryStage);
-                        successAlert.showAndWait();
+                        successAlert.showAndWait(primaryStage);
                         
                         // Tabellen aktualisieren
                         tableViewAvailable.refresh();
