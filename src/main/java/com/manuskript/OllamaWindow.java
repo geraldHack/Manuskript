@@ -3,6 +3,7 @@ package com.manuskript;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -1052,42 +1053,29 @@ public class OllamaWindow {
         
         stage.setSceneWithTitleBar(scene);
 
-        // Gespeicherte Position/Größe laden (falls vorhanden) mit Validierung
+        // Gespeicherte Position/Größe laden mit Multi-Monitor-Validierung
         try {
             String sx = ResourceManager.getParameter("ui.ollama_window_x", "");
             String sy = ResourceManager.getParameter("ui.ollama_window_y", "");
             String sw = ResourceManager.getParameter("ui.ollama_window_w", "");
             String sh = ResourceManager.getParameter("ui.ollama_window_h", "");
             
-            // Position validieren und setzen
+            double x = -1, y = -1, width = 1200, height = 800;
+            
+            // Lade gespeicherte Werte
             if (!sx.isEmpty() && !sy.isEmpty()) {
-                double x = Double.parseDouble(sx);
-                double y = Double.parseDouble(sy);
-                // Validierung: Position muss auf dem Bildschirm sein
-                if (x >= 0 && x <= 3000 && y >= 0 && y <= 2000) {
-                    stage.setX(x);
-                    stage.setY(y);
-                } else {
-                    logger.warn("Ungültige Position (" + x + "," + y + ") für Ollama-Fenster, setze Standard 100,100");
-                    stage.setX(100);
-                    stage.setY(100);
-                }
+                x = Double.parseDouble(sx);
+                y = Double.parseDouble(sy);
+            }
+            if (!sw.isEmpty() && !sh.isEmpty()) {
+                width = Double.parseDouble(sw);
+                height = Double.parseDouble(sh);
             }
             
-            // Größe validieren und setzen
-            if (!sw.isEmpty() && !sh.isEmpty()) {
-                double dw = Double.parseDouble(sw);
-                double dh = Double.parseDouble(sh);
-                // Validierung: Größe muss sinnvoll sein
-                if (dw >= 400 && dw <= 2000 && dh >= 300 && dh <= 1500) {
-                    stage.setWidth(dw);
-                    stage.setHeight(dh);
-                } else {
-                    logger.warn("Ungültige Größe (" + dw + "x" + dh + ") für Ollama-Fenster, setze Standard 1200x800");
-                    stage.setWidth(1200);
-                    stage.setHeight(800);
-                }
-            }
+            // Verwende Multi-Monitor-Validierung
+            Rectangle2D windowBounds = PreferencesManager.MultiMonitorValidator.correctWindowPosition(x, y, width, height);
+            PreferencesManager.MultiMonitorValidator.applyWindowProperties(stage, windowBounds);
+            
         } catch (Exception e) {
             logger.warn("Fehler beim Laden der Ollama-Fenster-Properties: " + e.getMessage());
             // Standardwerte setzen

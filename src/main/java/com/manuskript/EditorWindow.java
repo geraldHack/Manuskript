@@ -5963,58 +5963,26 @@ spacer.setStyle("-fx-background-color: transparent;");
     
     private void loadMacroWindowProperties() {
         if (preferences != null) {
-            // Bildschirmabmessungen abfragen
-            Screen primaryScreen = Screen.getPrimary();
-            Rectangle2D screenBounds = primaryScreen.getBounds();
-            double screenWidth = screenBounds.getWidth();
-            double screenHeight = screenBounds.getHeight();
+            // Verwende die neue Multi-Monitor-Validierung
+            Rectangle2D windowBounds = PreferencesManager.MultiMonitorValidator.loadAndValidateWindowProperties(
+                preferences, "macro_window", 1200.0, 800.0);
             
-            // Robuste Validierung der Preferences mit sinnvollen Standardwerten
-            double x = preferences.getDouble("macro_window_x", 100);
-            double y = preferences.getDouble("macro_window_y", 100);
-            double width = preferences.getDouble("macro_window_width", 1200);
-            double height = preferences.getDouble("macro_window_height", 800);
-            
-            // Validierung: Position muss auf dem Bildschirm sein (basierend auf tatsächlichen Bildschirmabmessungen)
-            if (x < -100 || x > screenWidth + 100 || y < -100 || y > screenHeight + 100) {
-                logger.warn("Ungültige Position ({},{}) für Makro-Fenster, setze Standard 100,100", x, y);
-                x = 100;
-                y = 100;
-            }
-            
-            // Validierung: Größe muss sinnvoll sein
-            if (width < 400 || width > 2000 || height < 300 || height > 1500) {
-                logger.warn("Ungültige Größe ({}x{}) für Makro-Fenster, setze Standard 1200x800", width, height);
-                width = 1200;
-                height = 800;
-            }
-            
-            macroStage.setX(x);
-            macroStage.setY(y);
-            macroStage.setWidth(width);
-            macroStage.setHeight(height);
+            // Wende die validierten Eigenschaften an
+            PreferencesManager.MultiMonitorValidator.applyWindowProperties(macroStage, windowBounds);
             
             
-            // Fenster-Position und Größe speichern (basierend auf tatsächlichen Bildschirmabmessungen)
+            // Fenster-Position und Größe speichern
             macroStage.xProperty().addListener((obs, oldVal, newVal) -> {
-                if (newVal.doubleValue() >= -100 && newVal.doubleValue() <= screenWidth + 100) {
-                    preferences.putDouble("macro_window_x", newVal.doubleValue());
-                }
+                preferences.putDouble("macro_window_x", newVal.doubleValue());
             });
             macroStage.yProperty().addListener((obs, oldVal, newVal) -> {
-                if (newVal.doubleValue() >= -100 && newVal.doubleValue() <= screenHeight + 100) {
-                    preferences.putDouble("macro_window_y", newVal.doubleValue());
-                }
+                preferences.putDouble("macro_window_y", newVal.doubleValue());
             });
             macroStage.widthProperty().addListener((obs, oldVal, newVal) -> {
-                if (newVal.doubleValue() >= 400 && newVal.doubleValue() <= 2000) {
-                    preferences.putDouble("macro_window_width", newVal.doubleValue());
-                }
+                preferences.putDouble("macro_window_width", newVal.doubleValue());
             });
             macroStage.heightProperty().addListener((obs, oldVal, newVal) -> {
-                if (newVal.doubleValue() >= 300 && newVal.doubleValue() <= 1500) {
-                    preferences.putDouble("macro_window_height", newVal.doubleValue());
-                }
+                preferences.putDouble("macro_window_height", newVal.doubleValue());
             });
         }
     }
@@ -6031,16 +5999,7 @@ spacer.setStyle("-fx-background-color: transparent;");
         if (macroWindowVisible) {
             // Makro-Fenster öffnen
             
-            // Position und Größe auf Bildschirm setzen, falls außerhalb oder zu klein
-            if (macroStage.getX() < 0 || macroStage.getY() < 0 || 
-                macroStage.getX() > 2000 || macroStage.getY() > 2000 ||
-                macroStage.getWidth() < 800 || macroStage.getHeight() < 600) {
-                logger.warn("Position/Größe außerhalb des Bildschirms, setze auf 100,100 mit 1200x800");
-                macroStage.setX(100);
-                macroStage.setY(100);
-                macroStage.setWidth(1200);
-                macroStage.setHeight(800);
-            }
+            // Multi-Monitor-Validierung wird bereits in loadMacroWindowProperties() durchgeführt
             
             macroStage.show();
             macroStage.toFront();
@@ -7312,16 +7271,12 @@ spacer.setStyle("-fx-background-color: transparent;");
     }
     
     private void loadTextAnalysisWindowProperties() {
-        // Fenster-Position und Größe laden
-        double x = preferences.getDouble("textanalysis_window_x", 100);
-        double y = preferences.getDouble("textanalysis_window_y", 100);
-        double width = preferences.getDouble("textanalysis_window_width", 800);
-        double height = preferences.getDouble("textanalysis_window_height", 600);
+        // Verwende die neue Multi-Monitor-Validierung
+        Rectangle2D windowBounds = PreferencesManager.MultiMonitorValidator.loadAndValidateWindowProperties(
+            preferences, "textanalysis_window", 800.0, 600.0);
         
-        textAnalysisStage.setX(x);
-        textAnalysisStage.setY(y);
-        textAnalysisStage.setWidth(width);
-        textAnalysisStage.setHeight(height);
+        // Wende die validierten Eigenschaften an
+        PreferencesManager.MultiMonitorValidator.applyWindowProperties(textAnalysisStage, windowBounds);
         
         // Event-Handler für Fenster-Änderungen
         textAnalysisStage.xProperty().addListener((obs, oldVal, newVal) -> 
@@ -8285,52 +8240,19 @@ spacer.setStyle("-fx-background-color: transparent;");
     private void loadWindowProperties() {
         if (stage == null) return;
         
-        // Fenster-Größe und Position mit robuster Validierung laden
-        double width = PreferencesManager.getEditorWidth(preferences, "editor_window_width", PreferencesManager.DEFAULT_EDITOR_WIDTH);
-        double height = PreferencesManager.getEditorHeight(preferences, "editor_window_height", PreferencesManager.DEFAULT_EDITOR_HEIGHT);
-        double x = PreferencesManager.getWindowPosition(preferences, "editor_window_x", -1.0);
-        double y = PreferencesManager.getWindowPosition(preferences, "editor_window_y", -1.0);
+        // Verwende die neue Multi-Monitor-Validierung
+        Rectangle2D windowBounds = PreferencesManager.MultiMonitorValidator.loadAndValidateWindowProperties(
+            preferences, "editor_window", PreferencesManager.DEFAULT_EDITOR_WIDTH, PreferencesManager.DEFAULT_EDITOR_HEIGHT);
         
+        // Wende die validierten Eigenschaften an
+        PreferencesManager.MultiMonitorValidator.applyWindowProperties(stage, windowBounds);
         
-        // Mindestgrößen für Editor-Fenster
-        double minWidth = PreferencesManager.MIN_EDITOR_WIDTH;
-        double minHeight = PreferencesManager.MIN_EDITOR_HEIGHT;
-        
-        // WICHTIG: Mindestgröße für CustomStage setzen
-        stage.setMinWidth(minWidth);
-        stage.setMinHeight(minHeight);
-        
-        // Fenster-Größe setzen
-        stage.setWidth(width);
-        stage.setHeight(height);
-        
-        // NEU: Validierung der Fenster-Position basierend auf tatsächlichen Bildschirmabmessungen
-        if (x >= 0 && y >= 0 && !Double.isNaN(x) && !Double.isNaN(y) && 
-            !Double.isInfinite(x) && !Double.isInfinite(y)) {
-            
-            // Bildschirmabmessungen abfragen
-            Screen primaryScreen = Screen.getPrimary();
-            Rectangle2D screenBounds = primaryScreen.getBounds();
-            double screenWidth = screenBounds.getWidth();
-            double screenHeight = screenBounds.getHeight();
-            
-            // Prüfung: Position sollte auf dem Bildschirm oder knapp außerhalb sein
-            if (x < -100 || x > screenWidth + 100 || y < -100 || y > screenHeight + 100) {
-                logger.warn("Fenster-Position außerhalb des Bildschirms: x={}, y={} - verwende zentriert", x, y);
-                stage.centerOnScreen();
-            } else {
-                stage.setX(x);
-                stage.setY(y);
-            }
-        } else {
-            stage.centerOnScreen();
-        }
-        
-        // Split Pane entfernt - keine Divider-Position-Logik mehr nötig
+        // Mindestgrößen für Editor-Fenster setzen
+        stage.setMinWidth(PreferencesManager.MIN_EDITOR_WIDTH);
+        stage.setMinHeight(PreferencesManager.MIN_EDITOR_HEIGHT);
         
         // WICHTIG: Listener für Fenster-Änderungen hinzufügen
         addWindowPropertyListeners();
-        
     }
     
     private void addWindowPropertyListeners() {

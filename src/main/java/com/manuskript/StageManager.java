@@ -5,6 +5,7 @@ import javafx.stage.StageStyle;
 import javafx.stage.Modality;
 import javafx.stage.Window;
 import javafx.scene.Scene;
+import javafx.geometry.Rectangle2D;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.prefs.Preferences;
@@ -156,34 +157,16 @@ public class StageManager {
     }
     
     /**
-     * Lädt und wendet Diff-Fenster Preferences an
+     * Lädt und wendet Diff-Fenster Preferences mit Multi-Monitor-Validierung an
      */
     private static void loadDiffWindowProperties(CustomStage stage) {
         if (preferences != null) {
-            // Robuste Validierung der Preferences mit sinnvollen Standardwerten
-            double x = preferences.getDouble("diff_window_x", 100);
-            double y = preferences.getDouble("diff_window_y", 100);
-            double width = preferences.getDouble("diff_window_width", 1600);
-            double height = preferences.getDouble("diff_window_height", 900);
+            // Verwende die neue Multi-Monitor-Validierung
+            Rectangle2D windowBounds = PreferencesManager.MultiMonitorValidator.loadAndValidateWindowProperties(
+                preferences, "diff_window", 1600.0, 900.0);
             
-            // Validierung: Position muss auf dem Bildschirm sein
-            if (x < 0 || x > 3000 || y < 0 || y > 2000) {
-                logger.warn("Ungültige Position ({},{}) für Diff-Fenster, setze Standard 100,100", x, y);
-                x = 100;
-                y = 100;
-            }
-            
-            // Validierung: Größe muss sinnvoll sein
-            if (width < 1200 || width > 2500 || height < 700 || height > 1500) {
-                logger.warn("Ungültige Größe ({}x{}) für Diff-Fenster, setze Standard 1600x900", width, height);
-                width = 1600;
-                height = 900;
-            }
-            
-            stage.setX(x);
-            stage.setY(y);
-            stage.setWidth(width);
-            stage.setHeight(height);
+            // Wende die validierten Eigenschaften an
+            PreferencesManager.MultiMonitorValidator.applyWindowProperties(stage, windowBounds);
             
             
             // Fenster-Position und Größe speichern (nur wenn gültig)

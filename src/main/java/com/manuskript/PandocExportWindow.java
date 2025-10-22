@@ -2,6 +2,7 @@ package com.manuskript;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
@@ -541,18 +542,12 @@ public class PandocExportWindow extends CustomStage {
     }
     
     private void loadWindowProperties() {
-        // Fenster-Position und -Größe laden
-        double x = PreferencesManager.getWindowPosition(preferences, "pandoc_window_x", -1);
-        double y = PreferencesManager.getWindowPosition(preferences, "pandoc_window_y", -1);
-        double width = PreferencesManager.getWindowWidth(preferences, "pandoc_window_width", 700);
-        double height = PreferencesManager.getWindowHeight(preferences, "pandoc_window_height", 900);
+        // Verwende die neue Multi-Monitor-Validierung
+        Rectangle2D windowBounds = PreferencesManager.MultiMonitorValidator.loadAndValidateWindowProperties(
+            preferences, "pandoc_window", 700.0, 900.0);
         
-        if (x >= 0 && y >= 0) {
-            setX(x);
-            setY(y);
-        }
-        setWidth(width);
-        setHeight(height);
+        // Wende die validierten Eigenschaften an
+        PreferencesManager.MultiMonitorValidator.applyWindowProperties(this, windowBounds);
     }
     
     private void setupWindowListeners() {

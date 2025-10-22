@@ -4680,7 +4680,7 @@ public class MainController implements Initializable {
     }
     
     /**
-     * Lädt die Editor-Window-Eigenschaften aus den Preferences
+     * Lädt die Editor-Window-Eigenschaften aus den Preferences mit intelligenter Multi-Monitor-Validierung
      */
     private void loadMainWindowProperties() {
         if (primaryStage == null) {
@@ -4688,52 +4688,12 @@ public class MainController implements Initializable {
             return;
         }
         
-        // Fenster-Größe und Position laden
-        double width = preferences.getDouble("main_window_width", 1400.0);
-        double height = preferences.getDouble("main_window_height", 900.0);
-        double x = preferences.getDouble("main_window_x", -1.0);
-        double y = preferences.getDouble("main_window_y", -1.0);
+        // Verwende die neue Multi-Monitor-Validierung
+        Rectangle2D windowBounds = PreferencesManager.MultiMonitorValidator.loadAndValidateWindowProperties(
+            preferences, "main_window", 1400.0, 900.0);
         
-        // Validierung der Fenster-Größe (nur Mindestgrößen)
-        double minWidth = 1000.0;
-        double minHeight = 600.0;
-        // KEINE maxWidth/maxHeight Begrenzung für ultrawide Monitore
-        
-        // Größe validieren und korrigieren (nur Mindestgrößen)
-        if (width < minWidth || Double.isNaN(width) || Double.isInfinite(width)) {
-            logger.warn("Ungültige Hauptfenster-Breite: {} - verwende Standard: {}", width, minWidth);
-            width = minWidth;
-        }
-        if (height < minHeight || Double.isNaN(height) || Double.isInfinite(height)) {
-            logger.warn("Ungültige Hauptfenster-Höhe: {} - verwende Standard: {}", height, minHeight);
-            height = minHeight;
-        }
-        
-        // Fenster-Größe setzen
-        primaryStage.setWidth(width);
-        primaryStage.setHeight(height);
-        
-        // Validierung der Fenster-Position basierend auf tatsächlichen Bildschirmabmessungen
-        if (x >= 0 && y >= 0 && !Double.isNaN(x) && !Double.isNaN(y) && 
-            !Double.isInfinite(x) && !Double.isInfinite(y)) {
-            
-            // Bildschirmabmessungen abfragen
-            Screen primaryScreen = Screen.getPrimary();
-            Rectangle2D screenBounds = primaryScreen.getBounds();
-            double screenWidth = screenBounds.getWidth();
-            double screenHeight = screenBounds.getHeight();
-            
-            // Prüfung: Position sollte auf dem Bildschirm oder knapp außerhalb sein
-            if (x < -100 || x > screenWidth + 100 || y < -100 || y > screenHeight + 100) {
-                logger.warn("Hauptfenster-Position außerhalb des Bildschirms: x={}, y={} - verwende zentriert", x, y);
-                primaryStage.centerOnScreen();
-            } else {
-                primaryStage.setX(x);
-                primaryStage.setY(y);
-            }
-        } else {
-            primaryStage.centerOnScreen();
-        }
+        // Wende die validierten Eigenschaften an
+        PreferencesManager.MultiMonitorValidator.applyWindowProperties(primaryStage, windowBounds);
         
         // Event-Handler für Fenster-Änderungen hinzufügen
         primaryStage.widthProperty().addListener((obs, oldVal, newVal) -> {
@@ -4759,7 +4719,6 @@ public class MainController implements Initializable {
                 preferences.putDouble("main_window_y", newVal.doubleValue());
             }
         });
-        
     }
     
     
@@ -5383,50 +5342,21 @@ public class MainController implements Initializable {
     }
     
     /**
-     * Lädt die Projektfenster-Eigenschaften aus den Preferences
+     * Lädt die Projektfenster-Eigenschaften aus den Preferences mit Multi-Monitor-Validierung
      */
     private void loadProjectWindowProperties(CustomStage projectStage) {
         if (preferences != null) {
-            // Bildschirmabmessungen abfragen
-            Screen primaryScreen = Screen.getPrimary();
-            Rectangle2D screenBounds = primaryScreen.getBounds();
-            double screenWidth = screenBounds.getWidth();
-            double screenHeight = screenBounds.getHeight();
+            // Verwende die neue Multi-Monitor-Validierung
+            Rectangle2D windowBounds = PreferencesManager.MultiMonitorValidator.loadAndValidateWindowProperties(
+                preferences, "project_window", 1200.0, 800.0);
             
+            // Wende die validierten Eigenschaften an
+            PreferencesManager.MultiMonitorValidator.applyWindowProperties(projectStage, windowBounds);
             
-            // Robuste Validierung der Preferences mit sinnvollen Standardwerten
-            double x = preferences.getDouble("project_window_x", 100);
-            double y = preferences.getDouble("project_window_y", 100);
-            double width = preferences.getDouble("project_window_width", 1200);  // KEINE Begrenzung
-            double height = preferences.getDouble("project_window_height", 800);  // KEINE Begrenzung
-            
-            
-            // Validierung: Position muss auf dem Bildschirm sein (lockerer)
-            if (x < -100 || x > screenWidth + 100 || y < -100 || y > screenHeight + 100) {
-                logger.warn("Ungültige Position ({},{}) für Projekt-Fenster, setze Standard 100,100", x, y);
-                x = 100;
-                y = 100;
-            }
-            
-            // Validierung: Größe muss sinnvoll sein (nur Mindestgrößen prüfen)
-            if (width < 400 || height < 300) {
-                logger.warn("Ungültige Größe ({}x{}) für Projekt-Fenster, setze Standard 1200x800", width, height);
-                width = 1200;  // KEINE Breitenbegrenzung für ultrawide Monitore
-                height = 800;  // KEINE Höhenbegrenzung für ultrawide Monitore
-            }
-            
-            // KEINE Höhenbegrenzung - erlaube auch größere Fenster (für ultrawide Monitore)
-            
-            // Debug: Warum wird die Größe als illegal betrachtet?
-            
-            projectStage.setX(x);
-            projectStage.setY(y);
-            projectStage.setWidth(width);
-            projectStage.setHeight(height);
+            // Setze Mindestgrößen und Resizable
             projectStage.setMinWidth(800);
             projectStage.setMinHeight(600);
             projectStage.setResizable(true);
-            
             
             // Listener werden in addProjectWindowListeners() hinzugefügt
         }
