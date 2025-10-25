@@ -214,7 +214,7 @@ public class QuotationMarkConverter {
      */
     private static String convertSingleQuotationPairsFrench(String text) {
         // Finde alle einfachen Anführungszeichen (NICHT Apostrophe!)
-        String pattern = "[\\u201A\\u2018\\u2039\\u203A\\u0027]";
+        String pattern = "[\\u201A\\u2018\\u2039\\u203A]";
         Pattern regex = Pattern.compile(pattern);
         Matcher matcher = regex.matcher(text);
         
@@ -266,6 +266,12 @@ public class QuotationMarkConverter {
         // Nur die eindeutigsten Apostrophe markieren
         // 1. ' zwischen Buchstaben (z.B. "don't", "I'm")
         String result = text.replaceAll("([a-zA-ZäöüÄÖÜß])'([a-zA-ZäöüÄÖÜß])", "$1ApOsTrOpH$2");
+        
+        // 2. ' am Ende eines Wortes (z.B. "Paleus'")
+        result = result.replaceAll("([a-zA-ZäöüÄÖÜß])'([\\s\\p{Punct}])", "$1ApOsTrOpH$2");
+        
+        // 3. ' vor Anführungszeichen (z.B. "Paleus'«")
+        result = result.replaceAll("([a-zA-ZäöüÄÖÜß])'([\\u00AB\\u00BB\\u2039\\u203A\\u201E\\u201C\\u201D])", "$1ApOsTrOpH$2");
         
         return result;
     }

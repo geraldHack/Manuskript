@@ -8,7 +8,7 @@ CASE:0
 WORD:0
 ENABLED:1
 STEPDESC:ALLE Unicode doppelte Anführungszeichen zu englisch
-REPLACECOUNT:168
+REPLACECOUNT:170
 STEP:2
 SEARCH:[\u2018\u2019\u201A\u201B\u2039\u203A]
 REPLACE:'
@@ -26,7 +26,7 @@ CASE:0
 WORD:0
 ENABLED:1
 STEPDESC:Mehrfache Leerzeichen reduzieren
-REPLACECOUNT:0
+REPLACECOUNT:1
 STEP:4
 SEARCH:\n{2,}
 REPLACE:\n
@@ -35,7 +35,7 @@ CASE:0
 WORD:0
 ENABLED:1
 STEPDESC:Mehrfache Leerzeilen reduzieren
-REPLACECOUNT:116
+REPLACECOUNT:93
 STEP:5
 SEARCH:(?m)([^\r\n])\r?\n([^\r\n])
 REPLACE:$1\n\n$2
@@ -44,7 +44,7 @@ CASE:0
 WORD:0
 ENABLED:1
 STEPDESC:Absatzformat markdown-konform
-REPLACECOUNT:116
+REPLACECOUNT:93
 STEP:6
 SEARCH:...
 REPLACE:…
@@ -53,7 +53,7 @@ CASE:0
 WORD:0
 ENABLED:1
 STEPDESC:Auslassungszeichen
-REPLACECOUNT:0
+REPLACECOUNT:1
 STEP:7
 SEARCH:([A-Za-zÄÖÜäöüß])…
 REPLACE:$1 ...
@@ -116,7 +116,7 @@ CASE:0
 WORD:0
 ENABLED:1
 STEPDESC:Englisch zu Französisch - doppelte Anführungszeichen
-REPLACECOUNT:84
+REPLACECOUNT:86
 STEP:14
 SEARCH:'(.*?)'
 REPLACE:›$1‹
@@ -125,7 +125,7 @@ CASE:0
 WORD:0
 ENABLED:1
 STEPDESC:Englisch zu Französisch - einfache Anführungszeichen
-REPLACECOUNT:4
+REPLACECOUNT:5
 STEP:15
 SEARCH:"(.*?)"
 REPLACE:„$1"
@@ -163,24 +163,6 @@ ENABLED:0
 STEPDESC:Englisch zu Schweizer - einfache Anführungszeichen
 REPLACECOUNT:0
 STEP:19
-SEARCH:([»›„‚])[^\S\\r\n]+(\S)
-REPLACE:$1$2
-REGEX:1
-CASE:0
-WORD:0
-ENABLED:1
-STEPDESC:Falsche Leerzeichen innen an  Anführungszeichen entfernen 1
-REPLACECOUNT:0
-STEP:20
-SEARCH:([«‹”’])[^\S\\r\n]+(\S)
-REPLACE:$1 $2
-REGEX:1
-CASE:0
-WORD:0
-ENABLED:1
-STEPDESC:Falsche Leerzeichen innen an  Anführungszeichen entfernen 2
-REPLACECOUNT:5
-STEP:21
 SEARCH:(?<!\\n\\n)(\\n)(-{3,}|\*{3,}|_{3,})(\\n)(?!\\n)
 REPLACE:$1\n$2$3\n
 REGEX:1
@@ -188,5 +170,14 @@ CASE:0
 WORD:0
 ENABLED:1
 STEPDESC:Markdown-Trenner mit Leerzeilen umgeben
+REPLACECOUNT:0
+STEP:20
+SEARCH:'
+REPLACE:’
+REGEX:0
+CASE:0
+WORD:0
+ENABLED:0
+STEPDESC:typografisches Anführungszeichen
 REPLACECOUNT:0
 ENDMACRO

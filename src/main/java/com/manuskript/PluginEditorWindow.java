@@ -64,9 +64,6 @@ public class PluginEditorWindow {
         stage.setMinWidth(800);
         stage.setMinHeight(600);
         
-        // WICHTIG: Theme sofort setzen
-        stage.setTitleBarTheme(currentThemeIndex);
-        
         // Haupt-Container
         BorderPane mainContainer = new BorderPane();
         mainContainer.setPadding(new Insets(10));
@@ -98,61 +95,100 @@ public class PluginEditorWindow {
         
         stage.setSceneWithTitleBar(scene);
         
-        // WICHTIG: Keine manuellen Theme-Aufrufe - der zentrale ThemeManager macht das!
-        
-        // DEBUG: Prüfen, ob Theme-Klassen angewendet wurden
-        if (stage.getScene() != null && stage.getScene().getRoot() != null) {
-            Node root = stage.getScene().getRoot();
-            
-            // DEBUG: Prüfen, ob Theme-Klassen auf der Stage sind
-            
-                    // DEBUG: Prüfen, ob das Theme gesetzt wurde
-        
-        // Theme-Klassen anwenden
-        applyThemeToRoot(mainContainer);
-        }
-        
-
+        // WICHTIG: Theme NACH dem Setzen der Scene anwenden!
+        applyTheme(currentThemeIndex);
         
         // Event-Handler
         setupEventHandlers();
     }
     
     /**
-     * Wendet das Theme auf den Root-Container an
+     * Wendet das Theme auf alle UI-Elemente an
      */
-    private void applyThemeToRoot(BorderPane mainContainer) {
-        // Theme-Klassen am Root-Container setzen
-        if (currentThemeIndex == 0) {
-            mainContainer.getStyleClass().add("weiss-theme");
-        } else if (currentThemeIndex == 2) {
-            mainContainer.getStyleClass().add("pastell-theme");
-        } else if (currentThemeIndex == 3) {
-            mainContainer.getStyleClass().addAll("theme-dark", "blau-theme");
-        } else if (currentThemeIndex == 4) {
-            mainContainer.getStyleClass().addAll("theme-dark", "gruen-theme");
-        } else if (currentThemeIndex == 5) {
-            mainContainer.getStyleClass().addAll("theme-dark", "lila-theme");
+    private void applyTheme(int themeIndex) {
+        this.currentThemeIndex = themeIndex;
+        
+        if (stage != null && stage.getScene() != null) {
+            // Root zuerst vollständig setzen
+            javafx.scene.Node root = stage.getScene().getRoot();
+            root.getStyleClass().removeAll("theme-dark", "theme-light", "blau-theme", "gruen-theme", "lila-theme", "weiss-theme", "pastell-theme");
+            if (themeIndex == 0) root.getStyleClass().add("weiss-theme");
+            else if (themeIndex == 2) root.getStyleClass().add("pastell-theme");
+            else {
+                root.getStyleClass().add("theme-dark");
+                if (themeIndex == 3) root.getStyleClass().add("blau-theme");
+                if (themeIndex == 4) root.getStyleClass().add("gruen-theme");
+                if (themeIndex == 5) root.getStyleClass().add("lila-theme");
+            }
+            
+            // Stylesheets neu anhängen
+            String cssPath = ResourceManager.getCssResource("css/manuskript.css");
+            if (cssPath != null && !stage.getScene().getStylesheets().contains(cssPath)) {
+                stage.getScene().getStylesheets().add(cssPath);
+            }
+            
+            // Alle UI-Elemente thematisieren
+            applyThemeToNode(root, themeIndex);
+            applyThemeToNode(nameField, themeIndex);
+            applyThemeToNode(categoryField, themeIndex);
+            applyThemeToNode(descriptionArea, themeIndex);
+            applyThemeToNode(temperatureSpinner, themeIndex);
+            applyThemeToNode(maxTokensSpinner, themeIndex);
+            applyThemeToNode(statusLabel, themeIndex);
+            
+            // CodeArea speziell behandeln (RichTextFX)
+            applyThemeToCodeArea(promptArea, themeIndex);
         }
         
-        // CodeArea mit Theme stylen
-        if (promptArea != null) {
-            applyThemeToCodeArea(promptArea);
+        // WICHTIG: Theme auch auf die Stage anwenden
+        if (stage != null) {
+            stage.setTitleBarTheme(themeIndex);
+        }
+    }
+    
+    /**
+     * Wendet das Theme auf ein einzelnes Node an
+     */
+    private void applyThemeToNode(Node node, int themeIndex) {
+        if (node == null) return;
+        
+        // Theme-Klassen entfernen
+        node.getStyleClass().removeAll("theme-dark", "theme-light", "blau-theme", "gruen-theme", "lila-theme", "weiss-theme", "pastell-theme");
+        
+        // Neue Theme-Klasse hinzufügen
+        if (themeIndex == 0) node.getStyleClass().add("weiss-theme");
+        else if (themeIndex == 2) node.getStyleClass().add("pastell-theme");
+        else {
+            node.getStyleClass().add("theme-dark");
+            if (themeIndex == 3) node.getStyleClass().add("blau-theme");
+            if (themeIndex == 4) node.getStyleClass().add("gruen-theme");
+            if (themeIndex == 5) node.getStyleClass().add("lila-theme");
         }
         
+        // Rekursiv alle Kinder durchgehen
+        if (node instanceof Parent) {
+            Parent parent = (Parent) node;
+            for (Node child : parent.getChildrenUnmodifiable()) {
+                applyThemeToNode(child, themeIndex);
+            }
+        }
     }
     
     /**
      * Wendet das Theme auf die CodeArea an
      */
-    private void applyThemeToCodeArea(CodeArea codeArea) {
+    private void applyThemeToCodeArea(CodeArea codeArea, int themeIndex) {
         // RichTextFX CodeArea programmatisch stylen
         String backgroundColor, textColor;
         
-        switch (currentThemeIndex) {
+        switch (themeIndex) {
             case 0: // Weiß
                 backgroundColor = "#ffffff";
                 textColor = "#000000";
+                break;
+            case 1: // Schwarz
+                backgroundColor = "#1a1a1a";
+                textColor = "#ffffff";
                 break;
             case 2: // Pastell
                 backgroundColor = "#f3e5f5";
@@ -352,7 +388,9 @@ public class PluginEditorWindow {
         promptArea = new CodeArea();
         promptArea.setParagraphGraphicFactory(LineNumberFactory.get(promptArea));
         promptArea.setWrapText(true);
-        promptArea.setPrefHeight(300);
+        promptArea.setMinHeight(200);
+        promptArea.setPrefHeight(400);
+        promptArea.setMaxHeight(Double.MAX_VALUE);
         promptArea.getStyleClass().add("plugin-editor-codearea");
         promptArea.replaceText("Du bist ein hilfreicher Assistent für die Roman-Schreibarbeit.\n\n" +
                               "Verwende folgende Variablen-Syntax:\n" +
@@ -544,6 +582,13 @@ public class PluginEditorWindow {
                 temperatureSpinner.getValueFactory().setValue(plugin.getTemperature());
                 maxTokensSpinner.getValueFactory().setValue(plugin.getMaxTokens());
                 
+                // Stelle sicher, dass der Text vollständig angezeigt wird
+                Platform.runLater(() -> {
+                    promptArea.requestFocus();
+                    promptArea.moveTo(0);
+                    promptArea.showParagraphInViewport(0);
+                });
+                
                 updateStatus("Geladen: " + new File(filePath).getName());
             } else {
                 updateStatus("Fehler beim Laden: Ungültiges Plugin-Format");
@@ -594,12 +639,42 @@ public class PluginEditorWindow {
      * Extrahiert einen Wert aus einem JSON-String
      */
     private String extractJsonValue(String json, String key) {
-        String pattern = "\"" + key + "\"\\s*:\\s*\"([^\"]*)\"";
+        // Suche nach dem Schlüssel mit Anführungszeichen
+        String pattern = "\"" + key + "\"\\s*:\\s*\"";
         java.util.regex.Pattern p = java.util.regex.Pattern.compile(pattern);
         java.util.regex.Matcher m = p.matcher(json);
         
         if (m.find()) {
-            return m.group(1);
+            int start = m.end(); // Position nach dem öffnenden Anführungszeichen
+            StringBuilder result = new StringBuilder();
+            boolean escaped = false;
+            
+            // Lese Zeichen für Zeichen bis zum schließenden Anführungszeichen
+            for (int i = start; i < json.length(); i++) {
+                char c = json.charAt(i);
+                
+                if (escaped) {
+                    // Escaped-Zeichen verarbeiten
+                    switch (c) {
+                        case 'n': result.append('\n'); break;
+                        case 'r': result.append('\r'); break;
+                        case 't': result.append('\t'); break;
+                        case '"': result.append('"'); break;
+                        case '\\': result.append('\\'); break;
+                        default: result.append('\\').append(c); break;
+                    }
+                    escaped = false;
+                } else if (c == '\\') {
+                    escaped = true;
+                } else if (c == '"') {
+                    // Ende des Strings gefunden
+                    break;
+                } else {
+                    result.append(c);
+                }
+            }
+            
+            return result.toString();
         }
         
         // Versuche numerische Werte
@@ -818,13 +893,6 @@ public class PluginEditorWindow {
     }
     
     /**
-     * Zeigt das Fenster an
-     */
-    public void show() {
-        stage.show();
-    }
-    
-    /**
      * Zeigt das Fenster mit einem Plugin an
      */
     public void showWithPlugin(Plugin plugin, String filePath) {
@@ -849,23 +917,18 @@ public class PluginEditorWindow {
      * Setzt das Theme für das Plugin-Editor-Fenster
      */
     public void setTheme(int themeIndex) {
-        // Titelleiste themen
+        applyTheme(themeIndex);
+    }
+    
+    /**
+     * Zeigt das Fenster an
+     */
+    public void show() {
+        // WICHTIG: Theme vor dem Anzeigen nochmal setzen
         if (stage != null) {
-            stage.setTitleBarTheme(themeIndex);
-        }
-        
-        // Root-Container themen
-        if (stage != null && stage.getScene() != null) {
-            Node root = stage.getScene().getRoot();
-            root.getStyleClass().removeAll("theme-dark", "theme-light", "blau-theme", "gruen-theme", "lila-theme", "weiss-theme", "pastell-theme");
-            if (themeIndex == 0) root.getStyleClass().add("weiss-theme");
-            else if (themeIndex == 2) root.getStyleClass().add("pastell-theme");
-            else {
-                root.getStyleClass().add("theme-dark");
-                if (themeIndex == 3) root.getStyleClass().add("blau-theme");
-                if (themeIndex == 4) root.getStyleClass().add("gruen-theme");
-                if (themeIndex == 5) root.getStyleClass().add("lila-theme");
-            }
+            stage.setTitleBarTheme(currentThemeIndex);
+            stage.show();
+            stage.requestFocus();
         }
     }
 }

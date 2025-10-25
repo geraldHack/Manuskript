@@ -500,14 +500,48 @@ if (caret != null) {
     
     private void updateSelectionCount() {
         if (codeArea != null && lblSelectionCount != null) {
-            String selectedText = codeArea.getSelectedText();
-            if (selectedText != null && !selectedText.isEmpty()) {
-                int charCount = selectedText.length();
-                int wordCount = countWords(selectedText);
-                lblSelectionCount.setText("Auswahl: " + charCount + " Zeichen, " + wordCount + " Wörter");
-            } else {
+            try {
+                // Sichere Text-Selektion mit Bounds-Check
+                String selectedText = getSelectedTextSafely();
+                if (selectedText != null && !selectedText.isEmpty()) {
+                    int charCount = selectedText.length();
+                    int wordCount = countWords(selectedText);
+                    lblSelectionCount.setText("Auswahl: " + charCount + " Zeichen, " + wordCount + " Wörter");
+                } else {
+                    lblSelectionCount.setText("Auswahl: 0 Zeichen, 0 Wörter");
+                }
+            } catch (Exception e) {
+                // Fehler beim Abrufen der Selektion - sicherer Fallback
+                logger.warn("Fehler beim Aktualisieren der Selektion: " + e.getMessage());
                 lblSelectionCount.setText("Auswahl: 0 Zeichen, 0 Wörter");
             }
+        }
+    }
+    
+    /**
+     * Sichere Methode zum Abrufen des selektierten Textes
+     */
+    private String getSelectedTextSafely() {
+        try {
+            if (codeArea == null) return null;
+            
+            // Prüfe ob die Selektion gültig ist
+            IndexRange selection = codeArea.getSelection();
+            if (selection == null) return null;
+            
+            int start = selection.getStart();
+            int end = selection.getEnd();
+            int textLength = codeArea.getLength();
+            
+            // Bounds-Check
+            if (start < 0 || end < 0 || start > textLength || end > textLength || start > end) {
+                return null;
+            }
+            
+            return codeArea.getSelectedText();
+        } catch (Exception e) {
+            logger.warn("Fehler beim sicheren Abrufen der Selektion: " + e.getMessage());
+            return null;
         }
     }
     
@@ -837,10 +871,14 @@ if (caret != null) {
         // Text-Selektion Event-Listener für KI-Assistent
         codeArea.selectionProperty().addListener((obs, oldSelection, newSelection) -> {
             if (ollamaWindow != null && ollamaWindow.isShowing()) {
-                String selectedText = codeArea.getSelectedText();
-                if (selectedText != null && !selectedText.trim().isEmpty()) {
-                    // Automatisch selektierten Text in das Eingabefeld kopieren
-                    ollamaWindow.updateSelectedText(selectedText);
+                try {
+                    String selectedText = getSelectedTextSafely();
+                    if (selectedText != null && !selectedText.trim().isEmpty()) {
+                        // Automatisch selektierten Text in das Eingabefeld kopieren
+                        ollamaWindow.updateSelectedText(selectedText);
+                    }
+                } catch (Exception e) {
+                    logger.warn("Fehler beim Abrufen der Selektion für KI-Assistent: " + e.getMessage());
                 }
             }
         });
@@ -851,7 +889,7 @@ if (caret != null) {
         if (mainContainer != null) {
             mainContainer.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
                 if (event.isControlDown() && event.getCode() == KeyCode.F) {
-                    showSearchPanel();
+                    toggleSearchPanel();
                     event.consume();
                 }
             });
@@ -864,8 +902,8 @@ if (caret != null) {
             if (event.isControlDown()) {
                 switch (event.getCode()) {
                     case F:
-                        toggleSearchPanel();
-                        event.consume();
+                        // Ctrl+F wird bereits vom globalen Filter behandelt
+                        // Hier nur andere Shortcuts
                         break;
                     case S:
                         saveFile();
@@ -949,7 +987,7 @@ if (caret != null) {
      * Toggle für kursiven Text (Ctrl+I)
      */
     private void toggleItalic() {
-        String selectedText = codeArea.getSelectedText();
+        String selectedText = getSelectedTextSafely();
         if (selectedText != null && !selectedText.isEmpty()) {
             // Text ist ausgewählt - umschließen mit *
             String newText = "*" + selectedText + "*";
@@ -966,7 +1004,7 @@ if (caret != null) {
      * Toggle für fetten Text (Ctrl+B)
      */
     private void toggleBold() {
-        String selectedText = codeArea.getSelectedText();
+        String selectedText = getSelectedTextSafely();
         if (selectedText != null && !selectedText.isEmpty()) {
             // Text ist ausgewählt - umschließen mit **
             String newText = "**" + selectedText + "**";
@@ -997,7 +1035,7 @@ if (caret != null) {
      * Toggle für unterstrichenen Text (Ctrl+U)
      */
     private void toggleUnderline() {
-        String selectedText = codeArea.getSelectedText();
+        String selectedText = getSelectedTextSafely();
         if (selectedText != null && !selectedText.isEmpty()) {
             // Text ist ausgewählt - umschließen mit <u> tags
             String newText = "<u>" + selectedText + "</u>";
@@ -1018,40 +1056,156 @@ if (caret != null) {
         String content = codeArea.getText();
         int caretPosition = codeArea.getCaretPosition();
         
-        // Bestimme ob öffnend oder schließend
-        boolean shouldBeClosing = false;
+        // INTELLIGENTE APOSTROPH vs. ANFÜHRUNGSZEICHEN ERKENNUNG
+        // WICHTIG: Apostroph-Prüfung ZUERST, dann Anführungszeichen
+        boolean isApostrophe = isApostropheContext(content, caretPosition);
+        boolean isQuotation = !isApostrophe && isQuotationContext(content, caretPosition);
         
-        if (caretPosition > 0) {
-            char charBefore = content.charAt(caretPosition - 1);
-            // Buchstabe, Punkt oder Auslassungszeichen davor -> schließend
-            if (Character.isLetterOrDigit(charBefore) || charBefore == '.' || charBefore == '…' || 
-                charBefore == '!' || charBefore == '?' || charBefore == ',' || charBefore == ';' || 
-                charBefore == ':' || charBefore == ')') {
-                shouldBeClosing = true;
-            }
-        }
-        
-        // Einfache Toggle-Logik: Wenn Kontext unklar, toggle
-        if (caretPosition == 0 || !shouldBeClosing) {
-            // Am Anfang oder nach Leerzeichen/Zeilenumbruch -> öffnend
-            quoteToggleState = false;
-        } else {
-            // Nach Buchstaben/Satzzeichen -> schließend
-            quoteToggleState = true;
-        }
-        
-        // Wähle das richtige Anführungszeichen
         String replacement;
-        if (inputQuote.equals("\"")) {
-            replacement = quoteToggleState ? QUOTE_MAPPING[currentQuoteStyleIndex][1] : QUOTE_MAPPING[currentQuoteStyleIndex][0];
+        
+        if (isApostrophe) {
+            // APOSTROPH-REGELN: IMMER ' verwenden
+            replacement = "'";
+            logger.debug("Apostroph erkannt: " + replacement);
+        } else if (isQuotation) {
+            // ANFÜHRUNGSZEICHEN-REGELN: Bei Zitaten und Hervorhebungen
+            boolean shouldBeClosing = determineQuotationState(content, caretPosition);
+            if (inputQuote.equals("\"")) {
+                replacement = shouldBeClosing ? QUOTE_MAPPING[currentQuoteStyleIndex][1] : QUOTE_MAPPING[currentQuoteStyleIndex][0];
+            } else {
+                replacement = shouldBeClosing ? SINGLE_QUOTE_MAPPING[currentQuoteStyleIndex][1] : SINGLE_QUOTE_MAPPING[currentQuoteStyleIndex][0];
+            }
+            logger.debug("Anführungszeichen erkannt: " + replacement);
         } else {
-            replacement = quoteToggleState ? SINGLE_QUOTE_MAPPING[currentQuoteStyleIndex][1] : SINGLE_QUOTE_MAPPING[currentQuoteStyleIndex][0];
+            // FALLBACK: Standard-Anführungszeichen
+            boolean shouldBeClosing = determineQuotationState(content, caretPosition);
+            if (inputQuote.equals("\"")) {
+                replacement = shouldBeClosing ? QUOTE_MAPPING[currentQuoteStyleIndex][1] : QUOTE_MAPPING[currentQuoteStyleIndex][0];
+            } else {
+                replacement = shouldBeClosing ? SINGLE_QUOTE_MAPPING[currentQuoteStyleIndex][1] : SINGLE_QUOTE_MAPPING[currentQuoteStyleIndex][0];
+            }
+            logger.debug("Fallback Anführungszeichen: " + replacement);
         }
         
         // Ersetze das Zeichen
         codeArea.insertText(caretPosition, replacement);
+    }
+    
+    /**
+     * Intelligente Apostroph-Erkennung basierend auf Kontext
+     */
+    private boolean isApostropheContext(String content, int position) {
+        if (position <= 0 || position >= content.length()) return false;
         
-        // EINGEBAUTE UNDO-FUNKTIONALITÄT VERWENDEN - kein manueller Aufruf nötig
+        char charBefore = content.charAt(position - 1);
+        char charAfter = content.charAt(position);
+        
+        // Apostroph-Regeln (nur bei echten Abkürzungen):
+        // 1. Nach Buchstabe + vor Buchstabe = Apostroph (hab's, don't)
+        // 2. Nach Buchstabe + vor Leerzeichen = Apostroph (d'Artagnan)
+        // 3. Nach Leerzeichen + vor Buchstabe = Apostroph (l'école)
+        // 4. Nach Buchstabe + vor Anführungszeichen = Apostroph (Paleus'«)
+        
+        boolean isApostrophe = (Character.isLetter(charBefore) && Character.isLetter(charAfter)) ||
+                              (Character.isLetter(charBefore) && charAfter == ' ') ||
+                              (charBefore == ' ' && Character.isLetter(charAfter)) ||
+                              (Character.isLetter(charBefore) && isQuotationMark(charAfter));
+        
+        // ABER: Nicht bei Zitaten! "Was ist ein 'Zonk'?" = Zitat, nicht Apostroph
+        if (isApostrophe) {
+            // Prüfe auf Zitat-Kontext (OHNE gegenseitigen Aufruf!)
+            boolean isQuotation = (position == 0 || position == content.length()) ||
+                                 (charBefore == ' ' || charBefore == '\n' || charBefore == '.' ||
+                                  charBefore == '!' || charBefore == '?' || charBefore == ',' ||
+                                  charBefore == ';' || charBefore == ':') ||
+                                 (charAfter == ' ' || charAfter == '\n' || charAfter == '.' ||
+                                  charAfter == '!' || charAfter == '?' || charAfter == ',' ||
+                                  charAfter == ';' || charAfter == ':');
+            if (isQuotation) {
+                logger.debug("Zitat erkannt, kein Apostroph");
+                return false;
+            }
+        }
+        
+        return isApostrophe;
+    }
+    
+    /**
+     * Intelligente Anführungszeichen-Erkennung basierend auf Kontext
+     */
+    private boolean isQuotationContext(String content, int position) {
+        if (position <= 0 || position >= content.length()) return false;
+        
+        char charBefore = content.charAt(position - 1);
+        char charAfter = content.charAt(position);
+        
+        // Anführungszeichen-Regeln (NUR bei echten Zitaten):
+        // 1. Am Anfang/Ende des Textes
+        // 2. Nach Leerzeichen/Zeilenumbruch
+        // 3. Vor Leerzeichen/Zeilenumbruch
+        // 4. Nach Satzzeichen (., !, ?, :, ;)
+        // 5. Bei Zitaten: "Was ist ein 'Zonk'?"
+        
+        // ABER: NICHT bei Apostrophen! "Paleus'" = Apostroph, nicht Anführungszeichen
+        boolean isQuotation = (position == 0 || position == content.length()) ||
+                             (charBefore == ' ' || charBefore == '\n' || charBefore == '.' ||
+                              charBefore == '!' || charBefore == '?' || charBefore == ',' ||
+                              charBefore == ';' || charBefore == ':') ||
+                             (charAfter == ' ' || charAfter == '\n' || charAfter == '.' ||
+                              charAfter == '!' || charAfter == '?' || charAfter == ',' ||
+                              charAfter == ';' || charAfter == ':');
+        
+        // WICHTIG: Prüfe auf Apostroph-Kontext und verhindere falsche Erkennung
+        if (isQuotation) {
+            // Prüfe ob es sich um einen Apostroph handelt
+            boolean isApostrophe = isApostropheContext(content, position);
+            if (isApostrophe) {
+                logger.debug("Apostroph erkannt, kein Anführungszeichen");
+                return false; // Apostroph, nicht Anführungszeichen
+            }
+        }
+        
+        return isQuotation;
+    }
+    
+    /**
+     * Bestimmt den Zustand der Anführungszeichen (öffnend/schließend)
+     */
+    private boolean determineQuotationState(String content, int position) {
+        if (position > 0) {
+            char charBefore = content.charAt(position - 1);
+            // Buchstabe, Punkt oder Auslassungszeichen davor -> schließend
+            if (Character.isLetterOrDigit(charBefore) || charBefore == '.' || charBefore == '…' || 
+                charBefore == '!' || charBefore == '?' || charBefore == ',' || charBefore == ';' || 
+                charBefore == ':' || charBefore == ')') {
+                return true; // schließend
+            }
+        }
+        return false; // öffnend
+    }
+    
+    /**
+     * Gibt das sprachspezifische Apostroph-Zeichen zurück
+     */
+    private String getApostropheForLanguage(int languageIndex) {
+        switch (languageIndex) {
+            case 0: // Deutsch
+            case 1: // Französisch  
+            case 3: // Schweizer
+                return "\u2019"; // '
+            case 2: // Englisch
+                return "\u0027"; // '
+            default:
+                return "\u2019";
+        }
+    }
+    
+    /**
+     * Prüft ob ein Zeichen ein Anführungszeichen ist
+     */
+    private boolean isQuotationMark(char c) {
+        return c == '\u0022' || c == '\u00AB' || c == '\u00BB' || c == '\u201E' || c == '\u201C' || 
+               c == '\u2039' || c == '\u203A' || c == '\u201A' || c == '\u2019' || c == '\u201B' || c == '\u201D';
     }
     
     /**
@@ -2008,9 +2162,30 @@ if (caret != null) {
             codeArea.displaceCaret(start);
             codeArea.selectRange(start, end);
             
-            // RichTextFX: Zeige den gefundenen Text in der Mitte des Fensters
+            // RichTextFX-spezifische Scroll-Logik mit VirtualizedScrollPane
             int currentParagraph = codeArea.getCurrentParagraph();
-            codeArea.showParagraphAtCenter(currentParagraph);
+            
+            // Verwende Platform.runLater für bessere Scroll-Performance
+            Platform.runLater(() -> {
+                try {
+                    // Für VirtualizedScrollPane: Erst in Viewport bringen, dann zentrieren
+                    codeArea.showParagraphInViewport(currentParagraph);
+                    
+                    // Kleine Verzögerung für VirtualizedScrollPane-Update
+                    Timeline timeline = new Timeline(new KeyFrame(Duration.millis(50), event -> {
+                        try {
+                            codeArea.showParagraphAtCenter(currentParagraph);
+                        } catch (Exception e) {
+                            logger.warn("Fehler beim Zentrieren: " + e.getMessage());
+                        }
+                    }));
+                    timeline.play();
+                } catch (Exception e) {
+                    logger.warn("Fehler beim Scrollen zum gefundenen Text: " + e.getMessage());
+                    // Fallback: Einfaches Scrollen
+                    codeArea.showParagraphInViewport(currentParagraph);
+                }
+            });
             
             // Focus zurück zum Suchfeld, damit ENTER weiter funktioniert
             Platform.runLater(() -> {
@@ -2054,6 +2229,19 @@ if (caret != null) {
         }
 
         boolean found = applySearchTerm(trimmed);
+        
+        // Wenn keine Treffer gefunden wurden, prüfe ob der Text in Anführungszeichen steht
+        if (!found && (trimmed.startsWith("\"") && trimmed.endsWith("\"")) || 
+                      (trimmed.startsWith("'") && trimmed.endsWith("'"))) {
+            // Entferne Anführungszeichen und versuche es nochmal
+            String withoutQuotes = trimmed.substring(1, trimmed.length() - 1);
+            logger.debug("Erste Suche fehlgeschlagen, versuche ohne Anführungszeichen: '" + withoutQuotes + "'");
+            found = applySearchTerm(withoutQuotes);
+            if (found) {
+                updateStatus("Text ohne Anführungszeichen gefunden und markiert.");
+            }
+        }
+        
         if (!found) {
             updateStatus("Der markierte Text wurde nicht im Editor gefunden.");
         }
@@ -7747,8 +7935,15 @@ spacer.setStyle("-fx-background-color: transparent;");
             // Text ersetzen mit spezifischen Positionen (wie in anderen Teilen des Codes)
             codeArea.replaceText(0, codeArea.getLength(), normalizedContent);
             
-            // Markiere als geändert, da das Makro Änderungen vorgenommen hat
-            markAsChanged();
+            // Prüfe ob das Makro tatsächlich Änderungen vorgenommen hat
+            // Vergleiche den ursprünglichen Inhalt mit dem normalisierten Inhalt
+            if (!content.equals(normalizedContent)) {
+                // Nur markieren als geändert, wenn tatsächlich Änderungen vorgenommen wurden
+                markAsChanged();
+                logger.debug("Makro hat Änderungen vorgenommen - markiere als geändert");
+            } else {
+                logger.debug("Makro hat keine Änderungen vorgenommen - nicht als geändert markieren");
+            }
             
             // Cursor-Position wiederherstellen
             if (caretPosition <= normalizedContent.length()) {
@@ -9162,7 +9357,7 @@ spacer.setStyle("-fx-background-color: transparent;");
     private void formatTextAtCursor(String markdownStart, String markdownEnd, String htmlStart, String htmlEnd) {
         if (codeArea == null) return;
         
-        String selectedText = codeArea.getSelectedText();
+        String selectedText = getSelectedTextSafely();
         int caretPosition = codeArea.getCaretPosition();
         
         if (selectedText != null && !selectedText.isEmpty()) {
@@ -9939,10 +10134,7 @@ spacer.setStyle("-fx-background-color: transparent;");
      * Gibt den aktuell ausgewählten Text zurück
      */
     public String getSelectedText() {
-        if (codeArea != null) {
-            return codeArea.getSelectedText();
-        }
-        return null;
+        return getSelectedTextSafely();
     }
     
     /**

@@ -1131,6 +1131,17 @@ public class MainController implements Initializable {
                 // Benutzer benachrichtigen
                 showInfo("Sudowrite-Import", 
                     "Erfolgreich " + importedCount + " DOCX-Dateien aus Sudowrite importiert!");
+                
+                // ZIP-Datei nach erfolgreichem Import löschen
+                try {
+                    if (zipFile.exists() && zipFile.delete()) {
+                        logger.info("ZIP-Datei nach Import gelöscht: {}", zipFile.getName());
+                    } else {
+                        logger.warn("Konnte ZIP-Datei nicht löschen: {}", zipFile.getName());
+                    }
+                } catch (Exception deleteException) {
+                    logger.error("Fehler beim Löschen der ZIP-Datei: {}", deleteException.getMessage());
+                }
             }
             
         } catch (Exception e) {

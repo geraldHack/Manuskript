@@ -3019,7 +3019,9 @@ public class OllamaWindow {
                 showAlert("Hinweis", "Kein Text im WebView markiert. Bitte markieren Sie zuerst Text im gerenderten Fenster.");
                 return;
             }
-            selectedText = selectedText.trim();
+            // Entferne Leerzeichen vor und nach dem markierten Text
+            // Entfernt auch mehrfache Leerzeichen, Tabs und Zeilenumbrüche am Anfang/Ende
+            selectedText = selectedText.replaceAll("^\\s+", "").replaceAll("\\s+$", "");
             String editorSelectedText = editorWindow.getSelectedText();
             boolean hasSelection = editorSelectedText != null && !editorSelectedText.trim().isEmpty();
             if (hasSelection) {
@@ -4510,7 +4512,13 @@ public class OllamaWindow {
         }
         try {
             Object selection = resultWebView.getEngine().executeScript("window.getSelection().toString()");
-            return selection == null ? "" : selection.toString();
+            if (selection == null) {
+                return "";
+            }
+            String selectedText = selection.toString();
+            // Entferne Leerzeichen vor und nach dem markierten Text
+            // Entfernt auch mehrfache Leerzeichen, Tabs und Zeilenumbrüche am Anfang/Ende
+            return selectedText.replaceAll("^\\s+", "").replaceAll("\\s+$", "");
         } catch (Exception e) {
             logger.warn("Fehler beim Lesen des markierten Textes aus dem WebView: " + e.getMessage());
             return "";
