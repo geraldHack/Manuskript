@@ -455,7 +455,19 @@ public class PandocExportWindow extends CustomStage {
         abstractArea.setText(preferences.get("pandoc_abstract", ""));
         
         // Cover-Bild laden
-        coverImageField.setText(preferences.get("pandoc_cover_image", ""));
+        String savedCoverImage = preferences.get("pandoc_cover_image", "");
+        if (savedCoverImage.isEmpty()) {
+            // Automatisch Cover-Bild aus Projektverzeichnis setzen
+            File projectCover = new File(inputMarkdownFile.getParent(), "cover_image.png");
+            if (projectCover.exists()) {
+                coverImageField.setText(projectCover.getAbsolutePath());
+                logger.info("Cover-Bild automatisch gesetzt: {}", projectCover.getAbsolutePath());
+            } else {
+                coverImageField.setText("");
+            }
+        } else {
+            coverImageField.setText(savedCoverImage);
+        }
         
         // Format laden
         String savedFormat = preferences.get("pandoc_format", "docx");
@@ -1167,6 +1179,11 @@ public class PandocExportWindow extends CustomStage {
                     postProcessDocx(resultFile);
                 }
                 
+                // Post-Processing für EPUB: Abstract-Titel ersetzen
+                if ("epub3".equals(format) || "epub".equals(format)) {
+                    postProcessEpub(resultFile);
+                }
+                
                 
                 return true;
             } else {
@@ -1766,6 +1783,154 @@ public class PandocExportWindow extends CustomStage {
             
         } catch (Exception e) {
             logger.warn("DOCX Post-Processing fehlgeschlagen: {}", e.getMessage());
+        }
+    }
+    
+    /**
+     * Post-Processing für EPUB: Ersetzt "Abstract" durch "Zusammenfassung"
+     */
+    private void postProcessEpub(File epubFile) {
+        try {
+            logger.info("Post-Processing für EPUB: {}", epubFile.getName());
+            
+            // EPUB ist eine ZIP-Datei - entpacken, bearbeiten und neu packen
+            File tempDir = new File("temp_epub_processing");
+            if (tempDir.exists()) {
+                deleteDirectory(tempDir);
+            }
+            tempDir.mkdirs();
+            
+            // EPUB entpacken
+            try (java.util.zip.ZipFile zipFile = new java.util.zip.ZipFile(epubFile)) {
+                java.util.Enumeration<? extends java.util.zip.ZipEntry> entries = zipFile.entries();
+                
+                while (entries.hasMoreElements()) {
+                    java.util.zip.ZipEntry entry = entries.nextElement();
+                    File entryFile = new File(tempDir, entry.getName());
+                    
+                    // Verzeichnis erstellen falls nötig
+                    File parentDir = entryFile.getParentFile();
+                    if (parentDir != null && !parentDir.exists()) {
+                        parentDir.mkdirs();
+                    }
+                    
+                    if (!entry.isDirectory()) {
+                        try (java.io.InputStream is = zipFile.getInputStream(entry);
+                             java.io.FileOutputStream fos = new java.io.FileOutputStream(entryFile)) {
+                            
+                            byte[] buffer = new byte[1024];
+                            int length;
+                            while ((length = is.read(buffer)) > 0) {
+                                fos.write(buffer, 0, length);
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // HTML-Dateien bearbeiten
+            processHtmlFilesInDirectory(tempDir);
+            
+            // EPUB neu erstellen
+            try (java.io.FileOutputStream fos = new java.io.FileOutputStream(epubFile);
+                 java.util.zip.ZipOutputStream zos = new java.util.zip.ZipOutputStream(fos)) {
+                
+                addDirectoryToZip(tempDir, tempDir, zos);
+            }
+            
+            // Temporäres Verzeichnis löschen
+            deleteDirectory(tempDir);
+            
+            logger.info("EPUB Post-Processing abgeschlossen - 'Abstract' durch 'Zusammenfassung' ersetzt");
+            
+        } catch (Exception e) {
+            logger.warn("EPUB Post-Processing fehlgeschlagen: {}", e.getMessage());
+        }
+    }
+    
+    /**
+     * Verarbeitet alle HTML-Dateien in einem Verzeichnis rekursiv
+     */
+    private void processHtmlFilesInDirectory(File directory) {
+        File[] files = directory.listFiles();
+        if (files != null) {
+            for (File file : files) {
+                if (file.isDirectory()) {
+                    processHtmlFilesInDirectory(file);
+                } else if (file.getName().toLowerCase().endsWith(".html") || 
+                          file.getName().toLowerCase().endsWith(".xhtml")) {
+                    processHtmlFile(file);
+                }
+            }
+        }
+    }
+    
+    /**
+     * Verarbeitet eine einzelne HTML-Datei und ersetzt "Abstract" durch "Zusammenfassung"
+     */
+    private void processHtmlFile(File htmlFile) {
+        try {
+            String content = Files.readString(htmlFile.toPath(), StandardCharsets.UTF_8);
+            String originalContent = content;
+            
+            // "Abstract" durch "Zusammenfassung" ersetzen
+            content = content.replace("Abstract", "Zusammenfassung");
+            
+            // Nur schreiben wenn sich etwas geändert hat
+            if (!content.equals(originalContent)) {
+                Files.write(htmlFile.toPath(), content.getBytes(StandardCharsets.UTF_8));
+                logger.debug("HTML-Datei bearbeitet: {}", htmlFile.getName());
+            }
+            
+        } catch (IOException e) {
+            logger.warn("Fehler beim Bearbeiten der HTML-Datei {}: {}", htmlFile.getName(), e.getMessage());
+        }
+    }
+    
+    /**
+     * Fügt ein Verzeichnis rekursiv zu einer ZIP-Datei hinzu
+     */
+    private void addDirectoryToZip(File rootDir, File currentDir, java.util.zip.ZipOutputStream zos) throws IOException {
+        File[] files = currentDir.listFiles();
+        if (files != null) {
+            for (File file : files) {
+                if (file.isDirectory()) {
+                    addDirectoryToZip(rootDir, file, zos);
+                } else {
+                    String relativePath = rootDir.toPath().relativize(file.toPath()).toString().replace("\\", "/");
+                    java.util.zip.ZipEntry entry = new java.util.zip.ZipEntry(relativePath);
+                    zos.putNextEntry(entry);
+                    
+                    try (java.io.FileInputStream fis = new java.io.FileInputStream(file)) {
+                        byte[] buffer = new byte[1024];
+                        int length;
+                        while ((length = fis.read(buffer)) > 0) {
+                            zos.write(buffer, 0, length);
+                        }
+                    }
+                    
+                    zos.closeEntry();
+                }
+            }
+        }
+    }
+    
+    /**
+     * Löscht ein Verzeichnis rekursiv
+     */
+    private void deleteDirectory(File directory) {
+        if (directory.exists()) {
+            File[] files = directory.listFiles();
+            if (files != null) {
+                for (File file : files) {
+                    if (file.isDirectory()) {
+                        deleteDirectory(file);
+                    } else {
+                        file.delete();
+                    }
+                }
+            }
+            directory.delete();
         }
     }
     
