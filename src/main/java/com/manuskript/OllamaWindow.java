@@ -1090,6 +1090,12 @@ public class OllamaWindow {
             cancelAllDebounceTimers();
             saveAllContextsNow();
             saveAllSessions();
+            
+            // Stelle die ursprünglichen Anführungszeichen im Editor wieder her
+            if (editorWindow != null) {
+                editorWindow.restoreOriginalQuotes();
+            }
+            
             try {
                 ResourceManager.saveParameter("ui.ollama_window_x", String.valueOf(stage.getX()));
                 ResourceManager.saveParameter("ui.ollama_window_y", String.valueOf(stage.getY()));

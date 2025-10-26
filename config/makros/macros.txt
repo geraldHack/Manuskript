@@ -8,7 +8,7 @@ CASE:0
 WORD:0
 ENABLED:1
 STEPDESC:ALLE Unicode doppelte Anführungszeichen zu englisch
-REPLACECOUNT:170
+REPLACECOUNT:134
 STEP:2
 SEARCH:[\u2018\u2019\u201A\u201B\u2039\u203A]
 REPLACE:'
@@ -17,7 +17,7 @@ CASE:0
 WORD:0
 ENABLED:1
 STEPDESC:ALLE Unicode einfache Anführungszeichen zu englisch
-REPLACECOUNT:8
+REPLACECOUNT:6
 STEP:3
 SEARCH:[ ]{2,}
 REPLACE:
@@ -26,7 +26,7 @@ CASE:0
 WORD:0
 ENABLED:1
 STEPDESC:Mehrfache Leerzeichen reduzieren
-REPLACECOUNT:1
+REPLACECOUNT:0
 STEP:4
 SEARCH:\n{2,}
 REPLACE:\n
@@ -35,7 +35,7 @@ CASE:0
 WORD:0
 ENABLED:1
 STEPDESC:Mehrfache Leerzeilen reduzieren
-REPLACECOUNT:93
+REPLACECOUNT:73
 STEP:5
 SEARCH:(?m)([^\r\n])\r?\n([^\r\n])
 REPLACE:$1\n\n$2
@@ -44,7 +44,7 @@ CASE:0
 WORD:0
 ENABLED:1
 STEPDESC:Absatzformat markdown-konform
-REPLACECOUNT:93
+REPLACECOUNT:73
 STEP:6
 SEARCH:...
 REPLACE:…
@@ -53,7 +53,7 @@ CASE:0
 WORD:0
 ENABLED:1
 STEPDESC:Auslassungszeichen
-REPLACECOUNT:1
+REPLACECOUNT:0
 STEP:7
 SEARCH:([A-Za-zÄÖÜäöüß])…
 REPLACE:$1 ...
@@ -98,8 +98,17 @@ CASE:0
 WORD:0
 ENABLED:1
 STEPDESC:*** als Trenner in --- ändern
-REPLACECOUNT:0
+REPLACECOUNT:1
 STEP:12
+SEARCH:(?<!\\n\\n)(\\n)(-{3,}|\*{3,}|_{3,})(\\n)(?!\\n)
+REPLACE:$1\n$2$3\n
+REGEX:1
+CASE:0
+WORD:0
+ENABLED:1
+STEPDESC:Markdown-Trenner mit Leerzeilen umgeben
+REPLACECOUNT:0
+STEP:13
 SEARCH:,\"
 REPLACE:\",
 REGEX:1
@@ -108,7 +117,7 @@ WORD:0
 ENABLED:1
 STEPDESC:Komma vor Anführungszeichen
 REPLACECOUNT:0
-STEP:13
+STEP:14
 SEARCH:"(.*?)"
 REPLACE:»$1«
 REGEX:1
@@ -116,8 +125,8 @@ CASE:0
 WORD:0
 ENABLED:1
 STEPDESC:Englisch zu Französisch - doppelte Anführungszeichen
-REPLACECOUNT:86
-STEP:14
+REPLACECOUNT:67
+STEP:15
 SEARCH:'(.*?)'
 REPLACE:›$1‹
 REGEX:1
@@ -125,8 +134,8 @@ CASE:0
 WORD:0
 ENABLED:1
 STEPDESC:Englisch zu Französisch - einfache Anführungszeichen
-REPLACECOUNT:5
-STEP:15
+REPLACECOUNT:3
+STEP:16
 SEARCH:"(.*?)"
 REPLACE:„$1"
 REGEX:1
@@ -135,7 +144,7 @@ WORD:0
 ENABLED:0
 STEPDESC:Englisch zu Deutsch - doppelte Anführungszeichen
 REPLACECOUNT:0
-STEP:16
+STEP:17
 SEARCH:'(.*?)'
 REPLACE:‚$1'
 REGEX:1
@@ -144,7 +153,7 @@ WORD:0
 ENABLED:0
 STEPDESC:Englisch zu Deutsch - einfache Anführungszeichen
 REPLACECOUNT:0
-STEP:17
+STEP:18
 SEARCH:"(.*?)"
 REPLACE:«$1»
 REGEX:1
@@ -153,7 +162,7 @@ WORD:0
 ENABLED:0
 STEPDESC:Englisch zu Schweizer - doppelte Anführungszeichen
 REPLACECOUNT:0
-STEP:18
+STEP:19
 SEARCH:'(.*?)'
 REPLACE:‹$1›
 REGEX:1
@@ -161,15 +170,6 @@ CASE:0
 WORD:0
 ENABLED:0
 STEPDESC:Englisch zu Schweizer - einfache Anführungszeichen
-REPLACECOUNT:0
-STEP:19
-SEARCH:(?<!\\n\\n)(\\n)(-{3,}|\*{3,}|_{3,})(\\n)(?!\\n)
-REPLACE:$1\n$2$3\n
-REGEX:1
-CASE:0
-WORD:0
-ENABLED:1
-STEPDESC:Markdown-Trenner mit Leerzeilen umgeben
 REPLACECOUNT:0
 STEP:20
 SEARCH:'

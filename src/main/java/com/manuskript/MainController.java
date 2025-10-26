@@ -5620,8 +5620,9 @@ public class MainController implements Initializable {
                             subDirName.equals("config") || subDirName.equals("logs") || 
                             subDirName.equals("export") || subDirName.equals("target") ||
                             subDirName.equals("src") || subDirName.equals("node_modules") ||
-                            subDirName.equals(".git") || subDirName.equals(".idea") ||
-                            subDirName.equals("__pycache__") || subDirName.equals(".vscode")) {
+                            subDirName.equals(".git") || subDirName.equals(".history") ||
+                            subDirName.equals("__pycache__") || subDirName.equals(".vscode") ||
+                            subDirName.equals("archiv")) {
                             continue;
                         }
                         

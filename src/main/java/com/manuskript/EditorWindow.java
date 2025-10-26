@@ -46,7 +46,7 @@ import org.fxmisc.flowless.VirtualizedScrollPane;
 
 import java.util.Collection;
 import java.util.Collections;
-
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -59,6 +59,10 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
+
 import javafx.scene.control.cell.PropertyValueFactory;
 import java.util.Properties;
 import java.io.InputStream;
@@ -217,6 +221,7 @@ public class EditorWindow implements Initializable {
     // Theme-Management
     private int currentThemeIndex = 0;
     private int currentQuoteStyleIndex = 0;
+    private int originalQuoteStyleIndex = 0; // Speichert die ursprüngliche Einstellung
     private boolean quoteToggleState = false; // false = öffnend, true = schließend
     private static final String[][] THEMES = {
         // Weißer Hintergrund / Schwarze Schrift
@@ -1356,7 +1361,7 @@ if (caret != null) {
         errorStage.show();
         
         // Status aktualisieren
-        updateStatus("⚠️ " + quoteErrors.size() + " Anführungszeichen-Fehler gefunden und angezeigt.");
+        updateStatus("⚠️ " + quoteErrors.size() + " Anführungszeichen-Fehler gefunden und angezeigt.", true);
     }
     
     /**
@@ -1406,7 +1411,7 @@ if (caret != null) {
             // Status-Meldung
             updateStatus("📍 Zu fehlerhaftem Absatz gesprungen");
         } else {
-            updateStatus("⚠️ Absatz im Editor nicht gefunden");
+            updateStatus("⚠️ Absatz im Editor nicht gefunden", true);
         }
     }
     
@@ -1799,7 +1804,7 @@ if (caret != null) {
                 updateStatus(totalMatches + " Treffer gefunden");
             } else {
                 updateMatchCount(0, 0);
-                updateStatus("Keine Treffer gefunden");
+                updateStatus("Keine Treffer gefunden", true);
                 currentMatchIndex = -1;
                 // Entferne alle Markierungen
                 codeArea.deselect();
@@ -1883,14 +1888,14 @@ if (caret != null) {
                     }
                 } else {
                     updateMatchCount(0, 0);
-                    updateStatus("Keine Treffer gefunden");
+                    updateStatus("Keine Treffer gefunden", true);
                 }
                 return;
             }
             
             if (totalMatches == 0) {
                 updateMatchCount(0, 0);
-                updateStatus("Keine Treffer gefunden");
+                updateStatus("Keine Treffer gefunden", true);
                 codeArea.deselect();
                 return;
             }
@@ -1940,7 +1945,7 @@ if (caret != null) {
             
             if (totalMatches == 0) {
                 updateMatchCount(0, 0);
-                updateStatus("Keine Treffer gefunden");
+                updateStatus("Keine Treffer gefunden", true);
                 codeArea.deselect();
                 return;
             }
@@ -2243,7 +2248,7 @@ if (caret != null) {
         }
         
         if (!found) {
-            updateStatus("Der markierte Text wurde nicht im Editor gefunden.");
+            updateStatus("Der markierte Text wurde nicht im Editor gefunden.", true);
         }
 
         if (!wasVisible) {
@@ -2420,17 +2425,65 @@ if (caret != null) {
     }
     
     public void updateStatus(String message) {
+        updateStatus(message, false);
+    }
+    
+    public void updateStatus(String message, boolean doPling) {
         lblStatus.setText(message);
         // Normale Farbe setzen, außer wenn es "nicht gesichert" ist
         if (!message.contains("nicht gesichert")) {
             lblStatus.setStyle("-fx-text-fill: #6c757d; -fx-font-size: 11px;"); // Normale Farbe
         }
+        
+        if (doPling) {
+            playNotificationSound();
+        }
+    }
+    
+    /**
+     * Spielt einen leisen, angenehmen "Pling" Sound ab
+     */
+    private void playNotificationSound() {
+        try {
+            // Lade die WAV-Datei aus dem resources-Ordner
+            String soundFile = getClass().getClassLoader().getResource("sound/pling.wav").toString();
+            
+            if (soundFile != null) {
+                Media media = new Media(soundFile);
+                MediaPlayer mediaPlayer = new MediaPlayer(media);
+                
+                // Setze Lautstärke auf 50% (leise)
+                mediaPlayer.setVolume(0.5);
+                
+                // Sound abspielen
+                mediaPlayer.play();
+                
+                logger.debug("WAV-Datei pling.wav mit JavaFX Media abgespielt");
+                
+            } else {
+                // Fallback: System beep
+                java.awt.Toolkit.getDefaultToolkit().beep();
+                logger.debug("WAV-Datei nicht gefunden, Fallback Sound abgespielt");
+            }
+            
+        } catch (Exception e) {
+            // Fallback: System beep
+            try {
+                java.awt.Toolkit.getDefaultToolkit().beep();
+                logger.debug("Fallback Sound abgespielt - Exception: " + e.getMessage());
+            } catch (Exception e2) {
+                logger.debug("Konnte keinen Sound abspielen: " + e2.getMessage());
+            }
+        }
+        
+       
     }
     
     private void updateStatusError(String message) {
         lblStatus.setText("❌ " + message);
         lblStatus.setStyle("-fx-text-fill: #dc3545; -fx-font-size: 11px; -fx-font-weight: bold;"); // Rote Farbe
         logger.error("Editor Fehler: {}", message);
+        playNotificationSound();
     }
     
     private void updateMatchCount(int current, int total) {
@@ -10093,8 +10146,12 @@ spacer.setStyle("-fx-background-color: transparent;");
         if (ollamaWindow.isShowing()) {
             ollamaWindow.hide();
             ollamaWindowVisible = false;
+            // Stelle die ursprünglichen Anführungszeichen wieder her
+            restoreOriginalQuotes();
             updateStatus("KI-Assistent geschlossen");
         } else {
+            // Aktiviere englische Anführungszeichen für KI-Assistent
+            enableEnglishQuotesForAI();
             ollamaWindow.show();
             ollamaWindowVisible = true;
             updateStatus("KI-Assistent geöffnet");
@@ -10161,6 +10218,67 @@ spacer.setStyle("-fx-background-color: transparent;");
             // Cursor nach dem eingefügten Text positionieren
             codeArea.moveTo(caretPosition + text.length());
             codeArea.requestFocus();
+        }
+    }
+    
+    /**
+     * Aktiviert englische Anführungszeichen für KI-Assistent
+     */
+    public void enableEnglishQuotesForAI() {
+        if (cmbQuoteStyle != null) {
+            // Speichere die aktuelle Einstellung
+            originalQuoteStyleIndex = currentQuoteStyleIndex;
+            
+            // Setze auf englische Anführungszeichen (Index 2)
+            if (currentQuoteStyleIndex != 2) {
+                currentQuoteStyleIndex = 2;
+                cmbQuoteStyle.setValue(QUOTE_STYLES[2][0]);
+                cmbQuoteStyle.setDisable(true);
+                
+                // Speichere die Einstellung in den Preferences
+                preferences.put("quoteStyle", String.valueOf(2));
+                try {
+                    preferences.flush();
+                } catch (java.util.prefs.BackingStoreException ex) {
+                    logger.warn("Konnte Quote-Style nicht speichern: " + ex.getMessage());
+                }
+                
+                // Konvertiere alle Anführungszeichen im Text (wie beim manuellen Dropdown-Wechsel)
+                convertAllQuotationMarksInText(QUOTE_STYLES[2][0]);
+                
+                // Zeige Alert nur wenn nicht bereits englisch
+                Platform.runLater(() -> {
+                    CustomAlert alert = new CustomAlert(Alert.AlertType.INFORMATION, "KI-Assistent");
+                    alert.setHeaderText(null);
+                    alert.setContentText("Solange der KI-Assistent geöffnet ist, werden englische Anführungszeichen verwendet.\n Wird der KI-Assistent geschlossen, wird der vorherige Zustand wiederhergestellt. ");
+                    alert.applyTheme(currentThemeIndex);
+                    alert.initOwner(stage);
+                    alert.showAndWait();
+                });
+            }
+        }
+    }
+    
+    /**
+     * Stellt die ursprünglichen Anführungszeichen-Einstellungen wieder her
+     */
+    public void restoreOriginalQuotes() {
+        if (cmbQuoteStyle != null) {
+            // Stelle die ursprüngliche Einstellung wieder her
+            currentQuoteStyleIndex = originalQuoteStyleIndex;
+            cmbQuoteStyle.setValue(QUOTE_STYLES[originalQuoteStyleIndex][0]);
+            cmbQuoteStyle.setDisable(false);
+            
+            // Speichere die ursprüngliche Einstellung in den Preferences
+            preferences.put("quoteStyle", String.valueOf(originalQuoteStyleIndex));
+            try {
+                preferences.flush();
+            } catch (java.util.prefs.BackingStoreException ex) {
+                logger.warn("Konnte Quote-Style nicht speichern: " + ex.getMessage());
+            }
+            
+            // Konvertiere alle Anführungszeichen zurück zur ursprünglichen Einstellung
+            convertAllQuotationMarksInText(QUOTE_STYLES[originalQuoteStyleIndex][0]);
         }
     }
     

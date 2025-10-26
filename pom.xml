@@ -22,6 +22,7 @@
     </properties>
 
     <dependencies>
+    
         <!-- JavaFX -->
         <dependency>
             <groupId>org.openjfx</groupId>
@@ -104,7 +105,18 @@
             <version>11.5.4</version>
         </dependency>
         
+        <!-- JavaFX Media für Audio-Wiedergabe -->
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-media</artifactId>
+            <version>17.0.2</version>
+        </dependency>
         
+
+
+
+
+
         <dependency>
             <groupId>org.docx4j</groupId>
             <artifactId>docx4j-JAXB-ReferenceImpl</artifactId>
