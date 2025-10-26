@@ -2294,7 +2294,7 @@ if (caret != null) {
     }
     
     private Pattern createSearchPattern(String searchText) {
-        int flags = Pattern.MULTILINE;
+        int flags = Pattern.MULTILINE | Pattern.DOTALL;
         if (!chkCaseSensitive.isSelected()) {
             flags |= Pattern.CASE_INSENSITIVE;
         }
@@ -2310,7 +2310,7 @@ if (caret != null) {
     
     private Pattern createReplacePattern(String searchText) {
         // Für Replace verwende immer das ursprüngliche Pattern ohne zusätzliche Escaping
-        int flags = Pattern.MULTILINE;
+        int flags = Pattern.MULTILINE | Pattern.DOTALL;
         if (!chkCaseSensitive.isSelected()) {
             flags |= Pattern.CASE_INSENSITIVE;
         }
@@ -2419,10 +2419,10 @@ if (caret != null) {
 
         boolean found = applySearchTerm(trimmed);
         
-        // Wenn keine Treffer gefunden wurden, prüfe ob der Text in Anführungszeichen steht
-        if (!found && (trimmed.startsWith("\"") && trimmed.endsWith("\"")) || 
-                      (trimmed.startsWith("'") && trimmed.endsWith("'"))) {
-            // Entferne Anführungszeichen und versuche es nochmal
+        // Wenn keine Treffer gefunden wurden, prüfe ob der Text NUR aus Anführungszeichen besteht
+        if (!found && ((trimmed.startsWith("\"") && trimmed.endsWith("\"") && trimmed.length() > 2) || 
+                       (trimmed.startsWith("'") && trimmed.endsWith("'") && trimmed.length() > 2))) {
+            // Entferne Anführungszeichen nur wenn der Text NUR aus Anführungszeichen besteht
             String withoutQuotes = trimmed.substring(1, trimmed.length() - 1);
             logger.debug("Erste Suche fehlgeschlagen, versuche ohne Anführungszeichen: '" + withoutQuotes + "'");
             found = applySearchTerm(withoutQuotes);
