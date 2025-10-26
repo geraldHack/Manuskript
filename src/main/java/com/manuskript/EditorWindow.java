@@ -248,18 +248,18 @@ public class EditorWindow implements Initializable {
     
     // Anführungszeichen-Mapping (öffnend, schließend)
     private static final String[][] QUOTE_MAPPING = {
-        {"\u201E", "\u201C"},        // Deutsch: U+201E, U+201C (Alt+0132, Alt+0147)
-        {"\u00BB", "\u00AB"},       // Französisch: U+00BB, U+00AB
-        {"\"", "\""},     // Englisch: U+0022, U+0022
-        {"\u00AB", "\u00BB"}        // Schweizer: U+00AB, U+00BB
+        {"\u201E", "\u201D"},        // Deutsch: U+201E („), U+201D (")
+        {"\u00BB", "\u00AB"},       // Französisch: U+00BB (»), U+00AB («)
+        {"\"", "\""},     // Englisch: U+0022 ("), U+0022 (")
+        {"\u00AB", "\u00BB"}        // Schweizer: U+00AB («), U+00BB (»)
     };
     
     // Einfache Anführungszeichen-Mapping (öffnend, schließend)
     private static final String[][] SINGLE_QUOTE_MAPPING = {
-        {"\u201A", "\u2019"},       // Deutsch: U+201A, U+2019
-        {"\u203A", "\u2039"},       // Französisch: U+203A, U+2039
-        {"'", "'"},       // Englisch: U+0027, U+0027
-        {"\u2039", "\u203A"}        // Schweizer: U+2039, U+203A
+        {"\u201A", "\u2018"},       // Deutsch: U+201A (‚), U+2018 (')
+        {"\u203A", "\u2039"},       // Französisch: U+203A (›), U+2039 (‹)
+        {"'", "'"},       // Englisch: U+0027 ('), U+0027 (')
+        {"\u2039", "\u203A"}        // Schweizer: U+2039 (‹), U+203A (›)
     };
     
     // Makro-Management
@@ -1390,15 +1390,27 @@ if (caret != null) {
             // Cursor setzen
             codeArea.moveTo(paragraphIndex);
             
-            // Dann zum Absatz scrollen - ein bisschen weiter nach unten
+            // Dann zum Absatz scrollen - in die Mitte des Bildschirms
             final int finalParagraphIndex = codeArea.offsetToPosition(paragraphIndex, Bias.Forward).getMajor();
             Platform.runLater(() -> {
-                // Erst zum Absatz scrollen
-                codeArea.showParagraphInViewport(finalParagraphIndex);
-                // Dann noch ein bisschen weiter nach unten scrollen
-                Platform.runLater(() -> {
-                    codeArea.showParagraphInViewport(finalParagraphIndex + 10);
-                });
+                try {
+                    // Für VirtualizedScrollPane: Erst in Viewport bringen, dann zentrieren
+                    codeArea.showParagraphInViewport(finalParagraphIndex);
+                    
+                    // Kleine Verzögerung für VirtualizedScrollPane-Update
+                    Timeline timeline = new Timeline(new KeyFrame(Duration.millis(50), event -> {
+                        try {
+                            codeArea.showParagraphAtCenter(finalParagraphIndex);
+                        } catch (Exception e) {
+                            logger.warn("Fehler beim Zentrieren: " + e.getMessage());
+                        }
+                    }));
+                    timeline.play();
+                } catch (Exception e) {
+                    logger.warn("Fehler beim Scrollen zum gefundenen Text: " + e.getMessage());
+                    // Fallback: Einfaches Scrollen
+                    codeArea.showParagraphInViewport(finalParagraphIndex);
+                }
             });
             
             // Fokus auf Editor setzen - verstärkt
@@ -1444,8 +1456,18 @@ if (caret != null) {
         
         // ZUVERLÄSSIGKEITS-CHECK: Überprüfe jeden Absatz auf ungerade Anführungszeichen (nur Warnung, keine automatische Korrektur)
         String[] paragraphs = text.split("\n");
-        for (String paragraph : paragraphs) {
+        
+        // Prüfe auf mehrzeilige Dialoge: Finde Dialog-Blöcke
+        List<int[]> dialogBlocks = findDialogBlocks(paragraphs);
+        
+        logger.debug("Anführungszeichen-Check: " + dialogBlocks.size() + " Dialog-Blöcke gefunden");
+        
+        for (int i = 0; i < paragraphs.length; i++) {
+            String paragraph = paragraphs[i];
             if (paragraph.trim().isEmpty()) continue;
+            
+            // Prüfe, ob dieser Absatz Teil eines Dialog-Blocks ist
+            boolean isPartOfDialog = isPartOfDialogBlock(i, dialogBlocks);
             
             // Zähle doppelte Anführungszeichen
             int doubleQuotes = 0;
@@ -1463,17 +1485,174 @@ if (caret != null) {
                 }
             }
             
-            // Wenn ungerade Anzahl -> Fehler sammeln für Anzeige
-            if (doubleQuotes % 2 != 0) {
+            logger.debug("Absatz " + i + ": " + doubleQuotes + " doppelte, " + singleQuotes + " einfache Anführungszeichen, Teil von Dialog: " + isPartOfDialog);
+            
+            // Wenn ungerade Anzahl UND nicht Teil eines Dialog-Blocks -> Fehler sammeln für Anzeige
+            if (doubleQuotes % 2 != 0 && !isPartOfDialog) {
+                logger.debug("FEHLER: Ungerade doppelte Anführungszeichen in Absatz " + i);
                 // Fehler für Anzeige sammeln
                 collectQuoteErrors(paragraph, "Doppelte Anführungszeichen", doubleQuotes);
             }
             
-            if (singleQuotes % 2 != 0) {
+            if (singleQuotes % 2 != 0 && !isPartOfDialog) {
+                logger.debug("FEHLER: Ungerade einfache Anführungszeichen in Absatz " + i);
                 // Fehler für Anzeige sammeln
                 collectQuoteErrors(paragraph, "Einfache Anführungszeichen", singleQuotes);
             }
         }
+    }
+    
+    /**
+     * Prüft, ob es sich um einen mehrzeiligen Dialog handelt
+     * Dialog: Erster Absatz beginnt mit Anführungszeichen, letzter Absatz endet mit Anführungszeichen
+     */
+    private boolean isMultiParagraphDialog(String[] paragraphs) {
+        if (paragraphs.length < 2) return false;
+        
+        // Suche nach Dialog-Blöcken: Finde alle Absätze, die mit Anführungszeichen beginnen
+        List<Integer> dialogStartIndices = new ArrayList<>();
+        List<Integer> dialogEndIndices = new ArrayList<>();
+        
+        for (int i = 0; i < paragraphs.length; i++) {
+            String paragraph = paragraphs[i].trim();
+            if (paragraph.isEmpty()) continue;
+            
+            // Absatz beginnt mit Anführungszeichen -> möglicher Dialog-Start
+            if (startsWithQuote(paragraph)) {
+                dialogStartIndices.add(i);
+            }
+            
+            // Absatz endet mit Anführungszeichen -> möglicher Dialog-Ende
+            if (endsWithQuote(paragraph)) {
+                dialogEndIndices.add(i);
+            }
+        }
+        
+        // Debug-Ausgabe
+        logger.debug("Dialog-Erkennung:");
+        logger.debug("  Dialog-Start-Indices: " + dialogStartIndices);
+        logger.debug("  Dialog-Ende-Indices: " + dialogEndIndices);
+        
+        // Prüfe, ob es einen Dialog-Block gibt, der über mehrere Absätze geht
+        for (int startIndex : dialogStartIndices) {
+            for (int endIndex : dialogEndIndices) {
+                if (endIndex > startIndex) {
+                    // Gefunden: Dialog von startIndex bis endIndex
+                    logger.debug("  Gefundener Dialog-Block: " + startIndex + " bis " + endIndex);
+                    return true;
+                }
+            }
+        }
+        
+        logger.debug("  Kein mehrzeiliger Dialog gefunden");
+        return false;
+    }
+    
+    /**
+     * Findet alle Dialog-Blöcke im Text
+     * Sequenzielle Prüfung: Absatz mit 1 Anführungszeichen -> suche nächsten mit Anführungszeichen
+     */
+    private List<int[]> findDialogBlocks(String[] paragraphs) {
+        List<int[]> dialogBlocks = new ArrayList<>();
+        
+        logger.debug("Dialog-Erkennung: Sequenzielle Prüfung der Absätze");
+        
+        for (int i = 0; i < paragraphs.length; i++) {
+            String paragraph = paragraphs[i].trim();
+            if (paragraph.isEmpty()) continue;
+            
+            // Zähle doppelte Anführungszeichen in diesem Absatz
+            int doubleQuotes = 0;
+            for (char c : paragraph.toCharArray()) {
+                if (c == '"' || c == '\u201E' || c == '\u201C' || c == '\u201D' || c == '\u00AB' || c == '\u00BB') {
+                    doubleQuotes++;
+                }
+            }
+            
+            logger.debug("  Absatz " + i + ": " + doubleQuotes + " doppelte Anführungszeichen");
+            
+            // Absatz hat ungerade Anzahl > 1 -> Fehler (wird später behandelt)
+            if (doubleQuotes > 1 && doubleQuotes % 2 != 0) {
+                logger.debug("    -> Ungerade Anzahl > 1: Fehler (wird später behandelt)");
+                continue;
+            }
+            
+            // Absatz hat genau 1 Anführungszeichen -> möglicher Multi-Start
+            if (doubleQuotes == 1) {
+                logger.debug("    -> Möglicher Multi-Start: Suche nächsten Absatz mit Anführungszeichen");
+                
+                // Suche nächsten Absatz mit Anführungszeichen
+                for (int j = i + 1; j < paragraphs.length; j++) {
+                    String nextParagraph = paragraphs[j].trim();
+                    if (nextParagraph.isEmpty()) continue;
+                    
+                    // Zähle doppelte Anführungszeichen im nächsten Absatz
+                    int nextDoubleQuotes = 0;
+                    for (char c : nextParagraph.toCharArray()) {
+                        if (c == '"' || c == '\u201E' || c == '\u201C' || c == '\u201D' || c == '\u00AB' || c == '\u00BB') {
+                            nextDoubleQuotes++;
+                        }
+                    }
+                    
+                    if (nextDoubleQuotes > 0) {
+                        logger.debug("    -> Nächster Absatz " + j + ": " + nextDoubleQuotes + " Anführungszeichen");
+                        
+                        if (nextDoubleQuotes > 1) {
+                            // Zahl > 1 -> Das war kein Multi! Fehler (wird später behandelt)
+                            logger.debug("      -> Zahl > 1: Das war kein Multi! Fehler (wird später behandelt)");
+                            break;
+                        } else if (nextDoubleQuotes == 1 && endsWithQuote(nextParagraph)) {
+                            // Zahl = 1 und abschließend -> Multi-Dialog gefunden
+                            dialogBlocks.add(new int[]{i, j});
+                            logger.debug("      -> Multi-Dialog gefunden: " + i + " bis " + j);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        
+        return dialogBlocks;
+    }
+    
+    /**
+     * Prüft, ob ein Absatz Teil eines Dialog-Blocks ist
+     */
+    private boolean isPartOfDialogBlock(int paragraphIndex, List<int[]> dialogBlocks) {
+        for (int[] block : dialogBlocks) {
+            if (paragraphIndex >= block[0] && paragraphIndex <= block[1]) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    /**
+     * Prüft, ob ein Text mit einem Anführungszeichen beginnt
+     */
+    private boolean startsWithQuote(String text) {
+        if (text == null || text.trim().isEmpty()) return false;
+        String trimmed = text.trim();
+        char firstChar = trimmed.charAt(0);
+        boolean result = firstChar == '"' || firstChar == '\u201E' || firstChar == '\u201C' || 
+               firstChar == '\u201D' || firstChar == '\u00AB' || firstChar == '\u00BB';
+        
+        logger.debug("startsWithQuote: '" + firstChar + "' (Unicode: " + (int)firstChar + ") = " + result);
+        return result;
+    }
+    
+    /**
+     * Prüft, ob ein Text mit einem Anführungszeichen endet
+     */
+    private boolean endsWithQuote(String text) {
+        if (text == null || text.trim().isEmpty()) return false;
+        String trimmed = text.trim();
+        char lastChar = trimmed.charAt(trimmed.length() - 1);
+        boolean result = lastChar == '"' || lastChar == '\u201E' || lastChar == '\u201C' || 
+               lastChar == '\u201D' || lastChar == '\u00AB' || lastChar == '\u00BB';
+        
+        logger.debug("endsWithQuote: '" + lastChar + "' (Unicode: " + (int)lastChar + ") = " + result);
+        return result;
     }
     
     /**
@@ -1490,7 +1669,12 @@ if (caret != null) {
         
         // ZUVERLÄSSIGKEITS-CHECK: Überprüfe jeden Absatz auf ungerade Anführungszeichen (nur Warnung, keine automatische Korrektur)
         String[] paragraphs = text.split("\n");
-        for (String paragraph : paragraphs) {
+        
+        // Prüfe auf mehrzeilige Dialoge: Erster Absatz beginnt mit Anführungszeichen, letzter endet mit Anführungszeichen
+        boolean isMultiParagraphDialog = isMultiParagraphDialog(paragraphs);
+        
+        for (int i = 0; i < paragraphs.length; i++) {
+            String paragraph = paragraphs[i];
             if (paragraph.trim().isEmpty()) continue;
             
             // Zähle doppelte Anführungszeichen
@@ -1509,13 +1693,13 @@ if (caret != null) {
                 }
             }
             
-            // Wenn ungerade Anzahl -> Fehler sammeln für Anzeige
-            if (doubleQuotes % 2 != 0) {
+            // Wenn ungerade Anzahl UND nicht Teil eines mehrzeiligen Dialogs -> Fehler sammeln für Anzeige
+            if (doubleQuotes % 2 != 0 && !isMultiParagraphDialog) {
                 // Fehler für Anzeige sammeln
                 collectQuoteErrors(paragraph, "Doppelte Anführungszeichen", doubleQuotes);
             }
             
-            if (singleQuotes % 2 != 0) {
+            if (singleQuotes % 2 != 0 && !isMultiParagraphDialog) {
                 // Fehler für Anzeige sammeln
                 collectQuoteErrors(paragraph, "Einfache Anführungszeichen", singleQuotes);
             }
@@ -4150,6 +4334,9 @@ if (caret != null) {
                 try {
                     Files.write(currentFile.toPath(), data.getBytes(StandardCharsets.UTF_8));
                     updateStatus("Buch gespeichert: " + currentFile.getName());
+                    
+                    // WICHTIG: Markiere als gespeichert (setzt hasUnsavedChanges = false)
+                    markAsSaved();
                 } catch (IOException e) {
                     updateStatusError("Fehler beim Speichern: " + e.getMessage());
                     return;
@@ -4307,6 +4494,9 @@ if (caret != null) {
             Files.write(file.toPath(), data.getBytes(StandardCharsets.UTF_8));
             updateStatus("Datei gespeichert: " + file.getName());
             
+            // WICHTIG: Markiere als gespeichert (setzt hasUnsavedChanges = false)
+            markAsSaved();
+            
             // Benachrichtige MainController über die Änderung (für Watcher)
             if (mainController != null) {
                 mainController.refreshDocxFiles();
@@ -4447,7 +4637,8 @@ if (caret != null) {
                 }
                 stage.close();
             } else if (result.get() == discardButton) {
-                // Verwerfen und schließen
+                // Verwerfen und schließen - WICHTIG: hasUnsavedChanges zurücksetzen
+                hasUnsavedChanges = false;
                 stage.close();
             } else if (result.get() == diffButton) {
                 // Diff anzeigen - verwende MainController Diff
@@ -4729,7 +4920,8 @@ if (caret != null) {
                     return false; // Navigation abbrechen bei Fehler
                 }
             } else if (result.get() == discardButton) {
-                // Verwerfen und Navigation fortsetzen
+                // Verwerfen und Navigation fortsetzen - WICHTIG: hasUnsavedChanges zurücksetzen
+                hasUnsavedChanges = false;
                 return true; // Navigation fortsetzen
             } else if (result.get() == diffButton) {
                 // Diff anzeigen - verwende MainController Diff
@@ -8692,6 +8884,7 @@ spacer.setStyle("-fx-background-color: transparent;");
     
     /**
      * Konvertiert alle Anführungszeichen im Text zu einem einheitlichen Stil
+     * NEUE IMPLEMENTIERUNG: Von Grund auf neu
      */
     private void convertAllQuotationMarksInText(String selectedStyle) {
         if (codeArea == null) return;
@@ -8699,27 +8892,34 @@ spacer.setStyle("-fx-background-color: transparent;");
         String currentText = codeArea.getText();
         if (currentText == null || currentText.isEmpty()) return;
         
-        // Bestimme den Ziel-Stil
-        String targetStyle = getTargetStyleFromSelected(selectedStyle);
-        if (targetStyle == null) return;
+        // Bestimme den Ziel-Stil basierend auf dem Dropdown
+        int targetStyleIndex = -1;
+        for (int i = 0; i < QUOTE_STYLES.length; i++) {
+            if (QUOTE_STYLES[i][0].equals(selectedStyle)) {
+                targetStyleIndex = i;
+                break;
+            }
+        }
         
-        // Finde alle Anführungszeichen und markiere sie
-        List<QuotationMarkConverter.QuotationMark> marks = QuotationMarkConverter.findQuotationMarks(currentText);
-        List<QuotationMarkConverter.Inconsistency> inconsistencies = QuotationMarkConverter.findInconsistencies(currentText);
+        if (targetStyleIndex == -1) return;
         
-        // Markiere alle gefundenen Anführungszeichen
-        markQuotationMarks(marks, inconsistencies);
+        logger.debug("Konvertiere Anführungszeichen zu Stil: " + selectedStyle + " (Index: " + targetStyleIndex + ")");
+        logger.debug("Originaler Text: " + currentText.substring(0, Math.min(100, currentText.length())));
         
-        // Konvertiere alle Anführungszeichen
-        String convertedText = QuotationMarkConverter.convertQuotationMarks(currentText, targetStyle);
+        // Konvertiere den Text
+        String convertedText = convertQuotationMarksToStyle(currentText, targetStyleIndex);
+        
+        logger.debug("Konvertierter Text: " + convertedText.substring(0, Math.min(100, convertedText.length())));
+        logger.debug("Text geändert: " + !currentText.equals(convertedText));
         
         // Prüfe ob Änderungen vorgenommen wurden
         if (!currentText.equals(convertedText)) {
             // Speichere Cursor-Position
             int caretPosition = codeArea.getCaretPosition();
             
-            // Ersetze den Text
-            codeArea.replaceText(0, currentText.length(), convertedText);
+            // Ersetze den Text - VERBESSERTE METHODE
+            codeArea.selectAll();
+            codeArea.replaceSelection(convertedText);
             
             // Stelle Cursor-Position wieder her
             if (caretPosition <= convertedText.length()) {
@@ -8728,11 +8928,146 @@ spacer.setStyle("-fx-background-color: transparent;");
                 codeArea.moveTo(convertedText.length());
             }
             
+            // FORCE REFRESH
+            codeArea.requestFocus();
+            
             // Zeige Erfolgsmeldung
+            updateStatus("✅ Anführungszeichen zu " + selectedStyle + " konvertiert");
             
             // NORMALISIERE HTML-TAGS: Rufe nach der Anführungszeichen-Konvertierung auf
             normalizeHtmlTagsInText();
         }
+    }
+    
+    /**
+     * Konvertiert alle Anführungszeichen im Text zu einem bestimmten Stil
+     * NEUE IMPLEMENTIERUNG: Einfach und korrekt
+     */
+    private String convertQuotationMarksToStyle(String text, int targetStyleIndex) {
+        logger.debug("convertQuotationMarksToStyle: targetStyleIndex=" + targetStyleIndex);
+        logger.debug("Text Länge: " + text.length());
+        
+        StringBuilder result = new StringBuilder(text);
+        boolean hasChanges = false;
+        
+        // 1. KONVERTIERE DOPPELTE ANFÜHRUNGSZEICHEN
+        // Finde alle Paare von doppelten Anführungszeichen
+        List<int[]> doubleQuotePairs = findDoubleQuotePairs(text);
+        logger.debug("Gefundene doppelte Anführungszeichen-Paare: " + doubleQuotePairs.size());
+        
+        for (int[] pair : doubleQuotePairs) {
+            int startPos = pair[0];
+            int endPos = pair[1];
+            
+            // Ersetze öffnende Anführungszeichen
+            char openingQuote = QUOTE_MAPPING[targetStyleIndex][0].charAt(0);
+            result.setCharAt(startPos, openingQuote);
+            
+            // Ersetze schließende Anführungszeichen
+            char closingQuote = QUOTE_MAPPING[targetStyleIndex][1].charAt(0);
+            result.setCharAt(endPos, closingQuote);
+            
+            hasChanges = true;
+        }
+        
+        // 2. KONVERTIERE EINFACHE ANFÜHRUNGSZEICHEN
+        // Finde alle Paare von einfachen Anführungszeichen
+        List<int[]> singleQuotePairs = findSingleQuotePairs(text);
+        
+        for (int[] pair : singleQuotePairs) {
+            int startPos = pair[0];
+            int endPos = pair[1];
+            
+            // Ersetze öffnende Anführungszeichen
+            char openingQuote = SINGLE_QUOTE_MAPPING[targetStyleIndex][0].charAt(0);
+            result.setCharAt(startPos, openingQuote);
+            
+            // Ersetze schließende Anführungszeichen
+            char closingQuote = SINGLE_QUOTE_MAPPING[targetStyleIndex][1].charAt(0);
+            result.setCharAt(endPos, closingQuote);
+            
+            hasChanges = true;
+        }
+        
+        return hasChanges ? result.toString() : text;
+    }
+    
+    /**
+     * Findet alle Paare von doppelten Anführungszeichen im Text
+     */
+    private List<int[]> findDoubleQuotePairs(String text) {
+        List<int[]> pairs = new ArrayList<>();
+        
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            
+            // Prüfe auf doppelte Anführungszeichen
+            if (c == '"' || c == '\u201E' || c == '\u201C' || c == '\u201D' || c == '\u00AB' || c == '\u00BB') {
+                // Suche nach dem passenden schließenden Anführungszeichen
+                for (int j = i + 1; j < text.length(); j++) {
+                    char nextC = text.charAt(j);
+                    if (nextC == '"' || nextC == '\u201E' || nextC == '\u201C' || nextC == '\u201D' || nextC == '\u00AB' || nextC == '\u00BB') {
+                        // Paar gefunden
+                        pairs.add(new int[]{i, j});
+                        i = j; // Überspringe das schließende Anführungszeichen
+                        break;
+                    }
+                }
+            }
+        }
+        
+        return pairs;
+    }
+    
+    /**
+     * Findet alle Paare von einfachen Anführungszeichen im Text
+     */
+    private List<int[]> findSingleQuotePairs(String text) {
+        List<int[]> pairs = new ArrayList<>();
+        
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            
+            // Prüfe auf einfache Anführungszeichen
+            if (c == '\'' || c == '\u2039' || c == '\u203A') {
+                // Prüfe ob es ein Apostroph ist (zwischen Buchstaben)
+                boolean isApostrophe = false;
+                if (i > 0 && i + 1 < text.length()) {
+                    char before = text.charAt(i - 1);
+                    char after = text.charAt(i + 1);
+                    if (Character.isLetter(before) && Character.isLetter(after)) {
+                        isApostrophe = true;
+                    }
+                }
+                
+                if (!isApostrophe) {
+                    // Suche nach dem passenden schließenden Anführungszeichen
+                    for (int j = i + 1; j < text.length(); j++) {
+                        char nextC = text.charAt(j);
+                        if (nextC == '\'' || nextC == '\u2039' || nextC == '\u203A') {
+                            // Prüfe ob das schließende Zeichen auch kein Apostroph ist
+                            boolean isClosingApostrophe = false;
+                            if (j > 0 && j + 1 < text.length()) {
+                                char before = text.charAt(j - 1);
+                                char after = text.charAt(j + 1);
+                                if (Character.isLetter(before) && Character.isLetter(after)) {
+                                    isClosingApostrophe = true;
+                                }
+                            }
+                            
+                            if (!isClosingApostrophe) {
+                                // Paar gefunden
+                                pairs.add(new int[]{i, j});
+                                i = j; // Überspringe das schließende Anführungszeichen
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        return pairs;
     }
     
     /**
@@ -10246,15 +10581,40 @@ spacer.setStyle("-fx-background-color: transparent;");
                 // Konvertiere alle Anführungszeichen im Text (wie beim manuellen Dropdown-Wechsel)
                 convertAllQuotationMarksInText(QUOTE_STYLES[2][0]);
                 
-                // Zeige Alert nur wenn nicht bereits englisch
-                Platform.runLater(() -> {
-                    CustomAlert alert = new CustomAlert(Alert.AlertType.INFORMATION, "KI-Assistent");
-                    alert.setHeaderText(null);
-                    alert.setContentText("Solange der KI-Assistent geöffnet ist, werden englische Anführungszeichen verwendet.\n Wird der KI-Assistent geschlossen, wird der vorherige Zustand wiederhergestellt. ");
-                    alert.applyTheme(currentThemeIndex);
-                    alert.initOwner(stage);
-                    alert.showAndWait();
-                });
+                // Zeige Alert nur wenn nicht bereits englisch und nicht unterdrückt
+                boolean showAlert = preferences.getBoolean("show_ai_quote_alert", true);
+                if (showAlert) {
+                    Platform.runLater(() -> {
+                        // Checkbox für "Nicht mehr anzeigen"
+                        CheckBox dontShowAgain = new CheckBox("Nicht mehr anzeigen");
+                        dontShowAgain.setStyle("-fx-font-size: 11px;");
+                        
+                        VBox content = new VBox(10);
+                        content.setPadding(new Insets(10));
+                        content.getChildren().addAll(
+                            new Label("Solange der KI-Assistent geöffnet ist, werden englische Anführungszeichen verwendet.\n Wird der KI-Assistent geschlossen, wird der vorherige Zustand wiederhergestellt."),
+                            dontShowAgain
+                        );
+                        
+                        CustomAlert alert = new CustomAlert(Alert.AlertType.INFORMATION, "KI-Assistent");
+                        alert.setHeaderText(null);
+                        alert.setCustomContent(content);
+                        alert.applyTheme(currentThemeIndex);
+                        alert.initOwner(stage);
+                        
+                        Optional<ButtonType> result = alert.showAndWait();
+                        
+                        // Speichere die Einstellung wenn Checkbox aktiviert
+                        if (dontShowAgain.isSelected()) {
+                            preferences.putBoolean("show_ai_quote_alert", false);
+                            try {
+                                preferences.flush();
+                            } catch (java.util.prefs.BackingStoreException ex) {
+                                logger.warn("Konnte Alert-Einstellung nicht speichern: " + ex.getMessage());
+                            }
+                        }
+                    });
+                }
             }
         }
     }
