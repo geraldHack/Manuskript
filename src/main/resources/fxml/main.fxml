@@ -30,7 +30,7 @@
       <HBox spacing="10" VBox.vgrow="ALWAYS">
          <children>
             <!-- Linke Tabelle: Verfügbare Dateien -->
-            <VBox spacing="5" HBox.hgrow="ALWAYS">
+            <VBox spacing="6" HBox.hgrow="ALWAYS">
                <children>
                   <Label text="Verfügbare Dateien:" styleClass="section-header" />
                   <CheckBox fx:id="chkDownloadsMonitor" text="📥 Downloads-Monitor: Neue Dateien automatisch überwachen" styleClass="downloads-monitor-checkbox" />

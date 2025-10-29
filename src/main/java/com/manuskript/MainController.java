@@ -6347,47 +6347,7 @@ public class MainController implements Initializable {
         }
     }
     
-    /**
-     * TEST: Zeigt eine einfache CustomStage mit nur Text
-     */
-    private void showTestCustomStage() {
-        try {
-            // Erstelle CustomStage
-            CustomStage testStage = new CustomStage();
-            testStage.setCustomTitle("Test CustomStage");
-            testStage.setMinWidth(400);
-            testStage.setMinHeight(300);
-            testStage.setWidth(500);
-            testStage.setHeight(400);
-            
-            // Einfacher Text
-            Label testLabel = new Label("Das ist ein Test-Text");
-            testLabel.setStyle("-fx-font-size: 16px; -fx-padding: 20px;");
-            
-            VBox testLayout = new VBox(20);
-            testLayout.setPadding(new Insets(20));
-            testLayout.getChildren().add(testLabel);
-            
-            // Scene erstellen
-            Scene testScene = new Scene(testLayout);
-            
-            // CSS laden
-            String cssPath = ResourceManager.getCssResource("css/manuskript.css");
-            if (cssPath != null) {
-                testScene.getStylesheets().add(cssPath);
-            }
-            
-            testStage.setSceneWithTitleBar(testScene);
-            
-            // CustomStage Theme anwenden NACH setSceneWithTitleBar
-            testStage.setFullTheme(currentThemeIndex);
-            testStage.initOwner(primaryStage);
-            testStage.showAndWait();
-            
-        } catch (Exception e) {
-            logger.error("Fehler beim Öffnen der Test-CustomStage", e);
-        }
-    }
+   
     
     private void setupFlowPaneDragHandlers(FlowPane projectFlow, CustomStage projectStage) {
         projectFlow.setOnDragOver(event -> {
