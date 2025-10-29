@@ -410,7 +410,9 @@ public class EditorWindow implements Initializable {
         
         // Timer für Markdown-Styling - IMMER anwenden aber existierende Styles bewahren
         Timeline stylingTimer = new Timeline(new KeyFrame(Duration.seconds(1), event -> {
-            applyCombinedStyling();
+            Platform.runLater(() -> {
+                applyCombinedStyling();
+            });
         }));
         stylingTimer.setCycleCount(Timeline.INDEFINITE);
         stylingTimer.play();

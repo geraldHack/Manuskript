@@ -1508,7 +1508,7 @@ public class MainController implements Initializable {
             selectedDocxFiles.removeIf(docxFile -> !docxFile.getFile().exists());
             
             for (DocxFile docxFile : allFiles) {
-                String currentHash = calculateFileHash(docxFile.getFile());
+                String currentHash = calculateFileHashString(docxFile.getFile());
                 String savedHash = loadDocxHash(docxFile.getFile());
                 
                 if (currentHash != null && savedHash != null && !currentHash.equals(savedHash)) {
@@ -1593,7 +1593,7 @@ public class MainController implements Initializable {
     /**
      * Berechnet einen CRC32-Hash für eine Datei
      */
-    private String calculateFileHash(File file) {
+    private String calculateFileHashString(File file) {
         long hash = DiffProcessor.calculateFileHash(file);
         return hash != -1 ? Long.toHexString(hash) : null;
     }
@@ -1633,7 +1633,7 @@ public class MainController implements Initializable {
      */
     public void updateDocxHashAfterAccept(File docxFile) {
         try {
-            String currentHash = calculateFileHash(docxFile);
+            String currentHash = calculateFileHashString(docxFile);
             if (currentHash != null) {
                 saveDocxHash(docxFile, currentHash);
             }
@@ -1969,13 +1969,13 @@ public class MainController implements Initializable {
                                 String mdContent = new String(java.nio.file.Files.readAllBytes(mdFile.toPath()), java.nio.charset.StandardCharsets.UTF_8);
                                 DiffProcessor.DiffResult diff = DiffProcessor.createDiff(docxContent, mdContent);
                                 showDetailedDiffDialog(chapterFile, mdFile, diff, format);
-                            } catch (Exception e) {
-                                logger.error("Fehler beim Anzeigen des DOCX/MD-Diffs", e);
-                                showError("Fehler", "Diff konnte nicht angezeigt werden: " + e.getMessage());
-                            }
-                            return; // nach Diff kein Editor öffnen
-                        }
-                        case DOCX: {
+                                    } catch (Exception e) {
+                                        logger.error("Fehler beim Anzeigen des DOCX/MD-Diffs", e);
+                                        showError("Fehler", "Diff konnte nicht angezeigt werden: " + e.getMessage());
+                                    }
+                                    return; // nach Diff kein Editor öffnen
+                                }
+                                case DOCX: {
                             try {
                                 String docxContent = docxProcessor.processDocxFileContent(chapterFile.getFile(), 1, format);
                                 
@@ -1998,7 +1998,8 @@ public class MainController implements Initializable {
                                 }
                                 
                                 updateStatus("Kapitel-Editor geöffnet (DOCX übernommen): " + chapterFile.getFileName());
-                                // Hash aktualisieren und "!" aus Tabelle entfernen
+                                // Hash aktualisieren und "!" aus Tabelle entfernen (asynchron)
+                                DiffProcessor.saveDocxHashAsync(chapterFile.getFile(), mdFile);
                                 updateDocxHashAfterAccept(chapterFile.getFile());
                                 markDocxFileAsUnchanged(chapterFile.getFile());
                             } catch (Exception e) {
@@ -2024,22 +2025,21 @@ public class MainController implements Initializable {
                             return;
                     }
                 } else {
-                }
+                    // Keine Änderung - MD-Datei öffnen (Standard-Verhalten)
+                    try {
+                        String mdContent = new String(java.nio.file.Files.readAllBytes(mdFile.toPath()), java.nio.charset.StandardCharsets.UTF_8);
 
-                // MD-Datei existiert - lade MD-Inhalt
-                try {
-                    String mdContent = new String(java.nio.file.Files.readAllBytes(mdFile.toPath()), java.nio.charset.StandardCharsets.UTF_8);
+                        // Öffne Chapter-Editor mit MD-Inhalt
+                        openChapterEditorWindow(mdContent, chapterFile, format);
+                        updateStatus("Kapitel-Editor geöffnet (MD): " + chapterFile.getFileName());
 
-                    // Öffne Chapter-Editor mit MD-Inhalt
-                    openChapterEditorWindow(mdContent, chapterFile, format);
-                    updateStatus("Kapitel-Editor geöffnet (MD): " + chapterFile.getFileName());
-
-                } catch (Exception e) {
-                    logger.error("Fehler beim Laden der MD-Datei", e);
-                    // Fallback: Lade DOCX-Inhalt
-                    String content = docxProcessor.processDocxFileContent(chapterFile.getFile(), 1, format);
-                    openChapterEditorWindow(content, chapterFile, format);
-                    updateStatus("Kapitel-Editor geöffnet (DOCX-Fallback): " + chapterFile.getFileName());
+                    } catch (Exception e) {
+                        logger.error("Fehler beim Laden der MD-Datei", e);
+                        // Fallback: Lade DOCX-Inhalt
+                        String content = docxProcessor.processDocxFileContent(chapterFile.getFile(), 1, format);
+                        openChapterEditorWindow(content, chapterFile, format);
+                        updateStatus("Kapitel-Editor geöffnet (DOCX-Fallback): " + chapterFile.getFileName());
+                    }
                 }
             } else {
                 // Keine MD-Datei - konvertiere DOCX zu MD und speichere
@@ -2339,6 +2339,7 @@ public class MainController implements Initializable {
             List<CheckBox> blockCheckBoxes = new ArrayList<>();
             List<List<String>> blockTexts = new ArrayList<>();
             
+            // Erstelle echten Diff mit Block-Erkennung (asynchron)
             // Erstelle echten Diff mit Block-Erkennung
             DiffProcessor.DiffResult realDiff = DiffProcessor.createDiff(mdContent, docxContent);
             
@@ -4029,7 +4030,9 @@ public class MainController implements Initializable {
         downloadsMonitorTimer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
-                checkForNewFiles();
+                Platform.runLater(() -> {
+                    checkForNewFiles();
+                });
             }
         }, 0, 5000); // Sofort starten, dann alle 5 Sekunden
         
@@ -4873,7 +4876,7 @@ public class MainController implements Initializable {
                 
                 // Erstelle Hash für das neue Kapitel (damit es als "unverändert" markiert wird)
                 try {
-                    String hash = calculateFileHash(docxFile);
+                    String hash = calculateFileHashString(docxFile);
                     if (hash != null) {
                         saveDocxHash(docxFile, hash);
                     }

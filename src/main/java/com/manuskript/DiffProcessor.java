@@ -11,8 +11,12 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import javafx.application.Platform;
 
 /**
  * Verarbeitet Diff-Operationen zwischen DOCX-Dateien und Sidecar-Dateien
@@ -20,6 +24,7 @@ import org.slf4j.LoggerFactory;
 public class DiffProcessor {
     
     private static final Logger logger = LoggerFactory.getLogger(DiffProcessor.class);
+    private static final ExecutorService backgroundExecutor = Executors.newFixedThreadPool(2);
     
     /**
      * Berechnet CRC32-Hash einer Datei
@@ -42,7 +47,60 @@ public class DiffProcessor {
     }
     
     /**
-     * Prüft ob eine DOCX-Datei seit der letzten Verarbeitung geändert wurde
+     * Berechnet CRC32-Hash einer Datei (asynchron)
+     */
+    public static CompletableFuture<Long> calculateFileHashAsync(File file) {
+        return CompletableFuture.supplyAsync(() -> {
+            if (file == null || !file.exists()) {
+                return -1L;
+            }
+            
+            try (CheckedInputStream cis = new CheckedInputStream(new FileInputStream(file), new CRC32())) {
+                byte[] buffer = new byte[8192];
+                while (cis.read(buffer) != -1) {
+                    // Lese die gesamte Datei
+                }
+                return cis.getChecksum().getValue();
+            } catch (IOException e) {
+                logger.error("Fehler beim Berechnen des Datei-Hashs: {}", e.getMessage());
+                return -1L;
+            }
+        }, backgroundExecutor);
+    }
+    
+    
+    /**
+     * Prüft ob eine DOCX-Datei seit der letzten Verarbeitung geändert wurde (asynchron)
+     */
+    public static CompletableFuture<Boolean> hasDocxChangedAsync(File docxFile, File sidecarFile) {
+        return CompletableFuture.supplyAsync(() -> {
+            if (docxFile == null || !docxFile.exists()) {
+                return false;
+            }
+            
+            // Wenn keine Sidecar-Datei existiert, ist die DOCX "neu" - aber nur wenn auch .meta fehlt
+            if (sidecarFile == null || !sidecarFile.exists()) {
+                // Prüfe ob .meta Datei existiert
+                File metaFile = new File(docxFile.getParent(), docxFile.getName() + ".meta");
+                if (!metaFile.exists()) {
+                    return true; // Keine .meta Datei = DOCX wurde noch nie verarbeitet
+                }
+                return false; // .meta existiert, aber keine MD - das ist normal
+            }
+            
+            // Lade gespeicherten Hash aus Sidecar-Metadaten
+            long savedHash = loadSavedHash(sidecarFile);
+            long currentHash = calculateFileHash(docxFile);
+            
+            // Wenn kein gespeicherter Hash existiert (savedHash = -1), betrachte DOCX als geändert
+            boolean result = (savedHash == -1) || (savedHash != -1 && currentHash != -1 && savedHash != currentHash);
+            
+            return result;
+        }, backgroundExecutor);
+    }
+    
+    /**
+     * Prüft ob eine DOCX-Datei seit der letzten Verarbeitung geändert wurde (synchron)
      */
     public static boolean hasDocxChanged(File docxFile, File sidecarFile) {
         if (docxFile == null || !docxFile.exists()) {
@@ -113,7 +171,31 @@ public class DiffProcessor {
     }
     
     /**
-     * Speichert den Hash einer DOCX-Datei in Sidecar-Metadaten
+     * Speichert den Hash einer DOCX-Datei in Sidecar-Metadaten (asynchron)
+     */
+    public static CompletableFuture<Void> saveDocxHashAsync(File docxFile, File sidecarFile) {
+        return CompletableFuture.runAsync(() -> {
+            if (docxFile == null || sidecarFile == null) {
+                return;
+            }
+            
+            try {
+                long hash = calculateFileHash(docxFile);
+                Path metadataPath = sidecarFile.toPath().resolveSibling(sidecarFile.getName() + ".meta");
+                
+                String metadata = String.format("docx_hash=%d\ndocx_path=%s\nlast_updated=%d\n", 
+                    hash, docxFile.getAbsolutePath(), System.currentTimeMillis());
+                
+                Files.writeString(metadataPath, metadata);
+                
+            } catch (Exception e) {
+                logger.error("Fehler beim Speichern des DOCX-Hashs: {}", e.getMessage());
+            }
+        }, backgroundExecutor);
+    }
+    
+    /**
+     * Speichert den Hash einer DOCX-Datei in Sidecar-Metadaten (synchron)
      */
     public static void saveDocxHash(File docxFile, File sidecarFile) {
         if (docxFile == null || sidecarFile == null) {
@@ -132,6 +214,15 @@ public class DiffProcessor {
         } catch (Exception e) {
             logger.error("Fehler beim Speichern des DOCX-Hashs: {}", e.getMessage());
         }
+    }
+    
+    /**
+     * Erstellt ein Diff zwischen zwei Texten mit echtem Myers-Diff-Algorithmus (asynchron)
+     */
+    public static CompletableFuture<DiffResult> createDiffAsync(String originalText, String newText) {
+        return CompletableFuture.supplyAsync(() -> {
+            return createDiff(originalText, newText);
+        }, backgroundExecutor);
     }
     
     /**
@@ -374,6 +465,15 @@ public class DiffProcessor {
     }
     
     /**
+     * Erstellt HTML-Diff-Output (asynchron)
+     */
+    public static CompletableFuture<String> createHtmlDiffAsync(DiffResult diffResult) {
+        return CompletableFuture.supplyAsync(() -> {
+            return createHtmlDiff(diffResult);
+        }, backgroundExecutor);
+    }
+    
+    /**
      * Erstellt HTML-Diff-Output
      */
     public static String createHtmlDiff(DiffResult diffResult) {
@@ -475,6 +575,13 @@ public class DiffProcessor {
         public void setDiffLines(List<DiffLine> diffLines) { this.diffLines = diffLines; }
         public boolean hasChanges() { return hasChanges; }
         public void setHasChanges(boolean hasChanges) { this.hasChanges = hasChanges; }
+    }
+    
+    /**
+     * Schließt den Background-Executor (beim Beenden der Anwendung aufrufen)
+     */
+    public static void shutdown() {
+        backgroundExecutor.shutdown();
     }
 }
 
