@@ -10688,7 +10688,7 @@ spacer.setStyle("-fx-background-color: transparent;");
         
         // Lade das vorherige Kapitel
         File previousFile = selectedFiles.get(previousIndex);
-        loadChapterFile(previousFile);
+        navigateToChapter(previousFile);
         
         updateStatus("Vorheriges Kapitel geladen: " + previousFile.getName());
     }
@@ -10730,9 +10730,54 @@ spacer.setStyle("-fx-background-color: transparent;");
         
         // Lade das nächste Kapitel
         File nextFile = selectedFiles.get(nextIndex);
-        loadChapterFile(nextFile);
+        navigateToChapter(nextFile);
         
         updateStatus("Nächstes Kapitel geladen: " + nextFile.getName());
+    }
+    
+    /**
+     * Navigiert zu einem Kapitel - prüft auf bestehende Editoren
+     */
+    private void navigateToChapter(File targetFile) {
+        if (mainController == null) {
+            updateStatus("Navigation nicht verfügbar - MainController nicht gesetzt");
+            return;
+        }
+        
+        // Erstelle den Editor-Key für das Ziel-Kapitel
+        String chapterName = targetFile.getName();
+        if (chapterName.toLowerCase().endsWith(".docx")) {
+            chapterName = chapterName.substring(0, chapterName.length() - 5);
+        }
+        String editorKey = chapterName + ".md";
+        
+        // Prüfe, ob bereits ein Editor für dieses Kapitel existiert
+        EditorWindow existingEditor = mainController.findExistingEditor(editorKey);
+        
+        if (existingEditor != null && existingEditor != this) {
+            // Editor existiert bereits UND ist nicht der aktuelle Editor - bringe ihn in den Vordergrund und schließe den aktuellen Editor
+            Platform.runLater(() -> {
+                if (existingEditor.getStage() != null && existingEditor.getStage().isShowing()) {
+                    // Mehrere Methoden verwenden, um sicherzustellen, dass das Fenster in den Vordergrund kommt
+                    existingEditor.getStage().setIconified(false); // Entminimieren falls minimiert
+                    existingEditor.getStage().toFront(); // In den Vordergrund
+                    existingEditor.getStage().requestFocus(); // Fokus setzen
+                    existingEditor.getStage().setAlwaysOnTop(true); // Temporär immer oben
+                    existingEditor.getStage().setAlwaysOnTop(false); // Wieder normal
+                }
+            });
+            updateStatus("Bestehender Editor für '" + targetFile.getName() + "' in den Vordergrund gebracht");
+            
+            // Schließe den aktuellen Editor
+            Platform.runLater(() -> {
+                if (stage != null && stage.isShowing()) {
+                    stage.close();
+                }
+            });
+        } else {
+            // Kein Editor existiert ODER es ist derselbe Editor - lade das Kapitel in den aktuellen Editor
+            loadChapterFile(targetFile);
+        }
     }
     
     /**
@@ -10875,6 +10920,16 @@ spacer.setStyle("-fx-background-color: transparent;");
             // Aktualisiere die Navigation-Buttons
             updateNavigationButtons();
             
+            // WICHTIG: Editor für das neue Kapitel in der openEditors Map registrieren
+            if (mainController != null) {
+                // Registriere den Editor für das neue Kapitel
+                String chapterName = file.getName();
+                if (chapterName.toLowerCase().endsWith(".docx")) {
+                    chapterName = chapterName.substring(0, chapterName.length() - 5);
+                }
+                String editorKey = chapterName + ".md";
+                mainController.registerEditor(editorKey, this);
+            }
             
         } catch (Exception e) {
             updateStatusError("Fehler beim Laden des Kapitels: " + e.getMessage());

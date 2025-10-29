@@ -1955,6 +1955,30 @@ public class MainController implements Initializable {
             // Verarbeite nur dieses eine Kapitel - nur noch MD
             DocxProcessor.OutputFormat format = DocxProcessor.OutputFormat.MARKDOWN;
             
+            // WICHTIG: Prüfe zuerst, ob bereits ein Editor für dieses Kapitel existiert
+            String chapterName = chapterFile.getFileName();
+            if (chapterName.toLowerCase().endsWith(".docx")) {
+                chapterName = chapterName.substring(0, chapterName.length() - 5);
+            }
+            String editorKey = chapterName + ".md";
+            EditorWindow existingEditor = findExistingEditor(editorKey);
+            
+            if (existingEditor != null) {
+                // Editor existiert bereits - bringe ihn in den Vordergrund
+                Platform.runLater(() -> {
+                    if (existingEditor.getStage() != null && existingEditor.getStage().isShowing()) {
+                        // Mehrere Methoden verwenden, um sicherzustellen, dass das Fenster in den Vordergrund kommt
+                        existingEditor.getStage().setIconified(false); // Entminimieren falls minimiert
+                        existingEditor.getStage().toFront(); // In den Vordergrund
+                        existingEditor.getStage().requestFocus(); // Fokus setzen
+                        existingEditor.getStage().setAlwaysOnTop(true); // Temporär immer oben
+                        existingEditor.getStage().setAlwaysOnTop(false); // Wieder normal
+                    }
+                });
+                updateStatus("Bestehender Editor für '" + chapterFile.getFileName() + "' in den Vordergrund gebracht");
+                return; // Kein neuer Editor nötig
+            }
+            
             // Prüfe ob eine MD-Datei existiert
             File mdFile = deriveMdFileFor(chapterFile.getFile());
             
@@ -2030,15 +2054,19 @@ public class MainController implements Initializable {
                         String mdContent = new String(java.nio.file.Files.readAllBytes(mdFile.toPath()), java.nio.charset.StandardCharsets.UTF_8);
 
                         // Öffne Chapter-Editor mit MD-Inhalt
-                        openChapterEditorWindow(mdContent, chapterFile, format);
-                        updateStatus("Kapitel-Editor geöffnet (MD): " + chapterFile.getFileName());
+                        EditorWindow editor = openChapterEditorWindow(mdContent, chapterFile, format);
+                        if (editor != null) {
+                            updateStatus("Kapitel-Editor geöffnet (MD): " + chapterFile.getFileName());
+                        }
 
                     } catch (Exception e) {
                         logger.error("Fehler beim Laden der MD-Datei", e);
                         // Fallback: Lade DOCX-Inhalt
                         String content = docxProcessor.processDocxFileContent(chapterFile.getFile(), 1, format);
-                        openChapterEditorWindow(content, chapterFile, format);
-                        updateStatus("Kapitel-Editor geöffnet (DOCX-Fallback): " + chapterFile.getFileName());
+                        EditorWindow editor = openChapterEditorWindow(content, chapterFile, format);
+                        if (editor != null) {
+                            updateStatus("Kapitel-Editor geöffnet (DOCX-Fallback): " + chapterFile.getFileName());
+                        }
                     }
                 }
             } else {
@@ -2056,8 +2084,10 @@ public class MainController implements Initializable {
                 }
                 
                 // Öffne Chapter-Editor mit konvertiertem Inhalt
-                openChapterEditorWindow(content, chapterFile, format);
-                updateStatus("Kapitel-Editor geöffnet (DOCX→MD): " + chapterFile.getFileName());
+                EditorWindow editor = openChapterEditorWindow(content, chapterFile, format);
+                if (editor != null) {
+                    updateStatus("Kapitel-Editor geöffnet (DOCX→MD): " + chapterFile.getFileName());
+                }
             }
             
         } catch (Exception e) {
@@ -3312,6 +3342,94 @@ public class MainController implements Initializable {
     
     // autoSortFiles wurde in loadDocxFiles integriert
     
+    /**
+     * Findet einen bestehenden Editor für ein Kapitel
+     */
+    public EditorWindow findExistingEditor(String editorKey) {
+        // 1) Direkter Treffer aus der Map
+        EditorWindow editor = openEditors.get(editorKey);
+        if (editor != null) {
+            if (editor.getStage() == null || !editor.getStage().isShowing()) {
+                // Stale Entry – entfernen
+                openEditors.remove(editorKey);
+                editor = null;
+            } else {
+                // Prüfen, ob der Editor-Schlüssel noch zum aktuellen Kapitel passt
+                String currentKey = buildEditorKeyFor(editor);
+                if (currentKey == null || !currentKey.equals(editorKey)) {
+                    // Falscher Schlüssel – Map korrigieren
+                    openEditors.remove(editorKey);
+                    if (currentKey != null) {
+                        openEditors.put(currentKey, editor);
+                    }
+                    editor = null;
+                }
+            }
+        }
+
+        if (editor != null) {
+            return editor;
+        }
+
+        // 2) Kein Treffer: vorhandene Einträge auf passenden Controller prüfen und Map reparieren
+        for (EditorWindow candidate : openEditors.values()) {
+            if (candidate == null) continue;
+            if (candidate.getStage() == null || !candidate.getStage().isShowing()) continue;
+            String currentKey = buildEditorKeyFor(candidate);
+            if (currentKey != null && currentKey.equals(editorKey)) {
+                openEditors.put(editorKey, candidate);
+                return candidate;
+            }
+        }
+
+        return null;
+    }
+
+    private String buildEditorKeyFor(EditorWindow editor) {
+        try {
+            java.io.File docx = editor.getOriginalDocxFile();
+            if (docx == null) return null;
+            String name = docx.getName();
+            if (name.toLowerCase().endsWith(".docx")) {
+                name = name.substring(0, name.length() - 5);
+            }
+            return name + ".md";
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
+    
+    /**
+     * Schließt den aktuell fokussierten Editor
+     */
+    public void closeCurrentlyFocusedEditor() {
+        Platform.runLater(() -> {
+            for (Window window : Window.getWindows()) {
+                if (window.isFocused() && window instanceof CustomStage) {
+                    CustomStage customStage = (CustomStage) window;
+                    if (customStage.getTitle().contains("Kapitel-Editor")) {
+                        customStage.close();
+                        break;
+                    }
+                }
+            }
+        });
+    }
+    
+    /**
+     * Registriert einen Editor in der openEditors Map
+     */
+    public void registerEditor(String editorKey, EditorWindow editor) {
+        openEditors.put(editorKey, editor);
+    }
+    
+    /**
+     * Entfernt einen Editor aus der openEditors Map
+     */
+    public void unregisterEditor(String editorKey) {
+        openEditors.remove(editorKey);
+    }
+    
     private EditorWindow openChapterEditorWindow(String text, DocxFile chapterFile, DocxProcessor.OutputFormat format) {
         try {
             
@@ -3324,80 +3442,20 @@ public class MainController implements Initializable {
             EditorWindow existingEditor = openEditors.get(editorKey);
             
             if (existingEditor != null) {
-                // Editor bereits geöffnet - prüfe auf ungespeicherte Änderungen
-                if (existingEditor.hasUnsavedChanges()) {
-                    // Dialog: Was tun mit ungespeicherten Änderungen?
-                    CustomAlert editorDialog = new CustomAlert(Alert.AlertType.CONFIRMATION, "Editor bereits geöffnet");
-                    editorDialog.setHeaderText("Der Editor für '" + chapterFile.getFileName() + "' ist bereits geöffnet.");
-                    editorDialog.setContentText("Es gibt ungespeicherte Änderungen. Was möchten Sie tun?");
-                    
-                    ButtonType btnSaveAndReopen = new ButtonType("Speichern und neu öffnen");
-                    ButtonType btnDiscardAndReopen = new ButtonType("Verwerfen und neu öffnen");
-                    ButtonType btnJustFocus = new ButtonType("Nur fokussieren");
-                    ButtonType btnCancel = new ButtonType("Abbrechen", ButtonBar.ButtonData.CANCEL_CLOSE);
-                    
-                    editorDialog.setButtonTypes(btnSaveAndReopen, btnDiscardAndReopen, btnJustFocus, btnCancel);
-                    
-                    // Theme anwenden
-                    editorDialog.applyTheme(currentThemeIndex);
-                    editorDialog.initOwner(primaryStage);
-                    
-                    Optional<ButtonType> result = editorDialog.showAndWait();
-                    
-                    if (result.isPresent()) {
-                        switch (result.get().getText()) {
-                            case "Speichern und neu öffnen":
-                                // Speichern und dann neu öffnen
-                                existingEditor.saveFile();
-                                // Editor schließen und neu öffnen
-                                existingEditor.closeWindow();
-                                openEditors.remove(editorKey);
-                                // WICHTIG: Neuen Editor mit gespeichertem Inhalt öffnen
-                                // Lade den gespeicherten Inhalt aus der MD-Datei
-                                try {
-                                    File mdFile = deriveMdFileFor(chapterFile.getFile());
-                                    if (mdFile != null && mdFile.exists()) {
-                                        String savedContent = new String(java.nio.file.Files.readAllBytes(mdFile.toPath()), java.nio.charset.StandardCharsets.UTF_8);
-                                        return openChapterEditorWindow(savedContent, chapterFile, format);
-                                    }
-                                } catch (Exception e) {
-                                    logger.error("Fehler beim Laden des gespeicherten Inhalts: {}", e.getMessage());
-                                }
-                                // Fallback: Neuen Editor mit ursprünglichem Inhalt
-                                return openChapterEditorWindow(text, chapterFile, format);
-                            case "Verwerfen und neu öffnen":
-                                // Editor schließen ohne zu speichern
-                                existingEditor.closeWindow();
-                                openEditors.remove(editorKey);
-                                break;
-                            case "Nur fokussieren":
-                                // Bestehenden Editor in den Vordergrund bringen
-                                Platform.runLater(() -> {
-                                    for (Window window : Window.getWindows()) {
-                                        if (window instanceof CustomStage && window.isShowing()) {
-                                            CustomStage customStage = (CustomStage) window;
-                                            if (customStage.getTitle().contains(chapterFile.getFileName())) {
-                                                customStage.toFront();
-                                                customStage.requestFocus();
-                                                break;
-                                            }
-                                        }
-                                    }
-                                });
-                                return existingEditor; // Bestehenden Editor zurückgeben
-                            case "Abbrechen":
-                            default:
-                                return existingEditor; // Bestehenden Editor zurückgeben
-                        }
-                    } else {
-                        return existingEditor; // Bestehenden Editor zurückgeben
+                // Editor bereits geöffnet - bringe ihn in den Vordergrund
+                Platform.runLater(() -> {
+                    if (existingEditor.getStage() != null && existingEditor.getStage().isShowing()) {
+                        // Mehrere Methoden verwenden, um sicherzustellen, dass das Fenster in den Vordergrund kommt
+                        existingEditor.getStage().setIconified(false); // Entminimieren falls minimiert
+                        existingEditor.getStage().toFront(); // In den Vordergrund
+                        existingEditor.getStage().requestFocus(); // Fokus setzen
+                        existingEditor.getStage().setAlwaysOnTop(true); // Temporär immer oben
+                        existingEditor.getStage().setAlwaysOnTop(false); // Wieder normal
                     }
-                } else {
-                    // Keine ungespeicherten Änderungen - alten Editor einfach schließen und neuen erstellen
-                    existingEditor.closeWindow();
-                    openEditors.remove(editorKey);
-                    // Weiter mit der normalen Editor-Erstellung
-                }
+                });
+                
+                updateStatus("Bestehender Editor für '" + chapterFile.getFileName() + "' in den Vordergrund gebracht");
+                return existingEditor; // Bestehenden Editor zurückgeben
             }
             
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/editor.fxml"));
