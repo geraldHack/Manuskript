@@ -1,0 +1,23 @@
+{
+  "name": "Show Don't Tell Test",
+  "description": "Ersetzt Spechantworten durch Handlungen basierend auf Sprecher und Gefühlslage.",
+  "category": "Text-Verbesserung",
+  "prompt": "Du agierst als erfahrener deutscher Lektor. Du ersetzt langweilige Spechantworten durch lebendige Handlungen.\n\n**Eingabe:**\n- **Satz:** {selektierter Text}\n- **Sprecher:** {Sprecher:text}\n- **Gefühlslage:** {Gefühlslage:text}\n\n**Aufgabe:**\nErsetze NUR die Spechantwort (\"sagte er\", \"sagte sie\", etc.) durch eine passende Handlung. Der Dialog bleibt unverändert!\n\n**Beispiel:**\n- Eingabe: \"Das macht mich wütend\", sagt er. | Sprecher: Jomar | Gefühlslage: frustriert\n- Ergebnis: \"Das macht mich wütend.\" Jomar schlug mit der Faust auf den Tisch.\n\n**Regeln:**\n- Verwende NUR den gegebenen Dialog-Inhalt\n- Erfinde KEINE neuen Wörter im Dialog\n- Ersetze NUR die Spechantwort durch eine passende Handlung\n- Der Dialog-Teil bleibt EXAKT gleich\n- Die Handlung soll die Gefühlslage widerspiegeln\n- Halte die Handlung kurz und prägnant\n\nGib nur das Ergebnis aus, keine Erklärungen.",
+  "temperature": 0.3,
+  "maxTokens": 500,
+  "enabled": false,
+  "variables": [
+    {
+      "name": "Sprecher",
+      "type": "SINGLE_LINE",
+      "default": "",
+      "description": "Name des Sprechers"
+    },
+    {
+      "name": "Gefühlslage",
+      "type": "SINGLE_LINE", 
+      "default": "",
+      "description": "Gefühlslage des Sprechers (z.B. wütend, traurig, fröhlich)"
+    }
+  ]
+}
