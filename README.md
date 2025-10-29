@@ -191,8 +191,8 @@ ollama pull qwen2.5:7b-instruct
 | `Ctrl+S` | Speichern |
 | `Ctrl+Z` | Rückgängig |
 | `Ctrl+Y` | Wiederholen |
-| `Ctrl+I` | selektirerter Text *kursiv* |
-| `Ctrl+B` | selektirerter Text **fett** |
+| `Ctrl+I` | selektierter Text *kursiv* |
+| `Ctrl+B` | selektierter Text **fett** |
 
 
 
