@@ -15,7 +15,7 @@
 - 🔧 **Intelligentes Makro-System** für automatische Text-Bereinigung
 - 📥 **Downloads-Monitor** für automatische Sudowrite-Integration
 - 🔄 **Diff & Merge-System** für sichere Dokumentenverwaltung
-- 📊 **Umfassende Export-Funktionen** (RTF, DOCX, Markdown, HTML)
+- 📊 **Umfassende Export-Funktionen** (RTF, DOCX, Markdown, HTML, , epub, PDF, LaTeX)
 
 ## 🚀 Schnellstart
 
@@ -39,8 +39,9 @@ mvn javafx:run
 ```
 
 ### Erste Schritte
-1. **Verzeichnis auswählen** - Laden Sie ein Verzeichnis mit DOCX-Dateien
-2. **Dateien auswählen** - Wählen Sie die gewünschten Kapitel aus
+1. **Import DOCX Dateien aus dem download--Verzeichnis** - DOCX-Dateien, die z.B. aus Sudowrite exportiert wurden
+2. **Verzeichnis auswählen** - Laden Sie ein Verzeichnis mit DOCX-Dateien
+3. **Dateien auswählen** - Wählen Sie die gewünschten Kapitel aus
 4. **Bearbeiten** - Nutzen Sie den Editor für Nachbearbeitung
 5. **Exportieren** - Speichern Sie in verschiedenen Formaten. Für einzelne Kapitel oder kompletter Export des Buchs
 
@@ -66,7 +67,7 @@ mvn javafx:run
 - **Anführungszeichen-Konvertierung** - jederzeit im Editor die Anführungszeichen für den gesamten Text ändern: Französische, Deutsche, Englische und Schweizer Anführungszeichen
 
 ### 🔄 Diff & Merge-System
-- **Seiten-by-Seiten-Diff** - Detaillierter Vergleich mit Checkbox-Merge
+- **Seiten-by-Seiten-Diff** - Importierte DOCX-Dateien können mit den aktuellen Dateien verglichen werden. Detaillierter Vergleich mit Checkbox-Merge
 
 ### 🔧 Makro-System
 - **"Textbereinung" als default Makro** - Bereinigt viele der häufigen Fehler (Auslassungszeichen, Gedankenstrich, korrekte Absatzformatierung, ...)
@@ -165,7 +166,7 @@ ollama serve
 # Schnell und effizient
 ollama pull llama3.2:3b
 
-# Für deutsche Texte (empfohlen)
+# Für deutsche Texte (empfohlen. Notwendig für das "kritisches Lektorat"-Plugin)
 ollama pull jobautomation/OpenEuroLLM-German
 
 # Größeres Modell für bessere Qualität
@@ -190,6 +191,8 @@ ollama pull qwen2.5:7b-instruct
 | `Ctrl+S` | Speichern |
 | `Ctrl+Z` | Rückgängig |
 | `Ctrl+Y` | Wiederholen |
+| `Ctrl+I` | selektirerter Text *kursiv* |
+| `Ctrl+B` | selektirerter Text **fett** |
 
 
 
@@ -228,38 +231,12 @@ manuskript/
 
 ## 🐛 Troubleshooting
 
-### Häufige Probleme
-
-**JavaFX startet nicht**
-- Stellen Sie sicher, dass JDK 17+ installiert ist
-- Prüfen Sie die IDE-Einstellungen für das korrekte SDK
-
-**Ollama-Verbindung fehlschlägt**
-- Prüfen Sie, ob Ollama läuft: `curl http://127.0.0.1:11434/api/tags`
-- Starten Sie Ollama: `ollama serve`
-- Prüfen Sie Firewall/Proxy-Einstellungen
-
-**Styles werden nicht angewendet**
-- Prüfen Sie, ob `config/css/*.css` existieren
-- Starten Sie die Anwendung neu
-
-**Diff-Fenster erscheint nicht**
-- Externe Änderungen werden beim Öffnen erkannt
-- Nutzen Sie "Diff anzeigen" im Editor
 
 ## 📈 Roadmap
 
-### Geplante Features
-- [ ] **Pandoc-Integration** - Erweiterte Export-Optionen
-- [ ] **Kollaborative Bearbeitung** - Multi-User-Support
-- [ ] **Version Control** - Git-Integration
-- [ ] **Cloud-Sync** - Synchronisation zwischen Geräten
-- [ ] **Mobile App** - Companion-App für Smartphones
 
 ### Bekannte Einschränkungen
-- RTF/DOCX-Export nur für Markdown-Dokumente
-- Ollama benötigt ausreichend RAM (mind. 8GB empfohlen)
-- Große Dokumente können Performance-Probleme verursachen
+- Ollama benötigt ausreichend Speicher und kräftige Grafikkarte (mind. 8GB / >= GTX3090 empfohlen)
 
 ## 🤝 Beitragen
 
@@ -273,6 +250,7 @@ Wir freuen uns über Beiträge! So können Sie helfen:
 
 ### Entwicklungsumgebung einrichten
 ```bash
+# IDE, maven und Java >= 17 installieren 
 # Repository klonen
 git clone https://github.com/geraldHack/Manuskript.git
 cd Manuskript
@@ -295,6 +273,7 @@ Dieses Projekt steht unter der **MIT-Lizenz**. Siehe [LICENSE](LICENSE) für Det
 - **JavaFX** - UI-Framework
 - **Ollama** - Lokale KI-Integration
 - **Maven** - Build-Management
+- **pandoc** - Dateiformatekonvertierung
 
 ## 📞 Support
 
