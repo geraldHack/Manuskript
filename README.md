@@ -150,6 +150,9 @@ phrasen_bewegung=setzte sich in Bewegung,warf einen Blick,zog die Stirn kraus,ru
 
 ## 🤖 KI-Assistent Setup
 
+![Manuskript KI-Assisten](KI-Assistent.png)
+*Ollama KI-Assistent*
+
 ### Ollama installieren
 ```bash
 # Ollama herunterladen und installieren
