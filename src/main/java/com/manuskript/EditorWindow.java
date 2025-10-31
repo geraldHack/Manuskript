@@ -2441,6 +2441,63 @@ if (caret != null) {
             Platform.runLater(() -> cmbSearchHistory.getEditor().selectAll());
         }
     }
+    
+    /**
+     * Setzt Suchtext, Flags und führt Suche aus (für globale Suche)
+     */
+    public void setSearchAndExecute(String searchText, boolean regex, boolean caseSensitive, boolean wholeWord) {
+        if (searchText == null || searchText.trim().isEmpty()) {
+            return;
+        }
+        
+        // Öffne Suchpanel
+        if (!searchPanelVisible) {
+            showSearchPanel();
+        }
+        
+        // Setze Flags
+        if (chkRegexSearch != null) {
+            chkRegexSearch.setSelected(regex);
+        }
+        if (chkCaseSensitive != null) {
+            chkCaseSensitive.setSelected(caseSensitive);
+        }
+        if (chkWholeWord != null) {
+            chkWholeWord.setSelected(wholeWord);
+        }
+        
+        // Setze Suchtext und führe Suche aus
+        String trimmed = searchText.trim();
+        if (cmbSearchHistory != null) {
+            addToSearchHistory(trimmed);
+            cmbSearchHistory.setValue(trimmed);
+            // Führe Suche aus - mit Verzögerung, damit Editor vollständig geladen ist
+            Platform.runLater(() -> {
+                // Kleine Verzögerung für vollständiges Laden
+                Timeline delayTimeline = new Timeline(new KeyFrame(Duration.millis(150), event -> {
+                    findText();
+                    // Nach der Suche explizit zum ersten Treffer scrollen
+                    // findText() ruft bereits findNext() auf, das zum ersten Treffer springt,
+                    // aber wir müssen nochmal explizit scrollen, um sicherzustellen, dass es sichtbar ist
+                    Platform.runLater(() -> {
+                        if (totalMatches > 0 && !cachedMatchPositions.isEmpty() && cachedPattern != null) {
+                            int firstMatchStart = cachedMatchPositions.get(0);
+                            // Berechne die tatsächliche End-Position des Treffers
+                            Matcher matchMatcher = cachedPattern.matcher(codeArea.getText());
+                            if (matchMatcher.find(firstMatchStart)) {
+                                int firstMatchEnd = matchMatcher.end();
+                                highlightText(firstMatchStart, firstMatchEnd);
+                            } else {
+                                // Fallback: verwende Suchtext-Länge
+                                highlightText(firstMatchStart, firstMatchStart + trimmed.length());
+                            }
+                        }
+                    });
+                }));
+                delayTimeline.play();
+            });
+        }
+    }
 
     private boolean applySearchTerm(String term) {
         String trimmed = term.trim();
@@ -8627,28 +8684,26 @@ spacer.setStyle("-fx-background-color: transparent;");
     
     private void changeFontSize(int delta) {
         try {
-            String currentText = cmbFontSize.getValue();
-            if (currentText == null || currentText.isEmpty()) {
-                currentText = "12";
-            }
-            int currentSize = Integer.parseInt(currentText);
+            // WICHTIG: Schriftgröße IMMER direkt aus Preferences lesen (werden sofort von applyFontSize aktualisiert)
+            // Dies verhindert Race Conditions bei schnellen Scrollevents (Mausrad)
+            // Die Preferences werden in applyFontSize sofort gespeichert, sodass der nächste Event den neuen Wert liest
+            int currentSize = preferences.getInt("fontSize", 12);
+            
             int newSize = Math.max(8, Math.min(72, currentSize + delta));
             
-            // Font-Size anwenden
+            // Font-Size DIREKT anwenden mit expliziter Größe (keine ComboBox-Abhängigkeit)
+            // applyFontSize speichert sofort in Preferences, sodass nächster Event den neuen Wert liest
             applyFontSize(newSize);
             
-            // Event-Handler temporär entfernen
+            // ComboBox NACH dem Anwenden aktualisieren (nur für UI-Darstellung)
+            // Event-Handler temporär entfernen, damit setValue kein Event auslöst
             EventHandler<ActionEvent> originalHandler = cmbFontSize.getOnAction();
             cmbFontSize.setOnAction(null);
-            
-            // ComboBox aktualisieren
             cmbFontSize.setValue(String.valueOf(newSize));
-            
-            // Event-Handler wieder hinzufügen
             cmbFontSize.setOnAction(originalHandler);
             
-        } catch (NumberFormatException e) {
-            logger.warn("Ungültige Schriftgröße: {}", cmbFontSize.getValue());
+        } catch (Exception e) {
+            logger.warn("Fehler beim Ändern der Schriftgröße: {}", e.getMessage());
         }
     }
     
@@ -8669,8 +8724,8 @@ spacer.setStyle("-fx-background-color: transparent;");
     
     private void applyFontSize(int size) {
         if (codeArea != null) {
-            // Theme neu anwenden mit neuer Schriftgröße
-            applyTheme(currentThemeIndex);
+            // Theme neu anwenden mit expliziter Schriftgröße (verhindert Race Conditions beim Lesen aus ComboBox)
+            applyTheme(currentThemeIndex, size);
             
             // Speichere in Preferences
             preferences.putInt("fontSize", size);
@@ -9385,14 +9440,6 @@ spacer.setStyle("-fx-background-color: transparent;");
     }
     
     public void applyTheme(int themeIndex) {
-        if (codeArea == null) return;
-        
-        String[] theme = THEMES[themeIndex];
-        String backgroundColor = theme[0];
-        String textColor = theme[1];
-        String selectionColor = theme[2];
-        String caretColor = theme[3];
-        
         // Aktuelle Schriftgröße sicher ermitteln
         int fontSize = 12; // Standard
         try {
@@ -9406,6 +9453,19 @@ spacer.setStyle("-fx-background-color: transparent;");
         } catch (NumberFormatException e) {
             fontSize = preferences.getInt("fontSize", 12);
         }
+        
+        // Überladung mit expliziter Schriftgröße aufrufen
+        applyTheme(themeIndex, fontSize);
+    }
+    
+    private void applyTheme(int themeIndex, int fontSize) {
+        if (codeArea == null) return;
+        
+        String[] theme = THEMES[themeIndex];
+        String backgroundColor = theme[0];
+        String textColor = theme[1];
+        String selectionColor = theme[2];
+        String caretColor = theme[3];
         
         // RichTextFX CodeArea Theme anwenden - spezielle CSS-Eigenschaften
         // WICHTIG: Alle RichTextFX-spezifischen Eigenschaften explizit setzen
@@ -9422,27 +9482,18 @@ spacer.setStyle("-fx-background-color: transparent;");
             backgroundColor, selectionColor, textColor, caretColor, fontSize, backgroundColor, textColor, backgroundColor
         );
         
-        // WICHTIG: Erst alle bestehenden Styles entfernen, dann neue setzen
+        // WICHTIG: Styles SOFORT setzen (ohne Platform.runLater) für bessere Responsivität bei schnellen Scrollevents
+        // Dies verhindert das "Springen" beim Ändern der Schriftgröße mit dem Mausrad
         codeArea.setStyle("");
-        
-        // WICHTIG: Mehrfache Anwendung der Styles für bessere Kompatibilität
-        Platform.runLater(() -> {
-            // Erst alle Styles entfernen
-            codeArea.setStyle("");
-            
-            // Dann neue Styles setzen
         codeArea.setStyle(cssStyle);
-            
-            // Zusätzlich: Explizit die Textfarbe über die RichTextFX API setzen
-            // Dies stellt sicher, dass die Textfärbung korrekt angewendet wird
-            codeArea.setStyle(cssStyle);
-            
-            // Zusätzlicher verzögerter Refresh für bessere Kompatibilität
-            Platform.runLater(() -> {
-                // Nochmal explizit setzen
+        
+        // Zusätzlicher verzögerter Refresh nur für Theme-Wechsel (nicht für Schriftgrößenänderungen)
+        // Bei schnellen Schriftgrößenänderungen könnte dies zu Race Conditions führen
+        Platform.runLater(() -> {
+            // Styles nochmal setzen für bessere Kompatibilität (nur wenn noch das gleiche Theme)
+            if (codeArea != null) {
                 codeArea.setStyle(cssStyle);
-                codeArea.setStyle(cssStyle);
-            });
+            }
         });
         
         // CSS-Klassen für Theme-spezifische Cursor-Farben

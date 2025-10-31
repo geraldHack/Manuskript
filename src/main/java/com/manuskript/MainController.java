@@ -135,6 +135,7 @@ public class MainController implements Initializable {
     @FXML private Button btnSplit;
     @FXML private Button btnNewChapter;
     @FXML private Button btnDeleteFile;
+    @FXML private Button btnSearchAllFiles;
     @FXML private CheckBox chkDownloadsMonitor;
     // Help-Toggle Button (programmatisch erstellt)
     private Button btnHelpToggle;
@@ -177,6 +178,15 @@ public class MainController implements Initializable {
     
     // Help-System
     private boolean helpEnabled = true;
+    
+    // Globale Suche
+    private Set<DocxFile> filesWithSearchMatches = new HashSet<>();
+    private String currentSearchText = "";
+    private boolean currentSearchRegex = false;
+    private boolean currentSearchCaseSensitive = false;
+    private boolean currentSearchWholeWord = false;
+    private CustomAlert searchDialogAlert = null;
+    
     private static final String[][] THEMES = {
         {"#ffffff", "#000000", "#e3f2fd", "#000000"}, // Weiß
         {"#1a1a1a", "#ffffff", "#2d2d2d", "#ffffff"}, // Schwarz
@@ -447,6 +457,9 @@ public class MainController implements Initializable {
         colFileSizeSelected.setPrefWidth(120);
         colLastModifiedSelected.setPrefWidth(180);
         
+        // RowFactory für Markierung von Dateien mit Suchtreffern
+        setupSearchHighlightRowFactory();
+        
         // Sortierung für rechte Tabelle deaktivieren
         tableViewSelected.setSortPolicy(null);
         colFileNameSelected.setSortable(false);
@@ -508,6 +521,7 @@ public class MainController implements Initializable {
         btnSplit.setOnAction(e -> openSplitStage());
         btnNewChapter.setOnAction(e -> createNewChapter());
         btnDeleteFile.setOnAction(e -> deleteSelectedFile());
+        btnSearchAllFiles.setOnAction(e -> searchAllFiles());
         // btnHelpToggle Event-Handler wird in createHelpToggleButton() gesetzt
     }
     
@@ -668,9 +682,17 @@ public class MainController implements Initializable {
             event.consume();
         });
         
-        // Mouse-Click-Handler für sofortige Selektion
+        // Mouse-Click-Handler für sofortige Selektion und Doppelklick zum Öffnen
         tableViewSelected.setOnMouseClicked(event -> {
             tableViewSelected.refresh();
+            
+            // Doppelklick öffnet den Editor
+            if (event.getClickCount() == 2 && event.getButton() == MouseButton.PRIMARY) {
+                DocxFile selectedFile = tableViewSelected.getSelectionModel().getSelectedItem();
+                if (selectedFile != null) {
+                    openChapterEditor(selectedFile);
+                }
+            }
         });
         
         // Doppelklick für schnelle Umsortierung
@@ -3571,6 +3593,19 @@ public class MainController implements Initializable {
             
             editorStage.show();
             
+            // Prüfe, ob diese Datei durch globale Suche markiert ist
+            if (filesWithSearchMatches.contains(chapterFile) && !currentSearchText.isEmpty()) {
+                // Automatisch Suche im Editor aktivieren
+                Platform.runLater(() -> {
+                    editorController.setSearchAndExecute(
+                        currentSearchText,
+                        currentSearchRegex,
+                        currentSearchCaseSensitive,
+                        currentSearchWholeWord
+                    );
+                });
+            }
+            
             return editorController;
             
         } catch (Exception e) {
@@ -4614,10 +4649,18 @@ public class MainController implements Initializable {
         applyThemeToNode(btnProcessSelected, themeIndex);
         applyThemeToNode(btnProcessAll, themeIndex);
         applyThemeToNode(btnThemeToggle, themeIndex);
+        applyThemeToNode(btnDeleteFile, themeIndex);
+        applyThemeToNode(btnNewChapter, themeIndex);
+        applyThemeToNode(btnSearchAllFiles, themeIndex);
         
         // Tabellen
         applyThemeToNode(tableViewAvailable, themeIndex);
         applyThemeToNode(tableViewSelected, themeIndex);
+        
+        // Aktualisiere Suchmarkierungen nach Theme-Wechsel
+        if (!filesWithSearchMatches.isEmpty()) {
+            refreshTableHighlighting();
+        }
         
         // Force CSS refresh - erst Theme-Klassen setzen, dann CSS laden
         if (mainContainer.getScene() != null) {
@@ -6870,5 +6913,312 @@ public class MainController implements Initializable {
                 errorAlert.showAndWait();
             }
         }
+    }
+    
+    /**
+     * Öffnet den Suchdialog für globale Suche in allen Dateien der rechten Tabelle
+     */
+    private void searchAllFiles() {
+        // Wenn Dialog bereits offen ist, bring ihn in den Vordergrund
+        if (searchDialogAlert != null) {
+            try {
+                // Versuche das Fenster zu finden über alle offenen Fenster
+                for (Window window : Window.getWindows()) {
+                    if (window instanceof Stage) {
+                        Stage stage = (Stage) window;
+                        if (stage.isShowing()) {
+                            // Prüfe ob es unser Suchdialog ist (einfache Prüfung über Titel)
+                            if ("Globale Suche".equals(stage.getTitle())) {
+                                stage.toFront();
+                                stage.requestFocus();
+                                return;
+                            }
+                        }
+                    }
+                }
+                // Fenster nicht gefunden, Referenz löschen
+                searchDialogAlert = null;
+            } catch (Exception e) {
+                // Fenster existiert nicht mehr
+                searchDialogAlert = null;
+            }
+        }
+        
+        // Erstelle CustomAlert für gestylten Dialog
+        CustomAlert searchAlert = new CustomAlert(CustomAlert.AlertType.NONE);
+        searchAlert.setTitle("Globale Suche");
+        searchAlert.setHeaderText("Suche in allen Dateien");
+        searchAlert.initOwner(primaryStage);
+        searchAlert.applyTheme(currentThemeIndex);
+        
+        // Speichere Referenz
+        searchDialogAlert = searchAlert;
+        
+        // Erstelle UI für Suchdialog
+        VBox customContent = new VBox(10);
+        customContent.setPadding(new Insets(10));
+        
+        Label lblSearchText = new Label("Suchbegriff:");
+        TextField txtSearchText = new TextField(currentSearchText);
+        txtSearchText.setPromptText("Geben Sie den Suchbegriff ein...");
+        txtSearchText.setPrefWidth(400);
+        
+        CheckBox chkRegex = new CheckBox("Regular Expression");
+        chkRegex.setSelected(currentSearchRegex);
+        
+        CheckBox chkCaseSensitive = new CheckBox("Groß-/Kleinschreibung beachten");
+        chkCaseSensitive.setSelected(currentSearchCaseSensitive);
+        
+        CheckBox chkWholeWord = new CheckBox("Ganzes Wort");
+        chkWholeWord.setSelected(currentSearchWholeWord);
+        
+        Label lblStatus = new Label("");
+        lblStatus.setWrapText(true);
+        
+        customContent.getChildren().addAll(
+            lblSearchText,
+            txtSearchText,
+            chkRegex,
+            chkCaseSensitive,
+            chkWholeWord,
+            new Separator(),
+            lblStatus
+        );
+        
+        // Erstelle Buttons
+        HBox buttonBox = new HBox(10);
+        buttonBox.setAlignment(Pos.CENTER_RIGHT);
+        buttonBox.setPadding(new Insets(10, 0, 0, 0));
+        
+        Button btnClear = new Button("Markierungen löschen");
+        btnClear.setPrefWidth(180);
+        Button btnSearch = new Button("Suchen");
+        btnSearch.setPrefWidth(100);
+        
+        buttonBox.getChildren().addAll(btnClear, btnSearch);
+        customContent.getChildren().add(buttonBox);
+        
+        // Setze Custom Content
+        searchAlert.setCustomContent(customContent);
+        
+        // Keine Standard-Buttons verwenden (leere Liste)
+        searchAlert.setButtonTypes();
+        
+        // Event-Handler für Buttons
+        btnSearch.setOnAction(e -> {
+            String searchText = txtSearchText.getText().trim();
+            if (searchText.isEmpty()) {
+                lblStatus.setText("Bitte geben Sie einen Suchbegriff ein.");
+                return;
+            }
+            
+            // Speichere aktuelle Suchparameter
+            currentSearchText = searchText;
+            currentSearchRegex = chkRegex.isSelected();
+            currentSearchCaseSensitive = chkCaseSensitive.isSelected();
+            currentSearchWholeWord = chkWholeWord.isSelected();
+            
+            // Führe Suche durch
+            performGlobalSearch(searchText, currentSearchRegex, currentSearchCaseSensitive, currentSearchWholeWord);
+            
+            // Update Status
+            int matchCount = filesWithSearchMatches.size();
+            if (matchCount > 0) {
+                lblStatus.setText(String.format("✓ %d Datei(en) mit Treffern gefunden.", matchCount));
+            } else {
+                lblStatus.setText("Keine Treffer gefunden.");
+            }
+        });
+        
+        btnClear.setOnAction(e -> {
+            filesWithSearchMatches.clear();
+            currentSearchText = "";
+            txtSearchText.clear();
+            refreshTableHighlighting();
+            lblStatus.setText("Markierungen gelöscht.");
+        });
+        
+        // Enter-Taste im Suchfeld
+        txtSearchText.setOnAction(e -> btnSearch.fire());
+        
+        // Zeige Dialog nicht-modal
+        // WICHTIG: Setze Modality VOR show() auf NONE
+        searchAlert.initModality(Modality.NONE);
+        searchAlert.initOwner(primaryStage);
+        searchAlert.show(primaryStage);
+        
+        // Zentriere auf primaryStage und setze Close-Handler
+        Platform.runLater(() -> {
+            for (Window window : Window.getWindows()) {
+                if (window instanceof Stage) {
+                    Stage stage = (Stage) window;
+                    if ("Globale Suche".equals(stage.getTitle()) && stage.isShowing()) {
+                        // Zentriere auf primaryStage
+                        if (primaryStage != null && primaryStage.isShowing()) {
+                            double centerX = primaryStage.getX() + primaryStage.getWidth() / 2;
+                            double centerY = primaryStage.getY() + primaryStage.getHeight() / 2;
+                            double stageWidth = stage.getWidth();
+                            double stageHeight = stage.getHeight();
+                            if (stageWidth > 0 && stageHeight > 0) {
+                                stage.setX(centerX - stageWidth / 2);
+                                stage.setY(centerY - stageHeight / 2);
+                            }
+                        }
+                        
+                        // Beim Schließen: nur Referenz löschen, Markierungen bleiben!
+                        stage.setOnCloseRequest(e -> {
+                            searchDialogAlert = null;
+                            // Markierungen bleiben erhalten - filesWithSearchMatches wird NICHT gelöscht
+                            // Stelle sicher, dass Markierungen weiterhin sichtbar sind
+                            Platform.runLater(() -> {
+                                refreshTableHighlighting();
+                            });
+                        });
+                        break;
+                    }
+                }
+            }
+        });
+        
+        // Theme auf Controls anwenden
+        applyThemeToNode(txtSearchText, currentThemeIndex);
+        applyThemeToNode(chkRegex, currentThemeIndex);
+        applyThemeToNode(chkCaseSensitive, currentThemeIndex);
+        applyThemeToNode(chkWholeWord, currentThemeIndex);
+        applyThemeToNode(btnSearch, currentThemeIndex);
+        applyThemeToNode(btnClear, currentThemeIndex);
+        
+        // Focus auf Suchfeld
+        Platform.runLater(() -> {
+            txtSearchText.requestFocus();
+            txtSearchText.selectAll();
+        });
+    }
+    
+    /**
+     * Führt die globale Suche durch und markiert Dateien mit Treffern
+     */
+    private void performGlobalSearch(String searchText, boolean regex, boolean caseSensitive, boolean wholeWord) {
+        filesWithSearchMatches.clear();
+        
+        if (selectedDocxFiles.isEmpty()) {
+            return;
+        }
+        
+        // Erstelle Pattern
+        Pattern pattern;
+        try {
+            int flags = Pattern.MULTILINE | Pattern.DOTALL;
+            if (!caseSensitive) {
+                flags |= Pattern.CASE_INSENSITIVE;
+            }
+            
+            String patternText = searchText;
+            if (wholeWord && !regex) {
+                patternText = "\\b" + Pattern.quote(patternText) + "\\b";
+            } else if (!regex) {
+                patternText = Pattern.quote(patternText);
+            } else if (wholeWord) {
+                patternText = "\\b" + patternText + "\\b";
+            }
+            
+            pattern = Pattern.compile(patternText, flags);
+        } catch (Exception e) {
+            logger.error("Fehler beim Erstellen des Suchmusters: " + e.getMessage(), e);
+            return;
+        }
+        
+        // Durchsuche alle Dateien
+        for (DocxFile docxFile : selectedDocxFiles) {
+            try {
+                String content = readFileContent(docxFile);
+                if (content != null) {
+                    Matcher matcher = pattern.matcher(content);
+                    if (matcher.find()) {
+                        filesWithSearchMatches.add(docxFile);
+                    }
+                }
+            } catch (Exception e) {
+                logger.error("Fehler beim Durchsuchen von " + docxFile.getFileName() + ": " + e.getMessage(), e);
+            }
+        }
+        
+        // Aktualisiere Tabelle
+        refreshTableHighlighting();
+    }
+    
+    /**
+     * Liest den Inhalt einer Datei (MD oder DOCX)
+     */
+    private String readFileContent(DocxFile docxFile) {
+        try {
+            // Versuche zuerst MD-Datei zu lesen
+            File mdFile = deriveMdFileFor(docxFile.getFile());
+            if (mdFile != null && mdFile.exists()) {
+                return Files.readString(mdFile.toPath(), StandardCharsets.UTF_8);
+            }
+            
+            // Fallback: DOCX-Inhalt extrahieren
+            if (docxProcessor == null) {
+                docxProcessor = new DocxProcessor();
+            }
+            return docxProcessor.processDocxFileContent(docxFile.getFile(), 1, DocxProcessor.OutputFormat.MARKDOWN);
+        } catch (Exception e) {
+            logger.error("Fehler beim Lesen von " + docxFile.getFileName() + ": " + e.getMessage(), e);
+            return null;
+        }
+    }
+    
+    /**
+     * Aktualisiert die Hervorhebung in der Tabelle
+     */
+    private void refreshTableHighlighting() {
+        // Aktualisiere die Rows, um Markierungen anzuzeigen
+        Platform.runLater(() -> {
+            // Für jede sichtbare Row das Style aktualisieren
+            for (int i = 0; i < tableViewSelected.getItems().size(); i++) {
+                DocxFile file = tableViewSelected.getItems().get(i);
+                // Rufe updateItem für die entsprechende Row auf
+                // Dies wird durch refresh() automatisch getriggert
+            }
+            // Refresh der Tabelle - die RowFactory wird für jede Row neu aufgerufen
+            tableViewSelected.refresh();
+        });
+    }
+    
+    /**
+     * Richtet die RowFactory für Such-Hervorhebung ein
+     * Markierung auf Row-Ebene ist robuster als auf Cell-Ebene
+     */
+    private void setupSearchHighlightRowFactory() {
+        tableViewSelected.setRowFactory(tv -> {
+            TableRow<DocxFile> row = new TableRow<DocxFile>() {
+                @Override
+                protected void updateItem(DocxFile item, boolean empty) {
+                    super.updateItem(item, empty);
+                    
+                    if (empty || item == null) {
+                        getStyleClass().remove("search-match-row");
+                        return;
+                    }
+                    
+                    // Prüfe, ob diese Datei in filesWithSearchMatches ist
+                    // WICHTIG: Verwende contains() direkt - sollte funktionieren, da equals() implementiert ist
+                    boolean isMarked = filesWithSearchMatches.contains(item);
+                    
+                    if (isMarked) {
+                        // Verwende CSS-Klasse für Markierung (wird nicht von anderen CSS-Regeln überschrieben)
+                        if (!getStyleClass().contains("search-match-row")) {
+                            getStyleClass().add("search-match-row");
+                        }
+                        // Kein Inline-Style nötig - CSS-Klasse mit !important sollte ausreichen
+                    } else {
+                        // Entferne CSS-Klasse
+                        getStyleClass().remove("search-match-row");
+                    }
+                }
+            };
+            return row;
+        });
     }
 }

@@ -6651,5 +6651,82 @@
     -fx-font-size: 1.2em;
 }
 
+/* ========================================
+   SUCHE MARKIERUNGEN IN TABELLE
+   ======================================== */
+
+/* Such-Markierung für Tabellenzeilen - höchste Spezifität für odd/even */
+.table-row-cell.search-match-row,
+.table-row-cell.search-match-row:odd,
+.table-row-cell.search-match-row:even,
+.table-row-cell.search-match-row:nth-child(odd),
+.table-row-cell.search-match-row:nth-child(even) {
+    -fx-background-color: #ffcc00 !important;
+}
+
+/* Helle Themes - dunkleres Gelb (weniger grell) - auch für odd/even */
+.weiss-theme .table-view .table-row-cell.search-match-row,
+.weiss-theme .table-view .table-row-cell.search-match-row:odd,
+.weiss-theme .table-view .table-row-cell.search-match-row:even,
+.weiss-theme .table-view .table-row-cell.search-match-row:nth-child(odd),
+.weiss-theme .table-view .table-row-cell.search-match-row:nth-child(even),
+.pastell-theme .table-view .table-row-cell.search-match-row,
+.pastell-theme .table-view .table-row-cell.search-match-row:odd,
+.pastell-theme .table-view .table-row-cell.search-match-row:even,
+.pastell-theme .table-view .table-row-cell.search-match-row:nth-child(odd),
+.pastell-theme .table-view .table-row-cell.search-match-row:nth-child(even) {
+    -fx-background-color: #ffcc00 !important;
+}
+
+/* Helle Themes - markierte Zeile auch bei Selektion sichtbar */
+.weiss-theme .table-view .table-row-cell.search-match-row:selected,
+.weiss-theme .table-view .table-row-cell.search-match-row:selected:odd,
+.weiss-theme .table-view .table-row-cell.search-match-row:selected:even,
+.pastell-theme .table-view .table-row-cell.search-match-row:selected,
+.pastell-theme .table-view .table-row-cell.search-match-row:selected:odd,
+.pastell-theme .table-view .table-row-cell.search-match-row:selected:even {
+    -fx-background-color: #ffaa00 !important;
+}
+
+/* Dunkle Themes - dunkleres Gelb für bessere Lesbarkeit - auch für odd/even */
+.theme-dark .table-view .table-row-cell.search-match-row,
+.theme-dark .table-view .table-row-cell.search-match-row:odd,
+.theme-dark .table-view .table-row-cell.search-match-row:even,
+.theme-dark .table-view .table-row-cell.search-match-row:nth-child(odd),
+.theme-dark .table-view .table-row-cell.search-match-row:nth-child(even),
+.root .theme-dark.blau-theme .table-view .table-row-cell.search-match-row,
+.root .theme-dark.blau-theme .table-view .table-row-cell.search-match-row:odd,
+.root .theme-dark.blau-theme .table-view .table-row-cell.search-match-row:even,
+.root .theme-dark.blau-theme .table-view .table-row-cell.search-match-row:nth-child(odd),
+.root .theme-dark.blau-theme .table-view .table-row-cell.search-match-row:nth-child(even),
+.root .theme-dark.gruen-theme .table-view .table-row-cell.search-match-row,
+.root .theme-dark.gruen-theme .table-view .table-row-cell.search-match-row:odd,
+.root .theme-dark.gruen-theme .table-view .table-row-cell.search-match-row:even,
+.root .theme-dark.gruen-theme .table-view .table-row-cell.search-match-row:nth-child(odd),
+.root .theme-dark.gruen-theme .table-view .table-row-cell.search-match-row:nth-child(even),
+.root .theme-dark.lila-theme .table-view .table-row-cell.search-match-row,
+.root .theme-dark.lila-theme .table-view .table-row-cell.search-match-row:odd,
+.root .theme-dark.lila-theme .table-view .table-row-cell.search-match-row:even,
+.root .theme-dark.lila-theme .table-view .table-row-cell.search-match-row:nth-child(odd),
+.root .theme-dark.lila-theme .table-view .table-row-cell.search-match-row:nth-child(even) {
+    -fx-background-color: #ff9900 !important;
+}
+
+/* Dunkle Themes - markierte Zeile auch bei Selektion sichtbar */
+.theme-dark .table-view .table-row-cell.search-match-row:selected,
+.theme-dark .table-view .table-row-cell.search-match-row:selected:odd,
+.theme-dark .table-view .table-row-cell.search-match-row:selected:even,
+.root .theme-dark.blau-theme .table-view .table-row-cell.search-match-row:selected,
+.root .theme-dark.blau-theme .table-view .table-row-cell.search-match-row:selected:odd,
+.root .theme-dark.blau-theme .table-view .table-row-cell.search-match-row:selected:even,
+.root .theme-dark.gruen-theme .table-view .table-row-cell.search-match-row:selected,
+.root .theme-dark.gruen-theme .table-view .table-row-cell.search-match-row:selected:odd,
+.root .theme-dark.gruen-theme .table-view .table-row-cell.search-match-row:selected:even,
+.root .theme-dark.lila-theme .table-view .table-row-cell.search-match-row:selected,
+.root .theme-dark.lila-theme .table-view .table-row-cell.search-match-row:selected:odd,
+.root .theme-dark.lila-theme .table-view .table-row-cell.search-match-row:selected:even {
+    -fx-background-color: #ff8800 !important;
+}
+
 
 

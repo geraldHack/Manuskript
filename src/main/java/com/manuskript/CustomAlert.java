@@ -568,6 +568,19 @@ public class CustomAlert {
         }
     }
     
+    // Flag, um zu tracken, ob Modality explizit gesetzt wurde
+    private Modality explicitModality = null;
+    
+    /**
+     * Setzt Modality (muss VOR show() aufgerufen werden)
+     */
+    public void initModality(Modality modality) {
+        if (stage != null && !stage.isShowing()) {
+            explicitModality = modality;
+            stage.initModality(modality);
+        }
+    }
+    
     /**
      * Zentriert den Alert auf dem Owner-Fenster
      */
@@ -769,12 +782,19 @@ public class CustomAlert {
     public void show(Window owner) {
         if (owner != null) {
             stage.initOwner(owner);
-            stage.initModality(Modality.WINDOW_MODAL);
+            // Nur Modality setzen, wenn sie nicht explizit gesetzt wurde
+            if (explicitModality == null && !stage.isShowing()) {
+                stage.initModality(Modality.WINDOW_MODAL);
+            }
+            // Wenn explicitModality gesetzt wurde, wurde es bereits in initModality() gesetzt
             
             // Zentriere auf dem Owner-Fenster
             centerOnOwner(owner);
         } else {
-            stage.initModality(Modality.NONE);
+            // Nur Modality setzen, wenn sie nicht explizit gesetzt wurde
+            if (explicitModality == null && !stage.isShowing()) {
+                stage.initModality(Modality.NONE);
+            }
         }
         
         // WICHTIG: Content und Buttons IMMER aktualisieren vor dem Anzeigen
