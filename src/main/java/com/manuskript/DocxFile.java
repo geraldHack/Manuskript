@@ -45,8 +45,45 @@ public class DocxFile {
     }
     
     public String getFormattedLastModified() {
+        // Wenn eine MD-Datei existiert, verwende deren Datum, sonst das der DOCX-Datei
+        File mdFile = deriveMdFileFor(file);
+        long currentLastModified;
+        
+        if (mdFile != null && mdFile.exists()) {
+            // Verwende Datum der MD-Datei
+            currentLastModified = mdFile.lastModified();
+        } else {
+            // Verwende Datum der DOCX-Datei
+            currentLastModified = file.exists() ? file.lastModified() : lastModified;
+        }
+        
         SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy HH:mm");
-        return sdf.format(new Date(lastModified));
+        return sdf.format(new Date(currentLastModified));
+    }
+    
+    /**
+     * Findet die zugehörige MD-Datei für eine DOCX-Datei
+     * (entspricht der Logik aus MainController.deriveMdFileFor)
+     */
+    private File deriveMdFileFor(File docx) {
+        if (docx == null) return null;
+        String baseName = docx.getName();
+        int idx = baseName.lastIndexOf('.');
+        if (idx > 0) baseName = baseName.substring(0, idx);
+        File dataDir = getDataDirectory(docx);
+        return new File(dataDir, baseName + ".md");
+    }
+    
+    /**
+     * Gibt das data-Verzeichnis für eine DOCX-Datei zurück
+     */
+    private File getDataDirectory(File docxFile) {
+        if (docxFile == null) return null;
+        File dataDir = new File(docxFile.getParentFile(), "data");
+        if (!dataDir.exists()) {
+            return null; // data-Verzeichnis existiert nicht
+        }
+        return dataDir;
     }
     
     public boolean isChanged() {

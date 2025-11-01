@@ -354,7 +354,7 @@ public class MainController implements Initializable {
                     startImageContainer.setPrefHeight(60); // Nur so hoch wie der Button
                     
                     // Erstelle Zurück-Button
-                    Button startBackButton = new Button("← Zurück1");
+                    Button startBackButton = new Button("← Zurück");
                     startBackButton.setId("backButton");
                     startBackButton.setPrefSize(120, 40);
                     startBackButton.getStyleClass().add("back-button");
@@ -7032,8 +7032,8 @@ public class MainController implements Initializable {
         
         btnClear.setOnAction(e -> {
             filesWithSearchMatches.clear();
-            currentSearchText = "";
-            txtSearchText.clear();
+            //currentSearchText = "";
+            //txtSearchText.clear();
             refreshTableHighlighting();
             lblStatus.setText("Markierungen gelöscht.");
         });

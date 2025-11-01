@@ -757,6 +757,9 @@ public class CustomAlert {
             stage.initModality(Modality.APPLICATION_MODAL);
         }
         
+        // WICHTIG: Theme erneut anwenden, falls es nach der Erstellung geändert wurde
+        applyTheme(currentTheme);
+        
         // WICHTIG: Content und Buttons IMMER aktualisieren vor dem Anzeigen
         updateContent();
         updateButtons();
@@ -796,6 +799,9 @@ public class CustomAlert {
                 stage.initModality(Modality.NONE);
             }
         }
+        
+        // WICHTIG: Theme erneut anwenden, falls es nach der Erstellung geändert wurde
+        applyTheme(currentTheme);
         
         // WICHTIG: Content und Buttons IMMER aktualisieren vor dem Anzeigen
         updateContent();
