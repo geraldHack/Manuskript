@@ -19,6 +19,8 @@ import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.MouseButton;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.input.KeyCode;
 import javafx.event.Event;
 import javafx.scene.input.DragEvent;
 import javafx.scene.layout.VBox;
@@ -212,6 +214,7 @@ public class MainController implements Initializable {
         
         setupUI();
         setupEventHandlers();
+        setupKeyboardShortcuts();
         setupDragAndDrop();
         docxProcessor = new DocxProcessor();
         
@@ -523,6 +526,20 @@ public class MainController implements Initializable {
         btnDeleteFile.setOnAction(e -> deleteSelectedFile());
         btnSearchAllFiles.setOnAction(e -> searchAllFiles());
         // btnHelpToggle Event-Handler wird in createHelpToggleButton() gesetzt
+    }
+    
+    /**
+     * Setzt globale Keyboard-Shortcuts auf
+     */
+    private void setupKeyboardShortcuts() {
+        if (mainContainer != null) {
+            mainContainer.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+                if (event.isControlDown() && event.getCode() == KeyCode.D) {
+                    DebugWindow.show(primaryStage);
+                    event.consume();
+                }
+            });
+        }
     }
     
     private void setupDragAndDrop() {
