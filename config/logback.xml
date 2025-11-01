@@ -1,11 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
+    <!-- TurboFilter um org.docx4j Meldungen komplett zu blockieren -->
+    <turboFilter class="com.manuskript.Docx4jFilter" />
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>logs/manuskript.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <fileNamePattern>logs/manuskript.%d{yyyy-MM-dd}.log</fileNamePattern>
             <maxHistory>30</maxHistory>
         </rollingPolicy>
+        <!-- Zuerst docx4j blockieren, dann Level-Filter -->
+        <filter class="com.manuskript.Docx4jAppenderFilter" />
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
             <level>INFO</level>
         </filter>
@@ -20,6 +24,8 @@
             <fileNamePattern>logs/debug.%d{yyyy-MM-dd}.log</fileNamePattern>
             <maxHistory>30</maxHistory>
         </rollingPolicy>
+        <!-- Zuerst docx4j blockieren, dann Level-Filter -->
+        <filter class="com.manuskript.Docx4jAppenderFilter" />
         <filter class="ch.qos.logback.classic.filter.LevelFilter">
             <level>DEBUG</level>
             <onMatch>ACCEPT</onMatch>
@@ -30,12 +36,27 @@
         </encoder>
     </appender>
     
-    <root level="DEBUG">
-        <appender-ref ref="FILE" />
-        <appender-ref ref="DEBUG_FILE" />
-    </root>
+    <!-- WICHTIG: Logger müssen VOR root logger stehen -->
+    <!-- Unterdrücke alle org.docx4j Meldungen komplett -->
+    <logger name="org.docx4j" level="OFF" additivity="false" />
+    <logger name="org.docx4j.openpackaging" level="OFF" additivity="false" />
+    <logger name="org.docx4j.openpackaging.io3" level="OFF" additivity="false" />
+    <logger name="org.docx4j.openpackaging.io3.Load3" level="OFF" additivity="false" />
+    <logger name="org.docx4j.openpackaging.contenttype" level="OFF" additivity="false" />
+    <logger name="org.docx4j.openpackaging.contenttype.ContentTypeManager" level="OFF" additivity="false" />
+    <logger name="org.docx4j.jaxb" level="OFF" additivity="false" />
+    <logger name="org.docx4j.jaxb.Context" level="OFF" additivity="false" />
+    <logger name="org.docx4j.utils" level="OFF" additivity="false" />
+    <logger name="org.docx4j.utils.ResourceUtils" level="OFF" additivity="false" />
+    <logger name="org.docx4j.Docx4jProperties" level="OFF" additivity="false" />
+    <logger name="org" level="WARN" />
     
     <logger name="com.manuskript" level="DEBUG" />
     <logger name="DownloadsMonitor" level="WARN" />
     <logger name="com.manuskript.MainController" level="INFO" />
+    
+    <root level="DEBUG">
+        <appender-ref ref="FILE" />
+        <appender-ref ref="DEBUG_FILE" />
+    </root>
 </configuration>

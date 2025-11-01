@@ -105,13 +105,44 @@ public class Main extends Application {
                 JoranConfigurator configurator = new JoranConfigurator();
                 configurator.setContext(context);
 
-                // Bridge java.util.logging (JUL) zu SLF4J/Logback
-                java.util.logging.LogManager.getLogManager().reset();
-                SLF4JBridgeHandler.removeHandlersForRootLogger();
-                SLF4JBridgeHandler.install();
-
+                // WICHTIG: Erst logback.xml laden, dann JUL-Bridge installieren
+                // Sonst werden Meldungen übersprungen
                 context.reset();
                 configurator.doConfigure(configFile);
+                
+                // Bridge java.util.logging (JUL) zu SLF4J/Logback
+                // WICHTIG: Nach logback.xml, damit TurboFilter bereits geladen ist
+                java.util.logging.LogManager.getLogManager().reset();
+                
+                // Blockiere org.docx4j Logger auch auf JUL-Ebene
+                java.util.logging.Logger julLogger = java.util.logging.Logger.getLogger("org.docx4j");
+                julLogger.setLevel(java.util.logging.Level.OFF);
+                julLogger.setUseParentHandlers(false);
+                
+                // Alle org.docx4j Sub-Logger blockieren
+                String[] docx4jLoggers = {
+                    "org.docx4j", 
+                    "org.docx4j.XmlUtils", 
+                    "org.docx4j.utils",
+                    "org.docx4j.utils.ResourceUtils",
+                    "org.docx4j.Docx4jProperties", 
+                    "org.docx4j.jaxb",
+                    "org.docx4j.jaxb.Context",
+                    "org.docx4j.openpackaging",
+                    "org.docx4j.openpackaging.io3",
+                    "org.docx4j.openpackaging.io3.Load3",
+                    "org.docx4j.openpackaging.contenttype",
+                    "org.docx4j.openpackaging.contenttype.ContentTypeManager"
+                };
+                for (String loggerName : docx4jLoggers) {
+                    java.util.logging.Logger l = java.util.logging.Logger.getLogger(loggerName);
+                    l.setLevel(java.util.logging.Level.OFF);
+                    l.setUseParentHandlers(false);
+                }
+                
+                SLF4JBridgeHandler.removeHandlersForRootLogger();
+                SLF4JBridgeHandler.install();
+                
                 StatusPrinter.printInCaseOfErrorsOrWarnings(context);
             } 
         } catch (Exception e) {

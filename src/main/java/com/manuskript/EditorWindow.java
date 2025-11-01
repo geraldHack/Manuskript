@@ -318,10 +318,13 @@ public class EditorWindow implements Initializable {
             // WICHTIG: CSS-Datei laden, wenn die Scene verfügbar ist
             if (mainContainer != null && mainContainer.getScene() != null) {
                 String cssPath = ResourceManager.getCssResource("css/manuskript.css");
-                if (cssPath != null && !mainContainer.getScene().getStylesheets().contains(cssPath)) {
-                    mainContainer.getScene().getStylesheets().add(cssPath);
+                if (cssPath != null) {
+                    if (!mainContainer.getScene().getStylesheets().contains(cssPath)) {
+                        mainContainer.getScene().getStylesheets().add(cssPath);
+                    }
+                    // CSS bereits geladen ist kein Fehler, keine Warnung
                 } else {
-                    logger.warn("CSS-Datei konnte in initialize nicht geladen werden: {}", cssPath);
+                    logger.warn("CSS-Datei konnte in initialize nicht geladen werden: css/manuskript.css");
                 }
             }
             
@@ -356,10 +359,13 @@ public class EditorWindow implements Initializable {
             if (mainContainer != null && mainContainer.getScene() != null) {
                 // CSS-Datei laden
                 String cssPath = ResourceManager.getCssResource("css/manuskript.css");
-                if (cssPath != null && !mainContainer.getScene().getStylesheets().contains(cssPath)) {
-                    mainContainer.getScene().getStylesheets().add(cssPath);
+                if (cssPath != null) {
+                    if (!mainContainer.getScene().getStylesheets().contains(cssPath)) {
+                        mainContainer.getScene().getStylesheets().add(cssPath);
+                    }
+                    // CSS bereits geladen ist kein Fehler, keine Warnung
                 } else {
-                    logger.warn("CSS-Datei konnte nicht geladen werden: {}", cssPath);
+                    logger.warn("CSS-Datei konnte nicht geladen werden: css/manuskript.css");
                 }
             }
         });
@@ -5942,10 +5948,13 @@ if (caret != null) {
             if (stage.getScene() != null) {
                 // CSS-Datei laden
                 String cssPath = ResourceManager.getCssResource("css/manuskript.css");
-                if (cssPath != null && !stage.getScene().getStylesheets().contains(cssPath)) {
-                    stage.getScene().getStylesheets().add(cssPath);
+                if (cssPath != null) {
+                    if (!stage.getScene().getStylesheets().contains(cssPath)) {
+                        stage.getScene().getStylesheets().add(cssPath);
+                    }
+                    // CSS bereits geladen ist kein Fehler, keine Warnung
                 } else {
-                    logger.warn("CSS-Datei konnte in setStage nicht geladen werden: {}", cssPath);
+                    logger.warn("CSS-Datei konnte in setStage nicht geladen werden: css/manuskript.css");
                 }
             }
         });
