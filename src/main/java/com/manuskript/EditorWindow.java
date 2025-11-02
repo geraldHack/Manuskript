@@ -21,8 +21,8 @@ import javafx.scene.control.Label;
 import javafx.stage.FileChooser;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
-import javafx.stage.Modality;
 import javafx.stage.Window;
+import javafx.stage.Modality;
 import javafx.stage.Screen;
 import javafx.geometry.Rectangle2D;
 import javafx.event.ActionEvent;
@@ -80,6 +80,10 @@ import javafx.animation.Timeline;
 import javafx.animation.KeyFrame;
 import javafx.util.Duration;
 import java.io.FileInputStream;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 @SuppressWarnings("unchecked")
 public class EditorWindow implements Initializable {
@@ -265,6 +269,46 @@ public class EditorWindow implements Initializable {
     // Makro-Management
     private ObservableList<Macro> macros = FXCollections.observableArrayList();
     private Macro currentMacro = null;
+    
+    private ScheduledExecutorService statusClearExecutor;
+    private ScheduledFuture<?> statusClearFuture;
+    private final Object statusLock = new Object();
+
+    private void scheduleStatusClear(long delaySeconds, boolean skip) {
+        if (skip) {
+            synchronized (statusLock) {
+                if (statusClearFuture != null && !statusClearFuture.isDone()) {
+                    statusClearFuture.cancel(false);
+                }
+            }
+            return;
+        }
+        synchronized (statusLock) {
+            if (statusClearExecutor == null) {
+                statusClearExecutor = Executors.newSingleThreadScheduledExecutor(r -> {
+                    Thread t = new Thread(r, "StatusClearScheduler");
+                    t.setDaemon(true);
+                    return t;
+                });
+            }
+            if (statusClearFuture != null && !statusClearFuture.isDone()) {
+                statusClearFuture.cancel(false);
+            }
+            statusClearFuture = statusClearExecutor.schedule(() -> {
+                Platform.runLater(() -> {
+                    if (lblStatus != null) {
+                        if (hasUnsavedChanges()) {
+                            lblStatus.setText("⚠ Ungespeicherte Änderungen");
+                            lblStatus.setStyle("-fx-text-fill: #ff6b35; -fx-font-weight: bold; -fx-background-color: #fff3cd; -fx-padding: 2 6 2 6; -fx-background-radius: 3;");
+                        } else {
+                            lblStatus.setText("Bereit");
+                            lblStatus.setStyle("-fx-text-fill: #28a745; -fx-font-weight: normal; -fx-background-color: #d4edda; -fx-padding: 2 6 2 6; -fx-background-radius: 3;");
+                        }
+                    }
+                });
+            }, delaySeconds, TimeUnit.SECONDS);
+        }
+    }
     
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -712,7 +756,6 @@ if (caret != null) {
         // Abstandskonfiguration Event-Handler werden direkt in den Setup-Methoden gesetzt
         
 
-        
             
         // btnMacroRegexHelp wurde entfernt
         
@@ -1220,7 +1263,6 @@ if (caret != null) {
         return c == '\u0022' || c == '\u00AB' || c == '\u00BB' || c == '\u201E' || c == '\u201C' || 
                c == '\u2039' || c == '\u203A' || c == '\u201A' || c == '\u2019' || c == '\u201B' || c == '\u201D';
     }
-    
     /**
      * Dynamische Überprüfung für französische und schweizer Anführungszeichen
      * Konvertiert automatisch zwischen Anführungszeichen und Apostrophen basierend auf nachfolgenden Buchstaben
@@ -1242,7 +1284,6 @@ if (caret != null) {
             checkAndConvertQuotes(newText);
         });
     }
-    
     // Fehler-Sammlung für Anführungszeichen
     private List<QuoteError> quoteErrors = new ArrayList<>();
     private boolean quoteErrorsDialogShown = false; // Flag um mehrfaches Öffnen zu verhindern
@@ -2007,7 +2048,6 @@ if (caret != null) {
             updateMatchCount(0, 0);
         }
     }
-    
     private void findNext() {
         String searchText = cmbSearchHistory.getValue();
         if (searchText == null || searchText.trim().isEmpty()) return;
@@ -2674,65 +2714,27 @@ if (caret != null) {
     }
     
     public void updateStatus(String message) {
-        updateStatus(message, false);
-    }
-    
-    public void updateStatus(String message, boolean doPling) {
-        lblStatus.setText(message);
-        // Normale Farbe setzen, außer wenn es "nicht gesichert" ist
-        if (!message.contains("nicht gesichert")) {
-            lblStatus.setStyle("-fx-text-fill: #6c757d; -fx-font-size: 11px;"); // Normale Farbe
+        if (lblStatus != null) {
+            lblStatus.setText(message);
+            lblStatus.setStyle("-fx-text-fill: #28a745; -fx-font-weight: normal; -fx-background-color: #d4edda; -fx-padding: 2 6 2 6; -fx-background-radius: 3;");
         }
-        
-        if (doPling) {
-            playNotificationSound();
+        scheduleStatusClear(5, false);
+    }
+
+    public void updateStatus(String message, boolean isError) {
+        if (isError) {
+            updateStatusError(message);
+        } else {
+            updateStatus(message);
         }
     }
-    
-    /**
-     * Spielt einen leisen, angenehmen "Pling" Sound ab
-     */
-    private void playNotificationSound() {
-        try {
-            // Lade die WAV-Datei aus dem resources-Ordner
-            String soundFile = getClass().getClassLoader().getResource("sound/pling.wav").toString();
-            
-            if (soundFile != null) {
-                Media media = new Media(soundFile);
-                MediaPlayer mediaPlayer = new MediaPlayer(media);
-                
-                // Setze Lautstärke auf 50% (leise)
-                mediaPlayer.setVolume(0.5);
-                
-                // Sound abspielen
-                mediaPlayer.play();
-                
-                logger.debug("WAV-Datei pling.wav mit JavaFX Media abgespielt");
-                
-            } else {
-                // Fallback: System beep
-                java.awt.Toolkit.getDefaultToolkit().beep();
-                logger.debug("WAV-Datei nicht gefunden, Fallback Sound abgespielt");
-            }
-            
-        } catch (Exception e) {
-            // Fallback: System beep
-            try {
-                java.awt.Toolkit.getDefaultToolkit().beep();
-                logger.debug("Fallback Sound abgespielt - Exception: " + e.getMessage());
-            } catch (Exception e2) {
-                logger.debug("Konnte keinen Sound abspielen: " + e2.getMessage());
-            }
+
+    public void updateStatusError(String message) {
+        if (lblStatus != null) {
+            lblStatus.setText(message);
+            lblStatus.setStyle("-fx-text-fill: #ff6b35; -fx-font-weight: bold; -fx-background-color: #fff3cd; -fx-padding: 2 6 2 6; -fx-background-radius: 3;");
         }
-        
-       
-    }
-    
-    private void updateStatusError(String message) {
-        lblStatus.setText("❌ " + message);
-        lblStatus.setStyle("-fx-text-fill: #dc3545; -fx-font-size: 11px; -fx-font-weight: bold;"); // Rote Farbe
-        logger.error("Editor Fehler: {}", message);
-        playNotificationSound();
+        scheduleStatusClear(5, false);
     }
     
     private void updateMatchCount(int current, int total) {
@@ -2778,9 +2780,6 @@ if (caret != null) {
         } catch (Exception e) {
         }
     }
-    
-    
-    
     // Export-Dialog - EXAKT WIE FUNKTIONIERENDER TEST-DIALOG
     private void showExportDialog() {
         if (outputFormat != DocxProcessor.OutputFormat.MARKDOWN) {
@@ -5547,38 +5546,17 @@ if (caret != null) {
     public void setText(String text) {
         // EINGEBAUTE UNDO-FUNKTIONALITÄT VERWENDEN - kein manueller Aufruf nötig
         
-        // WICHTIG: Original-Content vor Auto-Formatierung speichern
-        String originalTextBeforeFormatting = cleanTextForComparison(text);
-        
         // Auto-Formatierung für Markdown anwenden
         String formattedText = autoFormatMarkdown(text);
         boolean wasFormatted = !text.equals(formattedText);
         
-        
         codeArea.replaceText(formattedText);
+        originalContent = cleanTextForComparison(codeArea.getText());
         
-        // WICHTIG: originalContent auf den ORIGINALEN Text setzen (vor Auto-Formatierung)
-        // Nur wenn Auto-Formatierung angewendet wurde, sonst normal
-        if (wasFormatted) {
-            originalContent = originalTextBeforeFormatting; // Original vor Auto-Formatierung
-        } else {
-            originalContent = cleanTextForComparison(formattedText); // Normal
-        }
-        // Debug entfernt
-        
-        // Status zurücksetzen beim Laden neuer Inhalte
-        if (wasFormatted) {
-            markAsChanged(); // Markiere als ungespeichert wenn Auto-Formatierung angewendet wurde
-            // WICHTIG: updateStatusDisplay() wird bereits von markAsChanged() aufgerufen
-            // Zusätzlich: Status-Label mit korrekter Farbe setzen
-            Platform.runLater(() -> {
-                if (lblStatus != null) {
-                    lblStatus.setText("⚠ Ungespeicherte Änderungen (auto-formatiert)");
-                    lblStatus.setStyle("-fx-text-fill: #ff6b35; -fx-font-weight: bold; -fx-background-color: #fff3cd; -fx-padding: 2 6 2 6; -fx-background-radius: 3;");
-                }
-            });
-        } else {
         markAsSaved();
+        if (wasFormatted) {
+            updateStatus("Text geladen (Automatische Formatierung angewendet)");
+        } else {
             updateStatus("Text geladen");
         }
         
@@ -6968,7 +6946,6 @@ spacer.setStyle("-fx-background-color: transparent;");
             statusArea.setText("Fehler bei der Analyse: " + e.getMessage());
         }
     }
-    
     private void analyzeWortwiederholungen(TextArea statusArea, int abstand, boolean limitWords) {
         try {
             Properties props = loadTextAnalysisProperties();
@@ -7770,7 +7747,6 @@ spacer.setStyle("-fx-background-color: transparent;");
             logger.error("Fehler bei der Phrasen-Analyse", e);
         }
     }
-    
     private void loadTextAnalysisWindowProperties() {
         // Verwende die neue Multi-Monitor-Validierung
         Rectangle2D windowBounds = PreferencesManager.MultiMonitorValidator.loadAndValidateWindowProperties(
@@ -8548,7 +8524,6 @@ spacer.setStyle("-fx-background-color: transparent;");
             logger.warn("Standard-Makro-Datei nicht gefunden: " + defaultMacroFile.getAbsolutePath());
         }
     }
-    
     /**
      * Parst Makro-Inhalt und fügt sie zur Liste hinzu
      */
@@ -9135,7 +9110,6 @@ spacer.setStyle("-fx-background-color: transparent;");
         
         return pairs;
     }
-    
     /**
      * Normalisiert Anführungszeichen innerhalb von HTML-Tags in einem String
      * Konvertiert typographische Anführungszeichen in HTML-Tags zurück zu normal "
@@ -9171,7 +9145,7 @@ spacer.setStyle("-fx-background-color: transparent;");
     
     /**
      * Normalisiert Anführungszeichen innerhalb von HTML-Tags
-     * Konvertiert typographische Anführungszeichen in HTML-Attributen zu normalen "
+     * Konvertiert typographische Anführungszeichen zu normalen " in HTML-Attributen
      */
     private void normalizeHtmlTagsInText() {
         
@@ -9896,7 +9870,6 @@ spacer.setStyle("-fx-background-color: transparent;");
         
         codeArea.requestFocus();
     }
-    
     /**
      * Findet die Grenzen des aktuellen Wortes an der Cursorposition.
      * @param caretPosition Die aktuelle Cursorposition
@@ -10680,7 +10653,6 @@ spacer.setStyle("-fx-background-color: transparent;");
             }
         }
     }
-    
     /**
      * Stellt die ursprünglichen Anführungszeichen-Einstellungen wieder her
      */
@@ -10751,6 +10723,7 @@ spacer.setStyle("-fx-background-color: transparent;");
         navigateToChapter(previousFile);
         
         updateStatus("Vorheriges Kapitel geladen: " + previousFile.getName());
+        scheduleStatusClear(5, false);
     }
     
     /**
@@ -10793,8 +10766,8 @@ spacer.setStyle("-fx-background-color: transparent;");
         navigateToChapter(nextFile);
         
         updateStatus("Nächstes Kapitel geladen: " + nextFile.getName());
+        scheduleStatusClear(5, false);
     }
-    
     /**
      * Navigiert zu einem Kapitel - prüft auf bestehende Editoren
      */

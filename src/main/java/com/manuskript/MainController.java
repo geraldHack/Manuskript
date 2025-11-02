@@ -66,6 +66,7 @@ import java.util.HashSet;
 import java.util.ResourceBundle;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.regex.Matcher;
@@ -686,9 +687,9 @@ public class MainController implements Initializable {
                 allDocxFiles.removeAll(filesToMove);
                 
                 // WICHTIG: Reihenfolge speichern
-                String currentDir = preferences.get("lastDirectory", "");
-                if (!currentDir.isEmpty()) {
-                    saveSelection(new File(currentDir));
+                File currentDir = getCurrentDirectory();
+                if (currentDir != null) {
+                    saveSelection(currentDir);
                 }
                 
                 success = true;
@@ -734,9 +735,9 @@ public class MainController implements Initializable {
                                 updateStatus("Datei nach oben verschoben (Strg+↑)");
                                 
                                 // WICHTIG: Reihenfolge speichern
-                                String currentDir = preferences.get("lastDirectory", "");
-                                if (!currentDir.isEmpty()) {
-                                    saveSelection(new File(currentDir));
+                                File currentDir = getCurrentDirectory();
+                                if (currentDir != null) {
+                                    saveSelection(currentDir);
                                 }
                                 
                                 event.consume();
@@ -753,9 +754,9 @@ public class MainController implements Initializable {
                                 updateStatus("Datei nach unten verschoben (Strg+↓)");
                                 
                                 // WICHTIG: Reihenfolge speichern
-                                String currentDir = preferences.get("lastDirectory", "");
-                                if (!currentDir.isEmpty()) {
-                                    saveSelection(new File(currentDir));
+                                File currentDir = getCurrentDirectory();
+                                if (currentDir != null) {
+                                    saveSelection(currentDir);
                                 }
                                 
                                 event.consume();
@@ -1024,6 +1025,18 @@ public class MainController implements Initializable {
         }
     }
 
+    private File getCurrentDirectory() {
+        String path = (txtDirectoryPath != null) ? txtDirectoryPath.getText() : null;
+        if (path == null || path.trim().isEmpty()) {
+            path = preferences.get("lastDirectory", "");
+        }
+        if (path == null || path.trim().isEmpty()) {
+            return null;
+        }
+        File dir = new File(path.trim());
+        return (dir.exists() && dir.isDirectory()) ? dir : null;
+    }
+
     private void updateProjectTitleFromCurrentPath() {
         if (projectTitleLabel == null) return;
         String currentDir = txtDirectoryPath != null ? txtDirectoryPath.getText() : null;
@@ -1203,19 +1216,21 @@ public class MainController implements Initializable {
             
             
             // Alle DOCX-Dateien im Verzeichnis sammeln (nur flach, keine Unterverzeichnisse)
-            Set<File> fileSet = java.nio.file.Files.list(directory.toPath())
+            List<File> files = java.nio.file.Files.list(directory.toPath())
                     .filter(path -> {
                         boolean isDocx = path.toString().toLowerCase().endsWith(".docx");
                         return isDocx;
                     })
                     .map(java.nio.file.Path::toFile)
-                    .collect(Collectors.toSet()); // Set statt List für keine Duplikate
+                    .collect(Collectors.toList());
             
             // Debug: Alle gefundenen DOCX-Dateien ausgeben
             logger.debug("Gefundene DOCX-Dateien in {}: {}", directory.getAbsolutePath(), 
-                fileSet.stream().map(File::getName).collect(Collectors.toList()));
-            
-            List<File> files = new ArrayList<>(fileSet);
+                files.stream().map(File::getName).collect(Collectors.toList()));
+
+            List<String> savedOrder = loadSavedOrder(directory);
+            LinkedHashMap<String, DocxFile> docsWithMd = new LinkedHashMap<>();
+            List<DocxFile> docsWithoutMd = new ArrayList<>();
             
             
             // Sudowrite-ZIP-Dateien überprüfen und importieren (nur wenn Downloads-Monitor aktiv)
@@ -1245,36 +1260,29 @@ public class MainController implements Initializable {
                     hasMdFile);
                 
                 if (hasMdFile) {
-                    // Datei hat MD-Datei → nach rechts
-                    selectedDocxFiles.add(docxFile);
+                    docsWithMd.put(docxFile.getFileName(), docxFile);
                 } else {
                     // Datei hat keine MD-Datei → nach links
-                allDocxFiles.add(docxFile);
+                    docsWithoutMd.add(docxFile);
                 }
             }
             
-            
-            // Debug: Alle Dateien in allDocxFiles auflisten
-            
+            allDocxFiles.addAll(docsWithoutMd);
+
+            List<DocxFile> reorderedSelected = new ArrayList<>();
+            for (String fileName : savedOrder) {
+                DocxFile docxFile = docsWithMd.remove(fileName);
+                if (docxFile != null) {
+                    reorderedSelected.add(docxFile);
+                }
+            }
+            reorderedSelected.addAll(docsWithMd.values());
+            selectedDocxFiles.setAll(reorderedSelected);
+
             // WICHTIG: Hash-basierte Änderungsprüfung für alle geladenen Dateien
             checkAllDocxFilesForChanges();
             
-            // WICHTIG: Gespeicherte Reihenfolge laden (falls vorhanden)
-            loadSavedOrder(directory);
-            
-            // WICHTIG: Alle Dateien mit MD-Dateien in die rechte Tabelle laden (auch neue)
-            for (DocxFile docxFile : originalDocxFiles) {
-                File mdFile = deriveMdFileFor(docxFile.getFile());
-                boolean hasMdFile = mdFile != null && mdFile.exists();
-                
-                if (hasMdFile && !selectedDocxFiles.contains(docxFile)) {
-                    selectedDocxFiles.add(docxFile);
-                    logger.debug("Neue Datei mit MD-Datei hinzugefügt: {}", docxFile.getFileName());
-                }
-            }
-            
-              
-          
+            saveSelection(directory);
             
             // Status aktualisieren
             updateStatus(allDocxFiles.size() + " Dateien links, " + selectedDocxFiles.size() + " Dateien rechts");
@@ -1351,6 +1359,10 @@ public class MainController implements Initializable {
             }
             
             updateStatus("Ursprüngliche Reihenfolge wiederhergestellt");
+            File currentDir = getCurrentDirectory();
+            if (currentDir != null) {
+                saveSelection(currentDir);
+            }
             
                 } catch (Exception e) {
             logger.warn("Fehler beim Wiederherstellen der ursprünglichen Reihenfolge: {}", e.getMessage());
@@ -1466,13 +1478,16 @@ public class MainController implements Initializable {
                     // NEU: Hash-basierte Änderungsprüfung für ALLE DOCX-Dateien (links und rechts)
                     checkAllDocxFilesForChanges();
                     
+                    // Stelle gespeicherte Reihenfolge der rechten Tabelle wieder her
+                    List<String> savedOrder = loadSavedOrder(directory);
+                    applySavedOrderToSelected(savedOrder);
+                    saveSelection(directory);
+
                     // UI aktualisieren nach Hash-Erkennung
                     Platform.runLater(() -> {
                         // Aktualisiere die Tabellen
                         tableViewAvailable.refresh();
                         tableViewSelected.refresh();
-                        
-                        // Filter entfernt - einfache Lösung
                     });
                     
                     updateStatus("DOCX-Dateien automatisch aktualisiert");
@@ -1506,23 +1521,37 @@ public class MainController implements Initializable {
             newFiles.removeAll(existingFiles);
             
             if (!newFiles.isEmpty()) {
+                boolean selectionChanged = false;
                 
                 // Füge neue Dateien hinzu
                 for (File file : newFiles) {
                     DocxFile docxFile = new DocxFile(file);
                     originalDocxFiles.add(docxFile);
                     
+                    // WICHTIG: Neue Dateien sollten NICHT als "changed" markiert werden
+                    docxFile.setChanged(false);
+                    
                     // Prüfe: Hat die Datei eine MD-Datei?
                     File mdFile = deriveMdFileFor(docxFile.getFile());
                     boolean hasMdFile = mdFile != null && mdFile.exists();
                     
                     if (hasMdFile) {
-                        // Datei hat MD-Datei → nach rechts
+                        // Datei hat MD-Datei → nach rechts (am Ende)
                         selectedDocxFiles.add(docxFile);
+                        selectionChanged = true;
                     } else {
                         // Datei hat keine MD-Datei → nach links
                         allDocxFiles.add(docxFile);
                     }
+                }
+                
+                // WICHTIG: Für alle neuen Dateien Hash prüfen/speichern und als unverändert markieren
+                if (!newFiles.isEmpty()) {
+                    checkAllDocxFilesForChanges();
+                }
+                
+                if (selectionChanged) {
+                    saveSelection(directory);
                 }
                 
                 updateStatus(newFiles.size() + " neue Dateien hinzugefügt");
@@ -1551,12 +1580,13 @@ public class MainController implements Initializable {
                 String savedHash = loadDocxHash(docxFile.getFile());
                 
                 if (currentHash != null && savedHash != null && !currentHash.equals(savedHash)) {
-                    // Datei wurde geändert!
+                    // Datei wurde nach der ersten Verarbeitung extern geändert!
                     docxFile.setChanged(true);
                     // Hash NICHT automatisch aktualisieren - nur manuell beim Speichern
                 } else if (currentHash != null && savedHash == null) {
                     // Neue Datei - noch nie verarbeitet
-                    docxFile.setChanged(true);
+                    // Neue Dateien sollten NICHT als "changed" markiert werden
+                    docxFile.setChanged(false);
                     // Hash speichern für erste Verarbeitung
                     saveDocxHash(docxFile.getFile(), currentHash);
                 } else if (currentHash != null && savedHash != null && currentHash.equals(savedHash)) {
@@ -1811,7 +1841,12 @@ public class MainController implements Initializable {
         // Entferne nur die erfolgreich verarbeiteten Dateien aus der linken Tabelle
         allDocxFiles.removeAll(successfullyProcessed);
         
-        // Keine Auswahl mehr speichern - MD-Erkennung ist ausreichend
+        if (!successfullyProcessed.isEmpty()) {
+            File currentDir = getCurrentDirectory();
+            if (currentDir != null) {
+                saveSelection(currentDir);
+            }
+        }
         
         // Benutzer-Feedback
         if (!errors.isEmpty()) {
@@ -2105,6 +2140,13 @@ public class MainController implements Initializable {
                         EditorWindow editor = openChapterEditorWindow(content, chapterFile, format);
                         if (editor != null) {
                             updateStatus("Kapitel-Editor geöffnet (DOCX-Fallback): " + chapterFile.getFileName());
+                            
+                            // WICHTIG: Hash speichern für Fallback-Fall
+                            if (mdFile != null) {
+                                DiffProcessor.saveDocxHashAsync(chapterFile.getFile(), mdFile);
+                                updateDocxHashAfterAccept(chapterFile.getFile());
+                                markDocxFileAsUnchanged(chapterFile.getFile());
+                            }
                         }
                     }
                 }
@@ -2117,6 +2159,11 @@ public class MainController implements Initializable {
                     try {
                         java.nio.file.Files.write(mdFile.toPath(), content.getBytes(java.nio.charset.StandardCharsets.UTF_8));
                         updateStatus("MD-Datei erstellt: " + chapterFile.getFileName());
+                        
+                        // WICHTIG: Hash speichern, damit die Datei nicht beim nächsten Öffnen als geändert erkannt wird
+                        DiffProcessor.saveDocxHashAsync(chapterFile.getFile(), mdFile);
+                        updateDocxHashAfterAccept(chapterFile.getFile());
+                        markDocxFileAsUnchanged(chapterFile.getFile());
                     } catch (Exception e) {
                         logger.error("Fehler beim Speichern der MD-Datei", e);
                     }
@@ -4519,46 +4566,52 @@ public class MainController implements Initializable {
             .collect(Collectors.toList());
     }
 
-    private void loadSavedOrder(File directory) {
+    private List<String> loadSavedOrder(File directory) {
+        if (directory == null) {
+            return Collections.emptyList();
+        }
         try {
-            if (directory == null) return;
             File dataDir = new File(directory, "data");
+            if (!dataDir.exists()) {
+                dataDir.mkdirs();
+            }
             Path jsonPath = dataDir.toPath().resolve(".manuskript_selection.json");
-            if (!Files.exists(jsonPath)) return;
-            
+            if (!Files.exists(jsonPath)) {
+                return Collections.emptyList();
+            }
+
             String json = new String(Files.readAllBytes(jsonPath));
             Type listType = new TypeToken<List<String>>(){}.getType();
             List<String> savedOrder = new Gson().fromJson(json, listType);
-            
-            // Stelle die gespeicherte Reihenfolge wieder her
-            selectedDocxFiles.clear();
-            
-            // WICHTIG: Suche in ALLEN verfügbaren Dateien (originalDocxFiles)
-            for (String fileName : savedOrder) {
-                for (DocxFile docxFile : originalDocxFiles) {
-                    if (docxFile.getFileName().equals(fileName)) {
-                        // WICHTIG: Nur Dateien mit MD-Dateien zu selectedDocxFiles hinzufügen
-                        File mdFile = deriveMdFileFor(docxFile.getFile());
-                        boolean hasMdFile = mdFile != null && mdFile.exists();
-                        
-                        if (hasMdFile) {
-                            // Datei hat MD-Datei → nach rechts (selectedDocxFiles)
-                            selectedDocxFiles.add(docxFile);
-                        } else {
-                            // Datei hat keine MD-Datei → nach links (allDocxFiles)
-                            allDocxFiles.add(docxFile);
-                        }
-                        
-                        break;
-                    }
-                }
+            if (savedOrder == null) {
+                return Collections.emptyList();
             }
-            
-            
+            return savedOrder;
         } catch (Exception e) {
             logger.warn("Fehler beim Laden der gespeicherten Reihenfolge", e);
+            return Collections.emptyList();
         }
     }
+
+    private void applySavedOrderToSelected(List<String> savedOrder) {
+        if (savedOrder == null || savedOrder.isEmpty()) {
+            return;
+        }
+        LinkedHashMap<String, DocxFile> currentSelection = new LinkedHashMap<>();
+        for (DocxFile docxFile : selectedDocxFiles) {
+            currentSelection.put(docxFile.getFileName(), docxFile);
+        }
+        List<DocxFile> reorderedSelected = new ArrayList<>();
+        for (String fileName : savedOrder) {
+            DocxFile docxFile = currentSelection.remove(fileName);
+            if (docxFile != null) {
+                reorderedSelected.add(docxFile);
+            }
+        }
+        reorderedSelected.addAll(currentSelection.values());
+        selectedDocxFiles.setAll(reorderedSelected);
+    }
+
     
 
     
@@ -5002,15 +5055,28 @@ public class MainController implements Initializable {
                     logger.warn("Konnte Hash für neues Kapitel nicht erstellen: {}", hashException.getMessage());
                 }
                 
+                // Füge das neue Kapitel automatisch zu den ausgewählten Dateien hinzu
                 selectedDocxFiles.add(newDocxFile);
+                // WICHTIG: Neue Datei explizit als "unverändert" markieren
+                newDocxFile.setChanged(false);
+                
                 updateStatus("Neues Kapitel '" + chapterName + "' erstellt und zur Bearbeitung hinzugefügt");
+                
+                // WICHTIG: checkAllDocxFilesForChanges() vor saveSelection() aufrufen
+                // damit der Hash bereits gespeichert ist
+                checkAllDocxFilesForChanges();
                 
                 // Speichere die neue Reihenfolge (damit das Kapitel beim Neustart erhalten bleibt)
                 File directory = new File(directoryPath);
                 saveSelection(directory);
                 
-                // Aktualisiere die Dateiliste (neues Kapitel wird NICHT in linker Liste erscheinen, da es bereits in rechter Liste ist)
-                refreshDocxFiles();
+                // Aktualisiere die UI
+                Platform.runLater(() -> {
+                    tableViewSelected.refresh();
+                    // Nochmal als unverändert markieren (falls durch checkAllDocxFilesForChanges() geändert)
+                    newDocxFile.setChanged(false);
+                    tableViewSelected.refresh();
+                });
             } catch (Exception e) {
                 logger.error("Fehler beim Erstellen des neuen Kapitels", e);
                 showError("Fehler", "Fehler beim Erstellen des Kapitels: " + e.getMessage());
@@ -5050,14 +5116,29 @@ public class MainController implements Initializable {
         options.loadFromPreferences(); // Lade gespeicherte Optionen
         docxProcessor.exportMarkdownToDocxWithOptions(emptyContent, docxFile, options);
         
-        // Erstelle MD-Datei
-        File mdFile = new File(directory, cleanChapterName + ".md");
+        // Erstelle MD-Datei im data-Verzeichnis (wie es auch von deriveMdFileFor() erwartet wird)
+        File dataDir = getDataDirectory(docxFile);
+        if (dataDir == null) {
+            throw new Exception("Konnte data-Verzeichnis nicht erstellen");
+        }
+        File mdFile = new File(dataDir, cleanChapterName + ".md");
         if (mdFile.exists()) {
             throw new Exception("Datei existiert bereits: " + mdFile.getName());
         }
         
         // Schreibe leeren Inhalt in MD-Datei
         java.nio.file.Files.write(mdFile.toPath(), emptyContent.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        
+        // WICHTIG: Speichere Hash sofort nach Erstellung der Dateien
+        // Das verhindert, dass die Datei als "geändert" markiert wird
+        try {
+            String hash = calculateFileHashString(docxFile);
+            if (hash != null) {
+                saveDocxHash(docxFile, hash);
+            }
+        } catch (Exception e) {
+            logger.warn("Konnte Hash nicht speichern: {}", e.getMessage());
+        }
         
         
         return docxFile; // DOCX-Datei zurückgeben
@@ -5158,6 +5239,25 @@ public class MainController implements Initializable {
         txtFilePath.setPrefWidth(400);
         txtFilePath.setEditable(false);
         
+        // Gespeicherten Pfad in Textfeld eintragen
+        String lastFilePath = ResourceManager.getLastFilePath();
+        if (lastFilePath != null && !lastFilePath.isEmpty()) {
+            File lastFile = new File(lastFilePath);
+            // Prüfe ob es ein Verzeichnis ist und ob dort DOCX/RTF Dateien sind
+            if (lastFile.isDirectory()) {
+                File[] files = lastFile.listFiles((dir, name) -> 
+                    name.toLowerCase().endsWith(".docx") || name.toLowerCase().endsWith(".rtf"));
+                if (files != null && files.length > 0) {
+                    // Erste gefundene Datei eintragen
+                    txtFilePath.setText(files[0].getAbsolutePath());
+                }
+            } else if (lastFile.exists() && (lastFilePath.toLowerCase().endsWith(".docx") || 
+                       lastFilePath.toLowerCase().endsWith(".rtf"))) {
+                txtFilePath.setText(lastFilePath);
+            }
+        }
+        
+        
         Button btnSelectFile = new Button("Datei auswählen");
         btnSelectFile.getStyleClass().addAll("button", "primary");
         
@@ -5182,6 +5282,15 @@ public class MainController implements Initializable {
         txtOutputPath.setPromptText("Verzeichnis für Kapitel-Dateien...");
         txtOutputPath.setPrefWidth(400);
         txtOutputPath.setEditable(false);
+        
+        // Gespeicherten Ausgabe-Pfad in Textfeld eintragen
+        String lastOutputPath = ResourceManager.getLastOutputPath();
+        if (lastOutputPath != null && !lastOutputPath.isEmpty()) {
+            File lastOutputDir = new File(lastOutputPath);
+            if (lastOutputDir.exists() && lastOutputDir.isDirectory()) {
+                txtOutputPath.setText(lastOutputPath);
+            }
+        }
         
         Button btnSelectOutput = new Button("Verzeichnis auswählen");
         btnSelectOutput.getStyleClass().addAll("button", "secondary");
@@ -5420,11 +5529,43 @@ public class MainController implements Initializable {
                         // Basis-Dateiname (ohne .docx)
                             String baseFileName = inputFile.getName().replaceFirst("\\.docx$", "");
                         
-                        // Kapitel mit nicht-ausgewählten Inhalten zusammenführen
-                        List<Chapter> mergedChapters = processor.mergeChaptersWithUnselectedContent(allChapters, selectionStatus);
+                        // Nur ausgewählte Kapitel filtern und speichern
+                        logger.info("Starte Kapitel-Split - Gesamt: {} Kapitel gefunden", allChapters.size());
                         
-                        // Zusammengeführte Kapitel speichern
-                        for (Chapter chapter : mergedChapters) {
+                        // Validierung: Prüfe ob Listen gleich lang sind
+                        if (allChapters.size() != selectionStatus.size()) {
+                            logger.warn("WARNUNG: Anzahl Kapitel ({}) stimmt nicht mit Anzahl Checkboxen ({}) überein!", 
+                                      allChapters.size(), selectionStatus.size());
+                        }
+                        
+                        List<Chapter> selectedChapters = new ArrayList<>();
+                        for (int i = 0; i < allChapters.size(); i++) {
+                            boolean isSelected = i < selectionStatus.size() ? selectionStatus.get(i) : false;
+                            Chapter chapter = allChapters.get(i);
+                            logger.debug("Kapitel {} ({}): ausgewählt={}", i + 1, chapter.getTitle(), isSelected);
+                            if (isSelected) {
+                                selectedChapters.add(chapter);
+                            } else {
+                                logger.debug("Kapitel {} wird ÜBERSPRUNGEN (nicht ausgewählt)", chapter.getTitle());
+                            }
+                        }
+                        
+                        logger.info("Gefiltert: {} von {} Kapiteln werden gespeichert ({} übersprungen)", 
+                                  selectedChapters.size(), allChapters.size(), 
+                                  allChapters.size() - selectedChapters.size());
+                        
+                        // Kapitelnummern vor dem Speichern loggen
+                        logger.info("═══════════════════════════════════════════════════════════");
+                        logger.info("Ausgewählte Kapitel vor dem Speichern:");
+                        for (int idx = 0; idx < selectedChapters.size(); idx++) {
+                            Chapter ch = selectedChapters.get(idx);
+                            logger.info("  [{}] Kapitelnummer: {}, Titel: '{}'", idx, ch.getNumber(), ch.getTitle());
+                        }
+                        logger.info("═══════════════════════════════════════════════════════════");
+                        
+                        // Ausgewählte Kapitel speichern
+                        for (Chapter chapter : selectedChapters) {
+                            logger.info("Rufe saveChapter auf für Kapitel {}: {}", chapter.getNumber(), chapter.getTitle());
                             processor.saveChapter(chapter, outputDir, baseFileName);
                         }
                         
@@ -5432,7 +5573,7 @@ public class MainController implements Initializable {
                         Platform.runLater(() -> {
                             btnSplit.setDisable(false);
                             btnSplit.setText("Kapitel aufteilen");
-                            showError("Erfolg", String.format("%d finale Kapitel wurden erfolgreich aufgeteilt und gespeichert!", mergedChapters.size()));
+                            showError("Erfolg", String.format("%d ausgewählte Kapitel wurden erfolgreich aufgeteilt und gespeichert!", selectedChapters.size()));
                         });
                         }
                         
@@ -5462,6 +5603,68 @@ public class MainController implements Initializable {
                     if ("Kapitel-Split".equals(stage.getTitle())) {
                         stage.close();
                         break;
+                    }
+                }
+            }
+        });
+        
+        // Automatische Analyse wenn eine Datei im Textfeld eingetragen wurde
+        Platform.runLater(() -> {
+            String filePath = txtFilePath.getText();
+            if (filePath != null && !filePath.trim().isEmpty()) {
+                File fileToAnalyze = new File(filePath);
+                if (fileToAnalyze.exists() && fileToAnalyze.isFile() &&
+                    (filePath.toLowerCase().endsWith(".docx") || filePath.toLowerCase().endsWith(".rtf"))) {
+                    // Datei automatisch analysieren
+                    try {
+                        listChapters.getItems().clear();
+                        
+                        String fileName = fileToAnalyze.getName().toLowerCase();
+                        if (fileName.endsWith(".docx")) {
+                            DocxSplitProcessor processor = new DocxSplitProcessor();
+                            processor.setSourceDocxFile(fileToAnalyze);
+                            List<Chapter> chapters = processor.analyzeDocument(fileToAnalyze);
+                            
+                            if (chapters.isEmpty()) {
+                                CheckBox noChaptersCheckBox = new CheckBox("Keine Kapitel gefunden");
+                                noChaptersCheckBox.setDisable(true);
+                                listChapters.getItems().add(noChaptersCheckBox);
+                                btnSplit.setDisable(true);
+                            } else {
+                                for (Chapter chapter : chapters) {
+                                    CheckBox chapterCheckBox = new CheckBox(chapter.toString());
+                                    chapterCheckBox.setSelected(true);
+                                    chapterCheckBox.setUserData(chapter);
+                                    listChapters.getItems().add(chapterCheckBox);
+                                }
+                                btnSplit.setDisable(false);
+                            }
+                        } else if (fileName.endsWith(".rtf")) {
+                            RtfSplitProcessor processor = new RtfSplitProcessor();
+                            List<RtfSplitProcessor.Chapter> chapters = processor.analyzeDocument(fileToAnalyze);
+                            
+                            if (chapters.isEmpty()) {
+                                CheckBox noChaptersCheckBox = new CheckBox("Keine Kapitel gefunden");
+                                noChaptersCheckBox.setDisable(true);
+                                listChapters.getItems().add(noChaptersCheckBox);
+                                btnSplit.setDisable(true);
+                            } else {
+                                for (RtfSplitProcessor.Chapter chapter : chapters) {
+                                    CheckBox chapterCheckBox = new CheckBox(chapter.toString());
+                                    chapterCheckBox.setSelected(true);
+                                    chapterCheckBox.setUserData(chapter);
+                                    listChapters.getItems().add(chapterCheckBox);
+                                }
+                                btnSplit.setDisable(false);
+                            }
+                        }
+                    } catch (Exception ex) {
+                        logger.error("Fehler beim automatischen Analysieren der Datei: {}", ex.getMessage(), ex);
+                        listChapters.getItems().clear();
+                        CheckBox errorCheckBox = new CheckBox("Fehler beim Analysieren: " + ex.getMessage());
+                        errorCheckBox.setDisable(true);
+                        listChapters.getItems().add(errorCheckBox);
+                        btnSplit.setDisable(true);
                     }
                 }
             }
@@ -7239,3 +7442,4 @@ public class MainController implements Initializable {
         });
     }
 }
+

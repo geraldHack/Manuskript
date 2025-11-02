@@ -1,17 +1,12 @@
 package com.manuskript;
 
 import org.apache.poi.xwpf.usermodel.*;
+import org.docx4j.Docx4J;
 import org.docx4j.XmlUtils;
-import org.docx4j.openpackaging.exceptions.Docx4JException;
 import org.docx4j.openpackaging.packages.WordprocessingMLPackage;
 import org.docx4j.openpackaging.parts.WordprocessingML.MainDocumentPart;
-import org.docx4j.openpackaging.parts.WordprocessingML.NumberingDefinitionsPart;
 import org.docx4j.openpackaging.parts.WordprocessingML.StyleDefinitionsPart;
-import org.docx4j.wml.Body;
-import org.docx4j.jaxb.Context;
-import org.docx4j.wml.Numbering;
 import org.docx4j.wml.P;
-import org.docx4j.wml.SectPr;
 import org.docx4j.wml.Styles;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,11 +62,9 @@ public class DocxSplitProcessor {
     }
     
     private File sourceDocxFile;
-    private WordprocessingMLPackage cachedSourcePackage;
 
     public void setSourceDocxFile(File docxFile) {
         this.sourceDocxFile = docxFile;
-        this.cachedSourcePackage = null;
     }
 
     /**
@@ -88,7 +81,6 @@ public class DocxSplitProcessor {
              XWPFDocument document = new XWPFDocument(fis)) {
             
             this.sourceDocxFile = docxFile;
-            this.cachedSourcePackage = null;
 
             // Alle Absätze sammeln
             for (XWPFParagraph paragraph : document.getParagraphs()) {
@@ -121,6 +113,24 @@ public class DocxSplitProcessor {
         
         // Kapitel-Kandidaten basierend auf verschiedenen Kriterien
         if (isLikelyChapter(paragraph, text)) {
+            // Versuche Kapitelnummer aus dem Text zu extrahieren
+            int extractedNumber = extractChapterNumber(text, paragraph);
+            logger.info("Kapitel erkannt: Text='{}', extrahierte Nummer={}, Fallback-Nummer={}", 
+                        text, extractedNumber, chapterNumber);
+            
+            // Wenn eine Nummer extrahiert wurde (auch wenn 0!), verwende diese, sonst Fallback auf sequenzielle Nummer
+            // WICHTIG: Wenn extractChapterNumber 0 zurückgibt, bedeutet das "nicht gefunden", nicht "Kapitel 0"
+            int finalChapterNumber;
+            if (extractedNumber > 0) {
+                finalChapterNumber = extractedNumber;
+                logger.info("✓ Kapitelnummer aus Text extrahiert: '{}' -> Nummer {} (wird für Dateinamen verwendet)", 
+                           text, extractedNumber);
+            } else {
+                finalChapterNumber = chapterNumber;
+                logger.warn("⚠ Keine Kapitelnummer in '{}' gefunden, verwende Fallback-Nummer {} (sequenziell)", 
+                           text, chapterNumber);
+            }
+            
             // Extrahiere den ursprünglichen Titel (ohne Nummer)
             String originalTitle = extractOriginalTitle(text);
             String chapterTitle = originalTitle;
@@ -129,7 +139,7 @@ public class DocxSplitProcessor {
             int endParagraph = findChapterEnd(paragraphIndex, allParagraphs);
             List<XWPFParagraph> chapterParagraphs = allParagraphs.subList(paragraphIndex, endParagraph);
             
-            return new Chapter(chapterNumber, chapterTitle, paragraphIndex, endParagraph, chapterParagraphs);
+            return new Chapter(finalChapterNumber, chapterTitle, paragraphIndex, endParagraph, chapterParagraphs);
         }
         return null;
     }
@@ -193,7 +203,38 @@ public class DocxSplitProcessor {
             return true;
         }
         
-        // 4. PRIMÄR: Formatierung prüfen (fett + groß + kurz)
+        // 4. PRIMÄR: Kapitelmarkierungen mit Muster "-Zahl-" (z.B. "-2-", "-6-", "-16-")
+        // Prüfe zuerst ob der Text dem Muster entspricht, unabhängig von Ausrichtung
+        String trimmedText = text.trim();
+        if (trimmedText.matches("^-[0-9]+-$")) {
+            logger.debug("Erkannt als Kapitelmarkierung '-Zahl-': '{}'", trimmedText);
+            return true;
+        }
+        
+        // Auch Varianten ohne Bindestriche am Ende/Anfang (aber nur wenn sehr kurz)
+        if (trimmedText.length() <= 10 && trimmedText.matches("^-?[0-9]+-?$")) {
+            logger.debug("Erkannt als Kapitelmarkierung (Variante): '{}'", trimmedText);
+            return true;
+        }
+        
+        // 4b. Zentrierte Kapitelmarkierungen (zusätzliche Erkennung für zentrierte Absätze)
+        ParagraphAlignment alignment = paragraph.getAlignment();
+        if (alignment == ParagraphAlignment.CENTER) {
+            logger.debug("Prüfe zentrierten Absatz: '{}'", trimmedText);
+            
+            // Prüfe ob der Text dem Muster "-Zahl-" entspricht (z.B. "-06-", "-2-", "-16-")
+            if (trimmedText.matches("^-[0-9]+-$")) {
+                logger.debug("Erkannt als zentrierte Kapitelmarkierung: '{}'", trimmedText);
+                return true;
+            }
+            // Auch wenn es sehr kurz ist und nur Zahlen/Bindestriche enthält
+            if (trimmedText.length() <= 10 && trimmedText.matches("^[-0-9]+$")) {
+                logger.debug("Erkannt als zentrierte Kapitelmarkierung (kurz): '{}'", trimmedText);
+                return true;
+            }
+        }
+        
+        // 5. PRIMÄR: Formatierung prüfen (fett + groß + kurz)
         boolean isBold = false;
         boolean isLargeFont = false;
         int maxFontSize = 0;
@@ -214,7 +255,7 @@ public class DocxSplitProcessor {
             return true;
         }
         
-        // 5. FALLBACK: Nur sehr spezifische Text-Analyse
+        // 6. FALLBACK: Nur sehr spezifische Text-Analyse
         String lowerText = text.toLowerCase();
         
         // Nur wenn explizit "Kapitel" oder "Chapter" enthalten UND kurz
@@ -228,6 +269,95 @@ public class DocxSplitProcessor {
         }
         
         return false;
+    }
+    
+    /**
+     * Extrahiert die Kapitelnummer aus dem Text
+     */
+    private int extractChapterNumber(String text, XWPFParagraph paragraph) {
+        String trimmedText = text.trim();
+        
+        logger.debug("extractChapterNumber: Input Text='{}', Länge={}", trimmedText, trimmedText.length());
+        
+        // 0. PRIMÄR: Muster "-Zahl-" erkennen (unabhängig von Ausrichtung)
+        // Dies ist das häufigste Format für zentrierte Kapitelmarkierungen
+        boolean matchesPattern = trimmedText.matches("^-[0-9]+-$");
+        logger.debug("Pattern '^-[0-9]+-$' matched für '{}': {}", trimmedText, matchesPattern);
+        
+        if (matchesPattern) {
+            // Entferne beide Bindestriche
+            String numberOnly = trimmedText.replaceAll("^-", "").replaceAll("-$", "");
+            logger.debug("Muster '-Zahl-' gefunden: Original='{}', Zahl='{}'", trimmedText, numberOnly);
+            try {
+                int num = Integer.parseInt(numberOnly);
+                logger.info("✓ Nummer aus '-Zahl-' Muster extrahiert: '{}' -> {}", trimmedText, num);
+                return num;
+            } catch (NumberFormatException e) {
+                logger.warn("Konnte '{}' nicht als Zahl parsen", numberOnly);
+            }
+        } else {
+            logger.debug("Pattern '^-[0-9]+-$' matched NICHT für Text '{}' (Länge: {})", trimmedText, trimmedText.length());
+            // Zeige alle Zeichen für Debugging
+            for (int i = 0; i < trimmedText.length(); i++) {
+                char c = trimmedText.charAt(i);
+                logger.debug("  Zeichen [{}]: '{}' (Code: {})", i, c, (int)c);
+            }
+        }
+        
+        // 1. Zentrierte Markierungen wie "-1-", "-2-", "-16-", "2-", "-2", "2"
+        ParagraphAlignment alignment = paragraph.getAlignment();
+        if (alignment == ParagraphAlignment.CENTER) {
+            logger.debug("Zentriert erkannt: Text='{}'", trimmedText);
+            
+            // Entferne alle Bindestriche und versuche Zahl zu extrahieren
+            String numberOnly = trimmedText.replaceAll("^[-]+", "").replaceAll("[-]+$", "");
+            logger.debug("Zentriert: Original='{}', nach Entfernen der Bindestriche='{}'", trimmedText, numberOnly);
+            if (numberOnly.matches("^\\d+$")) {
+                try {
+                    int num = Integer.parseInt(numberOnly);
+                    logger.info("✓ Nummer aus zentrierter Markierung extrahiert: '{}' -> {}", trimmedText, num);
+                    return num;
+                } catch (NumberFormatException e) {
+                    logger.debug("Konnte '{}' nicht als Zahl parsen", numberOnly);
+                }
+            }
+        }
+        
+        // 2. Standard-Formate: "Kapitel 2", "Chapter 3", "Teil 1", "Part 4"
+        Pattern pattern = Pattern.compile("(?i)(kapitel|chapter|teil|part)\\s+(\\d+)", Pattern.CASE_INSENSITIVE);
+        Matcher matcher = pattern.matcher(trimmedText);
+        if (matcher.find()) {
+            try {
+                return Integer.parseInt(matcher.group(2));
+            } catch (NumberFormatException e) {
+                // Fallback
+            }
+        }
+        
+        // 3. Zahlen am Anfang: "2. Titel", "2 - Titel", "2: Titel"
+        pattern = Pattern.compile("^(\\d+)\\s*[.:\\-]");
+        matcher = pattern.matcher(trimmedText);
+        if (matcher.find()) {
+            try {
+                return Integer.parseInt(matcher.group(1));
+            } catch (NumberFormatException e) {
+                // Fallback
+            }
+        }
+        
+        // 4. Einfache Zahl (wenn der Text nur aus einer Zahl besteht oder mit einer Zahl beginnt)
+        pattern = Pattern.compile("^(\\d+)");
+        matcher = pattern.matcher(trimmedText);
+        if (matcher.find()) {
+            try {
+                return Integer.parseInt(matcher.group(1));
+            } catch (NumberFormatException e) {
+                // Fallback
+            }
+        }
+        
+        // Fallback: Keine Nummer gefunden
+        return 0;
     }
     
     /**
@@ -255,77 +385,131 @@ public class DocxSplitProcessor {
     }
     
     /**
-     * Speichert ein Kapitel als separate DOCX-Datei
+     * Speichert ein Kapitel als separate DOCX-Datei (verwendet Apache POI statt Docx4J)
      */
     public void saveChapter(Chapter chapter, File outputDir, String baseFileName) throws IOException {
-        String fileName = String.format("%s_%02d.docx", baseFileName, chapter.getNumber());
-        File outputFile = new File(outputDir, fileName);
+        int chapterNum = chapter.getNumber();
+        String fileName;
+        String chapterTitle = chapter.getTitle();
         
+        // Entscheide Dateiname basierend auf Titel:
+        // - Wenn Titel dem Muster "-Zahl-" entspricht: Verwende nur die Nummer (z.B. "01.docx")
+        // - Wenn Titel ein normaler Text ist (nicht nur Zahlen): Verwende den Titel (z.B. "Leben_in_der_Kuppel.docx")
         
-        try {
-            if (cachedSourcePackage == null) {
-                cachedSourcePackage = WordprocessingMLPackage.load(sourceDocxFile);
+        String trimmedTitle = chapterTitle.trim();
+        // Prüfe auf numerische Muster: "-1-", "-6-", "-16-", aber auch "1", "-1", "1-" (nur für sehr kurze Texte)
+        boolean isNumericTitle = trimmedTitle.matches("^-\\d+-$") || // "-1-", "-6-", "-16-" (primäres Muster)
+                                 (trimmedTitle.length() <= 5 && trimmedTitle.matches("^-?\\d+-?$")); // "1", "-1", "1-" (nur für kurze Texte)
+        
+        if (isNumericTitle) {
+            // Numerischer Titel: Verwende nur die Kapitelnummer (ohne baseFileName)
+            fileName = String.format("%02d.docx", chapterNum);
+            logger.debug("Numerischer Titel '{}' -> Verwende Nummer: '{}'", chapterTitle, fileName);
+        } else {
+            // Text-Titel: Verwende Titel als Dateinamen (sanitisiert für Dateisystem)
+            String sanitizedTitle = chapterTitle
+                .replaceAll("[<>:\"/\\|?*]", "_") // Ersetze ungültige Zeichen
+                .replaceAll("\\s+", "_") // Ersetze Leerzeichen
+                .trim();
+            if (sanitizedTitle.isEmpty()) {
+                // Fallback falls Titel leer
+                sanitizedTitle = "Kapitel_" + chapterNum;
             }
-            WordprocessingMLPackage sourcePackage = cachedSourcePackage;
-            WordprocessingMLPackage targetPackage = WordprocessingMLPackage.createPackage();
-
-            // Styles und Numberings übertragen
-            StyleDefinitionsPart styles = sourcePackage.getMainDocumentPart().getStyleDefinitionsPart(false);
-            if (styles != null) {
-                StyleDefinitionsPart stylePart = new StyleDefinitionsPart();
-                stylePart.setPackage(targetPackage);
-                Styles stylesClone = (Styles) XmlUtils.deepCopy(styles.getJaxbElement());
-                stylePart.setJaxbElement(stylesClone);
-                targetPackage.getMainDocumentPart().addTargetPart(stylePart);
-            }
-
-            NumberingDefinitionsPart numbering = sourcePackage.getMainDocumentPart().getNumberingDefinitionsPart();
-            if (numbering != null) {
-                NumberingDefinitionsPart numberingPart = new NumberingDefinitionsPart();
-                numberingPart.setPackage(targetPackage);
-                Numbering numberingClone = (Numbering) XmlUtils.deepCopy(numbering.getJaxbElement());
-                numberingPart.setJaxbElement(numberingClone);
-                targetPackage.getMainDocumentPart().addTargetPart(numberingPart);
-            }
-
-            MainDocumentPart sourceMain = sourcePackage.getMainDocumentPart();
-            MainDocumentPart targetMain = targetPackage.getMainDocumentPart();
-
-            // Neues Body erzeugen
-            Body newBody = Context.getWmlObjectFactory().createBody();
-
-            int start = chapter.getStartParagraph();
-            int end = chapter.getEndParagraph();
-
-            List<Object> sourceContent = sourceMain.getContents().getBody().getContent();
-            for (int i = start; i < end; i++) {
-                Object paragraphObject = sourceContent.get(i);
-                Object unwrapped = XmlUtils.unwrap(paragraphObject);
-                P paragraph;
-                if (unwrapped instanceof P) {
-                    paragraph = (P) XmlUtils.deepCopy(unwrapped);
-                } else if (unwrapped instanceof JAXBElement) {
-                    Object value = ((JAXBElement<?>) unwrapped).getValue();
-                    paragraph = (P) XmlUtils.deepCopy(value);
-                } else {
-                    throw new IllegalArgumentException("Unexpected element type: " + unwrapped.getClass());
-                }
-                newBody.getContent().add(paragraph);
-            }
-
-            targetMain.getContents().setBody(newBody);
-
-            // Abschnitts-Eigenschaften übernehmen
-            SectPr sectPr = sourceMain.getContents().getBody().getSectPr();
-            if (sectPr != null) {
-                targetMain.getContents().getBody().setSectPr((SectPr) XmlUtils.deepCopy(sectPr));
-            }
-
-            targetPackage.save(outputFile);
-        } catch (Docx4JException e) {
-            throw new IOException("Fehler beim Speichern des Kapitels", e);
+            fileName = sanitizedTitle + ".docx";
+            logger.info("Verwende Titel als Dateinamen: '{}' -> '{}'", chapterTitle, fileName);
         }
         
+        File outputFile = new File(outputDir, fileName);
+        
+        logger.info("═══════════════════════════════════════════════════════════");
+        logger.info("Speichere Kapitel:");
+        logger.info("  Titel: '{}'", chapter.getTitle());
+        logger.info("  Kapitelnummer (chapter.getNumber()): {}", chapterNum);
+        logger.info("  Dateiname: {}", fileName);
+        logger.info("  Absatz-Bereich: {}-{}", chapter.getStartParagraph(), chapter.getEndParagraph());
+        logger.info("═══════════════════════════════════════════════════════════");
+        
+        // WICHTIG: Verwende Docx4J für vollständige Kompatibilität beim Lesen
+        try {
+            // Quelldokument mit Docx4J öffnen
+            WordprocessingMLPackage sourcePackage = WordprocessingMLPackage.load(sourceDocxFile);
+            MainDocumentPart sourceMainPart = sourcePackage.getMainDocumentPart();
+            
+            // Alle Paragraphs aus dem Quelldokument holen
+            List<Object> sourceContent = sourceMainPart.getContent();
+            List<P> sourceParagraphs = new ArrayList<>();
+            for (Object obj : sourceContent) {
+                if (obj instanceof P) {
+                    sourceParagraphs.add((P) obj);
+                } else if (obj instanceof JAXBElement) {
+                    Object value = ((JAXBElement<?>) obj).getValue();
+                    if (value instanceof P) {
+                        sourceParagraphs.add((P) value);
+                    }
+                }
+            }
+            
+            int start = chapter.getStartParagraph();
+            int end = chapter.getEndParagraph();
+            
+            // Validierung der Indizes
+            if (start < 0 || start >= sourceParagraphs.size()) {
+                throw new IOException("Ungültiger Start-Index für Kapitel: " + start + " (Max: " + sourceParagraphs.size() + ")");
+            }
+            if (end < start || end > sourceParagraphs.size()) {
+                throw new IOException("Ungültiger End-Index für Kapitel: " + end + " (Start: " + start + ", Max: " + sourceParagraphs.size() + ")");
+            }
+            
+            logger.debug("Kopiere Absätze von Index {} bis {} (insgesamt {} Absätze)", start, end, end - start);
+            
+            // Neues Dokument mit Docx4J erstellen
+            WordprocessingMLPackage targetPackage = WordprocessingMLPackage.createPackage();
+            MainDocumentPart targetMainPart = targetPackage.getMainDocumentPart();
+            
+            // WICHTIG: Kopiere Styles vom Quelldokument
+            try {
+                StyleDefinitionsPart sourceStylesPart = sourceMainPart.getStyleDefinitionsPart();
+                if (sourceStylesPart != null) {
+                    StyleDefinitionsPart targetStylesPart = targetMainPart.getStyleDefinitionsPart();
+                    if (targetStylesPart == null) {
+                        targetStylesPart = new StyleDefinitionsPart();
+                        targetMainPart.getRelationshipsPart().addTargetPart(targetStylesPart);
+                    }
+                    
+                    // Kopiere Styles durch Marshalling/Unmarshalling
+                    Styles sourceStyles = sourceStylesPart.getJaxbElement();
+                    if (sourceStyles != null) {
+                        String stylesXml = XmlUtils.marshaltoString(sourceStyles, true, true);
+                        Styles targetStyles = (Styles) XmlUtils.unmarshalString(stylesXml);
+                        targetStylesPart.setJaxbElement(targetStyles);
+                        logger.debug("Styles kopiert");
+                    }
+                }
+            } catch (Exception e) {
+                logger.warn("Fehler beim Kopieren der Styles: {}", e.getMessage());
+                // Fehler nicht kritisch - Dokument kann auch ohne Styles funktionieren
+            }
+            
+            // Kopiere Paragraphs durch Marshalling/Unmarshalling für vollständige Formatierung
+            for (int i = start; i < end; i++) {
+                P sourcePara = sourceParagraphs.get(i);
+                
+                // Kopiere Paragraph durch XML-Serialisierung (behält ALLE Formatierungen!)
+                String paraXml = XmlUtils.marshaltoString(sourcePara, true, true);
+                P targetPara = (P) XmlUtils.unmarshalString(paraXml);
+                
+                targetMainPart.addObject(targetPara);
+            }
+            
+            // Dokument speichern
+            Docx4J.save(targetPackage, outputFile);
+            
+            logger.info("Kapitel {} erfolgreich gespeichert: {}", chapter.getNumber(), fileName);
+            
+        } catch (Exception e) {
+            logger.error("Fehler beim Speichern des Kapitels {}: {}", chapter.getNumber(), e.getMessage(), e);
+            throw new IOException("Fehler beim Speichern des Kapitels: " + e.getMessage(), e);
+        }
     }
     
                     /**

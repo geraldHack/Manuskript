@@ -1433,6 +1433,7 @@ public class DocxProcessor {
 
                 boolean isBold = false;
                 boolean isItalic = false;
+                boolean isUnderline = false;
                 Set<String> charStyles = new HashSet<>();
 
                 RPr rpr = run.getRPr();
@@ -1450,6 +1451,10 @@ public class DocxProcessor {
                         // explicit false
                     } else if (rpr.getI() != null) {
                         isItalic = true;
+                    }
+                    // Unterstreichung erkennen
+                    if (rpr.getU() != null) {
+                        isUnderline = true;
                     }
                     if (rpr.getRStyle() != null && rpr.getRStyle().getVal() != null) {
                         charStyles.add(rpr.getRStyle().getVal());
@@ -1471,31 +1476,32 @@ public class DocxProcessor {
                     }
                 }
 
-                if (headingLevel == 0) {
-                    if (isBold && isItalic) {
-                        text.append("***");
-                    } else if (isBold) {
-                        text.append("**");
-                    } else if (isItalic) {
-                        text.append("*");
-                    }
-                }
-
+                StringBuilder runTextBuilder = new StringBuilder();
                 for (Object runObj : run.getContent()) {
                     if (runObj instanceof org.docx4j.wml.Text) {
                         org.docx4j.wml.Text t = (org.docx4j.wml.Text) runObj;
-                        text.append(t.getValue());
+                        runTextBuilder.append(t.getValue());
                     } else if (runObj instanceof JAXBElement) {
                         Object value = ((JAXBElement<?>) runObj).getValue();
                         if (value instanceof org.docx4j.wml.Text) {
-                            text.append(((org.docx4j.wml.Text) value).getValue());
+                            runTextBuilder.append(((org.docx4j.wml.Text) value).getValue());
                         }
                     } else if (runObj instanceof org.docx4j.wml.Br) {
-                        text.append("\n");
+                        runTextBuilder.append("\n");
                     }
                 }
 
-                if (headingLevel == 0) {
+                String runTextString = runTextBuilder.toString();
+                String trimmedRunText = runTextString.trim();
+                boolean suppressUnderline = isUnderline && (trimmedRunText.matches("^-?\\d+-?$") || trimmedRunText.matches("^-\\d+-$"));
+
+                // Für Überschriften: keine zusätzliche Formatierung (werden bereits mit # markiert)
+                if (headingLevel > 0) {
+                    text.append(runTextString);
+                } else {
+                    if (isUnderline && !suppressUnderline) {
+                        text.append("<u>");
+                    }
                     if (isBold && isItalic) {
                         text.append("***");
                     } else if (isBold) {
@@ -1503,7 +1509,21 @@ public class DocxProcessor {
                     } else if (isItalic) {
                         text.append("*");
                     }
+
+                    text.append(runTextString);
+
+                    if (isBold && isItalic) {
+                        text.append("***");
+                    } else if (isBold) {
+                        text.append("**");
+                    } else if (isItalic) {
+                        text.append("*");
+                    }
+                    if (isUnderline && !suppressUnderline) {
+                        text.append("</u>");
+                    }
                 }
+
             }
         }
         
