@@ -86,6 +86,18 @@ public class RtfSplitProcessor {
         
         return chapters;
     }
+
+    public String generateDefaultFileName(Chapter chapter) {
+        return ensureRtfExtension(buildDefaultNameBody(chapter));
+    }
+
+    public String normalizeFileName(String desiredFileName, Chapter chapter) {
+        String sanitized = sanitizeFileName(desiredFileName);
+        if (sanitized == null || sanitized.isEmpty()) {
+            return generateDefaultFileName(chapter);
+        }
+        return ensureRtfExtension(sanitized);
+    }
     
     /**
      * Konvertiert RTF zu temporärer Markdown-Datei mit Formatierung
@@ -384,9 +396,11 @@ public class RtfSplitProcessor {
     /**
      * Speichert ein Kapitel als separate RTF-Datei
      */
-    public void saveChapter(Chapter chapter, File outputDir, String baseFileName) throws IOException {
-        String fileName = String.format("%s_Kapitel_%02d.rtf", baseFileName, chapter.getNumber());
+    public void saveChapter(Chapter chapter, File outputDir, String targetFileName) throws IOException {
+        String fileName = normalizeFileName(targetFileName, chapter);
         File outputFile = new File(outputDir, fileName);
+        // Überschreib-Schutz: bestehende Dateien unik machen
+        outputFile = generateUniqueFile(outputFile);
         
         
         try (FileWriter writer = new FileWriter(outputFile, StandardCharsets.UTF_8)) {
@@ -394,11 +408,7 @@ public class RtfSplitProcessor {
             writer.write("{\\rtf1\\ansi\\ansicpg1252\\deff0 {\\fonttbl {\\f0 Times New Roman;}}\n");
             writer.write("\\f0\\fs24\n");
             
-            // Kapitel-Titel
-            writer.write("\\b\\fs32 ");
-            writer.write(chapter.getTitle());
-            writer.write("\\b0\\fs24\\par\n");
-            writer.write("\\par\n");
+            // Titel NICHT mehr voranstellen – Inhalt beginnt direkt
             
             // Kapitel-Inhalt
             for (String line : chapter.getLines()) {
@@ -413,6 +423,21 @@ public class RtfSplitProcessor {
             writer.write("}");
         }
         
+    }
+
+    private File generateUniqueFile(File initial) {
+        File dir = initial.getParentFile();
+        String name = initial.getName();
+        int dot = name.lastIndexOf('.');
+        String base = dot > 0 ? name.substring(0, dot) : name;
+        String ext = dot > 0 ? name.substring(dot) : ".rtf";
+        File candidate = initial;
+        int idx = 1;
+        while (candidate.exists()) {
+            candidate = new File(dir, base + " (" + idx + ")" + ext);
+            idx++;
+        }
+        return candidate;
     }
     
     /**
@@ -433,13 +458,58 @@ public class RtfSplitProcessor {
             outputDir.mkdirs();
         }
 
-        // Basis-Dateiname (ohne .rtf)
-        String baseFileName = rtfFile.getName().replaceFirst("\\.rtf$", "");
-
         // Alle Kapitel speichern
         for (Chapter chapter : chapters) {
-            saveChapter(chapter, outputDir, baseFileName);
+            saveChapter(chapter, outputDir, null);
         }
 
+    }
+
+    private String buildDefaultNameBody(Chapter chapter) {
+        String title = chapter.getTitle() != null ? chapter.getTitle().trim() : "";
+        int number = Math.max(1, chapter.getNumber());
+        boolean numericOnly = title.matches("^-?\\d+-?$") || title.matches("^-\\d+-$");
+        if (numericOnly) {
+            return String.format("%02d", number);
+        }
+
+        String sanitized = title
+            .replaceAll("[\\\\/:*?\"<>|:]", "_")
+            .replaceAll("\\s+", "_")
+            .trim();
+
+        if (sanitized.isEmpty()) {
+            sanitized = String.format("Kapitel_%02d", number);
+        }
+
+        return sanitized;
+    }
+
+    private String sanitizeFileName(String rawName) {
+        if (rawName == null) {
+            return null;
+        }
+        String name = rawName.trim();
+        if (name.isEmpty()) {
+            return "";
+        }
+        name = name.replace("\\", "/");
+        int index = name.lastIndexOf('/');
+        if (index >= 0) {
+            name = name.substring(index + 1);
+        }
+        name = name.replaceAll("[\\\\/:*?\"<>|:]", "_");
+        name = name.replaceAll("\\s+", " ").trim();
+        return name;
+    }
+
+    private String ensureRtfExtension(String name) {
+        if (name == null || name.isEmpty()) {
+            return "Kapitel.rtf";
+        }
+        if (!name.toLowerCase().endsWith(".rtf")) {
+            return name + ".rtf";
+        }
+        return name;
     }
 }

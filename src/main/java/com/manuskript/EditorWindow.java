@@ -754,8 +754,8 @@ if (caret != null) {
         btnThemeToggle.setOnAction(e -> toggleTheme());
         
         // Abstandskonfiguration Event-Handler werden direkt in den Setup-Methoden gesetzt
-        
 
+        
             
         // btnMacroRegexHelp wurde entfernt
         
@@ -2715,7 +2715,7 @@ if (caret != null) {
     
     public void updateStatus(String message) {
         if (lblStatus != null) {
-            lblStatus.setText(message);
+        lblStatus.setText(message);
             lblStatus.setStyle("-fx-text-fill: #28a745; -fx-font-weight: normal; -fx-background-color: #d4edda; -fx-padding: 2 6 2 6; -fx-background-radius: 3;");
         }
         scheduleStatusClear(5, false);
@@ -2724,11 +2724,11 @@ if (caret != null) {
     public void updateStatus(String message, boolean isError) {
         if (isError) {
             updateStatusError(message);
-        } else {
+            } else {
             updateStatus(message);
-        }
+            }
     }
-
+    
     public void updateStatusError(String message) {
         if (lblStatus != null) {
             lblStatus.setText(message);

@@ -6,8 +6,13 @@ import org.docx4j.XmlUtils;
 import org.docx4j.openpackaging.packages.WordprocessingMLPackage;
 import org.docx4j.openpackaging.parts.WordprocessingML.MainDocumentPart;
 import org.docx4j.openpackaging.parts.WordprocessingML.StyleDefinitionsPart;
+import org.docx4j.openpackaging.parts.WordprocessingML.NumberingDefinitionsPart;
 import org.docx4j.wml.P;
+import org.docx4j.wml.R;
+import org.docx4j.wml.Text;
 import org.docx4j.wml.Styles;
+import org.docx4j.wml.SectPr;
+import org.docx4j.wml.Body;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import jakarta.xml.bind.JAXBElement;
@@ -35,11 +40,16 @@ public class DocxSplitProcessor {
      * Repräsentiert ein gefundenes Kapitel
      */
     public static class Chapter {
+        private static final int PREVIEW_MAX_LENGTH = 300;
         private final int number;
         private final String title;
         private final int startParagraph;
         private final int endParagraph;
         private final List<XWPFParagraph> paragraphs;
+        private final String fullText;
+        private final int wordCount;
+        private final int characterCount;
+        private final String previewText;
         
         public Chapter(int number, String title, int startParagraph, int endParagraph, List<XWPFParagraph> paragraphs) {
             this.number = number;
@@ -47,6 +57,10 @@ public class DocxSplitProcessor {
             this.startParagraph = startParagraph;
             this.endParagraph = endParagraph;
             this.paragraphs = new ArrayList<>(paragraphs);
+            this.fullText = buildFullText(this.paragraphs);
+            this.characterCount = fullText.length();
+            this.wordCount = calculateWordCount(fullText);
+            this.previewText = buildPreview(fullText);
         }
         
         public int getNumber() { return number; }
@@ -54,10 +68,51 @@ public class DocxSplitProcessor {
         public int getStartParagraph() { return startParagraph; }
         public int getEndParagraph() { return endParagraph; }
         public List<XWPFParagraph> getParagraphs() { return paragraphs; }
+        public String getFullText() { return fullText; }
+        public int getWordCount() { return wordCount; }
+        public int getCharacterCount() { return characterCount; }
+        public String getPreviewText() { return previewText; }
         
         @Override
         public String toString() {
             return title;
+        }
+
+        private static String buildFullText(List<XWPFParagraph> paragraphs) {
+            StringBuilder builder = new StringBuilder();
+            for (XWPFParagraph paragraph : paragraphs) {
+                String text = paragraph != null ? paragraph.getText() : null;
+                if (text != null) {
+                    builder.append(text);
+                }
+                builder.append("\n");
+            }
+            return builder.toString().trim();
+        }
+
+        private static int calculateWordCount(String text) {
+            if (text == null || text.trim().isEmpty()) {
+                return 0;
+            }
+            String[] words = text.trim().split("\\s+");
+            int count = 0;
+            for (String word : words) {
+                if (!word.isEmpty()) {
+                    count++;
+                }
+            }
+            return count;
+        }
+
+        private static String buildPreview(String text) {
+            if (text == null || text.isEmpty()) {
+                return "";
+            }
+            String normalized = text.replaceAll("\n+", " ").trim();
+            if (normalized.length() <= PREVIEW_MAX_LENGTH) {
+                return normalized;
+            }
+            return normalized.substring(0, PREVIEW_MAX_LENGTH).trim() + "…";
         }
     }
     
@@ -65,6 +120,18 @@ public class DocxSplitProcessor {
 
     public void setSourceDocxFile(File docxFile) {
         this.sourceDocxFile = docxFile;
+    }
+
+    public String generateDefaultFileName(Chapter chapter) {
+        return ensureDocxExtension(buildDefaultNameBody(chapter));
+    }
+
+    public String normalizeFileName(String desiredFileName, Chapter chapter) {
+        String sanitized = sanitizeFileName(desiredFileName);
+        if (sanitized == null || sanitized.isEmpty()) {
+            return generateDefaultFileName(chapter);
+        }
+        return ensureDocxExtension(sanitized);
     }
 
     /**
@@ -131,9 +198,8 @@ public class DocxSplitProcessor {
                            text, chapterNumber);
             }
             
-            // Extrahiere den ursprünglichen Titel (ohne Nummer)
-            String originalTitle = extractOriginalTitle(text);
-            String chapterTitle = originalTitle;
+            // Extrahiere den vollständigen Titel (mit Nummer, z.B. "1. Kapitel")
+            String chapterTitle = extractOriginalTitle(text);
             
             // Kapitel-Inhalt bestimmen (bis zum nächsten Kapitel oder Ende)
             int endParagraph = findChapterEnd(paragraphIndex, allParagraphs);
@@ -361,7 +427,7 @@ public class DocxSplitProcessor {
     }
     
     /**
-     * Gibt den ursprünglichen Text zurück (ohne Bearbeitung)
+     * Gibt den vollständigen Titel zurück (mit Nummer, z.B. "1. Kapitel")
      */
     private String extractOriginalTitle(String text) {
         return text.trim();
@@ -384,42 +450,76 @@ public class DocxSplitProcessor {
         return allParagraphs.size(); // Ende der Datei
     }
     
-    /**
-     * Speichert ein Kapitel als separate DOCX-Datei (verwendet Apache POI statt Docx4J)
-     */
-    public void saveChapter(Chapter chapter, File outputDir, String baseFileName) throws IOException {
-        int chapterNum = chapter.getNumber();
-        String fileName;
-        String chapterTitle = chapter.getTitle();
-        
-        // Entscheide Dateiname basierend auf Titel:
-        // - Wenn Titel dem Muster "-Zahl-" entspricht: Verwende nur die Nummer (z.B. "01.docx")
-        // - Wenn Titel ein normaler Text ist (nicht nur Zahlen): Verwende den Titel (z.B. "Leben_in_der_Kuppel.docx")
-        
-        String trimmedTitle = chapterTitle.trim();
-        // Prüfe auf numerische Muster: "-1-", "-6-", "-16-", aber auch "1", "-1", "1-" (nur für sehr kurze Texte)
-        boolean isNumericTitle = trimmedTitle.matches("^-\\d+-$") || // "-1-", "-6-", "-16-" (primäres Muster)
-                                 (trimmedTitle.length() <= 5 && trimmedTitle.matches("^-?\\d+-?$")); // "1", "-1", "1-" (nur für kurze Texte)
-        
+    private String buildDefaultNameBody(Chapter chapter) {
+        String chapterTitle = chapter.getTitle() != null ? chapter.getTitle().trim() : "";
+        int chapterNum = Math.max(1, chapter.getNumber());
+        boolean isNumericTitle = chapterTitle.matches("^-\\d+-$") ||
+                                 (chapterTitle.length() <= 5 && chapterTitle.matches("^-?\\d+-?$"));
+
         if (isNumericTitle) {
-            // Numerischer Titel: Verwende nur die Kapitelnummer (ohne baseFileName)
-            fileName = String.format("%02d.docx", chapterNum);
-            logger.debug("Numerischer Titel '{}' -> Verwende Nummer: '{}'", chapterTitle, fileName);
-        } else {
-            // Text-Titel: Verwende Titel als Dateinamen (sanitisiert für Dateisystem)
-            String sanitizedTitle = chapterTitle
-                .replaceAll("[<>:\"/\\|?*]", "_") // Ersetze ungültige Zeichen
-                .replaceAll("\\s+", "_") // Ersetze Leerzeichen
-                .trim();
-            if (sanitizedTitle.isEmpty()) {
-                // Fallback falls Titel leer
-                sanitizedTitle = "Kapitel_" + chapterNum;
-            }
-            fileName = sanitizedTitle + ".docx";
-            logger.info("Verwende Titel als Dateinamen: '{}' -> '{}'", chapterTitle, fileName);
+            return String.format("%02d", chapterNum);
         }
-        
+
+        String sanitizedTitle = chapterTitle
+            .replaceAll("[\\\\/:*?\"<>|:]", "_")
+            .replaceAll("\\s+", "_")
+            .trim();
+
+        if (sanitizedTitle.isEmpty()) {
+            sanitizedTitle = "Kapitel_" + chapterNum;
+        }
+
+        return sanitizedTitle;
+    }
+
+    private String sanitizeFileName(String rawName) {
+        if (rawName == null) {
+            return null;
+        }
+        String name = rawName.trim();
+        if (name.isEmpty()) {
+            return "";
+        }
+        name = name.replace("\\", "/");
+        int lastSlash = name.lastIndexOf('/');
+        if (lastSlash >= 0) {
+            name = name.substring(lastSlash + 1);
+        }
+        name = name.replaceAll("[\\\\/:*?\"<>|:]", "_");
+        name = name.replaceAll("\\s+", " ").trim();
+        return name;
+    }
+
+    private String ensureDocxExtension(String name) {
+        if (name == null || name.isEmpty()) {
+            return "Kapitel.docx";
+        }
+        if (!name.toLowerCase().endsWith(".docx")) {
+            return name + ".docx";
+        }
+        return name;
+    }
+
+    /**
+     * Speichert ein Kapitel als separate DOCX-Datei (verwendet Docx4J)
+     */
+    public void saveChapter(Chapter chapter, File outputDir, String targetFileName) throws IOException {
+        String fileName = normalizeFileName(targetFileName, chapter);
+        int chapterNum = chapter.getNumber();
+
         File outputFile = new File(outputDir, fileName);
+        // Überschreib-Schutz: niemals die Originaldatei überschreiben, und bestehende Dateien unik machen
+        try {
+            String srcPath = sourceDocxFile != null ? sourceDocxFile.getCanonicalPath() : "";
+            String outPath = outputFile.getCanonicalPath();
+            if (srcPath.equalsIgnoreCase(outPath) || outputFile.exists()) {
+                outputFile = generateUniqueFile(outputDir, fileName);
+            }
+        } catch (IOException ignore) {
+            if (outputFile.exists()) {
+                outputFile = generateUniqueFile(outputDir, fileName);
+            }
+        }
         
         logger.info("═══════════════════════════════════════════════════════════");
         logger.info("Speichere Kapitel:");
@@ -448,10 +548,10 @@ public class DocxSplitProcessor {
                     }
                 }
             }
-            
+
             int start = chapter.getStartParagraph();
             int end = chapter.getEndParagraph();
-            
+
             // Validierung der Indizes
             if (start < 0 || start >= sourceParagraphs.size()) {
                 throw new IOException("Ungültiger Start-Index für Kapitel: " + start + " (Max: " + sourceParagraphs.size() + ")");
@@ -462,45 +562,38 @@ public class DocxSplitProcessor {
             
             logger.debug("Kopiere Absätze von Index {} bis {} (insgesamt {} Absätze)", start, end, end - start);
             
-            // Neues Dokument mit Docx4J erstellen
-            WordprocessingMLPackage targetPackage = WordprocessingMLPackage.createPackage();
+            // Vollständige Kopie der Quelle speichern und anschließend die Kopie laden
+            Docx4J.save(sourcePackage, outputFile);
+            WordprocessingMLPackage targetPackage = WordprocessingMLPackage.load(outputFile);
             MainDocumentPart targetMainPart = targetPackage.getMainDocumentPart();
             
-            // WICHTIG: Kopiere Styles vom Quelldokument
-            try {
-                StyleDefinitionsPart sourceStylesPart = sourceMainPart.getStyleDefinitionsPart();
-                if (sourceStylesPart != null) {
-                    StyleDefinitionsPart targetStylesPart = targetMainPart.getStyleDefinitionsPart();
-                    if (targetStylesPart == null) {
-                        targetStylesPart = new StyleDefinitionsPart();
-                        targetMainPart.getRelationshipsPart().addTargetPart(targetStylesPart);
+            // Erzeuge Ziel-Dokument direkt aus Source-Document und ersetze Body-Inhalt
+            org.docx4j.wml.Document sourceDoc = sourceMainPart.getJaxbElement();
+            org.docx4j.wml.Document targetDoc = (org.docx4j.wml.Document) XmlUtils.deepCopy(sourceDoc);
+            Body targetBody = targetDoc.getBody();
+            SectPr sectPr = targetBody != null ? targetBody.getSectPr() : null;
+            if (targetBody != null) {
+                List<Object> newContent = new ArrayList<>();
+                int copyStart = Math.min(end, Math.max(start + 1, 0));
+                boolean removedFirstStarsLine = false;
+                for (int i = copyStart; i < end; i++) {
+                    P sourcePara = sourceParagraphs.get(i);
+                    String plain = extractPlainTextFromParagraph(sourcePara).trim();
+                    if (isHorizontalRule(sourcePara)) continue;
+                    if (!removedFirstStarsLine && !plain.isEmpty() && plain.matches("^\\s*\\*{2,}\\s*$")) {
+                        removedFirstStarsLine = true;
+                        continue;
                     }
-                    
-                    // Kopiere Styles durch Marshalling/Unmarshalling
-                    Styles sourceStyles = sourceStylesPart.getJaxbElement();
-                    if (sourceStyles != null) {
-                        String stylesXml = XmlUtils.marshaltoString(sourceStyles, true, true);
-                        Styles targetStyles = (Styles) XmlUtils.unmarshalString(stylesXml);
-                        targetStylesPart.setJaxbElement(targetStyles);
-                        logger.debug("Styles kopiert");
-                    }
+                    newContent.add(XmlUtils.deepCopy(sourcePara));
                 }
-            } catch (Exception e) {
-                logger.warn("Fehler beim Kopieren der Styles: {}", e.getMessage());
-                // Fehler nicht kritisch - Dokument kann auch ohne Styles funktionieren
+                targetBody.getContent().clear();
+                targetBody.getContent().addAll(newContent);
+                if (sectPr != null) {
+                    targetBody.setSectPr((SectPr) XmlUtils.deepCopy(sectPr));
+                }
             }
-            
-            // Kopiere Paragraphs durch Marshalling/Unmarshalling für vollständige Formatierung
-            for (int i = start; i < end; i++) {
-                P sourcePara = sourceParagraphs.get(i);
-                
-                // Kopiere Paragraph durch XML-Serialisierung (behält ALLE Formatierungen!)
-                String paraXml = XmlUtils.marshaltoString(sourcePara, true, true);
-                P targetPara = (P) XmlUtils.unmarshalString(paraXml);
-                
-                targetMainPart.addObject(targetPara);
-            }
-            
+            targetMainPart.setJaxbElement(targetDoc);
+
             // Dokument speichern
             Docx4J.save(targetPackage, outputFile);
             
@@ -510,6 +603,54 @@ public class DocxSplitProcessor {
             logger.error("Fehler beim Speichern des Kapitels {}: {}", chapter.getNumber(), e.getMessage(), e);
             throw new IOException("Fehler beim Speichern des Kapitels: " + e.getMessage(), e);
         }
+    }
+
+    private File generateUniqueFile(File dir, String desiredName) {
+        String name = desiredName;
+        int dot = name.lastIndexOf('.');
+        String base = dot > 0 ? name.substring(0, dot) : name;
+        String ext = dot > 0 ? name.substring(dot) : ".docx";
+        int idx = 1;
+        File candidate = new File(dir, name);
+        while (candidate.exists()) {
+            candidate = new File(dir, base + " (" + idx + ")" + ext);
+            idx++;
+        }
+        return candidate;
+    }
+
+    private String extractPlainTextFromParagraph(P paragraph) {
+        if (paragraph == null) {
+            return "";
+        }
+        StringBuilder sb = new StringBuilder();
+        for (Object o : paragraph.getContent()) {
+            Object unwrapped = XmlUtils.unwrap(o);
+            if (unwrapped instanceof R) {
+                R run = (R) unwrapped;
+                for (Object rc : run.getContent()) {
+                    Object uw = XmlUtils.unwrap(rc);
+                    if (uw instanceof Text) {
+                        sb.append(((Text) uw).getValue());
+                    }
+                }
+            }
+        }
+        return sb.toString();
+    }
+
+    private boolean isHorizontalRule(P paragraph) {
+        try {
+            if (paragraph == null || paragraph.getPPr() == null) return false;
+            org.docx4j.wml.PPr ppr = paragraph.getPPr();
+            // Absatzrahmen oben/unten/zwischen deuten wir als horizontale Linie, wenn kein Text im Absatz ist
+            if (ppr.getPBdr() != null) {
+                String text = extractPlainTextFromParagraph(paragraph).trim();
+                return text.isEmpty();
+            }
+        } catch (Exception ignore) {
+        }
+        return false;
     }
     
                     /**
@@ -591,12 +732,9 @@ public class DocxSplitProcessor {
                         outputDir.mkdirs();
                     }
 
-                    // Basis-Dateiname (ohne .docx)
-                    String baseFileName = docxFile.getName().replaceFirst("\\.docx$", "");
-
                     // Alle Kapitel speichern
                     for (Chapter chapter : chapters) {
-                        saveChapter(chapter, outputDir, baseFileName);
+                        saveChapter(chapter, outputDir, null);
                     }
 
                 }

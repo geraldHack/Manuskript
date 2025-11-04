@@ -1,7 +1,16 @@
 package com.manuskript;
 
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.binding.Bindings;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
@@ -99,6 +108,10 @@ import com.manuskript.RtfSplitProcessor;
 import java.util.LinkedHashMap;
 import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
+import javafx.scene.control.cell.CheckBoxTableCell;
+import javafx.scene.control.cell.TextFieldTableCell;
+import javafx.util.converter.DefaultStringConverter;
+import java.util.function.Consumer;
 
 public class MainController implements Initializable {
     
@@ -166,6 +179,14 @@ public class MainController implements Initializable {
     
     // Map zur Verfolgung geöffneter Editoren
     private static final Map<String, EditorWindow> openEditors = new HashMap<>();
+    
+    // Split-Dialog: globale Referenzen (werden in createSplitPanel() gesetzt)
+    private TextField splitTxtFilePath;
+    private TextField splitTxtOutputPath;
+    private ObservableList<SplitChapterItem> splitChapterItems;
+    private ObjectProperty<SplitSource> splitCurrentSource;
+    private DocxSplitProcessor splitDocxSplitProcessor;
+    private RtfSplitProcessor splitRtfSplitProcessor;
     
     // Downloads-Monitor
     private Timer downloadsMonitorTimer;
@@ -439,7 +460,6 @@ public class MainController implements Initializable {
             }
         });
     }
-    
     private void setupUI() {
         // Tabellen-Setup für verfügbare Dateien
         colFileNameAvailable.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getFileName()));
@@ -522,7 +542,29 @@ public class MainController implements Initializable {
             processAllFiles();
         });
         btnThemeToggle.setOnAction(e -> toggleTheme());
-        btnSplit.setOnAction(e -> openSplitStage());
+        btnSplit.setOnAction(e -> {
+            if (splitTxtFilePath == null || splitTxtOutputPath == null || splitChapterItems == null || splitCurrentSource == null || splitDocxSplitProcessor == null || splitRtfSplitProcessor == null) {
+                openSplitStage();
+                return;
+            }
+            String srcPath = splitTxtFilePath.getText();
+            String outPath = splitTxtOutputPath.getText();
+            if (srcPath == null || srcPath.trim().isEmpty()) {
+                showInfo("Hinweis", "Bitte wähle zuerst eine Eingabedatei aus.");
+                return;
+            }
+            if (outPath == null || outPath.trim().isEmpty()) {
+                showInfo("Hinweis", "Bitte wähle ein Ausgabe-Verzeichnis aus.");
+                return;
+            }
+            File outputDir = new File(outPath);
+            if (!outputDir.exists() && !outputDir.mkdirs()) {
+                showError("Fehler", "Ausgabe-Verzeichnis konnte nicht erstellt werden: " + outPath);
+                return;
+            }
+
+            exportSelectedChapters(splitChapterItems, splitCurrentSource, splitDocxSplitProcessor, splitRtfSplitProcessor, outputDir);
+        });
         btnNewChapter.setOnAction(e -> createNewChapter());
         btnDeleteFile.setOnAction(e -> deleteSelectedFile());
         btnSearchAllFiles.setOnAction(e -> searchAllFiles());
@@ -542,7 +584,6 @@ public class MainController implements Initializable {
             });
         }
     }
-    
     private void setupDragAndDrop() {
         // Drag von verfügbaren zu ausgewählten Dateien
         tableViewAvailable.setOnDragDetected(event -> {
@@ -769,9 +810,6 @@ public class MainController implements Initializable {
         
         // Doppelklick-Events für die rechte Tabelle wurden entfernt - keine automatische Sortierung
     }
-    
-
-    
     private void selectDirectory() {
         // Erstelle einen benutzerdefinierten Dialog für Verzeichnis + Cover-Bild
         CustomAlert directoryAlert = new CustomAlert(CustomAlert.AlertType.INFORMATION);
@@ -1106,7 +1144,6 @@ public class MainController implements Initializable {
             logger.error("Fehler beim Überwachen der Sudowrite-Dateien", e);
         }
     }
-    
     /**
      * Importiert eine Sudowrite-ZIP-Datei ins Projektverzeichnis
      */
@@ -1202,7 +1239,6 @@ public class MainController implements Initializable {
                 "Fehler beim Importieren der ZIP-Datei: " + e.getMessage());
         }
     }
-    
     private void loadDocxFiles(File directory) {
         try {
             if (directory == null || !directory.exists() || !directory.isDirectory()) {
@@ -1335,7 +1371,6 @@ public class MainController implements Initializable {
         Optional<ButtonType> result = alert.showAndWait();
         return result.isPresent() && result.get() == deleteButton;
     }
-    
     private void restoreOriginalOrder() {
         try {
             // Stelle die ursprüngliche Reihenfolge wieder her
@@ -1562,7 +1597,6 @@ public class MainController implements Initializable {
             logger.error("Fehler beim Hinzufügen neuer DOCX-Dateien", e);
         }
     }
-    
     public void checkAllDocxFilesForChanges() {
         try {
             
@@ -1696,7 +1730,6 @@ public class MainController implements Initializable {
         }
         return null;
     }
-    
     /**
      * Aktualisiert den Hash einer DOCX-Datei nach erfolgreicher Übernahme
      */
@@ -1710,7 +1743,6 @@ public class MainController implements Initializable {
             logger.error("Fehler beim Aktualisieren des Hash für {}: {}", docxFile.getName(), e.getMessage());
         }
     }
-    
     /**
      * Markiert eine DOCX-Datei als unverändert (entfernt das "!")
      */
@@ -2023,7 +2055,6 @@ public class MainController implements Initializable {
             updateStatus("Fehler bei der Kapitel-Verarbeitung");
         }
     }
-    
     private void openChapterEditor(DocxFile chapterFile) {
         try {
             // Verarbeite nur dieses eine Kapitel - nur noch MD
@@ -2182,9 +2213,6 @@ public class MainController implements Initializable {
             updateStatus("Fehler beim Öffnen des Kapitel-Editors");
         }
     }
-    
-
-    
     /**
      * Wiederverwendbare Prozedur für Dialog-Styling (MainController) - EXAKT wie showSaveDialogForNavigation
      */
@@ -2332,7 +2360,6 @@ public class MainController implements Initializable {
             return null;
         }
     }
-    
     public void showDetailedDiffDialog(DocxFile chapterFile, File mdFile, DiffProcessor.DiffResult diffResult,
                                       DocxProcessor.OutputFormat format) {
         try {
@@ -2487,7 +2514,6 @@ public class MainController implements Initializable {
                 hoverHideTimer.stop();
                 hoverPreviewStage.hide();
             });
-            
             for (int i1=0; i1<blocks.size(); i1++) {
                 DiffBlock block = blocks.get(i1);
 
@@ -2841,7 +2867,6 @@ public class MainController implements Initializable {
             
             Button btnKeepCurrent = new Button("💾 Aktuellen Zustand beibehalten");
             btnKeepCurrent.setStyle("-fx-background-color: rgba(108,117,125,0.8); -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8px 16px;");
-            
             Button btnCancel = new Button("❌ Abbrechen");
             btnCancel.setStyle("-fx-background-color: rgba(220,53,69,0.8); -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8px 16px;");
             
@@ -2985,7 +3010,6 @@ public class MainController implements Initializable {
                     showError("Fehler", ex.getMessage());
                 }
             });
-            
             btnAcceptAll.setOnAction(e -> {
                 try {
                     // Prüfe ob bereits ein Editor für dieses Kapitel geöffnet ist
@@ -3134,7 +3158,6 @@ public class MainController implements Initializable {
             } else {
                 diffRoot.getStyleClass().add("theme-dark");
             }
-          
             // WICHTIG: Setze Owner und Modality um "Popping" zu verhindern
             diffStage.initOwner(primaryStage);
             diffStage.initModality(Modality.WINDOW_MODAL);
@@ -3484,7 +3507,6 @@ public class MainController implements Initializable {
             return null;
         }
     }
-    
     /**
      * Schließt den aktuell fokussierten Editor
      */
@@ -3515,7 +3537,6 @@ public class MainController implements Initializable {
     public void unregisterEditor(String editorKey) {
         openEditors.remove(editorKey);
     }
-    
     private EditorWindow openChapterEditorWindow(String text, DocxFile chapterFile, DocxProcessor.OutputFormat format) {
         try {
             
@@ -3632,6 +3653,22 @@ public class MainController implements Initializable {
             
             // WICHTIG: EditorWindow übernimmt die Fenster-Eigenschaften
             // EditorWindow.loadWindowProperties() wird automatisch aufgerufen
+            
+            // CSS-Klasse für Border auf innerem Container hinzufügen
+            // Suche nach dem Haupt-Container (meist VBox oder BorderPane)
+            if (root instanceof javafx.scene.layout.VBox) {
+                root.getStyleClass().add("editor-container");
+                root.getStyleClass().add("theme-" + currentThemeIndex);
+            } else {
+                // Falls es ein anderes Layout ist, suche nach dem ersten Container
+                for (javafx.scene.Node child : root.getChildrenUnmodifiable()) {
+                    if (child instanceof javafx.scene.Parent) {
+                        child.getStyleClass().add("editor-container");
+                        child.getStyleClass().add("theme-" + currentThemeIndex);
+                        break;
+                    }
+                }
+            }
             
             // CSS mit ResourceManager laden
             String cssPath = ResourceManager.getCssResource("css/manuskript.css");
@@ -3857,7 +3894,6 @@ public class MainController implements Initializable {
             showError("Editor-Fehler", "Konnte Editor nicht öffnen: " + e.getMessage());
         }
     }
-    
     private void openEditor(String text, String baseFileName) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/editor.fxml"));
@@ -3984,11 +4020,9 @@ public class MainController implements Initializable {
         alert.initOwner(primaryStage);
         alert.showAndWait();
     }
-    
     private void showWarning(String title, String message) {
         CustomAlert alert = new CustomAlert(Alert.AlertType.WARNING, title);
         alert.setContentText(message);
-        // alert.setHeaderText(null); // ENTFERNT: Setzt 'null' String
         alert.applyTheme(currentThemeIndex);
         alert.initOwner(primaryStage);
         alert.showAndWait();
@@ -4035,7 +4069,6 @@ public class MainController implements Initializable {
             updateStatus("Downloads-Monitor deaktiviert");
         }
     }
-    
     /**
      * Zeigt Dialog zur Auswahl des Downloads-Verzeichnisses
      */
@@ -4478,7 +4511,6 @@ public class MainController implements Initializable {
             });
         }
     }
-    
     public void setPrimaryStage(CustomStage primaryStage) {
         this.primaryStage = primaryStage;
         
@@ -4656,7 +4688,6 @@ public class MainController implements Initializable {
         updateHelpButtonIcon();
         HelpSystem.setHelpEnabled(helpEnabled);
     }
-    
     /**
      * Erstellt den Help-Toggle-Button programmatisch
      */
@@ -4674,7 +4705,6 @@ public class MainController implements Initializable {
         
         updateHelpButtonIcon();
     }
-    
     /**
      * Wechselt das Theme
      */
@@ -4969,7 +4999,6 @@ public class MainController implements Initializable {
             updateStatus("Fehler beim Laden des Buches");
         }
     }
-    
     /**
      * Test-Methode für CustomAlert
      */
@@ -5175,13 +5204,11 @@ public class MainController implements Initializable {
             splitStage.centerOnScreen();
             splitStage.show();
             
-            
         } catch (Exception e) {
             logger.error("Fehler beim Öffnen der Split-Stage: {}", e.getMessage(), e);
             showError("Fehler", "Konnte Split-Stage nicht öffnen: " + e.getMessage());
         }
     }
-    
     /**
      * Erstellt das Split-Panel programmatisch (wie createMacroPanel)
      */
@@ -5238,6 +5265,8 @@ public class MainController implements Initializable {
         txtFilePath.setPromptText("DOCX oder TXT-Datei auswählen...");
         txtFilePath.setPrefWidth(400);
         txtFilePath.setEditable(false);
+        // globale Referenz setzen
+        this.splitTxtFilePath = txtFilePath;
         
         // Gespeicherten Pfad in Textfeld eintragen
         String lastFilePath = ResourceManager.getLastFilePath();
@@ -5282,6 +5311,8 @@ public class MainController implements Initializable {
         txtOutputPath.setPromptText("Verzeichnis für Kapitel-Dateien...");
         txtOutputPath.setPrefWidth(400);
         txtOutputPath.setEditable(false);
+        // globale Referenz setzen
+        this.splitTxtOutputPath = txtOutputPath;
         
         // Gespeicherten Ausgabe-Pfad in Textfeld eintragen
         String lastOutputPath = ResourceManager.getLastOutputPath();
@@ -5304,34 +5335,137 @@ public class MainController implements Initializable {
         Label listLabel = new Label("3. Gefundene Kapitel:");
         listLabel.getStyleClass().add("section-title");
         
-        final ListView<CheckBox> listChapters = new ListView<>();
-        listChapters.setPrefHeight(300);
-        listChapters.getStyleClass().add("alternating-list"); // CSS-Klasse für alternierende Zeilen
+        final ObservableList<SplitChapterItem> chapterItems = FXCollections.observableArrayList();
+        this.splitChapterItems = chapterItems;
+        final TableView<SplitChapterItem> tableChapters = new TableView<>(chapterItems);
+        tableChapters.setEditable(true);
+        tableChapters.setPrefHeight(Region.USE_COMPUTED_SIZE);
+        tableChapters.setMaxHeight(Double.MAX_VALUE);
+        tableChapters.getStyleClass().add("alternating-list");
+        tableChapters.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+        tableChapters.setPlaceholder(new Label("Keine Datei ausgewählt"));
         
-        // Theme-Klassen auch auf die ListView anwenden
-        if (currentThemeIndex == 0) { // Weiß-Theme
-            listChapters.getStyleClass().add("weiss-theme");
-        } else if (currentThemeIndex == 1) { // Schwarz-Theme
-            listChapters.getStyleClass().add("theme-dark");
-        } else if (currentThemeIndex == 2) { // Pastell-Theme
-            listChapters.getStyleClass().add("pastell-theme");
-        } else if (currentThemeIndex >= 3) { // Dunkle Themes: Blau (3), Grün (4), Lila (5)
-            listChapters.getStyleClass().add("theme-dark");
+        if (currentThemeIndex == 0) {
+            tableChapters.getStyleClass().add("weiss-theme");
+        } else if (currentThemeIndex == 1) {
+            tableChapters.getStyleClass().add("theme-dark");
+        } else if (currentThemeIndex == 2) {
+            tableChapters.getStyleClass().add("pastell-theme");
+        } else if (currentThemeIndex >= 3) {
+            tableChapters.getStyleClass().add("theme-dark");
             if (currentThemeIndex == 3) {
-                listChapters.getStyleClass().add("blau-theme");
+                tableChapters.getStyleClass().add("blau-theme");
             } else if (currentThemeIndex == 4) {
-                listChapters.getStyleClass().add("gruen-theme");
+                tableChapters.getStyleClass().add("gruen-theme");
             } else if (currentThemeIndex == 5) {
-                listChapters.getStyleClass().add("lila-theme");
+                tableChapters.getStyleClass().add("lila-theme");
             }
         }
         
-        CheckBox noFileCheckBox = new CheckBox("Keine Datei ausgewählt");
-        noFileCheckBox.setDisable(true);
-        listChapters.getItems().add(noFileCheckBox);
+        TableColumn<SplitChapterItem, Boolean> selectColumn = new TableColumn<>("✔");
+        selectColumn.setMaxWidth(60);
+        selectColumn.setCellValueFactory(cell -> cell.getValue().selectedProperty());
+        selectColumn.setCellFactory(CheckBoxTableCell.forTableColumn(selectColumn));
         
-        listBox.getChildren().addAll(listLabel, listChapters);
+        TableColumn<SplitChapterItem, String> titleColumn = new TableColumn<>("Kapitel");
+        titleColumn.setCellValueFactory(cell -> cell.getValue().displayTitleProperty());
+        titleColumn.setCellFactory(TextFieldTableCell.forTableColumn(new DefaultStringConverter()));
+        titleColumn.setOnEditCommit(event -> {
+            SplitChapterItem item = event.getRowValue();
+            if (item != null) {
+                item.setDisplayTitle(event.getNewValue());
+            }
+        });
         
+        TableColumn<SplitChapterItem, Number> wordColumn = new TableColumn<>("Wörter");
+        wordColumn.setPrefWidth(110);
+        wordColumn.setCellValueFactory(cell -> cell.getValue().wordCountProperty());
+        
+        TableColumn<SplitChapterItem, Number> charColumn = new TableColumn<>("Zeichen");
+        charColumn.setPrefWidth(110);
+        charColumn.setCellValueFactory(cell -> cell.getValue().characterCountProperty());
+        
+        TableColumn<SplitChapterItem, String> previewColumn = new TableColumn<>("Vorschau");
+        previewColumn.setPrefWidth(320);
+        previewColumn.setCellValueFactory(cell -> cell.getValue().previewProperty());
+        previewColumn.setCellFactory(column -> new TableCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null || item.isEmpty()) {
+                    setText(null);
+                    setTooltip(null);
+                } else {
+                    String display = item.length() > 160 ? item.substring(0, 160).trim() + "…" : item;
+                    setText(display);
+                    Tooltip tooltip = new Tooltip(item.length() > 800 ? item.substring(0, 800).trim() + "…" : item);
+                    setTooltip(tooltip);
+                    setWrapText(true);
+                }
+            }
+        });
+        
+        // Kontextmenü für Serien-Umbenennung ab der Zeile
+        tableChapters.setRowFactory(tv -> {
+            TableRow<SplitChapterItem> row = new TableRow<>();
+            ContextMenu contextMenu = new ContextMenu();
+            MenuItem renameSeriesItem = new MenuItem("Serien-Umbenennen…");
+            renameSeriesItem.setOnAction(evt -> {
+                int startIndex = row.getIndex();
+                if (startIndex >= 0 && startIndex < tableChapters.getItems().size()) {
+                    openSeriesRenameDialog(tableChapters, startIndex);
+                }
+            });
+            contextMenu.getItems().addAll(renameSeriesItem);
+            row.contextMenuProperty().bind(Bindings.when(row.emptyProperty()).then((ContextMenu) null).otherwise(contextMenu));
+            return row;
+        });
+        
+        TableColumn<SplitChapterItem, String> fileNameColumn = new TableColumn<>("Dateiname");
+        fileNameColumn.setPrefWidth(220);
+        fileNameColumn.setCellValueFactory(cell -> cell.getValue().fileNameProperty());
+        fileNameColumn.setCellFactory(TextFieldTableCell.forTableColumn(new DefaultStringConverter()));
+        fileNameColumn.setOnEditCommit(event -> {
+            SplitChapterItem item = event.getRowValue();
+            if (item != null) {
+                item.setFileName(event.getNewValue());
+            }
+        });
+        
+        TableColumn<SplitChapterItem, Void> previewButtonColumn = new TableColumn<>("");
+        previewButtonColumn.setMinWidth(90);
+        previewButtonColumn.setMaxWidth(120);
+        previewButtonColumn.setCellFactory(column -> new TableCell<>() {
+            private final Button previewButton = new Button("Vorschau");
+            {
+                previewButton.getStyleClass().addAll("button", "secondary");
+                previewButton.setOnAction(evt -> {
+                    SplitChapterItem item = getTableView().getItems().get(getIndex());
+                    if (item != null) {
+                        showChapterPreview(item);
+                    }
+                });
+            }
+
+            @Override
+            protected void updateItem(Void unused, boolean empty) {
+                super.updateItem(unused, empty);
+                setGraphic(empty ? null : previewButton);
+            }
+        });
+        
+        tableChapters.getColumns().addAll(selectColumn, titleColumn, wordColumn, charColumn, previewColumn, fileNameColumn, previewButtonColumn);
+        VBox.setVgrow(tableChapters, Priority.ALWAYS);
+        
+        listBox.getChildren().addAll(listLabel, tableChapters);
+        
+        final DocxSplitProcessor docxSplitProcessor = new DocxSplitProcessor();
+        final RtfSplitProcessor rtfSplitProcessor = new RtfSplitProcessor();
+        final ObjectProperty<SplitSource> currentSplitSource = new SimpleObjectProperty<>(SplitSource.DOCX);
+        this.splitDocxSplitProcessor = docxSplitProcessor;
+        this.splitRtfSplitProcessor = rtfSplitProcessor;
+        this.splitCurrentSource = currentSplitSource;
+
         // Buttons
         HBox buttonBox = new HBox(15);
         buttonBox.setAlignment(Pos.CENTER_RIGHT);
@@ -5344,6 +5478,72 @@ public class MainController implements Initializable {
         btnSplit.getStyleClass().addAll("button", "success");
         btnSplit.setPrefWidth(150);
         btnSplit.setDisable(true);
+        final Runnable updateSplitButtonState = () -> {
+            boolean hasSelection = chapterItems.stream().anyMatch(SplitChapterItem::isSelected);
+            btnSplit.setDisable(chapterItems.isEmpty() || !hasSelection);
+        };
+        chapterItems.addListener((ListChangeListener<SplitChapterItem>) change -> updateSplitButtonState.run());
+        
+        final Consumer<File> analyzeFile = selectedFile -> {
+            chapterItems.clear();
+            tableChapters.refresh();
+
+            if (selectedFile == null) {
+                tableChapters.setPlaceholder(new Label("Keine Datei ausgewählt"));
+                updateSplitButtonState.run();
+                return;
+            }
+
+            if (!selectedFile.exists()) {
+                tableChapters.setPlaceholder(new Label("Datei nicht gefunden"));
+                updateSplitButtonState.run();
+                return;
+            }
+
+            String fileName = selectedFile.getName().toLowerCase();
+            try {
+                if (fileName.endsWith(".docx")) {
+                    currentSplitSource.set(SplitSource.DOCX);
+                    docxSplitProcessor.setSourceDocxFile(selectedFile);
+                    List<DocxSplitProcessor.Chapter> chapters = docxSplitProcessor.analyzeDocument(selectedFile);
+
+                    if (chapters.isEmpty()) {
+                        tableChapters.setPlaceholder(new Label("Keine Kapitel gefunden"));
+                    } else {
+                        for (DocxSplitProcessor.Chapter chapter : chapters) {
+                            String defaultName = docxSplitProcessor.generateDefaultFileName(chapter);
+                            SplitChapterItem item = SplitChapterItem.fromDocx(chapter, defaultName);
+                            item.selectedProperty().addListener((obs, oldVal, newVal) -> updateSplitButtonState.run());
+                            chapterItems.add(item);
+                        }
+                        tableChapters.getSelectionModel().selectFirst();
+                    }
+                } else if (fileName.endsWith(".rtf")) {
+                    currentSplitSource.set(SplitSource.RTF);
+                    List<RtfSplitProcessor.Chapter> chapters = rtfSplitProcessor.analyzeDocument(selectedFile);
+
+                    if (chapters.isEmpty()) {
+                        tableChapters.setPlaceholder(new Label("Keine Kapitel gefunden"));
+                    } else {
+                        for (RtfSplitProcessor.Chapter chapter : chapters) {
+                            String defaultName = rtfSplitProcessor.generateDefaultFileName(chapter);
+                            SplitChapterItem item = SplitChapterItem.fromRtf(chapter, defaultName);
+                            item.selectedProperty().addListener((obs, oldVal, newVal) -> updateSplitButtonState.run());
+                            chapterItems.add(item);
+                        }
+                        tableChapters.getSelectionModel().selectFirst();
+                    }
+                } else {
+                    tableChapters.setPlaceholder(new Label("Bitte wähle eine DOCX- oder RTF-Datei"));
+                }
+            } catch (Exception ex) {
+                logger.error("Fehler beim Analysieren der Datei: {}", ex.getMessage(), ex);
+                tableChapters.setPlaceholder(new Label("Fehler beim Analysieren: " + ex.getMessage()));
+                chapterItems.clear();
+            }
+
+            updateSplitButtonState.run();
+        };
         
         Button btnClose = new Button("Schließen");
         btnClose.getStyleClass().addAll("button", "danger");
@@ -5361,7 +5561,6 @@ public class MainController implements Initializable {
                 new FileChooser.ExtensionFilter("Alle Dateien", "*.*")
             );
             
-            // Letzten Pfad wiederherstellen
             String lastPath = ResourceManager.getLastFilePath();
             if (lastPath != null && !lastPath.isEmpty()) {
                 File lastDir = new File(lastPath);
@@ -5373,68 +5572,8 @@ public class MainController implements Initializable {
             File selectedFile = fileChooser.showOpenDialog(splitPanel.getScene().getWindow());
             if (selectedFile != null) {
                 txtFilePath.setText(selectedFile.getAbsolutePath());
-                
-                // Pfad für nächste Verwendung speichern
                 ResourceManager.setLastFilePath(selectedFile.getParent());
-                
-                // Datei analysieren und Kapitel extrahieren (DOCX oder RTF)
-                try {
-                    listChapters.getItems().clear();
-                    
-                    String fileName = selectedFile.getName().toLowerCase();
-                    if (fileName.endsWith(".docx")) {
-                        // DOCX-Datei
-                    DocxSplitProcessor processor = new DocxSplitProcessor();
-                        processor.setSourceDocxFile(selectedFile);
-                    List<Chapter> chapters = processor.analyzeDocument(selectedFile);
-                    
-                    if (chapters.isEmpty()) {
-                        CheckBox noChaptersCheckBox = new CheckBox("Keine Kapitel gefunden");
-                        noChaptersCheckBox.setDisable(true);
-                        listChapters.getItems().add(noChaptersCheckBox);
-                        btnSplit.setDisable(true);
-                    } else {
-                        for (Chapter chapter : chapters) {
-                            CheckBox chapterCheckBox = new CheckBox(chapter.toString());
-                            chapterCheckBox.setSelected(true); // Standardmäßig ausgewählt
-                            chapterCheckBox.setUserData(chapter); // Kapitel-Objekt speichern
-                            listChapters.getItems().add(chapterCheckBox);
-                        }
-                        btnSplit.setDisable(false);
-                        }
-                    } else if (fileName.endsWith(".rtf")) {
-                        // RTF-Datei
-                        RtfSplitProcessor processor = new RtfSplitProcessor();
-                        List<RtfSplitProcessor.Chapter> chapters = processor.analyzeDocument(selectedFile);
-                        
-                        if (chapters.isEmpty()) {
-                            CheckBox noChaptersCheckBox = new CheckBox("Keine Kapitel gefunden");
-                            noChaptersCheckBox.setDisable(true);
-                            listChapters.getItems().add(noChaptersCheckBox);
-                            btnSplit.setDisable(true);
-                        } else {
-                            for (RtfSplitProcessor.Chapter chapter : chapters) {
-                                CheckBox chapterCheckBox = new CheckBox(chapter.toString());
-                                chapterCheckBox.setSelected(true); // Standardmäßig ausgewählt
-                                chapterCheckBox.setUserData(chapter); // Kapitel-Objekt speichern
-                                listChapters.getItems().add(chapterCheckBox);
-                            }
-                            btnSplit.setDisable(false);
-                        }
-                    } else {
-                        CheckBox errorCheckBox = new CheckBox("Unsupported file format. Please select DOCX or RTF.");
-                        errorCheckBox.setDisable(true);
-                        listChapters.getItems().add(errorCheckBox);
-                        btnSplit.setDisable(true);
-                    }
-                } catch (Exception ex) {
-                    logger.error("Fehler beim Analysieren der Datei: {}", ex.getMessage(), ex);
-                    listChapters.getItems().clear();
-                    CheckBox errorCheckBox = new CheckBox("Fehler beim Lesen der Datei: " + ex.getMessage());
-                    errorCheckBox.setDisable(true);
-                    listChapters.getItems().add(errorCheckBox);
-                    btnSplit.setDisable(true);
-                }
+                analyzeFile.accept(selectedFile);
             }
         });
         
@@ -5461,138 +5600,22 @@ public class MainController implements Initializable {
         });
         
         btnSplit.setOnAction(e -> {
-            // Kapitel aufteilen und speichern
-            try {
-                String filePath = txtFilePath.getText();
-                String outputPath = txtOutputPath.getText();
-                
-                if (filePath.isEmpty() || outputPath.isEmpty()) {
-                    showError("Fehler", "Bitte wähle eine Datei und ein Ausgabe-Verzeichnis aus.");
-                    return;
-                }
-                
-                File inputFile = new File(filePath);
-                File outputDir = new File(outputPath);
-                
-                if (!inputFile.exists()) {
-                    showError("Fehler", "Die ausgewählte Datei existiert nicht.");
-                    return;
-                }
-                
-                // Split-Button deaktivieren während der Verarbeitung
-                btnSplit.setDisable(true);
-                btnSplit.setText("Verarbeite...");
-                
-                // Alle Kapitel mit Auswahl-Status sammeln
-                List<Chapter> allChapters = new ArrayList<>();
-                List<Boolean> selectionStatus = new ArrayList<>();
-                
-                for (CheckBox checkBox : listChapters.getItems()) {
-                    if (checkBox.getUserData() instanceof Chapter) {
-                        allChapters.add((Chapter) checkBox.getUserData());
-                        selectionStatus.add(checkBox.isSelected());
-                    }
-                }
-                
-                if (allChapters.isEmpty()) {
-                    showError("Fehler", "Keine Kapitel zum Verarbeiten gefunden.");
-                    btnSplit.setDisable(false);
-                    btnSplit.setText("Kapitel aufteilen");
-                    return;
-                }
-                
-                // Split in separatem Thread ausführen
-                new Thread(() -> {
-                    try {
-                        String fileName = inputFile.getName().toLowerCase();
-                        if (fileName.endsWith(".rtf")) {
-                            // RTF-Split
-                            RtfSplitProcessor processor = new RtfSplitProcessor();
-                            processor.splitDocument(inputFile, outputDir);
-                            
-                            // UI-Update im JavaFX-Thread
-                            Platform.runLater(() -> {
-                                btnSplit.setDisable(false);
-                                btnSplit.setText("Kapitel aufteilen");
-                                showError("Erfolg", "RTF-Datei wurde erfolgreich in Kapitel aufgeteilt!");
-                            });
-                        } else {
-                            // DOCX-Split
-                        DocxSplitProcessor processor = new DocxSplitProcessor();
-                            processor.setSourceDocxFile(inputFile);
-                        
-                        // Ausgabe-Verzeichnis erstellen falls nicht vorhanden
-                        if (!outputDir.exists()) {
-                            outputDir.mkdirs();
-                        }
-                        
-                        // Basis-Dateiname (ohne .docx)
-                            String baseFileName = inputFile.getName().replaceFirst("\\.docx$", "");
-                        
-                        // Nur ausgewählte Kapitel filtern und speichern
-                        logger.info("Starte Kapitel-Split - Gesamt: {} Kapitel gefunden", allChapters.size());
-                        
-                        // Validierung: Prüfe ob Listen gleich lang sind
-                        if (allChapters.size() != selectionStatus.size()) {
-                            logger.warn("WARNUNG: Anzahl Kapitel ({}) stimmt nicht mit Anzahl Checkboxen ({}) überein!", 
-                                      allChapters.size(), selectionStatus.size());
-                        }
-                        
-                        List<Chapter> selectedChapters = new ArrayList<>();
-                        for (int i = 0; i < allChapters.size(); i++) {
-                            boolean isSelected = i < selectionStatus.size() ? selectionStatus.get(i) : false;
-                            Chapter chapter = allChapters.get(i);
-                            logger.debug("Kapitel {} ({}): ausgewählt={}", i + 1, chapter.getTitle(), isSelected);
-                            if (isSelected) {
-                                selectedChapters.add(chapter);
-                            } else {
-                                logger.debug("Kapitel {} wird ÜBERSPRUNGEN (nicht ausgewählt)", chapter.getTitle());
-                            }
-                        }
-                        
-                        logger.info("Gefiltert: {} von {} Kapiteln werden gespeichert ({} übersprungen)", 
-                                  selectedChapters.size(), allChapters.size(), 
-                                  allChapters.size() - selectedChapters.size());
-                        
-                        // Kapitelnummern vor dem Speichern loggen
-                        logger.info("═══════════════════════════════════════════════════════════");
-                        logger.info("Ausgewählte Kapitel vor dem Speichern:");
-                        for (int idx = 0; idx < selectedChapters.size(); idx++) {
-                            Chapter ch = selectedChapters.get(idx);
-                            logger.info("  [{}] Kapitelnummer: {}, Titel: '{}'", idx, ch.getNumber(), ch.getTitle());
-                        }
-                        logger.info("═══════════════════════════════════════════════════════════");
-                        
-                        // Ausgewählte Kapitel speichern
-                        for (Chapter chapter : selectedChapters) {
-                            logger.info("Rufe saveChapter auf für Kapitel {}: {}", chapter.getNumber(), chapter.getTitle());
-                            processor.saveChapter(chapter, outputDir, baseFileName);
-                        }
-                        
-                        // UI-Update im JavaFX-Thread
-                        Platform.runLater(() -> {
-                            btnSplit.setDisable(false);
-                            btnSplit.setText("Kapitel aufteilen");
-                            showError("Erfolg", String.format("%d ausgewählte Kapitel wurden erfolgreich aufgeteilt und gespeichert!", selectedChapters.size()));
-                        });
-                        }
-                        
-                    } catch (Exception ex) {
-                        logger.error("Fehler beim DOCX-Split: {}", ex.getMessage(), ex);
-                        
-                        // UI-Update im JavaFX-Thread
-                        Platform.runLater(() -> {
-                            btnSplit.setDisable(false);
-                            btnSplit.setText("Kapitel aufteilen");
-                            showError("Fehler", "Fehler beim Aufteilen der Kapitel: " + ex.getMessage());
-                        });
-                    }
-                }).start();
-                
-            } catch (Exception ex) {
-                logger.error("Fehler beim Starten des DOCX-Splits: {}", ex.getMessage(), ex);
-                showError("Fehler", "Fehler beim Starten des Splits: " + ex.getMessage());
+            String srcPath = txtFilePath.getText();
+            String outPath = txtOutputPath.getText();
+            if (srcPath == null || srcPath.trim().isEmpty()) {
+                showInfo("Hinweis", "Bitte wähle zuerst eine Eingabedatei aus.");
+                return;
             }
+            if (outPath == null || outPath.trim().isEmpty()) {
+                showInfo("Hinweis", "Bitte wähle ein Ausgabe-Verzeichnis aus.");
+                return;
+            }
+            File outputDir = new File(outPath);
+            if (!outputDir.exists() && !outputDir.mkdirs()) {
+                showError("Fehler", "Ausgabe-Verzeichnis konnte nicht erstellt werden: " + outPath);
+                return;
+            }
+            exportSelectedChapters(chapterItems, currentSplitSource, docxSplitProcessor, rtfSplitProcessor, outputDir);
         });
         
         btnClose.setOnAction(e -> {
@@ -5608,74 +5631,109 @@ public class MainController implements Initializable {
             }
         });
         
-        // Automatische Analyse wenn eine Datei im Textfeld eingetragen wurde
+        // Alles zusammen
+        splitPanel.getChildren().addAll(headerBox, fileBox, outputBox, listBox, buttonBox);
+        
+        // Automatische Analyse, wenn bereits eine Datei im Textfeld steht
         Platform.runLater(() -> {
             String filePath = txtFilePath.getText();
             if (filePath != null && !filePath.trim().isEmpty()) {
                 File fileToAnalyze = new File(filePath);
                 if (fileToAnalyze.exists() && fileToAnalyze.isFile() &&
                     (filePath.toLowerCase().endsWith(".docx") || filePath.toLowerCase().endsWith(".rtf"))) {
-                    // Datei automatisch analysieren
-                    try {
-                        listChapters.getItems().clear();
-                        
-                        String fileName = fileToAnalyze.getName().toLowerCase();
-                        if (fileName.endsWith(".docx")) {
-                            DocxSplitProcessor processor = new DocxSplitProcessor();
-                            processor.setSourceDocxFile(fileToAnalyze);
-                            List<Chapter> chapters = processor.analyzeDocument(fileToAnalyze);
-                            
-                            if (chapters.isEmpty()) {
-                                CheckBox noChaptersCheckBox = new CheckBox("Keine Kapitel gefunden");
-                                noChaptersCheckBox.setDisable(true);
-                                listChapters.getItems().add(noChaptersCheckBox);
-                                btnSplit.setDisable(true);
-                            } else {
-                                for (Chapter chapter : chapters) {
-                                    CheckBox chapterCheckBox = new CheckBox(chapter.toString());
-                                    chapterCheckBox.setSelected(true);
-                                    chapterCheckBox.setUserData(chapter);
-                                    listChapters.getItems().add(chapterCheckBox);
-                                }
-                                btnSplit.setDisable(false);
-                            }
-                        } else if (fileName.endsWith(".rtf")) {
-                            RtfSplitProcessor processor = new RtfSplitProcessor();
-                            List<RtfSplitProcessor.Chapter> chapters = processor.analyzeDocument(fileToAnalyze);
-                            
-                            if (chapters.isEmpty()) {
-                                CheckBox noChaptersCheckBox = new CheckBox("Keine Kapitel gefunden");
-                                noChaptersCheckBox.setDisable(true);
-                                listChapters.getItems().add(noChaptersCheckBox);
-                                btnSplit.setDisable(true);
-                            } else {
-                                for (RtfSplitProcessor.Chapter chapter : chapters) {
-                                    CheckBox chapterCheckBox = new CheckBox(chapter.toString());
-                                    chapterCheckBox.setSelected(true);
-                                    chapterCheckBox.setUserData(chapter);
-                                    listChapters.getItems().add(chapterCheckBox);
-                                }
-                                btnSplit.setDisable(false);
-                            }
-                        }
-                    } catch (Exception ex) {
-                        logger.error("Fehler beim automatischen Analysieren der Datei: {}", ex.getMessage(), ex);
-                        listChapters.getItems().clear();
-                        CheckBox errorCheckBox = new CheckBox("Fehler beim Analysieren: " + ex.getMessage());
-                        errorCheckBox.setDisable(true);
-                        listChapters.getItems().add(errorCheckBox);
-                        btnSplit.setDisable(true);
-                    }
+                    analyzeFile.accept(fileToAnalyze);
                 }
             }
         });
         
-        // Alles zusammen
-        splitPanel.getChildren().addAll(headerBox, fileBox, outputBox, listBox, buttonBox);
-        
         return splitPanel;
     }
     
+    private void exportSelectedChapters(List<SplitChapterItem> items,
+                                        ObjectProperty<SplitSource> currentSource,
+                                        DocxSplitProcessor docxProcessor,
+                                        RtfSplitProcessor rtfProcessor,
+                                        File outputDir) {
+        // Filter nur angehakte Items
+        List<SplitChapterItem> toSave = new ArrayList<>();
+        for (SplitChapterItem it : items) {
+            if (it != null && it.isSelected()) {
+                toSave.add(it);
+            }
+        }
+
+        if (toSave.isEmpty()) {
+            showInfo("Hinweis", "Keine ausgewählten Kapitel zu speichern.");
+            return;
+        }
+
+        // Fortschrittsdialog als CustomAlert (themageführt)
+        VBox box = new VBox(12);
+        box.setPadding(new Insets(16));
+        Label statusLabel = new Label("Bitte warten…");
+        ProgressBar progressBar = new ProgressBar(0);
+        progressBar.setPrefWidth(360);
+        box.getChildren().addAll(statusLabel, progressBar);
+        CustomAlert progressAlert = new CustomAlert(Alert.AlertType.INFORMATION, "Exportiere Kapitel…");
+        progressAlert.setHeaderText(null);
+        progressAlert.setCustomContent(box);
+        progressAlert.applyTheme(currentThemeIndex);
+        progressAlert.initOwner(primaryStage);
+        try {
+            // Always on top & im Vordergrund halten
+            Stage dlgStage = (Stage) progressAlert.getDialogPane().getScene().getWindow();
+            dlgStage.setAlwaysOnTop(true);
+            dlgStage.toFront();
+        } catch (Exception ignore) {}
+
+        javafx.concurrent.Task<Void> task = new javafx.concurrent.Task<>() {
+            @Override
+            protected Void call() throws Exception {
+                int total = toSave.size();
+                int done = 0;
+                updateProgress(0, total);
+                for (SplitChapterItem item : toSave) {
+                    if (isCancelled()) break;
+                    try {
+                        if (currentSource.get() == SplitSource.DOCX && item.getChapter() instanceof DocxSplitProcessor.Chapter) {
+                            DocxSplitProcessor.Chapter ch = (DocxSplitProcessor.Chapter) item.getChapter();
+                            String name = item.getFileName();
+                            docxProcessor.saveChapter(ch, outputDir, name);
+                        } else if (currentSource.get() == SplitSource.RTF && item.getChapter() instanceof RtfSplitProcessor.Chapter) {
+                            RtfSplitProcessor.Chapter ch = (RtfSplitProcessor.Chapter) item.getChapter();
+                            String name = item.getFileName();
+                            rtfProcessor.saveChapter(ch, outputDir, name);
+                        }
+                    } catch (Exception ex) {
+                        logger.error("Fehler beim Speichern eines Kapitels: {}", ex.getMessage(), ex);
+                    }
+                    done++;
+                    updateProgress(done, total);
+                    updateMessage("Kapitel " + done + " / " + total + " gespeichert");
+                }
+                return null;
+            }
+        };
+
+        statusLabel.textProperty().bind(task.messageProperty());
+        progressBar.progressProperty().bind(task.progressProperty());
+
+        task.setOnSucceeded(ev -> {
+            progressAlert.close();
+            showInfo("Fertig", toSave.size() + " Kapitel gespeichert in:\n" + outputDir.getAbsolutePath());
+        });
+        task.setOnFailed(ev -> {
+            progressAlert.close();
+            showError("Fehler", "Export fehlgeschlagen: " + (task.getException() != null ? task.getException().getMessage() : "Unbekannt"));
+        });
+        task.setOnCancelled(ev -> progressAlert.close());
+
+        Thread th = new Thread(task);
+        th.setDaemon(true);
+        th.start();
+        progressAlert.show();
+    }
+
     /**
      * Lädt die Projektfenster-Eigenschaften aus den Preferences mit Multi-Monitor-Validierung
      */
@@ -5736,7 +5794,6 @@ public class MainController implements Initializable {
             }
         });
     }
-    
     /**
      * Zeigt das übergeordnete Projektauswahl-Menü
      */
@@ -5850,7 +5907,6 @@ public class MainController implements Initializable {
             showError("Fehler", "Projektauswahl konnte nicht geöffnet werden: " + e.getMessage());
         }
     }
-    
     /**
      * Lädt und zeigt verfügbare Projekte im Grid an
      */
@@ -5981,7 +6037,6 @@ public class MainController implements Initializable {
             logger.error("Fehler beim Laden der Projekte", e);
         }
     }
-    
     /**
      * Erstellt eine Serien-Karte für die Projektauswahl
      */
@@ -6347,7 +6402,6 @@ public class MainController implements Initializable {
             return null;
         }
     }
-    
     /**
      * Zeigt die Bücher-Auswahl für eine Serie
      */
@@ -6544,7 +6598,6 @@ public class MainController implements Initializable {
             coverImageView.setImage(null);
         }
     }
-    
     /**
      * Zeigt einen Dialog zur Auswahl des Root-Verzeichnisses für Projekte
      */
@@ -6669,7 +6722,6 @@ public class MainController implements Initializable {
     }
     
    
-    
     private void setupFlowPaneDragHandlers(FlowPane projectFlow, CustomStage projectStage) {
         projectFlow.setOnDragOver(event -> {
             if (draggingProjectItem != null && event.getGestureSource() != projectFlow) {
@@ -6775,7 +6827,6 @@ public class MainController implements Initializable {
         // Fallback: Am Ende einfügen
         return projectItems.size();
     }
-
     private void attachDragHandlers(Node card, FlowPane projectFlow) {
         card.addEventFilter(MouseEvent.DRAG_DETECTED, event -> {
             if (!(card instanceof VBox)) {
@@ -6843,7 +6894,6 @@ public class MainController implements Initializable {
             return directory.getAbsolutePath();
         }
     }
-
     private void renderProjectItems(FlowPane projectFlow, CustomStage projectStage) {
         projectFlow.getChildren().clear();
         final double targetCardHeight = 400;
@@ -6958,7 +7008,6 @@ public class MainController implements Initializable {
     public File getProjectRootDirectory() {
         return projectRootDirectory;
     }
-
     /**
      * Formatiert Markdown-Inhalt, um sicherzustellen, dass zwischen Absätzen Leerzeilen stehen.
      * Einfache Version für bessere EPUB-Darstellung auf Apple-Geräten.
@@ -7314,7 +7363,6 @@ public class MainController implements Initializable {
             txtSearchText.selectAll();
         });
     }
-    
     /**
      * Führt die globale Suche durch und markiert Dateien mit Treffern
      */
@@ -7441,5 +7489,256 @@ public class MainController implements Initializable {
             return row;
         });
     }
-}
+    
+    /**
+     * Zeigt eine Vorschau für ein Kapitel an
+     */
+    private void showChapterPreview(SplitChapterItem item) {
+        CustomAlert previewAlert = new CustomAlert(Alert.AlertType.INFORMATION, "Kapitel-Vorschau");
+        previewAlert.setHeaderText("Vorschau: " + item.getDisplayTitle());
+        
+        // VBox für die Vorschau-Inhalte
+        VBox previewBox = new VBox(10);
+        previewBox.setPadding(new Insets(10));
+        previewBox.setPrefWidth(500); // Begrenzte Breite
+        
+        // Info-Labels
+        Label wordLabel = new Label("Wörter: " + item.getWordCount());
+        Label charLabel = new Label("Zeichen: " + item.getCharacterCount());
+        HBox infoBox = new HBox(15);
+        infoBox.getChildren().addAll(wordLabel, charLabel);
+        
+        // TextArea für den Vorschau-Text
+        TextArea previewTextArea = new TextArea(item.getPreview());
+        previewTextArea.setEditable(false);
+        previewTextArea.setWrapText(true);
+        previewTextArea.setPrefRowCount(15);
+        previewTextArea.setPrefColumnCount(50);
+        previewTextArea.setPrefWidth(500);
+        previewTextArea.setMaxWidth(500);
+        previewTextArea.getStyleClass().add("preview-textarea");
+        
+        previewBox.getChildren().addAll(infoBox, previewTextArea);
+        
+        // Custom Content setzen
+        previewAlert.setCustomContent(previewBox);
+        
+        previewAlert.applyTheme(currentThemeIndex);
+        previewAlert.initOwner(primaryStage);
+        previewAlert.showAndWait();
+    }
 
+    private void openSeriesRenameDialog(TableView<SplitChapterItem> tableChapters, int startIndex) {
+        CustomAlert renameAlert = new CustomAlert(Alert.AlertType.CONFIRMATION, "Serien-Umbenennen");
+        renameAlert.setHeaderText("Ab dieser Zeile umbenennen");
+
+        VBox box = new VBox(10);
+        box.setPadding(new Insets(10));
+
+        CheckBox cbTitle = new CheckBox("Name umbenennen (Standard)");
+        cbTitle.setSelected(true);
+        CheckBox cbFile = new CheckBox("auch Dateinamen umbenennen");
+
+        TextField patternField = new TextField("Kapitel {i}");
+        patternField.setPrefColumnCount(28);
+        Label hint = new Label("{i} / {i:02} / {r} / {R} / {a} / {A} / {title}. {i} startet bei Startwert; nur angehakte Zeilen zählen.");
+        HBox startBox = new HBox(8);
+        Label startLbl = new Label("Startwert:");
+        TextField startField = new TextField("1");
+        startField.setPrefColumnCount(5);
+        startBox.getChildren().addAll(startLbl, startField);
+
+        // Platzhalter-Hilfe
+        Label helpHeader = new Label("Platzhalter-Hilfe:");
+        helpHeader.setStyle("-fx-font-weight: bold;");
+        VBox helpBox = new VBox(4);
+        Label hI = new Label("{i}: laufende Nummer (Startwert bestimmt die erste Zahl)");
+        hI.setWrapText(true);
+        Label hI02 = new Label("{i:02}: Nummer mit führenden Nullen; allgemeine Form {i:0N} (N=Breite)");
+        hI02.setWrapText(true);
+        Label hR = new Label("{r} / {R}: römische Zahl (klein/groß), z. B. i/II");
+        hR.setWrapText(true);
+        Label hA = new Label("{a} / {A}: Alphabetfolge (a,b,…,z,aa,ab,…; klein/groß)");
+        hA.setWrapText(true);
+        Label hTitle = new Label("{title}: bisheriger Titel der Zeile (nützlich für Prä-/Suffixe)");
+        hTitle.setWrapText(true);
+        helpBox.getChildren().addAll(hI, hI02, hR, hA, hTitle);
+
+        box.getChildren().addAll(cbTitle, cbFile, new Label("Muster:"), patternField, startBox, hint, helpHeader, helpBox);
+        renameAlert.setCustomContent(box);
+        renameAlert.applyTheme(currentThemeIndex);
+        renameAlert.initOwner(primaryStage);
+
+        Optional<ButtonType> res = renameAlert.showAndWait();
+        if (res.isPresent() && res.get() == ButtonType.OK) {
+            String pattern = patternField.getText() == null ? "" : patternField.getText().trim();
+            if (!pattern.isEmpty()) {
+                int startNumber = 1;
+                try { startNumber = Integer.parseInt(startField.getText().trim()); } catch (Exception ignore) {}
+                applySeriesRename(tableChapters, startIndex, pattern, cbTitle.isSelected(), cbFile.isSelected(), startNumber);
+            }
+        }
+    }
+
+    private void applySeriesRename(TableView<SplitChapterItem> tableChapters, int startIndex, String pattern, boolean renameTitle, boolean renameFile, int startNumber) {
+        ObservableList<SplitChapterItem> items = tableChapters.getItems();
+        int number = Math.max(1, startNumber);
+        for (int i = startIndex; i < items.size(); i++) {
+            SplitChapterItem item = items.get(i);
+            if (item != null && item.isSelected()) {
+                String baseTitle = item.getDisplayTitle() == null ? "" : item.getDisplayTitle();
+                String formatted = formatSeriesPattern(pattern, baseTitle, number);
+                if (renameTitle) {
+                    item.setDisplayTitle(formatted);
+                }
+                if (renameFile) {
+                    String sanitized = formatted.replaceAll("[\\\\/:*?\"<>|]", "_").trim();
+                    String lower = sanitized.toLowerCase();
+                    String desiredExt = (item.getSource() == SplitSource.DOCX) ? ".docx" : ".rtf";
+                    if (lower.endsWith(".md")) {
+                        sanitized = sanitized.substring(0, sanitized.length() - 3) + desiredExt;
+                    } else if (lower.endsWith(".docx") || lower.endsWith(".rtf")) {
+                        // belassen
+                    } else if (!lower.contains(".")) {
+                        sanitized = sanitized + desiredExt;
+                    }
+                    item.setFileName(sanitized);
+                }
+                number++;
+            }
+        }
+        tableChapters.refresh();
+    }
+
+    private String formatSeriesPattern(String pattern, String title, int number) {
+        String result = pattern;
+        // {title}
+        result = result.replace("{title}", title == null ? "" : title);
+        // {i:02} oder {i:0003} etc.
+        Pattern p = Pattern.compile("\\{i:0+(\\d+)\\}");
+        Matcher matcher = p.matcher(result);
+        StringBuffer sb = new StringBuffer();
+        while (matcher.find()) {
+            int width = Integer.parseInt(matcher.group(1));
+            String repl = String.format("%0" + width + "d", number);
+            matcher.appendReplacement(sb, Matcher.quoteReplacement(repl));
+        }
+        matcher.appendTail(sb);
+        result = sb.toString();
+        // {i}
+        result = result.replace("{i}", Integer.toString(number));
+        // Legacy {1}
+        result = result.replace("{1}", Integer.toString(number));
+        // {r} / {R}
+        String roman = toRoman(number);
+        result = result.replace("{r}", roman.toLowerCase());
+        result = result.replace("{R}", roman);
+        // {a} / {A}
+        String alpha = toAlphabetic(number);
+        result = result.replace("{a}", alpha.toLowerCase());
+        result = result.replace("{A}", alpha.toUpperCase());
+        return result;
+    }
+
+    private String toRoman(int number) {
+        if (number <= 0) return Integer.toString(number);
+        int[] values = {1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1};
+        String[] numerals = {"M", "CM", "D", "CD", "C", "XC", "L", "XL", "X", "IX", "V", "IV", "I"};
+        StringBuilder sb = new StringBuilder();
+        int n = number;
+        for (int i = 0; i < values.length; i++) {
+            while (n >= values[i]) { sb.append(numerals[i]); n -= values[i]; }
+        }
+        return sb.toString();
+    }
+
+    private String toAlphabetic(int number) {
+        if (number <= 0) return Integer.toString(number);
+        StringBuilder sb = new StringBuilder();
+        int n = number;
+        while (n > 0) {
+            n--; // 1->a
+            sb.insert(0, (char) ('a' + (n % 26)));
+            n /= 26;
+        }
+        return sb.toString();
+    }
+    
+    /**
+     * Enum für die Quelle des Split-Prozesses
+     */
+    private enum SplitSource {
+        DOCX, RTF
+    }
+    
+    /**
+     * Klasse für Split-Chapter-Items in der Tabelle
+     */
+    private static class SplitChapterItem {
+        private final SimpleBooleanProperty selected = new SimpleBooleanProperty(true);
+        private final SimpleStringProperty displayTitle = new SimpleStringProperty();
+        private final SimpleIntegerProperty wordCount = new SimpleIntegerProperty();
+        private final SimpleIntegerProperty characterCount = new SimpleIntegerProperty();
+        private final SimpleStringProperty preview = new SimpleStringProperty();
+        private final SimpleStringProperty fileName = new SimpleStringProperty();
+        
+        private final Object chapter; // Entweder DocxSplitProcessor.Chapter oder RtfSplitProcessor.Chapter
+        private final SplitSource source;
+        
+        private SplitChapterItem(Object chapter, SplitSource source, String defaultFileName) {
+            this.chapter = chapter;
+            this.source = source;
+            this.fileName.set(defaultFileName);
+            
+            // Daten aus Chapter extrahieren
+            if (source == SplitSource.DOCX && chapter instanceof DocxSplitProcessor.Chapter) {
+                DocxSplitProcessor.Chapter docxChapter = (DocxSplitProcessor.Chapter) chapter;
+                displayTitle.set(docxChapter.getTitle());
+                wordCount.set(docxChapter.getWordCount());
+                characterCount.set(docxChapter.getCharacterCount());
+                preview.set(docxChapter.getPreviewText());
+            } else if (source == SplitSource.RTF && chapter instanceof RtfSplitProcessor.Chapter) {
+                RtfSplitProcessor.Chapter rtfChapter = (RtfSplitProcessor.Chapter) chapter;
+                displayTitle.set(rtfChapter.getTitle());
+                // Wörter und Zeichen für RTF berechnen
+                String fullText = String.join("\n", rtfChapter.getLines());
+                wordCount.set(fullText.trim().isEmpty() ? 0 : fullText.trim().split("\\s+").length);
+                characterCount.set(fullText.length());
+                preview.set(fullText.length() > 300 ? fullText.substring(0, 300).trim() + "…" : fullText.trim());
+            }
+        }
+        
+        public static SplitChapterItem fromDocx(DocxSplitProcessor.Chapter chapter, String defaultFileName) {
+            return new SplitChapterItem(chapter, SplitSource.DOCX, defaultFileName);
+        }
+        
+        public static SplitChapterItem fromRtf(RtfSplitProcessor.Chapter chapter, String defaultFileName) {
+            return new SplitChapterItem(chapter, SplitSource.RTF, defaultFileName);
+        }
+        
+        // Properties
+        public SimpleBooleanProperty selectedProperty() { return selected; }
+        public boolean isSelected() { return selected.get(); }
+        public void setSelected(boolean value) { selected.set(value); }
+        
+        public SimpleStringProperty displayTitleProperty() { return displayTitle; }
+        public String getDisplayTitle() { return displayTitle.get(); }
+        public void setDisplayTitle(String value) { displayTitle.set(value); }
+        
+        public SimpleIntegerProperty wordCountProperty() { return wordCount; }
+        public int getWordCount() { return wordCount.get(); }
+        
+        public SimpleIntegerProperty characterCountProperty() { return characterCount; }
+        public int getCharacterCount() { return characterCount.get(); }
+        
+        public SimpleStringProperty previewProperty() { return preview; }
+        public String getPreview() { return preview.get(); }
+        
+        public SimpleStringProperty fileNameProperty() { return fileName; }
+        public String getFileName() { return fileName.get(); }
+        public void setFileName(String value) { fileName.set(value); }
+        
+        public Object getChapter() { return chapter; }
+        public SplitSource getSource() { return source; }
+    }
+}
