@@ -579,7 +579,8 @@ public class DocxSplitProcessor {
                 for (int i = copyStart; i < end; i++) {
                     P sourcePara = sourceParagraphs.get(i);
                     String plain = extractPlainTextFromParagraph(sourcePara).trim();
-                    if (isHorizontalRule(sourcePara)) continue;
+                    // Horizontale Linien beibehalten (nicht entfernen)
+                    // if (isHorizontalRule(sourcePara)) continue;  // DEAKTIVIERT: HR-Tags sollen erhalten bleiben
                     if (!removedFirstStarsLine && !plain.isEmpty() && plain.matches("^\\s*\\*{2,}\\s*$")) {
                         removedFirstStarsLine = true;
                         continue;

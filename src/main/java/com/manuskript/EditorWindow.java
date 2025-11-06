@@ -4140,7 +4140,8 @@ if (caret != null) {
             
             // Horizontale Linien
             if (trimmedLine.matches("^[-*_]{3,}$")) {
-                html.append("<hr>\n");
+                // Statt <hr> verwenden wir einen Paragraph mit Bindestrichen, damit Sudowrite und andere Textverarbeitungen die Linie nicht entfernen
+                html.append("<p style=\"text-align: center; border-top: 1px solid #ccc; margin: 20px 0; padding-top: 10px;\">─────────────────────────────────────────────</p>\n");
                 continue;
             }
             
@@ -4310,6 +4311,9 @@ if (caret != null) {
             .replaceAll("\\[([^\\]]+)\\]\\([^)]+\\)", "$1") // Links
             .replaceAll("^[-*+]\\s+", "• ") // Listen
             .replaceAll("^\\d+\\.\\s+", ""); // Nummerierte Listen
+        
+        // Horizontale Linien beibehalten (als --- im Plain Text)
+        // Wird bereits korrekt behandelt, da --- nicht durch die obigen Replacements entfernt wird
         
         return text;
     }

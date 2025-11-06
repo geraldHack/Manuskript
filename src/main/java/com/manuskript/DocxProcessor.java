@@ -1402,6 +1402,66 @@ public class DocxProcessor {
     private static String extractTextFromParagraph(P paragraph, Map<String, Style> styleMap) {
         StringBuilder text = new StringBuilder();
         
+        // Prüfe auf horizontale Linie (HR): Absatz mit nur Unicode-Linien-Zeichen oder zentriert mit Linien-Zeichen
+        String paragraphText = "";
+        boolean isCentered = false;
+        
+        // Prüfe auf zentrierte Ausrichtung
+        if (paragraph.getPPr() != null && paragraph.getPPr().getJc() != null) {
+            org.docx4j.wml.Jc jc = paragraph.getPPr().getJc();
+            if (jc.getVal() != null && jc.getVal() == org.docx4j.wml.JcEnumeration.CENTER) {
+                isCentered = true;
+            }
+        }
+        
+        // Extrahiere Text aus dem Paragraph
+        for (Object obj : paragraph.getContent()) {
+            if (obj instanceof R) {
+                R run = (R) obj;
+                for (Object runObj : run.getContent()) {
+                    if (runObj instanceof org.docx4j.wml.Text) {
+                        paragraphText += ((org.docx4j.wml.Text) runObj).getValue();
+                    } else if (runObj instanceof JAXBElement) {
+                        Object value = ((JAXBElement<?>) runObj).getValue();
+                        if (value instanceof org.docx4j.wml.Text) {
+                            paragraphText += ((org.docx4j.wml.Text) value).getValue();
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Prüfe ob es eine horizontale Linie ist
+        boolean isHorizontalRule = false;
+        String trimmedText = paragraphText.trim();
+        
+        // 1. Prüfe auf Markdown-ähnliche horizontale Linien (---, ***, ___)
+        if (trimmedText.matches("^[-*_]{3,}$")) {
+            isHorizontalRule = true;
+        }
+        // 2. Prüfe auf Unicode-Linien-Zeichen (─, ━, ┅, etc.) - auch wenn nur teilweise Linien-Zeichen
+        else if (trimmedText.length() >= 3 && trimmedText.matches("^[─━┅┉┄┈\u2500\u2501]+$")) {
+            isHorizontalRule = true;
+        }
+        // 2b. Prüfe auf zentrierten Absatz mit vielen Unicode-Linien-Zeichen (wie von addHorizontalRule erstellt: 50x ─)
+        else if (isCentered && trimmedText.length() >= 10 && trimmedText.replaceAll("[^─━┅┉┄┈\u2500\u2501]", "").length() >= trimmedText.length() * 0.8) {
+            // Mindestens 80% der Zeichen sind Linien-Zeichen und mindestens 10 Zeichen lang
+            isHorizontalRule = true;
+        }
+        // 3. Prüfe auf zentrierten Absatz mit Rahmen (PBdr) - alte Erkennung
+        else if (paragraph.getPPr() != null && paragraph.getPPr().getPBdr() != null && trimmedText.isEmpty()) {
+            isHorizontalRule = true;
+        }
+        // 4. Prüfe auf Absatz der hauptsächlich aus ─ besteht (auch ohne Zentrierung)
+        else if (trimmedText.length() >= 10 && trimmedText.replaceAll("[^─]", "").length() >= trimmedText.length() * 0.9) {
+            // Mindestens 90% der Zeichen sind ─ und mindestens 10 Zeichen lang
+            isHorizontalRule = true;
+        }
+        
+        if (isHorizontalRule) {
+            return "---"; // Markdown horizontale Linie
+        }
+        
         // Prüfe Paragraph-Style für Überschriften
         int headingLevel = 0;
         if (paragraph.getPPr() != null && paragraph.getPPr().getPStyle() != null) {

@@ -8,7 +8,7 @@ CASE:0
 WORD:0
 ENABLED:1
 STEPDESC:ALLE Unicode doppelte Anführungszeichen zu englisch
-REPLACECOUNT:0
+REPLACECOUNT:16
 STEP:2
 SEARCH:[\u2018\u2019\u201A\u201B\u2039\u203A]
 REPLACE:'
@@ -17,7 +17,7 @@ CASE:0
 WORD:0
 ENABLED:1
 STEPDESC:ALLE Unicode einfache Anführungszeichen zu englisch
-REPLACECOUNT:4
+REPLACECOUNT:15
 STEP:3
 SEARCH:[ ]{2,}
 REPLACE:
@@ -35,7 +35,7 @@ CASE:0
 WORD:0
 ENABLED:1
 STEPDESC:Mehrfache Leerzeilen reduzieren
-REPLACECOUNT:29
+REPLACECOUNT:20
 STEP:5
 SEARCH:(?m)([^\r\n])\r?\n([^\r\n])
 REPLACE:$1\n\n$2
@@ -44,7 +44,7 @@ CASE:0
 WORD:0
 ENABLED:1
 STEPDESC:Absatzformat markdown-konform
-REPLACECOUNT:29
+REPLACECOUNT:20
 STEP:6
 SEARCH:...
 REPLACE:…
@@ -62,10 +62,10 @@ CASE:0
 WORD:0
 ENABLED:1
 STEPDESC:Buchstabe direkt an Auslassungszeichen
-REPLACECOUNT:1
+REPLACECOUNT:0
 STEP:8
 SEARCH:…(\b)
-REPLACE:… 
+REPLACE:…
 REGEX:1
 CASE:0
 WORD:0
@@ -125,7 +125,7 @@ CASE:0
 WORD:0
 ENABLED:1
 STEPDESC:Englisch zu Französisch - doppelte Anführungszeichen
-REPLACECOUNT:0
+REPLACECOUNT:8
 STEP:15
 SEARCH:'(.*?)'
 REPLACE:›$1‹
@@ -134,7 +134,7 @@ CASE:0
 WORD:0
 ENABLED:1
 STEPDESC:Englisch zu Französisch - einfache Anführungszeichen
-REPLACECOUNT:2
+REPLACECOUNT:7
 STEP:16
 SEARCH:"(.*?)"
 REPLACE:„$1"
@@ -177,7 +177,7 @@ REPLACE:’
 REGEX:0
 CASE:0
 WORD:0
-ENABLED:0
+ENABLED:1
 STEPDESC:typografisches Anführungszeichen
 REPLACECOUNT:0
 ENDMACRO

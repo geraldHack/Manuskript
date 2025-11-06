@@ -39,6 +39,11 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 import com.manuskript.HelpSystem;
 
 public class PandocExportWindow extends CustomStage {
@@ -76,11 +81,14 @@ public class PandocExportWindow extends CustomStage {
     private Preferences preferences;
     private int currentThemeIndex;
     private File pandocHome; // Ordner, in dem sich pandoc.exe befindet
+    private File projectDirectory; // Projekt-Verzeichnis für Metadaten-Speicherung
+    private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
     
     public PandocExportWindow(File inputMarkdownFile, String projectName) {
         super();
         this.inputMarkdownFile = inputMarkdownFile;
         this.projectName = projectName;
+        this.projectDirectory = inputMarkdownFile != null ? inputMarkdownFile.getParentFile() : null;
         this.preferences = Preferences.userNodeForPackage(this.getClass());
         this.currentThemeIndex = preferences.getInt("main_window_theme", 0);
         this.setCustomTitle("Manuskript - Buch exportieren");
@@ -440,28 +448,71 @@ public class PandocExportWindow extends CustomStage {
         }
     }
     
+    /**
+     * Gibt das data-Verzeichnis im Projektverzeichnis zurück
+     */
+    private File getDataDirectory() {
+        if (projectDirectory == null) {
+            return null;
+        }
+        File dataDir = new File(projectDirectory, "data");
+        if (!dataDir.exists()) {
+            dataDir.mkdirs();
+        }
+        return dataDir;
+    }
+    
+    /**
+     * Gibt den Pfad zur Metadaten-Datei im data-Verzeichnis zurück
+     */
+    private File getProjectMetadataFile() {
+        File dataDir = getDataDirectory();
+        if (dataDir == null) {
+            return null;
+        }
+        return new File(dataDir, "pandoc_metadata.json");
+    }
+    
+    /**
+     * Lädt Metadaten aus der projekt-spezifischen JSON-Datei
+     */
     private void loadProjectMetadata() {
-        // Load existing metadata from project session
-        titleField.setText(preferences.get("pandoc_title", projectName));
-        subtitleField.setText(preferences.get("pandoc_subtitle", ""));
+        File metadataFile = getProjectMetadataFile();
+        Map<String, String> metadata = new HashMap<>();
         
-        // Persistierte Werte laden
-        authorField.setText(preferences.get("pandoc_author", "Gerald Leonard"));
-        rightsField.setText(preferences.get("pandoc_rights", "© 2025 Gerald Leonard"));
-        dateField.setText(preferences.get("pandoc_date", "Oktober 2025"));
-        outputDirectoryField.setText(preferences.get("pandoc_output_directory", ""));
+        // Versuche zuerst aus projekt-spezifischer Datei zu laden
+        if (metadataFile != null && metadataFile.exists()) {
+            try {
+                String json = Files.readString(metadataFile.toPath(), StandardCharsets.UTF_8);
+                TypeToken<Map<String, String>> typeToken = new TypeToken<Map<String, String>>(){};
+                metadata = gson.fromJson(json, typeToken.getType());
+                logger.info("Metadaten aus Projekt-Datei geladen: {}", metadataFile.getAbsolutePath());
+            } catch (IOException e) {
+                logger.warn("Fehler beim Laden der Projekt-Metadaten, verwende Fallback: {}", e.getMessage());
+            }
+        }
         
-        // Abstract laden
-        abstractArea.setText(preferences.get("pandoc_abstract", ""));
+        // Fallback auf globale Preferences für Migration/Kompatibilität
+        titleField.setText(metadata.getOrDefault("title", preferences.get("pandoc_title", projectName)));
+        subtitleField.setText(metadata.getOrDefault("subtitle", preferences.get("pandoc_subtitle", "")));
+        authorField.setText(metadata.getOrDefault("author", preferences.get("pandoc_author", "Gerald Leonard")));
+        rightsField.setText(metadata.getOrDefault("rights", preferences.get("pandoc_rights", "© 2025 Gerald Leonard")));
+        dateField.setText(metadata.getOrDefault("date", preferences.get("pandoc_date", "Oktober 2025")));
+        outputDirectoryField.setText(metadata.getOrDefault("outputDirectory", preferences.get("pandoc_output_directory", "")));
+        abstractArea.setText(metadata.getOrDefault("abstract", preferences.get("pandoc_abstract", "")));
         
         // Cover-Bild laden
-        String savedCoverImage = preferences.get("pandoc_cover_image", "");
+        String savedCoverImage = metadata.getOrDefault("coverImage", preferences.get("pandoc_cover_image", ""));
         if (savedCoverImage.isEmpty()) {
             // Automatisch Cover-Bild aus Projektverzeichnis setzen
-            File projectCover = new File(inputMarkdownFile.getParent(), "cover_image.png");
-            if (projectCover.exists()) {
-                coverImageField.setText(projectCover.getAbsolutePath());
-                logger.info("Cover-Bild automatisch gesetzt: {}", projectCover.getAbsolutePath());
+            if (projectDirectory != null) {
+                File projectCover = new File(projectDirectory, "cover_image.png");
+                if (projectCover.exists()) {
+                    coverImageField.setText(projectCover.getAbsolutePath());
+                    logger.info("Cover-Bild automatisch gesetzt: {}", projectCover.getAbsolutePath());
+                } else {
+                    coverImageField.setText("");
+                }
             } else {
                 coverImageField.setText("");
             }
@@ -470,11 +521,11 @@ public class PandocExportWindow extends CustomStage {
         }
         
         // Format laden
-        String savedFormat = preferences.get("pandoc_format", "docx");
+        String savedFormat = metadata.getOrDefault("format", preferences.get("pandoc_format", "docx"));
         formatComboBox.setValue(savedFormat);
         
         // Template laden
-        String savedTemplate = preferences.get("pandoc_template", "");
+        String savedTemplate = metadata.getOrDefault("template", preferences.get("pandoc_template", ""));
         if (!savedTemplate.isEmpty()) {
             templateComboBox.setValue(savedTemplate);
         }
@@ -485,12 +536,59 @@ public class PandocExportWindow extends CustomStage {
         fileNameField.setText(fileName + "." + extension);
     }
     
+    /**
+     * Speichert Metadaten in die projekt-spezifische JSON-Datei
+     */
+    private void saveProjectMetadata() {
+        File metadataFile = getProjectMetadataFile();
+        if (metadataFile == null) {
+            return;
+        }
+        
+        try {
+            Map<String, String> metadata = new HashMap<>();
+            metadata.put("title", titleField.getText().trim());
+            metadata.put("subtitle", subtitleField.getText().trim());
+            metadata.put("author", authorField.getText().trim());
+            metadata.put("rights", rightsField.getText().trim());
+            metadata.put("date", dateField.getText().trim());
+            metadata.put("outputDirectory", outputDirectoryField.getText().trim());
+            metadata.put("abstract", abstractArea.getText().trim());
+            metadata.put("coverImage", coverImageField.getText().trim());
+            metadata.put("format", formatComboBox.getValue() != null ? formatComboBox.getValue() : "docx");
+            metadata.put("template", templateComboBox.getValue() != null ? templateComboBox.getValue() : "");
+            
+            String json = gson.toJson(metadata);
+            Files.writeString(metadataFile.toPath(), json, StandardCharsets.UTF_8);
+            logger.debug("Metadaten in Projekt-Datei gespeichert: {}", metadataFile.getAbsolutePath());
+        } catch (IOException e) {
+            logger.warn("Fehler beim Speichern der Projekt-Metadaten: {}", e.getMessage());
+        }
+    }
+    
     private void browseOutputDirectory() {
         DirectoryChooser chooser = new DirectoryChooser();
         chooser.setTitle("Zielverzeichnis wählen");
         
-        // Letztes Verzeichnis als Startverzeichnis verwenden
-        String lastDirectory = preferences.get("pandoc_output_directory", "");
+        // Letztes Verzeichnis als Startverzeichnis verwenden (aus Projekt oder global)
+        String lastDirectory = "";
+        File metadataFile = getProjectMetadataFile();
+        if (metadataFile != null && metadataFile.exists()) {
+            try {
+                String json = Files.readString(metadataFile.toPath(), StandardCharsets.UTF_8);
+                TypeToken<Map<String, String>> typeToken = new TypeToken<Map<String, String>>(){};
+                Map<String, String> metadata = gson.fromJson(json, typeToken.getType());
+                lastDirectory = metadata.getOrDefault("outputDirectory", "");
+            } catch (IOException e) {
+                // Ignoriere Fehler
+            }
+        }
+        
+        // Fallback auf globale Präferenz
+        if (lastDirectory.isEmpty()) {
+            lastDirectory = preferences.get("pandoc_output_directory", "");
+        }
+        
         if (!lastDirectory.isEmpty() && new File(lastDirectory).exists()) {
             chooser.setInitialDirectory(new File(lastDirectory));
         }
@@ -498,8 +596,10 @@ public class PandocExportWindow extends CustomStage {
         File selectedDir = chooser.showDialog(this);
         if (selectedDir != null) {
             outputDirectoryField.setText(selectedDir.getAbsolutePath());
-            // Verzeichnis für nächste Verwendung speichern
+            // Verzeichnis für nächste Verwendung speichern (global für Verzeichnis-Wahl)
             preferences.put("pandoc_output_directory", selectedDir.getAbsolutePath());
+            // Auch in Projekt-Metadaten speichern
+            saveProjectMetadata();
         }
     }
     
@@ -536,6 +636,8 @@ public class PandocExportWindow extends CustomStage {
             boolean success = runPandocExport(markdownWithMetadata);
             
             if (success) {
+                // Metadaten vor dem Schließen speichern
+                saveProjectMetadata();
                 showAlert("Erfolg", "Export erfolgreich abgeschlossen!");
                 close();
             } else {
@@ -589,71 +691,54 @@ public class PandocExportWindow extends CustomStage {
             }
         });
         
-        // Metadaten speichern bei Änderung
+        // Metadaten speichern bei Änderung (projekt-spezifisch)
         authorField.textProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal != null && !newVal.trim().isEmpty()) {
-                preferences.put("pandoc_author", newVal.trim());
-            }
+            saveProjectMetadata();
         });
         
         rightsField.textProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal != null && !newVal.trim().isEmpty()) {
-                preferences.put("pandoc_rights", newVal.trim());
-            }
+            saveProjectMetadata();
         });
         
         dateField.textProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal != null && !newVal.trim().isEmpty()) {
-                preferences.put("pandoc_date", newVal.trim());
-            }
+            saveProjectMetadata();
         });
         
         // Titel und Untertitel speichern
         titleField.textProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal != null && !newVal.trim().isEmpty()) {
-                preferences.put("pandoc_title", newVal.trim());
-            }
+            saveProjectMetadata();
         });
         
         subtitleField.textProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal != null && !newVal.trim().isEmpty()) {
-                preferences.put("pandoc_subtitle", newVal.trim());
-            }
+            saveProjectMetadata();
         });
         
         // Abstract speichern
         abstractArea.textProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal != null && !newVal.trim().isEmpty()) {
-                preferences.put("pandoc_abstract", newVal.trim());
-            }
+            saveProjectMetadata();
         });
         
-        // Output-Verzeichnis speichern
+        // Output-Verzeichnis speichern (globale Präferenz für Verzeichnis-Wahl)
         outputDirectoryField.textProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null && !newVal.trim().isEmpty()) {
                 preferences.put("pandoc_output_directory", newVal.trim());
             }
+            saveProjectMetadata();
         });
         
         // Cover-Bild speichern
         coverImageField.textProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal != null && !newVal.trim().isEmpty()) {
-                preferences.put("pandoc_cover_image", newVal.trim());
-            }
+            saveProjectMetadata();
         });
         
         // Format speichern
         formatComboBox.valueProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal != null) {
-                preferences.put("pandoc_format", newVal);
-            }
+            saveProjectMetadata();
         });
         
         // Template speichern
         templateComboBox.valueProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal != null) {
-                preferences.put("pandoc_template", newVal);
-            }
+            saveProjectMetadata();
         });
     }
     
@@ -1054,6 +1139,7 @@ public class PandocExportWindow extends CustomStage {
                 command.add("--variable=fontsize:12pt");
                 command.add("--variable=documentclass:article");
                 command.add("--variable=linestretch:1.2");
+                command.add("--variable=numbersections:false"); // Kapitelnummerierung deaktivieren
                 
                 // Cover-Bild für PDF hinzufügen (falls vorhanden)
                 if (!coverImageField.getText().trim().isEmpty()) {
@@ -1087,6 +1173,51 @@ public class PandocExportWindow extends CustomStage {
                     logger.info("Verwende Lua-Filter für automatische Initialen: {}", luaFilter.getName());
                 } else {
                     logger.warn("Lua-Filter für Initialen nicht gefunden: {}", luaFilter.getAbsolutePath());
+                }
+            } else if ("latex".equals(format)) {
+                // LaTeX-spezifische Optionen
+                command.add("--toc"); // Inhaltsverzeichnis für LaTeX
+                
+                // Markdown-Formatierung explizit aktivieren
+                command.add("--from=markdown+yaml_metadata_block+smart");
+                command.add("--to=latex");
+                
+                // Template für LaTeX verwenden (vereinfachtes XeLaTeX-Template)
+                File latexTemplate = new File("pandoc-3.8.1", "simple-xelatex-template.tex");
+                if (latexTemplate.exists()) {
+                    command.add("--template=" + latexTemplate.getAbsolutePath());
+                    logger.info("Verwende vereinfachtes XeLaTeX-Template: {}", latexTemplate.getName());
+                } else {
+                    logger.info("Kein XeLaTeX-Template gefunden, verwende Standard-Template");
+                }
+                
+                // LaTeX-Optionen
+                command.add("--variable=lang:de");
+                command.add("--variable=geometry:margin=2.5cm");
+                command.add("--variable=fontsize:12pt");
+                command.add("--variable=documentclass:article");
+                command.add("--variable=linestretch:1.2");
+                command.add("--variable=numbersections:false"); // Kapitelnummerierung deaktivieren
+                
+                // Cover-Bild für LaTeX hinzufügen (falls vorhanden)
+                if (!coverImageField.getText().trim().isEmpty()) {
+                    File coverImageFile = new File(coverImageField.getText().trim());
+                    if (coverImageFile.exists()) {
+                        try {
+                            // Cover-Bild ins pandoc-Verzeichnis kopieren
+                            String coverFileName = "cover." + getFileExtension(coverImageFile.getName());
+                            File pandocDir = new File("pandoc-3.8.1");
+                            File targetCover = new File(pandocDir, coverFileName);
+                            Files.copy(coverImageFile.toPath(), targetCover.toPath(),
+                                java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                            
+                            // Cover-Bild als LaTeX-Variable übergeben
+                            command.add("--variable=cover-image:" + targetCover.getName());
+                            
+                        } catch (IOException e) {
+                            logger.error("Fehler beim Kopieren des Cover-Bildes für LaTeX", e);
+                        }
+                    }
                 }
             }
 
@@ -1233,6 +1364,7 @@ public class PandocExportWindow extends CustomStage {
             fallbackCommand.add("--variable=fontsize:11pt");
             fallbackCommand.add("--variable=documentclass:article");
             fallbackCommand.add("--variable=linestretch:1.2");
+            fallbackCommand.add("--variable=numbersections:false"); // Kapitelnummerierung deaktivieren
             
             // pdflatex-spezifische Optionen
             fallbackCommand.add("--pdf-engine-opt=-interaction=nonstopmode");

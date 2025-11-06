@@ -22,8 +22,11 @@
 
 % --- Überschriften ---
 \usepackage{titlesec}
-\titleformat{\section}{\normalfont\Large\bfseries}{\thesection}{1em}{}
-\titleformat{\subsection}{\normalfont\large\bfseries}{\thesubsection}{1em}{}
+\titleformat{\section}{\normalfont\Large\bfseries}{}{0em}{}
+\titleformat{\subsection}{\normalfont\large\bfseries}{}{0em}{}
+
+% --- Nummerierung komplett deaktivieren ---
+\setcounter{secnumdepth}{0}  % Keine Nummerierung für Sections, Subsections, etc.
 
 % --- Seitenumbruch vor Kapiteln (Sections) ---
 \newcommand{\sectionbreak}{\clearpage}
@@ -54,6 +57,11 @@
 % --- Pandoc-spezifische Befehle ---
 \providecommand{\tightlist}{%
   \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+
+% --- Inhaltsverzeichnis ohne Nummern ---
+\makeatletter
+\renewcommand{\@seccntformat}[1]{}
+\makeatother
 
 \begin{document}
 
