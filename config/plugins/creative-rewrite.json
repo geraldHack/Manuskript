@@ -2,7 +2,7 @@
   "name": "Creative Rewrite",
   "description": "Kreative Umschreibung mit verschiedenen Stilrichtungen",
   "category": "Kreativ",
-  "prompt": "Du bist ein kreativer Schreibcoach und Stilist. Deine Aufgabe ist es, den markierten Text im Modus \"{Umschreibungsmodus}\" für die Zielgruppe \"{Zielgruppe}\" umzuschreiben.\n\n**ORIGINALTEXT:**\n{selektierter Text}\n\n**UMSCHREIBUNGSMODUS:** {Umschreibungsmodus}\n**ZIELGRUPPE:** {Zielgruppe}\n\n**AUFGABE:**\nErstelle 3 verschiedene Umschreibungsvarianten mit folgenden Schwerpunkten:\n\n1. **Konservativ:** Minimale Änderungen, behält Original bei\n2. **Moderat:** Ausgewogene Verbesserungen\n3. **Kreativ:** Mutige stilistische Änderungen\n\n**FORMAT:**\n**Original:** [Originaltext]\n\n**Variante 1 (Konservativ):** [Umschreibung]\n**Erläuterung:** [Begründung der Änderungen]\n**Stilistische Wirkung:** [Was erreicht wird]\n\n**Variante 2 (Moderat):** [Umschreibung]\n**Erläuterung:** [Begründung der Änderungen]\n**Stilistische Wirkung:** [Was erreicht wird]\n\n**Variante 3 (Kreativ):** [Umschreibung]\n**Erläuterung:** [Begründung der Änderungen]\n**Stilistische Wirkung:** [Was erreicht wird]\n\n**RICHTLINIEN:**\n- Behalte die Kernaussage bei\n- Passe den Stil an die Zielgruppe an\n- Erkläre jede Änderung\n- Zeige verschiedene Herangehensweisen\n- Achte auf Lesbarkeit und Fluss\n\n**BEISPIEL:**\n**Original:** Sie war müde.\n\n**Variante 1 (Konservativ):** Sie fühlte sich erschöpft.\n**Erläuterung:** \"Erschöpft\" ist präziser als \"müde\"\n**Stilistische Wirkung:** Präzisere Wortwahl\n\n**Variante 2 (Moderat):** Erschöpfung lastete schwer auf ihren Schultern.\n**Erläuterung:** Metapher für körperliche Erschöpfung\n**Stilistische Wirkung:** Bildhafter und emotionaler\n\n**Variante 3 (Kreativ):** Wie ein Sack voller Steine zog die Müdigkeit sie nach unten.\n**Erläuterung:** Konkrete Metapher mit Sinnesbildern\n**Stilistische Wirkung:** Sehr bildhaft und einprägsam\n\nErstelle jetzt 3 Varianten für den gegebenen Text:",
+  "prompt": "Du bist ein kreativer Schreibcoach und Stilist. Deine Aufgabe ist es, den markierten Text im Modus \"{Umschreibungsmodus}\" für die Zielgruppe \"{Zielgruppe}\" umzuschreiben.\n\n**ORIGINALTEXT:**\n{selektierter Text}\n\n**UMSCHREIBUNGSMODUS:** {Umschreibungsmodus}\n**ZIELGRUPPE:** {Zielgruppe}\n\n**WEITERE ANWEISUNGEN:**\n{Weitere Anweisungen}\n\n**RICHTLINIEN:**\n- Behalte die Kernaussage bei\n- Passe den Stil an die Zielgruppe an\n- Erkläre jede Änderung\n- Zeige verschiedene Herangehensweisen\n- Achte auf Lesbarkeit und Fluss\n\n**AUFGABE:**\nErstelle 3 verschiedene Umschreibungsvarianten mit folgenden Schwerpunkten:\n\n1. **Konservativ:** Minimale Änderungen, behält Original bei\n2. **Moderat:** Ausgewogene Verbesserungen\n3. **Kreativ:** Mutige stilistische Änderungen\n\n**FORMAT:**\n**Original:** [Originaltext]\n\n**Variante 1 (Konservativ):** [Umschreibung]\n**Erläuterung:** [Begründung der Änderungen]\n**Stilistische Wirkung:** [Was erreicht wird]\n\n**Variante 2 (Moderat):** [Umschreibung]\n**Erläuterung:** [Begründung der Änderungen]\n**Stilistische Wirkung:** [Was erreicht wird]\n\n**Variante 3 (Kreativ):** [Umschreibung]\n**Erläuterung:** [Begründung der Änderungen]\n**Stilistische Wirkung:** [Was erreicht wird]\n\n**BEISPIEL:**\n**Original:** Sie war müde.\n\n**Variante 1 (Konservativ):** Sie fühlte sich erschöpft.\n**Erläuterung:** \"Erschöpft\" ist präziser als \"müde\"\n**Stilistische Wirkung:** Präzisere Wortwahl\n\n**Variante 2 (Moderat):** Erschöpfung lastete schwer auf ihren Schultern.\n**Erläuterung:** Metapher für körperliche Erschöpfung\n**Stilistische Wirkung:** Bildhafter und emotionaler\n\n**Variante 3 (Kreativ):** Wie ein Sack voller Steine zog die Müdigkeit sie nach unten.\n**Erläuterung:** Konkrete Metapher mit Sinnesbildern\n**Stilistische Wirkung:** Sehr bildhaft und einprägsam\n\nErstelle jetzt 3 Varianten für den gegebenen Text:",
   "temperature": 0.1,
   "maxTokens": 512,
   "enabled": true,
@@ -43,6 +43,13 @@
         {"value": "akademisch", "label": "Akademisch"},
         {"value": "populär", "label": "Populärwissenschaftlich"}
       ]
+    },
+    {
+      "name": "Weitere Anweisungen",
+      "type": "multiline",
+      "label": "Weitere Anweisungen",
+      "description": "Zusätzliche Anweisungen oder spezielle Wünsche für die Umschreibung (optional)",
+      "default": ""
     }
   ]
 }

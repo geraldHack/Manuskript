@@ -759,57 +759,6 @@ public class DocxProcessor {
     }
     
     /**
-     * Fügt ein Listenelement hinzu - NEUE EINFACHE LÖSUNG
-     */
-    private static void addListItem(WordprocessingMLPackage pkg, ObjectFactory f, String line, DocxOptions options) {
-        P p = f.createP();
-        PPr ppr = f.createPPr();
-        
-        // EINFACHE Einrückung: Zähle führende Leerzeichen
-        int indentLevel = 0;
-        for (int i = 0; i < line.length(); i++) {
-            if (line.charAt(i) == ' ') {
-                indentLevel++;
-            } else if (line.charAt(i) == '\t') {
-                indentLevel += 4;
-            } else {
-                break;
-            }
-        }
-        
-        // Einrückung setzen
-        PPrBase.Ind ind = f.createPPrBaseInd();
-        ind.setLeft(BigInteger.valueOf(720 + (indentLevel * 200))); // Einfache Einrückung
-        ppr.setInd(ind);
-        
-        // Text verarbeiten
-        String text = line.trim();
-        String prefix = "";
-        
-        // Aufzählungsliste: - * +
-        if (text.startsWith("- ") || text.startsWith("* ") || text.startsWith("+ ")) {
-            String bulletStyle = "• "; // Standard
-            if (options != null && options.bulletStyle != null) {
-                bulletStyle = options.bulletStyle + " ";
-            }
-            prefix = bulletStyle;
-            text = text.substring(2);
-        }
-        // Nummerierte Liste: 1. 2. etc.
-        else if (text.matches("^\\d+\\.\\s+.*")) {
-            String number = text.substring(0, text.indexOf('.'));
-            prefix = number + ". ";
-            text = text.substring(text.indexOf('.') + 2);
-        }
-        
-        // Text hinzufügen
-        addFormattedTextToParagraph(p, f, prefix + text, options);
-        p.setPPr(ppr);
-        
-        pkg.getMainDocumentPart().addObject(p);
-    }
-    
-    /**
      * Fügt formatierten Text zu einem Absatz hinzu (mit Bold/Italic/Links)
      */
     private static void addFormattedTextToParagraph(P paragraph, ObjectFactory f, String text, DocxOptions options) {
@@ -1069,19 +1018,6 @@ public class DocxProcessor {
         }
     }
     
-    private static R createRunWithLang(ObjectFactory f, String text, String langCode) {
-        R r = f.createR();
-        RPr rpr = f.createRPr();
-        CTLanguage lang = new CTLanguage();
-        lang.setVal(langCode);
-        rpr.setLang(lang);
-        r.setRPr(rpr);
-        org.docx4j.wml.Text t = f.createText();
-        t.setValue(text);
-        r.getContent().add(t);
-        return r;
-    }
-    
     private static void addHeading(WordprocessingMLPackage pkg, ObjectFactory f, String text, int level, boolean firstH1Seen, DocxOptions options) {
         P p = f.createP();
         PPr ppr = f.createPPr();
@@ -1160,59 +1096,6 @@ public class DocxProcessor {
         pkg.getMainDocumentPart().addObject(p);
     }
     
-    private static void addParagraph(WordprocessingMLPackage pkg, ObjectFactory f, String text, DocxOptions options) {
-        P p = f.createP();
-        PPr ppr = f.createPPr();
-        p.setPPr(ppr);
-
-        // Blocksatz, falls gewünscht
-        if (options != null && options.justifyText) {
-            Jc jc = f.createJc();
-            jc.setVal(JcEnumeration.BOTH);
-            ppr.setJc(jc);
-        }
-        
-        // Einrückung erste Zeile, falls gewünscht
-        if (options != null && options.firstLineIndent) {
-            PPrBase.Ind ind = f.createPPrBaseInd();
-            // Konvertiere cm zu Twips (1 cm = 567 Twips)
-            int indentTwips = (int)(options.firstLineIndentSize * 567);
-            ind.setFirstLine(BigInteger.valueOf(indentTwips));
-            ppr.setInd(ind);
-        }
-
-        // Text mit Formatierung
-        R r = f.createR();
-        RPr rpr = f.createRPr();
-        
-        // Sprache
-        CTLanguage lang = new CTLanguage();
-        lang.setVal("de-DE");
-        rpr.setLang(lang);
-        
-        // Schriftart und -größe
-        if (options != null) {
-            RFonts rFonts = f.createRFonts();
-            rFonts.setAscii(options.defaultFont);
-            rFonts.setHAnsi(options.defaultFont);
-            rFonts.setCs(options.defaultFont);
-            rpr.setRFonts(rFonts);
-            
-            HpsMeasure fontSize = new HpsMeasure();
-            fontSize.setVal(BigInteger.valueOf(options.defaultFontSize * 2));
-            rpr.setSz(fontSize);
-            rpr.setSzCs(fontSize);
-        }
-        
-        r.setRPr(rpr);
-        org.docx4j.wml.Text t = f.createText();
-        t.setValue(text);
-        r.getContent().add(t);
-        p.getContent().add(r);
-        
-        pkg.getMainDocumentPart().addObject(p);
-    }
-    
     private static void addCodeBlock(WordprocessingMLPackage pkg, ObjectFactory f, String code, DocxOptions options) {
         P p = f.createP();
         PPr ppr = f.createPPr();
@@ -1272,95 +1155,6 @@ public class DocxProcessor {
         }
 
         pkg.getMainDocumentPart().addObject(p);
-    }
-    
-    private static void addParagraphWithoutIndent(WordprocessingMLPackage pkg, ObjectFactory f, String text, DocxOptions options) {
-        P p = f.createP();
-        PPr ppr = f.createPPr();
-        p.setPPr(ppr);
-
-        // Blocksatz, falls gewünscht
-        if (options != null && options.justifyText) {
-            Jc jc = f.createJc();
-            jc.setVal(JcEnumeration.BOTH);
-            ppr.setJc(jc);
-        }
-        
-        // KEINE Einrückung erste Zeile
-
-        // Text mit Formatierung
-        R r = f.createR();
-        RPr rpr = f.createRPr();
-        
-        // Sprache
-        CTLanguage lang = new CTLanguage();
-        lang.setVal("de-DE");
-        rpr.setLang(lang);
-        
-        // Schriftart und -größe
-        if (options != null) {
-            RFonts rFonts = f.createRFonts();
-            rFonts.setAscii(options.defaultFont);
-            rFonts.setHAnsi(options.defaultFont);
-            rFonts.setCs(options.defaultFont);
-            rpr.setRFonts(rFonts);
-            
-            HpsMeasure fontSize = new HpsMeasure();
-            fontSize.setVal(BigInteger.valueOf(options.defaultFontSize * 2));
-            rpr.setSz(fontSize);
-            rpr.setSzCs(fontSize);
-        }
-        
-        r.setRPr(rpr);
-        org.docx4j.wml.Text t = f.createText();
-        t.setValue(text);
-        r.getContent().add(t);
-        p.getContent().add(r);
-        
-        pkg.getMainDocumentPart().addObject(p);
-    }
-    
-    private static void addSimpleText(WordprocessingMLPackage pkg, ObjectFactory f, String text, DocxOptions options) {
-        P p = f.createP();
-        
-        // Text mit Formatierung (ohne Absatzformatierung)
-        R r = f.createR();
-        RPr rpr = f.createRPr();
-        
-        // Sprache
-        CTLanguage lang = new CTLanguage();
-        lang.setVal("de-DE");
-        rpr.setLang(lang);
-        
-        // Schriftart und -größe
-        if (options != null) {
-            RFonts rFonts = f.createRFonts();
-            rFonts.setAscii(options.defaultFont);
-            rFonts.setHAnsi(options.defaultFont);
-            rFonts.setCs(options.defaultFont);
-            rpr.setRFonts(rFonts);
-            
-            HpsMeasure fontSize = new HpsMeasure();
-            fontSize.setVal(BigInteger.valueOf(options.defaultFontSize * 2));
-            rpr.setSz(fontSize);
-            rpr.setSzCs(fontSize);
-        }
-        
-        r.setRPr(rpr);
-        org.docx4j.wml.Text t = f.createText();
-        t.setValue(text);
-        r.getContent().add(t);
-        p.getContent().add(r);
-        
-        pkg.getMainDocumentPart().addObject(p);
-    }
-    
-    private static void addList(WordprocessingMLPackage pkg, ObjectFactory f, Node listNode, DocxOptions options) {
-        // TODO: Implementiere Listen-Verarbeitung
-    }
-    
-    private static void addBlockQuote(WordprocessingMLPackage pkg, ObjectFactory f, Node quoteNode, DocxOptions options) {
-        // TODO: Implementiere Blockquote-Verarbeitung
     }
     
     private static void addPageBreak(WordprocessingMLPackage pkg, ObjectFactory f) {
@@ -1752,10 +1546,6 @@ public class DocxProcessor {
             logger.error("Fehler beim Hinzufügen der Seitenzahlen: {}", e.getMessage(), e);
         }
     }
-    
-    /**
-     * Setzt Dokument-Metadaten
-     */
     
 
 
