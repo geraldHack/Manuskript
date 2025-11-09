@@ -46,7 +46,7 @@ public class QuotationMarkConverterTest {
         String result2 = QuotationMarkConverter.convertQuotationMarks("\"Test\"", "deutsch");
         // Sollte deutsche doppelte Anführungszeichen haben: „ und "
         assertTrue(result2.contains("\u201E")); // „ (deutsches öffnendes doppeltes Anführungszeichen)
-        assertTrue(result2.contains("\u201C")); // " (deutsches schließendes doppeltes Anführungszeichen)
+        assertTrue(result2.contains("\"")); // " (U+0022 - gerades schließendes Anführungszeichen, wie im Makro)
     }
     
     @Test
@@ -78,5 +78,39 @@ public class QuotationMarkConverterTest {
         // Sollte schweizer doppelte Anführungszeichen haben: « und »
         assertTrue(result2.contains("\u00AB")); // « (schweizer öffnendes doppeltes Anführungszeichen)
         assertTrue(result2.contains("\u00BB")); // » (schweizer schließendes doppeltes Anführungszeichen)
+    }
+    
+    @Test
+    public void testApostrophesAndQuotes() {
+        String input1 = "\"Ich sag' es ja: don't.\"";
+        String input2 = "\"Das ist Palues'.\"";
+        String input3 = "\"Das ist 'falsch'.\"";
+
+        // Französisch
+        String french1 = QuotationMarkConverter.convertQuotationMarks(input1, "französisch");
+        String french2 = QuotationMarkConverter.convertQuotationMarks(input2, "französisch");
+        String french3 = QuotationMarkConverter.convertQuotationMarks(input3, "französisch");
+        
+        assertEquals("»Ich sag' es ja: don't.«", french1, "Französisch: Apostrophe müssen bleiben");
+        assertEquals("»Das ist Palues'.«", french2, "Französisch: Apostroph am Wortende muss bleiben");
+        assertEquals("»Das ist ›falsch‹.«", french3, "Französisch: Anführungszeichen-Paar muss konvertiert werden");
+
+        // Deutsch
+        String german1 = QuotationMarkConverter.convertQuotationMarks(input1, "deutsch");
+        String german2 = QuotationMarkConverter.convertQuotationMarks(input2, "deutsch");
+        String german3 = QuotationMarkConverter.convertQuotationMarks(input3, "deutsch");
+        
+        assertEquals("„Ich sag' es ja: don't.\"", german1, "Deutsch: Apostrophe müssen bleiben");
+        assertEquals("„Das ist Palues'.\"", german2, "Deutsch: Apostroph am Wortende muss bleiben");
+        assertEquals("„Das ist \u201Afalsch\u2019.\"", german3, "Deutsch: Anführungszeichen-Paar muss konvertiert werden");
+
+        // Schweizer
+        String swiss1 = QuotationMarkConverter.convertQuotationMarks(input1, "schweizer");
+        String swiss2 = QuotationMarkConverter.convertQuotationMarks(input2, "schweizer");
+        String swiss3 = QuotationMarkConverter.convertQuotationMarks(input3, "schweizer");
+        
+        assertEquals("«Ich sag' es ja: don't.»", swiss1, "Schweizer: Apostrophe müssen bleiben");
+        assertEquals("«Das ist Palues'.»", swiss2, "Schweizer: Apostroph am Wortende muss bleiben");
+        assertEquals("«Das ist \u2039falsch\u203A.»", swiss3, "Schweizer: Anführungszeichen-Paar muss konvertiert werden");
     }
 }

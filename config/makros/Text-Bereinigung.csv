@@ -11,9 +11,9 @@ Schritt,Aktiv,Beschreibung,Suchen,Ersetzen,Regex,Case,Word
 10,Ja,"* als Trenner in --- ändern","^\s*\*\s*$","---",Ja,Nein,Nein
 11,Ja,"Komma vor Anführungszeichen",",\""","\"",",Ja,Nein,Nein
 12,Ja,"Englisch zu Französisch - doppelte Anführungszeichen","""(.*?)""","»$1«",Ja,Nein,Nein
-13,Ja,"Englisch zu Französisch - einfache Anführungszeichen","'(.*?)'","›$1‹",Ja,Nein,Nein
+13,Ja,"Englisch zu Französisch - einfache Anführungszeichen","(^|[\\s\\.,!?;:\"„»«])'([^']+)'([\\s\\.,!?;:\"„»«]|$)","$1›$2‹$3",Ja,Nein,Nein
 14,Nein,"Englisch zu Deutsch - doppelte Anführungszeichen","""(.*?)""","„$1""",Ja,Nein,Nein
-15,Nein,"Englisch zu Deutsch - einfache Anführungszeichen","'(.*?)'","‚$1'",Ja,Nein,Nein
+15,Nein,"Englisch zu Deutsch - einfache Anführungszeichen","(^|[\\s\\.,!?;:\"„»«])'([^']+)'([\\s\\.,!?;:\"„»«]|$)","$1\u201A$2\u2019",Ja,Nein,Nein
 16,Nein,"Englisch zu Schweizer - doppelte Anführungszeichen","""(.*?)""","«$1»",Ja,Nein,Nein
-17,Nein,"Englisch zu Schweizer - einfache Anführungszeichen","'(.*?)'","‹$1›",Ja,Nein,Nein
+17,Nein,"Englisch zu Schweizer - einfache Anführungszeichen","(^|[\\s\\.,!?;:\"„»«])'([^']+)'([\\s\\.,!?;:\"„»«]|$)","$1‹$2›$3",Ja,Nein,Nein
 18,Ja,"Markdown-Trenner mit Leerzeilen umgeben","(?<!\\n\\n)(?<!^\\n)(\\n|^)(-{3,}|\\*{3,}|_{3,})(\\n|$)","$1\n$2\n$3",Ja,Nein,Nein

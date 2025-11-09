@@ -260,7 +260,7 @@ public class EditorWindow implements Initializable {
     
     // Einfache Anführungszeichen-Mapping (öffnend, schließend)
     private static final String[][] SINGLE_QUOTE_MAPPING = {
-        {"\u201A", "\u2018"},       // Deutsch: U+201A (‚), U+2018 (')
+        {"\u201A", Character.toString('\u2019')},       // Deutsch: U+201A (‚), U+2019 (') - direkt als char konvertiert
         {"\u203A", "\u2039"},       // Französisch: U+203A (›), U+2039 (‹)
         {"'", "'"},       // Englisch: U+0027 ('), U+0027 (')
         {"\u2039", "\u203A"}        // Schweizer: U+2039 (‹), U+203A (›)
@@ -1244,16 +1244,9 @@ if (caret != null) {
      * Gibt das sprachspezifische Apostroph-Zeichen zurück
      */
     private String getApostropheForLanguage(int languageIndex) {
-        switch (languageIndex) {
-            case 0: // Deutsch
-            case 1: // Französisch  
-            case 3: // Schweizer
-                return "\u2019"; // '
-            case 2: // Englisch
-                return "\u0027"; // '
-            default:
-                return "\u2019";
-        }
+        // Apostrophe sollten IMMER das gerade Anführungszeichen ' (U+0027) sein,
+        // nicht das typographische ' (U+2019)
+        return "\u0027"; // ' - gerades Apostroph für alle Sprachen
     }
     
     /**
@@ -1920,65 +1913,8 @@ if (caret != null) {
             }
         }
         
-        // Für schweizer Modus (Index 3): ‹ und ›
-        if (currentQuoteStyleIndex == 3) {
-            // Überprüfe ‹ (U+2039) - schweizer öffnendes einfaches Anführungszeichen
-            for (int i = 0; i < result.length(); i++) {
-                if (result.charAt(i) == '\u2039') { // ‹
-                    // Prüfe ob ein Buchstabe davor UND dahinter steht
-                    boolean hasLetterBefore = i > 0 && Character.isLetter(result.charAt(i - 1));
-                    boolean hasLetterAfter = i + 1 < result.length() && Character.isLetter(result.charAt(i + 1));
-                    
-                    if (hasLetterBefore && hasLetterAfter) {
-                        // Buchstabe davor UND dahinter -> zu Apostroph konvertieren
-                        result.setCharAt(i, '\'');
-                        hasChanges = true;
-                    }
-                }
-            }
-            
-            // Überprüfe › (U+203A) - schweizer schließendes einfaches Anführungszeichen
-            for (int i = 0; i < result.length(); i++) {
-                if (result.charAt(i) == '\u203A') { // ›
-                    // Prüfe ob ein Buchstabe davor UND dahinter steht
-                    boolean hasLetterBefore = i > 0 && Character.isLetter(result.charAt(i - 1));
-                    boolean hasLetterAfter = i + 1 < result.length() && Character.isLetter(result.charAt(i + 1));
-                    
-                    if (hasLetterBefore && hasLetterAfter) {
-                        // Buchstabe davor UND dahinter -> zu Apostroph konvertieren
-                        result.setCharAt(i, '\'');
-                        hasChanges = true;
-                    }
-                }
-            }
-            
-            // Überprüfe Apostrophe - konvertiere zu Anführungszeichen wenn NICHT Buchstabe davor UND dahinter
-            for (int i = 0; i < result.length(); i++) {
-                if (result.charAt(i) == '\'') {
-                    // Prüfe ob ein Buchstabe davor UND dahinter steht
-                    boolean hasLetterBefore = i > 0 && Character.isLetter(result.charAt(i - 1));
-                    boolean hasLetterAfter = i + 1 < result.length() && Character.isLetter(result.charAt(i + 1));
-                    
-                    if (!(hasLetterBefore && hasLetterAfter)) {
-                        // NICHT Buchstabe davor UND dahinter -> zu schweizer Anführungszeichen konvertieren
-                        // Bestimme ob öffnend oder schließend basierend auf Kontext
-                        boolean shouldBeClosing = false;
-                        if (i > 0) {
-                            char charBefore = result.charAt(i - 1);
-                            if (Character.isLetterOrDigit(charBefore) || charBefore == '.' || charBefore == '…' || 
-                                charBefore == '!' || charBefore == '?' || charBefore == ',' || charBefore == ';' || 
-                                charBefore == ':' || charBefore == ')') {
-                                shouldBeClosing = true;
-                            }
-                        }
-                        
-                        char replacement = shouldBeClosing ? '\u203A' : '\u2039'; // › oder ‹
-                        result.setCharAt(i, replacement);
-                        hasChanges = true;
-                    }
-                }
-            }
-        }
+        // Für schweizer Modus (Index 3): Die Konvertierung wird vollständig in QuotationMarkConverter.convertToSwiss() durchgeführt
+        // Keine zusätzliche Logik mehr nötig - alles wird in QuotationMarkConverter behandelt
         
         // Wende Änderungen an wenn welche gefunden wurden
         if (hasChanges) {
@@ -8970,8 +8906,9 @@ spacer.setStyle("-fx-background-color: transparent;");
         logger.debug("Konvertiere Anführungszeichen zu Stil: " + selectedStyle + " (Index: " + targetStyleIndex + ")");
         logger.debug("Originaler Text: " + currentText.substring(0, Math.min(100, currentText.length())));
         
-        // Konvertiere den Text
-        String convertedText = convertQuotationMarksToStyle(currentText, targetStyleIndex);
+        // Konvertiere den Text - verwende QuotationMarkConverter statt eigene Implementierung
+        String styleName = QUOTE_STYLES[targetStyleIndex][1]; // "deutsch", "französisch", etc.
+        String convertedText = QuotationMarkConverter.convertQuotationMarks(currentText, styleName);
         
         logger.debug("Konvertierter Text: " + convertedText.substring(0, Math.min(100, convertedText.length())));
         logger.debug("Text geändert: " + !currentText.equals(convertedText));
@@ -9003,144 +8940,6 @@ spacer.setStyle("-fx-background-color: transparent;");
         }
     }
     
-    /**
-     * Konvertiert alle Anführungszeichen im Text zu einem bestimmten Stil
-     * NEUE IMPLEMENTIERUNG: Einfach und korrekt
-     */
-    private String convertQuotationMarksToStyle(String text, int targetStyleIndex) {
-        logger.debug("convertQuotationMarksToStyle: targetStyleIndex=" + targetStyleIndex);
-        logger.debug("Text Länge: " + text.length());
-        
-        StringBuilder result = new StringBuilder(text);
-        boolean hasChanges = false;
-        
-        // 1. KONVERTIERE DOPPELTE ANFÜHRUNGSZEICHEN
-        // Finde alle Paare von doppelten Anführungszeichen
-        List<int[]> doubleQuotePairs = findDoubleQuotePairs(text);
-        logger.debug("Gefundene doppelte Anführungszeichen-Paare: " + doubleQuotePairs.size());
-        
-        for (int[] pair : doubleQuotePairs) {
-            int startPos = pair[0];
-            int endPos = pair[1];
-            
-            // Ersetze öffnende Anführungszeichen
-            char openingQuote = QUOTE_MAPPING[targetStyleIndex][0].charAt(0);
-            result.setCharAt(startPos, openingQuote);
-            
-            // Ersetze schließende Anführungszeichen
-            char closingQuote = QUOTE_MAPPING[targetStyleIndex][1].charAt(0);
-            result.setCharAt(endPos, closingQuote);
-            
-            hasChanges = true;
-        }
-        
-        // 2. KONVERTIERE EINFACHE ANFÜHRUNGSZEICHEN
-        // Finde alle Paare von einfachen Anführungszeichen
-        List<int[]> singleQuotePairs = findSingleQuotePairs(text);
-        
-        for (int[] pair : singleQuotePairs) {
-            int startPos = pair[0];
-            int endPos = pair[1];
-            
-            // Ersetze öffnende Anführungszeichen
-            char openingQuote = SINGLE_QUOTE_MAPPING[targetStyleIndex][0].charAt(0);
-            result.setCharAt(startPos, openingQuote);
-            
-            // Ersetze schließende Anführungszeichen
-            char closingQuote = SINGLE_QUOTE_MAPPING[targetStyleIndex][1].charAt(0);
-            result.setCharAt(endPos, closingQuote);
-            
-            hasChanges = true;
-        }
-        
-        return hasChanges ? result.toString() : text;
-    }
-    
-    /**
-     * Findet alle Paare von doppelten Anführungszeichen im Text
-     */
-    private List<int[]> findDoubleQuotePairs(String text) {
-        List<int[]> pairs = new ArrayList<>();
-        
-        for (int i = 0; i < text.length(); i++) {
-            char c = text.charAt(i);
-            
-            // Prüfe auf doppelte Anführungszeichen
-            if (c == '"' || c == '\u201E' || c == '\u201C' || c == '\u201D' || c == '\u00AB' || c == '\u00BB') {
-                // Suche nach dem passenden schließenden Anführungszeichen
-                for (int j = i + 1; j < text.length(); j++) {
-                    char nextC = text.charAt(j);
-                    if (nextC == '"' || nextC == '\u201E' || nextC == '\u201C' || nextC == '\u201D' || nextC == '\u00AB' || nextC == '\u00BB') {
-                        // Paar gefunden
-                        pairs.add(new int[]{i, j});
-                        i = j; // Überspringe das schließende Anführungszeichen
-                        break;
-                    }
-                }
-            }
-        }
-        
-        return pairs;
-    }
-    
-    /**
-     * Findet alle Paare von einfachen Anführungszeichen im Text
-     * WICHTIG: Muss ALLE Varianten finden (deutsch, französisch, schweizer, englisch)
-     */
-    private List<int[]> findSingleQuotePairs(String text) {
-        List<int[]> pairs = new ArrayList<>();
-        
-        for (int i = 0; i < text.length(); i++) {
-            char c = text.charAt(i);
-            
-            // Prüfe auf einfache Anführungszeichen - ALLE Varianten!
-            // U+0027 = ' (gerade)
-            // U+201A = ‚ (deutsches öffnendes)
-            // U+2018 = ' (englisches öffnendes)
-            // U+2019 = ' (englisches schließendes / deutsches schließendes)
-            // U+2039 = ‹ (französisches/schweizer öffnendes)
-            // U+203A = › (französisches/schweizer schließendes)
-            if (c == '\'' || c == '\u201A' || c == '\u2018' || c == '\u2019' || c == '\u2039' || c == '\u203A') {
-                // Prüfe ob es ein Apostroph ist (zwischen Buchstaben)
-                boolean isApostrophe = false;
-                if (i > 0 && i + 1 < text.length()) {
-                    char before = text.charAt(i - 1);
-                    char after = text.charAt(i + 1);
-                    if (Character.isLetter(before) && Character.isLetter(after)) {
-                        isApostrophe = true;
-                    }
-                }
-                
-                if (!isApostrophe) {
-                    // Suche nach dem passenden schließenden Anführungszeichen
-                    // Muss ALLE Varianten finden!
-                    for (int j = i + 1; j < text.length(); j++) {
-                        char nextC = text.charAt(j);
-                        if (nextC == '\'' || nextC == '\u201A' || nextC == '\u2018' || nextC == '\u2019' || nextC == '\u2039' || nextC == '\u203A') {
-                            // Prüfe ob das schließende Zeichen auch kein Apostroph ist
-                            boolean isClosingApostrophe = false;
-                            if (j > 0 && j + 1 < text.length()) {
-                                char before = text.charAt(j - 1);
-                                char after = text.charAt(j + 1);
-                                if (Character.isLetter(before) && Character.isLetter(after)) {
-                                    isClosingApostrophe = true;
-                                }
-                            }
-                            
-                            if (!isClosingApostrophe) {
-                                // Paar gefunden
-                                pairs.add(new int[]{i, j});
-                                i = j; // Überspringe das schließende Anführungszeichen
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        
-        return pairs;
-    }
     /**
      * Normalisiert Anführungszeichen innerhalb von HTML-Tags in einem String
      * Konvertiert typographische Anführungszeichen in HTML-Tags zurück zu normal "

@@ -52,6 +52,8 @@ public class QuotationMarkConverter {
         
         // Schritt 2: ALLE Unicode einfache Anführungszeichen zu englisch
         // Pattern: [\u2018\u2019\u201A\u201B\u2039\u203A]
+        // WICHTIG: U+2019 kann sowohl typographisches Apostroph als auch schließendes Anführungszeichen sein
+        // Wir normalisieren es zu ', die spätere Logik unterscheidet dann zwischen Apostroph und Anführungszeichen
         text = text.replaceAll("[\\u2018\\u2019\\u201A\\u201B\\u2039\\u203A]", "'");
         
         return text;
@@ -65,12 +67,17 @@ public class QuotationMarkConverter {
         // ERSTER DURCHLAUF: Alle zu englischen Anführungszeichen
         text = convertToEnglish(text);
         
-        // ZWEITER DURCHLAUF: Englische zu deutschen Anführungszeichen (nur Paare!)
-        // Schritt 14: "(.*?)" → „$1"
+        // SCHRITT 1: Konvertiere doppelte Anführungszeichen
+        // Makro-Regel 14: "(.*?)" -> „$1"
+        // WICHTIG: Das schließende Anführungszeichen bleibt " (U+0022), nicht " (U+201C)
         text = text.replaceAll("\"(.*?)\"", "„$1\"");
         
-        // Schritt 15: '(.*?)' → ‚$1'
-        text = text.replaceAll("'(.*?)'", "‚$1'");
+        // SCHRITT 2: Konvertiere einfache Anführungszeichen-Paare
+        // Makro-Regel 15: '(.*?)' -> ‚$1'
+        // WICHTIG: Nur Paare finden, die NICHT direkt an Buchstaben grenzen (keine Apostrophe)
+        // Das öffnende ' muss am Textanfang, nach Leerzeichen/Satzzeichen oder nach Anführungszeichen stehen
+        // Das schließende ' muss vor Leerzeichen/Satzzeichen, vor Anführungszeichen oder am Textende stehen
+        text = text.replaceAll("(^|[\\s\\.,!?;:\"„»«])'([^']+)'([\\s\\.,!?;:\"„»«]|$)", "$1\u201A$2" + Character.toString('\u2019') + "$3");
         
         return text;
     }
@@ -83,12 +90,16 @@ public class QuotationMarkConverter {
         // ERSTER DURCHLAUF: Alle zu englischen Anführungszeichen
         text = convertToEnglish(text);
         
-        // ZWEITER DURCHLAUF: Englische zu französischen Anführungszeichen (nur Paare!)
-        // Schritt 12: "(.*?)" → »$1«
+        // SCHRITT 1: Konvertiere doppelte Anführungszeichen
+        // Makro-Regel 12: "(.*?)" -> »$1«
         text = text.replaceAll("\"(.*?)\"", "»$1«");
         
-        // Schritt 13: '(.*?)' → ›$1‹
-        text = text.replaceAll("'(.*?)'", "›$1‹");
+        // SCHRITT 2: Konvertiere einfache Anführungszeichen-Paare
+        // Makro-Regel 13: '(.*?)' -> ›$1‹
+        // WICHTIG: Nur Paare finden, die NICHT direkt an Buchstaben grenzen (keine Apostrophe)
+        // Das öffnende ' muss am Textanfang, nach Leerzeichen/Satzzeichen oder nach Anführungszeichen stehen
+        // Das schließende ' muss vor Leerzeichen/Satzzeichen, vor Anführungszeichen oder am Textende stehen
+        text = text.replaceAll("(^|[\\s\\.,!?;:\"„»«])'([^']+)'([\\s\\.,!?;:\"„»«]|$)", "$1›$2‹$3");
         
         return text;
     }
@@ -101,12 +112,16 @@ public class QuotationMarkConverter {
         // ERSTER DURCHLAUF: Alle zu englischen Anführungszeichen
         text = convertToEnglish(text);
         
-        // ZWEITER DURCHLAUF: Englische zu schweizer Anführungszeichen (nur Paare!)
-        // Schritt 16: "(.*?)" → «$1»
+        // SCHRITT 1: Konvertiere doppelte Anführungszeichen
+        // Makro-Regel 16: "(.*?)" -> «$1»
         text = text.replaceAll("\"(.*?)\"", "«$1»");
         
-        // Schritt 17: '(.*?)' → ‹$1›
-        text = text.replaceAll("'(.*?)'", "‹$1›");
+        // SCHRITT 2: Konvertiere einfache Anführungszeichen-Paare
+        // Makro-Regel 17: '(.*?)' -> ‹$1›
+        // WICHTIG: Nur Paare finden, die NICHT direkt an Buchstaben grenzen (keine Apostrophe)
+        // Das öffnende ' muss am Textanfang, nach Leerzeichen/Satzzeichen oder nach Anführungszeichen stehen
+        // Das schließende ' muss vor Leerzeichen/Satzzeichen, vor Anführungszeichen oder am Textende stehen
+        text = text.replaceAll("(^|[\\s\\.,!?;:\"„»«])'([^']+)'([\\s\\.,!?;:\"„»«]|$)", "$1‹$2›$3");
         
         return text;
     }
