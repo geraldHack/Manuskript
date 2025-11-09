@@ -252,7 +252,7 @@ public class EditorWindow implements Initializable {
     
     // Anführungszeichen-Mapping (öffnend, schließend)
     private static final String[][] QUOTE_MAPPING = {
-        {"\u201E", "\u201D"},        // Deutsch: U+201E („), U+201D (")
+        {"\u201E", "\u201C"},        // Deutsch: U+201E („), U+201C (")
         {"\u00BB", "\u00AB"},       // Französisch: U+00BB (»), U+00AB («)
         {"\"", "\""},     // Englisch: U+0022 ("), U+0022 (")
         {"\u00AB", "\u00BB"}        // Schweizer: U+00AB («), U+00BB (»)
@@ -1115,15 +1115,14 @@ if (caret != null) {
         // INTELLIGENTE APOSTROPH vs. ANFÜHRUNGSZEICHEN ERKENNUNG
         // WICHTIG: Apostroph-Prüfung ZUERST, dann Anführungszeichen
         boolean isApostrophe = isApostropheContext(content, caretPosition);
-        boolean isQuotation = !isApostrophe && isQuotationContext(content, caretPosition);
         
         String replacement;
         
         if (isApostrophe) {
-            // APOSTROPH-REGELN: IMMER ' verwenden
+            // APOSTROPH-REGELN: IMMER ' verwenden (gerades Apostroph für alle Sprachen)
             replacement = "'";
             logger.debug("Apostroph erkannt: " + replacement);
-        } else if (isQuotation) {
+        } else {
             // ANFÜHRUNGSZEICHEN-REGELN: Bei Zitaten und Hervorhebungen
             boolean shouldBeClosing = determineQuotationState(content, caretPosition);
             if (inputQuote.equals("\"")) {
@@ -1132,15 +1131,6 @@ if (caret != null) {
                 replacement = shouldBeClosing ? SINGLE_QUOTE_MAPPING[currentQuoteStyleIndex][1] : SINGLE_QUOTE_MAPPING[currentQuoteStyleIndex][0];
             }
             logger.debug("Anführungszeichen erkannt: " + replacement);
-        } else {
-            // FALLBACK: Standard-Anführungszeichen
-            boolean shouldBeClosing = determineQuotationState(content, caretPosition);
-            if (inputQuote.equals("\"")) {
-                replacement = shouldBeClosing ? QUOTE_MAPPING[currentQuoteStyleIndex][1] : QUOTE_MAPPING[currentQuoteStyleIndex][0];
-            } else {
-                replacement = shouldBeClosing ? SINGLE_QUOTE_MAPPING[currentQuoteStyleIndex][1] : SINGLE_QUOTE_MAPPING[currentQuoteStyleIndex][0];
-            }
-            logger.debug("Fallback Anführungszeichen: " + replacement);
         }
         
         // Ersetze das Zeichen
@@ -1151,39 +1141,76 @@ if (caret != null) {
      * Intelligente Apostroph-Erkennung basierend auf Kontext
      */
     private boolean isApostropheContext(String content, int position) {
-        if (position <= 0 || position >= content.length()) return false;
+        if (position <= 0) return false;
         
         char charBefore = content.charAt(position - 1);
-        char charAfter = content.charAt(position);
         
-        // Apostroph-Regeln (nur bei echten Abkürzungen):
-        // 1. Nach Buchstabe + vor Buchstabe = Apostroph (hab's, don't)
-        // 2. Nach Buchstabe + vor Leerzeichen = Apostroph (d'Artagnan)
-        // 3. Nach Leerzeichen + vor Buchstabe = Apostroph (l'école)
-        // 4. Nach Buchstabe + vor Anführungszeichen = Apostroph (Paleus'«)
+        // Prüfe ob nach dem Cursor ein Zeichen kommt
+        boolean hasCharAfter = position < content.length();
+        char charAfter = hasCharAfter ? content.charAt(position) : '\0';
         
-        boolean isApostrophe = (Character.isLetter(charBefore) && Character.isLetter(charAfter)) ||
-                              (Character.isLetter(charBefore) && charAfter == ' ') ||
-                              (charBefore == ' ' && Character.isLetter(charAfter)) ||
-                              (Character.isLetter(charBefore) && isQuotationMark(charAfter));
-        
-        // ABER: Nicht bei Zitaten! "Was ist ein 'Zonk'?" = Zitat, nicht Apostroph
-        if (isApostrophe) {
-            // Prüfe auf Zitat-Kontext (OHNE gegenseitigen Aufruf!)
-            boolean isQuotation = (position == 0 || position == content.length()) ||
-                                 (charBefore == ' ' || charBefore == '\n' || charBefore == '.' ||
-                                  charBefore == '!' || charBefore == '?' || charBefore == ',' ||
-                                  charBefore == ';' || charBefore == ':') ||
-                                 (charAfter == ' ' || charAfter == '\n' || charAfter == '.' ||
-                                  charAfter == '!' || charAfter == '?' || charAfter == ',' ||
-                                  charAfter == ';' || charAfter == ':');
-            if (isQuotation) {
-                logger.debug("Zitat erkannt, kein Apostroph");
-                return false;
-            }
+        // KLARER APOSTROPH: Buchstabe davor UND Buchstabe dahinter (hab's, don't)
+        if (Character.isLetter(charBefore) && hasCharAfter && Character.isLetter(charAfter)) {
+            return true;
         }
         
-        return isApostrophe;
+        // APOSTROPH NACH LEERZEICHEN: Leerzeichen davor, dann Buchstabe (l'école)
+        if (charBefore == ' ' && hasCharAfter && Character.isLetter(charAfter)) {
+            return true;
+        }
+        
+        // APOSTROPH VOR ANFÜHRUNGSZEICHEN: Buchstabe davor, dann Anführungszeichen (Paleus'«)
+        if (Character.isLetter(charBefore) && hasCharAfter && isQuotationMark(charAfter)) {
+            return true;
+        }
+        
+        // APOSTROPH AM WORTENDE: Buchstabe davor, dann Leerzeichen/Satzzeichen/Ende
+        // ABER: Prüfe zuerst, ob es ein öffnendes Anführungszeichen im Kontext gibt
+        if (Character.isLetter(charBefore) && 
+            (!hasCharAfter || charAfter == ' ' || charAfter == '\n' || charAfter == '\t' ||
+             charAfter == '.' || charAfter == ',' || charAfter == '!' || charAfter == '?' ||
+             charAfter == ';' || charAfter == ':')) {
+            
+            // Prüfe, ob es ein öffnendes Anführungszeichen im vorherigen Kontext gibt
+            // Suche rückwärts nach einem öffnenden einfachen Anführungszeichen
+            // Suche bis zum Satzanfang oder bis zu einem doppelten Anführungszeichen
+            boolean hasOpeningQuote = false;
+            for (int i = position - 1; i >= 0; i--) {
+                char c = content.charAt(i);
+                
+                // Prüfe auf öffnende einfache Anführungszeichen (abhängig vom aktuellen Stil)
+                if (currentQuoteStyleIndex >= 0 && currentQuoteStyleIndex < SINGLE_QUOTE_MAPPING.length) {
+                    String openingQuote = SINGLE_QUOTE_MAPPING[currentQuoteStyleIndex][0];
+                    if (c == openingQuote.charAt(0)) {
+                        hasOpeningQuote = true;
+                        break;
+                    }
+                }
+                
+                // Stoppe bei Satzende (aber nicht bei Leerzeichen, da Zitate über mehrere Wörter gehen können)
+                if (c == '.' || c == '!' || c == '?' || c == '\n') {
+                    // Prüfe, ob es ein doppeltes Anführungszeichen gibt, das den Satz beginnt
+                    // Wenn ja, könnte es ein neuer Satz sein, also weiter suchen
+                    break;
+                }
+                
+                // Stoppe bei doppelten Anführungszeichen (könnte ein neuer Abschnitt sein)
+                if (c == '"' || c == '\u201E' || c == '\u201C' || c == '\u00AB' || c == '\u00BB') {
+                    break;
+                }
+            }
+            
+            // Wenn ein öffnendes Anführungszeichen gefunden wurde, ist es wahrscheinlich ein schließendes Anführungszeichen, kein Apostroph
+            if (hasOpeningQuote) {
+                return false;
+            }
+            
+            // Ansonsten ist es ein Apostroph
+            return true;
+        }
+        
+        // KEIN APOSTROPH: Alles andere ist ein Anführungszeichen
+        return false;
     }
     
     /**
@@ -1228,16 +1255,23 @@ if (caret != null) {
      * Bestimmt den Zustand der Anführungszeichen (öffnend/schließend)
      */
     private boolean determineQuotationState(String content, int position) {
-        if (position > 0) {
-            char charBefore = content.charAt(position - 1);
-            // Buchstabe, Punkt oder Auslassungszeichen davor -> schließend
-            if (Character.isLetterOrDigit(charBefore) || charBefore == '.' || charBefore == '…' || 
-                charBefore == '!' || charBefore == '?' || charBefore == ',' || charBefore == ';' || 
-                charBefore == ':' || charBefore == ')') {
-                return true; // schließend
+        // Zähle die Anzahl der Anführungszeichen vor der aktuellen Position
+        int quoteCount = 0;
+        for (int i = 0; i < position; i++) {
+            char c = content.charAt(i);
+            // Zähle alle doppelten Anführungszeichen (abhängig vom aktuellen Stil)
+            if (currentQuoteStyleIndex >= 0 && currentQuoteStyleIndex < QUOTE_MAPPING.length) {
+                String openingQuote = QUOTE_MAPPING[currentQuoteStyleIndex][0];
+                String closingQuote = QUOTE_MAPPING[currentQuoteStyleIndex][1];
+                if (c == openingQuote.charAt(0) || c == closingQuote.charAt(0) || 
+                    (currentQuoteStyleIndex == 2 && c == '"')) { // Englisch
+                    quoteCount++;
+                }
             }
         }
-        return false; // öffnend
+        
+        // Wenn ungerade Anzahl -> öffnend, wenn gerade -> schließend
+        return quoteCount % 2 == 1;
     }
     
     /**
@@ -1717,16 +1751,14 @@ if (caret != null) {
     }
     
     /**
-     * Überprüft und konvertiert französische und schweizer Anführungszeichen zu Apostrophen und umgekehrt
+     * Überprüft den Text auf ungerade Anführungszeichen (Fehlererkennung).
+     * Die Konvertierung von Anführungszeichen wird vollständig in QuotationMarkConverter durchgeführt.
      */
     private void checkAndConvertQuotes(String text) {
         if (text == null || text.isEmpty()) return;
         
         // Fehler-Liste für diese Überprüfung leeren
         quoteErrors.clear();
-        
-        StringBuilder result = new StringBuilder(text);
-        boolean hasChanges = false;
         
         // ZUVERLÄSSIGKEITS-CHECK: Überprüfe jeden Absatz auf ungerade Anführungszeichen (nur Warnung, keine automatische Korrektur)
         String[] paragraphs = text.split("\n");
@@ -1766,175 +1798,8 @@ if (caret != null) {
             }
         }
         
-        // Für französischen Modus (Index 1): ›‹ und »«
-        if (currentQuoteStyleIndex == 1) {
-            // Überprüfe » (U+00BB) - französisches schließendes doppeltes Anführungszeichen
-            for (int i = 0; i < result.length(); i++) {
-                if (result.charAt(i) == '\u00BB') { // »
-                    // Prüfe ob ein Buchstabe davor UND dahinter steht
-                    boolean hasLetterBefore = i > 0 && Character.isLetter(result.charAt(i - 1));
-                    boolean hasLetterAfter = i + 1 < result.length() && Character.isLetter(result.charAt(i + 1));
-                    
-                    if (hasLetterBefore && hasLetterAfter) {
-                        // Buchstabe davor UND dahinter -> zu Apostroph konvertieren
-                        result.setCharAt(i, '\'');
-                        hasChanges = true;
-                    }
-                }
-            }
-            
-            // Überprüfe « (U+00AB) - französisches öffnendes doppeltes Anführungszeichen
-            for (int i = 0; i < result.length(); i++) {
-                if (result.charAt(i) == '\u00AB') { // «
-                    // Prüfe ob ein Buchstabe davor UND dahinter steht
-                    boolean hasLetterBefore = i > 0 && Character.isLetter(result.charAt(i - 1));
-                    boolean hasLetterAfter = i + 1 < result.length() && Character.isLetter(result.charAt(i + 1));
-                    
-                    if (hasLetterBefore && hasLetterAfter) {
-                        // Buchstabe davor UND dahinter -> zu Apostroph konvertieren
-                        result.setCharAt(i, '\'');
-                        hasChanges = true;
-                    }
-                }
-            }
-            
-            // Überprüfe › (U+203A) - französisches schließendes einfaches Anführungszeichen
-            for (int i = 0; i < result.length(); i++) {
-                if (result.charAt(i) == '\u203A') { // ›
-                    // Prüfe ob ein Buchstabe davor UND dahinter steht
-                    boolean hasLetterBefore = i > 0 && Character.isLetter(result.charAt(i - 1));
-                    boolean hasLetterAfter = i + 1 < result.length() && Character.isLetter(result.charAt(i + 1));
-                    
-                    if (hasLetterBefore && hasLetterAfter) {
-                        // Buchstabe davor UND dahinter -> zu Apostroph konvertieren
-                        result.setCharAt(i, '\'');
-                        hasChanges = true;
-                    }
-                }
-            }
-            
-            // Überprüfe ‹ (U+2039) - französisches öffnendes einfaches Anführungszeichen
-            for (int i = 0; i < result.length(); i++) {
-                if (result.charAt(i) == '\u2039') { // ‹
-                    // Prüfe ob ein Buchstabe davor UND dahinter steht
-                    boolean hasLetterBefore = i > 0 && Character.isLetter(result.charAt(i - 1));
-                    boolean hasLetterAfter = i + 1 < result.length() && Character.isLetter(result.charAt(i + 1));
-                    
-                    // Prüfe auf Possessivpronomen (Buchstabe davor, aber kein Buchstabe dahinter)
-                    boolean isPossessiveEnd = hasLetterBefore && !hasLetterAfter && 
-                        (i + 1 >= result.length() || Character.isWhitespace(result.charAt(i + 1)) || 
-                         result.charAt(i + 1) == '.' || result.charAt(i + 1) == ',' || 
-                         result.charAt(i + 1) == '!' || result.charAt(i + 1) == '?' || 
-                         result.charAt(i + 1) == ';' || result.charAt(i + 1) == ':');
-                    
-                    if ((hasLetterBefore && hasLetterAfter) || isPossessiveEnd) {
-                        // Buchstabe davor UND dahinter ODER Possessivpronomen -> zu Apostroph konvertieren
-                        result.setCharAt(i, '\'');
-                        hasChanges = true;
-                    }
-                }
-            }
-            
-            // Überprüfe Apostrophe - konvertiere zu Anführungszeichen wenn NICHT Buchstabe davor UND dahinter
-            for (int i = 0; i < result.length(); i++) {
-                if (result.charAt(i) == '\'') {
-                    // Prüfe ob ein Buchstabe davor UND dahinter steht
-                    boolean hasLetterBefore = i > 0 && Character.isLetter(result.charAt(i - 1));
-                    boolean hasLetterAfter = i + 1 < result.length() && Character.isLetter(result.charAt(i + 1));
-                    
-                    // Prüfe auf Possessivpronomen-Apostroph (Buchstabe davor, aber kein Buchstabe dahinter)
-                    boolean isPossessiveApostrophe = hasLetterBefore && !hasLetterAfter && 
-                        (i + 1 >= result.length() || Character.isWhitespace(result.charAt(i + 1)) || 
-                         result.charAt(i + 1) == '.' || result.charAt(i + 1) == ',' || 
-                         result.charAt(i + 1) == '!' || result.charAt(i + 1) == '?' || 
-                         result.charAt(i + 1) == ';' || result.charAt(i + 1) == ':');
-                    
-                    // Prüfe ob es ein öffnendes Anführungszeichen im selben Satz gibt
-                    boolean hasOpeningQuoteInSentence = false;
-                    if (isPossessiveApostrophe) {
-                        // Finde den Anfang des Satzes (zurück bis zum letzten Satzende oder Anfang)
-                        int sentenceStart = i;
-                        for (int j = i - 1; j >= 0; j--) {
-                            char c = result.charAt(j);
-                            if (c == '.' || c == '!' || c == '?' || c == '\n') {
-                                sentenceStart = j + 1;
-                                break;
-                            }
-                        }
-                        
-                        // Suche nach öffnenden Anführungszeichen im Satz
-                        for (int j = sentenceStart; j < i; j++) {
-                            char c = result.charAt(j);
-                            if (c == '\u00AB' || c == '\u203A') { // « oder ›
-                                hasOpeningQuoteInSentence = true;
-                                break;
-                            }
-                        }
-                    }
-                    
-                    if (!(hasLetterBefore && hasLetterAfter) && !(isPossessiveApostrophe && !hasOpeningQuoteInSentence)) {
-                        // NICHT Buchstabe davor UND dahinter -> zu französischem Anführungszeichen konvertieren
-                        // Bestimme ob öffnend oder schließend basierend auf Kontext
-                        boolean shouldBeClosing = false;
-                        if (i > 0) {
-                            char charBefore = result.charAt(i - 1);
-                            if (Character.isLetterOrDigit(charBefore) || charBefore == '.' || charBefore == '…' || 
-                                charBefore == '!' || charBefore == '?' || charBefore == ',' || charBefore == ';' || 
-                                charBefore == ':' || charBefore == ')') {
-                                shouldBeClosing = true;
-                            }
-                        }
-                        
-                        // Französisch: Bestimme ob doppelt oder einfach basierend auf Kontext
-                        // Wenn nach Leerzeichen oder Satzzeichen -> doppelt, sonst einfach
-                        boolean shouldBeDouble = false;
-                        if (i > 0) {
-                            char charBefore = result.charAt(i - 1);
-                            if (charBefore == ' ' || charBefore == '\n' || charBefore == '\t' || 
-                                charBefore == '.' || charBefore == '!' || charBefore == '?' || 
-                                charBefore == ',' || charBefore == ';' || charBefore == ':' || 
-                                charBefore == ')' || charBefore == ']' || charBefore == '}') {
-                                shouldBeDouble = true;
-                            }
-                        }
-                        
-                        char replacement;
-                        if (shouldBeDouble) {
-                            // Doppelte Anführungszeichen: » (schließend) oder « (öffnend)
-                            replacement = shouldBeClosing ? '\u00BB' : '\u00AB'; // » oder «
-                        } else {
-                            // Einfache Anführungszeichen: › (öffnend) oder ‹ (schließend)
-                            replacement = shouldBeClosing ? '\u2039' : '\u203A'; // ‹ oder ›
-                        }
-                        result.setCharAt(i, replacement);
-                        hasChanges = true;
-                    }
-                }
-            }
-        }
-        
-        // Für schweizer Modus (Index 3): Die Konvertierung wird vollständig in QuotationMarkConverter.convertToSwiss() durchgeführt
-        // Keine zusätzliche Logik mehr nötig - alles wird in QuotationMarkConverter behandelt
-        
-        // Wende Änderungen an wenn welche gefunden wurden
-        if (hasChanges) {
-            String newText = result.toString();
-            if (!text.equals(newText)) {
-                // Speichere Cursor-Position
-                int caretPosition = codeArea.getCaretPosition();
-                
-                // Ersetze den Text
-                codeArea.replaceText(newText);
-                
-                // Stelle Cursor-Position wieder her
-                if (caretPosition <= newText.length()) {
-                    codeArea.moveTo(caretPosition);
-                } else {
-                    codeArea.moveTo(newText.length());
-                }
-            }
-        }
-        
+        // HINWEIS: Die Konvertierung von Anführungszeichen wird vollständig in QuotationMarkConverter durchgeführt
+        // Diese Methode dient nur noch zur Fehlererkennung (ungerade Anführungszeichen)
     }
     
     private void setupSearchReplacePanel() {
@@ -9425,6 +9290,37 @@ spacer.setStyle("-fx-background-color: transparent;");
             applyThemeToNode(cmbFontSize, themeIndex);
         // cmbLineSpacing entfernt
         applyThemeToNode(cmbParagraphSpacing, themeIndex);
+        applyThemeToNode(cmbQuoteStyle, themeIndex);
+            
+            // Zusätzliche Styles für ComboBoxes im Pastell-Theme
+            if (themeIndex == 2) { // Pastell-Theme
+                String[] pastellTheme = THEMES[themeIndex];
+                String pastellTextColor = pastellTheme[1]; // #000000 für Pastell
+                String pastellBackgroundColor = pastellTheme[2]; // #e1bee7 für Pastell
+                
+                String comboBoxStyle = String.format(
+                    "-fx-background-color: %s !important; " +
+                    "-fx-control-inner-background: %s !important; " +
+                    "-fx-text-fill: %s !important;",
+                    pastellBackgroundColor, pastellBackgroundColor, pastellTextColor
+                );
+                
+                if (cmbSearchHistory != null) {
+                    cmbSearchHistory.setStyle(comboBoxStyle);
+                }
+                if (cmbReplaceHistory != null) {
+                    cmbReplaceHistory.setStyle(comboBoxStyle);
+                }
+                if (cmbFontSize != null) {
+                    cmbFontSize.setStyle(comboBoxStyle);
+                }
+                if (cmbParagraphSpacing != null) {
+                    cmbParagraphSpacing.setStyle(comboBoxStyle);
+                }
+                if (cmbQuoteStyle != null) {
+                    cmbQuoteStyle.setStyle(comboBoxStyle);
+                }
+            }
 
             // Entfernt: Code-Seitiges Erzwingen – zurück zu reiner CSS-Steuerung
             

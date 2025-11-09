@@ -867,7 +867,7 @@ public class OllamaWindow {
         // Ergebnis-TextArea für "Text umschreiben"
         resultArea = new TextArea();
         resultArea.setPromptText("Hier wird das umgeschriebene Ergebnis angezeigt...");
-        resultArea.setPrefRowCount(8);
+        resultArea.setPrefRowCount(6); // Reduziert von 8 auf 6 für weniger Mindest-Höhe
         resultArea.setWrapText(true);
         resultArea.getStyleClass().add("ollama-text-area");
         resultArea.setEditable(false); // Nur lesbar
@@ -1143,7 +1143,7 @@ public class OllamaWindow {
         contextArea.setMaxHeight(Double.MAX_VALUE);
         
         // Ergebnis-Bereich (für "Text umschreiben" und andere Funktionen)
-        resultArea.setMinHeight(300);
+        resultArea.setMinHeight(Region.USE_PREF_SIZE); // Flexibel statt feste 300px
         resultArea.setMaxHeight(Double.MAX_VALUE);
         
         // Training-Daten

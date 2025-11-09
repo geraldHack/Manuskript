@@ -859,16 +859,15 @@ public class CustomStage extends Stage {
         label.setMinSize(ICON_SIZE, ICON_SIZE);
         label.setMaxSize(ICON_SIZE, ICON_SIZE);
         label.setAlignment(Pos.CENTER);
+        label.getStyleClass().add("title-icon-label"); // CSS-Klasse für gezieltes Styling
         label.setStyle(createIconStyle(DEFAULT_TEXT_COLOR));
         return label;
     }
 
     private String createIconStyle(String textColor) {
         String backgroundColor = DEFAULT_ICON_BACKGROUND;
-        if (activeThemeIndex == 2) {
-            backgroundColor = "#ba68c8";
-        }
-        return "-fx-text-fill: " + textColor + "; -fx-font-weight: bold; -fx-background-color: " + backgroundColor + "; -fx-background-radius: 3px; -fx-padding: 2px; -fx-min-width: " + ICON_SIZE + "px; -fx-min-height: " + ICON_SIZE + "px; -fx-pref-width: " + ICON_SIZE + "px; -fx-pref-height: " + ICON_SIZE + "px;";
+     
+        return "-fx-text-fill: " + textColor + " !important; -fx-font-weight: bold !important; -fx-background-color: " + backgroundColor + " !important; -fx-background-radius: 3px !important; -fx-padding: 2px !important; -fx-min-width: " + ICON_SIZE + "px !important; -fx-min-height: " + ICON_SIZE + "px !important; -fx-pref-width: " + ICON_SIZE + "px !important; -fx-pref-height: " + ICON_SIZE + "px !important;";
     }
 
     private void updateButtonStyles(String textColor, int fontSize) {

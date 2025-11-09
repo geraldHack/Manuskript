@@ -7098,81 +7098,127 @@ public class MainController implements Initializable {
     }
     
     private void deleteSelectedFile() {
-        // Prüfen, ob eine Datei in der linken Tabelle ausgewählt ist
-        DocxFile selectedFile = tableViewAvailable.getSelectionModel().getSelectedItem();
-        if (selectedFile == null) {
+        // Prüfen, ob Dateien in der linken Tabelle ausgewählt sind
+        ObservableList<DocxFile> selectedFiles = tableViewAvailable.getSelectionModel().getSelectedItems();
+        if (selectedFiles == null || selectedFiles.isEmpty()) {
             CustomAlert alert = new CustomAlert(Alert.AlertType.WARNING, "Keine Datei ausgewählt");
-            alert.setHeaderText("Bitte wählen Sie eine Datei aus der linken Tabelle aus, die archiviert werden soll.");
+            alert.setHeaderText("Bitte wählen Sie eine oder mehrere Dateien aus der linken Tabelle aus, die archiviert werden sollen.");
             alert.applyTheme(currentThemeIndex);
             alert.showAndWait(primaryStage);
             return;
         }
         
+        int fileCount = selectedFiles.size();
+        String fileText = fileCount == 1 ? "Datei" : "Dateien";
+        
         // Bestätigungsdialog
-        CustomAlert confirmAlert = new CustomAlert(Alert.AlertType.CONFIRMATION, "Datei archivieren");
-        confirmAlert.setHeaderText("Möchten Sie die Datei ins Archiv verschieben?");
-        confirmAlert.setContentText("Datei: " + selectedFile.getFileName() + "\n\nDie Datei wird in das 'archiv' Verzeichnis verschoben.");
+        CustomAlert confirmAlert = new CustomAlert(Alert.AlertType.CONFIRMATION, fileText + " archivieren");
+        if (fileCount == 1) {
+            confirmAlert.setHeaderText("Möchten Sie die Datei ins Archiv verschieben?");
+            confirmAlert.setContentText("Datei: " + selectedFiles.get(0).getFileName() + "\n\nDie Datei wird in das 'archiv' Verzeichnis verschoben.");
+        } else {
+            StringBuilder fileList = new StringBuilder();
+            for (int i = 0; i < Math.min(fileCount, 5); i++) {
+                fileList.append("• ").append(selectedFiles.get(i).getFileName()).append("\n");
+            }
+            if (fileCount > 5) {
+                fileList.append("• ... und ").append(fileCount - 5).append(" weitere\n");
+            }
+            confirmAlert.setHeaderText("Möchten Sie " + fileCount + " Dateien ins Archiv verschieben?");
+            confirmAlert.setContentText("Ausgewählte Dateien:\n" + fileList.toString() + "\nDie Dateien werden in das 'archiv' Verzeichnis verschoben.");
+        }
         confirmAlert.applyTheme(currentThemeIndex);
         
         if (confirmAlert.showAndWait(primaryStage).orElse(null) == ButtonType.OK) {
             try {
-                File sourceFile = selectedFile.getFile();
-                if (sourceFile.exists()) {
-                    // Archiv-Verzeichnis erstellen
-                    File projectDir = new File(txtDirectoryPath.getText());
-                    File archiveDir = new File(projectDir, "archiv");
-                    if (!archiveDir.exists()) {
-                        archiveDir.mkdirs();
-                    }
-                    
-                    // Ziel-Datei im Archiv
-                    File targetFile = new File(archiveDir, sourceFile.getName());
-                    
-                    // Falls Datei bereits existiert, umbenennen
-                    int counter = 1;
-                    String baseName = sourceFile.getName();
-                    String extension = "";
-                    int dotIndex = baseName.lastIndexOf('.');
-                    if (dotIndex > 0) {
-                        extension = baseName.substring(dotIndex);
-                        baseName = baseName.substring(0, dotIndex);
-                    }
-                    
-                    while (targetFile.exists()) {
-                        targetFile = new File(archiveDir, baseName + "_" + counter + extension);
-                        counter++;
-                    }
-                    
-                    // Datei verschieben
-                    if (sourceFile.renameTo(targetFile)) {
-                        // Datei erfolgreich archiviert - aus der Tabelle entfernen
-                        tableViewAvailable.getItems().remove(selectedFile);
+                // Archiv-Verzeichnis erstellen
+                File projectDir = new File(txtDirectoryPath.getText());
+                File archiveDir = new File(projectDir, "archiv");
+                if (!archiveDir.exists()) {
+                    archiveDir.mkdirs();
+                }
+                
+                int successCount = 0;
+                int errorCount = 0;
+                List<String> errorMessages = new ArrayList<>();
+                
+                // Alle ausgewählten Dateien verarbeiten
+                for (DocxFile docxFile : selectedFiles) {
+                    File sourceFile = docxFile.getFile();
+                    if (sourceFile.exists()) {
+                        // Ziel-Datei im Archiv
+                        File targetFile = new File(archiveDir, sourceFile.getName());
                         
-                        // Erfolgsmeldung
-                        CustomAlert successAlert = new CustomAlert(Alert.AlertType.INFORMATION, "Datei archiviert");
-                        successAlert.setHeaderText("Die Datei wurde erfolgreich archiviert.");
-                        successAlert.setContentText("Ziel: " + targetFile.getName());
-                        successAlert.applyTheme(currentThemeIndex);
-                        successAlert.showAndWait(primaryStage);
+                        // Falls Datei bereits existiert, umbenennen
+                        int counter = 1;
+                        String baseName = sourceFile.getName();
+                        String extension = "";
+                        int dotIndex = baseName.lastIndexOf('.');
+                        if (dotIndex > 0) {
+                            extension = baseName.substring(dotIndex);
+                            baseName = baseName.substring(0, dotIndex);
+                        }
                         
-                        // Tabellen aktualisieren
-                        tableViewAvailable.refresh();
-                        tableViewSelected.refresh();
+                        while (targetFile.exists()) {
+                            targetFile = new File(archiveDir, baseName + "_" + counter + extension);
+                            counter++;
+                        }
+                        
+                        // Datei verschieben
+                        if (sourceFile.renameTo(targetFile)) {
+                            // Datei erfolgreich archiviert - aus der Tabelle entfernen
+                            tableViewAvailable.getItems().remove(docxFile);
+                            successCount++;
+                        } else {
+                            errorCount++;
+                            errorMessages.add(docxFile.getFileName() + " (Datei gesperrt oder keine Berechtigung)");
+                        }
                     } else {
-                        CustomAlert errorAlert = new CustomAlert(Alert.AlertType.ERROR, "Fehler beim Archivieren");
-                        errorAlert.setHeaderText("Die Datei konnte nicht archiviert werden.");
-                        errorAlert.setContentText("Möglicherweise ist die Datei gesperrt oder Sie haben keine Berechtigung.");
-                        errorAlert.applyTheme(currentThemeIndex);
-                        errorAlert.initOwner(primaryStage);
-                        errorAlert.showAndWait();
+                        errorCount++;
+                        errorMessages.add(docxFile.getFileName() + " (Datei nicht gefunden)");
                     }
+                }
+                
+                // Ergebnis-Meldung
+                if (errorCount == 0) {
+                    // Alle erfolgreich
+                    CustomAlert successAlert = new CustomAlert(Alert.AlertType.INFORMATION, fileText + " archiviert");
+                    successAlert.setHeaderText(successCount + " " + fileText + " wurden erfolgreich archiviert.");
+                    successAlert.applyTheme(currentThemeIndex);
+                    successAlert.showAndWait(primaryStage);
+                } else if (successCount > 0) {
+                    // Teilweise erfolgreich
+                    StringBuilder errorText = new StringBuilder();
+                    errorText.append(successCount).append(" ").append(fileText).append(" erfolgreich archiviert.\n\n");
+                    errorText.append("Fehler bei ").append(errorCount).append(" ").append(fileText).append(":\n");
+                    for (String error : errorMessages) {
+                        errorText.append("• ").append(error).append("\n");
+                    }
+                    CustomAlert warningAlert = new CustomAlert(Alert.AlertType.WARNING, "Teilweise erfolgreich");
+                    warningAlert.setHeaderText("Nicht alle Dateien konnten archiviert werden.");
+                    warningAlert.setContentText(errorText.toString());
+                    warningAlert.applyTheme(currentThemeIndex);
+                    warningAlert.initOwner(primaryStage);
+                    warningAlert.showAndWait();
                 } else {
-                    CustomAlert errorAlert = new CustomAlert(Alert.AlertType.ERROR, "Datei nicht gefunden");
-                    errorAlert.setHeaderText("Die Datei existiert nicht mehr.");
+                    // Alle fehlgeschlagen
+                    StringBuilder errorText = new StringBuilder();
+                    errorText.append("Fehler bei allen ").append(errorCount).append(" ").append(fileText).append(":\n");
+                    for (String error : errorMessages) {
+                        errorText.append("• ").append(error).append("\n");
+                    }
+                    CustomAlert errorAlert = new CustomAlert(Alert.AlertType.ERROR, "Fehler beim Archivieren");
+                    errorAlert.setHeaderText("Keine Datei konnte archiviert werden.");
+                    errorAlert.setContentText(errorText.toString());
                     errorAlert.applyTheme(currentThemeIndex);
                     errorAlert.initOwner(primaryStage);
                     errorAlert.showAndWait();
                 }
+                
+                // Tabellen aktualisieren
+                tableViewAvailable.refresh();
+                tableViewSelected.refresh();
+                
             } catch (Exception e) {
                 CustomAlert errorAlert = new CustomAlert(Alert.AlertType.ERROR, "Fehler beim Archivieren");
                 errorAlert.setHeaderText("Ein Fehler ist aufgetreten:");

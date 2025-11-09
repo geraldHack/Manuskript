@@ -762,16 +762,48 @@
 .pastell-theme .combo-box,
 .pastell-theme * .combo-box {
     -fx-background-color: #e1bee7 !important;
+    -fx-control-inner-background: #e1bee7 !important;
     -fx-text-fill: #000000 !important;
     -fx-border-color: #ba68c8 !important;
     -fx-border-radius: 4px;
     -fx-background-radius: 4px;
 }
 
+.pastell-theme .combo-box .arrow-button,
+.pastell-theme * .combo-box .arrow-button {
+    -fx-background-color: #e1bee7 !important;
+}
+
 .pastell-theme .combo-box .list-cell,
 .pastell-theme * .combo-box .list-cell {
     -fx-background-color: #e1bee7 !important;
     -fx-text-fill: #000000 !important;
+}
+
+.pastell-theme .combo-box-base,
+.pastell-theme * .combo-box-base {
+    -fx-background-color: #e1bee7 !important;
+    -fx-control-inner-background: #e1bee7 !important;
+    -fx-text-fill: #000000 !important;
+}
+
+.pastell-theme .combo-box-base .arrow-button,
+.pastell-theme * .combo-box-base .arrow-button {
+    -fx-background-color: #e1bee7 !important;
+}
+
+.pastell-theme .combo-box-base .text-input,
+.pastell-theme .combo-box-base .text-input .content,
+.pastell-theme * .combo-box-base .text-input,
+.pastell-theme * .combo-box-base .text-input .content {
+    -fx-control-inner-background: #e1bee7 !important;
+    -fx-background-color: #e1bee7 !important;
+    -fx-text-fill: #000000 !important;
+}
+
+.pastell-theme .combo-box-base .text-input .text,
+.pastell-theme * .combo-box-base .text-input .text {
+    -fx-fill: #000000 !important;
 }
 
 .pastell-theme .combo-box .arrow,
@@ -794,15 +826,31 @@
     -fx-text-fill: #000000 !important;
 }
 
+.pastell-theme .combo-box-popup .list-view .list-cell .text,
+.pastell-theme * .combo-box-popup .list-view .list-cell .text {
+    -fx-fill: #000000 !important;
+}
+
 .pastell-theme .combo-box-popup .list-view .list-cell:hover,
 .pastell-theme * .combo-box-popup .list-view .list-cell:hover {
     -fx-background-color: #ce93d8 !important;
+    -fx-text-fill: #000000 !important;
+}
+
+.pastell-theme .combo-box-popup .list-view .list-cell:hover .text,
+.pastell-theme * .combo-box-popup .list-view .list-cell:hover .text {
+    -fx-fill: #000000 !important;
 }
 
 .pastell-theme .combo-box-popup .list-view .list-cell:selected,
 .pastell-theme * .combo-box-popup .list-view .list-cell:selected {
     -fx-background-color: #ba68c8 !important;
     -fx-text-fill: #000000 !important;
+}
+
+.pastell-theme .combo-box-popup .list-view .list-cell:selected .text,
+.pastell-theme * .combo-box-popup .list-view .list-cell:selected .text {
+    -fx-fill: #000000 !important;
 }
 
 /* Pastell Theme - Check-Boxen (überall) */
@@ -849,7 +897,7 @@
     -fx-translate-y: 1px;
 }
 
-/* Pastell Theme - Text-Areas (überall) */
+/* Pastell Theme - Text-Areas (überall) - WICHTIG: ollama-text-area kommt später und überschreibt */
 .pastell-theme .text-area,
 .pastell-theme * .text-area {
     -fx-background-color: #f3e5f5 !important;
@@ -1966,7 +2014,7 @@
     -fx-prompt-text-fill: #7e57c2;
 }
 
-/* Pastell: globale Eingabefelder */
+/* Pastell: globale Eingabefelder - WICHTIG: ollama-text-area kommt später und überschreibt */
 .pastell-theme .text-area,
 .pastell-theme .text-area .content,
 .pastell-theme .text-field,
@@ -2244,15 +2292,6 @@
     -fx-prompt-text-fill: #cccccc !important;
 }
 
-/* Pastell Theme - Ollama TextArea */
-.pastell-theme .ollama-text-area,
-.pastell-theme .ollama-text-area .content {
-    -fx-control-inner-background: #f3e5f5 !important;
-    -fx-background-color: #f3e5f5 !important;
-    -fx-text-fill: #000000 !important;
-    -fx-prompt-text-fill: #666666 !important;
-}
-
 /* Blau Theme - Ollama TextArea */
 .theme-dark.blau-theme .ollama-text-area,
 .theme-dark.blau-theme .ollama-text-area .content {
@@ -2324,7 +2363,7 @@
 
 
 
-/* Spezifische Regeln für TextAreas im Pastell-Theme */
+/* Spezifische Regeln für TextAreas im Pastell-Theme - WICHTIG: ollama-text-area kommt später und überschreibt */
 .pastell-theme .text-area {
     -fx-background-color: #f3e5f5 !important;
     -fx-text-fill: #000000 !important;
@@ -3041,6 +3080,7 @@
     -fx-border-width: 1px !important;
 }
 
+/* Plugin Dialog spezifische TextArea-Regeln - WICHTIG: ollama-text-area kommt später und überschreibt */
 .pastell-theme .text-area,
 .pastell-theme .text-area .content {
     -fx-control-inner-background: #faf5ff !important;
@@ -3051,9 +3091,22 @@
     -fx-border-width: 1px !important;
 }
 
-.pastell-theme .combo-box,
-.pastell-theme .combo-box .list-cell,
-.pastell-theme .combo-box-base {
+/* Pastell Theme - Ollama TextArea - MUSS NACH ALLEN ALLGEMEINEN TEXT-AREA-REGELN KOMMEN */
+.pastell-theme .ollama-text-area,
+.pastell-theme .ollama-text-area .content,
+.pastell-theme * .ollama-text-area,
+.pastell-theme * .ollama-text-area .content {
+    -fx-control-inner-background: #f3e5f5 !important;
+    -fx-background-color: #f3e5f5 !important;
+    -fx-text-fill: #000000 !important;
+    -fx-prompt-text-fill: #666666 !important;
+    -fx-border-color: #ba68c8 !important;
+}
+
+/* Plugin Dialog spezifische ComboBox-Styles - nur für Plugin-Dialoge */
+.pastell-theme .plugin-dialog .combo-box,
+.pastell-theme .plugin-dialog .combo-box .list-cell,
+.pastell-theme .plugin-dialog .combo-box-base {
     -fx-control-inner-background: #faf5ff !important;
     -fx-background-color: #faf5ff !important;
     -fx-text-fill: #311b92 !important;
@@ -3061,8 +3114,8 @@
     -fx-border-width: 1px !important;
 }
 
-.pastell-theme .combo-box-popup .list-view,
-.pastell-theme .combo-box-popup .list-view .list-cell {
+.pastell-theme .plugin-dialog .combo-box-popup .list-view,
+.pastell-theme .plugin-dialog .combo-box-popup .list-view .list-cell {
     -fx-background-color: #faf5ff !important;
     -fx-text-fill: #311b92 !important;
     -fx-border-color: #b39ddb !important;
@@ -3097,12 +3150,12 @@
     -fx-background-color: #311b92 !important;
 }
 
-/* Alle möglichen Eingabefelder */
-.pastell-theme .text-input,
-.pastell-theme .text-input .content,
-.pastell-theme .combo-box-base,
-.pastell-theme .combo-box-base .text-input,
-.pastell-theme .combo-box-base .text-input .content {
+/* Alle möglichen Eingabefelder - nur für Plugin-Dialoge */
+.pastell-theme .plugin-dialog .text-input,
+.pastell-theme .plugin-dialog .text-input .content,
+.pastell-theme .plugin-dialog .combo-box-base,
+.pastell-theme .plugin-dialog .combo-box-base .text-input,
+.pastell-theme .plugin-dialog .combo-box-base .text-input .content {
     -fx-control-inner-background: #faf5ff !important;
     -fx-background-color: #faf5ff !important;
     -fx-text-fill: #311b92 !important;
@@ -4894,6 +4947,15 @@
     -fx-font-size: 16px !important;
 }
 
+/* Pastell-Theme Icon-Label (M) - Blaue Box */
+.pastell-theme .title-bar .title-icon-label {
+    -fx-background-color: #3498db !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-font-weight: bold !important;
+    -fx-background-radius: 3px !important;
+    -fx-padding: 2px !important;
+}
+
 .pastell-theme .title-bar .window-controls {
     -fx-background-color: transparent !important;
 }
@@ -6139,14 +6201,16 @@
 
 /* Pastell-Theme Projekt-Karten */
 .pastell-theme .project-card {
-    -fx-background-color: #faf5ff !important;
-    -fx-border-color: transparent !important;
-    -fx-border-width: 0px !important;
-    -fx-padding: 10px; /* Weniger Padding für mehr Platz für Labels */
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 8, 0, 2, 4);
-    -fx-cursor: hand;
-    -fx-pref-width: 300px;
-    -fx-pref-height: 300px;
+    -fx-background-color: #e1bee7 !important; /* Pastell-Farbe für Karten */
+    -fx-border-color: #ba68c8 !important;
+    -fx-border-width: 2px !important;
+    -fx-border-radius: 12px !important;
+    -fx-background-radius: 12px !important;
+    -fx-padding: 10px !important;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 8, 0, 2, 4) !important;
+    -fx-cursor: hand !important;
+    -fx-pref-width: 300px !important;
+    -fx-pref-height: 300px !important;
 }
 
 /* Pastell-Theme Projekt-Grid */
@@ -6168,18 +6232,18 @@
 
 /* Pastell-Theme Serien-ScrollPane (heller für Bücherkarten) */
 .pastell-theme .series-scroll-pane {
-    -fx-background-color: #faf5ff !important; /* Heller Hintergrund */
+    -fx-background-color: #e1bee7 !important; /* Pastell-Farbe (wie Projekt-Karten) */
     -fx-border-color: transparent !important;
     -fx-border-width: 0px !important;
     -fx-padding: 0px !important;
 }
 
 .pastell-theme .series-scroll-pane .viewport {
-    -fx-background-color: #faf5ff !important; /* Heller Hintergrund für Viewport */
+    -fx-background-color: #e1bee7 !important; /* Pastell-Farbe für Viewport */
 }
 
 .pastell-theme .series-scroll-pane .content {
-    -fx-background-color: #faf5ff !important; /* Heller Hintergrund für Content */
+    -fx-background-color: #e1bee7 !important; /* Pastell-Farbe für Content */
 }
 
 .pastell-theme .series-scroll-pane .scroll-bar {
@@ -6187,7 +6251,7 @@
 }
 
 .pastell-theme .series-scroll-pane .scroll-bar .track {
-    -fx-background-color: #faf5ff !important;
+    -fx-background-color: #e1bee7 !important;
 }
 
 .pastell-theme .series-scroll-pane .scroll-bar .thumb {
@@ -6195,15 +6259,17 @@
 }
 
 /* Pastell-Theme Bücher-Container (HBox in der Serienkarte) */
-.pastell-theme .series-scroll-pane .hbox {
-    -fx-background-color: #faf5ff !important; /* Heller Hintergrund für Bücher-Container */
+.pastell-theme .series-scroll-pane .hbox,
+.pastell-theme .series-scroll-pane HBox {
+    -fx-background-color: #e1bee7 !important; /* Pastell-Farbe für Bücher-Container (wie Projekt-Karten) */
     -fx-padding: 5px !important; /* Wenig Padding für Bücher */
     -fx-spacing: 20px !important; /* Abstand zwischen Büchern */
 }
 
-/* Pastell-Theme alle Container in Serien-ScrollPane (außer Buttons) */
-.pastell-theme .series-scroll-pane * {
-    -fx-background-color: #faf5ff !important; /* Heller Hintergrund für alle Elemente */
+/* Pastell-Theme alle Container in Serien-ScrollPane - WICHTIG: Projekt-Karten kommen später und überschreiben */
+.pastell-theme .series-scroll-pane VBox,
+.pastell-theme .series-scroll-pane HBox {
+    -fx-background-color: #e1bee7 !important; /* Pastell-Farbe für Container (wie Projekt-Karten) */
 }
 
 /* Pastell-Theme Buttons in Serien-ScrollPane (normale Button-Farben) */
@@ -6244,26 +6310,23 @@
 
 /* Pastell-Theme Bücherkarten in Serienkarte */
 .pastell-theme .series-scroll-pane .project-card {
-    -fx-background-color: #faf5ff !important; /* Heller Hintergrund für Bücherkarten */
-    -fx-border-color: rgba(0,0,0,0.1) !important; /* Heller Grau wie Schlagschatten */
-    -fx-border-width: 1px !important;
-    -fx-padding: 10px !important;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 8, 0, 2, 4) !important;
-    -fx-cursor: hand !important;
-    -fx-pref-width: 300px !important;
-    -fx-pref-height: 300px !important; /* Höher gemacht */
-}
-
-/* Pastell-Theme alle Projekt-Karten (auch in Serienkarte) */
-.pastell-theme .project-card {
-    -fx-background-color: #faf5ff !important; /* Heller Hintergrund für alle Projekt-Karten */
-    -fx-border-color: transparent !important;
-    -fx-border-width: 0px !important;
+    -fx-background-color: #e1bee7 !important; /* Pastell-Farbe für Bücherkarten */
+    -fx-border-color: #ba68c8 !important;
+    -fx-border-width: 2px !important;
+    -fx-border-radius: 12px !important;
+    -fx-background-radius: 12px !important;
     -fx-padding: 10px !important;
     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 8, 0, 2, 4) !important;
     -fx-cursor: hand !important;
     -fx-pref-width: 300px !important;
     -fx-pref-height: 300px !important;
+}
+
+/* Pastell-Theme Hover-Effekt für Projekt-Karten */
+.pastell-theme .project-card:hover {
+    -fx-background-color: #ce93d8 !important; /* Hover-Farbe */
+    -fx-border-color: #9c27b0 !important;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 12, 0, 4, 6) !important;
 }
 
 .pastell-theme .project-card-debug-spacer {
