@@ -1296,6 +1296,22 @@ if (caret != null) {
     }
     
     /**
+     * Spielt das Notification-Sound ab
+     */
+    private void playNotificationSound() {
+        try {
+            URL soundUrl = getClass().getResource("/sound/pling.wav");
+            if (soundUrl != null) {
+                Media sound = new Media(soundUrl.toString());
+                MediaPlayer mediaPlayer = new MediaPlayer(sound);
+                mediaPlayer.play();
+            }
+        } catch (Exception e) {
+            logger.warn("Fehler beim Abspielen des Notification-Sounds: {}", e.getMessage());
+        }
+    }
+    
+    /**
      * Zeigt eine CustomStage mit den gefundenen Anführungszeichen-Fehlern an
      */
     private void showQuoteErrorsDialog() {
@@ -1309,6 +1325,9 @@ if (caret != null) {
             return;
         }
         quoteErrorsDialogShown = true;
+        
+        // Akustisches Signal abspielen
+        playNotificationSound();
         
         // CustomStage erstellen
         CustomStage errorStage = new CustomStage();
@@ -9066,6 +9085,7 @@ spacer.setStyle("-fx-background-color: transparent;");
     
     /**
      * Findet alle Paare von einfachen Anführungszeichen im Text
+     * WICHTIG: Muss ALLE Varianten finden (deutsch, französisch, schweizer, englisch)
      */
     private List<int[]> findSingleQuotePairs(String text) {
         List<int[]> pairs = new ArrayList<>();
@@ -9073,8 +9093,14 @@ spacer.setStyle("-fx-background-color: transparent;");
         for (int i = 0; i < text.length(); i++) {
             char c = text.charAt(i);
             
-            // Prüfe auf einfache Anführungszeichen
-            if (c == '\'' || c == '\u2039' || c == '\u203A') {
+            // Prüfe auf einfache Anführungszeichen - ALLE Varianten!
+            // U+0027 = ' (gerade)
+            // U+201A = ‚ (deutsches öffnendes)
+            // U+2018 = ' (englisches öffnendes)
+            // U+2019 = ' (englisches schließendes / deutsches schließendes)
+            // U+2039 = ‹ (französisches/schweizer öffnendes)
+            // U+203A = › (französisches/schweizer schließendes)
+            if (c == '\'' || c == '\u201A' || c == '\u2018' || c == '\u2019' || c == '\u2039' || c == '\u203A') {
                 // Prüfe ob es ein Apostroph ist (zwischen Buchstaben)
                 boolean isApostrophe = false;
                 if (i > 0 && i + 1 < text.length()) {
@@ -9087,9 +9113,10 @@ spacer.setStyle("-fx-background-color: transparent;");
                 
                 if (!isApostrophe) {
                     // Suche nach dem passenden schließenden Anführungszeichen
+                    // Muss ALLE Varianten finden!
                     for (int j = i + 1; j < text.length(); j++) {
                         char nextC = text.charAt(j);
-                        if (nextC == '\'' || nextC == '\u2039' || nextC == '\u203A') {
+                        if (nextC == '\'' || nextC == '\u201A' || nextC == '\u2018' || nextC == '\u2019' || nextC == '\u2039' || nextC == '\u203A') {
                             // Prüfe ob das schließende Zeichen auch kein Apostroph ist
                             boolean isClosingApostrophe = false;
                             if (j > 0 && j + 1 < text.length()) {
@@ -10967,6 +10994,21 @@ spacer.setStyle("-fx-background-color: transparent;");
                 String editorKey = chapterName + ".md";
                 mainController.registerEditor(editorKey, this);
             }
+            
+            // Anführungszeichen-Überprüfung beim Blättern zwischen Kapiteln
+            Platform.runLater(() -> {
+                String currentText = codeArea.getText();
+                if (currentText != null && !currentText.isEmpty()) {
+                    // Flag zurücksetzen, damit Dialog auch beim Blättern angezeigt wird
+                    quoteErrorsDialogShown = false;
+                    checkAndConvertQuotesOnLoad(currentText);
+                    
+                    // Automatisch Fehler-Dialog anzeigen, wenn Fehler gefunden wurden
+                    if (!quoteErrors.isEmpty()) {
+                        showQuoteErrorsDialog();
+                    }
+                }
+            });
             
         } catch (Exception e) {
             updateStatusError("Fehler beim Laden des Kapitels: " + e.getMessage());

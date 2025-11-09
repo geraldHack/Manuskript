@@ -126,10 +126,8 @@ public class DocxProcessor {
                     if (format == OutputFormat.HTML) {
                         if (!isEmpty) {
                             content.append("<p>").append(paragraphText).append("</p>\n");
-                        } else if (format == OutputFormat.MARKDOWN) {
-                            // Nur eine Leerzeile zwischen Absätzen, nicht zwei
-                            content.append(paragraphText).append("\n");
                         }
+                        // Leere Absätze werden in HTML ignoriert
                     } else if (format == OutputFormat.MARKDOWN) {
                         if (!isEmpty) {
                             // Nur bei nicht-leeren Absätzen: Text + Zeilenumbruch
@@ -140,6 +138,7 @@ public class DocxProcessor {
                         }
                         // Bei mehreren leeren Absätzen hintereinander: keine zusätzlichen Leerzeilen
                     } else {
+                        // PLAIN_TEXT Format
                         if (!isEmpty) {
                             content.append(paragraphText).append("\n");
                         }
@@ -382,6 +381,9 @@ public class DocxProcessor {
      * Verarbeitet Markdown-Text mit verbesserter Formatierungsunterstützung
      */
     private static void processMarkdownContent(WordprocessingMLPackage pkg, ObjectFactory f, String markdownText, DocxOptions options) {
+            // WICHTIG: Nummerierungs-Zähler für jeden Export zurücksetzen
+            numberingLevels = new java.util.ArrayList<>();
+            
             String[] lines = markdownText.split("\r?\n");
             
             // Zähler für automatische Nummerierung
@@ -488,10 +490,7 @@ public class DocxProcessor {
                 boolean isOrdered = trimmedLine.matches("^\\s*\\d+\\.\\s+.*");
                 int level = computeIndentLevel(line);
 
-                // Statische Stack-/Zählerstruktur (lokal pro Exportdurchlauf)
-                if (numberingLevels == null) {
-                    numberingLevels = new java.util.ArrayList<>();
-                }
+                // Statische Stack-/Zählerstruktur (wurde bereits zu Beginn von processMarkdownContent initialisiert)
                 // Stelle sicher, dass Größe > level
                 while (numberingLevels.size() <= level) numberingLevels.add(0);
                 // Kappe tiefe Ebenen, wenn wir weniger tief sind
@@ -582,6 +581,30 @@ public class DocxProcessor {
                     addHorizontalRule(pkg, f);
                     lastWasHeading = false;
                 continue;
+            }
+            
+            // Bilder ![Alt-Text](URL)
+            if (trimmedLine.startsWith("![")) {
+                int altEnd = trimmedLine.indexOf(']', 2);
+                if (altEnd != -1 && altEnd + 1 < trimmedLine.length() && trimmedLine.charAt(altEnd + 1) == '(') {
+                    int urlEnd = trimmedLine.indexOf(')', altEnd + 2);
+                    if (urlEnd != -1) {
+                        String altText = trimmedLine.substring(2, altEnd);
+                        String imageUrl = trimmedLine.substring(altEnd + 2, urlEnd);
+                        // Entferne Anführungszeichen am Anfang und Ende des Pfads
+                        imageUrl = imageUrl.trim();
+                        if ((imageUrl.startsWith("\"") && imageUrl.endsWith("\"")) || 
+                            (imageUrl.startsWith("'") && imageUrl.endsWith("'"))) {
+                            imageUrl = imageUrl.substring(1, imageUrl.length() - 1);
+                        }
+                        // Konvertiere Backslashes zu Forward-Slashes für bessere Kompatibilität
+                        // (File-Klasse akzeptiert beide, aber Forward-Slashes sind robuster)
+                        imageUrl = imageUrl.replace('\\', '/');
+                        addImage(pkg, f, imageUrl, altText, options);
+                        lastWasHeading = false;
+                        continue;
+                    }
+                }
             }
                     
                     // Normaler Text/Absatz
@@ -761,7 +784,7 @@ public class DocxProcessor {
     /**
      * Fügt formatierten Text zu einem Absatz hinzu (mit Bold/Italic/Links)
      */
-    private static void addFormattedTextToParagraph(P paragraph, ObjectFactory f, String text, DocxOptions options) {
+    private static void addFormattedTextToParagraph(P paragraph, WordprocessingMLPackage pkg, ObjectFactory f, String text, DocxOptions options) {
         // Debug-Ausgabe
         
         // Einfache Regex-basierte Formatierung
@@ -803,27 +826,121 @@ public class DocxProcessor {
             run.setRPr(rpr);
             
             if (segment.isLink) {
-                // Link-Formatierung
-                Color color = f.createColor();
-                String linkColor = "0000FF"; // Standard blau
-                if (options != null && options.linkColor != null) {
-                    linkColor = options.linkColor;
+                // Hyperlink erstellen - vereinfachte Version mit Relationship
+                try {
+                    // Relationship erstellen
+                    org.docx4j.relationships.ObjectFactory relFactory = new org.docx4j.relationships.ObjectFactory();
+                    org.docx4j.relationships.Relationship hyperlinkRel = relFactory.createRelationship();
+                    hyperlinkRel.setType("http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink");
+                    hyperlinkRel.setTarget(segment.linkUrl);
+                    hyperlinkRel.setTargetMode("External");
+                    
+                    // Relationship zum MainDocumentPart hinzufügen
+                    org.docx4j.openpackaging.parts.relationships.RelationshipsPart relPart = 
+                        pkg.getMainDocumentPart().getRelationshipsPart();
+                    // addRelationship gibt boolean zurück, ID wird automatisch generiert
+                    relPart.addRelationship(hyperlinkRel);
+                    // ID aus dem Relationship-Objekt holen (wird nach addRelationship gesetzt)
+                    String relId = hyperlinkRel.getId();
+                    // Falls immer noch null, generiere eine ID basierend auf Anzahl der Relationships
+                    if (relId == null || relId.isEmpty()) {
+                        int relCount = relPart.getRelationships().getRelationship().size();
+                        relId = "rId" + relCount;
+                        hyperlinkRel.setId(relId);
+                    }
+                    
+                    // Run für den Hyperlink-Text
+                    R hyperlinkRun = f.createR();
+                    RPr hyperlinkRpr = f.createRPr();
+                    
+                    // Link-Formatierung
+                    Color color = f.createColor();
+                    String linkColor = "0000FF"; // Standard blau
+                    if (options != null && options.linkColor != null) {
+                        linkColor = options.linkColor;
+                    }
+                    color.setVal(linkColor);
+                    hyperlinkRpr.setColor(color);
+                    
+                    // Unterstreichung für Links
+                    if (options != null && options.underlineLinks) {
+                        U u = f.createU();
+                        hyperlinkRpr.setU(u);
+                    }
+                    
+                    // Schriftart und -größe
+                    if (options != null) {
+                        RFonts rFonts = f.createRFonts();
+                        rFonts.setAscii(options.defaultFont);
+                        rFonts.setHAnsi(options.defaultFont);
+                        rFonts.setCs(options.defaultFont);
+                        hyperlinkRpr.setRFonts(rFonts);
+                        
+                        HpsMeasure fontSize = new HpsMeasure();
+                        fontSize.setVal(BigInteger.valueOf(options.defaultFontSize * 2));
+                        hyperlinkRpr.setSz(fontSize);
+                        hyperlinkRpr.setSzCs(fontSize);
+                    }
+                    
+                    // Bold/Italic für Links
+                    if (segment.isBold) {
+                        BooleanDefaultTrue bold = new BooleanDefaultTrue();
+                        hyperlinkRpr.setB(bold);
+                    }
+                    if (segment.isItalic) {
+                        BooleanDefaultTrue italic = new BooleanDefaultTrue();
+                        hyperlinkRpr.setI(italic);
+                    }
+                    
+                    hyperlinkRun.setRPr(hyperlinkRpr);
+                    
+                    // Text zum Hyperlink hinzufügen
+                    org.docx4j.wml.Text t = f.createText();
+                    t.setSpace("preserve");
+                    t.setValue(segment.text);
+                    hyperlinkRun.getContent().add(t);
+                    
+                    // Hyperlink-Element über XML erstellen
+                    // Verwende marshaltoString ohne XML-Deklaration
+                    String runXml = org.docx4j.XmlUtils.marshaltoString(hyperlinkRun, false, false);
+                    // Entferne XML-Deklaration falls vorhanden (verursacht Parsing-Fehler)
+                    if (runXml.trim().startsWith("<?xml")) {
+                        int startPos = runXml.indexOf("?>");
+                        if (startPos > 0) {
+                            runXml = runXml.substring(startPos + 2).trim();
+                        }
+                    }
+                    // Erstelle Hyperlink-XML ohne XML-Deklaration
+                    String hyperlinkXml = "<w:hyperlink r:id=\"" + relId + "\" xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\">" +
+                        runXml +
+                        "</w:hyperlink>";
+                    
+                    // Unmarshal ohne XML-Deklaration
+                    Object hyperlinkElement = org.docx4j.XmlUtils.unmarshalString(hyperlinkXml);
+                    paragraph.getContent().add(hyperlinkElement);
+                    
+                } catch (Exception e) {
+                    logger.warn("Fehler beim Erstellen des Hyperlinks, verwende Fallback: {}", e.getMessage(), e);
+                    // Fallback: Link als Text mit URL (formatierter Text)
+                    Color color = f.createColor();
+                    String linkColor = "0000FF";
+                    if (options != null && options.linkColor != null) {
+                        linkColor = options.linkColor;
+                    }
+                    color.setVal(linkColor);
+                    rpr.setColor(color);
+                    
+                    if (options != null && options.underlineLinks) {
+                        U u = f.createU();
+                        rpr.setU(u);
+                    }
+                    
+                    org.docx4j.wml.Text t = f.createText();
+                    t.setSpace("preserve");
+                    t.setValue(segment.text + " (" + segment.linkUrl + ")");
+                    run.getContent().add(t);
+                    paragraph.getContent().add(run);
                 }
-                color.setVal(linkColor);
-                rpr.setColor(color);
-                
-                // Unterstreichung für Links
-                if (options != null && options.underlineLinks) {
-                    U u = f.createU();
-                    // u.setVal("single"); // setVal existiert nicht
-                    rpr.setU(u);
-                }
-                
-                org.docx4j.wml.Text t = f.createText();
-                t.setSpace("preserve");
-                t.setValue(segment.text + " (" + segment.linkUrl + ")");
-                run.getContent().add(t);
-                paragraph.getContent().add(run);
             } else {
                 org.docx4j.wml.Text t = f.createText();
                 t.setSpace("preserve");
@@ -835,7 +952,7 @@ public class DocxProcessor {
     }
     
     /**
-     * Parst formatierten Text in Segmente - Toggle-Parser für ** und *
+     * Parst formatierten Text in Segmente - Toggle-Parser für **, * und Links
      */
     private static java.util.List<TextSegment> parseFormattedText(String text) {
         java.util.List<TextSegment> segments = new java.util.ArrayList<>();
@@ -845,6 +962,32 @@ public class DocxProcessor {
         int i = 0;
         while (i < text.length()) {
             char c = text.charAt(i);
+            
+            // Markdown-Link [Text](URL) erkennen
+            if (c == '[') {
+                int linkEnd = text.indexOf(']', i + 1);
+                if (linkEnd != -1 && linkEnd + 1 < text.length() && text.charAt(linkEnd + 1) == '(') {
+                    int urlEnd = text.indexOf(')', linkEnd + 2);
+                    if (urlEnd != -1) {
+                        // Vorherigen Text speichern
+                        if (current.length() > 0) {
+                            segments.add(new TextSegment(current.toString(), bold, italic, false, null));
+                            current.setLength(0);
+                        }
+                        
+                        // Link-Text und URL extrahieren
+                        String linkText = text.substring(i + 1, linkEnd);
+                        String linkUrl = text.substring(linkEnd + 2, urlEnd);
+                        
+                        // Link-Segment hinzufügen
+                        segments.add(new TextSegment(linkText, bold, italic, true, linkUrl));
+                        
+                        i = urlEnd + 1;
+                        continue;
+                    }
+                }
+            }
+            
             // Bold-Marker **
             if (c == '*' && i + 1 < text.length() && text.charAt(i + 1) == '*') {
                 if (current.length() > 0) {
@@ -926,7 +1069,7 @@ public class DocxProcessor {
         //     // Spacing-Klasse nicht verfügbar in dieser Docx4J Version
         // }
 
-        addFormattedTextToParagraph(p, f, text, options);
+        addFormattedTextToParagraph(p, pkg, f, text, options);
         pkg.getMainDocumentPart().addObject(p);
     }
     
@@ -945,7 +1088,7 @@ public class DocxProcessor {
             ppr.setJc(jc);
         }
 
-        addFormattedTextToParagraph(p, f, text, options);
+        addFormattedTextToParagraph(p, pkg, f, text, options);
         pkg.getMainDocumentPart().addObject(p);
     }
     
@@ -1193,6 +1336,185 @@ public class DocxProcessor {
         
     }
     
+    /**
+     * Fügt ein Bild zum Dokument hinzu
+     */
+    private static void addImage(WordprocessingMLPackage pkg, ObjectFactory f, String imageUrl, String altText, DocxOptions options) {
+        try {
+            // Prüfe ob URL eine Datei oder eine URL ist
+            File imageFile = null;
+            java.io.InputStream imageStream = null;
+            String imageFileName = altText.isEmpty() ? "image" : altText;
+            String contentType = "image/png"; // Standard
+            
+            // Versuche als Datei zu öffnen
+            if (imageUrl.startsWith("file://")) {
+                imageFile = new File(java.net.URI.create(imageUrl));
+            } else if (!imageUrl.startsWith("http://") && !imageUrl.startsWith("https://")) {
+                // Relativer oder absoluter Dateipfad
+                imageFile = new File(imageUrl);
+            }
+            
+            if (imageFile != null && imageFile.exists()) {
+                imageStream = new java.io.FileInputStream(imageFile);
+                imageFileName = imageFile.getName();
+                // Bestimme Content-Type basierend auf Dateiendung
+                String fileName = imageFile.getName().toLowerCase();
+                if (fileName.endsWith(".jpg") || fileName.endsWith(".jpeg")) {
+                    contentType = "image/jpeg";
+                } else if (fileName.endsWith(".gif")) {
+                    contentType = "image/gif";
+                } else if (fileName.endsWith(".png")) {
+                    contentType = "image/png";
+                } else if (fileName.endsWith(".bmp")) {
+                    contentType = "image/bmp";
+                }
+            } else if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
+                // URL - versuche Bild herunterzuladen
+                try {
+                    java.net.URI uri = java.net.URI.create(imageUrl);
+                    java.net.URL url = uri.toURL();
+                    java.net.HttpURLConnection connection = (java.net.HttpURLConnection) url.openConnection();
+                    connection.setRequestMethod("GET");
+                    connection.connect();
+                    imageStream = connection.getInputStream();
+                    contentType = connection.getContentType();
+                    if (contentType == null || !contentType.startsWith("image/")) {
+                        contentType = "image/png"; // Fallback
+                    }
+                } catch (Exception e) {
+                    logger.warn("Konnte Bild von URL nicht laden: {}", imageUrl, e);
+                    // Fallback: Text anzeigen
+                    P p = f.createP();
+                    R r = f.createR();
+                    org.docx4j.wml.Text t = f.createText();
+                    t.setValue("[Bild: " + altText + " (" + imageUrl + ") - konnte nicht geladen werden]");
+                    r.getContent().add(t);
+                    p.getContent().add(r);
+                    pkg.getMainDocumentPart().addObject(p);
+                    return;
+                }
+            } else {
+                // Datei nicht gefunden
+                logger.warn("Bilddatei nicht gefunden: {}", imageUrl);
+                P p = f.createP();
+                R r = f.createR();
+                org.docx4j.wml.Text t = f.createText();
+                t.setValue("[Bild: " + altText + " (" + imageUrl + ") - Datei nicht gefunden]");
+                r.getContent().add(t);
+                p.getContent().add(r);
+                pkg.getMainDocumentPart().addObject(p);
+                return;
+            }
+            
+            if (imageStream == null) {
+                logger.warn("Bild-Stream ist null für: {}", imageUrl);
+                return;
+            }
+            
+            // Bild zum Dokument hinzufügen mit Docx4J
+            try {
+                // Bild-Daten in Byte-Array lesen
+                byte[] imageBytes = imageStream.readAllBytes();
+                imageStream.close();
+                
+                // Original-Bildgröße ermitteln, um Seitenverhältnis beizubehalten
+                java.awt.image.BufferedImage bufferedImage = null;
+                try {
+                    java.io.ByteArrayInputStream bais = new java.io.ByteArrayInputStream(imageBytes);
+                    bufferedImage = javax.imageio.ImageIO.read(bais);
+                    bais.close();
+                } catch (Exception e) {
+                    logger.warn("Konnte Bildgröße nicht ermitteln, verwende Standard-Größe: {}", e.getMessage());
+                }
+                
+                // Standard-Größe (400 Punkte Breite)
+                int defaultWidthPoints = 400;
+                int defaultHeightPoints = 300;
+                
+                // Original-Größe verwenden, falls verfügbar
+                int imageWidth = defaultWidthPoints;
+                int imageHeight = defaultHeightPoints;
+                
+                if (bufferedImage != null) {
+                    int originalWidth = bufferedImage.getWidth();
+                    int originalHeight = bufferedImage.getHeight();
+                    
+                    // Seitenverhältnis beibehalten: Breite auf 400 Punkte setzen, Höhe proportional
+                    double aspectRatio = (double) originalHeight / (double) originalWidth;
+                    imageWidth = defaultWidthPoints;
+                    imageHeight = (int) (defaultWidthPoints * aspectRatio);
+                    
+                    // Falls zu hoch, Höhe auf 600 Punkte begrenzen und Breite proportional
+                    if (imageHeight > 600) {
+                        imageHeight = 600;
+                        imageWidth = (int) (600 / aspectRatio);
+                    }
+                }
+                
+                // BinaryPart erstellen - Bilder werden direkt in das DOCX-Package eingebettet
+                // createImagePart erstellt ein BinaryPart und fügt es zum Package hinzu
+                org.docx4j.openpackaging.parts.WordprocessingML.BinaryPartAbstractImage imagePart = 
+                    org.docx4j.openpackaging.parts.WordprocessingML.BinaryPartAbstractImage.createImagePart(
+                        pkg, imageBytes);
+                
+                // Das Bild ist jetzt als BinaryPart im Package eingebettet
+                // Die Relationship wird automatisch erstellt
+                
+                // Bild in einen Absatz einfügen
+                P p = f.createP();
+                PPr ppr = f.createPPr();
+                // Zentrierte Ausrichtung für Bilder
+                Jc jc = f.createJc();
+                jc.setVal(JcEnumeration.CENTER);
+                ppr.setJc(jc);
+                p.setPPr(ppr);
+                
+                // Run mit Bild erstellen
+                R r = f.createR();
+                
+                // Bild einfügen mit korrektem Seitenverhältnis (in EMU: 1 Punkt = 9525 EMU)
+                int widthEMU = imageWidth * 9525;
+                int heightEMU = imageHeight * 9525;
+                
+                // Inline-Bild erstellen - createImageInline gibt ein JAXBElement zurück
+                Object inlineObj = imagePart.createImageInline(
+                    imageFileName, altText, 1, 1, widthEMU, heightEMU, false);
+                
+                // Drawing-Element erstellen und Inline hinzufügen
+                org.docx4j.wml.Drawing drawing = f.createDrawing();
+                if (inlineObj instanceof JAXBElement) {
+                    drawing.getAnchorOrInline().add(((JAXBElement<?>) inlineObj).getValue());
+                } else {
+                    drawing.getAnchorOrInline().add(inlineObj);
+                }
+                
+                r.getContent().add(drawing);
+                p.getContent().add(r);
+                
+                pkg.getMainDocumentPart().addObject(p);
+                
+            } catch (Exception e) {
+                logger.error("Fehler beim Hinzufügen des Bildes: {}", e.getMessage(), e);
+                // Fallback: Text anzeigen
+                P p = f.createP();
+                R r = f.createR();
+                org.docx4j.wml.Text t = f.createText();
+                t.setValue("[Bild: " + altText + " (" + imageUrl + ") - Fehler beim Einfügen]");
+                r.getContent().add(t);
+                p.getContent().add(r);
+                pkg.getMainDocumentPart().addObject(p);
+                
+                if (imageStream != null) {
+                    try { imageStream.close(); } catch (Exception ignored) {}
+                }
+            }
+            
+        } catch (Exception e) {
+            logger.error("Unerwarteter Fehler beim Verarbeiten des Bildes: {}", e.getMessage(), e);
+        }
+    }
+    
     private static String extractTextFromParagraph(P paragraph, Map<String, Style> styleMap) {
         StringBuilder text = new StringBuilder();
         
@@ -1420,7 +1742,7 @@ public class DocxProcessor {
         // Entferne führendes Listen-Muster
         text = text.replaceFirst("^[-*+]\\s+", "").replaceFirst("^\\d+\\.\\s+", "");
 
-        addFormattedTextToParagraph(p, f, prefix + text, options);
+        addFormattedTextToParagraph(p, pkg, f, prefix + text, options);
         p.setPPr(ppr);
         pkg.getMainDocumentPart().addObject(p);
     }
