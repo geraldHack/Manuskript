@@ -7,6 +7,10 @@ import java.util.regex.Matcher;
 /**
  * Universelle Anführungszeichen-Konvertierung für verschiedene Sprachen
  * Unterstützt Deutsche, Französische, Englische und Schweizer Anführungszeichen
+ * 
+ * Logik basierend auf dem Makro "Text-Bereinigung":
+ * 1. ALLE Anführungszeichen zu englischen normalisieren
+ * 2. Paare mit Regex finden und je nach Sprache konvertieren
  */
 public class QuotationMarkConverter {
     
@@ -38,263 +42,73 @@ public class QuotationMarkConverter {
     }
     
     /**
+     * SCHRITT 1 & 2: Normalisiert ALLE Anführungszeichen zu englischen
+     * Genau wie im Makro: Schritt 1 (doppelte) und Schritt 2 (einfache)
+     */
+    private static String convertToEnglish(String text) {
+        // Schritt 1: ALLE Unicode doppelte Anführungszeichen zu englisch
+        // Pattern: [\u201C\u201D\u201E\u201F\u00AB\u00BB]
+        text = text.replaceAll("[\\u201C\\u201D\\u201E\\u201F\\u00AB\\u00BB]", "\"");
+        
+        // Schritt 2: ALLE Unicode einfache Anführungszeichen zu englisch
+        // Pattern: [\u2018\u2019\u201A\u201B\u2039\u203A]
+        text = text.replaceAll("[\\u2018\\u2019\\u201A\\u201B\\u2039\\u203A]", "'");
+        
+        return text;
+    }
+    
+    /**
      * Konvertiert zu deutschen Anführungszeichen: „" und ‚'
+     * Makro-Regeln: Schritt 14 (doppelte) und Schritt 15 (einfache)
      */
     private static String convertToGerman(String text) {
         // ERSTER DURCHLAUF: Alle zu englischen Anführungszeichen
         text = convertToEnglish(text);
         
         // ZWEITER DURCHLAUF: Englische zu deutschen Anführungszeichen (nur Paare!)
-        text = convertQuotationPairs(text, "\u201E", "\u201C", "\u201A", "\u2019"); // „" und ‚'
+        // Schritt 14: "(.*?)" → „$1"
+        text = text.replaceAll("\"(.*?)\"", "„$1\"");
+        
+        // Schritt 15: '(.*?)' → ‚$1'
+        text = text.replaceAll("'(.*?)'", "‚$1'");
         
         return text;
     }
     
     /**
      * Konvertiert zu französischen Anführungszeichen: »« und ›‹
+     * Makro-Regeln: Schritt 12 (doppelte) und Schritt 13 (einfache)
      */
     private static String convertToFrench(String text) {
         // ERSTER DURCHLAUF: Alle zu englischen Anführungszeichen
         text = convertToEnglish(text);
-       
         
         // ZWEITER DURCHLAUF: Englische zu französischen Anführungszeichen (nur Paare!)
-        text = convertQuotationPairs(text, "\u00BB", "\u00AB", "\u203A", "\u2039"); // »« und ›‹
+        // Schritt 12: "(.*?)" → »$1«
+        text = text.replaceAll("\"(.*?)\"", "»$1«");
         
-        return text;
-    }
-    
-    /**
-     * Konvertiert zu englischen Anführungszeichen: "" und ''
-     */
-    private static String convertToEnglish(String text) {
-        // ERSTER DURCHLAUF: Alle typographischen Anführungszeichen zu englischen
-        // Doppelte Anführungszeichen
-        text = text.replace("\u201E", "\""); // „ zu "
-        text = text.replace("\u201C", "\""); // " zu "
-        text = text.replace("\u201D", "\""); // " zu "
-        text = text.replace("\u00AB", "\""); // « zu "
-        text = text.replace("\u00BB", "\""); // » zu "
-        
-        // Einfache Anführungszeichen
-        text = text.replace("\u201A", "'"); // ‚ zu '
-        text = text.replace("\u2018", "'"); // ' zu '
-        text = text.replace("\u2019", "'"); // ' zu '
-        text = text.replace("\u2039", "'"); // ‹ zu '
-        text = text.replace("\u203A", "'"); // › zu '
-        
-        // Andere Apostrophe
-        text = text.replace("\u00B4", "'"); // ´ zu '
-        text = text.replace("\u0060", "'"); // ` zu '
+        // Schritt 13: '(.*?)' → ›$1‹
+        text = text.replaceAll("'(.*?)'", "›$1‹");
         
         return text;
     }
     
     /**
      * Konvertiert zu schweizer Anführungszeichen: «» und ‹›
+     * Makro-Regeln: Schritt 16 (doppelte) und Schritt 17 (einfache)
      */
     private static String convertToSwiss(String text) {
         // ERSTER DURCHLAUF: Alle zu englischen Anführungszeichen
         text = convertToEnglish(text);
         
         // ZWEITER DURCHLAUF: Englische zu schweizer Anführungszeichen (nur Paare!)
-        text = convertQuotationPairs(text, "\u00AB", "\u00BB", "\u2039", "\u203A"); // «» und ‹›
+        // Schritt 16: "(.*?)" → «$1»
+        text = text.replaceAll("\"(.*?)\"", "«$1»");
+        
+        // Schritt 17: '(.*?)' → ‹$1›
+        text = text.replaceAll("'(.*?)'", "‹$1›");
         
         return text;
-    }
-    
-    /**
-     * Konvertiert Anführungszeichen-Paare (doppelte und einfache) zu gewünschten Zeichen
-     * Unterscheidet zwischen echten Apostrophen und Anführungszeichen
-     */
-    private static String convertQuotationPairs(String text, String doubleOpen, String doubleClose, String singleOpen, String singleClose) {
-        // ERSTE SCHLEIFE: Markiere echte Apostrophe
-        text = markApostrophes(text);
-        
-        // ZWEITE SCHLEIFE: Konvertiere doppelte Anführungszeichen
-        text = convertDoubleQuotationPairs(text, doubleOpen, doubleClose);
-        
-        // DRITTE SCHLEIFE: Konvertiere einfache Anführungszeichen (nur Paare!)
-        text = convertSingleQuotationPairs(text, singleOpen, singleClose);
-        
-        // FÜNFTE SCHLEIFE: Konvertiere auch gerade Anführungszeichen zu Paaren
-        text = convertStraightQuotationPairs(text, singleOpen, singleClose);
-        
-        // VIERTE SCHLEIFE: Stelle echte Apostrophe wieder her
-        text = text.replace("ApOsTrOpH", "'");
-        
-        return text;
-    }
-    
-    /**
-     * Konvertiert doppelte Anführungszeichen-Paare
-     */
-    private static String convertDoubleQuotationPairs(String text, String openChar, String closeChar) {
-        // Finde alle doppelten Anführungszeichen
-        String pattern = "[\\u201E\\u201C\\u201D\\u00AB\\u00BB\\u0022]";
-        Pattern regex = Pattern.compile(pattern);
-        Matcher matcher = regex.matcher(text);
-        
-        List<Integer> positions = new ArrayList<>();
-        while (matcher.find()) {
-            positions.add(matcher.start());
-        }
-        
-        // Konvertiere Paare: erstes = öffnend, zweites = schließend
-        StringBuilder result = new StringBuilder(text);
-        for (int i = 0; i < positions.size(); i += 2) {
-            if (i + 1 < positions.size()) {
-                // Erstes = öffnend
-                result.setCharAt(positions.get(i), openChar.charAt(0));
-                // Zweites = schließend
-                result.setCharAt(positions.get(i + 1), closeChar.charAt(0));
-            }
-        }
-        return result.toString();
-    }
-    
-    /**
-     * Konvertiert einfache Anführungszeichen-Paare
-     * Unterscheidet zwischen Apostrophen und echten Anführungszeichen
-     */
-    private static String convertSingleQuotationPairs(String text, String openChar, String closeChar) {
-        // Finde alle einfachen Anführungszeichen (INCLUDING gerade Apostrophe!)
-        String pattern = "[\\u201A\\u2018\\u2039\\u203A\\u0027]";
-        Pattern regex = Pattern.compile(pattern);
-        Matcher matcher = regex.matcher(text);
-        
-        List<Integer> positions = new ArrayList<>();
-        while (matcher.find()) {
-            positions.add(matcher.start());
-        }
-        
-        // Konvertiere Paare: erstes = öffnend, zweites = schließend
-        StringBuilder result = new StringBuilder(text);
-        for (int i = 0; i < positions.size(); i += 2) {
-            if (i + 1 < positions.size()) {
-                // Erstes = öffnend
-                result.setCharAt(positions.get(i), openChar.charAt(0));
-                // Zweites = schließend
-                result.setCharAt(positions.get(i + 1), closeChar.charAt(0));
-            }
-        }
-        return result.toString();
-    }
-    
-    /**
-     * Konvertiert gerade Anführungszeichen zu typographischen Paaren
-     */
-    private static String convertStraightQuotationPairs(String text, String openChar, String closeChar) {
-        // Finde alle geraden Anführungszeichen
-        String pattern = "['\"]";
-        Pattern regex = Pattern.compile(pattern);
-        Matcher matcher = regex.matcher(text);
-        
-        List<Integer> positions = new ArrayList<>();
-        while (matcher.find()) {
-            positions.add(matcher.start());
-        }
-        
-        // Konvertiere Paare: erstes = öffnend, zweites = schließend
-        StringBuilder result = new StringBuilder(text);
-        for (int i = 0; i < positions.size(); i += 2) {
-            if (i + 1 < positions.size()) {
-                // Erstes = öffnend
-                result.setCharAt(positions.get(i), openChar.charAt(0));
-                // Zweites = schließend
-                result.setCharAt(positions.get(i + 1), closeChar.charAt(0));
-            }
-        }
-        
-        return result.toString();
-    }
-    
-    /**
-     * Spezielle Konvertierung für französische einfache Anführungszeichen: ›‹ (schließend, öffnend)
-     */
-    private static String convertSingleQuotationPairsFrench(String text) {
-        // Finde alle einfachen Anführungszeichen (NICHT Apostrophe!)
-        String pattern = "[\\u201A\\u2018\\u2039\\u203A]";
-        Pattern regex = Pattern.compile(pattern);
-        Matcher matcher = regex.matcher(text);
-        
-        List<Integer> positions = new ArrayList<>();
-        while (matcher.find()) {
-            positions.add(matcher.start());
-        }
-        
-        // Konvertiere Paare für französisch: ›‹ (schließend, öffnend)
-        // Das bedeutet: erstes ' wird zu ›, zweites ' wird zu ‹
-        StringBuilder result = new StringBuilder(text);
-        for (int i = 0; i < positions.size(); i += 2) {
-            if (i + 1 < positions.size()) {
-                // Erstes = schließend (›) - weil französisch ›‹ verwendet
-                result.setCharAt(positions.get(i), '\u203A'); // ›
-                // Zweites = öffnend (‹) - weil französisch ›‹ verwendet  
-                result.setCharAt(positions.get(i + 1), '\u2039'); // ‹
-            }
-        }
-        
-        return result.toString();
-    }
-    
-    
-    /**
-     * Intelligente Apostroph-Erkennung und Konvertierung
-     * 1. Erste Schleife: Finde Apostrophe und ersetze sie durch ApOsTrOpH
-     * 2. Zweite Schleife: Behandle alle übrigen ' als Anführungszeichen
-     * 3. Dritte Schleife: Ersetze ApOsTrOpH zurück zu '
-     */
-    private static String convertStraightApostrophesToQuotations(String text, String openChar, String closeChar) {
-        // ERSTE SCHLEIFE: Finde Apostrophe und ersetze sie durch ApOsTrOpH
-        text = markApostrophes(text);
-        
-        // ZWEITE SCHLEIFE: Behandle alle übrigen ' als Anführungszeichen
-        text = convertRemainingQuotations(text, openChar, closeChar);
-        
-        // DRITTE SCHLEIFE: Ersetze ApOsTrOpH zurück zu '
-        text = text.replace("ApOsTrOpH", "'");
-        
-        return text;
-    }
-    
-    /**
-     * Markiert Apostrophe durch Ersetzung mit ApOsTrOpH
-     * Vereinfachte Version - nur die eindeutigsten Apostrophe
-     */
-    private static String markApostrophes(String text) {
-        // Nur die eindeutigsten Apostrophe markieren
-        // 1. ' zwischen Buchstaben (z.B. "don't", "I'm")
-        String result = text.replaceAll("([a-zA-ZäöüÄÖÜß])'([a-zA-ZäöüÄÖÜß])", "$1ApOsTrOpH$2");
-        
-        // 2. ' am Ende eines Wortes (z.B. "Paleus'")
-        result = result.replaceAll("([a-zA-ZäöüÄÖÜß])'([\\s\\p{Punct}])", "$1ApOsTrOpH$2");
-        
-        // 3. ' vor Anführungszeichen (z.B. "Paleus'«")
-        result = result.replaceAll("([a-zA-ZäöüÄÖÜß])'([\\u00AB\\u00BB\\u2039\\u203A\\u201E\\u201C\\u201D])", "$1ApOsTrOpH$2");
-        
-        return result;
-    }
- 
-      
-    /**
-     * Konvertiert alle übrigen ' zu Anführungszeichen
-     */
-    private static String convertRemainingQuotations(String text, String openChar, String closeChar) {
-        // Finde alle Paare von ' die noch nicht konvertiert wurden
-        String pattern = "'([^']*)'";
-        Pattern regex = Pattern.compile(pattern);
-        Matcher matcher = regex.matcher(text);
-        
-        StringBuffer result = new StringBuffer();
-        while (matcher.find()) {
-            String content = matcher.group(1);
-            String replacement = openChar + content + closeChar;
-            matcher.appendReplacement(result, Matcher.quoteReplacement(replacement));
-        }
-        matcher.appendTail(result);
-        
-        return result.toString();
     }
     
     /**
@@ -303,8 +117,8 @@ public class QuotationMarkConverter {
     public static List<QuotationMark> findQuotationMarks(String text) {
         List<QuotationMark> marks = new ArrayList<>();
         
-        // Regex für alle Anführungszeichen (NICHT Apostrophe!)
-        String pattern = "[\u201E\u201C\u201D\u00AB\u00BB\u201A\u2018\u2039\u203A\u0027\u00B4\u0060\"]";
+        // Regex für alle Anführungszeichen
+        String pattern = "[\u201E\u201C\u201D\u00AB\u00BB\u201A\u2018\u2019\u2039\u203A\u0027\"]";
         Pattern regex = Pattern.compile(pattern);
         Matcher matcher = regex.matcher(text);
         
