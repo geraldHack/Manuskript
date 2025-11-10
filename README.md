@@ -5,7 +5,7 @@
 [![Maven](https://img.shields.io/badge/Maven-3.6+-green.svg)](https://maven.apache.org/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-> **Eine moderne JavaFX-Anwendung für die professionelle Verarbeitung und Bearbeitung von DOCX-Dateien mit integriertem KI-Assistenten und automatischer Text-Bereinigung. Ideal für Sudowrite Exporte**
+> **Eine moderne JavaFX-Anwendung für die professionelle Verarbeitung und Bearbeitung von DOCX-Dateien mit integriertem KI-Assistenten und automatischer Text-Bereinigung. Ideal im Zusammenspiel mit Sudowrite**
 
 ## ✨ Highlights
 

@@ -71,6 +71,11 @@ public class PandocExportWindow extends CustomStage {
     private CheckBox initialsCheckBox;
     private Button coverImageBrowseButton;
     
+    // DOCX-spezifische Felder
+    private HBox imageSizeBox;
+    private Slider imageSizeSlider;
+    private Label imageSizeLabel;
+    
     // Template-Felder
     private HBox templateBox;
     
@@ -179,6 +184,29 @@ public class PandocExportWindow extends CustomStage {
         initialsCheckBox.setSelected(true); // Standardmäßig aktiviert
         initialsCheckBox.setTooltip(new Tooltip("Fügt Initialen zu den ersten Absätzen nach Headern hinzu"));
         
+        // Bildgröße für DOCX (50-100%)
+        imageSizeBox = new HBox(10);
+        imageSizeBox.setAlignment(Pos.CENTER_LEFT);
+        Label imageSizeLabelText = new Label("Bildgröße:");
+        imageSizeLabelText.setPrefWidth(100);
+        imageSizeSlider = new Slider(50, 100, 50);
+        imageSizeSlider.setShowTickLabels(true);
+        imageSizeSlider.setShowTickMarks(true);
+        imageSizeSlider.setMajorTickUnit(10);
+        imageSizeSlider.setMinorTickCount(5);
+        imageSizeSlider.setSnapToTicks(false);
+        imageSizeSlider.setPrefWidth(300);
+        imageSizeLabel = new Label("50%");
+        imageSizeLabel.setPrefWidth(50);
+        imageSizeSlider.valueProperty().addListener((obs, oldVal, newVal) -> {
+            int value = (int) Math.round(newVal.doubleValue());
+            imageSizeLabel.setText(value + "%");
+            // Metadaten speichern bei Änderung
+            saveProjectMetadata();
+        });
+        imageSizeBox.getChildren().addAll(imageSizeLabelText, imageSizeSlider, imageSizeLabel);
+        imageSizeBox.setVisible(false); // Initial ausgeblendet, wird bei DOCX angezeigt
+        
         // Metadata Section
         VBox metadataBox = createMetadataSection();
         
@@ -206,6 +234,7 @@ public class PandocExportWindow extends CustomStage {
             templateDescription,
             coverImageBox,
             initialsCheckBox,
+            imageSizeBox,
             new Separator(),
             metadataBox,
             new Separator(),
@@ -524,6 +553,11 @@ public class PandocExportWindow extends CustomStage {
         String savedFormat = metadata.getOrDefault("format", preferences.get("pandoc_format", "docx"));
         formatComboBox.setValue(savedFormat);
         
+        // Bildgröße laden (nur für DOCX)
+        double savedImageSize = Double.parseDouble(metadata.getOrDefault("imageSize", preferences.get("pandoc_image_size", "50")));
+        imageSizeSlider.setValue(savedImageSize);
+        imageSizeLabel.setText((int) Math.round(savedImageSize) + "%");
+        
         // Template laden
         String savedTemplate = metadata.getOrDefault("template", preferences.get("pandoc_template", ""));
         if (!savedTemplate.isEmpty()) {
@@ -557,10 +591,14 @@ public class PandocExportWindow extends CustomStage {
             metadata.put("coverImage", coverImageField.getText().trim());
             metadata.put("format", formatComboBox.getValue() != null ? formatComboBox.getValue() : "docx");
             metadata.put("template", templateComboBox.getValue() != null ? templateComboBox.getValue() : "");
+            metadata.put("imageSize", String.valueOf((int) Math.round(imageSizeSlider.getValue())));
             
             String json = gson.toJson(metadata);
             Files.writeString(metadataFile.toPath(), json, StandardCharsets.UTF_8);
             logger.debug("Metadaten in Projekt-Datei gespeichert: {}", metadataFile.getAbsolutePath());
+            
+            // Auch in globale Preferences speichern für Fallback
+            preferences.put("pandoc_image_size", String.valueOf((int) Math.round(imageSizeSlider.getValue())));
         } catch (IOException e) {
             logger.warn("Fehler beim Speichern der Projekt-Metadaten: {}", e.getMessage());
         }
@@ -897,11 +935,74 @@ public class PandocExportWindow extends CustomStage {
     
     /**
      * Ersetzt HTML-Tags in der Markdown-Datei durch format-spezifische Befehle
+     * und stellt sicher, dass Bilder vor Überschriften ihre Position behalten
      */
     private void replaceHtmlTagsInMarkdown(File markdownFile, String format) {
         try {
             String content = Files.readString(markdownFile.toPath(), StandardCharsets.UTF_8);
             String originalContent = content;
+            
+            // Für EPUB3: Ähnliche Fixes wie für DOCX
+            if ("epub3".equals(format) || "epub".equals(format)) {
+                // ZUERST: Reihenfolge korrigieren - wenn Überschrift vor Bild steht, tauschen wir sie im Markdown
+                // Pattern: # Überschrift\n\n![alt](path) -> ![alt](path)\n\n# Überschrift
+                content = content.replaceAll(
+                    "(?m)^(#{1,6}\\s+.+?)\\s*\\n\\s*\\n(!\\[[^\\]]*\\]\\([^\\)]+\\))$",
+                    "$2\n\n$1"
+                );
+                // Auch ohne Leerzeile
+                content = content.replaceAll(
+                    "(?m)^(#{1,6}\\s+.+?)\\s*\\n(!\\[[^\\]]*\\]\\([^\\)]+\\))$",
+                    "$2\n\n$1"
+                );
+                
+                // Alt-Text entfernen (wird sonst als Bildunterschrift angezeigt)
+                // Pattern: ![alt](path) -> ![](path)
+                content = content.replaceAll(
+                    "(?m)!\\[([^\\]]+)\\]\\(([^\\)]+)\\)",
+                    "![]($2)"
+                );
+            }
+            
+            // Für DOCX: Bilder vor Überschriften in Container packen, um Reihenfolge zu erhalten
+            if ("docx".equals(format)) {
+                // Bildgröße aus Slider lesen
+                int imageSizePercent = (int) Math.round(imageSizeSlider.getValue());
+                
+                // ZUERST: Reihenfolge korrigieren - wenn Überschrift vor Bild steht, tauschen wir sie im Markdown
+                // Pattern: # Überschrift\n\n![alt](path) -> ![alt](path)\n\n# Überschrift
+                content = content.replaceAll(
+                    "(?m)^(#{1,6}\\s+.+?)\\s*\\n\\s*\\n(!\\[[^\\]]*\\]\\([^\\)]+\\))$",
+                    "$2\n\n$1"
+                );
+                // Auch ohne Leerzeile
+                content = content.replaceAll(
+                    "(?m)^(#{1,6}\\s+.+?)\\s*\\n(!\\[[^\\]]*\\]\\([^\\)]+\\))$",
+                    "$2\n\n$1"
+                );
+                
+                // Dann: Alle Bilder kleiner machen (parametrisierbare Größe)
+                // Pattern: ![alt](path) -> ![alt](path){ width=X% }
+                // Nur wenn noch keine Größenangabe vorhanden ist
+                content = content.replaceAll(
+                    "(?m)(!\\[[^\\]]*\\]\\([^\\)]+\\))(?!\\s*\\{[^}]*width)",
+                    "$1{ width=" + imageSizePercent + "% }"
+                );
+                
+                // Alt-Text entfernen (wird sonst als Bildunterschrift angezeigt)
+                // Pattern: ![alt](path){ width=X% } -> ![](path){ width=X% }
+                content = content.replaceAll(
+                    "(?m)!\\[([^\\]]+)\\]\\(([^\\)]+)\\)\\{ width=" + imageSizePercent + "% \\}",
+                    "![]($2){ width=" + imageSizePercent + "% }"
+                );
+                
+                // Dann: Alle Bilder in zentrierte HTML-Divs packen (mehrzeilig für bessere Kompatibilität)
+                // Pattern: ![](path){ width=X% } -> <div align="center">\n![](path){ width=X% }\n</div>
+                content = content.replaceAll(
+                    "(?m)(!\\[\\]\\([^\\)]+\\)\\{ width=" + imageSizePercent + "% \\})(?!</div>)",
+                    "<div align=\"center\">\n$1\n</div>"
+                );
+            }
             
             // HTML-Tags ersetzen basierend auf dem Ausgabeformat
             if ("pdf".equals(format)) {
@@ -1039,6 +1140,8 @@ public class PandocExportWindow extends CustomStage {
             // }
                 command.add("--highlight-style=tango");
                 command.add("--reference-links");
+                // Reihenfolge der Elemente beibehalten (kein Wrapping)
+                command.add("--wrap=none");
                 
                 // Cover-Bild für DOCX hinzufügen (falls vorhanden)
                 if (!coverImageField.getText().trim().isEmpty()) {
@@ -1587,6 +1690,11 @@ public class PandocExportWindow extends CustomStage {
         
         // Initialen-Checkbox nur für DOCX anzeigen
         updateInitialsVisibility();
+        
+        // Bildgröße nur für DOCX anzeigen
+        boolean showImageSize = "docx".equals(format);
+        imageSizeBox.setVisible(showImageSize);
+        imageSizeBox.setManaged(showImageSize);
     }
     
     private void updateInitialsVisibility() {
@@ -1929,6 +2037,48 @@ public class PandocExportWindow extends CustomStage {
                     }
                 }
                 
+                // Bilder zentrieren
+                for (XWPFParagraph paragraph : document.getParagraphs()) {
+                    boolean hasImage = false;
+                    for (XWPFRun run : paragraph.getRuns()) {
+                        if (run.getEmbeddedPictures().size() > 0) {
+                            hasImage = true;
+                            break;
+                        }
+                    }
+                    if (hasImage) {
+                        paragraph.setAlignment(ParagraphAlignment.CENTER);
+                    }
+                }
+                
+                // Alt-Text aus Bildunterschriften entfernen (falls vorhanden)
+                for (XWPFParagraph paragraph : document.getParagraphs()) {
+                    String text = paragraph.getText();
+                    // Wenn der Absatz nur aus dem Alt-Text besteht und der vorherige Absatz ein Bild hat
+                    if (text != null && !text.trim().isEmpty()) {
+                        // Prüfe ob der vorherige Absatz ein Bild enthält
+                        int index = document.getParagraphs().indexOf(paragraph);
+                        if (index > 0) {
+                            XWPFParagraph prevParagraph = document.getParagraphs().get(index - 1);
+                            boolean prevHasImage = false;
+                            for (XWPFRun run : prevParagraph.getRuns()) {
+                                if (run.getEmbeddedPictures().size() > 0) {
+                                    prevHasImage = true;
+                                    break;
+                                }
+                            }
+                            // Wenn der vorherige Absatz ein Bild hat und dieser Absatz nur Text ist,
+                            // könnte es der Alt-Text sein - entfernen
+                            if (prevHasImage && text.length() < 100) { // Nur kurze Texte entfernen
+                                // Entferne den Text aus allen Runs
+                                for (XWPFRun run : paragraph.getRuns()) {
+                                    run.setText("", 0);
+                                }
+                            }
+                        }
+                    }
+                }
+                
                 // DANN: Initialen für "First Paragraph" Absätze hinzufügen (nur wenn aktiviert)
                 if (initialsCheckBox != null && initialsCheckBox.isSelected()) {
                     logger.debug("Initialen-Checkbox ist aktiviert - füge Initialen hinzu");
@@ -2058,7 +2208,7 @@ public class PandocExportWindow extends CustomStage {
             // Temporäres Verzeichnis löschen
             deleteDirectory(tempDir);
             
-            logger.info("EPUB Post-Processing abgeschlossen - 'Abstract' durch 'Zusammenfassung' ersetzt");
+            logger.info("EPUB Post-Processing abgeschlossen - 'Abstract' durch 'Zusammenfassung' ersetzt, Alt-Texte entfernt und Reihenfolge korrigiert");
             
         } catch (Exception e) {
             logger.warn("EPUB Post-Processing fehlgeschlagen: {}", e.getMessage());
@@ -2083,7 +2233,8 @@ public class PandocExportWindow extends CustomStage {
     }
     
     /**
-     * Verarbeitet eine einzelne HTML-Datei und ersetzt "Abstract" durch "Zusammenfassung"
+     * Verarbeitet eine einzelne HTML-Datei und ersetzt "Abstract" durch "Zusammenfassung",
+     * entfernt Alt-Text aus Bildern und korrigiert die Reihenfolge (Bild vor Überschrift)
      */
     private void processHtmlFile(File htmlFile) {
         try {
@@ -2092,6 +2243,29 @@ public class PandocExportWindow extends CustomStage {
             
             // "Abstract" durch "Zusammenfassung" ersetzen
             content = content.replace("Abstract", "Zusammenfassung");
+            
+            // Alt-Text aus Bildern entfernen (alt-Attribut entfernen oder leeren)
+            // Pattern: <img alt="..." src="..."> -> <img src="...">
+            content = content.replaceAll("(<img[^>]*)\\s+alt=\"[^\"]*\"([^>]*>)", "$1$2");
+            content = content.replaceAll("(<img[^>]*)\\s+alt='[^']*'([^>]*>)", "$1$2");
+            
+            // Alt-Text aus Bildunterschriften entfernen (falls als Text nach Bildern)
+            // Pattern: <img ...><p>Alt-Text</p> -> <img ...>
+            content = content.replaceAll("(<img[^>]*>)\\s*<p[^>]*>([^<]{1,100})</p>", "$1");
+            
+            // Doppelte Überschriften entfernen (falls Pandoc den Titel noch einmal einfügt)
+            // Pattern: <img ...><h1>Titel</h1>...<h1>Titel</h1> -> <img ...><h1>Titel</h1>...
+            // Entfernt identische Überschriften, die direkt nach einem Bild kommen
+            content = content.replaceAll(
+                "(?s)(<img[^>]*>\\s*<h[1-6][^>]*>([^<]+)</h[1-6]>)\\s*.*?<h[1-6][^>]*>\\2</h[1-6]>",
+                "$1"
+            );
+            
+            // Auch ohne Bild: Doppelte identische Überschriften direkt nacheinander entfernen
+            content = content.replaceAll(
+                "(?s)(<h[1-6][^>]*>([^<]+)</h[1-6]>)\\s*(?:<p[^>]*>.*?</p>\\s*)*<h[1-6][^>]*>\\2</h[1-6]>",
+                "$1"
+            );
             
             // Nur schreiben wenn sich etwas geändert hat
             if (!content.equals(originalContent)) {

@@ -69,8 +69,8 @@ public class QuotationMarkConverter {
         
         // SCHRITT 1: Konvertiere doppelte Anführungszeichen
         // Makro-Regel 14: "(.*?)" -> „$1"
-        // WICHTIG: Das schließende Anführungszeichen ist " (U+201C)
-        text = text.replaceAll("\"(.*?)\"", "„$1\u201C");
+        // WICHTIG: Das schließende Anführungszeichen ist " (U+0022 - gerades Anführungszeichen)
+        text = text.replaceAll("\"(.*?)\"", "„$1\"");
         
         // SCHRITT 2: Konvertiere einfache Anführungszeichen-Paare
         // Makro-Regel 15: '(.*?)' -> ‚$1'
