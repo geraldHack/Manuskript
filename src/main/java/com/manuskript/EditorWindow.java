@@ -14,6 +14,7 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.Node;
 import javafx.scene.Parent;
+import javafx.scene.web.WebView;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -141,6 +142,7 @@ public class EditorWindow implements Initializable {
     @FXML private Button btnTextAnalysis;
     @FXML private Button btnRegexHelp;
     @FXML private Button btnKIAssistant;
+    @FXML private Button btnPreview;
     
     // Help-Buttons
     @FXML private Button btnHelpMain;
@@ -155,6 +157,7 @@ public class EditorWindow implements Initializable {
     @FXML private Button btnBold;
     @FXML private Button btnItalic;
     @FXML private Button btnUnderline;
+    @FXML private Button btnInsertImage;
     @FXML private Button btnThemeToggle;
     @FXML private ComboBox<String> cmbQuoteStyle;
     // Zeilenabstand-ComboBox entfernt - wird von RichTextFX nicht unterstützt
@@ -199,8 +202,16 @@ public class EditorWindow implements Initializable {
     private CustomStage stage;
     private CustomStage macroStage;
     private CustomStage textAnalysisStage;
+    private CustomStage previewStage;
     private OllamaWindow ollamaWindow;
+    private WebView previewWebView;
+    private Button btnToggleJustify;
+    private boolean previewJustifyEnabled = false;
     private Preferences preferences;
+    private ScheduledFuture<?> previewUpdateFuture;
+    private String lastPreviewContent = null; // Cache für den letzten HTML-Content
+    private javafx.beans.value.ChangeListener<javafx.concurrent.Worker.State> previewLoadListener = null; // Listener für LoadWorker-State
+    private boolean isScrollingPreview = false;
     private ObservableList<String> searchHistory = FXCollections.observableArrayList();
     private ObservableList<String> replaceHistory = FXCollections.observableArrayList();
     private ObservableList<String> searchOptions = FXCollections.observableArrayList();
@@ -751,6 +762,7 @@ if (caret != null) {
         btnBold.setOnAction(e -> formatTextBold());
         btnItalic.setOnAction(e -> formatTextItalic());
         btnUnderline.setOnAction(e -> formatTextUnderline());
+        btnInsertImage.setOnAction(e -> insertImage());
         btnThemeToggle.setOnAction(e -> toggleTheme());
         
         // Abstandskonfiguration Event-Handler werden direkt in den Setup-Methoden gesetzt
@@ -764,6 +776,9 @@ if (caret != null) {
         
         // KI-Assistent-Button
         btnKIAssistant.setOnAction(e -> toggleOllamaWindow());
+        
+        // Preview-Button
+        btnPreview.setOnAction(e -> togglePreviewWindow());
         
         // Help-Buttons
         if (btnHelpMain != null) {
@@ -1104,6 +1119,158 @@ if (caret != null) {
         }
     }
     
+    /**
+     * Öffnet einen Dialog zum Einfügen eines Bildes
+     */
+    private void insertImage() {
+        // CustomAlert erstellen
+        CustomAlert alert = new CustomAlert(Alert.AlertType.INFORMATION, "Bild einfügen");
+        alert.setHeaderText("Bild einfügen");
+        
+        // VBox für Custom Content
+        VBox contentBox = new VBox(10);
+        contentBox.setPadding(new Insets(10));
+        
+        // Pfad-Feld - zuletzt verwendeten Pfad laden
+        Label pathLabel = new Label("Pfad:");
+        TextField pathField = new TextField();
+        pathField.setPromptText("Pfad zum Bild");
+        HBox.setHgrow(pathField, Priority.ALWAYS);
+        
+        // Zuletzt verwendeten Pfad laden
+        String lastImagePath = preferences != null ? preferences.get("lastImagePath", "") : "";
+        if (lastImagePath != null && !lastImagePath.isEmpty()) {
+            pathField.setText(lastImagePath);
+        }
+        
+        // Text-Feld (Alt-Text) - zuletzt verwendeten Alt-Text laden
+        Label textLabel = new Label("Alt-Text:");
+        TextField textField = new TextField();
+        textField.setPromptText("Alternativer Text für das Bild");
+        HBox.setHgrow(textField, Priority.ALWAYS);
+        
+        // Zuletzt verwendeten Alt-Text laden
+        String lastAltText = preferences != null ? preferences.get("lastImageAltText", "") : "";
+        if (lastAltText != null && !lastAltText.isEmpty()) {
+            textField.setText(lastAltText);
+        }
+        
+        // FileChooser-Button
+        Button btnBrowse = new Button("Durchsuchen...");
+        btnBrowse.setOnAction(e -> {
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("Bild auswählen");
+            fileChooser.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("Bilddateien", "*.png", "*.jpg", "*.jpeg", "*.gif", "*.bmp", "*.webp"),
+                new FileChooser.ExtensionFilter("Alle Dateien", "*.*")
+            );
+            
+            // Initial Directory setzen (Priorität: aktueller Pfad > zuletzt verwendetes Verzeichnis > aktuelles Dateiverzeichnis)
+            String currentPath = pathField.getText();
+            File initialDir = null;
+            
+            if (currentPath != null && !currentPath.isEmpty()) {
+                File currentFile = new File(currentPath);
+                if (currentFile.exists() && currentFile.getParentFile() != null) {
+                    initialDir = currentFile.getParentFile();
+                }
+            }
+            
+            if (initialDir == null && preferences != null) {
+                String lastImageDirectory = preferences.get("lastImageDirectory", null);
+                if (lastImageDirectory != null && !lastImageDirectory.isEmpty()) {
+                    File dir = new File(lastImageDirectory);
+                    if (dir.exists() && dir.isDirectory()) {
+                        initialDir = dir;
+                    }
+                }
+            }
+            
+            if (initialDir == null) {
+                // Fallback: Verzeichnis der aktuell geöffneten Datei verwenden
+                if (currentFile != null && currentFile.getParentFile() != null) {
+                    initialDir = currentFile.getParentFile();
+                }
+            }
+            
+            if (initialDir != null) {
+                fileChooser.setInitialDirectory(initialDir);
+            }
+            
+            File selectedFile = fileChooser.showOpenDialog(stage);
+            if (selectedFile != null) {
+                pathField.setText(selectedFile.getAbsolutePath());
+                
+                // Verzeichnis speichern
+                if (preferences != null) {
+                    File parentDir = selectedFile.getParentFile();
+                    if (parentDir != null) {
+                        preferences.put("lastImageDirectory", parentDir.getAbsolutePath());
+                        try {
+                            preferences.flush();
+                        } catch (Exception ex) {
+                            logger.debug("Konnte Bild-Verzeichnis nicht speichern: " + ex.getMessage());
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Layout für Pfad-Feld und Button
+        HBox pathBox = new HBox(10);
+        pathBox.getChildren().addAll(pathField, btnBrowse);
+        HBox.setHgrow(pathField, Priority.ALWAYS);
+        
+        // Alles zusammenfügen
+        contentBox.getChildren().addAll(pathLabel, pathBox, textLabel, textField);
+        
+        // Custom Content setzen
+        alert.setCustomContent(contentBox);
+        
+        // Theme anwenden
+        alert.applyTheme(currentThemeIndex);
+        alert.initOwner(stage);
+        
+        // Buttons
+        ButtonType insertButton = new ButtonType("Einfügen");
+        ButtonType cancelButton = new ButtonType("Abbrechen");
+        alert.setButtonTypes(insertButton, cancelButton);
+        
+        // Dialog anzeigen
+        Optional<ButtonType> result = alert.showAndWait();
+        
+        if (result.isPresent() && result.get() == insertButton) {
+            String imagePath = pathField.getText();
+            String altText = textField.getText();
+            
+            if (imagePath != null && !imagePath.trim().isEmpty()) {
+                // Markdown-Bild-Syntax erstellen: ![alt text](path)
+                String markdownImage;
+                if (altText != null && !altText.trim().isEmpty()) {
+                    markdownImage = "![" + altText + "](" + imagePath + ")";
+                } else {
+                    markdownImage = "![](" + imagePath + ")";
+                }
+                
+                // Bild an aktueller Cursor-Position einfügen
+                codeArea.insertText(codeArea.getCaretPosition(), markdownImage);
+                
+                // Pfad und Alt-Text für nächste Verwendung speichern
+                if (preferences != null) {
+                    preferences.put("lastImagePath", imagePath);
+                    if (altText != null && !altText.trim().isEmpty()) {
+                        preferences.put("lastImageAltText", altText);
+                    }
+                    try {
+                        preferences.flush();
+                    } catch (Exception ex) {
+                        logger.debug("Konnte Bild-Einstellungen nicht speichern: " + ex.getMessage());
+                    }
+                }
+            }
+        }
+    }
+    
     private void handleQuoteReplacement(String inputQuote) {
         if (currentQuoteStyleIndex < 0 || currentQuoteStyleIndex >= QUOTE_MAPPING.length) {
             return;
@@ -1124,7 +1291,7 @@ if (caret != null) {
             logger.debug("Apostroph erkannt: " + replacement);
         } else {
             // ANFÜHRUNGSZEICHEN-REGELN: Bei Zitaten und Hervorhebungen
-            boolean shouldBeClosing = determineQuotationState(content, caretPosition);
+            boolean shouldBeClosing = determineQuotationState(content, caretPosition, inputQuote.equals("'"));
             if (inputQuote.equals("\"")) {
                 replacement = shouldBeClosing ? QUOTE_MAPPING[currentQuoteStyleIndex][1] : QUOTE_MAPPING[currentQuoteStyleIndex][0];
             } else {
@@ -1149,13 +1316,18 @@ if (caret != null) {
         boolean hasCharAfter = position < content.length();
         char charAfter = hasCharAfter ? content.charAt(position) : '\0';
         
-        // KLARER APOSTROPH: Buchstabe davor UND Buchstabe dahinter (hab's, don't)
-        if (Character.isLetter(charBefore) && hasCharAfter && Character.isLetter(charAfter)) {
-            return true;
+        // WICHTIG: Wenn VORHER ein Leerzeichen ist, ist es IMMER ein Anführungszeichen, kein Apostroph
+        // Nach einem Leerzeichen steht niemals ein Apostroph!
+        if (position > 1) {
+            char charBeforeBefore = content.charAt(position - 2);
+            if (charBeforeBefore == ' ' || charBeforeBefore == '\n' || charBeforeBefore == '\t') {
+                // Vorher war ein Leerzeichen -> es ist IMMER ein Anführungszeichen, kein Apostroph
+                return false;
+            }
         }
         
-        // APOSTROPH NACH LEERZEICHEN: Leerzeichen davor, dann Buchstabe (l'école)
-        if (charBefore == ' ' && hasCharAfter && Character.isLetter(charAfter)) {
+        // KLARER APOSTROPH: Buchstabe davor UND Buchstabe dahinter (hab's, don't)
+        if (Character.isLetter(charBefore) && hasCharAfter && Character.isLetter(charAfter)) {
             return true;
         }
         
@@ -1165,7 +1337,7 @@ if (caret != null) {
         }
         
         // APOSTROPH AM WORTENDE: Buchstabe davor, dann Leerzeichen/Satzzeichen/Ende
-        // ABER: Prüfe zuerst, ob es ein öffnendes Anführungszeichen im Kontext gibt
+        // ABER NICHT wenn vorher ein Leerzeichen war (dann ist es ein Anführungszeichen)
         if (Character.isLetter(charBefore) && 
             (!hasCharAfter || charAfter == ' ' || charAfter == '\n' || charAfter == '\t' ||
              charAfter == '.' || charAfter == ',' || charAfter == '!' || charAfter == '?' ||
@@ -1253,19 +1425,35 @@ if (caret != null) {
     
     /**
      * Bestimmt den Zustand der Anführungszeichen (öffnend/schließend)
+     * @param content Der Textinhalt
+     * @param position Die aktuelle Position
+     * @param isSingleQuote true wenn es ein einfaches Anführungszeichen ist, false für doppelte
      */
-    private boolean determineQuotationState(String content, int position) {
+    private boolean determineQuotationState(String content, int position, boolean isSingleQuote) {
         // Zähle die Anzahl der Anführungszeichen vor der aktuellen Position
         int quoteCount = 0;
         for (int i = 0; i < position; i++) {
             char c = content.charAt(i);
-            // Zähle alle doppelten Anführungszeichen (abhängig vom aktuellen Stil)
-            if (currentQuoteStyleIndex >= 0 && currentQuoteStyleIndex < QUOTE_MAPPING.length) {
-                String openingQuote = QUOTE_MAPPING[currentQuoteStyleIndex][0];
-                String closingQuote = QUOTE_MAPPING[currentQuoteStyleIndex][1];
-                if (c == openingQuote.charAt(0) || c == closingQuote.charAt(0) || 
-                    (currentQuoteStyleIndex == 2 && c == '"')) { // Englisch
-                    quoteCount++;
+            
+            if (isSingleQuote) {
+                // Zähle einfache Anführungszeichen (abhängig vom aktuellen Stil)
+                if (currentQuoteStyleIndex >= 0 && currentQuoteStyleIndex < SINGLE_QUOTE_MAPPING.length) {
+                    String openingQuote = SINGLE_QUOTE_MAPPING[currentQuoteStyleIndex][0];
+                    String closingQuote = SINGLE_QUOTE_MAPPING[currentQuoteStyleIndex][1];
+                    if (c == openingQuote.charAt(0) || c == closingQuote.charAt(0) || 
+                        (currentQuoteStyleIndex == 2 && c == '\'')) { // Englisch
+                        quoteCount++;
+                    }
+                }
+            } else {
+                // Zähle doppelte Anführungszeichen (abhängig vom aktuellen Stil)
+                if (currentQuoteStyleIndex >= 0 && currentQuoteStyleIndex < QUOTE_MAPPING.length) {
+                    String openingQuote = QUOTE_MAPPING[currentQuoteStyleIndex][0];
+                    String closingQuote = QUOTE_MAPPING[currentQuoteStyleIndex][1];
+                    if (c == openingQuote.charAt(0) || c == closingQuote.charAt(0) || 
+                        (currentQuoteStyleIndex == 2 && c == '"')) { // Englisch
+                        quoteCount++;
+                    }
                 }
             }
         }
@@ -1297,6 +1485,11 @@ if (caret != null) {
     private void setupDynamicQuoteCheck() {
         // Event-Handler für kontinuierliche Überprüfung während des Tippens
         codeArea.textProperty().addListener((obs, oldText, newText) -> {
+            // Verhindere Aufruf während Normalisierung, um Undo-Historie-Probleme zu vermeiden
+            if (isNormalizingHtmlTags || isCheckingQuotes) {
+                return;
+            }
+            
             // Nur für französische und schweizer Modi
             if (currentQuoteStyleIndex != 1 && currentQuoteStyleIndex != 3) { // 1 = französisch, 3 = schweizer
                 return;
@@ -1754,7 +1947,18 @@ if (caret != null) {
      * Überprüft den Text auf ungerade Anführungszeichen (Fehlererkennung).
      * Die Konvertierung von Anführungszeichen wird vollständig in QuotationMarkConverter durchgeführt.
      */
+    // Flag um zu verhindern, dass checkAndConvertQuotes die Undo-Historie löscht
+    private boolean isCheckingQuotes = false;
+    // Flag um zu verhindern, dass normalizeHtmlTagsInText die Undo-Historie löscht
+    private boolean isNormalizingHtmlTags = false;
+    // Flag um zu verhindern, dass markEmptyLines die Undo-Historie löscht
+    private boolean isMarkingEmptyLines = false;
+    
     private void checkAndConvertQuotes(String text) {
+        // Verhindere rekursive Aufrufe und Undo-Historie-Probleme
+        if (isCheckingQuotes) {
+            return;
+        }
         if (text == null || text.isEmpty()) return;
         
         // Fehler-Liste für diese Überprüfung leeren
@@ -5905,6 +6109,31 @@ if (caret != null) {
             customStage.setFullTheme(themeIndex);
         }
         
+        // Preview-Fenster Theme aktualisieren
+        if (previewStage != null && previewStage.isShowing()) {
+            previewStage.setFullTheme(themeIndex);
+            previewStage.setTitleBarTheme(themeIndex);
+            // Hintergrund-Farbe und Border aktualisieren
+            String[] themeColors = {"#ffffff", "#1f2937", "#f3e5f5", "#0b1220", "#064e3b", "#581c87"};
+            String[] borderColors = {"#cccccc", "#ffffff", "#d4a5d4", "#ffffff", "#ffffff", "#ffffff"};
+            if (previewStage.getScene() != null && previewStage.getScene().getRoot() != null) {
+                // Der Root ist der VBox mit Titelleiste, der originalRoot ist unser outerContainer
+                Parent root = previewStage.getScene().getRoot();
+                if (root instanceof VBox) {
+                    VBox rootVBox = (VBox) root;
+                    // Suche nach unserem outerContainer (zweites Child nach titleBar)
+                    if (rootVBox.getChildren().size() > 1) {
+                        Node contentNode = rootVBox.getChildren().get(1);
+                        if (contentNode instanceof VBox) {
+                            VBox outerContainer = (VBox) contentNode;
+                            String borderStyle = "-fx-border-color: " + borderColors[themeIndex] + "; -fx-border-width: 2px; -fx-border-radius: 4px;";
+                            outerContainer.setStyle("-fx-background-color: " + themeColors[themeIndex] + "; " + borderStyle);
+                        }
+                    }
+                }
+            }
+        }
+        
         // WICHTIG: Theme in Preferences speichern für Persistierung
         preferences.putInt("editor_theme", themeIndex);
         preferences.putInt("main_window_theme", themeIndex);
@@ -7590,6 +7819,86 @@ spacer.setStyle("-fx-background-color: transparent;");
             preferences.putDouble("textanalysis_window_height", newVal.doubleValue()));
     }
     
+    /**
+     * Lädt die Preview-Fenster-Eigenschaften (Position und Größe)
+     */
+    private void loadPreviewWindowProperties() {
+        if (previewStage == null || preferences == null) {
+            return;
+        }
+        
+        // Verwende die neue Multi-Monitor-Validierung
+        Rectangle2D windowBounds = PreferencesManager.MultiMonitorValidator.loadAndValidateWindowProperties(
+            preferences, "preview_window", 1000.0, 800.0);
+        
+        // Wende die validierten Eigenschaften an
+        PreferencesManager.MultiMonitorValidator.applyWindowProperties(previewStage, windowBounds);
+        
+        // Event-Handler für Fenster-Änderungen (automatisches Speichern)
+        previewStage.xProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null && !newVal.equals(oldVal)) {
+                preferences.putDouble("preview_window_x", newVal.doubleValue());
+                try {
+                    preferences.flush();
+                } catch (Exception e) {
+                    logger.debug("Konnte Preview-Fenster-X-Position nicht speichern: " + e.getMessage());
+                }
+            }
+        });
+        
+        previewStage.yProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null && !newVal.equals(oldVal)) {
+                preferences.putDouble("preview_window_y", newVal.doubleValue());
+                try {
+                    preferences.flush();
+                } catch (Exception e) {
+                    logger.debug("Konnte Preview-Fenster-Y-Position nicht speichern: " + e.getMessage());
+                }
+            }
+        });
+        
+        previewStage.widthProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null && !newVal.equals(oldVal) && newVal.doubleValue() >= 600) {
+                preferences.putDouble("preview_window_width", newVal.doubleValue());
+                try {
+                    preferences.flush();
+                } catch (Exception e) {
+                    logger.debug("Konnte Preview-Fenster-Breite nicht speichern: " + e.getMessage());
+                }
+            }
+        });
+        
+        previewStage.heightProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null && !newVal.equals(oldVal) && newVal.doubleValue() >= 400) {
+                preferences.putDouble("preview_window_height", newVal.doubleValue());
+                try {
+                    preferences.flush();
+                } catch (Exception e) {
+                    logger.debug("Konnte Preview-Fenster-Höhe nicht speichern: " + e.getMessage());
+                }
+            }
+        });
+    }
+    
+    /**
+     * Speichert die Preview-Fenster-Eigenschaften (Position und Größe)
+     */
+    private void savePreviewWindowProperties() {
+        if (previewStage == null || preferences == null) {
+            return;
+        }
+        
+        try {
+            preferences.putDouble("preview_window_x", previewStage.getX());
+            preferences.putDouble("preview_window_y", previewStage.getY());
+            preferences.putDouble("preview_window_width", previewStage.getWidth());
+            preferences.putDouble("preview_window_height", previewStage.getHeight());
+            preferences.flush();
+        } catch (Exception e) {
+            logger.debug("Fehler beim Speichern der Preview-Fenster-Eigenschaften: " + e.getMessage());
+        }
+    }
+    
     private void createNewMacro() {
         TextInputDialog dialog = new TextInputDialog("Neues Makro");
         dialog.setTitle("Neues Makro erstellen");
@@ -8843,6 +9152,10 @@ spacer.setStyle("-fx-background-color: transparent;");
      * Konvertiert typographische Anführungszeichen zu normalen " in HTML-Attributen
      */
     private void normalizeHtmlTagsInText() {
+        // Verhindere rekursive Aufrufe, die die Undo-Historie löschen könnten
+        if (isNormalizingHtmlTags) {
+            return;
+        }
         
         if (codeArea == null) {
             return;
@@ -8860,20 +9173,26 @@ spacer.setStyle("-fx-background-color: transparent;");
         
         // Prüfe ob Änderungen vorgenommen wurden
         if (!currentText.equals(normalizedText)) {
+            // Flag setzen, um rekursive Aufrufe zu verhindern
+            isNormalizingHtmlTags = true;
             
-            // Speichere Cursor-Position
-            int caretPosition = codeArea.getCaretPosition();
-            
-            // Ersetze den Text
-            codeArea.replaceText(0, currentText.length(), normalizedText);
-            
-            // Stelle Cursor-Position wieder her
-            if (caretPosition <= normalizedText.length()) {
-                codeArea.moveTo(caretPosition);
-            } else {
-                codeArea.moveTo(normalizedText.length());
+            try {
+                // Speichere Cursor-Position
+                int caretPosition = codeArea.getCaretPosition();
+                
+                // Ersetze den Text - verwende replaceText mit Positionen, um Undo-Historie zu erhalten
+                codeArea.replaceText(0, currentText.length(), normalizedText);
+                
+                // Stelle Cursor-Position wieder her
+                if (caretPosition <= normalizedText.length()) {
+                    codeArea.moveTo(caretPosition);
+                } else {
+                    codeArea.moveTo(normalizedText.length());
+                }
+            } finally {
+                // Flag zurücksetzen
+                isNormalizingHtmlTags = false;
             }
-            
         }
         
     }
@@ -9086,6 +9405,31 @@ spacer.setStyle("-fx-background-color: transparent;");
         
         // WICHTIG: Alle anderen Stages aktualisieren
         StageManager.applyThemeToAllStages(currentThemeIndex);
+        
+        // Preview-Fenster Theme aktualisieren
+        if (previewStage != null && previewStage.isShowing()) {
+            previewStage.setFullTheme(currentThemeIndex);
+            previewStage.setTitleBarTheme(currentThemeIndex);
+            // Hintergrund-Farbe und Border aktualisieren
+            String[] themeColors = {"#ffffff", "#1f2937", "#f3e5f5", "#0b1220", "#064e3b", "#581c87"};
+            String[] borderColors = {"#cccccc", "#ffffff", "#d4a5d4", "#ffffff", "#ffffff", "#ffffff"};
+            if (previewStage.getScene() != null && previewStage.getScene().getRoot() != null) {
+                // Der Root ist der VBox mit Titelleiste, der originalRoot ist unser outerContainer
+                Parent root = previewStage.getScene().getRoot();
+                if (root instanceof VBox) {
+                    VBox rootVBox = (VBox) root;
+                    // Suche nach unserem outerContainer (zweites Child nach titleBar)
+                    if (rootVBox.getChildren().size() > 1) {
+                        Node contentNode = rootVBox.getChildren().get(1);
+                        if (contentNode instanceof VBox) {
+                            VBox outerContainer = (VBox) contentNode;
+                            String borderStyle = "-fx-border-color: " + borderColors[currentThemeIndex] + "; -fx-border-width: 2px; -fx-border-radius: 4px;";
+                            outerContainer.setStyle("-fx-background-color: " + themeColors[currentThemeIndex] + "; " + borderStyle);
+                        }
+                    }
+                }
+            }
+        }
         
         // WICHTIG: Theme in Preferences speichern
         preferences.putInt("editor_theme", currentThemeIndex);
@@ -10255,6 +10599,913 @@ spacer.setStyle("-fx-background-color: transparent;");
     }
     
     /**
+     * Toggle für das Preview-Fenster
+     */
+    private void togglePreviewWindow() {
+        if (previewStage == null || !previewStage.isShowing()) {
+            createPreviewWindow();
+            previewStage.show();
+            updateStatus("Preview geöffnet");
+        } else {
+            previewStage.hide();
+            updateStatus("Preview geschlossen");
+        }
+    }
+    
+    /**
+     * Erstellt das Preview-Fenster mit WebView
+     */
+    private void createPreviewWindow() {
+        if (previewStage == null) {
+            previewStage = StageManager.createStage("Preview");
+            previewStage.setResizable(true);
+            previewStage.setWidth(1000);
+            previewStage.setHeight(800);
+            previewStage.setMinWidth(600);
+            previewStage.setMinHeight(400);
+            
+            // WebView erstellen
+            previewWebView = new WebView();
+            previewWebView.setContextMenuEnabled(true);
+            
+            // Blocksatz-Toggle-Button
+            btnToggleJustify = new Button("Blocksatz");
+            btnToggleJustify.getStyleClass().add("button");
+            btnToggleJustify.setOnAction(e -> togglePreviewJustify());
+            updateJustifyButtonStyle();
+            
+            // Layout erstellen mit VBox für besseres Resizing
+            // Äußerer Container mit Padding und Border
+            VBox outerContainer = new VBox();
+            outerContainer.setPadding(new Insets(15));
+            outerContainer.setFillWidth(true);
+            
+            // Theme-gerechter Hintergrund und Border
+            String[] themeColors = {"#ffffff", "#1f2937", "#f3e5f5", "#0b1220", "#064e3b", "#581c87"};
+            String[] borderColors = {"#cccccc", "#ffffff", "#d4a5d4", "#ffffff", "#ffffff", "#ffffff"};
+            String borderStyle = "-fx-border-color: " + borderColors[currentThemeIndex] + "; -fx-border-width: 2px; -fx-border-radius: 4px;";
+            outerContainer.setStyle("-fx-background-color: " + themeColors[currentThemeIndex] + "; " + borderStyle);
+            
+            // Innerer Container für Content
+            VBox root = new VBox(5);
+            root.setPadding(new Insets(10));
+            root.setFillWidth(true);
+            VBox.setVgrow(root, Priority.ALWAYS);
+            
+            // Button-Zeile
+            HBox buttonBar = new HBox(10);
+            buttonBar.setAlignment(Pos.CENTER_LEFT);
+            buttonBar.getChildren().add(btnToggleJustify);
+            
+            // WebView soll den gesamten verfügbaren Platz einnehmen
+            VBox.setVgrow(previewWebView, Priority.ALWAYS);
+            HBox.setHgrow(previewWebView, Priority.ALWAYS);
+            
+            root.getChildren().addAll(buttonBar, previewWebView);
+            outerContainer.getChildren().add(root);
+            
+            // Scene erstellen
+            Scene scene = new Scene(outerContainer);
+            
+            // CSS mit ResourceManager laden
+            String cssPath = ResourceManager.getCssResource("css/manuskript.css");
+            if (cssPath != null) {
+                scene.getStylesheets().add(cssPath);
+            }
+            
+            // Scene mit Titelleiste setzen
+            previewStage.setSceneWithTitleBar(scene);
+            
+            // Theme anwenden
+            previewStage.setFullTheme(currentThemeIndex);
+            previewStage.setTitleBarTheme(currentThemeIndex);
+            
+            // Fenster-Position und Größe laden
+            loadPreviewWindowProperties();
+            
+            // Initiales Update
+            updatePreviewContent();
+            
+            // Scroll-Synchronisation einrichten
+            setupPreviewScrollSync();
+            
+            // Text-Änderungen überwachen
+            setupPreviewTextListener();
+            
+            // Fenster schließen-Handler
+            previewStage.setOnCloseRequest(e -> {
+                // Speichere Position und Größe beim Schließen
+                savePreviewWindowProperties();
+                previewStage.hide();
+            });
+        } else {
+            // Fenster existiert bereits, nur Theme aktualisieren
+            previewStage.setFullTheme(currentThemeIndex);
+            previewStage.setTitleBarTheme(currentThemeIndex);
+            updatePreviewContent();
+        }
+    }
+    
+    /**
+     * Aktualisiert den Preview-Inhalt
+     */
+    private void updatePreviewContent() {
+        if (previewWebView == null || codeArea == null) {
+            return;
+        }
+        
+        try {
+            String markdownContent = codeArea.getText();
+            String htmlContent = convertMarkdownToHTMLForPreview(markdownContent);
+            
+            // Nur aktualisieren, wenn sich der Content geändert hat
+            if (htmlContent.equals(lastPreviewContent)) {
+                return; // Keine Änderung, kein Update nötig
+            }
+            
+            lastPreviewContent = htmlContent;
+            
+            // Aktuelle Scroll-Position speichern
+            double savedScrollTop = 0.0;
+            try {
+                if (previewWebView.getEngine().getLoadWorker().getState() == javafx.concurrent.Worker.State.SUCCEEDED) {
+                    Object scrollTopObj = previewWebView.getEngine().executeScript("window.pageYOffset || document.documentElement.scrollTop");
+                    if (scrollTopObj instanceof Number) {
+                        savedScrollTop = ((Number) scrollTopObj).doubleValue();
+                    }
+                }
+            } catch (Exception e) {
+                logger.debug("Fehler beim Speichern der Scroll-Position: " + e.getMessage());
+            }
+            
+            final double scrollTopToRestore = savedScrollTop;
+            
+            // Entferne alten Listener falls vorhanden (vor dem Laden)
+            if (previewLoadListener != null) {
+                previewWebView.getEngine().getLoadWorker().stateProperty().removeListener(previewLoadListener);
+            }
+            
+            // Neuer Listener für Scroll-Position (vor dem Laden hinzufügen)
+            previewLoadListener = (obs, oldState, newState) -> {
+                if (newState == javafx.concurrent.Worker.State.SUCCEEDED) {
+                    Platform.runLater(() -> {
+                        try {
+                            // Mehrfache Versuche mit Verzögerung, damit das Layout fertig ist
+                            Timeline timeline = new Timeline(
+                                new KeyFrame(Duration.millis(50), event -> {
+                                    try {
+                                        String script = String.format("window.scrollTo(0, %f);", scrollTopToRestore);
+                                        previewWebView.getEngine().executeScript(script);
+                                    } catch (Exception e) {
+                                        logger.debug("Fehler beim Wiederherstellen der Scroll-Position (1. Versuch): " + e.getMessage());
+                                    }
+                                }),
+                                new KeyFrame(Duration.millis(150), event -> {
+                                    try {
+                                        String script = String.format("window.scrollTo(0, %f);", scrollTopToRestore);
+                                        previewWebView.getEngine().executeScript(script);
+                                    } catch (Exception e) {
+                                        logger.debug("Fehler beim Wiederherstellen der Scroll-Position (2. Versuch): " + e.getMessage());
+                                    }
+                                }),
+                                new KeyFrame(Duration.millis(300), event -> {
+                                    try {
+                                        String script = String.format("window.scrollTo(0, %f);", scrollTopToRestore);
+                                        previewWebView.getEngine().executeScript(script);
+                                    } catch (Exception e) {
+                                        logger.debug("Fehler beim Wiederherstellen der Scroll-Position (3. Versuch): " + e.getMessage());
+                                    }
+                                })
+                            );
+                            timeline.play();
+                        } catch (Exception e) {
+                            logger.debug("Fehler beim Wiederherstellen der Scroll-Position: " + e.getMessage());
+                        }
+                    });
+                }
+            };
+            
+            // Listener hinzufügen BEVOR loadContent() aufgerufen wird
+            previewWebView.getEngine().getLoadWorker().stateProperty().addListener(previewLoadListener);
+            
+            // Content laden
+            previewWebView.getEngine().loadContent(htmlContent, "text/html");
+            
+            // Falls der State bereits SUCCEEDED ist (sollte nicht passieren, aber sicherheitshalber)
+            if (previewWebView.getEngine().getLoadWorker().getState() == javafx.concurrent.Worker.State.SUCCEEDED) {
+                Platform.runLater(() -> {
+                    try {
+                        Timeline timeline = new Timeline(new KeyFrame(Duration.millis(100), event -> {
+                            try {
+                                String script = String.format("window.scrollTo(0, %f);", scrollTopToRestore);
+                                previewWebView.getEngine().executeScript(script);
+                            } catch (Exception e) {
+                                logger.debug("Fehler beim Wiederherstellen der Scroll-Position (Fallback): " + e.getMessage());
+                            }
+                        }));
+                        timeline.play();
+                    } catch (Exception e) {
+                        logger.debug("Fehler beim Wiederherstellen der Scroll-Position (Fallback): " + e.getMessage());
+                    }
+                });
+            }
+        } catch (Exception e) {
+            logger.error("Fehler beim Aktualisieren des Previews", e);
+        }
+    }
+    
+    /**
+     * Konvertiert Markdown zu HTML für Preview mit verbessertem Leerzeilen-Handling und Bild-Pfad-Konvertierung
+     */
+    private String convertMarkdownToHTMLForPreview(String markdown) {
+        StringBuilder html = new StringBuilder();
+        
+        // HTML-Header
+        html.append("<!DOCTYPE html>\n");
+        html.append("<html lang=\"de\">\n");
+        html.append("<head>\n");
+        html.append("    <meta charset=\"UTF-8\">\n");
+        html.append("    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n");
+        html.append("    <title>Preview</title>\n");
+        html.append("    <style>\n");
+        String textAlign = previewJustifyEnabled ? "justify" : "left";
+        html.append("        body { font-family: Arial, sans-serif; line-height: 1.6; margin: 0; padding: 2em 4em; max-width: 1200px; margin-left: auto; margin-right: auto; text-align: ").append(textAlign).append("; }\n");
+        html.append("        p { text-align: ").append(textAlign).append("; }\n");
+        html.append("        h1, h2, h3, h4 { color: #2c3e50; }\n");
+        html.append("        h1 { border-bottom: 2px solid #3498db; padding-bottom: 10px; }\n");
+        html.append("        h2 { border-bottom: 1px solid #bdc3c7; padding-bottom: 5px; }\n");
+        html.append("        code { background-color: #f8f9fa; padding: 2px 4px; border-radius: 3px; }\n");
+        html.append("        pre { background-color: #f8f9fa; padding: 15px; border-radius: 5px; overflow-x: auto; }\n");
+        html.append("        blockquote { margin: 10px 0; padding-left: 30px; color: #999; font-style: italic; }\n");
+        html.append("        hr { border: none; border-top: 2px solid #bdc3c7; margin: 20px 0; }\n");
+        html.append("        ul, ol { margin: 10px 0; padding-left: 20px; }\n");
+        html.append("        li { margin: 5px 0; }\n");
+        html.append("        ol ol { list-style-type: lower-alpha; }\n");
+        html.append("        ol ol ol { list-style-type: lower-roman; }\n");
+        html.append("        ol ol ol ol { list-style-type: decimal; }\n");
+        html.append("        table { border-collapse: collapse; width: 100%; margin: 15px 0; }\n");
+        html.append("        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }\n");
+        html.append("        th { background-color: #f2f2f2; }\n");
+        html.append("        .strikethrough { text-decoration: line-through; }\n");
+        html.append("        .highlight { background-color: yellow; }\n");
+        html.append("        img { max-width: 100%; height: auto; }\n");
+        html.append("    </style>\n");
+        html.append("</head>\n");
+        html.append("<body>\n");
+        
+        // Markdown zu HTML konvertieren
+        String[] lines = markdown.split("\n");
+        boolean inCodeBlock = false;
+        boolean inBlockquote = false;
+        boolean inTable = false;
+        boolean inParagraph = false;
+        StringBuilder tableContent = new StringBuilder();
+        
+        // Stack für verschachtelte Listen (0 = keine Liste, 1 = erste Ebene, etc.)
+        List<Integer> listStack = new ArrayList<>(); // 1 = unordered, 2 = ordered
+        List<Integer> indentStack = new ArrayList<>(); // Einrückungsebene
+        
+        for (int i = 0; i < lines.length; i++) {
+            String line = lines[i];
+            String trimmedLine = line.trim();
+            
+            // Horizontale Linien
+            if (trimmedLine.matches("^[-*_]{3,}$")) {
+                if (inParagraph) {
+                    html.append("</p>\n");
+                    inParagraph = false;
+                }
+                html.append("<hr>\n");
+                continue;
+            }
+            
+            // Tabellen
+            if (trimmedLine.contains("|") && !trimmedLine.startsWith("```")) {
+                if (inParagraph) {
+                    html.append("</p>\n");
+                    inParagraph = false;
+                }
+                if (!inTable) {
+                    inTable = true;
+                    tableContent = new StringBuilder();
+                    tableContent.append("<table>\n");
+                }
+                
+                // Separator-Zeile erkennen und überspringen
+                boolean isSeparator = trimmedLine.matches("^\\s*\\|?\\s*(?::?-+\\s*\\|\\s*)+(?::?-+)\\s*\\|?\\s*$");
+                if (isSeparator) {
+                    continue;
+                }
+                
+                // Header-Zeile prüfen
+                boolean isHeaderRow = false;
+                if (i + 1 < lines.length) {
+                    String nextTrimmed = lines[i + 1].trim();
+                    isHeaderRow = nextTrimmed.matches("^\\s*\\|?\\s*(?::?-+\\s*\\|\\s*)+(?::?-+)\\s*\\|?\\s*$");
+                }
+                
+                String normalized = trimmedLine.replaceAll("^\\|", "").replaceAll("\\|$", "");
+                String[] cells = normalized.split("\\|");
+                
+                tableContent.append("<tr>\n");
+                for (String rawCell : cells) {
+                    String cell = rawCell.trim();
+                    if (isHeaderRow) {
+                        tableContent.append("<th>").append(convertInlineMarkdownForPreview(cell)).append("</th>\n");
+                    } else {
+                        tableContent.append("<td>").append(convertInlineMarkdownForPreview(cell)).append("</td>\n");
+                    }
+                }
+                tableContent.append("</tr>\n");
+                continue;
+            } else if (inTable) {
+                inTable = false;
+                tableContent.append("</table>\n");
+                html.append(tableContent.toString());
+            }
+            
+            // Leerzeilen: Absatz beenden, aber nicht mehrfache <br> einfügen
+            if (trimmedLine.isEmpty()) {
+                if (inParagraph) {
+                    html.append("</p>\n");
+                    inParagraph = false;
+                }
+                if (inBlockquote) {
+                    html.append("</blockquote>\n");
+                    inBlockquote = false;
+                }
+                // Schließe alle offenen Listen bei Leerzeile
+                while (!listStack.isEmpty()) {
+                    int listType = listStack.remove(listStack.size() - 1);
+                    indentStack.remove(indentStack.size() - 1);
+                    if (listType == 1) {
+                        html.append("</ul>\n");
+                    } else if (listType == 2) {
+                        html.append("</ol>\n");
+                    }
+                }
+                // Kein <br> mehr - Absätze werden durch </p> getrennt
+                continue;
+            }
+            
+            // Code-Blöcke
+            if (trimmedLine.startsWith("```")) {
+                if (inParagraph) {
+                    html.append("</p>\n");
+                    inParagraph = false;
+                }
+                if (inCodeBlock) {
+                    html.append("</pre></code>\n");
+                    inCodeBlock = false;
+                } else {
+                    html.append("<pre><code>\n");
+                    inCodeBlock = true;
+                }
+                continue;
+            }
+            
+            if (inCodeBlock) {
+                html.append(escapeHtml(line)).append("\n");
+                continue;
+            }
+            
+            // Blockquotes
+            if (trimmedLine.startsWith(">")) {
+                if (inParagraph) {
+                    html.append("</p>\n");
+                    inParagraph = false;
+                }
+                if (!inBlockquote) {
+                    html.append("<blockquote>\n");
+                    inBlockquote = true;
+                }
+                String quoteText = trimmedLine.substring(1).trim();
+                html.append("<p>").append(convertInlineMarkdownForPreview(quoteText)).append("</p>\n");
+                continue;
+            } else if (inBlockquote) {
+                html.append("</blockquote>\n");
+                inBlockquote = false;
+            }
+            
+            // Listen mit verschachtelter Unterstützung
+            // Pattern für eingerückte Listen: optional Leerzeichen/Tabs am Anfang
+            boolean isUnorderedListItem = line.matches("^\\s*[-*+]\\s+.*");
+            boolean isOrderedListItem = line.matches("^\\s*\\d+\\.\\s+.*");
+            
+            if (isUnorderedListItem || isOrderedListItem) {
+                if (inParagraph) {
+                    html.append("</p>\n");
+                    inParagraph = false;
+                }
+                
+                // Berechne Einrückungsebene (Anzahl der Leerzeichen/Tabs am Anfang)
+                int indentLevel = 0;
+                for (int j = 0; j < line.length(); j++) {
+                    char c = line.charAt(j);
+                    if (c == ' ') {
+                        indentLevel++;
+                    } else if (c == '\t') {
+                        indentLevel += 4; // Tab = 4 Leerzeichen
+                    } else {
+                        break;
+                    }
+                }
+                
+                // Bestimme den Listen-Typ
+                int newListType = isUnorderedListItem ? 1 : 2;
+                
+                // Schließe Listen auf tieferen Ebenen, wenn wir zurückgehen
+                while (!indentStack.isEmpty() && indentLevel < indentStack.get(indentStack.size() - 1)) {
+                    int listType = listStack.remove(listStack.size() - 1);
+                    indentStack.remove(indentStack.size() - 1);
+                    if (listType == 1) {
+                        html.append("</ul>\n");
+                    } else if (listType == 2) {
+                        html.append("</ol>\n");
+                    }
+                }
+                
+                // Öffne neue Listen-Ebene falls nötig
+                if (indentStack.isEmpty() || indentLevel > indentStack.get(indentStack.size() - 1)) {
+                    // Neue Ebene öffnen (tiefer eingerückt oder erste Liste)
+                    if (newListType == 1) {
+                        html.append("<ul>\n");
+                    } else {
+                        html.append("<ol>\n");
+                    }
+                    listStack.add(newListType);
+                    indentStack.add(indentLevel);
+                } else if (!listStack.isEmpty() && listStack.get(listStack.size() - 1) != newListType && indentLevel == indentStack.get(indentStack.size() - 1)) {
+                    // Listen-Typ ändert sich auf gleicher Ebene - alte Liste schließen, neue öffnen
+                    int oldListType = listStack.remove(listStack.size() - 1);
+                    indentStack.remove(indentStack.size() - 1);
+                    if (oldListType == 1) {
+                        html.append("</ul>\n");
+                    } else if (oldListType == 2) {
+                        html.append("</ol>\n");
+                    }
+                    if (newListType == 1) {
+                        html.append("<ul>\n");
+                    } else {
+                        html.append("<ol>\n");
+                    }
+                    listStack.add(newListType);
+                    indentStack.add(indentLevel);
+                }
+                
+                // List-Item hinzufügen
+                String listItem;
+                if (isUnorderedListItem) {
+                    listItem = trimmedLine.replaceFirst("^[-*+]\\s+", "");
+                } else {
+                    listItem = trimmedLine.replaceFirst("^\\d+\\.\\s+", "");
+                }
+                html.append("<li>").append(convertInlineMarkdownForPreview(listItem)).append("</li>\n");
+                continue;
+            } else {
+                // Kein List-Item - schließe alle offenen Listen
+                while (!listStack.isEmpty()) {
+                    int listType = listStack.remove(listStack.size() - 1);
+                    indentStack.remove(indentStack.size() - 1);
+                    if (listType == 1) {
+                        html.append("</ul>\n");
+                    } else if (listType == 2) {
+                        html.append("</ol>\n");
+                    }
+                }
+            }
+            
+            // Überschriften
+            if (trimmedLine.startsWith("# ")) {
+                if (inParagraph) {
+                    html.append("</p>\n");
+                    inParagraph = false;
+                }
+                html.append("<h1>").append(convertInlineMarkdownForPreview(trimmedLine.substring(2))).append("</h1>\n");
+            } else if (trimmedLine.startsWith("## ")) {
+                if (inParagraph) {
+                    html.append("</p>\n");
+                    inParagraph = false;
+                }
+                html.append("<h2>").append(convertInlineMarkdownForPreview(trimmedLine.substring(3))).append("</h2>\n");
+            } else if (trimmedLine.startsWith("### ")) {
+                if (inParagraph) {
+                    html.append("</p>\n");
+                    inParagraph = false;
+                }
+                html.append("<h3>").append(convertInlineMarkdownForPreview(trimmedLine.substring(4))).append("</h3>\n");
+            } else if (trimmedLine.startsWith("#### ")) {
+                if (inParagraph) {
+                    html.append("</p>\n");
+                    inParagraph = false;
+                }
+                html.append("<h4>").append(convertInlineMarkdownForPreview(trimmedLine.substring(5))).append("</h4>\n");
+            } else {
+                // Normaler Text - Absatz zusammenfassen
+                if (!inParagraph) {
+                    html.append("<p>");
+                    inParagraph = true;
+                } else {
+                    html.append(" ");
+                }
+                html.append(convertInlineMarkdownForPreview(line));
+            }
+        }
+        
+        // Schließe offene Tags
+        if (inParagraph) html.append("</p>\n");
+        if (inBlockquote) html.append("</blockquote>\n");
+        
+        // Schließe alle offenen Listen
+        while (!listStack.isEmpty()) {
+            int listType = listStack.remove(listStack.size() - 1);
+            if (listType == 1) {
+                html.append("</ul>\n");
+            } else if (listType == 2) {
+                html.append("</ol>\n");
+            }
+        }
+        
+        if (inTable) {
+            tableContent.append("</table>\n");
+            html.append(tableContent.toString());
+        }
+        
+        html.append("</body>\n");
+        html.append("</html>");
+        
+        return html.toString();
+    }
+    
+    /**
+     * Konvertiert Inline-Markdown zu HTML mit Bild-Pfad-Konvertierung
+     */
+    private String convertInlineMarkdownForPreview(String text) {
+        // Zuerst Bilder konvertieren (vor anderen Konvertierungen)
+        String result = text;
+        
+        // Pattern für Bilder: ![Alt-Text](Pfad)
+        Pattern imagePattern = Pattern.compile("!\\[([^\\]]*)\\]\\(([^)]+)\\)");
+        Matcher imageMatcher = imagePattern.matcher(result);
+        StringBuffer imageBuffer = new StringBuffer();
+        
+        while (imageMatcher.find()) {
+            String altText = imageMatcher.group(1);
+            String imagePath = imageMatcher.group(2);
+            
+            // Konvertiere relativen Pfad zu absolutem Pfad
+            String absolutePath = convertImagePathToAbsolute(imagePath);
+            
+            String replacement = "<img src=\"" + escapeHtml(absolutePath) + "\" alt=\"" + escapeHtml(altText) + "\">";
+            imageMatcher.appendReplacement(imageBuffer, Matcher.quoteReplacement(replacement));
+        }
+        imageMatcher.appendTail(imageBuffer);
+        result = imageBuffer.toString();
+        
+        // Dann andere Inline-Markdown-Elemente konvertieren
+        return result
+            // Fett (zwei Sternchen)
+            .replaceAll("\\*\\*(.*?)\\*\\*", "<strong>$1</strong>")
+            // Kursiv (ein Sternchen) - aber nicht wenn es bereits fett ist
+            .replaceAll("(?<!\\*)\\*(?!\\*)(.*?)(?<!\\*)\\*(?!\\*)", "<em>$1</em>")
+            // Inline-Code (Backticks)
+            .replaceAll("`(.*?)`", "<code>$1</code>")
+            // Links
+            .replaceAll("\\[([^\\]]+)\\]\\(([^)]+)\\)", "<a href=\"$2\">$1</a>")
+            // Durchgestrichen (zwei Tilden)
+            .replaceAll("~~(.*?)~~", "<span class=\"strikethrough\">$1</span>")
+            // Hervorgehoben (zwei Gleichheitszeichen)
+            .replaceAll("==(.*?)==", "<span class=\"highlight\">$1</span>");
+    }
+    
+    /**
+     * Toggle für Blocksatz im Preview
+     */
+    private void togglePreviewJustify() {
+        previewJustifyEnabled = !previewJustifyEnabled;
+        updateJustifyButtonStyle();
+        updatePreviewContent();
+    }
+    
+    /**
+     * Aktualisiert den Stil des Blocksatz-Buttons
+     */
+    private void updateJustifyButtonStyle() {
+        if (btnToggleJustify == null) {
+            return;
+        }
+        
+        if (previewJustifyEnabled) {
+            btnToggleJustify.setText("Blocksatz ✓");
+            btnToggleJustify.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold;");
+        } else {
+            btnToggleJustify.setText("Blocksatz");
+            btnToggleJustify.setStyle("");
+        }
+    }
+    
+    /**
+     * Konvertiert einen Bild-Pfad zu einem absoluten file://-Pfad
+     */
+    private String convertImagePathToAbsolute(String imagePath) {
+        if (imagePath == null || imagePath.trim().isEmpty()) {
+            return "";
+        }
+        
+        // Wenn bereits absolute URL oder file://-Pfad
+        if (imagePath.startsWith("http://") || imagePath.startsWith("https://") || imagePath.startsWith("file://")) {
+            return imagePath;
+        }
+        
+        // Versuche relativen Pfad zu absoluten Pfad zu konvertieren
+        File imageFile = null;
+        
+        if (currentFile != null && currentFile.exists()) {
+            // Relativer Pfad basierend auf der aktuellen Datei
+            File parentDir = currentFile.getParentFile();
+            if (parentDir != null) {
+                imageFile = new File(parentDir, imagePath);
+            }
+        }
+        
+        // Falls nicht gefunden, versuche als absoluter Pfad
+        if (imageFile == null || !imageFile.exists()) {
+            imageFile = new File(imagePath);
+        }
+        
+        // Konvertiere zu file://-URL
+        if (imageFile.exists()) {
+            try {
+                return imageFile.toURI().toURL().toString();
+            } catch (Exception e) {
+                logger.debug("Fehler beim Konvertieren des Bild-Pfads: " + e.getMessage());
+            }
+        }
+        
+        // Fallback: Original-Pfad zurückgeben
+        return imagePath;
+    }
+    
+    /**
+     * Richtet die Scroll-Synchronisation zwischen Editor und Preview ein
+     */
+    private void setupPreviewScrollSync() {
+        if (codeArea == null || previewWebView == null) {
+            return;
+        }
+        
+        // Überwache Paragraph-Änderungen im Editor
+        codeArea.currentParagraphProperty().addListener((obs, oldParagraph, newParagraph) -> {
+            if (!isScrollingPreview && previewWebView != null && previewStage != null && previewStage.isShowing()) {
+                syncPreviewScroll(newParagraph.intValue());
+            }
+        });
+        
+        // Klick auf Zeile: Suche im Preview und scroll mittig dorthin
+        codeArea.setOnMouseClicked(event -> {
+            if (previewWebView != null && previewStage != null && previewStage.isShowing()) {
+                scrollToLineInPreview();
+            }
+        });
+        
+        // Pfeiltasten: Suche im Preview und scroll mittig dorthin
+        codeArea.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+            if (previewWebView != null && previewStage != null && previewStage.isShowing()) {
+                KeyCode code = event.getCode();
+                if (code == KeyCode.UP || code == KeyCode.DOWN || 
+                    code == KeyCode.PAGE_UP || code == KeyCode.PAGE_DOWN ||
+                    code == KeyCode.HOME || code == KeyCode.END) {
+                    // Kurze Verzögerung, damit der Cursor sich bewegt hat
+                    Platform.runLater(() -> {
+                        Platform.runLater(() -> {
+                            scrollToLineInPreview();
+                        });
+                    });
+                }
+            }
+        });
+    }
+    
+    /**
+     * Scrollt im Preview zur aktuellen Editor-Zeile (mittig)
+     */
+    private void scrollToLineInPreview() {
+        if (previewWebView == null || codeArea == null) {
+            return;
+        }
+        
+        try {
+            // Aktuelle Zeile extrahieren
+            int currentParagraph = codeArea.getCurrentParagraph();
+            if (currentParagraph < 0 || currentParagraph >= codeArea.getParagraphs().size()) {
+                return;
+            }
+            
+            // Text aus dem Paragraph extrahieren
+            // Berechne den Offset für den Anfang des Paragraphs
+            int paragraphStart = 0;
+            for (int i = 0; i < currentParagraph; i++) {
+                paragraphStart += codeArea.getParagraphLength(i) + 1; // +1 für Zeilenumbruch
+            }
+            int paragraphEnd = paragraphStart + codeArea.getParagraphLength(currentParagraph);
+            String currentLine = codeArea.getText(paragraphStart, paragraphEnd).trim();
+            if (currentLine.isEmpty()) {
+                return;
+            }
+            
+            // Entferne Markdown-Syntax für die Suche (nur ersten Teil der Zeile verwenden)
+            String searchText = currentLine;
+            // Entferne Markdown-Formatierung für bessere Suche
+            searchText = searchText.replaceAll("^#+\\s+", "")  // Überschriften
+                                  .replaceAll("^[-*+]\\s+", "")  // Listen
+                                  .replaceAll("^\\d+\\.\\s+", "")  // Nummerierte Listen
+                                  .replaceAll("^>\\s+", "")  // Blockquotes
+                                  .replaceAll("```.*```", "")  // Code-Blöcke (vereinfacht)
+                                  .trim();
+            
+            // Verwende nur die ersten 100 Zeichen für die Suche
+            if (searchText.length() > 100) {
+                searchText = searchText.substring(0, 100);
+            }
+            
+            if (searchText.isEmpty()) {
+                return;
+            }
+            
+            final String finalSearchText = searchText;
+            
+            // Suche im WebView und scroll mittig dorthin
+            Platform.runLater(() -> {
+                try {
+                    // Warte bis WebView geladen ist
+                    if (previewWebView.getEngine().getLoadWorker().getState() == javafx.concurrent.Worker.State.SUCCEEDED) {
+                        scrollToTextInPreview(finalSearchText);
+                    } else {
+                        previewWebView.getEngine().getLoadWorker().stateProperty().addListener((obs, oldState, newState) -> {
+                            if (newState == javafx.concurrent.Worker.State.SUCCEEDED) {
+                                scrollToTextInPreview(finalSearchText);
+                            }
+                        });
+                    }
+                } catch (Exception e) {
+                    logger.debug("Fehler beim Scrollen zur Zeile im Preview: " + e.getMessage());
+                }
+            });
+        } catch (Exception e) {
+            logger.debug("Fehler beim Extrahieren der Zeile: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * Sucht Text im Preview und scrollt mittig dorthin
+     */
+    private void scrollToTextInPreview(String searchText) {
+        if (previewWebView == null || searchText == null || searchText.isEmpty()) {
+            return;
+        }
+        
+        try {
+            // JavaScript: Suche Text im HTML und scroll mittig dorthin
+            // Escapen von Sonderzeichen für JavaScript
+            String escapedText = searchText.replace("\\", "\\\\")
+                                          .replace("\"", "\\\"")
+                                          .replace("\n", "\\n")
+                                          .replace("\r", "\\r")
+                                          .replace("'", "\\'");
+            
+            String script = String.format(
+                "(function() {" +
+                "  var searchText = %s;" +
+                "  var walker = document.createTreeWalker(" +
+                "    document.body," +
+                "    NodeFilter.SHOW_TEXT," +
+                "    null," +
+                "    false" +
+                "  );" +
+                "  var node;" +
+                "  var foundElement = null;" +
+                "  while (node = walker.nextNode()) {" +
+                "    if (node.textContent && node.textContent.trim().indexOf(searchText) !== -1) {" +
+                "      foundElement = node.parentElement;" +
+                "      break;" +
+                "    }" +
+                "  }" +
+                "  if (foundElement) {" +
+                "    var rect = foundElement.getBoundingClientRect();" +
+                "    var scrollTop = window.pageYOffset || document.documentElement.scrollTop;" +
+                "    var elementTop = rect.top + scrollTop;" +
+                "    var windowHeight = window.innerHeight;" +
+                "    var elementHeight = rect.height;" +
+                "    var scrollTo = elementTop - (windowHeight / 2) + (elementHeight / 2);" +
+                "    window.scrollTo({ top: scrollTo, behavior: 'smooth' });" +
+                "    return true;" +
+                "  }" +
+                "  return false;" +
+                "})();",
+                "\"" + escapedText + "\""
+            );
+            
+            Object result = previewWebView.getEngine().executeScript(script);
+            
+            // Falls nicht gefunden, versuche mit ersten 50 Zeichen
+            if (result == null || !Boolean.TRUE.equals(result)) {
+                if (searchText.length() > 50) {
+                    scrollToTextInPreview(searchText.substring(0, 50));
+                }
+            }
+        } catch (Exception e) {
+            logger.debug("Fehler beim Suchen und Scrollen im Preview: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * Synchronisiert die Scroll-Position im Preview mit dem Editor
+     */
+    private void syncPreviewScroll(int paragraphIndex) {
+        if (previewWebView == null || codeArea == null) {
+            return;
+        }
+        
+        try {
+            // Berechne Scroll-Position basierend auf Paragraph-Index
+            int totalParagraphs = codeArea.getParagraphs().size();
+            if (totalParagraphs == 0) {
+                return;
+            }
+            
+            // Berechne Scroll-Position als Prozentsatz
+            double scrollPercent = (double) paragraphIndex / totalParagraphs;
+            
+            // JavaScript ausführen, um im Preview zu scrollen
+            Platform.runLater(() -> {
+                try {
+                    // Warte bis WebView geladen ist
+                    previewWebView.getEngine().getLoadWorker().stateProperty().addListener((obs, oldState, newState) -> {
+                        if (newState == javafx.concurrent.Worker.State.SUCCEEDED) {
+                            try {
+                                // Berechne Scroll-Position im HTML-Dokument
+                                String script = String.format(
+                                    "var scrollHeight = document.body.scrollHeight - window.innerHeight; " +
+                                    "var scrollTop = scrollHeight * %f; " +
+                                    "window.scrollTo(0, scrollTop);",
+                                    scrollPercent
+                                );
+                                previewWebView.getEngine().executeScript(script);
+                            } catch (Exception e) {
+                                logger.debug("Fehler beim Scrollen im Preview: " + e.getMessage());
+                            }
+                        }
+                    });
+                    
+                    // Falls bereits geladen, sofort scrollen
+                    if (previewWebView.getEngine().getLoadWorker().getState() == javafx.concurrent.Worker.State.SUCCEEDED) {
+                        String script = String.format(
+                            "var scrollHeight = document.body.scrollHeight - window.innerHeight; " +
+                            "var scrollTop = scrollHeight * %f; " +
+                            "window.scrollTo(0, scrollTop);",
+                            scrollPercent
+                        );
+                        previewWebView.getEngine().executeScript(script);
+                    }
+                } catch (Exception e) {
+                    logger.debug("Fehler beim Scrollen im Preview: " + e.getMessage());
+                }
+            });
+        } catch (Exception e) {
+            logger.debug("Fehler bei der Scroll-Synchronisation: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * Richtet einen Listener für Text-Änderungen ein (mit Debounce)
+     */
+    private void setupPreviewTextListener() {
+        if (codeArea == null) {
+            return;
+        }
+        
+        codeArea.textProperty().addListener((obs, oldText, newText) -> {
+            if (previewStage != null && previewStage.isShowing() && previewWebView != null) {
+                // Debounce: Aktualisiere nach 500ms Pause
+                if (previewUpdateFuture != null && !previewUpdateFuture.isDone()) {
+                    previewUpdateFuture.cancel(false);
+                }
+                
+                previewUpdateFuture = Executors.newSingleThreadScheduledExecutor(r -> {
+                    Thread t = new Thread(r, "PreviewUpdateScheduler");
+                    t.setDaemon(true);
+                    return t;
+                }).schedule(() -> {
+                    Platform.runLater(() -> {
+                        // updatePreviewContent stellt die Scroll-Position automatisch wieder her
+                        updatePreviewContent();
+                    });
+                }, 500, TimeUnit.MILLISECONDS);
+            }
+        });
+    }
+    
+    /**
      * Methode zum Einfügen von Text aus dem KI-Assistenten
      */
     public void insertTextFromAI(String text) {
@@ -10876,6 +12127,11 @@ spacer.setStyle("-fx-background-color: transparent;");
     private void setupEmptyLineMarking() {
         // Event-Handler für Textänderungen
         codeArea.textProperty().addListener((obs, oldText, newText) -> {
+            // Verhindere Aufruf während markEmptyLines, um Undo-Historie-Probleme zu vermeiden
+            if (isMarkingEmptyLines) {
+                return;
+            }
+            
             Platform.runLater(() -> {
                 try {
                     if (paragraphMarkingEnabled) {
@@ -10939,6 +12195,11 @@ spacer.setStyle("-fx-background-color: transparent;");
      * Markiert alle Leerzeilen mit einem unsichtbaren Absatz-Symbol
      */
     private void markEmptyLines() {
+        // Verhindere rekursive Aufrufe, die die Undo-Historie löschen könnten
+        if (isMarkingEmptyLines) {
+            return;
+        }
+        
         String text = codeArea.getText();
         if (text == null || text.isEmpty()) return;
         
@@ -10966,15 +12227,23 @@ spacer.setStyle("-fx-background-color: transparent;");
         
         // Text nur aktualisieren, wenn sich etwas geändert hat
         if (textChanged && !newText.toString().equals(text)) {
-            // Cursor-Position merken
-            int caretPosition = codeArea.getCaretPosition();
+            // Flag setzen, um rekursive Aufrufe zu verhindern
+            isMarkingEmptyLines = true;
             
-            // Text aktualisieren
-            codeArea.replaceText(0, text.length(), newText.toString());
-            
-            // Cursor-Position wiederherstellen
-            if (caretPosition <= newText.length()) {
-                codeArea.moveTo(caretPosition);
+            try {
+                // Cursor-Position merken
+                int caretPosition = codeArea.getCaretPosition();
+                
+                // Text aktualisieren - verwende replaceText mit Positionen, um Undo-Historie zu erhalten
+                codeArea.replaceText(0, text.length(), newText.toString());
+                
+                // Cursor-Position wiederherstellen
+                if (caretPosition <= newText.length()) {
+                    codeArea.moveTo(caretPosition);
+                }
+            } finally {
+                // Flag zurücksetzen
+                isMarkingEmptyLines = false;
             }
         }
     }
