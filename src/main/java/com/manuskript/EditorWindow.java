@@ -10,6 +10,7 @@ import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Separator;
+import javafx.scene.control.Alert;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.Node;
@@ -5854,6 +5855,40 @@ if (caret != null) {
         } catch (Exception e) {
             logger.error("Fehler beim Erstellen der DOCX-Datei", e);
             updateStatusError("Fehler beim Erstellen der DOCX-Datei: " + e.getMessage());
+            
+            // Detaillierte Fehlermeldung in einem Alert-Dialog anzeigen
+            Platform.runLater(() -> {
+                CustomAlert alert = new CustomAlert(Alert.AlertType.ERROR, "DOCX-Export Fehler");
+                alert.setHeaderText("Fehler beim Erstellen der DOCX-Datei");
+                
+                // Detaillierte Fehlermeldung zusammenstellen
+                StringBuilder errorMessage = new StringBuilder();
+                errorMessage.append("Die DOCX-Datei konnte nicht erstellt werden.\n\n");
+                errorMessage.append("Zieldatei: ").append(docxFile.getAbsolutePath()).append("\n\n");
+                errorMessage.append("Fehlertyp: ").append(e.getClass().getSimpleName()).append("\n");
+                errorMessage.append("Fehlermeldung: ").append(e.getMessage()).append("\n\n");
+                
+                // Zusätzliche Informationen für häufige Fehler
+                if (e.getMessage() != null) {
+                    String msg = e.getMessage().toLowerCase();
+                    if (msg.contains("permission") || msg.contains("zugriff") || msg.contains("access")) {
+                        errorMessage.append("💡 Mögliche Ursache: Die Datei ist möglicherweise in Word oder einem anderen Programm geöffnet.\n");
+                        errorMessage.append("   Bitte schließen Sie die Datei und versuchen Sie es erneut.\n\n");
+                    } else if (msg.contains("disk") || msg.contains("space") || msg.contains("speicher")) {
+                        errorMessage.append("💡 Mögliche Ursache: Nicht genügend Speicherplatz auf dem Datenträger.\n\n");
+                    } else if (msg.contains("path") || msg.contains("pfad")) {
+                        errorMessage.append("💡 Mögliche Ursache: Der Pfad ist ungültig oder das Verzeichnis existiert nicht.\n\n");
+                    }
+                }
+                
+                errorMessage.append("Für weitere Details siehe die Log-Datei.");
+                
+                alert.setContentText(errorMessage.toString());
+                alert.applyTheme(currentThemeIndex);
+                alert.initOwner(stage);
+                alert.showAndWait();
+            });
+            
             e.printStackTrace();
         }
     }

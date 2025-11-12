@@ -3,9 +3,12 @@ package com.manuskript;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
+import javafx.scene.Cursor;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
+import javafx.concurrent.Task;
+import javafx.application.Platform;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import org.slf4j.Logger;
@@ -37,8 +40,6 @@ import org.apache.poi.xwpf.usermodel.ParagraphAlignment;
 import org.apache.poi.util.Units;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
 import com.google.gson.Gson;
@@ -48,6 +49,9 @@ import com.manuskript.HelpSystem;
 
 public class PandocExportWindow extends CustomStage {
     private static final Logger logger = LoggerFactory.getLogger(PandocExportWindow.class);
+    
+    // Flag für Export-Status (verhindert, dass CustomStage den Cursor überschreibt)
+    private boolean isExporting = false;
     
     // UI Components
     private ComboBox<String> formatComboBox;
@@ -87,6 +91,7 @@ public class PandocExportWindow extends CustomStage {
     private int currentThemeIndex;
     private File pandocHome; // Ordner, in dem sich pandoc.exe befindet
     private File projectDirectory; // Projekt-Verzeichnis für Metadaten-Speicherung
+    private String lastExportError; // Letzte Fehlermeldung vom Export
     private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
     
     public PandocExportWindow(File inputMarkdownFile, String projectName) {
@@ -166,13 +171,13 @@ public class PandocExportWindow extends CustomStage {
         
         templateBox.getChildren().addAll(templateLabel, templateComboBox, templateHelpButton);
         
-        // Cover Image für EPUB
+        // Cover Image für EPUB, HTML und DOCX
         coverImageBox = new HBox(10);
         coverImageBox.setAlignment(Pos.CENTER_LEFT);
         Label coverImageLabel = new Label("Cover-Bild:");
         coverImageLabel.setPrefWidth(100);
         coverImageField = new TextField();
-        coverImageField.setPromptText("Bild für EPUB-Cover");
+        coverImageField.setPromptText("Pfad zum Cover-Bild");
         coverImageField.setPrefWidth(400);
         coverImageBrowseButton = new Button("📁");
         coverImageBrowseButton.getStyleClass().add("dialog-button-icon");
@@ -515,7 +520,6 @@ public class PandocExportWindow extends CustomStage {
                 String json = Files.readString(metadataFile.toPath(), StandardCharsets.UTF_8);
                 TypeToken<Map<String, String>> typeToken = new TypeToken<Map<String, String>>(){};
                 metadata = gson.fromJson(json, typeToken.getType());
-                logger.info("Metadaten aus Projekt-Datei geladen: {}", metadataFile.getAbsolutePath());
             } catch (IOException e) {
                 logger.warn("Fehler beim Laden der Projekt-Metadaten, verwende Fallback: {}", e.getMessage());
             }
@@ -538,7 +542,7 @@ public class PandocExportWindow extends CustomStage {
                 File projectCover = new File(projectDirectory, "cover_image.png");
                 if (projectCover.exists()) {
                     coverImageField.setText(projectCover.getAbsolutePath());
-                    logger.info("Cover-Bild automatisch gesetzt: {}", projectCover.getAbsolutePath());
+                    logger.debug("Cover-Bild automatisch gesetzt: {}", projectCover.getAbsolutePath());
                 } else {
                     coverImageField.setText("");
                 }
@@ -658,20 +662,64 @@ public class PandocExportWindow extends CustomStage {
             return;
         }
         
-        try {
-            // Export-Button deaktivieren während des Exports
-            exportButton.setDisable(true);
-            exportButton.setText("Export läuft...");
-            
-            // YAML-Metadaten direkt in Markdown-Datei einfügen
-            File markdownWithMetadata = createMarkdownWithMetadata();
-            if (markdownWithMetadata == null) {
-                showAlert("Fehler", "Konnte Markdown-Datei mit Metadaten nicht erstellen.");
-                return;
+        // Export-Flag setzen (verhindert, dass CustomStage den Cursor überschreibt)
+        isExporting = true;
+        
+        // Cursor in CustomStage sperren, damit er nicht überschrieben wird
+        setCursorLocked(true);
+        
+        // UI-Updates sofort anzeigen (synchron, da wir bereits im JavaFX-Thread sind)
+        if (getScene() != null) {
+            getScene().setCursor(Cursor.WAIT);
+        }
+        exportButton.setDisable(true);
+        exportButton.setText("Export läuft...");
+        
+        // Export in separatem Thread ausführen, damit UI nicht blockiert wird
+        Task<Boolean> exportTask = new Task<Boolean>() {
+            @Override
+            protected Boolean call() throws Exception {
+                try {
+                    // YAML-Metadaten direkt in Markdown-Datei einfügen
+                    File markdownWithMetadata = createMarkdownWithMetadata();
+                    if (markdownWithMetadata == null) {
+                        Platform.runLater(() -> {
+                            isExporting = false;
+                            setCursorLocked(false);
+                            if (getScene() != null) {
+                                getScene().setCursor(Cursor.DEFAULT);
+                            }
+                            exportButton.setDisable(false);
+                            exportButton.setText("Export starten");
+                            showAlert("Fehler", "Konnte Markdown-Datei mit Metadaten nicht erstellen.");
+                        });
+                        return false;
+                    }
+                    
+                    // Pandoc-Aufruf
+                    return runPandocExport(markdownWithMetadata);
+                } catch (Exception e) {
+                    logger.error("Fehler beim Export", e);
+                    lastExportError = "Export fehlgeschlagen: " + (e.getMessage() != null ? e.getMessage() : "Unbekannter Fehler");
+                    return false;
+                }
             }
+        };
+        
+        // Erfolg/Fehler-Handler
+        exportTask.setOnSucceeded(e -> {
+            boolean success = exportTask.getValue();
             
-            // Pandoc-Aufruf
-            boolean success = runPandocExport(markdownWithMetadata);
+            // Export-Flag zurücksetzen
+            isExporting = false;
+            setCursorLocked(false);
+            
+            // UI zurücksetzen
+            if (getScene() != null) {
+                getScene().setCursor(Cursor.DEFAULT);
+            }
+            exportButton.setDisable(false);
+            exportButton.setText("Export starten");
             
             if (success) {
                 // Metadaten vor dem Schließen speichern
@@ -679,18 +727,40 @@ public class PandocExportWindow extends CustomStage {
                 showAlert("Erfolg", "Export erfolgreich abgeschlossen!");
                 close();
             } else {
-                // Fehler-Dialog mit Hilfebutton
-                showErrorWithHelp("Export fehlgeschlagen. Siehe Logs für Details.");
+                // Fehler-Dialog mit detaillierter Fehlermeldung
+                String errorMessage = "Export fehlgeschlagen.";
+                if (lastExportError != null && !lastExportError.trim().isEmpty()) {
+                    errorMessage = "Export fehlgeschlagen.\n\n" + lastExportError;
+                } else {
+                    errorMessage = "Export fehlgeschlagen. Siehe Logs für Details.";
+                }
+                showErrorWithHelp(errorMessage);
             }
+        });
+        
+        exportTask.setOnFailed(e -> {
+            // Export-Flag zurücksetzen
+            isExporting = false;
+            setCursorLocked(false);
             
-        } catch (Exception e) {
-            logger.error("Fehler beim Export", e);
-            showAlert("Fehler", "Export fehlgeschlagen: " + e.getMessage());
-        } finally {
-            // Export-Button wieder aktivieren
+            // UI zurücksetzen
+            if (getScene() != null) {
+                getScene().setCursor(Cursor.DEFAULT);
+            }
             exportButton.setDisable(false);
             exportButton.setText("Export starten");
-        }
+            
+            // Fehler-Dialog
+            String errorMessage = "Export fehlgeschlagen: " + 
+                (exportTask.getException() != null ? exportTask.getException().getMessage() : "Unbekannter Fehler");
+            if (lastExportError != null && !lastExportError.trim().isEmpty()) {
+                errorMessage = lastExportError;
+            }
+            showErrorWithHelp(errorMessage);
+        });
+        
+        // Task starten
+        new Thread(exportTask).start();
     }
     
     private void loadWindowProperties() {
@@ -1233,9 +1303,9 @@ public class PandocExportWindow extends CustomStage {
                 File pdfTemplate = new File("pandoc-3.8.1", "simple-xelatex-template.tex");
                 if (pdfTemplate.exists()) {
                     command.add("--template=" + pdfTemplate.getAbsolutePath());
-                    logger.info("Verwende vereinfachtes XeLaTeX-Template: {}", pdfTemplate.getName());
+                    logger.debug("Verwende vereinfachtes XeLaTeX-Template: {}", pdfTemplate.getName());
                 } else {
-                    logger.info("Kein XeLaTeX-Template gefunden, verwende Standard-Template");
+                    logger.debug("Kein XeLaTeX-Template gefunden, verwende Standard-Template");
                 }
                 
                 // XeLaTeX-spezifische Optionen für bessere Kompatibilität
@@ -1276,8 +1346,8 @@ public class PandocExportWindow extends CustomStage {
                             String latexPath = targetCoverOutput.getAbsolutePath().replace("\\", "/");
                             command.add("--variable=cover-image:" + latexPath);
                             
-                            logger.info("Cover-Bild-Pfad für LaTeX: {}", latexPath);
-                            logger.info("Cover-Bild für PDF kopiert: {} -> {} und {}", 
+                            logger.debug("Cover-Bild-Pfad für LaTeX: {}", latexPath);
+                            logger.debug("Cover-Bild für PDF kopiert: {} -> {} und {}", 
                                 coverImageFile.getAbsolutePath(), targetCoverOutput.getAbsolutePath(), 
                                 targetCoverPandoc.getAbsolutePath());
                             
@@ -1306,7 +1376,7 @@ public class PandocExportWindow extends CustomStage {
                     resourcePath += ";" + pandocHome.getAbsolutePath();
                 }
                 command.add("--resource-path=" + resourcePath);
-                logger.info("Resource-Path für PDF-Export: {}", resourcePath);
+                logger.debug("Resource-Path für PDF-Export: {}", resourcePath);
                 
                 // XeLaTeX-spezifische Engine-Optionen
                 command.add("--pdf-engine-opt=-shell-escape");
@@ -1316,7 +1386,7 @@ public class PandocExportWindow extends CustomStage {
                 File luaFilter = new File("pandoc-3.8.1", "dropcaps.lua");
                 if (luaFilter.exists()) {
                     command.add("--lua-filter=" + luaFilter.getAbsolutePath());
-                    logger.info("Verwende Lua-Filter für automatische Initialen: {}", luaFilter.getName());
+                    logger.debug("Verwende Lua-Filter für automatische Initialen: {}", luaFilter.getName());
                 } else {
                     logger.warn("Lua-Filter für Initialen nicht gefunden: {}", luaFilter.getAbsolutePath());
                 }
@@ -1332,9 +1402,9 @@ public class PandocExportWindow extends CustomStage {
                 File latexTemplate = new File("pandoc-3.8.1", "simple-xelatex-template.tex");
                 if (latexTemplate.exists()) {
                     command.add("--template=" + latexTemplate.getAbsolutePath());
-                    logger.info("Verwende vereinfachtes XeLaTeX-Template: {}", latexTemplate.getName());
+                    logger.debug("Verwende vereinfachtes XeLaTeX-Template: {}", latexTemplate.getName());
                 } else {
-                    logger.info("Kein XeLaTeX-Template gefunden, verwende Standard-Template");
+                    logger.debug("Kein XeLaTeX-Template gefunden, verwende Standard-Template");
                 }
                 
                 // LaTeX-Optionen
@@ -1397,7 +1467,7 @@ public class PandocExportWindow extends CustomStage {
             if ("pdf".equals(format)) {
                 if (outputDir.exists()) {
                     pb.directory(outputDir);
-                    logger.info("Arbeitsverzeichnis für PDF-Export: {}", outputDir.getAbsolutePath());
+                    logger.debug("Arbeitsverzeichnis für PDF-Export: {}", outputDir.getAbsolutePath());
                 } else {
                     pb.directory(pandocHome != null ? pandocHome : new File("pandoc-3.8.1"));
                 }
@@ -1417,10 +1487,10 @@ public class PandocExportWindow extends CustomStage {
             StringBuilder output = new StringBuilder();
             StringBuilder error = new StringBuilder();
             
-            // Threads für paralleles Auslesen von Output und Error
+            // Threads für paralleles Auslesen von Output und Error mit UTF-8 Kodierung
             Thread outputThread = new Thread(() -> {
                 try (java.io.BufferedReader reader = new java.io.BufferedReader(
-                        new java.io.InputStreamReader(process.getInputStream()))) {
+                        new java.io.InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
                     String line;
                     while ((line = reader.readLine()) != null) {
                         output.append(line).append("\n");
@@ -1431,11 +1501,90 @@ public class PandocExportWindow extends CustomStage {
             });
             
             Thread errorThread = new Thread(() -> {
-                try (java.io.BufferedReader reader = new java.io.BufferedReader(
-                        new java.io.InputStreamReader(process.getErrorStream()))) {
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        error.append(line).append("\n");
+                try {
+                    // Lese die Bytes zuerst, um verschiedene Kodierungen zu probieren
+                    java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
+                    byte[] buffer = new byte[8192];
+                    int bytesRead;
+                    while ((bytesRead = process.getErrorStream().read(buffer)) != -1) {
+                        baos.write(buffer, 0, bytesRead);
+                    }
+                    byte[] errorBytes = baos.toByteArray();
+                    
+                    if (errorBytes.length == 0) {
+                        return;
+                    }
+                    
+                    // Probiere verschiedene Kodierungen in der Reihenfolge ihrer Wahrscheinlichkeit
+                    java.util.List<String> encodingList = new java.util.ArrayList<>();
+                    encodingList.add("Windows-1252");  // Windows-Standard für deutsche Umlaute
+                    encodingList.add("CP850");          // DOS-Kodierung (oft auf Windows verwendet)
+                    encodingList.add("ISO-8859-1");     // Latin-1
+                    encodingList.add("UTF-8");          // UTF-8
+                    encodingList.add("Windows-1250");   // Mittel-/Osteuropa
+                    
+                    // Füge System-Standard-Kodierung hinzu, falls verfügbar
+                    try {
+                        String defaultEncoding = java.nio.charset.Charset.defaultCharset().name();
+                        if (!encodingList.contains(defaultEncoding)) {
+                            encodingList.add(defaultEncoding);
+                        }
+                    } catch (Exception e) {
+                        // Ignoriere Fehler
+                    }
+                    
+                    String[] encodings = encodingList.toArray(new String[0]);
+                    
+                    String bestErrorText = null;
+                    int bestScore = -1;
+                    
+                    for (String encodingName : encodings) {
+                        try {
+                            java.nio.charset.Charset charset = java.nio.charset.Charset.forName(encodingName);
+                            String testText = new String(errorBytes, charset);
+                            
+                            // Bewerte die Kodierung: Prüfe auf gültige deutsche Zeichen und vermeide "?"
+                            int score = 0;
+                            boolean hasValidUmlauts = false;
+                            int questionMarkCount = 0;
+                            
+                            for (char c : testText.toCharArray()) {
+                                // Prüfe auf deutsche Umlaute
+                                if (c == 'ä' || c == 'ö' || c == 'ü' || c == 'Ä' || c == 'Ö' || c == 'Ü' || c == 'ß') {
+                                    hasValidUmlauts = true;
+                                    score += 10; // Umlaute sind sehr wertvoll
+                                } else if (c == '?') {
+                                    questionMarkCount++;
+                                    score -= 5; // "?" deutet auf falsche Kodierung hin
+                                } else if (c >= 32 && c < 127) {
+                                    score++; // Normale ASCII-Zeichen
+                                } else if (c >= 160 && c <= 255) {
+                                    score += 2; // Erweiterte Zeichen
+                                }
+                            }
+                            
+                            // Bonus für Kodierungen mit gültigen Umlauten und wenigen "?"
+                            if (hasValidUmlauts && questionMarkCount == 0) {
+                                score += 100; // Sehr hoher Bonus
+                            }
+                            
+                            // Wenn diese Kodierung besser ist, verwende sie
+                            if (score > bestScore) {
+                                bestScore = score;
+                                bestErrorText = testText;
+                            }
+                        } catch (Exception e) {
+                            // Diese Kodierung funktioniert nicht, probiere nächste
+                            continue;
+                        }
+                    }
+                    
+                    // Verwende die beste gefundene Kodierung oder Fallback
+                    if (bestErrorText != null) {
+                        error.append(bestErrorText);
+                    } else {
+                        // Letzter Fallback: System-Standard
+                        error.append(new String(errorBytes));
                     }
                 } catch (IOException e) {
                     logger.warn("Fehler beim Lesen des pandoc-Error-Streams: {}", e.getMessage());
@@ -1468,7 +1617,7 @@ public class PandocExportWindow extends CustomStage {
             }
             
             if (output.length() > 0 && "pdf".equals(format)) {
-                logger.info("Pandoc-Output:\n{}", output.toString());
+                logger.debug("Pandoc-Output:\n{}", output.toString());
             }
 
             // Prüfe ob die Ausgabedatei jetzt existiert und größer als 0 ist
@@ -1476,7 +1625,7 @@ public class PandocExportWindow extends CustomStage {
                 new File(finalOutputPath) : outputFile;
 
             if (resultFile.exists() && resultFile.length() > 0) {
-                logger.info("Export erfolgreich erstellt: {}", resultFile.getAbsolutePath());
+                logger.debug("Export erfolgreich erstellt: {}", resultFile.getAbsolutePath());
                 
                 // Post-Processing für DOCX: Abstract-Titel ersetzen und Cover-Bild hinzufügen
                 if ("docx".equals(format)) {
@@ -1492,9 +1641,44 @@ public class PandocExportWindow extends CustomStage {
                 return true;
             } else {
                 logger.error("Pandoc-Export fehlgeschlagen - Datei nicht erstellt (Exit-Code: {})", exitCode);
+                
+                // Fehlermeldung für Benutzer zusammenstellen
+                StringBuilder userErrorMessage = new StringBuilder();
+                userErrorMessage.append("Pandoc-Export fehlgeschlagen (Exit-Code: ").append(exitCode).append(")\n\n");
+                
                 if (error.length() > 0) {
                     logger.error("Detaillierte Fehlermeldung:\n{}", error.toString());
+                    
+                    // Fehlermeldung direkt verwenden (bereits UTF-8 durch InputStreamReader)
+                    String errorText = error.toString().trim();
+                    
+                    // Wichtige Fehlermeldungen extrahieren und formatieren
+                    if (errorText.contains("Unable to load picture") || errorText.contains("File") && errorText.contains("not found")) {
+                        userErrorMessage.append("⚠️ Bildproblem erkannt:\n");
+                        userErrorMessage.append("Ein Bild konnte nicht geladen werden.\n");
+                        userErrorMessage.append("Bitte überprüfen Sie die Bildpfade in Ihrem Markdown-Dokument.\n\n");
+                    }
+                    
+                    // Die letzten Zeilen der Fehlermeldung anzeigen (meist die wichtigsten)
+                    String[] errorLines = errorText.split("\n");
+                    int linesToShow = Math.min(10, errorLines.length); // Maximal 10 Zeilen
+                    if (errorLines.length > linesToShow) {
+                        userErrorMessage.append("Letzte ").append(linesToShow).append(" Zeilen der Fehlermeldung:\n");
+                        for (int i = errorLines.length - linesToShow; i < errorLines.length; i++) {
+                            if (errorLines[i].trim().length() > 0) {
+                                userErrorMessage.append(errorLines[i]).append("\n");
+                            }
+                        }
+                    } else {
+                        userErrorMessage.append("Fehlermeldung:\n").append(errorText);
+                    }
+                } else {
+                    userErrorMessage.append("Keine detaillierte Fehlermeldung verfügbar.\n");
+                    userErrorMessage.append("Bitte überprüfen Sie die Log-Datei für weitere Informationen.");
                 }
+                
+                // Fehlermeldung speichern für Anzeige im Dialog
+                lastExportError = userErrorMessage.toString();
                 
                 // Fallback für PDF: Versuche alternative PDF-Engine
                 if ("pdf".equals(format) && (exitCode == 43 || exitCode == 47)) {
@@ -1510,6 +1694,31 @@ public class PandocExportWindow extends CustomStage {
             
         } catch (Exception e) {
             logger.error("Fehler beim Pandoc-Export", e);
+            
+            // Fehlermeldung für Benutzer zusammenstellen
+            StringBuilder userErrorMessage = new StringBuilder();
+            userErrorMessage.append("Unerwarteter Fehler beim Export:\n\n");
+            userErrorMessage.append("Fehlertyp: ").append(e.getClass().getSimpleName()).append("\n");
+            userErrorMessage.append("Fehlermeldung: ").append(e.getMessage() != null ? e.getMessage() : "Keine Details verfügbar").append("\n\n");
+            
+            // Zusätzliche Informationen für häufige Fehler
+            if (e.getMessage() != null) {
+                String msg = e.getMessage().toLowerCase();
+                if (msg.contains("permission") || msg.contains("zugriff") || msg.contains("access")) {
+                    userErrorMessage.append("💡 Mögliche Ursache: Die Datei ist möglicherweise in einem anderen Programm geöffnet.\n");
+                    userErrorMessage.append("   Bitte schließen Sie die Datei und versuchen Sie es erneut.\n\n");
+                } else if (msg.contains("disk") || msg.contains("space") || msg.contains("speicher")) {
+                    userErrorMessage.append("💡 Mögliche Ursache: Nicht genügend Speicherplatz auf dem Datenträger.\n\n");
+                } else if (msg.contains("path") || msg.contains("pfad") || msg.contains("not found")) {
+                    userErrorMessage.append("💡 Mögliche Ursache: Ein Pfad ist ungültig oder eine Datei/Verzeichnis existiert nicht.\n\n");
+                }
+            }
+            
+            userErrorMessage.append("Für weitere Details siehe die Log-Datei.");
+            
+            // Fehlermeldung speichern für Anzeige im Dialog
+            lastExportError = userErrorMessage.toString();
+            
             return false;
         }
     }
@@ -1542,7 +1751,7 @@ public class PandocExportWindow extends CustomStage {
             // pdflatex-spezifische Optionen
             fallbackCommand.add("--pdf-engine-opt=-interaction=nonstopmode");
             
-            logger.info("Versuche PDF-Fallback mit pdflatex (ohne Template)...");
+            logger.debug("Versuche PDF-Fallback mit pdflatex (ohne Template)...");
             
             ProcessBuilder pb = new ProcessBuilder(fallbackCommand);
             pb.directory(pandocHome != null ? pandocHome : new File("pandoc-3.8.1"));
@@ -1552,7 +1761,7 @@ public class PandocExportWindow extends CustomStage {
             int exitCode = process.waitFor();
             
             if (outputFile.exists() && outputFile.length() > 0) {
-                logger.info("PDF-Fallback erfolgreich mit pdflatex erstellt: {}", outputFile.getAbsolutePath());
+                logger.debug("PDF-Fallback erfolgreich mit pdflatex erstellt: {}", outputFile.getAbsolutePath());
                 return true;
             } else {
                 logger.error("PDF-Fallback mit pdflatex ebenfalls fehlgeschlagen (Exit-Code: {})", exitCode);
@@ -1602,7 +1811,7 @@ public class PandocExportWindow extends CustomStage {
             pandocExe = new File("pandoc-3.8.1", "pandoc.exe");
             if (pandocExe.exists()) {
                 pandocHome = pandocExe.getParentFile();
-                logger.info("Pandoc erfolgreich entpackt: {}", pandocExe.getAbsolutePath());
+                logger.debug("Pandoc erfolgreich entpackt: {}", pandocExe.getAbsolutePath());
                 return true;
             }
 
@@ -1613,7 +1822,7 @@ public class PandocExportWindow extends CustomStage {
                     File exe = new File(c, "pandoc.exe");
                     if (exe.exists()) {
                         pandocHome = c;
-                        logger.info("Pandoc in '{}' gefunden", c.getAbsolutePath());
+                        logger.debug("Pandoc in '{}' gefunden", c.getAbsolutePath());
                         return true;
                     }
                 }
@@ -1683,8 +1892,8 @@ public class PandocExportWindow extends CustomStage {
         templateDescription.setVisible(showTemplate);
         templateDescription.setManaged(showTemplate);
 
-        // Cover-Bild für EPUB3 und HTML5 anzeigen
-        boolean showCover = format.equals("epub3") || format.equals("html5");
+        // Cover-Bild für EPUB3, HTML5 und DOCX anzeigen
+        boolean showCover = format.equals("epub3") || format.equals("html5") || format.equals("docx");
         coverImageBox.setVisible(showCover);
         coverImageBox.setManaged(showCover);
         
@@ -1975,22 +2184,42 @@ public class PandocExportWindow extends CustomStage {
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.applyTheme(currentThemeIndex);
-        alert.initOwner(this);
-        alert.showAndWait();
+        // showAndWait mit Owner für Zentrierung über dem Export-Fenster
+        alert.showAndWait(this);
     }
     
     private void showErrorWithHelp(String message) {
-        CustomAlert alert = new CustomAlert(Alert.AlertType.ERROR, "Fehler");
-        alert.setHeaderText(null);
-        alert.setContentText(message);
+        CustomAlert alert = new CustomAlert(Alert.AlertType.ERROR, "Export Fehler");
+        alert.setHeaderText("Export fehlgeschlagen");
+        
+        // ScrollPane für lange Fehlermeldungen in VBox packen
+        VBox contentBox = new VBox();
+        contentBox.setPadding(new Insets(10));
+        
+        ScrollPane scrollPane = new ScrollPane();
+        scrollPane.setFitToWidth(true);
+        scrollPane.setPrefWidth(600);
+        scrollPane.setPrefHeight(400);
+        scrollPane.setStyle("-fx-background-color: transparent;");
+        
+        // Label erstellen - die Kodierung wurde bereits beim Lesen korrigiert
+        Label contentLabel = new Label(message);
+        contentLabel.setWrapText(true);
+        // Font mit guter UTF-8 Unterstützung für korrekte Zeichendarstellung
+        // Verwende System-Fonts, die UTF-8 gut unterstützen (Arial, Segoe UI statt Monospace)
+        contentLabel.setStyle("-fx-font-family: 'Arial', 'Segoe UI', 'Tahoma', sans-serif; -fx-font-size: 11px;");
+        scrollPane.setContent(contentLabel);
+        
+        contentBox.getChildren().add(scrollPane);
+        alert.setCustomContent(contentBox);
         alert.applyTheme(currentThemeIndex);
-        alert.initOwner(this);
         
         // Hilfebutton hinzufügen
         ButtonType helpButtonType = new ButtonType("Hilfe", ButtonBar.ButtonData.HELP);
         alert.getButtonTypes().add(helpButtonType);
         
-        alert.showAndWait().ifPresent(buttonType -> {
+        // showAndWait mit Owner für Zentrierung über dem Export-Fenster
+        alert.showAndWait(this).ifPresent(buttonType -> {
             if (buttonType == helpButtonType) {
                 HelpSystem.showHelpWindow("pdf_export_failed.html");
             }
@@ -2003,19 +2232,58 @@ public class PandocExportWindow extends CustomStage {
     
     private void postProcessDocx(File docxFile) {
         try {
-            logger.info("Post-Processing für DOCX: {}", docxFile.getName());
+            logger.debug("Post-Processing für DOCX: {}", docxFile.getName());
             
             // DOCX mit Apache POI öffnen und bearbeiten
             try (FileInputStream fis = new FileInputStream(docxFile);
                  XWPFDocument document = new XWPFDocument(fis)) {
                 
-                // ZUERST: "Abstract" durch "Zusammenfassung" ersetzen
+                // ZUERST: "Abstract" durch "Zusammenfassung" ersetzen und Zusammenfassung im Blocksatz formatieren
+                boolean inAbstractSection = false;
                 for (XWPFParagraph paragraph : document.getParagraphs()) {
-                    for (XWPFRun run : paragraph.getRuns()) {
-                        String text = run.getText(0);
-                        if (text != null && text.contains("Abstract")) {
-                            String newText = text.replace("Abstract", "Zusammenfassung");
-                            run.setText(newText, 0);
+                    String paragraphText = paragraph.getText();
+                    boolean isAbstractTitle = false;
+                    
+                    // Prüfe ob dieser Absatz der Titel "Abstract" oder "Zusammenfassung" ist
+                    if (paragraphText != null) {
+                        String trimmedText = paragraphText.trim();
+                        if (trimmedText.equals("Abstract") || trimmedText.equals("Zusammenfassung")) {
+                            isAbstractTitle = true;
+                            inAbstractSection = true;
+                            
+                            // Ersetze "Abstract" durch "Zusammenfassung"
+                            for (XWPFRun run : paragraph.getRuns()) {
+                                String text = run.getText(0);
+                                if (text != null && text.contains("Abstract")) {
+                                    String newText = text.replace("Abstract", "Zusammenfassung");
+                                    run.setText(newText, 0);
+                                }
+                            }
+                        } else if (inAbstractSection) {
+                            // Prüfe ob wir eine neue Überschrift erreicht haben (beginnt mit # oder ist fett/größer)
+                            // Wenn der Absatz leer ist oder eine Überschrift, beende den Abstract-Bereich
+                            if (trimmedText.isEmpty()) {
+                                // Leere Absätze ignorieren
+                            } else if (paragraph.getStyle() != null && 
+                                      (paragraph.getStyle().contains("Heading") || 
+                                       paragraph.getStyle().contains("heading"))) {
+                                // Neue Überschrift gefunden - Abstract-Bereich beenden
+                                inAbstractSection = false;
+                            } else {
+                                // Dies ist ein Abstract-Absatz - formatiere im Blocksatz
+                                paragraph.setAlignment(ParagraphAlignment.BOTH); // Blocksatz
+                            }
+                        }
+                    }
+                    
+                    // Ersetze "Abstract" in allen Runs (für den Fall, dass es nicht im Titel steht)
+                    if (!isAbstractTitle) {
+                        for (XWPFRun run : paragraph.getRuns()) {
+                            String text = run.getText(0);
+                            if (text != null && text.contains("Abstract")) {
+                                String newText = text.replace("Abstract", "Zusammenfassung");
+                                run.setText(newText, 0);
+                            }
                         }
                     }
                 }
@@ -2132,7 +2400,7 @@ public class PandocExportWindow extends CustomStage {
                             // Cursor schließen
                             cursor.dispose();
                             
-                            logger.info("Cover-Bild in DOCX eingefügt: {}", coverImageFile.getName());
+                            logger.debug("Cover-Bild in DOCX eingefügt: {}", coverImageFile.getName());
                             
                         } catch (Exception e) {
                             logger.warn("Fehler beim Einfügen des Cover-Bildes: {}", e.getMessage());
@@ -2146,7 +2414,7 @@ public class PandocExportWindow extends CustomStage {
                 }
             }
             
-            logger.info("DOCX Post-Processing abgeschlossen - 'Abstract' durch 'Zusammenfassung' ersetzt und Cover-Bild hinzugefügt");
+            logger.debug("DOCX Post-Processing abgeschlossen - 'Abstract' durch 'Zusammenfassung' ersetzt und Cover-Bild hinzugefügt");
             
         } catch (Exception e) {
             logger.warn("DOCX Post-Processing fehlgeschlagen: {}", e.getMessage());
@@ -2158,7 +2426,7 @@ public class PandocExportWindow extends CustomStage {
      */
     private void postProcessEpub(File epubFile) {
         try {
-            logger.info("Post-Processing für EPUB: {}", epubFile.getName());
+            logger.debug("Post-Processing für EPUB: {}", epubFile.getName());
             
             // EPUB ist eine ZIP-Datei - entpacken, bearbeiten und neu packen
             File tempDir = new File("temp_epub_processing");
@@ -2208,7 +2476,7 @@ public class PandocExportWindow extends CustomStage {
             // Temporäres Verzeichnis löschen
             deleteDirectory(tempDir);
             
-            logger.info("EPUB Post-Processing abgeschlossen - 'Abstract' durch 'Zusammenfassung' ersetzt, Alt-Texte entfernt und Reihenfolge korrigiert");
+            logger.debug("EPUB Post-Processing abgeschlossen - 'Abstract' durch 'Zusammenfassung' ersetzt, Alt-Texte entfernt und Reihenfolge korrigiert");
             
         } catch (Exception e) {
             logger.warn("EPUB Post-Processing fehlgeschlagen: {}", e.getMessage());
@@ -2330,7 +2598,7 @@ public class PandocExportWindow extends CustomStage {
      */
     private void addInitialsToFirstParagraphs(XWPFDocument document) {
         try {
-            logger.info("Suche nach Headern in DOCX und füge Initialen zu den ersten Absätzen hinzu...");
+            logger.debug("Suche nach Headern in DOCX und füge Initialen zu den ersten Absätzen hinzu...");
             
             int processedCount = 0;
             boolean foundHeader = false;
@@ -2364,11 +2632,11 @@ public class PandocExportWindow extends CustomStage {
                     
                     if (isHeader) {
                         if (isFirstHeader) {
-                            logger.info("Erster Header (Titel) gefunden - überspringe: '{}' (Style: {})", firstLine, styleName);
+                            logger.debug("Erster Header (Titel) gefunden - überspringe: '{}' (Style: {})", firstLine, styleName);
                             isFirstHeader = false; // Nach dem ersten Header sind alle anderen gültig
                         } else {
                             foundHeader = true;
-                            logger.info("Header gefunden: '{}' (Style: {})", firstLine, styleName);
+                            logger.debug("Header gefunden: '{}' (Style: {})", firstLine, styleName);
                         }
                         continue; // Überspringe den Header selbst
                     }
@@ -2377,8 +2645,6 @@ public class PandocExportWindow extends CustomStage {
                     if (foundHeader) {
                         // Einfache Prüfung: Ist es ein normaler Absatz
                         if (firstLine.length() > 20) {
-                            logger.info("Erster Absatz nach Header gefunden - füge Initialen hinzu: '{}'", firstLine.substring(0, Math.min(50, firstLine.length())));
-                            addInitialsToParagraph(paragraph);
                             processedCount++;
                             foundHeader = false; // Nur den ersten Absatz nach Header
                         }
@@ -2386,7 +2652,7 @@ public class PandocExportWindow extends CustomStage {
                 }
             }
             
-            logger.info("Initialen-Verarbeitung abgeschlossen - {} Absätze bearbeitet", processedCount);
+            logger.debug("Initialen-Verarbeitung abgeschlossen - {} Absätze bearbeitet", processedCount);
             
         } catch (Exception e) {
             logger.warn("Fehler beim Hinzufügen von Initialen: {}", e.getMessage());
@@ -2492,7 +2758,7 @@ public class PandocExportWindow extends CustomStage {
             paragraph.setSpacingAfter(200); // Abstand nach dem Absatz
             paragraph.setSpacingBefore(0);
             
-            logger.info("Initialen erfolgreich hinzugefügt für Absatz: '{}'", firstLine.substring(0, Math.min(50, firstLine.length())));
+            logger.debug("Initialen erfolgreich hinzugefügt für Absatz: '{}'", firstLine.substring(0, Math.min(50, firstLine.length())));
             
         } catch (Exception e) {
             logger.warn("Fehler beim Hinzufügen von Initialen zu Absatz: {}", e.getMessage());
@@ -2601,7 +2867,7 @@ public class PandocExportWindow extends CustomStage {
                         String replacement = "![" + altText + "](" + newPath + ")";
                         replacements.add(replacement);
                         
-                        logger.info("Bild kopiert: {} -> {}", imageFile.getAbsolutePath(), 
+                        logger.debug("Bild kopiert: {} -> {}", imageFile.getAbsolutePath(), 
                             targetImage.getAbsolutePath());
                         
                     } catch (IOException e) {
@@ -2631,7 +2897,7 @@ public class PandocExportWindow extends CustomStage {
             if (!content.equals(originalContent)) {
                 Files.write(markdownFile.toPath(), content.getBytes(StandardCharsets.UTF_8));
                 long processedCount = replacements.stream().filter(r -> r != null).count();
-                logger.info("Markdown-Datei aktualisiert: {} Bilder verarbeitet", processedCount);
+                logger.debug("Markdown-Datei aktualisiert: {} Bilder verarbeitet", processedCount);
             }
             
         } catch (IOException e) {
@@ -2743,7 +3009,7 @@ public class PandocExportWindow extends CustomStage {
                         String replacement = "![" + altText + "](" + imageFileName + ")";
                         replacements.add(replacement);
                         
-                        logger.info("Bild für PDF kopiert: {} -> {} und {}", imageFile.getAbsolutePath(), 
+                        logger.debug("Bild für PDF kopiert: {} -> {} und {}", imageFile.getAbsolutePath(), 
                             targetImageOutput.getAbsolutePath(), targetImagePandoc.getAbsolutePath());
                         
                     } catch (IOException e) {
@@ -2774,7 +3040,7 @@ public class PandocExportWindow extends CustomStage {
             if (!content.equals(originalContent)) {
                 Files.write(markdownFile.toPath(), content.getBytes(StandardCharsets.UTF_8));
                 long processedCount = replacements.stream().filter(r -> r != null).count();
-                logger.info("Markdown-Datei für PDF aktualisiert: {} Bilder verarbeitet", processedCount);
+                logger.debug("Markdown-Datei für PDF aktualisiert: {} Bilder verarbeitet", processedCount);
             }
             
         } catch (IOException e) {
@@ -2874,28 +3140,28 @@ public class PandocExportWindow extends CustomStage {
                         File targetImageOutput = new File(outputDir, imageFileName);
                         Files.copy(imageFile.toPath(), targetImageOutput.toPath(), 
                             StandardCopyOption.REPLACE_EXISTING);
-                        logger.info("Bild ins Ausgabeverzeichnis kopiert: {}", targetImageOutput.getAbsolutePath());
+                        logger.debug("Bild ins Ausgabeverzeichnis kopiert: {}", targetImageOutput.getAbsolutePath());
                         
                         // Kopiere Bild ins Markdown-Verzeichnis
                         if (markdownDir != null) {
                             File targetImageMarkdown = new File(markdownDir, imageFileName);
                             Files.copy(imageFile.toPath(), targetImageMarkdown.toPath(), 
                                 StandardCopyOption.REPLACE_EXISTING);
-                            logger.info("Bild ins Markdown-Verzeichnis kopiert: {}", targetImageMarkdown.getAbsolutePath());
+                            logger.debug("Bild ins Markdown-Verzeichnis kopiert: {}", targetImageMarkdown.getAbsolutePath());
                         }
                         
                         // Kopiere Bild auch ins pandoc-Verzeichnis (als Backup)
                         File targetImagePandoc = new File(pandocDir, imageFileName);
                         Files.copy(imageFile.toPath(), targetImagePandoc.toPath(), 
                             StandardCopyOption.REPLACE_EXISTING);
-                        logger.info("Bild ins pandoc-Verzeichnis kopiert: {}", targetImagePandoc.getAbsolutePath());
+                        logger.debug("Bild ins pandoc-Verzeichnis kopiert: {}", targetImagePandoc.getAbsolutePath());
                         
                         // Ersetze den Pfad in der Markdown-Datei durch absoluten Pfad zum Ausgabeverzeichnis
                         // XeLaTeX kompiliert im Ausgabeverzeichnis, daher muss der Pfad dort sein
                         String absolutePath = targetImageOutput.getAbsolutePath().replace("\\", "/");
                         String replacement = "![" + altText + "](" + absolutePath + ")";
                         replacements.add(replacement);
-                        logger.info("Bild-Pfad in Markdown geändert zu: {}", absolutePath);
+                        logger.debug("Bild-Pfad in Markdown geändert zu: {}", absolutePath);
                         
                     } catch (IOException e) {
                         logger.warn("Fehler beim Kopieren des Bildes {}: {}", imagePath, e.getMessage());
@@ -2925,7 +3191,7 @@ public class PandocExportWindow extends CustomStage {
             if (!content.equals(originalContent)) {
                 Files.write(markdownFile.toPath(), content.getBytes(StandardCharsets.UTF_8));
                 long processedCount = replacements.stream().filter(r -> r != null).count();
-                logger.info("Markdown-Datei für PDF aktualisiert: {} Bilder verarbeitet", processedCount);
+                logger.debug("Markdown-Datei für PDF aktualisiert: {} Bilder verarbeitet", processedCount);
             }
             
         } catch (IOException e) {
@@ -3033,7 +3299,7 @@ public class PandocExportWindow extends CustomStage {
                         String replacement = "![" + altText + "](" + imageFileName + ")";
                         replacements.add(replacement);
                         
-                        logger.info("Bild für PDF kopiert: {} -> {}", imageFile.getAbsolutePath(), 
+                        logger.debug("Bild für PDF kopiert: {} -> {}", imageFile.getAbsolutePath(), 
                             targetImage.getAbsolutePath());
                         
                     } catch (IOException e) {
@@ -3064,7 +3330,7 @@ public class PandocExportWindow extends CustomStage {
             if (!content.equals(originalContent)) {
                 Files.write(markdownFile.toPath(), content.getBytes(StandardCharsets.UTF_8));
                 long processedCount = replacements.stream().filter(r -> r != null).count();
-                logger.info("Markdown-Datei für PDF aktualisiert: {} Bilder verarbeitet", processedCount);
+                logger.debug("Markdown-Datei für PDF aktualisiert: {} Bilder verarbeitet", processedCount);
             }
             
         } catch (IOException e) {

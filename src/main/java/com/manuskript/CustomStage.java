@@ -25,6 +25,9 @@ public class CustomStage extends Stage {
     
     private static final Logger logger = LoggerFactory.getLogger(CustomStage.class);
     
+    // Flag, um zu verhindern, dass der Cursor überschrieben wird (z.B. während Export)
+    private boolean cursorLocked = false;
+    
     private static final String DEFAULT_TEXT_COLOR = "white";
     private static final String DEFAULT_BORDER_COLOR = "#1a252f";
     private static final String DEFAULT_ICON_BACKGROUND = "#3498db";
@@ -322,6 +325,16 @@ public class CustomStage extends Stage {
         
         // WICHTIG: EventFilter verwenden, um Events VOR anderen Handlern abzufangen
         scene.addEventFilter(MouseEvent.MOUSE_MOVED, event -> {
+            // Cursor-Lock respektieren - nicht überschreiben wenn gesperrt
+            if (cursorLocked) {
+                return;
+            }
+            
+            // Warte-Cursor respektieren - nicht überschreiben
+            if (scene.getCursor() == javafx.scene.Cursor.WAIT) {
+                return;
+            }
+            
             if (isMaximized) {
                 scene.setCursor(javafx.scene.Cursor.DEFAULT);
                 return;
@@ -989,6 +1002,21 @@ public class CustomStage extends Stage {
         }
     }
 
+    /**
+     * Sperrt den Cursor, damit er nicht von EventFiltern überschrieben wird
+     * (z.B. während Export-Prozessen)
+     */
+    public void setCursorLocked(boolean locked) {
+        this.cursorLocked = locked;
+    }
+    
+    /**
+     * Prüft, ob der Cursor gesperrt ist
+     */
+    public boolean isCursorLocked() {
+        return cursorLocked;
+    }
+    
     private void setSimpleActionSymbols() {
         if (minimizeBtn != null) {
             minimizeBtn.setText("-");

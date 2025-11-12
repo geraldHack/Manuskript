@@ -119,12 +119,19 @@ public class CustomAlert {
      * JavaFX AlertType zu CustomAlert AlertType konvertieren
      */
     private static AlertType convertAlertType(javafx.scene.control.Alert.AlertType javafxType) {
-        switch (javafxType) {
-            case CONFIRMATION: return AlertType.CONFIRMATION;
-            case WARNING: return AlertType.WARNING;
-            case ERROR: return AlertType.ERROR;
-            case INFORMATION: return AlertType.INFORMATION;
-            default: return AlertType.INFORMATION;
+        if (javafxType == null) {
+            return AlertType.INFORMATION;
+        }
+        if (javafxType == javafx.scene.control.Alert.AlertType.CONFIRMATION) {
+            return AlertType.CONFIRMATION;
+        } else if (javafxType == javafx.scene.control.Alert.AlertType.WARNING) {
+            return AlertType.WARNING;
+        } else if (javafxType == javafx.scene.control.Alert.AlertType.ERROR) {
+            return AlertType.ERROR;
+        } else if (javafxType == javafx.scene.control.Alert.AlertType.INFORMATION) {
+            return AlertType.INFORMATION;
+        } else {
+            return AlertType.INFORMATION;
         }
     }
     

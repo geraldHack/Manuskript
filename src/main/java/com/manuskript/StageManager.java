@@ -59,11 +59,11 @@ public class StageManager {
         
         // Export-Dialog spezifische Größen
         stage.setMinWidth(700);
-        stage.setMinHeight(500);
+        stage.setMinHeight(600);
         stage.setWidth(800);
-        stage.setHeight(600);
+        stage.setHeight(750);
         stage.setMaxWidth(1000);
-        stage.setMaxHeight(800);
+        stage.setMaxHeight(900);
         
         // Theme aus Preferences laden und anwenden
         int currentTheme = preferences.getInt("main_window_theme", 0);
