@@ -63,6 +63,26 @@
 \renewcommand{\@seccntformat}[1]{}
 \makeatother
 
+% --- Inhaltsverzeichnis: Nur H2 und tiefer (H1/Butitel ausschließen) ---
+% tocdepth=2 bedeutet H1 und H2, aber wir schließen H1 manuell aus
+\setcounter{tocdepth}{2}
+% H1 (sections) aus TOC ausschließen - nach jeder Section tocdepth auf 1 setzen
+\makeatletter
+\let\old@section\section
+\renewcommand{\section}{%
+  \@ifstar{\old@section*}%
+  {\@ifnextchar[{\@sectionwith}{\@sectionwithout}}%
+}
+\def\@sectionwith[#1]#2{%
+  \old@section[#1]{#2}%
+  \addtocontents{toc}{\protect\setcounter{tocdepth}{1}}%
+}
+\def\@sectionwithout#1{%
+  \old@section{#1}%
+  \addtocontents{toc}{\protect\setcounter{tocdepth}{1}}%
+}
+\makeatother
+
 \begin{document}
 
 % --- Titelseite ---

@@ -46,6 +46,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.manuskript.HelpSystem;
+import com.manuskript.CustomAlert;
 
 public class PandocExportWindow extends CustomStage {
     private static final Logger logger = LoggerFactory.getLogger(PandocExportWindow.class);
@@ -706,57 +707,65 @@ public class PandocExportWindow extends CustomStage {
             }
         };
         
-        // Erfolg/Fehler-Handler
+        // Erfolg/Fehler-Handler (werden automatisch im JavaFX-Thread aufgerufen)
         exportTask.setOnSucceeded(e -> {
-            boolean success = exportTask.getValue();
-            
-            // Export-Flag zurücksetzen
-            isExporting = false;
-            setCursorLocked(false);
-            
-            // UI zurücksetzen
-            if (getScene() != null) {
-                getScene().setCursor(Cursor.DEFAULT);
-            }
-            exportButton.setDisable(false);
-            exportButton.setText("Export starten");
-            
-            if (success) {
-                // Metadaten vor dem Schließen speichern
-                saveProjectMetadata();
-                showAlert("Erfolg", "Export erfolgreich abgeschlossen!");
-                close();
-            } else {
-                // Fehler-Dialog mit detaillierter Fehlermeldung
-                String errorMessage = "Export fehlgeschlagen.";
-                if (lastExportError != null && !lastExportError.trim().isEmpty()) {
-                    errorMessage = "Export fehlgeschlagen.\n\n" + lastExportError;
-                } else {
-                    errorMessage = "Export fehlgeschlagen. Siehe Logs für Details.";
+            try {
+                boolean success = exportTask.getValue();
+                
+                // Export-Flag zurücksetzen
+                isExporting = false;
+                setCursorLocked(false);
+                
+                // UI zurücksetzen
+                if (getScene() != null) {
+                    getScene().setCursor(Cursor.DEFAULT);
                 }
-                showErrorWithHelp(errorMessage);
+                exportButton.setDisable(false);
+                exportButton.setText("Export starten");
+                
+                if (success) {
+                    // Metadaten vor dem Schließen speichern
+                    saveProjectMetadata();
+                    showAlert("Erfolg", "Export erfolgreich abgeschlossen!");
+                    close();
+                } else {
+                    // Fehler-Dialog mit detaillierter Fehlermeldung
+                    String errorMessage = "Export fehlgeschlagen.";
+                    if (lastExportError != null && !lastExportError.trim().isEmpty()) {
+                        errorMessage = "Export fehlgeschlagen.\n\n" + lastExportError;
+                    } else {
+                        errorMessage = "Export fehlgeschlagen. Siehe Logs für Details.";
+                    }
+                    showErrorWithHelp(errorMessage);
+                }
+            } catch (Exception ex) {
+                logger.error("Fehler im Erfolgs-Handler", ex);
             }
         });
         
         exportTask.setOnFailed(e -> {
-            // Export-Flag zurücksetzen
-            isExporting = false;
-            setCursorLocked(false);
-            
-            // UI zurücksetzen
-            if (getScene() != null) {
-                getScene().setCursor(Cursor.DEFAULT);
+            try {
+                // Export-Flag zurücksetzen
+                isExporting = false;
+                setCursorLocked(false);
+                
+                // UI zurücksetzen
+                if (getScene() != null) {
+                    getScene().setCursor(Cursor.DEFAULT);
+                }
+                exportButton.setDisable(false);
+                exportButton.setText("Export starten");
+                
+                // Fehler-Dialog
+                String errorMessage = "Export fehlgeschlagen: " + 
+                    (exportTask.getException() != null ? exportTask.getException().getMessage() : "Unbekannter Fehler");
+                if (lastExportError != null && !lastExportError.trim().isEmpty()) {
+                    errorMessage = lastExportError;
+                }
+                showErrorWithHelp(errorMessage);
+            } catch (Exception ex) {
+                logger.error("Fehler im Fehler-Handler", ex);
             }
-            exportButton.setDisable(false);
-            exportButton.setText("Export starten");
-            
-            // Fehler-Dialog
-            String errorMessage = "Export fehlgeschlagen: " + 
-                (exportTask.getException() != null ? exportTask.getException().getMessage() : "Unbekannter Fehler");
-            if (lastExportError != null && !lastExportError.trim().isEmpty()) {
-                errorMessage = lastExportError;
-            }
-            showErrorWithHelp(errorMessage);
         });
         
         // Task starten
@@ -972,6 +981,10 @@ public class PandocExportWindow extends CustomStage {
                     String[] lines = abstractText.split("\n");
                     for (String line : lines) {
                         writer.println("  " + line);
+                    }
+                    // Abstract-Titel für EPUB und PDF setzen
+                    if ("epub3".equals(format) || "pdf".equals(format)) {
+                        writer.println("abstract-title: \"Zusammenfassung\"");
                     }
                 }
                 
@@ -1597,12 +1610,25 @@ public class PandocExportWindow extends CustomStage {
             // Warten auf Beendigung
             int exitCode = process.waitFor();
             
-            // Warten bis beide Threads fertig sind
+            // Warten bis beide Threads fertig sind (mit Timeout)
             try {
-                outputThread.join(5000); // Max 5 Sekunden warten
-                errorThread.join(5000);
+                outputThread.join(10000); // Max 10 Sekunden warten
+                if (outputThread.isAlive()) {
+                    logger.warn("Output-Thread konnte nicht beendet werden, fahre fort");
+                }
             } catch (InterruptedException e) {
-                logger.warn("Threads für pandoc-Output konnten nicht beendet werden");
+                logger.warn("Warten auf Output-Thread unterbrochen");
+                Thread.currentThread().interrupt();
+            }
+            
+            try {
+                errorThread.join(10000); // Max 10 Sekunden warten
+                if (errorThread.isAlive()) {
+                    logger.warn("Error-Thread konnte nicht beendet werden, fahre fort");
+                }
+            } catch (InterruptedException e) {
+                logger.warn("Warten auf Error-Thread unterbrochen");
+                Thread.currentThread().interrupt();
             }
 
             if (error.length() > 0) {
@@ -1627,17 +1653,38 @@ public class PandocExportWindow extends CustomStage {
             if (resultFile.exists() && resultFile.length() > 0) {
                 logger.debug("Export erfolgreich erstellt: {}", resultFile.getAbsolutePath());
                 
+                // Post-Processing in separaten Threads ausführen, damit der Export sofort zurückgegeben wird
+                final File finalResultFile = resultFile;
+                
                 // Post-Processing für DOCX: Abstract-Titel ersetzen und Cover-Bild hinzufügen
                 if ("docx".equals(format)) {
-                    postProcessDocx(resultFile);
+                    Thread docxPostProcessThread = new Thread(() -> {
+                        try {
+                            Thread.sleep(200); // Kurze Wartezeit, damit die Datei nicht mehr gesperrt ist
+                            postProcessDocx(finalResultFile);
+                        } catch (Exception e) {
+                            logger.warn("DOCX Post-Processing fehlgeschlagen: {}", e.getMessage());
+                        }
+                    });
+                    docxPostProcessThread.setDaemon(true);
+                    docxPostProcessThread.start();
                 }
                 
                 // Post-Processing für EPUB: Abstract-Titel ersetzen
                 if ("epub3".equals(format) || "epub".equals(format)) {
-                    postProcessEpub(resultFile);
+                    Thread epubPostProcessThread = new Thread(() -> {
+                        try {
+                            Thread.sleep(200); // Kurze Wartezeit, damit die Datei nicht mehr gesperrt ist
+                            postProcessEpub(finalResultFile);
+                        } catch (Exception e) {
+                            logger.warn("EPUB Post-Processing fehlgeschlagen: {}", e.getMessage());
+                        }
+                    });
+                    epubPostProcessThread.setDaemon(true);
+                    epubPostProcessThread.start();
                 }
                 
-                
+                // Export sofort als erfolgreich zurückgeben, Post-Processing läuft im Hintergrund
                 return true;
             } else {
                 logger.error("Pandoc-Export fehlgeschlagen - Datei nicht erstellt (Exit-Code: {})", exitCode);
@@ -2466,6 +2513,9 @@ public class PandocExportWindow extends CustomStage {
             // HTML-Dateien bearbeiten
             processHtmlFilesInDirectory(tempDir);
             
+            // TOC-Dateien bearbeiten (nav.xhtml und toc.ncx)
+            processTocFiles(tempDir);
+            
             // EPUB neu erstellen
             try (java.io.FileOutputStream fos = new java.io.FileOutputStream(epubFile);
                  java.util.zip.ZipOutputStream zos = new java.util.zip.ZipOutputStream(fos)) {
@@ -2493,7 +2543,9 @@ public class PandocExportWindow extends CustomStage {
                 if (file.isDirectory()) {
                     processHtmlFilesInDirectory(file);
                 } else if (file.getName().toLowerCase().endsWith(".html") || 
-                          file.getName().toLowerCase().endsWith(".xhtml")) {
+                          file.getName().toLowerCase().endsWith(".xhtml") ||
+                          file.getName().toLowerCase().endsWith(".opf") ||
+                          file.getName().toLowerCase().endsWith(".ncx")) {
                     processHtmlFile(file);
                 }
             }
@@ -2509,8 +2561,8 @@ public class PandocExportWindow extends CustomStage {
             String content = Files.readString(htmlFile.toPath(), StandardCharsets.UTF_8);
             String originalContent = content;
             
-            // "Abstract" durch "Zusammenfassung" ersetzen
-            content = content.replace("Abstract", "Zusammenfassung");
+            // "Abstract" durch "Zusammenfassung" ersetzen (alle Vorkommen)
+            content = content.replaceAll("(?i)Abstract", "Zusammenfassung");
             
             // Alt-Text aus Bildern entfernen (alt-Attribut entfernen oder leeren)
             // Pattern: <img alt="..." src="..."> -> <img src="...">
@@ -2544,6 +2596,177 @@ public class PandocExportWindow extends CustomStage {
         } catch (IOException e) {
             logger.warn("Fehler beim Bearbeiten der HTML-Datei {}: {}", htmlFile.getName(), e.getMessage());
         }
+    }
+    
+    /**
+     * Bearbeitet die TOC-Dateien (nav.xhtml und toc.ncx), um den Buchtitel aus dem TOC zu entfernen
+     * und "Abstract" durch "Zusammenfassung" zu ersetzen
+     */
+    private void processTocFiles(File tempDir) {
+        try {
+            // nav.xhtml bearbeiten
+            File navFile = findFileRecursive(tempDir, "nav.xhtml");
+            
+            if (navFile != null && navFile.exists()) {
+                String navContent = Files.readString(navFile.toPath(), StandardCharsets.UTF_8);
+                String originalNavContent = navContent;
+                
+                // "Abstract" durch "Zusammenfassung" ersetzen
+                navContent = navContent.replaceAll("(?i)Abstract", "Zusammenfassung");
+                
+                // Ersten TOC-Eintrag entfernen (Buchtitel als erstes Kapitel)
+                // Entfernt den ersten <li> Eintrag nach <ol class="toc">
+                // Verwende String-Manipulation statt Regex für mehr Zuverlässigkeit
+                String beforeReplace = navContent;
+                
+                // Finde die Position von <ol class="toc">
+                int olStart = navContent.indexOf("<ol");
+                if (olStart >= 0) {
+                    // Prüfe ob es class="toc" enthält
+                    String olTag = navContent.substring(olStart, Math.min(olStart + 50, navContent.length()));
+                    if (olTag.contains("class=\"toc\"") || olTag.contains("class='toc'")) {
+                        // Finde das Ende des <ol> Tags
+                        int olEnd = navContent.indexOf(">", olStart);
+                        if (olEnd >= 0) {
+                            // Finde den ersten <li> nach dem <ol> Tag
+                            int liStart = navContent.indexOf("<li", olEnd);
+                            if (liStart >= 0) {
+                                // Finde das Ende des ersten </li> Tags
+                                int liEnd = navContent.indexOf("</li>", liStart);
+                                if (liEnd >= 0) {
+                                    // Entferne den ersten <li> Eintrag
+                                    navContent = navContent.substring(0, liStart) + navContent.substring(liEnd + 5);
+                                    logger.debug("nav.xhtml: Erster Eintrag (Buchtitel) entfernt via String-Manipulation");
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                // Fallback: Falls String-Manipulation nicht funktioniert hat, versuche Regex
+                if (navContent.equals(beforeReplace)) {
+                    // Pattern: Suche nach toc-li-1 oder ch001
+                    navContent = navContent.replaceAll(
+                        "(?s)(<ol[^>]*class=\"toc\"[^>]*>)\\s*<li[^>]*id=\"toc-li-1\"[^>]*>.*?</li>",
+                        "$1"
+                    );
+                    if (navContent.equals(beforeReplace)) {
+                        navContent = navContent.replaceAll(
+                            "(?s)(<ol[^>]*class=\"toc\"[^>]*>)\\s*<li[^>]*>.*?<a[^>]*href=\"[^\"]*ch001[^\"]*\"[^>]*>.*?</a>.*?</li>",
+                            "$1"
+                        );
+                    }
+                    if (!navContent.equals(beforeReplace)) {
+                        logger.debug("nav.xhtml: Erster Eintrag (Buchtitel) entfernt via Regex-Fallback");
+                    } else {
+                        logger.warn("nav.xhtml: Konnte ersten Eintrag nicht entfernen - möglicherweise andere Struktur");
+                    }
+                }
+                
+                if (!navContent.equals(originalNavContent)) {
+                    Files.write(navFile.toPath(), navContent.getBytes(StandardCharsets.UTF_8));
+                    logger.debug("nav.xhtml bearbeitet: Buchtitel aus TOC entfernt");
+                }
+            }
+            
+            // toc.ncx bearbeiten
+            File ncxFile = findFileRecursive(tempDir, "toc.ncx");
+            
+            if (ncxFile != null && ncxFile.exists()) {
+                String ncxContent = Files.readString(ncxFile.toPath(), StandardCharsets.UTF_8);
+                String originalNcxContent = ncxContent;
+                
+                // "Abstract" durch "Zusammenfassung" ersetzen
+                ncxContent = ncxContent.replaceAll("(?i)Abstract", "Zusammenfassung");
+                
+                // Ersten navPoint entfernen (Buchtitel als erstes Kapitel)
+                // Entfernt den navPoint mit id="navPoint-1", der auf ch001 verweist (der Buchtitel)
+                // Verwende String-Manipulation statt Regex für mehr Zuverlässigkeit
+                String beforeReplaceNcx = ncxContent;
+                
+                // Finde die Position von <navMap>
+                int navMapStart = ncxContent.indexOf("<navMap>");
+                if (navMapStart >= 0) {
+                    // Finde den ersten <navPoint> nach <navMap>
+                    // Überspringe navPoint-0 (title_page) und suche nach navPoint-1
+                    int navPoint1Start = ncxContent.indexOf("<navPoint", navMapStart);
+                    if (navPoint1Start >= 0) {
+                        // Prüfe ob es navPoint-1 ist (oder der erste nach navPoint-0)
+                        String navPointTag = ncxContent.substring(navPoint1Start, Math.min(navPoint1Start + 100, ncxContent.length()));
+                        // Suche nach dem ersten navPoint, der ch001 enthält oder id="navPoint-1" hat
+                        int searchStart = navMapStart;
+                        while (true) {
+                            int navPointStart = ncxContent.indexOf("<navPoint", searchStart);
+                            if (navPointStart < 0) break;
+                            
+                            int navPointEnd = ncxContent.indexOf("</navPoint>", navPointStart);
+                            if (navPointEnd < 0) break;
+                            
+                            String navPointContent = ncxContent.substring(navPointStart, navPointEnd + 11);
+                            // Prüfe ob dieser navPoint ch001 enthält oder id="navPoint-1" hat
+                            if (navPointContent.contains("ch001") || navPointContent.contains("id=\"navPoint-1\"")) {
+                                // Entferne diesen navPoint
+                                ncxContent = ncxContent.substring(0, navPointStart) + ncxContent.substring(navPointEnd + 11);
+                                logger.debug("toc.ncx: Erster navPoint (Buchtitel) entfernt via String-Manipulation");
+                                break;
+                            }
+                            searchStart = navPointEnd + 11;
+                        }
+                    }
+                }
+                
+                // Fallback: Falls String-Manipulation nicht funktioniert hat, versuche Regex
+                if (ncxContent.equals(beforeReplaceNcx)) {
+                    ncxContent = ncxContent.replaceAll(
+                        "(?s)(<navMap>)\\s*<navPoint[^>]*id=\"navPoint-1\"[^>]*>.*?</navPoint>",
+                        "$1"
+                    );
+                    if (ncxContent.equals(beforeReplaceNcx)) {
+                        ncxContent = ncxContent.replaceAll(
+                            "(?s)(<navMap>)\\s*<navPoint[^>]*>.*?<content[^>]*src=\"[^\"]*ch001[^\"]*\"[^>]*/>.*?</navPoint>",
+                            "$1"
+                        );
+                    }
+                    if (!ncxContent.equals(beforeReplaceNcx)) {
+                        logger.debug("toc.ncx: Erster navPoint (Buchtitel) entfernt via Regex-Fallback");
+                    } else {
+                        logger.warn("toc.ncx: Konnte ersten navPoint nicht entfernen - möglicherweise andere Struktur");
+                    }
+                }
+                
+                if (!ncxContent.equals(originalNcxContent)) {
+                    Files.write(ncxFile.toPath(), ncxContent.getBytes(StandardCharsets.UTF_8));
+                    logger.debug("toc.ncx bearbeitet: Buchtitel aus TOC entfernt");
+                }
+            }
+            
+        } catch (Exception e) {
+            logger.warn("Fehler beim Bearbeiten der TOC-Dateien: {}", e.getMessage());
+        }
+    }
+    
+    /**
+     * Sucht rekursiv nach einer Datei
+     */
+    private File findFileRecursive(File directory, String fileName) {
+        if (directory == null || !directory.exists() || !directory.isDirectory()) {
+            return null;
+        }
+        
+        File[] files = directory.listFiles();
+        if (files != null) {
+            for (File file : files) {
+                if (file.isDirectory()) {
+                    File found = findFileRecursive(file, fileName);
+                    if (found != null) {
+                        return found;
+                    }
+                } else if (file.getName().equals(fileName)) {
+                    return file;
+                }
+            }
+        }
+        return null;
     }
     
     /**

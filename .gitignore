@@ -47,3 +47,4 @@ config/sessions/
 !pandoc-3.8.1/*.docx
 
 temp_epub_processing
+pandoc-3.8.1/cover_image.png
