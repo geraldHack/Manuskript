@@ -16,7 +16,6 @@ import javafx.scene.paint.Color;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.web.WebView;
-import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
@@ -25,7 +24,6 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.stage.Modality;
-import javafx.stage.Screen;
 import javafx.geometry.Rectangle2D;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -48,7 +46,6 @@ import org.fxmisc.flowless.VirtualizedScrollPane;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -158,6 +155,9 @@ public class EditorWindow implements Initializable {
     @FXML private Button btnBold;
     @FXML private Button btnItalic;
     @FXML private Button btnUnderline;
+    @FXML private Button btnStrikethrough;
+    @FXML private Button btnSuperscript;
+    @FXML private Button btnSubscript;
     @FXML private Button btnInsertImage;
     @FXML private Button btnThemeToggle;
     @FXML private ComboBox<String> cmbQuoteStyle;
@@ -763,6 +763,9 @@ if (caret != null) {
         btnBold.setOnAction(e -> formatTextBold());
         btnItalic.setOnAction(e -> formatTextItalic());
         btnUnderline.setOnAction(e -> formatTextUnderline());
+        btnStrikethrough.setOnAction(e -> formatTextStrikethrough());
+        btnSuperscript.setOnAction(e -> formatTextSuperscript());
+        btnSubscript.setOnAction(e -> formatTextSubscript());
         btnInsertImage.setOnAction(e -> insertImage());
         btnThemeToggle.setOnAction(e -> toggleTheme());
         
@@ -1007,6 +1010,13 @@ if (caret != null) {
                         break;
                     case U:
                         toggleUnderline();
+                        event.consume();
+                        break;
+                    case M:
+                        // Öffne Markdown-Hilfe
+                        if (btnHelpMarkdown != null) {
+                            HelpSystem.showHelpWindow("markdown_syntax.html");
+                        }
                         event.consume();
                         break;
 
@@ -9429,6 +9439,18 @@ spacer.setStyle("-fx-background-color: transparent;");
         formatTextAtCursor("<u>", "</u>", "<u>", "</u>");
     }
     
+    private void formatTextStrikethrough() {
+        formatTextAtCursor("~~", "~~", "<s>", "</s>");
+    }
+    
+    private void formatTextSuperscript() {
+        formatTextAtCursor("<sup>", "</sup>", "<sup>", "</sup>");
+    }
+    
+    private void formatTextSubscript() {
+        formatTextAtCursor("<sub>", "</sub>", "<sub>", "</sub>");
+    }
+    
     private void toggleTheme() {
         currentThemeIndex = (currentThemeIndex + 1) % THEMES.length;
         
@@ -9660,6 +9682,10 @@ spacer.setStyle("-fx-background-color: transparent;");
             applyThemeToNode(btnDecreaseFont, themeIndex);
             applyThemeToNode(btnBold, themeIndex);
             applyThemeToNode(btnItalic, themeIndex);
+            applyThemeToNode(btnUnderline, themeIndex);
+            applyThemeToNode(btnStrikethrough, themeIndex);
+            applyThemeToNode(btnSuperscript, themeIndex);
+            applyThemeToNode(btnSubscript, themeIndex);
             applyThemeToNode(btnThemeToggle, themeIndex);
             // btnMacroRegexHelp wurde entfernt
             
@@ -10176,6 +10202,24 @@ spacer.setStyle("-fx-background-color: transparent;");
                 }
             }
             
+            // Markdown Strikethrough-Pattern: ~~text~~
+            Pattern markdownStrikePattern = Pattern.compile("~~([\\s\\S]*?)~~", Pattern.DOTALL);
+            Matcher markdownStrikeMatcher = markdownStrikePattern.matcher(content);
+            
+            while (markdownStrikeMatcher.find()) {
+                int start = markdownStrikeMatcher.start(1); // Start der Gruppe 1 (der Text zwischen ~~)
+                int end = markdownStrikeMatcher.end(1);     // Ende der Gruppe 1
+                if (end > start) {
+                    // Überprüfe, ob dieser Bereich bereits abgedeckt ist
+                    boolean alreadyCovered = markdownMatches.stream().anyMatch(m -> 
+                        (start >= m.start && start < m.end) || (end > m.start && end <= m.end) ||
+                        (start <= m.start && end >= m.end));
+                    if (!alreadyCovered) {
+                        markdownMatches.add(new MarkdownMatch(start, end, "markdown-strikethrough"));
+                    }
+                }
+            }
+            
             // HTML Bold/Strong-Pattern: <b>text</b> oder <strong>text</strong>
             Pattern htmlBoldPattern = Pattern.compile("<(b|strong)>([\\s\\S]*?)</(b|strong)>", Pattern.DOTALL);
             Matcher htmlBoldMatcher = htmlBoldPattern.matcher(content);
@@ -10210,13 +10254,13 @@ spacer.setStyle("-fx-background-color: transparent;");
                 }
             }
             
-            // HTML Strike-through-Pattern:  text  oder <del>text</del>
+            // HTML Strike-through-Pattern: <s>text</s> oder <del>text</del>
             Pattern htmlStrikePattern = Pattern.compile("<(s|del)>([\\s\\S]*?)</(s|del)>", Pattern.DOTALL);
             Matcher htmlStrikeMatcher = htmlStrikePattern.matcher(content);
             
             while (htmlStrikeMatcher.find()) {
-                int start = htmlStrikeMatcher.start() + 3; // Nach   oder <del>
-                int end = htmlStrikeMatcher.end() - 4;     // Vor   oder </del>
+                int start = htmlStrikeMatcher.start(2); // Start der Gruppe 2 (der Text zwischen den Tags)
+                int end = htmlStrikeMatcher.end(2);     // Ende der Gruppe 2
                 if (end > start) {
                     boolean alreadyCovered = markdownMatches.stream().anyMatch(m -> 
                         (start >= m.start && start < m.end) || (end > m.start && end <= m.end) ||

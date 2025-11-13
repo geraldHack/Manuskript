@@ -91,7 +91,23 @@ public class HelpSystem {
         try {
             // Erstelle CustomStage für Help-Fenster
             CustomStage helpStage = new CustomStage();
-            helpStage.setCustomTitle("Hilfe - " + helpFileName);
+            
+            // Deutsche Titel für Hilfefenster
+            String title = "Hilfe";
+            switch (helpFileName) {
+                case "chapter_editor.html":
+                    title = "Hilfe - Kapitel-Editor";
+                    break;
+                case "markdown_syntax.html":
+                    title = "Hilfe - Markdown-Syntax";
+                    break;
+                case "chapter_editor_tools.html":
+                    title = "Hilfe - Kapitel-Editor Tools";
+                    break;
+                default:
+                    title = "Hilfe - " + helpFileName;
+            }
+            helpStage.setCustomTitle(title);
             helpStage.setResizable(true);
             helpStage.setWidth(900);
             helpStage.setHeight(700);

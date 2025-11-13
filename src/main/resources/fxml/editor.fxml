@@ -48,10 +48,13 @@
             
             <Separator orientation="VERTICAL" style="-fx-background-color: #6c757d;" />
             
-            <Button fx:id="btnBold" text="B" styleClass="toolbar-button" style="-fx-min-width: 35px; -fx-max-width: 35px; -fx-font-weight: bold; -fx-font-size: 14px;" />
-            <Button fx:id="btnItalic" text="I" styleClass="toolbar-button" style="-fx-min-width: 35px; -fx-max-width: 35px; -fx-font-style: italic; -fx-font-size: 14px;" />
-            <Button fx:id="btnUnderline" text="U" styleClass="toolbar-button" style="-fx-min-width: 35px; -fx-max-width: 35px; -fx-text-decoration: underline; -fx-font-size: 14px;" />
-            <Button fx:id="btnInsertImage" text="🖼" styleClass="toolbar-button" style="-fx-min-width: 40px; -fx-max-width: 40px; -fx-font-size: 16px;" />
+            <Button fx:id="btnBold" text="B" styleClass="toolbar-button" style="-fx-min-width: 35px; -fx-max-width: 35px; -fx-min-height: 28px; -fx-max-height: 28px; -fx-font-weight: bold; -fx-font-size: 14px;" />
+            <Button fx:id="btnItalic" text="I" styleClass="toolbar-button" style="-fx-min-width: 35px; -fx-max-width: 35px; -fx-min-height: 28px; -fx-max-height: 28px; -fx-font-style: italic; -fx-font-size: 14px;" />
+            <Button fx:id="btnUnderline" text="U" styleClass="toolbar-button" style="-fx-min-width: 35px; -fx-max-width: 35px; -fx-min-height: 28px; -fx-max-height: 28px; -fx-text-decoration: underline; -fx-font-size: 14px;" />
+            <Button fx:id="btnStrikethrough" text="S" styleClass="toolbar-button" style="-fx-min-width: 35px; -fx-max-width: 35px; -fx-min-height: 28px; -fx-max-height: 28px; -fx-font-size: 14px; -fx-strikethrough: true;" />
+            <Button fx:id="btnSuperscript" text="x²" styleClass="toolbar-button" style="-fx-min-width: 45px; -fx-max-width: 45px; -fx-min-height: 28px; -fx-max-height: 28px; -fx-font-size: 13px;" />
+            <Button fx:id="btnSubscript" text="x₂" styleClass="toolbar-button" style="-fx-min-width: 45px; -fx-max-width: 45px; -fx-min-height: 28px; -fx-max-height: 28px; -fx-font-size: 13px;" />
+            <Button fx:id="btnInsertImage" text="🖼" styleClass="toolbar-button" style="-fx-min-width: 45px; -fx-max-width: 45px; -fx-min-height: 28px; -fx-max-height: 28px; -fx-font-size: 16px;" />
             
             <Separator orientation="VERTICAL" style="-fx-background-color: #6c757d;" />
             

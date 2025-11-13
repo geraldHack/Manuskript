@@ -88,7 +88,29 @@
         <div class="tool-description">
             <strong>B Button:</strong> Macht markierten Text fett<br>
             <strong>I Button:</strong> Macht markierten Text kursiv<br>
-            <span class="tool-shortcut">Strg+B</span> für Fett, <span class="tool-shortcut">Strg+I</span> für Kursiv
+            <strong>U Button:</strong> Macht markierten Text unterstrichen<br>
+            <span class="tool-shortcut">Strg+B</span> für Fett, <span class="tool-shortcut">Strg+I</span> für Kursiv, <span class="tool-shortcut">Strg+U</span> für Unterstrichen
+        </div>
+        
+        <div class="tool-name">■ Bilder einfügen (Bild-Button)</div>
+        <div class="tool-description">
+            <strong>Funktion:</strong> Fügt Bilder in Markdown-Syntax ein<br>
+            <strong>Verwendung:</strong><br>
+            1. Klicken Sie auf den <strong>Bild-Button</strong> in der Toolbar<br>
+            2. Wählen Sie eine Bilddatei aus (PNG, JPG, GIF, BMP, WEBP)<br>
+            3. Geben Sie optional einen Alt-Text ein (für Barrierefreiheit)<br>
+            4. Das Bild wird automatisch in Markdown-Syntax eingefügt: <code>![Alt-Text](Pfad/zum/Bild.jpg)</code><br><br>
+            
+            <strong>Features:</strong><br>
+            • Unterstützte Formate: PNG, JPG, JPEG, GIF, BMP, WEBP<br>
+            • Der zuletzt verwendete Pfad wird gespeichert<br>
+            • Der zuletzt verwendete Alt-Text wird gespeichert<br>
+            • Pfad kann absolut oder relativ zum Dokument sein<br>
+            • Relative Pfade sind portabler (z.B. <code>images/cover.jpg</code>)<br><br>
+            
+            <div class="highlight">
+                <strong>Tipp:</strong> Verwenden Sie relative Pfade für bessere Portabilität. Erstellen Sie einen <code>images</code>-Ordner neben Ihrem Dokument.
+            </div>
         </div>
     </div>
     
@@ -181,6 +203,35 @@
     </div>
     
     <div class="tool-section">
+        <h2>● Preview (Vorschau)</h2>
+        
+        <div class="tool-name">■ Preview-Fenster (Preview-Button)</div>
+        <div class="tool-description">
+            <strong>Funktion:</strong> Zeigt eine gerenderte Vorschau Ihres Markdown-Textes<br>
+            <strong>Verwendung:</strong> Klicken Sie auf den <strong>Preview-Button</strong> in der Toolbar<br><br>
+            
+            <strong>Features:</strong><br>
+            • <strong>Live-Aktualisierung:</strong> Die Vorschau wird automatisch aktualisiert, während Sie schreiben (nach 500ms Pause)<br>
+            • <strong>Scroll-Synchronisation:</strong> Editor und Preview scrollen synchron - wenn Sie im Editor navigieren, scrollt die Preview mit<br>
+            • <strong>Blocksatz-Toggle:</strong> Aktivieren/Deaktivieren Sie Blocksatz in der Vorschau mit dem "Blocksatz"-Button<br>
+            • <strong>Export-Vorschau:</strong> Die Preview zeigt Ihnen, wie Ihr Text nach dem Export aussehen wird<br>
+            • <strong>Fenster-Position:</strong> Position und Größe des Preview-Fensters werden gespeichert<br>
+            • <strong>Theme-Unterstützung:</strong> Die Preview passt sich dem aktuellen Editor-Theme an<br><br>
+            
+            <strong>Was wird angezeigt:</strong><br>
+            • Alle Markdown-Formatierungen (Fett, Kursiv, Überschriften, Listen, etc.)<br>
+            • Bilder werden korrekt dargestellt<br>
+            • Tabellen werden formatiert angezeigt<br>
+            • Code-Blöcke werden mit Syntax-Highlighting dargestellt<br>
+            • Zitate werden als Blockquotes angezeigt<br><br>
+            
+            <div class="highlight">
+                <strong>Tipp:</strong> Öffnen Sie die Preview in einem zweiten Fenster, um gleichzeitig zu schreiben und das Ergebnis zu sehen. Die automatische Aktualisierung macht es einfach, Formatierungen zu überprüfen.
+            </div>
+        </div>
+    </div>
+    
+    <div class="tool-section">
         <h2>● Weitere wichtige Funktionen</h2>
         
         <div class="tool-name">■ Kapitel-Editor (✏)</div>
@@ -199,7 +250,8 @@
             <strong>Suchen/Ersetzen:</strong> Öffnet das Such- und Ersetzungs-Panel<br>
             <strong>Makros:</strong> Öffnet das Makro-System<br>
             <strong>Textanalyse:</strong> Öffnet die Textanalyse-Funktionen<br>
-            <strong>KI-Assistent:</strong> Öffnet den KI-Assistenten für Textverbesserungen
+            <strong>KI-Assistent:</strong> Öffnet den KI-Assistenten für Textverbesserungen<br>
+            <strong>Preview:</strong> Öffnet die Vorschau des gerenderten Markdown-Textes
         </div>
     </div>
     
@@ -212,6 +264,9 @@
         <li>■ Experimentiere mit verschiedenen Schriftgrößen für bessere Lesbarkeit</li>
         <li>■ Der Theme-Wechsel hilft bei längerem Schreiben</li>
         <li>■ Die Anführungszeichen-Einstellung wird für den gesamten Text übernommen</li>
+        <li>■ Nutze die Preview-Funktion, um Formatierungen zu überprüfen</li>
+        <li>■ Verwende relative Pfade für Bilder, damit sie auch nach dem Verschieben funktionieren</li>
+        <li>■ Die Markdown-Hilfe öffnen Sie mit <span class="tool-shortcut">Strg+M</span> oder dem Markdown-Hilfe-Button</li>
     </ul>
     
    

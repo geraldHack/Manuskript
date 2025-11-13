@@ -50,50 +50,135 @@
     
     <h2>● Grundlegende Formatierung</h2>
     
-    <h3>Fett und Kursiv</h3>
+    <h3>Textformatierung mit Buttons</h3>
+    <p>Im Editor finden Sie Formatierungs-Buttons in der Toolbar:</p>
+    <div class="example">
+        <strong>Fett (B-Button):</strong><br>
+        • Markieren Sie Text und klicken Sie auf <strong>B</strong> oder drücken Sie <code>Strg+B</code><br>
+        • Syntax: <code>**Text**</code> oder <code>__Text__</code><br>
+        • <strong>Ergebnis:</strong> <strong>Fetter Text</strong><br><br>
+        
+        <strong>Kursiv (I-Button):</strong><br>
+        • Markieren Sie Text und klicken Sie auf <strong>I</strong> oder drücken Sie <code>Strg+I</code><br>
+        • Syntax: <code>*Text*</code> oder <code>_Text_</code><br>
+        • <strong>Ergebnis:</strong> <em>Kursiver Text</em><br><br>
+        
+        <strong>Unterstrichen (U-Button):</strong><br>
+        • Markieren Sie Text und klicken Sie auf <strong>U</strong> oder drücken Sie <code>Strg+U</code><br>
+        • Syntax: <code>&lt;u&gt;Text&lt;/u&gt;</code> (HTML-Tag)<br>
+        • <strong>Ergebnis:</strong> <u>Unterstrichener Text</u><br><br>
+        
+        <strong>Fett und Kursiv kombiniert:</strong><br>
+        • Syntax: <code>***Text***</code><br>
+        • <strong>Ergebnis:</strong> <strong><em>Fett und kursiv</em></strong>
+    </div>
+    
+    <h3>Manuelle Formatierung</h3>
+    <p>Sie können Formatierungen auch manuell eingeben:</p>
     <div class="example">
         <strong>Fett:</strong> <code>**Text**</code> oder <code>__Text__</code><br>
         <em>Kursiv:</em> <code>*Text*</code> oder <code>_Text_</code><br>
         <strong><em>Fett und Kursiv:</em></strong> <code>***Text***</code>
     </div>
     
-    <h3>Überschriften</h3>
+    <h3>Überschriften (Header)</h3>
+    <p>Überschriften strukturieren Ihren Text. Verwenden Sie <code>#</code> für verschiedene Ebenen:</p>
     <div class="example">
-        <code># Überschrift 1</code><br>
-        <code>## Überschrift 2</code><br>
-        <code>### Überschrift 3</code><br>
-        <code>#### Überschrift 4</code>
+        <code># Überschrift 1</code> - Größte Überschrift<br>
+        <code>## Überschrift 2</code> - Zweite Ebene<br>
+        <code>### Überschrift 3</code> - Dritte Ebene<br>
+        <code>#### Überschrift 4</code> - Vierte Ebene<br>
+        <code>##### Überschrift 5</code> - Fünfte Ebene<br>
+        <code>###### Überschrift 6</code> - Kleinste Überschrift<br><br>
+        
+        <strong>Tipp:</strong> Verwenden Sie Überschriften für eine klare Struktur Ihres Textes. Eine Leerzeile nach der Überschrift ist empfehlenswert.
     </div>
     
     <h2>● Listen</h2>
     
     <h3>Aufzählungslisten</h3>
+    <p>Verwenden Sie <code>-</code>, <code>*</code> oder <code>+</code> für Aufzählungslisten:</p>
     <div class="example">
         <code>- Punkt 1</code><br>
         <code>- Punkt 2</code><br>
-        <code>  - Unterpunkt</code>
+        <code>  - Unterpunkt (mit 2 Leerzeichen eingerückt)</code><br>
+        <code>    - Noch tiefer (mit 4 Leerzeichen)</code><br><br>
+        
+        <strong>Alternative Symbole:</strong><br>
+        <code>* Punkt mit Stern</code><br>
+        <code>+ Punkt mit Plus</code><br><br>
+        
+        <strong>Ergebnis:</strong><br>
+        • Punkt 1<br>
+        • Punkt 2<br>
+        &nbsp;&nbsp;• Unterpunkt
     </div>
     
     <h3>Nummerierte Listen</h3>
+    <p>Verwenden Sie Zahlen gefolgt von einem Punkt:</p>
     <div class="example">
         <code>1. Erster Punkt</code><br>
         <code>2. Zweiter Punkt</code><br>
-        <code>3. Dritter Punkt</code>
+        <code>3. Dritter Punkt</code><br>
+        <code>   1. Unterpunkt (mit 4 Leerzeichen eingerückt)</code><br><br>
+        
+        <strong>Hinweis:</strong> Die Zahlen müssen nicht fortlaufend sein. Markdown nummeriert automatisch:<br>
+        <code>1. Punkt</code><br>
+        <code>1. Punkt</code><br>
+        <code>1. Punkt</code><br>
+        Wird automatisch zu: 1., 2., 3.
     </div>
     
     <h2>● Links und Bilder</h2>
     
+    <h3>Bilder einfügen (Bild-Button)</h3>
+    <p>Der <strong>Bild-Button</strong> in der Toolbar erleichtert das Einfügen von Bildern:</p>
     <div class="example">
-        <strong>Links:</strong> <code>[Link-Text](URL)</code><br>
-        <strong>Bilder:</strong> <code>![Alt-Text](Bild-URL)</code><br>
-        <strong>Automatische Links:</strong> <code>https://example.com</code>
+        <strong>So funktioniert's:</strong><br>
+        1. Klicken Sie auf den <strong>Bild-Button</strong> in der Toolbar<br>
+        2. Wählen Sie eine Bilddatei aus (PNG, JPG, GIF, BMP, WEBP)<br>
+        3. Geben Sie optional einen Alt-Text ein (für Barrierefreiheit)<br>
+        4. Das Bild wird automatisch in Markdown-Syntax eingefügt<br><br>
+        
+        <strong>Syntax:</strong> <code>![Alt-Text](Pfad/zum/Bild.jpg)</code><br>
+        <strong>Beispiel:</strong> <code>![Beschreibung des Bildes](images/cover.jpg)</code><br><br>
+        
+        <strong>Wichtig:</strong><br>
+        • Der Pfad kann absolut oder relativ zum Dokument sein<br>
+        • Relative Pfade sind portabler (z.B. <code>images/cover.jpg</code>)<br>
+        • Der zuletzt verwendete Pfad wird gespeichert für schnelles Einfügen
     </div>
     
-    <h2>● Zitate</h2>
+    <h3>Links</h3>
+    <div class="example">
+        <strong>Links:</strong> <code>[Link-Text](URL)</code><br>
+        <strong>Beispiel:</strong> <code>[Manuskript Website](https://example.com)</code><br>
+        <strong>Automatische Links:</strong> <code>https://example.com</code> wird automatisch als Link erkannt
+    </div>
     
+    <h2>● Zitate (Blockquotes)</h2>
+    
+    <p>Verwenden Sie <code>></code> für Zitate oder hervorgehobene Textpassagen:</p>
     <div class="example">
         <code>> Dies ist ein Zitat</code><br>
-        <code>> Es kann mehrere Zeilen umfassen</code>
+        <code>> Es kann mehrere Zeilen umfassen</code><br>
+        <code>> Jede Zeile beginnt mit ></code><br><br>
+        
+        <strong>Mehrzeiliges Zitat:</strong><br>
+        <code>> Dies ist ein langes Zitat,</code><br>
+        <code>> das über mehrere Zeilen geht.</code><br>
+        <code>> Es wird als Block dargestellt.</code><br><br>
+        
+        <strong>Verschachtelte Zitate:</strong><br>
+        <code>> Hauptzitat</code><br>
+        <code>>></code><br>
+        <code>> > Zitat im Zitat</code><br><br>
+        
+        <strong>Ergebnis:</strong><br>
+        <blockquote style="border-left: 4px solid #3498db; padding-left: 15px; margin: 10px 0; color: #555;">
+            Dies ist ein Zitat<br>
+            Es kann mehrere Zeilen umfassen
+        </blockquote>
     </div>
     
     <h2>● Code</h2>
@@ -104,10 +189,30 @@
     </div>
     
     <h3>Code-Blöcke</h3>
+    <p>Code-Blöcke werden mit drei Backticks erstellt. Sie können optional eine Programmiersprache angeben für Syntax-Highlighting:</p>
     <div class="example">
+        <strong>Einfacher Code-Block:</strong><br>
         <code>```</code><br>
         <code>Mehrzeiliger Code</code><br>
-        <code>```</code>
+        <code>```</code><br><br>
+        
+        <strong>Code-Block mit Sprache (Syntax-Highlighting):</strong><br>
+        <code>```java</code><br>
+        <code>public class Beispiel {</code><br>
+        <code>    public static void main(String[] args) {</code><br>
+        <code>        System.out.println("Hallo Welt");</code><br>
+        <code>    }</code><br>
+        <code>}</code><br>
+        <code>```</code><br><br>
+        
+        <strong>Unterstützte Sprachen (Beispiele):</strong><br>
+        • <code>```java</code> - Java<br>
+        • <code>```python</code> - Python<br>
+        • <code>```javascript</code> - JavaScript<br>
+        • <code>```html</code> - HTML<br>
+        • <code>```css</code> - CSS<br>
+        • <code>```markdown</code> - Markdown<br>
+        • Und viele weitere...
     </div>
     
     <h2>● Horizontale Linien</h2>
@@ -118,10 +223,34 @@
     
     <h2>● Tabellen</h2>
     
+    <p>Tabellen werden mit Pipes <code>|</code> und Bindestrichen <code>-</code> erstellt:</p>
     <div class="example">
-        <code>| Spalte 1 | Spalte 2 |</code><br>
-        <code>|----------|----------|</code><br>
-        <code>| Inhalt 1 | Inhalt 2 |</code>
+        <code>| Spalte 1 | Spalte 2 | Spalte 3 |</code><br>
+        <code>|----------|----------|----------|</code><br>
+        <code>| Inhalt 1 | Inhalt 2 | Inhalt 3 |</code><br>
+        <code>| Zeile 2  | Zeile 2  | Zeile 2  |</code><br><br>
+        
+        <strong>Ausrichtung:</strong><br>
+        <code>| Links    | Mitte    | Rechts   |</code><br>
+        <code>|:---------|:--------:|---------:|</code><br>
+        <code>| Text     | Text     | Text     |</code><br><br>
+        • <code>:---</code> = Linksbündig<br>
+        • <code>:---:</code> = Zentriert<br>
+        • <code>---:</code> = Rechtsbündig<br><br>
+        
+        <strong>Ergebnis:</strong><br>
+        <table border="1" cellpadding="5" style="border-collapse: collapse; margin: 10px 0;">
+            <tr>
+                <th>Spalte 1</th>
+                <th>Spalte 2</th>
+                <th>Spalte 3</th>
+            </tr>
+            <tr>
+                <td>Inhalt 1</td>
+                <td>Inhalt 2</td>
+                <td>Inhalt 3</td>
+            </tr>
+        </table>
     </div>
     
     <h2>● HTML-Tags für erweiterte Formatierung</h2>
@@ -143,13 +272,15 @@
     <h3>Hervorhebung</h3>
     <div class="example">
         <code>&lt;mark&gt;Hervorgehobener Text&lt;/mark&gt;</code><br>
-        <strong>Ergebnis:</strong> <mark>Hervorgehobener Text</mark>
+        <strong>Ergebnis:</strong> <mark>Hervorgehobener Text</mark><br>
+        <strong>⚠️ Hinweis:</strong> Funktioniert nur in EPUB/HTML-Export, <strong>nicht</strong> in PDF/DOCX
     </div>
     
     <h3>Schriftgrößen</h3>
     <div class="example">
         <code>&lt;small&gt;Kleiner Text&lt;/small&gt;</code><br>
-        <code>&lt;big&gt;Größerer Text&lt;/big&gt;</code>
+        <code>&lt;big&gt;Größerer Text&lt;/big&gt;</code><br>
+        <strong>⚠️ Hinweis:</strong> Funktioniert nur in EPUB/HTML-Export, <strong>nicht</strong> in PDF/DOCX
     </div>
     
     
@@ -157,31 +288,47 @@
     <div class="example">
         <code>&lt;s&gt;Durchgestrichen&lt;/s&gt;</code> oder <code>&lt;del&gt;Durchgestrichen&lt;/del&gt;</code><br>
         <strong>Ergebnis:</strong> <s>Durchgestrichen</s><br>
-        <strong>⚠️ Hinweis:</strong> Diese Tags funktionieren nur in EPUB/HTML-Export, nicht in PDF/DOCX
+        <strong>✅ Unterstützung:</strong><br>
+        • <strong>DOCX:</strong> Funktioniert (wird zu Markdown-Strikethrough <code>~~Text~~</code> konvertiert)<br>
+        • <strong>PDF:</strong> Funktioniert (wird zu LaTeX <code>\sout{Text}</code> konvertiert)<br>
+        • <strong>EPUB/HTML:</strong> Funktioniert direkt als HTML-Tag<br><br>
+        <strong>Alternative:</strong> Verwenden Sie direkt <code>~~Text~~</code> (Markdown-Strikethrough) - funktioniert in allen Formaten
     </div>
     
     <h3>Hochgestellt und Tiefgestellt</h3>
     <div class="example">
         <code>&lt;sup&gt;Hochgestellt&lt;/sup&gt;</code> → <sup>Hochgestellt</sup><br>
         <code>&lt;sub&gt;Tiefgestellt&lt;/sub&gt;</code> → <sub>Tiefgestellt</sub><br>
-        <strong>⚠️ Hinweis:</strong> Diese Tags funktionieren nur in EPUB/HTML-Export, nicht in PDF/DOCX
+        <strong>⚠️ Hinweis:</strong> Funktioniert nur in EPUB/HTML-Export, <strong>nicht</strong> in PDF/DOCX
     </div>
     
     <h3>Export-Kompatibilität</h3>
     <div class="example">
-        <strong>Eingeschränkte Formate (DOCX, PDF, RTF, LaTeX):</strong><br>
-        Nur diese HTML-Tags werden unterstützt: <code>&lt;u&gt;</code>, <code>&lt;b&gt;</code>, <code>&lt;i&gt;</code>, <code>&lt;s&gt;</code>, <code>&lt;mark&gt;</code>, <code>&lt;small&gt;</code>, <code>&lt;big&gt;</code><br>
-        <strong>Beispiel:</strong> <code>&lt;span style="color: red;"&gt;Roter Text&lt;/span&gt;</code> wird <strong>ignoriert</strong> ❌<br><br>
+        <strong>✅ Zuverlässig unterstützte Tags (DOCX, PDF, EPUB, HTML):</strong><br>
+        • <code>&lt;u&gt;</code> - Unterstrichen<br>
+        • <code>&lt;b&gt;</code> / <code>&lt;strong&gt;</code> - Fett<br>
+        • <code>&lt;i&gt;</code> / <code>&lt;em&gt;</code> - Kursiv<br><br>
         
-        <strong>Vollständige Formate (EPUB, HTML):</strong><br>
+        <strong>❌ Nicht unterstützt in DOCX/PDF (nur EPUB/HTML):</strong><br>
+        • <code>&lt;mark&gt;</code> - Hervorhebung<br>
+        • <code>&lt;small&gt;</code> - Kleine Schrift<br>
+        • <code>&lt;big&gt;</code> - Große Schrift<br>
+        • <code>&lt;sup&gt;</code> - Hochgestellt<br>
+        • <code>&lt;sub&gt;</code> - Tiefgestellt<br>
+        • <code>&lt;span style="..."&gt;</code> - CSS-Styles<br><br>
+        
+        <strong>⚠️ Teilweise unterstützt:</strong><br>
+        • <code>&lt;s&gt;</code> / <code>&lt;del&gt;</code> - Durchgestrichen: Funktioniert in DOCX/PDF (wird konvertiert), aber besser ist <code>~~Text~~</code> (Markdown-Strikethrough)<br><br>
+        
+        <strong>Vollständige Unterstützung (nur EPUB, HTML):</strong><br>
         Alle HTML-Tags und CSS-Styles werden unterstützt<br>
         <strong>Beispiel:</strong> <code>&lt;span style="color: red;"&gt;Roter Text&lt;/span&gt;</code> wird <span style="color: red;">Roter Text</span> ✅<br><br>
         
-        <strong>Konvertierungs-Beispiele:</strong><br>
+        <strong>Konvertierungs-Beispiele (nur für unterstützte Tags):</strong><br>
         • <code>&lt;u&gt;Text&lt;/u&gt;</code> → <code>\underline{Text}</code> (PDF) oder <code>[Text]{.underline}</code> (DOCX)<br>
         • <code>&lt;b&gt;Text&lt;/b&gt;</code> → <code>\textbf{Text}</code> (PDF) oder <code>**Text**</code> (DOCX)<br>
-        • <code>&lt;s&gt;Text&lt;/s&gt;</code> → <code>\sout{Text}</code> (PDF) oder <code>~~Text~~</code> (DOCX)<br>
-        • <code>&lt;mark&gt;Text&lt;/mark&gt;</code> → <code>\hl{Text}</code> (PDF) oder <code>[Text]{.highlight}</code> (DOCX)
+        • <code>&lt;i&gt;Text&lt;/i&gt;</code> → <code>\textit{Text}</code> (PDF) oder <code>*Text*</code> (DOCX)<br>
+        • <code>&lt;s&gt;Text&lt;/s&gt;</code> → <code>\sout{Text}</code> (PDF) oder <code>~~Text~~</code> (DOCX)
     </div>
     
     <h2>● Tipps</h2>
@@ -189,11 +336,12 @@
     <ul>
         <li>■ Leerzeilen zwischen den Absätzen sind Pflicht! So erkennt Markdown Absätze</li>
         <li>■ Markdown wird beim Export automatisch in das gewünschte Format konvertiert</li>
-        <li>■ HTML-Tags funktionieren in allen Export-Formaten (PDF, DOCX, EPUB, HTML)</li>
+        <li>■ <strong>Wichtig:</strong> Nicht alle HTML-Tags funktionieren in allen Export-Formaten. <code>&lt;u&gt;</code>, <code>&lt;b&gt;</code>, <code>&lt;i&gt;</code> und <code>&lt;s&gt;</code> funktionieren überall, aber <code>&lt;mark&gt;</code>, <code>&lt;small&gt;</code>, <code>&lt;big&gt;</code> nur in EPUB/HTML</li>
         <li>■ Speichere deine Arbeit regelmäßig mit Strg+S</li>
         <li>■ Verwende die B, I, U Buttons für schnelle Formatierung</li>
+        <li>■ Für DOCX/PDF-Export: Verwenden Sie Markdown-Syntax (<code>**fett**</code>, <code>*kursiv*</code>, <code>~~durchgestrichen~~</code>) statt HTML-Tags</li>
     </ul>
     
-    <p><strong>Hinweis:</strong> Diese Formatierungen werden beim Export in DOCX, PDF oder andere Formate automatisch umgewandelt. HTML-Tags werden dabei format-spezifisch konvertiert.</p>
+    <p><strong>Hinweis:</strong> Diese Formatierungen werden beim Export in DOCX, PDF oder andere Formate automatisch umgewandelt. <strong>Nicht alle HTML-Tags werden unterstützt</strong> - verwenden Sie für maximale Kompatibilität Markdown-Syntax statt HTML-Tags.</p>
 </body>
 </html>
