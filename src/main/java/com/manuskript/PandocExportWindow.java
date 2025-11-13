@@ -1095,14 +1095,54 @@ public class PandocExportWindow extends CustomStage {
                 content = content.replaceAll("<i>([^<]+)</i>", "\\\\textit{$1}");
                 content = content.replaceAll("<strong>([^<]+)</strong>", "\\\\textbf{$1}");
                 content = content.replaceAll("<em>([^<]+)</em>", "\\\\textit{$1}");
-                content = content.replaceAll("<s>([^<]+)</s>", "\\\\sout{$1}");
-                content = content.replaceAll("<del>([^<]+)</del>", "\\\\sout{$1}");
+                // Strikethrough: <s> zu Markdown ~~ (funktioniert in PDF/LaTeX)
+                content = content.replaceAll("<s>([^<]+)</s>", "~~$1~~");
+                content = content.replaceAll("<del>([^<]+)</del>", "~~$1~~");
                 content = content.replaceAll("<mark>([^<]+)</mark>", "\\\\hl{$1}");
                 content = content.replaceAll("<small>([^<]+)</small>", "\\\\small $1");
                 content = content.replaceAll("<big>([^<]+)</big>", "\\\\large $1");
-                // Subscript und Superscript für PDF
-                content = content.replaceAll("<sub>([^<]+)</sub>", "\\\\textsubscript{$1}");
-                content = content.replaceAll("<sup>([^<]+)</sup>", "\\\\textsuperscript{$1}");
+                // Subscript und Superscript für PDF - verwende Markdown-Syntax
+                // ~text~ für Subscript, ^text^ für Superscript
+                // Leerzeichen müssen mit Backslash escaped werden (laut Pandoc-Dokumentation)
+                java.util.regex.Pattern subPattern = java.util.regex.Pattern.compile("<sub>([^<]+)</sub>");
+                java.util.regex.Matcher subMatcher = subPattern.matcher(content);
+                List<java.util.Map.Entry<java.util.Map.Entry<Integer, Integer>, String>> subReplacements = new ArrayList<>();
+                while (subMatcher.find()) {
+                    String text = subMatcher.group(1);
+                    // Leerzeichen mit Backslash escapen (für Pandoc)
+                    text = text.replace(" ", "\\ ");
+                    String replacement = "~" + text + "~";
+                    subReplacements.add(new java.util.AbstractMap.SimpleEntry<>(
+                        new java.util.AbstractMap.SimpleEntry<>(subMatcher.start(), subMatcher.end()),
+                        replacement));
+                }
+                // Ersetze rückwärts, um Indizes nicht zu verschieben
+                for (int i = subReplacements.size() - 1; i >= 0; i--) {
+                    java.util.Map.Entry<java.util.Map.Entry<Integer, Integer>, String> entry = subReplacements.get(i);
+                    int start = entry.getKey().getKey();
+                    int end = entry.getKey().getValue();
+                    content = content.substring(0, start) + entry.getValue() + content.substring(end);
+                }
+                
+                java.util.regex.Pattern supPattern = java.util.regex.Pattern.compile("<sup>([^<]+)</sup>");
+                java.util.regex.Matcher supMatcher = supPattern.matcher(content);
+                List<java.util.Map.Entry<java.util.Map.Entry<Integer, Integer>, String>> supReplacements = new ArrayList<>();
+                while (supMatcher.find()) {
+                    String text = supMatcher.group(1);
+                    // Leerzeichen mit Backslash escapen (für Pandoc)
+                    text = text.replace(" ", "\\ ");
+                    String replacement = "^" + text + "^";
+                    supReplacements.add(new java.util.AbstractMap.SimpleEntry<>(
+                        new java.util.AbstractMap.SimpleEntry<>(supMatcher.start(), supMatcher.end()),
+                        replacement));
+                }
+                // Ersetze rückwärts, um Indizes nicht zu verschieben
+                for (int i = supReplacements.size() - 1; i >= 0; i--) {
+                    java.util.Map.Entry<java.util.Map.Entry<Integer, Integer>, String> entry = supReplacements.get(i);
+                    int start = entry.getKey().getKey();
+                    int end = entry.getKey().getValue();
+                    content = content.substring(0, start) + entry.getValue() + content.substring(end);
+                }
                 
                 // Markdown-Kursiv zu LaTeX-Kursiv konvertieren (wichtig für PDF!)
                 // Pandoc macht das automatisch: *text* → \emph{text}
