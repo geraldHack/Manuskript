@@ -1395,7 +1395,8 @@ public class PandocExportWindow extends CustomStage {
                 command.add("--toc"); // Inhaltsverzeichnis für PDF
                 
                 // Markdown-Formatierung explizit aktivieren
-                command.add("--from=markdown+yaml_metadata_block+smart+superscript+subscript");
+                // -implicit_figures deaktiviert automatische figure-Umgebungen mit Captions
+                command.add("--from=markdown+yaml_metadata_block+smart+superscript+subscript-implicit_figures");
                 command.add("--to=latex");
                 
                 // Template für PDF verwenden (vereinfachtes XeLaTeX-Template)
@@ -1440,9 +1441,11 @@ public class PandocExportWindow extends CustomStage {
                             Files.copy(coverImageFile.toPath(), targetCoverPandoc.toPath(),
                                 java.nio.file.StandardCopyOption.REPLACE_EXISTING);
                             
-                            // Verwende absoluten Pfad für LaTeX (mit Forward-Slashes)
-                            // Moderne LaTeX-Distributionen (XeLaTeX) unterstützen Windows-Pfade mit Forward-Slashes
-                            String latexPath = targetCoverOutput.getAbsolutePath().replace("\\", "/");
+                            // Verwende relativen Pfad für LaTeX (relativ zum Ausgabeverzeichnis)
+                            // XeLaTeX kompiliert im Ausgabeverzeichnis, daher funktioniert relativer Pfad besser
+                            String latexPath = coverFileName;
+                            // Falls absoluter Pfad benötigt wird, verwende Forward-Slashes und escape Leerzeichen
+                            // String latexPath = targetCoverOutput.getAbsolutePath().replace("\\", "/").replace(" ", "\\ ");
                             command.add("--variable=cover-image:" + latexPath);
                             
                             logger.debug("Cover-Bild-Pfad für LaTeX: {}", latexPath);
@@ -1494,7 +1497,8 @@ public class PandocExportWindow extends CustomStage {
                 command.add("--toc"); // Inhaltsverzeichnis für LaTeX
                 
                 // Markdown-Formatierung explizit aktivieren
-                command.add("--from=markdown+yaml_metadata_block+smart+superscript+subscript");
+                // -implicit_figures deaktiviert automatische figure-Umgebungen mit Captions
+                command.add("--from=markdown+yaml_metadata_block+smart+superscript+subscript-implicit_figures");
                 command.add("--to=latex");
                 
                 // Template für LaTeX verwenden (vereinfachtes XeLaTeX-Template)
@@ -1536,9 +1540,13 @@ public class PandocExportWindow extends CustomStage {
                     }
                 }
                 
-                // Markdown-Bilder ins pandoc-Verzeichnis kopieren und Pfade anpassen
+                // Markdown-Bilder ins Ausgabeverzeichnis UND pandoc-Verzeichnis kopieren
+                // LaTeX-Datei wird im Ausgabeverzeichnis erstellt, daher müssen Bilder dort sein
                 File pandocDirLatex = new File("pandoc-3.8.1");
-                copyMarkdownImagesToPandocDir(markdownFile, pandocDirLatex);
+                if (!outputDir.exists()) {
+                    outputDir.mkdirs();
+                }
+                copyMarkdownImagesForLatexExport(markdownFile, outputDir, pandocDirLatex);
             }
 
             // Standalone für vollständiges Dokument (wenn nicht bereits hinzugefügt)
@@ -3367,9 +3375,9 @@ public class PandocExportWindow extends CustomStage {
             String content = Files.readString(markdownFile.toPath(), StandardCharsets.UTF_8);
             String originalContent = content;
             
-            // Pattern für Markdown-Bilder: ![Alt-Text](Pfad)
+            // Pattern für Markdown-Bilder: ![Alt-Text](Pfad) oder ![Alt-Text](Pfad){ width=... }
             java.util.regex.Pattern imagePattern = java.util.regex.Pattern.compile(
-                "!\\[([^\\]]*)\\]\\(([^)]+)\\)", 
+                "!\\[([^\\]]*)\\]\\(([^)]+)\\)(?:\\s*\\{[^}]*width[^}]*\\})?", 
                 java.util.regex.Pattern.MULTILINE
             );
             
@@ -3390,6 +3398,7 @@ public class PandocExportWindow extends CustomStage {
                 
                 String altText = matcher.group(1);
                 String imagePath = matcher.group(2);
+                String fullMatch = matcher.group(0);
                 
                 // Entferne Anführungszeichen falls vorhanden
                 imagePath = imagePath.trim();
@@ -3465,12 +3474,21 @@ public class PandocExportWindow extends CustomStage {
                             StandardCopyOption.REPLACE_EXISTING);
                         logger.debug("Bild ins pandoc-Verzeichnis kopiert: {}", targetImagePandoc.getAbsolutePath());
                         
-                        // Ersetze den Pfad in der Markdown-Datei durch absoluten Pfad zum Ausgabeverzeichnis
-                        // XeLaTeX kompiliert im Ausgabeverzeichnis, daher muss der Pfad dort sein
-                        String absolutePath = targetImageOutput.getAbsolutePath().replace("\\", "/");
-                        String replacement = "![" + altText + "](" + absolutePath + ")";
+                        // Ersetze den Pfad in der Markdown-Datei durch nur den Dateinamen
+                        // XeLaTeX kompiliert im Ausgabeverzeichnis, wo die Bilder auch sind
+                        // Daher funktioniert relativer Pfad (nur Dateiname) am besten
+                        // Füge Bildgröße hinzu, damit Bilder nicht zu groß werden (nur wenn noch keine vorhanden)
+                        String replacement;
+                        if (fullMatch.contains("{") && fullMatch.contains("width")) {
+                            // Bereits eine Größenangabe vorhanden, behalte sie
+                            replacement = "![" + altText + "](" + imageFileName + ")" + 
+                                fullMatch.substring(fullMatch.indexOf("{"));
+                        } else {
+                            // Keine Größenangabe, füge 80% hinzu
+                            replacement = "![" + altText + "](" + imageFileName + "){ width=80% }";
+                        }
                         replacements.add(replacement);
-                        logger.debug("Bild-Pfad in Markdown geändert zu: {}", absolutePath);
+                        logger.debug("Bild-Pfad in Markdown geändert zu: {} (relativ zum Ausgabeverzeichnis, width=80%)", imageFileName);
                         
                     } catch (IOException e) {
                         logger.warn("Fehler beim Kopieren des Bildes {}: {}", imagePath, e.getMessage());
@@ -3505,6 +3523,161 @@ public class PandocExportWindow extends CustomStage {
             
         } catch (IOException e) {
             logger.error("Fehler beim Kopieren der Markdown-Bilder für PDF: {}", e.getMessage(), e);
+        }
+    }
+    
+    /**
+     * Kopiert alle Markdown-Bilder ins Ausgabeverzeichnis UND pandoc-Verzeichnis für LaTeX-Export
+     * und passt die Pfade in der Markdown-Datei an (verwendet relative Pfade zum Ausgabeverzeichnis)
+     */
+    private void copyMarkdownImagesForLatexExport(File markdownFile, File outputDir, File pandocDir) {
+        try {
+            // Markdown-Datei lesen
+            String content = Files.readString(markdownFile.toPath(), StandardCharsets.UTF_8);
+            String originalContent = content;
+            
+            // Pattern für Markdown-Bilder: ![Alt-Text](Pfad) oder ![Alt-Text](Pfad){ width=... }
+            java.util.regex.Pattern imagePattern = java.util.regex.Pattern.compile(
+                "!\\[([^\\]]*)\\]\\(([^)]+)\\)(?:\\s*\\{[^}]*width[^}]*\\})?", 
+                java.util.regex.Pattern.MULTILINE
+            );
+            
+            java.util.regex.Matcher matcher = imagePattern.matcher(content);
+            java.util.List<java.util.Map.Entry<Integer, Integer>> matchPositions = new java.util.ArrayList<>();
+            java.util.List<String> replacements = new java.util.ArrayList<>();
+            
+            // Zuerst alle Matches finden und Positionen speichern
+            while (matcher.find()) {
+                matchPositions.add(new java.util.AbstractMap.SimpleEntry<>(matcher.start(), matcher.end()));
+            }
+            
+            // Dann alle Matches verarbeiten
+            matcher = imagePattern.matcher(content);
+            int matchIndex = 0;
+            while (matcher.find()) {
+                if (matchIndex >= matchPositions.size()) break;
+                
+                String altText = matcher.group(1);
+                String imagePath = matcher.group(2);
+                String fullMatch = matcher.group(0);
+                
+                // Entferne Anführungszeichen falls vorhanden
+                imagePath = imagePath.trim();
+                if ((imagePath.startsWith("\"") && imagePath.endsWith("\"")) || 
+                    (imagePath.startsWith("'") && imagePath.endsWith("'"))) {
+                    imagePath = imagePath.substring(1, imagePath.length() - 1);
+                }
+                
+                // Prüfe ob es eine URL ist (http/https) - dann nicht kopieren
+                if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) {
+                    logger.debug("Bild ist eine URL, wird nicht kopiert: {}", imagePath);
+                    replacements.add(null); // Keine Ersetzung für URLs
+                    matchIndex++;
+                    continue;
+                }
+                
+                // Versuche Bild-Datei zu finden
+                File imageFile = null;
+                
+                // Absoluter Pfad
+                if (new File(imagePath).isAbsolute()) {
+                    imageFile = new File(imagePath);
+                } else {
+                    // Relativer Pfad - versuche relativ zur Markdown-Datei
+                    File markdownDir = markdownFile.getParentFile();
+                    if (markdownDir != null) {
+                        imageFile = new File(markdownDir, imagePath);
+                    }
+                    
+                    // Falls nicht gefunden, versuche relativ zum Projekt-Verzeichnis
+                    if ((imageFile == null || !imageFile.exists()) && projectDirectory != null) {
+                        imageFile = new File(projectDirectory, imagePath);
+                    }
+                    
+                    // Falls immer noch nicht gefunden, versuche als absoluten Pfad
+                    if (imageFile == null || !imageFile.exists()) {
+                        imageFile = new File(imagePath);
+                    }
+                }
+                
+                if (imageFile != null && imageFile.exists()) {
+                    try {
+                        // Dateiname für das kopierte Bild
+                        String imageFileName = imageFile.getName();
+                        // Falls Dateiname leer oder ungültig, verwende Alt-Text oder generiere Namen
+                        if (imageFileName == null || imageFileName.isEmpty() || 
+                            !imageFileName.contains(".")) {
+                            String extension = getFileExtension(imageFile.getName());
+                            if (extension.isEmpty()) {
+                                extension = "png"; // Fallback
+                            }
+                            imageFileName = (altText != null && !altText.isEmpty()) 
+                                ? altText.replaceAll("[^a-zA-Z0-9]", "_") + "." + extension
+                                : "image_" + System.currentTimeMillis() + "." + extension;
+                        }
+                        
+                        // Kopiere Bild ins Ausgabeverzeichnis (wichtig für LaTeX!)
+                        File targetImageOutput = new File(outputDir, imageFileName);
+                        Files.copy(imageFile.toPath(), targetImageOutput.toPath(), 
+                            StandardCopyOption.REPLACE_EXISTING);
+                        logger.debug("Bild für LaTeX ins Ausgabeverzeichnis kopiert: {} -> {}", 
+                            imageFile.getAbsolutePath(), targetImageOutput.getAbsolutePath());
+                        
+                        // Kopiere Bild auch ins pandoc-Verzeichnis (als Backup)
+                        File targetImagePandoc = new File(pandocDir, imageFileName);
+                        Files.copy(imageFile.toPath(), targetImagePandoc.toPath(), 
+                            StandardCopyOption.REPLACE_EXISTING);
+                        logger.debug("Bild für LaTeX ins pandoc-Verzeichnis kopiert: {}", 
+                            targetImagePandoc.getAbsolutePath());
+                        
+                        // Ersetze den Pfad in der Markdown-Datei durch nur den Dateinamen
+                        // LaTeX-Datei wird im Ausgabeverzeichnis erstellt, daher funktioniert relativer Pfad
+                        // Füge Bildgröße hinzu, damit Bilder nicht zu groß werden (nur wenn noch keine vorhanden)
+                        String replacement;
+                        if (fullMatch.contains("{") && fullMatch.contains("width")) {
+                            // Bereits eine Größenangabe vorhanden, behalte sie
+                            replacement = "![" + altText + "](" + imageFileName + ")" + 
+                                fullMatch.substring(fullMatch.indexOf("{"));
+                        } else {
+                            // Keine Größenangabe, füge 80% hinzu
+                            replacement = "![" + altText + "](" + imageFileName + "){ width=80% }";
+                        }
+                        replacements.add(replacement);
+                        logger.debug("Bild-Pfad in Markdown geändert zu: {} (relativ zum Ausgabeverzeichnis)", imageFileName);
+                        
+                    } catch (IOException e) {
+                        logger.warn("Fehler beim Kopieren des Bildes {}: {}", imagePath, e.getMessage());
+                        replacements.add(null);
+                    }
+                } else {
+                    logger.warn("Bilddatei nicht gefunden: {} (versucht: {})", imagePath, 
+                        imageFile != null ? imageFile.getAbsolutePath() : "null");
+                    // Keine Ersetzung für nicht gefundene Bilder
+                    replacements.add(null);
+                }
+                matchIndex++;
+            }
+            
+            // Ersetze alle gefundenen Bild-Pfade in der Markdown-Datei (rückwärts, um Indizes nicht zu verschieben)
+            for (int i = matchPositions.size() - 1; i >= 0; i--) {
+                if (i < replacements.size() && replacements.get(i) != null) {
+                    java.util.Map.Entry<Integer, Integer> match = matchPositions.get(i);
+                    int start = match.getKey();
+                    int end = match.getValue();
+                    String replacement = replacements.get(i);
+                    content = content.substring(0, start) + replacement + content.substring(end);
+                }
+            }
+            
+            // Nur schreiben wenn sich etwas geändert hat
+            if (!content.equals(originalContent)) {
+                Files.write(markdownFile.toPath(), content.getBytes(StandardCharsets.UTF_8));
+                long processedCount = replacements.stream().filter(r -> r != null).count();
+                logger.debug("Markdown-Datei für LaTeX aktualisiert: {} Bilder verarbeitet", processedCount);
+            }
+            
+        } catch (IOException e) {
+            logger.error("Fehler beim Kopieren der Markdown-Bilder für LaTeX: {}", e.getMessage(), e);
         }
     }
     

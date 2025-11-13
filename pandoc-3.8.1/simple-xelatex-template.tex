@@ -4,9 +4,21 @@
 \usepackage{fontspec}
 \usepackage{polyglossia}
 \setmainlanguage{german}
-\setmainfont{Latin Modern Roman}
-\setsansfont{Latin Modern Sans}
-\setmonofont{Latin Modern Mono}
+$if(mainfont)$
+\setmainfont{$mainfont$}[Ligatures=TeX]
+$else$
+\setmainfont{Latin Modern Roman}[Ligatures=TeX]
+$endif$
+$if(sansfont)$
+\setsansfont{$sansfont$}[Ligatures=TeX]
+$else$
+\setsansfont{Latin Modern Sans}[Ligatures=TeX]
+$endif$
+$if(monofont)$
+\setmonofont{$monofont$}[Ligatures=TeX]
+$else$
+\setmonofont{Latin Modern Mono}[Ligatures=TeX]
+$endif$
 
 % --- Layout ---
 \usepackage{geometry}
@@ -57,53 +69,71 @@
 % --- Pandoc-spezifische Befehle ---
 \providecommand{\tightlist}{%
   \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+% Pandoc-Befehl für begrenzte Bilder
+% \pandocbounded wird mit einem Argument aufgerufen, das bereits \includegraphics enthält
+% Beispiel: \pandocbounded{\includegraphics[keepaspectratio]{bild.png}}
+% Zentriere das Bild ohne Seitenumbrüche
+\newcommand{\pandocbounded}[1]{%
+  \par
+  \nopagebreak
+  \begin{center}%
+  #1%
+  \end{center}%
+  \nopagebreak
+  \par
+}
+% Zentriere alle includegraphics-Befehle im Text
+% Verhindere Seitenumbrüche vor und nach Bildern
+\makeatletter
+\let\oldincludegraphics\includegraphics
+\renewcommand{\includegraphics}[2][]{%
+  \par
+  \nopagebreak
+  \begin{center}%
+  \oldincludegraphics[#1]{#2}%
+  \end{center}%
+  \nopagebreak
+  \par
+}
+\makeatother
 
 % --- Inhaltsverzeichnis ohne Nummern ---
 \makeatletter
 \renewcommand{\@seccntformat}[1]{}
 \makeatother
 
-% --- Inhaltsverzeichnis: Nur H2 und tiefer (H1/Butitel ausschließen) ---
-% tocdepth=2 bedeutet H1 und H2, aber wir schließen H1 manuell aus
+% --- Inhaltsverzeichnis: H1 und H2 anzeigen ---
+% tocdepth=2 bedeutet H1 (sections) und H2 (subsections)
 \setcounter{tocdepth}{2}
-% H1 (sections) aus TOC ausschließen - nach jeder Section tocdepth auf 1 setzen
-\makeatletter
-\let\old@section\section
-\renewcommand{\section}{%
-  \@ifstar{\old@section*}%
-  {\@ifnextchar[{\@sectionwith}{\@sectionwithout}}%
-}
-\def\@sectionwith[#1]#2{%
-  \old@section[#1]{#2}%
-  \addtocontents{toc}{\protect\setcounter{tocdepth}{1}}%
-}
-\def\@sectionwithout#1{%
-  \old@section{#1}%
-  \addtocontents{toc}{\protect\setcounter{tocdepth}{1}}%
-}
-\makeatother
 
 \begin{document}
+
+% --- Cover-Bild (eigene Seite) ---
+$if(cover-image)$
+\begin{titlepage}
+  \centering
+  \vspace*{\fill}
+  \includegraphics[width=0.6\textwidth,keepaspectratio]{$cover-image$}
+  \vspace*{\fill}
+\end{titlepage}
+\newpage
+$endif$
 
 % --- Titelseite ---
 \begin{titlepage}
   \centering
-  $if(cover-image)$
-  \includegraphics[width=0.6\textwidth,keepaspectratio]{$cover-image$}
-  \vspace{1cm}
-  \newpage
-  $endif$
+  \vspace*{3cm}
   {\Huge \bfseries $title$ \par}
   $if(subtitle)$
-  \vspace{0.5cm}
+  \vspace{0.8cm}
   {\Large \textit{$subtitle$} \par}
   $endif$
-  \vspace{1cm}
+  \vspace{2cm}
   {\Large $author$ \par}
   \vspace{1cm}
   {\large $date$ \par}
   $if(rights)$
-  \vspace{1cm}
+  \vspace{1.5cm}
   {\small $rights$ \par}
   $endif$
   \vfill
