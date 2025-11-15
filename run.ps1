@@ -36,4 +36,5 @@ Get-Process -Name "java" -ErrorAction SilentlyContinue | Stop-Process -Force
 Start-Sleep -Seconds 2
 Write-Host "Führe Maven Clean aus und starte Anwendung..."
 # javafx:run kompiliert automatisch wenn nötig, daher nur clean + javafx:run
+mvn clean
 mvn clean javafx:run

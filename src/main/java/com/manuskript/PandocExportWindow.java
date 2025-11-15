@@ -927,75 +927,145 @@ public class PandocExportWindow extends CustomStage {
             File tempMarkdownFile = File.createTempFile("manuskript_export_", ".md");
             tempMarkdownFile.deleteOnExit(); // Automatisch löschen nach Programmende
             
-            try (PrintWriter writer = new PrintWriter(new FileWriter(tempMarkdownFile, StandardCharsets.UTF_8))) {
-                // YAML-Frontmatter schreiben - korrekte YAML-Syntax
-                writer.println("---");
+            // Lese zuerst die Original-Datei, um die Zeilenumbruch-Konvention zu bestimmen
+            String originalContent = Files.readString(inputMarkdownFile.toPath(), StandardCharsets.UTF_8);
+            
+            // Bestimme die Zeilenumbruch-Konvention der Original-Datei
+            String lineSeparator = "\n";
+            if (originalContent.contains("\r\n")) {
+                lineSeparator = "\r\n";
+            } else if (originalContent.contains("\r")) {
+                lineSeparator = "\r";
+            }
+            
+            // Schreibe YAML-Header und Original-Inhalt zeilenweise mit BufferedWriter
+            // Das stellt sicher, dass Zeilenumbrüche erhalten bleiben
+            // Schreibe Original-Inhalt direkt - behält originale Zeilenumbrüche, normalisiere Striche und <br>
+            String normalizedContent = originalContent
+                .replace('\u2013', '-')  // en-dash zu Bindestrich
+                .replace('\u2014', '-')  // em-dash zu Bindestrich
+                .replace('\u2015', '-')  // horizontal bar zu Bindestrich
+                .replaceAll("(?i)<br\\s*/?>", lineSeparator + lineSeparator); // HTML-Zeilenumbrüche entfernen
+            
+            // Zusätzliche Leerzeilen zwischen Tabellen-Zeilen entfernen
+            normalizedContent = normalizedContent.replaceAll(
+                "(?m)(\\|[^\\n]*\\|)\\R+(?=\\|)",
+                "$1" + lineSeparator
+            );
+            
+            // Sicherstellen, dass vor Tabellen-Zeilen eine Leerzeile steht
+            normalizedContent = normalizedContent.replaceAll(
+                "(?m)([^\\n])\\n(\\|[^\\n]*\\|)",
+                "$1" + lineSeparator + lineSeparator + "$2"
+            );
+            
+            try (java.io.BufferedWriter writer = Files.newBufferedWriter(
+                    tempMarkdownFile.toPath(), 
+                    StandardCharsets.UTF_8,
+                    java.nio.file.StandardOpenOption.TRUNCATE_EXISTING,
+                    java.nio.file.StandardOpenOption.WRITE)) {
                 
-                // Titel (immer erforderlich)
+                // Schreibe YAML-Header
+                writer.write("---");
+                writer.write(lineSeparator);
+                
+                // Titel
                 String title = titleField.getText().trim();
                 if (!title.isEmpty()) {
-                    writer.println("title: \"" + escapeYamlString(title) + "\"");
+                    writer.write("title: \"" + escapeYamlString(title) + "\"");
                 } else {
-                    // Fallback-Titel falls leer
-                    writer.println("title: \"Manuskript\"");
+                    writer.write("title: \"Manuskript\"");
                 }
+                writer.write(lineSeparator);
                 
                 // Untertitel
                 String subtitle = subtitleField.getText().trim();
                 if (!subtitle.isEmpty()) {
-                    writer.println("subtitle: \"" + escapeYamlString(subtitle) + "\"");
+                    writer.write("subtitle: \"" + escapeYamlString(subtitle) + "\"");
+                    writer.write(lineSeparator);
                 }
                 
                 // Autor
                 String author = authorField.getText().trim();
                 if (!author.isEmpty()) {
-                    writer.println("author: \"" + escapeYamlString(author) + "\"");
+                    writer.write("author: \"" + escapeYamlString(author) + "\"");
+                    writer.write(lineSeparator);
                 }
                 
                 // Datum
                 String date = dateField.getText().trim();
                 if (!date.isEmpty()) {
-                    writer.println("date: \"" + escapeYamlString(date) + "\"");
+                    writer.write("date: \"" + escapeYamlString(date) + "\"");
+                    writer.write(lineSeparator);
                 }
                 
                 // Rechte
                 String rights = rightsField.getText().trim();
                 if (!rights.isEmpty()) {
-                    writer.println("rights: \"" + escapeYamlString(rights) + "\"");
+                    writer.write("rights: \"" + escapeYamlString(rights) + "\"");
+                    writer.write(lineSeparator);
                 }
                 
                 // PDF-spezifische Metadaten
                 String format = formatComboBox.getValue();
                 if ("pdf".equals(format)) {
-                    writer.println("lang: de");
-                    writer.println("mainfont: DejaVu Serif");
-                    writer.println("sansfont: DejaVu Sans");
-                    writer.println("monofont: DejaVu Sans Mono");
-                    writer.println("toc: true");
+                    writer.write("lang: de");
+                    writer.write(lineSeparator);
+                    writer.write("mainfont: DejaVu Serif");
+                    writer.write(lineSeparator);
+                    writer.write("sansfont: DejaVu Sans");
+                    writer.write(lineSeparator);
+                    writer.write("monofont: DejaVu Sans Mono");
+                    writer.write(lineSeparator);
+                    writer.write("toc: true");
+                    writer.write(lineSeparator);
                 }
                 
-                // Abstract (mehrzeilig)
+                // Abstract
                 String abstractText = abstractArea.getText().trim();
                 if (!abstractText.isEmpty()) {
-                    writer.println("abstract: |");
-                    String[] lines = abstractText.split("\n");
+                    writer.write("abstract: |");
+                    writer.write(lineSeparator);
+                    String[] lines = abstractText.split("\r?\n");
                     for (String line : lines) {
-                        writer.println("  " + line);
+                        writer.write("  " + line);
+                        writer.write(lineSeparator);
                     }
-                    // Abstract-Titel für EPUB und PDF setzen
                     if ("epub3".equals(format) || "pdf".equals(format)) {
-                        writer.println("abstract-title: \"Zusammenfassung\"");
+                        writer.write("abstract-title: \"Zusammenfassung\"");
+                        writer.write(lineSeparator);
                     }
                 }
                 
-                writer.println("---");
+                writer.write("---");
+                writer.write(lineSeparator);
                 
-                // Original Markdown-Inhalt hinzufügen
-                String originalContent = Files.readString(inputMarkdownFile.toPath());
-                // Schreibe den Inhalt direkt, ohne zusätzliche Zeilenumbrüche
-                writer.print(originalContent);
+                writer.write(normalizedContent);
             }
             
+            // Debug-Markdown zur Analyse ablegen
+            try {
+                Files.copy(
+                    tempMarkdownFile.toPath(),
+                    Paths.get("pandoc-3.8.1", "debug-export.md"),
+                    StandardCopyOption.REPLACE_EXISTING
+                );
+                logger.info("Debug-Markdown geschrieben nach pandoc-3.8.1\\debug-export.md");
+                
+                int tableIndex = normalizedContent.indexOf("|---");
+                if (tableIndex >= 0) {
+                    int start = Math.max(0, tableIndex - 80);
+                    int end = Math.min(normalizedContent.length(), tableIndex + 200);
+                    String snippet = normalizedContent.substring(start, end)
+                        .replace("\r", "\\r")
+                        .replace("\n", "\\n");
+                    logger.info("Markdown-Ausschnitt rund um Tabelle: {}", snippet);
+                } else {
+                    logger.info("Kein '|' Tabellenmuster im Debug-Markdown gefunden.");
+                }
+            } catch (IOException copyEx) {
+                logger.warn("Konnte Debug-Markdown nicht schreiben: {}", copyEx.getMessage());
+            }
             
             return tempMarkdownFile;
             
@@ -1023,7 +1093,38 @@ public class PandocExportWindow extends CustomStage {
     private void replaceHtmlTagsInMarkdown(File markdownFile, String format) {
         try {
             String content = Files.readString(markdownFile.toPath(), StandardCharsets.UTF_8);
+            
+            // WICHTIG: Konvertiere Unicode-Striche (em-dash, en-dash) zu normalen Bindestrichen
+            // für Tabellen-Separatoren, da Pandoc normale Bindestriche erwartet
+            String normalizedContent = content
+                .replace('\u2013', '-')  // en-dash zu Bindestrich
+                .replace('\u2014', '-')  // em-dash zu Bindestrich
+                .replace('\u2015', '-'); // horizontal bar zu Bindestrich
+            
+            // Wenn Konvertierung stattgefunden hat, schreibe die Datei sofort
+            if (!normalizedContent.equals(content)) {
+                Files.write(markdownFile.toPath(), normalizedContent.getBytes(StandardCharsets.UTF_8));
+                content = normalizedContent;
+            }
+            
+            String newline = content.contains("\r\n") ? "\r\n" : "\n";
+            
+            // Sicherstellen, dass vor Tabellen-Zeilen eine Leerzeile steht
+            content = content.replaceAll(
+                "(?m)([^\\n])\\n(\\|[^\\n]*\\|)",
+                "$1" + newline + newline + "$2"
+            );
+            
+            // Zusätzliche Leerzeilen zwischen Tabellen-Zeilen entfernen
+            content = content.replaceAll(
+                "(?m)(\\|[^\\n]*\\|)\\R+(?=\\|)",
+                "$1" + newline
+            );
+            
             String originalContent = content;
+            
+            // HTML-Zeilenumbrüche in echte Leerzeilen umwandeln, damit Tabellen erkannt werden
+            content = content.replaceAll("(?i)<br\\s*/?>", "\n\n");
             
             // Für EPUB3: Ähnliche Fixes wie für DOCX
             if ("epub3".equals(format) || "epub".equals(format)) {
@@ -1049,6 +1150,11 @@ public class PandocExportWindow extends CustomStage {
             
             // Für DOCX: Bilder vor Überschriften in Container packen, um Reihenfolge zu erhalten
             if ("docx".equals(format)) {
+                // WICHTIG: Listen-Einrückungen normalisieren
+                // Pandoc erkennt verschachtelte Listen nur mit 4 Leerzeichen pro Ebene
+                // Konvertiere 2 Leerzeichen -> 4 Leerzeichen für jede Ebene
+                content = normalizeListIndentation(content);
+                
                 // Bildgröße aus Slider lesen
                 int imageSizePercent = (int) Math.round(imageSizeSlider.getValue());
                 
@@ -1081,9 +1187,11 @@ public class PandocExportWindow extends CustomStage {
                 
                 // Dann: Alle Bilder in zentrierte HTML-Divs packen (mehrzeilig für bessere Kompatibilität)
                 // Pattern: ![](path){ width=X% } -> <div align="center">\n![](path){ width=X% }\n</div>
+                // WICHTIG: Verwende den lineSeparator der Datei, nicht hartcodiertes \n
+                String lineSep = content.contains("\r\n") ? "\r\n" : "\n";
                 content = content.replaceAll(
                     "(?m)(!\\[\\]\\([^\\)]+\\)\\{ width=" + imageSizePercent + "% \\})(?!</div>)",
-                    "<div align=\"center\">\n$1\n</div>"
+                    "<div align=\"center\">" + lineSep + "$1" + lineSep + "</div>"
                 );
             }
             
@@ -1209,10 +1317,105 @@ public class PandocExportWindow extends CustomStage {
             // Nur schreiben wenn sich etwas geändert hat
             if (!content.equals(originalContent)) {
                 Files.write(markdownFile.toPath(), content.getBytes(StandardCharsets.UTF_8));
+                logger.debug("Markdown-Datei wurde modifiziert für Format: {}", format);
+                
+                // Debug: Prüfe ob Tabellen-Zeilen noch vorhanden sind
+                String[] lines = content.split("\r?\n");
+                int tableLineCount = 0;
+                for (String line : lines) {
+                    String trimmed = line.trim();
+                    if (trimmed.startsWith("|") && trimmed.contains("|")) {
+                        tableLineCount++;
+                    }
+                }
+                logger.debug("Anzahl Tabellen-Zeilen nach Verarbeitung: {}", tableLineCount);
             }
         } catch (IOException e) {
             logger.error("Fehler beim Ersetzen von HTML-Tags: {}", e.getMessage());
         }
+    }
+    
+    /**
+     * Normalisiert Listen-Einrückungen für Pandoc
+     * Pandoc erkennt verschachtelte Listen nur mit 4 Leerzeichen pro Ebene
+     * Konvertiert Einrückungen zu Vielfachen von 4, BEHÄLT ABER die relative Einrückung bei
+     * 
+     * Strategie: Finde die minimale Einrückung und normalisiere relativ dazu
+     */
+    private String normalizeListIndentation(String content) {
+        String[] lines = content.split("\r?\n", -1);
+        StringBuilder result = new StringBuilder();
+        
+        int index = 0;
+        while (index < lines.length) {
+            String line = lines[index];
+            if (isListItem(line)) {
+                int blockStart = index;
+                int blockEnd = index;
+                int minIndent = Integer.MAX_VALUE;
+                
+                while (blockEnd < lines.length) {
+                    String current = lines[blockEnd];
+                    if (current.trim().isEmpty()) {
+                        blockEnd++;
+                        continue;
+                    }
+                    if (!isListItem(current)) {
+                        break;
+                    }
+                    int leading = countLeadingSpaces(current);
+                    if (leading < minIndent) {
+                        minIndent = leading;
+                    }
+                    blockEnd++;
+                }
+                
+                if (minIndent == Integer.MAX_VALUE) {
+                    minIndent = 0;
+                }
+                
+                for (int i = blockStart; i < blockEnd; i++) {
+                    String current = lines[i];
+                    if (isListItem(current)) {
+                        int leading = countLeadingSpaces(current);
+                        int relative = Math.max(0, leading - minIndent);
+                        int level = relative / 4;
+                        if (relative % 4 >= 2) {
+                            level++; // zur nächsten Ebene aufrunden
+                        }
+                        int normalizedSpaces = Math.max(0, level * 4);
+                        String indent = " ".repeat(normalizedSpaces);
+                        result.append(indent).append(current.substring(leading));
+                    } else {
+                        result.append(current);
+                    }
+                    if (i < lines.length - 1) {
+                        result.append("\n");
+                    }
+                }
+                index = blockEnd;
+            } else {
+                result.append(line);
+                if (index < lines.length - 1) {
+                    result.append("\n");
+                }
+                index++;
+            }
+        }
+        
+        return result.toString();
+    }
+    
+    private boolean isListItem(String line) {
+        return line.matches("^\\s*([-*+]|\\d+\\.)\\s+.*");
+    }
+    
+    private int countLeadingSpaces(String line) {
+        int count = 0;
+        while (count < line.length() && line.charAt(count) == ' ') {
+            count++;
+        }
+        return count;
     }
     
     private boolean runPandocExport(File markdownFile) {
@@ -1272,8 +1475,12 @@ public class PandocExportWindow extends CustomStage {
             command.add("\"" + finalOutputPath + "\"");
 
             // Grundlegende Optionen - YAML-Metadaten explizit aktivieren
-            // Superscript und Subscript Erweiterungen für alle Formate aktivieren
-            command.add("--from=markdown+yaml_metadata_block+superscript+subscript");
+            // Superscript, Subscript, Tabellen und Listen-Erweiterungen aktivieren
+            // Auch wenn viele Extensions standardmäßig aktiviert sind, werden sie
+            // hier explizit angegeben, um sicherzustellen, dass sie verwendet werden
+            // pipe_tables, simple_tables, grid_tables: Tabellen-Unterstützung
+            // fancy_lists, startnum, task_lists: Verschachtelte Listen-Unterstützung
+            command.add("--from=markdown+yaml_metadata_block+superscript+subscript+pipe_tables+simple_tables+grid_tables+fancy_lists+startnum+task_lists-smart");
             command.add("--to=" + getOutputFormat());
 
             // Format-spezifische Optionen
@@ -1303,14 +1510,24 @@ public class PandocExportWindow extends CustomStage {
                 }
             } else if ("docx".equals(format)) {
             // DOCX-spezifische Optionen für bessere Titelei
-            // Reference-DOC temporär deaktiviert, da es Probleme verursacht
-            // if (templateFile != null) {
+            // WICHTIG: Reference-DOC kann Tabellen- und Listen-Styles überschreiben!
+            // Daher wird sie nur verwendet, wenn explizit eine Vorlage ausgewählt wurde
+            // und der Benutzer die Formatierung aus der Vorlage wünscht
+            if (templateFile != null) {
                 command.add("--reference-doc=\"" + templateFile.getAbsolutePath() + "\"");
-            // }
+                logger.info("Verwende Reference-DOC: {}", templateFile.getAbsolutePath());
+            } else {
+                logger.info("Keine Reference-DOC verwendet - Tabellen und Listen sollten korrekt funktionieren");
+            }
                 command.add("--highlight-style=tango");
                 command.add("--reference-links");
                 // Reihenfolge der Elemente beibehalten (kein Wrapping)
                 command.add("--wrap=none");
+                // Tabellen und Listen werden durch die aktivierten Extensions unterstützt:
+                // pipe_tables, simple_tables, grid_tables für Tabellen
+                // fancy_lists, startnum für verschachtelte Listen
+                // Hinweis: Wenn Tabellen/Listen nicht funktionieren, könnte die Reference-DOC
+                // die Styles überschreiben. Versuchen Sie den Export ohne Reference-DOC.
                 
                 // Cover-Bild für DOCX hinzufügen (falls vorhanden)
                 if (!coverImageField.getText().trim().isEmpty()) {
@@ -1396,7 +1613,7 @@ public class PandocExportWindow extends CustomStage {
                 
                 // Markdown-Formatierung explizit aktivieren
                 // -implicit_figures deaktiviert automatische figure-Umgebungen mit Captions
-                command.add("--from=markdown+yaml_metadata_block+smart+superscript+subscript-implicit_figures");
+                command.add("--from=markdown+yaml_metadata_block+superscript+subscript-implicit_figures-smart");
                 command.add("--to=latex");
                 
                 // Template für PDF verwenden (vereinfachtes XeLaTeX-Template)
@@ -1498,7 +1715,7 @@ public class PandocExportWindow extends CustomStage {
                 
                 // Markdown-Formatierung explizit aktivieren
                 // -implicit_figures deaktiviert automatische figure-Umgebungen mit Captions
-                command.add("--from=markdown+yaml_metadata_block+smart+superscript+subscript-implicit_figures");
+                command.add("--from=markdown+yaml_metadata_block+superscript+subscript-implicit_figures-smart");
                 command.add("--to=latex");
                 
                 // Template für LaTeX verwenden (vereinfachtes XeLaTeX-Template)
@@ -1554,17 +1771,28 @@ public class PandocExportWindow extends CustomStage {
                 command.add("--standalone");
             }
             
-            
-            // Lösche die bestehende Ausgabedatei vor dem Export, um sicherzustellen, dass sie neu erstellt wird
-            File fileToCheck = "html5".equals(format) ?
+            File resultFile = "html5".equals(format) ?
                 new File(finalOutputPath) : outputFile;
+            long previousTimestamp = resultFile.exists() ? resultFile.lastModified() : -1;
+            long previousLength = resultFile.exists() ? resultFile.length() : -1;
+            boolean deleteFailed = false;
 
-            if (fileToCheck.exists()) {
+            if (resultFile.exists()) {
                 try {
-                    Files.delete(fileToCheck.toPath());
+                    Files.delete(resultFile.toPath());
                 } catch (IOException e) {
+                    deleteFailed = true;
                     logger.warn("Konnte bestehende Ausgabedatei nicht löschen: {}", e.getMessage());
                 }
+            }
+            
+            if (deleteFailed) {
+                StringBuilder userError = new StringBuilder();
+                userError.append("Die Zieldatei \"").append(resultFile.getAbsolutePath())
+                        .append("\" konnte nicht überschrieben werden.\n")
+                        .append("Bitte schließen Sie die Datei in anderen Programmen und versuchen Sie es erneut.");
+                lastExportError = userError.toString();
+                return false;
             }
 
             // Prozess starten - Arbeitsverzeichnis setzen
@@ -1740,11 +1968,12 @@ public class PandocExportWindow extends CustomStage {
                 logger.debug("Pandoc-Output:\n{}", output.toString());
             }
 
-            // Prüfe ob die Ausgabedatei jetzt existiert und größer als 0 ist
-            File resultFile = "html5".equals(format) ?
-                new File(finalOutputPath) : outputFile;
+            boolean success = exitCode == 0
+                && resultFile.exists()
+                && resultFile.length() > 0
+                && (previousTimestamp == -1 || resultFile.lastModified() > previousTimestamp || resultFile.length() != previousLength);
 
-            if (resultFile.exists() && resultFile.length() > 0) {
+            if (success) {
                 logger.debug("Export erfolgreich erstellt: {}", resultFile.getAbsolutePath());
                 
                 // Post-Processing in separaten Threads ausführen, damit der Export sofort zurückgegeben wird
@@ -1781,11 +2010,16 @@ public class PandocExportWindow extends CustomStage {
                 // Export sofort als erfolgreich zurückgeben, Post-Processing läuft im Hintergrund
                 return true;
             } else {
-                logger.error("Pandoc-Export fehlgeschlagen - Datei nicht erstellt (Exit-Code: {})", exitCode);
+                logger.error("Pandoc-Export fehlgeschlagen - Datei nicht erstellt oder nicht überschrieben (Exit-Code: {})", exitCode);
                 
                 // Fehlermeldung für Benutzer zusammenstellen
                 StringBuilder userErrorMessage = new StringBuilder();
                 userErrorMessage.append("Pandoc-Export fehlgeschlagen (Exit-Code: ").append(exitCode).append(")\n\n");
+                
+                if (previousTimestamp != -1 && resultFile.exists() && resultFile.lastModified() == previousTimestamp) {
+                    userErrorMessage.append("Die bestehende Zieldatei konnte nicht überschrieben werden. ")
+                        .append("Bitte schließen Sie die Datei in anderen Programmen und versuchen Sie es erneut.\n\n");
+                }
                 
                 if (error.length() > 0) {
                     logger.error("Detaillierte Fehlermeldung:\n{}", error.toString());
@@ -1875,7 +2109,7 @@ public class PandocExportWindow extends CustomStage {
             fallbackCommand.add(originalCommand.get(1)); // input file
             fallbackCommand.add("-o");
             fallbackCommand.add("\"" + outputFile.getAbsolutePath() + "\"");
-            fallbackCommand.add("--from=markdown-yaml_metadata_block");
+            fallbackCommand.add("--from=markdown-yaml_metadata_block-smart");
             fallbackCommand.add("--to=pdf");
             fallbackCommand.add("--pdf-engine=pdflatex");
             fallbackCommand.add("--toc");
@@ -2488,6 +2722,10 @@ public class PandocExportWindow extends CustomStage {
                     }
                 }
                 
+                // DANN: Hierarchische Nummerierung für Listen aktivieren
+                logger.info("Aktiviere hierarchische Nummerierung für Listen");
+                enableHierarchicalListNumbering(document);
+                
                 // DANN: Initialen für "First Paragraph" Absätze hinzufügen (nur wenn aktiviert)
                 if (initialsCheckBox != null && initialsCheckBox.isSelected()) {
                     logger.debug("Initialen-Checkbox ist aktiviert - füge Initialen hinzu");
@@ -2789,7 +3027,10 @@ public class PandocExportWindow extends CustomStage {
                         String navPointTag = ncxContent.substring(navPoint1Start, Math.min(navPoint1Start + 100, ncxContent.length()));
                         // Suche nach dem ersten navPoint, der ch001 enthält oder id="navPoint-1" hat
                         int searchStart = navMapStart;
-                        while (true) {
+                        int maxIterations = 100; // Sicherheit gegen Endlosschleifen
+                        int iterationCount = 0;
+                        while (iterationCount < maxIterations) {
+                            iterationCount++;
                             int navPointStart = ncxContent.indexOf("<navPoint", searchStart);
                             if (navPointStart < 0) break;
                             
@@ -2804,7 +3045,23 @@ public class PandocExportWindow extends CustomStage {
                                 logger.debug("toc.ncx: Erster navPoint (Buchtitel) entfernt via String-Manipulation");
                                 break;
                             }
+                            
+                            // Prüfe ob wir am Ende des Dokuments angekommen sind
+                            if (navPointEnd + 11 >= ncxContent.length()) {
+                                break;
+                            }
+                            
                             searchStart = navPointEnd + 11;
+                            
+                            // Prüfe ob sich searchStart nicht mehr ändert (Sicherheit gegen Endlosschleifen)
+                            if (searchStart <= navPointStart) {
+                                logger.warn("toc.ncx: searchStart hat sich nicht geändert - breche Schleife ab");
+                                break;
+                            }
+                        }
+                        
+                        if (iterationCount >= maxIterations) {
+                            logger.warn("toc.ncx: Maximale Iterationen erreicht - mögliche Endlosschleife verhindert");
                         }
                     }
                 }
@@ -2867,25 +3124,48 @@ public class PandocExportWindow extends CustomStage {
      * Fügt ein Verzeichnis rekursiv zu einer ZIP-Datei hinzu
      */
     private void addDirectoryToZip(File rootDir, File currentDir, java.util.zip.ZipOutputStream zos) throws IOException {
+        // Sicherheit gegen zyklische Verzeichnisstrukturen
+        if (currentDir == null || !currentDir.exists() || !currentDir.isDirectory()) {
+            return;
+        }
+        
+        // Prüfe ob wir im rootDir sind (verhindert zyklische Verweise)
+        try {
+            if (!currentDir.getCanonicalPath().startsWith(rootDir.getCanonicalPath())) {
+                logger.warn("Verzeichnis außerhalb des Root-Verzeichnisses übersprungen: {}", currentDir.getAbsolutePath());
+                return;
+            }
+        } catch (IOException e) {
+            logger.warn("Fehler beim Prüfen des Verzeichnispfads: {}", e.getMessage());
+            return;
+        }
+        
         File[] files = currentDir.listFiles();
         if (files != null) {
             for (File file : files) {
                 if (file.isDirectory()) {
+                    // Rekursiver Aufruf mit Sicherheitsprüfung
                     addDirectoryToZip(rootDir, file, zos);
-                } else {
-                    String relativePath = rootDir.toPath().relativize(file.toPath()).toString().replace("\\", "/");
-                    java.util.zip.ZipEntry entry = new java.util.zip.ZipEntry(relativePath);
-                    zos.putNextEntry(entry);
-                    
-                    try (java.io.FileInputStream fis = new java.io.FileInputStream(file)) {
-                        byte[] buffer = new byte[1024];
-                        int length;
-                        while ((length = fis.read(buffer)) > 0) {
-                            zos.write(buffer, 0, length);
+                } else if (file.isFile()) {
+                    // Nur Dateien hinzufügen, keine symbolischen Links oder andere spezielle Dateien
+                    try {
+                        String relativePath = rootDir.toPath().relativize(file.toPath()).toString().replace("\\", "/");
+                        java.util.zip.ZipEntry entry = new java.util.zip.ZipEntry(relativePath);
+                        zos.putNextEntry(entry);
+                        
+                        try (java.io.FileInputStream fis = new java.io.FileInputStream(file)) {
+                            byte[] buffer = new byte[8192]; // Größerer Buffer für bessere Performance
+                            int length;
+                            while ((length = fis.read(buffer)) > 0) {
+                                zos.write(buffer, 0, length);
+                            }
                         }
+                        
+                        zos.closeEntry();
+                    } catch (IOException e) {
+                        logger.warn("Fehler beim Hinzufügen der Datei {} zur ZIP: {}", file.getName(), e.getMessage());
+                        // Weiter mit nächster Datei
                     }
-                    
-                    zos.closeEntry();
                 }
             }
         }
@@ -2907,6 +3187,131 @@ public class PandocExportWindow extends CustomStage {
                 }
             }
             directory.delete();
+        }
+    }
+    
+    /**
+     * Aktiviert hierarchische Nummerierung für Listen im DOCX (3.1, 3.2.1, etc.)
+     * Passt die Nummerierungs-Definitionen an, damit verschachtelte Listen hierarchisch nummeriert werden
+     */
+    private void enableHierarchicalListNumbering(XWPFDocument document) {
+        try {
+            logger.info("Starte enableHierarchicalListNumbering");
+            // Apache POI XWPF unterstützt keine direkte Manipulation der Nummerierungs-Definitionen
+            // Wir müssen auf die zugrunde liegenden XML-Strukturen zugreifen
+            org.apache.poi.ooxml.POIXMLDocumentPart numberingPart = document.getNumbering();
+            if (numberingPart == null) {
+                logger.warn("Keine Nummerierungs-Definitionen gefunden - kann hierarchische Nummerierung nicht aktivieren");
+                return;
+            }
+            
+            logger.info("Nummerierungs-Part gefunden, versuche zu lesen");
+            
+            // Versuche die Nummerierungs-Definitionen zu lesen und anzupassen
+            try (java.io.InputStream is = numberingPart.getPackagePart().getInputStream()) {
+                // Parse die Nummerierungs-XML
+                org.openxmlformats.schemas.wordprocessingml.x2006.main.NumberingDocument numberingDoc = 
+                    org.openxmlformats.schemas.wordprocessingml.x2006.main.NumberingDocument.Factory.parse(is);
+                org.openxmlformats.schemas.wordprocessingml.x2006.main.CTNumbering ctNumbering = numberingDoc.getNumbering();
+                
+                if (ctNumbering == null) {
+                    logger.warn("Nummerierungs-XML konnte nicht geparst werden");
+                    return;
+                }
+                
+                logger.info("Nummerierungs-XML geparst, suche AbstractNum-Definitionen");
+                
+                int modifiedCount = 0;
+                
+                // Durchlaufe alle AbstractNum-Definitionen (die Basis-Definitionen)
+                if (ctNumbering.getAbstractNumArray() != null) {
+                    logger.info("Gefunden: {} AbstractNum-Definitionen", ctNumbering.getAbstractNumArray().length);
+                    
+                    for (org.openxmlformats.schemas.wordprocessingml.x2006.main.CTAbstractNum abstractNum : ctNumbering.getAbstractNumArray()) {
+                        if (abstractNum.getLvlArray() != null) {
+                            logger.info("AbstractNum hat {} Ebenen", abstractNum.getLvlArray().length);
+                            
+                            // Für jede Ebene: Setze hierarchische Nummerierung
+                            for (int i = 0; i < abstractNum.getLvlArray().length; i++) {
+                                org.openxmlformats.schemas.wordprocessingml.x2006.main.CTLvl level = abstractNum.getLvlArray(i);
+                                
+                                // Setze die Nummerierungs-Formatierung für hierarchische Nummerierung
+                                // Ebene 0: %1. (nur eigene Nummer)
+                                // Ebene 1: %1.%2. (übergeordnete Nummer + eigene Nummer)
+                                // Ebene 2: %1.%2.%3. (alle übergeordneten Nummern + eigene Nummer)
+                                // etc.
+                                
+                                if (level.getNumFmt() != null) {
+                                    org.openxmlformats.schemas.wordprocessingml.x2006.main.STNumberFormat.Enum numFmt = level.getNumFmt().getVal();
+                                    logger.info("Ebene {}: NumFmt = {}", i, numFmt);
+                                    
+                                    if (numFmt == org.openxmlformats.schemas.wordprocessingml.x2006.main.STNumberFormat.DECIMAL) {
+                                        // Setze lvlText für hierarchische Nummerierung
+                                        if (level.getLvlText() == null) {
+                                            level.addNewLvlText();
+                                        }
+                                        
+                                        // Baue den hierarchischen Nummerierungs-String
+                                        StringBuilder lvlText = new StringBuilder();
+                                        for (int j = 0; j <= i; j++) {
+                                            if (j > 0) {
+                                                lvlText.append(".");
+                                            }
+                                            lvlText.append("%").append(j + 1);
+                                        }
+                                        lvlText.append(".");
+                                        
+                                        String oldLvlText = level.getLvlText().getVal();
+                                        level.getLvlText().setVal(lvlText.toString());
+                                        logger.info("Ebene {}: lvlText geändert von '{}' zu '{}'", i, oldLvlText, lvlText.toString());
+                                        modifiedCount++;
+                                        
+                                        // Wichtig: Setze auch die Startwerte für jede Ebene
+                                        if (level.getStart() == null) {
+                                            level.addNewStart();
+                                        }
+                                        level.getStart().setVal(java.math.BigInteger.valueOf(1));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    logger.warn("Keine AbstractNum-Definitionen gefunden");
+                }
+                
+                if (modifiedCount > 0) {
+                    // WICHTIG: Speichere die geänderten Nummerierungs-Definitionen zurück
+                    // Wir müssen den numberingPart neu schreiben, damit die Änderungen erhalten bleiben
+                    try (java.io.OutputStream os = numberingPart.getPackagePart().getOutputStream()) {
+                        numberingDoc.save(os);
+                        os.flush();
+                    }
+                    
+                    logger.info("Hierarchische Nummerierung für {} Ebenen aktiviert und gespeichert", modifiedCount);
+                    
+                    // DEBUG: Prüfe welche Nummerierungs-IDs tatsächlich im Dokument verwendet werden
+                    int numParagraphsWithNumbering = 0;
+                    for (XWPFParagraph paragraph : document.getParagraphs()) {
+                        if (paragraph.getNumID() != null) {
+                            numParagraphsWithNumbering++;
+                            if (numParagraphsWithNumbering <= 5) { // Nur die ersten 5 loggen
+                                logger.info("Absatz mit Nummerierung gefunden: NumID = {}, Ilvl = {}", 
+                                    paragraph.getNumID(), paragraph.getNumIlvl());
+                            }
+                        }
+                    }
+                    logger.info("Gesamt: {} Absätze mit Nummerierung gefunden", numParagraphsWithNumbering);
+                } else {
+                    logger.warn("Keine Ebenen wurden modifiziert - möglicherweise keine nummerierten Listen gefunden");
+                }
+                
+            } catch (Exception e) {
+                logger.error("Fehler beim Anpassen der Nummerierungs-Definitionen: {}", e.getMessage(), e);
+            }
+            
+        } catch (Exception e) {
+            logger.error("Fehler beim Aktivieren der hierarchischen Nummerierung: {}", e.getMessage(), e);
         }
     }
     

@@ -10939,6 +10939,7 @@ spacer.setStyle("-fx-background-color: transparent;");
         boolean inTable = false;
         boolean inParagraph = false;
         StringBuilder tableContent = new StringBuilder();
+        String[] tableAlignments = null; // Speichert die Ausrichtung für jede Spalte
         
         // Stack für verschachtelte Listen (0 = keine Liste, 1 = erste Ebene, etc.)
         List<Integer> listStack = new ArrayList<>(); // 1 = unordered, 2 = ordered
@@ -10968,11 +10969,36 @@ spacer.setStyle("-fx-background-color: transparent;");
                     inTable = true;
                     tableContent = new StringBuilder();
                     tableContent.append("<table>\n");
+                    tableAlignments = null; // Zurücksetzen
                 }
                 
-                // Separator-Zeile erkennen und überspringen
-                boolean isSeparator = trimmedLine.matches("^\\s*\\|?\\s*(?::?-+\\s*\\|\\s*)+(?::?-+)\\s*\\|?\\s*$");
+                // Separator-Zeile erkennen und Ausrichtung extrahieren
+                // Pattern: |:---|:---:|---:| oder :---|:---:|---: (mit oder ohne führende/nachlaufende Pipes)
+                boolean isSeparator = trimmedLine.matches("^\\s*\\|?\\s*(?::?-+:?\\s*\\|\\s*)+(?::?-+:?)\\s*\\|?\\s*$");
                 if (isSeparator) {
+                    // Ausrichtung aus Separator-Zeile extrahieren
+                    String normalized = trimmedLine.replaceAll("^\\|", "").replaceAll("\\|$", "");
+                    String[] separators = normalized.split("\\|");
+                    tableAlignments = new String[separators.length];
+                    
+                    for (int j = 0; j < separators.length; j++) {
+                        String sep = separators[j].trim();
+                        // Wichtig: Reihenfolge der Prüfungen ist kritisch!
+                        // Zuerst center prüfen (beide Seiten haben :), dann right, dann left
+                        if (sep.startsWith(":") && sep.endsWith(":")) {
+                            // :---: = zentriert
+                            tableAlignments[j] = "center";
+                        } else if (sep.endsWith(":") && !sep.startsWith(":")) {
+                            // ---: = rechtsbündig (nur rechts hat :)
+                            tableAlignments[j] = "right";
+                        } else if (sep.startsWith(":") && !sep.endsWith(":")) {
+                            // :--- = linksbündig (nur links hat :)
+                            tableAlignments[j] = "left";
+                        } else {
+                            // --- = Standard: linksbündig
+                            tableAlignments[j] = "left";
+                        }
+                    }
                     continue;
                 }
                 
@@ -10987,12 +11013,20 @@ spacer.setStyle("-fx-background-color: transparent;");
                 String[] cells = normalized.split("\\|");
                 
                 tableContent.append("<tr>\n");
-                for (String rawCell : cells) {
+                for (int j = 0; j < cells.length; j++) {
+                    String rawCell = cells[j];
                     String cell = rawCell.trim();
+                    String alignment = (tableAlignments != null && j < tableAlignments.length) 
+                        ? tableAlignments[j] 
+                        : "left";
+                    String style = " style=\"text-align: " + alignment + ";\"";
+                    
                     if (isHeaderRow) {
-                        tableContent.append("<th>").append(convertInlineMarkdownForPreview(cell)).append("</th>\n");
+                        tableContent.append("<th").append(style).append(">")
+                            .append(convertInlineMarkdownForPreview(cell)).append("</th>\n");
                     } else {
-                        tableContent.append("<td>").append(convertInlineMarkdownForPreview(cell)).append("</td>\n");
+                        tableContent.append("<td").append(style).append(">")
+                            .append(convertInlineMarkdownForPreview(cell)).append("</td>\n");
                     }
                 }
                 tableContent.append("</tr>\n");
@@ -11001,6 +11035,7 @@ spacer.setStyle("-fx-background-color: transparent;");
                 inTable = false;
                 tableContent.append("</table>\n");
                 html.append(tableContent.toString());
+                tableAlignments = null; // Zurücksetzen
             }
             
             // Leerzeilen: Absatz beenden, aber nicht mehrfache <br> einfügen
