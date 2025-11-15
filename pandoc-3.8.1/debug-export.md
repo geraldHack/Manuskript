@@ -4,6 +4,11 @@ subtitle: "Heldensaga von Demirantha Band 3"
 author: "Gerald Hackbart"
 date: "Oktober 2025"
 rights: "© 2025 Gerald Hackbart"
+lang: de
+mainfont: DejaVu Serif
+sansfont: DejaVu Sans
+monofont: DejaVu Sans Mono
+toc: true
 abstract: |
   Das hatte sich Jomar anders vorgestellt.
   Als Spione des verrückten Zauberers Efret hatten Kata und er die Welt gerettet – wieder einmal. Und in seiner Vorstellung würden sie auch in Zukunft Abenteuer erleben, die Welt bereisen, und sie – wenn nötig – auch wieder retten.
@@ -52,6 +57,7 @@ a<sup>2</sup>+2ab+b<sup>2</sup>
 
 
 
+
 https://example.com
 
 <span style="color: red;">Roter Text</span>
@@ -65,17 +71,6 @@ Nichts rührte sich, aber etwas lauerte in der Finsternis: eine dunkle Präsenz.
 Er hielt die Luft an. Seine Augen klebten an der Tür - und tatsächlich: Sie öffnete sich. Knarrend, mit einem fast schon schuldbewussten Laut.
 
 Ein Mann trat heraus.
-
-
-| Links | Mitte | Rechts |
-
-|---------|--------|---------|
-| Text | Text | Text |
-
-
-
-
-
 
 Schlaksig, mit einem fleckigen Umhang, den er sich über die Schulter geworfen hatte wie einen alten Lappen. Er sah sich nicht um, sondern ging direkt auf das ›Gartenbeet‹ zu. Dort blieb er stehen. Jomar duckte sich tiefer. Hektisch fuchtelte er mit der Hand - erst zwei Finger, dann eine Faust, dann eine kreisende Bewegung: bereit machen.
 
@@ -7219,7 +7214,6 @@ Kata nickte und drückte ihn fest an sich, ihr Blick suchte Jomars, ein stilles 
 
 
 # Ayens Aufstieg
-
 Der Korridor lag in seltsamen Zwielicht, als hätte jemand die Hälfte der Beleuchtung ausgeschaltet. »Die Oberstadt liegt drei Ebenen über uns«, flüsterte Nira und deutete auf den Fahrstuhl am Ende des Ganges.
 
 Jomar nickte und warf einen Blick zurück zu den anderen. Almin hatte die Hände bereits gehoben, bereit, seine Magie einzusetzen. Jaad wirkte konzentriert, ihre Augen halb geschlossen, als würde sie bereits nach fremden Gedanken tasten. Kalem hielt zwei seiner Messer locker in den Händen und grinste, als ginge er zu einem Volksfest.
@@ -7258,15 +7252,15 @@ Kata zog Ayen vorsichtig an den reglosen Gestalten vorbei. »Sind sie …?«
 
 »Nur bewusstlos«, versicherte Almin. »Für etwa eine Stunde.«
 
-Sie setzten ihren Weg fort - schneller nun und mit größerer Vorsicht. Zweimal noch trafen sie auf Patrouillen, aber jedes Mal endete die Begegnung ähnlich; mit Almins Fäusten, Jomars magischen Pfeilen, Kalems Messern oder Jaads mentalen Befehlen. Natürlich wurde niemand getötet.
+Sie setzten ihren Weg fort - schneller nun und mit größerer Vorsicht. Zweimal noch trafen sie auf Patrouillen, aber jedes Mal endete die Begegnung ähnlich; mit Almins und Jomars Magie, Kalems Messern oder Jaads mentalen Befehlen. Natürlich wurde niemand getötet.
 
-Als sie den Aufstieg zur nächsten Ebene erreichten, wurden sie von einer größeren Gruppe erwartet - acht Wachen, bewaffnet mit den gleichen Betäubungsstöcken.
+Als sie den Aufstieg zur nächsten Ebene erreichten, erstarrte Nira plötzlich und zog die anderen hinter eine breite Säule. Kata spähte vorsichtig um die Ecke. Acht Wachen standen im Halbkreis vor dem Durchgang, ihre Betäubungsstöcke locker in den Händen, während sie sich leise unterhielten. Einer lachte gedämpft über einen Witz.
 
 »Diese Stöcke«, erklärte Nira leise, während sie sich hinter einer Säule duckten, »sind ihre einzigen Waffen. Der Rat würde uns niemals Gefährlicheres anvertrauen.«
 
 »Verständlich«, murmelte Kalem. »Wenn ich Sklaven erschaffen hätte, hätte ich ihnen auch keine richtigen Waffen gegeben.«
 
-Jomar betrachtete die Aufstellung der Wachen und flüsterte: »Wir müssen sie alle gleichzeitig ausschalten. Wenn auch nur einer entkommt und Alarm schlägt …«
+Jomar beobachtete die Wachen durch einen schmalen Spalt zwischen Säule und Wand. »Wir haben den Vorteil der Überraschung«, wisperte er. »Aber wir müssen sie alle gleichzeitig ausschalten. Wenn auch nur einer entkommt und Alarm schlägt …«
 
 Kata nickte und legte eine Hand auf Ayens Schulter. »Bleib dicht bei mir, verstanden?«
 

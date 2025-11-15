@@ -22,7 +22,18 @@
 ### Voraussetzungen
 - **Java 17+** ([Download](https://adoptium.net/))
 - **Maven 3.6+** ([Download](https://maven.apache.org/download.cgi))
-- **Ollama** (optional, für KI-Features) ([Download](https://ollama.com))
+- **Ollama** (optional, für KI-Features)
+  - Windows: [Download](https://ollama.com/download/windows)
+  - macOS: [Download](https://ollama.com/download/mac)
+  - Linux: [Download](https://ollama.com/download/linux)
+- **Pandoc** (optional, für erweiterte Export-Funktionen)
+  - Windows: Schon im Projekt enthalten: `pandoc-3.8.1/`)
+  - macOS: `brew install pandoc` oder [Download](https://github.com/jgm/pandoc/releases)
+  - Linux: `sudo apt install pandoc` (Ubuntu/Debian) oder [Download](https://github.com/jgm/pandoc/releases)
+- **MiKTeX oder TeX Live** (optional, für PDF-Export)
+  - Windows: [MiKTeX Download](https://miktex.org/download)
+  - macOS: [MiKTeX Download](https://miktex.org/download) 
+  - Linux: [MiKTeX Download](https://miktex.org/download) 
 
 ### Installation & Start
 
@@ -98,6 +109,8 @@ mvn javafx:run
 | **PDF** | PDF halt | ✅ Styling |
 | **LaTeX** | für alle die schon seit 1984 dabei sind | ✅ Styling |
 | **epub** | für epub-Viewer | ✅ Styling |
+
+> **Hinweis:** Für den PDF-Export wird **MiKTeX** oder **TeX Live** benötigt. Siehe [Voraussetzungen](#-schnellstart) für plattformspezifische Download-Links (Windows, macOS, Linux).
 
 ## ⚙️ Konfiguration
 

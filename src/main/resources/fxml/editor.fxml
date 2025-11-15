@@ -141,11 +141,42 @@
          </padding>
       </VBox>
       
-      <!-- Haupt-Editor (ohne Split Pane) -->
-      <VBox fx:id="textAreaContainer" minHeight="200" VBox.vgrow="ALWAYS">
-         <padding>
-            <Insets top="5.0" bottom="5.0" left="5.0" right="5.0" />
-         </padding>
-      </VBox>
+      <!-- Haupt-Editor mit ausklappbarer Seitenleiste -->
+      <HBox spacing="0" VBox.vgrow="ALWAYS">
+         <children>
+            <!-- Toggle-Button für Ein-/Ausklappen (immer sichtbar) -->
+            <Button fx:id="btnToggleSidebar" text="▶" styleClass="sidebar-toggle-button" minWidth="30" maxWidth="30" />
+            
+            <!-- SplitPane mit Seitenleiste und Editor -->
+            <SplitPane fx:id="mainSplitPane" dividerPositions="0.15" HBox.hgrow="ALWAYS">
+               <items>
+                  <!-- Seitenleiste für Kapitel -->
+                  <VBox fx:id="sidebarContainer" minWidth="200" maxWidth="300" prefWidth="250">
+                     <children>
+                        <!-- Header -->
+                        <HBox alignment="CENTER_LEFT" styleClass="sidebar-header">
+                           <children>
+                              <Label text="Kapitel" styleClass="sidebar-title" />
+                           </children>
+                           <padding>
+                              <Insets top="5.0" bottom="5.0" left="10.0" right="10.0" />
+                           </padding>
+                        </HBox>
+                        
+                        <!-- Kapitelliste -->
+                        <ListView fx:id="chapterListView" styleClass="chapter-list-view" VBox.vgrow="ALWAYS" />
+                     </children>
+                  </VBox>
+                  
+                  <!-- Editor-Bereich -->
+                  <VBox fx:id="textAreaContainer" minHeight="200" VBox.vgrow="ALWAYS">
+                     <padding>
+                        <Insets top="5.0" bottom="5.0" left="5.0" right="5.0" />
+                     </padding>
+                  </VBox>
+               </items>
+            </SplitPane>
+         </children>
+      </HBox>
    </children>
 </VBox>

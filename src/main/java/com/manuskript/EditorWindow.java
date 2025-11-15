@@ -167,6 +167,13 @@ public class EditorWindow implements Initializable {
     @FXML private Button btnPreviousChapter;
     @FXML private Button btnNextChapter;
     
+    // Seitenleiste für Kapitel
+    @FXML private SplitPane mainSplitPane;
+    @FXML private VBox sidebarContainer;
+    @FXML private Button btnToggleSidebar;
+    @FXML private ListView<DocxFile> chapterListView;
+    private boolean sidebarExpanded = true;
+    
     // Undo/Redo Buttons
     @FXML private Button btnUndo;
     @FXML private Button btnRedo;
@@ -355,6 +362,14 @@ public class EditorWindow implements Initializable {
         
         // Event-Handler setzen
         setupEventHandlers();
+        
+        // Seitenleiste initialisieren
+        initializeSidebar();
+        
+        // Lade gespeicherten Ausklappstatus und Divider-Position (nach initializeSidebar)
+        Platform.runLater(() -> {
+            loadSidebarState();
+        });
         
         // Checkboxen explizit auf false setzen (nach FXML-Load)
         Platform.runLater(() -> {
@@ -878,6 +893,45 @@ if (caret != null) {
         // Kapitel-Navigation-Buttons
         btnPreviousChapter.setOnAction(e -> navigateToPreviousChapter());
         btnNextChapter.setOnAction(e -> navigateToNextChapter());
+        
+        // Seitenleiste Event-Handler
+        if (btnToggleSidebar != null) {
+            btnToggleSidebar.setOnAction(e -> toggleSidebar());
+        }
+        if (chapterListView != null) {
+            // Auswahl zurücksetzen wenn auf leeren Bereich der ListView geklickt wird
+            chapterListView.setOnMousePressed(e -> {
+                javafx.scene.control.ListView<DocxFile> listView = (javafx.scene.control.ListView<DocxFile>) e.getSource();
+                // Prüfe ob auf ein Item geklickt wurde
+                Node target = (Node) e.getTarget();
+                
+                // Suche nach der ListCell im Parent-Baum
+                Node node = target;
+                while (node != null && !(node instanceof javafx.scene.control.ListCell)) {
+                    node = node.getParent();
+                }
+                
+                if (node == null || !(node instanceof javafx.scene.control.ListCell)) {
+                    // Kein Item geklickt - Auswahl zurücksetzen
+                    listView.getSelectionModel().clearSelection();
+                }
+            });
+            
+            chapterListView.setOnMouseClicked(e -> {
+                if (e.getClickCount() == 2) {
+                    DocxFile selectedDocxFile = chapterListView.getSelectionModel().getSelectedItem();
+                    if (selectedDocxFile != null) {
+                        // Prüfe auf ungespeicherte Änderungen
+                        if (hasUnsavedChanges()) {
+                            if (!showSaveDialogForNavigation()) {
+                                return; // Benutzer hat abgebrochen
+                            }
+                        }
+                        navigateToChapter(selectedDocxFile.getFile());
+                    }
+                }
+            });
+        }
         
         // Chapter-Editor entfernt - keine Event-Handler mehr nötig
         
@@ -5963,6 +6017,37 @@ if (caret != null) {
      */
     public void setOriginalDocxFile(File docxFile) {
         this.originalDocxFile = docxFile;
+        // ListView-Zellen neu rendern, damit die Markierung aktualisiert wird
+        refreshChapterListCells();
+    }
+    
+    /**
+     * Aktualisiert die ListView-Zellen, damit die Markierung korrekt angezeigt wird
+     */
+    private void refreshChapterListCells() {
+        if (chapterListView != null) {
+            Platform.runLater(() -> {
+                // Zellen neu rendern lassen, indem wir die Items temporär entfernen und wieder hinzufügen
+                ObservableList<DocxFile> items = chapterListView.getItems();
+                if (!items.isEmpty()) {
+                    // Temporär Items speichern
+                    List<DocxFile> tempItems = new ArrayList<>(items);
+                    // Items entfernen und wieder hinzufügen, um Zellen neu zu rendern
+                    chapterListView.getItems().clear();
+                    chapterListView.getItems().addAll(tempItems);
+                    
+                    // Aktuelle Auswahl wiederherstellen
+                    if (originalDocxFile != null) {
+                        for (int i = 0; i < tempItems.size(); i++) {
+                            if (tempItems.get(i).getFile().equals(originalDocxFile)) {
+                                chapterListView.getSelectionModel().select(i);
+                                break;
+                            }
+                        }
+                    }
+                }
+            });
+        }
     }
     
     /**
@@ -6205,6 +6290,16 @@ if (caret != null) {
         Platform.runLater(() -> {
             updateNavigationButtons();
         });
+        
+        // Listener für Änderungen in der selectedDocxFiles Liste hinzufügen
+        if (mainController != null) {
+            ObservableList<DocxFile> selectedDocxFiles = mainController.getSelectedDocxFilesAsDocxFiles();
+            selectedDocxFiles.addListener((javafx.collections.ListChangeListener.Change<? extends DocxFile> change) -> {
+                Platform.runLater(() -> {
+                    updateChapterList();
+                });
+            });
+        }
     }
     
     // ===== MAKRO-FUNKTIONALITÄT =====
@@ -12113,6 +12208,188 @@ spacer.setStyle("-fx-background-color: transparent;");
         // Deaktiviere "Nächstes Kapitel" wenn beim letzten Kapitel
         btnNextChapter.setDisable(currentIndex >= selectedFiles.size() - 1);
         
+        // Aktualisiere auch die Kapitelliste in der Seitenleiste
+        updateChapterList();
+        // Zellen neu rendern, damit die Markierung aktualisiert wird
+        refreshChapterListCells();
+    }
+    
+    /**
+     * Initialisiert die Seitenleiste
+     */
+    private void initializeSidebar() {
+        if (mainSplitPane == null || sidebarContainer == null || chapterListView == null) {
+            return;
+        }
+        
+        // Lade Kapitelliste
+        updateChapterList();
+        
+        // Setze Cell Factory für Kapitelnamen-Anzeige
+        chapterListView.setCellFactory(listView -> new ListCell<DocxFile>() {
+            @Override
+            protected void updateItem(DocxFile docxFile, boolean empty) {
+                super.updateItem(docxFile, empty);
+                if (empty || docxFile == null) {
+                    setText(null);
+                    setStyle("");
+                } else {
+                    // Verwende getDisplayFileName() für ! Markierungen
+                    String displayName = docxFile.getDisplayFileName();
+                    setText(displayName);
+                    
+                    // Markiere aktuelles Kapitel
+                    if (originalDocxFile != null && docxFile.getFile().equals(originalDocxFile)) {
+                        setStyle("-fx-font-weight: bold; -fx-background-color: rgba(74, 144, 226, 0.3); -fx-border-color: rgba(74, 144, 226, 0.5); -fx-border-width: 0 0 0 3px;");
+                    } else if (docxFile.isChanged()) {
+                        // Markiere geänderte Kapitel mit ! Symbol
+                        setStyle("-fx-text-fill: #ff6b35; -fx-font-weight: bold;");
+                    } else {
+                        setStyle("");
+                    }
+                }
+            }
+        });
+        
+        // Initiale Divider-Position wird in loadSidebarState() gesetzt
+    }
+    
+    /**
+     * Aktualisiert die Kapitelliste in der Seitenleiste
+     */
+    private void updateChapterList() {
+        if (chapterListView == null || mainController == null) {
+            return;
+        }
+        
+        ObservableList<DocxFile> selectedDocxFiles = mainController.getSelectedDocxFilesAsDocxFiles();
+        if (selectedDocxFiles.isEmpty()) {
+            chapterListView.getItems().clear();
+            return;
+        }
+        
+        // Aktualisiere die Liste
+        chapterListView.setItems(selectedDocxFiles);
+        
+        // Markiere aktuelles Kapitel
+        if (originalDocxFile != null) {
+            final int[] currentIndex = {-1};
+            for (int i = 0; i < selectedDocxFiles.size(); i++) {
+                if (selectedDocxFiles.get(i).getFile().equals(originalDocxFile)) {
+                    currentIndex[0] = i;
+                    break;
+                }
+            }
+            if (currentIndex[0] >= 0) {
+                final int finalIndex = currentIndex[0];
+                Platform.runLater(() -> {
+                    chapterListView.getSelectionModel().select(finalIndex);
+                    // Kein automatisches Scrollen - nur Auswahl setzen
+                });
+            }
+        }
+    }
+    
+    /**
+     * Klappt die Seitenleiste ein oder aus
+     */
+    private void toggleSidebar() {
+        if (mainSplitPane == null || sidebarContainer == null || btnToggleSidebar == null) {
+            return;
+        }
+        
+        sidebarExpanded = !sidebarExpanded;
+        
+        if (sidebarExpanded) {
+            // Seitenleiste einblenden
+            sidebarContainer.setVisible(true);
+            sidebarContainer.setManaged(true);
+            btnToggleSidebar.setText("◀");
+            // WICHTIG: Divider-Position muss nach setVisible gesetzt werden
+            Platform.runLater(() -> {
+                if (mainSplitPane.getItems().size() >= 2) {
+                    // Lade gespeicherte Divider-Position oder verwende Standard (15%)
+                    double savedPosition = preferences.getDouble("sidebar.dividerPosition", 0.15);
+                    double[] positions = {savedPosition};
+                    mainSplitPane.setDividerPositions(positions);
+                }
+            });
+        } else {
+            // Seitenleiste ausblenden
+            sidebarContainer.setVisible(false);
+            sidebarContainer.setManaged(false);
+            btnToggleSidebar.setText("▶");
+            Platform.runLater(() -> {
+                if (mainSplitPane.getItems().size() >= 2) {
+                    // Setze Divider auf 0 (vollständig eingeklappt)
+                    double[] positions = {0.0};
+                    mainSplitPane.setDividerPositions(positions);
+                }
+            });
+        }
+        
+        // Speichere den Status
+        saveSidebarState();
+    }
+    
+    /**
+     * Lädt den gespeicherten Ausklappstatus und die Divider-Position
+     */
+    private void loadSidebarState() {
+        if (mainSplitPane == null || sidebarContainer == null || btnToggleSidebar == null) {
+            return;
+        }
+        
+        // Lade gespeicherten Status
+        sidebarExpanded = preferences.getBoolean("sidebar.expanded", true);
+        double savedDividerPosition = preferences.getDouble("sidebar.dividerPosition", 0.15);
+        
+        Platform.runLater(() -> {
+            if (sidebarExpanded) {
+                // Seitenleiste einblenden
+                sidebarContainer.setVisible(true);
+                sidebarContainer.setManaged(true);
+                btnToggleSidebar.setText("◀");
+                if (mainSplitPane.getItems().size() >= 2) {
+                    double[] positions = {savedDividerPosition};
+                    mainSplitPane.setDividerPositions(positions);
+                }
+            } else {
+                // Seitenleiste ausblenden
+                sidebarContainer.setVisible(false);
+                sidebarContainer.setManaged(false);
+                btnToggleSidebar.setText("▶");
+                if (mainSplitPane.getItems().size() >= 2) {
+                    double[] positions = {0.0};
+                    mainSplitPane.setDividerPositions(positions);
+                }
+            }
+            
+            // Listener für Divider-Änderungen hinzufügen
+            if (mainSplitPane.getItems().size() >= 2) {
+                mainSplitPane.getDividers().get(0).positionProperty().addListener((obs, oldPos, newPos) -> {
+                    if (sidebarExpanded && newPos.doubleValue() > 0.0) {
+                        // Speichere nur wenn ausgeklappt und nicht 0
+                        preferences.putDouble("sidebar.dividerPosition", newPos.doubleValue());
+                    }
+                });
+            }
+        });
+    }
+    
+    /**
+     * Speichert den aktuellen Ausklappstatus
+     */
+    private void saveSidebarState() {
+        if (preferences != null) {
+            preferences.putBoolean("sidebar.expanded", sidebarExpanded);
+            if (mainSplitPane != null && mainSplitPane.getItems().size() >= 2 && sidebarExpanded) {
+                double[] positions = mainSplitPane.getDividerPositions();
+                if (positions.length > 0 && positions[0] > 0.0) {
+                    preferences.putDouble("sidebar.dividerPosition", positions[0]);
+                }
+            }
+        }
     }
     
     /**

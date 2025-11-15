@@ -4597,6 +4597,13 @@ public class MainController implements Initializable {
             .map(DocxFile::getFile)
             .collect(Collectors.toList());
     }
+    
+    /**
+     * Gibt die Liste der ausgewählten DOCX-Dateien als DocxFile-Liste zurück
+     */
+    public ObservableList<DocxFile> getSelectedDocxFilesAsDocxFiles() {
+        return selectedDocxFiles;
+    }
 
     private List<String> loadSavedOrder(File directory) {
         if (directory == null) {
