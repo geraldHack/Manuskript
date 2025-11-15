@@ -4,11 +4,6 @@ subtitle: "Heldensaga von Demirantha Band 3"
 author: "Gerald Hackbart"
 date: "Oktober 2025"
 rights: "© 2025 Gerald Hackbart"
-lang: de
-mainfont: DejaVu Serif
-sansfont: DejaVu Sans
-monofont: DejaVu Sans Mono
-toc: true
 abstract: |
   Das hatte sich Jomar anders vorgestellt.
   Als Spione des verrückten Zauberers Efret hatten Kata und er die Welt gerettet – wieder einmal. Und in seiner Vorstellung würden sie auch in Zukunft Abenteuer erleben, die Welt bereisen, und sie – wenn nötig – auch wieder retten.

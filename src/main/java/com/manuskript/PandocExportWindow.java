@@ -443,7 +443,7 @@ public class PandocExportWindow extends CustomStage {
         // Stelle sicher, dass Pandoc vorhanden ist (entpacke ggf. pandoc.zip)
         ensurePandocAvailable();
         referenceTemplates = new ArrayList<>();
-        File pandocDir = (pandocHome != null) ? pandocHome : new File("pandoc-3.8.1");
+        File pandocDir = (pandocHome != null) ? pandocHome : new File("pandoc");
         
         if (pandocDir.exists() && pandocDir.isDirectory()) {
             File[] files = pandocDir.listFiles((dir, name) -> 
@@ -469,7 +469,7 @@ public class PandocExportWindow extends CustomStage {
         String selectedTemplate = templateComboBox.getValue();
         if (selectedTemplate != null) {
             // Look for description file
-            String descriptionFile = "pandoc-3.8.1/reference-" + selectedTemplate + ".txt";
+            String descriptionFile = "pandoc/reference-" + selectedTemplate + ".txt";
             try {
                 if (Files.exists(Paths.get(descriptionFile))) {
                     String description = Files.readString(Paths.get(descriptionFile));
@@ -1047,10 +1047,10 @@ public class PandocExportWindow extends CustomStage {
             try {
                 Files.copy(
                     tempMarkdownFile.toPath(),
-                    Paths.get("pandoc-3.8.1", "debug-export.md"),
+                    Paths.get("pandoc", "debug-export.md"),
                     StandardCopyOption.REPLACE_EXISTING
                 );
-                logger.info("Debug-Markdown geschrieben nach pandoc-3.8.1\\debug-export.md");
+                logger.info("Debug-Markdown geschrieben nach pandoc\\debug-export.md");
                 
                 int tableIndex = normalizedContent.indexOf("|---");
                 if (tableIndex >= 0) {
@@ -1435,7 +1435,7 @@ public class PandocExportWindow extends CustomStage {
             // Pandoc-Pfad
             File pandocExe = (pandocHome != null)
                 ? new File(pandocHome, "pandoc.exe")
-                : new File("pandoc-3.8.1", "pandoc.exe");
+                : new File("pandoc", "pandoc.exe");
             
             // Ausgabedatei
             String outputDirPath = outputDirectoryField.getText().trim();
@@ -1494,7 +1494,7 @@ public class PandocExportWindow extends CustomStage {
                 if (!coverImageField.getText().trim().isEmpty()) {
                     File coverImageFile = new File(coverImageField.getText().trim());
                     if (coverImageFile.exists()) {
-                        File pandocDir = new File("pandoc-3.8.1");
+                        File pandocDir = new File("pandoc");
                         if (pandocDir.exists()) {
                             try {
                                 String coverFileName = getCoverFileName(coverImageFile);
@@ -1536,7 +1536,7 @@ public class PandocExportWindow extends CustomStage {
                         try {
                             // Cover-Bild ins pandoc-Verzeichnis kopieren
                             String coverFileName = getCoverFileName(coverImageFile);
-                            File pandocDir = new File("pandoc-3.8.1");
+                            File pandocDir = new File("pandoc");
                             File targetCover = new File(pandocDir, coverFileName);
                             Files.copy(coverImageFile.toPath(), targetCover.toPath(),
                                 java.nio.file.StandardCopyOption.REPLACE_EXISTING);
@@ -1566,7 +1566,7 @@ public class PandocExportWindow extends CustomStage {
                 File htmlFile = new File(htmlDir, htmlFileName);
 
                         // CSS-Datei ins Unterverzeichnis kopieren
-                        File sourceCss = new File("pandoc-3.8.1", "epub.css");
+                        File sourceCss = new File("pandoc", "epub.css");
                         File targetCss = new File(htmlDir, "styles.css");
                         if (sourceCss.exists()) {
                             try {
@@ -1617,7 +1617,7 @@ public class PandocExportWindow extends CustomStage {
                 command.add("--to=latex");
                 
                 // Template für PDF verwenden (vereinfachtes XeLaTeX-Template)
-                File pdfTemplate = new File("pandoc-3.8.1", "simple-xelatex-template.tex");
+                File pdfTemplate = new File("pandoc", "simple-xelatex-template.tex");
                 if (pdfTemplate.exists()) {
                     command.add("--template=" + pdfTemplate.getAbsolutePath());
                     logger.debug("Verwende vereinfachtes XeLaTeX-Template: {}", pdfTemplate.getName());
@@ -1646,7 +1646,7 @@ public class PandocExportWindow extends CustomStage {
                             if (!outputDir.exists()) {
                                 outputDir.mkdirs();
                             }
-                            File pandocDir = new File("pandoc-3.8.1");
+                            File pandocDir = new File("pandoc");
                             
                             // Kopiere ins Ausgabeverzeichnis
                             File targetCoverOutput = new File(outputDir, coverFileName);
@@ -1679,7 +1679,7 @@ public class PandocExportWindow extends CustomStage {
                 // Markdown-Bilder ins Ausgabeverzeichnis kopieren (XeLaTeX kompiliert dort)
                 // UND ins pandoc-Verzeichnis (als Backup)
                 File markdownDir = markdownFile.getParentFile();
-                File pandocDir = new File("pandoc-3.8.1");
+                File pandocDir = new File("pandoc");
                 if (!outputDir.exists()) {
                     outputDir.mkdirs();
                 }
@@ -1702,7 +1702,7 @@ public class PandocExportWindow extends CustomStage {
                 command.add("--pdf-engine-opt=-interaction=nonstopmode");
                 
                 // Lua-Filter für automatische Initialen
-                File luaFilter = new File("pandoc-3.8.1", "dropcaps.lua");
+                File luaFilter = new File("pandoc", "dropcaps.lua");
                 if (luaFilter.exists()) {
                     command.add("--lua-filter=" + luaFilter.getAbsolutePath());
                     logger.debug("Verwende Lua-Filter für automatische Initialen: {}", luaFilter.getName());
@@ -1719,7 +1719,7 @@ public class PandocExportWindow extends CustomStage {
                 command.add("--to=latex");
                 
                 // Template für LaTeX verwenden (vereinfachtes XeLaTeX-Template)
-                File latexTemplate = new File("pandoc-3.8.1", "simple-xelatex-template.tex");
+                File latexTemplate = new File("pandoc", "simple-xelatex-template.tex");
                 if (latexTemplate.exists()) {
                     command.add("--template=" + latexTemplate.getAbsolutePath());
                     logger.debug("Verwende vereinfachtes XeLaTeX-Template: {}", latexTemplate.getName());
@@ -1742,7 +1742,7 @@ public class PandocExportWindow extends CustomStage {
                         try {
                             // Cover-Bild ins pandoc-Verzeichnis kopieren
                             String coverFileName = getCoverFileName(coverImageFile);
-                            File pandocDir = new File("pandoc-3.8.1");
+                            File pandocDir = new File("pandoc");
                             File targetCover = new File(pandocDir, coverFileName);
                             Files.copy(coverImageFile.toPath(), targetCover.toPath(),
                                 java.nio.file.StandardCopyOption.REPLACE_EXISTING);
@@ -1759,7 +1759,7 @@ public class PandocExportWindow extends CustomStage {
                 
                 // Markdown-Bilder ins Ausgabeverzeichnis UND pandoc-Verzeichnis kopieren
                 // LaTeX-Datei wird im Ausgabeverzeichnis erstellt, daher müssen Bilder dort sein
-                File pandocDirLatex = new File("pandoc-3.8.1");
+                File pandocDirLatex = new File("pandoc");
                 if (!outputDir.exists()) {
                     outputDir.mkdirs();
                 }
@@ -1804,10 +1804,10 @@ public class PandocExportWindow extends CustomStage {
                     pb.directory(outputDir);
                     logger.debug("Arbeitsverzeichnis für PDF-Export: {}", outputDir.getAbsolutePath());
                 } else {
-                    pb.directory(pandocHome != null ? pandocHome : new File("pandoc-3.8.1"));
+                    pb.directory(pandocHome != null ? pandocHome : new File("pandoc"));
                 }
             } else {
-                pb.directory(pandocHome != null ? pandocHome : new File("pandoc-3.8.1")); // Arbeitsverzeichnis auf Pandoc setzen
+                pb.directory(pandocHome != null ? pandocHome : new File("pandoc")); // Arbeitsverzeichnis auf Pandoc setzen
             }
             pb.environment().put("PATH", System.getenv("PATH")); // PATH weitergeben
             
@@ -1936,20 +1936,24 @@ public class PandocExportWindow extends CustomStage {
             try {
                 outputThread.join(10000); // Max 10 Sekunden warten
                 if (outputThread.isAlive()) {
-                    logger.warn("Output-Thread konnte nicht beendet werden, fahre fort");
+                    logger.warn("Output-Thread konnte nicht beendet werden, unterbreche Thread");
+                    outputThread.interrupt(); // Thread explizit unterbrechen
                 }
             } catch (InterruptedException e) {
                 logger.warn("Warten auf Output-Thread unterbrochen");
+                outputThread.interrupt(); // Thread explizit unterbrechen
                 Thread.currentThread().interrupt();
             }
             
             try {
                 errorThread.join(10000); // Max 10 Sekunden warten
                 if (errorThread.isAlive()) {
-                    logger.warn("Error-Thread konnte nicht beendet werden, fahre fort");
+                    logger.warn("Error-Thread konnte nicht beendet werden, unterbreche Thread");
+                    errorThread.interrupt(); // Thread explizit unterbrechen
                 }
             } catch (InterruptedException e) {
                 logger.warn("Warten auf Error-Thread unterbrochen");
+                errorThread.interrupt(); // Thread explizit unterbrechen
                 Thread.currentThread().interrupt();
             }
 
@@ -1998,13 +2002,42 @@ public class PandocExportWindow extends CustomStage {
                     Thread epubPostProcessThread = new Thread(() -> {
                         try {
                             Thread.sleep(200); // Kurze Wartezeit, damit die Datei nicht mehr gesperrt ist
+                            
+                            // Prüfe ob Thread unterbrochen wurde
+                            if (Thread.currentThread().isInterrupted()) {
+                                logger.debug("EPUB Post-Processing wurde unterbrochen");
+                                return;
+                            }
+                            
                             postProcessEpub(finalResultFile);
+                            
+                            logger.debug("EPUB Post-Processing erfolgreich abgeschlossen");
+                        } catch (InterruptedException e) {
+                            logger.debug("EPUB Post-Processing wurde unterbrochen");
+                            Thread.currentThread().interrupt();
                         } catch (Exception e) {
                             logger.warn("EPUB Post-Processing fehlgeschlagen: {}", e.getMessage());
                         }
                     });
                     epubPostProcessThread.setDaemon(true);
+                    epubPostProcessThread.setName("EPUB-PostProcessing");
                     epubPostProcessThread.start();
+                    
+                    // Timeout-Thread: Beendet den Post-Processing-Thread nach 5 Minuten
+                    Thread timeoutThread = new Thread(() -> {
+                        try {
+                            Thread.sleep(5 * 60 * 1000); // 5 Minuten
+                            if (epubPostProcessThread.isAlive()) {
+                                logger.warn("EPUB Post-Processing dauert zu lange, unterbreche Thread");
+                                epubPostProcessThread.interrupt();
+                            }
+                        } catch (InterruptedException e) {
+                            // Timeout-Thread wurde unterbrochen, ignorieren
+                        }
+                    });
+                    timeoutThread.setDaemon(true);
+                    timeoutThread.setName("EPUB-PostProcessing-Timeout");
+                    timeoutThread.start();
                 }
                 
                 // Export sofort als erfolgreich zurückgeben, Post-Processing läuft im Hintergrund
@@ -2129,7 +2162,7 @@ public class PandocExportWindow extends CustomStage {
             logger.debug("Versuche PDF-Fallback mit pdflatex (ohne Template)...");
             
             ProcessBuilder pb = new ProcessBuilder(fallbackCommand);
-            pb.directory(pandocHome != null ? pandocHome : new File("pandoc-3.8.1"));
+            pb.directory(pandocHome != null ? pandocHome : new File("pandoc"));
             pb.environment().put("PATH", System.getenv("PATH"));
             
             Process process = pb.start();
@@ -2156,14 +2189,14 @@ public class PandocExportWindow extends CustomStage {
     private boolean ensurePandocAvailable() {
         try {
             // 1) Prüfe Standardpfad
-            File pandocExe = new File("pandoc-3.8.1", "pandoc.exe");
+            File pandocExe = new File("pandoc", "pandoc.exe");
             if (pandocExe.exists()) {
                 pandocHome = pandocExe.getParentFile();
                 return true;
             }
 
-            // 2) Versuche, pandoc.zip in pandoc-3.8.1 zu finden und dort zu entpacken
-            File zip = new File("pandoc-3.8.1", "pandoc.zip");
+            // 2) Versuche, pandoc.zip in pandoc zu finden und dort zu entpacken
+            File zip = new File("pandoc", "pandoc.zip");
             if (!zip.exists()) {
                 // Fallback: im Programmverzeichnis
                 zip = new File("pandoc.zip");
@@ -2173,8 +2206,8 @@ public class PandocExportWindow extends CustomStage {
                 return false;
             }
 
-            // Zielordner ist pandoc-3.8.1
-            File targetDir = new File("pandoc-3.8.1");
+            // Zielordner ist pandoc
+            File targetDir = new File("pandoc");
             if (!targetDir.exists()) targetDir.mkdirs();
             boolean ok = unzip(zip, targetDir);
             if (!ok) {
@@ -2183,7 +2216,7 @@ public class PandocExportWindow extends CustomStage {
             }
 
             // Nach dem Entpacken erneut prüfen
-            pandocExe = new File("pandoc-3.8.1", "pandoc.exe");
+            pandocExe = new File("pandoc", "pandoc.exe");
             if (pandocExe.exists()) {
                 pandocHome = pandocExe.getParentFile();
                 logger.debug("Pandoc erfolgreich entpackt: {}", pandocExe.getAbsolutePath());
@@ -2819,6 +2852,12 @@ public class PandocExportWindow extends CustomStage {
                 java.util.Enumeration<? extends java.util.zip.ZipEntry> entries = zipFile.entries();
                 
                 while (entries.hasMoreElements()) {
+                    // Prüfe ob Thread unterbrochen wurde
+                    if (Thread.currentThread().isInterrupted()) {
+                        logger.warn("EPUB Post-Processing wurde während des Entpackens unterbrochen");
+                        throw new InterruptedException("Thread wurde unterbrochen");
+                    }
+                    
                     java.util.zip.ZipEntry entry = entries.nextElement();
                     File entryFile = new File(tempDir, entry.getName());
                     
@@ -2835,24 +2874,64 @@ public class PandocExportWindow extends CustomStage {
                             byte[] buffer = new byte[1024];
                             int length;
                             while ((length = is.read(buffer)) > 0) {
+                                // Prüfe ob Thread unterbrochen wurde
+                                if (Thread.currentThread().isInterrupted()) {
+                                    throw new InterruptedException("Thread wurde unterbrochen");
+                                }
                                 fos.write(buffer, 0, length);
                             }
                         }
                     }
                 }
+            } // ZipFile wird hier geschlossen
+            
+            // Kurze Wartezeit, damit die Datei definitiv geschlossen ist
+            Thread.sleep(100);
+            
+            // Prüfe ob Thread unterbrochen wurde
+            if (Thread.currentThread().isInterrupted()) {
+                throw new InterruptedException("Thread wurde unterbrochen");
             }
             
             // HTML-Dateien bearbeiten
             processHtmlFilesInDirectory(tempDir);
             
+            // Prüfe ob Thread unterbrochen wurde
+            if (Thread.currentThread().isInterrupted()) {
+                throw new InterruptedException("Thread wurde unterbrochen");
+            }
+            
             // TOC-Dateien bearbeiten (nav.xhtml und toc.ncx)
             processTocFiles(tempDir);
             
-            // EPUB neu erstellen
-            try (java.io.FileOutputStream fos = new java.io.FileOutputStream(epubFile);
+            // Prüfe ob Thread unterbrochen wurde
+            if (Thread.currentThread().isInterrupted()) {
+                throw new InterruptedException("Thread wurde unterbrochen");
+            }
+            
+            // EPUB neu erstellen - erst temporäre Datei, dann umbenennen (atomar)
+            File tempEpubFile = new File(epubFile.getParentFile(), epubFile.getName() + ".tmp");
+            try (java.io.FileOutputStream fos = new java.io.FileOutputStream(tempEpubFile);
                  java.util.zip.ZipOutputStream zos = new java.util.zip.ZipOutputStream(fos)) {
                 
                 addDirectoryToZip(tempDir, tempDir, zos);
+            }
+            
+            // Alte Datei löschen und temporäre Datei umbenennen (atomar)
+            if (epubFile.exists()) {
+                if (!epubFile.delete()) {
+                    logger.warn("Konnte alte EPUB-Datei nicht löschen, versuche trotzdem fortzufahren");
+                }
+            }
+            if (!tempEpubFile.renameTo(epubFile)) {
+                // Fallback: Kopieren statt Umbenennen
+                try {
+                    Files.copy(tempEpubFile.toPath(), epubFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                    tempEpubFile.delete();
+                } catch (IOException e) {
+                    logger.error("Fehler beim Ersetzen der EPUB-Datei: {}", e.getMessage());
+                    throw e;
+                }
             }
             
             // Temporäres Verzeichnis löschen
@@ -2869,11 +2948,42 @@ public class PandocExportWindow extends CustomStage {
      * Verarbeitet alle HTML-Dateien in einem Verzeichnis rekursiv
      */
     private void processHtmlFilesInDirectory(File directory) {
+        processHtmlFilesInDirectory(directory, new java.util.HashSet<>());
+    }
+    
+    private void processHtmlFilesInDirectory(File directory, java.util.Set<String> visitedPaths) {
+        if (directory == null || !directory.exists() || !directory.isDirectory()) {
+            return;
+        }
+        
+        // Prüfe ob Thread unterbrochen wurde
+        if (Thread.currentThread().isInterrupted()) {
+            return;
+        }
+        
+        // Schutz gegen zyklische Verweise
+        try {
+            String canonicalPath = directory.getCanonicalPath();
+            if (visitedPaths.contains(canonicalPath)) {
+                logger.warn("Zyklischer Verweis erkannt, überspringe: {}", canonicalPath);
+                return;
+            }
+            visitedPaths.add(canonicalPath);
+        } catch (IOException e) {
+            logger.warn("Fehler beim Ermitteln des kanonischen Pfads: {}", e.getMessage());
+            return;
+        }
+        
         File[] files = directory.listFiles();
         if (files != null) {
             for (File file : files) {
+                // Prüfe ob Thread unterbrochen wurde
+                if (Thread.currentThread().isInterrupted()) {
+                    return;
+                }
+                
                 if (file.isDirectory()) {
-                    processHtmlFilesInDirectory(file);
+                    processHtmlFilesInDirectory(file, visitedPaths);
                 } else if (file.getName().toLowerCase().endsWith(".html") || 
                           file.getName().toLowerCase().endsWith(".xhtml") ||
                           file.getName().toLowerCase().endsWith(".opf") ||
@@ -3100,7 +3210,24 @@ public class PandocExportWindow extends CustomStage {
      * Sucht rekursiv nach einer Datei
      */
     private File findFileRecursive(File directory, String fileName) {
+        return findFileRecursive(directory, fileName, new java.util.HashSet<>());
+    }
+    
+    private File findFileRecursive(File directory, String fileName, java.util.Set<String> visitedPaths) {
         if (directory == null || !directory.exists() || !directory.isDirectory()) {
+            return null;
+        }
+        
+        // Schutz gegen zyklische Verweise
+        try {
+            String canonicalPath = directory.getCanonicalPath();
+            if (visitedPaths.contains(canonicalPath)) {
+                logger.warn("Zyklischer Verweis erkannt, überspringe: {}", canonicalPath);
+                return null;
+            }
+            visitedPaths.add(canonicalPath);
+        } catch (IOException e) {
+            logger.warn("Fehler beim Ermitteln des kanonischen Pfads: {}", e.getMessage());
             return null;
         }
         
@@ -3108,7 +3235,7 @@ public class PandocExportWindow extends CustomStage {
         if (files != null) {
             for (File file : files) {
                 if (file.isDirectory()) {
-                    File found = findFileRecursive(file, fileName);
+                    File found = findFileRecursive(file, fileName, visitedPaths);
                     if (found != null) {
                         return found;
                     }
@@ -3129,6 +3256,11 @@ public class PandocExportWindow extends CustomStage {
             return;
         }
         
+        // Prüfe ob Thread unterbrochen wurde
+        if (Thread.currentThread().isInterrupted()) {
+            throw new IOException("Thread wurde unterbrochen");
+        }
+        
         // Prüfe ob wir im rootDir sind (verhindert zyklische Verweise)
         try {
             if (!currentDir.getCanonicalPath().startsWith(rootDir.getCanonicalPath())) {
@@ -3143,6 +3275,11 @@ public class PandocExportWindow extends CustomStage {
         File[] files = currentDir.listFiles();
         if (files != null) {
             for (File file : files) {
+                // Prüfe ob Thread unterbrochen wurde
+                if (Thread.currentThread().isInterrupted()) {
+                    throw new IOException("Thread wurde unterbrochen");
+                }
+                
                 if (file.isDirectory()) {
                     // Rekursiver Aufruf mit Sicherheitsprüfung
                     addDirectoryToZip(rootDir, file, zos);
@@ -3157,12 +3294,19 @@ public class PandocExportWindow extends CustomStage {
                             byte[] buffer = new byte[8192]; // Größerer Buffer für bessere Performance
                             int length;
                             while ((length = fis.read(buffer)) > 0) {
+                                // Prüfe ob Thread unterbrochen wurde
+                                if (Thread.currentThread().isInterrupted()) {
+                                    throw new IOException("Thread wurde unterbrochen");
+                                }
                                 zos.write(buffer, 0, length);
                             }
                         }
                         
                         zos.closeEntry();
                     } catch (IOException e) {
+                        if (Thread.currentThread().isInterrupted()) {
+                            throw e; // Re-throw wenn unterbrochen
+                        }
                         logger.warn("Fehler beim Hinzufügen der Datei {} zur ZIP: {}", file.getName(), e.getMessage());
                         // Weiter mit nächster Datei
                     }

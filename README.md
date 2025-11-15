@@ -20,6 +20,8 @@
 ## 🚀 Schnellstart
 
 ### Voraussetzungen
+> [!WARNING]
+> Zur Zeit ist nur die Windows-Version vollständif lauffähig. Experimente auf anderen Systemen auf eigene Gefahr.
 - **Java 17+** ([Download](https://adoptium.net/))
 - **Maven 3.6+** ([Download](https://maven.apache.org/download.cgi))
 - **Ollama** (optional, für KI-Features)
@@ -27,7 +29,7 @@
   - macOS: [Download](https://ollama.com/download/mac)
   - Linux: [Download](https://ollama.com/download/linux)
 - **Pandoc** (optional, für erweiterte Export-Funktionen)
-  - Windows: Schon im Projekt enthalten: `pandoc-3.8.1/`)
+  - Windows: Schon im Projekt enthalten: `pandoc/`)
   - macOS: `brew install pandoc` oder [Download](https://github.com/jgm/pandoc/releases)
   - Linux: `sudo apt install pandoc` (Ubuntu/Debian) oder [Download](https://github.com/jgm/pandoc/releases)
 - **MiKTeX oder TeX Live** (optional, für PDF-Export)

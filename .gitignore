@@ -14,7 +14,7 @@ create-standalone.bat
 manuskript-standalone/
 javafx-sdk-21.0.6/
 manuskript-standalone.jar
-pandoc-3.8.1/pandoc.exe
+pandoc/pandoc.exe
 
 
 
@@ -44,9 +44,9 @@ config/sessions/
 # Alle docx-Dateien ignorieren
 *.docx 
 
-!pandoc-3.8.1/*.docx
+!pandoc/*.docx
 
 temp_epub_processing
-pandoc-3.8.1/cover_image.png
+pandoc/cover_image.png
 test*.md
 test*.docx  
