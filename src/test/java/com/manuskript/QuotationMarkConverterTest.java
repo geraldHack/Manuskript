@@ -46,7 +46,7 @@ public class QuotationMarkConverterTest {
         String result2 = QuotationMarkConverter.convertQuotationMarks("\"Test\"", "deutsch");
         // Sollte deutsche doppelte Anführungszeichen haben: „ und "
         assertTrue(result2.contains("\u201E")); // „ (deutsches öffnendes doppeltes Anführungszeichen)
-        assertTrue(result2.contains("\"")); // " (U+0022 - gerades schließendes Anführungszeichen, wie im Makro)
+        assertTrue(result2.contains("\u201C")); // " (U+201C - deutsches typografisches schließendes Anführungszeichen)
     }
     
     @Test
@@ -100,9 +100,9 @@ public class QuotationMarkConverterTest {
         String german2 = QuotationMarkConverter.convertQuotationMarks(input2, "deutsch");
         String german3 = QuotationMarkConverter.convertQuotationMarks(input3, "deutsch");
         
-        assertEquals("„Ich sag' es ja: don't.\"", german1, "Deutsch: Apostrophe müssen bleiben");
-        assertEquals("„Das ist Palues'.\"", german2, "Deutsch: Apostroph am Wortende muss bleiben");
-        assertEquals("„Das ist \u201Afalsch\u2019.\"", german3, "Deutsch: Anführungszeichen-Paar muss konvertiert werden");
+        assertEquals("„Ich sag' es ja: don't.\u201C", german1, "Deutsch: Apostrophe müssen bleiben");
+        assertEquals("„Das ist Palues'.\u201C", german2, "Deutsch: Apostroph am Wortende muss bleiben");
+        assertEquals("„Das ist \u201Afalsch\u2019.\u201C", german3, "Deutsch: Anführungszeichen-Paar muss konvertiert werden");
 
         // Schweizer
         String swiss1 = QuotationMarkConverter.convertQuotationMarks(input1, "schweizer");

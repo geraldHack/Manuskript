@@ -1838,8 +1838,6 @@ if (caret != null) {
                 }
             }
             
-            logger.debug("Absatz " + i + ": " + doubleQuotes + " doppelte, " + singleQuotes + " einfache Anführungszeichen, Teil von Dialog: " + isPartOfDialog);
-            
             // Wenn ungerade Anzahl UND nicht Teil eines Dialog-Blocks -> Fehler sammeln für Anzeige
             if (doubleQuotes % 2 != 0 && !isPartOfDialog) {
                 logger.debug("FEHLER: Ungerade doppelte Anführungszeichen in Absatz " + i);
@@ -1922,8 +1920,6 @@ if (caret != null) {
                 }
             }
             
-            logger.debug("  Absatz " + i + ": " + doubleQuotes + " doppelte Anführungszeichen");
-            
             // Absatz hat ungerade Anzahl > 1 -> Fehler (wird später behandelt)
             if (doubleQuotes > 1 && doubleQuotes % 2 != 0) {
                 logger.debug("    -> Ungerade Anzahl > 1: Fehler (wird später behandelt)");
@@ -1948,7 +1944,6 @@ if (caret != null) {
                     }
                     
                     if (nextDoubleQuotes > 0) {
-                        logger.debug("    -> Nächster Absatz " + j + ": " + nextDoubleQuotes + " Anführungszeichen");
                         
                         if (nextDoubleQuotes > 1) {
                             // Zahl > 1 -> Das war kein Multi! Fehler (wird später behandelt)
@@ -1990,7 +1985,6 @@ if (caret != null) {
         boolean result = firstChar == '"' || firstChar == '\u201E' || firstChar == '\u201C' || 
                firstChar == '\u201D' || firstChar == '\u00AB' || firstChar == '\u00BB';
         
-        logger.debug("startsWithQuote: '" + firstChar + "' (Unicode: " + (int)firstChar + ") = " + result);
         return result;
     }
     
@@ -2004,7 +1998,6 @@ if (caret != null) {
         boolean result = lastChar == '"' || lastChar == '\u201E' || lastChar == '\u201C' || 
                lastChar == '\u201D' || lastChar == '\u00AB' || lastChar == '\u00BB';
         
-        logger.debug("endsWithQuote: '" + lastChar + "' (Unicode: " + (int)lastChar + ") = " + result);
         return result;
     }
     
@@ -2561,7 +2554,6 @@ if (caret != null) {
                        (trimmed.startsWith("'") && trimmed.endsWith("'") && trimmed.length() > 2))) {
             // Entferne Anführungszeichen nur wenn der Text NUR aus Anführungszeichen besteht
             String withoutQuotes = trimmed.substring(1, trimmed.length() - 1);
-            logger.debug("Erste Suche fehlgeschlagen, versuche ohne Anführungszeichen: '" + withoutQuotes + "'");
             found = applySearchTerm(withoutQuotes);
             if (found) {
                 updateStatus("Text ohne Anführungszeichen gefunden und markiert.");
@@ -8422,7 +8414,9 @@ spacer.setStyle("-fx-background-color: transparent;");
             // Cursor-Position NACH removeAllParagraphMarkings() speichern
             int caretPosition = codeArea.getCaretPosition();
             
-            // EINGEBAUTE UNDO-FUNKTIONALITÄT VERWENDEN - kein manueller Aufruf nötig
+            // Markiere einen Punkt in der Undo-Historie VOR der Makro-Ausführung
+            // Dies stellt sicher, dass die gesamte Makro-Operation als eine Undo-Operation behandelt wird
+            codeArea.getUndoManager().mark();
             
             String content = codeArea.getText();
             
@@ -8495,7 +8489,13 @@ spacer.setStyle("-fx-background-color: transparent;");
             String normalizedContent = normalizeHtmlTagsInContent(content);
             
             // Text ersetzen mit spezifischen Positionen (wie in anderen Teilen des Codes)
-            codeArea.replaceText(0, codeArea.getLength(), normalizedContent);
+            // WICHTIG: Der Mark-Punkt wurde bereits VOR der Makro-Ausführung gesetzt
+            // replaceText() wird automatisch in die Undo-Historie aufgenommen
+            String originalContent = codeArea.getText();
+            if (!originalContent.equals(normalizedContent)) {
+                // Ersetze den Text - dies wird automatisch in die Undo-Historie aufgenommen
+                codeArea.replaceText(0, codeArea.getLength(), normalizedContent);
+            }
             
             // Prüfe ob das Makro tatsächlich Änderungen vorgenommen hat
             // Vergleiche den ursprünglichen Inhalt mit dem normalisierten Inhalt
@@ -8626,6 +8626,11 @@ spacer.setStyle("-fx-background-color: transparent;");
         MacroStep currentStep = null;
         
         for (String line : lines) {
+            String originalLine = line;
+            // Entferne nur \r am Ende (Windows-Zeilenumbrüche), aber behalte andere Leerzeichen
+            if (originalLine.endsWith("\r")) {
+                originalLine = originalLine.substring(0, originalLine.length() - 1);
+            }
             line = line.trim();
             if (line.isEmpty()) continue;
             
@@ -8648,10 +8653,10 @@ spacer.setStyle("-fx-background-color: transparent;");
                 if (currentStep != null) {
                     currentStep.setSearchText(line.substring(7));
                 }
-            } else if (line.startsWith("REPLACE:")) {
-                // Neues lesbares Format
+            } else if (originalLine.startsWith("REPLACE:")) {
+                // Neues lesbares Format - originalLine verwenden, um Leerzeichen zu erhalten
                 if (currentStep != null) {
-                    String replaceText = line.substring(8);
+                    String replaceText = originalLine.substring(8);
                     currentStep.setReplaceText(replaceText);
                 }
             } else if (line.startsWith("REPLACE_B64:")) {
@@ -8806,6 +8811,11 @@ spacer.setStyle("-fx-background-color: transparent;");
         MacroStep currentStep = null;
         
         for (String line : lines) {
+            String originalLine = line;
+            // Entferne nur \r am Ende (Windows-Zeilenumbrüche), aber behalte andere Leerzeichen
+            if (originalLine.endsWith("\r")) {
+                originalLine = originalLine.substring(0, originalLine.length() - 1);
+            }
             line = line.trim();
             
             if (line.startsWith("MACRO:")) {
@@ -8824,9 +8834,11 @@ spacer.setStyle("-fx-background-color: transparent;");
                 if (currentStep != null) {
                     currentStep.setSearchText(line.substring(7));
                 }
-            } else if (line.startsWith("REPLACE:")) {
+            } else if (originalLine.startsWith("REPLACE:")) {
+                // originalLine verwenden, um Leerzeichen zu erhalten
                 if (currentStep != null) {
-                    currentStep.setReplaceText(line.substring(8));
+                    String replaceText = originalLine.substring(8);
+                    currentStep.setReplaceText(replaceText);
                 }
             } else if (line.startsWith("REGEX:")) {
                 if (currentStep != null) {
@@ -11421,6 +11433,9 @@ spacer.setStyle("-fx-background-color: transparent;");
             return "";
         }
         
+        // Normalisiere den Pfad (entferne führende/trailing Leerzeichen)
+        imagePath = imagePath.trim();
+        
         // Wenn bereits absolute URL oder file://-Pfad
         if (imagePath.startsWith("http://") || imagePath.startsWith("https://") || imagePath.startsWith("file://")) {
             return imagePath;
@@ -11429,20 +11444,48 @@ spacer.setStyle("-fx-background-color: transparent;");
         // Versuche relativen Pfad zu absoluten Pfad zu konvertieren
         File imageFile = null;
         
+        // 1. Versuch: Relativ zur aktuellen Datei
         if (currentFile != null && currentFile.exists()) {
-            // Relativer Pfad basierend auf der aktuellen Datei
             File parentDir = currentFile.getParentFile();
             if (parentDir != null) {
                 imageFile = new File(parentDir, imagePath);
+                if (imageFile.exists()) {
+                    try {
+                        return imageFile.toURI().toURL().toString();
+                    } catch (Exception e) {
+                        logger.debug("Fehler beim Konvertieren des Bild-Pfads: " + e.getMessage());
+                    }
+                }
             }
         }
         
-        // Falls nicht gefunden, versuche als absoluter Pfad
-        if (imageFile == null || !imageFile.exists()) {
-            imageFile = new File(imagePath);
+        // 2. Versuch: Relativ zur Original-DOCX-Datei (falls vorhanden)
+        if (originalDocxFile != null && originalDocxFile.exists()) {
+            File parentDir = originalDocxFile.getParentFile();
+            if (parentDir != null) {
+                imageFile = new File(parentDir, imagePath);
+                if (imageFile.exists()) {
+                    try {
+                        return imageFile.toURI().toURL().toString();
+                    } catch (Exception e) {
+                        logger.debug("Fehler beim Konvertieren des Bild-Pfads: " + e.getMessage());
+                    }
+                }
+            }
         }
         
-        // Konvertiere zu file://-URL
+        // 3. Versuch: Als absoluter Pfad
+        imageFile = new File(imagePath);
+        if (imageFile.exists() && imageFile.isAbsolute()) {
+            try {
+                return imageFile.toURI().toURL().toString();
+            } catch (Exception e) {
+                logger.debug("Fehler beim Konvertieren des Bild-Pfads: " + e.getMessage());
+            }
+        }
+        
+        // 4. Versuch: Relativ zum Arbeitsverzeichnis
+        imageFile = new File(System.getProperty("user.dir"), imagePath);
         if (imageFile.exists()) {
             try {
                 return imageFile.toURI().toURL().toString();
@@ -11451,7 +11494,8 @@ spacer.setStyle("-fx-background-color: transparent;");
             }
         }
         
-        // Fallback: Original-Pfad zurückgeben
+        // Fallback: Original-Pfad zurückgeben (wird in WebView nicht funktionieren, aber besser als nichts)
+        logger.warn("Bild nicht gefunden: " + imagePath);
         return imagePath;
     }
     

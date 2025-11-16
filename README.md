@@ -21,7 +21,7 @@
 
 ### Voraussetzungen
 > [!WARNING]
-> Zur Zeit ist nur die Windows-Version vollständif lauffähig. Experimente auf anderen Systemen auf eigene Gefahr.
+> Zur Zeit ist nur die Windows-Version vollständig lauffähig. Experimente auf anderen Systemen auf eigene Gefahr.
 - **Java 17+** ([Download](https://adoptium.net/))
 - **Maven 3.6+** ([Download](https://maven.apache.org/download.cgi))
 - **Ollama** (optional, für KI-Features)

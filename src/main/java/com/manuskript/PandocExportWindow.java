@@ -944,8 +944,8 @@ public class PandocExportWindow extends CustomStage {
             String normalizedContent = originalContent
                 .replace('\u2013', '-')  // en-dash zu Bindestrich
                 .replace('\u2014', '-')  // em-dash zu Bindestrich
-                .replace('\u2015', '-')  // horizontal bar zu Bindestrich
-                .replaceAll("(?i)<br\\s*/?>", lineSeparator + lineSeparator); // HTML-Zeilenumbrüche entfernen
+                .replace('\u2015', '-'); // horizontal bar zu Bindestrich
+                // <br> Tags werden NICHT hier ersetzt - Pandoc unterstützt HTML in Markdown
             
             // Zusätzliche Leerzeilen zwischen Tabellen-Zeilen entfernen
             normalizedContent = normalizedContent.replaceAll(
@@ -1121,13 +1121,17 @@ public class PandocExportWindow extends CustomStage {
                 "$1" + newline
             );
             
-            String originalContent = content;
+            // <br> Tags werden NICHT hier ersetzt - Pandoc unterstützt HTML in Markdown
+            // Sie werden später format-spezifisch konvertiert (siehe unten)
             
-            // HTML-Zeilenumbrüche in echte Leerzeilen umwandeln, damit Tabellen erkannt werden
-            content = content.replaceAll("(?i)<br\\s*/?>", "\n\n");
+            // originalContent NACH allen Änderungen setzen, damit <br> Konvertierung erkannt wird
+            String originalContent = content;
             
             // Für EPUB3: Ähnliche Fixes wie für DOCX
             if ("epub3".equals(format) || "epub".equals(format)) {
+                // <br> Tags für EPUB: Pandoc unterstützt HTML in Markdown, verarbeitet <br> automatisch
+                // Keine Konvertierung nötig - Pandoc konvertiert <br> zu Zeilenumbrüchen in EPUB
+                
                 // ZUERST: Reihenfolge korrigieren - wenn Überschrift vor Bild steht, tauschen wir sie im Markdown
                 // Pattern: # Überschrift\n\n![alt](path) -> ![alt](path)\n\n# Überschrift
                 content = content.replaceAll(
@@ -1252,10 +1256,22 @@ public class PandocExportWindow extends CustomStage {
                     content = content.substring(0, start) + entry.getValue() + content.substring(end);
                 }
                 
+                // <br> Tags für PDF: Konvertiere direkt zu LaTeX-Befehlen für Absatzumbruch
+                // \vspace{\baselineskip} erzeugt eine Leerzeile (eine Zeilenhöhe)
+                // \par erzeugt einen Absatzumbruch
+                // Kombination: \par\vspace{\baselineskip}\par für einen sichtbaren Absatzumbruch
+                // Konvertiere alle Varianten von <br> Tags zu LaTeX-Befehlen
+                content = content.replaceAll("(?i)<br\\s*/?>", "\\\\par\\\\vspace\\{\\\\baselineskip\\}\\\\par");
+                content = content.replaceAll("(?i)<br>", "\\\\par\\\\vspace\\{\\\\baselineskip\\}\\\\par");
+                content = content.replaceAll("(?i)<br\\s+/>", "\\\\par\\\\vspace\\{\\\\baselineskip\\}\\\\par");
+                
                 // Markdown-Kursiv zu LaTeX-Kursiv konvertieren (wichtig für PDF!)
                 // Pandoc macht das automatisch: *text* → \emph{text}
                 // Das ist korrekt! \emph{} ist die richtige LaTeX-Formatierung für Kursiv
             } else if ("docx".equals(format)) {
+                // <br> Tags für DOCX: Pandoc unterstützt HTML in Markdown, verarbeitet <br> automatisch
+                // Keine Konvertierung nötig - Pandoc konvertiert <br> zu Zeilenumbrüchen in DOCX
+                
                 // Für DOCX: Pandoc-native Befehle verwenden
                 content = content.replaceAll("<u>([^<]+)</u>", "[$1]{.underline}");
                 content = content.replaceAll("<b>([^<]+)</b>", "**$1**");
@@ -1480,7 +1496,7 @@ public class PandocExportWindow extends CustomStage {
             // hier explizit angegeben, um sicherzustellen, dass sie verwendet werden
             // pipe_tables, simple_tables, grid_tables: Tabellen-Unterstützung
             // fancy_lists, startnum, task_lists: Verschachtelte Listen-Unterstützung
-            command.add("--from=markdown+yaml_metadata_block+superscript+subscript+pipe_tables+simple_tables+grid_tables+fancy_lists+startnum+task_lists-smart");
+            command.add("--from=markdown+yaml_metadata_block+raw_html+superscript+subscript+pipe_tables+simple_tables+grid_tables+fancy_lists+startnum+task_lists-smart");
             command.add("--to=" + getOutputFormat());
 
             // Format-spezifische Optionen
@@ -1612,8 +1628,9 @@ public class PandocExportWindow extends CustomStage {
                 command.add("--toc"); // Inhaltsverzeichnis für PDF
                 
                 // Markdown-Formatierung explizit aktivieren
+                // +raw_html aktiviert HTML-Tags in Markdown (für <br> Unterstützung)
                 // -implicit_figures deaktiviert automatische figure-Umgebungen mit Captions
-                command.add("--from=markdown+yaml_metadata_block+superscript+subscript-implicit_figures-smart");
+                command.add("--from=markdown+yaml_metadata_block+raw_html+superscript+subscript-implicit_figures-smart");
                 command.add("--to=latex");
                 
                 // Template für PDF verwenden (vereinfachtes XeLaTeX-Template)
@@ -1714,8 +1731,9 @@ public class PandocExportWindow extends CustomStage {
                 command.add("--toc"); // Inhaltsverzeichnis für LaTeX
                 
                 // Markdown-Formatierung explizit aktivieren
+                // +raw_html aktiviert HTML-Tags in Markdown (für <br> Unterstützung)
                 // -implicit_figures deaktiviert automatische figure-Umgebungen mit Captions
-                command.add("--from=markdown+yaml_metadata_block+superscript+subscript-implicit_figures-smart");
+                command.add("--from=markdown+yaml_metadata_block+raw_html+superscript+subscript-implicit_figures-smart");
                 command.add("--to=latex");
                 
                 // Template für LaTeX verwenden (vereinfachtes XeLaTeX-Template)
@@ -2600,25 +2618,21 @@ public class PandocExportWindow extends CustomStage {
         CustomAlert alert = new CustomAlert(Alert.AlertType.ERROR, "Export Fehler");
         alert.setHeaderText("Export fehlgeschlagen");
         
-        // ScrollPane für lange Fehlermeldungen in VBox packen
+        // VBox für Fehlermeldungen
         VBox contentBox = new VBox();
         contentBox.setPadding(new Insets(10));
         
-        ScrollPane scrollPane = new ScrollPane();
-        scrollPane.setFitToWidth(true);
-        scrollPane.setPrefWidth(600);
-        scrollPane.setPrefHeight(400);
-        scrollPane.setStyle("-fx-background-color: transparent;");
-        
-        // Label erstellen - die Kodierung wurde bereits beim Lesen korrigiert
-        Label contentLabel = new Label(message);
-        contentLabel.setWrapText(true);
+        // TextArea erstellen - markierbar, aber nicht editierbar
+        TextArea contentTextArea = new TextArea(message);
+        contentTextArea.setEditable(false); // Nicht editierbar, aber markierbar
+        contentTextArea.setWrapText(true);
         // Font mit guter UTF-8 Unterstützung für korrekte Zeichendarstellung
         // Verwende System-Fonts, die UTF-8 gut unterstützen (Arial, Segoe UI statt Monospace)
-        contentLabel.setStyle("-fx-font-family: 'Arial', 'Segoe UI', 'Tahoma', sans-serif; -fx-font-size: 11px;");
-        scrollPane.setContent(contentLabel);
+        contentTextArea.setStyle("-fx-font-family: 'Arial', 'Segoe UI', 'Tahoma', sans-serif; -fx-font-size: 11px;");
+        contentTextArea.setPrefWidth(600);
+        contentTextArea.setPrefHeight(400);
         
-        contentBox.getChildren().add(scrollPane);
+        contentBox.getChildren().add(contentTextArea);
         alert.setCustomContent(contentBox);
         alert.applyTheme(currentThemeIndex);
         
@@ -3922,6 +3936,14 @@ public class PandocExportWindow extends CustomStage {
         try {
             // Markdown-Datei lesen
             String content = Files.readString(markdownFile.toPath(), StandardCharsets.UTF_8);
+            
+            // WICHTIG: <br> Tags für PDF konvertieren (falls noch vorhanden)
+            // Die Bildverarbeitung wird nach replaceHtmlTagsInMarkdown aufgerufen,
+            // aber falls die Datei nicht korrekt geschrieben wurde, konvertieren wir hier nochmal
+            // Konvertiere direkt zu LaTeX-Befehlen für Absatzumbruch
+            content = content.replaceAll("(?i)<br\\s*/?>", "\\\\par\\\\vspace\\{\\\\baselineskip\\}\\\\par");
+            content = content.replaceAll("(?i)<br>", "\\\\par\\\\vspace\\{\\\\baselineskip\\}\\\\par");
+            content = content.replaceAll("(?i)<br\\s+/>", "\\\\par\\\\vspace\\{\\\\baselineskip\\}\\\\par");
             String originalContent = content;
             
             // Pattern für Markdown-Bilder: ![Alt-Text](Pfad) oder ![Alt-Text](Pfad){ width=... }

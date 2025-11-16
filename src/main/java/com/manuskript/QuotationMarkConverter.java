@@ -69,15 +69,16 @@ public class QuotationMarkConverter {
         
         // SCHRITT 1: Konvertiere doppelte Anführungszeichen
         // Makro-Regel 14: "(.*?)" -> „$1"
-        // WICHTIG: Das schließende Anführungszeichen ist " (U+0022 - gerades Anführungszeichen)
-        text = text.replaceAll("\"(.*?)\"", "„$1\"");
+        // WICHTIG: Das schließende Anführungszeichen ist " (U+201C - deutsches typografisches schließendes Anführungszeichen)
+        text = text.replaceAll("\"(.*?)\"", "\u201E$1\u201C");
         
         // SCHRITT 2: Konvertiere einfache Anführungszeichen-Paare
         // Makro-Regel 15: '(.*?)' -> ‚$1'
         // WICHTIG: Nur Paare finden, die NICHT direkt an Buchstaben grenzen (keine Apostrophe)
         // Das öffnende ' muss am Textanfang, nach Leerzeichen/Satzzeichen oder nach Anführungszeichen stehen
         // Das schließende ' muss vor Leerzeichen/Satzzeichen, vor Anführungszeichen oder am Textende stehen
-        text = text.replaceAll("(^|[\\s\\.,!?;:\"„»«])'([^']+)'([\\s\\.,!?;:\"„»«]|$)", "$1\u201A$2" + Character.toString('\u2019') + "$3");
+        // Öffnend: U+201A (‚), Schließend: U+2019 (')
+        text = text.replaceAll("(^|[\\s\\.,!?;:\"„»«])'([^']+)'([\\s\\.,!?;:\"„»«]|$)", "$1\u201A$2\u2019$3");
         
         return text;
     }
