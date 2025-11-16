@@ -1459,6 +1459,9 @@ public class PandocExportWindow extends CustomStage {
             File outputFile = new File(outputDirPath, fileName);
             File outputDir = new File(outputDirPath);
             
+            // HTML-Verzeichnis für HTML5 (wird später verwendet)
+            File htmlDir = null;
+            
             // Template-Datei
             String selectedTemplate = templateComboBox.getValue();
             File templateFile = null;
@@ -1481,8 +1484,8 @@ public class PandocExportWindow extends CustomStage {
             String finalOutputPath;
             if ("html5".equals(format)) {
                 String baseName = fileNameField.getText().replace(".html", "");
-                File htmlDir = new File(outputDirectoryField.getText(), baseName + "_html");
-                File htmlFile = new File(htmlDir, fileNameField.getText());
+                File tempHtmlDir = new File(outputDirectoryField.getText(), baseName + "_html");
+                File htmlFile = new File(tempHtmlDir, fileNameField.getText());
                 finalOutputPath = htmlFile.getAbsolutePath();
             } else {
                 finalOutputPath = outputFile.getAbsolutePath();
@@ -1524,6 +1527,25 @@ public class PandocExportWindow extends CustomStage {
                         }
                     }
                 }
+                
+                // Markdown-Bilder ins Pandoc-Verzeichnis kopieren (wie für PDF)
+                File markdownDir = markdownFile.getParentFile();
+                File pandocDir = new File("pandoc");
+                copyMarkdownImagesToPandocDir(markdownFile, pandocDir);
+                
+                // Resource-Path für EPUB3 setzen, damit Pandoc die Bilder findet
+                String resourcePath = pandocDir.getAbsolutePath();
+                if (markdownDir != null) {
+                    resourcePath += ";" + markdownDir.getAbsolutePath();
+                }
+                if (outputDir.exists()) {
+                    resourcePath += ";" + outputDir.getAbsolutePath();
+                }
+                if (projectDirectory != null) {
+                    resourcePath += ";" + projectDirectory.getAbsolutePath();
+                }
+                command.add("--resource-path=" + resourcePath);
+                logger.debug("Resource-Path für EPUB3-Export: {}", resourcePath);
             } else if ("docx".equals(format)) {
             // DOCX-spezifische Optionen für bessere Titelei
             // WICHTIG: Reference-DOC kann Tabellen- und Listen-Styles überschreiben!
@@ -1574,7 +1596,7 @@ public class PandocExportWindow extends CustomStage {
 
                 // HTML-Unterverzeichnis erstellen
                 String baseName = fileNameField.getText().replace(".html", "");
-                File htmlDir = new File(outputDirectoryField.getText(), baseName + "_html");
+                htmlDir = new File(outputDirectoryField.getText(), baseName + "_html");
                 htmlDir.mkdirs();
 
                 // HTML-Datei ins Unterverzeichnis legen
@@ -3709,9 +3731,32 @@ public class PandocExportWindow extends CustomStage {
                         imageFile = new File(markdownDir, imagePath);
                     }
                     
-                    // Falls nicht gefunden, versuche relativ zum Projekt-Verzeichnis
+                    // Falls nicht gefunden, versuche im System-Temp-Verzeichnis (für Bilder, die dort liegen)
+                    if ((imageFile == null || !imageFile.exists())) {
+                        String tempDir = System.getProperty("java.io.tmpdir");
+                        if (tempDir != null) {
+                            File tempFile = new File(tempDir, imagePath);
+                            if (tempFile.exists()) {
+                                imageFile = tempFile;
+                            }
+                        }
+                    }
+                    
+                    // Falls nicht gefunden, versuche relativ zum Projekt-Verzeichnis (data-Verzeichnis)
                     if ((imageFile == null || !imageFile.exists()) && projectDirectory != null) {
                         imageFile = new File(projectDirectory, imagePath);
+                    }
+                    
+                    // Falls nicht gefunden, versuche im Hauptverzeichnis (ein Verzeichnis höher vom Projekt-Verzeichnis)
+                    // Das ist nötig, weil Bilder oft im Hauptverzeichnis liegen, nicht im data-Verzeichnis
+                    if ((imageFile == null || !imageFile.exists()) && projectDirectory != null) {
+                        File parentDir = projectDirectory.getParentFile();
+                        if (parentDir != null) {
+                            File parentImageFile = new File(parentDir, imagePath);
+                            if (parentImageFile.exists()) {
+                                imageFile = parentImageFile;
+                            }
+                        }
                     }
                     
                     // Falls immer noch nicht gefunden, versuche als absoluter Pfad
@@ -3847,9 +3892,21 @@ public class PandocExportWindow extends CustomStage {
                         imageFile = new File(markdownDir, imagePath);
                     }
                     
-                    // Falls nicht gefunden, versuche relativ zum Projekt-Verzeichnis
+                    // Falls nicht gefunden, versuche relativ zum Projekt-Verzeichnis (data-Verzeichnis)
                     if ((imageFile == null || !imageFile.exists()) && projectDirectory != null) {
                         imageFile = new File(projectDirectory, imagePath);
+                    }
+                    
+                    // Falls nicht gefunden, versuche im Hauptverzeichnis (ein Verzeichnis höher vom Projekt-Verzeichnis)
+                    // Das ist nötig, weil Bilder oft im Hauptverzeichnis liegen, nicht im data-Verzeichnis
+                    if ((imageFile == null || !imageFile.exists()) && projectDirectory != null) {
+                        File parentDir = projectDirectory.getParentFile();
+                        if (parentDir != null) {
+                            File parentImageFile = new File(parentDir, imagePath);
+                            if (parentImageFile.exists()) {
+                                imageFile = parentImageFile;
+                            }
+                        }
                     }
                     
                     // Falls immer noch nicht gefunden, versuche als absoluten Pfad
@@ -3998,9 +4055,21 @@ public class PandocExportWindow extends CustomStage {
                         imageFile = new File(markdownDir, imagePath);
                     }
                     
-                    // Falls nicht gefunden, versuche relativ zum Projekt-Verzeichnis
+                    // Falls nicht gefunden, versuche relativ zum Projekt-Verzeichnis (data-Verzeichnis)
                     if ((imageFile == null || !imageFile.exists()) && projectDirectory != null) {
                         imageFile = new File(projectDirectory, imagePath);
+                    }
+                    
+                    // Falls nicht gefunden, versuche im Hauptverzeichnis (ein Verzeichnis höher vom Projekt-Verzeichnis)
+                    // Das ist nötig, weil Bilder oft im Hauptverzeichnis liegen, nicht im data-Verzeichnis
+                    if ((imageFile == null || !imageFile.exists()) && projectDirectory != null) {
+                        File parentDir = projectDirectory.getParentFile();
+                        if (parentDir != null) {
+                            File parentImageFile = new File(parentDir, imagePath);
+                            if (parentImageFile.exists()) {
+                                imageFile = parentImageFile;
+                            }
+                        }
                     }
                     
                     // Falls immer noch nicht gefunden, versuche als absoluten Pfad
@@ -4160,9 +4229,21 @@ public class PandocExportWindow extends CustomStage {
                         imageFile = new File(markdownDir, imagePath);
                     }
                     
-                    // Falls nicht gefunden, versuche relativ zum Projekt-Verzeichnis
+                    // Falls nicht gefunden, versuche relativ zum Projekt-Verzeichnis (data-Verzeichnis)
                     if ((imageFile == null || !imageFile.exists()) && projectDirectory != null) {
                         imageFile = new File(projectDirectory, imagePath);
+                    }
+                    
+                    // Falls nicht gefunden, versuche im Hauptverzeichnis (ein Verzeichnis höher vom Projekt-Verzeichnis)
+                    // Das ist nötig, weil Bilder oft im Hauptverzeichnis liegen, nicht im data-Verzeichnis
+                    if ((imageFile == null || !imageFile.exists()) && projectDirectory != null) {
+                        File parentDir = projectDirectory.getParentFile();
+                        if (parentDir != null) {
+                            File parentImageFile = new File(parentDir, imagePath);
+                            if (parentImageFile.exists()) {
+                                imageFile = parentImageFile;
+                            }
+                        }
                     }
                     
                     // Falls immer noch nicht gefunden, versuche als absoluten Pfad
@@ -4314,9 +4395,21 @@ public class PandocExportWindow extends CustomStage {
                         imageFile = new File(markdownDir, imagePath);
                     }
                     
-                    // Falls nicht gefunden, versuche relativ zum Projekt-Verzeichnis
+                    // Falls nicht gefunden, versuche relativ zum Projekt-Verzeichnis (data-Verzeichnis)
                     if ((imageFile == null || !imageFile.exists()) && projectDirectory != null) {
                         imageFile = new File(projectDirectory, imagePath);
+                    }
+                    
+                    // Falls nicht gefunden, versuche im Hauptverzeichnis (ein Verzeichnis höher vom Projekt-Verzeichnis)
+                    // Das ist nötig, weil Bilder oft im Hauptverzeichnis liegen, nicht im data-Verzeichnis
+                    if ((imageFile == null || !imageFile.exists()) && projectDirectory != null) {
+                        File parentDir = projectDirectory.getParentFile();
+                        if (parentDir != null) {
+                            File parentImageFile = new File(parentDir, imagePath);
+                            if (parentImageFile.exists()) {
+                                imageFile = parentImageFile;
+                            }
+                        }
                     }
                     
                     // Falls immer noch nicht gefunden, versuche als absoluten Pfad
@@ -4352,8 +4445,8 @@ public class PandocExportWindow extends CustomStage {
                         String replacement = "![" + altText + "](" + imageFileName + ")";
                         replacements.add(replacement);
                         
-                        logger.debug("Bild für PDF kopiert: {} -> {}", imageFile.getAbsolutePath(), 
-                            targetImage.getAbsolutePath());
+                        logger.info("Bild kopiert: {} -> {} (Alt-Text: '{}', Ersetzung: {})", imageFile.getAbsolutePath(), 
+                            targetImage.getAbsolutePath(), altText, replacement);
                         
                     } catch (IOException e) {
                         logger.warn("Fehler beim Kopieren des Bildes {}: {}", imagePath, e.getMessage());
