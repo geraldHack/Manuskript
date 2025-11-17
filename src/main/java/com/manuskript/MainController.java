@@ -7106,10 +7106,28 @@ public class MainController implements Initializable {
     
     private void deleteSelectedFile() {
         // Prüfen, ob Dateien in der linken Tabelle ausgewählt sind
-        ObservableList<DocxFile> selectedFiles = tableViewAvailable.getSelectionModel().getSelectedItems();
-        if (selectedFiles == null || selectedFiles.isEmpty()) {
+        ObservableList<Integer> selectedIndices = tableViewAvailable.getSelectionModel().getSelectedIndices();
+        if (selectedIndices == null || selectedIndices.isEmpty()) {
             CustomAlert alert = new CustomAlert(Alert.AlertType.WARNING, "Keine Datei ausgewählt");
             alert.setHeaderText("Bitte wählen Sie eine oder mehrere Dateien aus der linken Tabelle aus, die archiviert werden sollen.");
+            alert.applyTheme(currentThemeIndex);
+            alert.showAndWait(primaryStage);
+            return;
+        }
+        
+        // Sammle die ausgewählten Dateien über Indizes VOR dem Dialog
+        ObservableList<DocxFile> allItems = tableViewAvailable.getItems();
+        List<DocxFile> selectedFiles = new ArrayList<>();
+        for (Integer index : selectedIndices) {
+            if (index >= 0 && index < allItems.size()) {
+                DocxFile file = allItems.get(index);
+                selectedFiles.add(file);
+            }
+        }
+        
+        if (selectedFiles.isEmpty()) {
+            CustomAlert alert = new CustomAlert(Alert.AlertType.WARNING, "Keine gültigen Dateien ausgewählt");
+            alert.setHeaderText("Bitte wählen Sie mindestens eine gültige Datei aus.");
             alert.applyTheme(currentThemeIndex);
             alert.showAndWait(primaryStage);
             return;
@@ -7148,8 +7166,9 @@ public class MainController implements Initializable {
                 int successCount = 0;
                 int errorCount = 0;
                 List<String> errorMessages = new ArrayList<>();
+                List<DocxFile> successfullyArchived = new ArrayList<>();
                 
-                // Alle ausgewählten Dateien verarbeiten
+                // Alle ausgewählten Dateien verarbeiten (selectedFiles ist bereits eine normale Liste)
                 for (DocxFile docxFile : selectedFiles) {
                     File sourceFile = docxFile.getFile();
                     if (sourceFile.exists()) {
@@ -7171,19 +7190,29 @@ public class MainController implements Initializable {
                             counter++;
                         }
                         
-                        // Datei verschieben
-                        if (sourceFile.renameTo(targetFile)) {
-                            // Datei erfolgreich archiviert - aus der Tabelle entfernen
-                            tableViewAvailable.getItems().remove(docxFile);
+                        // Datei verschieben mit Files.move() statt renameTo() für bessere Zuverlässigkeit
+                        try {
+                            Path sourcePath = sourceFile.toPath();
+                            Path targetPath = targetFile.toPath();
+                            Files.move(sourcePath, targetPath, StandardCopyOption.REPLACE_EXISTING);
+                            
+                            // Datei erfolgreich archiviert - später aus der Tabelle entfernen
+                            successfullyArchived.add(docxFile);
                             successCount++;
-                        } else {
+                        } catch (IOException e) {
                             errorCount++;
-                            errorMessages.add(docxFile.getFileName() + " (Datei gesperrt oder keine Berechtigung)");
+                            errorMessages.add(docxFile.getFileName() + " (Fehler beim Verschieben: " + e.getMessage() + ")");
+                            logger.error("Fehler beim Verschieben der Datei {}: {}", docxFile.getFileName(), e.getMessage(), e);
                         }
                     } else {
                         errorCount++;
                         errorMessages.add(docxFile.getFileName() + " (Datei nicht gefunden)");
                     }
+                }
+                
+                // Alle erfolgreich archivierten Dateien auf einmal aus der Tabelle entfernen
+                if (!successfullyArchived.isEmpty()) {
+                    tableViewAvailable.getItems().removeAll(successfullyArchived);
                 }
                 
                 // Ergebnis-Meldung
