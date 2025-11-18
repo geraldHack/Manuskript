@@ -1282,9 +1282,10 @@ public class PandocExportWindow extends CustomStage {
                 content = content.replaceAll("<em>([^<]+)</em>", "*$1*");
                 content = content.replaceAll("<s>([^<]+)</s>", "~~$1~~");
                 content = content.replaceAll("<del>([^<]+)</del>", "~~$1~~");
-                content = content.replaceAll("<mark>([^<]+)</mark>", "[$1]{.highlight}");
-                content = content.replaceAll("<small>([^<]+)</small>", "[$1]{.small}");
-                content = content.replaceAll("<big>([^<]+)</big>", "[$1]{.large}");
+                content = content.replaceAll("<mark>([^<]+)</mark>", "[$1]{.mark}");
+                //small und big werden nicht unterstützt in DOCX 
+                content = content.replaceAll("<small>([^<]+)</small>", "[$1]{custom-style=\"Small\"}");
+                content = content.replaceAll("<big>([^<]+)</big>", "[$1]{custom-style=\"Large\"}");
                 // Subscript und Superscript für DOCX - verwende Markdown-Syntax
                 // ~text~ für Subscript, ^text^ für Superscript
                 // Leerzeichen müssen mit Backslash escaped werden (laut Pandoc-Dokumentation)

@@ -13,7 +13,6 @@ abstract: |
   Wie immer wenn's brenzlich wird, wenden sie sich an Efret, den verrückten, obersten Zauberer. Kann er ihnen auch diesmal helfen?
 ---
 # Jomar rettet die Welt
-
 ~~Das streichen wir~~
 
 H<sub>2</sub>O
@@ -38,7 +37,7 @@ a<sup>2</sup>+2ab+b<sup>2</sup>
 
 <br>
 
-``` 
+```
 
 dfdsfdsf
 
@@ -48,7 +47,7 @@ sdf xycxcxy
 
           sdfsdf
 
-``` 
+```
 
 <br>
 
@@ -71,12 +70,9 @@ sdf xycxcxy
 <br>
 
 | Links | Mitte | Rechts |
-
 |---------|:--------:|---------:|
+
 | Text | Text | Text |
-
-
-
 
 https://example.com
 
@@ -92,7 +88,7 @@ Er hielt die Luft an. Seine Augen klebten an der Tür – und tatsächlich: Sie 
 
 Ein Mann trat heraus.
 
-Schlaksig, mit einem fleckigen Umhang, den er über die Schulter geworfen hatte wie einen alten Lappen. Er sah sich nicht um, sondern ging direkt auf das ›Gartenbeet‹ zu. Dort blieb er stehen. Jomar duckte sich tiefer. Hektisch fuchtelte er mit der Hand – erst zwei Finger, dann eine Faust, dann eine kreisende Bewegung: bereit machen.
+Schlaksig, mit einem fleckigen Umhang, den er sich über die Schulter geworfen hatte wie einen alten Lappen. Er sah sich nicht um, sondern ging direkt auf das ›Gartenbeet‹ zu. Dort blieb er stehen. Jomar duckte sich tiefer. Hektisch fuchtelte er mit der Hand – erst zwei Finger, dann eine Faust, dann eine kreisende Bewegung: bereitmachen.
 
 Der Mann hob die Arme.
 
@@ -100,7 +96,7 @@ Jomar umfasste seinen Schwertgriff fester. Dann kam der Rauch. Dunkel, ölig, sc
 
 Jomar wollte nicht länger warten.
 
-Er schnellte hoch, rief »Jetzt!«, und stürmte los.
+Er schnellte hoch, rief: »Jetzt!«, und stürmte los.
 
 Die beiden anderen sprangen mit ihm aus den Büschen. Drei gegen einen. Der Magier fuhr erschrocken herum und senkte demonstrativ die Hände, die Arme leicht abgespreizt – eine Geste, die jeder Zauberer kannte: »Ich ergebe mich.«
 
@@ -146,7 +142,7 @@ Kata warf ihm einen traurigen Blick zu. »Ich habe es versucht.«
 
 »Und wie ist der Versuch ausgegangen?«
 
-»Nicht gut. Ich wusste ja nicht, dass man die Linsen vor dem Anbraten in Wasser kochen muss.«
+»Nicht gut. Irgendwas ist beim Anbraten der Linsen schiefgegangen.«
 
 Ayen kicherte und setzte ein Zicklein auf einen Drachenkopf.
 
@@ -184,11 +180,7 @@ Er sah sie an. Dann Ayen, der gerade eine Ente in einen Belagerungsturm setzte.
 
 »Ich weiß«, sagte er. »Aber manchmal reicht es mir nicht, der Held in einem Spiel aus Holzklötzen zu sein.«
 
-<br>
-
-<p style="text-align: center;">◆◆◆</p>
-
-<br>
+---
 
 Die Wiese zog sich leicht geschwungen zwischen den Hügeln dahin, ihr Boden war weich und federnd unter den nackten Füßen. Hinter ihnen sah man die Stadtmauer und die weißen Gebäude der Zaubererstadt.
 
@@ -210,9 +202,9 @@ Sie schob den Apfel mit der Zunge in die Wange und sah ihn schräg an. »Das kli
 
 »Du meinst, heute gab es keine illegalen Maulwurfbeschwörungen?«
 
-»Nicht dass ich wüsste. Und wenn, wärs mir egal, ich hab’ ja keinen Dienst.«
+»Nicht dass ich wüsste. Und wenn, wär’s mir egal, ich hab’ ja keinen Dienst.«
 
-Kata lehnte sich zurück stützte sich auf die Hände. »Sag nicht zu laut, dass du zufrieden bist. Das Schicksal hört immer zu.«
+Kata lehnte sich zurück und stützte sich auf die Hände. »Sag nicht zu laut, dass du zufrieden bist. Das Schicksal hört immer zu.«
 
 Jomar lachte leise. »Dann soll es wissen, dass ich bereit bin, mich ihm zu stellen.«
 
@@ -1592,25 +1584,25 @@ Das klingt nach dem Ende der Audienz, dachte Jomar.
 
 # Audienz
 
-Malvek ritt an der Spitze seines Zugs. Die Pferde waren frisch gestriegelt, die Sättel glänzten schwarz. Die Tiere wirkten so stolz und aufrecht, wie ihre Reiter. Seine Begleiter folgten in zwei Reihen, zwölf Kampfzauberer und eine Handvoll weniger auffälliger Magier, die für die eigentliche Arbeit vorgesehen waren. Sie trugen die Roben der Bewegung – dunkles Blau, darauf das goldene Symbol von ›Lakan den Zauberern‹, wie ein drohendes Auge auf der Brust.
+Malvek ritt an der Spitze seines Zugs. Die Pferde waren frisch gestriegelt, die Sättel glänzten schwarz. Die Tiere wirkten so stolz und aufrecht wie ihre Reiter. Seine Begleiter folgten in zwei Reihen: zwölf Kampfzauberer und eine Handvoll weniger auffälliger Magier, die für die eigentliche Arbeit vorgesehen waren. Sie trugen die Roben der Bewegung – dunkles Blau, darauf das goldene Symbol von Lakan den Zauberern, wie ein drohendes Auge auf der Brust.
 
-Die Straßen von Königsstadt waren voller Menschen. Händler, Tagelöhner, Bettler, die mit schnellen Blicken die Neuankömmlinge musterten. Der Zug der Zauberer schnitt durch die Menschenmenge wie ein Messer durch warme Butter, und hinterließ Stille und Unruhe in seinem Kielwasser. Gespräche verstummten, man wich zur Seite. Einige wagten es, den Zug zu begaffen, andere duckten sich in Hauseingänge oder hinter Marktstände.
+Die Straßen von Königsstadt waren voller Menschen. Händler, Tagelöhner, Bettler, die mit schnellen Blicken die Neuankömmlinge musterten. Der Zug der Zauberer schnitt durch die Menschenmenge wie ein Messer durch warme Butter und hinterließ Stille und Unruhe in seinem Kielwasser. Gespräche verstummten, man wich zur Seite. Einige wagten es, den Zug zu begaffen, andere duckten sich in Hauseingänge oder hinter Marktstände.
 
-Malvek bemerkte jedes Detail. Er sah die Angst, aber auch den Widerstand in den Blicken der Bürger. Es störte ihn nicht. Im Gegenteil: Es gefiel ihm. Die neue Zeit würde nicht mit höflichem Geflüster beginnen, sondern mit einem klaren Zeichen der Macht. Allerdings würden sie es lernen ihn zu lieben. Man musste ihnen nur erzählen, was sie hören wollen.
+Malvek bemerkte jedes Detail. Er sah die Angst, aber auch den Widerstand in den Blicken der Bürger. Es störte ihn nicht. Im Gegenteil: Es gefiel ihm. Die neue Zeit würde nicht mit höflichem Geflüster beginnen, sondern mit einem klaren Zeichen der Macht. Allerdings würden sie es lernen, ihn zu lieben. Man musste ihnen nur erzählen, was sie hören wollten.
 
-Sie passierten den Markt, dann die breite Allee, die zum Palast führte. Die Wachen am ersten Tor wirkten nervös. Einer der Hauptleute trat vor, sein Kinn zitterte leicht, als er den Zauberer begrüßte.
+Sie passierten den Markt, dann die breite Allee, die zum Palast führte. Die Wachen am ersten Tor wirkten angespannt. Einer der Hauptleute trat vor, sein Kinn zitterte leicht, als er den Zauberer begrüßte.
 
 »Im Namen des Königs – nennt euer Anliegen!«
 
-Malvek ließ sich Zeit, ehe er sprach. Er maß den Mann mit einem abschätzigen Blick. Dann lächelte er, höflich, fast väterlich.
+Malvek ließ sich Zeit, ehe er sprach. Er maß den Mann mit einem abschätzenden Blick. Dann lächelte er, höflich, fast väterlich.
 
-»Ich bin Malvek, Vorsitzender des Zaubererrats. Ich verlange eine sofortige Audienz beim König.«
+»Ich bin Malvek, Vorsitzender des Zaubererrats. Ich fordere eine sofortige Audienz beim König.«
 
-Der Hauptmann räusperte sich. »Der König empfängt nur nach Anmeldung. Ohne Einladung kein Einlass.«
+Der Hauptmann räusperte sich. »Der König empfängt nur nach Voranmeldung. Ohne Einladung kein Einlass.«
 
 Malvek beugte sich leicht vor, als würde er einem ungezogenen Kind ins Gewissen reden.
 
-»Junge, du hast nicht verstanden, was sich geändert hat. Efret ist tot. Ich spreche für ganz Demirantha.«
+»Mann, du hast nicht verstanden, was sich geändert hat. Efret ist tot. Ich spreche im Namen der Zauberer von Lakan.«
 
 Ein Raunen ging durch die Reihen der Wachen. Die Nachricht hatte sich noch nicht überall herumgesprochen.
 
@@ -1622,9 +1614,9 @@ Malvek verzog keine Miene. Er hob nur die rechte Hand, kaum sichtbar. Sofort tra
 
 Die Magier gehorchten. Ein Dutzend silberner Blitze zuckten durch die Luft, trafen die Soldaten, ließen sie reglos stehen. Keiner fiel, keiner schrie – sie standen einfach da, als hätte man sie in Stein gegossen.
 
-Die wenigen Passanten vor dem Tor bemerkten die unnatürliche Starrheit der Wachen nicht. 
+Die wenigen Passanten vor dem Tor bemerkten die unnatürliche Starrheit der Wachen vorerst nicht.
 
-Die Magier ritten weiter die geschwungene Allee entlang, die zum beeindruckenden Haupteingang des Palastes führte. Der Kies unter den Hufen klang wie zerbrechendes Glas. Am Fuße der Freitreppe hinauf zum Eingang stand eine neue Gruppe Wachen. Diesmal waren es mehr, vielleicht zwanzig Mann. Sie trugen die Uniform des Königs.
+Die Magier ritten weiter die geschwungene Allee entlang, die zum beeindruckenden Haupteingang des Palastes führte. Der Kies unter den Hufen klang wie zerbrechendes Glas. Am Fuße der Freitreppe hinauf zum Eingang stand eine neue Gruppe Wachen. Dieses Mal waren es mehr, vielleicht zwanzig Mann. Sie trugen die Uniform des Königs.
 
 Der Offizier, mit vernarbtem Gesicht und einem blinden Auge, trat vor. Er hob den Arm, als könnte er damit Malvek und seine Leute aufhalten.
 
@@ -1640,27 +1632,23 @@ Malvek hob eine Braue.
 
 »Lassen wir die Herren doch ein wenig schlafen.«
 
-Diesmal waren es keine Blitze, sondern ein sanftes, blaues Leuchten, das über die Wachen hinwegrollte. Einer nach dem anderen sackte zusammen. Die meisten brachen einfach in die Knie, andere rutschten an der Mauer zu Boden. Keiner schrie, keiner zog sein Schwert. Es war, als hätte ihnen jemand die Knochen aus dem Leib gezogen. Nur der vernarbte Offizier blieb stehen. Er legte eine Hand an seinen Schwert.
+Dieses Mal waren es keine Blitze, sondern ein sanftes, blaues Leuchten, das über die Wachen hinwegrollte. Einer nach dem anderen sackte zusammen. Die meisten brachen einfach in die Knie, andere rutschten an der Mauer zu Boden. Keiner gab einen Laut von sich, keiner zog sein Schwert. Es war, als hätte ihnen jemand die Knochen aus dem Leib gezogen. Nur der vernarbte Offizier blieb stehen. Er legte eine Hand an sein Schwert.
 
-»Du solltest von jetzt an meinen Anweisungen folgen, wenn du nicht das Schicksal deiner Kameraden teilen möchtest.« Spielerisch ließ Malvek bei diesen Worten ein paar Blitze zwischen seinen ausgestreckten Händen zucken. Der Angesprochene nahm nun seine Hand von der Waffe. 
+Malvek ließ bei diesen Worten ein paar Blitze zwischen seinen ausgestreckten Händen zucken. Der Angesprochene nahm nun seine Hand von der Waffe.»Wie kann ich zu Diensten sein, Herr?«
 
-»Wie kann ich zu Diensten sein, Herr?« 
-
-Malvek machte ein kurzes Zeichen und er und seine gesamte Autorage stiegen von ihren Pferden ab.
+Malvek machte ein kurzes Zeichen und er und seine gesamte Entourage stiegen von ihren Pferden ab.
 
 »Lass unsere Pferde versorgen und dann führe uns zum König.«
 
----
+Der vernarbte Offizier salutierte, als hätte er nie etwas anderes gelernt, und bellte seine Befehle an die diensthabenden Knechte. Die Zauberer ließen sich Zeit. sie standen inmitten der zusammengeklappten Wachen und sahen zu, wie die Stallknechte kamen, die Pferde übernahmen und die Sättel kontrollierten. Einer der Knechte warf einen Blick auf das goldene Symbol auf Malveks Brust.
 
-Der vernarbte Offizier salutierte, als hätte er nie etwas anderes gelernt, und bellte seine Befehle an die diensthabenden Knechte. Die Zauberer ließen sich Zeit, sie standen inmitten der zusammengeklappten Wachen und sahen zu, wie die Stallknechte kamen, die Pferde übernahmen und die Sättel kontrollierten. Einer der Knechte warf einen Blick auf das goldene Symbol auf Malveks Brust. 
-
-»Was glotzt du so?«, knurrte einer der Kampfzauberer.
+»Was glotzt du denn so?«, knurrte einer der Kampfzauberer.
 
 Der Junge schüttelte den Kopf, murmelte ein »Nichts, Herr«, und machte, dass er wegkam.
 
 Malvek beobachtete das alles mit einer Mischung aus Verachtung und Zufriedenheit. Es gefiel ihm, wie wenig Widerstand ihm entgegenschlug. Das war die wahre Natur der Menschen: Sie duckten sich, sobald echte Macht vor ihnen stand. Er wusste, dass er gerade ein Zeichen gesetzt hatte. In wenigen Tagen würde man in allen Tavernen und Küchen über den Einzug der Zauberer in den Palast sprechen. Und jeder würde wissen, dass es eine neue Ordnung gab.
 
-Der vernarbte Offizier führte sie über die breite Freitreppe. Die Stufen waren aus weißem Granit, in der Mitte abgetreten und glänzend, als hätte sie eine Armee von Dienern täglich poliert. Links und rechts standen weitere Wachen, doch niemand wagte mehr, einen Ton zu sagen oder den Weg zu versperren. 
+Der vernarbte Offizier führte sie über die breite Freitreppe. Die Stufen waren aus weißem Granit, in der Mitte abgetreten und glänzend, als hätte sie eine Armee von Dienern täglich poliert. Links und rechts standen weitere Wachen, doch niemand wagte es mehr, einen Ton zu sagen oder den Weg zu versperren.
 
 »Was für ein erbärmlicher Haufen«, murmelte einer der Kampfmagier.
 
@@ -1668,15 +1656,15 @@ Malvek ignorierte das. Er hatte keine Sympathie für diese Soldaten. Sie waren W
 
 Sie passierten den Säulengang, dann die schweren Flügeltüren, die zum inneren Palast führten. Zwei Palastwachen öffneten die Türen, ohne gefragt zu werden. Dahinter lag ein langer, kühler Korridor, ausgekleidet mit dunklem Holz und goldenen Leisten. Teppiche dämpften die Schritte, sodass nur das leise Klirren der Zaubererabzeichen zu hören war.
 
-Der Offizier führte sie wortlos durch mehrere Korridore, vorbei an Dienern, die sich an die Wände drückten oder gleich rückwärts flohen. Malvek bemerkte, wie schnell sich die Nachricht von ihrem Kommen verbreitete. Selbst die Hofdamen, die sonst überall tuschelten, waren verschwunden.
+Der Offizier führte sie wortlos durch mehrere Korridore, vorbei an Dienern, die sich an die Wände drückten oder rückwärts flohen. Malvek bemerkte, wie schnell sich die Nachricht von ihrem Kommen verbreitete. Selbst die Hofdamen, die sonst überall tuschelten, waren verschwunden.
 
 Am Ende des Ganges warteten zwei Palastwachen mit Hellebarden. Sie sahen Malvek an, als hofften sie, dass er sie nicht bemerken würde. Der Offizier gab ihnen ein Zeichen, sie öffneten die letzten Türen.
 
-Der Thronsaal war genauso, wie Malvek ihn sich vorgestellt hatte – vielleicht noch ein wenig prunkvoller. Am Kopfende saß Schwertmut auf dem Thron, die Hände um die Armlehnen gekrallt, als könne er sich so an der Macht festhalten. Links und rechts Berater, Hofschranzen, ein paar Wachen, die aussahen, als wollten sie lieber heute als morgen in Rente gehen. Die Berater tuschelten, aber keiner traute sich, wirklich den Mund aufzumachen. Nur die Augen wanderten, mal zu Malvek, mal zum König, mal zu Boden.
+Der Thronsaal war genauso, wie Malvek ihn sich vorgestellt hatte – vielleicht noch ein wenig prunkvoller. Am Kopfende saß Schwertmut auf dem Thron, die Hände um die Armlehnen gekrallt, als könne er sich so an der Macht festhalten. Links und rechts Berater, Hofschranzen, ein paar Wachen, die aussahen, als wollten sie lieber heute als morgen in Rente gehen. Die Berater tuschelten, aber keiner traute sich, den Mund aufzumachen. Nur die Augen wanderten, mal zu Malvek, mal zum König, mal zu Boden.
 
-*Er hat schnell reagiert, *dachte Malvek.* Das muss man ihm lassen. Das alles hat den Anschein, als hätte er mich erwartet.*
+*Er hat schnell reagiert,* dachte Malvek. *Das muss man ihm lassen. Das alles erweckt den Anschein, als hätte er mich erwartet.*
 
- Der Offizier führte Malvek bis auf eine Schrittlänge an den Thron heran, dann blieb er stehen und nahm Haltung an. Malvek ließ sich Zeit, sah sich im Saal um, als würde er prüfen, ob jeder an seinem Platz war. Erst dann verneigte er sich, gerade so tief, dass man es als Geste der Höflichkeit deuten konnte.
+Der Offizier führte Malvek bis auf eine Schrittlänge an den Thron heran, dann blieb er stehen und nahm Haltung an. Malvek ließ sich Zeit, sah sich im Saal um, als würde er prüfen, ob jeder an seinem Platz war. Erst dann verneigte er sich, gerade so tief, dass man es als Geste der Höflichkeit deuten konnte.
 
 »Majestät«, sagte er. »Ich danke für die schnelle Bereitschaft, mich zu empfangen.«
 
@@ -1684,49 +1672,33 @@ Der König antwortete nicht sofort. Er wirkte angespannt, die Stimme brüchig.
 
 »Ihr kommt ohne Anmeldung. Ihr bringt Bewaffnete mit. Und ihr habt meine Wachen außer Gefecht gesetzt. Das ist kein höflicher Besuch.«
 
-Malvek lächelte dünn.
+Malvek lächelte kalt, gönnerhaft.
 
 »Majestät, bitte verzeiht mein ungestümes Auftreten. In diesen Tagen der Unsicherheit ist jede Formalität zugleich ein Zeichen von Respekt und Dringlichkeit. Ich weiß, wie sehr Ihr das Wohl Eurer Stadt am Herzen tragt – das ist in Lakan bekannt.«
 
-Er senkte leicht den Kopf und sprach leiser, beinahe vertraulich:
+Er senkte leicht den Kopf und sprach leiser, beinahe vertraulich: »Es sind finstere Dinge ans Licht gekommen, Majestät. Ihr habt Efret vertraut, wie wir alle – er war ein großer Zauberer, zweifellos. Doch sein Genie schlug schließlich um in eine gefährliche Besessenheit. Machtgier, Majestät. Und ein wachsender Wahnsinn, der ihn glauben ließ, nur er könne Lakan retten.«
 
- »Es sind finstere Dinge ans Licht gekommen, Majestät. Ihr habt Efret vertraut, wie wir alle – er war ein großer Zauberer, zweifellos. Doch sein Genie schlug zuletzt um in eine gefährliche Besessenheit. Machtgier, Majestät. Und ein wachsender Wahnsinn, der ihn glauben ließ, nur er könne Lakan retten.«
-
-Malvek nickte bedächtig, als wolle er die Worte fast bedauern.
-
- »Ich weiß, wie schwer diese Enthüllungen sind. Aber ich fürchte, er hat durch seine unbedachten Experimente Mächte geweckt, die nicht nur Königsstadt, sondern unser ganzes Reich bedrohen. Ich würde Euch niemals behelligen, wenn ich nicht überzeugt wäre, dass jetzt Einheit nötig ist.«
+Malvek nickte bedächtig, als wolle er die Worte fast bedauern. »Ich weiß, wie schwer diese Enthüllungen sind. Aber ich fürchte, er hat durch seine unbedachten Experimente Mächte geweckt, die nicht nur Königsstadt, sondern unser ganzes Reich bedrohen. Ich würde Euch niemals behelligen, wenn ich nicht überzeugt wäre, dass jetzt Einheit nötig ist.«
 
 Er trat einen Schritt näher, die Stimme weich und voll Bedauern: »Ich bitte Euch daher, Majestät, lasst uns gemeinsam für die Sicherheit Lakan sorgen. Lasst uns in allen Fragen des Schutzes und der magischen Angelegenheiten fortan Seite an Seite Entscheidungen treffen. Dies ist kein Putsch, sondern ein Schutz für Euch, für uns alle – gegen einen Abgrund, den ein einzelner Mann durch seine Hybris aufgerissen hat.«
 
-Er lächelt leicht:
+Er lächelte leicht: »Eure Weisheit und Euer Urteilsvermögen sind der Leitstern dieser Stadt. Ich werde Euch loyal zur Seite stehen – und erwarte nur, dass auch Eure Offiziere künftig eng mit dem Rat der Zauberer zusammenarbeiten. Wer sich dem verweigert, gefährdet unser aller Sicherheit.«
 
- »Eure Weisheit und Euer Urteilsvermögen sind der Leitstern dieser Stadt. Ich werde Euch loyal zur Seite stehen – und erwarte nur, dass auch Eure Offiziere künftig eng mit dem Rat der Zauberer zusammenarbeiten. Wer sich dem verweigert, gefährdet unser aller Sicherheit.«
-
-Malvek beendete seine Rede mit einem höflichen Nicken. Für einen Moment herrschte Stille im Saal. Der König räusperte sich, legte die Fingerkuppen vorsichtig aneinander. Seine Stimme war ruhig, aber klar:
+Malvek beendete seine Rede mit einem höflichen Nicken. Für einen Moment herrschte Stille im Saal. Der König räusperte sich, legte die Fingerspitzen vorsichtig aneinander. Seine Stimme war ruhig, aber klar:
 
 »Meister Malvek, ich danke Euch für Eure Umsicht und Euren Eifer, mein Reich zu schützen. Doch, bei allem Respekt – was genau ist diese Bedrohung, von der Ihr sprecht? Ihr habt von finsteren Mächten, von Wahnsinn und Experimenten gesprochen, doch ich habe noch keine Einzelheit gehört. Wer bedroht mein Reich wirklich? Was ist geschehen, was ich wissen sollte?«
 
-Er sah Malvek offen an.
+Er sah Malvek offen an. »Ihr werft Efret schwere Vorwürfe vor. Doch solange Ihr mir keine Belege präsentiert, bleibt das alles im Bereich der Gerüchte. Ich bin bereit, mit Euch zusammenzuarbeiten – aber ich verlasse mich nicht auf Andeutungen und Angstmacherei. Wenn Ihr wollt, dass ich mit dem Rat der Zauberer kooperiere, dann gebt mir Fakten, keine Furcht.«
 
- »Ihr werft Efret schwere Vorwürfe vor. Doch solange Ihr mir keine Belege präsentiert, bleibt das alles im Bereich der Gerüchte. Ich bin bereit, mit Euch zusammenzuarbeiten – aber ich verlasse mich nicht auf Andeutungen und Alarmismus. Wenn Ihr wollt, dass ich mit dem Rat der Zauberer kooperiere, dann gebt mir Fakten, keine Furcht.«
-
-Der König lehnte sich ein Stück zurück, sein Blick abschätzend:
-
-»Wem nützt es, wenn heute Angst die Stadt regiert? Und wem nützt es, wenn plötzlich neue Räte und neue Regeln ausgerufen werden, während mein Hof noch trauert?«
+Der König lehnte sich ein Stück zurück, sein Blick abschätzend: »Wem nützt es, wenn heute Angst die Stadt regiert und plötzlich neue Räte und Regeln ausgerufen werden?«
 
 Für einen kurzen Moment war die Machtfrage wieder offen im Raum – der König war nicht durchsetzungsstark, aber auch kein Narr.
 
-Malvek senkte die Stimme, als wolle er dem König ein düsteres Geheimnis anvertrauen.
+Malvek senkte die Stimme, als wolle er dem König ein düsteres Geheimnis anvertrauen. »Majestät, Ihr habt nach Fakten gefragt. Ich verstehe das und ich schulde Euch Aufklärung. Efret hat, getrieben von seinem Wunsch nach absoluter Kontrolle, eine Macht entfesselt, die nicht mehr Teil der bekannten Magie ist. Sie ist fremd, gefährlich, und sie manifestiert sich in einem Kind, das er Ayen nannte.«
 
- »Majestät, Ihr habt nach Fakten gefragt. Ich verstehe das – und ich schulde Euch Aufklärung. Efret hat, getrieben von seinem Wunsch nach absoluter Kontrolle, eine Macht entfesselt, die nicht mehr Teil der bekannten Magie ist. Sie ist fremd, gefährlich, und sie manifestiert sich in einem Kind, das er Acen nannte.«
+Er ließ die Worte wirken, blickte ernst in die Runde. »Majestät, dieses Kind hat bereits begonnen zu töten. Nicht aus eigener Bosheit, sondern weil es die Kontrolle über diese fremde Kraft nicht besitzt. Efret hat es nach Königsstadt gebracht – und er glaubte, das Kind als Werkzeug seiner eigenen Ziele einsetzen zu können. Aber er hatte die Kontrolle verloren. Ich fürchte, wenn wir nicht handeln, wird dieses Wesen nicht nur Königsstadt, sondern ganz Demirantha vernichten.«
 
-Er ließ die Worte wirken, blickte ernst in die Runde.
-
- »Majestät, dieses Kind hat bereits begonnen, zu töten. Nicht aus eigener Bosheit, sondern weil es die Kontrolle über diese fremde Kraft nicht besitzt. Efret hat es nach Königsstadt gebracht – und er glaubte, das Kind als Werkzeug seiner eigenen Ziele einsetzen zu können. Aber er hatte die Kontrolle verloren. Ich fürchte, wenn wir nicht handeln, wird dieses Wesen nicht nur Königsstadt, sondern ganz Demirantha vernichten.«
-
-Malvek machte eine kurze, bedauernde Pause.
-
- »Es kommt noch mehr dazu: Efret hat begonnen, seinen Einfluss auf Hof, Garnison und Verwaltung auszuweiten. Überall gibt es inzwischen seine Anhänger und Spione. Ihr könnt sicher sein, Majestät, alles, was hier besprochen wird, landet früher oder später bei Efrets Vasallen. Auch wenn er tot ist, seine Lieblingsschülerin hat wahrscheinlich seinen Platz eingenommen. Sie ist mit dem Kind zusammen hier irgendwo versteckt in der Stadt. Ich sage das alles nicht leichtfertig, sondern aus Sorge um die Sicherheit dieser Stadt und dieses Reiches.«
+Malvek machte eine kurze, bedauernde Pause. »Es kommt noch mehr dazu: Efret hat begonnen, seinen Einfluss auf Hof, Garnison und Verwaltung auszuweiten. Überall gibt es inzwischen seine Anhänger und Spione. Ihr könnt sicher sein, Majestät, alles, was hier besprochen wird, landet früher oder später bei Efrets Vasallen. Auch wenn er tot ist, seine Lieblingsschülerin hat wahrscheinlich seinen Platz eingenommen. Sie ist mit dem Kind zusammen hier irgendwo versteckt in der Stadt. Ich sage das alles nicht leichtfertig, sondern aus Sorge um die Sicherheit dieser Stadt und dieses Reiches.«
 
 Der König hob die Hand, als wolle er Malvek unterbrechen. Dann sagte er, ruhig und klar: »Die Eltern des Kindes waren bereits hier. Und nicht nur sie – auch Jaad, die Schülerin Efrets. Sie haben mich vor zwei Tagen aufgesucht, in Begleitung eines weiteren Zauberers.«
 
@@ -1738,29 +1710,27 @@ Ein paar der Berater zuckten zusammen. Selbst der vernarbte Offizier verzog das 
 
 Der König nickte. »Sie erschienen ohne große Vorankündigung. Sie wirkten gehetzt, vielleicht sogar verzweifelt. Sie baten um Schutz, wollten erklären, was geschehen ist. Und natürlich verlangten sie, dass ich mich gegen Euch und Eure Bewegung stelle.«
 
-Malvek holte tief Luft. Er zwang sich zur Ruhe, straffte die Schultern, und als er wieder sprach, war seine Stimme wieder so glatt wie zuvor.
+Malvek holte tief Luft. Er zwang sich zur Ruhe, straffte die Schultern, und als er wieder sprach, war seine Stimme erneut so glatt wie zuvor.
 
 »Das überrascht mich nicht, Majestät. Diese Leute sind Meister der Täuschung. Sie wissen, dass ihre Zeit abläuft. Sie werden alles versuchen, um sich als Opfer darzustellen. Wie auch immer – dass sie bei Euch waren, bestätigt nur, was ich befürchtet habe: Sie suchen nach neuen Verbündeten, weil sie in der Zaubererstadt keine mehr haben. Sie stehen mit dem Rücken zur Wand.«
 
 Er lächelte dünn, als hätte er alles im Voraus geplant.
 
-»Ich fürchte, sie haben Euch nicht die ganze Wahrheit erzählt. Sie verschweigen, dass das Kind bereits für den Tod von zehn Magiern verantwortlich ist – und dass es weitere Opfer geben wird, wenn wir nicht handeln. Sie verschweigen, dass sie selbst in mehrere Zwischenfälle verwickelt sind, von denen jeder einzelne als terroristischer Akt gewertet werden muss. Und sie verschweigen, dass sie ganz offen mit den gefährlichsten Elementen der alten Ordnung paktieren. Sie stellen sich als Verfolgte dar, aber in Wahrheit sind sie die Drahtzieher.«
+»Ich fürchte, sie haben Euch einiges verschwiegen. Sie haben Euch nicht gesagt, dass das Kind bereits für den Tod von zehn Magiern verantwortlich ist – und es wird weitere Opfer geben, wenn wir nicht handeln. Sie verschweigen, dass sie selbst in mehrere Zwischenfälle verwickelt sind, von denen jeder einzelne als ein Akt des Terrors gewertet werden muss. Und sie verschweigen, dass sie ganz offen mit den gefährlichsten Elementen der alten Ordnung paktieren. Sie stellen sich als Verfolgte dar, aber in Wahrheit sind sie die Drahtzieher.«
 
-Der König musterte ihn eine Weile. Dann sagte er: »Sie wirkten nicht wie Fanatiker. Eher wie eine Familie, die Angst hat. Und Jaad – sie war höflich, vernünftig. Ich habe sie nicht als Bedrohung empfunden. *Sie *sind nicht gewaltsam hier Zugangverschafft. Keine Zauberer, kein Waffen.«
+Der König musterte ihn eine Weile. Dann sagte er: »Sie wirkten nicht wie Fanatiker. Eher wie eine Familie, die Angst hat. Und Jaad – sie war höflich, vernünftig. Ich habe sie nicht als Bedrohung empfunden. Sie haben sich nicht gewaltsam Zugang verschafft. Keine Zauberer, keine Waffen.«
 
 Malvek zuckte die Schultern. »Majestät, das ist ihr größter Trick. Sie geben sich harmlos, aber hinter dem Lächeln verbirgt sich eine Entschlossenheit, die selbst Efret nicht mehr im Griff hatte. Sie sind gefährlich, weil sie nicht nach Macht streben – sondern nach Chaos. Sie wollen die Ordnung zerstören, die unser Reich zusammenhält.«
 
 Er beugte sich leicht vor. »Ich weiß, dass Ihr Mitgefühl habt. Aber in diesen Zeiten ist Mitgefühl eine Waffe in den Händen der Falschen. Gebt ihnen keinen Raum, sich zu verbreiten. Jede Stunde, die sie unbehelligt bleiben, vergrößert die Gefahr. Sie werden Euch und Eure Stadt in einen Strudel aus Chaos reißen, wenn wir nicht entschlossen handeln.«
 
-Malvek macht eine kurze Pause, dann fuhr er dünn lächelnd fort: »Sie haben Euch belogen. Sie verschweigen, dass das Kind bereits für den Tod von zehn Magiern verantwortlich ist – und dass es weitere Opfer geben wird, wenn wir nicht handeln. Sie verschweigen, dass sie in mehrere Zwischenfälle verwickelt sind, von denen jeder einzelne als Akt des Terrors gewertet werden muss. Und sie verschweigen, dass sie ganz offen mit den gefährlichsten Elementen der alten Ordnung paktieren. Sie stellen sich als Verfolgte dar, aber in Wahrheit sind sie die Drahtzieher.«
+Schwertmut schwieg, sein Blick flackerte kurz zur Seite, die Finger krampften sich fester um die Armlehne. Es fiel ihm schwer zu glauben, dass sein Freund in Wirklichkeit sein Feind gewesen sein sollte. Doch hatte Efret ihn nicht schon immer manipuliert? Doch hatte Efret ihn nicht schon immer an den Rand gedrängt? Mehr als einmal war er erst im Nachhinein über wichtige Vorgänge informiert worden. Die Farce mit den Drachen in Valdorien stieg vor seinem inneren Auge auf: die Siegesfeier, zu der er eingeladen worden war, ohne zu verstehen, was vorher geschehen war. Immer wieder hatte Efret ihn mit freundlicher Herablassung behandelt, hatte Entscheidungen übergangen oder selbst gefällt. Und Schwertmut hatte jedes Mal erlebt, dass die Politik Lakans im Grunde von Efret diktiert wurde — Gesetz für Gesetz, Edikt für Edikt. Kein einziges davon war je an ihm vorbeigegangen, ohne Efrets Finger darauf zu hinterlassen, es sei denn, es war um den Bau einer Oper oder einer Universität gegangen.
 
-Schwertmut schwieg. Es fiel ihm schwer zu glauben, dass sein Freund in Wirklichkeit sein Feind gewesen war. Doch hatte Efret ihn nicht schon immer manipuliert? Mehr als einmal war er nur im Nachhinein über Vorgänge informiert worden. Er musste an diese Farce mit den Drachen in Valdorien denken. Er hatte eine Siegesfeier abgehalten und nicht die geringste Ahnung gehabt, was eigentlich vor sich ging. Immer wieder war er von Efret mit freundlicher Herablassung behandelt worden. Er konnte sich nicht erinnern, dass Efret ihn jemals um Erlaubnis gefragt hätte, wenn er sich in die Politik Lakans eingemischt hatte. Was heißt ›eingemischt‹? Efret hatte im Grunde die Politik in Lakan ganz allein gestaltet. 
+Malvek sah, wie der Zweifel sich in Schwertmuts Gesicht grub.
 
-Malvek sah, wie es in Schwertmuts Gesicht arbeitete. 
+»Ihr seht es, Majestät. Habe ich recht? Efret war nie auf Eurer Seite.«
 
-»Ihr seht es, Majestät. Habe ich Recht? Efret war nie auf eurer Seite.«
-
-Schwertmut seufzte. 
+Schwertmut schloss kurz die Augen, als müsse er eine Last akzeptieren, die er lange ignoriert hatte. Dann seufzte er, leise, erschöpft.
 
 »Was also müssen wir tun?«
 
@@ -1772,13 +1742,13 @@ Malvek trat einen Schritt näher, die Stimme ruhig wie immer.
 
 Schwertmut nickte. Er sah aus, als hätte er den Sinn der Worte nicht ganz begriffen, aber sein Widerstand war gebrochen.
 
-Malvek fuhr fort: »Gleichzeitig müssen wir die zivile Verwaltung unter Kontrolle bringen. Die wichtigsten Beamten in Stadt und Umland sind vermutlich mit Efret oder seinen Verbündeten verbunden. Wir müssen sie alle überprüfen, überwachen und nötigenfalls austauschen. Das muss schnell gehen. Wir dürfen ihnen keine Zeit geben, sich abzusprechen.«
+Malvek fuhr fort: »Gleichzeitig müssen wir die zivile Verwaltung unter Kontrolle bringen. Die wichtigsten Beamten in Stadt und Umland sind mit Efret oder seinen Verbündeten verbunden. Wir müssen sie alle überprüfen, überwachen und nötigenfalls austauschen. Das muss schnell gehen. Wir dürfen ihnen keine Zeit geben, sich abzusprechen.«
 
 Der König blickte auf seine Hände. »Und wenn sie sich weigern?«
 
 »Dann werden sie suspendiert. Oder verhaftet. Ihr seid der König, Majestät. Niemand wird sich offen widersetzen, wenn Ihr und der Zaubererrat gemeinsam handeln.«
 
-Schwertmut nickte wieder, diesmal schneller.
+Schwertmut nickte wieder, dieses Mal schneller.
 
 Malvek wandte sich an einen der Berater am Rand des Thronsaals. »Ihr werdet eine Liste aller Garnisonskommandanten, der leitenden Offiziere und der wichtigsten Beamten erstellen. Ich werde meine Leute schicken, um die Listen zu überprüfen und die ersten Maßnahmen einzuleiten. Noch heute.«
 
@@ -1788,7 +1758,7 @@ Malvek wandte sich wieder Schwertmut zu. »Wir müssen ein Zeichen setzen. Ich e
 
 Der König schwieg einen Moment. »Und was ist mit dem Kind?«
 
-»Wir werden es finden. Meine Leute sind bereits in der Stadt. Sobald wir wissen, wo sie sich verstecken, werden wir sie einkreisen und letztlich finden. Niemand wird ihnen helfen. Auch das muss schnell gehen.«
+»Wir werden es finden. Meine Leute sind bereits in der Stadt. Sobald wir wissen, wo sie sich verstecken, werden wir sie einkreisen und letztlich stellen. Niemand wird ihnen helfen. Auch das muss schnell gehen.«
 
 Schwertmut schien zu frösteln. »Gut. Ihr habt freie Hand.«
 
