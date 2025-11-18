@@ -1037,6 +1037,9 @@ public class PandocExportWindow extends CustomStage {
                 
                 writer.write("---");
                 writer.write(lineSeparator);
+                // WICHTIG: Leerzeile nach YAML-Header, damit Pandoc das Frontmatter korrekt erkennt
+                // und kein <hr> vor der Titelei einfügt
+                writer.write(lineSeparator);
                 
                 writer.write(normalizedContent);
             }
@@ -1188,17 +1191,68 @@ public class PandocExportWindow extends CustomStage {
                 
                 // Horizontale Linien (---, ***, ___) durch zentrierte ◆◆◆ mit Leerzeilen ersetzen
                 // Pattern: Zeile mit nur ---, *** oder ___ (mindestens 3 Zeichen)
+                // WICHTIG: YAML-Header-Zeilen (--- am Anfang, gefolgt von YAML-Content bis zum nächsten ---) ausschließen
                 // Ersetze durch: Leerzeilen + <br> + zentrierte ◆◆◆ (mit Div) + <br> + Leerzeilen
                 // Kombiniere <br> Tags für Zeilenumbrüche und <div align="center"> für Zentrierung
-                content = content.replaceAll(
-                    "(?m)^([ \t]*)([-*_]{3,})([ \t]*)$",
-                    lineSep + lineSep + lineSep + lineSep + 
-                    "<br>" + lineSep + lineSep + 
-                    "<div align=\"center\">◆◆◆</div>" + 
-                    lineSep + lineSep + 
-                    "<br>" + 
-                    lineSep + lineSep + lineSep + lineSep
-                );
+                
+                // Zuerst: YAML-Header-Bereich schützen (von erstem --- bis zweitem --- gefolgt von Leerzeile)
+                // Verwende einen eindeutigen Marker, der nicht im Content vorkommt
+                String yamlMarker = "___YAML_HEADER_PROTECTED___";
+                
+                // Prüfe, ob die Datei mit YAML-Header beginnt
+                if (content.startsWith("---" + lineSep)) {
+                    // Finde das Ende des YAML-Headers (zweites --- gefolgt von Leerzeile)
+                    // Pattern: --- am Anfang, dann beliebiger Content, dann --- gefolgt von Leerzeile
+                    int yamlEndIndex = content.indexOf(lineSep + "---" + lineSep + lineSep);
+                    if (yamlEndIndex > 0) {
+                        // YAML-Header gefunden - ersetze ihn temporär
+                        String yamlHeader = content.substring(0, yamlEndIndex + lineSep.length() + 3 + lineSep.length() + lineSep.length());
+                        String restContent = content.substring(yamlEndIndex + lineSep.length() + 3 + lineSep.length() + lineSep.length());
+                        
+                        // Ersetze YAML-Header-Zeilen im Header-Bereich
+                        String protectedYaml = yamlHeader.replaceAll(
+                            "(?m)^([ \t]*)(---)([ \t]*)$",
+                            "$1" + yamlMarker + "$3"
+                        );
+                        
+                        // Dann: Horizontale Linien im Rest-Content ersetzen
+                        String processedRest = restContent.replaceAll(
+                            "(?m)^([ \t]*)([-*_]{3,})([ \t]*)$",
+                            lineSep + lineSep + lineSep + lineSep + 
+                            "<br>" + lineSep + lineSep + 
+                            "<div align=\"center\">◆◆◆</div>" + 
+                            lineSep + lineSep + 
+                            "<br>" + 
+                            lineSep + lineSep + lineSep + lineSep
+                        );
+                        
+                        // YAML-Header wiederherstellen und zusammenfügen
+                        protectedYaml = protectedYaml.replace(yamlMarker, "---");
+                        content = protectedYaml + processedRest;
+                    } else {
+                        // Kein YAML-Header-Ende gefunden, normal verarbeiten
+                        content = content.replaceAll(
+                            "(?m)^([ \t]*)([-*_]{3,})([ \t]*)$",
+                            lineSep + lineSep + lineSep + lineSep + 
+                            "<br>" + lineSep + lineSep + 
+                            "<div align=\"center\">◆◆◆</div>" + 
+                            lineSep + lineSep + 
+                            "<br>" + 
+                            lineSep + lineSep + lineSep + lineSep
+                        );
+                    }
+                } else {
+                    // Kein YAML-Header am Anfang, normal verarbeiten
+                    content = content.replaceAll(
+                        "(?m)^([ \t]*)([-*_]{3,})([ \t]*)$",
+                        lineSep + lineSep + lineSep + lineSep + 
+                        "<br>" + lineSep + lineSep + 
+                        "<div align=\"center\">◆◆◆</div>" + 
+                        lineSep + lineSep + 
+                        "<br>" + 
+                        lineSep + lineSep + lineSep + lineSep
+                    );
+                }
             }
             
             // HTML-Tags ersetzen basierend auf dem Ausgabeformat

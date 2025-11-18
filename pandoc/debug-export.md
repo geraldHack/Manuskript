@@ -12,6 +12,7 @@ abstract: |
   Doch ihr Sohn Ayen ist anders. Er lässt ›Dinge‹ geschehen. Das wäre ja für das Kind von zwei begabten Magiern nichts Ungewöhnliches, doch in Ayen gibt es nicht eine Spur von Magie. Und seine Kräfte scheinen zu wachsen.
   Wie immer wenn's brenzlich wird, wenden sie sich an Efret, den verrückten, obersten Zauberer. Kann er ihnen auch diesmal helfen?
 ---
+
 # Jomar rettet die Welt
 ~~Das streichen wir~~
 
@@ -70,17 +71,18 @@ sdf xycxcxy
 <br>
 
 | Links | Mitte | Rechts |
-|---------|:--------:|---------:|
 
+|---------|:--------:|---------:|
 | Text | Text | Text |
+
 
 https://example.com
 
 <span style="color: red;">Roter Text</span>
 
-<mark>Der Wind ging kaum.</mark> Nur das **<big>Rascheln</big>** vereinzelter Blätter begleitete die drei Gestalten, die sich vorsichtig entlang der Schatten bewegten. Jomar war der Erste. Flach auf dem Bauch robbte er hinter eine niedrige Steinmauer, hob die Hand, spreizte zwei Finger – ein Zeichen an die anderen. Sie hielten an, und Jomar hockte sich hinter die Mauer.
+<mark>Der Wind ging kaum.</mark> Nur das <big>Rascheln</big> vereinzelter Blätter begleitete die drei Gestalten, die sich vorsichtig entlang der Schatten bewegten. Jomar war der Erste. Flach auf dem Bauch robbte er hinter eine niedrige Steinmauer, hob die Hand, spreizte zwei Finger – ein Zeichen an die anderen. Sie hielten an, und Jomar hockte sich hinter die Mauer.
 
-Vor ihm lag ein unscheinbarer Hof, von verwildertem Gestrüpp durchzogen. Dass es einmal ein Garten gewesen war, ließ sich nur noch erahnen. Jetzt war es eine Fläche aus verdorrten Pflanzen, staubigem Boden und krummen Holzpflöcken, die sich mit Mühe als Beetbegrenzungen ausgaben. Aber es gab zwei Bereiche, die ordentlich umgegraben waren.
+<small>Vor ihm lag ein unscheinbarer Hof, von verwildertem Gestrüpp durchzogen. Dass es einmal ein Garten gewesen war, ließ sich nur noch erahnen. Jetzt war es eine Fläche aus verdorrten Pflanzen, staubigem Boden und krummen Holzpflöcken, die sich mit Mühe als Beetbegrenzungen ausgaben. Aber es gab zwei Bereiche, die ordentlich umgegraben waren.</small>
 
 Nichts rührte sich, aber etwas lauerte in der Finsternis: eine dunkle Präsenz.
 
