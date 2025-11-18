@@ -738,44 +738,16 @@ public class DocxProcessor {
         P p = f.createP();
         PPr ppr = f.createPPr();
         
-        // Einrückung für Blockquote
-        PPrBase.Ind ind = f.createPPrBaseInd();
-        int indentSize = 720; // Standard: 0.5 Zoll
-        if (options != null) {
-            indentSize = (int)(options.quoteIndent * 567); // cm zu Twips
-        }
-        ind.setLeft(BigInteger.valueOf(indentSize));
-        ppr.setInd(ind);
+        // Word-Absatzformat "Zitat" verwenden (wie bei Überschriften)
+        PPrBase.PStyle pStyle = f.createPPrBasePStyle();
+        pStyle.setVal("Zitat");  // Deutsches Word-Format
+        ppr.setPStyle(pStyle);
         
-        // Hintergrundfarbe für Blockquote, falls gewünscht
-        // Blockquote-Hintergrundfarbe
-        if (options != null && options.quoteBackgroundColor != null) {
-            CTShd shd = f.createCTShd();
-            shd.setColor("auto");
-            shd.setFill(options.quoteBackgroundColor);
-            ppr.setShd(shd);
-        }
+        // Formatierung wird vom Word-Style "Zitat" übernommen
+        // Keine manuelle Formatierung mehr nötig (Einrückung, Hintergrundfarbe, Kursiv)
         
-        // Kursiver Text für Blockquote
-        R r = f.createR();
-        RPr rpr = f.createRPr();
-        BooleanDefaultTrue italic = new BooleanDefaultTrue();
-        rpr.setI(italic);
-        
-        // Schriftart
-        if (options != null) {
-            RFonts rFonts = f.createRFonts();
-            rFonts.setAscii(options.defaultFont);
-            rFonts.setHAnsi(options.defaultFont);
-            rFonts.setCs(options.defaultFont);
-            rpr.setRFonts(rFonts);
-        }
-        
-        r.setRPr(rpr);
-        org.docx4j.wml.Text t = f.createText();
-        t.setValue(text);
-        r.getContent().add(t);
-        p.getContent().add(r);
+        // Text hinzufügen mit Formatierung (Bold/Italic im Text bleiben erhalten)
+        addFormattedTextToParagraph(p, pkg, f, text, options);
         p.setPPr(ppr);
         
         pkg.getMainDocumentPart().addObject(p);

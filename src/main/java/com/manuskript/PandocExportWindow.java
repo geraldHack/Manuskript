@@ -940,11 +940,9 @@ public class PandocExportWindow extends CustomStage {
             
             // Schreibe YAML-Header und Original-Inhalt zeilenweise mit BufferedWriter
             // Das stellt sicher, dass Zeilenumbrüche erhalten bleiben
-            // Schreibe Original-Inhalt direkt - behält originale Zeilenumbrüche, normalisiere Striche und <br>
-            String normalizedContent = originalContent
-                .replace('\u2013', '-')  // en-dash zu Bindestrich
-                .replace('\u2014', '-')  // em-dash zu Bindestrich
-                .replace('\u2015', '-'); // horizontal bar zu Bindestrich
+            // Schreibe Original-Inhalt direkt - behält originale Zeilenumbrüche und Unicode-Zeichen
+            // Gedankenstriche (em-dash, en-dash) bleiben erhalten - Pandoc konvertiert sie korrekt
+            String normalizedContent = originalContent;
                 // <br> Tags werden NICHT hier ersetzt - Pandoc unterstützt HTML in Markdown
             
             // Zusätzliche Leerzeilen zwischen Tabellen-Zeilen entfernen
@@ -1094,18 +1092,8 @@ public class PandocExportWindow extends CustomStage {
         try {
             String content = Files.readString(markdownFile.toPath(), StandardCharsets.UTF_8);
             
-            // WICHTIG: Konvertiere Unicode-Striche (em-dash, en-dash) zu normalen Bindestrichen
-            // für Tabellen-Separatoren, da Pandoc normale Bindestriche erwartet
-            String normalizedContent = content
-                .replace('\u2013', '-')  // en-dash zu Bindestrich
-                .replace('\u2014', '-')  // em-dash zu Bindestrich
-                .replace('\u2015', '-'); // horizontal bar zu Bindestrich
-            
-            // Wenn Konvertierung stattgefunden hat, schreibe die Datei sofort
-            if (!normalizedContent.equals(content)) {
-                Files.write(markdownFile.toPath(), normalizedContent.getBytes(StandardCharsets.UTF_8));
-                content = normalizedContent;
-            }
+            // Gedankenstriche (em-dash, en-dash) bleiben erhalten - Pandoc konvertiert sie korrekt zu DOCX
+            // Keine Konvertierung zu normalen Bindestrichen mehr nötig
             
             String newline = content.contains("\r\n") ? "\r\n" : "\n";
             
@@ -1196,6 +1184,20 @@ public class PandocExportWindow extends CustomStage {
                 content = content.replaceAll(
                     "(?m)(!\\[\\]\\([^\\)]+\\)\\{ width=" + imageSizePercent + "% \\})(?!</div>)",
                     "<div align=\"center\">" + lineSep + "$1" + lineSep + "</div>"
+                );
+                
+                // Horizontale Linien (---, ***, ___) durch zentrierte ◆◆◆ mit Leerzeilen ersetzen
+                // Pattern: Zeile mit nur ---, *** oder ___ (mindestens 3 Zeichen)
+                // Ersetze durch: Leerzeilen + <br> + zentrierte ◆◆◆ (mit Div) + <br> + Leerzeilen
+                // Kombiniere <br> Tags für Zeilenumbrüche und <div align="center"> für Zentrierung
+                content = content.replaceAll(
+                    "(?m)^([ \t]*)([-*_]{3,})([ \t]*)$",
+                    lineSep + lineSep + lineSep + lineSep + 
+                    "<br>" + lineSep + lineSep + 
+                    "<div align=\"center\">◆◆◆</div>" + 
+                    lineSep + lineSep + 
+                    "<br>" + 
+                    lineSep + lineSep + lineSep + lineSep
                 );
             }
             
@@ -2763,6 +2765,36 @@ public class PandocExportWindow extends CustomStage {
                     }
                 }
                 
+                // ◆◆◆ Absätze zentrieren und hellblau färben (Trenner)
+                for (XWPFParagraph paragraph : document.getParagraphs()) {
+                    String text = paragraph.getText();
+                    if (text != null && text.trim().equals("◆◆◆")) {
+                        paragraph.setAlignment(ParagraphAlignment.CENTER);
+                        // Hellblau färben (#87CEEB = Sky Blue)
+                        for (XWPFRun run : paragraph.getRuns()) {
+                            run.setColor("87CEEB");
+                        }
+                    }
+                }
+                
+                // ◆◆◆ auch in Tabellen zentrieren und hellblau färben
+                for (XWPFTable table : document.getTables()) {
+                    for (XWPFTableRow row : table.getRows()) {
+                        for (XWPFTableCell cell : row.getTableCells()) {
+                            for (XWPFParagraph paragraph : cell.getParagraphs()) {
+                                String text = paragraph.getText();
+                                if (text != null && text.trim().equals("◆◆◆")) {
+                                    paragraph.setAlignment(ParagraphAlignment.CENTER);
+                                    // Hellblau färben
+                                    for (XWPFRun run : paragraph.getRuns()) {
+                                        run.setColor("87CEEB");
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                
                 // Alt-Text aus Bildunterschriften entfernen (falls vorhanden)
                 for (XWPFParagraph paragraph : document.getParagraphs()) {
                     String text = paragraph.getText();
@@ -2802,6 +2834,10 @@ public class PandocExportWindow extends CustomStage {
                 } else {
                     logger.debug("Initialen-Checkbox ist deaktiviert - überspringe Initialen");
                 }
+                
+                // DANN: Blockquotes mit Word-Absatzformat "Zitat" formatieren
+                logger.debug("Formatiere Blockquotes mit Word-Absatzformat 'Zitat'");
+                formatBlockquotesAsQuoteStyle(document);
                 
                 // DANN: Cover-Bild hinzufügen (falls vorhanden)
                 if (!coverImageField.getText().trim().isEmpty()) {
@@ -3667,6 +3703,85 @@ public class PandocExportWindow extends CustomStage {
             if (e.getCause() != null) {
                 logger.warn("Ursache: {}", e.getCause().getMessage());
             }
+        }
+    }
+    
+    /**
+     * Formatiert Blockquotes mit dem Word-Absatzformat "Zitat"
+     * Erkennt Blockquotes anhand ihrer Einrückung (Pandoc erstellt Blockquotes mit Einrückung)
+     */
+    private void formatBlockquotesAsQuoteStyle(XWPFDocument document) {
+        try {
+            int blockquoteCount = 0;
+            
+            for (XWPFParagraph paragraph : document.getParagraphs()) {
+                // Überspringe leere Absätze
+                String text = paragraph.getText();
+                if (text == null || text.trim().isEmpty()) {
+                    continue;
+                }
+                
+                // Überspringe Überschriften
+                String style = paragraph.getStyle();
+                if (style != null && (style.contains("Heading") || style.contains("heading"))) {
+                    continue;
+                }
+                
+                // Prüfe auf Einrückung (Pandoc erstellt Blockquotes mit Einrückung)
+                // Blockquotes haben normalerweise eine linke Einrückung
+                org.openxmlformats.schemas.wordprocessingml.x2006.main.CTPPr ppr = paragraph.getCTP().getPPr();
+                if (ppr != null && ppr.getInd() != null) {
+                    org.openxmlformats.schemas.wordprocessingml.x2006.main.CTInd ind = ppr.getInd();
+                    // Wenn linke Einrückung vorhanden ist (typisch für Blockquotes)
+                    Object leftObj = ind.getLeft();
+                    if (leftObj instanceof java.math.BigInteger) {
+                        java.math.BigInteger leftIndent = (java.math.BigInteger) leftObj;
+                        if (leftIndent.intValue() > 0) {
+                        // Setze das Word-Absatzformat "Zitat"
+                        if (ppr.getPStyle() == null) {
+                            ppr.addNewPStyle();
+                        }
+                        ppr.getPStyle().setVal("Zitat");
+                        blockquoteCount++;
+                        }
+                    }
+                }
+            }
+            
+            // Auch in Tabellen prüfen
+            for (XWPFTable table : document.getTables()) {
+                for (XWPFTableRow row : table.getRows()) {
+                    for (XWPFTableCell cell : row.getTableCells()) {
+                        for (XWPFParagraph paragraph : cell.getParagraphs()) {
+                            String text = paragraph.getText();
+                            if (text == null || text.trim().isEmpty()) {
+                                continue;
+                            }
+                            
+                            org.openxmlformats.schemas.wordprocessingml.x2006.main.CTPPr ppr = paragraph.getCTP().getPPr();
+                            if (ppr != null && ppr.getInd() != null) {
+                                org.openxmlformats.schemas.wordprocessingml.x2006.main.CTInd ind = ppr.getInd();
+                                Object leftObj = ind.getLeft();
+                                if (leftObj instanceof java.math.BigInteger) {
+                                    java.math.BigInteger leftIndent = (java.math.BigInteger) leftObj;
+                                    if (leftIndent.intValue() > 0) {
+                                    if (ppr.getPStyle() == null) {
+                                        ppr.addNewPStyle();
+                                    }
+                                    ppr.getPStyle().setVal("Zitat");
+                                    blockquoteCount++;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            logger.debug("Blockquotes mit Word-Absatzformat 'Zitat' formatiert: {}", blockquoteCount);
+            
+        } catch (Exception e) {
+            logger.warn("Fehler beim Formatieren von Blockquotes: {}", e.getMessage());
         }
     }
     
