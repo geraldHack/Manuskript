@@ -2894,6 +2894,10 @@ public class PandocExportWindow extends CustomStage {
                 logger.debug("Formatiere Blockquotes mit Word-Absatzformat 'Zitat'");
                 formatBlockquotesAsQuoteStyle(document);
                 
+                // DANN: Tabellen formatieren (Breite und Rahmen)
+                logger.debug("Formatiere Tabellen mit Breite und Rahmen");
+                formatTables(document);
+                
                 // DANN: Cover-Bild hinzufügen (falls vorhanden)
                 if (!coverImageField.getText().trim().isEmpty()) {
                     File coverImageFile = new File(coverImageField.getText().trim());
@@ -3837,6 +3841,122 @@ public class PandocExportWindow extends CustomStage {
             
         } catch (Exception e) {
             logger.warn("Fehler beim Formatieren von Blockquotes: {}", e.getMessage());
+        }
+    }
+    
+    /**
+     * Formatiert alle Tabellen im Dokument: Setzt Breite auf 100% und fügt Rahmen hinzu
+     */
+    private void formatTables(XWPFDocument document) {
+        try {
+            int tableCount = 0;
+            
+            // Berechne Tabellenbreite einmal für alle Tabellen
+            // A4 Breite: 21cm = 11906 Twips
+            // Standard-Ränder: 2.5cm links + 2.5cm rechts = 5cm = 2835 Twips
+            // Verfügbare Breite: 11906 - 2835 = 9071 Twips
+            // Wir verwenden etwas weniger (90% der verfügbaren Breite) für Sicherheit: ca. 8164 Twips
+            long pageWidthTwips = 11906L; // A4 Breite
+            long marginsTwips = 2835L; // Links + Rechts Ränder
+            long availableWidth = pageWidthTwips - marginsTwips;
+            long tableWidth = (long)(availableWidth * 0.90); // 90% der verfügbaren Breite für Sicherheit
+            
+            for (XWPFTable table : document.getTables()) {
+                tableCount++;
+                
+                // Tabellen-Eigenschaften abrufen oder erstellen
+                org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTblPr tblPr = table.getCTTbl().getTblPr();
+                if (tblPr == null) {
+                    tblPr = table.getCTTbl().addNewTblPr();
+                }
+                
+                // Tabellen-Layout auf "fest" setzen, damit die Breite respektiert wird
+                org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTblLayoutType layoutType = tblPr.getTblLayout();
+                if (layoutType == null) {
+                    layoutType = tblPr.addNewTblLayout();
+                }
+                layoutType.setType(org.openxmlformats.schemas.wordprocessingml.x2006.main.STTblLayoutType.FIXED);
+                
+                // Tabellenbreite setzen
+                org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTblWidth tblWidth = tblPr.getTblW();
+                if (tblWidth == null) {
+                    tblWidth = tblPr.addNewTblW();
+                }
+                tblWidth.setType(org.openxmlformats.schemas.wordprocessingml.x2006.main.STTblWidth.DXA);
+                tblWidth.setW(java.math.BigInteger.valueOf(tableWidth));
+                
+                // Tabellen-Rahmen hinzufügen
+                org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTblBorders borders = tblPr.getTblBorders();
+                if (borders == null) {
+                    borders = tblPr.addNewTblBorders();
+                }
+                
+                // Rahmen-Stil: Einfache Linie, Größe 12 (1.5pt), Farbe schwarz (größer für bessere Sichtbarkeit)
+                // Erstelle Border-Objekte für alle Seiten
+                org.openxmlformats.schemas.wordprocessingml.x2006.main.CTBorder topBorder = borders.isSetTop() ? borders.getTop() : borders.addNewTop();
+                topBorder.setVal(org.openxmlformats.schemas.wordprocessingml.x2006.main.STBorder.SINGLE);
+                topBorder.setSz(java.math.BigInteger.valueOf(12)); // 1.5pt
+                topBorder.setColor("000000"); // Schwarz
+                
+                org.openxmlformats.schemas.wordprocessingml.x2006.main.CTBorder bottomBorder = borders.isSetBottom() ? borders.getBottom() : borders.addNewBottom();
+                bottomBorder.setVal(org.openxmlformats.schemas.wordprocessingml.x2006.main.STBorder.SINGLE);
+                bottomBorder.setSz(java.math.BigInteger.valueOf(12));
+                bottomBorder.setColor("000000");
+                
+                org.openxmlformats.schemas.wordprocessingml.x2006.main.CTBorder leftBorder = borders.isSetLeft() ? borders.getLeft() : borders.addNewLeft();
+                leftBorder.setVal(org.openxmlformats.schemas.wordprocessingml.x2006.main.STBorder.SINGLE);
+                leftBorder.setSz(java.math.BigInteger.valueOf(12));
+                leftBorder.setColor("000000");
+                
+                org.openxmlformats.schemas.wordprocessingml.x2006.main.CTBorder rightBorder = borders.isSetRight() ? borders.getRight() : borders.addNewRight();
+                rightBorder.setVal(org.openxmlformats.schemas.wordprocessingml.x2006.main.STBorder.SINGLE);
+                rightBorder.setSz(java.math.BigInteger.valueOf(12));
+                rightBorder.setColor("000000");
+                
+                org.openxmlformats.schemas.wordprocessingml.x2006.main.CTBorder insideHBorder = borders.isSetInsideH() ? borders.getInsideH() : borders.addNewInsideH();
+                insideHBorder.setVal(org.openxmlformats.schemas.wordprocessingml.x2006.main.STBorder.SINGLE);
+                insideHBorder.setSz(java.math.BigInteger.valueOf(12));
+                insideHBorder.setColor("000000");
+                
+                org.openxmlformats.schemas.wordprocessingml.x2006.main.CTBorder insideVBorder = borders.isSetInsideV() ? borders.getInsideV() : borders.addNewInsideV();
+                insideVBorder.setVal(org.openxmlformats.schemas.wordprocessingml.x2006.main.STBorder.SINGLE);
+                insideVBorder.setSz(java.math.BigInteger.valueOf(12));
+                insideVBorder.setColor("000000");
+                
+                // Spaltenbreiten setzen - gleichmäßig verteilen
+                int columnCount = 0;
+                if (table.getRows().size() > 0) {
+                    columnCount = table.getRow(0).getTableCells().size();
+                }
+                
+                if (columnCount > 0) {
+                    // Für jede Spalte die Breite setzen
+                    for (XWPFTableRow row : table.getRows()) {
+                        for (int i = 0; i < row.getTableCells().size() && i < columnCount; i++) {
+                            XWPFTableCell cell = row.getTableCells().get(i);
+                            org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTcPr tcPr = cell.getCTTc().getTcPr();
+                            if (tcPr == null) {
+                                tcPr = cell.getCTTc().addNewTcPr();
+                            }
+                            
+                            // Spaltenbreite setzen (gleichmäßige Verteilung über die Tabellenbreite)
+                            org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTblWidth cellWidth = tcPr.getTcW();
+                            if (cellWidth == null) {
+                                cellWidth = tcPr.addNewTcW();
+                            }
+                            // Verwende die bereits berechnete Tabellenbreite
+                            long columnWidth = tableWidth / columnCount; // Gleichmäßig auf Spalten verteilen
+                            cellWidth.setType(org.openxmlformats.schemas.wordprocessingml.x2006.main.STTblWidth.DXA);
+                            cellWidth.setW(java.math.BigInteger.valueOf(columnWidth));
+                        }
+                    }
+                }
+            }
+            
+            logger.debug("Tabellen formatiert: {} Tabellen mit Breite 90% der verfügbaren Seitenbreite, Rahmen und Spaltenbreiten versehen", tableCount);
+            
+        } catch (Exception e) {
+            logger.warn("Fehler beim Formatieren von Tabellen: {}", e.getMessage(), e);
         }
     }
     
