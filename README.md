@@ -10,6 +10,11 @@
 > [!WARNING]
 > I'm sorry, but the program only supports the German language.
 
+
+![Manuskript Hauptfenster](Screenshot.png)
+*Hauptfenster mit Downloads-Monitor, Datei-Verwaltung und Text-Editor*
+
+
 ## ✨ Highlights
 
 - 🤖 **Lokaler KI-Assistent** mit Ollama-Integration (keine Cloud-Abhängigkeit, Keine Kosten)
@@ -55,14 +60,13 @@ mvn javafx:run
 ```
 
 ### Erste Schritte
-1. **Import DOCX Dateien aus dem download--Verzeichnis** - DOCX-Dateien, die z.B. aus Sudowrite exportiert wurden
-2. **Verzeichnis auswählen** - Laden Sie ein Verzeichnis mit DOCX-Dateien
+1. **Erstelle DOCX-Dateien** - DOCX-Dateien, die z.B. aus Sudowrite exportiert wurden
+2. **Verzeichnis erstellen** - Hier gehören die docx-Dateien hin 
+2. **Verzeichnis auswählen** - Laden Sie das Verzeichnis mit DOCX-Dateien
 3. **Dateien auswählen** - Wählen Sie die gewünschten Kapitel aus
 4. **Bearbeiten** - Nutzen Sie den Editor für Nachbearbeitung
 5. **Exportieren** - Speichern Sie in verschiedenen Formaten. Für einzelne Kapitel oder kompletter Export des Buchs
 
-![Manuskript Hauptfenster](Screenshot.png)
-*Hauptfenster mit Downloads-Monitor, Datei-Verwaltung und Text-Editor*
 
 ## 🎯 Kernfunktionen
 
