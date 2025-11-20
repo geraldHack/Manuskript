@@ -116,7 +116,8 @@ public class NovelManager {
                 String content = Files.readString(filePath, StandardCharsets.UTF_8);
                 return content;
             } else {
-                logger.warn("Kapitel-Datei nicht gefunden: " + filePath);
+                // Datei ist optional - nur auf DEBUG-Level loggen
+                logger.debug("Kapitel-Datei nicht gefunden (optional): " + filePath);
                 return "";
             }
         } catch (IOException e) {

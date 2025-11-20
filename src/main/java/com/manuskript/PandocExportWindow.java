@@ -389,6 +389,7 @@ public class PandocExportWindow extends CustomStage {
         abstractArea.setMinHeight(160); // Mindesthöhe setzen (20 Zeilen * 8px pro Zeile)
         abstractArea.setWrapText(true); // Umbruch aktivieren
         abstractArea.setPromptText("Kurze Beschreibung des Werks...");
+        abstractArea.getStyleClass().add("dialog-textarea");
         abstractBox.getChildren().addAll(abstractLabel, abstractArea);
         
         metadataBox.getChildren().addAll(
@@ -1328,6 +1329,43 @@ public class PandocExportWindow extends CustomStage {
                 // <br> Tags für DOCX: Pandoc unterstützt HTML in Markdown, verarbeitet <br> automatisch
                 // Keine Konvertierung nötig - Pandoc konvertiert <br> zu Zeilenumbrüchen in DOCX
                 
+                // Zentrierte Absätze sammeln und für Post-Processing vorbereiten
+                // Pandoc konvertiert zentrierte Tags nicht automatisch zu zentrierten Absätzen in DOCX
+                // Daher sammeln wir die Texte und zentrieren sie im Post-Processing
+                centeredParagraphs.clear();
+                
+                // Pattern für <c>Text</c> und <center>Text</center> (einfache, saubere Syntax)
+                java.util.regex.Pattern centerPattern = java.util.regex.Pattern.compile(
+                    "(?s)<(?:c|center)>(.*?)</(?:c|center)>"
+                );
+                java.util.regex.Matcher centerMatcher = centerPattern.matcher(content);
+                java.util.List<java.util.Map.Entry<Integer, Integer>> centerReplacements = new java.util.ArrayList<>();
+                while (centerMatcher.find()) {
+                    String htmlContent = centerMatcher.group(1);
+                    // Entferne HTML-Tags aus dem Text (behält nur den reinen Text)
+                    String centeredText = htmlContent.replaceAll("<[^>]+>", "").trim();
+                    if (!centeredText.isEmpty()) {
+                        centeredParagraphs.add(centeredText);
+                        centerReplacements.add(new java.util.AbstractMap.SimpleEntry<>(
+                            centerMatcher.start(), centerMatcher.end()
+                        ));
+                    }
+                }
+                // Ersetze rückwärts, um Indizes nicht zu verschieben
+                for (int i = centerReplacements.size() - 1; i >= 0; i--) {
+                    java.util.Map.Entry<Integer, Integer> entry = centerReplacements.get(i);
+                    int start = entry.getKey();
+                    int end = entry.getValue();
+                    // Finde den Matcher für diese Position neu
+                    java.util.regex.Matcher m = centerPattern.matcher(content);
+                    if (m.find(start)) {
+                        String htmlContent = m.group(1);
+                        String centeredText = htmlContent.replaceAll("<[^>]+>", "").trim();
+                        content = content.substring(0, start) + centeredText + content.substring(end);
+                    }
+                }
+                
+                
                 // Für DOCX: Pandoc-native Befehle verwenden
                 content = content.replaceAll("<u>([^<]+)</u>", "[$1]{.underline}");
                 content = content.replaceAll("<b>([^<]+)</b>", "**$1**");
@@ -1492,6 +1530,10 @@ public class PandocExportWindow extends CustomStage {
     }
     
     private boolean runPandocExport(File markdownFile) {
+        // Listen zurücksetzen
+        copiedImageFiles.clear();
+        centeredParagraphs.clear();
+        
         try {
             // Sicherstellen, dass Pandoc verfügbar ist
             if (!ensurePandocAvailable()) {
@@ -1643,6 +1685,26 @@ public class PandocExportWindow extends CustomStage {
                         }
                     }
                 }
+                
+                // Markdown-Bilder ins Pandoc-Verzeichnis kopieren (wie für EPUB3)
+                File markdownDir = markdownFile.getParentFile();
+                File pandocDir = new File("pandoc");
+                copyMarkdownImagesToPandocDir(markdownFile, pandocDir);
+                
+                // Resource-Path für DOCX setzen, damit Pandoc die Bilder findet
+                // Bilder werden ins pandoc-Verzeichnis kopiert, aber Pandoc muss auch im Projektverzeichnis suchen
+                String resourcePath = pandocDir.getAbsolutePath();
+                if (markdownDir != null) {
+                    resourcePath += ";" + markdownDir.getAbsolutePath();
+                }
+                if (outputDir.exists()) {
+                    resourcePath += ";" + outputDir.getAbsolutePath();
+                }
+                if (projectDirectory != null) {
+                    resourcePath += ";" + projectDirectory.getAbsolutePath();
+                }
+                command.add("--resource-path=" + resourcePath);
+                logger.debug("Resource-Path für DOCX-Export: {}", resourcePath);
                 
                 // Post-Processing für DOCX: Abstract-Titel ersetzen
                 // Das wird nach dem Pandoc-Export durchgeführt
@@ -2076,6 +2138,9 @@ public class PandocExportWindow extends CustomStage {
 
             if (success) {
                 logger.debug("Export erfolgreich erstellt: {}", resultFile.getAbsolutePath());
+                
+                // Cleanup: Lösche kopierte Bilder aus dem pandoc-Verzeichnis nach erfolgreichem Export
+                cleanupCopiedImages();
                 
                 // Post-Processing in separaten Threads ausführen, damit der Export sofort zurückgegeben wird
                 final File finalResultFile = resultFile;
@@ -2820,6 +2885,47 @@ public class PandocExportWindow extends CustomStage {
                     }
                 }
                 
+                // Zentrierte Absätze zentrieren (aus replaceHtmlTagsInMarkdown gesammelt)
+                for (XWPFParagraph paragraph : document.getParagraphs()) {
+                    String text = paragraph.getText();
+                    if (text != null) {
+                        String trimmedText = text.trim();
+                        // Prüfe ob dieser Absatz in der Liste der zentrierten Absätze ist
+                        for (String centeredText : centeredParagraphs) {
+                            // Normalisiere beide Texte für Vergleich (Leerzeichen, Zeilenumbrüche)
+                            String normalizedParagraph = trimmedText.replaceAll("\\s+", " ").trim();
+                            String normalizedCentered = centeredText.replaceAll("\\s+", " ").trim();
+                            if (normalizedParagraph.equals(normalizedCentered)) {
+                                paragraph.setAlignment(ParagraphAlignment.CENTER);
+                                logger.debug("Absatz zentriert: '{}'", trimmedText);
+                                break;
+                            }
+                        }
+                    }
+                }
+                
+                // Zentrierte Absätze auch in Tabellen zentrieren
+                for (XWPFTable table : document.getTables()) {
+                    for (XWPFTableRow row : table.getRows()) {
+                        for (XWPFTableCell cell : row.getTableCells()) {
+                            for (XWPFParagraph paragraph : cell.getParagraphs()) {
+                                String text = paragraph.getText();
+                                if (text != null) {
+                                    String trimmedText = text.trim();
+                                    for (String centeredText : centeredParagraphs) {
+                                        String normalizedParagraph = trimmedText.replaceAll("\\s+", " ").trim();
+                                        String normalizedCentered = centeredText.replaceAll("\\s+", " ").trim();
+                                        if (normalizedParagraph.equals(normalizedCentered)) {
+                                            paragraph.setAlignment(ParagraphAlignment.CENTER);
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                
                 // ◆◆◆ Absätze zentrieren und hellblau färben (Trenner)
                 for (XWPFParagraph paragraph : document.getParagraphs()) {
                     String text = paragraph.getText();
@@ -2850,33 +2956,10 @@ public class PandocExportWindow extends CustomStage {
                     }
                 }
                 
-                // Alt-Text aus Bildunterschriften entfernen (falls vorhanden)
-                for (XWPFParagraph paragraph : document.getParagraphs()) {
-                    String text = paragraph.getText();
-                    // Wenn der Absatz nur aus dem Alt-Text besteht und der vorherige Absatz ein Bild hat
-                    if (text != null && !text.trim().isEmpty()) {
-                        // Prüfe ob der vorherige Absatz ein Bild enthält
-                        int index = document.getParagraphs().indexOf(paragraph);
-                        if (index > 0) {
-                            XWPFParagraph prevParagraph = document.getParagraphs().get(index - 1);
-                            boolean prevHasImage = false;
-                            for (XWPFRun run : prevParagraph.getRuns()) {
-                                if (run.getEmbeddedPictures().size() > 0) {
-                                    prevHasImage = true;
-                                    break;
-                                }
-                            }
-                            // Wenn der vorherige Absatz ein Bild hat und dieser Absatz nur Text ist,
-                            // könnte es der Alt-Text sein - entfernen
-                            if (prevHasImage && text.length() < 100) { // Nur kurze Texte entfernen
-                                // Entferne den Text aus allen Runs
-                                for (XWPFRun run : paragraph.getRuns()) {
-                                    run.setText("", 0);
-                                }
-                            }
-                        }
-                    }
-                }
+                // Alt-Text aus Bildunterschriften entfernen (DEAKTIVIERT)
+                // WICHTIG: Diese Logik wurde deaktiviert, da sie fälschlicherweise legitime Bildunterschriften
+                // und einzeilige Absätze nach Bildern entfernt hat.
+                // Alt-Text wird bereits im Markdown entfernt (siehe replaceHtmlTagsInMarkdown)
                 
                 // DANN: Hierarchische Nummerierung für Listen aktivieren
                 logger.info("Aktiviere hierarchische Nummerierung für Listen");
@@ -4627,6 +4710,12 @@ public class PandocExportWindow extends CustomStage {
      * Kopiert alle Markdown-Bilder ins pandoc-Verzeichnis und passt die Pfade in der Markdown-Datei an
      * (für PDF/LaTeX-Export mit absoluten Pfaden)
      */
+    /**
+     * Speichert die Liste der kopierten Bilder für späteres Cleanup
+     */
+    private java.util.List<String> copiedImageFiles = new java.util.ArrayList<>();
+    private java.util.List<String> centeredParagraphs = new java.util.ArrayList<>(); // Liste der zentrierten Absätze
+    
     private void copyMarkdownImagesToPandocDir(File markdownFile, File pandocDir) {
         try {
             // Markdown-Datei lesen
@@ -4730,6 +4819,9 @@ public class PandocExportWindow extends CustomStage {
                         Files.copy(imageFile.toPath(), targetImage.toPath(), 
                             StandardCopyOption.REPLACE_EXISTING);
                         
+                        // Speichere kopiertes Bild für späteres Cleanup
+                        copiedImageFiles.add(imageFileName);
+                        
                         // Ersetze den Pfad in der Markdown-Datei durch nur den Dateinamen
                         // Pandoc findet die Bilder über --resource-path
                         String replacement = "![" + altText + "](" + imageFileName + ")";
@@ -4772,5 +4864,48 @@ public class PandocExportWindow extends CustomStage {
         } catch (IOException e) {
             logger.error("Fehler beim Kopieren der Markdown-Bilder für PDF: {}", e.getMessage(), e);
         }
+    }
+    
+    /**
+     * Löscht alle während des Exports kopierten Bilder aus dem pandoc-Verzeichnis
+     */
+    private void cleanupCopiedImages() {
+        if (copiedImageFiles.isEmpty()) {
+            return;
+        }
+        
+        File pandocDir = new File("pandoc");
+        if (!pandocDir.exists() || !pandocDir.isDirectory()) {
+            return;
+        }
+        
+        int deletedCount = 0;
+        for (String imageFileName : copiedImageFiles) {
+            try {
+                File imageFile = new File(pandocDir, imageFileName);
+                if (imageFile.exists() && imageFile.isFile()) {
+                    // Prüfe, ob es wirklich ein Bild ist (nur löschen, wenn es eine Bilddatei ist)
+                    String lowerName = imageFileName.toLowerCase();
+                    if (lowerName.endsWith(".png") || lowerName.endsWith(".jpg") || 
+                        lowerName.endsWith(".jpeg") || lowerName.endsWith(".gif") || 
+                        lowerName.endsWith(".bmp") || lowerName.endsWith(".svg") ||
+                        lowerName.endsWith(".webp")) {
+                        if (Files.deleteIfExists(imageFile.toPath())) {
+                            deletedCount++;
+                            logger.debug("Bild aus pandoc-Verzeichnis gelöscht: {}", imageFileName);
+                        }
+                    }
+                }
+            } catch (IOException e) {
+                logger.warn("Fehler beim Löschen des Bildes {}: {}", imageFileName, e.getMessage());
+            }
+        }
+        
+        if (deletedCount > 0) {
+            logger.info("{} kopierte Bilder aus pandoc-Verzeichnis gelöscht", deletedCount);
+        }
+        
+        // Liste zurücksetzen
+        copiedImageFiles.clear();
     }
 }

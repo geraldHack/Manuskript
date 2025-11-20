@@ -30,13 +30,15 @@
 ### Voraussetzungen
 > [!WARNING]
 > Zur Zeit ist nur die Windows-Version vollständig lauffähig. Experimente auf anderen Systemen auf eigene Gefahr.
+
+
 - **Java 17+** ([Download](https://adoptium.net/))
 - **Maven 3.6+** ([Download](https://maven.apache.org/download.cgi))
 - **Ollama** (optional, für KI-Features)
   - Windows: [Download](https://ollama.com/download/windows)
   - macOS: [Download](https://ollama.com/download/mac)
   - Linux: [Download](https://ollama.com/download/linux)
-- **Pandoc** (optional, für erweiterte Export-Funktionen)
+- **Pandoc** (Für erweiterte Export-Funktionen)
   - Windows: Schon im Projekt enthalten: `pandoc/`)
   - macOS: `brew install pandoc` oder [Download](https://github.com/jgm/pandoc/releases)
   - Linux: `sudo apt install pandoc` (Ubuntu/Debian) oder [Download](https://github.com/jgm/pandoc/releases)
@@ -55,7 +57,7 @@ cd Manuskript
 # 2. Abhängigkeiten installieren
 mvn clean install
 
-# 3. Anwendung starten
+# 3. Anwendung starten (Java 17+ muss im Pfad sein)
 mvn javafx:run
 ```
 
@@ -218,32 +220,10 @@ ollama pull qwen2.5:7b-instruct
 | `Ctrl+Y` | Wiederholen |
 | `Ctrl+I` | selektierter Text *kursiv* |
 | `Ctrl+B` | selektierter Text **fett** |
+| `Ctrl+U` | selektierter Text unterstrichen |
+| `Ctrl+D` | Log-files Anzeigen (nur im HauptMenü möglich) |
 
 
-
-## 🏗️ Projektstruktur
-
-```
-manuskript/
-├── src/main/java/com/manuskript/
-│   ├── Main.java                    # Hauptklasse
-│   ├── MainController.java          # Zentraler Controller
-│   ├── EditorWindow.java            # Editor-Fenster
-│   ├── OllamaWindow.java            # KI-Assistent UI
-│   ├── OllamaService.java           # Ollama-Integration
-│   ├── CustomChatArea.java          # Chat-Interface
-│   ├── NovelManager.java            # Projekt-Management
-│   └── ResourceManager.java         # Ressourcen-Verwaltung
-├── config/
-│   ├── plugins/                     # KI-Plugin-Konfigurationen
-│   ├── sessions/                    # Chat-Sessions
-│   ├── css/                         # Anpassbare Styles
-│   └── parameters.properties        # Anwendungsparameter
-├── src/main/resources/
-│   ├── fxml/                        # JavaFX-Layouts
-│   └── css/                         # Standard-Styles
-└── export/                          # Generierte Ausgabedateien
-```
 
 ## 🛠️ Technologien
 

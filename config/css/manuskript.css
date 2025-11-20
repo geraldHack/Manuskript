@@ -2355,6 +2355,92 @@
     -fx-prompt-text-fill: #cccccc !important;
 }
 
+/* ========================================
+   EXPORTFENSTER TEXTAREAS - THEME-STYLES
+   ======================================== */
+
+/* Weiß-Theme Export TextAreas */
+.weiss-theme .dialog-textarea,
+.weiss-theme .pandoc-export-dialog .text-area {
+    -fx-background-color: #ffffff !important;
+    -fx-text-fill: #000000 !important;
+    -fx-control-inner-background: #ffffff !important;
+}
+
+.weiss-theme .dialog-textarea .content,
+.weiss-theme .pandoc-export-dialog .text-area .content {
+    -fx-background-color: #ffffff !important;
+}
+
+/* Pastell-Theme Export TextAreas */
+.pastell-theme .dialog-textarea,
+.pastell-theme .pandoc-export-dialog .text-area {
+    -fx-background-color: #f3e5f5 !important;
+    -fx-text-fill: #000000 !important;
+    -fx-control-inner-background: #f3e5f5 !important;
+}
+
+.pastell-theme .dialog-textarea .content,
+.pastell-theme .pandoc-export-dialog .text-area .content {
+    -fx-background-color: #f3e5f5 !important;
+}
+
+/* Dark Theme Export TextAreas */
+.theme-dark .dialog-textarea,
+.theme-dark .pandoc-export-dialog .text-area {
+    -fx-background-color: #495057 !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-control-inner-background: #495057 !important;
+    -fx-prompt-text-fill: #cccccc !important;
+}
+
+.theme-dark .dialog-textarea .content,
+.theme-dark .pandoc-export-dialog .text-area .content {
+    -fx-background-color: #495057 !important;
+}
+
+/* Blau-Theme Export TextAreas */
+.theme-dark.blau-theme .dialog-textarea,
+.theme-dark.blau-theme .pandoc-export-dialog .text-area {
+    -fx-background-color: #1e3a8a !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-control-inner-background: #1e3a8a !important;
+    -fx-prompt-text-fill: #cccccc !important;
+}
+
+.theme-dark.blau-theme .dialog-textarea .content,
+.theme-dark.blau-theme .pandoc-export-dialog .text-area .content {
+    -fx-background-color: #1e3a8a !important;
+}
+
+/* Grün-Theme Export TextAreas */
+.theme-dark.gruen-theme .dialog-textarea,
+.theme-dark.gruen-theme .pandoc-export-dialog .text-area {
+    -fx-background-color: #064e3b !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-control-inner-background: #064e3b !important;
+    -fx-prompt-text-fill: #cccccc !important;
+}
+
+.theme-dark.gruen-theme .dialog-textarea .content,
+.theme-dark.gruen-theme .pandoc-export-dialog .text-area .content {
+    -fx-background-color: #064e3b !important;
+}
+
+/* Lila-Theme Export TextAreas */
+.theme-dark.lila-theme .dialog-textarea,
+.theme-dark.lila-theme .pandoc-export-dialog .text-area {
+    -fx-background-color: #4c1d95 !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-control-inner-background: #4c1d95 !important;
+    -fx-prompt-text-fill: #cccccc !important;
+}
+
+.theme-dark.lila-theme .dialog-textarea .content,
+.theme-dark.lila-theme .pandoc-export-dialog .text-area .content {
+    -fx-background-color: #4c1d95 !important;
+}
+
 /* Pastell Theme - spezifische Regeln */
 .pastell-theme {
     -fx-background-color: #f3e5f5;
@@ -6850,6 +6936,16 @@
     -fx-border-width: 0;
 }
 
+/* Weiß-Theme Kapitelliste - Hintergrund der Scroll-Bereiche */
+.weiss-theme .chapter-list-view .virtual-flow .clipped-container .sheet {
+    -fx-background-color: #ffffff !important;
+}
+
+/* Pastell-Theme Kapitelliste - Hintergrund der Scroll-Bereiche */
+.pastell-theme .chapter-list-view .virtual-flow .clipped-container .sheet {
+    -fx-background-color: #f3e5f5 !important;
+}
+
 .chapter-list-view .list-cell {
     -fx-padding: 8px 12px;
     -fx-background-color: transparent;
@@ -6908,6 +7004,26 @@
     -fx-background-color: #1e1e1e;
 }
 
+/* Dark Theme Kapitelliste - Hintergrund der Scroll-Bereiche */
+.theme-dark .chapter-list-view .virtual-flow .clipped-container .sheet {
+    -fx-background-color: #1e1e1e !important;
+}
+
+/* Blau-Theme Kapitelliste - Hintergrund der Scroll-Bereiche */
+.root .theme-dark.blau-theme .chapter-list-view .virtual-flow .clipped-container .sheet {
+    -fx-background-color: #1e3a8a !important;
+}
+
+/* Grün-Theme Kapitelliste - Hintergrund der Scroll-Bereiche */
+.root .theme-dark.gruen-theme .chapter-list-view .virtual-flow .clipped-container .sheet {
+    -fx-background-color: #064e3b !important;
+}
+
+/* Lila-Theme Kapitelliste - Hintergrund der Scroll-Bereiche */
+.root .theme-dark.lila-theme .chapter-list-view .virtual-flow .clipped-container .sheet {
+    -fx-background-color: #4c1d95 !important;
+}
+
 .theme-dark .chapter-list-view .list-cell {
     -fx-text-fill: #ffffff;
 }
@@ -6949,6 +7065,118 @@
 .theme-dark .chapter-list-view .list-cell.current-chapter {
     -fx-background-color: rgba(74, 144, 226, 0.4);
     -fx-border-color: rgba(74, 144, 226, 0.7);
+}
+
+/* ========================================
+   KAPITELLISTE SCROLLBALKEN - THEME-STYLES
+   ======================================== */
+
+/* Weiß-Theme Kapitelliste Scrollbalken */
+.weiss-theme .chapter-list-view .scroll-bar {
+    -fx-background-color: #ffffff !important;
+}
+
+.weiss-theme .chapter-list-view .scroll-bar .thumb {
+    -fx-background-color: #9ca3af !important;
+}
+
+.weiss-theme .chapter-list-view .scroll-bar .track {
+    -fx-background-color: #f3f4f6 !important;
+}
+
+.weiss-theme .chapter-list-view .scroll-bar .increment-button,
+.weiss-theme .chapter-list-view .scroll-bar .decrement-button {
+    -fx-background-color: #ffffff !important;
+}
+
+/* Pastell-Theme Kapitelliste Scrollbalken */
+.pastell-theme .chapter-list-view .scroll-bar {
+    -fx-background-color: #f3e5f5 !important;
+}
+
+.pastell-theme .chapter-list-view .scroll-bar .thumb {
+    -fx-background-color: #ba68c8 !important;
+}
+
+.pastell-theme .chapter-list-view .scroll-bar .track {
+    -fx-background-color: #e1bee7 !important;
+}
+
+.pastell-theme .chapter-list-view .scroll-bar .increment-button,
+.pastell-theme .chapter-list-view .scroll-bar .decrement-button {
+    -fx-background-color: #f3e5f5 !important;
+}
+
+/* Dark Theme Kapitelliste Scrollbalken */
+.theme-dark .chapter-list-view .scroll-bar {
+    -fx-background-color: #1e1e1e !important;
+}
+
+.theme-dark .chapter-list-view .scroll-bar .thumb {
+    -fx-background-color: #4a5568 !important;
+}
+
+.theme-dark .chapter-list-view .scroll-bar .track {
+    -fx-background-color: #2a2a2a !important;
+}
+
+.theme-dark .chapter-list-view .scroll-bar .increment-button,
+.theme-dark .chapter-list-view .scroll-bar .decrement-button {
+    -fx-background-color: #1e1e1e !important;
+}
+
+/* Blau-Theme Kapitelliste Scrollbalken */
+.root .theme-dark.blau-theme .chapter-list-view .scroll-bar {
+    -fx-background-color: #1e3a8a !important;
+}
+
+.root .theme-dark.blau-theme .chapter-list-view .scroll-bar .thumb {
+    -fx-background-color: #3b82f6 !important;
+}
+
+.root .theme-dark.blau-theme .chapter-list-view .scroll-bar .track {
+    -fx-background-color: #1e40af !important;
+}
+
+.root .theme-dark.blau-theme .chapter-list-view .scroll-bar .increment-button,
+.root .theme-dark.blau-theme .chapter-list-view .scroll-bar .decrement-button {
+    -fx-background-color: #1e3a8a !important;
+}
+
+/* Grün-Theme Kapitelliste Scrollbalken */
+.root .theme-dark.gruen-theme .chapter-list-view .scroll-bar {
+    -fx-background-color: #064e3b !important;
+}
+
+.root .theme-dark.gruen-theme .chapter-list-view .scroll-bar .thumb {
+    -fx-background-color: #10b981 !important;
+}
+
+.root .theme-dark.gruen-theme .chapter-list-view .scroll-bar .track {
+    -fx-background-color: #065f46 !important;
+}
+
+.root .theme-dark.gruen-theme .chapter-list-view .scroll-bar .increment-button,
+.root .theme-dark.gruen-theme .chapter-list-view .scroll-bar .decrement-button {
+    -fx-background-color: #064e3b !important;
+}
+
+/* Lila-Theme Kapitelliste Scrollbalken */
+.root .theme-dark.lila-theme .chapter-list-view .scroll-bar {
+    -fx-background-color: #4c1d95 !important;
+}
+
+.root .theme-dark.lila-theme .chapter-list-view .scroll-bar .thumb {
+    -fx-background-color: #8b5cf6 !important;
+}
+
+.root .theme-dark.lila-theme .chapter-list-view .scroll-bar .track {
+    -fx-background-color: #5b21b6 !important;
+}
+
+.root .theme-dark.lila-theme .chapter-list-view .scroll-bar .increment-button,
+.root .theme-dark.lila-theme .chapter-list-view .scroll-bar .decrement-button {
+    -fx-background-color: #4c1d95 !important;
 }
 
 

@@ -14,7 +14,6 @@ abstract: |
 ---
 
 # Jomar rettet die Welt
-
 ~~Das streichen wir~~
 
 H<sub>2</sub>O
@@ -39,7 +38,7 @@ a<sup>2</sup>+2ab+b<sup>2</sup>
 
 <br>
 
-``` 
+```
 
 dfdsfdsf
 
@@ -49,7 +48,7 @@ sdf xycxcxy
 
           sdfsdf
 
-``` 
+```
 
 <br>
 
@@ -78,13 +77,18 @@ sdf xycxcxy
 
 
 
-<p style="text-align: center;">Dieser Text ist zentriert.</p>
+
+
+
+
+
+
 
 https://example.com
 
 <span style="color: red;">Roter Text</span>
 
-<mark>Der Wind ging kaum.</mark> Nur das **<big>Rascheln</big>** vereinzelter Blätter begleitete die drei Gestalten, die sich vorsichtig entlang der Schatten bewegten. Jomar war der Erste. Flach auf dem Bauch robbte er hinter eine niedrige Steinmauer, hob die Hand, spreizte zwei Finger – ein Zeichen an die anderen. Sie hielten an, und Jomar hockte sich hinter die Mauer.
+<mark>Der Wind ging kaum.</mark> Nur das <big>Rascheln</big> vereinzelter Blätter begleitete die drei Gestalten, die sich vorsichtig entlang der Schatten bewegten. Jomar war der Erste. Flach auf dem Bauch robbte er hinter eine niedrige Steinmauer, hob die Hand, spreizte zwei Finger – ein Zeichen an die anderen. Sie hielten an, und Jomar hockte sich hinter die Mauer.
 
 <small>Vor ihm lag ein unscheinbarer Hof, von verwildertem Gestrüpp durchzogen. Dass es einmal ein Garten gewesen war, ließ sich nur noch erahnen. Jetzt war es eine Fläche aus verdorrten Pflanzen, staubigem Boden und krummen Holzpflöcken, die sich mit Mühe als Beetbegrenzungen ausgaben. Aber es gab zwei Bereiche, die ordentlich umgegraben waren.</small>
 
@@ -94,7 +98,7 @@ Er hielt die Luft an. Seine Augen klebten an der Tür – und tatsächlich: Sie 
 
 Ein Mann trat heraus.
 
-Schlaksig, mit einem fleckigen Umhang, den er über die Schulter geworfen hatte wie einen alten Lappen. Er sah sich nicht um, sondern ging direkt auf das ›Gartenbeet‹ zu. Dort blieb er stehen. Jomar duckte sich tiefer. Hektisch fuchtelte er mit der Hand – erst zwei Finger, dann eine Faust, dann eine kreisende Bewegung: bereit machen.
+Schlaksig, mit einem fleckigen Umhang, den er sich über die Schulter geworfen hatte wie einen alten Lappen. Er sah sich nicht um, sondern ging direkt auf das 'Gartenbeet' zu. Dort blieb er stehen. Jomar duckte sich tiefer. Hektisch fuchtelte er mit der Hand – erst zwei Finger, dann eine Faust, dann eine kreisende Bewegung: bereitmachen.
 
 Der Mann hob die Arme.
 
@@ -102,89 +106,93 @@ Jomar umfasste seinen Schwertgriff fester. Dann kam der Rauch. Dunkel, ölig, sc
 
 Jomar wollte nicht länger warten.
 
-Er schnellte hoch, rief »Jetzt!«, und stürmte los.
+Er schnellte hoch, rief: "Jetzt!", und stürmte los.
 
-Die beiden anderen sprangen mit ihm aus den Büschen. Drei gegen einen. Der Magier fuhr erschrocken herum und senkte demonstrativ die Hände, die Arme leicht abgespreizt – eine Geste, die jeder Zauberer kannte: »Ich ergebe mich.«
+Die beiden anderen sprangen mit ihm aus den Büschen. Drei gegen einen. Der Magier fuhr erschrocken herum und senkte demonstrativ die Hände, die Arme leicht abgespreizt – eine Geste, die jeder Zauberer kannte: "Ich ergebe mich."
 
-»Lerto!«, donnerte Jomar, das Schwert in der Hand, das er gar nicht hätte ziehen müssen. »Du wurdest auf frischer Tat beim Wirken schwarzer Magie ertappt!«
+"Lerto!", donnerte Jomar, das Schwert in der Hand, das er gar nicht hätte ziehen müssen. "Du wurdest auf frischer Tat beim Wirken schwarzer Magie ertappt!"
 
-Der Mann hob eine Braue, schnaufte durch die Nase. »Was? Die da? Das waren doch bloß magische Maulwürfe. Ich hab’ doch keine blutrünstigen Monster erschaffen … das war mein Nachbar, oder? Der hat mich verpfiffen. Der Schweinehund! Erst beschwert er sich über den Zustand meines Gartens, und jetzt, wo ich etwas dagegen tue, ist ihm das auch wieder nicht recht.«
+Der Mann hob eine Braue, schnaufte durch die Nase. "Was? Die da? Das waren doch bloß magische Maulwürfe. Ich hab' doch keine blutrünstigen Monster erschaffen … das war mein Nachbar, oder? Der hat mich verpfiffen. Der Schweinehund! Erst beschwert er sich über den Zustand meines Gartens, und jetzt, wo ich etwas dagegen tue, ist ihm das auch wieder nicht recht."
 
-Jomar ließ sich nicht beirren. Seine Stimme klang, als verlese er die Anklage in einem Gerichtssaal: »Für deine begangenen Vergehen erhältst du nun deine gerechte Strafe.«
+Jomar ließ sich nicht beirren. Seine Stimme klang, als verlese er die Anklage in einem Gerichtssaal: "Für deine begangenen Vergehen erhältst du nun deine gerechte Strafe."
 
 Er zog ein zusammengefaltetes Pergament aus der Tasche, schlug es mit einer gewissen Feierlichkeit auf.
 
-»Fünf Goldstücke. Die Buße kannst du in der Zaubererbank begleichen. Gib den Zettel bitte mit ab. Und lass dir eine Quittung geben.«
+"Fünf Goldstücke. Die Buße kannst du in der Zaubererbank begleichen. Gib den Zettel bitte mit ab. Und lass dir eine Quittung geben."
 
-Lento starrte missmutig auf das Dokument, dann seufzte er. »Wenigstens keine Punkte auf der Zauberer-Lizenz.«
+Lento starrte missmutig auf das Dokument, dann seufzte er. "Wenigstens keine Punkte auf der Zauberer-Lizenz."
 
 ---
 
 ![](familie.png)
 
+><center>Kata, Jomar und Ayen</center>
+
+
+
 Kata saß mit verschränkten Beinen auf dem Boden und baute mit Ayen einen ausgesprochen wilden Bauernhof. Zwei Ziegen standen auf einem Turm aus Klötzen, ein Drache bewachte das Hühnerhaus, und eine Ente mit Schwert versuchte sich am Pflug.
 
 Jomar öffnete leise die Tür.
 
-»Und?«, fragte Kata, ohne aufzusehen. »Die Welt gerettet?«
+"Und?", fragte Kata, ohne aufzusehen. "Die Welt gerettet?"
 
-»Wie jeden Tag. Immer ein kleines Stückchen mehr.« Sarkasmus legte sich wie Rost auf seine Stimme.
+"Wie jeden Tag. Immer ein kleines Stückchen mehr." Sarkasmus legte sich wie Rost auf seine Stimme.
 
-Da sprang Ayen auf, rannte auf ihn zu und warf sich ihm entgegen. »Papa!«
+Da sprang Ayen auf, rannte auf ihn zu und warf sich ihm entgegen. "Papa!"
 
 Jomar hob ihn hoch, wirbelte ihn ein paar Mal im Kreis, bis Ayen jauchzte und sein Holzschwert verlor, das daraufhin knapp an Katas Kopf vorbeiflog.
 
-»Ein fliegendes Pferdchen!«, rief er triumphierend.
+"Ein fliegendes Pferdchen!", rief er triumphierend.
 
-»Ein sehr gefährliches fliegendes Pferdchen«, sagte Jomar, als er ihn wieder absetzte.
+"Ein sehr gefährliches fliegendes Pferdchen", sagte Jomar, als er ihn wieder absetzte.
 
-Jomar setzte sich zu seiner Familie und ließ die Ente pflügen und den Drachen über dem Bauernhof kreisen. Dann schnupperte er und runzelte die Stirn. »Hast du … gekocht?«
+Jomar setzte sich zu seiner Familie und ließ die Ente pflügen und den Drachen über dem Bauernhof kreisen. Dann schnupperte er und runzelte die Stirn. "Hast du … gekocht?"
 
-Kata warf ihm einen traurigen Blick zu. »Ich habe es versucht.«
+Kata warf ihm einen traurigen Blick zu. "Ich habe es versucht."
 
-»Es riecht wie … in einer Köhlerei.«
+"Es riecht wie … in einer Köhlerei."
 
-»Ich wollte Linsen machen.«
+"Ich wollte Linsen machen."
 
-»Und wie ist der Versuch ausgegangen?«
+"Und wie ist der Versuch ausgegangen?"
 
-»Nicht gut. Ich wusste ja nicht, dass man die Linsen vor dem Anbraten in Wasser kochen muss.«
+"Nicht gut. Irgendwas ist beim Anbraten der Linsen schiefgegangen."
 
 Ayen kicherte und setzte ein Zicklein auf einen Drachenkopf.
 
-»Wenigstens kommt Marina jeden Tag mit Essen vorbei«, sagte Jomar. »Sonst wäre Ayen längst verhungert. Oder hätte das Kochen übernommen.«
+"Wenigstens kommt Marina jeden Tag mit Essen vorbei", sagte Jomar. "Sonst wäre Ayen längst verhungert. Oder hätte das Kochen übernommen."
 
-»Ich hatte mal Küchenpersonal«, murmelte Kata. »Und Kammerzofen. Und eine Kinderfrau. Und einen Stallburschen, der besser aussah als du.«
+"Ich hatte mal Küchenpersonal", murmelte Kata. "Und Kammerzofen. Und eine Kinderfrau. Und einen Stallburschen, der besser aussah als du."
 
-»Wir können versuchen, den zu finden und einzustellen.«
+"Wir können versuchen, den zu finden und einzustellen."
 
-»Wir haben nicht mal Pferde.« Kata seufzte. »Wir haben Tausende Goldstücke für die Rettung Demiranthas bekommen. Und wofür? Keine Diener. Keine Fußbäder. Nicht mal eine Klingel für Tee.«
+"Wir haben nicht mal Pferde." Kata seufzte. "Wir haben Tausende Goldstücke für die Rettung Demiranthas bekommen. Und wofür? Keine Diener. Keine Fußbäder. Nicht mal eine Klingel für Tee."
 
-Jomar grinste. »Solchen Schnickschnack brauchen wir doch nicht.«
+Jomar grinste. "Solchen Schnickschnack brauchen wir doch nicht."
 
-»Sagst du.«
+"Sagst du."
 
 Dann wurde Jomar still.
 
 Kata sah es sofort.
 
-»Was?«, fragte sie.
+"Was?", fragte sie.
 
-»Nichts. Ich … ich hätte erwartet, dass Efret sich mal meldet. Ich hab ihn seit zwei Jahren nicht gesehen.«
+"Nichts. Ich … ich hätte erwartet, dass Efret sich mal meldet. Ich hab ihn seit zwei Jahren nicht gesehen."
 
-Kata legte einen Klotz zur Seite. »Und du vermisst ihn?«
+Kata legte einen Klotz zur Seite. "Und du vermisst ihn?"
 
-»Ich vermisse … Aufträge. Verantwortung. Abenteuer. ›Nummer Eins‹ – dieser blonde Muskelberg – hat die Tiefebenen von Garch von irgendwelchen schwarzmagisch herbeigezauberten Ork-Troll-Zwergelfen – oder was auch immer – befreit. Und ich sortiere Gartenzwerge mit unserem Sohn.«
+"Ich vermisse … Aufträge. Verantwortung. Abenteuer. 'Nummer Eins' – dieser blonde Muskelberg – hat die Tiefebenen von Garch von irgendwelchen schwarzmagisch herbeigezauberten Ork-Troll-Zwergelfen – oder was auch immer – befreit. Und ich sortiere Gartenzwerge mit unserem Sohn."
 
-»Drachen«, warf Ayen ein.
+"Drachen", warf Ayen ein.
 
-»Drachen, stimmt.«
+"Drachen, stimmt."
 
-»Du bist wichtig, Jomar«, sagte Kata leise. »Hier. Jeden Tag.«
+"Du bist wichtig, Jomar", sagte Kata leise. "Hier. Jeden Tag."
 
 Er sah sie an. Dann Ayen, der gerade eine Ente in einen Belagerungsturm setzte.
 
-»Ich weiß«, sagte er. »Aber manchmal reicht es mir nicht, der Held in einem Spiel aus Holzklötzen zu sein.«
+"Ich weiß", sagte er. "Aber manchmal reicht es mir nicht, der Held in einem Spiel aus Holzklötzen zu sein."
 
 ---
 
@@ -196,75 +204,75 @@ Die Luft war warm, der Himmel wolkenlos und von einem tiefen, gleichmäßigen Bl
 
 Jomar lag auf dem Rücken und betrachtete das Spiel der Blätter über ihm. Die alten, stämmigen Bäume am Rand der Wiese warfen große Schatten, in denen es angenehm kühl war. Neben ihm saß Kata auf einer Decke, die sie ausgebreitet hatte. Zwei Becher standen zwischen ihnen, dazu ein Teller mit kandierten Apfelstücken, ein Schälchen halbgeschmolzener Schokolade. Der Wein hingegen war kühl geblieben – Jomar hatte ihn entsprechend verzaubert.
 
-»Weißt du was?«, sagte Jomar schließlich, ohne den Blick von den Blättern zu lösen.
+"Weißt du was?", sagte Jomar schließlich, ohne den Blick von den Blättern zu lösen.
 
-»Was?«, fragte Kata und kaute langsam.
+"Was?", fragte Kata und kaute langsam.
 
-»Ich bin zufrieden.«
+"Ich bin zufrieden."
 
-Sie schob den Apfel mit der Zunge in die Wange und sah ihn schräg an. »Das klingt verdächtig. Kommt jetzt ein: ›Aber‹?«
+Sie schob den Apfel mit der Zunge in die Wange und sah ihn schräg an. "Das klingt verdächtig. Kommt jetzt ein: 'Aber'?"
 
-»Nein. Ich hab’ eine Frau, die mich aushält. Einen Sohn, der das Leben besser macht. Und ich liege auf einer Decke und muss heute ausnahmsweise keine Berichte schreiben, keine Patrouille führen und keine blutrünstigen Schwarzmagier verhaften.«
+"Nein. Ich hab' eine Frau, die mich aushält. Einen Sohn, der das Leben besser macht. Und ich liege auf einer Decke und muss heute ausnahmsweise keine Berichte schreiben, keine Patrouille führen und keine blutrünstigen Schwarzmagier verhaften."
 
-»Du meinst, heute gab es keine illegalen Maulwurfbeschwörungen?«
+"Du meinst, heute gab es keine illegalen Maulwurfbeschwörungen?"
 
-»Nicht dass ich wüsste. Und wenn, wärs mir egal, ich hab’ ja keinen Dienst.«
+"Nicht dass ich wüsste. Und wenn, wär's mir egal, ich hab' ja keinen Dienst."
 
-Kata lehnte sich zurück stützte sich auf die Hände. »Sag nicht zu laut, dass du zufrieden bist. Das Schicksal hört immer zu.«
+Kata lehnte sich zurück und stützte sich auf die Hände. "Sag nicht zu laut, dass du zufrieden bist. Das Schicksal hört immer zu."
 
-Jomar lachte leise. »Dann soll es wissen, dass ich bereit bin, mich ihm zu stellen.«
+Jomar lachte leise. "Dann soll es wissen, dass ich bereit bin, mich ihm zu stellen."
 
 Nun legte sich auch Kata auf den Rücken, die Hände hinter dem Kopf verschränkt,
 
-»Hast du eigentlich mal wieder etwas von Jaad gehört?«, fragte sie nach einer Weile.
+"Hast du eigentlich mal wieder etwas von Jaad gehört?", fragte sie nach einer Weile.
 
-Jomar drehte den Kopf zu ihr. »Ich hab’ sie schon ewig lange nicht mehr gesehen, aber sie ist jetzt im Rat der Zauberer, soweit ich weiß.«
+Jomar drehte den Kopf zu ihr. "Ich hab' sie schon ewig lange nicht mehr gesehen, aber sie ist jetzt im Rat der Zauberer, soweit ich weiß."
 
-»Ernsthaft? Wie alt ist sie jetzt? 23 … 24? Da dürfte sie wohl die Jüngste sein. Da sitzen doch nur alte Säcke.«
+"Ernsthaft? Wie alt ist sie jetzt? 23 … 24? Da dürfte sie wohl die Jüngste sein. Da sitzen doch nur alte Säcke."
 
-»Efret hat ja schon immer große Stücke auf sie gehalten.«
+"Efret hat ja schon immer große Stücke auf sie gehalten."
 
-Kata zuckte mit den Schultern. »Jaad hat ihren Platz gefunden. Vielleicht sogar den, der ihr immer zugestanden hat.«
+Kata zuckte mit den Schultern. "Jaad hat ihren Platz gefunden. Vielleicht sogar den, der ihr immer zugestanden hat."
 
-»Und Kalem?«, fragte Kata.
+"Und Kalem?", fragte Kata.
 
-Jomar schnaubte leise. »Er lebt noch immer in seiner Villa in Königsstadt. An seiner positiven Einstellung zum Leben hat sich nichts geändert.«
+Jomar schnaubte leise. "Er lebt noch immer in seiner Villa in Königsstadt. An seiner positiven Einstellung zum Leben hat sich nichts geändert."
 
-»Arbeitet er noch für Efret?«
+"Arbeitet er noch für Efret?"
 
-»Natürlich. Nur hört man davon nichts. Er ist halt ein sehr diskreter Spion.«
+"Natürlich. Nur hört man davon nichts. Er ist halt ein sehr diskreter Spion."
 
-»Also Spionage, schwerer Wein und leichte Mädchen, alles wie immer?«
+"Also Spionage, schwerer Wein und leichte Mädchen, alles wie immer?"
 
-»Wahrscheinlich. Ich frage mich, wann er die ganzen Goldstücke verprasst haben wird, die wir damals bekommen haben.«
+"Wahrscheinlich. Ich frage mich, wann er die ganzen Goldstücke verprasst haben wird, die wir damals bekommen haben."
 
-Kata grinste. »Gold war ihm – glaube ich – niemals wirklich wichtig. Selbst wenn alles weg ist, wird ihm das nicht die Laune verhageln.«
+Kata grinste. "Gold war ihm – glaube ich – niemals wirklich wichtig. Selbst wenn alles weg ist, wird ihm das nicht die Laune verhageln."
 
 Ayen kam zurückgelaufen, schnappte sich mit beiden Händen je ein Stück kandierten Apfel, stopfte sie sich in den Mund, grinste mit klebrigem Gesicht und lief wieder los.
 
 Ein Kaninchen war hinter einem Baum hervorgehoppelt gekommen. Es saß nun da und betrachtete den nackten blauen Zweibeiner nachdenklich, bis Ayen sich näherte. Dann sprang es leichtfüßig davon, wartete wieder, ließ ihn herankommen und hüpfte erneut ein paar Längen weiter.
 
-»Er wird es nie kriegen«, sagte Jomar.
+"Er wird es nie kriegen", sagte Jomar.
 
-»Vielleicht soll er das gar nicht.«
+"Vielleicht soll er das gar nicht."
 
-»Ein philosophisches Kaninchen?«
+"Ein philosophisches Kaninchen?"
 
-»Ein Lehrmeister. Geduld. Ausdauer. Beharrlichkeit.«
+"Ein Lehrmeister. Geduld. Ausdauer. Beharrlichkeit."
 
-»Nein, bloß ein blödes Kaninchen.«
+"Nein, bloß ein blödes Kaninchen."
 
 Sie beobachteten Ayen eine Weile. Jomar stützte sich auf einen Ellbogen, sah ihm nach.
 
 Sie sahen Ayen nach, wie er über die Wiese tollte. Er rannte, lachte, stolperte, fiel, stand wieder auf. Irgendwann hielt er inne und ließ sich ins Gras fallen. Dann richtete er sich auf, setzte sich mit überkreuzten Beinen hin, hob beide Arme leicht zur Seite, die Handflächen nach oben und schloss die Augen.
 
-»Was tut er da?«, fragte Jomar leise.
+"Was tut er da?", fragte Jomar leise.
 
-Kata schüttelte den Kopf. »Ich weiß es nicht. Das macht er doch oft.«
+Kata schüttelte den Kopf. "Ich weiß es nicht. Das macht er doch oft."
 
-»Was?«, fragte Jomar.
+"Was?", fragte Jomar.
 
-»Na, so dasitzen.«
+"Na, so dasitzen."
 
 Die Luft um Ayen wirkte plötzlich stiller, als hätte der Wind aufgehört, sich zu rühren. Dann – ganz langsam – hob sich das Kaninchen. Es stieg auf, wie von unsichtbaren Fäden gezogen, zappelte leicht in der Luft, drehte sich langsam um die eigene Achse.
 
@@ -272,37 +280,37 @@ Ayen lachte vor Freude.
 
 Kata und Jomar sprangen auf. Sie gingen langsam in seine Richtung.
 
-»Spürst du etwas?«, fragte Jomar.
+"Spürst du etwas?", fragte Jomar.
 
 Kata blieb stehen, schloss die Augen, tastete mit dem inneren Sinn nach der Magie.
 
-»Nichts. Keine Spur von Magie … Gar nichts.«
+"Nichts. Keine Spur von Magie … Gar nichts."
 
-»Und trotzdem fliegt das Kaninchen.«
+"Und trotzdem fliegt das Kaninchen."
 
-Jomar runzelte die Stirn. »Ein fliegendes Tier? Klingt nach Altheras.«
+Jomar runzelte die Stirn. "Ein fliegendes Tier? Klingt nach Altheras."
 
-Kata zögerte. »Ich weiß nicht. Er hat keine Magie mehr. Zumindest … sollte er keine mehr haben.«
+Kata zögerte. "Ich weiß nicht. Er hat keine Magie mehr. Zumindest … sollte er keine mehr haben."
 
-»Er war es ja auch nicht selbst, damals. Die fliegenden Kühe – das waren seine Manipulationen der Wurzel.«
+"Er war es ja auch nicht selbst, damals. Die fliegenden Kühe – das waren seine Manipulationen der Wurzel."
 
-»Und die ist versiegelt. Der Wächter hat alle Zugänge gesperrt, alle ›Codes‹ geändert. Niemand kommt da mehr rein.«
+"Und die ist versiegelt. Der Wächter hat alle Zugänge gesperrt, alle 'Codes' geändert. Niemand kommt da mehr rein."
 
 Jomar sagte nichts. Sein Blick blieb auf Ayen gerichtet, der jetzt im Gras saß und leise vor sich hin summte.
 
 Weitere Tiere stiegen in die Luft. Eine Maus, ein Maulwurf, eine kleine, bräunlich schimmernde Natter – alle in Ayens Nähe. Sie schwebten. Nicht hoch. Nur ein paar Hände breit. Aber es war eindeutig.
 
-»Es geschieht nur dort, wo Ayen ist«, sagte Kata, ihre Stimme ruhig, aber hart.
+"Es geschieht nur dort, wo Ayen ist", sagte Kata, ihre Stimme ruhig, aber hart.
 
 Ayen lachte wieder und klatschte dann in die Hände. Die Tiere sanken langsam zu Boden.
 
-»Jomar …«, begann Kata.
+"Jomar …", begann Kata.
 
-»Ich weiß.«
+"Ich weiß."
 
 Kata stand auf und begann, die Decke zusammenzufalten. Ihre Bewegungen waren schnell, konzentriert.
 
-»Komm«, sagte sie, ohne ihn anzusehen. »Wir gehen nach Hause.«
+"Komm", sagte sie, ohne ihn anzusehen. "Wir gehen nach Hause."
 
 Jomar nickte. Er nahm die leeren Becher, das Messer, das Schälchen. Alles war schnell verstaut.
 
@@ -310,9 +318,9 @@ Ayen hüpfte noch einmal über die Wiese und kam dann lachend zurückgelaufen. K
 
 Sie gingen wortlos den Weg zurück, während über ihnen langsam das Licht des späten Nachmittags in ein tieferes Gold kippte.
 
-»Vielleicht sollten wir mit Efret sprechen«, sagte Kata schließlich.
+"Vielleicht sollten wir mit Efret sprechen", sagte Kata schließlich.
 
-»Vielleicht«, erwiderte Jomar. »Wenn ich denn eine Audienz bekomme.«
+"Vielleicht", erwiderte Jomar. "Wenn ich denn eine Audienz bekomme."
 
 Auf dem Rückweg schwiegen Jomar und Kata. Nur Ayen krähte fröhlich vor sich hin.
 
@@ -320,6 +328,7 @@ Jomar grübelte: *Was war gerade geschehen? Hatte Ayen die Tiere fliegen lassen?
 
 
 # Audienz bei Efret
+
 
 Ein Tag war vergangen, seit das Kaninchen in die Luft gestiegen war. Keine weiteren Tiere hatten angefangen zu schweben, auch sonst war nichts Erwähnenswertes geschehen.
 
@@ -377,13 +386,13 @@ Sie sah ihn an, ernst. »Ich glaube, etwas in ihm wacht auf.«
 
 Jomar schwieg. Dann sagte er: »Was auch immer es ist – wir bekommen das hin.«
 
-Kata lächelte schmal. »Wenn du das sagst, Retter von Demirantha.«
+Kata lächelte schmal. »Wenn du das sagst, Held von Demirantha.«
 
 »Jeden Tag ein kleines Stück mehr«, murmelte er und prostete ihr zu.
 
 ---
 
-Der Audienzsaal war genau, wie Jomar ihn in Erinnerung hatte: groß, kühl, leer. Jedes Mal, wenn er diesen Raum betreten hatte, war etwas Bemerkenswertes passiert. Bei seiner ersten Begegnung mit Efret hatte dieser fast seine gesamten Zauberkräfte auf ihn übertragen. Dann hatte er mit Kata hier gestanden, kurz nachdem er sie kennengelernt und sich sofort in sie verliebt hatte. Und Efret brauchte Kata nur zu berühren, um sicher zu sein, dass sie eine wichtige Rolle bei der Verhinderung von Altheras’ Plänen spielen würde. Wahrscheinlich war ihm da bereits klar gewesen, dass sie ganz Demirantha retten würde. Und nun stand er mit seinem Sohn in diesem Raum. Würde diese Audienz wieder Dinge ins Rollen bringen, die größer als sie alle waren?
+Der Audienzsaal war genau, wie Jomar ihn in Erinnerung hatte: groß, kühl, leer. Jedes Mal, wenn er diesen Raum betreten hatte, war etwas Bemerkenswertes passiert. Bei seiner ersten Begegnung mit Efret hatte dieser fast seine gesamten Zauberkräfte auf ihn übertragen. Dann hatte er mit Kata hier gestanden, kurz nachdem er sie kennengelernt und sich sofort in sie verliebt hatte. Und Efret brauchte Kata nur zu berühren, um sicher zu sein, dass sie eine wichtige Rolle bei der Verhinderung von Altheras’ Versuchen, die Magie zu verändern, spielen würde. Wahrscheinlich war ihm da bereits klar gewesen, dass sie ganz Demirantha retten würde. Und nun stand er mit seinem Sohn hier. Würde diese Audienz wieder Dinge ins Rollen bringen, die größer als sie alle waren?
 
 Kata, Jomar und Ayen warteten nun darauf, dass Efret sie bemerkte. Die Stimme stand regungslos daneben, so wie immer, Efret hockte quer über die Armlehnen.
 
@@ -481,15 +490,19 @@ Die Stimme zuckte kurz zusammen und sah gleichzeitig beleidigt und ratlos aus.
 
 »Meister, ich hab’ nur Euch verstanden. Ich weiß nicht wie …«
 
-Efret grunzte. »Na gut. Dann hör zu: Lindenblütenhonig!«, sagte er in einem Tonfall, als würde das alles erklären, was es überraschenderweise – zumindest für die Stimme — auch tat.
+Efret grunzte. »Na gut. Dann hör zu: Lindenblütenhonig!«, sagte er in einem Tonfall, als würde das alles erklären, was es überraschenderweise – zumindest für die Stimme – auch tat. 
 
-»Ah, ja!« Die Stimme nickte nun. 
+»Ah, ja!« Die Stimme nickte nun.
 
-»Der Junge hat mir gesagt, dass er für das fliegende Kaninchen – und die anderen Tiere – verantwortlich ist, aber nicht weiß, wie er es angestellt hat. Auf weitere Fragen konnte er nicht antworten. Er sagt immer nur: ›Ich bin nur ein Kind‹. Eine Sache war dann aber doch: Er sagt, seine Kräfte kommen von ›einem anderen Ort‹ und er spürt, dass sie anwachsen.«
+»Der Junge hat mir gesagt, dass er für das fliegende Kaninchen – und die anderen Tiere – verantwortlich ist, aber nicht weiß, wie er es angestellt hat. Auf weitere Fragen konnte er nicht antworten. Er sagt immer nur: ›Ich bin nur ein Kind.‹
+
+Eine Sache war dann aber doch: Er sagt, seine Kräfte kommen von ›einem anderen Ort‹ und er spürt, dass sie anwachsen.«
 
 Efret begann nun, sich intensiv im Schritt zu kratzen. Die Stimme übersetzte:
 
-»Das ist alles einigermaßen beunruhigend. Es hätten sich eigentlich neue Zeitlinien auftun müssen, nach einem solch bemerkenswerten Gespräch – aber nichts geschah. Was auch immer hier geschieht, es hat nicht nur nichts mit Magie zu tun, es ist etwas völlig anderes. Ihr solltet hierher in den Palast ziehen. Es gibt da einen schönen Gästepavillon mit Zugang zum Palastgarten. Es gibt sogar Kinder in Ayens Alter.«
+»Das ist alles einigermaßen beunruhigend. Es hätten sich eigentlich neue Zeitlinien auftun müssen, nach einem solch bemerkenswerten Gespräch – aber nichts geschah. Was auch immer hier geschieht, es hat nicht nur nichts mit Magie zu tun, es ist etwas völlig anderes.
+
+Ihr solltet hierher in den Palast ziehen. Es gibt da einen schönen Gästepavillon mit Zugang zum Palastgarten. Es gibt sogar Kinder in Ayens Alter.«
 
 »Gibt es Bedienstete?«, fragte Kata hoffnungsvoll nach.
 
@@ -1074,7 +1087,7 @@ Und sie wussten alle: Das, was kommen würde, war größer als alles, was sie bi
 # Die Falle
 »Habt ihr noch Platz für eine alte Kräuterhexe?«, fragte Marina zur Begrüßung. Wie immer trug sie einen Korb – diesmal gefüllt mit kandierten Früchten, Honigplätzchen und Pfefferminzblättern in Zuckerglasur. Kaum hatte sie den Deckel angehoben, streckte Ayen die Hand aus. Marina reichte ihm mit verschwörerischem Lächeln eine Handvoll. Kata räusperte sich. »Marina …«, begann sie warnend. Jomar hob eine Augenbraue. »Du verwöhnst ihn.«
 
-»Ich weiß«, gab Marina zurück. »Aber ich habe keine eigenen Enkel, wenn man dich nicht mitzählt, Kata. Ich nehme, was ich kriegen kann.«
+»Ich weiß«, gab Marina zurück. »Aber ich habe keine eigenen Enkel, wenn man dich nicht mitzählt. Ich nehme, was ich kriegen kann.«
 
 Ayen schnappte sich ein Honigplätzchen und verschwand unter dem Tisch.
 
@@ -1130,7 +1143,10 @@ Marina reagierte ohne zu zögern. Ein leiser Laut, eine fließende Bewegung – 
 
 Almin parierte die nächste Attacke mit einem präzisen Lichtstoß, der zwei Angreifer rückwärts durch den aufgewirbelten Staub schleuderte. Dann zog er seinen Dolch und schleuderte ihn in einer fließenden Bewegung auf einen weiteren Gegner. Die magisch veränderte Waffe durchschlug den Magieschild des Mannes, ohne auch nur langsamer zu werden, und bohrte sich in dessen Brust. Dann trat Almin neben Marina, blockte einen peitschenden Blitz, der sonst ihr Bein getroffen hätte.
 
-![Kampf](kampf.png)
+![](kampf.png)
+
+><center>Kampf!</center>
+
 
 Sie kämpften Seite an Seite. Jeder Schritt war ein Angriff. Jeder Atemzug eine Abwehr.
 
@@ -1152,7 +1168,7 @@ Ein lautloser Puls ging von ihm aus. Die Luft stand still.
 
 Dann explodierte die Welt.
 
-Die zehn Angreifer flogen rücklings – nicht geschleudert, sondern von einer Kraft getroffen, die ihre Knochen zermalmt hatte, bevor ihre Körper an den Palastmauern zerschmetterten.
+Die zehn Angreifer flogen rücklings – nicht geschleudert, sondern von einer Kraft getroffen, die ihre Knochen zermalmt hatte, schon bevor ihre Körper an den Palastmauern zerschmetterten.
 
 Doch die Druckwelle raste weiter. Scheiben splitterten, Mauerwerk platzte. Eine ganze Palastwand barst auf wie dünnes Perlmutt. Und ein Trümmerstück – groß wie ein Kohlkopf – schleuderte über den Hof.
 
@@ -1202,11 +1218,11 @@ Sie nickte stumm.
 
 »Jomar, kannst du einen großen Schutzzauber wirken?«
 
-»Ähm. Nein, eigentlich nicht.«
+»Ähm. Nein, eigentlich nicht.« Er knetete verlegen auf seinen Fingern herum. 
 
 »Dann unterstütze mich mit deiner Magie.«
 
-»Das mache ich.« Er ließ seine Magie in Almin strömen. Der sanft schimmernde Schutzring begann sich zu schließen.
+»Das mache ich.« Jomar ließ seine Magie in Almin strömen. Der sanft schimmernde Schutzring begann sich zu schließen.
 
 
 # Der Putsch
@@ -1350,7 +1366,7 @@ Doch sie blieben, zumindest körperlich, unbehelligt – bis sie den Vorraum zum
 
 Zwei sehr junge Männer in dunkelblauen Roben standen dort. Sie waren keine Wachen, denn weder trugen sie die typischen roten Roben, noch war auf ihren Hüten das Blitzemblem zu finden.
 
-Das sind keine Kampfzauberer, dachte Jaad. Das sind einfach nur ein paar dumme Jungen, die sich für die falsche Seite entschieden hatten.
+*Das sind keine Kampfzauberer*, dachte Jaad. *Das sind einfach nur ein paar dumme Jungen, die sich für die falsche Seite entschieden hatten.*
 
 Die beiden Jungen gaben sich nun alle Mühe, bedrohlich zu klingen:
 
@@ -1441,6 +1457,7 @@ Das Kind nickte begeistert.
 
 # Der Schatten wächst
 
+
 Die Morgenluft war frisch, als Jaad leise die Tür zu Kalems Balkon öffnete. Sie trat hinaus und atmete tief durch. Die Stadt unter ihr erwachte gerade erst, ein sanfter Nebel lag über den Dächern. Seit drei Tagen waren sie nun hier, versteckt in Kalems luxuriöser Villa, abgeschirmt von der Welt draußen.
 
 Sie hörte Schritte hinter sich. Kata trat neben sie, eine dampfende Tasse in der Hand.
@@ -1453,7 +1470,7 @@ Jaad schüttelte den Kopf. »Kaum. Und du?«
 
 Sie standen eine Weile schweigend nebeneinander. In der Ferne waren die ersten Marktschreier zu hören, das Leben begann seinen gewohnten Gang. Als hätte sich nichts verändert. Als wäre die Welt nicht dabei, aus den Fugen zu geraten.
 
-»Wir müssen zum König«, sagte Jaad schließlich. »Der Brief … er muss ihn lesen.«
+»Wir müssen zum König«, sagte Jaad schließlich. »Der Brief … wir müssen erfahren, was Efret geschrieben hat.«
 
 »Und was, wenn er uns nicht empfängt?«
 
@@ -1481,7 +1498,7 @@ Kalem zögerte. »Sie suchen ihn. Und euch. Es heißt, ihr hättet wichtige magi
 
 »Was?«, fragte Kata scharf.
 
-»Sie behaupten, Ayen sei ein Dämonenkind. Eine Bedrohung für die ganze Stadt.«
+»Sie behaupten, Ayen sei ein Dämonenkind oder irgendwas in der Richtung. Eine Bedrohung für die ganze Stadt.«
 
 Stille senkte sich über den Raum. Jomar ballte die Fäuste.
 
@@ -1513,11 +1530,11 @@ Ayen stand da, triefend nass, mit großen Augen. »Ich wollte das gar nicht«, s
 
 Almin schüttelte sich wie ein Hund. »Er hat nur gelacht«, sagte er zu Kata. »Und dann … passierte es.«
 
-Kata eilte zu ihrem Sohn kniete sich vor ihn. »Es ist okay«, sagte sie sanft. »Aber erinnerst du dich, was wir besprochen haben? Du musst vorsichtig sein.«
+Kata eilte zu ihrem Sohn und kniete sich vor ihn. »Es ist okay«, sagte sie sanft. »Aber erinnerst du dich, was wir besprochen haben? Du musst vorsichtig sein.«
 
 »Ich weiß«, flüsterte Ayen. »Aber manchmal vergesse ich es.«
 
-Jomar gesellte sich zu ihnen legte eine Hand auf Ayens Schulter. »Komm, lass uns trockene Kleidung holen.«
+Jomar gesellte sich zu ihnen und legte eine Hand auf Ayens Schulter. »Komm, lass uns trockene Kleidung holen.«
 
 Als sie ins Haus zurückkehrten, wartete Kalem bereits mit Handtüchern. »Vielleicht«, sagte er leise zu Jomar, »sollten wir ihm beibringen, seine Kräfte zu kontrollieren, statt sie zu unterdrücken.«
 
@@ -1581,7 +1598,7 @@ Die drei sahen sich an.
 
 Der König nickte langsam. »So war er schon immer.« Er stand auf. »Seid ihr sicher untergebracht?« 
 
-Das klingt nach dem Ende der Audienz, dachte Jomar.
+*Das klingt nach dem Ende der Audienz,* dachte Jomar.
 
 »Für den Augenblick schon«, sagte er.
 
@@ -1590,25 +1607,25 @@ Das klingt nach dem Ende der Audienz, dachte Jomar.
 
 # Audienz
 
-Malvek ritt an der Spitze seines Zugs. Die Pferde waren frisch gestriegelt, die Sättel glänzten schwarz. Die Tiere wirkten so stolz und aufrecht, wie ihre Reiter. Seine Begleiter folgten in zwei Reihen, zwölf Kampfzauberer und eine Handvoll weniger auffälliger Magier, die für die eigentliche Arbeit vorgesehen waren. Sie trugen die Roben der Bewegung – dunkles Blau, darauf das goldene Symbol von ›Lakan den Zauberern‹, wie ein drohendes Auge auf der Brust.
+Malvek ritt an der Spitze seines Zugs. Die Pferde waren frisch gestriegelt, die Sättel glänzten schwarz. Die Tiere wirkten so stolz und aufrecht wie ihre Reiter. Seine Begleiter folgten in zwei Reihen: zwölf Kampfzauberer und eine Handvoll weniger auffälliger Magier, die für die eigentliche Arbeit vorgesehen waren. Sie trugen die Roben der Bewegung – dunkles Blau, darauf das goldene Symbol von Lakan den Zauberern, wie ein drohendes Auge auf der Brust.
 
-Die Straßen von Königsstadt waren voller Menschen. Händler, Tagelöhner, Bettler, die mit schnellen Blicken die Neuankömmlinge musterten. Der Zug der Zauberer schnitt durch die Menschenmenge wie ein Messer durch warme Butter, und hinterließ Stille und Unruhe in seinem Kielwasser. Gespräche verstummten, man wich zur Seite. Einige wagten es, den Zug zu begaffen, andere duckten sich in Hauseingänge oder hinter Marktstände.
+Die Straßen von Königsstadt waren voller Menschen. Händler, Tagelöhner, Bettler, die mit schnellen Blicken die Neuankömmlinge musterten. Der Zug der Zauberer schnitt durch die Menschenmenge wie ein Messer durch warme Butter und hinterließ Stille und Unruhe in seinem Kielwasser. Gespräche verstummten, man wich zur Seite. Einige wagten es, den Zug zu begaffen, andere duckten sich in Hauseingänge oder hinter Marktstände.
 
-Malvek bemerkte jedes Detail. Er sah die Angst, aber auch den Widerstand in den Blicken der Bürger. Es störte ihn nicht. Im Gegenteil: Es gefiel ihm. Die neue Zeit würde nicht mit höflichem Geflüster beginnen, sondern mit einem klaren Zeichen der Macht. Allerdings würden sie es lernen ihn zu lieben. Man musste ihnen nur erzählen, was sie hören wollen.
+Malvek bemerkte jedes Detail. Er sah die Angst, aber auch den Widerstand in den Blicken der Bürger. Es störte ihn nicht. Im Gegenteil: Es gefiel ihm. Die neue Zeit würde nicht mit höflichem Geflüster beginnen, sondern mit einem klaren Zeichen der Macht. Allerdings würden sie es lernen, ihn zu lieben. Man musste ihnen nur erzählen, was sie hören wollten.
 
-Sie passierten den Markt, dann die breite Allee, die zum Palast führte. Die Wachen am ersten Tor wirkten nervös. Einer der Hauptleute trat vor, sein Kinn zitterte leicht, als er den Zauberer begrüßte.
+Sie passierten den Markt, dann die breite Allee, die zum Palast führte. Die Wachen am ersten Tor wirkten angespannt. Einer der Hauptleute trat vor, sein Kinn zitterte leicht, als er den Zauberer begrüßte.
 
 »Im Namen des Königs – nennt euer Anliegen!«
 
-Malvek ließ sich Zeit, ehe er sprach. Er maß den Mann mit einem abschätzigen Blick. Dann lächelte er, höflich, fast väterlich.
+Malvek ließ sich Zeit, ehe er sprach. Er maß den Mann mit einem abschätzenden Blick. Dann lächelte er, höflich, fast väterlich.
 
-»Ich bin Malvek, Vorsitzender des Zaubererrats. Ich verlange eine sofortige Audienz beim König.«
+»Ich bin Malvek, Vorsitzender des Zaubererrats. Ich fordere eine sofortige Audienz beim König.«
 
-Der Hauptmann räusperte sich. »Der König empfängt nur nach Anmeldung. Ohne Einladung kein Einlass.«
+Der Hauptmann räusperte sich. »Der König empfängt nur nach Voranmeldung. Ohne Einladung kein Einlass.«
 
 Malvek beugte sich leicht vor, als würde er einem ungezogenen Kind ins Gewissen reden.
 
-»Junge, du hast nicht verstanden, was sich geändert hat. Efret ist tot. Ich spreche für ganz Demirantha.«
+»Mann, du hast nicht verstanden, was sich geändert hat. Efret ist tot. Ich spreche im Namen der Zauberer von Lakan.«
 
 Ein Raunen ging durch die Reihen der Wachen. Die Nachricht hatte sich noch nicht überall herumgesprochen.
 
@@ -1620,9 +1637,9 @@ Malvek verzog keine Miene. Er hob nur die rechte Hand, kaum sichtbar. Sofort tra
 
 Die Magier gehorchten. Ein Dutzend silberner Blitze zuckten durch die Luft, trafen die Soldaten, ließen sie reglos stehen. Keiner fiel, keiner schrie – sie standen einfach da, als hätte man sie in Stein gegossen.
 
-Die wenigen Passanten vor dem Tor bemerkten die unnatürliche Starrheit der Wachen nicht. 
+Die wenigen Passanten vor dem Tor bemerkten die unnatürliche Starrheit der Wachen vorerst nicht.
 
-Die Magier ritten weiter die geschwungene Allee entlang, die zum beeindruckenden Haupteingang des Palastes führte. Der Kies unter den Hufen klang wie zerbrechendes Glas. Am Fuße der Freitreppe hinauf zum Eingang stand eine neue Gruppe Wachen. Diesmal waren es mehr, vielleicht zwanzig Mann. Sie trugen die Uniform des Königs.
+Die Magier ritten weiter die geschwungene Allee entlang, die zum beeindruckenden Haupteingang des Palastes führte. Der Kies unter den Hufen klang wie zerbrechendes Glas. Am Fuße der Freitreppe hinauf zum Eingang stand eine neue Gruppe Wachen. Dieses Mal waren es mehr, vielleicht zwanzig Mann. Sie trugen die Uniform des Königs.
 
 Der Offizier, mit vernarbtem Gesicht und einem blinden Auge, trat vor. Er hob den Arm, als könnte er damit Malvek und seine Leute aufhalten.
 
@@ -1638,27 +1655,23 @@ Malvek hob eine Braue.
 
 »Lassen wir die Herren doch ein wenig schlafen.«
 
-Diesmal waren es keine Blitze, sondern ein sanftes, blaues Leuchten, das über die Wachen hinwegrollte. Einer nach dem anderen sackte zusammen. Die meisten brachen einfach in die Knie, andere rutschten an der Mauer zu Boden. Keiner schrie, keiner zog sein Schwert. Es war, als hätte ihnen jemand die Knochen aus dem Leib gezogen. Nur der vernarbte Offizier blieb stehen. Er legte eine Hand an seinen Schwert.
+Dieses Mal waren es keine Blitze, sondern ein sanftes, blaues Leuchten, das über die Wachen hinwegrollte. Einer nach dem anderen sackte zusammen. Die meisten brachen einfach in die Knie, andere rutschten an der Mauer zu Boden. Keiner gab einen Laut von sich, keiner zog sein Schwert. Es war, als hätte ihnen jemand die Knochen aus dem Leib gezogen. Nur der vernarbte Offizier blieb stehen. Er legte eine Hand an sein Schwert.
 
-»Du solltest von jetzt an meinen Anweisungen folgen, wenn du nicht das Schicksal deiner Kameraden teilen möchtest.« Spielerisch ließ Malvek bei diesen Worten ein paar Blitze zwischen seinen ausgestreckten Händen zucken. Der Angesprochene nahm nun seine Hand von der Waffe. 
+Malvek ließ bei diesen Worten ein paar Blitze zwischen seinen ausgestreckten Händen zucken. Der Angesprochene nahm nun seine Hand von der Waffe.»Wie kann ich zu Diensten sein, Herr?«
 
-»Wie kann ich zu Diensten sein, Herr?« 
-
-Malvek machte ein kurzes Zeichen und er und seine gesamte Autorage stiegen von ihren Pferden ab.
+Malvek machte ein kurzes Zeichen und er und seine gesamte Entourage stiegen von ihren Pferden ab.
 
 »Lass unsere Pferde versorgen und dann führe uns zum König.«
 
----
+Der vernarbte Offizier salutierte, als hätte er nie etwas anderes gelernt, und bellte seine Befehle an die diensthabenden Knechte. Die Zauberer ließen sich Zeit. sie standen inmitten der zusammengeklappten Wachen und sahen zu, wie die Stallknechte kamen, die Pferde übernahmen und die Sättel kontrollierten. Einer der Knechte warf einen Blick auf das goldene Symbol auf Malveks Brust.
 
-Der vernarbte Offizier salutierte, als hätte er nie etwas anderes gelernt, und bellte seine Befehle an die diensthabenden Knechte. Die Zauberer ließen sich Zeit, sie standen inmitten der zusammengeklappten Wachen und sahen zu, wie die Stallknechte kamen, die Pferde übernahmen und die Sättel kontrollierten. Einer der Knechte warf einen Blick auf das goldene Symbol auf Malveks Brust. 
-
-»Was glotzt du so?«, knurrte einer der Kampfzauberer.
+»Was glotzt du denn so?«, knurrte einer der Kampfzauberer.
 
 Der Junge schüttelte den Kopf, murmelte ein »Nichts, Herr«, und machte, dass er wegkam.
 
 Malvek beobachtete das alles mit einer Mischung aus Verachtung und Zufriedenheit. Es gefiel ihm, wie wenig Widerstand ihm entgegenschlug. Das war die wahre Natur der Menschen: Sie duckten sich, sobald echte Macht vor ihnen stand. Er wusste, dass er gerade ein Zeichen gesetzt hatte. In wenigen Tagen würde man in allen Tavernen und Küchen über den Einzug der Zauberer in den Palast sprechen. Und jeder würde wissen, dass es eine neue Ordnung gab.
 
-Der vernarbte Offizier führte sie über die breite Freitreppe. Die Stufen waren aus weißem Granit, in der Mitte abgetreten und glänzend, als hätte sie eine Armee von Dienern täglich poliert. Links und rechts standen weitere Wachen, doch niemand wagte mehr, einen Ton zu sagen oder den Weg zu versperren. 
+Der vernarbte Offizier führte sie über die breite Freitreppe. Die Stufen waren aus weißem Granit, in der Mitte abgetreten und glänzend, als hätte sie eine Armee von Dienern täglich poliert. Links und rechts standen weitere Wachen, doch niemand wagte es mehr, einen Ton zu sagen oder den Weg zu versperren.
 
 »Was für ein erbärmlicher Haufen«, murmelte einer der Kampfmagier.
 
@@ -1666,15 +1679,15 @@ Malvek ignorierte das. Er hatte keine Sympathie für diese Soldaten. Sie waren W
 
 Sie passierten den Säulengang, dann die schweren Flügeltüren, die zum inneren Palast führten. Zwei Palastwachen öffneten die Türen, ohne gefragt zu werden. Dahinter lag ein langer, kühler Korridor, ausgekleidet mit dunklem Holz und goldenen Leisten. Teppiche dämpften die Schritte, sodass nur das leise Klirren der Zaubererabzeichen zu hören war.
 
-Der Offizier führte sie wortlos durch mehrere Korridore, vorbei an Dienern, die sich an die Wände drückten oder gleich rückwärts flohen. Malvek bemerkte, wie schnell sich die Nachricht von ihrem Kommen verbreitete. Selbst die Hofdamen, die sonst überall tuschelten, waren verschwunden.
+Der Offizier führte sie wortlos durch mehrere Korridore, vorbei an Dienern, die sich an die Wände drückten oder rückwärts flohen. Malvek bemerkte, wie schnell sich die Nachricht von ihrem Kommen verbreitete. Selbst die Hofdamen, die sonst überall tuschelten, waren verschwunden.
 
 Am Ende des Ganges warteten zwei Palastwachen mit Hellebarden. Sie sahen Malvek an, als hofften sie, dass er sie nicht bemerken würde. Der Offizier gab ihnen ein Zeichen, sie öffneten die letzten Türen.
 
-Der Thronsaal war genauso, wie Malvek ihn sich vorgestellt hatte – vielleicht noch ein wenig prunkvoller. Am Kopfende saß Schwertmut auf dem Thron, die Hände um die Armlehnen gekrallt, als könne er sich so an der Macht festhalten. Links und rechts Berater, Hofschranzen, ein paar Wachen, die aussahen, als wollten sie lieber heute als morgen in Rente gehen. Die Berater tuschelten, aber keiner traute sich, wirklich den Mund aufzumachen. Nur die Augen wanderten, mal zu Malvek, mal zum König, mal zu Boden.
+Der Thronsaal war genauso, wie Malvek ihn sich vorgestellt hatte – vielleicht noch ein wenig prunkvoller. Am Kopfende saß Schwertmut auf dem Thron, die Hände um die Armlehnen gekrallt, als könne er sich so an der Macht festhalten. Links und rechts Berater, Hofschranzen, ein paar Wachen, die aussahen, als wollten sie lieber heute als morgen in Rente gehen. Die Berater tuschelten, aber keiner traute sich, den Mund aufzumachen. Nur die Augen wanderten, mal zu Malvek, mal zum König, mal zu Boden.
 
-*Er hat schnell reagiert, *dachte Malvek.* Das muss man ihm lassen. Das alles hat den Anschein, als hätte er mich erwartet.*
+*Er hat schnell reagiert,* dachte Malvek. *Das muss man ihm lassen. Das alles erweckt den Anschein, als hätte er mich erwartet.*
 
- Der Offizier führte Malvek bis auf eine Schrittlänge an den Thron heran, dann blieb er stehen und nahm Haltung an. Malvek ließ sich Zeit, sah sich im Saal um, als würde er prüfen, ob jeder an seinem Platz war. Erst dann verneigte er sich, gerade so tief, dass man es als Geste der Höflichkeit deuten konnte.
+Der Offizier führte Malvek bis auf eine Schrittlänge an den Thron heran, dann blieb er stehen und nahm Haltung an. Malvek ließ sich Zeit, sah sich im Saal um, als würde er prüfen, ob jeder an seinem Platz war. Erst dann verneigte er sich, gerade so tief, dass man es als Geste der Höflichkeit deuten konnte.
 
 »Majestät«, sagte er. »Ich danke für die schnelle Bereitschaft, mich zu empfangen.«
 
@@ -1682,49 +1695,33 @@ Der König antwortete nicht sofort. Er wirkte angespannt, die Stimme brüchig.
 
 »Ihr kommt ohne Anmeldung. Ihr bringt Bewaffnete mit. Und ihr habt meine Wachen außer Gefecht gesetzt. Das ist kein höflicher Besuch.«
 
-Malvek lächelte dünn.
+Malvek lächelte kalt, gönnerhaft.
 
 »Majestät, bitte verzeiht mein ungestümes Auftreten. In diesen Tagen der Unsicherheit ist jede Formalität zugleich ein Zeichen von Respekt und Dringlichkeit. Ich weiß, wie sehr Ihr das Wohl Eurer Stadt am Herzen tragt – das ist in Lakan bekannt.«
 
-Er senkte leicht den Kopf und sprach leiser, beinahe vertraulich:
+Er senkte leicht den Kopf und sprach leiser, beinahe vertraulich: »Es sind finstere Dinge ans Licht gekommen, Majestät. Ihr habt Efret vertraut, wie wir alle – er war ein großer Zauberer, zweifellos. Doch sein Genie schlug schließlich um in eine gefährliche Besessenheit. Machtgier, Majestät. Und ein wachsender Wahnsinn, der ihn glauben ließ, nur er könne Lakan retten.«
 
- »Es sind finstere Dinge ans Licht gekommen, Majestät. Ihr habt Efret vertraut, wie wir alle – er war ein großer Zauberer, zweifellos. Doch sein Genie schlug zuletzt um in eine gefährliche Besessenheit. Machtgier, Majestät. Und ein wachsender Wahnsinn, der ihn glauben ließ, nur er könne Lakan retten.«
-
-Malvek nickte bedächtig, als wolle er die Worte fast bedauern.
-
- »Ich weiß, wie schwer diese Enthüllungen sind. Aber ich fürchte, er hat durch seine unbedachten Experimente Mächte geweckt, die nicht nur Königsstadt, sondern unser ganzes Reich bedrohen. Ich würde Euch niemals behelligen, wenn ich nicht überzeugt wäre, dass jetzt Einheit nötig ist.«
+Malvek nickte bedächtig, als wolle er die Worte fast bedauern. »Ich weiß, wie schwer diese Enthüllungen sind. Aber ich fürchte, er hat durch seine unbedachten Experimente Mächte geweckt, die nicht nur Königsstadt, sondern unser ganzes Reich bedrohen. Ich würde Euch niemals behelligen, wenn ich nicht überzeugt wäre, dass jetzt Einheit nötig ist.«
 
 Er trat einen Schritt näher, die Stimme weich und voll Bedauern: »Ich bitte Euch daher, Majestät, lasst uns gemeinsam für die Sicherheit Lakan sorgen. Lasst uns in allen Fragen des Schutzes und der magischen Angelegenheiten fortan Seite an Seite Entscheidungen treffen. Dies ist kein Putsch, sondern ein Schutz für Euch, für uns alle – gegen einen Abgrund, den ein einzelner Mann durch seine Hybris aufgerissen hat.«
 
-Er lächelt leicht:
+Er lächelte leicht: »Eure Weisheit und Euer Urteilsvermögen sind der Leitstern dieser Stadt. Ich werde Euch loyal zur Seite stehen – und erwarte nur, dass auch Eure Offiziere künftig eng mit dem Rat der Zauberer zusammenarbeiten. Wer sich dem verweigert, gefährdet unser aller Sicherheit.«
 
- »Eure Weisheit und Euer Urteilsvermögen sind der Leitstern dieser Stadt. Ich werde Euch loyal zur Seite stehen – und erwarte nur, dass auch Eure Offiziere künftig eng mit dem Rat der Zauberer zusammenarbeiten. Wer sich dem verweigert, gefährdet unser aller Sicherheit.«
-
-Malvek beendete seine Rede mit einem höflichen Nicken. Für einen Moment herrschte Stille im Saal. Der König räusperte sich, legte die Fingerkuppen vorsichtig aneinander. Seine Stimme war ruhig, aber klar:
+Malvek beendete seine Rede mit einem höflichen Nicken. Für einen Moment herrschte Stille im Saal. Der König räusperte sich, legte die Fingerspitzen vorsichtig aneinander. Seine Stimme war ruhig, aber klar:
 
 »Meister Malvek, ich danke Euch für Eure Umsicht und Euren Eifer, mein Reich zu schützen. Doch, bei allem Respekt – was genau ist diese Bedrohung, von der Ihr sprecht? Ihr habt von finsteren Mächten, von Wahnsinn und Experimenten gesprochen, doch ich habe noch keine Einzelheit gehört. Wer bedroht mein Reich wirklich? Was ist geschehen, was ich wissen sollte?«
 
-Er sah Malvek offen an.
+Er sah Malvek offen an. »Ihr werft Efret schwere Vorwürfe vor. Doch solange Ihr mir keine Belege präsentiert, bleibt das alles im Bereich der Gerüchte. Ich bin bereit, mit Euch zusammenzuarbeiten – aber ich verlasse mich nicht auf Andeutungen und Angstmacherei. Wenn Ihr wollt, dass ich mit dem Rat der Zauberer kooperiere, dann gebt mir Fakten, keine Furcht.«
 
- »Ihr werft Efret schwere Vorwürfe vor. Doch solange Ihr mir keine Belege präsentiert, bleibt das alles im Bereich der Gerüchte. Ich bin bereit, mit Euch zusammenzuarbeiten – aber ich verlasse mich nicht auf Andeutungen und Alarmismus. Wenn Ihr wollt, dass ich mit dem Rat der Zauberer kooperiere, dann gebt mir Fakten, keine Furcht.«
-
-Der König lehnte sich ein Stück zurück, sein Blick abschätzend:
-
-»Wem nützt es, wenn heute Angst die Stadt regiert? Und wem nützt es, wenn plötzlich neue Räte und neue Regeln ausgerufen werden, während mein Hof noch trauert?«
+Der König lehnte sich ein Stück zurück, sein Blick abschätzend: »Wem nützt es, wenn heute Angst die Stadt regiert und plötzlich neue Räte und Regeln ausgerufen werden?«
 
 Für einen kurzen Moment war die Machtfrage wieder offen im Raum – der König war nicht durchsetzungsstark, aber auch kein Narr.
 
-Malvek senkte die Stimme, als wolle er dem König ein düsteres Geheimnis anvertrauen.
+Malvek senkte die Stimme, als wolle er dem König ein düsteres Geheimnis anvertrauen. »Majestät, Ihr habt nach Fakten gefragt. Ich verstehe das und ich schulde Euch Aufklärung. Efret hat, getrieben von seinem Wunsch nach absoluter Kontrolle, eine Macht entfesselt, die nicht mehr Teil der bekannten Magie ist. Sie ist fremd, gefährlich, und sie manifestiert sich in einem Kind, das er Ayen nannte.«
 
- »Majestät, Ihr habt nach Fakten gefragt. Ich verstehe das – und ich schulde Euch Aufklärung. Efret hat, getrieben von seinem Wunsch nach absoluter Kontrolle, eine Macht entfesselt, die nicht mehr Teil der bekannten Magie ist. Sie ist fremd, gefährlich, und sie manifestiert sich in einem Kind, das er Acen nannte.«
+Er ließ die Worte wirken, blickte ernst in die Runde. »Majestät, dieses Kind hat bereits begonnen zu töten. Nicht aus eigener Bosheit, sondern weil es die Kontrolle über diese fremde Kraft nicht besitzt. Efret hat es nach Königsstadt gebracht – und er glaubte, das Kind als Werkzeug seiner eigenen Ziele einsetzen zu können. Aber er hatte die Kontrolle verloren. Ich fürchte, wenn wir nicht handeln, wird dieses Wesen nicht nur Königsstadt, sondern ganz Demirantha vernichten.«
 
-Er ließ die Worte wirken, blickte ernst in die Runde.
-
- »Majestät, dieses Kind hat bereits begonnen, zu töten. Nicht aus eigener Bosheit, sondern weil es die Kontrolle über diese fremde Kraft nicht besitzt. Efret hat es nach Königsstadt gebracht – und er glaubte, das Kind als Werkzeug seiner eigenen Ziele einsetzen zu können. Aber er hatte die Kontrolle verloren. Ich fürchte, wenn wir nicht handeln, wird dieses Wesen nicht nur Königsstadt, sondern ganz Demirantha vernichten.«
-
-Malvek machte eine kurze, bedauernde Pause.
-
- »Es kommt noch mehr dazu: Efret hat begonnen, seinen Einfluss auf Hof, Garnison und Verwaltung auszuweiten. Überall gibt es inzwischen seine Anhänger und Spione. Ihr könnt sicher sein, Majestät, alles, was hier besprochen wird, landet früher oder später bei Efrets Vasallen. Auch wenn er tot ist, seine Lieblingsschülerin hat wahrscheinlich seinen Platz eingenommen. Sie ist mit dem Kind zusammen hier irgendwo versteckt in der Stadt. Ich sage das alles nicht leichtfertig, sondern aus Sorge um die Sicherheit dieser Stadt und dieses Reiches.«
+Malvek machte eine kurze, bedauernde Pause. »Es kommt noch mehr dazu: Efret hat begonnen, seinen Einfluss auf Hof, Garnison und Verwaltung auszuweiten. Überall gibt es inzwischen seine Anhänger und Spione. Ihr könnt sicher sein, Majestät, alles, was hier besprochen wird, landet früher oder später bei Efrets Vasallen. Auch wenn er tot ist, seine Lieblingsschülerin hat wahrscheinlich seinen Platz eingenommen. Sie ist mit dem Kind zusammen hier irgendwo versteckt in der Stadt. Ich sage das alles nicht leichtfertig, sondern aus Sorge um die Sicherheit dieser Stadt und dieses Reiches.«
 
 Der König hob die Hand, als wolle er Malvek unterbrechen. Dann sagte er, ruhig und klar: »Die Eltern des Kindes waren bereits hier. Und nicht nur sie – auch Jaad, die Schülerin Efrets. Sie haben mich vor zwei Tagen aufgesucht, in Begleitung eines weiteren Zauberers.«
 
@@ -1736,29 +1733,27 @@ Ein paar der Berater zuckten zusammen. Selbst der vernarbte Offizier verzog das 
 
 Der König nickte. »Sie erschienen ohne große Vorankündigung. Sie wirkten gehetzt, vielleicht sogar verzweifelt. Sie baten um Schutz, wollten erklären, was geschehen ist. Und natürlich verlangten sie, dass ich mich gegen Euch und Eure Bewegung stelle.«
 
-Malvek holte tief Luft. Er zwang sich zur Ruhe, straffte die Schultern, und als er wieder sprach, war seine Stimme wieder so glatt wie zuvor.
+Malvek holte tief Luft. Er zwang sich zur Ruhe, straffte die Schultern, und als er wieder sprach, war seine Stimme erneut so glatt wie zuvor.
 
 »Das überrascht mich nicht, Majestät. Diese Leute sind Meister der Täuschung. Sie wissen, dass ihre Zeit abläuft. Sie werden alles versuchen, um sich als Opfer darzustellen. Wie auch immer – dass sie bei Euch waren, bestätigt nur, was ich befürchtet habe: Sie suchen nach neuen Verbündeten, weil sie in der Zaubererstadt keine mehr haben. Sie stehen mit dem Rücken zur Wand.«
 
 Er lächelte dünn, als hätte er alles im Voraus geplant.
 
-»Ich fürchte, sie haben Euch nicht die ganze Wahrheit erzählt. Sie verschweigen, dass das Kind bereits für den Tod von zehn Magiern verantwortlich ist – und dass es weitere Opfer geben wird, wenn wir nicht handeln. Sie verschweigen, dass sie selbst in mehrere Zwischenfälle verwickelt sind, von denen jeder einzelne als terroristischer Akt gewertet werden muss. Und sie verschweigen, dass sie ganz offen mit den gefährlichsten Elementen der alten Ordnung paktieren. Sie stellen sich als Verfolgte dar, aber in Wahrheit sind sie die Drahtzieher.«
+»Ich fürchte, sie haben Euch einiges verschwiegen. Sie haben Euch nicht gesagt, dass das Kind bereits für den Tod von zehn Magiern verantwortlich ist – und es wird weitere Opfer geben, wenn wir nicht handeln. Sie verschweigen, dass sie selbst in mehrere Zwischenfälle verwickelt sind, von denen jeder einzelne als ein Akt des Terrors gewertet werden muss. Und sie verschweigen, dass sie ganz offen mit den gefährlichsten Elementen der alten Ordnung paktieren. Sie stellen sich als Verfolgte dar, aber in Wahrheit sind sie die Drahtzieher.«
 
-Der König musterte ihn eine Weile. Dann sagte er: »Sie wirkten nicht wie Fanatiker. Eher wie eine Familie, die Angst hat. Und Jaad – sie war höflich, vernünftig. Ich habe sie nicht als Bedrohung empfunden. *Sie *sind nicht gewaltsam hier Zugangverschafft. Keine Zauberer, kein Waffen.«
+Der König musterte ihn eine Weile. Dann sagte er: »Sie wirkten nicht wie Fanatiker. Eher wie eine Familie, die Angst hat. Und Jaad – sie war höflich, vernünftig. Ich habe sie nicht als Bedrohung empfunden. Sie haben sich nicht gewaltsam Zugang verschafft. Keine Zauberer, keine Waffen.«
 
 Malvek zuckte die Schultern. »Majestät, das ist ihr größter Trick. Sie geben sich harmlos, aber hinter dem Lächeln verbirgt sich eine Entschlossenheit, die selbst Efret nicht mehr im Griff hatte. Sie sind gefährlich, weil sie nicht nach Macht streben – sondern nach Chaos. Sie wollen die Ordnung zerstören, die unser Reich zusammenhält.«
 
 Er beugte sich leicht vor. »Ich weiß, dass Ihr Mitgefühl habt. Aber in diesen Zeiten ist Mitgefühl eine Waffe in den Händen der Falschen. Gebt ihnen keinen Raum, sich zu verbreiten. Jede Stunde, die sie unbehelligt bleiben, vergrößert die Gefahr. Sie werden Euch und Eure Stadt in einen Strudel aus Chaos reißen, wenn wir nicht entschlossen handeln.«
 
-Malvek macht eine kurze Pause, dann fuhr er dünn lächelnd fort: »Sie haben Euch belogen. Sie verschweigen, dass das Kind bereits für den Tod von zehn Magiern verantwortlich ist – und dass es weitere Opfer geben wird, wenn wir nicht handeln. Sie verschweigen, dass sie in mehrere Zwischenfälle verwickelt sind, von denen jeder einzelne als Akt des Terrors gewertet werden muss. Und sie verschweigen, dass sie ganz offen mit den gefährlichsten Elementen der alten Ordnung paktieren. Sie stellen sich als Verfolgte dar, aber in Wahrheit sind sie die Drahtzieher.«
+Schwertmut schwieg, sein Blick flackerte kurz zur Seite, die Finger krampften sich fester um die Armlehne. Es fiel ihm schwer zu glauben, dass sein Freund in Wirklichkeit sein Feind gewesen sein sollte. Doch hatte Efret ihn nicht schon immer manipuliert? Doch hatte Efret ihn nicht schon immer an den Rand gedrängt? Mehr als einmal war er erst im Nachhinein über wichtige Vorgänge informiert worden. Die Farce mit den Drachen in Valdorien stieg vor seinem inneren Auge auf: die Siegesfeier, zu der er eingeladen worden war, ohne zu verstehen, was vorher geschehen war. Immer wieder hatte Efret ihn mit freundlicher Herablassung behandelt, hatte Entscheidungen übergangen oder selbst gefällt. Und Schwertmut hatte jedes Mal erlebt, dass die Politik Lakans im Grunde von Efret diktiert wurde — Gesetz für Gesetz, Edikt für Edikt. Kein einziges davon war je an ihm vorbeigegangen, ohne Efrets Finger darauf zu hinterlassen, es sei denn, es war um den Bau einer Oper oder einer Universität gegangen.
 
-Schwertmut schwieg. Es fiel ihm schwer zu glauben, dass sein Freund in Wirklichkeit sein Feind gewesen war. Doch hatte Efret ihn nicht schon immer manipuliert? Mehr als einmal war er nur im Nachhinein über Vorgänge informiert worden. Er musste an diese Farce mit den Drachen in Valdorien denken. Er hatte eine Siegesfeier abgehalten und nicht die geringste Ahnung gehabt, was eigentlich vor sich ging. Immer wieder war er von Efret mit freundlicher Herablassung behandelt worden. Er konnte sich nicht erinnern, dass Efret ihn jemals um Erlaubnis gefragt hätte, wenn er sich in die Politik Lakans eingemischt hatte. Was heißt ›eingemischt‹? Efret hatte im Grunde die Politik in Lakan ganz allein gestaltet. 
+Malvek sah, wie der Zweifel sich in Schwertmuts Gesicht grub.
 
-Malvek sah, wie es in Schwertmuts Gesicht arbeitete. 
+»Ihr seht es, Majestät. Habe ich recht? Efret war nie auf Eurer Seite.«
 
-»Ihr seht es, Majestät. Habe ich Recht? Efret war nie auf eurer Seite.«
-
-Schwertmut seufzte. 
+Schwertmut schloss kurz die Augen, als müsse er eine Last akzeptieren, die er lange ignoriert hatte. Dann seufzte er, leise, erschöpft.
 
 »Was also müssen wir tun?«
 
@@ -1770,13 +1765,13 @@ Malvek trat einen Schritt näher, die Stimme ruhig wie immer.
 
 Schwertmut nickte. Er sah aus, als hätte er den Sinn der Worte nicht ganz begriffen, aber sein Widerstand war gebrochen.
 
-Malvek fuhr fort: »Gleichzeitig müssen wir die zivile Verwaltung unter Kontrolle bringen. Die wichtigsten Beamten in Stadt und Umland sind vermutlich mit Efret oder seinen Verbündeten verbunden. Wir müssen sie alle überprüfen, überwachen und nötigenfalls austauschen. Das muss schnell gehen. Wir dürfen ihnen keine Zeit geben, sich abzusprechen.«
+Malvek fuhr fort: »Gleichzeitig müssen wir die zivile Verwaltung unter Kontrolle bringen. Die wichtigsten Beamten in Stadt und Umland sind mit Efret oder seinen Verbündeten verbunden. Wir müssen sie alle überprüfen, überwachen und nötigenfalls austauschen. Das muss schnell gehen. Wir dürfen ihnen keine Zeit geben, sich abzusprechen.«
 
 Der König blickte auf seine Hände. »Und wenn sie sich weigern?«
 
 »Dann werden sie suspendiert. Oder verhaftet. Ihr seid der König, Majestät. Niemand wird sich offen widersetzen, wenn Ihr und der Zaubererrat gemeinsam handeln.«
 
-Schwertmut nickte wieder, diesmal schneller.
+Schwertmut nickte wieder, dieses Mal schneller.
 
 Malvek wandte sich an einen der Berater am Rand des Thronsaals. »Ihr werdet eine Liste aller Garnisonskommandanten, der leitenden Offiziere und der wichtigsten Beamten erstellen. Ich werde meine Leute schicken, um die Listen zu überprüfen und die ersten Maßnahmen einzuleiten. Noch heute.«
 
@@ -1786,7 +1781,7 @@ Malvek wandte sich wieder Schwertmut zu. »Wir müssen ein Zeichen setzen. Ich e
 
 Der König schwieg einen Moment. »Und was ist mit dem Kind?«
 
-»Wir werden es finden. Meine Leute sind bereits in der Stadt. Sobald wir wissen, wo sie sich verstecken, werden wir sie einkreisen und letztlich finden. Niemand wird ihnen helfen. Auch das muss schnell gehen.«
+»Wir werden es finden. Meine Leute sind bereits in der Stadt. Sobald wir wissen, wo sie sich verstecken, werden wir sie einkreisen und letztlich stellen. Niemand wird ihnen helfen. Auch das muss schnell gehen.«
 
 Schwertmut schien zu frösteln. »Gut. Ihr habt freie Hand.«
 
@@ -1821,7 +1816,7 @@ Alle schwiegen betroffen, Jomar nahm Katas Hand. Schließlich war es Almin, der 
 
 Kalem fuhr sich mit der Hand über das Gesicht. Die Erschöpfung stand ihm ins Gesicht geschrieben, aber mehr noch die Sorge.
 
-»Er hat eine Audienz beim König erzwungen. Mit seinem selbst ernannten ›Rat der Zauberer‹. Sie haben Schwertmut in die Enge getrieben, und ihn gezwungen ihnen Machtpositionen zu überlassen.«
+»Er hat eine Audienz beim König erzwungen. Mit seinem selbst ernannten ›Rat der Zauberer‹. Sie haben Schwertmut in die Enge getrieben, und ihn gezwungen, ihnen Machtpositionen zu überlassen.«
 
 »Und?«, fragte Jaad mit angespannter Stimme.
 
@@ -1833,7 +1828,7 @@ Kalem nickte grimmig. »Malvek hat das Portal unter seine Kontrolle gebracht, un
 
 Jaad schüttelte den Kopf. »Wie schnell das alles ging. Er muss die Kontrolle der weißen Stadt unglaublich schnell an sich gerissen haben, wenn er jetzt schon über Königsstadt herfällt. Es ist also wie befürchtet: Er will nicht nur die Kontrolle über den Zaubererrat, er will ganz Lakan.«
 
-Kalem nickte. »Aber das ist noch mehr.« Er blickte zu dem spielenden Kind hinüber und flüsterte: »Sie haben ein Kopfgeld auf Ayen ausgesetzt.«
+Kalem nickte. »Aber da ist noch mehr.« Er blickte zu dem spielenden Kind hinüber und flüsterte: »Sie haben ein Kopfgeld auf Ayen ausgesetzt.«
 
 »Wieviel ist er ihnen wert?«, fragte Jomar.
 
@@ -1851,7 +1846,7 @@ Jomar ging zum Fenster und schob vorsichtig den Vorhang beiseite. Die Straße dr
 
 Die Sonne stand schon hoch, als Kalem und Almin sich unter das Volk mischten. Der große Versammlungsplatz war voller Menschen, mehr als sonst. Händler, Handwerker, Adelige, Bettler – alle drängten sich dicht an dicht. Auf der Bühne, wo sonst der König sprach, war heute alles anders.
 
-Malvek stand im Mittelpunkt. Er trug eine dunkelblaue Robe, das Gesicht streng, die Gesten kontrolliert. Neben ihm zwei Reihen von Zauberern in roten Gürtelbändern – allesamt Kampfmagier. Kalem musterte sie, erkannte einige Gesichter aus der Zaubererstadt.
+Malvek stand im Mittelpunkt. Er trug eine dunkelblaue Robe, das Gesicht streng, die Gesten kontrolliert. Neben ihm zwei Reihen von Zauberern in roten Gürtelbändern und goldenen Emblemen – allesamt Kampfmagier. Kalem musterte sie. Er erkannte einige der Gesichter aus der Zaubererstadt.
 
 Malvek hob die Hände. Sofort verstummte das Gemurmel.
 
@@ -1863,13 +1858,11 @@ Malvek fuhr fort, sachlich, klar: »Euer König hat euch alle getäuscht! Wer ha
 
 Er machte eine kurze Pause, ließ die Worte wirken.
 
-"Efret und Schwertmut redeten euch ein, ihr müsstet Angst vor Zauberen haben, Angst vor der Magie. Es war Efret, der diese Angst zu seinem Werkzeug gemacht hat! Efret und der König, sie hatten einen Pakt. Einen Pakt, der uns alle geknebelt hat. Die Zauberer durften ihre Gaben nur dann einsetzen, wenn es der Krone passte. Für die großen Schlachten, für die Verteidigung. Aber nie, um eure Not zu lindern! Nie, um Hunger, Krankheit oder Armut zu besiegen! Warum? Weil der König fürchtete, seine Macht zu verlieren, und Efret hasst nicht-magische Demiranther. Er wollte, dass die Zauberer nur ihm dienten, beschränkt auf die weiße Stadt, fern von euch, dem Volk! Damit ihr keinen Grund habt, nach mehr zu fragen. Damit ihr weiter im Schatten lebt, während sie sich ihre eigene Welt geschaffen haben – abgeschirmt, abgehoben, unantastbar.
+"Efret und Schwertmut redeten euch ein, ihr müsstet Angst vor Zauberen haben, Angst vor der Magie. Es war Efret, der diese Angst zu seinem Werkzeug gemacht hat! Efret und der König, sie hatten einen Pakt. Einen Pakt, der uns alle geknebelt hat. Die Zauberer durften ihre Gaben nur dann einsetzen, wenn es der Krone passte. Für die großen Schlachten, für die Verteidigung. Aber nie, um eure Not zu lindern! Nie, um Hunger, Krankheit oder Armut zu besiegen! Warum? Weil der König fürchtete, seine Macht zu verlieren, und Efret hasste nichtmagische Demiranther. Er wollte, dass die Zauberer nur ihm dienten, beschränkt auf die weiße Stadt, fern von euch, dem Volk! Damit ihr keinen Grund habt, nach mehr zu fragen. Damit ihr weiter im Schatten lebt, während sie sich ihre eigene Welt geschaffen haben – abgeschirmt, abgehoben, unantastbar.
 
-Ich sage euch: Diese Zeit ist vorbei! Die Magie gehört nicht nur den Auserwählten hinter hohen Mauern. Die Zeit der Angst ist vorbei. Von heute an werden die Zauberer ihre Kraft für ganz Lakan einsetzen. Für euch. Für euren Wohlstand, eure Sicherheit! Wir sind nicht länger die Bediensteten eines schwachen Königs und eines kühlen Rates. Wir sind euer Schild, eure Hoffnung – und gemeinsam schaffen wir eine neue Ordnung! Ihr habt Angst vor Veränderung, ich verstehe das. Aber Angst ist ein Werkzeug der Schwachen. Wir werden euch schützen – vor den Feinden von außen und vor den Verrätern in den eigenen Reihen!"
+Ich sage euch: Diese Zeit ist vorbei! Die Magie gehört nicht nur den Auserwählten hinter hohen Mauern. Die Zeit der Angst ist vorbei. Von heute an werden die Zauberer ihre Kraft für ganz Lakan einsetzen. Für euch. Für euren Wohlstand, eure Sicherheit! Wir sind nicht länger die Bediensteten eines schwachen Königs und eines verrückten Rates. Wir sind euer Schild, eure Hoffnung – und gemeinsam schaffen wir eine neue Ordnung! Ihr habt Angst vor Veränderung, ich verstehe das. Aber Angst ist ein Werkzeug der Schwachen. Wir werden euch schützen – vor den Feinden von außen und vor den Verrätern in den eigenen Reihen!"
 
-Kalem spürte, wie sich die Stimmung wandelte. Die ersten riefen »Malvek!«, andere folgten. Ein dumpfer Sog zog durch die Masse. Almin stand stocksteif neben ihm. Malvek versprach ein goldenes Zeitalter. Mehr Handel, gerechte Gesetze, keine Willkür durch
-
-Zaubererzünfte oder alte Adelsfamilien. »Gleiche Rechte für alle, aber auch gleiches Recht für die Magie!«, rief er. »Wer sich gegen die neue Ordnung stellt, der stellt sich gegen Lakan selbst!«
+Kalem spürte, wie sich die Stimmung wandelte. Die ersten riefen »Malvek!«, andere folgten. Ein dumpfer Sog zog durch die Masse. Almin stand stocksteif neben ihm. Malvek versprach ein goldenes Zeitalter. Mehr Handel, gerechte Gesetze, keine Willkür durch Zaubererzünfte oder alte Adelsfamilien. »Gleiche Rechte für alle, aber auch gleiches Recht für die Magie!«, rief er. »Wer sich gegen die neue Ordnung stellt, der stellt sich gegen Lakan selbst!«
 
 Die Menge tobte jetzt. Manche reckten die Fäuste, andere blickten unsicher zu den Kampfmagiern am Rand des Platzes. Plötzlich marschierte eine Patrouille durch die Reihen. Drei Kampfmagier, bewaffnet, aufmerksam. Einer blieb stehen, sah in Almins Richtung. Ein kurzer Moment – dann wandte er sich ab. Kalem atmete leise aus.
 
@@ -1895,7 +1888,7 @@ Almin blickte grimmig in die Runde. »Wir trafen auf eine Patrouille, alles Kamp
 
 »Also sind wir hier nicht mehr sicher«, sagte Jaad tonlos.
 
-Kalem hob eine Hand und unterbrach Jaad. »Vorerst schon noch. Noch sind es nicht viele. Noch sind sie zu wenige. Noch brauchen sie Zeit, um ihre Schlägertrupps aufzustellen. Sie sind ja nur etwa 50 Kampfzauberer und Königsstadt ist riesig.«
+Kalem hob eine Hand und unterbrach Jaad. »Vorerst schon noch. Noch sind sie zu wenige. Noch brauchen sie Zeit, um ihre Schlägertrupps aufzustellen. Sie sind ja nur etwa 50 Kampfzauberer und Königsstadt ist riesig.«
 
 Auf Jaads Gesicht fand sich keine Spur von Erleichterung oder Zuversicht.
 
@@ -1967,13 +1960,13 @@ Der Anführer der Gruppe stieß einen Mann von sich, der direkt vor ihm stand. �
 
 Die Verwirrung unter den Hütern war perfekt. Sie versuchten, die Bettler zu verscheuchen, doch für jeden, den sie wegstießen, tauchten zwei neue auf. Es war grotesk. Und es funktionierte.
 
-Jomar starrte Ayen an. »Hast du das irgendwie gemacht?«, flüsterte er.
+Jomar starrte Ayen an. »Hast du das gemacht?«, flüsterte er.
 
 Doch bevor der Junge antworten konnte, klopfte es an der Tür. Nicht laut und fordernd wie die Hüter, sondern leise, fast schüchtern.
 
-»Oh, wie schön, Besuch.« Niemand lachte.
+»Oh, wie schön, Besuch«, sagte Kalem. Niemand lachte.
 
-Er stand auf und ging zur Tür, öffnete sie einen Spaltbreit. Draußen stand ein junges Mädchen, vielleicht 14 oder 15 Jahre alt. Sie trug ein grobes, schlichtes Kleid, das ihre Herkunft kaum verbergen konnte.
+Er stand auf und ging zur Tür, öffnete sie einen Spalt breit. Draußen stand ein junges Mädchen, vielleicht 14 oder 15 Jahre alt. Sie trug ein grobes, schlichtes Kleid, das ihre Herkunft kaum verbergen konnte.
 
 Kalem öffnete die Tür und ließ das Mädchen ein.
 
@@ -1993,7 +1986,7 @@ Dini lächelte traurig.
 
 »Nicht mehr. Früher fiel ich nicht auf. Heute … sehen sie mich zu genau.«
 
-»Das kann ich nur bestätigen«, sagte Kata nun schon weniger hochnäsig.
+»Das kenne ich«, sagte Kata nun schon weniger hochnäsig.
 
 Jomar wandte sich an Almin. »Ich kenne sie. Sie ist von der Bettlergilde. Sie hat uns damals sehr geholfen.«
 
@@ -2005,7 +1998,7 @@ Dini trat einen Schritt vor, ihr Blick ernst, aber ruhig. Kurz zögerte sie, als
 
 Kalem lehnte sich gegen die Wand und verschränkte die Arme. »Und was verlangt die Gilde dafür?«
 
-Dini zuckte mit den Schultern. »Nichts direkt. Aber wir wissen, dass ihr Freunde seid. Und Freunde helfen Freunden.«
+Dini zuckte mit den Schultern. »Nichts. Aber wir wissen, dass ihr Freunde seid. Und Freunde helfen Freunden.«
 
 Jomar sah Kata an, dann Jaad und Kalem. »Es könnte eine Möglichkeit sein.«
 
@@ -2021,11 +2014,11 @@ Kalem nickte langsam. »Sie hat recht! Malvek ist eine Bedrohung für alle! Und 
 
 Jomar wandte sich wieder zu Dini. »Wie schnell könnt ihr uns verstecken?«
 
-»Sofort« sagte Dini entschlossen »Ich kann euch jetzt schon dorthin bringen. Aber wir müssen vorsichtig sein. Malveks Leute sind überall.«
+»Sofort« sagte Dini entschlossen. »Ich kann euch jetzt schon dorthin bringen. Aber wir müssen uns beeilen. Es bleibt nicht mehr viel Zeit.«
 
 Kata atmete tief durch und nickte dann. »Gut. Dann lass uns gehen.«
 
-Dini nickte zustimmend! »Wir müssen schnell sein. Packt ein, was ihr tragen könnt, aber glaubt mir: Alles andere besorgen wir. Folgt mir durch die Hintertür hinaus ins Freie.«
+Dini nickte zustimmend. »Packt ein, was ihr tragen könnt, aber glaubt mir: Alles andere besorgen wir. Folgt mir durch die Hintertür hinaus ins Freie.«
 
 
 # Unter der Stadt
@@ -2189,11 +2182,17 @@ Bäume wuchsen in den Straßen. Richtige Bäume mit grünen Blättern, obwohl si
 
 Menschen bewegten sich durch die Straßen. Dies war keine tote Ruine, sondern eine lebende, atmende Stadt.
 
+![Unterstadt](Unterstadt.png)![](Unterstadt.png)
+
+><center>Die geheimnisvolle Unterstadt</center>
+
 »Willkommen in Unterstadt«, sagte Dini mit einem ihrer seltenen Lächeln. »Erbaut von den Ahnen, bewahrt von der Gilde.«
 
 Kata stand mit offenem Mund da. All ihre Beschwerden, ihr Gejammer über Schmutz und Gestank waren vergessen. Sie starrte auf die unmögliche Schönheit vor ihren Augen.
 
 »Die Legenden sind wahr«, flüsterte Jaad ehrfürchtig. »Die verlorene Stadt. Sie existiert wirklich.«
+
+
 
 Ayen hingegen zeigte seine Begeisterung auf seine typische Art. Er hüpfte auf und ab und zeigte wild auf verschiedene Gebäude.
 
@@ -2252,6 +2251,10 @@ Jomar erstarrte. Seinen Mund öffnete sich, doch kein Laut kam heraus. Neben ihm
 Nur Ayen reagierte, wie er immer reagierte – spontan und herzlich.
 
 »Opa Efret!« Er stürmte durch den Raum und warf sich dem alten Zauberer an den Hals. »Der alte Stiefel auf dem Heuboden! Du bist gar nicht tot! Ich hab's gewusst! Ich hab's die ganze Zeit gewusst!«
+
+![](Unterstadt.png)
+
+><center>Die geheimnisvolle Unterstadt</center>!
 
 Efret lachte ein warmes, brummiges Lachen und drückte den Jungen an sich. »Du bist halt ein schlaues, kleines Brot. Ein Mauersegler ohne Flügel.«
 
@@ -2394,7 +2397,7 @@ Kalem lachte. »Es ist Abend. Morgen früh werden sie wieder leuchten.«
 
 »Woher weißt du das?«, fragte Jaad erstaunt.
 
-»Ich war gestern Nacht noch draußen. Ich hab doch gesagt, ich bin ein Nachtschwärmer.«
+»Ich war gestern Nacht noch draußen, bis zum frühen Morgen. Ich hab doch gesagt, ich bin ein Nachtschwärmer.«
 
 Sie bogen um eine Ecke und ein weitläufiger Park erschien vor ihnen, eine grüne Oase zwischen den weißen Steingebäuden. Bäume mit silbernen Blättern schimmerten im Licht der Kristallkugeln, und zwischen ihnen blühten Sträucher in Farben, die es an der Oberfläche nicht gab. Ein kleiner Bach schlängelte sich durch das Grün, sein Wasser glitzerte wie flüssiges Glas.
 
@@ -2442,17 +2445,17 @@ Ein Ruck ging durch den Baum. Die Äste zitterten, als würde ein unsichtbarer W
 
 Die Früchte drehten sich schneller, ihr Licht wurde zu einem blendenden Wirbel. Ein Summen erfüllte die Luft, tief und vibrierend, als würde die Erde selbst brummen. Der Wirbel riss Blätter von dem Baum, einzelne Äste brachen und flogen zu Boden. Die Menschen im Park blieben stehen, starrten auf das seltsame Schauspiel. Einige begannen zurückzuweichen.
 
-Ayen breitete schwebend beide Arme aus und das Wirbeln endete. Die Früchte fielen senkrecht zu Boden, als hätten sie nie der Schwerkraft getrotzt. Der Baum sah nun aus, als wäre tiefster Winter, es gab nicht ein Blatt mehr, das nicht davon gewirbelt wäre.
+Ayen breitete schwebend beide Arme aus und das Wirbeln endete. Die Früchte fielen senkrecht zu Boden, als hätten sie nie der Schwerkraft getrotzt. Der Baum sah nun aus, als wäre tiefster Winter, es gab nicht ein Blatt mehr, das nicht davongwirbelt wäre.
 
-Ayen schwebe langsam hinab und landete direkt neben seiner Mutter. Er nahm ihre Hand und lächelte.
+Ayen schwebte langsam hinab und landete direkt neben seiner Mutter. Er nahm ihre Hand und lächelte.
 
-»Ich hab alle Früchte geerntet«, sagte er stolz.
+»Ich hab’ alle Früchte geerntet«, sagte er stolz.
 
 »Das hasst du, mein Schatz«, sagt Kata leise und streicht ihrem Sohn durch das Haar. »Aber das hättest du nicht machen sollen.«
 
 »Oh, das mit dem Wirbel war falsch?«
 
-*Natürlich war das falsch. Wie konnte er das denn nicht erkennen*, fragte sich Kata. Für ihn machte es anscheinend wirklich keinen Unterschied, ob er einen Bauklotz vom Boden aufhob oder einen Baum zu Kleinholz verarbeitete.
+*Natürlich war das falsch. Wie konnte er das denn nicht erkennen?*, fragte sich Kata. Für ihn machte es anscheinend wirklich keinen Unterschied, ob er einen Bauklotz vom Boden aufhob oder einen Baum zu Kleinholz verarbeitete.
 
 »Ja, das war falsch.« Was blieb ihr sonst zu sagen?
 
@@ -2533,164 +2536,6 @@ Kata seufzte erneut. »Ich hoffe nur, dass er noch etwas mehr für uns hat, als 
 Jomar legte einen Arm um ihre Schultern und zog sie an sich. »Wir werden es schon schaffen. Zusammen schaffen wir alles.«
 
 Sie gingen langsam zurück zu ihrem Haus in der Unterstadt, während hinter ihnen das Lachen von Efret und Ayen durch die Straßen hallte – ein seltsamer Kontrast zu den dunklen Wolken, die sich über ihrer Zukunft zusammenbrauten.
-
-Die Stadt war ein Traum aus kristallinem Licht und strahlenden Farben.
-
-Jomar, Kata und Ayen gingen mit großen Augen durch die Straßen der Unterstadt. Kalem begleitete sie, und auch Almin war dabei, ein paar Schritte hinter ihnen, die Hand wie immer am Gürtel. Ayen lief von einem Wunder zum nächsten, lachte, rannte, blieb stehen, um zu zeigen: »Guck mal, Papa! Guck mal, Mama!«.
-
-Auf den Straßen war mehr Leben, als sie es am Vortag gesehen hatten. Die Menschen, die sie trafen, waren freundlich, nickten ihnen zu, aber Jomar spürte die Blicke, die immer wieder auf sie fielen. Manche neugierig, manche überrascht, manche vielleicht auch schon misstrauisch.
-
-»Was sind das für Kugeln da oben?«, fragte Kata und deutete auf ein Netz aus Drähten, das über die Straße gespannt war.
-
-»Technomagie«, sagte Kalem. »Die Ahnen liebten das Zeug. Die Kugeln erzeugen Licht. Fast so hell wie der Tag.«
-
-»Und warum leuchten die dann nicht?«
-
-Kalem lachte. »Es ist Abend. Später werden noch mehr Lichter ausgehen.«
-
-»Woher weißt du das?«, fragte Jaad erstaunt.
-
-»Ich war gestern Nacht noch draußen. Ich hab doch gesagt, ich bin ein Nachtschwärmer.«
-
-Sie bogen um eine Ecke und ein weitläufiger Park erschien vor ihnen, eine grüne Oase zwischen den weißen Steingebäuden. Bäume mit silbernen Blättern schimmerten im Licht der Kristallkugeln, und zwischen ihnen blühten Sträucher in Farben, die es an der Oberfläche nicht gab. Ein kleiner Bach schlängelte sich durch das Grün, sein Wasser glitzerte wie flüssiges Glas.
-
-»Das ist … unglaublich«, flüsterte Kata und blieb stehen, um den Anblick auf sich wirken zu lassen.
-
-Ayen war schon losgerannt, direkt auf einen Brunnen zu, dessen Wasser in sanften Fontänen in die Höhe stieg. »Mama! Papa! Guck mal! Das Wasser tanzt!«
-
-Jomar folgte ihm langsam, seine Augen wanderten über die Szenerie. »Ich hätte nie gedacht, dass so etwas hier unten existiert.«
-
-Kalem grinste. »Die Ahnen hatten einen Sinn für Schönheit. Und für Pracht. Dieser Park ist einer von vielen. Es gibt sogar einen See weiter hinten, mit Booten und allem.«
-
-Almin blieb am Rand des Parks stehen, seine Augen suchten die Umgebung ab. »Wir sollten vorsichtig sein«, murmelte er. »Zu viele Menschen hier.«
-
-»Entspann dich«, sagte Kalem und klopfte ihm auf die Schulter.
-
-»Hier ist niemand, der uns etwas antun will«, fügte er hinzu. »Die Leute hier sind freundlich, aber sie sind auch neugierig. Sie wissen, dass wir Neuankömmlinge sind, und sie werden uns beobachten. Aber das ist kein Grund zur Sorge.«
-
-Almin nickte zögerlich, aber seine Hand blieb am Gürtel. »Trotzdem sollten wir wachsam bleiben. Man weiß nie.«
-
-Kalem klopfte dem Kampfmagier erneut auf die Schulter. »Schönes Gespräch. Wird langsam«, sagte Kalem grinsend, Almin blieb nun stumm.
-
-Kata ging zu Ayen, der immer noch fasziniert den tanzenden Fontänen zusah. »Es ist schön, nicht wahr?«, fragte sie und strich ihm über das Haar.
-
-»Ja!«, rief Ayen begeistert. »Kann ich da reinspringen?«
-
-»Nein«, sagte Kata lachend. »Das Wasser ist kalt, und du willst doch nicht in nassen Sachen herumlaufen.«
-
-Ayen seufzte theatralisch, aber sein Blick wanderte schon zum nächsten Wunder – einem Baum mit leuchtend roten Früchten, die wie kleine Laternen an den Ästen hingen. Sie waren nicht rot, sie leuchteten rot. »Was ist das?«
-
-Kalem sah sie sich genauer an. »Keine Ahnung. So was hab ich oben nie gesehen.«
-
-»Kann man die essen?«, fragte der Junge hoffnungsvoll.
-
-»Ayen, also wirklich: Sollte man etwas essen, das man nicht kennt?«, fragte er.
-
-Das Kind überlegte eine Weile. »Nein?«, fragte es gedehnt.
-
-»Genau: Nein!«
-
-Ayen streckte die Hand nach einer der leuchtenden Früchte aus, obwohl Kalem ihn gerade gewarnt hatte. Seine Finger berührten die glatte Oberfläche – und plötzlich geschah etwas Seltsames. Die Frucht begann zu pulsieren, ihr Licht wurde heller, intensiver, bis es sie fast blendete. Ayen zog die Hand zurück, aber es war zu spät.
-
-Ein Ruck ging durch den Baum. Die Äste zitterten, als würde ein unsichtbarer Wind sie durchschütteln. Dann, mit einem leisen Knacken, lösten sich alle Früchte gleichzeitig von den Zweigen. Sie schwebten in der Luft, bildeten einen Kreis um den Baum und begannen sich langsam zu drehen.
-
-»Ayen!«, rief Kata alarmiert und griff nach ihrem Sohn. Doch der Junge entzog sich ihr und … begann zu schweben. Langsam glitt er hinauf zu dem Wirbel. Fassungslos blicken die Erwachsenen dem Kind hinterher. Almin geht in Kampfpose, weiß aber offensichtlich nicht, welcher Zauber jetzt helfen würde.
-
-Die Früchte drehten sich schneller, ihr Licht wurde zu einem blendenden Wirbel. Ein Summen erfüllte die Luft, tief und vibrierend, als würde die Erde selbst brummen. Der Wirbel riss Blätter von dem Baum, einzelne Äste brachen und flogen zu Boden. Die Menschen im Park blieben stehen, starrten auf das seltsame Schauspiel. Einige begannen zurückzuweichen.
-
-Ayen breitete schwebend beide Arme aus und das Wirbeln endete. Die Früchte fielen senkrecht zu Boden, als hätten sie nie der Schwerkraft getrotzt. Der Baum sah nun aus, als wäre tiefster Winter, es gab nicht ein Blatt mehr, das nicht davon gewirbelt wäre.
-
-Ayen schwebe langsam hinab und landete direkt neben seiner Mutter. Er nahm ihre Hand und lächelte.
-
-»Ich hab alle Früchte geerntet«, sagte er stolz.
-
-»Das hasst du, mein Schatz«, sagt Kata leise und streicht ihrem Sohn durch das Haar. »Aber das hättest du nicht machen sollen.«
-
-»Oh, das mit dem Wirbel war falsch?«
-
-*Natürlich war das falsch. Wie konnte er das denn nicht erkennen*, fragte sich Kata. Für ihn machte es anscheinend wirklich keinen Unterschied, ob er einen Bauklotz vom Boden aufhob oder einen Baum zu Kleinholz verarbeitete.
-
-»Ja, das war falsch.« Was blieb ihr sonst zu sagen?
-
-Ayen riss sich von seiner Mutter los und ließ hinüber zu einem Teich. »Enten!«, jauchzte er.
-
-Jomar war neben seine Frau getreten. »Seine Kräfte werden immer destruktiver.« Er zeigte hinüber zu den Leuten, die den zerstörten Baum betrachteten und heftig diskutierten.
-
-»Noch wissen sie nicht, dass Ayen hinter solchen Ereignissen steckt, aber wie lange wird es dauern, bis es so weit ist und wir ähnliche Probleme bekommen, wie in der weißen Stadt?«
-
-Sie beschlossen, Efret aufzusuchen. Er wohnte ja nur zwei Häuser von ihrem eigenen entfernt. 
-
-Als sie ankamen, öffnete die Stimme die Tür und führte sie durch das Haus.
-
-»Ihr werdet warten müssen, der Meister badet gerade.«
-
-»Die Stinker sollen antreten!«, rief Efret aus der Ferne mit lauter Stimme.
-
-Die Stimme verdrehte die Augen und führte sie hinauf zum Badezimmer.
-
-Efret lag in einer riesigen Wanne aus poliertem Stein, das Wasser dampfte um ihn herum. Sein wildes weißes Haar klebte an seinem Kopf, und er hielt ein kleines Holzschiff in der Hand, das er langsam durch das Wasser gleiten ließ.
-
-Jomar und Kata tauschten einen Blick, dann traten sie näher. Ayen blieb an der Tür stehen und beobachtete Efret mit großen Augen.
-
-»Wir brauchen deinen Rat«, begann Jomar. »Ayens Kräfte werden immer stärker. Und immer unberechenbarer.«
-
-Efret murmelte etwas Unverständliches ins Wasser hinein. Die Stimme übersetzte: »Der Meister bedauert, dass er nach wie vor blind ist, was die Zukunft Ayens angeht. So etwas ist ihm noch nie passiert. Alle Zukünfte, die er sieht, scheinen ›abrupt‹ zu enden, als würde die Welt aufhören zu existieren.«
-
-Kata legte eine Hand auf Jomars Arm. »Das klingt nicht gut.«
-
-»Wäre ja doof, wenn die Welt einfach endet«, sagte Efret und spritzte mit dem Holzschiff Wasser in die Luft.
-
-Die Stimme fuhr fort: »Aber er sieht die Helden auf einer Reise, wie keine zuvor. Er sagt, er würde etwas planen.«
-
-Jomar hob eine Augenbraue. »So was hab ich von ihm noch nie gehört. Er redet offen über seine Pläne?«
-
-Efret grinste verschmitzt. »Mehr sag ich nicht.«
-
-»Aha«, murmelte Jomar. »Das ist wieder der alte Efret.«
-
-Ayen hatte sich derweil unbemerkt entkleidet und stand nun nackt am Rand der Wanne. Mit einem Jauchzer sprang er hinein und landete mit einem Platscher neben Efret.
-
-»Ahoy!«, rief der Junge und griff nach einem der Holzschiffe.
-
-Efret lachte laut auf. »Kleines Brot! Du bist ein echter Seemann!«
-
-Die beiden begannen ein wirres Gespräch über Winde, Wellen und fliegende Fische, während sie die Schiffe durch das Wasser jagten. Jomar und Kata sahen ihnen fassungslos zu.
-
-»Sollten wir ihn da rausholen?«, fragte Kata leise.
-
-Jomar schüttelte den Kopf. »Lass sie spielen. Vielleicht tut es ihm gut.«
-
-Die Stimme stand regungslos am Rand der Wanne und beobachtete die Szene mit einem seltsamen Ausdruck im Gesicht – fast so, als würde sie lächeln.
-
-Nach einer Weile wandte sich Efret wieder den Erwachsenen zu. »Schweinepfeifen!«, rief er.
-
-Die Stimme übersetzte: »Der Meister sagt, ihr solltet euch keine Sorgen machen. Ayens Kräfte sind mächtig, aber nicht böse. Er wird lernen, sie zu kontrollieren.«
-
-»Und wie sollen wir ihm dabei helfen?«, fragte Kata besorgt.
-
-Efret murmelte etwas Unverständliches ins Wasser hinein. Die Stimme übersetzte: »Indem ihr ihm Liebe gebt und Geduld habt. Und indem ihr bereit seid für das, was kommt.«
-
-»Was kommt denn?«, fragte Jomar vorsichtig.
-
-Efret grinste wieder sein verschmitztes Grinsen. »Mehr sag ich nicht.«
-
-In diesem Moment tauchte Ayen auf und spritzte Efret nass. Der alte Zauberer lachte laut auf und spritzte zurück.
-
-Kata seufzte leise. »Ich glaube, wir kriegen heute keine klaren Antworten mehr.«
-
-Jomar nickte zustimmend. »Efret und klare Antworten sind eh zwei Sachen, die nicht zueinanderpassen. Lass uns gehen. Wir können später wiederkommen.«
-
-Sie verließen das Badezimmer und ließen Efret und Ayen allein mit ihren Holzschiffen und ihrem wirren Gelächter zurück. Die Stimme versicherte ihnen, dass jemand Ayen später nach Hause begleiten würde.
-
-Draußen auf der Straße blieb Kata stehen und sah Jomar ernst an. »Was meinst du? Sollen wir auf Efrets ›Plan‹ vertrauen?«
-
-Jomar zögerte einen Moment, dann nickte er langsam. »Seine Pläne haben bis jetzt immer funktioner. Auch wenn oft nicht mal danach weiß, wie sie funktioniert haben.«
-
-Kata seufzte erneut. »Ich hoffe nur, dass er recht hat mit dem, was da kommen soll.«
-
-Jomar legte einen Arm um ihre Schultern und zog sie an sich. »Wir werden es schon schaffen. Zusammen schaffen wir alles.«
-
-Sie gingen langsam zurück zu ihrem Haus in der Unterstadt, während hinter ihnen das Lachen von Efret und Ayen aus dem offenen Badfenster hallte – ein seltsamer Kontrast zu den dunklen Wolken, die sich über ihrer Zukunft zusammenbrauten.
 
 
 # Der Wächter wird gerufen
@@ -2780,11 +2625,11 @@ Kata begann leise zu summen – eine einfache, eingängige Melodie. Efret lausch
 
 »Das Erdbeerfeld-Lied«, erklärte Kata lächelnd.
 
-»Ich hab’s erkannt«, sagte Jomar lachend.
+»Ich hab's erkannt«, sagte Jomar lachend.
 
 Efret übte ein paar Mal, während seine Hände die Bewegungen nachahmten und er dabei unverständliche Wörter vor sich hinmurmelte. Kata korrigierte ihn und es entspann sich ein munteres Gesumme.
 
-Schließlich nickte Efret zufrieden. »Summ getan und Lied gekonnt, nun geht’s auf zum Lichterbund!«
+Schließlich nickte Efret zufrieden. »Summ getan und Lied gekonnt, nun geht's auf zum Lichterbund!«
 
 Jomar und Kata folgten ihm mit skeptischen Blicken. Efret begann, mit einem Stock Runen in die Erde zu zeichnen. Kata und Jomar sahen sich ratlos an, während Efret unablässig murmelte und den Himmel fixierte.
 
@@ -2832,25 +2677,25 @@ Jomar hob einen Finger: »Also zu den 29 Tagen fällt nur eines ein: das Luftsch
 
 Nachdem sie von ihrem bemerkenswerten Ausflug zurückgekehrt waren, berichteten Kata und Jomar von Efrets Kontaktaufnahme mit dem Wächter und dessen Antwort. Jaad, Kalem und Almin lauschten gebannt.
 
-„Also geht es mal wieder zur Wurzel der Magie”, fasste Kalem das Gehörte zusammen. „Aber ihr werdet das doch nicht ohne uns machen wollen, oder?“ Er blickte in die Runde.
+»Also geht es mal wieder zur Wurzel der Magie«, fasste Kalem das Gehörte zusammen. »Aber ihr werdet das doch nicht ohne uns machen wollen, oder?« Er blickte in die Runde.
 
-„Ihr seid uns natürlich auf unserem kleinen Ausflug herzlich willkommen“, Jomar grinste.
+»Ihr seid uns natürlich auf unserem kleinen Ausflug herzlich willkommen«, Jomar grinste.
 
-„Ich bin dabei!“
+»Ich bin dabei!«
 
-„Ich auch“, sagte Jaad. Sie und Kalem blickten zu Almin hinüber, dessen Stirn von jeder Menge Runzeln zerfurcht war.
+»Ich auch«, sagte Jaad. Sie und Kalem blickten zu Almin hinüber, dessen Stirn von jeder Menge Runzeln zerfurcht war.
 
-„Wie war das noch mal mit dem ‘fliegenden Schiff’? Das war doch hoffentlich nur im übertragenen Sinne gemeint — das mit dem Fliegen.“
+»Wie war das noch mal mit dem ›fliegenden Schiff‹? Das war doch hoffentlich nur im übertragenen Sinne gemeint — das mit dem Fliegen.«
 
-Jaad lachte laut auf. „Doch, das fliegt wirklich. Ich verstehe deine Bedenken. Es kostet etwas Überwindung, wenn man es das erste Mal betritt.“
+Jaad lachte laut auf. »Doch, das fliegt wirklich. Ich verstehe deine Bedenken. Es kostet etwas Überwindung, wenn man es das erste Mal betritt.«
 
-„Also … Ich bin dabei. Glaube ich.“ Er klang nicht wirklich überzeugt von seinen Worten.
+»Also … Ich bin dabei. Glaube ich.« Er klang nicht wirklich überzeugt von seinen Worten.
 
 Die folgenden 28 Tage vergingen ohne nennenswerte Ereignisse. Jomar und Kata nutzten die Zeit größtenteils, um sich auszuruhen und sich auf die kommende Reise vorzubereiten. Aber was bedeutete das: sich vorbereiten? Proviant würden sie nicht brauchen, auf dem Schiff gab es alles, was man zum Leben brauchte und mehr. Sollten sie Waffen mitnehmen? Theoretisch ging es ja nur um einen ereignislosen Flug, der direkt in der sicheren Umgebung der Wurzel enden würde. Aber ein Schwert und ein paar Messer mitzunehmen konnte ja nicht schaden.
 
 Kalem zwang Almin immer wieder, mit ihm in die Stadt zu gehen, um zu trinken oder mit Frauen zu flirten. Jaad verbrachte viel Zeit in den Badehäusern und Bibliotheken. Ayen spielte oft draußen mit den Kindern der Bewohner und erkundete neugierig, aber vorsichtig die Umgebung. Es gab keine Vorfälle, zumindest keine, von denen Jomar oder Kata erfuhren.
 
-Am Morgen des 29. Tages verabschiedete Efret die Gruppe auf seine typische Weise. »Fliegendes Holz und Windgeflüster, winke, winke, macht’s gut!«
+Am Morgen des 29. Tages verabschiedete Efret die Gruppe auf seine typische Weise. »Fliegendes Holz und Windgeflüster, winke, winke, macht's gut!«
 
 Die Stimme übersetzte mit einem milden Seufzen: »Er wünscht euch eine sichere Reise.«
 
@@ -2899,8 +2744,11 @@ Sie bestiegen das imposante Luftschiff. Kata und Jomar gingen direkt zu ihrer al
 
 ![](Luftschiff.png)
 
+><center>Fahrt ins Ungewisse</center>
+
 
 Kata berührte die Schrift sanft mit den Fingern und wurde nachdenklich. Wie fern das alles schon schien. Die monatelange Reise zur Wurzel, der Kampf gegen Altheras. Ihre Verwandlung in eine Göttin. Alles nur noch ferne Erinnerungen.
+
 
 Ayen sprang jauchzend auf dem Bett herum. Kalem steckte den Kopf zur Tür herein, sah zu dem Jungen hinüber und bemerkte trocken: »Spring ruhig so viel du willst. Dieses Bett hat schon ganz andere Sachen ausgehalten.«
 
@@ -2913,9 +2761,10 @@ Kata seufzte tief und warf Kalem einen finsteren Blick zu, während Jomar schmun
 
 # Die Wurzel
 
+
 Die Wurzel hatte sich nicht verändert. Sie landeten in dem Hangar, von dem aus sie vor sechs Jahren einst gestartet waren.
 
-Als sie in den Terminalraum traten, überkam sie das Gefühl, als wäre es erst gestern gewesen, dass sie hier gestanden hatten. Für Kata war es fast ein Schock, wie vertraut sich alles anfühlte. Der Raum, die Stille, das Licht, das aus den Wänden floss. Und irgendwo in ihr erwachte ein Teil, von dem sie geglaubt hatte, ihn längst verloren zu haben.
+Als sie in den Terminalraum traten, überkam sie das Gefühl, als wäre es erst gestern gewesen, dass sie hier gestanden hatten. Für Kata war es fast ein Schock, wie vertraut sich alles anfühlte. Der Raum, die Stille, das Licht, das von der Decke strömte. Und irgendwo in ihr erwachte ein Teil, von dem sie geglaubt hatte, ihn längst verloren zu haben. Hier war sie zur Göttin geworden.
 
 Almin blieb mehrmals stehen, drehte sich im Kreis, berührte die glatten Flächen der Bildschirme, die sofort zu leuchten begannen, und murmelte ehrfürchtig: »Das ist … das ist keine Magie.«
 
@@ -2979,9 +2828,9 @@ Ein kaum wahrnehmbares Lächeln huschte über das Gesicht des Wächters. »Das i
 
 Ayen dachte kurz nach. »Ich nehm’ meistens den schöneren.«
 
-»Hast du je gespürt, dass etwas durch dich spricht – nicht mit Worten, sondern als Idee?«
+»Hast du je gespürt, dass etwas dich durchdringt, als wärst du aus Luft?«
 
-Ayen zuckte mit den Schultern. »Das verstehe ich nicht. Aber einmal bin ich unsichtbar geworden. Aber nur, weil’s dunkel wurde.«
+Ayen zuckte mit den Schultern. »Das verstehe ich nicht. Aber einmal bin ich unsichtbar geworden. Aber nur, weil's dunkel wurde.«
 
 Ayen antwortete mit logischen Kindersätzen, manchmal mit etwas Stolz, manchmal mit echtem Unverständnis. Schließlich fragte der Wächter: »Was fühlst du, wenn du es tust? Freude? Zwang? Leere?«
 
@@ -2989,7 +2838,9 @@ Ayen überlegte. »Manchmal ist es wie Singen. Oder wie wenn ich einen Traum fes
 
 Die Gruppe schwieg. Kata legte ihm die Hand auf den Rücken.
 
-Der Wächter blickte zu ihr. »Er ist noch zu jung. Und seine Kräfte entziehen sich meinem Verständnis. Was ich einst bei dir rückgängig machen konnte, Kata, war eine übertragene Eigenschaft, die du über die ungezügelten Naniten erhalten hast. Ayens Kräfte sind … eigenständig. Unabhängig. Sie haben nichts mit Naniten zu tun.«
+Der Wächter blickte zu ihr. »Er ist noch zu jung. Und seine Kräfte entziehen sich meinem Verständnis. Was ich einst bei dir rückgängig machen konnte, Kata, war eine übertragene Eigenschaft, die du über die ungezügelten Naniten erhalten hast. Auch bei dir hatten deine göttlichen Kräfte nichts mit Naniten zu tun, sie waren nur ein Agens. 
+
+Ayens Kräfte sind … eigenständig. Unabhängig. Und du hast recht. Es könnte sein, dass du der Auslöser warst. Hier gibt es keine Naniten, mit denen ich es rückgängig machen könnte.«
 
 Kata sah ihn ernst an. »Dann kannst du nichts tun?«
 
@@ -3015,7 +2866,7 @@ Kalem atmete lang und hörbar aus. »Müssen wir gleich los?«
 
 ---
 
-Die Kantine lag ruhig am Rand des großen Innenhofes. Es war derselbe Hof, in dem sie einst als Altheras Gefangene herumspaziert waren – Hofgang hatten sie das genannt. Nun war er leer, still, und die weißen Bänke und Wege warfen weiches Licht zurück.
+Die Kantine lag ruhig am Rand des großen Innenhofes. Es war derselbe Hof, in dem sie einst als Altheras’ Gefangene herumspaziert waren – Hofgang hatten sie das genannt. Nun war er leer, still, und die weißen Bänke und Wege warfen weiches Licht zurück.
 
 Der Wächter hatte die Kantine eigens für sie aktiviert. Die Sitzflächen waren warm, die Tische sauber. Auf dem Büfett standen dampfende Speisen, deren Geruch vertraut und fremd zugleich war. Als Kata neugierig auf die flachen, runden Gebilde deutete, ertönte die Stimme des Wächters aus einer nahen Wandöffnung.
 
@@ -3027,7 +2878,7 @@ Ayen zeigte auf das leuchtend orangefarbene Getränk. »Und das da?«
 
 »Orangensaft«, sagte der Wächter. »Ein Getränk aus gepressten Zitrusfrüchten. Ich frage mich, warum auf Demirantha nie Orangen angebaut wurden. Vermutlich liegt es an der UV-Strahlung eurer Sonne. Die knallt wirklich rein. Deswegen seid ihr ja auch alle leicht bläulich.«
 
-»Ich bin nicht ›leicht bläulich‹!«, ereiferte sich Kalem. »Wenigstens habe ich nicht Farbe eines Hausschweins.« 
+"Ich bin nicht 'leicht bläulich'!", ereiferte sich Kalem.
 
 Kata sagte nichts, nahm aber einen Schluck vom Orangensaft. Sie verzog das Gesicht leicht – süß, aber mit einem seltsamen Nachgeschmack.
 
@@ -3035,7 +2886,9 @@ Kalem ließ sich mit einem leisen Seufzer in einen der gepolsterten Sitze fallen
 
 Jomar trank langsam. »Wahrscheinlich braucht man für die Herstellung irgendwelche Technomagie.«
 
-»Quatsch, ist doch einfach nur ein weiches Brötchen mit Fleisch drin. Wenn wir zurück sind, mach ich eine Taverne für Hamburger auf.«
+"Quatsch, ist doch einfach nur ein weiches Brötchen mit Fleisch drin. Wenn wir zurück sind, mach ich eine Taverne für Hamburger auf."
+
+“Das ist doch Blödsinn”, sagte Almin. “Damit kann man doch kein Geld verdienen.”
 
 Kata hatte sich gedankenverloren auf ihren Teller konzentriert, schnitt den Inhalt methodisch in kleine Stücke, ohne wirklich zu essen. Ayen war abwechselnd fasziniert und kritisch – er zerlegte einen Hamburger wie ein Archäologe ein Fundstück.
 
@@ -3055,7 +2908,7 @@ Kalem hob die Brauen. »Ein KI-Drache. Das gefällt mir. Ich nenn’ ihn jetzt s
 
 »Dann hoffen wir, dass er uns nicht frisst«, sagte Kata trocken.
 
-Für einen Moment war nur das Geräusch des Bestecks zu hören. Dann nahm Jomar ein weiteres Glas Orangensaft und sagte: »Wir sollten morgen früh aufbrechen.«
+Für einen Moment war nur das Geräusch des Bestecks zu hören. Dann nahm Jomar ein weiteres Glas Orangensaft. Ihm gefiel der intensive Geschmakc. Er sagte: »Wir sollten morgen früh aufbrechen.«
 
 Niemand widersprach.
 
@@ -3081,7 +2934,7 @@ Kata nickte knapp.
 
 Der Wächter begann: »Alpha-theta-epsilon-vier-drei-zwei. Dann: Gamma-Kappa-null-eins-fünf-sechs. Dritte Sequenz: Delta-Pi-Omega-acht-null-null.«
 
-Kata begann, die Folgen zu wiederholen. Bei der dritten Folge stolperte sie wieder. »Gamma … nein … Pi? Oder Kappa?«
+Kata begann, die Folgen zu wiederholen. Bei der dritten Folge stolperte sie wieder. »Gamma ... nein ... Pi? Oder Kappa?«
 
 Ayen rief fröhlich dazwischen. »Alpha-Keks-Epilon!«
 
@@ -3101,15 +2954,15 @@ Kata sah auf. »Im Ernst?«
 
 Ohne große Worte betraten sie das Luftschiff. Sie mussten Almin wieder die Rampe hinaufschieben. Er sah aus, als würde er sich jeden Moment umdrehen und aus dem Schiff fliehen. Seine Hände zitterten, als er das Geländer umklammerte.
 
-Die Systeme aktivierten sich mit einem sanften Summen. Lichter flackerten auf, Displays leuchteten blau und grün. Türen schlossen sich leise hinter ihnen, ein mechanisches Klicken hallte durch den Raum. Das Schiff vibrierte leicht hob dann ab. Der Boden unter ihnen bebte kurz, stabilisierte sich dann. Sie gingen in den großen Aufenthaltsraum – den mit der Aussichtsplattform. 
+Die Systeme aktivierten sich mit einem sanften Summen. Lichter flackerten auf, Displays leuchteten blau und grün. Türen schlossen sich leise hinter ihnen, ein mechanisches Klicken hallte durch den Raum. Das Schiff vibrierte leicht und hob dann ab. Der Boden unter ihnen bebte kurz, stabilisierte sich dann. Sie gingen in den großen Aufenthaltsraum – den mit der Aussichtsplattform. 
 
-Die Wurzel wurde kleiner unter ihnen, erst ein Fleck, dann ein Punkt, verschwand schließlich unter dichten Wolken. Ayen presste seine Nase ans kühle Glas des Fensters, seine Finger hinterließen Abdrücke. Almin setzte sich so weit weg von den Panoramafenstern, wie es eben möglich war und starrte auf seine Füße. Kalem ließ sich mit einem gedehnten Laut in einen Sessel fallen streckte die Beine aus. »Wenn wir dieses Mal ankommen, ohne dass es brennt oder knallt, wäre das fast schon enttäuschend.«
+Die Wurzel wurde kleiner unter ihnen, erst ein Fleck, dann ein Punkt, verschwand schließlich unter dichten Wolken. Ayen presste seine Nase ans kühle Glas des Fensters, seine Finger hinterließen Abdrücke. Almin setzte sich so weit weg von den Panoramafenstern, wie es eben möglich war und starrte auf seine Füße. Kalem ließ sich mit einem gedehnten Laut in einen Sessel fallen und streckte die Beine aus. »Wenn wir dieses Mal ankommen, ohne dass es brennt oder knallt, wäre das fast schon enttäuschend.«
 
 ---
 
 Die Reise verlief tatsächlich ruhig. Kata verbrachte viel Zeit mit dem Pad des Wächters. Sie studierte die Grundrisse der Festung, prägte sich Gänge, Zugänge und den Weg zum zentralen Terminalraum ein. Jaad war viel mit Ayen unterwegs, der das Schiff neugierig erkundete und gelegentlich Fragen stellte, auf die keiner eine Antwort wusste.
 
-Kalem verbrachte Stunden im Wasserbecken, das es im Erholungsbereich gab. Wenn er nicht darin trieb, lag er im Medienraum und hörte sich durch den — wie es hieß — ›Medienkatalog‹. Er hatte jedes einzelne Beatles-Lied schon vor Jahren auf seiner ersten Reise mit diesem Schiff gehört. Und nun hatte er von vorne begonnen. Als das letzte Beatles-Album zum dritten Mal endete, seufzte er tief, stand auf – und beschloss, Almin auf den Wecker zu gehen.
+Kalem verbrachte Stunden im Wasserbecken, das es im Erholungsbereich gab. Wenn er nicht darin trieb, lag er im Medienraum und hörte sich durch den — wie es hieß — ›Medienkatalog‹. Er hatte jedes einzelne Beatles-Lied schon vor Jahren auf seiner ersten Reise mit diesem Schiff gehört. Und nun hatte er von vorne begonnen. Als das letzte Beatles-Album endete, seufzte er tief, stand auf – und beschloss, Almin auf den Wecker zu gehen.
 
 Er setzte sich scheinbar zufällig neben ihn. Almin schrieb mit einer Feder etwas auf ein Pergament. Beides hatte er selbst mitgebracht.
 
@@ -3222,7 +3075,7 @@ Ein leises, vibrierendes Summen, dann bildete sich ein roter Kreis auf dem Boden
 
 »Stellt euch alle in den Kreis«, sagte Kata ruhig.
 
-Sobald alle den Kreis betraten, reagierte der Boden. Ohne Geräusch, ohne Erschütterung. Plötzlich fehlte der Grund unter ihren Füßen. Sie fielen – in lautlose Dunkelheit.
+Sobald alle den Kreis betreten hatten, reagierte der Boden. Ohne Geräusch, ohne Erschütterung. Plötzlich fehlte der Grund unter ihren Füßen. Sie fielen – in lautlose Dunkelheit.
 
 Der Fahrstuhl bremste ihren Fall abrupt, aber sanft. Der Boden unter ihnen glühte rot. Durchsichtige Wände gaben den Blick auf das Innere der Festung frei, durch das sie unaufhaltsam fielen. Eine Ebene nach der anderen, jede mit einem anderen Geheimnis.
 
@@ -3244,7 +3097,7 @@ Hunderte kleine, flinke Dinger huschten durch den Garten. Sie gruben die Erde um
 
 »Was ist das?«, fragte Kata. »Ich spüre keine Magie.«
 
-Kalem blinzelte. »Es ist Technomagie. Die Dinger haben Beine aus Metall.«
+Kalem blinzelte. »Es ist Technomagie. Die Dinger haben Beine aus Metall. Golems.«
 
 Sie folgten dem Gang, überwältigt von den Dimensionen und der präzisen Anordnung der Strukturen.
 
@@ -3256,7 +3109,7 @@ Sie gingen zurück und der Fahrstuhl nahm seine Fahrt wieder auf. Doch wieder st
 
 Kata nickte und sah auf den Plan. »Das hier soll eine Bibliothek sein.«
 
-Kalem schnaubte. »Verdammt wenig Bücher für 'ne Bibliothek.«
+Kalem schnaubte. »Verdammt wenig Bücher für ’ne Bibliothek.«
 
 Kalem hatte recht: Es gab keine Bücher. Nur Nischen an den Wänden, in die man sich stellen konnte – wenn man sich traute.
 
@@ -3328,7 +3181,7 @@ Ein Bild zeigte die Ahnen, wie sie eine gewaltige Maschine aktivierten. Ein ande
 
 Jomar und Kalem tauschten einen Blick. Der eine voller Ehrfurcht, der andere voller Unruhe.
 
-Jomar und Kalem tauschten einen Blick. Jomars Augen strahlten vor Ehrfurcht, während Kalems Gesicht zwischen Unruhe und Bewunderung hin- und hergerissen schien. Sie würden eine Weile brauchen, das alles zu verarbeiten. *Ich bin doch nur ein lakanischer Bauernsohn*, dachte Jomar grimmig. *Wie viel einfacher war die Welt doch gewesen, als ich mich nur mit einem Schwarzmagier prügeln musste, um die Welt zu retten.*
+Jomar und Kalem tauschten einen Blick. Jomars Augen strahlten vor Ehrfurcht, während Kalems Gesicht zwischen Unruhe und Bewunderung hin- und hergerissen schien. Sie würden eine Weile brauchen, das alles zu verarbeiten. *Ich bin doch nur ein lakanischer Bauernsohn*, dachte Jomar grimmig. *Wie viel einfacher war die Welt doch gewesen, als ich mich nur mit einem Schwarzmagier prügeln musste, um sie zu retten.*
 
 Das Band trug sie weiter, unermüdlich, immer tiefer ins Innere der Festung. Hallen, Korridore, Räume – alles schien miteinander verbunden, ein endloses Netz aus Gängen und Wunderwerken.
 
@@ -3342,7 +3195,7 @@ Almin schnaubte. »Wir sind schon länger unterwegs, als wir in der Luft waren.�
 
 Kalem grinste. »Wo bleibt der Pioniergeist eines Kampfmagiers?«
 
-Almin sagte nichts. Mit seinem ersten Satz an diesem Tag hatte er seiner Meinung nach sein Soll erfüllt.
+Almin erwiderte nichts. 
 
 Sie erreichten das Ende des Transportsystems. Eine weitere Treppe führte hinab in die Tiefe.
 
@@ -3356,7 +3209,7 @@ Sie betraten eine Halle, die dem Terminalraum des Wächters ähnelte. Nur dass d
 
 Eine Anzeigetafel flackerte auf.
 
-»STAND-BY«
+»STANDBY«
 
 Kata holte tief Luft und zögerte einen Moment.
 
@@ -3435,11 +3288,11 @@ Das Abbild der KI machte eine kurze Pause, als müsste es nachdenken.
 
 Kalem hob eine Augenbraue. »Also … Magie durch Technomagie?«
 
-»Genau«, bestätigte Primus. »Die Naniten reagierten auf bestimmte mentale und körperliche Impulse, die von den Demiranthern erzeugt wurden. Mit der richtigen Ausbildung konnten die Demiranther Feuerbälle erschaffen, Objekte bewegen oder den Geist beeinflussen. Es war eine kontrollierte Art von Wunder.«
+»Genau«, bestätigte Primus. »Die Naniten reagierten auf bestimmte mentale und körperliche Impulse der Demiranther. Mit der richtigen Ausbildung konnten die Demiranther Feuerbälle erschaffen, Objekte bewegen oder den Geist beeinflussen. Es war eine kontrollierte Art von Wunder.«
 
 Jomar verschränkte die Arme. »Lass mich raten: Etwas ist schiefgelaufen.«
 
-Primus zögerte kurz und fuhr dann fort: »Zunächst funktionierte alles wie geplant. Die Menschen passten die Magie an und entwickelten ihre eigene Kultur, die natürlich von den Menschen — den Ahnen — beeinflusst wurde. Alles funktionierte wunderbar bis die ersten Anomalien auftauchten.«
+Primus zögerte kurz und fuhr dann fort: »Zunächst funktionierte alles wie geplant. Die Menschen adaptierten die Magie und entwickelten ihre eigene Kultur darum herum, natürlich gesteuert durch die Menschen. Alles funktionierte wunderbar, bis die ersten Anomalien auftauchten.«
 
 »Anomalien?«, fragte Kata.
 
@@ -3467,7 +3320,7 @@ Primus nickte erneut. »Zumindest sahen sie so aus und gaben vor, es zu sein.«
 
 Jomar blickte mit gerunzelter Stirn auf das Abbild der KI. »Warum haben sie nicht die Form der Ahnen angenommen? Warum die Demiranther?«
 
-»Menschen von der Erde können hier nicht dauerhaft leben, Demiranther aber schon.« 
+»Darauf haben wir nie eine befriedigende Antwort bekommen. Vielleicht weil klar war, dass die Menschen nicht dauerhaft auf dem Planeten bleiben würden, sie aber schon.« 
 
 Nun meldete sich Kata zu Wort: »Und hatten die Zirari denn nun mit den Veränderungen in der Magie zu tun?«
 
@@ -3475,7 +3328,7 @@ Primus nickte. »Ja, Sie beeinflussten den Planeten, so wie wir, nur auf eine an
 
 »Also waren unsere Probleme – die der Demiranther –, die durch die Veränderungen der Magie entstanden waren, wohl von nur geringem Interesse für die Ahnen.« 
 
-»Das könnte man so sagen. Aber so offen und freundlich wie die Zirari in manchen Bereichen waren, so verschlossen blieben sie auch, wenn es darum ging, wie sie den Planeten beeinflussten. Manche ihrer Technologien blieben für uns ein Geheimnis. Es schien, als gäbe es so eine Art Obergrenze, was das Teilen von Technologien anging. Doch wenn sie Erkenntnisse mit uns teilten, waren sie fundamental, und veränderten alles. Auf die Zirari zu treffen, schien für die Menschheit ein Glücksfall zu sein, doch dann …« 
+»Das könnte man so sagen. Aber so offen und freundlich wie die in manchen Bereichen waren, so verschlossen blieben sie auch, wenn es darum ging, wie sie den Planeten beeinflussten. Manche ihrer Technologien blieben für uns ein Geheimnis. Es schien, als gäbe es so eine Art Obergrenze, was das Teilen von Technologien anging. Doch wenn sie Erkenntnisse mit uns teilten, waren sie fundamental, und veränderten alles. Auf die Zerri zu treffen, schien für die Menschheit ein Glücksfall zu sein, doch dann …« Ja.
 
 »Aber dann geschah etwas«, sagte Kata leise.
 
@@ -7864,13 +7717,14 @@ Aber das war in Ordnung. Manche Kreise mussten sich schließen.
 
 # Epilog
 
+
 Der Kreis schloss sich. Zurück in der Unterstadt fanden sie sich im Haus des alten Zauberers wieder. Sie standen vor Efret, der auf einem wackeligen Sessel thronte und sie mit strahlendem Lächeln betrachtete. Das Licht der Fackeln ließ den großen Raum in warmen Farben erstrahlen, als wäre alles wieder normal. Als hätten sie nicht gerade das Universum gerettet.
 
 »Käsefüße!«, rief Efret fröhlich. Die Stimme sackte förmlich in sich zusammen. 
 
-»Ihr wisst doch, wie sehr euch das schwächt. Und … wenn ihr mich nicht mehr braucht, kann ich ja auch gehen.«
+»Ihr wisst doch, wie sehr euch das schwächt, Meister. Und … wenn ihr mich nicht mehr braucht, kann ich ja auch gehen.«
 
-»Beleidigte Leberwurst«, sagte Efret glucksend. Dann schloss er die Augen und seine Lider flatterten kurz. Der Alterswahnsinn war aus seinen Augen verschwunden. 
+»Beleidigte Leberwurst«, sagte Efret glucksend und tätschelte den hakennasigen Mann an der Schulter. Dann schloss er die Augen und seine Lider flatterten kurz. Der Alterswahnsinn war aus seinen Augen verschwunden. 
 
 »Eine Familie von Weltenrettern!« Efret klatschte begeistert in die Hände und wackelte mit dem Kopf, sodass seine weißen Haare wild umherflogen. »Erst Demirantha, dann gleich das ganze Universum! Ihr übertrefft euch jedes Mal selbst!«
 
@@ -7878,7 +7732,7 @@ Kata konnte nicht anders, als zu lächeln, obwohl die Erschöpfung an ihr nagte.
 
 »Ich kann mich an nicht viel erinnern«, sagte Ayen und rieb sich nachdenklich die Nase, »aber ich glaube, du hast ganz dolle mitgeholfen, Opa Efret.«
 
-Opa Efret. Kata spürte, wie ihr ein Tränchen über die Wange lief. Sie wischte es hastig weg, aber Jomar hatte es bemerkt und drückte sanft ihre Hand.
+*Opa Efret*, dachte Kata und spürte, wie ihr ein Tränchen über die Wange lief. Sie wischte es hastig weg, aber Jomar hatte es bemerkt und drückte sanft ihre Hand.
 
 Efret beugte sich vor, sein Gesicht plötzlich ernst. »Natürlich habe ich geholfen, kleines Brot. Das ist meine Berufung. Ich helfe den Helden, damit sie die eigentliche Arbeit erledigen können.«
 

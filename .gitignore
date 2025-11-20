@@ -15,8 +15,8 @@ manuskript-standalone/
 javafx-sdk-21.0.6/
 manuskript-standalone.jar
 pandoc/pandoc.exe
-
-
+pandoc/*.png
+pandoc/*.jpg
 
 # IDE
 .idea/

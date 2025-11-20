@@ -1309,12 +1309,39 @@ if (caret != null) {
             String altText = textField.getText();
             
             if (imagePath != null && !imagePath.trim().isEmpty()) {
-                // Markdown-Bild-Syntax erstellen: ![alt text](path)
+                // Prüfe ob der Pfad im Projektverzeichnis liegt
+                // Wenn ja, verwende nur den Dateinamen (relativer Pfad)
+                String finalImagePath = imagePath;
+                // Verwende originalDocxFile.getParentFile() als Projektverzeichnis
+                if (originalDocxFile != null && originalDocxFile.getParentFile() != null) {
+                    try {
+                        File imageFile = new File(imagePath);
+                        File projectDir = originalDocxFile.getParentFile();
+                        File imageDir = imageFile.getParentFile();
+                        
+                        // Normalisiere die Pfade für Vergleich (behandelt auch Leerzeichen und unterschiedliche Pfadformate)
+                        String projectDirPath = projectDir.getCanonicalPath();
+                        String imageDirPath = imageDir != null ? imageDir.getCanonicalPath() : null;
+                        
+                        // Wenn das Bild im Projektverzeichnis liegt, verwende nur den Dateinamen
+                        if (imageDirPath != null && imageDirPath.equals(projectDirPath)) {
+                            finalImagePath = imageFile.getName();
+                            logger.debug("Bildpfad relativiert: {} -> {}", imagePath, finalImagePath);
+                        }
+                    } catch (IOException e) {
+                        // Bei Fehler den ursprünglichen Pfad verwenden
+                        logger.debug("Fehler beim Normalisieren des Bildpfads: " + e.getMessage());
+                    }
+                }
+                
+                // Markdown-Bild-Syntax erstellen
                 String markdownImage;
                 if (altText != null && !altText.trim().isEmpty()) {
-                    markdownImage = "![" + altText + "](" + imagePath + ")";
+                    // Mit Alt-Text: Bild ohne Alt-Text, dann Leerzeile, dann Blockquote mit zentriertem Alt-Text
+                    markdownImage = "![](" + finalImagePath + ")\n\n><center>" + altText + "</center>";
                 } else {
-                    markdownImage = "![](" + imagePath + ")";
+                    // Ohne Alt-Text: Nur das Bild
+                    markdownImage = "![](" + finalImagePath + ")";
                 }
                 
                 // Bild an aktueller Cursor-Position einfügen
