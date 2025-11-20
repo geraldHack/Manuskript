@@ -12277,17 +12277,23 @@ spacer.setStyle("-fx-background-color: transparent;");
                 if (empty || docxFile == null) {
                     setText(null);
                     setStyle("");
+                    getStyleClass().removeAll("current-chapter", "changed-chapter");
                 } else {
                     // Verwende getDisplayFileName() für ! Markierungen
                     String displayName = docxFile.getDisplayFileName();
                     setText(displayName);
                     
+                    // Entferne alle Markierungs-Klassen
+                    getStyleClass().removeAll("current-chapter", "changed-chapter");
+                    
                     // Markiere aktuelles Kapitel
                     if (originalDocxFile != null && docxFile.getFile().equals(originalDocxFile)) {
-                        setStyle("-fx-font-weight: bold; -fx-background-color: rgba(74, 144, 226, 0.3); -fx-border-color: rgba(74, 144, 226, 0.5); -fx-border-width: 0 0 0 3px;");
+                        getStyleClass().add("current-chapter");
+                        setStyle(""); // Keine inline Styles, damit CSS greift
                     } else if (docxFile.isChanged()) {
                         // Markiere geänderte Kapitel mit ! Symbol
-                        setStyle("-fx-text-fill: #ff6b35; -fx-font-weight: bold;");
+                        getStyleClass().add("changed-chapter");
+                        setStyle(""); // Keine inline Styles, damit CSS greift
                     } else {
                         setStyle("");
                     }

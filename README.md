@@ -7,6 +7,9 @@
 
 > **Eine moderne JavaFX-Anwendung für die professionelle Verarbeitung und Bearbeitung von DOCX-Dateien mit integriertem KI-Assistenten und automatischer Text-Bereinigung. Ideal im Zusammenspiel mit Sudowrite**
 
+> [!WARNING]
+> I'm sorry, but the program only supports the German language.
+
 ## ✨ Highlights
 
 - 🤖 **Lokaler KI-Assistent** mit Ollama-Integration (keine Cloud-Abhängigkeit, Keine Kosten)

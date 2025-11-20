@@ -6802,6 +6802,12 @@
     -fx-padding: 8px;
 }
 
+/* Weiß-Theme Seitenleiste - weißer Hintergrund */
+.weiss-theme .sidebar-header {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #ddd;
+}
+
 .sidebar-toggle-button {
     -fx-background-color: #f5f5f5;
     -fx-border-color: #ddd;
@@ -6825,7 +6831,17 @@
 .sidebar-title {
     -fx-font-size: 14px;
     -fx-font-weight: bold;
-    -fx-text-fill: #333;
+    -fx-text-fill: #000000;
+}
+
+/* Weiß-Theme Seitenleiste - explizit schwarze Textfarbe */
+.weiss-theme .sidebar-title {
+    -fx-text-fill: #000000;
+}
+
+/* Pastell-Theme Seitenleiste - dunkle Textfarbe */
+.pastell-theme .sidebar-title {
+    -fx-text-fill: #000000;
 }
 
 .chapter-list-view {
@@ -6853,61 +6869,86 @@
 }
 
 /* Theme-spezifische Anpassungen für Seitenleiste */
-.theme-1 .sidebar-header,
-.theme-3 .sidebar-header,
-.theme-4 .sidebar-header,
-.theme-5 .sidebar-header {
+.theme-dark .sidebar-header {
     -fx-background-color: #2a2a2a;
     -fx-border-color: #444;
 }
 
-.theme-1 .sidebar-title,
-.theme-3 .sidebar-title,
-.theme-4 .sidebar-title,
-.theme-5 .sidebar-title {
+/* Blau-Theme Seitenleiste */
+.theme-dark.blau-theme .sidebar-header {
+    -fx-background-color: #1e3a8a;
+    -fx-border-color: #3b82f6;
+}
+
+/* Grün-Theme Seitenleiste */
+.theme-dark.gruen-theme .sidebar-header {
+    -fx-background-color: #064e3b;
+    -fx-border-color: #10b981;
+}
+
+/* Lila-Theme Seitenleiste */
+.theme-dark.lila-theme .sidebar-header {
+    -fx-background-color: #4c1d95;
+    -fx-border-color: #8b5cf6;
+}
+
+.theme-dark .sidebar-title {
     -fx-text-fill: #ffffff;
 }
 
-.theme-1 .sidebar-toggle-button,
-.theme-3 .sidebar-toggle-button,
-.theme-4 .sidebar-toggle-button,
-.theme-5 .sidebar-toggle-button {
+.theme-dark .sidebar-toggle-button {
     -fx-text-fill: #cccccc;
 }
 
-.theme-1 .sidebar-toggle-button:hover,
-.theme-3 .sidebar-toggle-button:hover,
-.theme-4 .sidebar-toggle-button:hover,
-.theme-5 .sidebar-toggle-button:hover {
+.theme-dark .sidebar-toggle-button:hover {
     -fx-background-color: #3a3a3a;
 }
 
-.theme-1 .chapter-list-view,
-.theme-3 .chapter-list-view,
-.theme-4 .chapter-list-view,
-.theme-5 .chapter-list-view {
+.theme-dark .chapter-list-view {
     -fx-background-color: #1e1e1e;
 }
 
-.theme-1 .chapter-list-view .list-cell,
-.theme-3 .chapter-list-view .list-cell,
-.theme-4 .chapter-list-view .list-cell,
-.theme-5 .chapter-list-view .list-cell {
+.theme-dark .chapter-list-view .list-cell {
     -fx-text-fill: #ffffff;
 }
 
-.theme-1 .chapter-list-view .list-cell:hover,
-.theme-3 .chapter-list-view .list-cell:hover,
-.theme-4 .chapter-list-view .list-cell:hover,
-.theme-5 .chapter-list-view .list-cell:hover {
+.theme-dark .chapter-list-view .list-cell:hover {
     -fx-background-color: #2a2a2a;
 }
 
-.theme-1 .chapter-list-view .list-cell:selected,
-.theme-3 .chapter-list-view .list-cell:selected,
-.theme-4 .chapter-list-view .list-cell:selected,
-.theme-5 .chapter-list-view .list-cell:selected {
+.theme-dark .chapter-list-view .list-cell:selected {
     -fx-background-color: #1e3a5f;
+}
+
+/* Geänderte Kapitel - Theme-abhängige Farben */
+.chapter-list-view .list-cell.changed-chapter {
+    -fx-font-weight: bold;
+}
+
+.weiss-theme .chapter-list-view .list-cell.changed-chapter,
+.pastell-theme .chapter-list-view .list-cell.changed-chapter {
+    -fx-text-fill: #ff6b35;
+}
+
+.theme-dark .chapter-list-view .list-cell.changed-chapter {
+    -fx-text-fill: #ff8c69;
+}
+
+/* Aktuelles Kapitel - Theme-abhängige Markierung */
+.chapter-list-view .list-cell.current-chapter {
+    -fx-font-weight: bold;
+    -fx-border-width: 0 0 0 3px;
+}
+
+.weiss-theme .chapter-list-view .list-cell.current-chapter,
+.pastell-theme .chapter-list-view .list-cell.current-chapter {
+    -fx-background-color: rgba(74, 144, 226, 0.3);
+    -fx-border-color: rgba(74, 144, 226, 0.5);
+}
+
+.theme-dark .chapter-list-view .list-cell.current-chapter {
+    -fx-background-color: rgba(74, 144, 226, 0.4);
+    -fx-border-color: rgba(74, 144, 226, 0.7);
 }
 
 
