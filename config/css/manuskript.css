@@ -88,6 +88,12 @@
     -fx-fill: #6f42c1 !important;
 }
 
+/* Blockquote-Styling */
+.code-area .markdown-blockquote {
+    -fx-font-style: italic;
+    -fx-fill: #999999 !important; /* Hellgrau */
+}
+
 /* Heading-Styling für H1-H5 - Standard Theme */
 .code-area .heading-1 {
     -fx-font-size: 24px !important;
@@ -6784,10 +6790,19 @@
     -fx-text-decoration: line-through;
 }
 
-/* Markdown-Hervorhebung im Editor */
+/* Markdown-Hervorhebung im Editor (Textmarker) */
 .code-area .markdown-highlight {
-    -fx-background-color: #ffff00;
+    -rtfx-background-color: #ffeb3b; /* Blasseres Gelb für bessere Lesbarkeit */
     -fx-background-radius: 2px;
+}
+
+/* Theme-spezifische Textfarbe für Mark-Highlight */
+/* Dunkle Themes: schwarze Textfarbe auf gelbem Hintergrund für bessere Lesbarkeit */
+.theme-dark .code-area .markdown-highlight,
+.blau-theme .code-area .markdown-highlight,
+.gruen-theme .code-area .markdown-highlight,
+.lila-theme .code-area .markdown-highlight {
+    -fx-fill: #000000 !important; /* Schwarze Schrift auf gelbem Hintergrund */
 }
 
 /* Markdown-Kleinschrift im Editor */

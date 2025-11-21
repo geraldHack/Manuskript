@@ -1259,6 +1259,8 @@ public class PandocExportWindow extends CustomStage {
             // HTML-Tags ersetzen basierend auf dem Ausgabeformat
             if ("pdf".equals(format)) {
                 // Für PDF: LaTeX-Befehle verwenden
+                // <c> und <center> Tags zu LaTeX-Zentrierung konvertieren
+                content = content.replaceAll("(?s)<(?:c|center)>(.*?)</(?:c|center)>", "\\\\begin{center}$1\\\\end{center}");
                 content = content.replaceAll("<u>([^<]+)</u>", "\\\\underline{$1}");
                 content = content.replaceAll("<b>([^<]+)</b>", "\\\\textbf{$1}");
                 content = content.replaceAll("<i>([^<]+)</i>", "\\\\textit{$1}");
@@ -1421,8 +1423,9 @@ public class PandocExportWindow extends CustomStage {
                     content = content.substring(0, start) + entry.getValue() + content.substring(end);
                 }
             } else if ("epub3".equals(format) || "html5".equals(format) || "epub".equals(format) || "html".equals(format)) {
-                // Für EPUB/HTML: HTML-Tags beibehalten
-                // Keine Ersetzung nötig
+                // Für EPUB/HTML: <c> Tags zu <center> konvertieren (HTML-Standard)
+                content = content.replaceAll("(?s)<c>(.*?)</c>", "<center>$1</center>");
+                // <center> Tags bleiben erhalten (HTML-Standard)
             }
             
             // Nur schreiben wenn sich etwas geändert hat

@@ -4379,6 +4379,15 @@ if (caret != null) {
                 }
             }
             
+            // Prüfe auf <c> oder <center> Tags
+            Pattern centerPattern = Pattern.compile("(?s)<(?:c|center)>(.*?)</(?:c|center)>");
+            Matcher centerMatcher = centerPattern.matcher(line);
+            if (centerMatcher.find()) {
+                String centerText = centerMatcher.group(1);
+                html.append("<div style=\"text-align: center;\">").append(convertInlineMarkdown(centerText)).append("</div>\n");
+                continue;
+            }
+            
             // Überschriften
             if (trimmedLine.startsWith("# ")) {
                 html.append("<h1>").append(convertInlineMarkdown(trimmedLine.substring(2))).append("</h1>\n");
@@ -10410,8 +10419,9 @@ spacer.setStyle("-fx-background-color: transparent;");
             Matcher htmlMarkMatcher = htmlMarkPattern.matcher(content);
             
             while (htmlMarkMatcher.find()) {
-                int start = htmlMarkMatcher.start() + 6; // Nach <mark>
-                int end = htmlMarkMatcher.end() - 7;     // Vor </mark>
+                // Verwende start(1) und end(1) für Gruppe 1 (Text zwischen den Tags)
+                int start = htmlMarkMatcher.start(1); // Start des Textes zwischen den Tags
+                int end = htmlMarkMatcher.end(1);     // Ende des Textes zwischen den Tags
                 if (end > start) {
                     boolean alreadyCovered = markdownMatches.stream().anyMatch(m -> 
                         (start >= m.start && start < m.end) || (end > m.start && end <= m.end) ||
@@ -10427,8 +10437,9 @@ spacer.setStyle("-fx-background-color: transparent;");
             Matcher htmlSizeMatcher = htmlSizePattern.matcher(content);
             
             while (htmlSizeMatcher.find()) {
-                int start = htmlSizeMatcher.start() + 7; // Nach <small> oder <big>
-                int end = htmlSizeMatcher.end() - 8;     // Vor </small> oder </big>
+                // Verwende start(2) und end(2) für Gruppe 2 (Text zwischen den Tags)
+                int start = htmlSizeMatcher.start(2); // Start des Textes zwischen den Tags
+                int end = htmlSizeMatcher.end(2);     // Ende des Textes zwischen den Tags
                 if (end > start) {
                     String tag = htmlSizeMatcher.group(1);
                     boolean alreadyCovered = markdownMatches.stream().anyMatch(m -> 
@@ -10440,45 +10451,51 @@ spacer.setStyle("-fx-background-color: transparent;");
                 }
             }
             
+            // Blockquote-Pattern: > Text (zeilenbasiert)
+            Pattern blockquotePattern = Pattern.compile("^>\\s*(.+)$", Pattern.MULTILINE);
+            Matcher blockquoteMatcher = blockquotePattern.matcher(content);
+            
+            while (blockquoteMatcher.find()) {
+                int start = blockquoteMatcher.start(1); // Start des Textes nach >
+                int end = blockquoteMatcher.end(1);     // Ende des Textes
+                if (end > start) {
+                    boolean alreadyCovered = markdownMatches.stream().anyMatch(m -> 
+                        (start >= m.start && start < m.end) || (end > m.start && end <= m.end) ||
+                        (start <= m.start && end >= m.end));
+                    if (!alreadyCovered) {
+                        markdownMatches.add(new MarkdownMatch(start, end, "markdown-blockquote"));
+                    }
+                }
+            }
+            
             // Sortiere Markdown-Matches nach Position
             markdownMatches.sort((a, b) -> Integer.compare(a.start, b.start));
-            
-            // Wenn keine Markdown-Matches vorhanden sind, nichts tun
-            if (markdownMatches.isEmpty()) {
-                return; // Keine Markdown-Matches = keine Änderungen
-            }
             
             // Hole existierende StyleSpans (Textanalyse-Markierungen)
             StyleSpans<Collection<String>> existingSpans = codeArea.getStyleSpans(0, codeArea.getLength());
             
-            // Prüfe ob Textanalyse-Markierungen vorhanden sind
-            boolean hasTextAnalysis = false;
-            for (StyleSpan<Collection<String>> span : existingSpans) {
-                for (String style : span.getStyle()) {
-                    if (style.startsWith("search-") || style.startsWith("highlight-") || 
-                        style.equals("word-repetition") || style.startsWith("analysis-")) {
-                        hasTextAnalysis = true;
-                        break;
-                    }
-                }
-                if (hasTextAnalysis) break;
-            }
-            
-            // EINFACHE LÖSUNG: Sammle alle existierenden Styles und füge Markdown hinzu
+            // EINFACHE LÖSUNG: Sammle alle existierenden Styles und entferne Markdown-Styles
             StyleSpansBuilder<Collection<String>> spansBuilder = new StyleSpansBuilder<>();
             int currentPos = 0;
             
             // Sammle alle existierenden Styles (Suchen, Textanalyse, etc.)
+            // WICHTIG: Entferne dabei alle Markdown-Styles, damit sie nicht mehr angezeigt werden
             Map<Integer, Set<String>> existingStyles = new HashMap<>();
             for (StyleSpan<Collection<String>> span : existingSpans) {
                 for (int i = 0; i < span.getLength(); i++) {
                     int pos = currentPos + i;
-                    existingStyles.put(pos, new HashSet<>(span.getStyle()));
+                    Set<String> styles = new HashSet<>(span.getStyle());
+                    // Entferne alle Markdown-Styles (werden später neu hinzugefügt, wenn Matches vorhanden sind)
+                    styles.removeIf(style -> style.startsWith("markdown-") || 
+                                        style.startsWith("heading-"));
+                    if (!styles.isEmpty()) {
+                        existingStyles.put(pos, styles);
+                    }
                 }
                 currentPos += span.getLength();
             }
             
-            // Füge Markdown-Styles zu existierenden Styles hinzu
+            // Füge Markdown-Styles zu existierenden Styles hinzu (nur wenn es Matches gibt)
             for (MarkdownMatch match : markdownMatches) {
                 for (int i = match.start; i < match.end; i++) {
                     existingStyles.computeIfAbsent(i, k -> new HashSet<>()).add(match.styleClass);
@@ -11078,6 +11095,7 @@ spacer.setStyle("-fx-background-color: transparent;");
         // Stack für verschachtelte Listen (0 = keine Liste, 1 = erste Ebene, etc.)
         List<Integer> listStack = new ArrayList<>(); // 1 = unordered, 2 = ordered
         List<Integer> indentStack = new ArrayList<>(); // Einrückungsebene
+        boolean previousWasListItem = false; // Merkt, ob die vorherige Zeile ein Listenelement war
         
         for (int i = 0; i < lines.length; i++) {
             String line = lines[i];
@@ -11241,6 +11259,11 @@ spacer.setStyle("-fx-background-color: transparent;");
             boolean isOrderedListItem = line.matches("^\\s*\\d+\\.\\s+.*");
             
             if (isUnorderedListItem || isOrderedListItem) {
+                // Schließe vorheriges <li>, falls offen
+                if (previousWasListItem) {
+                    html.append("</li>\n");
+                    previousWasListItem = false;
+                }
                 if (inParagraph) {
                     html.append("</p>\n");
                     inParagraph = false;
@@ -11283,22 +11306,26 @@ spacer.setStyle("-fx-background-color: transparent;");
                     }
                     listStack.add(newListType);
                     indentStack.add(indentLevel);
-                } else if (!listStack.isEmpty() && listStack.get(listStack.size() - 1) != newListType && indentLevel == indentStack.get(indentStack.size() - 1)) {
-                    // Listen-Typ ändert sich auf gleicher Ebene - alte Liste schließen, neue öffnen
-                    int oldListType = listStack.remove(listStack.size() - 1);
-                    indentStack.remove(indentStack.size() - 1);
-                    if (oldListType == 1) {
-                        html.append("</ul>\n");
-                    } else if (oldListType == 2) {
-                        html.append("</ol>\n");
+                } else if (!listStack.isEmpty() && indentLevel == indentStack.get(indentStack.size() - 1)) {
+                    // Gleiche Ebene - prüfe ob Listen-Typ sich ändert
+                    if (listStack.get(listStack.size() - 1) != newListType) {
+                        // Listen-Typ ändert sich auf gleicher Ebene - alte Liste schließen, neue öffnen
+                        int oldListType = listStack.remove(listStack.size() - 1);
+                        indentStack.remove(indentStack.size() - 1);
+                        if (oldListType == 1) {
+                            html.append("</ul>\n");
+                        } else if (oldListType == 2) {
+                            html.append("</ol>\n");
+                        }
+                        if (newListType == 1) {
+                            html.append("<ul>\n");
+                        } else {
+                            html.append("<ol>\n");
+                        }
+                        listStack.add(newListType);
+                        indentStack.add(indentLevel);
                     }
-                    if (newListType == 1) {
-                        html.append("<ul>\n");
-                    } else {
-                        html.append("<ol>\n");
-                    }
-                    listStack.add(newListType);
-                    indentStack.add(indentLevel);
+                    // Wenn Listen-Typ gleich ist, bleibt die Liste offen - nichts zu tun!
                 }
                 
                 // List-Item hinzufügen
@@ -11308,10 +11335,56 @@ spacer.setStyle("-fx-background-color: transparent;");
                 } else {
                     listItem = trimmedLine.replaceFirst("^\\d+\\.\\s+", "");
                 }
-                html.append("<li>").append(convertInlineMarkdownForPreview(listItem)).append("</li>\n");
+                // Öffne <li> aber schließe es nicht sofort - könnte eingerückten Text geben
+                html.append("<li>").append(convertInlineMarkdownForPreview(listItem));
+                previousWasListItem = true;
                 continue;
             } else {
-                // Kein List-Item - schließe alle offenen Listen
+                // Prüfe zuerst auf Leerzeile - Liste bleibt offen
+                if (trimmedLine.isEmpty() && !listStack.isEmpty()) {
+                    previousWasListItem = false;
+                    continue; // Liste bleibt offen, keine Aktion nötig
+                }
+                
+                // Prüfe, ob eingerückter Text innerhalb einer Liste ist
+                // Laut Markdown-Spezifikation: Text mit mindestens 4 Leerzeichen Einrückung
+                // nach einem Listenelement ist Teil dieses Listenelements
+                if (!trimmedLine.isEmpty() && !listStack.isEmpty()) {
+                    int indentLevel = 0;
+                    for (int j = 0; j < line.length(); j++) {
+                        char c = line.charAt(j);
+                        if (c == ' ') {
+                            indentLevel++;
+                        } else if (c == '\t') {
+                            indentLevel += 4; // Tab = 4 Leerzeichen
+                        } else {
+                            break;
+                        }
+                    }
+                    
+                    // Wenn der Text mindestens 4 Leerzeichen eingerückt ist,
+                    // ist es Teil des Listenelements (Fortsetzung)
+                    if (indentLevel >= 4) {
+                        // Text als Absatz innerhalb des letzten <li> Elements hinzufügen
+                        // Das <li> wurde noch nicht geschlossen, also können wir den Text direkt anhängen
+                        html.append("<p style=\"margin: 0.5em 0 0 0;\">").append(convertInlineMarkdownForPreview(line.trim())).append("</p>");
+                        previousWasListItem = true; // Immer noch im Listenelement
+                        continue; // WICHTIG: continue, damit die Liste nicht geschlossen wird!
+                    }
+                }
+                
+                // Wenn wir hier ankommen und previousWasListItem true ist, schließe das <li>
+                if (previousWasListItem) {
+                    html.append("</li>\n");
+                    previousWasListItem = false;
+                }
+                
+                // Kein List-Item, keine Leerzeile, nicht eingerückt - schließe alle offenen Listen
+                // Schließe zuerst offenes <li>, falls vorhanden
+                if (previousWasListItem) {
+                    html.append("</li>\n");
+                    previousWasListItem = false;
+                }
                 while (!listStack.isEmpty()) {
                     int listType = listStack.remove(listStack.size() - 1);
                     indentStack.remove(indentStack.size() - 1);
@@ -11321,6 +11394,19 @@ spacer.setStyle("-fx-background-color: transparent;");
                         html.append("</ol>\n");
                     }
                 }
+            }
+            
+            // Prüfe auf <c> oder <center> Tags
+            Pattern centerPattern = Pattern.compile("(?s)<(?:c|center)>(.*?)</(?:c|center)>");
+            Matcher centerMatcher = centerPattern.matcher(line);
+            if (centerMatcher.find()) {
+                if (inParagraph) {
+                    html.append("</p>\n");
+                    inParagraph = false;
+                }
+                String centerText = centerMatcher.group(1);
+                html.append("<div style=\"text-align: center;\">").append(convertInlineMarkdownForPreview(centerText)).append("</div>\n");
+                continue;
             }
             
             // Überschriften
@@ -11365,6 +11451,10 @@ spacer.setStyle("-fx-background-color: transparent;");
         if (inBlockquote) html.append("</blockquote>\n");
         
         // Schließe alle offenen Listen
+        // Schließe zuerst offenes <li>, falls vorhanden
+        if (previousWasListItem) {
+            html.append("</li>\n");
+        }
         while (!listStack.isEmpty()) {
             int listType = listStack.remove(listStack.size() - 1);
             if (listType == 1) {
