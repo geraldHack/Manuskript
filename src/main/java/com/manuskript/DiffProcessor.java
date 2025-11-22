@@ -16,7 +16,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import javafx.application.Platform;
 
 /**
  * Verarbeitet Diff-Operationen zwischen DOCX-Dateien und Sidecar-Dateien

@@ -16,11 +16,9 @@ public class Plugin {
     private double temperature;
     private int maxTokens;
     private boolean enabled;
-    private Map<String, String> variables;
     private List<PluginVariable> variableDefinitions;
     
     public Plugin() {
-        this.variables = new HashMap<>();
         this.variableDefinitions = new ArrayList<>();
     }
     
@@ -33,7 +31,6 @@ public class Plugin {
         this.temperature = temperature;
         this.maxTokens = maxTokens;
         this.enabled = enabled;
-        this.variables = new HashMap<>();
         this.variableDefinitions = new ArrayList<>();
     }
     

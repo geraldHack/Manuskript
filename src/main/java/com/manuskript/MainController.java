@@ -1,19 +1,14 @@
 package com.manuskript;
 
-import javafx.beans.property.BooleanProperty;
 import javafx.beans.binding.Bindings;
-import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
-import javafx.collections.transformation.FilteredList;
-import javafx.collections.transformation.SortedList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -21,7 +16,6 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.Node;
 import javafx.scene.control.*;
-import javafx.scene.control.Alert.AlertType;
 import javafx.scene.Cursor;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
@@ -36,7 +30,6 @@ import javafx.scene.layout.VBox;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
-import javafx.scene.layout.StackPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.image.Image;
@@ -45,25 +38,18 @@ import javafx.stage.FileChooser;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Screen;
 import javafx.geometry.Rectangle2D;
-import javafx.scene.control.ListCell;
-import javafx.scene.control.SplitPane;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 import javafx.stage.Modality;
 import javafx.stage.Window;
 import javafx.stage.WindowEvent;
-import javafx.scene.web.WebView;
 import javafx.application.Platform;
-import javafx.scene.image.ImageView;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.Optional;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Set;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import java.io.File;
@@ -76,13 +62,11 @@ import java.util.ResourceBundle;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.prefs.Preferences;
-import com.manuskript.HelpSystem;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.TextAlignment;
@@ -101,11 +85,6 @@ import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
-import com.manuskript.DocxSplitProcessor;
-import com.manuskript.DocxSplitProcessor.Chapter;
-import com.manuskript.RtfSplitProcessor;
-import java.util.LinkedHashMap;
 import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
 import javafx.scene.control.cell.CheckBoxTableCell;
@@ -802,6 +781,9 @@ public class MainController implements Initializable {
                                 
                                 event.consume();
                             }
+                            break;
+                        default:
+                            // Alle anderen Tasten ignorieren
                             break;
                     }
                 }

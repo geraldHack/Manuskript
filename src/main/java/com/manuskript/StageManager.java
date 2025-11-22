@@ -1,7 +1,6 @@
 package com.manuskript;
 
 import javafx.stage.Stage;
-import javafx.stage.StageStyle;
 import javafx.stage.Modality;
 import javafx.stage.Window;
 import javafx.scene.Scene;

@@ -9,22 +9,14 @@ import javafx.scene.layout.*;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.stage.FileChooser;
-import javafx.stage.Stage;
-import javafx.stage.StageStyle;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
-import org.fxmisc.richtext.model.StyleSpans;
-import org.fxmisc.richtext.model.StyleSpansBuilder;
-
 import java.io.File;
-import java.util.Collection;
-import java.util.Collections;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.manuskript.ResourceManager;
 
 /**
  * Einfacher Plugin Editor - OHNE JSON, OHNE VALIDIERUNG, OHNE SYNTAX-HIGHLIGHTING

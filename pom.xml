@@ -175,9 +175,6 @@
                 <configuration>
                     <source>21</source>
                     <target>21</target>
-                    <compilerArgs>
-                        <arg>-Xlint:-incomplete-switch</arg>
-                    </compilerArgs>
                 </configuration>
             </plugin>
             

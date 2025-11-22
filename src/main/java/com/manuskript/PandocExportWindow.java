@@ -45,8 +45,6 @@ import java.util.Map;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
-import com.manuskript.HelpSystem;
-import com.manuskript.CustomAlert;
 
 public class PandocExportWindow extends CustomStage {
     private static final Logger logger = LoggerFactory.getLogger(PandocExportWindow.class);

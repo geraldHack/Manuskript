@@ -463,7 +463,7 @@ Kata hob die Augenbrauen. »Ich nenne das Haushaltsführung.«
 
 Sie nippten eine Weile schweigend an ihren Tassen. Ayen war inzwischen dabei, mit ausgestreckten Armen hinter zwei Pfauen gleichzeitig herzulaufen. Zum Glück ließ er sie am Boden.
 
-»Er kommt jeden Tag«, sagte Jomar plötzlich.
+»Er kommt jeden Tag«, sagte Jomar unvermittelt.
 
 Kata musste nicht fragen, wen er meinte. Efret kam in Sichtweite – er schlenderte barfuß über den Rasen, seine Robe mal wieder auf links, einen Stein in der Hand, den er dem Pfau anbot, der Ayen zu entkommen versuchte. Der Pfau zeigte keinerlei Interesse an dem Stein.
 
@@ -591,7 +591,7 @@ Sie lehnte sich zurück. »Es gibt eine Fraktion. Die sich ›Lakan den Zauberer
 
 »Märtyrer? Er ist, soweit wir wissen, gar nicht tot«, warf Jomar ein.
 
-»Für seine Anhänger schon. Sie behaupten, wir hätten ihn bestialisch ermordet. Das passt besser in ihr Weltbild als ein Anführer, der seine Kräfte verloren hat. Stellt euch mal vor, er kehrte zurück – machtlos, ein gewöhnlicher Mensch. Das würde ihnen nicht gefallen. Sie brauchen ihn als Märtyrer. Ich glaube, wenn er wirklich zurückkehrte, würden sie ihn ohne viel Federlesens beseitigen.«
+»Für seine Anhänger schon. Sie behaupten, wir hätten ihn bestialisch ermordet. Das passt besser in ihr Weltbild als ein Anführer, der seine Kräfte verloren hat. Stellt euch mal vor, er kehrte zurück – machtlos, ein gewöhnlicher Mensch. Das würde ihnen nicht gefallen. Sie brauchen ihn als Märtyrer. Ich glaube, wenn er wirklich zurückkehrte, würden sie ihn ohne viel Federlesens verschwinden lassen.«
 
 Marina schwieg einen Moment. Sie sah aus, als müsse sie ihre nächsten Worte abwägen. »Anscheinend gibt es in Efrets Beraterstab eine undichte Stelle.«
 
@@ -617,7 +617,7 @@ Kata, Jomar und Marina stürzten gleichzeitig auf die Veranda und von dort in de
 
 Ayen saß auf dem Boden, die Beine überkreuzt, den Rücken gerade, die Augen weit offen. Die bekannte, gefürchtete Haltung.
 
-Tivan, Sorin und Maela – seine Spielkameraden – saßen hoch oben in den Ästen dreier verschiedener Bäume. Weinend. Zitternd.
+Tivan, Sorin und Maela – seine Spielkameraden – saßen hoch oben in den Ästen dreier verschiedener Bäume. Weinend und zitternd.
 
 Zwei Mütter hatten am Rand der Wiese gestanden und stürmten nun herbei, entsetzt.
 
@@ -670,7 +670,6 @@ Und über allem lag die Ahnung, dass dies nur der Anfang gewesen war.
 
 # Stimmen im Rat
 
-
 »Zur Ordnung!« Der Ruf hallte durch den Saal. Die Halle des Zaubererrats war erfüllt vom gedämpften Murmeln. Es war einer dieser seltenen Tage, an denen alle Plätze besetzt waren. Efret saß auf seinem Platz, die Robe wie immer unordentlich, der Blick wie immer abwesend. Doch heute war etwas anders. Ayens rätselhafte Kräfte hatten sich herumgesprochen. Efret hatte mit seinen Beratern über das Kind geredet, und offensichtlich war die zuvor niemals gebrochene Vertraulichkeit, nicht mehr gegeben. Neben dem ›Kinder-in-den-Baum-versetzten‹ hatte es auch andere Vorfälle gegeben: fliegende Pfaue, ein Brunnen, aus dem plötzlich eine Fontäne sprudelte. Doch auch andere Begebenheiten wurden mittlerweile dem Jungen angelastet, obwohl er ziemlich sicher nichts damit zu tun hatte. Man machte ihn sogar für versalzenes Essen in der Palastküche verantwortlich.
 
 Ein Zauberer mittleren Alters erhob sich. Seine Stimme war ruhig, aber deutlich: »Mit allem gebührenden Respekt: Der Vorfall gestern hat gezeigt, wie gefährlich es war, Ayen in den Palast einzuladen. Das Kind ist unberechenbar – und seine Kräfte stellen ein Risiko dar, nicht nur für uns, sondern für die ganze Stadt.«
@@ -721,7 +720,7 @@ Ayen, nur mit einer Hose bekleidet und mit einem Stück Apfel in der Faust, star
 
 Jomar musterte den Wächter, zog eine Braue hoch. »Und du bist …?«
 
-“Almin”, sagte Almin, sonst nichts. Keine Verbeugung, kein Gruß, kein Versuch, Konversation zu machen.
+»Almin«, sagte Almin, sonst nichts. Keine Verbeugung, kein Gruß, kein Versuch, Konversation zu machen.
 
 Kata trat einen Schritt beiseite. »Willkommen.«
 
@@ -1015,7 +1014,7 @@ Und sie wussten alle: Das, was kommen würde, war größer als alles, was sie bi
 # Die Falle
 »Habt ihr noch Platz für eine alte Kräuterhexe?«, fragte Marina zur Begrüßung. Wie immer trug sie einen Korb – diesmal gefüllt mit kandierten Früchten, Honigplätzchen und Pfefferminzblättern in Zuckerglasur. Kaum hatte sie den Deckel angehoben, streckte Ayen die Hand aus. Marina reichte ihm mit verschwörerischem Lächeln eine Handvoll. Kata räusperte sich. »Marina …«, begann sie warnend. Jomar hob eine Augenbraue. »Du verwöhnst ihn.«
 
-»Ich weiß«, gab Marina zurück. »Aber ich habe keine eigenen Enkel, wenn man dich nicht mitzählt. Ich nehme, was ich kriegen kann.«
+»Ich weiß«, gab Marina zurück. »Aber ich habe keine eigenen Enkel, wenn man Kata nicht mitzählt. Ich nehme, was ich kriegen kann.«
 
 Ayen schnappte sich ein Honigplätzchen und verschwand unter dem Tisch.
 
@@ -1041,9 +1040,9 @@ Ein kurzes Klopfen ertönte an der Tür. Ein junger Bote in schlichter Robe betr
 
 »Der Meister verlangt, das Kind sofort zu sehen«, sagte der Bote mechanisch. »Die Eltern brauchen nicht anwesend zu sein.«
 
-»Ayen geht ganz bestimmt nirgendwohin ohne uns.« Jomar stellte sich demonstrativ vor seinen Sohn.
+»Ayen geht ganz bestimmt nirgendwohin unbegleitet hin.« Jomar stellte sich demonstrativ vor seinen Sohn. Es war schön öfters vorgekommen, dass Efret den Jungen zu sich hatte rufen lassen, aber niemals hatte er verlangt, das kind solle ohne Begleitung zu ihm kommen.
 
-Marina erhob sich langsam. Ihre Stimme war ruhig. »Dann begleite ich ihn.«
+Marina erhob sich langsam. Ihre Stimme war ruhig. »Ich begleite ihn.«
 
 Almin trat aus dem Nebenraum. »Ich komme mit.«
 
@@ -1053,7 +1052,7 @@ Almin nickte langsam. »Du führst, ich sichere.«
 
 Marina streckte Ayen die Hand hin. »Komm. Es wird nicht lange dauern.«
 
-Ayen blickte fragend von Kata zu Jomar, suchte in ihren Zügen nach Zustimmung. Kata senkte leicht den Kopf. Jomar ballte die Fäuste. Erst dann ergriff Ayen Marinas Hand.
+Ayen blickte fragend von Kata zu Jomar, suchte in ihren Zügen nach Zustimmung. Kata nickte. Erst dann ergriff Ayen Marinas Hand.
 
 Sie verließen das Palais über die Terrasse, gingen quer durch den Park und durch das Tor, das zum inneren Hof führte. Die Sonne war milchig geworden, ein Dunst lag über den Wegen. Marina hielt Ayen eng an sich. Sie spürte es zuerst – das Flimmern in der Luft, das Knistern unter der Haut.
 
@@ -1063,7 +1062,9 @@ Marina blieb stehen. »Eine Falle also.«
 
 Niemand antwortete.
 
-Sie schob Ayen hinter sich, schob ihn mit einem leichten Impuls eines Schutzzaubers in Sicherheit. »Du bleibst hier. Ganz ruhig.«
+Sie schob Ayen hinter sich, umhüllte ihn mit einem Schutzzauber. 
+
+»Du bleibst hier. Ganz ruhig.«
 
 Almin stellte sich an Marinas Seite, die Hände bereits erhoben. Als die erste Welle kam – drei Zauber gleichzeitig: Feuer, Wind, Splitter – zog er ein flaches Schutzfeld auf, das sich mit Marinas Schild überlappte. Die Explosion krachte gegen die doppelte Barriere, der Boden bebte unter ihren Füßen.
 
@@ -1158,7 +1159,7 @@ Sie nickte stumm.
 
 »Zehn Magier! Zehn Tote!« – der Aufschrei hallte noch durch den Saal, als die Ratsmitglieder hastig ihre Plätze suchten.
 
-Noch am selben Tag rief der Rat eine Dringlichkeitssitzung ein. Der große Versammlungssaal füllte sich schneller als sonst, die Mienen waren angespannt, Stimmen laut, einige schrill. Jaad betrat den Saal gemeinsam mit Kala. Beide setzten sich wie immer auf die hinteren Ränge.
+Noch am selben Tag hatte der Rat eine Dringlichkeitssitzung einberufen. Der große Versammlungssaal füllte sich schneller als sonst, die Mienen waren angespannt, Stimmen laut, einige schrill. Jaad betrat den Saal gemeinsam mit Kala. Beide setzten sich wie immer auf die hinteren Ränge.
 
 Einer der Ratsmitglieder hatte sich bereits erhoben und rief mit bebender Stimme: »Zehn Magier, zehn gute Kollegen, wurden heute von dem Kind vernichtet! Einfach so! Ohne Vorwarnung! Und dabei wurde der halbe Palast in Schutt gelegt. Man sucht noch immer nach Opfern unter den Trümmern!«
 
@@ -1178,9 +1179,9 @@ Ein älterer Magier erhob sich. »Und der vermeintliche Angriff auf Malvek? Auch
 
 Ein junger Mann sprang auf. Der ausgestreckte Arm zitterte, die Augen glühten. Er zeigte auf Jaad.
 
-»Das alles sind genau die Lügen, mit denen Efret seine Unfähigkeit zu verschleiern sucht. Und er und seine Lieblingsschülerin versuchen, den Ruf ehrenwerter Magier in den Dreck zu ziehen.«
+»Das sind genau die Lügen, mit denen Efret seine Unfähigkeit zu verschleiern sucht. Und er und seine Lieblingsschülerin versuchen, den Ruf ehrenwerter Magier in den Dreck zu ziehen.«
 
-Ein Raunen ging durch den Saal. Dann sprang ein anderer auf. »Efret hat die Kontrolle verloren! Sein Günstlingskind zerstört unsere Hallen! Was kommt als Nächstes? Die Vernichtung der Stadt? Seine eigene Erhebung zum Gott?«
+Ein Raunen ging durch den Saal. Dann sprang ein anderer auf. »Efret hat die Kontrolle verloren! Sein Dämonenkind zerstört unsere Hallen! Was kommt als Nächstes? Die Vernichtung der Stadt? Seine eigene Erhebung zum Gott?«
 
 »Rücktritt!«, rief jemand. »Rücktritt jetzt!«
 
@@ -1242,53 +1243,54 @@ Efret stand allein. Die ersten Feuerbälle trafen ihn. Flammen hüllten ihn ein.
 
 
 # Flucht nach Königsstadt
+
 Jaad eilte durch den Palast in Richtung des Parks und der Gästeunterkünfte. Sie presste die Dokumente an ihre Brust.
 
 *Efret ist tot.* Es fiel ihr schwer, diesen Satz auch nur zu denken. Bald schon würde sie ihn aussprechen müssen.
 
 Sie durchquerte den Park, bis sie Katas und Jomars Haus erreicht hatte. Einer der vor dem Haus postierten Kampfzauberer erkannte sie und ließ sie durch den Schutzring. Sie öffnete die Tür, doch als Kata sie sah, deutete sie ihr an, draußen zu bleiben. Kata kam heraus und dicht hinter ihr folgte Jomar, der die Tür hinter sich schloss. Sicherlich wollten sie Ayen nicht bei dem folgenden Gespräch dabeihaben.
 
-»Efret ist tot.«
+"Efret ist tot."
 
 Jomar schwieg. Er wusste nicht, was er sagen sollte. Sein Kopf war wie leer gefegt.
 
-Kata sprang ihm bei: »Was ist passiert?«
+Kata sprang ihm bei: "Was ist passiert?"
 
-»Ein Aufstand. Dabei war Efret sogar zurückgetreten. Aber das war ihnen nicht genug. Efret wäre auch ein gefährlicher Gegner, ohne oberster Zauberer zu sein. Es waren jede Menge getarnte Kampfzauberer unter den Ratsmitgliedern. Sie hatte niemals eine friedliche Machtübernahme geplant.«
+"Ein Aufstand. Dabei war Efret sogar zurückgetreten. Aber das war ihnen nicht genug. Efret wäre auch ein gefährlicher Gegner, ohne oberster Zauberer zu sein. Es waren jede Menge getarnte Kampfzauberer unter den Ratsmitgliedern. Sie hatte niemals eine friedliche Machtübernahme geplant."
 
-Jaad sah zu Boden. »Er hat sich nicht einmal gewehrt.«
+Jaad sah zu Boden. "Er hat sich nicht einmal gewehrt."
 
-»Was sollen wir jetzt machen?« Jomar hatte seine Sprache wiedergefunden.
+"Was sollen wir jetzt machen?" Jomar hatte seine Sprache wiedergefunden.
 
-»Packt eure Sachen. In spätestens 10 Minuten müssen wir aufbrechen. Ich weiß nicht, wo sie ihre Leute schon postiert haben, aber der Angriff war geplant. Also weiß ich nicht, ob sie ihre Leute auch schon an anderen Orten Stellung gebracht haben. Wir müssen zum Portal. Ich habe einen Passierschein.«
+"Packt eure Sachen. In höchstens 10 Minuten müssen wir aufbrechen. Der Angriff ist geplant, daher ist unklar, wo ihre Leute bereits positioniert sind. Wir müssen zum Portal. Ich habe einen Passierschein."
 
-»Ich komme mit«, sagte Almin, grimmig nickend.
+"Ich komme mit", sagte Almin, grimmig nickend.
 
-»Das ist gut«, sagte Jaad. »Wir können jede Hand und jeden Zauber gebrauchen.«
+"Das ist gut", sagte Jaad. "Wir können jede Hand und jeden Zauber gebrauchen."
 
 Während Kata und Jomar durch das Haus eilten und Sachen zusammentrugen, ging Jaad zu Ayen hinüber.
 
-»Tante Jaad, was ist los? Warum rennen Mama und Papa so wild herum? Das macht mir Angst.«
+"Tante Jaad, was ist los? Warum rennen Mama und Papa so wild herum? Das macht mir Angst."
 
-»Du brauchst keine Angst zu haben. Wir machen eine Reise. Suche deine liebsten Spielsachen zusammen.«
+"Du brauchst keine Angst zu haben. Wir machen eine Reise. Suche deine liebsten Spielsachen zusammen."
 
 Jomar kam mit einer Axt in das Wohnzimmer. Jaad war sich nicht sicher, was sie davon halten sollte. Doch Jomar ging an ihr vorbei auf ein hölzernes Wandpaneel zu und begann, es mit schwungvollen Schlägen in Kleinholz zu verwandeln.
 
 Dahinter erschien eine Vertiefung, in der mehrere schlichte Ledersäcke lagen. Er nahm sie heraus und verstaute sie in einem Schulterbeutel.
 
-»Ich hab’ ein paar Säcke Gold eingelagert. Man weiß ja nie. Ich glaube nicht, dass ich noch lange Zugriff auf mein Konto bei der Zauberebank haben werde.«
+"Ich hab' ein paar Säcke Gold eingelagert. Man weiß ja nie. Ich glaube nicht, dass ich noch lange Zugriff auf mein Konto bei der Zauberebank haben werde."
 
-»Sehr vorausschauend«, lobte Jaad.
+"Sehr vorausschauend", lobte Jaad.
 
 Jaad, Almin, Kata, Jomar und Ayen verließen das Gästehaus so unauffällig wie möglich – was angesichts eines Palastes in Aufruhr und eines weinenden, verstörten Kindes eine Herausforderung darstellte. Der Weg zum Portalsaal führte sie quer durch den inneren Bereich des Palastes, vorbei an Statuen, Versammlungshallen, Gängen voller Erinnerungen – und verunsicherter Zauberer.
 
 Sie begegneten mehreren Ratsmitgliedern, Zauberinnen, Dienern und Gesandten, deren Gesichter Schwankungen zwischen Ratlosigkeit, Furcht und aufkeimender Aggression zeigten. Viele wichen ihnen aus, einige flüsterten – doch niemand stellte sich ihnen in den Weg. Noch nicht.
 
-»Da sind sie«, hörte Jomar jemanden zischen. »Die mit dem Kind.«
+"Da sind sie", hörte Jomar jemanden zischen. "Die mit dem Kind."
 
-»Sie gehen zum Portal, wollen sich davonmachen.«
+"Sie gehen zum Portal, wollen sich davonmachen."
 
-Erste Anfeindungen flogen ihnen entgegen: »Verräter!«, »Bringt ihr den nächsten Krieg?«, »Zaubererblut klebt an euren Händen!«
+Erste Anfeindungen flogen ihnen entgegen: "Verräter!", "Bringt ihr den nächsten Krieg?", "Zaubererblut klebt an euren Händen!"
 
 Doch sie blieben, zumindest körperlich, unbehelligt – bis sie den Vorraum zum Portal erreichten.
 
@@ -1298,65 +1300,65 @@ Zwei sehr junge Männer in dunkelblauen Roben standen dort. Sie waren keine Wach
 
 Die beiden Jungen gaben sich nun alle Mühe, bedrohlich zu klingen:
 
-»Das sind sie!«, rief der eine. »Halt! Ergebt euch!«
+"Das sind sie!", rief der eine. "Halt! Ergebt euch!"
 
 Almin, der neben Jaad stand, nahm Kampfhaltung an, doch Jaad legte einen Arm auf seine Schulter und schüttelte leicht den Kopf. Der Kampfzauberer ließ die Arme sinken.
 
-»Ich habe hier einen Passierschein, vom obersten Zauberer persönlich ausgestellt.«
+"Ich habe hier einen Passierschein, vom obersten Zauberer persönlich ausgestellt."
 
 Jaad trat vor, hob mit gespielter Überlegenheit den Passierschein und hielt ihn dem Wortführer hin. Er streckte die Hand danach aus – was sie nutzte. Im Moment der Berührung flüsterte sie ihm ins Ohr:
 
-»Du wirst deinem Kollegen jetzt erklären, dass er uns durchzulassen hat. Notfalls mit Gewalt. Aber niemand soll sterben. Nicht heute.«
+"Du wirst deinem Kollegen jetzt erklären, dass er uns durchzulassen hat. Notfalls mit Gewalt. Aber niemand soll sterben. Nicht heute."
 
 Ein Flimmern ging durch die Augen des Mannes, ein leichtes Zucken, dann trat er zur Seite – und schlug seinem Kollegen mit der Faust ins Gesicht. *Eine etwas seltsame Art, etwas zu erklären, aber sehr effektiv*, dachte Jaad. Was folgte, war eine wilde, laute, aber überraschend unterhaltsame Rauferei. Die beiden rollten über den Boden, schrien, fuchtelten mit Zauberzeichen – aber keiner brachte einen nützlichen Spruch hervor.
 
-»Los!«, zischte Jaad, und sie rannten durch das geöffnete Portal.
+"Los!", zischte Jaad, und sie rannten durch das geöffnete Portal.
 
 Die andere Seite war sichtbar. Das Portal sah aus, wie ein gewöhnlicher Durchgang, nur dass die jeweils andere Seite eigentlich drei Tagesmärsche entfernt war. Zwei Königswachen standen dort mit gezogenem Schwert, als sie eintrafen. Sie hatten das seltsame Aufeinandertreffen beobachtet.
 
-»Zurück!«, rief der eine. »Identifikation!«
+"Zurück!", rief der eine. "Identifikation!"
 
 Jaad blieb ruhig. Sie überreichte den Passierschein und einen versiegelten Brief.
 
-»Im Namen des ehemaligen obersten Zauberers Efret. Es gab einen Umsturz. Er ist tot. Der Brief ist für den König bestimmt. Das Portal muss sofort gesichert werden«, sagte Jaad. »Dahinter tobt ein Krieg, auch wenn es noch nicht so aussieht. Schließt es. Nutzt die Rolltore.«
+"Im Namen des ehemaligen obersten Zauberers Efret. Es gab einen Umsturz. Er ist tot. Der Brief ist für den König bestimmt. Das Portal muss sofort gesichert werden", sagte Jaad. "Dahinter tobt ein Krieg, auch wenn es noch nicht so aussieht. Schließt es. Nutzt die Rolltore."
 
 Der Wächter sah auf das massive Tor neben dem Durchlass – eine Konstruktion, die selbst dunkelster Magie widerstehen konnte. Sie war von Efret selbst verzaubert worden. Er hatte damit dem König die Möglichkeit gegeben, sich vor Übergriffen der Zauberer zu schützen. Was den meisten widersinnig erscheinen musste, zeigte nun einmal mehr, wie vorausschauend der alte Zauberer gehandelt hatte.
 
-»Ich weiß nicht, ob wir befugt sind …«
+"Ich weiß nicht, ob wir befugt sind …"
 
-»Jetzt!«, sagte Jaad scharf. »Oder ihr bekommt in einer Stunde Besuch von einer Art Krieg, den ihr noch nie gesehen habt. Möchtet ihr gegen 30 Kampfmagier antreten?« Es war reine Spekulation vonseiten Jaads. Sie hoffte, Malvek würde nicht dumm genug sein, den Königspalast anzugreifen, aber man konnte ja nie wissen. Das geschlossene Tor würde auf jeden Fall mögliche Verfolger zurückhalten.
+"Jetzt!", sagte Jaad scharf. "Oder ihr bekommt in einer Stunde Besuch von einer Art Krieg, den ihr noch nie gesehen habt. Möchtet ihr gegen 30 Kampfmagier antreten?" Es war reine Spekulation vonseiten Jaads. Sie hoffte, Malvek würde nicht dumm genug sein, den Königspalast anzugreifen, aber man konnte ja nie wissen. Das geschlossene Tor würde auf jeden Fall mögliche Verfolger zurückhalten.
 
 Der Wächter zögerte noch einen Herzschlag lang – dann lief er los, schlug den Alarmhebel um. Das eiserne Tor rollte sehr langsam in Position.
 
-»Ich bringe euch zum Haupttor«, sagte der andere Wächter. »Auf eurem Passierschein steht nichts von einer Audienz – ich nehme an, das war auch nicht geplant?«
+"Ich bringe euch zum Haupttor", sagte der andere Wächter. "Auf eurem Passierschein steht nichts von einer Audienz – ich nehme an, das war auch nicht geplant?"
 
-»Nicht heute.«
+"Nicht heute."
 
 Wenig später standen sie auf dem hell gepflasterten Gehweg einer der großen Straßen von Königsstadt. Leben, Händler, Marktgeschrei – alles wirkte plötzlich so fremd wie aus einer anderen Zeit. Das Leben ging hier einfach weiter seinen gewohnten Gang.
 
-Jomar rückte den schwer bepackten Rucksack auf seinen Schultern zurecht und stieß ein genervtes Schnauben aus. »Und was jetzt?«
+Jomar rückte den schwer bepackten Rucksack auf seinen Schultern zurecht und stieß ein genervtes Schnauben aus. "Und was jetzt?"
 
-Kata sah ihn an, mit müdem Lächeln. »Na, wir gehen zu Kalem. Was denn sonst?«
+Kata sah ihn an, mit müdem Lächeln. "Na, wir gehen zu Kalem. Was denn sonst?"
 
 ---
 
 Die Tür ging auf, bevor jemand klopfen konnte. Kalem stand im Rahmen, barfuß, ein Becher mit dampfender Flüssigkeit in der Hand, und sah die Gruppe an – schwer bepackt, müde, angespannt.
 
-»Ich weiß nicht wieso«, sagte er trocken, »aber ich habe das Gefühl, dies hier wird kein Höflichkeitsbesuch zu einem gemütlichen Abendessen.«
+"Ich weiß nicht wieso", sagte er trocken, "aber ich habe das Gefühl, dies hier wird kein Höflichkeitsbesuch zu einem gemütlichen Abendessen."
 
-»Ein wenig Wein und Käse könnten allerdings wirklich nicht schaden«, erwiderte Jomar.
+"Ein wenig Wein und Käse könnten allerdings wirklich nicht schaden", erwiderte Jomar.
 
-Kalem trat sofort zur Seite. »Dann kommt rein, ihr Helden von Demirantha.«
+Kalem trat sofort zur Seite. "Dann kommt rein, ihr Helden von Demirantha."
 
-Als sie nacheinander eintraten, musterte Kalem den hochgewachsenen Almin und nickte anerkennend. »Und wer bist du, mein hühnenhafter, zukünftiger Freund?«
+Als sie nacheinander eintraten, musterte Kalem den hochgewachsenen Almin und nickte anerkennend. "Und wer bist du, mein hühnenhafter, zukünftiger Freund?"
 
-»Almin«, sagte dieser knapp.
+"Almin", sagte dieser knapp.
 
-Kalem zog die Augenbrauen hoch. »Oh. Ein Mann der wenigen Worte. Das gefällt mir. Ich höre mich ohnehin lieber selbst reden.«
+Kalem zog die Augenbrauen hoch. "Oh. Ein Mann der wenigen Worte. Das gefällt mir. Ich höre mich ohnehin lieber selbst reden."
 
 Sie traten in den großzügigen Wohnraum. Die Fenster waren weit geöffnet, Sonnenlicht fiel auf gedämpfte Teppiche. Kalem bedeutete allen, Platz zu nehmen. Ayen hielt sich zunächst eng an Kata, bis Kalem sich vor ihm auf die Knie fallen ließ.
 
-»Und du musst Ayen sein. Der berühmte Junge mit dem geheimnisvollen Blick.«
+"Und du musst Ayen sein. Der berühmte Junge mit dem geheimnisvollen Blick."
 
 Ayen schwieg, aber seine Augen musterten Kalem neugierig.
 
@@ -1366,21 +1368,21 @@ Besonders fasziniert war Ayen von einer Schnur, auf der in regelmäßigen Abstä
 
 Kata öffnete den Mund, als wolle sie etwas sagen – schloss ihn aber wieder.
 
-Als Ayen sich mit seinen neuen Schätzen beschäftigte, nahm Kalem auf der Sofalehne Platz. »So. Und jetzt erzählt mir bitte, warum ihr ausgerechnet heute hier auftaucht, als hättet ihr die Hauptstadt im Sturm verlassen.«
+Als Ayen sich mit seinen neuen Schätzen beschäftigte, nahm Kalem auf der Sofalehne Platz. "So. Und jetzt erzählt mir bitte, warum ihr ausgerechnet heute hier auftaucht, als hättet ihr die Hauptstadt im Sturm verlassen."
 
 Es wurde still. Schließlich begann Jaad zu berichten – vom Rat, vom Putsch, vom Feuer, vom Ende Efrets. Kata und Jomar ergänzten, was Ayen betraf. Kalem hörte zu, ohne Fragen zu stellen, ohne Zwischenbemerkungen.
 
-Am Ende atmete er tief durch. »Also gut. Ich wusste, dass ihr Probleme habt, als ich euch vor der Tür stehen sah. Aber dass sie historisches Ausmaß haben, hatte ich nicht erwartet.«
+Am Ende atmete er tief durch. "Also gut. Ich wusste, dass ihr Probleme habt, als ich euch vor der Tür stehen sah. Aber dass sie historisches Ausmaß haben, hatte ich nicht erwartet."
 
-Dann stand er auf und sagte leise, fast beiläufig: »Drei der Schlafzimmer sind familienfreundlich. Die anderen – und einige weitere Räume – werde ich lieber abschließen, solange Ayen hier ist.«
+Dann stand er auf und sagte leise, fast beiläufig: "Drei der Schlafzimmer sind familienfreundlich. Die anderen – und einige weitere Räume – werde ich lieber abschließen, solange Ayen hier ist."
 
 Er sah zum Kind, das gerade versuchte, die Kugelschnur in einem Kreis zu legen.
 
-»Wir können auch ruckzuck ein Spiel- und Schlafzimmer einrichten. Würde dir das gefallen, Ayen?«
+"Wir können auch ruckzuck ein Spiel- und Schlafzimmer einrichten. Würde dir das gefallen, Ayen?"
 
 Das Kind nickte begeistert.
 
-»Ihr bleibt so lange, wie ihr wollt«, sagte Kalem, an die Erwachsenen gewandt. »Aber ich fürchte, Ruhe wird es auch hier nicht ewig geben.«
+"Ihr bleibt so lange, wie ihr wollt", sagte Kalem, an die Erwachsenen gewandt. "Aber ich fürchte, Ruhe wird es auch hier nicht ewig geben."
 
 
 # Der Schatten wächst
@@ -3275,7 +3277,7 @@ Jaad meldete sich nun zu Wort: »Und du hast keine Ahnung, was das gewesen sein 
 
 Stille lag über dem Raum. Primus stand noch immer reglos am Kopf der Tafel; seine Projektion flackerte nicht. Niemand sprach. 
 
-Kalem lehnte sich zurück, verschränkte die Arme und ließ den Blick durch den Raum gleiten. Dann sagte er mit einem Tonfall, der zwischen Müdigkeit und Trotz schwankte: »Also, was jetzt? Fragen wir den Jungen nach den ‚Zirari‘?«
+Kalem lehnte sich zurück, verschränkte die Arme und ließ den Blick durch den Raum gleiten. Dann sagte er mit einem Tonfall, der zwischen Müdigkeit und Trotz schwankte: »Also, was jetzt? Fragen wir den Jungen nach den ›Zirari‹?«
 
 Kata sah ihn an, ohne eine Regung im Gesicht. »Er wird darüber nichts wissen. Er weiß überhaupt nicht, was mit ihm geschieht.«
 
@@ -3329,7 +3331,7 @@ Ayen hielt kurz an, dann ging er zur Projektion der Karte und hob die Hand. Das 
 
 »Ich wusste, dass wir dorthin müssen. Dort wird man mir helfen«, sagte er. Seine Stimme war ruhig, nicht kindlich. 
 
-Primus’ Projektion wurde größer, als würde sie sich auf Ayen zubewegen. »Weißt du, was du bist?«
+Primus' Projektion wurde größer, als würde sie sich auf Ayen zubewegen. »Weißt du, was du bist?«
 
 Der Junge drehte sich zu dem Panel auf dem der Avatar erschienen war. Er nickte, als habe er diese Frage erwartet. »Nein«, antwortete er, aber nicht als Eingeständnis, sondern als würde er damit das Thema bereits abschließen.
 
@@ -3351,7 +3353,7 @@ Schließlich richtete sich Kalem auf. »Lasst uns aufbrechen, bevor *mich* noch 
 
 Jaad sah ihn überrascht an. »Jetzt sofort?«
 
-Kalem nickte. »Bevor wir’s uns anders überlegen.«
+Kalem nickte. »Bevor wir's uns anders überlegen.«
 
 Kata stand bereits. Ihre Stimme war ruhig, aber fest: »Das müssen wir.«
 
@@ -3463,8 +3465,8 @@ Kalem hob die Hände in gespielter Kapitulation, holte dann sein Schwert zurück
 Am Ende saßen alle in einem losen Kreis, die Schwerter achtlos in der Ecke, Muskelkater in den Armen und Schweiß auf der Stirn. Gelächter hallte gegen die Stahlwände, Gläser klirrten – eine willkommene Pause vom ewigen Dröhnen der Triebwerke und dem leisen, unheimlichen Wandel des Jungen. Für kurze Zeit waren alle Sorgen vergessen.
 
 
-# Was unter uns liegt
 
+# Was unter uns liegt
 Das Luftschiff überflog eine unsichtbare Grenze. Niemand sah eine Linie, niemand hörte ein Signal, und doch wussten sie es alle. Etwas hatte sich verändert.
 
 Unter ihnen erstreckte sich eine Welt, die nach neuen Regeln lebte: Flüsse, die sich wie geschmolzenes Glas durch die Ebenen zogen. Wälder, deren Blätter nicht grün, sondern kupfern glühten, obwohl keine Sonne zu sehen war. An einer Stelle schien der Himmel sich im Himmel zu spiegeln. Ein See, der über ihnen hing, in der Luft verankert, wie von unsichtbaren Drähten gehalten.
@@ -3486,8 +3488,6 @@ Almin trat heran und schüttelte den Kopf. »Die Magie … spürt ihr es auch?«
 Kata und Jomar nickten. Die Magie schien mit jeder Stunde, die sie flogen, schwächer zu werden.
 
 Ayen stand bei Kata, hielt ihre Hand. Sein Blick ruhte auf der chaotischen, unverständlichen Welt unter ihnen, als sähe er längst mehr als die anderen. Er sagte nichts.
-
----
 
 Zwischen den glühenden Baumkronen und den metallisch glänzenden Ebenen zeigten sich Strukturen – geometrisch, fremdartig und aus der Ferne schwer zu deuten. Zwischen ihnen regte sich etwas. Bewegten sich dort Gestalten? Waren das Bewohner? Keiner konnte es sicher sagen.
 
@@ -3523,8 +3523,6 @@ Wenig später kam er zurück, beide Arme voller seltsamer Gegenstände aus matte
 
 Er hob das längste Gerät hoch, drehte es prüfend in den Händen. »Vielleicht werfen sie etwas. Oder sie blenden. Oder sie tun gar nichts mehr. Aber wie ich die Technomagie der Ahnen kenne, brennen sie wahrscheinlich ein Loch in die Wirklichkeit.«
 
----
-
 Etwas am Horizont veränderte sich.
 
 Jomar war der Erste, der stehenblieb. Die Linie der fernen Küste war klar, wie seit Stunden – doch jetzt löste sich etwas davon. Ein Punkt. Heller als eine Wolke bewegte es sich schneller als der Wind.
@@ -3535,7 +3533,7 @@ Jaad trat dazu, zog das Pad an sich und prüfte, was sie prüfen konnte. »Es is
 
 Kata trat hinter Ayen. Der Junge sah dem Licht entgegen, unbewegt. »Das ist nicht einfach ein Ding«, sagte er. »Es sucht etwas. Vielleicht uns.«
 
-Die Kugel kam näher – langsam, aber stetig. Sie war zu groß für einen Vogel, zu gleichmäßig für einen Feuerball.
+Die Kugel kam näher – langsam, aber stetig. Sie war zu groß für einen Vogel, zu gleichmäßig für einen Feuerball. 
 
 Die Stimme des Schiffes war leise, fast beruhigend:
 
@@ -4583,7 +4581,7 @@ Während die Behandlung fortschritt, beobachtete sie genau, was mit Ayen geschah
 
 Ayen saß still, seine Augen halb geschlossen, während ein sanftes Leuchten ihn umhüllte, ein schimmernder Nebel, der aus seinem Körper zu fließen schien. Die Zirari fingen diesen Nebel mit ihren Händen auf und lenkten ihn in kleine, kristalline Behälter, die vor ihnen standen.
 
-Jaad beobachtete den Vorgang aufmerksam, fasziniert von der Präzision und Anmut, mit der die Zirari arbeiteten. Der ältere Zirari schloss einen fast gefüllten Behälter sorgfältig und übergab ihn einer Assistentin, die ihn mit Bedacht auf einen Wagen legte. Dann nahm er einen neuen Behälter und der Prozess setzte sich fort.
+Jaad beobachtete den Vorgang aufmerksam, fasziniert von der Präzision und Anmut, mit der die Zirari arbeiteten. Der ältere Zirari schloss einen fast gefüllten Behälter sorgfältig und übergab ihn einer Assistentin, die ihn mit Bedacht auf einen Wagen legte. Dann nahm er einen neuen Behälter und setzte den Prozess fort. 
 
 Ayen schien währenddessen ruhiger zu werden. Seine anfängliche Anspannung wich allmählich einem Ausdruck der Erleichterung. Seine Haut, die zuvor blass gewirkt hatte, bekam langsam wieder Farbe, und seine Haltung entspannte sich merklich. Es war, als würde eine Last von seinen Schultern genommen, und ein friedliches Lächeln spielte um seine Lippen. Vielleicht hatte Jaad die Zirari zu Unrecht verdächtigt. Ayen schien nach der Prozedur tatsächlich gestärkt und erfrischt, als hätte er eine Erneuerung erfahren.
 
@@ -5525,8 +5523,7 @@ Kalem ließ sich in einen Sessel fallen und grinste breit. »Oh, eine Menge. Die
 
 
 # Kalem kriegt Ärger
-
-Die Erinnerung an den Abend mit den Zirari-Frauen verfolgte Kalem noch, obwohl nun zwei Tage vergangen waren. Er hatte vorerst auf weitere Besuche verzichtet. 
+Die Erinnerung an den Abend mit den Zirari-Frauen verfolgte Kalem noch, obwohl nun zwei Tage vergangen waren. Er hatte vorerst auf weitere Besuche verzichtet.
 
  Ihr Enthusiasmus, ihre Neugier, ihre plötzlich entfesselte Leidenschaft – all das hatte ihn mehr bewegt, als er zugeben wollte. Doch am meisten beschäftigte ihn die Frage, warum Wesen, die behaupteten, keine sexuellen Bedürfnisse zu haben, so heftig auf seine Lehrstunden reagiert hatten.
 
@@ -5546,7 +5543,7 @@ Jomar und Almin kamen aus ihren Zimmern, gefolgt von Kata mit Ayen. Der Junge wa
 
 »Der Rat will uns sprechen«, erklärte Jaad. »Sofort.«
 
-Kalem runzelte die Stirn. »Das kann doch nichts damit zu tun haben, dass ich ihnen das Küssen beigebracht habe.« Er sagte es mehr zu sich selbst, aber Jomar hörte es. 
+Kalem runzelte die Stirn. »Das kann doch nichts damit zu tun haben, dass ich ihnen das Küssen beigebracht habe.« Er sagte es mehr zu sich selbst, aber Jomar hörte es.
 
 »Das Küssen?« Jomar blickte zu Kalem. »Wem hast du das Küssen beigebracht?«
 
@@ -5598,7 +5595,7 @@ Kalems Augen weiteten sich. »Oh.«
 
 Jomar warf Kalem einen ungläubigen Blick zu. »Was genau hast du getan?«
 
-Kalem räusperte sich verlegen. »Ich habe ihnen nur gezeigt, wie man küsst. Das war's. Alles andere haben sie selbst entdeckt.«
+Kalem räusperte sich verlegen. »Ich habe ihnen nur gezeigt, wie man küsst. Das war’s. Alles andere haben sie selbst entdeckt.«
 
 »Nach allem, was wir über die Zirari wissen, zeigen sie normalerweise kein Interesse an körperlicher Intimität«, bemerkte Jaad nachdenklich. »Es ist seltsam, dass sie so stark reagieren.«
 
@@ -5632,7 +5629,7 @@ Thoran nickte langsam. »Das ist richtig. Und deshalb betrifft unsere Entscheidu
 
 Thoran öffnete den Mund, um zu antworten, als die Tür des Ratssaals sich mit einem leisen Zischen öffnete. Alle Köpfe drehten sich um.
 
-Nira trat ein, ihre Haltung aufrecht, ihr Gesicht eine Maske aus Entschlossenheit. Sie trug ein schlichtes blaues Gewand, ihr Haar fiel offen über ihre Schultern. 
+Nira trat ein, ihre Haltung aufrecht, ihr Gesicht eine Maske aus Entschlossenheit. Sie trug ein schlichtes blaues Gewand, ihr Haar fiel offen über ihre Schultern.
 
 *Das bedeutet nichts Gutes*, dachte Kalem. *Sie widerstand meinem Charme sehr effektiv*.
 
@@ -5698,7 +5695,7 @@ Nira neigte den Kopf. »Es war das Richtige. Eure Anwesenheit hier … sie verä
 
 »Ja.« Nira nickte langsam. »Kontrolle ist das Fundament unserer Gesellschaft. Kontrolle über unsere Emotionen, über unsere Körper, über unsere Umgebung. Ayens Kraft – und Kalems Einfluss – sie stellen diese Kontrolle infrage.«
 
-“Und …” Nira zögerte kurz. “Da ist noch etwas. Wir … ich meine, ich und meine Freundinnen und alle Zirari unten in der Stadt, sind nicht …“
+»Und …« Nira zögerte kurz. »Da ist noch etwas. Wir … ich meine, ich und meine Freundinnen und alle Zirari unten in der Stadt, sind nicht …«
 
 Die Tür zum Ratssaal öffnete sich. Drinnen saßen die Ratsmitglieder. Thoran stand als einziger, sein Gesicht ausdruckslos.
 
@@ -5724,7 +5721,7 @@ Als sie den Saal verließen, atmete Kalem erleichtert auf. »Das war knapp.«
 
 »Ich habe es versprochen, oder?« Kalem grinste. »Kein Unterricht mehr. Zumindest nicht ohne Genehmigung.«
 
-Thoran wandte sich an Nira: »Was das Fehlverhalten der Frauen angeht: Das Küssen wird hiermit verboten. Ebenso jedes Gespräch, jede Aufzeichnung oder Gedankentransfers über besagte Vorfälle. Nira, deine Einlassungen werden als gefährliche Störung der öffentlichen Sicherheit gewertet und du hast solche Reden in Zukunft zu unterlassen. Es gibt keine Bestrafung, nur diese Ermahnung.« 
+Thoran wandte sich an Nira: »Was das Fehlverhalten der Frauen angeht: Das Küssen wird hiermit verboten. Ebenso jedes Gespräch, jede Aufzeichnung oder Gedankentransfers über besagte Vorfälle. Nira, deine Einlassungen werden als gefährliche Störung der öffentlichen Sicherheit gewertet und du hast solche Reden in Zukunft zu unterlassen. Es gibt keine Bestrafung, nur diese Ermahnung.«
 
 Nira schluckte und nickte ernst.
 
@@ -5798,17 +5795,29 @@ Kalem dachte an die Geschichte vom »Verschlingenden«, die Thoran ihnen erzähl
 
 »Wie viele wissen davon?«, fragte er.
 
-»Von den … Nicht-Zirari? Niemand, soweit ich weiß.« Sie senkte ihre Stimme noch mehr. »Ich habe es selbst erst vor Kurzem entdeckt. Als Sicherheitschefin habe ich eine recht hohe Position für ein Nicht-Rats-Mitglied. Einige Datenbereiche waren erschreckend schwach gesichert. Sie haben in ihrer Arroganz nicht geglaubt, einer von uns wäre schlau genug – oder rebellisch genug – sie zu entschlüsseln.« 
+"Von den … Nicht-Zirari?
 
-»Und der Rat hat keine Ahnung, dass du es weißt?«
+Sie zögerte. Sie ließ einen Finger im Kreis über den Rand des Glases fahren.
 
-»Nein. Sonst wäre ich nicht mehr hier.« Ein Schatten huschte über ihr Gesicht. »Sie löschen jede Abweichung. Jede Störung.«
+»Wir sind nicht wenige. Alle meine Freundinnen, die du ja schon kennst, und fast der gesamte Sicherheitsapparat.«
 
-Kalem versuchte, die Informationen zu verarbeiten. »Was geschieht mit den Frauen? Mit denen, die … die Küssen entdeckt haben?« 
+Kalem fuhr kurz aus seinem Sitz hoch und ließ sich dann wieder fallen.
+
+»Eine waschechte Verschwörung! Und du bist die Anführerin?«
+
+»Könnte man so sagen. Aber wir haben keine großen Pläne, wir bereiten keinen Umsturz vor. Wir wollen einfach nur wissen, wer wir sind, und wer die Zirari sind.«
+
+Kalem versuchte, die Informationen zu verarbeiten. »Was geschieht mit den Frauen? Mit denen, die … die Küssen entdeckt haben?«
 
 »Sie werden ermahnt, und das wird wirken, glaub mir. Wir sind so programmiert. Als der Rat mich ermahnt hat, war es eine tiefgreifende, beinahe physische Reaktion. Es fiel mir schwer, nicht jeden Kontakt zu euch …« Sie unterbrach sich und blickte Kalem tief in die Augen. »… zu dir abzubrechen.«
 
-Nira nahm einen Schluck Wein. »Sie sehen uns nicht als Lebewesen mit eigenen Rechten. Wir sind Werkzeuge, nicht mehr.«
+Kalem lehnte sich zurück, als würde es ihn Kraft kosten, weiter aus eigener Kraft zu sitzen.
+
+»Habe ich dich und deine Bewegung durch diese dämliche Küsserei in Gefahr gebracht?«
+
+Nira schüttelte den Kopf. »Natürlich werden sie die Frauen bestrafen. Aber ich glaube nicht, dass sie misstrauisch werden. So funktionieren sie einfach nicht. In ihrer Arroganz glauben sie, Sie hätte Ja. n uns perfekt programmiert. Sie können sich nicht vorstellen, dass wir irgendetwas aus eigenem Antrieb tun.«
+
+Nira nahm einen Schluck Wein. »Sie sehen uns nicht als Lebewesen mit eigenen Wünschen. Wir sind Werkzeuge, nicht mehr.«
 
 »Und was willst du jetzt tun?«
 
@@ -5822,7 +5831,7 @@ Kalem betrachtete ihre Hand auf seiner. Sie war warm, lebendig – nichts an ihr
 
 »Was genau erhoffst du dir von uns?«, fragte er schließlich.
 
-»Zunächst nur, dass ihr die Augen offen haltet. Besonders bei Ayens Behandlungen.« Sie zog ihre Hand zurück und nahm einen tiefen Atemzug. »Und wenn die Zeit kommt … dass ihr mir helft, die Wahrheit zu finden. Die ganze Wahrheit.« 
+»Zunächst nur, dass ihr die Augen offen haltet. Besonders bei Ayens Behandlungen.« Sie zog ihre Hand zurück und nahm einen tiefen Atemzug. »Und wenn die Zeit kommt … dass ihr mir helft, die Wahrheit zu finden. Die ganze Wahrheit.«
 
 Kalem nickte langsam. »Ich werde mit den anderen sprechen. Vorsichtig.«
 
@@ -5830,7 +5839,7 @@ Kalem nickte langsam. »Ich werde mit den anderen sprechen. Vorsichtig.«
 
 Nira begleitete ihn zur Tür. An der Schwelle hielt sie ihn zurück, legte eine Hand auf seinen Arm.
 
-Er beugte sich zu ihr hinab in der Erwartung, dass sie noch etwas zu sagen hatte, doch sie beugte sich rasch vor und küsste ihn sanft auf den Mund, dann zog sie sich zurück und schloss die Tür. 
+Er beugte sich zu ihr hinab in der Erwartung, dass sie noch etwas zu sagen hatte, doch sie beugte sich rasch vor und küsste ihn sanft auf den Mund, dann zog sie sich zurück und schloss die Tür.
 
 Als er sich auf den Rückweg zu seinen Quartieren machte, drehten sich seine Gedanken unaufhörlich. Falls Nira die Wahrheit sagte, steckten sie in einer viel komplizierteren Situation, als sie gedacht hatten. Und Ayen – was hatte der Rat wirklich mit seiner göttlichen Essenz vor?
 
@@ -7027,7 +7036,7 @@ Am Fuß der Leiter erwartete sie ein weiterer Korridor, noch enger als der erste
 
 Sie erreichten eine weitere Tür, diese aus schwerem Metall mit einem komplexen Schließmechanismus. Nira legte ihre Hand auf ein Paneel daneben, und die Tür glitt mit einem leisen Zischen auf.
 
-Dahinter erstreckte sich der Hangar – ein gewaltiger, hoher Raum, in dem mehrere Luftschiffe ruhten wie schlafende Metalldrachen. Die meisten waren groß und imposant, offensichtlich für längere Reisen oder den Transport schwerer Lasten konzipiert. Doch eines, das nahe dem Ausgang stand, war kleiner und schlanker, mit eleganten Linien und einer aerodynamischen Form.
+Dahinter erstreckte sich der Hangar – ein gewaltiger, hoher Raum, in dem mehrere Schiffe ruhten wie schlafende Metalldrachen. Die meisten waren groß und imposant, offensichtlich für längere Reisen oder den Transport schwerer Lasten konzipiert. Doch eines, das nahe dem Ausgang stand, war kleiner und schlanker, mit eleganten Linien und einer aerodynamischen Form.
 
 »Das ist unseres«, sagte Nira und deutete auf das kleinere Schiff. »Ein Kurier-Gleiter. Schnell, wendig und mit genug Reichweite, um euch sicher nach Königsstadt zu bringen.«
 
@@ -7081,13 +7090,13 @@ Hinter ihnen ertönte ein lautes Krachen – die Verfolger hatten die Tür zum W
 
 Nira führte sie durch Abzweigungen und Kreuzungen, die im Halbdunkel kaum zu erkennen waren. Katas Lunge brannte, ihre Beine schmerzten vom gebückten Laufen, aber die Angst trieb sie voran.
 
-»Können wir irgendetwas tun, um sie aufzuhalten?«, fragte Nira zwischen zwei Atemzügen. »Etwas, das sie daran hindert, uns zu folgen?«
+»Können wir etwas tun, um sie aufzuhalten?«, fragte Nira zwischen zwei Atemzügen. »Etwas, das sie daran hindert, uns zu folgen?«
 
 Almins Gesicht erhellte sich plötzlich. »Tatsächlich einen sehr speziellen Zauber. Flüssiges Feuer. Sehr effektiv und sehr gefährlich. Geht weiter«, sagte er. »Ich komme gleich nach.«
 
 Sie setzten ihren Weg fort, während Almin zurückblieb. Wenige Sekunden später hörten sie ein zischendes Geräusch, gefolgt von einem hellen Auflodern, das den Tunnel kurz in oranges Licht tauchte. Ein Schrei erklang, dann ein weiterer.
 
-Almin holte sie ein, sein Gesicht gerötet von der Hitze, aber triumphierend. »Das wird sie aufhalten. Flüssiges Feuer klebt an allem, was es berührt, und brennt minutenlang. Der gesamte Abschnitt hinter uns steht in Flammen.«
+Almin holte sie ein, sein Gesicht schweißgebadet von der Hitze, aber triumphierend. »Das wird sie aufhalten. Flüssiges Feuer klebt an allem, was es berührt, und brennt minutenlang. Der gesamte Abschnitt hinter uns steht in Flammen.«
 
 »Werden sie es löschen können?«, fragte Jomar besorgt.
 
@@ -7095,9 +7104,9 @@ Almin holte sie ein, sein Gesicht gerötet von der Hitze, aber triumphierend. »
 
 Sie setzten ihre Flucht fort, bis sie eine weitere Leiter erreichten – diese führte nach unten.
 
-»Wohin bringt uns das?«, fragte Kata, während sie Ayen half, die Sprossen zu hinabzuklettern.
+»Wohin bringt uns das?«, fragte Kata, während sie Ayen half, die Sprossen hinabzuklettern.
 
-»In die tieferen Ebenen der Stadt«, erklärte Nira. »Dort leben die meisten von uns. Sie werden bemerkt haben, dass der Alarm ausgelöst wurde und uns verstecken.«
+»In die tieferen Ebenen der Stadt«, erklärte Nira. »Dort leben die meisten von uns. Sie werden bemerkt haben, dass der Alarm ausgelöst wurde. Sie werden uns verstecken.«
 
 Sie verließen den Wartungsschacht. Nira führte sie rasch durch mehrere Türen und Gänge, bis sie schließlich vor einer unscheinbaren Tür stehen blieben.
 
@@ -7131,7 +7140,7 @@ Die silberhaarige Frau wandte sich an Nira: »Wenn sie herausgefunden haben, das
 
  Jaad, die bisher schweigend an der Wand gelehnt hatte, trat plötzlich in die Mitte des Raumes.
 
-»Ich habe eine Idee«, sagte sie, ihre Stimme so leise, dass alle verstummten, um ihr zu zuhören. »Wir könnten in den Nexus einbrechen.«
+»Ich habe eine Idee«, sagte sie, ihre Stimme so leise, dass alle verstummten, um ihr zuzuhören. »Wir könnten in den Nexus einbrechen.«
 
 Kata starrte sie ungläubig an. »Den Nexus? Du meinst den Raum, in dem sie Ayens Essenz sammeln?«
 
@@ -7143,11 +7152,11 @@ Kata spürte, wie ihr Herz aussetzte. Die Vorstellung allein ließ sie schwindel
 
 Jomar schüttelte entschieden den Kopf. »Nein. Das ist zu gefährlich. Wir würden uns mitten ins Herz ihres Territoriums begeben.«
 
-Kalem lachte bitter: »Auf jeden Fall hätten wir das Überraschungsmoment auf unserer Seite. Dass wir zuhause bei ihnen auftauchen, erwarten sie sicher nicht.«
+Kalem lachte bitter: »Auf jeden Fall hätten wir das Überraschungsmoment auf unserer Seite. Dass wir zu Hause bei ihnen auftauchen, erwarten sie sicher nicht.«
 
 »Und was wäre denn auch die Alternative?« Jaads Stimme wurde schärfer. »Hier zu sitzen und zu warten, bis sie uns finden? Zu fliehen und ständig verfolgt zu werden?«
 
-Kata stand auf, eine plötzliche Wut stieg in ihr auf. »Hast du vergessen, warum wir es zugelassen haben, dass sie ihm die Essenz entziehen?« Sie deutete auf ihren Sohn, der mit großen Augen zu ihnen aufsah. »Er war gefährlich, Jaad. Gefährlich für sich selbst und für andere. Willst du das rückgängig machen?«
+Kata stand auf, eine plötzliche Wut stieg in ihr auf. »Hast du vergessen, warum wir es zugelassen haben, dass sie ihm die Essenz entziehen?« Sie deutete auf ihren Sohn, der mit großen Augen zu ihnen aufsah. »Er war gefährlich, Jaad. Gefährlich für sich selbst und für andere. Jetzt geht es ihm besser. Willst du das rückgängig machen?«
 
 »Ich will ihn retten!«, erwiderte Jaad heftig. »Sie wollen ihn töten, Kata. Töten! Wenn er seine Kraft zurückbekommt, kann er sich verteidigen.«
 
@@ -7155,7 +7164,7 @@ Kata stand auf, eine plötzliche Wut stieg in ihr auf. »Hast du vergessen, waru
 
 Jomar trat zwischen die beiden Frauen. »Beruhigt euch. Beide.«
 
-Almin, der bisher geschwiegen hatte, räusperte sich. »Jaad hat nicht ganz unrecht. Mit seinen Kräften könnte Ayen uns helfen zu entkommen. Und wir könnten später immer noch einen Weg finden, sie zu kontrollieren.«
+Almin, der bisher geschwiegen hatte, räusperte sich. »Jaad hat nicht ganz unrecht. Mit seinen Kräften könnte Ayen uns helfen, zu entkommen. Und wir könnten später immer noch einen Weg finden, sie zu kontrollieren.«
 
 »Zu kontrollieren?« Kata lachte bitter. »Wir konnten sie vorher nicht kontrollieren. Deshalb sind wir hier!«
 
@@ -7169,7 +7178,7 @@ Kata blickte zu ihrem Sohn, der still dasaß und sie alle beobachtete. War es m�
 
 Kata spürte, wie ihr Herz sich zusammenzog. Sie hatte völlig übersehen, dass ihr Kind alles mitangehört hatte. Sie kniete sich vor ihren Sohn und nahm seine kleinen Hände in ihre. »Mein Schatz, es geht nicht darum, ob du es willst oder nicht. Diese Kraft … sie ist manchmal stärker als du.«
 
-»Aber jetzt weiß ich, wie sie sich anfühlt«, sagte Ayen mit einer Ernsthaftigkeit, die einem Kind seines Alters fremd sein sollte. »Ich weiß, wie ich sie halten muss.«
+»Aber jetzt weiß ich, wie sie sich anfühlt«, sagte Ayen mit einer Ernsthaftigkeit, die einem Kind seines Alters fremd sein sollte. »Ich weiß, wie ich sie halten muss. Und ich weiß, wie ich sie wieder loslassen kann.«
 
 Bevor Kata antworten konnte, erscholl eine dröhnende Stimme, so laut, dass Kata zusammenzuckte. Sie schien durch die ganze Stadt zu hallen.
 
@@ -7185,7 +7194,7 @@ Die Stimme hallte von den Wänden wider, kalt und unpersönlich.
 
 Kata griff nach Jomars Hand, klammerte sich daran fest.
 
-»Sollte das nicht geschehen«, fuhr die Stimme fast gleichgültig fort, »wird die gesamte Stadt vernichtet werden, zusammen mit allen seinen Bewohnern.«
+»Sollte das nicht geschehen«, fuhr die Stimme fast gleichgültig fort, »wird die gesamte Stadt vernichtet, zusammen mit allen ihren Bewohnern.«
 
 Ein kollektives Keuchen erfüllte den Raum. Die silberhaarige Frau sank auf ein Polster, ihr Gesicht aschfahl.
 
@@ -7199,7 +7208,7 @@ Jomar drückte Katas Hand. »Das ändert alles.«
 
 »Ihr müsst gehen«, sagte die silberhaarige Frau plötzlich. »Sofort. Wir … wir werden euch nicht melden.«
 
-Kata blickte zu Jaad, deren Augen noch immer mit Entschlossenheit leuchteten. »Dein Plan«, sagte sie leise. »Der Nexus. Wenn wir ohnehin sterben müssen, können wir es genauso gut versuchen.«
+Kata blickte zu Jaad, deren Augen noch immer mit Entschlossenheit leuchteten. »Dein Plan«, sagte sie leise. “Der Nexus. Wenn wir ohnehin sterben müssen, können wir es genauso gut versuchen."
 
 Jaad nickte langsam. »Wenn wir Ayen seine Kraft zurückgeben, hat er vielleicht eine Chance gegen sie.«
 
@@ -7223,7 +7232,7 @@ Ayen schüttelte den Kopf. »Nein. Ich will nur mein Licht zurück.«
 
 Ayen sah zu ihr auf, seine Augen alt und weise in seinem jungen Gesicht. »Dann musst du mir helfen, Mama. Du weißt, wie es ist, das Licht zu fühlen.«
 
-Kata nickte und drückte ihn fest an sich, ihr Blick suchte Jomars, ein stilles Einverständnis zwischen Angst und Entschlossenheit … vielleicht würden sie alle sterben. Aber wenn sie sterben mussten, dann nicht als Opfer, sondern kämpfend.
+Kata nickte und drückte ihn fest an sich, ihr Blick suchte Jomars, ein stilles Einverständnis zwischen Angst und Entschlossenheit … Vielleicht würden sie alle sterben. Aber wenn sie sterben mussten, dann nicht als Opfer, sondern kämpfend.
 
 
 

@@ -1,8 +1,6 @@
 package com.manuskript;
 
 import java.io.IOException;
-import java.io.File;
-import java.io.FileWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.net.URI;
@@ -13,7 +11,6 @@ import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.util.logging.Level;
 import java.util.Set;
 import java.util.LinkedHashSet;
 import java.util.concurrent.TimeUnit;

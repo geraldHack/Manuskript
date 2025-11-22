@@ -1,12 +1,9 @@
 package com.manuskript;
 
 import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.web.WebView;
 import org.slf4j.Logger;
@@ -18,7 +15,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.prefs.Preferences;
-import com.manuskript.ResourceManager;
 
 /**
  * Hilfesystem für Manuskript mit blauen Fragezeichen-Icons und WebView-Fenstern
@@ -163,7 +159,7 @@ public class HelpSystem {
             
             helpStage.show();
             
-            logger.info("Help-Fenster geöffnet: {}", helpFileName);
+            
             
         } catch (Exception e) {
             logger.error("Fehler beim Öffnen des Help-Fensters", e);

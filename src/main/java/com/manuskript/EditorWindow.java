@@ -1125,7 +1125,9 @@ if (caret != null) {
                         jumpToDocumentEnd();
                         event.consume();
                         break;
-
+                    default:
+                        // Alle anderen Tasten ignorieren
+                        break;
                 }
             } else if (event.getCode() == KeyCode.F3) {
                 // F3 und Shift+F3 für Suchen-Navigation
@@ -10445,8 +10447,6 @@ spacer.setStyle("-fx-background-color: transparent;");
                 }
                 // Cursor-Style mit besserer Sichtbarkeit
                 caret.setStyle("-fx-stroke: " + cursorColor + "; -fx-fill: " + cursorColor + "; -fx-stroke-width: 2;");
-            } else {
-                logger.warn("Caret-Element nicht gefunden!");
             }
             
             // Zusätzlich: CodeArea-Padding anpassen für bessere Cursor-Sichtbarkeit

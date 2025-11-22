@@ -1,53 +1,29 @@
 package com.manuskript;
 
-import com.vladsch.flexmark.ast.*;
-import com.vladsch.flexmark.ext.autolink.AutolinkExtension;
-import com.vladsch.flexmark.ext.gfm.strikethrough.StrikethroughExtension;
-import com.vladsch.flexmark.ext.gfm.tasklist.TaskListExtension;
-import com.vladsch.flexmark.ext.tables.TablesExtension;
-import com.vladsch.flexmark.parser.Parser;
-import com.vladsch.flexmark.util.ast.Node;
-import com.vladsch.flexmark.util.data.MutableDataSet;
 
 import jakarta.xml.bind.JAXBElement;
 
 import org.docx4j.Docx4J;
-import org.docx4j.docProps.core.CoreProperties;
 import org.docx4j.openpackaging.packages.WordprocessingMLPackage;
 import org.docx4j.openpackaging.parts.WordprocessingML.DocumentSettingsPart;
 import org.docx4j.openpackaging.parts.WordprocessingML.FooterPart;
 import org.docx4j.relationships.Relationship;
-import org.docx4j.openpackaging.parts.DocPropsCorePart;
-import org.docx4j.openpackaging.parts.PartName;
 import org.docx4j.openpackaging.parts.WordprocessingML.StyleDefinitionsPart;
 import org.docx4j.wml.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-import org.docx4j.docProps.core.dc.elements.SimpleLiteral;
-import org.docx4j.docProps.core.dc.terms.W3CDTF;
-
-import java.util.GregorianCalendar;
 
 import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
-import java.time.OffsetDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.xml.datatype.DatatypeFactory;
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-
-import org.docx4j.wml.SectPr.PgMar;
-import org.docx4j.wml.SectPr.PgSz;
 import org.docx4j.wml.Text;
 
 public class DocxProcessor {
