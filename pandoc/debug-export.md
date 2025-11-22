@@ -7,103 +7,20 @@ rights: "© 2025 Gerald Hackbart"
 abstract: |
   Das hatte sich Jomar anders vorgestellt.
   Als Spione des verrückten Zauberers Efret hatten Kata und er die Welt gerettet – wieder einmal. Und in seiner Vorstellung würden sie auch in Zukunft Abenteuer erleben, die Welt bereisen, und sie – wenn nötig – auch wieder retten.
-  Doch es kommt anders: Kata war schwanger.
+  Doch es kam anders: Kata wurde schwanger.
   So leben sie nun ein beschauliches Leben: Jomar erledigt kleine, ungefährliche Aufträge im Namen Efrets, und die stolze, ehemalige Herzogin Kata versucht sich als Hausfrau und Mutter.
+  
   Doch ihr Sohn Ayen ist anders. Er lässt ›Dinge‹ geschehen. Das wäre ja für das Kind von zwei begabten Magiern nichts Ungewöhnliches, doch in Ayen gibt es nicht eine Spur von Magie. Und seine Kräfte scheinen zu wachsen.
-  Wie immer wenn's brenzlich wird, wenden sie sich an Efret, den verrückten, obersten Zauberer. Kann er ihnen auch diesmal helfen?
+  
+  Wie immer, wenn's brenzlich wird, wenden sie sich an Efret, den verrückten, obersten Zauberer. Kann er ihnen auch diesmal helfen?
 ---
+
 
 # Jomar rettet die Welt
 
-## Einfache Formate
-*Schrägschrift*
+Der Wind ging kaum. Nur das Rascheln vereinzelter Blätter begleitete die drei Gestalten, die sich vorsichtig entlang der Schatten bewegten. Jomar war der Erste. Flach auf dem Bauch robbte er hinter eine niedrige Steinmauer, hob die Hand, spreizte zwei Finger – ein Zeichen an die anderen. Sie hielten an, und Jomar hockte sich hinter die Mauer.
 
-**Fettes Brot**
-
-<u>Das kann ich nur unterstreichen</u>
-
-~~Das streichen wir~~
-
-## Hoch- und Tiefschrift:
-H<sub>2</sub>O
-
-a<sup>2</sup>+2ab+b<sup>2</sup>
-
-
-1. Punkt
-
-   Das ist der Text zum Listenpunkt. 
-
-1. Punkt
-
-1. Punkt
-
-    1. Punkt
-
-    1. Punkt
-
-        1. Punkt
-
-    1. Punkt
-
-<br>
-
-<br>
-
-```
-
-dfdsfdsf
-
-dsfsdf
-
-sdf xycxcxy
-
-          sdfsdf
-
-```
-
-<br>
-
-<br>
-
-<br>
-
-<br>
-
->»Ich habe neulich beschlossen, im Einklang mit mir selbst zu leben. Das Problem ist nur: Ich bin rhythmisch komplett unbegabt. Mein inneres Selbst klatscht immer eine Sekunde zu spät. Wir sind inzwischen beide beleidigt und reden nicht mehr miteinander. Harmonie kann wirklich anstrengend sein.«
-
-> Mahatma Gandalf
-
-<br>
-
-<br>
-
-<br>
-
-<br>
-
-| Links | Mitte | Rechts |
-
-|---------|:--------:|---------:|
-| Text | Text | Text |
-
-
-
-
-
-
-
-
-
-
-
-https://example.com
-
-<span style="color: red;">Roter Text</span>
-
-<mark>Der Wind ging kaum.</mark> Nur das <big>Rascheln</big> vereinzelter Blätter begleitete die drei Gestalten, die sich vorsichtig entlang der Schatten bewegten. Jomar war der Erste. Flach auf dem Bauch robbte er hinter eine niedrige Steinmauer, hob die Hand, spreizte zwei Finger – ein Zeichen an die anderen. Sie hielten an, und Jomar hockte sich hinter die Mauer.
-
-<small>Vor ihm lag ein unscheinbarer Hof, von verwildertem Gestrüpp durchzogen. Dass es einmal ein Garten gewesen war, ließ sich nur noch erahnen. Jetzt war es eine Fläche aus verdorrten Pflanzen, staubigem Boden und krummen Holzpflöcken, die sich mit Mühe als Beetbegrenzungen ausgaben. Aber es gab zwei Bereiche, die ordentlich umgegraben waren.</small>
+Vor ihm lag ein unscheinbarer Hof, von verwildertem Gestrüpp durchzogen. Dass es einmal ein Garten gewesen war, ließ sich nur noch erahnen. Jetzt war es eine Fläche aus verdorrten Pflanzen, staubigem Boden und krummen Holzpflöcken, die sich mit Mühe als Beetbegrenzungen ausgaben. Aber es gab zwei Bereiche, die ordentlich umgegraben waren.
 
 Nichts rührte sich, aber etwas lauerte in der Finsternis: eine dunkle Präsenz.
 
@@ -125,7 +42,7 @@ Die beiden anderen sprangen mit ihm aus den Büschen. Drei gegen einen. Der Magi
 
 »Lerto!«, donnerte Jomar, das Schwert in der Hand, das er gar nicht hätte ziehen müssen. »Du wurdest auf frischer Tat beim Wirken schwarzer Magie ertappt!«
 
-Der Mann hob eine Braue, schnaufte durch die Nase. »Was? Die da? Das waren doch bloß magische Maulwürfe. Ich hab' doch keine blutrünstigen Monster erschaffen … das war mein Nachbar, oder? Der hat mich verpfiffen. Der Schweinehund! Erst beschwert er sich über den Zustand meines Gartens, und jetzt, wo ich etwas dagegen tue, ist ihm das auch wieder nicht recht.«
+Der Mann hob eine Braue, schnaufte durch die Nase. »Was? Die da? Das waren doch bloß magische Maulwürfe. Ich hab’ doch keine blutrünstigen Monster erschaffen … das war mein Nachbar, oder? Der hat mich verpfiffen. Der Schweinehund! Erst beschwert er sich über den Zustand meines Gartens, und jetzt, wo ich etwas dagegen tue, ist ihm das auch wieder nicht recht.«
 
 Jomar ließ sich nicht beirren. Seine Stimme klang, als verlese er die Anklage in einem Gerichtssaal: »Für deine begangenen Vergehen erhältst du nun deine gerechte Strafe.«
 
@@ -140,8 +57,6 @@ Lento starrte missmutig auf das Dokument, dann seufzte er. »Wenigstens keine Pu
 ![](familie.png)
 
 ><center>Kata, Jomar und Ayen</center>
-
-
 
 Kata saß mit verschränkten Beinen auf dem Boden und baute mit Ayen einen ausgesprochen wilden Bauernhof. Zwei Ziegen standen auf einem Turm aus Klötzen, ein Drache bewachte das Hühnerhaus, und eine Ente mit Schwert versuchte sich am Pflug.
 
@@ -225,11 +140,11 @@ Jomar lag auf dem Rücken und betrachtete das Spiel der Blätter über ihm. Die 
 
 Sie schob den Apfel mit der Zunge in die Wange und sah ihn schräg an. »Das klingt verdächtig. Kommt jetzt ein: ›Aber‹?«
 
-»Nein. Ich hab' eine Frau, die mich aushält. Einen Sohn, der das Leben besser macht. Und ich liege auf einer Decke und muss heute ausnahmsweise keine Berichte schreiben, keine Patrouille führen und keine blutrünstigen Schwarzmagier verhaften.«
+»Nein. Ich hab’ eine Frau, die mich aushält. Einen Sohn, der das Leben besser macht. Und ich liege auf einer Decke und muss heute ausnahmsweise keine Berichte schreiben, keine Patrouille führen und keine blutrünstigen Schwarzmagier verhaften.«
 
 »Du meinst, heute gab es keine illegalen Maulwurfbeschwörungen?«
 
-»Nicht dass ich wüsste. Und wenn, wär's mir egal, ich hab' ja keinen Dienst.«
+»Nicht dass ich wüsste. Und wenn, wär’s mir egal, ich hab’ ja keinen Dienst.«
 
 Kata lehnte sich zurück und stützte sich auf die Hände. »Sag nicht zu laut, dass du zufrieden bist. Das Schicksal hört immer zu.«
 
@@ -239,7 +154,7 @@ Nun legte sich auch Kata auf den Rücken, die Hände hinter dem Kopf verschränk
 
 »Hast du eigentlich mal wieder etwas von Jaad gehört?«, fragte sie nach einer Weile.
 
-Jomar drehte den Kopf zu ihr. »Ich hab' sie schon ewig lange nicht mehr gesehen, aber sie ist jetzt im Rat der Zauberer, soweit ich weiß.«
+Jomar drehte den Kopf zu ihr. »Ich hab’ sie schon ewig lange nicht mehr gesehen, aber sie ist jetzt im Rat der Zauberer, soweit ich weiß.«
 
 »Ernsthaft? Wie alt ist sie jetzt? 23 … 24? Da dürfte sie wohl die Jüngste sein. Da sitzen doch nur alte Säcke.«
 
@@ -2195,7 +2110,7 @@ Bäume wuchsen in den Straßen. Richtige Bäume mit grünen Blättern, obwohl si
 
 Menschen bewegten sich durch die Straßen. Dies war keine tote Ruine, sondern eine lebende, atmende Stadt.
 
-![Unterstadt](Unterstadt.png)![](Unterstadt.png)
+![](Unterstadt.png)
 
 ><center>Die geheimnisvolle Unterstadt</center>
 
@@ -7729,19 +7644,21 @@ Aber das war in Ordnung. Manche Kreise mussten sich schließen.
 # Epilog
 
 
-Der Kreis schloss sich. Zurück in der Unterstadt fanden sie sich im Haus des alten Zauberers wieder. Sie standen vor Efret, der auf einem wackeligen Sessel thronte und sie mit strahlendem Lächeln betrachtete. Das Licht der Fackeln ließ den großen Raum in warmen Farben erstrahlen, als wäre alles wieder normal. Als hätten sie nicht gerade das Universum gerettet.
+Der Kreis schloss sich. Zurück in der Unterstadt fanden sie sich im Haus des alten Zauberers wieder. Sie standen vor Efret, der auf einem wackeligen Sessel thronte und sie mit strahlendem Lächeln betrachtete. Das Licht der Öllampen ließ den großen Raum in warmen Farben erstrahlen, als wäre alles wieder normal. Als hätten sie nicht gerade das Universum gerettet.
 
 »Käsefüße!«, rief Efret fröhlich. Die Stimme sackte förmlich in sich zusammen. 
 
 »Ihr wisst doch, wie sehr euch das schwächt, Meister. Und … wenn ihr mich nicht mehr braucht, kann ich ja auch gehen.«
 
-»Beleidigte Leberwurst«, sagte Efret glucksend und tätschelte den hakennasigen Mann an der Schulter. Dann schloss er die Augen und seine Lider flatterten kurz. Der Alterswahnsinn war aus seinen Augen verschwunden. 
+»Sei doch keine beleidigte Leberwurst«, sagte Efret glucksend und tätschelte den hakennasigen Mann an der Schulter. Dann schloss er die Augen und seine Lider flatterten kurz. Der Alterswahnsinn war aus seinen Augen verschwunden. 
 
 »Eine Familie von Weltenrettern!« Efret klatschte begeistert in die Hände und wackelte mit dem Kopf, sodass seine weißen Haare wild umherflogen. »Erst Demirantha, dann gleich das ganze Universum! Ihr übertrefft euch jedes Mal selbst!«
 
-Kata konnte nicht anders, als zu lächeln, obwohl die Erschöpfung an ihr nagte. Die Erinnerungen an all das, was sie durchgemacht hatten, lasteten schwer auf ihr. Doch als sie Ayen betrachtete, der neben ihr stand und mit großen Augen zu Efret aufblickte, spürte sie eine tiefe Erleichterung. Er war wieder nur ein Kind. Ein ganz normales, fünfjähriges Kind. Wie oft sie diesen Satz nun wohl schon gedacht hatte seit seiner Verwandlung? Egal! Er füllte ihr Herz jedes Mal mit Freude.
+Kata konnte nicht anders, als zu lächeln. Die Erinnerungen an all das, was sie durchgemacht hatten, lasteten schwer auf ihr. Doch als sie Ayen betrachtete, der neben ihr stand und mit großen Augen zu Efret aufblickte, spürte sie eine tiefe Erleichterung. Er war wieder nur ein Kind. Ein ganz normales, fünfjähriges Kind. Wie oft sie diesen Satz nun wohl schon gedacht hatte seit seiner Verwandlung? Egal! Er füllte ihr Herz jedes Mal mit Freude.
 
-»Ich kann mich an nicht viel erinnern«, sagte Ayen und rieb sich nachdenklich die Nase, »aber ich glaube, du hast ganz dolle mitgeholfen, Opa Efret.«
+Ayen schob seine Mutter beiseite und stellte sich direkt vor den alten Zauberer.
+
+»Ich kann mich an nicht viel erinnern«, sagte er und rieb sich nachdenklich die Nase, »aber ich glaube, du hast ganz dolle mitgeholfen, Opa Efret.«
 
 *Opa Efret*, dachte Kata und spürte, wie ihr ein Tränchen über die Wange lief. Sie wischte es hastig weg, aber Jomar hatte es bemerkt und drückte sanft ihre Hand.
 
@@ -7763,12 +7680,16 @@ Sie blickte zu Jomar, der mit einem resignierten Seufzen die Augen verdrehte, da
 
 »Oh ja!«, rief er begeistert. »Wer ist Malvek? Ist er böse? Hat er Tentakel? Kann ich helfen?«
 
-Kata musste lächeln, trotz der Müdigkeit, die in ihren Knochen saß. Vielleicht war es das Schicksal ihrer Familie, von einer Krise zur nächsten zu eilen. Vielleicht würden sie nie ein ruhiges, normales Leben führen.
+Kata musste lächeln, trotz der Erschöpfung, die sie empfand. Vielleicht war es das Schicksal ihrer Familie, von einer Krise zur nächsten zu eilen. Vielleicht würden sie nie ein ruhiges, normales Leben führen.
 
 Aber wenn sie ihren Sohn so sah – glücklich, gesund und voller Tatendrang – dann war das vielleicht gar nicht so schlimm.
 
 »Nun lass uns doch erst mal ein paar Tage ausruhen, dann sehen wir weiter.«
 
-Ende der Heldensaga von Demirantha 
+<br>
+
+<br>
+
+<center><big>Ende der Heldensaga von Demirantha</big></center>
 
 

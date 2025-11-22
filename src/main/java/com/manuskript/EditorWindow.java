@@ -89,6 +89,18 @@ public class EditorWindow implements Initializable {
     
     private static final Logger logger = LoggerFactory.getLogger(EditorWindow.class);
     
+    // Statische Map für Cursor-Positionen pro Kapitel (nur Session, nicht persistent)
+    private static final Map<String, Integer> chapterCursorPositions = new HashMap<>();
+    
+    // Statische Map für Scroll-Positionen (vvalue 0.0-1.0) pro Kapitel
+    private static final Map<String, Double> chapterScrollPositions = new HashMap<>();
+    
+    // Flag um zu verhindern, dass während des Ladens gespeichert wird
+    private boolean isLoadingChapter = false;
+    
+    // Referenz zum VirtualizedScrollPane für Scroll-Position
+    private VirtualizedScrollPane<CodeArea> scrollPane;
+    
     // Globale DOCX-Optionen für Export
     private DocxOptions globalDocxOptions = new DocxOptions();
     
@@ -519,7 +531,7 @@ if (caret != null) {
         setupEmptyLineMarking();
         
         // VirtualizedScrollPane für bessere Performance
-        VirtualizedScrollPane<CodeArea> scrollPane = new VirtualizedScrollPane<>(codeArea);
+        scrollPane = new VirtualizedScrollPane<>(codeArea);
         scrollPane.getStyleClass().add("code-area");
         
         // 5px Padding für die ScrollPane
@@ -1011,6 +1023,16 @@ if (caret != null) {
                 }
             }
         });
+        
+        // Cursor-Position kontinuierlich speichern (nur wenn ein Kapitel geladen ist)
+        codeArea.caretPositionProperty().addListener((obs, oldPos, newPos) -> {
+            if (newPos != null && newPos.intValue() >= 0 && originalDocxFile != null) {
+                // Speichere die Position nur wenn ein Kapitel geladen ist
+                Platform.runLater(() -> {
+                    saveCurrentCursorPosition();
+                });
+            }
+        });
     }
     
     private void setupKeyboardShortcuts() {
@@ -1073,6 +1095,36 @@ if (caret != null) {
                         }
                         event.consume();
                         break;
+                    case LEFT:
+                        // Ctrl + Pfeil links -> vorherige Datei
+                        navigateToPreviousChapter();
+                        event.consume();
+                        break;
+                    case RIGHT:
+                        // Ctrl + Pfeil rechts -> nächste Datei
+                        navigateToNextChapter();
+                        event.consume();
+                        break;
+                    case X:
+                        // Ctrl + X -> Aktuelle Zeile löschen, Cursor nach links (nur wenn kein Text markiert ist)
+                        // Wenn Text markiert ist, wird das normale Ausschneiden-Verhalten verwendet
+                        String selectedText = getSelectedTextSafely();
+                        if (selectedText == null || selectedText.isEmpty()) {
+                            deleteCurrentLine();
+                            event.consume();
+                        }
+                        // Wenn Text markiert ist, lasse das Standard-Verhalten (Ausschneiden) zu
+                        break;
+                    case UP:
+                        // Ctrl + Pfeil hoch -> zum Anfang des Dokuments
+                        jumpToDocumentStart();
+                        event.consume();
+                        break;
+                    case DOWN:
+                        // Ctrl + Pfeil unten -> zum Ende des Dokuments
+                        jumpToDocumentEnd();
+                        event.consume();
+                        break;
 
                 }
             } else if (event.getCode() == KeyCode.F3) {
@@ -1087,6 +1139,22 @@ if (caret != null) {
                 // Delete-Taste: Standard-Verhalten beibehalten
                 // RichTextFX macht das automatisch richtig
             }
+        });
+        
+        // Event-Filter für Pos1/Ende (ohne Ctrl) -> zum Anfang/Ende des Dokuments
+        codeArea.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+            if (!event.isControlDown()) {
+                if (event.getCode() == KeyCode.HOME) {
+                    // Pos1 alleine -> Anfang des Dokuments
+                    jumpToDocumentStart();
+                    event.consume();
+                } else if (event.getCode() == KeyCode.END) {
+                    // Ende alleine -> Ende des Dokuments
+                    jumpToDocumentEnd();
+                    event.consume();
+                }
+            }
+            // Ctrl + Pos1/Ende wird bereits im switch-Statement behandelt (falls nötig)
         });
         
         // Mausrad-Event-Filter für Schriftgröße (Strg + Mausrad)
@@ -1181,6 +1249,269 @@ if (caret != null) {
             codeArea.insertText(codeArea.getCaretPosition(), "<u></u>");
             // Cursor zwischen die Tags setzen
             codeArea.moveTo(codeArea.getCaretPosition() - 4);
+        }
+    }
+    
+    /**
+     * Löscht die aktuelle Zeile und setzt den Cursor nach links (Ctrl+X)
+     */
+    private void deleteCurrentLine() {
+        if (codeArea == null) {
+            return;
+        }
+        
+        String text = codeArea.getText();
+        if (text == null || text.isEmpty()) {
+            return;
+        }
+        
+        int caretPosition = codeArea.getCaretPosition();
+        
+        // Finde den Anfang und das Ende der aktuellen Zeile
+        int lineStart = caretPosition > 0 ? text.lastIndexOf('\n', caretPosition - 1) + 1 : 0;
+        int lineEnd = text.indexOf('\n', caretPosition);
+        if (lineEnd == -1) {
+            lineEnd = text.length();
+        }
+        
+        // Prüfe, ob die Zeile leer ist (kein Inhalt zwischen lineStart und lineEnd)
+        boolean isEmptyLine = (lineStart == lineEnd);
+        
+        // Bestimme die zu löschende Range (inklusive Newline, wenn vorhanden)
+        int deleteStart = lineStart;
+        int deleteEnd;
+        
+        if (lineEnd < text.length()) {
+            // Es gibt ein Newline-Zeichen nach der Zeile - lösche es mit
+            deleteEnd = lineEnd + 1;
+        } else {
+            // Letzte Zeile - kein Newline danach
+            deleteEnd = lineEnd;
+        }
+        
+        // Wenn die Zeile leer ist und nicht die erste Zeile
+        if (isEmptyLine && lineStart > 0) {
+            // Leere Zeile - lösche das Newline-Zeichen davor (das die leere Zeile erzeugt)
+            deleteStart = lineStart - 1;
+            deleteEnd = lineStart;
+        }
+        
+        // Lösche die Zeile
+        if (deleteStart < deleteEnd && deleteEnd <= text.length()) {
+            codeArea.deleteText(deleteStart, deleteEnd);
+            
+            // Cursor nach links setzen (an den Anfang der vorherigen Zeile)
+            if (deleteStart > 0) {
+                String newText = codeArea.getText();
+                int newLineStart = newText.lastIndexOf('\n', deleteStart - 1) + 1;
+                codeArea.moveTo(newLineStart);
+            } else {
+                codeArea.moveTo(0);
+            }
+        } else if (text.length() > 0) {
+            // Fallback: Dokument komplett löschen
+            codeArea.clear();
+            codeArea.moveTo(0);
+        }
+    }
+    
+    /**
+     * Gibt den Editor-Key für das aktuelle Kapitel zurück
+     */
+    private String getCurrentEditorKey() {
+        if (originalDocxFile != null) {
+            String chapterName = originalDocxFile.getName();
+            if (chapterName.toLowerCase().endsWith(".docx")) {
+                chapterName = chapterName.substring(0, chapterName.length() - 5);
+            }
+            return chapterName + ".md";
+        }
+        return null;
+    }
+    
+    /**
+     * Speichert die aktuelle Cursor-Position und Scroll-Position für das aktuelle Kapitel
+     */
+    private void saveCurrentCursorPosition() {
+        // Nicht speichern während des Ladens
+        if (isLoadingChapter) {
+            return;
+        }
+        
+        if (codeArea != null) {
+            String editorKey = getCurrentEditorKey();
+            if (editorKey != null) {
+                // Cursor-Position speichern
+                int position = codeArea.getCaretPosition();
+                chapterCursorPositions.put(editorKey, position);
+                
+                // Scroll-Position speichern (relative Position: Paragraph-Index des Cursors)
+                // Da estimatedScrollY read-only ist, speichern wir die Paragraph-Index
+                // und versuchen beim Wiederherstellen, die Position zu approximieren
+                try {
+                    int currentParagraph = codeArea.getCurrentParagraph();
+                    // Speichere die Paragraph-Index als Double
+                    chapterScrollPositions.put(editorKey, (double) currentParagraph);
+                    logger.debug("Cursor- und Scroll-Position gespeichert für {}: Position={}, Paragraph={}", editorKey, position, currentParagraph);
+                } catch (Exception e) {
+                    logger.debug("Fehler beim Speichern der Scroll-Position: " + e.getMessage());
+                    // Fallback: Nur Cursor-Position speichern
+                    logger.debug("Cursor-Position gespeichert für {}: {}", editorKey, position);
+                }
+            }
+        }
+    }
+    
+    /**
+     * Stellt die gespeicherte Cursor-Position und Scroll-Position für das aktuelle Kapitel wieder her
+     * Wenn keine Position gespeichert ist, wird der Cursor an den Anfang gesetzt
+     */
+    public void restoreCursorPosition() {
+        if (codeArea != null) {
+            String editorKey = getCurrentEditorKey();
+            if (editorKey != null) {
+                String text = codeArea.getText();
+                if (text != null) {
+                    final int position;
+                    final Double savedScrollValue;
+                    
+                    if (chapterCursorPositions.containsKey(editorKey)) {
+                        // Gespeicherte Position verwenden
+                        int savedPos = chapterCursorPositions.get(editorKey);
+                        // Sicherstellen, dass die Position gültig ist
+                        if (savedPos < 0) {
+                            position = 0;
+                        } else if (savedPos > text.length()) {
+                            position = text.length();
+                        } else {
+                            position = savedPos;
+                        }
+                        
+                        // Gespeicherte Scroll-Position verwenden
+                        if (chapterScrollPositions.containsKey(editorKey)) {
+                            savedScrollValue = chapterScrollPositions.get(editorKey);
+                            logger.debug("Cursor- und Scroll-Position wiederhergestellt für {}: Position={}, ScrollValue={}", editorKey, position, savedScrollValue);
+                        } else {
+                            // Keine gespeicherte Scroll-Position
+                            savedScrollValue = null;
+                            logger.debug("Cursor-Position wiederhergestellt für {}: Position={}, keine Scroll-Position", editorKey, position);
+                        }
+                    } else {
+                        // Keine gespeicherte Position - Cursor an den Anfang
+                        position = 0;
+                        savedScrollValue = null;
+                        logger.debug("Keine gespeicherte Position für {}, Cursor an den Anfang gesetzt", editorKey);
+                    }
+                    
+                    // WICHTIG: Position zuerst setzen
+                    codeArea.moveTo(position);
+                    
+                    // Dann Scroll-Position wiederherstellen (Paragraph-basiert, da estimatedScrollY read-only ist)
+                    Platform.runLater(() -> {
+                        try {
+                            // Berechne die Paragraph des Cursors
+                            final int cursorParagraph = codeArea.offsetToPosition(position, Bias.Forward).getMajor();
+                            
+                            if (savedScrollValue != null) {
+                                // Gespeicherte Paragraph-Index
+                                int savedParagraph = savedScrollValue.intValue();
+                                int totalParagraphs = codeArea.getParagraphs().size();
+                                
+                                if (savedParagraph >= 0 && savedParagraph < totalParagraphs) {
+                                    // Wenn die gespeicherte Paragraph kleiner ist als die Cursor-Paragraph,
+                                    // war der Cursor weiter unten im Viewport - zeige die gespeicherte Paragraph oben
+                                    if (savedParagraph < cursorParagraph) {
+                                        codeArea.showParagraphInViewport(savedParagraph);
+                                    } else {
+                                        // Cursor war in der ersten sichtbaren Paragraph - zeige etwas oberhalb
+                                        // Versuche, die ursprüngliche Viewport-Position zu approximieren
+                                        int offset = Math.max(0, cursorParagraph - 10); // ~10 Paragraphs oberhalb
+                                        codeArea.showParagraphInViewport(offset);
+                                    }
+                                } else {
+                                    // Fallback: Cursor-Paragraph oben
+                                    codeArea.showParagraphInViewport(cursorParagraph);
+                                }
+                            } else {
+                                // Keine gespeicherte Position - zeige Cursor-Paragraph oben
+                                codeArea.showParagraphInViewport(cursorParagraph);
+                            }
+                            
+                            codeArea.requestFollowCaret();
+                            
+                            // Finale Position setzen mit nochmaliger Verzögerung
+                            Platform.runLater(() -> {
+                                codeArea.moveTo(position);
+                                if (savedScrollValue != null) {
+                                    int savedParagraph = savedScrollValue.intValue();
+                                    int currentCursorPara = codeArea.offsetToPosition(position, Bias.Forward).getMajor();
+                                    int totalParagraphs = codeArea.getParagraphs().size();
+                                    
+                                    if (savedParagraph >= 0 && savedParagraph < totalParagraphs) {
+                                        if (savedParagraph < currentCursorPara) {
+                                            codeArea.showParagraphInViewport(savedParagraph);
+                                        } else {
+                                            int offset = Math.max(0, currentCursorPara - 10);
+                                            codeArea.showParagraphInViewport(offset);
+                                        }
+                                    }
+                                }
+                                codeArea.requestFollowCaret();
+                                logger.debug("Finale Cursor- und Scroll-Position gesetzt: Position={}", position);
+                            });
+                        } catch (Exception e) {
+                            logger.debug("Fehler beim Wiederherstellen der Position: " + e.getMessage());
+                            // Fallback: Cursor an den Anfang
+                            codeArea.moveTo(0);
+                            codeArea.requestFollowCaret();
+                        }
+                    });
+                }
+            }
+        }
+    }
+    
+    /**
+     * Springt zum Anfang des Dokuments (Pos1 oder Ctrl + Pfeil hoch)
+     */
+    private void jumpToDocumentStart() {
+        if (codeArea != null) {
+            codeArea.moveTo(0);
+            // Scrolle zum Anfang
+            Platform.runLater(() -> {
+                try {
+                    int paragraphIndex = codeArea.offsetToPosition(0, Bias.Forward).getMajor();
+                    codeArea.showParagraphInViewport(paragraphIndex);
+                    codeArea.requestFollowCaret();
+                } catch (Exception e) {
+                    logger.debug("Fehler beim Scrollen zum Anfang: " + e.getMessage());
+                }
+            });
+            codeArea.requestFocus();
+        }
+    }
+    
+    /**
+     * Springt zum Ende des Dokuments (Ende oder Ctrl + Pfeil unten)
+     */
+    private void jumpToDocumentEnd() {
+        if (codeArea != null) {
+            String text = codeArea.getText();
+            if (text != null && text.length() > 0) {
+                int endPosition = text.length();
+                codeArea.moveTo(endPosition);
+                // Scrolle zum Ende
+                Platform.runLater(() -> {
+                    try {
+                        int paragraphIndex = codeArea.offsetToPosition(endPosition, Bias.Forward).getMajor();
+                        codeArea.showParagraphInViewport(paragraphIndex);
+                        codeArea.requestFollowCaret();
+                    } catch (Exception e) {
+                        logger.debug("Fehler beim Scrollen zum Ende: " + e.getMessage());
+                    }
+                });
+                codeArea.requestFocus();
+            }
         }
     }
     
@@ -5283,6 +5614,47 @@ if (caret != null) {
     }
     
     /**
+     * Normalisiert Satzzeichen: Entfernt Leerzeichen vor Satzzeichen und normalisiert mehrere Leerzeichen danach
+     * Respektiert Code-Blöcke und andere spezielle Bereiche
+     */
+    private String normalizePunctuation(String text) {
+        if (text == null || text.isEmpty()) {
+            return text;
+        }
+        
+        String[] lines = text.split("\n", -1);
+        StringBuilder result = new StringBuilder();
+        boolean inCodeBlock = false;
+        
+        for (int i = 0; i < lines.length; i++) {
+            String line = lines[i];
+            String trimmedLine = line.trim();
+            
+            // Prüfe auf Code-Blöcke
+            if (trimmedLine.startsWith("```")) {
+                inCodeBlock = !inCodeBlock;
+                result.append(line);
+                if (i < lines.length - 1) result.append("\n");
+                continue;
+            }
+            
+            // Normalisiere nur außerhalb von Code-Blöcken
+            if (!inCodeBlock) {
+                // Entferne Leerzeichen vor Satzzeichen: . ? ! ; : ,
+                line = line.replaceAll("\\s+([.?!;:,])", "$1");
+                
+                // Normalisiere mehrere Leerzeichen nach Satzzeichen zu einem einzelnen Leerzeichen
+                line = line.replaceAll("([.?!;:,])\\s{2,}", "$1 ");
+            }
+            
+            result.append(line);
+            if (i < lines.length - 1) result.append("\n");
+        }
+        
+        return result.toString();
+    }
+    
+    /**
      * Auto-Formatierung für Markdown: Konvertiert einfache Zeilenumbrüche zu doppelten,
      * aber respektiert Code-Blöcke, Tabellen und andere spezielle Bereiche
      */
@@ -5290,6 +5662,9 @@ if (caret != null) {
         if (text == null || text.isEmpty()) {
             return text;
         }
+        
+        // Normalisiere Satzzeichen zuerst
+        text = normalizePunctuation(text);
         
         // Debug: Zeige Eingabetext
         
@@ -5665,25 +6040,70 @@ if (caret != null) {
     
     // Public Methoden für externe Verwendung
     public void setText(String text) {
-        // EINGEBAUTE UNDO-FUNKTIONALITÄT VERWENDEN - kein manueller Aufruf nötig
+        // Flag setzen, um zu verhindern, dass während des Ladens gespeichert wird
+        isLoadingChapter = true;
         
-        // Auto-Formatierung für Markdown anwenden
-        String formattedText = autoFormatMarkdown(text);
-        boolean wasFormatted = !text.equals(formattedText);
-        
-        codeArea.replaceText(formattedText);
-        originalContent = cleanTextForComparison(codeArea.getText());
-        
-        markAsSaved();
-        if (wasFormatted) {
-            updateStatus("Text geladen (Automatische Formatierung angewendet)");
-        } else {
-            updateStatus("Text geladen");
+        try {
+            // Auto-Formatierung für Markdown anwenden
+            String formattedText = autoFormatMarkdown(text);
+            boolean wasFormatted = !text.equals(formattedText);
+            
+            // WICHTIG: Verwende replaceText mit Positionen, um Undo-Historie zu erhalten
+            // replaceText(String) ohne Parameter kann die Undo-Historie löschen
+            int currentLength = codeArea.getLength();
+            if (currentLength > 0) {
+                codeArea.replaceText(0, currentLength, formattedText);
+            } else {
+                codeArea.replaceText(formattedText);
+            }
+            
+            originalContent = cleanTextForComparison(codeArea.getText());
+            
+            markAsSaved();
+            if (wasFormatted) {
+                updateStatus("Text geladen (Automatische Formatierung angewendet)");
+            } else {
+                updateStatus("Text geladen");
+            }
+            
+            // WICHTIG: Nach dem Laden die Undo-Historie zurücksetzen, damit der geladene Text
+            // als Ausgangszustand gilt und nicht der leere Editor (verhindert leeren Editor bei Ctrl+Z)
+            Platform.runLater(() -> {
+                try {
+                    if (codeArea.getUndoManager() != null) {
+                        // Versuche die Undo-Historie zu leeren, damit der geladene Text der Ausgangszustand ist
+                        java.lang.reflect.Method forgetHistory = codeArea.getUndoManager().getClass()
+                            .getMethod("forgetHistory");
+                        forgetHistory.invoke(codeArea.getUndoManager());
+                    }
+                } catch (Exception e) {
+                    // Methode nicht verfügbar - versuche alternativen Ansatz
+                    try {
+                        // Alternativ: Versuche clear() oder reset()
+                        java.lang.reflect.Method clear = codeArea.getUndoManager().getClass()
+                            .getMethod("clear");
+                        clear.invoke(codeArea.getUndoManager());
+                    } catch (Exception e2) {
+                        // Keine Methode gefunden - ignorieren
+                        logger.debug("Konnte Undo-Historie nicht zurücksetzen: " + e2.getMessage());
+                    }
+                }
+            });
+            
+            // Gespeicherte Cursor-Position wiederherstellen (falls vorhanden, sonst am Anfang)
+            // Warte kurz, damit der Text vollständig geladen ist
+            Platform.runLater(() -> {
+                Platform.runLater(() -> {
+                    restoreCursorPosition();
+                    // Flag zurücksetzen nach dem Wiederherstellen
+                    isLoadingChapter = false;
+                });
+            });
+        } catch (Exception e) {
+            // Bei Fehler Flag zurücksetzen
+            isLoadingChapter = false;
+            throw e;
         }
-        
-        // Cursor an den Anfang setzen
-        codeArea.displaceCaret(0);
-        codeArea.requestFollowCaret();
     }
     
     /**
@@ -6128,6 +6548,9 @@ if (caret != null) {
         
         // Close-Request-Handler für Speichern-Abfrage
         stage.setOnCloseRequest(event -> {
+            // Speichere die Cursor-Position bevor das Fenster geschlossen wird
+            saveCurrentCursorPosition();
+            
             boolean hasChanges = hasUnsavedChanges();
             
             if (hasChanges) {
@@ -8444,17 +8867,14 @@ spacer.setStyle("-fx-background-color: transparent;");
             boolean wasParagraphMarkingEnabled = paragraphMarkingEnabled;
             paragraphMarkingEnabled = false;
             
-            // Alle Absatz-Markierungen entfernen
-            removeAllParagraphMarkings();
-            
-            // Cursor-Position NACH removeAllParagraphMarkings() speichern
+            // Cursor-Position speichern
             int caretPosition = codeArea.getCaretPosition();
             
-            // Markiere einen Punkt in der Undo-Historie VOR der Makro-Ausführung
-            // Dies stellt sicher, dass die gesamte Makro-Operation als eine Undo-Operation behandelt wird
-            codeArea.getUndoManager().mark();
+            // Speichere den ursprünglichen Text für Undo (inkl. Absatz-Markierungen)
+            String originalText = codeArea.getText();
             
-            String content = codeArea.getText();
+            // Entferne Absatz-Markierungen direkt im String (nicht als separate Undo-Operation)
+            String content = originalText.replace("¶", "");
             
             // Nur aktivierte Schritte zählen
             List<MacroStep> enabledSteps = currentMacro.getSteps().stream()
@@ -8525,12 +8945,24 @@ spacer.setStyle("-fx-background-color: transparent;");
             String normalizedContent = normalizeHtmlTagsInContent(content);
             
             // Text ersetzen mit spezifischen Positionen (wie in anderen Teilen des Codes)
-            // WICHTIG: Der Mark-Punkt wurde bereits VOR der Makro-Ausführung gesetzt
-            // replaceText() wird automatisch in die Undo-Historie aufgenommen
-            String originalContent = codeArea.getText();
-            if (!originalContent.equals(normalizedContent)) {
-                // Ersetze den Text - dies wird automatisch in die Undo-Historie aufgenommen
+            // WICHTIG: Wir ersetzen den gesamten Text in einer einzigen Operation
+            // Dies stellt sicher, dass die gesamte Makro-Operation als eine einzige Undo-Operation behandelt wird
+            if (!originalText.equals(normalizedContent)) {
+                // Ersetze den gesamten Text in einer Operation - dies wird als eine einzige Undo-Operation behandelt
                 codeArea.replaceText(0, codeArea.getLength(), normalizedContent);
+                
+                // Verhindere, dass die nächste Operation mit dieser zusammengeführt wird
+                // Dies stellt sicher, dass die Makro-Operation als separate Undo-Operation bleibt
+                if (codeArea.getUndoManager() != null) {
+                    try {
+                        // Versuche preventMergeNext() falls verfügbar, sonst ignorieren
+                        java.lang.reflect.Method preventMerge = codeArea.getUndoManager().getClass()
+                            .getMethod("preventMergeNext");
+                        preventMerge.invoke(codeArea.getUndoManager());
+                    } catch (Exception e) {
+                        // Methode nicht verfügbar - ignorieren
+                    }
+                }
             }
             
             // Prüfe ob das Makro tatsächlich Änderungen vorgenommen hat
@@ -12135,6 +12567,9 @@ spacer.setStyle("-fx-background-color: transparent;");
         EditorWindow existingEditor = mainController.findExistingEditor(editorKey);
         
         if (existingEditor != null && existingEditor != this) {
+            // Speichere die aktuelle Cursor-Position bevor wir wechseln
+            saveCurrentCursorPosition();
+            
             // Editor existiert bereits UND ist nicht der aktuelle Editor - bringe ihn in den Vordergrund und schließe den aktuellen Editor
             Platform.runLater(() -> {
                 if (existingEditor.getStage() != null && existingEditor.getStage().isShowing()) {
@@ -12144,6 +12579,9 @@ spacer.setStyle("-fx-background-color: transparent;");
                     existingEditor.getStage().requestFocus(); // Fokus setzen
                     existingEditor.getStage().setAlwaysOnTop(true); // Temporär immer oben
                     existingEditor.getStage().setAlwaysOnTop(false); // Wieder normal
+                    
+                    // Stelle die Cursor-Position für das bestehende Kapitel wieder her
+                    existingEditor.restoreCursorPosition();
                 }
             });
             updateStatus("Bestehender Editor für '" + targetFile.getName() + "' in den Vordergrund gebracht");
@@ -12155,6 +12593,9 @@ spacer.setStyle("-fx-background-color: transparent;");
                 }
             });
         } else {
+            // Speichere die aktuelle Cursor-Position bevor wir ein neues Kapitel laden
+            saveCurrentCursorPosition();
+            
             // Kein Editor existiert ODER es ist derselbe Editor - lade das Kapitel in den aktuellen Editor
             loadChapterFile(targetFile);
         }
@@ -12256,8 +12697,9 @@ spacer.setStyle("-fx-background-color: transparent;");
                             case DOCX:
                                 // DOCX-Inhalt laden und anzeigen
                                 String docxContent = docxProcessor.processDocxFileContent(file, chapterNumber, outputFormat);
-                                setText(docxContent);
+                                // WICHTIG: Setze originalDocxFile VOR setText
                                 setOriginalDocxFile(file);
+                                setText(docxContent);
                                 setCurrentFile(deriveSidecarFileForCurrentFormat());
                                 setWindowTitle("📄 " + file.getName());
                                 originalContent = cleanTextForComparison(docxContent);
@@ -12285,9 +12727,11 @@ spacer.setStyle("-fx-background-color: transparent;");
                 content = docxProcessor.processDocxFileContent(file, chapterNumber, outputFormat);
             }
 
+            // WICHTIG: Setze originalDocxFile VOR setText, damit restoreCursorPosition den richtigen Key verwendet
+            setOriginalDocxFile(file);
+            
             // Setze den Inhalt und Dateireferenzen
             setText(content);
-            setOriginalDocxFile(file);
             // currentFile zeigt immer auf die Sidecar-Datei (auch wenn sie noch nicht existiert)
             setCurrentFile(sidecar != null ? sidecar : deriveSidecarFileForCurrentFormat());
             

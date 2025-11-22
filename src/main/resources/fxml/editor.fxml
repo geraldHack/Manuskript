@@ -39,27 +39,47 @@
       
 
       <!-- Neue einfache Toolbar für Textgröße -->
-      <HBox spacing="5" styleClass="font-toolbar" style="-fx-min-height: 30px;">
+      <HBox spacing="5" styleClass="font-toolbar" style="-fx-min-height: 50px;">
          <children>
-            <Label text="Textgröße:" styleClass="font-size-label" />
-            <ComboBox fx:id="cmbFontSize" promptText="12" prefWidth="80.0" />
-            <Button fx:id="btnIncreaseFont" text="A+" styleClass="toolbar-button" style="-fx-min-width: 45px; -fx-max-width: 45px;" />
-            <Button fx:id="btnDecreaseFont" text="A-" styleClass="toolbar-button" style="-fx-min-width: 45px; -fx-max-width: 45px;" />
+            <!-- Textgröße: Label über den Elementen -->
+            <VBox spacing="2" alignment="CENTER_LEFT">
+               <Label text="Textgröße:" styleClass="font-size-label" />
+               <HBox spacing="3" alignment="CENTER_LEFT">
+                  <ComboBox fx:id="cmbFontSize" promptText="12" prefWidth="80.0" />
+                  <Button fx:id="btnIncreaseFont" text="A+" styleClass="toolbar-button" style="-fx-min-width: 45px; -fx-max-width: 45px;" />
+                  <Button fx:id="btnDecreaseFont" text="A-" styleClass="toolbar-button" style="-fx-min-width: 45px; -fx-max-width: 45px;" />
+               </HBox>
+            </VBox>
             
             <Separator orientation="VERTICAL" style="-fx-background-color: #6c757d;" />
             
-            <Button fx:id="btnBold" text="B" styleClass="toolbar-button" style="-fx-min-width: 35px; -fx-max-width: 35px; -fx-min-height: 28px; -fx-max-height: 28px; -fx-font-weight: bold; -fx-font-size: 14px;" />
-            <Button fx:id="btnItalic" text="I" styleClass="toolbar-button" style="-fx-min-width: 35px; -fx-max-width: 35px; -fx-min-height: 28px; -fx-max-height: 28px; -fx-font-style: italic; -fx-font-size: 14px;" />
-            <Button fx:id="btnUnderline" text="U" styleClass="toolbar-button" style="-fx-min-width: 35px; -fx-max-width: 35px; -fx-min-height: 28px; -fx-max-height: 28px; -fx-text-decoration: underline; -fx-font-size: 14px;" />
-            <Button fx:id="btnStrikethrough" text="S" styleClass="toolbar-button" style="-fx-min-width: 35px; -fx-max-width: 35px; -fx-min-height: 28px; -fx-max-height: 28px; -fx-font-size: 14px;" />
-            <Button fx:id="btnSuperscript" text="x²" styleClass="toolbar-button" style="-fx-min-width: 45px; -fx-max-width: 45px; -fx-min-height: 28px; -fx-max-height: 28px; -fx-font-size: 13px;" />
-            <Button fx:id="btnSubscript" text="x₂" styleClass="toolbar-button" style="-fx-min-width: 45px; -fx-max-width: 45px; -fx-min-height: 28px; -fx-max-height: 28px; -fx-font-size: 13px;" />
-            <Button fx:id="btnInsertImage" text="🖼" styleClass="toolbar-button" style="-fx-min-width: 45px; -fx-max-width: 45px; -fx-min-height: 28px; -fx-max-height: 28px; -fx-font-size: 16px;" />
+            <!-- Formatierung: Label über den Buttons -->
+            <VBox spacing="2" alignment="CENTER" style="-fx-min-height: 50px;">
+               <Label text="Formatierung" styleClass="font-size-label" style="-fx-font-size: 11px; -fx-text-fill: -fx-text-base-color;" />
+               <HBox spacing="3" alignment="CENTER">
+            <!-- Formatierung: Label über den Buttons -->
+            <VBox spacing="2" alignment="CENTER" style="-fx-min-height: 50px;">
+               <Label text="Formatierung" style="-fx-font-size: 11px; -fx-text-fill: -fx-text-base-color; -fx-padding: 0 0 2 0;" />
+               <HBox spacing="3" alignment="CENTER">
+                  <Button fx:id="btnBold" text="B" styleClass="toolbar-button" style="-fx-min-width: 35px; -fx-max-width: 35px; -fx-min-height: 28px; -fx-max-height: 28px; -fx-font-weight: bold; -fx-font-size: 14px;" />
+                  <Button fx:id="btnItalic" text="I" styleClass="toolbar-button" style="-fx-min-width: 35px; -fx-max-width: 35px; -fx-min-height: 28px; -fx-max-height: 28px; -fx-font-style: italic; -fx-font-size: 14px;" />
+                  <Button fx:id="btnUnderline" text="U" styleClass="toolbar-button" style="-fx-min-width: 35px; -fx-max-width: 35px; -fx-min-height: 28px; -fx-max-height: 28px; -fx-text-decoration: underline; -fx-font-size: 14px;" />
+                  <Button fx:id="btnStrikethrough" text="S" styleClass="toolbar-button" style="-fx-min-width: 35px; -fx-max-width: 35px; -fx-min-height: 28px; -fx-max-height: 28px; -fx-font-size: 14px;" />
+                  <Button fx:id="btnSuperscript" text="x²" styleClass="toolbar-button" style="-fx-min-width: 45px; -fx-max-width: 45px; -fx-min-height: 28px; -fx-max-height: 28px; -fx-font-size: 13px;" />
+                  <Button fx:id="btnSubscript" text="x₂" styleClass="toolbar-button" style="-fx-min-width: 45px; -fx-max-width: 45px; -fx-min-height: 28px; -fx-max-height: 28px; -fx-font-size: 13px;" />
+                  <Button fx:id="btnInsertImage" text="🖼" styleClass="toolbar-button" style="-fx-min-width: 45px; -fx-max-width: 45px; -fx-min-height: 28px; -fx-max-height: 28px; -fx-font-size: 16px;" />
+               </HBox>
+            </VBox>
+               </HBox>
+            </VBox>
             
             <Separator orientation="VERTICAL" style="-fx-background-color: #6c757d;" />
             
-            <Label text="Zeilenabstand:" styleClass="font-size-label" />
-            <ComboBox fx:id="cmbParagraphSpacing" promptText="10px" prefWidth="80.0" />
+            <!-- Zeilenabstand: Label über der ComboBox -->
+            <VBox spacing="2" alignment="CENTER_LEFT">
+               <Label text="Zeilenabstand:" styleClass="font-size-label" />
+               <ComboBox fx:id="cmbParagraphSpacing" promptText="10px" prefWidth="80.0" />
+            </VBox>
             
             <Separator orientation="VERTICAL" style="-fx-background-color: #6c757d;" />
             

@@ -896,15 +896,22 @@ public class PandocExportWindow extends CustomStage {
                     writer.println("abstract-title: \"Zusammenfassung\"");
                 }
 
-                // Cover-Bild für HTML5 hinzufügen (falls vorhanden)
-                if ("html5".equals(formatComboBox.getValue()) && !coverImageField.getText().trim().isEmpty()) {
+                // Cover-Bild für HTML5 und PDF hinzufügen (falls vorhanden)
+                String format = formatComboBox.getValue();
+                if (("html5".equals(format) || "pdf".equals(format)) && !coverImageField.getText().trim().isEmpty()) {
                     File coverImageFile = new File(coverImageField.getText().trim());
                     if (coverImageFile.exists()) {
-                        String baseName = fileNameField.getText().replace(".html", "");
-                        File htmlDir = new File(outputDirectoryField.getText(), baseName + "_html");
-                        String coverFileName = getCoverFileName(coverImageFile);
-                        File targetCover = new File(htmlDir, coverFileName);
-                        writer.println("cover-image: \"" + targetCover.getName() + "\"");
+                        if ("html5".equals(format)) {
+                            String baseName = fileNameField.getText().replace(".html", "");
+                            File htmlDir = new File(outputDirectoryField.getText(), baseName + "_html");
+                            String coverFileName = getCoverFileName(coverImageFile);
+                            File targetCover = new File(htmlDir, coverFileName);
+                            writer.println("cover-image: \"" + targetCover.getName() + "\"");
+                        } else if ("pdf".equals(format)) {
+                            // Für PDF: Verwende den Dateinamen des Cover-Bildes
+                            String coverFileName = getCoverFileName(coverImageFile);
+                            writer.println("cover-image: \"" + coverFileName + "\"");
+                        }
                     }
                 }
                 
@@ -1008,16 +1015,19 @@ public class PandocExportWindow extends CustomStage {
                 // PDF-spezifische Metadaten
                 String format = formatComboBox.getValue();
                 if ("pdf".equals(format)) {
-                    writer.write("lang: de");
-                    writer.write(lineSeparator);
-                    writer.write("mainfont: DejaVu Serif");
-                    writer.write(lineSeparator);
-                    writer.write("sansfont: DejaVu Sans");
-                    writer.write(lineSeparator);
-                    writer.write("monofont: DejaVu Sans Mono");
-                    writer.write(lineSeparator);
+                    // Nur toc hinzufügen, keine Fonts oder lang (werden nicht benötigt)
                     writer.write("toc: true");
                     writer.write(lineSeparator);
+                    
+                    // Cover-Bild für PDF hinzufügen (falls vorhanden)
+                    if (!coverImageField.getText().trim().isEmpty()) {
+                        File coverImageFile = new File(coverImageField.getText().trim());
+                        if (coverImageFile.exists()) {
+                            String coverFileName = getCoverFileName(coverImageFile);
+                            writer.write("cover-image: \"" + coverFileName + "\"");
+                            writer.write(lineSeparator);
+                        }
+                    }
                 }
                 
                 // Abstract
@@ -1787,12 +1797,12 @@ public class PandocExportWindow extends CustomStage {
                 }
                 
                 // XeLaTeX-spezifische Optionen für bessere Kompatibilität
-                command.add("--variable=lang:de");
+                // lang wird vom Template gesetzt (polyglossia), nicht überschreiben
                 
-                // LaTeX-Optionen für bessere Kompatibilität (Template definiert bereits Fonts)
+                // LaTeX-Optionen für bessere Kompatibilität (Template definiert bereits Fonts und documentclass=book)
                 command.add("--variable=geometry:margin=2.5cm");
                 command.add("--variable=fontsize:12pt");
-                command.add("--variable=documentclass:article");
+                // documentclass wird vom Template gesetzt (book), nicht überschreiben
                 command.add("--variable=linestretch:1.2");
                 command.add("--variable=numbersections:false"); // Kapitelnummerierung deaktivieren
                 
@@ -1890,10 +1900,9 @@ public class PandocExportWindow extends CustomStage {
                 }
                 
                 // LaTeX-Optionen
-                command.add("--variable=lang:de");
+                // documentclass wird vom Template gesetzt (book), nicht überschreiben
                 command.add("--variable=geometry:margin=2.5cm");
                 command.add("--variable=fontsize:12pt");
-                command.add("--variable=documentclass:article");
                 command.add("--variable=linestretch:1.2");
                 command.add("--variable=numbersections:false"); // Kapitelnummerierung deaktivieren
                 
@@ -2314,10 +2323,10 @@ public class PandocExportWindow extends CustomStage {
             fallbackCommand.add("--standalone");
             
             // Vereinfachte LaTeX-Optionen für bessere Kompatibilität (ohne XeLaTeX-spezifische Fonts)
-            fallbackCommand.add("--variable=lang:de");
+            // lang wird vom Template gesetzt, nicht überschreiben
             fallbackCommand.add("--variable=geometry:margin=2.5cm");
             fallbackCommand.add("--variable=fontsize:11pt");
-            fallbackCommand.add("--variable=documentclass:article");
+            // documentclass wird vom Template gesetzt (book), nicht überschreiben
             fallbackCommand.add("--variable=linestretch:1.2");
             fallbackCommand.add("--variable=numbersections:false"); // Kapitelnummerierung deaktivieren
             
