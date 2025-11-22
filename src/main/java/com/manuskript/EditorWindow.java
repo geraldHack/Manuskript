@@ -534,8 +534,8 @@ if (caret != null) {
         scrollPane = new VirtualizedScrollPane<>(codeArea);
         scrollPane.getStyleClass().add("code-area");
         
-        // 5px Padding für die ScrollPane
-        scrollPane.setStyle("-fx-padding: 5px;");
+        // Padding für die ScrollPane (links 0, damit es am Rand klebt)
+        scrollPane.setStyle("-fx-padding: 5px 5px 5px 0px;");
         
         // CodeArea zum Container hinzufügen (im SplitPane)
         textAreaContainer.getChildren().add(scrollPane);
@@ -1406,64 +1406,44 @@ if (caret != null) {
                     // WICHTIG: Position zuerst setzen
                     codeArea.moveTo(position);
                     
-                    // Dann Scroll-Position wiederherstellen (Paragraph-basiert, da estimatedScrollY read-only ist)
+                    // Prüfe, ob eine gespeicherte Position vorhanden ist
+                    final boolean hasSavedPosition = chapterCursorPositions.containsKey(editorKey);
+                    
+                    // Dann Scroll-Position wiederherstellen
                     Platform.runLater(() -> {
                         try {
                             // Berechne die Paragraph des Cursors
                             final int cursorParagraph = codeArea.offsetToPosition(position, Bias.Forward).getMajor();
                             
-                            if (savedScrollValue != null) {
-                                // Gespeicherte Paragraph-Index
-                                int savedParagraph = savedScrollValue.intValue();
-                                int totalParagraphs = codeArea.getParagraphs().size();
+                            if (hasSavedPosition) {
+                                // Nur wenn eine Position gespeichert war: Cursor in die Mitte
+                                codeArea.showParagraphAtCenter(cursorParagraph);
                                 
-                                if (savedParagraph >= 0 && savedParagraph < totalParagraphs) {
-                                    // Wenn die gespeicherte Paragraph kleiner ist als die Cursor-Paragraph,
-                                    // war der Cursor weiter unten im Viewport - zeige die gespeicherte Paragraph oben
-                                    if (savedParagraph < cursorParagraph) {
-                                        codeArea.showParagraphInViewport(savedParagraph);
-                                    } else {
-                                        // Cursor war in der ersten sichtbaren Paragraph - zeige etwas oberhalb
-                                        // Versuche, die ursprüngliche Viewport-Position zu approximieren
-                                        int offset = Math.max(0, cursorParagraph - 10); // ~10 Paragraphs oberhalb
-                                        codeArea.showParagraphInViewport(offset);
-                                    }
-                                } else {
-                                    // Fallback: Cursor-Paragraph oben
-                                    codeArea.showParagraphInViewport(cursorParagraph);
-                                }
-                            } else {
-                                // Keine gespeicherte Position - zeige Cursor-Paragraph oben
-                                codeArea.showParagraphInViewport(cursorParagraph);
-                            }
-                            
-                            codeArea.requestFollowCaret();
-                            
-                            // Finale Position setzen mit nochmaliger Verzögerung
-                            Platform.runLater(() -> {
-                                codeArea.moveTo(position);
-                                if (savedScrollValue != null) {
-                                    int savedParagraph = savedScrollValue.intValue();
+                                // Finale Position setzen mit nochmaliger Verzögerung - Cursor in die Mitte
+                                Platform.runLater(() -> {
+                                    codeArea.moveTo(position);
                                     int currentCursorPara = codeArea.offsetToPosition(position, Bias.Forward).getMajor();
-                                    int totalParagraphs = codeArea.getParagraphs().size();
-                                    
-                                    if (savedParagraph >= 0 && savedParagraph < totalParagraphs) {
-                                        if (savedParagraph < currentCursorPara) {
-                                            codeArea.showParagraphInViewport(savedParagraph);
-                                        } else {
-                                            int offset = Math.max(0, currentCursorPara - 10);
-                                            codeArea.showParagraphInViewport(offset);
-                                        }
-                                    }
-                                }
+                                    // Verwende Timeline für bessere Timing-Kontrolle
+                                    Timeline timeline = new Timeline(new KeyFrame(Duration.millis(50), event -> {
+                                        codeArea.showParagraphAtCenter(currentCursorPara);
+                                        codeArea.requestFocus(); // Fokus setzen, damit Cursor sichtbar ist
+                                    }));
+                                    timeline.play();
+                                    logger.debug("Finale Cursor- und Scroll-Position gesetzt: Position={}", position);
+                                });
+                            } else {
+                                // Keine gespeicherte Position: Cursor am Anfang, Viewport am Anfang
+                                codeArea.moveTo(0);
                                 codeArea.requestFollowCaret();
-                                logger.debug("Finale Cursor- und Scroll-Position gesetzt: Position={}", position);
-                            });
+                                codeArea.requestFocus(); // Fokus setzen, damit Cursor sichtbar ist
+                                logger.debug("Cursor am Anfang gesetzt (keine gespeicherte Position)");
+                            }
                         } catch (Exception e) {
                             logger.debug("Fehler beim Wiederherstellen der Position: " + e.getMessage());
                             // Fallback: Cursor an den Anfang
                             codeArea.moveTo(0);
                             codeArea.requestFollowCaret();
+                            codeArea.requestFocus(); // Fokus setzen, damit Cursor sichtbar ist
                         }
                     });
                 }
@@ -3171,7 +3151,10 @@ if (caret != null) {
     public void updateStatusError(String message) {
         if (lblStatus != null) {
             lblStatus.setText(message);
-            lblStatus.setStyle("-fx-text-fill: #ff6b35; -fx-font-weight: bold; -fx-background-color: #fff3cd; -fx-padding: 2 6 2 6; -fx-background-radius: 3;");
+            // Inline-Styling setzen - wird nach Theme-Apply gesetzt, um CSS zu überschreiben
+            Platform.runLater(() -> {
+                lblStatus.setStyle("-fx-text-fill: #ff6b35; -fx-font-weight: bold; -fx-background-color: #fff3cd; -fx-padding: 2 6 2 6; -fx-background-radius: 3;");
+            });
         }
         scheduleStatusClear(5, false);
     }
@@ -6110,7 +6093,17 @@ if (caret != null) {
      * Ersetzt den Text ohne originalContent zu ändern (für Diff-Änderungen)
      */
     public void replaceTextWithoutUpdatingOriginal(String text) {
-        codeArea.replaceText(text);
+        // Auto-Formatierung für Markdown anwenden (wie in setText)
+        String formattedText = autoFormatMarkdown(text);
+        boolean wasFormatted = !text.equals(formattedText);
+        
+        // WICHTIG: Verwende replaceText mit Positionen, um Undo-Historie zu erhalten
+        int currentLength = codeArea.getLength();
+        if (currentLength > 0) {
+            codeArea.replaceText(0, currentLength, formattedText);
+        } else {
+            codeArea.replaceText(formattedText);
+        }
         
         // Cursor an den Anfang setzen
         codeArea.displaceCaret(0);
@@ -6122,7 +6115,11 @@ if (caret != null) {
         // Überschreibe den Status mit der richtigen Farbe (nach markAsChanged)
         Platform.runLater(() -> {
             if (lblStatus != null) {
-                lblStatus.setText("⚠ Text wurde durch Diff geändert");
+                if (wasFormatted) {
+                    lblStatus.setText("⚠ Text wurde durch Diff geändert (Automatische Formatierung angewendet)");
+                } else {
+                    lblStatus.setText("⚠ Text wurde durch Diff geändert");
+                }
                 lblStatus.setStyle("-fx-text-fill: #ff6b35; -fx-font-weight: bold; -fx-background-color: #fff3cd; -fx-padding: 2 6 2 6; -fx-background-radius: 3;");
             }
         });
@@ -12573,12 +12570,10 @@ spacer.setStyle("-fx-background-color: transparent;");
             // Editor existiert bereits UND ist nicht der aktuelle Editor - bringe ihn in den Vordergrund und schließe den aktuellen Editor
             Platform.runLater(() -> {
                 if (existingEditor.getStage() != null && existingEditor.getStage().isShowing()) {
-                    // Mehrere Methoden verwenden, um sicherzustellen, dass das Fenster in den Vordergrund kommt
+                    // Fenster in den Vordergrund bringen
                     existingEditor.getStage().setIconified(false); // Entminimieren falls minimiert
                     existingEditor.getStage().toFront(); // In den Vordergrund
                     existingEditor.getStage().requestFocus(); // Fokus setzen
-                    existingEditor.getStage().setAlwaysOnTop(true); // Temporär immer oben
-                    existingEditor.getStage().setAlwaysOnTop(false); // Wieder normal
                     
                     // Stelle die Cursor-Position für das bestehende Kapitel wieder her
                     existingEditor.restoreCursorPosition();
@@ -12982,6 +12977,17 @@ spacer.setStyle("-fx-background-color: transparent;");
                     if (sidebarExpanded && newPos.doubleValue() > 0.0) {
                         // Speichere nur wenn ausgeklappt und nicht 0
                         preferences.putDouble("sidebar.dividerPosition", newPos.doubleValue());
+                    }
+                });
+                
+                // Listener für Fenster-Resize: Halte Divider bei 0.0 wenn Sidebar eingeklappt ist
+                mainSplitPane.widthProperty().addListener((obs, oldWidth, newWidth) -> {
+                    if (!sidebarExpanded && mainSplitPane.getItems().size() >= 2) {
+                        // Halte Divider bei 0.0 wenn Sidebar eingeklappt ist
+                        Platform.runLater(() -> {
+                            double[] positions = {0.0};
+                            mainSplitPane.setDividerPositions(positions);
+                        });
                     }
                 });
             }

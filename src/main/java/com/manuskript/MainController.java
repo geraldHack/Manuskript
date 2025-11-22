@@ -2072,12 +2072,10 @@ public class MainController implements Initializable {
                 // Editor existiert bereits - bringe ihn in den Vordergrund
                 Platform.runLater(() -> {
                     if (existingEditor.getStage() != null && existingEditor.getStage().isShowing()) {
-                        // Mehrere Methoden verwenden, um sicherzustellen, dass das Fenster in den Vordergrund kommt
+                        // Fenster in den Vordergrund bringen
                         existingEditor.getStage().setIconified(false); // Entminimieren falls minimiert
                         existingEditor.getStage().toFront(); // In den Vordergrund
                         existingEditor.getStage().requestFocus(); // Fokus setzen
-                        existingEditor.getStage().setAlwaysOnTop(true); // Temporär immer oben
-                        existingEditor.getStage().setAlwaysOnTop(false); // Wieder normal
                     }
                 });
                 updateStatus("Bestehender Editor für '" + chapterFile.getFileName() + "' in den Vordergrund gebracht");
@@ -2108,7 +2106,26 @@ public class MainController implements Initializable {
                             try {
                                 String docxContent = docxProcessor.processDocxFileContent(chapterFile.getFile(), 1, format);
                                 
-                                EditorWindow editorController = openChapterEditorWindow(docxContent, chapterFile, format);
+                                // WICHTIG: Prüfe ob bereits ein Editor für dieses Kapitel existiert
+                                final EditorWindow foundEditor = findExistingEditor(editorKey);
+                                EditorWindow editorController;
+                                
+                                if (foundEditor != null) {
+                                    // Editor existiert bereits - Text ersetzen
+                                    editorController = foundEditor;
+                                    Platform.runLater(() -> {
+                                        foundEditor.replaceTextWithoutUpdatingOriginal(docxContent);
+                                        // Editor in den Vordergrund bringen
+                                        if (foundEditor.getStage() != null && foundEditor.getStage().isShowing()) {
+                                            foundEditor.getStage().setIconified(false);
+                                            foundEditor.getStage().toFront();
+                                            foundEditor.getStage().requestFocus();
+                                        }
+                                    });
+                                } else {
+                                    // Kein Editor existiert - neuen öffnen
+                                    editorController = openChapterEditorWindow(docxContent, chapterFile, format);
+                                }
                                 
                                 if (editorController != null) {
                                     try {
@@ -2135,7 +2152,7 @@ public class MainController implements Initializable {
                                 logger.error("Fehler beim Übernehmen des DOCX-Inhalts", e);
                                 showError("Fehler", "DOCX-Inhalt konnte nicht übernommen werden: " + e.getMessage());
                             }
-                            return; // Editor bereits geöffnet
+                            return; // Editor bereits geöffnet oder neu geöffnet
                         }
                         case IGNORE: {
 
@@ -3552,12 +3569,10 @@ public class MainController implements Initializable {
                 // Editor bereits geöffnet - bringe ihn in den Vordergrund
                 Platform.runLater(() -> {
                     if (existingEditor.getStage() != null && existingEditor.getStage().isShowing()) {
-                        // Mehrere Methoden verwenden, um sicherzustellen, dass das Fenster in den Vordergrund kommt
+                        // Fenster in den Vordergrund bringen
                         existingEditor.getStage().setIconified(false); // Entminimieren falls minimiert
                         existingEditor.getStage().toFront(); // In den Vordergrund
                         existingEditor.getStage().requestFocus(); // Fokus setzen
-                        existingEditor.getStage().setAlwaysOnTop(true); // Temporär immer oben
-                        existingEditor.getStage().setAlwaysOnTop(false); // Wieder normal
                     }
                 });
                 

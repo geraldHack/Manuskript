@@ -51,6 +51,15 @@
 }
 
 /* ========================================
+   FONT-SIZE-LABELS - Für Toolbar-Labels (Textgröße, Formatierung, Zeilenabstand)
+   ======================================== */
+.font-size-label {
+    -fx-font-size: 11px;
+    -fx-text-fill: -fx-text-base-color;
+    -fx-padding: 0 0 2 0;
+}
+
+/* ========================================
    BASIS-STYLES (Weiß Theme - Standard)
    ======================================== */
 
@@ -5316,18 +5325,170 @@
     -fx-border-width: 5px !important;
 }
 
-/* Kleinere Checkbox für grüne rechte Diff-Blöcke */
+/* ========================================
+   DIFF-CHECKBOX STYLING - THEME-ANGEPASST
+   ======================================== */
+
+/* Basis-Styling für Diff-Checkboxen */
 .diff-green-checkbox .box {
-    -fx-min-width: 12px;
-    -fx-min-height: 12px;
-    -fx-pref-width: 12px;
-    -fx-pref-height: 12px;
-    -fx-max-width: 12px;
-    -fx-max-height: 12px;
+    -fx-min-width: 12px !important;
+    -fx-min-height: 12px !important;
+    -fx-pref-width: 12px !important;
+    -fx-pref-height: 12px !important;
+    -fx-max-width: 12px !important;
+    -fx-max-height: 12px !important;
+    -fx-border-radius: 2px !important;
+    -fx-background-radius: 2px !important;
 }
+
 .diff-green-checkbox .mark {
-    -fx-scale-x: 0.6;
-    -fx-scale-y: 0.6;
+    -fx-scale-x: 0.6 !important;
+    -fx-scale-y: 0.6 !important;
+    -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z" !important;
+}
+
+/* Weiß-Theme Diff-Checkboxen */
+.weiss-theme .diff-green-checkbox {
+    -fx-text-fill: #000000 !important;
+}
+
+.weiss-theme .diff-green-checkbox .box {
+    -fx-background-color: #ffffff !important;
+    -fx-border-color: #666666 !important;
+    -fx-border-width: 1.5px !important;
+}
+
+.weiss-theme .diff-green-checkbox:selected .box {
+    -fx-background-color: #28a745 !important;
+    -fx-border-color: #1e7e34 !important;
+}
+
+.weiss-theme .diff-green-checkbox .mark {
+    -fx-background-color: transparent !important;
+}
+
+.weiss-theme .diff-green-checkbox:selected .mark {
+    -fx-background-color: #ffffff !important;
+}
+
+/* Pastell-Theme Diff-Checkboxen */
+.pastell-theme .diff-green-checkbox {
+    -fx-text-fill: #000000 !important;
+}
+
+.pastell-theme .diff-green-checkbox .box {
+    -fx-background-color: #e1bee7 !important;
+    -fx-border-color: #9c27b0 !important;
+    -fx-border-width: 1.5px !important;
+}
+
+.pastell-theme .diff-green-checkbox:selected .box {
+    -fx-background-color: #9c27b0 !important;
+    -fx-border-color: #7b1fa2 !important;
+}
+
+.pastell-theme .diff-green-checkbox .mark {
+    -fx-background-color: transparent !important;
+}
+
+.pastell-theme .diff-green-checkbox:selected .mark {
+    -fx-background-color: #ffffff !important;
+}
+
+/* Dark Theme Diff-Checkboxen (Standard) */
+.theme-dark .diff-green-checkbox {
+    -fx-text-fill: #ffffff !important;
+}
+
+.theme-dark .diff-green-checkbox .box {
+    -fx-background-color: #2d2d2d !important;
+    -fx-border-color: #6c757d !important;
+    -fx-border-width: 1.5px !important;
+}
+
+.theme-dark .diff-green-checkbox:selected .box {
+    -fx-background-color: #28a745 !important;
+    -fx-border-color: #1e7e34 !important;
+}
+
+.theme-dark .diff-green-checkbox .mark {
+    -fx-background-color: transparent !important;
+}
+
+.theme-dark .diff-green-checkbox:selected .mark {
+    -fx-background-color: #ffffff !important;
+}
+
+/* Blau-Theme Diff-Checkboxen */
+.theme-dark.blau-theme .diff-green-checkbox {
+    -fx-text-fill: #ffffff !important;
+}
+
+.theme-dark.blau-theme .diff-green-checkbox .box {
+    -fx-background-color: #1e40af !important;
+    -fx-border-color: #3b82f6 !important;
+    -fx-border-width: 1.5px !important;
+}
+
+.theme-dark.blau-theme .diff-green-checkbox:selected .box {
+    -fx-background-color: #28a745 !important;
+    -fx-border-color: #1e7e34 !important;
+}
+
+.theme-dark.blau-theme .diff-green-checkbox .mark {
+    -fx-background-color: transparent !important;
+}
+
+.theme-dark.blau-theme .diff-green-checkbox:selected .mark {
+    -fx-background-color: #ffffff !important;
+}
+
+/* Grün-Theme Diff-Checkboxen */
+.theme-dark.gruen-theme .diff-green-checkbox {
+    -fx-text-fill: #ffffff !important;
+}
+
+.theme-dark.gruen-theme .diff-green-checkbox .box {
+    -fx-background-color: #065f46 !important;
+    -fx-border-color: #10b981 !important;
+    -fx-border-width: 1.5px !important;
+}
+
+.theme-dark.gruen-theme .diff-green-checkbox:selected .box {
+    -fx-background-color: #10b981 !important;
+    -fx-border-color: #059669 !important;
+}
+
+.theme-dark.gruen-theme .diff-green-checkbox .mark {
+    -fx-background-color: transparent !important;
+}
+
+.theme-dark.gruen-theme .diff-green-checkbox:selected .mark {
+    -fx-background-color: #ffffff !important;
+}
+
+/* Lila-Theme Diff-Checkboxen */
+.theme-dark.lila-theme .diff-green-checkbox {
+    -fx-text-fill: #ffffff !important;
+}
+
+.theme-dark.lila-theme .diff-green-checkbox .box {
+    -fx-background-color: #5b21b6 !important;
+    -fx-border-color: #8b5cf6 !important;
+    -fx-border-width: 1.5px !important;
+}
+
+.theme-dark.lila-theme .diff-green-checkbox:selected .box {
+    -fx-background-color: #28a745 !important;
+    -fx-border-color: #1e7e34 !important;
+}
+
+.theme-dark.lila-theme .diff-green-checkbox .mark {
+    -fx-background-color: transparent !important;
+}
+
+.theme-dark.lila-theme .diff-green-checkbox:selected .mark {
+    -fx-background-color: #ffffff !important;
 }
 
 /* Weiß-Theme - normale Theme-Farben */

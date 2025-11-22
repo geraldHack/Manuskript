@@ -48,7 +48,8 @@ public class CustomChatArea extends VBox {
         // Keyboard-Navigation für TextArea
         chatHistoryArea.setOnKeyPressed(e -> {
             if (e.isControlDown()) {
-                switch (e.getCode()) {
+                javafx.scene.input.KeyCode code = e.getCode();
+                switch (code) {
                     case UP:
                         showPrevious();
                         e.consume();
@@ -56,6 +57,9 @@ public class CustomChatArea extends VBox {
                     case DOWN:
                         showNext();
                         e.consume();
+                        break;
+                    default:
+                        // Alle anderen Tasten ignorieren
                         break;
                 }
             }
