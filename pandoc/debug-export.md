@@ -252,7 +252,9 @@ Sie gingen wortlos den Weg zurück, während über ihnen langsam das Licht des s
 
 Auf dem Rückweg schwiegen Jomar und Kata. Nur Ayen krähte fröhlich vor sich hin.
 
-Jomar grübelte: *Was war gerade geschehen? Hatte Ayen die Tiere fliegen lassen? Ohne Magie? War das ein unerklärliches einzelnes Ereignis, über das wir noch in Jahren sprechen werden, oder war es der Beginn von etwas? Ich hätte mich nicht mit dem Schicksal anlegen sollen.*
+Jomar grübelte: *Was war gerade geschehen? Hatte Ayen die Tiere fliegen lassen? Ohne Magie? War das ein unerklärliches einzelnes Ereignis, über das wir noch in Jahren sprechen werden, oder war es der Beginn von etwas?* 
+
+*Ich hätte mich nicht mit dem Schicksal anlegen sollen.*
 
 
 # Audienz bei Efret
@@ -1722,7 +1724,7 @@ Er trat zurück, ließ den König mit seinen Beratern allein. Er wusste, dass Sc
 Malvek verließ den Thronsaal, seine Kampfzauberer folgten ihm. Im Gang warteten bereits zwei seiner Vertrauten. Er gab ihnen knappe Anweisungen: »Garnison sichern. Offiziere austauschen. Listen besorgen.«
 
 
-# Machtergeifung
+# Machtergreifung
 
 Kalem wirkte angespannt, als er durch die Hintertür in seine Villa hereintrat.
 
@@ -3580,326 +3582,6 @@ Sie verließen das Schiff einer nach dem anderen, ohne Eile, aber auch ohne Blic
 Das Schiff atmete leise hinter ihnen. Es klang, als hätte es Schmerzen.
 
 
-# Schritt für schritt
-
-Vor ihnen lag das Land, flach und ohne jede Struktur. Der Boden bestand aus weichem Material – nicht Erde, nicht Sand. Er gab unter den Schuhen nach, ohne zurückzufedern. Kalem bückte sich, rieb etwas davon zwischen Daumen und Zeigefinger. »Wie Asche. Nur feuchter. Fast wie zu weicher Lehm.«
-
-Jaad trat ein paar Schritte weiter. »Kein Wind. Kein Geräusch. Aber ich habe das Gefühl, als würde etwas in der Tiefe fließen.«
-
-Der Horizont verlor sich in milchigem Nichts. Das Licht war diffus und gebrochen und schien von überall und nirgends zu kommen. Nichts warf einen anständigen Schatten.
-
-Kata hielt Ayens Hand. Der Junge ließ es zu, aber sein Blick war woanders. Er starrte in den Himmel – der aus grauer Fläche bestand, durchsetzt von hellen Schimmern. Keine Sonne war zu sehen, obwohl sie da sein müsste. »Da oben sind keine Wolken«, murmelte er. »Nur Fehler.«
-
-Kalem trat ein paar Schritte nach vorne. »Nennt mir einen Grund, warum wir nicht wieder in dieses verdammte Schiff steigen sollten.«
-
-»Feuer, Explosion? Du erinnerst dich?«, merkte Jomar trocken an.
-
-Kata schloss kurz die Augen und ließ ihre Magie schweifen. Als sie sie wieder öffnete, sagte sie: »Es kommt etwas auf uns zu. Nicht nah, aber in Bewegung. Ich spüre es. Wir werden verfolgt.«
-
-Jomar ging zu einem kleinen Hügel – die einzige Erhebung um sie herum – und stellte sich darauf. Von dort sah er ein Stück weiter. Die Landschaft blieb gleich. Flach, fremd, flirrend. Keine Bäume, keine Felsen. Und doch: Ganz in der Ferne, auf kaum zu benennender Höhe, waren unregelmäßige Formen zu erkennen.
-
-Er zeigte darauf. Jaad trat neben ihn. Sie sah, was er sah.
-
-»Liegt das in der richtigen Richtung?«, fragte Jomar.
-
-Jaad nahm das Pad aus einem Rucksack. »Wenn ich dem Kompass hier drin trauen kann, dann ja.«
-
-»Dann haben wir ein Ziel.«
-
-Ayen hatte sich inzwischen von der Hand seiner Mutter gelöst. Er stand ein paar Schritte abseits, die Hände in den Taschen. Das Stofftier ragte aus der Jacke und blickte ebenso verstört in die Landschaft, wie der Rest der Gruppe.
-
-»Ayen?«, fragte Kata.
-
-Er antwortete nicht, sah sie nur an – dann in die Ferne, dann zum Boden. »Hier war schon lange niemand mehr.«
-
-Dann ging Jaad los. Einfach so. Ohne Kommentar. Sie hielt das Pad in der Hand, das ihnen wenigstens noch die richtige Richtung vorgab. Noch 253 Kilometer bis zum Zentrum.
-
-Die anderen folgten. Schritt für Schritt.
-
----
-
-Jaad ging meist voraus, hielt manchmal inne, sah auf ihr Pad. Alle gingen in einer Reihe hinter ihr her.
-
-Der Boden veränderte sich kaum. Nach einer Weile trat Jaad auf etwas Hartes. Es klang wie Glas, der Ton blieb eine Sekunde stehen. Sie bückte sich, schob das weiche Material zur Seite – darunter etwas Glattes, milchig schimmerndes. Kein Stein. Auch kein Metall. Nahezu transparent, mit einem schwachen Schimmer.
-
-»Reste eines Gebäudes?«, fragte Almin.
-
-»Vielleicht. Oder etwas Natürliches, wer weiß?«
-
-Kata drehte sich um und blickte lange über die Fläche zurück. Das Schiff war längst verschwunden, und hinter ihnen bewegte sich nichts. Dennoch verspürte sie eine leise Anspannung, eine Erwartung. »Noch folgt uns niemand«, sagte sie ruhig.
-
-»Wir sind noch Tausende Längen geflogen, nachdem wir die ›Stadt‹ gesehen haben. Unsere Verfolger können noch nicht hier sein, aber sie sind unterwegs«, sagte Jomar, mehr zu sich selbst.
-
-»Oder sie sind schneller, als wir denken«, murmelte Jaad.
-
-Ayen blieb stehen, der Blick starr, die Schultern leicht angespannt, als lausche er auf etwas, das nur er hören konnte. »Etwas dort kann uns schützen.«
-
-Sie drehten sich zu ihm. Der Junge stand still, das Gesicht leer, aber nicht ohne Ausdruck. Er hob den Arm und zeigte in eine Richtung – ins Leere.
-
-»Dort. Da ist es.«
-
-Kalem kam zurück. »Was ist dort? Ich sehe nichts.«
-
-»Du benutzt ja auch deine Augen«, sagte Ayen. Der Junge ging nun festen Schrittes voran, als hätte er eine Fährte aufgenommen.
-
----
-
-Etwa zwei Stunden, nachdem sie losgegangen waren, hörten sie das erste Geräusch. Ein Knacken, entfernt, als würde jemand über sehr kaltes Eis gehen. Keiner sagte etwas. Doch alle hörten es.
-
-Kata drehte sich um. Die Ebene hinter ihnen lag still. Kein Schiff mehr zu sehen, keine Bewegung. Der Horizont blieb weich und verschwommen. Doch das Geräusch blieb. Mit Pausen, gleichbleibend fern.
-
-Kalem, der wieder die Führung übernommen hatte, blieb stehen, ließ die anderen aufschließen. Er lauschte. »Klingt wie … na ja. Als würde jemand über Scherben laufen.«
-
-»Oder aus Scherben bestehen«, murmelte Jaad.
-
-Ayen drehte sich nicht um. Er sagte nur: »Sie zerbrechen nicht. Sie verändern sich nur.«
-
-Kata sah zu ihm. »Weißt du, was das ist?«
-
-Er schüttelte den Kopf. »Nicht jetzt. Aber bald.«
-
----
-
-Sie erreichten die Ruinen am Nachmittag. Die Gebäude standen in einem Halbkreis, wirkten zugleich monumental und fehlproportioniert – als hätten Riesen sie entworfen, ohne das Maß der Menschen zu kennen. am Nachmittag. Die Gebäude standen in einem Halbkreis. Hoch, aber zu breit. Manche Türen führten auf glatte Wände, als hätte jemand vergessen, einen Raum dahinter zu bauen. Andere öffneten sich in Hallen, die größer schienen, als sie sein konnten. Alles bestand aus demselben Material: massiv, gläsern, aber hart, ohne Risse oder Spuren.
-
-»Was meinst du?«, fragte Jomar.
-
-»Ein Ort zum Ausruhen«, sagte Kata.
-
-Kalem klopfte mit der Faust gegen eine der Wände. Der Ton war dumpf, aber voll. »Immerhin stabil«, meinte er trocken. »Schon schlechtere Zufluchten gesehen.«
-
-Sie gingen in das größte Gebäude. Drinnen war es kühl, und ihre Schritte hallten leise auf dem glatten Boden wider, während die Luft sich schwer und druckvoll anfühlte, aber nicht kalt. Der Boden war glatt, die Luft nicht abgestanden. Kein Staub. Kein Geruch. Nur Stille. Der Raum war groß und hoch – viel Platz, aber kaum Schutz. Die offene Fläche bot Möglichkeiten zur Verteidigung, gleichzeitig aber auch viele Angriffsflächen. Es gab keinerlei Möbel oder Zimmer, bis auf einen fensterlosen, etwa drei mal drei Längen großen Raum in der Mitte.
-
-Almin stellte seinen Proviantsack ab. »Hier können wir uns verschanzen.«
-
-Die Decke war etwa ein Dutzend Menschenlängen hoch und schien aus klarem, dickem Glas zu bestehen, denn sie konnten den milchigen Himmel über ihnen erkennen.
-
-Jaad prüfte die Wände auf weitere Eingänge und Fenster; sie waren aus demselben Material, geformt wie die Öffnungen. Neben ihnen waren etliche Paneele an die Wand gelehnt. Sie waren aus dem gleichen Material gefertigt wie der Bau selbst, sie waren geformt wie die Fenster. Sie rief die anderen. Gemeinsam hoben sie die Paneele hoch an die Fenster, drückten und drehten sie, bis sie einrasteten. Es war überraschend einfach. Keine Technik, keine Scharniere – nur Form auf Form. Sehr praktisch. Jomar musterte eines der Paneele, runzelte die Stirn. »Vielleicht so etwas wie eine Sturmblende.«
-
-Die Tür hatte glücklicherweise einen massiven Querriegel, der sich nach einigen vergeblichen Versuchen quietschend dazu überreden ließ, die Tür zu versperren.
-
-In der Mitte des großen Saals war ein relativ kleiner und flacher Raum ohne Fenster, nur mit einem Zugang. Der Boden war glatt, die Wände spiegelten sich gläsern. Es gab keine Möbel, da war nichts außer dem glatten Boden und den Wänden.
-
-Kalem trat einen Schritt zurück, rieb sich die Hände und sagte: »Ich mag den Ort nicht. Aber ich mag, dass wir drin sind.«
-
-Einen Moment lang herrschte vollkommene Stille, als hielte selbst die Luft den Atem an. Dann kam das Splittern näher.
-
-Zuerst waren es nur einzelne Töne, dann kamen sie schnell hintereinander. Sie kamen mal von rechts, mal von links, dann direkt hinter ihnen.
-
-Ayen schloss die Augen, seine Finger zitterten leicht, als würde er eine unsichtbare Berührung abwehren. »Sie sind da.«
-
-»Wie viele?«, fragte Jomar.
-
-»Ich zähle nicht. Ich spüre ein Muster. Als würde etwas sich selbst korrigieren.«
-
-Sie lauschten.
-
-Dann: ein dumpfer Stoß. Irgendwo an der Außenwand. Ein Zweiter. Kein Schrei, kein Klirren – nur Druck. Als versuchte jemand, sich durch das Material zu drücken.
-
-»Sie haben keine Werkzeuge«, sagte Jaad leise.
-
-»Und keine Waffen«, ergänzte Kata.
-
-»Oder sie sind selbst die Waffen«, sagte Kalem.
-
-Ein längerer Laut ließ die Wand vibrieren. Dann nichts. Alles wurde wieder still.
-
-Sie setzten sich in der Mitte des Raumes. Ayen saß still, das Stofftier auf dem Schoß. Er sprach kein Wort. Sah nur zur Wand.
-
-»Sie beobachten uns nicht«, sagte er plötzlich. »Sie prüfen uns.«
-
-Jomar sah zu ihm. »Prüfen? Worauf?«
-
-»Vielleicht wissen sie das selbst noch nicht.«
-
-Die Anspannung wich langsam aus dem Raum, und für einen Moment war nur das leise Knacken des gläsernen Bodens zu hören. Die Lagebesprechung war kurz. Sie hatten die drei Waffen aus dem Luftschiff. Almin und Jomar würden zaubern, Kata bekam ein Schwert. Kalem übernahm die erste Wache. Er überprüfte die Funktion der seltsamen Geräte.
-
-»Ich hoffe, sie funktionieren, wie ich es erwarte – Ziel, Druck, Treffer.«
-
-»Was, wenn sie nicht wirken?«, fragte Jaad.
-
-Kalem grinste schmal. »Dann werfe ich sie den Dingern an den Kopf.«
-
-Die Nacht kam. Die einzigen Lichtquellen, die sie hatten, waren der milchig trübe Nachthimmel, der durch die halbdurchsichtige Decke kam, und das Pad. Jaad ließ eine möglichst weiße Seite erscheinen.
-
-Sie rollten die Decken aus und legten sich zur Ruhe, so gut das denn unter den gegebenen Umständen möglich war. 
-
-Die Nacht verging ohne Zwischenfälle. Dann kehrte das trübe Licht des Tages zurück.
-
-Die Geräusche kehrten zurück. Die Wesen sprachen nicht, sie riefen nicht. Alles, was sie hörten, war Splittern, Poltern, leises Gleiten.
-
-Dann gab es ein Krachen.
-
-Kalem sprang auf. »Wir haben Besuch.«
-
-Almin stand schon. Die Magie um ihn war schwach, aber nicht weg. Und in ihm war noch genug. Er formte einen einfachen Schild und warf ihn in Richtung des Risses.
-
-Dann brach die Wand. Kein Feuer, kein Lärm. Nur eine plötzliche Öffnung – wie ein Schnitt in Stoff.
-
-Sie kamen.
-
-Sie waren etwa mannshoch, schlank gebaut, und bestanden aus durchscheinendem, glattem Material, das glänzte, als wäre es frisch poliert. Ihre Körper schienen aus mehreren Abschnitten zu bestehen, die sich unabhängig voneinander bewegten. Die Beine waren zu lang, und seltsam gebaut – die Gelenke wiesen nach hinten, und sie bewegten sich lautlos, aber schnell. Sie hatten keine erkennbaren Köpfe. An der Vorderseite ihrer oberen Körperhälfte befanden sich flache Vertiefungen, in denen etwas schwach pulsierte, als hätten sie dort ihr Herz. Kein Gesicht, kein Mund, keine Augen – nur Bewegung und ein Eindruck von Orientierung, als spürten sie die Umgebung durch etwas anderes als Sicht. 
-
-Sie kamen nur einzeln durch den Eingang – mehr ließ der schmale Durchbruch nicht zu. Doch Almins unsichtbarer Schild bremste sie zusätzlich. Jedes Wesen prallte daran ab, zuckte zurück, als verstünde es nicht, warum es nicht vorankam. Ihre Bewegungen wurden unruhiger, sie rempelten einander klirrend an. Das Beunruhigendste war jedoch ihre absolute Stille. Kein Schreien, kein Schnaufen, kein Keuchen – nur das trockene Klirren ihrer Körper. Ein Kampf gegen vollkommen stumme Gegner, unheimlich und fremd. Kata nutzte den Moment, zog Ayen zurück und schob ihn in den fensterlosen Zentralraum.
-
-»Ich will das sehen!«, protestierte er. Seine Stimme war laut, klar.
-
-»Nicht jetzt«, sagte sie. »Nicht du.«
-
-Kalem hob die Waffe. 
-
-*Vielleicht ist es ja doch nur eine Pfeffermühle*, dachte er.
-
-Er zielte und drückte ab.
-
-Ein Laut, wie ein dünnes Reißen. Eine Spur in der Luft – kaum sichtbar, ein schwacher, sich kräuselnder Rauchfaden.
-
-Die erste Kreatur wurde getroffen und zersplitterte. Die einzelnen Stücke verteilten sich klirrend auf dem Boden – kein Fleisch, kein Blut, kein Schrei, nur Klirren und Staub.
-
-»Sieht aus, als würden sie zerbrechen, wenn man sie nur mittig genug trifft«, rief Kalem. Er warf eine der Waffen zu Kata hinüber. »Na dann los – lasst uns ein bisschen Porzellan zerschlagen.«
-
-Jaad feuerte ebenfalls. Ihre Waffe zuckte in der Hand, zog eine zweite Spur durch die Luft. Auch ihr Ziel zersprang in viele Teile. Doch als Kalem erneut anlegte, blieb die Waffe stumm. Ein Licht blinkte am Griff. Er fluchte leise, duckte sich zur Seite.
-
-»Wie, nur ein Schuss?«, rief er. »Das darf doch nicht wahr sein.«
-
-Jomar schleuderte einen Feuerball – die Flammen rollten über zwei der Wesen und ließen sie kurz aufleuchten. Doch sie fielen nicht. Nur ihre Bewegungen verlangsamten sich. Die Wesen schienen jedoch eher irritiert als verletzt zu sein.
-
-Kata sprang dazwischen und schlug mit dem Schwert ein großes Stück aus dem gläsernen Körper des Angreifers. Kein Schrei, nur ein hartes Klirren und Splittern. Der Gegner wich taumelnd zurück.
-
-»Sie haben keine Angst, aber sie merken sich Schmerzen«, keuchte sie.
-
-»Ich habe eine Idee«, sagte Jomar in Richtung von Almin. »Kannst du einen Frostzauber wirken?«
-
-Almin nickte nur, konzentrierte sich. Die Kälte kam schlagartig. Eine dünne Schicht Reif zog sich über den Boden. Die ersten der Wesen hielten inne, ihre Bewegungen ruckten. Glieder erstarrten, sie wurden langsamer.
-
-»Pass auf!«, rief Jomar – und schleuderte einen weiteren Feuerball.
-
-Die Flammen trafen die Erstarrten. Und dieses Mal zeigt er Wirkung. Risse zogen sich durch das Material, dann splitterten sie vollständig. Feuer und Eis passen nicht zueinander.
-
-Kalems Waffe blinkte grün und gab ein Piepen von sich.
-
-»Ich glaub', die geht wieder! Die hat sich selbst nachgeladen.«
-
- Er zielte wieder und traf zwei der Wesen, die hintereinanderstanden. Beide brachen zusammen und zersplitterten.
-
-Auch Jaad feuerte ihre Waffe wieder ab. Die Luft war erfüllt von dünnem Rauch, flüchtigen Lichtblitzen, dem Zischen der Waffen.
-
-Dann, fast gleichzeitig, hielten die Kreaturen inne. Keine Geste, kein Laut – aber sie zogen sich zurück. Langsam, ohne Panik. Nach wenigen Herzschlägen waren sie verschwunden. 
-
-Kalem lugte vorsichtig durch die Tür. Die Wesen bewegten sich rasch und zielgerichtet, bis sie schließlich in der Ferne verschwanden.
-
-»Ob sie wiederkommen?«, fragte Jomar nachdenklich.
-
-»Nicht ohne Verstärkung«, sagte Kalem grinsend. »Denen haben wir ordentlich eingeheizt.«
-
-Kata stellte sich neben ihre Freunde, hielt sich die Schulter. Eines der Glaswesen hatte sie erwischt: eine lange, aber flache Schnittwunde.
-
-»Nur oberflächlich«, sagte sie leise.
-
-Die Luft roch noch verbrannt, unter ihren Stiefeln knirschten Splitter. 
-
-
-# Gefangen
-
-Der Angriff war vorüber und sie mussten weiter. Sie sammelten ihre Sachen zusammen: sechs Demiranther, erschöpft, mit begrenztem Vorrat und ungewissem Ziel. Die Waffen hatten funktioniert, aber nicht zuverlässig. Die Magie war kaum noch spürbar. Das Wasser reichte für ein paar Tage. Kein Fluss, kein Tau, kein Regen. Sie hatten noch ein paar Flaschen, und auch wenn niemand es sagte, wussten es alle: Ohne Nachschub würden sie bald sehr durstig sein.
-
-»Wenn wir weiter in Richtung Zentrum gehen – was erwartet uns?«, fragte Jaad.
-
-Jomar deutete auf das Pad. »Das Ding behauptet, es ist noch ein ganzes Stück. Wenn wir Glück haben, sind es zehn Tage. Wenn nicht …«
-
-»Dann brauchen wir länger, als unsere Beine durchhalten«, sagte Kalem.
-
-Almin saß auf dem Boden und sah in die Ferne. »Was, wenn wir das Ziel verfehlen? Oder Umwege nötig sind?«
-
-»Dann haben wir ein Problem«, sagte Kata schlicht.
-
-Ayen spielte mit einem Stein, schob ihn über den Boden, als ginge es um etwas anderes. »Wir finden Wasser. Nur nicht auf dem Boden.«
-
-»Was meinst du damit?«, fragte Jaad, aber Ayen antwortete nicht, das tat er selten.
-
----
-
-Es war am sechsten Tag. Sie hatten nur noch vier Flaschen Wasser. Die Stimmung war gedrückt, sogar Kalem hatte aufgehört zu scherzen. Die Landschaft veränderte sich: sanfte Wellen, als habe sich der Boden gestreckt. Dann erschien weiter voraus ein kreisrundes Loch im Boden. 
-
-Jaad entdeckte es zuerst. »Ein Loch? Was soll das nun wieder?«
-
-Sie traten näher. Ein leises Summen kam aus der Tiefe. Kein Licht, kein Luftzug. Nur ein seltsames Kribbeln auf der Haut.
-
-»Gehen wir näher?«, fragte Jomar.
-
-Kalem schnaubte. »Natürlich. Was könnte schon geschehen?«
-
-Sie kamen nicht weit.
-
-Etwas griff nach ihnen. Ohne ein Geräusch, umfing es sie wie ein unsichtbares Netz.
-
-Almin rief einen Zauber, doch die Magie zerriss. Kalem zog die Waffe – sie war weg. Einfach verschwunden. Kata schrie Ayens Namen. Aber er war nicht mehr da.
-
-Sie fielen – nicht tief, aber der Aufprall war hart. Ein dumpfer Schlag, ein kurzer Ruck, dann nichts mehr. Die Dunkelheit verschluckte sie vollständig.
-
----
-
-Der Raum war groß, ohne Kanten, ohne Winkel. Die Luft war kühl und roch nach Stein, ein schwaches Echo trug jeden Atemzug zurück. Ein kaum spürbarer Luftzug strich über ihre Haut, wie der Atem einer unsichtbaren Präsenz. Die Decke wölbte sich flach über ihnen, aus demselben glatten Material wie der Boden. Es gab keinen klaren Ursprung des Lichts, doch alles war schwach beleuchtet – gleichmäßig, ohne Schatten. An einem Ende war eine Öffnung, die in einen Gang zu führen schien. 
-
-Kalems Blick blieb an einer Stelle hängen: eine flache, ovale Wölbung, kaum zu sehen, aber etwas heller als der Rest. Sie leuchtete schwach, gleichmäßig. Etwas rührte sich dahinter. Er trat näher, ohne ein Wort zu sagen, und legte die Hand darauf. Die Fläche gab nach, als bestünde sie aus gespannter Haut.
-
-Die Fläche reagierte sofort. Aus der Stelle, die er berührt hatte, wuchs eine zweite Hand – spiegelbildlich, exakt seine Hautfarbe, Fingerstellung, sogar eine Narbe am Daumen. Kalem wich einen Schritt zurück. Die Hand blieb.
-
-Dann bewegte sie sich.
-
-Nicht an einem Arm, sondern mitsamt dem Teil der Wand, aus dem sie kam. Als würde sie den Rest mitziehen. Langsam hob sie sich, glitt in seine Richtung. Kalem stand starr, der Mund halb geöffnet.
-
-Die Hand erreichte sein Gesicht, stoppte eine Handbreit davor. Dann, fast geräuschlos, öffneten sich an jedem Fingerende winzige Lider. Aus jedem wuchs ein Auge – fünf Stück, alle in Kalems Augenfarbe.
-
-Er fluchte, stolperte rückwärts. Die Hand verharrte. Die Augen blinzelten nicht.
-
-»Fasst bloß die Wände nicht an«, sagte er leise.
-
-Doch es blieb nicht bei der einen Erscheinung. Bald darauf begannen die Wände selbst sich zu verändern – ohne Berührung. Arme formten sich aus bloßem Nichts, Beine, Torsi. Köpfe. Köpfe mit ihren Gesichtszügen, aber verzerrt: Kata mit Kalems Augen. Jomar ohne Mund. Eine zweite Jaad, die flüsterte, ohne verständliche Worte.
-
-Die Gliedmaßen wuchsen an Stellen, wo keine hingehörten. Aus einem Bein spross ein Arm. Ein kahler Kopf, aus dessen Oberfläche Finger sprossen, die sich bewegten, als würden sie etwas greifen wollen. Die Gebilde wankten, tasteten, hielten auf sie zu – nicht schnell, aber ohne Zögern. Und alle blieben mit der Wand verbunden.
-
-Jaad stieß einen Schrei aus, als eines dieser Wesen auf sie zu wankte – mit ihren Zügen, aber zu vielen Gelenken in ihren Gliedmaßen und zu vielen Fingern.
-
-Almin hob die Hände und flüsterte einen Zauber. Nichts geschah. Der Raum schien taub gegen Magie zu sein.
-
-Sie wichen zurück, Schritt für Schritt. Die Wand hinter ihnen pulsierte und gebar weitere Scheußlichkeiten.
-
-Sie warfen einen letzten Blick auf die sich verformenden Wände, dann rissen sich alle zugleich los und rannten in den Gang. Ohne Plan – nur fort von hier. weg. Die Schritte hallten nicht. Der Boden schluckte jeden Laut. Hinter ihnen schoben sich neue Formen aus dem Raum, aber keiner wagte sich umzusehen.
-
----
-
-Im nächsten Raum schloss sich die Wand hinter ihnen lautlos. Kein Ruck, kein Geräusch – nur glatte Fläche.
-
-Zwei Gestalten standen da. Ihre Körper wirkten nicht menschlich, ohne klare Form. Keine Gesichter. Kein Ausdruck. Ihre Bewegungen wirkten abgehackt, unkoordiniert, als wären diese Körper ungewohnt für sie. 
-
-Sie redeten miteinander.
-
-Kata trat vor und schrie: »Wo ist Ayen?«
-
-Keine Reaktion. Kata öffnete den Mund, als würde sie gleich noch einmal schreien – oder weinen. Doch es kam nichts.
-
-Dann einzelne Worte, fast beiläufig:
-
-»Was ergab der Scan? Was sind sie also?«
-
-»Demiranther.«
-
-»Aber sie kamen doch in einem Schiff.«
-
-»Nur atmosphärentauglich. Sie kommen eindeutig von Demirantha.«
-
-»Keinerlei Essenz in ihnen?«
-
-»Nicht ein Hauch.« 
-
-»Das ist eine Enttäuschung. In den Schacht?«
-
-»Sicher.«
-
-Bevor jemand reagieren konnte, wurden sie erneut gepackt. Unsichtbar. Lautlos. Und fortgebracht, wie zuvor am Rand des Loches.
-
-
 # In der Kolonie
 Ein scharfer Schmerz pulsierte in Jomars Schädel, zog hinab in den verspannten Nacken. Hinter seinen Lidern tanzten Lichtpunkte, ein wirres Flackern, bevor er die Augen mühsam öffnete. Die anderen rührten sich, einer nach dem anderen erwachten sie aus ihrer Bewusstlosigkeit – ohne zu wissen, wie lange sie fort gewesen waren. Etwas Zeit war vergangen, das fühlten sie in ihren schmerzenden Gliedern, vielleicht Stunden.
 
@@ -4260,6 +3942,107 @@ Ayen drehte sich um und zeigte auf einen Punkt in der Ferne, wo sich die Umrisse
 »Zu wem?«, fragte Kata besorgt.
 
 Ayen lächelte, und für einen Moment wirkte er wieder wie ein normaler fünfjähriger Junge. »Zu denen, die wissen, was ich bin.«
+
+
+# Gefangen
+
+Der Angriff war vorüber und sie mussten weiter. Sie sammelten ihre Sachen zusammen: sechs Demiranther, erschöpft, mit begrenztem Vorrat und ungewissem Ziel. Die Waffen hatten funktioniert, aber nicht zuverlässig. Die Magie war kaum noch spürbar. Das Wasser reichte für ein paar Tage. Kein Fluss, kein Tau, kein Regen. Sie hatten noch ein paar Flaschen, und auch wenn niemand es sagte, wussten es alle: Ohne Nachschub würden sie bald sehr durstig sein.
+
+»Wenn wir weiter in Richtung Zentrum gehen – was erwartet uns?«, fragte Jaad.
+
+Jomar deutete auf das Pad. »Das Ding behauptet, es ist noch ein ganzes Stück. Wenn wir Glück haben, sind es zehn Tage. Wenn nicht …«
+
+»Dann brauchen wir länger, als unsere Beine durchhalten«, sagte Kalem.
+
+Almin saß auf dem Boden und sah in die Ferne. »Was, wenn wir das Ziel verfehlen? Oder Umwege nötig sind?«
+
+»Dann haben wir ein Problem«, sagte Kata schlicht.
+
+Ayen spielte mit einem Stein, schob ihn über den Boden, als ginge es um etwas anderes. »Wir finden Wasser. Nur nicht auf dem Boden.«
+
+»Was meinst du damit?«, fragte Jaad, aber Ayen antwortete nicht, das tat er selten.
+
+---
+
+Es war am sechsten Tag. Sie hatten nur noch vier Flaschen Wasser. Die Stimmung war gedrückt, sogar Kalem hatte aufgehört zu scherzen. Die Landschaft veränderte sich: sanfte Wellen, als habe sich der Boden gestreckt. Dann erschien weiter voraus ein kreisrundes Loch im Boden. 
+
+Jaad entdeckte es zuerst. »Ein Loch? Was soll das nun wieder?«
+
+Sie traten näher. Ein leises Summen kam aus der Tiefe. Kein Licht, kein Luftzug. Nur ein seltsames Kribbeln auf der Haut.
+
+»Gehen wir näher?«, fragte Jomar.
+
+Kalem schnaubte. »Natürlich. Was könnte schon geschehen?«
+
+Sie kamen nicht weit.
+
+Etwas griff nach ihnen. Ohne ein Geräusch, umfing es sie wie ein unsichtbares Netz.
+
+Almin rief einen Zauber, doch die Magie zerriss. Kalem zog die Waffe – sie war weg. Einfach verschwunden. Kata schrie Ayens Namen. Aber er war nicht mehr da.
+
+Sie fielen – nicht tief, aber der Aufprall war hart. Ein dumpfer Schlag, ein kurzer Ruck, dann nichts mehr. Die Dunkelheit verschluckte sie vollständig.
+
+---
+
+Der Raum war groß, ohne Kanten, ohne Winkel. Die Luft war kühl und roch nach Stein, ein schwaches Echo trug jeden Atemzug zurück. Ein kaum spürbarer Luftzug strich über ihre Haut, wie der Atem einer unsichtbaren Präsenz. Die Decke wölbte sich flach über ihnen, aus demselben glatten Material wie der Boden. Es gab keinen klaren Ursprung des Lichts, doch alles war schwach beleuchtet – gleichmäßig, ohne Schatten. An einem Ende war eine Öffnung, die in einen Gang zu führen schien. 
+
+Kalems Blick blieb an einer Stelle hängen: eine flache, ovale Wölbung, kaum zu sehen, aber etwas heller als der Rest. Sie leuchtete schwach, gleichmäßig. Etwas rührte sich dahinter. Er trat näher, ohne ein Wort zu sagen, und legte die Hand darauf. Die Fläche gab nach, als bestünde sie aus gespannter Haut.
+
+Die Fläche reagierte sofort. Aus der Stelle, die er berührt hatte, wuchs eine zweite Hand – spiegelbildlich, exakt seine Hautfarbe, Fingerstellung, sogar eine Narbe am Daumen. Kalem wich einen Schritt zurück. Die Hand blieb.
+
+Dann bewegte sie sich.
+
+Nicht an einem Arm, sondern mitsamt dem Teil der Wand, aus dem sie kam. Als würde sie den Rest mitziehen. Langsam hob sie sich, glitt in seine Richtung. Kalem stand starr, der Mund halb geöffnet.
+
+Die Hand erreichte sein Gesicht, stoppte eine Handbreit davor. Dann, fast geräuschlos, öffneten sich an jedem Fingerende winzige Lider. Aus jedem wuchs ein Auge – fünf Stück, alle in Kalems Augenfarbe.
+
+Er fluchte, stolperte rückwärts. Die Hand verharrte. Die Augen blinzelten nicht.
+
+»Fasst bloß die Wände nicht an«, sagte er leise.
+
+Doch es blieb nicht bei der einen Erscheinung. Bald darauf begannen die Wände selbst sich zu verändern – ohne Berührung. Arme formten sich aus bloßem Nichts, Beine, Torsi. Köpfe. Köpfe mit ihren Gesichtszügen, aber verzerrt: Kata mit Kalems Augen. Jomar ohne Mund. Eine zweite Jaad, die flüsterte, ohne verständliche Worte.
+
+Die Gliedmaßen wuchsen an Stellen, wo keine hingehörten. Aus einem Bein spross ein Arm. Ein kahler Kopf, aus dessen Oberfläche Finger sprossen, die sich bewegten, als würden sie etwas greifen wollen. Die Gebilde wankten, tasteten, hielten auf sie zu – nicht schnell, aber ohne Zögern. Und alle blieben mit der Wand verbunden.
+
+Jaad stieß einen Schrei aus, als eines dieser Wesen auf sie zu wankte – mit ihren Zügen, aber zu vielen Gelenken in ihren Gliedmaßen und zu vielen Fingern.
+
+Almin hob die Hände und flüsterte einen Zauber. Nichts geschah. Der Raum schien taub gegen Magie zu sein.
+
+Sie wichen zurück, Schritt für Schritt. Die Wand hinter ihnen pulsierte und gebar weitere Scheußlichkeiten.
+
+Sie warfen einen letzten Blick auf die sich verformenden Wände, dann rissen sich alle zugleich los und rannten in den Gang. Ohne Plan – nur fort von hier. weg. Die Schritte hallten nicht. Der Boden schluckte jeden Laut. Hinter ihnen schoben sich neue Formen aus dem Raum, aber keiner wagte sich umzusehen.
+
+---
+
+Im nächsten Raum schloss sich die Wand hinter ihnen lautlos. Kein Ruck, kein Geräusch – nur glatte Fläche.
+
+Zwei Gestalten standen da. Ihre Körper wirkten nicht menschlich, ohne klare Form. Keine Gesichter. Kein Ausdruck. Ihre Bewegungen wirkten abgehackt, unkoordiniert, als wären diese Körper ungewohnt für sie. 
+
+Sie redeten miteinander.
+
+Kata trat vor und schrie: »Wo ist Ayen?«
+
+Keine Reaktion. Kata öffnete den Mund, als würde sie gleich noch einmal schreien – oder weinen. Doch es kam nichts.
+
+Dann einzelne Worte, fast beiläufig:
+
+»Was ergab der Scan? Was sind sie also?«
+
+»Demiranther.«
+
+»Aber sie kamen doch in einem Schiff.«
+
+»Nur atmosphärentauglich. Sie kommen eindeutig von Demirantha.«
+
+»Keinerlei Essenz in ihnen?«
+
+»Nicht ein Hauch.« 
+
+»Das ist eine Enttäuschung. In den Schacht?«
+
+»Sicher.«
+
+Bevor jemand reagieren konnte, wurden sie erneut gepackt. Unsichtbar. Lautlos. Und fortgebracht, wie zuvor am Rand des Loches.
 
 
 
@@ -6988,7 +6771,7 @@ Kata erschauderte bei dem Gedanken. Die Erinnerung an die tentakelbewehrten Wese
 
 
 # Flucht
-Kata stand am Fenster; ihr Gesicht war im fahlen Licht des frühen Morgens kaum zu erkennen. Hinter ihr schlief Ayen noch, sein Atem ruhig und gleichmäßig. Sie hatte die halbe Nacht wachgelegen und ihre Flucht immer wieder durchdacht, immer auf der Suche nach Schwachstellen und möglichen Problemen. 
+Kata stand am Fenster; ihr Gesicht war im fahlen Licht des frühen Morgens kaum zu erkennen. Hinter ihr schlief Ayen noch, sein Atem ruhig und gleichmäßig. Sie hatte die halbe Nacht wachgelegen und ihre Flucht immer wieder durchdacht, immer auf der Suche nach Schwachstellen und möglichen Problemen.
 
 Jomars Stimme war leise, fast ein Flüstern: »Bereit?«.
 
@@ -7002,9 +6785,15 @@ Ein leises Klopfen an der Tür ließ beide aufhorchen. Jomar öffnete, und Nira 
 
 »Es ist Zeit«, sagte sie ohne Umschweife. »Die Wachablösung findet in zwanzig Minuten statt. Das gibt uns ein Zeitfenster von etwa drei Minuten, um unbemerkt zum Hangar zu gelangen.«
 
+"Hangar?", fragte Kalem ratlos.
+
+Nira überlegte einen Augenblick. "Das ist eine Halle, in der die Schiffe liegen."
+
+"Aha, und ich wusste auch nicht, dass die Zeit Fenster haben kann. Nira, manchmal bist du schwer zu verstehen. Aber ich liebe das."
+
 Kata ging zum Bett und weckte Ayen sanft. »Aufwachen, mein Schatz. Wir müssen gehen.«
 
-Der Junge blinzelte verschlafen, setzte sich dann aber sofort auf. Jaads Fieberzauber war gestern abgeklungen, und Ayen hatte die ganze Nacht fest geschlafen.
+Der Junge blinzelte verschlafen, setzte sich dann aber sofort auf. Jaads Fieberzauber war am Tag zuvor abgeklungen, und Ayen hatte die ganze Nacht fest geschlafen.
 
 »Gehen wir nach Hause?«, fragte er, während Kata ihm half, sich anzuziehen.
 
@@ -7018,9 +6807,9 @@ Jaad und Almin warteten bereits im Wohnbereich, beide in unauffällige, dunkle G
 
 Der Junge kicherte, und Kata war dankbar für Kalems unverwüstliche gute Laune. Sie brauchten etwas Leichtigkeit in dieser angespannten Situation.
 
-Sie verließen ihre Quartiere, die in den letzten Monaten ihr Zuhause gewesen waren, ohne zurückzublicken. Der Korridor lag verlassen vor ihnen, die üblichen Wachen waren nicht zu sehen – Niras Werk, wie Kata vermutete.
+Sie verließen ihre Quartiere, die in den vergangenen Monaten ihr Zuhause gewesen waren, ohne zurückzublicken. Der Korridor lag verlassen vor ihnen, die üblichen Wachen waren nicht zu sehen – Niras Werk, wie Kata vermutete.
 
-Sie bewegten sich rasch und leise. Nira führte sie durch durch Neben- und Wartungsgänge, die Kata noch nie zuvor gesehen hatte. Die Zirari-Stadt war ein Labyrinth aus verschlungenen Korridoren und verborgenen Wegen, und ohne Nira hätten sie sich hoffnungslos verirrt.
+Ihre Schritte huschten gedämpft über den Boden, kaum mehr als ein Hauch im schweigenden Gang. Nira führte sie durch Neben- und Wartungsgänge, die Kata noch nie zuvor gesehen hatte. Die Zirari-Stadt war ein Labyrinth aus verschlungenen Korridoren und verborgenen Wegen, und ohne Nira hätten sie sich hoffnungslos verirrt.
 
 »Hier entlang«, flüsterte Nira und deutete auf eine unscheinbare Tür. »Dies ist ein Wartungsschacht, der direkt zum unteren Hangar führt, wo das Schiff wartet.«
 
@@ -7050,7 +6839,13 @@ Sie erreichten das Schiff, und Nira aktivierte die Einstiegsrampe mit einer schn
 
 »Steigt ein«, wies Nira sie an. »Die Kontrollen sind einfach. Jomar, du wirst steuern. Ich habe den Autopiloten so programmiert, dass er euch direkt nach Königsstadt bringt, aber du musst bereit sein, manuell zu übernehmen, falls etwas schiefgeht.«
 
-Jomar schluckte und nickte dann. Er betrat als Erster das Schiff, gefolgt von Almin und Jaad. Kata hob Ayen hoch und trug ihn die Rampe hinauf. Kalem zögerte und drehte sich zu Nira um.
+Nun war es an Jomar, sich über Niras seltsame Ausdrucksweise zu wundern.
+
+"Auto … was-auch-immer ‘programmiert’?"
+
+"Das Schiff fliegt von alleine, solange nichts schiefgeht."
+
+"Aha, na dann wollen wir mal hoffen, dass nichts schiefgeht." Er blickte besorgt, auf das silbrige Ungetüm, das drohend über ihm aufragte. Er schluckte und nickte dann. Er betrat als Erster das Schiff, gefolgt von Almin und Jaad. Kata hob Ayen hoch und trug ihn die Rampe hinauf. Kalem zögerte und drehte sich zu Nira um.
 
 »Kommst du nicht mit?«, fragte er, und Kata hörte die Besorgnis in seiner Stimme.
 
@@ -7072,7 +6867,7 @@ In diesem Moment ertönte ein schriller Alarm, der die Stille des Hangars zersch
 
 Niras Gesicht verlor jede Farbe. »Das ist unmöglich«, flüsterte sie. »Ich habe alles überprüft, das hätte nicht passieren dürfen!«
 
-Nira sprang zur Rampe, drückte einen Notfallknopf, und die Rampe senkte sich wieder herab. »Schnell, ihr müsst hier raus! Nehmt den Wartungstunnel zurück!«
+Nira sprang zur Rampe, drückte einen Notfallknopf, und die Rampe senkte sich wieder herab. »Schnell, ihr müsst hier raus! Wir nehmen den Wartungstunnel zurück!«
 
 Jomar stürzte die Rampe hinunter, packte Ayen und riss ihn in seine Arme. Kata folgte dicht dahinter, ebenso wie Jaad und Almin. Kalem war der Letzte, der das Schiff verließ, sein Gesicht eine Maske aus Entsetzen und Wut.
 
@@ -7146,7 +6941,7 @@ Kata starrte sie ungläubig an. »Den Nexus? Du meinst den Raum, in dem sie Ayen
 
 Jaad nickte, ihre Augen leuchteten mit einem Feuer, das Kata lange nicht gesehen hatte. »Genau den. Wenn wir dorthin gelangen, könnten wir Ayen seine Göttlichkeit zurückgeben.«
 
-Kata spürte, wie ihr Herz aussetzte. Die Vorstellung allein ließ sie schwindeln. »Das ist Wahnsinn«, flüsterte sie.
+Kata spürte, wie ihr Herz aussetzte. Alleine die Vorstellung ließ sie schwindeln. »Das ist Wahnsinn«, flüsterte sie.
 
 »Ist es das?« Jaads Blick wirkte entschlossen. »Du weißt, wo der Raum ist. Du hast ihn gesehen. Wir haben unsere Magie zurück. Wir könnten es schaffen.«
 
@@ -7174,7 +6969,7 @@ Kata blickte zu ihrem Sohn, der still dasaß und sie alle beobachtete. War es m�
 
 »Es ist zu riskant«, sagte sie schließlich. »Wir wissen nicht, was passieren würde.«
 
-»Ich will das, Mama«, sagte Ayen plötzlich. Alle Köpfe drehten sich zu ihm um. »Ich würde niemandem wehtun. Versprochen.« 
+»Ich will das, Mama«, sagte Ayen plötzlich. Alle Köpfe drehten sich zu ihm um. »Ich würde niemandem wehtun. Versprochen.«
 
 Kata spürte, wie ihr Herz sich zusammenzog. Sie hatte völlig übersehen, dass ihr Kind alles mitangehört hatte. Sie kniete sich vor ihren Sohn und nahm seine kleinen Hände in ihre. »Mein Schatz, es geht nicht darum, ob du es willst oder nicht. Diese Kraft … sie ist manchmal stärker als du.«
 
@@ -7208,7 +7003,7 @@ Jomar drückte Katas Hand. »Das ändert alles.«
 
 »Ihr müsst gehen«, sagte die silberhaarige Frau plötzlich. »Sofort. Wir … wir werden euch nicht melden.«
 
-Kata blickte zu Jaad, deren Augen noch immer mit Entschlossenheit leuchteten. »Dein Plan«, sagte sie leise. “Der Nexus. Wenn wir ohnehin sterben müssen, können wir es genauso gut versuchen."
+Kata blickte zu Jaad, deren Augen noch immer Entschlossenheit funkelte. »Dein Plan«, sagte sie leise. “Der Nexus. Wenn wir ohnehin sterben müssen, können wir es genauso gut versuchen."
 
 Jaad nickte langsam. »Wenn wir Ayen seine Kraft zurückgeben, hat er vielleicht eine Chance gegen sie.«
 
@@ -7218,11 +7013,11 @@ Jaad nickte langsam. »Wenn wir Ayen seine Kraft zurückgeben, hat er vielleicht
 
 Sie blickte zu Ayen, der still und ernst dasaß. Der Junge, der einst ein Gott gewesen war und es vielleicht wieder sein würde. »Was meinst du, mein Schatz?«
 
-Ayen zögerte nur einen Moment. »Ich will mein Licht zurück, Mama.«
+Ayen zögerte nur einen Moment. »Ich will mein Licht zurück, Mama. Aber nur um uns zu helfen.«
 
-Kata wandte sich an Nira. »Kannst du uns zum Eingang dieses Bereiches der ›echten‹ Zirari bringen?« 
+Kata wandte sich an Nira. »Kannst du uns zum Eingang dieses Bereiches der ›echten‹ Zirari bringen?«
 
-Nira nickte. »Du meinst die Oberstadt. Ja, da kann ich euch hinführen.« 
+Nira nickte. »Du meinst die Oberstadt. Ja, da kann ich euch hinführen.«
 
 Kata setzte sich neben Ayen und zog ihn an sich. »Hast du Angst?«, fragte sie leise.
 
@@ -7700,5 +7495,224 @@ Aber wenn sie ihren Sohn so sah – glücklich, gesund und voller Tatendrang –
 <br>
 
 <center><big>Ende der Heldensaga von Demirantha</big></center>
+
+
+# Schritt für schritt
+
+Vor ihnen lag das Land, flach und ohne jede Struktur. Der Boden bestand aus weichem Material – nicht Erde, nicht Sand. Er gab unter den Schuhen nach, ohne zurückzufedern. Kalem bückte sich, rieb etwas davon zwischen Daumen und Zeigefinger. »Wie Asche. Nur feuchter. Fast wie zu weicher Lehm.«
+
+Jaad trat ein paar Schritte weiter. »Kein Wind. Kein Geräusch. Aber ich habe das Gefühl, als würde etwas in der Tiefe fließen.«
+
+Der Horizont verlor sich in milchigem Nichts. Das Licht war diffus und gebrochen und schien von überall und nirgends zu kommen. Nichts warf einen anständigen Schatten.
+
+Kata hielt Ayens Hand. Der Junge ließ es zu, aber sein Blick war woanders. Er starrte in den Himmel – der aus grauer Fläche bestand, durchsetzt von hellen Schimmern. Keine Sonne war zu sehen, obwohl sie da sein müsste. »Da oben sind keine Wolken«, murmelte er. »Nur Fehler.«
+
+Kalem trat ein paar Schritte nach vorne. »Nennt mir einen Grund, warum wir nicht wieder in dieses verdammte Schiff steigen sollten.«
+
+»Feuer, Explosion? Du erinnerst dich?«, merkte Jomar trocken an.
+
+Kata schloss kurz die Augen und ließ ihre Magie schweifen. Als sie sie wieder öffnete, sagte sie: »Es kommt etwas auf uns zu. Nicht nah, aber in Bewegung. Ich spüre es. Wir werden verfolgt.«
+
+Jomar ging zu einem kleinen Hügel – die einzige Erhebung um sie herum – und stellte sich darauf. Von dort sah er ein Stück weiter. Die Landschaft blieb gleich. Flach, fremd, flirrend. Keine Bäume, keine Felsen. Und doch: Ganz in der Ferne, auf kaum zu benennender Höhe, waren unregelmäßige Formen zu erkennen.
+
+Er zeigte darauf. Jaad trat neben ihn. Sie sah, was er sah.
+
+»Liegt das in der richtigen Richtung?«, fragte Jomar.
+
+Jaad nahm das Pad aus einem Rucksack. »Wenn ich dem Kompass hier drin trauen kann, dann ja.«
+
+»Dann haben wir ein Ziel.«
+
+Ayen hatte sich inzwischen von der Hand seiner Mutter gelöst. Er stand ein paar Schritte abseits, die Hände in den Taschen. Das Stofftier ragte aus der Jacke und blickte ebenso verstört in die Landschaft, wie der Rest der Gruppe.
+
+»Ayen?«, fragte Kata.
+
+Er antwortete nicht, sah sie nur an – dann in die Ferne, dann zum Boden. »Hier war schon lange niemand mehr.«
+
+Dann ging Jaad los. Einfach so. Ohne Kommentar. Sie hielt das Pad in der Hand, das ihnen wenigstens noch die richtige Richtung vorgab. Noch 253 Kilometer bis zum Zentrum.
+
+Die anderen folgten. Schritt für Schritt.
+
+---
+
+Jaad ging meist voraus, hielt manchmal inne, sah auf ihr Pad. Alle gingen in einer Reihe hinter ihr her.
+
+Der Boden veränderte sich kaum. Nach einer Weile trat Jaad auf etwas Hartes. Es klang wie Glas, der Ton blieb eine Sekunde stehen. Sie bückte sich, schob das weiche Material zur Seite – darunter etwas Glattes, milchig schimmerndes. Kein Stein. Auch kein Metall. Nahezu transparent, mit einem schwachen Schimmer.
+
+»Reste eines Gebäudes?«, fragte Almin.
+
+»Vielleicht. Oder etwas Natürliches, wer weiß?«
+
+Kata drehte sich um und blickte lange über die Fläche zurück. Das Schiff war längst verschwunden, und hinter ihnen bewegte sich nichts. Dennoch verspürte sie eine leise Anspannung, eine Erwartung. »Noch folgt uns niemand«, sagte sie ruhig.
+
+»Wir sind noch Tausende Längen geflogen, nachdem wir die ›Stadt‹ gesehen haben. Unsere Verfolger können noch nicht hier sein, aber sie sind unterwegs«, sagte Jomar, mehr zu sich selbst.
+
+»Oder sie sind schneller, als wir denken«, murmelte Jaad.
+
+Ayen blieb stehen, der Blick starr, die Schultern leicht angespannt, als lausche er auf etwas, das nur er hören konnte. »Etwas dort kann uns schützen.«
+
+Sie drehten sich zu ihm. Der Junge stand still, das Gesicht leer, aber nicht ohne Ausdruck. Er hob den Arm und zeigte in eine Richtung – ins Leere.
+
+»Dort. Da ist es.«
+
+Kalem kam zurück. »Was ist dort? Ich sehe nichts.«
+
+»Du benutzt ja auch deine Augen«, sagte Ayen. Der Junge ging nun festen Schrittes voran, als hätte er eine Fährte aufgenommen.
+
+---
+
+Etwa zwei Stunden, nachdem sie losgegangen waren, hörten sie das erste Geräusch. Ein Knacken, entfernt, als würde jemand über sehr kaltes Eis gehen. Keiner sagte etwas. Doch alle hörten es.
+
+Kata drehte sich um. Die Ebene hinter ihnen lag still. Kein Schiff mehr zu sehen, keine Bewegung. Der Horizont blieb weich und verschwommen. Doch das Geräusch blieb. Mit Pausen, gleichbleibend fern.
+
+Kalem, der wieder die Führung übernommen hatte, blieb stehen, ließ die anderen aufschließen. Er lauschte. »Klingt wie … na ja. Als würde jemand über Scherben laufen.«
+
+»Oder aus Scherben bestehen«, murmelte Jaad.
+
+Ayen drehte sich nicht um. Er sagte nur: »Sie zerbrechen nicht. Sie verändern sich nur.«
+
+Kata sah zu ihm. »Weißt du, was das ist?«
+
+Er schüttelte den Kopf. »Nicht jetzt. Aber bald.«
+
+---
+
+Sie erreichten die Ruinen am Nachmittag. Die Gebäude standen in einem Halbkreis, wirkten zugleich monumental und fehlproportioniert – als hätten Riesen sie entworfen, ohne das Maß der Menschen zu kennen. am Nachmittag. Die Gebäude standen in einem Halbkreis. Hoch, aber zu breit. Manche Türen führten auf glatte Wände, als hätte jemand vergessen, einen Raum dahinter zu bauen. Andere öffneten sich in Hallen, die größer schienen, als sie sein konnten. Alles bestand aus demselben Material: massiv, gläsern, aber hart, ohne Risse oder Spuren.
+
+»Was meinst du?«, fragte Jomar.
+
+»Ein Ort zum Ausruhen«, sagte Kata.
+
+Kalem klopfte mit der Faust gegen eine der Wände. Der Ton war dumpf, aber voll. »Immerhin stabil«, meinte er trocken. »Schon schlechtere Zufluchten gesehen.«
+
+Sie gingen in das größte Gebäude. Drinnen war es kühl, und ihre Schritte hallten leise auf dem glatten Boden wider, während die Luft sich schwer und druckvoll anfühlte, aber nicht kalt. Der Boden war glatt, die Luft nicht abgestanden. Kein Staub. Kein Geruch. Nur Stille. Der Raum war groß und hoch – viel Platz, aber kaum Schutz. Die offene Fläche bot Möglichkeiten zur Verteidigung, gleichzeitig aber auch viele Angriffsflächen. Es gab keinerlei Möbel oder Zimmer, bis auf einen fensterlosen, etwa drei mal drei Längen großen Raum in der Mitte.
+
+Almin stellte seinen Proviantsack ab. »Hier können wir uns verschanzen.«
+
+Die Decke war etwa ein Dutzend Menschenlängen hoch und schien aus klarem, dickem Glas zu bestehen, denn sie konnten den milchigen Himmel über ihnen erkennen.
+
+Jaad prüfte die Wände auf weitere Eingänge und Fenster; sie waren aus demselben Material, geformt wie die Öffnungen. Neben ihnen waren etliche Paneele an die Wand gelehnt. Sie waren aus dem gleichen Material gefertigt wie der Bau selbst, sie waren geformt wie die Fenster. Sie rief die anderen. Gemeinsam hoben sie die Paneele hoch an die Fenster, drückten und drehten sie, bis sie einrasteten. Es war überraschend einfach. Keine Technik, keine Scharniere – nur Form auf Form. Sehr praktisch. Jomar musterte eines der Paneele, runzelte die Stirn. »Vielleicht so etwas wie eine Sturmblende.«
+
+Die Tür hatte glücklicherweise einen massiven Querriegel, der sich nach einigen vergeblichen Versuchen quietschend dazu überreden ließ, die Tür zu versperren.
+
+In der Mitte des großen Saals war ein relativ kleiner und flacher Raum ohne Fenster, nur mit einem Zugang. Der Boden war glatt, die Wände spiegelten sich gläsern. Es gab keine Möbel, da war nichts außer dem glatten Boden und den Wänden.
+
+Kalem trat einen Schritt zurück, rieb sich die Hände und sagte: »Ich mag den Ort nicht. Aber ich mag, dass wir drin sind.«
+
+Einen Moment lang herrschte vollkommene Stille, als hielte selbst die Luft den Atem an. Dann kam das Splittern näher.
+
+Zuerst waren es nur einzelne Töne, dann kamen sie schnell hintereinander. Sie kamen mal von rechts, mal von links, dann direkt hinter ihnen.
+
+Ayen schloss die Augen, seine Finger zitterten leicht, als würde er eine unsichtbare Berührung abwehren. »Sie sind da.«
+
+»Wie viele?«, fragte Jomar.
+
+»Ich zähle nicht. Ich spüre ein Muster. Als würde etwas sich selbst korrigieren.«
+
+Sie lauschten.
+
+Dann: ein dumpfer Stoß. Irgendwo an der Außenwand. Ein Zweiter. Kein Schrei, kein Klirren – nur Druck. Als versuchte jemand, sich durch das Material zu drücken.
+
+»Sie haben keine Werkzeuge«, sagte Jaad leise.
+
+»Und keine Waffen«, ergänzte Kata.
+
+»Oder sie sind selbst die Waffen«, sagte Kalem.
+
+Ein längerer Laut ließ die Wand vibrieren. Dann nichts. Alles wurde wieder still.
+
+Sie setzten sich in der Mitte des Raumes. Ayen saß still, das Stofftier auf dem Schoß. Er sprach kein Wort. Sah nur zur Wand.
+
+»Sie beobachten uns nicht«, sagte er plötzlich. »Sie prüfen uns.«
+
+Jomar sah zu ihm. »Prüfen? Worauf?«
+
+»Vielleicht wissen sie das selbst noch nicht.«
+
+Die Anspannung wich langsam aus dem Raum, und für einen Moment war nur das leise Knacken des gläsernen Bodens zu hören. Die Lagebesprechung war kurz. Sie hatten die drei Waffen aus dem Luftschiff. Almin und Jomar würden zaubern, Kata bekam ein Schwert. Kalem übernahm die erste Wache. Er überprüfte die Funktion der seltsamen Geräte.
+
+»Ich hoffe, sie funktionieren, wie ich es erwarte – Ziel, Druck, Treffer.«
+
+»Was, wenn sie nicht wirken?«, fragte Jaad.
+
+Kalem grinste schmal. »Dann werfe ich sie den Dingern an den Kopf.«
+
+Die Nacht kam. Die einzigen Lichtquellen, die sie hatten, waren der milchig trübe Nachthimmel, der durch die halbdurchsichtige Decke kam, und das Pad. Jaad ließ eine möglichst weiße Seite erscheinen.
+
+Sie rollten die Decken aus und legten sich zur Ruhe, so gut das denn unter den gegebenen Umständen möglich war. 
+
+Die Nacht verging ohne Zwischenfälle. Dann kehrte das trübe Licht des Tages zurück.
+
+Die Geräusche kehrten zurück. Die Wesen sprachen nicht, sie riefen nicht. Alles, was sie hörten, war Splittern, Poltern, leises Gleiten.
+
+Dann gab es ein Krachen.
+
+Kalem sprang auf. »Wir haben Besuch.«
+
+Almin stand schon. Die Magie um ihn war schwach, aber nicht weg. Und in ihm war noch genug. Er formte einen einfachen Schild und warf ihn in Richtung des Risses.
+
+Dann brach die Wand. Kein Feuer, kein Lärm. Nur eine plötzliche Öffnung – wie ein Schnitt in Stoff.
+
+Sie kamen.
+
+Sie waren etwa mannshoch, schlank gebaut, und bestanden aus durchscheinendem, glattem Material, das glänzte, als wäre es frisch poliert. Ihre Körper schienen aus mehreren Abschnitten zu bestehen, die sich unabhängig voneinander bewegten. Die Beine waren zu lang, und seltsam gebaut – die Gelenke wiesen nach hinten, und sie bewegten sich lautlos, aber schnell. Sie hatten keine erkennbaren Köpfe. An der Vorderseite ihrer oberen Körperhälfte befanden sich flache Vertiefungen, in denen etwas schwach pulsierte, als hätten sie dort ihr Herz. Kein Gesicht, kein Mund, keine Augen – nur Bewegung und ein Eindruck von Orientierung, als spürten sie die Umgebung durch etwas anderes als Sicht. 
+
+Sie kamen nur einzeln durch den Eingang – mehr ließ der schmale Durchbruch nicht zu. Doch Almins unsichtbarer Schild bremste sie zusätzlich. Jedes Wesen prallte daran ab, zuckte zurück, als verstünde es nicht, warum es nicht vorankam. Ihre Bewegungen wurden unruhiger, sie rempelten einander klirrend an. Das Beunruhigendste war jedoch ihre absolute Stille. Kein Schreien, kein Schnaufen, kein Keuchen – nur das trockene Klirren ihrer Körper. Ein Kampf gegen vollkommen stumme Gegner, unheimlich und fremd. Kata nutzte den Moment, zog Ayen zurück und schob ihn in den fensterlosen Zentralraum.
+
+»Ich will das sehen!«, protestierte er. Seine Stimme war laut, klar.
+
+»Nicht jetzt«, sagte sie. »Nicht du.«
+
+Kalem hob die Waffe. 
+
+*Vielleicht ist es ja doch nur eine Pfeffermühle*, dachte er.
+
+Er zielte und drückte ab.
+
+Ein Laut, wie ein dünnes Reißen. Eine Spur in der Luft – kaum sichtbar, ein schwacher, sich kräuselnder Rauchfaden.
+
+Die erste Kreatur wurde getroffen und zersplitterte. Die einzelnen Stücke verteilten sich klirrend auf dem Boden – kein Fleisch, kein Blut, kein Schrei, nur Klirren und Staub.
+
+»Sieht aus, als würden sie zerbrechen, wenn man sie nur mittig genug trifft«, rief Kalem. Er warf eine der Waffen zu Kata hinüber. »Na dann los – lasst uns ein bisschen Porzellan zerschlagen.«
+
+Jaad feuerte ebenfalls. Ihre Waffe zuckte in der Hand, zog eine zweite Spur durch die Luft. Auch ihr Ziel zersprang in viele Teile. Doch als Kalem erneut anlegte, blieb die Waffe stumm. Ein Licht blinkte am Griff. Er fluchte leise, duckte sich zur Seite.
+
+»Wie, nur ein Schuss?«, rief er. »Das darf doch nicht wahr sein.«
+
+Jomar schleuderte einen Feuerball – die Flammen rollten über zwei der Wesen und ließen sie kurz aufleuchten. Doch sie fielen nicht. Nur ihre Bewegungen verlangsamten sich. Die Wesen schienen jedoch eher irritiert als verletzt zu sein.
+
+Kata sprang dazwischen und schlug mit dem Schwert ein großes Stück aus dem gläsernen Körper des Angreifers. Kein Schrei, nur ein hartes Klirren und Splittern. Der Gegner wich taumelnd zurück.
+
+»Sie haben keine Angst, aber sie merken sich Schmerzen«, keuchte sie.
+
+»Ich habe eine Idee«, sagte Jomar in Richtung von Almin. »Kannst du einen Frostzauber wirken?«
+
+Almin nickte nur, konzentrierte sich. Die Kälte kam schlagartig. Eine dünne Schicht Reif zog sich über den Boden. Die ersten der Wesen hielten inne, ihre Bewegungen ruckten. Glieder erstarrten, sie wurden langsamer.
+
+»Pass auf!«, rief Jomar – und schleuderte einen weiteren Feuerball.
+
+Die Flammen trafen die Erstarrten. Und dieses Mal zeigt er Wirkung. Risse zogen sich durch das Material, dann splitterten sie vollständig. Feuer und Eis passen nicht zueinander.
+
+Kalems Waffe blinkte grün und gab ein Piepen von sich.
+
+»Ich glaub', die geht wieder! Die hat sich selbst nachgeladen.«
+
+ Er zielte wieder und traf zwei der Wesen, die hintereinanderstanden. Beide brachen zusammen und zersplitterten.
+
+Auch Jaad feuerte ihre Waffe wieder ab. Die Luft war erfüllt von dünnem Rauch, flüchtigen Lichtblitzen, dem Zischen der Waffen.
+
+Dann, fast gleichzeitig, hielten die Kreaturen inne. Keine Geste, kein Laut – aber sie zogen sich zurück. Langsam, ohne Panik. Nach wenigen Herzschlägen waren sie verschwunden. 
+
+Kalem lugte vorsichtig durch die Tür. Die Wesen bewegten sich rasch und zielgerichtet, bis sie schließlich in der Ferne verschwanden.
+
+»Ob sie wiederkommen?«, fragte Jomar nachdenklich.
+
+»Nicht ohne Verstärkung«, sagte Kalem grinsend. »Denen haben wir ordentlich eingeheizt.«
+
+Kata stellte sich neben ihre Freunde, hielt sich die Schulter. Eines der Glaswesen hatte sie erwischt: eine lange, aber flache Schnittwunde.
+
+»Nur oberflächlich«, sagte sie leise.
+
+Die Luft roch noch verbrannt, unter ihren Stiefeln knirschten Splitter. 
 
 

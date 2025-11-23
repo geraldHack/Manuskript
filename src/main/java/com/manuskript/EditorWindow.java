@@ -12238,26 +12238,9 @@ spacer.setStyle("-fx-background-color: transparent;");
             // JavaScript ausführen, um im Preview zu scrollen
             Platform.runLater(() -> {
                 try {
-                    // Warte bis WebView geladen ist
-                    previewWebView.getEngine().getLoadWorker().stateProperty().addListener((obs, oldState, newState) -> {
-                        if (newState == javafx.concurrent.Worker.State.SUCCEEDED) {
-                            try {
-                                // Berechne Scroll-Position im HTML-Dokument
-                                String script = String.format(
-                                    "var scrollHeight = document.body.scrollHeight - window.innerHeight; " +
-                                    "var scrollTop = scrollHeight * %f; " +
-                                    "window.scrollTo(0, scrollTop);",
-                                    scrollPercent
-                                );
-                                previewWebView.getEngine().executeScript(script);
-                            } catch (Exception e) {
-                                logger.debug("Fehler beim Scrollen im Preview: " + e.getMessage());
-                            }
-                        }
-                    });
-                    
-                    // Falls bereits geladen, sofort scrollen
+                    // Prüfe, ob WebView bereits geladen ist
                     if (previewWebView.getEngine().getLoadWorker().getState() == javafx.concurrent.Worker.State.SUCCEEDED) {
+                        // Falls bereits geladen, sofort scrollen
                         String script = String.format(
                             "var scrollHeight = document.body.scrollHeight - window.innerHeight; " +
                             "var scrollTop = scrollHeight * %f; " +
@@ -12265,6 +12248,30 @@ spacer.setStyle("-fx-background-color: transparent;");
                             scrollPercent
                         );
                         previewWebView.getEngine().executeScript(script);
+                    } else {
+                        // Warte bis WebView geladen ist - ONE-SHOT Listener, der sich selbst entfernt
+                        javafx.beans.value.ChangeListener<javafx.concurrent.Worker.State> oneShotListener = new javafx.beans.value.ChangeListener<javafx.concurrent.Worker.State>() {
+                            @Override
+                            public void changed(javafx.beans.value.ObservableValue<? extends javafx.concurrent.Worker.State> obs, javafx.concurrent.Worker.State oldState, javafx.concurrent.Worker.State newState) {
+                                if (newState == javafx.concurrent.Worker.State.SUCCEEDED) {
+                                    // Listener sofort entfernen, um Ansammlung zu verhindern
+                                    previewWebView.getEngine().getLoadWorker().stateProperty().removeListener(this);
+                                    try {
+                                        // Berechne Scroll-Position im HTML-Dokument
+                                        String script = String.format(
+                                            "var scrollHeight = document.body.scrollHeight - window.innerHeight; " +
+                                            "var scrollTop = scrollHeight * %f; " +
+                                            "window.scrollTo(0, scrollTop);",
+                                            scrollPercent
+                                        );
+                                        previewWebView.getEngine().executeScript(script);
+                                    } catch (Exception e) {
+                                        logger.debug("Fehler beim Scrollen im Preview: " + e.getMessage());
+                                    }
+                                }
+                            }
+                        };
+                        previewWebView.getEngine().getLoadWorker().stateProperty().addListener(oneShotListener);
                     }
                 } catch (Exception e) {
                     logger.debug("Fehler beim Scrollen im Preview: " + e.getMessage());
