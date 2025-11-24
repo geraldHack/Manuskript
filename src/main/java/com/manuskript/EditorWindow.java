@@ -192,24 +192,8 @@ public class EditorWindow implements Initializable {
     
     // Makro-UI-Elemente (werden programmatisch erstellt)
     private ComboBox<String> cmbMacroList;
-    private Button btnNewMacro;
-    private Button btnDeleteMacro;
-    private Button btnSaveMacro;
-    private Button btnRunMacro;
     private VBox macroDetailsPanel;
     private TableView<MacroStep> tblMacroSteps;
-    private TableColumn<MacroStep, Boolean> colEnabled;
-    private TableColumn<MacroStep, Integer> colStepNumber;
-    private TableColumn<MacroStep, String> colDescription;
-    private TableColumn<MacroStep, String> colSearchText;
-    private TableColumn<MacroStep, String> colReplaceText;
-    private TableColumn<MacroStep, String> colOptions;
-    private TableColumn<MacroStep, String> colStatus;
-    private TableColumn<MacroStep, String> colActions;
-    private Button btnAddStep;
-    private Button btnRemoveStep;
-    private Button btnMoveStepUp;
-    private Button btnMoveStepDown;
     
     // Makro-Schritt-Eingabe
     private TextField txtMacroSearch;
@@ -12083,6 +12067,85 @@ spacer.setStyle("-fx-background-color: transparent;");
                 }
             }
         });
+        
+        // Mouse-Scroll-Rad: Erkenne Scrollen und synchronisiere Preview
+        // Einfacher Ansatz: Mausrad dreht sich -> Preview scrollt entsprechend mit
+        
+        // Debounce-Timer für Scroll-Synchronisation
+        final java.util.concurrent.atomic.AtomicReference<java.util.Timer> scrollSyncTimer = new java.util.concurrent.atomic.AtomicReference<>();
+        
+        // Event-Handler für Scroll-Synchronisation
+        EventHandler<ScrollEvent> scrollSyncHandler = event -> {
+            if (!isScrollingPreview && previewWebView != null && previewStage != null && previewStage.isShowing()) {
+                // Alten Timer abbrechen falls vorhanden
+                Timer oldTimer = scrollSyncTimer.getAndSet(null);
+                if (oldTimer != null) {
+                    oldTimer.cancel();
+                }
+                
+                // Neuen Timer starten (Debounce: 30ms nach letztem Scroll-Event)
+                Timer newTimer = new Timer(true); // Daemon-Thread
+                scrollSyncTimer.set(newTimer);
+                
+                // Scroll-Delta extrahieren (negativ = nach oben, positiv = nach unten)
+                final double deltaY = event.getDeltaY();
+                
+                newTimer.schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        Platform.runLater(() -> {
+                            try {
+                                // Prüfe, ob WebView geladen ist
+                                if (previewWebView.getEngine().getLoadWorker().getState() == javafx.concurrent.Worker.State.SUCCEEDED) {
+                                    // Hole aktuelle Scroll-Position im WebView
+                                    Object currentScrollTopObj = previewWebView.getEngine().executeScript(
+                                        "window.pageYOffset || document.documentElement.scrollTop"
+                                    );
+                                    
+                                    if (currentScrollTopObj instanceof Number) {
+                                        double currentScrollTop = ((Number) currentScrollTopObj).doubleValue();
+                                        
+                                        // Berechne neue Scroll-Position (Delta anwenden)
+                                        // Delta ist negativ beim Scrollen nach oben, positiv beim Scrollen nach unten
+                                        // Aber im WebView: scrollTop erhöht sich beim Scrollen nach unten
+                                        // Also: Delta umkehren für WebView
+                                        double newScrollTop = currentScrollTop - deltaY; // Minus, weil Delta umgekehrt ist
+                                        
+                                        // Stelle sicher, dass wir nicht über die Grenzen hinaus scrollen
+                                        Object maxScrollObj = previewWebView.getEngine().executeScript(
+                                            "Math.max(0, document.body.scrollHeight - window.innerHeight)"
+                                        );
+                                        if (maxScrollObj instanceof Number) {
+                                            double maxScroll = ((Number) maxScrollObj).doubleValue();
+                                            newScrollTop = Math.max(0, Math.min(newScrollTop, maxScroll));
+                                        }
+                                        
+                                        // Scroll zur neuen Position
+                                        String script = String.format("window.scrollTo(0, %f);", newScrollTop);
+                                        previewWebView.getEngine().executeScript(script);
+                                        
+                                        logger.debug("Preview gescrollt: Delta={}, Von {} zu {}", deltaY, currentScrollTop, newScrollTop);
+                                    }
+                                }
+                            } catch (Exception e) {
+                                logger.debug("Fehler beim Scrollen der Preview: " + e.getMessage());
+                            }
+                        });
+                    }
+                }, 30); // 30ms Verzögerung für Debounce
+            }
+            // Event NICHT consumen - normales Scrollen soll weiterhin funktionieren
+        };
+        
+        // Auf VirtualizedScrollPane registrieren (falls vorhanden)
+        if (scrollPane != null) {
+            scrollPane.addEventFilter(ScrollEvent.SCROLL, scrollSyncHandler);
+            logger.debug("Scroll-Event-Filter auf VirtualizedScrollPane registriert");
+        }
+        
+        // Auch auf CodeArea registrieren (für den Fall, dass das Event dort ankommt)
+        codeArea.addEventFilter(ScrollEvent.SCROLL, scrollSyncHandler);
+        logger.debug("Scroll-Event-Filter auf CodeArea registriert");
     }
     
     /**
@@ -12222,6 +12285,7 @@ spacer.setStyle("-fx-background-color: transparent;");
      */
     private void syncPreviewScroll(int paragraphIndex) {
         if (previewWebView == null || codeArea == null) {
+            logger.debug("syncPreviewScroll: previewWebView oder codeArea ist null");
             return;
         }
         
@@ -12229,56 +12293,100 @@ spacer.setStyle("-fx-background-color: transparent;");
             // Berechne Scroll-Position basierend auf Paragraph-Index
             int totalParagraphs = codeArea.getParagraphs().size();
             if (totalParagraphs == 0) {
+                logger.debug("syncPreviewScroll: Keine Paragraphs vorhanden");
                 return;
+            }
+            
+            // Prüfe, ob die aktuelle Zeile leer ist - wenn ja, nichts tun
+            if (paragraphIndex >= 0 && paragraphIndex < totalParagraphs) {
+                int paragraphStart = 0;
+                for (int i = 0; i < paragraphIndex; i++) {
+                    paragraphStart += codeArea.getParagraphLength(i) + 1; // +1 für Zeilenumbruch
+                }
+                int paragraphEnd = paragraphStart + codeArea.getParagraphLength(paragraphIndex);
+                String currentLine = codeArea.getText(paragraphStart, paragraphEnd).trim();
+                if (currentLine.isEmpty()) {
+                    // Leere Zeile - nichts tun
+                    return;
+                }
             }
             
             // Berechne Scroll-Position als Prozentsatz
             double scrollPercent = (double) paragraphIndex / totalParagraphs;
+            logger.debug("syncPreviewScroll: Paragraph {}/{}, Scroll-Perzent: {}", paragraphIndex, totalParagraphs, scrollPercent);
             
-            // JavaScript ausführen, um im Preview zu scrollen
-            Platform.runLater(() -> {
+            // Scroll-Funktion, die sowohl vom Listener als auch direkt aufgerufen werden kann
+            Runnable scrollAction = () -> {
                 try {
-                    // Prüfe, ob WebView bereits geladen ist
-                    if (previewWebView.getEngine().getLoadWorker().getState() == javafx.concurrent.Worker.State.SUCCEEDED) {
-                        // Falls bereits geladen, sofort scrollen
-                        String script = String.format(
-                            "var scrollHeight = document.body.scrollHeight - window.innerHeight; " +
-                            "var scrollTop = scrollHeight * %f; " +
-                            "window.scrollTo(0, scrollTop);",
-                            scrollPercent
-                        );
-                        previewWebView.getEngine().executeScript(script);
-                    } else {
-                        // Warte bis WebView geladen ist - ONE-SHOT Listener, der sich selbst entfernt
+                    // Verwende explizite Formatierung ohne führende Nullen (JavaScript-Problem mit Oktalzahlen)
+                    // Stelle sicher, dass die Zahl als normale Dezimalzahl formatiert wird
+                    // Verwende DecimalFormat oder String.valueOf für sichere Formatierung
+                    String scrollPercentStr = String.valueOf(scrollPercent);
+                    // Falls die Zahl sehr klein ist und führende Nullen hat, entferne sie
+                    // Aber eigentlich sollte String.valueOf() das nicht produzieren
+                    // Verwende stattdessen eine explizite Formatierung mit Locale.ROOT
+                    java.text.DecimalFormat df = new java.text.DecimalFormat("0.##########", 
+                        new java.text.DecimalFormatSymbols(java.util.Locale.ROOT));
+                    scrollPercentStr = df.format(scrollPercent);
+                    
+                    String script = String.format(
+                        "var scrollHeight = document.body.scrollHeight - window.innerHeight; " +
+                        "var scrollTop = scrollHeight * %s; " +
+                        "window.scrollTo(0, scrollTop);",
+                        scrollPercentStr
+                    );
+                    logger.debug("syncPreviewScroll: Führe JavaScript aus: {}", script);
+                    Object result = previewWebView.getEngine().executeScript(script);
+                    logger.debug("syncPreviewScroll: JavaScript-Ergebnis: {}", result);
+                } catch (Exception e) {
+                    logger.warn("Fehler beim Scrollen im Preview: " + e.getMessage(), e);
+                }
+            };
+            
+            // Prüfe, ob WebView bereits geladen ist
+            javafx.concurrent.Worker.State currentState = previewWebView.getEngine().getLoadWorker().getState();
+            logger.debug("syncPreviewScroll: WebView State: {}", currentState);
+            
+            if (currentState == javafx.concurrent.Worker.State.SUCCEEDED) {
+                // WebView ist bereits geladen - direkt scrollen
+                Platform.runLater(() -> {
+                    scrollAction.run();
+                });
+            } else {
+                // WebView ist noch nicht geladen - Listener hinzufügen
+                Platform.runLater(() -> {
+                    try {
+                        // ONE-SHOT Listener, der sich selbst entfernt
                         javafx.beans.value.ChangeListener<javafx.concurrent.Worker.State> oneShotListener = new javafx.beans.value.ChangeListener<javafx.concurrent.Worker.State>() {
                             @Override
                             public void changed(javafx.beans.value.ObservableValue<? extends javafx.concurrent.Worker.State> obs, javafx.concurrent.Worker.State oldState, javafx.concurrent.Worker.State newState) {
                                 if (newState == javafx.concurrent.Worker.State.SUCCEEDED) {
                                     // Listener sofort entfernen, um Ansammlung zu verhindern
                                     previewWebView.getEngine().getLoadWorker().stateProperty().removeListener(this);
-                                    try {
-                                        // Berechne Scroll-Position im HTML-Dokument
-                                        String script = String.format(
-                                            "var scrollHeight = document.body.scrollHeight - window.innerHeight; " +
-                                            "var scrollTop = scrollHeight * %f; " +
-                                            "window.scrollTo(0, scrollTop);",
-                                            scrollPercent
-                                        );
-                                        previewWebView.getEngine().executeScript(script);
-                                    } catch (Exception e) {
-                                        logger.debug("Fehler beim Scrollen im Preview: " + e.getMessage());
-                                    }
+                                    scrollAction.run();
                                 }
                             }
                         };
+                        
+                        // WICHTIG: Listener ZUERST hinzufügen, um Race Condition zu vermeiden
                         previewWebView.getEngine().getLoadWorker().stateProperty().addListener(oneShotListener);
+                        
+                        // DANN prüfen, ob State bereits SUCCEEDED ist (nach dem Hinzufügen des Listeners)
+                        // Falls ja, sofort scrollen und Listener entfernen
+                        if (previewWebView.getEngine().getLoadWorker().getState() == javafx.concurrent.Worker.State.SUCCEEDED) {
+                            // Listener entfernen, da er nie ausgelöst wird
+                            previewWebView.getEngine().getLoadWorker().stateProperty().removeListener(oneShotListener);
+                            // Scroll-Logik direkt ausführen
+                            scrollAction.run();
+                        }
+                        // Falls State noch nicht SUCCEEDED ist, wartet der Listener auf den State-Wechsel
+                    } catch (Exception e) {
+                        logger.warn("Fehler beim Scrollen im Preview: " + e.getMessage(), e);
                     }
-                } catch (Exception e) {
-                    logger.debug("Fehler beim Scrollen im Preview: " + e.getMessage());
-                }
-            });
+                });
+            }
         } catch (Exception e) {
-            logger.debug("Fehler bei der Scroll-Synchronisation: " + e.getMessage());
+            logger.warn("Fehler bei der Scroll-Synchronisation: " + e.getMessage(), e);
         }
     }
     
