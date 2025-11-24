@@ -192,8 +192,24 @@ public class EditorWindow implements Initializable {
     
     // Makro-UI-Elemente (werden programmatisch erstellt)
     private ComboBox<String> cmbMacroList;
+    private Button btnNewMacro;
+    private Button btnDeleteMacro;
+    private Button btnSaveMacro;
+    private Button btnRunMacro;
     private VBox macroDetailsPanel;
     private TableView<MacroStep> tblMacroSteps;
+    private TableColumn<MacroStep, Boolean> colEnabled;
+    private TableColumn<MacroStep, Integer> colStepNumber;
+    private TableColumn<MacroStep, String> colDescription;
+    private TableColumn<MacroStep, String> colSearchText;
+    private TableColumn<MacroStep, String> colReplaceText;
+    private TableColumn<MacroStep, String> colOptions;
+    private TableColumn<MacroStep, String> colStatus;
+    private TableColumn<MacroStep, String> colActions;
+    private Button btnAddStep;
+    private Button btnRemoveStep;
+    private Button btnMoveStepUp;
+    private Button btnMoveStepDown;
     
     // Makro-Schritt-Eingabe
     private TextField txtMacroSearch;
