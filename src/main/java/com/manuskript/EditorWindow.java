@@ -7298,7 +7298,19 @@ spacer.setStyle("-fx-background-color: transparent;");
         HBox.setHgrow(lblPhrasen, Priority.ALWAYS);
         phrasenBox.getChildren().addAll(btnPhrasen, lblPhrasen);
         
-        analysisButtons.getChildren().addAll(sprechwoerterBox, sprechantwortenBox, wortwiederholungenBox, wortwiederholungNahBox, fuellwoerterBox, phrasenBox);
+        // Satzlängen analysieren
+        HBox satzlaengenBox = new HBox(10);
+        Button btnSatzlaengen = new Button("Satzlängen analysieren");
+        btnSatzlaengen.getStyleClass().add("button");
+        btnSatzlaengen.setPrefWidth(200);
+        btnSatzlaengen.setStyle(String.format("-fx-background-color: %s; -fx-text-fill: %s;", accentColor, textColor));
+        Label lblSatzlaengen = new Label("Analysiert Satzlängen und markiert Sätze nach Länge (kurz/mittel/lang)");
+        lblSatzlaengen.setWrapText(true);
+        lblSatzlaengen.setStyle(String.format("-fx-text-fill: %s;", textColor));
+        HBox.setHgrow(lblSatzlaengen, Priority.ALWAYS);
+        satzlaengenBox.getChildren().addAll(btnSatzlaengen, lblSatzlaengen);
+        
+        analysisButtons.getChildren().addAll(sprechwoerterBox, sprechantwortenBox, wortwiederholungenBox, wortwiederholungNahBox, fuellwoerterBox, phrasenBox, satzlaengenBox);
         
         // Navigation-Buttons
         HBox navigationBox = new HBox(10);
@@ -7344,6 +7356,7 @@ spacer.setStyle("-fx-background-color: transparent;");
         btnWortwiederholungNah.setOnAction(e -> analyzeWortwiederholungNah(statusArea));
         btnFuellwoerter.setOnAction(e -> analyzeFuellwoerter(statusArea));
         btnPhrasen.setOnAction(e -> analyzePhrasen(statusArea));
+        btnSatzlaengen.setOnAction(e -> analyzeSatzlaengen(statusArea));
         btnNext.setOnAction(e -> findNext());
         btnPrevious.setOnAction(e -> findPrevious());
         
@@ -8390,6 +8403,285 @@ spacer.setStyle("-fx-background-color: transparent;");
             logger.error("Fehler bei der Phrasen-Analyse", e);
         }
     }
+    
+    private void analyzeSatzlaengen(TextArea statusArea) {
+        try {
+            String text = codeArea.getText();
+            
+            if (text == null || text.trim().isEmpty()) {
+                statusArea.setText("Kein Text zum Analysieren vorhanden.");
+                return;
+            }
+            
+            // Absätze erkennen: Markdown-Absätze sind durch Leerzeilen (doppelte Zeilenumbrüche) getrennt
+            // Split bei doppelten Zeilenumbrüchen oder einzelnen Leerzeilen
+            String[] paragraphs = text.split("\\n\\s*\\n", -1);
+            
+            List<ParagraphInfo> paragraphInfos = new ArrayList<>();
+            int currentPos = 0;
+            
+            for (String paragraphText : paragraphs) {
+                if (paragraphText.trim().isEmpty()) {
+                    // Leerzeile - überspringe
+                    currentPos += paragraphText.length() + 2; // +2 für die Zeilenumbrüche
+                    continue;
+                }
+                
+                // Finde Startposition des Absatzes im Originaltext
+                int paragraphStart = text.indexOf(paragraphText, currentPos);
+                if (paragraphStart == -1) {
+                    paragraphStart = currentPos;
+                }
+                int paragraphEnd = paragraphStart + paragraphText.length();
+                
+                // Analysiere Sätze innerhalb des Absatzes
+                Pattern sentencePattern = Pattern.compile("([^.!?]+[.!?])(?=\\s+|$)", Pattern.MULTILINE);
+                Matcher sentenceMatcher = sentencePattern.matcher(paragraphText);
+                
+                List<Integer> sentenceWordCounts = new ArrayList<>();
+                int totalWords = 0;
+                int maxSentenceLength = 0;
+                int longSentences = 0; // > 25 Wörter
+                int veryLongSentences = 0; // > 30 Wörter
+                
+                while (sentenceMatcher.find()) {
+                    String sentenceText = sentenceMatcher.group(1).trim();
+                    if (sentenceText.isEmpty()) {
+                        continue;
+                    }
+                    
+                    // Zähle Wörter im Satz
+                    String[] words = sentenceText.split("\\s+");
+                    int wordCount = 0;
+                    for (String word : words) {
+                        if (!word.trim().isEmpty()) {
+                            wordCount++;
+                        }
+                    }
+                    
+                    if (wordCount > 0) {
+                        sentenceWordCounts.add(wordCount);
+                        totalWords += wordCount;
+                        maxSentenceLength = Math.max(maxSentenceLength, wordCount);
+                        
+                        if (wordCount > 25) {
+                            longSentences++;
+                        }
+                        if (wordCount > 30) {
+                            veryLongSentences++;
+                        }
+                    }
+                }
+                
+                // Wenn keine Sätze gefunden wurden, aber Text vorhanden ist
+                if (sentenceWordCounts.isEmpty() && !paragraphText.trim().isEmpty()) {
+                    String[] words = paragraphText.trim().split("\\s+");
+                    int wordCount = 0;
+                    for (String word : words) {
+                        if (!word.trim().isEmpty()) {
+                            wordCount++;
+                        }
+                    }
+                    if (wordCount > 0) {
+                        sentenceWordCounts.add(wordCount);
+                        totalWords = wordCount;
+                        maxSentenceLength = wordCount;
+                        if (wordCount > 25) {
+                            longSentences = 1;
+                        }
+                        if (wordCount > 30) {
+                            veryLongSentences = 1;
+                        }
+                    }
+                }
+                
+                // Kategorisiere Absatz basierend auf längstem Satz oder durchschnittlicher Satzlänge
+                String category;
+                if (sentenceWordCounts.isEmpty()) {
+                    category = null; // Überspringe leere Absätze
+                } else {
+                    double avgLength = totalWords / (double) sentenceWordCounts.size();
+                    
+                    // Kategorisiere basierend auf längstem Satz (wichtiger für visuelle Markierung)
+                    if (maxSentenceLength > 30) {
+                        category = "sentence-long"; // Sehr lange Sätze
+                    } else if (maxSentenceLength > 25) {
+                        category = "sentence-long"; // Lange Sätze
+                    } else if (avgLength > 20 || maxSentenceLength > 20) {
+                        category = "sentence-medium"; // Mittlere Sätze
+                    } else {
+                        category = "sentence-short"; // Kurze Sätze
+                    }
+                }
+                
+                if (category != null) {
+                    double avgLength = sentenceWordCounts.isEmpty() ? 0 : (totalWords / (double) sentenceWordCounts.size());
+                    paragraphInfos.add(new ParagraphInfo(paragraphStart, paragraphEnd, 
+                        sentenceWordCounts.size(), maxSentenceLength, 
+                        (int)Math.round(avgLength), longSentences, veryLongSentences, category));
+                }
+                
+                currentPos = paragraphEnd;
+            }
+            
+            // Markiere Absätze im Editor
+            if (!paragraphInfos.isEmpty()) {
+                StyleSpansBuilder<Collection<String>> spansBuilder = new StyleSpansBuilder<>();
+                int currentPosMark = 0;
+                
+                for (ParagraphInfo paragraph : paragraphInfos) {
+                    // Sicherstelle, dass keine Überlappungen auftreten
+                    if (paragraph.start < currentPosMark) {
+                        continue;
+                    }
+                    
+                    // Füge normalen Text vor dem Absatz hinzu
+                    if (paragraph.start > currentPosMark) {
+                        spansBuilder.add(Collections.emptyList(), paragraph.start - currentPosMark);
+                    }
+                    
+                    // Füge markierten Absatz hinzu
+                    spansBuilder.add(Collections.singleton(paragraph.category), paragraph.end - paragraph.start);
+                    currentPosMark = paragraph.end;
+                }
+                
+                // Füge restlichen Text hinzu
+                if (currentPosMark < text.length()) {
+                    spansBuilder.add(Collections.emptyList(), text.length() - currentPosMark);
+                }
+                
+                // Wende die Markierungen an
+                StyleSpans<Collection<String>> spans = spansBuilder.create();
+                codeArea.setStyleSpans(0, spans);
+            } else {
+                // Entferne alle Markierungen
+                codeArea.setStyleSpans(0, text.length(), StyleSpans.singleton(new ArrayList<>(), 0));
+            }
+            
+            // Bewertung erstellen
+            StringBuilder result = new StringBuilder();
+            result.append("=== SATZLÄNGEN-ANALYSE (NACH ABSÄTZEN) ===\n\n");
+            
+            int totalParagraphs = paragraphInfos.size();
+            int totalSentences = 0;
+            int shortParagraphs = 0;
+            int mediumParagraphs = 0;
+            int longParagraphs = 0;
+            int totalVeryLongSentences = 0;
+            int totalLongSentences = 0;
+            
+            for (ParagraphInfo para : paragraphInfos) {
+                totalSentences += para.sentenceCount;
+                totalVeryLongSentences += para.veryLongSentences;
+                totalLongSentences += para.longSentences;
+                
+                if (para.category.equals("sentence-short")) {
+                    shortParagraphs++;
+                } else if (para.category.equals("sentence-medium")) {
+                    mediumParagraphs++;
+                } else {
+                    longParagraphs++;
+                }
+            }
+            
+            result.append(String.format("Gesamtanzahl Absätze: %d\n", totalParagraphs));
+            result.append(String.format("Gesamtanzahl Sätze: %d\n", totalSentences));
+            result.append(String.format("Absätze mit kurzen Sätzen: %d (%.1f%%)\n", shortParagraphs,
+                totalParagraphs > 0 ? (shortParagraphs * 100.0 / totalParagraphs) : 0));
+            result.append(String.format("Absätze mit mittleren Sätzen: %d (%.1f%%)\n", mediumParagraphs,
+                totalParagraphs > 0 ? (mediumParagraphs * 100.0 / totalParagraphs) : 0));
+            result.append(String.format("Absätze mit langen Sätzen: %d (%.1f%%)\n", longParagraphs,
+                totalParagraphs > 0 ? (longParagraphs * 100.0 / totalParagraphs) : 0));
+            result.append(String.format("Sehr lange Sätze (>30 Wörter): %d\n", totalVeryLongSentences));
+            result.append(String.format("Lange Sätze (>25 Wörter): %d\n\n", totalLongSentences));
+            
+            // Bewertung: Zu lange Sätze
+            if (totalVeryLongSentences > 0) {
+                result.append(String.format("⚠ %d überlange Sätze gefunden (>30 Wörter).\n", totalVeryLongSentences));
+            }
+            if (totalLongSentences > 0 && totalSentences > 0) {
+                double longPercentage = (totalLongSentences * 100.0 / totalSentences);
+                if (longPercentage > 20) {
+                    result.append(String.format("⚠ %.1f%% der Sätze sind lang (>25 Wörter) - erwäge Kürzungen oder Aufteilungen.\n", longPercentage));
+                }
+            }
+            
+            // Bewertung: Wechsel zwischen Absätzen mit unterschiedlichen Satzlängen
+            if (totalParagraphs > 1) {
+                int goodTransitions = 0;
+                int badTransitions = 0;
+                
+                for (int i = 0; i < paragraphInfos.size() - 1; i++) {
+                    ParagraphInfo current = paragraphInfos.get(i);
+                    ParagraphInfo next = paragraphInfos.get(i + 1);
+                    
+                    boolean currentIsLong = current.category.equals("sentence-long");
+                    boolean nextIsLong = next.category.equals("sentence-long");
+                    boolean currentIsShort = current.category.equals("sentence-short");
+                    boolean nextIsShort = next.category.equals("sentence-short");
+                    
+                    // Guter Wechsel: lang → kurz oder kurz → lang
+                    if ((currentIsLong && nextIsShort) || (currentIsShort && nextIsLong)) {
+                        goodTransitions++;
+                    }
+                    // Schlechter Wechsel: zwei Absätze mit langen Sätzen hintereinander
+                    else if (currentIsLong && nextIsLong) {
+                        badTransitions++;
+                    }
+                }
+                
+                double transitionRatio = totalParagraphs > 1 ? (goodTransitions * 100.0 / (totalParagraphs - 1)) : 0;
+                
+                if (badTransitions > 0) {
+                    result.append(String.format("⚠ %d mal folgen Absätze mit langen Sätzen direkt aufeinander - rhythmischer Wechsel ist mangelhaft.\n", badTransitions));
+                }
+                
+                if (transitionRatio < 30 && totalParagraphs > 3) {
+                    result.append("⚠ Geringer Wechsel zwischen Absätzen mit kurzen und langen Sätzen - Rhythmus könnte verbessert werden.\n");
+                } else if (transitionRatio >= 30) {
+                    result.append("✓ Guter Wechsel zwischen Absätzen mit kurzen und langen Sätzen vorhanden.\n");
+                }
+            }
+            
+            result.append("\n");
+            result.append("💡 Markierungen im Text:\n");
+            result.append("  Grün = Absätze mit kurzen Sätzen (≤20 Wörter durchschnittlich)\n");
+            result.append("  Gelb = Absätze mit mittleren Sätzen (21-25 Wörter durchschnittlich)\n");
+            result.append("  Rot = Absätze mit langen Sätzen (>25 Wörter)\n");
+            
+            statusArea.setText(result.toString());
+            updateStatus("Satzlängen-Analyse abgeschlossen: " + totalSentences + " Sätze analysiert");
+            
+        } catch (Exception e) {
+            statusArea.setText("Fehler bei der Satzlängen-Analyse: " + e.getMessage());
+            logger.error("Fehler bei der Satzlängen-Analyse", e);
+        }
+    }
+    
+    // Hilfsklasse für Absatz-Informationen
+    private static class ParagraphInfo {
+        int start;
+        int end;
+        int sentenceCount;
+        int maxSentenceLength;
+        int avgSentenceLength;
+        int longSentences;
+        int veryLongSentences;
+        String category;
+        
+        ParagraphInfo(int start, int end, int sentenceCount, int maxSentenceLength, 
+                      int avgSentenceLength, int longSentences, int veryLongSentences, String category) {
+            this.start = start;
+            this.end = end;
+            this.sentenceCount = sentenceCount;
+            this.maxSentenceLength = maxSentenceLength;
+            this.avgSentenceLength = avgSentenceLength;
+            this.longSentences = longSentences;
+            this.veryLongSentences = veryLongSentences;
+            this.category = category;
+        }
+    }
+    
     private void loadTextAnalysisWindowProperties() {
         // Verwende die neue Multi-Monitor-Validierung
         Rectangle2D windowBounds = PreferencesManager.MultiMonitorValidator.loadAndValidateWindowProperties(
@@ -12155,13 +12447,23 @@ spacer.setStyle("-fx-background-color: transparent;");
         
         // Auf VirtualizedScrollPane registrieren (falls vorhanden)
         if (scrollPane != null) {
-            scrollPane.addEventFilter(ScrollEvent.SCROLL, scrollSyncHandler);
-            logger.debug("Scroll-Event-Filter auf VirtualizedScrollPane registriert");
+            try {
+                scrollPane.addEventFilter(ScrollEvent.SCROLL, scrollSyncHandler);
+                logger.debug("Scroll-Event-Filter auf VirtualizedScrollPane registriert");
+            } catch (Exception e) {
+                logger.debug("Fehler beim Registrieren des Scroll-Event-Filters auf VirtualizedScrollPane: " + e.getMessage());
+            }
         }
         
         // Auch auf CodeArea registrieren (für den Fall, dass das Event dort ankommt)
-        codeArea.addEventFilter(ScrollEvent.SCROLL, scrollSyncHandler);
-        logger.debug("Scroll-Event-Filter auf CodeArea registriert");
+        if (codeArea != null) {
+            try {
+                codeArea.addEventFilter(ScrollEvent.SCROLL, scrollSyncHandler);
+                logger.debug("Scroll-Event-Filter auf CodeArea registriert");
+            } catch (Exception e) {
+                logger.debug("Fehler beim Registrieren des Scroll-Event-Filters auf CodeArea: " + e.getMessage());
+            }
+        }
     }
     
     /**

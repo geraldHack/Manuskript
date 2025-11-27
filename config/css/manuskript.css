@@ -3342,6 +3342,47 @@
 }
 
 /* ========================================
+   SATZLÄNGEN-MARKIERUNG
+   ======================================== */
+
+/* RichTextFX-spezifische Satzlängen-Markierung-Klassen */
+.code-area .sentence-short {
+    -rtfx-background-color: #4caf50 !important; /* Grün für kurze Sätze */
+}
+
+.code-area .sentence-medium {
+    -rtfx-background-color: #f9a825 !important; /* Dunkleres Gelb für mittlere Sätze - besser lesbar */
+}
+
+.code-area .sentence-long {
+    -rtfx-background-color: #f44336 !important; /* Rot für lange Sätze */
+}
+
+.theme-dark .code-area .sentence-short {
+    -rtfx-background-color: #66bb6a !important;
+}
+
+.theme-dark .code-area .sentence-medium {
+    -rtfx-background-color: #f9a825 !important; /* Dunkleres Gelb für bessere Lesbarkeit */
+}
+
+.theme-dark .code-area .sentence-long {
+    -rtfx-background-color: #ef5350 !important;
+}
+
+.pastell-theme .code-area .sentence-short {
+    -rtfx-background-color: #81c784 !important;
+}
+
+.pastell-theme .code-area .sentence-medium {
+    -rtfx-background-color: #f9a825 !important; /* Dunkleres Gelb für bessere Lesbarkeit */
+}
+
+.pastell-theme .code-area .sentence-long {
+    -rtfx-background-color: #e57373 !important;
+}
+
+/* ========================================
    TOOLBAR-STYLING FÜR PASTELL-THEME
    ======================================== */
 
