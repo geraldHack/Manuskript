@@ -12155,23 +12155,13 @@ spacer.setStyle("-fx-background-color: transparent;");
         
         // Auf VirtualizedScrollPane registrieren (falls vorhanden)
         if (scrollPane != null) {
-            try {
-                scrollPane.addEventFilter(ScrollEvent.SCROLL, scrollSyncHandler);
-                logger.debug("Scroll-Event-Filter auf VirtualizedScrollPane registriert");
-            } catch (Exception e) {
-                logger.debug("Fehler beim Registrieren des Scroll-Event-Filters auf VirtualizedScrollPane: " + e.getMessage());
-            }
+            scrollPane.addEventFilter(ScrollEvent.SCROLL, scrollSyncHandler);
+            logger.debug("Scroll-Event-Filter auf VirtualizedScrollPane registriert");
         }
         
         // Auch auf CodeArea registrieren (für den Fall, dass das Event dort ankommt)
-        if (codeArea != null) {
-            try {
-                codeArea.addEventFilter(ScrollEvent.SCROLL, scrollSyncHandler);
-                logger.debug("Scroll-Event-Filter auf CodeArea registriert");
-            } catch (Exception e) {
-                logger.debug("Fehler beim Registrieren des Scroll-Event-Filters auf CodeArea: " + e.getMessage());
-            }
-        }
+        codeArea.addEventFilter(ScrollEvent.SCROLL, scrollSyncHandler);
+        logger.debug("Scroll-Event-Filter auf CodeArea registriert");
     }
     
     /**
