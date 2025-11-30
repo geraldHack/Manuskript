@@ -185,6 +185,34 @@ public class OllamaService {
     }
     
     /**
+     * Gibt die aktuelle Temperatur zurück
+     */
+    public double getTemperature() {
+        return this.temperature;
+    }
+    
+    /**
+     * Gibt die maximale Anzahl von Tokens zurück
+     */
+    public int getMaxTokens() {
+        return this.maxTokens;
+    }
+    
+    /**
+     * Gibt den Top-P Parameter zurück
+     */
+    public double getTopP() {
+        return this.topP;
+    }
+    
+    /**
+     * Gibt die Repeat Penalty zurück
+     */
+    public double getRepeatPenalty() {
+        return this.repeatPenalty;
+    }
+    
+    /**
      * Setzt die Temperatur (Kreativität) - 0.0 = deterministisch, 1.0 = sehr kreativ
      */
     public void setTemperature(double temperature) {
@@ -288,12 +316,13 @@ public class OllamaService {
      * Generiert Text mit Kontext und aktuellen Parametern
      */
     public CompletableFuture<String> generateText(String prompt, String context) {
-        // Parameter aus den Instanzvariablen verwenden (die bereits aus properties geladen wurden)
-        int maxTokens = this.maxTokens;
-        double temperature = this.temperature;
-        double topP = this.topP;
-        double repeatPenalty = this.repeatPenalty;
-        
+        return generateText(prompt, context, this.temperature, this.maxTokens, this.topP, this.repeatPenalty);
+    }
+    
+    /**
+     * Generiert Text mit Kontext und spezifischen Parametern (ohne sie zu speichern)
+     */
+    public CompletableFuture<String> generateText(String prompt, String context, double temperature, int maxTokens, double topP, double repeatPenalty) {
         // Erstelle vollständigen Prompt mit Kontext
         String fullPrompt = prompt;
         if (context != null && !context.trim().isEmpty()) {
@@ -304,13 +333,16 @@ public class OllamaService {
         }
         
         // Korrekte JSON-Formatierung mit Escaping
-
         String escapedPrompt = escapeJson(fullPrompt);
-        String json = String.format(
-            "{\"model\":\"%s\",\"prompt\":\"%s\",\"stream\":false,\"options\":{\"num_predict\":%d,\"temperature\":%s,\"top_p\":%s,\"repeat_penalty\":%s}}",
+        // Verwende Locale.US für konsistente Dezimalpunkt-Formatierung (z.B. 0.5 statt 0,5)
+        String json = String.format(java.util.Locale.US,
+            "{\"model\":\"%s\",\"prompt\":\"%s\",\"stream\":false,\"options\":{\"num_predict\":%d,\"temperature\":%.2f,\"top_p\":%.2f,\"repeat_penalty\":%.2f}}",
             currentModel, escapedPrompt, maxTokens, 
-            String.valueOf(temperature), String.valueOf(topP), String.valueOf(repeatPenalty)
+            temperature, topP, repeatPenalty
         );
+        
+        // Debug: Logge die verwendete Temperatur
+        logger.debug("Ollama Request - Temperatur: {}", temperature);
         // Merken für UI
         this.lastEndpoint = GENERATE_ENDPOINT;
         this.lastRequestJson = json;

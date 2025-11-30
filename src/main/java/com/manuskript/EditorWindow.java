@@ -73,6 +73,7 @@ import java.util.Set;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.fxmisc.richtext.model.StyleSpan;
 import org.fxmisc.richtext.model.TwoDimensional.Bias;
 import javafx.animation.Timeline;
@@ -83,6 +84,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
 
 @SuppressWarnings("unchecked")
 public class EditorWindow implements Initializable {
@@ -563,6 +566,9 @@ if (caret != null) {
         
         // Selektion-Überwachung einrichten
         setupSelectionMonitoring();
+        
+        // Kontextmenü einrichten
+        setupContextMenu();
         
         // Toolbar-Einstellungen laden (Font-Size, Theme, etc.)
         loadToolbarSettings();
@@ -7181,6 +7187,8 @@ spacer.setStyle("-fx-background-color: transparent;");
         // Event-Handler für Fenster-Schließung
         textAnalysisStage.setOnCloseRequest(event -> {
             textAnalysisWindowVisible = false;
+            // Alle Textanalyse-Markierungen zurücksetzen
+            clearTextAnalysisMarkings();
             event.consume(); // Verhindert das tatsächliche Schließen
             textAnalysisStage.hide();
         });
@@ -10559,6 +10567,11 @@ spacer.setStyle("-fx-background-color: transparent;");
             applyThemeToNode(cmbSearchHistory, themeIndex);
             applyThemeToNode(cmbReplaceHistory, themeIndex);
             applyThemeToNode(cmbFontSize, themeIndex);
+            
+            // Kontextmenü aktualisieren
+            if (codeArea != null && codeArea.getContextMenu() != null) {
+                styleContextMenu(codeArea.getContextMenu(), themeIndex);
+            }
         // cmbLineSpacing entfernt
         applyThemeToNode(cmbParagraphSpacing, themeIndex);
         applyThemeToNode(cmbQuoteStyle, themeIndex);
@@ -11267,6 +11280,1145 @@ spacer.setStyle("-fx-background-color: transparent;");
 
     
 
+    
+    /**
+     * Richtet das Kontextmenü für den CodeArea ein
+     */
+    private void setupContextMenu() {
+        if (codeArea == null) return;
+        
+        ContextMenu contextMenu = new ContextMenu();
+        styleContextMenu(contextMenu, currentThemeIndex);
+        
+        MenuItem itemSprechantwort = new MenuItem("Sprechantwort korrigieren");
+        itemSprechantwort.setOnAction(e -> handleSprechantwortKorrektur());
+        
+        MenuItem itemPhrase = new MenuItem("Phrase korrigieren");
+        itemPhrase.setOnAction(e -> handlePhraseKorrektur());
+        
+        MenuItem itemAbsatz = new MenuItem("Absatz überarbeiten");
+        itemAbsatz.setOnAction(e -> handleAbsatzUeberarbeitung());
+        
+        contextMenu.getItems().addAll(itemSprechantwort, itemPhrase, itemAbsatz);
+        codeArea.setContextMenu(contextMenu);
+    }
+    
+    /**
+     * Stylt ein Kontextmenü mit dem aktuellen Theme (nur CSS-Klassen, keine inline Styles)
+     */
+    private void styleContextMenu(ContextMenu contextMenu, int themeIndex) {
+        if (contextMenu == null) return;
+        
+        // CSS-Klassen für Theme-spezifisches Styling
+        contextMenu.getStyleClass().removeAll("theme-dark", "theme-light", "weiss-theme", "pastell-theme", "blau-theme", "gruen-theme", "lila-theme");
+        if (themeIndex == 0) {
+            contextMenu.getStyleClass().add("weiss-theme");
+        } else if (themeIndex == 1) {
+            contextMenu.getStyleClass().add("theme-dark");
+        } else if (themeIndex == 2) {
+            contextMenu.getStyleClass().add("pastell-theme");
+        } else if (themeIndex == 3) {
+            contextMenu.getStyleClass().addAll("theme-dark", "blau-theme");
+        } else if (themeIndex == 4) {
+            contextMenu.getStyleClass().addAll("theme-dark", "gruen-theme");
+        } else if (themeIndex == 5) {
+            contextMenu.getStyleClass().addAll("theme-dark", "lila-theme");
+        }
+    }
+    
+    /**
+     * Findet die Grenzen des aktuellen Satzes an der Cursorposition
+     */
+    private int[] findCurrentSentenceBounds(int caretPosition) {
+        if (codeArea == null) return null;
+        
+        String text = codeArea.getText();
+        if (text == null || text.isEmpty()) return null;
+        
+        if (caretPosition >= text.length()) {
+            caretPosition = text.length() - 1;
+        }
+        if (caretPosition < 0) {
+            caretPosition = 0;
+        }
+        
+        // Finde alle Anführungszeichen-Paare, um zu prüfen ob wir innerhalb von Anführungszeichen sind
+        Pattern quotePattern = Pattern.compile("[\"\\u201E\\u201C\\u201D\\u00BB\\u00AB]");
+        Matcher quoteMatcher = quotePattern.matcher(text);
+        List<Integer> quotePositions = new ArrayList<>();
+        while (quoteMatcher.find()) {
+            quotePositions.add(quoteMatcher.start());
+        }
+        
+        // Prüfe ob Cursor innerhalb von Anführungszeichen ist
+        boolean insideQuotes = false;
+        for (int i = 0; i < quotePositions.size() - 1; i += 2) {
+            int startQuote = quotePositions.get(i);
+            int endQuote = quotePositions.get(i + 1);
+            if (caretPosition > startQuote && caretPosition <= endQuote) {
+                insideQuotes = true;
+                break;
+            }
+        }
+        
+        // Finde Satzanfang (rückwärts suchen nach Satzendezeichen)
+        int sentenceStart = caretPosition;
+        while (sentenceStart > 0) {
+            char c = text.charAt(sentenceStart - 1);
+            
+            // Prüfe ob wir innerhalb von Anführungszeichen sind
+            boolean charInsideQuotes = false;
+            for (int i = 0; i < quotePositions.size() - 1; i += 2) {
+                int startQuote = quotePositions.get(i);
+                int endQuote = quotePositions.get(i + 1);
+                if (sentenceStart - 1 > startQuote && sentenceStart - 1 <= endQuote) {
+                    charInsideQuotes = true;
+                    break;
+                }
+            }
+            
+            // Wenn innerhalb von Anführungszeichen, überspringe Satzendezeichen
+            if (charInsideQuotes) {
+                sentenceStart--;
+                continue;
+            }
+            
+            if (c == '.' || c == '!' || c == '?' || c == '\n') {
+                // Prüfe ob es wirklich ein Satzende ist (nicht z.B. "Dr." oder "z.B.")
+                if (sentenceStart > 1) {
+                    char prev = text.charAt(sentenceStart - 2);
+                    if (Character.isLetter(prev) && c == '.') {
+                        // Möglicherweise Abkürzung, weiter suchen
+                        sentenceStart--;
+                        continue;
+                    }
+                }
+                break;
+            }
+            sentenceStart--;
+        }
+        
+        // Finde Satzende (vorwärts suchen)
+        int sentenceEnd = caretPosition;
+        while (sentenceEnd < text.length()) {
+            char c = text.charAt(sentenceEnd);
+            
+            // Prüfe ob wir innerhalb von Anführungszeichen sind
+            boolean charInsideQuotes = false;
+            for (int i = 0; i < quotePositions.size() - 1; i += 2) {
+                int startQuote = quotePositions.get(i);
+                int endQuote = quotePositions.get(i + 1);
+                if (sentenceEnd >= startQuote && sentenceEnd < endQuote) {
+                    charInsideQuotes = true;
+                    break;
+                }
+            }
+            
+            // Wenn innerhalb von Anführungszeichen, überspringe Satzendezeichen
+            if (charInsideQuotes) {
+                sentenceEnd++;
+                continue;
+            }
+            
+            if (c == '.' || c == '!' || c == '?' || c == '\n') {
+                sentenceEnd++;
+                break;
+            }
+            sentenceEnd++;
+        }
+        
+        // Trimme Whitespace am Anfang
+        while (sentenceStart < sentenceEnd && sentenceStart < text.length() && 
+               Character.isWhitespace(text.charAt(sentenceStart))) {
+            sentenceStart++;
+        }
+        
+        if (sentenceStart < sentenceEnd && sentenceStart < text.length()) {
+            return new int[]{sentenceStart, sentenceEnd};
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Findet die Grenzen des aktuellen Absatzes an der Cursorposition
+     */
+    private int[] findCurrentParagraphBounds(int caretPosition) {
+        if (codeArea == null) return null;
+        
+        String text = codeArea.getText();
+        if (text == null || text.isEmpty()) return null;
+        
+        if (caretPosition >= text.length()) {
+            caretPosition = text.length() - 1;
+        }
+        if (caretPosition < 0) {
+            caretPosition = 0;
+        }
+        
+        // Finde Absatzanfang (rückwärts nach doppeltem Zeilenumbruch)
+        int paragraphStart = caretPosition;
+        while (paragraphStart > 0) {
+            if (paragraphStart >= 2 && text.charAt(paragraphStart - 1) == '\n' && 
+                text.charAt(paragraphStart - 2) == '\n') {
+                paragraphStart--;
+                break;
+            }
+            paragraphStart--;
+        }
+        
+        // Finde Absatzende (vorwärts nach doppeltem Zeilenumbruch)
+        int paragraphEnd = caretPosition;
+        while (paragraphEnd < text.length()) {
+            if (paragraphEnd < text.length() - 1 && text.charAt(paragraphEnd) == '\n' && 
+                text.charAt(paragraphEnd + 1) == '\n') {
+                break;
+            }
+            paragraphEnd++;
+        }
+        
+        // Trimme Whitespace
+        while (paragraphStart < paragraphEnd && paragraphStart < text.length() && 
+               Character.isWhitespace(text.charAt(paragraphStart))) {
+            paragraphStart++;
+        }
+        while (paragraphEnd > paragraphStart && paragraphEnd > 0 && 
+               Character.isWhitespace(text.charAt(paragraphEnd - 1))) {
+            paragraphEnd--;
+        }
+        
+        if (paragraphStart < paragraphEnd && paragraphStart < text.length()) {
+            return new int[]{paragraphStart, paragraphEnd};
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Sucht nach Sprechantworten im Text (sagte er, fragte sie, etc.)
+     */
+    private boolean containsSpeechTag(String text) {
+        if (text == null || text.isEmpty()) return false;
+        
+        try {
+            // Lade Sprechantworten aus textanalysis.properties
+            Properties props = loadTextAnalysisProperties();
+            String sprechwoerter = props.getProperty("sprechwörter", "");
+            String phrasenDialog = props.getProperty("phrasen_dialog", "");
+            
+            // Kombiniere beide Listen
+            List<String> allTags = new ArrayList<>();
+            
+            // Sprechwörter hinzufügen
+            if (!sprechwoerter.isEmpty()) {
+                String[] woerter = sprechwoerter.split(",");
+                for (String wort : woerter) {
+                    String trimmed = wort.trim();
+                    if (!trimmed.isEmpty()) {
+                        allTags.add(trimmed);
+                        // Auch mit Pronomen kombinieren
+                        allTags.add(trimmed + " er");
+                        allTags.add(trimmed + " sie");
+                        allTags.add(trimmed + " er.");
+                        allTags.add(trimmed + " sie.");
+                        allTags.add(trimmed + " er,");
+                        allTags.add(trimmed + " sie,");
+                    }
+                }
+            }
+            
+            // Phrasen-Dialog hinzufügen
+            if (!phrasenDialog.isEmpty()) {
+                String[] phrasen = phrasenDialog.split(",");
+                for (String phrase : phrasen) {
+                    String trimmed = phrase.trim();
+                    if (!trimmed.isEmpty()) {
+                        allTags.add(trimmed);
+                        allTags.add(trimmed + ".");
+                        allTags.add(trimmed + ",");
+                    }
+                }
+            }
+            
+            // Fallback-Liste falls Properties leer sind
+            if (allTags.isEmpty()) {
+                allTags.add("sagte er");
+                allTags.add("sagte sie");
+                allTags.add("fragte er");
+                allTags.add("fragte sie");
+                allTags.add("sagte");
+                allTags.add("fragte");
+            }
+            
+            // Normalisiere Text für Suche
+            String lowerText = text.toLowerCase();
+            
+            // Suche nach allen Tags
+            for (String tag : allTags) {
+                String lowerTag = tag.toLowerCase();
+                // Einfache contains-Suche
+                if (lowerText.contains(lowerTag)) {
+                    return true;
+                }
+            }
+            
+            // Zusätzliche Regex-Suche für Muster wie "sagte er", "fragte sie" etc.
+            Pattern speechPattern = Pattern.compile(
+                "\\b(sagte|fragte|rief|antwortete|erwiderte|meinte|flüsterte|brüllte|stammelte|murmelte|erklärte|berichtete|erzählte|bemerkte|kommentierte|behauptete|versicherte|warnte|vermutete|leugnete|versprach|schwor|informierte|mitteilte|diskutierte|debattierte|argumentierte|streitete|besprach|plauderte|schwatzte|raunte|schrie|heulte|weinte|lachte|grinste|seufzte|stöhnte|ächzte|wimmerte|schluchzte|keuchte|stotterte|fluchte|schimpfte|donnerte|knurrte|fauchte|zischte|brummte|summte|pfiff|trällerte|sang|deklamierte|rezitierte|sprach|redete|plapperte|schwadronierte|faselte|laberte|quasselte|schwätzte|quatschte|konversierte)" +
+                "\\s+(er|sie|es|ich|du|wir|ihr|sie|man|jemand|niemand)\\b",
+                Pattern.CASE_INSENSITIVE
+            );
+            
+            return speechPattern.matcher(text).find();
+            
+        } catch (Exception e) {
+            logger.debug("Fehler beim Laden der Sprechantworten: {}", e.getMessage());
+            // Fallback: einfache Suche
+            String lowerText = text.toLowerCase();
+            return lowerText.contains("sagte") || lowerText.contains("fragte") || 
+                   lowerText.contains("rief") || lowerText.contains("antwortete") ||
+                   lowerText.contains("erwiderte") || lowerText.contains("meinte");
+        }
+    }
+    
+    /**
+     * Handler für "Sprechantwort korrigieren"
+     */
+    private void handleSprechantwortKorrektur() {
+        if (codeArea == null) return;
+        
+        int caretPos = codeArea.getCaretPosition();
+        int[] bounds = findCurrentSentenceBounds(caretPos);
+        
+        if (bounds == null) {
+            updateStatus("Kein Satz an der Cursorposition gefunden.");
+            return;
+        }
+        
+        String sentence = codeArea.getText(bounds[0], bounds[1]);
+        
+        if (!containsSpeechTag(sentence)) {
+            updateStatus("Kein Sprechantwort im aktuellen Satz gefunden.");
+            return;
+        }
+        
+        // Markiere den Satz
+        codeArea.selectRange(bounds[0], bounds[1]);
+        
+        // Öffne Dialog
+        showSprechantwortKorrekturDialog(sentence, bounds[0], bounds[1]);
+    }
+    
+    /**
+     * Zeigt den Dialog für Sprechantwort-Korrektur
+     */
+    private void showSprechantwortKorrekturDialog(String originalSentence, int startPos, int endPos) {
+        CustomStage dialogStage = StageManager.createModalStage("Sprechantwort korrigieren", stage);
+        dialogStage.setTitle("Sprechantwort korrigieren");
+        dialogStage.setWidth(900);
+        dialogStage.setHeight(700);
+        dialogStage.setTitleBarTheme(currentThemeIndex);
+        
+        VBox root = new VBox(15);
+        root.setPadding(new Insets(20));
+        root.getStyleClass().add("dialog-container");
+        applyThemeToNode(root, currentThemeIndex);
+        
+        // Original-Satz
+        Label originalLabel = new Label("Original:");
+        originalLabel.getStyleClass().add("dialog-label");
+        applyThemeToNode(originalLabel, currentThemeIndex);
+        
+        TextArea originalArea = new TextArea(originalSentence);
+        originalArea.setEditable(false);
+        originalArea.setPrefRowCount(2);
+        originalArea.setWrapText(true);
+        originalArea.getStyleClass().add("dialog-text-area");
+        applyThemeToNode(originalArea, currentThemeIndex);
+        
+        // Anweisungsfeld (optional)
+        Label instructionLabel = new Label("Anweisung (optional):");
+        instructionLabel.getStyleClass().add("dialog-label");
+        applyThemeToNode(instructionLabel, currentThemeIndex);
+        
+        TextField instructionField = new TextField();
+        instructionField.setPromptText("z.B. Kata spricht und ist angespannt.");
+        applyThemeToNode(instructionField, currentThemeIndex);
+        
+        // Kreativitäts-Slider
+        Label creativityLabel = new Label("Kreativität:");
+        creativityLabel.getStyleClass().add("dialog-label");
+        applyThemeToNode(creativityLabel, currentThemeIndex);
+        
+        Slider creativitySlider = new Slider(0.0, 1.0, 0.4);
+        creativitySlider.setShowTickLabels(true);
+        creativitySlider.setShowTickMarks(true);
+        creativitySlider.setMajorTickUnit(0.25);
+        creativitySlider.setMinorTickCount(0);
+        creativitySlider.setSnapToTicks(false);
+        creativitySlider.setPrefWidth(400);
+        
+        Label creativityValueLabel = new Label("0.40");
+        creativityValueLabel.setMinWidth(40);
+        creativityValueLabel.setStyle(String.format("-fx-text-fill: %s;", THEMES[currentThemeIndex][1]));
+        
+        creativitySlider.valueProperty().addListener((obs, oldVal, newVal) -> {
+            creativityValueLabel.setText(String.format("%.2f", newVal.doubleValue()));
+        });
+        
+        HBox creativityBox = new HBox(10);
+        creativityBox.setAlignment(Pos.CENTER_LEFT);
+        creativityBox.getChildren().addAll(creativitySlider, creativityValueLabel);
+        
+        // Länge-Auswahl
+        Label lengthLabel = new Label("Länge:");
+        lengthLabel.getStyleClass().add("dialog-label");
+        applyThemeToNode(lengthLabel, currentThemeIndex);
+        
+        ComboBox<String> lengthComboBox = new ComboBox<>();
+        lengthComboBox.getItems().addAll("Kurz", "Ausführlich");
+        lengthComboBox.setValue("Ausführlich");
+        lengthComboBox.setPrefWidth(200);
+        applyThemeToNode(lengthComboBox, currentThemeIndex);
+        
+        HBox lengthBox = new HBox(10);
+        lengthBox.setAlignment(Pos.CENTER_LEFT);
+        lengthBox.getChildren().addAll(lengthComboBox);
+        
+        // Antworten-Bereich
+        Label answersLabel = new Label("Vorschläge:");
+        answersLabel.getStyleClass().add("dialog-label");
+        applyThemeToNode(answersLabel, currentThemeIndex);
+        
+        // Fortschrittsbalken (zunächst unsichtbar)
+        ProgressBar progressBar = new ProgressBar();
+        progressBar.setVisible(false);
+        progressBar.setManaged(false); // Wird nur verwaltet wenn sichtbar
+        progressBar.setPrefWidth(Double.MAX_VALUE);
+        progressBar.setPrefHeight(20);
+        progressBar.setMinHeight(20);
+        progressBar.setMaxHeight(20);
+        progressBar.setProgress(ProgressBar.INDETERMINATE_PROGRESS);
+        applyThemeToNode(progressBar, currentThemeIndex);
+        
+        VBox answersBox = new VBox(10);
+        ScrollPane scrollPane = new ScrollPane(answersBox);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setPrefHeight(300);
+        VBox.setVgrow(scrollPane, Priority.ALWAYS);
+        applyThemeToNode(scrollPane, currentThemeIndex);
+        
+        // Buttons
+        HBox buttonBox = new HBox(10);
+        Button btnGenerate = new Button("Generieren");
+        btnGenerate.getStyleClass().add("button");
+        applyThemeToNode(btnGenerate, currentThemeIndex);
+        
+        Button btnCancel = new Button("Abbrechen");
+        btnCancel.getStyleClass().add("button");
+        applyThemeToNode(btnCancel, currentThemeIndex);
+        
+        buttonBox.getChildren().addAll(btnGenerate, btnCancel);
+        
+        root.getChildren().addAll(originalLabel, originalArea, instructionLabel, instructionField, 
+                                 creativityLabel, creativityBox, lengthLabel, lengthBox, answersLabel, progressBar, scrollPane, buttonBox);
+        
+        Scene scene = new Scene(root);
+        scene.setFill(javafx.scene.paint.Color.web(THEMES[currentThemeIndex][0]));
+        String cssPath = ResourceManager.getCssResource("css/editor.css");
+        if (cssPath != null) {
+            scene.getStylesheets().add(cssPath);
+        }
+        // CSS auch für Theme-Klassen
+        String manuskriptCssPath = ResourceManager.getCssResource("css/manuskript.css");
+        if (manuskriptCssPath != null) {
+            scene.getStylesheets().add(manuskriptCssPath);
+        }
+        
+        dialogStage.setSceneWithTitleBar(scene);
+        
+        // Generiere Antworten
+        btnGenerate.setOnAction(e -> {
+            btnGenerate.setDisable(true);
+            btnGenerate.setText("Generiere...");
+            progressBar.setVisible(true);
+            progressBar.setManaged(true);
+            answersBox.getChildren().clear();
+            
+            String instruction = instructionField.getText().trim();
+            double creativity = creativitySlider.getValue();
+            String length = lengthComboBox.getValue();
+            generateSprechantwortAlternatives(originalSentence, instruction, creativity, length, answersBox, 
+                                             btnGenerate, startPos, endPos, dialogStage, progressBar);
+        });
+        
+        btnCancel.setOnAction(e -> dialogStage.close());
+        
+        dialogStage.showAndWait();
+    }
+    
+    /**
+     * Analysiert einen Satz und extrahiert die Struktur: Text vor, wörtliche Rede, Sprechantwort
+     */
+    private String[] analyzeSentenceStructure(String sentence) {
+        // Struktur: [textBefore, quotedText, speechTag, textAfter]
+        String[] result = new String[4];
+        result[0] = ""; // Text vor
+        result[1] = ""; // Wörtliche Rede (inkl. Anführungszeichen)
+        result[2] = ""; // Sprechantwort
+        result[3] = ""; // Text nach
+        
+        // Suche nach Anführungszeichen (verschiedene Typen)
+        // Unicode: " = U+0022, „ = U+201E, " = U+201C, " = U+201D, » = U+00BB, « = U+00AB
+        Pattern quotePattern = Pattern.compile("[\"\\u201E\\u201C\\u201D\\u00BB\\u00AB]");
+        Matcher quoteMatcher = quotePattern.matcher(sentence);
+        
+        int firstQuotePos = -1;
+        int secondQuotePos = -1;
+        
+        // Finde alle Anführungszeichen
+        List<Integer> quotePositions = new ArrayList<>();
+        while (quoteMatcher.find()) {
+            quotePositions.add(quoteMatcher.start());
+        }
+        
+        if (quotePositions.size() >= 2) {
+            // Nimm das erste und das letzte Anführungszeichen
+            firstQuotePos = quotePositions.get(0);
+            secondQuotePos = quotePositions.get(quotePositions.size() - 1);
+        } else if (quotePositions.size() == 1) {
+            // Nur ein Anführungszeichen gefunden - verwende es als Start
+            firstQuotePos = quotePositions.get(0);
+        }
+        
+        if (firstQuotePos >= 0 && secondQuotePos > firstQuotePos) {
+            // Wörtliche Rede gefunden - einfach alles zwischen den Anführungszeichen nehmen
+            result[0] = sentence.substring(0, firstQuotePos).trim();
+            result[1] = sentence.substring(firstQuotePos, secondQuotePos + 1); // Mit Anführungszeichen
+            String afterQuote = sentence.substring(secondQuotePos + 1).trim();
+            
+            // Suche nach Sprechantwort nach der wörtlichen Rede
+            Pattern speechPattern = Pattern.compile(
+                "\\b(sagte|fragte|rief|antwortete|erwiderte|meinte|flüsterte|brüllte|stammelte|murmelte|erklärte|berichtete|erzählte|bemerkte|kommentierte|behauptete|versicherte|warnte|vermutete|leugnete|versprach|schwor|informierte|mitteilte|diskutierte|debattierte|argumentierte|streitete|besprach|plauderte|schwatzte|raunte|schrie|heulte|weinte|lachte|grinste|seufzte|stöhnte|ächzte|wimmerte|schluchzte|keuchte|stotterte|fluchte|schimpfte|donnerte|knurrte|fauchte|zischte|brummte|summte|pfiff|trällerte|sang|deklamierte|rezitierte|sprach|redete|plapperte|schwadronierte|faselte|laberte|quasselte|schwätzte|quatschte|konversierte)" +
+                "\\s+(er|sie|es|ich|du|wir|ihr|sie|man|jemand|niemand)\\b",
+                Pattern.CASE_INSENSITIVE
+            );
+            
+            // Entferne führendes Komma für die Suche
+            String searchText = afterQuote.replaceFirst("^,\\s*", "").trim();
+            
+            Matcher speechMatcher = speechPattern.matcher(searchText);
+            if (speechMatcher.find()) {
+                int speechStart = speechMatcher.start();
+                int speechEnd = speechMatcher.end();
+                // Berechne die tatsächliche Position im Original-Text
+                int actualStart = afterQuote.length() - searchText.length() + speechStart;
+                int actualEnd = afterQuote.length() - searchText.length() + speechEnd;
+                result[2] = afterQuote.substring(actualStart, actualEnd);
+                result[3] = afterQuote.substring(actualEnd).trim();
+            } else {
+                // Fallback: suche ohne Wortgrenze
+                Pattern speechPatternNoBoundary = Pattern.compile(
+                    "(sagte|fragte|rief|antwortete|erwiderte|meinte|flüsterte|brüllte|stammelte|murmelte|erklärte|berichtete|erzählte|bemerkte|kommentierte|behauptete|versicherte|warnte|vermutete|leugnete|versprach|schwor|informierte|mitteilte|diskutierte|debattierte|argumentierte|streitete|besprach|plauderte|schwatzte|raunte|schrie|heulte|weinte|lachte|grinste|seufzte|stöhnte|ächzte|wimmerte|schluchzte|keuchte|stotterte|fluchte|schimpfte|donnerte|knurrte|fauchte|zischte|brummte|summte|pfiff|trällerte|sang|deklamierte|rezitierte|sprach|redete|plapperte|schwadronierte|faselte|laberte|quasselte|schwätzte|quatschte|konversierte)" +
+                    "\\s+(er|sie|es|ich|du|wir|ihr|sie|man|jemand|niemand)\\b",
+                    Pattern.CASE_INSENSITIVE
+                );
+                Matcher noBoundaryMatcher = speechPatternNoBoundary.matcher(afterQuote);
+                if (noBoundaryMatcher.find()) {
+                    int speechStart = noBoundaryMatcher.start();
+                    int speechEnd = noBoundaryMatcher.end();
+                    result[2] = afterQuote.substring(speechStart, speechEnd);
+                    result[3] = afterQuote.substring(speechEnd).trim();
+                }
+            }
+        } else {
+            // Keine wörtliche Rede gefunden, suche nur nach Sprechantwort
+            Pattern speechPattern = Pattern.compile(
+                "\\b(sagte|fragte|rief|antwortete|erwiderte|meinte|flüsterte|brüllte|stammelte|murmelte|erklärte|berichtete|erzählte|bemerkte|kommentierte|behauptete|versicherte|warnte|vermutete|leugnete|versprach|schwor|informierte|mitteilte|diskutierte|debattierte|argumentierte|streitete|besprach|plauderte|schwatzte|raunte|schrie|heulte|weinte|lachte|grinste|seufzte|stöhnte|ächzte|wimmerte|schluchzte|keuchte|stotterte|fluchte|schimpfte|donnerte|knurrte|fauchte|zischte|brummte|summte|pfiff|trällerte|sang|deklamierte|rezitierte|sprach|redete|plapperte|schwadronierte|faselte|laberte|quasselte|schwätzte|quatschte|konversierte)" +
+                "\\s+(er|sie|es|ich|du|wir|ihr|sie|man|jemand|niemand)\\b",
+                Pattern.CASE_INSENSITIVE
+            );
+            
+            Matcher speechMatcher = speechPattern.matcher(sentence);
+            if (speechMatcher.find()) {
+                int speechStart = speechMatcher.start();
+                int speechEnd = speechMatcher.end();
+                result[0] = sentence.substring(0, speechStart).trim();
+                result[2] = sentence.substring(speechStart, speechEnd);
+                result[3] = sentence.substring(speechEnd).trim();
+            }
+        }
+        
+        return result;
+    }
+    
+    /**
+     * Generiert alternative Sprechantwort-Versionen mit Ollama
+     */
+    private void generateSprechantwortAlternatives(String originalSentence, String instruction, double creativity, String length,
+                                                   VBox answersBox, Button btnGenerate,
+                                                   int startPos, int endPos, CustomStage dialogStage, ProgressBar progressBar) {
+        // Lösche alte Antworten
+        answersBox.getChildren().clear();
+        
+        // Analysiere Satzstruktur
+        String[] structure = analyzeSentenceStructure(originalSentence);
+        String textBefore = structure[0];
+        String quotedText = structure[1];
+        String speechTag = structure[2];
+        String textAfter = structure[3];
+        
+        // Debug: Logge die Struktur
+        logger.debug("Satzstruktur: textBefore='{}', quotedText='{}', speechTag='{}', textAfter='{}'", 
+                     textBefore, quotedText, speechTag, textAfter);
+        
+        // Prüfe ob nach der wörtlichen Rede ein Komma kommt
+        final boolean hasCommaAfterQuote;
+        if (!quotedText.isEmpty()) {
+            // Suche nach Komma direkt nach der wörtlichen Rede
+            int quoteEndPos = originalSentence.indexOf(quotedText) + quotedText.length();
+            if (quoteEndPos < originalSentence.length()) {
+                String afterQuoteInOriginal = originalSentence.substring(quoteEndPos).trim();
+                hasCommaAfterQuote = afterQuoteInOriginal.startsWith(",");
+            } else {
+                hasCommaAfterQuote = false;
+            }
+        } else {
+            hasCommaAfterQuote = false;
+        }
+        
+        // Lade Kontexte
+        String characters = "";
+        String synopsis = "";
+        String outline = "";
+        String worldbuilding = "";
+        String style = "";
+        String chapterText = "";
+        
+        if (originalDocxFile != null) {
+            // Lade alle Dateien direkt aus dem Projektverzeichnis
+            File projectDir = originalDocxFile.getParentFile();
+            if (projectDir != null) {
+                // Lade characters.txt
+                File charactersFile = new File(projectDir, "characters.txt");
+                if (charactersFile.exists()) {
+                    try {
+                        characters = new String(java.nio.file.Files.readAllBytes(charactersFile.toPath()), java.nio.charset.StandardCharsets.UTF_8);
+                    } catch (Exception e) {
+                        logger.warn("Fehler beim Laden von characters.txt: " + e.getMessage());
+                    }
+                }
+                
+                // Lade synopsis.txt
+                File synopsisFile = new File(projectDir, "synopsis.txt");
+                if (synopsisFile.exists()) {
+                    try {
+                        synopsis = new String(java.nio.file.Files.readAllBytes(synopsisFile.toPath()), java.nio.charset.StandardCharsets.UTF_8);
+                    } catch (Exception e) {
+                        logger.warn("Fehler beim Laden von synopsis.txt: " + e.getMessage());
+                    }
+                }
+                
+                // Lade outline.txt
+                File outlineFile = new File(projectDir, "outline.txt");
+                if (outlineFile.exists()) {
+                    try {
+                        outline = new String(java.nio.file.Files.readAllBytes(outlineFile.toPath()), java.nio.charset.StandardCharsets.UTF_8);
+                    } catch (Exception e) {
+                        logger.warn("Fehler beim Laden von outline.txt: " + e.getMessage());
+                    }
+                }
+                
+                // Lade worldbuilding.txt
+                File worldbuildingFile = new File(projectDir, "worldbuilding.txt");
+                if (worldbuildingFile.exists()) {
+                    try {
+                        worldbuilding = new String(java.nio.file.Files.readAllBytes(worldbuildingFile.toPath()), java.nio.charset.StandardCharsets.UTF_8);
+                    } catch (Exception e) {
+                        logger.warn("Fehler beim Laden von worldbuilding.txt: " + e.getMessage());
+                    }
+                }
+                
+                // Lade style.txt
+                File styleFile = new File(projectDir, "style.txt");
+                if (styleFile.exists()) {
+                    try {
+                        style = new String(java.nio.file.Files.readAllBytes(styleFile.toPath()), java.nio.charset.StandardCharsets.UTF_8);
+                    } catch (Exception e) {
+                        logger.warn("Fehler beim Laden von style.txt: " + e.getMessage());
+                    }
+                }
+            }
+        }
+        
+        // Lade den gesamten Kapiteltext als Kontext
+        if (codeArea != null) {
+            chapterText = codeArea.getText();
+            if (chapterText != null && chapterText.trim().isEmpty()) {
+                chapterText = "";
+            }
+        }
+        
+        // Baue Kontext
+        StringBuilder contextBuilder = new StringBuilder();
+        if (characters != null && !characters.trim().isEmpty()) {
+            contextBuilder.append("=== CHARAKTERE ===\n").append(characters).append("\n\n");
+        }
+        if (synopsis != null && !synopsis.trim().isEmpty()) {
+            contextBuilder.append("=== SYNOPSIS ===\n").append(synopsis).append("\n\n");
+        }
+        if (outline != null && !outline.trim().isEmpty()) {
+            contextBuilder.append("=== OUTLINE ===\n").append(outline).append("\n\n");
+        }
+        if (worldbuilding != null && !worldbuilding.trim().isEmpty()) {
+            contextBuilder.append("=== WORLDBUILDING ===\n").append(worldbuilding).append("\n\n");
+        }
+        if (style != null && !style.trim().isEmpty()) {
+            contextBuilder.append("=== STIL ===\n").append(style).append("\n\n");
+        }
+        if (chapterText != null && !chapterText.trim().isEmpty()) {
+            contextBuilder.append("=== KAPITEL-TEXT ===\n").append(chapterText).append("\n\n");
+        }
+        
+        String context = contextBuilder.toString();
+        
+        // Baue Prompt - nur für den Teil mit Sprechantwort
+        StringBuilder promptBuilder = new StringBuilder();
+        promptBuilder.append("Du agierst als sehr erfahrener, kritischer deutscher Lektor. ");
+        promptBuilder.append("Du analysierst den gegebenen Text ohne Schonung und nutzt alle Register eines professionellen Lektorats ");
+        promptBuilder.append("(orthografische Präzision, stilistische Wirkung, Logikprüfung, Kohärenz, Tonalität, Figurenzeichnung, Tempo, Szenendramaturgie). ");
+        promptBuilder.append("Arbeite strukturiert und detailliert.\n\n");
+        
+        promptBuilder.append("**WICHTIG - CHARAKTERE:**\n");
+        promptBuilder.append("Im Kontext findest du die Datei '=== CHARAKTERE ===' mit Informationen zu allen Figuren. ");
+        promptBuilder.append("IDENTIFIZIERE ZUERST den Namen der sprechenden Figur aus dem Text. ");
+        promptBuilder.append("SCHLAGE DANN in den Charakterinformationen nach, um das RICHTIGE PRONOMEN (er/sie/ihr/sein) zu finden. ");
+        promptBuilder.append("VERWENDE IMMER die korrekten Pronomen aus den Charakterinformationen - wenn eine Figur weiblich ist, verwende 'sie', nicht 'er'. ");
+        promptBuilder.append("Die Beschreibung muss auch zu den Charaktereigenschaften der Figur passen.\n\n");
+        
+        promptBuilder.append("**WICHTIG - STIL:**\n");
+        promptBuilder.append("Der Kapiteltext im Kontext zeigt dir den Schreibstil des Autors. ");
+        promptBuilder.append("Übernimm diesen Stil GENAU: Verwende die gleichen Formulierungsmuster, Satzstrukturen und sprachlichen Eigenheiten. ");
+        promptBuilder.append("Wenn der Autor Personalpronomen verwendet (Er/Sie/Ihre/Seine), verwende diese auch. ");
+        promptBuilder.append("Vermeide Nominalisierungen wie 'Ein Herabsacken' oder unpersönliche Formulierungen ohne Pronomen wie 'Die Schulter sackte herab'. ");
+        promptBuilder.append("Schreibe wie der Autor schreibt - im gleichen Stil, mit gleichen sprachlichen Mitteln.\n\n");
+        
+        promptBuilder.append("**Aufgabe:**\n");
+        promptBuilder.append("Ersetze das folgende Sprechantwort durch eine 'Show Don't Tell' Beschreibung, die zur Stimmung und Emotion der Figur passt. ");
+        promptBuilder.append("Die Ersetzung muss im Stil des Autors geschrieben sein (siehe Kapiteltext im Kontext).\n\n");
+        
+        promptBuilder.append("**Sprechantwort zu ersetzen:** ").append(speechTag).append("\n\n");
+        
+        if (!textBefore.isEmpty()) {
+            promptBuilder.append("**Kontext:** Der Text davor lautet: \"").append(textBefore).append("\"\n\n");
+        }
+        
+        if (!quotedText.isEmpty()) {
+            promptBuilder.append("**Wörtliche Rede (muss unverändert bleiben):** ").append(quotedText).append("\n\n");
+        }
+        
+        if (!instruction.isEmpty()) {
+            promptBuilder.append("**WICHTIG - ZWINGENDE ANWEISUNG:** ").append(instruction).append("\n\n");
+            promptBuilder.append("Diese Anweisung beschreibt die STIMMUNG und EMOTION der Figur. ");
+            promptBuilder.append("Die Ersetzung MUSS diese Stimmung widerspiegeln. ");
+            promptBuilder.append("Wenn die Figur z.B. melancholisch ist, darf sie NICHT Kopf schütteln oder Fäuste ballen. ");
+            promptBuilder.append("Die Beschreibung MUSS zur angegebenen Stimmung passen.\n\n");
+        }
+        
+        promptBuilder.append("**Regeln:**\n");
+        promptBuilder.append("- IDENTIFIZIERE die sprechende Figur AUS DEM TEXT\n");
+        promptBuilder.append("- WICHTIG: Wenn der Name der Figur im Sprechantwort steht (z.B. 'sagte Jomar'), verwende diesen Namen AUCH in der Ersetzung\n");
+        promptBuilder.append("- Wenn KEIN Name im Sprechantwort steht, verwende die RICHTIGEN PRONOMEN (er/sie/ihr/sein) aus den Charakterinformationen im Kontext\n");
+        if ("Kurz".equals(length)) {
+            promptBuilder.append("- WICHTIG: Die Ersetzung muss SEHR KURZ sein - maximal 3-5 Wörter, z.B. 'Sie knickte bestätigend.' oder 'Er lächelte zögernd.'\n");
+            promptBuilder.append("- Keine ausführlichen Beschreibungen, keine langen Sätze, keine komplexen Formulierungen\n");
+            promptBuilder.append("- Verwende einfache, prägnante Formulierungen im Stil des Autors\n");
+        } else {
+            promptBuilder.append("- Die Ersetzung kann ausführlicher sein, aber bleibe im Stil des Autors\n");
+        }
+        promptBuilder.append("- VERBOTEN: KEINE Nominalisierungen wie 'Ein Schulterzucken', 'Ein Lächeln', 'Ein Nicken' - verwende stattdessen Verben\n");
+        promptBuilder.append("- VERBOTEN: KEINE Formulierungen die mit 'Ein ...' beginnen - verwende stattdessen Personalpronomen + Verb (z.B. 'Sie zuckte die Schultern' statt 'Ein Schulterzucken')\n");
+        promptBuilder.append("- KEINE Sprechantworten verwenden (kein 'sagte', 'fragte', 'antwortete', 'erwiderte', 'meinte', etc.)\n");
+        promptBuilder.append("- Zeige durch konkrete Handlungen, Gesten, Körpersprache, Mimik oder Gedanken, wer spricht\n");
+        if (!instruction.isEmpty()) {
+            promptBuilder.append("- Die Beschreibung MUSS zur Stimmung/Emotion aus der Anweisung passen\n");
+        }
+        promptBuilder.append("- Verwende indirekte Rede oder zeige die Emotion/Reaktion der Figur durch präzise, stimmige Beschreibungen\n");
+        promptBuilder.append("- Der Ersatz soll lebendiger, visueller und glaubwürdiger werden\n");
+        promptBuilder.append("- Bleibe sachlich, klar und nachvollziehbar\n");
+        promptBuilder.append("- Verwende natürliche, realistische Formulierungen\n");
+        promptBuilder.append("- Achte auf Kohärenz: Die Beschreibung muss logisch zur Situation und zur Stimmung passen\n");
+        promptBuilder.append("- WICHTIG: Verwende VARIABLE Formulierungsstile - vermeide repetitive Muster\n");
+        promptBuilder.append("- Verwende Personalpronomen (Er/Sie/Ihre/Seine) wie im Stil des Autors - vermeide Nominalisierungen und unpersönliche Formulierungen\n");
+        promptBuilder.append("- Variiere die Satzstruktur, aber bleibe im Stil des Autors (siehe Kapiteltext im Kontext)\n");
+        promptBuilder.append("- Jede Variante soll einen anderen Formulierungsstil haben, aber alle im Stil des Autors\n\n");
+        
+        promptBuilder.append("**Vorgehen:**\n");
+        promptBuilder.append("Gib 3-5 alternative Ersetzungen für das Sprechantwort, jede in einer eigenen Zeile.\n");
+        if (!instruction.isEmpty()) {
+            promptBuilder.append("Jede Ersetzung muss zur angegebenen Stimmung passen. ");
+        }
+        promptBuilder.append("Jede Variante soll einen UNTERSCHIEDLICHEN Formulierungsstil verwenden - vermeide repetitive Muster. ");
+        promptBuilder.append("Nur die Ersetzung selbst, keine vollständigen Sätze, keine Erklärungen, keine Nummerierungen.");
+        
+        String prompt = promptBuilder.toString();
+        
+        // Ollama-Service verwenden
+        OllamaService ollamaService = new OllamaService();
+        
+        // Prüfe verfügbare Modelle und verwende das gewünschte Modell oder ein Fallback
+        String targetModel = "jobautomation/OpenEuroLLM-German";
+        Label statusLabel = new Label("Lade verfügbare Modelle...");
+        statusLabel.setStyle(String.format("-fx-text-fill: %s;", THEMES[currentThemeIndex][1]));
+        answersBox.getChildren().add(statusLabel);
+        
+        ollamaService.getAvailableModels().thenAccept(models -> {
+            Platform.runLater(() -> {
+                String modelToUse = null;
+                
+                // Prüfe ob das gewünschte Modell verfügbar ist (exakte Übereinstimmung oder ähnlich)
+                for (String model : models) {
+                    if (model.equals(targetModel) || 
+                        model.equalsIgnoreCase(targetModel) ||
+                        model.toLowerCase().contains("openeurollm") ||
+                        (model.toLowerCase().contains("german") && model.toLowerCase().contains("openeuro"))) {
+                        modelToUse = model;
+                        break;
+                    }
+                }
+                
+                // Falls nicht verfügbar, suche nach ähnlichen Modellnamen
+                if (modelToUse == null && models.length > 0) {
+                    // Suche nach Modellen mit "german" oder "openeuro"
+                    for (String model : models) {
+                        String lowerModel = model.toLowerCase();
+                        if (lowerModel.contains("german") || lowerModel.contains("openeuro")) {
+                            modelToUse = model;
+                            logger.info("Verwende ähnliches Modell: '{}' statt '{}'", model, targetModel);
+                            break;
+                        }
+                    }
+                    
+                    // Falls immer noch nichts gefunden, verwende das erste verfügbare Modell
+                    if (modelToUse == null) {
+                        modelToUse = models[0];
+                        logger.warn("Modell '{}' nicht gefunden, verwende '{}'", targetModel, modelToUse);
+                        updateStatus("Modell '" + targetModel + "' nicht gefunden, verwende '" + modelToUse + "'");
+                    } else {
+                        updateStatus("Verwende Modell: " + modelToUse);
+                    }
+                }
+                
+                if (modelToUse == null) {
+                    answersBox.getChildren().clear();
+                    Label errorLabel = new Label("Fehler: Keine Modelle verfügbar!");
+                    errorLabel.setStyle(String.format("-fx-text-fill: red;"));
+                    answersBox.getChildren().add(errorLabel);
+                    btnGenerate.setDisable(false);
+                    btnGenerate.setText("Generieren");
+                    progressBar.setVisible(false);
+                    progressBar.setManaged(false);
+                    return;
+                }
+                
+                ollamaService.setModel(modelToUse);
+                answersBox.getChildren().clear();
+                
+                // Generiere einmal mit mehreren Varianten im Prompt
+                // Verwende Kreativitäts-Slider-Wert als Temperatur (0.0-1.0)
+                double temperature = creativity;
+                
+                // Debug: Logge die verwendete Temperatur
+                logger.debug("Verwende Temperatur: {}", temperature);
+                
+                // Speichere Struktur für späteres Zusammenbauen
+                final String finalTextBefore = textBefore;
+                final String finalQuotedText = quotedText;
+                final String finalTextAfter = textAfter;
+                final boolean finalHasCommaAfterQuote = hasCommaAfterQuote;
+                
+                ollamaService.generateText(prompt, context, temperature, ollamaService.getMaxTokens(), ollamaService.getTopP(), ollamaService.getRepeatPenalty())
+                    .thenAccept(response -> {
+                        Platform.runLater(() -> {
+                            if (response != null && !response.trim().isEmpty()) {
+                                // Teile die Antwort in Zeilen auf (jede Zeile ist eine Variante)
+                                String[] variants = response.trim().split("\n");
+                                
+                                // Filtere leere Zeilen und nummerierte Listen
+                                List<String> cleanVariants = new ArrayList<>();
+                                for (String variant : variants) {
+                                    String cleaned = variant.trim();
+                                    // Entferne Nummerierungen wie "1. ", "2. ", "- ", etc.
+                                    cleaned = cleaned.replaceAll("^\\d+\\.\\s*", "")
+                                                     .replaceAll("^-\\s*", "")
+                                                     .replaceAll("^\\*\\s*", "")
+                                                     .trim();
+                                    if (!cleaned.isEmpty() && cleaned.length() > 3) { // Mindestens 3 Zeichen
+                                        cleanVariants.add(cleaned);
+                                    }
+                                }
+                                
+                                // Falls keine Varianten gefunden, verwende die gesamte Antwort
+                                if (cleanVariants.isEmpty()) {
+                                    cleanVariants.add(response.trim());
+                                }
+                                
+                                // Erstelle UI-Elemente für jede Variante
+                                for (int i = 0; i < cleanVariants.size() && i < 5; i++) {
+                                    final int index = i;
+                                    String replacement = cleanVariants.get(i);
+                                    
+                                    // Baue vollständigen Satz zusammen: Text vor + wörtliche Rede + Ersetzung + Text nach
+                                    StringBuilder fullSentence = new StringBuilder();
+                                    if (!finalTextBefore.isEmpty()) {
+                                        fullSentence.append(finalTextBefore);
+                                        if (!finalTextBefore.endsWith(" ") && !finalTextBefore.endsWith("\n")) {
+                                            fullSentence.append(" ");
+                                        }
+                                    }
+                                    if (!finalQuotedText.isEmpty()) {
+                                        // Prüfe ob die Ersetzung ein vollständiger Satz ist (beginnt mit Großbuchstaben)
+                                        boolean isFullSentence = !replacement.trim().isEmpty() && 
+                                                                 Character.isUpperCase(replacement.trim().charAt(0));
+                                        
+                                        if (isFullSentence) {
+                                            // Vollständiger Satz: Punkt vor das Anführungszeichen, kein Komma
+                                            // Prüfe ob bereits ein Punkt vor dem schließenden Anführungszeichen ist
+                                            String quotedTextWithoutClosingQuote = finalQuotedText;
+                                            String closingQuote = "";
+                                            
+                                            // Finde das schließende Anführungszeichen (alle möglichen Typen)
+                                            Pattern closingQuotePattern = Pattern.compile("([\"\\u201D\\u201C\\u00BB\\u00AB])$");
+                                            Matcher closingQuoteMatcher = closingQuotePattern.matcher(finalQuotedText);
+                                            if (closingQuoteMatcher.find()) {
+                                                closingQuote = closingQuoteMatcher.group(1);
+                                                quotedTextWithoutClosingQuote = finalQuotedText.substring(0, closingQuoteMatcher.start());
+                                            }
+                                            
+                                            // Prüfe ob bereits ein Punkt am Ende ist
+                                            if (!quotedTextWithoutClosingQuote.trim().endsWith(".") && 
+                                                !quotedTextWithoutClosingQuote.trim().endsWith("!") && 
+                                                !quotedTextWithoutClosingQuote.trim().endsWith("?")) {
+                                                // Füge Punkt vor das Anführungszeichen hinzu
+                                                fullSentence.append(quotedTextWithoutClosingQuote);
+                                                fullSentence.append(".");
+                                                fullSentence.append(closingQuote);
+                                            } else {
+                                                // Punkt ist bereits da
+                                                fullSentence.append(finalQuotedText);
+                                            }
+                                            // Leerzeichen nach dem Anführungszeichen
+                                            fullSentence.append(" ");
+                                        } else {
+                                            // Kein vollständiger Satz: Komma wie bisher
+                                            fullSentence.append(finalQuotedText);
+                                            if (finalHasCommaAfterQuote) {
+                                                fullSentence.append(",");
+                                            }
+                                            // Füge Leerzeichen hinzu
+                                            fullSentence.append(" ");
+                                        }
+                                    }
+                                    fullSentence.append(replacement);
+                                    if (!finalTextAfter.isEmpty()) {
+                                        // Entferne führendes Komma aus textAfter, da es bereits hinzugefügt wurde
+                                        String textAfterClean = finalTextAfter.replaceFirst("^,\\s*", "");
+                                        if (!textAfterClean.isEmpty()) {
+                                            // Füge Leerzeichen hinzu, wenn replacement nicht mit Leerzeichen endet
+                                            if (!replacement.endsWith(" ") && !replacement.endsWith("\n")) {
+                                                fullSentence.append(" ");
+                                            }
+                                            fullSentence.append(textAfterClean);
+                                        }
+                                    }
+                                    
+                                    final String finalVariant = fullSentence.toString().trim();
+                                    
+                                    // Erstelle Button für diese Variante
+                                    Button answerBtn = new Button("Variante " + (index + 1));
+                                    answerBtn.setMaxWidth(Double.MAX_VALUE);
+                                    answerBtn.setAlignment(Pos.CENTER_LEFT);
+                                    answerBtn.setStyle(String.format("-fx-background-color: %s; -fx-text-fill: %s;",
+                                        THEMES[currentThemeIndex][2], THEMES[currentThemeIndex][1]));
+                                    
+                                    TextArea answerText = new TextArea(finalVariant);
+                                    answerText.setEditable(false);
+                                    answerText.setWrapText(true);
+                                    answerText.setPrefRowCount(2);
+                                    answerText.getStyleClass().add("dialog-text-area");
+                                    applyThemeToNode(answerText, currentThemeIndex);
+                                    
+                                    VBox answerBox = new VBox(5);
+                                    answerBox.getChildren().addAll(answerBtn, answerText);
+                                    answersBox.getChildren().add(answerBox);
+                                    
+                                    // Klick-Handler zum Ersetzen
+                                    answerBtn.setOnAction(evt -> {
+                                        // Validiere Positionen nochmal, um sicherzustellen, dass wir den richtigen Satz ersetzen
+                                        Platform.runLater(() -> {
+                                            try {
+                                                String currentText = codeArea.getText();
+                                                
+                                                // Prüfe ob die Positionen noch gültig sind
+                                                if (startPos < 0 || endPos > currentText.length() || startPos >= endPos) {
+                                                    updateStatus("Fehler: Textpositionen ungültig.");
+                                                    return;
+                                                }
+                                                
+                                                // Prüfe ob der Text an den Positionen noch dem Original entspricht
+                                                String textAtPosition = currentText.substring(startPos, Math.min(endPos, currentText.length()));
+                                                if (!textAtPosition.trim().equals(originalSentence.trim())) {
+                                                    // Text hat sich geändert, finde den Satz neu
+                                                    int caretPos = codeArea.getCaretPosition();
+                                                    int[] newBounds = findCurrentSentenceBounds(caretPos);
+                                                    
+                                                    if (newBounds != null) {
+                                                        String newSentence = codeArea.getText(newBounds[0], newBounds[1]);
+                                                        if (newSentence.trim().equals(originalSentence.trim())) {
+                                                            // Verwende die neuen Positionen
+                                                            codeArea.replaceText(newBounds[0], newBounds[1], finalVariant);
+                                                        } else {
+                                                            updateStatus("Fehler: Satz nicht mehr gefunden.");
+                                                            return;
+                                                        }
+                                                    } else {
+                                                        updateStatus("Fehler: Satz nicht mehr gefunden.");
+                                                        return;
+                                                    }
+                                                } else {
+                                                    // Positionen sind noch korrekt, ersetze direkt
+                                                    codeArea.replaceText(startPos, endPos, finalVariant);
+                                                }
+                                                
+                                                dialogStage.close();
+                                                updateStatus("Satz ersetzt.");
+                                            } catch (Exception ex) {
+                                                logger.error("Fehler beim Ersetzen: {}", ex.getMessage());
+                                                updateStatus("Fehler beim Ersetzen: " + ex.getMessage());
+                                            }
+                                        });
+                                    });
+                                }
+                            }
+                            
+                            btnGenerate.setDisable(false);
+                            btnGenerate.setText("Generieren");
+                            progressBar.setVisible(false);
+                            progressBar.setManaged(false);
+                        });
+                    })
+                    .exceptionally(throwable -> {
+                        Platform.runLater(() -> {
+                            logger.error("Fehler bei Ollama-Generierung: {}", throwable.getMessage());
+                            updateStatus("Fehler bei der Generierung: " + throwable.getMessage());
+                            
+                            Label errorLabel = new Label("Fehler: " + throwable.getMessage());
+                            errorLabel.setStyle(String.format("-fx-text-fill: red;"));
+                            answersBox.getChildren().add(errorLabel);
+                            
+                            btnGenerate.setDisable(false);
+                            btnGenerate.setText("Generieren");
+                            progressBar.setVisible(false);
+                            progressBar.setManaged(false);
+                        });
+                        return null;
+                    });
+            });
+        });
+    }
+    
+    /**
+     * Handler für "Phrase korrigieren"
+     */
+    private void handlePhraseKorrektur() {
+        // Ähnlich wie handleSprechantwortKorrektur, aber für Phrasen
+        updateStatus("Phrase korrigieren - noch nicht implementiert");
+    }
+    
+    /**
+     * Handler für "Absatz überarbeiten"
+     */
+    private void handleAbsatzUeberarbeitung() {
+        // Ähnlich wie handleSprechantwortKorrektur, aber für Absätze
+        updateStatus("Absatz überarbeiten - noch nicht implementiert");
+    }
+    
+    /**
+     * Entfernt alle Textanalyse-Markierungen aus dem Editor, behält aber andere Styles (Markdown, Suche, etc.)
+     */
+    private void clearTextAnalysisMarkings() {
+        if (codeArea == null) return;
+        
+        try {
+            String content = codeArea.getText();
+            if (content == null || content.isEmpty()) return;
+            
+            // Hole existierende StyleSpans
+            StyleSpans<Collection<String>> existingSpans = codeArea.getStyleSpans(0, codeArea.getLength());
+            
+            // Liste der Textanalyse-Style-Klassen, die entfernt werden sollen
+            Set<String> textAnalysisStyles = Set.of(
+                "highlight-yellow",
+                "highlight-orange",
+                "search-match-first",
+                "search-match-second",
+                "sentence-short",
+                "sentence-medium",
+                "sentence-long"
+            );
+            
+            // Sammle alle existierenden Styles und entferne Textanalyse-Styles
+            StyleSpansBuilder<Collection<String>> spansBuilder = new StyleSpansBuilder<>();
+            int currentPos = 0;
+            
+            Map<Integer, Set<String>> existingStyles = new HashMap<>();
+            for (StyleSpan<Collection<String>> span : existingSpans) {
+                for (int i = 0; i < span.getLength(); i++) {
+                    int pos = currentPos + i;
+                    Set<String> styles = new HashSet<>(span.getStyle());
+                    // Entferne alle Textanalyse-Styles
+                    styles.removeAll(textAnalysisStyles);
+                    if (!styles.isEmpty()) {
+                        existingStyles.put(pos, styles);
+                    }
+                }
+                currentPos += span.getLength();
+            }
+            
+            // Baue neue StyleSpans ohne Textanalyse-Styles
+            currentPos = 0;
+            Set<String> currentStyles = new HashSet<>();
+            
+            for (int i = 0; i < content.length(); i++) {
+                Set<String> stylesAtPos = existingStyles.getOrDefault(i, new HashSet<>());
+                
+                if (!stylesAtPos.equals(currentStyles)) {
+                    // Style-Änderung - füge bisherige Styles hinzu
+                    if (!currentStyles.isEmpty()) {
+                        spansBuilder.add(currentStyles, i - currentPos);
+                    } else {
+                        spansBuilder.add(Collections.emptyList(), i - currentPos);
+                    }
+                    currentPos = i;
+                    currentStyles = new HashSet<>(stylesAtPos);
+                }
+            }
+            
+            // Letzte Styles hinzufügen
+            if (!currentStyles.isEmpty()) {
+                spansBuilder.add(currentStyles, content.length() - currentPos);
+            } else {
+                spansBuilder.add(Collections.emptyList(), content.length() - currentPos);
+            }
+            
+            // Anwenden
+            StyleSpans<Collection<String>> spans = spansBuilder.create();
+            codeArea.setStyleSpans(0, spans);
+            
+        } catch (Exception e) {
+            logger.debug("Fehler beim Zurücksetzen der Textanalyse-Markierungen: {}", e.getMessage());
+        }
+    }
     
     private void showRegexHelp() {
         CustomStage helpStage = StageManager.createModalStage("Hilfe", stage);

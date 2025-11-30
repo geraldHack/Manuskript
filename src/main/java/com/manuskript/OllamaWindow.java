@@ -767,9 +767,73 @@ public class OllamaWindow {
         Tooltip.install(previewPromptButton, new Tooltip("Prompt-Vorschau anzeigen"));
         previewPromptButton.setOnAction(e -> {
             try {
+                String selectedFunction = functionComboBox.getValue();
                 String fullPrompt = buildCurrentFullPromptPreview();
                 String formatted = formatPromptSimple(fullPrompt);
-                showPromptPreviewStage("Anfrage an Ollama (Prompt)", formatted);
+                
+                // JSON-Vorschau erstellen
+                String jsonPreview = null;
+                String contextForJson = buildContextForPreview();
+                
+                if (selectedFunction != null && ("Chat-Assistent".equals(selectedFunction) || selectedFunction.startsWith("📦 ") || selectedFunction.startsWith("? "))) {
+                    // Chat-API verwenden
+                    String userMessage = inputArea.getText() != null ? inputArea.getText().trim() : "";
+                    if (ollamaService != null) {
+                        jsonPreview = ollamaService.buildChatJsonForPreview(userMessage, contextForJson);
+                    }
+                } else if (selectedFunction != null) {
+                    // Generate-API verwenden - Prompt ohne Kontext-Regeln erstellen
+                    String input = inputArea.getText() != null ? inputArea.getText().trim() : "";
+                    String promptOnly = null;
+                    
+                    // Prompt je Funktion erstellen (ohne Kontext-Regeln)
+                    switch (selectedFunction) {
+                        case "Dialog generieren":
+                            promptOnly = String.format("Schreibe einen authentischen Dialog für den Charakter 'Charakter' in folgender Situation:\n%s\n\nEmotion des Charakters: neutral\n\nSchreibe nur den Dialog, ohne Erzählertext. Verwende natürliche, deutsche Sprache.", input);
+                            break;
+                        case "Beschreibung erweitern":
+                            String style = styleField != null ? styleField.getText().trim() : "detailliert";
+                            promptOnly = String.format("Erweitere diese kurze Beschreibung im Stil '%s':\n\n%s\n\nSchreibe eine detaillierte, atmosphärische Beschreibung (max. 3 Sätze).", style, input);
+                            break;
+                        case "Plot-Ideen entwickeln":
+                            String genre = genreField != null ? genreField.getText().trim() : "Allgemein";
+                            promptOnly = String.format("Entwickle Plot-Ideen für eine %s-Geschichte basierend auf dieser Grundidee:\n%s\n\nGib 3-5 konkrete Plot-Entwicklungen an, die die Geschichte vorantreiben könnten.", genre, input);
+                            break;
+                        case "Charakter entwickeln":
+                            String characterName = characterField != null && characterField.getText() != null && !characterField.getText().trim().isEmpty() ? characterField.getText().trim() : "Charakter";
+                            promptOnly = String.format("Entwickle den Charakter '%s' weiter:\n\nGrundmerkmale: %s\n\nErstelle ein detailliertes Charakterprofil mit:\n- Hintergrund/Geschichte\n- Motivationen und Ziele\n- Stärken und Schwächen\n- Beziehungen zu anderen Charakteren", characterName, input);
+                            break;
+                        case "Schreibstil analysieren":
+                            promptOnly = String.format("DU BIST EIN EXPERTE FÜR SCHREIBSTIL-ANALYSE!\n\nAUFGABE: Analysiere NUR den Schreibstil, NICHT den Inhalt!\n\nText zur Analyse:\n%s\n\nFOKUSSIERE DICH AUSSCHLIESSLICH AUF:\n1. Satzlänge (kurz/mittel/lang) und Satzstruktur (einfach/komplex)\n2. Wortwahl (einfach/gehoben/technisch/emotional)\n3. Erzählperspektive (Ich-Erzähler/Er-Erzähler/Allwissend)\n4. Tonfall (ernst/humorvoll/dramatisch/nüchtern)\n5. Atmosphäre (düster/hell/spannend/ruhig)\n6. Besondere stilistische Merkmale (Metaphern, Wiederholungen, etc.)\n7. Vergleich mit bekannten Autoren oder Stilen\n\nVERBOTEN: \n- Keine Inhaltszusammenfassung!\n- Keine Handlungsanalyse!\n- Keine Charakterbeschreibung!\n\nAntworte nur mit der Stil-Analyse!", input);
+                            break;
+                        case "Text umschreiben":
+                            String rewriteType = rewriteTypeComboBox != null ? rewriteTypeComboBox.getValue() : "Umschreiben";
+                            String add = additionalInstructionsField != null ? additionalInstructionsField.getText().trim() : "Keine";
+                            promptOnly = String.format("DU BIST EIN EXPERTE FÜR TEXT-UMFORMULIERUNG!\n\nORIGINALTEXT (nur dieser Abschnitt darf verändert werden):\n%s\n\nUMSCHREIBUNGSART: %s\n\nZUSÄTZLICHE ANWEISUNGEN: %s\n\nAUFGABE: Umschreibe NUR den oben angegebenen ORIGINALTEXT entsprechend der gewählten Art. Behalte die Grundaussage bei, aber ändere die Darstellung. Nutze den Kontext nur zum Verständnis, nicht zum Ergänzen.\n\nWICHTIG: \n- Verwende natürliche, flüssige deutsche Sprache\n- Behalte den ursprünglichen Ton und Stil bei\n- Ändere nur die Darstellung, nicht die Kernaussage\n- Antworte ausschließlich mit der umgeschriebenen Version des ORIGINALTEXTES – ohne Ergänzungen vor oder nach dem Text, keine Kontextzitate.", input, rewriteType, (add.isEmpty()?"Keine":add));
+                            break;
+                        default:
+                            promptOnly = input;
+                    }
+                    
+                    if (ollamaService != null && promptOnly != null) {
+                        jsonPreview = ollamaService.buildGenerateJsonForPreview(promptOnly, contextForJson);
+                    }
+                }
+                
+                // Prompt und JSON kombinieren
+                StringBuilder previewContent = new StringBuilder();
+                previewContent.append("=== PROMPT ===\n\n");
+                previewContent.append(formatted);
+                
+                if (jsonPreview != null) {
+                    previewContent.append("\n\n=== JSON-ANFRAGE ===\n\n");
+                    String humanReadableJson = jsonToHuman(jsonPreview);
+                    previewContent.append(humanReadableJson);
+                    previewContent.append("\n\n=== ROHE JSON-DATEN ===\n\n");
+                    previewContent.append(prettyJson(jsonPreview));
+                }
+                
+                showPromptPreviewStage("Anfrage an Ollama (Prompt & JSON)", previewContent.toString());
             } catch (Exception ex) {
                 showAlert("Fehler", "Konnte Prompt nicht erzeugen: " + ex.getMessage());
             }
@@ -2671,6 +2735,8 @@ public class OllamaWindow {
                 ContextMenu resultContextMenu = createResultContextMenu();
                 resultWebView.setOnContextMenuRequested(event -> {
                     if (resultContextMenu != null) {
+                        // Aktualisiere Menü-Status basierend auf Textauswahl
+                        updateResultContextMenu(resultContextMenu);
                         resultContextMenu.show(resultWebView, event.getScreenX(), event.getScreenY());
                     }
                     event.consume();
@@ -4509,17 +4575,37 @@ public class OllamaWindow {
         ContextMenu menu = new ContextMenu(findItem, replaceItem);
         return menu;
     }
+    
+    private void updateResultContextMenu(ContextMenu menu) {
+        if (menu == null || resultWebView == null) return;
+        String selectedText = getSelectedWebViewText();
+        boolean hasSelection = selectedText != null && !selectedText.trim().isEmpty();
+        
+        for (MenuItem item : menu.getItems()) {
+            item.setDisable(!hasSelection);
+        }
+    }
 
     private String getSelectedWebViewText() {
-        if (resultWebView == null) {
+        if (resultWebView == null || resultWebView.getEngine() == null) {
             return "";
         }
         try {
-            Object selection = resultWebView.getEngine().executeScript("window.getSelection().toString()");
+            // Versuche verschiedene Methoden zur Textauswahl
+            Object selection = resultWebView.getEngine().executeScript(
+                "(function() {" +
+                "  var sel = window.getSelection();" +
+                "  if (!sel || sel.rangeCount === 0) return '';" +
+                "  return sel.toString();" +
+                "})()"
+            );
             if (selection == null) {
                 return "";
             }
             String selectedText = selection.toString();
+            if (selectedText == null || selectedText.trim().isEmpty()) {
+                return "";
+            }
             // Entferne Leerzeichen vor und nach dem markierten Text
             // Entfernt auch mehrfache Leerzeichen, Tabs und Zeilenumbrüche am Anfang/Ende
             return selectedText.replaceAll("^\\s+", "").replaceAll("\\s+$", "");

@@ -37,6 +37,18 @@
 }
 
 /* ========================================
+   DIALOG STYLING
+   ======================================== */
+
+.dialog-container {
+    -fx-background-color: inherit;
+}
+
+.dialog-label {
+    -fx-font-weight: bold;
+}
+
+/* ========================================
    STATUS-LABELS - Einheitlich grau für alle Themes
    ======================================== */
 .status-label {
@@ -7394,6 +7406,182 @@
 .root .theme-dark.lila-theme .chapter-list-view .scroll-bar .increment-button,
 .root .theme-dark.lila-theme .chapter-list-view .scroll-bar .decrement-button {
     -fx-background-color: #4c1d95 !important;
+}
+
+/* ========================================
+   KONTEXTMENÜ STYLING
+   ======================================== */
+
+/* Weiß-Theme Kontextmenü */
+.weiss-theme .context-menu {
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #000000;
+    -fx-border-color: #cccccc;
+    -fx-border-width: 1px;
+}
+
+.weiss-theme .context-menu .menu-item {
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #000000;
+}
+
+.weiss-theme .context-menu .menu-item:hover {
+    -fx-background-color: #e0e0e0;
+}
+
+/* Schwarz-Theme Kontextmenü */
+.theme-dark .context-menu {
+    -fx-background-color: #1a1a1a;
+    -fx-text-fill: #ffffff;
+    -fx-border-color: #ffffff;
+    -fx-border-width: 1px;
+}
+
+.theme-dark .context-menu .menu-item {
+    -fx-background-color: #1a1a1a;
+    -fx-text-fill: #ffffff;
+}
+
+.theme-dark .context-menu .menu-item:hover {
+    -fx-background-color: #333333;
+}
+
+/* Pastell-Theme Kontextmenü */
+.pastell-theme .context-menu {
+    -fx-background-color: #f3e5f5;
+    -fx-text-fill: #000000;
+    -fx-border-color: #ba68c8;
+    -fx-border-width: 1px;
+}
+
+.pastell-theme .context-menu .menu-item {
+    -fx-background-color: #f3e5f5;
+    -fx-text-fill: #000000;
+}
+
+.pastell-theme .context-menu .menu-item:hover {
+    -fx-background-color: #e1bee7;
+}
+
+/* Blau-Theme Kontextmenü */
+.theme-dark.blau-theme .context-menu {
+    -fx-background-color: #1e3a8a;
+    -fx-text-fill: #ffffff;
+    -fx-border-color: #ffffff;
+    -fx-border-width: 1px;
+}
+
+.theme-dark.blau-theme .context-menu .menu-item {
+    -fx-background-color: #1e3a8a;
+    -fx-text-fill: #ffffff;
+}
+
+.theme-dark.blau-theme .context-menu .menu-item:hover {
+    -fx-background-color: #3b82f6;
+}
+
+/* Grün-Theme Kontextmenü */
+.theme-dark.gruen-theme .context-menu {
+    -fx-background-color: #064e3b;
+    -fx-text-fill: #ffffff;
+    -fx-border-color: #ffffff;
+    -fx-border-width: 1px;
+}
+
+.theme-dark.gruen-theme .context-menu .menu-item {
+    -fx-background-color: #064e3b;
+    -fx-text-fill: #ffffff;
+}
+
+.theme-dark.gruen-theme .context-menu .menu-item:hover {
+    -fx-background-color: #059669;
+}
+
+/* Lila-Theme Kontextmenü */
+.theme-dark.lila-theme .context-menu {
+    -fx-background-color: #4c1d95;
+    -fx-text-fill: #ffffff;
+    -fx-border-color: #ffffff;
+    -fx-border-width: 1px;
+}
+
+.theme-dark.lila-theme .context-menu .menu-item {
+    -fx-background-color: #4c1d95;
+    -fx-text-fill: #ffffff;
+}
+
+.theme-dark.lila-theme .context-menu .menu-item:hover {
+    -fx-background-color: #7c3aed;
+}
+
+/* ========================================
+   DIALOG TEXTAREA STYLING
+   ======================================== */
+
+/* Dialog TextArea - verwendet Theme-Klassen */
+.dialog-text-area {
+    -fx-control-inner-background: inherit;
+    -fx-background-color: inherit;
+}
+
+.dialog-text-area .content {
+    -fx-background-color: inherit;
+}
+
+.dialog-text-area .scroll-pane {
+    -fx-background-color: inherit;
+}
+
+.dialog-text-area .viewport {
+    -fx-background-color: inherit;
+}
+
+/* Weiß-Theme Dialog TextArea */
+.weiss-theme .dialog-text-area,
+.weiss-theme .dialog-text-area .content {
+    -fx-control-inner-background: #ffffff;
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #000000;
+}
+
+/* Schwarz-Theme Dialog TextArea */
+.theme-dark .dialog-text-area,
+.theme-dark .dialog-text-area .content {
+    -fx-control-inner-background: #1a1a1a;
+    -fx-background-color: #1a1a1a;
+    -fx-text-fill: #ffffff;
+}
+
+/* Pastell-Theme Dialog TextArea */
+.pastell-theme .dialog-text-area,
+.pastell-theme .dialog-text-area .content {
+    -fx-control-inner-background: #f3e5f5;
+    -fx-background-color: #f3e5f5;
+    -fx-text-fill: #000000;
+}
+
+/* Blau-Theme Dialog TextArea */
+.theme-dark.blau-theme .dialog-text-area,
+.theme-dark.blau-theme .dialog-text-area .content {
+    -fx-control-inner-background: #1e3a8a;
+    -fx-background-color: #1e3a8a;
+    -fx-text-fill: #ffffff;
+}
+
+/* Grün-Theme Dialog TextArea */
+.theme-dark.gruen-theme .dialog-text-area,
+.theme-dark.gruen-theme .dialog-text-area .content {
+    -fx-control-inner-background: #064e3b;
+    -fx-background-color: #064e3b;
+    -fx-text-fill: #ffffff;
+}
+
+/* Lila-Theme Dialog TextArea */
+.theme-dark.lila-theme .dialog-text-area,
+.theme-dark.lila-theme .dialog-text-area .content {
+    -fx-control-inner-background: #4c1d95;
+    -fx-background-color: #4c1d95;
+    -fx-text-fill: #ffffff;
 }
 
 
