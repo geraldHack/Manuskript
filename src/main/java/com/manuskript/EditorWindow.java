@@ -72,6 +72,7 @@ import java.util.HashMap;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.fxmisc.richtext.model.StyleSpan;
@@ -8267,7 +8268,8 @@ spacer.setStyle("-fx-background-color: transparent;");
             Properties props = loadTextAnalysisProperties();
             String text = codeArea.getText();
             Map<String, Integer> phraseCount = new HashMap<>();
-            List<Integer> allPositions = new ArrayList<>();
+            // Verwende eine Map, um Start- und Endpositionen zu speichern (ohne Duplikate)
+            Map<Integer, Integer> phraseRanges = new TreeMap<>(); // TreeMap sortiert automatisch
             
             // Alle Phrasen-Kategorien durchgehen
             String[] categories = {"phrasen_begann", "phrasen_emotionen", "phrasen_dialog", "phrasen_denken", "phrasen_gefuehle", "phrasen_bewegung"};
@@ -8287,7 +8289,12 @@ spacer.setStyle("-fx-background-color: transparent;");
                         int count = 0;
                         while (matcher.find()) {
                             count++;
-                            allPositions.add(matcher.start());
+                            int start = matcher.start();
+                            int end = matcher.end();
+                            // Speichere nur wenn diese Position noch nicht existiert oder kürzer ist
+                            if (!phraseRanges.containsKey(start) || (end - start) > (phraseRanges.get(start) - start)) {
+                                phraseRanges.put(start, end);
+                            }
                         }
                         
                         if (count > 0) {
@@ -8297,40 +8304,21 @@ spacer.setStyle("-fx-background-color: transparent;");
                 }
             }
             
-            // Markierungen setzen
-            if (!allPositions.isEmpty()) {
+            // Markierungen setzen - jetzt einfach durch die sortierte Map iterieren
+            if (!phraseRanges.isEmpty()) {
                 StyleSpansBuilder<Collection<String>> spansBuilder = new StyleSpansBuilder<>();
-                Collections.sort(allPositions);
                 
                 int currentPos = 0;
-                for (int pos : allPositions) {
-                    if (pos >= currentPos) {
-                        // Finde die Phrase an dieser Position
-                        for (String category : categories) {
-                            String phrases = props.getProperty(category, "");
-                            String[] phraseArray = phrases.split(",");
-                            
-                            for (String phrase : phraseArray) {
-                                String trimmedPhrase = phrase.trim();
-                                if (!trimmedPhrase.isEmpty()) {
-                                    String regexPattern = trimmedPhrase.replace("*", ".*");
-                                    Pattern pattern = Pattern.compile(regexPattern, Pattern.CASE_INSENSITIVE);
-                                    Matcher matcher = pattern.matcher(text);
-                                    matcher.region(pos, text.length());
-                                    if (matcher.lookingAt()) {
-                                        int start = matcher.start();
-                                        int end = matcher.end();
-                                        if (start >= currentPos) {
-                                            spansBuilder.add(Collections.emptyList(), start - currentPos);
-                                            // Einheitliche Hervorhebung verwenden
-                                            spansBuilder.add(Collections.singleton("highlight-orange"), end - start);
-                                            currentPos = end;
-                                            break;
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                for (Map.Entry<Integer, Integer> entry : phraseRanges.entrySet()) {
+                    int start = entry.getKey();
+                    int end = entry.getValue();
+                    
+                    // Nur markieren wenn nicht bereits überschrieben
+                    if (start >= currentPos) {
+                        spansBuilder.add(Collections.emptyList(), start - currentPos);
+                        // Einheitliche Hervorhebung verwenden
+                        spansBuilder.add(Collections.singleton("highlight-orange"), end - start);
+                        currentPos = end;
                     }
                 }
                 spansBuilder.add(Collections.emptyList(), text.length() - currentPos);
@@ -8362,22 +8350,28 @@ spacer.setStyle("-fx-background-color: transparent;");
             chkCaseSensitive.setSelected(false);
             chkWholeWord.setSelected(false);
             
-            // Cache direkt aufbauen (ohne findText() zu verwenden)
+            // Cache direkt aufbauen aus phraseRanges (schneller als Pattern-Matching)
             Pattern searchPattern = createSearchPattern(pattern);
-            String content = codeArea.getText();
             
             // Cache zurücksetzen
-            totalMatches = 0;
+            totalMatches = phraseRanges.size();
             currentMatchIndex = -1;
             lastSearchText = pattern;
             cachedPattern = searchPattern;
             cachedMatchPositions.clear();
             
-            // Alle Treffer finden und cachen
-            Matcher matcher = searchPattern.matcher(content);
-            while (matcher.find()) {
-                cachedMatchPositions.add(matcher.start());
-                totalMatches++;
+            // Positionen direkt aus phraseRanges übernehmen (bereits sortiert)
+            cachedMatchPositions.addAll(phraseRanges.keySet());
+            
+            // Zum ersten Treffer springen und markieren
+            if (!cachedMatchPositions.isEmpty() && !phraseRanges.isEmpty()) {
+                int firstMatchStart = cachedMatchPositions.get(0);
+                Integer firstMatchEnd = phraseRanges.get(firstMatchStart);
+                if (firstMatchEnd != null) {
+                    highlightText(firstMatchStart, firstMatchEnd);
+                    currentMatchIndex = 0;
+                    updateMatchCount(currentMatchIndex + 1, totalMatches);
+                }
             }
             
             // Ergebnis anzeigen
@@ -8403,8 +8397,12 @@ spacer.setStyle("-fx-background-color: transparent;");
             statusArea.setText(result.toString());
             
             // Status aktualisieren
-            updateMatchCount(0, totalMatches);
-            updateStatus("Phrasen-Analyse abgeschlossen: " + totalCount + " Phrasen");
+            if (totalMatches > 0) {
+                updateStatus("Phrasen-Analyse abgeschlossen: " + totalCount + " Phrasen - Treffer " + (currentMatchIndex + 1) + " von " + totalMatches);
+            } else {
+                updateMatchCount(0, totalMatches);
+                updateStatus("Phrasen-Analyse abgeschlossen: " + totalCount + " Phrasen");
+            }
             
         } catch (Exception e) {
             statusArea.setText("Fehler bei der Phrasen-Analyse: " + e.getMessage());
@@ -11758,6 +11756,318 @@ spacer.setStyle("-fx-background-color: transparent;");
     }
     
     /**
+     * Generiert alternative Absatz-Versionen mit Ollama
+     */
+    private void generateAbsatzAlternatives(String originalParagraph, String instruction, double creativity,
+                                           VBox answersBox, Button btnGenerate,
+                                           int startPos, int endPos, CustomStage dialogStage, ProgressBar progressBar) {
+        // Lösche alte Antworten
+        answersBox.getChildren().clear();
+        
+        // Lade Kontexte
+        String characters = "";
+        String synopsis = "";
+        String outline = "";
+        String worldbuilding = "";
+        String style = "";
+        String chapterText = "";
+        
+        if (originalDocxFile != null) {
+            // Lade alle Dateien direkt aus dem Projektverzeichnis
+            File projectDir = originalDocxFile.getParentFile();
+            if (projectDir != null) {
+                // Lade characters.txt
+                File charactersFile = new File(projectDir, "characters.txt");
+                if (charactersFile.exists()) {
+                    try {
+                        characters = new String(java.nio.file.Files.readAllBytes(charactersFile.toPath()), java.nio.charset.StandardCharsets.UTF_8);
+                    } catch (Exception e) {
+                        logger.warn("Fehler beim Laden von characters.txt: " + e.getMessage());
+                    }
+                }
+                
+                // Lade synopsis.txt
+                File synopsisFile = new File(projectDir, "synopsis.txt");
+                if (synopsisFile.exists()) {
+                    try {
+                        synopsis = new String(java.nio.file.Files.readAllBytes(synopsisFile.toPath()), java.nio.charset.StandardCharsets.UTF_8);
+                    } catch (Exception e) {
+                        logger.warn("Fehler beim Laden von synopsis.txt: " + e.getMessage());
+                    }
+                }
+                
+                // Lade outline.txt
+                File outlineFile = new File(projectDir, "outline.txt");
+                if (outlineFile.exists()) {
+                    try {
+                        outline = new String(java.nio.file.Files.readAllBytes(outlineFile.toPath()), java.nio.charset.StandardCharsets.UTF_8);
+                    } catch (Exception e) {
+                        logger.warn("Fehler beim Laden von outline.txt: " + e.getMessage());
+                    }
+                }
+                
+                // Lade worldbuilding.txt
+                File worldbuildingFile = new File(projectDir, "worldbuilding.txt");
+                if (worldbuildingFile.exists()) {
+                    try {
+                        worldbuilding = new String(java.nio.file.Files.readAllBytes(worldbuildingFile.toPath()), java.nio.charset.StandardCharsets.UTF_8);
+                    } catch (Exception e) {
+                        logger.warn("Fehler beim Laden von worldbuilding.txt: " + e.getMessage());
+                    }
+                }
+                
+                // Lade style.txt
+                File styleFile = new File(projectDir, "style.txt");
+                if (styleFile.exists()) {
+                    try {
+                        style = new String(java.nio.file.Files.readAllBytes(styleFile.toPath()), java.nio.charset.StandardCharsets.UTF_8);
+                    } catch (Exception e) {
+                        logger.warn("Fehler beim Laden von style.txt: " + e.getMessage());
+                    }
+                }
+            }
+        }
+        
+        // Lade den gesamten Kapiteltext als Kontext
+        if (codeArea != null) {
+            chapterText = codeArea.getText();
+            if (chapterText != null && chapterText.trim().isEmpty()) {
+                chapterText = "";
+            }
+        }
+        
+        // Baue Kontext
+        StringBuilder contextBuilder = new StringBuilder();
+        if (characters != null && !characters.trim().isEmpty()) {
+            contextBuilder.append("=== CHARAKTERE ===\n").append(characters).append("\n\n");
+        }
+        if (synopsis != null && !synopsis.trim().isEmpty()) {
+            contextBuilder.append("=== SYNOPSIS ===\n").append(synopsis).append("\n\n");
+        }
+        if (outline != null && !outline.trim().isEmpty()) {
+            contextBuilder.append("=== OUTLINE ===\n").append(outline).append("\n\n");
+        }
+        if (worldbuilding != null && !worldbuilding.trim().isEmpty()) {
+            contextBuilder.append("=== WORLDBUILDING ===\n").append(worldbuilding).append("\n\n");
+        }
+        if (style != null && !style.trim().isEmpty()) {
+            contextBuilder.append("=== STIL ===\n").append(style).append("\n\n");
+        }
+        if (chapterText != null && !chapterText.trim().isEmpty()) {
+            contextBuilder.append("=== KAPITEL-TEXT ===\n").append(chapterText).append("\n\n");
+        }
+        
+        String context = contextBuilder.toString();
+        
+        // Baue Prompt für Absatz-Überarbeitung - vereinfacht und fokussiert wie kritisches Lektorat
+        StringBuilder promptBuilder = new StringBuilder();
+        promptBuilder.append("Du agierst als sehr erfahrener, kritischer deutscher Lektor. ");
+        promptBuilder.append("Du analysierst den gegebenen Text ohne Schonung und nutzt alle Register eines professionellen Lektorats ");
+        promptBuilder.append("(orthografische Präzision, stilistische Wirkung, Logikprüfung, Kohärenz, Tonalität, Figurenzeichnung, Tempo, Szenendramaturgie). ");
+        promptBuilder.append("Arbeite strukturiert und detailliert.\n\n");
+        
+        promptBuilder.append("**Zu überarbeitender Absatz:**\n").append(originalParagraph).append("\n\n");
+        
+        if (!instruction.isEmpty()) {
+            promptBuilder.append("**Anweisung:** ").append(instruction).append("\n\n");
+        }
+        
+        promptBuilder.append("**Aufgabe:**\n");
+        promptBuilder.append("Überarbeite diesen Absatz: Verbessere Stil, Klarheit, Lebendigkeit und Wirkung. ");
+        promptBuilder.append("Der überarbeitete Absatz muss grammatisch korrekt, idiomatisch richtig und stilistisch hochwertig sein.\n\n");
+        
+        promptBuilder.append("**Vorgehen:**\n");
+        promptBuilder.append("Gib 3-5 alternative Versionen des überarbeiteten Absatzes, jede in einer eigenen Zeile.\n");
+        promptBuilder.append("Jede Version muss grammatisch korrekt, idiomatisch richtig und stilistisch hochwertig sein.\n");
+        promptBuilder.append("Nur der überarbeitete Absatz, keine Erklärungen, keine Nummerierungen.");
+        
+        String prompt = promptBuilder.toString();
+        
+        // Ollama-Service verwenden
+        OllamaService ollamaService = new OllamaService();
+        
+        // Prüfe verfügbare Modelle und verwende das gewünschte Modell oder ein Fallback
+        String targetModel = "jobautomation/OpenEuroLLM-German";
+        Label statusLabel = new Label("Lade verfügbare Modelle...");
+        statusLabel.setStyle(String.format("-fx-text-fill: %s;", THEMES[currentThemeIndex][1]));
+        answersBox.getChildren().add(statusLabel);
+        
+        ollamaService.getAvailableModels().thenAccept(models -> {
+            Platform.runLater(() -> {
+                String modelToUse = null;
+                
+                // Prüfe ob das gewünschte Modell verfügbar ist (exakte Übereinstimmung oder ähnlich)
+                for (String model : models) {
+                    if (model.equals(targetModel) || 
+                        model.equalsIgnoreCase(targetModel) ||
+                        model.toLowerCase().contains("openeurollm") ||
+                        (model.toLowerCase().contains("german") && model.toLowerCase().contains("openeuro"))) {
+                        modelToUse = model;
+                        break;
+                    }
+                }
+                
+                // Falls nicht verfügbar, suche nach ähnlichen Modellnamen
+                if (modelToUse == null && models.length > 0) {
+                    // Suche nach Modellen mit "german" oder "openeuro"
+                    for (String model : models) {
+                        String lowerModel = model.toLowerCase();
+                        if (lowerModel.contains("german") || lowerModel.contains("openeuro")) {
+                            modelToUse = model;
+                            logger.info("Verwende ähnliches Modell: '{}' statt '{}'", model, targetModel);
+                            break;
+                        }
+                    }
+                    
+                    // Falls immer noch nichts gefunden, verwende das erste verfügbare Modell
+                    if (modelToUse == null) {
+                        modelToUse = models[0];
+                        logger.warn("Modell '{}' nicht gefunden, verwende '{}'", targetModel, modelToUse);
+                        updateStatus("Modell '" + targetModel + "' nicht gefunden, verwende '" + modelToUse + "'");
+                    } else {
+                        updateStatus("Verwende Modell: " + modelToUse);
+                    }
+                }
+                
+                if (modelToUse == null) {
+                    answersBox.getChildren().clear();
+                    Label errorLabel = new Label("Fehler: Keine Modelle verfügbar!");
+                    errorLabel.setStyle(String.format("-fx-text-fill: red;"));
+                    answersBox.getChildren().add(errorLabel);
+                    btnGenerate.setDisable(false);
+                    btnGenerate.setText("Generieren");
+                    progressBar.setVisible(false);
+                    progressBar.setManaged(false);
+                    return;
+                }
+                
+                ollamaService.setModel(modelToUse);
+                answersBox.getChildren().clear();
+                
+                // Verwende Kreativitäts-Slider-Wert als Temperatur (0.0-1.0)
+                double temperature = creativity;
+                
+                // Debug: Logge die verwendete Temperatur
+                logger.debug("Verwende Temperatur: {}", temperature);
+                
+                ollamaService.generateText(prompt, context, temperature, ollamaService.getMaxTokens(), ollamaService.getTopP(), ollamaService.getRepeatPenalty())
+                    .thenAccept(response -> {
+                        Platform.runLater(() -> {
+                            if (response != null && !response.trim().isEmpty()) {
+                                // Teile die Antwort in Zeilen auf (jede Zeile ist eine Variante)
+                                String[] variants = response.trim().split("\n");
+                                
+                                // Filtere leere Zeilen und nummerierte Listen
+                                List<String> cleanVariants = new ArrayList<>();
+                                for (String variant : variants) {
+                                    String cleaned = variant.trim();
+                                    // Entferne Nummerierungen wie "1. ", "2. ", "- ", etc.
+                                    cleaned = cleaned.replaceAll("^\\d+\\.\\s*", "")
+                                                     .replaceAll("^-\\s*", "")
+                                                     .replaceAll("^\\*\\s*", "")
+                                                     .trim();
+                                    if (!cleaned.isEmpty() && cleaned.length() > 10) { // Mindestens 10 Zeichen für Absatz
+                                        cleanVariants.add(cleaned);
+                                    }
+                                }
+                                
+                                // Falls keine Varianten gefunden, verwende die gesamte Antwort
+                                if (cleanVariants.isEmpty()) {
+                                    cleanVariants.add(response.trim());
+                                }
+                                
+                                // Erstelle UI-Elemente für jede Variante
+                                for (int i = 0; i < cleanVariants.size() && i < 5; i++) {
+                                    final int index = i;
+                                    String variant = cleanVariants.get(i);
+                                    
+                                    // Erstelle Button für diese Variante
+                                    Button answerBtn = new Button("Variante " + (index + 1));
+                                    answerBtn.setMaxWidth(Double.MAX_VALUE);
+                                    answerBtn.setAlignment(Pos.CENTER_LEFT);
+                                    answerBtn.setStyle(String.format("-fx-background-color: %s; -fx-text-fill: %s;",
+                                        THEMES[currentThemeIndex][2], THEMES[currentThemeIndex][1]));
+                                    
+                                    TextArea answerText = new TextArea(variant);
+                                    answerText.setEditable(false);
+                                    answerText.setWrapText(true);
+                                    answerText.setPrefRowCount(6);
+                                    answerText.getStyleClass().add("dialog-text-area");
+                                    applyThemeToNode(answerText, currentThemeIndex);
+                                    
+                                    VBox variantBox = new VBox(5);
+                                    variantBox.getChildren().addAll(answerBtn, answerText);
+                                    applyThemeToNode(variantBox, currentThemeIndex);
+                                    
+                                    answerBtn.setOnAction(e -> {
+                                        try {
+                                            // Prüfe ob der Text sich geändert hat
+                                            String currentText = codeArea.getText();
+                                            if (currentText != null && startPos < currentText.length() && endPos <= currentText.length()) {
+                                                String textAtPosition = currentText.substring(startPos, Math.min(endPos, currentText.length()));
+                                                if (!textAtPosition.trim().equals(originalParagraph.trim())) {
+                                                    // Text hat sich geändert, finde den Absatz neu
+                                                    int caretPos = codeArea.getCaretPosition();
+                                                    int[] newBounds = findCurrentParagraphBounds(caretPos);
+                                                    
+                                                    if (newBounds != null) {
+                                                        String newParagraph = codeArea.getText(newBounds[0], newBounds[1]);
+                                                        if (newParagraph.trim().equals(originalParagraph.trim())) {
+                                                            // Verwende die neuen Positionen
+                                                            codeArea.replaceText(newBounds[0], newBounds[1], variant);
+                                                        } else {
+                                                            updateStatus("Fehler: Absatz nicht mehr gefunden.");
+                                                            return;
+                                                        }
+                                                    } else {
+                                                        updateStatus("Fehler: Absatz nicht mehr gefunden.");
+                                                        return;
+                                                    }
+                                                } else {
+                                                    // Positionen sind noch korrekt, ersetze direkt
+                                                    codeArea.replaceText(startPos, endPos, variant);
+                                                }
+                                                
+                                                dialogStage.close();
+                                                updateStatus("Absatz ersetzt.");
+                                            }
+                                        } catch (Exception ex) {
+                                            logger.error("Fehler beim Ersetzen: {}", ex.getMessage());
+                                            updateStatus("Fehler beim Ersetzen: " + ex.getMessage());
+                                        }
+                                    });
+                                    
+                                    answersBox.getChildren().add(variantBox);
+                                }
+                            }
+                            
+                            btnGenerate.setDisable(false);
+                            btnGenerate.setText("Generieren");
+                            progressBar.setVisible(false);
+                            progressBar.setManaged(false);
+                        });
+                    })
+                    .exceptionally(throwable -> {
+                        Platform.runLater(() -> {
+                            logger.error("Fehler bei Ollama-Generierung: {}", throwable.getMessage());
+                            updateStatus("Fehler bei der Generierung: " + throwable.getMessage());
+                            
+                            Label errorLabel = new Label("Fehler: " + throwable.getMessage());
+                            errorLabel.setStyle(String.format("-fx-text-fill: red;"));
+                            answersBox.getChildren().add(errorLabel);
+                            
+                            btnGenerate.setDisable(false);
+                            btnGenerate.setText("Generieren");
+                            progressBar.setVisible(false);
+                            progressBar.setManaged(false);
+                        });
+                        return null;
+                    });
+            });
+        });
+    }
+    
+    /**
      * Analysiert einen Satz und extrahiert die Struktur: Text vor, wörtliche Rede, Sprechantwort
      */
     private String[] analyzeSentenceStructure(String sentence) {
@@ -12408,8 +12718,160 @@ spacer.setStyle("-fx-background-color: transparent;");
      * Handler für "Absatz überarbeiten"
      */
     private void handleAbsatzUeberarbeitung() {
-        // Ähnlich wie handleSprechantwortKorrektur, aber für Absätze
-        updateStatus("Absatz überarbeiten - noch nicht implementiert");
+        if (codeArea == null) return;
+        
+        int caretPos = codeArea.getCaretPosition();
+        int[] bounds = findCurrentParagraphBounds(caretPos);
+        
+        if (bounds == null) {
+            updateStatus("Kein Absatz an der Cursorposition gefunden.");
+            return;
+        }
+        
+        String paragraph = codeArea.getText(bounds[0], bounds[1]);
+        
+        if (paragraph == null || paragraph.trim().isEmpty()) {
+            updateStatus("Absatz ist leer.");
+            return;
+        }
+        
+        // Markiere den Absatz
+        codeArea.selectRange(bounds[0], bounds[1]);
+        
+        // Öffne Dialog
+        showAbsatzUeberarbeitungDialog(paragraph, bounds[0], bounds[1]);
+    }
+    
+    /**
+     * Zeigt den Dialog für Absatz-Überarbeitung
+     */
+    private void showAbsatzUeberarbeitungDialog(String originalParagraph, int startPos, int endPos) {
+        CustomStage dialogStage = StageManager.createModalStage("Absatz überarbeiten", stage);
+        dialogStage.setTitle("Absatz überarbeiten");
+        dialogStage.setWidth(1000);
+        dialogStage.setHeight(800);
+        dialogStage.setTitleBarTheme(currentThemeIndex);
+        
+        VBox root = new VBox(15);
+        root.setPadding(new Insets(20));
+        root.getStyleClass().add("dialog-container");
+        applyThemeToNode(root, currentThemeIndex);
+        
+        // Original-Absatz
+        Label originalLabel = new Label("Original:");
+        originalLabel.getStyleClass().add("dialog-label");
+        applyThemeToNode(originalLabel, currentThemeIndex);
+        
+        TextArea originalArea = new TextArea(originalParagraph);
+        originalArea.setEditable(false);
+        originalArea.setPrefRowCount(6);
+        originalArea.setWrapText(true);
+        originalArea.getStyleClass().add("dialog-text-area");
+        applyThemeToNode(originalArea, currentThemeIndex);
+        
+        // Anweisungsfeld (optional)
+        Label instructionLabel = new Label("Anweisung (optional):");
+        instructionLabel.getStyleClass().add("dialog-label");
+        applyThemeToNode(instructionLabel, currentThemeIndex);
+        
+        TextField instructionField = new TextField();
+        instructionField.setPromptText("z.B. Absatz soll spannender werden, mehr Show Don't Tell");
+        applyThemeToNode(instructionField, currentThemeIndex);
+        
+        // Kreativitäts-Slider
+        Label creativityLabel = new Label("Kreativität:");
+        creativityLabel.getStyleClass().add("dialog-label");
+        applyThemeToNode(creativityLabel, currentThemeIndex);
+        
+        Slider creativitySlider = new Slider(0.0, 1.0, 0.4);
+        creativitySlider.setShowTickLabels(true);
+        creativitySlider.setShowTickMarks(true);
+        creativitySlider.setMajorTickUnit(0.25);
+        creativitySlider.setMinorTickCount(0);
+        creativitySlider.setSnapToTicks(false);
+        creativitySlider.setPrefWidth(400);
+        
+        Label creativityValueLabel = new Label("0.40");
+        creativityValueLabel.setMinWidth(40);
+        creativityValueLabel.setStyle(String.format("-fx-text-fill: %s;", THEMES[currentThemeIndex][1]));
+        
+        creativitySlider.valueProperty().addListener((obs, oldVal, newVal) -> {
+            creativityValueLabel.setText(String.format("%.2f", newVal.doubleValue()));
+        });
+        
+        HBox creativityBox = new HBox(10);
+        creativityBox.setAlignment(Pos.CENTER_LEFT);
+        creativityBox.getChildren().addAll(creativitySlider, creativityValueLabel);
+        
+        // Antworten-Bereich
+        Label answersLabel = new Label("Vorschläge:");
+        answersLabel.getStyleClass().add("dialog-label");
+        applyThemeToNode(answersLabel, currentThemeIndex);
+        
+        // Fortschrittsbalken (zunächst unsichtbar)
+        ProgressBar progressBar = new ProgressBar();
+        progressBar.setVisible(false);
+        progressBar.setManaged(false);
+        progressBar.setPrefWidth(Double.MAX_VALUE);
+        progressBar.setPrefHeight(20);
+        progressBar.setMinHeight(20);
+        progressBar.setMaxHeight(20);
+        progressBar.setProgress(ProgressBar.INDETERMINATE_PROGRESS);
+        applyThemeToNode(progressBar, currentThemeIndex);
+        
+        VBox answersBox = new VBox(10);
+        ScrollPane scrollPane = new ScrollPane(answersBox);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setPrefHeight(350);
+        VBox.setVgrow(scrollPane, Priority.ALWAYS);
+        applyThemeToNode(scrollPane, currentThemeIndex);
+        
+        // Buttons
+        HBox buttonBox = new HBox(10);
+        Button btnGenerate = new Button("Generieren");
+        btnGenerate.getStyleClass().add("button");
+        applyThemeToNode(btnGenerate, currentThemeIndex);
+        
+        Button btnCancel = new Button("Abbrechen");
+        btnCancel.getStyleClass().add("button");
+        applyThemeToNode(btnCancel, currentThemeIndex);
+        
+        buttonBox.getChildren().addAll(btnGenerate, btnCancel);
+        
+        root.getChildren().addAll(originalLabel, originalArea, instructionLabel, instructionField, 
+                                 creativityLabel, creativityBox, answersLabel, progressBar, scrollPane, buttonBox);
+        
+        Scene scene = new Scene(root);
+        scene.setFill(javafx.scene.paint.Color.web(THEMES[currentThemeIndex][0]));
+        String cssPath = ResourceManager.getCssResource("css/editor.css");
+        if (cssPath != null) {
+            scene.getStylesheets().add(cssPath);
+        }
+        // CSS auch für Theme-Klassen
+        String manuskriptCssPath = ResourceManager.getCssResource("css/manuskript.css");
+        if (manuskriptCssPath != null) {
+            scene.getStylesheets().add(manuskriptCssPath);
+        }
+        
+        dialogStage.setSceneWithTitleBar(scene);
+        
+        // Generiere Antworten
+        btnGenerate.setOnAction(e -> {
+            btnGenerate.setDisable(true);
+            btnGenerate.setText("Generiere...");
+            progressBar.setVisible(true);
+            progressBar.setManaged(true);
+            answersBox.getChildren().clear();
+            
+            String instruction = instructionField.getText().trim();
+            double creativity = creativitySlider.getValue();
+            generateAbsatzAlternatives(originalParagraph, instruction, creativity, answersBox, 
+                                     btnGenerate, startPos, endPos, dialogStage, progressBar);
+        });
+        
+        btnCancel.setOnAction(e -> dialogStage.close());
+        
+        dialogStage.showAndWait();
     }
     
     /**
