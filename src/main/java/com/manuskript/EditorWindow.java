@@ -11797,10 +11797,10 @@ spacer.setStyle("-fx-background-color: transparent;");
             result[1] = sentence.substring(firstQuotePos, secondQuotePos + 1); // Mit Anführungszeichen
             String afterQuote = sentence.substring(secondQuotePos + 1).trim();
             
-            // Suche nach Sprechantwort nach der wörtlichen Rede
+            // Suche nach Sprechantwort nach der wörtlichen Rede (mit Pronomen ODER Namen)
             Pattern speechPattern = Pattern.compile(
                 "\\b(sagte|fragte|rief|antwortete|erwiderte|meinte|flüsterte|brüllte|stammelte|murmelte|erklärte|berichtete|erzählte|bemerkte|kommentierte|behauptete|versicherte|warnte|vermutete|leugnete|versprach|schwor|informierte|mitteilte|diskutierte|debattierte|argumentierte|streitete|besprach|plauderte|schwatzte|raunte|schrie|heulte|weinte|lachte|grinste|seufzte|stöhnte|ächzte|wimmerte|schluchzte|keuchte|stotterte|fluchte|schimpfte|donnerte|knurrte|fauchte|zischte|brummte|summte|pfiff|trällerte|sang|deklamierte|rezitierte|sprach|redete|plapperte|schwadronierte|faselte|laberte|quasselte|schwätzte|quatschte|konversierte)" +
-                "\\s+(er|sie|es|ich|du|wir|ihr|sie|man|jemand|niemand)\\b",
+                "\\s+((?:er|sie|es|ich|du|wir|ihr|sie|man|jemand|niemand)\\b|[A-ZÄÖÜ][a-zäöüß]+)",
                 Pattern.CASE_INSENSITIVE
             );
             
@@ -11817,10 +11817,10 @@ spacer.setStyle("-fx-background-color: transparent;");
                 result[2] = afterQuote.substring(actualStart, actualEnd);
                 result[3] = afterQuote.substring(actualEnd).trim();
             } else {
-                // Fallback: suche ohne Wortgrenze
+                // Fallback: suche ohne Wortgrenze (mit Pronomen ODER Namen)
                 Pattern speechPatternNoBoundary = Pattern.compile(
                     "(sagte|fragte|rief|antwortete|erwiderte|meinte|flüsterte|brüllte|stammelte|murmelte|erklärte|berichtete|erzählte|bemerkte|kommentierte|behauptete|versicherte|warnte|vermutete|leugnete|versprach|schwor|informierte|mitteilte|diskutierte|debattierte|argumentierte|streitete|besprach|plauderte|schwatzte|raunte|schrie|heulte|weinte|lachte|grinste|seufzte|stöhnte|ächzte|wimmerte|schluchzte|keuchte|stotterte|fluchte|schimpfte|donnerte|knurrte|fauchte|zischte|brummte|summte|pfiff|trällerte|sang|deklamierte|rezitierte|sprach|redete|plapperte|schwadronierte|faselte|laberte|quasselte|schwätzte|quatschte|konversierte)" +
-                    "\\s+(er|sie|es|ich|du|wir|ihr|sie|man|jemand|niemand)\\b",
+                    "\\s+((?:er|sie|es|ich|du|wir|ihr|sie|man|jemand|niemand)\\b|[A-ZÄÖÜ][a-zäöüß]+)",
                     Pattern.CASE_INSENSITIVE
                 );
                 Matcher noBoundaryMatcher = speechPatternNoBoundary.matcher(afterQuote);
@@ -11832,10 +11832,10 @@ spacer.setStyle("-fx-background-color: transparent;");
                 }
             }
         } else {
-            // Keine wörtliche Rede gefunden, suche nur nach Sprechantwort
+            // Keine wörtliche Rede gefunden, suche nur nach Sprechantwort (mit Pronomen ODER Namen)
             Pattern speechPattern = Pattern.compile(
                 "\\b(sagte|fragte|rief|antwortete|erwiderte|meinte|flüsterte|brüllte|stammelte|murmelte|erklärte|berichtete|erzählte|bemerkte|kommentierte|behauptete|versicherte|warnte|vermutete|leugnete|versprach|schwor|informierte|mitteilte|diskutierte|debattierte|argumentierte|streitete|besprach|plauderte|schwatzte|raunte|schrie|heulte|weinte|lachte|grinste|seufzte|stöhnte|ächzte|wimmerte|schluchzte|keuchte|stotterte|fluchte|schimpfte|donnerte|knurrte|fauchte|zischte|brummte|summte|pfiff|trällerte|sang|deklamierte|rezitierte|sprach|redete|plapperte|schwadronierte|faselte|laberte|quasselte|schwätzte|quatschte|konversierte)" +
-                "\\s+(er|sie|es|ich|du|wir|ihr|sie|man|jemand|niemand)\\b",
+                "\\s+((?:er|sie|es|ich|du|wir|ihr|sie|man|jemand|niemand)\\b|[A-ZÄÖÜ][a-zäöüß]+)",
                 Pattern.CASE_INSENSITIVE
             );
             
@@ -11850,6 +11850,48 @@ spacer.setStyle("-fx-background-color: transparent;");
         }
         
         return result;
+    }
+    
+    /**
+     * Extrahiert den Namen einer Figur aus dem Sprechantwort (z.B. "fragte Kata" -> "Kata")
+     */
+    private String extractCharacterNameFromSpeechTag(String speechTag) {
+        if (speechTag == null || speechTag.trim().isEmpty()) {
+            logger.debug("Sprechantwort ist leer, kein Name extrahiert");
+            return null;
+        }
+        
+        String trimmedTag = speechTag.trim();
+        logger.debug("Versuche Namen aus Sprechantwort zu extrahieren: '{}'", trimmedTag);
+        
+        // Pattern für Sprechverben gefolgt von einem Namen (Großbuchstabe)
+        // Erweitert: auch nach Komma oder am Anfang
+        Pattern namePattern = Pattern.compile(
+            "(?:^|\\s|,)\\b(sagte|fragte|rief|antwortete|erwiderte|meinte|flüsterte|brüllte|stammelte|murmelte|erklärte|berichtete|erzählte|bemerkte|kommentierte|behauptete|versicherte|warnte|vermutete|leugnete|versprach|schwor|informierte|mitteilte|diskutierte|debattierte|argumentierte|streitete|besprach|plauderte|schwatzte|raunte|schrie|heulte|weinte|lachte|grinste|seufzte|stöhnte|ächzte|wimmerte|schluchzte|keuchte|stotterte|fluchte|schimpfte|donnerte|knurrte|fauchte|zischte|brummte|summte|pfiff|trällerte|sang|deklamierte|rezitierte|sprach|redete|plapperte|schwadronierte|faselte|laberte|quasselte|schwätzte|quatschte|konversierte)" +
+            "\\s+([A-ZÄÖÜ][a-zäöüß]+(?:\\s+[A-ZÄÖÜ][a-zäöüß]+)?)\\b",
+            Pattern.CASE_INSENSITIVE
+        );
+        
+        Matcher matcher = namePattern.matcher(trimmedTag);
+        if (matcher.find()) {
+            String name = matcher.group(2);
+            logger.debug("Name gefunden in Gruppe 2: '{}'", name);
+            // Normalisiere den Namen (erster Buchstabe groß, Rest klein)
+            if (name != null && name.length() > 0) {
+                // Bei zusammengesetzten Namen (z.B. "von Berg") nur den ersten Teil nehmen
+                String[] parts = name.trim().split("\\s+");
+                if (parts.length > 0) {
+                    String firstName = parts[0];
+                    String normalized = firstName.substring(0, 1).toUpperCase() + firstName.substring(1).toLowerCase();
+                    logger.debug("Normalisierter Name: '{}'", normalized);
+                    return normalized;
+                }
+            }
+        } else {
+            logger.debug("Kein Name im Pattern gefunden für: '{}'", trimmedTag);
+        }
+        
+        return null;
     }
     
     /**
@@ -11871,6 +11913,10 @@ spacer.setStyle("-fx-background-color: transparent;");
         // Debug: Logge die Struktur
         logger.debug("Satzstruktur: textBefore='{}', quotedText='{}', speechTag='{}', textAfter='{}'", 
                      textBefore, quotedText, speechTag, textAfter);
+        
+        // Extrahiere den Namen aus dem Sprechantwort (falls vorhanden)
+        String characterName = extractCharacterNameFromSpeechTag(speechTag);
+        logger.debug("Extrahierten Namen aus Sprechantwort '{}': '{}'", speechTag, characterName);
         
         // Prüfe ob nach der wörtlichen Rede ein Komma kommt
         final boolean hasCommaAfterQuote;
@@ -11991,10 +12037,13 @@ spacer.setStyle("-fx-background-color: transparent;");
         
         promptBuilder.append("**WICHTIG - CHARAKTERE:**\n");
         promptBuilder.append("Im Kontext findest du die Datei '=== CHARAKTERE ===' mit Informationen zu allen Figuren. ");
-        promptBuilder.append("IDENTIFIZIERE ZUERST den Namen der sprechenden Figur aus dem Text. ");
-        promptBuilder.append("SCHLAGE DANN in den Charakterinformationen nach, um das RICHTIGE PRONOMEN (er/sie/ihr/sein) zu finden. ");
-        promptBuilder.append("VERWENDE IMMER die korrekten Pronomen aus den Charakterinformationen - wenn eine Figur weiblich ist, verwende 'sie', nicht 'er'. ");
-        promptBuilder.append("Die Beschreibung muss auch zu den Charaktereigenschaften der Figur passen.\n\n");
+        promptBuilder.append("IDENTIFIZIERE ZUERST den Namen der sprechenden Figur AUS DEM SPRECHANTWORT.\n\n");
+        promptBuilder.append("ZWINGENDE REGEL FÜR DIE ERSETZUNG:\n");
+        promptBuilder.append("- Wenn EIN NAME DER FIGUR IM SPRECHANTWORT steht (z.B. 'fragte Kata', 'sagte Jomar', 'erwiderte Dini', 'meinte Jaad'), ");
+        promptBuilder.append("MUSS dieser Name GENAU SO AUCH in der Ersetzung verwendet werden (z.B. 'Kata hob eine Augenbraue', 'Jomar zuckte die Schultern', 'Dini lächelte', 'Jaad nickte')\n");
+        promptBuilder.append("- Diese Regel gilt für ALLE Namen - wenn ein Name im Sprechantwort steht, verwende diesen Namen, NICHT ein Pronomen\n");
+        promptBuilder.append("- Wenn KEIN Name im Sprechantwort steht (z.B. nur 'sagte sie', 'fragte er'), verwende die RICHTIGEN PRONOMEN (er/sie/ihr/sein) aus den Charakterinformationen\n");
+        promptBuilder.append("- Die Beschreibung muss auch zu den Charaktereigenschaften der Figur passen.\n\n");
         
         promptBuilder.append("**WICHTIG - STIL:**\n");
         promptBuilder.append("Der Kapiteltext im Kontext zeigt dir den Schreibstil des Autors. ");
@@ -12008,6 +12057,21 @@ spacer.setStyle("-fx-background-color: transparent;");
         promptBuilder.append("Die Ersetzung muss im Stil des Autors geschrieben sein (siehe Kapiteltext im Kontext).\n\n");
         
         promptBuilder.append("**Sprechantwort zu ersetzen:** ").append(speechTag).append("\n\n");
+        
+        // Wenn ein Name im Sprechantwort gefunden wurde, erwähne ihn explizit
+        if (characterName != null && !characterName.isEmpty()) {
+            promptBuilder.append("**ZWINGEND - NAME GEFUNDEN:**\n");
+            promptBuilder.append("Im Sprechantwort wurde der Name '").append(characterName).append("' gefunden.\n");
+            promptBuilder.append("DIE ERSETZUNG MUSS MIT '").append(characterName).append("' BEGINNEN!\n");
+            promptBuilder.append("RICHTIG: '").append(characterName).append(" zuckte die Schultern.' oder '").append(characterName).append(" hob eine Augenbraue.'\n");
+            promptBuilder.append("FALSCH: 'Zuckte die Schultern.' oder 'Sie zuckte die Schultern.' oder 'Er zuckte die Schultern.'\n");
+            promptBuilder.append("DER NAME '").append(characterName).append("' MUSS AM ANFANG DER ERSETZUNG STEHEN - KEINE AUSNAHME!\n\n");
+        } else {
+            promptBuilder.append("**WICHTIG - KEIN NAME IM SPRECHANTWORT:**\n");
+            promptBuilder.append("Im Sprechantwort steht KEIN Name. ");
+            promptBuilder.append("VERWENDE EIN PRONOMEN (er/sie/ihr/sein) basierend auf den Charakterinformationen im Kontext. ");
+            promptBuilder.append("VERWENDE KEINE Namen aus dem Kontext - nur Pronomen.\n\n");
+        }
         
         if (!textBefore.isEmpty()) {
             promptBuilder.append("**Kontext:** Der Text davor lautet: \"").append(textBefore).append("\"\n\n");
@@ -12026,11 +12090,16 @@ spacer.setStyle("-fx-background-color: transparent;");
         }
         
         promptBuilder.append("**Regeln:**\n");
-        promptBuilder.append("- IDENTIFIZIERE die sprechende Figur AUS DEM TEXT\n");
-        promptBuilder.append("- WICHTIG: Wenn der Name der Figur im Sprechantwort steht (z.B. 'sagte Jomar'), verwende diesen Namen AUCH in der Ersetzung\n");
+        if (characterName != null && !characterName.isEmpty()) {
+            promptBuilder.append("- ZWINGEND: Die Ersetzung MUSS mit '").append(characterName).append("' beginnen (z.B. '").append(characterName).append(" zuckte die Schultern' NICHT 'Zuckte die Schultern' oder 'Sie zuckte die Schultern')\n");
+            promptBuilder.append("- DER NAME '").append(characterName).append("' IST VERBINDLICH - KEINE ERSETZUNG OHNE DIESEN NAMEN AM ANFANG!\n");
+        } else {
+            promptBuilder.append("- ZWINGEND: Wenn EIN NAME im Sprechantwort steht, MUSS dieser Name GENAU SO am Anfang der Ersetzung verwendet werden\n");
+            promptBuilder.append("- Wenn KEIN Name im Sprechantwort steht, verwende die RICHTIGEN PRONOMEN (er/sie/ihr/sein) aus den Charakterinformationen\n");
+        }
         promptBuilder.append("- Wenn KEIN Name im Sprechantwort steht, verwende die RICHTIGEN PRONOMEN (er/sie/ihr/sein) aus den Charakterinformationen im Kontext\n");
         if ("Kurz".equals(length)) {
-            promptBuilder.append("- WICHTIG: Die Ersetzung muss SEHR KURZ sein - maximal 3-5 Wörter, z.B. 'Sie knickte bestätigend.' oder 'Er lächelte zögernd.'\n");
+            promptBuilder.append("- WICHTIG: Die Ersetzung muss SEHR KURZ sein - maximal 3-10 Wörter \n");
             promptBuilder.append("- Keine ausführlichen Beschreibungen, keine langen Sätze, keine komplexen Formulierungen\n");
             promptBuilder.append("- Verwende einfache, prägnante Formulierungen im Stil des Autors\n");
         } else {
