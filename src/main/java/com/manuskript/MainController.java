@@ -91,6 +91,7 @@ import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.util.converter.DefaultStringConverter;
 import java.util.function.Consumer;
+import java.awt.Desktop;
 
 public class MainController implements Initializable {
     
@@ -718,6 +719,27 @@ public class MainController implements Initializable {
             
             event.setDropCompleted(success);
             event.consume();
+        });
+        
+        // Doppelklick-Handler für linke Tabelle: Datei mit Standardprogramm öffnen
+        tableViewAvailable.setOnMouseClicked(event -> {
+            if (event.getClickCount() == 2 && event.getButton() == MouseButton.PRIMARY) {
+                DocxFile selectedFile = tableViewAvailable.getSelectionModel().getSelectedItem();
+                if (selectedFile != null) {
+                    try {
+                        File file = selectedFile.getFile();
+                        if (file.exists() && Desktop.isDesktopSupported()) {
+                            Desktop.getDesktop().open(file);
+                            updateStatus("Datei geöffnet: " + file.getName());
+                        } else {
+                            updateStatus("Datei konnte nicht geöffnet werden: " + file.getName());
+                        }
+                    } catch (Exception e) {
+                        logger.error("Fehler beim Öffnen der Datei: {}", selectedFile.getFileName(), e);
+                        updateStatus("Fehler beim Öffnen der Datei: " + e.getMessage());
+                    }
+                }
+            }
         });
         
         // Mouse-Click-Handler für sofortige Selektion und Doppelklick zum Öffnen
