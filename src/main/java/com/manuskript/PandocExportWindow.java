@@ -1385,6 +1385,66 @@ public class PandocExportWindow extends CustomStage {
                 content = content.replaceAll("<s>([^<]+)</s>", "~~$1~~");
                 content = content.replaceAll("<del>([^<]+)</del>", "~~$1~~");
                 content = content.replaceAll("<mark>([^<]+)</mark>", "[$1]{.mark}");
+                
+                // Farbige Spans zu Custom-Styles konvertieren
+                // Pattern: <span style="color: red;">Text</span> -> [Text]{custom-style="RedText"}
+                // Unterstützte Farben: rot, blau, grün, gelb, lila, orange, grau
+                // Case-insensitive Matching für verschiedene Schreibweisen
+                // WICHTIG: Custom-Styles müssen als ZEICHENSTILE (Character Styles) in der Reference-DOC definiert sein!
+                // Spans verwenden Zeichenstile, nicht Absatzstile. Für Absatzstile müssten Divs verwendet werden.
+                content = content.replaceAll(
+                    "(?i)<span\\s+style\\s*=\\s*[\"']color:\\s*red[\"']>([^<]+)</span>", 
+                    "[$1]{custom-style=\"RedText\"}"
+                );
+                content = content.replaceAll(
+                    "(?i)<span\\s+style\\s*=\\s*[\"']color:\\s*blue[\"']>([^<]+)</span>", 
+                    "[$1]{custom-style=\"BlueText\"}"
+                );
+                content = content.replaceAll(
+                    "(?i)<span\\s+style\\s*=\\s*[\"']color:\\s*green[\"']>([^<]+)</span>", 
+                    "[$1]{custom-style=\"GreenText\"}"
+                );
+                content = content.replaceAll(
+                    "(?i)<span\\s+style\\s*=\\s*[\"']color:\\s*yellow[\"']>([^<]+)</span>", 
+                    "[$1]{custom-style=\"YellowText\"}"
+                );
+                content = content.replaceAll(
+                    "(?i)<span\\s+style\\s*=\\s*[\"']color:\\s*purple[\"']>([^<]+)</span>", 
+                    "[$1]{custom-style=\"PurpleText\"}"
+                );
+                content = content.replaceAll(
+                    "(?i)<span\\s+style\\s*=\\s*[\"']color:\\s*orange[\"']>([^<]+)</span>", 
+                    "[$1]{custom-style=\"OrangeText\"}"
+                );
+                content = content.replaceAll(
+                    "(?i)<span\\s+style\\s*=\\s*[\"']color:\\s*gray[\"']>([^<]+)</span>", 
+                    "[$1]{custom-style=\"GrayText\"}"
+                );
+                content = content.replaceAll(
+                    "(?i)<span\\s+style\\s*=\\s*[\"']color:\\s*grey[\"']>([^<]+)</span>", 
+                    "[$1]{custom-style=\"GrayText\"}"
+                );
+                
+                // Kurze Farb-Tags zu Custom-Styles konvertieren
+                // Englische Tags: <red>Text</red> -> [Text]{custom-style="RedText"}
+                content = content.replaceAll("(?i)<red>([^<]+)</red>", "[$1]{custom-style=\"RedText\"}");
+                content = content.replaceAll("(?i)<blue>([^<]+)</blue>", "[$1]{custom-style=\"BlueText\"}");
+                content = content.replaceAll("(?i)<green>([^<]+)</green>", "[$1]{custom-style=\"GreenText\"}");
+                content = content.replaceAll("(?i)<yellow>([^<]+)</yellow>", "[$1]{custom-style=\"YellowText\"}");
+                content = content.replaceAll("(?i)<purple>([^<]+)</purple>", "[$1]{custom-style=\"PurpleText\"}");
+                content = content.replaceAll("(?i)<orange>([^<]+)</orange>", "[$1]{custom-style=\"OrangeText\"}");
+                content = content.replaceAll("(?i)<gray>([^<]+)</gray>", "[$1]{custom-style=\"GrayText\"}");
+                content = content.replaceAll("(?i)<grey>([^<]+)</grey>", "[$1]{custom-style=\"GrayText\"}");
+                
+                // Deutsche Tags: <rot>Text</rot> -> [Text]{custom-style="RedText"}
+                content = content.replaceAll("(?i)<rot>([^<]+)</rot>", "[$1]{custom-style=\"RedText\"}");
+                content = content.replaceAll("(?i)<blau>([^<]+)</blau>", "[$1]{custom-style=\"BlueText\"}");
+                content = content.replaceAll("(?i)<grün>([^<]+)</grün>", "[$1]{custom-style=\"GreenText\"}");
+                content = content.replaceAll("(?i)<gelb>([^<]+)</gelb>", "[$1]{custom-style=\"YellowText\"}");
+                content = content.replaceAll("(?i)<lila>([^<]+)</lila>", "[$1]{custom-style=\"PurpleText\"}");
+                content = content.replaceAll("(?i)<orange>([^<]+)</orange>", "[$1]{custom-style=\"OrangeText\"}");
+                content = content.replaceAll("(?i)<grau>([^<]+)</grau>", "[$1]{custom-style=\"GrayText\"}");
+                
                 //small und big werden nicht unterstützt in DOCX 
                 content = content.replaceAll("<small>([^<]+)</small>", "[$1]{custom-style=\"Small\"}");
                 content = content.replaceAll("<big>([^<]+)</big>", "[$1]{custom-style=\"Large\"}");
@@ -1434,6 +1494,26 @@ public class PandocExportWindow extends CustomStage {
                 // Für EPUB/HTML: <c> Tags zu <center> konvertieren (HTML-Standard)
                 content = content.replaceAll("(?s)<c>(.*?)</c>", "<center>$1</center>");
                 // <center> Tags bleiben erhalten (HTML-Standard)
+                
+                // Kurze Farb-Tags zu HTML-Spans konvertieren
+                // Englische Tags: <red>Text</red> -> <span style="color: red;">Text</span>
+                content = content.replaceAll("(?i)<red>([^<]+)</red>", "<span style=\"color: red;\">$1</span>");
+                content = content.replaceAll("(?i)<blue>([^<]+)</blue>", "<span style=\"color: blue;\">$1</span>");
+                content = content.replaceAll("(?i)<green>([^<]+)</green>", "<span style=\"color: green;\">$1</span>");
+                content = content.replaceAll("(?i)<yellow>([^<]+)</yellow>", "<span style=\"color: yellow;\">$1</span>");
+                content = content.replaceAll("(?i)<purple>([^<]+)</purple>", "<span style=\"color: purple;\">$1</span>");
+                content = content.replaceAll("(?i)<orange>([^<]+)</orange>", "<span style=\"color: orange;\">$1</span>");
+                content = content.replaceAll("(?i)<gray>([^<]+)</gray>", "<span style=\"color: gray;\">$1</span>");
+                content = content.replaceAll("(?i)<grey>([^<]+)</grey>", "<span style=\"color: gray;\">$1</span>");
+                
+                // Deutsche Tags: <rot>Text</rot> -> <span style="color: red;">Text</span>
+                content = content.replaceAll("(?i)<rot>([^<]+)</rot>", "<span style=\"color: red;\">$1</span>");
+                content = content.replaceAll("(?i)<blau>([^<]+)</blau>", "<span style=\"color: blue;\">$1</span>");
+                content = content.replaceAll("(?i)<grün>([^<]+)</grün>", "<span style=\"color: green;\">$1</span>");
+                content = content.replaceAll("(?i)<gelb>([^<]+)</gelb>", "<span style=\"color: yellow;\">$1</span>");
+                content = content.replaceAll("(?i)<lila>([^<]+)</lila>", "<span style=\"color: purple;\">$1</span>");
+                content = content.replaceAll("(?i)<orange>([^<]+)</orange>", "<span style=\"color: orange;\">$1</span>");
+                content = content.replaceAll("(?i)<grau>([^<]+)</grau>", "<span style=\"color: gray;\">$1</span>");
             }
             
             // Nur schreiben wenn sich etwas geändert hat
@@ -1662,12 +1742,21 @@ public class PandocExportWindow extends CustomStage {
             // Daher wird sie nur verwendet, wenn explizit eine Vorlage ausgewählt wurde
             // und der Benutzer die Formatierung aus der Vorlage wünscht
             if (templateFile != null) {
-                command.add("--reference-doc=\"" + templateFile.getAbsolutePath() + "\"");
-                logger.info("Verwende Reference-DOC: {}", templateFile.getAbsolutePath());
+                // Validierung der Reference-DOC vor Verwendung
+                boolean isValidReferenceDoc = validateReferenceDoc(templateFile);
+                if (isValidReferenceDoc) {
+                    // ProcessBuilder behandelt Pfade mit Leerzeichen automatisch korrekt
+                    // Keine manuellen Anführungszeichen nötig - ProcessBuilder escaped automatisch
+                    command.add("--reference-doc=" + templateFile.getAbsolutePath());
+                    logger.info("Verwende Reference-DOC: {}", templateFile.getAbsolutePath());
+                } else {
+                    logger.warn("Reference-DOC konnte nicht validiert werden: {}. Export ohne Reference-DOC.", templateFile.getAbsolutePath());
+                    logger.warn("Mögliche Ursachen: Datei ist gesperrt (von Word geöffnet?), beschädigt oder nicht lesbar.");
+                }
             } else {
                 logger.info("Keine Reference-DOC verwendet - Tabellen und Listen sollten korrekt funktionieren");
             }
-                command.add("--highlight-style=tango");
+                command.add("--syntax-highlighting=tango");
                 command.add("--reference-links");
                 // Reihenfolge der Elemente beibehalten (kein Wrapping)
                 command.add("--wrap=none");
@@ -1985,7 +2074,12 @@ public class PandocExportWindow extends CustomStage {
             pb.environment().put("MIKTEX_DISABLE_INSTALLER", "1");
             pb.environment().put("MIKTEX_DISABLE_AUTO_INSTALL", "1");
 
+            // Logge den vollständigen Pandoc-Befehl für Debugging
+            logger.info("Starte Pandoc mit Befehl: {}", String.join(" ", command));
+            logger.debug("Arbeitsverzeichnis: {}", pb.directory() != null ? pb.directory().getAbsolutePath() : "null");
+
             Process process = pb.start();
+            logger.info("Pandoc-Prozess gestartet, PID: {}", process.pid());
 
             // Standard-Output und Standard-Error auslesen für bessere Fehlerdiagnose
             StringBuilder output = new StringBuilder();
@@ -2098,8 +2192,30 @@ public class PandocExportWindow extends CustomStage {
             outputThread.start();
             errorThread.start();
 
-            // Warten auf Beendigung
-            int exitCode = process.waitFor();
+            // Warten auf Beendigung mit Timeout (1 Minute)
+            // Wenn Pandoc beim Verarbeiten der Reference-DOC hängen bleibt, wird der Prozess nach Timeout beendet
+            logger.info("Warte auf Pandoc-Prozess-Beendigung (Timeout: 1 Minute)...");
+            int exitCode = -1;
+            boolean processCompleted = false;
+            long startTime = System.currentTimeMillis();
+            try {
+                processCompleted = process.waitFor(1, java.util.concurrent.TimeUnit.MINUTES);
+                long duration = System.currentTimeMillis() - startTime;
+                if (processCompleted) {
+                    exitCode = process.exitValue();
+                    logger.info("Pandoc-Prozess beendet nach {} ms mit Exit-Code: {}", duration, exitCode);
+                } else {
+                    logger.error("Pandoc-Prozess hat das Timeout überschritten (1 Minute, {} ms). Prozess wird beendet.", duration);
+                    process.destroyForcibly();
+                    exitCode = -1;
+                }
+            } catch (InterruptedException e) {
+                long duration = System.currentTimeMillis() - startTime;
+                logger.error("Warten auf Pandoc-Prozess wurde nach {} ms unterbrochen", duration);
+                process.destroyForcibly();
+                Thread.currentThread().interrupt();
+                exitCode = -1;
+            }
             
             // Warten bis beide Threads fertig sind (mit Timeout)
             try {
@@ -4917,5 +5033,65 @@ public class PandocExportWindow extends CustomStage {
         
         // Liste zurücksetzen
         copiedImageFiles.clear();
+    }
+    
+    /**
+     * Validiert eine Reference-DOC-Datei vor der Verwendung
+     * Prüft ob die Datei existiert, lesbar ist und nicht gesperrt ist
+     * @param referenceDoc Die zu validierende Reference-DOC-Datei
+     * @return true wenn die Datei gültig ist, false sonst
+     */
+    private boolean validateReferenceDoc(File referenceDoc) {
+        if (referenceDoc == null) {
+            logger.warn("Reference-DOC ist null");
+            return false;
+        }
+        
+        if (!referenceDoc.exists()) {
+            logger.warn("Reference-DOC existiert nicht: {}", referenceDoc.getAbsolutePath());
+            return false;
+        }
+        
+        if (!referenceDoc.canRead()) {
+            logger.warn("Reference-DOC ist nicht lesbar: {}", referenceDoc.getAbsolutePath());
+            return false;
+        }
+        
+        if (referenceDoc.length() == 0) {
+            logger.warn("Reference-DOC ist leer: {}", referenceDoc.getAbsolutePath());
+            return false;
+        }
+        
+        // Prüfe ob die Datei gesperrt ist (z.B. von Word geöffnet)
+        // Versuche die Datei zu öffnen und zu lesen
+        try {
+            // Versuche die Datei zu öffnen und zu lesen
+            try (java.io.FileInputStream fis = new java.io.FileInputStream(referenceDoc)) {
+                byte[] buffer = new byte[1024];
+                int bytesRead = fis.read(buffer);
+                if (bytesRead == -1) {
+                    logger.warn("Reference-DOC konnte nicht gelesen werden (Datei leer oder gesperrt): {}", referenceDoc.getAbsolutePath());
+                    return false;
+                }
+                
+                // Prüfe DOCX-Signatur (ZIP-Format: beginnt mit PK)
+                if (bytesRead >= 2 && buffer[0] == 0x50 && buffer[1] == 0x4B) {
+                    logger.debug("Reference-DOC ist gültig (DOCX-Signatur erkannt): {}", referenceDoc.getAbsolutePath());
+                    return true;
+                } else {
+                    logger.warn("Reference-DOC hat keine gültige DOCX-Signatur: {}", referenceDoc.getAbsolutePath());
+                    return false;
+                }
+            }
+        } catch (java.io.FileNotFoundException e) {
+            logger.warn("Reference-DOC ist gesperrt oder nicht zugänglich: {} - {}", referenceDoc.getAbsolutePath(), e.getMessage());
+            return false;
+        } catch (java.io.IOException e) {
+            logger.warn("Fehler beim Lesen der Reference-DOC: {} - {}", referenceDoc.getAbsolutePath(), e.getMessage());
+            return false;
+        } catch (Exception e) {
+            logger.warn("Unerwarteter Fehler bei Reference-DOC-Validierung: {} - {}", referenceDoc.getAbsolutePath(), e.getMessage());
+            return false;
+        }
     }
 }

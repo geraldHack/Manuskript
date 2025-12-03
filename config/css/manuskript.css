@@ -3447,6 +3447,400 @@
     -fx-background-color: #ba68c8 !important;
 }
 
+/* Primäre Buttons in der Toolbar - für alle Themes */
+.weiss-theme .toolbar .button.primary,
+.weiss-theme .font-toolbar .button.primary {
+    -fx-background-color: #007bff !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-border-color: #0056b3 !important;
+}
+
+.weiss-theme .toolbar .button.primary:hover,
+.weiss-theme .font-toolbar .button.primary:hover {
+    -fx-background-color: #0056b3 !important;
+}
+
+.theme-dark .toolbar .button.primary,
+.theme-dark .font-toolbar .button.primary {
+    -fx-background-color: #3b82f6 !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-border-color: #1d4ed8 !important;
+}
+
+.theme-dark .toolbar .button.primary:hover,
+.theme-dark .font-toolbar .button.primary:hover {
+    -fx-background-color: #2563eb !important;
+}
+
+.pastell-theme .toolbar .button.primary,
+.pastell-theme .font-toolbar .button.primary {
+    -fx-background-color: #ba68c8 !important;
+    -fx-text-fill: #000000 !important;
+    -fx-border-color: #9c27b0 !important;
+}
+
+.pastell-theme .toolbar .button.primary:hover,
+.pastell-theme .font-toolbar .button.primary:hover {
+    -fx-background-color: #ab47bc !important;
+}
+
+.theme-dark.blau-theme .toolbar .button.primary,
+.theme-dark.blau-theme .font-toolbar .button.primary {
+    -fx-background-color: #1d4ed8 !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-border-color: #1e3a8a !important;
+}
+
+.theme-dark.blau-theme .toolbar .button.primary:hover,
+.theme-dark.blau-theme .font-toolbar .button.primary:hover {
+    -fx-background-color: #2563eb !important;
+}
+
+.theme-dark.gruen-theme .toolbar .button.primary,
+.theme-dark.gruen-theme .font-toolbar .button.primary {
+    -fx-background-color: #047857 !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-border-color: #064e3b !important;
+}
+
+.theme-dark.gruen-theme .toolbar .button.primary:hover,
+.theme-dark.gruen-theme .font-toolbar .button.primary:hover {
+    -fx-background-color: #059669 !important;
+}
+
+.theme-dark.lila-theme .toolbar .button.primary,
+.theme-dark.lila-theme .font-toolbar .button.primary {
+    -fx-background-color: #6d28d9 !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-border-color: #4c1d95 !important;
+}
+
+.theme-dark.lila-theme .toolbar .button.primary:hover,
+.theme-dark.lila-theme .font-toolbar .button.primary:hover {
+    -fx-background-color: #7c3aed !important;
+}
+
+/* Primäre Toolbar-Buttons (Formatierungs-Leiste) - für alle Themes */
+/* Verwende ID-Selektor für höchste Spezifität - ohne !important */
+.weiss-theme .font-toolbar #btnColorMenu.toolbar-button.primary {
+    -fx-background-color: #007bff;
+    -fx-text-fill: #ffffff;
+    -fx-border-color: #0056b3;
+}
+
+.weiss-theme .font-toolbar #btnColorMenu.toolbar-button.primary:hover {
+    -fx-background-color: #0056b3;
+}
+
+.theme-dark .font-toolbar #btnColorMenu.toolbar-button.primary {
+    -fx-background-color: #3b82f6;
+    -fx-text-fill: #ffffff;
+    -fx-border-color: #1d4ed8;
+}
+
+.theme-dark .font-toolbar #btnColorMenu.toolbar-button.primary:hover {
+    -fx-background-color: #2563eb;
+}
+
+.pastell-theme .font-toolbar #btnColorMenu.toolbar-button.primary {
+    -fx-background-color: #ba68c8;
+    -fx-text-fill: #000000;
+    -fx-border-color: #9c27b0;
+}
+
+.pastell-theme .font-toolbar #btnColorMenu.toolbar-button.primary:hover {
+    -fx-background-color: #ab47bc;
+}
+
+.theme-dark.blau-theme .font-toolbar #btnColorMenu.toolbar-button.primary {
+    -fx-background-color: #1d4ed8;
+    -fx-text-fill: #ffffff;
+    -fx-border-color: #1e3a8a;
+}
+
+.theme-dark.blau-theme .font-toolbar #btnColorMenu.toolbar-button.primary:hover {
+    -fx-background-color: #2563eb;
+}
+
+.theme-dark.gruen-theme .font-toolbar #btnColorMenu.toolbar-button.primary {
+    -fx-background-color: #047857;
+    -fx-text-fill: #ffffff;
+    -fx-border-color: #064e3b;
+}
+
+.theme-dark.gruen-theme .font-toolbar #btnColorMenu.toolbar-button.primary:hover {
+    -fx-background-color: #059669;
+}
+
+.theme-dark.lila-theme .font-toolbar #btnColorMenu.toolbar-button.primary {
+    -fx-background-color: #6d28d9;
+    -fx-text-fill: #ffffff;
+    -fx-border-color: #4c1d95;
+}
+
+.theme-dark.lila-theme .font-toolbar #btnColorMenu.toolbar-button.primary:hover {
+    -fx-background-color: #7c3aed;
+}
+
+/* Farb-Button MenuButton - verwendet die gleichen Farben wie normale Toolbar-Buttons */
+.weiss-theme .font-toolbar #btnColorMenu.toolbar-button {
+    -fx-background-color: #f8f9fa !important;
+    -fx-text-fill: #000000 !important;
+    -fx-border-color: #dee2e6 !important;
+    -fx-border-width: 1px !important;
+    -fx-border-radius: 4px !important;
+    -fx-background-radius: 4px !important;
+    -fx-padding: 6px 8px !important;
+}
+
+.weiss-theme .font-toolbar #btnColorMenu.toolbar-button .label {
+    -fx-background-color: transparent !important;
+    -fx-text-fill: #000000 !important;
+    -fx-padding: 0 !important;
+}
+
+.weiss-theme .font-toolbar #btnColorMenu.toolbar-button .container {
+    -fx-background-color: transparent !important;
+}
+
+.weiss-theme .font-toolbar #btnColorMenu.toolbar-button .arrow-button {
+    -fx-background-color: transparent !important;
+}
+
+.weiss-theme .font-toolbar #btnColorMenu.toolbar-button .arrow-button .arrow {
+    -fx-background-color: #000000 !important;
+}
+
+.weiss-theme .font-toolbar #btnColorMenu.toolbar-button:hover {
+    -fx-background-color: #e9ecef !important;
+    -fx-border-color: #dee2e6 !important;
+    -fx-border-width: 1px !important;
+}
+
+.weiss-theme .font-toolbar #btnColorMenu.toolbar-button:hover .label {
+    -fx-background-color: transparent !important;
+    -fx-text-fill: #000000 !important;
+}
+
+.weiss-theme .font-toolbar #btnColorMenu.toolbar-button:hover .container {
+    -fx-background-color: transparent !important;
+}
+
+.theme-dark .font-toolbar #btnColorMenu.toolbar-button {
+    -fx-background-color: #495057 !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-border-color: #6c757d !important;
+    -fx-border-width: 1px !important;
+    -fx-border-radius: 4px !important;
+    -fx-background-radius: 4px !important;
+    -fx-padding: 6px 8px !important;
+}
+
+.theme-dark .font-toolbar #btnColorMenu.toolbar-button .label {
+    -fx-background-color: transparent !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-padding: 0 !important;
+}
+
+.theme-dark .font-toolbar #btnColorMenu.toolbar-button .container {
+    -fx-background-color: transparent !important;
+}
+
+.theme-dark .font-toolbar #btnColorMenu.toolbar-button .arrow-button {
+    -fx-background-color: transparent !important;
+}
+
+.theme-dark .font-toolbar #btnColorMenu.toolbar-button .arrow-button .arrow {
+    -fx-background-color: #ffffff !important;
+}
+
+.theme-dark .font-toolbar #btnColorMenu.toolbar-button:hover {
+    -fx-background-color: #6c757d !important;
+    -fx-border-color: #6c757d !important;
+    -fx-border-width: 1px !important;
+}
+
+.theme-dark .font-toolbar #btnColorMenu.toolbar-button:hover .label {
+    -fx-background-color: transparent !important;
+    -fx-text-fill: #ffffff !important;
+}
+
+.theme-dark .font-toolbar #btnColorMenu.toolbar-button:hover .container {
+    -fx-background-color: transparent !important;
+}
+
+.pastell-theme .font-toolbar #btnColorMenu.toolbar-button {
+    -fx-background-color: #e1bee7 !important;
+    -fx-text-fill: #000000 !important;
+    -fx-border-color: #ba68c8 !important;
+    -fx-border-width: 1px !important;
+    -fx-border-radius: 4px !important;
+    -fx-background-radius: 4px !important;
+    -fx-padding: 6px 8px !important;
+}
+
+.pastell-theme .font-toolbar #btnColorMenu.toolbar-button .label {
+    -fx-background-color: transparent !important;
+    -fx-text-fill: #000000 !important;
+    -fx-padding: 0 !important;
+}
+
+.pastell-theme .font-toolbar #btnColorMenu.toolbar-button .container {
+    -fx-background-color: transparent !important;
+}
+
+.pastell-theme .font-toolbar #btnColorMenu.toolbar-button .arrow-button {
+    -fx-background-color: transparent !important;
+}
+
+.pastell-theme .font-toolbar #btnColorMenu.toolbar-button .arrow-button .arrow {
+    -fx-background-color: #000000 !important;
+}
+
+.pastell-theme .font-toolbar #btnColorMenu.toolbar-button:hover {
+    -fx-background-color: #ce93d8 !important;
+    -fx-border-color: #ba68c8 !important;
+    -fx-border-width: 1px !important;
+}
+
+.pastell-theme .font-toolbar #btnColorMenu.toolbar-button:hover .label {
+    -fx-background-color: transparent !important;
+    -fx-text-fill: #000000 !important;
+}
+
+.pastell-theme .font-toolbar #btnColorMenu.toolbar-button:hover .container {
+    -fx-background-color: transparent !important;
+}
+
+.theme-dark.blau-theme .font-toolbar #btnColorMenu.toolbar-button {
+    -fx-background-color: #3b82f6 !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-border-color: #1d4ed8 !important;
+    -fx-border-width: 1px !important;
+    -fx-border-radius: 4px !important;
+    -fx-background-radius: 4px !important;
+    -fx-padding: 6px 8px !important;
+}
+
+.theme-dark.blau-theme .font-toolbar #btnColorMenu.toolbar-button .label {
+    -fx-background-color: transparent !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-padding: 0 !important;
+}
+
+.theme-dark.blau-theme .font-toolbar #btnColorMenu.toolbar-button .container {
+    -fx-background-color: transparent !important;
+}
+
+.theme-dark.blau-theme .font-toolbar #btnColorMenu.toolbar-button .arrow-button {
+    -fx-background-color: transparent !important;
+}
+
+.theme-dark.blau-theme .font-toolbar #btnColorMenu.toolbar-button .arrow-button .arrow {
+    -fx-background-color: #ffffff !important;
+}
+
+.theme-dark.blau-theme .font-toolbar #btnColorMenu.toolbar-button:hover {
+    -fx-background-color: #2563eb !important;
+    -fx-border-color: #1d4ed8 !important;
+    -fx-border-width: 1px !important;
+}
+
+.theme-dark.blau-theme .font-toolbar #btnColorMenu.toolbar-button:hover .label {
+    -fx-background-color: transparent !important;
+    -fx-text-fill: #ffffff !important;
+}
+
+.theme-dark.blau-theme .font-toolbar #btnColorMenu.toolbar-button:hover .container {
+    -fx-background-color: transparent !important;
+}
+
+.theme-dark.gruen-theme .font-toolbar #btnColorMenu.toolbar-button {
+    -fx-background-color: #065f46 !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-border-color: #10b981 !important;
+    -fx-border-width: 1px !important;
+    -fx-border-radius: 4px !important;
+    -fx-background-radius: 4px !important;
+    -fx-padding: 6px 8px !important;
+}
+
+.theme-dark.gruen-theme .font-toolbar #btnColorMenu.toolbar-button .label {
+    -fx-background-color: transparent !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-padding: 0 !important;
+}
+
+.theme-dark.gruen-theme .font-toolbar #btnColorMenu.toolbar-button .container {
+    -fx-background-color: transparent !important;
+}
+
+.theme-dark.gruen-theme .font-toolbar #btnColorMenu.toolbar-button .arrow-button {
+    -fx-background-color: transparent !important;
+}
+
+.theme-dark.gruen-theme .font-toolbar #btnColorMenu.toolbar-button .arrow-button .arrow {
+    -fx-background-color: #ffffff !important;
+}
+
+.theme-dark.gruen-theme .font-toolbar #btnColorMenu.toolbar-button:hover {
+    -fx-background-color: #059669 !important;
+    -fx-border-color: #10b981 !important;
+    -fx-border-width: 1px !important;
+}
+
+.theme-dark.gruen-theme .font-toolbar #btnColorMenu.toolbar-button:hover .label {
+    -fx-background-color: transparent !important;
+    -fx-text-fill: #ffffff !important;
+}
+
+.theme-dark.gruen-theme .font-toolbar #btnColorMenu.toolbar-button:hover .container {
+    -fx-background-color: transparent !important;
+}
+
+.theme-dark.lila-theme .font-toolbar #btnColorMenu.toolbar-button {
+    -fx-background-color: #4c1d95 !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-border-color: #7c3aed !important;
+    -fx-border-width: 1px !important;
+    -fx-border-radius: 4px !important;
+    -fx-background-radius: 4px !important;
+    -fx-padding: 6px 8px !important;
+}
+
+.theme-dark.lila-theme .font-toolbar #btnColorMenu.toolbar-button .label {
+    -fx-background-color: transparent !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-padding: 0 !important;
+}
+
+.theme-dark.lila-theme .font-toolbar #btnColorMenu.toolbar-button .container {
+    -fx-background-color: transparent !important;
+}
+
+.theme-dark.lila-theme .font-toolbar #btnColorMenu.toolbar-button .arrow-button {
+    -fx-background-color: transparent !important;
+}
+
+.theme-dark.lila-theme .font-toolbar #btnColorMenu.toolbar-button .arrow-button .arrow {
+    -fx-background-color: #ffffff !important;
+}
+
+.theme-dark.lila-theme .font-toolbar #btnColorMenu.toolbar-button:hover {
+    -fx-background-color: #6d28d9 !important;
+    -fx-border-color: #7c3aed !important;
+    -fx-border-width: 1px !important;
+}
+
+.theme-dark.lila-theme .font-toolbar #btnColorMenu.toolbar-button:hover .label {
+    -fx-background-color: transparent !important;
+    -fx-text-fill: #ffffff !important;
+}
+
+.theme-dark.lila-theme .font-toolbar #btnColorMenu.toolbar-button:hover .container {
+    -fx-background-color: transparent !important;
+}
+
 /* ========================================
    MAKROS-STAGE STYLING FÜR ALLE THEMES
    ======================================== */
@@ -7029,6 +7423,44 @@
     -fx-font-size: 1.2em;
 }
 
+/* Markdown-Farben im Editor (Textfarbe) */
+.code-area .markdown-color-red {
+    -fx-fill: #dc3545 !important; /* Rot */
+}
+
+.code-area .markdown-color-blue {
+    -fx-fill: #007bff !important; /* Blau */
+}
+
+.code-area .markdown-color-green {
+    -fx-fill: #28a745 !important; /* Grün */
+}
+
+.code-area .markdown-color-yellow {
+    -fx-fill: #ffc107 !important; /* Gelb */
+}
+
+.code-area .markdown-color-purple {
+    -fx-fill: #6f42c1 !important; /* Lila */
+}
+
+.code-area .markdown-color-orange {
+    -fx-fill: #fd7e14 !important; /* Orange */
+}
+
+.code-area .markdown-color-gray {
+    -fx-fill: #6c757d !important; /* Grau */
+}
+
+/* Theme-spezifische Anpassungen für Farben */
+.theme-dark .code-area .markdown-color-yellow {
+    -fx-fill: #ffd700 !important; /* Helleres Gelb für dunkle Themes */
+}
+
+.theme-dark .code-area .markdown-color-gray {
+    -fx-fill: #adb5bd !important; /* Helleres Grau für dunkle Themes */
+}
+
 /* ========================================
    SUCHE MARKIERUNGEN IN TABELLE
    ======================================== */
@@ -7413,6 +7845,12 @@
    ======================================== */
 
 /* Weiß-Theme Kontextmenü */
+/* Farb-Menü-Button: Dropdown-Menü breiter machen */
+#btnColorMenu .context-menu {
+    -fx-min-width: 120px;
+    -fx-pref-width: 120px;
+}
+
 .weiss-theme .context-menu {
     -fx-background-color: #ffffff;
     -fx-text-fill: #000000;

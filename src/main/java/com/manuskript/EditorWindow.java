@@ -181,6 +181,7 @@ public class EditorWindow implements Initializable {
     @FXML private Button btnBig;
     @FXML private Button btnSmall;
     @FXML private Button btnMark;
+    @FXML private MenuButton btnColorMenu;
     @FXML private Button btnThemeToggle;
     @FXML private ComboBox<String> cmbQuoteStyle;
     // Zeilenabstand-ComboBox entfernt - wird von RichTextFX nicht unterstützt
@@ -542,7 +543,9 @@ if (caret != null) {
         
         // VirtualizedScrollPane für bessere Performance
         scrollPane = new VirtualizedScrollPane<>(codeArea);
-        scrollPane.getStyleClass().add("code-area");
+        // WICHTIG: VirtualizedScrollPane sollte NICHT die CSS-Klasse "code-area" haben,
+        // da diese nur für die CodeArea selbst gedacht ist
+        // scrollPane.getStyleClass().add("code-area"); // ENTFERNT
         
         // Padding für die ScrollPane (links 0, damit es am Rand klebt)
         scrollPane.setStyle("-fx-padding: 5px 5px 5px 0px;");
@@ -846,6 +849,21 @@ if (caret != null) {
         if (btnMark != null) {
             btnMark.setOnAction(e -> formatTextMark());
             btnMark.setTooltip(new Tooltip("Text markieren (<mark>)"));
+        }
+        if (btnColorMenu != null) {
+            btnColorMenu.setTooltip(new Tooltip("Textfarbe ändern"));
+            btnColorMenu.setVisible(true);
+            btnColorMenu.setManaged(true);
+            // Stelle sicher, dass der Button breit genug ist für "Textfarbe"
+            btnColorMenu.setMinWidth(100);
+            btnColorMenu.setPrefWidth(100);
+            btnColorMenu.setMaxWidth(100);
+            // Dropdown nach unten öffnen (Standard)
+            btnColorMenu.setPopupSide(javafx.geometry.Side.BOTTOM);
+            // ID setzen für CSS-Selektor (Dropdown-Breite wird über CSS gesetzt)
+            btnColorMenu.setId("btnColorMenu");
+        } else {
+            logger.warn("btnColorMenu ist null - Button wurde nicht aus FXML geladen!");
         }
         btnThemeToggle.setOnAction(e -> toggleTheme());
         
@@ -9840,10 +9858,10 @@ spacer.setStyle("-fx-background-color: transparent;");
         
         // Wende die validierten Eigenschaften an
         PreferencesManager.MultiMonitorValidator.applyWindowProperties(stage, windowBounds);
-        
-        // Mindestgrößen für Editor-Fenster setzen
-        stage.setMinWidth(PreferencesManager.MIN_EDITOR_WIDTH);
-        stage.setMinHeight(PreferencesManager.MIN_EDITOR_HEIGHT);
+
+        // Mindestgrößen setzen, damit das Fenster nicht unter die Layout-Grenzen schrumpft
+        stage.setMinWidth(1500);
+        stage.setMinHeight(PreferencesManager.MIN_WINDOW_HEIGHT);
         
         // WICHTIG: Listener für Fenster-Änderungen hinzufügen
         addWindowPropertyListeners();
@@ -10489,6 +10507,42 @@ spacer.setStyle("-fx-background-color: transparent;");
         insertHtmlTags("<mark>", "</mark>");
     }
     
+    // Farb-Formatierungsfunktionen
+    @FXML
+    private void formatTextColorRed() {
+        insertHtmlTags("<red>", "</red>");
+    }
+    
+    @FXML
+    private void formatTextColorBlue() {
+        insertHtmlTags("<blue>", "</blue>");
+    }
+    
+    @FXML
+    private void formatTextColorGreen() {
+        insertHtmlTags("<green>", "</green>");
+    }
+    
+    @FXML
+    private void formatTextColorYellow() {
+        insertHtmlTags("<yellow>", "</yellow>");
+    }
+    
+    @FXML
+    private void formatTextColorPurple() {
+        insertHtmlTags("<purple>", "</purple>");
+    }
+    
+    @FXML
+    private void formatTextColorOrange() {
+        insertHtmlTags("<orange>", "</orange>");
+    }
+    
+    @FXML
+    private void formatTextColorGray() {
+        insertHtmlTags("<gray>", "</gray>");
+    }
+    
     private void toggleTheme() {
         currentThemeIndex = (currentThemeIndex + 1) % THEMES.length;
         
@@ -10742,6 +10796,7 @@ spacer.setStyle("-fx-background-color: transparent;");
             if (btnMark != null) {
                 applyThemeToNode(btnMark, themeIndex);
             }
+            // btnColorMenu wird NICHT mit applyThemeToNode behandelt (wird am Ende aufgerufen)
             applyThemeToNode(btnThemeToggle, themeIndex);
             // btnMacroRegexHelp wurde entfernt
             
@@ -11158,6 +11213,38 @@ spacer.setStyle("-fx-background-color: transparent;");
             this.styleClass = styleClass;
         }
     }
+    
+    /**
+     * Gibt die CSS-Klasse für englische Farb-Tags zurück
+     */
+    private String getColorStyleClass(String colorTag) {
+        switch (colorTag.toLowerCase()) {
+            case "red": return "markdown-color-red";
+            case "blue": return "markdown-color-blue";
+            case "green": return "markdown-color-green";
+            case "yellow": return "markdown-color-yellow";
+            case "purple": return "markdown-color-purple";
+            case "orange": return "markdown-color-orange";
+            case "gray":
+            case "grey": return "markdown-color-gray";
+            default: return null;
+        }
+    }
+    
+    /**
+     * Gibt die CSS-Klasse für deutsche Farb-Tags zurück
+     */
+    private String getColorStyleClassDe(String colorTag) {
+        switch (colorTag.toLowerCase()) {
+            case "rot": return "markdown-color-red";
+            case "blau": return "markdown-color-blue";
+            case "grün": return "markdown-color-green";
+            case "gelb": return "markdown-color-yellow";
+            case "lila": return "markdown-color-purple";
+            case "grau": return "markdown-color-gray";
+            default: return null;
+        }
+    }
     /**
      * Einfache Timer-basierte Markdown-Styling-Methode
      * Verwendet setStyleSpans() wie bei der Suche
@@ -11363,6 +11450,70 @@ spacer.setStyle("-fx-background-color: transparent;");
                         (start <= m.start && end >= m.end));
                     if (!alreadyCovered) {
                         markdownMatches.add(new MarkdownMatch(start, end, "markdown-" + tag));
+                    }
+                }
+            }
+            
+            // HTML Farb-Tags: <red>text</red>, <rot>text</rot>, etc.
+            // Englische Tags
+            Pattern htmlColorPattern = Pattern.compile("<(red|blue|green|yellow|purple|orange|gray|grey)>([\\s\\S]*?)</(red|blue|green|yellow|purple|orange|gray|grey)>", Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+            Matcher htmlColorMatcher = htmlColorPattern.matcher(content);
+            
+            while (htmlColorMatcher.find()) {
+                int start = htmlColorMatcher.start(2);
+                int end = htmlColorMatcher.end(2);
+                if (end > start) {
+                    String colorTag = htmlColorMatcher.group(1).toLowerCase();
+                    String styleClass = getColorStyleClass(colorTag);
+                    if (styleClass != null) {
+                        boolean alreadyCovered = markdownMatches.stream().anyMatch(m -> 
+                            (start >= m.start && start < m.end) || (end > m.start && end <= m.end) ||
+                            (start <= m.start && end >= m.end));
+                        if (!alreadyCovered) {
+                            markdownMatches.add(new MarkdownMatch(start, end, styleClass));
+                        }
+                    }
+                }
+            }
+            
+            // Deutsche Farb-Tags: <rot>text</rot>, <blau>text</blau>, etc.
+            Pattern htmlColorDePattern = Pattern.compile("<(rot|blau|grün|gelb|lila|grau)>([\\s\\S]*?)</(rot|blau|grün|gelb|lila|grau)>", Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+            Matcher htmlColorDeMatcher = htmlColorDePattern.matcher(content);
+            
+            while (htmlColorDeMatcher.find()) {
+                int start = htmlColorDeMatcher.start(2);
+                int end = htmlColorDeMatcher.end(2);
+                if (end > start) {
+                    String colorTag = htmlColorDeMatcher.group(1).toLowerCase();
+                    String styleClass = getColorStyleClassDe(colorTag);
+                    if (styleClass != null) {
+                        boolean alreadyCovered = markdownMatches.stream().anyMatch(m -> 
+                            (start >= m.start && start < m.end) || (end > m.start && end <= m.end) ||
+                            (start <= m.start && end >= m.end));
+                        if (!alreadyCovered) {
+                            markdownMatches.add(new MarkdownMatch(start, end, styleClass));
+                        }
+                    }
+                }
+            }
+            
+            // HTML Span mit color-Style: <span style="color: red;">text</span>
+            Pattern htmlSpanColorPattern = Pattern.compile("<span\\s+style\\s*=\\s*[\"']color:\\s*(red|blue|green|yellow|purple|orange|gray|grey)[\"']>([\\s\\S]*?)</span>", Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+            Matcher htmlSpanColorMatcher = htmlSpanColorPattern.matcher(content);
+            
+            while (htmlSpanColorMatcher.find()) {
+                int start = htmlSpanColorMatcher.start(2);
+                int end = htmlSpanColorMatcher.end(2);
+                if (end > start) {
+                    String color = htmlSpanColorMatcher.group(1).toLowerCase();
+                    String styleClass = getColorStyleClass(color);
+                    if (styleClass != null) {
+                        boolean alreadyCovered = markdownMatches.stream().anyMatch(m -> 
+                            (start >= m.start && start < m.end) || (end > m.start && end <= m.end) ||
+                            (start <= m.start && end >= m.end));
+                        if (!alreadyCovered) {
+                            markdownMatches.add(new MarkdownMatch(start, end, styleClass));
+                        }
                     }
                 }
             }
@@ -14089,7 +14240,7 @@ spacer.setStyle("-fx-background-color: transparent;");
         result = imageBuffer.toString();
         
         // Dann andere Inline-Markdown-Elemente konvertieren
-        return result
+        result = result
             // Fett (zwei Sternchen)
             .replaceAll("\\*\\*(.*?)\\*\\*", "<strong>$1</strong>")
             // Kursiv (ein Sternchen) - aber nicht wenn es bereits fett ist
@@ -14102,6 +14253,27 @@ spacer.setStyle("-fx-background-color: transparent;");
             .replaceAll("~~(.*?)~~", "<span class=\"strikethrough\">$1</span>")
             // Hervorgehoben (zwei Gleichheitszeichen)
             .replaceAll("==(.*?)==", "<span class=\"highlight\">$1</span>");
+        
+        // Farb-Tags zu HTML-Spans konvertieren (für Preview)
+        // Englische Tags: <red>Text</red> -> <span style="color: red;">Text</span>
+        result = result.replaceAll("(?i)<red>([^<]+)</red>", "<span style=\"color: red;\">$1</span>");
+        result = result.replaceAll("(?i)<blue>([^<]+)</blue>", "<span style=\"color: blue;\">$1</span>");
+        result = result.replaceAll("(?i)<green>([^<]+)</green>", "<span style=\"color: green;\">$1</span>");
+        result = result.replaceAll("(?i)<yellow>([^<]+)</yellow>", "<span style=\"color: yellow;\">$1</span>");
+        result = result.replaceAll("(?i)<purple>([^<]+)</purple>", "<span style=\"color: purple;\">$1</span>");
+        result = result.replaceAll("(?i)<orange>([^<]+)</orange>", "<span style=\"color: orange;\">$1</span>");
+        result = result.replaceAll("(?i)<gray>([^<]+)</gray>", "<span style=\"color: gray;\">$1</span>");
+        result = result.replaceAll("(?i)<grey>([^<]+)</grey>", "<span style=\"color: gray;\">$1</span>");
+        
+        // Deutsche Tags: <rot>Text</rot> -> <span style="color: red;">Text</span>
+        result = result.replaceAll("(?i)<rot>([^<]+)</rot>", "<span style=\"color: red;\">$1</span>");
+        result = result.replaceAll("(?i)<blau>([^<]+)</blau>", "<span style=\"color: blue;\">$1</span>");
+        result = result.replaceAll("(?i)<grün>([^<]+)</grün>", "<span style=\"color: green;\">$1</span>");
+        result = result.replaceAll("(?i)<gelb>([^<]+)</gelb>", "<span style=\"color: yellow;\">$1</span>");
+        result = result.replaceAll("(?i)<lila>([^<]+)</lila>", "<span style=\"color: purple;\">$1</span>");
+        result = result.replaceAll("(?i)<grau>([^<]+)</grau>", "<span style=\"color: gray;\">$1</span>");
+        
+        return result;
     }
     
     /**
@@ -14979,35 +15151,31 @@ spacer.setStyle("-fx-background-color: transparent;");
                         DocxFile docxFile = new DocxFile(file);
                         MainController.DocxChangeDecision decision = mainController.showDocxChangedDialogInMain(docxFile);
                         
-                        
-                        switch (decision) {
-                            case DIFF:
-                                // Diff-Fenster über MainController öffnen
-                                if (mainController != null) {
-                                    File mdFile = deriveSidecarFileFor(file, outputFormat);
-                                    mainController.showDetailedDiffDialog(docxFile, mdFile, null, outputFormat);
-                                }
-                                // Bei DIFF warten - kein weiterer Ladeprozess
-                                return;
-                            case DOCX:
-                                // DOCX-Inhalt laden und anzeigen
-                                String docxContent = docxProcessor.processDocxFileContent(file, chapterNumber, outputFormat);
-                                // WICHTIG: Setze originalDocxFile VOR setText
-                                setOriginalDocxFile(file);
-                                setText(docxContent);
-                                setCurrentFile(deriveSidecarFileForCurrentFormat());
-                                setWindowTitle("📄 " + file.getName());
-                                originalContent = cleanTextForComparison(docxContent);
-                                updateNavigationButtons();
-                                // Bei DOCX-Übernahme normalen Ladeprozess fortsetzen
-                                break;
-                            case IGNORE:
-                                // Bestehenden Inhalt beibehalten - normalen Ladeprozess fortsetzen
-                                break;
-                            case CANCEL:
-                                // Bei CANCEL warten
-                                return;
+                        // Verwende if-else statt switch, um NoSuchMethodError zu vermeiden
+                        if (decision == MainController.DocxChangeDecision.DIFF) {
+                            // Diff-Fenster über MainController öffnen
+                            if (mainController != null) {
+                                File mdFile = deriveSidecarFileFor(file, outputFormat);
+                                mainController.showDetailedDiffDialog(docxFile, mdFile, null, outputFormat);
+                            }
+                            // Bei DIFF warten - kein weiterer Ladeprozess
+                            return;
+                        } else if (decision == MainController.DocxChangeDecision.DOCX) {
+                            // DOCX-Inhalt laden und anzeigen
+                            String docxContent = docxProcessor.processDocxFileContent(file, chapterNumber, outputFormat);
+                            // WICHTIG: Setze originalDocxFile VOR setText
+                            setOriginalDocxFile(file);
+                            setText(docxContent);
+                            setCurrentFile(deriveSidecarFileForCurrentFormat());
+                            setWindowTitle("📄 " + file.getName());
+                            originalContent = cleanTextForComparison(docxContent);
+                            updateNavigationButtons();
+                            // Bei DOCX-Übernahme normalen Ladeprozess fortsetzen
+                        } else if (decision == MainController.DocxChangeDecision.CANCEL) {
+                            // Bei CANCEL warten
+                            return;
                         }
+                        // IGNORE: Bestehenden Inhalt beibehalten - normalen Ladeprozess fortsetzen
                     }
                 } catch (Exception e) {
                     logger.error("Fehler beim Anzeigen des DOCX-Änderungs-Dialogs", e);

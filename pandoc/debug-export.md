@@ -13,6 +13,7 @@ abstract: |
   Doch ihr Sohn Ayen ist anders. Er lässt ›Dinge‹ geschehen. Das wäre ja für das Kind von zwei begabten Magiern nichts Ungewöhnliches, doch in Ayen gibt es nicht eine Spur von Magie. Und seine Kräfte scheinen zu wachsen.
   
   Wie immer, wenn's brenzlich wird, wenden sie sich an Efret, den verrückten, obersten Zauberer. Kann er ihnen auch diesmal helfen?
+abstract-title: "Zusammenfassung"
 ---
 
 
@@ -674,7 +675,6 @@ Und über allem lag die Ahnung, dass dies nur der Anfang gewesen war.
 
 
 # Stimmen im Rat
-
 »Zur Ordnung!« Der Ruf hallte durch den Saal. Die Halle des Zaubererrats war erfüllt vom gedämpften Murmeln. Es war einer dieser seltenen Tage, an denen alle Plätze besetzt waren. Efret saß auf seinem Platz, die Robe wie immer unordentlich, der Blick wie immer abwesend. Doch heute war etwas anders. Ayens rätselhafte Kräfte hatten sich herumgesprochen. Efret hatte mit seinen Beratern über das Kind geredet, und offensichtlich war die zuvor niemals gebrochene Vertraulichkeit, nicht mehr gegeben. Neben dem ›Kinder-in-den-Baum-versetzten‹ hatte es auch andere Vorfälle gegeben: fliegende Pfaue, ein Brunnen, aus dem plötzlich eine Fontäne sprudelte. Doch auch andere Begebenheiten wurden mittlerweile dem Jungen angelastet, obwohl er ziemlich sicher nichts damit zu tun hatte. Man machte ihn sogar für versalzenes Essen in der Palastküche verantwortlich.
 
 Ein Zauberer mittleren Alters erhob sich. Seine Stimme war ruhig, aber deutlich: »Mit allem gebührenden Respekt: Der Vorfall gestern hat gezeigt, wie gefährlich es war, Ayen in den Palast einzuladen. Das Kind ist unberechenbar – und seine Kräfte stellen ein Risiko dar, nicht nur für uns, sondern für die ganze Stadt.«
@@ -717,7 +717,7 @@ Efret verfügte, dass Ayen fortan nur noch in Begleitung eines Kampfmagiers das 
 
 ---
 
-Der Mann stand da mit leicht gepreizten Beinen. Er trug seine Kampfmagier-Uniform, das Grau und Blau matt, als hätte selbst der Stoff keine Lust, aufzufallen. Dolch an der Seite. Seine Hände waren groß, sehnig, und als Kata ihm die Tür öffnete, umschloss eine davon sofort den Griff des Dolches, ganz so, als könnte hinter jedem Türrahmen ein blutrünstiger Troll lauern.
+Still, die Füße fest auf den Stufen des Eingangs, den Blick geradeaus. Der Mann trug seine Kampfmagier-Uniform, das Grau und Blau matt, als hätte selbst der Stoff keine Lust, aufzufallen. Dolch an der Seite. Seine Hände waren groß, sehnig, und als Kata ihm die Tür öffnete, umschloss eine davon sofort den Griff des Dolches, ganz so, als könnte hinter jedem Türrahmen ein blutrünstiger Troll lauern.
 
 Er sagte nichts.
 
@@ -753,7 +753,7 @@ Jomar grinste. »Widerstand ist zwecklos.«
 
 Von Ayens früheren Spielgefährten blieb ihm nur Maela. Efret hatte ihre Mutter gebeten, ihr Kind weiterhin mit Ayen spielen zu lassen. Aus Loyalität – und Mitleid – hatte sie zugestimmt. Alle anderen Eltern hatten sich strikt geweigert, ihre Kinder auch nur in Sichtweite von Ayen zu lassen.
 
-Der Junge selbst zeigte keine Reue, aber auch nicht mehr allzu viel Freude. Er spielte, ja. Doch das Strahlen war seltener geworden. Auch ihn bedrückten die Vorfälle, die er nicht verstehen konnte, und er bemerkte die Blicke, die ihn im Park trafen. Almin begleitete Ayen, wann immer der das Haus verließ. 
+Der Junge selbst zeigte keine Reue, aber auch nicht mehr allzu viel Freude. Er spielte, ja. Doch das Strahlen war seltener geworden. Auch ihn bedrückten die Vorfälle, die er nicht verstehen konnte, und er bemerkte die Blicke, die ihn im Park trafen. Almin begleitete Ayen, wann immer der das Haus verließ.
 
 Die Vorfälle wurden weniger – aber sie hörten nicht auf. Ein Brunnen, der eine Fontäne in die Luft pustete. Ein Tisch, der statt einer Tischplatte plötzlich einen kleinen Teich hatte. Eine Katze, die plötzlich sprach – wenn auch nur das Wort ›miau‹, aber das in einem erstaunlich wohlklingenden Bariton.
 
@@ -773,8 +773,6 @@ Ayen blickte nach unten. »Ich versuch’s. Aber ich weiß nie, ob es falsch ist
 
 
 # Ungebetene Gäste
-
-
 Der Abend war ruhig. Der Kamin knackte leise, der Duft von brennendem Holz erfüllte den Raum. Kata saß vor dem Feuer auf dem Boden auf einem kuschelig weichen Lammfell, die Beine ausgestreckt, und nippte an einem Becher Wein. Jomar hatte sich in einen der tiefen Sessel zurückgelehnt, die Hände hinter dem Kopf verschränkt, den Blick auf die tanzenden Flammen gerichtet.
 
 Ayen schlief bereits, zusammengerollt in seinem kleinen Bett in der Ecke.
@@ -801,7 +799,7 @@ Seine Stimme war glatt und kalt wie poliertes Metall.
 
 Jomar warf Kata einen kurzen Blick zu. Dann öffnete er die Tür ganz und ließ sie eintreten.
 
-Ohne ein weiteres Wort kamen sie herein. Sie ließen ihre kalten Blicke schweifen, vor allem Ayens Bett schien sie zu interessieren. 
+Ohne ein weiteres Wort kamen sie herein. Sie ließen ihre kalten Blicke schweifen, vor allem Ayens Bett schien sie zu interessieren.
 
 Kata erhob sich langsam und blieb am Kamin stehen. Die Flammen warfen ihr Gesicht in wechselnde Schatten.
 
@@ -887,9 +885,9 @@ Malvek stolperte zurück. Almin trat mit einer ruhigen, fast bedächtigen Bewegu
 
 Malvek ließ die Arme sinken. Alle Anspannung wich aus seinem Körper. Almin murmelte etwas, und silberne Fäden schlängelten sich aus der Luft, schlangen sich präzise um Malveks Handgelenke und fesselten ihn.
 
-Almin hatte noch etwas zu sagen: »Erst wollt ihr die wahrscheinlich wohlhabendsten Zivilisten der ganzen Stadt mit einem Säckchen Gold bestechen, dann – als diese blöde Idee nicht funktioniert hatte – greift ihr sie an und vergesst, dass der ach so verrückte Efret ihnen einen Elite-Kampfzauberer zur Seite gestellt hat. Wenn ihr das Beste seit, das eure beschissene Gruppierung zu bieten habt, ist mir nicht bang um die Zukunft Efrets.«
+Almin hatte noch etwas zu sagen: »Erst wollt ihr die wahrscheinlich wohlhabendsten Zivilisten der ganzen Stadt mit einem Säckchen Gold bestechen, dann – als diese blöde Idee nicht funktioniert hatte – greift ihr sie an und vergesst, dass der ach so verrückte Efret ihnen einen Elite-Kampfzauberer zur Seite gestellt hat. Wenn ihr das Beste seid, das eure beschissene Gruppierung zu bieten hat, ist mir nicht bang um die Zukunft Efrets.«
 
-Das war der längste Satz, den Almin bis jetzt von sich gegeben hatte. Bis dahin hatte kaum einer aus mehr als drei Wörtern bestanden.
+Das war der längste Satz, den Almin je von sich gegeben hatte. Bis dahin hatte kaum einer aus mehr als drei Wörtern bestanden.
 
 Jomar trat langsam näher, der Blick auf Malvek gerichtet, die Hände zu Fäusten geballt. Neben Almin blieb er stehen, seine Stimme rau vor unterdrücktem Zorn.
 
@@ -903,7 +901,7 @@ Almin schüttelte ruhig den Kopf.
 
 »Meine Anweisungen sind klar. Jeder Angriff auf euch – ein Fall für Efret. Ich bringe sie ins Verlies. Und erstatte Bericht.«
 
-Mit einer knappen Bewegung ließ Almin die Fesseln enger werden. Der bewusstlose Zauberer war wieder wach, und der Kampfmagier fesselte nun auch ihn. Mit mit einer einzigen, präzisen Geste trieb er sie zur Tür hinaus.
+Mit einer knappen Bewegung ließ Almin die Fesseln enger werden. Der bewusstlose Zauberer war wieder wach, und der Kampfmagier fesselte nun auch ihn. Mit einer einzigen, präzisen Geste trieb er sie zur Tür hinaus.
 
 Die Tür fiel hinter ihnen ins Schloss.
 
@@ -7746,7 +7744,7 @@ Wenn ich in der nächsten Zeile einfach weiter schreibe, wird daraus ein Absatz.
 
 So wie in diesem Beispiel.
 
-<mark>Benutze oben die ›Makros‹ Funktion. dort gibt es zur Zeit nur ein Makro: Text-Bereinigung. Führe es noch nicht aus. Sieh dir den folgenden Text genau an. Das sind Fehler drin!</mark>
+<mark>Benutze oben die ›Makros‹ Funktion. dort gibt es zur Zeit nur ein Makro: Text-Bereinigung. Führe es noch nicht aus. Sieh dir den folgenden Text genau an. Da sind Fehler drin!</mark>
 
 Mehrfache Leerzeilen werden reduziert. 
 
@@ -7794,7 +7792,23 @@ Es geht auch <big>größer</big>.
 Und dann das hier: <mark>Textmarker</mark>
 
 
-<span style="color: red;">Roter Text</span>
+<red>Das ist rot</red>
+
+<blue>das ist blau</blue>
+
+<green>das ist grün</green>
+
+<yellow>das ist gelb</yellow>
+
+<purple>das ist lila</purple>
+
+<grey>das ist grau</grey>
+
+<orange>das ist orange</orange>
+
+<span style="color: red;">Roter Text geht auch so</span>
+
+Das ist <code>inline code</code>. Sehr praktisch, geht aber nur für html.
 
 manuelle …
 
@@ -7897,15 +7911,22 @@ a<sup>2</sup>+2ab+b<sup>2</sup>
 
 
 
+
+
+
+
+
+
 ## Bilder
 
 Bilder können oben mit dem button mit dem winzigen Bildchen importiert werden. Obwohl sie nicht wirklich ›importiert‹ werden, sie werden beim export eingefügt. Hier wird dann nur das hier erzeugt:
+
 
 ![](familie.png)
 
 ><center>Kata, Jomar und Ayen</center>
 
-Bilder am <small>Besten</small> in das Projektverzeichnis (Da wo deine docx stehen) stellen, dann finden das alle Exportfunktionen.
+Bilder am Besten in das Projektverzeichnis (Da wo deine docx stehen) stellen, dann finden das alle Exportfunktionen.
 
 ****
 

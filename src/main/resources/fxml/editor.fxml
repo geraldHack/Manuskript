@@ -6,6 +6,8 @@
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.MenuButton?>
+<?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.layout.HBox?>
@@ -49,7 +51,7 @@
       
 
       <!-- Neue einfache Toolbar für Textgröße -->
-      <HBox spacing="5" style="-fx-min-height: 50px;" styleClass="font-toolbar">
+      <HBox alignment="CENTER_LEFT" spacing="5" style="-fx-min-height: 50px;" styleClass="font-toolbar">
          <children>
             <!-- Textgröße: Label über den Elementen -->
             <VBox alignment="CENTER_LEFT" spacing="2">
@@ -64,12 +66,9 @@
             <Separator orientation="VERTICAL" style="-fx-background-color: #6c757d;" />
             
             <!-- Formatierung: Label über den Buttons -->
-            <VBox alignment="CENTER" spacing="2" style="-fx-min-height: 50px;">
-               <HBox alignment="CENTER" spacing="3">
-            <!-- Formatierung: Label über den Buttons -->
-            <VBox alignment="CENTER" spacing="2" style="-fx-min-height: 50px;">
+            <VBox alignment="CENTER_LEFT" spacing="4" style="-fx-min-height: 50px;">
                <Label styleClass="font-size-label" text="Formatierung;" />
-               <HBox alignment="CENTER" spacing="3">
+               <HBox alignment="CENTER_LEFT" spacing="3" style="-fx-max-width: none; -fx-min-width: -1;">
                   <Button fx:id="btnBold" style="-fx-min-width: 35px; -fx-max-width: 35px; -fx-min-height: 28px; -fx-max-height: 28px; -fx-font-weight: bold; -fx-font-size: 14px;" styleClass="toolbar-button" text="B" />
                   <Button fx:id="btnItalic" style="-fx-min-width: 35px; -fx-max-width: 35px; -fx-min-height: 28px; -fx-max-height: 28px; -fx-font-style: italic; -fx-font-size: 14px;" styleClass="toolbar-button" text="I" />
                   <Button fx:id="btnUnderline" style="-fx-min-width: 35px; -fx-max-width: 35px; -fx-min-height: 28px; -fx-max-height: 28px; -fx-text-decoration: underline; -fx-font-size: 14px;" styleClass="toolbar-button" text="U" />
@@ -79,12 +78,23 @@
                   <Button fx:id="btnInsertImage" style="-fx-min-width: 45px; -fx-max-width: 45px; -fx-min-height: 28px; -fx-max-height: 28px; -fx-font-size: 16px;" styleClass="toolbar-button" text="🖼" />
                   <Button fx:id="btnInsertLineBreak" style="-fx-min-width: 45px; -fx-max-width: 45px; -fx-min-height: 28px; -fx-max-height: 28px; -fx-font-size: 16px;" styleClass="toolbar-button" text="↵" />
                   <Button fx:id="btnInsertHorizontalLine" style="-fx-min-width: 45px; -fx-max-width: 45px; -fx-min-height: 28px; -fx-max-height: 28px; -fx-font-size: 16px;" styleClass="toolbar-button" text="━" />
+               </HBox>
+               <HBox alignment="CENTER_LEFT" spacing="3" style="-fx-max-width: none; -fx-min-width: -1;">
                   <Button fx:id="btnCenter" style="-fx-min-width: 45px; -fx-max-width: 45px; -fx-min-height: 28px; -fx-max-height: 28px; -fx-font-size: 16px;" styleClass="toolbar-button" text="◉" />
                   <Button fx:id="btnBig" style="-fx-min-width: 45px; -fx-max-width: 45px; -fx-min-height: 28px; -fx-max-height: 28px; -fx-font-size: 16px;" styleClass="toolbar-button" text="A+" />
                   <Button fx:id="btnSmall" style="-fx-min-width: 45px; -fx-max-width: 45px; -fx-min-height: 28px; -fx-max-height: 28px; -fx-font-size: 12px;" styleClass="toolbar-button" text="A-" />
                   <Button fx:id="btnMark" style="-fx-min-width: 45px; -fx-max-width: 45px; -fx-min-height: 28px; -fx-max-height: 28px; -fx-font-size: 16px;" styleClass="toolbar-button" text="●" />
-               </HBox>
-            </VBox>
+                  <MenuButton fx:id="btnColorMenu" style="-fx-min-width: 100px; -fx-pref-width: 100px; -fx-max-width: 100px; -fx-min-height: 32px; -fx-max-height: 32px; -fx-font-size: 12px;" styleClass="toolbar-button" text="Textfarbe" visible="true" managed="true">
+                     <items>
+                        <MenuItem text="Rot" onAction="#formatTextColorRed" />
+                        <MenuItem text="Blau" onAction="#formatTextColorBlue" />
+                        <MenuItem text="Grün" onAction="#formatTextColorGreen" />
+                        <MenuItem text="Gelb" onAction="#formatTextColorYellow" />
+                        <MenuItem text="Lila" onAction="#formatTextColorPurple" />
+                        <MenuItem text="Orange" onAction="#formatTextColorOrange" />
+                        <MenuItem text="Grau" onAction="#formatTextColorGray" />
+                     </items>
+                  </MenuButton>
                </HBox>
             </VBox>
             
