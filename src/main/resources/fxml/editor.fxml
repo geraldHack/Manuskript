@@ -77,6 +77,12 @@
                   <Button fx:id="btnSuperscript" style="-fx-min-width: 45px; -fx-max-width: 45px; -fx-min-height: 28px; -fx-max-height: 28px; -fx-font-size: 13px;" styleClass="toolbar-button" text="x²" />
                   <Button fx:id="btnSubscript" style="-fx-min-width: 45px; -fx-max-width: 45px; -fx-min-height: 28px; -fx-max-height: 28px; -fx-font-size: 13px;" styleClass="toolbar-button" text="x₂" />
                   <Button fx:id="btnInsertImage" style="-fx-min-width: 45px; -fx-max-width: 45px; -fx-min-height: 28px; -fx-max-height: 28px; -fx-font-size: 16px;" styleClass="toolbar-button" text="🖼" />
+                  <Button fx:id="btnInsertLineBreak" style="-fx-min-width: 45px; -fx-max-width: 45px; -fx-min-height: 28px; -fx-max-height: 28px; -fx-font-size: 16px;" styleClass="toolbar-button" text="↵" />
+                  <Button fx:id="btnInsertHorizontalLine" style="-fx-min-width: 45px; -fx-max-width: 45px; -fx-min-height: 28px; -fx-max-height: 28px; -fx-font-size: 16px;" styleClass="toolbar-button" text="━" />
+                  <Button fx:id="btnCenter" style="-fx-min-width: 45px; -fx-max-width: 45px; -fx-min-height: 28px; -fx-max-height: 28px; -fx-font-size: 16px;" styleClass="toolbar-button" text="◉" />
+                  <Button fx:id="btnBig" style="-fx-min-width: 45px; -fx-max-width: 45px; -fx-min-height: 28px; -fx-max-height: 28px; -fx-font-size: 16px;" styleClass="toolbar-button" text="A+" />
+                  <Button fx:id="btnSmall" style="-fx-min-width: 45px; -fx-max-width: 45px; -fx-min-height: 28px; -fx-max-height: 28px; -fx-font-size: 12px;" styleClass="toolbar-button" text="A-" />
+                  <Button fx:id="btnMark" style="-fx-min-width: 45px; -fx-max-width: 45px; -fx-min-height: 28px; -fx-max-height: 28px; -fx-font-size: 16px;" styleClass="toolbar-button" text="●" />
                </HBox>
             </VBox>
                </HBox>

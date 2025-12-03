@@ -175,6 +175,12 @@ public class EditorWindow implements Initializable {
     @FXML private Button btnSuperscript;
     @FXML private Button btnSubscript;
     @FXML private Button btnInsertImage;
+    @FXML private Button btnInsertLineBreak;
+    @FXML private Button btnInsertHorizontalLine;
+    @FXML private Button btnCenter;
+    @FXML private Button btnBig;
+    @FXML private Button btnSmall;
+    @FXML private Button btnMark;
     @FXML private Button btnThemeToggle;
     @FXML private ComboBox<String> cmbQuoteStyle;
     // Zeilenabstand-ComboBox entfernt - wird von RichTextFX nicht unterstützt
@@ -712,6 +718,7 @@ if (caret != null) {
                 markEmptyLines();
             }
         });
+        btnFind.setTooltip(new Tooltip("Suchen"));
         btnReplace.setOnAction(e -> {
             // Absatz-Markierung temporär deaktivieren für Ersetzen
             boolean wasParagraphMarkingEnabled = paragraphMarkingEnabled;
@@ -730,6 +737,7 @@ if (caret != null) {
                 markEmptyLines();
             }
         });
+        btnReplace.setTooltip(new Tooltip("Aktuellen Treffer ersetzen"));
         btnReplaceAll.setOnAction(e -> {
             // Absatz-Markierung temporär deaktivieren für Alle ersetzen
             boolean wasParagraphMarkingEnabled = paragraphMarkingEnabled;
@@ -748,6 +756,7 @@ if (caret != null) {
                 markEmptyLines();
             }
         });
+        btnReplaceAll.setTooltip(new Tooltip("Alle Treffer ersetzen"));
         
         // Speichern-Buttons
         btnSaveSearch.setOnAction(e -> {
@@ -757,6 +766,7 @@ if (caret != null) {
                 updateStatus("Suchpattern gespeichert: " + searchText.trim());
             }
         });
+        btnSaveSearch.setTooltip(new Tooltip("Suchpattern speichern"));
         
         btnSaveReplace.setOnAction(e -> {
             String replaceText = cmbReplaceHistory.getValue();
@@ -765,6 +775,7 @@ if (caret != null) {
                 updateStatus("Ersetzungspattern gespeichert: " + replaceText.trim());
             }
         });
+        btnSaveReplace.setTooltip(new Tooltip("Ersetzungspattern speichern"));
         
         // Löschen-Buttons
         btnDeleteSearch.setOnAction(e -> {
@@ -774,6 +785,7 @@ if (caret != null) {
                 updateStatus("Suchpattern gelöscht: " + searchText.trim());
             }
         });
+        btnDeleteSearch.setTooltip(new Tooltip("Suchpattern löschen"));
         
         btnDeleteReplace.setOnAction(e -> {
             String replaceText = cmbReplaceHistory.getValue();
@@ -782,10 +794,13 @@ if (caret != null) {
                 updateStatus("Ersetzungspattern gelöscht: " + replaceText.trim());
             }
         });
+        btnDeleteReplace.setTooltip(new Tooltip("Ersetzungspattern löschen"));
         
         // Font-Size Event-Handler
         btnIncreaseFont.setOnAction(e -> changeFontSize(2));
+        btnIncreaseFont.setTooltip(new Tooltip("Schriftgröße erhöhen"));
         btnDecreaseFont.setOnAction(e -> changeFontSize(-2));
+        btnDecreaseFont.setTooltip(new Tooltip("Schriftgröße verringern"));
         cmbFontSize.setOnAction(e -> changeFontSizeFromComboBox());
         
         // Zeilenabstand-ComboBox entfernt - wird von RichTextFX nicht unterstützt
@@ -795,12 +810,43 @@ if (caret != null) {
         
         // Text-Formatting Event-Handler
         btnBold.setOnAction(e -> formatTextBold());
+        btnBold.setTooltip(new Tooltip("Fett (Bold) - **text** oder <b>text</b>"));
         btnItalic.setOnAction(e -> formatTextItalic());
+        btnItalic.setTooltip(new Tooltip("Kursiv (Italic) - *text* oder <i>text</i>"));
         btnUnderline.setOnAction(e -> formatTextUnderline());
+        btnUnderline.setTooltip(new Tooltip("Unterstrichen - <u>text</u>"));
         btnStrikethrough.setOnAction(e -> formatTextStrikethrough());
+        btnStrikethrough.setTooltip(new Tooltip("Durchgestrichen - ~~text~~ oder <s>text</s>"));
         btnSuperscript.setOnAction(e -> formatTextSuperscript());
+        btnSuperscript.setTooltip(new Tooltip("Hochgestellt - <sup>text</sup>"));
         btnSubscript.setOnAction(e -> formatTextSubscript());
+        btnSubscript.setTooltip(new Tooltip("Tiefgestellt - <sub>text</sub>"));
         btnInsertImage.setOnAction(e -> insertImage());
+        btnInsertImage.setTooltip(new Tooltip("Bild einfügen"));
+        if (btnInsertLineBreak != null) {
+            btnInsertLineBreak.setOnAction(e -> insertLineBreak());
+            btnInsertLineBreak.setTooltip(new Tooltip("Zeilenumbruch einfügen (<br>)"));
+        }
+        if (btnInsertHorizontalLine != null) {
+            btnInsertHorizontalLine.setOnAction(e -> insertHorizontalLine());
+            btnInsertHorizontalLine.setTooltip(new Tooltip("Horizontale Linie einfügen (---)"));
+        }
+        if (btnCenter != null) {
+            btnCenter.setOnAction(e -> formatTextCenter());
+            btnCenter.setTooltip(new Tooltip("Text zentrieren (<center>)"));
+        }
+        if (btnBig != null) {
+            btnBig.setOnAction(e -> formatTextBig());
+            btnBig.setTooltip(new Tooltip("Große Schrift (<big>)"));
+        }
+        if (btnSmall != null) {
+            btnSmall.setOnAction(e -> formatTextSmall());
+            btnSmall.setTooltip(new Tooltip("Kleine Schrift (<small>)"));
+        }
+        if (btnMark != null) {
+            btnMark.setOnAction(e -> formatTextMark());
+            btnMark.setTooltip(new Tooltip("Text markieren (<mark>)"));
+        }
         btnThemeToggle.setOnAction(e -> toggleTheme());
         
         // Abstandskonfiguration Event-Handler werden direkt in den Setup-Methoden gesetzt
@@ -811,12 +857,15 @@ if (caret != null) {
         
         // Textanalyse-Button
         btnTextAnalysis.setOnAction(e -> toggleTextAnalysisPanel());
+        btnTextAnalysis.setTooltip(new Tooltip("Textanalyse-Panel ein-/ausblenden"));
         
         // KI-Assistent-Button
         btnKIAssistant.setOnAction(e -> toggleOllamaWindow());
+        btnKIAssistant.setTooltip(new Tooltip("KI-Assistent öffnen/schließen"));
         
         // Preview-Button
         btnPreview.setOnAction(e -> togglePreviewWindow());
+        btnPreview.setTooltip(new Tooltip("Vorschau-Fenster öffnen/schließen"));
         
         // Help-Buttons
         if (btnHelpMain != null) {
@@ -838,6 +887,7 @@ if (caret != null) {
                 logger.debug("Tools-Help-Button geklickt!");
                 HelpSystem.showHelpWindow("chapter_editor_tools.html");
             });
+            btnHelpTools.setTooltip(new Tooltip("Hilfe zu Editor-Tools"));
         }
     }
     
@@ -911,11 +961,14 @@ if (caret != null) {
         
         // Kapitel-Navigation-Buttons
         btnPreviousChapter.setOnAction(e -> navigateToPreviousChapter());
+        btnPreviousChapter.setTooltip(new Tooltip("Vorheriges Kapitel öffnen"));
         btnNextChapter.setOnAction(e -> navigateToNextChapter());
+        btnNextChapter.setTooltip(new Tooltip("Nächstes Kapitel öffnen"));
         
         // Seitenleiste Event-Handler
         if (btnToggleSidebar != null) {
             btnToggleSidebar.setOnAction(e -> toggleSidebar());
+            btnToggleSidebar.setTooltip(new Tooltip("Kapitel-Seitenleiste ein-/ausblenden"));
         }
         if (chapterListView != null) {
             // Auswahl zurücksetzen wenn auf leeren Bereich der ListView geklickt wird
@@ -964,6 +1017,7 @@ if (caret != null) {
             btnRegexHelp.setContentDisplay(javafx.scene.control.ContentDisplay.CENTER);
             btnRegexHelp.getStyleClass().add("help-button");
         btnRegexHelp.setOnAction(e -> showRegexHelp());
+        btnRegexHelp.setTooltip(new Tooltip("Hilfe zu regulären Ausdrücken (Regex)"));
         }
         btnFindNext.setOnAction(e -> {
             // Absatz-Markierung temporär deaktivieren für Suche
@@ -979,6 +1033,7 @@ if (caret != null) {
                 markEmptyLines();
             }
         });
+        btnFindNext.setTooltip(new Tooltip("Nächsten Treffer suchen"));
         btnFindPrevious.setOnAction(e -> {
             // Absatz-Markierung temporär deaktivieren für Suche
             boolean wasParagraphMarkingEnabled = paragraphMarkingEnabled;
@@ -993,25 +1048,33 @@ if (caret != null) {
                 markEmptyLines();
             }
         });
+        btnFindPrevious.setTooltip(new Tooltip("Vorherigen Treffer suchen"));
         
         // Toolbar-Events
         btnSave.setOnAction(e -> {
             saveFile();
             markAsSaved();
         });
+        btnSave.setTooltip(new Tooltip("Datei speichern (Strg+S)"));
         btnSaveAs.setOnAction(e -> {
             saveFileAs();
             markAsSaved();
         });
-                    btnExport.setOnAction(e -> showExportDialog());
+        btnSaveAs.setTooltip(new Tooltip("Datei speichern unter..."));
+        btnExport.setOnAction(e -> showExportDialog());
+        btnExport.setTooltip(new Tooltip("Dokument exportieren (DOCX, PDF, EPUB, etc.)"));
         // btnOpen und btnNew Event-Handler entfernt - Buttons sind unsichtbar
         btnToggleSearch.setOnAction(e -> toggleSearchPanel());
+        btnToggleSearch.setTooltip(new Tooltip("Suchen/Ersetzen ein-/ausblenden"));
         btnToggleMacro.setOnAction(e -> toggleMacroPanel());
+        btnToggleMacro.setTooltip(new Tooltip("Makros ein-/ausblenden"));
         btnToggleParagraphMarking.setOnAction(e -> toggleParagraphMarking());
         
         // Undo/Redo Event-Handler
         btnUndo.setOnAction(e -> codeArea.undo());
+        btnUndo.setTooltip(new Tooltip("Rückgängig (Strg+Z)"));
         btnRedo.setOnAction(e -> codeArea.redo());
+        btnRedo.setTooltip(new Tooltip("Wiederholen (Strg+Y)"));
         
         // Keyboard-Shortcuts
         setupKeyboardShortcuts();
@@ -10323,6 +10386,109 @@ spacer.setStyle("-fx-background-color: transparent;");
         formatTextAtCursor("<sub>", "</sub>", "<sub>", "</sub>");
     }
     
+    private void insertLineBreak() {
+        if (codeArea == null) return;
+        int caretPosition = codeArea.getCaretPosition();
+        // Füge <br> gefolgt von einem Zeilenumbruch ein
+        String lineBreak = "<br>\n";
+        codeArea.insertText(caretPosition, lineBreak);
+        // Setze Cursor nach dem Zeilenumbruch
+        codeArea.displaceCaret(caretPosition + lineBreak.length());
+        codeArea.requestFocus();
+    }
+    
+    private void insertHorizontalLine() {
+        if (codeArea == null) return;
+        int caretPosition = codeArea.getCaretPosition();
+        String content = codeArea.getText();
+        
+        // Füge eine Leerzeile vor der horizontalen Linie ein, wenn nicht bereits vorhanden
+        String lineBreak = "\n";
+        if (caretPosition > 0 && content.charAt(caretPosition - 1) != '\n') {
+            lineBreak = "\n";
+        }
+        
+        String horizontalLine = lineBreak + "---" + "\n";
+        codeArea.insertText(caretPosition, horizontalLine);
+        codeArea.displaceCaret(caretPosition + horizontalLine.length());
+        codeArea.requestFocus();
+    }
+    
+    private void formatTextCenter() {
+        // Für Markdown gibt es keine direkte Syntax, verwende HTML-Tags
+        formatTextAtCursor("<c>", "</c>", "<center>", "</center>");
+    }
+    
+    /**
+     * Fügt HTML-Tags direkt ein, unabhängig vom Output-Format
+     * (wird für Tags verwendet, die keine Markdown-Äquivalente haben)
+     */
+    private void insertHtmlTags(String htmlStart, String htmlEnd) {
+        if (codeArea == null) return;
+        
+        String selectedText = getSelectedTextSafely();
+        int caretPosition = codeArea.getCaretPosition();
+        
+        if (selectedText != null && !selectedText.isEmpty()) {
+            // Text ist ausgewählt - prüfe ob bereits formatiert
+            int start = codeArea.getSelection().getStart();
+            int end = codeArea.getSelection().getEnd();
+            
+            if (isTextFormatted(selectedText, htmlStart, htmlEnd)) {
+                // Formatierung entfernen
+                String unformattedText = removeFormatting(selectedText, htmlStart, htmlEnd);
+                codeArea.replaceText(start, end, unformattedText);
+                codeArea.selectRange(start, start + unformattedText.length());
+            } else {
+                // Formatierung hinzufügen
+                String formattedText = htmlStart + selectedText + htmlEnd;
+                codeArea.replaceText(start, end, formattedText);
+                codeArea.selectRange(start, start + formattedText.length());
+            }
+        } else {
+            // Kein Text ausgewählt - finde und markiere das aktuelle Wort
+            int[] wordBounds = findCurrentWordBounds(caretPosition);
+            if (wordBounds != null) {
+                int wordStart = wordBounds[0];
+                int wordEnd = wordBounds[1];
+                String wordText = codeArea.getText(wordStart, wordEnd);
+                
+                if (isTextFormatted(wordText, htmlStart, htmlEnd)) {
+                    // Formatierung entfernen
+                    String unformattedText = removeFormatting(wordText, htmlStart, htmlEnd);
+                    codeArea.replaceText(wordStart, wordEnd, unformattedText);
+                    codeArea.selectRange(wordStart, wordStart + unformattedText.length());
+                } else {
+                    // Formatierung hinzufügen
+                    String formattedText = htmlStart + wordText + htmlEnd;
+                    codeArea.replaceText(wordStart, wordEnd, formattedText);
+                    codeArea.selectRange(wordStart, wordStart + formattedText.length());
+                }
+            } else {
+                // Kein Wort gefunden - füge Formatierung an der Cursor-Position ein
+                String formatText = htmlStart + htmlEnd;
+                codeArea.insertText(caretPosition, formatText);
+                // Setze Cursor zwischen die Formatierung
+                codeArea.displaceCaret(caretPosition + htmlStart.length());
+            }
+        }
+        
+        codeArea.requestFocus();
+    }
+    
+    private void formatTextBig() {
+        insertHtmlTags("<big>", "</big>");
+    }
+    
+    private void formatTextSmall() {
+        insertHtmlTags("<small>", "</small>");
+    }
+    
+    private void formatTextMark() {
+        // Für Markdown gibt es keine direkte Syntax, verwende HTML-Tags
+        insertHtmlTags("<mark>", "</mark>");
+    }
+    
     private void toggleTheme() {
         currentThemeIndex = (currentThemeIndex + 1) % THEMES.length;
         
@@ -10558,6 +10724,24 @@ spacer.setStyle("-fx-background-color: transparent;");
             applyThemeToNode(btnStrikethrough, themeIndex);
             applyThemeToNode(btnSuperscript, themeIndex);
             applyThemeToNode(btnSubscript, themeIndex);
+            if (btnInsertLineBreak != null) {
+                applyThemeToNode(btnInsertLineBreak, themeIndex);
+            }
+            if (btnInsertHorizontalLine != null) {
+                applyThemeToNode(btnInsertHorizontalLine, themeIndex);
+            }
+            if (btnCenter != null) {
+                applyThemeToNode(btnCenter, themeIndex);
+            }
+            if (btnBig != null) {
+                applyThemeToNode(btnBig, themeIndex);
+            }
+            if (btnSmall != null) {
+                applyThemeToNode(btnSmall, themeIndex);
+            }
+            if (btnMark != null) {
+                applyThemeToNode(btnMark, themeIndex);
+            }
             applyThemeToNode(btnThemeToggle, themeIndex);
             // btnMacroRegexHelp wurde entfernt
             
