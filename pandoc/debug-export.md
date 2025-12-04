@@ -13,7 +13,6 @@ abstract: |
   Doch ihr Sohn Ayen ist anders. Er lässt ›Dinge‹ geschehen. Das wäre ja für das Kind von zwei begabten Magiern nichts Ungewöhnliches, doch in Ayen gibt es nicht eine Spur von Magie. Und seine Kräfte scheinen zu wachsen.
   
   Wie immer, wenn's brenzlich wird, wenden sie sich an Efret, den verrückten, obersten Zauberer. Kann er ihnen auch diesmal helfen?
-abstract-title: "Zusammenfassung"
 ---
 
 
@@ -125,9 +124,9 @@ Er sah sie an. Dann Ayen, der gerade eine Ente in einen Belagerungsturm setzte.
 
 ---
 
-Die Wiese zog sich leicht geschwungen zwischen den Hügeln dahin, ihr Boden war weich und federnd unter den nackten Füßen. Hinter ihnen sah man die Stadtmauer und die weißen Gebäude der Zaubererstadt.
+Die sanfte Hügellandschaft mündete in einer weitläufigen Wiese, deren weicher Boden den nackten Füßen einen angenehmen Halt bot. Die steil aufragende Stadtmauer umrahmte die hinter ihr liegenden weißen Gebäude der Zaubererstadt.
 
-Ayen rannte darüber wie ein kleiner Sturm, lachte, drehte sich im Kreis, fiel ins Gras und sprang gleich wieder auf. Er trug nichts außer einem breiten Grinsen und einer Mütze, die unter seinem Kinn festgebunden war und nun wild wippte, während er über das Feld tobte.
+Ayen rannte wie ein kleiner Sturm, lachte, drehte sich im Kreis, fiel ins Gras und sprang gleich wieder auf. Er trug nichts außer einem breiten Grinsen und einer Mütze, die unter seinem Kinn festgebunden war und nun wild wippte, während er über das Feld tobte.
 
 Die Luft war warm, der Himmel wolkenlos und von einem tiefen, gleichmäßigen Blau. Keine flirrende Hitze, nur angenehme Wärme und strahlendes Licht.
 
@@ -254,6 +253,8 @@ Sie gingen wortlos den Weg zurück, während über ihnen langsam das Licht des s
 Auf dem Rückweg schwiegen Jomar und Kata. Nur Ayen krähte fröhlich vor sich hin.
 
 Jomar grübelte: *Was war gerade geschehen? Hatte Ayen die Tiere fliegen lassen? Ohne Magie? War das ein unerklärliches einzelnes Ereignis, über das wir noch in Jahren sprechen werden, oder war es der Beginn von etwas?* 
+
+Er spürte nun ein dumpfes Pochen hinter seiner Stirn. Er begann sie mit einer Hand zu massieren. 
 
 *Ich hätte mich nicht mit dem Schicksal anlegen sollen.*
 
@@ -7808,7 +7809,7 @@ Und dann das hier: <mark>Textmarker</mark>
 
 <span style="color: red;">Roter Text geht auch so</span>
 
-Das ist <code>inline code</code>. Sehr praktisch, geht aber nur für html.
+Das ist <code>inline code</code>. Sehr praktisch, geht aber nur für html/epub-Exporte.
 
 manuelle …
 
@@ -7825,6 +7826,10 @@ Zeilenümbrüche
 ## Hoch- und Tiefschrift:
 
 H<sub>2</sub>O
+
+H~2~O
+
+a^2^+2ab+b^2^    
 
 a<sup>2</sup>+2ab+b<sup>2</sup>
 
@@ -7906,6 +7911,8 @@ a<sup>2</sup>+2ab+b<sup>2</sup>
 
 |---------|:--------:|---------:|
 | Text | Text | Text |
+
+
 
 
 

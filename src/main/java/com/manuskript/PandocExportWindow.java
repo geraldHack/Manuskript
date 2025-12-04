@@ -1445,6 +1445,9 @@ public class PandocExportWindow extends CustomStage {
                 content = content.replaceAll("(?i)<orange>([^<]+)</orange>", "[$1]{custom-style=\"OrangeText\"}");
                 content = content.replaceAll("(?i)<grau>([^<]+)</grau>", "[$1]{custom-style=\"GrayText\"}");
                 
+                // Code-Tags: <code>Text</code> -> [Text]{custom-style="Code"}
+                content = content.replaceAll("(?i)<code>([^<]+)</code>", "[$1]{custom-style=\"Code\"}");
+                
                 //small und big werden nicht unterstützt in DOCX 
                 content = content.replaceAll("<small>([^<]+)</small>", "[$1]{custom-style=\"Small\"}");
                 content = content.replaceAll("<big>([^<]+)</big>", "[$1]{custom-style=\"Large\"}");

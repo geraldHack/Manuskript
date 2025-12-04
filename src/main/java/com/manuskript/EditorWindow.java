@@ -7358,7 +7358,7 @@ spacer.setStyle("-fx-background-color: transparent;");
         btnWortwiederholungNah.getStyleClass().add("button");
         btnWortwiederholungNah.setPrefWidth(200);
         btnWortwiederholungNah.setStyle(String.format("-fx-background-color: %s; -fx-text-fill: %s;", accentColor, textColor));
-        Label lblWortwiederholungNah = new Label("Findet alle Wortwiederholungen im Abstand bis zu 5 Wörtern (ohne Ignore-Liste)");
+        Label lblWortwiederholungNah = new Label("Findet Wortwiederholungen im Abstand zwischen 5 und 10 Wörtern (ohne Ignore-Liste)");
         lblWortwiederholungNah.setWrapText(true);
         lblWortwiederholungNah.setStyle(String.format("-fx-text-fill: %s;", textColor));
         HBox.setHgrow(lblWortwiederholungNah, Priority.ALWAYS);
@@ -7969,61 +7969,32 @@ spacer.setStyle("-fx-background-color: transparent;");
             
             // KOMPLETT NEUE LOGIK: Finde nur benachbarte Wiederholungen
             List<Wortwiederholung> wiederholungen = new ArrayList<>();
-            int abstand = 5;
+            int minAbstand = 5;
+            int maxAbstand = 10;
             
             // Gehe durch alle Wörter
             for (int i = 0; i < words.size() - 1; i++) {
                 String currentWord = words.get(i);
                 
-                // Suche nur im nächsten Abstand-Bereich
-                for (int j = i + 1; j <= Math.min(i + abstand + 1, words.size() - 1); j++) {
+                // Suche nur im nächsten Abstand-Bereich (bis maxAbstand + 1)
+                for (int j = i + 1; j <= Math.min(i + maxAbstand + 1, words.size() - 1); j++) {
                     String nextWord = words.get(j);
                     
                     // Wenn das gleiche Wort gefunden wurde
                     if (currentWord.equals(nextWord)) {
                         int distance = j - i - 1; // Anzahl Wörter zwischen den Wiederholungen
                         
-                        // Nur wenn der Abstand innerhalb des Limits liegt
-                        if (distance >= 0 && distance <= abstand) {
+                        // Nur wenn der Abstand zwischen 5 und 10 Wörtern liegt
+                        if (distance >= minAbstand && distance <= maxAbstand) {
                             int charPos1 = wordPositions.get(i);
                             int charPos2 = wordPositions.get(j);
                             
                             // Validate positions
                             if (charPos1 >= 0 && charPos1 < content.length() && 
-                                charPos2 >= 0 && charPos2 < content.length()) {
-                                
-                                // Nur echte Wiederholungen: Überprüfe, ob die Wörter wirklich an den berechneten Positionen stehen
-                                if (charPos1 >= 0 && charPos1 < content.length() && 
-                                    charPos2 >= 0 && charPos2 < content.length() &&
-                                    charPos1 != charPos2) { // Nicht die gleiche Position
-                                    
-                                    // Extrahiere das Wort an Position 1
-                                    int start1 = charPos1;
-                                    while (start1 > 0 && Character.isLetterOrDigit(content.charAt(start1 - 1))) {
-                                        start1--;
-                                    }
-                                    int end1 = charPos1;
-                                    while (end1 < content.length() && Character.isLetterOrDigit(content.charAt(end1))) {
-                                        end1++;
-                                    }
-                                    String word1 = content.substring(start1, end1).toLowerCase();
-                                    
-                                    // Extrahiere das Wort an Position 2
-                                    int start2 = charPos2;
-                                    while (start2 > 0 && Character.isLetterOrDigit(content.charAt(start2 - 1))) {
-                                        start2--;
-                                    }
-                                    int end2 = charPos2;
-                                    while (end2 < content.length() && Character.isLetterOrDigit(content.charAt(end2))) {
-                                        end2++;
-                                    }
-                                    String word2 = content.substring(start2, end2).toLowerCase();
-                                    
-                                    // Nur wenn beide Wörter exakt übereinstimmen
-                                    if (currentWord.equals(word1) && currentWord.equals(word2)) {
-                                        wiederholungen.add(new Wortwiederholung(currentWord, charPos1, charPos2, distance));
-                                    }
-                                }
+                                charPos2 >= 0 && charPos2 < content.length() &&
+                                charPos1 != charPos2) {
+                                // Die Wörter sind bereits validiert durch die wordPattern-Matching
+                                wiederholungen.add(new Wortwiederholung(currentWord, charPos1, charPos2, distance));
                             }
                         }
                     }
@@ -8036,74 +8007,79 @@ spacer.setStyle("-fx-background-color: transparent;");
                 return distanceCompare != 0 ? distanceCompare : a.word.compareTo(b.word);
             });
             
-            // Apply marking - ALLE Vorkommen der Wörter markieren, die in Wiederholungen gefunden wurden
+            // Apply marking - Nur die spezifischen Positionen der gefundenen Paare markieren
             if (!wiederholungen.isEmpty()) {
                 String content2 = codeArea.getText();
                 
-                // Sammle ALLE Wörter, die in Wiederholungen gefunden wurden
-                Set<String> repeatedWords = new HashSet<>();
+                // Sammle alle zu markierenden Wort-Start-Positionen direkt aus den Wiederholungen
+                // pos1 und pos2 sind bereits die Start-Positionen der Wörter
+                Set<Integer> positionsToMark = new HashSet<>();
+                Map<Integer, Wortwiederholung> positionToWiederholung = new HashMap<>();
+                
                 for (Wortwiederholung w : wiederholungen) {
-                    repeatedWords.add(w.word);
+                    if (w.pos1 >= 0 && w.pos1 < content2.length()) {
+                        positionsToMark.add(w.pos1);
+                        positionToWiederholung.put(w.pos1, w);
+                    }
+                    if (w.pos2 >= 0 && w.pos2 < content2.length()) {
+                        positionsToMark.add(w.pos2);
+                        positionToWiederholung.put(w.pos2, w);
+                    }
                 }
                 
-                if (!repeatedWords.isEmpty()) {
-                    // Create a pattern for all words to be marked
-                    StringBuilder patternBuilder = new StringBuilder();
-                    for (String word : repeatedWords) {
-                        if (patternBuilder.length() > 0) patternBuilder.append("|");
-                        patternBuilder.append(Pattern.quote(word));
-                    }
-                    
-                    Pattern markPattern = Pattern.compile("\\b(" + patternBuilder.toString() + ")\\b", Pattern.CASE_INSENSITIVE);
-                    Matcher markMatcher = markPattern.matcher(content2);
-                    
+                if (!positionsToMark.isEmpty()) {
+                    // Erstelle StyleSpans für die Markierung
                     StyleSpansBuilder<Collection<String>> spansBuilder = new StyleSpansBuilder<>();
                     int lastEnd = 0;
                     
-                    while (markMatcher.find()) {
-                        int start = markMatcher.start();
-                        int end = markMatcher.end();
-                        String matchedWord = markMatcher.group(1).toLowerCase();
+                    // Gehe durch den gesamten Text und markiere nur die gefundenen Wörter
+                    wordMatcher = wordPattern.matcher(content2);
+                    while (wordMatcher.find()) {
+                        int wordStart = wordMatcher.start();
+                        int wordEnd = wordMatcher.end();
                         
-                        // Markiere ALLE Vorkommen der Wörter, die in Wiederholungen gefunden wurden
-                        if (repeatedWords.contains(matchedWord)) {
-                            // Count previous occurrences of the same word to determine style
-                            int occurrenceCount = 0;
-                            Matcher countMatcher = markPattern.matcher(content2.substring(0, start));
-                            while (countMatcher.find()) {
-                                if (countMatcher.group(1).toLowerCase().equals(matchedWord)) {
-                                    occurrenceCount++;
-                                }
-                            }
+                        if (positionsToMark.contains(wordStart)) {
+                            // Dieses Wort soll markiert werden
+                            Wortwiederholung w = positionToWiederholung.get(wordStart);
+                            // Bestimme, ob es pos1 oder pos2 ist für die Farbzuweisung
+                            boolean isFirst = (w.pos1 == wordStart);
+                            String styleClass = isFirst ? "search-match-first" : "search-match-second";
                             
-                            // Erste Wiederholung eines Wortes = gelb, zweite = blau, dritte = gelb, etc.
-                            String styleClass = (occurrenceCount % 2 == 0) ? "search-match-first" : "search-match-second";
-                            
-                            spansBuilder.add(Collections.emptyList(), start - lastEnd);
-                            spansBuilder.add(Collections.singleton(styleClass), end - start);
-                            lastEnd = end;
+                            spansBuilder.add(Collections.emptyList(), wordStart - lastEnd);
+                            spansBuilder.add(Collections.singleton(styleClass), wordEnd - wordStart);
+                            lastEnd = wordEnd;
                         } else {
-                            spansBuilder.add(Collections.emptyList(), end - lastEnd);
-                            lastEnd = end;
+                            // Normales Wort, nicht markieren
+                            spansBuilder.add(Collections.emptyList(), wordEnd - lastEnd);
+                            lastEnd = wordEnd;
                         }
                     }
                     
                     spansBuilder.add(Collections.emptyList(), content2.length() - lastEnd);
                     
+                    // Erstelle Pattern für Navigation (nur die markierten Wörter)
+                    Set<String> markedWords = new HashSet<>();
+                    for (Wortwiederholung w : wiederholungen) {
+                        markedWords.add(w.word);
+                    }
+                    
+                    StringBuilder patternBuilder = new StringBuilder();
+                    for (String word : markedWords) {
+                        if (patternBuilder.length() > 0) patternBuilder.append("|");
+                        patternBuilder.append(Pattern.quote(word));
+                    }
+                    Pattern markPattern = Pattern.compile("\\b(" + patternBuilder.toString() + ")\\b", Pattern.CASE_INSENSITIVE);
+                    
+                    // Sammle nur die tatsächlich markierten Positionen für Navigation
+                    List<Integer> navPositions = new ArrayList<>(positionsToMark);
+                    Collections.sort(navPositions);
+                    
                     // Apply styles on JavaFX Application Thread
                     Platform.runLater(() -> {
                         codeArea.setStyleSpans(0, spansBuilder.create());
                         
-                        // Update cache for navigation - ALLE Vorkommen der Wörter
-                        List<Integer> allPositions = new ArrayList<>();
-                        Matcher navMatcher = markPattern.matcher(content2);
-                        while (navMatcher.find()) {
-                            if (repeatedWords.contains(navMatcher.group(1).toLowerCase())) {
-                                allPositions.add(navMatcher.start());
-                            }
-                        }
-                        Collections.sort(allPositions);
-                        cachedMatchPositions = new ArrayList<>(allPositions);
+                        // Update cache for navigation - nur die markierten Positionen
+                        cachedMatchPositions = new ArrayList<>(navPositions);
                         cachedPattern = markPattern;
                         totalMatches = cachedMatchPositions.size();
                         currentMatchIndex = -1;
@@ -9860,7 +9836,7 @@ spacer.setStyle("-fx-background-color: transparent;");
         PreferencesManager.MultiMonitorValidator.applyWindowProperties(stage, windowBounds);
 
         // Mindestgrößen setzen, damit das Fenster nicht unter die Layout-Grenzen schrumpft
-        stage.setMinWidth(1500);
+        stage.setMinWidth(1400);
         stage.setMinHeight(PreferencesManager.MIN_WINDOW_HEIGHT);
         
         // WICHTIG: Listener für Fenster-Änderungen hinzufügen
@@ -12203,17 +12179,26 @@ spacer.setStyle("-fx-background-color: transparent;");
         
         promptBuilder.append("**Zu überarbeitender Absatz:**\n").append(originalParagraph).append("\n\n");
         
+        // Anweisung ist PRIORITÄT - wenn vorhanden, wird sie explizit befolgt
         if (!instruction.isEmpty()) {
-            promptBuilder.append("**Anweisung:** ").append(instruction).append("\n\n");
+            promptBuilder.append("**WICHTIG - SPEZIFISCHE ANWEISUNG (diese hat PRIORITÄT):**\n");
+            promptBuilder.append(instruction).append("\n\n");
+            promptBuilder.append("**Aufgabe:**\n");
+            promptBuilder.append("Überarbeite diesen Absatz GENAU nach der obigen spezifischen Anweisung. ");
+            promptBuilder.append("Die Anweisung ist verbindlich und muss vollständig umgesetzt werden. ");
+            promptBuilder.append("Zusätzlich muss der überarbeitete Absatz grammatisch korrekt, idiomatisch richtig und stilistisch hochwertig sein.\n\n");
+        } else {
+            promptBuilder.append("**Aufgabe:**\n");
+            promptBuilder.append("Überarbeite diesen Absatz: Verbessere Stil, Klarheit, Lebendigkeit und Wirkung. ");
+            promptBuilder.append("Der überarbeitete Absatz muss grammatisch korrekt, idiomatisch richtig und stilistisch hochwertig sein.\n\n");
         }
-        
-        promptBuilder.append("**Aufgabe:**\n");
-        promptBuilder.append("Überarbeite diesen Absatz: Verbessere Stil, Klarheit, Lebendigkeit und Wirkung. ");
-        promptBuilder.append("Der überarbeitete Absatz muss grammatisch korrekt, idiomatisch richtig und stilistisch hochwertig sein.\n\n");
         
         promptBuilder.append("**Vorgehen:**\n");
         promptBuilder.append("Gib 3-5 alternative Versionen des überarbeiteten Absatzes, jede in einer eigenen Zeile.\n");
         promptBuilder.append("Jede Version muss grammatisch korrekt, idiomatisch richtig und stilistisch hochwertig sein.\n");
+        if (!instruction.isEmpty()) {
+            promptBuilder.append("Jede Version muss die spezifische Anweisung vollständig erfüllen.\n");
+        }
         promptBuilder.append("Nur der überarbeitete Absatz, keine Erklärungen, keine Nummerierungen.");
         
         String prompt = promptBuilder.toString();
@@ -14249,10 +14234,14 @@ spacer.setStyle("-fx-background-color: transparent;");
             .replaceAll("`(.*?)`", "<code>$1</code>")
             // Links
             .replaceAll("\\[([^\\]]+)\\]\\(([^)]+)\\)", "<a href=\"$2\">$1</a>")
-            // Durchgestrichen (zwei Tilden)
+            // Durchgestrichen (zwei Tilden) - muss VOR Subscript kommen
             .replaceAll("~~(.*?)~~", "<span class=\"strikethrough\">$1</span>")
             // Hervorgehoben (zwei Gleichheitszeichen)
-            .replaceAll("==(.*?)==", "<span class=\"highlight\">$1</span>");
+            .replaceAll("==(.*?)==", "<span class=\"highlight\">$1</span>")
+            // Superscript (^text^) - einzelne ^ Zeichen
+            .replaceAll("(?<!\\^)\\^([^\\^\\n]+)\\^(?!\\^)", "<sup>$1</sup>")
+            // Subscript (~text~) - einzelne ~ Zeichen, nicht ~~ (Strikethrough)
+            .replaceAll("(?<!~)~([^~\\n]+)~(?!~)", "<sub>$1</sub>");
         
         // Farb-Tags zu HTML-Spans konvertieren (für Preview)
         // Englische Tags: <red>Text</red> -> <span style="color: red;">Text</span>

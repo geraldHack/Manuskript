@@ -771,6 +771,13 @@ public class DocxProcessor {
                 rpr.setI(italic);
             }
             
+            // Code-Formatierung: Zeichenvorlage "Code" verwenden
+            if (segment.isCode) {
+                RStyle rStyle = f.createRStyle();
+                rStyle.setVal("Code");
+                rpr.setRStyle(rStyle);
+            }
+            
             run.setRPr(rpr);
             
             if (segment.isLink) {
@@ -840,6 +847,13 @@ public class DocxProcessor {
                         hyperlinkRpr.setI(italic);
                     }
                     
+                    // Code-Formatierung für Links (falls Link innerhalb von <code>)
+                    if (segment.isCode) {
+                        RStyle rStyle = f.createRStyle();
+                        rStyle.setVal("Code");
+                        hyperlinkRpr.setRStyle(rStyle);
+                    }
+                    
                     hyperlinkRun.setRPr(hyperlinkRpr);
                     
                     // Text zum Hyperlink hinzufügen
@@ -900,16 +914,43 @@ public class DocxProcessor {
     }
     
     /**
-     * Parst formatierten Text in Segmente - Toggle-Parser für **, * und Links
+     * Parst formatierten Text in Segmente - Toggle-Parser für **, *, Links und <code> Tags
      */
     private static java.util.List<TextSegment> parseFormattedText(String text) {
         java.util.List<TextSegment> segments = new java.util.ArrayList<>();
         StringBuilder current = new StringBuilder();
         boolean bold = false;
         boolean italic = false;
+        boolean code = false;
         int i = 0;
         while (i < text.length()) {
             char c = text.charAt(i);
+            
+            // HTML <code> Tag erkennen
+            if (c == '<' && i + 5 < text.length() && text.substring(i, i + 6).equalsIgnoreCase("<code>")) {
+                // Vorherigen Text speichern
+                if (current.length() > 0) {
+                    segments.add(new TextSegment(current.toString(), bold, italic, false, code, null));
+                    current.setLength(0);
+                }
+                // Code-Tag öffnen
+                code = true;
+                i += 6; // "<code>".length()
+                continue;
+            }
+            
+            // HTML </code> Tag erkennen
+            if (c == '<' && i + 6 < text.length() && text.substring(i, i + 7).equalsIgnoreCase("</code>")) {
+                // Code-Text speichern
+                if (current.length() > 0) {
+                    segments.add(new TextSegment(current.toString(), bold, italic, false, true, null));
+                    current.setLength(0);
+                }
+                // Code-Tag schließen
+                code = false;
+                i += 7; // "</code>".length()
+                continue;
+            }
             
             // Markdown-Link [Text](URL) erkennen
             if (c == '[') {
@@ -919,7 +960,7 @@ public class DocxProcessor {
                     if (urlEnd != -1) {
                         // Vorherigen Text speichern
                         if (current.length() > 0) {
-                            segments.add(new TextSegment(current.toString(), bold, italic, false, null));
+                            segments.add(new TextSegment(current.toString(), bold, italic, false, code, null));
                             current.setLength(0);
                         }
                         
@@ -928,7 +969,7 @@ public class DocxProcessor {
                         String linkUrl = text.substring(linkEnd + 2, urlEnd);
                         
                         // Link-Segment hinzufügen
-                        segments.add(new TextSegment(linkText, bold, italic, true, linkUrl));
+                        segments.add(new TextSegment(linkText, bold, italic, true, code, linkUrl));
                         
                         i = urlEnd + 1;
                         continue;
@@ -939,7 +980,7 @@ public class DocxProcessor {
             // Bold-Marker **
             if (c == '*' && i + 1 < text.length() && text.charAt(i + 1) == '*') {
                 if (current.length() > 0) {
-                    segments.add(new TextSegment(current.toString(), bold, italic, false, null));
+                    segments.add(new TextSegment(current.toString(), bold, italic, false, code, null));
                     current.setLength(0);
                 }
                 bold = !bold;
@@ -949,7 +990,7 @@ public class DocxProcessor {
             // Italic-Marker *
             if (c == '*') {
                 if (current.length() > 0) {
-                    segments.add(new TextSegment(current.toString(), bold, italic, false, null));
+                    segments.add(new TextSegment(current.toString(), bold, italic, false, code, null));
                     current.setLength(0);
                 }
                 italic = !italic;
@@ -961,7 +1002,7 @@ public class DocxProcessor {
             i += 1;
         }
         if (current.length() > 0) {
-            segments.add(new TextSegment(current.toString(), bold, italic, false, null));
+            segments.add(new TextSegment(current.toString(), bold, italic, false, code, null));
         }
         return segments;
     }
@@ -975,13 +1016,15 @@ public class DocxProcessor {
         boolean isBold;
         boolean isItalic;
         boolean isLink;
+        boolean isCode;
         String linkUrl;
         
-        TextSegment(String text, boolean isBold, boolean isItalic, boolean isLink, String linkUrl) {
+        TextSegment(String text, boolean isBold, boolean isItalic, boolean isLink, boolean isCode, String linkUrl) {
             this.text = text;
             this.isBold = isBold;
             this.isItalic = isItalic;
             this.isLink = isLink;
+            this.isCode = isCode;
             this.linkUrl = linkUrl;
         }
     }

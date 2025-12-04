@@ -56,8 +56,8 @@
             <!-- Textgröße: Label über den Elementen -->
             <VBox alignment="CENTER_LEFT" spacing="2">
                <Label styleClass="font-size-label" text="Textgröße:" />
+               <ComboBox fx:id="cmbFontSize" prefWidth="80.0" promptText="12" />
                <HBox alignment="CENTER_LEFT" spacing="3">
-                  <ComboBox fx:id="cmbFontSize" prefWidth="80.0" promptText="12" />
                   <Button fx:id="btnIncreaseFont" style="-fx-min-width: 45px; -fx-max-width: 45px;" styleClass="toolbar-button" text="A+" />
                   <Button fx:id="btnDecreaseFont" style="-fx-min-width: 45px; -fx-max-width: 45px;" styleClass="toolbar-button" text="A-" />
                </HBox>
