@@ -85,6 +85,8 @@ import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
 import javafx.scene.control.cell.CheckBoxTableCell;
@@ -4235,13 +4237,13 @@ public class MainController implements Initializable {
         isMonitoring.set(true);
         downloadsMonitorTimer = new Timer("DownloadsMonitor", true);
         
-        // Alle 5 Sekunden prüfen
+        // Alle 5 Sekunden prüfen (im Hintergrund-Thread, nicht im JavaFX-Thread!)
         downloadsMonitorTimer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
-                Platform.runLater(() -> {
-                    checkForNewFiles();
-                });
+                // Direkt im Timer-Thread ausführen (nicht im JavaFX-Thread)
+                // Nur UI-Updates werden in Platform.runLater() gewrappt
+                checkForNewFiles();
             }
         }, 0, 5000); // Sofort starten, dann alle 5 Sekunden
         
@@ -4260,6 +4262,7 @@ public class MainController implements Initializable {
     
     /**
      * Prüft auf neue Dateien im Downloads-Verzeichnis
+     * WICHTIG: Diese Methode läuft im Hintergrund-Thread, nicht im JavaFX-Thread!
      */
     private void checkForNewFiles() {
         
@@ -4269,17 +4272,40 @@ public class MainController implements Initializable {
             return;
         }
         
-        // Sudowrite-ZIP-Import prüfen
-        String currentDirPath = txtDirectoryPath.getText();
-        if (currentDirPath != null && !currentDirPath.isEmpty()) {
-            File projectDir = new File(currentDirPath);
-            if (projectDir.exists()) {
-                checkAndImportSudowriteFiles(projectDir);
+        // JavaFX-Property-Werte im JavaFX-Thread abrufen und dann im Hintergrund-Thread verwenden
+        final String[] currentDirPath = new String[1];
+        CountDownLatch latch = new CountDownLatch(1);
+        try {
+            Platform.runLater(() -> {
+                try {
+                    currentDirPath[0] = txtDirectoryPath.getText();
+                } finally {
+                    latch.countDown();
+                }
+            });
+            // Warten auf JavaFX-Thread (max. 200ms Timeout)
+            if (!latch.await(200, TimeUnit.MILLISECONDS)) {
+                logger.warn("Timeout beim Abrufen des Verzeichnispfads");
+                return;
             }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return;
+        }
+        
+        String dirPath = currentDirPath[0];
+        if (dirPath == null || dirPath.isEmpty()) {
+            return;
+        }
+        
+        // Sudowrite-ZIP-Import prüfen
+        File projectDir = new File(dirPath);
+        if (projectDir.exists()) {
+            checkAndImportSudowriteFiles(projectDir);
         }
         
         // WICHTIG: Nur neue Dateien hinzufügen, nicht alles neu laden
-        addNewDocxFiles(new File(txtDirectoryPath.getText()));
+        addNewDocxFiles(new File(dirPath));
         
         try {
             
@@ -4334,7 +4360,7 @@ public class MainController implements Initializable {
                         
                         // Suche in ALLEN Dateien im Verzeichnis (nicht nur in allDocxFiles)
                         boolean found = false;
-                        File currentDir = new File(txtDirectoryPath.getText());
+                        File currentDir = new File(dirPath);
                         if (currentDir.exists()) {
                             File[] allFiles = currentDir.listFiles((dir, name) -> 
                                 name.toLowerCase().endsWith(".docx") && new File(dir, name).isFile());

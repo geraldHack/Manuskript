@@ -148,6 +148,7 @@ public class EditorWindow implements Initializable {
     @FXML private Button btnSave;
     @FXML private Button btnSaveAs;
     @FXML private Button btnExport;
+    @FXML private Button btnCopySudowrite;
 
     @FXML private Button btnOpen;
     @FXML private Button btnNew;
@@ -884,6 +885,12 @@ if (caret != null) {
         // Preview-Button
         btnPreview.setOnAction(e -> togglePreviewWindow());
         btnPreview.setTooltip(new Tooltip("Vorschau-Fenster öffnen/schließen"));
+        
+        // Sudowrite-Button
+        if (btnCopySudowrite != null) {
+            btnCopySudowrite.setOnAction(e -> copyForSudowrite());
+            btnCopySudowrite.setTooltip(new Tooltip("In Zwischenablage kopieren (Sudowrite-kompatibel)"));
+        }
         
         // Help-Buttons
         if (btnHelpMain != null) {
@@ -3441,18 +3448,18 @@ if (caret != null) {
         Button copyToClipboardButton = new Button("📋 In Zwischenablage kopieren");
         copyToClipboardButton.setOnAction(e -> {
             try {
-                // Markdown zu HTML konvertieren
                 String markdownContent = cleanTextForExport(codeArea.getText());
-                String htmlContent = convertMarkdownToHTML(markdownContent);
-                
-                // HTML in Zwischenablage kopieren
                 Clipboard clipboard = Clipboard.getSystemClipboard();
                 ClipboardContent content = new ClipboardContent();
+                
+                // Verwende Word-kompatibles HTML-Format für bessere Kompatibilität mit Word-ähnlichen Programmen
+                String htmlContent = convertMarkdownToHTMLForClipboard(markdownContent);
                 content.putHtml(htmlContent);
-                content.putString(convertMarkdownToPlainText(markdownContent)); // Fallback als Plain Text
+                // Fallback: Rohes Markdown als Text (enthält > und spezielle Zeilen unverändert)
+                content.putString(markdownContent);
                 clipboard.setContent(content);
                 
-                updateStatus("✅ Kapitel in Zwischenablage kopiert (mit Formatierung)");
+                updateStatus("✅ Kapitel in Zwischenablage kopiert (Word-kompatibles Format)");
                 exportStage.close();
                 
             } catch (Exception ex) {
@@ -4855,6 +4862,118 @@ if (caret != null) {
             .replaceAll("~~(.*?)~~", "<span class=\"strikethrough\">$1</span>")
             // Hervorgehoben (zwei Gleichheitszeichen)
             .replaceAll("==(.*?)==", "<span class=\"highlight\">$1</span>");
+    }
+    
+    /**
+     * Konvertiert Markdown zu HTML für die Zwischenablage mit Word-kompatiblen inline Styles
+     * Diese Version verwendet inline Styles statt CSS-Klassen für bessere Kompatibilität mit Word-ähnlichen Programmen
+     */
+    private String convertMarkdownToHTMLForClipboard(String markdown) {
+        // Minimal-HTML, das von vielen Web-Editoren (auch Sudowrite) eher akzeptiert wird:
+        // - Keine Tabellen/Codeblocks mit Styles, nur grundlegende Tags
+        // - Absätze als <p>, Zeilenumbrüche als <br>, Fett/Kursiv als <strong>/<em>
+        StringBuilder html = new StringBuilder();
+        html.append("<!DOCTYPE html>\n<html><head><meta charset=\"UTF-8\"></head><body>\n");
+        String[] lines = markdown.split("\n", -1);
+        for (int i = 0; i < lines.length; i++) {
+            String line = lines[i];
+            String trimmed = line.trim();
+
+            // Leere Zeile -> Absatzumbruch
+            if (trimmed.isEmpty()) {
+                html.append("<br>\n");
+                continue;
+            }
+
+            // Blockquote: als wörtliches ">Text" ausgeben, ohne <p>-Wrapper (einige Tools strippen sonst den Inhalt)
+            if (trimmed.startsWith(">")) {
+                String quoteText = trimmed.substring(1).trim();
+                // Nach dem '>' wird der restliche Text HTML-escaped, damit z.B. "<center>" sichtbar bleibt
+                // Zusätzlich in einem <div>, damit viele Editoren die Zeile nicht droppen
+                html.append("<div>&gt;").append(escapeHtml(quoteText)).append("</div>\n");
+                continue;
+            }
+
+            // Überschriften auf <p><strong> … </strong></p> abbilden
+            if (trimmed.startsWith("# ")) {
+                html.append("<p><strong>").append(convertInlineMarkdownForClipboard(trimmed.substring(2))).append("</strong></p>\n");
+                continue;
+            } else if (trimmed.startsWith("## ")) {
+                html.append("<p><strong>").append(convertInlineMarkdownForClipboard(trimmed.substring(3))).append("</strong></p>\n");
+                continue;
+            } else if (trimmed.startsWith("### ")) {
+                html.append("<p><strong>").append(convertInlineMarkdownForClipboard(trimmed.substring(4))).append("</strong></p>\n");
+                continue;
+            }
+
+            // Listen: als einfache Bullet-Zeilen ausgeben
+            if (trimmed.matches("^[-*+]\\s+.*")) {
+                html.append("<p>&bull; ").append(convertInlineMarkdownForClipboard(trimmed.substring(trimmed.indexOf(' ') + 1))).append("</p>\n");
+                continue;
+            } else if (trimmed.matches("^\\d+\\.\\s+.*")) {
+                html.append("<p>").append(convertInlineMarkdownForClipboard(trimmed)).append("</p>\n");
+                continue;
+            }
+
+            // Horizontale Linie
+            if (trimmed.matches("^[-*_]{3,}$")) {
+                html.append("<p>──────────</p>\n");
+                continue;
+            }
+
+            // Codeblock-Markierungen ignorieren; Inhalt als normaler Text ausgeben
+            if (trimmed.startsWith("```")) {
+                continue;
+            }
+
+            // Standardabsatz
+            html.append("<p>").append(convertInlineMarkdownForClipboard(line)).append("</p>\n");
+        }
+        html.append("</body></html>");
+        return html.toString();
+    }
+
+    /**
+     * Kopiert den aktuellen Inhalt im Sudowrite-kompatiblen Format in die Zwischenablage.
+     * Verwendet das minimalistische HTML plus rohes Markdown als Fallback.
+     */
+    private void copyForSudowrite() {
+        try {
+            String markdownContent = cleanTextForExport(codeArea.getText());
+            Clipboard clipboard = Clipboard.getSystemClipboard();
+            ClipboardContent content = new ClipboardContent();
+
+            String htmlContent = convertMarkdownToHTMLForClipboard(markdownContent);
+            content.putHtml(htmlContent);
+            // Fallback: Rohes Markdown als Text (enthält > und spezielle Zeilen unverändert)
+            content.putString(markdownContent);
+
+            clipboard.setContent(content);
+            updateStatus("✅ In Zwischenablage kopiert (Sudowrite)");
+        } catch (Exception ex) {
+            updateStatusError("Fehler beim Kopieren: " + ex.getMessage());
+            logger.error("Fehler beim Kopieren für Sudowrite", ex);
+        }
+    }
+    
+    /**
+     * Konvertiert inline Markdown zu HTML mit inline Styles für Word-Kompatibilität
+     */
+    private String convertInlineMarkdownForClipboard(String text) {
+        // Vereinfachte Inline-Formatierung mit HTML-Standard-Tags (strong/em), da einige Tools Styles strippen
+        return text
+            // Fett (zwei Sternchen)
+            .replaceAll("\\*\\*(.*?)\\*\\*", "<strong>$1</strong>")
+            // Kursiv (ein Sternchen)
+            .replaceAll("\\*(.*?)\\*", "<em>$1</em>")
+            // Inline-Code
+            .replaceAll("`(.*?)`", "<code style=\"background-color: #f8f9fa; padding: 2px 4px; border-radius: 3px;\">$1</code>")
+            // Links
+            .replaceAll("\\[([^\\]]+)\\]\\(([^)]+)\\)", "<a href=\"$2\">$1</a>")
+            // Durchgestrichen (zwei Tilden)
+            .replaceAll("~~(.*?)~~", "<span style=\"text-decoration: line-through;\">$1</span>")
+            // Hervorgehoben (zwei Gleichheitszeichen)
+            .replaceAll("==(.*?)==", "<span style=\"background-color: yellow;\">$1</span>");
     }
     
     private String escapeHtml(String text) {

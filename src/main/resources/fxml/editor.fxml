@@ -32,6 +32,7 @@
             <Button fx:id="btnTextAnalysis" styleClass="button" text="Textanalyse" />
             <Button fx:id="btnKIAssistant" styleClass="button" text="⚡ KI-Assistent" />
             <Button fx:id="btnPreview" styleClass="button" text="👁 Preview" />
+            <Button fx:id="btnCopySudowrite" styleClass="button" text="Für Sudowrite kopieren" />
             
             <!-- Help-Buttons für Haupt-Buttons -->
             <Separator orientation="VERTICAL" />
