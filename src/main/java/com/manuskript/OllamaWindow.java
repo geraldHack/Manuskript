@@ -1535,24 +1535,9 @@ public class OllamaWindow {
             String additionalContext = contextArea.getText() != null ? contextArea.getText().trim() : "";
             // DEBUG entfernt
             
-            // Chat-Historie als Kontext hinzufügen (nur vollständige QAPairs)
+            // Chat-Historie wird NICHT mehr als Kontext hinzugefügt (um Request-Länge zu reduzieren)
             List<CustomChatArea.QAPair> sessionHistory = chatHistoryArea.getSessionHistory();
             StringBuilder contextBuilder = new StringBuilder();
-            
-            // DEBUG entfernt
-            
-            if (!sessionHistory.isEmpty()) {
-                int completePairs = 0;
-                for (CustomChatArea.QAPair qaPair : sessionHistory) {
-                    // Nur vollständige QAPairs (mit Antworten) als Kontext verwenden
-                    if (qaPair.getAnswer() != null && !qaPair.getAnswer().trim().isEmpty()) {
-                        contextBuilder.append("Du: ").append(qaPair.getQuestion()).append("\n");
-                        contextBuilder.append("Assistent: ").append(qaPair.getAnswer()).append("\n");
-                        completePairs++;
-                    }
-                }
-                // DEBUG entfernt
-            }
             
             // Checkbox-gesteuerte Kontexte hinzufügen
             StringBuilder selectedContexts = new StringBuilder();
@@ -1641,14 +1626,8 @@ public class OllamaWindow {
             StringBuilder aggregated = new StringBuilder();
             final int qaIndex = chatHistoryArea.getLastIndex(); // Index des frisch hinzugefügten Q&A sichern
             
-            // Chat-Historie in ChatMessage-Format konvertieren
+            // Chat-Historie wird NICHT mehr als Messages hinzugefügt (um Request-Länge zu reduzieren)
             List<OllamaService.ChatMessage> chatMessages = new ArrayList<>();
-            for (CustomChatArea.QAPair qaPair : sessionHistory) {
-                if (qaPair.getAnswer() != null && !qaPair.getAnswer().trim().isEmpty()) {
-                    chatMessages.add(new OllamaService.ChatMessage("user", qaPair.getQuestion()));
-                    chatMessages.add(new OllamaService.ChatMessage("assistant", qaPair.getAnswer()));
-                }
-            }
             // Plugin-Logik für Variablen-Ersetzung
             String processedUserMessage = userMessage;
             
@@ -1698,17 +1677,70 @@ public class OllamaWindow {
                     }
                     
                     if (variables != null) {
-                        // Debug: Ausgabe der Variablen
+                        // Spezielle Behandlung für "Kritisches Lektorat" mit Chunking
+                        if ("Kritisches Lektorat".equals(pluginName) && selectedText != null && !selectedText.trim().isEmpty()) {
+                            // Text in Chunks aufteilen
+                            List<String> textChunks = splitTextIntoChunks(selectedText, 600);
+                            // Kategorien basierend auf Boolean-Variablen filtern
+                            List<String> categories = getSelectedAnalysisCategories(variables);
+                            
+                            if (categories.isEmpty()) {
+                                showAlert("Keine Kategorie ausgewählt", "Bitte wählen Sie mindestens eine Analyse-Kategorie aus.");
+                                setGenerating(false);
+                                return;
+                            }
+                            
+                            // Aggregiertes Ergebnis (muss final sein für Lambda)
+                            final StringBuilder finalResult = new StringBuilder();
+                            finalResult.append("<h2>Kritisches Lektorat - Gesamtanalyse</h2>\n");
+                            
+                            // Status initialisieren
+                            Platform.runLater(() -> {
+                                aggregated.setLength(0);
+                                aggregated.append("<h2>Kritisches Lektorat - Gesamtanalyse</h2>\n");
+                                statusLabel.setText("⏳ Starte Analyse...");
+                                setGenerating(true);
+                            });
+                            
+                            // Asynchrone Verarbeitung: Starte mit der ersten Kategorie
+                            // aggregated muss final sein für die Lambda-Ausdrücke
+                            final StringBuilder aggregatedFinal = aggregated;
+                            processCategoryChunksAsync(0, 0, categories, textChunks, variables, variableDefinitions, 
+                                plugin, finalResult, qaIndex, aggregatedFinal);
+                            
+                            return; // Beende hier, da wir die spezielle Behandlung verwendet haben
+                        }
                         
+                        // Normale Plugin-Behandlung für andere Plugins
                         // Plugin-Prompt mit Variablen verarbeiten
                         String pluginPrompt = plugin.getProcessedPrompt(variables);
 
-                        
-                        // Plugin-Prompt als Benutzer-Nachricht hinzufügen (damit er in der Chat-Historie sichtbar ist)
-                        chatMessages.add(new OllamaService.ChatMessage("user", "Plugin: " + pluginPrompt));
+                        // Für Plugins: Selektierten Text ganz an den Anfang des fullContext verschieben,
+                        // damit er als erstes im Request steht und nicht gekürzt wird
+                        // (wichtig bei Modellen mit kleinem Context-Window wie 8K Tokens)
+                        if (selectedText != null && !selectedText.trim().isEmpty()) {
+                            // Setze den selektierten Text ganz an den Anfang des fullContext
+                            String originalFullContext = fullContext;
+                            fullContext = "=== ZU ANALYSIERENDER TEXT ===\n" + selectedText + "\n\n" + originalFullContext;
+                            
+                            // Entferne den selektierten Text aus dem Plugin-Prompt falls vorhanden
+                            // (der neue gekürzte Prompt hat keinen Platzhalter mehr, aber für Kompatibilität)
+                            String textMarker = "**Analysierter Text:**\n";
+                            int markerPos = pluginPrompt.indexOf(textMarker);
+                            if (markerPos >= 0) {
+                                int textStart = markerPos + textMarker.length();
+                                int textEnd = pluginPrompt.indexOf("\n\n", textStart);
+                                if (textEnd < 0) textEnd = pluginPrompt.length();
+                                String before = pluginPrompt.substring(0, markerPos + textMarker.length());
+                                String after = pluginPrompt.substring(textEnd);
+                                pluginPrompt = before + "[Text im Kontext]" + after;
+                            }
+                        }
+
+                        // Plugin-Prompt setzen (wird später als Message hinzugefügt)
                         processedUserMessage = pluginPrompt;
                         
-                        // Plugin-Prompt in die Chat-Frage-Box einfügen
+                        // Plugin-Prompt in die Chat-Frage-Box einfügen (nur für Anzeige)
                         chatHistoryArea.setQuestionAt(qaIndex, "Plugin: " + pluginPrompt);
                         
                         // Plugin-Prompt erfolgreich verarbeitet
@@ -1726,6 +1758,93 @@ public class OllamaWindow {
             
             // Neue Nachricht hinzufügen
             chatMessages.add(new OllamaService.ChatMessage("user", processedUserMessage));
+            
+            // DEBUG: Zeige alle Messages, die gesendet werden (VOLLSTÄNDIG)
+            logger.info("=== DEBUG: Chat-Messages die gesendet werden ===");
+            int totalLength = 0;
+            for (int i = 0; i < chatMessages.size(); i++) {
+                OllamaService.ChatMessage msg = chatMessages.get(i);
+                int msgLength = msg.getContent().length();
+                totalLength += msgLength;
+                logger.info("Message {}: role={}, content length={} Zeichen", i, msg.getRole(), msgLength);
+                
+                // Inhalt in Chunks aufteilen, damit er nicht gekürzt wird
+                String content = msg.getContent();
+                int chunkSize = 1000;
+                for (int j = 0; j < content.length(); j += chunkSize) {
+                    int end = Math.min(j + chunkSize, content.length());
+                    String chunk = content.substring(j, end);
+                    logger.info("Message {} Chunk {}-{}:\n{}", i, j, end, chunk);
+                }
+                logger.info("--- Ende Message {} ---", i);
+            }
+            logger.info("Gesamtlänge aller Messages: {} Zeichen", totalLength);
+            if (fullContext != null) {
+                logger.info("FullContext Länge: {} Zeichen", fullContext.length());
+                // FullContext auch in Chunks
+                String context = fullContext;
+                int chunkSize = 1000;
+                for (int j = 0; j < context.length(); j += chunkSize) {
+                    int end = Math.min(j + chunkSize, context.length());
+                    String chunk = context.substring(j, end);
+                    logger.info("FullContext Chunk {}-{}:\n{}", j, end, chunk);
+                }
+            }
+            logger.info("=== ENDE DEBUG ===");
+            
+            // Berechne die tatsächliche JSON-Länge, wie sie gesendet wird
+            // Baue den JSON-String genau so, wie es in OllamaService gemacht wird
+            String systemPrompt = "Du bist ein hilfreicher deutscher Assistent. Antworte bitte auf Deutsch.";
+            
+            // Erstelle Messages-Array wie in OllamaService.chatStreaming()
+            List<OllamaService.ChatMessage> fullMessages = new ArrayList<>();
+            fullMessages.add(new OllamaService.ChatMessage("system", systemPrompt));
+            
+            // Kontext hinzufügen
+            if (fullContext != null && !fullContext.trim().isEmpty()) {
+                fullMessages.add(new OllamaService.ChatMessage("user", "Kontext: " + fullContext));
+            }
+            
+            // Chat-Messages hinzufügen
+            fullMessages.addAll(chatMessages);
+            
+            // Helper-Methode für JSON-Escape (wie in OllamaService)
+            java.util.function.Function<String, String> escapeJson = (text) -> {
+                return text.replace("\\", "\\\\")
+                          .replace("\"", "\\\"")
+                          .replace("\n", "\\n")
+                          .replace("\r", "\\r")
+                          .replace("\t", "\\t");
+            };
+            
+            // Baue JSON-String genau wie in OllamaService
+            StringBuilder jsonBuilder = new StringBuilder();
+            String currentModel = modelComboBox != null && modelComboBox.getSelectionModel().getSelectedItem() != null 
+                ? modelComboBox.getSelectionModel().getSelectedItem() 
+                : "gemma3:4b"; // Fallback
+            jsonBuilder.append("{\"model\":\"").append(currentModel).append("\",\"messages\":[");
+            
+            for (int i = 0; i < fullMessages.size(); i++) {
+                OllamaService.ChatMessage msg = fullMessages.get(i);
+                if (i > 0) jsonBuilder.append(",");
+                jsonBuilder.append("{\"role\":\"").append(msg.getRole()).append("\",\"content\":\"")
+                          .append(escapeJson.apply(msg.getContent())).append("\"}");
+            }
+            
+            // Hole Parameter von OllamaService
+            int maxTokens = ollamaService.getMaxTokens();
+            double temperature = ollamaService.getTemperature();
+            double topP = ollamaService.getTopP();
+            double repeatPenalty = ollamaService.getRepeatPenalty();
+            
+            jsonBuilder.append("],\"stream\":true,\"options\":{\"num_predict\":").append(maxTokens)
+                      .append(",\"temperature\":").append(temperature)
+                      .append(",\"top_p\":").append(topP)
+                      .append(",\"repeat_penalty\":").append(repeatPenalty)
+                      .append(",\"repeat_last_n\":512,\"penalize_newline\":true,\"num_gpu\":-1}}");
+            
+            // Längenprüfung entfernt: Ollama kürzt automatisch, wenn der Request zu lang ist
+            // Der Benutzer möchte längere Texte analysieren können
             
             // Chat-Nachrichten bereit für Streaming
             
@@ -1762,7 +1881,7 @@ public class OllamaWindow {
                     // Live-Update im externen Fenster (immer ans Ende scrollen) - OHNE Header
                     if (resultStage != null && resultStage.isShowing() && resultWebView != null) {
                         // Nur den reinen Text ohne Header für das Fenster verwenden
-                        updateResultWebView(buildHtmlForAnswer(aggregated.toString()), true);
+                        updateResultWebView(buildHtmlForAnswer(aggregated.toString()), false);
                     }
                     // Auch im Standard-Output-Feld (Chat-Historie) immer ans Ende springen
                     try {
@@ -1920,7 +2039,7 @@ public class OllamaWindow {
                         resultArea.setText(aggregated.toString());
                         // Live-Update im externen Fenster
                         if (resultStage != null && resultStage.isShowing() && resultWebView != null) {
-                            updateResultWebView(buildHtmlForAnswer(aggregated.toString()), true);
+                            updateResultWebView(buildHtmlForAnswer(aggregated.toString()), false);
                         }
                     }),
                     () -> Platform.runLater(() -> {
@@ -1949,7 +2068,7 @@ public class OllamaWindow {
                         statusLabel.setText("⏳ Läuft… " + aggregated.length() + " Zeichen");
                         resultArea.setText(aggregated.toString());
                         if (resultStage != null && resultStage.isShowing() && resultWebView != null) {
-                            updateResultWebView(buildHtmlForAnswer(aggregated.toString()), true);
+                            updateResultWebView(buildHtmlForAnswer(aggregated.toString()), false);
                         }
                     }),
                     () -> Platform.runLater(() -> {
@@ -1978,7 +2097,7 @@ public class OllamaWindow {
                         statusLabel.setText("⏳ Läuft… " + aggregated.length() + " Zeichen");
                         resultArea.setText(aggregated.toString());
                         if (resultStage != null && resultStage.isShowing() && resultWebView != null) {
-                            updateResultWebView(buildHtmlForAnswer(aggregated.toString()), true);
+                            updateResultWebView(buildHtmlForAnswer(aggregated.toString()), false);
                         }
                     }),
                     () -> Platform.runLater(() -> {
@@ -2007,7 +2126,7 @@ public class OllamaWindow {
                         statusLabel.setText("⏳ Läuft… " + aggregated.length() + " Zeichen");
                         resultArea.setText(aggregated.toString());
                         if (resultStage != null && resultStage.isShowing() && resultWebView != null) {
-                            updateResultWebView(buildHtmlForAnswer(aggregated.toString()), true);
+                            updateResultWebView(buildHtmlForAnswer(aggregated.toString()), false);
                         }
                     }),
                     () -> Platform.runLater(() -> {
@@ -2031,7 +2150,7 @@ public class OllamaWindow {
                         statusLabel.setText("⏳ Läuft… " + aggregated.length() + " Zeichen");
                         resultArea.setText(aggregated.toString());
                         if (resultStage != null && resultStage.isShowing() && resultWebView != null) {
-                            updateResultWebView(buildHtmlForAnswer(aggregated.toString()), true);
+                            updateResultWebView(buildHtmlForAnswer(aggregated.toString()), false);
                         }
                     }),
                     () -> Platform.runLater(() -> {
@@ -2064,7 +2183,7 @@ public class OllamaWindow {
                         statusLabel.setText("⏳ Läuft… " + aggregated.length() + " Zeichen");
                         resultArea.setText(aggregated.toString());
                         if (resultStage != null && resultStage.isShowing() && resultWebView != null) {
-                            updateResultWebView(buildHtmlForAnswer(aggregated.toString()), true);
+                            updateResultWebView(buildHtmlForAnswer(aggregated.toString()), false);
                         }
                     }),
                     () -> Platform.runLater(() -> {
@@ -2099,7 +2218,7 @@ public class OllamaWindow {
                         statusLabel.setText("⏳ Läuft… " + aggregated.length() + " Zeichen");
                         resultArea.setText(aggregated.toString());
                         if (resultStage != null && resultStage.isShowing() && resultWebView != null) {
-                            updateResultWebView(buildHtmlForAnswer(aggregated.toString()), true);
+                            updateResultWebView(buildHtmlForAnswer(aggregated.toString()), false);
                         }
                     }),
                     () -> Platform.runLater(() -> {
@@ -2774,7 +2893,7 @@ public class OllamaWindow {
                 
                 Scene sc = new Scene(box, 1000, 800);
                 resultStage.setSceneWithTitleBar(sc);
-                resultStage.setTitleWithIcon("🔍", "Ergebnis Xgerendert)");
+                resultStage.setTitleWithIcon("🔍", "Ergebnis gerendert)");
                 resultStage.initOwner(stage);
                 resultStage.setFullTheme(currentThemeIndex);
                 applyThemeToNode(box, currentThemeIndex);
@@ -3058,19 +3177,18 @@ public class OllamaWindow {
         return true;
     }
 
-    // Lädt HTML in das Ergebnis-WebView und scrollt optional ans Ende (nach Render)
+    // Lädt HTML in das Ergebnis-WebView und scrollt automatisch ans Ende (nach Render)
     private void updateResultWebView(String html, boolean scrollToBottom) {
         if (resultWebView == null) return;
         resultWebView.getEngine().loadContent(html, "text/html");
-        if (scrollToBottom) {
-            resultWebView.getEngine().getLoadWorker().stateProperty().addListener((obs, old, state) -> {
-                if (state == javafx.concurrent.Worker.State.SUCCEEDED) {
-                    try {
-                        resultWebView.getEngine().executeScript("window.scrollTo(0, document.body.scrollHeight);");
-                    } catch (Exception ignored) {}
-                }
-            });
-        }
+        // Immer automatisch scrollen bei neuen Inhalten (für Streaming)
+        resultWebView.getEngine().getLoadWorker().stateProperty().addListener((obs, old, state) -> {
+            if (state == javafx.concurrent.Worker.State.SUCCEEDED) {
+                try {
+                    resultWebView.getEngine().executeScript("window.scrollTo(0, document.body.scrollHeight);");
+                } catch (Exception ignored) {}
+            }
+        });
     }
     
     /**
@@ -4151,6 +4269,309 @@ public class OllamaWindow {
     /**
      * Prüft ob eine Session aufgeteilt werden muss und führt die Aufteilung durch
      */
+    /**
+     * Teilt einen Text in Chunks von maximal maxChunkSize Zeichen auf, 
+     * wobei an Absatzgrenzen (\n\n) getrennt wird.
+     */
+    private List<String> splitTextIntoChunks(String text, int maxChunkSize) {
+        List<String> chunks = new ArrayList<>();
+        if (text == null || text.trim().isEmpty()) {
+            return chunks;
+        }
+        
+        // Teile Text in Absätze auf
+        String[] paragraphs = text.split("\n\n", -1);
+        
+        StringBuilder currentChunk = new StringBuilder();
+        
+        for (String paragraph : paragraphs) {
+            int paragraphLength = paragraph.length();
+            int currentLength = currentChunk.length();
+            
+            // Berechne benötigte Länge: currentChunk + "\n\n" + paragraph
+            int separatorLength = (currentLength > 0 ? 2 : 0); // "\n\n" wenn nicht leer
+            int neededLength = currentLength + separatorLength + paragraphLength;
+            
+            // Wenn der Absatz allein schon größer oder gleich maxChunkSize ist, muss er aufgeteilt werden
+            if (paragraphLength >= maxChunkSize) {
+                // Speichere aktuellen Chunk zuerst (falls nicht leer)
+                if (currentLength > 0) {
+                    chunks.add(currentChunk.toString().trim());
+                    currentChunk = new StringBuilder();
+                }
+                
+                // Teile den zu großen Absatz nach Zeilen auf
+                String[] lines = paragraph.split("\n", -1);
+                for (String line : lines) {
+                    int lineLength = line.length();
+                    int chunkLength = currentChunk.length();
+                    
+                    // Wenn die Zeile allein schon zu groß ist, teile sie weiter
+                    if (lineLength >= maxChunkSize) {
+                        // Speichere aktuellen Chunk zuerst (falls nicht leer)
+                        if (chunkLength > 0) {
+                            chunks.add(currentChunk.toString().trim());
+                            currentChunk = new StringBuilder();
+                        }
+                        // Teile die Zeile in kleinere Teile
+                        int start = 0;
+                        while (start < lineLength) {
+                            int end = Math.min(start + maxChunkSize, lineLength);
+                            String part = line.substring(start, end);
+                            chunks.add(part.trim());
+                            start = end;
+                        }
+                    } else {
+                        // Prüfe ob Zeile in aktuellen Chunk passt
+                        int lineSeparatorLength = (chunkLength > 0 ? 1 : 0); // "\n" wenn nicht leer
+                        int neededForLine = chunkLength + lineSeparatorLength + lineLength;
+                        if (neededForLine > maxChunkSize && chunkLength > 0) {
+                            // Chunk ist voll, speichere ihn
+                            chunks.add(currentChunk.toString().trim());
+                            currentChunk = new StringBuilder();
+                        }
+                        // Füge Zeile hinzu
+                        if (currentChunk.length() > 0) {
+                            currentChunk.append("\n");
+                        }
+                        currentChunk.append(line);
+                    }
+                }
+            } else {
+                // Normaler Absatz: Prüfe ob er in aktuellen Chunk passt
+                if (neededLength > maxChunkSize && currentLength > 0) {
+                    // Chunk ist voll, speichere ihn
+                    chunks.add(currentChunk.toString().trim());
+                    currentChunk = new StringBuilder();
+                }
+                // Füge Absatz hinzu
+                if (currentChunk.length() > 0) {
+                    currentChunk.append("\n\n");
+                }
+                currentChunk.append(paragraph);
+            }
+        }
+        
+        // Letzten Chunk hinzufügen (falls nicht leer)
+        if (currentChunk.length() > 0) {
+            chunks.add(currentChunk.toString().trim());
+        }
+        
+        return chunks;
+    }
+    
+    /**
+     * Gibt die Liste der Analyse-Kategorien für "Kritisches Lektorat" zurück.
+     */
+    private List<String> getAnalysisCategories() {
+        return Arrays.asList(
+            "Rechtschreibung & Grammatik",
+            "Stil & Rhythmus",
+            "Logik & Kohärenz"
+        );
+    }
+    
+    /**
+     * Gibt die ausgewählten Analyse-Kategorien basierend auf Boolean-Variablen zurück
+     */
+    private List<String> getSelectedAnalysisCategories(Map<String, String> variables) {
+        List<String> allCategories = getAnalysisCategories();
+        List<String> selectedCategories = new ArrayList<>();
+        
+        // Prüfe Boolean-Variablen für jede Kategorie
+        if (isBooleanTrue(variables.get("Rechtschreibung_Grammatik"))) {
+            selectedCategories.add("Rechtschreibung & Grammatik");
+        }
+        if (isBooleanTrue(variables.get("Stil_Rhythmus"))) {
+            selectedCategories.add("Stil & Rhythmus");
+        }
+        if (isBooleanTrue(variables.get("Logik_Kohaerenz"))) {
+            selectedCategories.add("Logik & Kohärenz");
+        }
+        
+        return selectedCategories;
+    }
+    
+    /**
+     * Prüft ob ein Boolean-Wert true ist
+     */
+    private boolean isBooleanTrue(String value) {
+        if (value == null || value.trim().isEmpty()) {
+            return false;
+        }
+        String lower = value.toLowerCase().trim();
+        return "true".equals(lower) || "1".equals(lower) || "yes".equals(lower) || "ja".equals(lower);
+    }
+    
+    /**
+     * Verarbeitet Kategorien und Chunks asynchron ohne den JavaFX Thread zu blockieren.
+     */
+    private void processCategoryChunksAsync(int catIndex, int chunkIndex, List<String> categories, 
+                                           List<String> textChunks, Map<String, String> variables,
+                                           List<PluginVariable> variableDefinitions, Plugin plugin,
+                                           StringBuilder finalResult, int qaIndex, StringBuilder aggregated) {
+        // Wenn alle Kategorien fertig sind
+        if (catIndex >= categories.size()) {
+            Platform.runLater(() -> {
+                aggregated.setLength(0);
+                aggregated.append(finalResult.toString());
+                statusLabel.setText("✅ Analyse abgeschlossen");
+                setGenerating(false);
+                insertButton.setDisable(false);
+                
+                if (resultArea != null) {
+                    resultArea.setText(finalResult.toString());
+                    resultArea.setVisible(true);
+                    resultArea.setManaged(true);
+                }
+                
+                if (resultStage != null && resultStage.isShowing() && resultWebView != null) {
+                    updateResultWebView(buildHtmlForAnswer(finalResult.toString()), false);
+                }
+                
+                // Chat-Historie final aktualisieren
+                try {
+                    String header = String.format(java.util.Locale.US, "[%s | temp=%.2f, top_p=%.2f, repeat_penalty=%.2f]",
+                        ollamaService != null ? ollamaService.getCurrentParameters().split(",")[0].replace("Modell: ", "").trim() : modelComboBox.getValue(),
+                        ResourceManager.getDoubleParameter("ollama.temperature", 0.3),
+                        ResourceManager.getDoubleParameter("ollama.top_p", 0.7),
+                        ResourceManager.getDoubleParameter("ollama.repeat_penalty", 1.3)
+                    );
+                    String finalAnswer = header + "\n" + finalResult.toString();
+                    chatHistoryArea.setAnswerAt(qaIndex, finalAnswer);
+                    lastPureChatAnswer = finalResult.toString();
+                    
+                    // Persistenz
+                    List<CustomChatArea.QAPair> snapshot = chatHistoryArea.getSessionHistory();
+                    if (qaIndex >= 0 && qaIndex < snapshot.size()) {
+                        CustomChatArea.QAPair original = snapshot.get(qaIndex);
+                        snapshot.set(qaIndex, new CustomChatArea.QAPair(original.getQuestion(), finalAnswer));
+                    }
+                    sessionHistories.put(currentSessionName, snapshot);
+                } catch (Exception e) {
+                    logger.error("Fehler beim Finalisieren der Chat-Historie", e);
+                }
+            });
+            return;
+        }
+        
+        String category = categories.get(catIndex);
+        
+        // Wenn alle Chunks dieser Kategorie fertig sind, gehe zur nächsten Kategorie
+        if (chunkIndex >= textChunks.size()) {
+            finalResult.append("<br>\n");
+            // Starte nächste Kategorie mit erstem Chunk
+            processCategoryChunksAsync(catIndex + 1, 0, categories, textChunks, variables, 
+                variableDefinitions, plugin, finalResult, qaIndex, aggregated);
+            return;
+        }
+        
+        String chunk = textChunks.get(chunkIndex);
+        final int finalCatIndex = catIndex;
+        final int finalChunkIndex = chunkIndex;
+        final int finalTotalChunks = textChunks.size();
+        final String finalCategory = category;
+        
+        // Wenn dies der erste Chunk einer Kategorie ist, füge Kategorie-Header hinzu
+        if (chunkIndex == 0) {
+            finalResult.append("<br><strong>").append(category).append("</strong><br>\n");
+            Platform.runLater(() -> {
+                aggregated.append("<br><strong>").append(finalCategory).append("</strong><br>\n");
+                if (resultArea != null) {
+                    resultArea.setText(aggregated.toString());
+                }
+                if (resultStage != null && resultStage.isShowing() && resultWebView != null) {
+                            updateResultWebView(buildHtmlForAnswer(aggregated.toString()), false);
+                }
+            });
+        }
+        
+        // Füge "Teil X/Y" vor jedem Chunk hinzu (außer beim ersten Chunk der ersten Kategorie)
+        if (!(catIndex == 0 && chunkIndex == 0)) {
+            finalResult.append("<br><em>Teil ").append(finalChunkIndex + 1).append("/").append(finalTotalChunks).append("</em><br>\n");
+            Platform.runLater(() -> {
+                aggregated.append("<br><em>Teil ").append(finalChunkIndex + 1).append("/").append(finalTotalChunks).append("</em><br>\n");
+                if (resultArea != null) {
+                    resultArea.setText(aggregated.toString());
+                }
+                if (resultStage != null && resultStage.isShowing() && resultWebView != null) {
+                            updateResultWebView(buildHtmlForAnswer(aggregated.toString()), false);
+                }
+            });
+        }
+        
+        // Plugin-Prompt für diese Kategorie und diesen Chunk anpassen
+        Map<String, String> chunkVariables = new HashMap<>(variables);
+        // Setze den Chunk als selektierten Text
+        for (PluginVariable varDef : variableDefinitions) {
+            if (isSelectedTextVariable(varDef.getName())) {
+                chunkVariables.put(varDef.getName(), chunk);
+            }
+        }
+        // Setze die Kategorie als Variable (ersetzt {Kategorie} im Prompt)
+        chunkVariables.put("Kategorie", category);
+        
+        String chunkPrompt = plugin.getProcessedPrompt(chunkVariables);
+        
+        // Status aktualisieren
+        Platform.runLater(() -> {
+            statusLabel.setText(String.format("⏳ Analysiere %s - Teil %d/%d...", 
+                finalCategory, finalChunkIndex + 1, finalTotalChunks));
+        });
+        
+        // Context für diesen Chunk (nur der Chunk selbst, kein zusätzlicher Context)
+        String chunkContext = "=== ZU ANALYSIERENDER TEXT ===\n" + chunk;
+        
+        // Streaming-Aufruf für diesen Chunk
+        List<OllamaService.ChatMessage> chunkMessages = new ArrayList<>();
+        chunkMessages.add(new OllamaService.ChatMessage("user", chunkPrompt));
+        
+        StringBuilder chunkAggregated = new StringBuilder();
+        
+        // Stream-Handle speichern, damit wir es später abbrechen können falls nötig
+        currentStreamHandle = ollamaService.chatStreaming(
+            chunkMessages,
+            chunkContext,
+            chunkText -> Platform.runLater(() -> {
+                chunkAggregated.append(chunkText);
+                // Live-Update: Aktuelles Chunk-Ergebnis anhängen
+                String currentResult = finalResult.toString() + chunkAggregated.toString();
+                aggregated.setLength(0);
+                aggregated.append(currentResult);
+                if (resultArea != null) {
+                    resultArea.setText(currentResult);
+                }
+                if (resultStage != null && resultStage.isShowing() && resultWebView != null) {
+                    updateResultWebView(buildHtmlForAnswer(currentResult), false);
+                }
+                // Chat-Historie aktualisieren
+                try {
+                    chatHistoryArea.setAnswerAt(qaIndex, currentResult);
+                } catch (Exception e) {
+                    logger.error("Fehler beim Aktualisieren der Chat-Historie", e);
+                }
+            }),
+            () -> {
+                // Chunk fertig - füge Ergebnis hinzu und verarbeite nächsten Chunk
+                finalResult.append(chunkAggregated.toString());
+                // Asynchron nächsten Chunk verarbeiten (nicht blockierend)
+                Platform.runLater(() -> {
+                    processCategoryChunksAsync(finalCatIndex, finalChunkIndex + 1, categories, textChunks, 
+                        variables, variableDefinitions, plugin, finalResult, qaIndex, aggregated);
+                });
+            },
+            error -> {
+                logger.error("Fehler beim Analysieren eines Chunks", error);
+                Platform.runLater(() -> {
+                    statusLabel.setText("❌ Fehler bei Chunk " + (finalChunkIndex + 1));
+                    // Trotzdem weitermachen mit nächstem Chunk
+                    processCategoryChunksAsync(finalCatIndex, finalChunkIndex + 1, categories, textChunks, 
+                        variables, variableDefinitions, plugin, finalResult, qaIndex, aggregated);
+                });
+            }
+        );
+    }
+    
     private void checkAndSplitSession(String sessionName) {
         List<CustomChatArea.QAPair> sessionData = sessionHistories.get(sessionName);
         if (sessionData == null) return;
@@ -4415,7 +4836,7 @@ public class OllamaWindow {
                     statusLabel.setText("⏳ Analysiere Plot-Holes... " + aggregated.length() + " Zeichen");
                     resultArea.setText(aggregated.toString());
                     if (resultStage != null && resultStage.isShowing() && resultWebView != null) {
-                        updateResultWebView(buildHtmlForAnswer(aggregated.toString()), true);
+                        updateResultWebView(buildHtmlForAnswer(aggregated.toString()), false);
                     }
                 }),
                 () -> Platform.runLater(() -> {

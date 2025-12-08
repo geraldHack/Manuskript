@@ -181,13 +181,13 @@ ENABLED:1
 STEPDESC:*** als Trenner in --- ändern
 REPLACECOUNT:0
 STEP:21
-SEARCH:(?<!\\n\\n)(\\n)(-{3,}|\*{3,}|_{3,})(\\n)(?!\\n)
-REPLACE:$1\n$2$3\n
+SEARCH:(?m)^([ \t]*)(-{3,}|\*{3,}|_{3,})([ \t]*)$
+REPLACE:\n\n$1$2$3\n\n
 REGEX:1
 CASE:0
 WORD:0
 ENABLED:1
-STEPDESC:Markdown-Trenner mit Leerzeilen umgeben
+STEPDESC:Horizontale Trenner (---) mit Leerzeilen davor und danach umgeben
 REPLACECOUNT:0
 STEP:22
 SEARCH:,\"

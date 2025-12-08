@@ -147,14 +147,6 @@
                  </div>
              </div>
              
-             <div class="tool-item">
-                 <h3>Speichern als...</h3>
-                 <p><strong>Funktion:</strong> Speichert den Text unter einem neuen Namen als Markdown-Datei</p>
-                 <ul>
-                     <li><strong>Neuer Dateiname:</strong> Wählen Sie einen anderen Namen für die Datei</li>
-                     <li><strong>Speicherort:</strong> Wählen Sie einen anderen Ordner</li>
-                 </ul>
-             </div>
              
              <div class="tool-item">
                  <h3>Exportieren</h3>
@@ -163,6 +155,62 @@
                      <li><strong>DOCX:</strong> Zurück zu Word-Format</li>
                      <li><strong>HTML:</strong> HTML</li>
                  </ul>
+             </div>
+             
+             <div class="tool-item">
+                 <h3>◆ Für Sudowrite/limitierte Textsysteme kopieren</h3>
+                 <p><strong>Funktion:</strong> Kopiert den Kapitelinhalt in die Zwischenablage in einem Format, das für Sudowrite und andere limitierte Textsysteme geeignet ist</p>
+                 <div class="success">
+                     <p><strong>Hinweis:</strong> Diese Funktion ist nicht nur für Sudowrite geeignet, sondern auch für andere Textsysteme mit begrenzten Formatierungsmöglichkeiten. Für einen kompletten Export mit allen Formatierungen, Bildern und erweiterten Features nutzen Sie bitte die <strong>"Buch exportieren"</strong> Funktion im Hauptmenü.</p>
+                 </div>
+                 <div class="highlight">
+                     <h4>Was wird exportiert?</h4>
+                     <ul>
+                         <li><strong>Textinhalt:</strong> Der gesamte Kapitelinhalt wird kopiert</li>
+                         <li><strong>Grundlegende Formatierungen:</strong> Fett (<code>**text**</code>), Kursiv (<code>*text*</code>), Unterstrichen werden beibehalten</li>
+                         <li><strong>Absätze:</strong> Alle Absätze und Zeilenumbrüche bleiben erhalten</li>
+                         <li><strong>Listen:</strong> Aufzählungen und nummerierte Listen werden als Bullet-Punkte exportiert</li>
+                         <li><strong>Blockquotes:</strong> Zitate (Zeilen mit <code>&gt;</code>) werden als wörtlicher Text exportiert</li>
+                         <li><strong>Horizontale Linien:</strong> Werden als Bindestrich-Linien exportiert</li>
+                         <li><strong>Links:</strong> Markdown-Links werden zu HTML-Links konvertiert</li>
+                         <li><strong>Inline-Code:</strong> Code innerhalb von Backticks wird formatiert</li>
+                         <li><strong>Bilder:</strong> Werden nur als Markdown-Quelltext exportiert (z.B. <code>![Alt-Text](bild.jpg)</code>)</li>
+                     </ul>
+                 </div>
+                 <div class="warning">
+                     <h4>Was wird NICHT exportiert?</h4>
+                     <ul>
+                         <li><strong>Kapiteltitel:</strong> Die erste Zeile mit <code># Kapitel</code> wird automatisch entfernt, da viele Systeme eigene Titelverwaltung haben</li>
+                         <li><strong>Absatz-Markierungen:</strong> Die visuellen Absatz-Markierungen (¶) werden entfernt</li>
+                         <li><strong>Codeblock-Markierungen:</strong> Die Markierungen für Codeblöcke (<code>```</code>) werden entfernt, der Inhalt bleibt aber erhalten</li>
+                         <li><strong>Komplexe Tabellen:</strong> Tabellen werden vereinfacht exportiert</li>
+                         <li><strong>Super- und Subtext:</strong> Hoch- und tiefgestellter Text wird nicht exportiert</li>
+                         <li><strong>Markierungen:</strong> Textmarkierungen (Hervorhebungen) werden nicht exportiert</li>
+                         <li><strong>Textfarbe:</strong> Farbformatierungen werden nicht exportiert</li>
+                         <li><strong>Bilder als Bilder:</strong> Bilder werden nur als Markdown-Quelltext exportiert, nicht als tatsächliche Bilddateien</li>
+                     </ul>
+                 </div>
+                 <div class="success">
+                     <h4>Warum wird der Kapiteltitel entfernt?</h4>
+                     <p>Viele Textsysteme (wie Sudowrite) verwalten Kapiteltitel separat in ihrer eigenen Struktur. Wenn Sie den Titel mitkopieren würden, würde dieser als normaler Text im Kapitel erscheinen, was zu doppelten Titeln führen würde. Daher entfernt die Funktion automatisch die erste Zeile, wenn sie mit <code>#</code> beginnt.</p>
+                 </div>
+                 <div class="highlight">
+                     <h4>Technische Details:</h4>
+                     <ul>
+                         <li><strong>Format:</strong> Der Text wird sowohl als HTML als auch als rohes Markdown in die Zwischenablage kopiert</li>
+                         <li><strong>HTML-Version:</strong> Minimales HTML mit Standard-Tags (<code>&lt;strong&gt;</code>, <code>&lt;em&gt;</code>, <code>&lt;p&gt;</code>) für maximale Kompatibilität</li>
+                         <li><strong>Markdown-Version:</strong> Als Fallback wird auch das rohe Markdown kopiert, falls das Zielsystem HTML nicht unterstützt</li>
+                         <li><strong>Bereinigung:</strong> Der Text wird vor dem Export automatisch bereinigt (Absatz-Markierungen entfernt, Titel entfernt)</li>
+                         <li><strong>Bilder:</strong> Bildreferenzen bleiben als Markdown-Syntax erhalten, die Bilddateien selbst werden nicht mitkopiert</li>
+                     </ul>
+                 </div>
+                 <div class="warning">
+                     <strong>Hinweis:</strong> Nach dem Kopieren können Sie den Inhalt direkt in das Zielsystem einfügen (Strg+V). Die meisten Systeme erkennen automatisch das HTML-Format und übernehmen die Formatierungen. Für einen vollständigen Export mit allen Features nutzen Sie bitte die <strong>"Buch exportieren"</strong> Funktion.
+                 </div>
+                 <div class="highlight">
+                     <h4>Alternative Exportmethode:</h4>
+                     <p>Sie können den Markdown-Text auch direkt mit <strong>Strg+A</strong> (Alles markieren) und <strong>Strg+C</strong> (Kopieren) exportieren und dann mit <strong>Strg+V</strong> in das Zielsystem einfügen. <strong>Wichtig:</strong> Bei dieser Methode werden alle Manuskript-eigenen Syntax-Elemente (wie manuskripteigne tagsd   , Kapiteltitel, etc.) mitkopiert und müssen eventuell im Zielsystem manuell bearbeitet werden. Der "Für Sudowrite kopieren"-Button bereinigt den Text automatisch und ist daher für die meisten Fälle die bessere Wahl.</p>
+                 </div>
              </div>
             
             <div class="tool-item">
@@ -194,6 +242,7 @@
                     <li><strong>Lesbarkeit:</strong> Analysiert die Lesbarkeit des Textes</li>
                     <li><strong>Häufige Wörter:</strong> Findet häufig verwendete Begriffe</li>
                     <li><strong>Textqualität:</strong> Bewertet Grammatik und Stil</li>
+                    <li><strong>Satzlängen analysieren:</strong> Bewertet Satzlängen und Satzrythmus</li>
                 </ul>
             </div>
             

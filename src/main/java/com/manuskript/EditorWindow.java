@@ -102,6 +102,9 @@ public class EditorWindow implements Initializable {
     // Flag um zu verhindern, dass während des Ladens gespeichert wird
     private boolean isLoadingChapter = false;
     
+    // Set für Kapitel, die in dieser Sitzung bereits geladen wurden
+    private static final Set<String> chaptersLoadedThisSession = new HashSet<>();
+    
     // Referenz zum VirtualizedScrollPane für Scroll-Position
     private VirtualizedScrollPane<CodeArea> scrollPane;
     
@@ -146,7 +149,6 @@ public class EditorWindow implements Initializable {
     
     // Toolbar-Buttons
     @FXML private Button btnSave;
-    @FXML private Button btnSaveAs;
     @FXML private Button btnExport;
     @FXML private Button btnCopySudowrite;
 
@@ -470,10 +472,6 @@ public class EditorWindow implements Initializable {
         if (btnSave != null) {
             btnSave.setVisible(true);
             btnSave.setManaged(true);
-        }
-        if (btnSaveAs != null) {
-            btnSaveAs.setVisible(true);
-            btnSaveAs.setManaged(true);
         }
         if (btnExport != null) {
             btnExport.setVisible(true);
@@ -1081,11 +1079,6 @@ if (caret != null) {
             markAsSaved();
         });
         btnSave.setTooltip(new Tooltip("Datei speichern (Strg+S)"));
-        btnSaveAs.setOnAction(e -> {
-            saveFileAs();
-            markAsSaved();
-        });
-        btnSaveAs.setTooltip(new Tooltip("Datei speichern unter..."));
         btnExport.setOnAction(e -> showExportDialog());
         btnExport.setTooltip(new Tooltip("Dokument exportieren (DOCX, PDF, EPUB, etc.)"));
         // btnOpen und btnNew Event-Handler entfernt - Buttons sind unsichtbar
@@ -1461,7 +1454,8 @@ if (caret != null) {
     
     /**
      * Stellt die gespeicherte Cursor-Position und Scroll-Position für das aktuelle Kapitel wieder her
-     * Wenn keine Position gespeichert ist, wird der Cursor an den Anfang gesetzt
+     * Wenn keine Position gespeichert ist oder das Kapitel zum ersten Mal in dieser Sitzung geladen wird,
+     * wird der Cursor an den Anfang gesetzt
      */
     public void restoreCursorPosition() {
         if (codeArea != null) {
@@ -1469,6 +1463,61 @@ if (caret != null) {
             if (editorKey != null) {
                 String text = codeArea.getText();
                 if (text != null) {
+                    // Prüfe, ob dieses Kapitel bereits in dieser Sitzung geladen wurde
+                    boolean isFirstLoadInSession = !chaptersLoadedThisSession.contains(editorKey);
+                    
+                    // Wenn es das erste Laden in dieser Sitzung ist, immer am Anfang positionieren
+                    if (isFirstLoadInSession) {
+                        chaptersLoadedThisSession.add(editorKey);
+                        // Cursor am Anfang, Viewport am Anfang
+                        codeArea.moveTo(0);
+                        // Explizit zum Anfang scrollen mit mehreren Versuchen (Timeline für bessere Timing-Kontrolle)
+                        Platform.runLater(() -> {
+                            Platform.runLater(() -> {
+                                try {
+                                    int paragraphIndex = codeArea.offsetToPosition(0, Bias.Forward).getMajor();
+                                    codeArea.showParagraphInViewport(paragraphIndex);
+                                    codeArea.requestFollowCaret();
+                                    
+                                    // Zusätzliche Versuche mit Timeline für bessere Zuverlässigkeit
+                                    Timeline timeline = new Timeline(
+                                        new KeyFrame(Duration.millis(50), event -> {
+                                            try {
+                                                codeArea.moveTo(0);
+                                                int paraIndex = codeArea.offsetToPosition(0, Bias.Forward).getMajor();
+                                                codeArea.showParagraphInViewport(paraIndex);
+                                                codeArea.requestFollowCaret();
+                                            } catch (Exception e) {
+                                                logger.debug("Fehler beim Timeline-Scrollen: " + e.getMessage());
+                                            }
+                                        }),
+                                        new KeyFrame(Duration.millis(100), event -> {
+                                            try {
+                                                codeArea.moveTo(0);
+                                                int paraIndex = codeArea.offsetToPosition(0, Bias.Forward).getMajor();
+                                                codeArea.showParagraphInViewport(paraIndex);
+                                                codeArea.requestFollowCaret();
+                                                codeArea.requestFocus();
+                                                logger.debug("Kapitel {} zum ersten Mal in dieser Sitzung geladen, Cursor und Scrollposition am Anfang gesetzt", editorKey);
+                                            } catch (Exception e) {
+                                                logger.debug("Fehler beim finalen Scrollen: " + e.getMessage());
+                                                codeArea.requestFollowCaret();
+                                                codeArea.requestFocus();
+                                            }
+                                        })
+                                    );
+                                    timeline.play();
+                                } catch (Exception e) {
+                                    logger.debug("Fehler beim Setzen der Anfangsposition: " + e.getMessage());
+                                    // Fallback: Nur requestFollowCaret
+                                    codeArea.requestFollowCaret();
+                                    codeArea.requestFocus();
+                                }
+                            });
+                        });
+                        return;
+                    }
+                    
                     final int position;
                     final Double savedScrollValue;
                     
@@ -4940,6 +4989,19 @@ if (caret != null) {
     private void copyForSudowrite() {
         try {
             String markdownContent = cleanTextForExport(codeArea.getText());
+            
+            // Entferne den Kapiteltitel (# Kapitel) am Anfang, falls vorhanden
+            String[] lines = markdownContent.split("\n", -1);
+            if (lines.length > 0 && lines[0].trim().startsWith("#")) {
+                // Erste Zeile entfernen und wieder zusammenfügen
+                StringBuilder sb = new StringBuilder();
+                for (int i = 1; i < lines.length; i++) {
+                    if (i > 1) sb.append("\n");
+                    sb.append(lines[i]);
+                }
+                markdownContent = sb.toString();
+            }
+            
             Clipboard clipboard = Clipboard.getSystemClipboard();
             ClipboardContent content = new ClipboardContent();
 
@@ -5030,6 +5092,16 @@ if (caret != null) {
     
     // Datei-Operationen
     public void saveFile() {
+        // Prüfe ob englische Anführungszeichen für KI-Assistent aktiv sind
+        boolean aiQuotesActive = (cmbQuoteStyle != null && cmbQuoteStyle.isDisabled() && currentQuoteStyleIndex == 2);
+        boolean wasConverted = false;
+        
+        // Wenn ja, vor dem Speichern zurückkonvertieren zum ursprünglichen Format
+        if (aiQuotesActive && originalQuoteStyleIndex >= 0 && originalQuoteStyleIndex != 2) {
+            wasConverted = true;
+            // Temporär zurückkonvertieren zum ursprünglichen Format
+            convertAllQuotationMarksInText(QUOTE_STYLES[originalQuoteStyleIndex][0]);
+        }
         
         // Spezielle Behandlung für Bücher
         if (isCompleteDocument) {
@@ -5047,16 +5119,29 @@ if (caret != null) {
                     markAsSaved();
                 } catch (IOException e) {
                     updateStatusError("Fehler beim Speichern: " + e.getMessage());
+                    // Wieder zu englisch konvertieren bei Fehler
+                    if (wasConverted) {
+                        convertAllQuotationMarksInText(QUOTE_STYLES[2][0]);
+                    }
                     return;
                 }
                 
                 // Dialog für DOCX-Export anzeigen
                 showDocxExportDialog();
-            }             return;
+            }
+            // Nach dem Speichern wieder zu englisch konvertieren, wenn wir konvertiert haben
+            if (wasConverted) {
+                convertAllQuotationMarksInText(QUOTE_STYLES[2][0]);
+            }
+            return;
         }
         
         // Bei neuen Dateien (currentFile = null) direkt Save As verwenden
         if (currentFile == null) {
+            // Wieder zu englisch konvertieren, wenn wir konvertiert haben
+            if (wasConverted) {
+                convertAllQuotationMarksInText(QUOTE_STYLES[2][0]);
+            }
             saveFileAs();
             return;
         }
@@ -5068,10 +5153,15 @@ if (caret != null) {
             target = deriveSidecarFileForCurrentFormat();
         }
         if (target != null) {
+            // saveToFile() kümmert sich selbst um die Rückkonvertierung
             saveToFile(target);
             currentFile = target; // künftige Saves gehen wieder hierhin
             originalContent = cleanTextForComparison(codeArea.getText());
         } else {
+            // Wieder zu englisch konvertieren, wenn wir konvertiert haben
+            if (wasConverted) {
+                convertAllQuotationMarksInText(QUOTE_STYLES[2][0]);
+            }
             // Fallback auf Save As
             saveFileAs();
         }
@@ -5184,7 +5274,16 @@ if (caret != null) {
     }
     
     private void saveToFile(File file) {
-
+        // Prüfe ob englische Anführungszeichen für KI-Assistent aktiv sind
+        boolean aiQuotesActive = (cmbQuoteStyle != null && cmbQuoteStyle.isDisabled() && currentQuoteStyleIndex == 2);
+        boolean wasConverted = false;
+        
+        // Wenn ja, vor dem Speichern zurückkonvertieren zum ursprünglichen Format
+        if (aiQuotesActive && originalQuoteStyleIndex >= 0 && originalQuoteStyleIndex != 2) {
+            wasConverted = true;
+            // Temporär zurückkonvertieren zum ursprünglichen Format
+            convertAllQuotationMarksInText(QUOTE_STYLES[originalQuoteStyleIndex][0]);
+        }
         
         try {
             String data = cleanTextForExport(codeArea.getText());
@@ -5194,6 +5293,10 @@ if (caret != null) {
             if (isCompleteDocument) {
                 // Für Bücher: Nur DOCX erstellen, kein MD speichern
                 createDocxFile(file, data);
+                // Nach dem Speichern wieder zu englisch konvertieren, wenn wir konvertiert haben
+                if (wasConverted) {
+                    convertAllQuotationMarksInText(QUOTE_STYLES[2][0]);
+                }
                 return;
             }
             
@@ -5220,6 +5323,11 @@ if (caret != null) {
             }
         } catch (IOException e) {
             updateStatusError("Fehler beim Speichern: " + e.getMessage());
+        } finally {
+            // Nach dem Speichern wieder zu englisch konvertieren, wenn wir konvertiert haben
+            if (wasConverted) {
+                convertAllQuotationMarksInText(QUOTE_STYLES[2][0]);
+            }
         }
     }
 
@@ -9955,7 +10063,7 @@ spacer.setStyle("-fx-background-color: transparent;");
         PreferencesManager.MultiMonitorValidator.applyWindowProperties(stage, windowBounds);
 
         // Mindestgrößen setzen, damit das Fenster nicht unter die Layout-Grenzen schrumpft
-        stage.setMinWidth(1400);
+        stage.setMinWidth(1250);
         stage.setMinHeight(PreferencesManager.MIN_WINDOW_HEIGHT);
         
         // WICHTIG: Listener für Fenster-Änderungen hinzufügen
@@ -10849,7 +10957,6 @@ spacer.setStyle("-fx-background-color: transparent;");
             applyThemeToNode(btnFindNext, themeIndex);
             applyThemeToNode(btnFindPrevious, themeIndex);
             applyThemeToNode(btnSave, themeIndex);
-            applyThemeToNode(btnSaveAs, themeIndex);
             applyThemeToNode(btnExport, themeIndex);
             // btnOpen und btnNew sind unsichtbar - keine Theme-Anwendung nötig
             applyThemeToNode(btnToggleSearch, themeIndex);
@@ -15010,6 +15117,29 @@ spacer.setStyle("-fx-background-color: transparent;");
         }
     }
     /**
+     * Prüft ob der KI-Assistent offen ist und konvertiert Anführungszeichen falls nötig
+     */
+    private void checkAndConvertQuotesForAI() {
+        if (ollamaWindow != null && ollamaWindow.isShowing()) {
+            // KI-Assistent ist offen - prüfe ob englische Anführungszeichen bereits aktiv sind
+            if (cmbQuoteStyle != null && !cmbQuoteStyle.isDisabled()) {
+                // Englische Anführungszeichen sind noch nicht aktiv - aktiviere sie
+                enableEnglishQuotesForAI();
+            } else if (cmbQuoteStyle != null && cmbQuoteStyle.isDisabled() && currentQuoteStyleIndex == 2) {
+                // Englische Anführungszeichen sind bereits aktiv - konvertiere den Text
+                convertAllQuotationMarksInText(QUOTE_STYLES[2][0]);
+            }
+        }
+    }
+    
+    /**
+     * Prüft ob ein OllamaWindow aktiv ist (für MainController)
+     */
+    public boolean hasActiveOllamaWindow() {
+        return ollamaWindow != null && ollamaWindow.isShowing();
+    }
+    
+    /**
      * Stellt die ursprünglichen Anführungszeichen-Einstellungen wieder her
      */
     public void restoreOriginalQuotes() {
@@ -15314,6 +15444,9 @@ spacer.setStyle("-fx-background-color: transparent;");
             
             // Aktualisiere die Navigation-Buttons
             updateNavigationButtons();
+            
+            // Prüfe ob KI-Assistent offen ist und konvertiere Anführungszeichen falls nötig
+            checkAndConvertQuotesForAI();
             
             // WICHTIG: Editor für das neue Kapitel in der openEditors Map registrieren
             if (mainController != null) {

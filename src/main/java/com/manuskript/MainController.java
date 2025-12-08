@@ -3637,6 +3637,16 @@ public class MainController implements Initializable {
             // WICHTIG: Setze die Referenz zum MainController für Navigation
             editorController.setMainController(this);
             
+            // Prüfe ob ein OllamaWindow offen ist und konvertiere Anführungszeichen falls nötig
+            // Suche nach einem offenen Editor mit aktivem OllamaWindow
+            for (EditorWindow editor : openEditors.values()) {
+                if (editor != null && editor.hasActiveOllamaWindow()) {
+                    // Ein OllamaWindow ist offen - konvertiere Anführungszeichen im neuen Editor
+                    editorController.enableEnglishQuotesForAI();
+                    break;
+                }
+            }
+            
             CustomStage editorStage = StageManager.createStage("Kapitel-Editor: " + chapterFile.getFileName());
             
             // NEU: Titelbalken mit Dateinamen setzen
@@ -4938,10 +4948,10 @@ public class MainController implements Initializable {
         if (btnThemeToggle != null) {
             if (currentThemeIndex == 1 || currentThemeIndex >= 3) { // Dunkle Themes: Schwarz (1), Blau (3), Grün (4), Lila (5)
                 btnThemeToggle.setText("☀"); // Sonne für dunkle Themes (einfaches Symbol)
-                btnThemeToggle.setTooltip(new Tooltip("Zu hellem Theme wechseln"));
+                btnThemeToggle.setTooltip(new Tooltip("Theme wechseln"));
             } else { // Helle Themes: Weiß (0), Pastell (2)
                 btnThemeToggle.setText("🌙"); // Mond für helle Themes
-                btnThemeToggle.setTooltip(new Tooltip("Zu dunklem Theme wechseln"));
+                btnThemeToggle.setTooltip(new Tooltip("Theme wechseln"));
             }
         }
     }

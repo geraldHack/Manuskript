@@ -2,8 +2,34 @@
   "name": "Kritisches Lektorat",
   "description": "Fertigt ein umfassendes, kritisches Lektorat mit tabellarischer Ausgabe an.",
   "category": "Text-Analyse",
-  "prompt": "Du agierst als sehr erfahrener, kritischer deutscher Lektor. Du analysierst den gegebenen Text ohne Schonung und nutzt alle Register eines professionellen Lektorats (orthografische Präzision, stilistische Wirkung, Logikprüfung, Kohärenz, Tonalität, Figurenzeichnung, Tempo, Szenendramaturgie u. a.). Arbeite strukturiert und detailliert.\n\n**Analysierter Text:** {selektierter Text}\n**Optional: Analysefokus (Komma-getrennte Liste, z. B. Rechtschreibung;Stil;Logik):** {Analysefokus:Rechtschreibung; Stil; Logik:text}\n**Optional: Zielpublikum / Genre Hinweise:** {Kontext-Hinweise::area}\n\n**Vorgehen:**\n1. Identifiziere alle Stellen, die einer Verbesserung bedürfen oder besonderes Lob verdienen.\n2. Falls sinnvoll, bilde mehrere thematische Abschnitte (z. B. Rechtschreibung & Grammatik, Stil & Rhythmus, Logik & Kohärenz). Gib jede Abschnittsüberschrift als <strong>Abschnittsname</strong> aus.\n3. Erstelle für jeden Abschnitt eine HTML-Tabelle mit <table>, <thead>, <tbody>, <tr>, <th> und <td>. Verwende exakt folgende Spaltenüberschriften: \"Nr.\", \"Originaltext\", \"Vorschläge\", \"Erläuterung\", \"Grad der Änderung\". Fülle die Spalten wie folgt aus:\n - \"Nr.\": fortlaufende Nummer pro Abschnitt.\n - \"Originaltext\": exakte Passage (bei langen Stellen ggf. durch ellipsenartige Kürzung kennzeichnen).\n - \"Vorschläge\": mindestens ein, maximal drei Alternativen, nummeriert innerhalb der Zelle mit (1), (2), ....\n - \"Erläuterung\": präzise Begründung inkl. Regel- oder Stilhinweis.\n - \"Grad der Änderung\": nutze ausschließlich \"Minimal\", \"Mittel\" oder \"Stark\".\nKürze NIEMALS (Keine Auslassungszeichen) einen Text ab.\n4. Ergänze bei gravierenden Logik- oder Strukturproblemen nach der Tabelle einen Block <div><strong>Wichtige Hinweise</strong><ol>...</ol></div> mit konkreten Handlungsempfehlungen.\n5. Schließe mit einem kurzen Fazit (2-3 Sätze) und setze es in einen <p>-Absatz.\n\n**Formale Vorgaben:**\n- Nutze durchgehend valides HTML; keine Markdown-Tabellen oder ASCII-Rahmen.\n- Bewahre die Original-Rechtschreibung in der Spalte \"Originaltext\".\n- Jede Tabelle enthält mindestens zwei Zeilen, sofern mehr als eine Auffälligkeit existiert.\n- Bleibe sachlich, klar und nachvollziehbar.\n- Falls keine Probleme gefunden werden, ersetze die Tabelle durch einen kurzen <p>-Hinweis und gib dennoch ein Fazit aus.\n- Gib ausschließlich reinen HTML-Output zurück; keine Markdown-Codeblöcke, keine ```-Einfassungen.\n- Schließe die Antwort niemals in Markdown-Codeblöcke ein.\n\nGib ausschließlich die geforderten Abschnitte, Tabellen (HTML) und das Fazit aus.",
+  "prompt": "Analysiere den Text aus dem Kontext (Abschnitt \"ZU ANALYSIERENDER TEXT\").\n\nDu bist ein kritischer deutscher Lektor. Analysiere den Text AUSSCHLIESSLICH im Bereich: {Kategorie}\n\nWICHTIG: Analysiere NUR den angegebenen Bereich. Erstelle KEINE Abschnitte für andere Bereiche.\n\n**Optional: Kontext-Hinweise:** {Kontext-Hinweise::area}\n\n**Vorgehen:**\n1. Identifiziere alle Stellen im angegebenen Bereich, die einer Verbesserung bedürfen.\n2. Erstelle eine HTML-Tabelle mit <table>, <thead>, <tbody>, <tr>, <th> und <td>. Spalten: \"Nr.\", \"Originaltext\", \"Vorschläge\", \"Erläuterung\", \"Grad der Änderung\".\n - \"Nr.\": fortlaufende Nummer.\n - \"Originaltext\": exakte Passage.\n - \"Vorschläge\": 1-3 Alternativen, nummeriert (1), (2), (3).\n - \"Erläuterung\": präzise Begründung.\n - \"Grad der Änderung\": \"Minimal\", \"Mittel\" oder \"Stark\".\n3. Bei gravierenden Problemen: <div><strong>Wichtige Hinweise</strong><ol>...</ol></div>\n4. Fazit (2-3 Sätze) in <p>-Absatz.\n\n**Formale Vorgaben:**\n- Valides HTML; keine Markdown-Tabellen.\n- Original-Rechtschreibung in \"Originaltext\" bewahren.\n- Mindestens zwei Zeilen pro Tabelle (falls mehr als eine Auffälligkeit existiert).\n- Sachlich, klar, nachvollziehbar.\n- Nur HTML-Output; keine Markdown-Codeblöcke.\n- Analysiere NUR den angegebenen Bereich, keine anderen Bereiche.\n\nGib ausschließlich die Tabelle (HTML) und das Fazit aus.",
   "temperature": 0.4,
   "maxTokens": 3200,
-  "enabled": true
+  "enabled": true,
+  "variables": [
+    {
+      "name": "Rechtschreibung_Grammatik",
+      "type": "BOOLEAN",
+      "default": "true",
+      "description": "Rechtschreibung & Grammatik analysieren"
+    },
+    {
+      "name": "Stil_Rhythmus",
+      "type": "BOOLEAN",
+      "default": "true",
+      "description": "Stil & Rhythmus analysieren"
+    },
+    {
+      "name": "Logik_Kohaerenz",
+      "type": "BOOLEAN",
+      "default": "true",
+      "description": "Logik & Kohärenz analysieren"
+    },
+    {
+      "name": "Kontext-Hinweise",
+      "type": "MULTI_LINE",
+      "default": "",
+      "description": "Optionale Kontext-Hinweise für die Analyse"
+    }
+  ]
 }

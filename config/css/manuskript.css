@@ -3590,13 +3590,14 @@
     -fx-border-width: 1px !important;
     -fx-border-radius: 4px !important;
     -fx-background-radius: 4px !important;
-    -fx-padding: 6px 8px !important;
+    -fx-padding: 4px 8px !important;
 }
 
 .weiss-theme .font-toolbar #btnColorMenu.toolbar-button .label {
     -fx-background-color: transparent !important;
     -fx-text-fill: #000000 !important;
     -fx-padding: 0 !important;
+    -fx-line-spacing: 0 !important;
 }
 
 .weiss-theme .font-toolbar #btnColorMenu.toolbar-button .container {
@@ -3633,13 +3634,14 @@
     -fx-border-width: 1px !important;
     -fx-border-radius: 4px !important;
     -fx-background-radius: 4px !important;
-    -fx-padding: 6px 8px !important;
+    -fx-padding: 4px 8px !important;
 }
 
 .theme-dark .font-toolbar #btnColorMenu.toolbar-button .label {
     -fx-background-color: transparent !important;
     -fx-text-fill: #ffffff !important;
     -fx-padding: 0 !important;
+    -fx-line-spacing: 0 !important;
 }
 
 .theme-dark .font-toolbar #btnColorMenu.toolbar-button .container {
@@ -3676,13 +3678,14 @@
     -fx-border-width: 1px !important;
     -fx-border-radius: 4px !important;
     -fx-background-radius: 4px !important;
-    -fx-padding: 6px 8px !important;
+    -fx-padding: 4px 8px !important;
 }
 
 .pastell-theme .font-toolbar #btnColorMenu.toolbar-button .label {
     -fx-background-color: transparent !important;
     -fx-text-fill: #000000 !important;
     -fx-padding: 0 !important;
+    -fx-line-spacing: 0 !important;
 }
 
 .pastell-theme .font-toolbar #btnColorMenu.toolbar-button .container {
@@ -3719,13 +3722,14 @@
     -fx-border-width: 1px !important;
     -fx-border-radius: 4px !important;
     -fx-background-radius: 4px !important;
-    -fx-padding: 6px 8px !important;
+    -fx-padding: 4px 8px !important;
 }
 
 .theme-dark.blau-theme .font-toolbar #btnColorMenu.toolbar-button .label {
     -fx-background-color: transparent !important;
     -fx-text-fill: #ffffff !important;
     -fx-padding: 0 !important;
+    -fx-line-spacing: 0 !important;
 }
 
 .theme-dark.blau-theme .font-toolbar #btnColorMenu.toolbar-button .container {
@@ -3762,13 +3766,14 @@
     -fx-border-width: 1px !important;
     -fx-border-radius: 4px !important;
     -fx-background-radius: 4px !important;
-    -fx-padding: 6px 8px !important;
+    -fx-padding: 4px 8px !important;
 }
 
 .theme-dark.gruen-theme .font-toolbar #btnColorMenu.toolbar-button .label {
     -fx-background-color: transparent !important;
     -fx-text-fill: #ffffff !important;
     -fx-padding: 0 !important;
+    -fx-line-spacing: 0 !important;
 }
 
 .theme-dark.gruen-theme .font-toolbar #btnColorMenu.toolbar-button .container {
@@ -3805,13 +3810,14 @@
     -fx-border-width: 1px !important;
     -fx-border-radius: 4px !important;
     -fx-background-radius: 4px !important;
-    -fx-padding: 6px 8px !important;
+    -fx-padding: 4px 8px !important;
 }
 
 .theme-dark.lila-theme .font-toolbar #btnColorMenu.toolbar-button .label {
     -fx-background-color: transparent !important;
     -fx-text-fill: #ffffff !important;
     -fx-padding: 0 !important;
+    -fx-line-spacing: 0 !important;
 }
 
 .theme-dark.lila-theme .font-toolbar #btnColorMenu.toolbar-button .container {
@@ -3839,6 +3845,567 @@
 
 .theme-dark.lila-theme .font-toolbar #btnColorMenu.toolbar-button:hover .container {
     -fx-background-color: transparent !important;
+}
+
+/* Anführungszeichen-Dropdown - verwendet die gleichen Farben wie Textfarbe-Dropdown */
+.weiss-theme .font-toolbar #cmbQuoteStyle.toolbar-button {
+    -fx-background-color: #f8f9fa !important;
+    -fx-text-fill: #000000 !important;
+    -fx-border-color: #dee2e6 !important;
+    -fx-border-width: 1px !important;
+    -fx-border-radius: 4px !important;
+    -fx-background-radius: 4px !important;
+    -fx-padding: 4px 8px !important;
+}
+
+.weiss-theme .font-toolbar #cmbQuoteStyle.toolbar-button .list-cell {
+    -fx-background-color: transparent !important;
+    -fx-text-fill: #000000 !important;
+    -fx-padding: 4px 8px 4px 8px !important;
+    -fx-pref-height: 26px !important;
+}
+
+.weiss-theme .font-toolbar #cmbQuoteStyle.toolbar-button .arrow-button {
+    -fx-background-color: transparent !important;
+}
+
+.weiss-theme .font-toolbar #cmbQuoteStyle.toolbar-button .arrow-button .arrow {
+    -fx-background-color: #000000 !important;
+}
+
+.weiss-theme .font-toolbar #cmbQuoteStyle.toolbar-button:hover {
+    -fx-background-color: #e9ecef !important;
+    -fx-border-color: #dee2e6 !important;
+    -fx-border-width: 1px !important;
+}
+
+.theme-dark .font-toolbar #cmbQuoteStyle.toolbar-button {
+    -fx-background-color: #495057 !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-border-color: #6c757d !important;
+    -fx-border-width: 1px !important;
+    -fx-border-radius: 4px !important;
+    -fx-background-radius: 4px !important;
+    -fx-padding: 4px 8px !important;
+}
+
+.theme-dark .font-toolbar #cmbQuoteStyle.toolbar-button .list-cell {
+    -fx-background-color: transparent !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-padding: 4px 8px 4px 8px !important;
+    -fx-pref-height: 26px !important;
+}
+
+.theme-dark .font-toolbar #cmbQuoteStyle.toolbar-button .arrow-button {
+    -fx-background-color: transparent !important;
+}
+
+.theme-dark .font-toolbar #cmbQuoteStyle.toolbar-button .arrow-button .arrow {
+    -fx-background-color: #ffffff !important;
+}
+
+.theme-dark .font-toolbar #cmbQuoteStyle.toolbar-button:hover {
+    -fx-background-color: #6c757d !important;
+    -fx-border-color: #6c757d !important;
+    -fx-border-width: 1px !important;
+}
+
+.pastell-theme .font-toolbar #cmbQuoteStyle.toolbar-button {
+    -fx-background-color: #e1bee7 !important;
+    -fx-text-fill: #000000 !important;
+    -fx-border-color: #ba68c8 !important;
+    -fx-border-width: 1px !important;
+    -fx-border-radius: 4px !important;
+    -fx-background-radius: 4px !important;
+    -fx-padding: 4px 8px !important;
+}
+
+.pastell-theme .font-toolbar #cmbQuoteStyle.toolbar-button .list-cell {
+    -fx-background-color: transparent !important;
+    -fx-text-fill: #000000 !important;
+    -fx-padding: 4px 8px 4px 8px !important;
+    -fx-pref-height: 26px !important;
+}
+
+.pastell-theme .font-toolbar #cmbQuoteStyle.toolbar-button .arrow-button {
+    -fx-background-color: transparent !important;
+}
+
+.pastell-theme .font-toolbar #cmbQuoteStyle.toolbar-button .arrow-button .arrow {
+    -fx-background-color: #000000 !important;
+}
+
+.pastell-theme .font-toolbar #cmbQuoteStyle.toolbar-button:hover {
+    -fx-background-color: #ce93d8 !important;
+    -fx-border-color: #ba68c8 !important;
+    -fx-border-width: 1px !important;
+}
+
+.theme-dark.blau-theme .font-toolbar #cmbQuoteStyle.toolbar-button {
+    -fx-background-color: #3b82f6 !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-border-color: #1d4ed8 !important;
+    -fx-border-width: 1px !important;
+    -fx-border-radius: 4px !important;
+    -fx-background-radius: 4px !important;
+    -fx-padding: 4px 8px !important;
+}
+
+.theme-dark.blau-theme .font-toolbar #cmbQuoteStyle.toolbar-button .list-cell {
+    -fx-background-color: transparent !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-padding: 4px 8px 4px 8px !important;
+    -fx-pref-height: 26px !important;
+}
+
+.theme-dark.blau-theme .font-toolbar #cmbQuoteStyle.toolbar-button .arrow-button {
+    -fx-background-color: transparent !important;
+}
+
+.theme-dark.blau-theme .font-toolbar #cmbQuoteStyle.toolbar-button .arrow-button .arrow {
+    -fx-background-color: #ffffff !important;
+}
+
+.theme-dark.blau-theme .font-toolbar #cmbQuoteStyle.toolbar-button:hover {
+    -fx-background-color: #2563eb !important;
+    -fx-border-color: #1d4ed8 !important;
+    -fx-border-width: 1px !important;
+}
+
+.theme-dark.gruen-theme .font-toolbar #cmbQuoteStyle.toolbar-button {
+    -fx-background-color: #065f46 !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-border-color: #10b981 !important;
+    -fx-border-width: 1px !important;
+    -fx-border-radius: 4px !important;
+    -fx-background-radius: 4px !important;
+    -fx-padding: 4px 8px !important;
+}
+
+.theme-dark.gruen-theme .font-toolbar #cmbQuoteStyle.toolbar-button .list-cell {
+    -fx-background-color: transparent !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-padding: 4px 8px 4px 8px !important;
+    -fx-pref-height: 26px !important;
+}
+
+.theme-dark.gruen-theme .font-toolbar #cmbQuoteStyle.toolbar-button .arrow-button {
+    -fx-background-color: transparent !important;
+}
+
+.theme-dark.gruen-theme .font-toolbar #cmbQuoteStyle.toolbar-button .arrow-button .arrow {
+    -fx-background-color: #ffffff !important;
+}
+
+.theme-dark.gruen-theme .font-toolbar #cmbQuoteStyle.toolbar-button:hover {
+    -fx-background-color: #059669 !important;
+    -fx-border-color: #10b981 !important;
+    -fx-border-width: 1px !important;
+}
+
+.theme-dark.lila-theme .font-toolbar #cmbQuoteStyle.toolbar-button {
+    -fx-background-color: #4c1d95 !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-border-color: #7c3aed !important;
+    -fx-border-width: 1px !important;
+    -fx-border-radius: 4px !important;
+    -fx-background-radius: 4px !important;
+    -fx-padding: 4px 8px !important;
+}
+
+.theme-dark.lila-theme .font-toolbar #cmbQuoteStyle.toolbar-button .list-cell {
+    -fx-background-color: transparent !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-padding: 4px 8px 4px 8px !important;
+    -fx-pref-height: 26px !important;
+}
+
+.theme-dark.lila-theme .font-toolbar #cmbQuoteStyle.toolbar-button .arrow-button {
+    -fx-background-color: transparent !important;
+}
+
+.theme-dark.lila-theme .font-toolbar #cmbQuoteStyle.toolbar-button .arrow-button .arrow {
+    -fx-background-color: #ffffff !important;
+}
+
+.theme-dark.lila-theme .font-toolbar #cmbQuoteStyle.toolbar-button:hover {
+    -fx-background-color: #6d28d9 !important;
+    -fx-border-color: #7c3aed !important;
+    -fx-border-width: 1px !important;
+}
+
+/* Textgröße-Dropdown - verwendet die gleichen Farben wie Textfarbe-Dropdown */
+.weiss-theme .font-toolbar #cmbFontSize.toolbar-button {
+    -fx-background-color: #f8f9fa !important;
+    -fx-text-fill: #000000 !important;
+    -fx-border-color: #dee2e6 !important;
+    -fx-border-width: 1px !important;
+    -fx-border-radius: 4px !important;
+    -fx-background-radius: 4px !important;
+    -fx-padding: 4px 8px !important;
+}
+
+.weiss-theme .font-toolbar #cmbFontSize.toolbar-button .list-cell {
+    -fx-background-color: transparent !important;
+    -fx-text-fill: #000000 !important;
+    -fx-padding: 4px 8px 4px 8px !important;
+    -fx-pref-height: 26px !important;
+}
+
+.weiss-theme .font-toolbar #cmbFontSize.toolbar-button .arrow-button {
+    -fx-background-color: transparent !important;
+}
+
+.weiss-theme .font-toolbar #cmbFontSize.toolbar-button .arrow-button .arrow {
+    -fx-background-color: #000000 !important;
+}
+
+.weiss-theme .font-toolbar #cmbFontSize.toolbar-button:hover {
+    -fx-background-color: #e9ecef !important;
+    -fx-border-color: #dee2e6 !important;
+    -fx-border-width: 1px !important;
+}
+
+.theme-dark .font-toolbar #cmbFontSize.toolbar-button {
+    -fx-background-color: #495057 !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-border-color: #6c757d !important;
+    -fx-border-width: 1px !important;
+    -fx-border-radius: 4px !important;
+    -fx-background-radius: 4px !important;
+    -fx-padding: 4px 8px !important;
+}
+
+.theme-dark .font-toolbar #cmbFontSize.toolbar-button .list-cell {
+    -fx-background-color: transparent !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-padding: 4px 8px 4px 8px !important;
+    -fx-pref-height: 26px !important;
+}
+
+.theme-dark .font-toolbar #cmbFontSize.toolbar-button .arrow-button {
+    -fx-background-color: transparent !important;
+}
+
+.theme-dark .font-toolbar #cmbFontSize.toolbar-button .arrow-button .arrow {
+    -fx-background-color: #ffffff !important;
+}
+
+.theme-dark .font-toolbar #cmbFontSize.toolbar-button:hover {
+    -fx-background-color: #6c757d !important;
+    -fx-border-color: #6c757d !important;
+    -fx-border-width: 1px !important;
+}
+
+.pastell-theme .font-toolbar #cmbFontSize.toolbar-button {
+    -fx-background-color: #e1bee7 !important;
+    -fx-text-fill: #000000 !important;
+    -fx-border-color: #ba68c8 !important;
+    -fx-border-width: 1px !important;
+    -fx-border-radius: 4px !important;
+    -fx-background-radius: 4px !important;
+    -fx-padding: 4px 8px !important;
+}
+
+.pastell-theme .font-toolbar #cmbFontSize.toolbar-button .list-cell {
+    -fx-background-color: transparent !important;
+    -fx-text-fill: #000000 !important;
+    -fx-padding: 4px 8px 4px 8px !important;
+    -fx-pref-height: 26px !important;
+}
+
+.pastell-theme .font-toolbar #cmbFontSize.toolbar-button .arrow-button {
+    -fx-background-color: transparent !important;
+}
+
+.pastell-theme .font-toolbar #cmbFontSize.toolbar-button .arrow-button .arrow {
+    -fx-background-color: #000000 !important;
+}
+
+.pastell-theme .font-toolbar #cmbFontSize.toolbar-button:hover {
+    -fx-background-color: #ce93d8 !important;
+    -fx-border-color: #ba68c8 !important;
+    -fx-border-width: 1px !important;
+}
+
+.theme-dark.blau-theme .font-toolbar #cmbFontSize.toolbar-button {
+    -fx-background-color: #3b82f6 !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-border-color: #1d4ed8 !important;
+    -fx-border-width: 1px !important;
+    -fx-border-radius: 4px !important;
+    -fx-background-radius: 4px !important;
+    -fx-padding: 4px 8px !important;
+}
+
+.theme-dark.blau-theme .font-toolbar #cmbFontSize.toolbar-button .list-cell {
+    -fx-background-color: transparent !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-padding: 4px 8px 4px 8px !important;
+    -fx-pref-height: 26px !important;
+}
+
+.theme-dark.blau-theme .font-toolbar #cmbFontSize.toolbar-button .arrow-button {
+    -fx-background-color: transparent !important;
+}
+
+.theme-dark.blau-theme .font-toolbar #cmbFontSize.toolbar-button .arrow-button .arrow {
+    -fx-background-color: #ffffff !important;
+}
+
+.theme-dark.blau-theme .font-toolbar #cmbFontSize.toolbar-button:hover {
+    -fx-background-color: #2563eb !important;
+    -fx-border-color: #1d4ed8 !important;
+    -fx-border-width: 1px !important;
+}
+
+.theme-dark.gruen-theme .font-toolbar #cmbFontSize.toolbar-button {
+    -fx-background-color: #065f46 !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-border-color: #10b981 !important;
+    -fx-border-width: 1px !important;
+    -fx-border-radius: 4px !important;
+    -fx-background-radius: 4px !important;
+    -fx-padding: 4px 8px !important;
+}
+
+.theme-dark.gruen-theme .font-toolbar #cmbFontSize.toolbar-button .list-cell {
+    -fx-background-color: transparent !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-padding: 4px 8px 4px 8px !important;
+    -fx-pref-height: 26px !important;
+}
+
+.theme-dark.gruen-theme .font-toolbar #cmbFontSize.toolbar-button .arrow-button {
+    -fx-background-color: transparent !important;
+}
+
+.theme-dark.gruen-theme .font-toolbar #cmbFontSize.toolbar-button .arrow-button .arrow {
+    -fx-background-color: #ffffff !important;
+}
+
+.theme-dark.gruen-theme .font-toolbar #cmbFontSize.toolbar-button:hover {
+    -fx-background-color: #059669 !important;
+    -fx-border-color: #10b981 !important;
+    -fx-border-width: 1px !important;
+}
+
+.theme-dark.lila-theme .font-toolbar #cmbFontSize.toolbar-button {
+    -fx-background-color: #4c1d95 !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-border-color: #7c3aed !important;
+    -fx-border-width: 1px !important;
+    -fx-border-radius: 4px !important;
+    -fx-background-radius: 4px !important;
+    -fx-padding: 4px 8px !important;
+}
+
+.theme-dark.lila-theme .font-toolbar #cmbFontSize.toolbar-button .list-cell {
+    -fx-background-color: transparent !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-padding: 4px 8px 4px 8px !important;
+    -fx-pref-height: 26px !important;
+}
+
+.theme-dark.lila-theme .font-toolbar #cmbFontSize.toolbar-button .arrow-button {
+    -fx-background-color: transparent !important;
+}
+
+.theme-dark.lila-theme .font-toolbar #cmbFontSize.toolbar-button .arrow-button .arrow {
+    -fx-background-color: #ffffff !important;
+}
+
+.theme-dark.lila-theme .font-toolbar #cmbFontSize.toolbar-button:hover {
+    -fx-background-color: #6d28d9 !important;
+    -fx-border-color: #7c3aed !important;
+    -fx-border-width: 1px !important;
+}
+
+/* Zeilenabstand-Dropdown - verwendet die gleichen Farben wie Textfarbe-Dropdown */
+.weiss-theme .font-toolbar #cmbParagraphSpacing.toolbar-button {
+    -fx-background-color: #f8f9fa !important;
+    -fx-text-fill: #000000 !important;
+    -fx-border-color: #dee2e6 !important;
+    -fx-border-width: 1px !important;
+    -fx-border-radius: 4px !important;
+    -fx-background-radius: 4px !important;
+    -fx-padding: 4px 8px !important;
+}
+
+.weiss-theme .font-toolbar #cmbParagraphSpacing.toolbar-button .list-cell {
+    -fx-background-color: transparent !important;
+    -fx-text-fill: #000000 !important;
+    -fx-padding: 4px 8px 4px 8px !important;
+    -fx-pref-height: 26px !important;
+}
+
+.weiss-theme .font-toolbar #cmbParagraphSpacing.toolbar-button .arrow-button {
+    -fx-background-color: transparent !important;
+}
+
+.weiss-theme .font-toolbar #cmbParagraphSpacing.toolbar-button .arrow-button .arrow {
+    -fx-background-color: #000000 !important;
+}
+
+.weiss-theme .font-toolbar #cmbParagraphSpacing.toolbar-button:hover {
+    -fx-background-color: #e9ecef !important;
+    -fx-border-color: #dee2e6 !important;
+    -fx-border-width: 1px !important;
+}
+
+.theme-dark .font-toolbar #cmbParagraphSpacing.toolbar-button {
+    -fx-background-color: #495057 !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-border-color: #6c757d !important;
+    -fx-border-width: 1px !important;
+    -fx-border-radius: 4px !important;
+    -fx-background-radius: 4px !important;
+    -fx-padding: 4px 8px !important;
+}
+
+.theme-dark .font-toolbar #cmbParagraphSpacing.toolbar-button .list-cell {
+    -fx-background-color: transparent !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-padding: 4px 8px 4px 8px !important;
+    -fx-pref-height: 26px !important;
+}
+
+.theme-dark .font-toolbar #cmbParagraphSpacing.toolbar-button .arrow-button {
+    -fx-background-color: transparent !important;
+}
+
+.theme-dark .font-toolbar #cmbParagraphSpacing.toolbar-button .arrow-button .arrow {
+    -fx-background-color: #ffffff !important;
+}
+
+.theme-dark .font-toolbar #cmbParagraphSpacing.toolbar-button:hover {
+    -fx-background-color: #6c757d !important;
+    -fx-border-color: #6c757d !important;
+    -fx-border-width: 1px !important;
+}
+
+.pastell-theme .font-toolbar #cmbParagraphSpacing.toolbar-button {
+    -fx-background-color: #e1bee7 !important;
+    -fx-text-fill: #000000 !important;
+    -fx-border-color: #ba68c8 !important;
+    -fx-border-width: 1px !important;
+    -fx-border-radius: 4px !important;
+    -fx-background-radius: 4px !important;
+    -fx-padding: 4px 8px !important;
+}
+
+.pastell-theme .font-toolbar #cmbParagraphSpacing.toolbar-button .list-cell {
+    -fx-background-color: transparent !important;
+    -fx-text-fill: #000000 !important;
+    -fx-padding: 4px 8px 4px 8px !important;
+    -fx-pref-height: 26px !important;
+}
+
+.pastell-theme .font-toolbar #cmbParagraphSpacing.toolbar-button .arrow-button {
+    -fx-background-color: transparent !important;
+}
+
+.pastell-theme .font-toolbar #cmbParagraphSpacing.toolbar-button .arrow-button .arrow {
+    -fx-background-color: #000000 !important;
+}
+
+.pastell-theme .font-toolbar #cmbParagraphSpacing.toolbar-button:hover {
+    -fx-background-color: #ce93d8 !important;
+    -fx-border-color: #ba68c8 !important;
+    -fx-border-width: 1px !important;
+}
+
+.theme-dark.blau-theme .font-toolbar #cmbParagraphSpacing.toolbar-button {
+    -fx-background-color: #3b82f6 !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-border-color: #1d4ed8 !important;
+    -fx-border-width: 1px !important;
+    -fx-border-radius: 4px !important;
+    -fx-background-radius: 4px !important;
+    -fx-padding: 4px 8px !important;
+}
+
+.theme-dark.blau-theme .font-toolbar #cmbParagraphSpacing.toolbar-button .list-cell {
+    -fx-background-color: transparent !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-padding: 4px 8px 4px 8px !important;
+    -fx-pref-height: 26px !important;
+}
+
+.theme-dark.blau-theme .font-toolbar #cmbParagraphSpacing.toolbar-button .arrow-button {
+    -fx-background-color: transparent !important;
+}
+
+.theme-dark.blau-theme .font-toolbar #cmbParagraphSpacing.toolbar-button .arrow-button .arrow {
+    -fx-background-color: #ffffff !important;
+}
+
+.theme-dark.blau-theme .font-toolbar #cmbParagraphSpacing.toolbar-button:hover {
+    -fx-background-color: #2563eb !important;
+    -fx-border-color: #1d4ed8 !important;
+    -fx-border-width: 1px !important;
+}
+
+.theme-dark.gruen-theme .font-toolbar #cmbParagraphSpacing.toolbar-button {
+    -fx-background-color: #065f46 !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-border-color: #10b981 !important;
+    -fx-border-width: 1px !important;
+    -fx-border-radius: 4px !important;
+    -fx-background-radius: 4px !important;
+    -fx-padding: 4px 8px !important;
+}
+
+.theme-dark.gruen-theme .font-toolbar #cmbParagraphSpacing.toolbar-button .list-cell {
+    -fx-background-color: transparent !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-padding: 4px 8px 4px 8px !important;
+    -fx-pref-height: 26px !important;
+}
+
+.theme-dark.gruen-theme .font-toolbar #cmbParagraphSpacing.toolbar-button .arrow-button {
+    -fx-background-color: transparent !important;
+}
+
+.theme-dark.gruen-theme .font-toolbar #cmbParagraphSpacing.toolbar-button .arrow-button .arrow {
+    -fx-background-color: #ffffff !important;
+}
+
+.theme-dark.gruen-theme .font-toolbar #cmbParagraphSpacing.toolbar-button:hover {
+    -fx-background-color: #059669 !important;
+    -fx-border-color: #10b981 !important;
+    -fx-border-width: 1px !important;
+}
+
+.theme-dark.lila-theme .font-toolbar #cmbParagraphSpacing.toolbar-button {
+    -fx-background-color: #4c1d95 !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-border-color: #7c3aed !important;
+    -fx-border-width: 1px !important;
+    -fx-border-radius: 4px !important;
+    -fx-background-radius: 4px !important;
+    -fx-padding: 4px 8px !important;
+}
+
+.theme-dark.lila-theme .font-toolbar #cmbParagraphSpacing.toolbar-button .list-cell {
+    -fx-background-color: transparent !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-padding: 4px 8px 4px 8px !important;
+    -fx-pref-height: 26px !important;
+}
+
+.theme-dark.lila-theme .font-toolbar #cmbParagraphSpacing.toolbar-button .arrow-button {
+    -fx-background-color: transparent !important;
+}
+
+.theme-dark.lila-theme .font-toolbar #cmbParagraphSpacing.toolbar-button .arrow-button .arrow {
+    -fx-background-color: #ffffff !important;
+}
+
+.theme-dark.lila-theme .font-toolbar #cmbParagraphSpacing.toolbar-button:hover {
+    -fx-background-color: #6d28d9 !important;
+    -fx-border-color: #7c3aed !important;
+    -fx-border-width: 1px !important;
 }
 
 /* ========================================

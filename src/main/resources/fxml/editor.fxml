@@ -22,7 +22,6 @@
             <Button fx:id="btnNew" managed="false" styleClass="button primary" text="Neu" visible="false" />
             <Button fx:id="btnOpen" managed="false" styleClass="button primary" text="Öffnen" visible="false" />
             <Button fx:id="btnSave" styleClass="button primary" text="Speichern" />
-            <Button fx:id="btnSaveAs" styleClass="button primary" text="Speichern als..." />
             <Button fx:id="btnExport" styleClass="button primary" text="⬇ Exportieren" />
             
             <Separator orientation="VERTICAL" />
@@ -33,11 +32,12 @@
             <Button fx:id="btnKIAssistant" styleClass="button" text="⚡ KI-Assistent" />
             <Button fx:id="btnPreview" styleClass="button" text="👁 Preview" />
             <Button fx:id="btnCopySudowrite" styleClass="button" text="Für Sudowrite kopieren" />
+            <Button fx:id="btnThemeToggle" style="-fx-min-width: 40px; -fx-max-width: 40px; -fx-min-height: 28px; -fx-max-height: 28px; -fx-font-size: 16px; -fx-padding: 2px;" styleClass="button" text="☀" />
             
             <!-- Help-Buttons für Haupt-Buttons -->
             <Separator orientation="VERTICAL" />
             <Button fx:id="btnHelpMain" style="-fx-min-width: 24px; -fx-max-width: 24px; -fx-min-height: 24px; -fx-max-height: 24px;" styleClass="help-button" text="?" />
-            <Button fx:id="btnHelpMarkdown" style="-fx-min-width: 24px; -fx-max-width: 24px; -fx-min-height: 24px; -fx-max-height: 24px;" styleClass="help-button" text="📝" />
+            <Button fx:id="btnHelpMarkdown" maxWidth="36.0" prefHeight="24.0" prefWidth="36.0" style="-fx-min-width: 24px; -fx-max-width: 24px; -fx-min-height: 24px; -fx-max-height: 24px;" styleClass="help-button" text="📝" />
             
             <Region style="-fx-background-color: transparent;" HBox.hgrow="ALWAYS" />
             
@@ -56,12 +56,30 @@
          <children>
             <!-- Textgröße: Label über den Elementen -->
             <VBox alignment="CENTER_LEFT" spacing="2">
-               <Label styleClass="font-size-label" text="Textgröße:" />
-               <ComboBox fx:id="cmbFontSize" prefWidth="80.0" promptText="12" />
+               <Label styleClass="font-size-label" text="Textgröße:">
+                  <VBox.margin>
+                     <Insets bottom="3.0" />
+                  </VBox.margin></Label>
+               <ComboBox fx:id="cmbFontSize" promptText="12" style="-fx-min-width: 80px; -fx-pref-width: 80px; -fx-max-width: 80px; -fx-min-height: 34px; -fx-max-height: 34px; -fx-font-size: 12px; -fx-line-spacing: 0;" styleClass="toolbar-button" />
                <HBox alignment="CENTER_LEFT" spacing="3">
                   <Button fx:id="btnIncreaseFont" style="-fx-min-width: 45px; -fx-max-width: 45px;" styleClass="toolbar-button" text="A+" />
                   <Button fx:id="btnDecreaseFont" style="-fx-min-width: 45px; -fx-max-width: 45px;" styleClass="toolbar-button" text="A-" />
                </HBox>
+            </VBox>
+            
+            <Separator orientation="VERTICAL" style="-fx-background-color: #6c757d;" />
+            
+            <!-- Zeilenabstand: Label über der ComboBox -->
+            <VBox spacing="2">
+               <Label styleClass="font-size-label" text="Zeilenabstand:">
+                  <padding>
+                     <Insets bottom="5.0" />
+                  </padding>
+               </Label>
+               <ComboBox fx:id="cmbParagraphSpacing" minWidth="90.0" prefWidth="90.0" promptText="10px" style="-fx-min-width: 90px; -fx-pref-width: 90px; -fx-max-width: 90px; -fx-min-height: 34px; -fx-max-height: 34px; -fx-font-size: 12px; -fx-line-spacing: 0;" styleClass="toolbar-button" />
+               <padding>
+                  <Insets bottom="5.0" />
+               </padding>
             </VBox>
             
             <Separator orientation="VERTICAL" style="-fx-background-color: #6c757d;" />
@@ -85,52 +103,35 @@
                   <Button fx:id="btnBig" style="-fx-min-width: 45px; -fx-max-width: 45px; -fx-min-height: 28px; -fx-max-height: 28px; -fx-font-size: 16px;" styleClass="toolbar-button" text="A+" />
                   <Button fx:id="btnSmall" style="-fx-min-width: 45px; -fx-max-width: 45px; -fx-min-height: 28px; -fx-max-height: 28px; -fx-font-size: 12px;" styleClass="toolbar-button" text="A-" />
                   <Button fx:id="btnMark" style="-fx-min-width: 45px; -fx-max-width: 45px; -fx-min-height: 28px; -fx-max-height: 28px; -fx-font-size: 16px;" styleClass="toolbar-button" text="●" />
-                  <MenuButton fx:id="btnColorMenu" style="-fx-min-width: 100px; -fx-pref-width: 100px; -fx-max-width: 100px; -fx-min-height: 32px; -fx-max-height: 32px; -fx-font-size: 12px;" styleClass="toolbar-button" text="Textfarbe" visible="true" managed="true">
+                  <MenuButton fx:id="btnColorMenu" managed="true" style="-fx-min-width: 100px; -fx-pref-width: 100px; -fx-max-width: 100px; -fx-min-height: 34px; -fx-max-height: 34px; -fx-font-size: 12px; -fx-line-spacing: 0;" styleClass="toolbar-button" text="Textfarbe" visible="true">
                      <items>
-                        <MenuItem text="Rot" onAction="#formatTextColorRed" />
-                        <MenuItem text="Blau" onAction="#formatTextColorBlue" />
-                        <MenuItem text="Grün" onAction="#formatTextColorGreen" />
-                        <MenuItem text="Gelb" onAction="#formatTextColorYellow" />
-                        <MenuItem text="Lila" onAction="#formatTextColorPurple" />
-                        <MenuItem text="Orange" onAction="#formatTextColorOrange" />
-                        <MenuItem text="Grau" onAction="#formatTextColorGray" />
+                        <MenuItem onAction="#formatTextColorRed" text="Rot" />
+                        <MenuItem onAction="#formatTextColorBlue" text="Blau" />
+                        <MenuItem onAction="#formatTextColorGreen" text="Grün" />
+                        <MenuItem onAction="#formatTextColorYellow" text="Gelb" />
+                        <MenuItem onAction="#formatTextColorPurple" text="Lila" />
+                        <MenuItem onAction="#formatTextColorOrange" text="Orange" />
+                        <MenuItem onAction="#formatTextColorGray" text="Grau" />
                      </items>
                   </MenuButton>
+                  <ComboBox fx:id="cmbQuoteStyle" promptText="Anführungszeichen" style="-fx-min-width: 230px; -fx-pref-width: 230px; -fx-max-width: 230px; -fx-min-height: 34px; -fx-max-height: 34px; -fx-font-size: 12px; -fx-line-spacing: 0;" styleClass="toolbar-button" />
                </HBox>
             </VBox>
-            
-            <Separator orientation="VERTICAL" style="-fx-background-color: #6c757d;" />
-            
-            <!-- Zeilenabstand: Label über der ComboBox -->
-            <VBox alignment="CENTER_LEFT" spacing="2">
-               <Label styleClass="font-size-label" text="Zeilenabstand:" />
-               <ComboBox fx:id="cmbParagraphSpacing" minWidth="90.0" prefWidth="90.0" promptText="10px" />
-            </VBox>
-            
-            <Separator orientation="VERTICAL" style="-fx-background-color: #6c757d;" />
-            
-            <Button fx:id="btnThemeToggle" style="-fx-min-width: 45px; -fx-max-width: 45px; -fx-font-size: 18px;" styleClass="toolbar-button" text="☀" />
-            <ComboBox fx:id="cmbQuoteStyle" prefWidth="220.0" promptText="Anführungszeichen" />
             
             <Separator orientation="VERTICAL" style="-fx-background-color: #6c757d;" />
             
             <Button fx:id="btnUndo" style="-fx-min-width: 35px; -fx-max-width: 35px; -fx-font-size: 16px;" styleClass="toolbar-button" text="↶" />
             <Button fx:id="btnRedo" style="-fx-min-width: 35px; -fx-max-width: 35px; -fx-font-size: 16px;" styleClass="toolbar-button" text="↷" />
             
-            <Separator orientation="VERTICAL" style="-fx-background-color: #6c757d;" />
-            
             <Button fx:id="btnToggleParagraphMarking" style="-fx-min-width: 35px; -fx-max-width: 35px; -fx-font-size: 16px;" styleClass="toolbar-button" text="¶" />
-            
-            <!-- Help-Button für Tools -->
-            <Separator orientation="VERTICAL" style="-fx-background-color: #6c757d;" />
-            <Button fx:id="btnHelpTools" style="-fx-min-width: 24px; -fx-max-width: 24px; -fx-min-height: 24px; -fx-max-height: 24px;" styleClass="help-button" text="?" />
+            <Button fx:id="btnHelpTools" maxHeight="36.0" prefHeight="36.0" prefWidth="24.0" style="-fx-min-width: 35px; -fx-max-width: 35px; -fx-min-height: 16px; -fx-font-size: 16px;" styleClass="help-button" text="?" />
             
             <Region style="-fx-background-color: transparent;" HBox.hgrow="ALWAYS" />
             
             <Separator orientation="VERTICAL" style="-fx-background-color: #6c757d;" />
             
-            <Button fx:id="btnPreviousChapter" style="-fx-min-width: 140px; -fx-max-width: 140px;" styleClass="toolbar-button" text="◀ Vorheriges Kapitel" />
-            <Button fx:id="btnNextChapter" style="-fx-min-width: 140px; -fx-max-width: 140px;" styleClass="toolbar-button" text="Nächstes Kapitel ▶" />
+            <Button fx:id="btnPreviousChapter" minWidth="100.0" style="-fx-min-width: 140px; -fx-max-width: 140px;" styleClass="toolbar-button" text="◀ Vorheriges Kapitel" />
+            <Button fx:id="btnNextChapter" minWidth="100.0" style="-fx-min-width: 140px; -fx-max-width: 140px;" styleClass="toolbar-button" text="Nächstes Kapitel ▶" />
          </children>
          <padding>
             <Insets bottom="5.0" left="10.0" right="10.0" top="5.0" />
@@ -148,7 +149,7 @@
                   
                   <VBox alignment="CENTER" spacing="2">
                      <Button fx:id="btnSaveSearch" styleClass="button primary" text="Pattern speichern" />
-                     <Button fx:id="btnDeleteSearch" styleClass="button danger" text="Pattern löschen" />
+                     <Button fx:id="btnDeleteSearch" prefHeight="26.0" prefWidth="108.0" styleClass="button danger" text="Pattern löschen" />
                   </VBox>
                   
                   <Label styleClass="search-label" text="Ersetzen:" />
@@ -156,7 +157,7 @@
                   
                   <VBox alignment="CENTER" spacing="2">
                      <Button fx:id="btnSaveReplace" styleClass="button primary" text="Pattern speichern" />
-                     <Button fx:id="btnDeleteReplace" styleClass="button danger" text="Pattern löschen" />
+                     <Button fx:id="btnDeleteReplace" prefHeight="26.0" prefWidth="109.0" styleClass="button danger" text="Pattern löschen" />
                   </VBox>
                </children>
             </HBox>
