@@ -1,3 +1,4 @@
+
 package com.manuskript;
 
 import javafx.application.Platform;
@@ -7,6 +8,7 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
+import javafx.geometry.Bounds;
 import javafx.scene.control.*;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Separator;
@@ -75,6 +77,9 @@ import java.util.LinkedHashMap;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import org.fxmisc.richtext.model.StyleSpan;
 import org.fxmisc.richtext.model.TwoDimensional.Bias;
 import javafx.animation.Timeline;
@@ -238,14 +243,31 @@ public class EditorWindow implements Initializable {
     private CustomStage textAnalysisStage;
     private CustomStage previewStage;
     private OllamaWindow ollamaWindow;
-    private WebView previewWebView;
+    private WebView previewWebView; // Wird jetzt für Quill Editor verwendet
     private Button btnToggleJustify;
     private boolean previewJustifyEnabled = false;
+    
+    // Quill Font-Steuerung im Preview-Fenster
+    private Label lblQuillFontSize;
+    private Label lblQuillFontFamily;
+    private Spinner<Integer> spnQuillFontSize;
+    private ComboBox<String> cmbQuillFontFamily;
     private Preferences preferences;
+    private ScheduledExecutorService previewUpdateExecutor;
     private ScheduledFuture<?> previewUpdateFuture;
+    // Für Quill->Markdown Konvertierung (nicht im FX-Thread, um Hänger zu vermeiden)
+    private ExecutorService quillConvertExecutor;
+    private Future<?> quillConvertFuture;
     private String lastPreviewContent = null; // Cache für den letzten HTML-Content
     private javafx.beans.value.ChangeListener<javafx.concurrent.Worker.State> previewLoadListener = null; // Listener für LoadWorker-State
     private boolean isScrollingPreview = false;
+    
+    // Quill Editor Synchronisation
+    private boolean isUpdatingFromCodeArea = false;
+    private boolean isUpdatingFromQuill = false;
+    private boolean isScrollingQuill = false;
+    private QuillBridge quillBridge; // Java Bridge für JavaScript-Kommunikation
+    private String lastQuillContent = null; // Cache für Quill Content
     private ObservableList<String> searchHistory = FXCollections.observableArrayList();
     private ObservableList<String> replaceHistory = FXCollections.observableArrayList();
     private ObservableList<String> searchOptions = FXCollections.observableArrayList();
@@ -4897,6 +4919,9 @@ if (caret != null) {
     
     private String convertInlineMarkdown(String text) {
         return text
+            // Superscript und Subscript (müssen vor anderen Formatierungen behandelt werden)
+            .replaceAll("<sup>(.*?)</sup>", "<sup>$1</sup>") // Behalte <sup> Tags
+            .replaceAll("<sub>(.*?)</sub>", "<sub>$1</sub>") // Behalte <sub> Tags
             // Fett (zwei Sternchen)
             .replaceAll("\\*\\*(.*?)\\*\\*", "<strong>$1</strong>")
             // Kursiv (ein Sternchen) - aber nicht wenn es bereits fett ist
@@ -7008,6 +7033,8 @@ if (caret != null) {
         if (previewStage != null && previewStage.isShowing()) {
             previewStage.setFullTheme(themeIndex);
             previewStage.setTitleBarTheme(themeIndex);
+            // Quill Editor Theme aktualisieren
+            applyThemeToQuill(themeIndex);
             // Hintergrund-Farbe und Border aktualisieren
             String[] themeColors = {"#ffffff", "#1f2937", "#f3e5f5", "#0b1220", "#064e3b", "#581c87"};
             String[] borderColors = {"#cccccc", "#ffffff", "#d4a5d4", "#ffffff", "#ffffff", "#ffffff"};
@@ -7027,6 +7054,8 @@ if (caret != null) {
                     }
                 }
             }
+            // Labels aktualisieren
+            updatePreviewWindowLabels();
         }
         
         // WICHTIG: Theme in Preferences speichern für Persistierung
@@ -10048,6 +10077,71 @@ spacer.setStyle("-fx-background-color: transparent;");
             // Speichere in Preferences
             preferences.putInt("fontSize", size);
         }
+        
+        // WICHTIG: Quill-Fontgröße NICHT ändern - Editor und Quill haben unabhängige Fontgrößen!
+        // Die Quill-Fontgröße wird nur über die Quill-Steuerelemente (A+/A-/Spinner) geändert.
+    }
+    
+    /**
+     * Setzt die globale Schriftgröße für Quill Editor
+     */
+    private void applyQuillGlobalFontSize(int fontSize) {
+        if (previewWebView == null) return;
+        
+        // Speichere in Preferences
+        preferences.putInt("quillFontSize", fontSize);
+        
+        javafx.scene.web.WebEngine engine = previewWebView.getEngine();
+        if (engine.getLoadWorker().getState() == javafx.concurrent.Worker.State.SUCCEEDED) {
+            Platform.runLater(() -> {
+                String script = String.format("if (window.setQuillGlobalFontSize) { window.setQuillGlobalFontSize(%d); }", fontSize);
+                engine.executeScript(script);
+            });
+        }
+    }
+    
+    /**
+     * Setzt die globale Schriftart für Quill Editor
+     */
+    private void applyQuillGlobalFontFamily(String fontFamily) {
+        if (previewWebView == null) return;
+        
+        // Speichere in Preferences
+        preferences.put("quillFontFamily", fontFamily);
+        
+        // Konvertiere zu CSS-kompatiblem Format
+        final String cssFontFamily;
+        if (fontFamily.equals("Consolas")) {
+            cssFontFamily = "'Consolas', 'Monaco', monospace";
+        } else if (fontFamily.equals("Times New Roman")) {
+            cssFontFamily = "'Times New Roman', serif";
+        } else if (fontFamily.equals("Courier New")) {
+            cssFontFamily = "'Courier New', monospace";
+        } else if (fontFamily.equals("Arial")) {
+            cssFontFamily = "Arial, sans-serif";
+        } else if (fontFamily.equals("Verdana")) {
+            cssFontFamily = "Verdana, sans-serif";
+        } else if (fontFamily.equals("Georgia")) {
+            cssFontFamily = "Georgia, serif";
+        } else {
+            cssFontFamily = fontFamily;
+        }
+        
+        javafx.scene.web.WebEngine engine = previewWebView.getEngine();
+        if (engine.getLoadWorker().getState() == javafx.concurrent.Worker.State.SUCCEEDED) {
+            Platform.runLater(() -> {
+                // WICHTIG: Verwende setTimeout, damit Quill bereit ist und die Änderung nicht überschrieben wird
+                String script = String.format(
+                    "setTimeout(function() { " +
+                    "  if (window.setQuillGlobalFontFamily) { " +
+                    "    try { window.setQuillGlobalFontFamily(%s); } " +
+                    "    catch(e) { console.error('Font family error:', e); } " +
+                    "  } " +
+                    "}, 50);", 
+                    toJSString(cssFontFamily));
+                engine.executeScript(script);
+            });
+        }
     }
     
     // ===== PERSISTIERUNG VON TOOLBAR UND FENSTER-EIGENSCHAFTEN =====
@@ -10781,6 +10875,8 @@ spacer.setStyle("-fx-background-color: transparent;");
                     }
                 }
             }
+            // Labels aktualisieren
+            updatePreviewWindowLabels();
         }
         
         // WICHTIG: Theme in Preferences speichern
@@ -13793,22 +13889,22 @@ spacer.setStyle("-fx-background-color: transparent;");
     }
     
     /**
-     * Erstellt das Preview-Fenster mit WebView
+     * Erstellt das Preview-Fenster mit Quill Editor
      */
     private void createPreviewWindow() {
         if (previewStage == null) {
-            previewStage = StageManager.createStage("Preview");
+            previewStage = StageManager.createStage("Quill Editor");
             previewStage.setResizable(true);
             previewStage.setWidth(1000);
             previewStage.setHeight(800);
             previewStage.setMinWidth(600);
             previewStage.setMinHeight(400);
             
-            // WebView erstellen
+            // WebView für Quill Editor erstellen
             previewWebView = new WebView();
             previewWebView.setContextMenuEnabled(true);
             
-            // Blocksatz-Toggle-Button
+            // Blocksatz-Toggle-Button (behalten für Kompatibilität)
             btnToggleJustify = new Button("Blocksatz");
             btnToggleJustify.getStyleClass().add("button");
             btnToggleJustify.setOnAction(e -> togglePreviewJustify());
@@ -13837,6 +13933,76 @@ spacer.setStyle("-fx-background-color: transparent;");
             buttonBar.setAlignment(Pos.CENTER_LEFT);
             buttonBar.getChildren().add(btnToggleJustify);
             
+            // Quill Schriftgröße Steuerung
+            lblQuillFontSize = new Label("Schriftgröße:");
+            Button btnQuillFontDecrease = new Button("A-");
+            btnQuillFontDecrease.getStyleClass().add("button");
+            btnQuillFontDecrease.setStyle("-fx-min-width: 45px; -fx-max-width: 45px; -fx-min-height: 28px; -fx-max-height: 28px; -fx-font-size: 13px;");
+            btnQuillFontDecrease.setTooltip(new Tooltip("Quill Schriftgröße verringern"));
+            
+            spnQuillFontSize = new Spinner<>();
+            SpinnerValueFactory.IntegerSpinnerValueFactory fontSizeFactory = 
+                new SpinnerValueFactory.IntegerSpinnerValueFactory(8, 72, 14, 2);
+            spnQuillFontSize.setValueFactory(fontSizeFactory);
+            spnQuillFontSize.setEditable(true);
+            spnQuillFontSize.setStyle("-fx-min-width: 80px; -fx-max-width: 80px; -fx-min-height: 28px; -fx-max-height: 28px;");
+            
+            Button btnQuillFontIncrease = new Button("A+");
+            btnQuillFontIncrease.getStyleClass().add("button");
+            btnQuillFontIncrease.setStyle("-fx-min-width: 45px; -fx-max-width: 45px; -fx-min-height: 28px; -fx-max-height: 28px; -fx-font-size: 13px;");
+            btnQuillFontIncrease.setTooltip(new Tooltip("Quill Schriftgröße erhöhen"));
+            
+            // Quill Schriftart Steuerung
+            lblQuillFontFamily = new Label("Schriftart:");
+            cmbQuillFontFamily = new ComboBox<>();
+            cmbQuillFontFamily.getItems().addAll("Consolas", "Arial", "Times New Roman", "Courier New", "Verdana", "Georgia");
+            cmbQuillFontFamily.setValue("Consolas");
+            cmbQuillFontFamily.setPromptText("Schriftart");
+            
+            // Event Handler
+            btnQuillFontDecrease.setOnAction(e -> {
+                int currentSize = spnQuillFontSize.getValue();
+                int newSize = Math.max(8, currentSize - 2);
+                spnQuillFontSize.getValueFactory().setValue(newSize);
+            });
+            
+            btnQuillFontIncrease.setOnAction(e -> {
+                int currentSize = spnQuillFontSize.getValue();
+                int newSize = Math.min(72, currentSize + 2);
+                spnQuillFontSize.getValueFactory().setValue(newSize);
+            });
+            
+            spnQuillFontSize.valueProperty().addListener((obs, oldVal, newVal) -> {
+                if (newVal != null && previewWebView != null) {
+                    applyQuillGlobalFontSize(newVal);
+                }
+            });
+            
+            cmbQuillFontFamily.setOnAction(e -> {
+                String selectedFont = cmbQuillFontFamily.getValue();
+                if (selectedFont != null && previewWebView != null) {
+                    applyQuillGlobalFontFamily(selectedFont);
+                }
+            });
+            
+            // Zur buttonBar hinzufügen
+            buttonBar.getChildren().addAll(
+                new Separator(),
+                lblQuillFontSize,
+                btnQuillFontDecrease,
+                spnQuillFontSize,
+                btnQuillFontIncrease,
+                new Separator(),
+                lblQuillFontFamily,
+                cmbQuillFontFamily
+            );
+            
+            // Initialisiere Werte aus Preferences
+            int savedFontSize = preferences.getInt("quillFontSize", 14);
+            spnQuillFontSize.getValueFactory().setValue(savedFontSize);
+            String savedFontFamily = preferences.get("quillFontFamily", "Consolas");
+            cmbQuillFontFamily.setValue(savedFontFamily);
+            
             // WebView soll den gesamten verfügbaren Platz einnehmen
             VBox.setVgrow(previewWebView, Priority.ALWAYS);
             HBox.setHgrow(previewWebView, Priority.ALWAYS);
@@ -13860,17 +14026,20 @@ spacer.setStyle("-fx-background-color: transparent;");
             previewStage.setFullTheme(currentThemeIndex);
             previewStage.setTitleBarTheme(currentThemeIndex);
             
+            // Labels stylen basierend auf Theme
+            updatePreviewWindowLabels();
+            
             // Fenster-Position und Größe laden
             loadPreviewWindowProperties();
             
-            // Initiales Update
-            updatePreviewContent();
+            // Quill Editor initialisieren
+            initializeQuillEditor();
             
             // Scroll-Synchronisation einrichten
-            setupPreviewScrollSync();
+            setupQuillScrollSync();
             
             // Text-Änderungen überwachen
-            setupPreviewTextListener();
+            setupQuillTextListener();
             
             // Fenster schließen-Handler
             previewStage.setOnCloseRequest(e -> {
@@ -13882,14 +14051,761 @@ spacer.setStyle("-fx-background-color: transparent;");
             // Fenster existiert bereits, nur Theme aktualisieren
             previewStage.setFullTheme(currentThemeIndex);
             previewStage.setTitleBarTheme(currentThemeIndex);
-            updatePreviewContent();
+            applyThemeToQuill(currentThemeIndex);
+            updateQuillContent();
+            // Labels aktualisieren
+            updatePreviewWindowLabels();
         }
     }
     
     /**
-     * Aktualisiert den Preview-Inhalt
+     * Initialisiert den Quill Editor im WebView
+     */
+    private void initializeQuillEditor() {
+        if (previewWebView == null) {
+            return;
+        }
+        
+        try {
+            // Quill HTML Template laden
+            URL quillTemplate = getClass().getResource("/quill-editor.html");
+            if (quillTemplate == null) {
+                logger.error("Quill Editor Template nicht gefunden! Pfad: /quill-editor.html");
+                // Versuche alternativen Pfad
+                quillTemplate = EditorWindow.class.getResource("/quill-editor.html");
+                if (quillTemplate == null) {
+                    logger.error("Quill Editor Template auch mit alternativem Pfad nicht gefunden!");
+                    Platform.runLater(() -> {
+                        showErrorDialog("Quill Editor Fehler", 
+                            "Das Quill Editor Template konnte nicht geladen werden.\n" +
+                            "Bitte prüfen Sie, ob die Datei quill-editor.html im resources-Ordner existiert.");
+                    });
+                    return;
+                }
+            }
+            logger.info("Quill Template geladen: " + quillTemplate.toExternalForm());
+            
+            // Java Bridge erstellen (falls noch nicht vorhanden)
+            if (quillBridge == null) {
+                quillBridge = new QuillBridge();
+            }
+            
+            // WebEngine konfigurieren
+            javafx.scene.web.WebEngine engine = previewWebView.getEngine();
+            
+            // Java Bridge registrieren wenn WebView geladen ist
+            engine.getLoadWorker().stateProperty().addListener((obs, oldState, newState) -> {
+                if (newState == javafx.concurrent.Worker.State.SUCCEEDED) {
+                    Platform.runLater(() -> {
+                        try {
+                            // Erstelle JavaScript-Wrapper für Java Bridge
+                            // Da JSObject nicht direkt verfügbar ist, verwenden wir einen Workaround
+                            // mit JavaScript-Funktionen, die Java-Methoden über executeScript aufrufen
+                            
+                            // Bridge-Script ohne Backslash-Escapes, klar zeilengetrennt
+                            String bridgeScript = String.join("\n",
+                                "window.javaApp = {",
+                                "  onQuillContentChange: function(html, delta) {",
+                                "    window.quillLastContent = html;",
+                                "    window.quillLastDelta = delta;",
+                                "    window.quillContentChanged = true;",
+                                "  },",
+                                "  onQuillSelectionChange: function(index, length) {",
+                                "    window.quillLastSelection = {index: index, length: length};",
+                                "    window.quillSelectionChanged = true;",
+                                "  },",
+                                "  onQuillScroll: function(scrollTop, scrollHeight) {",
+                                "    window.quillLastScroll = {top: scrollTop, height: scrollHeight};",
+                                "    window.quillScrollChanged = true;",
+                                "  }",
+                                "};"
+                            );
+                            
+                            engine.executeScript(bridgeScript);
+                            
+                            // Starte Polling für Änderungen (da direkte Callbacks nicht funktionieren)
+                            startQuillChangePolling(engine);
+                            
+                            // WICHTIG: Warte länger beim ersten Laden, damit JavaScript in HTML vollständig ausgeführt wird
+                            // Beim ersten Laden braucht das JavaScript Zeit, um window.setQuillContent zu definieren
+                            // Prüfe zuerst, ob es bereits bereit ist (beim zweiten Öffnen)
+                            Timeline initDelay = new Timeline(new KeyFrame(Duration.millis(500), event -> {
+                                // Prüfe sofort ob bereits bereit
+                                try {
+                                    Object quickCheck = engine.executeScript("(function() { return window.quillReady && window.quill && typeof window.setQuillContent === 'function'; })()");
+                                    if (quickCheck != null && Boolean.TRUE.equals(quickCheck)) {
+                                        logger.info("Quill bereits bereit beim ersten Check, lade sofort Content");
+                                        waitForQuillReady(engine);
+                                    } else {
+                                        // Noch nicht bereit, starte normale Warteschleife
+                                        logger.info("Quill noch nicht bereit, starte Warteschleife...");
+                                        waitForQuillReady(engine);
+                                    }
+                                } catch (Exception e) {
+                                    logger.debug("Fehler beim ersten Check, starte Warteschleife: " + e.getMessage());
+                                    waitForQuillReady(engine);
+                                }
+                            }));
+                            initDelay.play();
+                        } catch (Exception e) {
+                            logger.error("Fehler beim Registrieren der Java Bridge", e);
+                        }
+                    });
+                }
+            });
+            
+            // Quill Template laden
+            String templateUrl = quillTemplate.toExternalForm();
+            logger.info("Lade Quill Template von: " + templateUrl);
+            engine.load(templateUrl);
+            
+            // Debug: Prüfe Load-Status
+            engine.getLoadWorker().stateProperty().addListener((obs, oldState, newState) -> {
+                logger.debug("Quill Template Load State: " + newState);
+                if (newState == javafx.concurrent.Worker.State.FAILED) {
+                    logger.error("Fehler beim Laden des Quill Templates!");
+                    Platform.runLater(() -> {
+                        showErrorDialog("Quill Editor Fehler", 
+                            "Das Quill Editor Template konnte nicht geladen werden.\n" +
+                            "Fehler: " + engine.getLoadWorker().getException().getMessage());
+                    });
+                }
+            });
+            
+        } catch (Exception e) {
+            logger.error("Fehler beim Initialisieren des Quill Editors", e);
+            Platform.runLater(() -> {
+                showErrorDialog("Quill Editor Fehler", 
+                    "Fehler beim Initialisieren des Quill Editors:\n" + e.getMessage());
+            });
+        }
+    }
+    
+    /**
+     * Wartet darauf, dass Quill bereit ist
+     */
+    private void waitForQuillReady(javafx.scene.web.WebEngine engine) {
+        Platform.runLater(() -> {
+            try {
+                // Prüfe ob Quill bereit ist UND setQuillContent verfügbar ist
+                Object quillReady = engine.executeScript("(function() { return window.quillReady; })()");
+                Object quillExists = engine.executeScript("(function() { return typeof window.quill !== 'undefined'; })()");
+                Object setQuillContentExists = engine.executeScript("(function() { return typeof window.setQuillContent === 'function'; })()");
+                
+                if (quillReady != null && Boolean.TRUE.equals(quillReady) && 
+                    quillExists != null && Boolean.TRUE.equals(quillExists) &&
+                    setQuillContentExists != null && Boolean.TRUE.equals(setQuillContentExists)) {
+                    // Quill ist bereit - Theme anwenden und Content laden
+                    logger.info("Quill ist bereit (ready: " + quillReady + ", quill: " + quillExists + ", setQuillContent: " + setQuillContentExists + "), wende Theme an und lade Content");
+                    applyThemeToQuill(currentThemeIndex);
+                    
+                    // Warte kurz, damit Theme angewendet wird, dann Content laden
+                    Platform.runLater(() -> {
+                        // Erste Verzögerung für Theme - erhöht für zuverlässigere Initialisierung
+                        Timeline themeTimeline = new Timeline(new KeyFrame(Duration.millis(300), event -> {
+                            // Setze lastQuillContent auf null, damit Content definitiv geladen wird
+                            lastQuillContent = null;
+                            logger.info("Lade Quill Content nach Initialisierung...");
+                            
+                            // Rufe updateQuillContent direkt auf (ohne weitere Verzögerung)
+                            updateQuillContent();
+                            
+                            // Zusätzliche Verifizierung nach kurzer Verzögerung
+                            Timeline verifyTimeline = new Timeline(new KeyFrame(Duration.millis(500), verifyEvent -> {
+                                try {
+                                    javafx.scene.web.WebEngine verifyEngine = previewWebView.getEngine();
+                                    if (verifyEngine.getLoadWorker().getState() == javafx.concurrent.Worker.State.SUCCEEDED) {
+                                        Object quillReadyCheck = verifyEngine.executeScript("(function() { return window.quillReady && window.quill; })()");
+                                        if (quillReadyCheck != null && Boolean.TRUE.equals(quillReadyCheck)) {
+                                            Object contentLength = verifyEngine.executeScript(
+                                                "(function() { return window.getQuillContent ? window.getQuillContent().length : 0; })()");
+                                            logger.info("Verifizierung: Quill Content-Länge nach Initialisierung: " + contentLength);
+                                            
+                                            // Falls Content leer ist, versuche erneut
+                                            if (contentLength instanceof Number && ((Number)contentLength).intValue() <= 10) {
+                                                logger.warn("Quill Content ist leer oder sehr kurz, versuche erneut zu laden...");
+                                                lastQuillContent = null;
+                                                updateQuillContent();
+                                                
+                                                // Nochmalige Verifizierung nach 500ms
+                                                Timeline retryVerify = new Timeline(new KeyFrame(Duration.millis(500), retryEvent -> {
+                                                    try {
+                                                        Object retryContentLength = verifyEngine.executeScript(
+                                                            "window.getQuillContent ? window.getQuillContent().length : 0");
+                                                        logger.info("Retry-Verifizierung: Quill Content-Länge: " + retryContentLength);
+                                                    } catch (Exception e) {
+                                                        logger.debug("Fehler bei Retry-Verifizierung: " + e.getMessage());
+                                                    }
+                                                }));
+                                                retryVerify.play();
+                                            }
+                                        } else {
+                                            logger.warn("Quill nicht bereit bei Verifizierung, versuche erneut...");
+                                            lastQuillContent = null;
+                                            Timeline retryTimeline = new Timeline(new KeyFrame(Duration.millis(500), retryEvent -> {
+                                                updateQuillContent();
+                                            }));
+                                            retryTimeline.play();
+                                        }
+                                    }
+                                } catch (Exception e) {
+                                    logger.debug("Fehler bei Verifizierung: " + e.getMessage());
+                                }
+                            }));
+                            verifyTimeline.play();
+                        }));
+                        themeTimeline.play();
+                    });
+                } else {
+                    // Warte noch etwas
+                    logger.debug("Quill noch nicht bereit, warte... (ready: " + quillReady + ", quill: " + quillExists + ", setQuillContent: " + setQuillContentExists + ")");
+                    Timeline timeline = new Timeline(new KeyFrame(Duration.millis(100), event -> {
+                        waitForQuillReady(engine);
+                    }));
+                    timeline.play();
+                }
+            } catch (Exception e) {
+                logger.debug("Warte auf Quill Ready: " + e.getMessage());
+                // Wiederhole nach kurzer Verzögerung
+                Timeline timeline = new Timeline(new KeyFrame(Duration.millis(200), event -> {
+                    waitForQuillReady(engine);
+                }));
+                timeline.play();
+            }
+        });
+    }
+    
+    /**
+     * Startet Polling für Quill-Änderungen (Workaround für fehlende direkte Callbacks)
+     */
+    private void startQuillChangePolling(javafx.scene.web.WebEngine engine) {
+        Timeline pollingTimeline = new Timeline(new KeyFrame(Duration.millis(100), event -> {
+            try {
+                if (engine.getLoadWorker().getState() != javafx.concurrent.Worker.State.SUCCEEDED) {
+                    return;
+                }
+                
+                // Prüfe auf Content-Änderungen
+                Object contentChanged = engine.executeScript("window.quillContentChanged");
+                if (Boolean.TRUE.equals(contentChanged)) {
+                    // Reset Flag
+                    engine.executeScript("window.quillContentChanged = false;");
+                    
+                    // Hole Content
+                    Object htmlContent = engine.executeScript("window.quillLastContent");
+                    Object deltaJson = engine.executeScript("window.quillLastDelta");
+                    
+                    if (htmlContent != null && htmlContent instanceof String) {
+                        String html = (String) htmlContent;
+                        String delta = deltaJson instanceof String ? (String) deltaJson : null;
+                        
+                        logger.debug("Quill Content Change erkannt via Polling, HTML-Länge: " + html.length());
+                        
+                        // Rufe Bridge-Methode auf
+                        if (quillBridge != null) {
+                            quillBridge.onQuillContentChange(html, delta);
+                        } else {
+                            logger.warn("QuillBridge ist null!");
+                        }
+                    } else {
+                        logger.debug("Quill Content Change erkannt, aber HTML ist null oder kein String");
+                    }
+                }
+                
+                // Prüfe auf Scroll-Änderungen
+                Object scrollChanged = engine.executeScript("window.quillScrollChanged");
+                if (Boolean.TRUE.equals(scrollChanged)) {
+                    engine.executeScript("window.quillScrollChanged = false;");
+                    
+                    Object scrollObj = engine.executeScript("window.quillLastScroll");
+                    if (scrollObj != null) {
+                        // Scroll-Informationen verarbeiten: Quill -> Editor (textbasiert)
+                        try {
+                            if (codeArea != null) {
+                                // Textbasierte Zuordnung Quill -> Editor
+                                Platform.runLater(() -> {
+                                    try {
+                                        isScrollingPreview = true;
+                                        Object snippetObj = engine.executeScript("(window.getMiddleVisibleText ? window.getMiddleVisibleText() : '')");
+                                        String snippet = snippetObj != null ? snippetObj.toString().trim() : "";
+                                        if (snippet.length() > 3) {
+                                            int idx = findParagraphBySnippet(snippet);
+                                            if (idx >= 0) {
+                                                scrollEditorToParagraphCentered(idx);
+                                            }
+                                        }
+                                    } finally {
+                                        isScrollingPreview = false;
+                                    }
+                                });
+                            }
+                        } catch (Exception e) {
+                            logger.debug("Fehler bei Quill Scroll-Sync zu CodeArea: " + e.getMessage());
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                logger.debug("Fehler beim Polling: " + e.getMessage());
+            }
+        }));
+        pollingTimeline.setCycleCount(Timeline.INDEFINITE);
+        pollingTimeline.play();
+    }
+    
+    /**
+     * Aktualisiert den Quill Editor Content
+     */
+    private void updateQuillContent() {
+        if (previewWebView == null || codeArea == null || isUpdatingFromQuill) {
+            return;
+        }
+        
+        try {
+            String markdownContent = codeArea.getText();
+            String htmlContent = convertMarkdownToQuillHTML(markdownContent);
+            
+            // Nur aktualisieren, wenn sich der Content geändert hat
+            // WICHTIG: Wenn lastQuillContent null ist, immer aktualisieren (erstes Laden)
+            if (lastQuillContent != null && htmlContent.equals(lastQuillContent)) {
+                logger.debug("Quill Content unverändert, keine Aktualisierung nötig");
+                return; // Keine Änderung, kein Update nötig
+            }
+            
+            logger.debug("Aktualisiere Quill Content (Länge: " + htmlContent.length() + ")");
+            // WICHTIG: lastQuillContent wird erst nach erfolgreichem Laden gesetzt!
+            
+            javafx.scene.web.WebEngine engine = previewWebView.getEngine();
+            if (engine.getLoadWorker().getState() == javafx.concurrent.Worker.State.SUCCEEDED) {
+                // Prüfe ob Quill bereit ist
+                Object quillReady = engine.executeScript("(function() { return window.quillReady; })()");
+                Object quillExists = engine.executeScript("(function() { return typeof window.quill !== 'undefined' && window.quill !== null; })()");
+                
+                if (quillReady != null && Boolean.TRUE.equals(quillReady) && 
+                    quillExists != null && Boolean.TRUE.equals(quillExists)) {
+                    // Quill Content aktualisieren
+                    Platform.runLater(() -> {
+                        try {
+                            isUpdatingFromCodeArea = true;
+                            
+                            logger.info("Setze Quill Content, HTML-Länge: " + htmlContent.length());
+                            
+                            // Prüfe nochmal ob Quill wirklich existiert (als IIFE)
+                            Object quillCheck = engine.executeScript("(function() { return window.quill && typeof window.setQuillContent === 'function'; })()");
+                            if (quillCheck == null || !Boolean.TRUE.equals(quillCheck)) {
+                                logger.warn("Quill oder setQuillContent nicht verfügbar, warte...");
+                                isUpdatingFromCodeArea = false;
+                                lastQuillContent = null; // WICHTIG: Zurücksetzen für Retry
+                                Timeline retryTimeline = new Timeline(new KeyFrame(Duration.millis(500), event -> {
+                                    updateQuillContent();
+                                }));
+                                retryTimeline.play();
+                                return;
+                            }
+                            
+                            // WICHTIG: Bei sehr großen Strings (>1MB) speichere Content in window-Property
+                            // um Script-Größe zu vermeiden und Performance-Probleme zu verhindern
+                            String script;
+                            if (htmlContent.length() > 1000000) {
+                                // Großer Content: Speichere in window-Property
+                                engine.executeScript("window._quillPendingContent = " + toJSString(htmlContent) + ";");
+                                script = 
+                                    "(function() { " +
+                                    "  try { " +
+                                    "    if (window.setQuillContent && window.quill && window._quillPendingContent) { " +
+                                    "      var content = window._quillPendingContent; " +
+                                    "      delete window._quillPendingContent; " +
+                                    "      var result = window.setQuillContent(content); " +
+                                    "      console.log('Content gesetzt via setQuillContent (großer Content), Ergebnis:', result); " +
+                                    "      return result || 'success'; " +
+                                    "    } else { " +
+                                    "      console.error('setQuillContent, quill oder _quillPendingContent nicht verfügbar'); " +
+                                    "      return 'not_ready'; " +
+                                    "    } " +
+                                    "  } catch(e) { " +
+                                    "    console.error('Fehler beim Setzen des Contents:', e); " +
+                                    "    return 'error: ' + e.message; " +
+                                    "  } " +
+                                    "})()";
+                            } else {
+                                // Normaler Content: Direkt im Script
+                                script = String.format(
+                                    "(function() { " +
+                                    "  try { " +
+                                    "    if (window.setQuillContent && window.quill) { " +
+                                    "      var result = window.setQuillContent(%s); " +
+                                    "      console.log('Content gesetzt via setQuillContent, Ergebnis:', result); " +
+                                    "      return result || 'success'; " +
+                                    "    } else { " +
+                                    "      console.error('setQuillContent oder quill nicht verfügbar'); " +
+                                    "      return 'not_ready'; " +
+                                    "    } " +
+                                    "  } catch(e) { " +
+                                    "    console.error('Fehler beim Setzen des Contents:', e); " +
+                                    "    return 'error: ' + e.message; " +
+                                    "  } " +
+                                    "})()", 
+                                    toJSString(htmlContent));
+                            }
+                            
+                            Object result = engine.executeScript(script);
+                            logger.info("Quill Content aktualisiert, Script-Ergebnis: " + result);
+                            
+                            // Prüfe Ergebnis und setze lastQuillContent nur bei Erfolg
+                            boolean success = false;
+                            if (result instanceof String) {
+                                String resultStr = (String) result;
+                                if (resultStr.contains("success")) {
+                                    // ERFOLG: Content wurde erfolgreich gesetzt
+                                    lastQuillContent = htmlContent;
+                                    logger.info("Quill Content erfolgreich gesetzt, lastQuillContent aktualisiert");
+                                    success = true;
+                                } else if (resultStr.contains("error") || resultStr.contains("not_ready")) {
+                                    // FEHLER: Retry mit null lastQuillContent
+                                    logger.warn("Fehler beim Setzen des Contents (" + resultStr + "), versuche erneut in 500ms...");
+                                    isUpdatingFromCodeArea = false;
+                                    lastQuillContent = null; // WICHTIG: Zurücksetzen für Retry
+                                    Timeline retryTimeline = new Timeline(new KeyFrame(Duration.millis(500), event -> {
+                                        updateQuillContent();
+                                    }));
+                                    retryTimeline.play();
+                                    return;
+                                }
+                            } else if (result == null) {
+                                // Null bedeutet möglicherweise, dass die Funktion nichts zurückgegeben hat
+                                // Versuche trotzdem als Erfolg zu behandeln, aber mit Verifizierung
+                                logger.warn("setQuillContent hat null zurückgegeben, verifiziere Content...");
+                            } else {
+                                // Unbekanntes Ergebnis, versuche trotzdem als Erfolg zu behandeln
+                                logger.warn("Unbekanntes Ergebnis von setQuillContent: " + result + ", behandle als Erfolg");
+                                lastQuillContent = htmlContent;
+                                success = true;
+                            }
+                            
+                            // Wenn kein expliziter Erfolg, aber auch kein Fehler, setze lastQuillContent nach Verifizierung
+                            if (!success && result == null) {
+                                // Warte auf Verifizierung bevor wir lastQuillContent setzen
+                                logger.info("Warte auf Verifizierung bevor lastQuillContent gesetzt wird...");
+                            }
+                            
+                            // Zusätzlich: Prüfe ob Content wirklich gesetzt wurde
+                            Platform.runLater(() -> {
+                                Timeline verifyTimeline = new Timeline(new KeyFrame(Duration.millis(300), event -> {
+                                    try {
+                                        Object currentContent = engine.executeScript("(function() { return window.getQuillContent ? window.getQuillContent() : ''; })()");
+                                        int contentLength = currentContent instanceof String ? ((String)currentContent).length() : 0;
+                                        logger.info("Verifizierung: Aktueller Quill Content-Länge: " + contentLength + ", erwartet: " + htmlContent.length());
+                                        
+                                        // Falls Content gesetzt wurde (auch wenn result null war), setze lastQuillContent
+                                        if (contentLength > 10 || (contentLength > 0 && htmlContent.length() <= 10)) {
+                                            if (lastQuillContent == null || !lastQuillContent.equals(htmlContent)) {
+                                                lastQuillContent = htmlContent;
+                                                logger.info("lastQuillContent nach erfolgreicher Verifizierung gesetzt");
+                                            }
+                                        } else if (contentLength <= 10 && htmlContent.length() > 10) {
+                                            // Content ist leer, versuche erneut
+                                            logger.warn("Content scheint nicht gesetzt worden zu sein, versuche erneut...");
+                                            lastQuillContent = null;
+                                            Timeline retryTimeline = new Timeline(new KeyFrame(Duration.millis(500), retryEvent -> {
+                                                updateQuillContent();
+                                            }));
+                                            retryTimeline.play();
+                                        }
+                                    } catch (Exception e) {
+                                        logger.debug("Fehler bei Verifizierung: " + e.getMessage());
+                                    }
+                                }));
+                                verifyTimeline.play();
+                            });
+                            
+                        } catch (Exception e) {
+                            logger.error("Fehler beim Aktualisieren des Quill Contents", e);
+                        } finally {
+                            isUpdatingFromCodeArea = false;
+                        }
+                    });
+                } else {
+                    // Quill noch nicht bereit - warte und versuche erneut
+                    logger.debug("Quill noch nicht bereit (ready: " + quillReady + ", exists: " + quillExists + "), warte...");
+                    lastQuillContent = null; // WICHTIG: Zurücksetzen für Retry
+                    Timeline retryTimeline = new Timeline(new KeyFrame(Duration.millis(500), event -> {
+                        updateQuillContent();
+                    }));
+                    retryTimeline.play();
+                }
+            } else {
+                // WebView noch nicht geladen - warte
+                logger.debug("WebView noch nicht geladen, warte...");
+                lastQuillContent = null; // WICHTIG: Zurücksetzen für Retry
+                Timeline retryTimeline = new Timeline(new KeyFrame(Duration.millis(500), event -> {
+                    updateQuillContent();
+                }));
+                retryTimeline.play();
+            }
+        } catch (Exception e) {
+            logger.error("Fehler beim Aktualisieren des Quill Editors", e);
+        }
+    }
+    
+    /**
+     * Konvertiert Markdown zu Quill-kompatiblem HTML
+     */
+    private String convertMarkdownToQuillHTML(String markdown) {
+        // Nutze die bestehende Konvertierung, aber extrahiere nur den Body-Content
+        String fullHTML = convertMarkdownToHTMLForPreview(markdown);
+        
+        // Extrahiere nur den Body-Inhalt (ohne HTML-Struktur)
+        // Quill erwartet nur den Content, nicht das gesamte HTML-Dokument
+        try {
+            // Entferne HTML-Header und Body-Tags, behalte nur den Inhalt
+            String bodyContent = fullHTML;
+            int bodyStart = bodyContent.indexOf("<body>");
+            int bodyEnd = bodyContent.indexOf("</body>");
+            
+            if (bodyStart >= 0 && bodyEnd >= 0) {
+                bodyContent = bodyContent.substring(bodyStart + 6, bodyEnd);
+            }
+            
+            return bodyContent.trim();
+        } catch (Exception e) {
+            logger.warn("Fehler beim Extrahieren des Body-Contents", e);
+            return fullHTML;
+        }
+    }
+    
+    /**
+     * Konvertiert Quill HTML zu Markdown (verbesserte Version mit vollständiger Formatierungsunterstützung)
+     * @param html Das HTML von Quill
+     * @param originalMarkdown Der ursprüngliche Markdown-Content (optional, für Bild-Pfad-Wiederherstellung)
+     */
+    private String convertQuillHTMLToMarkdown(String html, String originalMarkdown) {
+        if (html == null || html.trim().isEmpty()) {
+            return "";
+        }
+        
+        try {
+            // Schritt 0: Data-URI-Bilder behandeln - versuche ursprüngliche Pfade wiederherzustellen
+            // Wenn originalMarkdown vorhanden ist, versuche die Bild-Pfade daraus zu extrahieren
+            Map<String, String> dataUriToPath = new HashMap<>();
+            if (originalMarkdown != null && !originalMarkdown.trim().isEmpty()) {
+                // Finde alle Markdown-Bilder im ursprünglichen Content
+                Pattern markdownImagePattern = Pattern.compile("!\\[([^\\]]*)\\]\\(([^)]+)\\)");
+                Matcher markdownImageMatcher = markdownImagePattern.matcher(originalMarkdown);
+                List<String> imagePaths = new ArrayList<>();
+                while (markdownImageMatcher.find()) {
+                    String imagePath = markdownImageMatcher.group(2);
+                    imagePaths.add(imagePath);
+                }
+                
+                // Finde alle Data-URI-Bilder im HTML und mappe sie zu den ursprünglichen Pfaden
+                Pattern dataUriPattern = Pattern.compile("(?i)<img[^>]*src=\\\"data:image[^\\\"]*\\\"[^>]*(?:alt=\\\"([^\\\"]*)\\\")?[^>]*>");
+                Matcher dataUriMatcher = dataUriPattern.matcher(html);
+                int imageIndex = 0;
+                while (dataUriMatcher.find() && imageIndex < imagePaths.size()) {
+                    String altText = dataUriMatcher.group(1);
+                    String originalPath = imagePaths.get(imageIndex);
+                    String placeholder = "___DATAURI_IMG_" + imageIndex + "___";
+                    dataUriToPath.put(placeholder, "![" + (altText != null ? altText : "") + "](" + originalPath + ")");
+                    imageIndex++;
+                }
+            }
+            
+            // Ersetze Data-URI-Bilder durch Platzhalter oder entferne sie
+            String cleaned = html;
+            if (!dataUriToPath.isEmpty()) {
+                // Ersetze durch Platzhalter für Wiederherstellung
+                Pattern dataUriPattern = Pattern.compile("(?i)<img[^>]*src=\\\"data:image[^\\\"]*\\\"[^>]*(?:alt=\\\"([^\\\"]*)\\\")?[^>]*>");
+                Matcher dataUriMatcher = dataUriPattern.matcher(cleaned);
+                StringBuffer buffer = new StringBuffer();
+                int imgIndex = 0;
+                while (dataUriMatcher.find()) {
+                    String placeholder = "___DATAURI_IMG_" + imgIndex + "___";
+                    dataUriMatcher.appendReplacement(buffer, placeholder);
+                    imgIndex++;
+                }
+                dataUriMatcher.appendTail(buffer);
+                cleaned = buffer.toString();
+            } else {
+                // Keine ursprünglichen Pfade gefunden, entferne Base64-Bilder
+                cleaned = cleaned.replaceAll("(?i)<img[^>]*src=\\\"data:image[^\\\"]*\\\"[^>]*>", "");
+                cleaned = cleaned.replaceAll("(?i)<img[^>]*src='data:image[^']*'[^>]*>", "");
+            }
+            
+            // Schritt 0.5: WICHTIG: Konvertiere Quill's script-Format zu <sub> und <sup> VOR dem Entfernen der class-Attribute
+            // Quill verwendet <span class="ql-script" data-value="sub"> oder <span class="ql-script" data-value="super">
+            // Oder auch nur class="ql-script" mit data-value
+            // Verwende flexiblere Patterns, die auch mit verschiedenen Attribut-Reihenfolgen funktionieren
+            cleaned = cleaned.replaceAll("(?i)<span[^>]*data-value=\"sub\"[^>]*class=\"[^\"]*ql-script[^\"]*\"[^>]*>(.*?)</span>", "<sub>$1</sub>");
+            cleaned = cleaned.replaceAll("(?i)<span[^>]*class=\"[^\"]*ql-script[^\"]*\"[^>]*data-value=\"sub\"[^>]*>(.*?)</span>", "<sub>$1</sub>");
+            cleaned = cleaned.replaceAll("(?i)<span[^>]*data-value=\"super\"[^>]*class=\"[^\"]*ql-script[^\"]*\"[^>]*>(.*?)</span>", "<sup>$1</sup>");
+            cleaned = cleaned.replaceAll("(?i)<span[^>]*class=\"[^\"]*ql-script[^\"]*\"[^>]*data-value=\"super\"[^>]*>(.*?)</span>", "<sup>$1</sup>");
+            
+            // Schritt 1: Entferne Quill-spezifische Attribute, behalte aber Struktur (bild-SRC bleibt für normale Pfade unverändert)
+            cleaned = cleaned
+                .replaceAll("class=\"[^\"]*\"", "")
+                .replaceAll("style=\"[^\"]*\"", "")
+                .replaceAll("data-id=\"[^\"]*\"", "")
+                .replaceAll("spellcheck=\"[^\"]*\"", "");
+
+            
+            // Schritt 2: Behandle verschachtelte Strukturen (Listen, Blockquotes)
+            StringBuilder markdown = new StringBuilder();
+            
+            // Verwende einen Parser-Ansatz für bessere Behandlung von verschachtelten Elementen
+            // Zuerst: Code-Blöcke (müssen zuerst behandelt werden, da sie andere Formatierungen enthalten können)
+            Pattern codeBlockPattern = Pattern.compile("<pre[^>]*><code[^>]*>(.*?)</code></pre>", Pattern.DOTALL);
+            Matcher codeBlockMatcher = codeBlockPattern.matcher(cleaned);
+            StringBuffer codeBlockBuffer = new StringBuffer();
+            while (codeBlockMatcher.find()) {
+                String codeContent = codeBlockMatcher.group(1);
+                // HTML Entities in Code-Blöcken decodieren
+                codeContent = codeContent.replace("&lt;", "<")
+                                        .replace("&gt;", ">")
+                                        .replace("&amp;", "&");
+                codeBlockMatcher.appendReplacement(codeBlockBuffer, "```\n" + codeContent + "\n```\n");
+            }
+            codeBlockMatcher.appendTail(codeBlockBuffer);
+            cleaned = codeBlockBuffer.toString();
+            
+            // Schritt 3: Headings (müssen vor anderen Formatierungen behandelt werden)
+            cleaned = cleaned.replaceAll("(?i)<h1[^>]*>(.*?)</h1>", "# $1\n");
+            cleaned = cleaned.replaceAll("(?i)<h2[^>]*>(.*?)</h2>", "## $1\n");
+            cleaned = cleaned.replaceAll("(?i)<h3[^>]*>(.*?)</h3>", "### $1\n");
+            cleaned = cleaned.replaceAll("(?i)<h4[^>]*>(.*?)</h4>", "#### $1\n");
+            cleaned = cleaned.replaceAll("(?i)<h5[^>]*>(.*?)</h5>", "##### $1\n");
+            cleaned = cleaned.replaceAll("(?i)<h6[^>]*>(.*?)</h6>", "###### $1\n");
+            
+            // Schritt 4: Blockquotes
+            cleaned = cleaned.replaceAll("(?i)<blockquote[^>]*>(.*?)</blockquote>", "> $1\n");
+            
+            // Schritt 5: Listen (geordnet und ungeordnet)
+            // Behandle <ol> und <ul> Container
+            cleaned = cleaned.replaceAll("(?i)</?ol[^>]*>", "\n");
+            cleaned = cleaned.replaceAll("(?i)</?ul[^>]*>", "\n");
+            // List Items
+            cleaned = cleaned.replaceAll("(?i)<li[^>]*>(.*?)</li>", "- $1\n");
+            
+            // Schritt 6: Inline-Formatierungen (müssen nach Block-Elementen behandelt werden)
+            // Strikethrough (Quill verwendet <s> oder <strike>)
+            cleaned = cleaned.replaceAll("(?i)<s[^>]*>(.*?)</s>", "~~$1~~");
+            cleaned = cleaned.replaceAll("(?i)<strike[^>]*>(.*?)</strike>", "~~$1~~");
+            
+            // Bold und Italic (mehrfach verschachtelt möglich)
+            // Zuerst Bold+Italic kombinierungen
+            cleaned = cleaned.replaceAll("(?i)<strong[^>]*><em[^>]*>(.*?)</em></strong>", "***$1***");
+            cleaned = cleaned.replaceAll("(?i)<em[^>]*><strong[^>]*>(.*?)</strong></em>", "***$1***");
+            cleaned = cleaned.replaceAll("(?i)<b[^>]*><i[^>]*>(.*?)</i></b>", "***$1***");
+            cleaned = cleaned.replaceAll("(?i)<i[^>]*><b[^>]*>(.*?)</b></i>", "***$1***");
+            
+            // Dann einzelne Formatierungen
+            cleaned = cleaned.replaceAll("(?i)<strong[^>]*>(.*?)</strong>", "**$1**");
+            cleaned = cleaned.replaceAll("(?i)<b[^>]*>(.*?)</b>", "**$1**");
+            cleaned = cleaned.replaceAll("(?i)<em[^>]*>(.*?)</em>", "*$1*");
+            cleaned = cleaned.replaceAll("(?i)<i[^>]*>(.*?)</i>", "*$1*");
+            
+            // Underline (Quill-spezifisch, wird als <u> dargestellt)
+            cleaned = cleaned.replaceAll("(?i)<u[^>]*>(.*?)</u>", "$1"); // Markdown unterstützt kein Underline
+            
+            // Schritt 7: Links
+            cleaned = cleaned.replaceAll("(?i)<a[^>]*href=\"([^\"]+)\"[^>]*>(.*?)</a>", "[$2]($1)");
+            
+            // Schritt 8: Superscript und Subscript (bereits in Schritt 0.5 konvertiert, hier nur noch direkte Tags behalten)
+            // <sub> und <sup> Tags bleiben erhalten (keine weitere Konvertierung nötig)
+            
+            // Schritt 9: Inline Code (muss nach anderen Formatierungen behandelt werden)
+            cleaned = cleaned.replaceAll("(?i)<code[^>]*>(.*?)</code>", "`$1`");
+            
+            // Schritt 10: Images (doppelte und einfache Anführungszeichen)
+            // WICHTIG: Konvertiere Bilder zu Markdown VOR dem Entfernen der HTML-Tags
+            // Behandle auch Bilder mit verschiedenen Attribut-Reihenfolgen
+            
+            // Zuerst: Stelle Data-URI-Bilder wieder her (falls ursprüngliche Pfade gefunden wurden)
+            for (Map.Entry<String, String> entry : dataUriToPath.entrySet()) {
+                cleaned = cleaned.replace(entry.getKey(), entry.getValue());
+            }
+            
+            // Dann: Normale Bilder (nicht Data-URI) zu Markdown konvertieren
+            cleaned = cleaned.replaceAll("(?i)<img[^>]*src=\"([^\"]+)\"[^>]*(?:alt=\"([^\"]*)\")?[^>]*>", "![$2]($1)");
+            cleaned = cleaned.replaceAll("(?i)<img[^>]*src='([^']+)'[^>]*(?:alt='([^']*)')?[^>]*>", "![$2]($1)");
+            // Auch ohne alt-Attribut
+            cleaned = cleaned.replaceAll("(?i)<img[^>]*src=\"([^\"]+)\"[^>]*>", "![]($1)");
+            cleaned = cleaned.replaceAll("(?i)<img[^>]*src='([^']+)'[^>]*>", "![]($1)");
+            
+            // Schritt 11: Horizontale Linien
+            // Konvertiere <hr> und <div> mit border-top (Quill-kompatible Darstellung) zu ---
+            cleaned = cleaned.replaceAll("(?i)<div[^>]*style=\"[^\"]*border-top[^\"]*\"[^>]*></div>", "\n---\n");
+            cleaned = cleaned.replaceAll("(?i)<p[^>]*>\\s*<hr[^>]*>\\s*</hr>\\s*</p>", "\n---\n");
+            cleaned = cleaned.replaceAll("(?i)<p[^>]*>\\s*<hr[^>]*>\\s*</p>", "\n---\n");
+            cleaned = cleaned.replaceAll("(?i)<hr[^>]*>", "\n---\n");
+            
+            // Schritt 12: Paragraphs und Line Breaks (Absatz-Trenner als Doppel-NE behalten)
+            cleaned = cleaned.replaceAll("(?i)<p[^>]*>", "");
+            cleaned = cleaned.replaceAll("(?i)</p>", "\n\n");
+            cleaned = cleaned.replaceAll("(?i)<br\\s*/?>", "\n");
+            cleaned = cleaned.replaceAll("(?i)<div[^>]*>", "");
+            cleaned = cleaned.replaceAll("(?i)</div>", "\n\n");
+            
+            // Schritt 12.5: WICHTIG: Schütze <sub> und <sup> Tags vor der allgemeinen Tag-Entfernung
+            // Temporäre Platzhalter verwenden
+            cleaned = cleaned.replaceAll("(?i)<sub>", "___SUBTAG_START___");
+            cleaned = cleaned.replaceAll("(?i)</sub>", "___SUBTAG_END___");
+            cleaned = cleaned.replaceAll("(?i)<sup>", "___SUPTAG_START___");
+            cleaned = cleaned.replaceAll("(?i)</sup>", "___SUPTAG_END___");
+            
+            // Schritt 12.6: Entferne verbleibende HTML-Tags (aber nicht die Platzhalter)
+            cleaned = cleaned.replaceAll("<[^>]+>", "");
+            
+            // Schritt 12.7: Stelle <sub> und <sup> Tags wieder her
+            cleaned = cleaned.replaceAll("___SUBTAG_START___", "<sub>");
+            cleaned = cleaned.replaceAll("___SUBTAG_END___", "</sub>");
+            cleaned = cleaned.replaceAll("___SUPTAG_START___", "<sup>");
+            cleaned = cleaned.replaceAll("___SUPTAG_END___", "</sup>");
+            
+            // Schritt 13: HTML Entities decodieren
+            cleaned = cleaned.replace("&nbsp;", " ")
+                           .replace("&lt;", "<")
+                           .replace("&gt;", ">")
+                           .replace("&amp;", "&")
+                           .replace("&quot;", "\"")
+                           .replace("&#39;", "'")
+                           .replace("&apos;", "'");
+            
+            // Schritt 14: Entferne führende/abschließende Leerzeilen
+            cleaned = cleaned.trim();
+            
+            return cleaned;
+        } catch (Exception e) {
+            logger.error("Fehler bei HTML zu Markdown Konvertierung", e);
+            // Fallback: Entferne alle HTML-Tags
+            return html.replaceAll("<[^>]+>", "").replaceAll("&nbsp;", " ")
+                      .replace("&lt;", "<").replace("&gt;", ">").replace("&amp;", "&");
+        }
+    }
+    
+    /**
+     * Hilfsmethode: Konvertiert String zu JavaScript-String
+     */
+    private String toJSString(String str) {
+        if (str == null) return "null";
+        return "\"" + str.replace("\\", "\\\\")
+                        .replace("\"", "\\\"")
+                        .replace("\n", "\\n")
+                        .replace("\r", "\\r")
+                        .replace("\t", "\\t") + "\"";
+    }
+    
+    /**
+     * Aktualisiert den Preview-Inhalt (Legacy-Methode - wird durch updateQuillContent ersetzt)
      */
     private void updatePreviewContent() {
+        // Für Kompatibilität: Falls Quill verwendet wird, rufe updateQuillContent auf
+        updateQuillContent();
+    }
+    
+    /**
+     * Legacy-Methode für Preview-Update (alte Implementierung entfernt)
+     * Wird durch updateQuillContent ersetzt
+     */
+    private void updatePreviewContentLegacy() {
         if (previewWebView == null || codeArea == null) {
             return;
         }
@@ -14051,13 +14967,17 @@ spacer.setStyle("-fx-background-color: transparent;");
             String line = lines[i];
             String trimmedLine = line.trim();
             
-            // Horizontale Linien
-            if (trimmedLine.matches("^[-*_]{3,}$")) {
+            // Horizontale Linien (---, ***, oder ___)
+            // Pattern: Mindestens 3 Bindestriche, Sterne oder Unterstriche, optional mit Leerzeichen
+            if (trimmedLine.matches("^[-*_]{3,}\\s*$")) {
                 if (inParagraph) {
                     html.append("</p>\n");
                     inParagraph = false;
                 }
-                html.append("<hr>\n");
+                // Quill unterstützt <hr> möglicherweise nicht direkt
+                // Verwende <div> mit border als Alternative für bessere Kompatibilität
+                // Quill wird dies als Block-Element behandeln
+                html.append("<div style=\"border: none; border-top: 2px solid #bdc3c7; margin: 20px 0; height: 0; overflow: hidden;\"></div>\n");
                 continue;
             }
             
@@ -14441,10 +15361,10 @@ spacer.setStyle("-fx-background-color: transparent;");
             String altText = imageMatcher.group(1);
             String imagePath = imageMatcher.group(2);
             
-            // Konvertiere relativen Pfad zu absolutem Pfad
-            String absolutePath = convertImagePathToAbsolute(imagePath);
+            // Konvertiere relativen Pfad zu absolutem Pfad oder Base64
+            String imageSrc = convertImagePathForQuill(imagePath);
             
-            String replacement = "<img src=\"" + escapeHtml(absolutePath) + "\" alt=\"" + escapeHtml(altText) + "\">";
+            String replacement = "<img src=\"" + escapeHtml(imageSrc) + "\" alt=\"" + escapeHtml(altText) + "\" style=\"max-width: 100%; height: auto;\">";
             imageMatcher.appendReplacement(imageBuffer, Matcher.quoteReplacement(replacement));
         }
         imageMatcher.appendTail(imageBuffer);
@@ -14460,7 +15380,10 @@ spacer.setStyle("-fx-background-color: transparent;");
             .replaceAll("`(.*?)`", "<code>$1</code>")
             // Links
             .replaceAll("\\[([^\\]]+)\\]\\(([^)]+)\\)", "<a href=\"$2\">$1</a>")
-            // Durchgestrichen (zwei Tilden) - muss VOR Subscript kommen
+            // Superscript und Subscript (müssen vor anderen Formatierungen behandelt werden)
+            .replaceAll("<sup>(.*?)</sup>", "<sup>$1</sup>") // Behalte <sup> Tags
+            .replaceAll("<sub>(.*?)</sub>", "<sub>$1</sub>") // Behalte <sub> Tags
+            // Durchgestrichen (zwei Tilden)
             .replaceAll("~~(.*?)~~", "<span class=\"strikethrough\">$1</span>")
             // Hervorgehoben (zwei Gleichheitszeichen)
             .replaceAll("==(.*?)==", "<span class=\"highlight\">$1</span>")
@@ -14497,6 +15420,9 @@ spacer.setStyle("-fx-background-color: transparent;");
     private void togglePreviewJustify() {
         previewJustifyEnabled = !previewJustifyEnabled;
         updateJustifyButtonStyle();
+        // Quill-Theme mit neuer Ausrichtung aktualisieren
+        // WICHTIG: Nur Theme anwenden, Fontgröße NICHT ändern
+        applyThemeToQuill(currentThemeIndex, false); // false = Fontgröße nicht überschreiben
         updatePreviewContent();
     }
     
@@ -14514,6 +15440,30 @@ spacer.setStyle("-fx-background-color: transparent;");
         } else {
             btnToggleJustify.setText("Blocksatz");
             btnToggleJustify.setStyle("");
+        }
+    }
+    
+    /**
+     * Aktualisiert die Textfarbe der Labels im Preview-Fenster basierend auf dem Theme
+     */
+    private void updatePreviewWindowLabels() {
+        if (lblQuillFontSize == null || lblQuillFontFamily == null) {
+            return;
+        }
+        
+        // Textfarbe aus Theme holen
+        String textColor = THEMES[currentThemeIndex][1];
+        
+        // Labels stylen
+        lblQuillFontSize.setStyle("-fx-text-fill: " + textColor + "; -fx-font-size: 12px;");
+        lblQuillFontFamily.setStyle("-fx-text-fill: " + textColor + "; -fx-font-size: 12px;");
+        
+        // Spinner und ComboBox Textfarbe
+        if (spnQuillFontSize != null) {
+            spnQuillFontSize.setStyle("-fx-min-width: 80px; -fx-max-width: 80px; -fx-min-height: 28px; -fx-max-height: 28px; -fx-font-size: 12px; -fx-text-fill: " + textColor + ";");
+        }
+        if (cmbQuillFontFamily != null) {
+            cmbQuillFontFamily.setStyle("-fx-min-width: 120px; -fx-max-width: 120px; -fx-min-height: 28px; -fx-max-height: 28px; -fx-font-size: 12px; -fx-text-fill: " + textColor + ";");
         }
     }
     
@@ -14592,6 +15542,155 @@ spacer.setStyle("-fx-background-color: transparent;");
     }
     
     /**
+     * Konvertiert Bild-Pfad für Quill Editor (als Base64 oder file:// URL)
+     */
+    private String convertImagePathForQuill(String imagePath) {
+        if (imagePath == null || imagePath.trim().isEmpty()) {
+            return "";
+        }
+        
+        // Normalisiere den Pfad
+        imagePath = imagePath.trim();
+        
+        // Wenn bereits HTTP/HTTPS URL, direkt zurückgeben
+        if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) {
+            return imagePath;
+        }
+        
+        // Wenn bereits file:// URL, direkt zurückgeben
+        if (imagePath.startsWith("file://")) {
+            return imagePath;
+        }
+        
+        // Wenn bereits data: URL (Base64), direkt zurückgeben
+        // WICHTIG: Base64-Bilder müssen erhalten bleiben, auch bei Kapitel-Wechsel
+        if (imagePath.startsWith("data:")) {
+            return imagePath;
+        }
+        
+        // Versuche Bild zu finden und als Base64 zu konvertieren
+        File imageFile = null;
+        
+        // 1. Versuch: Relativ zur aktuellen Datei
+        if (currentFile != null && currentFile.exists()) {
+            File parentDir = currentFile.getParentFile();
+            if (parentDir != null) {
+                imageFile = new File(parentDir, imagePath);
+                if (imageFile.exists() && imageFile.isFile()) {
+                    String base64 = convertImageToBase64(imageFile);
+                    if (base64 != null && !base64.isEmpty()) {
+                        return base64;
+                    }
+                }
+            }
+        }
+        
+        // 2. Versuch: Relativ zur Original-DOCX-Datei (wichtig bei Kapitel-Wechsel!)
+        if (originalDocxFile != null && originalDocxFile.exists()) {
+            File parentDir = originalDocxFile.getParentFile();
+            if (parentDir != null) {
+                imageFile = new File(parentDir, imagePath);
+                if (imageFile.exists() && imageFile.isFile()) {
+                    String base64 = convertImageToBase64(imageFile);
+                    if (base64 != null && !base64.isEmpty()) {
+                        return base64;
+                    }
+                }
+            }
+        }
+        
+        // 3. Versuch: Als absoluter Pfad
+        imageFile = new File(imagePath);
+        if (imageFile.exists() && imageFile.isFile() && imageFile.isAbsolute()) {
+            String base64 = convertImageToBase64(imageFile);
+            if (base64 != null && !base64.isEmpty()) {
+                return base64;
+            }
+        }
+        
+        // 4. Versuch: Relativ zum Arbeitsverzeichnis
+        imageFile = new File(System.getProperty("user.dir"), imagePath);
+        if (imageFile.exists() && imageFile.isFile()) {
+            String base64 = convertImageToBase64(imageFile);
+            if (base64 != null && !base64.isEmpty()) {
+                return base64;
+            }
+        }
+        
+        // 5. Versuch: Relativ zum data-Verzeichnis (falls vorhanden)
+        if (originalDocxFile != null && originalDocxFile.exists()) {
+            File parentDir = originalDocxFile.getParentFile();
+            if (parentDir != null) {
+                File dataDir = new File(parentDir, "data");
+                if (dataDir.exists() && dataDir.isDirectory()) {
+                    imageFile = new File(dataDir, imagePath);
+                    if (imageFile.exists() && imageFile.isFile()) {
+                        String base64 = convertImageToBase64(imageFile);
+                        if (base64 != null && !base64.isEmpty()) {
+                            return base64;
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Fallback: Versuche als file:// URL
+        try {
+            String absolutePath = convertImagePathToAbsolute(imagePath);
+            return absolutePath;
+        } catch (Exception e) {
+            logger.warn("Konnte Bild-Pfad nicht konvertieren: " + imagePath);
+            return imagePath;
+        }
+    }
+    
+    /**
+     * Konvertiert Bild-Datei zu Base64 data URL
+     */
+    private String convertImageToBase64(File imageFile) {
+        if (imageFile == null || !imageFile.exists() || !imageFile.isFile()) {
+            logger.warn("Bild-Datei existiert nicht oder ist ungültig: " + (imageFile != null ? imageFile.getAbsolutePath() : "null"));
+            return null;
+        }
+        
+        try {
+            byte[] imageBytes = Files.readAllBytes(imageFile.toPath());
+            if (imageBytes.length == 0) {
+                logger.warn("Bild-Datei ist leer: " + imageFile.getAbsolutePath());
+                return null;
+            }
+            
+            String base64 = java.util.Base64.getEncoder().encodeToString(imageBytes);
+            
+            // Bestimme MIME-Type basierend auf Dateiendung
+            String mimeType = "image/png"; // Default
+            String fileName = imageFile.getName().toLowerCase();
+            if (fileName.endsWith(".jpg") || fileName.endsWith(".jpeg")) {
+                mimeType = "image/jpeg";
+            } else if (fileName.endsWith(".gif")) {
+                mimeType = "image/gif";
+            } else if (fileName.endsWith(".webp")) {
+                mimeType = "image/webp";
+            } else if (fileName.endsWith(".bmp")) {
+                mimeType = "image/bmp";
+            } else if (fileName.endsWith(".png")) {
+                mimeType = "image/png";
+            }
+            
+            return "data:" + mimeType + ";base64," + base64;
+        } catch (Exception e) {
+            logger.warn("Fehler beim Konvertieren des Bildes zu Base64: " + e.getMessage());
+            // Fallback: file:// URL
+            try {
+                return imageFile.toURI().toURL().toString();
+            } catch (Exception e2) {
+                logger.warn("Auch file:// URL Konvertierung fehlgeschlagen: " + e2.getMessage());
+                return "";
+            }
+        }
+    }
+    
+    /**
      * Richtet die Scroll-Synchronisation zwischen Editor und Preview ein
      */
     private void setupPreviewScrollSync() {
@@ -14606,12 +15705,8 @@ spacer.setStyle("-fx-background-color: transparent;");
             }
         });
         
-        // Klick auf Zeile: Suche im Preview und scroll mittig dorthin
-        codeArea.setOnMouseClicked(event -> {
-            if (previewWebView != null && previewStage != null && previewStage.isShowing()) {
-                scrollToLineInPreview();
-            }
-        });
+        // ENTFERNT: Klick-Handler, der die Cursorposition stört
+        // Die Scroll-Synchronisation erfolgt über Scroll-Events und currentParagraphProperty
         
         // Pfeiltasten: Suche im Preview und scroll mittig dorthin
         codeArea.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
@@ -14963,32 +16058,446 @@ spacer.setStyle("-fx-background-color: transparent;");
     }
     
     /**
-     * Richtet einen Listener für Text-Änderungen ein (mit Debounce)
+     * Richtet einen Listener für Text-Änderungen ein (mit Debounce) - für Quill Editor
      */
-    private void setupPreviewTextListener() {
+    private void setupQuillTextListener() {
         if (codeArea == null) {
             return;
         }
         
         codeArea.textProperty().addListener((obs, oldText, newText) -> {
-            if (previewStage != null && previewStage.isShowing() && previewWebView != null) {
-                // Debounce: Aktualisiere nach 500ms Pause
+            if (previewStage != null && previewStage.isShowing() && previewWebView != null && !isUpdatingFromQuill) {
+                // Debounce 500ms über einen einzigen Executor
+                if (previewUpdateExecutor == null || previewUpdateExecutor.isShutdown()) {
+                    previewUpdateExecutor = Executors.newSingleThreadScheduledExecutor(r -> {
+                        Thread t = new Thread(r, "QuillUpdateScheduler");
+                        t.setDaemon(true);
+                        return t;
+                    });
+                }
                 if (previewUpdateFuture != null && !previewUpdateFuture.isDone()) {
                     previewUpdateFuture.cancel(false);
                 }
-                
-                previewUpdateFuture = Executors.newSingleThreadScheduledExecutor(r -> {
-                    Thread t = new Thread(r, "PreviewUpdateScheduler");
-                    t.setDaemon(true);
-                    return t;
-                }).schedule(() -> {
-                    Platform.runLater(() -> {
-                        // updatePreviewContent stellt die Scroll-Position automatisch wieder her
-                        updatePreviewContent();
-                    });
+                previewUpdateFuture = previewUpdateExecutor.schedule(() -> {
+                    Platform.runLater(this::updateQuillContent);
                 }, 500, TimeUnit.MILLISECONDS);
             }
         });
+    }
+    
+    /**
+     * Richtet einen Listener für Text-Änderungen ein (mit Debounce) - Legacy für Preview
+     */
+    private void setupPreviewTextListener() {
+        // Für Kompatibilität: Rufe Quill-Version auf
+        setupQuillTextListener();
+    }
+    
+    /**
+     * Richtet Scroll-Synchronisation für Quill Editor ein
+     */
+    private void setupQuillScrollSync() {
+        if (codeArea == null || previewWebView == null) {
+            return;
+        }
+        
+        // ENTFERNT: currentParagraphProperty Listener - verursacht Cursor-Sprünge beim Klicken
+        // Die Scroll-Synchronisation erfolgt nur über:
+        // 1. Scroll-Events (Mausrad, Scrollbar)
+        // 2. Pfeiltasten-Events (nur bei expliziter Navigation)
+        // codeArea.currentParagraphProperty().addListener((obs, oldParagraph, newParagraph) -> {
+        //     if (!isScrollingPreview && previewWebView != null && previewStage != null && previewStage.isShowing()) {
+        //         syncQuillScroll(newParagraph.intValue());
+        //     }
+        // });
+        
+        // ENTFERNT: Klick-Handler, der die Cursorposition stört
+        // Die Scroll-Synchronisation erfolgt bereits über:
+        // 1. currentParagraphProperty Listener (Zeile 15805)
+        // 2. Scroll-Events (Zeile 15837)
+        // 3. Pfeiltasten-Events (Zeile 15819)
+        // codeArea.setOnMouseClicked(event -> {
+        //     if (previewWebView != null && previewStage != null && previewStage.isShowing()) {
+        //         scrollToLineInQuill();
+        //     }
+        // });
+        
+        // Pfeiltasten: Suche im Quill und scroll dorthin
+        codeArea.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+            if (previewWebView != null && previewStage != null && previewStage.isShowing()) {
+                KeyCode code = event.getCode();
+                if (code == KeyCode.UP || code == KeyCode.DOWN || 
+                    code == KeyCode.PAGE_UP || code == KeyCode.PAGE_DOWN ||
+                    code == KeyCode.HOME || code == KeyCode.END) {
+                    Platform.runLater(() -> {
+                        Platform.runLater(() -> {
+                            scrollToLineInQuill();
+                        });
+                    });
+                }
+            }
+        });
+        
+        // Mouse-Scroll-Rad: Erkenne Scrollen und synchronisiere Quill
+        final java.util.concurrent.atomic.AtomicReference<java.util.Timer> scrollSyncTimer = new java.util.concurrent.atomic.AtomicReference<>();
+        
+        EventHandler<ScrollEvent> scrollSyncHandler = event -> {
+            // WICHTIG: Nur synchronisieren, wenn der Benutzer im Editor scrollt, nicht wenn Quill scrollt
+            // Prüfe zusätzlich, ob der Benutzer gerade in Quill scrollt (über JavaScript-Flag)
+            if (!isScrollingPreview && previewWebView != null && previewStage != null && previewStage.isShowing()) {
+                javafx.scene.web.WebEngine engine = previewWebView.getEngine();
+                if (engine.getLoadWorker().getState() == javafx.concurrent.Worker.State.SUCCEEDED) {
+                    // Prüfe, ob Quill gerade scrollt (verhindert Rückkopplung)
+                    try {
+                        Object quillScrolling = engine.executeScript("(window.isQuillScrolling || false)");
+                        if (Boolean.TRUE.equals(quillScrolling)) {
+                            // Quill scrollt gerade, keine Synchronisation
+                            return;
+                        }
+                    } catch (Exception e) {
+                        // Ignoriere Fehler bei der Prüfung
+                    }
+                }
+                
+                Timer oldTimer = scrollSyncTimer.getAndSet(null);
+                if (oldTimer != null) {
+                    oldTimer.cancel();
+                }
+                
+                Timer newTimer = new Timer(true);
+                scrollSyncTimer.set(newTimer);
+                
+                newTimer.schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        Platform.runLater(() -> {
+                            try {
+                                // Prüfe nochmal, ob Quill gerade scrollt
+                                if (engine.getLoadWorker().getState() == javafx.concurrent.Worker.State.SUCCEEDED) {
+                                    try {
+                                        Object quillScrolling = engine.executeScript("(window.isQuillScrolling || false)");
+                                        if (Boolean.TRUE.equals(quillScrolling)) {
+                                            return; // Quill scrollt gerade, keine Synchronisation
+                                        }
+                                    } catch (Exception e) {
+                                        // Ignoriere Fehler
+                                    }
+                                    
+                                    String anchor = getMiddleParagraphSnippet();
+                                    if (anchor != null && anchor.trim().length() > 3) {
+                                        String script = String.format(
+                                            "if (window.scrollQuillToText) { window.isQuillScrolling = true; window.scrollQuillToText(%s); setTimeout(function() { window.isQuillScrolling = false; }, 200); }",
+                                            toJSString(anchor.trim()));
+                                        engine.executeScript(script);
+                                    }
+                                }
+                            } catch (Exception e) {
+                                logger.debug("Fehler bei Quill Scroll-Synchronisation: " + e.getMessage());
+                            }
+                        });
+                    }
+                }, 50); // Erhöht auf 50ms für besseres Debouncing
+            }
+        };
+        
+        // Auf VirtualizedScrollPane registrieren
+        if (scrollPane != null) {
+            try {
+                scrollPane.addEventFilter(ScrollEvent.SCROLL, scrollSyncHandler);
+            } catch (Exception e) {
+                logger.debug("Fehler beim Registrieren des Scroll-Event-Filters für Quill", e);
+            }
+        }
+        
+        // ENTFERNT: Polling-Mechanismus war zu aggressiv und hat Scroll-Position zurückgesetzt
+        // Die Scroll-Synchronisation erfolgt bereits über:
+        // 1. currentParagraphProperty Listener (Cursor-Bewegung)
+        // 2. Scroll-Events (Mausrad, Scrollbar)
+        // 3. Pfeiltasten-Events
+        // Ein zusätzlicher Polling-Mechanismus würde die Scroll-Position stören, wenn der Benutzer in Quill scrollt
+        
+        // Auf CodeArea registrieren
+        if (codeArea != null) {
+            try {
+                codeArea.addEventFilter(ScrollEvent.SCROLL, scrollSyncHandler);
+            } catch (Exception e) {
+                logger.debug("Fehler beim Registrieren des Scroll-Event-Filters für Quill", e);
+            }
+        }
+    }
+    
+    /**
+     * Synchronisiert Scroll-Position von CodeArea zu Quill (textbasiert)
+     */
+    private void syncQuillScroll(int paragraphIndex) {
+        if (previewWebView == null || codeArea == null) {
+            return;
+        }
+        
+        try {
+            String anchor = getMiddleParagraphSnippet();
+            if (anchor != null && anchor.trim().length() > 3) {
+                Platform.runLater(() -> {
+                    try {
+                        javafx.scene.web.WebEngine engine = previewWebView.getEngine();
+                        if (engine.getLoadWorker().getState() == javafx.concurrent.Worker.State.SUCCEEDED) {
+                            String script = String.format(
+                                "if (window.scrollQuillToText) { window.scrollQuillToText(%s); }",
+                                toJSString(anchor.trim()));
+                            engine.executeScript(script);
+                        }
+                    } catch (Exception e) {
+                        logger.debug("Fehler bei Quill Scroll-Synchronisation", e);
+                    }
+                });
+            }
+        } catch (Exception e) {
+            logger.warn("Fehler bei Quill Scroll-Synchronisation", e);
+        }
+    }
+    
+    /**
+     * Scrollt im Quill Editor zur aktuellen Editor-Zeile
+     */
+    private void scrollToLineInQuill() {
+        if (previewWebView == null || codeArea == null) {
+            return;
+        }
+        
+        try {
+            String anchor = getMiddleParagraphSnippet();
+            if (anchor != null && anchor.trim().length() > 3) {
+                Platform.runLater(() -> {
+                    try {
+                        javafx.scene.web.WebEngine engine = previewWebView.getEngine();
+                        if (engine.getLoadWorker().getState() == javafx.concurrent.Worker.State.SUCCEEDED) {
+                            String script = String.format(
+                                "if (window.scrollQuillToText) { window.scrollQuillToText(%s); }",
+                                toJSString(anchor.trim()));
+                            engine.executeScript(script);
+                        }
+                    } catch (Exception e) {
+                        logger.debug("Fehler beim Scrollen zu Text in Quill", e);
+                    }
+                });
+            }
+        } catch (Exception e) {
+            logger.debug("Fehler beim Scrollen zu Zeile in Quill", e);
+        }
+    }
+    
+    /**
+     * Extrahiert einen Text-Snippet aus dem mittleren sichtbaren Absatz des CodeArea
+     * Versucht mehrere Absätze in der Nähe des aktuellen Absatzes zu prüfen
+     */
+    private String getMiddleParagraphSnippet() {
+        if (codeArea == null) return "";
+        try {
+            int totalParagraphs = codeArea.getParagraphs().size();
+            if (totalParagraphs == 0) return "";
+            
+            // Verwende den aktuellen Absatz als Startpunkt
+            int currentPara = codeArea.getCurrentParagraph();
+            if (currentPara < 0) currentPara = 0;
+            if (currentPara >= totalParagraphs) currentPara = totalParagraphs - 1;
+            
+            // Prüfe mehrere Absätze in der Nähe (aktueller, +1, -1, +2, -2, etc.)
+            // um den besten Snippet zu finden
+            for (int offset = 0; offset <= 3; offset++) {
+                // Prüfe Absatz nach oben
+                int para = currentPara - offset;
+                if (para >= 0 && para < totalParagraphs) {
+                    String text = codeArea.getParagraph(para).getText();
+                    if (text != null && text.trim().length() > 3) {
+                        text = text.trim();
+                        int mid = text.length() / 2;
+                        int start = Math.max(0, mid - 40);
+                        int end = Math.min(text.length(), mid + 40);
+                        String snippet = text.substring(start, end).trim();
+                        if (snippet.length() > 3) {
+                            return snippet;
+                        }
+                    }
+                }
+                
+                // Prüfe Absatz nach unten (nur wenn offset > 0)
+                if (offset > 0) {
+                    para = currentPara + offset;
+                    if (para >= 0 && para < totalParagraphs) {
+                        String text = codeArea.getParagraph(para).getText();
+                        if (text != null && text.trim().length() > 3) {
+                            text = text.trim();
+                            int mid = text.length() / 2;
+                            int start = Math.max(0, mid - 40);
+                            int end = Math.min(text.length(), mid + 40);
+                            String snippet = text.substring(start, end).trim();
+                            if (snippet.length() > 3) {
+                                return snippet;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            return "";
+        } catch (Exception e) {
+            logger.debug("Fehler beim Extrahieren des mittleren Absatz-Snippets", e);
+            return "";
+        }
+    }
+    
+    /**
+     * Findet einen eindeutigen Absatz im CodeArea, der den gegebenen Snippet enthält
+     * @param snippet Der zu suchende Text-Snippet
+     * @return Index des gefundenen Absatzes, oder -1 wenn kein eindeutiger Treffer gefunden wurde
+     */
+    private int findParagraphBySnippet(String snippet) {
+        if (codeArea == null || snippet == null || snippet.trim().isEmpty()) return -1;
+        try {
+            String needle = snippet.trim();
+            int foundIdx = -1;
+            int matches = 0;
+            for (int i = 0; i < codeArea.getParagraphs().size(); i++) {
+                String p = codeArea.getParagraph(i).getText();
+                if (p != null && p.contains(needle)) {
+                    matches++;
+                    foundIdx = i;
+                    if (matches > 1) break; // Mehrere Treffer = nicht eindeutig
+                }
+            }
+            return matches == 1 ? foundIdx : -1;
+        } catch (Exception e) {
+            logger.debug("Fehler beim Suchen nach Snippet", e);
+            return -1;
+        }
+    }
+    
+    /**
+     * Scrollt den CodeArea zu einem bestimmten Absatz und zentriert ihn
+     * @param idx Index des Absatzes
+     */
+    private void scrollEditorToParagraphCentered(int idx) {
+        if (codeArea == null || idx < 0 || idx >= codeArea.getParagraphs().size()) return;
+        try {
+            int target = Math.max(0, idx - 2);
+            codeArea.showParagraphAtTop(target);
+            codeArea.moveTo(codeArea.getAbsolutePosition(target, 0));
+        } catch (Exception e) {
+            logger.debug("Fehler beim Scrollen zu Absatz", e);
+        }
+    }
+    
+    /**
+     * Wendet Theme auf Quill Editor an
+     */
+    private void applyThemeToQuill(int themeIndex) {
+        applyThemeToQuill(themeIndex, true);
+    }
+    
+    /**
+     * Wendet Theme auf Quill Editor an
+     * @param themeIndex Der Theme-Index
+     * @param updateFontSize Ob die Fontgröße aktualisiert werden soll (true) oder beibehalten werden soll (false)
+     */
+    private void applyThemeToQuill(int themeIndex, boolean updateFontSize) {
+        if (previewWebView == null) {
+            return;
+        }
+        
+        try {
+            String[] theme = THEMES[themeIndex];
+            String backgroundColor = theme[0];
+            String textColor = theme[1];
+            String selectionColor = theme[2];
+            String caretColor = theme[3];
+            
+            // Erstelle CSS für Quill Theme
+            String css = String.format(
+                ".ql-editor { " +
+                "  background-color: %s !important; " +
+                "  color: %s !important; " +
+                "  font-family: 'Consolas', 'Monaco', monospace; " +
+                "} " +
+                ".ql-container { " +
+                "  background-color: %s !important; " +
+                "} " +
+                ".ql-toolbar { " +
+                "  background-color: %s !important; " +
+                "  border-color: %s !important; " +
+                "} " +
+                ".ql-toolbar .ql-stroke { " +
+                "  stroke: %s !important; " +
+                "} " +
+                ".ql-toolbar .ql-fill { " +
+                "  fill: %s !important; " +
+                "} " +
+                ".ql-toolbar button:hover, .ql-toolbar button.ql-active { " +
+                "  background-color: %s !important; " +
+                "} " +
+                ".ql-editor.ql-blank::before { " +
+                "  color: %s !important; " +
+                "} " +
+                ".ql-snow .ql-stroke { " +
+                "  stroke: %s !important; " +
+                "} " +
+                ".ql-snow .ql-fill { " +
+                "  fill: %s !important; " +
+                "}",
+                backgroundColor, textColor, backgroundColor, backgroundColor, textColor,
+                textColor, textColor, selectionColor, textColor, textColor, textColor
+            );
+            // Blocksatz-Ausrichtung in Quill erzwingen mit besserem Abstand
+            String justifyAlign = previewJustifyEnabled ? "justify" : "left";
+            css += String.format(" .ql-editor { text-align: %s !important; } p { text-align: %s !important; text-align-last: left !important; word-spacing: 0.1em; } ",
+                    justifyAlign, justifyAlign);
+            final String themeCss = css;
+            final boolean finalUpdateFontSize = updateFontSize;
+            
+            javafx.scene.web.WebEngine engine = previewWebView.getEngine();
+            if (engine.getLoadWorker().getState() == javafx.concurrent.Worker.State.SUCCEEDED) {
+                String script = String.format("if (window.applyQuillTheme) { window.applyQuillTheme(%s); }", 
+                    toJSString(themeCss));
+                engine.executeScript(script);
+                
+                // Fontgröße nur setzen wenn updateFontSize true ist
+                if (finalUpdateFontSize) {
+                    // Lade aktuelle Schriftgröße für Quill (aus Quill-spezifischen Preferences)
+                    int fontSize = preferences.getInt("quillFontSize", 0);
+                    if (fontSize == 0) {
+                        // Fallback auf Editor-Fontgröße nur beim ersten Mal
+                        fontSize = preferences.getInt("fontSize", 14);
+                        preferences.putInt("quillFontSize", fontSize);
+                    }
+                    String fontSizeScript = String.format("if (window.setQuillGlobalFontSize) { window.setQuillGlobalFontSize(%d); }", fontSize);
+                    engine.executeScript(fontSizeScript);
+                }
+            } else {
+                // Warte auf Load, dann Theme anwenden
+                engine.getLoadWorker().stateProperty().addListener((obs, oldState, newState) -> {
+                    if (newState == javafx.concurrent.Worker.State.SUCCEEDED) {
+                        Platform.runLater(() -> {
+                            String script = String.format("if (window.applyQuillTheme) { window.applyQuillTheme(%s); }", 
+                                toJSString(themeCss));
+                            engine.executeScript(script);
+                            
+                            // Fontgröße nur setzen wenn updateFontSize true ist
+                            if (finalUpdateFontSize) {
+                                // WICHTIG: Lade aktuelle Fontgröße aus Preferences, nicht überschreiben
+                                int currentFontSize = preferences.getInt("quillFontSize", 0);
+                                if (currentFontSize == 0) {
+                                    currentFontSize = preferences.getInt("fontSize", 14);
+                                    preferences.putInt("quillFontSize", currentFontSize);
+                                }
+                                String fontSizeScript = String.format("if (window.setQuillGlobalFontSize) { window.setQuillGlobalFontSize(%d); }", currentFontSize);
+                                engine.executeScript(fontSizeScript);
+                            }
+                        });
+                    }
+                });
+            }
+        } catch (Exception e) {
+            logger.error("Fehler beim Anwenden des Themes auf Quill", e);
+        }
     }
     
     /**
@@ -16086,6 +17595,107 @@ spacer.setStyle("-fx-background-color: transparent;");
             } else {
                 btnToggleParagraphMarking.setTooltip(new Tooltip("Absatz-Markierung deaktiviert"));
             }
+        }
+    }
+    
+    /**
+     * Java Bridge für Quill Editor Kommunikation
+     */
+    public class QuillBridge {
+        public void onQuillContentChange(String htmlContent, String deltaJson) {
+            if (codeArea == null) {
+                logger.debug("CodeArea ist null, ignoriere Quill Content Change");
+                return;
+            }
+            if (isUpdatingFromCodeArea) {
+                logger.debug("Ignoriere Quill Content Change, da CodeArea gerade aktualisiert wird");
+                return;
+            }
+
+            // Konvertierung nicht im FX-Thread durchführen (kann bei großen Bildern hängen)
+            if (quillConvertExecutor == null || quillConvertExecutor.isShutdown()) {
+                quillConvertExecutor = Executors.newSingleThreadExecutor(r -> {
+                    Thread t = new Thread(r, "QuillConvertWorker");
+                    t.setDaemon(true);
+                    return t;
+                });
+            }
+            if (quillConvertFuture != null && !quillConvertFuture.isDone()) {
+                quillConvertFuture.cancel(true);
+            }
+
+            final String htmlCopy = htmlContent;
+            // WICHTIG: Hole aktuellen Markdown-Content im FX-Thread, bevor Background-Thread startet
+            final String originalMarkdown = codeArea.getText();
+            
+            quillConvertFuture = quillConvertExecutor.submit(() -> {
+                try {
+                    String markdown = convertQuillHTMLToMarkdown(htmlCopy, originalMarkdown);
+                    Platform.runLater(() -> {
+                        try {
+                            isUpdatingFromQuill = true;
+
+                            logger.debug("Quill Content Change empfangen, HTML-Länge: " +
+                                (htmlCopy != null ? htmlCopy.length() : 0));
+                            logger.debug("Konvertiert zu Markdown, Länge: " + markdown.length());
+
+                            String currentMarkdownInFX = codeArea.getText();
+                            if (!markdown.equals(currentMarkdownInFX)) {
+                                int caretPosition = codeArea.getCaretPosition();
+                                codeArea.replaceText(0, codeArea.getLength(), markdown);
+                                if (caretPosition <= markdown.length()) {
+                                    codeArea.moveTo(caretPosition);
+                                } else {
+                                    codeArea.moveTo(markdown.length());
+                                }
+                                updateStatus("Quill Editor synchronisiert");
+                            }
+                            lastQuillContent = htmlCopy;
+                        } catch (Exception e) {
+                            logger.error("Fehler bei Quill Content Change (FX)", e);
+                        } finally {
+                            isUpdatingFromQuill = false;
+                        }
+                    });
+                } catch (Exception e) {
+                    logger.error("Fehler bei Quill Content Change (Konvertierung)", e);
+                }
+            });
+        }
+        
+        public void onQuillSelectionChange(int index, int length) {
+            // Optional: Cursor-Position synchronisieren
+            // Kann später implementiert werden
+        }
+        
+        public void onQuillScroll(double scrollTop, double scrollHeight) {
+            if (isScrollingPreview || codeArea == null || scrollPane == null) {
+                return;
+            }
+            
+            // Synchronisiere Scroll-Position von Quill zu CodeArea (textbasiert)
+            // Die eigentliche Synchronisation läuft über das Polling in startQuillChangePolling
+            // Diese Methode wird als Fallback verwendet, falls direkt aufgerufen
+            Platform.runLater(() -> {
+                try {
+                    if (previewWebView != null) {
+                        javafx.scene.web.WebEngine engine = previewWebView.getEngine();
+                        if (engine.getLoadWorker().getState() == javafx.concurrent.Worker.State.SUCCEEDED) {
+                            isScrollingPreview = true;
+                            Object snippetObj = engine.executeScript("(window.getMiddleVisibleText ? window.getMiddleVisibleText() : '')");
+                            String snippet = snippetObj != null ? snippetObj.toString().trim() : "";
+                            if (snippet.length() > 3) {
+                                int idx = findParagraphBySnippet(snippet);
+                                if (idx >= 0) {
+                                    scrollEditorToParagraphCentered(idx);
+                                }
+                            }
+                        }
+                    }
+                } finally {
+                    isScrollingPreview = false;
+                }
+            });
         }
     }
 

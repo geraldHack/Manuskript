@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+    <style id="theme-styles"></style>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+        }
+        #editor {
+            height: calc(100vh - 42px);
+            min-height: 400px;
+        }
+        .ql-container {
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 14px;
+            height: 100%;
+        }
+        /* Globale Schriftgröße und Schriftart für Editor */
+        .ql-editor {
+            font-size: 14px;
+            font-family: 'Consolas', 'Monaco', monospace;
+        }
+        .ql-editor {
+            min-height: 100%;
+            padding: 15px 30px 15px 15px; /* oben, rechts, unten, links - rechts mehr Platz für schönen Rand */
+            /* Erhöhter Absatzabstand */
+            line-height: 1.6;
+        }
+        /* Absatzabstand erhöhen */
+        .ql-editor p {
+            margin-top: 0.75em;
+            margin-bottom: 0.75em;
+        }
+        /* Blocksatz mit besserem Abstand */
+        .ql-editor p[style*="text-align: justify"] {
+            text-align: justify !important;
+            text-align-last: left !important;
+            word-spacing: 0.1em;
+        }
+        /* Dropdown-Labels (oben, nicht ausgeklappt) - Textfarbe korrigieren */
+        .ql-toolbar .ql-picker-label {
+            color: #444 !important;
+        }
+        .ql-toolbar .ql-color .ql-picker-label,
+        .ql-toolbar .ql-background .ql-picker-label,
+        .ql-toolbar .ql-font .ql-picker-label,
+        .ql-toolbar .ql-size .ql-picker-label,
+        .ql-toolbar .ql-align .ql-picker-label,
+        .ql-toolbar .ql-header .ql-picker-label {
+            color: #444 !important;
+        }
+        /* Dropdown-Optionen (ausgeklappt) */
+        .ql-toolbar .ql-picker-options {
+            background-color: #fff !important;
+            border: 1px solid #ccc !important;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
+        }
+        .ql-toolbar .ql-picker-options .ql-picker-item {
+            color: #444 !important;
+        }
+        .ql-toolbar .ql-picker-item:hover {
+            background-color: #f0f0f0 !important;
+            color: #000 !important;
+        }
+        .ql-toolbar .ql-picker-item.ql-selected {
+            background-color: #e0e0e0 !important;
+            color: #000 !important;
+        }
+        #error-message {
+            padding: 20px;
+            background-color: #ffebee;
+            border: 2px solid #f44336;
+            margin: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div id="editor"></div>
+    <div id="error-message" style="display: none; padding: 20px; color: red; font-family: Arial, sans-serif;">
+        <h2>Fehler beim Laden des Quill Editors</h2>
+        <p>Bitte prüfen Sie die Browser-Konsole für Details.</p>
+    </div>
+    <script>
+        // Prüfe ob Quill verfügbar ist
+        if (typeof Quill === 'undefined') {
+            document.getElementById('error-message').style.display = 'block';
+            document.getElementById('editor').style.display = 'none';
+            console.error('Quill wurde nicht geladen! Bitte prüfen Sie die Netzwerk-Verbindung.');
+        }
+        
+        var quill;
+        try {
+            quill = new Quill('#editor', {
+            theme: 'snow',
+            modules: {
+                toolbar: [
+                    [{ 'font': [] }],
+                    [{ 'size': ['small', false, 'large', 'huge'] }],
+                    ['bold', 'italic', 'underline', 'strike'],
+                    [{ 'script': 'sub'}, { 'script': 'super' }],
+                    ['blockquote', 'code-block'],
+                    [{ 'align': [] }],
+                    ['link'],
+                    ['clean']
+                ]
+            }
+            });
+        } catch (e) {
+            console.error('Fehler beim Initialisieren von Quill:', e);
+            document.getElementById('error-message').style.display = 'block';
+            document.getElementById('editor').style.display = 'none';
+            throw e;
+        }
+        
+        // Java Bridge für bidirektionale Kommunikation
+        // Verwende Polling-Mechanismus (window.javaApp wird von Java-Seite gesetzt)
+        function sendContentToJava(content, delta) {
+            try {
+                // Verwende die von Java gesetzte Bridge
+                if (window.javaApp && window.javaApp.onQuillContentChange) {
+                    window.javaApp.onQuillContentChange(content, delta);
+                } else {
+                    // Fallback: Setze Flags für Polling
+                    window.quillLastContent = content;
+                    window.quillLastDelta = delta;
+                    window.quillContentChanged = true;
+                }
+            } catch (e) {
+                console.error('Error sending content to Java:', e);
+                // Fallback: Setze Flags für Polling
+                window.quillLastContent = content;
+                window.quillLastDelta = delta;
+                window.quillContentChanged = true;
+            }
+        }
+        
+        function sendScrollToJava(scrollTop, scrollHeight) {
+            try {
+                if (window.javaApp && window.javaApp.onQuillScroll) {
+                    window.javaApp.onQuillScroll(scrollTop, scrollHeight);
+                } else {
+                    // Fallback: Setze Flags für Polling
+                    window.quillLastScroll = {top: scrollTop, height: scrollHeight};
+                    window.quillScrollChanged = true;
+                }
+            } catch (e) {
+                console.error('Error sending scroll to Java:', e);
+                // Fallback: Setze Flags für Polling
+                window.quillLastScroll = {top: scrollTop, height: scrollHeight};
+                window.quillScrollChanged = true;
+            }
+        }
+        
+        // Text-Änderungen abfangen
+        if (quill) {
+            quill.on('text-change', function(delta, oldDelta, source) {
+                // WICHTIG: Nur User-Änderungen synchronisieren, nicht API-Änderungen
+                if (source === 'user') {
+                    var content = quill.root.innerHTML;
+                    var deltaJson = JSON.stringify(delta);
+                    console.log('Quill text-change erkannt (user), Content-Länge:', content.length);
+                    sendContentToJava(content, deltaJson);
+                } else {
+                    console.log('Quill text-change ignoriert (source:', source + ')');
+                }
+            });
+            
+            // Selektion-Änderungen abfangen
+            quill.on('selection-change', function(range) {
+                if (window.javaApp) {
+                    try {
+                        if (range) {
+                            window.javaApp.onQuillSelectionChange(range.index, range.length);
+                        } else {
+                            window.javaApp.onQuillSelectionChange(-1, 0);
+                        }
+                    } catch (e) {
+                        console.error('Error sending selection to Java:', e);
+                    }
+                }
+            });
+            
+            // Scroll-Events abfangen
+            setTimeout(function() {
+                var scrollContainer = document.querySelector('.ql-editor');
+                if (scrollContainer) {
+                    scrollContainer.addEventListener('scroll', function() {
+                        // WICHTIG: Setze Flag, dass Quill gerade scrollt (verhindert Rückkopplung)
+                        window.isQuillScrolling = true;
+                        clearTimeout(window.quillScrollingTimeout);
+                        window.quillScrollingTimeout = setTimeout(function() {
+                            window.isQuillScrolling = false;
+                        }, 300); // Flag für 300ms setzen
+                        
+                        var scrollTop = scrollContainer.scrollTop;
+                        var scrollHeight = scrollContainer.scrollHeight - scrollContainer.clientHeight;
+                        sendScrollToJava(scrollTop, scrollHeight);
+                    });
+                }
+            }, 100);
+        }
+        
+        // Globale Funktionen für Java-Aufrufe
+        window.setQuillContent = function(htmlContent) {
+            if (!quill) {
+                console.error('Quill ist nicht initialisiert!');
+                return 'not_ready';
+            }
+            
+            console.log('setQuillContent aufgerufen, HTML-Länge:', htmlContent ? htmlContent.length : 0);
+            
+            try {
+                var newContent = htmlContent ? htmlContent.trim() : '';
+                var currentContent = quill.root.innerHTML.trim();
+                
+                // WICHTIG: Immer setzen beim ersten Laden oder wenn sich Content geändert hat
+                if (currentContent !== newContent || currentContent === '<p><br></p>' || currentContent === '') {
+                    console.log('Setze Quill Content (alt: ' + currentContent.length + ', neu: ' + newContent.length + ')');
+                    
+                    var success = false;
+                    
+                    // Methode 1: Versuche dangerouslyPasteHTML (beste Methode für Quill)
+                    try {
+                        // Lösche zuerst den aktuellen Inhalt - verwende getLength() - 1, da Quill immer ein '\n' am Ende hat
+                        var length = quill.getLength();
+                        if (length > 1) {
+                            quill.deleteText(0, length - 1, 'silent');
+                        }
+                        
+                        // Konvertiere benutzerdefinierte Farb-Tags zu Quill-Format
+                        // <red>Text</red> -> <span style="color: red">Text</span>
+                        var convertedContent = newContent;
+                        if (convertedContent) {
+                            convertedContent = convertedContent.replace(/<red>(.*?)<\/red>/gi, '<span style="color: red">$1</span>');
+                            convertedContent = convertedContent.replace(/<blue>(.*?)<\/blue>/gi, '<span style="color: blue">$1</span>');
+                            convertedContent = convertedContent.replace(/<green>(.*?)<\/green>/gi, '<span style="color: green">$1</span>');
+                            convertedContent = convertedContent.replace(/<yellow>(.*?)<\/yellow>/gi, '<span style="color: yellow">$1</span>');
+                            convertedContent = convertedContent.replace(/<purple>(.*?)<\/purple>/gi, '<span style="color: purple">$1</span>');
+                            convertedContent = convertedContent.replace(/<orange>(.*?)<\/orange>/gi, '<span style="color: orange">$1</span>');
+                            convertedContent = convertedContent.replace(/<gray>(.*?)<\/gray>/gi, '<span style="color: gray">$1</span>');
+                        }
+                        
+                        // Dann füge neuen Content hinzu
+                        if (convertedContent && convertedContent !== '') {
+                            quill.clipboard.dangerouslyPasteHTML(0, convertedContent, 'silent');
+                            
+                            // WICHTIG: Stelle sicher, dass alle Bilder geladen werden
+                            setTimeout(function() {
+                                var images = quill.root.querySelectorAll('img');
+                                images.forEach(function(img) {
+                                    // Stelle sicher, dass Bild-Elemente nicht entfernt werden
+                                    if (img.src && img.src.trim() !== '') {
+                                        // Erzwinge Neuladen des Bildes, falls es nicht angezeigt wird
+                                        var originalSrc = img.src;
+                                        img.onerror = function() {
+                                            console.warn('Bild konnte nicht geladen werden:', originalSrc);
+                                            // Versuche erneut zu laden
+                                            setTimeout(function() {
+                                                if (img.src !== originalSrc) {
+                                                    img.src = originalSrc;
+                                                }
+                                            }, 100);
+                                        };
+                                        // Stelle sicher, dass das Bild sichtbar ist
+                                        img.style.display = 'block';
+                                        img.style.visibility = 'visible';
+                                        img.style.opacity = '1';
+                                    }
+                                });
+                            }, 100);
+                        } else {
+                            // Leerer Content - setze zumindest einen leeren Paragraph
+                            quill.setText('\n', 'silent');
+                        }
+                        console.log('Content gesetzt via dangerouslyPasteHTML, neue Länge:', quill.getLength());
+                        success = true;
+                    } catch (e1) {
+                        console.warn('dangerouslyPasteHTML fehlgeschlagen, versuche innerHTML:', e1);
+                        // Methode 2: Fallback zu innerHTML
+                        try {
+                            var convertedContent = newContent;
+                            if (convertedContent) {
+                                convertedContent = convertedContent.replace(/<red>(.*?)<\/red>/gi, '<span style="color: red">$1</span>');
+                                convertedContent = convertedContent.replace(/<blue>(.*?)<\/blue>/gi, '<span style="color: blue">$1</span>');
+                                convertedContent = convertedContent.replace(/<green>(.*?)<\/green>/gi, '<span style="color: green">$1</span>');
+                                convertedContent = convertedContent.replace(/<yellow>(.*?)<\/yellow>/gi, '<span style="color: yellow">$1</span>');
+                                convertedContent = convertedContent.replace(/<purple>(.*?)<\/purple>/gi, '<span style="color: purple">$1</span>');
+                                convertedContent = convertedContent.replace(/<orange>(.*?)<\/orange>/gi, '<span style="color: orange">$1</span>');
+                                convertedContent = convertedContent.replace(/<gray>(.*?)<\/gray>/gi, '<span style="color: gray">$1</span>');
+                            }
+                            quill.root.innerHTML = convertedContent || '<p><br></p>';
+                            console.log('Content gesetzt via innerHTML');
+                            success = true;
+                        } catch (e2) {
+                            console.error('Auch innerHTML fehlgeschlagen:', e2);
+                            // Methode 3: Letzter Fallback - setText
+                            try {
+                                var textContent = newContent.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ');
+                                quill.setText(textContent);
+                                console.log('Content gesetzt via setText (nur Text)');
+                                success = true;
+                            } catch (e3) {
+                                console.error('Alle Methoden fehlgeschlagen:', e3);
+                                return 'error: ' + e3.message;
+                            }
+                        }
+                    }
+                    
+                    if (success) {
+                        // Stelle sicher, dass Editor sichtbar ist
+                        setTimeout(function() {
+                            var editor = document.querySelector('.ql-editor');
+                            if (editor) {
+                                editor.style.display = 'block';
+                                editor.style.visibility = 'visible';
+                                editor.style.opacity = '1';
+                                
+                                // Prüfe ob Content wirklich sichtbar ist
+                                var actualContent = quill.root.innerHTML;
+                                console.log('Verifizierung: Tatsächlicher Content-Länge:', actualContent.length);
+                                
+                                if (actualContent.length === 0 || actualContent === '<p><br></p>') {
+                                    console.warn('Content scheint leer zu sein, versuche erneut...');
+                                    // Versuche nochmal mit direkter Methode
+                                    var convertedContent = newContent;
+                                    if (convertedContent) {
+                                        convertedContent = convertedContent.replace(/<red>(.*?)<\/red>/gi, '<span style="color: red">$1</span>');
+                                        convertedContent = convertedContent.replace(/<blue>(.*?)<\/blue>/gi, '<span style="color: blue">$1</span>');
+                                        convertedContent = convertedContent.replace(/<green>(.*?)<\/green>/gi, '<span style="color: green">$1</span>');
+                                        convertedContent = convertedContent.replace(/<yellow>(.*?)<\/yellow>/gi, '<span style="color: yellow">$1</span>');
+                                        convertedContent = convertedContent.replace(/<purple>(.*?)<\/purple>/gi, '<span style="color: purple">$1</span>');
+                                        convertedContent = convertedContent.replace(/<orange>(.*?)<\/orange>/gi, '<span style="color: orange">$1</span>');
+                                        convertedContent = convertedContent.replace(/<gray>(.*?)<\/gray>/gi, '<span style="color: gray">$1</span>');
+                                    }
+                                    quill.root.innerHTML = convertedContent || '<p><br></p>';
+                                }
+                            }
+                        }, 100);
+                        return 'success';
+                    }
+                } else {
+                    console.log('Quill Content unverändert, keine Aktualisierung nötig');
+                    return 'success'; // Content war bereits korrekt
+                }
+            } catch (e) {
+                console.error('Fehler beim Setzen des Quill Contents:', e);
+                return 'error: ' + e.message;
+            }
+            
+            return 'success';
+        };
+        
+        window.setQuillDelta = function(deltaJson) {
+            try {
+                if (!quill) {
+                    console.error('Quill ist nicht initialisiert!');
+                    return;
+                }
+                var delta = JSON.parse(deltaJson);
+                quill.setContents(delta, 'api');
+            } catch (e) {
+                console.error('Error setting Quill delta:', e);
+            }
+        };
+        
+        window.applyQuillTheme = function(css) {
+            var styleElement = document.getElementById('theme-styles');
+            if (styleElement) {
+                // Extrahiere Textfarbe aus dem CSS
+                var textColor = '#444';
+                var textColorMatch = css.match(/\.ql-editor\s*\{[^}]*color:\s*([^;!]+)/);
+                if (textColorMatch) {
+                    textColor = textColorMatch[1].trim();
+                }
+                
+                // Bestimme ob dunkles Theme
+                var isDarkTheme = textColor === '#ffffff' || textColor === '#fff' || textColor.toLowerCase().includes('white');
+                // Label-Farbe sollte genau der Textfarbe entsprechen, nicht grau!
+                var labelColor = isDarkTheme ? '#ffffff' : '#000000';
+                var dropdownBg = isDarkTheme ? '#333' : '#fff';
+                var dropdownTextColor = isDarkTheme ? '#fff' : '#444';
+                var hoverBg = isDarkTheme ? 'rgba(255,255,255,0.1)' : '#f0f0f0';
+                var selectedBg = isDarkTheme ? 'rgba(255,255,255,0.2)' : '#e0e0e0';
+                
+                // STÄRKERE Regeln für Dropdown-Labels - müssen alle Selektoren abdecken
+                var dropdownCss = " .ql-toolbar .ql-picker-label { color: " + labelColor + " !important; } ";
+                dropdownCss += " .ql-toolbar .ql-picker-label * { color: " + labelColor + " !important; } ";
+                dropdownCss += " .ql-toolbar .ql-color .ql-picker-label, .ql-toolbar .ql-background .ql-picker-label, .ql-toolbar .ql-font .ql-picker-label, .ql-toolbar .ql-size .ql-picker-label, .ql-toolbar .ql-align .ql-picker-label, .ql-toolbar .ql-header .ql-picker-label { color: " + labelColor + " !important; } ";
+                dropdownCss += " .ql-toolbar .ql-color .ql-picker-label *, .ql-toolbar .ql-background .ql-picker-label *, .ql-toolbar .ql-font .ql-picker-label *, .ql-toolbar .ql-size .ql-picker-label *, .ql-toolbar .ql-align .ql-picker-label *, .ql-toolbar .ql-header .ql-picker-label * { color: " + labelColor + " !important; } ";
+                dropdownCss += " .ql-toolbar .ql-picker-label svg { fill: " + labelColor + " !important; stroke: " + labelColor + " !important; } ";
+                dropdownCss += " .ql-toolbar .ql-picker-label svg * { fill: " + labelColor + " !important; stroke: " + labelColor + " !important; } ";
+                dropdownCss += " .ql-toolbar .ql-picker-options { background-color: " + dropdownBg + " !important; border: 1px solid #ccc !important; box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important; } ";
+                dropdownCss += " .ql-toolbar .ql-picker-options .ql-picker-item { color: " + dropdownTextColor + " !important; } ";
+                dropdownCss += " .ql-toolbar .ql-picker-item:hover { background-color: " + hoverBg + " !important; } ";
+                dropdownCss += " .ql-toolbar .ql-picker-item.ql-selected { background-color: " + selectedBg + " !important; } ";
+                
+                styleElement.textContent = css + dropdownCss;
+                
+                // Zusätzlich: Direkt auf die Elemente zugreifen und Farbe setzen (für sofortige Wirkung)
+                setTimeout(function() {
+                    var labels = document.querySelectorAll('.ql-toolbar .ql-picker-label');
+                    labels.forEach(function(label) {
+                        // Setze Farbe auf Label selbst
+                        label.style.setProperty('color', labelColor, 'important');
+                        // Setze Farbe auf alle Text-Knoten
+                        var walker = document.createTreeWalker(label, NodeFilter.SHOW_TEXT, null, false);
+                        var node;
+                        while (node = walker.nextNode()) {
+                            if (node.parentElement) {
+                                node.parentElement.style.setProperty('color', labelColor, 'important');
+                            }
+                        }
+                        // Setze Farbe auf alle SVG-Elemente
+                        var svgs = label.querySelectorAll('svg, svg *');
+                        svgs.forEach(function(svg) {
+                            svg.style.setProperty('fill', labelColor, 'important');
+                            svg.style.setProperty('stroke', labelColor, 'important');
+                        });
+                        // Setze Farbe auf alle SPAN-Elemente innerhalb des Labels
+                        var spans = label.querySelectorAll('span');
+                        spans.forEach(function(span) {
+                            span.style.setProperty('color', labelColor, 'important');
+                        });
+                    });
+                }, 150);
+            } else {
+                console.error('Theme-Style-Element nicht gefunden!');
+            }
+        };
+        
+        window.setQuillGlobalFontSize = function(fontSize) {
+            if (!quill) {
+                console.error('Quill ist nicht initialisiert!');
+                return;
+            }
+            try {
+                // Setze globale Schriftgröße für den gesamten Editor
+                var editor = document.querySelector('.ql-editor');
+                var container = document.querySelector('.ql-container');
+                
+                if (editor) {
+                    // WICHTIG: Setze Basis-Schriftgröße direkt, OHNE proportionale Skalierung
+                    // Die proportionale Skalierung führte zu falschen Werten
+                    editor.style.setProperty('font-size', fontSize + 'px', 'important');
+                    
+                    // Setze auch auf Container
+                    if (container) {
+                        container.style.setProperty('font-size', fontSize + 'px', 'important');
+                    }
+                    
+                    console.log('Quill globale Schriftgröße gesetzt auf:', fontSize + 'px');
+                }
+            } catch (e) {
+                console.error('Fehler beim Setzen der Quill globalen Schriftgröße:', e);
+            }
+        };
+        
+        window.setQuillGlobalFontFamily = function(fontFamily) {
+            if (!quill) {
+                console.error('Quill ist nicht initialisiert!');
+                return;
+            }
+            try {
+                // Setze globale Schriftart für den gesamten Editor
+                var editor = document.querySelector('.ql-editor');
+                var container = document.querySelector('.ql-container');
+                
+                if (editor) {
+                    // WICHTIG: Setze Basis-Schriftart mit !important, damit sie nicht überschrieben wird
+                    editor.style.setProperty('font-family', fontFamily, 'important');
+                    
+                    // Ändere ALLE Elemente - auch die mit inline styles
+                    var allElements = editor.querySelectorAll('*');
+                    allElements.forEach(function(el) {
+                        // Überschreibe IMMER, auch wenn bereits eine Font-Formatierung vorhanden ist
+                        el.style.setProperty('font-family', fontFamily, 'important');
+                    });
+                }
+                
+                if (container) {
+                    container.style.setProperty('font-family', fontFamily, 'important');
+                }
+                
+                console.log('Quill globale Schriftart gesetzt auf:', fontFamily);
+            } catch (e) {
+                console.error('Fehler beim Setzen der Quill globalen Schriftart:', e);
+            }
+        };
+        
+        
+        window.scrollQuillTo = function(scrollTop) {
+            var scrollContainer = document.querySelector('.ql-editor');
+            if (scrollContainer) {
+                scrollContainer.scrollTop = scrollTop;
+            }
+        };
+        
+        // Textbasierte Scroll-Hilfen
+        window.getMiddleVisibleText = function() {
+            var editor = document.querySelector('.ql-editor');
+            if (!editor) return '';
+            
+            var scrollTop = editor.scrollTop;
+            var visibleHeight = editor.clientHeight;
+            var midPixel = scrollTop + visibleHeight / 2;
+            
+            // Finde das Element, das in der Mitte des Viewports ist
+            var elements = editor.querySelectorAll('p, div, h1, h2, h3, blockquote, li');
+            var foundElement = null;
+            var minDistance = Infinity;
+            
+            for (var i = 0; i < elements.length; i++) {
+                var el = elements[i];
+                var elTop = el.offsetTop;
+                var elBottom = elTop + el.offsetHeight;
+                var elCenter = elTop + (el.offsetHeight / 2);
+                
+                // Berechne Abstand zur Viewport-Mitte
+                var distance = Math.abs(elCenter - midPixel);
+                
+                // Prüfe ob Element sichtbar ist
+                if (elBottom >= scrollTop && elTop <= scrollTop + visibleHeight) {
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        foundElement = el;
+                    }
+                }
+            }
+            
+            if (foundElement) {
+                var text = foundElement.innerText || foundElement.textContent || '';
+                text = text.trim();
+                if (text.length > 3) {
+                    // Nimm einen Snippet aus der Mitte des Elements
+                    var mid = Math.floor(text.length / 2);
+                    var start = Math.max(0, mid - 40);
+                    var end = Math.min(text.length, mid + 40);
+                    return text.slice(start, end).trim();
+                }
+            }
+            
+            // Fallback: Verwende Prozent-basierte Methode
+            var text = editor.innerText || '';
+            if (!text) return '';
+            var scrollHeight = editor.scrollHeight;
+            var total = text.length;
+            if (scrollHeight <= visibleHeight || total === 0) {
+                var midIdx = Math.floor(total / 2);
+                return text.slice(Math.max(0, midIdx - 40), Math.min(total, midIdx + 40)).trim();
+            }
+            var percent = midPixel / scrollHeight;
+            var charIdx = Math.min(total - 1, Math.max(0, Math.floor(percent * total)));
+            return text.slice(Math.max(0, charIdx - 40), Math.min(total, charIdx + 40)).trim();
+        };
+        
+        window.scrollQuillToText = function(snippet) {
+            if (!snippet || snippet.length === 0) return false;
+            // WICHTIG: Setze Flag, dass programmatisches Scrollen stattfindet
+            window.isQuillScrolling = true;
+            clearTimeout(window.quillScrollingTimeout);
+            
+            var editor = document.querySelector('.ql-editor');
+            if (!editor) {
+                window.isQuillScrolling = false;
+                return false;
+            }
+            
+            // Suche nach dem Text im DOM, nicht nur im innerText
+            var text = editor.innerText || '';
+            var idx = text.indexOf(snippet);
+            if (idx < 0) return false;
+            
+            // Finde das DOM-Element, das den Text enthält
+            // Durchsuche alle Textknoten und finde den, der den Snippet enthält
+            var walker = document.createTreeWalker(
+                editor,
+                NodeFilter.SHOW_TEXT,
+                null,
+                false
+            );
+            
+            var node;
+            var charCount = 0;
+            var foundNode = null;
+            var foundOffset = -1;
+            
+            while (node = walker.nextNode()) {
+                var nodeText = node.textContent || '';
+                var nodeStart = charCount;
+                var nodeEnd = charCount + nodeText.length;
+                
+                if (idx >= nodeStart && idx < nodeEnd) {
+                    foundNode = node;
+                    foundOffset = idx - nodeStart;
+                    break;
+                }
+                
+                charCount = nodeEnd;
+            }
+            
+            if (!foundNode) {
+                // Fallback: Verwende Prozent-basierte Berechnung
+                var total = text.length;
+                var scrollContainer = editor;
+                var scrollHeight = scrollContainer.scrollHeight - scrollContainer.clientHeight;
+                if (total === 0 || scrollHeight <= 0) return false;
+                var percent = idx / total;
+                scrollContainer.scrollTop = percent * scrollHeight;
+                return true;
+            }
+            
+            // Setze Flag zurück nach Scroll-Operation
+            setTimeout(function() {
+                window.isQuillScrolling = false;
+            }, 200);
+            
+            // Finde das übergeordnete Block-Element (p, div, etc.)
+            var blockElement = foundNode.parentElement;
+            while (blockElement && blockElement !== editor) {
+                var tagName = blockElement.tagName.toLowerCase();
+                if (tagName === 'p' || tagName === 'div' || tagName === 'h1' || 
+                    tagName === 'h2' || tagName === 'h3' || tagName === 'blockquote') {
+                    // Zentriere dieses Element im Viewport
+                    var containerHeight = editor.clientHeight;
+                    var elementTop = blockElement.offsetTop;
+                    var elementHeight = blockElement.offsetHeight;
+                    var scrollTop = elementTop - (containerHeight / 2) + (elementHeight / 2);
+                    editor.scrollTop = Math.max(0, scrollTop);
+                    return true;
+                }
+                blockElement = blockElement.parentElement;
+            }
+            
+            // Fallback: Prozent-basiert
+            var total = text.length;
+            var scrollContainer = editor;
+            var scrollHeight = scrollContainer.scrollHeight - scrollContainer.clientHeight;
+            if (total === 0 || scrollHeight <= 0) return false;
+            var percent = idx / total;
+            scrollContainer.scrollTop = percent * scrollHeight;
+            return true;
+        };
+        
+        window.getQuillContent = function() {
+            if (quill) {
+                return quill.root.innerHTML;
+            }
+            return '';
+        };
+        
+        window.getQuillDelta = function() {
+            if (quill) {
+                return JSON.stringify(quill.getContents());
+            }
+            return '{}';
+        };
+        
+        window.getQuillText = function() {
+            if (quill) {
+                return quill.getText();
+            }
+            return '';
+        };
+        
+        // Initialisiere Flags für Polling
+        window.quillContentChanged = false;
+        window.quillSelectionChanged = false;
+        window.quillScrollChanged = false;
+        window.quillLastContent = null;
+        window.quillLastDelta = null;
+        window.quillLastSelection = null;
+        window.quillLastScroll = null;
+        
+        // Signalisiere, dass Quill bereit ist
+        window.quillReady = true;
+        
+        console.log('Quill Editor initialisiert');
+        
+        // Debug: Prüfe ob Quill richtig geladen wurde
+        if (typeof Quill === 'undefined') {
+            console.error('Quill wurde nicht geladen!');
+            // Versuche nach kurzer Verzögerung erneut
+            setTimeout(function() {
+                if (typeof Quill === 'undefined') {
+                    console.error('Quill konnte auch nach Verzögerung nicht geladen werden!');
+                    document.getElementById('error-message').style.display = 'block';
+                    document.getElementById('error-message').innerHTML = 
+                        '<h2>Fehler beim Laden des Quill Editors</h2>' +
+                        '<p>Die Quill-Bibliothek konnte nicht geladen werden.</p>' +
+                        '<p>Bitte prüfen Sie Ihre Internet-Verbindung oder kontaktieren Sie den Administrator.</p>';
+                } else {
+                    console.log('Quill wurde nach Verzögerung geladen');
+                    // Initialisiere Quill jetzt
+                    try {
+                        quill = new Quill('#editor', {
+                            theme: 'snow',
+                            modules: {
+                                toolbar: [
+                                    [{ 'font': [] }],
+                                    [{ 'size': ['small', false, 'large', 'huge'] }],
+                                    ['bold', 'italic', 'underline', 'strike'],
+                                    [{ 'script': 'sub'}, { 'script': 'super' }],
+                                    ['blockquote', 'code-block'],
+                                    [{ 'align': [] }],
+                                    ['link'],
+                                    ['clean']
+                                ]
+                            }
+                        });
+                        window.quillReady = true;
+                        console.log('Quill Editor nach Verzögerung initialisiert');
+                    } catch (e) {
+                        console.error('Fehler beim Initialisieren von Quill nach Verzögerung:', e);
+                    }
+                }
+            }, 2000);
+        } else {
+            console.log('Quill Version:', Quill.version);
+            window.quillReady = true;
+        }
+    </script>
+</body>
+</html>
