@@ -45,6 +45,33 @@
             text-align-last: left !important;
             word-spacing: 0.1em;
         }
+        /* Blockquote-Styling: Einrückung, Kursivschrift, grau - kein Strich links */
+        .ql-editor blockquote {
+            border-left: none !important;
+            padding-left: 2em !important;
+            font-style: italic !important;
+            color: #666666 !important;
+            margin-left: 0 !important;
+            margin-right: 0 !important;
+        }
+        /* Horizontale Linien (hr und div mit border-top) */
+        .ql-editor hr {
+            border: none !important;
+            border-top: 2px solid #bdc3c7 !important;
+            margin: 20px 0 !important;
+            height: 0 !important;
+            display: block !important;
+            width: 100% !important;
+        }
+        /* Div-basierte horizontale Linien (für Quill-Kompatibilität) */
+        .ql-editor div[style*="border-top"] {
+            border-top: 2px solid #bdc3c7 !important;
+            margin: 20px 0 !important;
+            height: 0 !important;
+            overflow: hidden !important;
+            display: block !important;
+            width: 100% !important;
+        }
         /* Dropdown-Labels (oben, nicht ausgeklappt) - Textfarbe korrigieren */
         .ql-toolbar .ql-picker-label {
             color: #444 !important;
@@ -96,22 +123,62 @@
             console.error('Quill wurde nicht geladen! Bitte prüfen Sie die Netzwerk-Verbindung.');
         }
         
+        // WICHTIG: Benutzerdefiniertes Blot für horizontale Linien registrieren
+        // Quill unterstützt standardmäßig keine <hr> Tags
+        if (typeof Quill !== 'undefined') {
+            const BlockEmbed = Quill.import('blots/block/embed');
+            
+            class HorizontalRuleBlot extends BlockEmbed {
+                static create() {
+                    let node = super.create();
+                    node.setAttribute('style', 'border: none; border-top: 2px solid #bdc3c7; margin: 20px 0; height: 0; overflow: hidden; display: block; width: 100%;');
+                    return node;
+                }
+                
+                static value() {
+                    return {};
+                }
+            }
+            // WICHTIG: Stelle sicher, dass das Blot korrekt erkannt wird
+            HorizontalRuleBlot.blotName = 'hr';
+            HorizontalRuleBlot.tagName = 'hr';
+            
+            Quill.register(HorizontalRuleBlot, true);
+            console.log('HorizontalRuleBlot registriert');
+        }
+        
         var quill;
         try {
             quill = new Quill('#editor', {
             theme: 'snow',
             modules: {
                 toolbar: [
-                    [{ 'font': [] }],
-                    [{ 'size': ['small', false, 'large', 'huge'] }],
+                    // [{ 'font': [] }], // ENTFERNT - Schriftart-Dropdown
+                    // [{ 'size': ['small', false, 'large', 'huge'] }], // ENTFERNT - Größe-Dropdown
                     ['bold', 'italic', 'underline', 'strike'],
                     [{ 'script': 'sub'}, { 'script': 'super' }],
                     ['blockquote', 'code-block'],
-                    [{ 'align': [] }],
+                    // [{ 'align': [] }], // ENTFERNT - Absatzformat-Button
                     ['link'],
+                    ['hr'], // Horizontale Linie
                     ['clean']
                 ]
             }
+            });
+            
+            // WICHTIG: Handler für horizontale Linien-Button hinzufügen
+            var toolbar = quill.getModule('toolbar');
+            toolbar.addHandler('hr', function() {
+                var range = quill.getSelection(true);
+                if (range) {
+                    // Verwende insertEmbed mit dem registrierten Blot
+                    quill.insertEmbed(range.index, 'hr', {}, 'user');
+                    quill.setSelection(range.index + 1, 'silent');
+                } else {
+                    // Fallback: Füge am Ende ein
+                    var length = quill.getLength();
+                    quill.insertEmbed(length - 1, 'hr', {}, 'user');
+                }
             });
         } catch (e) {
             console.error('Fehler beim Initialisieren von Quill:', e);
@@ -161,7 +228,52 @@
         
         // Text-Änderungen abfangen
         if (quill) {
+            // WICHTIG: Automatische Konvertierung von --- zu horizontaler Linie
+            // Verwende setTimeout für verzögerte Prüfung, damit der Text vollständig eingegeben ist
+            var hrConversionTimeout = null;
+            
             quill.on('text-change', function(delta, oldDelta, source) {
+                // WICHTIG: Automatische Konvertierung von --- zu horizontaler Linie
+                if (source === 'user') {
+                    // Lösche vorherigen Timeout
+                    if (hrConversionTimeout) {
+                        clearTimeout(hrConversionTimeout);
+                    }
+                    
+                    // Prüfe nach kurzer Verzögerung (100ms)
+                    hrConversionTimeout = setTimeout(function() {
+                        try {
+                            var text = quill.getText();
+                            var cursorPos = quill.getSelection(true);
+                            
+                            if (cursorPos) {
+                                // Finde die aktuelle Zeile
+                                var lineStart = text.lastIndexOf('\n', cursorPos.index - 1);
+                                if (lineStart === -1) lineStart = 0;
+                                else lineStart = lineStart + 1;
+                                
+                                var lineEnd = text.indexOf('\n', cursorPos.index);
+                                if (lineEnd === -1) lineEnd = text.length;
+                                
+                                var lineText = text.substring(lineStart, lineEnd).trim();
+                                
+                                // Prüfe ob die Zeile genau "---", "***" oder "___" ist
+                                if (lineText === '---' || lineText === '***' || lineText === '___') {
+                                    // Ersetze die Zeile durch horizontale Linie
+                                    var deleteLength = lineEnd - lineStart;
+                                    quill.deleteText(lineStart, deleteLength, 'api');
+                                    quill.insertEmbed(lineStart, 'hr', {}, 'api');
+                                    quill.insertText(lineStart + 1, '\n', 'api');
+                                    quill.setSelection(lineStart + 2, 'api');
+                                    return; // Verhindere weitere Verarbeitung
+                                }
+                            }
+                        } catch (e) {
+                            console.error('Fehler bei hr-Konvertierung:', e);
+                        }
+                    }, 100);
+                }
+                
                 // WICHTIG: Nur User-Änderungen synchronisieren, nicht API-Änderungen
                 if (source === 'user') {
                     var content = quill.root.innerHTML;
@@ -225,6 +337,15 @@
                 if (currentContent !== newContent || currentContent === '<p><br></p>' || currentContent === '') {
                     console.log('Setze Quill Content (alt: ' + currentContent.length + ', neu: ' + newContent.length + ')');
                     
+                    // WICHTIG: Speichere Scroll-Position VOR dem Content-Update
+                    var editor = document.querySelector('.ql-editor');
+                    var savedScrollTop = 0;
+                    var savedScrollHeight = 0;
+                    if (editor) {
+                        savedScrollTop = editor.scrollTop;
+                        savedScrollHeight = editor.scrollHeight - editor.clientHeight;
+                    }
+                    
                     var success = false;
                     
                     // Methode 1: Versuche dangerouslyPasteHTML (beste Methode für Quill)
@@ -250,7 +371,45 @@
                         
                         // Dann füge neuen Content hinzu
                         if (convertedContent && convertedContent !== '') {
+                            // WICHTIG: Stelle sicher, dass <hr> Tags nicht entfernt werden
+                            // Konvertiere <p><hr></p> zu <hr> (Quill erwartet <hr> ohne Wrapper)
+                            convertedContent = convertedContent.replace(/<p>\s*<hr[^>]*>\s*<\/p>/gi, '<hr>');
+                            // Konvertiere <div> mit border-top zu <hr> (für Kompatibilität)
+                            convertedContent = convertedContent.replace(/<div[^>]*style="[^"]*border-top[^"]*"[^>]*>\s*&nbsp;\s*<\/div>/gi, '<hr>');
+                            convertedContent = convertedContent.replace(/<div[^>]*style="[^"]*border-top[^"]*"[^>]*><\/div>/gi, '<hr>');
+                            
                             quill.clipboard.dangerouslyPasteHTML(0, convertedContent, 'silent');
+                            
+                            // WICHTIG: Nach dem Einfügen prüfen, ob <hr> Tags vorhanden sind und ggf. korrigieren
+                            setTimeout(function() {
+                                var editor = quill.root;
+                                var hrElements = editor.querySelectorAll('hr');
+                                if (hrElements.length > 0) {
+                                    console.log('hr-Elemente gefunden nach dangerouslyPasteHTML:', hrElements.length);
+                                    // Stelle sicher, dass alle hr-Elemente das richtige Styling haben
+                                    hrElements.forEach(function(hr) {
+                                        if (!hr.hasAttribute('style')) {
+                                            hr.setAttribute('style', 'border: none; border-top: 2px solid #bdc3c7; margin: 20px 0; height: 0; overflow: hidden; display: block; width: 100%;');
+                                        }
+                                    });
+                                }
+                            }, 50);
+                            
+                            // WICHTIG: Stelle Scroll-Position wieder her
+                            setTimeout(function() {
+                                if (editor && savedScrollHeight > 0) {
+                                    // Berechne neue Scroll-Position basierend auf dem Verhältnis
+                                    var newScrollHeight = editor.scrollHeight - editor.clientHeight;
+                                    if (newScrollHeight > 0) {
+                                        var scrollRatio = savedScrollTop / savedScrollHeight;
+                                        var newScrollTop = scrollRatio * newScrollHeight;
+                                        editor.scrollTop = newScrollTop;
+                                    } else {
+                                        // Fallback: Setze gespeicherte Position direkt
+                                        editor.scrollTop = savedScrollTop;
+                                    }
+                                }
+                            }, 50);
                             
                             // WICHTIG: Stelle sicher, dass alle Bilder geladen werden
                             setTimeout(function() {
@@ -275,6 +434,16 @@
                                         img.style.opacity = '1';
                                     }
                                 });
+                                
+                                // Stelle Scroll-Position nochmal wieder her (nach Bild-Laden)
+                                if (editor && savedScrollHeight > 0) {
+                                    var newScrollHeight = editor.scrollHeight - editor.clientHeight;
+                                    if (newScrollHeight > 0) {
+                                        var scrollRatio = savedScrollTop / savedScrollHeight;
+                                        var newScrollTop = scrollRatio * newScrollHeight;
+                                        editor.scrollTop = newScrollTop;
+                                    }
+                                }
                             }, 100);
                         } else {
                             // Leerer Content - setze zumindest einen leeren Paragraph
@@ -297,6 +466,21 @@
                                 convertedContent = convertedContent.replace(/<gray>(.*?)<\/gray>/gi, '<span style="color: gray">$1</span>');
                             }
                             quill.root.innerHTML = convertedContent || '<p><br></p>';
+                            
+                            // WICHTIG: Stelle Scroll-Position wieder her
+                            setTimeout(function() {
+                                if (editor && savedScrollHeight > 0) {
+                                    var newScrollHeight = editor.scrollHeight - editor.clientHeight;
+                                    if (newScrollHeight > 0) {
+                                        var scrollRatio = savedScrollTop / savedScrollHeight;
+                                        var newScrollTop = scrollRatio * newScrollHeight;
+                                        editor.scrollTop = newScrollTop;
+                                    } else {
+                                        editor.scrollTop = savedScrollTop;
+                                    }
+                                }
+                            }, 50);
+                            
                             console.log('Content gesetzt via innerHTML');
                             success = true;
                         } catch (e2) {
@@ -496,12 +680,15 @@
         };
         
         
-        window.scrollQuillTo = function(scrollTop) {
-            var scrollContainer = document.querySelector('.ql-editor');
-            if (scrollContainer) {
-                scrollContainer.scrollTop = scrollTop;
-            }
-        };
+window.scrollQuillTo = function(scrollTop) {
+    // Bevorzugt den Container (.ql-container), fallback auf .ql-editor
+    var container = document.querySelector('.ql-container');
+    var editor = document.querySelector('.ql-editor');
+    var scroller = container || editor;
+    if (scroller) {
+        scroller.scrollTop = scrollTop;
+    }
+};
         
         // Textbasierte Scroll-Hilfen
         window.getMiddleVisibleText = function() {

@@ -6422,6 +6422,13 @@ if (caret != null) {
                     restoreCursorPosition();
                     // Flag zurücksetzen nach dem Wiederherstellen
                     isLoadingChapter = false;
+                    
+                    // WICHTIG: Quill sofort aktualisieren nach Kapitelwechsel
+                    if (previewWebView != null && previewStage != null && previewStage.isShowing()) {
+                        // Setze lastQuillContent auf null, damit Content definitiv aktualisiert wird
+                        lastQuillContent = null;
+                        updateQuillContent();
+                    }
                 });
             });
         } catch (Exception e) {
@@ -14038,8 +14045,18 @@ spacer.setStyle("-fx-background-color: transparent;");
             // Scroll-Synchronisation einrichten
             setupQuillScrollSync();
             
-            // Text-Änderungen überwachen
+            // Text-Änderungen überwachen (ENTFERNT - Quill wird nur bei Scroll/Focus aktualisiert)
             setupQuillTextListener();
+            
+            // WICHTIG: Quill Content aktualisieren, wenn das Fenster den Focus bekommt
+            previewStage.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
+                if (isNowFocused && previewWebView != null && codeArea != null && !isUpdatingFromQuill) {
+                    // Aktualisiere Quill Content, wenn das Fenster den Focus bekommt
+                    Platform.runLater(() -> {
+                        updateQuillContent();
+                    });
+                }
+            });
             
             // Fenster schließen-Handler
             previewStage.setOnCloseRequest(e -> {
@@ -14479,6 +14496,19 @@ spacer.setStyle("-fx-background-color: transparent;");
                                 logger.warn("Unbekanntes Ergebnis von setQuillContent: " + result + ", behandle als Erfolg");
                                 lastQuillContent = htmlContent;
                                 success = true;
+                            }
+                            
+                            // WICHTIG: Wenn erfolgreich, direkt Font-Einstellungen anwenden,
+                            // damit die gewählte Schrift auch beim initialen Laden sichtbar ist
+                            if (success) {
+                                try {
+                                    int savedFontSize = preferences.getInt("quillFontSize", 14);
+                                    applyQuillGlobalFontSize(savedFontSize);
+                                    String savedFontFamily = preferences.get("quillFontFamily", "Consolas");
+                                    applyQuillGlobalFontFamily(savedFontFamily);
+                                } catch (Exception e) {
+                                    logger.warn("Konnte Quill Font-Einstellungen nicht anwenden: " + e.getMessage());
+                                }
                             }
                             
                             // Wenn kein expliziter Erfolg, aber auch kein Fehler, setze lastQuillContent nach Verifizierung
@@ -14974,10 +15004,8 @@ spacer.setStyle("-fx-background-color: transparent;");
                     html.append("</p>\n");
                     inParagraph = false;
                 }
-                // Quill unterstützt <hr> möglicherweise nicht direkt
-                // Verwende <div> mit border als Alternative für bessere Kompatibilität
-                // Quill wird dies als Block-Element behandeln
-                html.append("<div style=\"border: none; border-top: 2px solid #bdc3c7; margin: 20px 0; height: 0; overflow: hidden;\"></div>\n");
+                // Verwende <hr> Tag - wird durch benutzerdefiniertes Blot unterstützt
+                html.append("<hr>\n");
                 continue;
             }
             
@@ -15698,42 +15726,28 @@ spacer.setStyle("-fx-background-color: transparent;");
             return;
         }
         
-        // Überwache Paragraph-Änderungen im Editor
-        codeArea.currentParagraphProperty().addListener((obs, oldParagraph, newParagraph) -> {
-            if (!isScrollingPreview && previewWebView != null && previewStage != null && previewStage.isShowing()) {
-                syncPreviewScroll(newParagraph.intValue());
-            }
-        });
-        
-        // ENTFERNT: Klick-Handler, der die Cursorposition stört
-        // Die Scroll-Synchronisation erfolgt über Scroll-Events und currentParagraphProperty
-        
-        // Pfeiltasten: Suche im Preview und scroll mittig dorthin
-        codeArea.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
-            if (previewWebView != null && previewStage != null && previewStage.isShowing()) {
-                KeyCode code = event.getCode();
-                if (code == KeyCode.UP || code == KeyCode.DOWN || 
-                    code == KeyCode.PAGE_UP || code == KeyCode.PAGE_DOWN ||
-                    code == KeyCode.HOME || code == KeyCode.END) {
-                    // Kurze Verzögerung, damit der Cursor sich bewegt hat
-                    Platform.runLater(() -> {
-                        Platform.runLater(() -> {
-                            scrollToLineInPreview();
-                        });
-                    });
-                }
-            }
-        });
+        // Tastatur-Synchronisation (Pfeiltasten) ist deaktiviert, damit der Cursor im Editor
+        // nicht springt. Maus-Scrollen im Editor synchronisiert jedoch weiterhin mit Quill.
         
         // Mouse-Scroll-Rad: Erkenne Scrollen und synchronisiere Preview
-        // Einfacher Ansatz: Mausrad dreht sich -> Preview scrollt entsprechend mit
-        
         // Debounce-Timer für Scroll-Synchronisation
         final java.util.concurrent.atomic.AtomicReference<java.util.Timer> scrollSyncTimer = new java.util.concurrent.atomic.AtomicReference<>();
         
-        // Event-Handler für Scroll-Synchronisation
+        // Event-Handler für Scroll-Synchronisation (nur Maus-Scrollen)
         EventHandler<ScrollEvent> scrollSyncHandler = event -> {
             if (!isScrollingPreview && previewWebView != null && previewStage != null && previewStage.isShowing()) {
+                // Quill noch nicht bereit? Dann nichts tun, um Sprünge zu vermeiden
+                try {
+                    Object ready = previewWebView.getEngine().executeScript(
+                        "(function(){ return !!(window.quillReady && document.querySelector('.ql-editor')); })()"
+                    );
+                    if (!(ready instanceof Boolean) || !((Boolean) ready)) {
+                        return;
+                    }
+                } catch (Exception ignore) {
+                    return;
+                }
+                
                 // Alten Timer abbrechen falls vorhanden
                 Timer oldTimer = scrollSyncTimer.getAndSet(null);
                 if (oldTimer != null) {
@@ -15754,38 +15768,28 @@ spacer.setStyle("-fx-background-color: transparent;");
                             try {
                                 // Prüfe, ob WebView geladen ist
                                 if (previewWebView.getEngine().getLoadWorker().getState() == javafx.concurrent.Worker.State.SUCCEEDED) {
-                                    // Hole aktuelle Scroll-Position im WebView
-                                    Object currentScrollTopObj = previewWebView.getEngine().executeScript(
-                                        "window.pageYOffset || document.documentElement.scrollTop"
+                                    // Wende Scroll-Delta direkt in JS auf die Quill-Editor-Scrollposition an
+                                    String script = String.format(
+                                        "(function() {\n" +
+                                        "  var editor = document.querySelector('.ql-editor');\n" +
+                                        "  var container = document.querySelector('.ql-container');\n" +
+                                        "  var scroller = container || editor;\n" +
+                                        "  if (!scroller) return;\n" +
+                                        "  var max = Math.max(0, scroller.scrollHeight - scroller.clientHeight);\n" +
+                                        "  if (max <= 0) return;\n" +
+                                        "  var next = scroller.scrollTop - (%f);\n" +
+                                        "  if (next < 0) next = 0;\n" +
+                                        "  if (next > max) next = max;\n" +
+                                        "  scroller.scrollTop = next;\n" +
+                                        "})();",
+                                        deltaY
                                     );
+                                    previewWebView.getEngine().executeScript(script);
                                     
-                                    if (currentScrollTopObj instanceof Number) {
-                                        double currentScrollTop = ((Number) currentScrollTopObj).doubleValue();
-                                        
-                                        // Berechne neue Scroll-Position (Delta anwenden)
-                                        // Delta ist negativ beim Scrollen nach oben, positiv beim Scrollen nach unten
-                                        // Aber im WebView: scrollTop erhöht sich beim Scrollen nach unten
-                                        // Also: Delta umkehren für WebView
-                                        double newScrollTop = currentScrollTop - deltaY; // Minus, weil Delta umgekehrt ist
-                                        
-                                        // Stelle sicher, dass wir nicht über die Grenzen hinaus scrollen
-                                        Object maxScrollObj = previewWebView.getEngine().executeScript(
-                                            "Math.max(0, document.body.scrollHeight - window.innerHeight)"
-                                        );
-                                        if (maxScrollObj instanceof Number) {
-                                            double maxScroll = ((Number) maxScrollObj).doubleValue();
-                                            newScrollTop = Math.max(0, Math.min(newScrollTop, maxScroll));
-                                        }
-                                        
-                                        // Scroll zur neuen Position
-                                        String script = String.format("window.scrollTo(0, %f);", newScrollTop);
-                                        previewWebView.getEngine().executeScript(script);
-                                        
-                                        logger.debug("Preview gescrollt: Delta={}, Von {} zu {}", deltaY, currentScrollTop, newScrollTop);
-                                    }
+                                    logger.debug("Quill Preview gescrollt (Maus-Delta): {}", deltaY);
                                 }
                             } catch (Exception e) {
-                                logger.debug("Fehler beim Scrollen der Preview: " + e.getMessage());
+                                logger.debug("Fehler beim Scrollen der Quill Preview: " + e.getMessage());
                             }
                         });
                     }
@@ -15798,7 +15802,7 @@ spacer.setStyle("-fx-background-color: transparent;");
         if (scrollPane != null) {
             try {
                 scrollPane.addEventFilter(ScrollEvent.SCROLL, scrollSyncHandler);
-                logger.debug("Scroll-Event-Filter auf VirtualizedScrollPane registriert");
+                logger.debug("Scroll-Event-Filter auf VirtualizedScrollPane registriert (nur Maus-Scrollen)");
             } catch (Exception e) {
                 logger.debug("Fehler beim Registrieren des Scroll-Event-Filters auf VirtualizedScrollPane: " + e.getMessage());
             }
@@ -15808,7 +15812,7 @@ spacer.setStyle("-fx-background-color: transparent;");
         if (codeArea != null) {
             try {
                 codeArea.addEventFilter(ScrollEvent.SCROLL, scrollSyncHandler);
-                logger.debug("Scroll-Event-Filter auf CodeArea registriert");
+                logger.debug("Scroll-Event-Filter auf CodeArea registriert (nur Maus-Scrollen)");
             } catch (Exception e) {
                 logger.debug("Fehler beim Registrieren des Scroll-Event-Filters auf CodeArea: " + e.getMessage());
             }
@@ -16061,28 +16065,8 @@ spacer.setStyle("-fx-background-color: transparent;");
      * Richtet einen Listener für Text-Änderungen ein (mit Debounce) - für Quill Editor
      */
     private void setupQuillTextListener() {
-        if (codeArea == null) {
-            return;
-        }
-        
-        codeArea.textProperty().addListener((obs, oldText, newText) -> {
-            if (previewStage != null && previewStage.isShowing() && previewWebView != null && !isUpdatingFromQuill) {
-                // Debounce 500ms über einen einzigen Executor
-                if (previewUpdateExecutor == null || previewUpdateExecutor.isShutdown()) {
-                    previewUpdateExecutor = Executors.newSingleThreadScheduledExecutor(r -> {
-                        Thread t = new Thread(r, "QuillUpdateScheduler");
-                        t.setDaemon(true);
-                        return t;
-                    });
-                }
-                if (previewUpdateFuture != null && !previewUpdateFuture.isDone()) {
-                    previewUpdateFuture.cancel(false);
-                }
-                previewUpdateFuture = previewUpdateExecutor.schedule(() -> {
-                    Platform.runLater(this::updateQuillContent);
-                }, 500, TimeUnit.MILLISECONDS);
-            }
-        });
+        // ENTFERNT: Text-Property Listener - Quill wird jetzt nur bei Scroll oder Focus aktualisiert
+        // Dies verhindert Feedback-Schleifen und Cursor-Position-Probleme
     }
     
     /**
@@ -16442,6 +16426,14 @@ spacer.setStyle("-fx-background-color: transparent;");
                 "} " +
                 ".ql-snow .ql-fill { " +
                 "  fill: %s !important; " +
+                "} " +
+                ".ql-editor blockquote { " +
+                "  border-left: none !important; " +
+                "  padding-left: 2em !important; " +
+                "  font-style: italic !important; " +
+                "  color: #666666 !important; " +
+                "  margin-left: 0 !important; " +
+                "  margin-right: 0 !important; " +
                 "}",
                 backgroundColor, textColor, backgroundColor, backgroundColor, textColor,
                 textColor, textColor, selectionColor, textColor, textColor, textColor
@@ -17641,13 +17633,93 @@ spacer.setStyle("-fx-background-color: transparent;");
 
                             String currentMarkdownInFX = codeArea.getText();
                             if (!markdown.equals(currentMarkdownInFX)) {
+                                // WICHTIG: Speichere EXAKTE Cursor-Position und Scroll-Position VOR dem Text-Update
                                 int caretPosition = codeArea.getCaretPosition();
-                                codeArea.replaceText(0, codeArea.getLength(), markdown);
-                                if (caretPosition <= markdown.length()) {
-                                    codeArea.moveTo(caretPosition);
-                                } else {
-                                    codeArea.moveTo(markdown.length());
+                                
+                                // Speichere Paragraph-Index für Scroll-Position
+                                int savedParagraphIndex = -1;
+                                try {
+                                    if (caretPosition >= 0 && caretPosition <= currentMarkdownInFX.length()) {
+                                        savedParagraphIndex = codeArea.offsetToPosition(caretPosition, Bias.Forward).getMajor();
+                                    }
+                                } catch (Exception e) {
+                                    logger.debug("Fehler beim Speichern der Paragraph-Index: " + e.getMessage());
                                 }
+                                
+                                // Speichere Text um Cursor herum für exakte Wiederherstellung
+                                String contextBefore = "";
+                                String contextAfter = "";
+                                int contextSize = 50; // Größerer Kontext für bessere Genauigkeit
+                                
+                                if (caretPosition > 0 && currentMarkdownInFX.length() > 0) {
+                                    int start = Math.max(0, caretPosition - contextSize);
+                                    int end = Math.min(currentMarkdownInFX.length(), caretPosition + contextSize);
+                                    contextBefore = currentMarkdownInFX.substring(start, caretPosition);
+                                    if (caretPosition < currentMarkdownInFX.length()) {
+                                        contextAfter = currentMarkdownInFX.substring(caretPosition, end);
+                                    }
+                                }
+                                
+                                // Ersetze Text
+                                codeArea.replaceText(0, codeArea.getLength(), markdown);
+                                
+                                // WICHTIG: Stelle Cursor-Position EXAKT wieder her
+                                int newPosition = caretPosition; // Fallback: ursprüngliche Position
+                                
+                                // Versuche, exakte Position über Kontext zu finden
+                                if (!contextBefore.isEmpty() || !contextAfter.isEmpty()) {
+                                    // Suche nach dem Kontext-Text im neuen Markdown
+                                    String searchText = contextBefore + contextAfter;
+                                    if (searchText.length() > 0) {
+                                        // Suche von der ursprünglichen Position aus (für bessere Genauigkeit)
+                                        int searchStart = Math.max(0, caretPosition - contextSize * 2);
+                                        int searchEnd = Math.min(markdown.length(), caretPosition + contextSize * 2);
+                                        if (searchStart < searchEnd) {
+                                            String searchArea = markdown.substring(searchStart, searchEnd);
+                                            int foundIndex = searchArea.indexOf(searchText);
+                                            if (foundIndex >= 0) {
+                                                // Position innerhalb des gefundenen Texts
+                                                newPosition = searchStart + foundIndex + contextBefore.length();
+                                            } else {
+                                                // Fallback: Suche nur nach contextBefore
+                                                if (!contextBefore.isEmpty()) {
+                                                    foundIndex = searchArea.lastIndexOf(contextBefore);
+                                                    if (foundIndex >= 0) {
+                                                        newPosition = searchStart + foundIndex + contextBefore.length();
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                
+                                // Stelle sicher, dass Position gültig ist
+                                if (newPosition < 0) {
+                                    newPosition = 0;
+                                } else if (newPosition > markdown.length()) {
+                                    newPosition = markdown.length();
+                                }
+                                
+                                // Setze Cursor-Position EXAKT
+                                codeArea.moveTo(newPosition);
+                                
+                                // WICHTIG: Stelle Scroll-Position wieder her
+                                final int finalSavedParagraph = savedParagraphIndex;
+                                Platform.runLater(() -> {
+                                    try {
+                                        if (finalSavedParagraph >= 0) {
+                                            int totalParagraphs = codeArea.getParagraphs().size();
+                                            if (finalSavedParagraph < totalParagraphs) {
+                                                codeArea.showParagraphInViewport(finalSavedParagraph);
+                                            } else if (totalParagraphs > 0) {
+                                                codeArea.showParagraphInViewport(totalParagraphs - 1);
+                                            }
+                                        }
+                                    } catch (Exception e) {
+                                        logger.debug("Fehler beim Wiederherstellen der Scroll-Position: " + e.getMessage());
+                                    }
+                                });
+                                
                                 updateStatus("Quill Editor synchronisiert");
                             }
                             lastQuillContent = htmlCopy;
