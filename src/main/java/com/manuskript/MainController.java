@@ -1562,40 +1562,44 @@ public class MainController implements Initializable {
             newFiles.removeAll(existingFiles);
             
             if (!newFiles.isEmpty()) {
-                boolean selectionChanged = false;
-                
-                // Füge neue Dateien hinzu
-                for (File file : newFiles) {
-                    DocxFile docxFile = new DocxFile(file);
-                    originalDocxFiles.add(docxFile);
+                // WICHTIG: Alle UI-Operationen müssen im JavaFX-Thread ausgeführt werden
+                // ObservableLists (originalDocxFiles, selectedDocxFiles, allDocxFiles) sind UI-Komponenten
+                Platform.runLater(() -> {
+                    boolean selectionChanged = false;
                     
-                    // WICHTIG: Neue Dateien sollten NICHT als "changed" markiert werden
-                    docxFile.setChanged(false);
-                    
-                    // Prüfe: Hat die Datei eine MD-Datei?
-                    File mdFile = deriveMdFileFor(docxFile.getFile());
-                    boolean hasMdFile = mdFile != null && mdFile.exists();
-                    
-                    if (hasMdFile) {
-                        // Datei hat MD-Datei → nach rechts (am Ende)
-                        selectedDocxFiles.add(docxFile);
-                        selectionChanged = true;
-                    } else {
-                        // Datei hat keine MD-Datei → nach links
-                        allDocxFiles.add(docxFile);
+                    // Füge neue Dateien hinzu
+                    for (File file : newFiles) {
+                        DocxFile docxFile = new DocxFile(file);
+                        originalDocxFiles.add(docxFile);
+                        
+                        // WICHTIG: Neue Dateien sollten NICHT als "changed" markiert werden
+                        docxFile.setChanged(false);
+                        
+                        // Prüfe: Hat die Datei eine MD-Datei?
+                        File mdFile = deriveMdFileFor(docxFile.getFile());
+                        boolean hasMdFile = mdFile != null && mdFile.exists();
+                        
+                        if (hasMdFile) {
+                            // Datei hat MD-Datei → nach rechts (am Ende)
+                            selectedDocxFiles.add(docxFile);
+                            selectionChanged = true;
+                        } else {
+                            // Datei hat keine MD-Datei → nach links
+                            allDocxFiles.add(docxFile);
+                        }
                     }
-                }
-                
-                // WICHTIG: Für alle neuen Dateien Hash prüfen/speichern und als unverändert markieren
-                if (!newFiles.isEmpty()) {
-                    checkAllDocxFilesForChanges();
-                }
-                
-                if (selectionChanged) {
-                    saveSelection(directory);
-                }
-                
-                updateStatus(newFiles.size() + " neue Dateien hinzugefügt");
+                    
+                    // WICHTIG: Für alle neuen Dateien Hash prüfen/speichern und als unverändert markieren
+                    if (!newFiles.isEmpty()) {
+                        checkAllDocxFilesForChanges();
+                    }
+                    
+                    if (selectionChanged) {
+                        saveSelection(directory);
+                    }
+                    
+                    updateStatus(newFiles.size() + " neue Dateien hinzugefügt");
+                });
             } else {
             }
             

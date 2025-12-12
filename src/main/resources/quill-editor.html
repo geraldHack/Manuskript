@@ -38,12 +38,28 @@
         .ql-editor p {
             margin-top: 0.75em;
             margin-bottom: 0.75em;
+            /* WICHTIG: Keine text-align-Override hier, damit align-Modul funktioniert */
         }
         /* Blocksatz mit besserem Abstand */
         .ql-editor p[style*="text-align: justify"] {
             text-align: justify !important;
             text-align-last: left !important;
             word-spacing: 0.1em;
+        }
+        /* Zentrierte Absätze - unterstütze sowohl class als auch style */
+        /* WICHTIG: Höhere Spezifität verwenden, damit es andere Regeln überschreibt */
+        .ql-container .ql-snow .ql-editor p.ql-align-center,
+        .ql-container .ql-snow .ql-editor p[style*="text-align: center"],
+        .ql-container .ql-snow .ql-editor p[data-align="center"],
+        .ql-editor p.ql-align-center,
+        .ql-editor p[style*="text-align: center"],
+        .ql-editor p[data-align="center"] {
+            text-align: center !important;
+        }
+        /* Stelle sicher, dass Quill's eigene align-Klassen funktionieren */
+        .ql-snow .ql-editor .ql-align-center,
+        .ql-editor .ql-align-center {
+            text-align: center !important;
         }
         /* Blockquote-Styling: Einrückung, Kursivschrift, grau - kein Strich links */
         .ql-editor blockquote {
@@ -116,11 +132,40 @@
         <p>Bitte prüfen Sie die Browser-Konsole für Details.</p>
     </div>
     <script>
+        // Logging-Funktion über Java-Bridge (wird später gesetzt, aber hier schon definiert)
+        function logToJava(level, message) {
+            try {
+                // Initialisiere quillLogs Array falls nicht vorhanden
+                if (!window.quillLogs) {
+                    window.quillLogs = [];
+                }
+                
+                // Speichere Log in Array (wird später von Java abgerufen)
+                window.quillLogs.push({
+                    level: level,
+                    message: message,
+                    time: new Date().toISOString()
+                });
+                
+                // Begrenze Array-Größe auf 100 Einträge
+                if (window.quillLogs.length > 100) {
+                    window.quillLogs.shift();
+                }
+                
+                // Versuche auch direkt über Bridge zu loggen (falls verfügbar)
+                if (window.javaApp && window.javaApp.log) {
+                    window.javaApp.log(level, message);
+                }
+            } catch (e) {
+                // Fallback: Ignoriere Logging-Fehler
+            }
+        }
+        
         // Prüfe ob Quill verfügbar ist
         if (typeof Quill === 'undefined') {
             document.getElementById('error-message').style.display = 'block';
             document.getElementById('editor').style.display = 'none';
-            console.error('Quill wurde nicht geladen! Bitte prüfen Sie die Netzwerk-Verbindung.');
+            logToJava('ERROR', 'Quill wurde nicht geladen! Bitte prüfen Sie die Netzwerk-Verbindung.');
         }
         
         // WICHTIG: Benutzerdefiniertes Blot für horizontale Linien registrieren
@@ -144,11 +189,22 @@
             HorizontalRuleBlot.tagName = 'hr';
             
             Quill.register(HorizontalRuleBlot, true);
-            console.log('HorizontalRuleBlot registriert');
+            logToJava('DEBUG', 'HorizontalRuleBlot registriert');
         }
         
         var quill;
         try {
+            // Prüfe ob align-Modul verfügbar ist
+            try {
+                var AlignClass = Quill.import('formats/align');
+                logToJava('DEBUG', 'Align-Modul gefunden: ' + (AlignClass ? 'ja' : 'nein'));
+                if (AlignClass) {
+                    logToJava('DEBUG', 'Align-Whitelist: ' + JSON.stringify(AlignClass.whitelist));
+                }
+            } catch (e) {
+                logToJava('ERROR', 'Align-Modul nicht verfügbar: ' + e.message);
+            }
+            
             quill = new Quill('#editor', {
             theme: 'snow',
             modules: {
@@ -158,13 +214,21 @@
                     ['bold', 'italic', 'underline', 'strike'],
                     [{ 'script': 'sub'}, { 'script': 'super' }],
                     ['blockquote', 'code-block'],
-                    // [{ 'align': [] }], // ENTFERNT - Absatzformat-Button
+                    [{ 'align': [] }], // Aktiviert - Absatzformat-Button für Zentrierung
                     ['link'],
                     ['hr'], // Horizontale Linie
                     ['clean']
                 ]
             }
             });
+            
+            // Prüfe ob align-Modul nach Initialisierung verfügbar ist
+            try {
+                var alignModule = quill.getModule('align');
+                logToJava('DEBUG', 'Align-Modul nach Init: ' + (alignModule ? 'verfügbar' : 'nicht verfügbar'));
+            } catch (e) {
+                logToJava('ERROR', 'Align-Modul nach Init nicht verfügbar: ' + e.message);
+            }
             
             // WICHTIG: Handler für horizontale Linien-Button hinzufügen
             var toolbar = quill.getModule('toolbar');
@@ -181,10 +245,31 @@
                 }
             });
         } catch (e) {
-            console.error('Fehler beim Initialisieren von Quill:', e);
+            logToJava('ERROR', 'Fehler beim Initialisieren von Quill: ' + e.message);
             document.getElementById('error-message').style.display = 'block';
             document.getElementById('editor').style.display = 'none';
             throw e;
+        }
+        
+        // Stelle sicher, dass logToJava auch hier verfügbar ist
+        if (typeof logToJava === 'undefined') {
+            function logToJava(level, message) {
+                try {
+                    if (!window.quillLogs) {
+                        window.quillLogs = [];
+                    }
+                    window.quillLogs.push({
+                        level: level,
+                        message: message,
+                        time: new Date().toISOString()
+                    });
+                    if (window.quillLogs.length > 100) {
+                        window.quillLogs.shift();
+                    }
+                } catch (e) {
+                    // Ignoriere Fehler
+                }
+            }
         }
         
         // Java Bridge für bidirektionale Kommunikation
@@ -201,7 +286,7 @@
                     window.quillContentChanged = true;
                 }
             } catch (e) {
-                console.error('Error sending content to Java:', e);
+                logToJava('ERROR', 'Error sending content to Java: ' + e.message);
                 // Fallback: Setze Flags für Polling
                 window.quillLastContent = content;
                 window.quillLastDelta = delta;
@@ -219,7 +304,7 @@
                     window.quillScrollChanged = true;
                 }
             } catch (e) {
-                console.error('Error sending scroll to Java:', e);
+                logToJava('ERROR', 'Error sending scroll to Java: ' + e.message);
                 // Fallback: Setze Flags für Polling
                 window.quillLastScroll = {top: scrollTop, height: scrollHeight};
                 window.quillScrollChanged = true;
@@ -231,6 +316,16 @@
             // WICHTIG: Automatische Konvertierung von --- zu horizontaler Linie
             // Verwende setTimeout für verzögerte Prüfung, damit der Text vollständig eingegeben ist
             var hrConversionTimeout = null;
+            
+            // WICHTIG: Überwache format-change Events, um zu sehen, ob align gesetzt wird
+            quill.on('editor-change', function(name, ...args) {
+                if (name === 'format-change') {
+                    var format = args[0];
+                    if (format && format.align !== undefined) {
+                        logToJava('DEBUG', 'Format-Change erkannt: align=' + format.align);
+                    }
+                }
+            });
             
             quill.on('text-change', function(delta, oldDelta, source) {
                 // WICHTIG: Automatische Konvertierung von --- zu horizontaler Linie
@@ -269,7 +364,7 @@
                                 }
                             }
                         } catch (e) {
-                            console.error('Fehler bei hr-Konvertierung:', e);
+                            logToJava('ERROR', 'Fehler bei hr-Konvertierung: ' + e.message);
                         }
                     }, 100);
                 }
@@ -278,12 +373,55 @@
                 if (source === 'user') {
                     var content = quill.root.innerHTML;
                     var deltaJson = JSON.stringify(delta);
-                    console.log('Quill text-change erkannt (user), Content-Länge:', content.length);
+                    logToJava('DEBUG', 'Quill text-change erkannt (user), Content-Länge: ' + content.length);
                     sendContentToJava(content, deltaJson);
                 } else {
-                    console.log('Quill text-change ignoriert (source:', source + ')');
+                    logToJava('DEBUG', 'Quill text-change ignoriert (source: ' + source + ')');
                 }
             });
+            
+            // WICHTIG: Debug-Handler für align-Button-Klicks
+            var toolbar = quill.getModule('toolbar');
+            if (toolbar) {
+                // Überwache align-Button-Klicks - verwende Event-Delegation für Dropdown
+                var toolbarContainer = toolbar.container;
+                if (toolbarContainer) {
+                    logToJava('DEBUG', 'Toolbar-Container gefunden, füge Event-Listener hinzu');
+                    toolbarContainer.addEventListener('click', function(e) {
+                        var target = e.target;
+                        // Prüfe ob es ein align-Button oder align-Dropdown-Item ist
+                        if (target.classList.contains('ql-align') || target.closest('.ql-align')) {
+                            var value = target.getAttribute('value') || (target.closest('.ql-picker-item') ? target.closest('.ql-picker-item').getAttribute('data-value') : 'dropdown');
+                            logToJava('DEBUG', 'Align-Button/Dropdown wurde geklickt, value: ' + value);
+                            
+                            setTimeout(function() {
+                                var selection = quill.getSelection(true);
+                                if (selection) {
+                                    var format = quill.getFormat(selection);
+                                    logToJava('DEBUG', 'Format nach Button-Klick: ' + JSON.stringify(format));
+                                    
+                                    // Prüfe auch das DOM-Element
+                                    try {
+                                        var line = quill.getLine(selection.index);
+                                        if (line && line.length > 0) {
+                                            var domNode = line[0].domNode;
+                                            if (domNode) {
+                                                logToJava('DEBUG', 'DOM-Element classes: ' + domNode.className);
+                                                logToJava('DEBUG', 'DOM-Element style: ' + domNode.getAttribute('style'));
+                                                logToJava('DEBUG', 'DOM-Element computed style text-align: ' + window.getComputedStyle(domNode).textAlign);
+                                            }
+                                        }
+                                    } catch (e) {
+                                        logToJava('ERROR', 'Fehler beim Prüfen des DOM-Elements: ' + e.message);
+                                    }
+                                }
+                            }, 300);
+                        }
+                    });
+                } else {
+                    logToJava('WARN', 'Toolbar-Container nicht gefunden!');
+                }
+            }
             
             // Selektion-Änderungen abfangen
             quill.on('selection-change', function(range) {
@@ -295,10 +433,40 @@
                             window.javaApp.onQuillSelectionChange(-1, 0);
                         }
                     } catch (e) {
-                        console.error('Error sending selection to Java:', e);
+                        logToJava('ERROR', 'Error sending selection to Java: ' + e.message);
                     }
                 }
             });
+            
+            // WICHTIG: MutationObserver für zentrierte Absätze
+            // Überwache Änderungen im DOM und stelle sicher, dass Zentrierung erhalten bleibt
+            var observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    if (mutation.type === 'childList' || mutation.type === 'attributes') {
+                        var editor = quill.root;
+                        var centerParagraphs = editor.querySelectorAll('p.ql-align-center, p[style*="text-align: center"]');
+                        centerParagraphs.forEach(function(p) {
+                            // Stelle sicher, dass Zentrierung immer gesetzt ist
+                            if (p.style.textAlign !== 'center') {
+                                p.style.textAlign = 'center';
+                                p.style.setProperty('text-align', 'center', 'important');
+                            }
+                        });
+                    }
+                });
+            });
+            
+            // Starte Observer nach kurzer Verzögerung
+            setTimeout(function() {
+                if (quill && quill.root) {
+                    observer.observe(quill.root, {
+                        childList: true,
+                        subtree: true,
+                        attributes: true,
+                        attributeFilter: ['style', 'class']
+                    });
+                }
+            }, 500);
             
             // Scroll-Events abfangen
             setTimeout(function() {
@@ -323,11 +491,11 @@
         // Globale Funktionen für Java-Aufrufe
         window.setQuillContent = function(htmlContent) {
             if (!quill) {
-                console.error('Quill ist nicht initialisiert!');
+                logToJava('ERROR', 'Quill ist nicht initialisiert!');
                 return 'not_ready';
             }
             
-            console.log('setQuillContent aufgerufen, HTML-Länge:', htmlContent ? htmlContent.length : 0);
+            logToJava('DEBUG', 'setQuillContent aufgerufen, HTML-Länge: ' + (htmlContent ? htmlContent.length : 0));
             
             try {
                 var newContent = htmlContent ? htmlContent.trim() : '';
@@ -335,7 +503,7 @@
                 
                 // WICHTIG: Immer setzen beim ersten Laden oder wenn sich Content geändert hat
                 if (currentContent !== newContent || currentContent === '<p><br></p>' || currentContent === '') {
-                    console.log('Setze Quill Content (alt: ' + currentContent.length + ', neu: ' + newContent.length + ')');
+                    logToJava('DEBUG', 'Setze Quill Content (alt: ' + currentContent.length + ', neu: ' + newContent.length + ')');
                     
                     // WICHTIG: Speichere Scroll-Position VOR dem Content-Update
                     var editor = document.querySelector('.ql-editor');
@@ -360,6 +528,7 @@
                         // <red>Text</red> -> <span style="color: red">Text</span>
                         var convertedContent = newContent;
                         if (convertedContent) {
+                            // Englische Farb-Tags
                             convertedContent = convertedContent.replace(/<red>(.*?)<\/red>/gi, '<span style="color: red">$1</span>');
                             convertedContent = convertedContent.replace(/<blue>(.*?)<\/blue>/gi, '<span style="color: blue">$1</span>');
                             convertedContent = convertedContent.replace(/<green>(.*?)<\/green>/gi, '<span style="color: green">$1</span>');
@@ -367,6 +536,44 @@
                             convertedContent = convertedContent.replace(/<purple>(.*?)<\/purple>/gi, '<span style="color: purple">$1</span>');
                             convertedContent = convertedContent.replace(/<orange>(.*?)<\/orange>/gi, '<span style="color: orange">$1</span>');
                             convertedContent = convertedContent.replace(/<gray>(.*?)<\/gray>/gi, '<span style="color: gray">$1</span>');
+                            convertedContent = convertedContent.replace(/<grey>(.*?)<\/grey>/gi, '<span style="color: gray">$1</span>');
+                            // Deutsche Farb-Tags
+                            convertedContent = convertedContent.replace(/<rot>(.*?)<\/rot>/gi, '<span style="color: red">$1</span>');
+                            convertedContent = convertedContent.replace(/<blau>(.*?)<\/blau>/gi, '<span style="color: blue">$1</span>');
+                            convertedContent = convertedContent.replace(/<grün>(.*?)<\/grün>/gi, '<span style="color: green">$1</span>');
+                            convertedContent = convertedContent.replace(/<gelb>(.*?)<\/gelb>/gi, '<span style="color: yellow">$1</span>');
+                            convertedContent = convertedContent.replace(/<lila>(.*?)<\/lila>/gi, '<span style="color: purple">$1</span>');
+                            convertedContent = convertedContent.replace(/<grau>(.*?)<\/grau>/gi, '<span style="color: gray">$1</span>');
+                            // Stelle sicher, dass <s> Tags (Strikethrough) von Quill erkannt werden
+                            // Quill erkennt <s> und <del> Tags automatisch
+                            // Stelle sicher, dass <mark> Tags (Highlight) von Quill erkannt werden
+                            // Quill erkennt <mark> Tags, aber wir müssen sicherstellen, dass background-color gesetzt ist
+                            convertedContent = convertedContent.replace(/<mark>(.*?)<\/mark>/gi, '<mark style="background-color: yellow">$1</mark>');
+                            
+                            // WICHTIG: Stelle sicher, dass zentrierte Absätze von Quill erkannt werden
+                            // Konvertiere <p style="text-align: center;"> zu Quill-Format <p class="ql-align-center">
+                            // Quill erkennt das align-Modul besser, wenn class statt style verwendet wird
+                            var beforeReplace = convertedContent;
+                            convertedContent = convertedContent.replace(/<p([^>]*)style="[^"]*text-align:\s*center[^"]*"([^>]*)>(.*?)<\/p>/gi, function(match, before, after, content) {
+                                logToJava('DEBUG', 'Zentrierung gefunden: ' + match.substring(0, Math.min(50, match.length)));
+                                // Entferne style-Attribut und füge class hinzu
+                                var newBefore = before.replace(/style="[^"]*"/gi, '').trim();
+                                var newAfter = after.replace(/style="[^"]*"/gi, '').trim();
+                                var classAttr = 'class="ql-align-center"';
+                                var result;
+                                if (newBefore.includes('class=')) {
+                                    // Füge ql-align-center zur bestehenden class hinzu
+                                    newBefore = newBefore.replace(/class="([^"]*)"/gi, 'class="$1 ql-align-center"');
+                                    result = '<p' + newBefore + newAfter + '>' + content + '</p>';
+                                } else {
+                                    result = '<p' + newBefore + ' ' + classAttr + newAfter + '>' + content + '</p>';
+                                }
+                                logToJava('DEBUG', 'Zentrierung konvertiert zu: ' + result.substring(0, Math.min(50, result.length)));
+                                return result;
+                            });
+                            if (beforeReplace !== convertedContent) {
+                                logToJava('DEBUG', 'Zentrierung wurde konvertiert, Anzahl gefundener Absätze: ' + (beforeReplace.match(/text-align:\s*center/gi) || []).length);
+                            }
                         }
                         
                         // Dann füge neuen Content hinzu
@@ -385,7 +592,7 @@
                                 var editor = quill.root;
                                 var hrElements = editor.querySelectorAll('hr');
                                 if (hrElements.length > 0) {
-                                    console.log('hr-Elemente gefunden nach dangerouslyPasteHTML:', hrElements.length);
+                                    logToJava('DEBUG', 'hr-Elemente gefunden nach dangerouslyPasteHTML: ' + hrElements.length);
                                     // Stelle sicher, dass alle hr-Elemente das richtige Styling haben
                                     hrElements.forEach(function(hr) {
                                         if (!hr.hasAttribute('style')) {
@@ -393,7 +600,94 @@
                                         }
                                     });
                                 }
-                            }, 50);
+                                
+                                // WICHTIG: Stelle sicher, dass zentrierte Absätze korrekt angewendet werden
+                                // Quill erkennt ql-align-center möglicherweise nicht automatisch beim Einfügen
+                                // Wende Zentrierung direkt über CSS an und über Quill's Format-API
+                                var centerParagraphs = editor.querySelectorAll('p.ql-align-center, p[style*="text-align: center"]');
+                                logToJava('DEBUG', 'Zentrierte Absätze nach dangerouslyPasteHTML gefunden: ' + centerParagraphs.length);
+                                centerParagraphs.forEach(function(p) {
+                                    var textContent = (p.textContent || '').trim();
+                                    logToJava('DEBUG', 'Zentriere Absatz: ' + textContent.substring(0, Math.min(30, textContent.length)));
+                                    
+                                    // Stelle sicher, dass CSS gesetzt ist (wichtig für Anzeige)
+                                    p.style.textAlign = 'center';
+                                    p.style.setProperty('text-align', 'center', 'important');
+                                    p.classList.add('ql-align-center');
+                                    
+                                    // Versuche auch über Quill's Format-API zu setzen (für Quill-Interne Repräsentation)
+                                    try {
+                                        // Finde die Position des Absatzes im Quill-Dokument
+                                        // Verwende einen robusteren Ansatz: Finde den Absatz über den DOM
+                                        var fullText = quill.getText();
+                                        var paragraphText = textContent;
+                                        
+                                        // Suche nach dem Text im Quill-Dokument
+                                        var index = fullText.indexOf(paragraphText);
+                                        if (index >= 0) {
+                                            // Finde das Ende des Absatzes (bis zum nächsten Zeilenumbruch)
+                                            var endIndex = index + paragraphText.length;
+                                            var nextNewline = fullText.indexOf('\n', index);
+                                            if (nextNewline >= 0 && nextNewline < endIndex) {
+                                                endIndex = nextNewline;
+                                            }
+                                            
+                                            // WICHTIG: Für zeilenbasierte Formate wie align muss formatLine verwendet werden, nicht formatText!
+                                            // Finde die Zeile, die den Text enthält
+                                            try {
+                                                var lineInfo = quill.getLine(index);
+                                                if (lineInfo && lineInfo.length > 0) {
+                                                    var line = lineInfo[0];
+                                                    var lineStart = line.offset;
+                                                    var lineLength = line.length();
+                                                    
+                                                    // Setze Zentrierung über formatLine (für zeilenbasierte Formate)
+                                                    quill.formatLine(lineStart, lineLength, 'align', 'center', 'api');
+                                                    logToJava('DEBUG', 'Zentrierung über formatLine gesetzt: Zeile ' + lineStart + ', Länge ' + lineLength);
+                                                    
+                                                    // Prüfe ob es funktioniert hat
+                                                    setTimeout(function() {
+                                                        try {
+                                                            var format = quill.getFormat(lineStart, lineLength);
+                                                            logToJava('DEBUG', 'Format nach setzen: ' + JSON.stringify(format));
+                                                            if (!format.align || format.align !== 'center') {
+                                                                logToJava('WARN', 'Zentrierung wurde nicht gesetzt, versuche erneut mit formatLine');
+                                                                quill.formatLine(lineStart, lineLength, 'align', 'center', 'api');
+                                                            }
+                                                        } catch (e) {
+                                                            logToJava('ERROR', 'Fehler beim Prüfen des Formats: ' + e.message);
+                                                        }
+                                                    }, 50);
+                                                } else {
+                                                    // Fallback: Verwende formatText wenn formatLine nicht funktioniert
+                                                    quill.formatText(index, endIndex - index, 'align', 'center', 'api');
+                                                    logToJava('DEBUG', 'Zentrierung über formatText (Fallback) gesetzt: Index ' + index + ', Länge ' + (endIndex - index));
+                                                }
+                                            } catch (e) {
+                                                // Fallback: Verwende formatText wenn getLine fehlschlägt
+                                                quill.formatText(index, endIndex - index, 'align', 'center', 'api');
+                                                logToJava('DEBUG', 'Zentrierung über formatText (Fallback nach Fehler) gesetzt: ' + e.message);
+                                            }
+                                        } else {
+                                            logToJava('WARN', 'Text nicht im Quill-Dokument gefunden: ' + paragraphText.substring(0, 20));
+                                        }
+                                    } catch (e) {
+                                        logToJava('ERROR', 'Fehler beim Setzen der Zentrierung über Format-API: ' + e.message);
+                                        // CSS ist bereits gesetzt, das sollte ausreichen
+                                    }
+                                });
+                                
+                                // WICHTIG: Auch für Absätze, die noch nicht konvertiert wurden
+                                // Prüfe alle Absätze und setze Zentrierung, wenn style vorhanden ist
+                                var allParagraphs = editor.querySelectorAll('p');
+                                allParagraphs.forEach(function(p) {
+                                    var style = p.getAttribute('style') || '';
+                                    if (style.includes('text-align') && style.includes('center')) {
+                                        p.style.textAlign = 'center';
+                                        p.style.setProperty('text-align', 'center', 'important');
+                                    }
+                                });
+                            }, 100);
                             
                             // WICHTIG: Stelle Scroll-Position wieder her
                             setTimeout(function() {
@@ -420,7 +714,7 @@
                                         // Erzwinge Neuladen des Bildes, falls es nicht angezeigt wird
                                         var originalSrc = img.src;
                                         img.onerror = function() {
-                                            console.warn('Bild konnte nicht geladen werden:', originalSrc);
+                                            logToJava('WARN', 'Bild konnte nicht geladen werden: ' + originalSrc);
                                             // Versuche erneut zu laden
                                             setTimeout(function() {
                                                 if (img.src !== originalSrc) {
@@ -449,10 +743,10 @@
                             // Leerer Content - setze zumindest einen leeren Paragraph
                             quill.setText('\n', 'silent');
                         }
-                        console.log('Content gesetzt via dangerouslyPasteHTML, neue Länge:', quill.getLength());
+                        logToJava('DEBUG', 'Content gesetzt via dangerouslyPasteHTML, neue Länge: ' + quill.getLength());
                         success = true;
                     } catch (e1) {
-                        console.warn('dangerouslyPasteHTML fehlgeschlagen, versuche innerHTML:', e1);
+                        logToJava('WARN', 'dangerouslyPasteHTML fehlgeschlagen, versuche innerHTML: ' + e1.message);
                         // Methode 2: Fallback zu innerHTML
                         try {
                             var convertedContent = newContent;
@@ -481,18 +775,18 @@
                                 }
                             }, 50);
                             
-                            console.log('Content gesetzt via innerHTML');
+                            logToJava('DEBUG', 'Content gesetzt via innerHTML');
                             success = true;
                         } catch (e2) {
-                            console.error('Auch innerHTML fehlgeschlagen:', e2);
+                            logToJava('ERROR', 'Auch innerHTML fehlgeschlagen: ' + e2.message);
                             // Methode 3: Letzter Fallback - setText
                             try {
                                 var textContent = newContent.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ');
                                 quill.setText(textContent);
-                                console.log('Content gesetzt via setText (nur Text)');
+                                logToJava('DEBUG', 'Content gesetzt via setText (nur Text)');
                                 success = true;
                             } catch (e3) {
-                                console.error('Alle Methoden fehlgeschlagen:', e3);
+                                logToJava('ERROR', 'Alle Methoden fehlgeschlagen: ' + e3.message);
                                 return 'error: ' + e3.message;
                             }
                         }
@@ -509,10 +803,10 @@
                                 
                                 // Prüfe ob Content wirklich sichtbar ist
                                 var actualContent = quill.root.innerHTML;
-                                console.log('Verifizierung: Tatsächlicher Content-Länge:', actualContent.length);
+                                logToJava('DEBUG', 'Verifizierung: Tatsächlicher Content-Länge: ' + actualContent.length);
                                 
                                 if (actualContent.length === 0 || actualContent === '<p><br></p>') {
-                                    console.warn('Content scheint leer zu sein, versuche erneut...');
+                                    logToJava('WARN', 'Content scheint leer zu sein, versuche erneut...');
                                     // Versuche nochmal mit direkter Methode
                                     var convertedContent = newContent;
                                     if (convertedContent) {
@@ -531,11 +825,11 @@
                         return 'success';
                     }
                 } else {
-                    console.log('Quill Content unverändert, keine Aktualisierung nötig');
+                    logToJava('DEBUG', 'Quill Content unverändert, keine Aktualisierung nötig');
                     return 'success'; // Content war bereits korrekt
                 }
             } catch (e) {
-                console.error('Fehler beim Setzen des Quill Contents:', e);
+                logToJava('ERROR', 'Fehler beim Setzen des Quill Contents: ' + e.message);
                 return 'error: ' + e.message;
             }
             
@@ -545,13 +839,13 @@
         window.setQuillDelta = function(deltaJson) {
             try {
                 if (!quill) {
-                    console.error('Quill ist nicht initialisiert!');
+                    logToJava('ERROR', 'Quill ist nicht initialisiert!');
                     return;
                 }
                 var delta = JSON.parse(deltaJson);
                 quill.setContents(delta, 'api');
             } catch (e) {
-                console.error('Error setting Quill delta:', e);
+                logToJava('ERROR', 'Error setting Quill delta: ' + e.message);
             }
         };
         
@@ -616,13 +910,13 @@
                     });
                 }, 150);
             } else {
-                console.error('Theme-Style-Element nicht gefunden!');
+                logToJava('ERROR', 'Theme-Style-Element nicht gefunden!');
             }
         };
         
         window.setQuillGlobalFontSize = function(fontSize) {
             if (!quill) {
-                console.error('Quill ist nicht initialisiert!');
+                logToJava('ERROR', 'Quill ist nicht initialisiert!');
                 return;
             }
             try {
@@ -640,16 +934,16 @@
                         container.style.setProperty('font-size', fontSize + 'px', 'important');
                     }
                     
-                    console.log('Quill globale Schriftgröße gesetzt auf:', fontSize + 'px');
+                    logToJava('DEBUG', 'Quill globale Schriftgröße gesetzt auf: ' + fontSize + 'px');
                 }
             } catch (e) {
-                console.error('Fehler beim Setzen der Quill globalen Schriftgröße:', e);
+                logToJava('ERROR', 'Fehler beim Setzen der Quill globalen Schriftgröße: ' + e.message);
             }
         };
         
         window.setQuillGlobalFontFamily = function(fontFamily) {
             if (!quill) {
-                console.error('Quill ist nicht initialisiert!');
+                logToJava('ERROR', 'Quill ist nicht initialisiert!');
                 return;
             }
             try {
@@ -673,9 +967,9 @@
                     container.style.setProperty('font-family', fontFamily, 'important');
                 }
                 
-                console.log('Quill globale Schriftart gesetzt auf:', fontFamily);
+                logToJava('DEBUG', 'Quill globale Schriftart gesetzt auf: ' + fontFamily);
             } catch (e) {
-                console.error('Fehler beim Setzen der Quill globalen Schriftart:', e);
+                logToJava('ERROR', 'Fehler beim Setzen der Quill globalen Schriftart: ' + e.message);
             }
         };
         
@@ -866,25 +1160,31 @@ window.scrollQuillTo = function(scrollTop) {
         window.quillLastSelection = null;
         window.quillLastScroll = null;
         
+        // Initialisiere quillLogs Array
+        if (!window.quillLogs) {
+            window.quillLogs = [];
+        }
+        
+        // Test-Log direkt beim Start
+        logToJava('INFO', 'Quill Editor initialisiert - Test-Log');
+        
         // Signalisiere, dass Quill bereit ist
         window.quillReady = true;
         
-        console.log('Quill Editor initialisiert');
-        
         // Debug: Prüfe ob Quill richtig geladen wurde
         if (typeof Quill === 'undefined') {
-            console.error('Quill wurde nicht geladen!');
+            logToJava('ERROR', 'Quill wurde nicht geladen!');
             // Versuche nach kurzer Verzögerung erneut
             setTimeout(function() {
                 if (typeof Quill === 'undefined') {
-                    console.error('Quill konnte auch nach Verzögerung nicht geladen werden!');
+                    logToJava('ERROR', 'Quill konnte auch nach Verzögerung nicht geladen werden!');
                     document.getElementById('error-message').style.display = 'block';
                     document.getElementById('error-message').innerHTML = 
                         '<h2>Fehler beim Laden des Quill Editors</h2>' +
                         '<p>Die Quill-Bibliothek konnte nicht geladen werden.</p>' +
                         '<p>Bitte prüfen Sie Ihre Internet-Verbindung oder kontaktieren Sie den Administrator.</p>';
                 } else {
-                    console.log('Quill wurde nach Verzögerung geladen');
+                    logToJava('INFO', 'Quill wurde nach Verzögerung geladen');
                     // Initialisiere Quill jetzt
                     try {
                         quill = new Quill('#editor', {
@@ -903,16 +1203,17 @@ window.scrollQuillTo = function(scrollTop) {
                             }
                         });
                         window.quillReady = true;
-                        console.log('Quill Editor nach Verzögerung initialisiert');
+                        logToJava('INFO', 'Quill Editor nach Verzögerung initialisiert');
                     } catch (e) {
-                        console.error('Fehler beim Initialisieren von Quill nach Verzögerung:', e);
+                        logToJava('ERROR', 'Fehler beim Initialisieren von Quill nach Verzögerung: ' + e.message);
                     }
                 }
             }, 2000);
         } else {
-            console.log('Quill Version:', Quill.version);
+            logToJava('INFO', 'Quill Version: ' + Quill.version);
             window.quillReady = true;
         }
     </script>
 </body>
 </html>
+
