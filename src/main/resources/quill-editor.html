@@ -22,6 +22,14 @@
             font-family: 'Consolas', 'Monaco', monospace;
             font-size: 14px;
             height: 100%;
+            overflow-y: auto !important; /* WICHTIG: Scrollbalken anzeigen */
+            overflow-x: hidden !important;
+        }
+        /* WICHTIG: Stelle sicher, dass Scrollbalken auch mit Quill's Standard-Klassen sichtbar ist */
+        .ql-snow .ql-container,
+        .ql-container.ql-snow {
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
         }
         /* Globale Schriftgröße und Schriftart für Editor */
         .ql-editor {
@@ -160,6 +168,8 @@
                 // Fallback: Ignoriere Logging-Fehler
             }
         }
+
+        
         
         // Prüfe ob Quill verfügbar ist
         if (typeof Quill === 'undefined') {
@@ -221,6 +231,8 @@
                 ]
             }
             });
+
+            
             
             // Prüfe ob align-Modul nach Initialisierung verfügbar ist
             try {
@@ -317,7 +329,9 @@
             // Verwende setTimeout für verzögerte Prüfung, damit der Text vollständig eingegeben ist
             var hrConversionTimeout = null;
             
-            // WICHTIG: Überwache format-change Events, um zu sehen, ob align gesetzt wird
+            // WICHTIG: format-change Event-Listener DEAKTIVIERT - verursacht Performance-Probleme
+            // Nur bei Bedarf wieder aktivieren für Debugging
+            /*
             quill.on('editor-change', function(name, ...args) {
                 if (name === 'format-change') {
                     var format = args[0];
@@ -326,9 +340,19 @@
                     }
                 }
             });
+            */
             
             quill.on('text-change', function(delta, oldDelta, source) {
+                // WICHTIG: Ignoriere Events während programmatischer Updates (verhindert Feedback-Schleife)
+                // Dies muss GANZ AM ANFANG stehen, bevor irgendwelche anderen Checks
+                // Prüfe das Flag ZUERST, bevor irgendetwas anderes passiert
+                if (window.isUpdatingFromCodeArea === true) {
+                    logToJava('DEBUG', 'Quill text-change IGNORIERT (programmatisches Update läuft, source: ' + source + ')');
+                    return; // WICHTIG: return verhindert ALLE weitere Verarbeitung, auch für User-Events
+                }
+                
                 // WICHTIG: Automatische Konvertierung von --- zu horizontaler Linie
+                // Nur für User-Events, nicht für API-Events
                 if (source === 'user') {
                     // Lösche vorherigen Timeout
                     if (hrConversionTimeout) {
@@ -370,13 +394,19 @@
                 }
                 
                 // WICHTIG: Nur User-Änderungen synchronisieren, nicht API-Änderungen
-                if (source === 'user') {
+                // ABER: Wenn isUpdatingFromCodeArea gesetzt ist, ignoriere ALLE Events (auch user-Events)
+                // Das verhindert, dass programmatische Updates Events auslösen, die zurück zum Editor syncen
+                if (source === 'user' && !window.isUpdatingFromCodeArea) {
                     var content = quill.root.innerHTML;
                     var deltaJson = JSON.stringify(delta);
                     logToJava('DEBUG', 'Quill text-change erkannt (user), Content-Länge: ' + content.length);
                     sendContentToJava(content, deltaJson);
                 } else {
-                    logToJava('DEBUG', 'Quill text-change ignoriert (source: ' + source + ')');
+                    if (window.isUpdatingFromCodeArea) {
+                        logToJava('DEBUG', 'Quill text-change ignoriert (programmatisches Update läuft, source: ' + source + ')');
+                    } else {
+                        logToJava('DEBUG', 'Quill text-change ignoriert (source: ' + source + ')');
+                    }
                 }
             });
             
@@ -387,6 +417,10 @@
                 var toolbarContainer = toolbar.container;
                 if (toolbarContainer) {
                     logToJava('DEBUG', 'Toolbar-Container gefunden, füge Event-Listener hinzu');
+                   
+                    // WICHTIG: Event-Listener DEAKTIVIERT - verursacht Performance-Probleme
+                    // Nur bei Bedarf wieder aktivieren für Debugging
+                    /*
                     toolbarContainer.addEventListener('click', function(e) {
                         var target = e.target;
                         // Prüfe ob es ein align-Button oder align-Dropdown-Item ist
@@ -418,6 +452,7 @@
                             }, 300);
                         }
                     });
+                    */
                 } else {
                     logToJava('WARN', 'Toolbar-Container nicht gefunden!');
                 }
@@ -438,8 +473,10 @@
                 }
             });
             
-            // WICHTIG: MutationObserver für zentrierte Absätze
-            // Überwache Änderungen im DOM und stelle sicher, dass Zentrierung erhalten bleibt
+            // WICHTIG: MutationObserver DEAKTIVIERT - verursacht Performance-Probleme
+            // Der Observer wurde deaktiviert, da er zu viele DOM-Updates auslöst und den Editor blockiert
+            // Zentrierung wird stattdessen nur beim Setzen des Contents angewendet
+            /*
             var observer = new MutationObserver(function(mutations) {
                 mutations.forEach(function(mutation) {
                     if (mutation.type === 'childList' || mutation.type === 'attributes') {
@@ -467,28 +504,34 @@
                     });
                 }
             }, 500);
+            */
             
             // Scroll-Events abfangen
             setTimeout(function() {
                 var scrollContainer = document.querySelector('.ql-editor');
                 if (scrollContainer) {
                     scrollContainer.addEventListener('scroll', function() {
-                        // WICHTIG: Setze Flag, dass Quill gerade scrollt (verhindert Rückkopplung)
-                        window.isQuillScrolling = true;
-                        clearTimeout(window.quillScrollingTimeout);
-                        window.quillScrollingTimeout = setTimeout(function() {
-                            window.isQuillScrolling = false;
-                        }, 300); // Flag für 300ms setzen
-                        
-                        var scrollTop = scrollContainer.scrollTop;
-                        var scrollHeight = scrollContainer.scrollHeight - scrollContainer.clientHeight;
-                        sendScrollToJava(scrollTop, scrollHeight);
+                        // WICHTIG: Nur Flag setzen, wenn NICHT programmatisch gescrollt wird
+                        // Wenn isQuillScrollingProgrammatically gesetzt ist, dann wurde programmatisch gescrollt
+                        // und wir sollten NICHT zurück zum Editor synchronisieren
+                        if (!window.isQuillScrollingProgrammatically) {
+                            // Benutzer scrollt manuell - synchronisiere zum Editor
+                            var scrollTop = scrollContainer.scrollTop;
+                            var scrollHeight = scrollContainer.scrollHeight - scrollContainer.clientHeight;
+                            sendScrollToJava(scrollTop, scrollHeight);
+                        } else {
+                            // Programmatisches Scrollen - ignoriere für Synchronisation
+                            // Das Flag wird von scrollQuillToText gesetzt und zurückgesetzt
+                        }
                     });
                 }
             }, 100);
         }
         
         // Globale Funktionen für Java-Aufrufe
+        // WICHTIG: Flag für programmatische Updates - verhindert Feedback-Schleife
+        window.isUpdatingFromCodeArea = false;
+        
         window.setQuillContent = function(htmlContent) {
             if (!quill) {
                 logToJava('ERROR', 'Quill ist nicht initialisiert!');
@@ -498,6 +541,11 @@
             logToJava('DEBUG', 'setQuillContent aufgerufen, HTML-Länge: ' + (htmlContent ? htmlContent.length : 0));
             
             try {
+                // WICHTIG: Setze Flag GANZ AM ANFANG, um text-change Events während des Updates zu ignorieren
+                // Dies muss VOR allen Quill-Operationen gesetzt werden
+                window.isUpdatingFromCodeArea = true;
+                logToJava('DEBUG', 'isUpdatingFromCodeArea auf true gesetzt');
+                
                 var newContent = htmlContent ? htmlContent.trim() : '';
                 var currentContent = quill.root.innerHTML.trim();
                 
@@ -519,8 +567,15 @@
                     // Methode 1: Versuche dangerouslyPasteHTML (beste Methode für Quill)
                     try {
                         // Lösche zuerst den aktuellen Inhalt - verwende getLength() - 1, da Quill immer ein '\n' am Ende hat
+                        // WICHTIG: Flag muss bereits gesetzt sein (wird in setQuillContent() am Anfang gesetzt)
+                        // Verwende 'silent', um keine Events auszulösen
                         var length = quill.getLength();
                         if (length > 1) {
+                            // WICHTIG: Stelle sicher, dass Flag gesetzt ist, bevor deleteText aufgerufen wird
+                            if (!window.isUpdatingFromCodeArea) {
+                                window.isUpdatingFromCodeArea = true;
+                                logToJava('WARN', 'isUpdatingFromCodeArea war nicht gesetzt, setze es jetzt');
+                            }
                             quill.deleteText(0, length - 1, 'silent');
                         }
                         
@@ -574,6 +629,7 @@
                             if (beforeReplace !== convertedContent) {
                                 logToJava('DEBUG', 'Zentrierung wurde konvertiert, Anzahl gefundener Absätze: ' + (beforeReplace.match(/text-align:\s*center/gi) || []).length);
                             }
+                            
                         }
                         
                         // Dann füge neuen Content hinzu
@@ -585,10 +641,19 @@
                             convertedContent = convertedContent.replace(/<div[^>]*style="[^"]*border-top[^"]*"[^>]*>\s*&nbsp;\s*<\/div>/gi, '<hr>');
                             convertedContent = convertedContent.replace(/<div[^>]*style="[^"]*border-top[^"]*"[^>]*><\/div>/gi, '<hr>');
                             
+                            // WICHTIG: Flag muss bereits gesetzt sein, bevor dangerouslyPasteHTML aufgerufen wird
+                            // dangerouslyPasteHTML mit 'silent' sollte keine Events auslösen, aber sicherheitshalber
+                            // ist das Flag bereits gesetzt
                             quill.clipboard.dangerouslyPasteHTML(0, convertedContent, 'silent');
-                            
+                           
                             // WICHTIG: Nach dem Einfügen prüfen, ob <hr> Tags vorhanden sind und ggf. korrigieren
+                            // WICHTIG: Flag bleibt während dieser DOM-Operationen gesetzt
                             setTimeout(function() {
+                                // Stelle sicher, dass Flag noch gesetzt ist (sollte sein, aber zur Sicherheit)
+                                if (!window.isUpdatingFromCodeArea) {
+                                    window.isUpdatingFromCodeArea = true;
+                                }
+                                
                                 var editor = quill.root;
                                 var hrElements = editor.querySelectorAll('hr');
                                 if (hrElements.length > 0) {
@@ -601,96 +666,28 @@
                                     });
                                 }
                                 
-                                // WICHTIG: Stelle sicher, dass zentrierte Absätze korrekt angewendet werden
-                                // Quill erkennt ql-align-center möglicherweise nicht automatisch beim Einfügen
-                                // Wende Zentrierung direkt über CSS an und über Quill's Format-API
+                                // WICHTIG: Nur CSS für Zentrierung anwenden - KEINE formatLine/formatText Calls!
+                                // Diese blockieren den Editor und verursachen Performance-Probleme
                                 var centerParagraphs = editor.querySelectorAll('p.ql-align-center, p[style*="text-align: center"]');
-                                logToJava('DEBUG', 'Zentrierte Absätze nach dangerouslyPasteHTML gefunden: ' + centerParagraphs.length);
                                 centerParagraphs.forEach(function(p) {
-                                    var textContent = (p.textContent || '').trim();
-                                    logToJava('DEBUG', 'Zentriere Absatz: ' + textContent.substring(0, Math.min(30, textContent.length)));
-                                    
-                                    // Stelle sicher, dass CSS gesetzt ist (wichtig für Anzeige)
-                                    p.style.textAlign = 'center';
-                                    p.style.setProperty('text-align', 'center', 'important');
-                                    p.classList.add('ql-align-center');
-                                    
-                                    // Versuche auch über Quill's Format-API zu setzen (für Quill-Interne Repräsentation)
-                                    try {
-                                        // Finde die Position des Absatzes im Quill-Dokument
-                                        // Verwende einen robusteren Ansatz: Finde den Absatz über den DOM
-                                        var fullText = quill.getText();
-                                        var paragraphText = textContent;
-                                        
-                                        // Suche nach dem Text im Quill-Dokument
-                                        var index = fullText.indexOf(paragraphText);
-                                        if (index >= 0) {
-                                            // Finde das Ende des Absatzes (bis zum nächsten Zeilenumbruch)
-                                            var endIndex = index + paragraphText.length;
-                                            var nextNewline = fullText.indexOf('\n', index);
-                                            if (nextNewline >= 0 && nextNewline < endIndex) {
-                                                endIndex = nextNewline;
-                                            }
-                                            
-                                            // WICHTIG: Für zeilenbasierte Formate wie align muss formatLine verwendet werden, nicht formatText!
-                                            // Finde die Zeile, die den Text enthält
-                                            try {
-                                                var lineInfo = quill.getLine(index);
-                                                if (lineInfo && lineInfo.length > 0) {
-                                                    var line = lineInfo[0];
-                                                    var lineStart = line.offset;
-                                                    var lineLength = line.length();
-                                                    
-                                                    // Setze Zentrierung über formatLine (für zeilenbasierte Formate)
-                                                    quill.formatLine(lineStart, lineLength, 'align', 'center', 'api');
-                                                    logToJava('DEBUG', 'Zentrierung über formatLine gesetzt: Zeile ' + lineStart + ', Länge ' + lineLength);
-                                                    
-                                                    // Prüfe ob es funktioniert hat
-                                                    setTimeout(function() {
-                                                        try {
-                                                            var format = quill.getFormat(lineStart, lineLength);
-                                                            logToJava('DEBUG', 'Format nach setzen: ' + JSON.stringify(format));
-                                                            if (!format.align || format.align !== 'center') {
-                                                                logToJava('WARN', 'Zentrierung wurde nicht gesetzt, versuche erneut mit formatLine');
-                                                                quill.formatLine(lineStart, lineLength, 'align', 'center', 'api');
-                                                            }
-                                                        } catch (e) {
-                                                            logToJava('ERROR', 'Fehler beim Prüfen des Formats: ' + e.message);
-                                                        }
-                                                    }, 50);
-                                                } else {
-                                                    // Fallback: Verwende formatText wenn formatLine nicht funktioniert
-                                                    quill.formatText(index, endIndex - index, 'align', 'center', 'api');
-                                                    logToJava('DEBUG', 'Zentrierung über formatText (Fallback) gesetzt: Index ' + index + ', Länge ' + (endIndex - index));
-                                                }
-                                            } catch (e) {
-                                                // Fallback: Verwende formatText wenn getLine fehlschlägt
-                                                quill.formatText(index, endIndex - index, 'align', 'center', 'api');
-                                                logToJava('DEBUG', 'Zentrierung über formatText (Fallback nach Fehler) gesetzt: ' + e.message);
-                                            }
-                                        } else {
-                                            logToJava('WARN', 'Text nicht im Quill-Dokument gefunden: ' + paragraphText.substring(0, 20));
-                                        }
-                                    } catch (e) {
-                                        logToJava('ERROR', 'Fehler beim Setzen der Zentrierung über Format-API: ' + e.message);
-                                        // CSS ist bereits gesetzt, das sollte ausreichen
-                                    }
-                                });
-                                
-                                // WICHTIG: Auch für Absätze, die noch nicht konvertiert wurden
-                                // Prüfe alle Absätze und setze Zentrierung, wenn style vorhanden ist
-                                var allParagraphs = editor.querySelectorAll('p');
-                                allParagraphs.forEach(function(p) {
-                                    var style = p.getAttribute('style') || '';
-                                    if (style.includes('text-align') && style.includes('center')) {
+                                    if (p.style.textAlign !== 'center') {
                                         p.style.textAlign = 'center';
                                         p.style.setProperty('text-align', 'center', 'important');
                                     }
+                                    if (!p.classList.contains('ql-align-center')) {
+                                        p.classList.add('ql-align-center');
+                                    }
                                 });
-                            }, 100);
+                            }, 10);
                             
                             // WICHTIG: Stelle Scroll-Position wieder her
+                            // WICHTIG: Flag bleibt während dieser Operation gesetzt
                             setTimeout(function() {
+                                // Stelle sicher, dass Flag noch gesetzt ist
+                                if (!window.isUpdatingFromCodeArea) {
+                                    window.isUpdatingFromCodeArea = true;
+                                }
+                                
                                 if (editor && savedScrollHeight > 0) {
                                     // Berechne neue Scroll-Position basierend auf dem Verhältnis
                                     var newScrollHeight = editor.scrollHeight - editor.clientHeight;
@@ -706,7 +703,13 @@
                             }, 50);
                             
                             // WICHTIG: Stelle sicher, dass alle Bilder geladen werden
+                            // WICHTIG: Flag bleibt während dieser Operation gesetzt
                             setTimeout(function() {
+                                // Stelle sicher, dass Flag noch gesetzt ist
+                                if (!window.isUpdatingFromCodeArea) {
+                                    window.isUpdatingFromCodeArea = true;
+                                }
+                                
                                 var images = quill.root.querySelectorAll('img');
                                 images.forEach(function(img) {
                                     // Stelle sicher, dass Bild-Elemente nicht entfernt werden
@@ -741,10 +744,18 @@
                             }, 100);
                         } else {
                             // Leerer Content - setze zumindest einen leeren Paragraph
+                            // WICHTIG: Verwende 'silent', um kein Event auszulösen
                             quill.setText('\n', 'silent');
                         }
                         logToJava('DEBUG', 'Content gesetzt via dangerouslyPasteHTML, neue Länge: ' + quill.getLength());
                         success = true;
+                        
+                        // WICHTIG: Setze Flag erst NACH allen setTimeout-Operationen zurück
+                        // Die längste setTimeout-Operation ist 100ms, also warten wir 250ms + Puffer
+                        setTimeout(function() {
+                            window.isUpdatingFromCodeArea = false;
+                            logToJava('DEBUG', 'isUpdatingFromCodeArea zurückgesetzt nach dangerouslyPasteHTML (alle DOM-Operationen abgeschlossen)');
+                        }, 250);
                     } catch (e1) {
                         logToJava('WARN', 'dangerouslyPasteHTML fehlgeschlagen, versuche innerHTML: ' + e1.message);
                         // Methode 2: Fallback zu innerHTML
@@ -759,7 +770,10 @@
                                 convertedContent = convertedContent.replace(/<orange>(.*?)<\/orange>/gi, '<span style="color: orange">$1</span>');
                                 convertedContent = convertedContent.replace(/<gray>(.*?)<\/gray>/gi, '<span style="color: gray">$1</span>');
                             }
-                            quill.root.innerHTML = convertedContent || '<p><br></p>';
+                            // WICHTIG: Setze innerHTML nur wenn Flag gesetzt ist (verhindert Event)
+                            if (window.isUpdatingFromCodeArea) {
+                                quill.root.innerHTML = convertedContent || '<p><br></p>';
+                            }
                             
                             // WICHTIG: Stelle Scroll-Position wieder her
                             setTimeout(function() {
@@ -777,12 +791,20 @@
                             
                             logToJava('DEBUG', 'Content gesetzt via innerHTML');
                             success = true;
+                            
+                            // WICHTIG: Setze Flag nach innerHTML-Fallback zurück (mit Verzögerung für setTimeout)
+                            // innerHTML kann Events auslösen, daher etwas länger warten
+                            setTimeout(function() {
+                                window.isUpdatingFromCodeArea = false;
+                                logToJava('DEBUG', 'isUpdatingFromCodeArea zurückgesetzt nach innerHTML-Fallback');
+                            }, 300);
                         } catch (e2) {
                             logToJava('ERROR', 'Auch innerHTML fehlgeschlagen: ' + e2.message);
                             // Methode 3: Letzter Fallback - setText
                             try {
                                 var textContent = newContent.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ');
-                                quill.setText(textContent);
+                                // WICHTIG: Verwende 'silent', um kein Event auszulösen
+                                quill.setText(textContent, 'silent');
                                 logToJava('DEBUG', 'Content gesetzt via setText (nur Text)');
                                 success = true;
                             } catch (e3) {
@@ -818,21 +840,40 @@
                                         convertedContent = convertedContent.replace(/<orange>(.*?)<\/orange>/gi, '<span style="color: orange">$1</span>');
                                         convertedContent = convertedContent.replace(/<gray>(.*?)<\/gray>/gi, '<span style="color: gray">$1</span>');
                                     }
-                                    quill.root.innerHTML = convertedContent || '<p><br></p>';
+                                    // WICHTIG: Setze innerHTML nur wenn Flag noch gesetzt ist (sonst könnte es Event auslösen)
+                                    if (window.isUpdatingFromCodeArea) {
+                                        quill.root.innerHTML = convertedContent || '<p><br></p>';
+                                    }
                                 }
                             }
                         }, 100);
+                        
+                        // WICHTIG: Setze Flag nach Verifizierung zurück (falls noch nicht zurückgesetzt)
+                        // Dies ist ein Fallback, falls das Flag noch nicht zurückgesetzt wurde
+                        setTimeout(function() {
+                            if (window.isUpdatingFromCodeArea) {
+                                window.isUpdatingFromCodeArea = false;
+                                logToJava('DEBUG', 'isUpdatingFromCodeArea zurückgesetzt nach Verifizierung (Fallback)');
+                            }
+                        }, 400);
+                        
                         return 'success';
                     }
                 } else {
                     logToJava('DEBUG', 'Quill Content unverändert, keine Aktualisierung nötig');
+                    // WICHTIG: Flag auch zurücksetzen, wenn kein Update nötig war
+                    window.isUpdatingFromCodeArea = false;
                     return 'success'; // Content war bereits korrekt
                 }
             } catch (e) {
                 logToJava('ERROR', 'Fehler beim Setzen des Quill Contents: ' + e.message);
+                // WICHTIG: Flag auch bei Fehler zurücksetzen
+                window.isUpdatingFromCodeArea = false;
                 return 'error: ' + e.message;
             }
             
+            // WICHTIG: Fallback - Flag zurücksetzen falls wir hier ankommen
+            window.isUpdatingFromCodeArea = false;
             return 'success';
         };
         
@@ -880,7 +921,16 @@
                 dropdownCss += " .ql-toolbar .ql-picker-item:hover { background-color: " + hoverBg + " !important; } ";
                 dropdownCss += " .ql-toolbar .ql-picker-item.ql-selected { background-color: " + selectedBg + " !important; } ";
                 
-                styleElement.textContent = css + dropdownCss;
+                // WICHTIG: Theme kann text-align: left !important setzen und Quill-Ausrichtung überschreiben.
+                // Deshalb erzwingen wir Quill-Align-Klassen explizit mit !important (center/right/justify/left).
+                var alignOverrideCss = "";
+                // WICHTIG: text-align-last kann text-align bei einzeiligen Absätzen überstimmen → immer mitsetzen
+                alignOverrideCss += " .ql-editor .ql-align-center, .ql-editor p.ql-align-center, .ql-editor div.ql-align-center, .ql-editor li.ql-align-center, .ql-editor blockquote.ql-align-center { text-align: center !important; text-align-last: center !important; } ";
+                alignOverrideCss += " .ql-editor .ql-align-right, .ql-editor p.ql-align-right, .ql-editor div.ql-align-right, .ql-editor li.ql-align-right, .ql-editor blockquote.ql-align-right { text-align: right !important; text-align-last: right !important; } ";
+                alignOverrideCss += " .ql-editor .ql-align-justify, .ql-editor p.ql-align-justify, .ql-editor div.ql-align-justify, .ql-editor li.ql-align-justify, .ql-editor blockquote.ql-align-justify { text-align: justify !important; text-align-last: left !important; } ";
+                alignOverrideCss += " .ql-editor .ql-align-left, .ql-editor p.ql-align-left, .ql-editor div.ql-align-left, .ql-editor li.ql-align-left, .ql-editor blockquote.ql-align-left { text-align: left !important; text-align-last: left !important; } ";
+                
+                styleElement.textContent = css + dropdownCss + alignOverrideCss;
                 
                 // Zusätzlich: Direkt auf die Elemente zugreifen und Farbe setzen (für sofortige Wirkung)
                 setTimeout(function() {
@@ -1045,8 +1095,9 @@ window.scrollQuillTo = function(scrollTop) {
         window.scrollQuillToText = function(snippet) {
             if (!snippet || snippet.length === 0) return false;
             // WICHTIG: Setze Flag, dass programmatisches Scrollen stattfindet
-            window.isQuillScrolling = true;
-            clearTimeout(window.quillScrollingTimeout);
+            // Verwende separates Flag für programmatisches Scrollen
+            window.isQuillScrollingProgrammatically = true;
+            clearTimeout(window.quillScrollingProgrammaticallyTimeout);
             
             var editor = document.querySelector('.ql-editor');
             if (!editor) {
@@ -1098,10 +1149,11 @@ window.scrollQuillTo = function(scrollTop) {
                 return true;
             }
             
-            // Setze Flag zurück nach Scroll-Operation
-            setTimeout(function() {
-                window.isQuillScrolling = false;
-            }, 200);
+            // WICHTIG: Setze Flag länger zurück (500ms), damit Polling-Mechanismus Zeit hat,
+            // das Flag zu erkennen und Rückkopplung zu verhindern
+            window.quillScrollingProgrammaticallyTimeout = setTimeout(function() {
+                window.isQuillScrollingProgrammatically = false;
+            }, 500);
             
             // Finde das übergeordnete Block-Element (p, div, etc.)
             var blockElement = foundNode.parentElement;

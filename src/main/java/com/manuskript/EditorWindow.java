@@ -250,7 +250,6 @@ public class EditorWindow implements Initializable {
     private OllamaWindow ollamaWindow;
     private WebView previewWebView; // Wird jetzt für Quill Editor verwendet
     private Button btnToggleJustify;
-    private Button btnToggleViewMode; // Button zum Umschalten zwischen Quill und normalem WebView
     private boolean previewJustifyEnabled = false;
     private boolean useQuillMode = true; // true = Quill Editor, false = normales WebView
     
@@ -277,8 +276,12 @@ public class EditorWindow implements Initializable {
     private QuillBridge quillBridge; // Java Bridge für JavaScript-Kommunikation
     private String lastQuillContent = null; // Cache für Quill Content
     private Timeline editorToQuillUpdateTimeline = null; // Debouncing-Timeline für Editor->Quill Updates
+    private Timeline quillPollingTimeline = null; // Referenz zur Quill-Polling-Timeline, um mehrere Instanzen zu vermeiden
     // Letzte Quill-Änderung (vom Nutzer) – verhindert unmittelbares Überschreiben durch Editor->Quill Sync
     private volatile long lastQuillUserChangeTs = 0L;
+    // Timer für Debouncing der Quill->Editor-Synchronisation (wartet bis Benutzer fertig getippt hat)
+    private Timer quillToEditorSyncTimer = null;
+    private String pendingQuillContent = null; // Zwischengespeicherter Content während Debounce
     private ObservableList<String> searchHistory = FXCollections.observableArrayList();
     private ObservableList<String> replaceHistory = FXCollections.observableArrayList();
     private ObservableList<String> searchOptions = FXCollections.observableArrayList();
@@ -575,9 +578,8 @@ if (caret != null) {
         
         // VirtualizedScrollPane für bessere Performance
         scrollPane = new VirtualizedScrollPane<>(codeArea);
-        // WICHTIG: VirtualizedScrollPane sollte NICHT die CSS-Klasse "code-area" haben,
-        // da diese nur für die CodeArea selbst gedacht ist
-        // scrollPane.getStyleClass().add("code-area"); // ENTFERNT
+        // WICHTIG: CSS-Klasse für VirtualizedScrollPane hinzufügen, damit Scrollbalken gestylt werden können
+        scrollPane.getStyleClass().add("code-area-scroll-pane");
         
         // Padding für die ScrollPane (links 0, damit es am Rand klebt)
         scrollPane.setStyle("-fx-padding: 5px 5px 5px 0px;");
@@ -6550,7 +6552,7 @@ if (caret != null) {
                             // Prüfe, ob der Text im Editor mit dem erwarteten Text übereinstimmt
                             String actualText = codeArea.getText();
                             if (actualText != null && actualText.length() > 0 && actualText.equals(finalFormattedText)) {
-                                lastQuillContent = null;
+                        lastQuillContent = null;
                                 updatePreviewContent();
                             } else {
                                 logger.debug("Preview-Update übersprungen - Text stimmt nicht überein (Sequenz: " + mySequence + ")");
@@ -7024,6 +7026,12 @@ if (caret != null) {
         stage.setOnCloseRequest(event -> {
             // Speichere die Cursor-Position bevor das Fenster geschlossen wird
             saveCurrentCursorPosition();
+            
+            // Timer für Quill->Editor-Sync abbrechen
+            if (quillToEditorSyncTimer != null) {
+                quillToEditorSyncTimer.cancel();
+                quillToEditorSyncTimer = null;
+            }
             
             boolean hasChanges = hasUnsavedChanges();
             
@@ -14089,13 +14097,6 @@ spacer.setStyle("-fx-background-color: transparent;");
             btnToggleJustify.setOnAction(e -> togglePreviewJustify());
             updateJustifyButtonStyle();
             
-            // Button zum Umschalten zwischen Quill und normalem WebView
-            btnToggleViewMode = new Button("Normal");
-            btnToggleViewMode.getStyleClass().add("button");
-            btnToggleViewMode.setTooltip(new Tooltip("Zwischen Quill Editor und normalem WebView umschalten"));
-            btnToggleViewMode.setOnAction(e -> toggleViewMode());
-            updateViewModeButtonText();
-            
             // Layout erstellen mit VBox für besseres Resizing
             // Äußerer Container mit Padding und Border
             VBox outerContainer = new VBox();
@@ -14117,7 +14118,7 @@ spacer.setStyle("-fx-background-color: transparent;");
             // Button-Zeile
             HBox buttonBar = new HBox(10);
             buttonBar.setAlignment(Pos.CENTER_LEFT);
-            buttonBar.getChildren().addAll(btnToggleViewMode, btnToggleJustify);
+            buttonBar.getChildren().addAll(btnToggleJustify);
             
             // Quill Schriftgröße Steuerung
             lblQuillFontSize = new Label("Schriftgröße:");
@@ -14179,7 +14180,7 @@ spacer.setStyle("-fx-background-color: transparent;");
                 String selectedFont = cmbQuillFontFamily.getValue();
                 if (selectedFont != null && previewWebView != null) {
                     if (useQuillMode) {
-                        applyQuillGlobalFontFamily(selectedFont);
+                    applyQuillGlobalFontFamily(selectedFont);
                     } else {
                         // Im normalen Modus: Content neu laden mit neuer Font-Familie
                         applyNormalViewFontFamily(selectedFont);
@@ -14275,8 +14276,8 @@ spacer.setStyle("-fx-background-color: transparent;");
             previewStage.setFullTheme(currentThemeIndex);
             previewStage.setTitleBarTheme(currentThemeIndex);
             if (useQuillMode) {
-                applyThemeToQuill(currentThemeIndex);
-                updateQuillContent();
+            applyThemeToQuill(currentThemeIndex);
+            updateQuillContent();
             } else {
                 // Normaler Modus: Content aktualisieren
                 if (codeArea != null) {
@@ -14516,6 +14517,12 @@ spacer.setStyle("-fx-background-color: transparent;");
      * Startet Polling für Quill-Änderungen (Workaround für fehlende direkte Callbacks)
      */
     private void startQuillChangePolling(javafx.scene.web.WebEngine engine) {
+        // WICHTIG: Stoppe vorherige Timeline, falls vorhanden, um mehrere gleichzeitige Instanzen zu vermeiden
+        if (quillPollingTimeline != null) {
+            quillPollingTimeline.stop();
+            quillPollingTimeline = null;
+        }
+        
         Timeline pollingTimeline = new Timeline(new KeyFrame(Duration.millis(100), event -> {
             try {
                 if (engine.getLoadWorker().getState() != javafx.concurrent.Worker.State.SUCCEEDED) {
@@ -14604,8 +14611,22 @@ spacer.setStyle("-fx-background-color: transparent;");
                 }
                 
                 // Prüfe auf Scroll-Änderungen
+                // WICHTIG: Ignoriere Scroll-Änderungen, wenn gerade Editor → Quill synchronisiert wird
+                // Das verhindert Rückkopplung und Sprünge
                 Object scrollChanged = engine.executeScript("window.quillScrollChanged");
                 if (Boolean.TRUE.equals(scrollChanged)) {
+                    // Prüfe, ob Quill gerade programmatisch gescrollt wird (Editor → Quill Sync)
+                    try {
+                        Object quillScrollingProgrammatically = engine.executeScript("(window.isQuillScrollingProgrammatically || false)");
+                        if (Boolean.TRUE.equals(quillScrollingProgrammatically)) {
+                            // Quill wird gerade programmatisch gescrollt (Editor → Quill), ignoriere dieses Event
+                            engine.executeScript("window.quillScrollChanged = false;");
+                            return;
+                        }
+                    } catch (Exception e) {
+                        // Ignoriere Fehler
+                    }
+                    
                     engine.executeScript("window.quillScrollChanged = false;");
                     
                     Object scrollObj = engine.executeScript("window.quillLastScroll");
@@ -14640,6 +14661,7 @@ spacer.setStyle("-fx-background-color: transparent;");
             }
         }));
         pollingTimeline.setCycleCount(Timeline.INDEFINITE);
+        quillPollingTimeline = pollingTimeline; // Speichere Referenz für späteres Stoppen
         pollingTimeline.play();
     }
     
@@ -14676,7 +14698,17 @@ spacer.setStyle("-fx-background-color: transparent;");
                     // Quill Content aktualisieren
                     Platform.runLater(() -> {
                         try {
+                            // WICHTIG: Flag VOR dem JavaScript-Aufruf setzen, damit es sofort aktiv ist
                             isUpdatingFromCodeArea = true;
+                            
+                            // WICHTIG: Setze auch JavaScript-Flag SYNCHRON VOR setQuillContent, damit es sofort aktiv ist
+                            // Verwende executeScript direkt (nicht in einem String), um sicherzustellen, dass es sofort ausgeführt wird
+                            try {
+                                engine.executeScript("window.isUpdatingFromCodeArea = true;");
+                                logger.debug("JavaScript-Flag isUpdatingFromCodeArea auf true gesetzt");
+                            } catch (Exception e) {
+                                logger.warn("Konnte JavaScript-Flag nicht setzen: " + e.getMessage());
+                            }
                             
                             logger.info("Setze Quill Content, HTML-Länge: " + htmlContent.length());
                             
@@ -14685,6 +14717,12 @@ spacer.setStyle("-fx-background-color: transparent;");
                             if (quillCheck == null || !Boolean.TRUE.equals(quillCheck)) {
                                 logger.warn("Quill oder setQuillContent nicht verfügbar, warte...");
                                 isUpdatingFromCodeArea = false;
+                                // Setze auch JavaScript-Flag zurück
+                                try {
+                                    engine.executeScript("window.isUpdatingFromCodeArea = false;");
+                                } catch (Exception e) {
+                                    // Ignoriere Fehler
+                                }
                                 lastQuillContent = null; // WICHTIG: Zurücksetzen für Retry
                                 Timeline retryTimeline = new Timeline(new KeyFrame(Duration.millis(500), event -> {
                                     updateQuillContent();
@@ -14823,9 +14861,22 @@ spacer.setStyle("-fx-background-color: transparent;");
                                 verifyTimeline.play();
                             });
                             
-                            // WICHTIG: isUpdatingFromCodeArea sofort zurücksetzen, damit Benutzer sofort editieren kann
-                            // Die Verifizierung läuft im Hintergrund weiter
-                            isUpdatingFromCodeArea = false;
+                            // WICHTIG: isUpdatingFromCodeArea mit Verzögerung zurücksetzen, um sicherzustellen,
+                            // dass alle DOM-Operationen in JavaScript abgeschlossen sind (verhindert Feedback-Schleife)
+                            // Das JavaScript-Flag window.isUpdatingFromCodeArea blockiert bereits Events,
+                            // aber wir halten das Java-Flag etwas länger, um sicherzugehen
+                            // JavaScript setzt das Flag nach 250-400ms zurück, wir warten 500ms für Sicherheit
+                            Timeline resetFlagTimeline = new Timeline(new KeyFrame(Duration.millis(500), event -> {
+                                isUpdatingFromCodeArea = false;
+                                // Setze auch JavaScript-Flag zurück (falls es noch gesetzt ist)
+                                try {
+                                    engine.executeScript("window.isUpdatingFromCodeArea = false;");
+                                } catch (Exception e) {
+                                    // Ignoriere Fehler
+                                }
+                                logger.debug("isUpdatingFromCodeArea zurückgesetzt nach Quill-Update");
+                            }));
+                            resetFlagTimeline.play();
                             
                         } catch (Exception e) {
                             logger.error("Fehler beim Aktualisieren des Quill Contents", e);
@@ -14893,6 +14944,7 @@ spacer.setStyle("-fx-background-color: transparent;");
         }
         
         try {
+            
             // Schritt 0: Data-URI-Bilder behandeln - versuche ursprüngliche Pfade wiederherzustellen
             // Wenn originalMarkdown vorhanden ist, versuche die Bild-Pfade daraus zu extrahieren
             Map<String, String> dataUriToPath = new HashMap<>();
@@ -14950,18 +15002,60 @@ spacer.setStyle("-fx-background-color: transparent;");
             cleaned = cleaned.replaceAll("(?i)<span[^>]*class=\"[^\"]*ql-script[^\"]*\"[^>]*data-value=\"super\"[^>]*>(.*?)</span>", "<sup>$1</sup>");
             
             // Schritt 0.6: WICHTIG: Konvertiere zentrierte Absätze zu <c> Tags VOR dem Entfernen der class/style-Attribute
+            // WICHTIG: Blockquotes mit zentriertem Inhalt müssen ZUERST behandelt werden, damit das Blockquote erhalten bleibt
+            // WICHTIG: Quill kann ql-align-center direkt im <blockquote> Tag setzen, nicht nur in <p> Tags!
+            // Pattern: <blockquote> mit class="ql-align-center" oder style="text-align: center" direkt im Tag
+            Pattern blockquoteWithCenterPattern = Pattern.compile("(?is)<blockquote[^>]*(?:class=\"[^\"]*ql-align-center[^\"]*\"|style=\"[^\"]*text-align\\s*:\\s*center[^\"]*\")[^>]*>(.*?)</blockquote>");
+            Matcher blockquoteWithCenterMatcher = blockquoteWithCenterPattern.matcher(cleaned);
+            StringBuffer blockquoteWithCenterBuffer = new StringBuffer();
+            while (blockquoteWithCenterMatcher.find()) {
+                String content = blockquoteWithCenterMatcher.group(1);
+                // Extrahiere den Text - entferne HTML-Tags, behalte Text
+                String text = content.replaceAll("<[^>]+>", "").trim();
+                if (!text.isEmpty()) {
+                    blockquoteWithCenterMatcher.appendReplacement(blockquoteWithCenterBuffer, "><c>" + text + "</c>");
+                } else {
+                    blockquoteWithCenterMatcher.appendReplacement(blockquoteWithCenterBuffer, "> ");
+                }
+            }
+            blockquoteWithCenterMatcher.appendTail(blockquoteWithCenterBuffer);
+            cleaned = blockquoteWithCenterBuffer.toString();
+            
+            // Pattern: <blockquote> enthält <p> mit ql-align-center oder text-align: center (Fallback für verschachtelte Zentrierung)
+            cleaned = cleaned.replaceAll("(?is)<blockquote[^>]*>\\s*<p[^>]*class=\"[^\"]*ql-align-center[^\"]*\"[^>]*>(.*?)</p>\\s*</blockquote>", "><c>$1</c>");
+            cleaned = cleaned.replaceAll("(?is)<blockquote[^>]*>\\s*<p[^>]*style=\"[^\"]*text-align:\\s*center[^\"]*\"[^>]*>(.*?)</p>\\s*</blockquote>", "><c>$1</c>");
+            cleaned = cleaned.replaceAll("(?is)<blockquote[^>]*>\\s*<div[^>]*style=\"[^\"]*text-align:\\s*center[^\"]*\"[^>]*>(.*?)</div>\\s*</blockquote>", "><c>$1</c>");
+            // Auch mit beiden Attributen (class und style) innerhalb von Blockquotes
+            cleaned = cleaned.replaceAll("(?is)<blockquote[^>]*>\\s*<p[^>]*class=\"[^\"]*ql-align-center[^\"]*\"[^>]*style=\"[^\"]*\"[^>]*>(.*?)</p>\\s*</blockquote>", "><c>$1</c>");
+            cleaned = cleaned.replaceAll("(?is)<blockquote[^>]*>\\s*<p[^>]*style=\"[^\"]*\"[^>]*class=\"[^\"]*ql-align-center[^\"]*\"[^>]*>(.*?)</p>\\s*</blockquote>", "><c>$1</c>");
+            
+            // #region agent log (debug-session)
+            // Prüfe nach Schritt 0.6: wurden Blockquotes mit Zentrierung konvertiert?
+            try {
+                boolean afterStep06HasBlockquote = cleaned.toLowerCase().contains("<blockquote");
+                boolean afterStep06HasCTag = cleaned.contains("><c>") || cleaned.contains("> <c>");
+                String msg = "after step0.6: has blockquote=" + afterStep06HasBlockquote + ", has ><c>=" + afterStep06HasCTag + ", sample=" + (cleaned.length() > 200 ? cleaned.substring(0, 200) : cleaned);
+                String safeMsg = msg.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n").replace("\r", "\\r");
+                String line = "{\"sessionId\":\"debug-session\",\"runId\":\"blockquote-center-fix\",\"hypothesisId\":\"H2\",\"location\":\"EditorWindow.java:convertQuillHTMLToMarkdown\",\"message\":\"" + safeMsg + "\",\"data\":{},\"timestamp\":" + System.currentTimeMillis() + "}\n";
+                java.nio.file.Files.write(java.nio.file.Paths.get("g:\\\\workspace\\\\manuskript\\\\.cursor\\\\debug.log"), line.getBytes(java.nio.charset.StandardCharsets.UTF_8), java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.APPEND);
+            } catch (Exception ignored) {}
+            // #endregion
+            
+            // Dann: Normale zentrierte Absätze (ohne Blockquote)
             // Quill verwendet entweder:
             // 1. <p class="ql-align-center"> (Quill-Format)
             // 2. <p style="text-align: center;"> (HTML-Format)
             // 3. <div style="text-align: center;"> (HTML-Format)
             // Pattern muss flexibel sein für verschiedene Attribut-Reihenfolgen und auch andere style-Attribute
             // Verwende DOTALL-Modus für mehrzeilige Inhalte
-            cleaned = cleaned.replaceAll("(?is)<p[^>]*class=\"[^\"]*ql-align-center[^\"]*\"[^>]*>(.*?)</p>", "<c>$1</c>");
-            cleaned = cleaned.replaceAll("(?is)<p[^>]*style=\"[^\"]*text-align:\\s*center[^\"]*\"[^>]*>(.*?)</p>", "<c>$1</c>");
-            cleaned = cleaned.replaceAll("(?is)<div[^>]*style=\"[^\"]*text-align:\\s*center[^\"]*\"[^>]*>(.*?)</div>", "<c>$1</c>");
+            // WICHTIG: Als eigener Absatz ausgeben (mit Leerzeilen), sonst klebt </c> direkt am Folgetext
+            // und der Rückweg Markdown->HTML->Quill kann die Zentrierung nicht sauber als Block abbilden.
+            cleaned = cleaned.replaceAll("(?is)<p[^>]*class=\"[^\"]*ql-align-center[^\"]*\"[^>]*>(.*?)</p>", "\n\n<c>$1</c>\n\n");
+            cleaned = cleaned.replaceAll("(?is)<p[^>]*style=\"[^\"]*text-align:\\s*center[^\"]*\"[^>]*>(.*?)</p>", "\n\n<c>$1</c>\n\n");
+            cleaned = cleaned.replaceAll("(?is)<div[^>]*style=\"[^\"]*text-align:\\s*center[^\"]*\"[^>]*>(.*?)</div>", "\n\n<c>$1</c>\n\n");
             // Auch mit beiden Attributen (class und style)
-            cleaned = cleaned.replaceAll("(?is)<p[^>]*class=\"[^\"]*ql-align-center[^\"]*\"[^>]*style=\"[^\"]*\"[^>]*>(.*?)</p>", "<c>$1</c>");
-            cleaned = cleaned.replaceAll("(?is)<p[^>]*style=\"[^\"]*\"[^>]*class=\"[^\"]*ql-align-center[^\"]*\"[^>]*>(.*?)</p>", "<c>$1</c>");
+            cleaned = cleaned.replaceAll("(?is)<p[^>]*class=\"[^\"]*ql-align-center[^\"]*\"[^>]*style=\"[^\"]*\"[^>]*>(.*?)</p>", "\n\n<c>$1</c>\n\n");
+            cleaned = cleaned.replaceAll("(?is)<p[^>]*style=\"[^\"]*\"[^>]*class=\"[^\"]*ql-align-center[^\"]*\"[^>]*>(.*?)</p>", "\n\n<c>$1</c>\n\n");
             
             // Schritt 0.7: WICHTIG: Konvertiere Farb-Spans zu Farb-Tags VOR dem Entfernen der style-Attribute
             // Quill verwendet <span style="color: red">Text</span> oder Quill's eigene Format-Attribute
@@ -15020,7 +15114,51 @@ spacer.setStyle("-fx-background-color: transparent;");
             cleaned = cleaned.replaceAll("(?i)<h6[^>]*>(.*?)</h6>", "###### $1\n");
             
             // Schritt 4: Blockquotes
-            cleaned = cleaned.replaceAll("(?i)<blockquote[^>]*>(.*?)</blockquote>", "> $1\n");
+            // WICHTIG: Blockquotes mit zentriertem Inhalt wurden bereits in Schritt 0.6 zu ><c>Text</c> konvertiert
+            // Diese sollten keine <blockquote> Tags mehr haben. Konvertiere nur noch verbleibende Blockquotes ohne Zentrierung
+            // Pattern: Blockquote, das NICHT ql-align-center oder text-align: center enthält
+            // Verwende Pattern und Matcher für komplexere Logik
+            Pattern blockquotePattern = Pattern.compile("(?is)<blockquote[^>]*>(.*?)</blockquote>");
+            Matcher blockquoteMatcher = blockquotePattern.matcher(cleaned);
+            StringBuffer blockquoteBuffer = new StringBuffer();
+            while (blockquoteMatcher.find()) {
+                String inner = blockquoteMatcher.group(1);
+                // Prüfe, ob der Inhalt ql-align-center oder text-align: center enthält
+                // Wenn ja, wurde es bereits in Schritt 0.6 konvertiert, sollte aber nicht mehr hier sein
+                // Falls es doch hier ist, bedeutet das, dass die Patterns in Schritt 0.6 es nicht erkannt haben
+                // In diesem Fall sollten wir es trotzdem zu ><c>Text</c> konvertieren
+                if (inner.matches("(?is).*(?:ql-align-center|text-align\\s*:\\s*center).*")) {
+                    // Sollte bereits konvertiert sein, aber falls nicht, konvertiere es jetzt
+                    // Extrahiere den Text aus dem <p> Tag
+                    Pattern centerPattern = Pattern.compile("(?is)<p[^>]*>(.*?)</p>");
+                    Matcher centerMatcher = centerPattern.matcher(inner);
+                    if (centerMatcher.find()) {
+                        String centerText = centerMatcher.group(1);
+                        blockquoteMatcher.appendReplacement(blockquoteBuffer, "><c>" + centerText + "</c>");
+                    } else {
+                        // Kein <p> Tag gefunden, verwende den gesamten Inhalt
+                        blockquoteMatcher.appendReplacement(blockquoteBuffer, "><c>" + inner + "</c>");
+                    }
+                } else {
+                    // WICHTIG: Wenn der Inhalt nur ein einzelnes <p> Tag enthält (ohne Zentrierung),
+                    // könnte es ursprünglich zentriert gewesen sein, aber Quill hat die Zentrierung verloren.
+                    // Prüfe, ob es genau ein <p> Tag gibt
+                    Pattern singlePPattern = Pattern.compile("(?is)^\\s*<p[^>]*>(.*?)</p>\\s*$");
+                    Matcher singlePMatcher = singlePPattern.matcher(inner.trim());
+                    if (singlePMatcher.matches()) {
+                        // Einzelnes <p> Tag - könnte ursprünglich zentriert gewesen sein
+                        // Konvertiere zu ><c>Text</c> um die Zentrierung zu erhalten
+                        String text = singlePMatcher.group(1);
+                        blockquoteMatcher.appendReplacement(blockquoteBuffer, "><c>" + text + "</c>");
+                    } else {
+                        // Nicht konvertiert, konvertiere zu > Text
+                        blockquoteMatcher.appendReplacement(blockquoteBuffer, "> " + inner + "\n");
+                    }
+                }
+            }
+            blockquoteMatcher.appendTail(blockquoteBuffer);
+            cleaned = blockquoteBuffer.toString();
+            
             
             // Schritt 5: Listen (geordnet und ungeordnet)
             // Behandle <ol> und <ul> Container
@@ -15082,28 +15220,34 @@ spacer.setStyle("-fx-background-color: transparent;");
             cleaned = cleaned.replaceAll("(?i)<p[^>]*>\\s*<hr[^>]*>\\s*</p>", "\n---\n");
             cleaned = cleaned.replaceAll("(?i)<hr[^>]*>", "\n---\n");
             
+            // Schritt 12.5: WICHTIG: Schütze <sub>, <sup> und <c> Tags VOR dem Entfernen der <p> Tags
+            // Temporäre Platzhalter verwenden
+            cleaned = cleaned.replaceAll("(?i)<sub>", "___SUBTAG_START___");
+            cleaned = cleaned.replaceAll("(?i)</sub>", "___SUBTAG_END___");
+            cleaned = cleaned.replaceAll("(?i)<sup>", "___SUPTAG_START___");
+            cleaned = cleaned.replaceAll("(?i)</sup>", "___SUPTAG_END___");
+            // WICHTIG: Schütze <c> Tags VOR dem Entfernen der <p> Tags, damit sie nicht verloren gehen
+            cleaned = cleaned.replaceAll("(?i)<c>", "___CTAG_START___");
+            cleaned = cleaned.replaceAll("(?i)</c>", "___CTAG_END___");
+            
             // Schritt 12: Paragraphs und Line Breaks (Absatz-Trenner als Doppel-NE behalten)
+            // WICHTIG: <c> Tags wurden bereits geschützt, können jetzt sicher entfernt werden
             cleaned = cleaned.replaceAll("(?i)<p[^>]*>", "");
             cleaned = cleaned.replaceAll("(?i)</p>", "\n\n");
             cleaned = cleaned.replaceAll("(?i)<br\\s*/?>", "\n");
             cleaned = cleaned.replaceAll("(?i)<div[^>]*>", "");
             cleaned = cleaned.replaceAll("(?i)</div>", "\n\n");
             
-            // Schritt 12.5: WICHTIG: Schütze <sub> und <sup> Tags vor der allgemeinen Tag-Entfernung
-            // Temporäre Platzhalter verwenden
-            cleaned = cleaned.replaceAll("(?i)<sub>", "___SUBTAG_START___");
-            cleaned = cleaned.replaceAll("(?i)</sub>", "___SUBTAG_END___");
-            cleaned = cleaned.replaceAll("(?i)<sup>", "___SUPTAG_START___");
-            cleaned = cleaned.replaceAll("(?i)</sup>", "___SUPTAG_END___");
-            
             // Schritt 12.6: Entferne verbleibende HTML-Tags (aber nicht die Platzhalter)
             cleaned = cleaned.replaceAll("<[^>]+>", "");
             
-            // Schritt 12.7: Stelle <sub> und <sup> Tags wieder her
+            // Schritt 12.7: Stelle <sub>, <sup> und <c> Tags wieder her
             cleaned = cleaned.replaceAll("___SUBTAG_START___", "<sub>");
             cleaned = cleaned.replaceAll("___SUBTAG_END___", "</sub>");
             cleaned = cleaned.replaceAll("___SUPTAG_START___", "<sup>");
             cleaned = cleaned.replaceAll("___SUPTAG_END___", "</sup>");
+            cleaned = cleaned.replaceAll("___CTAG_START___", "<c>");
+            cleaned = cleaned.replaceAll("___CTAG_END___", "</c>");
             
             // Schritt 13: HTML Entities decodieren
             cleaned = cleaned.replace("&nbsp;", " ")
@@ -15116,7 +15260,6 @@ spacer.setStyle("-fx-background-color: transparent;");
             
             // Schritt 14: Entferne führende/abschließende Leerzeilen
             cleaned = cleaned.trim();
-            
             return cleaned;
         } catch (Exception e) {
             logger.error("Fehler bei HTML zu Markdown Konvertierung", e);
@@ -15148,7 +15291,7 @@ spacer.setStyle("-fx-background-color: transparent;");
         }
         if (useQuillMode) {
             // Quill-Modus: Quill Content aktualisieren
-            updateQuillContent();
+        updateQuillContent();
         } else {
             // Normaler Modus: Einfaches HTML laden
             if (previewWebView != null && codeArea != null) {
@@ -15345,6 +15488,22 @@ spacer.setStyle("-fx-background-color: transparent;");
         
         // WICHTIG: Ersetze <c> / <center> direkt vor der zeilenweisen Verarbeitung
         // DOTALL + case-insensitive, damit auch mehrzeilige Inhalte und Groß/Kleinschreibung funktionieren
+        // WICHTIG: Blockquotes mit > am Zeilenanfang müssen VOR der <center>-Konvertierung erkannt werden
+        // Pattern: Zeile beginnt mit > gefolgt von optionalen Leerzeichen und <center> oder <c>
+        Pattern blockquoteCenterPattern = Pattern.compile("(?m)^(>\\s*)<\\s*(?:c|center)\\s*>(.*?)</\\s*(?:c|center)\\s*>");
+        Matcher blockquoteCenterMatcher = blockquoteCenterPattern.matcher(markdown);
+        StringBuffer blockquoteCenterBuffer = new StringBuffer();
+        while (blockquoteCenterMatcher.find()) {
+            // Ersetze Zeilenumbrüche im Inhalt durch Leerzeichen, damit sie als ein Absatz behandelt werden
+            String inner = blockquoteCenterMatcher.group(2).replaceAll("\\s*\\n\\s*", " ").trim();
+            // Behalte das > am Anfang und konvertiere <center> zu <p style="text-align: center;">
+            String replacement = blockquoteCenterMatcher.group(1) + "<p style=\"text-align: center;\">" + inner + "</p>";
+            blockquoteCenterMatcher.appendReplacement(blockquoteCenterBuffer, Matcher.quoteReplacement(replacement));
+        }
+        blockquoteCenterMatcher.appendTail(blockquoteCenterBuffer);
+        markdown = blockquoteCenterBuffer.toString();
+        
+        // Dann: Normale <center>-Konvertierung (ohne Blockquote)
         Pattern centerPattern = Pattern.compile("(?is)<\\s*(?:c|center)\\s*>(.*?)</\\s*(?:c|center)\\s*>");
         Matcher centerMatcher = centerPattern.matcher(markdown);
         StringBuffer centerBuffer = new StringBuffer();
@@ -15468,8 +15627,27 @@ spacer.setStyle("-fx-background-color: transparent;");
             
             // WICHTIG: Prüfe auf bereits konvertierte zentrierte Absätze (wurde VOR der Schleife konvertiert)
             // Die <c> Tags wurden bereits zu <p style="text-align: center;"> konvertiert
-            if (line.contains("<p style=\"text-align: center;\">")) {
-                // Der zentrierte Absatz wurde bereits konvertiert, aber wir müssen ihn noch durch Inline-Markdown verarbeiten
+            // WICHTIG: Blockquotes mit zentriertem Inhalt müssen ZUERST behandelt werden
+            if (trimmedLine.startsWith(">") && line.contains("<p style=\"text-align: center;\">")) {
+                // Blockquote mit zentriertem Inhalt
+                if (inParagraph) {
+                    html.append("</p>\n");
+                    inParagraph = false;
+                }
+                if (!inBlockquote) {
+                    html.append("<blockquote>\n");
+                    inBlockquote = true;
+                }
+                // Extrahiere den Inhalt (ohne das führende >)
+                Pattern centerPPattern = Pattern.compile("<p style=\"text-align: center;\">(.*?)</p>");
+                Matcher centerPMatcher = centerPPattern.matcher(line);
+                if (centerPMatcher.find()) {
+                    String centerContent = centerPMatcher.group(1);
+                    html.append("<p style=\"text-align: center;\">").append(convertInlineMarkdownForPreview(centerContent)).append("</p>\n");
+                    continue;
+                }
+            } else if (line.contains("<p style=\"text-align: center;\">")) {
+                // Normale zentrierte Absätze (ohne Blockquote)
                 if (inParagraph) {
                     html.append("</p>\n");
                     inParagraph = false;
@@ -15857,99 +16035,6 @@ spacer.setStyle("-fx-background-color: transparent;");
     /**
      * Schaltet zwischen Quill Editor und normalem WebView um
      */
-    private void toggleViewMode() {
-        // Verhindere rekursive Aufrufe
-        if (isTogglingViewMode) {
-            return;
-        }
-        
-        isTogglingViewMode = true;
-        try {
-            // Entferne alte Event-Handler vor dem Umschalten
-            removeScrollSyncHandlers();
-            
-            useQuillMode = !useQuillMode;
-            updateViewModeButtonText();
-            
-            if (previewWebView == null || codeArea == null) {
-                return;
-            }
-            
-            String markdownContent = codeArea.getText();
-            
-            if (useQuillMode) {
-                // Quill Editor Modus: Quill Editor initialisieren
-                initializeQuillEditor();
-                // Scroll-Synchronisation für Quill einrichten
-                Platform.runLater(() -> {
-                    Timeline timeline = new Timeline(new KeyFrame(Duration.millis(300), event -> {
-                        setupQuillScrollSync();
-                    }));
-                    timeline.play();
-                });
-            } else {
-                // Normaler WebView Modus: Einfaches HTML ohne Quill-Styling laden
-                String htmlContent = convertMarkdownToHTMLForPreview(markdownContent);
-                previewWebView.getEngine().loadContent(htmlContent, "text/html");
-                // Scroll-Synchronisation für normalen WebView einrichten
-                Platform.runLater(() -> {
-                    Timeline timeline = new Timeline(new KeyFrame(Duration.millis(300), event -> {
-                        setupNormalViewScrollSync();
-                    }));
-                    timeline.play();
-                });
-            }
-        } catch (Exception e) {
-            logger.error("Fehler beim Umschalten des View-Modus", e);
-        } finally {
-            // Flag nach kurzer Verzögerung zurücksetzen, damit normale Updates wieder funktionieren
-            Platform.runLater(() -> {
-                Timeline timeline = new Timeline(new KeyFrame(Duration.millis(500), event -> {
-                    isTogglingViewMode = false;
-                }));
-                timeline.play();
-            });
-        }
-    }
-    
-    /**
-     * Entfernt alle Scroll-Synchronisations-Event-Handler
-     */
-    private void removeScrollSyncHandlers() {
-        if (codeArea != null) {
-            try {
-                // Entferne alle ScrollEvent-Filter (kann nicht direkt entfernt werden, aber
-                // wir registrieren sie neu, was die alten überschreibt)
-                // Event-Handler werden beim nächsten setup neu registriert
-            } catch (Exception e) {
-                logger.debug("Fehler beim Entfernen der Scroll-Handler", e);
-            }
-        }
-        if (scrollPane != null) {
-            try {
-                // Entferne alle ScrollEvent-Filter
-            } catch (Exception e) {
-                logger.debug("Fehler beim Entfernen der Scroll-Handler vom ScrollPane", e);
-            }
-        }
-    }
-    
-    /**
-     * Aktualisiert den Text des View-Mode-Buttons
-     */
-    private void updateViewModeButtonText() {
-        if (btnToggleViewMode == null) {
-            return;
-        }
-        
-        if (useQuillMode) {
-            btnToggleViewMode.setText("Normal");
-            btnToggleViewMode.setTooltip(new Tooltip("Zu normalem WebView wechseln"));
-        } else {
-            btnToggleViewMode.setText("Quill");
-            btnToggleViewMode.setTooltip(new Tooltip("Zu Quill Editor wechseln"));
-        }
-    }
     
     /**
      * Aktualisiert die Textfarbe der Labels im Preview-Fenster basierend auf dem Theme
@@ -16606,16 +16691,16 @@ spacer.setStyle("-fx-background-color: transparent;");
         final java.util.concurrent.atomic.AtomicReference<java.util.Timer> scrollSyncTimer = new java.util.concurrent.atomic.AtomicReference<>();
         
         EventHandler<ScrollEvent> scrollSyncHandler = event -> {
-            // WICHTIG: Nur synchronisieren, wenn der Benutzer im Editor scrollt, nicht wenn Quill scrollt
-            // Prüfe zusätzlich, ob der Benutzer gerade in Quill scrollt (über JavaScript-Flag)
+            // WICHTIG: Nur synchronisieren, wenn der Benutzer im Editor scrollt, nicht wenn Quill programmatisch scrollt
+            // Prüfe zusätzlich, ob Quill gerade programmatisch gescrollt wird (verhindert Rückkopplung)
             if (!isScrollingPreview && previewWebView != null && previewStage != null && previewStage.isShowing() && useQuillMode) {
                 javafx.scene.web.WebEngine engine = previewWebView.getEngine();
                 if (engine.getLoadWorker().getState() == javafx.concurrent.Worker.State.SUCCEEDED) {
-                    // Prüfe, ob Quill gerade scrollt (verhindert Rückkopplung)
+                    // Prüfe, ob Quill gerade programmatisch scrollt (verhindert Rückkopplung)
                     try {
-                        Object quillScrolling = engine.executeScript("(window.isQuillScrolling || false)");
-                        if (Boolean.TRUE.equals(quillScrolling)) {
-                            // Quill scrollt gerade, keine Synchronisation
+                        Object quillScrollingProgrammatically = engine.executeScript("(window.isQuillScrollingProgrammatically || false)");
+                        if (Boolean.TRUE.equals(quillScrollingProgrammatically)) {
+                            // Quill scrollt gerade programmatisch, keine Synchronisation
                             return;
                         }
                     } catch (Exception e) {
@@ -16636,12 +16721,12 @@ spacer.setStyle("-fx-background-color: transparent;");
                     public void run() {
                         Platform.runLater(() -> {
                             try {
-                                // Prüfe nochmal, ob Quill gerade scrollt
+                                // Prüfe nochmal, ob Quill gerade programmatisch scrollt
                                 if (engine.getLoadWorker().getState() == javafx.concurrent.Worker.State.SUCCEEDED) {
                                     try {
-                                        Object quillScrolling = engine.executeScript("(window.isQuillScrolling || false)");
-                                        if (Boolean.TRUE.equals(quillScrolling)) {
-                                            return; // Quill scrollt gerade, keine Synchronisation
+                                        Object quillScrollingProgrammatically = engine.executeScript("(window.isQuillScrollingProgrammatically || false)");
+                                        if (Boolean.TRUE.equals(quillScrollingProgrammatically)) {
+                                            return; // Quill scrollt gerade programmatisch, keine Synchronisation
                                         }
                                     } catch (Exception e) {
                                         // Ignoriere Fehler
@@ -16649,8 +16734,9 @@ spacer.setStyle("-fx-background-color: transparent;");
                                     
                                     String anchor = getMiddleParagraphSnippet();
                                     if (anchor != null && anchor.trim().length() > 3) {
+                                        // WICHTIG: scrollQuillToText setzt isQuillScrollingProgrammatically automatisch
                                         String script = String.format(
-                                            "if (window.scrollQuillToText) { window.isQuillScrolling = true; window.scrollQuillToText(%s); setTimeout(function() { window.isQuillScrolling = false; }, 200); }",
+                                            "if (window.scrollQuillToText) { window.scrollQuillToText(%s); }",
                                             toJSString(anchor.trim()));
                                         engine.executeScript(script);
                                     }
@@ -17140,9 +17226,9 @@ spacer.setStyle("-fx-background-color: transparent;");
                     } catch (Exception e) {
                         logger.debug("Fehler beim Zentrieren des Absatzes", e);
                         // Fallback: Alte Methode
-                        try {
-                            int target = Math.max(0, idx - 2);
-                            codeArea.showParagraphAtTop(target);
+        try {
+            int target = Math.max(0, idx - 2);
+            codeArea.showParagraphAtTop(target);
                         } catch (Exception e2) {
                             logger.debug("Fehler beim Fallback-Scrollen", e2);
                         }
@@ -17708,7 +17794,7 @@ spacer.setStyle("-fx-background-color: transparent;");
                             // WICHTIG: Navigation-Buttons erst NACH setCurrentFile() aktualisieren
                             Platform.runLater(() -> {
                                 if (mySequence == loadingSequence) {
-                                    updateNavigationButtons();
+                            updateNavigationButtons();
                                 }
                             });
                             // Bei DOCX-Übernahme normalen Ladeprozess fortsetzen
@@ -18432,6 +18518,58 @@ spacer.setStyle("-fx-background-color: transparent;");
                 return;
             }
 
+            // WICHTIG: Debouncing - speichere Content und starte Timer neu
+            // Synchronisation erfolgt nur, wenn Benutzer eine Pause beim Tippen macht (500ms)
+            pendingQuillContent = htmlContent;
+            
+            // Alten Timer abbrechen falls vorhanden
+            if (quillToEditorSyncTimer != null) {
+                quillToEditorSyncTimer.cancel();
+                quillToEditorSyncTimer = null;
+            }
+            
+            // Neuen Timer starten (wartet 500ms nach letztem Tippen)
+            quillToEditorSyncTimer = new Timer(true); // Daemon-Thread
+            quillToEditorSyncTimer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    // Timer abgelaufen - Benutzer hat Pause gemacht, jetzt synchronisieren
+                    if (pendingQuillContent != null) {
+                        Platform.runLater(() -> {
+                            performQuillToEditorSync(pendingQuillContent);
+                            pendingQuillContent = null;
+                        });
+                    }
+                }
+            }, 500); // 500ms Verzögerung - wartet bis Benutzer fertig getippt hat
+        }
+        
+        /**
+         * Führt die eigentliche Synchronisation von Quill zu Editor durch
+         */
+        private void performQuillToEditorSync(String htmlContent) {
+            if (codeArea == null || isUpdatingFromCodeArea) {
+                return;
+            }
+
+            // WICHTIG: Hole die EXAKT sichtbare mittlere Zeile in Quill VOR der Text-Konvertierung
+            // Dies ist die Position, die im Editor zentriert werden soll
+            String quillVisibleSnippet = "";
+            if (previewWebView != null) {
+                javafx.scene.web.WebEngine engine = previewWebView.getEngine();
+                if (engine.getLoadWorker().getState() == javafx.concurrent.Worker.State.SUCCEEDED) {
+                    try {
+                        Object snippetObj = engine.executeScript("(window.getMiddleVisibleText ? window.getMiddleVisibleText() : '')");
+                        if (snippetObj != null) {
+                            quillVisibleSnippet = snippetObj.toString().trim();
+                            logger.debug("Quill sichtbare mittlere Zeile: " + (quillVisibleSnippet.length() > 50 ? quillVisibleSnippet.substring(0, 50) + "..." : quillVisibleSnippet));
+                        }
+                    } catch (Exception e) {
+                        logger.debug("Fehler beim Abrufen der sichtbaren Quill-Position: " + e.getMessage());
+                    }
+                }
+            }
+
             // Konvertierung nicht im FX-Thread durchführen (kann bei großen Bildern hängen)
             if (quillConvertExecutor == null || quillConvertExecutor.isShutdown()) {
                 quillConvertExecutor = Executors.newSingleThreadExecutor(r -> {
@@ -18445,6 +18583,7 @@ spacer.setStyle("-fx-background-color: transparent;");
             }
 
             final String htmlCopy = htmlContent;
+            final String finalQuillVisibleSnippet = quillVisibleSnippet; // Final für Lambda
             // WICHTIG: Hole aktuellen Markdown-Content im FX-Thread, bevor Background-Thread startet
             final String originalMarkdown = codeArea.getText();
             
@@ -18491,25 +18630,16 @@ spacer.setStyle("-fx-background-color: transparent;");
                             
                             // Nur wenn der bereinigte Text unterschiedlich ist, aktualisiere
                             if (!cleanedMarkdown.equals(cleanedCurrent)) {
-                                // WICHTIG: Speichere EXAKTE Cursor-Position und Scroll-Position VOR dem Text-Update
+                                // WICHTIG: Prüfe ob CodeArea fokussiert ist - nur dann Cursor-Position wiederherstellen
+                                boolean codeAreaFocused = codeArea.isFocused();
+                                
+                                // Speichere Cursor-Position für Wiederherstellung (nur wenn fokussiert)
                                 int caretPosition = codeArea.getCaretPosition();
-                                
-                                // Speichere Paragraph-Index für Scroll-Position
-                                int savedParagraphIndex = -1;
-                                try {
-                                    if (caretPosition >= 0 && caretPosition <= currentMarkdownInFX.length()) {
-                                        savedParagraphIndex = codeArea.offsetToPosition(caretPosition, Bias.Forward).getMajor();
-                                    }
-                                } catch (Exception e) {
-                                    logger.debug("Fehler beim Speichern der Paragraph-Index: " + e.getMessage());
-                                }
-                                
-                                // Speichere Text um Cursor herum für exakte Wiederherstellung
                                 String contextBefore = "";
                                 String contextAfter = "";
-                                int contextSize = 50; // Größerer Kontext für bessere Genauigkeit
+                                int contextSize = 50;
                                 
-                                if (caretPosition > 0 && currentMarkdownInFX.length() > 0) {
+                                if (codeAreaFocused && caretPosition > 0 && currentMarkdownInFX.length() > 0) {
                                     int start = Math.max(0, caretPosition - contextSize);
                                     int end = Math.min(currentMarkdownInFX.length(), caretPosition + contextSize);
                                     contextBefore = currentMarkdownInFX.substring(start, caretPosition);
@@ -18520,65 +18650,108 @@ spacer.setStyle("-fx-background-color: transparent;");
                                 
                                 // WICHTIG: isUpdatingFromQuill ist bereits true (wurde oben gesetzt)
                                 // Ersetze Text - dies wird den textProperty() Listener auslösen
-                                // Der Listener prüft isUpdatingFromQuill und ignoriert die Änderung, wenn der bereinigte Text gleich ist
                                 codeArea.replaceText(0, codeArea.getLength(), markdown);
                                 
-                                // WICHTIG: Stelle Cursor-Position EXAKT wieder her
-                                int newPosition = caretPosition; // Fallback: ursprüngliche Position
-                                
-                                // Versuche, exakte Position über Kontext zu finden
-                                if (!contextBefore.isEmpty() || !contextAfter.isEmpty()) {
-                                    // Suche nach dem Kontext-Text im neuen Markdown
-                                    String searchText = contextBefore + contextAfter;
-                                    if (searchText.length() > 0) {
-                                        // Suche von der ursprünglichen Position aus (für bessere Genauigkeit)
-                                        int searchStart = Math.max(0, caretPosition - contextSize * 2);
-                                        int searchEnd = Math.min(markdown.length(), caretPosition + contextSize * 2);
-                                        if (searchStart < searchEnd) {
-                                            String searchArea = markdown.substring(searchStart, searchEnd);
-                                            int foundIndex = searchArea.indexOf(searchText);
+                                // WICHTIG: Stelle Scroll-Position basierend auf Quill-sichtbarer Position wieder her
+                                // Die EXAKT sichtbare mittlere Zeile in Quill muss auch im Editor zentriert sein
+                                if (!finalQuillVisibleSnippet.isEmpty() && finalQuillVisibleSnippet.length() > 3) {
+                                    try {
+                                        // Suche nach dem Quill-sichtbaren Snippet im neuen Markdown
+                                        // Verwende findParagraphBySnippet für zuverlässige Suche
+                                        int paragraphIndex = findParagraphBySnippet(finalQuillVisibleSnippet);
+                                        
+                                        if (paragraphIndex >= 0) {
+                                            // Paragraph gefunden - zentriere ihn im Editor
+                                            scrollEditorToParagraphCentered(paragraphIndex);
+                                            logger.debug("Quill-sichtbare Position synchronisiert: Paragraph " + paragraphIndex);
+                                        } else {
+                                            // Fallback: Suche direkt im Text
+                                            int foundIndex = markdown.indexOf(finalQuillVisibleSnippet);
                                             if (foundIndex >= 0) {
-                                                // Position innerhalb des gefundenen Texts
-                                                newPosition = searchStart + foundIndex + contextBefore.length();
+                                                try {
+                                                    int paraIdx = codeArea.offsetToPosition(foundIndex, Bias.Forward).getMajor();
+                                                    scrollEditorToParagraphCentered(paraIdx);
+                                                    logger.debug("Quill-sichtbare Position synchronisiert (Fallback): Paragraph " + paraIdx);
+                                                } catch (Exception e) {
+                                                    logger.debug("Fehler beim Finden der Paragraph-Position: " + e.getMessage());
+                                                }
                                             } else {
-                                                // Fallback: Suche nur nach contextBefore
-                                                if (!contextBefore.isEmpty()) {
-                                                    foundIndex = searchArea.lastIndexOf(contextBefore);
-                                                    if (foundIndex >= 0) {
-                                                        newPosition = searchStart + foundIndex + contextBefore.length();
+                                                // Fallback 2: Suche nach Teilen des Snippets
+                                                String searchSnippet = finalQuillVisibleSnippet.length() > 50 ? 
+                                                    finalQuillVisibleSnippet.substring(0, 50) : finalQuillVisibleSnippet;
+                                                foundIndex = markdown.indexOf(searchSnippet);
+                                                if (foundIndex >= 0) {
+                                                    try {
+                                                        int paraIdx = codeArea.offsetToPosition(foundIndex, Bias.Forward).getMajor();
+                                                        scrollEditorToParagraphCentered(paraIdx);
+                                                        logger.debug("Quill-sichtbare Position synchronisiert (Fallback 2): Paragraph " + paraIdx);
+                                                    } catch (Exception e) {
+                                                        logger.debug("Fehler beim Finden der Paragraph-Position (Fallback 2): " + e.getMessage());
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    } catch (Exception e) {
+                                        logger.debug("Fehler beim Synchronisieren der Quill-sichtbaren Position: " + e.getMessage());
+                                    }
+                                }
+                                
+                                // WICHTIG: Stelle Cursor-Position NUR wieder her, wenn CodeArea fokussiert war
+                                // Wenn der Benutzer im Quill-Editor tippt, sollte der Cursor im CodeArea nicht springen
+                                if (codeAreaFocused) {
+                                    int newPosition = caretPosition; // Fallback: ursprüngliche Position
+                                    
+                                    // Versuche, exakte Position über Kontext zu finden
+                                    if (!contextBefore.isEmpty() || !contextAfter.isEmpty()) {
+                                        // Suche nach dem Kontext-Text im neuen Markdown
+                                        String searchText = contextBefore + contextAfter;
+                                        if (searchText.length() > 0) {
+                                            // Suche von der ursprünglichen Position aus (für bessere Genauigkeit)
+                                            int searchStart = Math.max(0, caretPosition - contextSize * 2);
+                                            int searchEnd = Math.min(markdown.length(), caretPosition + contextSize * 2);
+                                            if (searchStart < searchEnd) {
+                                                String searchArea = markdown.substring(searchStart, searchEnd);
+                                                int foundIndex = searchArea.indexOf(searchText);
+                                                if (foundIndex >= 0) {
+                                                    // Position innerhalb des gefundenen Texts
+                                                    newPosition = searchStart + foundIndex + contextBefore.length();
+                                                } else {
+                                                    // Fallback: Suche nur nach contextBefore
+                                                    if (!contextBefore.isEmpty()) {
+                                                        foundIndex = searchArea.lastIndexOf(contextBefore);
+                                                        if (foundIndex >= 0) {
+                                                            newPosition = searchStart + foundIndex + contextBefore.length();
+                                                        }
                                                     }
                                                 }
                                             }
                                         }
                                     }
-                                }
-                                
-                                // Stelle sicher, dass Position gültig ist
-                                if (newPosition < 0) {
-                                    newPosition = 0;
-                                } else if (newPosition > markdown.length()) {
-                                    newPosition = markdown.length();
-                                }
-                                
-                                // Setze Cursor-Position EXAKT
-                                codeArea.moveTo(newPosition);
-                                
-                                // WICHTIG: Stelle Scroll-Position wieder her
-                                final int finalSavedParagraph = savedParagraphIndex;
-                                Platform.runLater(() -> {
-                                    try {
-                                        if (finalSavedParagraph >= 0) {
-                                            int totalParagraphs = codeArea.getParagraphs().size();
-                                            if (finalSavedParagraph < totalParagraphs) {
-                                                codeArea.showParagraphInViewport(finalSavedParagraph);
-                                            } else if (totalParagraphs > 0) {
-                                                codeArea.showParagraphInViewport(totalParagraphs - 1);
-                                            }
-                                        }
-                                    } catch (Exception e) {
-                                        logger.debug("Fehler beim Wiederherstellen der Scroll-Position: " + e.getMessage());
+                                    
+                                    // Stelle sicher, dass Position gültig ist
+                                    if (newPosition < 0) {
+                                        newPosition = 0;
+                                    } else if (newPosition > markdown.length()) {
+                                        newPosition = markdown.length();
                                     }
-                                });
+                                    
+                                    // Setze Cursor-Position EXAKT
+                                    codeArea.moveTo(newPosition);
+                                } else {
+                                    // CodeArea ist nicht fokussiert - Cursor-Position nicht ändern
+                                    // Die Scroll-Position wurde bereits wiederhergestellt
+                                    codeArea.moveTo(markdown.length());
+                                    logger.debug("CodeArea nicht fokussiert - Scroll-Position wiederhergestellt");
+                                }
+                                
+                                // WICHTIG: Markiere als geändert, wenn der Text sich tatsächlich geändert hat
+                                // Quill-Änderungen sind Benutzer-Änderungen und sollten als "ungespeichert" erkannt werden
+                                // Prüfe, ob der neue Text vom Original abweicht
+                                String newTextAfterSync = codeArea.getText();
+                                if (!cleanTextForComparison(newTextAfterSync).equals(originalContent)) {
+                                    markAsChanged();
+                                    logger.debug("Quill-Änderung erkannt und als ungespeichert markiert");
+                                }
                                 
                                 updateStatus("Quill Editor synchronisiert");
                             }
@@ -18603,6 +18776,23 @@ spacer.setStyle("-fx-background-color: transparent;");
         public void onQuillScroll(double scrollTop, double scrollHeight) {
             if (isScrollingPreview || codeArea == null || scrollPane == null) {
                 return;
+            }
+            
+            // WICHTIG: Prüfe, ob Quill gerade programmatisch gescrollt wird (Editor → Quill Sync)
+            // Das verhindert Rückkopplung und Sprünge
+            if (previewWebView != null) {
+                javafx.scene.web.WebEngine engine = previewWebView.getEngine();
+                if (engine.getLoadWorker().getState() == javafx.concurrent.Worker.State.SUCCEEDED) {
+                    try {
+                        Object quillScrollingProgrammatically = engine.executeScript("(window.isQuillScrollingProgrammatically || false)");
+                        if (Boolean.TRUE.equals(quillScrollingProgrammatically)) {
+                            // Quill wird gerade programmatisch gescrollt (Editor → Quill), ignoriere dieses Event
+                            return;
+                        }
+                    } catch (Exception e) {
+                        // Ignoriere Fehler
+                    }
+                }
             }
             
             // Synchronisiere Scroll-Position von Quill zu CodeArea (textbasiert)

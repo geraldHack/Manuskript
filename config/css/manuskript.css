@@ -2861,24 +2861,26 @@
 }
 
 /* RichTextFX CodeArea VirtualizedScrollPane Scrollbalken - Standard */
-.code-area .scroll-bar {
-    -fx-background-color: #f3f4f6 !important;
+/* WICHTIG: VirtualizedScrollPane hat eine eigene CSS-Klasse "code-area-scroll-pane" */
+.code-area-scroll-pane .scroll-bar:vertical {
+    -fx-pref-width: 12px !important;
+    -fx-background-color: transparent !important;
 }
 
-.code-area .scroll-bar .thumb {
+.code-area-scroll-pane .scroll-bar:vertical .thumb {
     -fx-background-color: #9ca3af !important;
     -fx-background-insets: 2, 0, 0;
     -fx-background-radius: 2em;
 }
 
-.code-area .scroll-bar .track {
+.code-area-scroll-pane .scroll-bar:vertical .track {
     -fx-background-color: #f3f4f6 !important;
     -fx-background-insets: 2, 0, 0;
     -fx-background-radius: 2em;
 }
 
-.code-area .scroll-bar .increment-button,
-.code-area .scroll-bar .decrement-button {
+.code-area-scroll-pane .scroll-bar:vertical .increment-button,
+.code-area-scroll-pane .scroll-bar:vertical .decrement-button {
     -fx-background-color: #f3f4f6 !important;
 }
 
@@ -2888,24 +2890,25 @@
 }
 
 /* RichTextFX CodeArea VirtualizedScrollPane Scrollbalken - Dark Theme */
-.theme-dark .code-area .scroll-bar {
-    -fx-background-color: #1a1a1a !important;
+.theme-dark .code-area-scroll-pane .scroll-bar:vertical {
+    -fx-pref-width: 12px !important;
+    -fx-background-color: transparent !important;
 }
 
-.theme-dark .code-area .scroll-bar .thumb {
+.theme-dark .code-area-scroll-pane .scroll-bar:vertical .thumb {
     -fx-background-color: #4a5568 !important;
     -fx-background-insets: 2, 0, 0;
     -fx-background-radius: 2em;
 }
 
-.theme-dark .code-area .scroll-bar .track {
+.theme-dark .code-area-scroll-pane .scroll-bar:vertical .track {
     -fx-background-color: #1a1a1a !important;
     -fx-background-insets: 2, 0, 0;
     -fx-background-radius: 2em;
 }
 
-.theme-dark .code-area .scroll-bar .increment-button,
-.theme-dark .code-area .scroll-bar .decrement-button {
+.theme-dark .code-area-scroll-pane .scroll-bar:vertical .increment-button,
+.theme-dark .code-area-scroll-pane .scroll-bar:vertical .decrement-button {
     -fx-background-color: #1a1a1a !important;
 }
 
@@ -2920,24 +2923,25 @@
 }
 
 /* RichTextFX CodeArea VirtualizedScrollPane Scrollbalken - Blau Theme */
-.theme-dark.blau-theme .code-area .scroll-bar {
-    -fx-background-color: #1e3a8a !important;
+.theme-dark.blau-theme .code-area-scroll-pane .scroll-bar:vertical {
+    -fx-pref-width: 12px !important;
+    -fx-background-color: transparent !important;
 }
 
-.theme-dark.blau-theme .code-area .scroll-bar .thumb {
+.theme-dark.blau-theme .code-area-scroll-pane .scroll-bar:vertical .thumb {
     -fx-background-color: #3b82f6 !important;
     -fx-background-insets: 2, 0, 0;
     -fx-background-radius: 2em;
 }
 
-.theme-dark.blau-theme .code-area .scroll-bar .track {
+.theme-dark.blau-theme .code-area-scroll-pane .scroll-bar:vertical .track {
     -fx-background-color: #1e40af !important;
     -fx-background-insets: 2, 0, 0;
     -fx-background-radius: 2em;
 }
 
-.theme-dark.blau-theme .code-area .scroll-bar .increment-button,
-.theme-dark.blau-theme .code-area .scroll-bar .decrement-button {
+.theme-dark.blau-theme .code-area-scroll-pane .scroll-bar:vertical .increment-button,
+.theme-dark.blau-theme .code-area-scroll-pane .scroll-bar:vertical .decrement-button {
     -fx-background-color: #1e3a8a !important;
 }
 
@@ -2951,24 +2955,25 @@
 }
 
 /* RichTextFX CodeArea VirtualizedScrollPane Scrollbalken - Grün Theme */
-.theme-dark.gruen-theme .code-area .scroll-bar {
-    -fx-background-color: #064e3b !important;
+.theme-dark.gruen-theme .code-area-scroll-pane .scroll-bar:vertical {
+    -fx-pref-width: 12px !important;
+    -fx-background-color: transparent !important;
 }
 
-.theme-dark.gruen-theme .code-area .scroll-bar .thumb {
+.theme-dark.gruen-theme .code-area-scroll-pane .scroll-bar:vertical .thumb {
     -fx-background-color: #10b981 !important;
     -fx-background-insets: 2, 0, 0;
     -fx-background-radius: 2em;
 }
 
-.theme-dark.gruen-theme .code-area .scroll-bar .track {
+.theme-dark.gruen-theme .code-area-scroll-pane .scroll-bar:vertical .track {
     -fx-background-color: #065f46 !important;
     -fx-background-insets: 2, 0, 0;
     -fx-background-radius: 2em;
 }
 
-.theme-dark.gruen-theme .code-area .scroll-bar .increment-button,
-.theme-dark.gruen-theme .code-area .scroll-bar .decrement-button {
+.theme-dark.gruen-theme .code-area-scroll-pane .scroll-bar:vertical .increment-button,
+.theme-dark.gruen-theme .code-area-scroll-pane .scroll-bar:vertical .decrement-button {
     -fx-background-color: #064e3b !important;
 }
 
@@ -2982,24 +2987,25 @@
 }
 
 /* RichTextFX CodeArea VirtualizedScrollPane Scrollbalken - Lila Theme */
-.theme-dark.lila-theme .code-area .scroll-bar {
-    -fx-background-color: #4c1d95 !important;
+.theme-dark.lila-theme .code-area-scroll-pane .scroll-bar:vertical {
+    -fx-pref-width: 12px !important;
+    -fx-background-color: transparent !important;
 }
 
-.theme-dark.lila-theme .code-area .scroll-bar .thumb {
+.theme-dark.lila-theme .code-area-scroll-pane .scroll-bar:vertical .thumb {
     -fx-background-color: #8b5cf6 !important;
     -fx-background-insets: 2, 0, 0;
     -fx-background-radius: 2em;
 }
 
-.theme-dark.lila-theme .code-area .scroll-bar .track {
+.theme-dark.lila-theme .code-area-scroll-pane .scroll-bar:vertical .track {
     -fx-background-color: #5b21b6 !important;
     -fx-background-insets: 2, 0, 0;
     -fx-background-radius: 2em;
 }
 
-.theme-dark.lila-theme .code-area .scroll-bar .increment-button,
-.theme-dark.lila-theme .code-area .scroll-bar .decrement-button {
+.theme-dark.lila-theme .code-area-scroll-pane .scroll-bar:vertical .increment-button,
+.theme-dark.lila-theme .code-area-scroll-pane .scroll-bar:vertical .decrement-button {
     -fx-background-color: #4c1d95 !important;
 }
 
@@ -3013,24 +3019,25 @@
 }
 
 /* RichTextFX CodeArea VirtualizedScrollPane Scrollbalken - Weiß Theme */
-.weiss-theme .code-area .scroll-bar {
-    -fx-background-color: #ffffff !important;
+.weiss-theme .code-area-scroll-pane .scroll-bar:vertical {
+    -fx-pref-width: 12px !important;
+    -fx-background-color: transparent !important;
 }
 
-.weiss-theme .code-area .scroll-bar .thumb {
+.weiss-theme .code-area-scroll-pane .scroll-bar:vertical .thumb {
     -fx-background-color: #9ca3af !important;
     -fx-background-insets: 2, 0, 0;
     -fx-background-radius: 2em;
 }
 
-.weiss-theme .code-area .scroll-bar .track {
+.weiss-theme .code-area-scroll-pane .scroll-bar:vertical .track {
     -fx-background-color: #f3f4f6 !important;
     -fx-background-insets: 2, 0, 0;
     -fx-background-radius: 2em;
 }
 
-.weiss-theme .code-area .scroll-bar .increment-button,
-.weiss-theme .code-area .scroll-bar .decrement-button {
+.weiss-theme .code-area-scroll-pane .scroll-bar:vertical .increment-button,
+.weiss-theme .code-area-scroll-pane .scroll-bar:vertical .decrement-button {
     -fx-background-color: #ffffff !important;
 }
 
@@ -3044,24 +3051,25 @@
 }
 
 /* RichTextFX CodeArea VirtualizedScrollPane Scrollbalken - Pastell Theme */
-.pastell-theme .code-area .scroll-bar {
-    -fx-background-color: #e8d5f2 !important;
+.pastell-theme .code-area-scroll-pane .scroll-bar:vertical {
+    -fx-pref-width: 12px !important;
+    -fx-background-color: transparent !important;
 }
 
-.pastell-theme .code-area .scroll-bar .thumb {
+.pastell-theme .code-area-scroll-pane .scroll-bar:vertical .thumb {
     -fx-background-color: #ba68c8 !important;
     -fx-background-insets: 2, 0, 0;
     -fx-background-radius: 2em;
 }
 
-.pastell-theme .code-area .scroll-bar .track {
+.pastell-theme .code-area-scroll-pane .scroll-bar:vertical .track {
     -fx-background-color: #e1bee7 !important;
     -fx-background-insets: 2, 0, 0;
     -fx-background-radius: 2em;
 }
 
-.pastell-theme .code-area .scroll-bar .increment-button,
-.pastell-theme .code-area .scroll-bar .decrement-button {
+.pastell-theme .code-area-scroll-pane .scroll-bar:vertical .increment-button,
+.pastell-theme .code-area-scroll-pane .scroll-bar:vertical .decrement-button {
     -fx-background-color: #e8d5f2 !important;
 }
 
