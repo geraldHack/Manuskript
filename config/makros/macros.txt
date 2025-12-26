@@ -8,7 +8,7 @@ CASE:0
 WORD:0
 ENABLED:1
 STEPDESC:ALLE Unicode doppelte Anführungszeichen zu englisch
-REPLACECOUNT:8
+REPLACECOUNT:56
 STEP:2
 SEARCH:[\u2018\u2019\u201A\u201B\u2039\u203A]
 REPLACE:'
@@ -17,7 +17,7 @@ CASE:0
 WORD:0
 ENABLED:1
 STEPDESC:ALLE Unicode einfache Anführungszeichen zu englisch
-REPLACECOUNT:8
+REPLACECOUNT:7
 STEP:3
 SEARCH:(?m)(?<=[^\n ])[ ]{2,}
 REPLACE: 
@@ -26,7 +26,7 @@ CASE:0
 WORD:0
 ENABLED:1
 STEPDESC:Mehrfache Leerzeichen reduzieren (nicht am Zeilenanfang)
-REPLACECOUNT:4
+REPLACECOUNT:0
 STEP:4
 SEARCH:\n{3,}
 REPLACE:\n\n
@@ -35,7 +35,7 @@ CASE:0
 WORD:0
 ENABLED:1
 STEPDESC:Mehrfache Leerzeilen reduzieren (3+ auf 2)
-REPLACECOUNT:4
+REPLACECOUNT:0
 STEP:5
 SEARCH:(?m)^(?!\s*(?:>|\||[-*+]|\d+\.))([^\r\n]+)\r?\n(?!\r?\n)^(\s*>\s*[^\r\n]*|\s*\|\s*[^\r\n]*|\s*(?:[-*+]|\d+\.)\s*[^\r\n]*)
 REPLACE:$1\n\n$2
@@ -44,7 +44,7 @@ CASE:0
 WORD:0
 ENABLED:0
 STEPDESC:Leerzeile VOR Zitaten/Tabellen/Listen einfügen (wenn vorher normale Zeile)
-REPLACECOUNT:3
+REPLACECOUNT:0
 STEP:6
 SEARCH:(?m)^(\s*>\s*[^\r\n]*)\r?\n\r?\n^(\s*>\s*[^\r\n]*)
 REPLACE:$1\n$2
@@ -71,7 +71,7 @@ CASE:0
 WORD:0
 ENABLED:0
 STEPDESC:Leerzeilen INNERHALB Listen entfernen
-REPLACECOUNT:1
+REPLACECOUNT:0
 STEP:9
 SEARCH:(?m)^(\s*>\s*[^\r\n]*)\r?\n(?!\r?\n)^(\s*\|\s*[^\r\n]*|\s*(?:[-*+]|\d+\.)\s*[^\r\n]*)
 REPLACE:$1\n\n$2
@@ -107,7 +107,7 @@ CASE:0
 WORD:0
 ENABLED:0
 STEPDESC:Leerzeile NACH Zitaten/Tabellen/Listen einfügen
-REPLACECOUNT:2
+REPLACECOUNT:0
 STEP:13
 SEARCH:(?m)^([^\r\n]+)\r?\n(?!\r?\n)(?!\s*(?:>|\||\s*(?:[-*+]|\d+\.)))^([^\r\n]+)
 REPLACE:$1\n\n$2
@@ -116,7 +116,7 @@ CASE:0
 WORD:0
 ENABLED:0
 STEPDESC:Leerzeilen zwischen normalen Absätzen einfügen
-REPLACECOUNT:10
+REPLACECOUNT:0
 STEP:14
 SEARCH:(?m)^([^\r\n]*~~[^\r\n]*)\r?\n(?!\r?\n)(?!\s*(?:>|\||\s*(?:[-*+]|\d+\.)))^([^\r\n]+)
 REPLACE:$1\n\n$2
@@ -134,7 +134,7 @@ CASE:0
 WORD:0
 ENABLED:1
 STEPDESC:Auslassungszeichen
-REPLACECOUNT:4
+REPLACECOUNT:0
 STEP:16
 SEARCH:(\b)…
 REPLACE: …
@@ -143,7 +143,7 @@ CASE:0
 WORD:0
 ENABLED:1
 STEPDESC:Buchstabe direkt an Auslassungszeichen
-REPLACECOUNT:1
+REPLACECOUNT:0
 STEP:17
 SEARCH:…(\b)
 REPLACE:… 
@@ -197,7 +197,7 @@ CASE:0
 WORD:0
 ENABLED:1
 STEPDESC:Komma vor Anführungszeichen
-REPLACECOUNT:1
+REPLACECOUNT:0
 STEP:23
 SEARCH:"(.*?)"
 REPLACE:»$1«
@@ -206,7 +206,7 @@ CASE:0
 WORD:0
 ENABLED:1
 STEPDESC:Englisch zu Französisch - doppelte Anführungszeichen
-REPLACECOUNT:5
+REPLACECOUNT:28
 STEP:24
 SEARCH:(^|[\s\.,!?;:"„»«])'([^']+)'([\s\.,!?;:"„»«]|$)
 REPLACE:$1›$2‹$3
@@ -215,7 +215,7 @@ CASE:0
 WORD:0
 ENABLED:1
 STEPDESC:Englisch zu Französisch - einfache Anführungszeichen
-REPLACECOUNT:5
+REPLACECOUNT:3
 STEP:25
 SEARCH:"(.*?)"
 REPLACE:„$1"
@@ -260,5 +260,5 @@ CASE:0
 WORD:0
 ENABLED:1
 STEPDESC:typografisches Anführungszeichen
-REPLACECOUNT:2
+REPLACECOUNT:1
 ENDMACRO

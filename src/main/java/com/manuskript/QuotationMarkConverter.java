@@ -100,7 +100,8 @@ public class QuotationMarkConverter {
         // WICHTIG: Nur Paare finden, die NICHT direkt an Buchstaben grenzen (keine Apostrophe)
         // Das öffnende ' muss am Textanfang, nach Leerzeichen/Satzzeichen oder nach Anführungszeichen stehen
         // Das schließende ' muss vor Leerzeichen/Satzzeichen, vor Anführungszeichen oder am Textende stehen
-        text = text.replaceAll("(^|[\\s\\.,!?;:\"„»«])'([^']+)'([\\s\\.,!?;:\"„»«]|$)", "$1›$2‹$3");
+        // Öffnend: U+203A (›), Schließend: U+2039 (‹)
+        text = text.replaceAll("(^|[\\s\\.,!?;:\"„»«])'([^']+)'([\\s\\.,!?;:\"„»«]|$)", "$1\u203A$2\u2039$3");
         
         return text;
     }

@@ -511,6 +511,13 @@
                 var scrollContainer = document.querySelector('.ql-editor');
                 if (scrollContainer) {
                     scrollContainer.addEventListener('scroll', function() {
+                        // WICHTIG: Ignoriere Scroll-Events während programmatischer Updates (verhindert Feedback-Schleife)
+                        // Wenn isUpdatingFromCodeArea gesetzt ist, wurde der Content gerade programmatisch gesetzt
+                        // und wir sollten NICHT zurück zum Editor synchronisieren (verhindert Zucken)
+                        if (window.isUpdatingFromCodeArea) {
+                            return; // Ignoriere Scroll-Event komplett während programmatischer Updates
+                        }
+                        
                         // WICHTIG: Nur Flag setzen, wenn NICHT programmatisch gescrollt wird
                         // Wenn isQuillScrollingProgrammatically gesetzt ist, dann wurde programmatisch gescrollt
                         // und wir sollten NICHT zurück zum Editor synchronisieren

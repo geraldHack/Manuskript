@@ -54,8 +54,8 @@ public class QuotationMarkConverterTest {
         // Test: Gerade Anführungszeichen zu französischen typographischen Zeichen
         String result1 = QuotationMarkConverter.convertQuotationMarks("'Goliath'", "französisch");
         // Sollte französische einfache Anführungszeichen haben: › und ‹
-        assertTrue(result1.contains("\u203A")); // › (französisches schließendes einfaches Anführungszeichen)
-        assertTrue(result1.contains("\u2039")); // ‹ (französisches öffnendes einfaches Anführungszeichen)
+        assertTrue(result1.contains("\u203A")); // › (französisches öffnendes einfaches Anführungszeichen)
+        assertTrue(result1.contains("\u2039")); // ‹ (französisches schließendes einfaches Anführungszeichen)
         
         // Test: Doppelte Anführungszeichen zu französischen typographischen Zeichen
         String result2 = QuotationMarkConverter.convertQuotationMarks("\"Test\"", "französisch");
@@ -93,7 +93,7 @@ public class QuotationMarkConverterTest {
         
         assertEquals("»Ich sag' es ja: don't.«", french1, "Französisch: Apostrophe müssen bleiben");
         assertEquals("»Das ist Palues'.«", french2, "Französisch: Apostroph am Wortende muss bleiben");
-        assertEquals("»Das ist ›falsch‹.«", french3, "Französisch: Anführungszeichen-Paar muss konvertiert werden");
+        assertEquals("»Das ist \u203Afalsch\u2039.«", french3, "Französisch: Anführungszeichen-Paar muss konvertiert werden");
 
         // Deutsch
         String german1 = QuotationMarkConverter.convertQuotationMarks(input1, "deutsch");

@@ -261,6 +261,8 @@ public class EditorWindow implements Initializable {
     private Preferences preferences;
     private ScheduledExecutorService previewUpdateExecutor;
     private ScheduledFuture<?> previewUpdateFuture;
+    // Flag um zu verhindern, dass Preview-Window-Listener mehrfach hinzugefügt werden
+    private boolean previewWindowListenersAdded = false;
     // Für Quill->Markdown Konvertierung (nicht im FX-Thread, um Hänger zu vermeiden)
     private ExecutorService quillConvertExecutor;
     private Future<?> quillConvertFuture;
@@ -664,6 +666,7 @@ if (caret != null) {
                         
                         // Erstelle neue Timeline mit Debouncing (500ms für bessere Performance)
                         // WICHTIG: updateQuillContent() wird asynchron aufgerufen, um UI nicht zu blockieren
+                        // WICHTIG: Editor → Quill Sync soll IMMER funktionieren (auch wenn Editor fokussiert ist)
                         editorToQuillUpdateTimeline = new Timeline(new KeyFrame(Duration.millis(500), event -> {
                             // Prüfe nochmal, ob Update noch nötig ist
                             if (!isUpdatingFromQuill && !isUpdatingFromCodeArea && 
@@ -2279,6 +2282,10 @@ if (caret != null) {
         
         // Fenster anzeigen
         errorStage.show();
+        
+        // Fenster in den Vordergrund bringen
+        errorStage.toFront();
+        errorStage.requestFocus();
         
         // Status aktualisieren
         updateStatus("⚠️ " + quoteErrors.size() + " Anführungszeichen-Fehler gefunden und angezeigt.", true);
@@ -5010,15 +5017,30 @@ if (caret != null) {
         StringBuilder html = new StringBuilder();
         html.append("<!DOCTYPE html>\n<html><head><meta charset=\"UTF-8\"></head><body>\n");
         String[] lines = markdown.split("\n", -1);
+        boolean lastWasEmpty = false; // Verhindert mehrere aufeinanderfolgende <br>
+        boolean lastWasParagraph = false; // Verhindert <br> direkt nach <p>
         for (int i = 0; i < lines.length; i++) {
             String line = lines[i];
             String trimmed = line.trim();
 
-            // Leere Zeile -> Absatzumbruch
+            // Leere Zeile -> Absatzumbruch (aber nur wenn nicht direkt nach einem Absatz)
+            // <p> Tags haben bereits einen Absatzumbruch, daher kein zusätzliches <br> nötig
             if (trimmed.isEmpty()) {
-                html.append("<br>\n");
+                // Nur <br> einfügen, wenn:
+                // 1. Die vorherige Zeile NICHT leer war (verhindert mehrere <br>)
+                // 2. Die vorherige Zeile KEIN Absatz war (verhindert <br> nach <p>)
+                if (!lastWasEmpty && !lastWasParagraph) {
+                    html.append("<br>\n");
+                    lastWasEmpty = true;
+                    lastWasParagraph = false;
+                } else {
+                    lastWasEmpty = true;
+                    lastWasParagraph = false;
+                }
                 continue;
             }
+            lastWasEmpty = false;
+            lastWasParagraph = false; // Wird unten auf true gesetzt, wenn ein Absatz erzeugt wird
 
             // Blockquote: als wörtliches ">Text" ausgeben, ohne <p>-Wrapper (einige Tools strippen sonst den Inhalt)
             if (trimmed.startsWith(">")) {
@@ -5032,27 +5054,33 @@ if (caret != null) {
             // Überschriften auf <p><strong> … </strong></p> abbilden
             if (trimmed.startsWith("# ")) {
                 html.append("<p><strong>").append(convertInlineMarkdownForClipboard(trimmed.substring(2))).append("</strong></p>\n");
+                lastWasParagraph = true;
                 continue;
             } else if (trimmed.startsWith("## ")) {
                 html.append("<p><strong>").append(convertInlineMarkdownForClipboard(trimmed.substring(3))).append("</strong></p>\n");
+                lastWasParagraph = true;
                 continue;
             } else if (trimmed.startsWith("### ")) {
                 html.append("<p><strong>").append(convertInlineMarkdownForClipboard(trimmed.substring(4))).append("</strong></p>\n");
+                lastWasParagraph = true;
                 continue;
             }
 
             // Listen: als einfache Bullet-Zeilen ausgeben
             if (trimmed.matches("^[-*+]\\s+.*")) {
                 html.append("<p>&bull; ").append(convertInlineMarkdownForClipboard(trimmed.substring(trimmed.indexOf(' ') + 1))).append("</p>\n");
+                lastWasParagraph = true;
                 continue;
             } else if (trimmed.matches("^\\d+\\.\\s+.*")) {
                 html.append("<p>").append(convertInlineMarkdownForClipboard(trimmed)).append("</p>\n");
+                lastWasParagraph = true;
                 continue;
             }
 
             // Horizontale Linie
             if (trimmed.matches("^[-*_]{3,}$")) {
                 html.append("<p>──────────</p>\n");
+                lastWasParagraph = true;
                 continue;
             }
 
@@ -5063,6 +5091,7 @@ if (caret != null) {
 
             // Standardabsatz
             html.append("<p>").append(convertInlineMarkdownForClipboard(line)).append("</p>\n");
+            lastWasParagraph = true;
         }
         html.append("</body></html>");
         return html.toString();
@@ -5547,7 +5576,8 @@ if (caret != null) {
                     if (mainController != null && originalDocxFile != null) {
                     File mdFile = deriveSidecarFileFor(originalDocxFile, outputFormat);
                     DocxFile docxFile = new DocxFile(originalDocxFile);
-                    mainController.showDetailedDiffDialog(docxFile, mdFile, null, outputFormat);
+                    // WICHTIG: Übergib diesen Editor als aufrufenden Editor
+                    mainController.showDetailedDiffDialog(docxFile, mdFile, null, outputFormat, this);
                 }
             }
             }
@@ -5830,7 +5860,8 @@ if (caret != null) {
                 if (mainController != null && originalDocxFile != null) {
                     File mdFile = deriveSidecarFileFor(originalDocxFile, outputFormat);
                     DocxFile docxFile = new DocxFile(originalDocxFile);
-                    mainController.showDetailedDiffDialog(docxFile, mdFile, null, outputFormat);
+                    // WICHTIG: Übergib diesen Editor als aufrufenden Editor
+                    mainController.showDetailedDiffDialog(docxFile, mdFile, null, outputFormat, this);
                 }
                 return false; // Navigation abbrechen (Dialog bleibt offen)
             } else if (result.get() == cancelButton) {
@@ -6400,12 +6431,12 @@ if (caret != null) {
                 // EINGEBAUTE UNDO-FUNKTIONALITÄT VERWENDEN - kein manueller Aufruf nötig
                 
                 String content = new String(Files.readAllBytes(file.toPath()));
-                codeArea.replaceText(content);
+                // Standard-Textladen über setText (ohne automatische Anführungszeichen-Konvertierung)
+                setText(content);
+                currentFile = file;
                 // Cursor an den Anfang setzen
                 codeArea.displaceCaret(0);
                 codeArea.requestFollowCaret();
-                currentFile = file;
-                updateStatus("Datei geöffnet: " + file.getName());
             } catch (IOException e) {
                 updateStatusError("Fehler beim Öffnen: " + e.getMessage());
             }
@@ -7039,6 +7070,9 @@ if (caret != null) {
                 event.consume(); // Verhindere Schließen
                 showSaveDialog();
             } else {
+                // Schließe alle abhängigen Fenster bevor der Editor geschlossen wird
+                closeAllDependentWindows();
+                
                 // Keine Änderungen - Fenster schließen und prüfen ob es das letzte ist
                 Platform.runLater(() -> {
                     // Prüfe ob noch andere Fenster offen sind
@@ -7151,9 +7185,43 @@ if (caret != null) {
     }
     
     /**
+     * Schließt alle abhängigen Fenster (Preview, KI-Assistent, Makros, Textanalyse)
+     */
+    private void closeAllDependentWindows() {
+        // Preview-Fenster schließen
+        if (previewStage != null && previewStage.isShowing()) {
+            savePreviewWindowProperties();
+            previewStage.close();
+        }
+        
+        // KI-Assistent (OllamaWindow) schließen
+        if (ollamaWindow != null && ollamaWindow.isShowing()) {
+            // Stelle die ursprünglichen Anführungszeichen wieder her
+            restoreOriginalQuotes();
+            ollamaWindow.hide();
+            ollamaWindowVisible = false;
+        }
+        
+        // Makro-Fenster schließen
+        if (macroStage != null && macroStage.isShowing()) {
+            macroStage.close();
+            macroWindowVisible = false;
+        }
+        
+        // Textanalyse-Fenster schließen
+        if (textAnalysisStage != null && textAnalysisStage.isShowing()) {
+            textAnalysisStage.close();
+            textAnalysisWindowVisible = false;
+        }
+    }
+    
+    /**
      * Schließt das Editor-Fenster programmatisch
      */
     public void closeWindow() {
+        // Schließe alle abhängigen Fenster bevor der Editor geschlossen wird
+        closeAllDependentWindows();
+        
         if (stage != null) {
             stage.close();
         }
@@ -9168,60 +9236,114 @@ spacer.setStyle("-fx-background-color: transparent;");
      */
     private void loadPreviewWindowProperties() {
         if (previewStage == null || preferences == null) {
+            logger.warn("Konnte Preview-Fenster-Eigenschaften nicht laden: previewStage oder preferences ist null");
             return;
         }
         
-        // Verwende die neue Multi-Monitor-Validierung
-        Rectangle2D windowBounds = PreferencesManager.MultiMonitorValidator.loadAndValidateWindowProperties(
-            preferences, "preview_window", 1000.0, 800.0);
-        
-        // Wende die validierten Eigenschaften an
-        PreferencesManager.MultiMonitorValidator.applyWindowProperties(previewStage, windowBounds);
-        
-        // Event-Handler für Fenster-Änderungen (automatisches Speichern)
-        previewStage.xProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal != null && !newVal.equals(oldVal)) {
-                preferences.putDouble("preview_window_x", newVal.doubleValue());
-                try {
-                    preferences.flush();
-                } catch (Exception e) {
-                    logger.debug("Konnte Preview-Fenster-X-Position nicht speichern: " + e.getMessage());
+        // Lade Eigenschaften immer (auch wenn bereits gesetzt, um sicherzustellen, dass gespeicherte Werte verwendet werden)
+        // Prüfe nur, ob es bereits gespeicherte Werte gibt
+        try {
+            double savedX = preferences.getDouble("preview_window_x", -1);
+            double savedY = preferences.getDouble("preview_window_y", -1);
+            double savedWidth = preferences.getDouble("preview_window_width", -1);
+            double savedHeight = preferences.getDouble("preview_window_height", -1);
+            
+            // Wenn gespeicherte Werte vorhanden sind, verwende sie
+            // WICHTIG: Prüfe auch, ob Breite/Höhe gespeichert sind (können auch ohne Position sein)
+            if (savedX >= 0 && savedY >= 0) {
+                // Position ist gespeichert
+                if (savedWidth > 0 && savedHeight > 0) {
+                    // Auch Größe ist gespeichert
+                    logger.info("Lade Preview-Fenster-Eigenschaften aus Preferences: x={}, y={}, width={}, height={}", 
+                               savedX, savedY, savedWidth, savedHeight);
+                } else {
+                    // Nur Position ist gespeichert, verwende Standard-Größe
+                    logger.info("Lade Preview-Fenster-Position aus Preferences: x={}, y={}, verwende Standard-Größe", 
+                               savedX, savedY);
                 }
+                
+                // Verwende die neue Multi-Monitor-Validierung
+                Rectangle2D windowBounds = PreferencesManager.MultiMonitorValidator.loadAndValidateWindowProperties(
+                    preferences, "preview_window", 1000.0, 800.0);
+                
+                // Wende die validierten Eigenschaften an
+                PreferencesManager.MultiMonitorValidator.applyWindowProperties(previewStage, windowBounds);
+                
+                logger.info("Preview-Fenster-Eigenschaften angewendet: x={}, y={}, width={}, height={}", 
+                           windowBounds.getMinX(), windowBounds.getMinY(), windowBounds.getWidth(), windowBounds.getHeight());
+            } else if (savedWidth > 0 && savedHeight > 0) {
+                // Nur Größe ist gespeichert, Position nicht
+                logger.info("Lade Preview-Fenster-Größe aus Preferences: width={}, height={}", savedWidth, savedHeight);
+                previewStage.setWidth(savedWidth);
+                previewStage.setHeight(savedHeight);
+            } else {
+                logger.info("Keine gespeicherten Preview-Fenster-Eigenschaften gefunden, verwende Standardwerte");
             }
-        });
+        } catch (Exception e) {
+            logger.error("Fehler beim Laden der Preview-Fenster-Eigenschaften: " + e.getMessage(), e);
+        }
         
-        previewStage.yProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal != null && !newVal.equals(oldVal)) {
-                preferences.putDouble("preview_window_y", newVal.doubleValue());
-                try {
-                    preferences.flush();
-                } catch (Exception e) {
-                    logger.debug("Konnte Preview-Fenster-Y-Position nicht speichern: " + e.getMessage());
+        // Event-Handler für Fenster-Änderungen (automatisches Speichern) - nur einmal hinzufügen
+        if (!previewWindowListenersAdded) {
+            previewWindowListenersAdded = true;
+            
+            // Flag um zu verhindern, dass beim Laden der Eigenschaften gespeichert wird
+            final boolean[] isLoadingProperties = {true};
+            
+            // Setze Flag nach kurzer Verzögerung zurück, damit normale Änderungen gespeichert werden
+            Platform.runLater(() -> {
+                Platform.runLater(() -> {
+                    isLoadingProperties[0] = false;
+                    logger.debug("Preview-Window-Listener aktiviert - Änderungen werden jetzt gespeichert");
+                });
+            });
+            
+            previewStage.xProperty().addListener((obs, oldVal, newVal) -> {
+                if (isLoadingProperties[0]) {
+                    logger.debug("Ignoriere X-Änderung während des Ladens: {}", newVal);
+                    return;
                 }
-            }
-        });
-        
-        previewStage.widthProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal != null && !newVal.equals(oldVal) && newVal.doubleValue() >= 600) {
-                preferences.putDouble("preview_window_width", newVal.doubleValue());
-                try {
-                    preferences.flush();
-                } catch (Exception e) {
-                    logger.debug("Konnte Preview-Fenster-Breite nicht speichern: " + e.getMessage());
+                if (newVal != null && !newVal.equals(oldVal)) {
+                    // WICHTIG: Kein flush() hier - wie bei Schriftart und PandocExportWindow
+                    // Preferences werden automatisch gespeichert, flush() nur beim expliziten Speichern
+                    preferences.putDouble("preview_window_x", newVal.doubleValue());
+                    logger.debug("Preview-Fenster-X-Position gespeichert: {}", newVal);
                 }
-            }
-        });
-        
-        previewStage.heightProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal != null && !newVal.equals(oldVal) && newVal.doubleValue() >= 400) {
-                preferences.putDouble("preview_window_height", newVal.doubleValue());
-                try {
-                    preferences.flush();
-                } catch (Exception e) {
-                    logger.debug("Konnte Preview-Fenster-Höhe nicht speichern: " + e.getMessage());
+            });
+            
+            previewStage.yProperty().addListener((obs, oldVal, newVal) -> {
+                if (isLoadingProperties[0]) {
+                    logger.debug("Ignoriere Y-Änderung während des Ladens: {}", newVal);
+                    return;
                 }
-            }
-        });
+                if (newVal != null && !newVal.equals(oldVal)) {
+                    preferences.putDouble("preview_window_y", newVal.doubleValue());
+                    logger.debug("Preview-Fenster-Y-Position gespeichert: {}", newVal);
+                }
+            });
+            
+            previewStage.widthProperty().addListener((obs, oldVal, newVal) -> {
+                if (isLoadingProperties[0]) {
+                    logger.debug("Ignoriere Width-Änderung während des Ladens: {}", newVal);
+                    return;
+                }
+                if (newVal != null && !newVal.equals(oldVal) && newVal.doubleValue() >= 600) {
+                    preferences.putDouble("preview_window_width", newVal.doubleValue());
+                    logger.debug("Preview-Fenster-Breite gespeichert: {}", newVal);
+                }
+            });
+            
+            previewStage.heightProperty().addListener((obs, oldVal, newVal) -> {
+                if (isLoadingProperties[0]) {
+                    logger.debug("Ignoriere Height-Änderung während des Ladens: {}", newVal);
+                    return;
+                }
+                if (newVal != null && !newVal.equals(oldVal) && newVal.doubleValue() >= 400) {
+                    preferences.putDouble("preview_window_height", newVal.doubleValue());
+                    logger.debug("Preview-Fenster-Höhe gespeichert: {}", newVal);
+                }
+            });
+        } // Ende der Listener-Registrierung
     }
     
     /**
@@ -9229,17 +9351,55 @@ spacer.setStyle("-fx-background-color: transparent;");
      */
     private void savePreviewWindowProperties() {
         if (previewStage == null || preferences == null) {
+            logger.warn("Konnte Preview-Fenster-Eigenschaften nicht speichern: previewStage oder preferences ist null");
             return;
         }
         
+        // WICHTIG: Speichere auch wenn Fenster versteckt ist (beim Verstecken/Beenden)
+        // Die Prüfung auf isShowing() würde verhindern, dass beim Verstecken gespeichert wird
+        
         try {
-            preferences.putDouble("preview_window_x", previewStage.getX());
-            preferences.putDouble("preview_window_y", previewStage.getY());
-            preferences.putDouble("preview_window_width", previewStage.getWidth());
-            preferences.putDouble("preview_window_height", previewStage.getHeight());
-            preferences.flush();
+            double x = previewStage.getX();
+            double y = previewStage.getY();
+            double width = previewStage.getWidth();
+            double height = previewStage.getHeight();
+            
+            // Validiere Werte bevor Speichern
+            if (Double.isNaN(x) || Double.isNaN(y) || Double.isNaN(width) || Double.isNaN(height) ||
+                Double.isInfinite(x) || Double.isInfinite(y) || Double.isInfinite(width) || Double.isInfinite(height)) {
+                logger.warn("Ungültige Preview-Fenster-Eigenschaften - speichere nicht: x={}, y={}, width={}, height={}", x, y, width, height);
+                return;
+            }
+            
+            // Prüfe ob Werte gültig sind (nicht 0 oder negativ für Größe)
+            if (width <= 0 || height <= 0) {
+                logger.warn("Ungültige Preview-Fenster-Größe - speichere nicht: width={}, height={}", width, height);
+                return;
+            }
+            
+            // Speichere Werte - verwende die gleiche Methode wie bei Schriftart (ohne flush in jedem Schritt)
+            preferences.putDouble("preview_window_x", x);
+            preferences.putDouble("preview_window_y", y);
+            preferences.putDouble("preview_window_width", width);
+            preferences.putDouble("preview_window_height", height);
+            
+            // WICHTIG: Flush explizit aufrufen, um sicherzustellen, dass die Werte gespeichert werden
+            // (Schriftart verwendet kein flush, aber für Fenster-Eigenschaften ist es wichtig)
+            try {
+                preferences.flush();
+                logger.info("Preview-Fenster-Eigenschaften gespeichert: x={}, y={}, width={}, height={}", x, y, width, height);
+                
+                // Verifiziere, dass die Werte tatsächlich gespeichert wurden
+                double savedX = preferences.getDouble("preview_window_x", -1);
+                double savedY = preferences.getDouble("preview_window_y", -1);
+                double savedWidth = preferences.getDouble("preview_window_width", -1);
+                double savedHeight = preferences.getDouble("preview_window_height", -1);
+                logger.info("Verifizierung - Gespeicherte Werte: x={}, y={}, width={}, height={}", savedX, savedY, savedWidth, savedHeight);
+            } catch (Exception flushException) {
+                logger.error("Fehler beim Flush der Preview-Fenster-Eigenschaften: " + flushException.getMessage(), flushException);
+            }
         } catch (Exception e) {
-            logger.debug("Fehler beim Speichern der Preview-Fenster-Eigenschaften: " + e.getMessage());
+            logger.error("Fehler beim Speichern der Preview-Fenster-Eigenschaften: " + e.getMessage(), e);
         }
     }
     
@@ -14068,8 +14228,33 @@ spacer.setStyle("-fx-background-color: transparent;");
         if (previewStage == null || !previewStage.isShowing()) {
             createPreviewWindow();
             previewStage.show();
+            
+            // WICHTIG: Lade Eigenschaften NACH dem Anzeigen, um sicherzustellen, dass sie nicht überschrieben werden
+            Platform.runLater(() -> {
+                if (previewStage != null && preferences != null) {
+                    try {
+                        double savedX = preferences.getDouble("preview_window_x", -1);
+                        double savedY = preferences.getDouble("preview_window_y", -1);
+                        double savedWidth = preferences.getDouble("preview_window_width", -1);
+                        double savedHeight = preferences.getDouble("preview_window_height", -1);
+                        
+                        if (savedX >= 0 && savedY >= 0 && savedWidth > 0 && savedHeight > 0) {
+                            Rectangle2D windowBounds = PreferencesManager.MultiMonitorValidator.loadAndValidateWindowProperties(
+                                preferences, "preview_window", 1000.0, 800.0);
+                            PreferencesManager.MultiMonitorValidator.applyWindowProperties(previewStage, windowBounds);
+                            logger.info("Preview-Fenster-Eigenschaften nach Anzeigen angewendet: x={}, y={}, width={}, height={}", 
+                                       windowBounds.getMinX(), windowBounds.getMinY(), windowBounds.getWidth(), windowBounds.getHeight());
+                        }
+                    } catch (Exception e) {
+                        logger.warn("Fehler beim Anwenden der Preview-Fenster-Eigenschaften nach Anzeigen: " + e.getMessage());
+                    }
+                }
+            });
+            
             updateStatus("Preview geöffnet");
         } else {
+            // WICHTIG: Speichere Preferences bevor das Fenster versteckt wird
+            savePreviewWindowProperties();
             previewStage.hide();
             updateStatus("Preview geschlossen");
         }
@@ -14082,10 +14267,12 @@ spacer.setStyle("-fx-background-color: transparent;");
         if (previewStage == null) {
             previewStage = StageManager.createStage("Quill Editor");
             previewStage.setResizable(true);
-            previewStage.setWidth(1000);
-            previewStage.setHeight(800);
             previewStage.setMinWidth(600);
             previewStage.setMinHeight(400);
+            
+            // Setze Standardwerte - werden in loadPreviewWindowProperties() überschrieben falls vorhanden
+            previewStage.setWidth(1000);
+            previewStage.setHeight(800);
             
             // WebView für Quill Editor erstellen
             previewWebView = new WebView();
@@ -14095,6 +14282,11 @@ spacer.setStyle("-fx-background-color: transparent;");
             btnToggleJustify = new Button("Blocksatz");
             btnToggleJustify.getStyleClass().add("button");
             btnToggleJustify.setOnAction(e -> togglePreviewJustify());
+            
+            // Lade gespeicherten Blocksatz-Status
+            if (preferences != null) {
+                previewJustifyEnabled = preferences.getBoolean("preview_justify_enabled", false);
+            }
             updateJustifyButtonStyle();
             
             // Layout erstellen mit VBox für besseres Resizing
@@ -14232,8 +14424,31 @@ spacer.setStyle("-fx-background-color: transparent;");
             // Labels stylen basierend auf Theme
             updatePreviewWindowLabels();
             
-            // Fenster-Position und Größe laden
-            loadPreviewWindowProperties();
+            // WICHTIG: Fenster-Eigenschaften NACH setSceneWithTitleBar laden
+            // Verwende Platform.runLater, um sicherzustellen, dass die Scene vollständig geladen ist
+            Platform.runLater(() -> {
+                // Fenster-Position und Größe laden (Listener registrieren)
+                loadPreviewWindowProperties();
+                
+                // WICHTIG: Stelle sicher, dass die Breite auch nach dem Setzen der Scene korrekt ist
+                // (kann durch setSceneWithTitleBar überschrieben werden)
+                Platform.runLater(() -> {
+                    if (preferences != null && previewStage != null) {
+                        try {
+                            double savedWidth = preferences.getDouble("preview_window_width", -1);
+                            double savedHeight = preferences.getDouble("preview_window_height", -1);
+                            
+                            if (savedWidth > 0 && savedHeight > 0) {
+                                previewStage.setWidth(savedWidth);
+                                previewStage.setHeight(savedHeight);
+                                logger.info("Preview-Fenster-Größe nach Scene-Setzen angewendet: width={}, height={}", savedWidth, savedHeight);
+                            }
+                        } catch (Exception e) {
+                            logger.warn("Fehler beim Anwenden der Preview-Fenster-Größe nach Scene-Setzen: " + e.getMessage());
+                        }
+                    }
+                });
+            });
             
             // Quill Editor initialisieren
             initializeQuillEditor();
@@ -14271,8 +14486,23 @@ spacer.setStyle("-fx-background-color: transparent;");
                 savePreviewWindowProperties();
                 previewStage.hide();
             });
+            
+            // WICHTIG: Auch beim Verstecken speichern (nicht nur beim expliziten Schließen)
+            previewStage.setOnHidden(e -> {
+                // Speichere Position und Größe beim Verstecken
+                savePreviewWindowProperties();
+            });
         } else {
-            // Fenster existiert bereits, nur Theme aktualisieren
+            // Fenster existiert bereits - lade gespeicherte Eigenschaften und aktualisiere Theme
+            // WICHTIG: Lade auch die gespeicherten Eigenschaften, wenn das Fenster wieder gezeigt wird
+            loadPreviewWindowProperties();
+            
+            // Lade gespeicherten Blocksatz-Status
+            if (preferences != null) {
+                previewJustifyEnabled = preferences.getBoolean("preview_justify_enabled", false);
+                updateJustifyButtonStyle();
+            }
+            
             previewStage.setFullTheme(currentThemeIndex);
             previewStage.setTitleBarTheme(currentThemeIndex);
             if (useQuillMode) {
@@ -15249,6 +15479,12 @@ spacer.setStyle("-fx-background-color: transparent;");
             cleaned = cleaned.replaceAll("___CTAG_START___", "<c>");
             cleaned = cleaned.replaceAll("___CTAG_END___", "</c>");
             
+            // WICHTIG: Stelle sicher, dass ><c>Tags</c> am Ende ein \n haben
+            // Pattern: ><c> gefolgt von beliebigem Text (auch mit anderen Tags), dann </c>
+            // Ersetze durch ><c>Text</c>\n wenn kein \n danach kommt
+            // Verwende DOTALL-Modus für mehrzeilige Inhalte
+            cleaned = cleaned.replaceAll("(><c>.*?</c>)(?=\\s*$|\\s*[^\\n\\r])", "$1\n");
+            
             // Schritt 13: HTML Entities decodieren
             cleaned = cleaned.replace("&nbsp;", " ")
                            .replace("&lt;", "<")
@@ -15258,8 +15494,22 @@ spacer.setStyle("-fx-background-color: transparent;");
                            .replace("&#39;", "'")
                            .replace("&apos;", "'");
             
-            // Schritt 14: Entferne führende/abschließende Leerzeilen
-            cleaned = cleaned.trim();
+            // Schritt 14: Entferne nur führende Leerzeilen, behalte abschließende \n
+            // WICHTIG: trim() würde auch abschließende \n entfernen, was bei Blockquotes wie ><c>Text</c> problematisch ist
+            // Entferne nur führende Whitespaces, aber behalte abschließende \n
+            
+            // WICHTIG: Stelle sicher, dass ><c>Tags</c> am Ende ein \n haben (auch nach anderen Operationen)
+            // Prüfe, ob der Text mit ></c> endet (ohne \n danach)
+            if (cleaned.endsWith("></c>") || (cleaned.contains("><c>") && cleaned.matches(".*></c>\\s*$") && !cleaned.endsWith("\n"))) {
+                // Füge \n am Ende hinzu, wenn Text mit ></c> endet
+                cleaned = cleaned + "\n";
+            }
+            
+            cleaned = cleaned.replaceAll("^\\s+", ""); // Entferne führende Whitespaces
+            
+            // Entferne nur mehrfache abschließende Leerzeilen (mehr als 2), behalte einzelnes \n
+            cleaned = cleaned.replaceAll("\\n{3,}$", "\n\n"); // Maximal 2 abschließende \n behalten
+            
             return cleaned;
         } catch (Exception e) {
             logger.error("Fehler bei HTML zu Markdown Konvertierung", e);
@@ -16008,6 +16258,12 @@ spacer.setStyle("-fx-background-color: transparent;");
      */
     private void togglePreviewJustify() {
         previewJustifyEnabled = !previewJustifyEnabled;
+        
+        // Speichere Blocksatz-Status in Preferences
+        if (preferences != null) {
+            preferences.putBoolean("preview_justify_enabled", previewJustifyEnabled);
+        }
+        
         updateJustifyButtonStyle();
         // Quill-Theme mit neuer Ausrichtung aktualisieren
         // WICHTIG: Nur Theme anwenden, Fontgröße NICHT ändern
@@ -17778,7 +18034,8 @@ spacer.setStyle("-fx-background-color: transparent;");
                             // Diff-Fenster über MainController öffnen
                             if (mainController != null) {
                                 File mdFile = deriveSidecarFileFor(file, outputFormat);
-                                mainController.showDetailedDiffDialog(docxFile, mdFile, null, outputFormat);
+                                // WICHTIG: Übergib diesen Editor als aufrufenden Editor
+                                mainController.showDetailedDiffDialog(docxFile, mdFile, null, outputFormat, this);
                             }
                             // Bei DIFF warten - kein weiterer Ladeprozess
                             return;
@@ -17829,6 +18086,21 @@ spacer.setStyle("-fx-background-color: transparent;");
             // Setze den Inhalt und Dateireferenzen
             // WICHTIG: incrementSequence=false, da loadChapterFile() die Sequenz bereits verwaltet
             setText(content, false);
+            
+            // WICHTIG: Nach dem Laden des Kapitels den aktuellen Anführungszeichen-Stil anwenden,
+            // damit Editor-Text und Preview denselben Stand haben
+            if (cmbQuoteStyle != null && currentQuoteStyleIndex >= 0 && currentQuoteStyleIndex < QUOTE_STYLES.length) {
+                // Englisch ist die Normalisierung, andere Stile werden explizit angewendet
+                if (currentQuoteStyleIndex != 2) { // 2 = Englisch
+                    String currentStyle = QUOTE_STYLES[currentQuoteStyleIndex][0];
+                    convertAllQuotationMarksInText(currentStyle);
+                    // Preview nach der Konvertierung explizit aktualisieren, falls sichtbar
+                    if (previewWebView != null && previewStage != null && previewStage.isShowing()) {
+                        lastQuillContent = null;
+                        updatePreviewContent();
+                    }
+                }
+            }
             
             // WICHTIG: Prüfe nochmal, ob diese Operation noch aktuell ist
             if (mySequence != loadingSequence) {
@@ -18536,6 +18808,11 @@ spacer.setStyle("-fx-background-color: transparent;");
                     // Timer abgelaufen - Benutzer hat Pause gemacht, jetzt synchronisieren
                     if (pendingQuillContent != null) {
                         Platform.runLater(() -> {
+                            // WICHTIG: Prüfe nochmal, ob CodeArea gerade aktualisiert wird (verhindert Feedback-Schleife)
+                            if (isUpdatingFromCodeArea) {
+                                logger.debug("Quill->Editor Sync übersprungen: CodeArea wird gerade aktualisiert (Timer-Callback)");
+                                return;
+                            }
                             performQuillToEditorSync(pendingQuillContent);
                             pendingQuillContent = null;
                         });
@@ -18619,6 +18896,15 @@ spacer.setStyle("-fx-background-color: transparent;");
                             String cleanedMarkdown = cleanTextForComparison(markdown);
                             String cleanedCurrent = cleanTextForComparison(currentMarkdownInFX);
                             
+                            // WICHTIG: Prüfe ob CodeArea fokussiert ist - wenn ja, überspringe Text-Ersatz komplett
+                            // Das verhindert das "Zucken" während des Tippens (replaceText setzt Scroll-Position zurück)
+                            boolean codeAreaFocused = codeArea.isFocused();
+                            if (codeAreaFocused) {
+                                logger.debug("Quill->Editor Sync: Komplett übersprungen, da Editor fokussiert ist (verhindert Zucken durch replaceText)");
+                                isUpdatingFromQuill = false;
+                                return;
+                            }
+                            
                             // WICHTIG: Wenn der bereinigte Text gleich ist, dann nichts tun
                             // ABER: Scroll-Synchronisation sollte trotzdem funktionieren
                             if (cleanedMarkdown.equals(cleanedCurrent)) {
@@ -18630,16 +18916,15 @@ spacer.setStyle("-fx-background-color: transparent;");
                             
                             // Nur wenn der bereinigte Text unterschiedlich ist, aktualisiere
                             if (!cleanedMarkdown.equals(cleanedCurrent)) {
-                                // WICHTIG: Prüfe ob CodeArea fokussiert ist - nur dann Cursor-Position wiederherstellen
-                                boolean codeAreaFocused = codeArea.isFocused();
                                 
-                                // Speichere Cursor-Position für Wiederherstellung (nur wenn fokussiert)
+                                // Speichere Cursor-Position und Scroll-Position für Wiederherstellung
                                 int caretPosition = codeArea.getCaretPosition();
+                                int currentParagraph = codeArea.getCurrentParagraph();
                                 String contextBefore = "";
                                 String contextAfter = "";
                                 int contextSize = 50;
                                 
-                                if (codeAreaFocused && caretPosition > 0 && currentMarkdownInFX.length() > 0) {
+                                if (caretPosition > 0 && currentMarkdownInFX.length() > 0) {
                                     int start = Math.max(0, caretPosition - contextSize);
                                     int end = Math.min(currentMarkdownInFX.length(), caretPosition + contextSize);
                                     contextBefore = currentMarkdownInFX.substring(start, caretPosition);
@@ -18650,11 +18935,25 @@ spacer.setStyle("-fx-background-color: transparent;");
                                 
                                 // WICHTIG: isUpdatingFromQuill ist bereits true (wurde oben gesetzt)
                                 // Ersetze Text - dies wird den textProperty() Listener auslösen
+                                // WICHTIG: replaceText setzt die Scroll-Position zurück, daher müssen wir sie danach sofort wiederherstellen
                                 codeArea.replaceText(0, codeArea.getLength(), markdown);
+                                
+                                // WICHTIG: Stelle Scroll-Position SOFORT wieder her (synchron, nicht in Platform.runLater)
+                                // Das verhindert das "Zucken" an den Anfang
+                                try {
+                                    if (currentParagraph >= 0 && currentParagraph < codeArea.getParagraphs().size()) {
+                                        // Verwende showParagraphInViewport für sanfte Wiederherstellung
+                                        codeArea.showParagraphInViewport(currentParagraph);
+                                    }
+                                } catch (Exception e) {
+                                    logger.debug("Fehler beim Wiederherstellen der Scroll-Position: " + e.getMessage());
+                                }
                                 
                                 // WICHTIG: Stelle Scroll-Position basierend auf Quill-sichtbarer Position wieder her
                                 // Die EXAKT sichtbare mittlere Zeile in Quill muss auch im Editor zentriert sein
-                                if (!finalQuillVisibleSnippet.isEmpty() && finalQuillVisibleSnippet.length() > 3) {
+                                // ABER: Nur wenn der Editor NICHT fokussiert ist (verhindert Scrollen an den Anfang während des Tippens)
+                                // UND nur wenn es KEIN programmatisches Update war (verhindert Feedback-Schleife)
+                                if (!codeAreaFocused && !isUpdatingFromCodeArea && !finalQuillVisibleSnippet.isEmpty() && finalQuillVisibleSnippet.length() > 3) {
                                     try {
                                         // Suche nach dem Quill-sichtbaren Snippet im neuen Markdown
                                         // Verwende findParagraphBySnippet für zuverlässige Suche
@@ -18775,6 +19074,13 @@ spacer.setStyle("-fx-background-color: transparent;");
         
         public void onQuillScroll(double scrollTop, double scrollHeight) {
             if (isScrollingPreview || codeArea == null || scrollPane == null) {
+                return;
+            }
+            
+            // WICHTIG: Überspringe Scroll-Synchronisation komplett, wenn CodeArea gerade aktualisiert wird
+            // Das verhindert das "Zucken" während Editor → Quill Updates
+            if (isUpdatingFromCodeArea) {
+                logger.debug("onQuillScroll übersprungen: CodeArea wird gerade aktualisiert (verhindert Zucken)");
                 return;
             }
             
