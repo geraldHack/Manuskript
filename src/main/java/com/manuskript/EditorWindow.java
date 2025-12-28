@@ -14,6 +14,7 @@ import javafx.scene.control.*;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Separator;
 import javafx.scene.control.Alert;
+import javafx.scene.control.CustomMenuItem;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.Node;
@@ -91,8 +92,13 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.CompletableFuture;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.TextField;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ListView;
 
 @SuppressWarnings("unchecked")
 public class EditorWindow implements Initializable {
@@ -284,6 +290,19 @@ public class EditorWindow implements Initializable {
     // Timer für Debouncing der Quill->Editor-Synchronisation (wartet bis Benutzer fertig getippt hat)
     private Timer quillToEditorSyncTimer = null;
     private String pendingQuillContent = null; // Zwischengespeicherter Content während Debounce
+    
+    // LanguageTool Integration
+    private LanguageToolService languageToolService;
+    private LanguageToolDictionary languageToolDictionary; // Wörterbuch für Eigennamen
+    private boolean languageToolEnabled = false; // Wird aus Preferences geladen
+    private Timeline languageToolCheckTimeline = null; // Debouncing für Fehlerprüfung
+    private List<LanguageToolService.Match> currentLanguageToolMatches = new ArrayList<>();
+    private ExecutorService languageToolExecutor;
+    private Button btnToggleLanguageTool; // Toggle-Button für LanguageTool
+    private Button btnLanguageToolSettings; // Einstellungs-Button
+    private Label lblLanguageToolStatus; // Status-Indikator für Fehleranzahl
+    private boolean isApplyingLanguageToolCorrection = false; // Flag um doppelte Prüfungen zu vermeiden
+    
     private ObservableList<String> searchHistory = FXCollections.observableArrayList();
     private ObservableList<String> replaceHistory = FXCollections.observableArrayList();
     private ObservableList<String> searchOptions = FXCollections.observableArrayList();
@@ -396,6 +415,34 @@ public class EditorWindow implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         preferences = Preferences.userNodeForPackage(EditorWindow.class);
+        
+        // LanguageTool Service initialisieren
+        languageToolService = new LanguageToolService();
+        languageToolDictionary = new LanguageToolDictionary();
+        languageToolExecutor = Executors.newSingleThreadExecutor(r -> {
+            Thread t = new Thread(r, "LanguageToolWorker");
+            t.setDaemon(true);
+            return t;
+        });
+        
+        // LanguageTool Einstellung aus Preferences laden
+        languageToolEnabled = preferences.getBoolean("languagetool_enabled", true); // Standard: aktiviert
+        
+        // LanguageTool: Prüfe beim Start, ob bereits Text vorhanden ist
+        Platform.runLater(() -> {
+            // Button-Status aktualisieren, falls LanguageTool aktiviert ist
+            if (languageToolEnabled) {
+                updateLanguageToolButtonState();
+            }
+            
+            if (languageToolEnabled && codeArea != null && codeArea.getText() != null && !codeArea.getText().trim().isEmpty()) {
+                // Warte kurz, damit UI vollständig geladen ist
+                Timeline delayTimeline = new Timeline(new KeyFrame(Duration.millis(1000), event -> {
+                    checkLanguageToolErrors();
+                }));
+                delayTimeline.play();
+            }
+        });
         
         // DOCX-Optionen aus User Preferences laden
         globalDocxOptions.loadFromPreferences();
@@ -618,6 +665,11 @@ if (caret != null) {
         
         // Toolbar-Einstellungen laden (Font-Size, Theme, etc.)
         loadToolbarSettings();
+        
+        // LanguageTool Buttons (nach vollständiger UI-Initialisierung)
+        Platform.runLater(() -> {
+            setupLanguageToolButtons();
+        });
     }
     
     private void setupSelectionMonitoring() {
@@ -647,6 +699,15 @@ if (caret != null) {
                         // sollte markAsChanged() nicht aufgerufen werden, da dies eine Quill-Synchronisation ist
                         logger.debug("Text-Change-Listener: Ignoriere Quill-Update, auch wenn Text unterschiedlich ist");
                         return;
+                    }
+                    
+                    // LanguageTool Fehlerprüfung (wenn aktiviert)
+                    if (languageToolEnabled && !isApplyingLanguageToolCorrection) {
+                        // WICHTIG: Lösche alte Matches sofort, um falsche Unterstreichungen zu vermeiden
+                        // Die Positionen der alten Matches sind nach Text-Änderung ungültig
+                        currentLanguageToolMatches.clear();
+                        applyCombinedStyling(); // Aktualisiere Styling sofort ohne Fehler-Markierungen
+                        checkLanguageToolErrorsDebounced();
                     }
                     
                     // WICHTIG: Wenn der Benutzer im Editor Text ändert, aktualisiere Quill
@@ -12291,6 +12352,22 @@ spacer.setStyle("-fx-background-color: transparent;");
                 }
             }
             
+            // Füge LanguageTool-Fehler-Styles hinzu (wenn aktiviert)
+            // WICHTIG: Erstelle eine Kopie der Liste, um sicherzustellen, dass wir die aktuelle Version verwenden
+            List<LanguageToolService.Match> matchesToProcess = new ArrayList<>(currentLanguageToolMatches);
+            if (languageToolEnabled && !matchesToProcess.isEmpty()) {
+                for (LanguageToolService.Match match : matchesToProcess) {
+                    int start = match.getOffset();
+                    int end = start + match.getLength();
+                    // Stelle sicher, dass die Positionen innerhalb des Textes liegen
+                    if (start >= 0 && end <= content.length() && start < end) {
+                        for (int i = start; i < end; i++) {
+                            existingStyles.computeIfAbsent(i, k -> new HashSet<>()).add("languagetool-error");
+                        }
+                    }
+                }
+            }
+            
             // Baue neue StyleSpans mit allen Styles
             currentPos = 0;
             Set<String> currentStyles = new HashSet<>();
@@ -12337,6 +12414,342 @@ spacer.setStyle("-fx-background-color: transparent;");
 
     
     /**
+     * Prüft LanguageTool-Fehler mit Debouncing
+     */
+    private void checkLanguageToolErrorsDebounced() {
+        if (!languageToolEnabled || codeArea == null) {
+            return;
+        }
+        
+        // Stoppe vorherige Timeline
+        if (languageToolCheckTimeline != null) {
+            languageToolCheckTimeline.stop();
+        }
+        
+        // Starte neue Timeline mit 500ms Verzögerung
+        languageToolCheckTimeline = new Timeline(new KeyFrame(Duration.millis(500), event -> {
+            checkLanguageToolErrors();
+            languageToolCheckTimeline = null;
+        }));
+        languageToolCheckTimeline.play();
+    }
+    
+    /**
+     * Prüft den aktuellen Text auf LanguageTool-Fehler
+     */
+    private void checkLanguageToolErrors() {
+        if (!languageToolEnabled || codeArea == null || languageToolService == null) {
+            return;
+        }
+        
+        String text = codeArea.getText();
+        if (text == null || text.trim().isEmpty()) {
+            currentLanguageToolMatches.clear();
+            applyCombinedStyling();
+            return;
+        }
+        
+        // Prüfe Server-Status und starte falls nötig
+        languageToolService.startServerIfNeeded().thenCompose(serverReady -> {
+            if (!serverReady) {
+                Platform.runLater(() -> {
+                    logger.warn("LanguageTool Server nicht verfügbar");
+                    updateStatus("LanguageTool Server nicht verfügbar");
+                });
+                return CompletableFuture.<LanguageToolService.CheckResult>completedFuture(null);
+            }
+            
+            // Prüfe Text
+            return languageToolService.checkText(text, "de-DE");
+        }).thenAccept(result -> {
+            if (result != null) {
+                Platform.runLater(() -> {
+                    // Filtere Matches mit Wörtern aus dem Wörterbuch
+                    String editorText = codeArea != null ? codeArea.getText() : "";
+                    List<LanguageToolService.Match> allMatches = result.getMatches();
+                    currentLanguageToolMatches = languageToolDictionary.filterMatches(allMatches, editorText);
+                    
+                    applyCombinedStyling();
+                    updateLanguageToolStatus();
+                    if (!currentLanguageToolMatches.isEmpty()) {
+                        updateStatus("LanguageTool: " + currentLanguageToolMatches.size() + " Fehler gefunden");
+                    }
+                });
+            }
+        }).exceptionally(e -> {
+            logger.error("Fehler bei LanguageTool-Prüfung", e);
+            Platform.runLater(() -> {
+                updateStatus("LanguageTool Fehler: " + e.getMessage());
+            });
+            return null;
+        });
+    }
+    
+    /**
+     * Erstellt die LanguageTool-Buttons und fügt sie zur Toolbar hinzu
+     */
+    private void setupLanguageToolButtons() {
+        // Toggle-Button für LanguageTool
+        btnToggleLanguageTool = new Button("LanguageTool");
+        btnToggleLanguageTool.setTooltip(new Tooltip("LanguageTool Grammatikprüfung ein-/ausschalten"));
+        btnToggleLanguageTool.setOnAction(e -> toggleLanguageTool());
+        updateLanguageToolButtonState();
+        
+        // Einstellungs-Button
+        btnLanguageToolSettings = new Button("⚙");
+        btnLanguageToolSettings.setTooltip(new Tooltip("LanguageTool Einstellungen"));
+        btnLanguageToolSettings.setOnAction(e -> showLanguageToolSettings());
+        
+        // Status-Label für Fehleranzahl
+        lblLanguageToolStatus = new Label("");
+        lblLanguageToolStatus.setTooltip(new Tooltip("LanguageTool Status"));
+        lblLanguageToolStatus.setStyle("-fx-text-fill: #666; -fx-font-size: 11px;");
+        
+        // Buttons zur Toolbar hinzufügen (nach Preview-Button)
+        if (btnPreview != null && btnPreview.getParent() != null) {
+            Parent parent = btnPreview.getParent();
+            if (parent instanceof HBox) {
+                HBox toolbar = (HBox) parent;
+                int previewIndex = toolbar.getChildren().indexOf(btnPreview);
+                toolbar.getChildren().add(previewIndex + 1, new Separator());
+                toolbar.getChildren().add(previewIndex + 2, btnToggleLanguageTool);
+                toolbar.getChildren().add(previewIndex + 3, btnLanguageToolSettings);
+                toolbar.getChildren().add(previewIndex + 4, lblLanguageToolStatus);
+            }
+        }
+    }
+    
+    /**
+     * Schaltet LanguageTool ein/aus
+     */
+    private void toggleLanguageTool() {
+        languageToolEnabled = !languageToolEnabled;
+        
+        // Einstellung in Preferences speichern
+        preferences.putBoolean("languagetool_enabled", languageToolEnabled);
+        try {
+            preferences.flush();
+        } catch (Exception e) {
+            logger.warn("Konnte LanguageTool-Einstellung nicht speichern: " + e.getMessage());
+        }
+        
+        updateLanguageToolButtonState();
+        
+        if (languageToolEnabled) {
+            // Starte Server und prüfe Text
+            languageToolService.startServerIfNeeded().thenAccept(serverReady -> {
+                Platform.runLater(() -> {
+                    if (serverReady) {
+                        checkLanguageToolErrors();
+                        updateStatus("LanguageTool aktiviert");
+                    } else {
+                        languageToolEnabled = false;
+                        updateLanguageToolButtonState();
+                        updateStatus("LanguageTool Server nicht verfügbar");
+                        Alert alert = new Alert(Alert.AlertType.WARNING);
+                        alert.setTitle("LanguageTool Server");
+                        alert.setHeaderText("Server nicht verfügbar");
+                        alert.setContentText("Der LanguageTool Server konnte nicht gestartet werden.\nBitte prüfen Sie die Einstellungen.");
+                        alert.showAndWait();
+                    }
+                });
+            });
+        } else {
+            // Entferne Markierungen
+            currentLanguageToolMatches.clear();
+            applyCombinedStyling();
+            updateLanguageToolStatus();
+            updateStatus("LanguageTool deaktiviert");
+        }
+    }
+    
+    /**
+     * Aktualisiert den Zustand des Toggle-Buttons
+     */
+    private void updateLanguageToolButtonState() {
+        if (btnToggleLanguageTool != null) {
+            if (languageToolEnabled) {
+                btnToggleLanguageTool.setStyle("-fx-background-color: #4caf50; -fx-text-fill: white;");
+                btnToggleLanguageTool.setText("LanguageTool ✓");
+            } else {
+                btnToggleLanguageTool.setStyle("");
+                btnToggleLanguageTool.setText("LanguageTool");
+            }
+        }
+    }
+    
+    /**
+     * Aktualisiert den LanguageTool-Status-Indikator
+     */
+    private void updateLanguageToolStatus() {
+        if (lblLanguageToolStatus != null) {
+            if (!languageToolEnabled) {
+                lblLanguageToolStatus.setText("");
+                lblLanguageToolStatus.setTooltip(new Tooltip("LanguageTool deaktiviert"));
+            } else if (currentLanguageToolMatches.isEmpty()) {
+                lblLanguageToolStatus.setText("✓");
+                lblLanguageToolStatus.setStyle("-fx-text-fill: #4caf50; -fx-font-size: 11px;");
+                lblLanguageToolStatus.setTooltip(new Tooltip("Keine Fehler gefunden"));
+            } else {
+                lblLanguageToolStatus.setText("⚠ " + currentLanguageToolMatches.size());
+                lblLanguageToolStatus.setStyle("-fx-text-fill: #f44336; -fx-font-size: 11px;");
+                lblLanguageToolStatus.setTooltip(new Tooltip(currentLanguageToolMatches.size() + " Fehler gefunden"));
+            }
+        }
+    }
+    
+    /**
+     * Zeigt den LanguageTool-Einstellungsdialog
+     */
+    private void showLanguageToolSettings() {
+        CustomStage settingsStage = StageManager.createModalStage("LanguageTool Einstellungen", stage);
+        settingsStage.setTitle("⚙️ LanguageTool Einstellungen");
+        settingsStage.setWidth(500);
+        settingsStage.setHeight(400);
+        settingsStage.setTitleBarTheme(currentThemeIndex);
+        
+        VBox mainContent = new VBox(15);
+        mainContent.setPadding(new Insets(20));
+        mainContent.getStyleClass().add("dialog-container");
+        applyThemeToNode(mainContent, currentThemeIndex);
+        
+        // Titel
+        Label titleLabel = new Label("LanguageTool Einstellungen");
+        titleLabel.getStyleClass().add("dialog-title");
+        applyThemeToNode(titleLabel, currentThemeIndex);
+        
+        // Server-URL
+        Label urlLabel = new Label("Server-URL:");
+        urlLabel.getStyleClass().add("dialog-label");
+        applyThemeToNode(urlLabel, currentThemeIndex);
+        TextField urlField = new TextField(languageToolService.getServerUrl());
+        urlField.setPrefWidth(400);
+        applyThemeToNode(urlField, currentThemeIndex);
+        
+        // Server-JAR-Pfad
+        Label jarPathLabel = new Label("Server-JAR-Pfad:");
+        jarPathLabel.getStyleClass().add("dialog-label");
+        applyThemeToNode(jarPathLabel, currentThemeIndex);
+        HBox jarPathBox = new HBox(10);
+        TextField jarPathField = new TextField(languageToolService.getServerJarPath());
+        jarPathField.setPrefWidth(350);
+        applyThemeToNode(jarPathField, currentThemeIndex);
+        Button btnBrowseJar = new Button("Durchsuchen...");
+        btnBrowseJar.setOnAction(e -> {
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("LanguageTool Server JAR auswählen");
+            fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("JAR-Dateien", "*.jar"));
+            File selectedFile = fileChooser.showOpenDialog(settingsStage);
+            if (selectedFile != null) {
+                // Relativen Pfad berechnen, falls möglich
+                String userDir = System.getProperty("user.dir");
+                if (userDir != null) {
+                    try {
+                        File userDirFile = new File(userDir);
+                        String relativePath = userDirFile.toPath().relativize(selectedFile.toPath()).toString();
+                        jarPathField.setText(relativePath.replace("\\", "/"));
+                    } catch (Exception ex) {
+                        jarPathField.setText(selectedFile.getAbsolutePath());
+                    }
+                } else {
+                    jarPathField.setText(selectedFile.getAbsolutePath());
+                }
+            }
+        });
+        applyThemeToNode(btnBrowseJar, currentThemeIndex);
+        jarPathBox.getChildren().addAll(jarPathField, btnBrowseJar);
+        applyThemeToNode(jarPathBox, currentThemeIndex);
+        
+        // Auto-Start Checkbox
+        CheckBox autoStartCheck = new CheckBox("Server automatisch starten");
+        autoStartCheck.setSelected(languageToolService.isAutoStartEnabled());
+        applyThemeToNode(autoStartCheck, currentThemeIndex);
+        
+        // Server-Status
+        Label statusLabel = new Label("Server-Status: Prüfe...");
+        applyThemeToNode(statusLabel, currentThemeIndex);
+        
+        // Buttons
+        HBox buttonBox = new HBox(10);
+        buttonBox.setAlignment(Pos.CENTER_RIGHT);
+        Button btnSave = new Button("Speichern");
+        btnSave.getStyleClass().add("button");
+        btnSave.setOnAction(e -> {
+            languageToolService.setServerUrl(urlField.getText());
+            languageToolService.setServerJarPath(jarPathField.getText());
+            languageToolService.setAutoStartEnabled(autoStartCheck.isSelected());
+            settingsStage.close();
+            updateStatus("LanguageTool Einstellungen gespeichert");
+        });
+        applyThemeToNode(btnSave, currentThemeIndex);
+        Button btnCancel = new Button("Abbrechen");
+        btnCancel.getStyleClass().add("button");
+        btnCancel.setOnAction(e -> settingsStage.close());
+        applyThemeToNode(btnCancel, currentThemeIndex);
+        
+        Button btnDictionary = new Button("Wörterbuch verwalten");
+        btnDictionary.getStyleClass().add("button");
+        btnDictionary.setOnAction(e -> {
+            showLanguageToolDictionaryDialog(settingsStage);
+        });
+        applyThemeToNode(btnDictionary, currentThemeIndex);
+        
+        Button btnTestServer = new Button("Server testen");
+        btnTestServer.getStyleClass().add("button");
+        btnTestServer.setOnAction(e -> {
+            btnTestServer.setDisable(true);
+            statusLabel.setText("Server-Status: Prüfe...");
+            languageToolService.setServerUrl(urlField.getText());
+            languageToolService.setServerJarPath(jarPathField.getText());
+            languageToolService.checkServerStatus().thenAccept(isRunning -> {
+                Platform.runLater(() -> {
+                    if (isRunning) {
+                        statusLabel.setText("Server-Status: ✓ Läuft");
+                        statusLabel.setStyle("-fx-text-fill: #4caf50;");
+                    } else {
+                        statusLabel.setText("Server-Status: ✗ Nicht erreichbar");
+                        statusLabel.setStyle("-fx-text-fill: #f44336;");
+                    }
+                    btnTestServer.setDisable(false);
+                });
+            });
+        });
+        applyThemeToNode(btnTestServer, currentThemeIndex);
+        
+        buttonBox.getChildren().addAll(btnCancel, btnDictionary, btnTestServer, btnSave);
+        applyThemeToNode(buttonBox, currentThemeIndex);
+        
+        mainContent.getChildren().addAll(
+            titleLabel,
+            new Separator(),
+            urlLabel,
+            urlField,
+            jarPathLabel,
+            jarPathBox,
+            autoStartCheck,
+            new Separator(),
+            statusLabel,
+            buttonBox
+        );
+        
+        Scene scene = new Scene(mainContent);
+        scene.setFill(javafx.scene.paint.Color.web(THEMES[currentThemeIndex][0]));
+        String cssPath = ResourceManager.getCssResource("css/editor.css");
+        if (cssPath != null) {
+            scene.getStylesheets().add(cssPath);
+        }
+        // CSS auch für Theme-Klassen
+        String manuskriptCssPath = ResourceManager.getCssResource("css/manuskript.css");
+        if (manuskriptCssPath != null) {
+            scene.getStylesheets().add(manuskriptCssPath);
+        }
+        
+        settingsStage.setSceneWithTitleBar(scene);
+        
+        settingsStage.showAndWait();
+    }
+    
+    /**
      * Richtet das Kontextmenü für den CodeArea ein
      */
     private void setupContextMenu() {
@@ -12345,17 +12758,415 @@ spacer.setStyle("-fx-background-color: transparent;");
         ContextMenu contextMenu = new ContextMenu();
         styleContextMenu(contextMenu, currentThemeIndex);
         
-        MenuItem itemSprechantwort = new MenuItem("Sprechantwort korrigieren");
-        itemSprechantwort.setOnAction(e -> handleSprechantwortKorrektur());
+        // WICHTIG: Setze Cursor beim Klick, damit Kontextmenü die richtige Position findet
+        codeArea.setOnMousePressed(mouseEvent -> {
+            if (mouseEvent.getButton() == javafx.scene.input.MouseButton.PRIMARY) {
+                try {
+                    double sceneX = mouseEvent.getSceneX();
+                    double sceneY = mouseEvent.getSceneY();
+                    Point2D localPoint = codeArea.sceneToLocal(sceneX, sceneY);
+                    int clickPos = codeArea.hit(localPoint.getX(), localPoint.getY()).getInsertionIndex();
+                    if (clickPos >= 0 && clickPos <= codeArea.getLength()) {
+                        codeArea.displaceCaret(clickPos);
+                    }
+                } catch (Exception e) {
+                    logger.debug("Fehler beim Setzen der Cursor-Position: " + e.getMessage());
+                }
+            }
+        });
         
-        MenuItem itemPhrase = new MenuItem("Phrase korrigieren");
-        itemPhrase.setOnAction(e -> handlePhraseKorrektur());
+        // LanguageTool-Korrekturvorschläge (wenn auf Fehler geklickt wird)
+        codeArea.setOnContextMenuRequested(contextEvent -> {
+            contextMenu.getItems().clear();
+            
+            // WICHTIG: Setze zuerst den Cursor an die Klick-Position
+            // Dann verwende die Cursor-Position für die Match-Suche
+            int clickPos = -1;
+            try {
+                // Verwende Scene-Koordinaten aus dem Event (nicht Screen-Koordinaten)
+                double sceneX = contextEvent.getSceneX();
+                double sceneY = contextEvent.getSceneY();
+                
+                // Konvertiere Scene-Koordinaten zu lokalen CodeArea-Koordinaten
+                Point2D localPoint = codeArea.sceneToLocal(sceneX, sceneY);
+                
+                // Verwende hit() um die Text-Position zu finden
+                clickPos = codeArea.hit(localPoint.getX(), localPoint.getY()).getInsertionIndex();
+            } catch (Exception e) {
+                logger.debug("Fehler beim Ermitteln der Klick-Position: " + e.getMessage());
+            }
+            
+            // Fallback: Verwende Cursor-Position
+            if (clickPos < 0) {
+                clickPos = codeArea.getCaretPosition();
+            }
+            
+            // WICHTIG: Setze den Cursor an die Position, damit die Match-Suche korrekt funktioniert
+            if (clickPos >= 0 && clickPos <= codeArea.getLength()) {
+                codeArea.displaceCaret(clickPos);
+            }
+            
+            // Debug-Logging
+            logger.debug("Kontextmenü: Position=" + clickPos + ", Matches=" + currentLanguageToolMatches.size());
+            
+            LanguageToolService.Match clickedMatch = findMatchAtPosition(clickPos);
+            
+            // Debug-Logging
+            if (clickedMatch != null) {
+                logger.debug("Match gefunden: offset=" + clickedMatch.getOffset() + ", length=" + clickedMatch.getLength());
+            } else {
+                logger.debug("Kein Match gefunden an Position " + clickPos);
+            }
+            
+            if (clickedMatch != null && languageToolEnabled) {
+                // Fehler gefunden - zeige Korrekturvorschläge
+                // Verwende ein Label mit wrapText, damit der Text umgebrochen wird
+                String message = clickedMatch.getMessage();
+                Label headerLabel = new Label("LanguageTool: " + message);
+                headerLabel.setWrapText(true);
+                headerLabel.setMaxWidth(600); // Maximale Breite für das Kontextmenü
+                headerLabel.setStyle("-fx-padding: 5px; -fx-alignment: center-left; -fx-text-alignment: left;");
+                // Wende Theme-Styling auf das Label an
+                applyThemeToNode(headerLabel, currentThemeIndex);
+                
+                // Verwende CustomMenuItem statt MenuItem, um mehr Kontrolle zu haben
+                CustomMenuItem headerItem = new CustomMenuItem(headerLabel, false);
+                headerItem.setDisable(true);
+                headerItem.setStyle("-fx-alignment: center-left; -fx-content-display: left;");
+                contextMenu.getItems().add(headerItem);
+                contextMenu.getItems().add(new SeparatorMenuItem());
+                
+                if (!clickedMatch.getReplacements().isEmpty()) {
+                    for (LanguageToolService.Replacement replacement : clickedMatch.getReplacements()) {
+                        MenuItem replaceItem = new MenuItem("→ " + replacement.getValue());
+                        replaceItem.setOnAction(replaceEvent -> {
+                            applyLanguageToolCorrection(clickedMatch, replacement.getValue());
+                        });
+                        contextMenu.getItems().add(replaceItem);
+                    }
+                } else {
+                    MenuItem noSuggestions = new MenuItem("Keine Vorschläge verfügbar");
+                    noSuggestions.setDisable(true);
+                    contextMenu.getItems().add(noSuggestions);
+                }
+                
+                // Option: Zum Wörterbuch hinzufügen
+                String matchedText = codeArea.getText().substring(
+                    clickedMatch.getOffset(), 
+                    clickedMatch.getOffset() + clickedMatch.getLength()
+                ).trim();
+                
+                if (!matchedText.isEmpty() && !languageToolDictionary.containsWordOrVariant(matchedText)) {
+                    contextMenu.getItems().add(new SeparatorMenuItem());
+                    MenuItem addToDictItem = new MenuItem("Zum Wörterbuch hinzufügen: \"" + matchedText + "\"");
+                    addToDictItem.setOnAction(addEvent -> {
+                        logger.info("=== WORT ZUM WÖRTERBUCH HINZUFÜGEN ===");
+                        logger.info("Wort: '" + matchedText + "'");
+                        logger.info("Aktuelle Matches vor Hinzufügung: " + currentLanguageToolMatches.size());
+                        
+                        // 1. Füge das Wort zum Wörterbuch hinzu
+                        languageToolDictionary.addWord(matchedText);
+                        logger.info("Wort hinzugefügt. Prüfe ob im Wörterbuch: " + languageToolDictionary.containsWordOrVariant(matchedText));
+                        
+                        // 2. Baue die Liste komplett neu auf: Filtere alle Matches mit dem aktualisierten Wörterbuch
+                        String editorText = codeArea != null ? codeArea.getText() : "";
+                        logger.info("Editor-Text vorhanden: " + (editorText != null && !editorText.isEmpty()));
+                        
+                        if (editorText != null && !editorText.isEmpty()) {
+                            logger.info("Vor Neuaufbau: " + currentLanguageToolMatches.size() + " Matches");
+                            
+                            // Filtere alle Matches mit dem aktualisierten Wörterbuch
+                            List<LanguageToolService.Match> filteredMatches = languageToolDictionary.filterMatches(
+                                new ArrayList<>(currentLanguageToolMatches), 
+                                editorText
+                            );
+                            
+                            logger.info("Nach Filterung: " + filteredMatches.size() + " Matches");
+                            
+                            // 3. Ersetze die Liste komplett - WICHTIG: Neue Liste erstellen!
+                            currentLanguageToolMatches = new ArrayList<>(filteredMatches);
+                            
+                            logger.info("Liste ersetzt. Aktuelle Matches: " + currentLanguageToolMatches.size());
+                            
+                            // 4. Aktualisiere Styling SOFORT - WICHTIG: Explizit StyleSpans neu setzen
+                            logger.info("Rufe applyCombinedStyling() auf...");
+                            
+                            // WICHTIG: Setze StyleSpans explizit neu, um sicherzustellen, dass Änderungen sichtbar werden
+                            Platform.runLater(() -> {
+                                logger.info("applyCombinedStyling() wird aufgerufen mit " + currentLanguageToolMatches.size() + " Matches");
+                                applyCombinedStyling();
+                                updateLanguageToolStatus();
+                                
+                                // Zusätzlich: Erzwinge ein Update des CodeArea
+                                if (codeArea != null) {
+                                    // Erzwinge ein Re-layout
+                                    codeArea.requestLayout();
+                                    
+                                    // Setze StyleSpans nochmal explizit
+                                    String content = codeArea.getText();
+                                    if (content != null && !content.isEmpty()) {
+                                        StyleSpansBuilder<Collection<String>> spansBuilder = new StyleSpansBuilder<>();
+                                        spansBuilder.add(Collections.emptyList(), content.length());
+                                        StyleSpans<Collection<String>> spans = spansBuilder.create();
+                                        codeArea.setStyleSpans(0, spans);
+                                        
+                                        // Jetzt wieder mit den aktuellen Matches
+                                        applyCombinedStyling();
+                                    }
+                                }
+                                
+                                logger.info("=== FERTIG. Verbleibende Matches: " + currentLanguageToolMatches.size() + " ===");
+                            });
+                        } else {
+                            logger.warn("Editor-Text ist leer oder null!");
+                        }
+                        
+                        updateStatus("Wort zum Wörterbuch hinzugefügt: " + matchedText);
+                    });
+                    contextMenu.getItems().add(addToDictItem);
+                }
+                
+                contextMenu.getItems().add(new SeparatorMenuItem());
+            }
+            
+            // Standard-Menüpunkte
+            MenuItem itemSprechantwort = new MenuItem("Sprechantwort korrigieren");
+            itemSprechantwort.setOnAction(actionEvent -> handleSprechantwortKorrektur());
+            
+            MenuItem itemPhrase = new MenuItem("Phrase korrigieren");
+            itemPhrase.setOnAction(actionEvent -> handlePhraseKorrektur());
+            
+            MenuItem itemAbsatz = new MenuItem("Absatz überarbeiten");
+            itemAbsatz.setOnAction(actionEvent -> handleAbsatzUeberarbeitung());
+            
+            contextMenu.getItems().addAll(itemSprechantwort, itemPhrase, itemAbsatz);
+        });
         
-        MenuItem itemAbsatz = new MenuItem("Absatz überarbeiten");
-        itemAbsatz.setOnAction(e -> handleAbsatzUeberarbeitung());
-        
-        contextMenu.getItems().addAll(itemSprechantwort, itemPhrase, itemAbsatz);
         codeArea.setContextMenu(contextMenu);
+    }
+    
+    /**
+     * Findet einen LanguageTool-Match an der angegebenen Position
+     */
+    private LanguageToolService.Match findMatchAtPosition(int position) {
+        if (position < 0 || currentLanguageToolMatches == null || currentLanguageToolMatches.isEmpty()) {
+            return null;
+        }
+        
+        for (LanguageToolService.Match match : currentLanguageToolMatches) {
+            int start = match.getOffset();
+            int end = start + match.getLength();
+            // Prüfe ob Position innerhalb des Match-Bereichs liegt
+            // Verwende >= start und < end für bessere Genauigkeit (nicht <= end)
+            if (position >= start && position < end) {
+                return match;
+            }
+        }
+        return null;
+    }
+    
+    /**
+     * Wendet eine LanguageTool-Korrektur an
+     */
+    private void applyLanguageToolCorrection(LanguageToolService.Match match, String replacement) {
+        if (codeArea == null || match == null) return;
+        
+        // Setze Flag, um doppelte Prüfungen zu vermeiden
+        isApplyingLanguageToolCorrection = true;
+        
+        try {
+            int start = match.getOffset();
+            int length = match.getLength();
+            
+            // Ersetze Text
+            codeArea.replaceText(start, start + length, replacement);
+            
+            // WICHTIG: Kompletter Reset nach Korrektur
+            // 1. Lösche alle Matches sofort, da Positionen nach Text-Änderung ungültig sind
+            currentLanguageToolMatches.clear();
+            
+            // 2. Aktualisiere Styling sofort (ohne Fehler-Markierungen)
+            applyCombinedStyling();
+            updateLanguageToolStatus();
+            
+            // 3. Starte eine vollständige Neuprüfung nach kurzer Verzögerung
+            // (damit der Text-Change-Listener nicht interferiert)
+            Platform.runLater(() -> {
+                if (languageToolEnabled) {
+                    // Kurze Verzögerung, damit der Text-Change-Listener nicht interferiert
+                    new java.util.Timer().schedule(new java.util.TimerTask() {
+                        @Override
+                        public void run() {
+                            Platform.runLater(() -> {
+                                isApplyingLanguageToolCorrection = false; // Flag zurücksetzen
+                                checkLanguageToolErrors(); // Vollständige Neuprüfung
+                            });
+                        }
+                    }, 200); // 200ms Verzögerung für sichereren Reset
+                } else {
+                    isApplyingLanguageToolCorrection = false;
+                }
+            });
+        } catch (Exception e) {
+            logger.error("Fehler bei LanguageTool-Korrektur", e);
+            isApplyingLanguageToolCorrection = false;
+        }
+    }
+    
+    /**
+     * Zeigt den Dialog zur Verwaltung des LanguageTool-Wörterbuchs
+     */
+    private void showLanguageToolDictionaryDialog(Window owner) {
+        CustomStage dictStage = StageManager.createModalStage("📖 LanguageTool Wörterbuch", owner);
+        dictStage.setWidth(600);
+        dictStage.setHeight(500);
+        dictStage.setMinWidth(500);
+        dictStage.setMinHeight(400);
+        dictStage.setTitleBarTheme(currentThemeIndex);
+        
+        VBox mainContent = new VBox(15);
+        mainContent.setPadding(new Insets(20));
+        mainContent.setSpacing(15);
+        mainContent.getStyleClass().add("dialog-container");
+        applyThemeToNode(mainContent, currentThemeIndex);
+        
+        // Titel
+        Label titleLabel = new Label("Benutzer-Wörterbuch");
+        titleLabel.getStyleClass().add("dialog-title");
+        applyThemeToNode(titleLabel, currentThemeIndex);
+        
+        // Info-Text
+        Label infoLabel = new Label("Eigennamen und andere Wörter, die nicht als Fehler markiert werden sollen:");
+        infoLabel.setWrapText(true);
+        infoLabel.getStyleClass().add("dialog-label");
+        applyThemeToNode(infoLabel, currentThemeIndex);
+        
+        // Liste der Wörter
+        ListView<String> wordList = new ListView<>();
+        wordList.setPrefHeight(250);
+        wordList.getStyleClass().add("alternating-list");
+        applyThemeToNode(wordList, currentThemeIndex);
+        
+        // Aktualisiere Liste
+        Runnable refreshList = () -> {
+            Set<String> words = languageToolDictionary.getAllWords();
+            List<String> sortedWords = words.stream()
+                .sorted()
+                .collect(Collectors.toList());
+            wordList.setItems(FXCollections.observableArrayList(sortedWords));
+        };
+        refreshList.run();
+        
+        // Eingabefeld für neues Wort
+        HBox inputBox = new HBox(10);
+        inputBox.setAlignment(Pos.CENTER_LEFT);
+        TextField wordInput = new TextField();
+        wordInput.setPromptText("Neues Wort eingeben...");
+        wordInput.setPrefWidth(300);
+        applyThemeToNode(wordInput, currentThemeIndex);
+        
+        Button btnAdd = new Button("Hinzufügen");
+        btnAdd.getStyleClass().add("button");
+        btnAdd.setOnAction(e -> {
+            String word = wordInput.getText().trim();
+            if (!word.isEmpty()) {
+                languageToolDictionary.addWord(word);
+                wordInput.clear();
+                refreshList.run();
+                // Prüfe erneut, um das Wort aus den Fehlern zu entfernen
+                if (languageToolEnabled && codeArea != null) {
+                    // WICHTIG: Filtere sofort die aktuellen Matches mit dem neuen Wörterbuch
+                    String editorText = codeArea.getText();
+                    if (editorText != null && !editorText.isEmpty()) {
+                        // Erstelle eine komplett neue Liste mit gefilterten Matches
+                        List<LanguageToolService.Match> filteredMatches = languageToolDictionary.filterMatches(
+                            new ArrayList<>(currentLanguageToolMatches), 
+                            editorText
+                        );
+                        
+                        // WICHTIG: Ersetze die Liste komplett (nicht nur clear() + addAll())
+                        currentLanguageToolMatches = new ArrayList<>(filteredMatches);
+                        
+                        // Aktualisiere Styling sofort
+                        applyCombinedStyling();
+                        updateLanguageToolStatus();
+                    }
+                    // Starte auch eine vollständige Neuprüfung im Hintergrund
+                    checkLanguageToolErrors();
+                }
+                updateStatus("Wort zum Wörterbuch hinzugefügt: " + word);
+            }
+        });
+        applyThemeToNode(btnAdd, currentThemeIndex);
+        
+        // Enter-Taste zum Hinzufügen
+        wordInput.setOnAction(e -> btnAdd.fire());
+        
+        inputBox.getChildren().addAll(wordInput, btnAdd);
+        applyThemeToNode(inputBox, currentThemeIndex);
+        
+        // Buttons
+        HBox buttonBox = new HBox(10);
+        buttonBox.setAlignment(Pos.CENTER_RIGHT);
+        
+        Button btnRemove = new Button("Entfernen");
+        btnRemove.getStyleClass().add("button");
+        btnRemove.setOnAction(e -> {
+            String selected = wordList.getSelectionModel().getSelectedItem();
+            if (selected != null) {
+                languageToolDictionary.removeWord(selected);
+                refreshList.run();
+                // Prüfe erneut - Wort könnte jetzt wieder als Fehler markiert werden
+                if (languageToolEnabled && codeArea != null) {
+                    // Starte vollständige Neuprüfung
+                    checkLanguageToolErrors();
+                }
+                updateStatus("Wort aus Wörterbuch entfernt: " + selected);
+            }
+        });
+        applyThemeToNode(btnRemove, currentThemeIndex);
+        
+        Button btnClose = new Button("Schließen");
+        btnClose.getStyleClass().add("button");
+        btnClose.setOnAction(e -> dictStage.close());
+        applyThemeToNode(btnClose, currentThemeIndex);
+        
+        buttonBox.getChildren().addAll(btnRemove, btnClose);
+        applyThemeToNode(buttonBox, currentThemeIndex);
+        
+        // Status-Label
+        Label statusLabel = new Label();
+        statusLabel.textProperty().bind(
+            javafx.beans.binding.Bindings.size(wordList.getItems())
+                .asString("Anzahl Wörter: %d")
+        );
+        applyThemeToNode(statusLabel, currentThemeIndex);
+        
+        mainContent.getChildren().addAll(
+            titleLabel,
+            new Separator(),
+            infoLabel,
+            wordList,
+            inputBox,
+            statusLabel,
+            buttonBox
+        );
+        
+        Scene scene = new Scene(mainContent);
+        scene.setFill(javafx.scene.paint.Color.web(THEMES[currentThemeIndex][0]));
+        String cssPath = ResourceManager.getCssResource("css/editor.css");
+        if (cssPath != null) {
+            scene.getStylesheets().add(cssPath);
+        }
+        // CSS auch für Theme-Klassen
+        String manuskriptCssPath = ResourceManager.getCssResource("css/manuskript.css");
+        if (manuskriptCssPath != null) {
+            scene.getStylesheets().add(manuskriptCssPath);
+        }
+        
+        dictStage.setSceneWithTitleBar(scene);
+        
+        dictStage.show();
     }
     
     /**

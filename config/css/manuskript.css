@@ -3361,6 +3361,25 @@
     -rtfx-background-color: #ffeb3b !important;
 }
 
+/* LanguageTool Fehler-Unterstreichung */
+.code-area .languagetool-error {
+    -rtfx-underline-color: #f44336;
+    -rtfx-underline-width: 2px;
+    -rtfx-underline-dash-array: 2 2;
+}
+
+.theme-dark .code-area .languagetool-error {
+    -rtfx-underline-color: #ff5252;
+    -rtfx-underline-width: 2px;
+    -rtfx-underline-dash-array: 2 2;
+}
+
+.pastell-theme .code-area .languagetool-error {
+    -rtfx-underline-color: #e91e63;
+    -rtfx-underline-width: 2px;
+    -rtfx-underline-dash-array: 2 2;
+}
+
 /* ========================================
    SATZLÄNGEN-MARKIERUNG
    ======================================== */
@@ -8419,6 +8438,17 @@
    KONTEXTMENÜ STYLING
    ======================================== */
 
+/* Allgemeine Regeln für alle Kontextmenüs - Linksbündigkeit */
+.context-menu .menu-item {
+    -fx-alignment: center-left !important;
+    -fx-content-display: left !important;
+}
+
+.context-menu .menu-item .label {
+    -fx-alignment: center-left !important;
+    -fx-text-alignment: left !important;
+}
+
 /* Weiß-Theme Kontextmenü */
 /* Farb-Menü-Button: Dropdown-Menü breiter machen */
 #btnColorMenu .context-menu {
@@ -8436,10 +8466,17 @@
 .weiss-theme .context-menu .menu-item {
     -fx-background-color: #ffffff;
     -fx-text-fill: #000000;
+    -fx-alignment: center-left;
+    -fx-content-display: left;
 }
 
 .weiss-theme .context-menu .menu-item:hover {
     -fx-background-color: #e0e0e0;
+}
+
+.weiss-theme .context-menu .menu-item .label {
+    -fx-alignment: center-left;
+    -fx-text-alignment: left;
 }
 
 /* Schwarz-Theme Kontextmenü */
@@ -8451,12 +8488,19 @@
 }
 
 .theme-dark .context-menu .menu-item {
-    -fx-background-color: #1a1a1a;
+-fx-background-color: #1a1a1a;
     -fx-text-fill: #ffffff;
+    -fx-alignment: center-left;
+    -fx-content-display: left;
 }
 
 .theme-dark .context-menu .menu-item:hover {
     -fx-background-color: #333333;
+}
+
+.theme-dark .context-menu .menu-item .label {
+    -fx-alignment: center-left;
+    -fx-text-alignment: left;
 }
 
 /* Pastell-Theme Kontextmenü */
@@ -8470,10 +8514,17 @@
 .pastell-theme .context-menu .menu-item {
     -fx-background-color: #f3e5f5;
     -fx-text-fill: #000000;
+    -fx-alignment: center-left;
+    -fx-content-display: left;
 }
 
 .pastell-theme .context-menu .menu-item:hover {
     -fx-background-color: #e1bee7;
+}
+
+.pastell-theme .context-menu .menu-item .label {
+    -fx-alignment: center-left;
+    -fx-text-alignment: left;
 }
 
 /* Blau-Theme Kontextmenü */
@@ -8487,10 +8538,17 @@
 .theme-dark.blau-theme .context-menu .menu-item {
     -fx-background-color: #1e3a8a;
     -fx-text-fill: #ffffff;
+    -fx-alignment: center-left;
+    -fx-content-display: left;
 }
 
 .theme-dark.blau-theme .context-menu .menu-item:hover {
     -fx-background-color: #3b82f6;
+}
+
+.theme-dark.blau-theme .context-menu .menu-item .label {
+    -fx-alignment: center-left;
+    -fx-text-alignment: left;
 }
 
 /* Grün-Theme Kontextmenü */
@@ -8504,10 +8562,17 @@
 .theme-dark.gruen-theme .context-menu .menu-item {
     -fx-background-color: #064e3b;
     -fx-text-fill: #ffffff;
+    -fx-alignment: center-left;
+    -fx-content-display: left;
 }
 
 .theme-dark.gruen-theme .context-menu .menu-item:hover {
     -fx-background-color: #059669;
+}
+
+.theme-dark.gruen-theme .context-menu .menu-item .label {
+    -fx-alignment: center-left;
+    -fx-text-alignment: left;
 }
 
 /* Lila-Theme Kontextmenü */
@@ -8521,10 +8586,17 @@
 .theme-dark.lila-theme .context-menu .menu-item {
     -fx-background-color: #4c1d95;
     -fx-text-fill: #ffffff;
+    -fx-alignment: center-left;
+    -fx-content-display: left;
 }
 
 .theme-dark.lila-theme .context-menu .menu-item:hover {
     -fx-background-color: #7c3aed;
+}
+
+.theme-dark.lila-theme .context-menu .menu-item .label {
+    -fx-alignment: center-left;
+    -fx-text-alignment: left;
 }
 
 /* ========================================

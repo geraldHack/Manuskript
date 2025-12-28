@@ -1,0 +1,35 @@
+# LanguageTool Benutzer-Wörterbuch
+# Eigennamen und andere Wörter, die nicht als Fehler markiert werden sollen
+# Ein Wort pro Zeile
+
+almin
+almins
+altheras
+ayen
+ayens
+center
+demirantha
+dini
+efret
+efrets
+gallat
+jaad
+jaads
+jomar
+jomars
+kalem
+kalems
+kata
+katas
+lakan
+maela
+malvek
+malveks
+naniten
+nicht-zirari
+nira
+thoran
+zaubererrat
+zaubererrates
+zaubererstadt
+zirari
