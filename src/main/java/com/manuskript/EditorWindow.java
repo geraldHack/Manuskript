@@ -2280,12 +2280,29 @@ if (caret != null) {
         // Theme anwenden - EXAKT WIE ALLE ANDEREN STAGES
         errorStage.setFullTheme(currentThemeIndex);
         
+        // WICHTIG: Setze Owner auf das Editor-Fenster, damit es richtig positioniert wird
+        if (stage != null) {
+            errorStage.initOwner(stage);
+        }
+        
+        // WICHTIG: KEINE Modality setzen - der Dialog soll nicht modal sein
+        // Aber trotzdem im Vordergrund erscheinen
+        
         // Fenster anzeigen
         errorStage.show();
         
-        // Fenster in den Vordergrund bringen
-        errorStage.toFront();
-        errorStage.requestFocus();
+        // WICHTIG: Fenster in den Vordergrund bringen - mit Platform.runLater für bessere Kompatibilität
+        Platform.runLater(() -> {
+            errorStage.setIconified(false);
+            errorStage.toFront();
+            errorStage.requestFocus();
+            // Zusätzlich: Stelle sicher, dass das Fenster wirklich im Vordergrund ist
+            errorStage.setAlwaysOnTop(true);
+            // Nach kurzer Zeit wieder auf false setzen, damit es nicht immer im Vordergrund bleibt
+            javafx.animation.PauseTransition pause = new javafx.animation.PauseTransition(javafx.util.Duration.millis(100));
+            pause.setOnFinished(e -> errorStage.setAlwaysOnTop(false));
+            pause.play();
+        });
         
         // Status aktualisieren
         updateStatus("⚠️ " + quoteErrors.size() + " Anführungszeichen-Fehler gefunden und angezeigt.", true);
@@ -3050,33 +3067,81 @@ if (caret != null) {
     }
     
     private void highlightText(int start, int end) {
+        highlightTextCentered(start, end);
+    }
+    
+    /**
+     * Markiert Text und scrollt mittig zum Viewport (für globale Suche)
+     */
+    private void highlightTextCentered(int start, int end) {
         if (start >= 0 && end >= 0) {
             // Setze den Cursor an die Position und markiere den Text
             codeArea.displaceCaret(start);
             codeArea.selectRange(start, end);
             
             // RichTextFX-spezifische Scroll-Logik mit VirtualizedScrollPane
-            int currentParagraph = codeArea.getCurrentParagraph();
+            // WICHTIG: Berechne Paragraph basierend auf der tatsächlichen Position
+            int paragraphValue;
+            try {
+                paragraphValue = codeArea.offsetToPosition(start, Bias.Forward).getMajor();
+            } catch (Exception e) {
+                // Fallback: Verwende getCurrentParagraph()
+                paragraphValue = codeArea.getCurrentParagraph();
+            }
+            final int currentParagraph = paragraphValue;
             
             // Verwende Platform.runLater für bessere Scroll-Performance
             Platform.runLater(() -> {
                 try {
-                    // Für VirtualizedScrollPane: Erst in Viewport bringen, dann zentrieren
-                    codeArea.showParagraphInViewport(currentParagraph);
+                    // WICHTIG: Für globale Suche - direkt mittig im Viewport anzeigen
+                    // Verwende scrollEditorToParagraphCentered für bessere Zentrierung
+                    scrollEditorToParagraphCentered(currentParagraph);
                     
-                    // Kleine Verzögerung für VirtualizedScrollPane-Update
-                    Timeline timeline = new Timeline(new KeyFrame(Duration.millis(50), event -> {
+                    // Zusätzliche Versuche mit verschiedenen Verzögerungen für bessere Zuverlässigkeit
+                    Timeline timeline1 = new Timeline(new KeyFrame(Duration.millis(100), event -> {
                         try {
+                            // Nochmal mittig anzeigen
                             codeArea.showParagraphAtCenter(currentParagraph);
+                            codeArea.requestFollowCaret();
                         } catch (Exception e) {
-                            logger.warn("Fehler beim Zentrieren: " + e.getMessage());
+                            logger.debug("Fehler beim ersten Scroll-Versuch: " + e.getMessage());
                         }
                     }));
-                    timeline.play();
+                    timeline1.play();
+                    
+                    Timeline timeline2 = new Timeline(new KeyFrame(Duration.millis(250), event -> {
+                        try {
+                            // Nochmal mittig anzeigen für maximale Zuverlässigkeit
+                            codeArea.showParagraphAtCenter(currentParagraph);
+                            codeArea.requestFollowCaret();
+                            // Stelle sicher, dass der Cursor sichtbar ist
+                            codeArea.requestFocus();
+                        } catch (Exception e) {
+                            logger.debug("Fehler beim zweiten Scroll-Versuch: " + e.getMessage());
+                        }
+                    }));
+                    timeline2.play();
+                    
+                    // Zusätzlicher Versuch nach längerer Verzögerung für maximale Zuverlässigkeit
+                    Timeline timeline3 = new Timeline(new KeyFrame(Duration.millis(400), event -> {
+                        try {
+                            // Nochmal mittig anzeigen, falls die vorherigen Versuche nicht funktioniert haben
+                            codeArea.showParagraphAtCenter(currentParagraph);
+                            codeArea.requestFollowCaret();
+                        } catch (Exception e) {
+                            logger.debug("Fehler beim dritten Scroll-Versuch: " + e.getMessage());
+                        }
+                    }));
+                    timeline3.play();
                 } catch (Exception e) {
                     logger.warn("Fehler beim Scrollen zum gefundenen Text: " + e.getMessage());
                     // Fallback: Einfaches Scrollen
-                    codeArea.showParagraphInViewport(currentParagraph);
+                    try {
+                        codeArea.showParagraphInViewport(currentParagraph);
+                        codeArea.requestFollowCaret();
+                    } catch (Exception e2) {
+                        logger.warn("Fehler beim Fallback-Scrollen: " + e2.getMessage());
+                    }
                 }
             });
             
@@ -3167,32 +3232,37 @@ if (caret != null) {
             chkWholeWord.setSelected(wholeWord);
         }
         
-        // Setze Suchtext und führe Suche aus
+            // Setze Suchtext und führe Suche aus
         String trimmed = searchText.trim();
         if (cmbSearchHistory != null) {
             addToSearchHistory(trimmed);
             cmbSearchHistory.setValue(trimmed);
             // Führe Suche aus - mit Verzögerung, damit Editor vollständig geladen ist
             Platform.runLater(() -> {
-                // Kleine Verzögerung für vollständiges Laden
-                Timeline delayTimeline = new Timeline(new KeyFrame(Duration.millis(150), event -> {
+                // Erhöhte Verzögerung für vollständiges Laden (besonders wenn Editor gerade geöffnet wurde)
+                Timeline delayTimeline = new Timeline(new KeyFrame(Duration.millis(300), event -> {
                     findText();
                     // Nach der Suche explizit zum ersten Treffer scrollen
                     // findText() ruft bereits findNext() auf, das zum ersten Treffer springt,
                     // aber wir müssen nochmal explizit scrollen, um sicherzustellen, dass es sichtbar ist
                     Platform.runLater(() -> {
-                        if (totalMatches > 0 && !cachedMatchPositions.isEmpty() && cachedPattern != null) {
-                            int firstMatchStart = cachedMatchPositions.get(0);
-                            // Berechne die tatsächliche End-Position des Treffers
-                            Matcher matchMatcher = cachedPattern.matcher(codeArea.getText());
-                            if (matchMatcher.find(firstMatchStart)) {
-                                int firstMatchEnd = matchMatcher.end();
-                                highlightText(firstMatchStart, firstMatchEnd);
-                            } else {
-                                // Fallback: verwende Suchtext-Länge
-                                highlightText(firstMatchStart, firstMatchStart + trimmed.length());
+                        // Zusätzliche Verzögerung, damit der Editor vollständig gerendert ist
+                        Timeline scrollTimeline = new Timeline(new KeyFrame(Duration.millis(100), e -> {
+                            if (totalMatches > 0 && !cachedMatchPositions.isEmpty() && cachedPattern != null) {
+                                int firstMatchStart = cachedMatchPositions.get(0);
+                                // Berechne die tatsächliche End-Position des Treffers
+                                Matcher matchMatcher = cachedPattern.matcher(codeArea.getText());
+                                if (matchMatcher.find(firstMatchStart)) {
+                                    int firstMatchEnd = matchMatcher.end();
+                                    // Verwende highlightText mit verbesserter Scroll-Logik, die mittig im Viewport anzeigt
+                                    highlightTextCentered(firstMatchStart, firstMatchEnd);
+                                } else {
+                                    // Fallback: verwende Suchtext-Länge
+                                    highlightTextCentered(firstMatchStart, firstMatchStart + trimmed.length());
+                                }
                             }
-                        }
+                        }));
+                        scrollTimeline.play();
                     });
                 }));
                 delayTimeline.play();
@@ -6971,7 +7041,14 @@ if (caret != null) {
      * Setzt die originale DOCX-Datei für Rückkonvertierung
      */
     public void setOriginalDocxFile(File docxFile) {
+        File oldFile = this.originalDocxFile;
         this.originalDocxFile = docxFile;
+        
+        // WICHTIG: Aktualisiere den Fenstertitel, wenn sich die Datei ändert
+        if (docxFile != null && (oldFile == null || !oldFile.equals(docxFile))) {
+            setWindowTitle("📄 " + docxFile.getName());
+        }
+        
         // ListView-Zellen neu rendern, damit die Markierung aktualisiert wird
         refreshChapterListCells();
     }
@@ -17468,29 +17545,66 @@ spacer.setStyle("-fx-background-color: transparent;");
      * @param idx Index des Absatzes
      */
     private void scrollEditorToParagraphCentered(int idx) {
-        if (codeArea == null || idx < 0 || idx >= codeArea.getParagraphs().size()) return;
+        if (codeArea == null || scrollPane == null || idx < 0 || idx >= codeArea.getParagraphs().size()) return;
         try {
-            // Verwende showParagraphAtCenter für bessere Zentrierung
-            // Erst in Viewport bringen, dann zentrieren
-            codeArea.showParagraphInViewport(idx);
+            // WICHTIG: Um den Absatz wirklich mittig anzuzeigen, verwenden wir einen Trick:
+            // 1. Zeige den Absatz zuerst oben an
+            // 2. Dann berechne die Scroll-Position, um ihn mittig zu positionieren
+            // 3. Verwende mehrere Versuche mit verschiedenen Verzögerungen
+            
+            // Erst den Zielabsatz oben anzeigen
+            codeArea.showParagraphAtTop(idx);
             
             // Kleine Verzögerung für VirtualizedScrollPane-Update, dann zentrieren
             Platform.runLater(() -> {
-                Timeline timeline = new Timeline(new KeyFrame(Duration.millis(50), event -> {
+                // Versuch 1: Direkt mit showParagraphAtCenter
+                Timeline timeline1 = new Timeline(new KeyFrame(Duration.millis(50), event -> {
                     try {
                         codeArea.showParagraphAtCenter(idx);
                     } catch (Exception e) {
-                        logger.debug("Fehler beim Zentrieren des Absatzes", e);
-                        // Fallback: Alte Methode
-        try {
-            int target = Math.max(0, idx - 2);
-            codeArea.showParagraphAtTop(target);
-                        } catch (Exception e2) {
-                            logger.debug("Fehler beim Fallback-Scrollen", e2);
-                        }
+                        logger.debug("Fehler beim ersten Zentrierungs-Versuch: " + e.getMessage());
                     }
                 }));
-                timeline.play();
+                timeline1.play();
+                
+                // Versuch 2: Nochmal mit showParagraphAtCenter nach längerer Verzögerung
+                Timeline timeline2 = new Timeline(new KeyFrame(Duration.millis(150), event -> {
+                    try {
+                        codeArea.showParagraphAtCenter(idx);
+                        codeArea.requestFollowCaret();
+                    } catch (Exception e) {
+                        logger.debug("Fehler beim zweiten Zentrierungs-Versuch: " + e.getMessage());
+                    }
+                }));
+                timeline2.play();
+                
+                // Versuch 3: Manuelles Zentrieren durch Berechnung der Scroll-Position
+                Timeline timeline3 = new Timeline(new KeyFrame(Duration.millis(250), event -> {
+                    try {
+                        // Berechne die Anzahl der Absätze, die oberhalb angezeigt werden sollen
+                        // Geschätzte Anzahl sichtbarer Absätze basierend auf Viewport-Höhe
+                        Bounds scrollPaneBounds = scrollPane.getBoundsInLocal();
+                        double viewportHeight = scrollPaneBounds.getHeight();
+                        // Geschätzte Höhe pro Absatz: ca. 20-25 Pixel
+                        double estimatedParagraphHeight = 22.0;
+                        int visibleParagraphs = (int) (viewportHeight / estimatedParagraphHeight);
+                        // Zeige einen Absatz an, der etwa die Hälfte der sichtbaren Absätze oberhalb liegt
+                        int targetParagraph = Math.max(0, idx - (visibleParagraphs / 2));
+                        codeArea.showParagraphAtTop(targetParagraph);
+                        
+                        // Dann nochmal mit showParagraphAtCenter versuchen
+                        Platform.runLater(() -> {
+                            try {
+                                codeArea.showParagraphAtCenter(idx);
+                            } catch (Exception e) {
+                                logger.debug("Fehler beim manuellen Zentrieren: " + e.getMessage());
+                            }
+                        });
+                    } catch (Exception e) {
+                        logger.debug("Fehler beim dritten Zentrierungs-Versuch: " + e.getMessage());
+                    }
+                }));
+                timeline3.play();
             });
         } catch (Exception e) {
             logger.debug("Fehler beim Scrollen zu Absatz", e);

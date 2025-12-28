@@ -1258,7 +1258,7 @@ public class MainController implements Initializable {
             
             
             // Alle DOCX-Dateien im Verzeichnis sammeln (nur flach, keine Unterverzeichnisse)
-            List<File> files = java.nio.file.Files.list(directory.toPath())
+            List<File> allFiles = java.nio.file.Files.list(directory.toPath())
                     .filter(path -> {
                         boolean isDocx = path.toString().toLowerCase().endsWith(".docx");
                         return isDocx;
@@ -1267,7 +1267,55 @@ public class MainController implements Initializable {
                     .collect(Collectors.toList());
             
             // Debug: Alle gefundenen DOCX-Dateien ausgeben
-            logger.debug("Gefundene DOCX-Dateien in {}: {}", directory.getAbsolutePath(), 
+            logger.debug("Gefundene DOCX-Dateien in {} (vor Versionsfilterung): {}", directory.getAbsolutePath(), 
+                allFiles.stream().map(File::getName).collect(Collectors.toList()));
+            
+            // WICHTIG: Gruppiere Dateien nach Basisnamen und wähle die neueste Version
+            // Unterstützt verschiedene Browser-Namenskonventionen:
+            // - Chrome/Edge: "titel (1).docx" (mit Leerzeichen vor Klammer)
+            // - Firefox: "titel(1).docx" (ohne Leerzeichen)
+            // - Windows Explorer: "titel (1).docx"
+            // - Safari: "titel 1.docx" oder "titel copy.docx"
+            Map<String, File> latestFiles = new HashMap<>();
+            for (File file : allFiles) {
+                String fileName = file.getName();
+                String baseName = fileName.substring(0, fileName.lastIndexOf('.'));
+                
+                // Normalisiere Basisnamen - entferne verschiedene Versionsmuster:
+                // 1. "(1)", "(2)" am Ende (mit oder ohne Leerzeichen davor)
+                // 2. " (1)", " (2)" am Ende (mit Leerzeichen)
+                // 3. " 1", " 2" am Ende (nur Zahl mit Leerzeichen)
+                // 4. " copy", " copy 2" am Ende
+                String normalizedBaseName = baseName
+                    .replaceAll("\\s*\\(\\d+\\)$", "")      // Entferne (1), (2) mit optionalem Leerzeichen davor
+                    .replaceAll("\\s+\\d+$", "")            // Entferne " 1", " 2" am Ende (nur Zahl mit Leerzeichen)
+                    .replaceAll("\\s+copy(\\s+\\d+)?$", "") // Entferne " copy" oder " copy 2" am Ende
+                    .replaceAll("\\s+", " ")                // Normalisiere alle Leerzeichen
+                    .trim();
+                
+                // Prüfe ob bereits eine Datei für diesen Basisnamen existiert
+                File existingFile = latestFiles.get(normalizedBaseName);
+                if (existingFile == null) {
+                    // Erste Datei mit diesem Basisnamen
+                    latestFiles.put(normalizedBaseName, file);
+                } else {
+                    // Vergleiche Änderungsdatum - nehme die neueste
+                    if (file.lastModified() > existingFile.lastModified()) {
+                        logger.debug("Neueste Version gefunden: {} (älter: {})", 
+                            file.getName(), existingFile.getName());
+                        latestFiles.put(normalizedBaseName, file);
+                    } else {
+                        logger.debug("Ältere Version ignoriert: {} (neuer: {})", 
+                            file.getName(), existingFile.getName());
+                    }
+                }
+            }
+            
+            // Verwende nur die neuesten Dateien
+            List<File> files = new ArrayList<>(latestFiles.values());
+            
+            // Debug: Alle gefundenen DOCX-Dateien nach Versionsfilterung ausgeben
+            logger.debug("Gefundene DOCX-Dateien in {} (nach Versionsfilterung): {}", directory.getAbsolutePath(), 
                 files.stream().map(File::getName).collect(Collectors.toList()));
 
             List<String> savedOrder = loadSavedOrder(directory);
@@ -3155,9 +3203,10 @@ public class MainController implements Initializable {
                     } else {
                         logger.debug("=== DIFF: KEIN Editor gefunden! Erstelle neuen Editor.");
                         // Nur wenn KEIN bestehender Editor existiert - dann neuen erstellen
-                        EditorWindow editorController = openChapterEditorWindow(mdContent, chapterFile, format);
+                        // WICHTIG: Verwende finalContent direkt, nicht mdContent (mdContent könnte Editor-Inhalt enthalten)
+                        EditorWindow editorController = openChapterEditorWindow(finalContent, chapterFile, format);
                         
-                        // Nach Diff-Auswahl den Text ersetzen
+                        // Editor sollte bereits den richtigen Inhalt haben, aber zur Sicherheit nochmal setzen
                         if (editorController != null) {
                             final String finalContentForLambda = finalContent;
                             Platform.runLater(() -> {
