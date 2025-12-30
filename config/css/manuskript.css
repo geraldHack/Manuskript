@@ -8449,6 +8449,30 @@
     -fx-text-alignment: left !important;
 }
 
+/* CustomMenuItem für umgebrochenen Text */
+.context-menu .custom-menu-item {
+    -fx-alignment: center-left !important;
+    -fx-content-display: left !important;
+    -fx-pref-width: 600px !important;
+    -fx-max-width: 600px !important;
+    -fx-min-width: 600px !important;
+}
+
+.context-menu .custom-menu-item .vbox {
+    -fx-pref-width: 600px !important;
+    -fx-max-width: 600px !important;
+    -fx-min-width: 600px !important;
+}
+
+.context-menu .custom-menu-item .label {
+    -fx-alignment: center-left !important;
+    -fx-text-alignment: left !important;
+    -fx-wrap-text: true !important;
+    -fx-pref-width: 600px !important;
+    -fx-max-width: 600px !important;
+    -fx-min-width: 600px !important;
+}
+
 /* Weiß-Theme Kontextmenü */
 /* Farb-Menü-Button: Dropdown-Menü breiter machen */
 #btnColorMenu .context-menu {

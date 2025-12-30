@@ -63,6 +63,7 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -1288,7 +1289,7 @@ public class MainController implements Initializable {
                 // 4. " copy", " copy 2" am Ende
                 String normalizedBaseName = baseName
                     .replaceAll("\\s*\\(\\d+\\)$", "")      // Entferne (1), (2) mit optionalem Leerzeichen davor
-                    .replaceAll("\\s+\\d+$", "")            // Entferne " 1", " 2" am Ende (nur Zahl mit Leerzeichen)
+                    // WICHTIG: Zahlensuffixe wie " 01", " 02" sind echte Kapitelnummern → nicht entfernen
                     .replaceAll("\\s+copy(\\s+\\d+)?$", "") // Entferne " copy" oder " copy 2" am Ende
                     .replaceAll("\\s+", " ")                // Normalisiere alle Leerzeichen
                     .trim();
@@ -1366,7 +1367,10 @@ public class MainController implements Initializable {
                     reorderedSelected.add(docxFile);
                 }
             }
-            reorderedSelected.addAll(docsWithMd.values());
+            // NEU: Sortiere die restlichen Dateien bevor sie hinzugefügt werden
+            List<DocxFile> remainingFiles = new ArrayList<>(docsWithMd.values());
+            remainingFiles.sort(Comparator.comparing(d -> d.getFileName().toLowerCase()));
+            reorderedSelected.addAll(remainingFiles);
             selectedDocxFiles.setAll(reorderedSelected);
 
             // WICHTIG: Hash-basierte Änderungsprüfung für alle geladenen Dateien
@@ -1643,6 +1647,9 @@ public class MainController implements Initializable {
                 }
                 
                 if (selectionChanged) {
+                    // NEU: Stelle die gespeicherte Reihenfolge wieder her, bevor wir speichern
+                    List<String> savedOrder = loadSavedOrder(directory);
+                    applySavedOrderToSelected(savedOrder);
                     saveSelection(directory);
                 }
                 
@@ -4938,7 +4945,10 @@ public class MainController implements Initializable {
                 reorderedSelected.add(docxFile);
             }
         }
-        reorderedSelected.addAll(currentSelection.values());
+        // NEU: Sortiere die restlichen Dateien bevor sie hinzugefügt werden
+        List<DocxFile> remainingFiles = new ArrayList<>(currentSelection.values());
+        remainingFiles.sort(Comparator.comparing(d -> d.getFileName().toLowerCase()));
+        reorderedSelected.addAll(remainingFiles);
         selectedDocxFiles.setAll(reorderedSelected);
     }
 

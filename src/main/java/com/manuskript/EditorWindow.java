@@ -86,6 +86,7 @@ import org.fxmisc.richtext.model.StyleSpan;
 import org.fxmisc.richtext.model.TwoDimensional.Bias;
 import javafx.animation.Timeline;
 import javafx.animation.KeyFrame;
+import javafx.animation.Animation;
 import javafx.util.Duration;
 import java.io.FileInputStream;
 import java.util.concurrent.Executors;
@@ -302,6 +303,12 @@ public class EditorWindow implements Initializable {
     private Button btnLanguageToolSettings; // Einstellungs-Button
     private Label lblLanguageToolStatus; // Status-Indikator für Fehleranzahl
     private boolean isApplyingLanguageToolCorrection = false; // Flag um doppelte Prüfungen zu vermeiden
+    
+    // Timer für Markdown-Styling - kann während des Tippens pausiert werden
+    private Timeline stylingTimer = null;
+    private Timeline stylingTimerDebounce = null; // Debounce-Timer zum Fortsetzen des Styling-Timers
+    private String lastStyledText = ""; // Letzter Text, für den Styling angewendet wurde
+    private boolean isScrolling = false; // Flag, um zu prüfen, ob der Benutzer gerade scrollt
     
     private ObservableList<String> searchHistory = FXCollections.observableArrayList();
     private ObservableList<String> replaceHistory = FXCollections.observableArrayList();
@@ -593,9 +600,29 @@ public class EditorWindow implements Initializable {
         codeArea.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px; -rtfx-background-color: #ffffff;");
         
         // Timer für Markdown-Styling - IMMER anwenden aber existierende Styles bewahren
-        Timeline stylingTimer = new Timeline(new KeyFrame(Duration.seconds(1), event -> {
+        // WICHTIG: Timer als Instanzvariable speichern, damit er während des Tippens pausiert werden kann
+        // WICHTIG: Nur aufrufen, wenn sich der Text nicht geändert hat, um Viewport-Sprünge zu vermeiden
+        lastStyledText = codeArea.getText();
+        stylingTimer = new Timeline(new KeyFrame(Duration.seconds(1), event -> {
             Platform.runLater(() -> {
-                applyCombinedStyling();
+                // WICHTIG: Überspringe Styling komplett, wenn der Benutzer gerade scrollt
+                // Oder wenn sich der Text geändert hat (dann wird Styling später durch Text-Change-Listener aufgerufen)
+                if (isScrolling) {
+                    return;
+                }
+                
+                // Prüfe, ob sich der Text geändert hat
+                String currentText = codeArea.getText();
+                if (currentText != null && !currentText.equals(lastStyledText)) {
+                    // Text hat sich geändert - aktualisiere lastStyledText, aber rufe applyCombinedStyling() NICHT auf
+                    // Das Styling wird durch den Text-Change-Listener oder LanguageTool aufgerufen
+                    lastStyledText = currentText;
+                    return;
+                }
+                
+                // Text hat sich nicht geändert UND Benutzer scrollt nicht
+                // WICHTIG: Rufe applyCombinedStyling() NICHT auf, da es den Viewport zurücksetzen kann
+                // Styling wird nur aufgerufen, wenn sich der Text ändert oder LanguageTool neue Matches findet
             });
         }));
         stylingTimer.setCycleCount(Timeline.INDEFINITE);
@@ -701,13 +728,34 @@ if (caret != null) {
                         return;
                     }
                     
+                    // WICHTIG: Pausiere den Styling-Timer während des Tippens, um Cursor-Sprünge zu vermeiden
+                    // ABER: Nur wenn der Text sich tatsächlich geändert hat (nicht beim Scrollen)
+                    // WICHTIG: Timer wird NICHT pausiert, damit Markierungen beim Scrollen sichtbar bleiben
+                    // Stattdessen wird nur sichergestellt, dass applyCombinedStyling() den Viewport nicht ändert
+                    // (Das wird bereits in applyCombinedStyling() gemacht)
+                    
                     // LanguageTool Fehlerprüfung (wenn aktiviert)
-                    if (languageToolEnabled && !isApplyingLanguageToolCorrection) {
-                        // WICHTIG: Lösche alte Matches sofort, um falsche Unterstreichungen zu vermeiden
-                        // Die Positionen der alten Matches sind nach Text-Änderung ungültig
-                        currentLanguageToolMatches.clear();
-                        applyCombinedStyling(); // Aktualisiere Styling sofort ohne Fehler-Markierungen
-                        checkLanguageToolErrorsDebounced();
+                    // WICHTIG: Prüfe IMMER, auch bei manuellen Korrekturen
+                    if (languageToolEnabled) {
+                        if (!isApplyingLanguageToolCorrection) {
+                            logger.debug("Text geändert (manuelle Korrektur) - lösche alte Matches und starte neue Prüfung");
+                            // WICHTIG: Lösche alte Matches sofort, um falsche Unterstreichungen zu vermeiden
+                            // Die Positionen der alten Matches sind nach Text-Änderung ungültig
+                            int oldMatchCount;
+                            synchronized (currentLanguageToolMatches) {
+                                oldMatchCount = currentLanguageToolMatches.size();
+                                currentLanguageToolMatches.clear();
+                            }
+                            logger.debug("Text geändert: " + oldMatchCount + " alte Matches gelöscht, starte neue Prüfung");
+                            // WICHTIG: Rufe applyCombinedStyling() NICHT sofort auf, da es den Cursor zurücksetzen kann
+                            // Die Markierungen werden automatisch entfernt, wenn die neue Prüfung fertig ist
+                            // Starte neue Prüfung mit Debouncing
+                            checkLanguageToolErrorsDebounced();
+                        } else {
+                            logger.debug("Text geändert während LanguageTool-Korrektur - überspringe Prüfung");
+                        }
+                    } else {
+                        logger.debug("Text geändert - LanguageTool ist deaktiviert");
                     }
                     
                     // WICHTIG: Wenn der Benutzer im Editor Text ändert, aktualisiere Quill
@@ -1620,47 +1668,45 @@ if (caret != null) {
                         codeArea.moveTo(0);
                         // Explizit zum Anfang scrollen mit mehreren Versuchen (Timeline für bessere Timing-Kontrolle)
                         Platform.runLater(() -> {
-                            Platform.runLater(() -> {
-                                try {
-                                    int paragraphIndex = codeArea.offsetToPosition(0, Bias.Forward).getMajor();
-                                    codeArea.showParagraphInViewport(paragraphIndex);
-                                    codeArea.requestFollowCaret();
-                                    
-                                    // Zusätzliche Versuche mit Timeline für bessere Zuverlässigkeit
-                                    Timeline timeline = new Timeline(
-                                        new KeyFrame(Duration.millis(50), event -> {
-                                            try {
-                                                codeArea.moveTo(0);
-                                                int paraIndex = codeArea.offsetToPosition(0, Bias.Forward).getMajor();
-                                                codeArea.showParagraphInViewport(paraIndex);
-                                                codeArea.requestFollowCaret();
-                                            } catch (Exception e) {
-                                                logger.debug("Fehler beim Timeline-Scrollen: " + e.getMessage());
-                                            }
-                                        }),
-                                        new KeyFrame(Duration.millis(100), event -> {
-                                            try {
-                                                codeArea.moveTo(0);
-                                                int paraIndex = codeArea.offsetToPosition(0, Bias.Forward).getMajor();
-                                                codeArea.showParagraphInViewport(paraIndex);
-                                                codeArea.requestFollowCaret();
-                                                codeArea.requestFocus();
-                                                logger.debug("Kapitel {} zum ersten Mal in dieser Sitzung geladen, Cursor und Scrollposition am Anfang gesetzt", editorKey);
-                                            } catch (Exception e) {
-                                                logger.debug("Fehler beim finalen Scrollen: " + e.getMessage());
-                                                codeArea.requestFollowCaret();
-                                                codeArea.requestFocus();
-                                            }
-                                        })
-                                    );
-                                    timeline.play();
-                                } catch (Exception e) {
-                                    logger.debug("Fehler beim Setzen der Anfangsposition: " + e.getMessage());
-                                    // Fallback: Nur requestFollowCaret
-                                    codeArea.requestFollowCaret();
-                                    codeArea.requestFocus();
-                                }
-                            });
+                            try {
+                                int paragraphIndex = codeArea.offsetToPosition(0, Bias.Forward).getMajor();
+                                codeArea.showParagraphInViewport(paragraphIndex);
+                                codeArea.requestFollowCaret();
+                                
+                                // Zusätzliche Versuche mit Timeline für bessere Zuverlässigkeit
+                                Timeline timeline = new Timeline(
+                                    new KeyFrame(Duration.millis(50), event -> {
+                                        try {
+                                            codeArea.moveTo(0);
+                                            int paraIndex = codeArea.offsetToPosition(0, Bias.Forward).getMajor();
+                                            codeArea.showParagraphInViewport(paraIndex);
+                                            codeArea.requestFollowCaret();
+                                        } catch (Exception e) {
+                                            logger.debug("Fehler beim Timeline-Scrollen: " + e.getMessage());
+                                        }
+                                    }),
+                                    new KeyFrame(Duration.millis(100), event -> {
+                                        try {
+                                            codeArea.moveTo(0);
+                                            int paraIndex = codeArea.offsetToPosition(0, Bias.Forward).getMajor();
+                                            codeArea.showParagraphInViewport(paraIndex);
+                                            codeArea.requestFollowCaret();
+                                            codeArea.requestFocus();
+                                            logger.debug("Kapitel {} zum ersten Mal in dieser Sitzung geladen, Cursor und Scrollposition am Anfang gesetzt", editorKey);
+                                        } catch (Exception e) {
+                                            logger.debug("Fehler beim finalen Scrollen: " + e.getMessage());
+                                            codeArea.requestFollowCaret();
+                                            codeArea.requestFocus();
+                                        }
+                                    })
+                                );
+                                timeline.play();
+                            } catch (Exception e) {
+                                logger.debug("Fehler beim Setzen der Anfangsposition: " + e.getMessage());
+                                // Fallback: Nur requestFollowCaret
+                                codeArea.requestFollowCaret();
+                                codeArea.requestFocus();
+                            }
                         });
                         return;
                     }
@@ -9921,6 +9967,9 @@ spacer.setStyle("-fx-background-color: transparent;");
             // Cursor-Position speichern
             int caretPosition = codeArea.getCaretPosition();
             
+            // Scroll-Position speichern (Paragraph des Cursors)
+            int currentParagraph = codeArea.getCurrentParagraph();
+            
             // Speichere den ursprünglichen Text für Undo (inkl. Absatz-Markierungen)
             String originalText = codeArea.getText();
             
@@ -10002,6 +10051,25 @@ spacer.setStyle("-fx-background-color: transparent;");
                 // Ersetze den gesamten Text in einer Operation - dies wird als eine einzige Undo-Operation behandelt
                 codeArea.replaceText(0, codeArea.getLength(), normalizedContent);
                 
+                // WICHTIG: Stelle Cursor-Position SOFORT wieder her (vor Scroll-Position)
+                // replaceText() setzt den Cursor möglicherweise zurück, daher müssen wir ihn sofort wiederherstellen
+                int restoredCaretPosition = caretPosition;
+                if (restoredCaretPosition > normalizedContent.length()) {
+                    restoredCaretPosition = normalizedContent.length();
+                }
+                codeArea.moveTo(restoredCaretPosition);
+                
+                // WICHTIG: Stelle Scroll-Position SOFORT wieder her (synchron, nicht in Platform.runLater)
+                // replaceText() setzt die Scroll-Position zurück, daher müssen wir sie danach sofort wiederherstellen
+                try {
+                    if (currentParagraph >= 0 && currentParagraph < codeArea.getParagraphs().size()) {
+                        // Verwende showParagraphInViewport für sanfte Wiederherstellung
+                        codeArea.showParagraphInViewport(currentParagraph);
+                    }
+                } catch (Exception e) {
+                    logger.debug("Fehler beim Wiederherstellen der Scroll-Position nach replaceText: " + e.getMessage());
+                }
+                
                 // Verhindere, dass die nächste Operation mit dieser zusammengeführt wird
                 // Dies stellt sicher, dass die Makro-Operation als separate Undo-Operation bleibt
                 if (codeArea.getUndoManager() != null) {
@@ -10014,6 +10082,13 @@ spacer.setStyle("-fx-background-color: transparent;");
                         // Methode nicht verfügbar - ignorieren
                     }
                 }
+            } else {
+                // Keine Textänderung - Cursor-Position trotzdem sicherstellen
+                int restoredCaretPosition = caretPosition;
+                if (restoredCaretPosition > normalizedContent.length()) {
+                    restoredCaretPosition = normalizedContent.length();
+                }
+                codeArea.moveTo(restoredCaretPosition);
             }
             
             // Prüfe ob das Makro tatsächlich Änderungen vorgenommen hat
@@ -10026,24 +10101,16 @@ spacer.setStyle("-fx-background-color: transparent;");
                 logger.debug("Makro hat keine Änderungen vorgenommen - nicht als geändert markieren");
             }
             
-            // Cursor-Position wiederherstellen
-            if (caretPosition <= normalizedContent.length()) {
-                codeArea.moveTo(caretPosition);
-            } else {
-                codeArea.moveTo(normalizedContent.length());
-            }
-            
-            // Fokus wiederherstellen und zum Cursor scrollen
+            // WICHTIG: Scroll-Position NICHT ändern - nur Fokus wiederherstellen
+            // Cursor-Position wurde bereits oben wiederhergestellt
             Platform.runLater(() -> {
-                // Fokus verstärken
+                // Fokus wiederherstellen
                 codeArea.requestFocus();
                 stage.requestFocus();
                 codeArea.requestFocus();
                 
-                // Zum Cursor scrollen - sanft in die Mitte des sichtbaren Bereichs
-                int currentParagraph = codeArea.getCurrentParagraph();
-                codeArea.showParagraphInViewport(currentParagraph);
-                
+                // WICHTIG: KEIN automatisches Scrollen zum Cursor, um die Scroll-Position zu erhalten
+                // KEIN requestFollowCaret(), da dies den Cursor automatisch verfolgt und die Position ändert
             });
             
             updateStatus("Makro erfolgreich ausgeführt: " + currentMacro.getName());
@@ -12037,6 +12104,10 @@ spacer.setStyle("-fx-background-color: transparent;");
             return;
         }
         
+        // WICHTIG: Speichere Cursor-Position UND Viewport VOR setStyleSpans(), da es beide zurücksetzen kann
+        int savedCaretPosition = codeArea.getCaretPosition();
+        int savedParagraph = codeArea.getCurrentParagraph();
+        
         try {
         String content = codeArea.getText();
             if (content.isEmpty()) {
@@ -12329,7 +12400,7 @@ spacer.setStyle("-fx-background-color: transparent;");
             int currentPos = 0;
             
             // Sammle alle existierenden Styles (Suchen, Textanalyse, etc.)
-            // WICHTIG: Entferne dabei alle Markdown-Styles, damit sie nicht mehr angezeigt werden
+            // WICHTIG: Entferne dabei alle Markdown-Styles und LanguageTool-Markierungen, damit sie nicht mehr angezeigt werden
             Map<Integer, Set<String>> existingStyles = new HashMap<>();
             for (StyleSpan<Collection<String>> span : existingSpans) {
                 for (int i = 0; i < span.getLength(); i++) {
@@ -12338,6 +12409,8 @@ spacer.setStyle("-fx-background-color: transparent;");
                     // Entferne alle Markdown-Styles (werden später neu hinzugefügt, wenn Matches vorhanden sind)
                     styles.removeIf(style -> style.startsWith("markdown-") || 
                                         style.startsWith("heading-"));
+                    // WICHTIG: Entferne auch LanguageTool-Markierungen (werden später neu hinzugefügt, wenn Matches vorhanden sind)
+                    styles.remove("languagetool-error");
                     if (!styles.isEmpty()) {
                         existingStyles.put(pos, styles);
                     }
@@ -12354,17 +12427,33 @@ spacer.setStyle("-fx-background-color: transparent;");
             
             // Füge LanguageTool-Fehler-Styles hinzu (wenn aktiviert)
             // WICHTIG: Erstelle eine Kopie der Liste, um sicherzustellen, dass wir die aktuelle Version verwenden
-            List<LanguageToolService.Match> matchesToProcess = new ArrayList<>(currentLanguageToolMatches);
+            // WICHTIG: Synchronisiere Zugriff auf currentLanguageToolMatches, um Race Conditions zu vermeiden
+            List<LanguageToolService.Match> matchesToProcess;
+            synchronized (currentLanguageToolMatches) {
+                matchesToProcess = new ArrayList<>(currentLanguageToolMatches);
+            }
             if (languageToolEnabled && !matchesToProcess.isEmpty()) {
+                logger.debug("applyCombinedStyling: Verarbeite " + matchesToProcess.size() + " LanguageTool-Matches für Text der Länge " + content.length());
+                int validMatches = 0;
+                int invalidMatches = 0;
                 for (LanguageToolService.Match match : matchesToProcess) {
                     int start = match.getOffset();
                     int end = start + match.getLength();
                     // Stelle sicher, dass die Positionen innerhalb des Textes liegen
                     if (start >= 0 && end <= content.length() && start < end) {
+                        validMatches++;
                         for (int i = start; i < end; i++) {
                             existingStyles.computeIfAbsent(i, k -> new HashSet<>()).add("languagetool-error");
                         }
+                    } else {
+                        invalidMatches++;
+                        logger.debug("applyCombinedStyling: Ungültiger Match - start=" + start + ", end=" + end + ", contentLength=" + content.length());
                     }
+                }
+                logger.debug("applyCombinedStyling: " + validMatches + " gültige Matches, " + invalidMatches + " ungültige Matches werden angewendet");
+            } else if (languageToolEnabled && matchesToProcess.isEmpty()) {
+                synchronized (currentLanguageToolMatches) {
+                    logger.debug("applyCombinedStyling: LanguageTool aktiviert, aber keine Matches vorhanden (currentLanguageToolMatches.size()=" + currentLanguageToolMatches.size() + ")");
                 }
             }
             
@@ -12398,8 +12487,58 @@ spacer.setStyle("-fx-background-color: transparent;");
             StyleSpans<Collection<String>> spans = spansBuilder.create();
             codeArea.setStyleSpans(0, spans);
             
+            // WICHTIG: Aktualisiere lastStyledText, damit der Timer weiß, dass Styling angewendet wurde
+            lastStyledText = content;
+            
+            // WICHTIG: Stelle Viewport SOFORT wieder her, falls setStyleSpans() ihn geändert hat
+            // WICHTIG: Synchron, nicht in Platform.runLater(), damit es sofort passiert
+            try {
+                if (savedParagraph >= 0 && savedParagraph < codeArea.getParagraphs().size()) {
+                    codeArea.showParagraphInViewport(savedParagraph);
+                }
+            } catch (Exception e) {
+                logger.debug("Fehler beim Wiederherstellen der Viewport-Position: {}", e.getMessage());
+            }
+            // WICHTIG: Viewport zuerst wiederherstellen, dann Cursor
+            try {
+                if (savedParagraph >= 0 && savedParagraph < codeArea.getParagraphs().size()) {
+                    codeArea.showParagraphInViewport(savedParagraph);
+                }
+            } catch (Exception e) {
+                logger.debug("Fehler beim Wiederherstellen der Viewport-Position: {}", e.getMessage());
+            }
+            
+            // WICHTIG: Stelle Cursor-Position SOFORT wieder her, falls setStyleSpans() sie geändert hat
+            // Prüfe sofort nach setStyleSpans(), ob die Position sich geändert hat
+            // WICHTIG: Synchron, nicht in Platform.runLater(), damit es sofort passiert
+            int currentCaretPosition = codeArea.getCaretPosition();
+            // Nur wiederherstellen, wenn die Position sich geändert hat UND die gespeicherte Position > 0 ist
+            // (0 bedeutet, dass der Cursor bereits oben war, also keine Wiederherstellung nötig)
+            if (currentCaretPosition != savedCaretPosition && savedCaretPosition > 0) {
+                // Prüfe, ob die gespeicherte Position noch gültig ist
+                if (savedCaretPosition <= content.length()) {
+                    codeArea.moveTo(savedCaretPosition);
+                } else if (content.length() > 0) {
+                    // Position ist außerhalb - setze ans Ende
+                    codeArea.moveTo(content.length());
+                }
+            }
+            
         } catch (Exception e) {
             logger.debug("Fehler beim kombinierten Styling: {}", e.getMessage());
+            // Stelle Cursor-Position auch bei Fehler wieder her, falls möglich
+            try {
+                if (savedCaretPosition >= 0) {
+                    String currentContent = codeArea.getText();
+                    if (savedCaretPosition <= currentContent.length()) {
+                        codeArea.moveTo(savedCaretPosition);
+                    } else if (currentContent.length() > 0) {
+                        codeArea.moveTo(currentContent.length());
+                    }
+                }
+            } catch (Exception e2) {
+                // Ignoriere Fehler bei Cursor-Wiederherstellung
+            }
         }
     }
     
@@ -12418,8 +12557,11 @@ spacer.setStyle("-fx-background-color: transparent;");
      */
     private void checkLanguageToolErrorsDebounced() {
         if (!languageToolEnabled || codeArea == null) {
+            logger.debug("checkLanguageToolErrorsDebounced: LanguageTool deaktiviert oder CodeArea null");
             return;
         }
+        
+        logger.debug("checkLanguageToolErrorsDebounced: Starte debounced Prüfung");
         
         // Stoppe vorherige Timeline
         if (languageToolCheckTimeline != null) {
@@ -12428,6 +12570,7 @@ spacer.setStyle("-fx-background-color: transparent;");
         
         // Starte neue Timeline mit 500ms Verzögerung
         languageToolCheckTimeline = new Timeline(new KeyFrame(Duration.millis(500), event -> {
+            logger.debug("checkLanguageToolErrorsDebounced: Verzögerung abgelaufen, rufe checkLanguageToolErrors() auf");
             checkLanguageToolErrors();
             languageToolCheckTimeline = null;
         }));
@@ -12435,19 +12578,52 @@ spacer.setStyle("-fx-background-color: transparent;");
     }
     
     /**
+     * Bricht alle laufenden LanguageTool-Checks ab und löscht die Matches
+     * Wird aufgerufen, wenn ein neues Kapitel geladen wird, um Race Conditions zu vermeiden
+     */
+    private void cancelLanguageToolChecks() {
+        logger.debug("cancelLanguageToolChecks: Breche alle laufenden LanguageTool-Checks ab");
+        
+        // Stoppe die Debounce-Timeline
+        if (languageToolCheckTimeline != null) {
+            languageToolCheckTimeline.stop();
+            languageToolCheckTimeline = null;
+        }
+        
+        // Lösche alle Matches
+        currentLanguageToolMatches.clear();
+        
+        // Aktualisiere das Styling, um alle Markierungen zu entfernen
+        if (codeArea != null) {
+            Platform.runLater(() -> {
+                applyCombinedStyling();
+                updateLanguageToolStatus();
+            });
+        }
+    }
+    
+    /**
      * Prüft den aktuellen Text auf LanguageTool-Fehler
      */
     private void checkLanguageToolErrors() {
         if (!languageToolEnabled || codeArea == null || languageToolService == null) {
+            logger.debug("checkLanguageToolErrors: Prüfung übersprungen - enabled=" + languageToolEnabled + 
+                        ", codeArea=" + (codeArea != null) + ", service=" + (languageToolService != null));
             return;
         }
         
         String text = codeArea.getText();
         if (text == null || text.trim().isEmpty()) {
+            logger.debug("checkLanguageToolErrors: Text ist leer, lösche Matches");
             currentLanguageToolMatches.clear();
             applyCombinedStyling();
             return;
         }
+        
+        logger.debug("checkLanguageToolErrors: Starte Prüfung für Text der Länge " + text.length());
+        
+        // WICHTIG: Speichere den aktuellen Text, um später zu prüfen, ob er sich geändert hat
+        final String textAtStart = text;
         
         // Prüfe Server-Status und starte falls nötig
         languageToolService.startServerIfNeeded().thenCompose(serverReady -> {
@@ -12464,17 +12640,106 @@ spacer.setStyle("-fx-background-color: transparent;");
         }).thenAccept(result -> {
             if (result != null) {
                 Platform.runLater(() -> {
+                    // WICHTIG: Prüfe, ob der Text sich seit dem Start der Prüfung geändert hat
+                    // Wenn ja, ignoriere die Ergebnisse, da sie für einen anderen Text sind
+                    String currentTextAtCheck = codeArea != null ? codeArea.getText() : "";
+                    if (!textAtStart.equals(currentTextAtCheck)) {
+                        logger.debug("checkLanguageToolErrors: Text hat sich während der Prüfung geändert - ignoriere Ergebnisse und starte neue Prüfung");
+                        // Starte eine neue Prüfung mit dem aktuellen Text
+                        checkLanguageToolErrorsDebounced();
+                        return;
+                    }
+                    
+                    logger.debug("checkLanguageToolErrors: Ergebnis erhalten mit " + result.getMatches().size() + " Matches");
                     // Filtere Matches mit Wörtern aus dem Wörterbuch
                     String editorText = codeArea != null ? codeArea.getText() : "";
                     List<LanguageToolService.Match> allMatches = result.getMatches();
-                    currentLanguageToolMatches = languageToolDictionary.filterMatches(allMatches, editorText);
+                    List<LanguageToolService.Match> filteredMatches = languageToolDictionary.filterMatches(allMatches, editorText);
                     
+                    // Filter: Entferne Matches mit ungültigen Positionen (z.B. nach Textänderungen)
+                    filteredMatches = filteredMatches.stream()
+                        .filter(match -> {
+                            int start = match.getOffset();
+                            int end = start + match.getLength();
+                            // Stelle sicher, dass die Positionen innerhalb des Textes liegen
+                            if (start < 0 || end > editorText.length() || start >= end) {
+                                logger.debug("Entferne Match mit ungültiger Position: start=" + start + ", end=" + end + ", textLength=" + editorText.length());
+                                return false;
+                            }
+                            return true;
+                        })
+                        .collect(Collectors.toList());
+                    
+                    // Filter: Ignoriere Guillemet-Fehler am Ende des Textes
+                    // Wenn beide Anführungszeichen des letzten Satzes am Textende stehen, sind sie korrekt
+                    filteredMatches = filteredMatches.stream()
+                        .filter(match -> {
+                            if (editorText.isEmpty()) return true;
+                            
+                            // Prüfe ob der Match am Ende des Textes ist (letzte 10 Zeichen)
+                            int textEnd = editorText.length();
+                            int matchEnd = match.getOffset() + match.getLength();
+                            
+                            if (matchEnd >= textEnd - 10) {
+                                // Extrahiere den Text am Ende (letzte 50 Zeichen für Kontext)
+                                int startContext = Math.max(0, textEnd - 50);
+                                String endText = editorText.substring(startContext);
+                                
+                                // Prüfe ob es sich um Guillemets handelt (» und «)
+                                String matchedText = "";
+                                if (match.getOffset() < editorText.length()) {
+                                    matchedText = editorText.substring(
+                                        match.getOffset(), 
+                                        Math.min(match.getOffset() + match.getLength(), editorText.length())
+                                    );
+                                }
+                                
+                                // Prüfe ob das Match ein Guillemet ist
+                                boolean isGuillemet = matchedText.contains("\u00BB") || matchedText.contains("\u00AB") || 
+                                                     matchedText.contains("»") || matchedText.contains("«");
+                                
+                                if (isGuillemet) {
+                                    // Zähle Guillemets am Ende des Textes
+                                    long guillemetCount = endText.chars()
+                                        .filter(c -> c == '\u00BB' || c == '\u00AB' || c == '»' || c == '«')
+                                        .count();
+                                    
+                                    // Wenn es genau 2 Guillemets am Ende gibt (öffnend + schließend), ignoriere beide Fehler
+                                    if (guillemetCount == 2) {
+                                        logger.debug("Ignoriere Guillemet-Fehler am Textende (beide Anführungszeichen des letzten Satzes): " + match.getMessage());
+                                        return false;
+                                    }
+                                }
+                            }
+                            return true; // Behalte alle anderen Matches
+                        })
+                        .collect(Collectors.toList());
+                    
+                    // WICHTIG: Ersetze die Liste atomar, um Race Conditions zu vermeiden
+                    synchronized (currentLanguageToolMatches) {
+                        currentLanguageToolMatches = new ArrayList<>(filteredMatches);
+                    }
+                    
+                    logger.debug("checkLanguageToolErrors: Nach Filterung " + currentLanguageToolMatches.size() + " Matches");
+                    if (!currentLanguageToolMatches.isEmpty()) {
+                        logger.debug("checkLanguageToolErrors: Erste Match-Position: " + currentLanguageToolMatches.get(0).getOffset() + ", Länge: " + currentLanguageToolMatches.get(0).getLength());
+                        logger.debug("checkLanguageToolErrors: Text-Länge: " + editorText.length());
+                    }
+                    
+                    // WICHTIG: Styling explizit aktualisieren, um Markierungen anzuzeigen
+                    // Stelle sicher, dass wir im JavaFX-Thread sind (sind wir bereits durch Platform.runLater)
+                    // WICHTIG: applyCombinedStyling() verändert NICHT Cursor-Position oder Viewport
                     applyCombinedStyling();
                     updateLanguageToolStatus();
                     if (!currentLanguageToolMatches.isEmpty()) {
                         updateStatus("LanguageTool: " + currentLanguageToolMatches.size() + " Fehler gefunden");
+                        logger.debug("checkLanguageToolErrors: Styling aktualisiert, " + currentLanguageToolMatches.size() + " Matches sollten sichtbar sein");
+                    } else {
+                        logger.debug("checkLanguageToolErrors: Keine Fehler mehr gefunden");
                     }
                 });
+            } else {
+                logger.debug("checkLanguageToolErrors: Ergebnis ist null");
             }
         }).exceptionally(e -> {
             logger.error("Fehler bei LanguageTool-Prüfung", e);
@@ -12756,6 +13021,8 @@ spacer.setStyle("-fx-background-color: transparent;");
         if (codeArea == null) return;
         
         ContextMenu contextMenu = new ContextMenu();
+        // WICHTIG: Setze maximale Breite für das Kontextmenü, damit lange Texte umgebrochen werden können
+        contextMenu.setMaxWidth(600);
         styleContextMenu(contextMenu, currentThemeIndex);
         
         // WICHTIG: Setze Cursor beim Klick, damit Kontextmenü die richtige Position findet
@@ -12824,15 +13091,30 @@ spacer.setStyle("-fx-background-color: transparent;");
                 String message = clickedMatch.getMessage();
                 Label headerLabel = new Label("LanguageTool: " + message);
                 headerLabel.setWrapText(true);
-                headerLabel.setMaxWidth(600); // Maximale Breite für das Kontextmenü
+                // WICHTIG: Setze die Breite direkt am Label, nicht am Container
+                headerLabel.setPrefWidth(600);
+                headerLabel.setMaxWidth(600);
+                headerLabel.setMinWidth(Region.USE_PREF_SIZE);
                 headerLabel.setStyle("-fx-padding: 5px; -fx-alignment: center-left; -fx-text-alignment: left;");
                 // Wende Theme-Styling auf das Label an
                 applyThemeToNode(headerLabel, currentThemeIndex);
                 
+                // Packe das Label in einen Container mit fester Breite
+                VBox container = new VBox(headerLabel);
+                container.setAlignment(Pos.CENTER_LEFT);
+                container.setPrefWidth(600);
+                container.setMaxWidth(600);
+                container.setMinWidth(600); // WICHTIG: Minimale Breite erzwingen
+                container.setStyle("-fx-padding: 0px;");
+                
                 // Verwende CustomMenuItem statt MenuItem, um mehr Kontrolle zu haben
-                CustomMenuItem headerItem = new CustomMenuItem(headerLabel, false);
+                // Der zweite Parameter (false) bedeutet, dass das Menü nicht automatisch schließt
+                CustomMenuItem headerItem = new CustomMenuItem(container, false);
                 headerItem.setDisable(true);
-                headerItem.setStyle("-fx-alignment: center-left; -fx-content-display: left;");
+                // WICHTIG: Setze die Breite des CustomMenuItem explizit
+                headerItem.setContent(container);
+                // WICHTIG: Setze CSS-Klasse für zusätzliches Styling
+                headerItem.getStyleClass().add("custom-menu-item");
                 contextMenu.getItems().add(headerItem);
                 contextMenu.getItems().add(new SeparatorMenuItem());
                 
@@ -18924,6 +19206,9 @@ spacer.setStyle("-fx-background-color: transparent;");
         // Erhöhe Sequenznummer, um laufende Ladevorgänge zu invalidieren
         final long mySequence = ++loadingSequence;
         logger.debug("Lade Kapitel: " + file.getName() + " (Sequenz: " + mySequence + ")");
+        
+        // WICHTIG: Breche alle laufenden LanguageTool-Checks ab, bevor ein neues Kapitel geladen wird
+        cancelLanguageToolChecks();
         
         try {
             // Bestimme die Kapitelnummer basierend auf der Position in der Dateiliste

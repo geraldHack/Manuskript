@@ -8,7 +8,7 @@ CASE:0
 WORD:0
 ENABLED:1
 STEPDESC:ALLE Unicode doppelte Anführungszeichen zu englisch
-REPLACECOUNT:56
+REPLACECOUNT:100
 STEP:2
 SEARCH:[\u2018\u2019\u201A\u201B\u2039\u203A]
 REPLACE:'
@@ -17,7 +17,7 @@ CASE:0
 WORD:0
 ENABLED:1
 STEPDESC:ALLE Unicode einfache Anführungszeichen zu englisch
-REPLACECOUNT:7
+REPLACECOUNT:0
 STEP:3
 SEARCH:(?m)(?<=[^\n ])[ ]{2,}
 REPLACE: 
@@ -188,7 +188,7 @@ CASE:0
 WORD:0
 ENABLED:1
 STEPDESC:Horizontale Trenner (---) mit Leerzeilen davor und danach umgeben
-REPLACECOUNT:0
+REPLACECOUNT:1
 STEP:22
 SEARCH:,\"
 REPLACE:\",
@@ -206,7 +206,7 @@ CASE:0
 WORD:0
 ENABLED:1
 STEPDESC:Englisch zu Französisch - doppelte Anführungszeichen
-REPLACECOUNT:28
+REPLACECOUNT:50
 STEP:24
 SEARCH:(^|[\s\.,!?;:"„»«])'([^']+)'([\s\.,!?;:"„»«]|$)
 REPLACE:$1›$2‹$3
@@ -215,7 +215,7 @@ CASE:0
 WORD:0
 ENABLED:1
 STEPDESC:Englisch zu Französisch - einfache Anführungszeichen
-REPLACECOUNT:3
+REPLACECOUNT:0
 STEP:25
 SEARCH:"(.*?)"
 REPLACE:„$1"
@@ -261,4 +261,67 @@ WORD:0
 ENABLED:1
 STEPDESC:typografisches Anführungszeichen
 REPLACECOUNT:1
+STEP:30
+SEARCH:(?<![0-9])\.([a-zA-ZäöüÄÖÜß])
+REPLACE:. $1
+REGEX:1
+CASE:0
+WORD:0
+ENABLED:1
+STEPDESC:Punkt direkt vor Buchstabe - Leerzeichen einfügen (nicht bei Dezimalzahlen)
+REPLACECOUNT:0
+STEP:31
+SEARCH:(?<![0-9]),([a-zA-ZäöüÄÖÜß])
+REPLACE:, $1
+REGEX:1
+CASE:0
+WORD:0
+ENABLED:1
+STEPDESC:Komma direkt vor Buchstabe - Leerzeichen einfügen (nicht bei Dezimalzahlen)
+REPLACECOUNT:0
+STEP:32
+SEARCH: ([,\.])
+REPLACE:$1
+REGEX:1
+CASE:0
+WORD:0
+ENABLED:1
+STEPDESC:Leerzeichen vor Komma/Punkt entfernen
+REPLACECOUNT:0
+STEP:33
+SEARCH:\.\.([^\.])
+REPLACE:…$1
+REGEX:1
+CASE:0
+WORD:0
+ENABLED:1
+STEPDESC:Zwei Punkte ohne Leerzeichen zu Auslassungszeichen (wenn nicht drei Punkte)
+REPLACECOUNT:0
+STEP:34
+SEARCH:([a-zA-ZäöüÄÖÜß])\.([a-zA-ZäöüÄÖÜß])
+REPLACE:$1. $2
+REGEX:1
+CASE:0
+WORD:0
+ENABLED:1
+STEPDESC:Punkt zwischen zwei Buchstaben - Leerzeichen einfügen
+REPLACECOUNT:0
+STEP:35
+SEARCH:([a-zA-ZäöüÄÖÜß]),([a-zA-ZäöüÄÖÜß])
+REPLACE:$1, $2
+REGEX:1
+CASE:0
+WORD:0
+ENABLED:1
+STEPDESC:Komma zwischen zwei Buchstaben - Leerzeichen einfügen
+REPLACECOUNT:0
+STEP:36
+SEARCH:([,\.]{2,})
+REPLACE:$1
+REGEX:1
+CASE:0
+WORD:0
+ENABLED:0
+STEPDESC:Mehrfache Kommas/Punkte markieren (zur Überprüfung)
+REPLACECOUNT:0
 ENDMACRO
