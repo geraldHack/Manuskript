@@ -321,6 +321,7 @@ public class EditorWindow implements Initializable {
     private Pattern cachedPattern = null;
     private boolean searchPanelVisible = false;
     private boolean macroWindowVisible = false;
+    
     private boolean textAnalysisWindowVisible = false;
     private boolean ollamaWindowVisible = false;
     // Chapter-Editor-Variablen entfernt - Split Pane nicht mehr vorhanden
@@ -12104,15 +12105,14 @@ spacer.setStyle("-fx-background-color: transparent;");
             return;
         }
         
-        // WICHTIG: Speichere Cursor-Position UND Viewport VOR setStyleSpans(), da es beide zurücksetzen kann
-        int savedCaretPosition = codeArea.getCaretPosition();
-        int savedParagraph = codeArea.getCurrentParagraph();
+        // WICHTIG: KEINE Viewport- oder Cursor-Position speichern oder wiederherstellen
+        // Die Methode wendet nur Styles an, ohne den Viewport oder Cursor zu ändern
         
         try {
-        String content = codeArea.getText();
+            String content = codeArea.getText();
             if (content.isEmpty()) {
-            return;
-        }
+                return;
+            }
         
             // Sammle Markdown-Matches
             List<MarkdownMatch> markdownMatches = new ArrayList<>();
@@ -12490,55 +12490,11 @@ spacer.setStyle("-fx-background-color: transparent;");
             // WICHTIG: Aktualisiere lastStyledText, damit der Timer weiß, dass Styling angewendet wurde
             lastStyledText = content;
             
-            // WICHTIG: Stelle Viewport SOFORT wieder her, falls setStyleSpans() ihn geändert hat
-            // WICHTIG: Synchron, nicht in Platform.runLater(), damit es sofort passiert
-            try {
-                if (savedParagraph >= 0 && savedParagraph < codeArea.getParagraphs().size()) {
-                    codeArea.showParagraphInViewport(savedParagraph);
-                }
-            } catch (Exception e) {
-                logger.debug("Fehler beim Wiederherstellen der Viewport-Position: {}", e.getMessage());
-            }
-            // WICHTIG: Viewport zuerst wiederherstellen, dann Cursor
-            try {
-                if (savedParagraph >= 0 && savedParagraph < codeArea.getParagraphs().size()) {
-                    codeArea.showParagraphInViewport(savedParagraph);
-                }
-            } catch (Exception e) {
-                logger.debug("Fehler beim Wiederherstellen der Viewport-Position: {}", e.getMessage());
-            }
-            
-            // WICHTIG: Stelle Cursor-Position SOFORT wieder her, falls setStyleSpans() sie geändert hat
-            // Prüfe sofort nach setStyleSpans(), ob die Position sich geändert hat
-            // WICHTIG: Synchron, nicht in Platform.runLater(), damit es sofort passiert
-            int currentCaretPosition = codeArea.getCaretPosition();
-            // Nur wiederherstellen, wenn die Position sich geändert hat UND die gespeicherte Position > 0 ist
-            // (0 bedeutet, dass der Cursor bereits oben war, also keine Wiederherstellung nötig)
-            if (currentCaretPosition != savedCaretPosition && savedCaretPosition > 0) {
-                // Prüfe, ob die gespeicherte Position noch gültig ist
-                if (savedCaretPosition <= content.length()) {
-                    codeArea.moveTo(savedCaretPosition);
-                } else if (content.length() > 0) {
-                    // Position ist außerhalb - setze ans Ende
-                    codeArea.moveTo(content.length());
-                }
-            }
+            // WICHTIG: KEINE Viewport- oder Cursor-Wiederherstellung
+            // Die Methode wendet nur Styles an, ohne den Viewport oder Cursor zu ändern
             
         } catch (Exception e) {
             logger.debug("Fehler beim kombinierten Styling: {}", e.getMessage());
-            // Stelle Cursor-Position auch bei Fehler wieder her, falls möglich
-            try {
-                if (savedCaretPosition >= 0) {
-                    String currentContent = codeArea.getText();
-                    if (savedCaretPosition <= currentContent.length()) {
-                        codeArea.moveTo(savedCaretPosition);
-                    } else if (currentContent.length() > 0) {
-                        codeArea.moveTo(currentContent.length());
-                    }
-                }
-            } catch (Exception e2) {
-                // Ignoriere Fehler bei Cursor-Wiederherstellung
-            }
         }
     }
     
