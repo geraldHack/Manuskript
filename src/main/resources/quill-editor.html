@@ -506,33 +506,45 @@
             }, 500);
             */
             
-            // Scroll-Events abfangen
-            setTimeout(function() {
-                var scrollContainer = document.querySelector('.ql-editor');
-                if (scrollContainer) {
-                    scrollContainer.addEventListener('scroll', function() {
-                        // WICHTIG: Ignoriere Scroll-Events während programmatischer Updates (verhindert Feedback-Schleife)
-                        // Wenn isUpdatingFromCodeArea gesetzt ist, wurde der Content gerade programmatisch gesetzt
-                        // und wir sollten NICHT zurück zum Editor synchronisieren (verhindert Zucken)
-                        if (window.isUpdatingFromCodeArea) {
-                            return; // Ignoriere Scroll-Event komplett während programmatischer Updates
-                        }
-                        
-                        // WICHTIG: Nur Flag setzen, wenn NICHT programmatisch gescrollt wird
-                        // Wenn isQuillScrollingProgrammatically gesetzt ist, dann wurde programmatisch gescrollt
-                        // und wir sollten NICHT zurück zum Editor synchronisieren
-                        if (!window.isQuillScrollingProgrammatically) {
-                            // Benutzer scrollt manuell - synchronisiere zum Editor
-                            var scrollTop = scrollContainer.scrollTop;
-                            var scrollHeight = scrollContainer.scrollHeight - scrollContainer.clientHeight;
-                            sendScrollToJava(scrollTop, scrollHeight);
-                        } else {
-                            // Programmatisches Scrollen - ignoriere für Synchronisation
-                            // Das Flag wird von scrollQuillToText gesetzt und zurückgesetzt
-                        }
-                    });
-                }
-            }, 100);
+        // Fail-safe zum Rücksetzen festhängender Flags
+        function resetQuillFlags() {
+            window.isUpdatingFromCodeArea = false;
+            window.isQuillScrollingProgrammatically = false;
+        }
+        window._lastUpdateFromCodeAreaTs = 0;
+        window._lastQuillProgScrollTs = 0;
+        
+        // Scroll-Events abfangen
+        setTimeout(function() {
+            var scrollContainer = document.querySelector('.ql-editor');
+            if (scrollContainer) {
+                scrollContainer.addEventListener('scroll', function() {
+                    var now = Date.now();
+                    
+                    // Erlaube nur eine sehr kurze Sperre nach programmatischem Update (150ms)
+                    if (window.isUpdatingFromCodeArea && (now - window._lastUpdateFromCodeAreaTs) < 150) {
+                        return;
+                    }
+                    // Falls Flag klemmt: nach 500ms hart zurücksetzen
+                    if (window.isUpdatingFromCodeArea && (now - window._lastUpdateFromCodeAreaTs) >= 500) {
+                        window.isUpdatingFromCodeArea = false;
+                    }
+                    
+                    // Programmatisches Scroll-Flag nur kurz respektieren
+                    if (window.isQuillScrollingProgrammatically && (now - window._lastQuillProgScrollTs) < 500) {
+                        return;
+                    }
+                    if (window.isQuillScrollingProgrammatically && (now - window._lastQuillProgScrollTs) >= 700) {
+                        window.isQuillScrollingProgrammatically = false;
+                    }
+                    
+                    // Benutzer scrollt manuell - synchronisiere zum Editor
+                    var scrollTop = scrollContainer.scrollTop;
+                    var scrollHeight = scrollContainer.scrollHeight - scrollContainer.clientHeight;
+                    sendScrollToJava(scrollTop, scrollHeight);
+                });
+            }
+        }, 100);
         }
         
         // Globale Funktionen für Java-Aufrufe
@@ -551,6 +563,7 @@
                 // WICHTIG: Setze Flag GANZ AM ANFANG, um text-change Events während des Updates zu ignorieren
                 // Dies muss VOR allen Quill-Operationen gesetzt werden
                 window.isUpdatingFromCodeArea = true;
+                window._lastUpdateFromCodeAreaTs = Date.now();
                 logToJava('DEBUG', 'isUpdatingFromCodeArea auf true gesetzt');
                 
                 var newContent = htmlContent ? htmlContent.trim() : '';
@@ -760,7 +773,7 @@
                         // WICHTIG: Setze Flag erst NACH allen setTimeout-Operationen zurück
                         // Die längste setTimeout-Operation ist 100ms, also warten wir 250ms + Puffer
                         setTimeout(function() {
-                            window.isUpdatingFromCodeArea = false;
+                            resetQuillFlags();
                             logToJava('DEBUG', 'isUpdatingFromCodeArea zurückgesetzt nach dangerouslyPasteHTML (alle DOM-Operationen abgeschlossen)');
                         }, 250);
                     } catch (e1) {
@@ -802,7 +815,7 @@
                             // WICHTIG: Setze Flag nach innerHTML-Fallback zurück (mit Verzögerung für setTimeout)
                             // innerHTML kann Events auslösen, daher etwas länger warten
                             setTimeout(function() {
-                                window.isUpdatingFromCodeArea = false;
+                                resetQuillFlags();
                                 logToJava('DEBUG', 'isUpdatingFromCodeArea zurückgesetzt nach innerHTML-Fallback');
                             }, 300);
                         } catch (e2) {
@@ -858,10 +871,7 @@
                         // WICHTIG: Setze Flag nach Verifizierung zurück (falls noch nicht zurückgesetzt)
                         // Dies ist ein Fallback, falls das Flag noch nicht zurückgesetzt wurde
                         setTimeout(function() {
-                            if (window.isUpdatingFromCodeArea) {
-                                window.isUpdatingFromCodeArea = false;
-                                logToJava('DEBUG', 'isUpdatingFromCodeArea zurückgesetzt nach Verifizierung (Fallback)');
-                            }
+                            resetQuillFlags();
                         }, 400);
                         
                         return 'success';
@@ -869,18 +879,18 @@
                 } else {
                     logToJava('DEBUG', 'Quill Content unverändert, keine Aktualisierung nötig');
                     // WICHTIG: Flag auch zurücksetzen, wenn kein Update nötig war
-                    window.isUpdatingFromCodeArea = false;
+                    resetQuillFlags();
                     return 'success'; // Content war bereits korrekt
                 }
             } catch (e) {
                 logToJava('ERROR', 'Fehler beim Setzen des Quill Contents: ' + e.message);
                 // WICHTIG: Flag auch bei Fehler zurücksetzen
-                window.isUpdatingFromCodeArea = false;
+                resetQuillFlags();
                 return 'error: ' + e.message;
             }
             
             // WICHTIG: Fallback - Flag zurücksetzen falls wir hier ankommen
-            window.isUpdatingFromCodeArea = false;
+            resetQuillFlags();
             return 'success';
         };
         
@@ -1104,8 +1114,8 @@ window.scrollQuillTo = function(scrollTop) {
             // WICHTIG: Setze Flag, dass programmatisches Scrollen stattfindet
             // Verwende separates Flag für programmatisches Scrollen
             window.isQuillScrollingProgrammatically = true;
+            window._lastQuillProgScrollTs = Date.now();
             clearTimeout(window.quillScrollingProgrammaticallyTimeout);
-            
             var editor = document.querySelector('.ql-editor');
             if (!editor) {
                 window.isQuillScrolling = false;
@@ -1159,7 +1169,7 @@ window.scrollQuillTo = function(scrollTop) {
             // WICHTIG: Setze Flag länger zurück (500ms), damit Polling-Mechanismus Zeit hat,
             // das Flag zu erkennen und Rückkopplung zu verhindern
             window.quillScrollingProgrammaticallyTimeout = setTimeout(function() {
-                window.isQuillScrollingProgrammatically = false;
+                resetQuillFlags();
             }, 500);
             
             // Finde das übergeordnete Block-Element (p, div, etc.)

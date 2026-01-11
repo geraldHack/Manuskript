@@ -18596,72 +18596,20 @@ spacer.setStyle("-fx-background-color: transparent;");
     private void scrollEditorToParagraphCentered(int idx) {
         if (codeArea == null || scrollPane == null || idx < 0 || idx >= codeArea.getParagraphs().size()) return;
         try {
-            // WICHTIG: Um den Absatz wirklich mittig anzuzeigen, verwenden wir einen Trick:
-            // 1. Zeige den Absatz zuerst oben an
-            // 2. Dann berechne die Scroll-Position, um ihn mittig zu positionieren
-            // 3. Verwende mehrere Versuche mit verschiedenen Verzögerungen
-            
-            // Erst den Zielabsatz oben anzeigen
+            // Zeige den Absatz oben an, dann einmal mittig – reduziert "Schlackern"
             codeArea.showParagraphAtTop(idx);
-            
-            // Kleine Verzögerung für VirtualizedScrollPane-Update, dann zentrieren
             Platform.runLater(() -> {
-                // Versuch 1: Direkt mit showParagraphAtCenter
-                Timeline timeline1 = new Timeline(new KeyFrame(Duration.millis(50), event -> {
-                    try {
-                        codeArea.showParagraphAtCenter(idx);
-                    } catch (Exception e) {
-                        logger.debug("Fehler beim ersten Zentrierungs-Versuch: " + e.getMessage());
-                    }
-                }));
-                timeline1.play();
-                
-                // Versuch 2: Nochmal mit showParagraphAtCenter nach längerer Verzögerung
-                Timeline timeline2 = new Timeline(new KeyFrame(Duration.millis(150), event -> {
-                    try {
-                        codeArea.showParagraphAtCenter(idx);
-                        codeArea.requestFollowCaret();
-                    } catch (Exception e) {
-                        logger.debug("Fehler beim zweiten Zentrierungs-Versuch: " + e.getMessage());
-                    }
-                }));
-                timeline2.play();
-                
-                // Versuch 3: Manuelles Zentrieren durch Berechnung der Scroll-Position
-                Timeline timeline3 = new Timeline(new KeyFrame(Duration.millis(250), event -> {
-                    try {
-                        // Berechne die Anzahl der Absätze, die oberhalb angezeigt werden sollen
-                        // Geschätzte Anzahl sichtbarer Absätze basierend auf Viewport-Höhe
-                        Bounds scrollPaneBounds = scrollPane.getBoundsInLocal();
-                        double viewportHeight = scrollPaneBounds.getHeight();
-                        // Geschätzte Höhe pro Absatz: ca. 20-25 Pixel
-                        double estimatedParagraphHeight = 22.0;
-                        int visibleParagraphs = (int) (viewportHeight / estimatedParagraphHeight);
-                        // Zeige einen Absatz an, der etwa die Hälfte der sichtbaren Absätze oberhalb liegt
-                        int targetParagraph = Math.max(0, idx - (visibleParagraphs / 2));
-                        codeArea.showParagraphAtTop(targetParagraph);
-                        
-                        // Dann nochmal mit showParagraphAtCenter versuchen
-                        Platform.runLater(() -> {
-                            try {
-                                codeArea.showParagraphAtCenter(idx);
-                            } catch (Exception e) {
-                                logger.debug("Fehler beim manuellen Zentrieren: " + e.getMessage());
-                            }
-                        });
-                    } catch (Exception e) {
-                        logger.debug("Fehler beim dritten Zentrierungs-Versuch: " + e.getMessage());
-                    }
-                }));
-                timeline3.play();
+                try {
+                    codeArea.showParagraphAtCenter(idx);
+                } catch (Exception e) {
+                    logger.debug("Fehler beim Zentrieren: " + e.getMessage());
+                }
             });
         } catch (Exception e) {
             logger.debug("Fehler beim Scrollen zu Absatz", e);
-            // Fallback: Alte Methode
+            // Fallback: einfache Top-Positionierung
             try {
-                int target = Math.max(0, idx - 2);
-                codeArea.showParagraphAtTop(target);
-                codeArea.moveTo(codeArea.getAbsolutePosition(target, 0));
+                codeArea.showParagraphAtTop(Math.max(0, idx - 1));
             } catch (Exception e2) {
                 logger.debug("Fehler beim Fallback-Scrollen", e2);
             }
