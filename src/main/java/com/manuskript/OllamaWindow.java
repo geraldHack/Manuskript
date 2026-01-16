@@ -52,6 +52,10 @@ public class OllamaWindow {
     private CustomStage resultStage;
     private javafx.scene.web.WebView resultWebView;
     private String lastPureChatAnswer = ""; // Speichert den reinen Chat-Text ohne Header
+    private boolean resultWebViewInitialized = false; // Flag ob WebView bereits initialisiert ist
+    private boolean autoscrollEnabled = true; // Auto-Scroll im Ergebnisfenster
+    private Button autoscrollButton; // Button zum Ein/Ausschalten von Auto-Scroll
+    private String bufferedHtml = null; // Buffer für HTML wenn Auto-Scroll AUS ist
     
     // Spezielle Eingabefelder für verschiedene Funktionen
     private TextField characterField;
@@ -1878,10 +1882,10 @@ public class OllamaWindow {
                     } catch (Exception e) {
     
                     }
-                    // Live-Update im externen Fenster (immer ans Ende scrollen) - OHNE Header
+                    // Live-Update im externen Fenster (intelligentes Auto-Scroll: nur wenn Benutzer noch unten ist)
                     if (resultStage != null && resultStage.isShowing() && resultWebView != null) {
                         // Nur den reinen Text ohne Header für das Fenster verwenden
-                        updateResultWebView(buildHtmlForAnswer(aggregated.toString()), false);
+                        updateResultWebView(buildHtmlForAnswer(aggregated.toString()), true);
                     }
                     // Auch im Standard-Output-Feld (Chat-Historie) immer ans Ende springen
                     try {
@@ -2037,9 +2041,9 @@ public class OllamaWindow {
                         aggregated.append(chunk);
                         statusLabel.setText("⏳ Läuft… " + aggregated.length() + " Zeichen");
                         resultArea.setText(aggregated.toString());
-                        // Live-Update im externen Fenster
+                        // Live-Update im externen Fenster (intelligentes Auto-Scroll)
                         if (resultStage != null && resultStage.isShowing() && resultWebView != null) {
-                            updateResultWebView(buildHtmlForAnswer(aggregated.toString()), false);
+                            updateResultWebView(buildHtmlForAnswer(aggregated.toString()), true);
                         }
                     }),
                     () -> Platform.runLater(() -> {
@@ -2845,6 +2849,7 @@ public class OllamaWindow {
                 // WICHTIG: Theme sofort setzen
                 resultStage.setTitleBarTheme(currentThemeIndex);
                 resultWebView = new javafx.scene.web.WebView();
+                resultWebViewInitialized = false; // Reset beim Erstellen
                 resultWebView.setContextMenuEnabled(false);
                 resultWebView.setMinSize(0, 0);
                 resultWebView.setPrefSize(Region.USE_COMPUTED_SIZE, Region.USE_COMPUTED_SIZE);
@@ -2882,7 +2887,24 @@ public class OllamaWindow {
                 HBox headerRow = new HBox(10, searchButton, insertButton);
                 headerRow.setAlignment(Pos.CENTER_LEFT);
 
-                VBox box = new VBox(5, headerRow, resultWebView);
+                // Auto-Scroll Button unten im Fenster
+                autoscrollButton = new Button("Auto-Scroll: AN");
+                autoscrollButton.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8px 16px;");
+                autoscrollButton.setMaxWidth(Double.MAX_VALUE);
+                autoscrollButton.setOnAction(e -> {
+                    autoscrollEnabled = !autoscrollEnabled;
+                    autoscrollButton.setText(autoscrollEnabled ? "Auto-Scroll: AN" : "Auto-Scroll: AUS");
+                    autoscrollButton.setStyle(autoscrollEnabled ? 
+                        "-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8px 16px;" :
+                        "-fx-background-color: #757575; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8px 16px;");
+                    // Wenn Auto-Scroll wieder AN ist und Buffer vorhanden, Update anwenden
+                    if (autoscrollEnabled && bufferedHtml != null && resultWebView != null) {
+                        updateResultWebView(bufferedHtml, true);
+                        bufferedHtml = null;
+                    }
+                });
+
+                VBox box = new VBox(5, headerRow, resultWebView, autoscrollButton);
                 box.setPadding(new Insets(10));
                 box.setFillWidth(true);
                 // Theme-gerechter Hintergrund
@@ -2901,6 +2923,10 @@ public class OllamaWindow {
                 if (currentThemeIndex == 2 && sc.getRoot() != null) {
                     sc.getRoot().getStyleClass().add("pastell-theme");
                 }
+            }
+            // Wenn Fenster geschlossen war, Flag zurücksetzen für komplettes Neuladen
+            if (!resultStage.isShowing()) {
+                resultWebViewInitialized = false;
             }
             // Inhalt laden/refreshen und anzeigen (kein Auto-Scroll beim Öffnen)
             updateResultWebView(buildHtmlForAnswer(answer), false);
@@ -3019,7 +3045,16 @@ public class OllamaWindow {
                 "a{color:"+linkColor+";text-decoration:none;} a:hover{text-decoration:underline;}"+
                 ".muted{color:"+muted+";}"+
                 ".answer-header{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px 0;} .chip{padding:4px 8px;border-radius:999px;font-size:12px;} .chip.model{font-weight:600;}";
-        return "<!doctype html><html><head><meta charset='utf-8'><style>"+css+"</style></head><body><div class='content'>"+headerHtml+htmlBody+"</div></body></html>";
+        String scrollScript = 
+            "<script>" +
+            "(function() { " +
+            "  // Auto-Scroll Flag initialisieren " +
+            "  if (typeof window.autoscrollEnabled === 'undefined') { " +
+            "    window.autoscrollEnabled = true; " +
+            "  } " +
+            "})();" +
+            "</script>";
+        return "<!doctype html><html><head><meta charset='utf-8'><style>"+css+"</style></head><body><div class='content'>"+headerHtml+htmlBody+"</div>"+scrollScript+"</body></html>";
     }
 
     private boolean looksLikeJson(String s) {
@@ -3113,6 +3148,37 @@ public class OllamaWindow {
     private String escapeHtml(String s) {
         return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
     }
+    
+    /**
+     * Escaped einen String für die Verwendung in JavaScript (als JSON-String)
+     */
+    private String escapeJsonForJs(String s) {
+        if (s == null) return "null";
+        // Verwende JSON.stringify-ähnliches Escaping
+        StringBuilder sb = new StringBuilder();
+        sb.append("\"");
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            switch (c) {
+                case '"': sb.append("\\\""); break;
+                case '\\': sb.append("\\\\"); break;
+                case '\n': sb.append("\\n"); break;
+                case '\r': sb.append("\\r"); break;
+                case '\t': sb.append("\\t"); break;
+                case '\b': sb.append("\\b"); break;
+                case '\f': sb.append("\\f"); break;
+                default:
+                    if (c < 0x20) {
+                        sb.append(String.format("\\u%04x", (int) c));
+                    } else {
+                        sb.append(c);
+                    }
+                    break;
+            }
+        }
+        sb.append("\"");
+        return sb.toString();
+    }
 
     private String sanitizeGeneratedHtml(String raw) {
         if (raw == null) {
@@ -3180,15 +3246,60 @@ public class OllamaWindow {
     // Lädt HTML in das Ergebnis-WebView und scrollt automatisch ans Ende (nach Render)
     private void updateResultWebView(String html, boolean scrollToBottom) {
         if (resultWebView == null) return;
-        resultWebView.getEngine().loadContent(html, "text/html");
-        // Immer automatisch scrollen bei neuen Inhalten (für Streaming)
-        resultWebView.getEngine().getLoadWorker().stateProperty().addListener((obs, old, state) -> {
-            if (state == javafx.concurrent.Worker.State.SUCCEEDED) {
-                try {
-                    resultWebView.getEngine().executeScript("window.scrollTo(0, document.body.scrollHeight);");
-                } catch (Exception ignored) {}
+        
+        if (!resultWebViewInitialized) {
+            // Erstes Laden: Komplettes HTML laden
+            resultWebView.getEngine().loadContent(html, "text/html");
+            resultWebView.getEngine().getLoadWorker().stateProperty().addListener((obs, old, state) -> {
+                if (state == javafx.concurrent.Worker.State.SUCCEEDED) {
+                    resultWebViewInitialized = true;
+                }
+            });
+        } else {
+            // Wenn Auto-Scroll AUS ist, HTML buffern statt zu updaten
+            if (!autoscrollEnabled) {
+                bufferedHtml = html; // Buffer für später
+                return; // Kein Update, damit Selektion/Scroll erhalten bleibt
             }
-        });
+            
+            // Wenn Auto-Scroll wieder AN ist und Buffer vorhanden, zuerst Buffer anwenden
+            if (bufferedHtml != null) {
+                html = bufferedHtml; // Verwende gebuffertes HTML
+                bufferedHtml = null; // Buffer leeren
+            }
+            // Updates: Nur den Content-Bereich aktualisieren, ohne Seite neu zu laden
+            // Extrahiere nur den Content-Teil aus dem HTML
+            String contentHtml = html;
+            try {
+                // Suche nach <div class='content'>...</div>
+                int contentStart = html.indexOf("<div class='content'>");
+                int contentEnd = html.lastIndexOf("</div></body>");
+                if (contentStart >= 0 && contentEnd > contentStart) {
+                    contentHtml = html.substring(contentStart + "<div class='content'>".length(), contentEnd);
+                }
+            } catch (Exception e) {
+                // Fallback: Verwende gesamtes HTML
+            }
+            
+            // Einfach: Content updaten und nach unten scrollen (nur wenn Auto-Scroll AN ist)
+            String updateScript = 
+                "(function() { " +
+                "  var contentDiv = document.querySelector('.content'); " +
+                "  if (!contentDiv) return; " +
+                "  var html = " + escapeJsonForJs(contentHtml) + "; " +
+                "  contentDiv.innerHTML = html; " +
+                "  window.scrollTo(0, document.documentElement.scrollHeight); " +
+                "})();";
+            
+            try {
+                // Setze Auto-Scroll Flag im JavaScript
+                resultWebView.getEngine().executeScript("window.autoscrollEnabled = " + autoscrollEnabled + ";");
+                resultWebView.getEngine().executeScript(updateScript);
+            } catch (Exception e) {
+                // Falls Update fehlschlägt, komplett neu laden
+                resultWebView.getEngine().loadContent(html, "text/html");
+            }
+        }
     }
     
     /**
@@ -4836,7 +4947,7 @@ public class OllamaWindow {
                     statusLabel.setText("⏳ Analysiere Plot-Holes... " + aggregated.length() + " Zeichen");
                     resultArea.setText(aggregated.toString());
                     if (resultStage != null && resultStage.isShowing() && resultWebView != null) {
-                        updateResultWebView(buildHtmlForAnswer(aggregated.toString()), false);
+                        updateResultWebView(buildHtmlForAnswer(aggregated.toString()), true);
                     }
                 }),
                 () -> Platform.runLater(() -> {

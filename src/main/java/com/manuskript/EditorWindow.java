@@ -15971,6 +15971,20 @@ spacer.setStyle("-fx-background-color: transparent;");
                 // Das verhindert Rückkopplung und Sprünge
                 Object scrollChanged = engine.executeScript("window.quillScrollChanged");
                 if (Boolean.TRUE.equals(scrollChanged)) {
+                    // WICHTIG: Überspringe Scroll-Synchronisation komplett, wenn CodeArea gerade aktualisiert wird
+                    // oder wenn der Editor fokussiert ist (Benutzer tippt gerade)
+                    if (isUpdatingFromCodeArea) {
+                        engine.executeScript("window.quillScrollChanged = false;");
+                        return;
+                    }
+                    
+                    // Prüfe, ob der Editor gerade fokussiert ist - wenn ja, keine Synchronisation
+                    // Das verhindert, dass der Editor während des Tippens wegscrollt
+                    if (codeArea != null && codeArea.isFocused()) {
+                        engine.executeScript("window.quillScrollChanged = false;");
+                        return;
+                    }
+                    
                     // Prüfe, ob Quill gerade programmatisch gescrollt wird (Editor → Quill Sync)
                     try {
                         Object quillScrollingProgrammatically = engine.executeScript("(window.isQuillScrollingProgrammatically || false)");
@@ -18805,60 +18819,64 @@ spacer.setStyle("-fx-background-color: transparent;");
      */
     public void enableEnglishQuotesForAI() {
         if (cmbQuoteStyle != null) {
-            // Speichere die aktuelle Einstellung
-            originalQuoteStyleIndex = currentQuoteStyleIndex;
+            // Speichere die aktuelle Einstellung (nur wenn Dropdown noch nicht disabled ist)
+            // Das bedeutet, der KI-Assistent wurde gerade erst geöffnet
+            if (!cmbQuoteStyle.isDisabled()) {
+                originalQuoteStyleIndex = currentQuoteStyleIndex;
+            }
             
-            // Setze auf englische Anführungszeichen (Index 2)
-            if (currentQuoteStyleIndex != 2) {
-                currentQuoteStyleIndex = 2;
-                cmbQuoteStyle.setValue(QUOTE_STYLES[2][0]);
-                cmbQuoteStyle.setDisable(true);
-                
-                // Speichere die Einstellung in den Preferences
-                preferences.put("quoteStyle", String.valueOf(2));
-                try {
-                    preferences.flush();
-                } catch (java.util.prefs.BackingStoreException ex) {
-                    logger.warn("Konnte Quote-Style nicht speichern: " + ex.getMessage());
-                }
-                
-                // Konvertiere alle Anführungszeichen im Text (wie beim manuellen Dropdown-Wechsel)
+            // Setze auf englische Anführungszeichen (Index 2) - IMMER
+            boolean wasAlreadyEnglish = (currentQuoteStyleIndex == 2);
+            currentQuoteStyleIndex = 2;
+            cmbQuoteStyle.setValue(QUOTE_STYLES[2][0]);
+            cmbQuoteStyle.setDisable(true); // IMMER auf disabled setzen, wenn KI-Assistent geöffnet ist
+            
+            // Speichere die Einstellung in den Preferences
+            preferences.put("quoteStyle", String.valueOf(2));
+            try {
+                preferences.flush();
+            } catch (java.util.prefs.BackingStoreException ex) {
+                logger.warn("Konnte Quote-Style nicht speichern: " + ex.getMessage());
+            }
+            
+            // Konvertiere alle Anführungszeichen im Text nur wenn noch nicht englisch
+            if (!wasAlreadyEnglish) {
                 convertAllQuotationMarksInText(QUOTE_STYLES[2][0]);
-                
-                // Zeige Alert nur wenn nicht bereits englisch und nicht unterdrückt
-                boolean showAlert = preferences.getBoolean("show_ai_quote_alert", true);
-                if (showAlert) {
-                    Platform.runLater(() -> {
-                        // Checkbox für "Nicht mehr anzeigen"
-                        CheckBox dontShowAgain = new CheckBox("Nicht mehr anzeigen");
-                        dontShowAgain.setStyle("-fx-font-size: 11px;");
-                        
-                        VBox content = new VBox(10);
-                        content.setPadding(new Insets(10));
-                        content.getChildren().addAll(
-                            new Label("Solange der KI-Assistent geöffnet ist, werden englische Anführungszeichen verwendet.\n Wird der KI-Assistent geschlossen, wird der vorherige Zustand wiederhergestellt."),
-                            dontShowAgain
-                        );
-                        
-                        CustomAlert alert = new CustomAlert(Alert.AlertType.INFORMATION, "KI-Assistent");
-                        alert.setHeaderText(null);
-                        alert.setCustomContent(content);
-                        alert.applyTheme(currentThemeIndex);
-                        alert.initOwner(stage);
-                        
-                        Optional<ButtonType> result = alert.showAndWait();
-                        
-                        // Speichere die Einstellung wenn Checkbox aktiviert
-                        if (dontShowAgain.isSelected()) {
-                            preferences.putBoolean("show_ai_quote_alert", false);
-                            try {
-                                preferences.flush();
-                            } catch (java.util.prefs.BackingStoreException ex) {
-                                logger.warn("Konnte Alert-Einstellung nicht speichern: " + ex.getMessage());
-                            }
+            }
+            
+            // Zeige Alert nur wenn nicht bereits englisch und nicht unterdrückt
+            boolean showAlert = preferences.getBoolean("show_ai_quote_alert", true);
+            if (!wasAlreadyEnglish && showAlert) {
+                Platform.runLater(() -> {
+                    // Checkbox für "Nicht mehr anzeigen"
+                    CheckBox dontShowAgain = new CheckBox("Nicht mehr anzeigen");
+                    dontShowAgain.setStyle("-fx-font-size: 11px;");
+                    
+                    VBox content = new VBox(10);
+                    content.setPadding(new Insets(10));
+                    content.getChildren().addAll(
+                        new Label("Solange der KI-Assistent geöffnet ist, werden englische Anführungszeichen verwendet.\n Wird der KI-Assistent geschlossen, wird der vorherige Zustand wiederhergestellt."),
+                        dontShowAgain
+                    );
+                    
+                    CustomAlert alert = new CustomAlert(Alert.AlertType.INFORMATION, "KI-Assistent");
+                    alert.setHeaderText(null);
+                    alert.setCustomContent(content);
+                    alert.applyTheme(currentThemeIndex);
+                    alert.initOwner(stage);
+                    
+                    Optional<ButtonType> result = alert.showAndWait();
+                    
+                    // Speichere die Einstellung wenn Checkbox aktiviert
+                    if (dontShowAgain.isSelected()) {
+                        preferences.putBoolean("show_ai_quote_alert", false);
+                        try {
+                            preferences.flush();
+                        } catch (java.util.prefs.BackingStoreException ex) {
+                            logger.warn("Konnte Alert-Einstellung nicht speichern: " + ex.getMessage());
                         }
-                    });
-                }
+                    }
+                });
             }
         }
     }
@@ -20195,6 +20213,13 @@ spacer.setStyle("-fx-background-color: transparent;");
             // Das verhindert das "Zucken" während Editor → Quill Updates
             if (isUpdatingFromCodeArea) {
                 logger.debug("onQuillScroll übersprungen: CodeArea wird gerade aktualisiert (verhindert Zucken)");
+                return;
+            }
+            
+            // WICHTIG: Überspringe Scroll-Synchronisation, wenn der Editor fokussiert ist
+            // Das verhindert, dass der Editor während des Tippens wegscrollt
+            if (codeArea.isFocused()) {
+                logger.debug("onQuillScroll übersprungen: Editor ist fokussiert (Benutzer tippt gerade)");
                 return;
             }
             

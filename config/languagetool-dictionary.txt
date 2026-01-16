@@ -11,8 +11,10 @@ alvaro
 arista
 ayen
 ayens
+bettlergilde
 brak
 braks
+brass
 center
 demirantha
 demiranther
@@ -26,6 +28,7 @@ dini
 efret
 efrets
 elana
+elpenul
 ferris
 gallat
 gallats
@@ -39,9 +42,12 @@ joms
 kalem
 kalems
 kata
+kataluna
 katas
 lakan
 lakanische
+lakans
+lethos
 leva
 maela
 malvek
@@ -52,6 +58,7 @@ nelian
 nicht-zirari
 nira
 niras
+oryn
 paleus
 rawhester
 seb
@@ -62,6 +69,8 @@ technomagisches
 thoran
 thorans
 tilla
+valdor
+valdorien
 weltenfresser
 zaubererrat
 zaubererrates
