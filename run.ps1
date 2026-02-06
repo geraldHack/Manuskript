@@ -1,3 +1,8 @@
+# ========== Java-Version / JAVA_HOME anpassen ==========
+# Wenn du eine andere Java-Installation nutzen willst, setze hier den Pfad (z.B. jdk-22 oder anderes Patch-Release):
+$javaFallbackPath = "C:\Program Files\Eclipse Adoptium\jdk-21.0.6.7-hotspot"
+# =======================================================
+
 # Setze JAVA_HOME falls nicht gesetzt oder Pfad existiert nicht
 $javaHomeValid = $false
 if ($env:JAVA_HOME) {
@@ -18,13 +23,27 @@ if (-not $javaHomeValid) {
         $env:JAVA_HOME = (Get-Item $javaPath).Directory.Parent.FullName
         Write-Host "JAVA_HOME automatisch gesetzt auf: $env:JAVA_HOME"
     } else {
-        # Fallback: Versuche den Eclipse Adoptium Pfad
-        $fallbackPath = "C:\Program Files\Eclipse Adoptium\jdk-21.0.6.7-hotspot"
-        if (Test-Path $fallbackPath) {
-            $env:JAVA_HOME = $fallbackPath
+        # Fallback: Konfigurierter Pfad oder Suche nach jdk-21* / jdk-22* im Adoptium-Ordner
+        $found = $false
+        if (Test-Path $javaFallbackPath) {
+            $env:JAVA_HOME = $javaFallbackPath
+            $found = $true
             Write-Host "JAVA_HOME auf Fallback gesetzt: $env:JAVA_HOME"
-        } else {
-            Write-Host "FEHLER: Java konnte nicht gefunden werden!" -ForegroundColor Red
+        }
+        if (-not $found -and (Test-Path "C:\Program Files\Eclipse Adoptium")) {
+            $jdks = Get-ChildItem "C:\Program Files\Eclipse Adoptium" -Directory -Filter "jdk-*" -ErrorAction SilentlyContinue | Sort-Object Name -Descending
+            foreach ($jdk in $jdks) {
+                $javaExe = Join-Path $jdk.FullName "bin\java.exe"
+                if (Test-Path $javaExe) {
+                    $env:JAVA_HOME = $jdk.FullName
+                    $found = $true
+                    Write-Host "JAVA_HOME auf $($jdk.Name) gesetzt: $env:JAVA_HOME"
+                    break
+                }
+            }
+        }
+        if (-not $found) {
+            Write-Host "FEHLER: Java konnte nicht gefunden werden! Bitte JAVA_HOME setzen oder in run.ps1 die Variable `$javaFallbackPath anpassen." -ForegroundColor Red
             exit 1
         }
     }

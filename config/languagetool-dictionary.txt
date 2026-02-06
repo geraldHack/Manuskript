@@ -4,6 +4,7 @@
 
 acen
 acens
+aklah
 almin
 almins
 altheras
@@ -17,6 +18,7 @@ braks
 brass
 center
 demirantha
+demiranthas
 demiranther
 demiranthern
 demiranthers
@@ -39,6 +41,7 @@ jom
 jomar
 jomars
 joms
+kala
 kalem
 kalems
 kata

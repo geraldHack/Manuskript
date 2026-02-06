@@ -51,7 +51,7 @@
 
 ```bash
 # 1. Repository klonen
-git clone https://github.com/geraldHack/Manuskript.git
+git clone https://codeberg.org/gehackb/Manuskript.git
 cd Manuskript
 
 # 2. Abhängigkeiten installieren
@@ -229,8 +229,8 @@ ollama pull qwen2.5:7b-instruct
 
 - **JavaFX 17+** - Moderne Benutzeroberfläche
 - **RichTextFX** - Erweiterter Text-Editor
-- **Apache POI** - DOCX-Datei-Verarbeitung
 - **Ollama** - Lokale KI-Integration
+- **Language tool** - lokale Rechtschreibkorrektur
 - **Maven** - Build-Management
 - **SLF4J/Logback** - Logging-System
 
@@ -241,7 +241,7 @@ ollama pull qwen2.5:7b-instruct
 
 
 ### Bekannte Einschränkungen
-- Ollama benötigt ausreichend Speicher und kräftige Grafikkarte (mind. 8GB / >= GTX3090 empfohlen)
+- Ollama benötigt ausreichend Speicher und kräftige Grafikkarte (mind. 12GB / >= GTX4070 empfohlen)
 
 ## 🤝 Beitragen
 
@@ -257,7 +257,7 @@ Wir freuen uns über Beiträge! So können Sie helfen:
 ```bash
 # IDE, maven und Java >= 17 installieren 
 # Repository klonen
-git clone https://github.com/geraldHack/Manuskript.git
+git clone https://codeberg.org/gehackb/Manuskript.git
 cd Manuskript
 
 # Maven-Abhängigkeiten installieren
@@ -271,20 +271,11 @@ mvn clean install
 
 Dieses Projekt steht unter der **MIT-Lizenz**. Siehe [LICENSE](LICENSE) für Details.
 
-## 🙏 Danksagungen
-
-- **Apache POI** - DOCX-Verarbeitung
-- **RichTextFX** - Text-Editor-Engine
-- **JavaFX** - UI-Framework
-- **Ollama** - Lokale KI-Integration
-- **Maven** - Build-Management
-- **pandoc** - Dateiformatekonvertierung
-
 ## 📞 Support
 
-- **Issues** - [GitHub Issues](https://github.com/geraldHack/Manuskript/issues)
-- **Diskussionen** - [GitHub Discussions](https://github.com/geraldHack/Manuskript/discussions)
-- **Wiki** - [Projekt-Wiki](https://github.com/geraldHack/Manuskript/wiki)
+- **Issues** - [GitHub Issues](https://codeberg.org/gehackb/Manuskript/issues)
+- **Diskussionen** - [GitHub Discussions](https://codeberg.org/gehackb/Manuskript/discussions)
+- **Wiki** - [Projekt-Wiki](https://codeberg.org/gehackb/Manuskript/wiki)
 
 ---
 

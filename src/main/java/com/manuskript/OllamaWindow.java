@@ -3318,9 +3318,9 @@ public class OllamaWindow {
                 showAlert("Hinweis", "Kein Text im WebView markiert. Bitte markieren Sie zuerst Text im gerenderten Fenster.");
                 return;
             }
-            // Entferne Leerzeichen vor und nach dem markierten Text
-            // Entfernt auch mehrfache Leerzeichen, Tabs und Zeilenumbrüche am Anfang/Ende
             selectedText = selectedText.replaceAll("^\\s+", "").replaceAll("\\s+$", "");
+            // Umbrüche aus der HTML-Tabellenanzeige normalisieren (wie bei getSelectedWebViewText)
+            selectedText = selectedText.replaceAll("\\s+", " ");
             String editorSelectedText = editorWindow.getSelectedText();
             boolean hasSelection = editorSelectedText != null && !editorSelectedText.trim().isEmpty();
             if (hasSelection) {
@@ -5139,8 +5139,11 @@ public class OllamaWindow {
                 return "";
             }
             // Entferne Leerzeichen vor und nach dem markierten Text
-            // Entfernt auch mehrfache Leerzeichen, Tabs und Zeilenumbrüche am Anfang/Ende
-            return selectedText.replaceAll("^\\s+", "").replaceAll("\\s+$", "");
+            selectedText = selectedText.replaceAll("^\\s+", "").replaceAll("\\s+$", "");
+            // Umbrüche aus der HTML-Tabellenanzeige normalisieren: alle Folgen von Whitespace (inkl. Zeilenumbrüche) durch ein Leerzeichen ersetzen,
+            // damit der Suchtext mit dem Editor-Text übereinstimmt (im Editor steht meist eine Zeile ohne Zellumbrüche).
+            selectedText = selectedText.replaceAll("\\s+", " ");
+            return selectedText;
         } catch (Exception e) {
             logger.warn("Fehler beim Lesen des markierten Textes aus dem WebView: " + e.getMessage());
             return "";

@@ -3293,22 +3293,69 @@ if (caret != null) {
         if (!searchPanelVisible) {
             toggleSearchPanel();
         }
+        // Suchtext aus Lektorat/KI immer als Literal suchen (nicht als Regex), sonst findet z. B. "Hast du geschlafen", fragte Kata leise. nicht
+        if (chkRegexSearch != null && chkRegexSearch.isSelected()) {
+            chkRegexSearch.setSelected(false);
+        }
+        if (chkWholeWord != null && chkWholeWord.isSelected()) {
+            chkWholeWord.setSelected(false);
+        }
 
         boolean found = applySearchTerm(trimmed);
         
-        // Wenn keine Treffer gefunden wurden, prüfe ob der Text NUR aus Anführungszeichen besteht
-        if (!found && ((trimmed.startsWith("\"") && trimmed.endsWith("\"") && trimmed.length() > 2) || 
-                       (trimmed.startsWith("'") && trimmed.endsWith("'") && trimmed.length() > 2))) {
-            // Entferne Anführungszeichen nur wenn der Text NUR aus Anführungszeichen besteht
-            String withoutQuotes = trimmed.substring(1, trimmed.length() - 1);
-            found = applySearchTerm(withoutQuotes);
-            if (found) {
-                updateStatus("Text ohne Anführungszeichen gefunden und markiert.");
-            }
+        // Fallback 1: Erstes und letztes Zeichen sind beides Anführungszeichen → beide entfernen.
+        if (!found && trimmed.length() > 2 && isQuotationMark(trimmed.charAt(0)) && isQuotationMark(trimmed.charAt(trimmed.length() - 1))) {
+            found = applySearchTerm(trimmed.substring(1, trimmed.length() - 1));
+            if (found) updateStatus("Text ohne umschließende Anführungszeichen gefunden und markiert.");
+        }
+        // Fallback 2: Nur erstes Zeichen ist Anführungszeichen (z. B. "Hast du geschlafen", fragte kata leise.)
+        if (!found && trimmed.length() > 1 && isQuotationMark(trimmed.charAt(0))) {
+            found = applySearchTerm(trimmed.substring(1));
+            if (found) updateStatus("Text ohne einleitendes Anführungszeichen gefunden und markiert.");
+        }
+        // Fallback 3: Nur letztes Zeichen ist Anführungszeichen (KI setzt manchmal eines ans Ende).
+        if (!found && trimmed.length() > 1 && isQuotationMark(trimmed.charAt(trimmed.length() - 1))) {
+            found = applySearchTerm(trimmed.substring(0, trimmed.length() - 1));
+            if (found) updateStatus("Text ohne abschließendes Anführungszeichen gefunden und markiert.");
+        }
+        // Fallback 4: Abschließenden Punkt weglassen (wird in HTML/WebView oft nicht mitselektiert oder ist anderes Zeichen).
+        if (!found && trimmed.length() > 1 && trimmed.charAt(trimmed.length() - 1) == '.') {
+            found = applySearchTerm(trimmed.substring(0, trimmed.length() - 1));
+            if (found) updateStatus("Text ohne abschließenden Punkt gefunden und markiert.");
         }
         
         if (!found) {
             updateStatus("Der markierte Text wurde nicht im Editor gefunden.", true);
+            // Debug: Ausgabe für Fehlersuche (Suchtext vs. Editor-Inhalt)
+            if (codeArea != null) {
+                String currentSearch = cmbSearchHistory != null ? cmbSearchHistory.getValue() : null;
+                String content = codeArea.getText();
+                if (currentSearch != null && content != null) {
+                    int idx = content.indexOf(currentSearch);
+                    StringBuilder sb = new StringBuilder();
+                    sb.append("[Suche fehlgeschlagen] Länge: ").append(currentSearch.length());
+                    sb.append(" | Regex: ").append(chkRegexSearch != null && chkRegexSearch.isSelected());
+                    sb.append(" | WholeWord: ").append(chkWholeWord != null && chkWholeWord.isSelected());
+                    sb.append(" | indexOf: ").append(idx >= 0 ? idx : "nicht gefunden");
+                    if (!currentSearch.isEmpty()) {
+                        sb.append(" | Erstes Zeichen: '").append(currentSearch.charAt(0)).append("' (U+").append(Integer.toHexString(currentSearch.charAt(0)).toUpperCase()).append(")");
+                        if (currentSearch.length() > 1) {
+                            sb.append(" | Letztes: '").append(currentSearch.charAt(currentSearch.length() - 1)).append("' (U+").append(Integer.toHexString(currentSearch.charAt(currentSearch.length() - 1)).toUpperCase()).append(")");
+                        }
+                    }
+                    if (idx >= 0) {
+                        sb.append(" | Hinweis: Text ist im Editor an Position ").append(idx).append(" vorhanden (indexOf), aber Pattern-Suche ergab 0 Treffer → ggf. Regex/WholeWord ausschalten.");
+                    }
+                    logger.info(sb.toString());
+                    // Suchtext-Vorschau (für Log lesbar: Zeilenumbrüche als ¶, max. 60 Zeichen)
+                    String preview = currentSearch.length() > 60 ? currentSearch.substring(0, 60) + "…" : currentSearch;
+                    logger.info("[Suche] Suchtext: \"" + preview.replace("\\", "\\\\").replace("\n", "¶").replace("\r", "") + "\"");
+                    if (logger.isDebugEnabled()) {
+                        String snippet = content.length() > 300 ? content.substring(0, 300) + "..." : content;
+                        logger.debug("[Suche] Editor-Anfang: " + snippet.replace("\n", "¶").replace("\r", ""));
+                    }
+                }
+            }
         }
 
         if (!wasVisible) {
@@ -13166,6 +13213,41 @@ spacer.setStyle("-fx-background-color: transparent;");
                 
                 contextMenu.getItems().add(new SeparatorMenuItem());
             }
+            
+            // Kopieren und Einfügen
+            MenuItem itemKopieren = new MenuItem("Kopieren\tCtrl+C");
+            String selectedForCopy = getSelectedTextSafely();
+            itemKopieren.setDisable(selectedForCopy == null || selectedForCopy.isEmpty());
+            itemKopieren.setOnAction(e -> {
+                if (codeArea != null && selectedForCopy != null && !selectedForCopy.isEmpty()) {
+                    Clipboard clipboard = Clipboard.getSystemClipboard();
+                    ClipboardContent content = new ClipboardContent();
+                    content.putString(selectedForCopy);
+                    clipboard.setContent(content);
+                }
+            });
+            
+            MenuItem itemEinfuegen = new MenuItem("Einfügen\tCtrl+V");
+            Clipboard clipboard = Clipboard.getSystemClipboard();
+            boolean hasClipboardText = clipboard.hasString();
+            itemEinfuegen.setDisable(!hasClipboardText);
+            itemEinfuegen.setOnAction(e -> {
+                if (codeArea != null && clipboard.hasString()) {
+                    String text = clipboard.getString();
+                    if (text != null && !text.isEmpty()) {
+                        int caretPos = codeArea.getCaretPosition();
+                        String sel = codeArea.getSelectedText();
+                        if (sel != null && !sel.isEmpty()) {
+                            codeArea.replaceSelection(text);
+                        } else {
+                            codeArea.insertText(caretPos, text);
+                        }
+                    }
+                }
+            });
+            
+            contextMenu.getItems().addAll(itemKopieren, itemEinfuegen);
+            contextMenu.getItems().add(new SeparatorMenuItem());
             
             // Standard-Menüpunkte
             MenuItem itemSprechantwort = new MenuItem("Sprechantwort korrigieren");
