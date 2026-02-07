@@ -96,6 +96,24 @@
             display: block !important;
             width: 100% !important;
         }
+        /* Markdown-Tabellen in der Quill-Preview (inkl. Table-Embed-Container) */
+        .ql-editor .ql-table-embed {
+            margin: 15px 0;
+        }
+        .ql-editor .ql-table-embed table,
+        .ql-editor table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 0;
+        }
+        .ql-editor th, .ql-editor td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .ql-editor th {
+            background-color: #f2f2f2;
+        }
         /* Dropdown-Labels (oben, nicht ausgeklappt) - Textfarbe korrigieren */
         .ql-toolbar .ql-picker-label {
             color: #444 !important;
@@ -200,6 +218,60 @@
             
             Quill.register(HorizontalRuleBlot, true);
             logToJava('DEBUG', 'HorizontalRuleBlot registriert');
+            
+            // Markdown-Tabellen: Blots für table, tbody, tr, td, th registrieren (Quill entfernt sie sonst beim Paste)
+            const Block = Quill.import('blots/block');
+            class TableBlot extends Block { static tagName = 'TABLE'; static blotName = 'table'; }
+            class TbodyBlot extends Block { static tagName = 'TBODY'; static blotName = 'tbody'; }
+            class TableRowBlot extends Block { static tagName = 'TR'; static blotName = 'tr'; }
+            class TableCellBlot extends Block { static tagName = 'TD'; static blotName = 'td'; }
+            class TableHeaderBlot extends Block { static tagName = 'TH'; static blotName = 'th'; }
+            TableBlot.blotName = 'table'; TableBlot.tagName = 'TABLE';
+            TbodyBlot.blotName = 'tbody'; TbodyBlot.tagName = 'TBODY';
+            TableRowBlot.blotName = 'tr'; TableRowBlot.tagName = 'TR';
+            TableCellBlot.blotName = 'td'; TableCellBlot.tagName = 'TD';
+            TableHeaderBlot.blotName = 'th'; TableHeaderBlot.tagName = 'TH';
+            Quill.register(TableBlot, true);
+            Quill.register(TbodyBlot, true);
+            Quill.register(TableRowBlot, true);
+            Quill.register(TableCellBlot, true);
+            Quill.register(TableHeaderBlot, true);
+            logToJava('DEBUG', 'Table-Blots (table, tbody, tr, td, th) registriert');
+            
+            // Tabellen-Container als BlockEmbed: Quill entfernt <table> beim Paste, daher ersetzen wir
+            // <table>...</table> durch ein Embed, das die Tabelle im innerHTML bewahrt
+            class TableEmbedBlot extends BlockEmbed {
+                static blotName = 'tableEmbed';
+                static tagName = 'div';
+                static className = 'ql-table-embed';
+                static create(value) {
+                    let node = super.create();
+                    node.setAttribute('contenteditable', 'false');
+                    if (typeof value === 'string') {
+                        try {
+                            node.innerHTML = atob(value);
+                        } catch (e) {
+                            node.innerHTML = '<table><tr><td>?</td></tr></table>';
+                        }
+                    } else if (value && value.getAttribute && value.getAttribute('data-table')) {
+                        try {
+                            node.innerHTML = atob(value.getAttribute('data-table'));
+                        } catch (e) {
+                            node.innerHTML = '<table><tr><td>?</td></tr></table>';
+                        }
+                    }
+                    return node;
+                }
+                static value(node) {
+                    var inner = node.querySelector('table');
+                    return inner ? btoa(unescape(encodeURIComponent(inner.outerHTML))) : null;
+                }
+            }
+            TableEmbedBlot.blotName = 'tableEmbed';
+            TableEmbedBlot.tagName = 'div';
+            TableEmbedBlot.className = 'ql-table-embed';
+            Quill.register(TableEmbedBlot, true);
+            logToJava('DEBUG', 'TableEmbedBlot registriert');
         }
         
         var quill;
@@ -661,10 +733,43 @@
                             convertedContent = convertedContent.replace(/<div[^>]*style="[^"]*border-top[^"]*"[^>]*>\s*&nbsp;\s*<\/div>/gi, '<hr>');
                             convertedContent = convertedContent.replace(/<div[^>]*style="[^"]*border-top[^"]*"[^>]*><\/div>/gi, '<hr>');
                             
+                            // Tabellen: Quill entfernt <table> beim Paste – Platzhalter einfügen, nach Paste per DOM ersetzen
+                            var tables = [];
+                            var tableMarker = '___MD_TABLE_';
+                            convertedContent = convertedContent.replace(/<table[^>]*>[\s\S]*?<\/table>/gi, function(match) {
+                                var idx = tables.length;
+                                tables.push(match);
+                                return '<p>' + tableMarker + idx + '___</p>';
+                            });
+                            
                             // WICHTIG: Flag muss bereits gesetzt sein, bevor dangerouslyPasteHTML aufgerufen wird
-                            // dangerouslyPasteHTML mit 'silent' sollte keine Events auslösen, aber sicherheitshalber
-                            // ist das Flag bereits gesetzt
                             quill.clipboard.dangerouslyPasteHTML(0, convertedContent, 'silent');
+                            
+                            // Tabellen nach dem Paste per DOM wieder einsetzen (Platzhalter-Text suchen und ersetzen)
+                            if (tables.length > 0) {
+                                setTimeout(function() {
+                                    var root = quill.root;
+                                    for (var i = 0; i < tables.length; i++) {
+                                        var marker = tableMarker + i + '___';
+                                        var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null, false);
+                                        var node;
+                                        while ((node = walker.nextNode())) {
+                                            if (node.textContent.indexOf(marker) !== -1) {
+                                                var el = node.parentNode;
+                                                while (el && el !== root && el.tagName !== 'P' && el.tagName !== 'DIV') { el = el.parentNode; }
+                                                if (el && el !== root) {
+                                                    var wrapper = document.createElement('div');
+                                                    wrapper.className = 'ql-table-embed';
+                                                    wrapper.setAttribute('contenteditable', 'false');
+                                                    wrapper.innerHTML = tables[i];
+                                                    el.parentNode.replaceChild(wrapper, el);
+                                                }
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }, 100);
+                            }
                            
                             // WICHTIG: Nach dem Einfügen prüfen, ob <hr> Tags vorhanden sind und ggf. korrigieren
                             // WICHTIG: Flag bleibt während dieser DOM-Operationen gesetzt

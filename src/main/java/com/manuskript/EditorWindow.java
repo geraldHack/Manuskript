@@ -16988,6 +16988,9 @@ spacer.setStyle("-fx-background-color: transparent;");
         centerMatcher.appendTail(centerBuffer);
         markdown = centerBuffer.toString();
         
+        // Einheitliche Zeilenumbrüche (Windows \r\n, altes Mac \r -> \n) für zuverlässige Tabellen-Erkennung
+        markdown = markdown.replace("\r\n", "\n").replace("\r", "\n");
+        
         // Markdown zu HTML konvertieren
         String[] lines = markdown.split("\n");
         boolean inCodeBlock = false;
@@ -17031,17 +17034,32 @@ spacer.setStyle("-fx-background-color: transparent;");
                     tableAlignments = null; // Zurücksetzen
                 }
                 
-                // Separator-Zeile erkennen und Ausrichtung extrahieren
-                // Pattern: |:---|:---:|---:| oder :---|:---:|---: (mit oder ohne führende/nachlaufende Pipes)
-                boolean isSeparator = trimmedLine.matches("^\\s*\\|?\\s*(?::?-+:?\\s*\\|\\s*)+(?::?-+:?)\\s*\\|?\\s*$");
+                // Separator-Zeile: enthält nur | und Zellen aus Strichen/Doppelpunkten/Leerzeichen (z. B. |----|----|)
+                String sepNormalized = trimmedLine.replaceAll("^\\|", "").replaceAll("\\|$", "");
+                String[] sepCells = sepNormalized.split("\\|", -1);
+                boolean isSeparator = sepCells.length >= 1 && sepCells.length <= 1000;
+                if (isSeparator) {
+                    for (String sc : sepCells) {
+                        String c = sc.trim();
+                        if (!c.isEmpty() && !c.matches("^[-:\\s]+$")) {
+                            isSeparator = false;
+                            break;
+                        }
+                    }
+                    if (isSeparator && sepCells.length > 0) {
+                        boolean hasDashes = false;
+                        for (String sc : sepCells) {
+                            if (sc.contains("-")) { hasDashes = true; break; }
+                        }
+                        if (!hasDashes) isSeparator = false;
+                    }
+                }
                 if (isSeparator) {
                     // Ausrichtung aus Separator-Zeile extrahieren
-                    String normalized = trimmedLine.replaceAll("^\\|", "").replaceAll("\\|$", "");
-                    String[] separators = normalized.split("\\|");
-                    tableAlignments = new String[separators.length];
+                    tableAlignments = new String[sepCells.length];
                     
-                    for (int j = 0; j < separators.length; j++) {
-                        String sep = separators[j].trim();
+                    for (int j = 0; j < sepCells.length; j++) {
+                        String sep = sepCells[j].trim();
                         // Wichtig: Reihenfolge der Prüfungen ist kritisch!
                         // Zuerst center prüfen (beide Seiten haben :), dann right, dann left
                         if (sep.startsWith(":") && sep.endsWith(":")) {
@@ -17061,11 +17079,30 @@ spacer.setStyle("-fx-background-color: transparent;");
                     continue;
                 }
                 
-                // Header-Zeile prüfen
+                // Header-Zeile: nächste Zeile ist eine Separator-Zeile (nur Striche/Doppelpunkte)
                 boolean isHeaderRow = false;
                 if (i + 1 < lines.length) {
                     String nextTrimmed = lines[i + 1].trim();
-                    isHeaderRow = nextTrimmed.matches("^\\s*\\|?\\s*(?::?-+\\s*\\|\\s*)+(?::?-+)\\s*\\|?\\s*$");
+                    String nextNorm = nextTrimmed.replaceAll("^\\|", "").replaceAll("\\|$", "");
+                    String[] nextCells = nextNorm.split("\\|", -1);
+                    boolean nextIsSep = nextCells.length >= 1;
+                    if (nextIsSep) {
+                        for (String nc : nextCells) {
+                            String c = nc.trim();
+                            if (!c.isEmpty() && !c.matches("^[-:\\s]+$")) {
+                                nextIsSep = false;
+                                break;
+                            }
+                        }
+                        if (nextIsSep) {
+                            boolean hasDash = false;
+                            for (String nc : nextCells) {
+                                if (nc.contains("-")) { hasDash = true; break; }
+                            }
+                            if (!hasDash) nextIsSep = false;
+                        }
+                    }
+                    isHeaderRow = nextIsSep;
                 }
                 
                 String normalized = trimmedLine.replaceAll("^\\|", "").replaceAll("\\|$", "");
