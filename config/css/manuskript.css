@@ -1625,6 +1625,129 @@
     -fx-background-color: #4a5568;
 }
 
+/* Tab-Panes im Weiß-Theme (Parameter-Verwaltung) */
+.weiss-theme .tab-pane {
+    -fx-background-color: #ffffff;
+}
+
+.weiss-theme .tab-header-background {
+    -fx-background-color: #f0f0f0;
+}
+
+.weiss-theme .tab {
+    -fx-background-color: #e9ecef;
+    -fx-text-fill: #000000;
+}
+
+.weiss-theme .tab:selected {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #dee2e6;
+    -fx-border-width: 1 1 0 1;
+    -fx-background-radius: 4 4 0 0;
+}
+
+.weiss-theme .tab-pane .scroll-pane,
+.weiss-theme .tab-pane .scroll-pane .viewport {
+    -fx-background-color: #ffffff;
+}
+
+/* Tab-Panes im Pastell-Theme */
+.pastell-theme .tab-pane {
+    -fx-background-color: #f3e5f5;
+}
+
+.pastell-theme .tab-header-background {
+    -fx-background-color: #e1bee7;
+}
+
+.pastell-theme .tab {
+    -fx-background-color: #e1bee7;
+    -fx-text-fill: #000000;
+}
+
+.pastell-theme .tab:selected {
+    -fx-background-color: #f3e5f5;
+    -fx-border-color: #ba68c8;
+    -fx-border-width: 1 1 0 1;
+    -fx-background-radius: 4 4 0 0;
+}
+
+.pastell-theme .tab-pane .scroll-pane,
+.pastell-theme .tab-pane .scroll-pane .viewport {
+    -fx-background-color: #f3e5f5;
+}
+
+.theme-dark .tab-pane .scroll-pane,
+.theme-dark .tab-pane .scroll-pane .viewport {
+    -fx-background-color: #1a1a1a;
+}
+
+.theme-dark.blau-theme .tab-pane .scroll-pane,
+.theme-dark.blau-theme .tab-pane .scroll-pane .viewport {
+    -fx-background-color: #1e3a8a;
+}
+
+.theme-dark.gruen-theme .tab-pane .scroll-pane,
+.theme-dark.gruen-theme .tab-pane .scroll-pane .viewport {
+    -fx-background-color: #064e3b;
+}
+
+.theme-dark.lila-theme .tab-pane .scroll-pane,
+.theme-dark.lila-theme .tab-pane .scroll-pane .viewport {
+    -fx-background-color: #581c87;
+}
+
+/* Parameter-Karten (Parameter-Verwaltung) – alle Themes */
+.weiss-theme .param-card {
+    -fx-background-color: #f8f9fa;
+    -fx-background-radius: 6px;
+    -fx-border-color: #dee2e6;
+    -fx-border-radius: 6px;
+    -fx-border-width: 1px;
+    -fx-padding: 10px;
+}
+
+.theme-dark .param-card {
+    -fx-background-color: #2d2d2d;
+    -fx-background-radius: 6px;
+    -fx-border-color: #4a5568;
+    -fx-border-radius: 6px;
+    -fx-border-width: 1px;
+    -fx-padding: 10px;
+}
+
+.theme-dark.blau-theme .param-card {
+    -fx-background-color: #1e3a5f;
+    -fx-border-color: #3b82f6;
+}
+
+.theme-dark.gruen-theme .param-card {
+    -fx-background-color: #064e2a;
+    -fx-border-color: #10b981;
+}
+
+.theme-dark.lila-theme .param-card {
+    -fx-background-color: #3d1462;
+    -fx-border-color: #a855f7;
+}
+
+.pastell-theme .param-card {
+    -fx-background-color: #e1bee7;
+    -fx-background-radius: 6px;
+    -fx-border-color: #ba68c8;
+    -fx-border-radius: 6px;
+    -fx-border-width: 1px;
+    -fx-padding: 10px;
+}
+
+.param-key-label {
+    -fx-font-weight: bold;
+}
+
+.param-help-label {
+    -fx-font-size: 0.9em;
+}
+
 /* Menu-Bars im dunklen Theme */
 .theme-dark .menu-bar {
     -fx-background-color: #2d2d2d;

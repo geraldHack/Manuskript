@@ -5009,6 +5009,15 @@ public class MainController implements Initializable {
         if (btnThemeToggle != null && btnThemeToggle.getParent() != null) {
             HBox parentBox = (HBox) btnThemeToggle.getParent();
             parentBox.getChildren().add(btnHelpToggle);
+            // TTS Test (Machbarkeitsstudie ComfyUI/Qwen3)
+            Button btnTTSTest = new Button("TTS Test");
+            btnTTSTest.setTooltip(new Tooltip("ComfyUI/Qwen3-TTS Machbarkeitsstudie"));
+            btnTTSTest.setOnAction(e -> ComfyUITTSTestWindow.show(primaryStage));
+            parentBox.getChildren().add(btnTTSTest);
+            Button btnParams = new Button("Parameter");
+            btnParams.setTooltip(new Tooltip("Parameter und Einstellungen verwalten"));
+            btnParams.setOnAction(e -> ParametersAdminWindow.show(primaryStage));
+            parentBox.getChildren().add(btnParams);
         }
         
         updateHelpButtonIcon();

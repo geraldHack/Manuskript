@@ -1,0 +1,10 @@
+[
+  {
+    "name": "Sandra",
+    "seed": 3881396456776978526,
+    "temperature": 0.6,
+    "voiceDescription": "Männlich, tief, ruhig, professioneller Vorleser, Hörbuch, angenehm, klar artikuliert.",
+    "highQuality": true,
+    "consistentVoice": false
+  }
+]
