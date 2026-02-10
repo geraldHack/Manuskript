@@ -93,13 +93,17 @@ public class ParametersAdminWindow {
         Scene scene = new Scene(root);
         String cssPath = ResourceManager.getCssResource("css/manuskript.css");
         if (cssPath != null) scene.getStylesheets().add(cssPath);
-        stage.setSceneWithTitleBar(scene);
         int theme = java.util.prefs.Preferences.userNodeForPackage(MainController.class).getInt("main_window_theme", 0);
+        stage.setTitleBarTheme(theme);
+        stage.setSceneWithTitleBar(scene);
         stage.setFullTheme(theme);
     }
 
     private Control createControl(ParameterDef def) {
-        String current = ResourceManager.getParameter(def.getKey(), def.getDefaultValue());
+        boolean isTextanalyse = "Textanalyse".equals(def.getCategory());
+        String current = isTextanalyse
+                ? ResourceManager.getTextanalysisParameter(def.getKey(), def.getDefaultValue())
+                : ResourceManager.getParameter(def.getKey(), def.getDefaultValue());
         switch (def.getType()) {
             case BOOLEAN:
                 CheckBox cb = new CheckBox();
@@ -117,6 +121,14 @@ public class ParametersAdminWindow {
                 sd.setPrefWidth(180);
                 return sd;
             default:
+                if (isTextanalyse) {
+                    TextArea ta = new TextArea(current != null ? current : "");
+                    ta.setPrefRowCount(4);
+                    ta.setWrapText(true);
+                    ta.setPrefWidth(680);
+                    ta.setMaxWidth(Double.MAX_VALUE);
+                    return ta;
+                }
                 TextField tf = new TextField(current != null ? current : "");
                 tf.setPrefWidth(400);
                 return tf;
@@ -139,9 +151,13 @@ public class ParametersAdminWindow {
             ParameterDef def = keyToDef.get(key);
             if (def == null) continue;
             String value = getValueFromControl(e.getValue(), def);
-            ResourceManager.saveParameter(key, value);
+            if ("Textanalyse".equals(def.getCategory())) {
+                ResourceManager.saveTextanalysisParameter(key, value);
+            } else {
+                ResourceManager.saveParameter(key, value);
+            }
         }
-        showInfo("Gespeichert", "Alle Parameter wurden in den Einstellungen gespeichert.");
+        showInfo("Gespeichert", "Alle Parameter wurden gespeichert.");
     }
 
     private String getValueFromControl(Control c, ParameterDef def) {
@@ -150,6 +166,7 @@ public class ParametersAdminWindow {
             Object v = ((Spinner<?>) c).getValue();
             return v != null ? v.toString() : def.getDefaultValue();
         }
+        if (c instanceof TextArea) return ((TextArea) c).getText();
         if (c instanceof TextField) return ((TextField) c).getText();
         return def.getDefaultValue();
     }
@@ -173,15 +190,17 @@ public class ParametersAdminWindow {
                 ((Spinner<Integer>) s).getValueFactory().setValue(parseInt(d, 0));
             else
                 ((Spinner<Double>) s).getValueFactory().setValue(parseDouble(d, 0.0));
-        } else if (c instanceof TextField) ((TextField) c).setText(d != null ? d : "");
+        } else if (c instanceof TextArea) ((TextArea) c).setText(d != null ? d : "");
+        else if (c instanceof TextField) ((TextField) c).setText(d != null ? d : "");
     }
 
     private void showInfo(String title, String message) {
         Platform.runLater(() -> {
-            Alert a = new Alert(Alert.AlertType.INFORMATION);
-            a.setTitle(title);
+            int theme = java.util.prefs.Preferences.userNodeForPackage(MainController.class).getInt("main_window_theme", 0);
+            CustomAlert a = new CustomAlert(Alert.AlertType.INFORMATION, title);
             a.setHeaderText(null);
             a.setContentText(message);
+            a.applyTheme(theme);
             a.initOwner(stage);
             a.showAndWait();
         });

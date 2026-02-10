@@ -1,10 +1,98 @@
 [
   {
-    "name": "Sandra",
-    "seed": 3881396456776978526,
+    "name": "Sohee - standard",
+    "seed": "754534819103377",
     "temperature": 0.6,
-    "voiceDescription": "Männlich, tief, ruhig, professioneller Vorleser, Hörbuch, angenehm, klar artikuliert.",
+    "voiceDescription": "ruhig, professioneller Vorleser, Hörbuch, angenehm, klar artikuliert.",
     "highQuality": true,
-    "consistentVoice": false
+    "consistentVoice": true,
+    "topP": 1.0,
+    "topK": 46,
+    "repetitionPenalty": 1.1,
+    "speakerId": "Sohee"
+  },
+  {
+    "name": "Sohee - normaler Dialog",
+    "seed": "754534819103377",
+    "temperature": 0.8540405073143134,
+    "voiceDescription": "ruhig, professioneller Vorleser, Hörbuch, angenehm, klar artikuliert.",
+    "highQuality": true,
+    "consistentVoice": true,
+    "topP": 0.949746192893401,
+    "topK": 80,
+    "repetitionPenalty": 1.1029810325563116,
+    "speakerId": "Sohee"
+  },
+  {
+    "name": "Sohee - besser",
+    "seed": "1481958530930645317",
+    "temperature": 0.8540405073143134,
+    "voiceDescription": "ruhig, professioneller Vorleser, Hörbuch, angenehm, klar artikuliert.",
+    "highQuality": true,
+    "consistentVoice": true,
+    "topP": 0.7491858155093467,
+    "topK": 17,
+    "repetitionPenalty": 1.1029810325563116,
+    "speakerId": "Sohee"
+  },
+  {
+    "name": "Sohee - 4",
+    "seed": "1065220665773091156",
+    "temperature": 0.45149689034270474,
+    "voiceDescription": "ruhig, professioneller Vorleser, Hörbuch, angenehm, klar artikuliert.",
+    "highQuality": true,
+    "consistentVoice": true,
+    "topP": 0.8430458777059621,
+    "topK": 40,
+    "repetitionPenalty": 1.0506733373142367,
+    "speakerId": "Sohee"
+  },
+  {
+    "name": "Sohee - 5",
+    "seed": "1585351543862440241",
+    "temperature": 0.45149689034270474,
+    "voiceDescription": "ruhig, professioneller Vorleser, Hörbuch, angenehm, klar artikuliert.",
+    "highQuality": true,
+    "consistentVoice": true,
+    "topP": 0.8430458777059621,
+    "topK": 40,
+    "repetitionPenalty": 1.0506733373142367,
+    "speakerId": "Sohee"
+  },
+  {
+    "name": "Sohee - 6",
+    "seed": "6805316252298932657",
+    "temperature": 0.36966546633612013,
+    "voiceDescription": "ruhig, professioneller Vorleser, Hörbuch, angenehm, klar artikuliert.",
+    "highQuality": true,
+    "consistentVoice": true,
+    "topP": 0.949746192893401,
+    "topK": 80,
+    "repetitionPenalty": 1.1029810325563116,
+    "speakerId": "Sohee"
+  },
+  {
+    "name": "Sohee - 7",
+    "seed": "7791821885367928205",
+    "temperature": 0.4007812537252903,
+    "voiceDescription": "ruhig, professioneller Vorleser, Hörbuch, angenehm, klar artikuliert.",
+    "highQuality": true,
+    "consistentVoice": true,
+    "topP": 0.8465859198397067,
+    "topK": 40,
+    "repetitionPenalty": 1.1260586319218242,
+    "speakerId": "Sohee"
+  },
+  {
+    "name": "Sohee - 8",
+    "seed": "5003948790347267343",
+    "temperature": 0.4007812537252903,
+    "voiceDescription": "ruhig, professioneller Vorleser, Hörbuch, angenehm, klar artikuliert.",
+    "highQuality": false,
+    "consistentVoice": true,
+    "topP": 0.5990859695311579,
+    "topK": 45,
+    "repetitionPenalty": 1.0962078903978159,
+    "speakerId": "Sohee"
   }
 ]

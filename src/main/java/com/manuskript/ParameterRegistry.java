@@ -28,8 +28,12 @@ public final class ParameterRegistry {
                 "Maximale Anzahl Frage-Antwort-Paare pro Session vor automatischer Aufteilung.", "Ollama");
 
         // —— TTS (ComfyUI) ——
+        add("comfyui.base_url", ParameterDef.Type.STRING, "http://127.0.0.1:8188",
+                "Basis-URL des ComfyUI-Servers (z. B. http://127.0.0.1:8188).", "TTS (ComfyUI)");
         add("comfyui.timeout_seconds", ParameterDef.Type.INT, "600",
                 "Wartezeit in Sekunden auf ComfyUI-TTS-Abschluss (z. B. bei langem Text).", "TTS (ComfyUI)");
+        add("comfyui.restart_script", ParameterDef.Type.STRING, "",
+                "Pfad zum Skript zum Neustarten von ComfyUI (z. B. .bat oder .cmd). Leer = Restart-Button inaktiv.", "TTS (ComfyUI)");
 
         // —— Projekt ——
         add("project.root.directory", ParameterDef.Type.STRING, "",
@@ -121,6 +125,40 @@ public final class ParameterRegistry {
         add("docx.showHiddenText", ParameterDef.Type.BOOLEAN, "false", "Versteckten Text anzeigen.", "DOCX");
         add("docx.includeComments", ParameterDef.Type.BOOLEAN, "false", "Kommentare einbeziehen.", "DOCX");
         add("docx.readingLevel", ParameterDef.Type.STRING, "standard", "Lesbarkeitsstufe: standard, simplified, technical.", "DOCX");
+
+        // —— Textanalyse (config/textanalysis.properties) ——
+        add("sprechwörter", ParameterDef.Type.STRING, "",
+                "Sprechwörter für Dialog-Analyse (kommagetrennt).", "Textanalyse");
+        add("sprechantworten_regex", ParameterDef.Type.STRING, "",
+                "Regex für Sprechantworten (z. B. „sagte er“, „fragte sie“).", "Textanalyse");
+        add("dialog_regex", ParameterDef.Type.STRING, "\"[^\"]*\"",
+                "Regex für Dialog-Zitate.", "Textanalyse");
+        add("direkte_rede_regex", ParameterDef.Type.STRING, "[^\"]*",
+                "Regex für direkte Rede.", "Textanalyse");
+        add("satz_ende_regex", ParameterDef.Type.STRING, "[.!?]+",
+                "Regex für Satzende.", "Textanalyse");
+        add("paragraph_regex", ParameterDef.Type.STRING, "\\n\\s*\\n",
+                "Regex für Absatz-Trennung.", "Textanalyse");
+        add("wortwiederholungen_abstand", ParameterDef.Type.INT, "10",
+                "Maximaler Zeichenabstand für Wortwiederholungen.", "Textanalyse");
+        add("wortwiederholungen_min_laenge", ParameterDef.Type.INT, "4",
+                "Mindestlänge (Zeichen) für wiederholte Wörter.", "Textanalyse");
+        add("wortwiederholungen_ignoriere_woerter", ParameterDef.Type.STRING, "",
+                "Wörter ignorieren bei Wiederholungs-Analyse (kommagetrennt).", "Textanalyse");
+        add("fuellwoerter", ParameterDef.Type.STRING, "",
+                "Füllwörter für die Analyse (kommagetrennt).", "Textanalyse");
+        add("phrasen_begann", ParameterDef.Type.STRING, "",
+                "Phrasen mit „begann/begannen“ (kommagetrennt).", "Textanalyse");
+        add("phrasen_emotionen", ParameterDef.Type.STRING, "",
+                "Emotions-Phrasen (kommagetrennt).", "Textanalyse");
+        add("phrasen_dialog", ParameterDef.Type.STRING, "",
+                "Dialog-Phrasen wie „sagte er“, „fragte sie“ (kommagetrennt).", "Textanalyse");
+        add("phrasen_denken", ParameterDef.Type.STRING, "",
+                "Denk-Phrasen (kommagetrennt).", "Textanalyse");
+        add("phrasen_gefuehle", ParameterDef.Type.STRING, "",
+                "Gefühls-Phrasen, Platzhalter * erlaubt (kommagetrennt).", "Textanalyse");
+        add("phrasen_bewegung", ParameterDef.Type.STRING, "",
+                "Bewegungs-Phrasen (kommagetrennt).", "Textanalyse");
     }
 
     private static void add(String key, ParameterDef.Type type, String defaultValue, String helpText, String category) {

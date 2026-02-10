@@ -23,7 +23,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.TypeAdapter;
 import com.google.gson.reflect.TypeToken;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonToken;
+import com.google.gson.stream.JsonWriter;
 
 /**
  * Client für die ComfyUI-API (Qwen3-TTS und andere Workflows).
@@ -40,12 +45,23 @@ public class ComfyUIClient {
 
     private static final Logger logger = LoggerFactory.getLogger(ComfyUIClient.class);
 
-    private static final String DEFAULT_BASE_URL = "http://127.0.0.1:8188";
+    /** Standard-URL des ComfyUI-Servers (wird auch als Default in der Parameter-Verwaltung verwendet). */
+    public static final String DEFAULT_BASE_URL = "http://127.0.0.1:8188";
+
+    /**
+     * Liest die ComfyUI-Basis-URL aus der Konfiguration (Parameter-Verwaltung / parameters.properties).
+     */
+    public static String getBaseUrlFromConfig() {
+        String url = ResourceManager.getParameter("comfyui.base_url", DEFAULT_BASE_URL);
+        if (url == null || url.isBlank()) return DEFAULT_BASE_URL;
+        return url.trim();
+    }
     /** Standard-Stil: deutsch, ohne amerikanischen Akzent, neutrales Hochdeutsch. */
     public static final String DEFAULT_INSTRUCT_DEUTSCH =
             "Deutsch. Neutrale deutsche Stimme, Hochdeutsch, ohne amerikanischen oder englischen Akzent. "
             + "Warm, ruhig, natürlich. Kurze Pausen an Kommas. Keine Überbetonung.";
-    private static final int POLL_INTERVAL_MS = 500;
+    /** Abstand zwischen zwei History-Abfragen (weniger = mehr CPU, mehr = schonender – reduziert Systemlast beim Warten). */
+    private static final int POLL_INTERVAL_MS = 2500;
     /** Wartezeit auf ComfyUI-Abschluss (z. B. TTS 1.7B kann bei langem Text dauern). */
     private static final int DEFAULT_TIMEOUT_SECONDS = 600;
 
@@ -60,6 +76,33 @@ public class ComfyUIClient {
 
     /** Datei für den zuletzt eingegebenen „zu sprechenden Text“ (wird beim Schließen des TTS-Fensters gespeichert). */
     public static final String TTS_LAST_TEXT_PATH = "config/tts-last-text.txt";
+
+    /** Datei für den Suchtext in der Stimmsuche (wird beim Schließen des TTS-Fensters gespeichert). */
+    public static final String TTS_VOICE_SEARCH_SAMPLE_PATH = "config/tts-voice-search-sample.txt";
+
+    /** Lädt den zuletzt gespeicherten Suchtext der Stimmsuche. Liefert null oder leeren String, wenn keine Datei existiert. */
+    public static String loadVoiceSearchSampleText() {
+        Path path = Paths.get(TTS_VOICE_SEARCH_SAMPLE_PATH);
+        if (!Files.isRegularFile(path)) return null;
+        try {
+            return Files.readString(path, StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            logger.warn("Stimmsuche-Suchtext konnte nicht geladen werden: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    /** Speichert den Suchtext der Stimmsuche (wird beim Schließen des TTS-Fensters aufgerufen). */
+    public static void saveVoiceSearchSampleText(String text) {
+        if (text == null) text = "";
+        try {
+            Path path = Paths.get(TTS_VOICE_SEARCH_SAMPLE_PATH);
+            Files.createDirectories(path.getParent());
+            Files.writeString(path, text, StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            logger.warn("Stimmsuche-Suchtext konnte nicht gespeichert werden: {}", e.getMessage());
+        }
+    }
 
     /** Lädt den zuletzt gespeicherten Text für TTS. Liefert null oder leeren String, wenn keine Datei existiert. */
     public static String loadLastSpokenText() {
@@ -127,6 +170,52 @@ public class ComfyUIClient {
         }
     }
 
+    /** Standard top_p / top_k falls nicht gesetzt (ComfyUI-Qwen3-TTS). */
+    public static final double DEFAULT_TOP_P = 1.0;
+    public static final int DEFAULT_TOP_K = 46;
+    /** Standard Repetition-Penalty (ComfyUI-Qwen3-TTS). */
+    public static final double DEFAULT_REPETITION_PENALTY = 1.1;
+
+    /** Default-CustomVoice-Sprecher (falls kein anderer gesetzt ist). */
+    public static final String DEFAULT_CUSTOM_SPEAKER = "Ryan";
+    /** Verfügbare CustomVoice-Presets (laut Qwen3-Doku). */
+    private static final java.util.List<String> CUSTOM_VOICE_SPEAKERS = java.util.List.of(
+            "Ryan",       // EN
+            "Aiden",      // EN
+            "Vivian",     // ZH
+            "Serena",     // ZH
+            "Uncle_Fu",   // ZH
+            "Dylan",      // ZH (Beijing)
+            "Eric",       // ZH (Sichuan)
+            "Ono_Anna",   // JA
+            "Sohee"       // KO
+    );
+    /** ThreadLocal, um für einen Aufruf einen CustomVoice-Sprecher zu setzen (z. B. aus Stimmsuche/Gespeicherter Stimme). */
+    private static final ThreadLocal<String> CURRENT_CUSTOM_SPEAKER = new ThreadLocal<>();
+
+    public static java.util.List<String> getCustomVoiceSpeakers() {
+        return CUSTOM_VOICE_SPEAKERS;
+    }
+
+    public static void setCurrentCustomSpeaker(String speakerId) {
+        if (speakerId == null || speakerId.isBlank()) {
+            CURRENT_CUSTOM_SPEAKER.remove();
+        } else {
+            CURRENT_CUSTOM_SPEAKER.set(speakerId.trim());
+        }
+    }
+
+    public static void clearCurrentCustomSpeaker() {
+        CURRENT_CUSTOM_SPEAKER.remove();
+    }
+
+    /**
+     * Max. Temperatur beim Vorlesen mit gespeicherter Stimme, damit die Sprecheridentität über verschiedene Texte hinweg stabil bleibt.
+     * Qwen3-TTS VoiceDesign kann bei gleichem Seed bei höherer Temperatur je Text unterschiedliche Stimmen liefern (bekanntes Problem).
+     * Nur für „Text vorlesen“ verwendet; „Probe abspielen“ nutzt die gespeicherte Temperatur unverändert.
+     */
+    public static final double MAX_TEMPERATURE_FOR_VOICE_CONSISTENCY = 0.35;
+
     /** Gespeicherte Stimme: Name + Parameter für reproduzierbare Wiedergabe. */
     public static class SavedVoice {
         private String name;
@@ -135,18 +224,39 @@ public class ComfyUIClient {
         private String voiceDescription;
         private boolean highQuality;
         private boolean consistentVoice;
+        private double topP = DEFAULT_TOP_P;
+        private int topK = DEFAULT_TOP_K;
+        private double repetitionPenalty = DEFAULT_REPETITION_PENALTY;
+        /** CustomVoice-Sprecher-ID (z. B. Ryan, Sohee, Vivian). */
+        private String speakerId = DEFAULT_CUSTOM_SPEAKER;
 
         public SavedVoice() {
-            this("", DEFAULT_SEED, DEFAULT_TEMPERATURE, "", true, false);
+            this("", DEFAULT_SEED, DEFAULT_TEMPERATURE, "", true, false, DEFAULT_TOP_P, DEFAULT_TOP_K, DEFAULT_REPETITION_PENALTY, DEFAULT_CUSTOM_SPEAKER);
         }
 
         public SavedVoice(String name, long seed, double temperature, String voiceDescription, boolean highQuality, boolean consistentVoice) {
+            this(name, seed, temperature, voiceDescription, highQuality, consistentVoice, DEFAULT_TOP_P, DEFAULT_TOP_K, DEFAULT_REPETITION_PENALTY, DEFAULT_CUSTOM_SPEAKER);
+        }
+
+        public SavedVoice(String name, long seed, double temperature, String voiceDescription, boolean highQuality, boolean consistentVoice, double topP, int topK) {
+            this(name, seed, temperature, voiceDescription, highQuality, consistentVoice, topP, topK, DEFAULT_REPETITION_PENALTY, DEFAULT_CUSTOM_SPEAKER);
+        }
+
+        public SavedVoice(String name, long seed, double temperature, String voiceDescription, boolean highQuality, boolean consistentVoice, double topP, int topK, double repetitionPenalty) {
+            this(name, seed, temperature, voiceDescription, highQuality, consistentVoice, topP, topK, repetitionPenalty, DEFAULT_CUSTOM_SPEAKER);
+        }
+
+        public SavedVoice(String name, long seed, double temperature, String voiceDescription, boolean highQuality, boolean consistentVoice, double topP, int topK, double repetitionPenalty, String speakerId) {
             this.name = name != null ? name : "";
             this.seed = seed;
             this.temperature = temperature;
             this.voiceDescription = voiceDescription != null ? voiceDescription : "";
             this.highQuality = highQuality;
             this.consistentVoice = consistentVoice;
+            this.topP = topP > 0 ? topP : DEFAULT_TOP_P;
+            this.topK = topK > 0 ? topK : DEFAULT_TOP_K;
+            this.repetitionPenalty = repetitionPenalty > 0 ? Math.min(2.0, Math.max(1.0, repetitionPenalty)) : DEFAULT_REPETITION_PENALTY;
+            this.speakerId = (speakerId != null && !speakerId.isBlank()) ? speakerId.trim() : DEFAULT_CUSTOM_SPEAKER;
         }
 
         public String getName() { return name; }
@@ -161,16 +271,83 @@ public class ComfyUIClient {
         public void setHighQuality(boolean highQuality) { this.highQuality = highQuality; }
         public boolean isConsistentVoice() { return consistentVoice; }
         public void setConsistentVoice(boolean consistentVoice) { this.consistentVoice = consistentVoice; }
+        public double getTopP() { return topP > 0 ? topP : DEFAULT_TOP_P; }
+        public void setTopP(double topP) { this.topP = topP > 0 ? topP : DEFAULT_TOP_P; }
+        public int getTopK() { return topK > 0 ? topK : DEFAULT_TOP_K; }
+        public void setTopK(int topK) { this.topK = topK > 0 ? topK : DEFAULT_TOP_K; }
+        public double getRepetitionPenalty() { return repetitionPenalty > 0 ? repetitionPenalty : DEFAULT_REPETITION_PENALTY; }
+        public void setRepetitionPenalty(double repetitionPenalty) { this.repetitionPenalty = repetitionPenalty > 0 ? Math.min(2.0, Math.max(1.0, repetitionPenalty)) : DEFAULT_REPETITION_PENALTY; }
+        public String getSpeakerId() { return (speakerId != null && !speakerId.isBlank()) ? speakerId : DEFAULT_CUSTOM_SPEAKER; }
+        public void setSpeakerId(String speakerId) { this.speakerId = (speakerId != null && !speakerId.isBlank()) ? speakerId.trim() : DEFAULT_CUSTOM_SPEAKER; }
     }
 
-    /** Lädt die Liste gespeicherter Stimmen aus {@value #TTS_VOICES_PATH}. */
+    /** Gson mit Seed als String (Long-Genauigkeit in JSON erhalten). */
+    private static final Gson GSON_VOICES = new GsonBuilder()
+            .setPrettyPrinting()
+            .registerTypeAdapter(SavedVoice.class, new SavedVoiceTypeAdapter())
+            .create();
+
+    private static final com.google.gson.reflect.TypeToken<java.util.List<SavedVoice>> VOICE_LIST_TYPE = new TypeToken<java.util.List<SavedVoice>>() {};
+
+    private static class SavedVoiceTypeAdapter extends TypeAdapter<SavedVoice> {
+        @Override
+        public void write(JsonWriter out, SavedVoice src) throws IOException {
+            out.beginObject();
+            out.name("name").value(src.getName());
+            out.name("seed").value(String.valueOf(src.getSeed()));
+            out.name("temperature").value(src.getTemperature());
+            out.name("voiceDescription").value(src.getVoiceDescription());
+            out.name("highQuality").value(src.isHighQuality());
+            out.name("consistentVoice").value(src.isConsistentVoice());
+            out.name("topP").value(src.getTopP());
+            out.name("topK").value(src.getTopK());
+            out.name("repetitionPenalty").value(src.getRepetitionPenalty());
+            out.name("speakerId").value(src.getSpeakerId());
+            out.endObject();
+        }
+
+        @Override
+        public SavedVoice read(JsonReader in) throws IOException {
+            String name = "", voiceDescription = "";
+            long seed = DEFAULT_SEED;
+            double temperature = DEFAULT_TEMPERATURE;
+            boolean highQuality = true, consistentVoice = false;
+            double topP = DEFAULT_TOP_P, repetitionPenalty = DEFAULT_REPETITION_PENALTY;
+            int topK = DEFAULT_TOP_K;
+            String speakerId = DEFAULT_CUSTOM_SPEAKER;
+            in.beginObject();
+            while (in.hasNext()) {
+                String field = in.nextName();
+                switch (field) {
+                    case "name": name = in.nextString(); break;
+                    case "seed":
+                        if (in.peek() == JsonToken.STRING) seed = Long.parseLong(in.nextString());
+                        else seed = (long) in.nextDouble();
+                        break;
+                    case "temperature": temperature = in.nextDouble(); break;
+                    case "voiceDescription": voiceDescription = in.nextString(); break;
+                    case "highQuality": highQuality = in.nextBoolean(); break;
+                    case "consistentVoice": consistentVoice = in.nextBoolean(); break;
+                    case "topP": topP = in.nextDouble(); break;
+                    case "topK": topK = (int) in.nextDouble(); break;
+                    case "repetitionPenalty": repetitionPenalty = in.nextDouble(); break;
+                    case "speakerId": speakerId = in.nextString(); break;
+                    default: in.skipValue(); break;
+                }
+            }
+            in.endObject();
+            return new SavedVoice(name, seed, temperature, voiceDescription, highQuality, consistentVoice, topP, topK, repetitionPenalty, speakerId);
+        }
+    }
+
+    /** Lädt die Liste gespeicherter Stimmen aus {@value #TTS_VOICES_PATH}. Seed wird als String gelesen (volle Long-Genauigkeit). */
     public static java.util.List<SavedVoice> loadSavedVoices() {
         Path path = Paths.get(TTS_VOICES_PATH);
         if (!Files.isRegularFile(path)) {
             return new java.util.ArrayList<>();
         }
         try (Reader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
-            java.util.List<SavedVoice> list = new Gson().fromJson(reader, new TypeToken<java.util.List<SavedVoice>>() {}.getType());
+            java.util.List<SavedVoice> list = GSON_VOICES.fromJson(reader, VOICE_LIST_TYPE.getType());
             return list != null ? list : new java.util.ArrayList<>();
         } catch (Exception e) {
             logger.warn("Gespeicherte Stimmen konnten nicht geladen werden: {} – leere Liste", e.getMessage());
@@ -178,11 +355,11 @@ public class ComfyUIClient {
         }
     }
 
-    /** Speichert die Liste gespeicherter Stimmen nach {@value #TTS_VOICES_PATH}. */
+    /** Speichert die Liste gespeicherter Stimmen nach {@value #TTS_VOICES_PATH}. Seed wird als String geschrieben (volle Long-Genauigkeit). */
     public static void saveSavedVoices(java.util.List<SavedVoice> voices) throws IOException {
         Path path = Paths.get(TTS_VOICES_PATH);
         Files.createDirectories(path.getParent());
-        String json = JsonUtil.toJsonPretty(voices != null ? voices : java.util.List.of());
+        String json = GSON_VOICES.toJson(voices != null ? voices : java.util.List.of());
         Files.writeString(path, json, StandardCharsets.UTF_8);
     }
 
@@ -197,7 +374,7 @@ public class ComfyUIClient {
     private final HttpClient httpClient;
 
     public ComfyUIClient() {
-        this(DEFAULT_BASE_URL);
+        this(getBaseUrlFromConfig());
     }
 
     public ComfyUIClient(String baseUrl) {
@@ -266,9 +443,13 @@ public class ComfyUIClient {
 
     /**
      * Sendet einen Prompt (Workflow) an ComfyUI und gibt die prompt_id zurück.
+     * client_id pro Aufruf eindeutig, damit ComfyUI die Anfrage nicht als Duplikat ablehnt.
      */
     public String queuePrompt(Map<String, Object> workflow) throws IOException, InterruptedException {
-        String body = com.manuskript.JsonUtil.toJson(Map.of("prompt", workflow));
+        Map<String, Object> payload = new java.util.LinkedHashMap<>();
+        payload.put("prompt", workflow);
+        payload.put("client_id", java.util.UUID.randomUUID().toString());
+        String body = com.manuskript.JsonUtil.toJson(payload);
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(baseUrl + "/prompt"))
                 .header("Content-Type", "application/json")
@@ -341,14 +522,23 @@ public class ComfyUIClient {
     }
 
     public Map<String, Object> waitForCompletion(String promptId, int timeoutSeconds) throws IOException, InterruptedException {
+        logger.info("Warte auf ComfyUI-Abschluss für prompt_id {} (Timeout: {} s)", promptId, timeoutSeconds);
         long deadline = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(timeoutSeconds);
+        int pollCount = 0;
         while (System.currentTimeMillis() < deadline) {
             Map<String, Object> history = getHistory(promptId);
             if (!history.isEmpty()) {
+                logger.info("ComfyUI prompt abgeschlossen: {}", promptId);
                 return history;
+            }
+            pollCount++;
+            if (pollCount % 20 == 0) {
+                long remaining = (deadline - System.currentTimeMillis()) / 1000;
+                logger.info("Noch keine History für {} (noch {} s)", promptId, remaining);
             }
             Thread.sleep(POLL_INTERVAL_MS);
         }
+        logger.warn("ComfyUI Timeout: prompt {} nicht innerhalb von {} s abgeschlossen", promptId, timeoutSeconds);
         throw new IOException("ComfyUI prompt did not complete within " + timeoutSeconds + " seconds");
     }
 
@@ -367,9 +557,13 @@ public class ComfyUIClient {
      */
     @SuppressWarnings("unchecked")
     public static Map<String, Object> buildQwen3CustomVoiceWorkflow(String text, String instruct, boolean highQuality, boolean consistentVoice,
-                                                                     Long seed, Double temperature, String voiceDescription) {
+                                                                     Long seed, Double temperature, String voiceDescription, Double topP, Integer topK, Double repetitionPenalty,
+                                                                     String filenamePrefix) {
         long seedVal = seed != null ? seed : DEFAULT_SEED;
         double tempVal = temperature != null ? Math.max(0.0, Math.min(2.0, temperature)) : DEFAULT_TEMPERATURE;
+        double topPVal = topP != null && topP > 0 ? topP : DEFAULT_TOP_P;
+        int topKVal = topK != null && topK > 0 ? Math.min(100, topK) : DEFAULT_TOP_K;
+        double repPenVal = repetitionPenalty != null && repetitionPenalty > 0 ? Math.min(2.0, Math.max(1.0, repetitionPenalty)) : DEFAULT_REPETITION_PENALTY;
         String instructVal = instruct != null ? instruct : DEFAULT_INSTRUCT_DEUTSCH;
         if (voiceDescription != null && !voiceDescription.isBlank()) {
             instructVal = instructVal + " Stimme: " + voiceDescription.trim();
@@ -388,10 +582,10 @@ public class ComfyUIClient {
             inputs.put("language", "German");
             inputs.put("seed", seedVal);
             inputs.put("max_new_tokens", 2048);
-            inputs.put("top_p", 1.0);
-            inputs.put("top_k", 46);
+            inputs.put("top_p", topPVal);
+            inputs.put("top_k", topKVal);
             inputs.put("temperature", tempVal);
-            inputs.put("repetition_penalty", 1.1);
+            inputs.put("repetition_penalty", repPenVal);
             inputs.put("attention", "auto");
             inputs.put("unload_model_after_generate", true);
             inputs.put("instruct", instructVal);
@@ -402,17 +596,22 @@ public class ComfyUIClient {
             ttsNode.put("class_type", "FB_Qwen3TTSCustomVoice");
             Map<String, Object> inputs = new java.util.HashMap<>();
             inputs.put("text", text);
-            inputs.put("speaker", "Ryan");
+            String speaker = DEFAULT_CUSTOM_SPEAKER;
+            String override = CURRENT_CUSTOM_SPEAKER.get();
+            if (override != null && !override.isBlank()) {
+                speaker = override.trim();
+            }
+            inputs.put("speaker", speaker);
             inputs.put("model_choice", highQuality ? "1.7B" : "0.6B");
             inputs.put("device", "auto");
             inputs.put("precision", "fp32");
             inputs.put("language", "German");
             inputs.put("seed", seedVal);
             inputs.put("max_new_tokens", 2048);
-            inputs.put("top_p", 1.0);
-            inputs.put("top_k", 46);
+            inputs.put("top_p", topPVal);
+            inputs.put("top_k", topKVal);
             inputs.put("temperature", tempVal);
-            inputs.put("repetition_penalty", 1.1);
+            inputs.put("repetition_penalty", repPenVal);
             inputs.put("attention", "auto");
             inputs.put("unload_model_after_generate", true);
             inputs.put("instruct", instructVal);
@@ -422,11 +621,13 @@ public class ComfyUIClient {
         }
 
         // Save Audio (MP3): MP3 wird von JavaFX Media erkannt; WAV von ComfyUI oft „unrecognized file signature“
+        // Eindeutiger filename_prefix pro Aufruf, damit ComfyUI wiederholte/ähnliche Anfragen nicht als Duplikat ablehnt
+        String prefix = (filenamePrefix != null && !filenamePrefix.isEmpty()) ? filenamePrefix : "tts";
         Map<String, Object> saveNode = new java.util.HashMap<>();
         saveNode.put("class_type", "SaveAudioMP3");
         Map<String, Object> saveInputs = new java.util.HashMap<>();
         saveInputs.put("audio", List.of("3", 0));
-        saveInputs.put("filename_prefix", "tts");
+        saveInputs.put("filename_prefix", prefix);
         saveInputs.put("quality", "320k");  // erforderlich: z. B. "V0", "128k", "320k"
         saveNode.put("inputs", saveInputs);
 
@@ -436,9 +637,9 @@ public class ComfyUIClient {
         return workflow;
     }
 
-    /** Wie {@link #buildQwen3CustomVoiceWorkflow(String, String, boolean, boolean, Long, Double, String)} mit Standard-Seed/Temperatur, ohne Stimmbeschreibung. */
+    /** Wie {@link #buildQwen3CustomVoiceWorkflow(String, String, boolean, boolean, Long, Double, String, Double, Integer, Double, String)} mit Standard-Seed/Temperatur/top_p/top_k/repetitionPenalty, ohne Stimmbeschreibung, Prefix „tts“. */
     public static Map<String, Object> buildQwen3CustomVoiceWorkflow(String text, String instruct, boolean highQuality, boolean consistentVoice) {
-        return buildQwen3CustomVoiceWorkflow(text, instruct, highQuality, consistentVoice, null, null, null);
+        return buildQwen3CustomVoiceWorkflow(text, instruct, highQuality, consistentVoice, null, null, null, null, null, null, null);
     }
 
     /** Wie {@link #buildQwen3CustomVoiceWorkflow(String, String, boolean, boolean)} mit consistentVoice = false. */
@@ -460,17 +661,25 @@ public class ComfyUIClient {
      */
     public Map<String, Object> generateQwen3TTS(String text, String instruct, boolean highQuality, boolean consistentVoice,
                                                 Map<String, String> pronunciationLexicon, Consumer<String> promptLogger,
-                                                Long seed, Double temperature, String voiceDescription) throws IOException, InterruptedException {
+                                                Long seed, Double temperature, String voiceDescription, Double topP, Integer topK, Double repetitionPenalty) throws IOException, InterruptedException {
         Map<String, String> lexicon = pronunciationLexicon != null ? pronunciationLexicon : getDefaultPronunciationLexicon();
-        String textForTTS = removeStageDirections(text);
+        // Regieanweisungen in eckigen Klammern NICHT mehr filtern – vollständigen Text sprechen.
+        String textForTTS = text;
         textForTTS = lexicon.isEmpty() ? textForTTS : applyPronunciationLexicon(textForTTS, lexicon);
         if (!textForTTS.equals(text)) {
-            logger.info("Text für TTS (nach Regie-Strip + Lexikon): {}", textForTTS);
+            logger.info("Text für TTS (nach Lexikon): {}", textForTTS);
         }
-        Map<String, Object> workflow = buildQwen3CustomVoiceWorkflow(textForTTS, instruct, highQuality, consistentVoice, seed, temperature, voiceDescription);
+        // Eindeutigen, unsichtbaren Suffix anhängen, damit ComfyUI bei gleichem Text + geänderten Parametern nicht ablehnt (Duplikat-Erkennung nur am Text).
+        textForTTS = textForTTS + "\u200B".repeat((int) (System.nanoTime() % 5) + 1);
+        if (seed != null || voiceDescription != null) {
+            logger.info("TTS gespeicherte Stimme: seed={}, temperature={}, voiceDescription=\"{}\", topP={}, topK={}, repetitionPenalty={}, highQuality={}, consistentVoice={}",
+                    seed, temperature, voiceDescription, topP, topK, repetitionPenalty, highQuality, consistentVoice);
+        }
+        String runPrefix = "tts_" + java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 8);
+        Map<String, Object> workflow = buildQwen3CustomVoiceWorkflow(textForTTS, instruct, highQuality, consistentVoice, seed, temperature, voiceDescription, topP, topK, repetitionPenalty, runPrefix);
         Map<String, Object> fullPrompt = Map.of("prompt", workflow);
         String pretty = JsonUtil.toJsonPretty(fullPrompt);
-        logger.info("ComfyUI Prompt (Workflow, menschenlesbar):\n{}", pretty);
+        logger.debug("ComfyUI Prompt (Workflow, menschenlesbar):\n{}", pretty);
         if (promptLogger != null) {
             promptLogger.accept(pretty);
         }
@@ -479,10 +688,10 @@ public class ComfyUIClient {
         return waitForCompletion(promptId);
     }
 
-    /** Wie {@link #generateQwen3TTS(..., Long, Double, String)} mit Standard-Seed/Temperatur, ohne Stimmbeschreibung. */
+    /** Wie {@link #generateQwen3TTS(..., Long, Double, String, Double, Integer, Double)} mit Standard-Seed/Temperatur/top_p/top_k/repetitionPenalty, ohne Stimmbeschreibung. */
     public Map<String, Object> generateQwen3TTS(String text, String instruct, boolean highQuality, boolean consistentVoice,
                                                 Map<String, String> pronunciationLexicon, Consumer<String> promptLogger) throws IOException, InterruptedException {
-        return generateQwen3TTS(text, instruct, highQuality, consistentVoice, pronunciationLexicon, promptLogger, null, null, null);
+        return generateQwen3TTS(text, instruct, highQuality, consistentVoice, pronunciationLexicon, promptLogger, null, null, null, null, null, null);
     }
 
     /** Wie {@link #generateQwen3TTS(String, String, boolean, boolean, Map, Consumer)} mit consistentVoice = false, Standard-Lexikon, promptLogger = null. */
@@ -502,6 +711,25 @@ public class ComfyUIClient {
     }
 
     /**
+     * TTS mit gespeicherter Stimme (für Kapitel-TTS-Editor und andere Aufrufer).
+     * @param useConsistencyTemperature true = Temperatur für Hörbuch-Konsistenz begrenzen
+     */
+    public Map<String, Object> generateTTSWithSavedVoice(String text, SavedVoice voice, Map<String, String> pronunciationLexicon, boolean useConsistencyTemperature, java.util.function.Consumer<String> promptLogger) throws IOException, InterruptedException {
+        String desc = (voice.getVoiceDescription() == null || voice.getVoiceDescription().isEmpty()) ? null : voice.getVoiceDescription();
+        double temp = useConsistencyTemperature
+                ? Math.min(voice.getTemperature(), MAX_TEMPERATURE_FOR_VOICE_CONSISTENCY)
+                : voice.getTemperature();
+        try {
+            setCurrentCustomSpeaker(voice.getSpeakerId());
+            return generateQwen3TTS(text, DEFAULT_INSTRUCT_DEUTSCH, voice.isHighQuality(), true,
+                    pronunciationLexicon != null ? pronunciationLexicon : getDefaultPronunciationLexicon(), promptLogger,
+                    voice.getSeed(), temp, desc, voice.getTopP(), voice.getTopK(), voice.getRepetitionPenalty());
+        } finally {
+            clearCurrentCustomSpeaker();
+        }
+    }
+
+    /**
      * Extrahiert aus der ComfyUI-History die erste gefundene Audio-Output-Info (filename oder base64).
      * Returns: Map mit "filename", "subfolder", "type" ODER "base64" (Data-URL oder Rohdaten).
      */
@@ -509,6 +737,7 @@ public class ComfyUIClient {
     public static Map<String, Object> extractFirstAudioFromHistory(Map<String, Object> history) {
         Object outputsObj = history.get("outputs");
         if (!(outputsObj instanceof Map)) {
+            logger.warn("History hat kein 'outputs'-Map: keys={}", history.keySet());
             return Map.of();
         }
         Map<String, Object> outputs = (Map<String, Object>) outputsObj;
@@ -529,6 +758,8 @@ public class ComfyUIClient {
                 }
             }
         }
+        logger.warn("History enthält kein Audio-Output; outputs-Knoten: {}. History-Keys: {}, status: {}, messages: {}",
+                outputs.keySet(), history.keySet(), history.get("status"), history.get("messages"));
         return Map.of();
     }
 

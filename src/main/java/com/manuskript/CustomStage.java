@@ -655,50 +655,27 @@ public class CustomStage extends Stage {
      * Ändert die Farbe der Titelleiste basierend auf Theme
      */
     public void setTitleBarTheme(int themeIndex) {
-        String backgroundColor;
-        String textColor;
-        String borderColor; // Neue Border-Farbe
-        
+        String borderColor;
         activeThemeIndex = themeIndex;
-
         switch (themeIndex) {
-            case 0: // Weiß
-                backgroundColor = "linear-gradient(from 0% 0% to 0% 100%, #ffffff 0%, #f8f9fa 100%)";
-                textColor = "black";
-                borderColor = "black"; // Schwarze Border für weiße Themes
-                break;
-            case 1: // Schwarz
-                backgroundColor = "#1a1a1a"; // Komplett schwarz, kein Gradient
-                textColor = "white";
-                borderColor = "white"; // Weiße Border für schwarze Themes
-                break;
-            case 2: // Pastell
-                backgroundColor = null; // CSS übernimmt Hintergrund
-                textColor = "#311b92";
-                borderColor = null; // Kein Border für Pastell-Theme
-                break;
-            case 3: // Blau
-                backgroundColor = "linear-gradient(from 0% 0% to 0% 100%, #1e3a8a 0%, #3b82f6 100%)";
-                textColor = "white";
-                borderColor = "white"; // Weiße Border für dunkle Themes
-                break;
-            case 4: // Grün
-                backgroundColor = "linear-gradient(from 0% 0% to 0% 100%, #064e3b 0%, #10b981 100%)";
-                textColor = "white";
-                borderColor = "white"; // Weiße Border für dunkle Themes
-                break;
-            case 5: // Lila
-                backgroundColor = "linear-gradient(from 0% 0% to 0% 100%, #581c87 0%, #8b5cf6 100%)";
-                textColor = "white";
-                borderColor = "white"; // Weiße Border für dunkle Themes
-                break;
-            default:
-                backgroundColor = "linear-gradient(from 0% 0% to 0% 100%, #2c3e50 0%, #34495e 100%)";
-                textColor = "white";
-                borderColor = "white"; // Weiße Border für dunkle Themes
-                break;
+            case 0: borderColor = "black"; break;
+            case 1: borderColor = "white"; break;
+            case 2: borderColor = null; break;
+            case 3: case 4: case 5: default: borderColor = "white"; break;
         }
-        setTitleBarColor(backgroundColor, textColor, borderColor);
+        currentTextColor = (themeIndex == 0 || themeIndex == 2) ? "black" : "white";
+        if (titleBar != null) {
+            titleBar.setStyle("-fx-padding: 0 12px; -fx-min-height: 48px; -fx-pref-height: 48px;");
+            iconLabel.setStyle("");
+            titleLabel.setStyle("");
+            String osName = System.getProperty("os.name", "").toLowerCase();
+            if (!osName.contains("mac") && minimizeBtn != null) {
+                minimizeBtn.setStyle("");
+                maximizeBtn.setStyle("");
+                closeBtn.setStyle("");
+            }
+        }
+        setStageBorder(borderColor);
     }
     
     /**
@@ -780,10 +757,18 @@ public class CustomStage extends Stage {
      */
     private void applyThemeToAllNodes(Node node, int themeIndex) {
         if (node == null) return;
-        
+        // Titelleiste nicht mit Theme-Klassen versehen – wird nur über Parent und .title-bar gestylt
+        if (node.getStyleClass().contains("title-bar")) {
+            if (node instanceof Parent) {
+                Parent parent = (Parent) node;
+                for (Node child : parent.getChildrenUnmodifiable()) {
+                    applyThemeToAllNodes(child, themeIndex);
+                }
+            }
+            return;
+        }
         // Theme-Klassen auf diesem Node anwenden
         node.getStyleClass().removeAll("theme-dark", "theme-light", "weiss-theme", "pastell-theme", "blau-theme", "gruen-theme", "lila-theme");
-        
         switch (themeIndex) {
             case 0: // Weiß
                 node.getStyleClass().add("weiss-theme");
@@ -807,7 +792,6 @@ public class CustomStage extends Stage {
                 node.getStyleClass().add("lila-theme");
                 break;
         }
-        
         // Rekursiv alle Kinder durchgehen
         if (node instanceof Parent) {
             Parent parent = (Parent) node;

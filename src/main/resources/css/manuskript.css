@@ -4,3 +4,44 @@
     -fx-border-width: 2px;
     -fx-border-radius: 0px;
 }
+
+/* Kapitel-Sprachsynthese-Editor: Text-Highlights in CodeArea */
+.tts-selection {
+    -rtfx-background-color: #ffe0b2 !important;  /* weiches Orange – aktueller Bearbeitungsblock */
+}
+.tts-saved {
+    -rtfx-background-color: #b8ddb8 !important;   /* mittleres Grün – gut lesbar auf hellen Themes */
+}
+.tts-saved-hover {
+    -rtfx-background-color: #a5d6a7 !important;  /* dunkleres Grün bei Mouseover */
+}
+.tts-playing {
+    -rtfx-background-color: #fff9c4 !important;    /* gelb – gerade abgespielt bei „Alle abspielen“ */
+}
+/* Dunkle Themes: kräftigeres Grün für guten Kontrast mit weißer Schrift */
+.theme-dark .tts-saved {
+    -rtfx-background-color: #2e5c2e !important;
+}
+.theme-dark .tts-saved-hover {
+    -rtfx-background-color: #3d6b3d !important;
+}
+.theme-dark .tts-playing {
+    -rtfx-background-color: #6b6b2e !important;
+}
+/* Helle Themes: dezent helles Grün für schwarze Schrift */
+.weiss-theme .tts-saved,
+.pastell-theme .tts-saved {
+    -rtfx-background-color: #b8ddb8 !important;
+}
+.weiss-theme .tts-saved-hover,
+.pastell-theme .tts-saved-hover {
+    -rtfx-background-color: #9ec99e !important;
+}
+
+/* RichTextFX CodeArea: Textfarbe pro Theme ( .text verwendet -fx-fill ) */
+.theme-dark .code-area .text { -fx-fill: #ffffff !important; }
+.theme-dark.blau-theme .code-area .text,
+.theme-dark.gruen-theme .code-area .text,
+.theme-dark.lila-theme .code-area .text { -fx-fill: #ffffff !important; }
+.weiss-theme .code-area .text,
+.pastell-theme .code-area .text { -fx-fill: #000000 !important; }

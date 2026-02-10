@@ -133,6 +133,7 @@ public class MainController implements Initializable {
     @FXML private Button btnThemeToggle;
     @FXML private Button btnSplit;
     @FXML private Button btnNewChapter;
+    @FXML private Button btnOpenTtsEditor;
     @FXML private Button btnDeleteFile;
     @FXML private Button btnSearchAllFiles;
     @FXML private CheckBox chkDownloadsMonitor;
@@ -549,6 +550,16 @@ public class MainController implements Initializable {
             exportSelectedChapters(splitChapterItems, splitCurrentSource, splitDocxSplitProcessor, splitRtfSplitProcessor, outputDir);
         });
         btnNewChapter.setOnAction(e -> createNewChapter());
+        if (btnOpenTtsEditor != null) {
+            btnOpenTtsEditor.setOnAction(e -> {
+                DocxFile selected = tableViewSelected.getSelectionModel().getSelectedItem();
+                if (selected == null) {
+                    showWarning("Kein Kapitel ausgewählt", "Bitte wählen Sie in der rechten Tabelle ein Kapitel aus.");
+                    return;
+                }
+                openChapterTtsEditor(selected);
+            });
+        }
         btnDeleteFile.setOnAction(e -> deleteSelectedFile());
         btnSearchAllFiles.setOnAction(e -> searchAllFiles());
         // btnHelpToggle Event-Handler wird in createHelpToggleButton() gesetzt
@@ -2295,6 +2306,37 @@ public class MainController implements Initializable {
             updateStatus("Fehler beim Öffnen des Kapitel-Editors");
         }
     }
+
+    /** Öffnet den Sprachsynthese-Editor für das gewählte Kapitel (ein Fenster pro Kapitel, kein Ersetzen des normalen Editors). */
+    private void openChapterTtsEditor(DocxFile chapterFile) {
+        try {
+            DocxProcessor.OutputFormat format = DocxProcessor.OutputFormat.MARKDOWN;
+            File mdFile = deriveMdFileFor(chapterFile.getFile());
+            String content;
+            if (mdFile != null && mdFile.exists()) {
+                content = new String(java.nio.file.Files.readAllBytes(mdFile.toPath()), java.nio.charset.StandardCharsets.UTF_8);
+            } else {
+                content = docxProcessor.processDocxFileContent(chapterFile.getFile(), 1, format);
+                if (mdFile != null) {
+                    try {
+                        java.nio.file.Files.createDirectories(mdFile.getParentFile().toPath());
+                        java.nio.file.Files.write(mdFile.toPath(), content.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                    } catch (IOException e) {
+                        logger.warn("MD-Datei für TTS-Editor konnte nicht angelegt werden", e);
+                    }
+                }
+            }
+            String currentDirectory = txtDirectoryPath.getText();
+            File dataDir = currentDirectory != null && !currentDirectory.isEmpty() ? new File(currentDirectory, "data") : null;
+            ChapterTtsEditorWindow.open(chapterFile, content, mdFile, dataDir, primaryStage != null ? primaryStage : null, currentThemeIndex);
+            updateStatus("Sprachsynthese-Editor geöffnet: " + chapterFile.getFileName());
+        } catch (Exception e) {
+            logger.error("Fehler beim Öffnen des Sprachsynthese-Editors", e);
+            showError("Sprachsynthese-Editor", e.getMessage());
+            updateStatus("Fehler beim Öffnen des Sprachsynthese-Editors");
+        }
+    }
+
     /**
      * Wiederverwendbare Prozedur für Dialog-Styling (MainController) - EXAKT wie showSaveDialogForNavigation
      */
@@ -5068,6 +5110,7 @@ public class MainController implements Initializable {
         applyThemeToNode(btnThemeToggle, themeIndex);
         applyThemeToNode(btnDeleteFile, themeIndex);
         applyThemeToNode(btnNewChapter, themeIndex);
+        if (btnOpenTtsEditor != null) applyThemeToNode(btnOpenTtsEditor, themeIndex);
         applyThemeToNode(btnSearchAllFiles, themeIndex);
         
         // Tabellen

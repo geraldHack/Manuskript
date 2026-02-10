@@ -64,4 +64,9 @@ ollama.repeat_penalty=1.85
 ollama.temperature=0.17
 ollama.top_p=0.83
 session.max_qapairs_per_session=20
+piper.executable=G:/workspace/manuskript/tools/piper/piper/piper.exe
+piper.voice_dir=G:/workspace/manuskript/tools/piper/voices
+piper.length_scale=1.2
+piper.sentence_silence=0.35
+piper.noise_scale=0.5
 

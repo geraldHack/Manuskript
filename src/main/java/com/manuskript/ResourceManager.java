@@ -2,8 +2,14 @@ package com.manuskript;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.Reader;
+import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -413,7 +419,51 @@ public class ResourceManager {
             logger.warn("Fehler beim Speichern der User Preference {}", key, e);
         }
     }
-    
+
+    private static final String TEXTANALYSIS_PROPERTIES = "textanalysis.properties";
+
+    /**
+     * Liest einen Parameter aus config/textanalysis.properties (UTF-8).
+     */
+    public static String getTextanalysisParameter(String key, String defaultValue) {
+        File file = new File(CONFIG_DIR + File.separator + TEXTANALYSIS_PROPERTIES);
+        if (!file.exists()) {
+            return defaultValue;
+        }
+        try {
+            Properties props = new Properties();
+            try (Reader r = new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8)) {
+                props.load(r);
+            }
+            return props.getProperty(key, defaultValue);
+        } catch (IOException e) {
+            logger.warn("Fehler beim Lesen von " + TEXTANALYSIS_PROPERTIES + ": " + e.getMessage());
+            return defaultValue;
+        }
+    }
+
+    /**
+     * Speichert einen Parameter in config/textanalysis.properties (UTF-8).
+     * Lädt die Datei, setzt den Key und schreibt sie zurück.
+     */
+    public static void saveTextanalysisParameter(String key, String value) {
+        File file = new File(CONFIG_DIR + File.separator + TEXTANALYSIS_PROPERTIES);
+        Properties props = new Properties();
+        if (file.exists()) {
+            try (Reader r = new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8)) {
+                props.load(r);
+            } catch (IOException e) {
+                logger.warn("Fehler beim Laden von " + TEXTANALYSIS_PROPERTIES + " zum Speichern: " + e.getMessage());
+            }
+        }
+        props.setProperty(key, value != null ? value : "");
+        try (Writer w = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8)) {
+            props.store(w, "# Textanalyse-Konfiguration");
+        } catch (IOException e) {
+            logger.warn("Fehler beim Speichern in " + TEXTANALYSIS_PROPERTIES + ": " + e.getMessage());
+        }
+    }
+
     /**
      * Speichert alle Ollama-Parameter in User Preferences
      */
