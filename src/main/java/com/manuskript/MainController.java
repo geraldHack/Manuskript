@@ -134,6 +134,7 @@ public class MainController implements Initializable {
     @FXML private Button btnSplit;
     @FXML private Button btnNewChapter;
     @FXML private Button btnOpenTtsEditor;
+    @FXML private Button btnAudiobook;
     @FXML private Button btnDeleteFile;
     @FXML private Button btnSearchAllFiles;
     @FXML private CheckBox chkDownloadsMonitor;
@@ -558,6 +559,14 @@ public class MainController implements Initializable {
                     return;
                 }
                 openChapterTtsEditor(selected);
+            });
+        }
+        if (btnAudiobook != null) {
+            btnAudiobook.setOnAction(e -> {
+                String currentDirectory = txtDirectoryPath != null ? txtDirectoryPath.getText() : null;
+                File dataDir = currentDirectory != null && !currentDirectory.isEmpty() ? new File(currentDirectory, "data") : null;
+                List<DocxFile> chapters = new ArrayList<>(selectedDocxFiles);
+                AudiobookDialog.show(primaryStage != null ? primaryStage : null, chapters, dataDir, currentThemeIndex);
             });
         }
         btnDeleteFile.setOnAction(e -> deleteSelectedFile());
@@ -5111,6 +5120,7 @@ public class MainController implements Initializable {
         applyThemeToNode(btnDeleteFile, themeIndex);
         applyThemeToNode(btnNewChapter, themeIndex);
         if (btnOpenTtsEditor != null) applyThemeToNode(btnOpenTtsEditor, themeIndex);
+        if (btnAudiobook != null) applyThemeToNode(btnAudiobook, themeIndex);
         applyThemeToNode(btnSearchAllFiles, themeIndex);
         
         // Tabellen

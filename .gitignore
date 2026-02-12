@@ -18,6 +18,11 @@ pandoc/pandoc.exe
 pandoc/*.png
 pandoc/*.jpg
 
+# Gebündeltes FFmpeg (optional, analog zu pandoc)
+ffmpeg/ffmpeg.exe
+ffmpeg/ffprobe.exe
+ffmpeg/bin/
+
 # IDE
 .idea/
 *.iml

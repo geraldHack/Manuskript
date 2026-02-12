@@ -2997,16 +2997,46 @@
 .tts-selection {
     -rtfx-background-color: #ffe0b2 !important;  /* weiches Orange – aktueller Bearbeitungsblock */
 }
+/* Abwechselnde Segment-Highlights (tabellenartig) */
+.tts-saved-even {
+    -rtfx-background-color: #b8ddb8 !important;   /* helleres Grün */
+}
+.tts-saved-odd {
+    -rtfx-background-color: #a5d6a7 !important;   /* etwas dunkleres Grün */
+}
 .tts-saved {
-    -rtfx-background-color: #b8ddb8 !important;   /* mittleres Grün – gut lesbar auf hellen Themes */
+    -rtfx-background-color: #b8ddb8 !important;   /* Fallback */
 }
 .tts-saved-hover {
-    -rtfx-background-color: #a5d6a7 !important;  /* dunkleres Grün bei Mouseover */
+    -rtfx-background-color: #9ec99e !important;
 }
 .tts-playing {
     -rtfx-background-color: #fff9c4 !important;    /* gelb – gerade abgespielt bei „Alle abspielen“ */
 }
-/* Dunkle Themes: kräftigeres Grün für guten Kontrast mit weißer Schrift */
+/* Segmentfarben-Palette: Reihe 1 dezent, Reihe 2 knallig (wie Quadrate) */
+.tts-palette-0 { -rtfx-background-color: #a8e6a1 !important; }
+.tts-palette-1 { -rtfx-background-color: #81c784 !important; }
+.tts-palette-2 { -rtfx-background-color: #64b5f6 !important; }
+.tts-palette-3 { -rtfx-background-color: #fff59d !important; }
+.tts-palette-4 { -rtfx-background-color: #f48fb1 !important; }
+.tts-palette-5 { -rtfx-background-color: #ce93d8 !important; }
+.tts-palette-6 { -rtfx-background-color: #ffb74d !important; }
+.tts-palette-7 { -rtfx-background-color: #80cbc4 !important; }
+.tts-palette-8 { -rtfx-background-color: #66bb6a !important; }
+.tts-palette-9 { -rtfx-background-color: #42a5f5 !important; }
+.tts-palette-10 { -rtfx-background-color: #ffca28 !important; }
+.tts-palette-11 { -rtfx-background-color: #ec407a !important; }
+.tts-palette-12 { -rtfx-background-color: #ab47bc !important; }
+.tts-palette-13 { -rtfx-background-color: #ffa726 !important; }
+.tts-palette-14 { -rtfx-background-color: #26c6da !important; }
+.tts-palette-15 { -rtfx-background-color: #ef5350 !important; }
+/* Dunkle Themes: nur even/odd anpassen, Palette wie Quadrate */
+.theme-dark .tts-saved-even {
+    -rtfx-background-color: #2e5c2e !important;
+}
+.theme-dark .tts-saved-odd {
+    -rtfx-background-color: #3d6b3d !important;
+}
 .theme-dark .tts-saved {
     -rtfx-background-color: #2e5c2e !important;
 }
@@ -3016,7 +3046,15 @@
 .theme-dark .tts-playing {
     -rtfx-background-color: #6b6b2e !important;
 }
-/* Helle Themes: dezent helles Grün für schwarze Schrift */
+/* Helle Themes */
+.weiss-theme .tts-saved-even,
+.pastell-theme .tts-saved-even {
+    -rtfx-background-color: #b8ddb8 !important;
+}
+.weiss-theme .tts-saved-odd,
+.pastell-theme .tts-saved-odd {
+    -rtfx-background-color: #9ec99e !important;
+}
 .weiss-theme .tts-saved,
 .pastell-theme .tts-saved {
     -rtfx-background-color: #b8ddb8 !important;

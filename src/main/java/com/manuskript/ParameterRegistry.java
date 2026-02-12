@@ -35,6 +35,10 @@ public final class ParameterRegistry {
         add("comfyui.restart_script", ParameterDef.Type.STRING, "",
                 "Pfad zum Skript zum Neustarten von ComfyUI (z. B. .bat oder .cmd). Leer = Restart-Button inaktiv.", "TTS (ComfyUI)");
 
+        // —— TTS (ElevenLabs) ——
+        add("tts.elevenlabs_api_key", ParameterDef.Type.STRING, "",
+                "API-Key für ElevenLabs (kostenpflichtiger TTS-Dienst). Leer = nur ComfyUI-Stimmen verfügbar.", "TTS (ElevenLabs)");
+
         // —— Projekt ——
         add("project.root.directory", ParameterDef.Type.STRING, "",
                 "Projektwurzel-Verzeichnis (Unterordner = Projekte).", "Projekt");

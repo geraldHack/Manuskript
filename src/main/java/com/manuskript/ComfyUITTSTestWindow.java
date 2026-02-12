@@ -32,7 +32,9 @@ import javafx.scene.layout.Priority;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.layout.VBox;
+import javafx.stage.FileChooser;
 import javafx.stage.Window;
+import java.io.File;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -116,9 +118,26 @@ public class ComfyUITTSTestWindow {
     private Label voiceSelectionHintLabel;
     private VBox speakContent;
     private VBox searchContent;
+    private VBox voiceCloneContent;
     private StackPane contentStack;
     /** Wird von „Für TTS verwenden“ im Stimmsuche-Bereich aufgerufen, um auf „Text vorlesen“ zu wechseln. */
     private Runnable switchToSprechen;
+
+    // Voice-Clone-Tab
+    private File vcRefAudioFile;
+    private Label vcRefAudioLabel;
+    private TextArea vcTranscriptArea;
+    private TextField vcVoiceNameField;
+    private TextArea vcTestTextArea;
+    private Slider vcTempSlider;
+    private Slider vcTopPSlider;
+    private Slider vcTopKSlider;
+    private Slider vcRepPenSlider;
+    private CheckBox vcHighQualityCheckBox;
+    private Button vcKlonenButton;
+    private Button vcAlsStimmeSpeichernButton;
+    private ProgressIndicator vcProgressIndicator;
+    private Label vcStatusLabel;
 
     /** Zuletzt gestarteter Restart-Skript-Prozess; wird beim Schließen des Fensters beendet, damit Java sauber beendet werden kann. */
     private Process lastRestartProcess;
@@ -176,7 +195,8 @@ public class ComfyUITTSTestWindow {
         statusRow.setAlignment(Pos.CENTER_LEFT);
         statusRow.getChildren().addAll(statusLabel, btnRestartComfyUI);
 
-        savedVoicesItems = FXCollections.observableArrayList(ComfyUIClient.loadSavedVoices());
+        savedVoicesItems = FXCollections.observableArrayList();
+        loadCombinedVoiceList();
         voiceComboBox = new ComboBox<>();
         voiceComboBox.getItems().add(null); // "Standard" durch null repräsentiert
         voiceComboBox.getItems().addAll(savedVoicesItems);
@@ -185,6 +205,7 @@ public class ComfyUITTSTestWindow {
             @Override
             public String toString(ComfyUIClient.SavedVoice v) {
                 if (v == null) return "Standard";
+                if ("elevenlabs".equalsIgnoreCase(v.getProvider())) return v.getName();
                 return v.getName() + " (Seed " + v.getSeed() + ")";
             }
             @Override
@@ -196,6 +217,7 @@ public class ComfyUITTSTestWindow {
         voiceSelectionHintLabel.setStyle("-fx-text-fill: -fx-text-background-color; -fx-font-style: italic;");
         voiceComboBox.getSelectionModel().selectedItemProperty().addListener((o, prev, sel) -> {
             if (sel == null) voiceSelectionHintLabel.setText("Verwendet: Standard");
+            else if ("elevenlabs".equalsIgnoreCase(sel.getProvider())) voiceSelectionHintLabel.setText("Verwendet: \"" + sel.getName() + "\" (ElevenLabs)");
             else voiceSelectionHintLabel.setText("Verwendet: \"" + sel.getName() + "\" (Seed " + sel.getSeed() + ", " + (sel.isHighQuality() ? "1.7B" : "0.6B") + ")");
         });
         HBox voiceRow = new HBox(8);
@@ -301,7 +323,10 @@ public class ComfyUITTSTestWindow {
         // —— Bereich: Stimmsuche ——
         searchContent = buildVoiceSearchTab();
 
-        // Umschaltung: zwei Buttons wie Tabs, Inhalt in StackPane
+        // —— Bereich: Voice Clone ——
+        voiceCloneContent = buildVoiceCloneTab();
+
+        // Umschaltung: drei Buttons wie Tabs, Inhalt in StackPane
         ToggleGroup group = new ToggleGroup();
         ToggleButton btnShowSprechen = new ToggleButton("Text vorlesen");
         btnShowSprechen.setToggleGroup(group);
@@ -310,26 +335,33 @@ public class ComfyUITTSTestWindow {
         ToggleButton btnShowStimmsuche = new ToggleButton("Stimmsuche");
         btnShowStimmsuche.setToggleGroup(group);
         btnShowStimmsuche.setUserData("search");
+        ToggleButton btnShowVoiceClone = new ToggleButton("Voice Clone");
+        btnShowVoiceClone.setToggleGroup(group);
+        btnShowVoiceClone.setUserData("voiceclone");
         HBox switchBar = new HBox(6);
-        switchBar.getChildren().addAll(btnShowSprechen, btnShowStimmsuche);
+        switchBar.getChildren().addAll(btnShowSprechen, btnShowStimmsuche, btnShowVoiceClone);
         switchBar.setPadding(new Insets(8, 15, 4, 15));
         switchBar.setStyle("-fx-border-color: transparent transparent -fx-base transparent; -fx-border-width: 0 0 1 0;");
 
         contentStack = new StackPane();
-        contentStack.getChildren().addAll(searchContent, speakContent);
+        contentStack.getChildren().addAll(searchContent, speakContent, voiceCloneContent);
         speakContent.setVisible(true);
         speakContent.setManaged(true);
         searchContent.setVisible(false);
         searchContent.setManaged(false);
+        voiceCloneContent.setVisible(false);
+        voiceCloneContent.setManaged(false);
         VBox.setVgrow(contentStack, Priority.ALWAYS);
 
         group.selectedToggleProperty().addListener((o, prev, sel) -> {
             if (sel == null) return;
-            boolean speak = "speak".equals(((ToggleButton) sel).getUserData());
-            speakContent.setVisible(speak);
-            speakContent.setManaged(speak);
-            searchContent.setVisible(!speak);
-            searchContent.setManaged(!speak);
+            String which = String.valueOf(((ToggleButton) sel).getUserData());
+            speakContent.setVisible("speak".equals(which));
+            speakContent.setManaged("speak".equals(which));
+            searchContent.setVisible("search".equals(which));
+            searchContent.setManaged("search".equals(which));
+            voiceCloneContent.setVisible("voiceclone".equals(which));
+            voiceCloneContent.setManaged("voiceclone".equals(which));
         });
         switchToSprechen = () -> btnShowSprechen.setSelected(true);
 
@@ -425,6 +457,29 @@ public class ComfyUITTSTestWindow {
         else entry.setReplacement(newValue != null ? newValue : "");
     }
 
+    /** Lädt ComfyUI-Stimmen aus tts-voices.json und ergänzt ElevenLabs-Stimmen, wenn API-Key gesetzt ist. */
+    private void loadCombinedVoiceList() {
+        savedVoicesItems.clear();
+        savedVoicesItems.addAll(ComfyUIClient.loadSavedVoices());
+        String apiKey = ResourceManager.getParameter("tts.elevenlabs_api_key", "");
+        if (apiKey != null && !apiKey.trim().isEmpty()) {
+            ElevenLabsClient client = new ElevenLabsClient();
+            client.setApiKey(apiKey.trim());
+            try {
+                java.util.List<ElevenLabsClient.ElevenLabsVoice> elVoices = client.getVoices();
+                for (ElevenLabsClient.ElevenLabsVoice ev : elVoices) {
+                    ComfyUIClient.SavedVoice sv = new ComfyUIClient.SavedVoice();
+                    sv.setName(ev.getName() + " (ElevenLabs)");
+                    sv.setProvider("elevenlabs");
+                    sv.setElevenLabsVoiceId(ev.getId());
+                    savedVoicesItems.add(sv);
+                }
+            } catch (Exception e) {
+                logger.warn("ElevenLabs-Stimmen konnten nicht geladen werden: {}", e.getMessage());
+            }
+        }
+    }
+
     private void loadLexiconIntoTable() {
         lexiconItems.clear();
         Map<String, String> map = ComfyUIClient.getDefaultPronunciationLexicon();
@@ -445,18 +500,22 @@ public class ComfyUITTSTestWindow {
     }
 
     private void saveLexiconToFile() {
-        Path path = Paths.get(ComfyUIClient.PRONUNCIATION_LEXICON_PATH);
-        try {
-            Files.createDirectories(path.getParent());
-            Map<String, String> map = getLexiconFromTable();
-            String json = JsonUtil.toJsonPretty(map);
-            Files.writeString(path, json, StandardCharsets.UTF_8);
-            statusLabel.setText("Lexikon gespeichert: " + path.toAbsolutePath());
-            log("Lexikon gespeichert: " + path.toAbsolutePath());
-        } catch (IOException e) {
-            logger.warn("Lexikon speichern fehlgeschlagen", e);
-            statusLabel.setText("Speichern fehlgeschlagen: " + e.getMessage());
-        }
+        // Speichern erst nach dem nächsten Event-Pulse, damit eine offene Tabellenbearbeitung
+        // (noch nicht durch Enter/Fokuswechsel committed) zuerst übernommen wird.
+        Platform.runLater(() -> {
+            Path path = Paths.get(ComfyUIClient.PRONUNCIATION_LEXICON_PATH).toAbsolutePath().normalize();
+            try {
+                Files.createDirectories(path.getParent());
+                Map<String, String> map = getLexiconFromTable();
+                String json = JsonUtil.toJsonPretty(map);
+                Files.writeString(path, json, StandardCharsets.UTF_8);
+                statusLabel.setText("Lexikon gespeichert: " + path);
+                log("Lexikon gespeichert: " + path);
+            } catch (IOException e) {
+                logger.warn("Lexikon speichern fehlgeschlagen", e);
+                statusLabel.setText("Speichern fehlgeschlagen: " + e.getMessage());
+            }
+        });
     }
 
     private void runTTS() {
@@ -482,13 +541,19 @@ public class ComfyUITTSTestWindow {
         }
         final String textForTTS = textToSpeak.trim();
         if (useSavedVoice) {
-            statusLabel.setText(selectedVoice.isHighQuality() ? "Starte ComfyUI/Qwen3-TTS (Hohe Qualität)…" : "Starte ComfyUI/Qwen3-TTS (Schnell)…");
-            log("Text: " + textForTTS);
-            log("Gespeicherte Stimme: \"" + selectedVoice.getName() + "\" | Seed=" + selectedVoice.getSeed() + ", Temp=" + selectedVoice.getTemperature() + ", top_p=" + selectedVoice.getTopP() + ", top_k=" + selectedVoice.getTopK() + ", rep_penalty=" + selectedVoice.getRepetitionPenalty() + ", " + (selectedVoice.isHighQuality() ? "1.7B VoiceDesign" : "0.6B CustomVoice"));
-            if (selectedVoice.getTemperature() > ComfyUIClient.MAX_TEMPERATURE_FOR_VOICE_CONSISTENCY) {
-                log("Für Hörbuch-Konsistenz: Temperatur auf max. " + ComfyUIClient.MAX_TEMPERATURE_FOR_VOICE_CONSISTENCY + " begrenzt (gleiche Stimme über alle Absätze).");
+            if ("elevenlabs".equalsIgnoreCase(selectedVoice.getProvider())) {
+                statusLabel.setText("Starte ElevenLabs TTS…");
+                log("Text: " + textForTTS);
+                log("Stimme: \"" + selectedVoice.getName() + "\" (ElevenLabs)");
+            } else {
+                statusLabel.setText(selectedVoice.isHighQuality() ? "Starte ComfyUI/Qwen3-TTS (Hohe Qualität)…" : "Starte ComfyUI/Qwen3-TTS (Schnell)…");
+                log("Text: " + textForTTS);
+                log("Gespeicherte Stimme: \"" + selectedVoice.getName() + "\" | Seed=" + selectedVoice.getSeed() + ", Temp=" + selectedVoice.getTemperature() + ", top_p=" + selectedVoice.getTopP() + ", top_k=" + selectedVoice.getTopK() + ", rep_penalty=" + selectedVoice.getRepetitionPenalty() + ", " + (selectedVoice.isHighQuality() ? "1.7B VoiceDesign" : "0.6B CustomVoice"));
+                if (selectedVoice.getTemperature() > ComfyUIClient.MAX_TEMPERATURE_FOR_VOICE_CONSISTENCY) {
+                    log("Für Hörbuch-Konsistenz: Temperatur auf max. " + ComfyUIClient.MAX_TEMPERATURE_FOR_VOICE_CONSISTENCY + " begrenzt (gleiche Stimme über alle Absätze).");
+                }
+                if (selectedVoice.getVoiceDescription() != null && !selectedVoice.getVoiceDescription().isBlank()) log("  Stimmbeschreibung: " + selectedVoice.getVoiceDescription());
             }
-            if (selectedVoice.getVoiceDescription() != null && !selectedVoice.getVoiceDescription().isBlank()) log("  Stimmbeschreibung: " + selectedVoice.getVoiceDescription());
         } else {
             final boolean highQuality = highQualityCheckBox.isSelected();
             statusLabel.setText(highQuality ? "Starte ComfyUI/Qwen3-TTS (Hohe Qualität)…" : "Starte ComfyUI/Qwen3-TTS (Schnell)…");
@@ -502,38 +567,52 @@ public class ComfyUITTSTestWindow {
         CompletableFuture.runAsync(() -> {
             try {
                 Thread.currentThread().setPriority(Thread.NORM_PRIORITY - 1);
-                log("TTS gestartet (ComfyUI wird aufgerufen)…");
-                ComfyUIClient client = new ComfyUIClient();
-                Map<String, Object> history;
+                Path target = Files.createTempFile("manuskript-tts-", ".mp3");
                 if (useSavedVoice && voiceForTTS != null) {
-                    history = generateTTSWithSavedVoice(client, textForTTS, voiceForTTS, lexicon, true, prettyPrompt ->
-                        Platform.runLater(() -> {
-                            log("=== ComfyUI Prompt (menschenlesbar) ===");
-                            log(prettyPrompt);
-                            log("=== Ende Prompt ===");
-                        }));
+                    ComfyUIClient.SavedVoice effectiveVoice;
+                    if ("elevenlabs".equalsIgnoreCase(voiceForTTS.getProvider()) && voiceForTTS.getElevenLabsVoiceId() != null && !voiceForTTS.getElevenLabsVoiceId().isBlank()) {
+                        effectiveVoice = new ComfyUIClient.SavedVoice(voiceForTTS.getName(), ComfyUIClient.DEFAULT_SEED, ComfyUIClient.DEFAULT_TEMPERATURE, "", true, false);
+                        effectiveVoice.setProvider("elevenlabs");
+                        effectiveVoice.setElevenLabsVoiceId(voiceForTTS.getElevenLabsVoiceId());
+                        effectiveVoice.setElevenLabsModelId(voiceForTTS.getElevenLabsModelId() != null && !voiceForTTS.getElevenLabsModelId().isBlank() ? voiceForTTS.getElevenLabsModelId() : ElevenLabsClient.DEFAULT_MODEL_ID);
+                        effectiveVoice.setElevenLabsStability(voiceForTTS.getElevenLabsStability());
+                        effectiveVoice.setElevenLabsSimilarityBoost(voiceForTTS.getElevenLabsSimilarityBoost());
+                        effectiveVoice.setElevenLabsSpeed(voiceForTTS.getElevenLabsSpeed());
+                        effectiveVoice.setElevenLabsUseSpeakerBoost(voiceForTTS.isElevenLabsUseSpeakerBoost());
+                        effectiveVoice.setElevenLabsStyle(voiceForTTS.getElevenLabsStyle());
+                    } else {
+                        effectiveVoice = voiceForTTS;
+                    }
+                    log("TTS gestartet (" + ("elevenlabs".equalsIgnoreCase(effectiveVoice.getProvider()) ? "ElevenLabs" : "ComfyUI") + ")…");
+                    TtsBackend.generateTtsToFile(textForTTS, effectiveVoice, lexicon, target, true, prettyPrompt -> {
+                        if (prettyPrompt != null)
+                            Platform.runLater(() -> {
+                                log("=== ComfyUI Prompt (menschenlesbar) ===");
+                                log(prettyPrompt);
+                                log("=== Ende Prompt ===");
+                            });
+                    });
                 } else {
-                    java.util.function.Consumer<String> logger = prettyPrompt ->
+                    log("TTS gestartet (ComfyUI wird aufgerufen)…");
+                    ComfyUIClient client = new ComfyUIClient();
+                    java.util.function.Consumer<String> promptLogger = prettyPrompt ->
                         Platform.runLater(() -> {
                             log("=== ComfyUI Prompt (menschenlesbar) ===");
                             log(prettyPrompt);
                             log("=== Ende Prompt ===");
                         });
-                    history = client.generateQwen3TTS(textForTTS, FIXED_INSTRUCT, hqStandard, true, lexicon, logger, null, null, null, null, null, null);
+                    Map<String, Object> history = client.generateQwen3TTS(textForTTS, FIXED_INSTRUCT, hqStandard, true, lexicon, promptLogger, null, null, null, null, null, null);
+                    log("Fertig. History-Keys: " + history.keySet());
+                    Map<String, Object> audioInfo = ComfyUIClient.extractFirstAudioFromHistory(history);
+                    if (audioInfo.isEmpty()) {
+                        Platform.runLater(() -> {
+                            statusLabel.setText("Kein Audio in der History. Evtl. anderes Output-Format? Prüfe ComfyUI-Ausgabe.");
+                            log("outputs: " + history.get("outputs"));
+                        });
+                        return;
+                    }
+                    client.downloadAudioToFile(history, target);
                 }
-                log("Fertig. History-Keys: " + history.keySet());
-
-                Map<String, Object> audioInfo = ComfyUIClient.extractFirstAudioFromHistory(history);
-                if (audioInfo.isEmpty()) {
-                    Platform.runLater(() -> {
-                        statusLabel.setText("Kein Audio in der History. Evtl. anderes Output-Format? Prüfe ComfyUI-Ausgabe.");
-                        log("outputs: " + history.get("outputs"));
-                    });
-                    return;
-                }
-
-                Path target = Files.createTempFile("manuskript-tts-", ".mp3");
-                client.downloadAudioToFile(history, target);
                 lastAudioPath = target;
                 Path path = target;
                 Platform.runLater(() -> {
@@ -824,6 +903,182 @@ public class ComfyUITTSTestWindow {
         return root;
     }
 
+    private VBox buildVoiceCloneTab() {
+        VBox vc = new VBox(10);
+        vc.setPadding(new Insets(15));
+        vc.setMinWidth(780);
+
+        Label titleLabel = new Label("Voice Clone (Qwen3-TTS)");
+        titleLabel.setStyle("-fx-font-size: 1.1em; -fx-font-weight: bold;");
+        vc.getChildren().add(titleLabel);
+
+        Label refLabel = new Label("Referenz-Audio:");
+        Button refChooseBtn = new Button("Datei wählen…");
+        vcRefAudioLabel = new Label("(keine)");
+        vcRefAudioLabel.setWrapText(true);
+        refChooseBtn.setOnAction(e -> {
+            FileChooser fc = new FileChooser();
+            fc.setTitle("Referenz-Audio für Voice Clone");
+            fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("Audio", "*.wav", "*.mp3", "*.flac", "*.ogg", "*.m4a"));
+            File f = fc.showOpenDialog(stage);
+            if (f != null) {
+                vcRefAudioFile = f;
+                vcRefAudioLabel.setText(f.getName());
+            }
+        });
+        HBox refRow = new HBox(8);
+        refRow.getChildren().addAll(refLabel, refChooseBtn, vcRefAudioLabel);
+        refRow.setAlignment(Pos.CENTER_LEFT);
+        vc.getChildren().add(refRow);
+
+        Label transLabel = new Label("Transkript der Referenz (voice_clone_prompt):");
+        vcTranscriptArea = new TextArea();
+        vcTranscriptArea.setPromptText("Exakter Text, der in der Referenz-Audio gesprochen wird…");
+        vcTranscriptArea.setPrefRowCount(4);
+        vcTranscriptArea.setWrapText(true);
+        vc.getChildren().addAll(transLabel, vcTranscriptArea);
+
+        Label testLabel = new Label("Test-Text (wird mit geklonter Stimme gesprochen):");
+        vcTestTextArea = new TextArea();
+        vcTestTextArea.setText("Der Wind strich leise durch die Bäume.");
+        vcTestTextArea.setPrefRowCount(2);
+        vcTestTextArea.setWrapText(true);
+        vc.getChildren().addAll(testLabel, vcTestTextArea);
+
+        vcTempSlider = new Slider(0.1, 1.5, 0.3);
+        vcTempSlider.setBlockIncrement(0.05);
+        Label vcTempL = new Label("Temperatur: " + String.format("%.2f", vcTempSlider.getValue()));
+        vcTempSlider.valueProperty().addListener((o, a, b) -> vcTempL.setText("Temperatur: " + String.format("%.2f", b.doubleValue())));
+        vcTopPSlider = new Slider(0.01, 1.0, ComfyUIClient.DEFAULT_TOP_P);
+        vcTopPSlider.setBlockIncrement(0.05);
+        Label vcTopPL = new Label("top_p: " + String.format("%.2f", vcTopPSlider.getValue()));
+        vcTopPSlider.valueProperty().addListener((o, a, b) -> vcTopPL.setText("top_p: " + String.format("%.2f", b.doubleValue())));
+        vcTopKSlider = new Slider(1, 100, ComfyUIClient.DEFAULT_TOP_K);
+        Label vcTopKL = new Label("top_k: " + (int) Math.round(vcTopKSlider.getValue()));
+        vcTopKSlider.valueProperty().addListener((o, a, b) -> vcTopKL.setText("top_k: " + (int) Math.round(b.doubleValue())));
+        vcRepPenSlider = new Slider(1.0, 2.0, ComfyUIClient.DEFAULT_REPETITION_PENALTY);
+        Label vcRepL = new Label("Rep. Penalty: " + String.format("%.2f", vcRepPenSlider.getValue()));
+        vcRepPenSlider.valueProperty().addListener((o, a, b) -> vcRepL.setText("Rep. Penalty: " + String.format("%.2f", b.doubleValue())));
+        vcHighQualityCheckBox = new CheckBox("Hohe Qualität (1.7B)");
+        vcHighQualityCheckBox.setSelected(true);
+        vc.getChildren().addAll(vcTempL, vcTempSlider, vcTopPL, vcTopPSlider, vcTopKL, vcTopKSlider, vcRepL, vcRepPenSlider, vcHighQualityCheckBox);
+
+        vcVoiceNameField = new TextField();
+        vcVoiceNameField.setPromptText("Name der neuen Stimme (für „Als Stimme speichern“)");
+        vc.getChildren().add(new Label("Stimmenname:"));
+        vc.getChildren().add(vcVoiceNameField);
+
+        vcKlonenButton = new Button("Klonen (Test)");
+        vcAlsStimmeSpeichernButton = new Button("Als Stimme speichern");
+        vcProgressIndicator = new ProgressIndicator(-1);
+        vcProgressIndicator.setVisible(false);
+        vcStatusLabel = new Label(" ");
+        vcStatusLabel.setWrapText(true);
+        HBox vcBtnRow = new HBox(8);
+        vcBtnRow.getChildren().addAll(vcKlonenButton, vcAlsStimmeSpeichernButton, vcProgressIndicator);
+        vc.getChildren().addAll(vcBtnRow, vcStatusLabel);
+        VBox.setVgrow(vcStatusLabel, Priority.ALWAYS);
+
+        vcKlonenButton.setOnAction(e -> runVoiceCloneTest());
+        vcAlsStimmeSpeichernButton.setOnAction(e -> saveVoiceCloneAsVoice());
+        return vc;
+    }
+
+    private void runVoiceCloneTest() {
+        if (vcRefAudioFile == null || !vcRefAudioFile.isFile()) {
+            if (vcStatusLabel != null) vcStatusLabel.setText("Bitte zuerst Referenz-Audio wählen.");
+            return;
+        }
+        String transcriptVal = vcTranscriptArea != null ? vcTranscriptArea.getText() : "";
+        if (transcriptVal == null) transcriptVal = "";
+        String textToSpeakVal = vcTestTextArea != null ? vcTestTextArea.getText() : "Der Wind strich leise durch die Bäume.";
+        if (textToSpeakVal == null || textToSpeakVal.isBlank()) textToSpeakVal = "Test.";
+        final String transcript = transcriptVal;
+        final String textToSpeak = textToSpeakVal;
+        if (vcProgressIndicator != null) vcProgressIndicator.setVisible(true);
+        if (vcStatusLabel != null) vcStatusLabel.setText("Voice Clone wird erzeugt…");
+        if (vcKlonenButton != null) vcKlonenButton.setDisable(true);
+        COMFY_LOW_PRIORITY_EXECUTOR.execute(() -> {
+            try {
+                ComfyUIClient client = new ComfyUIClient();
+                Map<String, Object> history = client.generateVoiceCloneTTS(
+                        vcRefAudioFile.toPath(), transcript, textToSpeak,
+                        ComfyUIClient.DEFAULT_SEED,
+                        vcTempSlider.getValue(), vcTopPSlider.getValue(), (int) Math.round(vcTopKSlider.getValue()), vcRepPenSlider.getValue(),
+                        vcHighQualityCheckBox.isSelected(), getLexiconFromTable(), null, null);
+                Path outPath = Files.createTempFile("tts_vc_test_", ".mp3");
+                client.downloadAudioToFile(history, outPath);
+                lastAudioPath = outPath;
+                Platform.runLater(() -> {
+                    if (vcProgressIndicator != null) vcProgressIndicator.setVisible(false);
+                    if (vcKlonenButton != null) vcKlonenButton.setDisable(false);
+                    if (vcStatusLabel != null) vcStatusLabel.setText("Fertig. „Ergebnis abspielen“ im Tab „Text vorlesen“ nutzen oder hier erneut abspielen.");
+                    btnPlayOrOpen.setDisable(false);
+                });
+            } catch (Exception ex) {
+                logger.error("Voice Clone fehlgeschlagen", ex);
+                Platform.runLater(() -> {
+                    if (vcProgressIndicator != null) vcProgressIndicator.setVisible(false);
+                    if (vcKlonenButton != null) vcKlonenButton.setDisable(false);
+                    if (vcStatusLabel != null) vcStatusLabel.setText("Fehler: " + ex.getMessage());
+                });
+            }
+        });
+    }
+
+    private void saveVoiceCloneAsVoice() {
+        if (vcRefAudioFile == null || !vcRefAudioFile.isFile()) {
+            if (vcStatusLabel != null) vcStatusLabel.setText("Bitte zuerst Referenz-Audio wählen.");
+            return;
+        }
+        String name = vcVoiceNameField != null ? vcVoiceNameField.getText() : null;
+        if (name == null || name.isBlank()) {
+            if (vcStatusLabel != null) vcStatusLabel.setText("Bitte Stimmenname eingeben.");
+            return;
+        }
+        String transcriptVal = vcTranscriptArea != null ? vcTranscriptArea.getText() : "";
+        if (transcriptVal == null) transcriptVal = "";
+        final String transcript = transcriptVal;
+        if (vcProgressIndicator != null) vcProgressIndicator.setVisible(true);
+        if (vcStatusLabel != null) vcStatusLabel.setText("Stimme wird gespeichert…");
+        COMFY_LOW_PRIORITY_EXECUTOR.execute(() -> {
+            try {
+                String refFilename = ComfyUIClient.copyRefAudioToVoiceCloneDir(vcRefAudioFile.toPath(), name);
+                ComfyUIClient.SavedVoice voice = new ComfyUIClient.SavedVoice(
+                        name.trim(),
+                        ComfyUIClient.DEFAULT_SEED,
+                        vcTempSlider.getValue(),
+                        "",
+                        vcHighQualityCheckBox.isSelected(),
+                        true,
+                        vcTopPSlider.getValue(),
+                        (int) Math.round(vcTopKSlider.getValue()),
+                        vcRepPenSlider.getValue(),
+                        "",
+                        refFilename,
+                        transcript,
+                        true
+                );
+                java.util.List<ComfyUIClient.SavedVoice> voices = new java.util.ArrayList<>(ComfyUIClient.loadSavedVoices());
+                voices.add(voice);
+                ComfyUIClient.saveSavedVoices(voices);
+                Platform.runLater(() -> {
+                    if (vcProgressIndicator != null) vcProgressIndicator.setVisible(false);
+                    if (vcStatusLabel != null) vcStatusLabel.setText("Stimme \"" + name.trim() + "\" gespeichert. In „Text vorlesen“ und „Stimmsuche“ auswählbar.");
+                    savedVoicesItems.add(voice);
+                    voiceComboBox.getItems().add(voice);
+                    voiceComboBox.getSelectionModel().select(voice);
+                });
+            } catch (Exception ex) {
+                logger.error("Stimme speichern fehlgeschlagen", ex);
+                Platform.runLater(() -> {
+                    if (vcProgressIndicator != null) vcProgressIndicator.setVisible(false);
+                    if (vcStatusLabel != null) vcStatusLabel.setText("Fehler: " + ex.getMessage());
+                });
+            }
+        });
+    }
+
     private String getVoiceSearchSampleText() {
         if (voiceSearchSampleTextArea == null) return VOICE_SEARCH_SAMPLE;
         String t = voiceSearchSampleTextArea.getText();
@@ -989,7 +1244,10 @@ public class ComfyUITTSTestWindow {
                 refreshVoiceComboBoxKeepSelection();
                 voiceComboBox.getSelectionModel().select(v);
                 try {
-                    ComfyUIClient.saveSavedVoices(new ArrayList<>(savedVoicesItems));
+                    java.util.List<ComfyUIClient.SavedVoice> toSave = savedVoicesItems.stream()
+                            .filter(voice -> !"elevenlabs".equalsIgnoreCase(voice.getProvider()))
+                            .collect(java.util.stream.Collectors.toList());
+                    ComfyUIClient.saveSavedVoices(toSave);
                 } catch (IOException ex) {
                     logger.warn("Stimmen speichern fehlgeschlagen", ex);
                 }
@@ -1001,23 +1259,11 @@ public class ComfyUITTSTestWindow {
     }
 
     /**
-     * TTS mit gespeicherter Stimme.
-     * @param useConsistencyTemperature true = Temperatur für Hörbuch-Konsistenz begrenzen (gleiche Stimme über alle Absätze)
+     * TTS mit gespeicherter Stimme. Delegiert an ComfyUIClient, damit Voice-Clone-Stimmen
+     * den Ref-Audio-Workflow nutzen; normale Stimmen nutzen CustomVoice/VoiceDesign.
      */
     private static Map<String, Object> generateTTSWithSavedVoice(ComfyUIClient client, String text, ComfyUIClient.SavedVoice voice, java.util.Map<String, String> lexicon, boolean useConsistencyTemperature, java.util.function.Consumer<String> promptLogger) throws IOException, InterruptedException {
-        String desc = (voice.getVoiceDescription() == null || voice.getVoiceDescription().isEmpty()) ? null : voice.getVoiceDescription();
-        double temp = useConsistencyTemperature
-                ? Math.min(voice.getTemperature(), ComfyUIClient.MAX_TEMPERATURE_FOR_VOICE_CONSISTENCY)
-                : voice.getTemperature();
-        // Für gespeicherte Stimmen immer CustomVoice mit konsistenter Stimme nutzen
-        final boolean consistentVoice = true;
-        try {
-            ComfyUIClient.setCurrentCustomSpeaker(voice.getSpeakerId());
-            return client.generateQwen3TTS(text, FIXED_INSTRUCT, voice.isHighQuality(), consistentVoice, lexicon, promptLogger,
-                    voice.getSeed(), temp, desc, voice.getTopP(), voice.getTopK(), voice.getRepetitionPenalty());
-        } finally {
-            ComfyUIClient.clearCurrentCustomSpeaker();
-        }
+        return client.generateTTSWithSavedVoice(text, voice, lexicon, useConsistencyTemperature, promptLogger);
     }
 
     private void playSavedVoiceSample(ComfyUIClient.SavedVoice v) {
@@ -1026,10 +1272,22 @@ public class ComfyUITTSTestWindow {
         voiceSearchProgress.setVisible(true);
         CompletableFuture.runAsync(() -> {
             try {
-                ComfyUIClient client = new ComfyUIClient();
-                Map<String, Object> history = generateTTSWithSavedVoice(client, sampleTextForPlay, v, Map.of(), false, null);
                 Path path = Files.createTempFile("manuskript-voice-", ".mp3");
-                client.downloadAudioToFile(history, path);
+                ComfyUIClient.SavedVoice effectiveVoice;
+                if ("elevenlabs".equalsIgnoreCase(v.getProvider()) && v.getElevenLabsVoiceId() != null && !v.getElevenLabsVoiceId().isBlank()) {
+                    effectiveVoice = new ComfyUIClient.SavedVoice(v.getName(), ComfyUIClient.DEFAULT_SEED, ComfyUIClient.DEFAULT_TEMPERATURE, "", true, false);
+                    effectiveVoice.setProvider("elevenlabs");
+                    effectiveVoice.setElevenLabsVoiceId(v.getElevenLabsVoiceId());
+                    effectiveVoice.setElevenLabsModelId(v.getElevenLabsModelId() != null && !v.getElevenLabsModelId().isBlank() ? v.getElevenLabsModelId() : ElevenLabsClient.DEFAULT_MODEL_ID);
+                    effectiveVoice.setElevenLabsStability(v.getElevenLabsStability());
+                    effectiveVoice.setElevenLabsSimilarityBoost(v.getElevenLabsSimilarityBoost());
+                    effectiveVoice.setElevenLabsSpeed(v.getElevenLabsSpeed());
+                    effectiveVoice.setElevenLabsUseSpeakerBoost(v.isElevenLabsUseSpeakerBoost());
+                    effectiveVoice.setElevenLabsStyle(v.getElevenLabsStyle());
+                } else {
+                    effectiveVoice = v;
+                }
+                TtsBackend.generateTtsToFile(sampleTextForPlay != null ? sampleTextForPlay : "", effectiveVoice, Map.of(), path, false, null);
                 Path pathForPopup = path;
                 Platform.runLater(() -> {
                     voiceSearchProgress.setVisible(false);
@@ -1071,7 +1329,10 @@ public class ComfyUITTSTestWindow {
         savedVoicesItems.remove(v);
         refreshVoiceComboBoxKeepSelection();
         try {
-            ComfyUIClient.saveSavedVoices(new ArrayList<>(savedVoicesItems));
+            java.util.List<ComfyUIClient.SavedVoice> toSave = savedVoicesItems.stream()
+                    .filter(voice -> !"elevenlabs".equalsIgnoreCase(voice.getProvider()))
+                    .collect(java.util.stream.Collectors.toList());
+            ComfyUIClient.saveSavedVoices(toSave);
         } catch (IOException e) {
             logger.warn("Stimmen speichern fehlgeschlagen", e);
         }

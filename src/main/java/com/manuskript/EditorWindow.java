@@ -1967,21 +1967,38 @@ if (caret != null) {
                 if (originalDocxFile != null && originalDocxFile.getParentFile() != null) {
                     try {
                         File imageFile = new File(imagePath);
-                        File projectDir = originalDocxFile.getParentFile();
-                        File imageDir = imageFile.getParentFile();
-                        
-                        // Normalisiere die Pfade für Vergleich (behandelt auch Leerzeichen und unterschiedliche Pfadformate)
-                        String projectDirPath = projectDir.getCanonicalPath();
-                        String imageDirPath = imageDir != null ? imageDir.getCanonicalPath() : null;
-                        
-                        // Wenn das Bild im Projektverzeichnis liegt, verwende nur den Dateinamen
-                        if (imageDirPath != null && imageDirPath.equals(projectDirPath)) {
-                            finalImagePath = imageFile.getName();
-                            logger.debug("Bildpfad relativiert: {} -> {}", imagePath, finalImagePath);
+                        if (!imageFile.exists() || !imageFile.isFile()) {
+                            logger.warn("Bilddatei existiert nicht: {}", imagePath);
+                        } else {
+                            File projectDir = originalDocxFile.getParentFile();
+                            String projectDirPath = projectDir.getCanonicalPath();
+                            File imageDir = imageFile.getParentFile();
+                            String imageDirPath = imageDir != null ? imageDir.getCanonicalPath() : null;
+                            boolean imageInProject = imageDirPath != null && imageDirPath.equals(projectDirPath);
+                            if (imageInProject) {
+                                finalImagePath = imageFile.getName();
+                                logger.debug("Bildpfad relativiert: {} -> {}", imagePath, finalImagePath);
+                            } else {
+                                // Bild liegt außerhalb: in Projektordner kopieren, damit es immer auffindbar bleibt
+                                File targetFile = new File(projectDir, imageFile.getName());
+                                if (targetFile.exists() && !targetFile.getCanonicalPath().equals(imageFile.getCanonicalPath())) {
+                                    String base = imageFile.getName();
+                                    int dot = base.lastIndexOf('.');
+                                    String name = dot > 0 ? base.substring(0, dot) : base;
+                                    String ext = dot > 0 ? base.substring(dot) : "";
+                                    for (int i = 1; i < 1000; i++) {
+                                        targetFile = new File(projectDir, name + "_" + i + ext);
+                                        if (!targetFile.exists()) break;
+                                    }
+                                }
+                                java.nio.file.Files.copy(imageFile.toPath(), targetFile.toPath(),
+                                    java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                                finalImagePath = targetFile.getName();
+                                logger.debug("Bild in Projektordner kopiert: {} -> {}", imagePath, targetFile.getAbsolutePath());
+                            }
                         }
                     } catch (IOException e) {
-                        // Bei Fehler den ursprünglichen Pfad verwenden
-                        logger.debug("Fehler beim Normalisieren des Bildpfads: " + e.getMessage());
+                        logger.debug("Fehler beim Normalisieren/Kopieren des Bildpfads: " + e.getMessage());
                     }
                 }
                 

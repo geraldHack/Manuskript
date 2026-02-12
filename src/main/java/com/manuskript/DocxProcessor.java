@@ -313,8 +313,8 @@ public class DocxProcessor {
   
             }
             
-            // Verbesserte Markdown-Verarbeitung
-            processMarkdownContent(pkg, f, markdownText, options);
+            // Verbesserte Markdown-Verarbeitung (parentDir für Auflösung relativer Bildpfade)
+            processMarkdownContent(pkg, f, markdownText, options, parentDir);
             
             // Dokument speichern
             Docx4J.save(pkg, tempFile);
@@ -354,9 +354,10 @@ public class DocxProcessor {
     }
     
     /**
-     * Verarbeitet Markdown-Text mit verbesserter Formatierungsunterstützung
+     * Verarbeitet Markdown-Text mit verbesserter Formatierungsunterstützung.
+     * @param imageBaseDir Basisverzeichnis für relative Bildpfade (z. B. Ordner der DOCX-Datei); kann null sein.
      */
-    private static void processMarkdownContent(WordprocessingMLPackage pkg, ObjectFactory f, String markdownText, DocxOptions options) {
+    private static void processMarkdownContent(WordprocessingMLPackage pkg, ObjectFactory f, String markdownText, DocxOptions options, File imageBaseDir) {
             // WICHTIG: Nummerierungs-Zähler für jeden Export zurücksetzen
             numberingLevels = new java.util.ArrayList<>();
             
@@ -576,7 +577,7 @@ public class DocxProcessor {
                         // Konvertiere Backslashes zu Forward-Slashes für bessere Kompatibilität
                         // (File-Klasse akzeptiert beide, aber Forward-Slashes sind robuster)
                         imageUrl = imageUrl.replace('\\', '/');
-                        addImage(pkg, f, imageUrl, altText, options);
+                        addImage(pkg, f, imageUrl, altText, options, imageBaseDir);
                         lastWasHeading = false;
                         continue;
                     }
@@ -1328,9 +1329,10 @@ public class DocxProcessor {
     }
     
     /**
-     * Fügt ein Bild zum Dokument hinzu
+     * Fügt ein Bild zum Dokument hinzu.
+     * @param imageBaseDir Basisverzeichnis für relative Bildpfade (z. B. Ordner der DOCX-Datei); kann null sein.
      */
-    private static void addImage(WordprocessingMLPackage pkg, ObjectFactory f, String imageUrl, String altText, DocxOptions options) {
+    private static void addImage(WordprocessingMLPackage pkg, ObjectFactory f, String imageUrl, String altText, DocxOptions options, File imageBaseDir) {
         try {
             // Prüfe ob URL eine Datei oder eine URL ist
             File imageFile = null;
@@ -1342,8 +1344,16 @@ public class DocxProcessor {
             if (imageUrl.startsWith("file://")) {
                 imageFile = new File(java.net.URI.create(imageUrl));
             } else if (!imageUrl.startsWith("http://") && !imageUrl.startsWith("https://")) {
-                // Relativer oder absoluter Dateipfad
-                imageFile = new File(imageUrl);
+                // Relativer oder absoluter Dateipfad: zuerst relativ zum DOCX-Ordner versuchen
+                if (imageBaseDir != null) {
+                    File relativeToDocx = new File(imageBaseDir, imageUrl);
+                    if (relativeToDocx.exists()) {
+                        imageFile = relativeToDocx;
+                    }
+                }
+                if (imageFile == null) {
+                    imageFile = new File(imageUrl);
+                }
             }
             
             if (imageFile != null && imageFile.exists()) {

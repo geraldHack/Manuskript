@@ -3,12 +3,14 @@ package com.manuskript;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -17,10 +19,14 @@ import java.time.Duration;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.text.Normalizer;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.ArrayList;
+import java.util.Comparator;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -70,6 +76,8 @@ public class ComfyUIClient {
 
     /** Konfigurationsdatei für gespeicherte TTS-Stimmen (Name, Seed, Temperatur, Stimmbeschreibung). */
     public static final String TTS_VOICES_PATH = "config/tts-voices.json";
+    /** Ordner für Referenz-Audiodateien von Voice-Clone-Stimmen (persistiert beim „Als Stimme speichern“). */
+    public static final String TTS_VOICES_REF_DIR = "config/tts-voices-ref";
 
     /** Konfigurationsdatei für zuletzt verwendete Stimmbeschreibungen (Dropdown). */
     public static final String TTS_RECENT_DESCRIPTIONS_PATH = "config/tts-recent-descriptions.json";
@@ -184,10 +192,10 @@ public class ComfyUIClient {
             "Aiden",      // EN
             "Vivian",     // ZH
             "Serena",     // ZH
-            "Uncle_Fu",   // ZH
+            "Uncle_fu",   // ZH
             "Dylan",      // ZH (Beijing)
             "Eric",       // ZH (Sichuan)
-            "Ono_Anna",   // JA
+            "Ono_anna",   // JA
             "Sohee"       // KO
     );
     /** ThreadLocal, um für einen Aufruf einen CustomVoice-Sprecher zu setzen (z. B. aus Stimmsuche/Gespeicherter Stimme). */
@@ -229,6 +237,28 @@ public class ComfyUIClient {
         private double repetitionPenalty = DEFAULT_REPETITION_PENALTY;
         /** CustomVoice-Sprecher-ID (z. B. Ryan, Sohee, Vivian). */
         private String speakerId = DEFAULT_CUSTOM_SPEAKER;
+        /** Voice Clone: Pfad zur Referenz-Audiodatei (absolut oder relativ zu config/tts-voices-ref/). */
+        private String refAudioPath = "";
+        /** Voice Clone: Transkript der Referenz-Audio (voice_clone_prompt). */
+        private String voiceCloneTranscript = "";
+        /** true = Stimme per Voice Clone (ref_audio + Transkript); false = CustomVoice/VoiceDesign. */
+        private boolean voiceClone = false;
+        /** TTS-Provider: "comfyui" (Default) oder "elevenlabs". */
+        private String provider = "comfyui";
+        /** ElevenLabs voice_id (nur bei provider == "elevenlabs"). */
+        private String elevenLabsVoiceId = "";
+        /** ElevenLabs model_id (z. B. eleven_multilingual_v2), optional. */
+        private String elevenLabsModelId = "";
+        /** ElevenLabs: Stabilität 0–1 (niedriger = expressiver, höher = gleichmäßiger). Default 0.5. */
+        private double elevenLabsStability = 0.5;
+        /** ElevenLabs: Similarity/Clarity 0–1. Default 0.75. */
+        private double elevenLabsSimilarityBoost = 0.75;
+        /** ElevenLabs: Geschwindigkeit 0.7–1.2 (1.0 = normal). */
+        private double elevenLabsSpeed = 1.0;
+        /** ElevenLabs: Speaker Boost (mehr Ähnlichkeit, mehr Latenz). */
+        private boolean elevenLabsUseSpeakerBoost = true;
+        /** ElevenLabs: Style-Verstärkung (0 = aus). */
+        private double elevenLabsStyle = 0.0;
 
         public SavedVoice() {
             this("", DEFAULT_SEED, DEFAULT_TEMPERATURE, "", true, false, DEFAULT_TOP_P, DEFAULT_TOP_K, DEFAULT_REPETITION_PENALTY, DEFAULT_CUSTOM_SPEAKER);
@@ -247,6 +277,10 @@ public class ComfyUIClient {
         }
 
         public SavedVoice(String name, long seed, double temperature, String voiceDescription, boolean highQuality, boolean consistentVoice, double topP, int topK, double repetitionPenalty, String speakerId) {
+            this(name, seed, temperature, voiceDescription, highQuality, consistentVoice, topP, topK, repetitionPenalty, speakerId, "", "", false);
+        }
+
+        public SavedVoice(String name, long seed, double temperature, String voiceDescription, boolean highQuality, boolean consistentVoice, double topP, int topK, double repetitionPenalty, String speakerId, String refAudioPath, String voiceCloneTranscript, boolean voiceClone) {
             this.name = name != null ? name : "";
             this.seed = seed;
             this.temperature = temperature;
@@ -257,6 +291,9 @@ public class ComfyUIClient {
             this.topK = topK > 0 ? topK : DEFAULT_TOP_K;
             this.repetitionPenalty = repetitionPenalty > 0 ? Math.min(2.0, Math.max(1.0, repetitionPenalty)) : DEFAULT_REPETITION_PENALTY;
             this.speakerId = (speakerId != null && !speakerId.isBlank()) ? speakerId.trim() : DEFAULT_CUSTOM_SPEAKER;
+            this.refAudioPath = refAudioPath != null ? refAudioPath : "";
+            this.voiceCloneTranscript = voiceCloneTranscript != null ? voiceCloneTranscript : "";
+            this.voiceClone = voiceClone;
         }
 
         public String getName() { return name; }
@@ -279,6 +316,28 @@ public class ComfyUIClient {
         public void setRepetitionPenalty(double repetitionPenalty) { this.repetitionPenalty = repetitionPenalty > 0 ? Math.min(2.0, Math.max(1.0, repetitionPenalty)) : DEFAULT_REPETITION_PENALTY; }
         public String getSpeakerId() { return (speakerId != null && !speakerId.isBlank()) ? speakerId : DEFAULT_CUSTOM_SPEAKER; }
         public void setSpeakerId(String speakerId) { this.speakerId = (speakerId != null && !speakerId.isBlank()) ? speakerId.trim() : DEFAULT_CUSTOM_SPEAKER; }
+        public String getRefAudioPath() { return refAudioPath != null ? refAudioPath : ""; }
+        public void setRefAudioPath(String refAudioPath) { this.refAudioPath = refAudioPath != null ? refAudioPath : ""; }
+        public String getVoiceCloneTranscript() { return voiceCloneTranscript != null ? voiceCloneTranscript : ""; }
+        public void setVoiceCloneTranscript(String voiceCloneTranscript) { this.voiceCloneTranscript = voiceCloneTranscript != null ? voiceCloneTranscript : ""; }
+        public boolean isVoiceClone() { return voiceClone; }
+        public void setVoiceClone(boolean voiceClone) { this.voiceClone = voiceClone; }
+        public String getProvider() { return (provider != null && !provider.isBlank()) ? provider : "comfyui"; }
+        public void setProvider(String provider) { this.provider = (provider != null && !provider.isBlank()) ? provider.trim() : "comfyui"; }
+        public String getElevenLabsVoiceId() { return elevenLabsVoiceId != null ? elevenLabsVoiceId : ""; }
+        public void setElevenLabsVoiceId(String elevenLabsVoiceId) { this.elevenLabsVoiceId = elevenLabsVoiceId != null ? elevenLabsVoiceId : ""; }
+        public String getElevenLabsModelId() { return elevenLabsModelId != null ? elevenLabsModelId : ""; }
+        public void setElevenLabsModelId(String elevenLabsModelId) { this.elevenLabsModelId = elevenLabsModelId != null ? elevenLabsModelId : ""; }
+        public double getElevenLabsStability() { return elevenLabsStability >= 0 && elevenLabsStability <= 1 ? elevenLabsStability : 0.5; }
+        public void setElevenLabsStability(double v) { this.elevenLabsStability = Math.max(0, Math.min(1, v)); }
+        public double getElevenLabsSimilarityBoost() { return elevenLabsSimilarityBoost >= 0 && elevenLabsSimilarityBoost <= 1 ? elevenLabsSimilarityBoost : 0.75; }
+        public void setElevenLabsSimilarityBoost(double v) { this.elevenLabsSimilarityBoost = Math.max(0, Math.min(1, v)); }
+        public double getElevenLabsSpeed() { return elevenLabsSpeed >= 0.7 && elevenLabsSpeed <= 1.2 ? elevenLabsSpeed : 1.0; }
+        public void setElevenLabsSpeed(double v) { this.elevenLabsSpeed = Math.max(0.7, Math.min(1.2, v)); }
+        public boolean isElevenLabsUseSpeakerBoost() { return elevenLabsUseSpeakerBoost; }
+        public void setElevenLabsUseSpeakerBoost(boolean v) { this.elevenLabsUseSpeakerBoost = v; }
+        public double getElevenLabsStyle() { return elevenLabsStyle >= 0 && elevenLabsStyle <= 1 ? elevenLabsStyle : 0; }
+        public void setElevenLabsStyle(double v) { this.elevenLabsStyle = Math.max(0, Math.min(1, v)); }
     }
 
     /** Gson mit Seed als String (Long-Genauigkeit in JSON erhalten). */
@@ -303,6 +362,17 @@ public class ComfyUIClient {
             out.name("topK").value(src.getTopK());
             out.name("repetitionPenalty").value(src.getRepetitionPenalty());
             out.name("speakerId").value(src.getSpeakerId());
+            out.name("refAudioPath").value(src.getRefAudioPath());
+            out.name("voiceCloneTranscript").value(src.getVoiceCloneTranscript());
+            out.name("voiceClone").value(src.isVoiceClone());
+            out.name("provider").value(src.getProvider());
+            out.name("elevenLabsVoiceId").value(src.getElevenLabsVoiceId());
+            out.name("elevenLabsModelId").value(src.getElevenLabsModelId());
+            out.name("elevenLabsStability").value(src.getElevenLabsStability());
+            out.name("elevenLabsSimilarityBoost").value(src.getElevenLabsSimilarityBoost());
+            out.name("elevenLabsSpeed").value(src.getElevenLabsSpeed());
+            out.name("elevenLabsUseSpeakerBoost").value(src.isElevenLabsUseSpeakerBoost());
+            out.name("elevenLabsStyle").value(src.getElevenLabsStyle());
             out.endObject();
         }
 
@@ -315,6 +385,13 @@ public class ComfyUIClient {
             double topP = DEFAULT_TOP_P, repetitionPenalty = DEFAULT_REPETITION_PENALTY;
             int topK = DEFAULT_TOP_K;
             String speakerId = DEFAULT_CUSTOM_SPEAKER;
+            String refAudioPath = "", voiceCloneTranscript = "";
+            boolean voiceClone = false;
+            String provider = "comfyui";
+            String elevenLabsVoiceId = "";
+            String elevenLabsModelId = "";
+            double elevenLabsStability = 0.5, elevenLabsSimilarityBoost = 0.75, elevenLabsSpeed = 1.0, elevenLabsStyle = 0.0;
+            boolean elevenLabsUseSpeakerBoost = true;
             in.beginObject();
             while (in.hasNext()) {
                 String field = in.nextName();
@@ -332,11 +409,31 @@ public class ComfyUIClient {
                     case "topK": topK = (int) in.nextDouble(); break;
                     case "repetitionPenalty": repetitionPenalty = in.nextDouble(); break;
                     case "speakerId": speakerId = in.nextString(); break;
+                    case "refAudioPath": refAudioPath = in.nextString(); break;
+                    case "voiceCloneTranscript": voiceCloneTranscript = in.nextString(); break;
+                    case "voiceClone": voiceClone = in.nextBoolean(); break;
+                    case "provider": provider = in.nextString(); break;
+                    case "elevenLabsVoiceId": elevenLabsVoiceId = in.nextString(); break;
+                    case "elevenLabsModelId": elevenLabsModelId = in.nextString(); break;
+                    case "elevenLabsStability": elevenLabsStability = in.nextDouble(); break;
+                    case "elevenLabsSimilarityBoost": elevenLabsSimilarityBoost = in.nextDouble(); break;
+                    case "elevenLabsSpeed": elevenLabsSpeed = in.nextDouble(); break;
+                    case "elevenLabsUseSpeakerBoost": elevenLabsUseSpeakerBoost = in.nextBoolean(); break;
+                    case "elevenLabsStyle": elevenLabsStyle = in.nextDouble(); break;
                     default: in.skipValue(); break;
                 }
             }
             in.endObject();
-            return new SavedVoice(name, seed, temperature, voiceDescription, highQuality, consistentVoice, topP, topK, repetitionPenalty, speakerId);
+            SavedVoice v = new SavedVoice(name, seed, temperature, voiceDescription, highQuality, consistentVoice, topP, topK, repetitionPenalty, speakerId, refAudioPath, voiceCloneTranscript, voiceClone);
+            v.setProvider(provider);
+            v.setElevenLabsVoiceId(elevenLabsVoiceId);
+            v.setElevenLabsModelId(elevenLabsModelId);
+            v.setElevenLabsStability(elevenLabsStability);
+            v.setElevenLabsSimilarityBoost(elevenLabsSimilarityBoost);
+            v.setElevenLabsSpeed(elevenLabsSpeed);
+            v.setElevenLabsUseSpeakerBoost(elevenLabsUseSpeakerBoost);
+            v.setElevenLabsStyle(elevenLabsStyle);
+            return v;
         }
     }
 
@@ -361,6 +458,31 @@ public class ComfyUIClient {
         Files.createDirectories(path.getParent());
         String json = GSON_VOICES.toJson(voices != null ? voices : java.util.List.of());
         Files.writeString(path, json, StandardCharsets.UTF_8);
+    }
+
+    /** Liefert den absoluten Pfad für eine Referenz-Audiodatei im Voice-Clone-Ordner (zum Speichern/Laden). */
+    public static Path getVoiceCloneRefDir() {
+        return Paths.get(TTS_VOICES_REF_DIR).toAbsolutePath().normalize();
+    }
+
+    /**
+     * Kopiert eine Referenz-Audiodatei nach config/tts-voices-ref/ und liefert den Dateinamen (für refAudioPath in SavedVoice).
+     * Erstellt das Verzeichnis bei Bedarf.
+     */
+    public static String copyRefAudioToVoiceCloneDir(Path sourceFile, String voiceName) throws IOException {
+        Path dir = getVoiceCloneRefDir();
+        Files.createDirectories(dir);
+        String ext = "";
+        String fn = sourceFile.getFileName().toString();
+        int i = fn.lastIndexOf('.');
+        if (i > 0) ext = fn.substring(i);
+        if (!ext.matches("(?i)\\.(wav|mp3|flac|ogg|m4a)")) ext = ".wav";
+        String safeName = (voiceName != null ? voiceName : "voice").replaceAll("[^\\w\\s-]", "").replaceAll("\\s+", "_");
+        if (safeName.isEmpty()) safeName = "voice";
+        String targetFilename = safeName + ext;
+        Path target = dir.resolve(targetFilename);
+        Files.copy(sourceFile, target, StandardCopyOption.REPLACE_EXISTING);
+        return targetFilename;
     }
 
     /** Fallback, wenn keine Datei existiert (Wort → Aussprache-Schreibweise). Apostroph ' für Betonung wird vor dem Senden entfernt. */
@@ -403,17 +525,25 @@ public class ComfyUIClient {
      * Wendet ein Aussprache-Lexikon auf den Text an: ganze Wörter (groß/klein) werden durch die
      * Lexikon-Ersetzung ersetzt. Im Ersetzungstext wird ein Apostroph ' (Betonung) vor dem Senden entfernt.
      * Qwen3-TTS unterstützt kein IPA/SSML – nur diese Text-Ersetzung ist zuverlässig.
+     * <p>Text und Lexikon-Schlüssel werden in NFC normalisiert, damit identisch geschriebene
+     * Zeichenketten (z. B. nach direkter Bearbeitung im Text) zuverlässig gematcht werden.
+     * Längere Einträge werden zuerst angewendet (z. B. „Anna-Lena“ vor „Anna“).
      */
     public static String applyPronunciationLexicon(String text, Map<String, String> lexicon) {
         if (text == null || text.isEmpty() || lexicon == null || lexicon.isEmpty()) {
             return text;
         }
-        String result = text;
-        for (Map.Entry<String, String> e : lexicon.entrySet()) {
-            String word = Pattern.quote(e.getKey().trim());
-            if (word.isEmpty()) continue;
+        String result = Normalizer.normalize(text, Normalizer.Form.NFC);
+        java.util.List<Map.Entry<String, String>> entries = new ArrayList<>(lexicon.entrySet());
+        entries.sort(Comparator.comparingInt((Map.Entry<String, String> e) -> e.getKey().length()).reversed());
+        for (Map.Entry<String, String> e : entries) {
+            String key = e.getKey();
+            if (key == null) continue;
+            String keyNorm = Normalizer.normalize(key.trim(), Normalizer.Form.NFC);
+            if (keyNorm.isEmpty()) continue;
+            String word = Pattern.quote(keyNorm);
             String replacement = e.getValue() == null ? "" : e.getValue().replace("'", "").trim();
-            // Ganze Wörter ersetzen (case-insensitive)
+            replacement = Normalizer.normalize(replacement, Normalizer.Form.NFC);
             result = result.replaceAll("(?iu)\\b" + word + "\\b", Matcher.quoteReplacement(replacement));
         }
         return result;
@@ -425,7 +555,7 @@ public class ComfyUIClient {
      * Wenn die Datei fehlt oder ungültig ist, wird das eingebaute Fallback-Lexikon zurückgegeben.
      */
     public static Map<String, String> getDefaultPronunciationLexicon() {
-        Path path = Paths.get(PRONUNCIATION_LEXICON_PATH);
+        Path path = Paths.get(PRONUNCIATION_LEXICON_PATH).toAbsolutePath().normalize();
         if (!Files.isRegularFile(path)) {
             logger.debug("Kein Aussprache-Lexikon unter {}, nutze Fallback", path.toAbsolutePath());
             return new LinkedHashMap<>(DEFAULT_PRONUNCIATION_LEXICON);
@@ -514,6 +644,44 @@ public class ComfyUIClient {
     }
 
     /**
+     * Lädt eine lokale Audiodatei nach ComfyUI hoch (input-Ordner), damit sie z. B. für Voice Clone als ref_audio genutzt werden kann.
+     * @param localFile lokale WAV/MP3-Datei
+     * @return Dateiname auf dem Server (für Workflow ref_audio), oder null bei Fehler
+     */
+    public String uploadRefAudioToInput(Path localFile) throws IOException, InterruptedException {
+        if (localFile == null || !Files.isRegularFile(localFile)) {
+            throw new IOException("Ref-Audio-Datei fehlt oder ist nicht lesbar: " + localFile);
+        }
+        String filename = localFile.getFileName().toString();
+        if (filename == null || filename.isEmpty()) filename = "ref_audio.wav";
+        byte[] fileBytes = Files.readAllBytes(localFile);
+        String boundary = "----ComfyUIUpload" + System.nanoTime();
+        ByteArrayOutputStream body = new ByteArrayOutputStream();
+        String nl = "\r\n";
+        body.write(("--" + boundary + nl).getBytes(StandardCharsets.UTF_8));
+        body.write(("Content-Disposition: form-data; name=\"image\"; filename=\"" + filename.replace("\"", "") + "\"" + nl).getBytes(StandardCharsets.UTF_8));
+        body.write(("Content-Type: audio/wav" + nl + nl).getBytes(StandardCharsets.UTF_8));
+        body.write(fileBytes);
+        body.write((nl + "--" + boundary + nl).getBytes(StandardCharsets.UTF_8));
+        body.write(("Content-Disposition: form-data; name=\"subfolder\"" + nl + nl + nl).getBytes(StandardCharsets.UTF_8));
+        body.write(("--" + boundary + "--" + nl).getBytes(StandardCharsets.UTF_8));
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(baseUrl + "/upload/image"))
+                .header("Content-Type", "multipart/form-data; boundary=" + boundary)
+                .POST(HttpRequest.BodyPublishers.ofByteArray(body.toByteArray()))
+                .timeout(Duration.ofSeconds(120))
+                .build();
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+        if (response.statusCode() != 200) {
+            throw new IOException("ComfyUI Upload fehlgeschlagen: " + response.statusCode() + " " + response.body());
+        }
+        Map<String, Object> json = JsonUtil.fromJson(response.body());
+        String serverName = json != null && json.get("name") != null ? json.get("name").toString() : filename;
+        logger.info("Ref-Audio hochgeladen: {} -> ComfyUI input/{}", localFile.getFileName(), serverName);
+        return serverName;
+    }
+
+    /**
      * Wartet bis der Prompt abgeschlossen ist und liefert die History.
      */
     public Map<String, Object> waitForCompletion(String promptId) throws IOException, InterruptedException {
@@ -559,7 +727,7 @@ public class ComfyUIClient {
     public static Map<String, Object> buildQwen3CustomVoiceWorkflow(String text, String instruct, boolean highQuality, boolean consistentVoice,
                                                                      Long seed, Double temperature, String voiceDescription, Double topP, Integer topK, Double repetitionPenalty,
                                                                      String filenamePrefix) {
-        long seedVal = seed != null ? seed : DEFAULT_SEED;
+        long seedVal = (seed != null && seed != 0) ? seed : DEFAULT_SEED;
         double tempVal = temperature != null ? Math.max(0.0, Math.min(2.0, temperature)) : DEFAULT_TEMPERATURE;
         double topPVal = topP != null && topP > 0 ? topP : DEFAULT_TOP_P;
         int topKVal = topK != null && topK > 0 ? Math.min(100, topK) : DEFAULT_TOP_K;
@@ -567,6 +735,7 @@ public class ComfyUIClient {
         String instructVal = instruct != null ? instruct : DEFAULT_INSTRUCT_DEUTSCH;
         if (voiceDescription != null && !voiceDescription.isBlank()) {
             instructVal = instructVal + " Stimme: " + voiceDescription.trim();
+            logger.info("TTS Stimmbeschreibung angehängt an instruct: \"{}\"", voiceDescription.trim());
         }
         Map<String, Object> ttsNode;
         boolean useVoiceDesign = highQuality && !consistentVoice;
@@ -652,6 +821,66 @@ public class ComfyUIClient {
         return buildQwen3CustomVoiceWorkflow(text, instruct, true, false);
     }
 
+    /** Präfix des Dummy-Audios (kurze Stille), wird bei der Suche ignoriert – nur echte Voice-Clone-Audio nutzen. */
+    private static final String VOICE_CLONE_DUMMY_PREFIX = "tts_vc_dummy";
+
+    /**
+     * Baut den Qwen3-TTS-Voice-Clone-Workflow. ComfyUI behandelt ref_audio = [filename, "input"]
+     * als Node-Link und löst KeyError aus. Daher: LoadAudio-Node (5) lädt die Datei, VoiceClone (3)
+     * bekommt ref_audio als Link [5, 0], SaveAudioMP3 (7) hängt an [3, 0].
+     * @param voiceDescription optional; wird mit der Stimme gespeichert. Das Qwen3-TTS-Base-Modell unterstützt Stil/Instruct derzeit nicht (Issue #25), daher nicht an die API übergeben.
+     */
+    public static Map<String, Object> buildQwen3VoiceCloneWorkflow(String refAudioFilename, String voiceClonePrompt, String textToSpeak,
+                                                                   long seed, double tempVal, double topPVal, int topKVal, double repPenVal,
+                                                                   boolean highQuality, String filenamePrefix, String voiceDescription) {
+        // Knoten 5: LoadAudio (ComfyUI-Core) lädt Referenz-Audio aus input/
+        Map<String, Object> loadAudio = new java.util.HashMap<>();
+        loadAudio.put("class_type", "LoadAudio");
+        loadAudio.put("inputs", Map.of("audio", refAudioFilename));
+
+        Map<String, Object> vcNode = new java.util.HashMap<>();
+        vcNode.put("class_type", "FB_Qwen3TTSVoiceClone");
+        Map<String, Object> inputs = new java.util.HashMap<>();
+        inputs.put("ref_audio", List.of("5", 0));
+        // voice_clone_prompt ist Typ VOICE_CLONE_PROMPT (von VoiceClonePromptNode), NICHT String!
+        // Transkript-Text gehört in ref_text; voice_clone_prompt weglassen (optional).
+        if (voiceClonePrompt != null && !voiceClonePrompt.isBlank()) {
+            inputs.put("ref_text", voiceClonePrompt.trim());
+        }
+        String targetText = (textToSpeak != null && !textToSpeak.isBlank()) ? textToSpeak.trim() : " ";
+        inputs.put("target_text", targetText);
+        inputs.put("model_choice", highQuality ? "1.7B" : "0.6B");
+        inputs.put("device", "auto");
+        inputs.put("precision", "bf16");
+        inputs.put("language", "Auto");
+        inputs.put("seed", seed);
+        inputs.put("max_new_tokens", 2048);
+        inputs.put("top_p", topPVal);
+        inputs.put("top_k", topKVal);
+        inputs.put("temperature", tempVal);
+        inputs.put("repetition_penalty", repPenVal);
+        inputs.put("attention", "auto");
+        inputs.put("unload_model_after_generate", false);
+        inputs.put("x_vector_only", false);
+        // Base-Modell unterstützt kein instruct (QwenLM/Qwen3-TTS#25). voiceDescription nur für Speicherung, nicht an Node übergeben.
+        vcNode.put("inputs", inputs);
+
+        String realPrefix = (filenamePrefix != null && !filenamePrefix.isBlank()) ? filenamePrefix : "tts_vc";
+        Map<String, Object> saveAudio = new java.util.HashMap<>();
+        saveAudio.put("class_type", "SaveAudioMP3");
+        Map<String, Object> saveInputs = new java.util.HashMap<>();
+        saveInputs.put("audio", List.of("3", 0));
+        saveInputs.put("filename_prefix", realPrefix);
+        saveInputs.put("quality", "320k");
+        saveAudio.put("inputs", saveInputs);
+
+        Map<String, Object> workflow = new java.util.HashMap<>();
+        workflow.put("5", loadAudio);
+        workflow.put("3", vcNode);
+        workflow.put("7", saveAudio);
+        return workflow;
+    }
+
     /**
      * Generiert Audio per Qwen3-TTS. Optional: Aussprache-Lexikon, Seed, Temperatur, Stimmbeschreibung.
      * @param pronunciationLexicon null = Standard-Lexikon, leer = keine Ersetzung
@@ -711,10 +940,61 @@ public class ComfyUIClient {
     }
 
     /**
+     * Generiert Audio per Qwen3-TTS Voice Clone: Referenz-Audio + Transkript + zu sprechender Text.
+     * Lädt refAudioPath nach ComfyUI hoch, baut den Voice-Clone-Workflow und wartet auf Abschluss.
+     * @param pronunciationLexicon null = Standard-Lexikon; wird auf textToSpeak angewendet
+     * @param voiceDescription optional; Stil/Emotion (z. B. "ruhig, klar"). Wird als "instruct" an die Node übergeben, falls unterstützt.
+     */
+    public Map<String, Object> generateVoiceCloneTTS(Path refAudioPath, String voiceClonePrompt, String textToSpeak,
+                                                     long seed, double temp, double topP, int topK, double repetitionPenalty,
+                                                     boolean highQuality, java.util.Map<String, String> pronunciationLexicon,
+                                                     Consumer<String> promptLogger, String voiceDescription) throws IOException, InterruptedException {
+        String refFilename = uploadRefAudioToInput(refAudioPath);
+        java.util.Map<String, String> lexicon = pronunciationLexicon != null ? pronunciationLexicon : getDefaultPronunciationLexicon();
+        String textForTTS = (textToSpeak != null ? textToSpeak : "");
+        textForTTS = lexicon.isEmpty() ? textForTTS : applyPronunciationLexicon(textForTTS, lexicon);
+        String runPrefix = "tts_vc_" + java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 8);
+        Map<String, Object> workflow = buildQwen3VoiceCloneWorkflow(refFilename, voiceClonePrompt, textForTTS,
+                seed, temp, topP, topK, repetitionPenalty, highQuality, runPrefix, voiceDescription);
+        String pretty = JsonUtil.toJsonPretty(Map.of("prompt", workflow));
+        logger.debug("ComfyUI Voice-Clone-Prompt:\n{}", pretty);
+        if (promptLogger != null) promptLogger.accept(pretty);
+        String promptId = queuePrompt(workflow);
+        logger.info("ComfyUI Voice-Clone prompt queued: {}", promptId);
+        return waitForCompletion(promptId);
+    }
+
+    /**
      * TTS mit gespeicherter Stimme (für Kapitel-TTS-Editor und andere Aufrufer).
+     * Bei Voice-Clone-Stimmen: ref_audio + Transkript werden verwendet.
      * @param useConsistencyTemperature true = Temperatur für Hörbuch-Konsistenz begrenzen
      */
     public Map<String, Object> generateTTSWithSavedVoice(String text, SavedVoice voice, Map<String, String> pronunciationLexicon, boolean useConsistencyTemperature, java.util.function.Consumer<String> promptLogger) throws IOException, InterruptedException {
+        if (voice == null) {
+            throw new IOException("Keine Stimme angegeben.");
+        }
+        if (voice.isVoiceClone()) {
+            String refPath = voice.getRefAudioPath();
+            if (refPath == null || refPath.isBlank()) {
+                throw new IOException("Voice-Clone-Stimme \"" + voice.getName() + "\" hat keine Referenz-Audiodatei (refAudioPath).");
+            }
+            Path refFile;
+            if (refPath.startsWith("/") || refPath.matches("^[A-Za-z]:.*")) {
+                refFile = Paths.get(refPath);
+            } else {
+                refFile = getVoiceCloneRefDir().resolve(refPath).normalize();
+            }
+            if (!Files.isRegularFile(refFile)) {
+                throw new IOException("Referenz-Audio nicht gefunden: " + refFile);
+            }
+            double temp = useConsistencyTemperature
+                    ? Math.min(voice.getTemperature(), MAX_TEMPERATURE_FOR_VOICE_CONSISTENCY)
+                    : voice.getTemperature();
+            String vcDesc = (voice.getVoiceDescription() != null && !voice.getVoiceDescription().isBlank()) ? voice.getVoiceDescription() : null;
+            return generateVoiceCloneTTS(refFile, voice.getVoiceCloneTranscript(), text,
+                    voice.getSeed(), temp, voice.getTopP(), voice.getTopK(), voice.getRepetitionPenalty(),
+                    voice.isHighQuality(), pronunciationLexicon != null ? pronunciationLexicon : getDefaultPronunciationLexicon(), promptLogger, vcDesc);
+        }
         String desc = (voice.getVoiceDescription() == null || voice.getVoiceDescription().isEmpty()) ? null : voice.getVoiceDescription();
         double temp = useConsistencyTemperature
                 ? Math.min(voice.getTemperature(), MAX_TEMPERATURE_FOR_VOICE_CONSISTENCY)
@@ -729,9 +1009,23 @@ public class ComfyUIClient {
         }
     }
 
+    /** Dateiendungen, die als Audio gelten (Dummy-SaveImage z. B. .png ignorieren). */
+    private static final java.util.Set<String> AUDIO_EXTENSIONS = Set.of(".mp3", ".wav", ".flac", ".ogg", ".m4a", ".webm");
+
+    private static boolean isAudioFilename(String filename) {
+        if (filename == null || filename.isBlank()) return false;
+        String lower = filename.toLowerCase();
+        return AUDIO_EXTENSIONS.stream().anyMatch(lower::endsWith);
+    }
+
+    /** Dummy-Audio (tts_vc_dummy_*) nie als Ergebnis zurückgeben. */
+    private static boolean isDummyAudioFilename(String filename) {
+        return filename != null && filename.contains(VOICE_CLONE_DUMMY_PREFIX);
+    }
+
     /**
-     * Extrahiert aus der ComfyUI-History die erste gefundene Audio-Output-Info (filename oder base64).
-     * Returns: Map mit "filename", "subfolder", "type" ODER "base64" (Data-URL oder Rohdaten).
+     * Extrahiert aus der ComfyUI-History die erste gefundene Audio-Output-Info.
+     * Ignoriert Dummy-Audio (tts_vc_dummy_*) und Bildausgaben. Bei Voice-Clone zuerst Knoten 3.
      */
     @SuppressWarnings("unchecked")
     public static Map<String, Object> extractFirstAudioFromHistory(Map<String, Object> history) {
@@ -741,6 +1035,22 @@ public class ComfyUIClient {
             return Map.of();
         }
         Map<String, Object> outputs = (Map<String, Object>) outputsObj;
+        // Voice-Clone: zuerst Knoten 3 (echte Ausgabe), Dummy ist in 6/7
+        Object node3 = outputs.get("3");
+        if (node3 != null) {
+            Map<String, Object> fromVc = findAudioInfoRecursive(node3);
+            if (!fromVc.isEmpty() && !isDummyAudioFilename((String) fromVc.get("filename")))
+                return fromVc;
+            // Evtl. nur Dateiname als String in ui/… – danach suchen und als Audio-Info bauen
+            String fnOnly = findFirstAudioFilenameString(node3);
+            if (fnOnly != null && !isDummyAudioFilename(fnOnly)) {
+                Map<String, Object> built = new java.util.HashMap<>();
+                built.put("filename", fnOnly);
+                built.put("subfolder", "output");
+                built.put("type", "output");
+                return built;
+            }
+        }
         for (Object nodeVal : outputs.values()) {
             if (!(nodeVal instanceof Map)) continue;
             Map<String, Object> node = (Map<String, Object>) nodeVal;
@@ -748,19 +1058,114 @@ public class ComfyUIClient {
             if (audioObj instanceof Object[] && ((Object[]) audioObj).length > 0) {
                 Object first = ((Object[]) audioObj)[0];
                 if (first instanceof Map) {
-                    return (Map<String, Object>) first;
+                    Map<String, Object> candidate = (Map<String, Object>) first;
+                    if (isAudioInfoMap(candidate) && isAudioFilename((String) candidate.get("filename")) && !isDummyAudioFilename((String) candidate.get("filename")))
+                        return candidate;
                 }
             }
             if (audioObj instanceof java.util.List && !((java.util.List<?>) audioObj).isEmpty()) {
                 Object first = ((java.util.List<?>) audioObj).get(0);
                 if (first instanceof Map) {
-                    return (Map<String, Object>) first;
+                    Map<String, Object> candidate = (Map<String, Object>) first;
+                    if (isAudioInfoMap(candidate) && isAudioFilename((String) candidate.get("filename")) && !isDummyAudioFilename((String) candidate.get("filename")))
+                        return candidate;
                 }
+            }
+            if (node.containsKey("filename") && node.get("filename") instanceof String) {
+                String fn = (String) node.get("filename");
+                if (isAudioFilename(fn) && !isDummyAudioFilename(fn)) return node;
+            }
+            for (Object val : node.values()) {
+                Map<String, Object> candidate = firstAudioInfoFromValue(val);
+                if (!candidate.isEmpty() && isAudioFilename((String) candidate.get("filename")) && !isDummyAudioFilename((String) candidate.get("filename")))
+                    return candidate;
+            }
+        }
+        if (node3 != null) {
+            try {
+                String structure = JsonUtil.toJsonPretty(node3);
+                logger.info("Voice-Clone Knoten 3 (vollständige Ausgabe, kein Audio gefunden):\n{}", structure);
+            } catch (Exception e) {
+                logger.info("Voice-Clone Knoten 3: Keys={}, kein Audio; Serialisierung: {}",
+                        node3 instanceof Map ? ((Map<?, ?>) node3).keySet() : "-", e.getMessage());
             }
         }
         logger.warn("History enthält kein Audio-Output; outputs-Knoten: {}. History-Keys: {}, status: {}, messages: {}",
                 outputs.keySet(), history.keySet(), history.get("status"), history.get("messages"));
         return Map.of();
+    }
+
+    /** Sucht rekursiv nach dem ersten String, der wie ein Audio-Dateiname aussieht (z. B. in ui-Ausgabe). */
+    private static String findFirstAudioFilenameString(Object obj) {
+        if (obj instanceof Map) {
+            for (Object v : ((Map<?, ?>) obj).values()) {
+                if (v instanceof String && isAudioFilename((String) v))
+                    return (String) v;
+                String nested = findFirstAudioFilenameString(v);
+                if (nested != null) return nested;
+            }
+        } else if (obj instanceof Object[]) {
+            for (Object v : (Object[]) obj) {
+                String nested = findFirstAudioFilenameString(v);
+                if (nested != null) return nested;
+            }
+        } else if (obj instanceof java.util.List) {
+            for (Object v : (java.util.List<?>) obj) {
+                String nested = findFirstAudioFilenameString(v);
+                if (nested != null) return nested;
+            }
+        }
+        return null;
+    }
+
+    /** Durchsucht Objekt rekursiv nach einer Map mit filename (Audio-Endung). subfolder/type optional (Fallback beim Download). */
+    @SuppressWarnings("unchecked")
+    private static Map<String, Object> findAudioInfoRecursive(Object obj) {
+        if (obj instanceof Map) {
+            Map<String, Object> m = (Map<String, Object>) obj;
+            String fn = (String) m.get("filename");
+            if (fn != null && isAudioFilename(fn))
+                return m;
+            for (Object v : m.values()) {
+                Map<String, Object> found = findAudioInfoRecursive(v);
+                if (!found.isEmpty()) return found;
+            }
+        } else if (obj instanceof Object[]) {
+            for (Object v : (Object[]) obj) {
+                Map<String, Object> found = findAudioInfoRecursive(v);
+                if (!found.isEmpty()) return found;
+            }
+        } else if (obj instanceof java.util.List) {
+            for (Object v : (java.util.List<?>) obj) {
+                Map<String, Object> found = findAudioInfoRecursive(v);
+                if (!found.isEmpty()) return found;
+            }
+        }
+        return Map.of();
+    }
+
+    private static boolean isAudioInfoMap(Map<String, Object> m) {
+        return m.containsKey("filename") || m.containsKey("subfolder") || m.containsKey("type");
+    }
+
+    private static Map<String, Object> firstAudioInfoFromValue(Object val) {
+        Map<String, Object> empty = Map.of();
+        if (val instanceof Map && isAudioInfoMap((Map<String, Object>) val)) {
+            return (Map<String, Object>) val;
+        }
+        if (val instanceof Object[] && ((Object[]) val).length > 0) {
+            Object first = ((Object[]) val)[0];
+            if (first instanceof Map && isAudioInfoMap((Map<String, Object>) first)) {
+                return (Map<String, Object>) first;
+            }
+        }
+        if (val instanceof java.util.List && !((java.util.List<?>) val).isEmpty()) {
+            Object first = ((java.util.List<?>) val).get(0);
+            if (first instanceof Map && isAudioInfoMap((Map<String, Object>) first)) {
+                return (Map<String, Object>) first;
+            }
+        }
+        return empty;
     }
 
     /**
