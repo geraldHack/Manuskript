@@ -13088,10 +13088,8 @@ spacer.setStyle("-fx-background-color: transparent;");
                 clickPos = codeArea.getCaretPosition();
             }
             
-            // WICHTIG: Setze den Cursor an die Position, damit die Match-Suche korrekt funktioniert
-            if (clickPos >= 0 && clickPos <= codeArea.getLength()) {
-                codeArea.displaceCaret(clickPos);
-            }
+            // Cursor erst am Ende des Handlers setzen, damit die Selektion für "Kopieren" erhalten bleibt
+            // und findMatchAtPosition(clickPos) nutzt die berechnete Position, nicht den Cursor
             
             // Debug-Logging
             logger.debug("Kontextmenü: Position=" + clickPos + ", Matches=" + currentLanguageToolMatches.size());
@@ -13231,39 +13229,67 @@ spacer.setStyle("-fx-background-color: transparent;");
                 contextMenu.getItems().add(new SeparatorMenuItem());
             }
             
-            // Kopieren und Einfügen
-            MenuItem itemKopieren = new MenuItem("Kopieren\tCtrl+C");
-            String selectedForCopy = getSelectedTextSafely();
-            itemKopieren.setDisable(selectedForCopy == null || selectedForCopy.isEmpty());
-            itemKopieren.setOnAction(e -> {
-                if (codeArea != null && selectedForCopy != null && !selectedForCopy.isEmpty()) {
-                    Clipboard clipboard = Clipboard.getSystemClipboard();
-                    ClipboardContent content = new ClipboardContent();
-                    content.putString(selectedForCopy);
-                    clipboard.setContent(content);
-                }
-            });
-            
-            MenuItem itemEinfuegen = new MenuItem("Einfügen\tCtrl+V");
-            Clipboard clipboard = Clipboard.getSystemClipboard();
-            boolean hasClipboardText = clipboard.hasString();
-            itemEinfuegen.setDisable(!hasClipboardText);
-            itemEinfuegen.setOnAction(e -> {
-                if (codeArea != null && clipboard.hasString()) {
-                    String text = clipboard.getString();
-                    if (text != null && !text.isEmpty()) {
-                        int caretPos = codeArea.getCaretPosition();
-                        String sel = codeArea.getSelectedText();
+            // Kopieren und Einfügen (in try-catch, damit eine Exception hier die LanguageTool-Vorschläge nicht verhindert)
+            try {
+                MenuItem itemKopieren = new MenuItem("Kopieren\tCtrl+C");
+                String selectedForCopy = getSelectedTextSafely();
+                itemKopieren.setDisable(selectedForCopy == null || selectedForCopy.isEmpty());
+                itemKopieren.setOnAction(e -> {
+                    if (codeArea != null) {
+                        String sel = getSelectedTextSafely();
                         if (sel != null && !sel.isEmpty()) {
-                            codeArea.replaceSelection(text);
-                        } else {
-                            codeArea.insertText(caretPos, text);
+                            try {
+                                Clipboard cb = Clipboard.getSystemClipboard();
+                                ClipboardContent content = new ClipboardContent();
+                                content.putString(sel);
+                                cb.setContent(content);
+                            } catch (Exception ex) {
+                                logger.debug("Kopieren in Zwischenablage fehlgeschlagen: " + ex.getMessage());
+                            }
                         }
                     }
+                });
+                
+                MenuItem itemEinfuegen = new MenuItem("Einfügen\tCtrl+V");
+                boolean hasClipboardText = false;
+                try {
+                    Clipboard clipboard = Clipboard.getSystemClipboard();
+                    hasClipboardText = clipboard.hasString();
+                } catch (Exception ex) {
+                    logger.debug("Zwischenablage-Zugriff fehlgeschlagen: " + ex.getMessage());
                 }
-            });
-            
-            contextMenu.getItems().addAll(itemKopieren, itemEinfuegen);
+                itemEinfuegen.setDisable(!hasClipboardText);
+                itemEinfuegen.setOnAction(e -> {
+                    if (codeArea != null) {
+                        try {
+                            Clipboard clipboard = Clipboard.getSystemClipboard();
+                            if (clipboard.hasString()) {
+                                String text = clipboard.getString();
+                                if (text != null && !text.isEmpty()) {
+                                    int caretPos = codeArea.getCaretPosition();
+                                    String sel = codeArea.getSelectedText();
+                                    if (sel != null && !sel.isEmpty()) {
+                                        codeArea.replaceSelection(text);
+                                    } else {
+                                        codeArea.insertText(caretPos, text);
+                                    }
+                                }
+                            }
+                        } catch (Exception ex) {
+                            logger.debug("Einfügen aus Zwischenablage fehlgeschlagen: " + ex.getMessage());
+                        }
+                    }
+                });
+                
+                contextMenu.getItems().addAll(itemKopieren, itemEinfuegen);
+            } catch (Exception ex) {
+                logger.warn("Kontextmenü Kopieren/Einfügen konnte nicht erstellt werden – LanguageTool-Vorschläge sollten trotzdem sichtbar sein: " + ex.getMessage());
+                MenuItem itemKopieren = new MenuItem("Kopieren\tCtrl+C");
+                MenuItem itemEinfuegen = new MenuItem("Einfügen\tCtrl+V");
+                itemKopieren.setDisable(true);
+                itemEinfuegen.setDisable(true);
+                contextMenu.getItems().addAll(itemKopieren, itemEinfuegen);
+            }
             contextMenu.getItems().add(new SeparatorMenuItem());
             
             // Standard-Menüpunkte
@@ -13277,6 +13303,11 @@ spacer.setStyle("-fx-background-color: transparent;");
             itemAbsatz.setOnAction(actionEvent -> handleAbsatzUeberarbeitung());
             
             contextMenu.getItems().addAll(itemSprechantwort, itemPhrase, itemAbsatz);
+            
+            // Cursor an Rechtsklick-Position setzen (nach Menüaufbau, damit Selektion für "Kopieren" erhalten blieb)
+            if (clickPos >= 0 && clickPos <= codeArea.getLength()) {
+                codeArea.displaceCaret(clickPos);
+            }
         });
         
         codeArea.setContextMenu(contextMenu);

@@ -721,6 +721,56 @@
     -fx-border-color: #dee2e6;
 }
 
+/* Lexikon-Tabelle (TTS-Editor): Header themegerecht, hohe Spezifität */
+.weiss-theme .lexicon-table .column-header-background,
+.weiss-theme .lexicon-table .column-header {
+    -fx-background-color: #f5f5f5 !important;
+}
+.weiss-theme .lexicon-table .column-header .label {
+    -fx-text-fill: #000000 !important;
+    -fx-font-weight: bold;
+}
+.theme-dark .lexicon-table .column-header-background,
+.theme-dark .lexicon-table .column-header {
+    -fx-background-color: #2d2d2d !important;
+}
+.theme-dark .lexicon-table .column-header .label {
+    -fx-text-fill: #ffffff !important;
+    -fx-font-weight: bold;
+}
+.pastell-theme .lexicon-table .column-header-background,
+.pastell-theme .lexicon-table .column-header {
+    -fx-background-color: #e9ecef !important;
+}
+.pastell-theme .lexicon-table .column-header .label {
+    -fx-text-fill: #000000 !important;
+    -fx-font-weight: bold;
+}
+.theme-dark.blau-theme .lexicon-table .column-header-background,
+.theme-dark.blau-theme .lexicon-table .column-header {
+    -fx-background-color: #1e40af !important;
+}
+.theme-dark.blau-theme .lexicon-table .column-header .label {
+    -fx-text-fill: #ffffff !important;
+    -fx-font-weight: bold;
+}
+.theme-dark.gruen-theme .lexicon-table .column-header-background,
+.theme-dark.gruen-theme .lexicon-table .column-header {
+    -fx-background-color: #065f46 !important;
+}
+.theme-dark.gruen-theme .lexicon-table .column-header .label {
+    -fx-text-fill: #ffffff !important;
+    -fx-font-weight: bold;
+}
+.theme-dark.lila-theme .lexicon-table .column-header-background,
+.theme-dark.lila-theme .lexicon-table .column-header {
+    -fx-background-color: #5b21b6 !important;
+}
+.theme-dark.lila-theme .lexicon-table .column-header .label {
+    -fx-text-fill: #ffffff !important;
+    -fx-font-weight: bold;
+}
+
 /* Pastell Theme - spezifische Regeln */
 .pastell-theme {
     -fx-background-color: #f3e5f5;
@@ -2995,7 +3045,29 @@
 
 /* Kapitel-Sprachsynthese-Editor: Text-Highlights in CodeArea */
 .tts-selection {
-    -rtfx-background-color: #ffe0b2 !important;  /* weiches Orange – aktueller Bearbeitungsblock */
+    -rtfx-background-color: #ffe0b2 !important;  /* weiches Orange – aktueller Bearbeitungsblock (Weiß/Pastell) */
+}
+/* Dunkle Themes: Auswahlfarbe an Theme anpassen (nicht Hellgelb auf dunkel) */
+.theme-dark .tts-selection {
+    -rtfx-background-color: #b45309 !important;  /* dunkles Orange auf dunkelgrau */
+}
+.theme-dark.blau-theme .tts-selection {
+    -rtfx-background-color: #1e40af !important;  /* kräftiges Blau für Auswahl auf Blau */
+}
+.theme-dark.gruen-theme .tts-selection {
+    -rtfx-background-color: #047857 !important;  /* helleres Grün für Auswahl auf Dunkelgrün */
+}
+.theme-dark.lila-theme .tts-selection {
+    -rtfx-background-color: #6b21a8 !important;  /* helleres Lila für Auswahl auf Lila */
+}
+/* Bearbeitungsmodus: RichTextFX zeichnet Selektion mit Path-Klasse "main-selection" (-fx-fill). Ausblenden, damit nur tts-selection (Orange) sichtbar ist. */
+.code-area.tts-edit-mode .main-selection,
+.styled-text-area.tts-edit-mode .main-selection,
+.code-area.tts-edit-mode .virtual-flow .main-selection,
+.styled-text-area.tts-edit-mode .virtual-flow .main-selection,
+.code-area.tts-edit-mode .paragraph-box .main-selection,
+.styled-text-area.tts-edit-mode .paragraph-box .main-selection {
+    -fx-fill: transparent !important;
 }
 /* Abwechselnde Segment-Highlights (tabellenartig) */
 .tts-saved-even {

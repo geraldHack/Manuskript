@@ -74,6 +74,7 @@ thorans
 tilla
 valdor
 valdorien
+valdors
 weltenfresser
 zaubererrat
 zaubererrates

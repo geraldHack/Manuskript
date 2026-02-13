@@ -11,6 +11,8 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.*;
 import javafx.scene.media.Media;
@@ -193,6 +195,8 @@ public class ChapterTtsEditorWindow {
     private Button btnPlay;
     private Button btnPause;
     private Button btnStop;
+    private Slider trimStartSlider;
+    private Label trimStartLabel;
     private ProgressBar playerProgress;
     private MediaPlayer embeddedPlayer;
     /** Pfad, der gerade geladen werden soll; verhindert, dass veraltete asynchrone Loads den Player überschreiben. */
@@ -212,6 +216,11 @@ public class ChapterTtsEditorWindow {
     private int playingSegmentIndex = -1;
     /** Verhindert Doppelstart und Doppelklick bei „Alle abspielen“. */
     private boolean isPlayingAllSequence = false;
+    /** Bearbeitungsmodus: per Doppelklick auf Segment aktiviert – Text kann während Abspielens/Renderens bearbeitet werden. */
+    private boolean editModeActive = false;
+    private Label editModeLabel;
+    /** Dynamisches Stylesheet: blendet RichTextFX-Selektion (main-selection) im Bearbeitungsmodus aus. */
+    private static final String TTS_EDIT_MODE_HIDE_SELECTION_CSS = "data:text/css,.main-selection{-fx-fill:transparent%20!important;}";
     /** Während „Alle abspielen“: Segmente nach Position im Text (start) sortiert, damit in Textreihenfolge abgespielt wird. */
     private List<TtsSegment> segmentsPlayOrder;
     /** Timer für „Alle abspielen“: wechselt nach Ablauf der Stücklänge genau einmal zum nächsten Segment (vermeidet Doppelauslösung von setOnEndOfMedia). */
@@ -254,6 +263,23 @@ public class ChapterTtsEditorWindow {
     private TableView<ComfyUITTSTestWindow.LexiconEntry> lexiconTable;
     private ObservableList<ComfyUITTSTestWindow.LexiconEntry> lexiconItems;
 
+    /** Projektglobale Regieanweisungen (Text in eckigen Klammern). lastUsed für Sortierung „nach letzter Nutzung“. */
+    public static class RegieanweisungEntry {
+        public String text = "";
+        public long lastUsed = 0;
+        public RegieanweisungEntry() {}
+        public RegieanweisungEntry(String text, long lastUsed) {
+            this.text = text != null ? text : "";
+            this.lastUsed = lastUsed;
+        }
+    }
+    private final Path regieanweisungenPath;
+    private final ObservableList<RegieanweisungEntry> regieanweisungenItems = FXCollections.observableArrayList();
+    /** true = nach letzter Nutzung, false = alphabetisch. */
+    private boolean regieanweisungenSortByLastUsed = false;
+    private ListView<RegieanweisungEntry> regieanweisungenListView;
+    private ComboBox<String> regieanweisungenSortCombo;
+
     private ChapterTtsEditorWindow(DocxFile chapterFile, String content, File mdFile, File dataDir, Window owner, int themeIndex) {
         this.chapterFile = chapterFile;
         this.mdFile = mdFile;
@@ -268,6 +294,7 @@ public class ChapterTtsEditorWindow {
         this.segmentsPath = dataDir != null ? Paths.get(dataDir.getPath(), chapterName + "-tts-segments.json") : null;
         this.audioDirPath = dataDir != null ? Paths.get(dataDir.getPath(), chapterName + "-tts") : null;
         this.originalHashPath = dataDir != null ? Paths.get(dataDir.getPath(), chapterName + "-tts-original-hash.txt") : null;
+        this.regieanweisungenPath = dataDir != null ? Paths.get(dataDir.getPath(), "tts-regieanweisungen.json") : null;
     }
 
     /** Öffnet den Sprachsynthese-Editor für das gewählte Kapitel. Zeigt die getrennt gespeicherte TTS-Datei, falls vorhanden; sonst den Originalinhalt. */
@@ -303,8 +330,17 @@ public class ChapterTtsEditorWindow {
         w.loadSegments();
         w.refreshHighlight();
         w.stage.setOnCloseRequest(ev -> {
-            w.saveSegments();
-            w.saveEditorContentToSeparateFile();
+            String text = w.codeArea != null ? w.codeArea.getText() : null;
+            boolean textEmpty = text == null || text.trim().isEmpty();
+            if (textEmpty) {
+                w.segments.clear();
+                w.selectedSegmentForColor = null;
+                w.saveSegments();
+                logger.warn("TTS-Editor geschlossen bei leerem Text – Inhalt nicht überschrieben, Segmente zurückgesetzt.");
+            } else {
+                w.saveSegments();
+                w.saveEditorContentToSeparateFile();
+            }
         });
         w.stage.show();
         Platform.runLater(() -> w.scrollEditorToTop());
@@ -506,8 +542,12 @@ public class ChapterTtsEditorWindow {
         lexiconItems = FXCollections.observableArrayList();
         loadLexiconIntoTable();
         lexiconTable = new TableView<>(lexiconItems);
+        lexiconTable.getStyleClass().add("lexicon-table");
         lexiconTable.setEditable(true);
         lexiconTable.setPrefHeight(180);
+        lexiconTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        lexiconTable.setMinWidth(0);
+        lexiconTable.setMaxWidth(Double.MAX_VALUE);
         TableColumn<ComfyUITTSTestWindow.LexiconEntry, String> colWord = new TableColumn<>("Wort");
         colWord.setCellValueFactory(c -> c.getValue().wordProperty());
         colWord.setCellFactory(column -> createLexiconTableCell(true));
@@ -520,12 +560,11 @@ public class ChapterTtsEditorWindow {
         colReplacement.setPrefWidth(160);
         lexiconTable.getColumns().add(colWord);
         lexiconTable.getColumns().add(colReplacement);
-        ScrollPane lexiconScroll = new ScrollPane(lexiconTable);
-        lexiconScroll.setFitToWidth(true);
-        lexiconScroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         Button btnLexiconLoad = new Button("Aus Datei laden");
+        btnLexiconLoad.setMinWidth(120);
         btnLexiconLoad.setOnAction(e -> loadLexiconIntoTable());
         Button btnLexiconAdd = new Button("+ Eintrag");
+        btnLexiconAdd.setMinWidth(100);
         btnLexiconAdd.setOnAction(e -> {
             lexiconItems.add(new ComfyUITTSTestWindow.LexiconEntry("", ""));
             int idx = lexiconItems.size() - 1;
@@ -534,16 +573,112 @@ public class ChapterTtsEditorWindow {
             Platform.runLater(() -> lexiconTable.edit(idx, colWord));
         });
         Button btnLexiconRemove = new Button("− Entfernen");
+        btnLexiconRemove.setMinWidth(100);
         btnLexiconRemove.setOnAction(e -> {
             ComfyUITTSTestWindow.LexiconEntry sel = lexiconTable.getSelectionModel().getSelectedItem();
             if (sel != null) lexiconItems.remove(sel);
         });
         Button btnLexiconSave = new Button("Lexikon speichern");
+        btnLexiconSave.setMinWidth(140);
         btnLexiconSave.setOnAction(e -> saveLexiconToFile());
-        HBox lexiconButtons = new HBox(6);
-        lexiconButtons.getChildren().addAll(btnLexiconLoad, btnLexiconAdd, btnLexiconRemove, btnLexiconSave);
+        Button btnLexiconApplyToText = new Button("Lexikon in Text setzen");
+        btnLexiconApplyToText.setMinWidth(170);
+        btnLexiconApplyToText.setTooltip(new Tooltip("Alle Wörter aus dem Lexikon im Editortext durch ihre Ersetzung ersetzen (ganze Wörter)."));
+        btnLexiconApplyToText.setOnAction(e -> applyLexiconToText());
+        Button btnLexiconRemoveFromText = new Button("Lexikon aus Text entfernen");
+        btnLexiconRemoveFromText.setMinWidth(200);
+        btnLexiconRemoveFromText.setTooltip(new Tooltip("Ersetzungen im Text wieder durch die ursprünglichen Lexikon-Wörter zurücksetzen."));
+        btnLexiconRemoveFromText.setOnAction(e -> removeLexiconFromText());
+        FlowPane lexiconButtons = new FlowPane(6, 4);
+        lexiconButtons.getChildren().addAll(btnLexiconLoad, btnLexiconAdd, btnLexiconRemove, btnLexiconSave,
+                btnLexiconApplyToText, btnLexiconRemoveFromText);
         VBox lexiconBox = new VBox(4);
-        lexiconBox.getChildren().addAll(lexiconLabel, lexiconScroll, lexiconButtons);
+        lexiconBox.getChildren().addAll(lexiconLabel, lexiconTable, lexiconButtons);
+
+        // Regieanweisungen (projektglobal): Liste unter dem Lexikon, Doppelklick/Button/Tastenkürzel zum Einfügen
+        Label regieLabel = new Label("Regieanweisungen [Text] (Modellabhängig)");
+        regieLabel.setTooltip(new Tooltip("Texte in eckigen Klammern z. B. [unterwürfig, tiefe Stimme]. Doppelklick oder Button fügt am Cursor ein. Strg+Shift+R = ausgewählten Eintrag einfügen."));
+        regieanweisungenListView = new ListView<>(regieanweisungenItems);
+        regieanweisungenListView.getStyleClass().add("alternating-list");
+        regieanweisungenListView.setEditable(false);
+        regieanweisungenListView.setPrefHeight(120);
+        regieanweisungenListView.setCellFactory(lv -> new ListCell<RegieanweisungEntry>() {
+            @Override
+            protected void updateItem(RegieanweisungEntry item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? null : "[" + item.text + "]");
+            }
+        });
+        regieanweisungenListView.setOnMouseClicked(me -> {
+            if (me.getClickCount() == 2 && regieanweisungenListView.getSelectionModel().getSelectedItem() != null) {
+                insertRegieanweisungAtCursor(regieanweisungenListView.getSelectionModel().getSelectedItem());
+            }
+        });
+        ScrollPane regieScroll = new ScrollPane(regieanweisungenListView);
+        regieScroll.setFitToWidth(true);
+        regieScroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        regieanweisungenSortCombo = new ComboBox<>();
+        regieanweisungenSortCombo.getItems().addAll("Alphabetisch", "Nach letzter Nutzung");
+        regieanweisungenSortCombo.getSelectionModel().select(regieanweisungenSortByLastUsed ? 1 : 0);
+        regieanweisungenSortCombo.setMaxWidth(Double.MAX_VALUE);
+        regieanweisungenSortCombo.setOnAction(e -> {
+            regieanweisungenSortByLastUsed = regieanweisungenSortCombo.getSelectionModel().getSelectedIndex() == 1;
+            applyRegieanweisungenSort();
+            saveRegieanweisungen();
+        });
+        Button btnRegieAdd = new Button("+ Eintrag");
+        btnRegieAdd.setMinWidth(100);
+        btnRegieAdd.setOnAction(e -> {
+            RegieanweisungEntry neu = new RegieanweisungEntry("", 0);
+            regieanweisungenItems.add(neu);
+            applyRegieanweisungenSort();
+            saveRegieanweisungen();
+            regieanweisungenListView.getSelectionModel().select(neu);
+            regieanweisungenListView.scrollTo(neu);
+        });
+        Button btnRegieRemove = new Button("− Entfernen");
+        btnRegieRemove.setMinWidth(100);
+        btnRegieRemove.setOnAction(e -> {
+            RegieanweisungEntry sel = regieanweisungenListView.getSelectionModel().getSelectedItem();
+            if (sel != null) {
+                regieanweisungenItems.remove(sel);
+                saveRegieanweisungen();
+            }
+        });
+        Button btnRegieEdit = new Button("Eintrag bearbeiten");
+        btnRegieEdit.setMinWidth(130);
+        btnRegieEdit.setOnAction(e -> {
+            RegieanweisungEntry sel = regieanweisungenListView.getSelectionModel().getSelectedItem();
+            if (sel == null) { setStatus("Bitte Eintrag auswählen."); return; }
+            javafx.scene.control.TextInputDialog dlg = new javafx.scene.control.TextInputDialog(sel.text != null ? sel.text : "");
+            dlg.setTitle("Regieanweisung bearbeiten");
+            dlg.setHeaderText(null);
+            dlg.setContentText("Text:");
+            dlg.showAndWait().ifPresent(newText -> {
+                sel.text = newText != null ? newText.trim() : "";
+                applyRegieanweisungenSort();
+                saveRegieanweisungen();
+                setStatus("Eintrag aktualisiert.");
+            });
+        });
+        Button btnRegieCollect = new Button("Aus Text sammeln");
+        btnRegieCollect.setMinWidth(130);
+        btnRegieCollect.setTooltip(new Tooltip("Alle [ ... ] im aktuellen Kapiteltext finden und zur Liste hinzufügen."));
+        btnRegieCollect.setOnAction(e -> {
+            if (codeArea != null) collectRegieanweisungenFromText();
+        });
+        Button btnRegieInsert = new Button("Am Cursor einfügen");
+        btnRegieInsert.setMinWidth(140);
+        btnRegieInsert.setTooltip(new Tooltip("Gewählten Eintrag an der Cursorposition einfügen. Tastenkürzel: Strg+Shift+R"));
+        btnRegieInsert.setOnAction(e -> {
+            RegieanweisungEntry sel = regieanweisungenListView.getSelectionModel().getSelectedItem();
+            if (sel != null) insertRegieanweisungAtCursor(sel);
+            else setStatus("Bitte eine Regieanweisung auswählen.");
+        });
+        FlowPane regieButtons = new FlowPane(6, 4);
+        regieButtons.getChildren().addAll(btnRegieAdd, btnRegieRemove, btnRegieEdit, btnRegieCollect, btnRegieInsert);
+        VBox regieanweisungenBox = new VBox(4);
+        regieanweisungenBox.getChildren().addAll(regieLabel, regieScroll, regieanweisungenSortCombo, regieButtons);
 
         Label voiceDescLabel = new Label("Stimmbeschreibung");
         voiceDescriptionArea = new TextArea();
@@ -589,8 +724,19 @@ public class ChapterTtsEditorWindow {
         playerProgress = new ProgressBar(0);
         playerProgress.setPrefWidth(Double.MAX_VALUE);
 
+        trimStartSlider = new Slider(0, 60, 0);
+        trimStartSlider.setPrefWidth(Double.MAX_VALUE);
+        trimStartSlider.setBlockIncrement(0.5);
+        trimStartSlider.setMajorTickUnit(10);
+        trimStartSlider.setMinorTickCount(4);
+        trimStartLabel = new Label("Anfang abschneiden: 0,0 s");
+        trimStartSlider.valueProperty().addListener((o, a, b) -> {
+            double sec = b.doubleValue();
+            if (trimStartLabel != null) trimStartLabel.setText(String.format(java.util.Locale.ROOT, "Anfang abschneiden: %.1f s", sec));
+        });
+
         VBox playerBox = new VBox(6);
-        playerBox.getChildren().addAll(playerLabel, playerButtons, playerProgress);
+        playerBox.getChildren().addAll(playerLabel, playerButtons, playerProgress, new Label("Beim Speichern Anfang weglassen (z. B. Einschwingen):"), trimStartSlider, trimStartLabel);
 
         btnErstellen = new Button("Erstellen");
         btnSpeichern = new Button("Speichern");
@@ -628,6 +774,11 @@ public class ChapterTtsEditorWindow {
         statusLabel = new Label(" ");
         statusLabel.setWrapText(true);
 
+        editModeLabel = new Label("");
+        editModeLabel.setWrapText(true);
+        editModeLabel.setVisible(false);
+        editModeLabel.setStyle("-fx-text-fill: #0a7c0a; -fx-font-weight: bold;");
+
         HBox batchRow = new HBox(8);
         batchRow.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
         batchRow.getChildren().addAll(new Label("Batch:"), batchModeCombo, btnBatchToggle);
@@ -643,6 +794,7 @@ public class ChapterTtsEditorWindow {
             voiceDescriptionContainer,
             segmentColorLabel, colorPalette,
             playerBox,
+            editModeLabel,
             erstellenRow, btnSpeichern,
             new Separator(),
             btnAlleAbspielen,
@@ -654,12 +806,16 @@ public class ChapterTtsEditorWindow {
         );
         VBox.setVgrow(statusLabel, Priority.ALWAYS);
 
-        // Rechte Spalte: Aussprache-Lexikon
+        // Rechte Spalte: Aussprache-Lexikon, Regieanweisungen (Hgrow damit sie Platz im HBox bekommt)
         VBox rightColumn = new VBox(12);
-        rightColumn.setMinWidth(220);
-        rightColumn.setPrefWidth(320);
+        rightColumn.setMinWidth(180);
+        rightColumn.setPrefWidth(280);
+        rightColumn.setMaxWidth(Double.MAX_VALUE);
+        lexiconBox.setMaxWidth(Double.MAX_VALUE);
+        regieanweisungenBox.setMaxWidth(Double.MAX_VALUE);
         VBox.setVgrow(lexiconBox, Priority.ALWAYS);
-        rightColumn.getChildren().addAll(lexiconBox);
+        rightColumn.getChildren().addAll(lexiconBox, regieanweisungenBox);
+        loadRegieanweisungen();
 
         HBox twoCol = new HBox(16);
         twoCol.getChildren().addAll(leftColumn, rightColumn);
@@ -679,7 +835,7 @@ public class ChapterTtsEditorWindow {
         wrapper.setPadding(new Insets(12));
         wrapper.setMinWidth(520);
         wrapper.setPrefWidth(600);
-        wrapper.setMaxWidth(750);
+        wrapper.setMaxWidth(Double.MAX_VALUE);
         wrapper.getChildren().add(tabPane);
         VBox.setVgrow(tabPane, Priority.ALWAYS);
 
@@ -724,6 +880,8 @@ public class ChapterTtsEditorWindow {
         applyThemeToNode(voiceDescriptionArea, themeIndex);
         applyThemeToNode(lexiconBox, themeIndex);
         applyThemeToNode(lexiconTable, themeIndex);
+        applyThemeToNode(regieanweisungenBox, themeIndex);
+        applyThemeToNode(regieanweisungenListView, themeIndex);
         applyThemeToNode(segmentColorLabel, themeIndex);
         applyThemeToNode(colorPalette, themeIndex);
         applyThemeToNode(btnPlay, themeIndex);
@@ -742,7 +900,10 @@ public class ChapterTtsEditorWindow {
         applyThemeToNode(btnBatchToggle, themeIndex);
         applyThemeToNode(batchRow, themeIndex);
         applyThemeToNode(statusLabel, themeIndex);
+        applyThemeToNode(editModeLabel, themeIndex);
         applyThemeToNode(playerProgress, themeIndex);
+        applyThemeToNode(trimStartSlider, themeIndex);
+        applyThemeToNode(trimStartLabel, themeIndex);
         applyThemeToNode(wrapper, themeIndex);
         applyThemeToNode(tabPane, themeIndex);
         applyThemeToNode(vcContent, themeIndex);
@@ -1050,14 +1211,263 @@ public class ChapterTtsEditorWindow {
         });
     }
 
+    /**
+     * Sammelt alle nicht überlappenden Ersetzungen [start, end, newLen], sortiert nach start.
+     * Bei gleichem Start gewinnt das längere Match (wie bei „Euler“ vs „Eu“).
+     */
+    private static List<int[]> findNonOverlappingReplacements(String text, List<Map.Entry<String, String>> entries,
+            boolean searchWordNotReplacement) {
+        List<int[]> matches = new ArrayList<>(); // [start, end, newLen]
+        for (Map.Entry<String, String> e : entries) {
+            String search = searchWordNotReplacement ? e.getKey().trim() : e.getValue();
+            String replacement = searchWordNotReplacement ? e.getValue() : e.getKey().trim();
+            if (search.isEmpty()) continue;
+            Pattern p = Pattern.compile("(?<![\\p{L}\\p{N}])" + Pattern.quote(search) + "(?![\\p{L}\\p{N}])", Pattern.UNICODE_CHARACTER_CLASS);
+            Matcher m = p.matcher(text);
+            while (m.find()) {
+                int s = m.start();
+                int end = m.end();
+                matches.add(new int[] { s, end, replacement.length() });
+            }
+        }
+        matches.sort(Comparator.comparingInt((int[] a) -> a[0]).thenComparing((int[] a, int[] b) -> Integer.compare((b[1] - b[0]), (a[1] - a[0]))));
+        List<int[]> nonOverlapping = new ArrayList<>();
+        int lastEnd = 0;
+        for (int[] a : matches) {
+            if (a[0] >= lastEnd) {
+                nonOverlapping.add(a);
+                lastEnd = a[1];
+            }
+        }
+        return nonOverlapping;
+    }
+
+    /** Baut aus Originaltext und Ersetzungsliste (start, end, newLen) den neuen Text. replacement-Strings aus entries (searchWord -> replacement). */
+    private static String buildTextWithReplacements(String text, List<int[]> nonOverlapping, List<Map.Entry<String, String>> entries,
+            boolean searchWordNotReplacement) {
+        StringBuilder sb = new StringBuilder();
+        int pos = 0;
+        for (int[] a : nonOverlapping) {
+            int start = a[0], end = a[1];
+            sb.append(text, pos, start);
+            String replacement = null;
+            for (Map.Entry<String, String> e : entries) {
+                String s = searchWordNotReplacement ? e.getKey().trim() : e.getValue();
+                String r = searchWordNotReplacement ? e.getValue() : e.getKey().trim();
+                if (s.isEmpty()) continue;
+                if (text.substring(start, end).equals(s)) {
+                    replacement = r;
+                    break;
+                }
+            }
+            if (replacement != null) sb.append(replacement);
+            pos = end;
+        }
+        sb.append(text, pos, text.length());
+        return sb.toString();
+    }
+
+    /** Mappt eine Position aus dem alten Text in den neuen Text anhand der Ersetzungsliste [start, end, newLen]. */
+    private static int mapPosition(int oldPos, List<int[]> replacements) {
+        int delta = 0;
+        for (int[] a : replacements) {
+            int start = a[0], end = a[1], oldLen = end - start, newLen = a[2];
+            if (oldPos >= end) {
+                delta += (newLen - oldLen);
+            } else if (oldPos > start) {
+                return start + delta + (int) Math.round((oldPos - start) * (double) newLen / oldLen);
+            } else {
+                break;
+            }
+        }
+        return oldPos + delta;
+    }
+
+    /** Ersetzt im Editortext jedes Lexikon-Wort (ganze Wörter) durch seine Ersetzung. Segmentgrenzen (start/end) werden mitgeführt, damit keine Segmente zerstört werden. */
+    private void applyLexiconToText() {
+        if (codeArea == null) return;
+        Map<String, String> lexicon = getLexiconFromTable();
+        if (lexicon.isEmpty()) {
+            setStatus("Lexikon ist leer – nichts zum Anwenden.");
+            return;
+        }
+        List<Map.Entry<String, String>> entries = new ArrayList<>(lexicon.entrySet());
+        entries.removeIf(e -> (e.getKey() == null || e.getKey().trim().isEmpty()) || (e.getValue() == null || e.getValue().isEmpty()));
+        if (entries.isEmpty()) {
+            setStatus("Keine gültigen Lexikon-Einträge (Wort und Ersetzung nicht leer).");
+            return;
+        }
+        entries.sort((a, b) -> Integer.compare(b.getKey().length(), a.getKey().length()));
+        String text = codeArea.getText();
+        List<int[]> replacements = findNonOverlappingReplacements(text, entries, true);
+        if (replacements.isEmpty()) {
+            setStatus("Keine Lexikon-Treffer im Text.");
+            return;
+        }
+        String newText = buildTextWithReplacements(text, replacements, entries, true);
+        for (TtsSegment seg : segments) {
+            seg.start = mapPosition(seg.start, replacements);
+            seg.end = mapPosition(seg.end, replacements);
+        }
+        codeArea.replaceText(newText);
+        saveSegments();
+        refreshHighlight();
+        setStatus("Lexikon im Text angewendet (" + entries.size() + " Einträge, " + segments.size() + " Segmente angepasst).");
+    }
+
+    /** Setzt Ersetzungen im Editortext wieder auf die ursprünglichen Lexikon-Wörter zurück. Segmentgrenzen werden mitgeführt. */
+    private void removeLexiconFromText() {
+        if (codeArea == null) return;
+        Map<String, String> lexicon = getLexiconFromTable();
+        if (lexicon.isEmpty()) {
+            setStatus("Lexikon ist leer – nichts zum Zurücksetzen.");
+            return;
+        }
+        List<Map.Entry<String, String>> entries = new ArrayList<>(lexicon.entrySet());
+        entries.removeIf(e -> (e.getKey() == null || e.getKey().trim().isEmpty()) || (e.getValue() == null || e.getValue().isEmpty()));
+        if (entries.isEmpty()) {
+            setStatus("Keine gültigen Lexikon-Einträge (Wort und Ersetzung nicht leer).");
+            return;
+        }
+        entries.sort((a, b) -> Integer.compare(b.getValue().length(), a.getValue().length()));
+        String text = codeArea.getText();
+        List<int[]> replacements = findNonOverlappingReplacements(text, entries, false);
+        if (replacements.isEmpty()) {
+            setStatus("Keine Lexikon-Ersetzungen im Text gefunden.");
+            return;
+        }
+        String newText = buildTextWithReplacements(text, replacements, entries, false);
+        for (TtsSegment seg : segments) {
+            seg.start = mapPosition(seg.start, replacements);
+            seg.end = mapPosition(seg.end, replacements);
+        }
+        codeArea.replaceText(newText);
+        saveSegments();
+        refreshHighlight();
+        setStatus("Lexikon aus dem Text entfernt (" + entries.size() + " Einträge, " + segments.size() + " Segmente angepasst).");
+    }
+
+    private void loadRegieanweisungen() {
+        if (regieanweisungenPath == null || !Files.isRegularFile(regieanweisungenPath)) return;
+        try {
+            String json = Files.readString(regieanweisungenPath, StandardCharsets.UTF_8);
+            com.google.gson.Gson gson = new com.google.gson.Gson();
+            com.google.gson.JsonObject root = gson.fromJson(json, com.google.gson.JsonObject.class);
+            if (root != null) {
+                if (root.has("sortByLastUsed")) regieanweisungenSortByLastUsed = root.get("sortByLastUsed").getAsBoolean();
+                if (root.has("entries") && root.get("entries").isJsonArray()) {
+                    regieanweisungenItems.clear();
+                    for (com.google.gson.JsonElement el : root.getAsJsonArray("entries")) {
+                        if (el.isJsonObject()) {
+                            com.google.gson.JsonObject o = el.getAsJsonObject();
+                            String text = o.has("text") ? o.get("text").getAsString() : "";
+                            long lastUsed = o.has("lastUsed") ? o.get("lastUsed").getAsLong() : 0;
+                            regieanweisungenItems.add(new RegieanweisungEntry(text, lastUsed));
+                        }
+                    }
+                }
+            }
+            applyRegieanweisungenSort();
+            if (regieanweisungenSortCombo != null)
+                regieanweisungenSortCombo.getSelectionModel().select(regieanweisungenSortByLastUsed ? 1 : 0);
+        } catch (Exception e) {
+            logger.warn("Regieanweisungen konnten nicht geladen werden: {}", regieanweisungenPath, e);
+        }
+    }
+
+    private void saveRegieanweisungen() {
+        if (regieanweisungenPath == null) return;
+        try {
+            Files.createDirectories(regieanweisungenPath.getParent());
+            com.google.gson.Gson gson = new com.google.gson.GsonBuilder().setPrettyPrinting().create();
+            com.google.gson.JsonObject root = new com.google.gson.JsonObject();
+            root.addProperty("sortByLastUsed", regieanweisungenSortByLastUsed);
+            com.google.gson.JsonArray arr = new com.google.gson.JsonArray();
+            for (RegieanweisungEntry e : regieanweisungenItems) {
+                com.google.gson.JsonObject o = new com.google.gson.JsonObject();
+                o.addProperty("text", e.text != null ? e.text : "");
+                o.addProperty("lastUsed", e.lastUsed);
+                arr.add(o);
+            }
+            root.add("entries", arr);
+            Files.writeString(regieanweisungenPath, gson.toJson(root), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            logger.warn("Regieanweisungen konnten nicht gespeichert werden: {}", regieanweisungenPath, e);
+        }
+    }
+
+    private void collectRegieanweisungenFromText() {
+        if (codeArea == null) return;
+        String text = codeArea.getText();
+        if (text == null) return;
+        Pattern p = Pattern.compile("\\[([^\\]]+)\\]");
+        Matcher m = p.matcher(text);
+        Set<String> existing = new HashSet<>();
+        for (RegieanweisungEntry e : regieanweisungenItems)
+            existing.add(e.text != null ? e.text.trim() : "");
+        int added = 0;
+        while (m.find()) {
+            String inner = m.group(1).trim();
+            if (!inner.isEmpty() && !existing.contains(inner)) {
+                regieanweisungenItems.add(new RegieanweisungEntry(inner, 0));
+                existing.add(inner);
+                added++;
+            }
+        }
+        applyRegieanweisungenSort();
+        saveRegieanweisungen();
+        setStatus(added > 0 ? added + " Regieanweisung(en) aus Text übernommen." : "Keine neuen [ ... ] im Text gefunden.");
+    }
+
+    private void applyRegieanweisungenSort() {
+        List<RegieanweisungEntry> list = new ArrayList<>(regieanweisungenItems);
+        if (regieanweisungenSortByLastUsed)
+            list.sort(Comparator.<RegieanweisungEntry>comparingLong(e -> -e.lastUsed).thenComparing(e -> e.text != null ? e.text : "", String.CASE_INSENSITIVE_ORDER));
+        else
+            list.sort(Comparator.comparing(e -> e.text != null ? e.text : "", String.CASE_INSENSITIVE_ORDER));
+        regieanweisungenItems.clear();
+        regieanweisungenItems.addAll(list);
+    }
+
+    private void insertRegieanweisungAtCursor(RegieanweisungEntry entry) {
+        if (codeArea == null || entry == null) return;
+        String t = entry.text != null ? entry.text.trim() : "";
+        if (t.isEmpty()) {
+            setStatus("Eintrag ist leer – bitte bearbeiten.");
+            return;
+        }
+        int pos = codeArea.getCaretPosition();
+        String toInsert = "[" + t + "]";
+        codeArea.insertText(pos, toInsert);
+        entry.lastUsed = System.currentTimeMillis();
+        applyRegieanweisungenSort();
+        saveRegieanweisungen();
+        codeArea.displaceCaret(pos + toInsert.length());
+        codeArea.requestFollowCaret();
+        setStatus("Regieanweisung eingefügt.");
+    }
+
     private void bindLeftPanelActions(VBox left) {
         btnPlay.setOnAction(e -> {
             if (embeddedPlayer != null) {
                 if (embeddedPlayer.getStatus() == MediaPlayer.Status.PLAYING) {
                     embeddedPlayer.pause();
                 } else {
-                    embeddedPlayer.seek(Duration.ZERO);
-                    embeddedPlayer.play();
+                    double trimSec = (trimStartSlider != null) ? trimStartSlider.getValue() : 0;
+                    Duration total = embeddedPlayer.getTotalDuration();
+                    if (total != null && trimSec > 0 && trimSec < total.toSeconds()) {
+                        // Seek ist asynchron: erst seeken, kurz warten, dann play – sonst startet es oft von vorn
+                        embeddedPlayer.seek(Duration.seconds(trimSec));
+                        PauseTransition waitForSeek = new PauseTransition(Duration.millis(120));
+                        waitForSeek.setOnFinished(ev -> {
+                            if (embeddedPlayer != null && embeddedPlayer.getStatus() != MediaPlayer.Status.PLAYING)
+                                embeddedPlayer.play();
+                        });
+                        waitForSeek.play();
+                    } else {
+                        embeddedPlayer.seek(Duration.ZERO);
+                        embeddedPlayer.play();
+                    }
                 }
             }
         });
@@ -1313,7 +1723,8 @@ public class ChapterTtsEditorWindow {
         scrollPane = new VirtualizedScrollPane<>(codeArea);
         scrollPane.setStyle("-fx-padding: 5px;");
 
-        codeArea.selectionProperty().addListener((o, a, b) -> refreshHighlight());
+        // Bei Auswahländerung Highlight verzögert aktualisieren, damit Drag/Shift+Pfeil die Auswahl nicht sofort überschreiben (v. a. im Bearbeitungsmodus)
+        codeArea.selectionProperty().addListener((o, a, b) -> Platform.runLater(() -> refreshHighlight()));
         codeArea.textProperty().addListener((o, oldText, newText) -> {
             if (oldText != null && newText != null && !oldText.equals(newText))
                 adjustSegmentsForTextChange(oldText, newText);
@@ -1326,6 +1737,15 @@ public class ChapterTtsEditorWindow {
             if (local == null) return;
             int offset = codeArea.hit(local.getX(), local.getY()).getInsertionIndex();
             offset = Math.max(0, Math.min(offset, codeArea.getLength()));
+            // Im Bearbeitungsmodus: Release nach Drag-Selektion nicht als „Klick“ durchlassen, sonst löscht die CodeArea die Auswahl
+            if (editModeActive && me.getButton() == MouseButton.PRIMARY) {
+                int selStart = codeArea.getSelection().getStart();
+                int selEnd = codeArea.getSelection().getEnd();
+                if (selStart != selEnd && offset >= selStart && offset <= selEnd) {
+                    me.consume();
+                    return;
+                }
+            }
             TtsSegment hit = segmentAtOffset(offset);
             if (me.getButton() == MouseButton.SECONDARY && hit == null) {
                 // Rechtsklick auf noch nicht markierten Text: Satz/Absatz aus Batch-Modus auswählen
@@ -1341,6 +1761,15 @@ public class ChapterTtsEditorWindow {
             }
             if (me.getButton() == MouseButton.PRIMARY) {
                 if (hit != null) {
+                    if (me.getClickCount() == 2) {
+                        editModeActive = !editModeActive;
+                        updateEditModeIndicator();
+                        setStatus(editModeActive
+                            ? "Bearbeitungsmodus an: Text kann während Abspielens/Renderens bearbeitet werden. Esc zum Beenden."
+                            : "Bearbeitungsmodus beendet.");
+                        return;
+                    }
+                    if (editModeActive) return;  // Im Bearbeitungsmodus: Klick nur Cursor setzen, Abspielen läuft weiter
                     loadSegmentToLeft(hit);
                     return;
                 }
@@ -1368,6 +1797,23 @@ public class ChapterTtsEditorWindow {
             if (hit == null) return;
             if (me.getButton() == MouseButton.SECONDARY) {
                 deleteSegment(hit);
+            }
+        });
+
+        codeArea.setOnKeyReleased(ke -> {
+            if (ke.getCode() == KeyCode.ESCAPE && editModeActive) {
+                editModeActive = false;
+                updateEditModeIndicator();
+                setStatus("Bearbeitungsmodus beendet.");
+            }
+        });
+        codeArea.addEventFilter(KeyEvent.KEY_PRESSED, ke -> {
+            if (ke.isControlDown() && ke.isShiftDown() && ke.getCode() == KeyCode.R) {
+                RegieanweisungEntry sel = regieanweisungenListView != null ? regieanweisungenListView.getSelectionModel().getSelectedItem() : null;
+                if (sel != null) {
+                    insertRegieanweisungAtCursor(sel);
+                    ke.consume();
+                }
             }
         });
 
@@ -1406,6 +1852,25 @@ public class ChapterTtsEditorWindow {
         saveSegments();
         refreshHighlight();
         setStatus(paletteIndex < 0 ? "Segmentfarbe: Standard (abwechselnd)." : "Segmentfarbe gesetzt.");
+    }
+
+    private void updateEditModeIndicator() {
+        if (editModeLabel != null) {
+            editModeLabel.setVisible(editModeActive);
+            editModeLabel.setText(editModeActive ? "Bearbeitungsmodus an – Text während Abspielens bearbeitbar. Esc zum Beenden." : "");
+        }
+        if (codeArea != null) {
+            if (editModeActive) {
+                if (!codeArea.getStyleClass().contains("tts-edit-mode")) codeArea.getStyleClass().add("tts-edit-mode");
+                if (!codeArea.getStylesheets().contains(TTS_EDIT_MODE_HIDE_SELECTION_CSS)) {
+                    codeArea.getStylesheets().add(TTS_EDIT_MODE_HIDE_SELECTION_CSS);
+                }
+            } else {
+                codeArea.getStyleClass().remove("tts-edit-mode");
+                codeArea.getStylesheets().remove(TTS_EDIT_MODE_HIDE_SELECTION_CSS);
+            }
+            refreshHighlight();
+        }
     }
 
     /** Liefert das Segment an offset; bei Überlappung das kürzeste (genaueste). */
@@ -1479,11 +1944,15 @@ public class ChapterTtsEditorWindow {
         currentSpeakerIdForGeneration = (seg.speakerId != null && !seg.speakerId.isBlank()) ? seg.speakerId : (selectedVoice != null && selectedVoice.getSpeakerId() != null && !selectedVoice.getSpeakerId().isBlank() ? selectedVoice.getSpeakerId() : ComfyUIClient.DEFAULT_CUSTOM_SPEAKER);
         if (seg.audioPath != null && !seg.audioPath.isEmpty()) {
             Path p = Paths.get(seg.audioPath);
+            if (!p.isAbsolute() && audioDirPath != null) {
+                p = audioDirPath.resolve(p);
+            }
             if (Files.isRegularFile(p)) {
                 loadAudioInPlayer(p);
                 lastGeneratedAudioPath = p;
             }
         }
+        if (trimStartSlider != null) trimStartSlider.setValue(0);
         setStatus("Segment zum Überarbeiten geladen.");
         refreshHighlight();
     }
@@ -1584,20 +2053,25 @@ public class ChapterTtsEditorWindow {
         }
 
         boolean inHoverRange = (hoverRangeStart >= 0 && hoverRangeEnd > hoverRangeStart);
+        TtsSegment segmentAtCaret = (len > 0 && selStart >= 0 && selStart <= len) ? segmentAtOffset(selStart) : null;
         StyleSpansBuilder<Collection<String>> builder = new StyleSpansBuilder<>();
         int pos = 0;
         while (pos < len) {
             boolean inSel = (pos >= selStart && pos < selEnd);
+            boolean inSegmentWithCaret = editModeActive && segmentAtCaret != null && (pos >= segmentAtCaret.start && pos < segmentAtCaret.end);
             boolean inHover = inHoverRange && (pos >= hoverRangeStart && pos < hoverRangeEnd);
             String style = getSegmentStyleAt(pos, len, selStart, selEnd, segmentToSortedIndex);
-            if (style == null && inSel) style = "tts-selection";
+            if (editModeActive && (inSel || inSegmentWithCaret)) style = "tts-selection";  // Im Bearbeitungsmodus: Auswahl + Segment unter Cursor immer Orange
+            else if (style == null && inSel) style = "tts-selection";
             if (style == null && inHover) style = "tts-hover-preview";  // Grau; gleiche Logik wie Segmente
             int start = pos;
             while (pos < len) {
                 boolean sel = (pos >= selStart && pos < selEnd);
+                boolean segCaret = editModeActive && segmentAtCaret != null && (pos >= segmentAtCaret.start && pos < segmentAtCaret.end);
                 boolean hov = inHoverRange && (pos >= hoverRangeStart && pos < hoverRangeEnd);
                 String nextStyle = getSegmentStyleAt(pos, len, selStart, selEnd, segmentToSortedIndex);
-                if (nextStyle == null && sel) nextStyle = "tts-selection";
+                if (editModeActive && (sel || segCaret)) nextStyle = "tts-selection";
+                else if (nextStyle == null && sel) nextStyle = "tts-selection";
                 if (nextStyle == null && hov) nextStyle = "tts-hover-preview";
                 if ((nextStyle == null) != (style == null) || (nextStyle != null && !nextStyle.equals(style))) break;
                 pos++;
@@ -1779,13 +2253,28 @@ public class ChapterTtsEditorWindow {
                 if (embeddedPlayer != player) return;
                 Duration total = player.getTotalDuration();
                 if (total != null && total.greaterThan(Duration.ZERO)) {
-                    double p = b.toMillis() / total.toMillis();
-                    Platform.runLater(() -> playerProgress.setProgress(p));
+                    double trimSec = (trimStartSlider != null) ? trimStartSlider.getValue() : 0;
+                    double totalSec = total.toSeconds();
+                    double curSec = b.toSeconds();
+                    double p;
+                    if (trimSec > 0 && trimSec < totalSec && curSec >= trimSec) {
+                        p = (curSec - trimSec) / (totalSec - trimSec);
+                    } else {
+                        p = totalSec > 0 ? curSec / totalSec : 0;
+                    }
+                    final double prog = Math.min(1.0, Math.max(0.0, p));
+                    Platform.runLater(() -> playerProgress.setProgress(prog));
                 }
             });
             player.setOnReady(() -> Platform.runLater(() -> {
                 if (embeddedPlayer != player || !requestedPath.equals(pendingAudioPath)) return;
                 playerProgress.setProgress(0);
+                Duration total = player.getTotalDuration();
+                if (total != null && total.toSeconds() > 0 && trimStartSlider != null) {
+                    double maxSec = total.toSeconds();
+                    trimStartSlider.setMax(maxSec);
+                    if (trimStartSlider.getValue() > maxSec) trimStartSlider.setValue(0);
+                }
                 if (isPlayingAllSequence) {
                     Duration d = player.getTotalDuration();
                     if (d != null && d.greaterThan(Duration.ZERO)) {
@@ -2184,7 +2673,18 @@ public class ChapterTtsEditorWindow {
             int n = getNextFreeBlockNumber();
             String baseName = "block_" + String.format("%03d", n) + ".mp3";
             Path target = audioDirPath != null ? audioDirPath.resolve(baseName) : sourcePath;
-            if (audioDirPath != null) Files.copy(sourcePath, target, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            double trimStartSec = (trimStartSlider != null && trimStartSlider.getValue() > 0) ? trimStartSlider.getValue() : 0;
+            if (audioDirPath != null) {
+                if (trimStartSec > 0) {
+                    String err = trimAudioFromStart(sourcePath, target, trimStartSec);
+                    if (err != null) {
+                        setStatus("Beschneiden fehlgeschlagen: " + err + " – speichere unbeschnitten.");
+                        Files.copy(sourcePath, target, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                    }
+                } else {
+                    Files.copy(sourcePath, target, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                }
+            }
             String audioPathStr = target.toAbsolutePath().toString();
             String voiceDesc = getEffectiveVoiceDescription();
             TtsSegment seg = new TtsSegment(start, end, audioPathStr, voiceName, temp, topP, topK, repPen, hq, voiceDesc);
@@ -2200,9 +2700,13 @@ public class ChapterTtsEditorWindow {
                 seg.elevenLabsStyle = voice.getElevenLabsStyle();
             }
             segments.add(seg);
+            selectedSegmentForColor = seg;
             saveSegments();
             refreshHighlight();
+            codeArea.selectRange(start, end);
+            codeArea.requestFollowCaret();
             setStatus("Gespeichert: " + baseName);
+            if (trimStartSlider != null) trimStartSlider.setValue(0);
         } catch (IOException e) {
             logger.error("Speichern fehlgeschlagen", e);
             CustomAlert errAlert = DialogFactory.createErrorAlert("Speichern", "Segment", "Konnte nicht speichern: " + e.getMessage(), stage);
@@ -2389,6 +2893,32 @@ public class ChapterTtsEditorWindow {
         java.io.File binExe = new java.io.File(dir, "bin" + java.io.File.separator + exeName);
         if (binExe.isFile()) return binExe.getAbsolutePath();
         return null;
+    }
+
+    /**
+     * Schneidet den Anfang einer Audiodatei ab (z. B. Einschwingen) und schreibt ab trimStartSec bis Ende nach target.
+     * @return null bei Erfolg, sonst Fehlermeldung
+     */
+    private static String trimAudioFromStart(Path source, Path target, double trimStartSec) {
+        String ffmpegExe = getFfmpegExePath();
+        if (ffmpegExe == null) ffmpegExe = "ffmpeg";
+        // -ss VOR -i = Input-Seeking: Ausgabe beginnt exakt ab dieser Position (wichtig für -c copy)
+        List<String> cmd = List.of(
+            ffmpegExe, "-y", "-loglevel", "error",
+            "-ss", String.format(java.util.Locale.ROOT, "%.3f", trimStartSec),
+            "-i", source.toAbsolutePath().toString(),
+            "-c:a", "copy",
+            target.toAbsolutePath().toString()
+        );
+        try {
+            Process p = new ProcessBuilder(cmd).redirectErrorStream(true).start();
+            String out = new String(p.getInputStream().readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+            int code = p.waitFor();
+            if (code != 0) return out.isEmpty() ? "Exit " + code : out.trim();
+            return null;
+        } catch (Exception e) {
+            return e.getMessage();
+        }
     }
 
     /** Formatiert eine Kommandozeile für CMD: ein Argument pro Stelle, Pfade mit Leerzeichen in Anführungszeichen. Zum Kopieren in cmd. */
@@ -2609,13 +3139,17 @@ public class ChapterTtsEditorWindow {
         }
     }
 
-    /** Schreibt den Editor-Text in eine getrennte Datei im TTS-Datenordner. Das Original-.md wird nicht angefasst. */
+    /** Schreibt den Editor-Text in eine getrennte Datei im TTS-Datenordner. Das Original-.md wird nicht angefasst. Leeren Text speichern wir nicht (Schutz vor Undo-Leerung). */
     private void saveEditorContentToSeparateFile() {
         if (dataDir == null || codeArea == null) return;
+        String text = codeArea.getText();
+        if (text == null || text.trim().isEmpty()) {
+            logger.warn("TTS-Editor: Text ist leer – speichere nicht (vorheriger Inhalt bleibt erhalten).");
+            return;
+        }
         try {
             Path path = Paths.get(dataDir.getPath(), chapterName + "-tts-content.md");
             Files.createDirectories(path.getParent());
-            String text = codeArea.getText();
             Files.writeString(path, text, StandardCharsets.UTF_8);
             logger.debug("TTS-Editor-Text getrennt gespeichert: {}", path.toAbsolutePath());
         } catch (IOException e) {
@@ -2660,5 +3194,11 @@ public class ChapterTtsEditorWindow {
             "-rtfx-background-color: %s !important; -fx-text-fill: %s !important; -fx-caret-color: %s !important;",
             bg, text, text);
         area.setStyle(style);
+    }
+
+    /** Liefert [Hintergrundfarbe, Textfarbe] für den angegebenen Theme-Index. */
+    public static String[] getThemeColors(int themeIndex) {
+        int idx = Math.max(0, Math.min(themeIndex, THEMES.length - 1));
+        return THEMES[idx];
     }
 }
