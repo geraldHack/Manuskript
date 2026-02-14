@@ -33,6 +33,7 @@ import java.util.concurrent.CompletableFuture;
 public class AudiobookDialog {
 
     private static final Logger logger = LoggerFactory.getLogger(AudiobookDialog.class);
+    private static final java.util.prefs.Preferences prefs = java.util.prefs.Preferences.userNodeForPackage(AudiobookDialog.class);
 
     /** Pause in Sekunden zwischen den Segmenten innerhalb eines Kapitels. */
     private static final double PAUSE_BETWEEN_SEGMENTS_SECONDS = 3.5;
@@ -107,14 +108,23 @@ public class AudiobookDialog {
         table.setEditable(true);
         table.setPrefHeight(250);
 
-        ComboBox<String> qualityCombo = new ComboBox<>();
-        qualityCombo.getItems().addAll(ChapterTtsEditorWindow.getMp3QualityOptions());
-        qualityCombo.getSelectionModel().select(1);
-        qualityCombo.setMaxWidth(Double.MAX_VALUE);
-        HBox qualityRow = new HBox(10);
-        qualityRow.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
-        qualityRow.getChildren().addAll(new Label("MP3-Qualität (Dateigröße):"), qualityCombo);
-        HBox.setHgrow(qualityCombo, Priority.ALWAYS);
+        ComboBox<String> bitrateCombo = new ComboBox<>();
+        bitrateCombo.getItems().addAll(ChapterTtsEditorWindow.getBitrateOptions());
+        bitrateCombo.getSelectionModel().select(ChapterTtsEditorWindow.getDefaultBitrateIndex());
+        bitrateCombo.setMaxWidth(Double.MAX_VALUE);
+        HBox bitrateRow = new HBox(10);
+        bitrateRow.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        bitrateRow.getChildren().addAll(new Label("Bitrate:"), bitrateCombo);
+        HBox.setHgrow(bitrateCombo, Priority.ALWAYS);
+
+        CheckBox stereoCheck = new CheckBox("Stereo");
+        stereoCheck.setSelected(true);
+        HBox stereoRow = new HBox(10);
+        stereoRow.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        stereoRow.getChildren().addAll(stereoCheck,
+                new Label(String.format("(%.1fs Stille + Fade-in am Anfang, %.1fs Stille am Ende)",
+                        ChapterTtsEditorWindow.getLeadSilenceSeconds(),
+                        ChapterTtsEditorWindow.getTrailSilenceSeconds())));
 
         Button btnAll = new Button("Alle auswählen");
         Button btnNone = new Button("Keine auswählen");
@@ -137,10 +147,19 @@ public class AudiobookDialog {
             }
             DirectoryChooser dc = new DirectoryChooser();
             dc.setTitle("Zielverzeichnis für Kapitel-MP3s");
+            String lastDir = prefs.get("lastAudiobookDirectory", null);
+            if (lastDir != null) {
+                File dir = new File(lastDir);
+                if (dir.isDirectory()) dc.setInitialDirectory(dir);
+            }
             File outDir = dc.showDialog(stage);
             if (outDir == null) return;
+            try { prefs.put("lastAudiobookDirectory", outDir.getAbsolutePath()); } catch (Exception ignored) { }
             Path outDirPath = outDir.toPath();
-            int mp3Quality = ChapterTtsEditorWindow.getMp3QualityByIndex(qualityCombo.getSelectionModel().getSelectedIndex());
+            int bitrateKbps = ChapterTtsEditorWindow.getBitrateByIndex(bitrateCombo.getSelectionModel().getSelectedIndex());
+            boolean isStereo = stereoCheck.isSelected();
+            double leadSilence = ChapterTtsEditorWindow.getLeadSilenceSeconds();
+            double trailSilence = ChapterTtsEditorWindow.getTrailSilenceSeconds();
             progress.setVisible(true);
             statusLabel.setText("Erstelle Kapitel-MP3s …");
             btnCreate.setDisable(true);
@@ -152,17 +171,22 @@ public class AudiobookDialog {
                 try {
                     for (int i = 0; i < selected.size(); i++) {
                         ChapterRow row = selected.get(i);
-                        final int idx = i + 1;
-                        Platform.runLater(() -> statusLabel.setText("Kapitel " + idx + " von " + selected.size() + " …"));
+                        // Nummer = Position in der Gesamt-Kapitelliste (1-basiert), nicht in der Auswahl
+                        final int chapterNumber = rows.indexOf(row) + 1;
+                        final int progress_i = i + 1;
+                        Platform.runLater(() -> statusLabel.setText("Kapitel " + progress_i + " von " + selected.size() + " …"));
                         List<Path> segmentFiles = loadSegmentPaths(dataDir, row.getChapterName());
                         if (segmentFiles.isEmpty()) {
                             logger.warn("Kapitel {} hat keine gültigen TTS-Segmente, wird übersprungen.", row.getChapterName());
                             continue;
                         }
                         String safeName = sanitizeFileName(row.getChapterName());
-                        if (safeName.isEmpty()) safeName = "kapitel_" + idx;
-                        Path chapterOut = outDirPath.resolve(safeName + ".mp3");
-                        String err = ChapterTtsEditorWindow.concatMp3FilesWithPause(segmentFiles, chapterOut, PAUSE_BETWEEN_SEGMENTS_SECONDS, mp3Quality, false);
+                        if (safeName.isEmpty()) safeName = "Kapitel";
+                        String fileName = String.format("%03d_%s", chapterNumber, safeName);
+                        Path chapterOut = outDirPath.resolve(fileName + ".mp3");
+                        String err = ChapterTtsEditorWindow.concatMp3FilesWithPause(segmentFiles, chapterOut,
+                                PAUSE_BETWEEN_SEGMENTS_SECONDS, 4, false,
+                                bitrateKbps, isStereo, leadSilence, trailSilence);
                         if (err != null) {
                             if (firstError == null) firstError = row.getChapterName() + ": " + err;
                             continue;
@@ -203,7 +227,7 @@ public class AudiobookDialog {
         HBox bottomButtons = new HBox(10, progress, statusLabel, new Region(), btnCreate, btnCancel);
         HBox.setHgrow(statusLabel, Priority.ALWAYS);
         bottomButtons.setPadding(new Insets(10, 0, 0, 0));
-        VBox root = new VBox(10, new Label("Kapitel auswählen. Beim Erstellen wird ein Zielverzeichnis gewählt; pro Kapitel wird eine MP3 unter dem Kapitelnamen gespeichert."), topButtons, qualityRow, table, bottomButtons);
+        VBox root = new VBox(10, new Label("Kapitel auswählen. Beim Erstellen wird ein Zielverzeichnis gewählt; pro Kapitel wird eine MP3 unter dem Kapitelnamen gespeichert."), topButtons, bitrateRow, stereoRow, table, bottomButtons);
         root.setPadding(new Insets(15));
         VBox.setVgrow(table, Priority.ALWAYS);
 
@@ -261,15 +285,23 @@ public class AudiobookDialog {
         return paths;
     }
 
-    /** Erzeugt einen für Dateinamen sicheren String (ohne Pfad, ohne ungültige Zeichen). */
+    /** Erzeugt einen für Dateinamen sicheren String: Umlaute ersetzen, nur ASCII-Buchstaben/Ziffern/Leerzeichen behalten. */
     private static String sanitizeFileName(String rawName) {
         if (rawName == null) return "";
         String name = rawName.trim();
         if (name.isEmpty()) return "";
+        // Pfadanteil entfernen
         name = name.replace("\\", "/");
         int lastSlash = name.lastIndexOf('/');
         if (lastSlash >= 0) name = name.substring(lastSlash + 1);
-        name = name.replaceAll("[\\\\/:*?\"<>|]", "_");
+        // Umlaute und ß ersetzen
+        name = name.replace("ä", "ae").replace("Ä", "Ae")
+                    .replace("ö", "oe").replace("Ö", "Oe")
+                    .replace("ü", "ue").replace("Ü", "Ue")
+                    .replace("ß", "ss");
+        // Nur ASCII-Buchstaben, Ziffern und Leerzeichen behalten, Rest durch Leerzeichen ersetzen
+        name = name.replaceAll("[^A-Za-z0-9 ]", " ");
+        // Mehrfache Leerzeichen zusammenfassen und trimmen
         name = name.replaceAll("\\s+", " ").trim();
         return name;
     }

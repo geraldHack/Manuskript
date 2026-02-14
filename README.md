@@ -23,7 +23,8 @@
 - 🔧 **Intelligentes Makro-System** für automatische Text-Bereinigung
 - 📥 **Downloads-Monitor** für automatische Sudowrite-Integration
 - 🔄 **Diff & Merge-System** für sichere Dokumentenverwaltung
-- 📊 **Umfassende Export-Funktionen** (RTF, DOCX, Markdown, HTML, , epub, PDF, LaTeX)
+- 📊 **Umfassende Export-Funktionen** (RTF, DOCX, Markdown, HTML, epub, PDF, LaTeX)
+- 🎧 **Hörbuch-Erstellung** – Eigener TTS-Editor mit ElevenLabs-API und lokaler KI (ComfyUI/Qwen), ACX-kompatible MP3-Dateien
 
 ## 🚀 Schnellstart
 
@@ -122,6 +123,32 @@ mvn javafx:run
 | **epub** | für epub-Viewer | ✅ Styling |
 
 > **Hinweis:** Für den PDF-Export wird **MiKTeX** oder **TeX Live** benötigt. Siehe [Voraussetzungen](#-schnellstart) für plattformspezifische Download-Links (Windows, macOS, Linux).
+
+## 🎧 Hörbuch-Erstellung
+
+Manuskript bringt ein vollständiges Hörbuch-Produktionssystem mit – vom einzelnen Satz bis zur fertigen, ACX-kompatiblen Audiodatei.
+
+### Eigener TTS-Editor
+- **Dedizierter Sprachsynthese-Editor** pro Kapitel mit Segment-Verwaltung und integriertem Audio-Player
+- **Segmentierung** – Text wird in Absätze oder Sätze aufgeteilt, jedes Segment einzeln generierbar und nachbearbeitbar
+- **Stimmen-Lexikon** – Gespeicherte Stimmen (Name, Parameter, Beschreibung) für konsistente Charakterstimmen über das gesamte Buch
+- **Tags** – Steuere Aussprache, Pausen und Betonung direkt im Text (ElevenLabs v3 Tags: `<break>`, Aussprachekorrekturen u.v.m.)
+
+### Flexible TTS-Backends
+- **ElevenLabs API** – Professionelle Cloud-Stimmen mit ElevenLabs v3-Unterstützung (Tags, Voice Settings, Multilingual)
+- **Lokale KI über ComfyUI** – Nutze Qwen3-TTS oder andere Modelle lokal über ComfyUI-Workflows, komplett offline und kostenlos
+- **Voice Cloning** – Referenz-Audio für Stimmklone (ComfyUI-Backend)
+
+### ACX-kompatible Hörbuch-Dateien
+- **Kapitelweise MP3-Erstellung** – Jedes Kapitel wird als einzelne MP3 exportiert, nummeriert und benannt (`001_Kapitelname.mp3`)
+- **Konfigurierbare Bitrate** – 128, 192, 256 oder 320 kbps (CBR) – Standard: 320 kbps
+- **Stereo/Mono-Auswahl** – Standard: Stereo (44.1 kHz)
+- **Automatisches Trimming** – Vorhandene Stille am Anfang der Segmente wird erkannt und entfernt
+- **Normierte Pausen** – 0.8s Stille mit Fade-in am Anfang, 1.5s Stille am Ende jeder Kapitel-Datei
+- **Konfigurierbare Segmentpausen** – Einstellbare Pause zwischen den Absätzen innerhalb eines Kapitels
+- **FFmpeg-basiert** – Professionelle Audio-Verarbeitung (FFmpeg wird mitgeliefert oder aus dem System-PATH verwendet)
+
+> **Voraussetzungen:** FFmpeg (im Projektverzeichnis `ffmpeg/` oder im System-PATH). Für ElevenLabs: API-Key in der Parameter-Verwaltung. Für lokale TTS: ComfyUI mit entsprechendem TTS-Workflow.
 
 ## ⚙️ Konfiguration
 
@@ -229,8 +256,11 @@ ollama pull qwen2.5:7b-instruct
 
 - **JavaFX 17+** - Moderne Benutzeroberfläche
 - **RichTextFX** - Erweiterter Text-Editor
-- **Ollama** - Lokale KI-Integration
-- **Language tool** - lokale Rechtschreibkorrektur
+- **Ollama** - Lokale KI-Integration (Text)
+- **ElevenLabs API** - Cloud-basierte Sprachsynthese (teuer, aber schweinegut)
+- **ComfyUI + Qwen TTS** - Lokale Sprachsynthese (offline, kostenlos)
+- **FFmpeg** - Audio-Verarbeitung und Hörbuch-Erstellung
+- **Language tool** - Lokale Rechtschreibkorrektur
 - **Maven** - Build-Management
 - **SLF4J/Logback** - Logging-System
 

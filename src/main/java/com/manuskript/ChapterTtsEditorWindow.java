@@ -14,6 +14,7 @@ import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
@@ -79,6 +80,18 @@ public class ChapterTtsEditorWindow {
     private static final String[] MP3_QUALITY_OPTIONS = { "Kleine Datei (geringe Qualität)", "Standard", "Hohe Qualität (große Datei)" };
     /** FFmpeg -q:a Werte zu MP3_QUALITY_OPTIONS (0=klein, 1=Standard, 2=groß). */
     private static final int[] MP3_QUALITY_VALUES = { 6, 4, 2 };
+
+    /** Bitrate-Optionen für Hörbuch-Export (kbps). */
+    private static final String[] BITRATE_OPTIONS = { "128 kbps", "192 kbps", "256 kbps", "320 kbps" };
+    /** Tatsächliche kbps-Werte zu BITRATE_OPTIONS. */
+    private static final int[] BITRATE_VALUES = { 128, 192, 256, 320 };
+    /** Default-Index in BITRATE_OPTIONS (320 kbps). */
+    private static final int DEFAULT_BITRATE_INDEX = 3;
+
+    /** Stille am Anfang jeder Kapitel-MP3 in Sekunden (wird nach Trimming eingefügt). */
+    private static final double LEAD_SILENCE_SECONDS = 0.8;
+    /** Stille am Ende jeder Kapitel-MP3 in Sekunden (wird nach Trimming eingefügt). */
+    private static final double TRAIL_SILENCE_SECONDS = 1.5;
     /** Verzeichnis für gebündeltes FFmpeg (analog zu pandoc/) – enthält ffmpeg.exe (Windows) bzw. ffmpeg (Linux/macOS) oder bin/ffmpeg.exe. */
     private static final String FFMPEG_DIR = "ffmpeg";
     private static final int SEGMENT_PALETTE_SIZE = 16;
@@ -158,6 +171,9 @@ public class ChapterTtsEditorWindow {
     private final int themeIndex;
     private final Window owner;
 
+    /** Preferences für Fenster-, Separator- und FileChooser-Persistenz (gesetzt in setupTtsWindowPersistence). */
+    private Preferences ttsPreferences;
+
     private CustomStage stage;
     private CodeArea codeArea;
     private VirtualizedScrollPane<CodeArea> scrollPane;
@@ -225,6 +241,10 @@ public class ChapterTtsEditorWindow {
     private List<TtsSegment> segmentsPlayOrder;
     /** Timer für „Alle abspielen“: wechselt nach Ablauf der Stücklänge genau einmal zum nächsten Segment (vermeidet Doppelauslösung von setOnEndOfMedia). */
     private PauseTransition playAllAdvanceTransition;
+    /** Nach Seek in der Fortschrittsanzeige: Settle-Timer; nach Ablauf ggf. Wiedergabe fortsetzen. */
+    private PauseTransition seekSettleTransition;
+    /** Ob nach dem laufenden Seek-Settle wieder abgespielt werden soll (war vor Seek am Laufen). */
+    private boolean pendingSeekResume;
     /** Signatur der letzten erfolgreichen TTS-Anfrage (Text + Parameter); bei Übereinstimmung wird keine erneute API-Anfrage gestellt. */
     private String lastGeneratedSignature;
     /** Laufende Nummer des letzten „Erstellen“-Klicks; nur das Ergebnis dieser Anfrage darf lastGeneratedAudioPath setzen (vermeidet falsches Speichern bei mehreren nacheinander gestarteten Erzeugen). */
@@ -356,6 +376,7 @@ public class ChapterTtsEditorWindow {
     /** Speichert Position und Größe des TTS-Editors in den Preferences und stellt Listener ein. */
     private void setupTtsWindowPersistence(Preferences prefs) {
         if (prefs == null || stage == null) return;
+        this.ttsPreferences = prefs;
         stage.xProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null && !newVal.equals(oldVal)) {
                 PreferencesManager.putWindowPosition(prefs, "tts_editor_window_x", newVal.doubleValue());
@@ -380,14 +401,29 @@ public class ChapterTtsEditorWindow {
 
     private Parent buildRoot(String content) {
         SplitPane split = new SplitPane();
-        split.setDividerPositions(0.42);
+        final double divPos;
+        if (ttsPreferences != null) {
+            double p = ttsPreferences.getDouble("tts_split_divider", 0.42);
+            divPos = Math.max(0.15, Math.min(0.85, p));
+        } else {
+            divPos = 0.42;
+        }
         split.getStyleClass().add("tts-editor-split");
 
         Node left = buildLeftPanel();
         Node right = buildRightPanel(content);
         split.getItems().addAll(left, right);
+        split.setDividerPositions(divPos);
         // Beim Ziehen des Teilers nur die linke Spalte breiter/schmaler machen, rechte Seite (Tabelle/Editor) behält Breite
         SplitPane.setResizableWithParent(right, false);
+        if (ttsPreferences != null && !split.getDividers().isEmpty()) {
+            split.getDividers().get(0).positionProperty().addListener((o, oldVal, pos) -> {
+                if (pos != null) {
+                    try { ttsPreferences.putDouble("tts_split_divider", pos.doubleValue()); } catch (Exception ignored) {}
+                }
+            });
+        }
+        Platform.runLater(() -> split.setDividerPositions(divPos));
 
         applyThemeToNode(split, themeIndex);
         return split;
@@ -723,11 +759,14 @@ public class ChapterTtsEditorWindow {
         playerButtons.getChildren().addAll(btnPlay, btnPause, btnStop);
         playerProgress = new ProgressBar(0);
         playerProgress.setPrefWidth(Double.MAX_VALUE);
+        playerProgress.setCursor(javafx.scene.Cursor.HAND);
+        playerProgress.setOnMouseClicked(ev -> seekPlaybackFromProgressBarMouse(ev));
+        playerProgress.setOnMouseDragged(ev -> seekPlaybackFromProgressBarMouse(ev));
 
-        trimStartSlider = new Slider(0, 60, 0);
+        trimStartSlider = new Slider(0, 20, 0);
         trimStartSlider.setPrefWidth(Double.MAX_VALUE);
         trimStartSlider.setBlockIncrement(0.5);
-        trimStartSlider.setMajorTickUnit(10);
+        trimStartSlider.setMajorTickUnit(5);
         trimStartSlider.setMinorTickCount(4);
         trimStartLabel = new Label("Anfang abschneiden: 0,0 s");
         trimStartSlider.valueProperty().addListener((o, a, b) -> {
@@ -926,10 +965,22 @@ public class ChapterTtsEditorWindow {
             FileChooser fc = new FileChooser();
             fc.setTitle("Referenz-Audio für Voice Clone");
             fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("Audio", "*.wav", "*.mp3", "*.flac", "*.ogg", "*.m4a"));
+            if (ttsPreferences != null) {
+                String last = ttsPreferences.get("tts_vc_ref_audio_dir", null);
+                if (last != null && !last.isEmpty()) {
+                    File lastDir = new File(last);
+                    if (lastDir.isDirectory()) fc.setInitialDirectory(lastDir);
+                } else if (dataDir != null && dataDir.isDirectory()) {
+                    fc.setInitialDirectory(dataDir.getParentFile());
+                }
+            }
             File f = fc.showOpenDialog(stage);
             if (f != null) {
                 vcRefAudioFile = f;
                 vcRefAudioLabel.setText(f.getName());
+                if (ttsPreferences != null && f.getParent() != null) {
+                    try { ttsPreferences.put("tts_vc_ref_audio_dir", f.getParent()); } catch (Exception ignored) {}
+                }
             }
         });
         vc.getChildren().addAll(refLabel, refChooseBtn, vcRefAudioLabel);
@@ -1449,32 +1500,40 @@ public class ChapterTtsEditorWindow {
 
     private void bindLeftPanelActions(VBox left) {
         btnPlay.setOnAction(e -> {
-            if (embeddedPlayer != null) {
-                if (embeddedPlayer.getStatus() == MediaPlayer.Status.PLAYING) {
-                    embeddedPlayer.pause();
-                } else {
-                    double trimSec = (trimStartSlider != null) ? trimStartSlider.getValue() : 0;
-                    Duration total = embeddedPlayer.getTotalDuration();
-                    if (total != null && trimSec > 0 && trimSec < total.toSeconds()) {
-                        // Seek ist asynchron: erst seeken, kurz warten, dann play – sonst startet es oft von vorn
-                        embeddedPlayer.seek(Duration.seconds(trimSec));
-                        PauseTransition waitForSeek = new PauseTransition(Duration.millis(120));
-                        waitForSeek.setOnFinished(ev -> {
-                            if (embeddedPlayer != null && embeddedPlayer.getStatus() != MediaPlayer.Status.PLAYING)
-                                embeddedPlayer.play();
-                        });
-                        waitForSeek.play();
-                    } else {
-                        embeddedPlayer.seek(Duration.ZERO);
-                        embeddedPlayer.play();
-                    }
-                }
+            if (embeddedPlayer == null) return;
+            MediaPlayer.Status status = embeddedPlayer.getStatus();
+            if (status == MediaPlayer.Status.PLAYING) {
+                return; // bereits am Abspielen
             }
+            if (status == MediaPlayer.Status.PAUSED) {
+                embeddedPlayer.play();
+                return;
+            }
+            // STOPPED / READY / unbekannt: play() starten, dann per onPlaying-Callback an Trim-Position seekieren
+            double trimSec = (trimStartSlider != null) ? trimStartSlider.getValue() : 0;
+            if (trimSec > 0) {
+                final MediaPlayer player = embeddedPlayer;
+                player.setOnPlaying(() -> {
+                    player.setOnPlaying(null); // nur einmal
+                    player.seek(Duration.seconds(trimSec));
+                });
+            }
+            embeddedPlayer.play();
         });
         btnPause.setOnAction(e -> {
-            if (embeddedPlayer != null) embeddedPlayer.pause();
+            if (embeddedPlayer == null) return;
+            if (embeddedPlayer.getStatus() == MediaPlayer.Status.PLAYING) {
+                embeddedPlayer.pause();
+            } else if (embeddedPlayer.getStatus() == MediaPlayer.Status.PAUSED) {
+                embeddedPlayer.play();
+            }
         });
         btnStop.setOnAction(e -> {
+            if (seekSettleTransition != null) {
+                seekSettleTransition.stop();
+                seekSettleTransition = null;
+            }
+            pendingSeekResume = false;
             if (isPlayingAllSequence) {
                 abortPlayAllSequence();
             } else if (embeddedPlayer != null) {
@@ -1493,6 +1552,56 @@ public class ChapterTtsEditorWindow {
         });
         btnGesamtAudiodatei.setOnAction(e -> createFullAudioFile());
         btnBatchToggle.setOnAction(e -> startBatch());
+    }
+
+    /**
+     * Sucht die Wiedergabe an die Stelle, die durch Klick oder Drag auf der Fortschrittsanzeige gewählt wurde.
+     * Berücksichtigt „Anfang abschneiden“ (trim): 0 % = Trim-Start, 100 % = Ende.
+     * Pausiert kurz vor dem Seek und wartet danach, damit die asynchrone Seek zuverlässig greift.
+     */
+    private void seekPlaybackFromProgressBarMouse(MouseEvent ev) {
+        if (embeddedPlayer == null || playerProgress == null) return;
+        double w = playerProgress.getWidth();
+        if (w <= 0) return;
+        double frac = ev.getX() / w;
+        frac = Math.max(0, Math.min(1, frac));
+        seekPlaybackToProgressFraction(frac);
+    }
+
+    /** Kurze Verzögerung, damit MediaPlayer.seek() vor dem ggf. folgenden play() angewandt ist. */
+    private static final double SEEK_SETTLE_MS = 180;
+
+    /**
+     * Sucht die Wiedergabe an den Anteil frac (0…1) der nutzbaren Länge (von Trim-Start bis Ende).
+     * Bei laufender Wiedergabe: kurz pausieren, seek ausführen, Verzögerung abwarten, dann wieder abspielen,
+     * damit die asynchrone Seek nicht von play() überholt wird. Bei mehreren Seeks (z. B. Drag) wird nur
+     * ein Settle-Timer geführt; nach dem letzten Seek wird ggf. wieder abgespielt.
+     */
+    private void seekPlaybackToProgressFraction(double frac) {
+        if (embeddedPlayer == null) return;
+        Duration total = embeddedPlayer.getTotalDuration();
+        if (total == null || !total.greaterThan(Duration.ZERO)) return;
+        double totalSec = total.toSeconds();
+        double trimSec = (trimStartSlider != null) ? trimStartSlider.getValue() : 0;
+        double playableSec = Math.max(0, totalSec - trimSec);
+        double targetSec = trimSec + frac * playableSec;
+        targetSec = Math.max(0, Math.min(totalSec, targetSec));
+        Duration targetDur = Duration.seconds(targetSec);
+        boolean wasPlaying = embeddedPlayer.getStatus() == MediaPlayer.Status.PLAYING;
+        if (wasPlaying) embeddedPlayer.pause();
+        if (seekSettleTransition != null) {
+            seekSettleTransition.stop();
+            seekSettleTransition = null;
+        }
+        pendingSeekResume = wasPlaying;
+        embeddedPlayer.seek(targetDur);
+        if (playerProgress != null) playerProgress.setProgress(frac);
+        seekSettleTransition = new PauseTransition(Duration.millis(SEEK_SETTLE_MS));
+        seekSettleTransition.setOnFinished(e -> {
+            seekSettleTransition = null;
+            if (embeddedPlayer != null && pendingSeekResume) embeddedPlayer.play();
+        });
+        seekSettleTransition.play();
     }
 
     /** Zeile mit MP3-Qualitätsauswahl für Gesamt-Audiodatei. */
@@ -1525,6 +1634,32 @@ public class ChapterTtsEditorWindow {
     /** Liefert die MP3-Qualitätsoptionen für Hörbuch-Dialog (gleiche wie Gesamt-Audiodatei). */
     public static String[] getMp3QualityOptions() {
         return MP3_QUALITY_OPTIONS.clone();
+    }
+
+    /** Liefert die Bitrate-Optionen (Anzeige) für Hörbuch-Dialog. */
+    public static String[] getBitrateOptions() {
+        return BITRATE_OPTIONS.clone();
+    }
+
+    /** Liefert den Default-Index für Bitrate-Auswahl. */
+    public static int getDefaultBitrateIndex() {
+        return DEFAULT_BITRATE_INDEX;
+    }
+
+    /** Liefert den kbps-Wert für einen Bitrate-Index. */
+    public static int getBitrateByIndex(int index) {
+        if (index < 0 || index >= BITRATE_VALUES.length) return 320;
+        return BITRATE_VALUES[index];
+    }
+
+    /** Liefert die Lead-Silence in Sekunden (Stille am Anfang der Kapitel-MP3). */
+    public static double getLeadSilenceSeconds() {
+        return LEAD_SILENCE_SECONDS;
+    }
+
+    /** Liefert die Trail-Silence in Sekunden (Stille am Ende der Kapitel-MP3). */
+    public static double getTrailSilenceSeconds() {
+        return TRAIL_SILENCE_SECONDS;
     }
 
     /** Liefert die aktuell auf dem Haupt-Tab eingetragene Stimmbeschreibung (wird beim Generieren mitgegeben). */
@@ -1937,6 +2072,12 @@ public class ChapterTtsEditorWindow {
                 if (elevenLabsStabilitySlider != null) elevenLabsStabilitySlider.setValue(Math.max(0, Math.min(1, segRef.elevenLabsStability)));
                 if (elevenLabsSimilaritySlider != null) elevenLabsSimilaritySlider.setValue(Math.max(0, Math.min(1, segRef.elevenLabsSimilarityBoost)));
                 if (elevenLabsSpeakerBoostCheck != null) elevenLabsSpeakerBoostCheck.setSelected(segRef.elevenLabsUseSpeakerBoost);
+                // Signatur nach ElevenLabs-UI-Update, damit Speichern die geladene Datei findet
+                String segText = codeArea.getText(segRef.start, segRef.end);
+                lastGeneratedSignature = buildTtsRequestSignature(segText, voiceCombo.getSelectionModel().getSelectedItem(), temperatureSlider.getValue(), topPSlider.getValue(), (int) Math.round(topKSlider.getValue()), repetitionPenaltySlider.getValue(), highQualityCheck.isSelected());
+                if (lastGeneratedSignature != null && lastGeneratedAudioPath != null) {
+                    generatedAudioBySignature.put(lastGeneratedSignature, lastGeneratedAudioPath);
+                }
             });
         }
         // Seed und Speaker aus dem Segment übernehmen, damit neue Segmente dieselbe Stimme bekommen
@@ -1955,6 +2096,13 @@ public class ChapterTtsEditorWindow {
         if (trimStartSlider != null) trimStartSlider.setValue(0);
         setStatus("Segment zum Überarbeiten geladen.");
         refreshHighlight();
+        // Signatur setzen, damit Speichern (auch mit „Anfang abschneiden“) die geladene Datei findet
+        String segmentText = codeArea.getText(seg.start, seg.end);
+        ComfyUIClient.SavedVoice v = voiceCombo.getSelectionModel().getSelectedItem();
+        lastGeneratedSignature = buildTtsRequestSignature(segmentText, v, temperatureSlider.getValue(), topPSlider.getValue(), (int) Math.round(topKSlider.getValue()), repetitionPenaltySlider.getValue(), highQualityCheck.isSelected());
+        if (lastGeneratedSignature != null && lastGeneratedAudioPath != null) {
+            generatedAudioBySignature.put(lastGeneratedSignature, lastGeneratedAudioPath);
+        }
     }
 
     private void deleteSegment(TtsSegment seg) {
@@ -2236,6 +2384,11 @@ public class ChapterTtsEditorWindow {
             playAllAdvanceTransition.stop();
             playAllAdvanceTransition = null;
         }
+        if (seekSettleTransition != null) {
+            seekSettleTransition.stop();
+            seekSettleTransition = null;
+        }
+        pendingSeekResume = false;
         if (embeddedPlayer != null) {
             embeddedPlayer.stop();
             embeddedPlayer.dispose();
@@ -2271,7 +2424,7 @@ public class ChapterTtsEditorWindow {
                 playerProgress.setProgress(0);
                 Duration total = player.getTotalDuration();
                 if (total != null && total.toSeconds() > 0 && trimStartSlider != null) {
-                    double maxSec = total.toSeconds();
+                    double maxSec = Math.min(20, total.toSeconds());
                     trimStartSlider.setMax(maxSec);
                     if (trimStartSlider.getValue() > maxSec) trimStartSlider.setValue(0);
                 }
@@ -2629,10 +2782,6 @@ public class ChapterTtsEditorWindow {
             setStatus("Bitte einen Bereich markieren.");
             return;
         }
-        if (lastGeneratedAudioPath == null || !Files.isRegularFile(lastGeneratedAudioPath)) {
-            setStatus("Zuerst „Erstellen“ ausführen.");
-            return;
-        }
         ComfyUIClient.SavedVoice voice = voiceCombo.getSelectionModel().getSelectedItem();
         String voiceName = voice != null ? voice.getName() : "";
         double temp = temperatureSlider.getValue();
@@ -2640,10 +2789,10 @@ public class ChapterTtsEditorWindow {
         String currentSig = buildTtsRequestSignature(sel != null ? sel : "", voice, temp, topPSlider.getValue(), (int) Math.round(topKSlider.getValue()), Math.max(1.0, Math.min(2.0, repetitionPenaltySlider.getValue())), highQualityCheck.isSelected());
         Path sourcePath = generatedAudioBySignature.get(currentSig);
         if (sourcePath == null || !Files.isRegularFile(sourcePath)) {
-            sourcePath = lastGeneratedSignature != null && currentSig.equals(lastGeneratedSignature) ? lastGeneratedAudioPath : null;
+            sourcePath = lastGeneratedSignature != null && currentSig.equals(lastGeneratedSignature) && lastGeneratedAudioPath != null ? lastGeneratedAudioPath : null;
         }
         if (sourcePath == null || !Files.isRegularFile(sourcePath)) {
-            setStatus("Bitte zuerst „Erstellen“ für den markierten Bereich ausführen.");
+            setStatus("Zuerst „Erstellen“ ausführen oder ein Segment zum Überarbeiten auswählen.");
             return;
         }
         double topP = topPSlider.getValue();
@@ -2822,8 +2971,20 @@ public class ChapterTtsEditorWindow {
         FileChooser fc = new FileChooser();
         fc.setTitle("Gesamt-Audiodatei speichern");
         fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("MP3", "*.mp3"));
+        if (ttsPreferences != null) {
+            String last = ttsPreferences.get("tts_save_full_audio_dir", null);
+            if (last != null && !last.isEmpty()) {
+                File lastDir = new File(last);
+                if (lastDir.isDirectory()) fc.setInitialDirectory(lastDir);
+            } else if (dataDir != null && dataDir.isDirectory()) {
+                fc.setInitialDirectory(dataDir.getParentFile());
+            }
+        }
         File f = fc.showSaveDialog(stage);
         if (f == null) return;
+        if (ttsPreferences != null && f.getParent() != null) {
+            try { ttsPreferences.put("tts_save_full_audio_dir", f.getParent()); } catch (Exception ignored) {}
+        }
         Path out = f.toPath();
         progressIndicator.setVisible(true);
         setStatus("Füge Audiodateien zusammen (mit " + (int) FULL_AUDIO_PAUSE_SECONDS + " s Pause zwischen Segmenten)…");
@@ -2938,19 +3099,42 @@ public class ChapterTtsEditorWindow {
 
     /**
      * Fügt mehrere MP3-Dateien per FFmpeg mit Pause zwischen je zwei Dateien zusammen (Concat-Demuxer).
-     * Öffentlich für Hörbuch-Erstellung. Einzelne Datei: wird kopiert.
-     *
-     * @param audioFiles Liste der MP3-Pfade in Reihenfolge
-     * @param outputPath Ausgabedatei
-     * @param pauseSeconds Pause in Sekunden zwischen den Dateien
-     * @param mp3Quality FFmpeg -q:a (0 = beste Qualität, 9 = geringste; typisch 2–6)
-     * @param logCommandsToConsole true = FFmpeg-Befehle auf System.out (zum Kopieren in cmd)
-     * @return null bei Erfolg, sonst Fehlermeldung
+     * Legacy-Überladung ohne Hörbuch-Parameter (Bitrate/Stereo/Lead-Trail-Silence).
+     * Verwendet VBR-Qualität, Mono, keine Lead/Trail-Silence.
      */
     public static String concatMp3FilesWithPause(List<Path> audioFiles, Path outputPath, double pauseSeconds, int mp3Quality, boolean logCommandsToConsole) {
+        return concatMp3FilesWithPause(audioFiles, outputPath, pauseSeconds, mp3Quality, logCommandsToConsole, -1, false, 0, 0);
+    }
+
+    /**
+     * Fügt mehrere MP3-Dateien per FFmpeg mit Pause zwischen je zwei Dateien zusammen (Concat-Demuxer).
+     * Öffentlich für Hörbuch-Erstellung. Einzelne Datei wird ebenfalls per FFmpeg verarbeitet (für Trim/Fade/Stereo).
+     *
+     * @param audioFiles          Liste der MP3-Pfade in Reihenfolge
+     * @param outputPath          Ausgabedatei
+     * @param pauseSeconds        Pause in Sekunden zwischen den Dateien
+     * @param mp3Quality          FFmpeg -q:a (0 = beste, 9 = geringste); wird ignoriert wenn bitrateKbps &gt; 0
+     * @param logCommandsToConsole true = FFmpeg-Befehle auf System.out
+     * @param bitrateKbps         Bitrate in kbps (z. B. 320); &lt;= 0 = VBR mit mp3Quality
+     * @param stereo              true = Stereo-Ausgabe (2 Kanäle), false = Mono
+     * @param leadSilenceSec      Stille am Anfang in Sekunden (0 = keine); vorhandene Stille wird vorher getrimmt
+     * @param trailSilenceSec     Stille am Ende in Sekunden (0 = keine); vorhandene Stille wird vorher getrimmt
+     * @return null bei Erfolg, sonst Fehlermeldung
+     */
+    public static String concatMp3FilesWithPause(List<Path> audioFiles, Path outputPath, double pauseSeconds,
+                                                  int mp3Quality, boolean logCommandsToConsole,
+                                                  int bitrateKbps, boolean stereo,
+                                                  double leadSilenceSec, double trailSilenceSec) {
         int n = audioFiles.size();
         if (n == 0) return "Keine Dateien";
-        if (n == 1) {
+
+        boolean hasAudiobookProcessing = bitrateKbps > 0 || stereo || leadSilenceSec > 0 || trailSilenceSec > 0;
+
+        String ffmpegExe = getFfmpegExePath();
+        if (ffmpegExe == null) ffmpegExe = "ffmpeg";
+
+        // Einzelne Datei ohne Audiobook-Processing: einfach kopieren (Legacy-Verhalten)
+        if (n == 1 && !hasAudiobookProcessing) {
             try {
                 Files.copy(audioFiles.get(0), outputPath, StandardCopyOption.REPLACE_EXISTING);
                 return null;
@@ -2958,71 +3142,206 @@ public class ChapterTtsEditorWindow {
                 return e.getMessage();
             }
         }
-        String ffmpegExe = getFfmpegExePath();
-        if (ffmpegExe == null) ffmpegExe = "ffmpeg";
+
         Path listPath = null;
         Path silencePath = null;
+        Path rawConcatPath = null;
         try {
             Path tempDir = Files.createTempDirectory("manuskript-ffmpeg");
             silencePath = tempDir.resolve("silence.mp3");
             listPath = tempDir.resolve("concatlist.txt");
             int q = Math.max(0, Math.min(9, mp3Quality));
-            List<String> silenceCmd = List.of(
-                ffmpegExe, "-y", "-loglevel", "error",
-                "-f", "lavfi", "-i", "anullsrc=r=24000:cl=mono",
-                "-t", String.valueOf(pauseSeconds),
-                "-c:a", "libmp3lame", "-q:a", String.valueOf(q),
-                silencePath.toAbsolutePath().toString()
-            );
-            if (logCommandsToConsole) {
-                System.out.println("--- FFmpeg (Stille), zum Einfügen in cmd ---");
-                System.out.println(formatCommandForCmd(silenceCmd));
+
+            // --- Qualitäts-Argumente (CBR oder VBR) ---
+            List<String> qualityArgs = new ArrayList<>();
+            qualityArgs.add("-c:a");
+            qualityArgs.add("libmp3lame");
+            if (bitrateKbps > 0) {
+                qualityArgs.add("-b:a");
+                qualityArgs.add(bitrateKbps + "k");
+            } else {
+                qualityArgs.add("-q:a");
+                qualityArgs.add(String.valueOf(q));
             }
-            ProcessBuilder pbSilence = new ProcessBuilder(silenceCmd);
-            pbSilence.redirectError(java.io.File.createTempFile("ffmpeg-silence-", ".log"));
-            Process procSilence = pbSilence.start();
-            if (procSilence.waitFor() != 0) return "Stille-Datei konnte nicht erzeugt werden";
-            if (!Files.isRegularFile(silencePath)) return "Stille-Datei fehlt";
-            String silenceAbs = silencePath.toAbsolutePath().toString().replace("\\", "/");
-            if (silenceAbs.contains("'")) silenceAbs = silenceAbs.replace("'", "'\\''");
-            StringBuilder listContent = new StringBuilder();
-            for (int i = 0; i < audioFiles.size(); i++) {
-                String segAbs = audioFiles.get(i).toAbsolutePath().toString().replace("\\", "/");
-                if (segAbs.contains("'")) segAbs = segAbs.replace("'", "'\\''");
-                listContent.append("file '").append(segAbs).append("'\n");
-                if (i < audioFiles.size() - 1) listContent.append("file '").append(silenceAbs).append("'\n");
+
+            // --- Schritt 1: Stille-Datei erzeugen (zwischen Segmenten) ---
+            if (n > 1) {
+                String channelLayout = stereo ? "stereo" : "mono";
+                List<String> silenceCmd = new ArrayList<>(List.of(
+                    ffmpegExe, "-y", "-loglevel", "error",
+                    "-f", "lavfi", "-i", "anullsrc=r=44100:cl=" + channelLayout,
+                    "-t", String.valueOf(pauseSeconds)
+                ));
+                silenceCmd.addAll(qualityArgs);
+                silenceCmd.add(silencePath.toAbsolutePath().toString());
+                if (logCommandsToConsole) {
+                    System.out.println("--- FFmpeg (Stille), zum Einfügen in cmd ---");
+                    System.out.println(formatCommandForCmd(silenceCmd));
+                }
+                ProcessBuilder pbSilence = new ProcessBuilder(silenceCmd);
+                pbSilence.redirectError(java.io.File.createTempFile("ffmpeg-silence-", ".log"));
+                Process procSilence = pbSilence.start();
+                if (procSilence.waitFor() != 0) return "Stille-Datei konnte nicht erzeugt werden";
+                if (!Files.isRegularFile(silencePath)) return "Stille-Datei fehlt";
             }
-            Files.writeString(listPath, listContent.toString(), StandardCharsets.UTF_8);
-            List<String> concatCmd = List.of(
-                ffmpegExe, "-y", "-loglevel", "warning",
-                "-f", "concat", "-safe", "0", "-i", listPath.toAbsolutePath().toString(),
-                "-c:a", "libmp3lame", "-q:a", String.valueOf(q),
-                outputPath.toAbsolutePath().toString()
-            );
-            if (logCommandsToConsole) {
-                System.out.println("--- FFmpeg (Concat), zum Einfügen in cmd ---");
-                System.out.println(formatCommandForCmd(concatCmd));
+
+            // --- Schritt 2: Concat-Liste schreiben ---
+            Path concatSource;
+            if (n == 1) {
+                concatSource = audioFiles.get(0);
+            } else {
+                String silenceAbs = silencePath.toAbsolutePath().toString().replace("\\", "/");
+                if (silenceAbs.contains("'")) silenceAbs = silenceAbs.replace("'", "'\\''");
+                StringBuilder listContent = new StringBuilder();
+                for (int i = 0; i < audioFiles.size(); i++) {
+                    String segAbs = audioFiles.get(i).toAbsolutePath().toString().replace("\\", "/");
+                    if (segAbs.contains("'")) segAbs = segAbs.replace("'", "'\\''");
+                    listContent.append("file '").append(segAbs).append("'\n");
+                    if (i < audioFiles.size() - 1) listContent.append("file '").append(silenceAbs).append("'\n");
+                }
+                Files.writeString(listPath, listContent.toString(), StandardCharsets.UTF_8);
+                concatSource = null; // wird per concat-Demuxer gelesen
             }
-            ProcessBuilder pbConcat = new ProcessBuilder(concatCmd);
-            java.io.File errLog = java.io.File.createTempFile("ffmpeg-concat-", ".log");
-            try {
-                pbConcat.redirectError(errLog);
-                Process proc = pbConcat.start();
-                int exit = proc.waitFor();
-                String err = Files.readString(errLog.toPath(), StandardCharsets.UTF_8).trim();
-                if (exit != 0) return err.isEmpty() ? "FFmpeg beendet mit Code " + exit : err;
-                return null;
-            } finally {
-                try { errLog.delete(); } catch (Exception ignored) { }
+
+            // --- Schritt 3: Zusammenfügen (bzw. bei 1 Datei: direkt als Input) ---
+            // Bei Audiobook-Processing: erst raw concat, dann Filterchain; sonst direkt in outputPath
+            if (n > 1) {
+                Path targetPath;
+                if (hasAudiobookProcessing) {
+                    rawConcatPath = tempDir.resolve("raw_concat.mp3");
+                    targetPath = rawConcatPath;
+                } else {
+                    targetPath = outputPath;
+                }
+
+                List<String> concatCmd = new ArrayList<>(List.of(
+                    ffmpegExe, "-y", "-loglevel", "warning",
+                    "-f", "concat", "-safe", "0", "-i", listPath.toAbsolutePath().toString()
+                ));
+                concatCmd.addAll(qualityArgs);
+                concatCmd.add(targetPath.toAbsolutePath().toString());
+                if (logCommandsToConsole) {
+                    System.out.println("--- FFmpeg (Concat), zum Einfügen in cmd ---");
+                    System.out.println(formatCommandForCmd(concatCmd));
+                }
+                ProcessBuilder pbConcat = new ProcessBuilder(concatCmd);
+                java.io.File errLog = java.io.File.createTempFile("ffmpeg-concat-", ".log");
+                try {
+                    pbConcat.redirectError(errLog);
+                    Process proc = pbConcat.start();
+                    int exit = proc.waitFor();
+                    String err = Files.readString(errLog.toPath(), StandardCharsets.UTF_8).trim();
+                    if (exit != 0) return err.isEmpty() ? "FFmpeg beendet mit Code " + exit : err;
+                } finally {
+                    try { errLog.delete(); } catch (Exception ignored) { }
+                }
             }
+
+            // --- Schritt 4: Audiobook-Processing (Trim + Lead/Trail-Silence + Fade + Stereo/CBR) ---
+            if (hasAudiobookProcessing) {
+                Path inputForFilter = (n == 1) ? concatSource : rawConcatPath;
+                String filterResult = applyAudiobookFilter(ffmpegExe, inputForFilter, outputPath,
+                        bitrateKbps, stereo, leadSilenceSec, trailSilenceSec, logCommandsToConsole);
+                if (filterResult != null) return filterResult;
+            }
+
+            return null;
         } catch (Exception e) {
             return "FFmpeg: " + e.getMessage();
         } finally {
             try {
                 if (listPath != null) Files.deleteIfExists(listPath);
                 if (silencePath != null) Files.deleteIfExists(silencePath);
+                if (rawConcatPath != null) Files.deleteIfExists(rawConcatPath);
                 if (silencePath != null && silencePath.getParent() != null) Files.deleteIfExists(silencePath.getParent());
             } catch (IOException ignored) { }
+        }
+    }
+
+    /**
+     * Wendet Audiobook-Filterchain auf eine Audiodatei an (1-Pass):
+     * 1. Vorhandene Stille am Anfang entfernen (silenceremove)
+     * 2. Lead-Silence einfügen + Fade-in
+     * 3. Trail-Silence (reine Stille) am Ende anfügen
+     * 4. Stereo/Mono + CBR
+     *
+     * @return null bei Erfolg, sonst Fehlermeldung
+     */
+    private static String applyAudiobookFilter(String ffmpegExe, Path input, Path output,
+                                                int bitrateKbps, boolean stereo,
+                                                double leadSilenceSec, double trailSilenceSec,
+                                                boolean logCommandsToConsole) {
+        // Filterchain zusammenbauen
+        StringBuilder af = new StringBuilder();
+
+        // Stille am Anfang entfernen (Threshold -50dB).
+        // stop_periods wird NICHT gesetzt, da sonst auch die gewollten Pausen
+        // zwischen den Segmenten als "End-Stille" erkannt und abgeschnitten werden.
+        if (leadSilenceSec > 0) {
+            af.append("silenceremove=start_periods=1:start_threshold=-50dB");
+        }
+
+        // Lead-Silence: adelay fügt exakte Stille am Anfang ein (Millisekunden) + Fade-in
+        if (leadSilenceSec > 0) {
+            int delayMs = (int) (leadSilenceSec * 1000);
+            if (af.length() > 0) af.append(",");
+            af.append("adelay=").append(delayMs).append("|").append(delayMs);
+            af.append(",afade=t=in:d=").append(String.format(java.util.Locale.ROOT, "%.2f", leadSilenceSec));
+        }
+
+        // Trail-Silence: apad fügt reine Stille am Ende an (kein Fade-out)
+        if (trailSilenceSec > 0) {
+            if (af.length() > 0) af.append(",");
+            af.append("apad=pad_dur=").append(String.format(java.util.Locale.ROOT, "%.2f", trailSilenceSec));
+        }
+
+        // Kommando zusammenbauen
+        List<String> cmd = new ArrayList<>();
+        cmd.add(ffmpegExe);
+        cmd.add("-y");
+        cmd.add("-loglevel");
+        cmd.add("warning");
+        cmd.add("-i");
+        cmd.add(input.toAbsolutePath().toString());
+
+        if (af.length() > 0) {
+            cmd.add("-af");
+            cmd.add(af.toString());
+        }
+
+        cmd.add("-ac");
+        cmd.add(stereo ? "2" : "1");
+        cmd.add("-ar");
+        cmd.add("44100");
+        cmd.add("-c:a");
+        cmd.add("libmp3lame");
+        if (bitrateKbps > 0) {
+            cmd.add("-b:a");
+            cmd.add(bitrateKbps + "k");
+        }
+        cmd.add(output.toAbsolutePath().toString());
+
+        if (logCommandsToConsole) {
+            System.out.println("--- FFmpeg (Audiobook-Filter: Trim + Fade-in + Stille + Stereo/CBR), zum Einfügen in cmd ---");
+            System.out.println(formatCommandForCmd(cmd));
+        }
+
+        try {
+            java.io.File errLog = java.io.File.createTempFile("ffmpeg-abfilter-", ".log");
+            try {
+                ProcessBuilder pb = new ProcessBuilder(cmd);
+                pb.redirectError(errLog);
+                pb.redirectOutput(ProcessBuilder.Redirect.DISCARD);
+                Process proc = pb.start();
+                int exit = proc.waitFor();
+                String err = Files.readString(errLog.toPath(), StandardCharsets.UTF_8).trim();
+                if (exit != 0) return err.isEmpty() ? "FFmpeg Audiobook-Filter beendet mit Code " + exit : err;
+                return null;
+            } finally {
+                try { errLog.delete(); } catch (Exception ignored) { }
+            }
+        } catch (Exception e) {
+            return "FFmpeg Audiobook-Filter: " + e.getMessage();
         }
     }
 
