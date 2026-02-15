@@ -21,6 +21,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -193,8 +194,25 @@ public class AudiobookDialog {
                         }
                         savedCount++;
                     }
+                    // Cover-Bild mitkopieren, falls vorhanden
+                    boolean coverCopied = false;
+                    Path projectDir = dataDir.toPath().getParent();
+                    if (projectDir != null) {
+                        Path coverSource = projectDir.resolve("audiobook_cover.png");
+                        if (Files.isRegularFile(coverSource)) {
+                            try {
+                                Files.copy(coverSource, outDirPath.resolve("audiobook_cover.png"), StandardCopyOption.REPLACE_EXISTING);
+                                coverCopied = true;
+                                logger.info("audiobook_cover.png ins Zielverzeichnis kopiert.");
+                            } catch (IOException ioEx) {
+                                logger.warn("audiobook_cover.png konnte nicht kopiert werden: {}", ioEx.getMessage());
+                            }
+                        }
+                    }
+
                     final int count = savedCount;
                     final String errFinal = firstError;
+                    final boolean coverInfo = coverCopied;
                     Platform.runLater(() -> {
                         progress.setVisible(false);
                         btnCreate.setDisable(false);
@@ -204,7 +222,9 @@ public class AudiobookDialog {
                             al.applyTheme(themeIndex);
                             al.showAndWait();
                         }
-                        statusLabel.setText(count + " Kapitel als MP3 in " + outDirPath.getFileName() + " gespeichert.");
+                        String statusMsg = count + " Kapitel als MP3 in " + outDirPath.getFileName() + " gespeichert.";
+                        if (coverInfo) statusMsg += " Cover-Bild wurde mitkopiert.";
+                        statusLabel.setText(statusMsg);
                     });
                 } catch (Exception ex) {
                     logger.error("Hörbuch-Erstellung", ex);

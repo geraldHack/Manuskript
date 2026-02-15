@@ -354,6 +354,43 @@ public class OllamaService {
                 .thenApply(this::parseGenerateResponse);
     }
 
+    /**
+     * Generate-API mit explizitem System-Prompt, der den Modelfile-SYSTEM garantiert überschreibt.
+     * Nützlich für Spezialaufgaben (z. B. Audio-Tagging), bei denen ein trainiertes Modell
+     * seinen eigenen System-Prompt nicht verwenden soll.
+     *
+     * @param systemPrompt System-Anweisungen (überschreiben Modelfile-SYSTEM)
+     * @param prompt       User-Prompt (z. B. der zu verarbeitende Text)
+     * @param numPredict   maximale Token-Anzahl (≤0 = Standard)
+     * @param temperature  Temperatur (NaN = Standard)
+     * @param topP         Top-P (NaN = Standard)
+     * @param repeatPenalty Repeat-Penalty (NaN = Standard)
+     * @return CompletableFuture mit der Modellantwort
+     */
+    public CompletableFuture<String> generateWithSystem(String systemPrompt, String prompt,
+                                                         int numPredict, double temperature,
+                                                         double topP, double repeatPenalty) {
+        int tokens = numPredict > 0 ? numPredict : this.maxTokens;
+        double temp = Double.isNaN(temperature) ? this.temperature : temperature;
+        double tp = Double.isNaN(topP) ? this.topP : topP;
+        double rp = Double.isNaN(repeatPenalty) ? this.repeatPenalty : repeatPenalty;
+
+        String escapedSystem = escapeJson(systemPrompt);
+        String escapedPrompt = escapeJson(prompt);
+
+        String json = String.format(java.util.Locale.US,
+            "{\"model\":\"%s\",\"system\":\"%s\",\"prompt\":\"%s\",\"stream\":false,\"options\":{\"num_predict\":%d,\"temperature\":%.2f,\"top_p\":%.2f,\"repeat_penalty\":%.2f}}",
+            currentModel, escapedSystem, escapedPrompt, tokens, temp, tp, rp);
+
+        this.lastEndpoint = GENERATE_ENDPOINT;
+        this.lastRequestJson = json;
+        this.lastFullPrompt = prompt;
+        this.lastContext = null;
+
+        return sendRequest(GENERATE_ENDPOINT, json)
+                .thenApply(this::parseGenerateResponse);
+    }
+
     // Für UI-Vorschau: baue JSON genau wie generateText, ohne Request abzuschicken
     public String buildGenerateJsonForPreview(String prompt, String context) {
         int maxTokens = this.maxTokens;
@@ -442,6 +479,71 @@ public class OllamaService {
         
         // Debug-Logging für JSON
         
+        return sendRequest(CHAT_ENDPOINT, json)
+                .thenApply(this::parseChatResponse);
+    }
+
+    /**
+     * Chat mit benutzerdefiniertem System-Prompt (z. B. für Audio-Tagging oder andere Spezialaufgaben).
+     * Verwendet das aktuell konfigurierte Modell und die Parameter-Einstellungen.
+     *
+     * @param systemPrompt der System-Prompt (Anweisungen für das Modell)
+     * @param userMessage die Benutzernachricht (z. B. der zu taggende Text)
+     * @param numPredict maximale Token-Anzahl für die Antwort (≤0 = Standard aus Konfiguration)
+     * @return CompletableFuture mit der Modellantwort
+     */
+    public CompletableFuture<String> chatWithSystemPrompt(String systemPrompt, String userMessage, int numPredict) {
+        int tokens = numPredict > 0 ? numPredict : this.maxTokens;
+        double temp = this.temperature;
+        double tp = this.topP;
+        double rp = this.repeatPenalty;
+
+        String escapedSys = escapeJson(systemPrompt);
+        String escapedUser = escapeJson(userMessage);
+
+        String json = String.format(java.util.Locale.US,
+            "{\"model\":\"%s\",\"messages\":[{\"role\":\"system\",\"content\":\"%s\"},{\"role\":\"user\",\"content\":\"%s\"}],\"stream\":false,\"options\":{\"num_predict\":%d,\"temperature\":%.2f,\"top_p\":%.2f,\"repeat_penalty\":%.2f}}",
+            currentModel, escapedSys, escapedUser, tokens, temp, tp, rp);
+
+        this.lastEndpoint = CHAT_ENDPOINT;
+        this.lastRequestJson = json;
+        this.lastFullPrompt = userMessage;
+        this.lastContext = null;
+
+        return sendRequest(CHAT_ENDPOINT, json)
+                .thenApply(this::parseChatResponse);
+    }
+
+    /**
+     * Sendet eine einzelne User-Nachricht an die Chat-API (ohne System-Prompt),
+     * mit expliziten Parametern. Nützlich wenn das Modell einen eigenen System-Prompt
+     * im Modelfile hat und der Chat-System-Prompt ignoriert wird.
+     *
+     * @param userMessage die vollständige Nachricht (inkl. aller Anweisungen)
+     * @param numPredict maximale Token-Anzahl (≤0 = Standard)
+     * @param temperature Temperatur (NaN = Standard aus Konfiguration)
+     * @param topP Top-P (NaN = Standard)
+     * @param repeatPenalty Repeat-Penalty (NaN = Standard)
+     * @return CompletableFuture mit der Modellantwort
+     */
+    public CompletableFuture<String> chatUserOnly(String userMessage, int numPredict,
+                                                   double temperature, double topP, double repeatPenalty) {
+        int tokens = numPredict > 0 ? numPredict : this.maxTokens;
+        double temp = Double.isNaN(temperature) ? this.temperature : temperature;
+        double tp = Double.isNaN(topP) ? this.topP : topP;
+        double rp = Double.isNaN(repeatPenalty) ? this.repeatPenalty : repeatPenalty;
+
+        String escapedUser = escapeJson(userMessage);
+
+        String json = String.format(java.util.Locale.US,
+            "{\"model\":\"%s\",\"messages\":[{\"role\":\"user\",\"content\":\"%s\"}],\"stream\":false,\"options\":{\"num_predict\":%d,\"temperature\":%.2f,\"top_p\":%.2f,\"repeat_penalty\":%.2f}}",
+            currentModel, escapedUser, tokens, temp, tp, rp);
+
+        this.lastEndpoint = CHAT_ENDPOINT;
+        this.lastRequestJson = json;
+        this.lastFullPrompt = userMessage;
+        this.lastContext = null;
+
         return sendRequest(CHAT_ENDPOINT, json)
                 .thenApply(this::parseChatResponse);
     }

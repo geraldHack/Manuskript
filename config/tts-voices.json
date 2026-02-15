@@ -269,7 +269,7 @@
     "provider": "elevenlabs",
     "elevenLabsVoiceId": "ML23UVoFL5mI6APbRAeR",
     "elevenLabsModelId": "eleven_v3",
-    "elevenLabsStability": 0.5,
+    "elevenLabsStability": 0.0,
     "elevenLabsSimilarityBoost": 0.75,
     "elevenLabsSpeed": 1.1395939086294415,
     "elevenLabsUseSpeakerBoost": false,

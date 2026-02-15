@@ -200,6 +200,142 @@ public class ElevenLabsClient {
         }
     }
 
+    // ──────── Pronunciation Dictionary API ────────
+
+    /** DTO für ein hochgeladenes Pronunciation Dictionary (id + version_id). */
+    public static class PronunciationDictionaryLocator {
+        public final String dictionaryId;
+        public final String versionId;
+
+        public PronunciationDictionaryLocator(String dictionaryId, String versionId) {
+            this.dictionaryId = dictionaryId;
+            this.versionId = versionId;
+        }
+    }
+
+    /**
+     * Erzeugt eine PLS-XML-Datei (Pronunciation Lexicon Specification) mit Alias-Einträgen
+     * aus dem übergebenen Lexikon (Wort → Ersetzung).
+     */
+    public static String buildPlsXml(java.util.Map<String, String> lexicon) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+        sb.append("<lexicon version=\"1.0\" xmlns=\"http://www.w3.org/2005/01/pronunciation-lexicon\" alphabet=\"ipa\" xml:lang=\"de\">\n");
+        for (var entry : lexicon.entrySet()) {
+            String word = entry.getKey();
+            String replacement = entry.getValue();
+            if (word == null || word.isBlank() || replacement == null || replacement.isBlank()) continue;
+            sb.append("  <lexeme>\n");
+            sb.append("    <grapheme>").append(escapeXml(word)).append("</grapheme>\n");
+            sb.append("    <alias>").append(escapeXml(replacement)).append("</alias>\n");
+            sb.append("  </lexeme>\n");
+        }
+        sb.append("</lexicon>\n");
+        return sb.toString();
+    }
+
+    private static String escapeXml(String s) {
+        return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+                .replace("\"", "&quot;").replace("'", "&apos;");
+    }
+
+    /**
+     * Lädt ein Pronunciation Dictionary (PLS-Datei) bei ElevenLabs hoch.
+     * @param plsContent PLS-XML-Inhalt
+     * @param name Name des Dictionaries
+     * @return Locator mit dictionary_id und version_id
+     */
+    public PronunciationDictionaryLocator uploadPronunciationDictionary(String plsContent, String name) throws IOException, InterruptedException {
+        if (apiKey == null || apiKey.isBlank()) {
+            throw new IOException("ElevenLabs API-Key ist nicht gesetzt.");
+        }
+        String boundary = "----ManuskriptBoundary" + System.currentTimeMillis();
+        String url = baseUrl + "/v1/pronunciation-dictionaries/add-from-file";
+
+        // Multipart body aufbauen
+        StringBuilder bodyBuilder = new StringBuilder();
+        // Name-Feld
+        bodyBuilder.append("--").append(boundary).append("\r\n");
+        bodyBuilder.append("Content-Disposition: form-data; name=\"name\"\r\n\r\n");
+        bodyBuilder.append(name).append("\r\n");
+        // Description-Feld
+        bodyBuilder.append("--").append(boundary).append("\r\n");
+        bodyBuilder.append("Content-Disposition: form-data; name=\"description\"\r\n\r\n");
+        bodyBuilder.append("Manuskript Aussprache-Lexikon (auto-upload)").append("\r\n");
+        // Datei-Feld
+        bodyBuilder.append("--").append(boundary).append("\r\n");
+        bodyBuilder.append("Content-Disposition: form-data; name=\"file\"; filename=\"lexicon.pls\"\r\n");
+        bodyBuilder.append("Content-Type: application/pls+xml\r\n\r\n");
+        bodyBuilder.append(plsContent).append("\r\n");
+        bodyBuilder.append("--").append(boundary).append("--\r\n");
+
+        byte[] bodyBytes = bodyBuilder.toString().getBytes(StandardCharsets.UTF_8);
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .header("xi-api-key", apiKey)
+                .header("Content-Type", "multipart/form-data; boundary=" + boundary)
+                .POST(HttpRequest.BodyPublishers.ofByteArray(bodyBytes))
+                .timeout(Duration.ofSeconds(30))
+                .build();
+        HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+        int status = response.statusCode();
+        String respBody = response.body();
+        if (status != 200) {
+            throw new IOException("ElevenLabs Pronunciation Dictionary Upload: HTTP " + status + " – " + respBody);
+        }
+        try {
+            JsonObject root = JsonParser.parseString(respBody).getAsJsonObject();
+            String dictId = root.get("id").getAsString();
+            String versionId = root.get("version_id").getAsString();
+            logger.info("ElevenLabs Pronunciation Dictionary hochgeladen: id={}, version={}", dictId, versionId);
+            return new PronunciationDictionaryLocator(dictId, versionId);
+        } catch (Exception e) {
+            throw new IOException("ElevenLabs Pronunciation Dictionary Response konnte nicht gelesen werden: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Löscht ein Pronunciation Dictionary bei ElevenLabs.
+     * Fehler werden nur geloggt, nicht geworfen.
+     */
+    public void deletePronunciationDictionary(String dictionaryId) {
+        try {
+            String url = baseUrl + "/v1/pronunciation-dictionaries/" + dictionaryId;
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .header("xi-api-key", apiKey)
+                    .DELETE()
+                    .timeout(Duration.ofSeconds(15))
+                    .build();
+            HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+            if (response.statusCode() == 200) {
+                logger.info("ElevenLabs Pronunciation Dictionary gelöscht: {}", dictionaryId);
+            } else {
+                logger.warn("ElevenLabs Pronunciation Dictionary löschen fehlgeschlagen ({}): {}", response.statusCode(), response.body());
+            }
+        } catch (Exception e) {
+            logger.warn("ElevenLabs Pronunciation Dictionary löschen fehlgeschlagen: {}", e.getMessage());
+        }
+    }
+
+    // ──────── TTS Generation ────────
+
+    /**
+     * Erzeugt Sprachausgabe und schreibt sie in die angegebene Datei (ohne Seed – zufällig bei jedem Aufruf).
+     */
+    public void generateToFile(String text, String voiceId, String modelId, Path outputPath, VoiceSettings voiceSettings) throws IOException, InterruptedException {
+        generateToFile(text, voiceId, modelId, outputPath, voiceSettings, null, null);
+    }
+
+    /**
+     * Erzeugt Sprachausgabe (ohne Pronunciation Dictionary).
+     */
+    public void generateToFile(String text, String voiceId, String modelId, Path outputPath, VoiceSettings voiceSettings, Long seed) throws IOException, InterruptedException {
+        generateToFile(text, voiceId, modelId, outputPath, voiceSettings, seed, null);
+    }
+
     /**
      * Erzeugt Sprachausgabe und schreibt sie in die angegebene Datei.
      * @param text Text (nach Lexikon-Anwendung)
@@ -207,8 +343,12 @@ public class ElevenLabsClient {
      * @param modelId model_id (z. B. eleven_multilingual_v2), null = DEFAULT_MODEL_ID
      * @param outputPath Ziel-Pfad (z. B. .mp3)
      * @param voiceSettings optionale Stimm-Parameter (Stabilität, Geschwindigkeit, …); null = API-Defaults
+     * @param seed optionaler Seed für reproduzierbare Ergebnisse (null oder ≤0 = zufällig)
+     * @param dictLocator optionaler Pronunciation Dictionary Locator (id + version_id)
      */
-    public void generateToFile(String text, String voiceId, String modelId, Path outputPath, VoiceSettings voiceSettings) throws IOException, InterruptedException {
+    public void generateToFile(String text, String voiceId, String modelId, Path outputPath,
+                               VoiceSettings voiceSettings, Long seed,
+                               PronunciationDictionaryLocator dictLocator) throws IOException, InterruptedException {
         if (apiKey == null || apiKey.isBlank()) {
             throw new IOException("ElevenLabs API-Key ist nicht gesetzt (Parameter-Verwaltung: tts.elevenlabs_api_key).");
         }
@@ -228,6 +368,19 @@ public class ElevenLabsClient {
             vs.addProperty("use_speaker_boost", voiceSettings.useSpeakerBoost);
             vs.addProperty("style", voiceSettings.style);
             body.add("voice_settings", vs);
+        }
+        if (seed != null && seed > 0) {
+            body.addProperty("seed", seed);
+            logger.debug("ElevenLabs TTS mit Seed: {}", seed);
+        }
+        if (dictLocator != null && dictLocator.dictionaryId != null && dictLocator.versionId != null) {
+            JsonArray dictArr = new JsonArray();
+            JsonObject loc = new JsonObject();
+            loc.addProperty("pronunciation_dictionary_id", dictLocator.dictionaryId);
+            loc.addProperty("version_id", dictLocator.versionId);
+            dictArr.add(loc);
+            body.add("pronunciation_dictionary_locators", dictArr);
+            logger.debug("ElevenLabs TTS mit Pronunciation Dictionary: {}", dictLocator.dictionaryId);
         }
         String bodyStr = body.toString();
         HttpRequest request = HttpRequest.newBuilder()

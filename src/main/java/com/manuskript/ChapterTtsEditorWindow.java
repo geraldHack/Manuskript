@@ -103,6 +103,46 @@ public class ChapterTtsEditorWindow {
         "#66bb6a", "#42a5f5", "#ffca28", "#ec407a", "#ab47bc", "#ffa726", "#26c6da", "#ef5350"
     };
 
+    /**
+     * System-Prompt fuer ElevenLabs v3 Audio-Tagging via Ollama Generate-API.
+     * Wird ueber das "system"-Feld der /api/generate gesendet, das den Modelfile-SYSTEM
+     * garantiert ueberschreibt – auch bei trainierten Modellen.
+     */
+    private static final String V3_AUDIO_TAG_SYSTEM = """
+            Du bist ein Audio-Tagging-Werkzeug. Deine einzige Aufgabe ist es, Text mit Audio-Tags fuer ElevenLabs v3 zu versehen.
+            Du bist KEIN Schreibassistent. Gib KEIN Feedback, KEINE Kommentare, KEINE Erklaerungen.
+            Gib AUSSCHLIESSLICH den getaggten Text zurueck – sonst nichts.""";
+
+    /**
+     * User-Prompt (Anweisungen + Platzhalter) fuer v3 Audio-Tagging.
+     * Der eigentliche Text wird direkt angehaengt.
+     */
+    private static final String V3_AUDIO_TAG_PROMPT = """
+            Fuege Audio-Tags in eckigen Klammern in den folgenden Text ein.
+            Diese Tags steuern die Sprachausgabe in ElevenLabs v3.
+
+            Regeln:
+            - Veraendere KEINE Woerter des Originaltexts. Fuege NUR Audio-Tags in eckigen Klammern ein.
+            - Platziere Emotions-/Delivery-Tags (z.B. [angry], [whisper], [sad]) VOR dem Textsegment.
+            - Platziere non-verbale Aktionen (z.B. [sighs], [laughing], [clears throat]) NACH dem Textsegment.
+            - Verwende NUR auditive Tags – KEINE visuellen wie [grinning] oder [standing].
+            - Setze Tags sparsam ein – nicht jeden Satz taggen.
+            - Behalte Absaetze und Zeilenumbrueche exakt bei.
+            - Gib NUR den getaggten Text zurueck.
+
+            Erlaubte Tags (Beispiele):
+            Emotionen: [happy] [sad] [excited] [angry] [annoyed] [surprised] [worried] [desperate]
+            Delivery: [whisper] [shouting] [softly] [firmly] [sarcastically] [mockingly]
+            Non-verbal: [laughing] [chuckles] [sighs] [clears throat] [exhales sharply] [inhales deeply]
+
+            Beispiel:
+            Eingabe: Bist du wahnsinnig? Ich kann nicht glauben, dass du das getan hast!
+            Ausgabe: [appalled] Bist du wahnsinnig? Ich kann nicht glauben, dass du das getan hast! [sighs]
+
+            Jetzt tagge den folgenden Text:
+
+            """;
+
     /** Ein gespeichertes Segment: Textbereich + Audiodatei + Stimmenname + exakter Seed/Speaker für gleiche Stimme. */
     public static class TtsSegment {
         public int start;
@@ -217,6 +257,7 @@ public class ChapterTtsEditorWindow {
     private MediaPlayer embeddedPlayer;
     /** Pfad, der gerade geladen werden soll; verhindert, dass veraltete asynchrone Loads den Player überschreiben. */
     private Path pendingAudioPath;
+    private Label selectionWordCountLabel;
     private Button btnErstellen;
     private Button btnSpeichern;
     private Button btnAlleAbspielen;
@@ -228,6 +269,9 @@ public class ChapterTtsEditorWindow {
     private Button btnBatchToggle;
     private volatile boolean batchCancelled = false;
     private ProgressIndicator progressIndicator;
+    /** Busy-Indicator für v3 Audio-Tagging. */
+    private ProgressIndicator v3TagProgressIndicator;
+    private Label v3TagCheckmark;
     private Label statusLabel;
     private int playingSegmentIndex = -1;
     /** Verhindert Doppelstart und Doppelklick bei „Alle abspielen“. */
@@ -300,6 +344,10 @@ public class ChapterTtsEditorWindow {
     private ListView<RegieanweisungEntry> regieanweisungenListView;
     private ComboBox<String> regieanweisungenSortCombo;
 
+    /** Einschwingtext: wird bei TTS-Generierung dem eigentlichen Text vorangestellt, damit die Stimme konsistenter einsetzt. */
+    private TextArea einschwingTextArea;
+    private CheckBox einschwingCheckBox;
+
     private ChapterTtsEditorWindow(DocxFile chapterFile, String content, File mdFile, File dataDir, Window owner, int themeIndex) {
         this.chapterFile = chapterFile;
         this.mdFile = mdFile;
@@ -346,7 +394,13 @@ public class ChapterTtsEditorWindow {
         w.stage.setSceneWithTitleBar(scene);
         w.stage.setFullTheme(themeIndex);
         w.applyThemeToAll(scene.getRoot(), themeIndex);
-        w.checkAndUpdateOriginalHash(content);
+        // Einschwingtext aus Preferences laden (nach buildRoot, da die UI-Elemente dort erstellt werden)
+        if (w.einschwingTextArea != null) {
+            w.einschwingTextArea.setText(ttsPrefs.get("einschwing_text", ""));
+        }
+        if (w.einschwingCheckBox != null) {
+            w.einschwingCheckBox.setSelected(ttsPrefs.getBoolean("einschwing_enabled", false));
+        }
         w.loadSegments();
         w.refreshHighlight();
         w.stage.setOnCloseRequest(ev -> {
@@ -361,9 +415,19 @@ public class ChapterTtsEditorWindow {
                 w.saveSegments();
                 w.saveEditorContentToSeparateFile();
             }
+            // Einschwingtext in Preferences speichern
+            if (ttsPrefs != null) {
+                ttsPrefs.put("einschwing_text", w.einschwingTextArea != null ? w.einschwingTextArea.getText() : "");
+                ttsPrefs.putBoolean("einschwing_enabled", w.einschwingCheckBox != null && w.einschwingCheckBox.isSelected());
+            }
         });
         w.stage.show();
-        Platform.runLater(() -> w.scrollEditorToTop());
+        // Hash-Pruefung NACH stage.show(), damit der Diff-Dialog (showAndWait) korrekt angezeigt werden kann
+        final String originalContent = content;
+        Platform.runLater(() -> {
+            w.checkAndUpdateOriginalHash(originalContent);
+            w.scrollEditorToTop();
+        });
     }
 
     /** Scrollt den Textbereich nach dem Laden ganz nach oben. */
@@ -572,6 +636,20 @@ public class ChapterTtsEditorWindow {
 
         comfyuiParamsContainer = new VBox(4);
         ((VBox) comfyuiParamsContainer).getChildren().addAll(tempRow, topPRow, topKRow, repPenRow, highQualityCheck);
+
+        // Einschwingtext: wird dem TTS-Text vorangestellt, damit die Stimme konsistenter einsetzt
+        einschwingCheckBox = new CheckBox("Einschwingtext benutzen");
+        einschwingCheckBox.setSelected(false);
+        einschwingCheckBox.setTooltip(new Tooltip("Wenn aktiv, wird dieser Text vor jedem generierten Segment eingefügt, damit die Stimme \"einschwingt\"."));
+        einschwingTextArea = new TextArea();
+        einschwingTextArea.setPromptText("Text, der vor jedem Segment vorangestellt wird…");
+        einschwingTextArea.setPrefRowCount(3);
+        einschwingTextArea.setWrapText(true);
+        einschwingTextArea.setMaxWidth(Double.MAX_VALUE);
+        einschwingTextArea.disableProperty().bind(einschwingCheckBox.selectedProperty().not());
+        VBox einschwingBox = new VBox(4);
+        einschwingBox.getChildren().addAll(einschwingCheckBox, einschwingTextArea);
+        einschwingBox.setMaxWidth(Double.MAX_VALUE);
 
         // Aussprache-Lexikon: Tabelle (direkte Änderungen werden bei Erstellen/Batch verwendet)
         Label lexiconLabel = new Label("Aussprache-Lexikon (Wort → Ersetzung)");
@@ -813,6 +891,11 @@ public class ChapterTtsEditorWindow {
         statusLabel = new Label(" ");
         statusLabel.setWrapText(true);
 
+        selectionWordCountLabel = new Label("");
+        selectionWordCountLabel.setStyle(String.format(
+            "-fx-text-fill: %s; -fx-font-size: 11px; -fx-font-weight: bold;",
+            THEMES[themeIndex][1]));
+
         editModeLabel = new Label("");
         editModeLabel.setWrapText(true);
         editModeLabel.setVisible(false);
@@ -821,6 +904,30 @@ public class ChapterTtsEditorWindow {
         HBox batchRow = new HBox(8);
         batchRow.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
         batchRow.getChildren().addAll(new Label("Batch:"), batchModeCombo, btnBatchToggle);
+
+        Button btnV3AudioTag = new Button("v3 Text taggen");
+        btnV3AudioTag.setTooltip(new Tooltip("Text über Ollama mit ElevenLabs v3 Audio-Tags anreichern ([laughing], [sighs], [whisper] etc.)"));
+        btnV3AudioTag.setOnAction(e -> tagTextWithV3AudioTags());
+        v3TagProgressIndicator = new ProgressIndicator(-1);
+        v3TagProgressIndicator.setVisible(false);
+        v3TagProgressIndicator.setPrefSize(20, 20);
+        v3TagProgressIndicator.setMaxSize(20, 20);
+        v3TagProgressIndicator.setMinSize(20, 20);
+        v3TagCheckmark = new Label("\u2713");
+        v3TagCheckmark.setStyle("-fx-text-fill: #2e7d32; -fx-font-size: 16px; -fx-font-weight: bold;");
+        v3TagCheckmark.setVisible(false);
+        v3TagCheckmark.setMinSize(20, 20);
+        v3TagCheckmark.setPrefSize(20, 20);
+        v3TagCheckmark.setMaxSize(20, 20);
+        v3TagCheckmark.setAlignment(javafx.geometry.Pos.CENTER);
+        StackPane v3TagIconStack = new StackPane();
+        v3TagIconStack.setMinSize(20, 20);
+        v3TagIconStack.setPrefSize(20, 20);
+        v3TagIconStack.setMaxSize(20, 20);
+        v3TagIconStack.getChildren().addAll(v3TagProgressIndicator, v3TagCheckmark);
+        HBox v3TagRow = new HBox(8);
+        v3TagRow.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        v3TagRow.getChildren().addAll(btnV3AudioTag, v3TagIconStack);
 
         // Linke Spalte: Stimme, Parameter, Segmentfarbe, Player, Buttons, Batch
         VBox leftColumn = new VBox(12);
@@ -833,6 +940,7 @@ public class ChapterTtsEditorWindow {
             voiceDescriptionContainer,
             segmentColorLabel, colorPalette,
             playerBox,
+            selectionWordCountLabel,
             editModeLabel,
             erstellenRow, btnSpeichern,
             new Separator(),
@@ -841,6 +949,7 @@ public class ChapterTtsEditorWindow {
             btnGesamtAudiodatei,
             new Separator(),
             batchRow,
+            v3TagRow,
             statusLabel
         );
         VBox.setVgrow(statusLabel, Priority.ALWAYS);
@@ -853,7 +962,8 @@ public class ChapterTtsEditorWindow {
         lexiconBox.setMaxWidth(Double.MAX_VALUE);
         regieanweisungenBox.setMaxWidth(Double.MAX_VALUE);
         VBox.setVgrow(lexiconBox, Priority.ALWAYS);
-        rightColumn.getChildren().addAll(lexiconBox, regieanweisungenBox);
+        einschwingBox.setMaxWidth(Double.MAX_VALUE);
+        rightColumn.getChildren().addAll(einschwingBox, lexiconBox, regieanweisungenBox);
         loadRegieanweisungen();
 
         HBox twoCol = new HBox(16);
@@ -1398,6 +1508,96 @@ public class ChapterTtsEditorWindow {
         setStatus("Lexikon aus dem Text entfernt (" + entries.size() + " Einträge, " + segments.size() + " Segmente angepasst).");
     }
 
+    /**
+     * Sendet den Editortext an Ollama, um ihn mit ElevenLabs v3 Audio-Tags
+     * anzureichern ([laughing], [sighs], [whisper] etc.).
+     * Der getaggte Text ersetzt anschließend den Editorinhalt.
+     */
+    private void tagTextWithV3AudioTags() {
+        if (codeArea == null) return;
+        String text = codeArea.getText();
+        if (text == null || text.isBlank()) {
+            setStatus("Editor ist leer – nichts zum Taggen.");
+            return;
+        }
+        // Vorhandene Segmente warnen
+        if (!segments.isEmpty()) {
+            CustomAlert confirm = DialogFactory.createConfirmationAlert(
+                    "v3 Audio-Tagging",
+                    "Vorhandene Segmente",
+                    "Der Text wird verändert. Bestehende TTS-Segmente werden dadurch ungültig und entfernt. Fortfahren?",
+                    stage);
+            confirm.applyTheme(themeIndex);
+            var result = confirm.showAndWait();
+            if (result.isEmpty() || result.get() != ButtonType.OK) return;
+        }
+
+        setStatus("v3 Audio-Tagging läuft (Ollama: gemma3:4b) …");
+
+        // Busy-Indicator anzeigen
+        if (v3TagProgressIndicator != null) v3TagProgressIndicator.setVisible(true);
+        if (v3TagCheckmark != null) v3TagCheckmark.setVisible(false);
+
+        // num_predict großzügig: Text + Tags brauchen ca. 30 % mehr Tokens als der Originaltext
+        int estimatedTokens = Math.max(4096, text.length());
+
+        CompletableFuture.runAsync(() -> {
+            try {
+                OllamaService ollama = new OllamaService();
+                // Bewusst NICHT das gespeicherte Modell aus OllamaWindow laden –
+                // trainierte Modelle ignorieren System-Prompt-Overrides und geben
+                // statt Audio-Tags Schreibfeedback. Das Basismodell (gemma3:4b) funktioniert.
+                // Generate-API mit explizitem system-Feld verwenden:
+                String userPrompt = V3_AUDIO_TAG_PROMPT + text;
+                String taggedText = ollama.generateWithSystem(
+                        V3_AUDIO_TAG_SYSTEM, userPrompt,
+                        estimatedTokens, 0.3, 0.9, 1.1).join();
+
+                if (taggedText == null || taggedText.isBlank()) {
+                    Platform.runLater(() -> {
+                        if (v3TagProgressIndicator != null) v3TagProgressIndicator.setVisible(false);
+                        setStatus("v3 Audio-Tagging: Leere Antwort von Ollama.");
+                    });
+                    return;
+                }
+                // Markdown-Code-Fences entfernen, falls das Modell sie zurückgibt
+                taggedText = taggedText.strip();
+                if (taggedText.startsWith("```")) {
+                    int firstNewline = taggedText.indexOf('\n');
+                    if (firstNewline > 0) taggedText = taggedText.substring(firstNewline + 1);
+                }
+                if (taggedText.endsWith("```")) {
+                    taggedText = taggedText.substring(0, taggedText.length() - 3);
+                }
+                taggedText = taggedText.strip();
+
+                final String finalText = taggedText;
+                Platform.runLater(() -> {
+                    // Spinner aus, Häkchen an
+                    if (v3TagProgressIndicator != null) v3TagProgressIndicator.setVisible(false);
+                    if (v3TagCheckmark != null) {
+                        v3TagCheckmark.setVisible(true);
+                        PauseTransition hideCheck = new PauseTransition(Duration.seconds(15));
+                        hideCheck.setOnFinished(ev -> v3TagCheckmark.setVisible(false));
+                        hideCheck.play();
+                    }
+                    // Segmente entfernen, da Positionen durch Tags verschoben sind
+                    segments.clear();
+                    saveSegments();
+                    codeArea.replaceText(finalText);
+                    refreshHighlight();
+                    setStatus("v3 Audio-Tags eingefügt. Bitte Text prüfen.");
+                });
+            } catch (Exception ex) {
+                logger.error("v3 Audio-Tagging fehlgeschlagen", ex);
+                Platform.runLater(() -> {
+                    if (v3TagProgressIndicator != null) v3TagProgressIndicator.setVisible(false);
+                    setStatus("v3 Audio-Tagging Fehler: " + ex.getMessage());
+                });
+            }
+        });
+    }
+
     private void loadRegieanweisungen() {
         if (regieanweisungenPath == null || !Files.isRegularFile(regieanweisungenPath)) return;
         try {
@@ -1662,10 +1862,37 @@ public class ChapterTtsEditorWindow {
         return TRAIL_SILENCE_SECONDS;
     }
 
+    /** Aktualisiert den Wortzaehler fuer die aktuelle Textselektion. */
+    private void updateSelectionWordCount() {
+        if (selectionWordCountLabel == null || codeArea == null) return;
+        String sel = codeArea.getSelectedText();
+        if (sel == null || sel.isBlank()) {
+            selectionWordCountLabel.setText("");
+            return;
+        }
+        String[] words = sel.trim().split("\\s+");
+        int wordCount = words.length;
+        int charCount = sel.length();
+        selectionWordCountLabel.setText("Selektion: " + wordCount + (wordCount == 1 ? " Wort" : " W\u00f6rter") + ", " + charCount + " Zeichen");
+    }
+
     /** Liefert die aktuell auf dem Haupt-Tab eingetragene Stimmbeschreibung (wird beim Generieren mitgegeben). */
     private String getEffectiveVoiceDescription() {
         if (voiceDescriptionArea == null || voiceDescriptionArea.getText() == null) return "";
         return voiceDescriptionArea.getText().trim();
+    }
+
+    /**
+     * Stellt ggf. den Einschwingtext dem übergebenen TTS-Text voran.
+     * Liefert den zusammengesetzten Text zurück.  Wenn die Checkbox deaktiviert ist oder
+     * der Einschwingtext leer ist, wird der Originaltext unverändert zurückgegeben.
+     */
+    private String prependEinschwingText(String ttsText) {
+        if (einschwingCheckBox == null || !einschwingCheckBox.isSelected()) return ttsText;
+        String prefix = einschwingTextArea.getText();
+        if (prefix == null || prefix.isBlank()) return ttsText;
+        // Leerzeichen als Trenner sicherstellen
+        return prefix.trim() + " " + ttsText;
     }
 
     /** Lädt asynchron das ElevenLabs-Zeichen-Guthaben (GET /v1/user/subscription) und aktualisiert die Anzeige. */
@@ -1859,7 +2086,10 @@ public class ChapterTtsEditorWindow {
         scrollPane.setStyle("-fx-padding: 5px;");
 
         // Bei Auswahländerung Highlight verzögert aktualisieren, damit Drag/Shift+Pfeil die Auswahl nicht sofort überschreiben (v. a. im Bearbeitungsmodus)
-        codeArea.selectionProperty().addListener((o, a, b) -> Platform.runLater(() -> refreshHighlight()));
+        codeArea.selectionProperty().addListener((o, a, b) -> Platform.runLater(() -> {
+            refreshHighlight();
+            updateSelectionWordCount();
+        }));
         codeArea.textProperty().addListener((o, oldText, newText) -> {
             if (oldText != null && newText != null && !oldText.equals(newText))
                 adjustSegmentsForTextChange(oldText, newText);
@@ -2128,6 +2358,7 @@ public class ChapterTtsEditorWindow {
             selectedSegmentForColor = null;
         }
         saveSegments();
+        cleanupOrphanedAudioFiles();
         refreshHighlight();
         setStatus("Segment gelöscht.");
     }
@@ -2249,18 +2480,34 @@ public class ChapterTtsEditorWindow {
 
     /** Erzeugt eine Signatur aus Text + aktuellen TTS-Parametern für Vergleich „unverändert“. Werte explizit formatiert, damit jede Änderung (z. B. Temperatur, ElevenLabs-Modell) erkannt wird. */
     private String buildTtsRequestSignature(String selectedText, ComfyUIClient.SavedVoice voice, double temp, double topP, int topK, double repPen, boolean hq) {
-        String voiceName = voice != null ? voice.getName() : "";
-        String modelPart = "";
-        if (voice != null && "elevenlabs".equalsIgnoreCase(voice.getProvider()) && elevenLabsModelCombo != null) {
-            String m = elevenLabsModelCombo.getSelectionModel().getSelectedItem();
-            modelPart = "|" + (m != null ? m : "");
+        StringBuilder sb = new StringBuilder();
+        sb.append(selectedText);
+        sb.append("|").append(voice != null ? voice.getName() : "");
+        sb.append("|").append(String.format(java.util.Locale.ROOT, "%.4f", temp));
+        sb.append("|").append(String.format(java.util.Locale.ROOT, "%.4f", topP));
+        sb.append("|").append(topK);
+        sb.append("|").append(String.format(java.util.Locale.ROOT, "%.4f", repPen));
+        sb.append("|").append(hq);
+        sb.append("|vd:").append(getEffectiveVoiceDescription());
+        sb.append("|seed:").append(currentSeedForGeneration);
+        sb.append("|spk:").append(currentSpeakerIdForGeneration != null ? currentSpeakerIdForGeneration : "");
+        if (voice != null && "elevenlabs".equalsIgnoreCase(voice.getProvider())) {
+            if (elevenLabsModelCombo != null) {
+                String m = elevenLabsModelCombo.getSelectionModel().getSelectedItem();
+                sb.append("|elm:").append(m != null ? m : "");
+            }
+            sb.append("|sta:").append(String.format(java.util.Locale.ROOT, "%.4f", voice.getElevenLabsStability()));
+            sb.append("|sim:").append(String.format(java.util.Locale.ROOT, "%.4f", voice.getElevenLabsSimilarityBoost()));
+            sb.append("|spd:").append(String.format(java.util.Locale.ROOT, "%.4f", voice.getElevenLabsSpeed()));
+            sb.append("|spb:").append(voice.isElevenLabsUseSpeakerBoost());
+            sb.append("|sty:").append(String.format(java.util.Locale.ROOT, "%.4f", voice.getElevenLabsStyle()));
+            sb.append("|vid:").append(voice.getElevenLabsVoiceId() != null ? voice.getElevenLabsVoiceId() : "");
         }
-        return selectedText + "|" + voiceName
-            + "|" + String.format(java.util.Locale.ROOT, "%.4f", temp)
-            + "|" + String.format(java.util.Locale.ROOT, "%.4f", topP)
-            + "|" + topK
-            + "|" + String.format(java.util.Locale.ROOT, "%.4f", repPen)
-            + "|" + hq + modelPart;
+        if (voice != null && voice.isVoiceClone()) {
+            sb.append("|ref:").append(voice.getRefAudioPath() != null ? voice.getRefAudioPath() : "");
+            sb.append("|trn:").append(voice.getVoiceCloneTranscript() != null ? voice.getVoiceCloneTranscript() : "");
+        }
+        return sb.toString();
     }
 
     private void createTtsForSelection() {
@@ -2281,11 +2528,7 @@ public class ChapterTtsEditorWindow {
         boolean hq = highQualityCheck.isSelected();
         String signature = buildTtsRequestSignature(sel, voice, temp, topP, topK, repPen, hq);
 
-        if (signature.equals(lastGeneratedSignature) && lastGeneratedAudioPath != null && Files.isRegularFile(lastGeneratedAudioPath)) {
-            loadAudioInPlayer(lastGeneratedAudioPath);
-            setStatus("Unverändert; letzte Erzeugung wird verwendet.");
-            return;
-        }
+        // Kein Signatur-Check mehr: Wenn der User "Erstellen" drückt, wird immer neu generiert.
         if (isTtsGenerationRunning) {
             setStatus("Erzeugung läuft bereits…");
             return;
@@ -2329,11 +2572,13 @@ public class ChapterTtsEditorWindow {
         progressIndicator.setVisible(true);
         btnErstellen.setDisable(true);
         setStatus("Erzeuge Sprachausgabe…");
+        final long effectiveSeed = seed;
+        final String ttsText = prependEinschwingText(sel);
         CompletableFuture.runAsync(() -> {
             try {
                 java.util.Map<String, String> lexicon = getLexiconFromTable();
                 Path path = Files.createTempFile("manuskript-tts-", ".mp3");
-                TtsBackend.generateTtsToFile(sel, effectiveVoice, lexicon, path, true, null);
+                TtsBackend.generateTtsToFile(ttsText, effectiveVoice, lexicon, path, true, null, effectiveSeed);
                 Path p = path;
                 String sig = signature;
                 Platform.runLater(() -> {
@@ -2362,14 +2607,14 @@ public class ChapterTtsEditorWindow {
                     isTtsGenerationRunning = false;
                     progressIndicator.setVisible(false);
                     btnErstellen.setDisable(false);
+                    CustomAlert errAlert = DialogFactory.createErrorAlert("TTS-Fehler", "Sprachausgabe fehlgeschlagen", msg, stage);
+                    errAlert.applyTheme(themeIndex);
+                    errAlert.showAndWait();
                     if (lastGeneratedAudioPath != null && Files.isRegularFile(lastGeneratedAudioPath)) {
                         loadAudioInPlayer(lastGeneratedAudioPath);
-                        setStatus("ComfyUI hat die Anfrage abgelehnt; letzte Erzeugung wird verwendet.");
+                        setStatus("Fehler – letzte Erzeugung wird abgespielt.");
                     } else {
                         setStatus("Fehler: " + msg);
-                        CustomAlert errAlert = DialogFactory.createErrorAlert("TTS-Fehler", "Sprachausgabe", "Erzeugen fehlgeschlagen: " + msg, stage);
-                        errAlert.applyTheme(themeIndex);
-                        errAlert.showAndWait();
                     }
                 });
             }
@@ -2680,10 +2925,18 @@ public class ChapterTtsEditorWindow {
         btnBatchToggle.setOnAction(ev -> batchCancelled = true);
         batchModeCombo.setDisable(true);
         setStatus("Batch: " + unmarked.size() + " " + (byParagraph ? "Absatz/Absätze" : "Satz/Sätze") + " werden nacheinander gerendert. „Batch beenden“ zum Unterbrechen.");
-        TTS_EXECUTOR.execute(() -> runBatch(unmarked, fullText, voice, byParagraph));
+        // Einschwingtext auf FX-Thread lesen, bevor der Hintergrund-Thread startet
+        final String einschwingPrefix;
+        if (einschwingCheckBox != null && einschwingCheckBox.isSelected()
+                && einschwingTextArea.getText() != null && !einschwingTextArea.getText().isBlank()) {
+            einschwingPrefix = einschwingTextArea.getText().trim();
+        } else {
+            einschwingPrefix = null;
+        }
+        TTS_EXECUTOR.execute(() -> runBatch(unmarked, fullText, voice, byParagraph, einschwingPrefix));
     }
 
-    private void runBatch(List<int[]> unmarked, String fullText, ComfyUIClient.SavedVoice voice, boolean byParagraph) {
+    private void runBatch(List<int[]> unmarked, String fullText, ComfyUIClient.SavedVoice voice, boolean byParagraph, String einschwingPrefix) {
         final int[] doneRef = new int[] { 0 };
         int total = unmarked.size();
         double temp = temperatureSlider.getValue();
@@ -2719,9 +2972,10 @@ public class ChapterTtsEditorWindow {
             int start = r[0], end = r[1];
             String text = fullText.substring(start, end).trim();
             if (text.isEmpty()) continue;
+            String ttsText = (einschwingPrefix != null) ? (einschwingPrefix + " " + text) : text;
             try {
                 Path tempPath = Files.createTempFile("manuskript-batch-", ".mp3");
-                TtsBackend.generateTtsToFile(text, effectiveVoice, lexicon, tempPath, true, null);
+                TtsBackend.generateTtsToFile(ttsText, effectiveVoice, lexicon, tempPath, true, null, seed);
                 saveBatchSegment(start, end, tempPath, voiceName, temp, topP, topK, repPen, hq, effectiveVoice);
                 doneRef[0]++;
                 final int d = doneRef[0];
@@ -3259,11 +3513,15 @@ public class ChapterTtsEditorWindow {
     }
 
     /**
-     * Wendet Audiobook-Filterchain auf eine Audiodatei an (1-Pass):
+     * Wendet Audiobook-Filterchain auf eine Audiodatei an:
      * 1. Vorhandene Stille am Anfang entfernen (silenceremove)
      * 2. Lead-Silence einfügen + Fade-in
      * 3. Trail-Silence (reine Stille) am Ende anfügen
      * 4. Stereo/Mono + CBR
+     * 5. 2-Pass Loudness-Normalisierung (EBU R128 / ACX-konform):
+     *    – Integrated Loudness: –20 LUFS (Zielbereich –23 bis –18 dBFS)
+     *    – True Peak: max. –3 dBFS
+     *    – LRA (Loudness Range): 7
      *
      * @return null bei Erfolg, sonst Fehlermeldung
      */
@@ -3295,38 +3553,41 @@ public class ChapterTtsEditorWindow {
             af.append("apad=pad_dur=").append(String.format(java.util.Locale.ROOT, "%.2f", trailSilenceSec));
         }
 
-        // Kommando zusammenbauen
-        List<String> cmd = new ArrayList<>();
-        cmd.add(ffmpegExe);
-        cmd.add("-y");
-        cmd.add("-loglevel");
-        cmd.add("warning");
-        cmd.add("-i");
-        cmd.add(input.toAbsolutePath().toString());
-
-        if (af.length() > 0) {
-            cmd.add("-af");
-            cmd.add(af.toString());
-        }
-
-        cmd.add("-ac");
-        cmd.add(stereo ? "2" : "1");
-        cmd.add("-ar");
-        cmd.add("44100");
-        cmd.add("-c:a");
-        cmd.add("libmp3lame");
-        if (bitrateKbps > 0) {
-            cmd.add("-b:a");
-            cmd.add(bitrateKbps + "k");
-        }
-        cmd.add(output.toAbsolutePath().toString());
-
-        if (logCommandsToConsole) {
-            System.out.println("--- FFmpeg (Audiobook-Filter: Trim + Fade-in + Stille + Stereo/CBR), zum Einfügen in cmd ---");
-            System.out.println(formatCommandForCmd(cmd));
-        }
-
+        // --- Schritt 1: Bestehende Filterchain anwenden → Temp-Datei ---
+        Path tempProcessed = null;
         try {
+            tempProcessed = Files.createTempFile("manuskript-abfilter-", ".mp3");
+
+            List<String> cmd = new ArrayList<>();
+            cmd.add(ffmpegExe);
+            cmd.add("-y");
+            cmd.add("-loglevel");
+            cmd.add("warning");
+            cmd.add("-i");
+            cmd.add(input.toAbsolutePath().toString());
+
+            if (af.length() > 0) {
+                cmd.add("-af");
+                cmd.add(af.toString());
+            }
+
+            cmd.add("-ac");
+            cmd.add(stereo ? "2" : "1");
+            cmd.add("-ar");
+            cmd.add("44100");
+            cmd.add("-c:a");
+            cmd.add("libmp3lame");
+            if (bitrateKbps > 0) {
+                cmd.add("-b:a");
+                cmd.add(bitrateKbps + "k");
+            }
+            cmd.add(tempProcessed.toAbsolutePath().toString());
+
+            if (logCommandsToConsole) {
+                System.out.println("--- FFmpeg (Audiobook-Filter: Trim + Fade-in + Stille + Stereo/CBR), zum Einfügen in cmd ---");
+                System.out.println(formatCommandForCmd(cmd));
+            }
+
             java.io.File errLog = java.io.File.createTempFile("ffmpeg-abfilter-", ".log");
             try {
                 ProcessBuilder pb = new ProcessBuilder(cmd);
@@ -3336,13 +3597,147 @@ public class ChapterTtsEditorWindow {
                 int exit = proc.waitFor();
                 String err = Files.readString(errLog.toPath(), StandardCharsets.UTF_8).trim();
                 if (exit != 0) return err.isEmpty() ? "FFmpeg Audiobook-Filter beendet mit Code " + exit : err;
-                return null;
             } finally {
                 try { errLog.delete(); } catch (Exception ignored) { }
             }
+
+            // --- Schritt 2: 2-Pass Loudness-Normalisierung (ACX-konform) ---
+            String loudnormResult = applyLoudnessNormalization(ffmpegExe, tempProcessed, output,
+                    bitrateKbps, stereo, logCommandsToConsole);
+            if (loudnormResult != null) return loudnormResult;
+
+            return null;
         } catch (Exception e) {
             return "FFmpeg Audiobook-Filter: " + e.getMessage();
+        } finally {
+            if (tempProcessed != null) {
+                try { Files.deleteIfExists(tempProcessed); } catch (IOException ignored) { }
+            }
         }
+    }
+
+    /**
+     * 2-Pass Loudness-Normalisierung nach EBU R128 / ACX-Standard.
+     * <ul>
+     *   <li>Pass 1: Messung der aktuellen Lautstärke mit {@code loudnorm print_format=json}</li>
+     *   <li>Pass 2: Normalisierung mit gemessenen Werten auf Zielwerte:
+     *       Integrated Loudness –20 LUFS, True Peak –3 dBFS, LRA 7</li>
+     * </ul>
+     *
+     * @return null bei Erfolg, sonst Fehlermeldung
+     */
+    private static String applyLoudnessNormalization(String ffmpegExe, Path input, Path output,
+                                                      int bitrateKbps, boolean stereo,
+                                                      boolean logCommandsToConsole) {
+        try {
+            // --- Pass 1: Messung ---
+            List<String> measureCmd = new ArrayList<>(List.of(
+                ffmpegExe, "-y", "-loglevel", "info",
+                "-i", input.toAbsolutePath().toString(),
+                "-af", "loudnorm=I=-20:TP=-3:LRA=7:print_format=json",
+                "-f", "null", "-"
+            ));
+
+            if (logCommandsToConsole) {
+                System.out.println("--- FFmpeg (Loudnorm Pass 1: Messung) ---");
+                System.out.println(formatCommandForCmd(measureCmd));
+            }
+
+            ProcessBuilder pb1 = new ProcessBuilder(measureCmd);
+            pb1.redirectErrorStream(true);
+            Process proc1 = pb1.start();
+            String measureOutput = new String(proc1.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+            int exit1 = proc1.waitFor();
+            if (exit1 != 0) return "Loudnorm-Messung fehlgeschlagen (Code " + exit1 + ")";
+
+            // JSON-Block aus der ffmpeg-Ausgabe extrahieren (steht am Ende)
+            int jsonStart = measureOutput.lastIndexOf('{');
+            int jsonEnd = measureOutput.lastIndexOf('}');
+            if (jsonStart < 0 || jsonEnd < 0 || jsonEnd <= jsonStart) {
+                return "Loudnorm-Messung: JSON nicht in ffmpeg-Ausgabe gefunden";
+            }
+            String json = measureOutput.substring(jsonStart, jsonEnd + 1);
+
+            String measuredI = extractLoudnormJsonValue(json, "input_i");
+            String measuredTP = extractLoudnormJsonValue(json, "input_tp");
+            String measuredLRA = extractLoudnormJsonValue(json, "input_lra");
+            String measuredThresh = extractLoudnormJsonValue(json, "input_thresh");
+            String targetOffset = extractLoudnormJsonValue(json, "target_offset");
+
+            if (measuredI == null || measuredTP == null || measuredLRA == null
+                    || measuredThresh == null || targetOffset == null) {
+                return "Loudnorm-Messung: Werte konnten nicht aus JSON extrahiert werden";
+            }
+
+            logger.info("Loudnorm-Messung: I={} LUFS, TP={} dBFS, LRA={}, Thresh={}, Offset={}",
+                    measuredI, measuredTP, measuredLRA, measuredThresh, targetOffset);
+
+            // --- Pass 2: Normalisierung mit gemessenen Werten ---
+            String loudnormFilter = String.format(java.util.Locale.ROOT,
+                "loudnorm=I=-20:TP=-3:LRA=7:measured_I=%s:measured_TP=%s:measured_LRA=%s:measured_thresh=%s:offset=%s:linear=true",
+                measuredI, measuredTP, measuredLRA, measuredThresh, targetOffset);
+
+            List<String> normalizeCmd = new ArrayList<>();
+            normalizeCmd.add(ffmpegExe);
+            normalizeCmd.add("-y");
+            normalizeCmd.add("-loglevel");
+            normalizeCmd.add("warning");
+            normalizeCmd.add("-i");
+            normalizeCmd.add(input.toAbsolutePath().toString());
+            normalizeCmd.add("-af");
+            normalizeCmd.add(loudnormFilter);
+            normalizeCmd.add("-ac");
+            normalizeCmd.add(stereo ? "2" : "1");
+            normalizeCmd.add("-ar");
+            normalizeCmd.add("44100");
+            normalizeCmd.add("-c:a");
+            normalizeCmd.add("libmp3lame");
+            if (bitrateKbps > 0) {
+                normalizeCmd.add("-b:a");
+                normalizeCmd.add(bitrateKbps + "k");
+            }
+            normalizeCmd.add(output.toAbsolutePath().toString());
+
+            if (logCommandsToConsole) {
+                System.out.println("--- FFmpeg (Loudnorm Pass 2: Normalisierung) ---");
+                System.out.println(formatCommandForCmd(normalizeCmd));
+            }
+
+            java.io.File errLog = java.io.File.createTempFile("ffmpeg-loudnorm-", ".log");
+            try {
+                ProcessBuilder pb2 = new ProcessBuilder(normalizeCmd);
+                pb2.redirectError(errLog);
+                pb2.redirectOutput(ProcessBuilder.Redirect.DISCARD);
+                Process proc2 = pb2.start();
+                int exit2 = proc2.waitFor();
+                String err = Files.readString(errLog.toPath(), StandardCharsets.UTF_8).trim();
+                if (exit2 != 0) return err.isEmpty() ? "Loudnorm-Normalisierung fehlgeschlagen (Code " + exit2 + ")" : err;
+            } finally {
+                try { errLog.delete(); } catch (Exception ignored) { }
+            }
+
+            logger.info("Loudness-Normalisierung abgeschlossen → {}", output.getFileName());
+            return null;
+        } catch (Exception e) {
+            return "Loudness-Normalisierung: " + e.getMessage();
+        }
+    }
+
+    /**
+     * Extrahiert einen String-Wert aus dem loudnorm-JSON-Block.
+     * Erwartet Format: {@code "key" : "value"}.
+     */
+    private static String extractLoudnormJsonValue(String json, String key) {
+        String pattern = "\"" + key + "\"";
+        int idx = json.indexOf(pattern);
+        if (idx < 0) return null;
+        int colonIdx = json.indexOf(':', idx + pattern.length());
+        if (colonIdx < 0) return null;
+        int quoteStart = json.indexOf('"', colonIdx + 1);
+        if (quoteStart < 0) return null;
+        int quoteEnd = json.indexOf('"', quoteStart + 1);
+        if (quoteEnd < 0) return null;
+        return json.substring(quoteStart + 1, quoteEnd).trim();
     }
 
     /** Wie {@link #concatMp3FilesWithPause(List, Path, double, int, boolean)} mit FULL_AUDIO_PAUSE_SECONDS und aktueller Qualitätsauswahl. */
@@ -3398,6 +3793,49 @@ public class ChapterTtsEditorWindow {
             refreshHighlight();
             setStatus(toRemove.size() + " ungültige Segment(e) entfernt (Textbereich passte nicht mehr).");
         }
+        // Verwaiste Audio-Dateien aufräumen (block_XXX.mp3, die kein Segment mehr referenziert)
+        cleanupOrphanedAudioFiles();
+    }
+
+    /**
+     * Löscht block_XXX.mp3-Dateien im Audio-Verzeichnis, die von keinem Segment referenziert werden.
+     * Wird nach removeOrphanedSegments() und nach dem Löschen einzelner Segmente aufgerufen.
+     */
+    private void cleanupOrphanedAudioFiles() {
+        if (audioDirPath == null || !Files.isDirectory(audioDirPath)) {
+            logger.info("cleanupOrphanedAudioFiles: audioDirPath={} existiert nicht oder ist null", audioDirPath);
+            return;
+        }
+        // Alle von Segmenten referenzierten Dateien sammeln (normalisierte Dateinamen)
+        Set<String> referencedFileNames = new HashSet<>();
+        for (TtsSegment seg : segments) {
+            if (seg.audioPath != null && !seg.audioPath.isEmpty()) {
+                String fileName = Paths.get(seg.audioPath).getFileName().toString().toLowerCase(java.util.Locale.ROOT);
+                referencedFileNames.add(fileName);
+            }
+        }
+        logger.info("cleanupOrphanedAudioFiles: {} Segmente, referenzierte Dateien: {}", segments.size(), referencedFileNames);
+        // Alle block_*.mp3 im Audio-Verzeichnis prüfen
+        int deleted = 0;
+        int total = 0;
+        try (java.nio.file.DirectoryStream<Path> stream = Files.newDirectoryStream(audioDirPath, "block_*.mp3")) {
+            for (Path file : stream) {
+                total++;
+                String fileName = file.getFileName().toString().toLowerCase(java.util.Locale.ROOT);
+                if (!referencedFileNames.contains(fileName)) {
+                    try {
+                        Files.delete(file);
+                        deleted++;
+                        logger.info("Verwaiste Audio-Datei gelöscht: {}", file.getFileName());
+                    } catch (IOException e) {
+                        logger.warn("Verwaiste Audio-Datei konnte nicht gelöscht werden: {}", file, e);
+                    }
+                }
+            }
+        } catch (IOException e) {
+            logger.warn("Fehler beim Aufräumen verwaister Audio-Dateien in {}", audioDirPath, e);
+        }
+        logger.info("cleanupOrphanedAudioFiles: {} Dateien im Ordner, {} gelöscht, {} behalten.", total, deleted, total - deleted);
     }
 
     private void saveSegments() {
@@ -3413,9 +3851,8 @@ public class ChapterTtsEditorWindow {
     }
 
     /**
-     * Beim ersten Öffnen: Hash des Original-MD speichern.
-     * Bei erneutem Öffnen: wenn sich der Originaltext geändert hat, Warnung anzeigen;
-     * „Änderungen anerkennen“ speichert den neuen Hash.
+     * Beim ersten Oeffnen: Hash des Original-MD speichern.
+     * Bei erneutem Oeffnen: wenn sich der Originaltext geaendert hat, Diff-Dialog mit selektiver Uebernahme zeigen.
      */
     private void checkAndUpdateOriginalHash(String currentOriginalContent) {
         if (originalHashPath == null || currentOriginalContent == null) return;
@@ -3428,22 +3865,457 @@ public class ChapterTtsEditorWindow {
             }
             String savedHash = Files.readString(originalHashPath, StandardCharsets.UTF_8).trim();
             if (currentHash.equals(savedHash)) return;
-            // Originaltext wurde geändert – Warnung mit Option „Änderungen anerkennen“
-            CustomAlert alert = DialogFactory.createConfirmationAlert(
-                "Kapiteltext geändert",
-                "Der Originaltext dieses Kapitels wurde seit der letzten Nutzung geändert.",
-                "Möchten Sie die Änderungen anerkennen? Dann wird der aktuelle Stand als Referenz gespeichert und die Warnung verschwindet beim nächsten Öffnen.",
-                stage
-            );
-            alert.applyTheme(themeIndex);
-            Optional<ButtonType> result = alert.showAndWait();
-            if (result.isPresent() && result.get() == ButtonType.OK) {
+
+            // Originaltext wurde geaendert – zuerst fragen, was der Nutzer tun will
+            String ttsContent = codeArea != null ? codeArea.getText() : "";
+            DiffProcessor.DiffResult diffResult = DiffProcessor.createDiff(ttsContent, currentOriginalContent);
+            if (!diffResult.hasChanges()) {
                 Files.writeString(originalHashPath, currentHash, StandardCharsets.UTF_8);
+                return;
             }
+
+            // Vorab-Dialog: Diff anzeigen oder ignorieren?
+            ButtonType btnDiff = new ButtonType("Diff anzeigen");
+            ButtonType btnIgnore = new ButtonType("Ignorieren");
+            ButtonType btnCancel = new ButtonType("Abbrechen", ButtonBar.ButtonData.CANCEL_CLOSE);
+            CustomAlert ask = DialogFactory.createConfirmationAlert(
+                    "Kapiteltext geaendert",
+                    "Originaltext wurde geaendert",
+                    "Der Originaltext dieses Kapitels wurde seit der letzten Bearbeitung im TTS-Editor geaendert.\nMoechten Sie die Aenderungen im Diff sehen?",
+                    stage);
+            ask.setButtonTypes(btnDiff, btnIgnore, btnCancel);
+            ask.applyTheme(themeIndex);
+            Optional<ButtonType> choice = ask.showAndWait();
+            if (choice.isPresent() && choice.get() == btnDiff) {
+                showOriginalChangedDiffDialog(ttsContent, currentOriginalContent, diffResult, currentHash);
+            } else if (choice.isPresent() && choice.get() == btnIgnore) {
+                Files.writeString(originalHashPath, currentHash, StandardCharsets.UTF_8);
+                setStatus("Aenderungen ignoriert – Hash aktualisiert.");
+            }
+            // Bei Abbrechen: nichts tun, Dialog kommt beim naechsten Oeffnen wieder
         } catch (IOException e) {
-            logger.warn("Hash-Prüfung für TTS-Original konnte nicht durchgeführt werden: {}", originalHashPath, e);
+            logger.warn("Hash-Pruefung fuer TTS-Original: {}", originalHashPath, e);
         }
     }
+
+    /**
+     * Zeigt einen Diff-Dialog, wenn sich das Original seit dem letzten TTS-Editor-Stand geaendert hat.
+     * Links: aktueller TTS-Editor-Text, Rechts: neues Original mit Checkboxen zur selektiven Uebernahme.
+     */
+    private void showOriginalChangedDiffDialog(String ttsContent, String originalContent,
+                                                DiffProcessor.DiffResult diffResult, String newOriginalHash) {
+        int ti = Math.max(0, Math.min(themeIndex, THEMES.length - 1));
+        String themeBg = THEMES[ti][0];
+        String themeFg = THEMES[ti][1];
+        String themeAccent = THEMES[ti].length > 2 ? THEMES[ti][2] : themeFg;
+
+        CustomStage diffStage = StageManager.createDiffStage("Original geaendert: " + chapterName, stage);
+
+        VBox root = new VBox(10);
+        root.setPadding(new Insets(15));
+        root.setPrefWidth(1600);
+        root.setPrefHeight(900);
+        root.setStyle(String.format("-fx-background-color: %s; -fx-border-color: %s; -fx-border-width: 2px;", themeBg, themeAccent));
+
+        Label title = new Label("Der Originaltext wurde geaendert. Aenderungen in den TTS-Editor uebernehmen?");
+        title.setStyle(String.format("-fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: %s;", themeFg));
+        title.setWrapText(true);
+
+        // --- Bloecke bilden ---
+        List<DiffBlock> blocks = groupDiffIntoBlocks(diffResult.getDiffLines());
+        List<CheckBox> blockCheckBoxes = new ArrayList<>();
+
+        // --- ContentBox ---
+        HBox contentBox = new HBox(10);
+        contentBox.setPrefHeight(750);
+        contentBox.setStyle("-fx-background-color: transparent;");
+
+        // --- Linke Seite: TTS-Editor (aktuell) ---
+        VBox leftBox = new VBox(5);
+        leftBox.setPrefWidth(750);
+        leftBox.setMinWidth(750);
+        leftBox.setMaxWidth(750);
+        leftBox.setStyle(String.format("-fx-background-color: %s; -fx-border-color: %s; -fx-border-width: 2px;", themeBg, themeAccent));
+        leftBox.setPadding(new Insets(10));
+
+        Label leftLabel = new Label("TTS-Editor (aktuell)");
+        leftLabel.setStyle(String.format("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: %s;", themeFg));
+
+        ScrollPane leftScrollPane = new ScrollPane();
+        leftScrollPane.setStyle("-fx-background-color: transparent;");
+        VBox leftContentBox = new VBox(0);
+        leftContentBox.setPadding(new Insets(5));
+        leftContentBox.setStyle("-fx-background-color: transparent;");
+
+        // --- Rechte Seite: Neues Original mit Checkboxen ---
+        VBox rightBox = new VBox(5);
+        rightBox.setPrefWidth(750);
+        rightBox.setMinWidth(750);
+        rightBox.setMaxWidth(750);
+        rightBox.setStyle(String.format("-fx-background-color: %s; -fx-border-color: %s; -fx-border-width: 2px;", themeBg, themeAccent));
+        rightBox.setPadding(new Insets(10));
+
+        Label rightLabel = new Label("Neues Original - Aenderungen auswaehlen:");
+        rightLabel.setStyle(String.format("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: %s;", themeFg));
+
+        ScrollPane rightScrollPane = new ScrollPane();
+        rightScrollPane.setStyle("-fx-background-color: transparent;");
+        VBox rightContentBox = new VBox(0);
+        rightContentBox.setPadding(new Insets(5));
+        rightContentBox.setStyle("-fx-background-color: transparent;");
+
+        // --- Bloecke zeilenweise rendern (wie MainController) ---
+        for (int bi = 0; bi < blocks.size(); bi++) {
+            DiffBlock block = blocks.get(bi);
+
+            // DELETED+ADDED Paar: gepaart rendern (gleiche Zeilen nebeneinander)
+            if (block.type == DiffBlockType.DELETED && bi + 1 < blocks.size()
+                    && blocks.get(bi + 1).type == DiffBlockType.ADDED) {
+                DiffBlock deletedBlock = block;
+                DiffBlock addedBlock = blocks.get(bi + 1);
+                int dSize = deletedBlock.lines.size();
+                int aSize = addedBlock.lines.size();
+                int maxSize = Math.max(dSize, aSize);
+
+                CheckBox pairedCheckBox = new CheckBox();
+                pairedCheckBox.getStyleClass().add("diff-green-checkbox");
+                pairedCheckBox.setStyle("-fx-padding: 0;");
+                pairedCheckBox.setPadding(Insets.EMPTY);
+                pairedCheckBox.setMinSize(12, 12);
+                pairedCheckBox.setPrefSize(12, 12);
+                pairedCheckBox.setMaxSize(12, 12);
+                pairedCheckBox.setScaleX(0.8);
+                pairedCheckBox.setScaleY(0.8);
+                pairedCheckBox.setSelected(false);
+                blockCheckBoxes.add(pairedCheckBox);
+                final CheckBox checkboxForPairing = pairedCheckBox;
+
+                for (int i = 0; i < maxSize; i++) {
+                    DiffProcessor.DiffLine dLine = i < dSize ? deletedBlock.lines.get(i) : null;
+                    DiffProcessor.DiffLine aLine = i < aSize ? addedBlock.lines.get(i) : null;
+
+                    HBox leftLineBox = new HBox(5);
+                    HBox rightLineBox = new HBox(5);
+
+                    Label leftLineNum = new Label(String.format("%3d", dLine != null ? dLine.getLeftLineNumber() : 0));
+                    leftLineNum.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 10px; -fx-text-fill: #6c757d; -fx-min-width: 30px; -fx-alignment: center-right;");
+
+                    Label rightLineNum = new Label(String.format("%3d", aLine != null ? aLine.getRightLineNumber() : 0));
+                    rightLineNum.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 10px; -fx-text-fill: #6c757d; -fx-min-width: 30px; -fx-alignment: center-right;");
+
+                    Label leftLineLabel = new Label(dLine != null ? dLine.getOriginalText() : "");
+                    leftLineLabel.setWrapText(true);
+                    leftLineLabel.setPrefWidth(620);
+                    leftLineLabel.setMinHeight(javafx.scene.layout.Region.USE_PREF_SIZE);
+                    leftLineLabel.setMaxHeight(javafx.scene.layout.Region.USE_PREF_SIZE);
+                    leftLineLabel.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px;");
+
+                    Label rightLineLabel = new Label(aLine != null ? aLine.getNewText() : "");
+                    rightLineLabel.setWrapText(true);
+                    rightLineLabel.setPrefWidth(620);
+                    rightLineLabel.setMinHeight(javafx.scene.layout.Region.USE_PREF_SIZE);
+                    rightLineLabel.setMaxHeight(javafx.scene.layout.Region.USE_PREF_SIZE);
+                    rightLineLabel.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px;");
+
+                    if (dLine != null) {
+                        leftLineLabel.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px; -fx-background-color: #f8d7da; -fx-text-fill: #721c24; -fx-font-weight: bold;");
+                        leftLineNum.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 10px; -fx-text-fill: #dc3545; -fx-min-width: 30px; -fx-alignment: center-right; -fx-font-weight: bold;");
+                    }
+                    if (aLine != null) {
+                        rightLineLabel.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px; -fx-background-color: #d4edda; -fx-text-fill: #155724; -fx-font-weight: bold;");
+                        rightLineNum.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 10px; -fx-text-fill: #28a745; -fx-min-width: 30px; -fx-alignment: center-right; -fx-font-weight: bold;");
+                    }
+
+                    // Hoehensynchronisation
+                    Platform.runLater(() -> {
+                        double maxHeight = Math.max(leftLineLabel.getHeight(), rightLineLabel.getHeight());
+                        leftLineLabel.setMinHeight(maxHeight);
+                        leftLineLabel.setMaxHeight(maxHeight);
+                        rightLineLabel.setMinHeight(maxHeight);
+                        rightLineLabel.setMaxHeight(maxHeight);
+                    });
+
+                    leftLineBox.getChildren().addAll(leftLineNum, leftLineLabel);
+
+                    // Checkbox nur bei der ersten Zeile des ADDED-Blocks
+                    if (aLine != null && i == 0 && checkboxForPairing != null) {
+                        VBox checkboxContainer = new VBox();
+                        checkboxContainer.setAlignment(javafx.geometry.Pos.CENTER);
+                        checkboxContainer.setSpacing(0);
+                        checkboxContainer.setPadding(Insets.EMPTY);
+                        checkboxContainer.setMinWidth(16);
+                        checkboxContainer.setMaxWidth(16);
+                        checkboxContainer.getChildren().add(checkboxForPairing);
+                        rightLineBox.getChildren().addAll(rightLineNum, rightLineLabel, checkboxContainer);
+                    } else {
+                        rightLineBox.getChildren().addAll(rightLineNum, rightLineLabel);
+                    }
+
+                    leftContentBox.getChildren().add(leftLineBox);
+                    rightContentBox.getChildren().add(rightLineBox);
+                }
+                bi++; // ADDED-Block wurde mitverarbeitet
+                continue;
+            }
+
+            // Standard-Rendering: Zeile fuer Zeile
+            CheckBox blockCheckBox = null;
+            if (block.type == DiffBlockType.ADDED) {
+                blockCheckBox = new CheckBox();
+                blockCheckBox.getStyleClass().add("diff-green-checkbox");
+                blockCheckBox.setStyle("-fx-padding: 0;");
+                blockCheckBox.setPadding(Insets.EMPTY);
+                blockCheckBox.setMinSize(12, 12);
+                blockCheckBox.setPrefSize(12, 12);
+                blockCheckBox.setMaxSize(12, 12);
+                blockCheckBox.setScaleX(0.8);
+                blockCheckBox.setScaleY(0.8);
+                blockCheckBox.setSelected(false);
+                blockCheckBoxes.add(blockCheckBox);
+            }
+
+            for (int i = 0; i < block.lines.size(); i++) {
+                DiffProcessor.DiffLine diffLine = block.lines.get(i);
+                HBox leftLineBox = new HBox(5);
+                HBox rightLineBox = new HBox(5);
+
+                Label leftLineNum = new Label(String.format("%3d", diffLine.getLeftLineNumber()));
+                leftLineNum.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 10px; -fx-text-fill: #6c757d; -fx-min-width: 30px; -fx-alignment: center-right;");
+
+                Label rightLineNum = new Label(String.format("%3d", diffLine.getRightLineNumber()));
+                rightLineNum.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 10px; -fx-text-fill: #6c757d; -fx-min-width: 30px; -fx-alignment: center-right;");
+
+                Label leftLineLabel = new Label(diffLine.getOriginalText());
+                leftLineLabel.setWrapText(true);
+                leftLineLabel.setPrefWidth(620);
+                leftLineLabel.setMinHeight(javafx.scene.layout.Region.USE_PREF_SIZE);
+                leftLineLabel.setMaxHeight(javafx.scene.layout.Region.USE_PREF_SIZE);
+                leftLineLabel.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px;");
+
+                Label rightLineLabel = new Label(diffLine.getNewText());
+                rightLineLabel.setWrapText(true);
+                rightLineLabel.setPrefWidth(620);
+                rightLineLabel.setMinHeight(javafx.scene.layout.Region.USE_PREF_SIZE);
+                rightLineLabel.setMaxHeight(javafx.scene.layout.Region.USE_PREF_SIZE);
+                rightLineLabel.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px;");
+
+                // Hoehensynchronisation
+                Platform.runLater(() -> {
+                    double maxHeight = Math.max(leftLineLabel.getHeight(), rightLineLabel.getHeight());
+                    leftLineLabel.setMinHeight(maxHeight);
+                    leftLineLabel.setMaxHeight(maxHeight);
+                    rightLineLabel.setMinHeight(maxHeight);
+                    rightLineLabel.setMaxHeight(maxHeight);
+                });
+
+                switch (block.type) {
+                    case ADDED:
+                        leftLineLabel.setText("");
+                        leftLineLabel.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px; -fx-background-color: #d4edda; -fx-text-fill: #155724;");
+                        rightLineLabel.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px; -fx-background-color: #d4edda; -fx-text-fill: #155724; -fx-font-weight: bold;");
+                        rightLineNum.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 10px; -fx-text-fill: #28a745; -fx-min-width: 30px; -fx-alignment: center-right; -fx-font-weight: bold;");
+                        break;
+                    case DELETED:
+                        rightLineLabel.setText("");
+                        leftLineLabel.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px; -fx-background-color: #f8d7da; -fx-text-fill: #721c24; -fx-font-weight: bold;");
+                        leftLineNum.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 10px; -fx-text-fill: #dc3545; -fx-min-width: 30px; -fx-alignment: center-right; -fx-font-weight: bold;");
+                        rightLineLabel.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px; -fx-background-color: #f8d7da; -fx-text-fill: #721c24;");
+                        break;
+                    case UNCHANGED:
+                        String lightOpacity = "0.4";
+                        leftLineLabel.setStyle(String.format("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px; -fx-text-fill: %s; -fx-background-color: rgba(240,240,240,0.2); -fx-opacity: %s;", themeFg, lightOpacity));
+                        rightLineLabel.setStyle(String.format("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px; -fx-text-fill: %s; -fx-background-color: rgba(240,240,240,0.2); -fx-opacity: %s;", themeFg, lightOpacity));
+                        break;
+                }
+
+                leftLineBox.getChildren().addAll(leftLineNum, leftLineLabel);
+
+                // Checkbox am Ende des ADDED-Blocks
+                if (blockCheckBox != null && i == block.lines.size() - 1) {
+                    VBox checkboxContainer = new VBox();
+                    checkboxContainer.setAlignment(javafx.geometry.Pos.CENTER);
+                    checkboxContainer.setSpacing(0);
+                    checkboxContainer.setPadding(Insets.EMPTY);
+                    checkboxContainer.setMinWidth(16);
+                    checkboxContainer.setMaxWidth(16);
+                    checkboxContainer.getChildren().add(blockCheckBox);
+                    rightLineBox.getChildren().addAll(rightLineNum, rightLineLabel, checkboxContainer);
+                } else {
+                    rightLineBox.getChildren().addAll(rightLineNum, rightLineLabel);
+                }
+
+                leftContentBox.getChildren().add(leftLineBox);
+                rightContentBox.getChildren().add(rightLineBox);
+            }
+        }
+
+        // ScrollPanes konfigurieren
+        leftScrollPane.vvalueProperty().bindBidirectional(rightScrollPane.vvalueProperty());
+        leftScrollPane.hvalueProperty().bindBidirectional(rightScrollPane.hvalueProperty());
+
+        leftScrollPane.setContent(leftContentBox);
+        leftScrollPane.setFitToWidth(true);
+        leftScrollPane.setPrefHeight(600);
+
+        rightScrollPane.setContent(rightContentBox);
+        rightScrollPane.setFitToWidth(true);
+        rightScrollPane.setPrefHeight(600);
+
+        leftBox.getChildren().addAll(leftLabel, leftScrollPane);
+        rightBox.getChildren().addAll(rightLabel, rightScrollPane);
+
+        contentBox.getChildren().addAll(leftBox, rightBox);
+        VBox.setVgrow(contentBox, Priority.ALWAYS);
+
+        // --- Buttons ---
+        Button btnApply = new Button("Ausgewaehlte Aenderungen uebernehmen");
+        btnApply.setStyle("-fx-background-color: rgba(40,167,69,0.8); -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8px 16px;");
+        Button btnAll = new Button("Komplett Original uebernehmen");
+        btnAll.setStyle("-fx-background-color: rgba(0,123,255,0.8); -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8px 16px;");
+        Button btnIgnore = new Button("Ignorieren (Hash aktualisieren)");
+        btnIgnore.setStyle("-fx-background-color: rgba(108,117,125,0.8); -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8px 16px;");
+        Button btnCancel = new Button("Abbrechen");
+        btnCancel.setStyle("-fx-background-color: rgba(220,53,69,0.8); -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8px 16px;");
+
+        btnApply.setOnAction(e -> {
+            String merged = buildMergedText(blocks, blockCheckBoxes);
+            codeArea.replaceText(merged);
+            refreshHighlight();
+            updateOriginalHashSilently(newOriginalHash);
+            setStatus("Ausgewaehlte Aenderungen aus dem Original uebernommen.");
+            diffStage.close();
+        });
+        btnAll.setOnAction(e -> {
+            codeArea.replaceText(originalContent);
+            segments.clear();
+            refreshHighlight();
+            updateOriginalHashSilently(newOriginalHash);
+            setStatus("Komplettes Original uebernommen - Segmente zurueckgesetzt.");
+            diffStage.close();
+        });
+        btnIgnore.setOnAction(e -> {
+            updateOriginalHashSilently(newOriginalHash);
+            setStatus("Aenderungen ignoriert - Hash aktualisiert.");
+            diffStage.close();
+        });
+        btnCancel.setOnAction(e -> diffStage.close());
+
+        HBox buttons = new HBox(15, btnApply, btnAll, btnIgnore, btnCancel);
+        buttons.setAlignment(javafx.geometry.Pos.CENTER);
+        buttons.setPadding(new Insets(15, 0, 0, 0));
+
+        root.getChildren().addAll(title, contentBox, buttons);
+
+        Scene diffScene = new Scene(root);
+        String cssPath = ResourceManager.getCssResource("css/manuskript.css");
+        if (cssPath != null) diffScene.getStylesheets().add(cssPath);
+        diffStage.setSceneWithTitleBar(diffScene);
+        diffStage.setFullTheme(themeIndex);
+        applyThemeToAll(diffScene.getRoot(), themeIndex);
+        diffStage.showAndWait();
+    }
+
+    /** Baut den zusammengefuehrten Text aus Diff-Bloecken und Checkbox-Auswahl. */
+    private String buildMergedText(List<DiffBlock> blocks, List<CheckBox> checkBoxes) {
+        StringBuilder sb = new StringBuilder();
+        int cbIdx = 0;
+        for (int i = 0; i < blocks.size(); i++) {
+            DiffBlock block = blocks.get(i);
+            if (block.type == DiffBlockType.DELETED && i + 1 < blocks.size()
+                    && blocks.get(i + 1).type == DiffBlockType.ADDED) {
+                // DELETED+ADDED Paar: Wenn Checkbox an, nehme ADDED; sonst behalte DELETED
+                DiffBlock addedBlock = blocks.get(i + 1);
+                boolean selected = cbIdx < checkBoxes.size() && checkBoxes.get(cbIdx).isSelected();
+                if (selected) {
+                    for (DiffProcessor.DiffLine l : addedBlock.getLines()) {
+                        if (l.getNewText() != null) sb.append(l.getNewText()).append("\n");
+                    }
+                } else {
+                    for (DiffProcessor.DiffLine l : block.getLines()) {
+                        if (l.getOriginalText() != null) sb.append(l.getOriginalText()).append("\n");
+                    }
+                }
+                cbIdx++;
+                i++; // ADDED-Block mitverarbeitet
+                continue;
+            }
+            if (block.type == DiffBlockType.ADDED) {
+                boolean selected = cbIdx < checkBoxes.size() && checkBoxes.get(cbIdx).isSelected();
+                if (selected) {
+                    for (DiffProcessor.DiffLine l : block.getLines()) {
+                        if (l.getNewText() != null) sb.append(l.getNewText()).append("\n");
+                    }
+                }
+                cbIdx++;
+                continue;
+            }
+            if (block.type == DiffBlockType.DELETED) {
+                for (DiffProcessor.DiffLine l : block.getLines()) {
+                    if (l.getOriginalText() != null) sb.append(l.getOriginalText()).append("\n");
+                }
+                continue;
+            }
+            // UNCHANGED
+            for (DiffProcessor.DiffLine l : block.getLines()) {
+                String t = l.getNewText() != null ? l.getNewText() : l.getOriginalText();
+                if (t != null) sb.append(t).append("\n");
+            }
+        }
+        // Trailing newlines trimmen
+        String result = sb.toString();
+        while (result.endsWith("\n\n")) result = result.substring(0, result.length() - 1);
+        return result;
+    }
+
+    /** Aktualisiert den Hash still (ohne Dialog). */
+    private void updateOriginalHashSilently(String hash) {
+        if (originalHashPath == null || hash == null) return;
+        try {
+            Files.createDirectories(originalHashPath.getParent());
+            Files.writeString(originalHashPath, hash, StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            logger.warn("Original-Hash konnte nicht aktualisiert werden: {}", e.getMessage());
+        }
+    }
+
+    // ---- Diff-Block Hilfsklassen (lokal, analog zu MainController) ----
+
+    private enum DiffBlockType { ADDED, DELETED, UNCHANGED }
+
+    private static class DiffBlock {
+        final DiffBlockType type;
+        final List<DiffProcessor.DiffLine> lines = new ArrayList<>();
+        DiffBlock(DiffBlockType type) { this.type = type; }
+        void addLine(DiffProcessor.DiffLine line) { lines.add(line); }
+        List<DiffProcessor.DiffLine> getLines() { return lines; }
+    }
+
+    private static DiffBlockType toDiffBlockType(DiffProcessor.DiffType t) {
+        switch (t) {
+            case ADDED: return DiffBlockType.ADDED;
+            case DELETED: return DiffBlockType.DELETED;
+            default: return DiffBlockType.UNCHANGED;
+        }
+    }
+
+    private List<DiffBlock> groupDiffIntoBlocks(List<DiffProcessor.DiffLine> lines) {
+        List<DiffBlock> blocks = new ArrayList<>();
+        if (lines.isEmpty()) return blocks;
+        DiffBlock current = new DiffBlock(toDiffBlockType(lines.get(0).getType()));
+        current.addLine(lines.get(0));
+        for (int i = 1; i < lines.size(); i++) {
+            DiffProcessor.DiffLine line = lines.get(i);
+            DiffBlockType bt = toDiffBlockType(line.getType());
+            if (bt != current.type) {
+                blocks.add(current);
+                current = new DiffBlock(bt);
+            }
+            current.addLine(line);
+        }
+        blocks.add(current);
+        return blocks;
+    }
+
 
     private static String computeSha256(String input) {
         if (input == null) return "";
