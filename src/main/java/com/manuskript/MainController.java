@@ -6255,18 +6255,27 @@ public class MainController implements Initializable {
 
             loadAndDisplayProjects(projectFlow, projectStage);
             
+            // Neues-Projekt-Button
+            Button createProjectButton = new Button("📁 Neues Projekt erstellen");
+            createProjectButton.getStyleClass().add("select-project-button");
+            createProjectButton.setPrefSize(220, 40);
+            createProjectButton.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
+            createProjectButton.setOnAction(e -> showCreateProjectDialog(projectFlow, projectStage));
+
             // Abbrechen-Button
             Button cancelButton = new Button("❌ Abbrechen");
             cancelButton.getStyleClass().add("cancel-button");
             cancelButton.setPrefSize(150, 40);
             cancelButton.setOnAction(e -> projectStage.close());
             
-            // Abbrechen-Button nach unten rechts
-            HBox buttonContainer = new HBox();
-            buttonContainer.setAlignment(Pos.BOTTOM_RIGHT);
-            buttonContainer.setPrefHeight(50); // Minimale Höhe
-            buttonContainer.getStyleClass().add("button-container"); // CSS-Styling hinzufügen
-            buttonContainer.getChildren().add(cancelButton);
+            // Button-Leiste: Neues Projekt links, Abbrechen rechts
+            Region spacer = new Region();
+            HBox.setHgrow(spacer, Priority.ALWAYS);
+            HBox buttonContainer = new HBox(10);
+            buttonContainer.setAlignment(Pos.CENTER);
+            buttonContainer.setPrefHeight(50);
+            buttonContainer.getStyleClass().add("button-container");
+            buttonContainer.getChildren().addAll(createProjectButton, spacer, cancelButton);
             
             // Layout zusammenbauen (ohne Spacer)
             mainLayout.getChildren().addAll(titleLabel, mainScrollPane, buttonContainer);
@@ -7187,8 +7196,300 @@ public class MainController implements Initializable {
             showError("Fehler", "Root-Verzeichnis-Chooser konnte nicht geöffnet werden: " + e.getMessage());
         }
     }
-    
-   
+
+    /**
+     * Zeigt einen Dialog zum Erstellen eines neuen Projekts.
+     * Der Benutzer kann ein Basisverzeichnis, ein optionales Serienverzeichnis
+     * und ein Verzeichnis für DOCX-Dateien angeben.
+     * Es wird automatisch eine readme.docx Demo-Datei erstellt.
+     */
+    private void showCreateProjectDialog(FlowPane projectFlow, CustomStage parentStage) {
+        try {
+            CustomStage dialogStage = new CustomStage();
+            dialogStage.setCustomTitle("Neues Projekt erstellen");
+            dialogStage.setMinWidth(650);
+            dialogStage.setMinHeight(500);
+            dialogStage.setWidth(650);
+            dialogStage.setHeight(520);
+            dialogStage.setResizable(false);
+            dialogStage.setTitleBarTheme(currentThemeIndex);
+
+            VBox mainLayout = new VBox(15);
+            mainLayout.setPadding(new Insets(25));
+            mainLayout.setAlignment(Pos.TOP_LEFT);
+
+            Label titleLabel = new Label("📁 Neues Projekt erstellen");
+            titleLabel.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;");
+
+            Label infoLabel = new Label(
+                "Erstelle ein neues Projekt im Root-Verzeichnis. "
+                + "Du kannst optional ein Serien-Verzeichnis angeben, um das Projekt als Teil einer Serie zu organisieren.");
+            infoLabel.setWrapText(true);
+            infoLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #7f8c8d;");
+
+            String rootDir = ResourceManager.getParameter("project.root.directory", "");
+
+            // --- Projektname ---
+            Label nameLabel = new Label("Projektname *");
+            nameLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;");
+            TextField nameField = new TextField();
+            nameField.setPromptText("z.B. 'Mein Roman' oder 'Krimi-Buch-1'");
+            nameField.setPrefHeight(35);
+
+            // --- Serien-Checkbox + Feld ---
+            CheckBox seriesCheck = new CheckBox("Gehört zu einer Serie");
+            seriesCheck.setStyle("-fx-font-size: 13px; -fx-text-fill: #2c3e50;");
+
+            Label seriesLabel = new Label("Serienverzeichnis (optional)");
+            seriesLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;");
+            seriesLabel.setDisable(true);
+            TextField seriesField = new TextField();
+            seriesField.setPromptText("z.B. 'Krimi-Serie' — wird als übergeordneter Ordner erstellt");
+            seriesField.setPrefHeight(35);
+            seriesField.setDisable(true);
+
+            seriesCheck.selectedProperty().addListener((obs, oldVal, newVal) -> {
+                seriesField.setDisable(!newVal);
+                seriesLabel.setDisable(!newVal);
+                if (!newVal) {
+                    seriesField.clear();
+                }
+            });
+
+            // --- DOCX-Verzeichnis ---
+            Label docxDirLabel = new Label("Verzeichnis für DOCX-Dateien");
+            docxDirLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;");
+            TextField docxDirField = new TextField();
+            docxDirField.setPromptText("Leer lassen = Projektverzeichnis selbst");
+            docxDirField.setPrefHeight(35);
+
+            Label docxHintLabel = new Label("Leer lassen, um DOCX-Dateien direkt im Projektordner abzulegen.");
+            docxHintLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #95a5a6;");
+
+            // --- Vorschau ---
+            Label previewTitle = new Label("📂 Vorschau der Verzeichnisstruktur:");
+            previewTitle.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;");
+            Label previewLabel = new Label();
+            previewLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #27ae60; -fx-font-family: 'monospace';");
+            previewLabel.setWrapText(true);
+
+            Runnable updatePreview = () -> {
+                String projectName = nameField.getText().trim();
+                String seriesName = seriesField.getText().trim();
+                String docxDir = docxDirField.getText().trim();
+
+                if (projectName.isEmpty()) {
+                    previewLabel.setText("(Projektname eingeben...)");
+                    return;
+                }
+
+                StringBuilder sb = new StringBuilder();
+                sb.append(rootDir).append("/\n");
+
+                if (seriesCheck.isSelected() && !seriesName.isEmpty()) {
+                    sb.append("  └── ").append(seriesName).append("/\n");
+                    sb.append("      └── ").append(projectName).append("/\n");
+                    if (!docxDir.isEmpty()) {
+                        sb.append("          └── ").append(docxDir).append("/\n");
+                        sb.append("              └── readme.docx\n");
+                    } else {
+                        sb.append("          └── readme.docx\n");
+                    }
+                } else {
+                    sb.append("  └── ").append(projectName).append("/\n");
+                    if (!docxDir.isEmpty()) {
+                        sb.append("      └── ").append(docxDir).append("/\n");
+                        sb.append("          └── readme.docx\n");
+                    } else {
+                        sb.append("      └── readme.docx\n");
+                    }
+                }
+                previewLabel.setText(sb.toString());
+            };
+
+            nameField.textProperty().addListener((obs, o, n) -> updatePreview.run());
+            seriesField.textProperty().addListener((obs, o, n) -> updatePreview.run());
+            docxDirField.textProperty().addListener((obs, o, n) -> updatePreview.run());
+            seriesCheck.selectedProperty().addListener((obs, o, n) -> updatePreview.run());
+            updatePreview.run();
+
+            // --- Buttons ---
+            Button createButton = new Button("✅ Projekt erstellen");
+            createButton.getStyleClass().add("select-project-button");
+            createButton.setStyle("-fx-font-size: 15px; -fx-font-weight: bold; -fx-padding: 10px 25px;");
+
+            Button cancelBtn = new Button("❌ Abbrechen");
+            cancelBtn.getStyleClass().add("cancel-button");
+            cancelBtn.setOnAction(e -> dialogStage.close());
+
+            HBox buttonBox = new HBox(15);
+            buttonBox.setAlignment(Pos.CENTER_RIGHT);
+            buttonBox.getChildren().addAll(createButton, cancelBtn);
+
+            createButton.setOnAction(e -> {
+                String projectName = nameField.getText().trim();
+                if (projectName.isEmpty()) {
+                    showError("Fehler", "Bitte gib einen Projektnamen ein.");
+                    return;
+                }
+
+                String seriesName = seriesCheck.isSelected() ? seriesField.getText().trim() : "";
+                String docxSubDir = docxDirField.getText().trim();
+
+                try {
+                    File targetDir;
+                    if (!seriesName.isEmpty()) {
+                        File seriesDir = new File(rootDir, seriesName);
+                        targetDir = new File(seriesDir, projectName);
+                    } else {
+                        targetDir = new File(rootDir, projectName);
+                    }
+
+                    File docxTargetDir;
+                    if (!docxSubDir.isEmpty()) {
+                        docxTargetDir = new File(targetDir, docxSubDir);
+                    } else {
+                        docxTargetDir = targetDir;
+                    }
+
+                    if (docxTargetDir.exists()) {
+                        showWarning("Verzeichnis existiert bereits",
+                            "Das Verzeichnis '" + docxTargetDir.getAbsolutePath() + "' existiert bereits.");
+                        return;
+                    }
+
+                    boolean created = docxTargetDir.mkdirs();
+                    if (!created && !docxTargetDir.exists()) {
+                        showError("Fehler", "Verzeichnis konnte nicht erstellt werden: " + docxTargetDir.getAbsolutePath());
+                        return;
+                    }
+
+                    createDemoDocx(new File(docxTargetDir, "readme.docx"), projectName);
+
+                    logger.info("Neues Projekt erstellt: {}", targetDir.getAbsolutePath());
+
+                    dialogStage.close();
+
+                    projectItems.clear();
+                    loadAndDisplayProjects(projectFlow, parentStage);
+
+                    Platform.runLater(() -> {
+                        CustomAlert alert = new CustomAlert(Alert.AlertType.INFORMATION, "Projekt erstellt");
+                        alert.setContentText(
+                            "Das Projekt '" + projectName + "' wurde erfolgreich erstellt.\n\n"
+                            + "Verzeichnis: " + docxTargetDir.getAbsolutePath() + "\n"
+                            + "Eine readme.docx Demo-Datei wurde angelegt.");
+                        alert.applyTheme(currentThemeIndex);
+                        alert.initOwner(parentStage);
+                        alert.showAndWait();
+                    });
+
+                } catch (Exception ex) {
+                    logger.error("Fehler beim Erstellen des Projekts", ex);
+                    showError("Fehler", "Projekt konnte nicht erstellt werden: " + ex.getMessage());
+                }
+            });
+
+            mainLayout.getChildren().addAll(
+                titleLabel, infoLabel,
+                nameLabel, nameField,
+                seriesCheck, seriesLabel, seriesField,
+                docxDirLabel, docxDirField, docxHintLabel,
+                previewTitle, previewLabel,
+                buttonBox
+            );
+
+            Scene scene = new Scene(mainLayout);
+            String cssPath = ResourceManager.getCssResource("css/manuskript.css");
+            if (cssPath != null) {
+                scene.getStylesheets().add(cssPath);
+            }
+
+            dialogStage.setSceneWithTitleBar(scene);
+            dialogStage.setFullTheme(currentThemeIndex);
+            dialogStage.initOwner(parentStage);
+            dialogStage.showAndWait();
+
+        } catch (Exception e) {
+            logger.error("Fehler beim Öffnen des Projekt-Erstellen-Dialogs", e);
+            showError("Fehler", "Dialog konnte nicht geöffnet werden: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Erstellt eine Demo-DOCX-Datei mit Willkommenstext für ein neues Projekt.
+     */
+    private void createDemoDocx(File targetFile, String projectName) throws Exception {
+        org.docx4j.openpackaging.packages.WordprocessingMLPackage pkg =
+            org.docx4j.openpackaging.packages.WordprocessingMLPackage.createPackage();
+        org.docx4j.wml.ObjectFactory factory = new org.docx4j.wml.ObjectFactory();
+
+        addParagraph(pkg, factory, projectName, true, "28");
+
+        addParagraph(pkg, factory,
+            "Willkommen zu deinem neuen Manuskript-Projekt!", false, "24");
+
+        addParagraph(pkg, factory, "", false, "12");
+
+        addParagraph(pkg, factory,
+            "Dies ist eine automatisch erstellte Demo-Datei. "
+            + "Du kannst sie bearbeiten oder durch deine eigenen DOCX-Dateien ersetzen.", false, "12");
+
+        addParagraph(pkg, factory, "", false, "12");
+
+        addParagraph(pkg, factory, "Erste Schritte:", true, "14");
+
+        String[] steps = {
+            "1. Öffne dieses Projekt in der Manuskript-Anwendung",
+            "2. Importiere deine DOCX-Dateien (Kapitel) in dieses Verzeichnis",
+            "3. Nutze den Editor zum Bearbeiten und Formatieren",
+            "4. Verwende die KI-Assistenz (Ollama) für Lektorat und Textverbesserung",
+            "5. Exportiere dein fertiges Manuskript in verschiedene Formate"
+        };
+        for (String step : steps) {
+            addParagraph(pkg, factory, step, false, "12");
+        }
+
+        addParagraph(pkg, factory, "", false, "12");
+
+        addParagraph(pkg, factory,
+            "Viel Erfolg mit deinem Schreibprojekt!", false, "14");
+
+        org.docx4j.Docx4J.save(pkg, targetFile);
+    }
+
+    private void addParagraph(
+            org.docx4j.openpackaging.packages.WordprocessingMLPackage pkg,
+            org.docx4j.wml.ObjectFactory factory,
+            String text, boolean bold, String fontSize) {
+        org.docx4j.wml.P paragraph = factory.createP();
+        org.docx4j.wml.R run = factory.createR();
+        org.docx4j.wml.RPr rPr = factory.createRPr();
+
+        if (bold) {
+            org.docx4j.wml.BooleanDefaultTrue b = factory.createBooleanDefaultTrue();
+            b.setVal(true);
+            rPr.setB(b);
+        }
+
+        if (fontSize != null) {
+            org.docx4j.wml.HpsMeasure size = new org.docx4j.wml.HpsMeasure();
+            size.setVal(java.math.BigInteger.valueOf(Long.parseLong(fontSize) * 2));
+            rPr.setSz(size);
+            rPr.setSzCs(size);
+        }
+
+        run.setRPr(rPr);
+
+        org.docx4j.wml.Text t = factory.createText();
+        t.setValue(text);
+        t.setSpace("preserve");
+        run.getContent().add(t);
+
+        paragraph.getContent().add(run);
+        pkg.getMainDocumentPart().getContent().add(paragraph);
+    }
+
     private void setupFlowPaneDragHandlers(FlowPane projectFlow, CustomStage projectStage) {
         projectFlow.setOnDragOver(event -> {
             if (draggingProjectItem != null && event.getGestureSource() != projectFlow) {
