@@ -17,16 +17,58 @@ Manuskript is a JavaFX-based manuscript editing application with AI integration.
 - **AI Integration**: Ollama service integration with plugin system for text rewriting
 - **WebView Text Selection**: JavaScript-based text selection in rendered HTML with editor integration
 - **Plugin System**: JSON-based AI plugins with variable types (CHOICE, NUMBER, BOOLEAN, etc.)
-- **Theme System**: Multiple UI themes with consistent styling
+- **Theme System**: 6 eigenständige Themes, jeweils mit eigener CSS-Klasse:
+  - Index 0: `.weiss-theme` (BG #ffffff, FG #000000)
+  - Index 1: `.theme-dark` (BG #1a1a1a, FG #ffffff)
+  - Index 2: `.pastell-theme` (BG #f3e5f5, FG #000000)
+  - Index 3: `.blau-theme` (BG #1e3a8a, FG #ffffff)
+  - Index 4: `.gruen-theme` (BG #064e3b, FG #ffffff)
+  - Index 5: `.lila-theme` (BG #581c87, FG #ffffff)
 
 ## File Structure
 - `src/main/java/com/manuskript/` - Main application classes
 - `config/plugins/` - AI plugin JSON configurations
 - `config/sessions/` - User session data
-- `export/` - Generated output files
+- `config/css/` - **Laufzeit-CSS-Dateien** (werden von der App über `ResourceManager.getCssResource()` geladen!)
+  - `config/css/manuskript.css` - Haupt-Stylesheet
+  - `config/css/styles.css` - Globale Styles
+  - `config/css/editor.css` - Editor-spezifische Styles
+- `src/main/resources/css/manuskript.css` - wird zur Laufzeit **NICHT** geladen, nur Build-Artefakt
 - `src/main/resources/fxml/` - JavaFX FXML layouts
+- `export/` - Generated output files
 
 ## Editor Management
 - Static `Map<String, EditorWindow> openEditors` tracks open editor instances
 - `setOnCloseRequest` handlers clean up editor references
 - Window properties (position, size) saved in user preferences
+
+## Verbindliche Entwicklungsregeln
+
+### 1. Theme-Styling ist Pflicht
+- **Jedes** neu erstellte GUI-Element (TextArea, ListView, TableView, Label, Button, ComboBox, etc.) MUSS über das Theme-System gestyled werden.
+- Es gibt **6 eigenständige Themes** -- NICHT nur hell/dunkel! CSS-Regeln müssen IMMER alle 6 Themes abdecken: `.weiss-theme`, `.theme-dark`, `.pastell-theme`, `.blau-theme`, `.gruen-theme`, `.lila-theme`.
+- Inline-Styles (`setStyle()`) nur für Eigenschaften verwenden, die nicht über CSS abbildbar sind.
+- CSS-Regeln in **`config/css/manuskript.css`** anlegen (NICHT in `src/main/resources/css/`).
+- Theme-Klassen werden über `applyThemeToNode(node, themeIndex)` auf **jedes einzelne Element** angewendet, zusätzlich zu `stage.setFullTheme(themeIndex)`.
+
+### 2. Dialoge immer mit Custom-Elementen
+- Neue Fenster immer mit `CustomStage` über `StageManager.createStage()` erstellen.
+- Für Alerts/Dialoge immer `CustomAlert` bzw. `DialogFactory`-Methoden verwenden (`createWarningAlert`, `createErrorAlert`, `createConfirmationAlert` etc.).
+- Jeder Dialog muss `applyTheme(themeIndex)` bzw. `setFullTheme(themeIndex)` aufrufen.
+
+### 3. Fensterpositionen und -größen persistieren
+- Jede Fensterposition (x, y) und -größe (width, height) wird über `java.util.prefs.Preferences` gespeichert und beim nächsten Öffnen wiederhergestellt.
+- Schlüssel-Konvention: `<fensterName>_x`, `<fensterName>_y`, `<fensterName>_width`, `<fensterName>_height`.
+
+### 4. FileChooser / DirectoryChooser persistieren
+- Bei jedem `FileChooser` oder `DirectoryChooser` wird das zuletzt gewählte Verzeichnis in `Preferences` gespeichert.
+- Beim nächsten Öffnen wird `setInitialDirectory()` mit dem gespeicherten Pfad gesetzt (nach Existenz-Prüfung).
+
+### 5. CSS-Styling und Wiederverwendung
+- **WICHTIG:** Die App lädt CSS zur Laufzeit aus `config/css/` über `ResourceManager.getCssResource()`. Die Datei `src/main/resources/css/manuskript.css` wird zur Laufzeit NICHT geladen. CSS-Änderungen MÜSSEN in `config/css/manuskript.css` gemacht werden!
+- Gemeinsame Styles als CSS-Klassen definieren und per `getStyleClass().add()` zuweisen.
+- Theme-spezifische Varianten für **alle 6 Themes einzeln** definieren. NIEMALS nur `.theme-dark` als Sammel-Selektor für alle dunklen Themes verwenden.
+- Für Controls innerhalb von Themes: Descendant-Selektoren verwenden (z.B. `.theme-dark.blau-theme .text-area`), da diese über die Eltern-Kaskade greifen.
+- Für `.text-area` immer auch `.text-area .content` mit stylen (JavaFX-Skin-Interna).
+- `applyThemeToNode()` explizit auf jedes GUI-Element aufrufen (wie in `ChapterTtsEditorWindow` und `OllamaWindow`), da `setFullTheme()` allein nicht alle Kinder erreicht.
+- Maximale Wiederverwendung: Gleiche visuelle Elemente sollen dieselben CSS-Klassen nutzen.

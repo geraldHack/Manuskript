@@ -308,15 +308,21 @@ public class MainController implements Initializable {
             if (isInitializing) {
                 String rootDir = ResourceManager.getParameter("project.root.directory", "");
                 if (rootDir == null || rootDir.trim().isEmpty()) {
-                    // Root-Verzeichnis nicht gesetzt - Benutzer fragen
-                    logger.debug("Root-Verzeichnis nicht gesetzt - zeige Welcome Screen");
-                    showRootDirectoryChooser();
-                    
-                    // Nach dem Dialog automatisch Projektauswahl öffnen
-                    Platform.runLater(() -> {
-                        primaryStage.hide();
-                        showProjectSelectionMenu();
-                    });
+                    File defaultManuskripte = new File("Manuskripte");
+                    if (defaultManuskripte.exists() && defaultManuskripte.isDirectory()) {
+                        rootDir = defaultManuskripte.getAbsolutePath();
+                        ResourceManager.saveParameter("project.root.directory", rootDir);
+                        preferences.put("lastDirectory", rootDir);
+                        logger.debug("Manuskripte-Verzeichnis als Default gesetzt: {}", rootDir);
+                    } else {
+                        logger.debug("Root-Verzeichnis nicht gesetzt - zeige Welcome Screen");
+                        showRootDirectoryChooser();
+
+                        Platform.runLater(() -> {
+                            primaryStage.hide();
+                            showProjectSelectionMenu();
+                        });
+                    }
                 } else {
                     // Root-Verzeichnis ist gesetzt - prüfe ob es existiert
                     File rootDirFile = new File(rootDir);
@@ -1116,11 +1122,17 @@ public class MainController implements Initializable {
     private void loadLastDirectory() {
         String lastDirectory = preferences.get("lastDirectory", "");
         if (lastDirectory == null || lastDirectory.isEmpty()) {
-            Platform.runLater(() -> {
-                showWarning("Kein Arbeitsverzeichnis", "Bitte wählen Sie ein Verzeichnis mit DOCX-Dateien.");
-                showProjectSelectionMenu();
-            });
-            return;
+            File defaultDir = new File("Manuskripte");
+            if (defaultDir.exists() && defaultDir.isDirectory()) {
+                lastDirectory = defaultDir.getAbsolutePath();
+                preferences.put("lastDirectory", lastDirectory);
+            } else {
+                Platform.runLater(() -> {
+                    showWarning("Kein Arbeitsverzeichnis", "Bitte wählen Sie ein Verzeichnis mit DOCX-Dateien.");
+                    showProjectSelectionMenu();
+                });
+                return;
+            }
         }
 
         File lastDir = new File(lastDirectory);
@@ -4616,7 +4628,6 @@ public class MainController implements Initializable {
             File[] files = downloadsDirectory.listFiles((dir, name) -> 
                 name.toLowerCase().endsWith(".docx") && new File(dir, name).isFile());
             
-            
             if (files == null) {
                 logger.warn("Keine Dateien im Downloads-Verzeichnis - listFiles() returned null");
                 return;
@@ -4629,10 +4640,9 @@ public class MainController implements Initializable {
             // Prüfe ob "Alle DOCX kopieren" aktiviert ist
             boolean copyAllDocx = Boolean.parseBoolean(preferences.get("copy_all_docx", "false"));
             
-            for (int i = 0; i < files.length; i++) {
-                File downloadFile = files[i];
-                
-                // Prüfe ob diese Datei gesperrt ist (ignoriere sie)
+            // Gesperrte und unvollständige Dateien herausfiltern
+            List<File> readyFiles = new ArrayList<>();
+            for (File downloadFile : files) {
                 String downloadFileName = downloadFile.getName();
                 Long lockTime = lockedFiles.get(downloadFileName);
                 if (lockTime != null) {
@@ -4640,57 +4650,71 @@ public class MainController implements Initializable {
                     if (currentTime - lockTime < LOCK_TIMEOUT) {
                         continue;
                     } else {
-                        // Sperre ist abgelaufen - entferne sie
                         lockedFiles.remove(downloadFileName);
                     }
                 }
-                
-                // Prüfe ob Datei vollständig ist (nicht mehr geschrieben wird)
                 if (isFileComplete(downloadFile)) {
+                    readyFiles.add(downloadFile);
+                }
+            }
+            
+            if (readyFiles.isEmpty()) {
+                return;
+            }
+            
+            if (copyAllDocx) {
+                for (File downloadFile : readyFiles) {
+                    Platform.runLater(() -> {
+                        try {
+                            copyAllDocxFile(downloadFile);
+                        } catch (Exception e) {
+                            logger.error("Fehler beim Kopieren: {}", e.getMessage(), e);
+                        }
+                    });
+                }
+            } else {
+                // Downloads nach normalisiertem Basisnamen gruppieren und neueste Version pro Gruppe wählen
+                Map<String, List<File>> downloadGroups = new LinkedHashMap<>();
+                for (File downloadFile : readyFiles) {
+                    String baseName = normalizeDownloadName(downloadFile.getName());
+                    downloadGroups.computeIfAbsent(baseName, k -> new ArrayList<>()).add(downloadFile);
+                }
+                
+                File currentDir = new File(dirPath);
+                if (!currentDir.exists()) {
+                    return;
+                }
+                
+                File[] projectFiles = currentDir.listFiles((dir, name) -> 
+                    name.toLowerCase().endsWith(".docx") && new File(dir, name).isFile());
+                
+                for (Map.Entry<String, List<File>> entry : downloadGroups.entrySet()) {
+                    String normalizedDownloadName = entry.getKey();
+                    List<File> group = entry.getValue();
                     
-                    if (copyAllDocx) {
-                        // Alle DOCX-Dateien kopieren ohne Namensvergleich
-                        Platform.runLater(() -> {
-                            try {
-                                copyAllDocxFile(downloadFile);
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                        });
-                    } else {
-                        // Normale Logik mit Namensvergleich
-                        String fileName = downloadFile.getName();
-                        String baseName = fileName.substring(0, fileName.lastIndexOf('.'));
-                        
-                        // Suche in ALLEN Dateien im Verzeichnis (nicht nur in allDocxFiles)
-                        boolean found = false;
-                        File currentDir = new File(dirPath);
-                        if (currentDir.exists()) {
-                            File[] allFiles = currentDir.listFiles((dir, name) -> 
-                                name.toLowerCase().endsWith(".docx") && new File(dir, name).isFile());
-                            
-                            if (allFiles != null) {
-                                for (File existingFile : allFiles) {
-                                    String existingName = existingFile.getName();
-                                    if (existingName.toLowerCase().endsWith(".docx")) {
-                                        existingName = existingName.substring(0, existingName.lastIndexOf('.'));
-                                    }
-                                    
-                                    
-                                    // Name-Vergleich (ignoriere Groß-/Kleinschreibung und normalisiere Leerzeichen und Unterstriche)
-                                    String normalizedBaseName = baseName.trim().replaceAll("[\\s_]+", " ");
-                                    String normalizedExistingName = existingName.trim().replaceAll("[\\s_]+", " ");
-                                    if (normalizedBaseName.equalsIgnoreCase(normalizedExistingName)) {
-                                        // Datei gefunden - verschieben
-                                        Platform.runLater(() -> replaceFileWithDownload(existingFile, downloadFile));
-                                        found = true;
-                                        break;
+                    // Neueste Datei der Gruppe bestimmen (nach lastModified)
+                    group.sort((a, b) -> Long.compare(b.lastModified(), a.lastModified()));
+                    File newestFile = group.get(0);
+                    
+                    // Passende Projektdatei suchen
+                    if (projectFiles != null) {
+                        for (File existingFile : projectFiles) {
+                            String existingBaseName = normalizeDownloadName(existingFile.getName());
+                            if (normalizedDownloadName.equalsIgnoreCase(existingBaseName)) {
+                                Platform.runLater(() -> replaceFileWithDownload(existingFile, newestFile));
+                                
+                                // Ältere Duplikate aus dem Downloads-Verzeichnis löschen
+                                for (int j = 1; j < group.size(); j++) {
+                                    File obsolete = group.get(j);
+                                    if (obsolete.exists()) {
+                                        logger.info("Lösche älteres Download-Duplikat: {}", obsolete.getName());
+                                        obsolete.delete();
                                     }
                                 }
+                                break;
                             }
                         }
-                        
-                        }
+                    }
                 }
             }
         } catch (Exception e) {
@@ -4699,6 +4723,24 @@ public class MainController implements Initializable {
         
     }
     
+    /**
+     * Normalisiert einen Download-Dateinamen: entfernt .docx-Endung und Browser-Duplikat-Suffixe.
+     * "Kapitel 2 - Titel (1).docx" → "kapitel 2 - titel"
+     * "Kapitel 2 - Titel.docx"     → "kapitel 2 - titel"
+     */
+    private static String normalizeDownloadName(String fileName) {
+        String name = fileName;
+        if (name.toLowerCase().endsWith(".docx")) {
+            name = name.substring(0, name.length() - 5);
+        }
+        return name
+            .replaceAll("\\s*\\(\\d+\\)$", "")
+            .replaceAll("\\s+copy(\\s+\\d+)?$", "")
+            .replaceAll("[\\s_]+", " ")
+            .trim()
+            .toLowerCase();
+    }
+
     /**
      * Prüft ob eine Datei vollständig ist (nicht mehr geschrieben wird)
      */
@@ -6329,9 +6371,17 @@ public class MainController implements Initializable {
             projectRootDirectory = searchDir;
             loadProjectOrder(searchDir);
             
+            logger.info("[Projektübersicht] Root-Verzeichnis: {}", searchDir.getAbsolutePath());
+            logger.info("[Projektübersicht] lastDirectory: {}", preferences.get("lastDirectory", "(leer)"));
+            logger.info("[Projektübersicht] Gespeicherte Projekte aus Order-Datei: {}", projectItems.size());
+            
             File[] directories = searchDir.listFiles(File::isDirectory);
             if (directories == null) {
                 directories = new File[0];
+            }
+            logger.info("[Projektübersicht] Unterverzeichnisse im Root: {}", directories.length);
+            for (File d : directories) {
+                logger.info("[Projektübersicht]   Unterverzeichnis: {} (name={})", d.getAbsolutePath(), d.getName());
             }
 
             Map<String, ProjectDisplayItem> existingItems = projectItems.stream()
@@ -6339,10 +6389,23 @@ public class MainController implements Initializable {
             projectItems = new ArrayList<>(existingItems.values());
 
             Set<String> seenIds = new HashSet<>(existingItems.keySet());
+            logger.info("[Projektübersicht] seenIds (aus Order): {}", seenIds);
+            
+            // Root-Verzeichnis selbst prüfen: enthält es direkt .docx-Dateien?
+            File[] rootDocxFiles = searchDir.listFiles((d, name) -> name.toLowerCase().endsWith(".docx"));
+            if (rootDocxFiles != null && rootDocxFiles.length > 0) {
+                String rootId = searchDir.getAbsolutePath();
+                if (!seenIds.contains(rootId)) {
+                    projectItems.add(new ProjectDisplayItem(searchDir, rootDocxFiles));
+                    seenIds.add(rootId);
+                    logger.info("[Projektübersicht] Root selbst als Projekt hinzugefügt ({} docx)", rootDocxFiles.length);
+                }
+            }
             
             for (File dir : directories) {
                 String id = dir.getAbsolutePath();
                 if (seenIds.contains(id)) {
+                    logger.info("[Projektübersicht] SKIP (bereits bekannt): {}", id);
                     continue;
                 }
                 
@@ -6354,6 +6417,7 @@ public class MainController implements Initializable {
                     dirName.equals("src") || dirName.equals("node_modules") ||
                     dirName.equals(".git") || dirName.equals(".idea") ||
                     dirName.equals("__pycache__") || dirName.equals(".vscode")) {
+                    logger.info("[Projektübersicht] SKIP (Ausnahmeliste): {}", dirName);
                     continue;
                 }
 
@@ -6362,9 +6426,7 @@ public class MainController implements Initializable {
                 List<File> seriesBooks = new ArrayList<>();
                 
                 if (subDirs != null && subDirs.length > 0) {
-                    // Prüfe ob es eine Serie ist (Unterordner enthalten DOCX-Dateien)
                     for (File subDir : subDirs) {
-                        // Ausnahmeliste auch für Unterordner in Serien anwenden
                         String subDirName = subDir.getName().toLowerCase();
                         if (subDirName.equals("data") || subDirName.equals("backup") || 
                             subDirName.equals("config") || subDirName.equals("logs") || 
@@ -6388,16 +6450,47 @@ public class MainController implements Initializable {
                 
                 if (!seriesBooks.isEmpty()) {
                     projectItems.add(new ProjectDisplayItem(dir, seriesBooks));
+                    logger.info("[Projektübersicht] SERIE hinzugefügt: {} ({} Bücher)", dir.getName(), seriesBooks.size());
                 } else if (directDocxFiles != null && directDocxFiles.length > 0) {
                     projectItems.add(new ProjectDisplayItem(dir, directDocxFiles));
+                    logger.info("[Projektübersicht] PROJEKT hinzugefügt: {} ({} docx)", dir.getName(), directDocxFiles.length);
+                } else {
+                    logger.info("[Projektübersicht] SKIP (keine docx): {}", dir.getName());
                 }
+            }
+
+            // Aktuelles Projekt immer sicherstellen (aber nicht doppelt, wenn es Teil einer Serie ist)
+            String currentDir = preferences.get("lastDirectory", "");
+            if (!currentDir.isEmpty()) {
+                File currentProject = new File(currentDir);
+                if (currentProject.exists() && currentProject.isDirectory()) {
+                    String currentId = currentProject.getAbsolutePath();
+                    boolean alreadyInSeries = projectItems.stream()
+                        .filter(ProjectDisplayItem::isSeries)
+                        .flatMap(item -> item.getSeriesBooks().stream())
+                        .anyMatch(book -> book.getAbsolutePath().equals(currentId));
+                    if (!seenIds.contains(currentId) && !alreadyInSeries) {
+                        File[] currentDocx = currentProject.listFiles((d, name) -> name.toLowerCase().endsWith(".docx"));
+                        if (currentDocx != null && currentDocx.length > 0) {
+                            projectItems.add(0, new ProjectDisplayItem(currentProject, currentDocx));
+                            seenIds.add(currentId);
+                            logger.info("[Projektübersicht] AKTUELLES PROJEKT hinzugefügt: {} ({} docx)", currentProject.getName(), currentDocx.length);
+                        }
+                    } else if (alreadyInSeries) {
+                        logger.info("[Projektübersicht] Aktuelles Projekt ist Teil einer Serie: {}", currentDir);
+                    }
+                }
+            }
+
+            logger.info("[Projektübersicht] Gesamtzahl Projekte: {}", projectItems.size());
+            for (ProjectDisplayItem item : projectItems) {
+                logger.info("[Projektübersicht]   -> {} (Serie={})", item.getDirectory().getName(), item.isSeries());
             }
 
             renderProjectItems(projectFlow, projectStage);
             setupFlowPaneDragHandlers(projectFlow, projectStage);
             
             if (projectFlow.getChildren().isEmpty()) {
-                // Keine Projekte gefunden
                 Label noProjectsLabel = new Label("Keine Projekte gefunden");
                 noProjectsLabel.getStyleClass().add("no-projects-label");
                 projectFlow.getChildren().add(noProjectsLabel);
@@ -7009,9 +7102,13 @@ public class MainController implements Initializable {
             HBox dirBox = new HBox(10);
             dirBox.setAlignment(Pos.CENTER);
             
-            TextField dirField = new TextField("manuskripte");
+            File defaultManuskripteDir = new File("Manuskripte");
+            String initialDir = defaultManuskripteDir.exists() && defaultManuskripteDir.isDirectory()
+                    ? defaultManuskripteDir.getAbsolutePath() : "manuskripte";
+
+            TextField dirField = new TextField(initialDir);
             dirField.setPrefWidth(300);
-            dirField.setPromptText("Verzeichnisname (z.B. 'manuskripte')");
+            dirField.setPromptText("Verzeichnisname (z.B. 'Manuskripte')");
             
             Button browseButton = new Button("📂 Durchsuchen");
             browseButton.getStyleClass().add("select-project-button");
@@ -7033,15 +7130,12 @@ public class MainController implements Initializable {
             Button okButton = new Button("🚀 Los geht's!");
             okButton.getStyleClass().add("select-project-button");
             okButton.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-padding: 10px 20px;");
-            okButton.setDisable(true); // Initial deaktiviert
             
-            // Text-Change-Listener für Button-Aktivierung
-            dirField.textProperty().addListener((observable, oldValue, newValue) -> {
-                String path = newValue.trim();
+            // Validierung: Prüfe ob Pfad ein existierendes Verzeichnis ist
+            Runnable validateDir = () -> {
+                String path = dirField.getText().trim();
                 boolean isValid = !path.isEmpty() && new File(path).exists() && new File(path).isDirectory();
                 okButton.setDisable(!isValid);
-                
-                // Visuelles Feedback
                 if (isValid) {
                     dirField.setStyle("-fx-border-color: #27ae60; -fx-border-width: 2px;");
                 } else if (!path.isEmpty()) {
@@ -7049,7 +7143,10 @@ public class MainController implements Initializable {
                 } else {
                     dirField.setStyle("-fx-border-color: #bdc3c7; -fx-border-width: 1px;");
                 }
-            });
+            };
+
+            dirField.textProperty().addListener((observable, oldValue, newValue) -> validateDir.run());
+            validateDir.run();
             
             okButton.setOnAction(e -> {
                 String selectedPath = dirField.getText().trim();

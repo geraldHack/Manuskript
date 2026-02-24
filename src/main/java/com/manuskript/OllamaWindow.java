@@ -3377,33 +3377,46 @@ public class OllamaWindow {
         // Erklärung
         Label explanationLabel = new Label(
             "Ollama ist eine lokale KI-Plattform, die auf Ihrem Computer läuft.\n" +
-            "Es ermöglicht Ihnen, KI-Modelle lokal auszuführen, ohne Daten zu übertragen."
+            "Es ermöglicht Ihnen, KI-Modelle lokal auszuführen, ohne Daten an externe Server zu übertragen."
         );
         explanationLabel.setWrapText(true);
-        
+
         // Hardware-Anforderungen
         Label requirementsLabel = new Label(
-            "Hardware-Anforderungen:\n" +
-            "• Mindestens 8 GB RAM (16 GB empfohlen)\n" +
-            "• Moderne CPU (Intel i5/AMD Ryzen 5 oder besser)\n" +
-            "• 2 GB freier Speicherplatz\n" +
+            "⚠ Hardware-Voraussetzungen (wichtig!):\n" +
+            "• Mindestens 16 GB RAM (besser 32 GB)\n" +
+            "• Dedizierte Grafikkarte mit mindestens 6 GB VRAM empfohlen\n" +
+            "  (NVIDIA mit CUDA-Unterstützung ideal)\n" +
+            "• Ohne GPU: Nur sehr langsame CPU-Berechnung möglich\n" +
+            "• 10–20 GB freier Speicherplatz (je nach Modell)\n" +
             "• Windows 10/11, macOS oder Linux"
         );
         requirementsLabel.setWrapText(true);
-        
+        requirementsLabel.setStyle("-fx-font-weight: bold;");
+
+        // Modell-Empfehlung
+        Label modelLabel = new Label(
+            "\uD83D\uDCA1 Empfohlenes Modell nach der Installation:\n" +
+            "Installieren Sie das Modell \"jobautomation/OpenEuroLLM-German\"\n" +
+            "(optimiert für deutsche Texte). Dazu nach der Ollama-Installation\n" +
+            "in der Kommandozeile (CMD) eingeben:\n" +
+            "ollama pull jobautomation/OpenEuroLLM-German\n\n" +
+            "Der Befehl wird beim Klick auf \"Ollama installieren\" automatisch\n" +
+            "in die Zwischenablage kopiert – einfach mit Strg+V einfügen."
+        );
+        modelLabel.setWrapText(true);
+
         // "Nicht mehr anzeigen" Checkbox
-        CheckBox dontShowAgainCheckBox = new CheckBox("Dieses Dialog nicht mehr anzeigen");
-        
-        content.getChildren().addAll(explanationLabel, requirementsLabel, dontShowAgainCheckBox);
+        CheckBox dontShowAgainCheckBox = new CheckBox("Diesen Dialog nicht mehr anzeigen");
+
+        content.getChildren().addAll(explanationLabel, requirementsLabel, modelLabel, dontShowAgainCheckBox);
         
         CustomAlert alert = new CustomAlert(Alert.AlertType.CONFIRMATION, "Ollama Installation");
-        alert.setHeaderText("Ollama ist nicht installiert");
-        alert.setContentText("Möchten Sie Ollama installieren?");
+        alert.setHeaderText("Ollama ist nicht installiert (oder server nicht gestartet)");
         alert.applyTheme(currentThemeIndex);
         alert.initOwner(stage);
         
-        // Content setzen
-        alert.getDialogPane().setContent(content);
+        alert.setCustomContent(content);
         
         // Button-Typen setzen
         ButtonType installButtonType = new ButtonType("Ollama installieren");
@@ -3419,7 +3432,19 @@ public class OllamaWindow {
         
         // Aktion basierend auf Ergebnis
         if (result.isPresent() && result.get() == installButtonType) {
-            openOllamaWebsite();
+            String pullCommand = "ollama pull jobautomation/OpenEuroLLM-German";
+            javafx.scene.input.Clipboard.getSystemClipboard().setContent(
+                    java.util.Map.of(javafx.scene.input.DataFormat.PLAIN_TEXT, pullCommand));
+            try {
+                java.awt.Desktop.getDesktop().browse(new java.net.URI("https://ollama.com/download"));
+                updateStatus("Ollama Download-Seite geöffnet – Pull-Befehl in Zwischenablage");
+            } catch (Exception e) {
+                logger.warn("Konnte Download-Seite nicht öffnen: " + e.getMessage());
+                showAlert("Fehler", "Konnte Browser nicht öffnen. Bitte besuchen Sie manuell: https://ollama.com/download");
+            }
+            showAlert("Modell installieren",
+                    "Der Befehl \"" + pullCommand + "\" wurde in die Zwischenablage kopiert.\n\n" +
+                    "Nach der Ollama-Installation einfach CMD öffnen und mit Strg+V einfügen.");
         }
     }
     

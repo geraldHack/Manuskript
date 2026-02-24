@@ -1,5 +1,28 @@
 [
   {
+    "name": "Robert Ranger - Cool Storyteller (ElevenLabs)",
+    "seed": "754534819103377",
+    "temperature": 0.6,
+    "voiceDescription": "",
+    "highQuality": true,
+    "consistentVoice": false,
+    "topP": 1.0,
+    "topK": 46,
+    "repetitionPenalty": 1.1,
+    "speakerId": "Ryan",
+    "refAudioPath": "",
+    "voiceCloneTranscript": "",
+    "voiceClone": false,
+    "provider": "elevenlabs",
+    "elevenLabsVoiceId": "ML23UVoFL5mI6APbRAeR",
+    "elevenLabsModelId": "eleven_v3",
+    "elevenLabsStability": 0.5,
+    "elevenLabsSimilarityBoost": 0.75,
+    "elevenLabsSpeed": 1.1395939086294415,
+    "elevenLabsUseSpeakerBoost": false,
+    "elevenLabsStyle": 0.0
+  },
+  {
     "name": "Sohee - standard",
     "seed": "754534819103377",
     "temperature": 0.6,
@@ -250,29 +273,6 @@
     "elevenLabsSimilarityBoost": 0.75,
     "elevenLabsSpeed": 1.0,
     "elevenLabsUseSpeakerBoost": true,
-    "elevenLabsStyle": 0.0
-  },
-  {
-    "name": "Robert Ranger - Cool Storyteller (ElevenLabs)",
-    "seed": "754534819103377",
-    "temperature": 0.6,
-    "voiceDescription": "",
-    "highQuality": true,
-    "consistentVoice": false,
-    "topP": 1.0,
-    "topK": 46,
-    "repetitionPenalty": 1.1,
-    "speakerId": "Ryan",
-    "refAudioPath": "",
-    "voiceCloneTranscript": "",
-    "voiceClone": false,
-    "provider": "elevenlabs",
-    "elevenLabsVoiceId": "ML23UVoFL5mI6APbRAeR",
-    "elevenLabsModelId": "eleven_v3",
-    "elevenLabsStability": 0.0,
-    "elevenLabsSimilarityBoost": 0.75,
-    "elevenLabsSpeed": 1.1395939086294415,
-    "elevenLabsUseSpeakerBoost": false,
     "elevenLabsStyle": 0.0
   }
 ]

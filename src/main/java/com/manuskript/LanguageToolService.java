@@ -200,9 +200,10 @@ public class LanguageToolService {
                 // Extrahiere Port aus URL
                 int port = extractPortFromUrl(serverUrl);
                 
-                // Starte Server-Prozess
+                // Starte Server-Prozess (bevorzuge eingebettete JRE aus runtime/bin/)
+                String javaExe = resolveJavaExecutable();
                 ProcessBuilder pb = new ProcessBuilder(
-                    "java", "-jar", jarFile.getAbsolutePath(), "--port", String.valueOf(port)
+                    javaExe, "-jar", jarFile.getAbsolutePath(), "--port", String.valueOf(port)
                 );
                 pb.directory(jarFile.getParentFile());
                 pb.redirectErrorStream(true);
@@ -453,6 +454,29 @@ public class LanguageToolService {
         return null;
     }
     
+    /**
+     * Findet die Java-Executable: zuerst im eingebetteten Runtime (jpackage),
+     * dann JAVA_HOME, zuletzt Fallback auf "java" im System-PATH.
+     */
+    private static String resolveJavaExecutable() {
+        boolean isWindows = System.getProperty("os.name", "").toLowerCase(java.util.Locale.ROOT).contains("win");
+        String exeName = isWindows ? "java.exe" : "java";
+
+        // 1. Eingebettete Runtime neben der App (jpackage app-image: runtime/bin/java)
+        File runtimeJava = new File("runtime" + File.separator + "bin" + File.separator + exeName);
+        if (runtimeJava.isFile()) return runtimeJava.getAbsolutePath();
+
+        // 2. JAVA_HOME
+        String javaHome = System.getProperty("java.home");
+        if (javaHome != null) {
+            File homeJava = new File(javaHome, "bin" + File.separator + exeName);
+            if (homeJava.isFile()) return homeJava.getAbsolutePath();
+        }
+
+        // 3. Fallback: System-PATH
+        return "java";
+    }
+
     /**
      * URL-Encoding für Text
      */

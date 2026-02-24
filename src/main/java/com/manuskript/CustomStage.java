@@ -669,10 +669,12 @@ public class CustomStage extends Stage {
             iconLabel.setStyle("");
             titleLabel.setStyle("");
             String osName = System.getProperty("os.name", "").toLowerCase();
-            if (!osName.contains("mac") && minimizeBtn != null) {
-                minimizeBtn.setStyle("");
-                maximizeBtn.setStyle("");
-                closeBtn.setStyle("");
+            boolean isMac = osName.contains("mac");
+            if (!isMac && minimizeBtn != null) {
+                updateButtonStyles(currentTextColor, getButtonFontSize());
+                setupHoverEffects();
+            } else if (isMac) {
+                setupMacHoverEffects();
             }
         }
         setStageBorder(borderColor);

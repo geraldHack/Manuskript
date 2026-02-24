@@ -737,6 +737,10 @@ public class ComfyUIClient {
             instructVal = instructVal + " Stimme: " + voiceDescription.trim();
             logger.info("TTS Stimmbeschreibung angehängt an instruct: \"{}\"", voiceDescription.trim());
         }
+        // max_new_tokens proportional zur Textlänge: ~6 Audio-Tokens pro Zeichen, min 512, max 2048
+        int maxTokens = Math.max(512, Math.min(2048, text.length() * 6));
+        logger.info("TTS max_new_tokens: {} (Textlänge: {} Zeichen)", maxTokens, text.length());
+
         Map<String, Object> ttsNode;
         boolean useVoiceDesign = highQuality && !consistentVoice;
         if (useVoiceDesign) {
@@ -747,16 +751,16 @@ public class ComfyUIClient {
             inputs.put("text", text);
             inputs.put("model_choice", "1.7B");
             inputs.put("device", "auto");
-            inputs.put("precision", "fp32");
+            inputs.put("precision", "bf16");
             inputs.put("language", "German");
             inputs.put("seed", seedVal);
-            inputs.put("max_new_tokens", 2048);
+            inputs.put("max_new_tokens", maxTokens);
             inputs.put("top_p", topPVal);
             inputs.put("top_k", topKVal);
             inputs.put("temperature", tempVal);
             inputs.put("repetition_penalty", repPenVal);
-            inputs.put("attention", "auto");
-            inputs.put("unload_model_after_generate", true);
+            inputs.put("attention", "sdpa");
+            inputs.put("unload_model_after_generate", false);
             inputs.put("instruct", instructVal);
             ttsNode.put("inputs", inputs);
         } else {
@@ -773,16 +777,16 @@ public class ComfyUIClient {
             inputs.put("speaker", speaker);
             inputs.put("model_choice", highQuality ? "1.7B" : "0.6B");
             inputs.put("device", "auto");
-            inputs.put("precision", "fp32");
+            inputs.put("precision", "bf16");
             inputs.put("language", "German");
             inputs.put("seed", seedVal);
-            inputs.put("max_new_tokens", 2048);
+            inputs.put("max_new_tokens", maxTokens);
             inputs.put("top_p", topPVal);
             inputs.put("top_k", topKVal);
             inputs.put("temperature", tempVal);
             inputs.put("repetition_penalty", repPenVal);
-            inputs.put("attention", "auto");
-            inputs.put("unload_model_after_generate", true);
+            inputs.put("attention", "sdpa");
+            inputs.put("unload_model_after_generate", false);
             inputs.put("instruct", instructVal);
             inputs.put("custom_model_path", "");
             inputs.put("custom_speaker_name", "");
@@ -848,18 +852,19 @@ public class ComfyUIClient {
             inputs.put("ref_text", voiceClonePrompt.trim());
         }
         String targetText = (textToSpeak != null && !textToSpeak.isBlank()) ? textToSpeak.trim() : " ";
+        int vcMaxTokens = Math.max(512, Math.min(2048, targetText.length() * 6));
         inputs.put("target_text", targetText);
         inputs.put("model_choice", highQuality ? "1.7B" : "0.6B");
         inputs.put("device", "auto");
         inputs.put("precision", "bf16");
         inputs.put("language", "Auto");
         inputs.put("seed", seed);
-        inputs.put("max_new_tokens", 2048);
+        inputs.put("max_new_tokens", vcMaxTokens);
         inputs.put("top_p", topPVal);
         inputs.put("top_k", topKVal);
         inputs.put("temperature", tempVal);
         inputs.put("repetition_penalty", repPenVal);
-        inputs.put("attention", "auto");
+        inputs.put("attention", "sdpa");
         inputs.put("unload_model_after_generate", false);
         inputs.put("x_vector_only", false);
         // Base-Modell unterstützt kein instruct (QwenLM/Qwen3-TTS#25). voiceDescription nur für Speicherung, nicht an Node übergeben.

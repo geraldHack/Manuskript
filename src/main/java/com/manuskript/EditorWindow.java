@@ -434,7 +434,7 @@ public class EditorWindow implements Initializable {
         });
         
         // LanguageTool Einstellung aus Preferences laden
-        languageToolEnabled = preferences.getBoolean("languagetool_enabled", true); // Standard: aktiviert
+        languageToolEnabled = preferences.getBoolean("languagetool_enabled", false);
         
         // LanguageTool: Prüfe beim Start, ob bereits Text vorhanden ist
         Platform.runLater(() -> {

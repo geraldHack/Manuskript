@@ -1039,7 +1039,6 @@ public class OllamaService {
                 .thenApply(this::parseModelsResponse)
                 .exceptionally(ex -> {
                     logger.warn("Fehler beim Abrufen der Modelle: {}", ex.getMessage());
-                    ex.printStackTrace();
                     return new String[]{"mistral:7b-instruct"}; // Fallback
                 });
     }
@@ -1073,7 +1072,6 @@ public class OllamaService {
             return models;
         } catch (Exception e) {
             logger.warn("Fehler beim Parsen der Models-Antwort: {}", e.getMessage());
-            e.printStackTrace();
             return new String[]{"mistral:7b-instruct"}; // Fallback
         }
     }

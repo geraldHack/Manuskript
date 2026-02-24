@@ -13,7 +13,10 @@ create-standalone.sh
 create-standalone.bat 
 manuskript-standalone/
 javafx-sdk-21.0.6/
+javafx-jmods-*/
 manuskript-standalone.jar
+installer-output/
+installer-staging/
 pandoc/pandoc.exe
 pandoc/*.png
 pandoc/*.jpg

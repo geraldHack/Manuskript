@@ -5,6 +5,8 @@
 acen
 acens
 aklah
+aldric
+alduria
 almin
 almins
 altheras
@@ -34,6 +36,7 @@ elpenul
 ferris
 gallat
 gallats
+grakk
 infusoren
 jaad
 jaads
@@ -41,6 +44,8 @@ jom
 jomar
 jomars
 joms
+jorin
+jorins
 kala
 kalem
 kalems
@@ -52,6 +57,7 @@ lakanische
 lakans
 lethos
 leva
+luduwig
 maela
 malvek
 malveks
@@ -75,6 +81,8 @@ tilla
 valdor
 valdorien
 valdors
+valen
+valens
 weltenfresser
 zaubererrat
 zaubererrates

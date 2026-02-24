@@ -336,12 +336,17 @@ public class ChapterTtsEditorWindow {
             this.text = text != null ? text : "";
             this.lastUsed = lastUsed;
         }
+        public javafx.beans.property.StringProperty textProperty() {
+            javafx.beans.property.SimpleStringProperty p = new javafx.beans.property.SimpleStringProperty(text);
+            p.addListener((o, oldV, newV) -> text = newV != null ? newV : "");
+            return p;
+        }
     }
     private final Path regieanweisungenPath;
     private final ObservableList<RegieanweisungEntry> regieanweisungenItems = FXCollections.observableArrayList();
     /** true = nach letzter Nutzung, false = alphabetisch. */
     private boolean regieanweisungenSortByLastUsed = false;
-    private ListView<RegieanweisungEntry> regieanweisungenListView;
+    private TableView<RegieanweisungEntry> regieanweisungenTableView;
     private ComboBox<String> regieanweisungenSortCombo;
 
     /** Einschwingtext: wird bei TTS-Generierung dem eigentlichen Text vorangestellt, damit die Stimme konsistenter einsetzt. */
@@ -478,8 +483,9 @@ public class ChapterTtsEditorWindow {
         Node right = buildRightPanel(content);
         split.getItems().addAll(left, right);
         split.setDividerPositions(divPos);
-        // Beim Ziehen des Teilers nur die linke Spalte breiter/schmaler machen, rechte Seite (Tabelle/Editor) behält Breite
-        SplitPane.setResizableWithParent(right, false);
+        // Beide Seiten duerfen mit dem Fenster mitwachsen
+        SplitPane.setResizableWithParent(left, true);
+        SplitPane.setResizableWithParent(right, true);
         if (ttsPreferences != null && !split.getDividers().isEmpty()) {
             split.getDividers().get(0).positionProperty().addListener((o, oldVal, pos) -> {
                 if (pos != null) {
@@ -709,28 +715,34 @@ public class ChapterTtsEditorWindow {
         VBox lexiconBox = new VBox(4);
         lexiconBox.getChildren().addAll(lexiconLabel, lexiconTable, lexiconButtons);
 
-        // Regieanweisungen (projektglobal): Liste unter dem Lexikon, Doppelklick/Button/Tastenkürzel zum Einfügen
-        Label regieLabel = new Label("Regieanweisungen [Text] (Modellabhängig)");
-        regieLabel.setTooltip(new Tooltip("Texte in eckigen Klammern z. B. [unterwürfig, tiefe Stimme]. Doppelklick oder Button fügt am Cursor ein. Strg+Shift+R = ausgewählten Eintrag einfügen."));
-        regieanweisungenListView = new ListView<>(regieanweisungenItems);
-        regieanweisungenListView.getStyleClass().add("alternating-list");
-        regieanweisungenListView.setEditable(false);
-        regieanweisungenListView.setPrefHeight(120);
-        regieanweisungenListView.setCellFactory(lv -> new ListCell<RegieanweisungEntry>() {
-            @Override
-            protected void updateItem(RegieanweisungEntry item, boolean empty) {
-                super.updateItem(item, empty);
-                setText(empty || item == null ? null : "[" + item.text + "]");
+        // Regieanweisungen (projektglobal): TableView analog zum Lexikon, Inline-Editing
+        Label regieLabel = new Label("Regieanweisungen [Text] (Modellabhaengig)");
+        regieLabel.setTooltip(new Tooltip("Texte in eckigen Klammern z. B. [unterw\u00fcrfig, tiefe Stimme]. Mehrere Tags pro Zeile m\u00f6glich: [lacht][fl\u00fcstert]. Doppelklick f\u00fcgt am Cursor ein."));
+        regieanweisungenTableView = new TableView<>(regieanweisungenItems);
+        regieanweisungenTableView.getStyleClass().add("lexicon-table");
+        regieanweisungenTableView.setEditable(true);
+        regieanweisungenTableView.setPrefHeight(120);
+        regieanweisungenTableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        regieanweisungenTableView.setMinWidth(0);
+        regieanweisungenTableView.setMaxWidth(Double.MAX_VALUE);
+        TableColumn<RegieanweisungEntry, String> colRegieText = new TableColumn<>("Anweisung z.B. [lacht] oder [lacht][fluestert]");
+        colRegieText.setCellValueFactory(c -> c.getValue().textProperty());
+        colRegieText.setCellFactory(column -> createRegieTableCell());
+        colRegieText.setOnEditCommit(e -> {
+            int row = e.getTablePosition().getRow();
+            if (row >= 0 && row < regieanweisungenItems.size()) {
+                regieanweisungenItems.get(row).text = e.getNewValue() != null ? e.getNewValue().trim() : "";
+                saveRegieanweisungen();
             }
         });
-        regieanweisungenListView.setOnMouseClicked(me -> {
-            if (me.getClickCount() == 2 && regieanweisungenListView.getSelectionModel().getSelectedItem() != null) {
-                insertRegieanweisungAtCursor(regieanweisungenListView.getSelectionModel().getSelectedItem());
+        regieanweisungenTableView.getColumns().add(colRegieText);
+        regieanweisungenTableView.setOnMouseClicked(me -> {
+            if (me.getClickCount() == 2 && regieanweisungenTableView.getSelectionModel().getSelectedItem() != null) {
+                // Doppelklick fuegt ein, AUSSER die Zelle ist gerade im Edit-Modus
+                if (regieanweisungenTableView.getEditingCell() == null)
+                    insertRegieanweisungAtCursor(regieanweisungenTableView.getSelectionModel().getSelectedItem());
             }
         });
-        ScrollPane regieScroll = new ScrollPane(regieanweisungenListView);
-        regieScroll.setFitToWidth(true);
-        regieScroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         regieanweisungenSortCombo = new ComboBox<>();
         regieanweisungenSortCombo.getItems().addAll("Alphabetisch", "Nach letzter Nutzung");
         regieanweisungenSortCombo.getSelectionModel().select(regieanweisungenSortByLastUsed ? 1 : 0);
@@ -745,54 +757,41 @@ public class ChapterTtsEditorWindow {
         btnRegieAdd.setOnAction(e -> {
             RegieanweisungEntry neu = new RegieanweisungEntry("", 0);
             regieanweisungenItems.add(neu);
-            applyRegieanweisungenSort();
-            saveRegieanweisungen();
-            regieanweisungenListView.getSelectionModel().select(neu);
-            regieanweisungenListView.scrollTo(neu);
+            int idx = regieanweisungenItems.size() - 1;
+            regieanweisungenTableView.getSelectionModel().clearAndSelect(idx);
+            regieanweisungenTableView.scrollTo(idx);
+            Platform.runLater(() -> regieanweisungenTableView.edit(idx, colRegieText));
         });
-        Button btnRegieRemove = new Button("− Entfernen");
+        Button btnRegieRemove = new Button("\u2212 Entfernen");
         btnRegieRemove.setMinWidth(100);
         btnRegieRemove.setOnAction(e -> {
-            RegieanweisungEntry sel = regieanweisungenListView.getSelectionModel().getSelectedItem();
+            RegieanweisungEntry sel = regieanweisungenTableView.getSelectionModel().getSelectedItem();
             if (sel != null) {
                 regieanweisungenItems.remove(sel);
                 saveRegieanweisungen();
             }
         });
-        Button btnRegieEdit = new Button("Eintrag bearbeiten");
-        btnRegieEdit.setMinWidth(130);
-        btnRegieEdit.setOnAction(e -> {
-            RegieanweisungEntry sel = regieanweisungenListView.getSelectionModel().getSelectedItem();
-            if (sel == null) { setStatus("Bitte Eintrag auswählen."); return; }
-            javafx.scene.control.TextInputDialog dlg = new javafx.scene.control.TextInputDialog(sel.text != null ? sel.text : "");
-            dlg.setTitle("Regieanweisung bearbeiten");
-            dlg.setHeaderText(null);
-            dlg.setContentText("Text:");
-            dlg.showAndWait().ifPresent(newText -> {
-                sel.text = newText != null ? newText.trim() : "";
-                applyRegieanweisungenSort();
-                saveRegieanweisungen();
-                setStatus("Eintrag aktualisiert.");
-            });
-        });
         Button btnRegieCollect = new Button("Aus Text sammeln");
         btnRegieCollect.setMinWidth(130);
-        btnRegieCollect.setTooltip(new Tooltip("Alle [ ... ] im aktuellen Kapiteltext finden und zur Liste hinzufügen."));
+        btnRegieCollect.setTooltip(new Tooltip("Alle [ ... ] im aktuellen Kapiteltext finden und zur Liste hinzuf\u00fcgen. Aufeinanderfolgende Tags werden als ein Eintrag \u00fcbernommen."));
         btnRegieCollect.setOnAction(e -> {
             if (codeArea != null) collectRegieanweisungenFromText();
         });
-        Button btnRegieInsert = new Button("Am Cursor einfügen");
+        Button btnRegieInsert = new Button("Am Cursor einf\u00fcgen");
         btnRegieInsert.setMinWidth(140);
-        btnRegieInsert.setTooltip(new Tooltip("Gewählten Eintrag an der Cursorposition einfügen. Tastenkürzel: Strg+Shift+R"));
+        btnRegieInsert.setTooltip(new Tooltip("Gew\u00e4hlten Eintrag an der Cursorposition einf\u00fcgen. Tastenk\u00fcrzel: Strg+Shift+R"));
         btnRegieInsert.setOnAction(e -> {
-            RegieanweisungEntry sel = regieanweisungenListView.getSelectionModel().getSelectedItem();
+            RegieanweisungEntry sel = regieanweisungenTableView.getSelectionModel().getSelectedItem();
             if (sel != null) insertRegieanweisungAtCursor(sel);
-            else setStatus("Bitte eine Regieanweisung auswählen.");
+            else setStatus("Bitte eine Regieanweisung ausw\u00e4hlen.");
         });
+        Button btnRegieSave = new Button("Speichern");
+        btnRegieSave.setMinWidth(100);
+        btnRegieSave.setOnAction(e -> { saveRegieanweisungen(); setStatus("Regieanweisungen gespeichert."); });
         FlowPane regieButtons = new FlowPane(6, 4);
-        regieButtons.getChildren().addAll(btnRegieAdd, btnRegieRemove, btnRegieEdit, btnRegieCollect, btnRegieInsert);
+        regieButtons.getChildren().addAll(btnRegieAdd, btnRegieRemove, btnRegieCollect, btnRegieInsert, btnRegieSave);
         VBox regieanweisungenBox = new VBox(4);
-        regieanweisungenBox.getChildren().addAll(regieLabel, regieScroll, regieanweisungenSortCombo, regieButtons);
+        regieanweisungenBox.getChildren().addAll(regieLabel, regieanweisungenTableView, regieanweisungenSortCombo, regieButtons);
 
         Label voiceDescLabel = new Label("Stimmbeschreibung");
         voiceDescriptionArea = new TextArea();
@@ -1030,7 +1029,7 @@ public class ChapterTtsEditorWindow {
         applyThemeToNode(lexiconBox, themeIndex);
         applyThemeToNode(lexiconTable, themeIndex);
         applyThemeToNode(regieanweisungenBox, themeIndex);
-        applyThemeToNode(regieanweisungenListView, themeIndex);
+        applyThemeToNode(regieanweisungenTableView, themeIndex);
         applyThemeToNode(segmentColorLabel, themeIndex);
         applyThemeToNode(colorPalette, themeIndex);
         applyThemeToNode(btnPlay, themeIndex);
@@ -1331,6 +1330,69 @@ public class ChapterTtsEditorWindow {
         ComfyUITTSTestWindow.LexiconEntry entry = lexiconItems.get(rowIndex);
         if (isWord) entry.setWord(newValue != null ? newValue.trim() : "");
         else entry.setReplacement(newValue != null ? newValue : "");
+    }
+
+    /** Erstellt eine editierbare TableCell fuer die Regieanweisungen-Tabelle (analog zu Lexikon). */
+    private TableCell<RegieanweisungEntry, String> createRegieTableCell() {
+        TableCell<RegieanweisungEntry, String> cell = new TableCell<>() {
+            private TextField textField;
+
+            private void applyCommitToModel() {
+                if (textField == null) return;
+                int row = getIndex();
+                if (row >= 0 && row < regieanweisungenItems.size()) {
+                    String v = textField.getText();
+                    regieanweisungenItems.get(row).text = v != null ? v.trim() : "";
+                    saveRegieanweisungen();
+                }
+            }
+
+            @Override
+            public void startEdit() {
+                super.startEdit();
+                if (textField == null) {
+                    textField = new TextField();
+                    textField.focusedProperty().addListener((o, wasFocused, nowFocused) -> {
+                        if (wasFocused && !nowFocused && isEditing()) {
+                            String v = textField.getText();
+                            commitEdit(v != null ? v : "");
+                        }
+                    });
+                }
+                textField.setText(getItem() != null ? getItem() : "");
+                setGraphic(textField);
+                setText(null);
+                textField.requestFocus();
+                textField.selectAll();
+            }
+
+            @Override
+            public void cancelEdit() {
+                applyCommitToModel();
+                super.cancelEdit();
+                setText(getItem() != null ? getItem() : "");
+                setGraphic(null);
+            }
+
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                    setGraphic(null);
+                } else {
+                    if (isEditing()) {
+                        if (textField != null) textField.setText(item);
+                        setText(null);
+                        setGraphic(textField);
+                    } else {
+                        setText(item);
+                        setGraphic(null);
+                    }
+                }
+            }
+        };
+        return cell;
     }
 
     private void loadLexiconIntoTable() {
@@ -1651,23 +1713,25 @@ public class ChapterTtsEditorWindow {
         if (codeArea == null) return;
         String text = codeArea.getText();
         if (text == null) return;
-        Pattern p = Pattern.compile("\\[([^\\]]+)\\]");
-        Matcher m = p.matcher(text);
+        // Aufeinanderfolgende Tags erkennen: [tag1][tag2] oder [tag1] [tag2] als ein Eintrag
+        // Gespeichert wird MIT eckigen Klammern, also z. B. "[lacht]" oder "[lacht][fluestert]"
+        Pattern groupP = Pattern.compile("(\\[[^\\]]+\\](?:\\s*\\[[^\\]]+\\])*)");
+        Matcher gm = groupP.matcher(text);
         Set<String> existing = new HashSet<>();
         for (RegieanweisungEntry e : regieanweisungenItems)
             existing.add(e.text != null ? e.text.trim() : "");
         int added = 0;
-        while (m.find()) {
-            String inner = m.group(1).trim();
-            if (!inner.isEmpty() && !existing.contains(inner)) {
-                regieanweisungenItems.add(new RegieanweisungEntry(inner, 0));
-                existing.add(inner);
+        while (gm.find()) {
+            String fullMatch = gm.group(1).trim();
+            if (!fullMatch.isEmpty() && !existing.contains(fullMatch)) {
+                regieanweisungenItems.add(new RegieanweisungEntry(fullMatch, 0));
+                existing.add(fullMatch);
                 added++;
             }
         }
         applyRegieanweisungenSort();
         saveRegieanweisungen();
-        setStatus(added > 0 ? added + " Regieanweisung(en) aus Text übernommen." : "Keine neuen [ ... ] im Text gefunden.");
+        setStatus(added > 0 ? added + " Regieanweisung(en) aus Text uebernommen." : "Keine neuen [ ... ] im Text gefunden.");
     }
 
     private void applyRegieanweisungenSort() {
@@ -1682,20 +1746,28 @@ public class ChapterTtsEditorWindow {
 
     private void insertRegieanweisungAtCursor(RegieanweisungEntry entry) {
         if (codeArea == null || entry == null) return;
+        // Laufenden Table-Edit committen, damit entry.text aktuell ist
+        if (regieanweisungenTableView != null && regieanweisungenTableView.getEditingCell() != null) {
+            regieanweisungenTableView.requestFocus();
+        }
         String t = entry.text != null ? entry.text.trim() : "";
         if (t.isEmpty()) {
-            setStatus("Eintrag ist leer – bitte bearbeiten.");
+            setStatus("Eintrag ist leer.");
             return;
         }
         int pos = codeArea.getCaretPosition();
-        String toInsert = "[" + t + "]";
+        // Text wird mit Klammern gespeichert (z. B. "[lacht]" oder "[lacht][fluestert]")
+        // Falls der User ohne Klammern eingibt, ergaenzen wir sie
+        String toInsert = t;
+        if (!toInsert.startsWith("[")) toInsert = "[" + toInsert;
+        if (!toInsert.endsWith("]")) toInsert = toInsert + "]";
         codeArea.insertText(pos, toInsert);
         entry.lastUsed = System.currentTimeMillis();
         applyRegieanweisungenSort();
         saveRegieanweisungen();
         codeArea.displaceCaret(pos + toInsert.length());
         codeArea.requestFollowCaret();
-        setStatus("Regieanweisung eingefügt.");
+        setStatus("Regieanweisung eingefuegt: " + toInsert);
     }
 
     private void bindLeftPanelActions(VBox left) {
@@ -2174,7 +2246,7 @@ public class ChapterTtsEditorWindow {
         });
         codeArea.addEventFilter(KeyEvent.KEY_PRESSED, ke -> {
             if (ke.isControlDown() && ke.isShiftDown() && ke.getCode() == KeyCode.R) {
-                RegieanweisungEntry sel = regieanweisungenListView != null ? regieanweisungenListView.getSelectionModel().getSelectedItem() : null;
+                RegieanweisungEntry sel = regieanweisungenTableView != null ? regieanweisungenTableView.getSelectionModel().getSelectedItem() : null;
                 if (sel != null) {
                     insertRegieanweisungAtCursor(sel);
                     ke.consume();
@@ -3307,7 +3379,52 @@ public class ChapterTtsEditorWindow {
         if (exe.isFile()) return exe.getAbsolutePath();
         java.io.File binExe = new java.io.File(dir, "bin" + java.io.File.separator + exeName);
         if (binExe.isFile()) return binExe.getAbsolutePath();
+
+        java.io.File zipFile = new java.io.File(dir, "ffmpeg.zip");
+        if (zipFile.isFile()) {
+            logger.info("FFmpeg nicht gefunden – entpacke {} ...", zipFile.getAbsolutePath());
+            try {
+                extractZip(zipFile.toPath(), dir.toPath());
+                logger.info("FFmpeg erfolgreich entpackt nach {}", dir.getAbsolutePath());
+            } catch (IOException e) {
+                logger.error("Fehler beim Entpacken von ffmpeg.zip: {}", e.getMessage(), e);
+                return null;
+            }
+            if (exe.isFile()) return exe.getAbsolutePath();
+            if (binExe.isFile()) return binExe.getAbsolutePath();
+        }
+
         return null;
+    }
+
+    /**
+     * Entpackt eine ZIP-Datei in das angegebene Zielverzeichnis.
+     * Vorhandene Dateien werden überschrieben. Schützt gegen Zip-Slip.
+     */
+    private static void extractZip(Path zipPath, Path targetDir) throws IOException {
+        try (java.util.zip.ZipInputStream zis = new java.util.zip.ZipInputStream(
+                Files.newInputStream(zipPath))) {
+            java.util.zip.ZipEntry entry;
+            byte[] buffer = new byte[8192];
+            while ((entry = zis.getNextEntry()) != null) {
+                Path entryPath = targetDir.resolve(entry.getName()).normalize();
+                if (!entryPath.startsWith(targetDir)) {
+                    throw new IOException("Ungültiger ZIP-Eintrag: " + entry.getName());
+                }
+                if (entry.isDirectory()) {
+                    Files.createDirectories(entryPath);
+                } else {
+                    Files.createDirectories(entryPath.getParent());
+                    try (java.io.OutputStream os = Files.newOutputStream(entryPath)) {
+                        int len;
+                        while ((len = zis.read(buffer)) > 0) {
+                            os.write(buffer, 0, len);
+                        }
+                    }
+                }
+                zis.closeEntry();
+            }
+        }
     }
 
     /**
@@ -3357,7 +3474,16 @@ public class ChapterTtsEditorWindow {
      * Verwendet VBR-Qualität, Mono, keine Lead/Trail-Silence.
      */
     public static String concatMp3FilesWithPause(List<Path> audioFiles, Path outputPath, double pauseSeconds, int mp3Quality, boolean logCommandsToConsole) {
-        return concatMp3FilesWithPause(audioFiles, outputPath, pauseSeconds, mp3Quality, logCommandsToConsole, -1, false, 0, 0);
+        return concatMp3FilesWithPause(audioFiles, outputPath, pauseSeconds, mp3Quality, logCommandsToConsole, -1, false, 0, 0, null);
+    }
+
+    public static String concatMp3FilesWithPause(List<Path> audioFiles, Path outputPath, double pauseSeconds,
+                                                  int mp3Quality, boolean logCommandsToConsole,
+                                                  int bitrateKbps, boolean stereo,
+                                                  double leadSilenceSec, double trailSilenceSec,
+                                                  java.util.function.Consumer<String> logCallback) {
+        return concatMp3FilesWithPauseImpl(audioFiles, outputPath, pauseSeconds, mp3Quality,
+                logCommandsToConsole, bitrateKbps, stereo, leadSilenceSec, trailSilenceSec, logCallback);
     }
 
     /**
@@ -3379,6 +3505,19 @@ public class ChapterTtsEditorWindow {
                                                   int mp3Quality, boolean logCommandsToConsole,
                                                   int bitrateKbps, boolean stereo,
                                                   double leadSilenceSec, double trailSilenceSec) {
+        return concatMp3FilesWithPauseImpl(audioFiles, outputPath, pauseSeconds, mp3Quality,
+                logCommandsToConsole, bitrateKbps, stereo, leadSilenceSec, trailSilenceSec, null);
+    }
+
+    private static void log(java.util.function.Consumer<String> cb, String msg) {
+        if (cb != null) cb.accept(msg);
+    }
+
+    private static String concatMp3FilesWithPauseImpl(List<Path> audioFiles, Path outputPath, double pauseSeconds,
+                                                  int mp3Quality, boolean logCommandsToConsole,
+                                                  int bitrateKbps, boolean stereo,
+                                                  double leadSilenceSec, double trailSilenceSec,
+                                                  java.util.function.Consumer<String> logCallback) {
         int n = audioFiles.size();
         if (n == 0) return "Keine Dateien";
 
@@ -3387,8 +3526,8 @@ public class ChapterTtsEditorWindow {
         String ffmpegExe = getFfmpegExePath();
         if (ffmpegExe == null) ffmpegExe = "ffmpeg";
 
-        // Einzelne Datei ohne Audiobook-Processing: einfach kopieren (Legacy-Verhalten)
         if (n == 1 && !hasAudiobookProcessing) {
+            log(logCallback, "  Einzelne Datei, kein Processing -> kopiere direkt.");
             try {
                 Files.copy(audioFiles.get(0), outputPath, StandardCopyOption.REPLACE_EXISTING);
                 return null;
@@ -3406,7 +3545,6 @@ public class ChapterTtsEditorWindow {
             listPath = tempDir.resolve("concatlist.txt");
             int q = Math.max(0, Math.min(9, mp3Quality));
 
-            // --- Qualitäts-Argumente (CBR oder VBR) ---
             List<String> qualityArgs = new ArrayList<>();
             qualityArgs.add("-c:a");
             qualityArgs.add("libmp3lame");
@@ -3418,8 +3556,9 @@ public class ChapterTtsEditorWindow {
                 qualityArgs.add(String.valueOf(q));
             }
 
-            // --- Schritt 1: Stille-Datei erzeugen (zwischen Segmenten) ---
+            // --- Schritt 1: Stille-Datei erzeugen ---
             if (n > 1) {
+                log(logCallback, "  [1/4] Erzeuge Stille-Datei (" + pauseSeconds + "s)");
                 String channelLayout = stereo ? "stereo" : "mono";
                 List<String> silenceCmd = new ArrayList<>(List.of(
                     ffmpegExe, "-y", "-loglevel", "error",
@@ -3429,7 +3568,7 @@ public class ChapterTtsEditorWindow {
                 silenceCmd.addAll(qualityArgs);
                 silenceCmd.add(silencePath.toAbsolutePath().toString());
                 if (logCommandsToConsole) {
-                    System.out.println("--- FFmpeg (Stille), zum Einfügen in cmd ---");
+                    System.out.println("--- FFmpeg (Stille) ---");
                     System.out.println(formatCommandForCmd(silenceCmd));
                 }
                 ProcessBuilder pbSilence = new ProcessBuilder(silenceCmd);
@@ -3443,7 +3582,9 @@ public class ChapterTtsEditorWindow {
             Path concatSource;
             if (n == 1) {
                 concatSource = audioFiles.get(0);
+                log(logCallback, "  [1/4] Einzelsegment, ueberspringe Concat.");
             } else {
+                log(logCallback, "  [2/4] Concat-Liste: " + n + " Segmente + " + (n - 1) + " Pausen");
                 String silenceAbs = silencePath.toAbsolutePath().toString().replace("\\", "/");
                 if (silenceAbs.contains("'")) silenceAbs = silenceAbs.replace("'", "'\\''");
                 StringBuilder listContent = new StringBuilder();
@@ -3454,12 +3595,12 @@ public class ChapterTtsEditorWindow {
                     if (i < audioFiles.size() - 1) listContent.append("file '").append(silenceAbs).append("'\n");
                 }
                 Files.writeString(listPath, listContent.toString(), StandardCharsets.UTF_8);
-                concatSource = null; // wird per concat-Demuxer gelesen
+                concatSource = null;
             }
 
-            // --- Schritt 3: Zusammenfügen (bzw. bei 1 Datei: direkt als Input) ---
-            // Bei Audiobook-Processing: erst raw concat, dann Filterchain; sonst direkt in outputPath
+            // --- Schritt 3: Zusammenfuegen ---
             if (n > 1) {
+                log(logCallback, "  [3/4] FFmpeg Concat...");
                 Path targetPath;
                 if (hasAudiobookProcessing) {
                     rawConcatPath = tempDir.resolve("raw_concat.mp3");
@@ -3475,7 +3616,7 @@ public class ChapterTtsEditorWindow {
                 concatCmd.addAll(qualityArgs);
                 concatCmd.add(targetPath.toAbsolutePath().toString());
                 if (logCommandsToConsole) {
-                    System.out.println("--- FFmpeg (Concat), zum Einfügen in cmd ---");
+                    System.out.println("--- FFmpeg (Concat) ---");
                     System.out.println(formatCommandForCmd(concatCmd));
                 }
                 ProcessBuilder pbConcat = new ProcessBuilder(concatCmd);
@@ -3489,13 +3630,15 @@ public class ChapterTtsEditorWindow {
                 } finally {
                     try { errLog.delete(); } catch (Exception ignored) { }
                 }
+                log(logCallback, "  [3/4] Concat abgeschlossen.");
             }
 
-            // --- Schritt 4: Audiobook-Processing (Trim + Lead/Trail-Silence + Fade + Stereo/CBR) ---
+            // --- Schritt 4: Audiobook-Processing ---
             if (hasAudiobookProcessing) {
+                log(logCallback, "  [4/4] Audiobook-Processing (Filter + Normalisierung)...");
                 Path inputForFilter = (n == 1) ? concatSource : rawConcatPath;
                 String filterResult = applyAudiobookFilter(ffmpegExe, inputForFilter, outputPath,
-                        bitrateKbps, stereo, leadSilenceSec, trailSilenceSec, logCommandsToConsole);
+                        bitrateKbps, stereo, leadSilenceSec, trailSilenceSec, logCommandsToConsole, logCallback);
                 if (filterResult != null) return filterResult;
             }
 
@@ -3512,34 +3655,42 @@ public class ChapterTtsEditorWindow {
         }
     }
 
+    /** Maximale Pausenlaenge in Sekunden innerhalb eines Kapitels. Laengere Pausen werden automatisch gekuerzt. */
+    private static final double MAX_INTERNAL_PAUSE_SECONDS = 2.0;
+    /** Auf diese Dauer werden zu lange Pausen gekuerzt. */
+    private static final double TRIMMED_PAUSE_SECONDS = 1.5;
+    /** Schwellwert in dB fuer die Stille-Erkennung (alles darunter gilt als Stille). */
+    private static final double SILENCE_THRESHOLD_DB = -40.0;
+
     /**
      * Wendet Audiobook-Filterchain auf eine Audiodatei an:
      * 1. Vorhandene Stille am Anfang entfernen (silenceremove)
      * 2. Lead-Silence einfügen + Fade-in
      * 3. Trail-Silence (reine Stille) am Ende anfügen
      * 4. Stereo/Mono + CBR
-     * 5. 2-Pass Loudness-Normalisierung (EBU R128 / ACX-konform):
-     *    – Integrated Loudness: –20 LUFS (Zielbereich –23 bis –18 dBFS)
+     * 5. Zu lange interne Pausen kuerzen (> MAX_INTERNAL_PAUSE_SECONDS → TRIMMED_PAUSE_SECONDS)
+     * 6. 2-Pass Loudness-Normalisierung (EBU R128 / xinxii-konform):
+     *    – Integrated Loudness: –18 LUFS (Zielbereich –15 bis –23 dB RMS)
      *    – True Peak: max. –3 dBFS
      *    – LRA (Loudness Range): 7
+     * 7. RMS/Peak-Verifikation: Prüft ob RMS zwischen –23 und –15 dB liegt
      *
      * @return null bei Erfolg, sonst Fehlermeldung
      */
     private static String applyAudiobookFilter(String ffmpegExe, Path input, Path output,
                                                 int bitrateKbps, boolean stereo,
                                                 double leadSilenceSec, double trailSilenceSec,
-                                                boolean logCommandsToConsole) {
+                                                boolean logCommandsToConsole,
+                                                java.util.function.Consumer<String> logCallback) {
         // Filterchain zusammenbauen
         StringBuilder af = new StringBuilder();
 
         // Stille am Anfang entfernen (Threshold -50dB).
-        // stop_periods wird NICHT gesetzt, da sonst auch die gewollten Pausen
-        // zwischen den Segmenten als "End-Stille" erkannt und abgeschnitten werden.
         if (leadSilenceSec > 0) {
             af.append("silenceremove=start_periods=1:start_threshold=-50dB");
         }
 
-        // Lead-Silence: adelay fügt exakte Stille am Anfang ein (Millisekunden) + Fade-in
+        // Lead-Silence: adelay fuegt exakte Stille am Anfang ein (Millisekunden) + Fade-in
         if (leadSilenceSec > 0) {
             int delayMs = (int) (leadSilenceSec * 1000);
             if (af.length() > 0) af.append(",");
@@ -3547,14 +3698,16 @@ public class ChapterTtsEditorWindow {
             af.append(",afade=t=in:d=").append(String.format(java.util.Locale.ROOT, "%.2f", leadSilenceSec));
         }
 
-        // Trail-Silence: apad fügt reine Stille am Ende an (kein Fade-out)
+        // Trail-Silence: apad fuegt reine Stille am Ende an (kein Fade-out)
         if (trailSilenceSec > 0) {
             if (af.length() > 0) af.append(",");
             af.append("apad=pad_dur=").append(String.format(java.util.Locale.ROOT, "%.2f", trailSilenceSec));
         }
 
-        // --- Schritt 1: Bestehende Filterchain anwenden → Temp-Datei ---
+        // --- Schritt 1: Bestehende Filterchain anwenden ---
+        log(logCallback, "    Filter: Trim/Fade/Stille/Stereo...");
         Path tempProcessed = null;
+        Path tempPauseTrimmed = null;
         try {
             tempProcessed = Files.createTempFile("manuskript-abfilter-", ".mp3");
 
@@ -3584,7 +3737,7 @@ public class ChapterTtsEditorWindow {
             cmd.add(tempProcessed.toAbsolutePath().toString());
 
             if (logCommandsToConsole) {
-                System.out.println("--- FFmpeg (Audiobook-Filter: Trim + Fade-in + Stille + Stereo/CBR), zum Einfügen in cmd ---");
+                System.out.println("--- FFmpeg (Audiobook-Filter: Trim + Fade-in + Stille + Stereo/CBR), zum Einfuegen in cmd ---");
                 System.out.println(formatCommandForCmd(cmd));
             }
 
@@ -3601,9 +3754,27 @@ public class ChapterTtsEditorWindow {
                 try { errLog.delete(); } catch (Exception ignored) { }
             }
 
-            // --- Schritt 2: 2-Pass Loudness-Normalisierung (ACX-konform) ---
-            String loudnormResult = applyLoudnessNormalization(ffmpegExe, tempProcessed, output,
-                    bitrateKbps, stereo, logCommandsToConsole);
+            // --- Schritt 2: Zu lange Pausen kuerzen ---
+            log(logCallback, "    Pausenkuerzung (max " + MAX_INTERNAL_PAUSE_SECONDS + "s -> " + TRIMMED_PAUSE_SECONDS + "s)...");
+            tempPauseTrimmed = Files.createTempFile("manuskript-pausetrim-", ".mp3");
+            String pauseResult = trimLongPauses(ffmpegExe, tempProcessed, tempPauseTrimmed,
+                    MAX_INTERNAL_PAUSE_SECONDS, TRIMMED_PAUSE_SECONDS, SILENCE_THRESHOLD_DB,
+                    bitrateKbps, stereo, logCommandsToConsole, logCallback);
+            Path inputForLoudnorm;
+            if (pauseResult == null) {
+                inputForLoudnorm = tempPauseTrimmed;
+            } else if ("NO_LONG_PAUSES".equals(pauseResult)) {
+                log(logCallback, "    Keine Pausen > " + MAX_INTERNAL_PAUSE_SECONDS + "s gefunden.");
+                inputForLoudnorm = tempProcessed;
+            } else {
+                log(logCallback, "    Pausenkuerzung fehlgeschlagen: " + pauseResult);
+                inputForLoudnorm = tempProcessed;
+            }
+
+            // --- Schritt 3: 2-Pass Loudness-Normalisierung (xinxii-konform) ---
+            log(logCallback, "    Loudness-Normalisierung (2-Pass, I=-18 LUFS, TP=-3 dBFS)...");
+            String loudnormResult = applyLoudnessNormalization(ffmpegExe, inputForLoudnorm, output,
+                    bitrateKbps, stereo, logCommandsToConsole, logCallback);
             if (loudnormResult != null) return loudnormResult;
 
             return null;
@@ -3613,28 +3784,200 @@ public class ChapterTtsEditorWindow {
             if (tempProcessed != null) {
                 try { Files.deleteIfExists(tempProcessed); } catch (IOException ignored) { }
             }
+            if (tempPauseTrimmed != null) {
+                try { Files.deleteIfExists(tempPauseTrimmed); } catch (IOException ignored) { }
+            }
         }
     }
 
     /**
-     * 2-Pass Loudness-Normalisierung nach EBU R128 / ACX-Standard.
+     * Erkennt Pausen laenger als {@code maxPauseSec} und kuerzt sie auf {@code targetPauseSec}.
+     * <ol>
+     *   <li>Lauf 1: {@code silencedetect} findet alle stillen Segmente</li>
+     *   <li>Berechnung der Schnitt-Punkte: Fuer jede Pause &gt; maxPauseSec wird ein Trim-Bereich berechnet</li>
+     *   <li>Lauf 2: Zusammenbau per {@code atrim + concat} Filterchain</li>
+     * </ol>
+     *
+     * @return null bei Erfolg, "NO_LONG_PAUSES" wenn nichts zu tun war, sonst Fehlermeldung
+     */
+    private static String trimLongPauses(String ffmpegExe, Path input, Path output,
+                                          double maxPauseSec, double targetPauseSec,
+                                          double thresholdDb,
+                                          int bitrateKbps, boolean stereo,
+                                          boolean logCommandsToConsole,
+                                          java.util.function.Consumer<String> logCallback) {
+        try {
+            // --- Schritt 1: Stille-Segmente erkennen ---
+            List<String> detectCmd = List.of(
+                ffmpegExe, "-i", input.toAbsolutePath().toString(),
+                "-af", String.format(java.util.Locale.ROOT,
+                    "silencedetect=noise=%ddB:d=%.2f", (int) thresholdDb, maxPauseSec),
+                "-f", "null", "-"
+            );
+            if (logCommandsToConsole) {
+                System.out.println("--- FFmpeg (Pausen-Erkennung: silencedetect) ---");
+                System.out.println(formatCommandForCmd(detectCmd));
+            }
+            ProcessBuilder pb = new ProcessBuilder(detectCmd);
+            pb.redirectErrorStream(true);
+            Process proc = pb.start();
+            String detectOutput = new String(proc.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+            proc.waitFor();
+
+            // silence_start: 12.345
+            // silence_end: 16.789 | silence_duration: 4.444
+            List<double[]> silenceSegments = new ArrayList<>();
+            double lastStart = -1;
+            for (String line : detectOutput.split("\n")) {
+                line = line.trim();
+                if (line.contains("silence_start:")) {
+                    String val = line.substring(line.indexOf("silence_start:") + 14).trim();
+                    int spaceIdx = val.indexOf(' ');
+                    if (spaceIdx > 0) val = val.substring(0, spaceIdx);
+                    try { lastStart = Double.parseDouble(val); } catch (NumberFormatException ignored) {}
+                }
+                if (line.contains("silence_end:") && lastStart >= 0) {
+                    String val = line.substring(line.indexOf("silence_end:") + 12).trim();
+                    int pipeIdx = val.indexOf('|');
+                    if (pipeIdx > 0) val = val.substring(0, pipeIdx).trim();
+                    int spaceIdx = val.indexOf(' ');
+                    if (spaceIdx > 0) val = val.substring(0, spaceIdx);
+                    try {
+                        double end = Double.parseDouble(val);
+                        double duration = end - lastStart;
+                        if (duration > maxPauseSec) {
+                            silenceSegments.add(new double[]{lastStart, end, duration});
+                        }
+                    } catch (NumberFormatException ignored) {}
+                    lastStart = -1;
+                }
+            }
+
+            if (silenceSegments.isEmpty()) {
+                logger.info("Keine Pausen laenger als {} s gefunden.", maxPauseSec);
+                return "NO_LONG_PAUSES";
+            }
+
+            logger.info("{} Pause(n) laenger als {} s gefunden, kuerze auf {} s:",
+                    silenceSegments.size(), maxPauseSec, targetPauseSec);
+            log(logCallback, "    " + silenceSegments.size() + " Pause(n) > " + maxPauseSec + "s gefunden:");
+            for (double[] seg : silenceSegments) {
+                String info = String.format("      %.1fs-%.1fs (Dauer: %.1fs)", seg[0], seg[1], seg[2]);
+                logger.info("  Pause bei {}-{} s (Dauer: {} s)",
+                        String.format("%.2f", seg[0]), String.format("%.2f", seg[1]), String.format("%.2f", seg[2]));
+                log(logCallback, info);
+            }
+
+            // --- Schritt 2: Schnitt-Punkte berechnen ---
+            // Fuer jede Pause: behalte targetPauseSec/2 am Anfang und targetPauseSec/2 am Ende
+            // Schneide den mittleren Teil heraus
+            double halfTarget = targetPauseSec / 2.0;
+            // Sammle die "keep"-Bereiche: [start, end] des zu behaltenden Audios
+            List<double[]> keepSegments = new ArrayList<>();
+            double currentPos = 0;
+            for (double[] seg : silenceSegments) {
+                double silStart = seg[0];
+                double silEnd = seg[1];
+                // Audio bis Mitte der Pause-Anfang behalten
+                double keepEnd = silStart + halfTarget;
+                if (currentPos < keepEnd) {
+                    keepSegments.add(new double[]{currentPos, keepEnd});
+                }
+                // Naechster Abschnitt startet halfTarget vor dem Pause-Ende
+                currentPos = silEnd - halfTarget;
+            }
+            // Rest der Datei
+            keepSegments.add(new double[]{currentPos, Double.MAX_VALUE});
+
+            // --- Schritt 3: Zusammenbauen per atrim + concat ---
+            int segCount = keepSegments.size();
+            StringBuilder filterComplex = new StringBuilder();
+            for (int i = 0; i < segCount; i++) {
+                double[] seg = keepSegments.get(i);
+                if (seg[1] == Double.MAX_VALUE) {
+                    filterComplex.append(String.format(java.util.Locale.ROOT,
+                        "[0:a]atrim=start=%.4f,asetpts=PTS-STARTPTS[s%d];", seg[0], i));
+                } else {
+                    filterComplex.append(String.format(java.util.Locale.ROOT,
+                        "[0:a]atrim=start=%.4f:end=%.4f,asetpts=PTS-STARTPTS[s%d];", seg[0], seg[1], i));
+                }
+            }
+            // Concat
+            for (int i = 0; i < segCount; i++) {
+                filterComplex.append(String.format("[s%d]", i));
+            }
+            filterComplex.append(String.format("concat=n=%d:v=0:a=1[out]", segCount));
+
+            List<String> trimCmd = new ArrayList<>();
+            trimCmd.add(ffmpegExe);
+            trimCmd.add("-y");
+            trimCmd.add("-loglevel");
+            trimCmd.add("warning");
+            trimCmd.add("-i");
+            trimCmd.add(input.toAbsolutePath().toString());
+            trimCmd.add("-filter_complex");
+            trimCmd.add(filterComplex.toString());
+            trimCmd.add("-map");
+            trimCmd.add("[out]");
+            trimCmd.add("-ac");
+            trimCmd.add(stereo ? "2" : "1");
+            trimCmd.add("-ar");
+            trimCmd.add("44100");
+            trimCmd.add("-c:a");
+            trimCmd.add("libmp3lame");
+            if (bitrateKbps > 0) {
+                trimCmd.add("-b:a");
+                trimCmd.add(bitrateKbps + "k");
+            }
+            trimCmd.add(output.toAbsolutePath().toString());
+
+            if (logCommandsToConsole) {
+                System.out.println("--- FFmpeg (Pausen-Kuerzung: " + silenceSegments.size() + " Pausen) ---");
+                System.out.println(formatCommandForCmd(trimCmd));
+            }
+
+            java.io.File errLog = java.io.File.createTempFile("ffmpeg-pausetrim-", ".log");
+            try {
+                ProcessBuilder pb2 = new ProcessBuilder(trimCmd);
+                pb2.redirectError(errLog);
+                pb2.redirectOutput(ProcessBuilder.Redirect.DISCARD);
+                Process proc2 = pb2.start();
+                int exit = proc2.waitFor();
+                String err = Files.readString(errLog.toPath(), StandardCharsets.UTF_8).trim();
+                if (exit != 0) return err.isEmpty() ? "Pausen-Kuerzung fehlgeschlagen (Code " + exit + ")" : err;
+            } finally {
+                try { errLog.delete(); } catch (Exception ignored) { }
+            }
+
+            logger.info("Pausenkuerzung abgeschlossen: {} Pause(n) auf {} s gekuerzt.", silenceSegments.size(), targetPauseSec);
+            log(logCallback, "    Pausenkuerzung: " + silenceSegments.size() + " Pausen auf " + targetPauseSec + "s gekuerzt.");
+            return null;
+        } catch (Exception e) {
+            return "Pausenkuerzung: " + e.getMessage();
+        }
+    }
+
+    /**
+     * 2-Pass Loudness-Normalisierung nach EBU R128 / xinxii-Standard.
      * <ul>
      *   <li>Pass 1: Messung der aktuellen Lautstärke mit {@code loudnorm print_format=json}</li>
      *   <li>Pass 2: Normalisierung mit gemessenen Werten auf Zielwerte:
-     *       Integrated Loudness –20 LUFS, True Peak –3 dBFS, LRA 7</li>
+     *       Integrated Loudness –18 LUFS, True Peak –3 dBFS, LRA 7</li>
+     *   <li>Pass 3: RMS/Peak-Verifikation und ggf. Korrektur auf –15 bis –23 dB RMS</li>
      * </ul>
      *
      * @return null bei Erfolg, sonst Fehlermeldung
      */
     private static String applyLoudnessNormalization(String ffmpegExe, Path input, Path output,
                                                       int bitrateKbps, boolean stereo,
-                                                      boolean logCommandsToConsole) {
+                                                      boolean logCommandsToConsole,
+                                                      java.util.function.Consumer<String> logCallback) {
         try {
             // --- Pass 1: Messung ---
             List<String> measureCmd = new ArrayList<>(List.of(
                 ffmpegExe, "-y", "-loglevel", "info",
                 "-i", input.toAbsolutePath().toString(),
-                "-af", "loudnorm=I=-20:TP=-3:LRA=7:print_format=json",
+                "-af", "loudnorm=I=-18:TP=-3:LRA=7:print_format=json",
                 "-f", "null", "-"
             ));
 
@@ -3671,10 +4014,11 @@ public class ChapterTtsEditorWindow {
 
             logger.info("Loudnorm-Messung: I={} LUFS, TP={} dBFS, LRA={}, Thresh={}, Offset={}",
                     measuredI, measuredTP, measuredLRA, measuredThresh, targetOffset);
+            log(logCallback, "    Pass 1 Messung: I=" + measuredI + " LUFS, TP=" + measuredTP + " dBFS, LRA=" + measuredLRA);
 
             // --- Pass 2: Normalisierung mit gemessenen Werten ---
             String loudnormFilter = String.format(java.util.Locale.ROOT,
-                "loudnorm=I=-20:TP=-3:LRA=7:measured_I=%s:measured_TP=%s:measured_LRA=%s:measured_thresh=%s:offset=%s:linear=true",
+                "loudnorm=I=-18:TP=-3:LRA=7:measured_I=%s:measured_TP=%s:measured_LRA=%s:measured_thresh=%s:offset=%s:linear=true",
                 measuredI, measuredTP, measuredLRA, measuredThresh, targetOffset);
 
             List<String> normalizeCmd = new ArrayList<>();
@@ -3717,9 +4061,169 @@ public class ChapterTtsEditorWindow {
             }
 
             logger.info("Loudness-Normalisierung abgeschlossen → {}", output.getFileName());
+            log(logCallback, "    Pass 2 Normalisierung abgeschlossen.");
+
+            // --- Schritt 3: RMS/Peak-Verifikation und ggf. Korrektur ---
+            log(logCallback, "    RMS/Peak-Verifikation (xinxii: -23...-15 dB, Peak max -3 dBFS)...");
+            String acxResult = verifyAndCorrectAcxLevels(ffmpegExe, output, bitrateKbps, stereo, logCommandsToConsole, logCallback);
+            if (acxResult != null) return acxResult;
+
             return null;
         } catch (Exception e) {
             return "Loudness-Normalisierung: " + e.getMessage();
+        }
+    }
+
+    /**
+     * Misst RMS-Pegel und Peak der Ausgabedatei und korrigiert ggf.:
+     * - RMS soll zwischen -23 dB und -15 dB liegen (xinxii-Standard)
+     * - Peak soll max. -3 dBFS sein
+     * Falls die Werte ausserhalb liegen, wird ein volume-Filter + Limiter angewendet.
+     *
+     * @return null bei Erfolg, sonst Fehlermeldung
+     */
+    private static String verifyAndCorrectAcxLevels(String ffmpegExe, Path audioFile,
+                                                     int bitrateKbps, boolean stereo,
+                                                     boolean logCommandsToConsole,
+                                                     java.util.function.Consumer<String> logCallback) {
+        try {
+            double TARGET_RMS = -19.0; // Sichere Mitte des xinxii-Fensters (-23...-15)
+            double RMS_MIN = -23.0;
+            double RMS_MAX = -15.0;
+            double PEAK_MAX = -3.0;
+
+            // --- Messung: astats liefert RMS_level und Peak_level ---
+            List<String> measureCmd = List.of(
+                ffmpegExe, "-i", audioFile.toAbsolutePath().toString(),
+                "-af", "astats=metadata=1:reset=0,ametadata=print:key=lavfi.astats.Overall.RMS_level:key=lavfi.astats.Overall.Peak_level",
+                "-f", "null", "-"
+            );
+            if (logCommandsToConsole) {
+                System.out.println("--- FFmpeg (ACX-Level-Messung) ---");
+                System.out.println(formatCommandForCmd(measureCmd));
+            }
+            ProcessBuilder pb = new ProcessBuilder(measureCmd);
+            pb.redirectErrorStream(true);
+            Process proc = pb.start();
+            String measureOutput = new String(proc.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+            proc.waitFor();
+
+            double measuredRms = Double.NaN;
+            double measuredPeak = Double.NaN;
+
+            // Letztes Vorkommen der Werte suchen (Gesamtstatistik am Ende)
+            for (String line : measureOutput.split("\n")) {
+                line = line.trim();
+                if (line.contains("lavfi.astats.Overall.RMS_level=")) {
+                    String val = line.substring(line.indexOf('=') + 1).trim();
+                    try { measuredRms = Double.parseDouble(val); } catch (NumberFormatException ignored) {}
+                }
+                if (line.contains("lavfi.astats.Overall.Peak_level=")) {
+                    String val = line.substring(line.indexOf('=') + 1).trim();
+                    try { measuredPeak = Double.parseDouble(val); } catch (NumberFormatException ignored) {}
+                }
+            }
+
+            String rmsStr = String.format("%.1f", measuredRms);
+            String peakStr = String.format("%.1f", measuredPeak);
+            log(logCallback, "    Messung: RMS=" + rmsStr + " dB, Peak=" + peakStr + " dBFS");
+            logger.info("ACX-Verifikation: RMS={} dB, Peak={} dBFS (Ziel: RMS {}/{}  Peak max {})",
+                    rmsStr, peakStr,
+                    RMS_MIN, RMS_MAX, PEAK_MAX);
+
+            if (Double.isNaN(measuredRms) || Double.isNaN(measuredPeak)) {
+                logger.warn("ACX-Verifikation: Messwerte konnten nicht ermittelt werden, ueberspringe Korrektur.");
+                return null;
+            }
+
+            boolean rmsOk = measuredRms >= RMS_MIN && measuredRms <= RMS_MAX;
+            boolean peakOk = measuredPeak <= PEAK_MAX;
+
+            if (rmsOk && peakOk) {
+                logger.info("ACX-Level OK: RMS={} dB, Peak={} dBFS", rmsStr, peakStr);
+                log(logCallback, "    Level OK: RMS=" + rmsStr + " dB, Peak=" + peakStr + " dBFS");
+                return null;
+            }
+
+            // Gain berechnen, um RMS auf Ziel zu bringen
+            double gainDb = 0;
+            if (!rmsOk) {
+                gainDb = TARGET_RMS - measuredRms;
+            }
+
+            // Peak nach Gain pruefen: wenn Peak + Gain > PEAK_MAX, Gain reduzieren
+            double projectedPeak = measuredPeak + gainDb;
+            if (projectedPeak > PEAK_MAX) {
+                gainDb = PEAK_MAX - measuredPeak;
+            }
+
+            logger.info("ACX-Korrektur: Gain={} dB anwenden + Limiter bei {} dBFS",
+                    String.format("%.2f", gainDb), PEAK_MAX);
+            log(logCallback, "    Korrektur: Gain=" + String.format("%.2f", gainDb) + " dB + Limiter bei " + PEAK_MAX + " dBFS");
+
+            // Filter: volume + alimiter (True-Peak-Limiter)
+            String filter = String.format(java.util.Locale.ROOT,
+                "volume=%.2fdB,alimiter=limit=%.1fdB:attack=5:release=50:level=false",
+                gainDb, Math.pow(10, PEAK_MAX / 20.0)); // alimiter limit in linear, aber wir nutzen dBFS-Notation
+
+            // alimiter 'limit' ist linear (0..1), berechnen aus dBFS
+            double limitLinear = Math.pow(10, PEAK_MAX / 20.0);
+            filter = String.format(java.util.Locale.ROOT,
+                "volume=%.2fdB,alimiter=limit=%f:attack=5:release=50:level=false",
+                gainDb, limitLinear);
+
+            Path tempCorrected = Files.createTempFile("manuskript-acxcorr-", ".mp3");
+            try {
+                List<String> corrCmd = new ArrayList<>();
+                corrCmd.add(ffmpegExe);
+                corrCmd.add("-y");
+                corrCmd.add("-loglevel");
+                corrCmd.add("warning");
+                corrCmd.add("-i");
+                corrCmd.add(audioFile.toAbsolutePath().toString());
+                corrCmd.add("-af");
+                corrCmd.add(filter);
+                corrCmd.add("-ac");
+                corrCmd.add(stereo ? "2" : "1");
+                corrCmd.add("-ar");
+                corrCmd.add("44100");
+                corrCmd.add("-c:a");
+                corrCmd.add("libmp3lame");
+                if (bitrateKbps > 0) {
+                    corrCmd.add("-b:a");
+                    corrCmd.add(bitrateKbps + "k");
+                }
+                corrCmd.add(tempCorrected.toAbsolutePath().toString());
+
+                if (logCommandsToConsole) {
+                    System.out.println("--- FFmpeg (ACX-Level-Korrektur) ---");
+                    System.out.println(formatCommandForCmd(corrCmd));
+                }
+
+                java.io.File errLog = java.io.File.createTempFile("ffmpeg-acxcorr-", ".log");
+                try {
+                    ProcessBuilder pb2 = new ProcessBuilder(corrCmd);
+                    pb2.redirectError(errLog);
+                    pb2.redirectOutput(ProcessBuilder.Redirect.DISCARD);
+                    Process proc2 = pb2.start();
+                    int exit = proc2.waitFor();
+                    String err = Files.readString(errLog.toPath(), StandardCharsets.UTF_8).trim();
+                    if (exit != 0) return err.isEmpty() ? "ACX-Korrektur fehlgeschlagen (Code " + exit + ")" : err;
+                } finally {
+                    try { errLog.delete(); } catch (Exception ignored) { }
+                }
+
+                // Korrigierte Datei ueber das Original kopieren
+                Files.move(tempCorrected, audioFile, StandardCopyOption.REPLACE_EXISTING);
+                logger.info("ACX-Level-Korrektur angewendet auf {}", audioFile.getFileName());
+                log(logCallback, "    Level-Korrektur angewendet.");
+                return null;
+            } finally {
+                try { Files.deleteIfExists(tempCorrected); } catch (IOException ignored) { }
+            }
+        } catch (Exception e) {
+            logger.warn("ACX-Verifikation fehlgeschlagen: {}", e.getMessage());
+            return null; // Nicht-kritisch: Normalisierung lief bereits
         }
     }
 

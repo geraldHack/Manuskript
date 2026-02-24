@@ -427,14 +427,12 @@ public class CustomAlert {
         // Content ODER TextField ODER Custom Content
         if (hasCustomContent) {
             if (customContentBox != null) {
-                // Mehrere Controls anzeigen
+                applyThemeTextColor(customContentBox, THEME_TEXTS[currentTheme]);
                 contentContainer.getChildren().add(customContentBox);
             } else if (textField != null) {
-                // Einzelnes TextField anzeigen
                 contentContainer.getChildren().add(textField);
             }
         } else if (contentText != null && !contentText.isEmpty() && !contentText.equals("null")) {
-            // Normaler Content anzeigen
             contentLabel = new Label(contentText);
             contentLabel.setWrapText(true);
             contentLabel.setTextAlignment(TextAlignment.LEFT);
@@ -444,6 +442,28 @@ public class CustomAlert {
         
     }
     
+    /**
+     * Wendet die Theme-Textfarbe rekursiv auf alle Labels/CheckBoxen in einem Container an.
+     */
+    private void applyThemeTextColor(javafx.scene.Parent parent, String textColor) {
+        for (javafx.scene.Node child : parent.getChildrenUnmodifiable()) {
+            if (child instanceof Label) {
+                Label label = (Label) child;
+                String existing = label.getStyle();
+                if (existing != null && existing.contains("-fx-text-fill")) {
+                    label.setStyle(existing.replaceAll("-fx-text-fill:\\s*[^;]+;?", "-fx-text-fill: " + textColor + ";"));
+                } else {
+                    label.setStyle((existing != null ? existing : "") + " -fx-text-fill: " + textColor + ";");
+                }
+            } else if (child instanceof CheckBox) {
+                ((CheckBox) child).setStyle("-fx-text-fill: " + textColor + ";");
+            }
+            if (child instanceof javafx.scene.Parent) {
+                applyThemeTextColor((javafx.scene.Parent) child, textColor);
+            }
+        }
+    }
+
     /**
      * Buttons aktualisieren
      */

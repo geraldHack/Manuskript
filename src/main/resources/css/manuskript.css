@@ -99,3 +99,58 @@
 .theme-dark.lila-theme .code-area .text { -fx-fill: #ffffff !important; }
 .weiss-theme .code-area .text,
 .pastell-theme .code-area .text { -fx-fill: #000000 !important; }
+
+/* =============================================
+   Allgemeine Theme-Regeln fuer Standard-Controls
+   Jedes Theme ist eigenstaendig definiert.
+   Farben werden ueber -fx-base gesteuert, Modena
+   leitet alle Control-Farben automatisch davon ab.
+   ============================================= */
+
+.weiss-theme   { -fx-base: #f0f0f0; -fx-accent: #e3f2fd; }
+.theme-dark    { -fx-base: #2a2a2a; -fx-accent: #555555; }
+.pastell-theme { -fx-base: #e8d5f0; -fx-accent: #e1bee7; }
+.blau-theme    { -fx-base: #1a3070; -fx-accent: #3b82f6; }
+.gruen-theme   { -fx-base: #053d2f; -fx-accent: #10b981; }
+.lila-theme    { -fx-base: #451570; -fx-accent: #8b5cf6; }
+
+/* =============================================
+   Wiederverwendbare Komponenten-Klassen
+   ============================================= */
+
+/* Monospace-Log-TextArea (Schrift + Rand) */
+.log-area {
+    -fx-font-family: 'Consolas', 'Monaco', monospace;
+    -fx-font-size: 11px;
+    -fx-border-width: 1;
+    -fx-border-radius: 3;
+}
+
+/* Abschnittsueberschrift */
+.section-title {
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+}
+
+/* Erfolgs-Button (gruen) */
+.btn-success {
+    -fx-background-color: rgba(40, 167, 69, 0.8);
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-padding: 8 16;
+    -fx-cursor: hand;
+}
+.btn-success:hover { -fx-background-color: rgba(40, 167, 69, 1.0); }
+
+/* Sekundaer-Button (grau) */
+.btn-secondary {
+    -fx-background-color: rgba(108, 117, 125, 0.8);
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-padding: 8 16;
+    -fx-cursor: hand;
+}
+.btn-secondary:hover { -fx-background-color: rgba(108, 117, 125, 1.0); }
+
+/* Kleiner Button */
+.btn-small { -fx-font-size: 10px; }
