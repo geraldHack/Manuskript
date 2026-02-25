@@ -112,6 +112,8 @@ REM Config-Verzeichnis (ohne sessions/)
 echo   - config/
 xcopy "config\*" "%APP_IMAGE%\config\" /E /I /Q >nul 2>&1
 if exist "%APP_IMAGE%\config\sessions" rmdir /s /q "%APP_IMAGE%\config\sessions" >nul 2>&1
+REM LanguageTool-Wörterbuch nicht mitshipen (projektspezifisch; App legt leere Datei an)
+if exist "%APP_IMAGE%\config\languagetool-dictionary.txt" del "%APP_IMAGE%\config\languagetool-dictionary.txt" >nul 2>&1
 
 REM FFmpeg (nur ZIP, wird beim ersten Start automatisch entpackt)
 echo   - ffmpeg/

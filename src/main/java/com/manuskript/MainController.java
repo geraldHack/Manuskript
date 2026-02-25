@@ -6394,7 +6394,7 @@ public class MainController implements Initializable {
             }
 
             Map<String, ProjectDisplayItem> existingItems = projectItems.stream()
-                .collect(Collectors.toMap(ProjectDisplayItem::getId, item -> item, (a, b) -> a, LinkedHashMap::new));
+                .collect(Collectors.toMap(item -> getCanonicalId(item.getDirectory()), item -> item, (a, b) -> a, LinkedHashMap::new));
             projectItems = new ArrayList<>(existingItems.values());
 
             Set<String> seenIds = new HashSet<>(existingItems.keySet());
@@ -6403,7 +6403,7 @@ public class MainController implements Initializable {
             // Root-Verzeichnis selbst prüfen: enthält es direkt .docx-Dateien?
             File[] rootDocxFiles = searchDir.listFiles((d, name) -> name.toLowerCase().endsWith(".docx"));
             if (rootDocxFiles != null && rootDocxFiles.length > 0) {
-                String rootId = searchDir.getAbsolutePath();
+                String rootId = getCanonicalId(searchDir);
                 if (!seenIds.contains(rootId)) {
                     projectItems.add(new ProjectDisplayItem(searchDir, rootDocxFiles));
                     seenIds.add(rootId);
@@ -6412,7 +6412,7 @@ public class MainController implements Initializable {
             }
             
             for (File dir : directories) {
-                String id = dir.getAbsolutePath();
+                String id = getCanonicalId(dir);
                 if (seenIds.contains(id)) {
                     logger.info("[Projektübersicht] SKIP (bereits bekannt): {}", id);
                     continue;
@@ -6459,9 +6459,14 @@ public class MainController implements Initializable {
                 
                 if (!seriesBooks.isEmpty()) {
                     projectItems.add(new ProjectDisplayItem(dir, seriesBooks));
+                    seenIds.add(id);
+                    for (File book : seriesBooks) {
+                        seenIds.add(getCanonicalId(book));
+                    }
                     logger.info("[Projektübersicht] SERIE hinzugefügt: {} ({} Bücher)", dir.getName(), seriesBooks.size());
                 } else if (directDocxFiles != null && directDocxFiles.length > 0) {
                     projectItems.add(new ProjectDisplayItem(dir, directDocxFiles));
+                    seenIds.add(id);
                     logger.info("[Projektübersicht] PROJEKT hinzugefügt: {} ({} docx)", dir.getName(), directDocxFiles.length);
                 } else {
                     logger.info("[Projektübersicht] SKIP (keine docx): {}", dir.getName());
@@ -6473,11 +6478,11 @@ public class MainController implements Initializable {
             if (!currentDir.isEmpty()) {
                 File currentProject = new File(currentDir);
                 if (currentProject.exists() && currentProject.isDirectory()) {
-                    String currentId = currentProject.getAbsolutePath();
+                    String currentId = getCanonicalId(currentProject);
                     boolean alreadyInSeries = projectItems.stream()
                         .filter(ProjectDisplayItem::isSeries)
                         .flatMap(item -> item.getSeriesBooks().stream())
-                        .anyMatch(book -> book.getAbsolutePath().equals(currentId));
+                        .anyMatch(book -> getCanonicalId(book).equals(currentId));
                     if (!seenIds.contains(currentId) && !alreadyInSeries) {
                         File[] currentDocx = currentProject.listFiles((d, name) -> name.toLowerCase().endsWith(".docx"));
                         if (currentDocx != null && currentDocx.length > 0) {
@@ -7738,6 +7743,16 @@ public class MainController implements Initializable {
                 .replace('\\', '_')
                 .replace('/', '_');
         return configDir.resolve("project_order_" + sanitized + ".json");
+    }
+
+    /** Kanonischen Pfad für Projekt-Deduplizierung (vermeidet doppelte Einträge bei unterschiedlicher Pfaddarstellung). */
+    private static String getCanonicalId(File directory) {
+        if (directory == null) return "";
+        try {
+            return directory.getCanonicalFile().getAbsolutePath();
+        } catch (Exception e) {
+            return directory.getAbsolutePath();
+        }
     }
 
     public File getProjectRootDirectory() {
