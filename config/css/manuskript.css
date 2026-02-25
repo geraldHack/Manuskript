@@ -3797,9 +3797,69 @@
 }
 
 .pastell-theme .code-area .languagetool-error {
-    -rtfx-underline-color: #e91e63;
-    -rtfx-underline-width: 2px;
-    -rtfx-underline-dash-array: 2 2;
+  -rtfx-underline-color: #e91e63;
+  -rtfx-underline-width: 2px;
+  -rtfx-underline-dash-array: 2 2;
+}
+
+/* Online-Lektorat-Markierungen (alle 6 Themes) */
+.code-area .lektorat-marking,
+.weiss-theme .code-area .lektorat-marking {
+  -rtfx-background-color: #fff3e0;
+  -rtfx-underline-color: #ff9800;
+  -rtfx-underline-width: 1px;
+  -rtfx-underline-dash-array: none;
+}
+
+.theme-dark .code-area .lektorat-marking {
+  -rtfx-background-color: #4a3728;
+  -rtfx-underline-color: #ffb74d;
+  -rtfx-underline-width: 1px;
+  -rtfx-underline-dash-array: none;
+}
+
+.pastell-theme .code-area .lektorat-marking {
+  -rtfx-background-color: #fce4ec;
+  -rtfx-underline-color: #f48fb1;
+  -rtfx-underline-width: 1px;
+  -rtfx-underline-dash-array: none;
+}
+
+.theme-dark.blau-theme .code-area .lektorat-marking {
+  -rtfx-background-color: #1e3a5f;
+  -rtfx-underline-color: #60a5fa;
+  -rtfx-underline-width: 1px;
+  -rtfx-underline-dash-array: none;
+}
+
+.theme-dark.gruen-theme .code-area .lektorat-marking {
+  -rtfx-background-color: #14532d;
+  -rtfx-underline-color: #34d399;
+  -rtfx-underline-width: 1px;
+  -rtfx-underline-dash-array: none;
+}
+
+.theme-dark.lila-theme .code-area .lektorat-marking {
+  -rtfx-background-color: #3b0764;
+  -rtfx-underline-color: #a78bfa;
+  -rtfx-underline-width: 1px;
+  -rtfx-underline-dash-array: none;
+}
+
+/* Lektorat-Ergebnisfenster (rechts) */
+.lektorat-panel {
+  -fx-background-color: transparent;
+}
+
+.lektorat-panel-hint,
+.lektorat-panel-section,
+.lektorat-panel-weight {
+  -fx-font-weight: bold;
+}
+
+.lektorat-suggestion-button {
+  -fx-alignment: center-left;
+  -fx-text-alignment: left;
 }
 
 /* ========================================

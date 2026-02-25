@@ -130,6 +130,7 @@ public class MainController implements Initializable {
 
     @FXML private Button btnProcessSelected;
     @FXML private Button btnProcessAll;
+    @FXML private Button btnOnlineLektorat;
     @FXML private Button btnThemeToggle;
     @FXML private Button btnSplit;
     @FXML private Button btnNewChapter;
@@ -532,6 +533,16 @@ public class MainController implements Initializable {
         btnProcessAll.setOnAction(e -> {
             processAllFiles();
         });
+        if (btnOnlineLektorat != null) {
+            btnOnlineLektorat.setOnAction(e -> {
+                DocxFile selected = tableViewSelected.getSelectionModel().getSelectedItem();
+                if (selected == null) {
+                    showWarning("Keine Datei ausgewählt", "Bitte wählen Sie in der rechten Tabelle eine Kapiteldatei aus.");
+                    return;
+                }
+                openChapterEditor(selected, true);
+            });
+        }
         btnThemeToggle.setOnAction(e -> toggleTheme());
         btnSplit.setOnAction(e -> {
             if (splitTxtFilePath == null || splitTxtOutputPath == null || splitChapterItems == null || splitCurrentSource == null || splitDocxSplitProcessor == null || splitRtfSplitProcessor == null) {
@@ -2153,7 +2164,14 @@ public class MainController implements Initializable {
         }
     }
     private void openChapterEditor(DocxFile chapterFile) {
+        openChapterEditor(chapterFile, false);
+    }
+
+    private void openChapterEditor(DocxFile chapterFile, boolean startOnlineLektorat) {
         try {
+            if (startOnlineLektorat) {
+                logger.info("openChapterEditor: Online-Lektorat angefordert für {}", chapterFile != null ? chapterFile.getFileName() : "null");
+            }
             // Verarbeite nur dieses eine Kapitel - nur noch MD
             DocxProcessor.OutputFormat format = DocxProcessor.OutputFormat.MARKDOWN;
             
@@ -2169,14 +2187,17 @@ public class MainController implements Initializable {
                 // Editor existiert bereits - bringe ihn in den Vordergrund
                 Platform.runLater(() -> {
                     if (existingEditor.getStage() != null && existingEditor.getStage().isShowing()) {
-                        // Fenster in den Vordergrund bringen
-                        existingEditor.getStage().setIconified(false); // Entminimieren falls minimiert
-                        existingEditor.getStage().toFront(); // In den Vordergrund
-                        existingEditor.getStage().requestFocus(); // Fokus setzen
+                        existingEditor.getStage().setIconified(false);
+                        existingEditor.getStage().toFront();
+                        existingEditor.getStage().requestFocus();
+                    }
+                    if (startOnlineLektorat) {
+                        logger.info("openChapterEditor: startOnlineLektorat auf bestehendem Editor aufgerufen");
+                        existingEditor.startOnlineLektorat();
                     }
                 });
                 updateStatus("Bestehender Editor für '" + chapterFile.getFileName() + "' in den Vordergrund gebracht");
-                return; // Kein neuer Editor nötig
+                return;
             }
             
             // Prüfe ob eine MD-Datei existiert
@@ -2241,7 +2262,10 @@ public class MainController implements Initializable {
                                 }
                                 
                                 updateStatus("Kapitel-Editor geöffnet (DOCX übernommen): " + chapterFile.getFileName());
-                                // Hash aktualisieren und "!" aus Tabelle entfernen (asynchron)
+                                if (startOnlineLektorat && editorController != null) {
+                                    logger.info("openChapterEditor: startOnlineLektorat geplant (DOCX übernommen)");
+                                    Platform.runLater(() -> editorController.startOnlineLektorat());
+                                }
                                 DiffProcessor.saveDocxHashAsync(chapterFile.getFile(), mdFile);
                                 updateDocxHashAfterAccept(chapterFile.getFile());
                                 markDocxFileAsUnchanged(chapterFile.getFile());
@@ -2249,7 +2273,7 @@ public class MainController implements Initializable {
                                 logger.error("Fehler beim Übernehmen des DOCX-Inhalts", e);
                                 showError("Fehler", "DOCX-Inhalt konnte nicht übernommen werden: " + e.getMessage());
                             }
-                            return; // Editor bereits geöffnet oder neu geöffnet
+                            return;
                         }
                         case IGNORE: {
 
@@ -2276,6 +2300,10 @@ public class MainController implements Initializable {
                         EditorWindow editor = openChapterEditorWindow(mdContent, chapterFile, format);
                         if (editor != null) {
                             updateStatus("Kapitel-Editor geöffnet (MD): " + chapterFile.getFileName());
+                            if (startOnlineLektorat) {
+                                logger.info("openChapterEditor: startOnlineLektorat geplant (MD geladen)");
+                                Platform.runLater(() -> editor.startOnlineLektorat());
+                            }
                         }
 
                     } catch (Exception e) {
@@ -2285,8 +2313,10 @@ public class MainController implements Initializable {
                         EditorWindow editor = openChapterEditorWindow(content, chapterFile, format);
                         if (editor != null) {
                             updateStatus("Kapitel-Editor geöffnet (DOCX-Fallback): " + chapterFile.getFileName());
-                            
-                            // WICHTIG: Hash speichern für Fallback-Fall
+                            if (startOnlineLektorat) {
+                                logger.info("openChapterEditor: startOnlineLektorat geplant (DOCX-Fallback)");
+                                Platform.runLater(() -> editor.startOnlineLektorat());
+                            }
                             if (mdFile != null) {
                                 DiffProcessor.saveDocxHashAsync(chapterFile.getFile(), mdFile);
                                 updateDocxHashAfterAccept(chapterFile.getFile());
@@ -2318,9 +2348,13 @@ public class MainController implements Initializable {
                 EditorWindow editor = openChapterEditorWindow(content, chapterFile, format);
                 if (editor != null) {
                     updateStatus("Kapitel-Editor geöffnet (DOCX→MD): " + chapterFile.getFileName());
+                    if (startOnlineLektorat) {
+                        logger.info("openChapterEditor: startOnlineLektorat geplant (DOCX→MD)");
+                        Platform.runLater(() -> editor.startOnlineLektorat());
+                    }
                 }
             }
-            
+
         } catch (Exception e) {
             logger.error("Fehler beim Öffnen des Kapitel-Editors", e);
             showError("Editor-Fehler", e.getMessage());
@@ -5158,6 +5192,7 @@ public class MainController implements Initializable {
         applyThemeToNode(btnRemoveFromSelected, themeIndex);
         applyThemeToNode(btnProcessSelected, themeIndex);
         applyThemeToNode(btnProcessAll, themeIndex);
+        if (btnOnlineLektorat != null) applyThemeToNode(btnOnlineLektorat, themeIndex);
         applyThemeToNode(btnThemeToggle, themeIndex);
         applyThemeToNode(btnDeleteFile, themeIndex);
         applyThemeToNode(btnNewChapter, themeIndex);

@@ -8,9 +8,16 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.Window;
 
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Verwaltung aller Parameter (parameters.properties / User Preferences).
@@ -49,6 +56,21 @@ public class ParametersAdminWindow {
         for (String category : ParameterRegistry.getCategories()) {
             List<ParameterDef> params = ParameterRegistry.getByCategory(category);
             if (params.isEmpty()) continue;
+
+            if ("Online-Lektorat".equals(category)) {
+                VBox lektoratContent = buildOnlineLektoratTab(keyToControl);
+                for (ParameterDef def : params) {
+                    keyToDef.put(def.getKey(), def);
+                }
+                ScrollPane scroll = new ScrollPane(lektoratContent);
+                scroll.setFitToWidth(true);
+                scroll.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
+                Tab tab = new Tab(category, scroll);
+                tab.setClosable(false);
+                tabPane.getTabs().add(tab);
+                continue;
+            }
+
             ScrollPane scroll = new ScrollPane();
             scroll.setFitToWidth(true);
             scroll.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
@@ -97,6 +119,196 @@ public class ParametersAdminWindow {
         stage.setTitleBarTheme(theme);
         stage.setSceneWithTitleBar(scene);
         stage.setFullTheme(theme);
+    }
+
+    private VBox buildOnlineLektoratTab(Map<String, Control> keyToControl) {
+        VBox content = new VBox(12);
+        content.setPadding(new Insets(16));
+
+        String apiKey = ResourceManager.getParameter("api.lektorat.api_key", "");
+        String baseUrl = ResourceManager.getParameter("api.lektorat.base_url", "https://api.openai.com/v1");
+        String model = ResourceManager.getParameter("api.lektorat.model", "gpt-4o-mini");
+        String extraPrompt = ResourceManager.getParameter("api.lektorat.extra_prompt", "");
+        String lektoratType = ResourceManager.getParameter("api.lektorat.type", "allgemein");
+
+        PasswordField apiKeyField = new PasswordField();
+        apiKeyField.setText(apiKey != null ? apiKey : "");
+        apiKeyField.setPrefWidth(400);
+        Label apiKeyLabel = new Label("api.lektorat.api_key");
+        apiKeyLabel.getStyleClass().add("param-key-label");
+        Label apiKeyHelp = new Label("API-Key für die Online-Lektorat-API (z. B. OpenAI).");
+        apiKeyHelp.getStyleClass().add("param-help-label");
+        apiKeyHelp.setWrapText(true);
+        apiKeyHelp.setMaxWidth(680);
+        VBox apiKeyCard = new VBox(4);
+        apiKeyCard.getStyleClass().add("param-card");
+        apiKeyCard.setPadding(new Insets(10));
+        apiKeyCard.getChildren().addAll(apiKeyLabel, apiKeyField, apiKeyHelp);
+        content.getChildren().add(apiKeyCard);
+        keyToControl.put("api.lektorat.api_key", apiKeyField);
+
+        TextField baseUrlField = new TextField(baseUrl != null ? baseUrl : "");
+        baseUrlField.setPrefWidth(400);
+        Label baseUrlLabel = new Label("api.lektorat.base_url");
+        baseUrlLabel.getStyleClass().add("param-key-label");
+        Label baseUrlHelp = new Label("Basis-URL der API (z. B. https://api.openai.com/v1).");
+        baseUrlHelp.getStyleClass().add("param-help-label");
+        baseUrlHelp.setWrapText(true);
+        baseUrlHelp.setMaxWidth(680);
+        VBox baseUrlCard = new VBox(4);
+        baseUrlCard.getStyleClass().add("param-card");
+        baseUrlCard.setPadding(new Insets(10));
+        baseUrlCard.getChildren().addAll(baseUrlLabel, baseUrlField, baseUrlHelp);
+        content.getChildren().add(baseUrlCard);
+        keyToControl.put("api.lektorat.base_url", baseUrlField);
+
+        ComboBox<String> modelCombo = new ComboBox<>();
+        modelCombo.setEditable(true);
+        modelCombo.setPrefWidth(400);
+        modelCombo.getEditor().setText(model != null ? model : "");
+        modelCombo.setPromptText("Modell wählen oder eingeben");
+        Label modelLabel = new Label("api.lektorat.model");
+        modelLabel.getStyleClass().add("param-key-label");
+        Label modelHelp = new Label("Modell für das Lektorat (nach „Modelle laden“ auswählen oder frei eingeben).");
+        modelHelp.getStyleClass().add("param-help-label");
+        modelHelp.setWrapText(true);
+        modelHelp.setMaxWidth(680);
+        Button btnLoadModels = new Button("Modelle laden");
+        btnLoadModels.setOnAction(e -> loadLektoratModels(apiKeyField.getText(), baseUrlField.getText(), modelCombo));
+        HBox modelRow = new HBox(10);
+        modelRow.getChildren().addAll(modelCombo, btnLoadModels);
+        modelRow.setAlignment(Pos.CENTER_LEFT);
+        VBox modelCard = new VBox(4);
+        modelCard.getStyleClass().add("param-card");
+        modelCard.setPadding(new Insets(10));
+        modelCard.getChildren().addAll(modelLabel, modelRow, modelHelp);
+        content.getChildren().add(modelCard);
+        keyToControl.put("api.lektorat.model", modelCombo);
+
+        // Zusatzprompt (Textarea)
+        TextArea extraPromptArea = new TextArea(extraPrompt != null ? extraPrompt : "");
+        extraPromptArea.setPrefRowCount(4);
+        extraPromptArea.setWrapText(true);
+        extraPromptArea.setPrefWidth(680);
+        extraPromptArea.setMaxWidth(Double.MAX_VALUE);
+        Label extraPromptLabel = new Label("api.lektorat.extra_prompt");
+        extraPromptLabel.getStyleClass().add("param-key-label");
+        Label extraPromptHelp = new Label("Zusätzlicher Prompt (z. B. Stil-Anweisungen), wird an den Lektorat-Prompt angehängt.");
+        extraPromptHelp.getStyleClass().add("param-help-label");
+        extraPromptHelp.setWrapText(true);
+        extraPromptHelp.setMaxWidth(680);
+        VBox extraPromptCard = new VBox(4);
+        extraPromptCard.getStyleClass().add("param-card");
+        extraPromptCard.setPadding(new Insets(10));
+        extraPromptCard.getChildren().addAll(extraPromptLabel, extraPromptArea, extraPromptHelp);
+        content.getChildren().add(extraPromptCard);
+        keyToControl.put("api.lektorat.extra_prompt", extraPromptArea);
+
+        // Lektorat-Typ (Toggles)
+        TextField typeField = new TextField(lektoratType != null ? lektoratType : "allgemein");
+        typeField.setMaxWidth(0);
+        typeField.setMinWidth(0);
+        typeField.setOpacity(0);
+        typeField.setFocusTraversable(false);
+        ToggleGroup typeGroup = new ToggleGroup();
+        typeField.setUserData(typeGroup);
+        RadioButton rbAllgemein = new RadioButton("Allgemein");
+        rbAllgemein.setToggleGroup(typeGroup);
+        rbAllgemein.setUserData("allgemein");
+        rbAllgemein.setOnAction(e -> typeField.setText("allgemein"));
+        RadioButton rbStil = new RadioButton("Stil");
+        rbStil.setToggleGroup(typeGroup);
+        rbStil.setUserData("stil");
+        rbStil.setOnAction(e -> typeField.setText("stil"));
+        RadioButton rbGrammatik = new RadioButton("Grammatik");
+        rbGrammatik.setToggleGroup(typeGroup);
+        rbGrammatik.setUserData("grammatik");
+        rbGrammatik.setOnAction(e -> typeField.setText("grammatik"));
+        RadioButton rbPlot = new RadioButton("Plot / Dramaturgie");
+        rbPlot.setToggleGroup(typeGroup);
+        rbPlot.setUserData("plot");
+        rbPlot.setOnAction(e -> typeField.setText("plot"));
+        for (Toggle t : typeGroup.getToggles()) {
+            if (lektoratType != null && lektoratType.equals(t.getUserData())) {
+                typeGroup.selectToggle(t);
+                break;
+            }
+        }
+        if (typeGroup.getSelectedToggle() == null) {
+            typeGroup.selectToggle(rbAllgemein);
+            typeField.setText("allgemein");
+        }
+        HBox typeRow = new HBox(12);
+        typeRow.getChildren().addAll(rbAllgemein, rbStil, rbGrammatik, rbPlot);
+        typeRow.setAlignment(Pos.CENTER_LEFT);
+        Label typeLabel = new Label("api.lektorat.type");
+        typeLabel.getStyleClass().add("param-key-label");
+        Label typeHelp = new Label("Art des Lektorats.");
+        typeHelp.getStyleClass().add("param-help-label");
+        typeHelp.setWrapText(true);
+        typeHelp.setMaxWidth(680);
+        VBox typeCard = new VBox(4);
+        typeCard.getStyleClass().add("param-card");
+        typeCard.getChildren().addAll(typeLabel, typeRow, typeField, typeHelp);
+        typeCard.setPadding(new Insets(10));
+        content.getChildren().add(typeCard);
+        keyToControl.put("api.lektorat.type", typeField);
+
+        return content;
+    }
+
+    private void loadLektoratModels(String apiKey, String baseUrl, ComboBox<String> modelCombo) {
+        if (apiKey == null || apiKey.isBlank() || baseUrl == null || baseUrl.isBlank()) {
+            showInfo("Eingabe fehlt", "Bitte API-Key und Basis-URL eintragen.");
+            return;
+        }
+        String url = baseUrl.replaceAll("/$", "") + "/models";
+        HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(15)).build();
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .header("Authorization", "Bearer " + apiKey.trim())
+                .timeout(Duration.ofSeconds(20))
+                .GET()
+                .build();
+        CompletableFuture.supplyAsync(() -> {
+            try {
+                HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+                if (response.statusCode() != 200) {
+                    return "Fehler: HTTP " + response.statusCode();
+                }
+                return response.body();
+            } catch (Exception ex) {
+                return "Fehler: " + ex.getMessage();
+            }
+        }).thenAccept(result -> {
+            Platform.runLater(() -> {
+                if (result.startsWith("Fehler:")) {
+                    showInfo("Modelle laden", result);
+                    return;
+                }
+                try {
+                    com.google.gson.Gson gson = new com.google.gson.Gson();
+                    com.google.gson.JsonObject root = gson.fromJson(result, com.google.gson.JsonObject.class);
+                    com.google.gson.JsonArray data = root != null && root.has("data") ? root.getAsJsonArray("data") : null;
+                    modelCombo.getItems().clear();
+                    if (data != null) {
+                        for (int i = 0; i < data.size(); i++) {
+                            com.google.gson.JsonElement el = data.get(i);
+                            if (el.isJsonObject() && el.getAsJsonObject().has("id")) {
+                                modelCombo.getItems().add(el.getAsJsonObject().get("id").getAsString());
+                            }
+                        }
+                    }
+                    if (modelCombo.getItems().isEmpty()) {
+                        showInfo("Modelle laden", "Keine Modelle in der Antwort gefunden.");
+                    } else {
+                        showInfo("Modelle laden", modelCombo.getItems().size() + " Modelle geladen. Bitte Modell auswählen und Speichern klicken.");
+                    }
+                } catch (Exception e) {
+                    showInfo("Modelle laden", "Antwort konnte nicht gelesen werden: " + e.getMessage());
+                }
+            });
+        });
     }
 
     private Control createControl(ParameterDef def) {
@@ -167,6 +379,13 @@ public class ParametersAdminWindow {
             return v != null ? v.toString() : def.getDefaultValue();
         }
         if (c instanceof TextArea) return ((TextArea) c).getText();
+        if (c instanceof ComboBox) {
+            ComboBox<?> cb = (ComboBox<?>) c;
+            Object v = cb.getValue();
+            if (v != null) return v.toString();
+            if (cb.isEditable() && cb.getEditor() != null) return cb.getEditor().getText();
+            return def.getDefaultValue();
+        }
         if (c instanceof TextField) return ((TextField) c).getText();
         return def.getDefaultValue();
     }
@@ -191,7 +410,19 @@ public class ParametersAdminWindow {
             else
                 ((Spinner<Double>) s).getValueFactory().setValue(parseDouble(d, 0.0));
         } else if (c instanceof TextArea) ((TextArea) c).setText(d != null ? d : "");
-        else if (c instanceof TextField) ((TextField) c).setText(d != null ? d : "");
+        else if (c instanceof ComboBox) {
+            ComboBox<String> cb = (ComboBox<String>) c;
+            cb.getSelectionModel().clearSelection();
+            if (cb.isEditable() && cb.getEditor() != null) cb.getEditor().setText(d != null ? d : "");
+        } else if (c instanceof TextField) {
+            TextField tf = (TextField) c;
+            tf.setText(d != null ? d : "");
+            if (tf.getUserData() instanceof ToggleGroup) {
+                ToggleGroup g = (ToggleGroup) tf.getUserData();
+                for (Toggle t : g.getToggles())
+                    if (d != null && d.equals(t.getUserData())) { g.selectToggle(t); break; }
+            }
+        }
     }
 
     private void showInfo(String title, String message) {

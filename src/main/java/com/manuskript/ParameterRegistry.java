@@ -39,6 +39,18 @@ public final class ParameterRegistry {
         add("tts.elevenlabs_api_key", ParameterDef.Type.STRING, "",
                 "API-Key für ElevenLabs (kostenpflichtiger TTS-Dienst). Leer = nur ComfyUI-Stimmen verfügbar.", "TTS (ElevenLabs)");
 
+        // —— Online-Lektorat (OpenAI-kompatible API) ——
+        add("api.lektorat.api_key", ParameterDef.Type.STRING, "",
+                "API-Key für die Online-Lektorat-API (z. B. OpenAI).", "Online-Lektorat");
+        add("api.lektorat.base_url", ParameterDef.Type.STRING, "https://api.openai.com/v1",
+                "Basis-URL der API (z. B. https://api.openai.com/v1).", "Online-Lektorat");
+        add("api.lektorat.model", ParameterDef.Type.STRING, "gpt-4o-mini",
+                "Modell für das Lektorat (Dropdown nach „Modelle laden“ oder freie Eingabe).", "Online-Lektorat");
+        add("api.lektorat.extra_prompt", ParameterDef.Type.STRING, "",
+                "Zusätzlicher Prompt (z. B. Stil-Anweisungen), wird an den Lektorat-Prompt angehängt.", "Online-Lektorat");
+        add("api.lektorat.type", ParameterDef.Type.STRING, "allgemein",
+                "Art des Lektorats: allgemein, Stil, Grammatik, Plot/Dramaturgie.", "Online-Lektorat");
+
         // —— Projekt ——
         add("project.root.directory", ParameterDef.Type.STRING, "",
                 "Projektwurzel-Verzeichnis (Unterordner = Projekte).", "Projekt");

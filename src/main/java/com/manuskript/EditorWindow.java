@@ -215,7 +215,12 @@ public class EditorWindow implements Initializable {
     @FXML private VBox sidebarContainer;
     @FXML private Button btnToggleSidebar;
     @FXML private ListView<DocxFile> chapterListView;
+    @FXML private VBox lektoratPanelContainer;
     private boolean sidebarExpanded = true;
+
+    // Online-Lektorat
+    private final List<LektoratMatch> currentLektoratMatches = new ArrayList<>();
+    private LektoratMatch selectedLektoratMatch = null;
     
     // Undo/Redo Buttons
     @FXML private Button btnUndo;
@@ -383,6 +388,8 @@ public class EditorWindow implements Initializable {
     private ScheduledExecutorService statusClearExecutor;
     private ScheduledFuture<?> statusClearFuture;
     private final Object statusLock = new Object();
+    /** Verhindert, dass „Bereit“/LanguageTool den Status überschreibt, solange das Online-Lektorat läuft. */
+    private volatile boolean onlineLektoratInProgress = false;
 
     private void scheduleStatusClear(long delaySeconds, boolean skip) {
         if (skip) {
@@ -406,14 +413,13 @@ public class EditorWindow implements Initializable {
             }
             statusClearFuture = statusClearExecutor.schedule(() -> {
                 Platform.runLater(() -> {
-                    if (lblStatus != null) {
-                        if (hasUnsavedChanges()) {
-                            lblStatus.setText("⚠ Ungespeicherte Änderungen");
-                            lblStatus.setStyle("-fx-text-fill: #ff6b35; -fx-font-weight: bold; -fx-background-color: #fff3cd; -fx-padding: 2 6 2 6; -fx-background-radius: 3;");
-                        } else {
-                            lblStatus.setText("Bereit");
-                            lblStatus.setStyle("-fx-text-fill: #28a745; -fx-font-weight: normal; -fx-background-color: #d4edda; -fx-padding: 2 6 2 6; -fx-background-radius: 3;");
-                        }
+                    if (onlineLektoratInProgress || lblStatus == null) return;
+                    if (hasUnsavedChanges()) {
+                        lblStatus.setText("⚠ Ungespeicherte Änderungen");
+                        lblStatus.setStyle("-fx-text-fill: #ff6b35; -fx-font-weight: bold; -fx-background-color: #fff3cd; -fx-padding: 2 6 2 6; -fx-background-radius: 3;");
+                    } else {
+                        lblStatus.setText("Bereit");
+                        lblStatus.setStyle("-fx-text-fill: #28a745; -fx-font-weight: normal; -fx-background-color: #d4edda; -fx-padding: 2 6 2 6; -fx-background-radius: 3;");
                     }
                 });
             }, delaySeconds, TimeUnit.SECONDS);
@@ -697,6 +703,7 @@ if (caret != null) {
         // LanguageTool Buttons (nach vollständiger UI-Initialisierung)
         Platform.runLater(() -> {
             setupLanguageToolButtons();
+            setupLektoratClickAndPanel();
         });
     }
     
@@ -3611,6 +3618,7 @@ if (caret != null) {
     }
     
     public void updateStatus(String message) {
+        if (onlineLektoratInProgress) return;
         if (lblStatus != null) {
         lblStatus.setText(message);
             lblStatus.setStyle("-fx-text-fill: #28a745; -fx-font-weight: normal; -fx-background-color: #d4edda; -fx-padding: 2 6 2 6; -fx-background-radius: 3;");
@@ -3627,6 +3635,7 @@ if (caret != null) {
     }
     
     public void updateStatusError(String message) {
+        if (onlineLektoratInProgress) return;
         if (lblStatus != null) {
             lblStatus.setText(message);
             // Inline-Styling setzen - wird nach Theme-Apply gesetzt, um CSS zu überschreiben
@@ -12473,8 +12482,8 @@ spacer.setStyle("-fx-background-color: transparent;");
                     // Entferne alle Markdown-Styles (werden später neu hinzugefügt, wenn Matches vorhanden sind)
                     styles.removeIf(style -> style.startsWith("markdown-") || 
                                         style.startsWith("heading-"));
-                    // WICHTIG: Entferne auch LanguageTool-Markierungen (werden später neu hinzugefügt, wenn Matches vorhanden sind)
                     styles.remove("languagetool-error");
+                    styles.remove("lektorat-marking");
                     if (!styles.isEmpty()) {
                         existingStyles.put(pos, styles);
                     }
@@ -12518,6 +12527,17 @@ spacer.setStyle("-fx-background-color: transparent;");
             } else if (languageToolEnabled && matchesToProcess.isEmpty()) {
                 synchronized (currentLanguageToolMatches) {
                     logger.debug("applyCombinedStyling: LanguageTool aktiviert, aber keine Matches vorhanden (currentLanguageToolMatches.size()=" + currentLanguageToolMatches.size() + ")");
+                }
+            }
+
+            // Lektorat-Markierungen
+            for (LektoratMatch match : currentLektoratMatches) {
+                int start = match.getOffset();
+                int end = start + match.getLength();
+                if (start >= 0 && end <= content.length() && start < end) {
+                    for (int i = start; i < end; i++) {
+                        existingStyles.computeIfAbsent(i, k -> new HashSet<>()).add("lektorat-marking");
+                    }
                 }
             }
             
@@ -12881,6 +12901,193 @@ spacer.setStyle("-fx-background-color: transparent;");
                 lblLanguageToolStatus.setTooltip(new Tooltip(currentLanguageToolMatches.size() + " Fehler gefunden"));
             }
         }
+    }
+
+    /**
+     * Startet das Online-Lektorat für den aktuellen Editor-Text (aufgerufen aus dem Hauptfenster).
+     */
+    public void startOnlineLektorat() {
+        logger.info("startOnlineLektorat aufgerufen, codeArea={}", codeArea != null);
+        if (codeArea == null) {
+            logger.warn("startOnlineLektorat: codeArea ist null – Abbruch");
+            Platform.runLater(() -> {
+                CustomAlert alert = DialogFactory.createWarningAlert("Online-Lektorat", null, "Editor noch nicht bereit (codeArea null). Bitte kurz warten und erneut versuchen.", stage != null ? stage.getScene().getWindow() : null);
+                alert.applyTheme(currentThemeIndex);
+                alert.showAndWait();
+            });
+            return;
+        }
+        String text = codeArea.getText();
+        if (text == null || text.trim().isEmpty()) {
+            CustomAlert alert = DialogFactory.createWarningAlert("Online-Lektorat", null, "Der Editor ist leer. Bitte zuerst Text eingeben oder eine Kapiteldatei öffnen.", stage != null ? stage.getScene().getWindow() : null);
+            alert.applyTheme(currentThemeIndex);
+            alert.showAndWait();
+            return;
+        }
+        // Verhindern, dass „Bereit“ oder LanguageTool den Status überschreiben; geplanten Clear abbrechen
+        scheduleStatusClear(0, true);
+        onlineLektoratInProgress = true;
+        if (lblStatus != null) {
+            lblStatus.setText("Lektorat wird erstellt – bitte warten…");
+            lblStatus.setVisible(true);
+            lblStatus.setManaged(true);
+        }
+        logger.info("startOnlineLektorat: API-Aufruf gestartet, Textlänge={}", text.length());
+        OnlineLektoratService service = new OnlineLektoratService();
+        service.runLektorat(text)
+                .thenAccept(matches -> Platform.runLater(() -> {
+                    onlineLektoratInProgress = false;
+                    currentLektoratMatches.clear();
+                    currentLektoratMatches.addAll(matches);
+                    selectedLektoratMatch = null;
+                    applyCombinedStyling();
+                    showLektoratPanelHint();
+                    updateStatus(matches.isEmpty() ? "Keine Lektorat-Vorschläge" : matches.size() + " Lektorat-Vorschläge – Markierung anklicken");
+                    logger.info("startOnlineLektorat: abgeschlossen, {} Vorschläge", matches.size());
+                }))
+                .exceptionally(ex -> {
+                    logger.error("startOnlineLektorat: Fehler", ex);
+                    Platform.runLater(() -> {
+                        onlineLektoratInProgress = false;
+                        Window owner = (stage != null && stage.getScene() != null) ? stage.getScene().getWindow() : null;
+                        if (owner != null && stage != null && stage.isShowing()) stage.toFront();
+                        String msg = ex.getCause() != null ? ex.getCause().getMessage() : ex.getMessage();
+                        CustomAlert alert = DialogFactory.createErrorAlert("Online-Lektorat", null, "Fehler: " + (msg != null ? msg : "Unbekannt"), owner);
+                        alert.applyTheme(currentThemeIndex);
+                        alert.showAndWait();
+                        updateStatus("Online-Lektorat fehlgeschlagen");
+                    });
+                    return null;
+                });
+    }
+
+    private void showLektoratPanelHint() {
+        if (lektoratPanelContainer == null || mainSplitPane == null) return;
+        lektoratPanelContainer.getChildren().clear();
+        Label hint = new Label(currentLektoratMatches.isEmpty() ? "Keine Vorschläge." : "Klicken Sie auf eine Markierung im Text.");
+        hint.setWrapText(true);
+        hint.getStyleClass().add("lektorat-panel-hint");
+        applyThemeToNode(hint, currentThemeIndex);
+        lektoratPanelContainer.getChildren().add(hint);
+        if (!currentLektoratMatches.isEmpty() && mainSplitPane.getDividers().size() >= 2) {
+            mainSplitPane.setDividerPositions(0.15, 0.72);
+        }
+    }
+
+    private void setupLektoratClickAndPanel() {
+        if (codeArea == null || lektoratPanelContainer == null) return;
+        lektoratPanelContainer.setMaxWidth(Double.MAX_VALUE);
+        codeArea.setOnMouseClicked(me -> {
+            if (currentLektoratMatches.isEmpty()) return;
+            int pos = codeArea.getCaretPosition();
+            LektoratMatch found = null;
+            for (LektoratMatch m : currentLektoratMatches) {
+                if (pos >= m.getOffset() && pos < m.getOffset() + m.getLength()) {
+                    found = m;
+                    break;
+                }
+            }
+            if (found != null) {
+                selectedLektoratMatch = found;
+                fillLektoratPanel(found);
+                if (mainSplitPane != null && mainSplitPane.getDividers().size() >= 2) {
+                    mainSplitPane.setDividerPositions(0.15, 0.72);
+                }
+            }
+        });
+    }
+
+    private void fillLektoratPanel(LektoratMatch match) {
+        if (lektoratPanelContainer == null) return;
+        lektoratPanelContainer.getChildren().clear();
+        ScrollPane scroll = new ScrollPane();
+        scroll.setFitToWidth(true);
+        scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scroll.setMaxWidth(Double.MAX_VALUE);
+        VBox content = new VBox(10);
+        content.setPadding(new Insets(0, 5, 0, 0));
+        content.setMaxWidth(Double.MAX_VALUE);
+
+        Label origLabel = new Label("Original");
+        origLabel.getStyleClass().add("lektorat-panel-section");
+        applyThemeToNode(origLabel, currentThemeIndex);
+        Label origText = new Label(match.getOriginal());
+        origText.setWrapText(true);
+        origText.setMaxWidth(Double.MAX_VALUE);
+        applyThemeToNode(origText, currentThemeIndex);
+        content.getChildren().addAll(origLabel, origText);
+
+        if (!match.getSuggestions().isEmpty()) {
+            Label suggLabel = new Label("Vorschläge");
+            suggLabel.getStyleClass().add("lektorat-panel-section");
+            applyThemeToNode(suggLabel, currentThemeIndex);
+            content.getChildren().add(suggLabel);
+            for (int i = 0; i < match.getSuggestions().size(); i++) {
+                String suggestion = match.getSuggestions().get(i);
+                Button btn = new Button("Vorschlag " + (i + 1) + ": " + suggestion);
+                btn.setWrapText(true);
+                btn.setMaxWidth(Double.MAX_VALUE);
+                btn.setMinHeight(Region.USE_PREF_SIZE);
+                btn.getStyleClass().add("lektorat-suggestion-button");
+                applyThemeToNode(btn, currentThemeIndex);
+                final String repl = suggestion;
+                btn.setOnAction(e -> applyLektoratSuggestion(match, repl));
+                content.getChildren().add(btn);
+            }
+        }
+
+        Label reasonLabel = new Label("Begründung");
+        reasonLabel.getStyleClass().add("lektorat-panel-section");
+        applyThemeToNode(reasonLabel, currentThemeIndex);
+        Label reasonText = new Label(match.getReason());
+        reasonText.setWrapText(true);
+        reasonText.setMaxWidth(Double.MAX_VALUE);
+        applyThemeToNode(reasonText, currentThemeIndex);
+        content.getChildren().addAll(reasonLabel, reasonText);
+
+        Label weightLabel = new Label("Gewichtung: " + match.getWeight() + "/5");
+        weightLabel.getStyleClass().add("lektorat-panel-weight");
+        applyThemeToNode(weightLabel, currentThemeIndex);
+        content.getChildren().add(weightLabel);
+
+        scroll.setContent(content);
+        lektoratPanelContainer.getChildren().add(scroll);
+        VBox.setVgrow(scroll, Priority.ALWAYS);
+        applyThemeToNode(scroll, currentThemeIndex);
+    }
+
+    private void applyLektoratSuggestion(LektoratMatch match, String replacement) {
+        if (codeArea == null) return;
+        String currentText = codeArea.getText();
+        if (currentText == null) return;
+        // Ersetzung unescapen (falls API literal \n/\t liefert)
+        String unescaped = replacement.replace("\\n", "\n").replace("\\t", "\t");
+        String original = match.getOriginal();
+        int offset = match.getOffset();
+        int len = match.getLength();
+        // Exakt ersetzen: Stelle im aktuellen Text finden (Offset kann nach Bearbeitung abweichen)
+        int start = offset;
+        int end = offset + len;
+        if (start < 0 || end > currentText.length() || !currentText.substring(start, end).equals(original)) {
+            // Text hat sich geändert oder Position passt nicht – Original im aktuellen Text suchen
+            int idx = currentText.indexOf(original);
+            if (idx < 0) {
+                updateStatus("Originaltext im Editor nicht mehr gefunden – evtl. wurde er geändert.");
+                return;
+            }
+            start = idx;
+            end = idx + original.length();
+        }
+        codeArea.replaceText(start, end, unescaped);
+        currentLektoratMatches.remove(match);
+        selectedLektoratMatch = null;
+        applyCombinedStyling();
+        lektoratPanelContainer.getChildren().clear();
+        Label hint = new Label("Vorschlag übernommen. Bei Bedarf Online-Lektorat erneut starten.");
+        hint.setWrapText(true);
+        applyThemeToNode(hint, currentThemeIndex);
+        lektoratPanelContainer.getChildren().add(hint);
+        updateStatus("Lektorat-Vorschlag übernommen");
     }
     
     /**
@@ -19607,22 +19814,27 @@ spacer.setStyle("-fx-background-color: transparent;");
             // WICHTIG: Divider-Position muss nach setVisible gesetzt werden
             Platform.runLater(() -> {
                 if (mainSplitPane.getItems().size() >= 2) {
-                    // Lade gespeicherte Divider-Position oder verwende Standard (15%)
                     double savedPosition = preferences.getDouble("sidebar.dividerPosition", 0.15);
-                    double[] positions = {savedPosition};
-                    mainSplitPane.setDividerPositions(positions);
+                    double[] current = mainSplitPane.getDividerPositions();
+                    if (current.length >= 2) {
+                        mainSplitPane.setDividerPositions(savedPosition, current[1]);
+                    } else {
+                        mainSplitPane.setDividerPositions(savedPosition);
+                    }
                 }
             });
         } else {
-            // Seitenleiste ausblenden
             sidebarContainer.setVisible(false);
             sidebarContainer.setManaged(false);
             btnToggleSidebar.setText("▶");
             Platform.runLater(() -> {
                 if (mainSplitPane.getItems().size() >= 2) {
-                    // Setze Divider auf 0 (vollständig eingeklappt)
-                    double[] positions = {0.0};
-                    mainSplitPane.setDividerPositions(positions);
+                    double[] current = mainSplitPane.getDividerPositions();
+                    if (current.length >= 2) {
+                        mainSplitPane.setDividerPositions(0.0, current[1]);
+                    } else {
+                        mainSplitPane.setDividerPositions(0.0);
+                    }
                 }
             });
         }
@@ -19645,26 +19857,31 @@ spacer.setStyle("-fx-background-color: transparent;");
         
         Platform.runLater(() -> {
             if (sidebarExpanded) {
-                // Seitenleiste einblenden
                 sidebarContainer.setVisible(true);
                 sidebarContainer.setManaged(true);
                 btnToggleSidebar.setText("◀");
                 if (mainSplitPane.getItems().size() >= 2) {
-                    double[] positions = {savedDividerPosition};
-                    mainSplitPane.setDividerPositions(positions);
+                    double[] current = mainSplitPane.getDividerPositions();
+                    if (current.length >= 2) {
+                        mainSplitPane.setDividerPositions(savedDividerPosition, current[1]);
+                    } else {
+                        mainSplitPane.setDividerPositions(savedDividerPosition);
+                    }
                 }
             } else {
-                // Seitenleiste ausblenden
                 sidebarContainer.setVisible(false);
                 sidebarContainer.setManaged(false);
                 btnToggleSidebar.setText("▶");
                 if (mainSplitPane.getItems().size() >= 2) {
-                    double[] positions = {0.0};
-                    mainSplitPane.setDividerPositions(positions);
+                    double[] current = mainSplitPane.getDividerPositions();
+                    if (current.length >= 2) {
+                        mainSplitPane.setDividerPositions(0.0, current[1]);
+                    } else {
+                        mainSplitPane.setDividerPositions(0.0);
+                    }
                 }
             }
             
-            // Listener für Divider-Änderungen hinzufügen
             if (mainSplitPane.getItems().size() >= 2) {
                 mainSplitPane.getDividers().get(0).positionProperty().addListener((obs, oldPos, newPos) -> {
                     if (sidebarExpanded && newPos.doubleValue() > 0.0) {
@@ -19676,10 +19893,13 @@ spacer.setStyle("-fx-background-color: transparent;");
                 // Listener für Fenster-Resize: Halte Divider bei 0.0 wenn Sidebar eingeklappt ist
                 mainSplitPane.widthProperty().addListener((obs, oldWidth, newWidth) -> {
                     if (!sidebarExpanded && mainSplitPane.getItems().size() >= 2) {
-                        // Halte Divider bei 0.0 wenn Sidebar eingeklappt ist
                         Platform.runLater(() -> {
-                            double[] positions = {0.0};
-                            mainSplitPane.setDividerPositions(positions);
+                            double[] current = mainSplitPane.getDividerPositions();
+                            if (current.length >= 2) {
+                                mainSplitPane.setDividerPositions(0.0, current[1]);
+                            } else {
+                                mainSplitPane.setDividerPositions(0.0);
+                            }
                         });
                     }
                 });

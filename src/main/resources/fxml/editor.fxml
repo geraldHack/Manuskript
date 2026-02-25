@@ -194,13 +194,12 @@
             <!-- Toggle-Button für Ein-/Ausklappen (immer sichtbar) -->
             <Button fx:id="btnToggleSidebar" maxWidth="30" minWidth="30" styleClass="sidebar-toggle-button" text="▶" />
             
-            <!-- SplitPane mit Seitenleiste und Editor -->
-            <SplitPane fx:id="mainSplitPane" dividerPositions="0.15" HBox.hgrow="ALWAYS">
+            <!-- SplitPane: Seitenleiste | Editor | Lektorat-Ergebnis (rechts) -->
+            <SplitPane fx:id="mainSplitPane" dividerPositions="0.15, 1.0" HBox.hgrow="ALWAYS">
                <items>
                   <!-- Seitenleiste für Kapitel -->
                   <VBox fx:id="sidebarContainer" maxWidth="300" minWidth="200" prefWidth="250">
                      <children>
-                        <!-- Header -->
                         <HBox alignment="CENTER_LEFT" styleClass="sidebar-header">
                            <children>
                               <Label styleClass="sidebar-title" text="Kapitel" />
@@ -209,16 +208,19 @@
                               <Insets bottom="5.0" left="10.0" right="10.0" top="5.0" />
                            </padding>
                         </HBox>
-                        
-                        <!-- Kapitelliste -->
                         <ListView fx:id="chapterListView" styleClass="chapter-list-view" VBox.vgrow="ALWAYS" />
                      </children>
                   </VBox>
-                  
                   <!-- Editor-Bereich -->
                   <VBox fx:id="textAreaContainer" minHeight="200" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS">
                      <padding>
                         <Insets bottom="5.0" left="0.0" right="5.0" top="5.0" />
+                     </padding>
+                  </VBox>
+                  <!-- Lektorat-Ergebnis (wird bei Klick auf Markierung befüllt) -->
+                  <VBox fx:id="lektoratPanelContainer" minWidth="120" prefWidth="320" styleClass="lektorat-panel">
+                     <padding>
+                        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
                      </padding>
                   </VBox>
                </items>

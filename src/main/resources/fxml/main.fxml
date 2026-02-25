@@ -112,6 +112,11 @@
                          <Tooltip text="Ausgewählte Kapitel mit TTS zu einer Hörbuch-MP3 zusammenfügen" />
                       </tooltip>
                   </Button>
+                  <Button fx:id="btnOnlineLektorat" text="Online-Lektorat" prefWidth="150.0">
+                      <tooltip>
+                         <Tooltip text="Online-Lektorat der ausgewählten Kapiteldatei starten (API in Parameter)" />
+                      </tooltip>
+                  </Button>
                   <Button fx:id="btnProcessAll" text="Kapitel bearbeiten" prefWidth="150.0" />
                </children>
             </HBox>
