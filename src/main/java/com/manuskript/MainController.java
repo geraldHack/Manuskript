@@ -7199,9 +7199,9 @@ public class MainController implements Initializable {
 
     /**
      * Zeigt einen Dialog zum Erstellen eines neuen Projekts.
-     * Der Benutzer kann ein Basisverzeichnis, ein optionales Serienverzeichnis
-     * und ein Verzeichnis für DOCX-Dateien angeben.
-     * Es wird automatisch eine readme.docx Demo-Datei erstellt.
+     * Der Benutzer gibt Projektname und optional ein Serienverzeichnis an.
+     * Das Projektverzeichnis wird erstellt; DOCX-Dateien liegen immer darin.
+     * Es wird automatisch eine readme.docx Demo-Datei angelegt.
      */
     private void showCreateProjectDialog(FlowPane projectFlow, CustomStage parentStage) {
         try {
@@ -7218,30 +7218,29 @@ public class MainController implements Initializable {
             mainLayout.setPadding(new Insets(25));
             mainLayout.setAlignment(Pos.TOP_LEFT);
 
-            Label titleLabel = new Label("📁 Neues Projekt erstellen");
-            titleLabel.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;");
+            Label titleLabel = new Label("Neues Projekt erstellen");
+            titleLabel.setStyle("-fx-font-size: 22px; -fx-font-weight: bold;");
 
             Label infoLabel = new Label(
                 "Erstelle ein neues Projekt im Root-Verzeichnis. "
                 + "Du kannst optional ein Serien-Verzeichnis angeben, um das Projekt als Teil einer Serie zu organisieren.");
             infoLabel.setWrapText(true);
-            infoLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #7f8c8d;");
+            infoLabel.setStyle("-fx-font-size: 13px; -fx-opacity: 0.7;");
 
             String rootDir = ResourceManager.getParameter("project.root.directory", "");
 
             // --- Projektname ---
             Label nameLabel = new Label("Projektname *");
-            nameLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;");
+            nameLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
             TextField nameField = new TextField();
             nameField.setPromptText("z.B. 'Mein Roman' oder 'Krimi-Buch-1'");
             nameField.setPrefHeight(35);
 
             // --- Serien-Checkbox + Feld ---
             CheckBox seriesCheck = new CheckBox("Gehört zu einer Serie");
-            seriesCheck.setStyle("-fx-font-size: 13px; -fx-text-fill: #2c3e50;");
 
             Label seriesLabel = new Label("Serienverzeichnis (optional)");
-            seriesLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;");
+            seriesLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
             seriesLabel.setDisable(true);
             TextField seriesField = new TextField();
             seriesField.setPromptText("z.B. 'Krimi-Serie' — wird als übergeordneter Ordner erstellt");
@@ -7256,27 +7255,16 @@ public class MainController implements Initializable {
                 }
             });
 
-            // --- DOCX-Verzeichnis ---
-            Label docxDirLabel = new Label("Verzeichnis für DOCX-Dateien");
-            docxDirLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;");
-            TextField docxDirField = new TextField();
-            docxDirField.setPromptText("Leer lassen = Projektverzeichnis selbst");
-            docxDirField.setPrefHeight(35);
-
-            Label docxHintLabel = new Label("Leer lassen, um DOCX-Dateien direkt im Projektordner abzulegen.");
-            docxHintLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #95a5a6;");
-
             // --- Vorschau ---
-            Label previewTitle = new Label("📂 Vorschau der Verzeichnisstruktur:");
-            previewTitle.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;");
+            Label previewTitle = new Label("Vorschau der Verzeichnisstruktur:");
+            previewTitle.setStyle("-fx-font-size: 13px; -fx-font-weight: bold;");
             Label previewLabel = new Label();
-            previewLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #27ae60; -fx-font-family: 'monospace';");
+            previewLabel.setStyle("-fx-font-family: 'Consolas', 'Courier New', monospace; -fx-font-size: 12px; -fx-opacity: 0.85;");
             previewLabel.setWrapText(true);
 
             Runnable updatePreview = () -> {
                 String projectName = nameField.getText().trim();
                 String seriesName = seriesField.getText().trim();
-                String docxDir = docxDirField.getText().trim();
 
                 if (projectName.isEmpty()) {
                     previewLabel.setText("(Projektname eingeben...)");
@@ -7289,36 +7277,24 @@ public class MainController implements Initializable {
                 if (seriesCheck.isSelected() && !seriesName.isEmpty()) {
                     sb.append("  └── ").append(seriesName).append("/\n");
                     sb.append("      └── ").append(projectName).append("/\n");
-                    if (!docxDir.isEmpty()) {
-                        sb.append("          └── ").append(docxDir).append("/\n");
-                        sb.append("              └── readme.docx\n");
-                    } else {
-                        sb.append("          └── readme.docx\n");
-                    }
+                    sb.append("          └── readme.docx\n");
                 } else {
                     sb.append("  └── ").append(projectName).append("/\n");
-                    if (!docxDir.isEmpty()) {
-                        sb.append("      └── ").append(docxDir).append("/\n");
-                        sb.append("          └── readme.docx\n");
-                    } else {
-                        sb.append("      └── readme.docx\n");
-                    }
+                    sb.append("      └── readme.docx\n");
                 }
                 previewLabel.setText(sb.toString());
             };
 
             nameField.textProperty().addListener((obs, o, n) -> updatePreview.run());
             seriesField.textProperty().addListener((obs, o, n) -> updatePreview.run());
-            docxDirField.textProperty().addListener((obs, o, n) -> updatePreview.run());
             seriesCheck.selectedProperty().addListener((obs, o, n) -> updatePreview.run());
             updatePreview.run();
 
             // --- Buttons ---
-            Button createButton = new Button("✅ Projekt erstellen");
+            Button createButton = new Button("Projekt erstellen");
             createButton.getStyleClass().add("select-project-button");
-            createButton.setStyle("-fx-font-size: 15px; -fx-font-weight: bold; -fx-padding: 10px 25px;");
 
-            Button cancelBtn = new Button("❌ Abbrechen");
+            Button cancelBtn = new Button("Abbrechen");
             cancelBtn.getStyleClass().add("cancel-button");
             cancelBtn.setOnAction(e -> dialogStage.close());
 
@@ -7334,7 +7310,6 @@ public class MainController implements Initializable {
                 }
 
                 String seriesName = seriesCheck.isSelected() ? seriesField.getText().trim() : "";
-                String docxSubDir = docxDirField.getText().trim();
 
                 try {
                     File targetDir;
@@ -7345,26 +7320,19 @@ public class MainController implements Initializable {
                         targetDir = new File(rootDir, projectName);
                     }
 
-                    File docxTargetDir;
-                    if (!docxSubDir.isEmpty()) {
-                        docxTargetDir = new File(targetDir, docxSubDir);
-                    } else {
-                        docxTargetDir = targetDir;
-                    }
-
-                    if (docxTargetDir.exists()) {
+                    if (targetDir.exists()) {
                         showWarning("Verzeichnis existiert bereits",
-                            "Das Verzeichnis '" + docxTargetDir.getAbsolutePath() + "' existiert bereits.");
+                            "Das Verzeichnis '" + targetDir.getAbsolutePath() + "' existiert bereits.");
                         return;
                     }
 
-                    boolean created = docxTargetDir.mkdirs();
-                    if (!created && !docxTargetDir.exists()) {
-                        showError("Fehler", "Verzeichnis konnte nicht erstellt werden: " + docxTargetDir.getAbsolutePath());
+                    boolean created = targetDir.mkdirs();
+                    if (!created && !targetDir.exists()) {
+                        showError("Fehler", "Verzeichnis konnte nicht erstellt werden: " + targetDir.getAbsolutePath());
                         return;
                     }
 
-                    createDemoDocx(new File(docxTargetDir, "readme.docx"), projectName);
+                    createDemoDocx(new File(targetDir, "readme.docx"), projectName);
 
                     logger.info("Neues Projekt erstellt: {}", targetDir.getAbsolutePath());
 
@@ -7377,7 +7345,7 @@ public class MainController implements Initializable {
                         CustomAlert alert = new CustomAlert(Alert.AlertType.INFORMATION, "Projekt erstellt");
                         alert.setContentText(
                             "Das Projekt '" + projectName + "' wurde erfolgreich erstellt.\n\n"
-                            + "Verzeichnis: " + docxTargetDir.getAbsolutePath() + "\n"
+                            + "Verzeichnis: " + targetDir.getAbsolutePath() + "\n"
                             + "Eine readme.docx Demo-Datei wurde angelegt.");
                         alert.applyTheme(currentThemeIndex);
                         alert.initOwner(parentStage);
@@ -7394,7 +7362,6 @@ public class MainController implements Initializable {
                 titleLabel, infoLabel,
                 nameLabel, nameField,
                 seriesCheck, seriesLabel, seriesField,
-                docxDirLabel, docxDirField, docxHintLabel,
                 previewTitle, previewLabel,
                 buttonBox
             );

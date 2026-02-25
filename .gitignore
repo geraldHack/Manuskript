@@ -50,11 +50,6 @@ Thumbs.db
 config/sessions/
 
 # Alle docx-Dateien ignorieren
-*.docx 
+#*.docx 
 
-!pandoc/*.docx
-
-temp_epub_processing
-pandoc/cover_image.png
-test*.md
-test*.docx  
+!pandoc/
