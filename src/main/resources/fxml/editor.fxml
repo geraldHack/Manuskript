@@ -43,7 +43,7 @@
             
             <Label fx:id="lblSelectionCount" styleClass="selection-label" text="Auswahl: 0 Zeichen" />
             <Separator orientation="VERTICAL" />
-            <Label fx:id="lblStatus" styleClass="status-label" text="Bereit" />
+            <Label fx:id="lblStatus" minWidth="280" styleClass="status-label" text="Bereit" />
          </children>
          <padding>
             <Insets bottom="8.0" left="10.0" right="10.0" top="8.0" />

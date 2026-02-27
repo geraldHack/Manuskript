@@ -290,6 +290,9 @@ public class CustomStage extends Stage {
             newRoot.getChildren().addAll(titleBar, originalRoot);
             VBox.setVgrow(originalRoot, Priority.ALWAYS);
             
+            // Theme-Klassen explizit auf newRoot setzen, damit .theme-dark.blau-theme .title-bar etc. greifen
+            applyThemeClassesToNode(newRoot, activeThemeIndex);
+            
             // Neue Scene mit Titelleiste erstellen
             Scene newScene = new Scene(newRoot);
             newScene.getStylesheets().addAll(scene.getStylesheets());
@@ -681,6 +684,23 @@ public class CustomStage extends Stage {
     }
     
     /**
+     * Setzt die Theme-Style-Klassen auf einen Node (z. B. Scene-Root), damit CSS-Descendant-Selektoren greifen.
+     */
+    private void applyThemeClassesToNode(Node node, int themeIndex) {
+        if (node == null) return;
+        node.getStyleClass().removeAll("theme-dark", "theme-light", "weiss-theme", "pastell-theme", "blau-theme", "gruen-theme", "lila-theme");
+        switch (themeIndex) {
+            case 0: node.getStyleClass().add("weiss-theme"); break;
+            case 1: node.getStyleClass().add("theme-dark"); break;
+            case 2: node.getStyleClass().add("pastell-theme"); break;
+            case 3: node.getStyleClass().addAll("theme-dark", "blau-theme"); break;
+            case 4: node.getStyleClass().addAll("theme-dark", "gruen-theme"); break;
+            case 5: node.getStyleClass().addAll("theme-dark", "lila-theme"); break;
+            default: node.getStyleClass().add("weiss-theme"); break;
+        }
+    }
+    
+    /**
      * Wendet das Theme sowohl auf Titelleiste als auch auf den Inhalt an
      */
     public void setFullTheme(int themeIndex) {
@@ -690,34 +710,7 @@ public class CustomStage extends Stage {
         // Dann Inhalt aktualisieren
         if (getScene() != null && getScene().getRoot() != null) {
             Node root = getScene().getRoot();
-            
-            // Alle Theme-Klassen entfernen
-            root.getStyleClass().removeAll("theme-dark", "theme-light", "weiss-theme", "pastell-theme", "blau-theme", "gruen-theme", "lila-theme");
-            
-            // Neue Theme-Klasse hinzufügen
-            switch (themeIndex) {
-                case 0: // Weiß
-                    root.getStyleClass().add("weiss-theme");
-                    break;
-                case 1: // Schwarz
-                    root.getStyleClass().add("theme-dark");
-                    break;
-                case 2: // Pastell
-                    root.getStyleClass().add("pastell-theme");
-                    break;
-                case 3: // Blau
-                    root.getStyleClass().add("theme-dark");
-                    root.getStyleClass().add("blau-theme");
-                    break;
-                case 4: // Grün
-                    root.getStyleClass().add("theme-dark");
-                    root.getStyleClass().add("gruen-theme");
-                    break;
-                case 5: // Lila
-                    root.getStyleClass().add("theme-dark");
-                    root.getStyleClass().add("lila-theme");
-                    break;
-            }
+            applyThemeClassesToNode(root, themeIndex);
             
             // Versuche, den tatsächlichen Inhalt (zweites Kind des VBox-Wrappers) zu stylen
             if (root instanceof VBox && ((VBox) root).getChildren().size() > 1) {

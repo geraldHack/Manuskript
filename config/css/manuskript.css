@@ -487,6 +487,11 @@
     -fx-text-fill: #ffffff;
 }
 
+.theme-dark .radio-button {
+    -fx-text-fill: #ffffff;
+    -fx-background-color: transparent;
+}
+
 /* Grün Theme */
 .theme-dark.gruen-theme {
     -fx-background-color: #064e3b;
@@ -539,6 +544,11 @@
     -fx-background-color: #1e3a8a;
 }
 
+.theme-dark.blau-theme .radio-button {
+    -fx-text-fill: #ffffff;
+    -fx-background-color: transparent;
+}
+
 .theme-dark.lila-theme .text-area {
     -fx-background-color: #581c87;
     -fx-text-fill: #ffffff;
@@ -549,6 +559,11 @@
 
 .theme-dark.lila-theme .text-area .content {
     -fx-background-color: #581c87;
+}
+
+.theme-dark.lila-theme .radio-button {
+    -fx-text-fill: #ffffff;
+    -fx-background-color: transparent;
 }
 
 .theme-dark.gruen-theme .spinner {
@@ -567,6 +582,11 @@
 
 .theme-dark.gruen-theme .label {
     -fx-text-fill: #ffffff;
+}
+
+.theme-dark.gruen-theme .radio-button {
+    -fx-text-fill: #ffffff;
+    -fx-background-color: transparent;
 }
 
 .dialog-pane .label {
@@ -735,6 +755,11 @@
     -fx-text-fill: #000000;
 }
 
+.weiss-theme .radio-button {
+    -fx-text-fill: #000000;
+    -fx-background-color: #ffffff;
+}
+
 .weiss-theme .table-view {
     -fx-background-color: #ffffff;
     -fx-border-color: #000000;
@@ -840,6 +865,12 @@
     -fx-text-fill: #000000 !important;
     -fx-padding: 4px 8px;
     -fx-background-radius: 4px;
+}
+
+.pastell-theme .radio-button,
+.pastell-theme * .radio-button {
+    -fx-text-fill: #000000;
+    -fx-background-color: #f3e5f5;
 }
 
 /* Pastell Theme - Textfelder (überall) */
@@ -1814,11 +1845,11 @@
 }
 
 .theme-dark.blau-theme .tab-header-background {
-    -fx-background-color: #1e3a5f;
+    -fx-background-color: #1e3a8a;
 }
 
 .theme-dark.blau-theme .tab {
-    -fx-background-color: #1e3a5f;
+    -fx-background-color: #1e3a8a;
     -fx-text-fill: #ffffff;
 }
 
@@ -1866,11 +1897,11 @@
 }
 
 .theme-dark.lila-theme .tab-header-background {
-    -fx-background-color: #3d1462;
+    -fx-background-color: #581c87;
 }
 
 .theme-dark.lila-theme .tab {
-    -fx-background-color: #3d1462;
+    -fx-background-color: #581c87;
     -fx-text-fill: #ffffff;
 }
 
@@ -1907,7 +1938,7 @@
 }
 
 .theme-dark.blau-theme .param-card {
-    -fx-background-color: #1e3a5f;
+    -fx-background-color: #1e3a8a;
     -fx-border-color: #3b82f6;
 }
 
@@ -1917,7 +1948,7 @@
 }
 
 .theme-dark.lila-theme .param-card {
-    -fx-background-color: #3d1462;
+    -fx-background-color: #581c87;
     -fx-border-color: #a855f7;
 }
 
@@ -8333,6 +8364,30 @@
     /* -fx-max-width entfernt - Label nutzt volle Kartenbreite */
 }
 
+/* Buchlänge unter dem Cover (Zeichen/Wörter) */
+.book-length-label {
+    -fx-font-size: 12px;
+    -fx-text-fill: #5a6c7d;
+}
+
+.weiss-theme .book-length-label {
+    -fx-text-fill: #5a6c7d;
+}
+
+.theme-dark .book-length-label {
+    -fx-text-fill: #b0b0b0;
+}
+
+.theme-dark.blau-theme .book-length-label,
+.theme-dark.gruen-theme .book-length-label,
+.theme-dark.lila-theme .book-length-label {
+    -fx-text-fill: #c0c0c0;
+}
+
+.pastell-theme .book-length-label {
+    -fx-text-fill: #5e35b1;
+}
+
 /* Serien-Name (spezielle Regel) */
 .series-name {
     -fx-font-size: 16px;
@@ -8409,6 +8464,86 @@
     -fx-background-color: transparent;
     -fx-padding: 5;
     -fx-pref-height: 120;
+}
+
+/* ========================================
+   HAUPTFENSTER-TOOLBAR
+   ======================================== */
+
+.main-toolbar {
+    -fx-min-height: 48px;
+    -fx-pref-height: 48px;
+    -fx-border-width: 1px 0 0 0;
+}
+
+.weiss-theme .main-toolbar {
+    -fx-background-color: #f8f9fa;
+    -fx-border-color: #dee2e6;
+}
+
+.theme-dark .main-toolbar {
+    -fx-background-color: #252525;
+    -fx-border-color: #404040;
+}
+
+.pastell-theme .main-toolbar {
+    -fx-background-color: #e8e0ec;
+    -fx-border-color: #cec4d4;
+}
+
+.blau-theme .main-toolbar {
+    -fx-background-color: #1a2744;
+    -fx-border-color: #2d3a5c;
+}
+
+.gruen-theme .main-toolbar {
+    -fx-background-color: #053d2e;
+    -fx-border-color: #0d5c47;
+}
+
+.lila-theme .main-toolbar {
+    -fx-background-color: #3d1650;
+    -fx-border-color: #5a2470;
+}
+
+.main-toolbar .main-toolbar-button {
+    -fx-min-height: 36px;
+    -fx-pref-height: 36px;
+    -fx-padding: 6 12;
+    -fx-font-size: 13px;
+}
+
+.main-toolbar .action-group {
+    -fx-padding: 0 4 0 0;
+}
+
+/* Vertikale Trennlinie zwischen Button-Gruppen (JavaFX Separator: .line ist das innere Element) */
+.main-toolbar .toolbar-separator {
+    -fx-pref-width: 12px;
+    -fx-pref-height: 28px;
+}
+
+.main-toolbar .toolbar-separator.separator:vertical .line {
+    -fx-border-width: 0 0 0 1;
+    -fx-border-insets: 0 0 0 5;
+}
+
+.weiss-theme .main-toolbar .toolbar-separator .line {
+    -fx-border-color: transparent transparent transparent #dee2e6;
+}
+
+.theme-dark .main-toolbar .toolbar-separator .line {
+    -fx-border-color: transparent transparent transparent #505050;
+}
+
+.pastell-theme .main-toolbar .toolbar-separator .line {
+    -fx-border-color: transparent transparent transparent #cec4d4;
+}
+
+.blau-theme .main-toolbar .toolbar-separator .line,
+.gruen-theme .main-toolbar .toolbar-separator .line,
+.lila-theme .main-toolbar .toolbar-separator .line {
+    -fx-border-color: transparent transparent transparent rgba(255,255,255,0.35);
 }
 
 /* ========================================

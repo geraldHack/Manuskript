@@ -455,12 +455,12 @@ public class PluginEditorWindow {
             alert.setContentText("Bestätigung");
             alert.setContentText("Es gibt ungespeicherte Änderungen.");
             
-            // Drei Buttons: Ja, Nein, Abbrechen
+            // Drei Buttons: Ja, Nein, Abbrechen (CustomAlert: getButtonTypes(), nicht getDialogPane())
             ButtonType saveButton = new ButtonType("Ja, speichern");
             ButtonType noButton = new ButtonType("Nein, verwerfen");
             ButtonType cancelButton = new ButtonType("Abbrechen", ButtonBar.ButtonData.CANCEL_CLOSE);
-            alert.getDialogPane().getButtonTypes().setAll(saveButton, noButton, cancelButton);
-            
+            alert.getButtonTypes().clear();
+            alert.getButtonTypes().addAll(saveButton, noButton, cancelButton);
             var result = alert.showAndWait();
             if (result.isPresent()) {
                 if (result.get() == saveButton) {
@@ -511,12 +511,12 @@ public class PluginEditorWindow {
             alert.setContentText("Bestätigung");
             alert.setContentText("Es gibt ungespeicherte Änderungen.");
             
-            // Drei Buttons: Ja, Nein, Abbrechen
+            // Drei Buttons: Ja, Nein, Abbrechen (CustomAlert: getButtonTypes(), nicht getDialogPane())
             ButtonType saveButton = new ButtonType("Ja, speichern");
             ButtonType noButton = new ButtonType("Nein, verwerfen");
             ButtonType cancelButton = new ButtonType("Abbrechen", ButtonBar.ButtonData.CANCEL_CLOSE);
-            alert.getDialogPane().getButtonTypes().setAll(saveButton, noButton, cancelButton);
-            
+            alert.getButtonTypes().clear();
+            alert.getButtonTypes().addAll(saveButton, noButton, cancelButton);
             var result = alert.showAndWait();
             if (result.isPresent()) {
                 if (result.get() == saveButton) {

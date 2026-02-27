@@ -50,7 +50,10 @@ public class ParametersAdminWindow {
         stage.setWidth(820);
         stage.setHeight(620);
 
+        int theme = java.util.prefs.Preferences.userNodeForPackage(MainController.class).getInt("main_window_theme", 0);
+
         TabPane tabPane = new TabPane();
+        tabPane.getStyleClass().add("tab-pane");
         tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
 
         for (String category : ParameterRegistry.getCategories()) {
@@ -58,13 +61,13 @@ public class ParametersAdminWindow {
             if (params.isEmpty()) continue;
 
             if ("Online-Lektorat".equals(category)) {
-                VBox lektoratContent = buildOnlineLektoratTab(keyToControl);
+                VBox lektoratContent = buildOnlineLektoratTab(keyToControl, theme);
                 for (ParameterDef def : params) {
                     keyToDef.put(def.getKey(), def);
                 }
                 ScrollPane scroll = new ScrollPane(lektoratContent);
                 scroll.setFitToWidth(true);
-                scroll.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
+                scroll.getStyleClass().add("param-tab-scroll");
                 Tab tab = new Tab(category, scroll);
                 tab.setClosable(false);
                 tabPane.getTabs().add(tab);
@@ -73,9 +76,10 @@ public class ParametersAdminWindow {
 
             ScrollPane scroll = new ScrollPane();
             scroll.setFitToWidth(true);
-            scroll.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
+            scroll.getStyleClass().add("param-tab-scroll");
             VBox content = new VBox(12);
             content.setPadding(new Insets(16));
+            content.getStyleClass().addAll(getThemeStyleClasses(theme));
             for (ParameterDef def : params) {
                 keyToDef.put(def.getKey(), def);
                 Control control = createControl(def);
@@ -88,7 +92,6 @@ public class ParametersAdminWindow {
                 helpLabel.setMaxWidth(680);
                 VBox card = new VBox(4);
                 card.getStyleClass().add("param-card");
-                card.setPadding(new Insets(10));
                 card.getChildren().addAll(keyLabel, control, helpLabel);
                 content.getChildren().add(card);
             }
@@ -109,21 +112,34 @@ public class ParametersAdminWindow {
         buttons.setPadding(new Insets(10, 16, 16, 16));
 
         VBox root = new VBox();
+        root.getStyleClass().addAll(getThemeStyleClasses(theme));
         root.getChildren().addAll(tabPane, buttons);
         VBox.setVgrow(tabPane, Priority.ALWAYS);
 
         Scene scene = new Scene(root);
         String cssPath = ResourceManager.getCssResource("css/manuskript.css");
         if (cssPath != null) scene.getStylesheets().add(cssPath);
-        int theme = java.util.prefs.Preferences.userNodeForPackage(MainController.class).getInt("main_window_theme", 0);
         stage.setTitleBarTheme(theme);
         stage.setSceneWithTitleBar(scene);
         stage.setFullTheme(theme);
     }
 
-    private VBox buildOnlineLektoratTab(Map<String, Control> keyToControl) {
+    private static List<String> getThemeStyleClasses(int themeIndex) {
+        switch (themeIndex) {
+            case 0: return java.util.Collections.singletonList("weiss-theme");
+            case 1: return java.util.Collections.singletonList("theme-dark");
+            case 2: return java.util.Collections.singletonList("pastell-theme");
+            case 3: return java.util.Arrays.asList("theme-dark", "blau-theme");
+            case 4: return java.util.Arrays.asList("theme-dark", "gruen-theme");
+            case 5: return java.util.Arrays.asList("theme-dark", "lila-theme");
+            default: return java.util.Collections.singletonList("weiss-theme");
+        }
+    }
+
+    private VBox buildOnlineLektoratTab(Map<String, Control> keyToControl, int theme) {
         VBox content = new VBox(12);
         content.setPadding(new Insets(16));
+        content.getStyleClass().addAll(getThemeStyleClasses(theme));
 
         String apiKey = ResourceManager.getParameter("api.lektorat.api_key", "");
         String baseUrl = ResourceManager.getParameter("api.lektorat.base_url", "https://api.openai.com/v1");
@@ -142,7 +158,6 @@ public class ParametersAdminWindow {
         apiKeyHelp.setMaxWidth(680);
         VBox apiKeyCard = new VBox(4);
         apiKeyCard.getStyleClass().add("param-card");
-        apiKeyCard.setPadding(new Insets(10));
         apiKeyCard.getChildren().addAll(apiKeyLabel, apiKeyField, apiKeyHelp);
         content.getChildren().add(apiKeyCard);
         keyToControl.put("api.lektorat.api_key", apiKeyField);
@@ -157,7 +172,6 @@ public class ParametersAdminWindow {
         baseUrlHelp.setMaxWidth(680);
         VBox baseUrlCard = new VBox(4);
         baseUrlCard.getStyleClass().add("param-card");
-        baseUrlCard.setPadding(new Insets(10));
         baseUrlCard.getChildren().addAll(baseUrlLabel, baseUrlField, baseUrlHelp);
         content.getChildren().add(baseUrlCard);
         keyToControl.put("api.lektorat.base_url", baseUrlField);
@@ -180,7 +194,6 @@ public class ParametersAdminWindow {
         modelRow.setAlignment(Pos.CENTER_LEFT);
         VBox modelCard = new VBox(4);
         modelCard.getStyleClass().add("param-card");
-        modelCard.setPadding(new Insets(10));
         modelCard.getChildren().addAll(modelLabel, modelRow, modelHelp);
         content.getChildren().add(modelCard);
         keyToControl.put("api.lektorat.model", modelCombo);
@@ -199,7 +212,6 @@ public class ParametersAdminWindow {
         extraPromptHelp.setMaxWidth(680);
         VBox extraPromptCard = new VBox(4);
         extraPromptCard.getStyleClass().add("param-card");
-        extraPromptCard.setPadding(new Insets(10));
         extraPromptCard.getChildren().addAll(extraPromptLabel, extraPromptArea, extraPromptHelp);
         content.getChildren().add(extraPromptCard);
         keyToControl.put("api.lektorat.extra_prompt", extraPromptArea);
@@ -250,9 +262,65 @@ public class ParametersAdminWindow {
         VBox typeCard = new VBox(4);
         typeCard.getStyleClass().add("param-card");
         typeCard.getChildren().addAll(typeLabel, typeRow, typeField, typeHelp);
-        typeCard.setPadding(new Insets(10));
         content.getChildren().add(typeCard);
         keyToControl.put("api.lektorat.type", typeField);
+
+        // Chunk-Größe (Zeichen pro API-Anfrage)
+        String chunkSizeStr = ResourceManager.getParameter("api.lektorat.chunk_size", "12000");
+        int chunkSizeVal = parseInt(chunkSizeStr, 12000);
+        chunkSizeVal = Math.max(1000, Math.min(100000, chunkSizeVal));
+        Spinner<Integer> chunkSizeSpinner = new Spinner<>(1000, 100000, chunkSizeVal);
+        chunkSizeSpinner.setEditable(true);
+        chunkSizeSpinner.setPrefWidth(180);
+        Label chunkSizeLabel = new Label("api.lektorat.chunk_size");
+        chunkSizeLabel.getStyleClass().add("param-key-label");
+        Label chunkSizeHelp = new Label("Max. Zeichen pro API-Anfrage. Längere Kapitel werden in mehrere Abschnitte geteilt. Größer = weniger Anfragen (schneller), bei langsamen Modellen/Gateways aber evtl. Timeout. Kleiner = mehr Anfragen (robuster). Typisch 5000–15000.");
+        chunkSizeHelp.getStyleClass().add("param-help-label");
+        chunkSizeHelp.setWrapText(true);
+        chunkSizeHelp.setMaxWidth(680);
+        VBox chunkSizeCard = new VBox(4);
+        chunkSizeCard.getStyleClass().add("param-card");
+        chunkSizeCard.getChildren().addAll(chunkSizeLabel, chunkSizeSpinner, chunkSizeHelp);
+        content.getChildren().add(chunkSizeCard);
+        keyToControl.put("api.lektorat.chunk_size", chunkSizeSpinner);
+
+        // Pause zwischen Abschnitten (ms)
+        String delayStr = ResourceManager.getParameter("api.lektorat.delay_between_chunks_ms", "1500");
+        int delayVal = parseInt(delayStr, 1500);
+        delayVal = Math.max(0, Math.min(30000, delayVal));
+        Spinner<Integer> delaySpinner = new Spinner<>(0, 30000, delayVal);
+        delaySpinner.setEditable(true);
+        delaySpinner.setPrefWidth(180);
+        Label delayLabel = new Label("api.lektorat.delay_between_chunks_ms");
+        delayLabel.getStyleClass().add("param-key-label");
+        Label delayHelp = new Label("Pause in Millisekunden zwischen zwei Abschnitts-Anfragen. Viele Gateways verursachen sonst beim sofortigen Folgerequest einen Timeout; 1000–2000 ms behebt das oft. 0 = keine Pause.");
+        delayHelp.getStyleClass().add("param-help-label");
+        delayHelp.setWrapText(true);
+        delayHelp.setMaxWidth(680);
+        VBox delayCard = new VBox(4);
+        delayCard.getStyleClass().add("param-card");
+        delayCard.getChildren().addAll(delayLabel, delaySpinner, delayHelp);
+        content.getChildren().add(delayCard);
+        keyToControl.put("api.lektorat.delay_between_chunks_ms", delaySpinner);
+
+        // Request-Timeout (Sekunden)
+        String timeoutStr = ResourceManager.getParameter("api.lektorat.request_timeout_sec", "300");
+        int timeoutVal = parseInt(timeoutStr, 300);
+        timeoutVal = Math.max(60, Math.min(900, timeoutVal));
+        Spinner<Integer> timeoutSpinner = new Spinner<>(60, 900, timeoutVal);
+        timeoutSpinner.setEditable(true);
+        timeoutSpinner.setPrefWidth(180);
+        Label timeoutLabel = new Label("api.lektorat.request_timeout_sec");
+        timeoutLabel.getStyleClass().add("param-key-label");
+        Label timeoutHelp = new Label("Timeout pro API-Anfrage in Sekunden (60–900). Bei großen Abschnitten oder langsamen Modellen erhöhen (z. B. 300–600), wenn sonst Timeouts auftreten.");
+        timeoutHelp.getStyleClass().add("param-help-label");
+        timeoutHelp.setWrapText(true);
+        timeoutHelp.setMaxWidth(680);
+        VBox timeoutCard = new VBox(4);
+        timeoutCard.getStyleClass().add("param-card");
+        timeoutCard.getChildren().addAll(timeoutLabel, timeoutSpinner, timeoutHelp);
+        content.getChildren().add(timeoutCard);
+        keyToControl.put("api.lektorat.request_timeout_sec", timeoutSpinner);
 
         return content;
     }

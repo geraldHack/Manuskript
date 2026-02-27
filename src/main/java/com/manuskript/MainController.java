@@ -85,9 +85,12 @@ import java.util.Locale;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
 import javafx.scene.control.cell.CheckBoxTableCell;
@@ -109,6 +112,9 @@ public class MainController implements Initializable {
     @FXML private Button btnSelectDirectory;
     @FXML private TextField txtDirectoryPath;
     private Label projectTitleLabel;
+    private Label bookLengthLabel;
+    private ScheduledExecutorService bookLengthScheduler;
+    private ScheduledFuture<?> bookLengthTask;
     
     // Tabellen für verfügbare Dateien (links)
     @FXML private TableView<DocxFile> tableViewAvailable;
@@ -256,6 +262,13 @@ public class MainController implements Initializable {
             projectTitleLabel.setWrapText(false);
         }
         
+        // Label für Buchlänge (Zeichen/Wörter) unter dem Cover
+        if (bookLengthLabel == null) {
+            bookLengthLabel = new Label("— Zeichen · — Wörter");
+            bookLengthLabel.getStyleClass().add("book-length-label");
+            bookLengthLabel.setAlignment(Pos.CENTER);
+        }
+        
         // Erstelle Zurück-Button mit Pfeil-Symbol
         Button backButton = new Button("← Zurück");
         backButton.setId("backButton");
@@ -275,10 +288,10 @@ public class MainController implements Initializable {
         // Button links
         imageContainer.setLeft(backButton);
         
-        // Bild in der Mitte mit Projekttitel darüber
+        // Bild in der Mitte mit Projekttitel darüber und Buchlänge darunter
         VBox centerBox = new VBox(5);
         centerBox.setAlignment(Pos.CENTER);
-        centerBox.getChildren().addAll(projectTitleLabel, coverImageView);
+        centerBox.getChildren().addAll(projectTitleLabel, coverImageView, bookLengthLabel);
         imageContainer.setCenter(centerBox);
         
         // Dummy rechts (genauso breit wie Button)
@@ -406,10 +419,10 @@ public class MainController implements Initializable {
                     buttonContainer.getChildren().add(startBackButton);
                     
                     startImageContainer.setLeft(buttonContainer);
-                    // Bild mit Projekttitel darüber
+                    // Bild mit Projekttitel darüber und Buchlänge darunter
                     VBox startCenterBox = new VBox(5);
                     startCenterBox.setAlignment(Pos.CENTER);
-                    startCenterBox.getChildren().addAll(projectTitleLabel, coverImageView);
+                    startCenterBox.getChildren().addAll(projectTitleLabel, coverImageView, bookLengthLabel);
                     startImageContainer.setCenter(startCenterBox);
                     HBox startDummyBox = new HBox();
                     startDummyBox.setPrefWidth(120);
@@ -540,7 +553,22 @@ public class MainController implements Initializable {
                     showWarning("Keine Datei ausgewählt", "Bitte wählen Sie in der rechten Tabelle eine Kapiteldatei aus.");
                     return;
                 }
-                openChapterEditor(selected, true);
+                Window owner = primaryStage != null ? primaryStage.getScene().getWindow() : null;
+                CustomAlert confirmAlert = DialogFactory.createConfirmationAlert(
+                    "Online-Lektorat",
+                    "Kostenpflichtiger Dienst",
+                    "Das Online-Lektorat nutzt einen externen API-Dienst und kann je nach Nutzung Kosten verursachen.\n\nBenutztes Modell: "+ResourceManager.getParameter("api.lektorat.model", "unknown")+"\n\nWirklich starten?",
+                    owner
+                );
+                ButtonType startButton = new ButtonType("Ja, starten", ButtonBar.ButtonData.OK_DONE);
+                ButtonType cancelButton = new ButtonType("Abbrechen", ButtonBar.ButtonData.CANCEL_CLOSE);
+                confirmAlert.getButtonTypes().clear();
+                confirmAlert.getButtonTypes().addAll(startButton, cancelButton);
+                confirmAlert.applyTheme(currentThemeIndex);
+                Optional<ButtonType> result = confirmAlert.showAndWait(owner);
+                if (result.isPresent() && result.get() == startButton) {
+                    openChapterEditor(selected, true);
+                }
             });
         }
         btnThemeToggle.setOnAction(e -> toggleTheme());
@@ -589,6 +617,24 @@ public class MainController implements Initializable {
         btnDeleteFile.setOnAction(e -> deleteSelectedFile());
         btnSearchAllFiles.setOnAction(e -> searchAllFiles());
         // btnHelpToggle Event-Handler wird in createHelpToggleButton() gesetzt
+
+        updateOnlineLektoratButtonState();
+    }
+
+    /**
+     * Aktiviert oder deaktiviert den Online-Lektorat-Button je nachdem, ob api.lektorat.api_key gesetzt ist.
+     * Wird bei Start und beim Zurückkehren ins Hauptfenster (z. B. nach Schließen der Parameter-Verwaltung) aufgerufen.
+     */
+    private void updateOnlineLektoratButtonState() {
+        if (btnOnlineLektorat == null) return;
+        String apiKey = ResourceManager.getParameter("api.lektorat.api_key", "");
+        boolean hasKey = apiKey != null && !apiKey.trim().isEmpty();
+        btnOnlineLektorat.setDisable(!hasKey);
+        if (!hasKey) {
+            btnOnlineLektorat.setTooltip(new Tooltip("Online-Lektorat der ausgewählten Kapiteldatei starten (API-Key unter Parameter → Online-Lektorat eintragen)"));
+        } else {
+            btnOnlineLektorat.setTooltip(new Tooltip("Online-Lektorat der ausgewählten Kapiteldatei starten (API in Parameter)"));
+        }
     }
     
     /**
@@ -987,7 +1033,8 @@ public class MainController implements Initializable {
                     txtDirectoryPath.setText(selectedDir);
                     updateProjectTitleFromCurrentPath();
                     loadDocxFiles(directory);
-                    
+                    startBookLengthTimer();
+
                     // Speichere den Pfad in den Einstellungen
                     preferences.put("lastDirectory", selectedDir);
                     
@@ -1158,6 +1205,7 @@ public class MainController implements Initializable {
         txtDirectoryPath.setText(lastDirectory);
         updateProjectTitleFromCurrentPath();
         loadDocxFiles(lastDir);
+        startBookLengthTimer();
     }
     
     /**
@@ -1757,6 +1805,77 @@ public class MainController implements Initializable {
             dataDir.mkdirs();
         }
         return dataDir;
+    }
+    
+    /**
+     * Berechnet Zeichen- und Wortanzahl über alle ausgewählten Kapitel (MD-Dateien im data-Ordner).
+     * Wird vom Hintergrund-Timer alle 60 Sekunden aufgerufen.
+     */
+    private String computeBookLengthStats() {
+        String dir = txtDirectoryPath != null ? txtDirectoryPath.getText() : null;
+        if (dir == null || dir.trim().isEmpty()) {
+            return "— Zeichen · — Wörter";
+        }
+        long totalChars = 0;
+        long totalWords = 0;
+        for (DocxFile docx : selectedDocxFiles) {
+            File md = deriveMdFileFor(docx.getFile());
+            if (md != null && md.exists()) {
+                try {
+                    String content = Files.readString(md.toPath(), StandardCharsets.UTF_8);
+                    totalChars += content.length();
+                    String trimmed = content.trim();
+                    if (!trimmed.isEmpty()) {
+                        totalWords += trimmed.split("\\s+").length;
+                    }
+                } catch (Exception e) {
+                    logger.debug("Buchlänge: Fehler beim Lesen von {}: {}", md.getName(), e.getMessage());
+                }
+            }
+        }
+        return String.format(Locale.GERMAN, "%,d Zeichen · %,d Wörter", totalChars, totalWords);
+    }
+    
+    /**
+     * Aktualisiert das Buchlängen-Label (auf JavaFX-Thread).
+     */
+    private void updateBookLengthLabel() {
+        if (bookLengthLabel == null) return;
+        String stats = computeBookLengthStats();
+        Platform.runLater(() -> {
+            if (bookLengthLabel != null) {
+                bookLengthLabel.setText(stats);
+            }
+        });
+    }
+    
+    /**
+     * Startet den Hintergrund-Timer, der alle 60 Sekunden die Buchlänge aktualisiert.
+     */
+    private void startBookLengthTimer() {
+        stopBookLengthTimer();
+        bookLengthScheduler = Executors.newSingleThreadScheduledExecutor(r -> {
+            Thread t = new Thread(r, "book-length-timer");
+            t.setDaemon(true);
+            return t;
+        });
+        updateBookLengthLabel();
+        bookLengthTask = bookLengthScheduler.scheduleAtFixedRate(
+            this::updateBookLengthLabel, 60, 60, TimeUnit.SECONDS);
+    }
+    
+    /**
+     * Stoppt den Buchlängen-Timer.
+     */
+    private void stopBookLengthTimer() {
+        if (bookLengthTask != null) {
+            bookLengthTask.cancel(false);
+            bookLengthTask = null;
+        }
+        if (bookLengthScheduler != null) {
+            bookLengthScheduler.shutdownNow();
+            bookLengthScheduler = null;
+        }
     }
     
     private File deriveMdFileFor(File docx) {
@@ -4950,16 +5069,26 @@ public class MainController implements Initializable {
             customStage.setTitleBarTheme(savedTheme);
             currentThemeIndex = savedTheme;
         }
+
+        // Online-Lektorat-Button aktualisieren, wenn Hauptfenster wieder Fokus bekommt (z. B. nach Parameter-Dialog)
+        primaryStage.focusedProperty().addListener((o, oldVal, focused) -> {
+            if (Boolean.TRUE.equals(focused)) {
+                updateOnlineLektoratButtonState();
+            }
+        });
         
         // Stoppe WatchService beim Schließen und prüfe ob es das letzte Fenster ist
         primaryStage.setOnCloseRequest(event -> {
             // Keine Auswahl mehr speichern - MD-Erkennung ist ausreichend
-            
+
             // Stoppe den File Watcher
             stopFileWatcher();
-            
+
             // Stoppe den Downloads-Monitor
             stopDownloadsMonitor();
+
+            // Stoppe den Buchlängen-Timer
+            stopBookLengthTimer();
             
             // Prüfe ob noch andere Fenster offen sind
             boolean hasOtherWindows = false;
@@ -5136,11 +5265,6 @@ public class MainController implements Initializable {
         if (btnThemeToggle != null && btnThemeToggle.getParent() != null) {
             HBox parentBox = (HBox) btnThemeToggle.getParent();
             parentBox.getChildren().add(btnHelpToggle);
-            // TTS Test (Machbarkeitsstudie ComfyUI/Qwen3)
-            Button btnTTSTest = new Button("TTS Test");
-            btnTTSTest.setTooltip(new Tooltip("ComfyUI/Qwen3-TTS Machbarkeitsstudie"));
-            btnTTSTest.setOnAction(e -> ComfyUITTSTestWindow.show(primaryStage));
-            parentBox.getChildren().add(btnTTSTest);
             Button btnParams = new Button("Parameter");
             btnParams.setTooltip(new Tooltip("Parameter und Einstellungen verwalten"));
             btnParams.setOnAction(e -> ParametersAdminWindow.show(primaryStage));
@@ -5199,6 +5323,7 @@ public class MainController implements Initializable {
         if (btnOpenTtsEditor != null) applyThemeToNode(btnOpenTtsEditor, themeIndex);
         if (btnAudiobook != null) applyThemeToNode(btnAudiobook, themeIndex);
         applyThemeToNode(btnSearchAllFiles, themeIndex);
+        if (bookLengthLabel != null) applyThemeToNode(bookLengthLabel, themeIndex);
         
         // Tabellen
         applyThemeToNode(tableViewAvailable, themeIndex);
@@ -6245,6 +6370,7 @@ public class MainController implements Initializable {
      * Zeigt das übergeordnete Projektauswahl-Menü
      */
     private void showProjectSelectionMenu() {
+        stopBookLengthTimer();
         try {
             // Erstelle CustomStage für Projektauswahl
             CustomStage projectStage = new CustomStage();
@@ -7059,7 +7185,8 @@ public class MainController implements Initializable {
             txtDirectoryPath.setText(projectDir.getAbsolutePath());
             loadDocxFiles(projectDir);
             updateProjectTitleFromCurrentPath();
-            
+            startBookLengthTimer();
+
             // Speichere den Pfad
             preferences.put("lastDirectory", projectDir.getAbsolutePath());
             

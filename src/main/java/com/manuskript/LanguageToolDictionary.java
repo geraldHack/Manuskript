@@ -189,16 +189,15 @@ public class LanguageToolDictionary {
                 
                 if (!isInDictionary) {
                     filtered.add(match);
-                } else {
-                    logger.info("Match gefiltert (im Wörterbuch): '" + matchedTextRaw + "' -> '" + matchedText + "'");
                 }
+                // Im Wörterbuch: Match wird nicht in filtered aufgenommen (still gefiltert)
             } else {
                 // Ungültige Position - trotzdem hinzufügen
                 filtered.add(match);
             }
         }
         
-        logger.info("filterMatches: " + matches.size() + " Matches -> " + filtered.size() + " gefiltert");
+        logger.debug("filterMatches: {} Matches -> {} gefiltert", matches.size(), filtered.size());
         return filtered;
     }
 }

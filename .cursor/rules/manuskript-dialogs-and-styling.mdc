@@ -1,0 +1,53 @@
+---
+alwaysApply: true
+description: Verbindliche Regeln für CustomAlert, CustomStage und Theme-Styling – immer einhalten
+---
+
+# CustomAlert und CustomStage – Styling-Regeln
+
+## CustomAlert (KEIN JavaFX Alert)
+
+CustomAlert ist eine **eigene Implementierung** mit eigener Stage und interner `buttonTypes`-Liste. **Niemals** die JavaFX-Alert-API annehmen.
+
+### Pflicht-Ablauf für jeden CustomAlert
+
+1. **Erzeugen:** `DialogFactory.createConfirmationAlert(...)` / `createWarningAlert(...)` / `createErrorAlert(...)` ODER `new CustomAlert(AlertType.CONFIRMATION)`.
+2. **Inhalt:** `setTitle()`, `setHeaderText()`, `setContentText()` – **nicht** über getDialogPane().
+3. **Buttons:** **Nur** über `alert.getButtonTypes()`:
+   - `alert.getButtonTypes().clear();`
+   - `alert.getButtonTypes().addAll(buttonType1, buttonType2);`
+   - **NIEMALS** `alert.getDialogPane().getButtonTypes().setAll(...)` – getDialogPane() liefert ein Dummy-Pane, Änderungen dort wirken nicht.
+4. **Theme:** **Immer** mit dem Theme-Index des **aufrufenden** Fensters: `alert.applyTheme(currentThemeIndex);` (oder `themeIndex` der jeweiligen Klasse). Nicht nur auf ThemeManager verlassen.
+5. **Anzeigen:** `alert.showAndWait(owner);` (Owner für Modalität und Zentrierung).
+
+### Referenz im Code
+
+Gleiches Muster z. B. in: MainController (directoryAlert, Online-Lektorat-Dialog), EditorWindow (LanguageTool/Alerts), ChapterTtsEditorWindow, AudiobookDialog, PandocExportWindow – überall `applyTheme(themeIndex)` und `getButtonTypes()`.
+
+---
+
+## CustomStage / Fenster mit Tabs oder Content-Boxen
+
+1. **Erzeugen:** `StageManager.createStage("Fenster-Titel")`.
+2. **Theme:** `stage.setFullTheme(themeIndex);` und Scene mit `ResourceManager.getCssResource("css/manuskript.css")`.
+3. **CSS-Descendant-Selektoren:** Regeln wie `.weiss-theme .param-card`, `.theme-dark .tab-header-background` greifen nur, wenn ein **Vorfahre** des Elements die Theme-Klasse trägt. Daher:
+   - Theme-Klasse auf den **Content-Container** setzen (z. B. die VBox, die die param-cards oder den Tab-Inhalt enthält), z. B. `content.getStyleClass().addAll("weiss-theme")` bzw. für Index 3 `addAll("theme-dark", "blau-theme")`.
+   - Oder auf die Root-VBox des Fensterinhalts, damit alle Kinder (TabPane, Karten, etc.) darunter fallen.
+
+### Theme-Klassen pro Index
+
+- 0: `weiss-theme`
+- 1: `theme-dark`
+- 2: `pastell-theme`
+- 3: `theme-dark` + `blau-theme`
+- 4: `theme-dark` + `gruen-theme`
+- 5: `theme-dark` + `lila-theme`
+
+---
+
+## Verboten
+
+- **CustomAlert:** `getDialogPane().getButtonTypes()` oder `getDialogPane().setContent(...)` für die eigentliche Logik verwenden.
+- **Theme vergessen:** Nach Erzeugen eines CustomAlert das explizite `alert.applyTheme(currentThemeIndex)` weglassen.
+- **Neue Inline-Styles oder neue CSS-Regeln erfinden,** wenn bestehende Klassen (z. B. `.param-card`, `.tab-pane`) und Theme-Selektoren in `config/css/manuskript.css` bereits existieren.
+- **Theme-Container weglassen:** Fenster mit TabPane/param-card etc. bauen, ohne die Theme-Klasse auf den passenden Container zu setzen, sodass die vorhandenen CSS-Regeln greifen.

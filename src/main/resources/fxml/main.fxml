@@ -74,56 +74,59 @@
          </padding>
       </HBox>
       
-      <!-- Aktions-Buttons (zwei Reihen) -->
-      <VBox spacing="6">
+      <!-- Toolbar: gruppierte Aktionen, einheitliche Button-Optik -->
+      <VBox styleClass="main-toolbar" spacing="0">
          <children>
-            <HBox spacing="10" alignment="CENTER_LEFT">
+            <HBox alignment="CENTER_LEFT" spacing="0">
                <children>
-                  <Button fx:id="btnDeleteFile" text="📁 Datei archivieren" prefWidth="150.0">
-                      <tooltip>
-                         <Tooltip text="Ausgewählte Datei ins Archiv verschieben" />
-                      </tooltip>
-                  </Button>
-                  <Button fx:id="btnThemeToggle" text="☀" prefWidth="50.0" prefHeight="35.0">
-                      <tooltip>
-                         <Tooltip text="Theme wechseln" />
-                      </tooltip>
-                  </Button>
-                  <Button fx:id="btnProcessSelected" text="Buch exportieren" prefWidth="200.0" />
+                  <!-- Gruppe Projekt -->
+                  <HBox styleClass="action-group" spacing="8" alignment="CENTER_LEFT">
+                     <Button fx:id="btnDeleteFile" styleClass="main-toolbar-button" text="📁 Archivieren" minWidth="120">
+                        <tooltip><Tooltip text="Ausgewählte Datei (es geht nur um nicht mehr benötigte docx links) ins Archiv verschieben" /></tooltip>
+                     </Button>
+                     <Button fx:id="btnNewChapter" styleClass="main-toolbar-button" text="📝 Neues Kapitel" minWidth="120">
+                        <tooltip><Tooltip text="Neues Kapitel anlegen" /></tooltip>
+                     </Button>
+                  </HBox>
+                  <Separator orientation="VERTICAL" styleClass="toolbar-separator" />
+                  <!-- Gruppe Bearbeiten -->
+                  <HBox styleClass="action-group" spacing="8" alignment="CENTER_LEFT">
+                     <Button fx:id="btnProcessAll" styleClass="main-toolbar-button" text="✏️ Kapitel bearbeiten" minWidth="140">
+                        <tooltip><Tooltip text="Ausgewählte Kapitel im Editor öffnen" /></tooltip>
+                     </Button>
+                     <Button fx:id="btnOnlineLektorat" styleClass="main-toolbar-button" text="📋 Online-Lektorat" minWidth="130">
+                        <tooltip><Tooltip text="Online-Lektorat starten (API-Key unter Parameter → Online-Lektorat)" /></tooltip>
+                     </Button>
+                     <Button fx:id="btnOpenTtsEditor" styleClass="main-toolbar-button" text="🔊 Sprachsynthese" minWidth="130">
+                        <tooltip><Tooltip text="Kapitel mit TTS bearbeiten: Text markieren, Sprachausgabe erzeugen" /></tooltip>
+                     </Button>
+                  </HBox>
+                  <Separator orientation="VERTICAL" styleClass="toolbar-separator" />
+                  <!-- Gruppe Export -->
+                  <HBox styleClass="action-group" spacing="8" alignment="CENTER_LEFT">
+                     <Button fx:id="btnProcessSelected" styleClass="main-toolbar-button" text="📤 Buch exportieren" minWidth="140">
+                        <tooltip><Tooltip text="Buch exportieren" /></tooltip>
+                     </Button>
+                     <Button fx:id="btnAudiobook" styleClass="main-toolbar-button" text="🎧 Hörbuch" minWidth="100">
+                        <tooltip><Tooltip text="Ausgewählte Kapitel mit TTS zu einer Hörbuch-MP3 zusammenfügen" /></tooltip>
+                     </Button>
+                  </HBox>
                   <Region HBox.hgrow="ALWAYS" style="-fx-background-color: transparent;" />
-                  <Button fx:id="btnSearchAllFiles" text="🔍 Suchen in allen Dateien" prefWidth="200.0">
-                      <tooltip>
-                         <Tooltip text="In allen Dateien der rechten Tabelle suchen" />
-                      </tooltip>
-                  </Button>
+                  <!-- Gruppe Sonstiges -->
+                  <HBox styleClass="action-group" spacing="8" alignment="CENTER_LEFT">
+                     <Button fx:id="btnThemeToggle" styleClass="main-toolbar-button" text="☀" minWidth="40">
+                        <tooltip><Tooltip text="Theme wechseln" /></tooltip>
+                     </Button>
+                     <Button fx:id="btnSearchAllFiles" styleClass="main-toolbar-button" text="🔍 Suchen" minWidth="100">
+                        <tooltip><Tooltip text="In allen Dateien der rechten Tabelle suchen" /></tooltip>
+                     </Button>
+                  </HBox>
                </children>
-            </HBox>
-            <HBox spacing="10" alignment="CENTER_RIGHT">
-               <children>
-                  <Region HBox.hgrow="ALWAYS" style="-fx-background-color: transparent;" />
-                  <Button fx:id="btnNewChapter" text="Neues Kapitel erstellen" prefWidth="180.0" />
-                  <Button fx:id="btnOpenTtsEditor" text="Kapitel mit Sprachsynthese" prefWidth="220.0">
-                      <tooltip>
-                         <Tooltip text="Kapitel mit TTS bearbeiten: Text markieren, Sprachausgabe erzeugen und speichern" />
-                      </tooltip>
-                  </Button>
-                  <Button fx:id="btnAudiobook" text="Hörbuch erstellen" prefWidth="160.0">
-                      <tooltip>
-                         <Tooltip text="Ausgewählte Kapitel mit TTS zu einer Hörbuch-MP3 zusammenfügen" />
-                      </tooltip>
-                  </Button>
-                  <Button fx:id="btnOnlineLektorat" text="Online-Lektorat" prefWidth="150.0">
-                      <tooltip>
-                         <Tooltip text="Online-Lektorat der ausgewählten Kapiteldatei starten (API in Parameter)" />
-                      </tooltip>
-                  </Button>
-                  <Button fx:id="btnProcessAll" text="Kapitel bearbeiten" prefWidth="150.0" />
-               </children>
+               <padding>
+                  <Insets bottom="8.0" left="12.0" right="12.0" top="8.0" />
+               </padding>
             </HBox>
          </children>
-         <padding>
-            <Insets bottom="5.0" left="10.0" right="10.0" />
-         </padding>
       </VBox>
          </children>
       </VBox>

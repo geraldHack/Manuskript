@@ -16,30 +16,86 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
 
 /**
  * Service für das Online-Lektorat per OpenAI-kompatibler API (chat/completions).
  * Liest API-Key, Basis-URL und Modell aus den Parametern; sendet Kapiteltext mit Lektorat-Prompt
  * und parst die Antwort als JSON-Array (Original, 2–3 Vorschläge, Begründung, Gewichtung).
+ * Bei Abbruch (z. B. Timeout) werden bereits verarbeitete Chunks als partielle Ergebnisliste zurückgegeben.
  */
 public class OnlineLektoratService {
     private static final Logger logger = LoggerFactory.getLogger(OnlineLektoratService.class);
 
+    /**
+     * Ergebnis des Lektorat-Laufs. Bei Abbruch (z. B. Timeout) ist partial=true und
+     * getMatches() enthält die Vorschläge aus den bereits verarbeiteten Abschnitten.
+     * chunksDone/chunksTotal sind nur bei partial relevant (z. B. 2/4 = 2 von 4 Abschnitte gelesen).
+     */
+    public static final class LektoratResult {
+        private final List<LektoratMatch> matches;
+        private final boolean partial;
+        private final String errorMessage;
+        private final int chunksDone;
+        private final int chunksTotal;
+
+        public LektoratResult(List<LektoratMatch> matches, boolean partial, String errorMessage, int chunksDone, int chunksTotal) {
+            this.matches = matches != null ? new ArrayList<>(matches) : new ArrayList<>();
+            this.partial = partial;
+            this.errorMessage = errorMessage;
+            this.chunksDone = chunksDone;
+            this.chunksTotal = chunksTotal;
+        }
+
+        public static LektoratResult full(List<LektoratMatch> matches) {
+            return new LektoratResult(matches, false, null, -1, -1);
+        }
+
+        public static LektoratResult partial(List<LektoratMatch> matches, String errorMessage, int chunksDone, int chunksTotal) {
+            return new LektoratResult(matches, true, errorMessage, chunksDone, chunksTotal);
+        }
+
+        public List<LektoratMatch> getMatches() { return matches; }
+        public boolean isPartial() { return partial; }
+        public String getErrorMessage() { return errorMessage; }
+        /** Bei partial: Anzahl bereits gelesener Abschnitte (z. B. 2). Sonst -1. */
+        public int getChunksDone() { return chunksDone; }
+        /** Bei partial: Gesamtanzahl Abschnitte (z. B. 4). Sonst -1. */
+        public int getChunksTotal() { return chunksTotal; }
+    }
+
     private static final int CONNECT_TIMEOUT_SEC = 30;
-    private static final int REQUEST_TIMEOUT_SEC = 120;
+    private static final int REQUEST_TIMEOUT_SEC_DEFAULT = 300;
+    private static final int REQUEST_TIMEOUT_SEC_MIN = 60;
+    private static final int REQUEST_TIMEOUT_SEC_MAX = 900;
+    private static final int CHUNK_SIZE_MIN = 1000;
+    private static final int CHUNK_SIZE_MAX = 100000;
+    private static final int CHUNK_SIZE_DEFAULT = 12000;
+    private static final int DELAY_BETWEEN_CHUNKS_MS_DEFAULT = 1500;
 
     private final HttpClient httpClient = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(CONNECT_TIMEOUT_SEC))
             .build();
 
     /**
+     * Führt das Lektorat aus (ohne Fortschritts-Callback).
+     */
+    public CompletableFuture<LektoratResult> runLektorat(String chapterText) {
+        return runLektorat(chapterText, null);
+    }
+
+    /**
      * Führt das Lektorat für den übergebenen Kapiteltext aus.
-     * Ermittelt offset/length für jedes Match per indexOf(original) im Text.
+     * Bei langen Kapiteln (> MAX_CHARS_PER_REQUEST) werden mehrere Durchläufe gemacht.
+     * onChunkProgress wird nach jedem erfolgreich bearbeiteten Abschnitt mit (done, total) aufgerufen.
+     * Bei Abbruch (z. B. Timeout) enthält das Ergebnis die bereits verarbeiteten Chunks (partial=true).
      *
      * @param chapterText vollständiger Kapiteltext
-     * @return Liste der Lektorat-Matches (mit offset/length gesetzt) oder bei Fehler leere Liste / Exception
+     * @param onChunkProgress optionaler Callback (done, total) nach jedem erfolgreich bearbeiteten Abschnitt; wird aus Hintergrund-Thread aufgerufen
+     * @return LektoratResult mit allen oder partiellen Matches; bei vollständigem Fehler (z. B. kein API-Key) failed Future
      */
-    public CompletableFuture<List<LektoratMatch>> runLektorat(String chapterText) {
+    public CompletableFuture<LektoratResult> runLektorat(String chapterText, BiConsumer<Integer, Integer> onChunkProgress) {
         String apiKey = ResourceManager.getParameter("api.lektorat.api_key", "").trim();
         String baseUrl = ResourceManager.getParameter("api.lektorat.base_url", "https://api.openai.com/v1").trim().replaceAll("/$", "");
         String model = ResourceManager.getParameter("api.lektorat.model", "gpt-4o-mini").trim();
@@ -50,15 +106,183 @@ public class OnlineLektoratService {
         if (baseUrl.isEmpty()) {
             return CompletableFuture.failedFuture(new IllegalStateException("Basis-URL für Online-Lektorat ist nicht gesetzt."));
         }
+        if (chapterText == null || chapterText.isEmpty()) {
+            return CompletableFuture.completedFuture(LektoratResult.full(new ArrayList<>()));
+        }
 
         String extraPrompt = ResourceManager.getParameter("api.lektorat.extra_prompt", "").trim();
         String lektoratType = ResourceManager.getParameter("api.lektorat.type", "allgemein").trim();
         if (lektoratType.isEmpty()) lektoratType = "allgemein";
 
-        logger.info("Online-Lektorat: Start (Modell={}, Textlänge={}, Typ={})", model.isEmpty() ? "gpt-4o-mini" : model, chapterText != null ? chapterText.length() : 0, lektoratType);
-        String systemPrompt = buildSystemPrompt(extraPrompt, lektoratType);
-        String userPrompt = buildUserPrompt(chapterText, extraPrompt);
+        int maxCharsPerRequest = parseChunkSize(ResourceManager.getParameter("api.lektorat.chunk_size", String.valueOf(CHUNK_SIZE_DEFAULT)));
 
+        String systemPrompt = buildSystemPrompt(extraPrompt, lektoratType);
+
+        if (chapterText.length() <= maxCharsPerRequest) {
+            logger.info("Online-Lektorat: ein Durchlauf (Textlänge={} <= {}), Modell={}, Typ={}", chapterText.length(), maxCharsPerRequest, model.isEmpty() ? "gpt-4o-mini" : model, lektoratType);
+            return runOneRequestWithRetry(chapterText, systemPrompt, extraPrompt, apiKey, baseUrl, model, 1, 1)
+                    .thenApply(body -> parseResponseAndResolveOffsets(body, chapterText))
+                    .thenApply(LektoratResult::full);
+        }
+
+        List<String> chunks = splitIntoChunks(chapterText, maxCharsPerRequest);
+        if (chunks.isEmpty()) {
+            return CompletableFuture.completedFuture(LektoratResult.full(new ArrayList<>()));
+        }
+        int[] startOffsets = new int[chunks.size()];
+        int pos = 0;
+        for (int i = 0; i < chunks.size(); i++) {
+            startOffsets[i] = pos;
+            pos += chunks.get(i).length();
+        }
+        int firstChunkLen = chunks.get(0).length();
+        logger.info("Online-Lektorat: Kapitel in {} Abschnitte geteilt (je max. {} Zeichen), Gesamtlänge={}, 1. Chunk={} Zeichen, Modell={}, Typ={}", chunks.size(), maxCharsPerRequest, chapterText.length(), firstChunkLen, model.isEmpty() ? "gpt-4o-mini" : model, lektoratType);
+
+        return runChunksSequentially(chunks, startOffsets, 0, new ArrayList<>(), systemPrompt, extraPrompt, apiKey, baseUrl, model, onChunkProgress);
+    }
+
+    /**
+     * Liest die Pause in ms zwischen zwei Chunk-Anfragen (vermeidet Timeouts bei vielen Gateways).
+     */
+    private static int getDelayBetweenChunksMs() {
+        String v = ResourceManager.getParameter("api.lektorat.delay_between_chunks_ms", String.valueOf(DELAY_BETWEEN_CHUNKS_MS_DEFAULT));
+        if (v == null || v.isBlank()) return DELAY_BETWEEN_CHUNKS_MS_DEFAULT;
+        try {
+            int ms = Integer.parseInt(v.trim());
+            return Math.max(0, Math.min(30000, ms)); // 0–30 s
+        } catch (NumberFormatException e) {
+            return DELAY_BETWEEN_CHUNKS_MS_DEFAULT;
+        }
+    }
+
+    private static int getRequestTimeoutSec() {
+        String v = ResourceManager.getParameter("api.lektorat.request_timeout_sec", String.valueOf(REQUEST_TIMEOUT_SEC_DEFAULT));
+        if (v == null || v.isBlank()) return REQUEST_TIMEOUT_SEC_DEFAULT;
+        try {
+            int sec = Integer.parseInt(v.trim());
+            return Math.max(REQUEST_TIMEOUT_SEC_MIN, Math.min(REQUEST_TIMEOUT_SEC_MAX, sec));
+        } catch (NumberFormatException e) {
+            return REQUEST_TIMEOUT_SEC_DEFAULT;
+        }
+    }
+
+    /**
+     * Verarbeitet Chunks strikt nacheinander. Zwischen zwei Anfragen wird optional eine Pause
+     * eingefügt (Parameter api.lektorat.delay_between_chunks_ms), um Gateway-/Rate-Limit-Timeouts zu vermeiden.
+     * Bei Abbruch wird ein partielles Ergebnis zurückgegeben.
+     */
+    private CompletableFuture<LektoratResult> runChunksSequentially(
+            List<String> chunks, int[] startOffsets, int index,
+            List<LektoratMatch> accumulated,
+            String systemPrompt, String extraPrompt, String apiKey, String baseUrl, String model,
+            BiConsumer<Integer, Integer> onChunkProgress) {
+        if (index >= chunks.size()) {
+            return CompletableFuture.completedFuture(LektoratResult.full(accumulated));
+        }
+        String chunk = chunks.get(index);
+        int chunkStart = startOffsets[index];
+        int chunkNum = index + 1;
+        List<LektoratMatch> accumulatedCopy = new ArrayList<>(accumulated);
+        int delayMs = getDelayBetweenChunksMs();
+        return runOneRequestWithRetry(chunk, systemPrompt, extraPrompt, apiKey, baseUrl, model, chunkNum, chunks.size())
+                .thenApply(body -> parseResponseAndResolveOffsets(body, chunk))
+                .thenApply(matches -> {
+                    for (LektoratMatch m : matches) {
+                        m.setOffset(m.getOffset() + chunkStart);
+                    }
+                    logger.info("Online-Lektorat: Chunk {}/{} abgeschlossen ({} Zeichen), {} Vorschläge", chunkNum, chunks.size(), chunk.length(), matches.size());
+                    if (onChunkProgress != null) {
+                        onChunkProgress.accept(chunkNum, chunks.size());
+                    }
+                    List<LektoratMatch> combined = new ArrayList<>(accumulated);
+                    combined.addAll(matches);
+                    return combined;
+                })
+                .thenCompose(combined -> {
+                    if (delayMs <= 0 || index + 1 >= chunks.size()) {
+                        return runChunksSequentially(chunks, startOffsets, index + 1, combined, systemPrompt, extraPrompt, apiKey, baseUrl, model, onChunkProgress);
+                    }
+                    // Pause vor dem nächsten Request, um Gateway-/Rate-Limit-Timeouts zu vermeiden
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Online-Lektorat: Pause {} ms vor Chunk {}/{}", delayMs, index + 2, chunks.size());
+                    }
+                    return CompletableFuture.completedFuture(combined)
+                            .thenApplyAsync(c -> c, CompletableFuture.delayedExecutor(delayMs, TimeUnit.MILLISECONDS))
+                            .thenCompose(c -> runChunksSequentially(chunks, startOffsets, index + 1, c, systemPrompt, extraPrompt, apiKey, baseUrl, model, onChunkProgress));
+                })
+                .exceptionally(ex -> {
+                    Throwable t = ex.getCause() != null ? ex.getCause() : ex;
+                    String msg = t != null ? t.getMessage() : "Unbekannter Fehler";
+                    int done = index;
+                    logger.warn("Online-Lektorat: Abbruch nach Chunk {}/{} – partielle Ergebnisse werden zurückgegeben. Fehler: {}", chunkNum, chunks.size(), msg);
+                    return LektoratResult.partial(accumulatedCopy, msg, done, chunks.size());
+                });
+    }
+
+    private static int parseChunkSize(String value) {
+        if (value == null || value.isBlank()) return CHUNK_SIZE_DEFAULT;
+        try {
+            int v = Integer.parseInt(value.trim());
+            return Math.max(CHUNK_SIZE_MIN, Math.min(CHUNK_SIZE_MAX, v));
+        } catch (NumberFormatException e) {
+            return CHUNK_SIZE_DEFAULT;
+        }
+    }
+
+    /**
+     * Teilt Text in Abschnitte (vorzugsweise an Zeilenumbrüchen oder Leerzeichen).
+     */
+    private static List<String> splitIntoChunks(String text, int maxChars) {
+        List<String> chunks = new ArrayList<>();
+        int from = 0;
+        while (from < text.length()) {
+            int to = Math.min(from + maxChars, text.length());
+            if (to < text.length()) {
+                int minBreak = Math.max(from, to - 400);
+                int lastN = text.lastIndexOf('\n', to - 1);
+                int lastSpace = text.lastIndexOf(' ', to - 1);
+                if (lastN >= minBreak) to = lastN + 1;
+                else if (lastSpace >= minBreak) to = lastSpace + 1;
+            }
+            chunks.add(text.substring(from, to));
+            from = to;
+        }
+        return chunks;
+    }
+
+    /**
+     * Ein API-Durchlauf mit einmaliger Wiederholung bei 504/Timeout (Gateway bricht oft nach ~60 s ab).
+     */
+    private CompletableFuture<String> runOneRequestWithRetry(String chunkText, String systemPrompt, String extraPrompt,
+                                                              String apiKey, String baseUrl, String model,
+                                                              int chunkNum, int totalChunks) {
+        return runOneRequest(chunkText, systemPrompt, extraPrompt, apiKey, baseUrl, model)
+                .thenApply(CompletableFuture::completedFuture)
+                .exceptionally(ex -> {
+                    Throwable t = ex.getCause() != null ? ex.getCause() : ex;
+                    if (is504OrTimeout(t)) {
+                        logger.info("Online-Lektorat: Chunk {}/{} – 504/Timeout, ein Versuch wird wiederholt…", chunkNum, totalChunks);
+                        return runOneRequest(chunkText, systemPrompt, extraPrompt, apiKey, baseUrl, model);
+                    }
+                    return CompletableFuture.<String>failedFuture(t);
+                })
+                .thenCompose(cf -> cf);
+    }
+
+    private static boolean is504OrTimeout(Throwable t) {
+        if (t == null) return false;
+        String msg = t.getMessage();
+        if (msg != null && (msg.contains("504") || msg.contains("Timeout") || msg.contains("timeout"))) return true;
+        return is504OrTimeout(t.getCause());
+    }
+
+    /**
+     * Ein API-Durchlauf für einen Textabschnitt (Chunk oder ganzes Kapitel).
+     */
+    private CompletableFuture<String> runOneRequest(String chunkText, String systemPrompt, String extraPrompt,
+                                                     String apiKey, String baseUrl, String model) {
+        logger.info("Online-Lektorat: runOneRequest sendet genau {} Zeichen (Chunk-Länge)", chunkText.length());
+        String userPrompt = buildUserPrompt(chunkText, extraPrompt);
         JsonObject body = new JsonObject();
         body.addProperty("model", model.isEmpty() ? "gpt-4o-mini" : model);
         body.addProperty("temperature", 0.3);
@@ -76,12 +300,12 @@ public class OnlineLektoratService {
 
         String url = baseUrl + "/chat/completions";
         String bodyStr = new Gson().toJson(body);
-
+        int timeoutSec = getRequestTimeoutSec();
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(url))
                 .header("Authorization", "Bearer " + apiKey)
                 .header("Content-Type", "application/json")
-                .timeout(Duration.ofSeconds(REQUEST_TIMEOUT_SEC))
+                .timeout(Duration.ofSeconds(timeoutSec))
                 .POST(HttpRequest.BodyPublishers.ofString(bodyStr, StandardCharsets.UTF_8))
                 .build();
 
@@ -92,7 +316,7 @@ public class OnlineLektoratService {
                 if (code != 200) {
                     String errBody = response.body();
                     if (code == 504) {
-                        throw new RuntimeException("Gateway Timeout (504): Die Anfrage hat zu lange gedauert. Tipp: Ein schnelleres/kleineres Modell wählen (z. B. mistral-small statt großer Modelle), dann unter Parameter → Online-Lektorat das Modell wechseln.");
+                        throw new RuntimeException("Gateway Timeout (504): Die Anfrage hat zu lange gedauert. Tipp: Ein schnelleres/kleineres Modell wählen, oder das Kapitel ist zu lang – es wird automatisch in Abschnitte geteilt.");
                     }
                     throw new RuntimeException("API antwortete mit HTTP " + code + ": " + (errBody != null && errBody.length() > 200 ? errBody.substring(0, 200) + "…" : errBody));
                 }
@@ -103,7 +327,7 @@ public class OnlineLektoratService {
                 logger.warn("Online-Lektorat API-Fehler", e);
                 throw new RuntimeException(e.getMessage(), e);
             }
-        }).thenApply(responseBody -> parseResponseAndResolveOffsets(responseBody, chapterText));
+        });
     }
 
     private static String buildSystemPrompt(String extraPrompt, String lektoratType) {

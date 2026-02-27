@@ -1,12 +1,13 @@
 package com.manuskript;
 
+import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
+import javafx.util.Duration;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
-import javafx.scene.input.ScrollEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.*;
 import javafx.stage.Window;
@@ -17,6 +18,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.prefs.Preferences;
@@ -47,17 +49,80 @@ public class DebugWindow {
     private File debugLogFile;
     private Timer watchTimer;
     private Preferences preferences;
+    private ToggleButton autoScrollToggle;
     
-    // Gespeicherter vollständiger Content (unfiltered)
+    // Gespeicherter vollständiger Content (unfiltered) – für Filter-Wechsel
     private String fullManuskriptContent = "";
     private String fullDebugContent = "";
-    
+
+    /** Puffer für unvollständige Zeile an Chunk-Grenze (Tail) */
+    private String tailBufferManuskript = "";
+    private String tailBufferDebug = "";
+
+    /** Maximale Zeichen im Log-Puffer – verhindert Hänger bei sehr großen Logs */
+    private static final int MAX_CONTENT_CHARS = 512 * 1024;
+
     // Log-Level Pattern - verwende find() statt matches() für bessere Erkennung
     // Pattern sucht nach Log-Level im Format: "2025-11-01 21:11:13.123 [thread] INFO logger - message"
     private static final Pattern PATTERN_ERROR = Pattern.compile("\\bERROR\\b", Pattern.CASE_INSENSITIVE);
     private static final Pattern PATTERN_WARN = Pattern.compile("\\bWARN\\b", Pattern.CASE_INSENSITIVE);
     private static final Pattern PATTERN_INFO = Pattern.compile("\\bINFO\\b", Pattern.CASE_INSENSITIVE);
-    
+
+    /**
+     * Kürzt content auf die letzten maxChars Zeichen (Schnitt an Zeilengrenze).
+     * Verhindert, dass sehr langer Text die UI blockiert.
+     */
+    private static String trimContentToMax(String content, int maxChars) {
+        if (content == null || content.length() <= maxChars) return content;
+        int start = content.length() - maxChars;
+        int newline = content.indexOf('\n', start);
+        if (newline > start && newline < content.length()) {
+            start = newline + 1;
+        }
+        return "... [ältere Einträge gekürzt]\n" + content.substring(start);
+    }
+
+    /**
+     * Entfernt am Anfang der TextArea Zeichen, wenn sie MAX_CONTENT_CHARS übersteigt (Schnitt an Zeilengrenze).
+     */
+    private void trimTextAreaIfNeeded(TextArea area) {
+        if (area == null) return;
+        String t = area.getText();
+        if (t.length() <= MAX_CONTENT_CHARS) return;
+        int toRemove = t.length() - MAX_CONTENT_CHARS;
+        int cut = t.indexOf('\n', toRemove);
+        if (cut > toRemove && cut < t.length()) toRemove = cut + 1;
+        else if (toRemove < t.length() && t.charAt(toRemove) == '\n') toRemove++;
+        area.deleteText(0, toRemove);
+        String rest = area.getText();
+        if (!rest.startsWith("... [ältere Einträge gekürzt]\n")) {
+            area.insertText(0, "... [ältere Einträge gekürzt]\n");
+        }
+    }
+
+    /**
+     * Liefert gefilterte neue Zeilen zum Anhängen; aktualisiert den Tail-Puffer (nur vollständige Zeilen).
+     */
+    private String extractAndFilterNewLines(String newContent, boolean isManuskript) {
+        String buf = isManuskript ? tailBufferManuskript : tailBufferDebug;
+        String combined = buf + newContent;
+        String[] parts = combined.split("\n", -1);
+        boolean endsWithNewline = combined.endsWith("\n");
+        String newBuf;
+        String completeLines;
+        if (endsWithNewline) {
+            newBuf = "";
+            completeLines = parts.length > 0 ? String.join("\n", Arrays.copyOf(parts, parts.length - 1)) + "\n" : "";
+        } else {
+            newBuf = parts[parts.length - 1];
+            completeLines = parts.length > 1 ? String.join("\n", Arrays.copyOf(parts, parts.length - 1)) + "\n" : "";
+        }
+        if (isManuskript) tailBufferManuskript = newBuf;
+        else tailBufferDebug = newBuf;
+        if (completeLines.isEmpty()) return "";
+        return filterLogContent(completeLines, isManuskript);
+    }
+
     private DebugWindow(Window owner) {
         this.preferences = Preferences.userNodeForPackage(DebugWindow.class);
         this.activeFilters = new HashSet<>();
@@ -226,12 +291,54 @@ public class DebugWindow {
         
         stringFilterBox.getChildren().addAll(stringFilterLabel, stringFilterInput, addButton, stringFilterPillsBox);
         
-        container.getChildren().addAll(
-            new HBox(10, filterLabel, levelPillsBox),
-            stringFilterBox
-        );
+        // Autoscroll-Toggle (ein-/ausschaltbar, wird auch durch manuelles Scrollen deaktiviert)
+        autoScrollToggle = new ToggleButton("↓ Autoscroll");
+        autoScrollToggle.setSelected(true);
+        autoScrollToggle.setTooltip(new Tooltip("Autoscroll ein/aus. Wird auch deaktiviert, wenn Sie manuell nach oben scrollen."));
+        boolean savedAutoScroll = preferences.getBoolean("debug_autoscroll", true);
+        autoScrollManuskript.set(savedAutoScroll);
+        autoScrollDebug.set(savedAutoScroll);
+        autoScrollToggle.setSelected(savedAutoScroll);
+        updateAutoScrollToggleText();
+        autoScrollToggle.setOnAction(e -> {
+            boolean on = autoScrollToggle.isSelected();
+            autoScrollManuskript.set(on);
+            autoScrollDebug.set(on);
+            preferences.putBoolean("debug_autoscroll", on);
+            updateAutoScrollToggleText();
+            if (on) {
+                scrollToBottom(true);
+                scrollToBottom(false);
+            }
+        });
+        
+        HBox topRow = new HBox(10);
+        topRow.setAlignment(Pos.CENTER_LEFT);
+        topRow.getChildren().addAll(filterLabel, levelPillsBox, autoScrollToggle);
+        container.getChildren().addAll(topRow, stringFilterBox);
         
         return container;
+    }
+    
+    private void updateAutoScrollToggleText() {
+        if (autoScrollToggle == null) return;
+        if (autoScrollToggle.isSelected()) {
+            autoScrollToggle.setText("↓ Autoscroll");
+            autoScrollToggle.setStyle("-fx-base: #28a745; -fx-text-fill: white;");
+        } else {
+            autoScrollToggle.setText("Autoscroll aus");
+            autoScrollToggle.setStyle("");
+        }
+    }
+    
+    /** Synchronisiert den Toggle-Button mit den Auto-Scroll-Flags (wenn Nutzer manuell scrollt). */
+    private void syncAutoScrollToggleFromFlags() {
+        if (autoScrollToggle == null) return;
+        boolean on = autoScrollManuskript.get() && autoScrollDebug.get();
+        if (autoScrollToggle.isSelected() != on) {
+            autoScrollToggle.setSelected(on);
+            updateAutoScrollToggleText();
+        }
     }
     
     /**
@@ -316,45 +423,33 @@ public class DebugWindow {
     }
     
     /**
-     * Filtert die Logs basierend auf aktiven Filtern
+     * Filtert die Logs basierend auf aktiven Filtern.
+     * Filterung läuft im Hintergrund, damit große Logs die UI nicht blockieren.
      */
     private void filterLogs() {
-        // Filter für Manuskript-Log
-        String filteredManuskript = filterLogContent(fullManuskriptContent, true);
-        boolean wasScrolledToBottomManuskript = isScrolledToBottom(true);
-        boolean shouldScrollManuskript = wasScrolledToBottomManuskript && autoScrollManuskript.get();
-        
-        // Filter für Debug-Log
-        String filteredDebug = filterLogContent(fullDebugContent, false);
-        boolean wasScrolledToBottomDebug = isScrolledToBottom(false);
-        boolean shouldScrollDebug = wasScrolledToBottomDebug && autoScrollDebug.get();
-        
-        // Text IMMER setzen (auch wenn unverändert, um sicherzustellen dass Filter angewendet wird)
-        Platform.runLater(() -> {
+        final String fullManu = fullManuskriptContent;
+        final String fullDeb = fullDebugContent;
+        final boolean shouldScrollManuskript = isScrolledToBottom(true) && autoScrollManuskript.get();
+        final boolean shouldScrollDebug = isScrolledToBottom(false) && autoScrollDebug.get();
+
+        CompletableFuture.supplyAsync(() -> {
+            String f1 = filterLogContent(fullManu, true);
+            String f2 = filterLogContent(fullDeb, false);
+            return new String[]{f1, f2};
+        }).thenAccept(filtered -> Platform.runLater(() -> {
             if (manuskriptLogArea != null) {
-                manuskriptLogArea.setText(filteredManuskript);
+                manuskriptLogArea.setText(filtered[0]);
             }
             if (debugLogArea != null) {
-                debugLogArea.setText(filteredDebug);
+                debugLogArea.setText(filtered[1]);
             }
-            
-            // Nach Text-Updates scrollen (wenn Autoscroll aktiv)
             if (shouldScrollManuskript) {
-                Platform.runLater(() -> {
-                    Platform.runLater(() -> {
-                        scrollToBottom(true);
-                    });
-                });
+                scrollToBottom(true);
             }
-            
             if (shouldScrollDebug) {
-                Platform.runLater(() -> {
-                    Platform.runLater(() -> {
-                        scrollToBottom(false);
-                    });
-                });
+                scrollToBottom(false);
             }
-        });
+        }));
     }
     
     /**
@@ -482,15 +577,16 @@ public class DebugWindow {
                 return;
             }
             
-            // Manuskript-Log Scroll-Listener - scrollTopProperty für TextArea
+            // Manuskript-Log Scroll-Listener – bei manuellem Scrollen Autoscroll ggf. abschalten
             manuskriptLogArea.scrollTopProperty().addListener((obs, oldVal, newVal) -> {
                 Platform.runLater(() -> {
                     if (isScrolledToBottom(true)) {
                         autoScrollManuskript.set(true);
+                        syncAutoScrollToggleFromFlags();
                     } else {
-                        // Prüfe ob nach oben gescrollt wurde
                         if (oldVal != null && newVal.doubleValue() < oldVal.doubleValue()) {
                             autoScrollManuskript.set(false);
+                            syncAutoScrollToggleFromFlags();
                         }
                     }
                 });
@@ -501,21 +597,23 @@ public class DebugWindow {
                 Platform.runLater(() -> {
                     if (isScrolledToBottom(false)) {
                         autoScrollDebug.set(true);
+                        syncAutoScrollToggleFromFlags();
                     } else {
-                        // Prüfe ob nach oben gescrollt wurde
                         if (oldVal != null && newVal.doubleValue() < oldVal.doubleValue()) {
                             autoScrollDebug.set(false);
+                            syncAutoScrollToggleFromFlags();
                         }
                     }
                 });
             });
             
-            // Mouse-Wheel-Events überwachen
+            // Mouse-Wheel – bei Scroll nach oben Autoscroll ausschalten
             manuskriptLogArea.addEventFilter(ScrollEvent.SCROLL, e -> {
                 if (Math.abs(e.getDeltaY()) > 0.1 || Math.abs(e.getDeltaX()) > 0.1) {
                     Platform.runLater(() -> {
                         if (!isScrolledToBottom(true)) {
                             autoScrollManuskript.set(false);
+                            syncAutoScrollToggleFromFlags();
                         }
                     });
                 }
@@ -526,6 +624,7 @@ public class DebugWindow {
                     Platform.runLater(() -> {
                         if (!isScrolledToBottom(false)) {
                             autoScrollDebug.set(false);
+                            syncAutoScrollToggleFromFlags();
                         }
                     });
                 }
@@ -562,36 +661,32 @@ public class DebugWindow {
     }
     
     /**
-     * Scrollt TextArea zum Ende - korrekte Methode für TextArea
-     * TextArea hat eingebautes ScrollPane, daher positionCaret verwenden
+     * Scrollt TextArea zum Ende. setText() setzt die Ansicht auf den Anfang; das Layout
+     * braucht etwas Zeit. Mehrere verzögerte Scroll-Schritte sorgen dafür, dass wir
+     * zuverlässig unten landen, sobald das Layout fertig ist.
      */
     private void scrollToBottom(boolean isManuskript) {
         TextArea textArea = isManuskript ? manuskriptLogArea : debugLogArea;
         if (textArea == null) return;
-        
-        int textLength = textArea.getText().length();
-        if (textLength == 0) return;
-        
-        Platform.runLater(() -> {
-            // Methode 1: Setze Caret ans Ende - das scrollt automatisch
-            textArea.positionCaret(textLength);
+
+        Runnable doScroll = () -> {
+            int len = textArea.getText().length();
+            if (len == 0) return;
+            textArea.positionCaret(len);
             textArea.deselect();
-            
-            // Methode 2: Setze ScrollTop auf großen Wert (wird automatisch begrenzt)
-            double currentScrollTop = textArea.getScrollTop();
-            double largeScrollTop = currentScrollTop + 50000; // Sehr großer Wert
-            textArea.setScrollTop(largeScrollTop);
-            
-            // Methode 3: Nochmal positionCaret für Sicherheit
-            Platform.runLater(() -> {
-                textArea.positionCaret(textLength);
-                textArea.deselect();
-                
-                // Final: Nochmal ScrollTop setzen mit noch größerem Wert
-                double finalScrollTop = textArea.getScrollTop();
-                textArea.setScrollTop(finalScrollTop + 50000);
-            });
-        });
+            textArea.setScrollTop(Double.MAX_VALUE);
+        };
+
+        Platform.runLater(doScroll);
+        scheduleScroll(doScroll, textArea, 80);
+        scheduleScroll(doScroll, textArea, 200);
+        scheduleScroll(doScroll, textArea, 400);
+    }
+
+    private void scheduleScroll(Runnable doScroll, TextArea textArea, int delayMs) {
+        PauseTransition pause = new PauseTransition(Duration.millis(delayMs));
+        pause.setOnFinished(e -> Platform.runLater(doScroll));
+        pause.play();
     }
     
     /**
@@ -603,52 +698,63 @@ public class DebugWindow {
     }
     
     /**
-     * Lädt eine Log-Datei initial (komplett)
+     * Lädt eine Log-Datei initial. Lese-Arbeit im Hintergrund, damit große Dateien
+     * die FX-Thread nicht blockieren. Puffer wird auf MAX_CONTENT_CHARS begrenzt.
      */
     private void loadLogFileInitial(File logFile, TextArea textArea, AtomicLong lastPosition, boolean isManuskript) {
         if (!logFile.exists()) {
             Platform.runLater(() -> {
-                textArea.setText("Log-Datei nicht gefunden: " + logFile.getPath());
+                if (textArea != null) textArea.setText("Log-Datei nicht gefunden: " + logFile.getPath());
             });
             return;
         }
-        
-        try (RandomAccessFile raf = new RandomAccessFile(logFile, "r")) {
-            long currentLength = logFile.length();
-            
-            if (currentLength > 0) {
-                raf.seek(0);
-                byte[] buffer = new byte[(int) currentLength];
+        final boolean isManu = isManuskript;
+        CompletableFuture.supplyAsync(() -> {
+            try (RandomAccessFile raf = new RandomAccessFile(logFile, "r")) {
+                long currentLength = logFile.length();
+                if (currentLength <= 0) return new Object[]{ "", 0L };
+                long toRead = currentLength;
+                long startOffset = 0;
+                if (currentLength > MAX_CONTENT_CHARS) {
+                    startOffset = currentLength - MAX_CONTENT_CHARS;
+                    toRead = MAX_CONTENT_CHARS;
+                    raf.seek(startOffset);
+                } else {
+                    raf.seek(0);
+                }
+                byte[] buffer = new byte[(int) toRead];
                 raf.readFully(buffer);
-                
                 String content = new String(buffer, StandardCharsets.UTF_8);
-                
-                Platform.runLater(() -> {
-                    // Vollständigen Content speichern
-                    if (isManuskript) {
-                        fullManuskriptContent = content;
-                    } else {
-                        fullDebugContent = content;
-                    }
-                    
-                    lastPosition.set(currentLength);
-                    
-                    // Filter anwenden
-                    filterLogs();
-                    
-                    // Scroll-Flag setzen
-                    AtomicBoolean scrollFlag = isManuskript ? autoScrollManuskript : autoScrollDebug;
-                    scrollFlag.set(true);
-                    
-                    // Zum Ende scrollen
-                    scrollToBottom(isManuskript);
-                });
+                if (currentLength > MAX_CONTENT_CHARS) {
+                    int firstNewline = content.indexOf('\n');
+                    if (firstNewline >= 0) content = content.substring(firstNewline + 1);
+                    content = "... [Anfang der Datei gekürzt]\n" + content;
+                }
+                return new Object[]{ content, currentLength };
+            } catch (IOException e) {
+                logger.error("Fehler beim Lesen der Log-Datei: " + logFile.getPath(), e);
+                return new Object[]{ "", 0L };
             }
-        } catch (IOException e) {
-            logger.error("Fehler beim Lesen der Log-Datei: " + logFile.getPath(), e);
-        }
+        }).thenAccept(pair -> {
+            String content = trimContentToMax((String) pair[0], MAX_CONTENT_CHARS);
+            long pos = (Long) pair[1];
+            Platform.runLater(() -> {
+                if (isManu) {
+                    fullManuskriptContent = content;
+                } else {
+                    fullDebugContent = content;
+                }
+                lastPosition.set(pos);
+                if (isManu) tailBufferManuskript = "";
+                else tailBufferDebug = "";
+                filterLogs();
+                AtomicBoolean scrollFlag = isManu ? autoScrollManuskript : autoScrollDebug;
+                scrollFlag.set(true);
+                scrollToBottom(isManu);
+            });
+        });
     }
-    
+
     /**
      * Lädt eine Log-Datei (nur neue Zeilen)
      */
@@ -674,35 +780,24 @@ public class DebugWindow {
                 String newContent = new String(buffer, StandardCharsets.UTF_8);
                 
                 if (!newContent.trim().isEmpty()) {
-                    // Neuen Content hinzufügen
+                    final String newPart = newContent;
+                    final boolean isManu = isManuskript;
                     Platform.runLater(() -> {
-                        // Vollständigen Content aktualisieren
-                        if (isManuskript) {
-                            fullManuskriptContent += newContent;
+                        if (isManu) {
+                            fullManuskriptContent = trimContentToMax(fullManuskriptContent + newPart, MAX_CONTENT_CHARS);
                         } else {
-                            fullDebugContent += newContent;
+                            fullDebugContent = trimContentToMax(fullDebugContent + newPart, MAX_CONTENT_CHARS);
                         }
-                        
-                        // Scrollen wenn Autoscroll aktiv
-                        AtomicBoolean shouldScroll = isManuskript 
-                            ? autoScrollManuskript : autoScrollDebug;
-                        
-                        boolean needToScroll = shouldScroll.get();
-                        
-                        // Filter anwenden (aktualisiert die Anzeige) - das setzt den Text neu
-                        filterLogs();
-                        
-                        // WICHTIG: Nach filterLogs() ist der Text neu gesetzt worden
-                        // Daher müssen wir hier nochmal explizit scrollen, wenn Autoscroll aktiv ist
-                        if (needToScroll) {
-                            // Mehrere Platform.runLater für zuverlässiges Scrollen nach Text-Update
-                            Platform.runLater(() -> {
-                                Platform.runLater(() -> {
-                                    Platform.runLater(() -> {
-                                        scrollToBottom(isManuskript);
-                                    });
-                                });
-                            });
+                        String toAppend = extractAndFilterNewLines(newPart, isManu);
+                        if (!toAppend.isEmpty()) {
+                            TextArea area = isManu ? manuskriptLogArea : debugLogArea;
+                            if (area != null) {
+                                area.appendText(toAppend);
+                                trimTextAreaIfNeeded(area);
+                            }
+                        }
+                        if ((isManu ? autoScrollManuskript : autoScrollDebug).get()) {
+                            scrollToBottom(isManu);
                         }
                     });
                 }

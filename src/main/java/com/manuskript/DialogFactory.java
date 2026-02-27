@@ -103,13 +103,12 @@ public class DialogFactory {
             owner
         );
         
-        // Standard-Buttons für ungespeicherte Änderungen
+        // Standard-Buttons für ungespeicherte Änderungen (CustomAlert nutzt getButtonTypes(), nicht getDialogPane())
         ButtonType saveButton = new ButtonType("Ja, speichern");
         ButtonType noButton = new ButtonType("Nein, verwerfen");
         ButtonType cancelButton = new ButtonType("Abbrechen", ButtonBar.ButtonData.CANCEL_CLOSE);
-        
-        alert.getDialogPane().getButtonTypes().setAll(saveButton, noButton, cancelButton);
-        
+        alert.getButtonTypes().clear();
+        alert.getButtonTypes().addAll(saveButton, noButton, cancelButton);
         return alert;
     }
     
@@ -127,14 +126,13 @@ public class DialogFactory {
             alert.initOwner(owner);
         }
         
-        // Spezielle Buttons für DOCX-Änderungen
+        // Spezielle Buttons für DOCX-Änderungen (CustomAlert nutzt getButtonTypes(), nicht getDialogPane())
         ButtonType diffButton = new ButtonType("🔍 Diff anzeigen");
         ButtonType docxButton = new ButtonType("DOCX übernehmen");
         ButtonType ignoreButton = new ButtonType("Ignorieren");
         ButtonType cancelButton = new ButtonType("Abbrechen");
-        
-        alert.getDialogPane().getButtonTypes().setAll(diffButton, docxButton, ignoreButton, cancelButton);
-        
+        alert.getButtonTypes().clear();
+        alert.getButtonTypes().addAll(diffButton, docxButton, ignoreButton, cancelButton);
         // Theme direkt anwenden
         ThemeManager.applyThemeToAlert(alert);
         

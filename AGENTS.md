@@ -19,6 +19,11 @@ Manuskript is a JavaFX 21 desktop application for manuscript editing with AI int
 | Package fat JAR | `mvn package` |
 | Resolve dependencies | `mvn dependency:resolve` |
 
+### Wichtig: Welcher Code laeuft?
+- **`mvn compile`** schreibt nur nach `target/classes`. Die **JAR** (z.B. `target/manuskript-standalone.jar`) und das **App-Image** (z.B. `installer-output\Manuskript\`) werden dabei **nicht** aktualisiert.
+- Wenn die App ueber **Manuskript.exe** (installer-output) oder eine **alte JAR** gestartet wird, laeuft der Stand des letzten **`mvn package`** bzw. **create-installer.bat**.
+- Damit nach Aenderungen der **aktuelle Code** laeuft: App mit **`mvn javafx:run`** starten (oder `run-developer.bat` unter Windows), oder vor dem Start **`mvn package`** ausfuehren und danach die gebaute App starten.
+
 ### Important Gotchas
 - **Display**: The JavaFX app requires `DISPLAY=:1` (the VM desktop) to render. Do NOT use headless mode.
 - **No Maven wrapper**: The repo does not include `mvnw`. System-installed Maven is required.

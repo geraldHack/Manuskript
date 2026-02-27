@@ -75,6 +75,7 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.HashSet;
+import java.util.function.BiConsumer;
 import java.util.LinkedHashMap;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -12530,14 +12531,25 @@ spacer.setStyle("-fx-background-color: transparent;");
                 }
             }
 
-            // Lektorat-Markierungen
+            // Lektorat-Markierungen (Position wie bei Ersetzung: aktuellen Text prüfen, ggf. Original suchen)
             for (LektoratMatch match : currentLektoratMatches) {
+                String original = match.getOriginal();
                 int start = match.getOffset();
                 int end = start + match.getLength();
-                if (start >= 0 && end <= content.length() && start < end) {
-                    for (int i = start; i < end; i++) {
-                        existingStyles.computeIfAbsent(i, k -> new HashSet<>()).add("lektorat-marking");
+                if (start < 0 || end > content.length() || start >= end
+                    || !content.substring(start, end).equals(original)) {
+                    int idx = content.indexOf(original);
+                    if (idx >= 0) {
+                        start = idx;
+                        end = idx + original.length();
+                        match.setOffset(start);
+                        match.setLength(end - start);
+                    } else {
+                        continue;
                     }
+                }
+                for (int i = start; i < end; i++) {
+                    existingStyles.computeIfAbsent(i, k -> new HashSet<>()).add("lektorat-marking");
                 }
             }
             
@@ -12934,16 +12946,40 @@ spacer.setStyle("-fx-background-color: transparent;");
         }
         logger.info("startOnlineLektorat: API-Aufruf gestartet, Textlänge={}", text.length());
         OnlineLektoratService service = new OnlineLektoratService();
-        service.runLektorat(text)
-                .thenAccept(matches -> Platform.runLater(() -> {
+        BiConsumer<Integer, Integer> onProgress = (done, total) -> Platform.runLater(() -> {
+            if (lblStatus != null && onlineLektoratInProgress) {
+                lblStatus.setText("Lektorat: " + done + "/" + total + " Abschnitte bearbeitet …");
+            }
+        });
+        service.runLektorat(text, onProgress)
+                .thenAccept(result -> Platform.runLater(() -> {
                     onlineLektoratInProgress = false;
+                    List<LektoratMatch> matches = result.getMatches();
                     currentLektoratMatches.clear();
                     currentLektoratMatches.addAll(matches);
                     selectedLektoratMatch = null;
                     applyCombinedStyling();
                     showLektoratPanelHint();
-                    updateStatus(matches.isEmpty() ? "Keine Lektorat-Vorschläge" : matches.size() + " Lektorat-Vorschläge – Markierung anklicken");
-                    logger.info("startOnlineLektorat: abgeschlossen, {} Vorschläge", matches.size());
+                    if (result.isPartial()) {
+                        int done = result.getChunksDone();
+                        int total = result.getChunksTotal();
+                        updateStatus((done >= 0 && total > 0) ? (done + "/" + total + " Abschnitte, " + matches.size() + " Vorschläge – Markierung anklicken") : (matches.size() + " Vorschläge – Markierung anklicken"));
+                        logger.info("startOnlineLektorat: abgebrochen, {} partielle Vorschläge aus bereits verarbeiteten Abschnitten", matches.size());
+                        Window owner = (stage != null && stage.getScene() != null) ? stage.getScene().getWindow() : null;
+                        if (owner != null && stage != null && stage.isShowing()) stage.toFront();
+                        String detail = result.getErrorMessage() != null ? result.getErrorMessage() : "Unbekannter Fehler";
+                        String chunkInfo = (done >= 0 && total > 0) ? (done + "/" + total + " Abschnitte gelesen – ") : "";
+                        CustomAlert alert = DialogFactory.createWarningAlert("Online-Lektorat abgebrochen",
+                                chunkInfo + "die bereits verarbeiteten werden angezeigt",
+                                "Das Lektorat wurde unterbrochen (z. B. Timeout oder Verbindungsfehler).\n\n"
+                                        + "Es werden " + matches.size() + " Vorschläge aus den bereits gelesenen Abschnitten angezeigt – diese können Sie wie gewohnt nutzen.\n\n"
+                                        + "Details: " + detail, owner);
+                        alert.applyTheme(currentThemeIndex);
+                        alert.showAndWait();
+                    } else {
+                        updateStatus(matches.isEmpty() ? "Keine Lektorat-Vorschläge" : matches.size() + " Lektorat-Vorschläge – Markierung anklicken");
+                        logger.info("startOnlineLektorat: abgeschlossen, {} Vorschläge", matches.size());
+                    }
                 }))
                 .exceptionally(ex -> {
                     logger.error("startOnlineLektorat: Fehler", ex);
@@ -12961,6 +12997,27 @@ spacer.setStyle("-fx-background-color: transparent;");
                 });
     }
 
+    /**
+     * Blendet den rechten Bereich (Lektorat-Panel) mit Separator ein oder aus.
+     * Im normalen Editor ist nur Seitenleiste + Editor sichtbar (kein rechter Rand).
+     */
+    private void ensureLektoratPanelVisible(boolean visible) {
+        if (mainSplitPane == null || lektoratPanelContainer == null) return;
+        ObservableList<javafx.scene.Node> items = mainSplitPane.getItems();
+        boolean hasPanel = items.contains(lektoratPanelContainer);
+        if (visible && !hasPanel) {
+            items.add(lektoratPanelContainer);
+            double[] current = mainSplitPane.getDividerPositions();
+            double sidebarPos = current.length > 0 ? current[0] : 0.15;
+            mainSplitPane.setDividerPositions(sidebarPos, 0.72);
+        } else if (!visible && hasPanel) {
+            items.remove(lektoratPanelContainer);
+            double[] current = mainSplitPane.getDividerPositions();
+            double sidebarPos = current.length > 0 ? current[0] : 0.15;
+            mainSplitPane.setDividerPositions(sidebarPos);
+        }
+    }
+
     private void showLektoratPanelHint() {
         if (lektoratPanelContainer == null || mainSplitPane == null) return;
         lektoratPanelContainer.getChildren().clear();
@@ -12969,14 +13026,22 @@ spacer.setStyle("-fx-background-color: transparent;");
         hint.getStyleClass().add("lektorat-panel-hint");
         applyThemeToNode(hint, currentThemeIndex);
         lektoratPanelContainer.getChildren().add(hint);
-        if (!currentLektoratMatches.isEmpty() && mainSplitPane.getDividers().size() >= 2) {
-            mainSplitPane.setDividerPositions(0.15, 0.72);
+        if (!currentLektoratMatches.isEmpty()) {
+            ensureLektoratPanelVisible(true);
+            if (mainSplitPane.getDividerPositions().length >= 2) {
+                double[] current = mainSplitPane.getDividerPositions();
+                mainSplitPane.setDividerPositions(current[0], 0.72);
+            }
+        } else {
+            ensureLektoratPanelVisible(false);
         }
     }
 
     private void setupLektoratClickAndPanel() {
         if (codeArea == null || lektoratPanelContainer == null) return;
         lektoratPanelContainer.setMaxWidth(Double.MAX_VALUE);
+        // Normaler Editor: rechter Bereich (Lektorat-Panel + Separator) ausblenden
+        ensureLektoratPanelVisible(false);
         codeArea.setOnMouseClicked(me -> {
             if (currentLektoratMatches.isEmpty()) return;
             int pos = codeArea.getCaretPosition();
@@ -12990,8 +13055,9 @@ spacer.setStyle("-fx-background-color: transparent;");
             if (found != null) {
                 selectedLektoratMatch = found;
                 fillLektoratPanel(found);
-                if (mainSplitPane != null && mainSplitPane.getDividers().size() >= 2) {
-                    mainSplitPane.setDividerPositions(0.15, 0.72);
+                if (mainSplitPane != null && mainSplitPane.getDividerPositions().length >= 2) {
+                    double[] current = mainSplitPane.getDividerPositions();
+                    mainSplitPane.setDividerPositions(current[0], 0.72);
                 }
             }
         });
@@ -13082,11 +13148,15 @@ spacer.setStyle("-fx-background-color: transparent;");
         currentLektoratMatches.remove(match);
         selectedLektoratMatch = null;
         applyCombinedStyling();
-        lektoratPanelContainer.getChildren().clear();
-        Label hint = new Label("Vorschlag übernommen. Bei Bedarf Online-Lektorat erneut starten.");
-        hint.setWrapText(true);
-        applyThemeToNode(hint, currentThemeIndex);
-        lektoratPanelContainer.getChildren().add(hint);
+        if (currentLektoratMatches.isEmpty()) {
+            ensureLektoratPanelVisible(false);
+        } else {
+            lektoratPanelContainer.getChildren().clear();
+            Label hint = new Label("Vorschlag übernommen. Bei Bedarf Online-Lektorat erneut starten.");
+            hint.setWrapText(true);
+            applyThemeToNode(hint, currentThemeIndex);
+            lektoratPanelContainer.getChildren().add(hint);
+        }
         updateStatus("Lektorat-Vorschlag übernommen");
     }
     
