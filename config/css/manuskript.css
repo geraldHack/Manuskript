@@ -6600,11 +6600,13 @@
     -fx-text-fill: #000000 !important;
     -fx-font-weight: bold !important;
     -fx-font-size: 16px !important;
+    -fx-background-color: transparent;
 }
 
 .weiss-theme .title-bar .title-icon-label {
     -fx-text-fill: #000000 !important;
     -fx-font-weight: bold !important;
+    -fx-background-color: transparent;
 }
 
 .weiss-theme .title-bar .window-control-button {
@@ -6629,11 +6631,13 @@
     -fx-text-fill: #ffffff !important;
     -fx-font-weight: bold !important;
     -fx-font-size: 16px !important;
+    -fx-background-color: transparent;
 }
 
 .theme-dark .title-bar .title-icon-label {
     -fx-text-fill: #ffffff !important;
     -fx-font-weight: bold !important;
+    -fx-background-color: transparent;
 }
 
 .theme-dark .title-bar .window-control-button {
@@ -6654,6 +6658,7 @@
 .theme-dark.blau-theme .title-bar .title-icon-label,
 .theme-dark.blau-theme .title-bar .window-control-button {
     -fx-text-fill: #ffffff !important;
+    -fx-background-color: transparent;
 }
 
 .theme-dark.blau-theme .title-bar .window-control-button:hover {
@@ -6669,6 +6674,7 @@
 .theme-dark.gruen-theme .title-bar .title-icon-label,
 .theme-dark.gruen-theme .title-bar .window-control-button {
     -fx-text-fill: #ffffff !important;
+    -fx-background-color: transparent;
 }
 
 .theme-dark.gruen-theme .title-bar .window-control-button:hover {
@@ -6684,6 +6690,7 @@
 .theme-dark.lila-theme .title-bar .title-icon-label,
 .theme-dark.lila-theme .title-bar .window-control-button {
     -fx-text-fill: #ffffff !important;
+    -fx-background-color: transparent;
 }
 
 .theme-dark.lila-theme .title-bar .window-control-button:hover {
@@ -6704,12 +6711,13 @@
     -fx-text-fill: #311b92 !important;
     -fx-font-weight: bold !important;
     -fx-font-size: 16px !important;
+    -fx-background-color: transparent;
 }
 
-/* Pastell-Theme Icon-Label (M) - Blaue Box */
+/* Pastell-Theme Icon-Label (M) – Hintergrund transparent */
 .pastell-theme .title-bar .title-icon-label {
-    -fx-background-color: #3498db !important;
-    -fx-text-fill: #ffffff !important;
+    -fx-background-color: transparent;
+    -fx-text-fill: #311b92 !important;
     -fx-font-weight: bold !important;
     -fx-background-radius: 3px !important;
     -fx-padding: 2px !important;
@@ -8325,6 +8333,39 @@
     -fx-background-color: #ffffff !important;
     -fx-border-color: transparent !important;
     -fx-border-width: 0px !important;
+}
+
+/* Pastell-Theme Button-Container (fehlte bisher) */
+.pastell-theme .button-container {
+    -fx-background-color: #f3e5f5 !important;
+    -fx-border-color: transparent !important;
+    -fx-border-width: 0px !important;
+}
+
+/* Projektauswahl: Button-Leiste – Fallback per CSS (Hintergrund wird in MainController zusätzlich per setStyle gesetzt) */
+.weiss-theme.project-selection-container.button-container,
+.root .weiss-theme .project-selection-container.button-container {
+    -fx-background-color: #ffffff;
+}
+.pastell-theme.project-selection-container.button-container,
+.root .pastell-theme .project-selection-container.button-container {
+    -fx-background-color: #f3e5f5;
+}
+.theme-dark.project-selection-container.button-container,
+.root .theme-dark .project-selection-container.button-container {
+    -fx-background-color: #2d2d2d;
+}
+.theme-dark.blau-theme.project-selection-container.button-container,
+.root .theme-dark.blau-theme .project-selection-container.button-container {
+    -fx-background-color: #1e40af;
+}
+.theme-dark.gruen-theme.project-selection-container.button-container,
+.root .theme-dark.gruen-theme .project-selection-container.button-container {
+    -fx-background-color: #065f46;
+}
+.theme-dark.lila-theme.project-selection-container.button-container,
+.root .theme-dark.lila-theme .project-selection-container.button-container {
+    -fx-background-color: #4c1d95;
 }
 
 /* Schwarz-Theme Button-Container */

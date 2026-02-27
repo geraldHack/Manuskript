@@ -66,6 +66,8 @@ Manuskript is a JavaFX-based manuscript editing application with AI integration.
 
 ### 5. CSS-Styling und Wiederverwendung
 - **WICHTIG:** Die App lädt CSS zur Laufzeit aus `config/css/` über `ResourceManager.getCssResource()`. Die Datei `src/main/resources/css/manuskript.css` wird zur Laufzeit NICHT geladen. CSS-Änderungen MÜSSEN in `config/css/manuskript.css` gemacht werden!
+- **!important in CSS vermeiden.** Wenn fast jede Regel !important hat, ist das Konzept wertlos. Stattdessen: Spezifität erhöhen (z.B. kombinierte Klassenselektoren, .root) oder Reihenfolge der Regeln anpassen. !important nur in absoluten Ausnahmen.
+- **NIEMALS eine neue CSS-Klasse erfinden, wenn eine bestehende passt.** Wenn ein Element (z.B. eine HBox) wie ein bereits existierendes Stück UI aussehen soll, nur `getStyleClass().add("bestehende-klasse")` auf das Element anwenden – keine neue Klasse in Java und keine neuen Regeln in der CSS. Neue Klassen nur anlegen, wenn es wirklich keine passende gibt.
 - Gemeinsame Styles als CSS-Klassen definieren und per `getStyleClass().add()` zuweisen.
 - Theme-spezifische Varianten für **alle 6 Themes einzeln** definieren. NIEMALS nur `.theme-dark` als Sammel-Selektor für alle dunklen Themes verwenden.
 - Für Controls innerhalb von Themes: Descendant-Selektoren verwenden (z.B. `.theme-dark.blau-theme .text-area`), da diese über die Eltern-Kaskade greifen.

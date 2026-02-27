@@ -43,6 +43,14 @@ public class HelpSystem {
      * Erstellt ein blaues Fragezeichen-Icon mit Tooltip und Hilfefenster
      */
     public static Button createHelpButton(String tooltipText, String helpFileName) {
+        return createHelpButton(tooltipText, helpFileName, null);
+    }
+    
+    /**
+     * Erstellt ein blaues Fragezeichen-Icon mit Tooltip und Hilfefenster.
+     * @param windowTitle optionaler Fenstertitel; wenn null, wird der Titel aus der Datei abgeleitet
+     */
+    public static Button createHelpButton(String tooltipText, String helpFileName, String windowTitle) {
         Button helpButton = new Button("?");
         helpButton.setStyle(
             "-fx-background-color: #4A90E2 !important; " +
@@ -70,8 +78,9 @@ public class HelpSystem {
         );
         helpButton.setTooltip(tooltip);
         
-        // Hilfefenster bei Klick
-        helpButton.setOnAction(e -> showHelpWindow(helpFileName));
+        // Hilfefenster bei Klick (mit optionalem Fenstertitel)
+        String title = windowTitle;
+        helpButton.setOnAction(e -> showHelpWindow(helpFileName, title));
         
         // Help-Toggle berücksichtigen
         helpButton.setVisible(helpEnabled);
@@ -81,16 +90,24 @@ public class HelpSystem {
     }
     
     /**
-     * Zeigt ein Testfenster mit Titelleiste und Theme-Styling
+     * Zeigt ein Hilfefenster mit Titelleiste und Theme-Styling
      */
     public static void showHelpWindow(String helpFileName) {
+        showHelpWindow(helpFileName, null);
+    }
+    
+    /**
+     * Zeigt ein Hilfefenster. Wenn customTitle nicht null ist, wird er als Fenstertitel verwendet.
+     */
+    public static void showHelpWindow(String helpFileName, String customTitle) {
         try {
             // Erstelle CustomStage für Help-Fenster
             CustomStage helpStage = new CustomStage();
             
-            // Deutsche Titel für Hilfefenster
-            String title = "Hilfe";
-            switch (helpFileName) {
+            // Fenstertitel: customTitle oder aus Dateiname ableiten
+            String title = (customTitle != null && !customTitle.isEmpty()) ? customTitle : "Hilfe";
+            if (title.equals("Hilfe"))
+                switch (helpFileName) {
                 case "chapter_editor.html":
                     title = "Hilfe - Kapitel-Editor";
                     break;
@@ -99,6 +116,9 @@ public class HelpSystem {
                     break;
                 case "chapter_editor_tools.html":
                     title = "Hilfe - Kapitel-Editor Tools";
+                    break;
+                case "main_window.html":
+                    title = "Hilfe - Hauptfenster";
                     break;
                 default:
                     title = "Hilfe - " + helpFileName;

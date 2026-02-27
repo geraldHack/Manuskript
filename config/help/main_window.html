@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .help-container {
+            background: white;
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #2C3E50;
+            border-bottom: 3px solid #4A90E2;
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+        h2 {
+            color: #34495E;
+            margin-top: 25px;
+        }
+        h3 {
+            color: #2C3E50;
+            margin-top: 18px;
+        }
+        p {
+            margin-bottom: 15px;
+        }
+        .highlight {
+            background-color: #E8F4FD;
+            padding: 15px;
+            border-left: 4px solid #4A90E2;
+            margin: 15px 0;
+            border-radius: 0 4px 4px 0;
+        }
+        .warning {
+            background-color: #FFF3CD;
+            padding: 15px;
+            border-left: 4px solid #FFC107;
+            margin: 15px 0;
+            border-radius: 0 4px 4px 0;
+        }
+        ul {
+            padding-left: 20px;
+        }
+        li {
+            margin-bottom: 8px;
+        }
+        pre {
+            background: #f1f3f4;
+            padding: 12px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 14px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="help-container">
+        <h1>Hilfe – Hauptfenster</h1>
+
+        <h2>Was macht Manuskript?</h2>
+        <p>Manuskript ist eine Anwendung zur Roman- und Buchproduktion. Sie verwalten Kapitel als DOCX-Dateien, bearbeiten sie im Editor (als Markdown), exportieren daraus Bücher oder Hörbücher. Optional stehen KI-Assistent, Lektorat und Textanalyse zur Verfügung.</p>
+
+        <h2>Warum DOCX – und was, wenn ich keine habe?</h2>
+        <p>DOCX ist das Standardformat für Kapitel und ermöglicht den Austausch mit Word und anderen Tools.  Wenn Sie nur ein anderes Format haben (z. B. RTF, ODT), konvertieren Sie zuerst mit <strong>Pandoc</strong> oder z.B. <strong>Word</strong> nach DOCX. Pandoc liegt im Programmverzeinhnis unter <code>pandoc</code></p>
+
+        <h2>Verzeichnisstruktur</h2>
+        <p><strong>Wurzel</strong> ist das beim ersten Start des Programms gewählte Projektverzeichnis. Es gibt zwei Varianten:</p>
+        <ul>
+            <li><strong>Mit Serie:</strong> Unterordner der Wurzel = eine Serie (z. B. eine Buchreihe); darunter Bücherordner mit DOCX-Kapiteln.</li>
+            <li><strong>Ohne Serie:</strong> Bücherordner direkt unter der Wurzel; darin die DOCX-Kapitel.</li>
+        </ul>
+        <p>Das wurzelverzeichnis kann unter "Parameter" -> "Projekt" -> "Wurzelverzeichnis" geändert werden. Programm muss dann restartet werden.</p>
+
+        <h3>Beispiel mit Serie</h3>
+        <pre>MeineManuskripte/
+  Trilogie-X/
+    Band1/
+      Kapitel01.docx
+      Kapitel02.docx</pre>
+
+        <h3>Beispiel ohne Serie</h3>
+        <pre>MeineManuskripte/
+  MeinRoman/
+    Kapitel01.docx
+    Kapitel02.docx</pre>
+
+        <h2>Tabellen im Hauptfenster</h2>
+        <p>Die <strong>Linke Tabelle</strong> zeigt docx-Dateien die nicht in das Buchverzeichnis verschoben wurden. In der <strong>rechten Tabelle</strong> stehen die für Buch und Editor ausgewählten Kapitel; die Reihenfolge dort ist die Buchreihenfolge.</p>
+
+        <h2>Ablauf Romanerstellung</h2>
+        <ol>
+            <li>Kapitel (DOCX) in die rechte Tabelle einfügen und sortieren.</li>
+            <li>Kapitel bearbeiten (Editor = Markdown, siehe Bemerkung unten).</li>
+            <li>Optional: Kapitel aus dem Download-Verzeichnis holen oder synchronisieren (z. B. von Sudowrite) und mit vorhandenen Kapiteln abgleichen.</li>
+            <li>Buch exportieren.</li>
+        </ol>
+
+        <h2>Optionale Funktionen</h2>
+        <ul>
+            <li><strong>KI-Assistent</strong> für verschiedene Aufgaben (wenn Ollama installiert ist)</li>
+            <li><strong>KI-Tools im Editor</strong> (Absatz umschreiben, Sprechantwort korrigieren)</li>
+            <li><strong>Export einzelner Kapitel</strong> (RTF, DOCX, PDF, HTML, Markdown, TXT)</li>
+            <li><strong>Textanalyse</strong> (Phrasen, „sagte er“-Muster, Wortwiederholungen, Füllwörter)</li>
+            <li><strong>Online-Lektorat</strong> (meist kostenpflichtiger API-Key, unter Parameter → Online-Lektorat)</li>
+            <li><strong>Webbasierte Preview</strong> (mit Bildern, Tabellen)</li>
+            <li><strong>Makros</strong> (Hauptmakro: Anführungszeichen korrigieren, Leerzeichen, Gedankenstriche usw. – hat eigene Hilfe)</li>
+        </ul>
+
+        <h2>Bemerkung: Warum Markdown – muss ich das lernen?</h2>
+        <p>Sie können ganz normal schreiben; viele Funktionen (Kursiv, Fett, …) sind über Menü und Buttons verfügbar. Zwei Dinge sind nötig:</p>
+        <ul>
+            <li><strong>Trenner</strong> werden immer als <code>---</code> (drei Minus) geschrieben.</li>
+            <li><strong>Zwischen Absätzen</strong> müssen Leerzeilen sein.</li>
+        </ul>
+        <p>Im Editor gibt es eine Markdown-Hilfe (STRG+M bzw. Hilfe-Button).</p>
+
+        <div class="highlight">
+            <strong>Parameter:</strong> Über den Button „Parameter“ in der Toolbar erreichen Sie Einstellungen wie API-Keys, Pfade und Theme.
+        </div>
+    </div>
+</body>
+</html>

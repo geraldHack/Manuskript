@@ -18,6 +18,8 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Service für das Online-Lektorat per OpenAI-kompatibler API (chat/completions).
@@ -278,15 +280,18 @@ public class OnlineLektoratService {
 
     /**
      * Ein API-Durchlauf für einen Textabschnitt (Chunk oder ganzes Kapitel).
+     * Verwendet Streaming (stream: true), damit Gateways nicht wegen langer Laufzeit ohne Datenfluss mit 504 abbrechen.
+     * Gestreamte Delta-Inhalte werden gesammelt und als eine Antwort für den bestehenden Parser zurückgegeben.
      */
     private CompletableFuture<String> runOneRequest(String chunkText, String systemPrompt, String extraPrompt,
                                                      String apiKey, String baseUrl, String model) {
-        logger.info("Online-Lektorat: runOneRequest sendet genau {} Zeichen (Chunk-Länge)", chunkText.length());
+        logger.info("Online-Lektorat: runOneRequest sendet genau {} Zeichen (Chunk-Länge), Streaming=an", chunkText.length());
         String userPrompt = buildUserPrompt(chunkText, extraPrompt);
         JsonObject body = new JsonObject();
         body.addProperty("model", model.isEmpty() ? "gpt-4o-mini" : model);
         body.addProperty("temperature", 0.3);
         body.addProperty("max_tokens", 16384);
+        body.addProperty("stream", true);
         JsonArray messages = new JsonArray();
         JsonObject sys = new JsonObject();
         sys.addProperty("role", "system");
@@ -311,18 +316,46 @@ public class OnlineLektoratService {
 
         return CompletableFuture.supplyAsync(() -> {
             try {
-                HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+                HttpResponse<Stream<String>> response = httpClient.send(request, HttpResponse.BodyHandlers.ofLines());
                 int code = response.statusCode();
+                List<String> lines;
+                try (Stream<String> stream = response.body()) {
+                    lines = stream.collect(Collectors.toList());
+                }
                 if (code != 200) {
-                    String errBody = response.body();
+                    String errBody = String.join("\n", lines);
                     if (code == 504) {
                         throw new RuntimeException("Gateway Timeout (504): Die Anfrage hat zu lange gedauert. Tipp: Ein schnelleres/kleineres Modell wählen, oder das Kapitel ist zu lang – es wird automatisch in Abschnitte geteilt.");
                     }
                     throw new RuntimeException("API antwortete mit HTTP " + code + ": " + (errBody != null && errBody.length() > 200 ? errBody.substring(0, 200) + "…" : errBody));
                 }
-                String responseBody = response.body();
-                logger.info("Online-Lektorat: API-Antwort erhalten, Länge={}", responseBody != null ? responseBody.length() : 0);
-                return responseBody;
+                StringBuilder content = new StringBuilder();
+                for (String line : lines) {
+                    if (line == null || !line.startsWith("data: ")) continue;
+                    String data = line.substring(6).trim();
+                    if ("[DONE]".equals(data)) break;
+                    try {
+                        JsonObject obj = new Gson().fromJson(data, JsonObject.class);
+                        if (obj == null || !obj.has("choices") || !obj.getAsJsonArray("choices").isJsonArray()) continue;
+                        JsonArray choices = obj.getAsJsonArray("choices");
+                        if (choices.size() == 0) continue;
+                        JsonObject choice = choices.get(0).getAsJsonObject();
+                        if (!choice.has("delta")) continue;
+                        JsonObject delta = choice.getAsJsonObject("delta");
+                        if (delta.has("content") && !delta.get("content").isJsonNull()) {
+                            content.append(delta.get("content").getAsString());
+                        }
+                    } catch (Exception e) {
+                        logger.trace("Online-Lektorat: Stream-Zeile ignoriert: {}", e.getMessage());
+                    }
+                }
+                String fullContent = content.toString();
+                logger.info("Online-Lektorat: Streaming abgeschlossen, Content-Länge={}", fullContent.length());
+                if (fullContent.isEmpty()) {
+                    return "{\"choices\":[{\"message\":{\"content\":\"\"}}]}";
+                }
+                String escapedContent = new Gson().toJson(fullContent);
+                return "{\"choices\":[{\"message\":{\"content\":" + escapedContent + "}}]}";
             } catch (Exception e) {
                 logger.warn("Online-Lektorat API-Fehler", e);
                 throw new RuntimeException(e.getMessage(), e);

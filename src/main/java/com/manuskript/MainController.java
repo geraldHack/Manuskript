@@ -269,7 +269,8 @@ public class MainController implements Initializable {
             bookLengthLabel.setAlignment(Pos.CENTER);
         }
         
-        // Erstelle Zurück-Button mit Pfeil-Symbol
+        // Erstelle Hilfe-Button (Einführung) und Zurück-Button
+        Button introHelpBtn = HelpSystem.createHelpButton("Einführung in Manuskript", "main_window.html", "Einführung in Manuskript");
         Button backButton = new Button("← Zurück");
         backButton.setId("backButton");
         backButton.setPrefSize(120, 40);
@@ -280,13 +281,17 @@ public class MainController implements Initializable {
             showProjectSelectionMenu();
         });
         
+        HBox topLeftBox = new HBox(10);
+        topLeftBox.setAlignment(Pos.CENTER_LEFT);
+        topLeftBox.setPadding(new Insets(10, 10, 10, 10));
+        topLeftBox.getChildren().addAll(introHelpBtn, backButton);
         
         // Erstelle BorderPane: Button links, Bild center, Dummy rechts
         BorderPane imageContainer = new BorderPane();
         imageContainer.setPrefHeight(300); // Noch größere Höhe für den Container-Bereich
         
-        // Button links
-        imageContainer.setLeft(backButton);
+        // Button links (Hilfe + Zurück)
+        imageContainer.setLeft(topLeftBox);
         
         // Bild in der Mitte mit Projekttitel darüber und Buchlänge darunter
         VBox centerBox = new VBox(5);
@@ -383,7 +388,8 @@ public class MainController implements Initializable {
                     BorderPane startImageContainer = new BorderPane();
                     startImageContainer.setPrefHeight(60); // Nur so hoch wie der Button
                     
-                    // Erstelle Zurück-Button
+                    // Erstelle Hilfe-Button (Einführung) und Zurück-Button
+                    Button introHelpBtnNoCover = HelpSystem.createHelpButton("Einführung in Manuskript", "main_window.html", "Einführung in Manuskript");
                     Button startBackButton = new Button("← Zurück");
                     startBackButton.setId("backButton");
                     startBackButton.setPrefSize(120, 40);
@@ -391,8 +397,11 @@ public class MainController implements Initializable {
                     startBackButton.setOnAction(e -> {
                         showProjectSelectionMenu();
                     });
-                    
-                    startImageContainer.setLeft(startBackButton);
+                    HBox topButtonBox = new HBox(10);
+                    topButtonBox.setAlignment(Pos.CENTER_LEFT);
+                    topButtonBox.setPadding(new Insets(10, 10, 10, 10));
+                    topButtonBox.getChildren().addAll(introHelpBtnNoCover, startBackButton);
+                    startImageContainer.setLeft(topButtonBox);
                     startImageContainer.setCenter(null); // Kein Bild
                     HBox startDummyBox = new HBox();
                     startDummyBox.setPrefWidth(120);
@@ -404,7 +413,8 @@ public class MainController implements Initializable {
                     BorderPane startImageContainer = new BorderPane();
                     startImageContainer.setPrefHeight(300);
                     
-                    // Erstelle Zurück-Button
+                    // Erstelle Hilfe-Button (Einführung) und Projektauswahl-Button
+                    Button introHelpBtnWithCover = HelpSystem.createHelpButton("Einführung in Manuskript", "main_window.html", "Einführung in Manuskript");
                     Button startBackButton = new Button("← Projektauswahl");
                     startBackButton.setId("backButton");
                     startBackButton.setPrefSize(150, 40);
@@ -412,12 +422,10 @@ public class MainController implements Initializable {
                     startBackButton.setOnAction(e -> {
                         showProjectSelectionMenu();
                     });
-                    
-                    // HBox für Abstand um den Button
-                    HBox buttonContainer = new HBox();
-                    buttonContainer.setPadding(new Insets(10, 10, 10, 10)); // Abstand um den Button
-                    buttonContainer.getChildren().add(startBackButton);
-                    
+                    HBox buttonContainer = new HBox(10);
+                    buttonContainer.setAlignment(Pos.CENTER_LEFT);
+                    buttonContainer.setPadding(new Insets(10, 10, 10, 10));
+                    buttonContainer.getChildren().addAll(introHelpBtnWithCover, startBackButton);
                     startImageContainer.setLeft(buttonContainer);
                     // Bild mit Projekttitel darüber und Buchlänge darunter
                     VBox startCenterBox = new VBox(5);
@@ -532,6 +540,7 @@ public class MainController implements Initializable {
     
     private void setupEventHandlers() {
         btnSelectDirectory.setOnAction(e -> selectDirectory());
+        btnSelectDirectory.setTooltip(new Tooltip("Projektverzeichnis mit DOCX-Dateien auswählen. Hier liegen die Kapiteldateien Ihres Buchprojekts."));
         // Filter, Sortierung und Format-Event-Handler entfernt - einfache Lösung
         btnAddToSelected.setOnAction(e -> addSelectedToRight());
         
@@ -572,6 +581,7 @@ public class MainController implements Initializable {
             });
         }
         btnThemeToggle.setOnAction(e -> toggleTheme());
+        btnSplit.setTooltip(new Tooltip("Eine DOCX- oder RTF-Datei in mehrere Kapiteldateien aufteilen (z. B. ein großes Manuskript nach Überschriften trennen)."));
         btnSplit.setOnAction(e -> {
             if (splitTxtFilePath == null || splitTxtOutputPath == null || splitChapterItems == null || splitCurrentSource == null || splitDocxSplitProcessor == null || splitRtfSplitProcessor == null) {
                 openSplitStage();
@@ -5266,6 +5276,8 @@ public class MainController implements Initializable {
             HBox parentBox = (HBox) btnThemeToggle.getParent();
             parentBox.getChildren().add(btnHelpToggle);
             Button btnParams = new Button("Parameter");
+            btnParams.getStyleClass().add("main-toolbar-button");
+            btnParams.setMinWidth(100);
             btnParams.setTooltip(new Tooltip("Parameter und Einstellungen verwalten"));
             btnParams.setOnAction(e -> ParametersAdminWindow.show(primaryStage));
             parentBox.getChildren().add(btnParams);
@@ -6387,11 +6399,16 @@ public class MainController implements Initializable {
             mainLayout.setPadding(new Insets(20));
             mainLayout.getStyleClass().add("project-selection-container");
             
-            // Titel
+            // Titelzeile: Hilfe-Button (Einführung) + Titel
+            Button introHelpButton = HelpSystem.createHelpButton("Einführung in Manuskript", "main_window.html", "Einführung in Manuskript");
             Label titleLabel = new Label("📚 Wähle ein Projekt");
             titleLabel.getStyleClass().add("project-title");
             titleLabel.setTextAlignment(TextAlignment.CENTER);
             titleLabel.setAlignment(Pos.CENTER);
+            HBox titleRow = new HBox(12);
+            titleRow.setAlignment(Pos.CENTER);
+            titleRow.getStyleClass().add("project-selection-container");
+            titleRow.getChildren().addAll(introHelpButton, titleLabel);
             
             // Projekt-FlowPane in ScrollPane
             FlowPane projectFlow = new FlowPane();
@@ -6431,15 +6448,23 @@ public class MainController implements Initializable {
             
             // Button-Leiste: Neues Projekt links, Abbrechen rechts
             Region spacer = new Region();
+            spacer.setStyle("-fx-background-color: transparent;");
             HBox.setHgrow(spacer, Priority.ALWAYS);
             HBox buttonContainer = new HBox(10);
             buttonContainer.setAlignment(Pos.CENTER);
             buttonContainer.setPrefHeight(50);
             buttonContainer.getStyleClass().add("button-container");
+            buttonContainer.getStyleClass().add("project-selection-container");
+            applyThemeToNode(buttonContainer, currentThemeIndex);
+            // Hintergrund per Code setzen, da die Theme-Kaskade in CustomStage-Wrapper oft nicht auf diese HBox durchgreift
+            String[] projectSelectionBg = {"#ffffff", "#2d2d2d", "#f3e5f5", "#1e40af", "#065f46", "#4c1d95"};
+            if (currentThemeIndex >= 0 && currentThemeIndex < projectSelectionBg.length) {
+                buttonContainer.setStyle("-fx-background-color: " + projectSelectionBg[currentThemeIndex] + ";");
+            }
             buttonContainer.getChildren().addAll(createProjectButton, spacer, cancelButton);
             
             // Layout zusammenbauen (ohne Spacer)
-            mainLayout.getChildren().addAll(titleLabel, mainScrollPane, buttonContainer);
+            mainLayout.getChildren().addAll(titleRow, mainScrollPane, buttonContainer);
             
             // ScrollPane soll sich ausdehnen
             VBox.setVgrow(mainScrollPane, Priority.ALWAYS);

@@ -857,9 +857,7 @@ public class CustomStage extends Stage {
     }
 
     private String createIconStyle(String textColor) {
-        String backgroundColor = DEFAULT_ICON_BACKGROUND;
-     
-        return "-fx-text-fill: " + textColor + " !important; -fx-font-weight: bold !important; -fx-background-color: " + backgroundColor + " !important; -fx-background-radius: 3px !important; -fx-padding: 2px !important; -fx-min-width: " + ICON_SIZE + "px !important; -fx-min-height: " + ICON_SIZE + "px !important; -fx-pref-width: " + ICON_SIZE + "px !important; -fx-pref-height: " + ICON_SIZE + "px !important;";
+        return "-fx-text-fill: " + textColor + " !important; -fx-font-weight: bold !important; -fx-background-color: transparent !important; -fx-background-radius: 3px !important; -fx-padding: 2px !important; -fx-min-width: " + ICON_SIZE + "px !important; -fx-min-height: " + ICON_SIZE + "px !important; -fx-pref-width: " + ICON_SIZE + "px !important; -fx-pref-height: " + ICON_SIZE + "px !important;";
     }
 
     private void updateButtonStyles(String textColor, int fontSize) {
