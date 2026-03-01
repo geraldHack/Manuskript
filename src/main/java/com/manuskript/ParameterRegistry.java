@@ -56,6 +56,10 @@ public final class ParameterRegistry {
                 "Pause in Millisekunden zwischen zwei Abschnitts-Anfragen. Viele Gateways/APIs verursachen sonst beim sofortigen Folgerequest einen Timeout; 1000–2000 ms behebt das oft.", "Online-Lektorat");
         add("api.lektorat.request_timeout_sec", ParameterDef.Type.INT, "300",
                 "Timeout pro API-Anfrage in Sekunden (1–900). Bei großen Abschnitten oder langsamen Modellen erhöhen (z. B. 300–600), wenn sonst Timeouts auftreten.", "Online-Lektorat");
+        add("api.lektorat.suggestions_per_entry", ParameterDef.Type.INT, "2",
+                "Anzahl Vorschläge pro Anmerkung (1–5). Weniger = weniger API-Output und Kosten. Typisch 2.", "Online-Lektorat");
+        add("api.editor_rewrite.use_online_api", ParameterDef.Type.BOOLEAN, "false",
+                "Sprechantwort korrigieren und Selektion überarbeiten per Online-API (OpenAI-kompatibel) statt Ollama. Erfordert api.lektorat.api_key.", "Online-Lektorat");
 
         // —— Projekt ——
         add("project.root.directory", ParameterDef.Type.STRING, "",

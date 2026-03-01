@@ -406,6 +406,21 @@ public class ChapterTtsEditorWindow {
         if (w.einschwingCheckBox != null) {
             w.einschwingCheckBox.setSelected(ttsPrefs.getBoolean("einschwing_enabled", false));
         }
+        // Trim-Slider persistent laden (nur wenn Einschwingtext aktiv; sonst 0)
+        if (w.trimStartSlider != null) {
+            if (w.einschwingCheckBox != null && w.einschwingCheckBox.isSelected()) {
+                String trimSecStr = ttsPrefs.get("trim_start_sec", "0");
+                try {
+                    double trimSec = Double.parseDouble(trimSecStr);
+                    if (trimSec >= 0 && trimSec <= w.trimStartSlider.getMax()) {
+                        w.trimStartSlider.setValue(trimSec);
+                    }
+                } catch (NumberFormatException ignored) { }
+            } else {
+                w.trimStartSlider.setValue(0);
+            }
+        }
+        w.setupEinschwingTrimResetListener();
         w.loadSegments();
         w.refreshHighlight();
         w.stage.setOnCloseRequest(ev -> {
@@ -420,10 +435,13 @@ public class ChapterTtsEditorWindow {
                 w.saveSegments();
                 w.saveEditorContentToSeparateFile();
             }
-            // Einschwingtext in Preferences speichern
+            // Einschwingtext und Trim-Slider in Preferences speichern
             if (ttsPrefs != null) {
                 ttsPrefs.put("einschwing_text", w.einschwingTextArea != null ? w.einschwingTextArea.getText() : "");
                 ttsPrefs.putBoolean("einschwing_enabled", w.einschwingCheckBox != null && w.einschwingCheckBox.isSelected());
+                if (w.trimStartSlider != null) {
+                    ttsPrefs.put("trim_start_sec", String.format(java.util.Locale.ROOT, "%.2f", w.trimStartSlider.getValue()));
+                }
             }
         });
         w.stage.show();
@@ -466,6 +484,19 @@ public class ChapterTtsEditorWindow {
                 PreferencesManager.putWindowHeight(prefs, "tts_editor_window_height", newVal.doubleValue());
             }
         });
+    }
+
+    /** Bei Änderung von Einschwingtext oder -Checkbox: Trim-Slider auf 0 setzen und Meldung anzeigen. */
+    private void setupEinschwingTrimResetListener() {
+        if (einschwingTextArea == null || einschwingCheckBox == null || trimStartSlider == null) return;
+        javafx.beans.value.ChangeListener<Object> resetTrim = (o, oldVal, newVal) -> {
+            if (trimStartSlider.getValue() != 0) {
+                trimStartSlider.setValue(0);
+                setStatus("Einschwingtext geändert – „Anfang abschneiden“ auf 0 s zurückgesetzt.");
+            }
+        };
+        einschwingTextArea.textProperty().addListener(resetTrim);
+        einschwingCheckBox.selectedProperty().addListener(resetTrim);
     }
 
     private Parent buildRoot(String content) {
@@ -2148,7 +2179,8 @@ public class ChapterTtsEditorWindow {
         codeArea = new CodeArea();
         codeArea.setWrapText(true);
         codeArea.getStyleClass().add("code-area");
-        applyCodeAreaTheme(codeArea, themeIndex);
+        codeArea.getStyleClass().add("tts-editor-code-area");
+        applyCodeAreaTheme(codeArea, themeIndex, 15);
         codeArea.replaceText(content);
 
         String cssPath = ResourceManager.getCssResource("css/manuskript.css");
@@ -2395,7 +2427,6 @@ public class ChapterTtsEditorWindow {
                 lastGeneratedAudioPath = p;
             }
         }
-        if (trimStartSlider != null) trimStartSlider.setValue(0);
         setStatus("Segment zum Überarbeiten geladen.");
         refreshHighlight();
         // Signatur setzen, damit Speichern (auch mit „Anfang abschneiden“) die geladene Datei findet
@@ -2643,6 +2674,7 @@ public class ChapterTtsEditorWindow {
         final int myRequestId = ttsRequestId;
         progressIndicator.setVisible(true);
         btnErstellen.setDisable(true);
+        if (codeArea != null) codeArea.setDisable(true);
         setStatus("Erzeuge Sprachausgabe…");
         final long effectiveSeed = seed;
         final String ttsText = prependEinschwingText(sel);
@@ -2661,6 +2693,7 @@ public class ChapterTtsEditorWindow {
                     generatedAudioBySignature.put(sig, p);
                     loadAudioInPlayer(p);
                     progressIndicator.setVisible(false);
+                    if (codeArea != null) codeArea.setDisable(false);
                     if (successCheckmark != null) {
                         successCheckmark.setVisible(true);
                         if (successCheckmarkHideTransition != null) {
@@ -2678,6 +2711,7 @@ public class ChapterTtsEditorWindow {
                     if (myRequestId != ttsRequestId) return;
                     isTtsGenerationRunning = false;
                     progressIndicator.setVisible(false);
+                    if (codeArea != null) codeArea.setDisable(false);
                     btnErstellen.setDisable(false);
                     CustomAlert errAlert = DialogFactory.createErrorAlert("TTS-Fehler", "Sprachausgabe fehlgeschlagen", msg, stage);
                     errAlert.applyTheme(themeIndex);
@@ -3181,7 +3215,6 @@ public class ChapterTtsEditorWindow {
             codeArea.selectRange(start, end);
             codeArea.requestFollowCaret();
             setStatus("Gespeichert: " + baseName);
-            if (trimStartSlider != null) trimStartSlider.setValue(0);
         } catch (IOException e) {
             logger.error("Speichern fehlgeschlagen", e);
             CustomAlert errAlert = DialogFactory.createErrorAlert("Speichern", "Segment", "Konnte nicht speichern: " + e.getMessage(), stage);
@@ -4881,13 +4914,17 @@ public class ChapterTtsEditorWindow {
 
     /** CodeArea: Nur Schrift, Hintergrund/Textfarbe kommen aus CSS (.theme-dark .code-area). */
     private void applyCodeAreaTheme(CodeArea area, int themeIndex) {
+        applyCodeAreaTheme(area, themeIndex, 12);
+    }
+
+    private void applyCodeAreaTheme(CodeArea area, int themeIndex, int fontSizePx) {
         int idx = Math.max(0, Math.min(themeIndex, THEMES.length - 1));
         String bg = THEMES[idx][0];
         String text = THEMES[idx][1];
         String style = String.format(
-            "-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px; " +
+            "-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: %dpx; " +
             "-rtfx-background-color: %s !important; -fx-text-fill: %s !important; -fx-caret-color: %s !important;",
-            bg, text, text);
+            fontSizePx, bg, text, text);
         area.setStyle(style);
     }
 

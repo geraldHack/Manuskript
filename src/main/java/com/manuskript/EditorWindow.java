@@ -316,6 +316,10 @@ public class EditorWindow implements Initializable {
     private String lastStyledText = ""; // Letzter Text, für den Styling angewendet wurde
     private boolean isScrolling = false; // Flag, um zu prüfen, ob der Benutzer gerade scrollt
     
+    /** Anweisungstext API-Rewrite: Sitzung (pro Fenster) */
+    private String lastInstructionSpeech = null;
+    private String lastInstructionSelection = null;
+
     private ObservableList<String> searchHistory = FXCollections.observableArrayList();
     private ObservableList<String> replaceHistory = FXCollections.observableArrayList();
     private ObservableList<String> searchOptions = FXCollections.observableArrayList();
@@ -5653,6 +5657,15 @@ if (caret != null) {
         }
         
         try {
+            // KRITISCH: Bei Kapitel-Editoren nur in die zu diesem Kapitel gehörende Datei schreiben
+            if (originalDocxFile != null && file != null) {
+                File expected = deriveSidecarFileForCurrentFormat();
+                if (expected != null && !expected.getAbsoluteFile().equals(file.getAbsoluteFile())) {
+                    logger.error("Speichern abgebrochen: Zieldatei gehört nicht zu diesem Kapitel (Kapitel: {}, Ziel: {})", originalDocxFile.getName(), file.getName());
+                    updateStatusError("Speichern abgebrochen: Falsche Zieldatei (Konsistenzprüfung)");
+                    return;
+                }
+            }
             String data = cleanTextForExport(codeArea.getText());
             if (data == null) data = "";
             
@@ -6759,7 +6772,12 @@ if (caret != null) {
                 isLoadingChapter = false;
                 return;
             }
-            
+            // KRITISCH: Nochmal unmittelbar vor replaceText prüfen – nie Inhalt ersetzen wenn bereits neueres Kapitel lädt (verhindert falsches Speichern)
+            if (!incrementSequence && loadingSequence > 0 && mySequence != loadingSequence) {
+                logger.debug("setText übersprungen vor replaceText - neueres Kapitel wird bereits geladen");
+                isLoadingChapter = false;
+                return;
+            }
             // WICHTIG: Verwende replaceText mit Positionen, um Undo-Historie zu erhalten
             // replaceText(String) ohne Parameter kann die Undo-Historie löschen
             int currentLength = codeArea.getLength();
@@ -13576,10 +13594,10 @@ spacer.setStyle("-fx-background-color: transparent;");
             MenuItem itemPhrase = new MenuItem("Phrase korrigieren");
             itemPhrase.setOnAction(actionEvent -> handlePhraseKorrektur());
             
-            MenuItem itemAbsatz = new MenuItem("Absatz überarbeiten");
-            itemAbsatz.setOnAction(actionEvent -> handleAbsatzUeberarbeitung());
+            MenuItem itemSelektion = new MenuItem("Selektion überarbeiten");
+            itemSelektion.setOnAction(actionEvent -> handleSelektionUeberarbeitung());
             
-            contextMenu.getItems().addAll(itemSprechantwort, itemPhrase, itemAbsatz);
+            contextMenu.getItems().addAll(itemSprechantwort, itemPhrase, itemSelektion);
             
             // Cursor an Rechtsklick-Position setzen (nach Menüaufbau, damit Selektion für "Kopieren" erhalten blieb)
             if (clickPos >= 0 && clickPos <= codeArea.getLength()) {
@@ -14092,6 +14110,10 @@ spacer.setStyle("-fx-background-color: transparent;");
         }
     }
     
+    private boolean useOnlineApiForRewrite() {
+        return "true".equalsIgnoreCase(ResourceManager.getParameter("api.editor_rewrite.use_online_api", "false").trim());
+    }
+
     /**
      * Handler für "Sprechantwort korrigieren"
      */
@@ -14116,8 +14138,11 @@ spacer.setStyle("-fx-background-color: transparent;");
         // Markiere den Satz
         codeArea.selectRange(bounds[0], bounds[1]);
         
-        // Öffne Dialog
-        showSprechantwortKorrekturDialog(sentence, bounds[0], bounds[1]);
+        if (useOnlineApiForRewrite()) {
+            showApiRewriteDialog("Sprechantwort korrigieren", sentence, bounds[0], bounds[1], "speech");
+        } else {
+            showSprechantwortKorrekturDialog(sentence, bounds[0], bounds[1]);
+        }
     }
     
     /**
@@ -14379,7 +14404,7 @@ spacer.setStyle("-fx-background-color: transparent;");
         promptBuilder.append("(orthografische Präzision, stilistische Wirkung, Logikprüfung, Kohärenz, Tonalität, Figurenzeichnung, Tempo, Szenendramaturgie). ");
         promptBuilder.append("Arbeite strukturiert und detailliert.\n\n");
         
-        promptBuilder.append("**Zu überarbeitender Absatz:**\n").append(originalParagraph).append("\n\n");
+        promptBuilder.append("**Zu überarbeitender Text:**\n").append(originalParagraph).append("\n\n");
         
         // Anweisung ist PRIORITÄT - wenn vorhanden, wird sie explizit befolgt
         if (!instruction.isEmpty()) {
@@ -14396,12 +14421,12 @@ spacer.setStyle("-fx-background-color: transparent;");
         }
         
         promptBuilder.append("**Vorgehen:**\n");
-        promptBuilder.append("Gib 3-5 alternative Versionen des überarbeiteten Absatzes, jede in einer eigenen Zeile.\n");
+        promptBuilder.append("Gib 3-5 alternative Versionen des überarbeiteten Textes. Jede Version kann aus mehreren Absätzen bestehen.\n");
+        promptBuilder.append("WICHTIG – Ausgabe: Antworte AUSSCHLIESSLICH mit den überarbeiteten Versionen. KEINE Einleitung, KEINE Erklärungen, KEINE Anmerkungen (z. B. „Hier meine Vorschläge“), KEINE Nummerierung. Beginne direkt mit der ersten Version. Trenne die Versionen nur durch eine eigene Zeile, die ausschließlich aus drei Bindestrichen besteht: ---\n");
         promptBuilder.append("Jede Version muss grammatisch korrekt, idiomatisch richtig und stilistisch hochwertig sein.\n");
         if (!instruction.isEmpty()) {
             promptBuilder.append("Jede Version muss die spezifische Anweisung vollständig erfüllen.\n");
         }
-        promptBuilder.append("Nur der überarbeitete Absatz, keine Erklärungen, keine Nummerierungen.");
         
         String prompt = promptBuilder.toString();
         
@@ -14476,26 +14501,23 @@ spacer.setStyle("-fx-background-color: transparent;");
                     .thenAccept(response -> {
                         Platform.runLater(() -> {
                             if (response != null && !response.trim().isEmpty()) {
-                                // Teile die Antwort in Zeilen auf (jede Zeile ist eine Variante)
-                                String[] variants = response.trim().split("\n");
-                                
-                                // Filtere leere Zeilen und nummerierte Listen
+                                // Varianten nur an Zeilen mit ausschließlich --- trennen
                                 List<String> cleanVariants = new ArrayList<>();
-                                for (String variant : variants) {
-                                    String cleaned = variant.trim();
-                                    // Entferne Nummerierungen wie "1. ", "2. ", "- ", etc.
-                                    cleaned = cleaned.replaceAll("^\\d+\\.\\s*", "")
-                                                     .replaceAll("^-\\s*", "")
-                                                     .replaceAll("^\\*\\s*", "")
-                                                     .trim();
-                                    if (!cleaned.isEmpty() && cleaned.length() > 10) { // Mindestens 10 Zeichen für Absatz
+                                String[] blocks = response.trim().split("\\r?\\n\\s*---\\s*\\r?\\n");
+                                for (String block : blocks) {
+                                    String stripped = stripVariantCommentLines(block);
+                                    String cleaned = stripped
+                                            .replaceAll("^\\d+\\.\\s*", "")
+                                            .replaceAll("^-\\s*", "")
+                                            .replaceAll("^\\*\\s*", "")
+                                            .trim();
+                                    if (!cleaned.isEmpty() && cleaned.length() > 10) {
                                         cleanVariants.add(cleaned);
                                     }
                                 }
-                                
-                                // Falls keine Varianten gefunden, verwende die gesamte Antwort
                                 if (cleanVariants.isEmpty()) {
-                                    cleanVariants.add(response.trim());
+                                    String fallback = stripVariantCommentLines(response.trim());
+                                    cleanVariants.add(fallback.isEmpty() ? response.trim() : fallback);
                                 }
                                 
                                 // Erstelle UI-Elemente für jede Variante
@@ -14513,7 +14535,7 @@ spacer.setStyle("-fx-background-color: transparent;");
                                     TextArea answerText = new TextArea(variant);
                                     answerText.setEditable(false);
                                     answerText.setWrapText(true);
-                                    answerText.setPrefRowCount(6);
+                                    answerText.setPrefRowCount(12);
                                     answerText.getStyleClass().add("dialog-text-area");
                                     applyThemeToNode(answerText, currentThemeIndex);
                                     
@@ -15145,7 +15167,7 @@ spacer.setStyle("-fx-background-color: transparent;");
                                     TextArea answerText = new TextArea(finalVariant);
                                     answerText.setEditable(false);
                                     answerText.setWrapText(true);
-                                    answerText.setPrefRowCount(2);
+                                    answerText.setPrefRowCount(5);
                                     answerText.getStyleClass().add("dialog-text-area");
                                     applyThemeToNode(answerText, currentThemeIndex);
                                     
@@ -15237,39 +15259,40 @@ spacer.setStyle("-fx-background-color: transparent;");
     }
     
     /**
-     * Handler für "Absatz überarbeiten"
+     * Handler für "Selektion überarbeiten"
      */
-    private void handleAbsatzUeberarbeitung() {
+    private void handleSelektionUeberarbeitung() {
         if (codeArea == null) return;
         
-        int caretPos = codeArea.getCaretPosition();
-        int[] bounds = findCurrentParagraphBounds(caretPos);
+        IndexRange selection = codeArea.getSelection();
+        int startPos = selection.getStart();
+        int endPos = selection.getEnd();
         
-        if (bounds == null) {
-            updateStatus("Kein Absatz an der Cursorposition gefunden.");
+        if (startPos >= endPos) {
+            updateStatus("Bitte zuerst Text auswählen.");
             return;
         }
         
-        String paragraph = codeArea.getText(bounds[0], bounds[1]);
+        String selectedText = codeArea.getText(startPos, endPos);
         
-        if (paragraph == null || paragraph.trim().isEmpty()) {
-            updateStatus("Absatz ist leer.");
+        if (selectedText == null || selectedText.trim().isEmpty()) {
+            updateStatus("Die Auswahl ist leer.");
             return;
         }
         
-        // Markiere den Absatz
-        codeArea.selectRange(bounds[0], bounds[1]);
-        
-        // Öffne Dialog
-        showAbsatzUeberarbeitungDialog(paragraph, bounds[0], bounds[1]);
+        if (useOnlineApiForRewrite()) {
+            showApiRewriteDialog("Selektion überarbeiten", selectedText, startPos, endPos, "selection");
+        } else {
+            showSelektionUeberarbeitungDialog(selectedText, startPos, endPos);
+        }
     }
     
     /**
-     * Zeigt den Dialog für Absatz-Überarbeitung
+     * Zeigt den Dialog für Selektion-Überarbeitung
      */
-    private void showAbsatzUeberarbeitungDialog(String originalParagraph, int startPos, int endPos) {
-        CustomStage dialogStage = StageManager.createModalStage("Absatz überarbeiten", stage);
-        dialogStage.setTitle("Absatz überarbeiten");
+    private void showSelektionUeberarbeitungDialog(String originalText, int startPos, int endPos) {
+        CustomStage dialogStage = StageManager.createModalStage("Selektion überarbeiten", stage);
+        dialogStage.setTitle("Selektion überarbeiten");
         dialogStage.setWidth(1000);
         dialogStage.setHeight(800);
         dialogStage.setTitleBarTheme(currentThemeIndex);
@@ -15279,26 +15302,37 @@ spacer.setStyle("-fx-background-color: transparent;");
         root.getStyleClass().add("dialog-container");
         applyThemeToNode(root, currentThemeIndex);
         
-        // Original-Absatz
+        // Original-Selektion
         Label originalLabel = new Label("Original:");
         originalLabel.getStyleClass().add("dialog-label");
         applyThemeToNode(originalLabel, currentThemeIndex);
         
-        TextArea originalArea = new TextArea(originalParagraph);
+        TextArea originalArea = new TextArea(originalText);
         originalArea.setEditable(false);
         originalArea.setPrefRowCount(6);
         originalArea.setWrapText(true);
         originalArea.getStyleClass().add("dialog-text-area");
         applyThemeToNode(originalArea, currentThemeIndex);
         
-        // Anweisungsfeld (optional)
+        // Anweisungsfeld (optional) – aus Preferences/Sitzung vorbelegen
         Label instructionLabel = new Label("Anweisung (optional):");
         instructionLabel.getStyleClass().add("dialog-label");
         applyThemeToNode(instructionLabel, currentThemeIndex);
         
         TextField instructionField = new TextField();
-        instructionField.setPromptText("z.B. Absatz soll spannender werden, mehr Show Don't Tell");
+        String prefKeySelection = "api_editor_rewrite_instruction_selection";
+        String persistedSelection = preferences != null ? preferences.get(prefKeySelection, "") : "";
+        if (persistedSelection != null && !persistedSelection.isEmpty()) {
+            instructionField.setText(persistedSelection);
+        } else if (lastInstructionSelection != null && !lastInstructionSelection.isEmpty()) {
+            instructionField.setText(lastInstructionSelection);
+        }
+        instructionField.setPromptText("z.B. Text soll spannender werden, mehr Show Don't Tell");
         applyThemeToNode(instructionField, currentThemeIndex);
+        
+        CheckBox persistInstructionCheck = new CheckBox("Anweisung dauerhaft speichern");
+        persistInstructionCheck.getStyleClass().add("param-check");
+        applyThemeToNode(persistInstructionCheck, currentThemeIndex);
         
         // Kreativitäts-Slider
         Label creativityLabel = new Label("Kreativität:");
@@ -15360,7 +15394,7 @@ spacer.setStyle("-fx-background-color: transparent;");
         
         buttonBox.getChildren().addAll(btnGenerate, btnCancel);
         
-        root.getChildren().addAll(originalLabel, originalArea, instructionLabel, instructionField, 
+        root.getChildren().addAll(originalLabel, originalArea, instructionLabel, instructionField, persistInstructionCheck,
                                  creativityLabel, creativityBox, answersLabel, progressBar, scrollPane, buttonBox);
         
         Scene scene = new Scene(root);
@@ -15386,14 +15420,316 @@ spacer.setStyle("-fx-background-color: transparent;");
             answersBox.getChildren().clear();
             
             String instruction = instructionField.getText().trim();
+            lastInstructionSelection = instruction;
+            if (persistInstructionCheck.isSelected() && preferences != null) {
+                preferences.put(prefKeySelection, instruction);
+            }
             double creativity = creativitySlider.getValue();
-            generateAbsatzAlternatives(originalParagraph, instruction, creativity, answersBox, 
+            generateAbsatzAlternatives(originalText, instruction, creativity, answersBox, 
                                      btnGenerate, startPos, endPos, dialogStage, progressBar);
         });
         
         btnCancel.setOnAction(e -> dialogStage.close());
         
         dialogStage.showAndWait();
+    }
+
+    /**
+     * Einheitliches Fenster für „Sprechantwort korrigieren“ und „Selektion überarbeiten“ per Online-API.
+     * Enthält: Original, Anweisung, Temperatur, optional Modell; Generieren → Vorschläge → Auswählen ersetzt.
+     */
+    private void showApiRewriteDialog(String dialogTitle, String originalText, int startPos, int endPos, String mode) {
+        CustomStage dialogStage = StageManager.createModalStage(dialogTitle, stage);
+        dialogStage.setTitle(dialogTitle);
+        dialogStage.setWidth(1000);
+        dialogStage.setHeight(800);
+        dialogStage.setTitleBarTheme(currentThemeIndex);
+
+        VBox root = new VBox(15);
+        root.setPadding(new Insets(20));
+        root.getStyleClass().add("dialog-container");
+        applyThemeToNode(root, currentThemeIndex);
+
+        Label originalLabel = new Label("Original:");
+        originalLabel.getStyleClass().add("dialog-label");
+        applyThemeToNode(originalLabel, currentThemeIndex);
+        TextArea originalArea = new TextArea(originalText);
+        originalArea.setEditable(false);
+        originalArea.setPrefRowCount(4);
+        originalArea.setWrapText(true);
+        originalArea.getStyleClass().add("dialog-text-area");
+        applyThemeToNode(originalArea, currentThemeIndex);
+
+        Label instructionLabel = new Label("Anweisung (optional):");
+        instructionLabel.getStyleClass().add("dialog-label");
+        applyThemeToNode(instructionLabel, currentThemeIndex);
+        TextField instructionField = new TextField();
+        String prefKey = "speech".equals(mode) ? "api_editor_rewrite_instruction_speech" : "api_editor_rewrite_instruction_selection";
+        String persisted = preferences != null ? preferences.get(prefKey, "") : "";
+        if ("speech".equals(mode)) {
+            if (persisted != null && !persisted.isEmpty()) {
+                instructionField.setText(persisted);
+            } else if (lastInstructionSpeech != null && !lastInstructionSpeech.isEmpty()) {
+                instructionField.setText(lastInstructionSpeech);
+            } else {
+                instructionField.setText("Gesamten Satz neu schreiben ohne einfache Sprechantwort (sagte|meinte|erwiderte usw.). Show don't tell.");
+            }
+            instructionField.setPromptText("Zusätzliche Anweisung (optional).");
+        } else {
+            if (persisted != null && !persisted.isEmpty()) {
+                instructionField.setText(persisted);
+            } else if (lastInstructionSelection != null && !lastInstructionSelection.isEmpty()) {
+                instructionField.setText(lastInstructionSelection);
+            }
+            instructionField.setPromptText("z.B. Text soll spannender werden, mehr Show Don't Tell");
+        }
+        applyThemeToNode(instructionField, currentThemeIndex);
+
+        CheckBox persistInstructionCheck = new CheckBox("Anweisung dauerhaft speichern");
+        persistInstructionCheck.getStyleClass().add("param-check");
+        applyThemeToNode(persistInstructionCheck, currentThemeIndex);
+
+        Label tempLabel = new Label("Temperatur (0 = sachlich, höher = kreativer):");
+        tempLabel.getStyleClass().add("dialog-label");
+        applyThemeToNode(tempLabel, currentThemeIndex);
+        Slider tempSlider = new Slider(0.0, 1.0, 0.7);
+        tempSlider.setShowTickLabels(true);
+        tempSlider.setMajorTickUnit(0.25);
+        tempSlider.setPrefWidth(400);
+        Label tempValueLabel = new Label("0.70");
+        tempValueLabel.setMinWidth(40);
+        tempValueLabel.setStyle(String.format("-fx-text-fill: %s;", THEMES[currentThemeIndex][1]));
+        tempSlider.valueProperty().addListener((obs, oldVal, newVal) -> tempValueLabel.setText(String.format("%.2f", newVal.doubleValue())));
+        HBox tempBox = new HBox(10);
+        tempBox.setAlignment(Pos.CENTER_LEFT);
+        tempBox.getChildren().addAll(tempSlider, tempValueLabel);
+
+        Label modelLabel = new Label("Modell (leer = aus Parametern):");
+        modelLabel.getStyleClass().add("dialog-label");
+        applyThemeToNode(modelLabel, currentThemeIndex);
+        TextField modelField = new TextField(ResourceManager.getParameter("api.lektorat.model", "gpt-4o-mini"));
+        modelField.setPromptText("z.B. gpt-4o-mini");
+        modelField.setPrefWidth(300);
+        applyThemeToNode(modelField, currentThemeIndex);
+
+        Label answersLabel = new Label("Vorschläge:");
+        answersLabel.getStyleClass().add("dialog-label");
+        applyThemeToNode(answersLabel, currentThemeIndex);
+        ProgressBar progressBar = new ProgressBar();
+        progressBar.setVisible(false);
+        progressBar.setManaged(false);
+        progressBar.setPrefWidth(Double.MAX_VALUE);
+        progressBar.setPrefHeight(20);
+        progressBar.setProgress(ProgressBar.INDETERMINATE_PROGRESS);
+        applyThemeToNode(progressBar, currentThemeIndex);
+        VBox answersBox = new VBox(10);
+        ScrollPane scrollPane = new ScrollPane(answersBox);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setPrefHeight(350);
+        VBox.setVgrow(scrollPane, Priority.ALWAYS);
+        applyThemeToNode(scrollPane, currentThemeIndex);
+
+        HBox buttonBox = new HBox(10);
+        Button btnGenerate = new Button("Generieren");
+        btnGenerate.getStyleClass().add("button");
+        applyThemeToNode(btnGenerate, currentThemeIndex);
+        Button btnCancel = new Button("Abbrechen");
+        btnCancel.getStyleClass().add("button");
+        applyThemeToNode(btnCancel, currentThemeIndex);
+        buttonBox.getChildren().addAll(btnGenerate, btnCancel);
+
+        root.getChildren().addAll(originalLabel, originalArea, instructionLabel, instructionField, persistInstructionCheck,
+                tempLabel, tempBox, modelLabel, modelField, answersLabel, progressBar, scrollPane, buttonBox);
+
+        Scene scene = new Scene(root);
+        scene.setFill(javafx.scene.paint.Color.web(THEMES[currentThemeIndex][0]));
+        String cssPath = ResourceManager.getCssResource("css/editor.css");
+        if (cssPath != null) scene.getStylesheets().add(cssPath);
+        String manuskriptCssPath = ResourceManager.getCssResource("css/manuskript.css");
+        if (manuskriptCssPath != null) scene.getStylesheets().add(manuskriptCssPath);
+        dialogStage.setSceneWithTitleBar(scene);
+
+        btnGenerate.setOnAction(e -> {
+            btnGenerate.setDisable(true);
+            btnGenerate.setText("Generiere...");
+            progressBar.setVisible(true);
+            progressBar.setManaged(true);
+            answersBox.getChildren().clear();
+
+            String instruction = instructionField.getText().trim();
+            if ("speech".equals(mode)) {
+                lastInstructionSpeech = instruction;
+            } else {
+                lastInstructionSelection = instruction;
+            }
+            if (persistInstructionCheck.isSelected() && preferences != null) {
+                preferences.put(prefKey, instruction);
+            }
+            String systemPrompt;
+            String userMessage;
+            if ("speech".equals(mode)) {
+                systemPrompt = "Du bist ein erfahrener deutscher Lektor. Deine Aufgabe: Den gegebenen Satz GESAMT neu schreiben. "
+                        + "Verwende KEINE einfachen Sprechantworten (kein 'sagte', 'meinte', 'erwiderte', 'fragte', 'antwortete', 'flüsterte', 'rief' usw.). "
+                        + "Stattdessen: Show don't tell – zeige durch Handlung, Gestik, Mimik oder Kontext, wie gesprochen wird.\n\n"
+                        + "WICHTIG – Ausgabeformat: Antworte AUSSCHLIESSLICH mit 3–5 überarbeiteten Satzversionen. KEINE Einleitung, KEINE Erklärungen, KEINE Anmerkungen, KEINE Nummerierung. Beginne direkt mit der ersten Version. Trenne die Versionen nur durch eine eigene Zeile, die ausschließlich aus drei Bindestrichen besteht: ---";
+                String chapterContext = "";
+                if (codeArea != null) {
+                    String fullChapter = codeArea.getText();
+                    if (fullChapter != null && !fullChapter.isEmpty()) {
+                        int len = fullChapter.length();
+                        int ctxLen = 6000;
+                        int from = Math.max(0, startPos - ctxLen / 2);
+                        int to = Math.min(len, endPos + ctxLen / 2);
+                        chapterContext = fullChapter.substring(from, to);
+                        if (from > 0) chapterContext = "[…] " + chapterContext;
+                        if (to < len) chapterContext = chapterContext + " […]";
+                    }
+                }
+                userMessage = "";
+                if (!chapterContext.isEmpty()) {
+                    userMessage = "Kontext (Ausschnitt aus dem Kapitel):\n" + chapterContext + "\n\n";
+                }
+                userMessage += "Zu überarbeitender Satz:\n" + originalText;
+                if (!instruction.isEmpty()) userMessage += "\n\nAnweisung: " + instruction;
+            } else {
+                systemPrompt = "Du agierst als sehr erfahrener, kritischer deutscher Lektor. Überarbeite den gegebenen Text: Verbessere Stil, Klarheit, Lebendigkeit und Wirkung.\n\n"
+                        + "WICHTIG – Ausgabeformat: Antworte AUSSCHLIESSLICH mit 3–5 überarbeiteten Versionen. KEINE Einleitung, KEINE Erklärungen, KEINE Anmerkungen (z. B. „Hier meine Vorschläge“), KEINE Nummerierung. Beginne direkt mit der ersten Version. Jede Version kann mehrere Absätze haben. Trenne die Versionen nur durch eine eigene Zeile, die ausschließlich aus drei Bindestrichen besteht: ---";
+                userMessage = "Zu überarbeitender Text:\n" + originalText;
+                if (!instruction.isEmpty()) userMessage += "\n\nAnweisung: " + instruction;
+            }
+            double temperature = tempSlider.getValue();
+            String modelOverride = modelField.getText().trim();
+
+            OnlineLektoratService api = new OnlineLektoratService();
+            api.complete(systemPrompt, userMessage, temperature, modelOverride.isEmpty() ? null : modelOverride)
+                    .thenAccept(response -> {
+                        Platform.runLater(() -> {
+                            if (response == null || response.trim().isEmpty()) {
+                                answersBox.getChildren().add(createErrorLabel("Keine Antwort von der API."));
+                                resetGenerateButton(btnGenerate, progressBar);
+                                return;
+                            }
+                            // Varianten nur an Zeilen mit ausschließlich --- trennen (jede Variante kann mehrere Absätze enthalten)
+                            List<String> variants = new ArrayList<>();
+                            String[] blocks = response.trim().split("\\r?\\n\\s*---\\s*\\r?\\n");
+                            for (String block : blocks) {
+                                String stripped = stripVariantCommentLines(block);
+                                String cleaned = stripped
+                                        .replaceAll("^\\d+\\.\\s*", "")
+                                        .replaceAll("^-\\s*", "")
+                                        .replaceAll("^\\*\\s*", "")
+                                        .trim();
+                                if (!cleaned.isEmpty() && cleaned.length() > 3) variants.add(cleaned);
+                            }
+                            if (variants.isEmpty()) {
+                                String fallback = stripVariantCommentLines(response.trim());
+                                variants.add(fallback.isEmpty() ? response.trim() : fallback);
+                            }
+                            for (int i = 0; i < variants.size() && i < 5; i++) {
+                                final int idx = i;
+                                String variant = variants.get(i);
+                                Button answerBtn = new Button("Variante " + (idx + 1));
+                                answerBtn.setMaxWidth(Double.MAX_VALUE);
+                                answerBtn.setAlignment(Pos.CENTER_LEFT);
+                                answerBtn.setStyle(String.format("-fx-background-color: %s; -fx-text-fill: %s;", THEMES[currentThemeIndex][2], THEMES[currentThemeIndex][1]));
+                                TextArea answerText = new TextArea(variant);
+                                answerText.setEditable(false);
+                                answerText.setWrapText(true);
+                                answerText.setPrefRowCount(12);
+                                answerText.getStyleClass().add("dialog-text-area");
+                                applyThemeToNode(answerText, currentThemeIndex);
+                                VBox variantBox = new VBox(5);
+                                variantBox.getChildren().addAll(answerBtn, answerText);
+                                applyThemeToNode(variantBox, currentThemeIndex);
+                                answerBtn.setOnAction(ev -> {
+                                    try {
+                                        String currentText = codeArea.getText();
+                                        if (currentText != null && startPos < currentText.length() && endPos <= currentText.length()) {
+                                            String atPos = currentText.substring(startPos, Math.min(endPos, currentText.length()));
+                                            if (!atPos.trim().equals(originalText.trim())) {
+                                                updateStatus("Text hat sich geändert; Ersetzung abgebrochen.");
+                                                return;
+                                            }
+                                        }
+                                        codeArea.replaceText(startPos, endPos, variant);
+                                        dialogStage.close();
+                                        updateStatus("Text ersetzt.");
+                                    } catch (Exception ex) {
+                                        logger.error("Fehler beim Ersetzen: {}", ex.getMessage());
+                                        updateStatus("Fehler: " + ex.getMessage());
+                                    }
+                                });
+                                answersBox.getChildren().add(variantBox);
+                            }
+                            resetGenerateButton(btnGenerate, progressBar);
+                        });
+                    })
+                    .exceptionally(throwable -> {
+                        Platform.runLater(() -> {
+                            String msg = throwable != null && throwable.getCause() != null ? throwable.getCause().getMessage() : (throwable != null ? throwable.getMessage() : "Unbekannter Fehler");
+                            logger.error("API-Überarbeitung fehlgeschlagen: {}", msg);
+                            answersBox.getChildren().add(createErrorLabel("Fehler: " + msg));
+                            resetGenerateButton(btnGenerate, progressBar);
+                        });
+                        return null;
+                    });
+        });
+        btnCancel.setOnAction(ev -> dialogStage.close());
+        dialogStage.showAndWait();
+    }
+
+    /**
+     * Entfernt typische Kommentar-/Label-Zeilen am Anfang und Ende eines Vorschlagsblocks
+     * (z. B. "Variante 1:", "Hier meine Vorschläge:", kurze Zeilen die nur mit : enden).
+     */
+    private String stripVariantCommentLines(String block) {
+        if (block == null) return "";
+        String[] lines = block.split("\\r?\\n");
+        int start = 0;
+        int end = lines.length;
+        for (int i = 0; i < lines.length; i++) {
+            String line = lines[i].trim();
+            if (line.isEmpty()) continue;
+            if (line.matches("(?i)^(Variante|Vorschlag|Option|Version)\\s*\\d*\\s*:?\\s*$")) continue;
+            if (line.matches("(?i)^(Hier|Folgende|Meine|Die)\\s+.+") && line.endsWith(":") && line.length() < 90) continue;
+            if (line.length() <= 35 && line.endsWith(":")) continue;
+            if (line.matches("^\\d+\\.\\s*$") || line.equals("---")) continue;
+            start = i;
+            break;
+        }
+        for (int i = lines.length - 1; i >= start; i--) {
+            String line = lines[i].trim();
+            if (line.isEmpty()) continue;
+            if (line.matches("(?i)^(Variante|Vorschlag|Option|Version)\\s*\\d*\\s*:?\\s*$")) continue;
+            if (line.length() <= 35 && line.endsWith(":")) continue;
+            if (line.matches("^\\d+\\.\\s*$") || line.equals("---")) continue;
+            end = i + 1;
+            break;
+        }
+        if (start >= end) return block.trim();
+        StringBuilder sb = new StringBuilder();
+        for (int i = start; i < end; i++) {
+            if (sb.length() > 0) sb.append("\n");
+            sb.append(lines[i]);
+        }
+        return sb.toString().trim();
+    }
+
+    private Label createErrorLabel(String text) {
+        Label l = new Label(text);
+        l.setStyle("-fx-text-fill: red;");
+        return l;
+    }
+
+    private void resetGenerateButton(Button btnGenerate, ProgressBar progressBar) {
+        if (btnGenerate != null) {
+            btnGenerate.setDisable(false);
+            btnGenerate.setText("Generieren");
+        }
+        if (progressBar != null) {
+            progressBar.setVisible(false);
+            progressBar.setManaged(false);
+        }
     }
     
     /**

@@ -2352,17 +2352,27 @@ public class MainController implements Initializable {
                                 case DOCX: {
                             try {
                                 String docxContent = docxProcessor.processDocxFileContent(chapterFile.getFile(), 1, format);
-                                
+                                File mdFileToSave = deriveMdFileFor(chapterFile.getFile());
+                                // KRITISCH: Immer den DOCX-Inhalt (nicht getText()) in die Zieldatei schreiben,
+                                // damit nie falscher Editor-Inhalt in ein anderes Kapitel gerät (Race mit runLater).
+                                if (mdFileToSave != null) {
+                                    try {
+                                        java.nio.file.Files.createDirectories(mdFileToSave.getParentFile().toPath());
+                                        java.nio.file.Files.write(mdFileToSave.toPath(), docxContent.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                                    } catch (Exception saveException) {
+                                        logger.error("Fehler beim Speichern der MD-Datei (DOCX übernommen)", saveException);
+                                    }
+                                }
                                 // WICHTIG: Prüfe ob bereits ein Editor für dieses Kapitel existiert
                                 final EditorWindow foundEditor = findExistingEditor(editorKey);
                                 EditorWindow editorController;
-                                
                                 if (foundEditor != null) {
-                                    // Editor existiert bereits - Text ersetzen
                                     editorController = foundEditor;
+                                    final File mdFileForEditor = mdFileToSave;
                                     Platform.runLater(() -> {
+                                        foundEditor.setOriginalDocxFile(chapterFile.getFile());
+                                        if (mdFileForEditor != null) foundEditor.setCurrentFile(mdFileForEditor);
                                         foundEditor.replaceTextWithoutUpdatingOriginal(docxContent);
-                                        // Editor in den Vordergrund bringen
                                         if (foundEditor.getStage() != null && foundEditor.getStage().isShowing()) {
                                             foundEditor.getStage().setIconified(false);
                                             foundEditor.getStage().toFront();
@@ -2370,26 +2380,8 @@ public class MainController implements Initializable {
                                         }
                                     });
                                 } else {
-                                    // Kein Editor existiert - neuen öffnen
                                     editorController = openChapterEditorWindow(docxContent, chapterFile, format);
                                 }
-                                
-                                if (editorController != null) {
-                                    try {
-                                        String editorContent = editorController.getText();
-                                        File mdFileToSave = deriveMdFileFor(chapterFile.getFile());
-                                        if (mdFileToSave != null) {
-                                            java.nio.file.Files.write(mdFileToSave.toPath(), editorContent.getBytes(java.nio.charset.StandardCharsets.UTF_8));
-                                        } else {
-                                            logger.error("=== DEBUG: MD-Datei Pfad ist NULL!");
-                                        }
-                                    } catch (Exception saveException) {
-                                        logger.error("=== DEBUG: Fehler beim Speichern der MD-Datei", saveException);
-                                    }
-                                } else {
-                                    logger.error("=== DEBUG: Editor-Controller ist NULL!");
-                                }
-                                
                                 updateStatus("Kapitel-Editor geöffnet (DOCX übernommen): " + chapterFile.getFileName());
                                 if (startOnlineLektorat && editorController != null) {
                                     logger.info("openChapterEditor: startOnlineLektorat geplant (DOCX übernommen)");
@@ -3423,10 +3415,11 @@ public class MainController implements Initializable {
                         }
                         String editorKey = chapterName + ".md";
                         registerEditor(editorKey, finalExistingEditor);
-                        
+                        final File mdFileForEditor = deriveMdFileFor(chapterFile.getFile());
                         Platform.runLater(() -> {
+                            finalExistingEditor.setOriginalDocxFile(chapterFile.getFile());
+                            if (mdFileForEditor != null) finalExistingEditor.setCurrentFile(mdFileForEditor);
                             finalExistingEditor.replaceTextWithoutUpdatingOriginal(finalContentForLambda);
-                            // Editor in den Vordergrund bringen
                             if (finalExistingEditor.getStage() != null && finalExistingEditor.getStage().isShowing()) {
                                 finalExistingEditor.getStage().setIconified(false);
                                 finalExistingEditor.getStage().toFront();
@@ -3480,10 +3473,10 @@ public class MainController implements Initializable {
                     
                     EditorWindow editorController;
                     if (existingEditor != null) {
-                        // Bestehenden Editor aktualisieren - KEIN neues Fenster öffnen
                         editorController = existingEditor;
                         editorController.setText(docxContent);
-                        // WICHTIG: Stelle sicher, dass der Editor für die neue Datei registriert ist
+                        File mdFileToSave = deriveMdFileFor(chapterFile.getFile());
+                        if (mdFileToSave != null) existingEditor.setCurrentFile(mdFileToSave);
                         String chapterName = chapterFile.getFileName();
                         if (chapterName.toLowerCase().endsWith(".docx")) {
                             chapterName = chapterName.substring(0, chapterName.length() - 5);
@@ -3491,29 +3484,21 @@ public class MainController implements Initializable {
                         String editorKey = chapterName + ".md";
                         registerEditor(editorKey, editorController);
                     } else {
-                        // Nur wenn KEIN bestehender Editor existiert - dann neuen erstellen
-                        // WICHTIG: Immer über openChapterEditorWindow gehen für Dialog-Logik
                         editorController = openChapterEditorWindow(docxContent, chapterFile, format);
                     }
-                    
-                    // WICHTIG: Editor-Inhalt SOFORT als MD speichern, da wir "DOCX übernehmen" gesagt haben
-                    if (editorController != null) {
+                    // KRITISCH: Immer docxContent (nicht getText()) in die Zieldatei schreiben
+                    File mdFileToSave = deriveMdFileFor(chapterFile.getFile());
+                    if (mdFileToSave != null) {
                         try {
-                            String editorContent = editorController.getText();
-                            File mdFileToSave = deriveMdFileFor(chapterFile.getFile());
-                            if (mdFileToSave != null) {
-                                java.nio.file.Files.write(mdFileToSave.toPath(), editorContent.getBytes(java.nio.charset.StandardCharsets.UTF_8));
-                                
-                                // Hash aktualisieren, damit keine "extern geändert" Dialoge mehr kommen
-                                updateDocxHashAfterAccept(chapterFile.getFile());
-                                markDocxFileAsUnchanged(chapterFile.getFile());
-                            } else {
-                                logger.error("=== DEBUG: MD-Datei Pfad ist NULL!");
-                            }
+                            java.nio.file.Files.createDirectories(mdFileToSave.getParentFile().toPath());
+                            java.nio.file.Files.write(mdFileToSave.toPath(), docxContent.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                            updateDocxHashAfterAccept(chapterFile.getFile());
+                            markDocxFileAsUnchanged(chapterFile.getFile());
                         } catch (Exception saveException) {
-                            logger.error("=== DEBUG: Fehler beim Speichern der MD-Datei", saveException);
+                            logger.error("Fehler beim Speichern der MD-Datei (Accept All)", saveException);
                         }
-                    } else {
+                    }
+                    if (editorController == null) {
                         logger.error("=== DEBUG: Editor-Controller ist NULL!");
                     }
                     

@@ -3114,6 +3114,14 @@
     -fx-border-radius: 4px;
 }
 
+/* Sprachsynthese: größere Schrift – RichTextFX rendert Text in inneren Nodes (.paragraph-box, .paragraph-text, .text) */
+.code-area.tts-editor-code-area,
+.code-area.tts-editor-code-area .paragraph-box,
+.code-area.tts-editor-code-area .paragraph-text,
+.code-area.tts-editor-code-area .text {
+    -fx-font-size: 15px !important;
+}
+
 /* Kapitel-Sprachsynthese-Editor: Text-Highlights in CodeArea */
 .tts-selection {
     -rtfx-background-color: #ffe0b2 !important;  /* weiches Orange – aktueller Bearbeitungsblock (Weiß/Pastell) */

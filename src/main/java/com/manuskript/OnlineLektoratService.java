@@ -30,6 +30,14 @@ import java.util.stream.Stream;
 public class OnlineLektoratService {
     private static final Logger logger = LoggerFactory.getLogger(OnlineLektoratService.class);
 
+    /** Entfernt den Anzeigetext (z. B. Kosten in Klammern), sodass nur die Modell-ID an die API geht. */
+    private static String modelIdOnly(String raw) {
+        if (raw == null) return "";
+        raw = raw.trim();
+        int i = raw.indexOf(" (");
+        return i >= 0 ? raw.substring(0, i).trim() : raw;
+    }
+
     /**
      * Ergebnis des Lektorat-Laufs. Bei Abbruch (z. B. Timeout) ist partial=true und
      * getMatches() enthält die Vorschläge aus den bereits verarbeiteten Abschnitten.
@@ -100,7 +108,7 @@ public class OnlineLektoratService {
     public CompletableFuture<LektoratResult> runLektorat(String chapterText, BiConsumer<Integer, Integer> onChunkProgress) {
         String apiKey = ResourceManager.getParameter("api.lektorat.api_key", "").trim();
         String baseUrl = ResourceManager.getParameter("api.lektorat.base_url", "https://api.openai.com/v1").trim().replaceAll("/$", "");
-        String model = ResourceManager.getParameter("api.lektorat.model", "gpt-4o-mini").trim();
+        String model = modelIdOnly(ResourceManager.getParameter("api.lektorat.model", "gpt-4o-mini"));
 
         if (apiKey.isEmpty()) {
             return CompletableFuture.failedFuture(new IllegalStateException("API-Key für Online-Lektorat ist nicht gesetzt. Bitte unter Parameter → Online-Lektorat eintragen."));
@@ -166,6 +174,98 @@ public class OnlineLektoratService {
         } catch (NumberFormatException e) {
             return REQUEST_TIMEOUT_SEC_DEFAULT;
         }
+    }
+
+    /**
+     * Einfache Chat-Completion für Editor-Funktionen (Sprechantwort korrigieren, Selektion überarbeiten).
+     * Verwendet api.lektorat.* (api_key, base_url, model). Kein Streaming; liefert den rohen Antworttext.
+     *
+     * @param systemPrompt System-Prompt (Rolle, Format-Anweisung)
+     * @param userMessage  User-Nachricht (z. B. zu überarbeitender Text + Anweisung)
+     * @param temperature  Temperatur 0.0–2.0 (z. B. 0.7)
+     * @param modelOverride optional; wenn nicht leer, wird dieses Modell statt api.lektorat.model verwendet
+     * @return CompletableFuture mit dem Inhalt von choices[0].message.content
+     */
+    public CompletableFuture<String> complete(String systemPrompt, String userMessage, double temperature, String modelOverride) {
+        String apiKey = ResourceManager.getParameter("api.lektorat.api_key", "").trim();
+        String baseUrl = ResourceManager.getParameter("api.lektorat.base_url", "https://api.openai.com/v1").trim().replaceAll("/$", "");
+        String model = (modelOverride != null && !modelOverride.trim().isEmpty())
+                ? modelIdOnly(modelOverride)
+                : modelIdOnly(ResourceManager.getParameter("api.lektorat.model", "gpt-4o-mini"));
+        if (model.isEmpty()) model = "gpt-4o-mini";
+
+        if (apiKey.isEmpty()) {
+            return CompletableFuture.failedFuture(new IllegalStateException("API-Key für Online-API ist nicht gesetzt. Bitte unter Parameter → Online-Lektorat eintragen."));
+        }
+        if (baseUrl.isEmpty()) {
+            return CompletableFuture.failedFuture(new IllegalStateException("Basis-URL für Online-API ist nicht gesetzt."));
+        }
+
+        JsonObject body = new JsonObject();
+        body.addProperty("model", model);
+        body.addProperty("temperature", Math.max(0, Math.min(2, temperature)));
+        body.addProperty("max_tokens", 4096);
+        body.addProperty("stream", false);
+        JsonArray messages = new JsonArray();
+        JsonObject sys = new JsonObject();
+        sys.addProperty("role", "system");
+        sys.addProperty("content", systemPrompt);
+        messages.add(sys);
+        JsonObject user = new JsonObject();
+        user.addProperty("role", "user");
+        user.addProperty("content", userMessage);
+        messages.add(user);
+        body.add("messages", messages);
+
+        String url = baseUrl + "/chat/completions";
+        String bodyStr = new Gson().toJson(body);
+        int timeoutSec = getRequestTimeoutSec();
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .header("Authorization", "Bearer " + apiKey)
+                .header("Content-Type", "application/json")
+                .timeout(Duration.ofSeconds(timeoutSec))
+                .POST(HttpRequest.BodyPublishers.ofString(bodyStr, StandardCharsets.UTF_8))
+                .build();
+
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+                int code = response.statusCode();
+                String responseBody = response.body();
+                if (code != 200) {
+                    String errPreview = responseBody != null && responseBody.length() > 300 ? responseBody.substring(0, 300) + "…" : responseBody;
+                    throw new RuntimeException("API antwortete mit HTTP " + code + ": " + errPreview);
+                }
+                JsonObject root = new Gson().fromJson(responseBody, JsonObject.class);
+                if (root == null || !root.has("choices") || !root.get("choices").isJsonArray()) {
+                    throw new RuntimeException("API-Antwort enthält kein 'choices'-Array.");
+                }
+                JsonArray choices = root.getAsJsonArray("choices");
+                if (choices.size() == 0) {
+                    throw new RuntimeException("API-Antwort enthält keine Wahl (choices leer).");
+                }
+                JsonObject first = choices.get(0).getAsJsonObject();
+                if (!first.has("message") || !first.get("message").isJsonObject()) {
+                    throw new RuntimeException("API-Antwort choice enthält kein 'message'.");
+                }
+                JsonObject message = first.getAsJsonObject("message");
+                if (!message.has("content") || message.get("content").isJsonNull()) {
+                    return "";
+                }
+                return message.get("content").getAsString();
+            } catch (Exception e) {
+                logger.warn("Online-API complete fehlgeschlagen", e);
+                throw new RuntimeException(e.getMessage(), e);
+            }
+        });
+    }
+
+    /**
+     * Wie {@link #complete(String, String, double, String)}, aber ohne Modell-Override (nutzt api.lektorat.model).
+     */
+    public CompletableFuture<String> complete(String systemPrompt, String userMessage, double temperature) {
+        return complete(systemPrompt, userMessage, temperature, null);
     }
 
     /**
@@ -363,6 +463,17 @@ public class OnlineLektoratService {
         });
     }
 
+    private static int getSuggestionsPerEntry() {
+        String v = ResourceManager.getParameter("api.lektorat.suggestions_per_entry", "2");
+        if (v == null || v.isBlank()) return 2;
+        try {
+            int n = Integer.parseInt(v.trim());
+            return Math.max(1, Math.min(5, n));
+        } catch (NumberFormatException e) {
+            return 2;
+        }
+    }
+
     private static String buildSystemPrompt(String extraPrompt, String lektoratType) {
         String focus = "";
         switch (lektoratType.toLowerCase()) {
@@ -371,16 +482,18 @@ public class OnlineLektoratService {
             case "plot": focus = " Fokus: Plot, Dramaturgie, Spannungsbogen, Figurenzeichnung. "; break;
             default: focus = " ";
         }
+        int n = getSuggestionsPerEntry();
         String base = "Du agierst als sehr erfahrener, kritischer deutscher Lektor. "
                 + "Du analysierst den gegebenen Text ohne Schonung und nutzt alle Register eines professionellen Lektorats "
                 + "(orthografische Präzision, stilistische Wirkung, Logikprüfung, Kohärenz, Tonalität, Figurenzeichnung, Tempo, Szenendramaturgie)."
                 + focus
+                + "Gib nur Anmerkungen mit Gewichtung 3, 4 oder 5 (weight >= 3); lasse unwichtige (1–2) weg. "
                 + "Antworte AUSSCHLIESSLICH mit einem JSON-Array. Kein anderer Text außer dem JSON. "
                 + "Jedes Element des Arrays hat genau diese Felder: "
                 + "\"original\" (der unveränderte Zitat-Text aus dem Kapitel), "
-                + "\"suggestions\" (Array mit 2 bis 3 verbesserten Versionen dieses Abschnitts), "
+                + "\"suggestions\" (Array mit genau " + n + " verbesserten Versionen dieses Abschnitts), "
                 + "\"reason\" (kurze Begründung für die Änderung), "
-                + "\"weight\" (Zahl 1–5: wie wichtig die Änderung ist, 5 = sehr wichtig). "
+                + "\"weight\" (Zahl 3–5: wie wichtig die Änderung ist, 5 = sehr wichtig). "
                 + "Jedes \"original\" muss ein exakter Abschnitt aus dem übergebenen Kapiteltext sein (wörtlich übernommen, inkl. Zeilenumbrüche).";
         if (extraPrompt != null && !extraPrompt.isEmpty()) {
             base = base + "\n\nZusätzliche Anweisungen:\n" + extraPrompt;
@@ -389,8 +502,9 @@ public class OnlineLektoratService {
     }
 
     private static String buildUserPrompt(String chapterText, String extraPrompt) {
+        int n = getSuggestionsPerEntry();
         String s = "Analysiere den folgenden Kapiteltext und gib Verbesserungsvorschläge als JSON-Array zurück. "
-                + "Jeder Eintrag: original (exakter Textausschnitt inkl. Zeilenumbrüche), suggestions (2–3 Alternativen), reason, weight (1–5).\n\n"
+                + "Nur Anmerkungen mit weight 3–5. Jeder Eintrag: original (exakter Textausschnitt inkl. Zeilenumbrüche), suggestions (genau " + n + " Alternativen), reason, weight (3–5).\n\n"
                 + "=== KAPITELTEXT ===\n" + chapterText;
         if (extraPrompt != null && !extraPrompt.isEmpty()) {
             s = s + "\n\n(Zusatzanweisungen siehe System-Prompt.)";

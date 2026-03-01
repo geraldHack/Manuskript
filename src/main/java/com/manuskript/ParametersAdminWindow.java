@@ -16,6 +16,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
@@ -24,6 +25,17 @@ import java.util.concurrent.CompletableFuture;
  * Pro Eintrag: Schlüssel, Wert, Hilfetext. Optisch gruppiert nach Kategorien.
  */
 public class ParametersAdminWindow {
+
+    /** Modell-Eintrag für Dropdown: ID (für API) + Anzeigetext (mit lesbaren Kosten). */
+    private static final class ModelOption {
+        final String id;
+        final String displayText;
+
+        ModelOption(String id, String displayText) {
+            this.id = id;
+            this.displayText = displayText;
+        }
+    }
 
     private CustomStage stage;
     private final Window owner;
@@ -176,14 +188,24 @@ public class ParametersAdminWindow {
         content.getChildren().add(baseUrlCard);
         keyToControl.put("api.lektorat.base_url", baseUrlField);
 
-        ComboBox<String> modelCombo = new ComboBox<>();
+        ComboBox<ModelOption> modelCombo = new ComboBox<>();
         modelCombo.setEditable(true);
-        modelCombo.setPrefWidth(400);
-        modelCombo.getEditor().setText(model != null ? model : "");
+        modelCombo.setPrefWidth(520);
+        modelCombo.getEditor().setText(model != null ? stripModelIdFromDisplay(model) : "");
         modelCombo.setPromptText("Modell wählen oder eingeben");
+        modelCombo.setConverter(new javafx.util.StringConverter<ModelOption>() {
+            @Override
+            public String toString(ModelOption m) {
+                return m == null ? "" : m.displayText;
+            }
+            @Override
+            public ModelOption fromString(String s) {
+                return s == null || s.isBlank() ? null : new ModelOption(s.trim(), s.trim());
+            }
+        });
         Label modelLabel = new Label("api.lektorat.model");
         modelLabel.getStyleClass().add("param-key-label");
-        Label modelHelp = new Label("Modell für das Lektorat (nach „Modelle laden“ auswählen oder frei eingeben).");
+        Label modelHelp = new Label("Modell für das Lektorat (nach „Modelle laden“ auswählen oder frei eingeben). Kosten werden bei OpenRouter-kompatiblen APIs angezeigt.");
         modelHelp.getStyleClass().add("param-help-label");
         modelHelp.setWrapText(true);
         modelHelp.setMaxWidth(680);
@@ -322,22 +344,150 @@ public class ParametersAdminWindow {
         content.getChildren().add(timeoutCard);
         keyToControl.put("api.lektorat.request_timeout_sec", timeoutSpinner);
 
+        // Vorschläge pro Eintrag (1–5)
+        String suggestionsStr = ResourceManager.getParameter("api.lektorat.suggestions_per_entry", "2");
+        int suggestionsVal = parseInt(suggestionsStr, 2);
+        suggestionsVal = Math.max(1, Math.min(5, suggestionsVal));
+        Spinner<Integer> suggestionsSpinner = new Spinner<>(1, 5, suggestionsVal);
+        suggestionsSpinner.setEditable(true);
+        suggestionsSpinner.setPrefWidth(180);
+        Label suggestionsLabel = new Label("api.lektorat.suggestions_per_entry");
+        suggestionsLabel.getStyleClass().add("param-key-label");
+        Label suggestionsHelp = new Label("Anzahl Vorschläge pro Anmerkung (1–5). Weniger = weniger API-Output und Kosten. Nur Anmerkungen mit Gewichtung 3–5 werden angefordert.");
+        suggestionsHelp.getStyleClass().add("param-help-label");
+        suggestionsHelp.setWrapText(true);
+        suggestionsHelp.setMaxWidth(680);
+        VBox suggestionsCard = new VBox(4);
+        suggestionsCard.getStyleClass().add("param-card");
+        suggestionsCard.getChildren().addAll(suggestionsLabel, suggestionsSpinner, suggestionsHelp);
+        content.getChildren().add(suggestionsCard);
+        keyToControl.put("api.lektorat.suggestions_per_entry", suggestionsSpinner);
+
+        // Sprechantwort/Selektion per Online-API statt Ollama
+        String useOnlineApiStr = ResourceManager.getParameter("api.editor_rewrite.use_online_api", "false");
+        boolean useOnlineApiVal = "true".equalsIgnoreCase(useOnlineApiStr != null ? useOnlineApiStr.trim() : "");
+        CheckBox useOnlineApiCheck = new CheckBox("Sprechantwort korrigieren und Selektion überarbeiten per Online-API (statt Ollama)");
+        useOnlineApiCheck.setSelected(useOnlineApiVal);
+        useOnlineApiCheck.setMaxWidth(680);
+        Label useOnlineApiLabel = new Label("api.editor_rewrite.use_online_api");
+        useOnlineApiLabel.getStyleClass().add("param-key-label");
+        Label useOnlineApiHelp = new Label("Sprechantwort korrigieren und Selektion überarbeiten per Online-API (OpenAI-kompatibel) statt Ollama. Erfordert api.lektorat.api_key.");
+        useOnlineApiHelp.getStyleClass().add("param-help-label");
+        useOnlineApiHelp.setWrapText(true);
+        useOnlineApiHelp.setMaxWidth(680);
+        VBox useOnlineApiCard = new VBox(4);
+        useOnlineApiCard.getStyleClass().add("param-card");
+        useOnlineApiCard.getChildren().addAll(useOnlineApiLabel, useOnlineApiCheck, useOnlineApiHelp);
+        content.getChildren().add(useOnlineApiCard);
+        keyToControl.put("api.editor_rewrite.use_online_api", useOnlineApiCheck);
+
         return content;
     }
 
-    private void loadLektoratModels(String apiKey, String baseUrl, ComboBox<String> modelCombo) {
+    /**
+     * Liest Preise aus dem Modell-JSON und formatiert sie als Kosten pro 1M Tokens
+     * (übliche Anbieterangabe, z. B. „5 $/1M · 25 $/1M“ für Claude Opus).
+     */
+    private static String formatModelPricing(com.google.gson.JsonObject model) {
+        if (model == null) return "";
+        double inputPerToken = Double.NaN;
+        double outputPerToken = Double.NaN;
+
+        // Mammouth.ai u. ä.: model_info.input_cost_per_token + output_cost_per_token (pro Token)
+        if (model.has("model_info")) {
+            com.google.gson.JsonElement mi = model.get("model_info");
+            if (mi != null && mi.isJsonObject()) {
+                com.google.gson.JsonObject info = mi.getAsJsonObject();
+                inputPerToken = parseDoubleSafe(info.get("input_cost_per_token"));
+                outputPerToken = parseDoubleSafe(info.get("output_cost_per_token"));
+            }
+        }
+        // OpenRouter / kompatible APIs: pricing.prompt + pricing.completion (pro Token; String oder Number)
+        if (model.has("pricing")) {
+            com.google.gson.JsonElement pe = model.get("pricing");
+            if (pe != null && !pe.isJsonNull()) {
+                if (pe.isJsonObject()) {
+                    com.google.gson.JsonObject p = pe.getAsJsonObject();
+                    inputPerToken = firstValidDouble(
+                        parseDoubleSafe(p.get("prompt")),
+                        parseDoubleSafe(p.get("input")));
+                    outputPerToken = firstValidDouble(
+                        parseDoubleSafe(p.get("completion")),
+                        parseDoubleSafe(p.get("output")));
+                } else if (pe.isJsonPrimitive() && pe.getAsJsonPrimitive().isString()) {
+                    try {
+                        com.google.gson.JsonObject p = new com.google.gson.Gson().fromJson(pe.getAsString(), com.google.gson.JsonObject.class);
+                        if (p != null) {
+                            inputPerToken = firstValidDouble(parseDoubleSafe(p.get("prompt")), parseDoubleSafe(p.get("input")));
+                            outputPerToken = firstValidDouble(parseDoubleSafe(p.get("completion")), parseDoubleSafe(p.get("output")));
+                        }
+                    } catch (Exception ignored) { }
+                }
+            }
+        }
+        // Flache Felder auf Modell-Ebene (einige APIs)
+        if (Double.isNaN(inputPerToken)) inputPerToken = parseDoubleSafe(model.get("prompt_price"));
+        if (Double.isNaN(outputPerToken)) outputPerToken = parseDoubleSafe(model.get("completion_price"));
+        // Pro 1M Tokens (exakt aus API)
+        double inputPer1M = Double.NaN;
+        double outputPer1M = Double.NaN;
+        if (!Double.isNaN(inputPerToken)) inputPer1M = inputPerToken * 1_000_000.0;
+        if (!Double.isNaN(outputPerToken)) outputPer1M = outputPerToken * 1_000_000.0;
+        if (model.has("input_cost")) inputPer1M = parseDoubleSafe(model.get("input_cost"));
+        if (model.has("output_cost")) outputPer1M = parseDoubleSafe(model.get("output_cost"));
+        if (model.has("input_price")) inputPer1M = firstValidDouble(inputPer1M, parseDoubleSafe(model.get("input_price")));
+        if (model.has("output_price")) outputPer1M = firstValidDouble(outputPer1M, parseDoubleSafe(model.get("output_price")));
+
+        if (Double.isNaN(inputPer1M) && Double.isNaN(outputPer1M)) return "";
+        Locale loc = Locale.GERMANY;
+        // 1,8 Tokens/Zeichen (realistisch für dt. Text): 10k Zeichen ≈ 18k Tokens → 25/1e6 * 1,8 * 10000 = 0,45 $
+        final double TOKENS_PER_10K_CHARS = 1.8 * 10_000.0;
+        double inputPer10k = !Double.isNaN(inputPer1M) ? inputPer1M / 1_000_000.0 * TOKENS_PER_10K_CHARS : Double.NaN;
+        double outputPer10k = !Double.isNaN(outputPer1M) ? outputPer1M / 1_000_000.0 * TOKENS_PER_10K_CHARS : Double.NaN;
+        String in = Double.isNaN(inputPer1M) ? "–" : String.format(loc, "%.2f $/1M (%.2f $/10k Zeichen)", inputPer1M, inputPer10k);
+        String out = Double.isNaN(outputPer1M) ? "–" : String.format(loc, "%.2f $/1M (%.2f $/10k Zeichen)", outputPer1M, outputPer10k);
+        return "Input: " + in + " · Output: " + out;
+    }
+
+    /** Entfernt den Kosten-Anzeigetext, sodass nur die Modell-ID für die API übrig bleibt. */
+    private static String stripModelIdFromDisplay(String s) {
+        if (s == null) return "";
+        s = s.trim();
+        int i = s.indexOf(" (");
+        return i >= 0 ? s.substring(0, i).trim() : s;
+    }
+
+    private static double firstValidDouble(double a, double b) {
+        return !Double.isNaN(a) ? a : b;
+    }
+
+    private static double parseDoubleSafe(com.google.gson.JsonElement el) {
+        if (el == null || el.isJsonNull()) return Double.NaN;
+        try {
+            if (el.isJsonPrimitive() && el.getAsJsonPrimitive().isString())
+                return Double.parseDouble(el.getAsString().replace(',', '.'));
+            return el.getAsDouble();
+        } catch (Exception e) {
+            return Double.NaN;
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void loadLektoratModels(String apiKey, String baseUrl, ComboBox<ModelOption> modelCombo) {
         if (apiKey == null || apiKey.isBlank() || baseUrl == null || baseUrl.isBlank()) {
             showInfo("Eingabe fehlt", "Bitte API-Key und Basis-URL eintragen.");
             return;
         }
-        String url = baseUrl.replaceAll("/$", "") + "/models";
+        String base = baseUrl.replaceAll("/$", "").trim();
+        // Mammouth.ai: Preise nur unter /public/models; /v1/models liefert oft keine model_info
+        String url = (base.contains("mammouth.ai")) ? "https://api.mammouth.ai/public/models" : (base + "/models");
         HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(15)).build();
-        HttpRequest request = HttpRequest.newBuilder()
+        HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
                 .uri(URI.create(url))
-                .header("Authorization", "Bearer " + apiKey.trim())
                 .timeout(Duration.ofSeconds(20))
-                .GET()
-                .build();
+                .GET();
+        if (apiKey != null && !apiKey.isBlank()) requestBuilder.header("Authorization", "Bearer " + apiKey.trim());
+        HttpRequest request = requestBuilder.build();
         CompletableFuture.supplyAsync(() -> {
             try {
                 HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
@@ -356,16 +506,29 @@ public class ParametersAdminWindow {
                 }
                 try {
                     com.google.gson.Gson gson = new com.google.gson.Gson();
-                    com.google.gson.JsonObject root = gson.fromJson(result, com.google.gson.JsonObject.class);
-                    com.google.gson.JsonArray data = root != null && root.has("data") ? root.getAsJsonArray("data") : null;
+                    com.google.gson.JsonArray data = null;
+                    com.google.gson.JsonElement parsed = gson.fromJson(result, com.google.gson.JsonElement.class);
+                    if (parsed != null && parsed.isJsonObject() && parsed.getAsJsonObject().has("data"))
+                        data = parsed.getAsJsonObject().getAsJsonArray("data");
+                    else if (parsed != null && parsed.isJsonArray())
+                        data = parsed.getAsJsonArray();
                     modelCombo.getItems().clear();
                     if (data != null) {
+                        java.util.List<ModelOption> items = new java.util.ArrayList<>();
                         for (int i = 0; i < data.size(); i++) {
                             com.google.gson.JsonElement el = data.get(i);
-                            if (el.isJsonObject() && el.getAsJsonObject().has("id")) {
-                                modelCombo.getItems().add(el.getAsJsonObject().get("id").getAsString());
+                            if (el != null && el.isJsonObject()) {
+                                com.google.gson.JsonObject obj = el.getAsJsonObject();
+                                if (obj.has("id")) {
+                                    String id = obj.get("id").getAsString();
+                                    String costStr = formatModelPricing(obj);
+                                    String displayText = costStr.isEmpty() ? id : (id + " (" + costStr + ")");
+                                    items.add(new ModelOption(id, displayText));
+                                }
                             }
                         }
+                        items.sort(java.util.Comparator.comparing(m -> m.id, String.CASE_INSENSITIVE_ORDER));
+                        modelCombo.getItems().addAll(items);
                     }
                     if (modelCombo.getItems().isEmpty()) {
                         showInfo("Modelle laden", "Keine Modelle in der Antwort gefunden.");
@@ -450,8 +613,18 @@ public class ParametersAdminWindow {
         if (c instanceof ComboBox) {
             ComboBox<?> cb = (ComboBox<?>) c;
             Object v = cb.getValue();
-            if (v != null) return v.toString();
-            if (cb.isEditable() && cb.getEditor() != null) return cb.getEditor().getText();
+            if (v != null) {
+                if ("api.lektorat.model".equals(def.getKey())) {
+                    if (v instanceof ModelOption) return ((ModelOption) v).id;
+                    return stripModelIdFromDisplay(v.toString());
+                }
+                return v.toString();
+            }
+            if (cb.isEditable() && cb.getEditor() != null) {
+                String editorText = cb.getEditor().getText();
+                if ("api.lektorat.model".equals(def.getKey())) return stripModelIdFromDisplay(editorText);
+                return editorText;
+            }
             return def.getDefaultValue();
         }
         if (c instanceof TextField) return ((TextField) c).getText();
@@ -479,7 +652,8 @@ public class ParametersAdminWindow {
                 ((Spinner<Double>) s).getValueFactory().setValue(parseDouble(d, 0.0));
         } else if (c instanceof TextArea) ((TextArea) c).setText(d != null ? d : "");
         else if (c instanceof ComboBox) {
-            ComboBox<String> cb = (ComboBox<String>) c;
+            @SuppressWarnings("unchecked")
+            ComboBox<ModelOption> cb = (ComboBox<ModelOption>) c;
             cb.getSelectionModel().clearSelection();
             if (cb.isEditable() && cb.getEditor() != null) cb.getEditor().setText(d != null ? d : "");
         } else if (c instanceof TextField) {
