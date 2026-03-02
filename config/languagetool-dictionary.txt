@@ -17,7 +17,9 @@ ayens
 bettlergilde
 brak
 braks
+bram
 brass
+cassian
 center
 demirantha
 demiranthas
@@ -29,6 +31,7 @@ demiranthischen
 demiranthisches
 demirantisch
 dini
+du
 efret
 efrets
 elana
@@ -86,6 +89,7 @@ valdorien
 valdors
 valen
 valens
+valtheris
 weltenfresser
 zaubererrat
 zaubererrates

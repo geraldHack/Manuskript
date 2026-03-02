@@ -16,8 +16,8 @@
     "provider": "elevenlabs",
     "elevenLabsVoiceId": "ML23UVoFL5mI6APbRAeR",
     "elevenLabsModelId": "eleven_v3",
-    "elevenLabsStability": 0.14835164032794618,
-    "elevenLabsSimilarityBoost": 0.10754187280239338,
+    "elevenLabsStability": 0.5,
+    "elevenLabsSimilarityBoost": 0.75,
     "elevenLabsSpeed": 1.1395939086294415,
     "elevenLabsUseSpeakerBoost": false,
     "elevenLabsStyle": 0.0

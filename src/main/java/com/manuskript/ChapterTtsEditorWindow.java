@@ -222,6 +222,8 @@ public class ChapterTtsEditorWindow {
     private int hoverRangeEnd = -1;
     private final ObservableList<TtsSegment> segments = FXCollections.observableArrayList();
     private Path lastGeneratedAudioPath;
+    /** Beim Abspielen: Anfang bis zu dieser Sekunde überspringen (z. B. nach Einschwing-Signal). 0 = nicht setzen. */
+    private double playbackTrimStartSec = 0;
 
     private ComboBox<ComfyUIClient.SavedVoice> voiceCombo;
     private Slider temperatureSlider;
@@ -253,6 +255,8 @@ public class ChapterTtsEditorWindow {
     private Button btnStop;
     private Slider trimStartSlider;
     private Label trimStartLabel;
+    private Slider trailSilenceSlider;
+    private Label trailSilenceLabel;
     private ProgressBar playerProgress;
     private MediaPlayer embeddedPlayer;
     /** Pfad, der gerade geladen werden soll; verhindert, dass veraltete asynchrone Loads den Player überschreiben. */
@@ -273,6 +277,7 @@ public class ChapterTtsEditorWindow {
     private ProgressIndicator v3TagProgressIndicator;
     private Label v3TagCheckmark;
     private Label statusLabel;
+    private Label externalEditorPathLabel;
     private int playingSegmentIndex = -1;
     /** Verhindert Doppelstart und Doppelklick bei „Alle abspielen“. */
     private boolean isPlayingAllSequence = false;
@@ -420,6 +425,16 @@ public class ChapterTtsEditorWindow {
                 w.trimStartSlider.setValue(0);
             }
         }
+        // Stille-nach-Segment-Slider persistent laden
+        if (w.trailSilenceSlider != null) {
+            String trailStr = ttsPrefs.get("trail_silence_sec", "0.8");
+            try {
+                double trailSec = Double.parseDouble(trailStr);
+                if (trailSec >= 0 && trailSec <= w.trailSilenceSlider.getMax()) {
+                    w.trailSilenceSlider.setValue(trailSec);
+                }
+            } catch (NumberFormatException ignored) { }
+        }
         w.setupEinschwingTrimResetListener();
         w.loadSegments();
         w.refreshHighlight();
@@ -441,6 +456,9 @@ public class ChapterTtsEditorWindow {
                 ttsPrefs.putBoolean("einschwing_enabled", w.einschwingCheckBox != null && w.einschwingCheckBox.isSelected());
                 if (w.trimStartSlider != null) {
                     ttsPrefs.put("trim_start_sec", String.format(java.util.Locale.ROOT, "%.2f", w.trimStartSlider.getValue()));
+                }
+                if (w.trailSilenceSlider != null) {
+                    ttsPrefs.put("trail_silence_sec", String.format(java.util.Locale.ROOT, "%.2f", w.trailSilenceSlider.getValue()));
                 }
             }
         });
@@ -677,13 +695,23 @@ public class ChapterTtsEditorWindow {
         // Einschwingtext: wird dem TTS-Text vorangestellt, damit die Stimme konsistenter einsetzt
         einschwingCheckBox = new CheckBox("Einschwingtext benutzen");
         einschwingCheckBox.setSelected(false);
-        einschwingCheckBox.setTooltip(new Tooltip("Wenn aktiv, wird dieser Text vor jedem generierten Segment eingefügt, damit die Stimme \"einschwingt\"."));
+        einschwingCheckBox.setTooltip(new Tooltip("Wenn aktiv, wird dieser Text vor jedem Segment eingefügt (Stimme \"einschwingt\"). Hinten wird eine Pause eingefügt; das Ende wird per FFmpeg erkannt, damit das Trim auch bei Batch einheitlich funktioniert."));
         einschwingTextArea = new TextArea();
         einschwingTextArea.setPromptText("Text, der vor jedem Segment vorangestellt wird…");
         einschwingTextArea.setPrefRowCount(3);
         einschwingTextArea.setWrapText(true);
         einschwingTextArea.setMaxWidth(Double.MAX_VALUE);
         einschwingTextArea.disableProperty().bind(einschwingCheckBox.selectedProperty().not());
+        // Keine Zeilenumbrüche – erzeugen Pausen in der TTS; bei Eingabe und Einfügen entfernen
+        einschwingTextArea.addEventFilter(KeyEvent.KEY_PRESSED, ke -> {
+            if (ke.getCode() == KeyCode.ENTER) ke.consume();
+        });
+        einschwingTextArea.textProperty().addListener((o, oldVal, newVal) -> {
+            if (newVal != null && (newVal.contains("\n") || newVal.contains("\r"))) {
+                String normalized = newVal.replace("\r\n", " ").replace("\n", " ").replace("\r", " ");
+                if (!normalized.equals(newVal)) einschwingTextArea.setText(normalized);
+            }
+        });
         VBox einschwingBox = new VBox(4);
         einschwingBox.getChildren().addAll(einschwingCheckBox, einschwingTextArea);
         einschwingBox.setMaxWidth(Double.MAX_VALUE);
@@ -711,6 +739,17 @@ public class ChapterTtsEditorWindow {
         colReplacement.setPrefWidth(160);
         lexiconTable.getColumns().add(colWord);
         lexiconTable.getColumns().add(colReplacement);
+        // Rechtsklick auf Zeile: Eintrag an Cursorposition einfügen (Rechtsklick ändert Auswahl nicht, daher Row-Factory)
+        lexiconTable.setRowFactory(tv -> {
+            TableRow<ComfyUITTSTestWindow.LexiconEntry> row = new TableRow<>();
+            row.setOnMouseClicked(me -> {
+                if (me.getButton() == MouseButton.SECONDARY && me.getClickCount() == 1) {
+                    ComfyUITTSTestWindow.LexiconEntry entry = row.getItem();
+                    if (entry != null) insertLexiconEntryAtCursor(entry);
+                }
+            });
+            return row;
+        });
         Button btnLexiconLoad = new Button("Aus Datei laden");
         btnLexiconLoad.setMinWidth(120);
         btnLexiconLoad.setOnAction(e -> loadLexiconIntoTable());
@@ -873,17 +912,30 @@ public class ChapterTtsEditorWindow {
 
         trimStartSlider = new Slider(0, 20, 0);
         trimStartSlider.setPrefWidth(Double.MAX_VALUE);
-        trimStartSlider.setBlockIncrement(0.5);
-        trimStartSlider.setMajorTickUnit(5);
-        trimStartSlider.setMinorTickCount(4);
-        trimStartLabel = new Label("Anfang abschneiden: 0,0 s");
+        trimStartSlider.setBlockIncrement(0.1);
+        trimStartSlider.setMajorTickUnit(2);
+        trimStartSlider.setMinorTickCount(5);
+        trimStartSlider.setSnapToTicks(false);
+        trimStartLabel = new Label("Anfang abschneiden: 0,00 s");
         trimStartSlider.valueProperty().addListener((o, a, b) -> {
             double sec = b.doubleValue();
-            if (trimStartLabel != null) trimStartLabel.setText(String.format(java.util.Locale.ROOT, "Anfang abschneiden: %.1f s", sec));
+            if (trimStartLabel != null) trimStartLabel.setText(String.format(java.util.Locale.ROOT, "Anfang abschneiden: %.2f s", sec));
+        });
+        trimStartSlider.setTooltip(new Tooltip("Einschwingtext am Anfang weglassen. Bei Batch kann die tatsächliche Einschwing-Dauer je nach Absatzlänge leicht variieren (TTS-abhängig)."));
+
+        trailSilenceSlider = new Slider(0, 3, 0.8);
+        trailSilenceSlider.setPrefWidth(Double.MAX_VALUE);
+        trailSilenceSlider.setBlockIncrement(0.1);
+        trailSilenceSlider.setMajorTickUnit(1);
+        trailSilenceSlider.setMinorTickCount(2);
+        trailSilenceLabel = new Label("Stille nach Segment: 0,8 s");
+        trailSilenceSlider.valueProperty().addListener((o, a, b) -> {
+            double sec = b.doubleValue();
+            if (trailSilenceLabel != null) trailSilenceLabel.setText(String.format(java.util.Locale.ROOT, "Stille nach Segment: %.1f s", sec));
         });
 
         VBox playerBox = new VBox(6);
-        playerBox.getChildren().addAll(playerLabel, playerButtons, playerProgress, new Label("Beim Speichern Anfang weglassen (z. B. Einschwingen):"), trimStartSlider, trimStartLabel);
+        playerBox.getChildren().addAll(playerLabel, playerButtons, playerProgress, new Label("Beim Speichern Anfang weglassen (z. B. Einschwingen):"), trimStartSlider, trimStartLabel, new Label("Beim Speichern: Stille am Ende entfernen, dann feste Pause anhängen (einheitliche Pausen):"), trailSilenceSlider, trailSilenceLabel);
 
         btnErstellen = new Button("Erstellen");
         btnSpeichern = new Button("Speichern");
@@ -959,6 +1011,19 @@ public class ChapterTtsEditorWindow {
         v3TagRow.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
         v3TagRow.getChildren().addAll(btnV3AudioTag, v3TagIconStack);
 
+        // Externes Audioschnittprogramm: Programm wählen (FileChooser), Segment-MP3 als Parameter öffnen
+        Label externalEditorLabel = new Label("Audioschnittprogramm");
+        externalEditorPathLabel = new Label(getExternalAudioEditorDisplayPath());
+        externalEditorPathLabel.setWrapText(true);
+        externalEditorPathLabel.setMaxWidth(Double.MAX_VALUE);
+        Button btnChooseExternalEditor = new Button("Programm wählen…");
+        btnChooseExternalEditor.setOnAction(e -> chooseExternalAudioEditor());
+        Button btnOpenInExternalEditor = new Button("Segment in Audioschnittprogramm öffnen");
+        btnOpenInExternalEditor.setTooltip(new Tooltip("Startet das gewählte Programm mit der MP3 des aktuell geladenen/ausgewählten Segments als Parameter."));
+        btnOpenInExternalEditor.setOnAction(e -> openSegmentInExternalAudioEditor());
+        VBox externalEditorBox = new VBox(4);
+        externalEditorBox.getChildren().addAll(externalEditorLabel, externalEditorPathLabel, btnChooseExternalEditor, btnOpenInExternalEditor);
+
         // Linke Spalte: Stimme, Parameter, Segmentfarbe, Player, Buttons, Batch
         VBox leftColumn = new VBox(12);
         leftColumn.setMinWidth(220);
@@ -973,6 +1038,7 @@ public class ChapterTtsEditorWindow {
             selectionWordCountLabel,
             editModeLabel,
             erstellenRow, btnSpeichern,
+            externalEditorBox,
             new Separator(),
             btnAlleAbspielen,
             buildFullAudioQualityRow(),
@@ -1072,6 +1138,11 @@ public class ChapterTtsEditorWindow {
         applyThemeToNode(successCheckmark, themeIndex);
         applyThemeToNode(erstellenIconStack, themeIndex);
         applyThemeToNode(btnSpeichern, themeIndex);
+        applyThemeToNode(externalEditorBox, themeIndex);
+        applyThemeToNode(externalEditorLabel, themeIndex);
+        if (externalEditorPathLabel != null) applyThemeToNode(externalEditorPathLabel, themeIndex);
+        applyThemeToNode(btnChooseExternalEditor, themeIndex);
+        applyThemeToNode(btnOpenInExternalEditor, themeIndex);
         applyThemeToNode(btnAlleAbspielen, themeIndex);
         if (fullAudioQualityCombo != null) applyThemeToNode(fullAudioQualityCombo, themeIndex);
         applyThemeToNode(btnGesamtAudiodatei, themeIndex);
@@ -1083,6 +1154,8 @@ public class ChapterTtsEditorWindow {
         applyThemeToNode(playerProgress, themeIndex);
         applyThemeToNode(trimStartSlider, themeIndex);
         applyThemeToNode(trimStartLabel, themeIndex);
+        applyThemeToNode(trailSilenceSlider, themeIndex);
+        applyThemeToNode(trailSilenceLabel, themeIndex);
         applyThemeToNode(wrapper, themeIndex);
         applyThemeToNode(tabPane, themeIndex);
         applyThemeToNode(vcContent, themeIndex);
@@ -1801,6 +1874,23 @@ public class ChapterTtsEditorWindow {
         setStatus("Regieanweisung eingefuegt: " + toInsert);
     }
 
+    /** Fügt die Ersetzung des Lexikoneintrags an der Cursorposition im Editor ein. */
+    private void insertLexiconEntryAtCursor(ComfyUITTSTestWindow.LexiconEntry entry) {
+        if (codeArea == null || entry == null) return;
+        if (lexiconTable != null && lexiconTable.getEditingCell() != null)
+            lexiconTable.requestFocus();
+        String toInsert = entry.getReplacement() != null ? entry.getReplacement() : "";
+        if (toInsert.isEmpty()) {
+            setStatus("Ersetzung des Eintrags ist leer.");
+            return;
+        }
+        int pos = codeArea.getCaretPosition();
+        codeArea.insertText(pos, toInsert);
+        codeArea.displaceCaret(pos + toInsert.length());
+        codeArea.requestFollowCaret();
+        setStatus("Lexikoneintrag am Cursor eingefügt.");
+    }
+
     private void bindLeftPanelActions(VBox left) {
         btnPlay.setOnAction(e -> {
             if (embeddedPlayer == null) return;
@@ -1812,14 +1902,10 @@ public class ChapterTtsEditorWindow {
                 embeddedPlayer.play();
                 return;
             }
-            // STOPPED / READY / unbekannt: play() starten, dann per onPlaying-Callback an Trim-Position seekieren
-            double trimSec = (trimStartSlider != null) ? trimStartSlider.getValue() : 0;
+            // STOPPED / READY: ggf. an Trim-Position seeken (Einschwing-Ende oder Slider), dann abspielen
+            double trimSec = (playbackTrimStartSec > 0) ? playbackTrimStartSec : ((trimStartSlider != null) ? trimStartSlider.getValue() : 0);
             if (trimSec > 0) {
-                final MediaPlayer player = embeddedPlayer;
-                player.setOnPlaying(() -> {
-                    player.setOnPlaying(null); // nur einmal
-                    player.seek(Duration.seconds(trimSec));
-                });
+                embeddedPlayer.seek(Duration.seconds(trimSec));
             }
             embeddedPlayer.play();
         });
@@ -1855,6 +1941,101 @@ public class ChapterTtsEditorWindow {
         });
         btnGesamtAudiodatei.setOnAction(e -> createFullAudioFile());
         btnBatchToggle.setOnAction(e -> startBatch());
+    }
+
+    private static final String PREF_EXTERNAL_AUDIO_EDITOR = "tts_external_audio_editor_path";
+    private static final String PREF_EXTERNAL_AUDIO_EDITOR_DIR = "tts_external_audio_editor_dir";
+
+    private String getExternalAudioEditorDisplayPath() {
+        if (ttsPreferences == null) return "(nicht gewählt)";
+        String p = ttsPreferences.get(PREF_EXTERNAL_AUDIO_EDITOR, "");
+        return (p != null && !p.isEmpty()) ? p : "(nicht gewählt)";
+    }
+
+    private void chooseExternalAudioEditor() {
+        FileChooser fc = new FileChooser();
+        fc.setTitle("Audioschnittprogramm wählen");
+        boolean isWindows = System.getProperty("os.name", "").toLowerCase(java.util.Locale.ROOT).contains("win");
+        if (isWindows) {
+            fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("Programme", "*.exe"));
+            fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("Alle Dateien", "*.*"));
+        }
+        if (ttsPreferences != null) {
+            String lastDir = ttsPreferences.get(PREF_EXTERNAL_AUDIO_EDITOR_DIR, null);
+            if (lastDir != null && !lastDir.isEmpty()) {
+                java.io.File d = new java.io.File(lastDir);
+                if (d.isDirectory()) fc.setInitialDirectory(d);
+            }
+            String lastPath = ttsPreferences.get(PREF_EXTERNAL_AUDIO_EDITOR, null);
+            if (lastPath != null && !lastPath.isEmpty()) {
+                java.io.File f = new java.io.File(lastPath);
+                if (f.getParentFile() != null && f.getParentFile().isDirectory())
+                    fc.setInitialDirectory(f.getParentFile());
+            }
+        }
+        java.io.File f = fc.showOpenDialog(stage);
+        if (f != null) {
+            try {
+                if (ttsPreferences != null) {
+                    ttsPreferences.put(PREF_EXTERNAL_AUDIO_EDITOR, f.getAbsolutePath());
+                    if (f.getParent() != null) ttsPreferences.put(PREF_EXTERNAL_AUDIO_EDITOR_DIR, f.getParent());
+                }
+                if (externalEditorPathLabel != null) externalEditorPathLabel.setText(f.getAbsolutePath());
+                setStatus("Audioschnittprogramm: " + f.getName());
+            } catch (Exception e) {
+                logger.warn("Audioschnittprogramm-Pfad nicht gespeichert: {}", e.getMessage());
+            }
+        }
+    }
+
+    private void openSegmentInExternalAudioEditor() {
+        String editorPath = ttsPreferences != null ? ttsPreferences.get(PREF_EXTERNAL_AUDIO_EDITOR, "") : "";
+        if (editorPath == null || editorPath.isEmpty()) {
+            setStatus("Bitte zuerst „Programm wählen…“ ausführen.");
+            return;
+        }
+        java.io.File editorFile = new java.io.File(editorPath);
+        if (!editorFile.isFile()) {
+            setStatus("Audioschnittprogramm nicht gefunden: " + editorPath);
+            return;
+        }
+        Path mp3Path = null;
+        if (lastGeneratedAudioPath != null && Files.isRegularFile(lastGeneratedAudioPath)) {
+            mp3Path = lastGeneratedAudioPath;
+        } else if (selectedSegmentForColor != null && selectedSegmentForColor.audioPath != null && !selectedSegmentForColor.audioPath.isEmpty()) {
+            Path p = Paths.get(selectedSegmentForColor.audioPath);
+            if (!p.isAbsolute() && audioDirPath != null) p = audioDirPath.resolve(p);
+            if (Files.isRegularFile(p)) mp3Path = p;
+        }
+        if (mp3Path == null) {
+            setStatus("Kein Segment geladen. Bitte zuerst „Erstellen“ oder auf ein Segment klicken.");
+            return;
+        }
+        // Datei freigeben: MediaPlayer hält die MP3 sonst gesperrt, externes Programm könnte nicht speichern
+        if (playAllAdvanceTransition != null) {
+            playAllAdvanceTransition.stop();
+            playAllAdvanceTransition = null;
+        }
+        if (seekSettleTransition != null) {
+            seekSettleTransition.stop();
+            seekSettleTransition = null;
+        }
+        pendingSeekResume = false;
+        if (embeddedPlayer != null) {
+            try {
+                embeddedPlayer.stop();
+                embeddedPlayer.dispose();
+            } catch (Exception ignored) { }
+            embeddedPlayer = null;
+        }
+        System.gc(); // Player ist nur noch schwach referenziert – GC-Anstoß, damit Datei freigegeben wird
+        try {
+            new ProcessBuilder(editorPath, mp3Path.toAbsolutePath().toString()).start();
+            setStatus("Segment in Audioschnittprogramm geöffnet. Zum erneuten Abspielen Segment bitte erneut anklicken.");
+        } catch (IOException e) {
+            logger.warn("Audioschnittprogramm starten fehlgeschlagen: {}", e.getMessage());
+            setStatus("Starten fehlgeschlagen: " + e.getMessage());
+        }
     }
 
     /**
@@ -1985,17 +2166,28 @@ public class ChapterTtsEditorWindow {
         return voiceDescriptionArea.getText().trim();
     }
 
+    /** Lange Pause nach Einschwingtext (2,5 s), damit nur diese als Stille erkannt wird – keine Atempause im Text. */
+    private static String getEinschwingPauseMarker(boolean isElevenLabs, String elevenLabsModelId) {
+        if (isElevenLabs) {
+            // v3 hat kein SSML break – lange Pause durch mehrfaches [long pause]
+            if (elevenLabsModelId != null && elevenLabsModelId.toLowerCase(java.util.Locale.ROOT).contains("v3"))
+                return " [long pause] [long pause] [long pause] ";
+            return " <break time=\"2.5s\" /> ";
+        }
+        return " ... ";
+    }
+
     /**
-     * Stellt ggf. den Einschwingtext dem übergebenen TTS-Text voran.
-     * Liefert den zusammengesetzten Text zurück.  Wenn die Checkbox deaktiviert ist oder
-     * der Einschwingtext leer ist, wird der Originaltext unverändert zurückgegeben.
+     * Stellt ggf. den Einschwingtext dem übergebenen TTS-Text voran und fügt einen Pause-Marker ein (für automatisches Trimmen per FFmpeg).
+     * Wenn die Checkbox deaktiviert ist oder der Einschwingtext leer ist, wird der Originaltext unverändert zurückgegeben.
      */
-    private String prependEinschwingText(String ttsText) {
+    private String prependEinschwingText(String ttsText, boolean isElevenLabs) {
         if (einschwingCheckBox == null || !einschwingCheckBox.isSelected()) return ttsText;
         String prefix = einschwingTextArea.getText();
         if (prefix == null || prefix.isBlank()) return ttsText;
-        // Leerzeichen als Trenner sicherstellen
-        return prefix.trim() + " " + ttsText;
+        String modelId = (elevenLabsModelCombo != null && elevenLabsModelCombo.getSelectionModel().getSelectedItem() != null)
+            ? elevenLabsModelCombo.getSelectionModel().getSelectedItem() : null;
+        return prefix.trim() + getEinschwingPauseMarker(isElevenLabs, modelId) + ttsText;
     }
 
     /** Lädt asynchron das ElevenLabs-Zeichen-Guthaben (GET /v1/user/subscription) und aktualisiert die Anzeige. */
@@ -2417,17 +2609,22 @@ public class ChapterTtsEditorWindow {
         // Seed und Speaker aus dem Segment übernehmen, damit neue Segmente dieselbe Stimme bekommen
         currentSeedForGeneration = (seg.seed != 0) ? seg.seed : (selectedVoice != null && selectedVoice.getSeed() != 0 ? selectedVoice.getSeed() : ComfyUIClient.DEFAULT_SEED);
         currentSpeakerIdForGeneration = (seg.speakerId != null && !seg.speakerId.isBlank()) ? seg.speakerId : (selectedVoice != null && selectedVoice.getSpeakerId() != null && !selectedVoice.getSpeakerId().isBlank() ? selectedVoice.getSpeakerId() : ComfyUIClient.DEFAULT_CUSTOM_SPEAKER);
+        boolean playbackWasRunning = embeddedPlayer != null && embeddedPlayer.getStatus() == MediaPlayer.Status.PLAYING;
         if (seg.audioPath != null && !seg.audioPath.isEmpty()) {
             Path p = Paths.get(seg.audioPath);
             if (!p.isAbsolute() && audioDirPath != null) {
                 p = audioDirPath.resolve(p);
             }
             if (Files.isRegularFile(p)) {
-                loadAudioInPlayer(p);
                 lastGeneratedAudioPath = p;
+                if (!playbackWasRunning) {
+                    loadAudioInPlayer(p);
+                }
             }
         }
-        setStatus("Segment zum Überarbeiten geladen.");
+        setStatus(playbackWasRunning && seg.audioPath != null && !seg.audioPath.isEmpty()
+            ? "Segment ausgewählt, Abspielen läuft weiter."
+            : "Segment zum Überarbeiten geladen.");
         refreshHighlight();
         // Signatur setzen, damit Speichern (auch mit „Anfang abschneiden“) die geladene Datei findet
         String segmentText = codeArea.getText(seg.start, seg.end);
@@ -2677,21 +2874,35 @@ public class ChapterTtsEditorWindow {
         if (codeArea != null) codeArea.setDisable(true);
         setStatus("Erzeuge Sprachausgabe…");
         final long effectiveSeed = seed;
-        final String ttsText = prependEinschwingText(sel);
+        final boolean isElevenLabs = voice != null && "elevenlabs".equalsIgnoreCase(voice.getProvider());
+        final String ttsText = prependEinschwingText(sel, isElevenLabs);
+        final boolean detectEinschwingTrim = isElevenLabs && einschwingCheckBox != null && einschwingCheckBox.isSelected()
+            && einschwingTextArea != null && einschwingTextArea.getText() != null && !einschwingTextArea.getText().isBlank();
         CompletableFuture.runAsync(() -> {
             try {
                 java.util.Map<String, String> lexicon = getLexiconFromTable();
                 Path path = Files.createTempFile("manuskript-tts-", ".mp3");
                 TtsBackend.generateTtsToFile(ttsText, effectiveVoice, lexicon, path, true, null, effectiveSeed);
                 Path p = path;
+                double trimSec = (detectEinschwingTrim) ? findFirstLongSilenceEnd(p, 2.0) : -1;
+                if (trimSec > 0) {
+                    Path trimmed = Files.createTempFile("manuskript-tts-trimmed-", ".mp3");
+                    String err = trimAudioFromStart(p, trimmed, trimSec);
+                    if (err == null) {
+                        try { Files.delete(p); } catch (IOException ignored) { }
+                        p = trimmed;
+                    }
+                }
+                final Path resultPath = p;
+                final boolean einschwingTrimFound = trimSec > 0;
                 String sig = signature;
                 Platform.runLater(() -> {
                     if (myRequestId != ttsRequestId) return;
                     isTtsGenerationRunning = false;
-                    lastGeneratedAudioPath = p;
+                    lastGeneratedAudioPath = resultPath;
                     lastGeneratedSignature = sig;
-                    generatedAudioBySignature.put(sig, p);
-                    loadAudioInPlayer(p);
+                    generatedAudioBySignature.put(sig, resultPath);
+                    loadAudioInPlayer(resultPath);
                     progressIndicator.setVisible(false);
                     if (codeArea != null) codeArea.setDisable(false);
                     if (successCheckmark != null) {
@@ -2701,7 +2912,13 @@ public class ChapterTtsEditorWindow {
                         }
                     }
                     btnErstellen.setDisable(false);
-                    setStatus("Erstellt. Sie können speichern oder erneut erstellen.");
+                    if (detectEinschwingTrim && !einschwingTrimFound) {
+                        setStatus("Erstellt. Einschwing-Ende nicht erkannt – Datei unverändert. Beim Speichern ggf. „Anfang abschneiden“-Slider nutzen.");
+                    } else {
+                        setStatus("Erstellt. Sie können speichern oder erneut erstellen.");
+                        // Datei ist bereits getrimmt – Slider auf 0, damit beim Speichern nicht nochmal geschnitten wird
+                        if (einschwingTrimFound && trimStartSlider != null) trimStartSlider.setValue(0);
+                    }
                     if ("elevenlabs".equalsIgnoreCase(effectiveVoice.getProvider())) refreshElevenLabsBalance();
                 });
             } catch (Exception e) {
@@ -2728,7 +2945,12 @@ public class ChapterTtsEditorWindow {
     }
 
     private void loadAudioInPlayer(Path path) {
+        loadAudioInPlayer(path, 0);
+    }
+
+    private void loadAudioInPlayer(Path path, double startAtSec) {
         if (path == null) return;
+        playbackTrimStartSec = startAtSec > 0 ? startAtSec : 0;
         Path requestedPath = path.normalize().toAbsolutePath();
         pendingAudioPath = requestedPath;
         if (playAllAdvanceTransition != null) {
@@ -2753,42 +2975,51 @@ public class ChapterTtsEditorWindow {
             btnPlay.setDisable(false);
             btnPause.setDisable(false);
             btnStop.setDisable(false);
+            final double trimForProgress = playbackTrimStartSec;
+            // WeakReference, damit nach dispose() + embeddedPlayer=null der Player GC-fähig ist und die Datei freigegeben wird (z. B. für externes Audioschnittprogramm)
+            java.lang.ref.WeakReference<MediaPlayer> weakPlayer = new java.lang.ref.WeakReference<>(player);
             player.currentTimeProperty().addListener((o, a, b) -> {
-                if (embeddedPlayer != player) return;
-                Duration total = player.getTotalDuration();
+                MediaPlayer p = weakPlayer.get();
+                if (p == null || embeddedPlayer != p) return;
+                Duration total = p.getTotalDuration();
                 if (total != null && total.greaterThan(Duration.ZERO)) {
-                    double trimSec = (trimStartSlider != null) ? trimStartSlider.getValue() : 0;
+                    double trimSec = trimForProgress > 0 ? trimForProgress : ((trimStartSlider != null) ? trimStartSlider.getValue() : 0);
                     double totalSec = total.toSeconds();
                     double curSec = b.toSeconds();
-                    double p;
+                    double frac;
                     if (trimSec > 0 && trimSec < totalSec && curSec >= trimSec) {
-                        p = (curSec - trimSec) / (totalSec - trimSec);
+                        frac = (curSec - trimSec) / (totalSec - trimSec);
                     } else {
-                        p = totalSec > 0 ? curSec / totalSec : 0;
+                        frac = totalSec > 0 ? curSec / totalSec : 0;
                     }
-                    final double prog = Math.min(1.0, Math.max(0.0, p));
+                    final double prog = Math.min(1.0, Math.max(0.0, frac));
                     Platform.runLater(() -> playerProgress.setProgress(prog));
                 }
             });
             player.setOnReady(() -> Platform.runLater(() -> {
-                if (embeddedPlayer != player || !requestedPath.equals(pendingAudioPath)) return;
+                MediaPlayer p = weakPlayer.get();
+                if (p == null || embeddedPlayer != p || !requestedPath.equals(pendingAudioPath)) return;
+                if (playbackTrimStartSec > 0) {
+                    p.seek(javafx.util.Duration.seconds(playbackTrimStartSec));
+                }
                 playerProgress.setProgress(0);
-                Duration total = player.getTotalDuration();
+                Duration total = p.getTotalDuration();
                 if (total != null && total.toSeconds() > 0 && trimStartSlider != null) {
                     double maxSec = Math.min(20, total.toSeconds());
                     trimStartSlider.setMax(maxSec);
                     if (trimStartSlider.getValue() > maxSec) trimStartSlider.setValue(0);
                 }
                 if (isPlayingAllSequence) {
-                    Duration d = player.getTotalDuration();
+                    Duration d = p.getTotalDuration();
                     if (d != null && d.greaterThan(Duration.ZERO)) {
                         if (playAllAdvanceTransition != null) playAllAdvanceTransition.stop();
                         playAllAdvanceTransition = new PauseTransition(d);
                         playAllAdvanceTransition.setOnFinished(e2 -> {
-                            if (!isPlayingAllSequence || embeddedPlayer != player) return;
+                            MediaPlayer px = weakPlayer.get();
+                            if (!isPlayingAllSequence || px == null || embeddedPlayer != px) return;
                             playAllAdvanceTransition = null;
                             playerProgress.setProgress(1.0);
-                            player.stop();
+                            px.stop();
                             playingSegmentIndex++;
                             playCurrentSegmentInEmbeddedPlayer();
                         });
@@ -2797,9 +3028,10 @@ public class ChapterTtsEditorWindow {
                 }
             }));
             player.setOnEndOfMedia(() -> Platform.runLater(() -> {
-                if (embeddedPlayer != player) return;
+                MediaPlayer p = weakPlayer.get();
+                if (p == null || embeddedPlayer != p) return;
                 playerProgress.setProgress(1.0);
-                player.stop();
+                p.stop();
                 if (!isPlayingAllSequence) {
                     // Nur außerhalb „Alle abspielen“ hier reagieren; bei „Alle abspielen“ übernimmt der Timer
                 }
@@ -2974,8 +3206,8 @@ public class ChapterTtsEditorWindow {
         return unmarked;
     }
 
-    /** Kopiert generierte Audio nach block_XXX.mp3 und fügt das Segment hinzu (Blocknummer + Copy im FX-Thread, damit keine Doppelvergabe). Temp-Datei wird nach Copy gelöscht. */
-    private void saveBatchSegment(int start, int end, Path generatedAudioPath, String voiceName, double temp, double topP, int topK, double repPen, boolean hq, ComfyUIClient.SavedVoice voice) {
+    /** Kopiert generierte Audio nach block_XXX.mp3 und fügt das Segment hinzu (Blocknummer + Copy im FX-Thread, damit keine Doppelvergabe). Temp-Datei wird nach Copy gelöscht. @param detectedTrimSec wenn Einschwing-Signal erkannt wurde, Trim in Sekunden; sonst null (dann Slider) */
+    private void saveBatchSegment(int start, int end, Path generatedAudioPath, String voiceName, double temp, double topP, int topK, double repPen, boolean hq, ComfyUIClient.SavedVoice voice, Double detectedTrimSec) {
         Path tempPath = generatedAudioPath;
         Platform.runLater(() -> {
             try {
@@ -2983,7 +3215,14 @@ public class ChapterTtsEditorWindow {
                 int n = getNextFreeBlockNumber();
                 String baseName = "block_" + String.format("%03d", n) + ".mp3";
                 Path target = audioDirPath != null ? audioDirPath.resolve(baseName) : tempPath;
-                if (audioDirPath != null) Files.copy(tempPath, target, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                if (audioDirPath != null) {
+                    double trimSec = (detectedTrimSec != null && detectedTrimSec > 0) ? detectedTrimSec : ((trimStartSlider != null && trimStartSlider.getValue() > 0) ? trimStartSlider.getValue() : 0);
+                    double trailSec = (trailSilenceSlider != null) ? trailSilenceSlider.getValue() : 0.8;
+                    String err = prepareSegmentAudio(tempPath, target, trimSec, trailSec);
+                    if (err != null) {
+                        try { Files.copy(tempPath, target, java.nio.file.StandardCopyOption.REPLACE_EXISTING); } catch (IOException ignored) { }
+                    }
+                }
                 try { Files.deleteIfExists(tempPath); } catch (IOException ignored) { }
                 String audioPathStr = target.toAbsolutePath().toString();
                 String voiceDesc = getEffectiveVoiceDescription();
@@ -3078,11 +3317,14 @@ public class ChapterTtsEditorWindow {
             int start = r[0], end = r[1];
             String text = fullText.substring(start, end).trim();
             if (text.isEmpty()) continue;
-            String ttsText = (einschwingPrefix != null) ? (einschwingPrefix + " " + text) : text;
+            boolean isEl = "elevenlabs".equalsIgnoreCase(voice.getProvider());
+            String elModel = (voice != null && voice.getElevenLabsModelId() != null) ? voice.getElevenLabsModelId() : null;
+            String ttsText = (einschwingPrefix != null) ? (einschwingPrefix.trim() + getEinschwingPauseMarker(isEl, elModel) + text) : text;
             try {
                 Path tempPath = Files.createTempFile("manuskript-batch-", ".mp3");
                 TtsBackend.generateTtsToFile(ttsText, effectiveVoice, lexicon, tempPath, true, null, seed);
-                saveBatchSegment(start, end, tempPath, voiceName, temp, topP, topK, repPen, hq, effectiveVoice);
+                double detectedTrim = (einschwingPrefix != null) ? findFirstLongSilenceEnd(tempPath, 2.0) : -1;
+                saveBatchSegment(start, end, tempPath, voiceName, temp, topP, topK, repPen, hq, effectiveVoice, detectedTrim > 0 ? detectedTrim : null);
                 doneRef[0]++;
                 final int d = doneRef[0];
                 Platform.runLater(() -> setStatus("Batch: " + d + "/" + total + " " + (byParagraph ? "Absätze" : "Sätze") + " erledigt."));
@@ -3183,14 +3425,11 @@ public class ChapterTtsEditorWindow {
             String baseName = "block_" + String.format("%03d", n) + ".mp3";
             Path target = audioDirPath != null ? audioDirPath.resolve(baseName) : sourcePath;
             double trimStartSec = (trimStartSlider != null && trimStartSlider.getValue() > 0) ? trimStartSlider.getValue() : 0;
+            double trailSilenceSec = (trailSilenceSlider != null) ? trailSilenceSlider.getValue() : 0.8;
             if (audioDirPath != null) {
-                if (trimStartSec > 0) {
-                    String err = trimAudioFromStart(sourcePath, target, trimStartSec);
-                    if (err != null) {
-                        setStatus("Beschneiden fehlgeschlagen: " + err + " – speichere unbeschnitten.");
-                        Files.copy(sourcePath, target, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-                    }
-                } else {
+                String err = prepareSegmentAudio(sourcePath, target, trimStartSec, trailSilenceSec);
+                if (err != null) {
+                    setStatus("Vorbereiten fehlgeschlagen: " + err + " – speichere unverändert.");
                     Files.copy(sourcePath, target, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
                 }
             }
@@ -3430,6 +3669,42 @@ public class ChapterTtsEditorWindow {
         return null;
     }
 
+    /** Liefert den Pfad zu ffprobe (gleiches Verzeichnis wie ffmpeg), sonst null. */
+    private static String getFfprobeExePath() {
+        String ffmpeg = getFfmpegExePath();
+        if (ffmpeg == null) return null;
+        java.io.File parent = new java.io.File(ffmpeg).getParentFile();
+        boolean isWindows = System.getProperty("os.name", "").toLowerCase(java.util.Locale.ROOT).contains("win");
+        String name = isWindows ? "ffprobe.exe" : "ffprobe";
+        java.io.File exe = new java.io.File(parent, name);
+        if (exe.isFile()) return exe.getAbsolutePath();
+        exe = new java.io.File(parent, "bin" + java.io.File.separator + name);
+        return exe.isFile() ? exe.getAbsolutePath() : null;
+    }
+
+    /** Audiodauer in Sekunden (ffprobe); -1 wenn nicht ermittelbar. */
+    private static double getAudioDurationSec(Path input) {
+        String exe = getFfprobeExePath();
+        if (exe == null) exe = "ffprobe";
+        List<String> cmd = List.of(
+            exe, "-v", "error", "-show_entries", "format=duration",
+            "-of", "default=noprint_wrappers=1:nokey=1",
+            input.toAbsolutePath().toString()
+        );
+        try {
+            Process p = new ProcessBuilder(cmd).redirectErrorStream(true).start();
+            String out = new String(p.getInputStream().readAllBytes(), java.nio.charset.StandardCharsets.UTF_8).trim();
+            p.waitFor();
+            if (!out.isEmpty()) {
+                double d = Double.parseDouble(out.replace(',', '.'));
+                return d > 0 ? d : -1;
+            }
+        } catch (Exception e) {
+            logger.debug("Audiodauer (ffprobe) nicht ermittelbar: {}", e.getMessage());
+        }
+        return -1;
+    }
+
     /**
      * Entpackt eine ZIP-Datei in das angegebene Zielverzeichnis.
      * Vorhandene Dateien werden überschrieben. Schützt gegen Zip-Slip.
@@ -3484,6 +3759,164 @@ public class ChapterTtsEditorWindow {
         } catch (Exception e) {
             return e.getMessage();
         }
+    }
+
+    /**
+     * Findet den Start der letzten Stille am Dateiende ( = Ende des Inhalts in Sekunden).
+     * Nur Stille, die ans Dateiende grenzt (silence_end >= duration - 0,2 s).
+     * @return Sekunden, bis zu denen Inhalt behalten werden soll; -1 wenn nicht ermittelbar.
+     */
+    private static double findTrailingSilenceStart(Path input, double durationSec) {
+        if (durationSec <= 0) return -1;
+        String ffmpegExe = getFfmpegExePath();
+        if (ffmpegExe == null) ffmpegExe = "ffmpeg";
+        int thresholdDb = -40;
+        double minD = 0.3;
+        List<String> cmd = List.of(
+            ffmpegExe, "-i", input.toAbsolutePath().toString(),
+            "-af", String.format(java.util.Locale.ROOT, "silencedetect=noise=%ddB:d=%.2f", thresholdDb, minD),
+            "-f", "null", "-"
+        );
+        try {
+            Process p = new ProcessBuilder(cmd).redirectErrorStream(true).start();
+            String out = new String(p.getInputStream().readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+            p.waitFor();
+            double lastStart = -1;
+            double trailingStart = -1;
+            double endEpsilon = 0.2;
+            for (String line : out.split("\n")) {
+                line = line.trim();
+                if (line.contains("silence_start:")) {
+                    String val = line.substring(line.indexOf("silence_start:") + 14).trim();
+                    int sp = val.indexOf(' ');
+                    if (sp > 0) val = val.substring(0, sp);
+                    try { lastStart = Double.parseDouble(val); } catch (NumberFormatException ignored) {}
+                }
+                if (line.contains("silence_end:") && lastStart >= 0) {
+                    String val = line.substring(line.indexOf("silence_end:") + 12).trim();
+                    int pipe = val.indexOf('|');
+                    if (pipe > 0) val = val.substring(0, pipe).trim();
+                    int sp = val.indexOf(' ');
+                    if (sp > 0) val = val.substring(0, sp);
+                    try {
+                        double end = Double.parseDouble(val);
+                        if (end >= durationSec - endEpsilon) {
+                            trailingStart = lastStart;
+                        }
+                        lastStart = -1;
+                    } catch (NumberFormatException ignored) {}
+                }
+            }
+            return trailingStart >= 0 ? trailingStart : -1;
+        } catch (Exception e) {
+            logger.debug("Trailing-Silence-Start nicht ermittelbar: {}", e.getMessage());
+            return -1;
+        }
+    }
+
+    /**
+     * Bereitet eine Segment-Audiodatei für das Speichern vor: optional Anfang abschneiden,
+     * Endstille entfernen (nur die letzte am Dateiende per silencedetect), feste Pause anhängen.
+     * @param trailSilenceSec Pause in Sekunden am Ende (0 = keine zusätzliche Stille)
+     * @return null bei Erfolg, sonst Fehlermeldung
+     */
+    private static String prepareSegmentAudio(Path source, Path target, double trimStartSec, double trailSilenceSec) throws IOException {
+        String ffmpegExe = getFfmpegExePath();
+        if (ffmpegExe == null) ffmpegExe = "ffmpeg";
+        java.util.List<String> cmd = new java.util.ArrayList<>();
+        cmd.add(ffmpegExe);
+        cmd.add("-y");
+        cmd.add("-loglevel");
+        cmd.add("error");
+        if (trimStartSec > 0) {
+            cmd.add("-ss");
+            cmd.add(String.format(java.util.Locale.ROOT, "%.3f", trimStartSec));
+        }
+        cmd.add("-i");
+        cmd.add(source.toAbsolutePath().toString());
+        if (trailSilenceSec > 0) {
+            double duration = getAudioDurationSec(source);
+            double contentEnd = (duration > 0) ? findTrailingSilenceStart(source, duration) : -1;
+            if (contentEnd > 0) {
+                double outDuration = contentEnd - trimStartSec;
+                if (outDuration > 0.1) {
+                    cmd.add("-t");
+                    cmd.add(String.format(java.util.Locale.ROOT, "%.3f", outDuration));
+                }
+            }
+            cmd.add("-af");
+            cmd.add("apad=pad_dur=" + String.format(java.util.Locale.ROOT, "%.2f", trailSilenceSec));
+            cmd.add("-c:a");
+            cmd.add("libmp3lame");
+            cmd.add("-b:a");
+            cmd.add("320k");
+        } else {
+            cmd.add("-c:a");
+            cmd.add("copy");
+        }
+        cmd.add(target.toAbsolutePath().toString());
+        try {
+            Process p = new ProcessBuilder(cmd).redirectErrorStream(true).start();
+            String out = new String(p.getInputStream().readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+            int code = p.waitFor();
+            if (code != 0) return out.isEmpty() ? "Exit " + code : out.trim();
+            return null;
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return e.getMessage();
+        }
+    }
+
+    /** Marge in Sekunden vor dem gemeldeten Stille-Ende, damit die erste Silbe nicht abgeschnitten wird (silencedetect meldet oft etwas zu spät). */
+    private static final double EINSCHWING_TRIM_MARGIN_SEC = 0.12;
+
+    /**
+     * Findet das Ende der ersten Stille von mindestens minSilenceSec Sekunden (lange Pause nach Einschwingtext).
+     * Rückgabe: Zeit in Sekunden, ab der der Inhalt beginnt (mit Marge zurückversetzt, damit erste Silbe erhalten bleibt); -1 wenn nicht gefunden.
+     */
+    private static double findFirstLongSilenceEnd(Path input, double minSilenceSec) {
+        String ffmpegExe = getFfmpegExePath();
+        if (ffmpegExe == null) ffmpegExe = "ffmpeg";
+        if (minSilenceSec <= 0) return -1;
+        int thresholdDb = -40;
+        double minD = Math.max(minSilenceSec, 0.5);
+        List<String> cmd = List.of(
+            ffmpegExe, "-i", input.toAbsolutePath().toString(),
+            "-af", String.format(java.util.Locale.ROOT, "silencedetect=noise=%ddB:d=%.2f", thresholdDb, minD),
+            "-f", "null", "-"
+        );
+        try {
+            Process p = new ProcessBuilder(cmd).redirectErrorStream(true).start();
+            String out = new String(p.getInputStream().readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+            p.waitFor();
+            double lastStart = -1;
+            for (String line : out.split("\n")) {
+                line = line.trim();
+                if (line.contains("silence_start:")) {
+                    String val = line.substring(line.indexOf("silence_start:") + 14).trim();
+                    int sp = val.indexOf(' ');
+                    if (sp > 0) val = val.substring(0, sp);
+                    try { lastStart = Double.parseDouble(val); } catch (NumberFormatException ignored) {}
+                }
+                if (line.contains("silence_end:") && lastStart >= 0) {
+                    String val = line.substring(line.indexOf("silence_end:") + 12).trim();
+                    int pipe = val.indexOf('|');
+                    if (pipe > 0) val = val.substring(0, pipe).trim();
+                    int sp = val.indexOf(' ');
+                    if (sp > 0) val = val.substring(0, sp);
+                    try {
+                        double end = Double.parseDouble(val);
+                        double trimAt = Math.max(0, end - EINSCHWING_TRIM_MARGIN_SEC);
+                        logger.debug("Einschwing-Signal gefunden: Trim ab {}s (Stille-Ende {}s)", String.format(java.util.Locale.ROOT, "%.2f", trimAt), String.format(java.util.Locale.ROOT, "%.2f", end));
+                        return trimAt;
+                    } catch (NumberFormatException ignored) {}
+                }
+            }
+            logger.warn("Einschwing-Signal: keine Stille >= {}s ({}dB) in {} gefunden.", minD, thresholdDb, input.getFileName());
+        } catch (Exception e) {
+            logger.warn("Einschwing-Signal (silencedetect) nicht gefunden: {}", e.getMessage());
+        }
+        return -1;
     }
 
     /** Formatiert eine Kommandozeile für CMD: ein Argument pro Stelle, Pfade mit Leerzeichen in Anführungszeichen. Zum Kopieren in cmd. */
