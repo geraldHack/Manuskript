@@ -856,10 +856,50 @@ public class ChapterTtsEditorWindow {
             else setStatus("Bitte eine Regieanweisung ausw\u00e4hlen.");
         });
         Button btnRegieSave = new Button("Speichern");
-        btnRegieSave.setMinWidth(100);
         btnRegieSave.setOnAction(e -> { saveRegieanweisungen(); setStatus("Regieanweisungen gespeichert."); });
-        FlowPane regieButtons = new FlowPane(6, 4);
-        regieButtons.getChildren().addAll(btnRegieAdd, btnRegieRemove, btnRegieCollect, btnRegieInsert, btnRegieSave);
+        Button btnV3AudioTag = new Button("v3 Text taggen");
+        btnV3AudioTag.setTooltip(new Tooltip("Text über Ollama mit ElevenLabs v3 Audio-Tags anreichern ([laughing], [sighs], [whisper] etc.)"));
+        btnV3AudioTag.setOnAction(e -> tagTextWithV3AudioTags());
+        v3TagProgressIndicator = new ProgressIndicator(-1);
+        v3TagProgressIndicator.setVisible(false);
+        v3TagProgressIndicator.setPrefSize(20, 20);
+        v3TagProgressIndicator.setMaxSize(20, 20);
+        v3TagProgressIndicator.setMinSize(20, 20);
+        v3TagCheckmark = new Label("\u2713");
+        v3TagCheckmark.setStyle("-fx-text-fill: #2e7d32; -fx-font-size: 16px; -fx-font-weight: bold;");
+        v3TagCheckmark.setVisible(false);
+        v3TagCheckmark.setMinSize(20, 20);
+        v3TagCheckmark.setPrefSize(20, 20);
+        v3TagCheckmark.setMaxSize(20, 20);
+        v3TagCheckmark.setAlignment(javafx.geometry.Pos.CENTER);
+        StackPane v3TagIconStack = new StackPane();
+        v3TagIconStack.setMinSize(20, 20);
+        v3TagIconStack.setPrefSize(20, 20);
+        v3TagIconStack.setMaxSize(20, 20);
+        v3TagIconStack.getChildren().addAll(v3TagProgressIndicator, v3TagCheckmark);
+        // 6 Buttons in 2 Zeilen à 3, gleich breit
+        HBox regieRow1 = new HBox(8);
+        for (Button b : new Button[]{ btnRegieAdd, btnRegieRemove, btnRegieCollect }) {
+            b.setMaxWidth(Double.MAX_VALUE);
+            regieRow1.getChildren().add(b);
+        }
+        for (Node n : regieRow1.getChildren()) HBox.setHgrow(n, Priority.ALWAYS);
+        HBox v3Cell = new HBox(8);
+        v3Cell.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        btnV3AudioTag.setMaxWidth(Double.MAX_VALUE);
+        v3Cell.getChildren().addAll(btnV3AudioTag, v3TagIconStack);
+        HBox.setHgrow(btnV3AudioTag, Priority.ALWAYS);
+        HBox regieRow2 = new HBox(8);
+        for (Button b : new Button[]{ btnRegieInsert, btnRegieSave }) {
+            b.setMaxWidth(Double.MAX_VALUE);
+            regieRow2.getChildren().add(b);
+        }
+        v3Cell.setMaxWidth(Double.MAX_VALUE);
+        regieRow2.getChildren().add(v3Cell);
+        HBox.setHgrow(v3Cell, Priority.ALWAYS);
+        for (Node n : regieRow2.getChildren()) HBox.setHgrow(n, Priority.ALWAYS);
+        VBox regieButtons = new VBox(4);
+        regieButtons.getChildren().addAll(regieRow1, regieRow2);
         VBox regieanweisungenBox = new VBox(4);
         regieanweisungenBox.getChildren().addAll(regieLabel, regieanweisungenTableView, regieanweisungenSortCombo, regieButtons);
 
@@ -972,6 +1012,12 @@ public class ChapterTtsEditorWindow {
         erstellenRow.getChildren().addAll(btnErstellen, erstellenIconStack);
         statusLabel = new Label(" ");
         statusLabel.setWrapText(true);
+        statusLabel.setMaxWidth(Double.MAX_VALUE);
+        statusLabel.getStyleClass().add("param-key-label");
+        VBox statusBar = new VBox(0);
+        statusBar.getStyleClass().add("param-card");
+        statusBar.getChildren().add(statusLabel);
+        statusBar.setMaxWidth(Double.MAX_VALUE);
 
         selectionWordCountLabel = new Label("");
         selectionWordCountLabel.setStyle(String.format(
@@ -987,30 +1033,6 @@ public class ChapterTtsEditorWindow {
         batchRow.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
         batchRow.getChildren().addAll(new Label("Batch:"), batchModeCombo, btnBatchToggle);
 
-        Button btnV3AudioTag = new Button("v3 Text taggen");
-        btnV3AudioTag.setTooltip(new Tooltip("Text über Ollama mit ElevenLabs v3 Audio-Tags anreichern ([laughing], [sighs], [whisper] etc.)"));
-        btnV3AudioTag.setOnAction(e -> tagTextWithV3AudioTags());
-        v3TagProgressIndicator = new ProgressIndicator(-1);
-        v3TagProgressIndicator.setVisible(false);
-        v3TagProgressIndicator.setPrefSize(20, 20);
-        v3TagProgressIndicator.setMaxSize(20, 20);
-        v3TagProgressIndicator.setMinSize(20, 20);
-        v3TagCheckmark = new Label("\u2713");
-        v3TagCheckmark.setStyle("-fx-text-fill: #2e7d32; -fx-font-size: 16px; -fx-font-weight: bold;");
-        v3TagCheckmark.setVisible(false);
-        v3TagCheckmark.setMinSize(20, 20);
-        v3TagCheckmark.setPrefSize(20, 20);
-        v3TagCheckmark.setMaxSize(20, 20);
-        v3TagCheckmark.setAlignment(javafx.geometry.Pos.CENTER);
-        StackPane v3TagIconStack = new StackPane();
-        v3TagIconStack.setMinSize(20, 20);
-        v3TagIconStack.setPrefSize(20, 20);
-        v3TagIconStack.setMaxSize(20, 20);
-        v3TagIconStack.getChildren().addAll(v3TagProgressIndicator, v3TagCheckmark);
-        HBox v3TagRow = new HBox(8);
-        v3TagRow.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
-        v3TagRow.getChildren().addAll(btnV3AudioTag, v3TagIconStack);
-
         // Externes Audioschnittprogramm: Programm wählen (FileChooser), Segment-MP3 als Parameter öffnen
         Label externalEditorLabel = new Label("Audioschnittprogramm");
         externalEditorPathLabel = new Label(getExternalAudioEditorDisplayPath());
@@ -1024,7 +1046,7 @@ public class ChapterTtsEditorWindow {
         VBox externalEditorBox = new VBox(4);
         externalEditorBox.getChildren().addAll(externalEditorLabel, externalEditorPathLabel, btnChooseExternalEditor, btnOpenInExternalEditor);
 
-        // Linke Spalte: Stimme, Parameter, Segmentfarbe, Player, Buttons, Batch
+        // Linke Spalte: Stimme, Parameter, Segmentfarbe, Player, Erstellen/Speichern-Gruppe, Batch
         VBox leftColumn = new VBox(12);
         leftColumn.setMinWidth(220);
         leftColumn.setPrefWidth(300);
@@ -1037,35 +1059,36 @@ public class ChapterTtsEditorWindow {
             playerBox,
             selectionWordCountLabel,
             editModeLabel,
+            new Separator(),
             erstellenRow, btnSpeichern,
-            externalEditorBox,
             new Separator(),
             btnAlleAbspielen,
             buildFullAudioQualityRow(),
             btnGesamtAudiodatei,
             new Separator(),
-            batchRow,
-            v3TagRow,
-            statusLabel
+            batchRow
         );
-        VBox.setVgrow(statusLabel, Priority.ALWAYS);
 
-        // Rechte Spalte: Aussprache-Lexikon, Regieanweisungen (Hgrow damit sie Platz im HBox bekommt)
+        // Lexikon und Regieanweisungen eng untereinander (kein Abstand nach unten)
+        VBox lexiconAndRegieBox = new VBox(4);
+        lexiconAndRegieBox.setMaxWidth(Double.MAX_VALUE);
+        lexiconAndRegieBox.getChildren().addAll(lexiconBox, regieanweisungenBox);
+
+        // Rechte Spalte: Einschwing, Lexikon+Regie, Audioschnittprogramm
         VBox rightColumn = new VBox(12);
         rightColumn.setMinWidth(180);
         rightColumn.setPrefWidth(280);
         rightColumn.setMaxWidth(Double.MAX_VALUE);
         lexiconBox.setMaxWidth(Double.MAX_VALUE);
         regieanweisungenBox.setMaxWidth(Double.MAX_VALUE);
-        VBox.setVgrow(lexiconBox, Priority.ALWAYS);
         einschwingBox.setMaxWidth(Double.MAX_VALUE);
-        rightColumn.getChildren().addAll(einschwingBox, lexiconBox, regieanweisungenBox);
+        rightColumn.getChildren().addAll(einschwingBox, lexiconAndRegieBox, new Separator(), externalEditorBox);
         loadRegieanweisungen();
 
         HBox twoCol = new HBox(16);
         twoCol.getChildren().addAll(leftColumn, rightColumn);
         HBox.setHgrow(rightColumn, Priority.ALWAYS);
-        left.getChildren().add(twoCol);
+        left.getChildren().addAll(statusBar, twoCol);
         VBox.setVgrow(twoCol, Priority.ALWAYS);
 
         TabPane tabPane = new TabPane();
@@ -1123,10 +1146,14 @@ public class ChapterTtsEditorWindow {
         applyThemeToNode(repetitionPenaltyLabel, themeIndex);
         applyThemeToNode(highQualityCheck, themeIndex);
         applyThemeToNode(voiceDescriptionArea, themeIndex);
+        applyThemeToNode(lexiconAndRegieBox, themeIndex);
         applyThemeToNode(lexiconBox, themeIndex);
         applyThemeToNode(lexiconTable, themeIndex);
         applyThemeToNode(regieanweisungenBox, themeIndex);
         applyThemeToNode(regieanweisungenTableView, themeIndex);
+        applyThemeToNode(btnV3AudioTag, themeIndex);
+        applyThemeToNode(statusBar, themeIndex);
+        applyThemeToNode(statusLabel, themeIndex);
         applyThemeToNode(segmentColorLabel, themeIndex);
         applyThemeToNode(colorPalette, themeIndex);
         applyThemeToNode(btnPlay, themeIndex);
@@ -1149,7 +1176,6 @@ public class ChapterTtsEditorWindow {
         applyThemeToNode(batchModeCombo, themeIndex);
         applyThemeToNode(btnBatchToggle, themeIndex);
         applyThemeToNode(batchRow, themeIndex);
-        applyThemeToNode(statusLabel, themeIndex);
         applyThemeToNode(editModeLabel, themeIndex);
         applyThemeToNode(playerProgress, themeIndex);
         applyThemeToNode(trimStartSlider, themeIndex);
