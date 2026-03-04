@@ -18,6 +18,10 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Window;
 import javafx.util.Duration;
@@ -66,6 +70,17 @@ public class ChapterTtsEditorWindow {
         {"#581c87", "#ffffff"}
     };
 
+    /** Textfarbe für wörtliche Rede pro Theme-Index (wie THEMES: abgesetzt, gut lesbar). */
+    private static final String[] DIRECT_SPEECH_THEME_COLORS = {
+        "#c2410c",   /* weiss: dunkles Orange */
+        "#ffb74d",   /* dark: helles Orange */
+        "#b45309",   /* pastell: dunkles Orange */
+        "#fbbf24",   /* blau: helles Amber */
+        "#a7f3d0",   /* gruen: helles Grün */
+        "#e9d5ff"    /* lila: helles Lila */
+    };
+
+
     private static final ExecutorService TTS_EXECUTOR = Executors.newFixedThreadPool(2, r -> {
         Thread t = new Thread(r, "chapter-tts-worker");
         t.setDaemon(true);
@@ -74,8 +89,8 @@ public class ChapterTtsEditorWindow {
     });
 
     /** Anzahl vordefinierter Segmentfarben (Palette). */
-    /** Pause in Sekunden zwischen den Segmenten in der Gesamt-Audiodatei (zwischen den „Kapiteln“). */
-    private static final double FULL_AUDIO_PAUSE_SECONDS = 3.5;
+    /** Pause in Sekunden zwischen den Segmenten in der Gesamt-Audiodatei (normale Absatzpause). */
+    private static final double FULL_AUDIO_PAUSE_SECONDS = 0.1;
     /** MP3-Qualitätsoptionen für Gesamt-Audiodatei / Hörbuch (Anzeige). Index 0 = kleine Datei, 1 = Standard, 2 = hohe Qualität. */
     private static final String[] MP3_QUALITY_OPTIONS = { "Kleine Datei (geringe Qualität)", "Standard", "Hohe Qualität (große Datei)" };
     /** FFmpeg -q:a Werte zu MP3_QUALITY_OPTIONS (0=klein, 1=Standard, 2=groß). */
@@ -104,14 +119,10 @@ public class ChapterTtsEditorWindow {
     };
 
     /**
-     * System-Prompt fuer ElevenLabs v3 Audio-Tagging via Ollama Generate-API.
-     * Wird ueber das "system"-Feld der /api/generate gesendet, das den Modelfile-SYSTEM
-     * garantiert ueberschreibt – auch bei trainierten Modellen.
+     * System-Prompt fuer ElevenLabs v3 Audio-Tagging (Chat-API, wie Online-Lektorat: strikte Ausgabe).
      */
     private static final String V3_AUDIO_TAG_SYSTEM = """
-            Du bist ein Audio-Tagging-Werkzeug. Deine einzige Aufgabe ist es, Text mit Audio-Tags fuer ElevenLabs v3 zu versehen.
-            Du bist KEIN Schreibassistent. Gib KEIN Feedback, KEINE Kommentare, KEINE Erklaerungen.
-            Gib AUSSCHLIESSLICH den getaggten Text zurueck – sonst nichts.""";
+            Du bist ein Audio-Tagging-Werkzeug. Du gibst NUR den getaggten Text aus – Zeile fuer Zeile, der komplette Text mit eingefuegten [Tags]. Keine Zusammenfassung. Keine Einleitung. Kein "Hier ist" oder Erklaerung. Die Laenge deiner Ausgabe muss ungefaehr der Laenge der Eingabe entsprechen (plus die Tags).""";
 
     /**
      * User-Prompt (Anweisungen + Platzhalter) fuer v3 Audio-Tagging.
@@ -123,23 +134,24 @@ public class ChapterTtsEditorWindow {
 
             Regeln:
             - Veraendere KEINE Woerter des Originaltexts. Fuege NUR Audio-Tags in eckigen Klammern ein.
-            - Platziere Emotions-/Delivery-Tags (z.B. [angry], [whisper], [sad]) VOR dem Textsegment.
-            - Platziere non-verbale Aktionen (z.B. [sighs], [laughing], [clears throat]) NACH dem Textsegment.
-            - Verwende NUR auditive Tags – KEINE visuellen wie [grinning] oder [standing].
-            - Setze Tags sparsam ein – nicht jeden Satz taggen.
-            - Behalte Absaetze und Zeilenumbrueche exakt bei.
-            - Gib NUR den getaggten Text zurueck.
+            - Tags stehen IMMER VOR dem Textsegment, auf das sie sich beziehen (z.B. [sighs] Setzen wir uns … oder [surprised] »Was?«). Nie dahinter.
+            - Mehrere Tags hintereinander vor einem Segment sind erlaubt (z.B. [thoughtful] oder [sanft][weiblich][hohe Stimme]).
+            - Verwende NUR auditive/Emotions-Tags – keine rein visuellen wie [grinning] oder [standing].
+            - Setze Tags sparsam, nur wo Stimmung oder Delivery wichtig sind.
+            - Behalte Absaetze, Zeilenumbrueche und Anführungszeichen exakt bei.
+            - Gib NUR den getaggten Text zurueck, ohne Erklaerungen.
 
-            Erlaubte Tags (Beispiele):
-            Emotionen: [happy] [sad] [excited] [angry] [annoyed] [surprised] [worried] [desperate]
-            Delivery: [whisper] [shouting] [softly] [firmly] [sarcastically] [mockingly]
-            Non-verbal: [laughing] [chuckles] [sighs] [clears throat] [exhales sharply] [inhales deeply]
+            Tags sind auf Englisch (ElevenLabs v3). Die folgenden sind nur Beispiele – verwende bei Bedarf auch andere passende Tags derselben Art:
+            Emotionen: [surprised] [concerned] [thoughtful] [annoyed] [excited] [confident] [nervously] [disbelief] [curious] [exasperated]
+            Delivery: [whisper] [whispering] [calmly] [sternly] [softly] [firmly]
+            Non-verbal / Atem: [sighs] [chuckles] [clears throat] [gasps] [sneezes] [inhales sharply] [meows] [purring] [pulling] [shrugs]
+            Sonst: [short pause] [explaining] [thinking] [hoarse] [wondering] [idiotic] [carefully]
 
-            Beispiel:
-            Eingabe: Bist du wahnsinnig? Ich kann nicht glauben, dass du das getan hast!
-            Ausgabe: [appalled] Bist du wahnsinnig? Ich kann nicht glauben, dass du das getan hast! [sighs]
+            Beispiel (deutscher Text, englische Tags):
+            Eingabe: Jomar blieb abrupt stehen. »Was?«
+            Ausgabe: Jomar blieb abrupt stehen. [surprised] »Was?«
 
-            Jetzt tagge den folgenden Text:
+            Der zu taggende Text steht unter === TEXT ===. Deine Ausgabe ist NUR der getaggte Text, beginnend mit der ersten Zeile (oder dem ersten Tag davor). Keine Zusammenfassung.
 
             """;
 
@@ -264,6 +276,7 @@ public class ChapterTtsEditorWindow {
     private Label selectionWordCountLabel;
     private Button btnErstellen;
     private Button btnSpeichern;
+    private CheckBox autoSaveCheckBox;
     private Button btnAlleAbspielen;
     private Button btnGesamtAudiodatei;
     /** MP3-Qualität für Gesamt-Audiodatei (0–2 → kleine Datei / Standard / hohe Qualität). */
@@ -276,6 +289,8 @@ public class ChapterTtsEditorWindow {
     /** Busy-Indicator für v3 Audio-Tagging. */
     private ProgressIndicator v3TagProgressIndicator;
     private Label v3TagCheckmark;
+    /** v3 Text taggen – nur bei Selektion aktiv, max. 3500 Zeichen. */
+    private Button btnV3AudioTag;
     private Label statusLabel;
     private Label externalEditorPathLabel;
     private int playingSegmentIndex = -1;
@@ -426,16 +441,19 @@ public class ChapterTtsEditorWindow {
             }
         }
         // Stille-nach-Segment-Slider persistent laden
-        if (w.trailSilenceSlider != null) {
-            String trailStr = ttsPrefs.get("trail_silence_sec", "0.8");
-            try {
-                double trailSec = Double.parseDouble(trailStr);
-                if (trailSec >= 0 && trailSec <= w.trailSilenceSlider.getMax()) {
-                    w.trailSilenceSlider.setValue(trailSec);
+if (w.trailSilenceSlider != null) {
+                    String trailStr = ttsPrefs.get("trail_silence_sec", "0.8");
+                    try {
+                        double trailSec = Double.parseDouble(trailStr);
+                        if (trailSec >= 0 && trailSec <= w.trailSilenceSlider.getMax()) {
+                            w.trailSilenceSlider.setValue(trailSec);
+                        }
+                    } catch (NumberFormatException ignored) { }
                 }
-            } catch (NumberFormatException ignored) { }
-        }
-        w.setupEinschwingTrimResetListener();
+                if (w.autoSaveCheckBox != null) {
+                    w.autoSaveCheckBox.setSelected(ttsPrefs.getBoolean("tts_auto_save", false));
+                }
+                w.setupEinschwingTrimResetListener();
         w.loadSegments();
         w.refreshHighlight();
         w.stage.setOnCloseRequest(ev -> {
@@ -459,6 +477,9 @@ public class ChapterTtsEditorWindow {
                 }
                 if (w.trailSilenceSlider != null) {
                     ttsPrefs.put("trail_silence_sec", String.format(java.util.Locale.ROOT, "%.2f", w.trailSilenceSlider.getValue()));
+                }
+                if (w.autoSaveCheckBox != null) {
+                    ttsPrefs.putBoolean("tts_auto_save", w.autoSaveCheckBox.isSelected());
                 }
             }
         });
@@ -857,8 +878,9 @@ public class ChapterTtsEditorWindow {
         });
         Button btnRegieSave = new Button("Speichern");
         btnRegieSave.setOnAction(e -> { saveRegieanweisungen(); setStatus("Regieanweisungen gespeichert."); });
-        Button btnV3AudioTag = new Button("v3 Text taggen");
-        btnV3AudioTag.setTooltip(new Tooltip("Text über Ollama mit ElevenLabs v3 Audio-Tags anreichern ([laughing], [sighs], [whisper] etc.)"));
+        btnV3AudioTag = new Button("v3 Text taggen");
+        btnV3AudioTag.setTooltip(new Tooltip("Selektierten Text über Ollama mit ElevenLabs v3 Audio-Tags anreichern ([laughing], [sighs], [whisper] etc.). Max. 3500 Zeichen. Keine Selektion = Button deaktiviert."));
+        btnV3AudioTag.setDisable(true);
         btnV3AudioTag.setOnAction(e -> tagTextWithV3AudioTags());
         v3TagProgressIndicator = new ProgressIndicator(-1);
         v3TagProgressIndicator.setVisible(false);
@@ -979,6 +1001,11 @@ public class ChapterTtsEditorWindow {
 
         btnErstellen = new Button("Erstellen");
         btnSpeichern = new Button("Speichern");
+        autoSaveCheckBox = new CheckBox("Automatisch speichern");
+        autoSaveCheckBox.setTooltip(new Tooltip("Nach jeder Generierung (Erstellen) sofort als Segment speichern."));
+        HBox saveRow = new HBox(8);
+        saveRow.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        saveRow.getChildren().addAll(btnSpeichern, autoSaveCheckBox);
         btnAlleAbspielen = new Button("Ab hier abspielen");
         btnGesamtAudiodatei = new Button("Gesamt-Audiodatei erstellen");
         batchModeCombo = new ComboBox<>();
@@ -1060,7 +1087,7 @@ public class ChapterTtsEditorWindow {
             selectionWordCountLabel,
             editModeLabel,
             new Separator(),
-            erstellenRow, btnSpeichern,
+            erstellenRow, saveRow,
             new Separator(),
             btnAlleAbspielen,
             buildFullAudioQualityRow(),
@@ -1164,7 +1191,9 @@ public class ChapterTtsEditorWindow {
         applyThemeToNode(progressIndicator, themeIndex);
         applyThemeToNode(successCheckmark, themeIndex);
         applyThemeToNode(erstellenIconStack, themeIndex);
+        applyThemeToNode(saveRow, themeIndex);
         applyThemeToNode(btnSpeichern, themeIndex);
+        applyThemeToNode(autoSaveCheckBox, themeIndex);
         applyThemeToNode(externalEditorBox, themeIndex);
         applyThemeToNode(externalEditorLabel, themeIndex);
         if (externalEditorPathLabel != null) applyThemeToNode(externalEditorPathLabel, themeIndex);
@@ -1700,50 +1729,54 @@ public class ChapterTtsEditorWindow {
         setStatus("Lexikon aus dem Text entfernt (" + entries.size() + " Einträge, " + segments.size() + " Segmente angepasst).");
     }
 
+    /** Max. Zeichen für v3-Tagging (nur Selektion). */
+    private static final int V3_TAG_MAX_SELECTION_CHARS = 3500;
+
+    /** Aktiviert/deaktiviert den v3-Taggen-Button je nach Selektion (keine Selektion = disabled). */
+    private void updateV3TagButtonState() {
+        if (btnV3AudioTag == null || codeArea == null) return;
+        String sel = codeArea.getSelectedText();
+        btnV3AudioTag.setDisable(sel == null || sel.isEmpty());
+    }
+
     /**
-     * Sendet den Editortext an Ollama, um ihn mit ElevenLabs v3 Audio-Tags
-     * anzureichern ([laughing], [sighs], [whisper] etc.).
-     * Der getaggte Text ersetzt anschließend den Editorinhalt.
+     * Sendet den selektierten Text an Ollama, um ihn mit ElevenLabs v3 Audio-Tags
+     * anzureichern. Nur Selektion, max. 3500 Zeichen. Button ist ohne Selektion deaktiviert.
      */
     private void tagTextWithV3AudioTags() {
         if (codeArea == null) return;
-        String text = codeArea.getText();
+        String text = codeArea.getSelectedText();
         if (text == null || text.isBlank()) {
-            setStatus("Editor ist leer – nichts zum Taggen.");
+            setStatus("Bitte Text zum Taggen auswählen.");
             return;
         }
-        // Vorhandene Segmente warnen
-        if (!segments.isEmpty()) {
-            CustomAlert confirm = DialogFactory.createConfirmationAlert(
+        if (text.length() > V3_TAG_MAX_SELECTION_CHARS) {
+            CustomAlert alert = DialogFactory.createWarningAlert(
                     "v3 Audio-Tagging",
-                    "Vorhandene Segmente",
-                    "Der Text wird verändert. Bestehende TTS-Segmente werden dadurch ungültig und entfernt. Fortfahren?",
-                    stage);
-            confirm.applyTheme(themeIndex);
-            var result = confirm.showAndWait();
-            if (result.isEmpty() || result.get() != ButtonType.OK) return;
+                    "Selektion zu lang",
+                    "Die Auswahl hat " + text.length() + " Zeichen. Maximal " + V3_TAG_MAX_SELECTION_CHARS + " Zeichen erlaubt. Bitte kürzer wählen.",
+                    stage != null ? stage.getScene().getWindow() : null);
+            alert.applyTheme(themeIndex);
+            alert.showAndWait(stage != null ? stage.getScene().getWindow() : null);
+            return;
         }
 
-        setStatus("v3 Audio-Tagging läuft (Ollama: gemma3:4b) …");
+        int selStart = codeArea.getSelection().getStart();
+        int selEnd = codeArea.getSelection().getEnd();
 
-        // Busy-Indicator anzeigen
+        setStatus("v3 Audio-Tagging läuft (Ollama: OpenEuroLLM-German) …");
         if (v3TagProgressIndicator != null) v3TagProgressIndicator.setVisible(true);
         if (v3TagCheckmark != null) v3TagCheckmark.setVisible(false);
-
-        // num_predict großzügig: Text + Tags brauchen ca. 30 % mehr Tokens als der Originaltext
-        int estimatedTokens = Math.max(4096, text.length());
 
         CompletableFuture.runAsync(() -> {
             try {
                 OllamaService ollama = new OllamaService();
-                // Bewusst NICHT das gespeicherte Modell aus OllamaWindow laden –
-                // trainierte Modelle ignorieren System-Prompt-Overrides und geben
-                // statt Audio-Tags Schreibfeedback. Das Basismodell (gemma3:4b) funktioniert.
-                // Generate-API mit explizitem system-Feld verwenden:
-                String userPrompt = V3_AUDIO_TAG_PROMPT + text;
-                String taggedText = ollama.generateWithSystem(
-                        V3_AUDIO_TAG_SYSTEM, userPrompt,
-                        estimatedTokens, 0.3, 0.9, 1.1).join();
+                ollama.setModel("jobautomation/OpenEuroLLM-German");
+                int chunkTokens = Math.max(2048, (int) (text.length() * 1.4));
+                String userMessage = V3_AUDIO_TAG_PROMPT + "=== TEXT ===\n" + text;
+                String taggedText = ollama.chatWithSystemPrompt(
+                        V3_AUDIO_TAG_SYSTEM, userMessage,
+                        chunkTokens, 0.2, 0.9, 1.1).join();
 
                 if (taggedText == null || taggedText.isBlank()) {
                     Platform.runLater(() -> {
@@ -1752,7 +1785,6 @@ public class ChapterTtsEditorWindow {
                     });
                     return;
                 }
-                // Markdown-Code-Fences entfernen, falls das Modell sie zurückgibt
                 taggedText = taggedText.strip();
                 if (taggedText.startsWith("```")) {
                     int firstNewline = taggedText.indexOf('\n');
@@ -1762,10 +1794,12 @@ public class ChapterTtsEditorWindow {
                     taggedText = taggedText.substring(0, taggedText.length() - 3);
                 }
                 taggedText = taggedText.strip();
+                taggedText = stripLeadingSummaryIfPresent(taggedText, text);
 
                 final String finalText = taggedText;
+                final int start = selStart;
+                final int end = selEnd;
                 Platform.runLater(() -> {
-                    // Spinner aus, Häkchen an
                     if (v3TagProgressIndicator != null) v3TagProgressIndicator.setVisible(false);
                     if (v3TagCheckmark != null) {
                         v3TagCheckmark.setVisible(true);
@@ -1773,12 +1807,11 @@ public class ChapterTtsEditorWindow {
                         hideCheck.setOnFinished(ev -> v3TagCheckmark.setVisible(false));
                         hideCheck.play();
                     }
-                    // Segmente entfernen, da Positionen durch Tags verschoben sind
+                    codeArea.replaceText(start, end, finalText);
                     segments.clear();
                     saveSegments();
-                    codeArea.replaceText(finalText);
                     refreshHighlight();
-                    setStatus("v3 Audio-Tags eingefügt. Bitte Text prüfen.");
+                    setStatus("v3 Audio-Tags eingefügt. Bitte prüfen.");
                 });
             } catch (Exception ex) {
                 logger.error("v3 Audio-Tagging fehlgeschlagen", ex);
@@ -1788,6 +1821,28 @@ public class ChapterTtsEditorWindow {
                 });
             }
         });
+    }
+
+    /**
+     * Entfernt eine vorangestellte Zusammenfassung, falls die Antwort ungewöhnlich kurz ist
+     * und der Anfang des Originaltexts in der Antwort vorkommt (dann ab dort übernehmen).
+     */
+    private static String stripLeadingSummaryIfPresent(String response, String originalText) {
+        if (response == null || originalText == null || originalText.isBlank()) return response;
+        if (response.length() >= 0.4 * originalText.length()) return response;
+        String firstLine = originalText.trim().split("\\R", 2)[0].trim();
+        if (firstLine.length() < 5) return response;
+        String needle = firstLine.length() > 50 ? firstLine.substring(0, 50) : firstLine;
+        int idx = response.indexOf(needle);
+        if (idx > 0) {
+            return response.substring(idx).strip();
+        }
+        String shortNeedle = firstLine.length() > 20 ? firstLine.substring(0, 20) : firstLine;
+        idx = response.indexOf(shortNeedle);
+        if (idx > 0) {
+            return response.substring(idx).strip();
+        }
+        return response;
     }
 
     private void loadRegieanweisungen() {
@@ -2411,7 +2466,9 @@ public class ChapterTtsEditorWindow {
         codeArea.selectionProperty().addListener((o, a, b) -> Platform.runLater(() -> {
             refreshHighlight();
             updateSelectionWordCount();
+            updateV3TagButtonState();
         }));
+        updateV3TagButtonState();
         codeArea.textProperty().addListener((o, oldText, newText) -> {
             if (oldText != null && newText != null && !oldText.equals(newText))
                 adjustSegmentsForTextChange(oldText, newText);
@@ -2506,6 +2563,29 @@ public class ChapterTtsEditorWindow {
 
         applyThemeToNode(codeArea, themeIndex);
         applyThemeToNode(scrollPane, themeIndex);
+        // Bei Scroll/Layout neu sichtbare Text-Nodes programmatisch für wörtliche Rede stylen (virtualisierter Flow: nur sichtbare Nodes existieren)
+        PauseTransition directSpeechDebouncer = new PauseTransition(Duration.millis(80));
+        directSpeechDebouncer.setOnFinished(e -> applyDirectSpeechFillToSceneGraph(codeArea));
+        Runnable scheduleDirectSpeechApply = () -> {
+            directSpeechDebouncer.playFromStart();
+        };
+        codeArea.layoutBoundsProperty().addListener((o, a, b) -> Platform.runLater(scheduleDirectSpeechApply));
+        // Beim Scrollen feuert layoutBounds oft nicht – ScrollBar-Listener erfassen
+        scrollPane.sceneProperty().addListener((o, oldScene, newScene) -> {
+            if (newScene == null) return;
+            Platform.runLater(() -> {
+                ScrollBar vBar = null;
+                for (Node n : scrollPane.getChildrenUnmodifiable()) {
+                    if (n instanceof ScrollBar && ((ScrollBar) n).getOrientation() == javafx.geometry.Orientation.VERTICAL) {
+                        vBar = (ScrollBar) n;
+                        break;
+                    }
+                }
+                if (vBar == null) vBar = (ScrollBar) scrollPane.lookup(".scroll-bar:vertical");
+                if (vBar != null)
+                    vBar.valueProperty().addListener((obs, ov, nv) -> Platform.runLater(scheduleDirectSpeechApply));
+            });
+        });
         VBox right = new VBox(scrollPane);
         VBox.setVgrow(scrollPane, Priority.ALWAYS);
         applyThemeToNode(right, themeIndex);
@@ -2759,6 +2839,7 @@ public class ChapterTtsEditorWindow {
 
         boolean inHoverRange = (hoverRangeStart >= 0 && hoverRangeEnd > hoverRangeStart);
         TtsSegment segmentAtCaret = (len > 0 && selStart >= 0 && selStart <= len) ? segmentAtOffset(selStart) : null;
+        List<int[]> directSpeechRanges = getDirectSpeechRanges(text);
         StyleSpansBuilder<Collection<String>> builder = new StyleSpansBuilder<>();
         int pos = 0;
         while (pos < len) {
@@ -2769,6 +2850,7 @@ public class ChapterTtsEditorWindow {
             if (editModeActive && (inSel || inSegmentWithCaret)) style = "tts-selection";  // Im Bearbeitungsmodus: Auswahl + Segment unter Cursor immer Orange
             else if (style == null && inSel) style = "tts-selection";
             if (style == null && inHover) style = "tts-hover-preview";  // Grau; gleiche Logik wie Segmente
+            boolean inDirectSpeech = isInDirectSpeech(pos, directSpeechRanges);
             int start = pos;
             while (pos < len) {
                 boolean sel = (pos >= selStart && pos < selEnd);
@@ -2778,17 +2860,89 @@ public class ChapterTtsEditorWindow {
                 if (editModeActive && (sel || segCaret)) nextStyle = "tts-selection";
                 else if (nextStyle == null && sel) nextStyle = "tts-selection";
                 if (nextStyle == null && hov) nextStyle = "tts-hover-preview";
-                if ((nextStyle == null) != (style == null) || (nextStyle != null && !nextStyle.equals(style))) break;
+                boolean nextDirectSpeech = isInDirectSpeech(pos, directSpeechRanges);
+                if ((nextStyle == null) != (style == null) || (nextStyle != null && !nextStyle.equals(style)) || nextDirectSpeech != inDirectSpeech) break;
                 pos++;
             }
-            if (style != null) builder.add(Collections.singleton(style), pos - start);
-            else builder.add(Collections.emptyList(), pos - start);
+            Collection<String> classes = new ArrayList<>();
+            if (style != null) classes.add(style);
+            if (inDirectSpeech) classes.add("tts-direct-speech");
+            builder.add(classes.isEmpty() ? Collections.emptyList() : classes, pos - start);
         }
         try {
             codeArea.setStyleSpans(0, builder.create());
+            Platform.runLater(() -> applyDirectSpeechFillToSceneGraph(codeArea));
         } catch (Exception e) {
             logger.trace("StyleSpans Fehler", e);
         }
+    }
+
+    /** Setzt bei allen Text-Nodes mit Klasse tts-direct-speech programmatisch Fill und Font (CSS reicht bei RichTextFX nicht). */
+    private void applyDirectSpeechFillToSceneGraph(Node node) {
+        if (node == null) return;
+        if (node.getStyleClass().contains("tts-direct-speech") && node instanceof Text) {
+            Text t = (Text) node;
+            String colorHex = (themeIndex >= 0 && themeIndex < DIRECT_SPEECH_THEME_COLORS.length)
+                ? DIRECT_SPEECH_THEME_COLORS[themeIndex] : "#c2410c";
+            t.setFill(Color.web(colorHex));
+            Font f = t.getFont();
+            t.setFont(Font.font(f.getFamily(), FontWeight.BOLD, f.getSize()));
+        }
+        if (node instanceof Parent) {
+            for (Node child : ((Parent) node).getChildrenUnmodifiable()) {
+                applyDirectSpeechFillToSceneGraph(child);
+            }
+        }
+    }
+
+    /**
+     * Findet Bereiche wörtlicher Rede (zwischen „…“, «…», »…«, "…") für Fett-Hervorhebung im TTS-Editor.
+     * @return Liste von [start, end) (end exklusiv)
+     */
+    private static List<int[]> getDirectSpeechRanges(String text) {
+        List<int[]> ranges = new ArrayList<>();
+        if (text == null || text.isEmpty()) return ranges;
+        int len = text.length();
+        int i = 0;
+        while (i < len) {
+            int ch = text.codePointAt(i);
+            int close = -1;
+            if (ch == 0x201E) { // „ (German opening)
+                close = findNextOf(text, i + 1, 0x201C, '"'); // " or "
+            } else if (ch == 0x00AB) { // «
+                close = findNextOf(text, i + 1, 0x00BB); // »
+            } else if (ch == 0x00BB) { // » (umgekehrte Guillemets)
+                close = findNextOf(text, i + 1, 0x00AB); // «
+            } else if (ch == '"') { // ASCII "
+                close = text.indexOf('"', i + 1);
+            }
+            if (close >= 0) {
+                ranges.add(new int[] { i, close + 1 });
+                i = close + 1;
+            } else {
+                i += Character.charCount(ch);
+            }
+        }
+        return ranges;
+    }
+
+    /** Sucht ab Position from die nächste Stelle eines der Zeichen codePoints; -1 wenn nicht gefunden. */
+    private static int findNextOf(String text, int from, int... codePoints) {
+        for (int i = from; i < text.length(); ) {
+            int c = text.codePointAt(i);
+            for (int cp : codePoints) {
+                if (c == cp) return i;
+            }
+            i += Character.charCount(c);
+        }
+        return -1;
+    }
+
+    private static boolean isInDirectSpeech(int pos, List<int[]> ranges) {
+        for (int[] r : ranges) {
+            if (pos >= r[0] && pos < r[1]) return true;
+        }
+        return false;
     }
 
     /** Stil für Position in einem gespeicherten Segment: Palette-Klasse oder tts-saved-even/odd; außerhalb von Segmenten null. */
@@ -2945,6 +3099,7 @@ public class ChapterTtsEditorWindow {
                         // Datei ist bereits getrimmt – Slider auf 0, damit beim Speichern nicht nochmal geschnitten wird
                         if (einschwingTrimFound && trimStartSlider != null) trimStartSlider.setValue(0);
                     }
+                    if (autoSaveCheckBox != null && autoSaveCheckBox.isSelected()) saveCurrentAsSegment();
                     if ("elevenlabs".equalsIgnoreCase(effectiveVoice.getProvider())) refreshElevenLabsBalance();
                 });
             } catch (Exception e) {
@@ -3574,6 +3729,7 @@ public class ChapterTtsEditorWindow {
         codeArea.selectRange(seg.start, seg.end);
         codeArea.requestFollowCaret();
         Path p = Paths.get(seg.audioPath);
+        if (!p.isAbsolute() && audioDirPath != null) p = audioDirPath.resolve(p);
         if (!Files.isRegularFile(p)) {
             // Datei fehlt – zum nächsten Segment springen
             playingSegmentIndex++;

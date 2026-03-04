@@ -515,6 +515,40 @@ public class OllamaService {
     }
 
     /**
+     * Chat mit System-Prompt und expliziten Optionen (wie beim Online-Lektorat: strikte Ausgabe).
+     *
+     * @param systemPrompt System-Anweisungen
+     * @param userMessage  User-Nachricht (z. B. Anweisung + "=== TEXT ===\\n" + zu taggender Text)
+     * @param numPredict   max. Token für die Antwort
+     * @param temperature  Temperatur (NaN = Standard)
+     * @param topP         Top-P (NaN = Standard)
+     * @param repeatPenalty Repeat-Penalty (NaN = Standard)
+     * @return CompletableFuture mit der Modellantwort
+     */
+    public CompletableFuture<String> chatWithSystemPrompt(String systemPrompt, String userMessage, int numPredict,
+                                                          double temperature, double topP, double repeatPenalty) {
+        int tokens = numPredict > 0 ? numPredict : this.maxTokens;
+        double temp = Double.isNaN(temperature) ? this.temperature : temperature;
+        double tp = Double.isNaN(topP) ? this.topP : topP;
+        double rp = Double.isNaN(repeatPenalty) ? this.repeatPenalty : repeatPenalty;
+
+        String escapedSys = escapeJson(systemPrompt);
+        String escapedUser = escapeJson(userMessage);
+
+        String json = String.format(java.util.Locale.US,
+            "{\"model\":\"%s\",\"messages\":[{\"role\":\"system\",\"content\":\"%s\"},{\"role\":\"user\",\"content\":\"%s\"}],\"stream\":false,\"options\":{\"num_predict\":%d,\"temperature\":%.2f,\"top_p\":%.2f,\"repeat_penalty\":%.2f}}",
+            currentModel, escapedSys, escapedUser, tokens, temp, tp, rp);
+
+        this.lastEndpoint = CHAT_ENDPOINT;
+        this.lastRequestJson = json;
+        this.lastFullPrompt = userMessage;
+        this.lastContext = null;
+
+        return sendRequest(CHAT_ENDPOINT, json)
+                .thenApply(this::parseChatResponse);
+    }
+
+    /**
      * Sendet eine einzelne User-Nachricht an die Chat-API (ohne System-Prompt),
      * mit expliziten Parametern. Nützlich wenn das Modell einen eigenen System-Prompt
      * im Modelfile hat und der Chat-System-Prompt ignoriert wird.

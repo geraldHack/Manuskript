@@ -3139,6 +3139,37 @@
 .theme-dark.lila-theme .tts-selection {
     -rtfx-background-color: #6b21a8 !important;  /* helleres Lila für Auswahl auf Lila */
 }
+/* Wörtliche Rede im TTS-Editor: Fett + abgesetzte Textfarbe. RichTextFX: Style-Klassen auf TextExt, Selektor mit .code-area wie bei .code-area .text. */
+.code-area .tts-direct-speech {
+    -fx-font-weight: bold !important;
+    -rtfx-fill: #c2410c !important;  /* Fallback helles Theme */
+}
+/* Helle Themes: dunkleres Orange/Braun für wörtliche Rede */
+.weiss-theme .code-area .tts-direct-speech {
+    -fx-fill: #c2410c !important;
+    -rtfx-fill: #c2410c !important;
+}
+.pastell-theme .code-area .tts-direct-speech {
+    -fx-fill: #b45309 !important;
+    -rtfx-fill: #b45309 !important;
+}
+/* Dunkles Theme: helles Orange */
+.theme-dark .code-area .tts-direct-speech {
+    -fx-fill: #ffb74d !important;
+    -rtfx-fill: #ffb74d !important;
+}
+.theme-dark.blau-theme .code-area .tts-direct-speech {
+    -fx-fill: #fbbf24 !important;
+    -rtfx-fill: #fbbf24 !important;
+}
+.theme-dark.gruen-theme .code-area .tts-direct-speech {
+    -fx-fill: #a7f3d0 !important;
+    -rtfx-fill: #a7f3d0 !important;
+}
+.theme-dark.lila-theme .code-area .tts-direct-speech {
+    -fx-fill: #e9d5ff !important;
+    -rtfx-fill: #e9d5ff !important;
+}
 /* Bearbeitungsmodus: RichTextFX zeichnet Selektion mit Path-Klasse "main-selection" (-fx-fill). Ausblenden, damit nur tts-selection (Orange) sichtbar ist. */
 .code-area.tts-edit-mode .main-selection,
 .styled-text-area.tts-edit-mode .main-selection,
