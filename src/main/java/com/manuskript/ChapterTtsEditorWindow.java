@@ -277,6 +277,8 @@ public class ChapterTtsEditorWindow {
     private Path pendingAudioPath;
     private Label selectionWordCountLabel;
     private Button btnErstellen;
+    /** Öffnet das Aufnahme-Fenster: Segment-Text per Mikrofon einsprechen, dann per ElevenLabs Speech-to-Speech konvertieren. */
+    private Button btnAufnahme;
     private Button btnSpeichern;
     private CheckBox autoSaveCheckBox;
     private Button btnAlleAbspielen;
@@ -1037,9 +1039,13 @@ if (w.trailSilenceSlider != null) {
         erstellenIconStack.setPrefSize(20, 20);
         erstellenIconStack.setMaxSize(20, 20);
         erstellenIconStack.getChildren().addAll(progressIndicator, successCheckmark);
+        btnAufnahme = new Button("Aufnahme");
+        btnAufnahme.setTooltip(new Tooltip("Segment-Text per Mikrofon einsprechen, abspielen, dann mit ElevenLabs (multilingual v2) konvertieren und als Segment übernehmen."));
+        btnAufnahme.setDisable(true);
+        btnAufnahme.setOnAction(e -> openRecordingWindow());
         HBox erstellenRow = new HBox(8);
         erstellenRow.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
-        erstellenRow.getChildren().addAll(btnErstellen, erstellenIconStack);
+        erstellenRow.getChildren().addAll(btnErstellen, btnAufnahme, erstellenIconStack);
         statusLabel = new Label(" ");
         statusLabel.setWrapText(true);
         statusLabel.setMaxWidth(Double.MAX_VALUE);
@@ -1191,6 +1197,7 @@ if (w.trailSilenceSlider != null) {
         applyThemeToNode(btnStop, themeIndex);
         applyThemeToNode(erstellenRow, themeIndex);
         applyThemeToNode(btnErstellen, themeIndex);
+        applyThemeToNode(btnAufnahme, themeIndex);
         applyThemeToNode(progressIndicator, themeIndex);
         applyThemeToNode(successCheckmark, themeIndex);
         applyThemeToNode(erstellenIconStack, themeIndex);
@@ -2230,10 +2237,11 @@ if (w.trailSilenceSlider != null) {
         return TRAIL_SILENCE_SECONDS;
     }
 
-    /** Aktualisiert den Wortzaehler fuer die aktuelle Textselektion. */
+    /** Aktualisiert den Wortzaehler fuer die aktuelle Textselektion und aktiviert/deaktiviert den Aufnahme-Button. */
     private void updateSelectionWordCount() {
         if (selectionWordCountLabel == null || codeArea == null) return;
         String sel = codeArea.getSelectedText();
+        if (btnAufnahme != null) btnAufnahme.setDisable(sel == null || sel.isBlank());
         if (sel == null || sel.isBlank()) {
             selectionWordCountLabel.setText("");
             return;
@@ -2524,6 +2532,7 @@ if (w.trailSilenceSlider != null) {
             updateSelectionWordCount();
             updateV3TagButtonState();
         }));
+        updateSelectionWordCount();
         updateV3TagButtonState();
         codeArea.textProperty().addListener((o, oldText, newText) -> {
             if (oldText != null && newText != null && !oldText.equals(newText))
@@ -3618,6 +3627,110 @@ if (w.trailSilenceSlider != null) {
         int n = 1;
         while (used.contains(n)) n++;
         return n;
+    }
+
+    /** Öffnet das Aufnahme-Fenster: Segment-Text einsprechen, abspielen, dann per ElevenLabs Speech-to-Speech konvertieren. */
+    private void openRecordingWindow() {
+        int start = codeArea.getSelection().getStart();
+        int end = codeArea.getSelection().getEnd();
+        if (start >= end) {
+            setStatus("Bitte einen Bereich markieren.");
+            return;
+        }
+        String segmentText = codeArea.getText(start, end);
+        if (segmentText == null || segmentText.isBlank()) {
+            setStatus("Bereich ist leer.");
+            return;
+        }
+        if (audioDirPath == null) {
+            setStatus("Audio-Verzeichnis fehlt.");
+            return;
+        }
+        try {
+            Files.createDirectories(audioDirPath);
+        } catch (IOException e) {
+            setStatus("Audio-Verzeichnis konnte nicht angelegt werden: " + e.getMessage());
+            return;
+        }
+        ComfyUIClient.SavedVoice voice = voiceCombo.getSelectionModel().getSelectedItem();
+        String voiceName = voice != null ? voice.getName() : "";
+        String elevenLabsVoiceId = (voice != null && "elevenlabs".equalsIgnoreCase(voice.getProvider())) ? voice.getElevenLabsVoiceId() : "";
+        ElevenLabsClient.VoiceSettings elevenLabsVoiceSettings = null;
+        if (voice != null && "elevenlabs".equalsIgnoreCase(voice.getProvider())) {
+            elevenLabsVoiceSettings = new ElevenLabsClient.VoiceSettings(
+                    voice.getElevenLabsStability(),
+                    voice.getElevenLabsSimilarityBoost(),
+                    voice.getElevenLabsSpeed(),
+                    voice.isElevenLabsUseSpeakerBoost(),
+                    voice.getElevenLabsStyle());
+        }
+        int nextBlock = getNextFreeBlockNumber();
+
+        TtsRecordingWindow.OnConvertDoneCallback onDone = (outputMp3Path, segStart, segEnd, segVoiceName) -> {
+            Platform.runLater(() -> {
+                try {
+                    List<TtsSegment> toRemove = new ArrayList<>();
+                    for (TtsSegment s : segments) {
+                        if (s.start < segEnd && s.end > segStart) toRemove.add(s);
+                    }
+                    for (TtsSegment s : toRemove) {
+                        if (s.audioPath != null && !s.audioPath.isEmpty()) {
+                            try {
+                                Path p = Paths.get(s.audioPath);
+                                if (Files.isRegularFile(p)) Files.delete(p);
+                            } catch (IOException e2) {
+                                logger.warn("Audiodatei beim Überschreiben nicht gelöscht: {}", s.audioPath, e2);
+                            }
+                        }
+                        segments.remove(s);
+                    }
+                    String audioPathStr = outputMp3Path.toAbsolutePath().toString();
+                    String voiceDesc = getEffectiveVoiceDescription();
+                    double temp = temperatureSlider != null ? temperatureSlider.getValue() : 0.35;
+                    double topP = topPSlider != null ? topPSlider.getValue() : ComfyUIClient.DEFAULT_TOP_P;
+                    int topK = topKSlider != null ? (int) Math.round(topKSlider.getValue()) : ComfyUIClient.DEFAULT_TOP_K;
+                    double repPen = repetitionPenaltySlider != null ? Math.max(1.0, Math.min(2.0, repetitionPenaltySlider.getValue())) : ComfyUIClient.DEFAULT_REPETITION_PENALTY;
+                    boolean hq = highQualityCheck != null && highQualityCheck.isSelected();
+                    TtsSegment seg = new TtsSegment(segStart, segEnd, audioPathStr, segVoiceName, temp, topP, topK, repPen, hq, voiceDesc);
+                    seg.seed = currentSeedForGeneration;
+                    seg.speakerId = currentSpeakerIdForGeneration != null ? currentSpeakerIdForGeneration : "";
+                    seg.hasElevenLabsParams = true;
+                    seg.elevenLabsModelId = ElevenLabsClient.SPEECH_TO_SPEECH_MODEL_ID;
+                    ComfyUIClient.SavedVoice v = voiceCombo.getSelectionModel().getSelectedItem();
+                    if (v != null && "elevenlabs".equalsIgnoreCase(v.getProvider())) {
+                        seg.elevenLabsStability = v.getElevenLabsStability();
+                        seg.elevenLabsSimilarityBoost = v.getElevenLabsSimilarityBoost();
+                        seg.elevenLabsSpeed = v.getElevenLabsSpeed();
+                        seg.elevenLabsUseSpeakerBoost = v.isElevenLabsUseSpeakerBoost();
+                        seg.elevenLabsStyle = v.getElevenLabsStyle();
+                    } else {
+                        seg.elevenLabsStability = 0.5;
+                        seg.elevenLabsSimilarityBoost = 0.75;
+                        seg.elevenLabsSpeed = 1.0;
+                        seg.elevenLabsUseSpeakerBoost = true;
+                        seg.elevenLabsStyle = 0.0;
+                    }
+                    segments.add(seg);
+                    selectedSegmentForColor = seg;
+                    saveSegments();
+                    refreshHighlight();
+                    codeArea.selectRange(segStart, segEnd);
+                    codeArea.requestFollowCaret();
+                    loadSegmentToLeft(seg);
+                    setStatus("Aufnahme konvertiert und als Segment übernommen.");
+                    refreshElevenLabsBalance();
+                } catch (Exception e) {
+                    logger.error("Segment aus Aufnahme übernehmen fehlgeschlagen", e);
+                    CustomAlert errAlert = DialogFactory.createErrorAlert("Aufnahme", "Segment", "Konnte nicht übernehmen: " + e.getMessage(), stage);
+                    errAlert.applyTheme(themeIndex);
+                    errAlert.showAndWait();
+                }
+            });
+        };
+
+        TtsRecordingWindow recWin = new TtsRecordingWindow(stage, themeIndex, segmentText, start, end,
+                audioDirPath, nextBlock, elevenLabsVoiceId, voiceName, elevenLabsVoiceSettings, onDone);
+        recWin.show();
     }
 
     private void saveCurrentAsSegment() {

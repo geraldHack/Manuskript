@@ -14,6 +14,7 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -30,6 +31,9 @@ public class ElevenLabsClient {
 
     public static final String DEFAULT_BASE_URL = "https://api.elevenlabs.io";
     public static final String DEFAULT_MODEL_ID = "eleven_multilingual_v2";
+
+    /** Modell-ID für Speech-to-Speech (Voice Changer); immer multilingual v2. */
+    public static final String SPEECH_TO_SPEECH_MODEL_ID = "eleven_multilingual_sts_v2";
 
     /** Bekannte Model-IDs für das Modell-Dropdown (Reihenfolge = Anzeige). */
     public static final String[] KNOWN_MODEL_IDS = {
@@ -410,5 +414,148 @@ public class ElevenLabsClient {
         Files.createDirectories(outputPath.getParent());
         Files.write(outputPath, bytes);
         logger.debug("ElevenLabs TTS geschrieben: {} ({} bytes)", outputPath, bytes.length);
+    }
+
+    // ──────── Audio Isolation (Hintergrundgeräusche dämpfen) ────────
+
+    /**
+     * Entfernt Hintergrundgeräusche aus einer Audiodatei (Voice Isolator / Audio Isolation).
+     * Verbraucht ca. 1000 Credits pro Minute Audio.
+     *
+     * @param inputAudio  Eingabe-Audio (z. B. WAV, MP3)
+     * @param outputPath  Ziel-Pfad für die bereinigte Audiodatei (Format wie Eingabe)
+     */
+    public void isolateAudio(Path inputAudio, Path outputPath) throws IOException, InterruptedException {
+        if (apiKey == null || apiKey.isBlank()) {
+            throw new IOException("ElevenLabs API-Key ist nicht gesetzt (Parameter-Verwaltung: tts.elevenlabs_api_key).");
+        }
+        if (inputAudio == null || !Files.isRegularFile(inputAudio)) {
+            throw new IOException("Eingabe-Audiodatei fehlt oder ist keine Datei: " + inputAudio);
+        }
+        String fileName = inputAudio.getFileName() != null ? inputAudio.getFileName().toString() : "audio.wav";
+        byte[] audioBytes = Files.readAllBytes(inputAudio);
+        String boundary = "----" + UUID.randomUUID().toString().replace("-", "");
+        StringBuilder sb = new StringBuilder();
+        sb.append("--").append(boundary).append("\r\n");
+        sb.append("Content-Disposition: form-data; name=\"audio\"; filename=\"").append(fileName).append("\"\r\n");
+        sb.append("Content-Type: application/octet-stream\r\n\r\n");
+        byte[] headerBytes = sb.toString().getBytes(StandardCharsets.UTF_8);
+        byte[] footer = ("\r\n--" + boundary + "--\r\n").getBytes(StandardCharsets.UTF_8);
+        HttpRequest.BodyPublisher bodyPublisher = HttpRequest.BodyPublishers.ofByteArrays(
+                List.of(headerBytes, audioBytes, footer));
+
+        String url = baseUrl + "/v1/audio-isolation";
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .header("xi-api-key", apiKey)
+                .header("Content-Type", "multipart/form-data; boundary=" + boundary)
+                .POST(bodyPublisher)
+                .timeout(Duration.ofSeconds(120))
+                .build();
+        HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(15)).build();
+        HttpResponse<byte[]> response = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+        int status = response.statusCode();
+        byte[] bytes = response.body();
+        if (status != 200) {
+            String msg = bytes != null && bytes.length > 0 ? new String(bytes, StandardCharsets.UTF_8) : ("HTTP " + status);
+            if (status == 401) {
+                throw new IOException("ElevenLabs Audio Isolation: Ungültiger API-Key oder nicht autorisiert. " + msg);
+            }
+            if (status == 429) {
+                throw new IOException("ElevenLabs Audio Isolation: Quota überschritten oder Rate-Limit. " + msg);
+            }
+            throw new IOException("ElevenLabs Audio Isolation: HTTP " + status + " – " + msg);
+        }
+        if (bytes == null || bytes.length == 0) {
+            throw new IOException("ElevenLabs Audio Isolation: Leere Antwort.");
+        }
+        if (outputPath.getParent() != null) {
+            Files.createDirectories(outputPath.getParent());
+        }
+        Files.write(outputPath, bytes);
+        logger.debug("ElevenLabs Audio Isolation geschrieben: {} ({} bytes)", outputPath, bytes.length);
+    }
+
+    // ──────── Speech-to-Speech (Voice Changer) ────────
+
+    /**
+     * Konvertiert eine Audiodatei (Aufnahme) in die gewählte ElevenLabs-Stimme (Speech-to-Speech).
+     * Verwendet {@link #SPEECH_TO_SPEECH_MODEL_ID}, wenn modelId null/leer ist.
+     *
+     * @param inputAudio     Eingabe-Audio (z. B. WAV oder MP3)
+     * @param voiceId        ElevenLabs voice_id der Zielstimme
+     * @param modelId        model_id (z. B. eleven_multilingual_sts_v2); null = SPEECH_TO_SPEECH_MODEL_ID
+     * @param outputPath     Ziel-Pfad für die MP3-Antwort
+     * @param voiceSettings  optionale Stimm-Parameter aus dem linken Fenster (Stabilität, Similarity, …); null = API-Defaults
+     */
+    public void convertSpeechToSpeech(Path inputAudio, String voiceId, String modelId, Path outputPath,
+                                     VoiceSettings voiceSettings) throws IOException, InterruptedException {
+        if (apiKey == null || apiKey.isBlank()) {
+            throw new IOException("ElevenLabs API-Key ist nicht gesetzt (Parameter-Verwaltung: tts.elevenlabs_api_key).");
+        }
+        if (voiceId == null || voiceId.isBlank()) {
+            throw new IOException("ElevenLabs voice_id fehlt.");
+        }
+        if (inputAudio == null || !Files.isRegularFile(inputAudio)) {
+            throw new IOException("Eingabe-Audiodatei fehlt oder ist keine Datei: " + inputAudio);
+        }
+        String effectiveModel = (modelId != null && !modelId.isBlank()) ? modelId.trim() : SPEECH_TO_SPEECH_MODEL_ID;
+        String boundary = "----" + UUID.randomUUID().toString().replace("-", "");
+        String fileName = inputAudio.getFileName() != null ? inputAudio.getFileName().toString() : "audio.wav";
+        byte[] audioBytes = Files.readAllBytes(inputAudio);
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("--").append(boundary).append("\r\n");
+        sb.append("Content-Disposition: form-data; name=\"model_id\"\r\n\r\n");
+        sb.append(effectiveModel).append("\r\n");
+        if (voiceSettings != null) {
+            JsonObject vs = new JsonObject();
+            vs.addProperty("stability", voiceSettings.stability);
+            vs.addProperty("similarity_boost", voiceSettings.similarityBoost);
+            vs.addProperty("speed", voiceSettings.speed);
+            vs.addProperty("use_speaker_boost", voiceSettings.useSpeakerBoost);
+            vs.addProperty("style", voiceSettings.style);
+            sb.append("--").append(boundary).append("\r\n");
+            sb.append("Content-Disposition: form-data; name=\"voice_settings\"\r\n\r\n");
+            sb.append(vs.toString()).append("\r\n");
+        }
+        sb.append("--").append(boundary).append("\r\n");
+        sb.append("Content-Disposition: form-data; name=\"audio\"; filename=\"").append(fileName).append("\"\r\n");
+        sb.append("Content-Type: application/octet-stream\r\n\r\n");
+        byte[] headerBytes = sb.toString().getBytes(StandardCharsets.UTF_8);
+        byte[] footer = ("\r\n--" + boundary + "--\r\n").getBytes(StandardCharsets.UTF_8);
+        HttpRequest.BodyPublisher bodyPublisher = HttpRequest.BodyPublishers.ofByteArrays(
+                List.of(headerBytes, audioBytes, footer));
+
+        String url = baseUrl + "/v1/speech-to-speech/" + voiceId + "?output_format=mp3_44100_128";
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .header("xi-api-key", apiKey)
+                .header("Content-Type", "multipart/form-data; boundary=" + boundary)
+                .POST(bodyPublisher)
+                .timeout(Duration.ofSeconds(120))
+                .build();
+        HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(15)).build();
+        HttpResponse<byte[]> response = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+        int status = response.statusCode();
+        byte[] bytes = response.body();
+        if (status != 200) {
+            String msg = bytes != null && bytes.length > 0 ? new String(bytes, StandardCharsets.UTF_8) : ("HTTP " + status);
+            if (status == 401) {
+                throw new IOException("ElevenLabs: Ungültiger API-Key oder nicht autorisiert. " + msg);
+            }
+            if (status == 429) {
+                throw new IOException("ElevenLabs: Quota überschritten oder Rate-Limit. " + msg);
+            }
+            throw new IOException("ElevenLabs Speech-to-Speech: HTTP " + status + " – " + msg);
+        }
+        if (bytes == null || bytes.length == 0) {
+            throw new IOException("ElevenLabs Speech-to-Speech: Leere Antwort.");
+        }
+        if (outputPath.getParent() != null) {
+            Files.createDirectories(outputPath.getParent());
+        }
+        Files.write(outputPath, bytes);
+        logger.debug("ElevenLabs Speech-to-Speech geschrieben: {} ({} bytes)", outputPath, bytes.length);
     }
 }
