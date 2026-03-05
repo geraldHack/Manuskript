@@ -261,6 +261,8 @@ public class ChapterTtsEditorWindow {
     private Slider elevenLabsSpeedSlider;
     private Slider elevenLabsStabilitySlider;
     private Slider elevenLabsSimilaritySlider;
+    /** Zeile „Similarity“ – bei ElevenLabs v3 ausblenden (v3 hat keinen Similarity-Parameter). */
+    private HBox elevenLabsSimilarityRow;
     private CheckBox elevenLabsSpeakerBoostCheck;
     private Button btnPlay;
     private Button btnPause;
@@ -642,7 +644,7 @@ if (w.trailSilenceSlider != null) {
                 persistSelectedVoiceElevenLabsParams();
             }
         });
-        HBox elevenLabsSimilarityRow = new HBox(6);
+        elevenLabsSimilarityRow = new HBox(6);
         elevenLabsSimilarityRow.getChildren().addAll(new Label("Similarity"), elevenLabsSimilarityLabel, elevenLabsSimilaritySlider);
         HBox.setHgrow(elevenLabsSimilaritySlider, Priority.ALWAYS);
         elevenLabsSpeakerBoostCheck = new CheckBox("Speaker Boost");
@@ -667,6 +669,7 @@ if (w.trailSilenceSlider != null) {
                 v.setElevenLabsModelId(newVal);
                 persistSelectedVoiceElevenLabsParams();
             }
+            updateElevenLabsV3OnlyParamsVisibility();
         });
 
         voiceCombo.getSelectionModel().selectedItemProperty().addListener((o, oldVal, newVal) -> applyVoiceToParams(newVal));
@@ -2382,6 +2385,49 @@ if (w.trailSilenceSlider != null) {
         }
     }
 
+    /** ElevenLabs v3 erlaubt Stabilität nur 0, 0.5 oder 1. Rundet auf den nächsten erlaubten Wert. */
+    private static double roundStabilityForV3(double stability) {
+        if (stability <= 0.25) return 0.0;
+        if (stability < 0.75) return 0.5;
+        return 1.0;
+    }
+
+    /** Blended Similarity und Speaker Boost aus, wenn ElevenLabs v3 gewählt ist (v3 hat diese Parameter nicht). Stellt den Stabilität-Slider bei v3 auf nur 0 / 0,5 / 1. */
+    private void updateElevenLabsV3OnlyParamsVisibility() {
+        boolean isV3 = false;
+        if (elevenLabsModelCombo != null) {
+            String modelId = elevenLabsModelCombo.getSelectionModel().getSelectedItem();
+            isV3 = modelId != null && modelId.toLowerCase(java.util.Locale.ROOT).contains("v3");
+        }
+        boolean show = !isV3;
+        if (elevenLabsSimilarityRow != null) {
+            elevenLabsSimilarityRow.setVisible(show);
+            elevenLabsSimilarityRow.setManaged(show);
+        }
+        if (elevenLabsSpeakerBoostCheck != null) {
+            elevenLabsSpeakerBoostCheck.setVisible(show);
+            elevenLabsSpeakerBoostCheck.setManaged(show);
+        }
+        if (elevenLabsStabilitySlider != null) {
+            if (isV3) {
+                elevenLabsStabilitySlider.setBlockIncrement(0.5);
+                elevenLabsStabilitySlider.setMajorTickUnit(0.5);
+                elevenLabsStabilitySlider.setMinorTickCount(0);
+                elevenLabsStabilitySlider.setSnapToTicks(true);
+                double rounded = roundStabilityForV3(elevenLabsStabilitySlider.getValue());
+                elevenLabsStabilitySlider.setValue(rounded);
+                ComfyUIClient.SavedVoice v = voiceCombo != null ? voiceCombo.getSelectionModel().getSelectedItem() : null;
+                if (v != null && "elevenlabs".equalsIgnoreCase(v.getProvider())) {
+                    v.setElevenLabsStability(rounded);
+                    persistSelectedVoiceElevenLabsParams();
+                }
+            } else {
+                elevenLabsStabilitySlider.setBlockIncrement(0.05);
+                elevenLabsStabilitySlider.setSnapToTicks(false);
+            }
+        }
+    }
+
     /** Übernimmt die Parameter der gewählten Stimme in die Slider und setzt Seed/Speaker für die nächste Erzeugung. „Hohe Qualität“ wird nicht überschrieben. Stimmbeschreibung (Haupt-Tab und bei Voice-Clone der VC-Tab) wird aus der Stimme geladen. Bei geklonter Stimme wird das Stimmbeschreibungs-Feld ausgeblendet. Bei ElevenLabs-Stimme wird das Modell-Dropdown angezeigt. */
     private void applyVoiceToParams(ComfyUIClient.SavedVoice v) {
         if (v == null) return;
@@ -2401,10 +2447,20 @@ if (w.trailSilenceSlider != null) {
                 elevenLabsModelCombo.getSelectionModel().select(ElevenLabsClient.DEFAULT_MODEL_ID);
                 if (elevenLabsModelCombo.getSelectionModel().getSelectedItem() == null) elevenLabsModelCombo.getSelectionModel().selectFirst();
             }
+            updateElevenLabsV3OnlyParamsVisibility();
         }
         if (isElevenLabs) {
             if (elevenLabsSpeedSlider != null) elevenLabsSpeedSlider.setValue(v.getElevenLabsSpeed());
-            if (elevenLabsStabilitySlider != null) elevenLabsStabilitySlider.setValue(v.getElevenLabsStability());
+            if (elevenLabsStabilitySlider != null) {
+                double stab = v.getElevenLabsStability();
+                boolean isV3 = elevenLabsModelCombo != null && elevenLabsModelCombo.getSelectionModel().getSelectedItem() != null
+                        && elevenLabsModelCombo.getSelectionModel().getSelectedItem().toLowerCase(java.util.Locale.ROOT).contains("v3");
+                if (isV3) {
+                    stab = roundStabilityForV3(stab);
+                    v.setElevenLabsStability(stab);
+                }
+                elevenLabsStabilitySlider.setValue(stab);
+            }
             if (elevenLabsSimilaritySlider != null) elevenLabsSimilaritySlider.setValue(v.getElevenLabsSimilarityBoost());
             if (elevenLabsSpeakerBoostCheck != null) elevenLabsSpeakerBoostCheck.setSelected(v.isElevenLabsUseSpeakerBoost());
         }
@@ -2701,7 +2757,13 @@ if (w.trailSilenceSlider != null) {
                     elevenLabsModelCombo.getSelectionModel().select(segRef.elevenLabsModelId);
                 }
                 if (elevenLabsSpeedSlider != null) elevenLabsSpeedSlider.setValue(Math.max(0.7, Math.min(1.2, segRef.elevenLabsSpeed)));
-                if (elevenLabsStabilitySlider != null) elevenLabsStabilitySlider.setValue(Math.max(0, Math.min(1, segRef.elevenLabsStability)));
+                if (elevenLabsStabilitySlider != null) {
+                    double stab = Math.max(0, Math.min(1, segRef.elevenLabsStability));
+                    if (segRef.elevenLabsModelId != null && segRef.elevenLabsModelId.toLowerCase(java.util.Locale.ROOT).contains("v3")) {
+                        stab = roundStabilityForV3(stab);
+                    }
+                    elevenLabsStabilitySlider.setValue(stab);
+                }
                 if (elevenLabsSimilaritySlider != null) elevenLabsSimilaritySlider.setValue(Math.max(0, Math.min(1, segRef.elevenLabsSimilarityBoost)));
                 if (elevenLabsSpeakerBoostCheck != null) elevenLabsSpeakerBoostCheck.setSelected(segRef.elevenLabsUseSpeakerBoost);
                 // Signatur nach ElevenLabs-UI-Update, damit Speichern die geladene Datei findet

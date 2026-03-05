@@ -16,10 +16,10 @@
     "provider": "elevenlabs",
     "elevenLabsVoiceId": "ML23UVoFL5mI6APbRAeR",
     "elevenLabsModelId": "eleven_v3",
-    "elevenLabsStability": 0.1315789319243026,
-    "elevenLabsSimilarityBoost": 0.07436577429187541,
+    "elevenLabsStability": 0.8956043430409589,
+    "elevenLabsSimilarityBoost": 0.75,
     "elevenLabsSpeed": 1.1395939086294415,
-    "elevenLabsUseSpeakerBoost": true,
+    "elevenLabsUseSpeakerBoost": false,
     "elevenLabsStyle": 0.0
   },
   {

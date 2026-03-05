@@ -22,6 +22,13 @@ public final class TtsBackend {
 
     private TtsBackend() {}
 
+    /** ElevenLabs v3 akzeptiert Stabilität nur als 0, 0.5 oder 1. Rundet auf den nächsten erlaubten Wert. */
+    private static double roundStabilityForV3(double stability) {
+        if (stability <= 0.25) return 0.0;
+        if (stability < 0.75) return 0.5;
+        return 1.0;
+    }
+
     // -------- Gecachtes ElevenLabs Pronunciation Dictionary --------
     /** Gecachter Locator des zuletzt hochgeladenen Dictionaries. */
     private static volatile ElevenLabsClient.PronunciationDictionaryLocator cachedDictLocator;
@@ -105,8 +112,12 @@ public final class TtsBackend {
             client.setApiKey(apiKey);
             String modelId = voice.getElevenLabsModelId();
             if (modelId != null && modelId.isBlank()) modelId = null;
+            double stability = voice.getElevenLabsStability();
+            if (modelId != null && modelId.toLowerCase(java.util.Locale.ROOT).contains("v3")) {
+                stability = roundStabilityForV3(stability);
+            }
             ElevenLabsClient.VoiceSettings vs = new ElevenLabsClient.VoiceSettings(
-                    voice.getElevenLabsStability(),
+                    stability,
                     voice.getElevenLabsSimilarityBoost(),
                     voice.getElevenLabsSpeed(),
                     voice.isElevenLabsUseSpeakerBoost(),
