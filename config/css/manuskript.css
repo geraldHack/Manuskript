@@ -3114,6 +3114,43 @@
     -fx-border-radius: 4px;
 }
 
+/* RichTextFX SelectionPath: Markierung bei Drag-Selektion sichtbar (-fx-fill). */
+.code-area .main-selection,
+.code-area .virtual-flow .main-selection,
+.code-area .paragraph-box .main-selection {
+    -fx-fill: #add6ff;
+}
+.weiss-theme .code-area .main-selection,
+.weiss-theme .code-area .virtual-flow .main-selection,
+.weiss-theme .code-area .paragraph-box .main-selection {
+    -fx-fill: #add6ff;
+}
+.pastell-theme .code-area .main-selection,
+.pastell-theme .code-area .virtual-flow .main-selection,
+.pastell-theme .code-area .paragraph-box .main-selection {
+    -fx-fill: #ce93d8;
+}
+.theme-dark .code-area .main-selection,
+.theme-dark .code-area .virtual-flow .main-selection,
+.theme-dark .code-area .paragraph-box .main-selection {
+    -fx-fill: #3b82f6;
+}
+.theme-dark.blau-theme .code-area .main-selection,
+.theme-dark.blau-theme .code-area .virtual-flow .main-selection,
+.theme-dark.blau-theme .code-area .paragraph-box .main-selection {
+    -fx-fill: #60a5fa;
+}
+.theme-dark.gruen-theme .code-area .main-selection,
+.theme-dark.gruen-theme .code-area .virtual-flow .main-selection,
+.theme-dark.gruen-theme .code-area .paragraph-box .main-selection {
+    -fx-fill: #34d399;
+}
+.theme-dark.lila-theme .code-area .main-selection,
+.theme-dark.lila-theme .code-area .virtual-flow .main-selection,
+.theme-dark.lila-theme .code-area .paragraph-box .main-selection {
+    -fx-fill: #a78bfa;
+}
+
 /* Sprachsynthese: größere Schrift – RichTextFX rendert Text in inneren Nodes (.paragraph-box, .paragraph-text, .text) */
 .code-area.tts-editor-code-area,
 .code-area.tts-editor-code-area .paragraph-box,
@@ -3126,6 +3163,80 @@
 .tts-selection {
     -rtfx-background-color: #ffe0b2 !important;  /* weiches Orange – aktueller Bearbeitungsblock (Weiß/Pastell) */
 }
+/* Mehrfachmarkierungen: verschiedene Farben */
+.tts-gelb {
+    -rtfx-background-color: #fff3cd !important;  /* helles Gelb */
+}
+.tts-blau {
+    -rtfx-background-color: #cfe2ff !important;  /* helles Blau */
+}
+.tts-gruen {
+    -rtfx-background-color: #d1e7dd !important;  /* helles Grün */
+}
+.tts-rot {
+    -rtfx-background-color: #f8d7da !important;  /* helles Rot */
+}
+.tts-orange {
+    -rtfx-background-color: #ffe5cc !important;  /* helles Orange */
+}
+.tts-lila {
+    -rtfx-background-color: #e2d9f3 !important;  /* helles Lila */
+}
+
+/* Farbwähler-UI */
+.color-picker {
+    -fx-padding: 5px;
+    -fx-background-color: transparent;
+    -fx-border-color: #cccccc;
+    -fx-border-width: 1px;
+    -fx-border-radius: 5px;
+}
+
+.color-picker-btn {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-background-radius: 5px;
+    -fx-border-radius: 5px;
+    -fx-border-color: #cccccc;
+    -fx-border-width: 1px;
+    -fx-background-color: white;
+    -fx-cursor: hand;
+    -fx-min-width: 84px;
+    -fx-padding: 0px;
+    -fx-text-fill: transparent;
+}
+
+/* Farbspezifische Button-Hintergründe */
+.color-picker-btn:selected {
+    -fx-border-color: #333333;
+    -fx-border-width: 2px;
+    -fx-background-color: #f0f0f0;
+}
+.color-picker-btn:hover {
+    -fx-border-color: #666666;
+    -fx-scale-x: 1.05;
+    -fx-scale-y: 1.05;
+}
+
+/* Farbfelder pro Button */
+.color-picker-btn-gelb { -fx-background-color: #fff3cd; }
+.color-picker-btn-gelb:hover { -fx-background-color: #ffe69c; }
+
+.color-picker-btn-blau { -fx-background-color: #cfe2ff; }
+.color-picker-btn-blau:hover { -fx-background-color: #b3d9ff; }
+
+.color-picker-btn-gruen { -fx-background-color: #d1e7dd; }
+.color-picker-btn-gruen:hover { -fx-background-color: #a7f3d0; }
+
+.color-picker-btn-rot { -fx-background-color: #f8d7da; }
+.color-picker-btn-rot:hover { -fx-background-color: #f1aeb5; }
+
+.color-picker-btn-orange { -fx-background-color: #ffe5cc; }
+.color-picker-btn-orange:hover { -fx-background-color: #ffd4a3; }
+
+.color-picker-btn-lila { -fx-background-color: #e2d9f3; }
+.color-picker-btn-lila:hover { -fx-background-color: #d8b4fe; }
+
 /* Dunkle Themes: Auswahlfarbe an Theme anpassen (nicht Hellgelb auf dunkel) */
 .theme-dark .tts-selection {
     -rtfx-background-color: #b45309 !important;  /* dunkles Orange auf dunkelgrau */
@@ -3138,6 +3249,24 @@
 }
 .theme-dark.lila-theme .tts-selection {
     -rtfx-background-color: #6b21a8 !important;  /* helleres Lila für Auswahl auf Lila */
+}
+
+/* Dunkle Themes: Farbwähler anpassen */
+.theme-dark .color-picker {
+    -fx-border-color: #666666;
+}
+.theme-dark .color-picker-btn {
+    -fx-background-color: #2a2a2a;
+    -fx-border-color: #666666;
+    -fx-text-fill: #ffffff;
+}
+.theme-dark .color-picker-btn:hover {
+    -fx-border-color: #999999;
+    -fx-background-color: #3a3a3a;
+}
+.theme-dark .color-picker-btn:selected {
+    -fx-border-color: #cccccc;
+    -fx-background-color: #3a3a3a;
 }
 /* Wörtliche Rede im TTS-Editor: Fett + abgesetzte Textfarbe. RichTextFX: Style-Klassen auf TextExt, Selektor mit .code-area wie bei .code-area .text. */
 .code-area .tts-direct-speech {
