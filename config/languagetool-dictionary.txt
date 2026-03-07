@@ -78,6 +78,8 @@ paleus
 rawhester
 seb
 sebs
+silphe
+silphen
 taren
 tarens
 technomagisches
@@ -91,6 +93,7 @@ valen
 valens
 valtheris
 weltenfresser
+wrikung
 zaubererrat
 zaubererrates
 zaubererrats

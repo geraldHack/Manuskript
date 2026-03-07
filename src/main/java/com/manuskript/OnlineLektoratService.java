@@ -14,11 +14,11 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -130,7 +130,11 @@ public class OnlineLektoratService {
 
         if (chapterText.length() <= maxCharsPerRequest) {
             logger.info("Online-Lektorat: ein Durchlauf (Textlänge={} <= {}), Modell={}, Typ={}", chapterText.length(), maxCharsPerRequest, model.isEmpty() ? "gpt-4o-mini" : model, lektoratType);
-            return runOneRequestWithRetry(chapterText, systemPrompt, extraPrompt, apiKey, baseUrl, model, 1, 1)
+            // Sofort 0% Fortschritt melden
+            if (onChunkProgress != null) {
+                onChunkProgress.accept(0, 100);
+            }
+            return runOneRequestWithRetry(chapterText, systemPrompt, extraPrompt, apiKey, baseUrl, model, 1, 1, onChunkProgress)
                     .thenApply(body -> parseResponseAndResolveOffsets(body, chapterText))
                     .thenApply(LektoratResult::full);
         }
@@ -147,6 +151,11 @@ public class OnlineLektoratService {
         }
         int firstChunkLen = chunks.get(0).length();
         logger.info("Online-Lektorat: Kapitel in {} Abschnitte geteilt (je max. {} Zeichen), Gesamtlänge={}, 1. Chunk={} Zeichen, Modell={}, Typ={}", chunks.size(), maxCharsPerRequest, chapterText.length(), firstChunkLen, model.isEmpty() ? "gpt-4o-mini" : model, lektoratType);
+
+        // Sofort 0/total Fortschritt melden
+        if (onChunkProgress != null) {
+            onChunkProgress.accept(0, chunks.size());
+        }
 
         return runChunksSequentially(chunks, startOffsets, 0, new ArrayList<>(), systemPrompt, extraPrompt, apiKey, baseUrl, model, onChunkProgress);
     }
@@ -286,7 +295,7 @@ public class OnlineLektoratService {
         int chunkNum = index + 1;
         List<LektoratMatch> accumulatedCopy = new ArrayList<>(accumulated);
         int delayMs = getDelayBetweenChunksMs();
-        return runOneRequestWithRetry(chunk, systemPrompt, extraPrompt, apiKey, baseUrl, model, chunkNum, chunks.size())
+        return runOneRequestWithRetry(chunk, systemPrompt, extraPrompt, apiKey, baseUrl, model, chunkNum, chunks.size(), onChunkProgress)
                 .thenApply(body -> parseResponseAndResolveOffsets(body, chunk))
                 .thenApply(matches -> {
                     for (LektoratMatch m : matches) {
@@ -357,14 +366,14 @@ public class OnlineLektoratService {
      */
     private CompletableFuture<String> runOneRequestWithRetry(String chunkText, String systemPrompt, String extraPrompt,
                                                               String apiKey, String baseUrl, String model,
-                                                              int chunkNum, int totalChunks) {
-        return runOneRequest(chunkText, systemPrompt, extraPrompt, apiKey, baseUrl, model)
+                                                              int chunkNum, int totalChunks, BiConsumer<Integer, Integer> onChunkProgress) {
+        return runOneRequest(chunkText, systemPrompt, extraPrompt, apiKey, baseUrl, model, chunkNum, totalChunks, onChunkProgress)
                 .thenApply(CompletableFuture::completedFuture)
                 .exceptionally(ex -> {
                     Throwable t = ex.getCause() != null ? ex.getCause() : ex;
                     if (is504OrTimeout(t)) {
                         logger.info("Online-Lektorat: Chunk {}/{} – 504/Timeout, ein Versuch wird wiederholt…", chunkNum, totalChunks);
-                        return runOneRequest(chunkText, systemPrompt, extraPrompt, apiKey, baseUrl, model);
+                        return runOneRequest(chunkText, systemPrompt, extraPrompt, apiKey, baseUrl, model, chunkNum, totalChunks, onChunkProgress);
                     }
                     return CompletableFuture.<String>failedFuture(t);
                 })
@@ -382,9 +391,11 @@ public class OnlineLektoratService {
      * Ein API-Durchlauf für einen Textabschnitt (Chunk oder ganzes Kapitel).
      * Verwendet Streaming (stream: true), damit Gateways nicht wegen langer Laufzeit ohne Datenfluss mit 504 abbrechen.
      * Gestreamte Delta-Inhalte werden gesammelt und als eine Antwort für den bestehenden Parser zurückgegeben.
+     * Während des Streamings werden Fortschritts-Callbacks mit Zeichenanzahl gesendet.
      */
     private CompletableFuture<String> runOneRequest(String chunkText, String systemPrompt, String extraPrompt,
-                                                     String apiKey, String baseUrl, String model) {
+                                                     String apiKey, String baseUrl, String model,
+                                                     int chunkNum, int totalChunks, BiConsumer<Integer, Integer> onChunkProgress) {
         logger.info("Online-Lektorat: runOneRequest sendet genau {} Zeichen (Chunk-Länge), Streaming=an", chunkText.length());
         String userPrompt = buildUserPrompt(chunkText, extraPrompt);
         JsonObject body = new JsonObject();
@@ -418,39 +429,77 @@ public class OnlineLektoratService {
             try {
                 HttpResponse<Stream<String>> response = httpClient.send(request, HttpResponse.BodyHandlers.ofLines());
                 int code = response.statusCode();
-                List<String> lines;
+                StringBuilder content = new StringBuilder();
+                StringBuilder errBody = new StringBuilder();
+                int totalChars = chunkText.length();
+                int lastReportedProgress = 0;
+                int updateCounter = 0;
+
                 try (Stream<String> stream = response.body()) {
-                    lines = stream.collect(Collectors.toList());
+                    Iterator<String> iterator = stream.iterator();
+                    while (iterator.hasNext()) {
+                        String line = iterator.next();
+
+                        if (code != 200) {
+                            if (errBody.length() > 0) errBody.append('\n');
+                            errBody.append(line);
+                            continue;
+                        }
+
+                        if (line == null || !line.startsWith("data: ")) continue;
+                        String data = line.substring(6).trim();
+                        if ("[DONE]".equals(data)) break;
+                        try {
+                            JsonObject obj = new Gson().fromJson(data, JsonObject.class);
+                            if (obj == null || !obj.has("choices") || !obj.getAsJsonArray("choices").isJsonArray()) continue;
+                            JsonArray choices = obj.getAsJsonArray("choices");
+                            if (choices.size() == 0) continue;
+                            JsonObject choice = choices.get(0).getAsJsonObject();
+                            if (!choice.has("delta")) continue;
+                            JsonObject delta = choice.getAsJsonObject("delta");
+                            if (delta.has("content") && !delta.get("content").isJsonNull()) {
+                                content.append(delta.get("content").getAsString());
+                                updateCounter++;
+
+                                int currentContentLength = content.length();
+                                int estimatedTotalResponseChars = Math.max(1, totalChars * 2);
+                                int estimatedProgress = Math.min(99, (currentContentLength * 100) / estimatedTotalResponseChars);
+
+                                if (onChunkProgress != null && (estimatedProgress >= lastReportedProgress + 5 || updateCounter % 50 == 0)) {
+                                    if (totalChunks == 1) {
+                                        onChunkProgress.accept(estimatedProgress, 100);
+                                    } else {
+                                        onChunkProgress.accept(chunkNum, totalChunks);
+                                    }
+                                    lastReportedProgress = estimatedProgress;
+                                }
+                            }
+                        } catch (Exception e) {
+                            logger.trace("Online-Lektorat: Stream-Zeile ignoriert: {}", e.getMessage());
+                        }
+                    }
                 }
+
                 if (code != 200) {
-                    String errBody = String.join("\n", lines);
+                    String errorText = errBody.toString();
                     if (code == 504) {
                         throw new RuntimeException("Gateway Timeout (504): Die Anfrage hat zu lange gedauert. Tipp: Ein schnelleres/kleineres Modell wählen, oder das Kapitel ist zu lang – es wird automatisch in Abschnitte geteilt.");
                     }
-                    throw new RuntimeException("API antwortete mit HTTP " + code + ": " + (errBody != null && errBody.length() > 200 ? errBody.substring(0, 200) + "…" : errBody));
+                    throw new RuntimeException("API antwortete mit HTTP " + code + ": " + (errorText.length() > 200 ? errorText.substring(0, 200) + "…" : errorText));
                 }
-                StringBuilder content = new StringBuilder();
-                for (String line : lines) {
-                    if (line == null || !line.startsWith("data: ")) continue;
-                    String data = line.substring(6).trim();
-                    if ("[DONE]".equals(data)) break;
-                    try {
-                        JsonObject obj = new Gson().fromJson(data, JsonObject.class);
-                        if (obj == null || !obj.has("choices") || !obj.getAsJsonArray("choices").isJsonArray()) continue;
-                        JsonArray choices = obj.getAsJsonArray("choices");
-                        if (choices.size() == 0) continue;
-                        JsonObject choice = choices.get(0).getAsJsonObject();
-                        if (!choice.has("delta")) continue;
-                        JsonObject delta = choice.getAsJsonObject("delta");
-                        if (delta.has("content") && !delta.get("content").isJsonNull()) {
-                            content.append(delta.get("content").getAsString());
-                        }
-                    } catch (Exception e) {
-                        logger.trace("Online-Lektorat: Stream-Zeile ignoriert: {}", e.getMessage());
-                    }
-                }
+                
                 String fullContent = content.toString();
                 logger.info("Online-Lektorat: Streaming abgeschlossen, Content-Länge={}", fullContent.length());
+                
+                // Finalen Fortschritt melden
+                if (onChunkProgress != null) {
+                    if (totalChunks == 1) {
+                        onChunkProgress.accept(100, 100);
+                    } else {
+                        onChunkProgress.accept(chunkNum, totalChunks);
+                    }
+                }
+                
                 if (fullContent.isEmpty()) {
                     return "{\"choices\":[{\"message\":{\"content\":\"\"}}]}";
                 }
@@ -510,6 +559,95 @@ public class OnlineLektoratService {
             s = s + "\n\n(Zusatzanweisungen siehe System-Prompt.)";
         }
         return s;
+    }
+
+    /**
+     * Führt eine Kapitel-Einschätzung nach dem Lektorat durch.
+     * Bewertet das gesamte Kapitel in Bezug auf Qualität, Passung zum Roman, etc.
+     *
+     * @param chapterText vollständiger Kapiteltext
+     * @return Einschätzung als String
+     */
+    public CompletableFuture<String> runChapterAssessment(String chapterText) {
+        String apiKey = ResourceManager.getParameter("api.lektorat.api_key", "").trim();
+        String baseUrl = ResourceManager.getParameter("api.lektorat.base_url", "https://api.openai.com/v1").trim().replaceAll("/$", "");
+        String model = modelIdOnly(ResourceManager.getParameter("api.lektorat.model", "gpt-4o-mini"));
+
+        if (apiKey.isEmpty()) {
+            return CompletableFuture.failedFuture(new IllegalStateException("API-Key für Online-Lektorat ist nicht gesetzt."));
+        }
+        if (baseUrl.isEmpty()) {
+            return CompletableFuture.failedFuture(new IllegalStateException("Basis-URL für Online-Lektorat ist nicht gesetzt."));
+        }
+        if (chapterText == null || chapterText.isEmpty()) {
+            return CompletableFuture.completedFuture("Kein Text vorhanden für die Einschätzung.");
+        }
+
+        String systemPrompt = buildAssessmentSystemPrompt();
+        String userPrompt = buildAssessmentUserPrompt(chapterText);
+
+        JsonObject requestBody = new JsonObject();
+        requestBody.addProperty("model", model);
+        requestBody.addProperty("max_tokens", 1000);
+        requestBody.addProperty("temperature", 0.7);
+
+        JsonArray messages = new JsonArray();
+        JsonObject systemMsg = new JsonObject();
+        systemMsg.addProperty("role", "system");
+        systemMsg.addProperty("content", systemPrompt);
+        messages.add(systemMsg);
+
+        JsonObject userMsg = new JsonObject();
+        userMsg.addProperty("role", "user");
+        userMsg.addProperty("content", userPrompt);
+        messages.add(userMsg);
+
+        requestBody.add("messages", messages);
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(baseUrl + "/chat/completions"))
+                .header("Content-Type", "application/json")
+                .header("Authorization", "Bearer " + apiKey)
+                .timeout(Duration.ofSeconds(120))
+                .POST(HttpRequest.BodyPublishers.ofString(requestBody.toString(), StandardCharsets.UTF_8))
+                .build();
+
+        return httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8))
+                .thenApply(response -> {
+                    if (response.statusCode() != 200) {
+                        throw new RuntimeException("API-Fehler: " + response.statusCode() + " - " + response.body());
+                    }
+                    try {
+                        JsonObject responseJson = new Gson().fromJson(response.body(), JsonObject.class);
+                        if (responseJson.has("choices") && responseJson.getAsJsonArray("choices").size() > 0) {
+                            JsonObject choice = responseJson.getAsJsonArray("choices").get(0).getAsJsonObject();
+                            if (choice.has("message") && choice.getAsJsonObject("message").has("content")) {
+                                return choice.getAsJsonObject("message").get("content").getAsString().trim();
+                            }
+                        }
+                        throw new RuntimeException("Unerwartete API-Antwort: " + response.body());
+                    } catch (Exception e) {
+                        throw new RuntimeException("Fehler beim Verarbeiten der API-Antwort: " + e.getMessage(), e);
+                    }
+                });
+    }
+
+    private static String buildAssessmentSystemPrompt() {
+        return "Du agierst als sehr erfahrener, kritischer deutscher Lektor und Literaturkritiker. " +
+                "Deine Aufgabe ist es, eine Einschätzung des vorliegenden Kapitels abzugeben - ausschließlich basierend auf dessen Inhalt. " +
+                "Bewerte das Kapitel unter folgenden Aspekten:\n" +
+                "- Was war gut am Kapitel? (Stärken, gelungene Stellen, stilistische Qualität)\n" +
+                "- Was war nicht so gut? (Schwächen, Verbesserungspotenzial, Probleme)\n" +
+                "- Welche Funktion erfüllt dieses Kapitel? (Übergang, Höhepunkt, Exposition, Charakterentwicklung, Konfliktlösung etc.)\n" +
+                "- Wie wirkt Tempo und Spannung in diesem Abschnitt? (Dynamik, Rhythmus, Aufbau)\n\n" +
+                "Beurteile die dramaturgische Rolle, die das Kapitel wahrscheinlich im Gesamtwerk spielt, ohne den Kontext anderer Kapitel zu kennen. " +
+                "Analysiere, ob es sich um ein typisches Übergangskapitel, einen Wendepunkt, eine Einführung oder einen Abschluss handelt. " +
+                "Antworte prägnant aber aussagekräftig in 3-4 Sätzen pro Aspekt. " +
+                "Verwende eine klare, professionelle Sprache.";
+    }
+
+    private static String buildAssessmentUserPrompt(String chapterText) {
+        return "Bitte gib eine Einschätzung des folgenden Kapitels ab:\n\n=== KAPITELTEXT ===\n" + chapterText;
     }
 
     /**

@@ -112,6 +112,20 @@ public class EditorWindow implements Initializable {
     
     // Statische Map für Scroll-Positionen (vvalue 0.0-1.0) pro Kapitel
     private static final Map<String, Double> chapterScrollPositions = new HashMap<>();
+
+    private static final class CodeAreaViewSnapshot {
+        private final int caretPosition;
+        private final int selectionStart;
+        private final int selectionEnd;
+        private final int paragraphIndex;
+
+        private CodeAreaViewSnapshot(int caretPosition, int selectionStart, int selectionEnd, int paragraphIndex) {
+            this.caretPosition = caretPosition;
+            this.selectionStart = selectionStart;
+            this.selectionEnd = selectionEnd;
+            this.paragraphIndex = paragraphIndex;
+        }
+    }
     
     // Flag um zu verhindern, dass während des Ladens gespeichert wird
     private boolean isLoadingChapter = false;
@@ -222,6 +236,7 @@ public class EditorWindow implements Initializable {
     // Online-Lektorat
     private final List<LektoratMatch> currentLektoratMatches = new ArrayList<>();
     private LektoratMatch selectedLektoratMatch = null;
+    private VBox chapterAssessmentBox = null; // Einschätzung-Box speichern
     
     // Undo/Redo Buttons
     @FXML private Button btnUndo;
@@ -395,6 +410,9 @@ public class EditorWindow implements Initializable {
     private final Object statusLock = new Object();
     /** Verhindert, dass „Bereit“/LanguageTool den Status überschreibt, solange das Online-Lektorat läuft. */
     private volatile boolean onlineLektoratInProgress = false;
+    
+    /** Flag ob Kapitel-Einschätzung aktiviert ist */
+    private boolean enableChapterAssessment = false;
 
     private void scheduleStatusClear(long delaySeconds, boolean skip) {
         if (skip) {
@@ -429,6 +447,112 @@ public class EditorWindow implements Initializable {
                 });
             }, delaySeconds, TimeUnit.SECONDS);
         }
+    }
+
+    private CodeAreaViewSnapshot captureCodeAreaViewSnapshot() {
+        if (codeArea == null) return null;
+        try {
+            IndexRange selection = codeArea.getSelection();
+            int caretPosition = Math.max(0, codeArea.getCaretPosition());
+            int selectionStart = selection != null ? Math.max(0, selection.getStart()) : caretPosition;
+            int selectionEnd = selection != null ? Math.max(0, selection.getEnd()) : caretPosition;
+            int paragraphIndex = getFirstVisibleParagraphIndex();
+            return new CodeAreaViewSnapshot(caretPosition, selectionStart, selectionEnd, paragraphIndex);
+        } catch (Exception e) {
+            logger.debug("Fehler beim Erfassen des CodeArea-Snapshots: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    private int getFirstVisibleParagraphIndex() {
+        if (codeArea == null) return 0;
+        try {
+            java.lang.reflect.Method method = codeArea.getClass().getMethod("firstVisibleParToAllParIndex");
+            Object result = method.invoke(codeArea);
+            if (result instanceof java.util.Optional<?> optional && optional.isPresent() && optional.get() instanceof Integer idx) {
+                return Math.max(0, idx);
+            }
+        } catch (Exception e) {
+            logger.debug("Erster sichtbarer Absatz per Reflection nicht verfügbar: {}", e.getMessage());
+        }
+        try {
+            return Math.max(0, codeArea.getCurrentParagraph());
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
+    private void restoreCodeAreaViewSnapshot(CodeAreaViewSnapshot snapshot) {
+        restoreCodeAreaViewSnapshot(snapshot, true);
+    }
+
+    private void restoreCodeAreaViewSnapshot(CodeAreaViewSnapshot snapshot, boolean requestFocus) {
+        if (snapshot == null || codeArea == null) return;
+
+        int textLength = codeArea.getLength();
+        int caretPosition = Math.max(0, Math.min(snapshot.caretPosition, textLength));
+        int selectionStart = Math.max(0, Math.min(snapshot.selectionStart, textLength));
+        int selectionEnd = Math.max(0, Math.min(snapshot.selectionEnd, textLength));
+        int paragraphIndex = Math.max(0, Math.min(snapshot.paragraphIndex, Math.max(0, codeArea.getParagraphs().size() - 1)));
+
+        Runnable restoreAction = () -> {
+            try {
+                codeArea.showParagraphInViewport(paragraphIndex);
+            } catch (Exception e) {
+                logger.debug("Fehler beim Wiederherstellen des sichtbaren Absatzes: {}", e.getMessage());
+            }
+
+            try {
+                if (selectionEnd > selectionStart) {
+                    codeArea.selectRange(selectionStart, selectionEnd);
+                } else {
+                    codeArea.moveTo(caretPosition);
+                }
+            } catch (Exception e) {
+                logger.debug("Fehler beim Wiederherstellen von Cursor/Selektion: {}", e.getMessage());
+                try {
+                    codeArea.moveTo(caretPosition);
+                } catch (Exception ignored) {
+                }
+            }
+
+            if (requestFocus) {
+                codeArea.requestFocus();
+            }
+        };
+
+        restoreAction.run();
+        Platform.runLater(restoreAction);
+        Platform.runLater(() -> Platform.runLater(restoreAction));
+    }
+
+    private String preserveParagraphBoundaries(String originalText, String replacementText) {
+        if (originalText == null) return replacementText;
+        if (replacementText == null) return null;
+
+        String result = replacementText;
+
+        Matcher leadingMatcher = Pattern.compile("^(\\n+)").matcher(originalText);
+        if (leadingMatcher.find()) {
+            String originalLeading = leadingMatcher.group(1);
+            Matcher replacementLeadingMatcher = Pattern.compile("^(\\n+)").matcher(result);
+            String replacementLeading = replacementLeadingMatcher.find() ? replacementLeadingMatcher.group(1) : "";
+            if (replacementLeading.length() < originalLeading.length()) {
+                result = originalLeading.substring(replacementLeading.length()) + result;
+            }
+        }
+
+        Matcher trailingMatcher = Pattern.compile("(\\n+)$").matcher(originalText);
+        if (trailingMatcher.find()) {
+            String originalTrailing = trailingMatcher.group(1);
+            Matcher replacementTrailingMatcher = Pattern.compile("(\\n+)$").matcher(result);
+            String replacementTrailing = replacementTrailingMatcher.find() ? replacementTrailingMatcher.group(1) : "";
+            if (replacementTrailing.length() < originalTrailing.length()) {
+                result = result + originalTrailing.substring(replacementTrailing.length());
+            }
+        }
+
+        return result;
     }
     
     @Override
@@ -1523,14 +1647,20 @@ if (caret != null) {
      * Undo-Funktion (Ctrl+Z)
      */
     private void undo() {
+        if (codeArea == null) return;
+        CodeAreaViewSnapshot viewSnapshot = captureCodeAreaViewSnapshot();
         codeArea.undo();
+        restoreCodeAreaViewSnapshot(viewSnapshot, false);
     }
     
     /**
      * Redo-Funktion (Ctrl+Y)
      */
     private void redo() {
+        if (codeArea == null) return;
+        CodeAreaViewSnapshot viewSnapshot = captureCodeAreaViewSnapshot();
         codeArea.redo();
+        restoreCodeAreaViewSnapshot(viewSnapshot, false);
     }
     
     /**
@@ -3029,6 +3159,7 @@ if (caret != null) {
         // EINGEBAUTE UNDO-FUNKTIONALITÄT VERWENDEN - kein manueller Aufruf nötig
         
         try {
+            CodeAreaViewSnapshot viewSnapshot = captureCodeAreaViewSnapshot();
             Pattern pattern = createSearchPattern(searchText.trim());
             String content = codeArea.getText();
             Matcher matcher = pattern.matcher(content);
@@ -3073,6 +3204,7 @@ if (caret != null) {
                 }
                 
                 codeArea.replaceText(matchStart, matchEnd, replacement);
+                restoreCodeAreaViewSnapshot(viewSnapshot);
                 updateStatus("Ersetzt");
                 
                 // Cache komplett zurücksetzen, da sich der Text geändert hat
@@ -3096,6 +3228,7 @@ if (caret != null) {
         // EINGEBAUTE UNDO-FUNKTIONALITÄT VERWENDEN - kein manueller Aufruf nötig
         
         try {
+            CodeAreaViewSnapshot viewSnapshot = captureCodeAreaViewSnapshot();
             String content = codeArea.getText();
             String replacement;
             
@@ -3136,6 +3269,7 @@ if (caret != null) {
             // Ersetze den gesamten Inhalt
             codeArea.clear();
             codeArea.appendText(replacement);
+            restoreCodeAreaViewSnapshot(viewSnapshot);
             
             // Visuelles Update erzwingen
             Platform.runLater(() -> {
@@ -3623,7 +3757,7 @@ if (caret != null) {
     }
     
     public void updateStatus(String message) {
-        if (onlineLektoratInProgress) return;
+        if (onlineLektoratInProgress) return; // WICHTIG: Keine Status-Updates während Lektorat!
         if (lblStatus != null) {
         lblStatus.setText(message);
             lblStatus.setStyle("-fx-text-fill: #28a745; -fx-font-weight: normal; -fx-background-color: #d4edda; -fx-padding: 2 6 2 6; -fx-background-radius: 3;");
@@ -3640,7 +3774,7 @@ if (caret != null) {
     }
     
     public void updateStatusError(String message) {
-        if (onlineLektoratInProgress) return;
+        if (onlineLektoratInProgress) return; // WICHTIG: Keine Status-Updates während Lektorat!
         if (lblStatus != null) {
             lblStatus.setText(message);
             // Inline-Styling setzen - wird nach Theme-Apply gesetzt, um CSS zu überschreiben
@@ -10057,11 +10191,7 @@ spacer.setStyle("-fx-background-color: transparent;");
             boolean wasParagraphMarkingEnabled = paragraphMarkingEnabled;
             paragraphMarkingEnabled = false;
             
-            // Cursor-Position speichern
-            int caretPosition = codeArea.getCaretPosition();
-            
-            // Scroll-Position speichern (Paragraph des Cursors)
-            int currentParagraph = codeArea.getCurrentParagraph();
+            CodeAreaViewSnapshot viewSnapshot = captureCodeAreaViewSnapshot();
             
             // Speichere den ursprünglichen Text für Undo (inkl. Absatz-Markierungen)
             String originalText = codeArea.getText();
@@ -10143,25 +10273,7 @@ spacer.setStyle("-fx-background-color: transparent;");
             if (!originalText.equals(normalizedContent)) {
                 // Ersetze den gesamten Text in einer Operation - dies wird als eine einzige Undo-Operation behandelt
                 codeArea.replaceText(0, codeArea.getLength(), normalizedContent);
-                
-                // WICHTIG: Stelle Cursor-Position SOFORT wieder her (vor Scroll-Position)
-                // replaceText() setzt den Cursor möglicherweise zurück, daher müssen wir ihn sofort wiederherstellen
-                int restoredCaretPosition = caretPosition;
-                if (restoredCaretPosition > normalizedContent.length()) {
-                    restoredCaretPosition = normalizedContent.length();
-                }
-                codeArea.moveTo(restoredCaretPosition);
-                
-                // WICHTIG: Stelle Scroll-Position SOFORT wieder her (synchron, nicht in Platform.runLater)
-                // replaceText() setzt die Scroll-Position zurück, daher müssen wir sie danach sofort wiederherstellen
-                try {
-                    if (currentParagraph >= 0 && currentParagraph < codeArea.getParagraphs().size()) {
-                        // Verwende showParagraphInViewport für sanfte Wiederherstellung
-                        codeArea.showParagraphInViewport(currentParagraph);
-                    }
-                } catch (Exception e) {
-                    logger.debug("Fehler beim Wiederherstellen der Scroll-Position nach replaceText: " + e.getMessage());
-                }
+                restoreCodeAreaViewSnapshot(viewSnapshot);
                 
                 // Verhindere, dass die nächste Operation mit dieser zusammengeführt wird
                 // Dies stellt sicher, dass die Makro-Operation als separate Undo-Operation bleibt
@@ -10176,12 +10288,7 @@ spacer.setStyle("-fx-background-color: transparent;");
                     }
                 }
             } else {
-                // Keine Textänderung - Cursor-Position trotzdem sicherstellen
-                int restoredCaretPosition = caretPosition;
-                if (restoredCaretPosition > normalizedContent.length()) {
-                    restoredCaretPosition = normalizedContent.length();
-                }
-                codeArea.moveTo(restoredCaretPosition);
+                restoreCodeAreaViewSnapshot(viewSnapshot);
             }
             
             // Prüfe ob das Makro tatsächlich Änderungen vorgenommen hat
@@ -10197,13 +10304,8 @@ spacer.setStyle("-fx-background-color: transparent;");
             // WICHTIG: Scroll-Position NICHT ändern - nur Fokus wiederherstellen
             // Cursor-Position wurde bereits oben wiederhergestellt
             Platform.runLater(() -> {
-                // Fokus wiederherstellen
-                codeArea.requestFocus();
-                stage.requestFocus();
-                codeArea.requestFocus();
-                
-                // WICHTIG: KEIN automatisches Scrollen zum Cursor, um die Scroll-Position zu erhalten
-                // KEIN requestFollowCaret(), da dies den Cursor automatisch verfolgt und die Position ändert
+                // WICHTIG: Kein Fokus-Hin-und-Her, da RichTextFX sonst zum Caret scrollen kann
+                // KEIN requestFollowCaret(), KEIN stage.requestFocus(), KEIN erneutes codeArea.requestFocus()
             });
             
             updateStatus("Makro erfolgreich ausgeführt: " + currentMacro.getName());
@@ -12937,7 +13039,15 @@ spacer.setStyle("-fx-background-color: transparent;");
      * Startet das Online-Lektorat für den aktuellen Editor-Text (aufgerufen aus dem Hauptfenster).
      */
     public void startOnlineLektorat() {
-        logger.info("startOnlineLektorat aufgerufen, codeArea={}", codeArea != null);
+        startOnlineLektorat(false);
+    }
+
+    /**
+     * Startet das Online-Lektorat für den aktuellen Editor-Text mit optionaler Kapitel-Einschätzung.
+     */
+    public void startOnlineLektorat(boolean enableAssessment) {
+        this.enableChapterAssessment = enableAssessment;
+        logger.info("startOnlineLektorat aufgerufen, codeArea={}, enableAssessment={}", codeArea != null, enableAssessment);
         if (codeArea == null) {
             logger.warn("startOnlineLektorat: codeArea ist null – Abbruch");
             Platform.runLater(() -> {
@@ -12964,11 +13074,26 @@ spacer.setStyle("-fx-background-color: transparent;");
         }
         logger.info("startOnlineLektorat: API-Aufruf gestartet, Textlänge={}", text.length());
         OnlineLektoratService service = new OnlineLektoratService();
-        BiConsumer<Integer, Integer> onProgress = (done, total) -> Platform.runLater(() -> {
-            if (lblStatus != null && onlineLektoratInProgress) {
-                lblStatus.setText("Lektorat: " + done + "/" + total + " Abschnitte bearbeitet …");
-            }
-        });
+        BiConsumer<Integer, Integer> onProgress = (done, total) -> {
+            // Einfache Fortschrittsanzeige - keine komplexen Thread-Checks
+            Platform.runLater(() -> {
+                if (lblStatus != null && onlineLektoratInProgress) {
+                    if (total == 100) {
+                        // Einzelpuffer-Modus: Fortschritt in % (0-100)
+                        int totalChars = text.length();
+                        int processedChars = (done * totalChars) / 100;
+                        lblStatus.setText("Lektorat: " + done + "% (" + processedChars + "/" + totalChars + " Zeichen) bearbeitet …");
+                    } else {
+                        // Multi-Chunk-Modus: Abschnitte
+                        int totalChars = text.length();
+                        int processedChars = (done * totalChars) / total;
+                        lblStatus.setText("Lektorat: " + done + "/" + total + " Abschnitte (" + processedChars + "/" + totalChars + " Zeichen) bearbeitet …");
+                    }
+                    lblStatus.setVisible(true);
+                    lblStatus.setManaged(true);
+                }
+            });
+        };
         service.runLektorat(text, onProgress)
                 .thenAccept(result -> Platform.runLater(() -> {
                     onlineLektoratInProgress = false;
@@ -13039,11 +13164,87 @@ spacer.setStyle("-fx-background-color: transparent;");
     private void showLektoratPanelHint() {
         if (lektoratPanelContainer == null || mainSplitPane == null) return;
         lektoratPanelContainer.getChildren().clear();
+        
+        VBox content = new VBox(10);
+        content.setPadding(new Insets(0, 5, 0, 0));
+        content.setMaxWidth(Double.MAX_VALUE);
+        
         Label hint = new Label(currentLektoratMatches.isEmpty() ? "Keine Vorschläge." : "Klicken Sie auf eine Markierung im Text.");
         hint.setWrapText(true);
         hint.getStyleClass().add("lektorat-panel-hint");
         applyThemeToNode(hint, currentThemeIndex);
-        lektoratPanelContainer.getChildren().add(hint);
+        content.getChildren().add(hint);
+        
+        // Kapitel-Einschätzung-Box hinzufügen (nur wenn aktiviert)
+        if (enableChapterAssessment) {
+            Label assessmentLabel = new Label("Kapitel-Einschätzung");
+            assessmentLabel.getStyleClass().add("lektorat-panel-section");
+            applyThemeToNode(assessmentLabel, currentThemeIndex);
+            
+            VBox assessmentBox = new VBox(8);
+            assessmentBox.getStyleClass().add("dialog-container");
+            assessmentBox.getStyleClass().add("theme-" + currentThemeIndex);
+            assessmentBox.setPadding(new Insets(10));
+            assessmentBox.setMaxWidth(Double.MAX_VALUE);
+            applyThemeToNode(assessmentBox, currentThemeIndex);
+            
+            // Einschätzungs-Box speichern
+            chapterAssessmentBox = assessmentBox;
+            
+            Label assessmentLoading = new Label("Einschätzung wird geladen...");
+            assessmentLoading.setWrapText(true);
+            assessmentLoading.setMaxWidth(Double.MAX_VALUE);
+            applyThemeToNode(assessmentLoading, currentThemeIndex);
+            assessmentBox.getChildren().add(assessmentLoading);
+            
+            content.getChildren().addAll(assessmentLabel, assessmentBox);
+
+            // Einschätzung im Hintergrund laden
+            String chapterText = codeArea.getText();
+            if (chapterText != null && !chapterText.isEmpty()) {
+                OnlineLektoratService service = new OnlineLektoratService();
+                
+                service.runChapterAssessment(chapterText)
+                    .thenAccept(assessment -> Platform.runLater(() -> {
+                        assessmentBox.getChildren().clear();
+                        Label assessmentText = new Label(assessment);
+                        assessmentText.setWrapText(true);
+                        assessmentText.setMaxWidth(Double.MAX_VALUE);
+                        applyThemeToNode(assessmentText, currentThemeIndex);
+                        assessmentBox.getChildren().add(assessmentText);
+                    }))
+                    .exceptionally(ex -> {
+                        Platform.runLater(() -> {
+                            assessmentBox.getChildren().clear();
+                            Label errorText = new Label("Einschätzung fehlgeschlagen:\n" + ex.getMessage());
+                            errorText.setWrapText(true);
+                            errorText.setMaxWidth(Double.MAX_VALUE);
+                            errorText.setTextFill(javafx.scene.paint.Color.RED);
+                            applyThemeToNode(errorText, currentThemeIndex);
+                            assessmentBox.getChildren().add(errorText);
+                        });
+                        return null;
+                    });
+            } else {
+                assessmentBox.getChildren().clear();
+                Label noText = new Label("Kein Text für Einschätzung vorhanden.");
+                noText.setWrapText(true);
+                noText.setMaxWidth(Double.MAX_VALUE);
+                applyThemeToNode(noText, currentThemeIndex);
+                assessmentBox.getChildren().add(noText);
+            }
+        }
+        
+        ScrollPane scroll = new ScrollPane();
+        scroll.setFitToWidth(true);
+        scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scroll.setMaxWidth(Double.MAX_VALUE);
+        scroll.setContent(content);
+        applyThemeToNode(scroll, currentThemeIndex);
+        
+        lektoratPanelContainer.getChildren().add(scroll);
+        VBox.setVgrow(scroll, Priority.ALWAYS);
+        
         if (!currentLektoratMatches.isEmpty()) {
             ensureLektoratPanelVisible(true);
             if (mainSplitPane.getDividerPositions().length >= 2) {
@@ -13134,6 +13335,14 @@ spacer.setStyle("-fx-background-color: transparent;");
         applyThemeToNode(weightLabel, currentThemeIndex);
         content.getChildren().add(weightLabel);
 
+        // Einschätzung unten hinzufügen, wenn vorhanden
+        if (chapterAssessmentBox != null) {
+            Label assessmentLabel = new Label("Kapitel-Einschätzung");
+            assessmentLabel.getStyleClass().add("lektorat-panel-section");
+            applyThemeToNode(assessmentLabel, currentThemeIndex);
+            content.getChildren().addAll(assessmentLabel, chapterAssessmentBox);
+        }
+
         scroll.setContent(content);
         lektoratPanelContainer.getChildren().add(scroll);
         VBox.setVgrow(scroll, Priority.ALWAYS);
@@ -13144,11 +13353,14 @@ spacer.setStyle("-fx-background-color: transparent;");
         if (codeArea == null) return;
         String currentText = codeArea.getText();
         if (currentText == null) return;
+
         // Ersetzung unescapen (falls API literal \n/\t liefert)
         String unescaped = replacement.replace("\\n", "\n").replace("\\t", "\t");
         String original = match.getOriginal();
         int offset = match.getOffset();
         int len = match.getLength();
+
+        
         // Exakt ersetzen: Stelle im aktuellen Text finden (Offset kann nach Bearbeitung abweichen)
         int start = offset;
         int end = offset + len;
@@ -13162,10 +13374,17 @@ spacer.setStyle("-fx-background-color: transparent;");
             start = idx;
             end = idx + original.length();
         }
-        codeArea.replaceText(start, end, unescaped);
+        String originalSegment = currentText.substring(start, end);
+        String replacementWithBoundaries = preserveParagraphBoundaries(originalSegment, unescaped);
+        CodeAreaViewSnapshot viewSnapshot = captureCodeAreaViewSnapshot();
+        
+        codeArea.replaceText(start, end, replacementWithBoundaries);
         currentLektoratMatches.remove(match);
         selectedLektoratMatch = null;
+        
+        // Nur lokale Neustyling statt vollständiger Neuformatierung
         applyCombinedStyling();
+        
         if (currentLektoratMatches.isEmpty()) {
             ensureLektoratPanelVisible(false);
         } else {
@@ -13175,6 +13394,7 @@ spacer.setStyle("-fx-background-color: transparent;");
             applyThemeToNode(hint, currentThemeIndex);
             lektoratPanelContainer.getChildren().add(hint);
         }
+        restoreCodeAreaViewSnapshot(viewSnapshot, false);
         updateStatus("Lektorat-Vorschlag übernommen");
     }
     

@@ -250,9 +250,17 @@ public class TtsRecordingWindow {
         picker.setAlignment(javafx.geometry.Pos.TOP_CENTER);
         picker.getStyleClass().add("color-picker");
         
-        // Farben definieren: klickbare Farbfelder (wie im ChapterTtsEditorWindow mit Inline-Style)
-        String[] colors = {"gelb", "blau", "gruen", "rot", "orange", "lila"};
-        String[] hex = {"#fff3cd", "#cfe2ff", "#d1e7dd", "#f8d7da", "#ffe5cc", "#e2d9f3"};
+        // Farben je nach Theme anpassen
+        String[] colors;
+        String[] hex;
+        
+        if (themeIndex == 0 || themeIndex == 2) { // weiß, pastell - dunkler Text
+            colors = new String[]{"gelb", "blau", "gruen", "rot", "orange", "lila"};
+            hex = new String[]{"#fff3cd", "#cfe2ff", "#d1e7dd", "#f8d7da", "#ffe5cc", "#e2d9f3"};
+        } else { // dunkle Themes - heller Text
+            colors = new String[]{"gelb", "blau", "gruen", "rot", "orange", "lila"};
+            hex = new String[]{"#856404", "#004085", "#155724", "#721c24", "#ea820b", "#6f42c1"};
+        }
         
         for (int i = 0; i < colors.length; i++) {
             final String color = colors[i];

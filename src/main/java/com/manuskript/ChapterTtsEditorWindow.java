@@ -813,6 +813,7 @@ if (w.trailSilenceSlider != null) {
 
         // Regieanweisungen (projektglobal): TableView analog zum Lexikon, Inline-Editing
         Label regieLabel = new Label("Regieanweisungen [Text] (Modellabhaengig)");
+        regieLabel.setPadding(new Insets(10, 0, 0, 0));
         regieLabel.setTooltip(new Tooltip("Texte in eckigen Klammern z. B. [unterw\u00fcrfig, tiefe Stimme]. Mehrere Tags pro Zeile m\u00f6glich: [lacht][fl\u00fcstert]. Doppelklick f\u00fcgt am Cursor ein."));
         regieanweisungenTableView = new TableView<>(regieanweisungenItems);
         regieanweisungenTableView.getStyleClass().add("lexicon-table");
@@ -1818,8 +1819,6 @@ if (w.trailSilenceSlider != null) {
                         hideCheck.play();
                     }
                     codeArea.replaceText(start, end, finalText);
-                    segments.clear();
-                    saveSegments();
                     refreshHighlight();
                     setStatus("v3 Audio-Tags eingefügt. Bitte prüfen.");
                 });
@@ -2721,6 +2720,15 @@ if (w.trailSilenceSlider != null) {
         return best;
     }
 
+    private boolean isAudioAlreadyLoaded(Path path) {
+        if (path == null || pendingAudioPath == null) return false;
+        try {
+            return path.normalize().toAbsolutePath().equals(pendingAudioPath.normalize().toAbsolutePath());
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     private void loadSegmentToLeft(TtsSegment seg) {
         selectedSegmentForColor = seg;
         codeArea.selectRange(seg.start, seg.end);
@@ -2794,7 +2802,7 @@ if (w.trailSilenceSlider != null) {
             }
             if (Files.isRegularFile(p)) {
                 lastGeneratedAudioPath = p;
-                if (!playbackWasRunning) {
+                if (!isAudioAlreadyLoaded(p)) {
                     loadAudioInPlayer(p);
                 }
             }

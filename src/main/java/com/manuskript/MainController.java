@@ -563,21 +563,65 @@ public class MainController implements Initializable {
                     return;
                 }
                 Window owner = primaryStage != null ? primaryStage.getScene().getWindow() : null;
-                CustomAlert confirmAlert = DialogFactory.createConfirmationAlert(
-                    "Online-Lektorat",
-                    "Kostenpflichtiger Dienst",
-                    "Das Online-Lektorat nutzt einen externen API-Dienst und kann je nach Nutzung Kosten verursachen.\n\nBenutztes Modell: "+ResourceManager.getParameter("api.lektorat.model", "unknown")+"\n\nWirklich starten?",
-                    owner
-                );
-                ButtonType startButton = new ButtonType("Ja, starten", ButtonBar.ButtonData.OK_DONE);
-                ButtonType cancelButton = new ButtonType("Abbrechen", ButtonBar.ButtonData.CANCEL_CLOSE);
-                confirmAlert.getButtonTypes().clear();
-                confirmAlert.getButtonTypes().addAll(startButton, cancelButton);
-                confirmAlert.applyTheme(currentThemeIndex);
-                Optional<ButtonType> result = confirmAlert.showAndWait(owner);
-                if (result.isPresent() && result.get() == startButton) {
-                    openChapterEditor(selected, true);
-                }
+                
+                // Custom Dialog mit Checkbox erstellen
+                CustomStage dialogStage = StageManager.createModalStage("Online-Lektorat", owner);
+                dialogStage.setWidth(480);
+                dialogStage.setHeight(350);
+                dialogStage.setTitleBarTheme(currentThemeIndex);
+                
+                VBox dialogContent = new VBox(20);
+                dialogContent.setPadding(new Insets(25));
+                dialogContent.getStyleClass().add("dialog-container");
+                applyThemeToNode(dialogContent, currentThemeIndex);
+                
+                Label titleLabel = new Label("Kostenpflichtiger Dienst");
+                titleLabel.getStyleClass().add("dialog-title");
+                titleLabel.setMaxWidth(Double.MAX_VALUE);
+                titleLabel.setAlignment(javafx.geometry.Pos.CENTER);
+                titleLabel.setPadding(new Insets(0));
+                applyThemeToNode(titleLabel, currentThemeIndex);
+                
+                Label infoLabel = new Label("Das Online-Lektorat nutzt einen externen API-Dienst und kann je nach Nutzung Kosten verursachen.\n\nBenutztes Modell: " + ResourceManager.getParameter("api.lektorat.model", "unknown"));
+                infoLabel.setWrapText(true);
+                infoLabel.setMaxWidth(400);
+                infoLabel.setPadding(new Insets(0, 0, 10, 0));
+                applyThemeToNode(infoLabel, currentThemeIndex);
+                
+                CheckBox assessmentCheckBox = new CheckBox("Zusätzliche Kapitel-Einschätzung erstellen");
+                assessmentCheckBox.setTooltip(new Tooltip("Nach dem Lektorat eine Einschätzung des gesamten Kapitels anfordern (zusätzliche Kosten)"));
+                assessmentCheckBox.setSelected(false);
+                assessmentCheckBox.setPadding(new Insets(10, 0, 10, 0));
+                assessmentCheckBox.setWrapText(true);
+                assessmentCheckBox.setMaxWidth(400);
+                applyThemeToNode(assessmentCheckBox, currentThemeIndex);
+                
+                HBox buttonBox = new HBox(10);
+                buttonBox.setAlignment(javafx.geometry.Pos.CENTER_RIGHT);
+                buttonBox.setPadding(new Insets(10, 0, 0, 0));
+                
+                Button startButton = new Button("Ja, starten");
+                Button cancelButton = new Button("Abbrechen");
+                applyThemeToNode(startButton, currentThemeIndex);
+                applyThemeToNode(cancelButton, currentThemeIndex);
+                
+                buttonBox.getChildren().addAll(startButton, cancelButton);
+                
+                dialogContent.getChildren().addAll(titleLabel, infoLabel, assessmentCheckBox, buttonBox);
+                
+                javafx.scene.Scene scene = new javafx.scene.Scene(dialogContent);
+                String cssPath = ResourceManager.getCssResource("css/manuskript.css");
+                if (cssPath != null) scene.getStylesheets().add(cssPath);
+                dialogStage.setSceneWithTitleBar(scene);
+                
+                startButton.setOnAction(evt -> {
+                    dialogStage.close();
+                    openChapterEditor(selected, true, assessmentCheckBox.isSelected());
+                });
+                
+                cancelButton.setOnAction(evt -> dialogStage.close());
+                
+                dialogStage.show();
             });
         }
         btnThemeToggle.setOnAction(e -> toggleTheme());
@@ -2297,6 +2341,10 @@ public class MainController implements Initializable {
     }
 
     private void openChapterEditor(DocxFile chapterFile, boolean startOnlineLektorat) {
+        openChapterEditor(chapterFile, startOnlineLektorat, false);
+    }
+
+    private void openChapterEditor(DocxFile chapterFile, boolean startOnlineLektorat, boolean enableAssessment) {
         try {
             if (startOnlineLektorat) {
                 logger.info("openChapterEditor: Online-Lektorat angefordert für {}", chapterFile != null ? chapterFile.getFileName() : "null");
@@ -2322,7 +2370,7 @@ public class MainController implements Initializable {
                     }
                     if (startOnlineLektorat) {
                         logger.info("openChapterEditor: startOnlineLektorat auf bestehendem Editor aufgerufen");
-                        existingEditor.startOnlineLektorat();
+                        existingEditor.startOnlineLektorat(enableAssessment);
                     }
                 });
                 updateStatus("Bestehender Editor für '" + chapterFile.getFileName() + "' in den Vordergrund gebracht");
@@ -2385,7 +2433,7 @@ public class MainController implements Initializable {
                                 updateStatus("Kapitel-Editor geöffnet (DOCX übernommen): " + chapterFile.getFileName());
                                 if (startOnlineLektorat && editorController != null) {
                                     logger.info("openChapterEditor: startOnlineLektorat geplant (DOCX übernommen)");
-                                    Platform.runLater(() -> editorController.startOnlineLektorat());
+                                    Platform.runLater(() -> editorController.startOnlineLektorat(enableAssessment));
                                 }
                                 DiffProcessor.saveDocxHashAsync(chapterFile.getFile(), mdFile);
                                 updateDocxHashAfterAccept(chapterFile.getFile());
@@ -2423,7 +2471,7 @@ public class MainController implements Initializable {
                             updateStatus("Kapitel-Editor geöffnet (MD): " + chapterFile.getFileName());
                             if (startOnlineLektorat) {
                                 logger.info("openChapterEditor: startOnlineLektorat geplant (MD geladen)");
-                                Platform.runLater(() -> editor.startOnlineLektorat());
+                                Platform.runLater(() -> editor.startOnlineLektorat(enableAssessment));
                             }
                         }
 
@@ -2436,7 +2484,7 @@ public class MainController implements Initializable {
                             updateStatus("Kapitel-Editor geöffnet (DOCX-Fallback): " + chapterFile.getFileName());
                             if (startOnlineLektorat) {
                                 logger.info("openChapterEditor: startOnlineLektorat geplant (DOCX-Fallback)");
-                                Platform.runLater(() -> editor.startOnlineLektorat());
+                                Platform.runLater(() -> editor.startOnlineLektorat(enableAssessment));
                             }
                             if (mdFile != null) {
                                 DiffProcessor.saveDocxHashAsync(chapterFile.getFile(), mdFile);
@@ -2471,7 +2519,7 @@ public class MainController implements Initializable {
                     updateStatus("Kapitel-Editor geöffnet (DOCX→MD): " + chapterFile.getFileName());
                     if (startOnlineLektorat) {
                         logger.info("openChapterEditor: startOnlineLektorat geplant (DOCX→MD)");
-                        Platform.runLater(() -> editor.startOnlineLektorat());
+                        Platform.runLater(() -> editor.startOnlineLektorat(enableAssessment));
                     }
                 }
             }
