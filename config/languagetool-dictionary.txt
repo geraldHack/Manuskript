@@ -57,8 +57,10 @@ kalems
 kata
 kataluna
 katas
+knarl
 lakan
 lakanische
+lakanischen
 lakans
 lethos
 leva
@@ -88,6 +90,7 @@ thorans
 tilla
 valdor
 valdorien
+valdoriens
 valdors
 valen
 valens

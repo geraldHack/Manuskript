@@ -461,6 +461,9 @@ if (w.trailSilenceSlider != null) {
         w.loadSegments();
         w.refreshHighlight();
         w.stage.setOnCloseRequest(ev -> {
+            // Jegliche Wiedergabe sofort stoppen
+            w.stopAllPlayback();
+            
             String text = w.codeArea != null ? w.codeArea.getText() : null;
             boolean textEmpty = text == null || text.trim().isEmpty();
             if (textEmpty) {
@@ -593,6 +596,16 @@ if (w.trailSilenceSlider != null) {
             public ComfyUIClient.SavedVoice fromString(String s) { return null; }
         });
         if (!voiceCombo.getItems().isEmpty()) voiceCombo.getSelectionModel().selectFirst();
+
+        // ComfyUI-Hilfe-Button
+        Button btnComfyUIHelp = new Button("?");
+        btnComfyUIHelp.setTooltip(new Tooltip("ComfyUI Installation und Hilfe"));
+        btnComfyUIHelp.setPrefWidth(30);
+        btnComfyUIHelp.setOnAction(e -> showComfyUIHelp());
+
+        HBox voiceRow = new HBox(6);
+        voiceRow.getChildren().addAll(voiceLabel, voiceCombo, btnComfyUIHelp);
+        HBox.setHgrow(voiceCombo, Priority.ALWAYS);
 
         elevenLabsModelCombo = new ComboBox<>();
         elevenLabsModelCombo.getItems().setAll(ElevenLabsClient.KNOWN_MODEL_IDS);
@@ -1088,7 +1101,7 @@ if (w.trailSilenceSlider != null) {
         leftColumn.setMinWidth(220);
         leftColumn.setPrefWidth(300);
         leftColumn.getChildren().addAll(
-            voiceLabel, voiceCombo,
+            voiceRow,
             elevenLabsModelContainer,
             comfyuiParamsContainer,
             voiceDescriptionContainer,
@@ -2162,18 +2175,56 @@ if (w.trailSilenceSlider != null) {
         targetSec = Math.max(0, Math.min(totalSec, targetSec));
         Duration targetDur = Duration.seconds(targetSec);
         boolean wasPlaying = embeddedPlayer.getStatus() == MediaPlayer.Status.PLAYING;
-        if (wasPlaying) embeddedPlayer.pause();
+        
+        // Alte Timer stoppen
         if (seekSettleTransition != null) {
             seekSettleTransition.stop();
             seekSettleTransition = null;
         }
+        
+        // Bei "Alle abspielen": die alte Transition stoppen, aber nur wenn sie noch aktiv ist
+        if (isPlayingAllSequence && playAllAdvanceTransition != null) {
+            playAllAdvanceTransition.stop();
+            playAllAdvanceTransition = null;
+        }
+        
+        // Wiedergabe pausieren für Seek
+        if (wasPlaying) {
+            embeddedPlayer.pause();
+        }
+        
         pendingSeekResume = wasPlaying;
         embeddedPlayer.seek(targetDur);
         if (playerProgress != null) playerProgress.setProgress(frac);
+        
+        // Settle-Timer starten
         seekSettleTransition = new PauseTransition(Duration.millis(SEEK_SETTLE_MS));
         seekSettleTransition.setOnFinished(e -> {
             seekSettleTransition = null;
-            if (embeddedPlayer != null && pendingSeekResume) embeddedPlayer.play();
+            if (embeddedPlayer != null && pendingSeekResume) {
+                embeddedPlayer.play();
+                
+                // Bei "Alle abspielen": neue Transition nur starten, wenn die Sequenz noch aktiv ist
+                if (isPlayingAllSequence && embeddedPlayer != null && playAllAdvanceTransition == null) {
+                    Duration remaining = total.subtract(targetDur);
+                    if (remaining != null && remaining.greaterThan(Duration.ZERO)) {
+                        double remainingPlayableSec = remaining.toSeconds();
+                        if (remainingPlayableSec > 0.1) { // Mindestrestzeit, um sofortige Sprünge zu vermeiden
+                            playAllAdvanceTransition = new PauseTransition(Duration.seconds(remainingPlayableSec));
+                            playAllAdvanceTransition.setOnFinished(e2 -> {
+                                playAllAdvanceTransition = null;
+                                // Nur fortfahren, wenn immer noch "Alle abspielen" aktiv und der Player noch existiert
+                                if (isPlayingAllSequence && embeddedPlayer != null && embeddedPlayer.getStatus() == MediaPlayer.Status.PLAYING) {
+                                    embeddedPlayer.stop();
+                                    playingSegmentIndex++;
+                                    playCurrentSegmentInEmbeddedPlayer();
+                                }
+                            });
+                            playAllAdvanceTransition.play();
+                        }
+                    }
+                }
+            }
         });
         seekSettleTransition.play();
     }
@@ -3273,7 +3324,10 @@ if (w.trailSilenceSlider != null) {
                     Duration d = p.getTotalDuration();
                     if (d != null && d.greaterThan(Duration.ZERO)) {
                         if (playAllAdvanceTransition != null) playAllAdvanceTransition.stop();
-                        playAllAdvanceTransition = new PauseTransition(d);
+                        // Trim-Start berücksichtigen: nur die abspielbare Dauer verwenden
+                        double trimSec = (trimStartSlider != null) ? trimStartSlider.getValue() : 0;
+                        Duration playableDuration = Duration.seconds(Math.max(0, d.toSeconds() - trimSec));
+                        playAllAdvanceTransition = new PauseTransition(playableDuration);
                         playAllAdvanceTransition.setOnFinished(e2 -> {
                             MediaPlayer px = weakPlayer.get();
                             if (!isPlayingAllSequence || px == null || embeddedPlayer != px) return;
@@ -3876,6 +3930,38 @@ if (w.trailSilenceSlider != null) {
         }
         refreshHighlight();
         setStatus("Wiedergabe abgebrochen.");
+    }
+
+    /** Stoppt jegliche Wiedergabe und resettet alle Timer */
+    private void stopAllPlayback() {
+        // "Alle abspielen" Sequenz abbrechen
+        if (isPlayingAllSequence) {
+            abortPlayAllSequence();
+        }
+        
+        // Embedded Player stoppen
+        try {
+            if (embeddedPlayer != null) {
+                embeddedPlayer.stop();
+            }
+        } catch (Exception e) {
+            logger.trace("Fehler beim Stoppen des embeddedPlayer", e);
+        }
+        
+        // Alle Timer stoppen
+        if (playAllAdvanceTransition != null) {
+            playAllAdvanceTransition.stop();
+            playAllAdvanceTransition = null;
+        }
+        if (seekSettleTransition != null) {
+            seekSettleTransition.stop();
+            seekSettleTransition = null;
+        }
+        
+        // Fortschrittsanzeige zurücksetzen
+        if (playerProgress != null) {
+            playerProgress.setProgress(0.0);
+        }
     }
 
     private void endPlayAllSequence() {
@@ -5730,5 +5816,39 @@ if (w.trailSilenceSlider != null) {
     public static String[] getThemeColors(int themeIndex) {
         int idx = Math.max(0, Math.min(themeIndex, THEMES.length - 1));
         return THEMES[idx];
+    }
+
+    /** Öffnet die ComfyUI Installationsanleitung im Browser */
+    private void showComfyUIHelp() {
+        try {
+            String userDir = System.getProperty("user.dir");
+            String filePath = userDir + "/config/help/comfyui_installation.html";
+            java.io.File file = new java.io.File(filePath);
+            
+            logger.info("ComfyUI-Hilfe Datei: {}", filePath);
+            logger.info("Datei existiert: {}", file.exists());
+            
+            if (!file.exists()) {
+                // Versuche alternativen Pfad
+                filePath = userDir + "\\config\\help\\comfyui_installation.html";
+                file = new java.io.File(filePath);
+                logger.info("Alternativer Pfad: {}", filePath);
+                logger.info("Datei existiert (alt): {}", file.exists());
+            }
+            
+            if (file.exists()) {
+                java.awt.Desktop.getDesktop().browse(file.toURI());
+            } else {
+                throw new java.io.IOException("Hilfe-Datei nicht gefunden: " + filePath);
+            }
+        } catch (Exception ex) {
+            logger.error("Konnte ComfyUI-Hilfe nicht öffnen", ex);
+            CustomAlert alert = new CustomAlert(CustomAlert.AlertType.ERROR);
+            alert.setHeaderText("Hilfe konnte nicht geöffnet werden");
+            alert.setContentText("Die ComfyUI Installationsanleitung wurde nicht gefunden.\n" +
+                               "Bitte überprüfen Sie: config/help/comfyui_installation.html\n" +
+                               "oder besuchen Sie: https://www.comfy.org/download");
+            alert.showAndWait();
+        }
     }
 }

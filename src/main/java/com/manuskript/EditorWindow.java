@@ -487,6 +487,10 @@ public class EditorWindow implements Initializable {
     }
 
     private void restoreCodeAreaViewSnapshot(CodeAreaViewSnapshot snapshot, boolean requestFocus) {
+        restoreCodeAreaViewSnapshot(snapshot, requestFocus, true);
+    }
+
+    private void restoreCodeAreaViewSnapshot(CodeAreaViewSnapshot snapshot, boolean requestFocus, boolean restoreViewport) {
         if (snapshot == null || codeArea == null) return;
 
         int textLength = codeArea.getLength();
@@ -496,10 +500,12 @@ public class EditorWindow implements Initializable {
         int paragraphIndex = Math.max(0, Math.min(snapshot.paragraphIndex, Math.max(0, codeArea.getParagraphs().size() - 1)));
 
         Runnable restoreAction = () -> {
-            try {
-                codeArea.showParagraphInViewport(paragraphIndex);
-            } catch (Exception e) {
-                logger.debug("Fehler beim Wiederherstellen des sichtbaren Absatzes: {}", e.getMessage());
+            if (restoreViewport) {
+                try {
+                    codeArea.showParagraphInViewport(paragraphIndex);
+                } catch (Exception e) {
+                    logger.debug("Fehler beim Wiederherstellen des sichtbaren Absatzes: {}", e.getMessage());
+                }
             }
 
             try {
@@ -13274,6 +13280,10 @@ spacer.setStyle("-fx-background-color: transparent;");
             if (found != null) {
                 selectedLektoratMatch = found;
                 fillLektoratPanel(found);
+                // Zeige den Treffer mit mehr Zeilen-Kontext in der Mitte des Viewports
+                int matchStart = found.getOffset();
+                int matchEnd = matchStart + found.getLength();
+                highlightTextCentered(matchStart, matchEnd);
                 if (mainSplitPane != null && mainSplitPane.getDividerPositions().length >= 2) {
                     double[] current = mainSplitPane.getDividerPositions();
                     mainSplitPane.setDividerPositions(current[0], 0.72);
@@ -13394,7 +13404,7 @@ spacer.setStyle("-fx-background-color: transparent;");
             applyThemeToNode(hint, currentThemeIndex);
             lektoratPanelContainer.getChildren().add(hint);
         }
-        restoreCodeAreaViewSnapshot(viewSnapshot, false);
+        restoreCodeAreaViewSnapshot(viewSnapshot, false, false);
         updateStatus("Lektorat-Vorschlag übernommen");
     }
     

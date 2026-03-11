@@ -274,7 +274,6 @@ public class CustomStage extends Stage {
      */
     public void setSceneWithTitleBar(Scene scene) {
         if (scene != null) {
-            // Erstelle neuen Root-Container mit Titelleiste
             VBox newRoot = new VBox();
 
             // Ursprünglichen Root zwischenspeichern
@@ -297,7 +296,6 @@ public class CustomStage extends Stage {
             Scene newScene = new Scene(newRoot);
             newScene.getStylesheets().addAll(scene.getStylesheets());
             
-            // Explizit keine Border, Padding oder Margin auf der Scene-Root setzen
             newRoot.setStyle("-fx-border-width: 0px; -fx-border-color: transparent; -fx-padding: 0px; -fx-margin: 0px; -fx-spacing: 0px;");
             
             super.setScene(newScene);
@@ -625,32 +623,23 @@ public class CustomStage extends Stage {
      * Setzt einen dünnen Rand um die gesamte Stage
      */
     private void setStageBorder(String borderColor) {
-        // Pastell-Theme: Keine Border setzen
-        if (activeThemeIndex == 2) {
-            return;
-        }
-        
         if (getScene() != null && getScene().getRoot() != null) {
             Node root = getScene().getRoot();
             String currentStyle = root.getStyle();
-            
-            // Debug: Logging hinzufügen
             currentStyle = currentStyle.replaceAll("-fx-border-color:[^;]+;?", "");
             currentStyle = currentStyle.replaceAll("-fx-border-width:[^;]+;?", "");
             currentStyle = currentStyle.replaceAll("-fx-border-radius:[^;]+;?", "");
 
-            if (borderColor == null || borderColor.trim().isEmpty()) {
+            if (activeThemeIndex == 2 || borderColor == null || borderColor.trim().isEmpty()) {
                 root.setStyle(currentStyle.trim());
             } else {
-                String newBorderStyle = "-fx-border-color: " + borderColor + "; -fx-border-width: 2px; -fx-border-radius: 0px;";
-
+                String newBorderStyle = "-fx-border-color: " + borderColor + "; -fx-border-width: 3px; -fx-border-radius: 0px;";
                 if (currentStyle.trim().isEmpty()) {
                     root.setStyle(newBorderStyle);
                 } else {
                     root.setStyle(currentStyle + "; " + newBorderStyle);
                 }
             }
-            
         } 
     }
     

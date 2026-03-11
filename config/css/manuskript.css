@@ -8715,8 +8715,8 @@
    ======================================== */
 
 .main-toolbar {
-    -fx-min-height: 48px;
-    -fx-pref-height: 48px;
+    -fx-min-height: 56px;
+    -fx-pref-height: 56px;
     -fx-border-width: 1px 0 0 0;
 }
 

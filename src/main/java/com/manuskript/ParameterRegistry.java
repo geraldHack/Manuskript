@@ -34,6 +34,10 @@ public final class ParameterRegistry {
                 "Wartezeit in Sekunden auf ComfyUI-TTS-Abschluss (z. B. bei langem Text).", "TTS (ComfyUI)");
         add("comfyui.restart_script", ParameterDef.Type.STRING, "",
                 "Pfad zum Skript zum Neustarten von ComfyUI (z. B. .bat oder .cmd). Leer = Restart-Button inaktiv.", "TTS (ComfyUI)");
+        add("comfyui.help_link", ParameterDef.Type.BOOLEAN, "false",
+                "ComfyUI Installationsanleitung anzeigen (öffnet interaktive HTML-Hilfe).", "TTS (ComfyUI)");
+        add("comfyui.prerequisites_check", ParameterDef.Type.BOOLEAN, "false",
+                "ComfyUI Voraussetzungen prüfen (Python, Git, Pip, ComfyUI Installation).", "TTS (ComfyUI)");
 
         // —— TTS (ElevenLabs) ——
         add("tts.elevenlabs_api_key", ParameterDef.Type.STRING, "",

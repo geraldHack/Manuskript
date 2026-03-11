@@ -43,7 +43,7 @@ public class Main extends Application {
             }
             
             // CustomStage konfigurieren
-            customStage.setCustomTitle("Manuskript - DOCX Verarbeitung");
+            customStage.setCustomTitle("Manuskript – Schreiben. Lektorieren. Produzieren.");
             customStage.setMinWidth(800);
             customStage.setMinHeight(600);
             

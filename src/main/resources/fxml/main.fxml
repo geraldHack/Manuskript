@@ -33,7 +33,11 @@
             <VBox spacing="6" HBox.hgrow="ALWAYS">
                <children>
                   <Label text="Verfügbare Dateien:" styleClass="section-header" />
-                  <CheckBox fx:id="chkDownloadsMonitor" text="📥 Downloads-Monitor: Neue Dateien automatisch überwachen" styleClass="downloads-monitor-checkbox" />
+                  <HBox fx:id="downloadsMonitorContainer" spacing="8" alignment="CENTER_LEFT">
+                     <children>
+                        <CheckBox fx:id="chkDownloadsMonitor" text="📥 Downloads-Monitor: Neue Dateien automatisch überwachen" />
+                     </children>
+                  </HBox>
                   <TableView fx:id="tableViewAvailable" VBox.vgrow="ALWAYS">
                     <columns>
                       <TableColumn fx:id="colFileNameAvailable" text="Dateiname" prefWidth="200.0" />
@@ -73,7 +77,10 @@
             <Insets bottom="5.0" left="10.0" right="10.0" />
          </padding>
       </HBox>
-      
+         </children>
+      </VBox>
+   </center>
+   <bottom>
       <!-- Toolbar: gruppierte Aktionen, einheitliche Button-Optik -->
       <VBox styleClass="main-toolbar" spacing="0">
          <children>
@@ -128,7 +135,5 @@
             </HBox>
          </children>
       </VBox>
-         </children>
-      </VBox>
-   </center>
+   </bottom>
 </BorderPane> 

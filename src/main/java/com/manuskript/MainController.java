@@ -145,6 +145,7 @@ public class MainController implements Initializable {
     @FXML private Button btnDeleteFile;
     @FXML private Button btnSearchAllFiles;
     @FXML private CheckBox chkDownloadsMonitor;
+    @FXML private HBox downloadsMonitorContainer;
     // Help-Toggle Button (programmatisch erstellt)
     private Button btnHelpToggle;
     
@@ -546,6 +547,16 @@ public class MainController implements Initializable {
         
         // Downloads-Monitor Event-Handler
         chkDownloadsMonitor.setOnAction(e -> toggleDownloadsMonitor());
+        if (downloadsMonitorContainer != null) {
+            Button downloadsMonitorHelpButton = HelpSystem.createHelpButton(
+                "Hilfe zum Downloads-Monitor",
+                "downloads_monitor.html",
+                "Hilfe - Downloads-Monitor"
+            );
+            downloadsMonitorHelpButton.setScaleX(0.78);
+            downloadsMonitorHelpButton.setScaleY(0.78);
+            downloadsMonitorContainer.getChildren().add(downloadsMonitorHelpButton);
+        }
         
         btnRemoveFromSelected.setOnAction(e -> removeSelectedFromRight());
         

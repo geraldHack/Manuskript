@@ -13,6 +13,10 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
@@ -36,6 +40,8 @@ public class ParametersAdminWindow {
             this.displayText = displayText;
         }
     }
+
+    private static final Logger logger = LoggerFactory.getLogger(ParametersAdminWindow.class);
 
     private CustomStage stage;
     private final Window owner;
@@ -549,6 +555,162 @@ public class ParametersAdminWindow {
                 : ResourceManager.getParameter(def.getKey(), def.getDefaultValue());
         switch (def.getType()) {
             case BOOLEAN:
+                // Spezialfall für ComfyUI-Hilfe: Button statt CheckBox
+                if ("comfyui.help_link".equals(def.getKey())) {
+                    Button helpButton = new Button("ComfyUI Installationsanleitung");
+                    helpButton.setOnAction(e -> {
+                        try {
+                            String userDir = System.getProperty("user.dir");
+                            String filePath = userDir + "/config/help/comfyui_installation.html";
+                            java.io.File file = new java.io.File(filePath);
+                            
+                            logger.info("ComfyUI-Hilfe Datei (Parameter): {}", filePath);
+                            logger.info("Datei existiert: {}", file.exists());
+                            
+                            if (!file.exists()) {
+                                // Versuche alternativen Pfad
+                                filePath = userDir + "\\config\\help\\comfyui_installation.html";
+                                file = new java.io.File(filePath);
+                                logger.info("Alternativer Pfad (Parameter): {}", filePath);
+                                logger.info("Datei existiert (alt): {}", file.exists());
+                            }
+                            
+                            if (file.exists()) {
+                                java.awt.Desktop.getDesktop().browse(file.toURI());
+                            } else {
+                                throw new java.io.IOException("Hilfe-Datei nicht gefunden: " + filePath);
+                            }
+                        } catch (Exception ex) {
+                            logger.error("Konnte ComfyUI-Hilfe nicht öffnen (Parameter)", ex);
+                            CustomAlert alert = new CustomAlert(CustomAlert.AlertType.ERROR);
+                            alert.setHeaderText("Hilfe konnte nicht geöffnet werden");
+                            alert.setContentText("Die ComfyUI Installationsanleitung wurde nicht gefunden.\n" +
+                                               "Bitte überprüfen Sie: config/help/comfyui_installation.html\n" +
+                                               "oder besuchen Sie: https://www.comfy.org/download");
+                            alert.showAndWait();
+                        }
+                    });
+                    helpButton.setMaxWidth(400);
+                    return helpButton;
+                }
+                // Spezialfall für ComfyUI Voraussetzungen-Check: Button statt CheckBox
+                if ("comfyui.prerequisites_check".equals(def.getKey())) {
+                    Button checkButton = new Button("ComfyUI Voraussetzungen prüfen");
+                    checkButton.setOnAction(e -> {
+                        try {
+                            String userDir = System.getProperty("user.dir");
+                            String os = System.getProperty("os.name").toLowerCase();
+                            
+                            logger.info("ComfyUI Check gestartet - OS: {}, UserDir: {}", os, userDir);
+                            
+                            String scriptPath;
+                            if (os.contains("win")) {
+                                // Windows: PowerShell bevorzugen (funktioniert besser)
+                                scriptPath = userDir + "\\check-comfyui-prerequisites.ps1";
+                                java.io.File psFile = new java.io.File(scriptPath);
+                                logger.info("PowerShell Script Pfad: {}, existiert: {}", scriptPath, psFile.exists());
+                                if (!psFile.exists()) {
+                                    // Fallback zu Batch
+                                    scriptPath = userDir + "\\check-comfyui-prerequisites.bat";
+                                    java.io.File batFile = new java.io.File(scriptPath);
+                                    logger.info("Fallback Batch Script Pfad: {}, existiert: {}", scriptPath, batFile.exists());
+                                }
+                            } else {
+                                // macOS/Linux: Shell-Skript
+                                scriptPath = userDir + "/check-comfyui-prerequisites.sh";
+                                logger.info("Shell Script Pfad: {}", scriptPath);
+                            }
+                            
+                            java.io.File scriptFile = new java.io.File(scriptPath);
+                            logger.info("Final Script Path: {}, exists: {}, canExecute: {}", 
+                                       scriptPath, scriptFile.exists(), scriptFile.canExecute());
+                            
+                            if (scriptFile.exists()) {
+                                // PowerShell Output lesen und in UI anzeigen
+                                ProcessBuilder pb = new ProcessBuilder();
+                                if (os.contains("win") && scriptPath.endsWith(".ps1")) {
+                                    pb.command("powershell.exe", "-ExecutionPolicy", "Bypass", "-File", scriptPath);
+                                    // UTF-8 Encoding für PowerShell Output über Umgebungsvariablen
+                                    Map<String, String> env = pb.environment();
+                                    env.put("PYTHONIOENCODING", "utf-8");
+                                    env.put("PYTHONLEGACYWINDOWSSTDIN", "utf-8");
+                                    env.put("UTF8", "1");
+                                    logger.info("Führe PowerShell aus: powershell.exe -ExecutionPolicy Bypass -File {}", scriptPath);
+                                } else if (os.contains("win")) {
+                                    pb.command("cmd.exe", "/c", scriptPath);
+                                    logger.info("Führe Batch aus: cmd.exe /c {}", scriptPath);
+                                } else {
+                                    pb.command("bash", scriptPath);
+                                    logger.info("Führe Shell aus: bash {}", scriptPath);
+                                }
+                                
+                                // Arbeitsverzeichnis setzen
+                                pb.directory(new java.io.File(userDir));
+                                pb.redirectErrorStream(true); // stderr in stdout mergen
+                                
+                                // Prozess im Hintergrund starten und Output lesen
+                                new Thread(() -> {
+                                    try {
+                                        Process process = pb.start();
+                                        logger.info("ComfyUI Check Prozess gestartet mit PID: {}", process.pid());
+                                        
+                                        // Output lesen mit UTF-8 Encoding
+                                        StringBuilder output = new StringBuilder();
+                                        try (BufferedReader reader = new BufferedReader(
+                                                new InputStreamReader(process.getInputStream(), "UTF-8"))) {
+                                            String line;
+                                            while ((line = reader.readLine()) != null) {
+                                                output.append(line).append("\n");
+                                            }
+                                        }
+                                        
+                                        int exitCode = process.waitFor();
+                                        logger.info("ComfyUI Check beendet mit Exit-Code: {}", exitCode);
+                                        
+                                        // Ergebnisse in UI anzeigen
+                                        Platform.runLater(() -> {
+                                            CustomAlert alert = new CustomAlert(CustomAlert.AlertType.INFORMATION);
+                                            alert.setHeaderText("ComfyUI Voraussetzungen-Check Ergebnisse");
+                                            
+                                            String content = output.toString();
+                                            if (content.trim().isEmpty()) {
+                                                content = "Der Check wurde ausgeführt, aber es gab keine Ausgabe.\n\nExit-Code: " + exitCode;
+                                            }
+                                            
+                                            alert.setContentText(content);
+                                            alert.showAndWait();
+                                        });
+                                        
+                                    } catch (Exception ex) {
+                                        logger.error("Fehler beim Ausführen des ComfyUI Checks", ex);
+                                        Platform.runLater(() -> {
+                                            CustomAlert alert = new CustomAlert(CustomAlert.AlertType.ERROR);
+                                            alert.setHeaderText("Check-Fehler");
+                                            alert.setContentText("Fehler beim Ausführen: " + ex.getMessage());
+                                            alert.showAndWait();
+                                        });
+                                    }
+                                }).start();
+                                
+                            } else {
+                                throw new java.io.IOException("Check-Script nicht gefunden: " + scriptPath);
+                            }
+                        } catch (Exception ex) {
+                            logger.error("Konnte ComfyUI Voraussetzungen-Check nicht starten", ex);
+                            Platform.runLater(() -> {
+                                CustomAlert alert = new CustomAlert(CustomAlert.AlertType.ERROR);
+                                alert.setHeaderText("Check konnte nicht gestartet werden");
+                                alert.setContentText("Das Voraussetzungen-Script wurde nicht gefunden.\n" +
+                                                   "Bitte überprüfen Sie: check-comfyui-prerequisites.ps1/.bat\n" +
+                                                   "oder führen Sie den Check manuell durch.\n\n" +
+                                                   "Fehler: " + ex.getMessage());
+                                alert.showAndWait();
+                            });
+                        }
+                    });
+                    checkButton.setMaxWidth(400);
+                    return checkButton;
+                }
                 CheckBox cb = new CheckBox();
                 cb.setSelected(Boolean.parseBoolean(current));
                 cb.setMaxWidth(400);

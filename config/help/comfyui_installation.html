@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ComfyUI Installation für Manuskript</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .platform-tabs {
+            display: flex;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        .tab {
+            padding: 12px 24px;
+            background: #f0f0f0;
+            border: none;
+            cursor: pointer;
+            border-radius: 8px 8px 0 0;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        .tab.active {
+            background: #2196F3;
+            color: white;
+        }
+        .tab:hover {
+            background: #1976D2;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .step {
+            margin-bottom: 25px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-left: 4px solid #2196F3;
+            border-radius: 5px;
+        }
+        .step h3 {
+            margin-top: 0;
+            color: #1976D2;
+        }
+        .download-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 10px 0;
+            transition: background 0.3s;
+        }
+        .download-btn:hover {
+            background: #45a049;
+        }
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        .code {
+            background: #f4f4f4;
+            padding: 10px;
+            border-radius: 3px;
+            font-family: monospace;
+            margin: 10px 0;
+        }
+        .checklist {
+            list-style: none;
+            padding: 0;
+        }
+        .checklist li {
+            margin: 8px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+        .checklist li:before {
+            content: "☐";
+            position: absolute;
+            left: 0;
+            color: #2196F3;
+            font-weight: bold;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        .progress-fill {
+            height: 100%;
+            background: #4CAF50;
+            width: 0%;
+            transition: width 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎧 ComfyUI Installation für Manuskript</h1>
+            <p><strong>Kostenlose lokale Sprachsynthese mit Qwen3-TTS</strong></p>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress"></div>
+            </div>
+            <p id="progress-text">Bereit für Installation</p>
+        </div>
+
+        <div class="platform-tabs">
+            <button class="tab active" onclick="showTab('windows')">🪟 Windows</button>
+            <button class="tab" onclick="showTab('mac')">🍎 macOS</button>
+            <button class="tab" onclick="showTab('linux')">🐧 Linux</button>
+        </div>
+
+        <!-- Windows Tab -->
+        <div id="windows" class="tab-content active">
+            <h2>Windows Installation (empfohlen)</h2>
+            
+            <div class="step">
+                <h3>Schritt 1: ComfyUI herunterladen</h3>
+                <p>Laden Sie die offizielle ComfyUI-Version für Windows:</p>
+                <a href="https://download.comfy.org/windows/nsis/x64" class="download-btn" target="_blank">
+                    📥 ComfyUI für Windows herunterladen
+                </a>
+                <p>Nach dem Download: Doppelklick auf die .exe-Datei und Installation folgen.</p>
+            </div>
+
+            <div class="step">
+                <h3>Schritt 2: Python prüfen (falls nicht vorhanden)</h3>
+                <p>ComfyUI benötigt Python 3.10+. Prüfen Sie ob Python installiert ist:</p>
+                <div class="code">python --version</div>
+                <p>Falls nicht: <a href="https://www.python.org/downloads/" target="_blank">Python herunterladen</a></p>
+                <div class="warning">⚠️ Wichtig: Bei Python-Installation "Add Python to PATH" aktivieren!</div>
+            </div>
+
+            <div class="step">
+                <h3>Schritt 3: ComfyUI starten</h3>
+                <p>Nach der Installation finden Sie ComfyUI im Startmenü:</p>
+                <ol>
+                    <li>Startmenü → "ComfyUI" öffnen</li>
+                    <li>Warten Sie bis "Starting server on 127.0.0.1:8188" erscheint</li>
+                    <li>ComfyUI bleibt im Hintergrund laufen</li>
+                </ol>
+            </div>
+
+            <div class="step">
+                <h3>Schritt 4: Qwen3-TTS installieren</h3>
+                <p>Öffnen Sie die Eingabeaufforderung (Windows-Taste + R, dann "cmd" eingeben) und führen Sie aus:</p>
+                <div class="code">
+cd %USERPROFILE%\ComfyUI\custom_nodes<br>
+git clone https://github.com/flybirdxx/ComfyUI-Qwen-TTS<br>
+cd ComfyUI-Qwen-TTS<br>
+pip install -r requirements.txt
+                </div>
+            </div>
+
+            <div class="step">
+                <h3>Schritt 5: Qwen3-Modell downloaden</h3>
+                <p><strong>Wichtig:</strong> Für HuggingFace benötigen Sie einen kostenlosen Account!</p>
+                <ol>
+                    <li>Besuchen Sie <a href="https://huggingface.co/join" target="_blank">huggingface.co/join</a> und registrieren Sie sich</li>
+                    <li>Loggen Sie sich ein</li>
+                    <li>Laden Sie ein Qwen3-TTS Modell (empfohlen: 1.7B Base):</li>
+                </ol>
+                <div class="model-links">
+                    <a href="https://huggingface.co/Qwen/Qwen3-TTS-12Hz-1.7B-Base" class="download-btn" target="_blank">
+                        📥 Qwen3-TTS 1.7B Base (empfohlen)
+                    </a>
+                    <a href="https://huggingface.co/Qwen/Qwen3-TTS-12Hz-0.6B-Base" class="download-btn" target="_blank">
+                        📥 Qwen3-TTS 0.6B Base (kleiner)
+                    </a>
+                </div>
+                <p class="note">Nach dem Download entpacken und nach <code>%USERPROFILE%\ComfyUI\models\Qwen3-TTS</code> verschieben</p>
+            </div>
+
+            <div class="step">
+                <h3>Schritt 6: In Manuskript testen</h3>
+                <ol>
+                    <li>Manuskript starten</li>
+                    <li>Kapitel → "TTS bearbeiten"</li>
+                    <li>Provider: "comfyui" wählen</li>
+                    <li>Text eingeben und "Stimme erstellen" klicken</li>
+                </ol>
+                <div class="success">✅ Wenn Audio abgespielt wird, ist alles eingerichtet!</div>
+            </div>
+        </div>
+
+        <!-- macOS Tab -->
+        <div id="mac" class="tab-content">
+            <h2>macOS Installation</h2>
+            
+            <div class="step">
+                <h3>Schritt 1: ComfyUI herunterladen</h3>
+                <p>Für Apple Silicon (M1/M2/M3):</p>
+                <a href="https://download.comfy.org/mac/dmg/arm64" class="download-btn" target="_blank">
+                    📥 ComfyUI für macOS (Apple Silicon) herunterladen
+                </a>
+                <p>Nach dem Download: DMG-Datei öffnen und ComfyUI in den Anwendungsordner ziehen.</p>
+            </div>
+
+            <div class="step">
+                <h3>Schritt 2: Homebrew installieren (falls nicht vorhanden)</h3>
+                <p>Homebrew ist der Paketmanager für macOS:</p>
+                <div class="code">
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+                </div>
+            </div>
+
+            <div class="step">
+                <h3>Schritt 3: Python und Git installieren</h3>
+                <div class="code">
+brew install python@3.10 git
+                </div>
+            </div>
+
+            <div class="step">
+                <h3>Schritt 4: ComfyUI starten</h3>
+                <p>Terminal öffnen und ausführen:</p>
+                <div class="code">
+cd /Applications/ComfyUI<br>
+python main.py
+                </div>
+                <p>Warten bis "Starting server on 127.0.0.1:8188" erscheint.</p>
+            </div>
+
+            <div class="step">
+                <h3>Schritt 5: Qwen3-TTS installieren</h3>
+                <div class="code">
+cd /Applications/ComfyUI/custom_nodes<br>
+git clone https://github.com/Kosinkadink/ComfyUI-Qwen3<br>
+cd ComfyUI-Qwen3<br>
+pip3 install -r requirements.txt
+                </div>
+            </div>
+
+            <div class="step">
+                <h3>Schritt 6: Modell downloaden und einrichten</h3>
+                <p>Modell herunterladen und nach <code>/Applications/ComfyUI/models/tts/</code> verschieben.</p>
+                <div class="success">✅ Danach in Manuskript unter Provider "comfyui" testen!</div>
+            </div>
+        </div>
+
+        <!-- Linux Tab -->
+        <div id="linux" class="tab-content">
+            <h2>Linux Installation</h2>
+            
+            <div class="step">
+                <h3>Schritt 1: Python und Git installieren</h3>
+                <div class="code">
+# Ubuntu/Debian:<br>
+sudo apt update<br>
+sudo apt install python3.10 python3-pip git<br><br>
+# Fedora/CentOS:<br>
+sudo dnf install python3.10 python3-pip git
+                </div>
+            </div>
+
+            <div class="step">
+                <h3>Schritt 2: ComfyUI klonen</h3>
+                <div class="code">
+cd ~<br>
+git clone https://github.com/comfyanonymous/ComfyUI<br>
+cd ComfyUI
+                </div>
+            </div>
+
+            <div class="step">
+                <h3>Schritt 3: Abhängigkeiten installieren</h3>
+                <div class="code">
+pip3 install -r requirements.txt
+                </div>
+            </div>
+
+            <div class="step">
+                <h3>Schritt 4: ComfyUI starten</h3>
+                <div class="code">
+python3 main.py
+                </div>
+                <p>Warten bis "Starting server on 127.0.0.1:8188" erscheint.</p>
+            </div>
+
+            <div class="step">
+                <h3>Schritt 5: Qwen3-TTS installieren</h3>
+                <div class="code">
+cd ~/ComfyUI/custom_nodes<br>
+git clone https://github.com/Kosinkadink/ComfyUI-Qwen3<br>
+cd ComfyUI-Qwen3<br>
+pip3 install -r requirements.txt
+                </div>
+            </div>
+
+            <div class="step">
+                <h3>Schritt 6: Modell downloaden</h3>
+                <div class="code">
+mkdir -p ~/ComfyUI/models/tts<br>
+wget -O ~/ComfyUI/models/tts/qwen3-tts.bin https://huggingface.co/Qwen/Qwen3-TTS/resolve/main/pytorch_model.bin
+                </div>
+            </div>
+        </div>
+
+        <!-- Hilfe Sektion -->
+        <div class="help-section">
+            <h2>🆘 Häufige Probleme & Lösungen</h2>
+            
+            <div class="step">
+                <h3>"ComfyUI nicht erreichbar"</h3>
+                <ul>
+                    <li>ComfyUI muss im Hintergrund laufen</li>
+                    <li>URL prüfen: http://127.0.0.1:8188</li>
+                    <li>Firewall könnte blockieren</li>
+                </ul>
+            </div>
+
+            <div class="step">
+                <h3>"Python nicht gefunden"</h3>
+                <ul>
+                    <li>Python neu installieren mit "Add to PATH"</li>
+                    <li>System neu starten</li>
+                </ul>
+            </div>
+
+            <div class="step">
+                <h3>"CUDA out of memory"</h3>
+                <ul>
+                    <li>ComfyUI mit CPU starten: <code>python main.py --cpu</code></li>
+                    <li>oder kleineres Modell verwenden</li>
+                </ul>
+            </div>
+
+      
+        </div>
+
+        <!-- Checkliste -->
+        <div class="checklist-section">
+            <h2>✅ Installations-Checkliste</h2>
+            <ul class="checklist">
+                <li>ComfyUI heruntergeladen und installiert</li>
+                <li>Python 3.10+ verfügbar</li>
+                <li>ComfyUI startet und zeigt "127.0.0.1:8188"</li>
+                <li>Qwen3-Nodes installiert</li>
+                <li>Qwen3-Modell heruntergeladen</li>
+                <li>Manuskript kann auf ComfyUI verbinden</li>
+                <li>Erste Audio-Generierung erfolgreich</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function showTab(platform) {
+            // Tabs verstecken
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Ausgewählten Tab anzeigen
+            document.getElementById(platform).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Fortschritt aktualisieren
+        let progress = 0;
+        function updateProgress(step) {
+            progress = step;
+            document.getElementById('progress').style.width = progress + '%';
+            
+            const messages = [
+                'Bereit für Installation',
+                'ComfyUI wird heruntergeladen...',
+                'Python wird überprüft...',
+                'Qwen3 wird installiert...',
+                'Modell wird heruntergeladen...',
+                'Setup abgeschlossen!'
+            ];
+            document.getElementById('progress-text').textContent = messages[Math.floor(step / 20)];
+        }
+
+        // Download-Links tracking
+        document.querySelectorAll('.download-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                updateProgress(Math.min(progress + 15, 100));
+            });
+        });
+    </script>
+</body>
+</html>
