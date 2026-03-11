@@ -54,6 +54,16 @@ public class Main extends Application {
             // WICHTIG: Kein setOnCloseRequest hier - wird in MainController.setPrimaryStage() behandelt
             customStage.show();
             
+            // Gespeicherte Fenstergröße laden nach dem Show
+            javafx.application.Platform.runLater(() -> {
+                try {
+                    Thread.sleep(200); // 200ms warten bis Scene ready
+                    customStage.loadWindowSize();
+                } catch (Exception e) {
+                    System.err.println("Fehler beim Laden der Fenstergröße: " + e.getMessage());
+                }
+            });
+            
             
         } catch (IOException e) {
             logger.error("Fehler beim Laden der FXML-Datei", e);
