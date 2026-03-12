@@ -712,7 +712,45 @@ public class MainController implements Initializable {
                     DebugWindow.show(primaryStage);
                     event.consume();
                 }
+                // Ctrl+R für Reset der Bildschirmeinstellungen
+                else if (event.isControlDown() && event.getCode() == KeyCode.R) {
+                    resetScreenSettings();
+                    event.consume();
+                }
             });
+        }
+    }
+    
+    /**
+     * Setzt die Bildschirmeinstellungen zurück (Ctrl+R)
+     */
+    private void resetScreenSettings() {
+        try {
+            // Fenster auf Standardgröße zurücksetzen
+            if (primaryStage != null) {
+                // Aktuellen Screen ermitteln
+                var currentScreen = com.manuskript.windowhandling.ScreenDetector.getCurrentScreen(primaryStage);
+                var visualBounds = currentScreen.getVisualBounds();
+                
+                // Standardgröße: 80% des Bildschirms, zentriert
+                double standardWidth = visualBounds.getWidth() * 0.8;
+                double standardHeight = visualBounds.getHeight() * 0.8;
+                double standardX = visualBounds.getMinX() + (visualBounds.getWidth() - standardWidth) / 2;
+                double standardY = visualBounds.getMinY() + (visualBounds.getHeight() - standardHeight) / 2;
+                
+                // Fenster zurücksetzen
+                primaryStage.setMaximized(false);
+                primaryStage.setX(standardX);
+                primaryStage.setY(standardY);
+                primaryStage.setWidth(standardWidth);
+                primaryStage.setHeight(standardHeight);
+                
+                // Benachrichtigung anzeigen
+                showInfo("Bildschirmeinstellungen zurückgesetzt", 
+                    "Das Fenster wurde auf Standardgröße (80% des Bildschirms) zurückgesetzt.");
+            }
+        } catch (Exception e) {
+            logger.error("Fehler beim Zurücksetzen der Bildschirmeinstellungen: " + e.getMessage(), e);
         }
     }
     private void setupDragAndDrop() {

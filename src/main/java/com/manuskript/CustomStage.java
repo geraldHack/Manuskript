@@ -17,6 +17,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.manuskript.windowhandling.MacWindowManager;
 
 /**
  * Eigene Stage-Klasse mit benutzerdefinierter Titelleiste
@@ -27,6 +28,10 @@ public class CustomStage extends Stage {
     
     // Flag, um zu verhindern, dass der Cursor überschrieben wird (z.B. während Export)
     private boolean cursorLocked = false;
+    
+    // macOS Window Manager für verbessertes Handling
+    private MacWindowManager macWindowManager;
+    private boolean useMacWindowManager = false;
     
     private static final String DEFAULT_TEXT_COLOR = "white";
     private static final String DEFAULT_BORDER_COLOR = "#1a252f";
@@ -64,7 +69,6 @@ public class CustomStage extends Stage {
     
     private double xOffset = 0;
     private double yOffset = 0;
-    private boolean isMaximized = false;
     private String currentTextColor = DEFAULT_TEXT_COLOR; // Aktuelle Textfarbe für Hover-Effekte
     private int activeThemeIndex = -1;
     
@@ -78,14 +82,24 @@ public class CustomStage extends Stage {
     
     public CustomStage() {
         super();
+        System.out.println("[DEBUG] CustomStage Konstruktor aufgerufen");
         initStyle(StageStyle.UNDECORATED);
+        
+        // macOS Window Manager initialisieren
+        initializeMacWindowManager();
+        
         setupCustomTitleBar();
         
-        // Synchronisiere isMaximized mit der JavaFX maximizedProperty
-        maximizedProperty().addListener((obs, oldVal, newVal) -> {
-            isMaximized = newVal;
-            if (maximizeBtn != null) {
-                maximizeBtn.setText(newVal ? DEFAULT_MAXIMIZE_SYMBOL_MAXIMIZED : DEFAULT_MAXIMIZE_SYMBOL);
+        // KEINE Maximierungs-Listener mehr
+        
+        // Gespeicherte Fenstergröße nach kurzer Verzögerung laden
+        javafx.application.Platform.runLater(() -> {
+            System.out.println("[DEBUG] Platform.runLater für loadWindowSize aufgerufen");
+            try {
+                Thread.sleep(100); // 100ms warten bis Scene ready
+                loadWindowSize();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
             }
         });
     }
@@ -93,15 +107,30 @@ public class CustomStage extends Stage {
     public CustomStage(StageStyle style) {
         super(style);
         initStyle(StageStyle.UNDECORATED);
+        
+        // macOS Window Manager initialisieren
+        initializeMacWindowManager();
+        
         setupCustomTitleBar();
         
-        // Synchronisiere isMaximized mit der JavaFX maximizedProperty
-        maximizedProperty().addListener((obs, oldVal, newVal) -> {
-            isMaximized = newVal;
-            if (maximizeBtn != null) {
-                maximizeBtn.setText(newVal ? DEFAULT_MAXIMIZE_SYMBOL_MAXIMIZED : DEFAULT_MAXIMIZE_SYMBOL);
-            }
-        });
+        // KEINE Maximierungs-Listener mehr
+    }
+    
+    /**
+     * Initialisiert den macOS Window Manager, falls auf macOS
+     */
+    private void initializeMacWindowManager() {
+        String osName = System.getProperty("os.name").toLowerCase();
+        boolean isMac = osName.contains("mac");
+        
+        if (isMac) {
+            useMacWindowManager = true;
+            // MacWindowManager wird nach setupCustomTitleBar() initialisiert, wenn titleBar vorhanden ist
+            logger.debug("macOS erkannt - MacWindowManager wird verwendet");
+        } else {
+            useMacWindowManager = false;
+            logger.debug("Nicht-macOS System erkannt - Standard Window Handling wird verwendet");
+        }
     }
     
     /**
@@ -137,6 +166,13 @@ public class CustomStage extends Stage {
 
         setupHoverEffects();
         setupDragAndDrop();
+        
+        // MacWindowManager nach setupCustomTitleBar() initialisieren
+        if (useMacWindowManager && titleBar != null) {
+            // MACWINDOWMANAGER DEAKTIVIERT - überschreibt die grundlegenden Handler
+            macWindowManager = null; // Nicht initialisieren
+            logger.debug("MacWindowManager deaktiviert - grundlegende Handler werden verwendet");
+        }
 
     }
     
@@ -227,9 +263,252 @@ public class CustomStage extends Stage {
     }
     
     /**
-     * Richtet Drag & Drop für die Titelleiste ein
+     * Richtet Drag & Drop für die Titelleiste ein - betriebssystemspezifisch
      */
     private void setupDragAndDrop() {
+        // IMMER die grundlegenden Handler einrichten (für alle OS)
+        String osName = System.getProperty("os.name").toLowerCase();
+        boolean isMac = osName.contains("mac");
+        
+        if (isMac) {
+            setupMacDragAndDrop();
+        } else {
+            setupWindowsLinuxDragAndDrop();
+        }
+        
+        // MacWindowManager nur für zusätzliche Features (nicht für grundlegendes Drag)
+        if (useMacWindowManager && macWindowManager != null) {
+            logger.debug("MacWindowManager für zusätzliche Features aktiv");
+            // Nur für spezielle macOS-Features wie Edge-Snapping etc.
+            // Grundlegendes Drag wird bereits oben gehandhabt
+        }
+    }
+    
+    /**
+     * macOS-spezifisches Drag & Drop Handling
+     */
+    private void setupMacDragAndDrop() {
+        // Minimale Größe sofort beim Start setzen
+        setMinWindowSize();
+        
+        titleBar.setOnMousePressed(event -> {
+            if (event.getClickCount() == 1 && !isResizing) {
+                xOffset = event.getSceneX();
+                yOffset = event.getSceneY();
+            }
+        });
+        
+        titleBar.setOnMouseDragged(event -> {
+            if (!isResizing) {
+                double newX = event.getScreenX() - xOffset;
+                double newY = event.getScreenY() - yOffset;
+                
+                // Minimale Größe sicherstellen
+                setMinWindowSize();
+                
+                // Prüfe ob Fenster auf neuem Monitor gelandet ist
+                adjustWindowToCurrentScreen();
+                
+                // KEINE Bounds-Beschränkung - Fenster kann überall hin
+                setX(newX);
+                setY(newY);
+            }
+        });
+        
+        titleBar.setOnMouseReleased(event -> {
+            // Wenn Drag beendet ist, Fenster an aktuellen Screen anpassen
+            adjustWindowToCurrentScreen();
+            
+            // Fenstergröße speichern
+            saveWindowSize();
+        });
+    }
+    
+    /**
+     * Setzt die minimale Fenstergröße basierend auf dem aktuellen Screen
+     */
+    private void setMinWindowSize() {
+        var currentScreen = getCurrentScreen();
+        var visualBounds = currentScreen.getVisualBounds();
+        
+        // Absolute Minimalgrößen
+        double minHeight = 600;  // Mindestens 600px für alle UI-Elemente
+        double minWidth = 400;   // Mindestens 400px Breite
+        
+        // Wenn Screen sehr klein ist, passe die Höhe an
+        if (visualBounds.getHeight() < minHeight) {
+            minHeight = visualBounds.getHeight() - 50; // 50px Puffer
+        }
+        
+        setMinWidth(minWidth);
+        setMinHeight(minHeight);
+        
+        // Auch aktuelle Größe anpassen wenn zu klein
+        if (getWidth() < minWidth) {
+            setWidth(minWidth);
+        }
+        if (getHeight() < minHeight) {
+            setHeight(minHeight);
+        }
+    }
+    
+    /**
+     * Passt das Fenster an den aktuellen Screen an
+     */
+    private void adjustWindowToCurrentScreen() {
+        var currentScreen = getCurrentScreen();
+        var visualBounds = currentScreen.getVisualBounds();
+        
+        double windowX = getX();
+        double windowY = getY();
+        double windowWidth = getWidth();
+        double windowHeight = getHeight();
+        
+        // Prüfe ob Fenster außerhalb des aktuellen Screens ist
+        boolean needsAdjustment = false;
+        
+        // Wenn Fenster größer als der Screen ist
+        if (windowWidth > visualBounds.getWidth() || windowHeight > visualBounds.getHeight()) {
+            needsAdjustment = true;
+        }
+        
+        // Wenn Fenster teilweise außerhalb des Screens ist
+        if (windowX < visualBounds.getMinX() || 
+            windowY < visualBounds.getMinY() ||
+            windowX + windowWidth > visualBounds.getMaxX() ||
+            windowY + windowHeight > visualBounds.getMaxY()) {
+            needsAdjustment = true;
+        }
+        
+        if (needsAdjustment) {
+            // Fenster an Screen anpassen
+            double newWidth = Math.min(windowWidth, visualBounds.getWidth() * 0.9);
+            double newHeight = Math.min(windowHeight, visualBounds.getHeight() * 0.9);
+            double newX = Math.max(visualBounds.getMinX(), Math.min(windowX, visualBounds.getMaxX() - newWidth));
+            double newY = Math.max(visualBounds.getMinY(), Math.min(windowY, visualBounds.getMaxY() - newHeight));
+            
+            setWidth(newWidth);
+            setHeight(newHeight);
+            setX(newX);
+            setY(newY);
+            
+            // NICHT speichern - nur bei echtem Resize/Drag speichern
+        }
+    }
+    
+    /**
+     * Ermittelt den aktuellen Screen basierend auf der Fensterposition
+     */
+    private javafx.stage.Screen getCurrentScreen() {
+        double windowCenterX = getX() + getWidth() / 2;
+        double windowCenterY = getY() + getHeight() / 2;
+        
+        for (var screen : javafx.stage.Screen.getScreens()) {
+            var bounds = screen.getBounds();
+            if (windowCenterX >= bounds.getMinX() && windowCenterX <= bounds.getMaxX() &&
+                windowCenterY >= bounds.getMinY() && windowCenterY <= bounds.getMaxY()) {
+                return screen;
+            }
+        }
+        
+        // Fallback auf primären Screen
+        return javafx.stage.Screen.getPrimary();
+    }
+    
+    /**
+     * Speichert die aktuelle Fenstergröße und Position
+     */
+    private void saveWindowSize() {
+        try {
+            var currentScreen = getCurrentScreen();
+            String screenId = "screen_" + currentScreen.hashCode();
+            
+            java.util.Properties props = new java.util.Properties();
+            props.setProperty("window.width", String.valueOf(getWidth()));
+            props.setProperty("window.height", String.valueOf(getHeight()));
+            props.setProperty("window.x", String.valueOf(getX()));
+            props.setProperty("window.y", String.valueOf(getY()));
+            props.setProperty("last.screen", screenId);
+            
+            // Screen-spezifische Werte speichern
+            props.setProperty(screenId + ".width", String.valueOf(getWidth()));
+            props.setProperty(screenId + ".height", String.valueOf(getHeight()));
+            props.setProperty(screenId + ".x", String.valueOf(getX()));
+            props.setProperty(screenId + ".y", String.valueOf(getY()));
+            
+            java.io.File configFile = new java.io.File(System.getProperty("user.home"), ".manuskript_window.properties");
+            try (java.io.FileOutputStream fos = new java.io.FileOutputStream(configFile)) {
+                props.store(fos, "Manuskript Window Settings");
+            }
+            
+        } catch (Exception e) {
+            System.err.println("Fenstergröße konnte nicht gespeichert werden: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * Lädt die gespeicherte Fenstergröße und Position
+     */
+    public void loadWindowSize() {
+        System.out.println("[LOAD] loadWindowSize() wurde aufgerufen!");
+        try {
+            java.io.File configFile = new java.io.File(System.getProperty("user.home"), ".manuskript_window.properties");
+            if (!configFile.exists()) {
+                return;
+            }
+            
+            java.util.Properties props = new java.util.Properties();
+            try (java.io.FileInputStream fis = new java.io.FileInputStream(configFile)) {
+                props.load(fis);
+            }
+            
+            var currentScreen = getCurrentScreen();
+            String screenId = "screen_" + currentScreen.hashCode();
+            
+            // Versuche zuerst screen-spezifische Werte zu laden
+            String widthStr = props.getProperty(screenId + ".width");
+            String heightStr = props.getProperty(screenId + ".height");
+            String xStr = props.getProperty(screenId + ".x");
+            String yStr = props.getProperty(screenId + ".y");
+            
+            double width = widthStr != null ? Double.parseDouble(widthStr) : 800;
+            double height = heightStr != null ? Double.parseDouble(heightStr) : 600;
+            double x = xStr != null ? Double.parseDouble(xStr) : 100;
+            double y = yStr != null ? Double.parseDouble(yStr) : 100;
+            
+            // Prüfe ob die gespeicherte Größe auf dem aktuellen Screen passt
+            var visualBounds = currentScreen.getVisualBounds();
+            
+            // Wenn gespeicherte Größe zu groß ist, anpassen
+            if (width > visualBounds.getWidth()) {
+                width = visualBounds.getWidth() * 0.8;
+            }
+            if (height > visualBounds.getHeight()) {
+                height = visualBounds.getHeight() * 0.8;
+            }
+            
+            // Wenn gespeicherte Position außerhalb ist, zentrieren
+            if (x < visualBounds.getMinX() || x + width > visualBounds.getMaxX()) {
+                x = visualBounds.getMinX() + (visualBounds.getWidth() - width) / 2;
+            }
+            if (y < visualBounds.getMinY() || y + height > visualBounds.getMaxY()) {
+                y = visualBounds.getMinY() + (visualBounds.getHeight() - height) / 2;
+            }
+            
+            setWidth(width);
+            setHeight(height);
+            setX(x);
+            setY(y);
+            
+        } catch (Exception e) {
+            System.err.println("Fenstergröße konnte nicht geladen werden: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * Windows/Linux-spezifisches Drag & Drop Handling
+     */
+    private void setupWindowsLinuxDragAndDrop() {
         titleBar.setOnMousePressed(event -> {
             if (event.getClickCount() == 1 && !isResizing) {
                 xOffset = event.getSceneX();
@@ -246,33 +525,33 @@ public class CustomStage extends Stage {
             }
         });
         
-        // Doppelklick zum Maximieren/Minimieren
+        // Doppelklick zum Maximieren/Minimieren (Windows/Linux-Verhalten)
         titleBar.setOnMouseClicked(event -> {
             if (event.getClickCount() == 2 && !isResizing) {
                 toggleMaximize();
             }
         });
-        
-
     }
     
     /**
      * Wechselt zwischen maximiertem und normalem Zustand
      */
     private void toggleMaximize() {
-        if (isMaximized) {
-            setMaximized(false);
-            // isMaximized wird automatisch durch den Listener aktualisiert
-        } else {
-            setMaximized(true);
-            // isMaximized wird automatisch durch den Listener aktualisiert
+        // Wenn MacWindowManager aktiv ist, diesen verwenden
+        if (useMacWindowManager && macWindowManager != null && macWindowManager.getMaximizeHandler() != null) {
+            macWindowManager.getMaximizeHandler().toggleMaximize();
+            return;
         }
+        
+        // KEINE Maximierungs-Logik mehr
     }
     
     /**
      * Setzt die Scene mit benutzerdefinierter Titelleiste
      */
     public void setSceneWithTitleBar(Scene scene) {
+        System.out.println("[DEBUG] setSceneWithTitleBar aufgerufen");
+        
         if (scene != null) {
             VBox newRoot = new VBox();
 
@@ -312,6 +591,9 @@ public class CustomStage extends Stage {
                 // Pastell-Theme: Kein Border setzen
             }
             
+            // Gespeicherte Fenstergröße laden
+            loadWindowSize();
+            
         } else {
             super.setScene(null);
         }
@@ -322,6 +604,21 @@ public class CustomStage extends Stage {
      * Richtet Resize-Handles für das Fenster ein
      */
     private void setupResizeHandles(Scene scene) {
+        // IMMER die grundlegenden Resize-Handler einrichten
+        setupStandardResizeHandles(scene);
+        
+        // MacWindowManager nur für zusätzliche macOS-Features
+        if (useMacWindowManager && macWindowManager != null) {
+            logger.debug("MacWindowManager für zusätzliche Resize-Features aktiv");
+            // Zusätzliche macOS-Features wie Edge-Snapping etc.
+            // Grundlegendes Resize wird bereits oben gehandhabt
+        }
+    }
+    
+    /**
+     * Standard Resize-Handles (für non-macOS oder wenn MacWindowManager nicht verfügbar)
+     */
+    private void setupStandardResizeHandles(Scene scene) {
         final int RESIZE_BORDER = 10; // Vergrößert für bessere Erkennung
         
         // WICHTIG: EventFilter verwenden, um Events VOR anderen Handlern abzufangen
@@ -449,6 +746,10 @@ public class CustomStage extends Stage {
             if (isResizing) {
                 isResizing = false;
                 scene.setCursor(javafx.scene.Cursor.DEFAULT);
+                
+                // Größe nach Resize speichern
+                saveWindowSize();
+                
                 event.consume(); // WICHTIG: Event konsumieren
             }
         });
@@ -497,9 +798,7 @@ public class CustomStage extends Stage {
      * Führt das Resizing durch
      */
     private void performResize(MouseEvent event) {
-        if (!isResizing) {
-            return;
-        }
+        if (!isResizing) return;
         
         double deltaX = event.getScreenX() - resizeStartX;
         double deltaY = event.getScreenY() - resizeStartY;
@@ -980,6 +1279,27 @@ public class CustomStage extends Stage {
      */
     public boolean isCursorLocked() {
         return cursorLocked;
+    }
+    
+    /**
+     * Räumt den MacWindowManager auf (wenn vorhanden)
+     */
+    public void cleanup() {
+        if (macWindowManager != null) {
+            macWindowManager.cleanup();
+            macWindowManager = null;
+        }
+    }
+    
+    /**
+     * Gibt Debug-Informationen über den MacWindowManager zurück
+     * @return Debug-Informationen oder leeren String wenn nicht verfügbar
+     */
+    public String getMacWindowManagerDebugInfo() {
+        if (macWindowManager != null) {
+            return macWindowManager.getDebugInfo();
+        }
+        return "MacWindowManager nicht verfügbar";
     }
     
     private void setSimpleActionSymbols() {
