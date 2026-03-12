@@ -238,7 +238,7 @@ public class CustomStage extends Stage {
         });
         
         titleBar.setOnMouseDragged(event -> {
-            if (!isMaximized && !isResizing) {
+            if (!isResizing) {
                 double newX = event.getScreenX() - xOffset;
                 double newY = event.getScreenY() - yOffset;
                 setX(newX);
@@ -336,10 +336,7 @@ public class CustomStage extends Stage {
                 return;
             }
             
-            if (isMaximized) {
-                scene.setCursor(javafx.scene.Cursor.DEFAULT);
-                return;
-            }
+            // KEINE Maximierungs-Checks mehr
             
             // Prüfe, ob wir uns in der Titelleiste befinden - dann kein Resize
             if (event.getY() < titleBar.getHeight()) {
@@ -401,7 +398,7 @@ public class CustomStage extends Stage {
         
         // WICHTIG: EventFilter für Mouse-Press verwenden
         scene.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
-            if (isMaximized) return;
+            // KEINE Maximierungs-Checks mehr
             
             // Prüfe, ob wir uns in der Titelleiste befinden - dann kein Resize
             if (event.getY() < titleBar.getHeight()) {
@@ -465,7 +462,7 @@ public class CustomStage extends Stage {
      * Startet das Resizing
      */
     private void startResize(MouseEvent event, double x, double y, double width, double height) {
-        if (isMaximized) return;
+        // KEINE Maximierungs-Checks mehr
         
         resizeStartX = event.getScreenX();
         resizeStartY = event.getScreenY();
@@ -500,7 +497,9 @@ public class CustomStage extends Stage {
      * Führt das Resizing durch
      */
     private void performResize(MouseEvent event) {
-        if (!isResizing || isMaximized) return;
+        if (!isResizing) {
+            return;
+        }
         
         double deltaX = event.getScreenX() - resizeStartX;
         double deltaY = event.getScreenY() - resizeStartY;
