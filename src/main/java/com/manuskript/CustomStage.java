@@ -11,6 +11,9 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import javafx.application.Platform;
+import javafx.geometry.Rectangle2D;
+import javafx.stage.Screen;
 import javafx.geometry.Pos;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.text.Font;
@@ -71,6 +74,7 @@ public class CustomStage extends Stage {
     private double yOffset = 0;
     private String currentTextColor = DEFAULT_TEXT_COLOR; // Aktuelle Textfarbe für Hover-Effekte
     private int activeThemeIndex = -1;
+    private boolean windowSizeLoaded = false; // Flag um mehrfaches Laden zu verhindern
     
     private HBox titleBar;
     private Label titleLabel;
@@ -1311,6 +1315,117 @@ public class CustomStage extends Stage {
         }
         if (closeBtn != null) {
             closeBtn.setText("×");
+        }
+    }
+    
+    /**
+     * Holt den aktuellen Screen basierend auf der Fensterposition
+     */
+    private Screen getCurrentScreen() {
+        double windowCenterX = getX() + getWidth() / 2;
+        double windowCenterY = getY() + getHeight() / 2;
+        
+        for (Screen screen : Screen.getScreens()) {
+            Rectangle2D bounds = screen.getBounds();
+            if (windowCenterX >= bounds.getMinX() && windowCenterX < bounds.getMaxX() &&
+                windowCenterY >= bounds.getMinY() && windowCenterY < bounds.getMaxY()) {
+                return screen;
+            }
+        }
+        
+        // Fallback: Primary Screen
+        return Screen.getPrimary();
+    }
+    
+    /**
+     * Lädt die gespeicherte Fenstergröße und Position
+     */
+    public void loadWindowSize() {
+        // Verhindere mehrfaches Laden durch einen Flag
+        if (windowSizeLoaded) {
+            return;
+        }
+        
+        try {
+            java.io.File configFile = new java.io.File(System.getProperty("user.home"), ".manuskript_window.properties");
+            if (!configFile.exists()) {
+                windowSizeLoaded = true;
+                return;
+            }
+            
+            java.util.Properties props = new java.util.Properties();
+            try (java.io.FileInputStream fis = new java.io.FileInputStream(configFile)) {
+                props.load(fis);
+            }
+            
+            var currentScreen = getCurrentScreen();
+            String screenId = "screen_" + currentScreen.hashCode();
+            
+            // Versuche zuerst screen-spezifische Werte zu laden
+            String widthStr = props.getProperty(screenId + ".width");
+            String heightStr = props.getProperty(screenId + ".height");
+            String xStr = props.getProperty(screenId + ".x");
+            String yStr = props.getProperty(screenId + ".y");
+            
+            double width = widthStr != null ? Double.parseDouble(widthStr) : 800;
+            double height = heightStr != null ? Double.parseDouble(heightStr) : 600;
+            double x = xStr != null ? Double.parseDouble(xStr) : 100;
+            double y = yStr != null ? Double.parseDouble(yStr) : 100;
+            
+            // Final für Lambda-Ausdruck
+            final double finalWidth = width;
+            final double finalHeight = height;
+            final double finalX = x;
+            final double finalY = y;
+            
+            // Prüfe ob die gespeicherte Größe auf dem aktuellen Screen passt
+            var visualBounds = currentScreen.getVisualBounds();
+            
+            // Wenn gespeicherte Größe zu groß ist, anpassen
+            if (finalWidth > visualBounds.getWidth()) {
+                width = visualBounds.getWidth() * 0.8;
+            }
+            if (finalHeight > visualBounds.getHeight()) {
+                height = visualBounds.getHeight() * 0.8;
+            }
+            
+            // Position sicherstellen, dass sie im sichtbaren Bereich liegt
+            if (finalX < visualBounds.getMinX() || finalX + finalWidth > visualBounds.getMaxX()) {
+                x = visualBounds.getMinX() + (visualBounds.getWidth() - finalWidth) / 2;
+            }
+            if (finalY < visualBounds.getMinY() || finalY + finalHeight > visualBounds.getMaxY()) {
+                y = visualBounds.getMinY() + (visualBounds.getHeight() - finalHeight) / 2;
+            }
+            
+            // Final für Lambda-Ausdruck
+            final double adjustedWidth = width;
+            final double adjustedHeight = height;
+            final double adjustedX = x;
+            final double adjustedY = y;
+            
+            // Nur setzen wenn das Fenster sichtbar ist und Größe > 0
+            if (isShowing() && adjustedWidth > 0 && adjustedHeight > 0) {
+                setWidth(adjustedWidth);
+                setHeight(adjustedHeight);
+                setX(adjustedX);
+                setY(adjustedY);
+            } else {
+                // Speichere für später wenn das Fenster noch nicht sichtbar ist
+                Platform.runLater(() -> {
+                    if (isShowing() && adjustedWidth > 0 && adjustedHeight > 0) {
+                        setWidth(adjustedWidth);
+                        setHeight(adjustedHeight);
+                        setX(adjustedX);
+                        setY(adjustedY);
+                    }
+                });
+            }
+            
+            windowSizeLoaded = true;
+            
+        } catch (Exception e) {
+            System.err.println("Fenstergröße konnte nicht geladen werden: " + e.getMessage());
+            windowSizeLoaded = true; // Auch bei Fehler als "geladen" markieren
         }
     }
 

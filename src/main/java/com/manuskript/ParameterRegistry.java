@@ -12,13 +12,13 @@ public final class ParameterRegistry {
 
     static {
         // —— Ollama ——
-        add("ollama.temperature", ParameterDef.Type.DOUBLE, "0.3",
+        add("ollama.temperature", ParameterDef.Type.DOUBLE, "0.1",
                 "Temperatur für KI-Antworten (0 = deterministisch, höher = kreativer). Typisch 0.1–0.9.", "Ollama");
-        add("ollama.max_tokens", ParameterDef.Type.INT, "2048",
+        add("ollama.max_tokens", ParameterDef.Type.INT, "3200",
                 "Maximale Anzahl Tokens pro Antwort.", "Ollama");
-        add("ollama.top_p", ParameterDef.Type.DOUBLE, "0.7",
+        add("ollama.top_p", ParameterDef.Type.DOUBLE, "0.5",
                 "Nukleus-Sampling (Top-P). Begrenzt die Auswahl auf wahrscheinliche Tokens.", "Ollama");
-        add("ollama.repeat_penalty", ParameterDef.Type.DOUBLE, "1.3",
+        add("ollama.repeat_penalty", ParameterDef.Type.DOUBLE, "1.05",
                 "Strafe für Wiederholungen. Höher = weniger Wiederholungen.", "Ollama");
         add("ollama.http_connect_timeout_secs", ParameterDef.Type.INT, "30",
                 "Timeout in Sekunden für die Verbindung zu Ollama.", "Ollama");
