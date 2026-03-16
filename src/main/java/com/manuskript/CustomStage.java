@@ -18,6 +18,7 @@ import javafx.geometry.Pos;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import javafx.scene.text.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.manuskript.windowhandling.MacWindowManager;
@@ -50,20 +51,23 @@ public class CustomStage extends Stage {
     private static final String DEFAULT_MINIMIZE_SYMBOL = "−";
     private static final String DEFAULT_MAXIMIZE_SYMBOL = "□";
     private static final String DEFAULT_MAXIMIZE_SYMBOL_MAXIMIZED = "⧉";
+    private static final String MAC_MAXIMIZE_SYMBOL = "⤢";
     private static final String DEFAULT_CLOSE_SYMBOL = "×";
     private static final String DEFAULT_TITLE = "Manuskript";
     private static final String DEFAULT_ICON_TEXT = "M";
     private static final double ICON_SIZE = 30.0;
-    private static final double MAC_BUTTON_SIZE = 12.0;
+    private static final double MAC_BUTTON_SIZE = 14.0;
+    private static final double MAC_BUTTON_SPACING = 8.0;
+    private static final double MAC_SYMBOL_SIZE = 12.0;
     private static final String MAC_CLOSE_COLOR = "#ff5f57";
     private static final String MAC_CLOSE_HOVER_COLOR = "#ff3b30";
-    private static final String MAC_CLOSE_TEXT_COLOR = "#4d0000";
+    private static final String MAC_CLOSE_TEXT_COLOR = "#ffffff";
     private static final String MAC_MINIMIZE_COLOR = "#ffbd2e";
     private static final String MAC_MINIMIZE_HOVER_COLOR = "#ff9500";
-    private static final String MAC_MINIMIZE_TEXT_COLOR = "#975500";
+    private static final String MAC_MINIMIZE_TEXT_COLOR = "#ffffff";
     private static final String MAC_MAXIMIZE_COLOR = "#28ca42";
     private static final String MAC_MAXIMIZE_HOVER_COLOR = "#30d158";
-    private static final String MAC_MAXIMIZE_TEXT_COLOR = "#003300";
+    private static final String MAC_MAXIMIZE_TEXT_COLOR = "#ffffff";
     private static final String CLOSE_HOVER_BACKGROUND = "#e74c3c";
     private static final String CLOSE_HOVER_TEXT_COLOR = "white";
     
@@ -72,6 +76,12 @@ public class CustomStage extends Stage {
     
     private double xOffset = 0;
     private double yOffset = 0;
+    private boolean isMaximized = false;
+    private double restoreX;
+    private double restoreY;
+    private double restoreWidth;
+    private double restoreHeight;
+    private boolean hasRestoreBounds = false;
     private String currentTextColor = DEFAULT_TEXT_COLOR; // Aktuelle Textfarbe für Hover-Effekte
     private int activeThemeIndex = -1;
     private boolean windowSizeLoaded = false; // Flag um mehrfaches Laden zu verhindern
@@ -94,16 +104,15 @@ public class CustomStage extends Stage {
         
         setupCustomTitleBar();
         
-        // KEINE Maximierungs-Listener mehr
-        
-        // Gespeicherte Fenstergröße nach kurzer Verzögerung laden
-        javafx.application.Platform.runLater(() -> {
-            System.out.println("[DEBUG] Platform.runLater für loadWindowSize aufgerufen");
-            try {
-                Thread.sleep(100); // 100ms warten bis Scene ready
-                loadWindowSize();
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
+        // Synchronisiere isMaximized für Nicht-Mac-Systeme
+        maximizedProperty().addListener((obs, oldVal, newVal) -> {
+            if (isMacPlatform()) {
+                return;
+            }
+            isMaximized = newVal;
+            if (maximizeBtn != null) {
+                maximizeBtn.setText(newVal ? DEFAULT_MAXIMIZE_SYMBOL_MAXIMIZED : DEFAULT_MAXIMIZE_SYMBOL);
+>>>>>>> 039da5b (ffmpeg für mac)
             }
         });
     }
@@ -117,24 +126,19 @@ public class CustomStage extends Stage {
         
         setupCustomTitleBar();
         
-        // KEINE Maximierungs-Listener mehr
-    }
-    
-    /**
-     * Initialisiert den macOS Window Manager, falls auf macOS
-     */
-    private void initializeMacWindowManager() {
-        String osName = System.getProperty("os.name").toLowerCase();
-        boolean isMac = osName.contains("mac");
-        
-        if (isMac) {
-            useMacWindowManager = true;
-            // MacWindowManager wird nach setupCustomTitleBar() initialisiert, wenn titleBar vorhanden ist
-            logger.debug("macOS erkannt - MacWindowManager wird verwendet");
-        } else {
-            useMacWindowManager = false;
-            logger.debug("Nicht-macOS System erkannt - Standard Window Handling wird verwendet");
-        }
+        // Synchronisiere isMaximized mit der JavaFX maximizedProperty
+        maximizedProperty().addListener((obs, oldVal, newVal) -> {
+            isMaximized = newVal;
+            if (maximizeBtn != null) {
+                String osName = System.getProperty("os.name").toLowerCase();
+                boolean isMac = osName.contains("mac");
+                if (isMac) {
+                    // macOS uses a dedicated symbol handled via setMacButtonSymbol
+                } else {
+                    maximizeBtn.setText(newVal ? DEFAULT_MAXIMIZE_SYMBOL_MAXIMIZED : DEFAULT_MAXIMIZE_SYMBOL);
+                }
+            }
+        });
     }
     
     /**
@@ -548,6 +552,32 @@ public class CustomStage extends Stage {
         }
         
         // KEINE Maximierungs-Logik mehr
+    }
+
+    private void maximizeToCurrentScreen() {
+        hasRestoreBounds = true;
+        restoreX = getX();
+        restoreY = getY();
+        restoreWidth = getWidth();
+        restoreHeight = getHeight();
+
+        Rectangle2D bounds = getCurrentScreen().getVisualBounds();
+        setX(bounds.getMinX());
+        setY(bounds.getMinY());
+        setWidth(bounds.getWidth());
+        setHeight(bounds.getHeight());
+        isMaximized = true;
+    }
+
+    private void restoreWindowBounds() {
+        if (!hasRestoreBounds) {
+            return;
+        }
+        setWidth(restoreWidth);
+        setHeight(restoreHeight);
+        setX(restoreX);
+        setY(restoreY);
+        isMaximized = false;
     }
     
     /**
@@ -1122,16 +1152,40 @@ public class CustomStage extends Stage {
 
     private void setupMacHoverEffects() {
         if (closeBtn != null) {
-            closeBtn.setOnMouseEntered(e -> closeBtn.setStyle(buildMacButtonStyle(MAC_CLOSE_HOVER_COLOR, MAC_CLOSE_TEXT_COLOR)));
-            closeBtn.setOnMouseExited(e -> closeBtn.setStyle(buildMacButtonStyle(MAC_CLOSE_COLOR, MAC_CLOSE_TEXT_COLOR)));
+            closeBtn.setStyle(buildMacButtonStyle(MAC_CLOSE_COLOR, MAC_CLOSE_TEXT_COLOR));
+            clearMacButtonSymbol(closeBtn);
+            closeBtn.setOnMouseEntered(e -> {
+                closeBtn.setStyle(buildMacButtonStyle(MAC_CLOSE_HOVER_COLOR, MAC_CLOSE_TEXT_COLOR));
+                setMacButtonSymbol(closeBtn, "✕", MAC_CLOSE_TEXT_COLOR);
+            });
+            closeBtn.setOnMouseExited(e -> {
+                closeBtn.setStyle(buildMacButtonStyle(MAC_CLOSE_COLOR, MAC_CLOSE_TEXT_COLOR));
+                clearMacButtonSymbol(closeBtn);
+            });
         }
         if (minimizeBtn != null) {
-            minimizeBtn.setOnMouseEntered(e -> minimizeBtn.setStyle(buildMacButtonStyle(MAC_MINIMIZE_HOVER_COLOR, MAC_MINIMIZE_TEXT_COLOR)));
-            minimizeBtn.setOnMouseExited(e -> minimizeBtn.setStyle(buildMacButtonStyle(MAC_MINIMIZE_COLOR, MAC_MINIMIZE_TEXT_COLOR)));
+            minimizeBtn.setStyle(buildMacButtonStyle(MAC_MINIMIZE_COLOR, MAC_MINIMIZE_TEXT_COLOR));
+            clearMacButtonSymbol(minimizeBtn);
+            minimizeBtn.setOnMouseEntered(e -> {
+                minimizeBtn.setStyle(buildMacButtonStyle(MAC_MINIMIZE_HOVER_COLOR, MAC_MINIMIZE_TEXT_COLOR));
+                setMacButtonSymbol(minimizeBtn, "−", MAC_MINIMIZE_TEXT_COLOR);
+            });
+            minimizeBtn.setOnMouseExited(e -> {
+                minimizeBtn.setStyle(buildMacButtonStyle(MAC_MINIMIZE_COLOR, MAC_MINIMIZE_TEXT_COLOR));
+                clearMacButtonSymbol(minimizeBtn);
+            });
         }
         if (maximizeBtn != null) {
-            maximizeBtn.setOnMouseEntered(e -> maximizeBtn.setStyle(buildMacButtonStyle(MAC_MAXIMIZE_HOVER_COLOR, MAC_MAXIMIZE_TEXT_COLOR)));
-            maximizeBtn.setOnMouseExited(e -> maximizeBtn.setStyle(buildMacButtonStyle(MAC_MAXIMIZE_COLOR, MAC_MAXIMIZE_TEXT_COLOR)));
+            maximizeBtn.setStyle(buildMacButtonStyle(MAC_MAXIMIZE_COLOR, MAC_MAXIMIZE_TEXT_COLOR));
+            clearMacButtonSymbol(maximizeBtn);
+            maximizeBtn.setOnMouseEntered(e -> {
+                maximizeBtn.setStyle(buildMacButtonStyle(MAC_MAXIMIZE_HOVER_COLOR, MAC_MAXIMIZE_TEXT_COLOR));
+                setMacButtonSymbol(maximizeBtn, MAC_MAXIMIZE_SYMBOL, MAC_MAXIMIZE_TEXT_COLOR);
+            });
+            maximizeBtn.setOnMouseExited(e -> {
+                maximizeBtn.setStyle(buildMacButtonStyle(MAC_MAXIMIZE_COLOR, MAC_MAXIMIZE_TEXT_COLOR));
+                clearMacButtonSymbol(maximizeBtn);
+            });
         }
     }
 
@@ -1165,13 +1219,13 @@ public class CustomStage extends Stage {
         boolean useSimpleActions = Boolean.TRUE.equals(getProperties().get(PROPERTY_USE_SIMPLE_ACTIONS));
 
         if (isMac) {
-            minimizeBtn = createMacButton("−", MAC_MINIMIZE_COLOR, MAC_MINIMIZE_TEXT_COLOR);
+            minimizeBtn = createMacButton("", MAC_MINIMIZE_COLOR, MAC_MINIMIZE_TEXT_COLOR);
             minimizeBtn.setOnAction(e -> setIconified(true));
 
-            maximizeBtn = createMacButton("✶", MAC_MAXIMIZE_COLOR, MAC_MAXIMIZE_TEXT_COLOR);
+            maximizeBtn = createMacButton("", MAC_MAXIMIZE_COLOR, MAC_MAXIMIZE_TEXT_COLOR);
             maximizeBtn.setOnAction(e -> toggleMaximize());
 
-            closeBtn = createMacButton("×", MAC_CLOSE_COLOR, MAC_CLOSE_TEXT_COLOR);
+            closeBtn = createMacButton("", MAC_CLOSE_COLOR, MAC_CLOSE_TEXT_COLOR);
             closeBtn.setOnAction(e -> fireEvent(new javafx.stage.WindowEvent(this, javafx.stage.WindowEvent.WINDOW_CLOSE_REQUEST)));
         } else {
             if (useSimpleActions) {
@@ -1211,15 +1265,36 @@ public class CustomStage extends Stage {
 
     private String buildMacButtonStyle(String backgroundColor, String textColor) {
         return "-fx-background-color: " + backgroundColor + "; -fx-text-fill: " + textColor + "; -fx-font-weight: bold; -fx-font-size: 12px; " +
-                "-fx-min-width: " + MAC_BUTTON_SIZE + "px; -fx-min-height: " + MAC_BUTTON_SIZE + "px; " +
-                "-fx-pref-width: " + MAC_BUTTON_SIZE + "px; -fx-pref-height: " + MAC_BUTTON_SIZE + "px; " +
-                "-fx-max-width: " + MAC_BUTTON_SIZE + "px; -fx-max-height: " + MAC_BUTTON_SIZE + "px; " +
-                "-fx-border-color: transparent; -fx-border-radius: " + (MAC_BUTTON_SIZE / 2) + "px; -fx-background-radius: " + (MAC_BUTTON_SIZE / 2) + "px;";
+                "-fx-min-width: " + MAC_BUTTON_SIZE + "px !important; -fx-min-height: " + MAC_BUTTON_SIZE + "px !important; " +
+                "-fx-pref-width: " + MAC_BUTTON_SIZE + "px !important; -fx-pref-height: " + MAC_BUTTON_SIZE + "px !important; " +
+                "-fx-max-width: " + MAC_BUTTON_SIZE + "px !important; -fx-max-height: " + MAC_BUTTON_SIZE + "px !important; " +
+                "-fx-border-color: transparent; -fx-border-radius: " + (MAC_BUTTON_SIZE / 2) + "px; -fx-background-radius: " + (MAC_BUTTON_SIZE / 2) + "px; " +
+                "-fx-cursor: hand;" +
+                "-fx-padding: 0px !important; " +
+                "-fx-alignment: center; -fx-content-display: center; -fx-text-alignment: center;";
+    }
+
+    private void setMacButtonSymbol(Button button, String symbol, String textColor) {
+        Text text = new Text(symbol);
+        text.setFont(Font.font("System", FontWeight.BOLD, MAC_SYMBOL_SIZE));
+        text.setStyle("-fx-fill: " + textColor + ";");
+        button.setText("");
+        button.setGraphic(text);
+        button.setGraphicTextGap(0);
+        button.setAlignment(Pos.CENTER);
+    }
+
+    private void clearMacButtonSymbol(Button button) {
+        button.setText("");
+        button.setGraphic(null);
+        button.setGraphicTextGap(0);
+        button.setAlignment(Pos.CENTER);
     }
 
     private Button createMacButton(String symbol, String backgroundColor, String textColor) {
         Button button = new Button(symbol);
         button.setStyle(buildMacButtonStyle(backgroundColor, textColor));
+        button.setFont(new Font("System", 12));
         button.setMinSize(MAC_BUTTON_SIZE, MAC_BUTTON_SIZE);
         button.setPrefSize(MAC_BUTTON_SIZE, MAC_BUTTON_SIZE);
         button.setMaxSize(MAC_BUTTON_SIZE, MAC_BUTTON_SIZE);
@@ -1240,12 +1315,19 @@ public class CustomStage extends Stage {
         boolean hideIcon = !iconLabel.isVisible();
 
         if (isMac) {
+            HBox macButtonContainer = new HBox();
+            macButtonContainer.setSpacing(MAC_BUTTON_SPACING);
+            macButtonContainer.setAlignment(Pos.CENTER_LEFT);
+            
             Region buttonSpacer = new Region();
-            buttonSpacer.setMinWidth(10);
+            buttonSpacer.setMinWidth(12);
+            
+            macButtonContainer.getChildren().addAll(closeBtn, minimizeBtn, maximizeBtn);
+            
             if (hideIcon) {
-                titleBar.getChildren().addAll(closeBtn, minimizeBtn, maximizeBtn, buttonSpacer, titleLabel, spacer);
+                titleBar.getChildren().addAll(macButtonContainer, buttonSpacer, titleLabel, spacer);
             } else {
-                titleBar.getChildren().addAll(closeBtn, minimizeBtn, maximizeBtn, buttonSpacer, iconLabel, titleLabel, spacer);
+                titleBar.getChildren().addAll(macButtonContainer, buttonSpacer, iconLabel, titleLabel, spacer);
             }
         } else {
             if (hideIcon) {
@@ -1335,6 +1417,11 @@ public class CustomStage extends Stage {
         
         // Fallback: Primary Screen
         return Screen.getPrimary();
+    }
+
+    private boolean isMacPlatform() {
+        String osName = System.getProperty("os.name", "").toLowerCase();
+        return osName.contains("mac");
     }
     
     /**

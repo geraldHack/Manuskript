@@ -13,6 +13,7 @@ import javafx.scene.Node;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.TextAlignment;
+import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
@@ -53,6 +54,19 @@ public class CustomAlert {
         "#ffffff", // Grün
         "#ffffff"  // Lila
     };
+    
+    private static final double MAC_BUTTON_SIZE = 14.0;
+    private static final double MAC_BUTTON_SPACING = 8.0;
+    private static final String MAC_CLOSE_COLOR = "#ff5f57";
+    private static final String MAC_CLOSE_HOVER_COLOR = "#ff3b30";
+    private static final String MAC_MINIMIZE_COLOR = "#ffbd2e";
+    private static final String MAC_MINIMIZE_HOVER_COLOR = "#ff9500";
+    private static final String MAC_MAXIMIZE_COLOR = "#28ca42";
+    private static final String MAC_MAXIMIZE_HOVER_COLOR = "#30d158";
+    private static final String MAC_SYMBOL_COLOR = "#ffffff";
+    private static final String MAC_MINIMIZE_SYMBOL = "−";
+    private static final String MAC_MAXIMIZE_SYMBOL = "⤢";
+    private static final String MAC_CLOSE_SYMBOL = "✕";
     
     // UI-Komponenten
     private Stage stage;
@@ -218,101 +232,45 @@ public class CustomAlert {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
         
-        // Window Buttons
         HBox buttonBox = new HBox();
         buttonBox.setSpacing(0);
         if (!buttonBox.getStyleClass().contains("window-controls")) {
             buttonBox.getStyleClass().add("window-controls");
         }
-        
-        // Minimize Button
-        minimizeBtn = new Button("−");
-        minimizeBtn.setPrefSize(35, 35);
-        minimizeBtn.setMinSize(35, 35);
-        minimizeBtn.setMaxSize(35, 35);
-        minimizeBtn.setFont(Font.font("System", FontWeight.BOLD, 16));
-        minimizeBtn.setTextOverrun(OverrunStyle.CLIP);
-        if (!minimizeBtn.getStyleClass().contains("button")) {
-            minimizeBtn.getStyleClass().add("button");
+
+        if (isMacPlatform()) {
+            createMacWindowButtons(buttonBox);
+            Region rightSpacer = new Region();
+            HBox.setHgrow(rightSpacer, Priority.ALWAYS);
+            titleBar.getChildren().addAll(buttonBox, rightSpacer, titleLabel, spacer);
+        } else {
+            createDefaultWindowButtons();
+            buttonBox.getChildren().addAll(minimizeBtn, maximizeBtn, closeBtn);
+            titleBar.getChildren().addAll(titleLabel, spacer, buttonBox);
         }
-        if (!minimizeBtn.getStyleClass().contains("minimize")) {
-            minimizeBtn.getStyleClass().add("minimize");
-        }
-        minimizeBtn.setFocusTraversable(false);
-        minimizeBtn.setContentDisplay(javafx.scene.control.ContentDisplay.TEXT_ONLY);
-        // Pastell-Theme: Buttons transparent machen
-        if (currentTheme == 2) { // Pastell-Theme
-            minimizeBtn.setStyle("-fx-background-color: transparent; -fx-border-color: transparent; -fx-text-fill: #000000;");
-        }
-        
-        // Maximize Button
-        maximizeBtn = new Button("□");
-        maximizeBtn.setPrefSize(35, 35);
-        maximizeBtn.setMinSize(35, 35);
-        maximizeBtn.setMaxSize(35, 35);
-        maximizeBtn.setFont(Font.font("System", FontWeight.BOLD, 16));
-        maximizeBtn.setTextOverrun(OverrunStyle.CLIP);
-        if (!maximizeBtn.getStyleClass().contains("button")) {
-            maximizeBtn.getStyleClass().add("button");
-        }
-        if (!maximizeBtn.getStyleClass().contains("maximize")) {
-            maximizeBtn.getStyleClass().add("maximize");
-        }
-        maximizeBtn.setFocusTraversable(false);
-        maximizeBtn.setContentDisplay(javafx.scene.control.ContentDisplay.TEXT_ONLY);
-        // Pastell-Theme: Buttons transparent machen
-        if (currentTheme == 2) { // Pastell-Theme
-            maximizeBtn.setStyle("-fx-background-color: transparent; -fx-border-color: transparent; -fx-text-fill: #000000;");
-        }
-        
-        // Close Button
-        closeBtn = new Button("×");
-        closeBtn.setPrefSize(45, 35);
-        closeBtn.setMinSize(45, 35);
-        closeBtn.setMaxSize(45, 35);
-        closeBtn.setFont(Font.font("System", FontWeight.BOLD, 18));
-        closeBtn.setTextOverrun(OverrunStyle.CLIP);
-        if (!closeBtn.getStyleClass().contains("button")) {
-            closeBtn.getStyleClass().add("button");
-        }
-        if (!closeBtn.getStyleClass().contains("close")) {
-            closeBtn.getStyleClass().add("close");
-        }
-        closeBtn.setFocusTraversable(false);
-        closeBtn.setContentDisplay(javafx.scene.control.ContentDisplay.TEXT_ONLY);
-        // Pastell-Theme: Buttons transparent machen
-        if (currentTheme == 2) { // Pastell-Theme
-            closeBtn.setStyle("-fx-background-color: transparent; -fx-border-color: transparent; -fx-text-fill: #000000;");
-        }
-        
-        // Button Actions
-        minimizeBtn.setOnAction(e -> stage.setIconified(true));
-        maximizeBtn.setOnAction(e -> toggleMaximize());
-        closeBtn.setOnAction(e -> {
-            result = ButtonType.CANCEL;
-            stage.close();
-        });
-        
-        // Hover Effects
+
         setupButtonHoverEffects();
-        
-        buttonBox.getChildren().addAll(minimizeBtn, maximizeBtn, closeBtn);
-        titleBar.getChildren().addAll(titleLabel, spacer, buttonBox);
     }
     
     /**
      * Button Hover Effects
      */
     private void setupButtonHoverEffects() {
+        if (minimizeBtn == null || maximizeBtn == null || closeBtn == null) {
+            return;
+        }
+        if (isMacPlatform()) {
+            return;
+        }
         String hoverStyle = "-fx-background-color: rgba(255,255,255,0.1);";
         String closeHoverStyle = "-fx-background-color: #e74c3c;";
         
-        minimizeBtn.setOnMouseEntered(null);
-        minimizeBtn.setOnMouseExited(null);
-        maximizeBtn.setOnMouseEntered(null);
-        maximizeBtn.setOnMouseExited(null);
-        closeBtn.setOnMouseEntered(null);
-        closeBtn.setOnMouseExited(null);
+        minimizeBtn.setOnMouseEntered(e -> minimizeBtn.setStyle(hoverStyle));
+        minimizeBtn.setOnMouseExited(e -> minimizeBtn.setStyle(""));
+        maximizeBtn.setOnMouseEntered(e -> maximizeBtn.setStyle(hoverStyle));
+        maximizeBtn.setOnMouseExited(e -> maximizeBtn.setStyle(""));
+        closeBtn.setOnMouseEntered(e -> closeBtn.setStyle(closeHoverStyle));
+        closeBtn.setOnMouseExited(e -> closeBtn.setStyle(""));
     }
     
     /**
@@ -361,6 +319,151 @@ public class CustomAlert {
             maximizeBtn.setText("❐");
             isMaximized = true;
         }
+    }
+
+    private void createDefaultWindowButtons() {
+        minimizeBtn = new Button("−");
+        minimizeBtn.setPrefSize(35, 35);
+        minimizeBtn.setMinSize(35, 35);
+        minimizeBtn.setMaxSize(35, 35);
+        minimizeBtn.setFont(Font.font("System", FontWeight.BOLD, 16));
+        minimizeBtn.setTextOverrun(OverrunStyle.CLIP);
+        if (!minimizeBtn.getStyleClass().contains("button")) {
+            minimizeBtn.getStyleClass().add("button");
+        }
+        if (!minimizeBtn.getStyleClass().contains("minimize")) {
+            minimizeBtn.getStyleClass().add("minimize");
+        }
+        minimizeBtn.setFocusTraversable(false);
+        minimizeBtn.setContentDisplay(ContentDisplay.TEXT_ONLY);
+        if (currentTheme == 2) {
+            minimizeBtn.setStyle("-fx-background-color: transparent; -fx-border-color: transparent; -fx-text-fill: #000000;");
+        }
+
+        maximizeBtn = new Button("□");
+        maximizeBtn.setPrefSize(35, 35);
+        maximizeBtn.setMinSize(35, 35);
+        maximizeBtn.setMaxSize(35, 35);
+        maximizeBtn.setFont(Font.font("System", FontWeight.BOLD, 16));
+        maximizeBtn.setTextOverrun(OverrunStyle.CLIP);
+        if (!maximizeBtn.getStyleClass().contains("button")) {
+            maximizeBtn.getStyleClass().add("button");
+        }
+        if (!maximizeBtn.getStyleClass().contains("maximize")) {
+            maximizeBtn.getStyleClass().add("maximize");
+        }
+        maximizeBtn.setFocusTraversable(false);
+        maximizeBtn.setContentDisplay(ContentDisplay.TEXT_ONLY);
+        if (currentTheme == 2) {
+            maximizeBtn.setStyle("-fx-background-color: transparent; -fx-border-color: transparent; -fx-text-fill: #000000;");
+        }
+
+        closeBtn = new Button("×");
+        closeBtn.setPrefSize(45, 35);
+        closeBtn.setMinSize(45, 35);
+        closeBtn.setMaxSize(45, 35);
+        closeBtn.setFont(Font.font("System", FontWeight.BOLD, 18));
+        closeBtn.setTextOverrun(OverrunStyle.CLIP);
+        if (!closeBtn.getStyleClass().contains("button")) {
+            closeBtn.getStyleClass().add("button");
+        }
+        if (!closeBtn.getStyleClass().contains("close")) {
+            closeBtn.getStyleClass().add("close");
+        }
+        closeBtn.setFocusTraversable(false);
+        closeBtn.setContentDisplay(ContentDisplay.TEXT_ONLY);
+        if (currentTheme == 2) {
+            closeBtn.setStyle("-fx-background-color: transparent; -fx-border-color: transparent; -fx-text-fill: #000000;");
+        }
+
+        minimizeBtn.setOnAction(e -> stage.setIconified(true));
+        maximizeBtn.setOnAction(e -> toggleMaximize());
+        closeBtn.setOnAction(e -> {
+            result = ButtonType.CANCEL;
+            stage.close();
+        });
+    }
+
+    private void createMacWindowButtons(HBox buttonBox) {
+        buttonBox.setSpacing(MAC_BUTTON_SPACING);
+        buttonBox.setAlignment(Pos.TOP_LEFT);
+        buttonBox.setPadding(new Insets(6, 0, 0, 0));
+
+        closeBtn = buildMacButton(MAC_CLOSE_COLOR);
+        minimizeBtn = buildMacButton(MAC_MINIMIZE_COLOR);
+        maximizeBtn = buildMacButton(MAC_MAXIMIZE_COLOR);
+
+        setupMacButton(closeBtn, MAC_CLOSE_COLOR, MAC_CLOSE_HOVER_COLOR, MAC_CLOSE_SYMBOL, () -> {
+            result = ButtonType.CANCEL;
+            stage.close();
+        });
+        setupMacButton(minimizeBtn, MAC_MINIMIZE_COLOR, MAC_MINIMIZE_HOVER_COLOR, MAC_MINIMIZE_SYMBOL, () -> stage.setIconified(true));
+        setupMacButton(maximizeBtn, MAC_MAXIMIZE_COLOR, MAC_MAXIMIZE_HOVER_COLOR, MAC_MAXIMIZE_SYMBOL, this::toggleMaximize);
+
+        buttonBox.getChildren().addAll(closeBtn, minimizeBtn, maximizeBtn);
+    }
+
+    private Button buildMacButton(String backgroundColor) {
+        Button button = new Button();
+        button.getStyleClass().clear();
+        button.getStyleClass().add("mac-window-button");
+        button.setMinSize(MAC_BUTTON_SIZE, MAC_BUTTON_SIZE);
+        button.setPrefSize(MAC_BUTTON_SIZE, MAC_BUTTON_SIZE);
+        button.setMaxSize(MAC_BUTTON_SIZE, MAC_BUTTON_SIZE);
+        button.setFocusTraversable(false);
+        button.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+        button.setGraphicTextGap(0);
+        button.setText("");
+        button.setGraphic(null);
+        applyMacButtonBaseStyle(button, backgroundColor);
+        return button;
+    }
+
+    private void setupMacButton(Button button, String defaultColor, String hoverColor, String symbol, Runnable action) {
+        if (button == null) {
+            return;
+        }
+        button.setOnAction(e -> action.run());
+        button.setOnMouseEntered(e -> {
+            button.setStyle(macButtonStyle(hoverColor));
+            setMacButtonSymbol(button, symbol);
+        });
+        button.setOnMouseExited(e -> {
+            button.setStyle(macButtonStyle(defaultColor));
+            clearMacButtonSymbol(button);
+        });
+    }
+
+    private void setMacButtonSymbol(Button button, String symbol) {
+        Text text = new Text(symbol);
+        text.setFont(Font.font("System", FontWeight.BOLD, MAC_BUTTON_SIZE - 4));
+        text.setFill(javafx.scene.paint.Color.web(MAC_SYMBOL_COLOR));
+        button.setGraphic(text);
+    }
+
+    private void clearMacButtonSymbol(Button button) {
+        button.setGraphic(null);
+    }
+
+    private String macButtonStyle(String backgroundColor) {
+        return "-fx-background-color: " + backgroundColor + " !important; -fx-border-color: transparent; -fx-background-radius: " + (MAC_BUTTON_SIZE / 2) + "px; " +
+                "-fx-min-width: " + MAC_BUTTON_SIZE + "px !important; -fx-min-height: " + MAC_BUTTON_SIZE + "px !important; " +
+                "-fx-max-width: " + MAC_BUTTON_SIZE + "px !important; -fx-max-height: " + MAC_BUTTON_SIZE + "px !important; -fx-padding: 0 !important;";
+    }
+
+    private void applyMacButtonBaseStyle(Button button, String backgroundColor) {
+        String style = macButtonStyle(backgroundColor);
+        button.setStyle(style);
+        button.sceneProperty().addListener((obs, oldScene, newScene) -> {
+            if (newScene != null) {
+                Platform.runLater(() -> button.setStyle(style));
+            }
+        });
+    }
+
+    private boolean isMacPlatform() {
+        String osName = System.getProperty("os.name", "").toLowerCase();
+        return osName.contains("mac");
     }
     
     /**

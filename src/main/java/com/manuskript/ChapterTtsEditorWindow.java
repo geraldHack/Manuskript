@@ -109,6 +109,9 @@ public class ChapterTtsEditorWindow {
     private static final double TRAIL_SILENCE_SECONDS = 1.5;
     /** Verzeichnis für gebündeltes FFmpeg (analog zu pandoc/) – enthält ffmpeg.exe (Windows) bzw. ffmpeg (Linux/macOS) oder bin/ffmpeg.exe. */
     private static final String FFMPEG_DIR = "ffmpeg";
+    private static final String FFMPEG_ZIP_WINDOWS = "ffmpeg.zip";
+    private static final String FFMPEG_ZIP_MAC = "ffmpeg-mac.zip";
+    private static final String FFMPEG_ZIP_LINUX = "ffmpeg-linux.zip";
     private static final int SEGMENT_PALETTE_SIZE = 16;
     /** Farben für die Segment-Palette: Reihe 1 dezent, Reihe 2 knallig. */
     private static final String[] SEGMENT_PALETTE_COLORS = {
@@ -135,6 +138,8 @@ public class ChapterTtsEditorWindow {
             Regeln:
             - Veraendere KEINE Woerter des Originaltexts. Fuege NUR Audio-Tags in eckigen Klammern ein.
             - Tags stehen IMMER VOR dem Textsegment, auf das sie sich beziehen (z.B. [sighs] Setzen wir uns … oder [surprised] »Was?«). Nie dahinter.
+            - Bei direkter Rede steht der Tag direkt vor dem öffnenden Anführungszeichen (z.B. [angry] »Wie könnt ihr nur …«). Nie dahinter.
+            - Wenn du einem Satz oder Nebensatz eine Stimmung gibst, setzte den Tag vor das erste Wort dieses Satzes (z.B. [disgusted] Sie deutete auf das Pferd …).
             - Mehrere Tags hintereinander vor einem Segment sind erlaubt (z.B. [thoughtful] oder [sanft][weiblich][hohe Stimme]).
             - Verwende NUR auditive/Emotions-Tags – keine rein visuellen wie [grinning] oder [standing].
             - Setze Tags sparsam, nur wo Stimmung oder Delivery wichtig sind.
@@ -2098,7 +2103,8 @@ if (w.trailSilenceSlider != null) {
             return;
         }
         java.io.File editorFile = new java.io.File(editorPath);
-        if (!editorFile.isFile()) {
+        boolean isMac = isMacOs();
+        if (!editorFile.exists()) {
             setStatus("Audioschnittprogramm nicht gefunden: " + editorPath);
             return;
         }
@@ -2133,12 +2139,22 @@ if (w.trailSilenceSlider != null) {
         }
         System.gc(); // Player ist nur noch schwach referenziert – GC-Anstoß, damit Datei freigegeben wird
         try {
-            new ProcessBuilder(editorPath, mp3Path.toAbsolutePath().toString()).start();
+            if (isMac && editorPath.toLowerCase(java.util.Locale.ROOT).endsWith(".app")) {
+                new ProcessBuilder("open", "-a", editorFile.getAbsolutePath(), mp3Path.toAbsolutePath().toString()).start();
+            } else if (isMac && editorFile.isDirectory()) {
+                new ProcessBuilder("open", "-a", editorFile.getAbsolutePath(), mp3Path.toAbsolutePath().toString()).start();
+            } else {
+                new ProcessBuilder(editorPath, mp3Path.toAbsolutePath().toString()).start();
+            }
             setStatus("Segment in Audioschnittprogramm geöffnet. Zum erneuten Abspielen Segment bitte erneut anklicken.");
         } catch (IOException e) {
             logger.warn("Audioschnittprogramm starten fehlgeschlagen: {}", e.getMessage());
             setStatus("Starten fehlgeschlagen: " + e.getMessage());
         }
+    }
+
+    private boolean isMacOs() {
+        return System.getProperty("os.name", "").toLowerCase(java.util.Locale.ROOT).contains("mac");
     }
 
     /**
@@ -3503,6 +3519,20 @@ if (w.trailSilenceSlider != null) {
         return null;
     }
 
+    private static String getBundledFfmpegZipName() {
+        String os = System.getProperty("os.name", "").toLowerCase(java.util.Locale.ROOT);
+        if (os.contains("win")) {
+            return FFMPEG_ZIP_WINDOWS;
+        }
+        if (os.contains("mac")) {
+            return FFMPEG_ZIP_MAC;
+        }
+        if (os.contains("nix") || os.contains("nux") || os.contains("aix") || os.contains("linux")) {
+            return FFMPEG_ZIP_LINUX;
+        }
+        return null;
+    }
+
     /** Filtert Bereiche heraus, die mit einem bestehenden Segment überlappen (bereits markiert). */
     private List<int[]> getUnmarkedRanges(List<int[]> ranges) {
         List<int[]> unmarked = new ArrayList<>();
@@ -4103,8 +4133,22 @@ if (w.trailSilenceSlider != null) {
         java.io.File binExe = new java.io.File(dir, "bin" + java.io.File.separator + exeName);
         if (binExe.isFile()) return binExe.getAbsolutePath();
 
-        java.io.File zipFile = new java.io.File(dir, "ffmpeg.zip");
-        if (zipFile.isFile()) {
+        java.io.File zipFile = null;
+        String preferredZip = getBundledFfmpegZipName();
+        if (preferredZip != null) {
+            java.io.File candidate = new java.io.File(dir, preferredZip);
+            if (candidate.isFile()) {
+                zipFile = candidate;
+            }
+        }
+        if (zipFile == null) {
+            java.io.File fallbackZip = new java.io.File(dir, FFMPEG_ZIP_WINDOWS);
+            if (fallbackZip.isFile()) {
+                zipFile = fallbackZip;
+            }
+        }
+
+        if (zipFile != null && zipFile.isFile()) {
             logger.info("FFmpeg nicht gefunden – entpacke {} ...", zipFile.getAbsolutePath());
             try {
                 extractZip(zipFile.toPath(), dir.toPath());
@@ -4117,7 +4161,9 @@ if (w.trailSilenceSlider != null) {
             if (binExe.isFile()) return binExe.getAbsolutePath();
         }
 
-        return null;
+        // Fallback: nutze "ffmpeg" aus dem System-PATH (z. B. /opt/homebrew/bin/ffmpeg)
+        logger.info("FFmpeg im Projektordner nicht gefunden – nutze System-FFmpeg ({})", exeName);
+        return exeName;
     }
 
     /** Liefert den Pfad zu ffprobe (gleiches Verzeichnis wie ffmpeg), sonst null. */

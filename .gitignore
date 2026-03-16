@@ -22,6 +22,7 @@ pandoc/*.png
 pandoc/*.jpg
 
 # Gebündeltes FFmpeg (optional, analog zu pandoc)
+ffmpeg/ffmpeg
 ffmpeg/ffmpeg.exe
 ffmpeg/ffprobe.exe
 ffmpeg/bin/
