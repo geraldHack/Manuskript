@@ -394,7 +394,7 @@ public class PreferencesManager {
             }
             
             // Validiere Position
-            if (x < 0 || y < 0 || Double.isNaN(x) || Double.isNaN(y) || 
+            if (Double.isNaN(x) || Double.isNaN(y) || 
                 Double.isInfinite(x) || Double.isInfinite(y)) {
                 // Keine gültige Position gespeichert - zentriere auf primärem Bildschirm
                 Screen primaryScreen = Screen.getPrimary();

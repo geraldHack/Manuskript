@@ -73,6 +73,7 @@ public class CustomStage extends Stage {
     
     private static final String PROPERTY_HIDE_ICON = "hideIcon";
     private static final String PROPERTY_USE_SIMPLE_ACTIONS = "useSimpleActions";
+    private static final String PROPERTY_USE_LEGACY_WINDOW_SIZE = "useLegacyWindowSizePersistence";
     
     private double xOffset = 0;
     private double yOffset = 0;
@@ -112,9 +113,22 @@ public class CustomStage extends Stage {
             isMaximized = newVal;
             if (maximizeBtn != null) {
                 maximizeBtn.setText(newVal ? DEFAULT_MAXIMIZE_SYMBOL_MAXIMIZED : DEFAULT_MAXIMIZE_SYMBOL);
->>>>>>> 039da5b (ffmpeg für mac)
             }
         });
+    }
+
+    /**
+     * Initialisiert den macOS Window Manager, falls auf macOS.
+     */
+    private void initializeMacWindowManager() {
+        boolean isMac = isMacPlatform();
+        if (isMac) {
+            useMacWindowManager = true;
+            logger.debug("macOS erkannt - MacWindowManager wird verwendet");
+        } else {
+            useMacWindowManager = false;
+            logger.debug("Nicht-macOS System erkannt - Standard Window Handling wird verwendet");
+        }
     }
     
     public CustomStage(StageStyle style) {
@@ -123,7 +137,7 @@ public class CustomStage extends Stage {
         
         // macOS Window Manager initialisieren
         initializeMacWindowManager();
-        
+
         setupCustomTitleBar();
         
         // Synchronisiere isMaximized mit der JavaFX maximizedProperty
@@ -314,9 +328,6 @@ public class CustomStage extends Stage {
                 // Minimale Größe sicherstellen
                 setMinWindowSize();
                 
-                // Prüfe ob Fenster auf neuem Monitor gelandet ist
-                adjustWindowToCurrentScreen();
-                
                 // KEINE Bounds-Beschränkung - Fenster kann überall hin
                 setX(newX);
                 setY(newY);
@@ -329,6 +340,13 @@ public class CustomStage extends Stage {
             
             // Fenstergröße speichern
             saveWindowSize();
+        });
+
+        // Doppelklick zum Maximieren/Restaurieren (Mac-Verhalten)
+        titleBar.setOnMouseClicked(event -> {
+            if (event.getClickCount() == 2 && !isResizing) {
+                toggleMaximize();
+            }
         });
     }
     
@@ -404,114 +422,6 @@ public class CustomStage extends Stage {
         }
     }
     
-    /**
-     * Ermittelt den aktuellen Screen basierend auf der Fensterposition
-     */
-    private javafx.stage.Screen getCurrentScreen() {
-        double windowCenterX = getX() + getWidth() / 2;
-        double windowCenterY = getY() + getHeight() / 2;
-        
-        for (var screen : javafx.stage.Screen.getScreens()) {
-            var bounds = screen.getBounds();
-            if (windowCenterX >= bounds.getMinX() && windowCenterX <= bounds.getMaxX() &&
-                windowCenterY >= bounds.getMinY() && windowCenterY <= bounds.getMaxY()) {
-                return screen;
-            }
-        }
-        
-        // Fallback auf primären Screen
-        return javafx.stage.Screen.getPrimary();
-    }
-    
-    /**
-     * Speichert die aktuelle Fenstergröße und Position
-     */
-    private void saveWindowSize() {
-        try {
-            var currentScreen = getCurrentScreen();
-            String screenId = "screen_" + currentScreen.hashCode();
-            
-            java.util.Properties props = new java.util.Properties();
-            props.setProperty("window.width", String.valueOf(getWidth()));
-            props.setProperty("window.height", String.valueOf(getHeight()));
-            props.setProperty("window.x", String.valueOf(getX()));
-            props.setProperty("window.y", String.valueOf(getY()));
-            props.setProperty("last.screen", screenId);
-            
-            // Screen-spezifische Werte speichern
-            props.setProperty(screenId + ".width", String.valueOf(getWidth()));
-            props.setProperty(screenId + ".height", String.valueOf(getHeight()));
-            props.setProperty(screenId + ".x", String.valueOf(getX()));
-            props.setProperty(screenId + ".y", String.valueOf(getY()));
-            
-            java.io.File configFile = new java.io.File(System.getProperty("user.home"), ".manuskript_window.properties");
-            try (java.io.FileOutputStream fos = new java.io.FileOutputStream(configFile)) {
-                props.store(fos, "Manuskript Window Settings");
-            }
-            
-        } catch (Exception e) {
-            System.err.println("Fenstergröße konnte nicht gespeichert werden: " + e.getMessage());
-        }
-    }
-    
-    /**
-     * Lädt die gespeicherte Fenstergröße und Position
-     */
-    public void loadWindowSize() {
-        System.out.println("[LOAD] loadWindowSize() wurde aufgerufen!");
-        try {
-            java.io.File configFile = new java.io.File(System.getProperty("user.home"), ".manuskript_window.properties");
-            if (!configFile.exists()) {
-                return;
-            }
-            
-            java.util.Properties props = new java.util.Properties();
-            try (java.io.FileInputStream fis = new java.io.FileInputStream(configFile)) {
-                props.load(fis);
-            }
-            
-            var currentScreen = getCurrentScreen();
-            String screenId = "screen_" + currentScreen.hashCode();
-            
-            // Versuche zuerst screen-spezifische Werte zu laden
-            String widthStr = props.getProperty(screenId + ".width");
-            String heightStr = props.getProperty(screenId + ".height");
-            String xStr = props.getProperty(screenId + ".x");
-            String yStr = props.getProperty(screenId + ".y");
-            
-            double width = widthStr != null ? Double.parseDouble(widthStr) : 800;
-            double height = heightStr != null ? Double.parseDouble(heightStr) : 600;
-            double x = xStr != null ? Double.parseDouble(xStr) : 100;
-            double y = yStr != null ? Double.parseDouble(yStr) : 100;
-            
-            // Prüfe ob die gespeicherte Größe auf dem aktuellen Screen passt
-            var visualBounds = currentScreen.getVisualBounds();
-            
-            // Wenn gespeicherte Größe zu groß ist, anpassen
-            if (width > visualBounds.getWidth()) {
-                width = visualBounds.getWidth() * 0.8;
-            }
-            if (height > visualBounds.getHeight()) {
-                height = visualBounds.getHeight() * 0.8;
-            }
-            
-            // Wenn gespeicherte Position außerhalb ist, zentrieren
-            if (x < visualBounds.getMinX() || x + width > visualBounds.getMaxX()) {
-                x = visualBounds.getMinX() + (visualBounds.getWidth() - width) / 2;
-            }
-            if (y < visualBounds.getMinY() || y + height > visualBounds.getMaxY()) {
-                y = visualBounds.getMinY() + (visualBounds.getHeight() - height) / 2;
-            }
-            
-            setWidth(width);
-            setHeight(height);
-            setX(x);
-            setY(y);
-            
-        } catch (Exception e) {
-            System.err.println("Fenstergröße konnte nicht geladen werden: " + e.getMessage());
-        }
-    }
     
     /**
      * Windows/Linux-spezifisches Drag & Drop Handling
@@ -545,13 +455,22 @@ public class CustomStage extends Stage {
      * Wechselt zwischen maximiertem und normalem Zustand
      */
     private void toggleMaximize() {
-        // Wenn MacWindowManager aktiv ist, diesen verwenden
-        if (useMacWindowManager && macWindowManager != null && macWindowManager.getMaximizeHandler() != null) {
-            macWindowManager.getMaximizeHandler().toggleMaximize();
+        if (isMacPlatform()) {
+            if (isMaximized) {
+                restoreWindowBounds();
+            } else {
+                maximizeToCurrentScreen();
+            }
             return;
         }
-        
-        // KEINE Maximierungs-Logik mehr
+
+        if (isMaximized) {
+            setMaximized(false);
+            isMaximized = false;
+        } else {
+            setMaximized(true);
+            isMaximized = true;
+        }
     }
 
     private void maximizeToCurrentScreen() {
@@ -625,12 +544,19 @@ public class CustomStage extends Stage {
                 // Pastell-Theme: Kein Border setzen
             }
             
-            // Gespeicherte Fenstergröße laden
-            loadWindowSize();
+            // Nur bei expliziter Anforderung Legacy-Größen laden
+            if (Boolean.TRUE.equals(getProperties().get(PROPERTY_USE_LEGACY_WINDOW_SIZE))) {
+                loadWindowSize();
+            }
             
         } else {
             super.setScene(null);
         }
+    }
+
+    /** Aktiviert das alte Laden der Fenstergröße aus ~/.manuskript_window.properties für Spezialfenster. */
+    public void enableLegacyWindowSizePersistence() {
+        getProperties().put(PROPERTY_USE_LEGACY_WINDOW_SIZE, Boolean.TRUE);
     }
     // Debug vollständig entfernt
     
@@ -1400,30 +1326,53 @@ public class CustomStage extends Stage {
         }
     }
     
-    /**
-     * Holt den aktuellen Screen basierend auf der Fensterposition
-     */
-    private Screen getCurrentScreen() {
-        double windowCenterX = getX() + getWidth() / 2;
-        double windowCenterY = getY() + getHeight() / 2;
-        
-        for (Screen screen : Screen.getScreens()) {
-            Rectangle2D bounds = screen.getBounds();
-            if (windowCenterX >= bounds.getMinX() && windowCenterX < bounds.getMaxX() &&
-                windowCenterY >= bounds.getMinY() && windowCenterY < bounds.getMaxY()) {
-                return screen;
-            }
-        }
-        
-        // Fallback: Primary Screen
-        return Screen.getPrimary();
-    }
-
     private boolean isMacPlatform() {
         String osName = System.getProperty("os.name", "").toLowerCase();
         return osName.contains("mac");
     }
+
+    private Screen getCurrentScreen() {
+        double windowCenterX = getX() + getWidth() / 2.0;
+        double windowCenterY = getY() + getHeight() / 2.0;
+        for (Screen screen : Screen.getScreens()) {
+            Rectangle2D bounds = screen.getBounds();
+            if (windowCenterX >= bounds.getMinX() && windowCenterX < bounds.getMaxX()
+                    && windowCenterY >= bounds.getMinY() && windowCenterY < bounds.getMaxY()) {
+                return screen;
+            }
+        }
+        return Screen.getPrimary();
+    }
     
+    /**
+     * Speichert die aktuelle Fenstergröße und Position.
+     */
+    private void saveWindowSize() {
+        try {
+            Screen currentScreen = getCurrentScreen();
+            String screenId = "screen_" + currentScreen.hashCode();
+
+            java.util.Properties props = new java.util.Properties();
+            props.setProperty("window.width", String.valueOf(getWidth()));
+            props.setProperty("window.height", String.valueOf(getHeight()));
+            props.setProperty("window.x", String.valueOf(getX()));
+            props.setProperty("window.y", String.valueOf(getY()));
+            props.setProperty("last.screen", screenId);
+
+            props.setProperty(screenId + ".width", String.valueOf(getWidth()));
+            props.setProperty(screenId + ".height", String.valueOf(getHeight()));
+            props.setProperty(screenId + ".x", String.valueOf(getX()));
+            props.setProperty(screenId + ".y", String.valueOf(getY()));
+
+            java.io.File configFile = new java.io.File(System.getProperty("user.home"), ".manuskript_window.properties");
+            try (java.io.FileOutputStream fos = new java.io.FileOutputStream(configFile)) {
+                props.store(fos, "Manuskript Window Settings");
+            }
+        } catch (Exception e) {
+            logger.warn("Fenstergröße konnte nicht gespeichert werden: {}", e.getMessage());
+        }
+    }
+
     /**
      * Lädt die gespeicherte Fenstergröße und Position
      */

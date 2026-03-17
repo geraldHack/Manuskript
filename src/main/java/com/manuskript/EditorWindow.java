@@ -939,6 +939,11 @@ if (caret != null) {
                     } else {
                         markAsChanged();
                     }
+                    
+                    // Lektorat-Matches-Offsets anpassen, aber nur für die Region nach der Änderung
+                    if (!currentLektoratMatches.isEmpty()) {
+                        updateLektoratMatchOffsets(oldText, newText);
+                    }
                 }
             });
             
@@ -13253,10 +13258,6 @@ spacer.setStyle("-fx-background-color: transparent;");
         
         if (!currentLektoratMatches.isEmpty()) {
             ensureLektoratPanelVisible(true);
-            if (mainSplitPane.getDividerPositions().length >= 2) {
-                double[] current = mainSplitPane.getDividerPositions();
-                mainSplitPane.setDividerPositions(current[0], 0.72);
-            }
         } else {
             ensureLektoratPanelVisible(false);
         }
@@ -13284,10 +13285,6 @@ spacer.setStyle("-fx-background-color: transparent;");
                 int matchStart = found.getOffset();
                 int matchEnd = matchStart + found.getLength();
                 highlightTextCentered(matchStart, matchEnd);
-                if (mainSplitPane != null && mainSplitPane.getDividerPositions().length >= 2) {
-                    double[] current = mainSplitPane.getDividerPositions();
-                    mainSplitPane.setDividerPositions(current[0], 0.72);
-                }
             }
         });
     }
@@ -13386,11 +13383,26 @@ spacer.setStyle("-fx-background-color: transparent;");
         }
         String originalSegment = currentText.substring(start, end);
         String replacementWithBoundaries = preserveParagraphBoundaries(originalSegment, unescaped);
+        int originalEnd = start + originalSegment.length();
+        int delta = replacementWithBoundaries.length() - originalSegment.length();
         CodeAreaViewSnapshot viewSnapshot = captureCodeAreaViewSnapshot();
         
         codeArea.replaceText(start, end, replacementWithBoundaries);
         currentLektoratMatches.remove(match);
         selectedLektoratMatch = null;
+
+        if (delta != 0 && !currentLektoratMatches.isEmpty()) {
+            for (LektoratMatch other : currentLektoratMatches) {
+                if (other == match) continue;
+                int otherOffset = other.getOffset();
+                if (otherOffset >= originalEnd) {
+                    other.setOffset(otherOffset + delta);
+                } else if (otherOffset >= start && otherOffset < originalEnd) {
+                    // Überlappender Bereich – auf Startpunkt kappen, damit Markierung nicht "wandert"
+                    other.setOffset(start);
+                }
+            }
+        }
         
         // Nur lokale Neustyling statt vollständiger Neuformatierung
         applyCombinedStyling();
@@ -13406,6 +13418,71 @@ spacer.setStyle("-fx-background-color: transparent;");
         }
         restoreCodeAreaViewSnapshot(viewSnapshot, false, false);
         updateStatus("Lektorat-Vorschlag übernommen");
+    }
+    
+    /**
+     * Passt Offsets der Lektorat-Matches nach einer Textänderung intelligent an.
+     * Nur Matches nach der Änderungsregion werden verschoben; frühere Matches bleiben stabil.
+     * Überlappende Matches werden entfernt.
+     */
+    private void updateLektoratMatchOffsets(String oldText, String newText) {
+        if (oldText == null || newText == null || currentLektoratMatches.isEmpty()) return;
+        
+        // Finde die erste Position, an der sich die Texte unterscheiden (Änderungsbeginn)
+        int changeStart = 0;
+        int minLen = Math.min(oldText.length(), newText.length());
+        while (changeStart < minLen && oldText.charAt(changeStart) == newText.charAt(changeStart)) {
+            changeStart++;
+        }
+        
+        // Wenn Texte bis zum Ende identisch sind, nichts zu tun
+        if (changeStart >= minLen && oldText.length() == newText.length()) {
+            return;
+        }
+        
+        // Finde das Ende der Änderung von hinten
+        int oldEnd = oldText.length() - 1;
+        int newEnd = newText.length() - 1;
+        while (oldEnd >= changeStart && newEnd >= changeStart && oldText.charAt(oldEnd) == newText.charAt(newEnd)) {
+            oldEnd--;
+            newEnd--;
+        }
+        int changeEndOld = oldEnd + 1;
+        int changeEndNew = newEnd + 1;
+        
+        // Berechne die Längendifferenz
+        int delta = newText.length() - oldText.length();
+        
+        // Liste für Matches, die entfernt werden müssen (überlappend)
+        List<LektoratMatch> toRemove = new ArrayList<>();
+        
+        for (LektoratMatch match : currentLektoratMatches) {
+            int matchOffset = match.getOffset();
+            int matchEnd = matchOffset + match.getLength();
+            
+            // Überlappungsfälle
+            if (matchOffset < changeEndNew && matchEnd > changeStart) {
+                // Match überlappt mit der Änderungsregion → entfernen
+                toRemove.add(match);
+            } else if (matchOffset >= changeEndOld) {
+                // Match liegt nach der Änderungsregion → Offset anpassen
+                match.setOffset(matchOffset + delta);
+            }
+            // Match liegt vor der Änderungsregion → nichts tun (bleibt stabil)
+        }
+        
+        // Überlappende Matches entfernen
+        if (!toRemove.isEmpty()) {
+            currentLektoratMatches.removeAll(toRemove);
+            // Wenn der aktuell ausgewählte Match entfernt wurde, zurücksetzen
+            if (selectedLektoratMatch != null && toRemove.contains(selectedLektoratMatch)) {
+                selectedLektoratMatch = null;
+                lektoratPanelContainer.getChildren().clear();
+            }
+        }
+        
+        // Styling aktualisieren, falls nötig (debounced, um Performance zu erhalten)
+        Platform.runLater(this::applyCombinedStyling);
     }
     
     /**
