@@ -101,6 +101,7 @@ import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TextField;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ListView;
+import javafx.scene.text.Text;
 
 @SuppressWarnings("unchecked")
 public class EditorWindow implements Initializable {
@@ -221,6 +222,11 @@ public class EditorWindow implements Initializable {
     @FXML private ComboBox<String> cmbQuoteStyle;
     // Zeilenabstand-ComboBox entfernt - wird von RichTextFX nicht unterstützt
     @FXML private ComboBox<String> cmbParagraphSpacing;
+    
+    // Font Size rechts oben
+    @FXML private ComboBox<String> cmbFontSizeRight;
+    
+    @FXML private Label lektoratPlaceholder;
 
     @FXML private Button btnPreviousChapter;
     @FXML private Button btnNextChapter;
@@ -608,6 +614,7 @@ public class EditorWindow implements Initializable {
         setupFontSizeComboBox();
         setupQuoteStyleComboBox();
         setupDynamicQuoteCheck();
+        setupFontSizeRightComboBox();
         
         // Help-Button-Verwaltung
         setupHelpButtons();
@@ -10796,6 +10803,34 @@ spacer.setStyle("-fx-background-color: transparent;");
         // Die Quill-Fontgröße wird nur über die Quill-Steuerelemente (A+/A-/Spinner) geändert.
     }
     
+    private void applyRightPanelFontSize(int size) {
+        if (lektoratPanelContainer != null) {
+            // Schriftgröße für alle Text-Elemente im rechten Panel anwenden
+            String fontSizeCss = String.format("-fx-font-size: %dpt;", size);
+            lektoratPanelContainer.setStyle(fontSizeCss);
+            
+            // Auch für alle Kind-Elemente anwenden
+            applyFontSizeToChildren(lektoratPanelContainer, size);
+        }
+    }
+    
+    private void applyFontSizeToChildren(Parent parent, int size) {
+        String fontSizeCss = String.format("-fx-font-size: %dpt;", size);
+        
+        for (Node node : parent.getChildrenUnmodifiable()) {
+            if (node instanceof Label) {
+                ((Label) node).setStyle(fontSizeCss);
+            } else if (node instanceof Text) {
+                ((Text) node).setStyle(fontSizeCss);
+            } else if (node instanceof TextArea) {
+                ((TextArea) node).setStyle(fontSizeCss);
+            } else if (node instanceof Parent) {
+                // Rekursiv für verschachtelte Container
+                applyFontSizeToChildren((Parent) node, size);
+            }
+        }
+    }
+    
     /**
      * Setzt die globale Schriftgröße für Quill Editor
      */
@@ -11044,6 +11079,48 @@ spacer.setStyle("-fx-background-color: transparent;");
             sizes.add(String.valueOf(i));
         }
         cmbFontSize.setItems(sizes);
+    }
+    
+    private void setupFontSizeRightComboBox() {
+        System.out.println("DEBUG: setupFontSizeRightComboBox aufgerufen");
+        System.out.println("DEBUG: cmbFontSizeRight = " + cmbFontSizeRight);
+        
+        if (cmbFontSizeRight != null) {
+            System.out.println("DEBUG: cmbFontSizeRight ist nicht null");
+            // Font-Size-Optionen hinzufügen
+            ObservableList<String> sizes = FXCollections.observableArrayList();
+            for (int i = 8; i <= 72; i += 2) {
+                sizes.add(String.valueOf(i));
+            }
+            cmbFontSizeRight.setItems(sizes);
+            System.out.println("DEBUG: " + sizes.size() + " Schriftgrößen hinzugefügt");
+            
+            // Gespeicherte Schriftgröße für rechtes Panel laden
+            int savedSize = preferences.getInt("rightPanelFontSize", 12);
+            cmbFontSizeRight.setValue(String.valueOf(savedSize));
+            System.out.println("DEBUG: Schriftgröße gesetzt auf " + savedSize);
+            
+            // Event-Handler für Schriftgrößenänderung im rechten Panel
+            cmbFontSizeRight.setOnAction(e -> {
+                String selected = cmbFontSizeRight.getValue();
+                if (selected != null && !selected.isEmpty()) {
+                    try {
+                        int size = Integer.parseInt(selected);
+                        applyRightPanelFontSize(size);
+                        preferences.putInt("rightPanelFontSize", size);
+                        updateStatus("Schriftgröße rechtes Panel geändert auf " + size + "pt");
+                    } catch (NumberFormatException ex) {
+                        updateStatus("Ungültige Schriftgröße: " + selected);
+                    }
+                }
+            });
+            
+            // Theme anwenden
+            applyThemeToNode(cmbFontSizeRight, currentThemeIndex);
+            System.out.println("DEBUG: setupFontSizeRightComboBox abgeschlossen");
+        } else {
+            System.out.println("DEBUG: cmbFontSizeRight ist null!");
+        }
     }
     
     // setupLineSpacingComboBox entfernt - wird von RichTextFX nicht unterstützt
@@ -11860,6 +11937,7 @@ spacer.setStyle("-fx-background-color: transparent;");
             applyThemeToNode(cmbSearchHistory, themeIndex);
             applyThemeToNode(cmbReplaceHistory, themeIndex);
             applyThemeToNode(cmbFontSize, themeIndex);
+            applyThemeToNode(cmbFontSizeRight, themeIndex);
             
             // Kontextmenü aktualisieren
             if (codeArea != null && codeArea.getContextMenu() != null) {
@@ -11896,6 +11974,9 @@ spacer.setStyle("-fx-background-color: transparent;");
                 }
                 if (cmbQuoteStyle != null) {
                     cmbQuoteStyle.setStyle(comboBoxStyle);
+                }
+                if (cmbFontSizeRight != null) {
+                    cmbFontSizeRight.setStyle(comboBoxStyle);
                 }
             }
 
@@ -13175,6 +13256,49 @@ spacer.setStyle("-fx-background-color: transparent;");
     private void showLektoratPanelHint() {
         if (lektoratPanelContainer == null || mainSplitPane == null) return;
         lektoratPanelContainer.getChildren().clear();
+        
+        // Font Size Dropdown oben hinzufügen
+        HBox fontBox = new HBox(5);
+        fontBox.setAlignment(Pos.CENTER_RIGHT);
+        fontBox.setStyle("-fx-padding: 0 0 10 0;");
+        
+        Label fontLabel = new Label("Schrift:");
+        fontLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #666; -fx-font-weight: bold;");
+        
+        ComboBox<String> fontSizeCombo = new ComboBox<>();
+        fontSizeCombo.setPrefWidth(100.0);
+        fontSizeCombo.getStyleClass().add("font-size-options-combo");
+        
+        // Font-Size-Optionen hinzufügen
+        ObservableList<String> sizes = FXCollections.observableArrayList();
+        for (int i = 8; i <= 72; i += 2) {
+            sizes.add(String.valueOf(i));
+        }
+        fontSizeCombo.setItems(sizes);
+        
+        // Gespeicherte Schriftgröße laden
+        int savedSize = preferences.getInt("rightPanelFontSize", 12);
+        fontSizeCombo.setValue(String.valueOf(savedSize));
+        
+        // Event-Handler
+        fontSizeCombo.setOnAction(e -> {
+            String selected = fontSizeCombo.getValue();
+            if (selected != null && !selected.isEmpty()) {
+                try {
+                    int size = Integer.parseInt(selected);
+                    applyRightPanelFontSize(size);
+                    preferences.putInt("rightPanelFontSize", size);
+                    updateStatus("Schriftgröße rechtes Panel geändert auf " + size + "pt");
+                } catch (NumberFormatException ex) {
+                    updateStatus("Ungültige Schriftgröße: " + selected);
+                }
+            }
+        });
+        
+        applyThemeToNode(fontSizeCombo, currentThemeIndex);
+        
+        fontBox.getChildren().addAll(fontLabel, fontSizeCombo);
+        lektoratPanelContainer.getChildren().add(fontBox);
         
         VBox content = new VBox(10);
         content.setPadding(new Insets(0, 5, 0, 0));

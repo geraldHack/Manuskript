@@ -144,7 +144,7 @@ public class CustomStage extends Stage {
         maximizedProperty().addListener((obs, oldVal, newVal) -> {
             isMaximized = newVal;
             if (maximizeBtn != null) {
-                String osName = System.getProperty("os.name").toLowerCase();
+                String osName = System.getProperty("os. name").toLowerCase();
                 boolean isMac = osName.contains("mac");
                 if (isMac) {
                     // macOS uses a dedicated symbol handled via setMacButtonSymbol

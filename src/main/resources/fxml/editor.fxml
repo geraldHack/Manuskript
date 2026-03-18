@@ -195,7 +195,7 @@
             <Button fx:id="btnToggleSidebar" maxWidth="30" minWidth="30" styleClass="sidebar-toggle-button" text="▶" />
             
             <!-- SplitPane: Seitenleiste | Editor | Lektorat-Ergebnis (rechts) -->
-            <SplitPane fx:id="mainSplitPane" dividerPositions="0.15, 1.0" HBox.hgrow="ALWAYS">
+            <SplitPane fx:id="mainSplitPane" dividerPositions="0.15, 0.85" HBox.hgrow="ALWAYS">
                <items>
                   <!-- Seitenleiste für Kapitel -->
                   <VBox fx:id="sidebarContainer" maxWidth="300" minWidth="200" prefWidth="250">
@@ -222,6 +222,16 @@
                      <padding>
                         <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
                      </padding>
+                     <children>
+                        <!-- Font Size Dropdown rechts oben -->
+                        <HBox alignment="CENTER_RIGHT" spacing="5" style="-fx-padding: 0 0 10 0;">
+                           <children>
+                              <Label text="Schrift:" style="-fx-font-size: 11px; -fx-text-fill: #666; -fx-font-weight: bold;" />
+                              <ComboBox fx:id="cmbFontSizeRight" prefWidth="60.0" styleClass="font-size-options-combo" style="-fx-border-color: red; -fx-border-width: 3px; -fx-background-color: yellow;" />
+                           </children>
+                        </HBox>
+                        <Label fx:id="lektoratPlaceholder" text="Klicken Sie xxx auf eine Markierung im Text" wrapText="true" style="-fx-text-fill: #888; -fx-font-size: 12px;" />
+                     </children>
                   </VBox>
                </items>
             </SplitPane>

@@ -395,7 +395,8 @@ public class PreferencesManager {
             
             // Validiere Position
             if (Double.isNaN(x) || Double.isNaN(y) || 
-                Double.isInfinite(x) || Double.isInfinite(y)) {
+                Double.isInfinite(x) || Double.isInfinite(y) ||
+                (x == -1 && y == -1)) {
                 // Keine gültige Position gespeichert - zentriere auf primärem Bildschirm
                 Screen primaryScreen = Screen.getPrimary();
                 Rectangle2D bounds = primaryScreen.getBounds();

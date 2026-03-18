@@ -4,6 +4,8 @@ import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.animation.Timeline;
+import javafx.animation.KeyFrame;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
@@ -14,6 +16,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.event.EventHandler;
 import javafx.scene.input.KeyCode;
+import org.fxmisc.richtext.model.TwoDimensional.Bias;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
@@ -107,7 +110,7 @@ public class ChapterTtsEditorWindow {
     private static final Pattern SPEAKER_TAG_PATTERN = Pattern.compile("^([^\\[\\]:]+):\\s*(\\[[^\\]]+\\](?:\\s*\\[[^\\]]+\\])*)?$");
     
     /** Pattern für wörtliche Rede (Unicode-Anführungszeichen) */
-    private static final Pattern DIRECT_SPEECH_PATTERN = Pattern.compile("([\u201E\u00AB])([^\\u201E\u00AB\u201C\u00BB\r\n]+)\\1");
+    private static final Pattern DIRECT_SPEECH_PATTERN = Pattern.compile("([\u201E\u00AB\u201C\u201D\u00BB])([^\\u201E\u00AB\u201C\u201D\u00BB\r\n]+)\\1");
     
     /** Signalwörter für Sprecher-Erkennung */
     private static final String[] SPEAKER_SIGNAL_WORDS = {
@@ -334,6 +337,8 @@ public class ChapterTtsEditorWindow {
     private Button btnGesamtAudiodatei;
     /** MP3-Qualität für Gesamt-Audiodatei (0–2 → kleine Datei / Standard / hohe Qualität). */
     private ComboBox<String> fullAudioQualityCombo;
+    /** Stereo-Option für Gesamt-Audiodatei. */
+    private CheckBox fullAudioStereoCheck;
     /** Batch-Modus: alle noch nicht markierten Teile (Satz oder Absatz) nacheinander rendern. Ein Button wechselt zwischen Start/Beenden. */
     private ComboBox<String> batchModeCombo;
     private Button btnBatchToggle;
@@ -1215,9 +1220,14 @@ public class ChapterTtsEditorWindow {
         btnMainAutoRun.setMaxWidth(Double.MAX_VALUE);
         btnMainAutoRun.setOnAction(e -> {
             System.out.println("DEBUG: Button geklickt!");
+            startAutomaticSpeakerAssignment();  // Lauf starten
             createSpeakerWindow();  // Fenster erstellen
             speakerWindow.show();   // Fenster anzeigen
-            startAutomaticSpeakerAssignment();  // Lauf starten
+            
+            // Fokus sofort zurück auf das Hauptfenster setzen
+            if (stage != null) {
+                stage.requestFocus();
+            }
         });
         btnMainAutoRun.getStyleClass().add("primary-button");
         
@@ -1348,6 +1358,7 @@ public class ChapterTtsEditorWindow {
         applyThemeToNode(btnOpenInExternalEditor, themeIndex);
         applyThemeToNode(btnAlleAbspielen, themeIndex);
         if (fullAudioQualityCombo != null) applyThemeToNode(fullAudioQualityCombo, themeIndex);
+        applyThemeToNode(fullAudioStereoCheck, themeIndex);
         applyThemeToNode(btnGesamtAudiodatei, themeIndex);
         applyThemeToNode(batchModeCombo, themeIndex);
         applyThemeToNode(btnBatchToggle, themeIndex);
@@ -2188,11 +2199,6 @@ public class ChapterTtsEditorWindow {
         int lineStart = Math.max(0, text.lastIndexOf('\n', speechStart));
         int checkStart = Math.max(lineStart, speechStart - 50); // Maximal 50 Zeichen zurück
         String beforeSpeech = text.substring(checkStart, speechStart).trim();
-        // Prüfen, ob bereits Tags im Format [xxx] vorhanden sind
-        if (beforeSpeech.matches(".*\\[.*\\].*")) {
-            System.out.println("DEBUG: Rede bereits getaggt, überspringe Einfügen für '" + speakerName + "'");
-            return 0;
-        }
         // Finde den passenden Sprecher-Eintrag (erkannt am "Name:" Format)
         RegieanweisungEntry speakerEntry = null;
         for (RegieanweisungEntry entry : regieanweisungenItems) {
@@ -2238,7 +2244,8 @@ public class ChapterTtsEditorWindow {
     private void createSpeakerWindow() {
         speakerWindow = new CustomStage();
         speakerWindow.setTitle("Sprecher-Übersicht");
-        speakerWindow.setAlwaysOnTop(true);  // Immer oben bleiben
+        // speakerWindow.setAlwaysOnTop(true);  // Entfernt, damit Fokus nicht gestohlen wird
+        speakerWindow.initModality(Modality.NONE);  // Nicht-modal, damit Hauptfenster Fokus behält
         
         VBox content = new VBox(8);
         content.setPadding(new Insets(10));
@@ -2253,7 +2260,7 @@ public class ChapterTtsEditorWindow {
         updateSpeakersList(speakersListView);
         
         // Tastatur-Info
-        Label infoLabel = new Label("Tastatur: 1-9 für Sprecher\nn = neuer temporärer Sprecher\nN = neuer permanenter Sprecher");
+        Label infoLabel = new Label("Tastatur: 1-9 für Sprecher\nn = neuer temporärer Sprecher\nN = neuer permanenter Sprecher\ns = skip\np = previous\ne = edit tags\nESC = Abbruch");
         infoLabel.setFont(Font.font("System", 10));
         infoLabel.setWrapText(true);
         
@@ -2345,13 +2352,53 @@ public class ChapterTtsEditorWindow {
         }
         
         setStatus("Automatischer Sprecher-Lauf gestartet: " + currentSpeechMatches.size() + " Reden gefunden");
+        
+        // Fokus auf die Scene setzen, damit Tastatur-Events funktionieren
+        if (stage != null && stage.getScene() != null) {
+            stage.getScene().getRoot().requestFocus();
+        }
+        
         codeArea.setDisable(true);  // Texteingabe sperren während des Laufs
+        
+        // Mausrad-Scrolling für deaktivierte CodeArea aktivieren
+        enableMouseWheelScrolling();
         
         processNextSpeech();
     }
     
+    /** Aktiviert Mausrad-Scrolling für die deaktivierte CodeArea */
+    private void enableMouseWheelScrolling() {
+        if (scrollPane != null) {
+            scrollPane.setOnScroll(event -> {
+                if (codeArea.isDisabled()) {
+                    // Mausrad-Events an die ScrollPane weiterleiten
+                    double deltaY = event.getDeltaY();
+                    ScrollBar vBar = null;
+                    for (Node n : scrollPane.getChildrenUnmodifiable()) {
+                        if (n instanceof ScrollBar && ((ScrollBar) n).getOrientation() == javafx.geometry.Orientation.VERTICAL) {
+                            vBar = (ScrollBar) n;
+                            break;
+                        }
+                    }
+                    if (vBar == null) {
+                        vBar = (ScrollBar) scrollPane.lookup(".scroll-bar:vertical");
+                    }
+                    
+                    if (vBar != null) {
+                        double currentValue = vBar.getValue();
+                        double newValue = currentValue - (deltaY / vBar.getHeight()) * vBar.getMax();
+                        newValue = Math.max(0, Math.min(newValue, vBar.getMax()));
+                        vBar.setValue(newValue);
+                        event.consume();
+                    }
+                }
+            });
+        }
+    }
+    
     /** Verarbeitet die nächste wörtliche Rede im automatischen Lauf */
     private void processNextSpeech() {
+        System.out.println("DEBUG processNextSpeech: currentSpeechIndex = " + currentSpeechIndex + ", size = " + currentSpeechMatches.size());
         if (currentSpeechIndex >= currentSpeechMatches.size()) {
             // Lauf beendet
             codeArea.setDisable(false);
@@ -2363,6 +2410,7 @@ public class ChapterTtsEditorWindow {
         }
         
         DirectSpeechMatch speech = currentSpeechMatches.get(currentSpeechIndex);
+        System.out.println("DEBUG processNextSpeech: processing speech at " + speech.start + "-" + speech.end);
         
         // Rede highlighten
         highlightSpeech(speech);
@@ -2385,6 +2433,26 @@ public class ChapterTtsEditorWindow {
         // Immer manuelle Zuweisung
         showManualSpeakerDialog(speech);
     }
+    
+    /** Verarbeitet die vorherige wörtliche Rede im automatischen Lauf */
+    private void processPreviousSpeech() {
+        System.out.println("DEBUG processPreviousSpeech: currentSpeechIndex = " + currentSpeechIndex + ", size = " + currentSpeechMatches.size());
+        if (currentSpeechIndex < 0) {
+            // Anfang erreicht
+            currentSpeechIndex = 0;
+            setStatus("Bereits am Anfang der Reden.");
+            return;
+        }
+        
+        DirectSpeechMatch speech = currentSpeechMatches.get(currentSpeechIndex);
+        System.out.println("DEBUG processPreviousSpeech: processing speech at " + speech.start + "-" + speech.end);
+        
+        // Rede highlighten
+        highlightSpeech(speech);
+        
+        // Manuelle Zuweisung anzeigen
+        showManualSpeakerDialog(speech);
+    }
 
     /** Verschiebt alle verbleibenden Reden, nachdem Text eingefügt wurde. */
     private void shiftRemainingSpeeches(int delta) {
@@ -2398,12 +2466,23 @@ public class ChapterTtsEditorWindow {
     
     /** Highlightet eine wörtliche Rede im Text */
     private void highlightSpeech(DirectSpeechMatch speech) {
-        // Positioniere Cursor an die Rede
-        codeArea.moveTo(speech.start);
-        codeArea.requestFollowCaret();
+        // Verwende den übergebenen speech-Parameter
+        DirectSpeechMatch currentMatch = speech;
         
-        // Selektiere die Rede zur Visualisierung
-        codeArea.selectRange(speech.start, speech.end);
+        // Positioniere Cursor an die Rede
+        codeArea.moveTo(currentMatch.start);
+        
+        try {
+            // Zentriere den Absatz direkt
+            int currentParagraph = codeArea.offsetToPosition(currentMatch.start, Bias.Forward).getMajor();
+            codeArea.showParagraphAtCenter(currentParagraph);
+        } catch (Exception e) {
+            // Fallback
+            codeArea.requestFollowCaret();
+        }
+        
+        // Markiere den Text
+        codeArea.selectRange(currentMatch.start, currentMatch.end);
     }
     
     /** Zeigt Dialog für manuelle Sprecher-Zuweisung */
@@ -2443,40 +2522,15 @@ public class ChapterTtsEditorWindow {
                 return;
             }
             
-            if (ke.getCode() == KeyCode.DIGIT1 || ke.getCode() == KeyCode.DIGIT2 || ke.getCode() == KeyCode.DIGIT3 ||
-                ke.getCode() == KeyCode.DIGIT4 || ke.getCode() == KeyCode.DIGIT5 || ke.getCode() == KeyCode.DIGIT6 ||
-                ke.getCode() == KeyCode.DIGIT7 || ke.getCode() == KeyCode.DIGIT8 || ke.getCode() == KeyCode.DIGIT9) {
-                int speakerIndex = 0;
-                if (ke.getCode() == KeyCode.DIGIT1) speakerIndex = 0;
-                else if (ke.getCode() == KeyCode.DIGIT2) speakerIndex = 1;
-                else if (ke.getCode() == KeyCode.DIGIT3) speakerIndex = 2;
-                else if (ke.getCode() == KeyCode.DIGIT4) speakerIndex = 3;
-                else if (ke.getCode() == KeyCode.DIGIT5) speakerIndex = 4;
-                else if (ke.getCode() == KeyCode.DIGIT6) speakerIndex = 5;
-                else if (ke.getCode() == KeyCode.DIGIT7) speakerIndex = 6;
-                else if (ke.getCode() == KeyCode.DIGIT8) speakerIndex = 7;
-                else if (ke.getCode() == KeyCode.DIGIT9) speakerIndex = 8;
-                
-                int delta = assignSpeakerByIndex(speech, speakerIndex);
-                if (delta > 0) {
-                    shiftRemainingSpeeches(delta);
+            if (ke.getCode() == KeyCode.P) {
+                // Zurück zur vorherigen Rede
+                if (currentSpeechIndex > 0) {
+                    setStatus("Zurück zur vorherigen Rede");
+                    stage.getScene().removeEventFilter(KeyEvent.KEY_PRESSED, manualAssignmentHandler);
+                    currentSpeechIndex--;
+                    processPreviousSpeech();
+                    ke.consume();
                 }
-                stage.getScene().removeEventFilter(KeyEvent.KEY_PRESSED, manualAssignmentHandler);
-                currentSpeechIndex++;
-                processNextSpeech();
-                ke.consume();
-            } else if (ke.getCode() == KeyCode.N) {
-                if (ke.isShiftDown()) {
-                    // Permanenter Sprecher
-                    addPermanentSpeakerForSpeech(speech);
-                } else {
-                    // Temporärer Sprecher
-                    addTemporarySpeakerForSpeech(speech);
-                }
-                stage.getScene().removeEventFilter(KeyEvent.KEY_PRESSED, manualAssignmentHandler);
-                currentSpeechIndex++;
-                processNextSpeech();
-                ke.consume();
             } else if (ke.getCode() == KeyCode.S) {
                 // Rede überspringen
                 setStatus("Rede übersprungen");
@@ -2484,37 +2538,247 @@ public class ChapterTtsEditorWindow {
                 currentSpeechIndex++;
                 processNextSpeech();
                 ke.consume();
+            } else if (ke.getCode().ordinal() >= KeyCode.DIGIT1.ordinal() && ke.getCode().ordinal() <= KeyCode.DIGIT9.ordinal()) {
+                // Sprecher aus Liste auswählen (1-9)
+                int speakerIndex = ke.getCode().ordinal() - KeyCode.DIGIT1.ordinal();
+                
+                // Sprecher-Logik direkt hier implementieren
+                if (speakerIndex < speakersListView.getItems().size()) {
+                    String speakerName = speakersListView.getItems().get(speakerIndex);
+                    if (speakerName != null && !speakerName.isEmpty()) {
+                        // Den reinen Sprechernamen extrahieren (ohne Nummer)
+                        String cleanName = speakerName.replaceAll("\\d+\\.\\s*", "").trim();
+                        
+                        // Die echten Tags aus regieanweisungenItems holen
+                        String tags = "";
+                        for (RegieanweisungEntry entry : regieanweisungenItems) {
+                            if (entry.isSpeaker && entry.text != null) {
+                                String entryName = entry.text.split(":", 2)[0].trim();
+                                if (entryName.equalsIgnoreCase(cleanName)) {
+                                    tags = entry.getTagsOnly();
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        // Nur die Tags einfügen, nicht den Sprechernamen
+                        String speakerTag = "";
+                        if (tags != null && !tags.isBlank()) {
+                            speakerTag = tags;
+                        }
+                        
+                        // Tags einfügen
+                        codeArea.insertText(speech.start, speakerTag);
+                        
+                        // Offset für nachfolgende Reden anpassen
+                        shiftRemainingSpeeches(speakerTag.length());
+                        
+                        // Aktuelle Rede-Positionen in der Liste aktualisieren
+                        DirectSpeechMatch currentMatch = currentSpeechMatches.get(currentSpeechIndex);
+                        currentMatch.start += speakerTag.length();
+                        currentMatch.end += speakerTag.length();
+                    }
+                }
+                
+                stage.getScene().removeEventFilter(KeyEvent.KEY_PRESSED, manualAssignmentHandler);
+                currentSpeechIndex++;
+                processNextSpeech();
+                ke.consume();
+            } else if (ke.getCode() == KeyCode.N) {
+                // Neuer temporärer Sprecher
+                addTemporarySpeakerForSpeech(speech);
+                stage.getScene().removeEventFilter(KeyEvent.KEY_PRESSED, manualAssignmentHandler);
+                currentSpeechIndex++;
+                processNextSpeech();
+                ke.consume();
+            } else if (ke.isShiftDown() && ke.getCode() == KeyCode.N) {
+                // Neuer permanenter Sprecher (Shift+N)
+                addPermanentSpeakerForSpeech(speech);
+                stage.getScene().removeEventFilter(KeyEvent.KEY_PRESSED, manualAssignmentHandler);
+                currentSpeechIndex++;
+                processNextSpeech();
+                ke.consume();
+            } else if (ke.getCode() == KeyCode.E) {
+                // Editieren der aktuellen Rede-Tags
+                showEditTagsDialog(speech);
+                ke.consume();
             }
         };
         
         stage.getScene().addEventFilter(KeyEvent.KEY_PRESSED, manualAssignmentHandler);
     }
     
-    /** Weist Sprecher basierend auf Index zu und liefert die eingefügte Länge */
-    private int assignSpeakerByIndex(DirectSpeechMatch speech, int index) {
-        int currentIndex = 0;
+    /** Zeigt einen Dialog zum Editieren der Tags einer Rede */
+    private void showEditTagsDialog(DirectSpeechMatch speech) {
+        CustomStage dialog = new CustomStage();
+        dialog.setCustomTitle("Rede-Tags bearbeiten");
+        dialog.setResizable(false);
+        if (stage != null) dialog.initOwner(stage);
         
-        // Bekannte Sprecher aus Regieanweisungen (erkannt am "Name:" Format)
-        for (RegieanweisungEntry entry : regieanweisungenItems) {
-            if (entry.text != null && entry.text.contains(":")) {
-                String speakerName = entry.text.split(":", 2)[0].trim();
-                if (!speakerName.isEmpty()) {
-                    if (currentIndex == index) {
-                        return insertSpeakerTags(speech, speakerName);
+        VBox root = new VBox(16);
+        root.setAlignment(Pos.TOP_LEFT);
+        root.setPadding(new Insets(20));
+        root.getStyleClass().add("dialog-container");
+        
+        // Rede-Text anzeigen
+        Label speechLabel = new Label("Rede:");
+        speechLabel.getStyleClass().add("dialog-title");
+        
+        TextArea speechArea = new TextArea();
+        speechArea.setText(codeArea.getText(speech.start, speech.end));
+        speechArea.setWrapText(true);
+        speechArea.setEditable(false);
+        speechArea.setPrefHeight(80);
+        speechArea.getStyleClass().add("text-input");
+        
+        // Aktuelle Tags anzeigen und bearbeiten
+        Label tagsLabel = new Label("Tags bearbeiten:");
+        tagsLabel.getStyleClass().add("dialog-title");
+        
+        TextArea tagsArea = new TextArea();
+        String currentText = codeArea.getText();
+        
+        // Sicherheitsprüfung: Positionen gültig?
+        if (speech.start < 0 || speech.end > currentText.length() || speech.start >= speech.end) {
+            setStatus("Fehler: Ungültige Redepositionen - bitte neu laden");
+            return;
+        }
+        
+        String speechText = currentText.substring(speech.start, speech.end);
+        System.out.println("DEBUG: speech.start = " + speech.start + ", speech.end = " + speech.end);
+        System.out.println("DEBUG: currentText.length() = " + currentText.length());
+        System.out.println("DEBUG: extracted speechText = '" + speechText + "'");
+        
+        // Tags VOR der Rede suchen (im selben Absatz)
+        StringBuilder currentTags = new StringBuilder();
+        
+        // Suche Tags direkt vor der Rede (rückwärts von speech.start)
+        int checkPos = speech.start - 1;
+        
+        // Gehe rückwärts und sammle alle Tags
+        while (checkPos >= 0 && checkPos < currentText.length()) {
+            char c = currentText.charAt(checkPos);
+            
+            // Wenn wir auf eine schließende Klammer stoßen, könnte ein Tag beginnen
+            if (c == ']') {
+                // Finde den Anfang dieses Tags
+                int tagStart = currentText.lastIndexOf('[', checkPos);
+                if (tagStart != -1 && tagStart < checkPos) {
+                    String tag = currentText.substring(tagStart, checkPos + 1);
+                    if (tag.matches("\\[[^\\]]+\\]")) {
+                        // Gültiger Tag gefunden
+                        if (currentTags.length() > 0) currentTags.insert(0, " ");
+                        currentTags.insert(0, tag);
+                        System.out.println("DEBUG: found tag = '" + tag + "'");
+                        
+                        // Position vor den Tag setzen
+                        checkPos = tagStart - 1;
+                        continue;
                     }
-                    currentIndex++;
                 }
             }
+            
+            // Wenn wir auf Zeilenumbruch stoßen, hören wir auf (aber nicht bei Leerzeichen!)
+            if (c == '\n' || c == '\r') {
+                break;
+            }
+            
+            checkPos--;
         }
         
-        // Temporäre Sprecher berücksichtigen
-        for (String tempSpeaker : temporarySpeakers.keySet()) {
-            if (currentIndex == index) {
-                return insertSpeakerTags(speech, tempSpeaker);
-            }
-            currentIndex++;
+        System.out.println("DEBUG: final tags = '" + currentTags.toString() + "'");
+        
+        // Tags ins Editierfeld stellen
+        tagsArea.setText(currentTags.toString());
+        tagsArea.setPromptText("z.B. [Name][warm][ruhig]");
+        tagsArea.setWrapText(true);
+        tagsArea.setPrefHeight(80);
+        tagsArea.getStyleClass().add("text-input");
+        
+        // Buttons
+        HBox buttons = new HBox(12);
+        buttons.setAlignment(Pos.CENTER_RIGHT);
+        
+        Button cancelBtn = new Button("Abbrechen");
+        cancelBtn.getStyleClass().add("secondary-button");
+        cancelBtn.setOnAction(e -> dialog.hide());
+        
+        Button applyBtn = new Button("Anwenden");
+        applyBtn.getStyleClass().add("primary-button");
+        applyBtn.setOnAction(e -> {
+            applyTagsToSpeech(speech, tagsArea.getText());
+            dialog.hide();
+            // Nach dem Editieren zur nächsten Rede gehen
+            currentSpeechIndex++;
+            processNextSpeech();
+        });
+        
+        buttons.getChildren().addAll(cancelBtn, applyBtn);
+        
+        root.getChildren().addAll(speechLabel, speechArea, tagsLabel, tagsArea, buttons);
+        
+        Scene scene = new Scene(root, 400, 300);
+        dialog.setSceneWithTitleBar(scene);
+        dialog.setFullTheme(themeIndex);
+        
+        // Dialog zentrieren
+        if (stage != null) {
+            dialog.setX(stage.getX() + (stage.getWidth() - 400) / 2);
+            dialog.setY(stage.getY() + (stage.getHeight() - 300) / 2);
         }
-        return 0;
+        
+        dialog.show();
+    }
+    
+    /** Wendet die bearbeiteten Tags auf eine Rede an */
+    private void applyTagsToSpeech(DirectSpeechMatch speech, String newTags) {
+        try {
+            String currentText = codeArea.getText();
+            
+            // Finde alte Tags vor der Rede
+            int paragraphStart = speech.start;
+            while (paragraphStart > 0 && currentText.charAt(paragraphStart - 1) != '\n') {
+                paragraphStart--;
+            }
+            
+            String beforeSpeech = currentText.substring(paragraphStart, speech.start);
+            String speechText = currentText.substring(speech.start, speech.end);
+            
+            // Entferne alle alten Tags vor der Rede
+            String cleanBeforeSpeech = beforeSpeech.replaceAll("\\[[^\\]]+\\]\\s*", "");
+            
+            // Baue den neuen Text zusammen
+            String finalText;
+            if (newTags.trim().isEmpty()) {
+                // Keine neuen Tags - nur die Rede
+                finalText = cleanBeforeSpeech + speechText;
+            } else {
+                // Neue Tags + Rede
+                finalText = cleanBeforeSpeech + newTags + " " + speechText;
+            }
+            
+            // Ersetze nur den Bereich vor der Rede bis zum Rede-Ende
+            int replacementStart = paragraphStart;
+            int replacementEnd = speech.end;
+            
+            String originalText = currentText.substring(replacementStart, replacementEnd);
+            codeArea.replaceText(replacementStart, replacementEnd, finalText);
+            
+            // Offset berechnen und anwenden
+            int delta = finalText.length() - originalText.length();
+            if (delta != 0) {
+                // Aktuelle Rede-Positionen in der Liste aktualisieren
+                DirectSpeechMatch currentMatch = currentSpeechMatches.get(currentSpeechIndex);
+                currentMatch.start += delta;
+                currentMatch.end += delta;
+                
+                shiftRemainingSpeeches(delta);
+            }
+            
+            setStatus("Tags aktualisiert");
+        } catch (Exception e) {
+            setStatus("Fehler beim Aktualisieren der Tags: " + e.getMessage());
+        }
     }
     
     /** Einfache Datenklasse für Sprecher-Definitionen */
@@ -2614,7 +2878,14 @@ public class ChapterTtsEditorWindow {
         temporarySpeakers.put(def.name, def.tags);
         if (speakersListView != null) updateSpeakersList(speakersListView);
         int delta = insertSpeakerTags(speech, def.name);
-        if (delta > 0) shiftRemainingSpeeches(delta);
+        if (delta > 0) {
+            // Aktuelle Rede-Positionen in der Liste aktualisieren
+            DirectSpeechMatch currentMatch = currentSpeechMatches.get(currentSpeechIndex);
+            currentMatch.start += delta;
+            currentMatch.end += delta;
+            
+            shiftRemainingSpeeches(delta);
+        }
         setStatus("Temporärer Sprecher " + def.name + " zugewiesen");
     }
     
@@ -2632,7 +2903,14 @@ public class ChapterTtsEditorWindow {
         applyRegieanweisungenSort();
         if (speakersListView != null) updateSpeakersList(speakersListView);
         int delta = insertSpeakerTags(speech, def.name);
-        if (delta > 0) shiftRemainingSpeeches(delta);
+        if (delta > 0) {
+            // Aktuelle Rede-Positionen in der Liste aktualisieren
+            DirectSpeechMatch currentMatch = currentSpeechMatches.get(currentSpeechIndex);
+            currentMatch.start += delta;
+            currentMatch.end += delta;
+            
+            shiftRemainingSpeeches(delta);
+        }
         setStatus("Permanenter Sprecher " + def.name + " gespeichert und zugewiesen");
     }
 
@@ -2899,25 +3177,38 @@ public class ChapterTtsEditorWindow {
         seekSettleTransition.play();
     }
 
-    /** Zeile mit MP3-Qualitätsauswahl für Gesamt-Audiodatei. */
+    /** Zeile mit MP3-Qualitäts- und Stereo-Auswahl für Gesamt-Audiodatei. */
     private HBox buildFullAudioQualityRow() {
         fullAudioQualityCombo = new ComboBox<>();
         fullAudioQualityCombo.getItems().addAll(MP3_QUALITY_OPTIONS);
         fullAudioQualityCombo.getSelectionModel().select(1);
         fullAudioQualityCombo.setMaxWidth(Double.MAX_VALUE);
+        
+        fullAudioStereoCheck = new CheckBox("Stereo");
+        fullAudioStereoCheck.setSelected(true); // ACX-konform: Stereo als Default
+        
         HBox row = new HBox(8);
         row.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
-        row.getChildren().addAll(new Label("MP3-Qualität:"), fullAudioQualityCombo);
+        row.getChildren().addAll(new Label("MP3-Qualität:"), fullAudioQualityCombo, fullAudioStereoCheck);
         HBox.setHgrow(fullAudioQualityCombo, Priority.ALWAYS);
         return row;
     }
 
-    /** Liefert den FFmpeg -q:a Wert (0–9) für die aktuelle Qualitätsauswahl (Gesamt-Audiodatei / Hörbuch). */
-    private int getFullAudioMp3Quality() {
-        if (fullAudioQualityCombo == null) return 4;
+    /** Liefert die Bitrate in kbps für die aktuelle Qualitätsauswahl (Gesamt-Audiodatei). */
+    private int getFullAudioBitrate() {
+        if (fullAudioQualityCombo == null) return 320;
         int idx = fullAudioQualityCombo.getSelectionModel().getSelectedIndex();
-        if (idx < 0 || idx >= MP3_QUALITY_VALUES.length) return 4;
-        return MP3_QUALITY_VALUES[idx];
+        return switch (idx) {
+            case 0 -> 192; // "Kleine Datei" -> 192 kbps (ACX-Minimum)
+            case 1 -> 256; // "Standard" -> 256 kbps
+            case 2 -> 320; // "Hohe Qualität" -> 320 kbps (ACX-Optimal)
+            default -> 256;
+        };
+    }
+    
+    /** Liefert die Stereo-Einstellung für Gesamt-Audiodatei. */
+    private boolean getFullAudioStereo() {
+        return fullAudioStereoCheck != null && fullAudioStereoCheck.isSelected();
     }
 
     /** Liefert den FFmpeg -q:a Wert für Qualitätsindex 0–2 (statisch für AudiobookDialog). */
@@ -4360,7 +4651,7 @@ public class ChapterTtsEditorWindow {
                     }
                 }
                 try { Files.deleteIfExists(tempPath); } catch (IOException ignored) { }
-                String audioPathStr = target.toAbsolutePath().toString();
+                String audioPathStr = target.getFileName().toString(); // Nur Dateiname, plattformunabhängig
                 String voiceDesc = getEffectiveVoiceDescription();
                 TtsSegment seg = new TtsSegment(start, end, audioPathStr, voiceName, temp, topP, topK, repPen, hq, voiceDesc);
                 seg.seed = currentSeedForGeneration;
@@ -4568,7 +4859,7 @@ public class ChapterTtsEditorWindow {
                         }
                         segments.remove(s);
                     }
-                    String audioPathStr = outputMp3Path.toAbsolutePath().toString();
+                    String audioPathStr = outputMp3Path.getFileName().toString(); // Nur Dateiname, plattformunabhängig
                     String voiceDesc = getEffectiveVoiceDescription();
                     double temp = temperatureSlider != null ? temperatureSlider.getValue() : 0.35;
                     double topP = topPSlider != null ? topPSlider.getValue() : ComfyUIClient.DEFAULT_TOP_P;
@@ -4686,7 +4977,7 @@ public class ChapterTtsEditorWindow {
                     Files.copy(sourcePath, target, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
                 }
             }
-            String audioPathStr = target.toAbsolutePath().toString();
+            String audioPathStr = target.getFileName().toString();
             String voiceDesc = getEffectiveVoiceDescription();
             TtsSegment seg = new TtsSegment(start, end, audioPathStr, voiceName, temp, topP, topK, repPen, hq, voiceDesc);
             seg.seed = currentSeedForGeneration;
@@ -5491,9 +5782,9 @@ public class ChapterTtsEditorWindow {
     }
 
     /** Maximale Pausenlaenge in Sekunden innerhalb eines Kapitels. Laengere Pausen werden automatisch gekuerzt. */
-    private static final double MAX_INTERNAL_PAUSE_SECONDS = 2.0;
+    private static final double MAX_INTERNAL_PAUSE_SECONDS = 4.0;
     /** Auf diese Dauer werden zu lange Pausen gekuerzt. */
-    private static final double TRIMMED_PAUSE_SECONDS = 1.5;
+    private static final double TRIMMED_PAUSE_SECONDS = 2.5;
     /** Schwellwert in dB fuer die Stille-Erkennung (alles darunter gilt als Stille). */
     private static final double SILENCE_THRESHOLD_DB = -40.0;
 
@@ -6120,11 +6411,12 @@ public class ChapterTtsEditorWindow {
         // Trail-Silence ist jetzt 0.0 (wird durch Szenentrenner im Text gesteuert)
         double trailSilenceFromSlider = 0.0;
         logger.info("TRAIL_SILENCE_SECONDS from slider: {}", trailSilenceFromSlider);
-        logger.info("getFullAudioMp3Quality(): {}", getFullAudioMp3Quality());
+        logger.info("getFullAudioBitrate(): {}", getFullAudioBitrate());
+        logger.info("getFullAudioStereo(): {}", getFullAudioStereo());
         
-        // Verwende die Konstanten für Lead-Silence und Slider-Wert für Trail-Silence mit Logging
+        // Verwende ACX-konforme CBR-Bitrate und Stereo-Einstellung
         String result = concatMp3FilesWithPause(files, out, FULL_AUDIO_PAUSE_SECONDS, 
-                getFullAudioMp3Quality(), true, -1, false, 
+                2, true, getFullAudioBitrate(), getFullAudioStereo(), 
                 LEAD_SILENCE_SECONDS, trailSilenceFromSlider, 
                 msg -> logger.info("FFmpeg: {}", msg));
         logger.info("runFfmpegConcatWithPause result: {}", result);
@@ -6141,11 +6433,150 @@ public class ChapterTtsEditorWindow {
             if (list != null) {
                 segments.clear();
                 segments.addAll(list);
+                // Konvertiere alte absolute Pfade zu relativen Dateinamen
+                boolean converted = convertAbsolutePathsToRelative();
+                if (converted) {
+                    saveSegments(); // Speichere konvertierte Pfade
+                    logger.info("Absolute Pfade zu relativen Dateinamen konvertiert");
+                }
+                // Prüfe ob Audio-Dateien existieren und korrigiere Pfade falls nötig
+                validateAndFixSegmentPaths();
                 removeOrphanedSegments();
             }
         } catch (Exception e) {
             logger.warn("Segmente konnten nicht geladen werden: {}", segmentsPath, e);
         }
+    }
+    
+    /**
+     * Konvertiert absolute Pfade zu relativen Dateinamen (einmalige Migration).
+     * @return true wenn mindestens ein Pfad konvertiert wurde
+     */
+    private boolean convertAbsolutePathsToRelative() {
+        boolean converted = false;
+        for (TtsSegment seg : segments) {
+            if (seg.audioPath != null && !seg.audioPath.isEmpty()) {
+                // Prüfe ob es ein absoluter Pfad ist (enthält / oder \ und block_*.mp3)
+                if ((seg.audioPath.contains("/") || seg.audioPath.contains("\\")) && seg.audioPath.contains("block_")) {
+                    String fileName = Paths.get(seg.audioPath).getFileName().toString();
+                    if (fileName.matches("block_\\d+\\.mp3")) {
+                        logger.info("Konvertiere absoluten Pfad zu Dateiname: {} -> {}", seg.audioPath, fileName);
+                        seg.audioPath = fileName;
+                        converted = true;
+                    }
+                }
+            }
+        }
+        return converted;
+    }
+    
+    /**
+     * Prüft und korrigiert die Audio-Pfade der Segmente.
+     * Sucht nur im aktuellen Audio-Verzeichnis nach den Dateien.
+     */
+    private void validateAndFixSegmentPaths() {
+        if (audioDirPath == null || !Files.isDirectory(audioDirPath)) return;
+        
+        logger.info("Validiere {} Segmente im Verzeichnis: {}", segments.size(), audioDirPath);
+        
+        int fixed = 0;
+        int missing = 0;
+        for (TtsSegment seg : segments) {
+            if (seg.audioPath != null && !seg.audioPath.isEmpty()) {
+                Path expectedPath = audioDirPath.resolve(seg.audioPath);
+                if (!Files.isRegularFile(expectedPath)) {
+                    // Suche die Datei im aktuellen Verzeichnis
+                    Path foundPath = findAudioFileInCurrentDir(seg.audioPath);
+                    if (foundPath != null) {
+                        seg.audioPath = foundPath.getFileName().toString();
+                        fixed++;
+                        logger.info("Audio-Pfad korrigiert: {} -> {}", seg.audioPath, foundPath.getFileName());
+                    } else {
+                        missing++;
+                        logger.warn("Audio-Datei nicht gefunden: {} (gesucht in: {})", seg.audioPath, audioDirPath);
+                        // Zeige alle vorhandenen Dateien zum Debuggen
+                        listAvailableAudioFiles();
+                    }
+                }
+            }
+        }
+        if (fixed > 0) {
+            logger.info("Pfade für {} Segmente korrigiert, {} noch nicht gefunden", fixed, missing);
+            saveSegments(); // Speichere die korrigierten Pfade
+        } else if (missing > 0) {
+            logger.warn("{} Segmente haben nicht gefundene Audio-Dateien", missing);
+        }
+    }
+    
+    /**
+     * Listet alle verfügbaren Audio-Dateien im aktuellen Verzeichnis auf (zum Debuggen).
+     */
+    private void listAvailableAudioFiles() {
+        if (audioDirPath == null || !Files.isDirectory(audioDirPath)) return;
+        
+        try (java.nio.file.DirectoryStream<Path> stream = Files.newDirectoryStream(audioDirPath, "block_*.mp3")) {
+            logger.info("Verfügbare Audio-Dateien in {}:", audioDirPath);
+            for (Path file : stream) {
+                logger.info("  - {}", file.getFileName());
+            }
+        } catch (IOException e) {
+            logger.warn("Fehler beim Auflisten der Audio-Dateien", e);
+        }
+    }
+    
+    /**
+     * Sucht eine Audio-Datei im aktuellen Audio-Verzeichnis mit verschiedenen Methoden.
+     */
+    private Path findAudioFileInCurrentDir(String fileName) {
+        if (audioDirPath == null || !Files.isDirectory(audioDirPath)) return null;
+        
+        // 1. Direkte Suche mit exaktem Dateinamen
+        Path direct = audioDirPath.resolve(fileName);
+        if (Files.isRegularFile(direct)) return direct;
+        
+        // 2. Suche mit block_XXX.mp3 Pattern falls nur Nummer gegeben
+        if (fileName.matches("\\d+")) {
+            String blockName = "block_" + String.format("%03d", Integer.parseInt(fileName)) + ".mp3";
+            Path blockPath = audioDirPath.resolve(blockName);
+            if (Files.isRegularFile(blockPath)) return blockPath;
+        }
+        
+        // 3. Suche nach allen block_*.mp3 Dateien und vergleiche
+        try (java.nio.file.DirectoryStream<Path> stream = Files.newDirectoryStream(audioDirPath, "block_*.mp3")) {
+            for (Path file : stream) {
+                String currentName = file.getFileName().toString();
+                if (currentName.contains(fileName) || fileName.contains(currentName)) {
+                    return file;
+                }
+            }
+        } catch (IOException e) {
+            logger.warn("Fehler bei lokaler Audio-Suche", e);
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Sucht eine Audio-Datei in allen Kapitel-Verzeichnissen im dataDir.
+     */
+    private Path findAudioFileInOtherChapters(String fileName) {
+        if (dataDir == null || !dataDir.isDirectory()) return null;
+        Path dataDirPath = dataDir.toPath();
+        
+        try (java.nio.file.DirectoryStream<Path> dirs = Files.newDirectoryStream(dataDirPath, "*-tts")) {
+            for (Path dir : dirs) {
+                if (Files.isDirectory(dir)) {
+                    Path candidate = dir.resolve(fileName);
+                    if (Files.isRegularFile(candidate)) {
+                        logger.debug("Audio-Datei gefunden in anderem Kapitel: {}", candidate);
+                        return candidate;
+                    }
+                }
+            }
+        } catch (IOException e) {
+            logger.warn("Fehler bei der Suche nach Audio-Dateien in anderen Kapiteln", e);
+        }
+        return null;
     }
 
     /**
