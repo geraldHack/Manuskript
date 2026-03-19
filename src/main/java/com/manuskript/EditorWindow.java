@@ -13266,7 +13266,7 @@ spacer.setStyle("-fx-background-color: transparent;");
         fontLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #666; -fx-font-weight: bold;");
         
         ComboBox<String> fontSizeCombo = new ComboBox<>();
-        fontSizeCombo.setPrefWidth(100.0);
+        fontSizeCombo.setPrefWidth(120.0);
         fontSizeCombo.getStyleClass().add("font-size-options-combo");
         
         // Font-Size-Optionen hinzufügen
@@ -13276,9 +13276,10 @@ spacer.setStyle("-fx-background-color: transparent;");
         }
         fontSizeCombo.setItems(sizes);
         
-        // Gespeicherte Schriftgröße laden
+        // Gespeicherte Schriftgröße laden und anwenden
         int savedSize = preferences.getInt("rightPanelFontSize", 12);
         fontSizeCombo.setValue(String.valueOf(savedSize));
+        applyRightPanelFontSize(savedSize); // Automatisch anwenden!
         
         // Event-Handler
         fontSizeCombo.setOnAction(e -> {

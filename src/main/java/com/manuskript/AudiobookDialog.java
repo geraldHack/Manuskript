@@ -379,13 +379,20 @@ public class AudiobookDialog {
 
     private static String checkTtsForChapter(File dataDir, String chapterName) {
         Path segmentsPath = Paths.get(dataDir.getPath(), chapterName + "-tts-segments.json");
-        if (!Files.isRegularFile(segmentsPath)) return "—";
+        logger.debug("Checking TTS for chapter: {} at path: {}", chapterName, segmentsPath);
+        if (!Files.isRegularFile(segmentsPath)) {
+            logger.debug("No segments file found at: {}", segmentsPath);
+            return "—";
+        }
         try {
             List<ChapterTtsEditorWindow.TtsSegment> list = loadSegments(segmentsPath);
-            List<Path> valid = collectValidAudioPaths(list);
+            logger.debug("Loaded {} segments from file", list.size());
+            List<Path> valid = collectValidAudioPaths(list, dataDir);
+            logger.debug("Found {} valid audio paths", valid.size());
             if (valid.isEmpty()) return "—";
             return valid.size() + " Segment(e)";
         } catch (Exception e) {
+            logger.warn("Error checking TTS for chapter: {}", chapterName, e);
             return "—";
         }
     }
@@ -395,7 +402,7 @@ public class AudiobookDialog {
         if (!Files.isRegularFile(segmentsPath)) return List.of();
         try {
             List<ChapterTtsEditorWindow.TtsSegment> list = loadSegments(segmentsPath);
-            return collectValidAudioPaths(list);
+            return collectValidAudioPaths(list, dataDir);
         } catch (Exception e) {
             logger.warn("Segmente nicht ladbar: {}", segmentsPath, e);
             return List.of();
@@ -411,13 +418,18 @@ public class AudiobookDialog {
         return list != null ? list : List.of();
     }
 
-    private static List<Path> collectValidAudioPaths(List<ChapterTtsEditorWindow.TtsSegment> segments) {
+    private static List<Path> collectValidAudioPaths(List<ChapterTtsEditorWindow.TtsSegment> segments, File dataDir) {
         List<ChapterTtsEditorWindow.TtsSegment> byStart = new ArrayList<>(segments);
         byStart.sort(Comparator.comparingInt(s -> s.start));
         List<Path> paths = new ArrayList<>();
         for (ChapterTtsEditorWindow.TtsSegment s : byStart) {
             if (s.audioPath == null || s.audioPath.isEmpty()) continue;
+            // Prüfe ob es ein relativer Pfad ist (nur Dateiname)
             Path p = Paths.get(s.audioPath);
+            if (!p.isAbsolute()) {
+                // Relativer Pfad - zum dataDir auflösen
+                p = dataDir.toPath().resolve(s.audioPath);
+            }
             if (Files.isRegularFile(p)) paths.add(p);
         }
         return paths;
