@@ -41,7 +41,7 @@ public class AudiobookDialog {
     private static final java.util.prefs.Preferences prefs = java.util.prefs.Preferences.userNodeForPackage(AudiobookDialog.class);
 
     /** Pause in Sekunden zwischen den Segmenten innerhalb eines Kapitels. */
-    private static final double PAUSE_BETWEEN_SEGMENTS_SECONDS = 3.5;
+    private static final double PAUSE_BETWEEN_SEGMENTS_SECONDS = 0.8;
 
     public static class ChapterRow {
         private final DocxFile docxFile;
@@ -387,7 +387,7 @@ public class AudiobookDialog {
         try {
             List<ChapterTtsEditorWindow.TtsSegment> list = loadSegments(segmentsPath);
             logger.debug("Loaded {} segments from file", list.size());
-            List<Path> valid = collectValidAudioPaths(list, dataDir);
+            List<Path> valid = collectValidAudioPaths(list, dataDir, chapterName);
             logger.debug("Found {} valid audio paths", valid.size());
             if (valid.isEmpty()) return "—";
             return valid.size() + " Segment(e)";
@@ -402,7 +402,7 @@ public class AudiobookDialog {
         if (!Files.isRegularFile(segmentsPath)) return List.of();
         try {
             List<ChapterTtsEditorWindow.TtsSegment> list = loadSegments(segmentsPath);
-            return collectValidAudioPaths(list, dataDir);
+            return collectValidAudioPaths(list, dataDir, chapterName);
         } catch (Exception e) {
             logger.warn("Segmente nicht ladbar: {}", segmentsPath, e);
             return List.of();
@@ -418,17 +418,26 @@ public class AudiobookDialog {
         return list != null ? list : List.of();
     }
 
-    private static List<Path> collectValidAudioPaths(List<ChapterTtsEditorWindow.TtsSegment> segments, File dataDir) {
+    private static List<Path> collectValidAudioPaths(List<ChapterTtsEditorWindow.TtsSegment> segments, File dataDir, String chapterName) {
         List<ChapterTtsEditorWindow.TtsSegment> byStart = new ArrayList<>(segments);
         byStart.sort(Comparator.comparingInt(s -> s.start));
         List<Path> paths = new ArrayList<>();
+        
+        // Audio-Verzeichnis direkt berechnen: data/chapter-tts
+        Path audioDirPath = dataDir != null ? Paths.get(dataDir.getPath(), chapterName + "-tts") : null;
+        
         for (ChapterTtsEditorWindow.TtsSegment s : byStart) {
             if (s.audioPath == null || s.audioPath.isEmpty()) continue;
             // Prüfe ob es ein relativer Pfad ist (nur Dateiname)
             Path p = Paths.get(s.audioPath);
             if (!p.isAbsolute()) {
-                // Relativer Pfad - zum dataDir auflösen
-                p = dataDir.toPath().resolve(s.audioPath);
+                // Relativer Pfad - zum Audio-Verzeichnis auflösen (nicht zum dataDir)
+                if (audioDirPath != null) {
+                    p = audioDirPath.resolve(s.audioPath);
+                } else {
+                    // Fallback: zum dataDir auflösen
+                    p = dataDir.toPath().resolve(s.audioPath);
+                }
             }
             if (Files.isRegularFile(p)) paths.add(p);
         }

@@ -94,24 +94,41 @@
 
 /* Markdown-Styling mit RichTextFX-spezifischen Klassen */
 .code-area .markdown-bold {
-    -fx-font-weight: bold;
+    -fx-font-weight: bold !important;
     -fx-fill: #d63384 !important;
 }
 
 .code-area .markdown-italic {
-    -fx-font-style: italic;
+    -fx-font-style: italic !important;
     -fx-fill: #0d6efd !important;
 }
 
 .code-area .markdown-bold-italic {
-    -fx-font-weight: bold;
-    -fx-font-style: italic;
+    -fx-font-weight: bold !important;
+    -fx-font-style: italic !important;
+    -fx-fill: #6f42c1 !important;
+}
+
+/* Markdown-Klassen ohne .code-area für Kapitel-Editor */
+.markdown-bold {
+    -fx-font-weight: bold !important;
+    -fx-fill: #d63384 !important;
+}
+
+.markdown-italic {
+    -fx-font-style: italic !important;
+    -fx-fill: #0d6efd !important;
+}
+
+.markdown-bold-italic {
+    -fx-font-weight: bold !important;
+    -fx-font-style: italic !important;
     -fx-fill: #6f42c1 !important;
 }
 
 /* Blockquote-Styling */
 .code-area .markdown-blockquote {
-    -fx-font-style: italic;
+    -fx-font-style: italic !important;
     -fx-fill: #999999 !important; /* Hellgrau */
 }
 
@@ -8508,20 +8525,20 @@
 
 /* Markdown-Unterstreichung im Editor */
 .code-area .markdown-underline {
-    -fx-underline: true;
-    -fx-text-decoration: underline;
+    -fx-underline: true !important;
+    -fx-text-decoration: underline !important;
 }
 
 /* Markdown-Durchgestrichen im Editor */
 .code-area .markdown-strikethrough {
-    -fx-strikethrough: true;
-    -fx-text-decoration: line-through;
+    -fx-strikethrough: true !important;
+    -fx-text-decoration: line-through !important;
 }
 
 /* Markdown-Hervorhebung im Editor (Textmarker) */
 .code-area .markdown-highlight {
-    -rtfx-background-color: #ffeb3b; /* Blasseres Gelb für bessere Lesbarkeit */
-    -fx-background-radius: 2px;
+    -rtfx-background-color: #ffeb3b !important; /* Blasseres Gelb für bessere Lesbarkeit */
+    -fx-background-radius: 2px !important;
 }
 
 /* Theme-spezifische Textfarbe für Mark-Highlight */

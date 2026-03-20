@@ -746,7 +746,7 @@ public class EditorWindow implements Initializable {
         codeArea = new CodeArea();
         codeArea.setWrapText(true);
         codeArea.getStyleClass().add("code-area");
-        codeArea.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px; -rtfx-background-color: #ffffff;");
+        codeArea.setStyle("-fx-font-family: 'SF Mono', 'Monaco', 'Consolas', monospace; -fx-font-size: 12px; -rtfx-background-color: #ffffff;");
         
         // Timer für Markdown-Styling - IMMER anwenden aber existierende Styles bewahren
         // WICHTIG: Timer als Instanzvariable speichern, damit er während des Tippens pausiert werden kann
@@ -770,8 +770,9 @@ public class EditorWindow implements Initializable {
                 }
                 
                 // Text hat sich nicht geändert UND Benutzer scrollt nicht
-                // WICHTIG: Rufe applyCombinedStyling() NICHT auf, da es den Viewport zurücksetzen kann
+                // WICHTIG: Rufe applyCombinedStyling() auf für Markdown-Styling
                 // Styling wird nur aufgerufen, wenn sich der Text ändert oder LanguageTool neue Matches findet
+                applyCombinedStyling();
             });
         }));
         stylingTimer.setCycleCount(Timeline.INDEFINITE);
@@ -11774,6 +11775,7 @@ spacer.setStyle("-fx-background-color: transparent;");
         
         // RichTextFX CodeArea Theme anwenden - spezielle CSS-Eigenschaften
         // WICHTIG: Alle RichTextFX-spezifischen Eigenschaften explizit setzen
+        // WICHTIG: -fx-text-fill entfernt, damit Markdown-Styles funktionieren
         String cssStyle = String.format(
             "-rtfx-background-color: %s;" +
             "-fx-highlight-fill: %s;" +
@@ -11782,9 +11784,8 @@ spacer.setStyle("-fx-background-color: transparent;");
             "-fx-font-family: 'Consolas', 'Monaco', monospace;" +
             "-fx-font-size: %dpx;" +
             "-fx-background-color: %s;" +
-            "-fx-text-fill: %s !important;" +
             "-fx-control-inner-background: %s;",
-            backgroundColor, selectionColor, textColor, caretColor, fontSize, backgroundColor, textColor, backgroundColor
+            backgroundColor, selectionColor, textColor, caretColor, fontSize, backgroundColor, backgroundColor
         );
         
         // WICHTIG: Styles SOFORT setzen (ohne Platform.runLater) für bessere Responsivität bei schnellen Scrollevents
@@ -12030,10 +12031,11 @@ spacer.setStyle("-fx-background-color: transparent;");
         });
         
         // Textfarbe über CSS-Stylesheet anwenden (RichTextFX-spezifisch)
+        // WICHTIG: Nur Basis-Textfarbe setzen, Markdown-Styles nicht überschreiben
         Platform.runLater(() -> {
-            // CSS-Stylesheet für Textfarbe erstellen
+            // CSS-Stylesheet für Textfarbe erstellen - OHNE .text Klasse, um Markdown nicht zu stören
             String textColorCSS = String.format(
-                ".text { -fx-text-fill: %s; -fx-fill: %s; } " +
+                ".code-area .text:not(.markdown-bold):not(.markdown-italic):not(.markdown-bold-italic):not(.markdown-underline):not(.markdown-strikethrough):not(.markdown-highlight):not(.markdown-blockquote):not(.heading-1):not(.heading-2):not(.heading-3):not(.heading-4):not(.heading-5) { -fx-text-fill: %s; -fx-fill: %s; } " +
                 ".content { -fx-text-fill: %s; -fx-fill: %s; } " +
                 ".paragraph-box { -fx-text-fill: %s; -fx-fill: %s; } " +
                 ".paragraph-text { -fx-text-fill: %s; -fx-fill: %s; }",
@@ -12434,24 +12436,6 @@ spacer.setStyle("-fx-background-color: transparent;");
                 }
             }
             
-            // Bold-Pattern: **text** (aber nicht ***text***)
-            Pattern boldPattern = Pattern.compile("(?<!\\*)\\*\\*(?!\\*)([\\s\\S]*?)(?<!\\*)\\*\\*(?!\\*)", Pattern.DOTALL);
-            Matcher boldMatcher = boldPattern.matcher(content);
-            
-            while (boldMatcher.find()) {
-                int start = boldMatcher.start() + 2; // Nach **
-                int end = boldMatcher.end() - 2;     // Vor **
-                if (end > start) {
-                    // Überprüfe, ob dieser Bereich bereits von bold-italic abgedeckt ist
-                    boolean alreadyCovered = markdownMatches.stream().anyMatch(m -> 
-                        (start >= m.start && start < m.end) || (end > m.start && end <= m.end) ||
-                        (start <= m.start && end >= m.end));
-                    if (!alreadyCovered) {
-                        markdownMatches.add(new MarkdownMatch(start, end, "markdown-bold"));
-                    }
-                }
-            }
-            
             // Italic-Pattern: *text* (aber nicht **text** oder ***text***)
             Pattern italicPattern = Pattern.compile("(?<!\\*)\\*(?!\\*)([\\s\\S]*?)(?<!\\*)\\*(?!\\*)", Pattern.DOTALL);
             Matcher italicMatcher = italicPattern.matcher(content);
@@ -12466,6 +12450,24 @@ spacer.setStyle("-fx-background-color: transparent;");
                         (start <= m.start && end >= m.end));
                     if (!alreadyCovered) {
                         markdownMatches.add(new MarkdownMatch(start, end, "markdown-italic"));
+                    }
+                }
+            }
+            
+            // Bold-Pattern: **text** (aber nicht ***text***)
+            Pattern boldPattern = Pattern.compile("(?<!\\*)\\*\\*(?!\\*)([\\s\\S]*?)(?<!\\*)\\*\\*(?!\\*)", Pattern.DOTALL);
+            Matcher boldMatcher = boldPattern.matcher(content);
+            
+            while (boldMatcher.find()) {
+                int start = boldMatcher.start() + 2; // Nach **
+                int end = boldMatcher.end() - 2;     // Vor **
+                if (end > start) {
+                    // Überprüfe, ob dieser Bereich bereits von bold-italic abgedeckt ist
+                    boolean alreadyCovered = markdownMatches.stream().anyMatch(m -> 
+                        (start >= m.start && start < m.end) || (end > m.start && end <= m.end) ||
+                        (start <= m.start && end >= m.end));
+                    if (!alreadyCovered) {
+                        markdownMatches.add(new MarkdownMatch(start, end, "markdown-bold"));
                     }
                 }
             }
@@ -12710,7 +12712,7 @@ spacer.setStyle("-fx-background-color: transparent;");
                     existingStyles.computeIfAbsent(i, k -> new HashSet<>()).add(match.styleClass);
                 }
             }
-            
+
             // Füge LanguageTool-Fehler-Styles hinzu (wenn aktiviert)
             // WICHTIG: Erstelle eine Kopie der Liste, um sicherzustellen, dass wir die aktuelle Version verwenden
             // WICHTIG: Synchronisiere Zugriff auf currentLanguageToolMatches, um Race Conditions zu vermeiden

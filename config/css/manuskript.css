@@ -109,18 +109,37 @@
 
 /* Markdown-Styling mit RichTextFX-spezifischen Klassen */
 .code-area .markdown-bold {
-    -fx-font-weight: bold;
+    -fx-font-weight: bold !important;
     -fx-fill: #d63384 !important;
 }
 
 .code-area .markdown-italic {
-    -fx-font-style: italic;
-    -fx-fill: #0d6efd !important;
+    -fx-font-style: italic !important;
+    -fx-font-family: 'Times New Roman', 'Georgia', serif !important;
+    -fx-fill: #87ceeb !important; /* Hellblau für bessere Lesbarkeit */
 }
 
 .code-area .markdown-bold-italic {
-    -fx-font-weight: bold;
-    -fx-font-style: italic;
+    -fx-font-weight: bold !important;
+    -fx-font-style: italic !important;
+    -fx-fill: #6f42c1 !important;
+}
+
+/* Markdown-Klassen ohne .code-area für Kapitel-Editor */
+.markdown-bold {
+    -fx-font-weight: bold !important;
+    -fx-fill: #d63384 !important;
+}
+
+.markdown-italic {
+    -fx-font-style: italic !important;
+    -fx-font-family: 'Times New Roman', 'Georgia', serif !important;
+    -fx-fill: #87ceeb !important; /* Hellblau für bessere Lesbarkeit */
+}
+
+.markdown-bold-italic {
+    -fx-font-weight: bold !important;
+    -fx-font-style: italic !important;
     -fx-fill: #6f42c1 !important;
 }
 
@@ -3563,18 +3582,19 @@
 }
 
 /* RichTextFX: tatsächliche Textfarbe ( .text verwendet -fx-fill ) */
-.theme-dark .code-area .text {
+/* WICHTIG: Markdown-Klassen ausgeschlossen, damit ihre Farben gelten */
+.theme-dark .code-area .text:not(.markdown-bold):not(.markdown-italic):not(.markdown-bold-italic):not(.markdown-underline):not(.markdown-strikethrough):not(.markdown-highlight):not(.markdown-blockquote):not(.heading-1):not(.heading-2):not(.heading-3):not(.heading-4):not(.heading-5) {
     -fx-fill: #ffffff !important;
 }
-.weiss-theme .code-area .text {
+.weiss-theme .code-area .text:not(.markdown-bold):not(.markdown-italic):not(.markdown-bold-italic):not(.markdown-underline):not(.markdown-strikethrough):not(.markdown-highlight):not(.markdown-blockquote):not(.heading-1):not(.heading-2):not(.heading-3):not(.heading-4):not(.heading-5) {
     -fx-fill: #000000 !important;
 }
-.pastell-theme .code-area .text {
+.pastell-theme .code-area .text:not(.markdown-bold):not(.markdown-italic):not(.markdown-bold-italic):not(.markdown-underline):not(.markdown-strikethrough):not(.markdown-highlight):not(.markdown-blockquote):not(.heading-1):not(.heading-2):not(.heading-3):not(.heading-4):not(.heading-5) {
     -fx-fill: #000000 !important;
 }
-.theme-dark.blau-theme .code-area .text,
-.theme-dark.gruen-theme .code-area .text,
-.theme-dark.lila-theme .code-area .text {
+.theme-dark.blau-theme .code-area .text:not(.markdown-bold):not(.markdown-italic):not(.markdown-bold-italic):not(.markdown-underline):not(.markdown-strikethrough):not(.markdown-highlight):not(.markdown-blockquote):not(.heading-1):not(.heading-2):not(.heading-3):not(.heading-4):not(.heading-5),
+.theme-dark.gruen-theme .code-area .text:not(.markdown-bold):not(.markdown-italic):not(.markdown-bold-italic):not(.markdown-underline):not(.markdown-strikethrough):not(.markdown-highlight):not(.markdown-blockquote):not(.heading-1):not(.heading-2):not(.heading-3):not(.heading-4):not(.heading-5),
+.theme-dark.lila-theme .code-area .text:not(.markdown-bold):not(.markdown-italic):not(.markdown-bold-italic):not(.markdown-underline):not(.markdown-strikethrough):not(.markdown-highlight):not(.markdown-blockquote):not(.heading-1):not(.heading-2):not(.heading-3):not(.heading-4):not(.heading-5) {
     -fx-fill: #ffffff !important;
 }
 
