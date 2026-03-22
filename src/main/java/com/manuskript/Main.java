@@ -1,6 +1,7 @@
 package com.manuskript;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -53,6 +54,17 @@ public class Main extends Application {
             
             // WICHTIG: Kein setOnCloseRequest hier - wird in MainController.setPrimaryStage() behandelt
             customStage.show();
+            
+            // Stelle sicher, dass das Hauptfenster nach dem Start im Vordergrund ist
+            Platform.runLater(() -> {
+                try {
+                    Thread.sleep(500); // Kurze Verzögerung damit Fenster vollständig geladen ist
+                    customStage.toFront();
+                    customStage.requestFocus();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            });
             
             // Gespeicherte Fenstergröße laden nach dem Show
             javafx.application.Platform.runLater(() -> {

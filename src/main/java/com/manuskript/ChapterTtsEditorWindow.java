@@ -1,11 +1,14 @@
 package com.manuskript;
 
+import com.manuskript.CustomStage;
+import com.manuskript.ResourceManager;
+import java.util.prefs.Preferences;
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.animation.Timeline;
-import javafx.animation.KeyFrame;
+import javafx.animation.PauseTransition;
+import javafx.util.Duration;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
@@ -24,6 +27,9 @@ import javafx.scene.layout.*;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.paint.Color;
+import javafx.scene.web.WebView;
+import javafx.geometry.*;
+import javafx.stage.Popup;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
@@ -121,6 +127,7 @@ public class ChapterTtsEditorWindow {
     
     /** Temporäre Sprecher für diese Sitzung */
     private final Map<String, String> temporarySpeakers = new HashMap<>();
+    private final Map<String, Long> temporarySpeakerLastUsed = new HashMap<>();
     
     /** Fenster für Sprecher-Zuweisung */
     private CustomStage speakerWindow;
@@ -498,13 +505,43 @@ public class ChapterTtsEditorWindow {
             System.out.println("DEBUG getTagsOnly FINAL: '" + result + "'");
             return result;
         }
+        
+        /** Gibt den einzufügenden Text zurück (für Autovervollständigung) */
+        public String getInsertText() {
+            if (isSpeaker && !speakerName.isEmpty()) {
+                // Extrahiere nur die Tags aus "Name: [tags]"
+                Matcher m = SPEAKER_TAG_PATTERN.matcher(text.trim());
+                if (m.matches() && m.group(2) != null) {
+                    return m.group(2).trim();
+                }
+            }
+            return text;
+        }
     }
     private final Path regieanweisungenPath;
+    private final Path pronunciationLexiconPath;
     private final ObservableList<RegieanweisungEntry> regieanweisungenItems = FXCollections.observableArrayList();
     /** true = nach letzter Nutzung, false = alphabetisch. */
     private boolean regieanweisungenSortByLastUsed = false;
     private TableView<RegieanweisungEntry> regieanweisungenTableView;
     private ComboBox<String> regieanweisungenSortCombo;
+
+    /** Audio-Tags Autovervollständigung */
+    private final Path audioTagsPath;
+    private ContextMenu audioTagMenu;
+    private TextField audioTagFilterField;
+    private List<MenuItem> audioTagMenuItems = new ArrayList<>();
+    private String lastAudioTagFilter = "";
+    private int lastSelectedIndex = -1;
+    private long lastSpacePressTime = 0;
+    private static final long DOUBLE_SPACE_THRESHOLD_MS = 500;
+    
+    // Neue ListView-Implementierung
+    private ListView<String> audioTagListView;
+    private Popup audioTagPopup;
+    private VBox popupContent;
+    private CheckBox jumpToNextDialogCheckBox;
+    private boolean jumpToNextDialog = false;
 
     /** Einschwingtext: wird bei TTS-Generierung dem eigentlichen Text vorangestellt, damit die Stimme konsistenter einsetzt. */
     private TextArea einschwingTextArea;
@@ -525,6 +562,10 @@ public class ChapterTtsEditorWindow {
         this.audioDirPath = dataDir != null ? Paths.get(dataDir.getPath(), chapterName + "-tts") : null;
         this.originalHashPath = dataDir != null ? Paths.get(dataDir.getPath(), chapterName + "-tts-original-hash.txt") : null;
         this.regieanweisungenPath = dataDir != null ? Paths.get(dataDir.getPath(), "tts-regieanweisungen.json") : null;
+        this.pronunciationLexiconPath = dataDir != null
+                ? Paths.get(dataDir.getPath(), "tts-pronunciation.json").toAbsolutePath().normalize()
+                : null;
+        this.audioTagsPath = dataDir != null ? Paths.get(dataDir.getPath(), "tts-audio-tags.json") : null;
     }
 
     /** Öffnet den Sprachsynthese-Editor für das gewählte Kapitel. Zeigt die getrennt gespeicherte TTS-Datei, falls vorhanden; sonst den Originalinhalt. */
@@ -1251,9 +1292,17 @@ public class ChapterTtsEditorWindow {
         );
 
         // Lexikon und Regieanweisungen eng untereinander (kein Abstand nach unten)
+        TitledPane lexiconPane = new TitledPane("Aussprache-Lexikon", lexiconBox);
+        lexiconPane.getStyleClass().add("ollama-titled-pane");
+        lexiconPane.setExpanded(true);
+        lexiconPane.setMaxWidth(Double.MAX_VALUE);
+        TitledPane regiePane = new TitledPane("Regieanweisungen", regieanweisungenBox);
+        regiePane.getStyleClass().add("ollama-titled-pane");
+        regiePane.setExpanded(true);
+        regiePane.setMaxWidth(Double.MAX_VALUE);
         VBox lexiconAndRegieBox = new VBox(4);
         lexiconAndRegieBox.setMaxWidth(Double.MAX_VALUE);
-        lexiconAndRegieBox.getChildren().addAll(lexiconBox, regieanweisungenBox, new Separator(), btnMainAutoRun);
+        lexiconAndRegieBox.getChildren().addAll(lexiconPane, regiePane, new Separator(), btnMainAutoRun);
 
         // Rechte Spalte: Einschwing, Lexikon+Regie, Audioschnittprogramm
         VBox rightColumn = new VBox(12);
@@ -1329,7 +1378,9 @@ public class ChapterTtsEditorWindow {
         applyThemeToNode(highQualityCheck, themeIndex);
         applyThemeToNode(voiceDescriptionArea, themeIndex);
         applyThemeToNode(lexiconAndRegieBox, themeIndex);
+        applyThemeToNode(lexiconPane, themeIndex);
         applyThemeToNode(lexiconBox, themeIndex);
+        applyThemeToNode(regiePane, themeIndex);
         applyThemeToNode(lexiconTable, themeIndex);
         applyThemeToNode(regieanweisungenBox, themeIndex);
         applyThemeToNode(regieanweisungenTableView, themeIndex);
@@ -1713,10 +1764,27 @@ public class ChapterTtsEditorWindow {
     private void loadLexiconIntoTable() {
         if (lexiconItems == null) return;
         lexiconItems.clear();
-        Map<String, String> map = ComfyUIClient.getDefaultPronunciationLexicon();
+        Map<String, String> map = loadPronunciationLexicon();
         for (Map.Entry<String, String> e : map.entrySet()) {
             lexiconItems.add(new ComfyUITTSTestWindow.LexiconEntry(e.getKey(), e.getValue()));
         }
+    }
+
+    private Map<String, String> loadPronunciationLexicon() {
+        if (pronunciationLexiconPath != null && Files.isRegularFile(pronunciationLexiconPath)) {
+            try {
+                String json = Files.readString(pronunciationLexiconPath, StandardCharsets.UTF_8);
+                java.lang.reflect.Type mapType = new com.google.gson.reflect.TypeToken<LinkedHashMap<String, String>>() {}.getType();
+                Map<String, String> loaded = new com.google.gson.Gson().fromJson(json, mapType);
+                if (loaded != null && !loaded.isEmpty()) {
+                    return new LinkedHashMap<>(loaded);
+                }
+            } catch (Exception e) {
+                logger.warn("Projekt-Lexikon konnte nicht geladen werden: {}", pronunciationLexiconPath, e);
+            }
+        }
+        // Bei neuem Projekt: leeres Lexikon zurückgeben (nicht globales Fallback)
+        return new LinkedHashMap<>();
     }
 
     private Map<String, String> getLexiconFromTable() {
@@ -1735,7 +1803,7 @@ public class ChapterTtsEditorWindow {
         // Speichern erst nach dem nächsten Event-Pulse, damit eine offene Tabellenbearbeitung
         // (noch nicht durch Enter/Fokuswechsel committed) zuerst übernommen wird.
         Platform.runLater(() -> {
-            Path path = Paths.get(ComfyUIClient.PRONUNCIATION_LEXICON_PATH).toAbsolutePath().normalize();
+            Path path = pronunciationLexiconPath;
             try {
                 Files.createDirectories(path.getParent());
                 Map<String, String> map = getLexiconFromTable();
@@ -2051,6 +2119,659 @@ public class ChapterTtsEditorWindow {
             logger.warn("Regieanweisungen konnten nicht gespeichert werden: {}", regieanweisungenPath, e);
         }
     }
+    
+    private AudioTagsData loadAudioTags() {
+        if (audioTagsPath == null) {
+            logger.warn("audioTagsPath ist null, verwende Standard ohne customTags");
+            return createDefaultAudioTagsWithoutCustomTags();
+        }
+        
+        if (!Files.isRegularFile(audioTagsPath)) {
+            logger.info("Audio-Tags Datei existiert nicht: {}, verwende Standard ohne customTags", audioTagsPath);
+            return createDefaultAudioTagsWithoutCustomTags();
+        }
+        
+        try {
+            String json = Files.readString(audioTagsPath, StandardCharsets.UTF_8);
+            logger.debug("Lese Audio-Tags von: {}", audioTagsPath);
+            com.google.gson.Gson gson = new com.google.gson.Gson();
+            AudioTagsData data = gson.fromJson(json, AudioTagsData.class);
+            if (data != null) {
+                logger.debug("Audio-Tags geladen: {} customTags", data.customTags != null ? data.customTags.size() : 0);
+                return data;
+            }
+        } catch (Exception e) {
+            logger.warn("Audio-Tags konnten nicht geladen werden: {}, verwende Standard ohne customTags", audioTagsPath, e);
+        }
+        
+        return createDefaultAudioTagsWithoutCustomTags();
+    }
+    
+    private AudioTagsData createDefaultAudioTagsWithoutCustomTags() {
+        AudioTagsData data = new AudioTagsData();
+        
+        // Emotionen
+        Map<String, List<String>> emotion = new HashMap<>();
+        emotion.put("de", Arrays.asList("überrascht", "besorgt", "nachdenklich", "genervt", "aufgeregt", "selbstbewusst", "nervös", "ungläubig", "neugierig", "verärgert", "fröhlich", "traurig", "wütend", "ängstlich", "verliebt", "eifersüchtig", "stolz", "beschämt", "hoffnungsvoll", "enttäuscht", "gelangweilt", "begeistert", "ruhig", "panisch", "zögerlich", "entschlossen", "zweifelnd", "erleichtert", "bescheiden", "arrogant", "freundlich", "feindselig", "neutral"));
+        emotion.put("en", Arrays.asList("surprised", "concerned", "thoughtful", "annoyed", "excited", "confident", "nervously", "disbelief", "curious", "exasperated", "happy", "sad", "angry", "scared", "in love", "jealous", "proud", "ashamed", "hopeful", "disappointed", "bored", "enthusiastic", "calm", "panicked", "hesitant", "determined", "doubtful", "relieved", "humble", "arrogant", "friendly", "hostile", "neutral"));
+        
+        // Delivery
+        Map<String, List<String>> delivery = new HashMap<>();
+        delivery.put("de", Arrays.asList("flüstert", "flüstern", "ruhig", "streng", "leise", "fest", "schnell", "langsam", "betont", "monoton", "dramatisch", "ironisch", "sarkastisch", "ernst", "heiter", "nachdrücklich", "zögerlich", "selbstsicher", "unsicher", "laut", "leise", "klar", "verschwommen", "emotional", "sachlich", "warm", "kalt"));
+        delivery.put("en", Arrays.asList("whisper", "whispering", "calmly", "sternly", "softly", "firmly", "quickly", "slowly", "emphatic", "monotonous", "dramatic", "ironic", "sarcastic", "serious", "cheerful", "emphatically", "hesitant", "confident", "uncertain", "loudly", "quietly", "clearly", "muffled", "emotional", "factual", "warm", "cold"));
+        
+        // Action
+        Map<String, List<String>> action = new HashMap<>();
+        action.put("de", Arrays.asList("seufzt", "kichert", "räuspert sich", "gaspst", "niest", "schnellt ein", "miaut", "schnurrt", "zieht", "zuckt", "lacht", "weint", "schreit", "brüllt", "jammert", "flucht", "singt", "hummt", "pfeift", "gähnt", "schluckt", "stöhnt", "knurrt", "faucht", "zischt", "grunzt", "quakt", "kreischt", "ruft", "brummt", "murmelt", "schnattert"));
+        action.put("en", Arrays.asList("sighs", "chuckles", "clears throat", "gasps", "sneezes", "inhales sharply", "meows", "purring", "pulling", "shrugs", "laughs", "cries", "screams", "shouts", "whimpers", "swears", "sings", "hums", "whistles", "yawns", "swallows", "groans", "growls", "hisses", "grunts", "croaks", "screams", "calls", "mumbles", "murmurs", "babbles"));
+        
+        // Breath
+        Map<String, List<String>> breath = new HashMap<>();
+        breath.put("de", Arrays.asList("atmet ein", "atmet aus", "schnappt nach Luft", "holt tief Luft", "ausatmet", "einatmet", "keucht", "stöhnt", "seufzt", "gaspst", "schnappt", "ringt nach Luft", "ist außer Atem", "ist keuchend", "ist schnaufend", "ist stöhnend", "ist seufzend"));
+        breath.put("en", Arrays.asList("inhales", "exhales", "gasp", "takes deep breath", "breathes out", "breathes in", "pants", "moans", "sighs", "gasp", "snaps", "gasp for air", "out of breath", "panting", "puffing", "moaning", "sighing"));
+        
+        // Voice
+        Map<String, List<String>> voice = new HashMap<>();
+        voice.put("de", Arrays.asList("hohe Stimme", "tiefe Stimme", "sanft", "laut", "leise", "rau", "heiser", "klar", "dunkel", "hell", "warm", "kalt", "weich", "hart", "nasal", "brummend", "zitternd", "bebt", "zittert", "erschüttert", "vibriert", "resoniert", "nachhallend", "echoend", "metallisch", "holzig", "erdig", "luftig", "ätherisch", "geistig", "irdisch", "himmlisch", "menschlich", "göttlich", "dämonisch", "engelhaft", "tierisch", "maschinell", "roboterhaft", "synthetisch", "künstlich", "natürlich", "organisch", "lebendig", "belebt", "beseelt", "geistvoll", "charismatisch", "magnetisch", "anziehend", "abweisend", "kühl", "distanziert", "nah", "intim", "persönlich", "direkt"));
+        voice.put("en", Arrays.asList("high voice", "low voice", "soft", "loud", "quiet", "rough", "hoarse", "clear", "dark", "bright", "warm", "cold", "soft", "hard", "nasal", "rumbling", "trembling", "shaking", "quivering", "shuddering", "vibrating", "resonating", "reverberating", "echoing", "metallic", "wooden", "earthy", "airy", "ethereal", "spiritual", "earthly", "heavenly", "human", "divine", "demonic", "angelic", "animalistic", "mechanical", "robotic", "synthetic", "artificial", "natural", "organic", "alive", "animated", "ensouled", "spiritful", "charismatic", "magnetic", "attractive", "repellent", "cool", "distant", "close", "intimate", "personal", "direct"));
+        
+        data.categories.put("emotion", emotion);
+        data.categories.put("delivery", delivery);
+        data.categories.put("action", action);
+        data.categories.put("breath", breath);
+        data.categories.put("voice", voice);
+        
+        // customTags bleibt leer für neue Projekte
+        data.customTags.clear();
+        
+        return data;
+    }
+    
+    private AudioTagsData createDefaultAudioTags() {
+        AudioTagsData data = new AudioTagsData();
+        
+        // Emotionen
+        Map<String, List<String>> emotion = new HashMap<>();
+        emotion.put("de", Arrays.asList("überrascht", "besorgt", "nachdenklich", "genervt", "aufgeregt", "selbstbewusst", "nervös", "ungläubig", "neugierig", "verärgert", "fröhlich", "traurig", "wütend", "ängstlich", "verliebt", "eifersüchtig", "stolz", "beschämt", "hoffnungsvoll", "enttäuscht", "gelangweilt", "begeistert", "ruhig", "panisch", "zögerlich", "entschlossen", "zweifelnd", "erleichtert", "bescheiden", "arrogant", "freundlich", "feindselig", "neutral"));
+        emotion.put("en", Arrays.asList("surprised", "concerned", "thoughtful", "annoyed", "excited", "confident", "nervously", "disbelief", "curious", "exasperated", "happy", "sad", "angry", "scared", "in love", "jealous", "proud", "ashamed", "hopeful", "disappointed", "bored", "enthusiastic", "calm", "panicked", "hesitant", "determined", "doubtful", "relieved", "humble", "arrogant", "friendly", "hostile", "neutral"));
+        
+        // Delivery
+        Map<String, List<String>> delivery = new HashMap<>();
+        delivery.put("de", Arrays.asList("flüstert", "flüstern", "ruhig", "streng", "leise", "fest", "schnell", "langsam", "betont", "monoton", "dramatisch", "ironisch", "sarkastisch", "ernst", "heiter", "nachdrücklich", "zögerlich", "selbstsicher", "unsicher", "laut", "leise", "klar", "verschwommen", "emotional", "sachlich", "warm", "kalt"));
+        delivery.put("en", Arrays.asList("whisper", "whispering", "calmly", "sternly", "softly", "firmly", "quickly", "slowly", "emphatic", "monotonous", "dramatic", "ironic", "sarcastic", "serious", "cheerful", "emphatically", "hesitant", "confident", "uncertain", "loudly", "quietly", "clearly", "muffled", "emotional", "factual", "warm", "cold"));
+        
+        // Action
+        Map<String, List<String>> action = new HashMap<>();
+        action.put("de", Arrays.asList("seufzt", "kichert", "räuspert sich", "gaspst", "niest", "schnellt ein", "miaut", "schnurrt", "zieht", "zuckt", "lacht", "weint", "schreit", "brüllt", "jammert", "flucht", "singt", "hummt", "pfeift", "gähnt", "schluckt", "stöhnt", "knurrt", "faucht", "zischt", "grunzt", "quakt", "kreischt", "ruft", "brummt", "murmelt", "schnattert"));
+        action.put("en", Arrays.asList("sighs", "chuckles", "clears throat", "gasps", "sneezes", "inhales sharply", "meows", "purring", "pulling", "shrugs", "laughs", "cries", "screams", "shouts", "whimpers", "swears", "sings", "hums", "whistles", "yawns", "swallows", "groans", "growls", "hisses", "grunts", "croaks", "screams", "calls", "mumbles", "murmurs", "babbles"));
+        
+        // Breath
+        Map<String, List<String>> breath = new HashMap<>();
+        breath.put("de", Arrays.asList("atmet ein", "atmet aus", "schnappt nach Luft", "holt tief Luft", "ausatmet", "einatmet", "keucht", "stöhnt", "seufzt", "gaspst", "schnappt", "ringt nach Luft", "ist außer Atem", "ist keuchend", "ist schnaufend", "ist stöhnend", "ist seufzend"));
+        breath.put("en", Arrays.asList("inhales", "exhales", "gasp", "takes deep breath", "breathes out", "breathes in", "pants", "moans", "sighs", "gasp", "snaps", "gasp for air", "out of breath", "panting", "puffing", "moaning", "sighing"));
+        
+        // Voice
+        Map<String, List<String>> voice = new HashMap<>();
+        voice.put("de", Arrays.asList("hohe Stimme", "tiefe Stimme", "sanft", "laut", "leise", "rau", "heiser", "klar", "dunkel", "hell", "warm", "kalt", "weich", "hart", "nasal", "brummend", "zitternd", "bebt", "zittert", "erschüttert", "vibriert", "resoniert", "nachhallend", "echoend", "metallisch", "holzig", "erdig", "luftig", "ätherisch", "geistig", "irdisch", "himmlisch", "menschlich", "göttlich", "dämonisch", "engelhaft", "tierisch", "maschinell", "roboterhaft", "synthetisch", "künstlich", "natürlich", "organisch", "lebendig", "belebt", "beseelt", "geistvoll", "charismatisch", "magnetisch", "anziehend", "abweisend", "kühl", "distanziert", "nah", "intim", "persönlich", "direkt"));
+        voice.put("en", Arrays.asList("high voice", "low voice", "soft", "loud", "quiet", "rough", "hoarse", "clear", "dark", "bright", "warm", "cold", "soft", "hard", "nasal", "rumbling", "trembling", "shaking", "quivering", "shuddering", "vibrating", "resonating", "reverberating", "echoing", "metallic", "wooden", "earthy", "airy", "ethereal", "spiritual", "earthly", "heavenly", "human", "divine", "demonic", "angelic", "animalistic", "mechanical", "robotic", "synthetic", "artificial", "natural", "organic", "alive", "animated", "ensouled", "spiritful", "charismatic", "magnetic", "attractive", "repellent", "cool", "distant", "close", "intimate", "personal", "direct"));
+        
+        data.categories.put("emotion", emotion);
+        data.categories.put("delivery", delivery);
+        data.categories.put("action", action);
+        data.categories.put("breath", breath);
+        data.categories.put("voice", voice);
+        
+        // Speichere Standard-Tags
+        saveAudioTags(data);
+        
+        return data;
+    }
+    
+    private void saveAudioTags(AudioTagsData data) {
+        if (audioTagsPath == null) {
+            logger.warn("audioTagsPath ist null - kann nicht speichern!");
+            return;
+        }
+        try {
+            Files.createDirectories(audioTagsPath.getParent());
+            com.google.gson.Gson gson = new com.google.gson.GsonBuilder().setPrettyPrinting().create();
+            String json = gson.toJson(data);
+            Files.writeString(audioTagsPath, json, StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            logger.warn("Audio-Tags konnten nicht gespeichert werden: {}", audioTagsPath, e);
+        }
+    }
+    
+    /** Erstellt das Audio-Tags ContextMenu mit Filterung */
+    private void createAudioTagMenu() {
+        // ListView statt ContextMenu für bessere Tastatur-Navigation
+        audioTagListView = new ListView<>();
+        audioTagListView.setMaxWidth(400);
+        audioTagListView.setMaxHeight(300);
+        audioTagListView.getStyleClass().add("audio-tag-list");
+        
+        // Filter-Feld
+        audioTagFilterField = new TextField();
+        audioTagFilterField.setPromptText("Tags filtern...");
+        audioTagFilterField.getStyleClass().add("text-input");
+        
+        // Checkbox für "Zum nächsten Dialog springen?"
+        jumpToNextDialogCheckBox = new CheckBox("Zum nächsten Dialog springen?");
+        jumpToNextDialogCheckBox.setSelected(jumpToNextDialog);
+        jumpToNextDialogCheckBox.getStyleClass().add("macro-checkbox");
+        
+        // Event-Handler für Checkbox
+        jumpToNextDialogCheckBox.setOnAction(e -> {
+            jumpToNextDialog = jumpToNextDialogCheckBox.isSelected();
+        });
+        
+        // VBox mit Checkbox, Filter und ListView
+        popupContent = new VBox(5);
+        popupContent.getChildren().addAll(jumpToNextDialogCheckBox, audioTagFilterField, audioTagListView);
+        popupContent.getStyleClass().add("audio-tag-popup");
+        
+        // Popup erstellen
+        audioTagPopup = new Popup();
+        audioTagPopup.getContent().add(popupContent);
+        audioTagPopup.setAutoHide(true);
+        audioTagPopup.setHideOnEscape(true);
+        
+        // Event-Handler für Filterung
+        audioTagFilterField.textProperty().addListener((obs, oldVal, newVal) -> {
+            lastAudioTagFilter = newVal.toLowerCase();
+            updateAudioTagMenuItems();
+        });
+        
+        // Pfeil-unten im Filterfeld wechselt zur ListView
+        audioTagFilterField.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.DOWN && !audioTagListView.getItems().isEmpty()) {
+                audioTagListView.requestFocus();
+                if (audioTagListView.getSelectionModel().getSelectedIndex() < 0) {
+                    audioTagListView.getSelectionModel().select(0);
+                }
+                event.consume();
+            }
+        });
+        
+        // ENTER-Handler für das ganze Popup (nicht nur für Filterfeld)
+        popupContent.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.ENTER) {
+                // Prüfen ob das Filterfeld den Fokus hat
+                if (audioTagFilterField.isFocused()) {
+                    String selectedItem = audioTagListView.getSelectionModel().getSelectedItem();
+                    
+                    if (selectedItem != null && !selectedItem.isEmpty()) {
+                        // Selektiertes Item verwenden (mit Klammern wenn nötig)
+                        String tagToInsert = selectedItem;
+                        if (!tagToInsert.startsWith("[")) {
+                            tagToInsert = "[" + tagToInsert;
+                        }
+                        if (!tagToInsert.endsWith("]")) {
+                            tagToInsert = tagToInsert + "]";
+                        }
+                        insertAudioTag(tagToInsert);
+                        audioTagPopup.hide();
+                    } else {
+                        // Keine Auswahl → neuen Tag aus Filtertext erstellen
+                        String inputText = audioTagFilterField.getText().trim();
+                        if (!inputText.isEmpty()) {
+                            // Neues Tag permanent speichern (ohne Klammern)
+                            AudioTagsData audioTags = loadAudioTags();
+                            audioTags.addCustomTag(inputText);
+                            saveAudioTags(audioTags);
+                            
+                            // Tag direkt zur ListView hinzufügen (ohne Klammern)
+                            audioTagListView.getItems().add(inputText);
+                            
+                            // Tag MIT Klammern einfügen und Popup schließen
+                            String tagToInsert = inputText;
+                            if (!tagToInsert.startsWith("[")) {
+                                tagToInsert = "[" + tagToInsert;
+                            }
+                            if (!tagToInsert.endsWith("]")) {
+                                tagToInsert = tagToInsert + "]";
+                            }
+                            insertAudioTagWithoutJump(tagToInsert);
+                            audioTagPopup.hide();
+                        }
+                    }
+                    event.consume();
+                }
+            }
+        });
+        
+        // ListView Tastatur-Navigation (Pfeiltasten ermöglichen)
+        audioTagListView.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.ENTER) {
+                // Ausgewähltes Item einfügen
+                String selectedItem = audioTagListView.getSelectionModel().getSelectedItem();
+                if (selectedItem != null && !selectedItem.isEmpty()) {
+                    String tagToInsert = selectedItem;
+                    if (!tagToInsert.startsWith("[")) {
+                        tagToInsert = "[" + tagToInsert;
+                    }
+                    if (!tagToInsert.endsWith("]")) {
+                        tagToInsert = tagToInsert + "]";
+                    }
+                    insertAudioTag(tagToInsert);
+                    audioTagPopup.hide();
+                }
+                event.consume();
+            } else if (event.getCode() == KeyCode.UP || event.getCode() == KeyCode.DOWN) {
+                // Standard-Navigation erlauben
+                event.consume();
+            } else if (event.getCode() == KeyCode.DELETE) {
+                // DELETE nur behandeln wenn ListView den Fokus hat
+                String selectedItem = audioTagListView.getSelectionModel().getSelectedItem();
+                if (selectedItem != null) {
+                    boolean confirmed = showDeleteConfirmationDialog(selectedItem);
+                    if (confirmed) {
+                        deleteAudioTag(selectedItem);
+                        audioTagPopup.hide();
+                    }
+                }
+                event.consume(); // IMMER konsumieren!
+            }
+        });
+        
+        // Maus-Klick Handler
+        audioTagListView.setOnMouseClicked(event -> {
+            if (event.getClickCount() == 1) {
+                String selectedItem = audioTagListView.getSelectionModel().getSelectedItem();
+                if (selectedItem != null) {
+                    insertAudioTag(selectedItem);
+                    audioTagPopup.hide();
+                }
+            }
+        });
+        
+        // Menü-Items initialisieren
+        updateAudioTagMenuItems();
+    }
+    
+    /** Aktualisiert die Menu-Items basierend auf dem Filter */
+    private void updateAudioTagMenuItems() {
+        AudioTagsData audioTags = loadAudioTags();
+        
+        // Performance: Maximale Anzahl pro Kategorie
+        final int MAX_RESULTS_PER_CATEGORY = 20;
+        final int MAX_TOTAL_RESULTS = 50;
+        
+        ObservableList<String> allTags = FXCollections.observableArrayList();
+        
+        // Sprecher-Tags aus Regieanweisungen zuerst
+        List<RegieanweisungEntry> speakerTags = new ArrayList<>();
+        for (RegieanweisungEntry entry : regieanweisungenItems) {
+            if (entry.isSpeaker && !entry.speakerName.isEmpty()) {
+                String displayText = entry.speakerName; // Ohne Doppelpunkt für Anzeige
+                if (displayText.toLowerCase().contains(lastAudioTagFilter)) {
+                    speakerTags.add(entry);
+                }
+            }
+        }
+
+        // Zuletzt benutzte/neue Sprecher zuerst
+        speakerTags.sort(Comparator
+            .comparingLong((RegieanweisungEntry e) -> e.lastUsed)
+            .reversed()
+            .thenComparing(e -> e.speakerName != null ? e.speakerName : "", String.CASE_INSENSITIVE_ORDER));
+
+        // Sprecher-Tags hinzufügen (duplikatfrei nach Sprechername)
+        Set<String> addedSpeakers = new LinkedHashSet<>();
+        for (RegieanweisungEntry entry : speakerTags) {
+            String displayText = entry.speakerName; // Ohne Doppelpunkt für Anzeige
+            if (!addedSpeakers.add(displayText.toLowerCase(Locale.ROOT))) continue;
+            allTags.add(displayText);
+            if (addedSpeakers.size() >= MAX_RESULTS_PER_CATEGORY) break;
+            if (allTags.size() >= MAX_TOTAL_RESULTS) break;
+        }
+        
+        // API-Tags aus Audio-Tags Datei (mit Limit)
+        List<String> apiTags = new ArrayList<>();
+        int apiCount = 0;
+        for (Map<String, List<String>> langMap : audioTags.categories.values()) {
+            for (List<String> tagList : langMap.values()) {
+                for (String tag : tagList) {
+                    if (tag.toLowerCase().contains(lastAudioTagFilter)) {
+                        apiTags.add(tag);
+                        apiCount++;
+                        if (apiCount >= MAX_RESULTS_PER_CATEGORY) break;
+                    }
+                }
+                if (apiCount >= MAX_RESULTS_PER_CATEGORY) break;
+            }
+            if (apiCount >= MAX_RESULTS_PER_CATEGORY) break;
+        }
+        
+        // API-Tags alphabetisch sortieren und hinzufügen
+        Collections.sort(apiTags, String.CASE_INSENSITIVE_ORDER);
+        for (String tag : apiTags) {
+            allTags.add(tag);
+            if (allTags.size() >= MAX_TOTAL_RESULTS) break;
+        }
+        
+        // Normale Regieanweisungen (nicht-Sprecher) - mit Limit
+        List<RegieanweisungEntry> normalTags = new ArrayList<>();
+        for (RegieanweisungEntry entry : regieanweisungenItems) {
+            if (!entry.isSpeaker && entry.text.toLowerCase().contains(lastAudioTagFilter)) {
+                normalTags.add(entry);
+                if (normalTags.size() >= MAX_RESULTS_PER_CATEGORY) break;
+            }
+        }
+        
+        // Normale Tags alphabetisch sortieren und hinzufügen
+        normalTags.sort((a, b) -> a.text.compareToIgnoreCase(b.text));
+        for (RegieanweisungEntry entry : normalTags) {
+            String displayText = entry.isSpeaker ? entry.speakerName + ":" : entry.text;
+            allTags.add(displayText);
+            if (allTags.size() >= MAX_TOTAL_RESULTS) break;
+        }
+        
+        // Custom Tags hinzufügen (benutzerdefinierte Audio-Tags)
+        if (audioTags.customTags != null && !audioTags.customTags.isEmpty()) {
+            for (String customTag : audioTags.customTags) {
+                if (customTag != null && !customTag.trim().isEmpty() && 
+                    customTag.toLowerCase().contains(lastAudioTagFilter)) {
+                    allTags.add(customTag);
+                    if (allTags.size() >= MAX_TOTAL_RESULTS) break;
+                }
+            }
+        }
+        
+        // ListView aktualisieren
+        audioTagListView.setItems(allTags);
+        
+        // Auswahl wiederherstellen
+        if (lastSelectedIndex >= 0 && lastSelectedIndex < allTags.size()) {
+            audioTagListView.getSelectionModel().select(lastSelectedIndex);
+            // Sicherstellen dass ausgewähltes Element sichtbar ist
+            audioTagListView.scrollTo(lastSelectedIndex);
+        } else if (!allTags.isEmpty()) {
+            // Erstes Element auswählen wenn nichts ausgewählt
+            audioTagListView.getSelectionModel().select(0);
+            lastSelectedIndex = 0;
+        }
+    }
+    
+    /** Aktualisiert die visuelle Auswahl-Hervorhebung */
+    private void updateSelectionHighlight() {
+        // Alle Hervorhebungen entfernen
+        for (int i = 2; i < audioTagMenu.getItems().size(); i++) {
+            audioTagMenu.getItems().get(i).getStyleClass().remove("selected");
+        }
+        
+        // Aktuelle Auswahl hervorheben
+        if (lastSelectedIndex >= 0 && lastSelectedIndex < audioTagMenuItems.size()) {
+            audioTagMenu.getItems().get(lastSelectedIndex + 2).getStyleClass().add("selected");
+        }
+    }
+    
+    /** Fügt den gewählten Tag an der Cursor-Position ein */
+    private void insertAudioTag(String tag) {
+        if (codeArea == null) return;
+        
+        int caretPos = codeArea.getCaretPosition();
+        
+        // Prüfen ob es ein Sprecher-Tag ist (ohne Doppelpunkt angezeigt)
+        for (RegieanweisungEntry entry : regieanweisungenItems) {
+            if (entry.isSpeaker && entry.speakerName.equals(tag)) {
+                // Sprecher-Tag einfügen, nicht nur den Namen!
+                tag = entry.getInsertText(); // z.B. "[sprecher:anna]"
+                break;
+            }
+        }
+        
+        codeArea.insertText(caretPos, tag);
+        
+        // Auswahl speichern
+        lastSelectedIndex = audioTagListView.getSelectionModel().getSelectedIndex();
+        
+        // Zum nächsten Dialog springen wenn Checkbox aktiviert
+        if (jumpToNextDialog) {
+            jumpToNextOpeningQuote();
+        }
+    }
+    
+    /** Fügt ein Tag ein ohne zum nächsten Dialog zu springen (für neue Tags) */
+    private void insertAudioTagWithoutJump(String tag) {
+        if (codeArea == null) return;
+        
+        int caretPos = codeArea.getCaretPosition();
+        
+        // Prüfen ob es ein Sprecher-Tag ist (ohne Doppelpunkt angezeigt)
+        for (RegieanweisungEntry entry : regieanweisungenItems) {
+            if (entry.isSpeaker && entry.speakerName.equals(tag)) {
+                // Sprecher-Tag einfügen, nicht nur den Namen!
+                tag = entry.getInsertText(); // z.B. "[sprecher:anna]"
+                break;
+            }
+        }
+        
+        codeArea.insertText(caretPos, tag);
+        
+        // Auswahl speichern
+        lastSelectedIndex = audioTagListView.getSelectionModel().getSelectedIndex();
+        
+        // NICHT zum nächsten Dialog springen bei neuen Tags
+    }
+    
+    /** Springt zum nächsten öffnenden Anführungszeichen */
+    private void jumpToNextOpeningQuote() {
+        String text = codeArea.getText();
+        int currentPos = codeArea.getCaretPosition();
+        
+        // Alle öffnenden Anführungszeichen-Typen
+        char[] openingQuotes = {'"', '"', '»', '«'};
+        
+        // Nächstes öffnendes Anführungszeichen suchen
+        for (int i = currentPos + 1; i < text.length(); i++) {
+            char c = text.charAt(i);
+            
+            // Prüfen ob es ein öffnendes Anführungszeichen ist
+            boolean isOpeningQuote = false;
+            for (char opening : openingQuotes) {
+                if (c == opening) {
+                    isOpeningQuote = true;
+                    break;
+                }
+            }
+            
+            if (isOpeningQuote) {
+                // Prüfen ob es wirklich ein Dialoganfang ist (nicht schließend)
+                if (i == 0 || text.charAt(i - 1) == '\n' || text.charAt(i - 1) == ' ' || 
+                    text.charAt(i - 1) == '\r' || Character.isWhitespace(text.charAt(i - 1))) {
+                    // VOR das Anführungszeichen springen
+                    codeArea.moveTo(i);
+                    codeArea.requestFocus();
+                    return;
+                }
+            }
+        }
+        
+        // Kein weiteres Dialog gefunden, am Ende bleiben
+        codeArea.moveTo(text.length());
+        codeArea.requestFocus();
+    }
+    
+    
+    /** Zeigt das Audio-Tags Dialog als CustomStage mit Theme */
+    private void showAudioTagMenu() {
+        // Doppelte Leerzeichen entfernen
+        int caretPos = codeArea.getCaretPosition();
+        if (caretPos >= 2) {
+            String textBefore = codeArea.getText(caretPos - 2, caretPos);
+            if (textBefore.equals("  ")) {
+                codeArea.deleteText(caretPos - 2, caretPos);
+                caretPos = caretPos - 2; // Neue Cursor-Position
+            }
+        }
+        
+        // CustomStage erstellen
+        CustomStage dialog = new CustomStage();
+        dialog.setCustomTitle("Audio-Tags");
+        dialog.setResizable(false);
+        dialog.setWidth(400);
+        dialog.setHeight(500);
+        
+        // UI-Elemente mit CSS-Klassen
+        Label titleLabel = new Label("Audio-Tag auswählen oder erstellen:");
+        titleLabel.getStyleClass().add("dialog-title");
+        
+        audioTagFilterField = new TextField();
+        audioTagFilterField.setPromptText("Tag eingeben oder filtern...");
+        audioTagFilterField.getStyleClass().add("dialog-textfield");
+        
+        audioTagListView = new ListView<>();
+        audioTagListView.getStyleClass().add("dialog-listview");
+        
+        jumpToNextDialogCheckBox = new CheckBox("Zum nächsten Dialog springen");
+        jumpToNextDialogCheckBox.getStyleClass().add("dialog-checkbox");
+        
+        Button cancelButton = new Button("Abbrechen");
+        cancelButton.getStyleClass().add("secondary-button");
+        cancelButton.setOnAction(e -> dialog.close());
+        
+        // Layout mit CSS-Klassen
+        VBox root = new VBox(15);
+        root.setPadding(new Insets(25));
+        root.setAlignment(Pos.CENTER_LEFT);
+        root.getStyleClass().add("dialog-container");
+        root.getChildren().addAll(
+            titleLabel,
+            audioTagFilterField,
+            audioTagListView,
+            jumpToNextDialogCheckBox,
+            cancelButton
+        );
+        
+        // Scene mit CSS erstellen
+        Scene scene = new Scene(root);
+        String cssPath = ResourceManager.getCssResource("css/manuskript.css");
+        if (cssPath != null) {
+            scene.getStylesheets().add(cssPath);
+        }
+        
+        // Scene mit Titelleiste setzen
+        dialog.setSceneWithTitleBar(scene);
+        
+        // Theme setzen (NACH setSceneWithTitleBar!)
+        Preferences prefs = Preferences.userNodeForPackage(EditorWindow.class);
+        int currentTheme = prefs.getInt("main_window_theme", 0);
+        dialog.setFullTheme(currentTheme);
+        
+        // Event-Handler einrichten
+        setupAudioTagDialogHandlers(dialog);
+        
+        // Zustand wiederherstellen
+        audioTagFilterField.setText(lastAudioTagFilter);
+        jumpToNextDialogCheckBox.setSelected(jumpToNextDialog);
+        updateAudioTagMenuItems();
+        
+        // Dialog anzeigen
+        dialog.show();
+        
+        // Fokus auf Filter-Feld setzen
+        Platform.runLater(() -> audioTagFilterField.requestFocus());
+    }
+
+    private void setupAudioTagDialogHandlers(CustomStage dialog) {
+        // Event-Handler für Filterung
+        audioTagFilterField.textProperty().addListener((obs, oldVal, newVal) -> {
+            lastAudioTagFilter = newVal.toLowerCase();
+            updateAudioTagMenuItems();
+        });
+        
+        // Pfeil-unten im Filterfeld wechselt zur ListView
+        audioTagFilterField.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.DOWN && !audioTagListView.getItems().isEmpty()) {
+                audioTagListView.requestFocus();
+                if (audioTagListView.getSelectionModel().getSelectedIndex() < 0) {
+                    audioTagListView.getSelectionModel().select(0);
+                }
+                event.consume();
+            } else if (event.getCode() == KeyCode.ENTER) {
+                String selectedItem = audioTagListView.getSelectionModel().getSelectedItem();
+                if (selectedItem != null && !selectedItem.isEmpty()) {
+                    String tagToInsert = selectedItem;
+                    if (!tagToInsert.startsWith("[")) {
+                        tagToInsert = "[" + tagToInsert;
+                    }
+                    if (!tagToInsert.endsWith("]")) {
+                        tagToInsert = tagToInsert + "]";
+                    }
+                    insertAudioTag(tagToInsert);
+                    dialog.close();
+                } else {
+                    String inputText = audioTagFilterField.getText().trim();
+                    if (!inputText.isEmpty()) {
+                        AudioTagsData audioTags = loadAudioTags();
+                        audioTags.addCustomTag(inputText);
+                        saveAudioTags(audioTags);
+                        audioTagListView.getItems().add(inputText);
+                        String tagToInsert = inputText;
+                        if (!tagToInsert.startsWith("[")) {
+                            tagToInsert = "[" + tagToInsert;
+                        }
+                        if (!tagToInsert.endsWith("]")) {
+                            tagToInsert = tagToInsert + "]";
+                        }
+                        insertAudioTagWithoutJump(tagToInsert);
+                        dialog.close();
+                    }
+                }
+                event.consume();
+            }
+        });
+        
+        // ListView Handler
+        audioTagListView.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.ENTER) {
+                String selectedItem = audioTagListView.getSelectionModel().getSelectedItem();
+                if (selectedItem != null && !selectedItem.isEmpty()) {
+                    String tagToInsert = selectedItem;
+                    if (!tagToInsert.startsWith("[")) {
+                        tagToInsert = "[" + tagToInsert;
+                    }
+                    if (!tagToInsert.endsWith("]")) {
+                        tagToInsert = tagToInsert + "]";
+                    }
+                    insertAudioTag(tagToInsert);
+                    dialog.close();
+                }
+                event.consume();
+            } else if (event.getCode() == KeyCode.UP || event.getCode() == KeyCode.DOWN) {
+                event.consume();
+            } else if (event.getCode() == KeyCode.DELETE) {
+                String selectedItem = audioTagListView.getSelectionModel().getSelectedItem();
+                if (selectedItem != null) {
+                    boolean confirmed = showDeleteConfirmationDialog(selectedItem);
+                    if (confirmed) {
+                        deleteAudioTag(selectedItem);
+                        dialog.close();
+                    }
+                }
+                event.consume();
+            }
+        });
+        
+        // Maus-Klick Handler
+        audioTagListView.setOnMouseClicked(event -> {
+            if (event.getClickCount() == 1) {
+                String selectedItem = audioTagListView.getSelectionModel().getSelectedItem();
+                if (selectedItem != null) {
+                    String tagToInsert = selectedItem;
+                    if (!tagToInsert.startsWith("[")) {
+                        tagToInsert = "[" + tagToInsert;
+                    }
+                    if (!tagToInsert.endsWith("]")) {
+                        tagToInsert = tagToInsert + "]";
+                    }
+                    insertAudioTag(tagToInsert);
+                    dialog.close();
+                }
+            }
+        });
+    }
 
     private void collectRegieanweisungenFromText() {
         if (codeArea == null) return;
@@ -2219,6 +2940,8 @@ public class ChapterTtsEditorWindow {
             if (tags == null || tags.isBlank()) return 0;
             String toInsert = tags.trim() + " ";
             codeArea.insertText(speech.start, toInsert);
+            temporarySpeakerLastUsed.put(speakerName, System.currentTimeMillis());
+            if (speakersListView != null) updateSpeakersList(speakersListView);
             return toInsert.length();
         }
         
@@ -2232,7 +2955,9 @@ public class ChapterTtsEditorWindow {
             if (tags == null || tags.isBlank()) return 0;
             String toInsert = tags.trim() + " ";
             codeArea.insertText(speech.start, toInsert);
+            speakerEntry.lastUsed = System.currentTimeMillis();
             setStatus("Sprecher-Tags für " + speakerName + " eingefügt: " + tags);
+            if (speakersListView != null) updateSpeakersList(speakersListView);
             return toInsert.length();
         } else {
             System.out.println("DEBUG: Kein Sprecher-Eintrag gefunden für '" + speakerName + "'");
@@ -2281,20 +3006,45 @@ public class ChapterTtsEditorWindow {
     private void updateSpeakersList(ListView<String> listView) {
         ObservableList<String> speakers = FXCollections.observableArrayList();
         int index = 1;
-        
-        // Bekannte Sprecher aus Regieanweisungen (erkannt am "Name:" Format)
+
+        // Bekannte Sprecher aus Regieanweisungen: neu/zuletzt benutzt zuerst, duplikatfrei
+        List<RegieanweisungEntry> knownSpeakers = new ArrayList<>();
         for (RegieanweisungEntry entry : regieanweisungenItems) {
+            if (entry == null) continue;
+            if (entry.isSpeaker && entry.speakerName != null && !entry.speakerName.trim().isEmpty()) {
+                knownSpeakers.add(entry);
+                continue;
+            }
             if (entry.text != null && entry.text.contains(":")) {
-                String speakerName = entry.text.split(":", 2)[0].trim();
-                if (!speakerName.isEmpty()) {
-                    speakers.add(index + ". " + speakerName);
-                    index++;
+                String fallbackName = entry.text.split(":", 2)[0].trim();
+                if (!fallbackName.isEmpty()) {
+                    knownSpeakers.add(new RegieanweisungEntry(entry.text, entry.lastUsed, true, fallbackName));
                 }
             }
         }
+
+        knownSpeakers.sort(Comparator
+            .comparingLong((RegieanweisungEntry e) -> e.lastUsed)
+            .reversed()
+            .thenComparing(e -> e.speakerName != null ? e.speakerName : "", String.CASE_INSENSITIVE_ORDER));
+
+        Set<String> seenSpeakerNames = new LinkedHashSet<>();
+        for (RegieanweisungEntry entry : knownSpeakers) {
+            String speakerName = entry.speakerName != null ? entry.speakerName.trim() : "";
+            if (speakerName.isEmpty()) continue;
+            String speakerKey = speakerName.toLowerCase(Locale.ROOT);
+            if (!seenSpeakerNames.add(speakerKey)) continue;
+            speakers.add(index + ". " + speakerName);
+            index++;
+        }
         
-        // Temporäre Sprecher
-        for (String tempSpeaker : temporarySpeakers.keySet()) {
+        // Temporäre Sprecher: zuletzt genutzt/neu zuerst
+        List<String> sortedTempSpeakers = new ArrayList<>(temporarySpeakers.keySet());
+        sortedTempSpeakers.sort(Comparator
+            .comparingLong((String name) -> temporarySpeakerLastUsed.getOrDefault(name, 0L))
+            .reversed()
+            .thenComparing(String.CASE_INSENSITIVE_ORDER));
+        for (String tempSpeaker : sortedTempSpeakers) {
             speakers.add(index + ". " + tempSpeaker + " (temporär)");
             index++;
         }
@@ -2849,6 +3599,7 @@ public class ChapterTtsEditorWindow {
         Optional<SpeakerDefinition> result = showSpeakerDialog("Temporärer Sprecher", "Temporären Sprecher hinzufügen");
         result.ifPresent(def -> {
             temporarySpeakers.put(def.name, def.tags);
+            temporarySpeakerLastUsed.put(def.name, System.currentTimeMillis());
             if (speakersListView != null) updateSpeakersList(speakersListView);
             setStatus("Temporärer Sprecher gespeichert: " + def.name);
         });
@@ -2876,6 +3627,7 @@ public class ChapterTtsEditorWindow {
         }
         SpeakerDefinition def = result.get();
         temporarySpeakers.put(def.name, def.tags);
+        temporarySpeakerLastUsed.put(def.name, System.currentTimeMillis());
         if (speakersListView != null) updateSpeakersList(speakersListView);
         int delta = insertSpeakerTags(speech, def.name);
         if (delta > 0) {
@@ -3537,12 +4289,34 @@ public class ChapterTtsEditorWindow {
         scrollPane = new VirtualizedScrollPane<>(codeArea);
         scrollPane.setStyle("-fx-padding: 5px;");
 
-        // Bei Auswahländerung Highlight verzögert aktualisieren, damit Drag/Shift+Pfeil die Auswahl nicht sofort überschreiben (v. a. im Bearbeitungsmodus)
-        codeArea.selectionProperty().addListener((o, a, b) -> Platform.runLater(() -> {
-            refreshHighlight();
-            updateSelectionWordCount();
-            updateV3TagButtonState();
-        }));
+        // Doppelte Leertaste-Erkennung für Audio-Tags Autovervollständigung (in allen Modi)
+        codeArea.setOnKeyPressed(event -> {
+            // Nur bei Leertaste prüfen (in allen Modi)
+            if (event.getCode() != KeyCode.SPACE) {
+                return;
+            }
+            
+            long currentTime = System.currentTimeMillis();
+            if (currentTime - lastSpacePressTime < DOUBLE_SPACE_THRESHOLD_MS) {
+                // Doppelte Leertaste erkannt
+                event.consume(); // Verhindere dass Leertaste eingefügt wird
+                Platform.runLater(() -> showAudioTagMenu());
+            }
+            lastSpacePressTime = currentTime;
+        });
+
+        // Bei Auswahländerung Highlight mit starkem Debouncing aktualisieren, um Flackern zu reduzieren
+        final PauseTransition selectionDebounce = new PauseTransition(Duration.millis(150));
+        
+        codeArea.selectionProperty().addListener((o, a, b) -> {
+            selectionDebounce.stop(); // Alte Animation abbrechen
+            selectionDebounce.setOnFinished(e -> {
+                refreshHighlight();
+                updateSelectionWordCount();
+                updateV3TagButtonState();
+            });
+            selectionDebounce.playFromStart();
+        });
         updateSelectionWordCount();
         updateV3TagButtonState();
         codeArea.textProperty().addListener((o, oldText, newText) -> {
@@ -3639,13 +4413,17 @@ public class ChapterTtsEditorWindow {
 
         applyThemeToNode(codeArea, themeIndex);
         applyThemeToNode(scrollPane, themeIndex);
-        // Bei Scroll/Layout neu sichtbare Text-Nodes programmatisch für wörtliche Rede stylen (virtualisierter Flow: nur sichtbare Nodes existieren)
-        PauseTransition directSpeechDebouncer = new PauseTransition(Duration.millis(80));
+        // Bei echtem Layout-Change Text-Nodes für wörtliche Rede stylen (reduziert Flackern)
+        PauseTransition directSpeechDebouncer = new PauseTransition(Duration.millis(150));
         directSpeechDebouncer.setOnFinished(e -> applyDirectSpeechFillToSceneGraph(codeArea));
         Runnable scheduleDirectSpeechApply = () -> {
             directSpeechDebouncer.playFromStart();
         };
-        codeArea.layoutBoundsProperty().addListener((o, a, b) -> Platform.runLater(scheduleDirectSpeechApply));
+        codeArea.layoutBoundsProperty().addListener((o, a, b) -> {
+            if (a.getWidth() != b.getWidth() || a.getHeight() != b.getHeight()) {
+                Platform.runLater(scheduleDirectSpeechApply);
+            }
+        });
         // Beim Scrollen feuert layoutBounds oft nicht – ScrollBar-Listener erfassen
         scrollPane.sceneProperty().addListener((o, oldScene, newScene) -> {
             if (newScene == null) return;
@@ -3987,16 +4765,33 @@ public class ChapterTtsEditorWindow {
         }
     }
 
-    /** Setzt bei allen Text-Nodes mit Klasse tts-direct-speech programmatisch Fill und Font (CSS reicht bei RichTextFX nicht). */
+    /** Setzt bei Text-Nodes im TTS-Editor die Basisfarbe je Theme und für tts-direct-speech die Sonderfarbe. */
     private void applyDirectSpeechFillToSceneGraph(Node node) {
         if (node == null) return;
-        if (node.getStyleClass().contains("tts-direct-speech") && node instanceof Text) {
+        if (node instanceof Text) {
             Text t = (Text) node;
-            String colorHex = (themeIndex >= 0 && themeIndex < DIRECT_SPEECH_THEME_COLORS.length)
-                ? DIRECT_SPEECH_THEME_COLORS[themeIndex] : "#c2410c";
-            t.setFill(Color.web(colorHex));
-            Font f = t.getFont();
-            t.setFont(Font.font(f.getFamily(), FontWeight.BOLD, f.getSize()));
+            List<String> styleClasses = t.getStyleClass();
+            
+            // Selektion-Text-Nodes überspringen (verhindert Flackern)
+            if (styleClasses.contains("main-selection") || styleClasses.contains("selection") || 
+                styleClasses.contains("caret") || styleClasses.contains("highlight")) {
+                return;
+            }
+            
+            if (styleClasses.contains("tts-direct-speech")) {
+                String colorHex = (themeIndex >= 0 && themeIndex < DIRECT_SPEECH_THEME_COLORS.length)
+                    ? DIRECT_SPEECH_THEME_COLORS[themeIndex] : "#c2410c";
+                t.setFill(Color.web(colorHex));
+                Font f = t.getFont();
+                t.setFont(Font.font(f.getFamily(), FontWeight.BOLD, f.getSize()));
+            } else if (styleClasses.contains("text") && !styleClasses.contains("lineno")) {
+                int idx = Math.max(0, Math.min(themeIndex, THEMES.length - 1));
+                t.setFill(Color.web(THEMES[idx][1]));
+            } else {
+                // Fallback: Alle anderen Text-Nodes (z.B. bei Auswahl/Klick ohne 'text' Klasse)
+                int idx = Math.max(0, Math.min(themeIndex, THEMES.length - 1));
+                t.setFill(Color.web(THEMES[idx][1]));
+            }
         }
         if (node instanceof Parent) {
             for (Node child : ((Parent) node).getChildrenUnmodifiable()) {
@@ -7203,8 +7998,8 @@ public class ChapterTtsEditorWindow {
         String text = THEMES[idx][1];
         String style = String.format(
             "-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: %dpx; " +
-            "-rtfx-background-color: %s !important; -fx-text-fill: %s !important; -fx-caret-color: %s !important;",
-            fontSizePx, bg, text, text);
+            "-rtfx-background-color: %s !important; -fx-caret-color: %s !important;",
+            fontSizePx, bg, text);
         area.setStyle(style);
     }
 
@@ -7246,5 +8041,71 @@ public class ChapterTtsEditorWindow {
                                "oder besuchen Sie: https://www.comfy.org/download");
             alert.showAndWait();
         }
+    }
+    
+    /** Audio-Tags Kategorien für die Autovervollständigung */
+    public static class AudioTagsData {
+        public Map<String, Map<String, List<String>>> categories = new HashMap<>();
+        public List<String> customTags = new ArrayList<>();
+        public String version = "1.0";
+        public String last_updated = "2026-03-22";
+        
+        public List<String> getAllTags() {
+            List<String> allTags = new ArrayList<>();
+            for (Map<String, List<String>> langMap : categories.values()) {
+                for (List<String> tagList : langMap.values()) {
+                    allTags.addAll(tagList);
+                }
+            }
+            allTags.addAll(customTags);
+            return allTags;
+        }
+        
+        public void addCustomTag(String tag) {
+            if (!customTags.contains(tag)) {
+                customTags.add(tag);
+            }
+        }
+        
+        public void removeCustomTag(String tag) {
+            customTags.remove(tag);
+        }
+    }
+    
+    /** Zeigt Bestätigungsdialog zum Löschen eines Audio-Tags */
+    private boolean showDeleteConfirmationDialog(String tagName) {
+        CustomAlert alert = new CustomAlert(CustomAlert.AlertType.CONFIRMATION);
+        alert.setTitle("Audio-Tag löschen");
+        alert.setHeaderText("Möchtest du das Audio-Tag wirklich löschen?");
+        alert.setContentText("Das Tag \"" + tagName + "\" wird permanent aus der Liste entfernt.");
+        
+        // Theme-gerechte Gestaltung
+        applyThemeToNode(alert.getDialogPane(), themeIndex);
+        
+        ButtonType yesButton = new ButtonType("Löschen", ButtonBar.ButtonData.OK_DONE);
+        ButtonType noButton = new ButtonType("Abbrechen", ButtonBar.ButtonData.CANCEL_CLOSE);
+        alert.getButtonTypes().setAll(yesButton, noButton);
+        
+        Optional<ButtonType> result = alert.showAndWait();
+        return result.isPresent() && result.get() == yesButton;
+    }
+    
+    /** Löscht ein Audio-Tag permanent aus der Speicherdatei */
+    private void deleteAudioTag(String tagName) {
+        AudioTagsData audioTags = loadAudioTags();
+        
+        // Aus customTags entfernen
+        audioTags.removeCustomTag(tagName);
+        
+        // Aus allen Kategorien entfernen (falls es dort existiert)
+        for (Map<String, List<String>> langMap : audioTags.categories.values()) {
+            for (List<String> tagList : langMap.values()) {
+                tagList.remove(tagName);
+            }
+        }
+        
+        // Speichern
+        saveAudioTags(audioTags);
+        setStatus("Audio-Tag gelöscht: " + tagName);
     }
 }

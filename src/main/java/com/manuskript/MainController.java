@@ -952,8 +952,9 @@ public class MainController implements Initializable {
                 DocxFile fileToMove = selectedItems.get(0);
                 int currentIndex = selectedDocxFiles.indexOf(fileToMove);
                 
-                // Nur mit Strg-Taste für Umsortierung
-                if (event.isControlDown()) {
+                // Mit Cmd-Taste auf macOS, Strg-Taste auf anderen Systemen für Umsortierung
+                boolean modifierPressed = event.isControlDown() || event.isMetaDown();
+                if (modifierPressed) {
                     switch (event.getCode()) {
                         case UP:
                             if (currentIndex > 0) {
@@ -963,7 +964,8 @@ public class MainController implements Initializable {
                                 selectedDocxFiles.set(currentIndex, previousFile);
                                 tableViewSelected.getSelectionModel().select(fileToMove);
                                 tableViewSelected.refresh();
-                                updateStatus("Datei nach oben verschoben (Strg+↑)");
+                                String modifier = event.isMetaDown() ? "Cmd" : "Strg";
+                                updateStatus("Datei nach oben verschoben (" + modifier + "+↑)");
                                 
                                 // WICHTIG: Reihenfolge speichern
                                 File currentDir = getCurrentDirectory();
@@ -982,7 +984,8 @@ public class MainController implements Initializable {
                                 selectedDocxFiles.set(currentIndex, nextFile);
                                 tableViewSelected.getSelectionModel().select(fileToMove);
                                 tableViewSelected.refresh();
-                                updateStatus("Datei nach unten verschoben (Strg+↓)");
+                                String modifier = event.isMetaDown() ? "Cmd" : "Strg";
+                                updateStatus("Datei nach unten verschoben (" + modifier + "+↓)");
                                 
                                 // WICHTIG: Reihenfolge speichern
                                 File currentDir = getCurrentDirectory();

@@ -260,7 +260,6 @@
 
 .combo-box-popup .list-view .list-cell {
     -fx-background-color: transparent;
-    -fx-text-fill: #000000;
     -fx-padding: 8px 12px;
 }
 
@@ -3090,7 +3089,6 @@
     -fx-font-family: 'Consolas', 'Monaco', monospace;
     -fx-font-size: 12px;
     -rtfx-background-color: #ffffff;
-    -fx-text-fill: #000000;
     -fx-caret-color: #000000;
     -fx-highlight-fill: #add6ff;
     -fx-highlight-text-fill: #000000;
@@ -3125,6 +3123,27 @@
 .code-area.tts-edit-mode .paragraph-box .main-selection,
 .styled-text-area.tts-edit-mode .paragraph-box .main-selection {
     -fx-fill: transparent !important;
+}
+/* TTS-Editor: Textfarbe bei Selektion theme-gerecht halten (verhindert Schwarz bei Auswahl) */
+.theme-dark .tts-editor-code-area .main-selection .text,
+.tts-editor-code-area.theme-dark .main-selection .text {
+    -fx-fill: #ffffff !important;
+}
+.theme-dark.blau-theme .tts-editor-code-area .main-selection .text,
+.theme-dark.gruen-theme .tts-editor-code-area .main-selection .text,
+.theme-dark.lila-theme .tts-editor-code-area .main-selection .text,
+.tts-editor-code-area.theme-dark.blau-theme .main-selection .text,
+.tts-editor-code-area.theme-dark.gruen-theme .main-selection .text,
+.tts-editor-code-area.theme-dark.lila-theme .main-selection .text {
+    -fx-fill: #ffffff !important;
+}
+.weiss-theme .tts-editor-code-area .main-selection .text,
+.tts-editor-code-area.weiss-theme .main-selection .text {
+    -fx-fill: #000000 !important;
+}
+.pastell-theme .tts-editor-code-area .main-selection .text,
+.tts-editor-code-area.pastell-theme .main-selection .text {
+    -fx-fill: #000000 !important;
 }
 /* Abwechselnde Segment-Highlights (tabellenartig) */
 .tts-saved-even {
@@ -3338,7 +3357,6 @@
 /* Theme-spezifische CodeArea-Styles */
 .theme-dark .code-area {
     -rtfx-background-color: #1a1a1a;
-    -fx-text-fill: #ffffff;
     -fx-caret-color: #ffffff;
     -fx-border-color: #4a5568;
     -fx-border-width: 1px;
@@ -3346,19 +3364,27 @@
 }
 
 /* RichTextFX: tatsächliche Textfarbe ( .text verwendet -fx-fill ) */
-.theme-dark .code-area .text {
+/* WICHTIG: Markdown-Klassen ausgeschlossen, damit ihre Farben gelten */
+/* TTS-Editor: Theme-gerechte Textfarbe - spezifische Regeln zuerst! */
+.theme-dark .tts-editor-code-area .text:not(.tts-direct-speech),
+.tts-editor-code-area.theme-dark .text:not(.tts-direct-speech) {
     -fx-fill: #ffffff !important;
 }
-.weiss-theme .code-area .text {
-    -fx-fill: #000000 !important;
-}
-.pastell-theme .code-area .text {
-    -fx-fill: #000000 !important;
-}
-.theme-dark.blau-theme .code-area .text,
-.theme-dark.gruen-theme .code-area .text,
-.theme-dark.lila-theme .code-area .text {
+.theme-dark.blau-theme .tts-editor-code-area .text:not(.tts-direct-speech),
+.theme-dark.gruen-theme .tts-editor-code-area .text:not(.tts-direct-speech),
+.theme-dark.lila-theme .tts-editor-code-area .text:not(.tts-direct-speech),
+.tts-editor-code-area.theme-dark.blau-theme .text:not(.tts-direct-speech),
+.tts-editor-code-area.theme-dark.gruen-theme .text:not(.tts-direct-speech),
+.tts-editor-code-area.theme-dark.lila-theme .text:not(.tts-direct-speech) {
     -fx-fill: #ffffff !important;
+}
+.weiss-theme .tts-editor-code-area .text:not(.tts-direct-speech),
+.tts-editor-code-area.weiss-theme .text:not(.tts-direct-speech) {
+    -fx-fill: #000000 !important;
+}
+.pastell-theme .tts-editor-code-area .text:not(.tts-direct-speech),
+.tts-editor-code-area.pastell-theme .text:not(.tts-direct-speech) {
+    -fx-fill: #000000 !important;
 }
 
 /* RichTextFX CodeArea VirtualizedScrollPane Scrollbalken - Blau Theme */
@@ -3386,7 +3412,6 @@
 
 .theme-dark.blau-theme .code-area {
     -rtfx-background-color: #1e3a8a;
-    -fx-text-fill: #ffffff;
     -fx-caret-color: #ffffff;
     -fx-border-color: #3b82f6;
     -fx-border-width: 1px;
@@ -3418,7 +3443,6 @@
 
 .theme-dark.gruen-theme .code-area {
     -rtfx-background-color: #064e3b;
-    -fx-text-fill: #ffffff;
     -fx-caret-color: #ffffff;
     -fx-border-color: #10b981;
     -fx-border-width: 1px;
@@ -3450,7 +3474,6 @@
 
 .theme-dark.lila-theme .code-area {
     -rtfx-background-color: #581c87;
-    -fx-text-fill: #ffffff;
     -fx-caret-color: #ffffff;
     -fx-border-color: #8b5cf6;
     -fx-border-width: 1px;

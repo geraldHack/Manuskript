@@ -44,30 +44,10 @@ public final class TtsBackend {
      */
     private static ElevenLabsClient.PronunciationDictionaryLocator ensurePronunciationDictionary(
             ElevenLabsClient client, Map<String, String> lexicon) {
-        if (lexicon == null || lexicon.isEmpty()) return null;
-        int hash = lexicon.hashCode();
-        if (cachedDictLocator != null && hash == cachedLexiconHash) {
-            return cachedDictLocator;
-        }
-        try {
-            // Altes Dictionary loeschen (falls vorhanden)
-            if (cachedDictId != null) {
-                client.deletePronunciationDictionary(cachedDictId);
-                cachedDictId = null;
-                cachedDictLocator = null;
-            }
-            String plsXml = ElevenLabsClient.buildPlsXml(lexicon);
-            ElevenLabsClient.PronunciationDictionaryLocator loc =
-                    client.uploadPronunciationDictionary(plsXml, "Manuskript-Lexikon");
-            cachedDictLocator = loc;
-            cachedLexiconHash = hash;
-            cachedDictId = loc.dictionaryId;
-            logger.info("ElevenLabs Pronunciation Dictionary aktualisiert: {} ({} Eintraege)", loc.dictionaryId, lexicon.size());
-            return loc;
-        } catch (Exception e) {
-            logger.warn("ElevenLabs Pronunciation Dictionary Upload fehlgeschlagen - clientseitige Ersetzung wird verwendet: {}", e.getMessage());
-            return null;
-        }
+        // ElevenLabs Pronunciation Dictionary Upload deaktiviert - funktioniert nicht zuverlässig
+        // Clientseitige Ersetzung wird stattdessen verwendet
+        logger.debug("ElevenLabs Pronunciation Dictionary Upload deaktiviert - verwende clientseitige Ersetzung");
+        return null;
     }
 
     /**

@@ -1347,24 +1347,64 @@ public class CustomStage extends Stage {
     /**
      * Speichert die aktuelle Fenstergröße und Position.
      */
+    private String getWindowType() {
+        // Bestimme den Fenstertyp basierend auf Titel oder Größe
+        String title = getTitle();
+        if (title != null) {
+            if (title.contains("Manuskript") && !title.contains("-")) {
+                return "main";
+            } else if (title.contains("Sprachsynthese")) {
+                return "tts";
+            } else if (title.contains("Debug")) {
+                return "debug";
+            } else if (title.contains("Kapitel-Editor")) {
+                return "editor";
+            } else if (title.contains("Lektorat")) {
+                return "lektorat";
+            }
+        }
+        
+        // Fallback basierend auf Größe
+        if (getWidth() > 1200) {
+            return "main";
+        } else if (getWidth() > 800) {
+            return "editor";
+        } else {
+            return "dialog";
+        }
+    }
+
     private void saveWindowSize() {
         try {
             Screen currentScreen = getCurrentScreen();
             String screenId = "screen_" + currentScreen.hashCode();
+            
+            // Fenster-Typ für eindeutige Keys
+            String windowType = getWindowType();
+            String prefix = windowType + ".";
 
+            // Lade existierende Properties
             java.util.Properties props = new java.util.Properties();
-            props.setProperty("window.width", String.valueOf(getWidth()));
-            props.setProperty("window.height", String.valueOf(getHeight()));
-            props.setProperty("window.x", String.valueOf(getX()));
-            props.setProperty("window.y", String.valueOf(getY()));
-            props.setProperty("last.screen", screenId);
-
-            props.setProperty(screenId + ".width", String.valueOf(getWidth()));
-            props.setProperty(screenId + ".height", String.valueOf(getHeight()));
-            props.setProperty(screenId + ".x", String.valueOf(getX()));
-            props.setProperty(screenId + ".y", String.valueOf(getY()));
-
             java.io.File configFile = new java.io.File(System.getProperty("user.home"), ".manuskript_window.properties");
+            if (configFile.exists()) {
+                try (java.io.FileInputStream fis = new java.io.FileInputStream(configFile)) {
+                    props.load(fis);
+                }
+            }
+
+            // Speichere nur die Werte dieses Fensters
+            props.setProperty(prefix + "width", String.valueOf(getWidth()));
+            props.setProperty(prefix + "height", String.valueOf(getHeight()));
+            props.setProperty(prefix + "x", String.valueOf(getX()));
+            props.setProperty(prefix + "y", String.valueOf(getY()));
+            props.setProperty(prefix + "last.screen", screenId);
+
+            // Screen-spezifische Werte auch speichern
+            props.setProperty(screenId + "." + windowType + ".width", String.valueOf(getWidth()));
+            props.setProperty(screenId + "." + windowType + ".height", String.valueOf(getHeight()));
+            props.setProperty(screenId + "." + windowType + ".x", String.valueOf(getX()));
+            props.setProperty(screenId + "." + windowType + ".y", String.valueOf(getY()));
+
             try (java.io.FileOutputStream fos = new java.io.FileOutputStream(configFile)) {
                 props.store(fos, "Manuskript Window Settings");
             }
@@ -1396,12 +1436,20 @@ public class CustomStage extends Stage {
             
             var currentScreen = getCurrentScreen();
             String screenId = "screen_" + currentScreen.hashCode();
+            String windowType = getWindowType();
+            String prefix = windowType + ".";
             
             // Versuche zuerst screen-spezifische Werte zu laden
-            String widthStr = props.getProperty(screenId + ".width");
-            String heightStr = props.getProperty(screenId + ".height");
-            String xStr = props.getProperty(screenId + ".x");
-            String yStr = props.getProperty(screenId + ".y");
+            String widthStr = props.getProperty(screenId + "." + windowType + ".width");
+            String heightStr = props.getProperty(screenId + "." + windowType + ".height");
+            String xStr = props.getProperty(screenId + "." + windowType + ".x");
+            String yStr = props.getProperty(screenId + "." + windowType + ".y");
+            
+            // Fallback auf allgemeine Werte
+            if (widthStr == null) widthStr = props.getProperty(prefix + "width");
+            if (heightStr == null) heightStr = props.getProperty(prefix + "height");
+            if (xStr == null) xStr = props.getProperty(prefix + "x");
+            if (yStr == null) yStr = props.getProperty(prefix + "y");
             
             double width = widthStr != null ? Double.parseDouble(widthStr) : 800;
             double height = heightStr != null ? Double.parseDouble(heightStr) : 600;

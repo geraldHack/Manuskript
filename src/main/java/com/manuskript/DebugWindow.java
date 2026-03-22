@@ -176,11 +176,11 @@ public class DebugWindow {
         
         // Manuskript-Log
         VBox manuskriptContainer = createLogContainer("Manuskript Log", true);
-        manuskriptLogArea = (TextArea) manuskriptContainer.getChildren().get(1);
+        manuskriptLogArea = (TextArea) manuskriptContainer.getChildren().get(2);
         
         // Debug-Log
         VBox debugContainer = createLogContainer("Debug Log", false);
-        debugLogArea = (TextArea) debugContainer.getChildren().get(1);
+        debugLogArea = (TextArea) debugContainer.getChildren().get(2);
         
         splitPane.getItems().addAll(manuskriptContainer, debugContainer);
         VBox.setVgrow(splitPane, Priority.ALWAYS);
@@ -553,10 +553,21 @@ public class DebugWindow {
         textArea.getStyleClass().add("log-area");
         textArea.setStyle("-fx-font-family: 'Consolas', 'Monaco', 'Courier New', monospace; -fx-font-size: 11px;");
         
+        // Clear-Button hinzufügen
+        Button clearButton = new Button("Löschen");
+        clearButton.setPrefWidth(80);
+        clearButton.setOnAction(e -> {
+            if (isManuskript && manuskriptLogArea != null) {
+                manuskriptLogArea.setText("");
+            } else if (!isManuskript && debugLogArea != null) {
+                debugLogArea.setText("");
+            }
+        });
+        
         // TextArea hat bereits eingebautes ScrollPane - kein zusätzliches ScrollPane nötig
         VBox.setVgrow(textArea, Priority.ALWAYS);
         
-        container.getChildren().addAll(titleLabel, textArea);
+        container.getChildren().addAll(titleLabel, clearButton, textArea);
         return container;
     }
     

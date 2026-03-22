@@ -3,6 +3,189 @@
    Alle Styles aus styles.css und editor.css
    ======================================== */
 
+/* ========================================
+   AUDIO-TAG AUTOCOMPLETE POPUP STYLING
+   ======================================== */
+
+/* Audio-Tag Popup Container */
+.audio-tag-popup {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #cccccc;
+    -fx-border-width: 1px;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+    -fx-padding: 8px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 8, 0, 0, 2);
+}
+
+/* Audio-Tag Popup in verschiedenen Themes */
+.theme-dark .audio-tag-popup {
+    -fx-background-color: #2d2d2d;
+    -fx-border-color: #4a5568;
+}
+
+.pastell-theme .audio-tag-popup {
+    -fx-background-color: #f3e5f5;
+    -fx-border-color: #ba68c8;
+}
+
+.theme-dark.blau-theme .audio-tag-popup {
+    -fx-background-color: #1e3a8a;
+    -fx-border-color: #3b82f6;
+}
+
+.theme-dark.gruen-theme .audio-tag-popup {
+    -fx-background-color: #064e3b;
+    -fx-border-color: #10b981;
+}
+
+.theme-dark.lila-theme .audio-tag-popup {
+    -fx-background-color: #581c87;
+    -fx-border-color: #8b5cf6;
+}
+
+/* Audio-Tag ListView */
+.audio-tag-list {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-max-height: 300px;
+    -fx-max-width: 400px;
+}
+
+.audio-tag-list .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: #000000;
+    -fx-padding: 4px 8px;
+    -fx-border-color: transparent;
+}
+
+.audio-tag-list .list-cell:hover {
+    -fx-background-color: #f0f0f0;
+}
+
+.audio-tag-list .list-cell:selected {
+    -fx-background-color: #007bff;
+    -fx-text-fill: #ffffff;
+}
+
+/* Audio-Tag ListView in Themes */
+.theme-dark .audio-tag-list .list-cell {
+    -fx-text-fill: #ffffff;
+}
+
+.theme-dark .audio-tag-list .list-cell:hover {
+    -fx-background-color: #4a5568;
+}
+
+.theme-dark .audio-tag-list .list-cell:selected {
+    -fx-background-color: #3b82f6;
+    -fx-text-fill: #ffffff;
+}
+
+.pastell-theme .audio-tag-list .list-cell {
+    -fx-text-fill: #000000;
+}
+
+.pastell-theme .audio-tag-list .list-cell:hover {
+    -fx-background-color: #e1bee7;
+}
+
+.pastell-theme .audio-tag-list .list-cell:selected {
+    -fx-background-color: #ba68c8;
+    -fx-text-fill: #ffffff;
+}
+
+.theme-dark.blau-theme .audio-tag-list .list-cell {
+    -fx-text-fill: #ffffff;
+}
+
+.theme-dark.blau-theme .audio-tag-list .list-cell:hover {
+    -fx-background-color: #1e40af;
+}
+
+.theme-dark.blau-theme .audio-tag-list .list-cell:selected {
+    -fx-background-color: #3b82f6;
+    -fx-text-fill: #ffffff;
+}
+
+.theme-dark.gruen-theme .audio-tag-list .list-cell {
+    -fx-text-fill: #ffffff;
+}
+
+.theme-dark.gruen-theme .audio-tag-list .list-cell:hover {
+    -fx-background-color: #065f46;
+}
+
+.theme-dark.gruen-theme .audio-tag-list .list-cell:selected {
+    -fx-background-color: #10b981;
+    -fx-text-fill: #ffffff;
+}
+
+.theme-dark.lila-theme .audio-tag-list .list-cell {
+    -fx-text-fill: #ffffff;
+}
+
+.theme-dark.lila-theme .audio-tag-list .list-cell:hover {
+    -fx-background-color: #5b21b6;
+}
+
+.theme-dark.lila-theme .audio-tag-list .list-cell:selected {
+    -fx-background-color: #8b5cf6;
+    -fx-text-fill: #ffffff;
+}
+
+/* Audio-Tag Filter-Feld */
+.audio-tag-popup .text-input {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #cccccc;
+    -fx-border-width: 1px;
+    -fx-border-radius: 3px;
+    -fx-background-radius: 3px;
+    -fx-text-fill: #000000;
+    -fx-prompt-text-fill: #999999;
+}
+
+.theme-dark .audio-tag-popup .text-input {
+    -fx-background-color: #4a5568;
+    -fx-border-color: #718096;
+    -fx-text-fill: #ffffff;
+    -fx-prompt-text-fill: #a0aec0;
+}
+
+.pastell-theme .audio-tag-popup .text-input {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #ba68c8;
+    -fx-text-fill: #000000;
+    -fx-prompt-text-fill: #999999;
+}
+
+/* Audio-Tag Checkbox im Popup */
+.audio-tag-popup .macro-checkbox {
+    -fx-padding: 4px 8px;
+}
+
+/* ========================================
+   ACCORDION STYLING
+   ======================================== */
+
+.titled-pane-accordion .title {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-padding: 8px 12px;
+}
+
+.titled-pane-accordion .content {
+    -fx-padding: 8px;
+}
+
+.titled-pane-accordion {
+    -fx-background-color: transparent;
+    -fx-border-color: #cccccc;
+    -fx-border-width: 1px;
+    -fx-border-radius: 4px;
+    -fx-margin: 2px;
+}
+
 /* Editor-Fenster Border - auf innerem Container */
 .editor-container {
     -fx-border-width: 1px;
@@ -464,7 +647,6 @@
 /* Dark Theme */
 .theme-dark {
     -fx-background-color: #343a40;
-    -fx-text-fill: #ffffff;
 }
 
 
@@ -3138,7 +3320,6 @@
     -fx-font-family: 'Consolas', 'Monaco', monospace;
     -fx-font-size: 12px;
     -rtfx-background-color: #ffffff;
-    -fx-text-fill: #000000;
     -fx-caret-color: #000000;
     -fx-highlight-fill: #add6ff;
     -fx-highlight-text-fill: #000000;
@@ -3352,6 +3533,26 @@
 .theme-dark.lila-theme .code-area .tts-direct-speech {
     -fx-fill: #e9d5ff !important;
     -rtfx-fill: #e9d5ff !important;
+}
+
+/* TTS-Editor CodeArea: Theme-gerechte Textfarbe (spezifische Selektoren) */
+.theme-dark .code-area.tts-editor-code-area .paragraph-box .text:not(.markdown-bold):not(.markdown-italic):not(.markdown-bold-italic):not(.markdown-underline):not(.markdown-strikethrough):not(.markdown-highlight):not(.markdown-blockquote):not(.heading-1):not(.heading-2):not(.heading-3):not(.heading-4):not(.heading-5) {
+    -fx-fill: #ffffff;
+}
+.weiss-theme .code-area.tts-editor-code-area .paragraph-box .text:not(.markdown-bold):not(.markdown-italic):not(.markdown-bold-italic):not(.markdown-underline):not(.markdown-strikethrough):not(.markdown-highlight):not(.markdown-blockquote):not(.heading-1):not(.heading-2):not(.heading-3):not(.heading-4):not(.heading-5) {
+    -fx-fill: #000000;
+}
+.pastell-theme .code-area.tts-editor-code-area .paragraph-box .text:not(.markdown-bold):not(.markdown-italic):not(.markdown-bold-italic):not(.markdown-underline):not(.markdown-strikethrough):not(.markdown-highlight):not(.markdown-blockquote):not(.heading-1):not(.heading-2):not(.heading-3):not(.heading-4):not(.heading-5) {
+    -fx-fill: #000000;
+}
+.theme-dark.blau-theme .code-area.tts-editor-code-area .paragraph-box .text:not(.markdown-bold):not(.markdown-italic):not(.markdown-bold-italic):not(.markdown-underline):not(.markdown-strikethrough):not(.markdown-highlight):not(.markdown-blockquote):not(.heading-1):not(.heading-2):not(.heading-3):not(.heading-4):not(.heading-5) {
+    -fx-fill: #ffffff;
+}
+.theme-dark.gruen-theme .code-area.tts-editor-code-area .paragraph-box .text:not(.markdown-bold):not(.markdown-italic):not(.markdown-bold-italic):not(.markdown-underline):not(.markdown-strikethrough):not(.markdown-highlight):not(.markdown-blockquote):not(.heading-1):not(.heading-2):not(.heading-3):not(.heading-4):not(.heading-5) {
+    -fx-fill: #ffffff;
+}
+.theme-dark.lila-theme .code-area.tts-editor-code-area .paragraph-box .text:not(.markdown-bold):not(.markdown-italic):not(.markdown-bold-italic):not(.markdown-underline):not(.markdown-strikethrough):not(.markdown-highlight):not(.markdown-blockquote):not(.heading-1):not(.heading-2):not(.heading-3):not(.heading-4):not(.heading-5) {
+    -fx-fill: #ffffff;
 }
 /* Bearbeitungsmodus: RichTextFX zeichnet Selektion mit Path-Klasse "main-selection" (-fx-fill). Ausblenden, damit nur tts-selection (Orange) sichtbar ist. */
 .code-area.tts-edit-mode .main-selection,
@@ -3574,7 +3775,6 @@
 /* Theme-spezifische CodeArea-Styles */
 .theme-dark .code-area {
     -rtfx-background-color: #1a1a1a;
-    -fx-text-fill: #ffffff;
     -fx-caret-color: #ffffff;
     -fx-border-color: #4a5568;
     -fx-border-width: 1px;
@@ -3583,19 +3783,23 @@
 
 /* RichTextFX: tatsächliche Textfarbe ( .text verwendet -fx-fill ) */
 /* WICHTIG: Markdown-Klassen ausgeschlossen, damit ihre Farben gelten */
+/* HIGHEST PRIORITY: Überschreibt RichTextFX Standard-CSS */
+.code-area .text {
+    -fx-fill: inherit;
+}
 .theme-dark .code-area .text:not(.markdown-bold):not(.markdown-italic):not(.markdown-bold-italic):not(.markdown-underline):not(.markdown-strikethrough):not(.markdown-highlight):not(.markdown-blockquote):not(.heading-1):not(.heading-2):not(.heading-3):not(.heading-4):not(.heading-5) {
-    -fx-fill: #ffffff !important;
+    -fx-fill: #ffffff;
 }
 .weiss-theme .code-area .text:not(.markdown-bold):not(.markdown-italic):not(.markdown-bold-italic):not(.markdown-underline):not(.markdown-strikethrough):not(.markdown-highlight):not(.markdown-blockquote):not(.heading-1):not(.heading-2):not(.heading-3):not(.heading-4):not(.heading-5) {
-    -fx-fill: #000000 !important;
+    -fx-fill: #000000;
 }
 .pastell-theme .code-area .text:not(.markdown-bold):not(.markdown-italic):not(.markdown-bold-italic):not(.markdown-underline):not(.markdown-strikethrough):not(.markdown-highlight):not(.markdown-blockquote):not(.heading-1):not(.heading-2):not(.heading-3):not(.heading-4):not(.heading-5) {
-    -fx-fill: #000000 !important;
+    -fx-fill: #000000;
 }
 .theme-dark.blau-theme .code-area .text:not(.markdown-bold):not(.markdown-italic):not(.markdown-bold-italic):not(.markdown-underline):not(.markdown-strikethrough):not(.markdown-highlight):not(.markdown-blockquote):not(.heading-1):not(.heading-2):not(.heading-3):not(.heading-4):not(.heading-5),
 .theme-dark.gruen-theme .code-area .text:not(.markdown-bold):not(.markdown-italic):not(.markdown-bold-italic):not(.markdown-underline):not(.markdown-strikethrough):not(.markdown-highlight):not(.markdown-blockquote):not(.heading-1):not(.heading-2):not(.heading-3):not(.heading-4):not(.heading-5),
 .theme-dark.lila-theme .code-area .text:not(.markdown-bold):not(.markdown-italic):not(.markdown-bold-italic):not(.markdown-underline):not(.markdown-strikethrough):not(.markdown-highlight):not(.markdown-blockquote):not(.heading-1):not(.heading-2):not(.heading-3):not(.heading-4):not(.heading-5) {
-    -fx-fill: #ffffff !important;
+    -fx-fill: #ffffff;
 }
 
 /* RichTextFX CodeArea VirtualizedScrollPane Scrollbalken - Blau Theme */
@@ -3623,7 +3827,6 @@
 
 .theme-dark.blau-theme .code-area {
     -rtfx-background-color: #1e3a8a;
-    -fx-text-fill: #ffffff;
     -fx-caret-color: #ffffff;
     -fx-border-color: #3b82f6;
     -fx-border-width: 1px;
@@ -3655,7 +3858,6 @@
 
 .theme-dark.gruen-theme .code-area {
     -rtfx-background-color: #064e3b;
-    -fx-text-fill: #ffffff;
     -fx-caret-color: #ffffff;
     -fx-border-color: #10b981;
     -fx-border-width: 1px;
@@ -3687,7 +3889,6 @@
 
 .theme-dark.lila-theme .code-area {
     -rtfx-background-color: #581c87;
-    -fx-text-fill: #ffffff;
     -fx-caret-color: #ffffff;
     -fx-border-color: #8b5cf6;
     -fx-border-width: 1px;

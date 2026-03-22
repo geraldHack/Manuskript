@@ -325,6 +325,10 @@ public class EditorWindow implements Initializable {
     private boolean languageToolEnabled = false; // Wird aus Preferences geladen
     private Timeline languageToolCheckTimeline = null; // Debouncing für Fehlerprüfung
     private List<LanguageToolService.Match> currentLanguageToolMatches = new ArrayList<>();
+    private int lastLanguageToolErrorCount = -1; // Letzte bekannte Fehleranzahl für Status-Updates
+    private int lastLoggedMatchCount = -1; // Letzte bekannte Match-Anzahl für DEBUG-Logs
+    private int lastLoggedValidMatchCount = -1; // Letzte bekannte gültige Matches für DEBUG-Logs
+    private int lastLoggedInvalidMatchCount = -1; // Letzte bekannte ungültige Matches für DEBUG-Logs
     private ExecutorService languageToolExecutor;
     private Button btnToggleLanguageTool; // Toggle-Button für LanguageTool
     private Button btnLanguageToolSettings; // Einstellungs-Button
@@ -12721,7 +12725,11 @@ spacer.setStyle("-fx-background-color: transparent;");
                 matchesToProcess = new ArrayList<>(currentLanguageToolMatches);
             }
             if (languageToolEnabled && !matchesToProcess.isEmpty()) {
-                logger.debug("applyCombinedStyling: Verarbeite " + matchesToProcess.size() + " LanguageTool-Matches für Text der Länge " + content.length());
+                // Nur bei echten Änderungen loggen
+                if (matchesToProcess.size() != lastLoggedMatchCount) {
+                    logger.debug("applyCombinedStyling: Verarbeite " + matchesToProcess.size() + " LanguageTool-Matches für Text der Länge " + content.length());
+                    lastLoggedMatchCount = matchesToProcess.size();
+                }
                 int validMatches = 0;
                 int invalidMatches = 0;
                 for (LanguageToolService.Match match : matchesToProcess) {
@@ -12738,10 +12746,18 @@ spacer.setStyle("-fx-background-color: transparent;");
                         logger.debug("applyCombinedStyling: Ungültiger Match - start=" + start + ", end=" + end + ", contentLength=" + content.length());
                     }
                 }
-                logger.debug("applyCombinedStyling: " + validMatches + " gültige Matches, " + invalidMatches + " ungültige Matches werden angewendet");
+                // Nur bei echten Änderungen loggen
+                if (validMatches != lastLoggedValidMatchCount || invalidMatches != lastLoggedInvalidMatchCount) {
+                    logger.debug("applyCombinedStyling: " + validMatches + " gültige Matches, " + invalidMatches + " ungültige Matches werden angewendet");
+                    lastLoggedValidMatchCount = validMatches;
+                    lastLoggedInvalidMatchCount = invalidMatches;
+                }
             } else if (languageToolEnabled && matchesToProcess.isEmpty()) {
+                // Keine Matches - nur noch bei echten Änderungen loggen
                 synchronized (currentLanguageToolMatches) {
-                    logger.debug("applyCombinedStyling: LanguageTool aktiviert, aber keine Matches vorhanden (currentLanguageToolMatches.size()=" + currentLanguageToolMatches.size() + ")");
+                    if (currentLanguageToolMatches.size() > 0) {
+                        logger.debug("applyCombinedStyling: LanguageTool aktiviert, aber keine gültigen Matches von " + currentLanguageToolMatches.size() + " total");
+                    }
                 }
             }
 
@@ -12794,8 +12810,15 @@ spacer.setStyle("-fx-background-color: transparent;");
             }
             
             // Anwenden
+            // WICHTIG: Cursor-Position vor setStyleSpans merken und wiederherstellen
+            int caretBeforeStyling = codeArea.getCaretPosition();
             StyleSpans<Collection<String>> spans = spansBuilder.create();
             codeArea.setStyleSpans(0, spans);
+            
+            // setStyleSpans kann die Cursor-Position zurücksetzen - wiederherstellen
+            if (codeArea.getCaretPosition() != caretBeforeStyling) {
+                codeArea.moveTo(caretBeforeStyling);
+            }
             
             // WICHTIG: Aktualisiere lastStyledText, damit der Timer weiß, dass Styling angewendet wurde
             lastStyledText = content;
@@ -12998,9 +13021,18 @@ spacer.setStyle("-fx-background-color: transparent;");
                     applyCombinedStyling();
                     updateLanguageToolStatus();
                     if (!currentLanguageToolMatches.isEmpty()) {
-                        updateStatus("LanguageTool: " + currentLanguageToolMatches.size() + " Fehler gefunden");
+                        // Nur Status aktualisieren wenn sich die Anzahl der Fehler tatsächlich geändert hat
+                        int currentErrorCount = currentLanguageToolMatches.size();
+                        if (lastLanguageToolErrorCount != currentErrorCount) {
+                            updateStatus("LanguageTool: " + currentErrorCount + " Fehler gefunden");
+                            lastLanguageToolErrorCount = currentErrorCount;
+                        }
                         logger.debug("checkLanguageToolErrors: Styling aktualisiert, " + currentLanguageToolMatches.size() + " Matches sollten sichtbar sein");
                     } else {
+                        if (lastLanguageToolErrorCount != 0) {
+                            updateStatus("LanguageTool: Keine Fehler gefunden");
+                            lastLanguageToolErrorCount = 0;
+                        }
                         logger.debug("checkLanguageToolErrors: Keine Fehler mehr gefunden");
                     }
                 });
@@ -13174,14 +13206,18 @@ spacer.setStyle("-fx-background-color: transparent;");
                 if (lblStatus != null && onlineLektoratInProgress) {
                     if (total == 100) {
                         // Einzelpuffer-Modus: Fortschritt in % (0-100)
+                        // WICHTIG: API sendet doppelt so viele Zeichen wie erwartet - Anzeige halbieren
+                        int displayProgress = done / 2; // Halbieren weil API doppelt so viele Zeichen sendet
                         int totalChars = text.length();
                         int processedChars = (done * totalChars) / 100;
-                        lblStatus.setText("Lektorat: " + done + "% (" + processedChars + "/" + totalChars + " Zeichen) bearbeitet …");
+                        lblStatus.setText("Lektorat: " + displayProgress + "% (" + processedChars + "/" + totalChars + " Zeichen) bearbeitet …");
                     } else {
                         // Multi-Chunk-Modus: Abschnitte
+                        // WICHTIG: API sendet doppelt so viele Zeichen wie erwartet - Anzeige halbieren
+                        int displayDone = done / 2; // Halbieren weil API doppelt so viele Zeichen sendet
                         int totalChars = text.length();
                         int processedChars = (done * totalChars) / total;
-                        lblStatus.setText("Lektorat: " + done + "/" + total + " Abschnitte (" + processedChars + "/" + totalChars + " Zeichen) bearbeitet …");
+                        lblStatus.setText("Lektorat: " + displayDone + "/" + total + " Abschnitte (" + processedChars + "/" + totalChars + " Zeichen) bearbeitet …");
                     }
                     lblStatus.setVisible(true);
                     lblStatus.setManaged(true);
@@ -13514,6 +13550,10 @@ spacer.setStyle("-fx-background-color: transparent;");
         int delta = replacementWithBoundaries.length() - originalSegment.length();
         CodeAreaViewSnapshot viewSnapshot = captureCodeAreaViewSnapshot();
         
+        // Cursor-Position vor der Ersetzung merken
+        int caretPosition = codeArea.getCaretPosition();
+        int anchorPosition = codeArea.getAnchor();
+        
         codeArea.replaceText(start, end, replacementWithBoundaries);
         currentLektoratMatches.remove(match);
         selectedLektoratMatch = null;
@@ -13531,8 +13571,28 @@ spacer.setStyle("-fx-background-color: transparent;");
             }
         }
         
+        // Cursor-Position wiederherstellen (mit Delta-Anpassung)
+        int newCaretPosition = caretPosition;
+        if (caretPosition >= originalEnd) {
+            // Cursor war nach dem ersetzten Bereich - anpassen
+            newCaretPosition += delta;
+        } else if (caretPosition >= start && caretPosition < originalEnd) {
+            // Cursor war im ersetzten Bereich - ans Ende der Ersetzung setzen
+            newCaretPosition = start + replacementWithBoundaries.length();
+        }
+        // Cursor war vor dem ersetzten Bereich - keine Anpassung nötig
+        
+        // Cursor-Position setzen (keine Selektion)
+        codeArea.moveTo(newCaretPosition);
+        
         // Nur lokale Neustyling statt vollständiger Neuformatierung
+        // WICHTIG: Cursor-Position nach applyCombinedStyling wiederherstellen
+        int caretBeforeStyling = codeArea.getCaretPosition();
         applyCombinedStyling();
+        // setStyleSpans kann die Cursor-Position zurücksetzen - wiederherstellen
+        if (codeArea.getCaretPosition() != caretBeforeStyling) {
+            codeArea.moveTo(caretBeforeStyling);
+        }
         
         if (currentLektoratMatches.isEmpty()) {
             ensureLektoratPanelVisible(false);

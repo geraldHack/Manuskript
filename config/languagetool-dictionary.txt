@@ -14,6 +14,8 @@ alvaro
 arista
 ayen
 ayens
+bataflagon
+bataflagons
 bettlergilde
 brak
 braks
@@ -21,6 +23,7 @@ bram
 brass
 cassian
 center
+dama
 demirantha
 demiranthas
 demiranther
@@ -42,6 +45,8 @@ ferris
 gallat
 gallats
 grakk
+guttik
+guttiks
 infusoren
 jaad
 jaads
@@ -57,11 +62,14 @@ kalems
 kata
 kataluna
 katas
+kerk
+kisal
 knarl
 lakan
 lakanische
 lakanischen
 lakans
+lento
 lethos
 leva
 luduwig

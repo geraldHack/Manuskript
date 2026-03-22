@@ -223,18 +223,15 @@ public class ElevenLabsClient {
      */
     public static String buildPlsXml(java.util.Map<String, String> lexicon) {
         StringBuilder sb = new StringBuilder();
-        sb.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-        sb.append("<lexicon version=\"1.0\" xmlns=\"http://www.w3.org/2005/01/pronunciation-lexicon\" alphabet=\"ipa\" xml:lang=\"de\">\n");
+        sb.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+        sb.append("<lexicon version=\"1.0\" xmlns=\"http://www.w3.org/2005/01/pronunciation-lexicon\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.w3.org/2005/01/pronunciation-lexicon http://www.w3.org/TR/2007/CR-pronunciation-lexicon-20071212/pls.xsd\" xml:lang=\"de\">");
         for (var entry : lexicon.entrySet()) {
             String word = entry.getKey();
             String replacement = entry.getValue();
             if (word == null || word.isBlank() || replacement == null || replacement.isBlank()) continue;
-            sb.append("  <lexeme>\n");
-            sb.append("    <grapheme>").append(escapeXml(word)).append("</grapheme>\n");
-            sb.append("    <alias>").append(escapeXml(replacement)).append("</alias>\n");
-            sb.append("  </lexeme>\n");
+            sb.append("<lexeme><grapheme>").append(escapeXml(word)).append("</grapheme><alias>").append(escapeXml(replacement)).append("</alias></lexeme>");
         }
-        sb.append("</lexicon>\n");
+        sb.append("</lexicon>");
         return sb.toString();
     }
 
@@ -242,17 +239,11 @@ public class ElevenLabsClient {
         return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
                 .replace("\"", "&quot;").replace("'", "&apos;");
     }
-
-    /**
-     * Lädt ein Pronunciation Dictionary (PLS-Datei) bei ElevenLabs hoch.
-     * @param plsContent PLS-XML-Inhalt
-     * @param name Name des Dictionaries
-     * @return Locator mit dictionary_id und version_id
-     */
     public PronunciationDictionaryLocator uploadPronunciationDictionary(String plsContent, String name) throws IOException, InterruptedException {
         if (apiKey == null || apiKey.isBlank()) {
             throw new IOException("ElevenLabs API-Key ist nicht gesetzt.");
         }
+        logger.debug("ElevenLabs PLS-XML wird hochgeladen:\n{}", plsContent);
         String boundary = "----ManuskriptBoundary" + System.currentTimeMillis();
         String url = baseUrl + "/v1/pronunciation-dictionaries/add-from-file";
 
