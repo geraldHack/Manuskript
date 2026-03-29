@@ -3905,11 +3905,11 @@ public class PandocExportWindow extends CustomStage {
      * Post-Processing für EPUB: Ersetzt "Abstract" durch "Zusammenfassung"
      */
     private void postProcessEpub(File epubFile) {
+        File tempDir = new File("temp_epub_processing");
         try {
             logger.debug("Post-Processing für EPUB: {}", epubFile.getName());
             
             // EPUB ist eine ZIP-Datei - entpacken, bearbeiten und neu packen
-            File tempDir = new File("temp_epub_processing");
             if (tempDir.exists()) {
                 deleteDirectory(tempDir);
             }
@@ -4002,13 +4002,14 @@ public class PandocExportWindow extends CustomStage {
                 }
             }
             
-            // Temporäres Verzeichnis löschen
-            deleteDirectory(tempDir);
-            
             logger.debug("EPUB Post-Processing abgeschlossen - 'Abstract' durch 'Zusammenfassung' ersetzt, Alt-Texte entfernt und Reihenfolge korrigiert");
             
         } catch (Exception e) {
             logger.warn("EPUB Post-Processing fehlgeschlagen: {}", e.getMessage());
+        } finally {
+            if (tempDir.exists()) {
+                deleteDirectory(tempDir);
+            }
         }
     }
     

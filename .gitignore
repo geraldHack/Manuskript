@@ -20,6 +20,8 @@ installer-staging/
 pandoc/pandoc.exe
 pandoc/*.png
 pandoc/*.jpg
+venv/
+
 
 # Gebündeltes FFmpeg (optional, analog zu pandoc)
 ffmpeg/ffmpeg
