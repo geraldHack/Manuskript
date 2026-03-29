@@ -22,6 +22,10 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.prefs.Preferences;
 import java.io.FileWriter;
 import java.io.PrintWriter;
@@ -88,9 +92,12 @@ public class PandocExportWindow extends CustomStage {
     private String projectName;
     private Preferences preferences;
     private int currentThemeIndex;
-    private File pandocHome; // Ordner, in dem sich pandoc.exe befindet
+    private File pandocHome; // Ordner, in dem sich die Pandoc-Binary befindet
     private File projectDirectory; // Projekt-Verzeichnis für Metadaten-Speicherung
     private String lastExportError; // Letzte Fehlermeldung vom Export
+    private boolean pandocAutoInstallAttempted = false;
+    private CustomStage installLogStage;
+    private TextArea installLogTextArea;
     private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
     
     public PandocExportWindow(File inputMarkdownFile, String projectName) {
@@ -118,6 +125,90 @@ public class PandocExportWindow extends CustomStage {
 
         // Titel nochmal setzen nach der Initialisierung
         setTitle("Buch exportieren - " + projectName);
+    }
+
+    private String buildResourcePath(File... dirs) {
+        java.util.LinkedHashSet<String> pathParts = new java.util.LinkedHashSet<>();
+        if (dirs != null) {
+            for (File dir : dirs) {
+                if (dir != null && dir.exists()) {
+                    pathParts.add(dir.getAbsolutePath());
+                }
+            }
+        }
+        return String.join(File.pathSeparator, pathParts);
+    }
+
+    private boolean isExecutableAvailableInPath(String executableName, String processPath) {
+        if (executableName == null || executableName.isBlank() || processPath == null || processPath.isBlank()) {
+            return false;
+        }
+
+        String[] candidates = isWindows()
+            ? new String[] {executableName + ".exe", executableName}
+            : new String[] {executableName};
+
+        for (String dir : processPath.split(java.util.regex.Pattern.quote(File.pathSeparator))) {
+            if (dir == null || dir.isBlank()) {
+                continue;
+            }
+            for (String candidate : candidates) {
+                File exe = new File(dir, candidate);
+                if (exe.exists() && exe.isFile() && exe.canExecute()) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private String resolveTlmgrExecutable() {
+        String[] candidates = {
+            "/Library/TeX/texbin/tlmgr",
+            "/usr/texbin/tlmgr",
+            "/opt/homebrew/bin/tlmgr",
+            "/usr/local/bin/tlmgr"
+        };
+
+        for (String path : candidates) {
+            File candidate = new File(path);
+            if (candidate.exists() && candidate.isFile() && candidate.canExecute()) {
+                return candidate.getAbsolutePath();
+            }
+        }
+
+        String processPath = buildProcessPathWithTexBins(System.getenv("PATH"));
+        if (isExecutableAvailableInPath("tlmgr", processPath)) {
+            return "tlmgr";
+        }
+
+        return null;
+    }
+
+    private String buildProcessPathWithTexBins(String basePath) {
+        java.util.LinkedHashSet<String> pathParts = new java.util.LinkedHashSet<>();
+        if (basePath != null && !basePath.isBlank()) {
+            for (String part : basePath.split(java.util.regex.Pattern.quote(File.pathSeparator))) {
+                if (part != null && !part.isBlank()) {
+                    pathParts.add(part);
+                }
+            }
+        }
+
+        String[] texCandidates = {
+            "/Library/TeX/texbin",
+            "/usr/texbin",
+            "/opt/homebrew/bin",
+            "/usr/local/bin"
+        };
+        for (String texPath : texCandidates) {
+            if (new File(texPath).exists()) {
+                pathParts.add(texPath);
+            }
+        }
+
+        return String.join(File.pathSeparator, pathParts);
     }
     
     private void initializeUI() {
@@ -280,6 +371,39 @@ public class PandocExportWindow extends CustomStage {
             getScene().getStylesheets().add(manuskriptCss);
         }
     }
+
+    private File createPdfFrontmatterHeader() {
+        try {
+            File tempHeaderFile = File.createTempFile("manuskript_pdf_frontmatter_", ".tex");
+            tempHeaderFile.deleteOnExit();
+
+            try (java.io.BufferedWriter writer = Files.newBufferedWriter(
+                tempHeaderFile.toPath(),
+                StandardCharsets.UTF_8,
+                java.nio.file.StandardOpenOption.TRUNCATE_EXISTING,
+                java.nio.file.StandardOpenOption.WRITE)) {
+                writer.write("\\usepackage{etoolbox}");
+                writer.newLine();
+                writer.write("\\makeatletter");
+                writer.newLine();
+                writer.write("\\pretocmd{\\tableofcontents}{\\clearpage}{}{}");
+                writer.newLine();
+                writer.write("\\apptocmd{\\tableofcontents}{\\clearpage}{}{}");
+                writer.newLine();
+                writer.write("\\let\\oldmaketitle\\maketitle");
+                writer.newLine();
+                writer.write("\\renewcommand{\\maketitle}{\\oldmaketitle\\clearpage}");
+                writer.newLine();
+                writer.write("\\makeatother");
+                writer.newLine();
+            }
+
+            return tempHeaderFile;
+        } catch (IOException e) {
+            logger.warn("Konnte PDF-Frontmatter-Header nicht erzeugen: {}", e.getMessage());
+            return null;
+        }
+    }
     
     /**
      * Wendet eine theme-spezifische Border-Farbe auf den Root-Container an
@@ -439,20 +563,37 @@ public class PandocExportWindow extends CustomStage {
     }
     
     private void loadReferenceTemplates() {
-        // Stelle sicher, dass Pandoc vorhanden ist (entpacke ggf. pandoc.zip)
-        ensurePandocAvailable();
+        // Nur Pfad-Auflösung – KEINE Auto-Installation hier auslösen,
+        // da loadReferenceTemplates() auf dem FX-Thread läuft und
+        // ein blockierender Install-Prozess die UI einfrieren würde.
+        // Die eigentliche Installation erfolgt in runPandocExport() auf dem Hintergrund-Thread.
+        resolvePandocHomePath();
         referenceTemplates = new ArrayList<>();
-        File pandocDir = (pandocHome != null) ? pandocHome : new File("pandoc");
-        
-        if (pandocDir.exists() && pandocDir.isDirectory()) {
-            File[] files = pandocDir.listFiles((dir, name) -> 
-                name.toLowerCase(Locale.ROOT).startsWith("reference-") && 
-                name.toLowerCase(Locale.ROOT).endsWith(".docx"));
-            
-            if (files != null) {
-                for (File file : files) {
+        templateComboBox.getItems().clear();
+
+        List<File> searchDirs = new ArrayList<>();
+        File localPandocDir = new File("pandoc");
+        if (localPandocDir.exists() && localPandocDir.isDirectory()) {
+            searchDirs.add(localPandocDir);
+        }
+        if (pandocHome != null && pandocHome.exists() && pandocHome.isDirectory()) {
+            searchDirs.add(pandocHome);
+        }
+
+        java.util.Set<String> templateNames = new java.util.LinkedHashSet<>();
+        for (File dir : searchDirs) {
+            File[] files = dir.listFiles((d, name) ->
+                name.toLowerCase(Locale.ROOT).startsWith("reference-")
+                    && name.toLowerCase(Locale.ROOT).endsWith(".docx"));
+
+            if (files == null) {
+                continue;
+            }
+
+            for (File file : files) {
+                String displayName = file.getName().replace("reference-", "").replace(".docx", "");
+                if (templateNames.add(displayName)) {
                     referenceTemplates.add(file);
-                    String displayName = file.getName().replace("reference-", "").replace(".docx", "");
                     templateComboBox.getItems().add(displayName);
                 }
             }
@@ -1642,9 +1783,10 @@ public class PandocExportWindow extends CustomStage {
             }
 
             // Pandoc-Pfad
-            File pandocExe = (pandocHome != null)
-                ? new File(pandocHome, "pandoc.exe")
-                : new File("pandoc", "pandoc.exe");
+            File resolvedPandocBinary = resolveBundledPandocBinary();
+            String pandocCommand = resolvedPandocBinary != null
+                ? resolvedPandocBinary.getAbsolutePath()
+                : getPandocBinaryName();
             
             // Ausgabedatei
             String outputDirPath = outputDirectoryField.getText().trim();
@@ -1669,8 +1811,8 @@ public class PandocExportWindow extends CustomStage {
 
             // Pandoc-Befehl zusammenbauen (wie von Hand erfolgreich verwendet)
             List<String> command = new ArrayList<>();
-            command.add(pandocExe.getAbsolutePath());
-            command.add("\"" + markdownFile.getAbsolutePath() + "\"");
+            command.add(pandocCommand);
+            command.add(markdownFile.getAbsolutePath());
             command.add("-o");
 
             // Für HTML5: Ausgabe ins Unterverzeichnis
@@ -1684,7 +1826,7 @@ public class PandocExportWindow extends CustomStage {
                 finalOutputPath = outputFile.getAbsolutePath();
             }
 
-            command.add("\"" + finalOutputPath + "\"");
+            command.add(finalOutputPath);
 
             // Grundlegende Optionen - YAML-Metadaten explizit aktivieren
             // Superscript, Subscript, Tabellen und Listen-Erweiterungen aktivieren
@@ -1699,8 +1841,13 @@ public class PandocExportWindow extends CustomStage {
             if ("epub3".equals(format)) {
                 // EPUB3-spezifische Optionen (wie von Hand erfolgreich verwendet)
                 command.add("--toc");
-                command.add("--epub-chapter-level=1"); // Verwende References für Kapitel-Struktur
-                command.add("--css=epub.css");
+                command.add("--split-level=1");
+                File epubCss = new File("pandoc", "epub.css");
+                if (epubCss.exists() && epubCss.isFile()) {
+                    command.add("--css=" + epubCss.getAbsolutePath());
+                } else {
+                    logger.warn("epub.css nicht gefunden: {} - Export läuft ohne CSS.", epubCss.getAbsolutePath());
+                }
 
                 // Cover-Bild für EPUB3
                 if (!coverImageField.getText().trim().isEmpty()) {
@@ -1713,7 +1860,7 @@ public class PandocExportWindow extends CustomStage {
                                 File targetCover = new File(pandocDir, coverFileName);
                                 Files.copy(coverImageFile.toPath(), targetCover.toPath(),
                                     java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-                                command.add("--epub-cover-image=\"" + targetCover.getAbsolutePath() + "\"");
+                                command.add("--epub-cover-image=" + targetCover.getAbsolutePath());
                             } catch (IOException e) {
                                 logger.error("Fehler beim Kopieren des Cover-Bildes", e);
                             }
@@ -1727,16 +1874,7 @@ public class PandocExportWindow extends CustomStage {
                 copyMarkdownImagesToPandocDir(markdownFile, pandocDir);
                 
                 // Resource-Path für EPUB3 setzen, damit Pandoc die Bilder findet
-                String resourcePath = pandocDir.getAbsolutePath();
-                if (markdownDir != null) {
-                    resourcePath += ";" + markdownDir.getAbsolutePath();
-                }
-                if (outputDir.exists()) {
-                    resourcePath += ";" + outputDir.getAbsolutePath();
-                }
-                if (projectDirectory != null) {
-                    resourcePath += ";" + projectDirectory.getAbsolutePath();
-                }
+                String resourcePath = buildResourcePath(pandocDir, markdownDir, outputDir, projectDirectory, pandocHome);
                 command.add("--resource-path=" + resourcePath);
                 logger.debug("Resource-Path für EPUB3-Export: {}", resourcePath);
             } else if ("docx".equals(format)) {
@@ -1796,16 +1934,7 @@ public class PandocExportWindow extends CustomStage {
                 
                 // Resource-Path für DOCX setzen, damit Pandoc die Bilder findet
                 // Bilder werden ins pandoc-Verzeichnis kopiert, aber Pandoc muss auch im Projektverzeichnis suchen
-                String resourcePath = pandocDir.getAbsolutePath();
-                if (markdownDir != null) {
-                    resourcePath += ";" + markdownDir.getAbsolutePath();
-                }
-                if (outputDir.exists()) {
-                    resourcePath += ";" + outputDir.getAbsolutePath();
-                }
-                if (projectDirectory != null) {
-                    resourcePath += ";" + projectDirectory.getAbsolutePath();
-                }
+                String resourcePath = buildResourcePath(pandocDir, markdownDir, outputDir, projectDirectory, pandocHome);
                 command.add("--resource-path=" + resourcePath);
                 logger.debug("Resource-Path für DOCX-Export: {}", resourcePath);
                 
@@ -1868,8 +1997,22 @@ public class PandocExportWindow extends CustomStage {
                 copyMarkdownImagesToHtmlDir(markdownFile, htmlDir);
             } else if ("pdf".equals(format)) {
                 // PDF-spezifische Optionen für professionelle Formatierung
-                command.add("--pdf-engine=xelatex");
+                String pdfProcessPath = buildProcessPathWithTexBins(System.getenv("PATH"));
+                boolean hasXelatex = isExecutableAvailableInPath("xelatex", pdfProcessPath);
+                boolean hasPdflatex = isExecutableAvailableInPath("pdflatex", pdfProcessPath);
+
+                if (hasXelatex) {
+                    command.add("--pdf-engine=xelatex");
+                } else if (hasPdflatex) {
+                    logger.warn("xelatex nicht gefunden, wechsle automatisch auf pdflatex.");
+                    command.add("--pdf-engine=pdflatex");
+                } else {
+                    lastExportError = "PDF-Export fehlgeschlagen: Weder xelatex noch pdflatex wurden im PATH gefunden. "
+                        + "Bitte BasicTeX/MacTeX installieren und Terminal neu starten.";
+                    return false;
+                }
                 command.add("--toc"); // Inhaltsverzeichnis für PDF
+                command.add("--variable=toc-title:Inhaltsverzeichnis");
                 
                 // Markdown-Formatierung explizit aktivieren
                 // +raw_html aktiviert HTML-Tags in Markdown (für <br> Unterstützung)
@@ -1879,11 +2022,11 @@ public class PandocExportWindow extends CustomStage {
                 
                 // Template für PDF verwenden (vereinfachtes XeLaTeX-Template)
                 File pdfTemplate = new File("pandoc", "simple-xelatex-template.tex");
-                if (pdfTemplate.exists()) {
+                if (hasXelatex && pdfTemplate.exists()) {
                     command.add("--template=" + pdfTemplate.getAbsolutePath());
                     logger.debug("Verwende vereinfachtes XeLaTeX-Template: {}", pdfTemplate.getName());
                 } else {
-                    logger.debug("Kein XeLaTeX-Template gefunden, verwende Standard-Template");
+                    logger.debug("XeLaTeX-Template wird nicht verwendet (entweder xelatex nicht verfügbar oder Template fehlt)");
                 }
                 
                 // XeLaTeX-spezifische Optionen für bessere Kompatibilität
@@ -1949,18 +2092,20 @@ public class PandocExportWindow extends CustomStage {
                 copyMarkdownImagesForPdfExport(markdownFile, markdownDir, pandocDir, outputDir);
                 
                 // --resource-path setzen: Ausgabe, Markdown UND pandoc-Verzeichnis
-                // Auf Windows werden Pfade mit ; getrennt
-                String resourcePath = outputDir.getAbsolutePath() + ";" + 
-                    markdownDir.getAbsolutePath() + ";" + pandocDir.getAbsolutePath();
-                if (pandocHome != null && !pandocHome.getAbsolutePath().equals(pandocDir.getAbsolutePath())) {
-                    resourcePath += ";" + pandocHome.getAbsolutePath();
-                }
+                String resourcePath = buildResourcePath(outputDir, markdownDir, pandocDir, projectDirectory, pandocHome);
                 command.add("--resource-path=" + resourcePath);
                 logger.debug("Resource-Path für PDF-Export: {}", resourcePath);
                 
                 // XeLaTeX-spezifische Engine-Optionen
-                command.add("--pdf-engine-opt=-shell-escape");
+                if (hasXelatex) {
+                    command.add("--pdf-engine-opt=-shell-escape");
+                }
                 command.add("--pdf-engine-opt=-interaction=nonstopmode");
+
+                File pdfFrontmatterHeader = createPdfFrontmatterHeader();
+                if (pdfFrontmatterHeader != null) {
+                    command.add("--include-in-header=" + pdfFrontmatterHeader.getAbsolutePath());
+                }
                 
                 // Lua-Filter für automatische Initialen
                 File luaFilter = new File("pandoc", "dropcaps.lua");
@@ -2025,6 +2170,10 @@ public class PandocExportWindow extends CustomStage {
                     outputDir.mkdirs();
                 }
                 copyMarkdownImagesForLatexExport(markdownFile, outputDir, pandocDirLatex);
+
+                String resourcePath = buildResourcePath(outputDir, markdownFile.getParentFile(), pandocDirLatex, projectDirectory, pandocHome);
+                command.add("--resource-path=" + resourcePath);
+                logger.debug("Resource-Path für LaTeX-Export: {}", resourcePath);
             }
 
             // Standalone für vollständiges Dokument (wenn nicht bereits hinzugefügt)
@@ -2064,13 +2213,17 @@ public class PandocExportWindow extends CustomStage {
                 if (outputDir.exists()) {
                     pb.directory(outputDir);
                     logger.debug("Arbeitsverzeichnis für PDF-Export: {}", outputDir.getAbsolutePath());
-                } else {
-                    pb.directory(pandocHome != null ? pandocHome : new File("pandoc"));
+                } else if (pandocHome != null && pandocHome.exists()) {
+                    pb.directory(pandocHome);
                 }
             } else {
-                pb.directory(pandocHome != null ? pandocHome : new File("pandoc")); // Arbeitsverzeichnis auf Pandoc setzen
+                if (pandocHome != null && pandocHome.exists()) {
+                    pb.directory(pandocHome); // Arbeitsverzeichnis auf Pandoc setzen
+                }
             }
-            pb.environment().put("PATH", System.getenv("PATH")); // PATH weitergeben
+            String processPath = buildProcessPathWithTexBins(System.getenv("PATH"));
+            pb.environment().put("PATH", processPath);
+            logger.debug("Pandoc-Prozess PATH: {}", processPath);
             
             // MiKTeX-Update-Warnungen deaktivieren
             pb.environment().put("MIKTEX_DISABLE_UPDATE_CHECK", "1");
@@ -2380,7 +2533,10 @@ public class PandocExportWindow extends CustomStage {
                 lastExportError = userErrorMessage.toString();
                 
                 // Fallback für PDF: Versuche alternative PDF-Engine
-                if ("pdf".equals(format) && (exitCode == 43 || exitCode == 47)) {
+                String errorTextLower = error.toString().toLowerCase(Locale.ROOT);
+                boolean xelatexMissing = errorTextLower.contains("xelatex")
+                    && (errorTextLower.contains("find_executable") || errorTextLower.contains("createprocess"));
+                if ("pdf".equals(format) && ((exitCode == 43 || exitCode == 47) || xelatexMissing)) {
                     logger.warn("XeLaTeX fehlgeschlagen (Exit-Code: {}), versuche Fallback mit pdflatex...", exitCode);
                     if (error.length() > 0) {
                         logger.warn("XeLaTeX-Fehlerdetails:\n{}", error.toString());
@@ -2432,12 +2588,18 @@ public class PandocExportWindow extends CustomStage {
             fallbackCommand.add(originalCommand.get(0)); // pandoc.exe
             fallbackCommand.add(originalCommand.get(1)); // input file
             fallbackCommand.add("-o");
-            fallbackCommand.add("\"" + outputFile.getAbsolutePath() + "\"");
-            fallbackCommand.add("--from=markdown-yaml_metadata_block-smart");
+            fallbackCommand.add(outputFile.getAbsolutePath());
+            fallbackCommand.add("--from=markdown+yaml_metadata_block+raw_html+superscript+subscript-implicit_figures-smart");
             fallbackCommand.add("--to=pdf");
             fallbackCommand.add("--pdf-engine=pdflatex");
             fallbackCommand.add("--toc");
+            fallbackCommand.add("--variable=toc-title:Inhaltsverzeichnis");
             fallbackCommand.add("--standalone");
+
+            File pdfFrontmatterHeader = createPdfFrontmatterHeader();
+            if (pdfFrontmatterHeader != null) {
+                fallbackCommand.add("--include-in-header=" + pdfFrontmatterHeader.getAbsolutePath());
+            }
             
             // Vereinfachte LaTeX-Optionen für bessere Kompatibilität (ohne XeLaTeX-spezifische Fonts)
             // lang wird vom Template gesetzt, nicht überschreiben
@@ -2453,8 +2615,10 @@ public class PandocExportWindow extends CustomStage {
             logger.debug("Versuche PDF-Fallback mit pdflatex (ohne Template)...");
             
             ProcessBuilder pb = new ProcessBuilder(fallbackCommand);
-            pb.directory(pandocHome != null ? pandocHome : new File("pandoc"));
-            pb.environment().put("PATH", System.getenv("PATH"));
+            if (pandocHome != null && pandocHome.exists()) {
+                pb.directory(pandocHome);
+            }
+            pb.environment().put("PATH", buildProcessPathWithTexBins(System.getenv("PATH")));
             
             Process process = pb.start();
             int exitCode = process.waitFor();
@@ -2474,24 +2638,87 @@ public class PandocExportWindow extends CustomStage {
     }
     
     /**
-     * Prüft, ob pandoc.exe verfügbar ist. Wenn nicht, versucht es, die Datei pandoc.zip
-     * aus dem Programmverzeichnis zu entpacken. Gibt true zurück, wenn pandoc.exe danach existiert.
+     * Leichtgewichtige Pfad-Auflösung für pandocHome – ohne Auto-Install oder ZIP-Entpackung.
+     * Sicher auf dem FX-Thread aufrufbar, da nichts blockiert.
+     */
+    private void resolvePandocHomePath() {
+        File bundled = resolveBundledPandocBinary();
+        if (bundled != null) {
+            pandocHome = bundled.getParentFile();
+            return;
+        }
+        File known = resolvePandocFromKnownLocations();
+        if (known != null) {
+            pandocHome = known.getParentFile();
+            return;
+        }
+        // Fallback: pandocHome bleibt null → loadReferenceTemplates nutzt new File("pandoc")
+    }
+
+    /**
+     * Prüft, ob Pandoc verfügbar ist.
+     * Windows: bevorzugt gebündelte pandoc.exe (ggf. aus pandoc.zip entpacken).
+     * macOS/Linux: verwendet pandoc aus PATH oder eine gebündelte pandoc-Binary.
      */
     private boolean ensurePandocAvailable() {
         try {
-            // 1) Prüfe Standardpfad
-            File pandocExe = new File("pandoc", "pandoc.exe");
-            if (pandocExe.exists()) {
-                pandocHome = pandocExe.getParentFile();
+            // 1) Prüfe gebündelte Pandoc-Binary
+            File bundledPandoc = resolveBundledPandocBinary();
+            if (bundledPandoc != null) {
+                ensureBinaryExecutable(bundledPandoc);
+                pandocHome = bundledPandoc.getParentFile();
                 return true;
             }
 
-            // 2) Versuche, pandoc.zip in pandoc zu finden und dort zu entpacken
-            File zip = new File("pandoc", "pandoc.zip");
-            if (!zip.exists()) {
-                // Fallback: im Programmverzeichnis
-                zip = new File("pandoc.zip");
+            // 2) Prüfe bekannte Installationspfade (wichtig für macOS-App-Starts ohne Shell-PATH)
+            File knownLocationPandoc = resolvePandocFromKnownLocations();
+            if (knownLocationPandoc != null) {
+                pandocHome = knownLocationPandoc.getParentFile();
+                logger.info("Pandoc in bekanntem Pfad gefunden: {}", knownLocationPandoc.getAbsolutePath());
+                return true;
             }
+
+            // 3) Nicht-Windows: PATH prüfen
+            if (!isWindows()) {
+                if (isPandocInPath()) {
+                    pandocHome = null;
+                    return true;
+                }
+            }
+
+            // 4) macOS: Einmalig automatische Installation über Homebrew versuchen
+            if (isMac() && !pandocAutoInstallAttempted) {
+                pandocAutoInstallAttempted = true;
+                boolean userAccepted = confirmMacAutoInstallWithBrew();
+                if (!userAccepted) {
+                    logger.info("Automatische Installation vom Benutzer abgelehnt.");
+                    return false;
+                }
+                logger.info("Pandoc nicht gefunden - starte automatische Installation via Homebrew...");
+                boolean installed = tryAutoInstallPandocAndLatexOnMac();
+                if (installed) {
+                    bundledPandoc = resolveBundledPandocBinary();
+                    if (bundledPandoc != null) {
+                        ensureBinaryExecutable(bundledPandoc);
+                        pandocHome = bundledPandoc.getParentFile();
+                        return true;
+                    }
+
+                    knownLocationPandoc = resolvePandocFromKnownLocations();
+                    if (knownLocationPandoc != null) {
+                        pandocHome = knownLocationPandoc.getParentFile();
+                        return true;
+                    }
+
+                    if (isPandocInPath()) {
+                        pandocHome = null;
+                        return true;
+                    }
+                }
+            }
+
+            // 5) Optionales Bundle-Archiv (Windows: pandoc.zip, macOS/Linux: pandoc-mac.zip oder pandoc.zip)
+            File zip = resolveBundledPandocArchive();
             if (!zip.exists()) {
                 logger.warn("pandoc.zip nicht gefunden – kann Pandoc nicht automatisch installieren");
                 return false;
@@ -2507,10 +2734,11 @@ public class PandocExportWindow extends CustomStage {
             }
 
             // Nach dem Entpacken erneut prüfen
-            pandocExe = new File("pandoc", "pandoc.exe");
-            if (pandocExe.exists()) {
-                pandocHome = pandocExe.getParentFile();
-                logger.debug("Pandoc erfolgreich entpackt: {}", pandocExe.getAbsolutePath());
+            bundledPandoc = resolveBundledPandocBinary();
+            if (bundledPandoc != null) {
+                ensureBinaryExecutable(bundledPandoc);
+                pandocHome = bundledPandoc.getParentFile();
+                logger.debug("Pandoc erfolgreich entpackt: {}", bundledPandoc.getAbsolutePath());
                 return true;
             }
 
@@ -2518,8 +2746,9 @@ public class PandocExportWindow extends CustomStage {
             File[] candidates = new File(".").listFiles((dir, name) -> name.toLowerCase().startsWith("pandoc"));
             if (candidates != null) {
                 for (File c : candidates) {
-                    File exe = new File(c, "pandoc.exe");
+                    File exe = new File(c, getPandocBinaryName());
                     if (exe.exists()) {
+                        ensureBinaryExecutable(exe);
                         pandocHome = c;
                         logger.debug("Pandoc in '{}' gefunden", c.getAbsolutePath());
                         return true;
@@ -2531,6 +2760,502 @@ public class PandocExportWindow extends CustomStage {
         } catch (Exception e) {
             logger.error("Fehler beim Prüfen/Installieren von Pandoc", e);
             return false;
+        }
+    }
+
+    private String getPandocBinaryName() {
+        return isWindows() ? "pandoc.exe" : "pandoc";
+    }
+
+    private boolean isWindows() {
+        String osName = System.getProperty("os.name", "").toLowerCase(Locale.ROOT);
+        return osName.contains("win");
+    }
+
+    private boolean isMac() {
+        String osName = System.getProperty("os.name", "").toLowerCase(Locale.ROOT);
+        return osName.contains("mac");
+    }
+
+    private boolean tryAutoInstallPandocAndLatexOnMac() {
+        if (!isMac()) {
+            return false;
+        }
+
+        openInstallLogWindow();
+        appendInstallLogLine("Starte automatische Vorbereitung für Pandoc/LaTeX auf macOS...");
+
+        if (!isHomebrewAvailable()) {
+            logger.warn("Homebrew nicht gefunden - automatische Installation nicht möglich.");
+            appendInstallLogLine("Homebrew nicht gefunden. Installation kann nicht automatisch gestartet werden.");
+            return false;
+        }
+
+        boolean pandocInstalled = runInstallCommandWithBrewLockRetry(
+            List.of("brew", "install", "pandoc", "librsvg", "python"),
+            "Pandoc + Abhängigkeiten",
+            3,
+            20
+        );
+
+        if (!pandocInstalled) {
+            appendInstallLogLine("Abbruch: Pandoc konnte nicht installiert werden. BasicTeX wird nicht automatisch gestartet.");
+            return false;
+        }
+
+        boolean latexInstalled = runInstallCommand(
+            List.of("brew", "install", "--cask", "basictex"),
+            "BasicTeX",
+            10
+        );
+
+        if (latexInstalled) {
+            appendInstallLogLine("BasicTeX installiert. Installiere empfohlene TeX-Pakete (Fonts/LaTeX)...");
+            String tlmgrExecutable = resolveTlmgrExecutable();
+            if (tlmgrExecutable == null) {
+                appendInstallLogLine("WARNUNG: 'tlmgr' wurde nicht gefunden.");
+                appendInstallLogLine("Führe zuerst im Terminal aus: eval \"$(/usr/libexec/path_helper)\"");
+                appendInstallLogLine("Danach manuell:");
+                appendInstallLogLine("sudo /Library/TeX/texbin/tlmgr update --self");
+                appendInstallLogLine("sudo /Library/TeX/texbin/tlmgr install collection-fontsrecommended collection-latexrecommended collection-latexextra xetex");
+            } else {
+                boolean texPackagesInstalled = runInstallCommand(
+                    List.of(
+                        tlmgrExecutable, "install",
+                        "collection-fontsrecommended",
+                        "collection-latexrecommended",
+                        "collection-latexextra",
+                        "xetex"
+                    ),
+                    "TeX Live Pakete",
+                    15
+                );
+                if (!texPackagesInstalled) {
+                    appendInstallLogLine("WARNUNG: TeX Live Pakete konnten nicht automatisch installiert werden.");
+                    appendInstallLogLine("Bitte manuell ausführen:");
+                    appendInstallLogLine("sudo /Library/TeX/texbin/tlmgr update --self");
+                    appendInstallLogLine("sudo /Library/TeX/texbin/tlmgr install collection-fontsrecommended collection-latexrecommended collection-latexextra xetex");
+                }
+            }
+        }
+
+        if (!latexInstalled) {
+            logger.warn("BasicTeX konnte nicht automatisch installiert werden. PDF-Export kann fehlschlagen.");
+            appendInstallLogLine("WARNUNG: BasicTeX konnte nicht installiert werden. PDF-Export kann fehlschlagen.");
+        }
+
+        appendInstallLogLine(pandocInstalled
+            ? "Pandoc-Installation abgeschlossen."
+            : "Pandoc-Installation fehlgeschlagen.");
+
+        return pandocInstalled;
+    }
+
+    private boolean runInstallCommandWithBrewLockRetry(
+        List<String> command,
+        String label,
+        int maxAttempts,
+        long timeoutMinutes
+    ) {
+        int attempts = Math.max(1, maxAttempts);
+        for (int attempt = 1; attempt <= attempts; attempt++) {
+            if (attempt > 1) {
+                appendInstallLogLine("Retry " + attempt + "/" + attempts + " für " + label + " ...");
+            }
+
+            InstallCommandResult result = runInstallCommandInternal(command, label, timeoutMinutes);
+            if (result.success) {
+                return true;
+            }
+
+            if (!result.brewLockDetected || attempt == attempts) {
+                return false;
+            }
+
+            appendInstallLogLine("Homebrew-Lock erkannt. Warte 10s und versuche erneut...");
+            try {
+                Thread.sleep(10_000);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                appendInstallLogLine("Retry abgebrochen: Thread wurde unterbrochen.");
+                return false;
+            }
+        }
+        return false;
+    }
+
+    private static final class InstallCommandResult {
+        private final boolean success;
+        private final boolean brewLockDetected;
+
+        private InstallCommandResult(boolean success, boolean brewLockDetected) {
+            this.success = success;
+            this.brewLockDetected = brewLockDetected;
+        }
+    }
+
+    private void openInstallLogWindow() {
+        CountDownLatch readyLatch = new CountDownLatch(1);
+        Runnable showTask = () -> {
+            try {
+                if (installLogStage == null) {
+                    installLogStage = new CustomStage();
+                    installLogStage.setCustomTitle("Manuskript - Installation");
+                    installLogStage.setTitle("Installation: Pandoc & LaTeX");
+                    installLogStage.setWidth(760);
+                    installLogStage.setHeight(460);
+                    installLogStage.setMinWidth(640);
+                    installLogStage.setMinHeight(360);
+                    installLogStage.initOwner(this);
+
+                    Label titleLabel = new Label("Installationsprotokoll (nur Lesen)");
+                    titleLabel.getStyleClass().add("section-title");
+
+                    installLogTextArea = new TextArea();
+                    installLogTextArea.setEditable(false);
+                    installLogTextArea.setWrapText(false);
+                    installLogTextArea.setPrefRowCount(18);
+                    installLogTextArea.setMaxHeight(Double.MAX_VALUE);
+                    installLogTextArea.getStyleClass().add("dialog-textarea");
+                    installLogTextArea.setStyle("-fx-font-family: 'Consolas', 'Menlo', 'Monaco', monospace; -fx-font-size: 11px;");
+
+                    VBox content = new VBox(10, titleLabel, installLogTextArea);
+                    content.setPadding(new Insets(12));
+                    content.getStyleClass().add("dialog-content");
+                    content.getStyleClass().add("pandoc-export-dialog");
+                    content.setStyle("-fx-border-width: 1px; -fx-border-radius: 5px;");
+                    applyThemeBorder(content);
+                    VBox.setVgrow(installLogTextArea, Priority.ALWAYS);
+
+                    StackPane wrapper = new StackPane(content);
+                    wrapper.setPadding(new Insets(8));
+                    wrapper.getStyleClass().add("pandoc-export-dialog");
+
+                    Scene scene = new Scene(wrapper);
+                    installLogStage.setSceneWithTitleBar(scene);
+
+                    String stylesCss = ResourceManager.getCssResource("css/styles.css");
+                    String editorCss = ResourceManager.getCssResource("css/editor.css");
+                    String manuskriptCss = ResourceManager.getCssResource("css/manuskript.css");
+                    if (stylesCss != null) {
+                        scene.getStylesheets().add(stylesCss);
+                    }
+                    if (editorCss != null) {
+                        scene.getStylesheets().add(editorCss);
+                    }
+                    if (manuskriptCss != null) {
+                        scene.getStylesheets().add(manuskriptCss);
+                    }
+                }
+
+                if (!installLogStage.isShowing()) {
+                    installLogStage.show();
+                }
+                installLogStage.toFront();
+            } finally {
+                readyLatch.countDown();
+            }
+        };
+
+        if (Platform.isFxApplicationThread()) {
+            showTask.run();
+        } else {
+            Platform.runLater(showTask);
+            try {
+                readyLatch.await(5, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                logger.warn("Warten auf Installations-Logfenster wurde unterbrochen.");
+            }
+        }
+    }
+
+    private void appendInstallLogLine(String line) {
+        if (line == null) {
+            return;
+        }
+
+        Runnable appendTask = () -> {
+            if (installLogTextArea == null) {
+                return;
+            }
+            installLogTextArea.appendText(line + "\n");
+            installLogTextArea.setScrollTop(Double.MAX_VALUE);
+            installLogTextArea.positionCaret(installLogTextArea.getLength());
+        };
+
+        if (Platform.isFxApplicationThread()) {
+            appendTask.run();
+        } else {
+            Platform.runLater(appendTask);
+        }
+    }
+
+    private boolean confirmMacAutoInstallWithBrew() {
+        if (!isMac()) {
+            return false;
+        }
+
+        if (Platform.isFxApplicationThread()) {
+            return showMacAutoInstallDialog();
+        }
+
+        AtomicBoolean accepted = new AtomicBoolean(false);
+        CountDownLatch latch = new CountDownLatch(1);
+        Platform.runLater(() -> {
+            try {
+                accepted.set(showMacAutoInstallDialog());
+            } finally {
+                latch.countDown();
+            }
+        });
+
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            logger.warn("Bestätigungsdialog für Auto-Installation wurde unterbrochen.");
+            return false;
+        }
+
+        return accepted.get();
+    }
+
+    private boolean showMacAutoInstallDialog() {
+        CustomAlert alert = new CustomAlert(Alert.AlertType.CONFIRMATION, "Pandoc automatisch installieren?");
+        alert.setHeaderText("Pandoc und LaTeX nicht gefunden");
+        alert.setContentText(
+            "Für den Buch-Export auf macOS wird Homebrew benötigt.\n\n"
+                + "Die Anwendung würde folgende Befehle ausführen:\n"
+                + "- brew install pandoc librsvg python\n"
+                + "- brew install --cask basictex\n\n"
+                + "Soll die automatische Installation jetzt gestartet werden?"
+        );
+        alert.applyTheme(currentThemeIndex);
+
+        ButtonType installButton = new ButtonType("Installieren", ButtonBar.ButtonData.OK_DONE);
+        ButtonType cancelButton = new ButtonType("Abbrechen", ButtonBar.ButtonData.CANCEL_CLOSE);
+        alert.getButtonTypes().setAll(installButton, cancelButton);
+
+        Optional<ButtonType> result = alert.showAndWait(this);
+        if (result.isPresent() && result.get() == installButton) {
+            openInstallLogWindow();
+            appendInstallLogLine("Installationsprozess wird gestartet...");
+        }
+        return result.isPresent() && result.get() == installButton;
+    }
+
+    private boolean isHomebrewAvailable() {
+        Process process = null;
+        try {
+            ProcessBuilder pb = new ProcessBuilder("brew", "--version");
+            pb.redirectErrorStream(true);
+            process = pb.start();
+            boolean finished = process.waitFor(15, TimeUnit.SECONDS);
+            return finished && process.exitValue() == 0;
+        } catch (Exception e) {
+            logger.debug("Homebrew-Prüfung fehlgeschlagen: {}", e.getMessage());
+            return false;
+        } finally {
+            if (process != null) {
+                process.destroy();
+            }
+        }
+    }
+
+    private boolean runInstallCommand(List<String> command, String label, long timeoutMinutes) {
+        InstallCommandResult result = runInstallCommandInternal(command, label, timeoutMinutes);
+        return result.success;
+    }
+
+    private InstallCommandResult runInstallCommandInternal(List<String> command, String label, long timeoutMinutes) {
+        Process process = null;
+        java.util.concurrent.atomic.AtomicBoolean brewLockDetected = new java.util.concurrent.atomic.AtomicBoolean(false);
+        java.util.concurrent.atomic.AtomicBoolean sudoPromptDetected = new java.util.concurrent.atomic.AtomicBoolean(false);
+        try {
+            logger.info("Starte automatische Installation: {}", label);
+            logger.info("Installationsbefehl ({}): {}", label, String.join(" ", command));
+            appendInstallLogLine("=== " + label + " ===");
+            appendInstallLogLine("$ " + String.join(" ", command));
+            ProcessBuilder pb = new ProcessBuilder(command);
+            pb.redirectErrorStream(true);
+            String installProcessPath = buildProcessPathWithTexBins(System.getenv("PATH"));
+            pb.environment().put("PATH", installProcessPath);
+            process = pb.start();
+
+            StringBuilder output = new StringBuilder();
+            Process finalProcess = process;
+            Thread outputThread = new Thread(() -> {
+                try (java.io.BufferedReader reader = new java.io.BufferedReader(
+                        new java.io.InputStreamReader(finalProcess.getInputStream(), StandardCharsets.UTF_8))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        logger.info("[{}] {}", label, line);
+                        appendInstallLogLine("[" + label + "] " + line);
+
+                        String lower = line.toLowerCase(Locale.ROOT);
+                        if (lower.contains("has already locked") || lower.contains("already locked")) {
+                            brewLockDetected.set(true);
+                        }
+                        if (lower.contains("with `sudo`") || lower.contains("request your password")) {
+                            sudoPromptDetected.set(true);
+                        }
+
+                        if (output.length() < 12000) {
+                            output.append(line).append('\n');
+                        }
+                    }
+                } catch (IOException e) {
+                    logger.debug("Fehler beim Lesen der Installationsausgabe ({})", label, e);
+                }
+            }, "install-log-" + label.replace(' ', '-'));
+            outputThread.setDaemon(true);
+            outputThread.start();
+
+            long deadlineMillis = System.currentTimeMillis() + Math.max(1, timeoutMinutes) * 60_000;
+            boolean finished = false;
+            while (System.currentTimeMillis() < deadlineMillis) {
+                if (sudoPromptDetected.get()) {
+                    appendInstallLogLine("HINWEIS: '" + label + "' benötigt sudo/Passwort und kann nicht zuverlässig im Hintergrund abgeschlossen werden.");
+                    appendInstallLogLine("Bitte in Terminal manuell ausführen: " + String.join(" ", command));
+                    process.destroyForcibly();
+                    outputThread.join(2000);
+                    return new InstallCommandResult(false, brewLockDetected.get());
+                }
+
+                if (process.waitFor(1, TimeUnit.SECONDS)) {
+                    finished = true;
+                    break;
+                }
+            }
+
+            if (!finished) {
+                process.destroyForcibly();
+                logger.error("Installationsprozess '{}' hat das Zeitlimit überschritten.", label);
+                appendInstallLogLine("FEHLER: Zeitlimit für '" + label + "' überschritten.");
+                outputThread.join(2000);
+                return new InstallCommandResult(false, brewLockDetected.get());
+            }
+
+            outputThread.join(2000);
+
+            int exitCode = process.exitValue();
+            if (exitCode == 0) {
+                logger.info("Automatische Installation erfolgreich: {}", label);
+                appendInstallLogLine("OK: " + label + " erfolgreich abgeschlossen.");
+                return new InstallCommandResult(true, false);
+            }
+
+            logger.error("Automatische Installation fehlgeschlagen ({}), Exit-Code: {}", label, exitCode);
+            appendInstallLogLine("FEHLER: " + label + " fehlgeschlagen (Exit-Code " + exitCode + ").");
+            if (output.length() > 0) {
+                logger.error("Installationsausgabe ({}): {}", label, output.toString().trim());
+            }
+            return new InstallCommandResult(false, brewLockDetected.get());
+        } catch (Exception e) {
+            logger.error("Fehler bei automatischer Installation ({})", label, e);
+            appendInstallLogLine("AUSNAHME bei " + label + ": " + e.getMessage());
+            return new InstallCommandResult(false, brewLockDetected.get());
+        } finally {
+            if (process != null) {
+                process.destroy();
+            }
+        }
+    }
+
+    private File resolveBundledPandocBinary() {
+        String binaryName = getPandocBinaryName();
+
+        if (pandocHome != null) {
+            File inPandocHome = new File(pandocHome, binaryName);
+            if (inPandocHome.exists() && inPandocHome.isFile()) {
+                return inPandocHome;
+            }
+        }
+
+        File inPandocDir = new File("pandoc", binaryName);
+        if (inPandocDir.exists() && inPandocDir.isFile()) {
+            return inPandocDir;
+        }
+
+        File inProjectRoot = new File(binaryName);
+        if (inProjectRoot.exists() && inProjectRoot.isFile()) {
+            return inProjectRoot;
+        }
+
+        return null;
+    }
+
+    private File resolvePandocFromKnownLocations() {
+        if (isWindows()) {
+            return null;
+        }
+
+        String[] candidatePaths = {
+            "/opt/homebrew/bin/pandoc",
+            "/usr/local/bin/pandoc",
+            "/opt/local/bin/pandoc",
+            "/usr/bin/pandoc"
+        };
+
+        for (String path : candidatePaths) {
+            File candidate = new File(path);
+            if (candidate.exists() && candidate.isFile()) {
+                return candidate;
+            }
+        }
+
+        return null;
+    }
+
+    private File resolveBundledPandocArchive() {
+        String[] archiveNames = isWindows()
+            ? new String[] {"pandoc.zip"}
+            : new String[] {"pandoc-mac.zip", "pandoc.zip"};
+
+        for (String archiveName : archiveNames) {
+            File inPandocDir = new File("pandoc", archiveName);
+            if (inPandocDir.exists()) {
+                return inPandocDir;
+            }
+
+            File inProjectRoot = new File(archiveName);
+            if (inProjectRoot.exists()) {
+                return inProjectRoot;
+            }
+        }
+
+        return new File("pandoc.zip");
+    }
+
+    private void ensureBinaryExecutable(File binary) {
+        if (binary == null || isWindows()) {
+            return;
+        }
+
+        if (!binary.canExecute()) {
+            boolean executableSet = binary.setExecutable(true);
+            if (!executableSet) {
+                logger.warn("Konnte Ausführungsrecht für Pandoc-Binary nicht setzen: {}", binary.getAbsolutePath());
+            }
+        }
+    }
+
+    private boolean isPandocInPath() {
+        Process process = null;
+        try {
+            ProcessBuilder pb = new ProcessBuilder(getPandocBinaryName(), "--version");
+            pb.redirectErrorStream(true);
+            process = pb.start();
+            int exitCode = process.waitFor();
+            return exitCode == 0;
+        } catch (Exception e) {
+            logger.debug("Pandoc-PATH-Prüfung fehlgeschlagen: {}", e.getMessage());
+            return false;
+        } finally {
+            if (process != null) {
+                process.destroy();
+            }
         }
     }
 

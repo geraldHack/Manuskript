@@ -536,6 +536,8 @@ public class OnlineLektoratService {
                 + "Du analysierst den gegebenen Text ohne Schonung und nutzt alle Register eines professionellen Lektorats "
                 + "(orthografische Präzision, stilistische Wirkung, Logikprüfung, Kohärenz, Tonalität, Figurenzeichnung, Tempo, Szenendramaturgie)."
                 + focus
+                + "Wichtige Regel für direkte Rede: Umgangssprache, Dialekt, gebrochene Grammatik und individuelle Sprechweise von Figuren sind als Stilmittel grundsätzlich erlaubt und sollen nicht pauschal geglättet werden. "
+                + "Markiere in direkter Rede nur dann eine Änderung, wenn die Verständlichkeit, Figurenkonsistenz oder beabsichtigte Wirkung klar leidet. "
                 + "Gib nur Anmerkungen mit Gewichtung 3, 4 oder 5 (weight >= 3); lasse unwichtige (1–2) weg. "
                 + "Antworte AUSSCHLIESSLICH mit einem JSON-Array. Kein anderer Text außer dem JSON. "
                 + "Jedes Element des Arrays hat genau diese Felder: "

@@ -5,14 +5,16 @@ import com.manuskript.windowhandling.ScreenDetector;
 import javafx.scene.input.MouseEvent;
 import javafx.stage.Window;
 import javafx.stage.Stage;
-import javafx.geometry.Rectangle2D;
 import javafx.stage.Screen;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * macOS-spezifische Implementierung des Drag-Handlers
  * Berücksichtigt Besonderheiten von macOS wie Menüleiste und Dock
  */
 public class MacDragHandler extends DragHandler {
+    private static final Logger LOGGER = Logger.getLogger(MacDragHandler.class.getName());
     
     private static final double SNAP_THRESHOLD = 15.0; // Pixels für Edge-Snapping
     private boolean snapToEdges = true;
@@ -40,23 +42,16 @@ public class MacDragHandler extends DragHandler {
         }
         
         try {
-            // Debug-Logging
-            System.out.println("[MacDragHandler] handleMousePressed: startX=" + event.getSceneX() + ", startY=" + event.getSceneY());
-            
             // Offset für Dragging berechnen
             if (window != null) {
                 xOffset = event.getSceneX();
                 yOffset = event.getSceneY();
                 isDragging = true;
                 
-                // Debug-Logging
-                System.out.println("[MacDragHandler] Drag started: windowX=" + window.getX() + ", windowY=" + window.getY());
-                
                 notifyDragStart(event);
             }
         } catch (Exception e) {
-            System.err.println("[MacDragHandler] Error in handleMousePressed: " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Error in handleMousePressed", e);
         }
     }
     

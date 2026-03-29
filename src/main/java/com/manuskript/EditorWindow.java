@@ -11087,23 +11087,17 @@ spacer.setStyle("-fx-background-color: transparent;");
     }
     
     private void setupFontSizeRightComboBox() {
-        System.out.println("DEBUG: setupFontSizeRightComboBox aufgerufen");
-        System.out.println("DEBUG: cmbFontSizeRight = " + cmbFontSizeRight);
-        
         if (cmbFontSizeRight != null) {
-            System.out.println("DEBUG: cmbFontSizeRight ist nicht null");
             // Font-Size-Optionen hinzufügen
             ObservableList<String> sizes = FXCollections.observableArrayList();
             for (int i = 8; i <= 72; i += 2) {
                 sizes.add(String.valueOf(i));
             }
             cmbFontSizeRight.setItems(sizes);
-            System.out.println("DEBUG: " + sizes.size() + " Schriftgrößen hinzugefügt");
             
             // Gespeicherte Schriftgröße für rechtes Panel laden
             int savedSize = preferences.getInt("rightPanelFontSize", 12);
             cmbFontSizeRight.setValue(String.valueOf(savedSize));
-            System.out.println("DEBUG: Schriftgröße gesetzt auf " + savedSize);
             
             // Event-Handler für Schriftgrößenänderung im rechten Panel
             cmbFontSizeRight.setOnAction(e -> {
@@ -11122,9 +11116,6 @@ spacer.setStyle("-fx-background-color: transparent;");
             
             // Theme anwenden
             applyThemeToNode(cmbFontSizeRight, currentThemeIndex);
-            System.out.println("DEBUG: setupFontSizeRightComboBox abgeschlossen");
-        } else {
-            System.out.println("DEBUG: cmbFontSizeRight ist null!");
         }
     }
     
@@ -13582,7 +13573,7 @@ spacer.setStyle("-fx-background-color: transparent;");
         }
         // Cursor war vor dem ersetzten Bereich - keine Anpassung nötig
         
-        // Cursor-Position setzen (keine Selektion)
+        // Cursor-Position setzen
         codeArea.moveTo(newCaretPosition);
         
         // Nur lokale Neustyling statt vollständiger Neuformatierung
@@ -13593,6 +13584,9 @@ spacer.setStyle("-fx-background-color: transparent;");
         if (codeArea.getCaretPosition() != caretBeforeStyling) {
             codeArea.moveTo(caretBeforeStyling);
         }
+        
+        // Selektion explizit löschen (nach dem Styling, um sicherzustellen dass keine Markierung bleibt)
+        codeArea.selectRange(codeArea.getCaretPosition(), codeArea.getCaretPosition());
         
         if (currentLektoratMatches.isEmpty()) {
             ensureLektoratPanelVisible(false);

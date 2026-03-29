@@ -383,7 +383,7 @@ public class ElevenLabsClient {
                 .header("xi-api-key", apiKey)
                 .header("Content-Type", "application/json")
                 .POST(HttpRequest.BodyPublishers.ofString(bodyStr, StandardCharsets.UTF_8))
-                .timeout(Duration.ofSeconds(120))
+                .timeout(Duration.ofSeconds(180))
                 .build();
         HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(15)).build();
         HttpResponse<byte[]> response = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
@@ -441,7 +441,7 @@ public class ElevenLabsClient {
                 .header("xi-api-key", apiKey)
                 .header("Content-Type", "multipart/form-data; boundary=" + boundary)
                 .POST(bodyPublisher)
-                .timeout(Duration.ofSeconds(120))
+                .timeout(Duration.ofSeconds(180))
                 .build();
         HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(15)).build();
         HttpResponse<byte[]> response = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
@@ -524,7 +524,7 @@ public class ElevenLabsClient {
                 .header("xi-api-key", apiKey)
                 .header("Content-Type", "multipart/form-data; boundary=" + boundary)
                 .POST(bodyPublisher)
-                .timeout(Duration.ofSeconds(120))
+                .timeout(Duration.ofSeconds(180))
                 .build();
         HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(15)).build();
         HttpResponse<byte[]> response = client.send(request, HttpResponse.BodyHandlers.ofByteArray());

@@ -1,8 +1,5 @@
 package com.manuskript;
 
-import com.manuskript.CustomStage;
-import com.manuskript.ResourceManager;
-import java.util.prefs.Preferences;
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -109,8 +106,8 @@ public class ChapterTtsEditorWindow {
     /** FFmpeg -q:a Werte zu MP3_QUALITY_OPTIONS (0=klein, 1=Standard, 2=groß). */
     private static final int[] MP3_QUALITY_VALUES = { 6, 4, 2 };
 
-    /** Bitrate-Optionen für Hörbuch-Export (kbps). */
-    private static final String[] BITRATE_OPTIONS = { "128 kbps", "192 kbps", "256 kbps", "320 kbps" };
+    /** Bitrate-Optionen für Hörbuch-Export (kbps) - ACX-kompatibel (Minimum 192 kbps). */
+    private static final String[] BITRATE_OPTIONS = { "192 kbps (ACX)", "256 kbps", "320 kbps" };
 
     /** Pattern für Sprecher-Tags in Regieanweisungen (Format: "Name: [tags]") */
     private static final Pattern SPEAKER_TAG_PATTERN = Pattern.compile("^([^\\[\\]:]+):\\s*(\\[[^\\]]+\\](?:\\s*\\[[^\\]]+\\])*)?$");
@@ -124,6 +121,7 @@ public class ChapterTtsEditorWindow {
         "flüsterte", "murmelte", "brüllte", "schrie", "seufzte", 
         "stöhnte", "ächzte", "grinste", "nickte", "zuckte"
     };
+    private static final Pattern BRACKET_TAG_PATTERN = Pattern.compile("\\[[^\\]]+\\]");
     
     /** Temporäre Sprecher für diese Sitzung */
     private final Map<String, String> temporarySpeakers = new HashMap<>();
@@ -154,10 +152,22 @@ public class ChapterTtsEditorWindow {
             this.contextAfter = contextAfter;
         }
     }
+
+    private static class ScriptDialogueSpan {
+        final int index;
+        final int start;
+        final String dialogue;
+
+        ScriptDialogueSpan(int index, int start, String dialogue) {
+            this.index = index;
+            this.start = start;
+            this.dialogue = dialogue;
+        }
+    }
     /** Tatsächliche kbps-Werte zu BITRATE_OPTIONS. */
-    private static final int[] BITRATE_VALUES = { 128, 192, 256, 320 };
-    /** Default-Index in BITRATE_OPTIONS (320 kbps). */
-    private static final int DEFAULT_BITRATE_INDEX = 3;
+    private static final int[] BITRATE_VALUES = { 192, 256, 320 };
+    /** Default-Index in BITRATE_OPTIONS (192 kbps für ACX-Kompatibilität). */
+    private static final int DEFAULT_BITRATE_INDEX = 0;
 
     /** Stille am Anfang jeder Kapitel-MP3 in Sekunden (wird nach Trimming eingefügt). */
     private static final double LEAD_SILENCE_SECONDS = 0.8;
@@ -356,6 +366,10 @@ public class ChapterTtsEditorWindow {
     private Label v3TagCheckmark;
     /** v3 Text taggen – nur bei Selektion aktiv, max. 3500 Zeichen. */
     private Button btnV3AudioTag;
+    private Button btnScriptErstellen;
+    private ProgressIndicator scriptProgressIndicator;
+    private Label scriptCheckmark;
+    private volatile boolean isScriptCreationRunning = false;
     private Label statusLabel;
     private Label externalEditorPathLabel;
     private int playingSegmentIndex = -1;
@@ -437,25 +451,18 @@ public class ChapterTtsEditorWindow {
                 // Gespeicherte Werte sind falsch, neu extrahieren
                 extractSpeakerInfo();
             }
-            // DEBUG: Überprüfen was aus JSON geladen wird
-            System.out.println("DEBUG RegieanweisungEntry Konstruktor: text='" + text + "', isSpeaker=" + this.isSpeaker + ", speakerName='" + this.speakerName + "'");
         }
         
         /** Extrahiert Sprecher-Informationen aus dem Text (Format: "Name: [tags]") */
         private void extractSpeakerInfo() {
-            // DEBUG: Überprüfen was wir bekommen
-            System.out.println("DEBUG extractSpeakerInfo INPUT: '" + text + "'");
             if (text != null && text.contains(":")) {
                 String[] parts = text.split(":", 2);
                 if (parts.length == 2) {
                     speakerName = parts[0].trim();
                     isSpeaker = true;
-                    System.out.println("DEBUG extractSpeakerInfo: erkannt als Sprecher: '" + speakerName + "', isSpeaker=" + isSpeaker);
                 } else {
-                    System.out.println("DEBUG extractSpeakerInfo: kein gültiges Format, isSpeaker=" + isSpeaker);
                 }
             } else {
-                System.out.println("DEBUG extractSpeakerInfo: kein Doppelpunkt gefunden, isSpeaker=" + isSpeaker);
             }
         }
         
@@ -482,27 +489,20 @@ public class ChapterTtsEditorWindow {
         
         /** Gibt nur die Regieanweisung-Tags zurück (ohne Sprechernamen) */
         public String getTagsOnly() {
-            // DEBUG: Immer ausgeben
-            System.out.println("DEBUG getTagsOnly INPUT: '" + text + "', isSpeaker=" + isSpeaker);
             if (!isSpeaker || text == null) {
-                System.out.println("DEBUG getTagsOnly: kein Sprecher oder null, return: '" + text + "'");
                 return text;
             }
             int colonIndex = text.indexOf(":");
             if (colonIndex == -1) {
-                System.out.println("DEBUG getTagsOnly: kein Doppelpunkt gefunden, return: '" + text + "'");
                 return text;
             }
             String result = text.substring(colonIndex + 1).trim();
-            System.out.println("DEBUG getTagsOnly nach erstem Schnitt: '" + result + "'");
             // Nochmal prüfen ob der Name noch drin ist
             if (result.contains(":")) {
                 // Falls doch noch ein Doppelpunkt drin ist, alles davor entfernen
                 int secondColon = result.indexOf(":");
                 result = result.substring(secondColon + 1).trim();
-                System.out.println("DEBUG getTagsOnly nach zweitem Schnitt: '" + result + "'");
             }
-            System.out.println("DEBUG getTagsOnly FINAL: '" + result + "'");
             return result;
         }
         
@@ -1174,6 +1174,7 @@ public class ChapterTtsEditorWindow {
         playerBox.getChildren().addAll(playerLabel, playerButtons, playerProgress, new Label("Beim Speichern Anfang weglassen (z. B. Einschwingen):"), trimStartSlider, trimStartLabel);
 
         btnErstellen = new Button("Erstellen");
+        btnErstellen.setDisable(true); // Initial deaktiviert, wird bei Text-Selektion aktiviert
         btnSpeichern = new Button("Speichern");
         autoSaveCheckBox = new CheckBox("Automatisch speichern");
         autoSaveCheckBox.setTooltip(new Tooltip("Nach jeder Generierung (Erstellen) sofort als Segment speichern."));
@@ -1260,7 +1261,6 @@ public class ChapterTtsEditorWindow {
         Button btnMainAutoRun = new Button("Automatischer Sprecher-Lauf");
         btnMainAutoRun.setMaxWidth(Double.MAX_VALUE);
         btnMainAutoRun.setOnAction(e -> {
-            System.out.println("DEBUG: Button geklickt!");
             startAutomaticSpeakerAssignment();  // Lauf starten
             createSpeakerWindow();  // Fenster erstellen
             speakerWindow.show();   // Fenster anzeigen
@@ -1271,6 +1271,26 @@ public class ChapterTtsEditorWindow {
             }
         });
         btnMainAutoRun.getStyleClass().add("primary-button");
+
+        btnScriptErstellen = new Button("Script erstellen");
+        btnScriptErstellen.setMaxWidth(Double.MAX_VALUE);
+        btnScriptErstellen.setTooltip(new Tooltip("Erstellt automatisch ein Hörbuch-Script in 2 Schritten: 1) Sprecher-/Emotions-Tags per Online-API, 2) Aufspaltung von Rede/Narration in sprechbare Zeilen."));
+        btnScriptErstellen.setOnAction(e -> createScriptWithOnlineApi());
+        btnScriptErstellen.getStyleClass().add("primary-button");
+        scriptProgressIndicator = new ProgressIndicator(-1);
+        scriptProgressIndicator.setVisible(false);
+        scriptProgressIndicator.setPrefSize(20, 20);
+        scriptCheckmark = new Label("✔");
+        scriptCheckmark.setStyle("-fx-text-fill: #16a34a; -fx-font-size: 16px; -fx-font-weight: bold;");
+        scriptCheckmark.setVisible(false);
+        StackPane scriptIconStack = new StackPane(scriptProgressIndicator, scriptCheckmark);
+        scriptIconStack.setMinWidth(22);
+        scriptIconStack.setPrefWidth(22);
+        scriptIconStack.setMaxWidth(22);
+        HBox scriptRow = new HBox(8);
+        scriptRow.setAlignment(Pos.CENTER_LEFT);
+        scriptRow.getChildren().addAll(btnScriptErstellen, scriptIconStack);
+        HBox.setHgrow(btnScriptErstellen, Priority.ALWAYS);
         
         leftColumn.getChildren().addAll(
             voiceRow,
@@ -1294,15 +1314,15 @@ public class ChapterTtsEditorWindow {
         // Lexikon und Regieanweisungen eng untereinander (kein Abstand nach unten)
         TitledPane lexiconPane = new TitledPane("Aussprache-Lexikon", lexiconBox);
         lexiconPane.getStyleClass().add("ollama-titled-pane");
-        lexiconPane.setExpanded(true);
+        lexiconPane.setExpanded(false);
         lexiconPane.setMaxWidth(Double.MAX_VALUE);
         TitledPane regiePane = new TitledPane("Regieanweisungen", regieanweisungenBox);
         regiePane.getStyleClass().add("ollama-titled-pane");
-        regiePane.setExpanded(true);
+        regiePane.setExpanded(false);
         regiePane.setMaxWidth(Double.MAX_VALUE);
         VBox lexiconAndRegieBox = new VBox(4);
         lexiconAndRegieBox.setMaxWidth(Double.MAX_VALUE);
-        lexiconAndRegieBox.getChildren().addAll(lexiconPane, regiePane, new Separator(), btnMainAutoRun);
+        lexiconAndRegieBox.getChildren().addAll(lexiconPane, regiePane, new Separator(), btnMainAutoRun, scriptRow);
 
         // Rechte Spalte: Einschwing, Lexikon+Regie, Audioschnittprogramm
         VBox rightColumn = new VBox(12);
@@ -1385,6 +1405,8 @@ public class ChapterTtsEditorWindow {
         applyThemeToNode(regieanweisungenBox, themeIndex);
         applyThemeToNode(regieanweisungenTableView, themeIndex);
         applyThemeToNode(btnMainAutoRun, themeIndex);
+        applyThemeToNode(btnScriptErstellen, themeIndex);
+        applyThemeToNode(scriptRow, themeIndex);
         applyThemeToNode(btnV3AudioTag, themeIndex);
         applyThemeToNode(statusBar, themeIndex);
         applyThemeToNode(statusLabel, themeIndex);
@@ -1955,12 +1977,469 @@ public class ChapterTtsEditorWindow {
 
     /** Max. Zeichen für v3-Tagging (nur Selektion). */
     private static final int V3_TAG_MAX_SELECTION_CHARS = 3500;
+    private static final int SCRIPT_CHUNK_SIZE_DEFAULT = 4500;
+
+    private static class ScriptSpeakerDefinition {
+        final String name;
+        final String tags;
+
+        ScriptSpeakerDefinition(String name, String tags) {
+            this.name = name;
+            this.tags = tags;
+        }
+    }
 
     /** Aktiviert/deaktiviert den v3-Taggen-Button je nach Selektion (keine Selektion = disabled). */
     private void updateV3TagButtonState() {
         if (btnV3AudioTag == null || codeArea == null) return;
         String sel = codeArea.getSelectedText();
         btnV3AudioTag.setDisable(sel == null || sel.isEmpty());
+    }
+
+    private void setScriptUiRunning(boolean running) {
+        isScriptCreationRunning = running;
+        if (btnScriptErstellen != null) btnScriptErstellen.setDisable(running);
+        if (scriptProgressIndicator != null) scriptProgressIndicator.setVisible(running);
+        if (!running && scriptCheckmark != null) scriptCheckmark.setVisible(false);
+    }
+
+    private void createScriptWithOnlineApi() {
+        if (codeArea == null || isScriptCreationRunning) return;
+        String originalText = codeArea.getText();
+        if (originalText == null || originalText.isBlank()) {
+            setStatus("Kein Text für Script-Erstellung vorhanden.");
+            return;
+        }
+
+        List<ScriptSpeakerDefinition> speakers = collectScriptSpeakerDefinitions();
+        if (speakers.isEmpty()) {
+            CustomAlert alert = DialogFactory.createWarningAlert(
+                    "Script erstellen",
+                    "Keine Sprecher gefunden",
+                    "Bitte in den Regieanweisungen mindestens einen Sprecher im Format 'Name: [Tag]' hinterlegen.",
+                    stage != null ? stage.getScene().getWindow() : null);
+            alert.applyTheme(themeIndex);
+            alert.showAndWait(stage != null ? stage.getScene().getWindow() : null);
+            return;
+        }
+
+        List<String> emotionTags = collectEmotionTagsForScript();
+        int chunkSize = getScriptChunkSize();
+        List<String> chunks = splitForScriptApi(originalText, chunkSize);
+        if (chunks.isEmpty()) chunks = List.of(originalText);
+
+        setScriptUiRunning(true);
+        setStatus("Script erstellen: Schritt 1/2 läuft (Sprecher-Erkennung über Online-API) …");
+
+        List<String> finalChunks = chunks;
+        CompletableFuture.runAsync(() -> {
+            OnlineLektoratService service = new OnlineLektoratService();
+            StringBuilder step1Text = new StringBuilder(originalText.length() + 512);
+
+            for (int i = 0; i < finalChunks.size(); i++) {
+                String chunk = finalChunks.get(i);
+                String transformedChunk = runScriptStep1Chunk(service, chunk, speakers, emotionTags);
+                step1Text.append(transformedChunk);
+                int done = i + 1;
+                Platform.runLater(() -> setStatus("Script erstellen: Schritt 1/2 – " + done + "/" + finalChunks.size() + " Abschnitte verarbeitet …"));
+            }
+
+            String step1Normalized = replaceSpeakerNameTagsInText(step1Text.toString(), speakers);
+            String step2Text = applyScriptStep2Formatting(step1Normalized);
+            Platform.runLater(() -> {
+                codeArea.replaceText(step2Text);
+                refreshHighlight();
+                setScriptUiRunning(false);
+                if (scriptCheckmark != null) {
+                    scriptCheckmark.setVisible(true);
+                    PauseTransition hideCheck = new PauseTransition(Duration.seconds(10));
+                    hideCheck.setOnFinished(ev -> scriptCheckmark.setVisible(false));
+                    hideCheck.play();
+                }
+                setStatus("Script erstellen abgeschlossen (Schritt 1 + Schritt 2). Bitte Ergebnis prüfen.");
+            });
+        }).exceptionally(ex -> {
+            logger.error("Script erstellen fehlgeschlagen", ex);
+            Platform.runLater(() -> {
+                setScriptUiRunning(false);
+                String msg = ex.getCause() != null ? ex.getCause().getMessage() : ex.getMessage();
+                CustomAlert alert = DialogFactory.createErrorAlert(
+                        "Script erstellen",
+                        "Fehler",
+                        msg != null ? msg : "Unbekannter Fehler",
+                        stage != null ? stage.getScene().getWindow() : null);
+                alert.applyTheme(themeIndex);
+                alert.showAndWait(stage != null ? stage.getScene().getWindow() : null);
+                setStatus("Script erstellen fehlgeschlagen.");
+            });
+            return null;
+        });
+    }
+
+    private int getScriptChunkSize() {
+        String configured = ResourceManager.getParameter("api.lektorat.chunk_size", String.valueOf(SCRIPT_CHUNK_SIZE_DEFAULT));
+        int parsed = SCRIPT_CHUNK_SIZE_DEFAULT;
+        try {
+            parsed = Integer.parseInt(configured.trim());
+        } catch (Exception ignored) {
+        }
+        return Math.max(2000, Math.min(6000, parsed));
+    }
+
+    private List<String> splitForScriptApi(String text, int maxChars) {
+        List<String> chunks = new ArrayList<>();
+        if (text == null || text.isEmpty()) return chunks;
+        int len = text.length();
+        int start = 0;
+        while (start < len) {
+            int end = Math.min(start + maxChars, len);
+            if (end < len) {
+                int paragraphBreak = text.lastIndexOf("\n\n", end);
+                if (paragraphBreak > start + (maxChars / 2)) {
+                    end = paragraphBreak + 2;
+                } else {
+                    int sentenceBreak = -1;
+                    for (int i = end; i > start + (maxChars / 2); i--) {
+                        char c = text.charAt(i - 1);
+                        if (c == '.' || c == '!' || c == '?' || c == '\n') {
+                            sentenceBreak = i;
+                            break;
+                        }
+                    }
+                    if (sentenceBreak > start) {
+                        end = sentenceBreak;
+                    }
+                }
+            }
+            if (end <= start) end = Math.min(start + maxChars, len);
+            chunks.add(text.substring(start, end));
+            start = end;
+        }
+        return chunks;
+    }
+
+    private List<ScriptSpeakerDefinition> collectScriptSpeakerDefinitions() {
+        Map<String, ScriptSpeakerDefinition> byName = new LinkedHashMap<>();
+        for (RegieanweisungEntry entry : regieanweisungenItems) {
+            if (entry == null || !entry.isSpeaker) continue;
+            String name = entry.speakerName != null ? entry.speakerName.trim() : "";
+            String tags = entry.getTagsOnly() != null ? entry.getTagsOnly().trim() : "";
+            if (name.isEmpty() || tags.isEmpty()) continue;
+            byName.putIfAbsent(name.toLowerCase(Locale.ROOT), new ScriptSpeakerDefinition(name, tags));
+        }
+        for (Map.Entry<String, String> e : temporarySpeakers.entrySet()) {
+            String name = e.getKey() != null ? e.getKey().trim() : "";
+            String tags = e.getValue() != null ? e.getValue().trim() : "";
+            if (name.isEmpty() || tags.isEmpty()) continue;
+            byName.putIfAbsent(name.toLowerCase(Locale.ROOT), new ScriptSpeakerDefinition(name, tags));
+        }
+        return new ArrayList<>(byName.values());
+    }
+
+    private List<String> collectEmotionTagsForScript() {
+        LinkedHashSet<String> tags = new LinkedHashSet<>();
+        for (RegieanweisungEntry entry : regieanweisungenItems) {
+            if (entry == null || entry.text == null || entry.text.isBlank()) continue;
+            if (entry.isSpeaker) continue;
+            Matcher matcher = BRACKET_TAG_PATTERN.matcher(entry.text);
+            while (matcher.find()) {
+                String tag = matcher.group().trim();
+                if (!tag.isEmpty()) tags.add(tag);
+            }
+        }
+        return new ArrayList<>(tags);
+    }
+
+    private String runScriptStep1Chunk(OnlineLektoratService service,
+                                       String chunk,
+                                       List<ScriptSpeakerDefinition> speakers,
+                                       List<String> emotionTags) {
+        if (chunk == null || chunk.isBlank()) return chunk;
+        List<ScriptDialogueSpan> dialogues = findScriptDialogues(chunk);
+        if (dialogues.isEmpty()) return chunk;
+
+        StringBuilder speakersText = new StringBuilder();
+        for (ScriptSpeakerDefinition s : speakers) {
+            speakersText.append("- ").append(s.name).append(" => ").append(s.tags).append("\n");
+        }
+        String emotions = emotionTags.isEmpty() ? "(keine vordefinierte Liste)" : String.join(", ", emotionTags);
+
+        StringBuilder dialogueList = new StringBuilder();
+        for (ScriptDialogueSpan dialogue : dialogues) {
+            dialogueList.append(dialogue.index).append("| ").append(dialogue.dialogue).append("\n");
+        }
+
+        String systemPrompt = """
+                Du bist ein Tagging-Assistent fuer direkte Rede.
+                Aufgabe: Gib NUR Zuordnungen fuer Tags je Dialognummer zurueck.
+                Regeln:
+                - Antworte ausschliesslich zeilenweise im Format: <nummer>|<tags>
+                - <tags> enthaelt nur eckige Klammer-Tags, z.B. [Kalem][surprised]
+                - Keine Erklaerungen, kein Fliesstext, keine Code-Fences.
+                - Wenn unsicher: <nummer>| (leer lassen).
+                - Nutze bevorzugt die vorgegebenen Sprecher- und Emotions-Tags.
+                """;
+
+        String userMessage = "Sprecherliste:\n"
+                + speakersText
+                + "\nEmotionsliste (bevorzugt):\n"
+                + emotions
+                + "\n\nAbschnitt (unveraendert):\n=== TEXT ===\n"
+                + chunk
+                + "\n\nDialoge im Abschnitt:\n"
+                + dialogueList
+                + "\nGib nur die Zuordnungen <nummer>|<tags> zurueck.";
+
+        String response = service.complete(systemPrompt, userMessage, 0.2, null).join();
+        if (response == null || response.isBlank()) return chunk;
+        String cleaned = stripCodeFence(response.strip());
+        if (cleaned.isBlank()) return chunk;
+
+        Map<Integer, String> tagsByDialogue = new HashMap<>();
+        String[] lines = cleaned.split("\\R");
+        for (String line : lines) {
+            if (line == null || line.isBlank()) continue;
+            Matcher m = Pattern.compile("^\\s*(?:[-*]\\s*)?(\\d+)\\s*(?:[|:;\\-.]\\s*)?(.*)$").matcher(line);
+            if (!m.matches()) continue;
+            int idx;
+            try {
+                idx = Integer.parseInt(m.group(1));
+            } catch (Exception ignored) {
+                continue;
+            }
+            String normalizedTags = normalizeScriptTags(m.group(2), speakers);
+            if (!normalizedTags.isEmpty()) tagsByDialogue.put(idx, normalizedTags);
+        }
+
+        if (tagsByDialogue.isEmpty()) return chunk;
+
+        StringBuilder out = new StringBuilder(chunk);
+        List<ScriptDialogueSpan> descending = new ArrayList<>(dialogues);
+        descending.sort((a, b) -> Integer.compare(b.start, a.start));
+        for (ScriptDialogueSpan d : descending) {
+            String tags = tagsByDialogue.get(d.index);
+            if (tags == null || tags.isBlank()) continue;
+            int insertPos = d.start;
+            int existingTagBlockStart = findScriptTagBlockStartBefore(out, d.start);
+            if (existingTagBlockStart >= 0) {
+                out.delete(existingTagBlockStart, d.start);
+                insertPos = existingTagBlockStart;
+            }
+            out.insert(insertPos, tags);
+        }
+        return out.toString();
+    }
+
+    private List<ScriptDialogueSpan> findScriptDialogues(String chunk) {
+        List<ScriptDialogueSpan> dialogues = new ArrayList<>();
+        if (chunk == null || chunk.isBlank()) return dialogues;
+        Pattern dialoguePattern = Pattern.compile("(?:[\\u201E\\u00AB\\u00BB\\\"](?:[^\\u201E\\u00AB\\u201C\\u201D\\u00BB\\\"\\n]*)[\\u201C\\u00BB\\u00AB\\\"]|\\*[^*\\n]+\\*)");
+        Matcher matcher = dialoguePattern.matcher(chunk);
+        int i = 1;
+        while (matcher.find()) {
+            String dialogue = matcher.group();
+            if (dialogue != null && !dialogue.isBlank()) {
+                dialogues.add(new ScriptDialogueSpan(i++, matcher.start(), dialogue));
+            }
+        }
+        return dialogues;
+    }
+
+    private static String normalizeScriptTags(String raw, List<ScriptSpeakerDefinition> speakers) {
+        if (raw == null || raw.isBlank()) return "";
+        Map<String, String> speakerTagsByName = buildSpeakerTagsByName(speakers);
+
+        Map<String, String> uniqueTagsByKey = new LinkedHashMap<>();
+        Matcher matcher = BRACKET_TAG_PATTERN.matcher(raw);
+        while (matcher.find()) {
+            String t = matcher.group().trim();
+            if (t.isEmpty()) continue;
+            String inner = t.substring(1, t.length() - 1).trim().toLowerCase(Locale.ROOT);
+            String canonicalInner = canonicalizeSpeakerOrTag(inner);
+            String mappedSpeakerTags = speakerTagsByName.get(inner);
+            if ((mappedSpeakerTags == null || mappedSpeakerTags.isEmpty()) && !canonicalInner.isEmpty()) {
+                mappedSpeakerTags = speakerTagsByName.get(canonicalInner);
+            }
+            if (mappedSpeakerTags != null && !mappedSpeakerTags.isEmpty()) {
+                appendUniqueScriptTags(uniqueTagsByKey, mappedSpeakerTags);
+            } else {
+                appendUniqueScriptTag(uniqueTagsByKey, t);
+            }
+        }
+
+        StringBuilder tags = new StringBuilder();
+        for (String value : uniqueTagsByKey.values()) {
+            tags.append(value);
+        }
+        return tags.toString();
+    }
+
+    private String replaceSpeakerNameTagsInText(String text, List<ScriptSpeakerDefinition> speakers) {
+        if (text == null || text.isBlank()) return text;
+        Map<String, String> speakerTagsByName = buildSpeakerTagsByName(speakers);
+        if (speakerTagsByName.isEmpty()) return text;
+
+        Matcher matcher = BRACKET_TAG_PATTERN.matcher(text);
+        StringBuffer out = new StringBuffer();
+        while (matcher.find()) {
+            String tag = matcher.group();
+            String replacement = tag;
+            if (tag != null && tag.length() >= 2) {
+                String inner = tag.substring(1, tag.length() - 1).trim().toLowerCase(Locale.ROOT);
+                String canonicalInner = canonicalizeSpeakerOrTag(inner);
+                String mapped = speakerTagsByName.get(inner);
+                if ((mapped == null || mapped.isEmpty()) && !canonicalInner.isEmpty()) {
+                    mapped = speakerTagsByName.get(canonicalInner);
+                }
+                if (mapped != null && !mapped.isEmpty()) {
+                    replacement = mapped;
+                }
+            }
+            matcher.appendReplacement(out, Matcher.quoteReplacement(replacement));
+        }
+        matcher.appendTail(out);
+        return out.toString();
+    }
+
+    private static Map<String, String> buildSpeakerTagsByName(List<ScriptSpeakerDefinition> speakers) {
+        Map<String, String> speakerTagsByName = new HashMap<>();
+        if (speakers == null) return speakerTagsByName;
+        for (ScriptSpeakerDefinition s : speakers) {
+            if (s == null || s.name == null || s.tags == null) continue;
+            String name = s.name.trim().toLowerCase(Locale.ROOT);
+            String canonicalName = canonicalizeSpeakerOrTag(name);
+            String tags = s.tags.trim();
+            if (!name.isEmpty() && !tags.isEmpty()) {
+                speakerTagsByName.put(name, tags);
+                if (!canonicalName.isEmpty()) speakerTagsByName.putIfAbsent(canonicalName, tags);
+            }
+        }
+        return speakerTagsByName;
+    }
+
+    private static void appendUniqueScriptTags(Map<String, String> uniqueTagsByKey, String tagsText) {
+        if (uniqueTagsByKey == null || tagsText == null || tagsText.isBlank()) return;
+        Matcher matcher = BRACKET_TAG_PATTERN.matcher(tagsText);
+        while (matcher.find()) {
+            appendUniqueScriptTag(uniqueTagsByKey, matcher.group());
+        }
+    }
+
+    private static void appendUniqueScriptTag(Map<String, String> uniqueTagsByKey, String tag) {
+        if (uniqueTagsByKey == null || tag == null) return;
+        String trimmed = tag.trim();
+        if (trimmed.length() < 2 || trimmed.charAt(0) != '[' || trimmed.charAt(trimmed.length() - 1) != ']') return;
+        String inner = trimmed.substring(1, trimmed.length() - 1).trim();
+        if (inner.isEmpty()) return;
+        String key = inner.toLowerCase(Locale.ROOT);
+        uniqueTagsByKey.putIfAbsent(key, "[" + inner + "]");
+    }
+
+    private static String canonicalizeSpeakerOrTag(String value) {
+        if (value == null) return "";
+        String normalized = java.text.Normalizer.normalize(value, java.text.Normalizer.Form.NFD)
+                .replaceAll("\\p{M}+", "")
+                .toLowerCase(Locale.ROOT)
+                .replaceAll("[^a-z0-9]+", "");
+        return normalized != null ? normalized.trim() : "";
+    }
+
+    private static int findScriptTagBlockStartBefore(CharSequence text, int dialogueStart) {
+        if (text == null || dialogueStart <= 0 || dialogueStart > text.length()) return -1;
+        int i = dialogueStart - 1;
+        while (i >= 0 && Character.isWhitespace(text.charAt(i)) && text.charAt(i) != '\n') {
+            i--;
+        }
+        if (i < 0 || text.charAt(i) != ']') return -1;
+
+        int blockStart = dialogueStart;
+        while (i >= 0) {
+            if (text.charAt(i) != ']') break;
+
+            int open = i;
+            while (open >= 0 && text.charAt(open) != '[') {
+                if (text.charAt(open) == '\n') return -1;
+                open--;
+            }
+            if (open < 0) return -1;
+            blockStart = open;
+
+            i = open - 1;
+            while (i >= 0 && Character.isWhitespace(text.charAt(i)) && text.charAt(i) != '\n') {
+                blockStart = i;
+                i--;
+            }
+        }
+        return blockStart;
+    }
+
+    private static String stripCodeFence(String text) {
+        if (text == null) return "";
+        String out = text.strip();
+        if (out.startsWith("```")) {
+            int firstNl = out.indexOf('\n');
+            if (firstNl >= 0) out = out.substring(firstNl + 1);
+        }
+        if (out.endsWith("```")) {
+            out = out.substring(0, out.length() - 3);
+        }
+        return out.strip();
+    }
+
+    private String applyScriptStep2Formatting(String text) {
+        if (text == null || text.isBlank()) return text;
+        String out = text.replace("\r\n", "\n").replace('\r', '\n');
+        List<ScriptSpeakerDefinition> speakers = collectScriptSpeakerDefinitions();
+        Pattern dialoguePattern = Pattern.compile(
+                "((?:\\[[^\\]\\n]+\\]\\s*)*(?:[\\u201E\\u00AB\\u00BB\\\"](?:[^\\u201E\\u00AB\\u201C\\u201D\\u00BB\\\"\\n]*)[\\u201C\\u00BB\\u00AB\\\"]|\\*[^*\\n]+\\*))");
+
+        List<String> blocks = new ArrayList<>();
+        Matcher matcher = dialoguePattern.matcher(out);
+        int cursor = 0;
+        while (matcher.find()) {
+            appendScriptNarrationBlocks(blocks, out.substring(cursor, matcher.start()));
+            String dialogue = matcher.group(1) != null ? matcher.group(1).trim() : "";
+            dialogue = normalizeDialogueLineTags(dialogue, speakers);
+            if (!dialogue.isEmpty()) blocks.add(dialogue);
+            cursor = matcher.end();
+        }
+        appendScriptNarrationBlocks(blocks, out.substring(cursor));
+
+        if (blocks.isEmpty()) return out.trim();
+        return String.join("\n\n", blocks).replaceAll("\\n{3,}", "\\n\\n").trim();
+    }
+
+    private String normalizeDialogueLineTags(String dialogue, List<ScriptSpeakerDefinition> speakers) {
+        if (dialogue == null || dialogue.isBlank()) return dialogue;
+        Matcher m = Pattern.compile("^((?:\\[[^\\]\\n]+\\]\\s*)+)((?:[\\u201E\\u00AB\\u00BB\\\"].*)|(?:\\*[^*\\n]+\\*.*))$").matcher(dialogue.trim());
+        if (!m.matches()) return dialogue.trim();
+        String normalizedTags = normalizeScriptTags(m.group(1), speakers);
+        String quotePart = m.group(2) != null ? m.group(2).trim() : "";
+        if (quotePart.isEmpty()) return dialogue.trim();
+        return normalizedTags + quotePart;
+    }
+
+    private static void appendScriptNarrationBlocks(List<String> blocks, String fragment) {
+        if (fragment == null) return;
+        String normalized = fragment.replace("\r\n", "\n").replace('\r', '\n').trim();
+        normalized = normalized.replaceFirst("^[,;:]\\s*", "");
+        if (normalized.isEmpty()) return;
+        String[] parts = normalized.split("\\n{2,}");
+        for (String part : parts) {
+            String candidate = part.trim().replaceFirst("^[,;:]\\s*", "");
+            if (!candidate.isEmpty()) blocks.add(candidate);
+        }
+    }
+
+    private boolean isDialogueLine(String line) {
+        if (line == null || line.isBlank()) return false;
+        String s = line.trim();
+        while (s.startsWith("[")) {
+            int end = s.indexOf(']');
+            if (end < 0) break;
+            s = s.substring(end + 1).trim();
+        }
+        return s.startsWith("„") || s.startsWith("«") || s.startsWith("»") || s.startsWith("\"") || s.startsWith("*");
     }
 
     /**
@@ -2301,15 +2780,8 @@ public class ChapterTtsEditorWindow {
                     String selectedItem = audioTagListView.getSelectionModel().getSelectedItem();
                     
                     if (selectedItem != null && !selectedItem.isEmpty()) {
-                        // Selektiertes Item verwenden (mit Klammern wenn nötig)
-                        String tagToInsert = selectedItem;
-                        if (!tagToInsert.startsWith("[")) {
-                            tagToInsert = "[" + tagToInsert;
-                        }
-                        if (!tagToInsert.endsWith("]")) {
-                            tagToInsert = tagToInsert + "]";
-                        }
-                        insertAudioTag(tagToInsert);
+                        // Selektiertes Item verwenden (Klammern werden in insertAudioTag hinzugefügt)
+                        insertAudioTag(selectedItem);
                         audioTagPopup.hide();
                     } else {
                         // Keine Auswahl → neuen Tag aus Filtertext erstellen
@@ -2323,15 +2795,8 @@ public class ChapterTtsEditorWindow {
                             // Tag direkt zur ListView hinzufügen (ohne Klammern)
                             audioTagListView.getItems().add(inputText);
                             
-                            // Tag MIT Klammern einfügen und Popup schließen
-                            String tagToInsert = inputText;
-                            if (!tagToInsert.startsWith("[")) {
-                                tagToInsert = "[" + tagToInsert;
-                            }
-                            if (!tagToInsert.endsWith("]")) {
-                                tagToInsert = tagToInsert + "]";
-                            }
-                            insertAudioTagWithoutJump(tagToInsert);
+                            // Tag einfügen und Popup schließen (Klammern werden in insertAudioTagWithoutJump hinzugefügt)
+                            insertAudioTagWithoutJump(inputText);
                             audioTagPopup.hide();
                         }
                     }
@@ -2346,14 +2811,8 @@ public class ChapterTtsEditorWindow {
                 // Ausgewähltes Item einfügen
                 String selectedItem = audioTagListView.getSelectionModel().getSelectedItem();
                 if (selectedItem != null && !selectedItem.isEmpty()) {
-                    String tagToInsert = selectedItem;
-                    if (!tagToInsert.startsWith("[")) {
-                        tagToInsert = "[" + tagToInsert;
-                    }
-                    if (!tagToInsert.endsWith("]")) {
-                        tagToInsert = tagToInsert + "]";
-                    }
-                    insertAudioTag(tagToInsert);
+                    // Klammern werden in insertAudioTag hinzugefügt
+                    insertAudioTag(selectedItem);
                     audioTagPopup.hide();
                 }
                 event.consume();
@@ -2513,12 +2972,20 @@ public class ChapterTtsEditorWindow {
         int caretPos = codeArea.getCaretPosition();
         
         // Prüfen ob es ein Sprecher-Tag ist (ohne Doppelpunkt angezeigt)
+        boolean isSpeaker = false;
         for (RegieanweisungEntry entry : regieanweisungenItems) {
             if (entry.isSpeaker && entry.speakerName.equals(tag)) {
                 // Sprecher-Tag einfügen, nicht nur den Namen!
                 tag = entry.getInsertText(); // z.B. "[sprecher:anna]"
+                isSpeaker = true;
                 break;
             }
+        }
+        
+        // Klammern hinzufügen wenn nötig (nicht für Sprecher-Tags, die haben schon Klammern)
+        if (!isSpeaker) {
+            if (!tag.startsWith("[")) tag = "[" + tag;
+            if (!tag.endsWith("]")) tag = tag + "]";
         }
         
         codeArea.insertText(caretPos, tag);
@@ -2539,12 +3006,20 @@ public class ChapterTtsEditorWindow {
         int caretPos = codeArea.getCaretPosition();
         
         // Prüfen ob es ein Sprecher-Tag ist (ohne Doppelpunkt angezeigt)
+        boolean isSpeaker = false;
         for (RegieanweisungEntry entry : regieanweisungenItems) {
             if (entry.isSpeaker && entry.speakerName.equals(tag)) {
                 // Sprecher-Tag einfügen, nicht nur den Namen!
                 tag = entry.getInsertText(); // z.B. "[sprecher:anna]"
+                isSpeaker = true;
                 break;
             }
+        }
+        
+        // Klammern hinzufügen wenn nötig (nicht für Sprecher-Tags, die haben schon Klammern)
+        if (!isSpeaker) {
+            if (!tag.startsWith("[")) tag = "[" + tag;
+            if (!tag.endsWith("]")) tag = tag + "]";
         }
         
         codeArea.insertText(caretPos, tag);
@@ -2594,8 +3069,12 @@ public class ChapterTtsEditorWindow {
     }
     
     
-    /** Zeigt das Audio-Tags Dialog als CustomStage mit Theme */
+    /** Zeigt das Audio-Tags ContextMenu an der Cursor-Position */
     private void showAudioTagMenu() {
+        if (audioTagPopup == null) {
+            createAudioTagMenu();
+        }
+        
         // Doppelte Leerzeichen entfernen
         int caretPos = codeArea.getCaretPosition();
         if (caretPos >= 2) {
@@ -2606,171 +3085,47 @@ public class ChapterTtsEditorWindow {
             }
         }
         
-        // CustomStage erstellen
-        CustomStage dialog = new CustomStage();
-        dialog.setCustomTitle("Audio-Tags");
-        dialog.setResizable(false);
-        dialog.setWidth(400);
-        dialog.setHeight(500);
-        
-        // UI-Elemente mit CSS-Klassen
-        Label titleLabel = new Label("Audio-Tag auswählen oder erstellen:");
-        titleLabel.getStyleClass().add("dialog-title");
-        
-        audioTagFilterField = new TextField();
-        audioTagFilterField.setPromptText("Tag eingeben oder filtern...");
-        audioTagFilterField.getStyleClass().add("dialog-textfield");
-        
-        audioTagListView = new ListView<>();
-        audioTagListView.getStyleClass().add("dialog-listview");
-        
-        jumpToNextDialogCheckBox = new CheckBox("Zum nächsten Dialog springen");
-        jumpToNextDialogCheckBox.getStyleClass().add("dialog-checkbox");
-        
-        Button cancelButton = new Button("Abbrechen");
-        cancelButton.getStyleClass().add("secondary-button");
-        cancelButton.setOnAction(e -> dialog.close());
-        
-        // Layout mit CSS-Klassen
-        VBox root = new VBox(15);
-        root.setPadding(new Insets(25));
-        root.setAlignment(Pos.CENTER_LEFT);
-        root.getStyleClass().add("dialog-container");
-        root.getChildren().addAll(
-            titleLabel,
-            audioTagFilterField,
-            audioTagListView,
-            jumpToNextDialogCheckBox,
-            cancelButton
-        );
-        
-        // Scene mit CSS erstellen
-        Scene scene = new Scene(root);
-        String cssPath = ResourceManager.getCssResource("css/manuskript.css");
-        if (cssPath != null) {
-            scene.getStylesheets().add(cssPath);
-        }
-        
-        // Scene mit Titelleiste setzen
-        dialog.setSceneWithTitleBar(scene);
-        
-        // Theme setzen (NACH setSceneWithTitleBar!)
-        Preferences prefs = Preferences.userNodeForPackage(EditorWindow.class);
-        int currentTheme = prefs.getInt("main_window_theme", 0);
-        dialog.setFullTheme(currentTheme);
-        
-        // Event-Handler einrichten
-        setupAudioTagDialogHandlers(dialog);
-        
-        // Zustand wiederherstellen
+        // Filter wiederherstellen
         audioTagFilterField.setText(lastAudioTagFilter);
+        
+        // Checkbox-Zustand wiederherstellen
         jumpToNextDialogCheckBox.setSelected(jumpToNextDialog);
+        
+        // Menu-Items aktualisieren
         updateAudioTagMenuItems();
         
-        // Dialog anzeigen
-        dialog.show();
+        // Theme-Klassen zum Popup hinzufügen
+        popupContent.getStyleClass().clear();
+        popupContent.getStyleClass().add("audio-tag-popup");
+        if (themeIndex == 0) { // Weiß-Theme
+            popupContent.getStyleClass().add("weiss-theme");
+        } else if (themeIndex == 1) { // Schwarz-Theme
+            popupContent.getStyleClass().add("theme-dark");
+        } else if (themeIndex == 2) { // Pastell-Theme
+            popupContent.getStyleClass().add("pastell-theme");
+        } else if (themeIndex >= 3) { // Dunkle Themes: Blau (3), Grün (4), Lila (5)
+            popupContent.getStyleClass().add("theme-dark");
+            if (themeIndex == 3) {
+                popupContent.getStyleClass().add("blau-theme");
+            } else if (themeIndex == 4) {
+                popupContent.getStyleClass().add("gruen-theme");
+            } else if (themeIndex == 5) {
+                popupContent.getStyleClass().add("lila-theme");
+            }
+        }
+        
+        // Position nahe der Cursor-Position berechnen
+        int currentCaretPos = codeArea.getCaretPosition();
+        // Alternative: Fenster-Koordinaten verwenden
+        Bounds bounds = codeArea.getCaretBounds().orElse(null);
+        double x = bounds != null ? bounds.getMinX() : 100;
+        double y = bounds != null ? bounds.getMinY() : 100;
+        
+        // Popup anzeigen
+        audioTagPopup.show(codeArea, x, y);
         
         // Fokus auf Filter-Feld setzen
         Platform.runLater(() -> audioTagFilterField.requestFocus());
-    }
-
-    private void setupAudioTagDialogHandlers(CustomStage dialog) {
-        // Event-Handler für Filterung
-        audioTagFilterField.textProperty().addListener((obs, oldVal, newVal) -> {
-            lastAudioTagFilter = newVal.toLowerCase();
-            updateAudioTagMenuItems();
-        });
-        
-        // Pfeil-unten im Filterfeld wechselt zur ListView
-        audioTagFilterField.setOnKeyPressed(event -> {
-            if (event.getCode() == KeyCode.DOWN && !audioTagListView.getItems().isEmpty()) {
-                audioTagListView.requestFocus();
-                if (audioTagListView.getSelectionModel().getSelectedIndex() < 0) {
-                    audioTagListView.getSelectionModel().select(0);
-                }
-                event.consume();
-            } else if (event.getCode() == KeyCode.ENTER) {
-                String selectedItem = audioTagListView.getSelectionModel().getSelectedItem();
-                if (selectedItem != null && !selectedItem.isEmpty()) {
-                    String tagToInsert = selectedItem;
-                    if (!tagToInsert.startsWith("[")) {
-                        tagToInsert = "[" + tagToInsert;
-                    }
-                    if (!tagToInsert.endsWith("]")) {
-                        tagToInsert = tagToInsert + "]";
-                    }
-                    insertAudioTag(tagToInsert);
-                    dialog.close();
-                } else {
-                    String inputText = audioTagFilterField.getText().trim();
-                    if (!inputText.isEmpty()) {
-                        AudioTagsData audioTags = loadAudioTags();
-                        audioTags.addCustomTag(inputText);
-                        saveAudioTags(audioTags);
-                        audioTagListView.getItems().add(inputText);
-                        String tagToInsert = inputText;
-                        if (!tagToInsert.startsWith("[")) {
-                            tagToInsert = "[" + tagToInsert;
-                        }
-                        if (!tagToInsert.endsWith("]")) {
-                            tagToInsert = tagToInsert + "]";
-                        }
-                        insertAudioTagWithoutJump(tagToInsert);
-                        dialog.close();
-                    }
-                }
-                event.consume();
-            }
-        });
-        
-        // ListView Handler
-        audioTagListView.setOnKeyPressed(event -> {
-            if (event.getCode() == KeyCode.ENTER) {
-                String selectedItem = audioTagListView.getSelectionModel().getSelectedItem();
-                if (selectedItem != null && !selectedItem.isEmpty()) {
-                    String tagToInsert = selectedItem;
-                    if (!tagToInsert.startsWith("[")) {
-                        tagToInsert = "[" + tagToInsert;
-                    }
-                    if (!tagToInsert.endsWith("]")) {
-                        tagToInsert = tagToInsert + "]";
-                    }
-                    insertAudioTag(tagToInsert);
-                    dialog.close();
-                }
-                event.consume();
-            } else if (event.getCode() == KeyCode.UP || event.getCode() == KeyCode.DOWN) {
-                event.consume();
-            } else if (event.getCode() == KeyCode.DELETE) {
-                String selectedItem = audioTagListView.getSelectionModel().getSelectedItem();
-                if (selectedItem != null) {
-                    boolean confirmed = showDeleteConfirmationDialog(selectedItem);
-                    if (confirmed) {
-                        deleteAudioTag(selectedItem);
-                        dialog.close();
-                    }
-                }
-                event.consume();
-            }
-        });
-        
-        // Maus-Klick Handler
-        audioTagListView.setOnMouseClicked(event -> {
-            if (event.getClickCount() == 1) {
-                String selectedItem = audioTagListView.getSelectionModel().getSelectedItem();
-                if (selectedItem != null) {
-                    String tagToInsert = selectedItem;
-                    if (!tagToInsert.startsWith("[")) {
-                        tagToInsert = "[" + tagToInsert;
-                    }
-                    if (!tagToInsert.endsWith("]")) {
-                        tagToInsert = tagToInsert + "]";
-                    }
-                    insertAudioTag(tagToInsert);
-                    dialog.close();
-                }
-            }
-        });
     }
 
     private void collectRegieanweisungenFromText() {
@@ -2935,8 +3290,6 @@ public class ChapterTtsEditorWindow {
         // Prüfe auch temporäre Sprecher
         if (speakerEntry == null && temporarySpeakers.containsKey(speakerName)) {
             String tags = temporarySpeakers.get(speakerName);
-            // DEBUG: Ausgabe überprüfen
-            System.out.println("DEBUG: Temporärer Sprecher '" + speakerName + "' Tags: '" + tags + "'");
             if (tags == null || tags.isBlank()) return 0;
             String toInsert = tags.trim() + " ";
             codeArea.insertText(speech.start, toInsert);
@@ -2947,11 +3300,6 @@ public class ChapterTtsEditorWindow {
         
         if (speakerEntry != null) {
             String tags = speakerEntry.getTagsOnly();
-            // DEBUG: Ausgabe überprüfen
-            System.out.println("DEBUG: Sprecher '" + speakerName + "' vollständiger Text: '" + speakerEntry.text + "'");
-            System.out.println("DEBUG: getTagsOnly() returned: '" + tags + "'");
-            // Nur die Tags einfügen, nicht den Sprechernamen
-            System.out.println("DEBUG: Füge ein bei Position " + speech.start + ": '" + tags + "'");
             if (tags == null || tags.isBlank()) return 0;
             String toInsert = tags.trim() + " ";
             codeArea.insertText(speech.start, toInsert);
@@ -2959,8 +3307,6 @@ public class ChapterTtsEditorWindow {
             setStatus("Sprecher-Tags für " + speakerName + " eingefügt: " + tags);
             if (speakersListView != null) updateSpeakersList(speakersListView);
             return toInsert.length();
-        } else {
-            System.out.println("DEBUG: Kein Sprecher-Eintrag gefunden für '" + speakerName + "'");
         }
         return 0;
     }
@@ -3054,10 +3400,7 @@ public class ChapterTtsEditorWindow {
     
     /** Startet den automatischen Sprecher-Zuweisungs-Lauf */
     private void startAutomaticSpeakerAssignment() {
-        System.out.println("DEBUG: startAutomaticSpeakerAssignment aufgerufen");
-        
         if (codeArea == null) {
-            System.out.println("DEBUG: codeArea ist null");
             setStatus("Kein Text zum Verarbeiten vorhanden");
             if (speakerWindow != null) {
                 speakerWindow.hide();
@@ -3066,15 +3409,8 @@ public class ChapterTtsEditorWindow {
         }
         
         String text = codeArea.getText();
-        System.out.println("DEBUG: Text-Länge: " + text.length());
-        if (text.length() > 100) {
-            System.out.println("DEBUG: Text-Start: " + text.substring(0, 100) + "...");
-        } else {
-            System.out.println("DEBUG: Vollständiger Text: " + text);
-        }
         
         if (text.isEmpty()) {
-            System.out.println("DEBUG: Text ist leer");
             setStatus("Kein Text zum Verarbeiten vorhanden");
             if (speakerWindow != null) {
                 speakerWindow.hide();
@@ -3086,14 +3422,7 @@ public class ChapterTtsEditorWindow {
         currentSpeechMatches = findAllDirectSpeech();
         currentSpeechIndex = 0;
         
-        System.out.println("DEBUG: " + currentSpeechMatches.size() + " Reden gefunden");
-        for (int i = 0; i < currentSpeechMatches.size(); i++) {
-            DirectSpeechMatch match = currentSpeechMatches.get(i);
-            System.out.println("DEBUG Rede " + i + ": \"" + match.text + "\" bei " + match.start + "-" + match.end);
-        }
-        
         if (currentSpeechMatches.isEmpty()) {
-            System.out.println("DEBUG: Keine Reden gefunden - Pattern Problem?");
             setStatus("Keine wörtliche Rede gefunden");
             if (speakerWindow != null) {
                 speakerWindow.hide();
@@ -3148,7 +3477,6 @@ public class ChapterTtsEditorWindow {
     
     /** Verarbeitet die nächste wörtliche Rede im automatischen Lauf */
     private void processNextSpeech() {
-        System.out.println("DEBUG processNextSpeech: currentSpeechIndex = " + currentSpeechIndex + ", size = " + currentSpeechMatches.size());
         if (currentSpeechIndex >= currentSpeechMatches.size()) {
             // Lauf beendet
             codeArea.setDisable(false);
@@ -3160,7 +3488,6 @@ public class ChapterTtsEditorWindow {
         }
         
         DirectSpeechMatch speech = currentSpeechMatches.get(currentSpeechIndex);
-        System.out.println("DEBUG processNextSpeech: processing speech at " + speech.start + "-" + speech.end);
         
         // Rede highlighten
         highlightSpeech(speech);
@@ -3186,7 +3513,6 @@ public class ChapterTtsEditorWindow {
     
     /** Verarbeitet die vorherige wörtliche Rede im automatischen Lauf */
     private void processPreviousSpeech() {
-        System.out.println("DEBUG processPreviousSpeech: currentSpeechIndex = " + currentSpeechIndex + ", size = " + currentSpeechMatches.size());
         if (currentSpeechIndex < 0) {
             // Anfang erreicht
             currentSpeechIndex = 0;
@@ -3195,7 +3521,6 @@ public class ChapterTtsEditorWindow {
         }
         
         DirectSpeechMatch speech = currentSpeechMatches.get(currentSpeechIndex);
-        System.out.println("DEBUG processPreviousSpeech: processing speech at " + speech.start + "-" + speech.end);
         
         // Rede highlighten
         highlightSpeech(speech);
@@ -3395,9 +3720,6 @@ public class ChapterTtsEditorWindow {
         }
         
         String speechText = currentText.substring(speech.start, speech.end);
-        System.out.println("DEBUG: speech.start = " + speech.start + ", speech.end = " + speech.end);
-        System.out.println("DEBUG: currentText.length() = " + currentText.length());
-        System.out.println("DEBUG: extracted speechText = '" + speechText + "'");
         
         // Tags VOR der Rede suchen (im selben Absatz)
         StringBuilder currentTags = new StringBuilder();
@@ -3419,7 +3741,6 @@ public class ChapterTtsEditorWindow {
                         // Gültiger Tag gefunden
                         if (currentTags.length() > 0) currentTags.insert(0, " ");
                         currentTags.insert(0, tag);
-                        System.out.println("DEBUG: found tag = '" + tag + "'");
                         
                         // Position vor den Tag setzen
                         checkPos = tagStart - 1;
@@ -3435,8 +3756,6 @@ public class ChapterTtsEditorWindow {
             
             checkPos--;
         }
-        
-        System.out.println("DEBUG: final tags = '" + currentTags.toString() + "'");
         
         // Tags ins Editierfeld stellen
         tagsArea.setText(currentTags.toString());
@@ -4000,11 +4319,19 @@ public class ChapterTtsEditorWindow {
         return TRAIL_SILENCE_SECONDS;
     }
 
-    /** Aktualisiert den Wortzaehler fuer die aktuelle Textselektion und aktiviert/deaktiviert den Aufnahme-Button. */
+    /** Aktualisiert den Wortzaehler fuer die aktuelle Textselektion und aktiviert/deaktiviert den Aufnahme-Button und Erstellen-Button. */
     private void updateSelectionWordCount() {
         if (selectionWordCountLabel == null || codeArea == null) return;
         String sel = codeArea.getSelectedText();
         if (btnAufnahme != null) btnAufnahme.setDisable(sel == null || sel.isBlank());
+        
+        // Erstellen-Button nur aktiv wenn Text ausgewählt ist UND nicht in einem Segment enthalten ist
+        if (btnErstellen != null && !isTtsGenerationRunning) {
+            boolean hasSelection = sel != null && !sel.isBlank();
+            boolean selectionInSegment = hasSelection && isSelectionInExistingSegment();
+            btnErstellen.setDisable(!hasSelection || selectionInSegment);
+        }
+        
         if (sel == null || sel.isBlank()) {
             selectionWordCountLabel.setText("");
             return;
@@ -4012,7 +4339,21 @@ public class ChapterTtsEditorWindow {
         String[] words = sel.trim().split("\\s+");
         int wordCount = words.length;
         int charCount = sel.length();
-        selectionWordCountLabel.setText("Selektion: " + wordCount + (wordCount == 1 ? " Wort" : " W\u00f6rter") + ", " + charCount + " Zeichen");
+        selectionWordCountLabel.setText("Selektion: " + wordCount + (wordCount == 1 ? " Wort" : " Wörter") + ", " + charCount + " Zeichen");
+    }
+
+    /** Prüft ob die aktuelle Auswahl mit einem existierenden Segment überlappt. */
+    private boolean isSelectionInExistingSegment() {
+        int selStart = codeArea.getSelection().getStart();
+        int selEnd = codeArea.getSelection().getEnd();
+        
+        for (TtsSegment s : segments) {
+            // Prüfe ob Auswahl mit Segment überlappt
+            if (selStart < s.end && selEnd > s.start) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /** Liefert die aktuell auf dem Haupt-Tab eingetragene Stimmbeschreibung (wird beim Generieren mitgegeben). */
@@ -4059,9 +4400,9 @@ public class ChapterTtsEditorWindow {
                 ElevenLabsClient client = new ElevenLabsClient();
                 client.setApiKey(apiKey.trim());
                 ElevenLabsClient.SubscriptionInfo sub = client.getSubscription();
-                int remaining = sub.getCharactersRemaining();
                 int limit = sub.getCharacterLimit();
                 int used = sub.getCharacterCount();
+                int remaining = limit - used;
                 String tier = sub.getTier();
                 String tierStr = (tier != null && !tier.isEmpty()) ? " (" + tier + ")" : "";
                 String text = String.format("Verbleibend: %s von %s Zeichen%s",
@@ -5113,7 +5454,9 @@ public class ChapterTtsEditorWindow {
                             successCheckmarkHideTransition.playFromStart();
                         }
                     }
-                    btnErstellen.setDisable(false);
+                    // Nach Erstellen immer deaktivieren (Text ist dann Teil eines Segments oder wurde gespeichert)
+                    btnErstellen.setDisable(true);
+                    playPlingSound();
                     if (detectEinschwingTrim && !einschwingTrimFound) {
                         setStatus("Erstellt. Einschwing-Ende nicht erkannt – Datei unverändert. Beim Speichern ggf. „Anfang abschneiden“-Slider nutzen.");
                     } else {
@@ -5135,7 +5478,8 @@ public class ChapterTtsEditorWindow {
                     isTtsGenerationRunning = false;
                     progressIndicator.setVisible(false);
                     if (codeArea != null) codeArea.setDisable(false);
-                    btnErstellen.setDisable(false);
+                    // Nach Fehler Button deaktivieren (Benutzer muss neu auswählen)
+                    btnErstellen.setDisable(true);
                     CustomAlert errAlert = DialogFactory.createErrorAlert("TTS-Fehler", "Sprachausgabe fehlgeschlagen", msg, stage);
                     errAlert.applyTheme(themeIndex);
                     errAlert.showAndWait();
@@ -5463,6 +5807,7 @@ public class ChapterTtsEditorWindow {
                 segments.add(seg);
                 saveSegments();
                 refreshHighlight();
+                playPlingSound();
             } catch (IOException e) {
                 logger.warn("Batch-Segment speichern fehlgeschlagen: {}", e.getMessage());
             }
@@ -5688,6 +6033,7 @@ public class ChapterTtsEditorWindow {
                     codeArea.requestFollowCaret();
                     loadSegmentToLeft(seg);
                     setStatus("Aufnahme konvertiert und als Segment übernommen.");
+                    playPlingSound();
                     refreshElevenLabsBalance();
                 } catch (Exception e) {
                     logger.error("Segment aus Aufnahme übernehmen fehlgeschlagen", e);
@@ -5725,12 +6071,10 @@ public class ChapterTtsEditorWindow {
             // 1. Auswahl bis zum Textende
             if (end >= fullText.length() && lastGeneratedAudioPath != null && Files.isRegularFile(lastGeneratedAudioPath)) {
                 sourcePath = lastGeneratedAudioPath;
-                System.out.println("DEBUG: Auswahl bis zum Textende, verwende letzte generierte Datei: " + lastGeneratedAudioPath);
             }
             // 2. Letzte generierte Datei verwenden (Fallback)
             else if (lastGeneratedAudioPath != null && Files.isRegularFile(lastGeneratedAudioPath)) {
                 sourcePath = lastGeneratedAudioPath;
-                System.out.println("DEBUG: Keine Signatur gefunden, verwende letzte generierte Datei: " + lastGeneratedAudioPath);
             }
         }
         if (sourcePath == null || !Files.isRegularFile(sourcePath)) {
@@ -8107,5 +8451,38 @@ public class ChapterTtsEditorWindow {
         // Speichern
         saveAudioTags(audioTags);
         setStatus("Audio-Tag gelöscht: " + tagName);
+    }
+
+    /** Spielt einen kurzen "Pling"-Ton ab (880 Hz, 150 ms), um den Abschluss einer TTS-Generierung zu signalisieren. */
+    private void playPlingSound() {
+        Thread t = new Thread(() -> {
+            try {
+                int sampleRate = 44100;
+                int durationMs = 150;
+                int numSamples = sampleRate * durationMs / 1000;
+                byte[] buf = new byte[numSamples * 2];
+                double freq = 880.0; // A5
+                for (int i = 0; i < numSamples; i++) {
+                    double angle = 2.0 * Math.PI * freq * i / sampleRate;
+                    // Envelope: schneller Attack, sanfter Decay
+                    double envelope = Math.exp(-4.0 * i / numSamples);
+                    short val = (short) (Short.MAX_VALUE * 0.4 * Math.sin(angle) * envelope);
+                    buf[2 * i] = (byte) (val & 0xff);
+                    buf[2 * i + 1] = (byte) ((val >> 8) & 0xff);
+                }
+                javax.sound.sampled.AudioFormat fmt = new javax.sound.sampled.AudioFormat(sampleRate, 16, 1, true, false);
+                javax.sound.sampled.DataLine.Info info = new javax.sound.sampled.DataLine.Info(javax.sound.sampled.SourceDataLine.class, fmt);
+                javax.sound.sampled.SourceDataLine line = (javax.sound.sampled.SourceDataLine) javax.sound.sampled.AudioSystem.getLine(info);
+                line.open(fmt);
+                line.start();
+                line.write(buf, 0, buf.length);
+                line.drain();
+                line.close();
+            } catch (Exception e) {
+                logger.trace("Pling-Sound konnte nicht abgespielt werden", e);
+            }
+        }, "pling-sound");
+        t.setDaemon(true);
+        t.start();
     }
 }

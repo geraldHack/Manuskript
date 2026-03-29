@@ -208,7 +208,7 @@ ENABLED:1
 STEPDESC:Englisch zu Französisch - doppelte Anführungszeichen
 REPLACECOUNT:50
 STEP:24
-SEARCH:(^|[\s\.,!?;:"„»«])'([^']+)'([\s\.,!?;:"„»«]|$)
+SEARCH:(^|[^\p{L}\p{N}])'([^'\n]+)'([^\p{L}\p{N}]|$)
 REPLACE:$1›$2‹$3
 REGEX:1
 CASE:0
@@ -226,7 +226,7 @@ ENABLED:0
 STEPDESC:Englisch zu Deutsch - doppelte Anführungszeichen
 REPLACECOUNT:0
 STEP:26
-SEARCH:(^|[\s\.,!?;:"„»«])'([^']+)'([\s\.,!?;:"„»«]|$)
+SEARCH:(^|[^\p{L}\p{N}])'([^'\n]+)'([^\p{L}\p{N}]|$)
 REPLACE:$1‚$2'$3
 REGEX:1
 CASE:0
@@ -244,7 +244,7 @@ ENABLED:0
 STEPDESC:Englisch zu Schweizer - doppelte Anführungszeichen
 REPLACECOUNT:0
 STEP:28
-SEARCH:(^|[\s\.,!?;:"„»«])'([^']+)'([\s\.,!?;:"„»«]|$)
+SEARCH:(^|[^\p{L}\p{N}])'([^'\n]+)'([^\p{L}\p{N}]|$)
 REPLACE:$1‹$2›$3
 REGEX:1
 CASE:0

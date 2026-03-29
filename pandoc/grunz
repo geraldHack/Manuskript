@@ -1,0 +1,20 @@
+# 1) Laufende Homebrew/Installer-Prozesse anzeigen
+pgrep -af "brew|installer|basictex|mactex|sudo"
+
+# 2) Falls PIDs angezeigt werden: erst freundlich beenden
+# Beispiel:
+# kill -15 12345 12346
+
+# 3) Prüfen, ob noch Prozesse laufen
+pgrep -af "brew|installer|basictex|mactex|sudo"
+
+# 4) Falls immer noch welche hängen: hart beenden
+# Beispiel:
+# kill -9 12345 12346
+
+# 5) Danach Deinstallation einzeln neu starten
+brew uninstall pandoc
+brew uninstall librsvg
+
+# 6) Optional aufräumen
+brew cleanup

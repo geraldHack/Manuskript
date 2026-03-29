@@ -48,11 +48,17 @@ public class AudiobookDialog {
         private final String chapterName;
         private final StringProperty ttsInfo = new SimpleStringProperty("");
         private final BooleanProperty selected = new SimpleBooleanProperty(true);
+        private final boolean hasTtsSegments;
 
-        public ChapterRow(DocxFile docxFile, String chapterName, String ttsInfo) {
+        public ChapterRow(DocxFile docxFile, String chapterName, String ttsInfo, boolean hasTtsSegments) {
             this.docxFile = docxFile;
             this.chapterName = chapterName;
             this.ttsInfo.set(ttsInfo);
+            this.hasTtsSegments = hasTtsSegments;
+            // Wenn keine TTS-Segmente vorhanden sind, Auswahl deaktivieren
+            if (!hasTtsSegments) {
+                this.selected.set(false);
+            }
         }
 
         public String getChapterName() { return chapterName; }
@@ -61,6 +67,7 @@ public class AudiobookDialog {
         public boolean isSelected() { return selected.get(); }
         public void setSelected(boolean v) { selected.set(v); }
         public DocxFile getDocxFile() { return docxFile; }
+        public boolean hasTtsSegments() { return hasTtsSegments; }
     }
 
     /**
@@ -89,7 +96,8 @@ public class AudiobookDialog {
             if (fn != null && fn.toLowerCase().endsWith(".docx")) fn = fn.substring(0, fn.length() - 5);
             String name = fn != null ? fn : "Kapitel";
             String ttsInfo = checkTtsForChapter(dataDir, name);
-            rows.add(new ChapterRow(docx, name, ttsInfo));
+            boolean hasTts = !ttsInfo.equals("—");
+            rows.add(new ChapterRow(docx, name, ttsInfo, hasTts));
         }
 
         CustomStage stage = StageManager.createStage("Hoerbuch erstellen");
@@ -111,7 +119,21 @@ public class AudiobookDialog {
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         TableColumn<ChapterRow, Boolean> colSel = new TableColumn<>("Dabei");
         colSel.setCellValueFactory(c -> c.getValue().selectedProperty());
-        colSel.setCellFactory(tc -> new javafx.scene.control.cell.CheckBoxTableCell<>());
+        colSel.setCellFactory(tc -> new javafx.scene.control.cell.CheckBoxTableCell<>() {
+            @Override
+            public void updateItem(Boolean item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || getTableRow() == null || getTableRow().getItem() == null) {
+                    setEditable(true);
+                    setDisable(false);
+                } else {
+                    ChapterRow row = getTableRow().getItem();
+                    boolean hasTts = row.hasTtsSegments();
+                    setEditable(hasTts);
+                    setDisable(!hasTts);
+                }
+            }
+        });
         colSel.setEditable(true);
         TableColumn<ChapterRow, String> colName = new TableColumn<>("Kapitel");
         colName.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getChapterName()));
@@ -147,8 +169,8 @@ public class AudiobookDialog {
 
         Button btnAll = new Button("Alle auswaehlen");
         Button btnNone = new Button("Keine auswaehlen");
-        btnAll.setOnAction(e -> rows.forEach(r -> r.setSelected(true)));
-        btnNone.setOnAction(e -> rows.forEach(r -> r.setSelected(false)));
+        btnAll.setOnAction(e -> rows.filtered(r -> r.hasTtsSegments()).forEach(r -> r.setSelected(true)));
+        btnNone.setOnAction(e -> rows.filtered(r -> r.hasTtsSegments()).forEach(r -> r.setSelected(false)));
 
         ProgressIndicator progress = new ProgressIndicator(-1);
         progress.setVisible(false);

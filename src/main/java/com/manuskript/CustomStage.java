@@ -97,7 +97,6 @@ public class CustomStage extends Stage {
     
     public CustomStage() {
         super();
-        System.out.println("[DEBUG] CustomStage Konstruktor aufgerufen");
         initStyle(StageStyle.UNDECORATED);
         
         // macOS Window Manager initialisieren
@@ -503,8 +502,6 @@ public class CustomStage extends Stage {
      * Setzt die Scene mit benutzerdefinierter Titelleiste
      */
     public void setSceneWithTitleBar(Scene scene) {
-        System.out.println("[DEBUG] setSceneWithTitleBar aufgerufen");
-        
         if (scene != null) {
             VBox newRoot = new VBox();
 
