@@ -2191,25 +2191,39 @@ public class ChapterTtsEditorWindow {
                 + "\nGib nur die Zuordnungen <nummer>|<tags> zurueck.";
 
         String response = service.complete(systemPrompt, userMessage, 0.2, null).join();
+        logger.info("Script Step 1 API response: {}", response);
         if (response == null || response.isBlank()) return chunk;
         String cleaned = stripCodeFence(response.strip());
+        logger.info("Script Step 1 cleaned response: {}", cleaned);
         if (cleaned.isBlank()) return chunk;
 
         Map<Integer, String> tagsByDialogue = new HashMap<>();
         String[] lines = cleaned.split("\\R");
+        logger.info("Script Step 1 parsing {} lines", lines.length);
         for (String line : lines) {
             if (line == null || line.isBlank()) continue;
-            Matcher m = Pattern.compile("^\\s*(?:[-*]\\s*)?(\\d+)\\s*(?:[|:;\\-.]\\s*)?(.*)$").matcher(line);
-            if (!m.matches()) continue;
+            // API liefert Format: Zeilennummer|Dialog-Nummer|Tags (z.B. "50|1|[Letos][excitedly]")
+            Matcher m = Pattern.compile("^\\s*(?:[-*]\\s*)?(?:\\d+)\\s*[:|;-]\\s*(\\d+)\\s*[:|;-]\\s*(.*)$").matcher(line);
+            if (!m.matches()) {
+                // Fallback: altes Format ohne Zeilennummer (z.B. "1|[tags]")
+                m = Pattern.compile("^\\s*(?:[-*]\\s*)?(\\d+)\\s*[:|;-]\\s*(.*)$").matcher(line);
+                if (!m.matches()) {
+                    logger.warn("Script Step 1 line did not match pattern: {}", line);
+                    continue;
+                }
+            }
             int idx;
             try {
                 idx = Integer.parseInt(m.group(1));
             } catch (Exception ignored) {
+                logger.warn("Script Step 1 failed to parse index from: {}", line);
                 continue;
             }
             String normalizedTags = normalizeScriptTags(m.group(2), speakers);
+            logger.info("Script Step 1 dialogue {} got tags: {}", idx, normalizedTags);
             if (!normalizedTags.isEmpty()) tagsByDialogue.put(idx, normalizedTags);
         }
+        logger.info("Script Step 1 total tags mapped: {}", tagsByDialogue.size());
 
         if (tagsByDialogue.isEmpty()) return chunk;
 
@@ -2242,6 +2256,7 @@ public class ChapterTtsEditorWindow {
                 dialogues.add(new ScriptDialogueSpan(i++, matcher.start(), dialogue));
             }
         }
+        logger.info("findScriptDialogues found {} dialogues in chunk of {} chars", dialogues.size(), chunk.length());
         return dialogues;
     }
 

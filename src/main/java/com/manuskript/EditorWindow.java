@@ -304,6 +304,16 @@ public class EditorWindow implements Initializable {
     private javafx.beans.value.ChangeListener<javafx.concurrent.Worker.State> previewLoadListener = null; // Listener für LoadWorker-State
     private boolean isScrollingPreview = false;
     
+    // Paragraph Spacing Normalizer
+    private Timeline paragraphSpacingTimer;
+    private String lastTextBeforeChange = "";
+    private long lastDeleteActionTime = 0;
+    private static final long DELETE_GRACE_PERIOD_MS = 2000; // 2 Sekunden Pause nach Delete/Backspace
+    private static final long PARAGRAPH_SPACING_DEBOUNCE_MS = 1000; // 1 Sekunde Inaktivität
+    private boolean isNormalizingParagraphs = false;
+    private int lastChangeStart = -1;
+    private int lastChangeEnd = -1;
+    
     // Quill Editor Synchronisation
     private boolean isUpdatingFromCodeArea = false;
     private boolean isUpdatingFromQuill = false;
@@ -864,6 +874,21 @@ if (caret != null) {
             // Überwache Änderungen im Text (falls Selektion durch Textänderung beeinflusst wird)
             codeArea.textProperty().addListener((obs, oldText, newText) -> {
                 updateSelectionCount();
+                
+                // Paragraph Spacing Normalizer: Track text changes
+                if (!isNormalizingParagraphs && !isUpdatingFromQuill && !newText.equals(oldText)) {
+                    // Detect change position by comparing old and new text
+                    int changePos = findFirstDifference(oldText, newText);
+                    if (changePos >= 0) {
+                        lastChangeStart = changePos;
+                        lastChangeEnd = Math.max(oldText.length(), newText.length());
+                        lastTextBeforeChange = oldText;
+                        
+                        // Start or restart the debounce timer
+                        startParagraphSpacingTimer();
+                    }
+                }
+                
                 // Prüfe, ob Text sich geändert hat
                 if (!newText.equals(oldText)) {
                     // WICHTIG: Ignoriere Änderungen, die von Quill kommen (isUpdatingFromQuill)
@@ -1018,6 +1043,228 @@ if (caret != null) {
         // Teile den Text in Wörter auf (getrennt durch Whitespace)
         String[] words = text.trim().split("\\s+");
         return words.length;
+    }
+    
+    /**
+     * Findet die erste Position, an der sich zwei Texte unterscheiden
+     */
+    private int findFirstDifference(String oldText, String newText) {
+        int minLen = Math.min(oldText.length(), newText.length());
+        for (int i = 0; i < minLen; i++) {
+            if (oldText.charAt(i) != newText.charAt(i)) {
+                return i;
+            }
+        }
+        // Wenn ein Text länger ist, ist die Differenz am Ende des kürzeren
+        if (oldText.length() != newText.length()) {
+            return minLen;
+        }
+        return -1; // Keine Differenz
+    }
+    
+    /**
+     * Startet oder restartet den Debounce-Timer für Paragraph-Spacing-Normalisierung
+     */
+    private void startParagraphSpacingTimer() {
+        // Stoppe existierenden Timer
+        if (paragraphSpacingTimer != null) {
+            paragraphSpacingTimer.stop();
+        }
+        
+        // Erstelle neuen Timer
+        paragraphSpacingTimer = new Timeline(new KeyFrame(Duration.millis(PARAGRAPH_SPACING_DEBOUNCE_MS), event -> {
+            if (!isNormalizingParagraphs && lastChangeStart >= 0) {
+                // Prüfe ob wir im Delete-Grace-Period sind
+                long timeSinceDelete = System.currentTimeMillis() - lastDeleteActionTime;
+                if (timeSinceDelete < DELETE_GRACE_PERIOD_MS) {
+                    // Noch in Grace Period - restarte Timer für später
+                    lastChangeStart = Math.max(0, lastChangeStart); // Reset für nächsten Versuch
+                    startParagraphSpacingTimer();
+                    return;
+                }
+                normalizeParagraphSpacingAround(lastChangeStart, lastChangeEnd);
+                lastChangeStart = -1;
+                lastChangeEnd = -1;
+            }
+        }));
+        paragraphSpacingTimer.play();
+    }
+    
+    /**
+     * Normalisiert Leerzeilen um die geänderte Position herum
+     * Stellt sicher, dass zwischen normalen Absätzen genau eine Leerzeile ist
+     */
+    private void normalizeParagraphSpacingAround(int changeStart, int changeEnd) {
+        if (codeArea == null || isNormalizingParagraphs) return;
+        
+        String fullText = codeArea.getText();
+        if (fullText.isEmpty()) return;
+        
+        // Finde den Bereich um die Änderung herum (ein paar Absätze vor und nach)
+        int contextStart = findParagraphStart(fullText, Math.max(0, changeStart - 200));
+        int contextEnd = findParagraphEnd(fullText, Math.min(fullText.length(), changeEnd + 200));
+        
+        if (contextStart >= contextEnd) return;
+        
+        String contextText = fullText.substring(contextStart, contextEnd);
+        String normalizedContext = normalizeParagraphSpacingInText(contextText);
+        
+        // Nur wenn sich etwas geändert hat
+        if (!contextText.equals(normalizedContext)) {
+            isNormalizingParagraphs = true;
+            
+            try {
+                // Snapshot vor der Änderung
+                CodeAreaViewSnapshot snapshot = captureCodeAreaViewSnapshot();
+                
+                // Berechne neue Caret-Position relativ zum Kontext
+                int relativeCaret = codeArea.getCaretPosition() - contextStart;
+                
+                // Ersetze den Text
+                codeArea.replaceText(contextStart, contextEnd, normalizedContext);
+                
+                // Stelle Caret-Position wieder her (angepasst an Textänderung)
+                int lengthDiff = normalizedContext.length() - contextText.length();
+                int newCaretPos = Math.max(0, Math.min(codeArea.getLength(), 
+                    codeArea.getCaretPosition() + lengthDiff));
+                codeArea.moveTo(newCaretPos);
+                
+                // Stelle Viewport wieder her
+                restoreCodeAreaViewSnapshot(snapshot, false, true);
+                
+                logger.debug("Paragraph spacing normalized around position {}", changeStart);
+            } finally {
+                isNormalizingParagraphs = false;
+            }
+        }
+    }
+    
+    /**
+     * Findet den Anfang eines Absatzes rückwärts ab einer Position
+     */
+    private int findParagraphStart(String text, int pos) {
+        // Gehe zurück bis zum vorherigen doppelten Zeilenumbruch oder Dateianfang
+        int searchPos = pos;
+        while (searchPos > 0) {
+            // Suche nach \n\n (Absatzgrenze)
+            if (searchPos >= 2 && text.charAt(searchPos - 1) == '\n' && text.charAt(searchPos - 2) == '\n') {
+                return searchPos;
+            }
+            searchPos--;
+        }
+        return 0;
+    }
+    
+    /**
+     * Findet das Ende eines Absatzes vorwärts ab einer Position
+     */
+    private int findParagraphEnd(String text, int pos) {
+        int searchPos = pos;
+        while (searchPos < text.length()) {
+            // Suche nach \n\n (Absatzgrenze)
+            if (searchPos + 1 < text.length() && text.charAt(searchPos) == '\n' && text.charAt(searchPos + 1) == '\n') {
+                return searchPos + 2;
+            }
+            searchPos++;
+        }
+        return text.length();
+    }
+    
+    /**
+     * Normalisiert Leerzeilen in einem Text-Fragment
+     * Stellt sicher, dass zwischen normalen Absätzen genau eine Leerzeile ist
+     */
+    private String normalizeParagraphSpacingInText(String text) {
+        if (text == null || text.isEmpty()) return text;
+        
+        String[] lines = text.split("\n", -1); // -1: keep trailing empty strings
+        StringBuilder result = new StringBuilder();
+        boolean lastWasNonEmpty = false;
+        int consecutiveEmptyLines = 0;
+        
+        for (int i = 0; i < lines.length; i++) {
+            String line = lines[i];
+            String trimmed = line.trim();
+            
+            // Leere Zeile
+            if (trimmed.isEmpty()) {
+                consecutiveEmptyLines++;
+                // Maximal eine Leerzeile zwischen Absätzen erlauben
+                if (lastWasNonEmpty && consecutiveEmptyLines == 1 && result.length() > 0) {
+                    result.append("\n");
+                }
+                lastWasNonEmpty = false;
+                continue;
+            }
+            
+            // Guard: Spezielle Markdown-Elemente nicht verändern
+            if (isSpecialMarkdownElement(trimmed)) {
+                // Füge vorherige gesammelte Leerzeile ein wenn nötig
+                if (consecutiveEmptyLines > 0 && result.length() > 0) {
+                    result.append("\n");
+                }
+                if (result.length() > 0) {
+                    result.append("\n");
+                }
+                result.append(line);
+                lastWasNonEmpty = true;
+                consecutiveEmptyLines = 0;
+                continue;
+            }
+            
+            // Normaler Text-Absatz
+            // Wenn vorheriger auch ein Absatz war UND keine Leerzeile dazwischen
+            // → füge eine Leerzeile ein
+            if (lastWasNonEmpty && consecutiveEmptyLines == 0 && result.length() > 0) {
+                result.append("\n\n"); // Doppelte Leerzeile = Absatzgrenze
+            } else if (result.length() > 0) {
+                result.append("\n");
+            }
+            result.append(line);
+            lastWasNonEmpty = true;
+            consecutiveEmptyLines = 0;
+        }
+        
+        return result.toString();
+    }
+    
+    /**
+     * Prüft ob ein Absatz ein spezielles Markdown-Element ist
+     * (Überschrift, Liste, Code-Block, Tabelle, Blockquote)
+     */
+    private boolean isSpecialMarkdownElement(String para) {
+        String trimmed = para.trim();
+        
+        // Überschriften (# ## ###)
+        if (trimmed.matches("^#{1,6}\\s.*")) return true;
+        
+        // Horizontale Linie
+        if (trimmed.matches("^-{3,}$|^\\*{3,}$|^_{3,}$")) return true;
+        
+        // Code-Block (```)
+        if (trimmed.startsWith("```")) return true;
+        
+        // Tabelle (| ... |)
+        if (trimmed.contains("|") && trimmed.matches(".*\\|.*\\|.*")) return true;
+        
+        // Liste (-, *, +, 1., etc.)
+        if (trimmed.matches("^[-*+]\\s.*")) return true; // Unordered list
+        if (trimmed.matches("^\\d+\\.\\s.*")) return true; // Ordered list
+        if (trimmed.matches("^\\[[xX\\s]\\]\\s.*")) return true; // Task list
+        
+        // Blockquote (>)
+        if (trimmed.startsWith(">")) return true;
+        
+        // HTML-Block
+        if (trimmed.startsWith("<") && trimmed.contains(">")) return true;
+        
+        // Definition List
+        if (trimmed.matches("^:\\s.*")) return true;
+        
+        // Footnote
+        if (trimmed.matches("^\\[\\^\\d+\\]:.*")) return true;
+        
+        return false;
     }
     
     private void setupEventHandlers() {
@@ -1449,8 +1696,15 @@ if (caret != null) {
         btnRedo.setOnAction(e -> codeArea.redo());
         btnRedo.setTooltip(new Tooltip("Wiederholen (Strg+Y)"));
         
-        // Keyboard-Shortcuts
+        // Keyboard shortcuts for editor
         setupKeyboardShortcuts();
+        
+        // Paragraph Spacing Normalizer: Track Backspace/Delete for grace period
+        codeArea.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+            if (event.getCode() == KeyCode.BACK_SPACE || event.getCode() == KeyCode.DELETE) {
+                lastDeleteActionTime = System.currentTimeMillis();
+            }
+        });
         
         // Text-Selektion Event-Listener für KI-Assistent
         codeArea.selectionProperty().addListener((obs, oldSelection, newSelection) -> {

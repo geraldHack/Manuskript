@@ -21,6 +21,7 @@ pandoc/pandoc.exe
 pandoc/*.png
 pandoc/*.jpg
 venv/
+asd/
 
 
 # Gebündeltes FFmpeg (optional, analog zu pandoc)
