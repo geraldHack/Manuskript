@@ -352,6 +352,7 @@ public class ChapterTtsEditorWindow {
     private CheckBox autoSaveCheckBox;
     private Button btnAlleAbspielen;
     private Button btnGesamtAudiodatei;
+    private ProgressIndicator fullAudioProgressIndicator;
     /** MP3-Qualität für Gesamt-Audiodatei (0–2 → kleine Datei / Standard / hohe Qualität). */
     private ComboBox<String> fullAudioQualityCombo;
     /** Stereo-Option für Gesamt-Audiodatei. */
@@ -1183,6 +1184,22 @@ public class ChapterTtsEditorWindow {
         saveRow.getChildren().addAll(btnSpeichern, autoSaveCheckBox);
         btnAlleAbspielen = new Button("Ab hier abspielen");
         btnGesamtAudiodatei = new Button("Gesamt-Audiodatei erstellen");
+        fullAudioProgressIndicator = new ProgressIndicator(-1);
+        fullAudioProgressIndicator.setVisible(false);
+        fullAudioProgressIndicator.setPrefSize(20, 20);
+        fullAudioProgressIndicator.setMaxSize(20, 20);
+        fullAudioProgressIndicator.setMinSize(20, 20);
+        
+        // Gesamt-Audiodatei Optionen
+        fullAudioQualityCombo = new ComboBox<>();
+        fullAudioQualityCombo.getItems().addAll(MP3_QUALITY_OPTIONS);
+        fullAudioQualityCombo.getSelectionModel().select(1); // Standard
+        fullAudioQualityCombo.setMaxWidth(Double.MAX_VALUE);
+        
+        fullAudioStereoCheck = new CheckBox("Stereo");
+        fullAudioStereoCheck.setSelected(false);
+        fullAudioStereoCheck.setMaxWidth(Double.MAX_VALUE);
+        
         batchModeCombo = new ComboBox<>();
         batchModeCombo.getItems().addAll("Satz", "Absatz");
         batchModeCombo.getSelectionModel().select(0);
@@ -1257,6 +1274,25 @@ public class ChapterTtsEditorWindow {
         leftColumn.setMinWidth(220);
         leftColumn.setPrefWidth(300);
         
+        // Füge alle UI-Elemente zur linken Spalte hinzu (fullAudioRow wird später hinzugefügt)
+        leftColumn.getChildren().addAll(
+            voiceRow,
+            elevenLabsModelContainer,
+            comfyuiParamsContainer,
+            voiceDescriptionContainer,
+            segmentColorLabel,
+            colorPalette,
+            playerBox,
+            erstellenRow,
+            saveRow,
+            btnAlleAbspielen,
+            fullAudioQualityCombo,
+            fullAudioStereoCheck,
+            batchRow,
+            selectionWordCountLabel,
+            editModeLabel
+        );
+        
         // Button für automatischen Sprecher-Lauf in der Haupt-UI
         Button btnMainAutoRun = new Button("Automatischer Sprecher-Lauf");
         btnMainAutoRun.setMaxWidth(Double.MAX_VALUE);
@@ -1292,24 +1328,12 @@ public class ChapterTtsEditorWindow {
         scriptRow.getChildren().addAll(btnScriptErstellen, scriptIconStack);
         HBox.setHgrow(btnScriptErstellen, Priority.ALWAYS);
         
-        leftColumn.getChildren().addAll(
-            voiceRow,
-            elevenLabsModelContainer,
-            comfyuiParamsContainer,
-            voiceDescriptionContainer,
-            segmentColorLabel, colorPalette,
-            playerBox,
-            selectionWordCountLabel,
-            editModeLabel,
-            new Separator(),
-            erstellenRow, saveRow,
-            new Separator(),
-            btnAlleAbspielen,
-            buildFullAudioQualityRow(),
-            btnGesamtAudiodatei,
-            new Separator(),
-            batchRow
-        );
+        HBox fullAudioRow = new HBox(8);
+        fullAudioRow.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        fullAudioRow.getChildren().addAll(btnGesamtAudiodatei, fullAudioProgressIndicator);
+        
+        // Füge fullAudioRow zur leftColumn hinzu
+        leftColumn.getChildren().add(leftColumn.getChildren().indexOf(fullAudioStereoCheck) + 1, fullAudioRow);
 
         // Lexikon und Regieanweisungen eng untereinander (kein Abstand nach unten)
         TitledPane lexiconPane = new TitledPane("Aussprache-Lexikon", lexiconBox);
@@ -1433,6 +1457,8 @@ public class ChapterTtsEditorWindow {
         if (fullAudioQualityCombo != null) applyThemeToNode(fullAudioQualityCombo, themeIndex);
         applyThemeToNode(fullAudioStereoCheck, themeIndex);
         applyThemeToNode(btnGesamtAudiodatei, themeIndex);
+        applyThemeToNode(fullAudioProgressIndicator, themeIndex);
+        applyThemeToNode(fullAudioRow, themeIndex);
         applyThemeToNode(batchModeCombo, themeIndex);
         applyThemeToNode(btnBatchToggle, themeIndex);
         applyThemeToNode(batchRow, themeIndex);
@@ -6315,7 +6341,7 @@ public class ChapterTtsEditorWindow {
             try { ttsPreferences.put("tts_save_full_audio_dir", f.getParent()); } catch (Exception ignored) {}
         }
         Path out = f.toPath();
-        progressIndicator.setVisible(true);
+        fullAudioProgressIndicator.setVisible(true);
         setStatus("Füge Audiodateien zusammen (mit " + (int) FULL_AUDIO_PAUSE_SECONDS + " s Pause zwischen Segmenten)…");
         CompletableFuture.runAsync(() -> {
             try {
@@ -6324,11 +6350,12 @@ public class ChapterTtsEditorWindow {
                 List<Path> files = new ArrayList<>();
                 for (TtsSegment s : byTextOrder) {
                     Path p = Paths.get(s.audioPath);
+                    if (!p.isAbsolute() && audioDirPath != null) p = audioDirPath.resolve(p);
                     if (Files.isRegularFile(p)) files.add(p);
                 }
                 if (files.isEmpty()) {
                     Platform.runLater(() -> {
-                        progressIndicator.setVisible(false);
+                        fullAudioProgressIndicator.setVisible(false);
                         setStatus("Keine gültigen Audiodateien gefunden.");
                     });
                     return;
@@ -6336,13 +6363,13 @@ public class ChapterTtsEditorWindow {
                 if (files.size() == 1) {
                     Files.copy(files.get(0), out, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
                     Platform.runLater(() -> {
-                        progressIndicator.setVisible(false);
+                        fullAudioProgressIndicator.setVisible(false);
                         setStatus("Gespeichert: " + out.getFileName());
                     });
                 } else {
                     String ffmpegError = runFfmpegConcatWithPause(files, out);
                     Platform.runLater(() -> {
-                        progressIndicator.setVisible(false);
+                        fullAudioProgressIndicator.setVisible(false);
                         if (ffmpegError == null) {
                             setStatus("Gespeichert: " + out.getFileName() + " (mit " + (int) FULL_AUDIO_PAUSE_SECONDS + " s Pause zwischen Segmenten)");
                         } else {
@@ -6360,7 +6387,7 @@ public class ChapterTtsEditorWindow {
             } catch (Exception e) {
                 logger.error("Zusammenfügen fehlgeschlagen", e);
                 Platform.runLater(() -> {
-                    progressIndicator.setVisible(false);
+                    fullAudioProgressIndicator.setVisible(false);
                     setStatus("Fehler: " + e.getMessage());
                     CustomAlert errAlert = DialogFactory.createErrorAlert("Export", "Gesamt-Audiodatei", e.getMessage(), stage);
                     errAlert.applyTheme(themeIndex);

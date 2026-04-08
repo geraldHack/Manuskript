@@ -484,6 +484,19 @@ public class EditorWindow implements Initializable {
         }
     }
 
+    private CodeAreaViewSnapshot captureCodeAreaViewSnapshotWithoutSelection() {
+        if (codeArea == null) return null;
+        try {
+            int caretPosition = Math.max(0, codeArea.getCaretPosition());
+            int paragraphIndex = getFirstVisibleParagraphIndex();
+            // WICHTIG: selectionStart = selectionEnd = caretPosition, damit keine Selektion wiederhergestellt wird
+            return new CodeAreaViewSnapshot(caretPosition, caretPosition, caretPosition, paragraphIndex);
+        } catch (Exception e) {
+            logger.debug("Fehler beim Erfassen des CodeArea-Snapshots: {}", e.getMessage());
+            return null;
+        }
+    }
+
     private int getFirstVisibleParagraphIndex() {
         if (codeArea == null) return 0;
         try {
@@ -511,12 +524,16 @@ public class EditorWindow implements Initializable {
     }
 
     private void restoreCodeAreaViewSnapshot(CodeAreaViewSnapshot snapshot, boolean requestFocus, boolean restoreViewport) {
+        restoreCodeAreaViewSnapshot(snapshot, requestFocus, restoreViewport, true);
+    }
+
+    private void restoreCodeAreaViewSnapshot(CodeAreaViewSnapshot snapshot, boolean requestFocus, boolean restoreViewport, boolean restoreSelection) {
         if (snapshot == null || codeArea == null) return;
 
         int textLength = codeArea.getLength();
         int caretPosition = Math.max(0, Math.min(snapshot.caretPosition, textLength));
-        int selectionStart = Math.max(0, Math.min(snapshot.selectionStart, textLength));
-        int selectionEnd = Math.max(0, Math.min(snapshot.selectionEnd, textLength));
+        int selectionStart = restoreSelection ? Math.max(0, Math.min(snapshot.selectionStart, textLength)) : caretPosition;
+        int selectionEnd = restoreSelection ? Math.max(0, Math.min(snapshot.selectionEnd, textLength)) : caretPosition;
         int paragraphIndex = Math.max(0, Math.min(snapshot.paragraphIndex, Math.max(0, codeArea.getParagraphs().size() - 1)));
 
         Runnable restoreAction = () -> {
@@ -534,10 +551,18 @@ public class EditorWindow implements Initializable {
                 } else {
                     codeArea.moveTo(caretPosition);
                 }
+                
+                // WICHTIG: Wenn keine Selektion wiederhergestellt werden soll, explizit deselect
+                if (!restoreSelection) {
+                    codeArea.deselect();
+                }
             } catch (Exception e) {
                 logger.debug("Fehler beim Wiederherstellen von Cursor/Selektion: {}", e.getMessage());
                 try {
                     codeArea.moveTo(caretPosition);
+                    if (!restoreSelection) {
+                        codeArea.deselect();
+                    }
                 } catch (Exception ignored) {
                 }
             }
@@ -13055,14 +13080,22 @@ spacer.setStyle("-fx-background-color: transparent;");
             }
             
             // Anwenden
-            // WICHTIG: Cursor-Position vor setStyleSpans merken und wiederherstellen
+            // WICHTIG: Cursor-Position und Selektion vor setStyleSpans merken und wiederherstellen
             int caretBeforeStyling = codeArea.getCaretPosition();
+            int anchorBeforeStyling = codeArea.getAnchor();
+            boolean hadSelection = anchorBeforeStyling != caretBeforeStyling;
+            
             StyleSpans<Collection<String>> spans = spansBuilder.create();
             codeArea.setStyleSpans(0, spans);
             
             // setStyleSpans kann die Cursor-Position zurücksetzen - wiederherstellen
             if (codeArea.getCaretPosition() != caretBeforeStyling) {
                 codeArea.moveTo(caretBeforeStyling);
+            }
+            
+            // WICHTIG: Wenn vorher keine Selektion war, auch keine nach dem Styling haben
+            if (!hadSelection && codeArea.getAnchor() != codeArea.getCaretPosition()) {
+                codeArea.deselect();
             }
             
             // WICHTIG: Aktualisiere lastStyledText, damit der Timer weiß, dass Styling angewendet wurde
@@ -13451,18 +13484,14 @@ spacer.setStyle("-fx-background-color: transparent;");
                 if (lblStatus != null && onlineLektoratInProgress) {
                     if (total == 100) {
                         // Einzelpuffer-Modus: Fortschritt in % (0-100)
-                        // WICHTIG: API sendet doppelt so viele Zeichen wie erwartet - Anzeige halbieren
-                        int displayProgress = done / 2; // Halbieren weil API doppelt so viele Zeichen sendet
                         int totalChars = text.length();
                         int processedChars = (done * totalChars) / 100;
-                        lblStatus.setText("Lektorat: " + displayProgress + "% (" + processedChars + "/" + totalChars + " Zeichen) bearbeitet …");
+                        lblStatus.setText("Lektorat: " + done + "% (" + processedChars + "/" + totalChars + " Zeichen) bearbeitet …");
                     } else {
                         // Multi-Chunk-Modus: Abschnitte
-                        // WICHTIG: API sendet doppelt so viele Zeichen wie erwartet - Anzeige halbieren
-                        int displayDone = done / 2; // Halbieren weil API doppelt so viele Zeichen sendet
                         int totalChars = text.length();
                         int processedChars = (done * totalChars) / total;
-                        lblStatus.setText("Lektorat: " + displayDone + "/" + total + " Abschnitte (" + processedChars + "/" + totalChars + " Zeichen) bearbeitet …");
+                        lblStatus.setText("Lektorat: " + done + "/" + total + " Abschnitte (" + processedChars + "/" + totalChars + " Zeichen) bearbeitet …");
                     }
                     lblStatus.setVisible(true);
                     lblStatus.setManaged(true);
@@ -13483,6 +13512,14 @@ spacer.setStyle("-fx-background-color: transparent;");
                         int total = result.getChunksTotal();
                         updateStatus((done >= 0 && total > 0) ? (done + "/" + total + " Abschnitte, " + matches.size() + " Vorschläge – Markierung anklicken") : (matches.size() + " Vorschläge – Markierung anklicken"));
                         logger.info("startOnlineLektorat: abgebrochen, {} partielle Vorschläge aus bereits verarbeiteten Abschnitten", matches.size());
+                        // Text nach oben scrollen (verzögert)
+                        Timeline scrollTimeline = new Timeline(new KeyFrame(Duration.millis(100), event -> {
+                            if (codeArea != null) {
+                                codeArea.moveTo(0);
+                                codeArea.showParagraphAtTop(0);
+                            }
+                        }));
+                        scrollTimeline.play();
                         Window owner = (stage != null && stage.getScene() != null) ? stage.getScene().getWindow() : null;
                         if (owner != null && stage != null && stage.isShowing()) stage.toFront();
                         String detail = result.getErrorMessage() != null ? result.getErrorMessage() : "Unbekannter Fehler";
@@ -13497,6 +13534,14 @@ spacer.setStyle("-fx-background-color: transparent;");
                     } else {
                         updateStatus(matches.isEmpty() ? "Keine Lektorat-Vorschläge" : matches.size() + " Lektorat-Vorschläge – Markierung anklicken");
                         logger.info("startOnlineLektorat: abgeschlossen, {} Vorschläge", matches.size());
+                        // Text nach oben scrollen (verzögert, damit es nach Styling passiert)
+                        Timeline scrollTimeline = new Timeline(new KeyFrame(Duration.millis(100), event -> {
+                            if (codeArea != null) {
+                                codeArea.moveTo(0);
+                                codeArea.showParagraphAtTop(0);
+                            }
+                        }));
+                        scrollTimeline.play();
                     }
                 }))
                 .exceptionally(ex -> {
@@ -13793,11 +13838,8 @@ spacer.setStyle("-fx-background-color: transparent;");
         String replacementWithBoundaries = preserveParagraphBoundaries(originalSegment, unescaped);
         int originalEnd = start + originalSegment.length();
         int delta = replacementWithBoundaries.length() - originalSegment.length();
-        CodeAreaViewSnapshot viewSnapshot = captureCodeAreaViewSnapshot();
-        
-        // Cursor-Position vor der Ersetzung merken
-        int caretPosition = codeArea.getCaretPosition();
-        int anchorPosition = codeArea.getAnchor();
+        // WICHTIG: Snapshot OHNE Selektion erstellen, damit keine blaue Markierung wiederhergestellt wird
+        CodeAreaViewSnapshot viewSnapshot = captureCodeAreaViewSnapshotWithoutSelection();
         
         codeArea.replaceText(start, end, replacementWithBoundaries);
         currentLektoratMatches.remove(match);
@@ -13816,31 +13858,12 @@ spacer.setStyle("-fx-background-color: transparent;");
             }
         }
         
-        // Cursor-Position wiederherstellen (mit Delta-Anpassung)
-        int newCaretPosition = caretPosition;
-        if (caretPosition >= originalEnd) {
-            // Cursor war nach dem ersetzten Bereich - anpassen
-            newCaretPosition += delta;
-        } else if (caretPosition >= start && caretPosition < originalEnd) {
-            // Cursor war im ersetzten Bereich - ans Ende der Ersetzung setzen
-            newCaretPosition = start + replacementWithBoundaries.length();
-        }
-        // Cursor war vor dem ersetzten Bereich - keine Anpassung nötig
-        
-        // Cursor-Position setzen
-        codeArea.moveTo(newCaretPosition);
-        
-        // Nur lokale Neustyling statt vollständiger Neuformatierung
-        // WICHTIG: Cursor-Position nach applyCombinedStyling wiederherstellen
-        int caretBeforeStyling = codeArea.getCaretPosition();
+        // Styling anwenden (ohne Cursor-Position zu ändern)
         applyCombinedStyling();
-        // setStyleSpans kann die Cursor-Position zurücksetzen - wiederherstellen
-        if (codeArea.getCaretPosition() != caretBeforeStyling) {
-            codeArea.moveTo(caretBeforeStyling);
-        }
         
-        // Selektion explizit löschen (nach dem Styling, um sicherzustellen dass keine Markierung bleibt)
-        codeArea.selectRange(codeArea.getCaretPosition(), codeArea.getCaretPosition());
+        // Cursor ans Ende der Ersetzung setzen
+        int finalPosition = start + replacementWithBoundaries.length();
+        codeArea.moveTo(finalPosition);
         
         if (currentLektoratMatches.isEmpty()) {
             ensureLektoratPanelVisible(false);
@@ -13851,7 +13874,17 @@ spacer.setStyle("-fx-background-color: transparent;");
             applyThemeToNode(hint, currentThemeIndex);
             lektoratPanelContainer.getChildren().add(hint);
         }
-        restoreCodeAreaViewSnapshot(viewSnapshot, false, false);
+        
+        // Viewport wiederherstellen (nur das nötigste - KEINE Selektion!)
+        if (viewSnapshot != null) {
+            try {
+                int paragraphIndex = Math.max(0, Math.min(viewSnapshot.paragraphIndex, Math.max(0, codeArea.getParagraphs().size() - 1)));
+                codeArea.showParagraphInViewport(paragraphIndex);
+            } catch (Exception e) {
+                logger.debug("Fehler beim Wiederherstellen des Viewports: {}", e.getMessage());
+            }
+        }
+        
         updateStatus("Lektorat-Vorschlag übernommen");
     }
     

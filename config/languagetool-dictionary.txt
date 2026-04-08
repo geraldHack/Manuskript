@@ -46,6 +46,7 @@ euch
 eure
 ferris
 figon
+figons
 gallat
 gallats
 grakk
@@ -114,4 +115,5 @@ zaubererrat
 zaubererrates
 zaubererrats
 zaubererstadt
+zaubererverbrechen
 zirari
