@@ -1153,6 +1153,16 @@ public class OllamaService {
                 
                 if (response.statusCode() == 200) {
                     return response.body();
+                } else if (response.statusCode() == 500) {
+                    // Spezifische Behandlung für Ollama 500 Fehler
+                    String errorMsg = "Ollama-Server Fehler (HTTP 500): ";
+                    if (response.body().contains("llama runner process has terminated")) {
+                        errorMsg += "Modell konnte nicht geladen werden. Bitte Ollama neu starten oder ein kleineres Modell verwenden.";
+                    } else {
+                        errorMsg += "Interner Serverfehler: " + response.body();
+                    }
+                    logger.error("Ollama HTTP 500 Fehler: {}", response.body());
+                    throw new RuntimeException(errorMsg);
                 } else {
                     throw new IOException("HTTP " + response.statusCode() + ": " + response.body());
                 }

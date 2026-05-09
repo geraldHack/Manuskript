@@ -119,12 +119,22 @@ public class EditorWindow implements Initializable {
         private final int selectionStart;
         private final int selectionEnd;
         private final int paragraphIndex;
+        private final double scrollOffset;
 
         private CodeAreaViewSnapshot(int caretPosition, int selectionStart, int selectionEnd, int paragraphIndex) {
             this.caretPosition = caretPosition;
             this.selectionStart = selectionStart;
             this.selectionEnd = selectionEnd;
             this.paragraphIndex = paragraphIndex;
+            this.scrollOffset = 0.0;
+        }
+
+        private CodeAreaViewSnapshot(int caretPosition, int selectionStart, int selectionEnd, int paragraphIndex, double scrollOffset) {
+            this.caretPosition = caretPosition;
+            this.selectionStart = selectionStart;
+            this.selectionEnd = selectionEnd;
+            this.paragraphIndex = paragraphIndex;
+            this.scrollOffset = scrollOffset;
         }
     }
     
@@ -350,6 +360,8 @@ public class EditorWindow implements Initializable {
     private Timeline stylingTimerDebounce = null; // Debounce-Timer zum Fortsetzen des Styling-Timers
     private String lastStyledText = ""; // Letzter Text, für den Styling angewendet wurde
     private boolean isScrolling = false; // Flag, um zu prüfen, ob der Benutzer gerade scrollt
+    private boolean isNavigatingWithCursor = false; // Flag, um zu prüfen, ob der Benutzer gerade mit Cursortasten navigiert
+    private Timeline cursorNavigationDebounceTimer = null; // Debounce-Timer für Cursor-Navigation
     
     /** Anweisungstext API-Rewrite: Sitzung (pro Fenster) */
     private String lastInstructionSpeech = null;
@@ -489,11 +501,55 @@ public class EditorWindow implements Initializable {
         try {
             int caretPosition = Math.max(0, codeArea.getCaretPosition());
             int paragraphIndex = getFirstVisibleParagraphIndex();
+            double scrollOffset = getScrollOffset();
             // WICHTIG: selectionStart = selectionEnd = caretPosition, damit keine Selektion wiederhergestellt wird
-            return new CodeAreaViewSnapshot(caretPosition, caretPosition, caretPosition, paragraphIndex);
+            return new CodeAreaViewSnapshot(caretPosition, caretPosition, caretPosition, paragraphIndex, scrollOffset);
         } catch (Exception e) {
             logger.debug("Fehler beim Erfassen des CodeArea-Snapshots: {}", e.getMessage());
             return null;
+        }
+    }
+
+    private double getScrollOffset() {
+        if (codeArea == null) return 0.0;
+        try {
+            // Versuche, die genaue Scroll-Position zu bekommen
+            java.lang.reflect.Method method = codeArea.getClass().getMethod("getEstimatedScrollY");
+            Object result = method.invoke(codeArea);
+            if (result instanceof Double) {
+                return (Double) result;
+            }
+        } catch (Exception e) {
+            logger.debug("Scroll-Offset per Reflection nicht verfügbar: {}", e.getMessage());
+        }
+        try {
+            // Alternative Methode versuchen
+            java.lang.reflect.Method method = codeArea.getClass().getMethod("getScrollTop");
+            Object result = method.invoke(codeArea);
+            if (result instanceof Double) {
+                return (Double) result;
+            }
+        } catch (Exception e2) {
+            logger.debug("Alternative Scroll-Offset Methode nicht verfügbar: {}", e2.getMessage());
+        }
+        return 0.0;
+    }
+
+    private void setScrollOffset(double scrollOffset) {
+        if (codeArea == null) return;
+        try {
+            // Versuche, die genaue Scroll-Position zu setzen
+            java.lang.reflect.Method method = codeArea.getClass().getMethod("setEstimatedScrollY", double.class);
+            method.invoke(codeArea, scrollOffset);
+        } catch (Exception e) {
+            logger.debug("Scroll-Offset setzen per Reflection nicht verfügbar: {}", e.getMessage());
+            try {
+                // Alternative Methode versuchen
+                java.lang.reflect.Method method = codeArea.getClass().getMethod("setScrollTop", double.class);
+                method.invoke(codeArea, scrollOffset);
+            } catch (Exception e2) {
+                logger.debug("Alternative Scroll-Offset setzen Methode nicht verfügbar: {}", e2.getMessage());
+            }
         }
     }
 
@@ -540,6 +596,10 @@ public class EditorWindow implements Initializable {
             if (restoreViewport) {
                 try {
                     codeArea.showParagraphInViewport(paragraphIndex);
+                    // Zusätzlich den exakten Scroll-Offset wiederherstellen
+                    if (snapshot.scrollOffset > 0.0) {
+                        setScrollOffset(snapshot.scrollOffset);
+                    }
                 } catch (Exception e) {
                     logger.debug("Fehler beim Wiederherstellen des sichtbaren Absatzes: {}", e.getMessage());
                 }
@@ -793,9 +853,9 @@ public class EditorWindow implements Initializable {
         lastStyledText = codeArea.getText();
         stylingTimer = new Timeline(new KeyFrame(Duration.seconds(1), event -> {
             Platform.runLater(() -> {
-                // WICHTIG: Überspringe Styling komplett, wenn der Benutzer gerade scrollt
+                // WICHTIG: Überspringe Styling komplett, wenn der Benutzer gerade scrollt oder mit Cursortasten navigiert
                 // Oder wenn sich der Text geändert hat (dann wird Styling später durch Text-Change-Listener aufgerufen)
-                if (isScrolling) {
+                if (isScrolling || isNavigatingWithCursor) {
                     return;
                 }
                 
@@ -808,7 +868,7 @@ public class EditorWindow implements Initializable {
                     return;
                 }
                 
-                // Text hat sich nicht geändert UND Benutzer scrollt nicht
+                // Text hat sich nicht geändert UND Benutzer scrollt nicht UND Benutzer navigiert nicht
                 // WICHTIG: Rufe applyCombinedStyling() auf für Markdown-Styling
                 // Styling wird nur aufgerufen, wenn sich der Text ändert oder LanguageTool neue Matches findet
                 applyCombinedStyling();
@@ -1728,6 +1788,30 @@ if (caret != null) {
         codeArea.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
             if (event.getCode() == KeyCode.BACK_SPACE || event.getCode() == KeyCode.DELETE) {
                 lastDeleteActionTime = System.currentTimeMillis();
+            }
+        });
+        
+        // Cursor-Navigation: Setze Flag für Cursortasten, um Styling-Timer zu pausieren
+        codeArea.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+            KeyCode code = event.getCode();
+            if (code == KeyCode.UP || code == KeyCode.DOWN || 
+                code == KeyCode.LEFT || code == KeyCode.RIGHT ||
+                code == KeyCode.PAGE_UP || code == KeyCode.PAGE_DOWN ||
+                code == KeyCode.HOME || code == KeyCode.END) {
+                // Setze Flag für Cursor-Navigation
+                isNavigatingWithCursor = true;
+                
+                // Stoppe alten Debounce-Timer
+                if (cursorNavigationDebounceTimer != null) {
+                    cursorNavigationDebounceTimer.stop();
+                }
+                
+                // Starte neuen Debounce-Timer (500ms)
+                cursorNavigationDebounceTimer = new Timeline(new KeyFrame(Duration.millis(500), e -> {
+                    isNavigatingWithCursor = false;
+                    cursorNavigationDebounceTimer = null;
+                }));
+                cursorNavigationDebounceTimer.play();
             }
         });
         
@@ -13875,15 +13959,8 @@ spacer.setStyle("-fx-background-color: transparent;");
             lektoratPanelContainer.getChildren().add(hint);
         }
         
-        // Viewport wiederherstellen (nur das nötigste - KEINE Selektion!)
-        if (viewSnapshot != null) {
-            try {
-                int paragraphIndex = Math.max(0, Math.min(viewSnapshot.paragraphIndex, Math.max(0, codeArea.getParagraphs().size() - 1)));
-                codeArea.showParagraphInViewport(paragraphIndex);
-            } catch (Exception e) {
-                logger.debug("Fehler beim Wiederherstellen des Viewports: {}", e.getMessage());
-            }
-        }
+        // Viewport wiederherstellen (KEINE Selektion, aber exakte Scroll-Position!)
+        restoreCodeAreaViewSnapshot(viewSnapshot, false, true, false);
         
         updateStatus("Lektorat-Vorschlag übernommen");
     }
@@ -14416,8 +14493,21 @@ spacer.setStyle("-fx-background-color: transparent;");
             int start = match.getOffset();
             int length = match.getLength();
             
+            // WICHTIG: Cursorposition vor dem Replace speichern
+            int oldCaretPos = codeArea.getCaretPosition();
+            int oldLength = codeArea.getLength();
+            
             // Ersetze Text
             codeArea.replaceText(start, start + length, replacement);
+            
+            // WICHTIG: Cursorposition nach dem Replace wiederherstellen
+            int newLength = codeArea.getLength();
+            int lengthDiff = newLength - oldLength;
+            int newCaretPos = oldCaretPos + lengthDiff;
+            
+            // Stelle sicher, dass die neue Position innerhalb des Textes liegt
+            newCaretPos = Math.max(0, Math.min(newLength, newCaretPos));
+            codeArea.moveTo(newCaretPos);
             
             // WICHTIG: Kompletter Reset nach Korrektur
             // 1. Lösche alle Matches sofort, da Positionen nach Text-Änderung ungültig sind

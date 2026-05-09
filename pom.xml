@@ -17,8 +17,8 @@
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <javafx.version>21.0.1</javafx.version>
-        <javafx.runtime.path>${project.basedir}/javafx-sdk-21.0.6/lib</javafx.runtime.path>
+        <javafx.version>26</javafx.version>
+        <javafx.runtime.path>${project.basedir}/javafx-sdk-26/lib</javafx.runtime.path>
     </properties>
 
     <dependencies>
@@ -83,7 +83,7 @@
         <dependency>
             <groupId>org.fxmisc.richtext</groupId>
             <artifactId>richtextfx</artifactId>
-            <version>0.10.9</version>
+            <version>0.11.7</version>
         </dependency>
         
         <!-- OpenPDF für PDF-Export -->

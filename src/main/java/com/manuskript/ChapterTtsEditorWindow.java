@@ -4270,7 +4270,7 @@ public class ChapterTtsEditorWindow {
                     if (remaining != null && remaining.greaterThan(Duration.ZERO)) {
                         double remainingPlayableSec = remaining.toSeconds();
                         if (remainingPlayableSec > 0.1) { // Mindestrestzeit, um sofortige Sprünge zu vermeiden
-                            playAllAdvanceTransition = new PauseTransition(Duration.seconds(remainingPlayableSec));
+                            playAllAdvanceTransition = new PauseTransition(Duration.seconds(remainingPlayableSec).add(Duration.millis(200)));
                             playAllAdvanceTransition.setOnFinished(e2 -> {
                                 playAllAdvanceTransition = null;
                                 // Nur fortfahren, wenn immer noch "Alle abspielen" aktiv und der Player noch existiert
@@ -5607,7 +5607,7 @@ public class ChapterTtsEditorWindow {
                         // Trim-Start berücksichtigen: nur die abspielbare Dauer verwenden
                         double trimSec = (trimStartSlider != null) ? trimStartSlider.getValue() : 0;
                         Duration playableDuration = Duration.seconds(Math.max(0, d.toSeconds() - trimSec));
-                        playAllAdvanceTransition = new PauseTransition(playableDuration);
+                        playAllAdvanceTransition = new PauseTransition(playableDuration.add(Duration.millis(200)));
                         playAllAdvanceTransition.setOnFinished(e2 -> {
                             MediaPlayer px = weakPlayer.get();
                             if (!isPlayingAllSequence || px == null || embeddedPlayer != px) return;

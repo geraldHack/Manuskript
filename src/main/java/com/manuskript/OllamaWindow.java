@@ -5229,11 +5229,24 @@ public class OllamaWindow {
                 // 2. Prozesse beenden
                 Platform.runLater(() -> {
                     if (ollamaStatusLabel != null) {
-                        ollamaStatusLabel.setText("🔄 Beende alle Ollama-Prozesse...");
+                        ollamaStatusLabel.setText(" Beende alle Ollama-Prozesse...");
                     }
                 });
                 logger.info("Beende alle Ollama-Prozesse...");
-                ProcessBuilder killProcess = new ProcessBuilder("taskkill", "/f", "/im", "ollama.exe");
+                
+                // Plattformspezifische Prozessbeendigung
+                String os = System.getProperty("os.name").toLowerCase();
+                ProcessBuilder killProcess;
+                if (os.contains("win")) {
+                    killProcess = new ProcessBuilder("taskkill", "/f", "/im", "ollama.exe");
+                } else if (os.contains("mac") || os.contains("nix") || os.contains("nux") || os.contains("aix")) {
+                    // Mac/Linux: pkill oder killall
+                    killProcess = new ProcessBuilder("pkill", "-f", "ollama");
+                } else {
+                    // Unbekanntes OS - Versuch mit killall
+                    killProcess = new ProcessBuilder("killall", "ollama");
+                }
+                
                 Process killResult = killProcess.start();
                 int killExitCode = killResult.waitFor();
                 
@@ -5265,17 +5278,29 @@ public class OllamaWindow {
                 // 4. Neustart
                 Platform.runLater(() -> {
                     if (ollamaStatusLabel != null) {
-                        ollamaStatusLabel.setText("🚀 Starte Ollama neu...");
+                        ollamaStatusLabel.setText(" Starte Ollama neu...");
                     }
                 });
                 logger.info("Starte Ollama neu...");
-                ProcessBuilder startProcess = new ProcessBuilder("ollama", "serve");
+                
+                // Plattformspezifischer Start
+                String osStart = System.getProperty("os.name").toLowerCase();
+                ProcessBuilder startProcess;
+                if (osStart.contains("mac")) {
+                    // Mac: Ollama.app verwenden
+                    startProcess = new ProcessBuilder("/Applications/Ollama.app/Contents/Resources/ollama", "serve");
+                } else {
+                    // Linux/Windows: Standard ollama Befehl
+                    startProcess = new ProcessBuilder("ollama", "serve");
+                }
+                
                 startProcess.start();
                 Thread.sleep(1000);
                 
                 // 5. Warten auf Start
                 Platform.runLater(() -> {
                     if (ollamaStatusLabel != null) {
+                        ollamaStatusLabel.setText(" Warte auf Ollama-Start...");
                         ollamaStatusLabel.setText("⏳ Warte auf Ollama-Start...");
                     }
                 });

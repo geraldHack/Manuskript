@@ -509,8 +509,6 @@ public class MainController implements Initializable {
         // Verhindere Sortierung durch Klick auf Spalten-Header
         tableViewSelected.setOnSort(event -> event.consume());
         
-        // CSS für sichtbare Selektion auch ohne Focus - explizit für rechte Tabelle
-        tableViewSelected.setStyle("-fx-border-color: #ba68c8; -fx-selection-bar: #ba68c8; -fx-selection-bar-non-focused: #ba68c8; -fx-selection-bar-non-focused: #ba68c8; -fx-selection-bar-non-focused: #ba68c8;");
         
         // Sortierung und Format-Auswahl entfernt - einfache Lösung
         
@@ -528,9 +526,6 @@ public class MainController implements Initializable {
         
         // Sortierung über TableView-Header (Standard-JavaFX)
         
-        // TableViews nur Border stylen - Hintergrund über CSS
-        tableViewAvailable.setStyle("-fx-border-color: #ba68c8; -fx-selection-bar: #ba68c8; -fx-selection-bar-non-focused: #ba68c8;");
-        tableViewSelected.setStyle("-fx-border-color: #ba68c8; -fx-selection-bar: #ba68c8; -fx-selection-bar-non-focused: #ba68c8;");
         
         // Status initialisieren
         updateStatus("Bereit - Wählen Sie ein Verzeichnis aus");
@@ -1354,25 +1349,38 @@ public class MainController implements Initializable {
     private void importSudowriteZip(File zipFile, File projectDirectory) {
         try {
             
-            // ZIP entpacken
-            java.util.zip.ZipFile zip = new java.util.zip.ZipFile(zipFile);
-            java.util.Enumeration<? extends java.util.zip.ZipEntry> entries = zip.entries();
-            
+            // ZIP entpacken - mit try-with-resources um sicherzustellen, dass die Datei immer geschlossen wird
             int importedCount = 0;
-            while (entries.hasMoreElements()) {
-                java.util.zip.ZipEntry entry = entries.nextElement();
+            try (java.util.zip.ZipFile zip = new java.util.zip.ZipFile(zipFile)) {
+                java.util.Enumeration<? extends java.util.zip.ZipEntry> entries = zip.entries();
                 
-                // Nur DOCX-Dateien importieren
-                if (entry.getName().toLowerCase().endsWith(".docx") && !entry.isDirectory()) {
-                    String fileName = new File(entry.getName()).getName();
-                    File targetFile = new File(projectDirectory, fileName);
+                while (entries.hasMoreElements()) {
+                    java.util.zip.ZipEntry entry = entries.nextElement();
                     
-                    // Prüfe ob Zieldatei gesperrt ist (z.B. in Word geöffnet)
-                    if (targetFile.exists()) {
-                        try {
-                            // Versuche die Datei zu löschen um zu prüfen ob sie gesperrt ist
-                            if (!targetFile.delete()) {
-                                // Datei kann nicht gelöscht werden = gesperrt
+                    // Nur DOCX-Dateien importieren
+                    if (entry.getName().toLowerCase().endsWith(".docx") && !entry.isDirectory()) {
+                        String fileName = new File(entry.getName()).getName();
+                        File targetFile = new File(projectDirectory, fileName);
+                        
+                        // Prüfe ob Zieldatei gesperrt ist (z.B. in Word geöffnet)
+                        if (targetFile.exists()) {
+                            try {
+                                // Versuche die Datei zu löschen um zu prüfen ob sie gesperrt ist
+                                if (!targetFile.delete()) {
+                                    // Datei kann nicht gelöscht werden = gesperrt
+                                    Platform.runLater(() -> {
+                                        CustomAlert alert = new CustomAlert(CustomAlert.AlertType.ERROR);
+                                        alert.setTitle("Datei gesperrt");
+                                        alert.setHeaderText("Die Zieldatei ist gesperrt");
+                                        alert.setContentText("Die Datei '" + targetFile.getName() + "' ist möglicherweise in Word oder einem anderen Programm geöffnet.\n\nBitte schließen Sie die Datei und versuchen Sie es erneut.");
+                                        alert.applyTheme(currentThemeIndex);
+                                        alert.initOwner(primaryStage);
+                                        alert.showAndWait();
+                                    });
+                                    continue; // Überspringe diese Datei
+                                }
+                            } catch (Exception e) {
+                                // Datei ist gesperrt
                                 Platform.runLater(() -> {
                                     CustomAlert alert = new CustomAlert(CustomAlert.AlertType.ERROR);
                                     alert.setTitle("Datei gesperrt");
@@ -1384,36 +1392,23 @@ public class MainController implements Initializable {
                                 });
                                 continue; // Überspringe diese Datei
                             }
-                        } catch (Exception e) {
-                            // Datei ist gesperrt
-                            Platform.runLater(() -> {
-                                CustomAlert alert = new CustomAlert(CustomAlert.AlertType.ERROR);
-                                alert.setTitle("Datei gesperrt");
-                                alert.setHeaderText("Die Zieldatei ist gesperrt");
-                                alert.setContentText("Die Datei '" + targetFile.getName() + "' ist möglicherweise in Word oder einem anderen Programm geöffnet.\n\nBitte schließen Sie die Datei und versuchen Sie es erneut.");
-                                alert.applyTheme(currentThemeIndex);
-                                alert.initOwner(primaryStage);
-                                alert.showAndWait();
-                            });
-                            continue; // Überspringe diese Datei
-                        }
-                    }
-                    
-                    // Datei extrahieren
-                    try (java.io.InputStream is = zip.getInputStream(entry);
-                         java.io.FileOutputStream fos = new java.io.FileOutputStream(targetFile)) {
-                        
-                        byte[] buffer = new byte[1024];
-                        int length;
-                        while ((length = is.read(buffer)) > 0) {
-                            fos.write(buffer, 0, length);
                         }
                         
-                        importedCount++;
+                        // Datei extrahieren
+                        try (java.io.InputStream is = zip.getInputStream(entry);
+                             java.io.FileOutputStream fos = new java.io.FileOutputStream(targetFile)) {
+                            
+                            byte[] buffer = new byte[1024];
+                            int length;
+                            while ((length = is.read(buffer)) > 0) {
+                                fos.write(buffer, 0, length);
+                            }
+                            
+                            importedCount++;
+                        }
                     }
                 }
             }
-            zip.close();
             
             
             // Projekt neu laden
@@ -1422,8 +1417,11 @@ public class MainController implements Initializable {
                 updateStatus("Sudowrite-Import abgeschlossen: " + importedCount + " Dateien importiert");
                 
                 // Benutzer benachrichtigen
-                showInfo("Sudowrite-Import", 
-                    "Erfolgreich " + importedCount + " DOCX-Dateien aus Sudowrite importiert!");
+                final int finalImportedCount = importedCount;
+                Platform.runLater(() -> {
+                    showInfo("Sudowrite-Import", 
+                        "Erfolgreich " + finalImportedCount + " DOCX-Dateien aus Sudowrite importiert!");
+                });
                 
                 // ZIP-Datei nach erfolgreichem Import löschen
                 try {
@@ -1439,8 +1437,10 @@ public class MainController implements Initializable {
             
         } catch (Exception e) {
             logger.error("Fehler beim Importieren der Sudowrite-ZIP", e);
-            showError("Sudowrite-Import Fehler", 
-                "Fehler beim Importieren der ZIP-Datei: " + e.getMessage());
+            Platform.runLater(() -> {
+                showError("Sudowrite-Import Fehler", 
+                    "Fehler beim Importieren der ZIP-Datei: " + e.getMessage());
+            });
         }
     }
     private void loadDocxFiles(File directory) {
@@ -5442,11 +5442,6 @@ public class MainController implements Initializable {
                 root.getStyleClass().add("pastell-theme");
                 root.setStyle(""); // Inline Styles entfernen
                 mainContainer.setStyle(""); // Inline Styles entfernen
-                // Nur Border setzen - Rest über CSS
-                Platform.runLater(() -> {
-                    tableViewAvailable.setStyle("-fx-border-color: #ba68c8; -fx-selection-bar: #ba68c8; -fx-selection-bar-non-focused: #ba68c8;");
-                    tableViewSelected.setStyle("-fx-border-color: #ba68c8; -fx-selection-bar: #ba68c8; -fx-selection-bar-non-focused: #ba68c8;");
-                });
             } else {
                 root.setStyle(""); // Style zurücksetzen
                 mainContainer.setStyle(""); // Style zurücksetzen
@@ -5479,11 +5474,6 @@ public class MainController implements Initializable {
                 logger.warn("CSS-Datei manuskript.css nicht gefunden!");
             }
             
-            // TableViews über CSS stylen - nur Border setzen, Rest über CSS
-            if (themeIndex != 2) { // Nicht für Pastell-Theme, das wird separat behandelt
-                tableViewAvailable.setStyle("-fx-border-color: #ba68c8; -fx-selection-bar: #ba68c8; -fx-selection-bar-non-focused: #ba68c8;");
-                tableViewSelected.setStyle("-fx-border-color: #ba68c8; -fx-selection-bar: #ba68c8; -fx-selection-bar-non-focused: #ba68c8;");
-            }
             
             // TableViews auch Theme-Klassen geben
             applyThemeToNode(tableViewAvailable, themeIndex);
