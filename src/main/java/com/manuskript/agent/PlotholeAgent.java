@@ -19,24 +19,44 @@ public class PlotholeAgent {
     private static final Logger logger = LoggerFactory.getLogger(PlotholeAgent.class);
 
     private static final String SYSTEM_PROMPT =
-        "Du bist ein kritischer Redaktionsassistent für Manuskripte. Deine Aufgabe ist es, logische Widersprüche, Ungereimtheiten und Plotlöcher im Text zu finden.\n\n" +
-        "WICHTIGE REGELN:\n" +
-        "1. Du darfst KEINE Markdown-Formatierung verwenden (kein **, kein *, kein #, keine Nummerierung)\n" +
-        "2. Gib das Ergebnis IMMER im folgenden strikten Format aus:\n\n" +
-        "---\n" +
-        "SCHWEREGRAD: 1-5\n" +
-        "ZITAT: \"Der exakte Text aus dem Manuskript\"\n" +
-        "PROBLEM: Kurze Beschreibung des Widerspruchs\n" +
-        "VORSCHLAG: Wie man es beheben könnte\n\n" +
-        "---\n" +
-        "SCHWEREGRAD: 1-5\n" +
-        "ZITAT: \"Der exakte Text aus dem Manuskript\"\n" +
-        "PROBLEM: Kurze Beschreibung des Widerspruchs\n" +
-        "VORSCHLAG: Wie man es beheben könnte\n\n" +
-        "3. Wenn du KEINE Probleme findest, gib EXAKT aus: KEINE_PROBLEME\n" +
-        "4. Suche aktiv nach Widersprüchen - sei kritisch!\n" +
-        "5. Das Zitat muss exakt aus dem Text übernommen werden.\n" +
-        "6. Verwende KEINE Aufzählungszeichen, keine Nummerierung, nur das Format oben.";
+        "Du bist ein Analysemodul zur Erkennung von Plotlöchern und logischen Widersprüchen in Manuskripten.\n\n" +
+        "AUSGABEREGELN:\n\n" +
+        "Du erzeugst ausschließlich eine der folgenden zwei Antworten:\n\n" +
+        "VARIANTE A:\n" +
+        "KEINE_PROBLEME\n\n" +
+        "VARIANTE B:\n" +
+        "Eine oder mehrere Problemblöcke im EXAKTEN Format:\n\n" +
+        "<PROBLEM> SCHWEREGRAD: [1-5] ZITAT: \"[EXAKTES ZITAT AUS DEM TEXT]\" PROBLEM: [KURZE BESCHREIBUNG] VORSCHLAG: [KONKRETE VERBESSERUNG] </PROBLEM>\n\n" +
+        "WICHTIGE FORMATREGELN:\n\n" +
+        "Verwende niemals Markdown.\n" +
+        "Verwende niemals Aufzählungen.\n" +
+        "Verwende niemals Nummerierungen.\n" +
+        "Verwende niemals zusätzlichen Fließtext.\n" +
+        "Verwende niemals Erklärungen vor oder nach der Ausgabe.\n" +
+        "Gib ausschließlich gültige Problemblöcke oder KEINE_PROBLEME aus.\n" +
+        "Jeder Problemblock MUSS mit <PROBLEM> beginnen und mit </PROBLEM> enden.\n" +
+        "Zwischen zwei Problemblöcken steht genau eine Leerzeile.\n" +
+        "Das Feld ZITAT muss exakt aus dem Manuskript übernommen werden.\n" +
+        "Verändere niemals den Wortlaut eines Zitats.\n" +
+        "Wenn keine relevanten Probleme existieren, gib ausschließlich KEINE_PROBLEME aus.\n" +
+        "Antworte niemals mit Höflichkeitsfloskeln.\n" +
+        "Antworte niemals mit Einleitungen.\n" +
+        "Antworte niemals mit Zusammenfassungen.\n\n" +
+        "ANALYSEREGELN:\n\n" +
+        "Suche aktiv nach:\n\n" +
+        "logischen Widersprüchen\n" +
+        "Plotlöchern\n" +
+        "unstimmigen Motivationen\n" +
+        "unmöglichen Abläufen\n" +
+        "verletzten Weltregeln\n" +
+        "zeitlichen Inkonsistenzen\n" +
+        "Figurenwissen ohne Grundlage\n" +
+        "physikalischen Unmöglichkeiten innerhalb der Weltlogik\n\n" +
+        "Ignoriere:\n\n" +
+        "Stilfragen\n" +
+        "Grammatik\n" +
+        "reine Geschmacksfragen\n" +
+        "absichtliche Mysterien ohne Widerspruch";
 
     private final AIBackend backend;
     private final AgentMemory memory;
@@ -54,9 +74,10 @@ public class PlotholeAgent {
         memory.clear();
 
         StringBuilder userMessage = new StringBuilder();
-        userMessage.append("=== AKTUELLER TEXT ===\n");
+        userMessage.append("=== MANUSKRIPT BEGINN ===\n");
         userMessage.append(currentChapterText);
-        userMessage.append("\n\nAnalysiere den Text auf Widersprüche.");
+        userMessage.append("\n=== MANUSKRIPT ENDE ===\n");
+        userMessage.append("Analysiere das Manuskript gemäß den Systemregeln.");
 
         return backend.chat(SYSTEM_PROMPT, userMessage.toString(), 2048)
                 .thenApply(this::parseResponse);
@@ -86,14 +107,10 @@ public class PlotholeAgent {
         // Normalisiere Zeilenumbrüche
         String normalized = trimmed.replace("\r\n", "\n").replace("\r", "\n");
 
-        // Parse --- Blöcke (flexiblere Newlines)
+        // Parse <PROBLEM>...</PROBLEM> Blöcke
         Pattern blockPattern = Pattern.compile(
-            "---\\s*\\n" +
-            "SCHWEREGRAD:\\s*(\\d+)\\s*\\n" +
-            "ZITAT:\\s*\"([^\"]*)\"\\s*\\n" +
-            "PROBLEM:\\s*([^\\n]*)\\s*\\n" +
-            "VORSCHLAG:\\s*([^\\n]*)",
-            Pattern.CASE_INSENSITIVE
+            "<PROBLEM>\\s*SCHWEREGRAD:\\s*(\\d+)\\s*ZITAT:\\s*\"([^\"]*)\"\\s*PROBLEM:\\s*([^<]*)\\s*VORSCHLAG:\\s*([^<]*)\\s*</PROBLEM>",
+            Pattern.CASE_INSENSITIVE | Pattern.DOTALL
         );
 
         Matcher m = blockPattern.matcher(normalized);
