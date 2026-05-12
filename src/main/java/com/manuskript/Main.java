@@ -48,7 +48,15 @@ public class Main extends Application {
             // CustomStage konfigurieren
             customStage.setCustomTitle("Manuskript – Schreiben. Lektorieren. Produzieren.");
             customStage.setMinWidth(800);
-            customStage.setMinHeight(600);
+            customStage.setMinHeight(700);
+            
+            // Toolbar-Höhe für zweireihige Buttons anpassen (nach dem Rendern)
+            Platform.runLater(() -> {
+                javafx.scene.Node toolbar = customStage.getScene().lookup(".main-toolbar");
+                if (toolbar != null) {
+                    toolbar.setStyle("-fx-min-height: 80px; -fx-pref-height: 80px;");
+                }
+            });
             
             // Scene mit benutzerdefinierter Titelleiste setzen
             customStage.setSceneWithTitleBar(scene);

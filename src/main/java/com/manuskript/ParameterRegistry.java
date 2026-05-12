@@ -189,10 +189,39 @@ public final class ParameterRegistry {
                 "Gefühls-Phrasen, Platzhalter * erlaubt (kommagetrennt).", "Textanalyse");
         add("phrasen_bewegung", ParameterDef.Type.STRING, "",
                 "Bewegungs-Phrasen (kommagetrennt).", "Textanalyse");
+
+        // —— Agenten (allgemein) ——
+        add("agent.enabled", ParameterDef.Type.BOOLEAN, "true",
+                "Plothole-Agent komplett aktivieren.", "Agenten");
+        add("agent.backend", ParameterDef.Type.CHOICE, "Ollama",
+                "KI-Backend fuer die Agenten-Analyse.", "Agenten",
+                new String[]{"Ollama", "OpenAI"});
+        add("agent.realtime_enabled", ParameterDef.Type.BOOLEAN, "false",
+                "Echtzeit-Pruefung beim Tippen aktivieren.", "Agenten");
+        add("agent.realtime_debounce_ms", ParameterDef.Type.INT, "2000",
+                "Verzoegerung in ms nach letztem Tippen, bevor die Echtzeit-Pruefung startet.", "Agenten");
+
+        // —— Agenten (Ollama) ——
+        add("agent.ollama.api_url", ParameterDef.Type.STRING, "http://localhost:11434",
+                "Basis-URL des Ollama-Servers.", "Agenten");
+        add("agent.ollama.model", ParameterDef.Type.STRING, "gemma3:4b",
+                "Modell fuer die Ollama-Analyse (z.B. gemma3:4b, llama3, mistral).", "Agenten");
+
+        // —— Agenten (OpenAI) ——
+        add("agent.openai.api_key", ParameterDef.Type.STRING, "",
+                "API-Key fuer OpenAI (wird auch vom Online-Lektorat verwendet).", "Agenten");
+        add("agent.openai.api_url", ParameterDef.Type.STRING, "https://api.openai.com/v1",
+                "Basis-URL der OpenAI-kompatiblen API.", "Agenten");
+        add("agent.openai.model", ParameterDef.Type.STRING, "gpt-4o-mini",
+                "Modell fuer die OpenAI-Analyse (z.B. gpt-4o-mini, gpt-4o).", "Agenten");
     }
 
     private static void add(String key, ParameterDef.Type type, String defaultValue, String helpText, String category) {
         ALL.add(new ParameterDef(key, type, defaultValue, helpText, category));
+    }
+
+    private static void add(String key, ParameterDef.Type type, String defaultValue, String helpText, String category, String[] choices) {
+        ALL.add(new ParameterDef(key, type, defaultValue, helpText, category, choices));
     }
 
     public static List<ParameterDef> getAll() {

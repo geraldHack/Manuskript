@@ -92,6 +92,20 @@ public class ParametersAdminWindow {
                 continue;
             }
 
+            if ("Agenten".equals(category)) {
+                VBox agentenContent = buildAgentenTab(keyToControl, theme);
+                for (ParameterDef def : params) {
+                    keyToDef.put(def.getKey(), def);
+                }
+                ScrollPane scroll = new ScrollPane(agentenContent);
+                scroll.setFitToWidth(true);
+                scroll.getStyleClass().add("param-tab-scroll");
+                Tab tab = new Tab(category, scroll);
+                tab.setClosable(false);
+                tabPane.getTabs().add(tab);
+                continue;
+            }
+
             ScrollPane scroll = new ScrollPane();
             scroll.setFitToWidth(true);
             scroll.getStyleClass().add("param-tab-scroll");
@@ -154,6 +168,193 @@ public class ParametersAdminWindow {
         }
     }
 
+    private VBox buildAgentenTab(Map<String, Control> keyToControl, int theme) {
+        VBox content = new VBox(12);
+        content.setPadding(new Insets(16));
+        content.getStyleClass().addAll(getThemeStyleClasses(theme));
+
+        String backendType = ResourceManager.getParameter("agent.backend", "Ollama");
+
+        // Allgemeine Agenten-Parameter
+        boolean agentEnabled = Boolean.parseBoolean(ResourceManager.getParameter("agent.enabled", "true"));
+        CheckBox enabledCheck = new CheckBox("Plothole-Agent aktivieren");
+        enabledCheck.setSelected(agentEnabled);
+        enabledCheck.setMaxWidth(400);
+        Label enabledLabel = new Label("agent.enabled");
+        enabledLabel.getStyleClass().add("param-key-label");
+        Label enabledHelp = new Label("Plothole-Agent komplett aktivieren.");
+        enabledHelp.getStyleClass().add("param-help-label");
+        enabledHelp.setWrapText(true);
+        enabledHelp.setMaxWidth(680);
+        VBox enabledCard = new VBox(4);
+        enabledCard.getStyleClass().add("param-card");
+        enabledCard.getChildren().addAll(enabledLabel, enabledCheck, enabledHelp);
+        content.getChildren().add(enabledCard);
+        keyToControl.put("agent.enabled", enabledCheck);
+
+        // Backend-Auswahl
+        ComboBox<String> backendCombo = new ComboBox<>();
+        backendCombo.getItems().addAll("Ollama", "OpenAI");
+        backendCombo.setValue(backendType);
+        backendCombo.setPrefWidth(200);
+        Label backendLabel = new Label("agent.backend");
+        backendLabel.getStyleClass().add("param-key-label");
+        Label backendHelp = new Label("KI-Backend fuer die Agenten-Analyse.");
+        backendHelp.getStyleClass().add("param-help-label");
+        backendHelp.setWrapText(true);
+        backendHelp.setMaxWidth(680);
+        VBox backendCard = new VBox(4);
+        backendCard.getStyleClass().add("param-card");
+        backendCard.getChildren().addAll(backendLabel, backendCombo, backendHelp);
+        content.getChildren().add(backendCard);
+        keyToControl.put("agent.backend", backendCombo);
+
+        // Container für Backend-spezifische Parameter
+        VBox ollamaParams = new VBox(8);
+        VBox openaiParams = new VBox(8);
+
+        // Ollama-spezifische Parameter
+        Label ollamaHeader = new Label("Ollama-Einstellungen");
+        ollamaHeader.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-padding: 8 0 0 0;");
+        ollamaParams.getChildren().add(ollamaHeader);
+
+        String ollamaUrl = ResourceManager.getParameter("agent.ollama.api_url", "http://localhost:11434");
+        TextField ollamaUrlField = new TextField(ollamaUrl);
+        ollamaUrlField.setPrefWidth(400);
+        Label ollamaUrlLabel = new Label("agent.ollama.api_url");
+        ollamaUrlLabel.getStyleClass().add("param-key-label");
+        Label ollamaUrlHelp = new Label("Basis-URL des Ollama-Servers.");
+        ollamaUrlHelp.getStyleClass().add("param-help-label");
+        ollamaUrlHelp.setWrapText(true);
+        ollamaUrlHelp.setMaxWidth(680);
+        VBox ollamaUrlCard = new VBox(4);
+        ollamaUrlCard.getStyleClass().add("param-card");
+        ollamaUrlCard.getChildren().addAll(ollamaUrlLabel, ollamaUrlField, ollamaUrlHelp);
+        ollamaParams.getChildren().add(ollamaUrlCard);
+        keyToControl.put("agent.ollama.api_url", ollamaUrlField);
+
+        String ollamaModel = ResourceManager.getParameter("agent.ollama.model", "gemma3:4b");
+        TextField ollamaModelField = new TextField(ollamaModel);
+        ollamaModelField.setPrefWidth(400);
+        Label ollamaModelLabel = new Label("agent.ollama.model");
+        ollamaModelLabel.getStyleClass().add("param-key-label");
+        Label ollamaModelHelp = new Label("Modell fuer die Ollama-Analyse (z.B. gemma3:4b, llama3, mistral).");
+        ollamaModelHelp.getStyleClass().add("param-help-label");
+        ollamaModelHelp.setWrapText(true);
+        ollamaModelHelp.setMaxWidth(680);
+        VBox ollamaModelCard = new VBox(4);
+        ollamaModelCard.getStyleClass().add("param-card");
+        ollamaModelCard.getChildren().addAll(ollamaModelLabel, ollamaModelField, ollamaModelHelp);
+        ollamaParams.getChildren().add(ollamaModelCard);
+        keyToControl.put("agent.ollama.model", ollamaModelField);
+
+        // OpenAI-spezifische Parameter
+        Label openaiHeader = new Label("OpenAI-Einstellungen");
+        openaiHeader.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-padding: 8 0 0 0;");
+        openaiParams.getChildren().add(openaiHeader);
+
+        String openaiKey = ResourceManager.getParameter("agent.openai.api_key", "");
+        TextField openaiKeyField = new TextField(openaiKey);
+        openaiKeyField.setPrefWidth(400);
+        Label openaiKeyLabel = new Label("agent.openai.api_key");
+        openaiKeyLabel.getStyleClass().add("param-key-label");
+        Label openaiKeyHelp = new Label("API-Key fuer OpenAI (wird auch vom Online-Lektorat verwendet).");
+        openaiKeyHelp.getStyleClass().add("param-help-label");
+        openaiKeyHelp.setWrapText(true);
+        openaiKeyHelp.setMaxWidth(680);
+        VBox openaiKeyCard = new VBox(4);
+        openaiKeyCard.getStyleClass().add("param-card");
+        openaiKeyCard.getChildren().addAll(openaiKeyLabel, openaiKeyField, openaiKeyHelp);
+        openaiParams.getChildren().add(openaiKeyCard);
+        keyToControl.put("agent.openai.api_key", openaiKeyField);
+
+        String openaiUrl = ResourceManager.getParameter("agent.openai.api_url", "https://api.openai.com/v1");
+        TextField openaiUrlField = new TextField(openaiUrl);
+        openaiUrlField.setPrefWidth(400);
+        Label openaiUrlLabel = new Label("agent.openai.api_url");
+        openaiUrlLabel.getStyleClass().add("param-key-label");
+        Label openaiUrlHelp = new Label("Basis-URL der OpenAI-kompatiblen API.");
+        openaiUrlHelp.getStyleClass().add("param-help-label");
+        openaiUrlHelp.setWrapText(true);
+        openaiUrlHelp.setMaxWidth(680);
+        VBox openaiUrlCard = new VBox(4);
+        openaiUrlCard.getStyleClass().add("param-card");
+        openaiUrlCard.getChildren().addAll(openaiUrlLabel, openaiUrlField, openaiUrlHelp);
+        openaiParams.getChildren().add(openaiUrlCard);
+        keyToControl.put("agent.openai.api_url", openaiUrlField);
+
+        String openaiModel = ResourceManager.getParameter("agent.openai.model", "gpt-4o-mini");
+        TextField openaiModelField = new TextField(openaiModel);
+        openaiModelField.setPrefWidth(400);
+        Label openaiModelLabel = new Label("agent.openai.model");
+        openaiModelLabel.getStyleClass().add("param-key-label");
+        Label openaiModelHelp = new Label("Modell fuer die OpenAI-Analyse (z.B. gpt-4o-mini, gpt-4o).");
+        openaiModelHelp.getStyleClass().add("param-help-label");
+        openaiModelHelp.setWrapText(true);
+        openaiModelHelp.setMaxWidth(680);
+        VBox openaiModelCard = new VBox(4);
+        openaiModelCard.getStyleClass().add("param-card");
+        openaiModelCard.getChildren().addAll(openaiModelLabel, openaiModelField, openaiModelHelp);
+        openaiParams.getChildren().add(openaiModelCard);
+        keyToControl.put("agent.openai.model", openaiModelField);
+
+        // Sichtbarkeit basierend auf Backend-Auswahl
+        Runnable updateVisibility = () -> {
+            String selected = backendCombo.getValue();
+            ollamaParams.setVisible("Ollama".equals(selected));
+            ollamaParams.setManaged("Ollama".equals(selected));
+            openaiParams.setVisible("OpenAI".equals(selected));
+            openaiParams.setManaged("OpenAI".equals(selected));
+        };
+        backendCombo.setOnAction(e -> updateVisibility.run());
+
+        content.getChildren().addAll(ollamaParams, openaiParams);
+
+        // Echtzeit-Einstellungen
+        Label realtimeHeader = new Label("Echtzeit-Prüfung");
+        realtimeHeader.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-padding: 12 0 0 0;");
+        content.getChildren().add(realtimeHeader);
+
+        boolean realtimeEnabled = Boolean.parseBoolean(ResourceManager.getParameter("agent.realtime_enabled", "false"));
+        CheckBox realtimeCheck = new CheckBox("Echtzeit-Prüfung beim Tippen aktivieren");
+        realtimeCheck.setSelected(realtimeEnabled);
+        realtimeCheck.setMaxWidth(400);
+        Label realtimeLabel = new Label("agent.realtime_enabled");
+        realtimeLabel.getStyleClass().add("param-key-label");
+        Label realtimeHelp = new Label("Echtzeit-Pruefung beim Tippen aktivieren.");
+        realtimeHelp.getStyleClass().add("param-help-label");
+        realtimeHelp.setWrapText(true);
+        realtimeHelp.setMaxWidth(680);
+        VBox realtimeCard = new VBox(4);
+        realtimeCard.getStyleClass().add("param-card");
+        realtimeCard.getChildren().addAll(realtimeLabel, realtimeCheck, realtimeHelp);
+        content.getChildren().add(realtimeCard);
+        keyToControl.put("agent.realtime_enabled", realtimeCheck);
+
+        String debounceStr = ResourceManager.getParameter("agent.realtime_debounce_ms", "2000");
+        int debounceVal = parseInt(debounceStr, 2000);
+        debounceVal = Math.max(500, Math.min(10000, debounceVal));
+        Spinner<Integer> debounceSpinner = new Spinner<>(500, 10000, debounceVal);
+        debounceSpinner.setEditable(true);
+        debounceSpinner.setPrefWidth(180);
+        Label debounceLabel = new Label("agent.realtime_debounce_ms");
+        debounceLabel.getStyleClass().add("param-key-label");
+        Label debounceHelp = new Label("Verzoegerung in ms nach letztem Tippen, bevor die Echtzeit-Pruefung startet.");
+        debounceHelp.getStyleClass().add("param-help-label");
+        debounceHelp.setWrapText(true);
+        debounceHelp.setMaxWidth(680);
+        VBox debounceCard = new VBox(4);
+        debounceCard.getStyleClass().add("param-card");
+        debounceCard.getChildren().addAll(debounceLabel, debounceSpinner, debounceHelp);
+        content.getChildren().add(debounceCard);
+        keyToControl.put("agent.realtime_debounce_ms", debounceSpinner);
+
+        // Initiale Sichtbarkeit setzen
+        updateVisibility.run();
+
+        return content;
+    }
+
     private VBox buildOnlineLektoratTab(Map<String, Control> keyToControl, int theme) {
         VBox content = new VBox(12);
         content.setPadding(new Insets(16));
@@ -165,8 +366,7 @@ public class ParametersAdminWindow {
         String extraPrompt = ResourceManager.getParameter("api.lektorat.extra_prompt", "");
         String lektoratType = ResourceManager.getParameter("api.lektorat.type", "allgemein");
 
-        PasswordField apiKeyField = new PasswordField();
-        apiKeyField.setText(apiKey != null ? apiKey : "");
+        TextField apiKeyField = new TextField(apiKey != null ? apiKey : "");
         apiKeyField.setPrefWidth(400);
         Label apiKeyLabel = new Label("api.lektorat.api_key");
         apiKeyLabel.getStyleClass().add("param-key-label");
@@ -725,6 +925,18 @@ public class ParametersAdminWindow {
                 sd.setEditable(true);
                 sd.setPrefWidth(180);
                 return sd;
+            case CHOICE:
+                ComboBox<String> choiceCombo = new ComboBox<>();
+                if (def.getChoices() != null) {
+                    choiceCombo.getItems().addAll(def.getChoices());
+                }
+                if (current != null && !current.isEmpty()) {
+                    choiceCombo.setValue(current);
+                } else if (def.getChoices() != null && def.getChoices().length > 0) {
+                    choiceCombo.setValue(def.getChoices()[0]);
+                }
+                choiceCombo.setPrefWidth(200);
+                return choiceCombo;
             default:
                 if (isTextanalyse) {
                     TextArea ta = new TextArea(current != null ? current : "");

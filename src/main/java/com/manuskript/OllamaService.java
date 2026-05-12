@@ -336,7 +336,7 @@ public class OllamaService {
         String escapedPrompt = escapeJson(fullPrompt);
         // Verwende Locale.US für konsistente Dezimalpunkt-Formatierung (z.B. 0.5 statt 0,5)
         String json = String.format(java.util.Locale.US,
-            "{\"model\":\"%s\",\"prompt\":\"%s\",\"stream\":false,\"options\":{\"num_predict\":%d,\"temperature\":%.2f,\"top_p\":%.2f,\"repeat_penalty\":%.2f}}",
+            "{\"model\":\"%s\",\"prompt\":\"%s\",\"stream\":false,\"options\":{\"num_ctx\":8192,\"num_predict\":%d,\"temperature\":%.2f,\"top_p\":%.2f,\"repeat_penalty\":%.2f}}",
             currentModel, escapedPrompt, maxTokens, 
             temperature, topP, repeatPenalty
         );
@@ -379,7 +379,7 @@ public class OllamaService {
         String escapedPrompt = escapeJson(prompt);
 
         String json = String.format(java.util.Locale.US,
-            "{\"model\":\"%s\",\"system\":\"%s\",\"prompt\":\"%s\",\"stream\":false,\"options\":{\"num_predict\":%d,\"temperature\":%.2f,\"top_p\":%.2f,\"repeat_penalty\":%.2f}}",
+            "{\"model\":\"%s\",\"system\":\"%s\",\"prompt\":\"%s\",\"stream\":false,\"options\":{\"num_ctx\":8192,\"num_predict\":%d,\"temperature\":%.2f,\"top_p\":%.2f,\"repeat_penalty\":%.2f}}",
             currentModel, escapedSystem, escapedPrompt, tokens, temp, tp, rp);
 
         this.lastEndpoint = GENERATE_ENDPOINT;
@@ -407,7 +407,7 @@ public class OllamaService {
         }
         String escapedPrompt = escapeJson(fullPrompt);
         return String.format(
-            "{\"model\":\"%s\",\"prompt\":\"%s\",\"stream\":false,\"options\":{\"num_predict\":%d,\"temperature\":%s,\"top_p\":%s,\"repeat_penalty\":%s}}",
+            "{\"model\":\"%s\",\"prompt\":\"%s\",\"stream\":false,\"options\":{\"num_ctx\":8192,\"num_predict\":%d,\"temperature\":%s,\"top_p\":%s,\"repeat_penalty\":%s}}",
             currentModel, escapedPrompt, maxTokens, 
             String.valueOf(temperature), String.valueOf(topP), String.valueOf(repeatPenalty)
         );
@@ -468,7 +468,7 @@ public class OllamaService {
         String escapedUserContent = escapeJson(fullContext);
         
         String json = String.format(
-            "{\"model\":\"%s\",\"messages\":[{\"role\":\"system\",\"content\":\"%s\"},{\"role\":\"user\",\"content\":\"%s\"}],\"stream\":false,\"options\":{\"num_predict\":%d,\"temperature\":%s,\"top_p\":%s,\"repeat_penalty\":%s}}",
+            "{\"model\":\"%s\",\"messages\":[{\"role\":\"system\",\"content\":\"%s\"},{\"role\":\"user\",\"content\":\"%s\"}],\"stream\":false,\"options\":{\"num_ctx\":8192,\"num_predict\":%d,\"temperature\":%s,\"top_p\":%s,\"repeat_penalty\":%s}}",
             currentModel, escapedSystemPrompt, escapedUserContent, maxTokens, 
             String.valueOf(temperature), String.valueOf(topP), String.valueOf(repeatPenalty)
         );
@@ -502,7 +502,7 @@ public class OllamaService {
         String escapedUser = escapeJson(userMessage);
 
         String json = String.format(java.util.Locale.US,
-            "{\"model\":\"%s\",\"messages\":[{\"role\":\"system\",\"content\":\"%s\"},{\"role\":\"user\",\"content\":\"%s\"}],\"stream\":false,\"options\":{\"num_predict\":%d,\"temperature\":%.2f,\"top_p\":%.2f,\"repeat_penalty\":%.2f}}",
+            "{\"model\":\"%s\",\"messages\":[{\"role\":\"system\",\"content\":\"%s\"},{\"role\":\"user\",\"content\":\"%s\"}],\"stream\":false,\"options\":{\"num_ctx\":8192,\"num_predict\":%d,\"temperature\":%.2f,\"top_p\":%.2f,\"repeat_penalty\":%.2f}}",
             currentModel, escapedSys, escapedUser, tokens, temp, tp, rp);
 
         this.lastEndpoint = CHAT_ENDPOINT;
@@ -536,7 +536,7 @@ public class OllamaService {
         String escapedUser = escapeJson(userMessage);
 
         String json = String.format(java.util.Locale.US,
-            "{\"model\":\"%s\",\"messages\":[{\"role\":\"system\",\"content\":\"%s\"},{\"role\":\"user\",\"content\":\"%s\"}],\"stream\":false,\"options\":{\"num_predict\":%d,\"temperature\":%.2f,\"top_p\":%.2f,\"repeat_penalty\":%.2f}}",
+            "{\"model\":\"%s\",\"messages\":[{\"role\":\"system\",\"content\":\"%s\"},{\"role\":\"user\",\"content\":\"%s\"}],\"stream\":false,\"options\":{\"num_ctx\":8192,\"num_predict\":%d,\"temperature\":%.2f,\"top_p\":%.2f,\"repeat_penalty\":%.2f}}",
             currentModel, escapedSys, escapedUser, tokens, temp, tp, rp);
 
         this.lastEndpoint = CHAT_ENDPOINT;
@@ -570,7 +570,7 @@ public class OllamaService {
         String escapedUser = escapeJson(userMessage);
 
         String json = String.format(java.util.Locale.US,
-            "{\"model\":\"%s\",\"messages\":[{\"role\":\"user\",\"content\":\"%s\"}],\"stream\":false,\"options\":{\"num_predict\":%d,\"temperature\":%.2f,\"top_p\":%.2f,\"repeat_penalty\":%.2f}}",
+            "{\"model\":\"%s\",\"messages\":[{\"role\":\"user\",\"content\":\"%s\"}],\"stream\":false,\"options\":{\"num_ctx\":8192,\"num_predict\":%d,\"temperature\":%.2f,\"top_p\":%.2f,\"repeat_penalty\":%.2f}}",
             currentModel, escapedUser, tokens, temp, tp, rp);
 
         this.lastEndpoint = CHAT_ENDPOINT;
@@ -602,7 +602,7 @@ public class OllamaService {
         String escapedUserContent = escapeJson(fullContext);
 
         return String.format(
-            "{\"model\":\"%s\",\"messages\":[{\"role\":\"system\",\"content\":\"%s\"},{\"role\":\"user\",\"content\":\"%s\"}],\"stream\":false,\"options\":{\"num_predict\":%d,\"temperature\":%s,\"top_p\":%s,\"repeat_penalty\":%s}}",
+            "{\"model\":\"%s\",\"messages\":[{\"role\":\"system\",\"content\":\"%s\"},{\"role\":\"user\",\"content\":\"%s\"}],\"stream\":false,\"options\":{\"num_ctx\":8192,\"num_predict\":%d,\"temperature\":%s,\"top_p\":%s,\"repeat_penalty\":%s}}",
             currentModel, escapedSystemPrompt, escapedUserContent, maxTokens,
             String.valueOf(temperature), String.valueOf(topP), String.valueOf(repeatPenalty)
         );
@@ -666,7 +666,7 @@ public class OllamaService {
 
         String escapedPrompt = escapeJson(fullPrompt);
         String json = String.format(java.util.Locale.US,
-            "{\"model\":\"%s\",\"prompt\":\"%s\",\"stream\":true,\"options\":{\"num_predict\":%d,\"temperature\":%s,\"top_p\":%s,\"repeat_penalty\":%s,\"repeat_last_n\":512,\"penalize_newline\":true,\"num_gpu\":-1}}",
+            "{\"model\":\"%s\",\"prompt\":\"%s\",\"stream\":true,\"options\":{\"num_ctx\":8192,\"num_predict\":%d,\"temperature\":%s,\"top_p\":%s,\"repeat_penalty\":%s,\"repeat_last_n\":512,\"penalize_newline\":true,\"num_gpu\":-1}}",
             currentModel, escapedPrompt, maxTokens,
             String.valueOf(temperature), String.valueOf(topP), String.valueOf(repeatPenalty)
         );
@@ -1878,6 +1878,7 @@ public class OllamaService {
         }
         
         jsonBuilder.append("],\"stream\":true,\"options\":{\"num_predict\":").append(maxTokens)
+                  .append(",\"num_ctx\":8192")
                   .append(",\"temperature\":").append(temperature)
                   .append(",\"top_p\":").append(topP)
                   .append(",\"repeat_penalty\":").append(repeatPenalty)
@@ -1938,5 +1939,96 @@ public class OllamaService {
 
         return handle;
     }
-    
+
+    /**
+     * Streaming-Variante mit benutzerdefiniertem System-Prompt.
+     */
+    public StreamHandle chatStreaming(String systemPrompt, List<ChatMessage> messages, String additionalContext,
+                                     Consumer<String> onChunk, Runnable onComplete, Consumer<Throwable> onError) {
+        int maxTokens = this.maxTokens;
+        double temperature = this.temperature;
+        double topP = this.topP;
+        double repeatPenalty = this.repeatPenalty;
+
+        List<ChatMessage> fullMessages = new ArrayList<>();
+        fullMessages.add(new ChatMessage("system", systemPrompt));
+
+        if (additionalContext != null && !additionalContext.trim().isEmpty()) {
+            fullMessages.add(new ChatMessage("user", "Kontext: " + additionalContext));
+        }
+
+        fullMessages.addAll(messages);
+
+        StringBuilder jsonBuilder = new StringBuilder();
+        jsonBuilder.append("{\"model\":\"").append(currentModel).append("\",\"messages\":[");
+
+        for (int i = 0; i < fullMessages.size(); i++) {
+            ChatMessage msg = fullMessages.get(i);
+            if (i > 0) jsonBuilder.append(",");
+            jsonBuilder.append("{\"role\":\"").append(msg.getRole()).append("\",\"content\":\"")
+                      .append(escapeJson(msg.getContent())).append("\"}");
+        }
+
+        jsonBuilder.append("],\"stream\":true,\"options\":{\"num_predict\":").append(maxTokens)
+                  .append(",\"num_ctx\":8192")
+                  .append(",\"temperature\":").append(temperature)
+                  .append(",\"top_p\":").append(topP)
+                  .append(",\"repeat_penalty\":").append(repeatPenalty)
+                  .append(",\"repeat_last_n\":512,\"penalize_newline\":true,\"num_gpu\":-1}}");
+
+        String json = jsonBuilder.toString();
+
+        this.lastEndpoint = CHAT_ENDPOINT;
+        this.lastRequestJson = json;
+        this.lastFullPrompt = "Chat mit " + messages.size() + " Nachrichten";
+        this.lastContext = additionalContext;
+
+        StreamHandle handle = new StreamHandle();
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(OLLAMA_BASE_URL + CHAT_ENDPOINT))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(json))
+                    .timeout(Duration.ofSeconds(httpRequestTimeoutSeconds))
+                    .build();
+
+            CompletableFuture<HttpResponse<InputStream>> fut = httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofInputStream());
+            handle.bindFuture(fut);
+            fut.whenComplete((resp, err) -> {
+                if (err != null) {
+                    if (onError != null) onError.accept(err);
+                    return;
+                }
+                if (resp.statusCode() != 200) {
+                    if (onError != null) onError.accept(new RuntimeException("HTTP " + resp.statusCode()));
+                    return;
+                }
+                InputStream in = resp.body();
+                handle.bind(in);
+                try (BufferedReader br = new BufferedReader(new InputStreamReader(in))) {
+                    String line;
+                    while ((line = br.readLine()) != null) {
+                        if (line.isEmpty()) continue;
+                        if (line.contains("\"message\":")) {
+                            String chunk = extractJsonValue(line, "content");
+                            if (chunk != null && !chunk.isEmpty() && onChunk != null) {
+                                onChunk.accept(chunk);
+                            }
+                        }
+                        if (line.contains("\"done\":true")) {
+                            if (onComplete != null) onComplete.run();
+                            break;
+                        }
+                    }
+                } catch (Exception ex) {
+                    if (onError != null) onError.accept(ex);
+                }
+            });
+        } catch (Exception e) {
+            if (onError != null) onError.accept(e);
+        }
+
+        return handle;
+    }
+
 } 

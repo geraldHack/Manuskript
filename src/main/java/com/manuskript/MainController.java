@@ -141,6 +141,7 @@ public class MainController implements Initializable {
     @FXML private Button btnSplit;
     @FXML private Button btnNewChapter;
     @FXML private Button btnOpenTtsEditor;
+    @FXML private Button btnWorldEditor;
     @FXML private Button btnAudiobook;
     @FXML private Button btnDeleteFile;
     @FXML private Button btnSearchAllFiles;
@@ -561,6 +562,9 @@ public class MainController implements Initializable {
         btnProcessAll.setOnAction(e -> {
             processAllFiles();
         });
+        if (btnWorldEditor != null) {
+            btnWorldEditor.setOnAction(e -> openWorldEditor());
+        }
         if (btnOnlineLektorat != null) {
             btnOnlineLektorat.setOnAction(e -> {
                 DocxFile selected = tableViewSelected.getSelectionModel().getSelectedItem();
@@ -5418,6 +5422,7 @@ public class MainController implements Initializable {
         applyThemeToNode(btnDeleteFile, themeIndex);
         applyThemeToNode(btnNewChapter, themeIndex);
         if (btnOpenTtsEditor != null) applyThemeToNode(btnOpenTtsEditor, themeIndex);
+        if (btnWorldEditor != null) applyThemeToNode(btnWorldEditor, themeIndex);
         if (btnAudiobook != null) applyThemeToNode(btnAudiobook, themeIndex);
         applyThemeToNode(btnSearchAllFiles, themeIndex);
         if (bookLengthLabel != null) applyThemeToNode(bookLengthLabel, themeIndex);
@@ -8827,5 +8832,27 @@ public class MainController implements Initializable {
         
         public Object getChapter() { return chapter; }
         public SplitSource getSource() { return source; }
+    }
+
+    private void openWorldEditor() {
+        String projectDirectory = txtDirectoryPath.getText();
+        if (projectDirectory == null || projectDirectory.trim().isEmpty()) {
+            showWarning("Kein Projekt ausgewählt", "Bitte wählen Sie zuerst ein Projektverzeichnis aus.");
+            return;
+        }
+
+        Window owner = primaryStage != null ? primaryStage.getScene().getWindow() : null;
+        WorldEditorWindow worldEditor = new WorldEditorWindow(owner, projectDirectory, this);
+        worldEditor.show();
+    }
+    
+    public List<String> getMarkdownFilesInOrder() {
+        List<String> mdFiles = new ArrayList<>();
+        for (DocxFile docxFile : selectedDocxFiles) {
+            String fileName = docxFile.getFileName();
+            String mdFileName = fileName.replace(".docx", ".md");
+            mdFiles.add(mdFileName);
+        }
+        return mdFiles;
     }
 }

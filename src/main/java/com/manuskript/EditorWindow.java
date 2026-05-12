@@ -18,6 +18,8 @@ import javafx.scene.control.CustomMenuItem;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.Node;
+import com.manuskript.agent.*;
+import java.io.File;
 import javafx.scene.Parent;
 import javafx.scene.web.WebView;
 import javafx.geometry.Pos;
@@ -248,6 +250,13 @@ public class EditorWindow implements Initializable {
     @FXML private ListView<DocxFile> chapterListView;
     @FXML private VBox lektoratPanelContainer;
     private boolean sidebarExpanded = true;
+
+    // Agenten-System
+    private AgentPanel agentPanel;
+    private PlotholeAgent plotholeAgent;
+    private AIBackend agentBackend;
+    private Timeline agentRealtimeTimeline;
+    private boolean agentPanelVisible = false;
 
     // Online-Lektorat
     private final List<LektoratMatch> currentLektoratMatches = new ArrayList<>();
@@ -946,6 +955,7 @@ if (caret != null) {
         Platform.runLater(() -> {
             setupLanguageToolButtons();
             setupLektoratClickAndPanel();
+            setupAgentSystem();
         });
     }
     
@@ -1021,6 +1031,11 @@ if (caret != null) {
                         }
                     } else {
                         logger.debug("Text geändert - LanguageTool ist deaktiviert");
+                    }
+
+                    // Agenten-Echtzeit-Prüfung triggern
+                    if (agentPanel != null && agentPanel.isRealtimeEnabled()) {
+                        triggerRealtimeCheck();
                     }
                     
                     // WICHTIG: Wenn der Benutzer im Editor Text ändert, aktualisiere Quill
@@ -13826,6 +13841,189 @@ spacer.setStyle("-fx-background-color: transparent;");
         });
     }
 
+    private void setupAgentSystem() {
+        if (mainSplitPane == null) return;
+
+        // Prüfen, ob Agent aktiviert ist
+        boolean agentEnabled = Boolean.parseBoolean(
+            ResourceManager.getParameter("agent.enabled", "true"));
+        if (!agentEnabled) {
+            logger.info("Plothole-Agent ist deaktiviert (Parameter agent.enabled=false)");
+            return;
+        }
+
+        // Backend auswählen
+        String backendType = ResourceManager.getParameter("agent.backend", "Ollama");
+        if ("OpenAI".equals(backendType)) {
+            agentBackend = new OpenAIBackend();
+        } else {
+            agentBackend = new OllamaBackend(new OllamaService());
+        }
+
+        // AgentPanel erstellen
+        agentPanel = new AgentPanel();
+
+        // Callbacks setzen
+        agentPanel.setOnAnalyzeClicked(this::runAgentAnalysis);
+        agentPanel.setOnRealtimeToggled(enabled -> {
+            if (enabled) {
+                triggerRealtimeCheck();
+            } else {
+                if (agentRealtimeTimeline != null) {
+                    agentRealtimeTimeline.stop();
+                    agentRealtimeTimeline = null;
+                }
+            }
+        });
+        agentPanel.setOnQuoteClicked(this::jumpToQuote);
+
+        // Panel zum SplitPane hinzufügen
+        ensureAgentPanelVisible(true);
+
+        // Echtzeit-Einstellung aus Preferences laden
+        boolean realtimeDefault = Boolean.parseBoolean(
+            ResourceManager.getParameter("agent.realtime_enabled", "false"));
+        agentPanel.setRealtimeEnabled(realtimeDefault);
+
+        // Agent initialisieren
+        initPlotholeAgent();
+    }
+
+    private void initPlotholeAgent() {
+        if (agentBackend == null) return;
+        File projectDir = getProjectDirectory();
+        if (projectDir == null) return;
+
+        String chapterName = getChapterName();
+        AgentMemory memory = new AgentMemory(projectDir, "plotholes", chapterName);
+        plotholeAgent = new PlotholeAgent(agentBackend, memory);
+    }
+
+    private String getChapterName() {
+        if (currentFile != null) {
+            return currentFile.getName();
+        }
+        return "unnamed";
+    }
+
+    private File getProjectDirectory() {
+        if (currentFile != null) {
+            File parent = currentFile.getParentFile();
+            if (parent != null && parent.getName().equals("data")) {
+                return parent.getParentFile();
+            }
+            return parent;
+        }
+        if (mainController != null) {
+            return mainController.getProjectRootDirectory();
+        }
+        return new File(System.getProperty("user.dir"));
+    }
+
+    private void ensureAgentPanelVisible(boolean visible) {
+        if (mainSplitPane == null || agentPanel == null) return;
+        ObservableList<Node> items = mainSplitPane.getItems();
+        boolean hasPanel = items.contains(agentPanel);
+        if (visible && !hasPanel) {
+            items.add(agentPanel);
+            double[] current = mainSplitPane.getDividerPositions();
+            if (current.length >= 2) {
+                mainSplitPane.setDividerPositions(current[0], 0.72, 0.85);
+            } else if (current.length >= 1) {
+                mainSplitPane.setDividerPositions(current[0], 0.85);
+            }
+        } else if (!visible && hasPanel) {
+            items.remove(agentPanel);
+        }
+        agentPanelVisible = visible;
+    }
+
+    private void runAgentAnalysis() {
+        if (plotholeAgent == null) {
+            initPlotholeAgent();
+        }
+        if (plotholeAgent == null || codeArea == null) return;
+
+        agentPanel.setAnalyzing(true);
+        String text = codeArea.getText();
+
+        plotholeAgent.analyze(text)
+            .thenAccept(findings -> {
+                agentPanel.showFindings(findings);
+                // Gedächtnis nicht mehr speichern, um alte Ergebnisse nicht zu beeinflussen
+            })
+            .exceptionally(ex -> {
+                agentPanel.showError(ex.getMessage());
+                return null;
+            });
+    }
+
+    private void triggerRealtimeCheck() {
+        if (!agentPanel.isRealtimeEnabled() || codeArea == null) return;
+
+        if (agentRealtimeTimeline != null) {
+            agentRealtimeTimeline.stop();
+        }
+
+        int debounceMs = Integer.parseInt(
+            ResourceManager.getParameter("agent.realtime_debounce_ms", "2000"));
+
+        agentRealtimeTimeline = new Timeline(new KeyFrame(
+            Duration.millis(debounceMs), event -> {
+                if (agentPanel.isRealtimeEnabled() && !agentPanel.isAnalyzing()) {
+                    runAgentAnalysis();
+                }
+            }
+        ));
+        agentRealtimeTimeline.play();
+    }
+
+    private void jumpToQuote(String quote) {
+        if (codeArea == null || quote == null || quote.isEmpty()) return;
+        // Alle Anführungszeichen-Typen entfernen für robustere Suche
+        String cleanQuote = quote.replaceAll("[\"»«„\"]", "").trim();
+        String text = codeArea.getText();
+        
+        // Versuche zuerst, das gesamte Zitat zu finden
+        int idx = text.indexOf(cleanQuote);
+        
+        // Wenn nicht gefunden, versuche mit dem ersten Teil
+        if (idx < 0) {
+            String[] quoteParts = cleanQuote.split("[.!?]\\s+");
+            String searchPart = quoteParts[0].trim();
+            if (searchPart.length() < 10 && quoteParts.length > 1) {
+                // Wenn der erste Teil sehr kurz ist, nimm mehr
+                searchPart = quoteParts[0] + ". " + quoteParts[1];
+            }
+            idx = text.indexOf(searchPart);
+        }
+        
+        if (idx >= 0) {
+            final int finalIdx = idx;
+            codeArea.moveTo(idx);
+            codeArea.requestFollowCaret();
+            
+            // Markiere das gefundene Zitat
+            int endIdx = idx + cleanQuote.length();
+            if (text.length() >= endIdx && text.substring(idx, endIdx).equals(cleanQuote)) {
+                codeArea.selectRange(idx, endIdx);
+            } else {
+                // Fallback: Markiere nur den ersten Teil
+                codeArea.selectRange(idx, idx + 50);
+            }
+            
+            // Scroll zur Mitte des Fensters
+            Platform.runLater(() -> {
+                try {
+                    int paragraphIndex = codeArea.offsetToPosition(finalIdx, org.fxmisc.richtext.model.TwoDimensional.Bias.Forward).getMajor();
+                    codeArea.showParagraphAtCenter(paragraphIndex);
+                } catch (Exception e) {
+                    // Fallback: requestFollowCaret wurde bereits aufgerufen
+                }
+            });
+        }
+    }
+
     private void fillLektoratPanel(LektoratMatch match) {
         if (lektoratPanelContainer == null) return;
         lektoratPanelContainer.getChildren().clear();
@@ -20898,6 +21096,10 @@ spacer.setStyle("-fx-background-color: transparent;");
             Platform.runLater(() -> {
                 if (mySequence == loadingSequence) {
                     updateNavigationButtons();
+                    // Agent-Ergebnisse leeren beim Kapitelwechsel
+                    if (agentPanel != null) {
+                        agentPanel.clearFindings();
+                    }
                 }
             });
             

@@ -9103,8 +9103,8 @@
    ======================================== */
 
 .main-toolbar {
-    -fx-min-height: 56px;
-    -fx-pref-height: 56px;
+    -fx-min-height: 80px;
+    -fx-pref-height: 80px;
     -fx-border-width: 1px 0 0 0;
 }
 
@@ -10232,4 +10232,429 @@
 .theme-dark.lila-theme.table-view .table-cell,
 .root .theme-dark.lila-theme .table-view .table-cell {
     -fx-background-color: transparent;
+}
+
+/* ========================================
+   AGENT PANEL (Plothole-Agent)
+   ======================================== */
+
+/* Basis-Styles (Weiß-Theme = Default) */
+.agent-panel {
+    -fx-background-color: #f5f5f5;
+    -fx-border-color: #e0e0e0;
+    -fx-border-width: 0 0 0 1;
+}
+
+.agent-panel-title {
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-text-fill: #333;
+}
+
+.agent-status {
+    -fx-font-size: 11px;
+    -fx-text-fill: #888;
+}
+
+.agent-status-ok {
+    -fx-font-size: 11px;
+    -fx-text-fill: #4caf50;
+}
+
+.agent-status-error {
+    -fx-font-size: 11px;
+    -fx-text-fill: #f44336;
+}
+
+.agent-status-running {
+    -fx-font-size: 11px;
+    -fx-text-fill: #ff9800;
+}
+
+.agent-empty-label {
+    -fx-font-size: 11px;
+    -fx-text-fill: #aaa;
+    -fx-wrap-text: true;
+}
+
+.agent-ok-label {
+    -fx-font-size: 12px;
+    -fx-text-fill: #4caf50;
+    -fx-wrap-text: true;
+}
+
+.agent-scroll {
+    -fx-background-color: transparent;
+}
+
+.agent-scroll > .viewport {
+    -fx-background-color: transparent;
+}
+
+/* Finding Cards (Weiß-Theme) */
+.finding-card {
+    -fx-background-color: #fff8e1;
+    -fx-border-color: #ffcc80;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+    -fx-border-width: 1px;
+    -fx-padding: 6px;
+}
+
+.finding-severity {
+    -fx-font-size: 12px;
+    -fx-text-fill: #e65100;
+}
+
+.finding-problem {
+    -fx-font-weight: bold;
+    -fx-font-size: 12px;
+    -fx-text-fill: #333;
+    -fx-wrap-text: true;
+}
+
+.finding-quote-prefix {
+    -fx-font-size: 11px;
+    -fx-fill: #888;
+}
+
+.finding-quote-text {
+    -fx-font-size: 11px;
+    -fx-text-fill: #666;
+    -fx-underline: true;
+    -fx-cursor: hand;
+}
+
+.finding-quote-text:hover {
+    -fx-text-fill: #333;
+}
+
+.finding-suggestion {
+    -fx-font-size: 11px;
+    -fx-text-fill: #666;
+    -fx-wrap-text: true;
+}
+
+/* ===== Dark Theme (Schwarz, Blau, Grün, Lila) ===== */
+.theme-dark .agent-panel {
+    -fx-background-color: #2d2d2d;
+    -fx-border-color: #444;
+}
+
+.theme-dark .agent-panel-title {
+    -fx-text-fill: #ddd;
+}
+
+.theme-dark .agent-status {
+    -fx-text-fill: #999;
+}
+
+.theme-dark .agent-empty-label {
+    -fx-text-fill: #777;
+}
+
+.theme-dark .finding-card {
+    -fx-background-color: #3a3520;
+    -fx-border-color: #6d5e00;
+    -fx-padding: 6px;
+}
+
+.theme-dark .finding-severity {
+    -fx-text-fill: #ffb74d;
+    -fx-wrap-text: true;
+}
+
+.theme-dark .finding-problem {
+    -fx-text-fill: #ddd;
+    -fx-wrap-text: true;
+}
+
+.theme-dark .finding-quote-prefix {
+    -fx-fill: #999;
+    -fx-wrap-text: true;
+}
+
+.theme-dark .finding-quote-text {
+    -fx-text-fill: #ffb74d;
+}
+
+.theme-dark .finding-quote-text:hover {
+    -fx-text-fill: #ffcc80;
+}
+
+.theme-dark .finding-suggestion {
+    -fx-text-fill: #aaa;
+    -fx-wrap-text: true;
+}
+
+/* ===== Pastell Theme ===== */
+.pastell-theme .agent-panel {
+    -fx-background-color: #ede7f6;
+    -fx-border-color: #d1c4e9;
+}
+
+.pastell-theme .agent-panel-title {
+    -fx-text-fill: #4a148c;
+}
+
+.pastell-theme .agent-status {
+    -fx-text-fill: #7b1fa2;
+}
+
+.pastell-theme .agent-empty-label {
+    -fx-text-fill: #9c27b0;
+}
+
+.pastell-theme .finding-card {
+    -fx-background-color: #f3e5f5;
+    -fx-border-color: #ce93d8;
+}
+
+.pastell-theme .finding-severity {
+    -fx-text-fill: #6a1b9a;
+}
+
+.pastell-theme .finding-problem {
+    -fx-text-fill: #4a148c;
+}
+
+.pastell-theme .finding-quote-prefix {
+    -fx-fill: #7b1fa2;
+}
+
+.pastell-theme .finding-quote-text {
+    -fx-fill: #6a1b9a;
+}
+
+.pastell-theme .finding-quote-text:hover {
+    -fx-fill: #6a1b9a;
+}
+
+.pastell-theme .finding-suggestion {
+    -fx-text-fill: #6a1b9a;
+}
+
+/* ===== Welt-Editor ===== */
+.world-editor-root {
+    -fx-background-color: #f5f5f5;
+}
+
+.world-editor-textarea {
+    -fx-font-family: "Monaco", "Consolas", monospace;
+    -fx-font-size: 13px;
+    -fx-background-color: #ffffff;
+    -fx-border-color: #ccc;
+    -fx-border-radius: 4px;
+    -fx-padding: 10px;
+}
+
+.world-editor-ai-button {
+    -fx-background-color: #4CAF50;
+    -fx-text-fill: white;
+    -fx-border-radius: 4px;
+    -fx-padding: 8px 16px;
+    -fx-font-weight: bold;
+}
+
+.world-editor-ai-button:hover {
+    -fx-background-color: #45a049;
+}
+
+.world-editor-save-button {
+    -fx-background-color: #2196F3;
+    -fx-text-fill: white;
+    -fx-border-radius: 4px;
+    -fx-padding: 8px 16px;
+    -fx-font-weight: bold;
+}
+
+.world-editor-save-button:hover {
+    -fx-background-color: #1976D2;
+}
+
+/* TabPane Styling */
+.world-editor-tab-pane {
+    -fx-background-color: #f5f5f5;
+    -fx-border-color: #ccc;
+    -fx-border-radius: 4px;
+}
+
+.world-editor-tab-pane .tab {
+    -fx-background-color: #e0e0e0;
+    -fx-background-radius: 4px 4px 0 0;
+    -fx-border-color: #ccc;
+    -fx-border-width: 1px 1px 0 1px;
+}
+
+.world-editor-tab-pane .tab:selected {
+    -fx-background-color: #ffffff;
+}
+
+.world-editor-tab-pane .tab-content-area {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #ccc;
+    -fx-border-width: 0 1px 1px 1px;
+    -fx-border-radius: 0 0 4px 4px;
+}
+
+/* Dark Theme für Welt-Editor */
+.theme-dark .world-editor-root {
+    -fx-background-color: #2d2d2d;
+}
+
+.theme-dark .world-editor-textarea {
+    -fx-background-color: #3d3d3d;
+    -fx-border-color: #555;
+    -fx-text-fill: #e0e0e0;
+}
+
+.theme-dark .world-editor-ai-button {
+    -fx-background-color: #66bb6a;
+    -fx-text-fill: #1a1a1a;
+}
+
+.theme-dark .world-editor-ai-button:hover {
+    -fx-background-color: #81c784;
+}
+
+.theme-dark .world-editor-save-button {
+    -fx-background-color: #42a5f5;
+    -fx-text-fill: #1a1a1a;
+}
+
+.theme-dark .world-editor-save-button:hover {
+    -fx-background-color: #64b5f6;
+}
+
+.theme-dark .world-editor-tab-pane {
+    -fx-background-color: #2d2d2d;
+    -fx-border-color: #555;
+}
+
+.theme-dark .world-editor-tab-pane .tab {
+    -fx-background-color: #3d3d3d;
+    -fx-border-color: #555;
+}
+
+.theme-dark .world-editor-tab-pane .tab:selected {
+    -fx-background-color: #4d4d4d;
+}
+
+.theme-dark .world-editor-tab-pane .tab-content-area {
+    -fx-background-color: #3d3d3d;
+    -fx-border-color: #555;
+}
+
+/* Pastell Theme für Welt-Editor */
+.pastell-theme .world-editor-root {
+    -fx-background-color: #ede7f6;
+}
+
+.pastell-theme .world-editor-textarea {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #d1c4e9;
+    -fx-text-fill: #4a148c;
+}
+
+.pastell-theme .world-editor-ai-button {
+    -fx-background-color: #ab47bc;
+    -fx-text-fill: white;
+}
+
+.pastell-theme .world-editor-ai-button:hover {
+    -fx-background-color: #ba68c8;
+}
+
+.pastell-theme .world-editor-save-button {
+    -fx-background-color: #7e57c2;
+    -fx-text-fill: white;
+}
+
+.pastell-theme .world-editor-save-button:hover {
+    -fx-background-color: #9575cd;
+}
+
+.pastell-theme .world-editor-tab-pane {
+    -fx-background-color: #ede7f6;
+    -fx-border-color: #d1c4e9;
+}
+
+.pastell-theme .world-editor-tab-pane .tab {
+    -fx-background-color: #f3e5f5;
+    -fx-border-color: #d1c4e9;
+}
+
+.pastell-theme .world-editor-tab-pane .tab:selected {
+    -fx-background-color: #ffffff;
+}
+
+.pastell-theme .world-editor-tab-pane .tab-content-area {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #d1c4e9;
+}
+
+/* FlowPane Styling für Toolbar */
+.action-group.flow-pane {
+    -fx-padding: 0;
+}
+
+.theme-dark .action-group.flow-pane {
+    -fx-background-color: transparent;
+}
+
+.pastell-theme .action-group.flow-pane {
+    -fx-background-color: transparent;
+}
+
+/* Welt-Editor TabPane */
+.world-editor-tab-pane {
+    -fx-background-color: #f5f5f5;
+    -fx-border-color: #ccc;
+    -fx-border-radius: 4px;
+}
+
+.theme-dark .world-editor-tab-pane {
+    -fx-background-color: #2d2d2d;
+    -fx-border-color: #555;
+}
+
+.pastell-theme .world-editor-tab-pane {
+    -fx-background-color: #f3e5f5;
+    -fx-border-color: #d1c4e9;
+}
+
+/* Welt-Editor Button-Box */
+.world-editor-button-box {
+    -fx-background-color: transparent;
+}
+
+/* Welt-Editor Save-Button */
+.world-editor-save-button {
+    -fx-background-color: #2196F3;
+    -fx-text-fill: white;
+    -fx-border-radius: 4px;
+    -fx-padding: 8px 16px;
+    -fx-font-weight: bold;
+}
+
+.world-editor-save-button:hover {
+    -fx-background-color: #1976D2;
+}
+
+.theme-dark .world-editor-save-button {
+    -fx-background-color: #42a5f5;
+    -fx-text-fill: #1a1a1a;
+}
+
+.theme-dark .world-editor-save-button:hover {
+    -fx-background-color: #64b5f6;
+}
+
+.pastell-theme .world-editor-save-button {
+    -fx-background-color: #7e57c2;
+    -fx-text-fill: white;
+}
+
+.pastell-theme .world-editor-save-button:hover {
+    -fx-background-color: #9575cd;
 }

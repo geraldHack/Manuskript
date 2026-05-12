@@ -82,55 +82,68 @@
    </center>
    <bottom>
       <!-- Toolbar: gruppierte Aktionen, einheitliche Button-Optik -->
-      <VBox styleClass="main-toolbar" spacing="0">
+      <VBox styleClass="main-toolbar" spacing="6" prefHeight="70">
          <children>
+            <!-- Erste Reihe -->
             <HBox alignment="CENTER_LEFT" spacing="0">
                <children>
                   <!-- Gruppe Projekt -->
-                  <HBox styleClass="action-group" spacing="8" alignment="CENTER_LEFT">
-                     <Button fx:id="btnDeleteFile" styleClass="main-toolbar-button" text="📁 Archivieren" minWidth="120">
+                  <HBox styleClass="action-group" spacing="4" alignment="CENTER_LEFT">
+                     <Button fx:id="btnDeleteFile" styleClass="main-toolbar-button" text="📁 Archivieren" minWidth="100">
                         <tooltip><Tooltip text="Ausgewählte Datei (es geht nur um nicht mehr benötigte docx links) ins Archiv verschieben" /></tooltip>
                      </Button>
-                     <Button fx:id="btnNewChapter" styleClass="main-toolbar-button" text="📝 Neues Kapitel" minWidth="120">
+                     <Button fx:id="btnNewChapter" styleClass="main-toolbar-button" text="📝 Neues Kapitel" minWidth="100">
                         <tooltip><Tooltip text="Neues Kapitel anlegen" /></tooltip>
                      </Button>
                   </HBox>
                   <Separator orientation="VERTICAL" styleClass="toolbar-separator" />
-                  <!-- Gruppe Bearbeiten -->
-                  <HBox styleClass="action-group" spacing="8" alignment="CENTER_LEFT">
-                     <Button fx:id="btnProcessAll" styleClass="main-toolbar-button" text="✏️ Kapitel bearbeiten" minWidth="140">
-                        <tooltip><Tooltip text="Ausgewählte Kapitel im Editor öffnen" /></tooltip>
-                     </Button>
-                     <Button fx:id="btnOnlineLektorat" styleClass="main-toolbar-button" text="📋 Online-Lektorat" minWidth="130">
-                        <tooltip><Tooltip text="Online-Lektorat starten (API-Key unter Parameter → Online-Lektorat)" /></tooltip>
-                     </Button>
-                     <Button fx:id="btnOpenTtsEditor" styleClass="main-toolbar-button" text="🔊 Sprachsynthese" minWidth="130">
-                        <tooltip><Tooltip text="Kapitel mit TTS bearbeiten: Text markieren, Sprachausgabe erzeugen" /></tooltip>
-                     </Button>
-                  </HBox>
-                  <Separator orientation="VERTICAL" styleClass="toolbar-separator" />
                   <!-- Gruppe Export -->
-                  <HBox styleClass="action-group" spacing="8" alignment="CENTER_LEFT">
-                     <Button fx:id="btnProcessSelected" styleClass="main-toolbar-button" text="📤 Buch exportieren" minWidth="140">
+                  <HBox styleClass="action-group" spacing="6" alignment="CENTER_LEFT">
+                     <Button fx:id="btnProcessSelected" styleClass="main-toolbar-button" text="📤 Buch exportieren" minWidth="120">
                         <tooltip><Tooltip text="Buch exportieren" /></tooltip>
                      </Button>
-                     <Button fx:id="btnAudiobook" styleClass="main-toolbar-button" text="🎧 Hörbuch" minWidth="100">
+                     <Button fx:id="btnAudiobook" styleClass="main-toolbar-button" text="🎧 Hörbuch" minWidth="80">
                         <tooltip><Tooltip text="Ausgewählte Kapitel mit TTS zu einer Hörbuch-MP3 zusammenfügen" /></tooltip>
                      </Button>
                   </HBox>
                   <Region HBox.hgrow="ALWAYS" style="-fx-background-color: transparent;" />
                   <!-- Gruppe Sonstiges -->
-                  <HBox styleClass="action-group" spacing="8" alignment="CENTER_LEFT">
-                     <Button fx:id="btnThemeToggle" styleClass="main-toolbar-button" text="☀" minWidth="40">
+                  <HBox styleClass="action-group" spacing="6" alignment="CENTER_LEFT">
+                     <Button fx:id="btnThemeToggle" styleClass="main-toolbar-button" text="☀" minWidth="30">
                         <tooltip><Tooltip text="Theme wechseln" /></tooltip>
                      </Button>
-                     <Button fx:id="btnSearchAllFiles" styleClass="main-toolbar-button" text="🔍 Suchen" minWidth="100">
+                     <Button fx:id="btnSearchAllFiles" styleClass="main-toolbar-button" text="🔍 Suchen" minWidth="80">
                         <tooltip><Tooltip text="In allen Dateien der rechten Tabelle suchen" /></tooltip>
                      </Button>
                   </HBox>
                </children>
                <padding>
-                  <Insets bottom="8.0" left="12.0" right="12.0" top="8.0" />
+                  <Insets bottom="2.0" left="8.0" right="8.0" top="4.0" />
+               </padding>
+            </HBox>
+            <!-- Zweite Reihe -->
+            <HBox alignment="CENTER_LEFT" spacing="0" minHeight="36">
+               <children>
+                  <Region HBox.hgrow="ALWAYS" style="-fx-background-color: transparent;" />
+                  <!-- Gruppe Bearbeiten - Zweite Reihe -->
+                  <HBox styleClass="action-group" spacing="6" alignment="CENTER_LEFT">
+                     <Button fx:id="btnProcessAll" styleClass="main-toolbar-button" text="✏️ Kapitel bearbeiten" minWidth="120">
+                        <tooltip><Tooltip text="Ausgewählte Kapitel im Editor öffnen" /></tooltip>
+                     </Button>
+                     <Button fx:id="btnOnlineLektorat" styleClass="main-toolbar-button" text="📋 Online-Lektorat" minWidth="110">
+                        <tooltip><Tooltip text="Online-Lektorat starten (API-Key unter Parameter → Online-Lektorat)" /></tooltip>
+                     </Button>
+                     <Button fx:id="btnOpenTtsEditor" styleClass="main-toolbar-button" text="🔊 Sprachsynthese" minWidth="120">
+                        <tooltip><Tooltip text="Kapitel mit TTS bearbeiten: Text markieren, Sprachausgabe erzeugen" /></tooltip>
+                     </Button>
+                     <Button fx:id="btnWorldEditor" styleClass="main-toolbar-button" text="🌍 Welt-Editor" minWidth="120">
+                        <tooltip><Tooltip text="Projekt-Kontextdateien bearbeiten (Charaktere, Welt, Kontext, etc.)" /></tooltip>
+                     </Button>
+                  </HBox>
+                  <Region HBox.hgrow="ALWAYS" style="-fx-background-color: transparent;" />
+               </children>
+               <padding>
+                  <Insets bottom="8.0" left="8.0" right="8.0" top="0.0" />
                </padding>
             </HBox>
          </children>

@@ -33,7 +33,67 @@ public class ResourceManager {
     private static final String CONFIG_DIR = "config";
     private static final String SESSIONS_DIR = "sessions";
     private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
-    
+
+    static {
+        migrateAgentParameters();
+    }
+
+    /**
+     * Migriert alte agent.api_url, agent.api_key, agent.model zu den neuen
+     * Backend-spezifischen Keys agent.ollama.* und agent.openai.*.
+     */
+    private static void migrateAgentParameters() {
+        try {
+            Preferences prefs = Preferences.userNodeForPackage(ResourceManager.class);
+            String migrated = prefs.get("_agent_params_migrated_v2", null);
+            if ("true".equals(migrated)) return;
+
+            String oldUrl = prefs.get("agent.api_url", null);
+            String oldKey = prefs.get("agent.api_key", null);
+            String oldModel = prefs.get("agent.model", null);
+
+            if (oldUrl != null && !oldUrl.isEmpty()) {
+                if (oldUrl.contains("openai.com") || oldUrl.contains("api.openai")) {
+                    if (prefs.get("agent.openai.api_url", null) == null) {
+                        prefs.put("agent.openai.api_url", oldUrl);
+                    }
+                } else {
+                    if (prefs.get("agent.ollama.api_url", null) == null) {
+                        prefs.put("agent.ollama.api_url", oldUrl);
+                    }
+                }
+                prefs.remove("agent.api_url");
+            }
+            if (oldKey != null && !oldKey.isEmpty()) {
+                if (prefs.get("agent.openai.api_key", null) == null) {
+                    prefs.put("agent.openai.api_key", oldKey);
+                }
+                prefs.remove("agent.api_key");
+            }
+            if (oldModel != null && !oldModel.isEmpty()) {
+                // agent.model nur zu Ollama migrieren, da der alte Default "gemma3:4b" ein Ollama-Modell ist.
+                // OpenAI bekommt immer seinen eigenen Default "gpt-4o-mini".
+                if (prefs.get("agent.ollama.model", null) == null) {
+                    prefs.put("agent.ollama.model", oldModel);
+                }
+                prefs.remove("agent.model");
+            }
+
+            prefs.put("_agent_params_migrated_v2", "true");
+
+            // Bereinige evtl. falsch migriertes agent.openai.model (z.B. "gemma3:4b")
+            String openaiModel = prefs.get("agent.openai.model", null);
+            if (openaiModel != null && (openaiModel.contains(":") || openaiModel.contains("gemma") || openaiModel.contains("llama") || openaiModel.contains("mistral"))) {
+                prefs.remove("agent.openai.model");
+                logger.info("Falsch migriertes agent.openai.model '{}' entfernt.", openaiModel);
+            }
+
+            logger.info("Agenten-Parameter erfolgreich zu Backend-spezifischen Keys migriert.");
+        } catch (Exception e) {
+            logger.warn("Fehler bei Migration der Agenten-Parameter", e);
+        }
+    }
+
     /**
      * Lädt eine CSS-Datei aus dem Config-Ordner
      */
