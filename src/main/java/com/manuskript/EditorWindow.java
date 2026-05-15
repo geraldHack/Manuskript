@@ -393,7 +393,7 @@ public class EditorWindow implements Initializable {
     // Chapter-Editor-Variablen entfernt - Split Pane nicht mehr vorhanden
     private File originalDocxFile = null; // Originale DOCX-Datei
     private String originalContent = ""; // Kopie des ursprünglichen Inhalts für Vergleich
-    private boolean paragraphMarkingEnabled = true; // Absatz-Markierung aktiviert
+    private boolean paragraphMarkingEnabled = false; // Absatz-Markierung deaktiviert (verursacht Cursor-Springen beim Tippen)
     private DocxProcessor.OutputFormat outputFormat = DocxProcessor.OutputFormat.HTML;
     private DocxProcessor docxProcessor;
     private MainController mainController; // Referenz zum MainController für Navigation
@@ -13949,11 +13949,20 @@ spacer.setStyle("-fx-background-color: transparent;");
 
         plotholeAgent.analyze(text)
             .thenAccept(findings -> {
+                // Scroll-Position vor UI-Update sichern, da showFindings() ein
+                // SplitPane-Layout-Re-Layout auslösen kann, das den Editor springen lässt
+                CodeAreaViewSnapshot snapshot = captureCodeAreaViewSnapshotWithoutSelection();
                 agentPanel.showFindings(findings);
-                // Gedächtnis nicht mehr speichern, um alte Ergebnisse nicht zu beeinflussen
+                if (snapshot != null) {
+                    Platform.runLater(() -> restoreCodeAreaViewSnapshot(snapshot, false, true));
+                }
             })
             .exceptionally(ex -> {
+                CodeAreaViewSnapshot snapshot = captureCodeAreaViewSnapshotWithoutSelection();
                 agentPanel.showError(ex.getMessage());
+                if (snapshot != null) {
+                    Platform.runLater(() -> restoreCodeAreaViewSnapshot(snapshot, false, true));
+                }
                 return null;
             });
     }
