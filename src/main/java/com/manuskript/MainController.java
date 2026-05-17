@@ -8855,4 +8855,24 @@ public class MainController implements Initializable {
         }
         return mdFiles;
     }
+
+    public String loadAllChapters() {
+        StringBuilder allText = new StringBuilder();
+        if (projectRootDirectory == null) return "";
+        java.io.File dataDir = new java.io.File(projectRootDirectory, "data");
+        if (!dataDir.exists() || !dataDir.isDirectory()) return "";
+        for (String mdFileName : getMarkdownFilesInOrder()) {
+            java.io.File mdFile = new java.io.File(dataDir, mdFileName);
+            if (mdFile.exists()) {
+                try {
+                    String content = java.nio.file.Files.readString(mdFile.toPath(), java.nio.charset.StandardCharsets.UTF_8);
+                    allText.append("=== ").append(mdFileName).append(" ===\n");
+                    allText.append(content).append("\n\n");
+                } catch (java.io.IOException e) {
+                    logger.warn("Konnte Kapitel {} nicht laden: {}", mdFileName, e.getMessage());
+                }
+            }
+        }
+        return allText.toString();
+    }
 }

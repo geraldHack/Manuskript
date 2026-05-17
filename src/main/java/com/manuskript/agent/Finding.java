@@ -30,6 +30,10 @@ public class Finding {
     public String getSuggestion() { return suggestion; }
     public void setSuggestion(String suggestion) { this.suggestion = suggestion; }
 
+    public String getQuoteWithIndex() {
+        return quote;
+    }
+
     public String getSeverityStars() {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < severity; i++) sb.append("\u2B50");

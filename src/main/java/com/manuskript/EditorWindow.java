@@ -14098,12 +14098,16 @@ spacer.setStyle("-fx-background-color: transparent;");
         agentRealtimeTimeline.play();
     }
 
+    private void applyLektoratReplacedStyling() {
+        // TODO: Styling für ersetzte Lektorat-Bereiche anwenden
+    }
+
     private void jumpToQuote(String quote) {
         if (codeArea == null || quote == null || quote.isEmpty()) return;
-        
+
         // Versuche, den Index aus dem Zitat zu extrahieren (Format: "Zitat|Index")
         String[] parts = quote.split("\\|");
-        String cleanQuote = parts[0].replaceAll("[\"»«„\"]", "").trim();
+        String rawQuote = parts[0].trim();
         int quoteIndex = -1;
         if (parts.length > 1) {
             try {
@@ -14112,62 +14116,162 @@ spacer.setStyle("-fx-background-color: transparent;");
                 // Ignorieren, wenn der Index nicht geparst werden kann
             }
         }
-        
+
         String text = codeArea.getText();
-        
-        // Wenn ein Index verfügbar ist, direkt zum Index springen
+        if (text == null || text.isEmpty() || rawQuote.isEmpty()) return;
+
+        // Wenn ein Index verfügbar ist und plausibel, direkt dort markieren
         if (quoteIndex >= 0 && quoteIndex < text.length()) {
-            codeArea.moveTo(quoteIndex);
-            
-            // In die Mitte scrollen - Versuch ohne zusätzliche Methoden
-            Platform.runLater(() -> {
-                codeArea.requestFollowCaret();
-            });
-            
-            // Markiere das Zitat
-            int endIdx = Math.min(quoteIndex + cleanQuote.length(), text.length());
-            codeArea.selectRange(quoteIndex, endIdx);
+            int endIdx = Math.min(quoteIndex + rawQuote.length(), text.length());
+            highlightAndScroll(quoteIndex, endIdx);
             return;
         }
-        
-        // Fallback: Alle Anführungszeichen-Typen entfernen für robustere Suche
-        // Versuche zuerst, das gesamte Zitat zu finden
-        int idx = text.indexOf(cleanQuote);
-        
-        // Wenn nicht gefunden, versuche mit dem ersten Teil
-        if (idx < 0) {
-            String[] quoteParts = cleanQuote.split("[.!?]\\s+");
-            String searchPart = quoteParts[0].trim();
-            if (searchPart.length() < 10 && quoteParts.length > 1) {
-                // Wenn der erste Teil sehr kurz ist, nimm mehr
-                searchPart = quoteParts[0] + ". " + quoteParts[1];
-            }
-            idx = text.indexOf(searchPart);
-        }
-        
-        if (idx >= 0) {
-            final int finalIdx = idx;
-            codeArea.moveTo(idx);
-            codeArea.requestFollowCaret();
-            
-            // Markiere das gefundene Zitat
-            int endIdx = idx + cleanQuote.length();
-            if (text.length() >= endIdx && text.substring(idx, endIdx).equals(cleanQuote)) {
-                codeArea.selectRange(idx, endIdx);
-            } else {
-                // Fallback: Markiere nur den ersten Teil
-                codeArea.selectRange(idx, idx + 50);
-            }
-            
-            // Scroll zur Mitte des Fensters
-            Platform.runLater(() -> {
-                try {
-                    int paragraphIndex = codeArea.offsetToPosition(finalIdx, org.fxmisc.richtext.model.TwoDimensional.Bias.Forward).getMajor();
-                    codeArea.showParagraphAtCenter(paragraphIndex);
-                } catch (Exception e) {
-                    // Fallback: requestFollowCaret wurde bereits aufgerufen
+
+        // Robuste Suche per Normalisierung (Anführungszeichen entfernt, Whitespace zusammengefasst, lowercase)
+        NormalizedText nText = normalizeForSearch(text);
+        NormalizedText nQuote = normalizeForSearch(rawQuote);
+        String haystack = nText.text;
+        String needle = nQuote.text.trim();
+        if (haystack.isEmpty() || needle.isEmpty()) return;
+
+        int found = haystack.indexOf(needle);
+        int matchLen = needle.length();
+
+        // Fallback: schrittweise kürzere Präfixe versuchen, bis ein Match gefunden wird
+        if (found < 0) {
+            int[] tryLengths = { 200, 150, 120, 100, 80, 60, 50, 40, 30, 25, 20, 15, 12, 10, 8 };
+            for (int len : tryLengths) {
+                if (len >= needle.length()) continue;
+                if (len < 6) break;
+                String prefix = needle.substring(0, len).trim();
+                if (prefix.length() < 6) continue;
+                int idx = haystack.indexOf(prefix);
+                if (idx >= 0) {
+                    found = idx;
+                    matchLen = prefix.length();
+                    break;
                 }
-            });
+            }
+        }
+
+        // Letzter Fallback: erstes „signifikantes" Wort des Zitats suchen
+        if (found < 0) {
+            String[] words = needle.split("\\s+");
+            for (String w : words) {
+                if (w.length() < 5) continue;
+                int idx = haystack.indexOf(w);
+                if (idx >= 0) {
+                    found = idx;
+                    matchLen = w.length();
+                    break;
+                }
+            }
+        }
+
+        if (found < 0) {
+            updateStatus("Zitat im Kapitel nicht gefunden.");
+            return;
+        }
+
+        // Position vom normalisierten Index zurück in den Originaltext mappen
+        int origStart = nText.origPos[found];
+        int mapEnd = Math.min(found + matchLen, nText.origPos.length - 1);
+        int origEnd = nText.origPos[mapEnd];
+        if (origEnd <= origStart) origEnd = Math.min(origStart + matchLen, text.length());
+
+        highlightAndScroll(origStart, origEnd);
+    }
+
+    private void highlightAndScroll(int start, int end) {
+        if (codeArea == null) return;
+        int textLen = codeArea.getLength();
+        int s = Math.max(0, Math.min(start, textLen));
+        int e = Math.max(s, Math.min(end, textLen));
+        codeArea.moveTo(s);
+        codeArea.selectRange(s, e);
+        Platform.runLater(() -> {
+            try {
+                int paragraphIndex = codeArea.offsetToPosition(s, org.fxmisc.richtext.model.TwoDimensional.Bias.Forward).getMajor();
+                codeArea.showParagraphAtCenter(paragraphIndex);
+            } catch (Exception ex) {
+                codeArea.requestFollowCaret();
+            }
+        });
+    }
+
+    /** Wrapper aus normalisiertem Text und Position-Mapping in den Originaltext. */
+    private static final class NormalizedText {
+        final String text;
+        final int[] origPos; // origPos[i] = Originalposition für normalisiertes Zeichen i; origPos[length] = origLen
+        NormalizedText(String text, int[] origPos) {
+            this.text = text;
+            this.origPos = origPos;
+        }
+    }
+
+    /**
+     * Normalisiert Text für robuste Zitat-Suche:
+     * - entfernt alle Anführungszeichen-Varianten (", " " „ " « » ‹ › ' ' ` ‚ ‛ ‟)
+     * - fasst alle Whitespace-Sequenzen (inkl. Zeilenumbrüche, NBSP) zu einem Leerzeichen zusammen
+     * - lowercase
+     * - speichert für jede Position ein Mapping zurück in den Originaltext
+     */
+    private static NormalizedText normalizeForSearch(String s) {
+        if (s == null) return new NormalizedText("", new int[]{0});
+        int len = s.length();
+        StringBuilder sb = new StringBuilder(len);
+        int[] map = new int[len + 1];
+        int n = 0;
+        boolean prevSpace = true; // führende Spaces gleich überspringen
+        for (int i = 0; i < len; i++) {
+            char c = s.charAt(i);
+            if (isQuoteChar(c)) {
+                continue;
+            }
+            if (Character.isWhitespace(c) || Character.isSpaceChar(c)) {
+                if (prevSpace) continue;
+                map[n] = i;
+                sb.append(' ');
+                n++;
+                prevSpace = true;
+                continue;
+            }
+            map[n] = i;
+            sb.append(Character.toLowerCase(c));
+            n++;
+            prevSpace = false;
+        }
+        // trailing space entfernen
+        if (n > 0 && sb.charAt(n - 1) == ' ') {
+            sb.deleteCharAt(n - 1);
+            n--;
+        }
+        map[n] = len;
+        int[] trimmed = new int[n + 1];
+        System.arraycopy(map, 0, trimmed, 0, n + 1);
+        return new NormalizedText(sb.toString(), trimmed);
+    }
+
+    private static boolean isQuoteChar(char c) {
+        switch (c) {
+            case '"':       // U+0022 quotation mark
+            case '\'':      // U+0027 apostrophe
+            case '`':       // U+0060 grave accent
+            case '\u00AB':  // «
+            case '\u00BB':  // »
+            case '\u2018':  // '
+            case '\u2019':  // '
+            case '\u201A':  // ‚
+            case '\u201B':  // ‛
+            case '\u201C':  // "
+            case '\u201D':  // "
+            case '\u201E':  // „
+            case '\u201F':  // ‟
+            case '\u2039':  // ‹
+            case '\u203A':  // ›
+                return true;
+            default:
+                return false;
         }
     }
 

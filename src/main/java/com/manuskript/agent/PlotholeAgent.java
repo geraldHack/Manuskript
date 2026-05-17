@@ -60,6 +60,7 @@ public class PlotholeAgent {
 
     private final AIBackend backend;
     private final AgentMemory memory;
+    private String customSystemPrompt;
 
     public PlotholeAgent(AIBackend backend, AgentMemory memory) {
         this.backend = backend;
@@ -69,17 +70,32 @@ public class PlotholeAgent {
     /**
      * Analysiert den aktuellen Kapiteltext auf Widersprüche.
      */
+    public void setSystemPrompt(String prompt) {
+        this.customSystemPrompt = prompt;
+    }
+
     public CompletableFuture<List<Finding>> analyze(String currentChapterText) {
+        return analyze(currentChapterText, "");
+    }
+
+    public CompletableFuture<List<Finding>> analyze(String currentChapterText, String allChapters) {
         // Gedächtnis vor der Analyse löschen, um alte Ergebnisse nicht zu beeinflussen
         memory.clear();
 
+        String systemPrompt = customSystemPrompt != null ? customSystemPrompt : SYSTEM_PROMPT;
+
         StringBuilder userMessage = new StringBuilder();
+        if (allChapters != null && !allChapters.isEmpty()) {
+            userMessage.append("=== ALLE KAPITEL (KONTEXT) ===\n");
+            userMessage.append(allChapters);
+            userMessage.append("\n=== ALLE KAPITEL ENDE ===\n\n");
+        }
         userMessage.append("=== MANUSKRIPT BEGINN ===\n");
         userMessage.append(currentChapterText);
         userMessage.append("\n=== MANUSKRIPT ENDE ===\n");
         userMessage.append("Analysiere das Manuskript gemäß den Systemregeln.");
 
-        return backend.chat(SYSTEM_PROMPT, userMessage.toString(), 2048)
+        return backend.chat(systemPrompt, userMessage.toString(), 2048)
                 .thenApply(this::parseResponse);
     }
 
