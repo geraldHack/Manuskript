@@ -88,6 +88,7 @@ import java.util.concurrent.Future;
 import org.fxmisc.richtext.model.StyleSpan;
 import org.fxmisc.richtext.model.TwoDimensional.Bias;
 import javafx.animation.Timeline;
+import javafx.animation.PauseTransition;
 import javafx.animation.KeyFrame;
 import javafx.animation.Animation;
 import javafx.util.Duration;
@@ -152,7 +153,9 @@ public class EditorWindow implements Initializable {
     
     // Referenz zum VirtualizedScrollPane für Scroll-Position
     private VirtualizedScrollPane<CodeArea> scrollPane;
-    
+    private boolean suppressScroll = false;
+    private double savedScrollY = 0.0;
+
     // Globale DOCX-Optionen für Export
     private DocxOptions globalDocxOptions = new DocxOptions();
     
@@ -252,15 +255,16 @@ public class EditorWindow implements Initializable {
     private boolean sidebarExpanded = true;
 
     // Agenten-System
-    private AgentPanel agentPanel;
-    private PlotholeAgent plotholeAgent;
-    private AIBackend agentBackend;
+    private AgentTabPane agentTabPane;
+    private final java.util.Map<String, PlotholeAgent> agentInstances = new java.util.HashMap<>();
+    private final java.util.Map<String, AIBackend> agentBackends = new java.util.HashMap<>();
     private Timeline agentRealtimeTimeline;
     private boolean agentPanelVisible = false;
 
     // Online-Lektorat
     private final List<LektoratMatch> currentLektoratMatches = new ArrayList<>();
     private LektoratMatch selectedLektoratMatch = null;
+    private final List<MarkdownMatch> lektoratReplacedRanges = new ArrayList<>(); // Bereiche mit ersetztem Lektorat-Text
     private VBox chapterAssessmentBox = null; // Einschätzung-Box speichern
     
     // Undo/Redo Buttons
@@ -542,6 +546,23 @@ public class EditorWindow implements Initializable {
             logger.debug("Alternative Scroll-Offset Methode nicht verfügbar: {}", e2.getMessage());
         }
         return 0.0;
+    }
+
+    /**
+     * Führt eine Aktion aus, ohne dass der Viewport springt.
+     * Sichert die Scroll-Position, führt action aus, stellt Position wieder her.
+     */
+    private void runWithoutScrolling(Runnable action) {
+        if (scrollPane == null) {
+            action.run();
+            return;
+        }
+        suppressScroll = true;
+        try {
+            action.run();
+        } finally {
+            suppressScroll = false;
+        }
     }
 
     private void setScrollOffset(double scrollOffset) {
@@ -912,6 +933,12 @@ if (caret != null) {
         
         // VirtualizedScrollPane für bessere Performance
         scrollPane = new VirtualizedScrollPane<>(codeArea);
+        // Scroll-Unterdrückung: Bei programmatischen Änderungen Position einfrieren
+        scrollPane.estimatedScrollYProperty().addListener((obs, oldVal, newVal) -> {
+            if (suppressScroll && oldVal != null) {
+                scrollPane.estimatedScrollYProperty().setValue(oldVal);
+            }
+        });
         // WICHTIG: CSS-Klasse für VirtualizedScrollPane hinzufügen, damit Scrollbalken gestylt werden können
         scrollPane.getStyleClass().add("code-area-scroll-pane");
         
@@ -1034,8 +1061,11 @@ if (caret != null) {
                     }
 
                     // Agenten-Echtzeit-Prüfung triggern
-                    if (agentPanel != null && agentPanel.isRealtimeEnabled()) {
-                        triggerRealtimeCheck();
+                    if (agentTabPane != null) {
+                        AgentTab activeTab = agentTabPane.getActiveTab();
+                        if (activeTab != null && activeTab.isRealtimeEnabled()) {
+                            triggerRealtimeCheck();
+                        }
                     }
                     
                     // WICHTIG: Wenn der Benutzer im Editor Text ändert, aktualisiere Quill
@@ -13050,6 +13080,26 @@ spacer.setStyle("-fx-background-color: transparent;");
                 }
             }
             
+            // Lektorat-ersetzte Bereiche hinzufügen
+            logger.debug("lektoratReplacedRanges Größe: {}", lektoratReplacedRanges.size());
+            for (MarkdownMatch lektoratRange : lektoratReplacedRanges) {
+                logger.debug("Lektorat-Bereich: start={}, end={}, styleClass={}", lektoratRange.start, lektoratRange.end, lektoratRange.styleClass);
+                if (lektoratRange.start < content.length() && lektoratRange.end <= content.length() && lektoratRange.end > lektoratRange.start) {
+                    boolean alreadyCovered = markdownMatches.stream().anyMatch(m -> 
+                        (lektoratRange.start >= m.start && lektoratRange.start < m.end) || 
+                        (lektoratRange.end > m.start && lektoratRange.end <= m.end) ||
+                        (lektoratRange.start <= m.start && lektoratRange.end >= m.end));
+                    if (!alreadyCovered) {
+                        markdownMatches.add(lektoratRange);
+                        logger.debug("Lektorat-Bereich zu markdownMatches hinzugefügt");
+                    } else {
+                        logger.debug("Lektorat-Bereich bereits abgedeckt");
+                    }
+                } else {
+                    logger.debug("Lektorat-Bereich ungültig (außerhalb des Textes)");
+                }
+            }
+            
             // Sortiere Markdown-Matches nach Position
             markdownMatches.sort((a, b) -> Integer.compare(a.start, b.start));
             
@@ -13848,24 +13898,29 @@ spacer.setStyle("-fx-background-color: transparent;");
         boolean agentEnabled = Boolean.parseBoolean(
             ResourceManager.getParameter("agent.enabled", "true"));
         if (!agentEnabled) {
-            logger.info("Plothole-Agent ist deaktiviert (Parameter agent.enabled=false)");
+            logger.info("Agenten-System ist deaktiviert (Parameter agent.enabled=false)");
             return;
         }
 
-        // Backend auswählen
-        String backendType = ResourceManager.getParameter("agent.backend", "Ollama");
-        if ("OpenAI".equals(backendType)) {
-            agentBackend = new OpenAIBackend();
-        } else {
-            agentBackend = new OllamaBackend(new OllamaService());
+        // AgentTabPane erstellen und Konfigurationen laden
+        agentTabPane = new AgentTabPane();
+        agentTabPane.loadFromConfig();
+
+        // Callbacks für jeden Tab setzen
+        for (AgentTab tab : agentTabPane.getAgentTabs()) {
+            setupAgentTabCallbacks(tab);
         }
 
-        // AgentPanel erstellen
-        agentPanel = new AgentPanel();
+        // Panel zum SplitPane hinzufügen
+        ensureAgentPanelVisible(true);
 
-        // Callbacks setzen
-        agentPanel.setOnAnalyzeClicked(this::runAgentAnalysis);
-        agentPanel.setOnRealtimeToggled(enabled -> {
+        // Modelle für alle Tabs laden
+        loadAgentModels();
+    }
+
+    private void setupAgentTabCallbacks(AgentTab tab) {
+        tab.setOnAnalyzeClicked(() -> runAgentAnalysis(tab));
+        tab.setOnRealtimeToggled(enabled -> {
             if (enabled) {
                 triggerRealtimeCheck();
             } else {
@@ -13875,28 +13930,63 @@ spacer.setStyle("-fx-background-color: transparent;");
                 }
             }
         });
-        agentPanel.setOnQuoteClicked(this::jumpToQuote);
-
-        // Panel zum SplitPane hinzufügen
-        ensureAgentPanelVisible(true);
-
-        // Echtzeit-Einstellung aus Preferences laden
-        boolean realtimeDefault = Boolean.parseBoolean(
-            ResourceManager.getParameter("agent.realtime_enabled", "false"));
-        agentPanel.setRealtimeEnabled(realtimeDefault);
-
-        // Agent initialisieren
-        initPlotholeAgent();
+        tab.setOnQuoteClicked(this::jumpToQuote);
     }
 
-    private void initPlotholeAgent() {
-        if (agentBackend == null) return;
-        File projectDir = getProjectDirectory();
-        if (projectDir == null) return;
+    private PlotholeAgent getOrCreateAgentForTab(AgentTab tab) {
+        String agentId = tab.getAgentId();
+        PlotholeAgent agent = agentInstances.get(agentId);
+        if (agent == null) {
+            File projectDir = getProjectDirectory();
+            if (projectDir == null) return null;
 
-        String chapterName = getChapterName();
-        AgentMemory memory = new AgentMemory(projectDir, "plotholes", chapterName);
-        plotholeAgent = new PlotholeAgent(agentBackend, memory);
+            // Backend pro Tab erstellen
+            AIBackend backend = agentBackends.get(agentId);
+            if (backend == null) {
+                String backendType = tab.getAgentConfig().getBackend();
+                if ("OpenAI".equals(backendType)) {
+                    backend = new OpenAIBackend();
+                } else {
+                    backend = new OllamaBackend(new OllamaService());
+                }
+                // Modell setzen
+                String model = tab.getAgentConfig().getModel();
+                if (model != null && !model.trim().isEmpty()) {
+                    backend.setCurrentModel(model);
+                }
+                agentBackends.put(agentId, backend);
+            } else {
+                // Modell aktualisieren, falls es geändert wurde
+                String model = tab.getAgentConfig().getModel();
+                if (model != null && !model.trim().isEmpty()) {
+                    backend.setCurrentModel(model);
+                }
+            }
+
+            String chapterName = getChapterName();
+            AgentMemory memory = new AgentMemory(projectDir, "agent_" + agentId, chapterName);
+            agent = new PlotholeAgent(backend, memory);
+            agent.setSystemPrompt(tab.getAgentConfig().getSystemPrompt());
+            agentInstances.put(agentId, agent);
+        }
+        return agent;
+    }
+
+    private void loadAgentModels() {
+        if (agentBackends.isEmpty() || agentTabPane == null) return;
+        CompletableFuture.supplyAsync(() -> {
+            try {
+                // Modelle vom ersten verfügbaren Backend laden
+                AIBackend firstBackend = agentBackends.values().iterator().next();
+                return firstBackend.getAvailableModels();
+            } catch (Exception e) {
+                return java.util.Arrays.asList("gemma3:4b", "mistral:7b-instruct", "llama3.1:8b-instruct");
+            }
+        }).thenAccept(models -> {
+            for (AgentTab tab : agentTabPane.getAgentTabs()) {
+                tab.setModels(models);
+            }
+        });
     }
 
     private String getChapterName() {
@@ -13921,11 +14011,11 @@ spacer.setStyle("-fx-background-color: transparent;");
     }
 
     private void ensureAgentPanelVisible(boolean visible) {
-        if (mainSplitPane == null || agentPanel == null) return;
+        if (mainSplitPane == null || agentTabPane == null) return;
         ObservableList<Node> items = mainSplitPane.getItems();
-        boolean hasPanel = items.contains(agentPanel);
+        boolean hasPanel = items.contains(agentTabPane);
         if (visible && !hasPanel) {
-            items.add(agentPanel);
+            items.add(agentTabPane);
             double[] current = mainSplitPane.getDividerPositions();
             if (current.length >= 2) {
                 mainSplitPane.setDividerPositions(current[0], 0.72, 0.85);
@@ -13933,33 +14023,52 @@ spacer.setStyle("-fx-background-color: transparent;");
                 mainSplitPane.setDividerPositions(current[0], 0.85);
             }
         } else if (!visible && hasPanel) {
-            items.remove(agentPanel);
+            items.remove(agentTabPane);
         }
         agentPanelVisible = visible;
     }
 
-    private void runAgentAnalysis() {
-        if (plotholeAgent == null) {
-            initPlotholeAgent();
+    private void runAgentAnalysis(AgentTab tab) {
+        if (tab == null) {
+            tab = agentTabPane.getActiveTab();
         }
-        if (plotholeAgent == null || codeArea == null) return;
+        if (tab == null || codeArea == null) return;
 
-        agentPanel.setAnalyzing(true);
+        final AgentTab targetTab = tab;
+
+        // Modell validieren
+        String model = targetTab.getAgentConfig().getModel();
+        if (model == null || model.trim().isEmpty()) {
+            targetTab.showError("Kein Modell gewählt");
+            return;
+        }
+
+        PlotholeAgent agent = getOrCreateAgentForTab(targetTab);
+        if (agent == null) return;
+
+        // Prompt aus der aktuellen Tab-Konfiguration übernehmen
+        agent.setSystemPrompt(targetTab.getAgentConfig().getSystemPrompt());
+
+        targetTab.setAnalyzing(true);
         String text = codeArea.getText();
+        
+        // Alle Kapitel für Kontext laden
+        String allChapters = "";
+        if (mainController != null) {
+            allChapters = mainController.loadAllChapters();
+        }
 
-        plotholeAgent.analyze(text)
+        agent.analyze(text, allChapters)
             .thenAccept(findings -> {
-                // Scroll-Position vor UI-Update sichern, da showFindings() ein
-                // SplitPane-Layout-Re-Layout auslösen kann, das den Editor springen lässt
                 CodeAreaViewSnapshot snapshot = captureCodeAreaViewSnapshotWithoutSelection();
-                agentPanel.showFindings(findings);
+                targetTab.showFindings(findings);
                 if (snapshot != null) {
                     Platform.runLater(() -> restoreCodeAreaViewSnapshot(snapshot, false, true));
                 }
             })
             .exceptionally(ex -> {
                 CodeAreaViewSnapshot snapshot = captureCodeAreaViewSnapshotWithoutSelection();
-                agentPanel.showError(ex.getMessage());
+                targetTab.showError(ex.getMessage());
                 if (snapshot != null) {
                     Platform.runLater(() -> restoreCodeAreaViewSnapshot(snapshot, false, true));
                 }
@@ -13968,7 +14077,8 @@ spacer.setStyle("-fx-background-color: transparent;");
     }
 
     private void triggerRealtimeCheck() {
-        if (!agentPanel.isRealtimeEnabled() || codeArea == null) return;
+        AgentTab activeTab = agentTabPane.getActiveTab();
+        if (activeTab == null || !activeTab.isRealtimeEnabled() || codeArea == null) return;
 
         if (agentRealtimeTimeline != null) {
             agentRealtimeTimeline.stop();
@@ -13979,8 +14089,9 @@ spacer.setStyle("-fx-background-color: transparent;");
 
         agentRealtimeTimeline = new Timeline(new KeyFrame(
             Duration.millis(debounceMs), event -> {
-                if (agentPanel.isRealtimeEnabled() && !agentPanel.isAnalyzing()) {
-                    runAgentAnalysis();
+                AgentTab currentTab = agentTabPane.getActiveTab();
+                if (currentTab != null && currentTab.isRealtimeEnabled() && !currentTab.isAnalyzing()) {
+                    runAgentAnalysis(currentTab);
                 }
             }
         ));
@@ -13989,10 +14100,37 @@ spacer.setStyle("-fx-background-color: transparent;");
 
     private void jumpToQuote(String quote) {
         if (codeArea == null || quote == null || quote.isEmpty()) return;
-        // Alle Anführungszeichen-Typen entfernen für robustere Suche
-        String cleanQuote = quote.replaceAll("[\"»«„\"]", "").trim();
+        
+        // Versuche, den Index aus dem Zitat zu extrahieren (Format: "Zitat|Index")
+        String[] parts = quote.split("\\|");
+        String cleanQuote = parts[0].replaceAll("[\"»«„\"]", "").trim();
+        int quoteIndex = -1;
+        if (parts.length > 1) {
+            try {
+                quoteIndex = Integer.parseInt(parts[1].trim());
+            } catch (NumberFormatException e) {
+                // Ignorieren, wenn der Index nicht geparst werden kann
+            }
+        }
+        
         String text = codeArea.getText();
         
+        // Wenn ein Index verfügbar ist, direkt zum Index springen
+        if (quoteIndex >= 0 && quoteIndex < text.length()) {
+            codeArea.moveTo(quoteIndex);
+            
+            // In die Mitte scrollen - Versuch ohne zusätzliche Methoden
+            Platform.runLater(() -> {
+                codeArea.requestFollowCaret();
+            });
+            
+            // Markiere das Zitat
+            int endIdx = Math.min(quoteIndex + cleanQuote.length(), text.length());
+            codeArea.selectRange(quoteIndex, endIdx);
+            return;
+        }
+        
+        // Fallback: Alle Anführungszeichen-Typen entfernen für robustere Suche
         // Versuche zuerst, das gesamte Zitat zu finden
         int idx = text.indexOf(cleanQuote);
         
@@ -14067,7 +14205,10 @@ spacer.setStyle("-fx-background-color: transparent;");
                 btn.getStyleClass().add("lektorat-suggestion-button");
                 applyThemeToNode(btn, currentThemeIndex);
                 final String repl = suggestion;
-                btn.setOnAction(e -> applyLektoratSuggestion(match, repl));
+                btn.setOnAction(e -> {
+                    logger.debug("Lektorat-Button geklickt: match={}, replacement={}", match, repl);
+                    applyLektoratSuggestion(match, repl);
+                });
                 content.getChildren().add(btn);
             }
         }
@@ -14101,6 +14242,8 @@ spacer.setStyle("-fx-background-color: transparent;");
     }
 
     private void applyLektoratSuggestion(LektoratMatch match, String replacement) {
+        System.out.println("DEBUG: applyLektoratSuggestion aufgerufen: " + replacement);
+        logger.debug("applyLektoratSuggestion aufgerufen: match={}, replacement={}", match, replacement);
         if (codeArea == null) return;
         String currentText = codeArea.getText();
         if (currentText == null) return;
@@ -14135,6 +14278,8 @@ spacer.setStyle("-fx-background-color: transparent;");
         codeArea.replaceText(start, end, replacementWithBoundaries);
         currentLektoratMatches.remove(match);
         selectedLektoratMatch = null;
+        
+        int replacementLength = replacementWithBoundaries.length();
 
         if (delta != 0 && !currentLektoratMatches.isEmpty()) {
             for (LektoratMatch other : currentLektoratMatches) {
@@ -14152,12 +14297,13 @@ spacer.setStyle("-fx-background-color: transparent;");
         // Styling anwenden (ohne Cursor-Position zu ändern)
         applyCombinedStyling();
         
-        // Cursor ans Ende der Ersetzung setzen
-        int finalPosition = start + replacementWithBoundaries.length();
-        codeArea.moveTo(finalPosition);
+        // Cursor-Position NICHT ändern - bleibt an aktueller Position
         
         if (currentLektoratMatches.isEmpty()) {
             ensureLektoratPanelVisible(false);
+            
+            // Lektorat ist komplett durch: alle ersetzten Bereiche einfärben
+            applyLektoratReplacedStyling();
         } else {
             lektoratPanelContainer.getChildren().clear();
             Label hint = new Label("Vorschlag übernommen. Bei Bedarf Online-Lektorat erneut starten.");
@@ -21106,8 +21252,11 @@ spacer.setStyle("-fx-background-color: transparent;");
                 if (mySequence == loadingSequence) {
                     updateNavigationButtons();
                     // Agent-Ergebnisse leeren beim Kapitelwechsel
-                    if (agentPanel != null) {
-                        agentPanel.clearFindings();
+                    if (agentTabPane != null) {
+                        AgentTab activeTab = agentTabPane.getActiveTab();
+                        if (activeTab != null) {
+                            activeTab.clearFindings();
+                        }
                     }
                 }
             });
@@ -21638,7 +21787,9 @@ spacer.setStyle("-fx-background-color: transparent;");
                 int caretPosition = codeArea.getCaretPosition();
                 
                 // Text aktualisieren - verwende replaceText mit Positionen, um Undo-Historie zu erhalten
-                codeArea.replaceText(0, text.length(), newText.toString());
+                runWithoutScrolling(() -> {
+                    codeArea.replaceText(0, text.length(), newText.toString());
+                });
                 
                 // Cursor-Position wiederherstellen
                 if (caretPosition <= newText.length()) {
