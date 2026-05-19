@@ -48,7 +48,10 @@ public class AgentConfig {
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
 
-    public String getBackend() { return backend; }
+    public String getBackend() {
+        // Backend immer aus den Parametern lesen
+        return com.manuskript.ResourceManager.getParameter("agent.backend", "Ollama");
+    }
     public void setBackend(String backend) { this.backend = backend; }
 
     public String getSystemPrompt() { return systemPrompt; }
@@ -57,7 +60,15 @@ public class AgentConfig {
     public String getDefaultPrompt() { return defaultPrompt; }
     public void setDefaultPrompt(String defaultPrompt) { this.defaultPrompt = defaultPrompt; }
 
-    public String getModel() { return model; }
+    public String getModel() {
+        // Modell immer aus den Parametern lesen
+        String backend = com.manuskript.ResourceManager.getParameter("agent.backend", "Ollama");
+        if ("OpenAI".equals(backend)) {
+            return com.manuskript.ResourceManager.getParameter("agent.openai.model", "gpt-4o-mini");
+        } else {
+            return com.manuskript.ResourceManager.getParameter("agent.ollama.model", "gemma3:4b");
+        }
+    }
     public void setModel(String model) { this.model = model; }
 
     public double getTemperature() { return temperature; }

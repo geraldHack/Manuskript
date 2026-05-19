@@ -1,5 +1,8 @@
 package com.manuskript.agent;
 
+import java.util.List;
+import java.util.ArrayList;
+
 /**
  * Ein Fund (Widerspruch, Plothole) eines Agenten.
  */
@@ -8,6 +11,8 @@ public class Finding {
     private String quote;      // exaktes Zitat aus dem Text
     private String problem;    // Beschreibung
     private String suggestion; // Korrekturvorschlag
+    private List<String> suggestions; // Liste von Korrekturvorschlägen
+    private int suggestionIndex = -1; // Index des ausgewählten Vorschlags
 
     public Finding() {}
 
@@ -29,6 +34,12 @@ public class Finding {
 
     public String getSuggestion() { return suggestion; }
     public void setSuggestion(String suggestion) { this.suggestion = suggestion; }
+
+    public List<String> getSuggestions() { return suggestions; }
+    public void setSuggestions(List<String> suggestions) { this.suggestions = suggestions; }
+
+    public int getSuggestionIndex() { return suggestionIndex; }
+    public void setSuggestionIndex(int suggestionIndex) { this.suggestionIndex = suggestionIndex; }
 
     public String getQuoteWithIndex() {
         return quote;

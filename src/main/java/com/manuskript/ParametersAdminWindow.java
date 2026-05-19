@@ -284,19 +284,36 @@ public class ParametersAdminWindow {
         keyToControl.put("agent.openai.api_url", openaiUrlField);
 
         String openaiModel = ResourceManager.getParameter("agent.openai.model", "gpt-4o-mini");
-        TextField openaiModelField = new TextField(openaiModel);
-        openaiModelField.setPrefWidth(400);
+        ComboBox<ModelOption> openaiModelCombo = new ComboBox<>();
+        openaiModelCombo.setConverter(new javafx.util.StringConverter<ModelOption>() {
+            @Override
+            public String toString(ModelOption m) {
+                return m == null ? "" : m.displayText;
+            }
+            @Override
+            public ModelOption fromString(String s) {
+                return s == null || s.isBlank() ? null : new ModelOption(s.trim(), s.trim());
+            }
+        });
+        openaiModelCombo.setValue(new ModelOption(openaiModel, openaiModel));
+        openaiModelCombo.setPrefWidth(400);
+        openaiModelCombo.setEditable(true);
         Label openaiModelLabel = new Label("agent.openai.model");
         openaiModelLabel.getStyleClass().add("param-key-label");
-        Label openaiModelHelp = new Label("Modell fuer die OpenAI-Analyse (z.B. gpt-4o-mini, gpt-4o).");
+        Label openaiModelHelp = new Label("Modell fuer die OpenAI-Analyse (nach „Modelle laden“ auswählen oder frei eingeben). Kosten werden bei OpenRouter-kompatiblen APIs angezeigt.");
         openaiModelHelp.getStyleClass().add("param-help-label");
         openaiModelHelp.setWrapText(true);
         openaiModelHelp.setMaxWidth(680);
+        Button btnLoadAgentModels = new Button("Modelle laden");
+        btnLoadAgentModels.setOnAction(e -> loadAgentModels(openaiKeyField.getText(), openaiUrlField.getText(), openaiModelCombo));
+        HBox openaiModelRow = new HBox(10);
+        openaiModelRow.getChildren().addAll(openaiModelCombo, btnLoadAgentModels);
+        openaiModelRow.setAlignment(Pos.CENTER_LEFT);
         VBox openaiModelCard = new VBox(4);
         openaiModelCard.getStyleClass().add("param-card");
-        openaiModelCard.getChildren().addAll(openaiModelLabel, openaiModelField, openaiModelHelp);
+        openaiModelCard.getChildren().addAll(openaiModelLabel, openaiModelRow, openaiModelHelp);
         openaiParams.getChildren().add(openaiModelCard);
-        keyToControl.put("agent.openai.model", openaiModelField);
+        keyToControl.put("agent.openai.model", openaiModelCombo);
 
         // Sichtbarkeit basierend auf Backend-Auswahl
         Runnable updateVisibility = () -> {
@@ -680,6 +697,14 @@ public class ParametersAdminWindow {
 
     @SuppressWarnings("unchecked")
     private void loadLektoratModels(String apiKey, String baseUrl, ComboBox<ModelOption> modelCombo) {
+        loadOpenAIModels(apiKey, baseUrl, modelCombo, "Lektorat");
+    }
+
+    private void loadAgentModels(String apiKey, String baseUrl, ComboBox<ModelOption> modelCombo) {
+        loadOpenAIModels(apiKey, baseUrl, modelCombo, "Agenten");
+    }
+
+    private void loadOpenAIModels(String apiKey, String baseUrl, ComboBox<ModelOption> modelCombo, String context) {
         if (apiKey == null || apiKey.isBlank() || baseUrl == null || baseUrl.isBlank()) {
             showInfo("Eingabe fehlt", "Bitte API-Key und Basis-URL eintragen.");
             return;
@@ -707,7 +732,7 @@ public class ParametersAdminWindow {
         }).thenAccept(result -> {
             Platform.runLater(() -> {
                 if (result.startsWith("Fehler:")) {
-                    showInfo("Modelle laden", result);
+                    showInfo("Modelle laden (" + context + ")", result);
                     return;
                 }
                 try {
@@ -737,12 +762,12 @@ public class ParametersAdminWindow {
                         modelCombo.getItems().addAll(items);
                     }
                     if (modelCombo.getItems().isEmpty()) {
-                        showInfo("Modelle laden", "Keine Modelle in der Antwort gefunden.");
+                        showInfo("Modelle laden (" + context + ")", "Keine Modelle in der Antwort gefunden.");
                     } else {
-                        showInfo("Modelle laden", modelCombo.getItems().size() + " Modelle geladen. Bitte Modell auswählen und Speichern klicken.");
+                        showInfo("Modelle laden (" + context + ")", modelCombo.getItems().size() + " Modelle geladen. Bitte Modell auswählen und Speichern klicken.");
                     }
                 } catch (Exception e) {
-                    showInfo("Modelle laden", "Antwort konnte nicht gelesen werden: " + e.getMessage());
+                    showInfo("Modelle laden (" + context + ")", "Antwort konnte nicht gelesen werden: " + e.getMessage());
                 }
             });
         });
@@ -974,6 +999,18 @@ public class ParametersAdminWindow {
                 ResourceManager.saveParameter(key, value);
             }
         }
+        // Cache der Agent-Konfigurationen invalidieren und neu laden, damit neue Modellnamen übernommen werden
+        if (keyToDef.containsKey("agent.openai.model") || keyToDef.containsKey("agent.ollama.model")) {
+            com.manuskript.agent.AgentConfigManager.invalidateCache();
+            // Agent-Konfigurationen neu laden und speichern, um die neuen Modellnamen zu übernehmen
+            java.util.List<com.manuskript.agent.AgentConfig> configs = com.manuskript.agent.AgentConfigManager.loadConfigs();
+            com.manuskript.agent.AgentConfigManager.saveConfigs(configs);
+            // Benachrichtige EditorWindow, um Agent-Instanzen neu zu erstellen
+            com.manuskript.EditorWindow instance = com.manuskript.EditorWindow.getCurrentInstance();
+            if (instance != null) {
+                instance.clearAgentInstances();
+            }
+        }
         showInfo("Gespeichert", "Alle Parameter wurden gespeichert.");
     }
 
@@ -988,7 +1025,7 @@ public class ParametersAdminWindow {
             ComboBox<?> cb = (ComboBox<?>) c;
             Object v = cb.getValue();
             if (v != null) {
-                if ("api.lektorat.model".equals(def.getKey())) {
+                if ("api.lektorat.model".equals(def.getKey()) || "agent.openai.model".equals(def.getKey())) {
                     if (v instanceof ModelOption) return ((ModelOption) v).id;
                     return stripModelIdFromDisplay(v.toString());
                 }
@@ -996,7 +1033,7 @@ public class ParametersAdminWindow {
             }
             if (cb.isEditable() && cb.getEditor() != null) {
                 String editorText = cb.getEditor().getText();
-                if ("api.lektorat.model".equals(def.getKey())) return stripModelIdFromDisplay(editorText);
+                if ("api.lektorat.model".equals(def.getKey()) || "agent.openai.model".equals(def.getKey())) return stripModelIdFromDisplay(editorText);
                 return editorText;
             }
             return def.getDefaultValue();

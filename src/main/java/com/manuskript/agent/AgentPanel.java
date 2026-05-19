@@ -13,20 +13,28 @@ import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.HBox;
+import javafx.scene.text.Text;
+import javafx.scene.text.TextFlow;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Seitenpanel für Agenten-Ergebnisse im Editor.
  * Zeigt Findings mit klickbaren Zitaten an.
  */
 public class AgentPanel extends VBox {
+    private static final Logger logger = LoggerFactory.getLogger(AgentPanel.class);
 
     private final ToggleButton realtimeToggle;
     private final Button analyzeButton;
     private final VBox findingsList;
+    private ScrollPane scrollPane;
     private final Label statusLabel;
     private final Label emptyLabel;
 
     private Consumer<String> onQuoteClicked;
+    private Consumer<Finding> onSuggestionClicked;
     private boolean realtimeEnabled = false;
     private boolean analyzing = false;
 
@@ -78,7 +86,7 @@ public class AgentPanel extends VBox {
         emptyLabel.setWrapText(true);
         findingsList.getChildren().add(emptyLabel);
 
-        ScrollPane scrollPane = new ScrollPane(findingsList);
+        scrollPane = new ScrollPane(findingsList);
         scrollPane.setFitToWidth(true);
         scrollPane.setFitToHeight(true);
         scrollPane.getStyleClass().add("agent-scroll");
@@ -101,6 +109,10 @@ public class AgentPanel extends VBox {
 
     public void setOnQuoteClicked(Consumer<String> callback) {
         this.onQuoteClicked = callback;
+    }
+
+    public void setOnSuggestionClicked(Consumer<Finding> callback) {
+        this.onSuggestionClicked = callback;
     }
 
     public boolean isRealtimeEnabled() {
@@ -149,47 +161,119 @@ public class AgentPanel extends VBox {
         VBox card = new VBox(8);
         card.setPadding(new Insets(6));
         card.getStyleClass().add("finding-card");
-        card.setMaxWidth(Double.MAX_VALUE); // Füllt verfügbare Breite
+        card.setMaxWidth(Double.MAX_VALUE);
 
-        // Schweregrad
+        // Schriftgröße aus Preferences lesen (wie im Editor)
+        java.util.prefs.Preferences prefs = java.util.prefs.Preferences.userNodeForPackage(com.manuskript.MainController.class);
+        int editorFontSize = prefs.getInt("fontSize", 12);
+
         Label severityLabel = new Label(f.getSeverityStars());
         severityLabel.getStyleClass().add("finding-severity");
         severityLabel.setWrapText(true);
+        severityLabel.setMinWidth(0);
         severityLabel.setMaxWidth(Double.MAX_VALUE);
+        severityLabel.setStyle(severityLabel.getStyle() + String.format("-fx-font-size: %dpx;", editorFontSize));
 
-        // Problem (Label mit Breiten-Bindung für Wrap)
-        Label problemLabel = new Label(f.getProblem());
-        problemLabel.getStyleClass().add("finding-problem");
-        problemLabel.setWrapText(true);
-        problemLabel.setMaxWidth(Double.MAX_VALUE);
-        problemLabel.minWidthProperty().bind(card.widthProperty().subtract(20));
-
-        // Zitat (klickbar, Label mit Breiten-Bindung für Wrap)
-        Label quoteLabel = new Label("Zitat: " + f.getQuote());
-        quoteLabel.getStyleClass().add("finding-quote-text");
-        quoteLabel.setWrapText(true);
-        quoteLabel.setMaxWidth(Double.MAX_VALUE);
-        quoteLabel.minWidthProperty().bind(card.widthProperty().subtract(20));
-        // Theme-abhängige Farbe setzen
         String theme = com.manuskript.ResourceManager.getParameter("main_window_theme", "0");
-        boolean isDarkTheme = theme.equals("1") || theme.equals("3"); // 1=Dunkel, 3=Lila
+        boolean isDarkTheme = theme.equals("1") || theme.equals("3");
+        String textColor = isDarkTheme ? "#e0e0e0" : "#000000";
+
+        Text problemText = new Text(f.getProblem());
+        problemText.setStyle(String.format("-fx-fill: %s; -fx-font-size: %dpx;", textColor, editorFontSize));
+        TextFlow problemFlow = new TextFlow(problemText);
+        problemFlow.getStyleClass().add("finding-problem");
+        problemFlow.setMinWidth(0);
+        problemFlow.setMaxWidth(Double.MAX_VALUE);
+        problemFlow.prefWidthProperty().bind(scrollPane.widthProperty().subtract(40));
+
+        Text quoteText = new Text("Zitat: " + f.getQuote());
         String quoteColor = isDarkTheme ? "#ffb74d" : "#666";
-        quoteLabel.setStyle("-fx-text-fill: " + quoteColor + ";");
-        quoteLabel.setCursor(javafx.scene.Cursor.HAND);
-        quoteLabel.setOnMouseClicked(e -> {
+        quoteText.setStyle(String.format("-fx-fill: %s; -fx-font-size: %dpx;", quoteColor, editorFontSize));
+        TextFlow quoteFlow = new TextFlow(quoteText);
+        quoteFlow.getStyleClass().add("finding-quote-text");
+        quoteFlow.setMinWidth(0);
+        quoteFlow.setMaxWidth(Double.MAX_VALUE);
+        quoteFlow.prefWidthProperty().bind(scrollPane.widthProperty().subtract(40));
+        quoteFlow.setCursor(javafx.scene.Cursor.HAND);
+        quoteFlow.setOnMouseClicked(e -> {
             if (onQuoteClicked != null && f.getQuote() != null && !f.getQuote().isEmpty()) {
                 onQuoteClicked.accept(f.getQuote());
             }
         });
 
-        // Vorschlag (Label mit Breiten-Bindung für Wrap)
-        Label suggestionLabel = new Label("Vorschlag: " + f.getSuggestion());
-        suggestionLabel.getStyleClass().add("finding-suggestion");
-        suggestionLabel.setWrapText(true);
-        suggestionLabel.setMaxWidth(Double.MAX_VALUE);
-        suggestionLabel.minWidthProperty().bind(card.widthProperty().subtract(20));
+        // Vorschläge anzeigen (mehrere möglich)
+        VBox suggestionsBox = new VBox();
+        suggestionsBox.setSpacing(4);
 
-        card.getChildren().addAll(severityLabel, problemLabel, quoteLabel, suggestionLabel);
+        logger.info("Finding hat {} Vorschläge, SuggestionIndex: {}", 
+            f.getSuggestions() != null ? f.getSuggestions().size() : 0, 
+            f.getSuggestionIndex());
+
+        if (f.getSuggestions() != null && !f.getSuggestions().isEmpty()) {
+            for (int i = 0; i < f.getSuggestions().size(); i++) {
+                String suggestion = f.getSuggestions().get(i);
+                logger.info("Vorschlag {}: {}", i + 1, suggestion);
+                Text suggestionTextNode = new Text("Vorschlag " + (i + 1) + ": " + suggestion);
+                String suggestionTheme = com.manuskript.ResourceManager.getParameter("main_window_theme", "0");
+                boolean suggestionIsDarkTheme = suggestionTheme.equals("1") || suggestionTheme.equals("3");
+                String suggestionColor;
+                if (f.getSuggestionIndex() >= 0) {
+                    suggestionColor = suggestionIsDarkTheme ? "#81c784" : "#2e7d32";
+                } else {
+                    suggestionColor = suggestionIsDarkTheme ? "#90caf9" : "#1976d2";
+                }
+                String suggestionStyle = String.format("-fx-fill: %s; -fx-font-size: %dpx;", suggestionColor, editorFontSize);
+                suggestionTextNode.setStyle(suggestionStyle);
+                TextFlow suggestionFlow = new TextFlow(suggestionTextNode);
+                suggestionFlow.getStyleClass().add("finding-suggestion");
+                suggestionFlow.setMinWidth(0);
+                suggestionFlow.setMaxWidth(Double.MAX_VALUE);
+                suggestionFlow.prefWidthProperty().bind(scrollPane.widthProperty().subtract(40));
+
+                if (f.getSuggestionIndex() >= 0) {
+                    suggestionFlow.setCursor(javafx.scene.Cursor.HAND);
+                    final String finalSuggestion = suggestion;
+                    suggestionFlow.setOnMouseClicked(e -> {
+                        if (onSuggestionClicked != null && finalSuggestion != null && !finalSuggestion.isEmpty()) {
+                            Finding tempFinding = new Finding(f.getSeverity(), f.getQuote(), f.getProblem(), finalSuggestion);
+                            tempFinding.setSuggestionIndex(f.getSuggestionIndex());
+                            onSuggestionClicked.accept(tempFinding);
+                        }
+                    });
+                }
+
+                suggestionsBox.getChildren().add(suggestionFlow);
+            }
+        } else {
+            Text suggestionTextNode = new Text("Vorschlag: " + f.getSuggestion());
+            String suggestionTheme = com.manuskript.ResourceManager.getParameter("main_window_theme", "0");
+            boolean suggestionIsDarkTheme = suggestionTheme.equals("1") || suggestionTheme.equals("3");
+            String suggestionColor;
+            if (f.getSuggestionIndex() >= 0) {
+                suggestionColor = suggestionIsDarkTheme ? "#81c784" : "#2e7d32";
+            } else {
+                suggestionColor = suggestionIsDarkTheme ? "#90caf9" : "#1976d2";
+            }
+            String suggestionStyle = String.format("-fx-fill: %s; -fx-font-size: %dpx;", suggestionColor, editorFontSize);
+            suggestionTextNode.setStyle(suggestionStyle);
+            TextFlow suggestionFlow = new TextFlow(suggestionTextNode);
+            suggestionFlow.getStyleClass().add("finding-suggestion");
+            suggestionFlow.setMinWidth(0);
+            suggestionFlow.setMaxWidth(Double.MAX_VALUE);
+            suggestionFlow.prefWidthProperty().bind(scrollPane.widthProperty().subtract(40));
+
+            if (f.getSuggestionIndex() >= 0) {
+                suggestionFlow.setCursor(javafx.scene.Cursor.HAND);
+                suggestionFlow.setOnMouseClicked(e -> {
+                    if (onSuggestionClicked != null && f.getSuggestion() != null && !f.getSuggestion().isEmpty()) {
+                        onSuggestionClicked.accept(f);
+                    }
+                });
+            }
+            suggestionsBox.getChildren().add(suggestionFlow);
+        }
+
+        card.getChildren().addAll(severityLabel, problemFlow, quoteFlow, suggestionsBox);
         return card;
     }
 

@@ -112,7 +112,24 @@ public class AgentConfigManager {
                 cachedConfigs = getDefaults();
                 saveConfigs(cachedConfigs);
             } else {
+                // Modellnamen aus den Parametern aktualisieren
+                String backend = ResourceManager.getParameter("agent.backend", "Ollama");
+                logger.info("Backend aus Parametern: {}", backend);
+                for (AgentConfig config : configs) {
+                    if ("OpenAI".equals(backend)) {
+                        String model = ResourceManager.getParameter("agent.openai.model", "gpt-4o-mini");
+                        logger.info("OpenAI Modell aus Parametern: {}", model);
+                        config.setModel(model);
+                        config.setBackend("OpenAI");
+                    } else {
+                        String model = ResourceManager.getParameter("agent.ollama.model", "gemma3:4b");
+                        logger.info("Ollama Modell aus Parametern: {}", model);
+                        config.setModel(model);
+                        config.setBackend("Ollama");
+                    }
+                }
                 cachedConfigs = configs;
+                // Nicht speichern, da das Modell aus den Parametern gelesen wird
             }
         } catch (IOException e) {
             logger.error("Fehler beim Laden von agents.json: {}", e.getMessage());
@@ -131,7 +148,24 @@ public class AgentConfigManager {
             if (!Files.exists(configDir)) {
                 Files.createDirectories(configDir);
             }
-            String json = gson.toJson(configs);
+            // Modell aus den Konfigurationen entfernen, da es aus den Parametern gelesen wird
+            // Erstelle Kopien, um die ursprünglichen configs nicht zu verändern
+            List<AgentConfig> configsToSave = new ArrayList<>();
+            for (AgentConfig config : configs) {
+                AgentConfig configCopy = new AgentConfig();
+                configCopy.setId(config.getId());
+                configCopy.setName(config.getName());
+                configCopy.setBackend(config.getBackend());
+                configCopy.setSystemPrompt(config.getSystemPrompt());
+                configCopy.setDefaultPrompt(config.getDefaultPrompt());
+                configCopy.setModel(null); // Modell wird aus Parametern gelesen
+                configCopy.setTemperature(config.getTemperature());
+                configCopy.setMaxTokens(config.getMaxTokens());
+                configCopy.setTopP(config.getTopP());
+                configCopy.setRepeatPenalty(config.getRepeatPenalty());
+                configsToSave.add(configCopy);
+            }
+            String json = gson.toJson(configsToSave);
             Files.writeString(filePath, json, StandardCharsets.UTF_8);
         } catch (IOException e) {
             logger.error("Fehler beim Speichern von agents.json: {}", e.getMessage());

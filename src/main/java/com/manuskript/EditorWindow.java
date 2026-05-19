@@ -114,6 +114,19 @@ public class EditorWindow implements Initializable {
     // Statische Map für Cursor-Positionen pro Kapitel (nur Session, nicht persistent)
     private static final Map<String, Integer> chapterCursorPositions = new HashMap<>();
     
+    // Statische Referenz auf die aktuelle EditorWindow-Instanz für Parameter-Updates
+    private static EditorWindow currentInstance;
+    
+    public static EditorWindow getCurrentInstance() {
+        return currentInstance;
+    }
+    
+    public void clearAgentInstances() {
+        agentInstances.clear();
+        agentBackends.clear();
+        logger.info("Agent-Instanzen gelöscht");
+    }
+    
     // Statische Map für Scroll-Positionen (vvalue 0.0-1.0) pro Kapitel
     private static final Map<String, Double> chapterScrollPositions = new HashMap<>();
 
@@ -331,9 +344,10 @@ public class EditorWindow implements Initializable {
     private Timeline paragraphSpacingTimer;
     private String lastTextBeforeChange = "";
     private long lastDeleteActionTime = 0;
-    private static final long DELETE_GRACE_PERIOD_MS = 2000; // 2 Sekunden Pause nach Delete/Backspace
-    private static final long PARAGRAPH_SPACING_DEBOUNCE_MS = 1000; // 1 Sekunde Inaktivität
+    private static final long DELETE_GRACE_PERIOD_MS = 5000; // 5 Sekunden Pause nach Delete/Backspace
+    private static final long PARAGRAPH_SPACING_DEBOUNCE_MS = 5000; // 5 Sekunden Inaktivität, damit der Cursor beim Tippen nicht versetzt wird
     private boolean isNormalizingParagraphs = false;
+    private boolean isReplacingWithSuggestion = false; // Flag für Vorschlag-Ersatz
     private int lastChangeStart = -1;
     private int lastChangeEnd = -1;
     
@@ -698,6 +712,7 @@ public class EditorWindow implements Initializable {
     
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        currentInstance = this;
         preferences = Preferences.userNodeForPackage(EditorWindow.class);
         
         // LanguageTool Service initialisieren
@@ -998,7 +1013,7 @@ if (caret != null) {
                 updateSelectionCount();
                 
                 // Paragraph Spacing Normalizer: Track text changes
-                if (!isNormalizingParagraphs && !isUpdatingFromQuill && !newText.equals(oldText)) {
+                if (!isNormalizingParagraphs && !isUpdatingFromQuill && !isReplacingWithSuggestion && !newText.equals(oldText)) {
                     // Detect change position by comparing old and new text
                     int changePos = findFirstDifference(oldText, newText);
                     if (changePos >= 0) {
@@ -1225,7 +1240,7 @@ if (caret != null) {
      * Stellt sicher, dass zwischen normalen Absätzen genau eine Leerzeile ist
      */
     private void normalizeParagraphSpacingAround(int changeStart, int changeEnd) {
-        if (codeArea == null || isNormalizingParagraphs) return;
+        if (codeArea == null || isNormalizingParagraphs || isReplacingWithSuggestion) return;
         
         String fullText = codeArea.getText();
         if (fullText.isEmpty()) return;
@@ -1244,25 +1259,53 @@ if (caret != null) {
             isNormalizingParagraphs = true;
             
             try {
-                // Snapshot vor der Änderung
-                CodeAreaViewSnapshot snapshot = captureCodeAreaViewSnapshot();
-                
-                // Berechne neue Caret-Position relativ zum Kontext
-                int relativeCaret = codeArea.getCaretPosition() - contextStart;
-                
+                // Caret-Position VOR der Änderung erfassen.
+                // RichTextFX verschiebt den Caret beim replaceText automatisch ans Ende
+                // des ersetzten Bereichs – wir müssen also vorher messen und anschließend
+                // gezielt zurücksetzen.
+                int oldCaret = codeArea.getCaretPosition();
+                int lengthDiff = normalizedContext.length() - contextText.length();
+
+                // Drei Fälle:
+                //   1) Caret vor dem ersetzten Bereich   → unverändert
+                //   2) Caret hinter dem ersetzten Bereich → um lengthDiff verschieben
+                //   3) Caret innerhalb des Bereichs       → über Nicht-Newline-Zeichen-
+                //                                           Zählung stabil mappen
+                int newCaretPos;
+                if (oldCaret <= contextStart) {
+                    newCaretPos = oldCaret;
+                } else if (oldCaret >= contextEnd) {
+                    newCaretPos = oldCaret + lengthDiff;
+                } else {
+                    int relCaret = oldCaret - contextStart;
+                    int nonNewlineBefore = 0;
+                    for (int i = 0; i < relCaret && i < contextText.length(); i++) {
+                        if (contextText.charAt(i) != '\n') nonNewlineBefore++;
+                    }
+                    int newRel = normalizedContext.length();
+                    int seen = 0;
+                    for (int i = 0; i < normalizedContext.length(); i++) {
+                        if (seen >= nonNewlineBefore) {
+                            newRel = i;
+                            break;
+                        }
+                        if (normalizedContext.charAt(i) != '\n') seen++;
+                    }
+                    newCaretPos = contextStart + newRel;
+                }
+
                 // Ersetze den Text
                 codeArea.replaceText(contextStart, contextEnd, normalizedContext);
-                
-                // Stelle Caret-Position wieder her (angepasst an Textänderung)
-                int lengthDiff = normalizedContext.length() - contextText.length();
-                int newCaretPos = Math.max(0, Math.min(codeArea.getLength(), 
-                    codeArea.getCaretPosition() + lengthDiff));
-                codeArea.moveTo(newCaretPos);
-                
-                // Stelle Viewport wieder her
-                restoreCodeAreaViewSnapshot(snapshot, false, true);
-                
-                logger.debug("Paragraph spacing normalized around position {}", changeStart);
+
+                // Caret nur setzen, wenn er sich vom aktuellen Stand unterscheidet,
+                // damit kein unnötiger Sprung entsteht.
+                int clamped = Math.max(0, Math.min(codeArea.getLength(), newCaretPos));
+                if (clamped != codeArea.getCaretPosition()) {
+                    codeArea.moveTo(clamped);
+                }
+
+                logger.debug("Paragraph spacing normalized around position {} (caret {}→{})",
+                        changeStart, oldCaret, clamped);
             } finally {
                 isNormalizingParagraphs = false;
             }
@@ -13081,9 +13124,7 @@ spacer.setStyle("-fx-background-color: transparent;");
             }
             
             // Lektorat-ersetzte Bereiche hinzufügen
-            logger.debug("lektoratReplacedRanges Größe: {}", lektoratReplacedRanges.size());
             for (MarkdownMatch lektoratRange : lektoratReplacedRanges) {
-                logger.debug("Lektorat-Bereich: start={}, end={}, styleClass={}", lektoratRange.start, lektoratRange.end, lektoratRange.styleClass);
                 if (lektoratRange.start < content.length() && lektoratRange.end <= content.length() && lektoratRange.end > lektoratRange.start) {
                     boolean alreadyCovered = markdownMatches.stream().anyMatch(m -> 
                         (lektoratRange.start >= m.start && lektoratRange.start < m.end) || 
@@ -13091,13 +13132,9 @@ spacer.setStyle("-fx-background-color: transparent;");
                         (lektoratRange.start <= m.start && lektoratRange.end >= m.end));
                     if (!alreadyCovered) {
                         markdownMatches.add(lektoratRange);
-                        logger.debug("Lektorat-Bereich zu markdownMatches hinzugefügt");
                     } else {
-                        logger.debug("Lektorat-Bereich bereits abgedeckt");
                     }
-                } else {
-                    logger.debug("Lektorat-Bereich ungültig (außerhalb des Textes)");
-                }
+                } 
             }
             
             // Sortiere Markdown-Matches nach Position
@@ -13229,23 +13266,32 @@ spacer.setStyle("-fx-background-color: transparent;");
             }
             
             // Anwenden
-            // WICHTIG: Cursor-Position und Selektion vor setStyleSpans merken und wiederherstellen
+            // WICHTIG: Cursor-Position und Selektion vor setStyleSpans merken und wiederherstellen.
+            // Zusätzlich: setStyleSpans über den gesamten Textbereich kann in RichTextFX dazu
+            // führen, dass der VirtualFlow seine Scroll-Schätzungen neu berechnet und der
+            // Viewport kurzzeitig auf 0 springt. Wir kapseln den Vorgang daher in
+            // runWithoutScrolling(), das ungewollte Scroll-Y-Änderungen am ScrollPane sofort
+            // wieder zurückrollt.
             int caretBeforeStyling = codeArea.getCaretPosition();
             int anchorBeforeStyling = codeArea.getAnchor();
             boolean hadSelection = anchorBeforeStyling != caretBeforeStyling;
-            
+
             StyleSpans<Collection<String>> spans = spansBuilder.create();
-            codeArea.setStyleSpans(0, spans);
-            
-            // setStyleSpans kann die Cursor-Position zurücksetzen - wiederherstellen
-            if (codeArea.getCaretPosition() != caretBeforeStyling) {
-                codeArea.moveTo(caretBeforeStyling);
-            }
-            
-            // WICHTIG: Wenn vorher keine Selektion war, auch keine nach dem Styling haben
-            if (!hadSelection && codeArea.getAnchor() != codeArea.getCaretPosition()) {
-                codeArea.deselect();
-            }
+            runWithoutScrolling(() -> {
+                codeArea.setStyleSpans(0, spans);
+
+                // setStyleSpans kann die Cursor-Position zurücksetzen - wiederherstellen,
+                // ohne dabei ein requestFollowCaret-artiges Scrollen auszulösen
+                // (displaceCaret bewegt den Caret, ohne den Viewport zu verfolgen).
+                if (codeArea.getCaretPosition() != caretBeforeStyling) {
+                    codeArea.displaceCaret(caretBeforeStyling);
+                }
+
+                // WICHTIG: Wenn vorher keine Selektion war, auch keine nach dem Styling haben
+                if (!hadSelection && codeArea.getAnchor() != codeArea.getCaretPosition()) {
+                    codeArea.deselect();
+                }
+            });
             
             // WICHTIG: Aktualisiere lastStyledText, damit der Timer weiß, dass Styling angewendet wurde
             lastStyledText = content;
@@ -13920,6 +13966,12 @@ spacer.setStyle("-fx-background-color: transparent;");
 
     private void setupAgentTabCallbacks(AgentTab tab) {
         tab.setOnAnalyzeClicked(() -> runAgentAnalysis(tab));
+        
+        // Echtzeit-Status aus globalem Parameter initialisieren
+        boolean realtimeEnabled = Boolean.parseBoolean(
+            ResourceManager.getParameter("agent.realtime_enabled", "false"));
+        tab.setRealtimeEnabled(realtimeEnabled);
+        
         tab.setOnRealtimeToggled(enabled -> {
             if (enabled) {
                 triggerRealtimeCheck();
@@ -13931,6 +13983,7 @@ spacer.setStyle("-fx-background-color: transparent;");
             }
         });
         tab.setOnQuoteClicked(this::jumpToQuote);
+        tab.setOnSuggestionClicked(this::replaceWithSuggestion);
     }
 
     private PlotholeAgent getOrCreateAgentForTab(AgentTab tab) {
@@ -13953,6 +14006,9 @@ spacer.setStyle("-fx-background-color: transparent;");
                 String model = tab.getAgentConfig().getModel();
                 if (model != null && !model.trim().isEmpty()) {
                     backend.setCurrentModel(model);
+                    logger.info("Modell für Agent {} gesetzt: {}", agentId, model);
+                } else {
+                    logger.warn("Kein Modell für Agent {} in Konfiguration gefunden", agentId);
                 }
                 agentBackends.put(agentId, backend);
             } else {
@@ -14013,9 +14069,23 @@ spacer.setStyle("-fx-background-color: transparent;");
     private void ensureAgentPanelVisible(boolean visible) {
         if (mainSplitPane == null || agentTabPane == null) return;
         ObservableList<Node> items = mainSplitPane.getItems();
-        boolean hasPanel = items.contains(agentTabPane);
+        
+        // Erstelle ScrollPane für AgentTabPane, falls noch nicht vorhanden
+        ScrollPane agentScrollPane = null;
+        for (Node node : items) {
+            if (node instanceof ScrollPane && ((ScrollPane) node).getContent() == agentTabPane) {
+                agentScrollPane = (ScrollPane) node;
+                break;
+            }
+        }
+        
+        boolean hasPanel = agentScrollPane != null || items.contains(agentTabPane);
         if (visible && !hasPanel) {
-            items.add(agentTabPane);
+            // Erstelle ScrollPane für AgentTabPane
+            agentScrollPane = new ScrollPane(agentTabPane);
+            agentScrollPane.setFitToWidth(true);
+            agentScrollPane.setFitToHeight(true);
+            items.add(agentScrollPane);
             double[] current = mainSplitPane.getDividerPositions();
             if (current.length >= 2) {
                 mainSplitPane.setDividerPositions(current[0], 0.72, 0.85);
@@ -14023,7 +14093,11 @@ spacer.setStyle("-fx-background-color: transparent;");
                 mainSplitPane.setDividerPositions(current[0], 0.85);
             }
         } else if (!visible && hasPanel) {
-            items.remove(agentTabPane);
+            if (agentScrollPane != null) {
+                items.remove(agentScrollPane);
+            } else {
+                items.remove(agentTabPane);
+            }
         }
         agentPanelVisible = visible;
     }
@@ -14054,31 +14128,50 @@ spacer.setStyle("-fx-background-color: transparent;");
         
         // Alle Kapitel für Kontext laden
         String allChapters = "";
-        if (mainController != null) {
-            allChapters = mainController.loadAllChapters();
+        logger.info("Starte Laden der Kapitel für Kontext");
+        File projectDir = getProjectDirectory();
+        if (projectDir != null) {
+            java.io.File dataDir = new java.io.File(projectDir, "data");
+            if (dataDir.exists() && dataDir.isDirectory()) {
+                // Lade alle Markdown-Dateien aus dem data-Verzeichnis
+                java.io.File[] mdFiles = dataDir.listFiles((dir, name) -> name.toLowerCase().endsWith(".md"));
+                if (mdFiles != null && mdFiles.length > 0) {
+                    StringBuilder allText = new StringBuilder();
+                    for (java.io.File mdFile : mdFiles) {
+                        try {
+                            String content = java.nio.file.Files.readString(mdFile.toPath(), java.nio.charset.StandardCharsets.UTF_8);
+                            allText.append("=== ").append(mdFile.getName()).append(" ===\n");
+                            allText.append(content).append("\n\n");
+                            logger.debug("Kapitel {} geladen: {} Zeichen", mdFile.getName(), content.length());
+                        } catch (java.io.IOException e) {
+                            logger.warn("Konnte Kapitel {} nicht laden: {}", mdFile.getAbsolutePath(), e.getMessage());
+                        }
+                    }
+                    allChapters = allText.toString();
+                    logger.info("Kapitel für Kontext geladen: {} Zeichen aus {} Dateien", allChapters.length(), mdFiles.length);
+                } else {
+                    logger.warn("Keine Markdown-Dateien in data-Verzeichnis gefunden: {}", dataDir.getAbsolutePath());
+                }
+            } else {
+                logger.warn("data-Verzeichnis existiert nicht oder ist kein Verzeichnis: {}", dataDir.getAbsolutePath());
+            }
+        } else {
+            logger.warn("Projekt-Verzeichnis ist null, kann keine Kapitel laden");
         }
 
         agent.analyze(text, allChapters)
             .thenAccept(findings -> {
-                CodeAreaViewSnapshot snapshot = captureCodeAreaViewSnapshotWithoutSelection();
                 targetTab.showFindings(findings);
-                if (snapshot != null) {
-                    Platform.runLater(() -> restoreCodeAreaViewSnapshot(snapshot, false, true));
-                }
             })
             .exceptionally(ex -> {
-                CodeAreaViewSnapshot snapshot = captureCodeAreaViewSnapshotWithoutSelection();
                 targetTab.showError(ex.getMessage());
-                if (snapshot != null) {
-                    Platform.runLater(() -> restoreCodeAreaViewSnapshot(snapshot, false, true));
-                }
                 return null;
             });
     }
 
     private void triggerRealtimeCheck() {
         AgentTab activeTab = agentTabPane.getActiveTab();
-        if (activeTab == null || !activeTab.isRealtimeEnabled() || codeArea == null) return;
+        if (activeTab == null || !activeTab.isRealtimeEnabled() || codeArea == null || !agentPanelVisible) return;
 
         if (agentRealtimeTimeline != null) {
             agentRealtimeTimeline.stop();
@@ -14180,6 +14273,112 @@ spacer.setStyle("-fx-background-color: transparent;");
         if (origEnd <= origStart) origEnd = Math.min(origStart + matchLen, text.length());
 
         highlightAndScroll(origStart, origEnd);
+    }
+
+    private void replaceWithSuggestion(Finding finding) {
+        if (codeArea == null || finding == null) return;
+        
+        String suggestion = finding.getSuggestion();
+        String quote = finding.getQuote();
+        
+        if (suggestion == null || suggestion.isEmpty() || quote == null || quote.isEmpty()) return;
+
+        // Entferne Anführungszeichen aus dem Vorschlag
+        String rawSuggestion = suggestion.replaceAll("^\"|\"$", "").trim();
+
+        String text = codeArea.getText();
+        if (text == null || text.isEmpty()) return;
+
+        isReplacingWithSuggestion = true;
+
+        // Stoppe den Paragraph-Spacing-Timer, um Cursor-Verschiebungen nach dem Ersetzen zu vermeiden
+        if (paragraphSpacingTimer != null) {
+            paragraphSpacingTimer.stop();
+            paragraphSpacingTimer = null;
+        }
+
+        // Caret-Position VOR der Ersetzung sichern, damit wir sie anschließend
+        // stabil wiederherstellen können (RichTextFX würde den Caret sonst
+        // automatisch ans Ende des ersetzten Bereichs verschieben).
+        final int oldCaret = codeArea.getCaretPosition();
+
+        // Bereich der Ersetzung ermitteln
+        int rangeStart = -1;
+        int rangeEnd = -1;
+        String replacement = rawSuggestion;
+
+        int quoteIndex = text.indexOf(quote);
+        if (quoteIndex >= 0) {
+            rangeStart = quoteIndex;
+            rangeEnd = quoteIndex + quote.length();
+        } else {
+            // Fallback: Normalisierte Suche
+            NormalizedText nText = normalizeForSearch(text);
+            NormalizedText nQuote = normalizeForSearch(quote);
+            int found = nText.text.indexOf(nQuote.text);
+            if (found >= 0) {
+                int origStart = nText.origPos[found];
+                int mapEnd = Math.min(found + nQuote.text.length(), nText.origPos.length - 1);
+                int origEnd = nText.origPos[mapEnd];
+                if (origEnd <= origStart) origEnd = Math.min(origStart + quote.length(), text.length());
+                rangeStart = origStart;
+                rangeEnd = origEnd;
+            } else if (finding.getSuggestionIndex() >= 0 && finding.getSuggestionIndex() < text.length()) {
+                // Letzter Fallback: reine Einfügung an Index
+                rangeStart = finding.getSuggestionIndex();
+                rangeEnd = finding.getSuggestionIndex();
+            }
+        }
+
+        if (rangeStart < 0) {
+            // Nichts gefunden – Flag zurücksetzen und raus
+            Platform.runLater(() -> isReplacingWithSuggestion = false);
+            return;
+        }
+
+        // Drei Fälle für die Caret-Wiederherstellung (analog Paragraph-Normalizer):
+        //   1) Caret vor dem ersetzten Bereich   → unverändert
+        //   2) Caret hinter dem ersetzten Bereich → um lengthDiff verschieben
+        //   3) Caret innerhalb des ersetzten Bereichs → an den Anfang der
+        //      Ersetzung setzen (oder verhältnismäßig mappen)
+        int lengthDiff = replacement.length() - (rangeEnd - rangeStart);
+        int newCaret;
+        if (oldCaret <= rangeStart) {
+            newCaret = oldCaret;
+        } else if (oldCaret >= rangeEnd) {
+            newCaret = oldCaret + lengthDiff;
+        } else {
+            // Caret war innerhalb des Zitats – relativ proportional auf den
+            // neuen Bereich abbilden, damit er ungefähr an der gleichen Stelle
+            // im Satz bleibt.
+            int oldRangeLen = Math.max(1, rangeEnd - rangeStart);
+            double rel = (oldCaret - rangeStart) / (double) oldRangeLen;
+            newCaret = rangeStart + (int) Math.round(rel * replacement.length());
+        }
+
+        // Ersetzung durchführen
+        codeArea.replaceText(rangeStart, rangeEnd, replacement);
+
+        // Caret stabil zurücksetzen – nur wenn nötig
+        final int clamped = Math.max(0, Math.min(codeArea.getLength(), newCaret));
+        if (clamped != codeArea.getCaretPosition()) {
+            codeArea.moveTo(clamped);
+        }
+
+        // Falls andere Listener (Styling/Quill-Sync) den Caret noch einmal anfassen,
+        // setzen wir ihn im nächsten Pulse zur Sicherheit erneut auf die gewünschte
+        // Position.
+        Platform.runLater(() -> {
+            if (codeArea.getCaretPosition() != clamped) {
+                codeArea.moveTo(clamped);
+            }
+        });
+
+        // Flag nach kurzer Verzögerung zurücksetzen, damit Text-Change-Listener nicht ausgelöst wird
+        Platform.runLater(() -> {
+            isReplacingWithSuggestion = false;
+        });
+
     }
 
     private void highlightAndScroll(int start, int end) {
@@ -14310,7 +14509,6 @@ spacer.setStyle("-fx-background-color: transparent;");
                 applyThemeToNode(btn, currentThemeIndex);
                 final String repl = suggestion;
                 btn.setOnAction(e -> {
-                    logger.debug("Lektorat-Button geklickt: match={}, replacement={}", match, repl);
                     applyLektoratSuggestion(match, repl);
                 });
                 content.getChildren().add(btn);
@@ -21859,50 +22057,39 @@ spacer.setStyle("-fx-background-color: transparent;");
         String text = codeArea.getText();
         if (text == null || text.isEmpty()) return;
         
-        String[] lines = text.split("\n", -1);
-        StringBuilder newText = new StringBuilder();
-        boolean textChanged = false;
-        
-        for (int i = 0; i < lines.length; i++) {
-            String line = lines[i];
-            
-            // Leerzeile erkannt (nur Whitespace oder komplett leer)
-            if (line.trim().isEmpty() && !line.contains("¶")) {
-                // Füge unsichtbares Absatz-Symbol hinzu
-                newText.append("¶");
-                textChanged = true;
-            } else {
-                newText.append(line);
-            }
-            
-            // Zeilenumbruch hinzufügen (außer bei der letzten Zeile)
-            if (i < lines.length - 1) {
-                newText.append("\n");
+        // Sammle alle Positionen, an denen ein ¶ eingefügt werden muss (Anfang einer Leerzeile).
+        // WICHTIG: Wir fügen NUR ein – kein vollständiges replaceText – damit RichTextFX die
+        // Caret-Position automatisch korrekt mitführt und der Cursor unter keinen Umständen
+        // versetzt wird.
+        java.util.List<Integer> insertPositions = new java.util.ArrayList<>();
+        int lineStart = 0;
+        int len = text.length();
+        for (int i = 0; i <= len; i++) {
+            if (i == len || text.charAt(i) == '\n') {
+                String line = text.substring(lineStart, i);
+                if (line.trim().isEmpty() && !line.contains("¶")) {
+                    insertPositions.add(lineStart);
+                }
+                lineStart = i + 1;
             }
         }
         
-        // Text nur aktualisieren, wenn sich etwas geändert hat
-        if (textChanged && !newText.toString().equals(text)) {
-            // Flag setzen, um rekursive Aufrufe zu verhindern
-            isMarkingEmptyLines = true;
-            
-            try {
-                // Cursor-Position merken
-                int caretPosition = codeArea.getCaretPosition();
-                
-                // Text aktualisieren - verwende replaceText mit Positionen, um Undo-Historie zu erhalten
-                runWithoutScrolling(() -> {
-                    codeArea.replaceText(0, text.length(), newText.toString());
-                });
-                
-                // Cursor-Position wiederherstellen
-                if (caretPosition <= newText.length()) {
-                    codeArea.moveTo(caretPosition);
+        if (insertPositions.isEmpty()) return;
+        
+        // Flag setzen, um rekursive Aufrufe zu verhindern
+        isMarkingEmptyLines = true;
+        try {
+            // In umgekehrter Reihenfolge einfügen, damit frühere Positionen gültig bleiben.
+            // RichTextFX verschiebt die Caret-Position automatisch um +1, wenn vor dem Caret
+            // eingefügt wird – die effektive Cursor-Stelle bleibt damit unverändert.
+            runWithoutScrolling(() -> {
+                for (int idx = insertPositions.size() - 1; idx >= 0; idx--) {
+                    int pos = insertPositions.get(idx);
+                    codeArea.insertText(pos, "¶");
                 }
-            } finally {
-                // Flag zurücksetzen
-                isMarkingEmptyLines = false;
-            }
+            });
+        } finally {
+            isMarkingEmptyLines = false;
         }
     }
     
