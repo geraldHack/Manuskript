@@ -1298,7 +1298,8 @@ if (caret != null) {
                 codeArea.replaceText(contextStart, contextEnd, normalizedContext);
 
                 // Caret nur setzen, wenn er sich vom aktuellen Stand unterscheidet,
-                // damit kein unnötiger Sprung entsteht.
+                // damit kein unnötiger Sprung entsteht.  
+                    
                 int clamped = Math.max(0, Math.min(codeArea.getLength(), newCaretPos));
                 if (clamped != codeArea.getCaretPosition()) {
                     codeArea.moveTo(clamped);

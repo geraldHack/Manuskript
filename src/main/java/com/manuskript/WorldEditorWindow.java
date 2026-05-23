@@ -71,13 +71,25 @@ public class WorldEditorWindow {
     private void initBackend() {
         String backendType = ResourceManager.getParameter("agent.backend", "Ollama");
         logger.info("Backend-Typ: {}", backendType);
+        String model;
         if ("OpenAI".equals(backendType)) {
             aiBackend = new OpenAIBackend();
+            model = ResourceManager.getParameter("agent.openai.model", "gpt-4o-mini");
             logger.info("OpenAI-Backend initialisiert");
         } else {
             aiBackend = new OllamaBackend(new OllamaService());
+            model = ResourceManager.getParameter("agent.ollama.model", "gemma3:4b");
             logger.info("Ollama-Backend initialisiert");
         }
+        if (model != null && !model.trim().isEmpty()) {
+            aiBackend.setCurrentModel(model);
+            logger.info("Modell aus Parametern gesetzt: {}", model);
+        } else {
+            logger.warn("Kein Modell in Parametern gefunden für Backend {}", backendType);
+        }
+        double temperature = ResourceManager.getDoubleParameter("ollama.temperature", 0.3);
+        aiBackend.setTemperature(temperature);
+        logger.info("Temperature aus Parametern gesetzt: {}", temperature);
         logger.info("Backend ist null: {}", aiBackend == null);
     }
 
@@ -88,8 +100,15 @@ public class WorldEditorWindow {
         }
         stage.setMinWidth(900);
         stage.setMinHeight(600);
-        stage.setWidth(900);
-        stage.setHeight(600);
+
+        // Fenstergröße und -position persistieren (analog zum TTS-Editor)
+        java.util.prefs.Preferences worldPrefs =
+                java.util.prefs.Preferences.userNodeForPackage(WorldEditorWindow.class);
+        javafx.geometry.Rectangle2D windowBounds =
+                PreferencesManager.MultiMonitorValidator.loadAndValidateWindowProperties(
+                        worldPrefs, "world_editor_window", 900.0, 600.0);
+        PreferencesManager.MultiMonitorValidator.applyWindowProperties(stage, windowBounds);
+        setupWorldEditorWindowPersistence(worldPrefs);
 
         int theme = java.util.prefs.Preferences.userNodeForPackage(MainController.class).getInt("main_window_theme", 0);
 
@@ -127,6 +146,33 @@ public class WorldEditorWindow {
         // Window-Handler: Speichern beim Schließen
         stage.setOnCloseRequest(e -> {
             saveAllFiles();
+        });
+    }
+
+    /**
+     * Speichert Position und Größe des Welt-Editors in den Preferences und stellt Listener ein.
+     */
+    private void setupWorldEditorWindowPersistence(java.util.prefs.Preferences prefs) {
+        if (prefs == null || stage == null) return;
+        stage.xProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null && !newVal.equals(oldVal)) {
+                PreferencesManager.putWindowPosition(prefs, "world_editor_window_x", newVal.doubleValue());
+            }
+        });
+        stage.yProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null && !newVal.equals(oldVal)) {
+                PreferencesManager.putWindowPosition(prefs, "world_editor_window_y", newVal.doubleValue());
+            }
+        });
+        stage.widthProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null && !newVal.equals(oldVal)) {
+                PreferencesManager.putWindowWidth(prefs, "world_editor_window_width", newVal.doubleValue());
+            }
+        });
+        stage.heightProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null && !newVal.equals(oldVal)) {
+                PreferencesManager.putWindowHeight(prefs, "world_editor_window_height", newVal.doubleValue());
+            }
         });
     }
 

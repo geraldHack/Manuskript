@@ -30,7 +30,7 @@ import java.util.function.Consumer;
 public class OllamaService {
     private static final Logger logger = LoggerFactory.getLogger(OllamaService.class);
     
-    private static final String OLLAMA_BASE_URL = "http://localhost:11434";
+    private String baseUrl = "http://localhost:11434";
     private static final String GENERATE_ENDPOINT = "/api/generate";
     private static final String CHAT_ENDPOINT = "/api/chat";
     private static final String MODELS_ENDPOINT = "/api/tags";
@@ -151,6 +151,8 @@ public class OllamaService {
                 .followRedirects(HttpClient.Redirect.NORMAL)
                 .build();
         
+        // URL aus Parametern laden
+        this.baseUrl = ResourceManager.getParameter("agent.ollama.api_url", "http://localhost:11434");
         // Parameter aus der properties-Datei laden und in Instanzvariablen speichern
         loadParametersFromProperties();
     }
@@ -175,6 +177,14 @@ public class OllamaService {
         this.httpConnectTimeoutSeconds = Math.max(1, connectTimeout);
         this.httpRequestTimeoutSeconds = Math.max(1, requestTimeout);
         
+    }
+
+    public void setBaseUrl(String url) {
+        this.baseUrl = url;
+    }
+
+    public String getBaseUrl() {
+        return baseUrl;
     }
     
     /**
@@ -679,7 +689,7 @@ public class OllamaService {
         StreamHandle handle = new StreamHandle();
         try {
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(OLLAMA_BASE_URL + GENERATE_ENDPOINT))
+                    .uri(URI.create(baseUrl + GENERATE_ENDPOINT))
                     .header("Content-Type", "application/json")
                     .POST(HttpRequest.BodyPublishers.ofString(json))
                     .timeout(Duration.ofSeconds(httpRequestTimeoutSeconds))
@@ -1117,7 +1127,7 @@ public class OllamaService {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 HttpRequest request = HttpRequest.newBuilder()
-                        .uri(URI.create(OLLAMA_BASE_URL + endpoint))
+                        .uri(URI.create(baseUrl + endpoint))
                         .GET()
                         .timeout(Duration.ofSeconds(httpRequestTimeoutSeconds))
                         .build();
@@ -1143,7 +1153,7 @@ public class OllamaService {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 HttpRequest request = HttpRequest.newBuilder()
-                        .uri(URI.create(OLLAMA_BASE_URL + endpoint))
+                        .uri(URI.create(baseUrl + endpoint))
                         .header("Content-Type", "application/json")
                         .POST(HttpRequest.BodyPublishers.ofString(requestBody))
                         .timeout(Duration.ofSeconds(httpRequestTimeoutSeconds))
@@ -1894,7 +1904,7 @@ public class OllamaService {
         StreamHandle handle = new StreamHandle();
         try {
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(OLLAMA_BASE_URL + CHAT_ENDPOINT))
+                    .uri(URI.create(baseUrl + CHAT_ENDPOINT))
                     .header("Content-Type", "application/json")
                     .POST(HttpRequest.BodyPublishers.ofString(json))
                     .timeout(Duration.ofSeconds(httpRequestTimeoutSeconds))
@@ -1986,7 +1996,7 @@ public class OllamaService {
         StreamHandle handle = new StreamHandle();
         try {
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(OLLAMA_BASE_URL + CHAT_ENDPOINT))
+                    .uri(URI.create(baseUrl + CHAT_ENDPOINT))
                     .header("Content-Type", "application/json")
                     .POST(HttpRequest.BodyPublishers.ofString(json))
                     .timeout(Duration.ofSeconds(httpRequestTimeoutSeconds))

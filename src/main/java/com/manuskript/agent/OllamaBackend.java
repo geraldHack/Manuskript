@@ -52,6 +52,11 @@ public class OllamaBackend implements AIBackend {
     }
 
     @Override
+    public void setTemperature(double temperature) {
+        ollamaService.setTemperature(temperature);
+    }
+
+    @Override
     public CompletableFuture<String> chat(String systemPrompt, String userMessage, int maxTokens) {
         // Erzwinge neue Session für jede Analyse, um Kontext-Übertragung zu verhindern
         String uniqueSessionId = "agent-" + UUID.randomUUID().toString();

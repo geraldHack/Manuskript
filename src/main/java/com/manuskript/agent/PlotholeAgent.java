@@ -93,8 +93,17 @@ public class PlotholeAgent {
         }
         userMessage.append("=== MANUSKRIPT BEGINN ===\n");
         userMessage.append(currentChapterText);
-        userMessage.append("\n=== MANUSKRIPT ENDE ===\n");
-        userMessage.append("Analysiere das Manuskript gemäß den Systemregeln.");
+        userMessage.append("\n=== MANUSKRIPT ENDE ===\n\n");
+        userMessage.append("ANALYSE-SCOPE (zwingend einzuhalten):\n");
+        userMessage.append("- Erstelle Problemblöcke AUSSCHLIESSLICH für Probleme, die im Abschnitt zwischen ")
+                .append("\"=== MANUSKRIPT BEGINN ===\" und \"=== MANUSKRIPT ENDE ===\" stehen.\n");
+        userMessage.append("- Der Inhalt zwischen \"=== ALLE KAPITEL (KONTEXT) ===\" und ")
+                .append("\"=== ALLE KAPITEL ENDE ===\" dient NUR als Kontext. ")
+                .append("Erstelle für diesen Bereich KEINE Problemblöcke, auch wenn dort Probleme enthalten sind.\n");
+        userMessage.append("- Du darfst andere Kapitel im Feld PROBLEM referenzieren (z.B. ")
+                .append("\"widerspricht Kapitel 7\"), aber das Feld ZITAT MUSS wörtlich aus dem MANUSKRIPT-Abschnitt stammen.\n");
+        userMessage.append("- Findest du im MANUSKRIPT keine Probleme, antworte ausschließlich mit KEINE_PROBLEME.\n\n");
+        userMessage.append("Analysiere jetzt das MANUSKRIPT gemäß den Systemregeln.");
 
         return backend.chat(systemPrompt, userMessage.toString(), 8192)
                 .thenApply(this::parseResponse);

@@ -29,6 +29,7 @@ public class OpenAIBackend implements AIBackend {
     private final HttpClient httpClient;
     private final Gson gson;
     private String currentModel;
+    private double temperature = 0.3;
 
     public OpenAIBackend() {
         this.httpClient = HttpClient.newBuilder()
@@ -59,6 +60,11 @@ public class OpenAIBackend implements AIBackend {
     }
 
     @Override
+    public void setTemperature(double temperature) {
+        this.temperature = temperature;
+    }
+
+    @Override
     public CompletableFuture<String> chat(String systemPrompt, String userMessage, int maxTokens) {
         return CompletableFuture.supplyAsync(() -> {
             try {
@@ -76,7 +82,7 @@ public class OpenAIBackend implements AIBackend {
                 JsonObject body = new JsonObject();
                 body.addProperty("model", currentModel);
                 body.addProperty("max_tokens", maxTokens);
-                body.addProperty("temperature", 0.3);
+                body.addProperty("temperature", temperature);
 
                 JsonArray messages = new JsonArray();
 

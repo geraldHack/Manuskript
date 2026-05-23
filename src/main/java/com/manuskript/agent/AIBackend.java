@@ -13,4 +13,5 @@ public interface AIBackend {
     void setCurrentModel(String model);
 
     CompletableFuture<String> chat(String systemPrompt, String userMessage, int maxTokens);
+    void setTemperature(double temperature);
 }
