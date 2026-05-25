@@ -273,6 +273,14 @@ public class EditorWindow implements Initializable {
     private final java.util.Map<String, AIBackend> agentBackends = new java.util.HashMap<>();
     private Timeline agentRealtimeTimeline;
     private boolean agentPanelVisible = false;
+    private boolean onlineLektoratMode = false; // Flag für Online-Lektorat-Modus
+    
+    /**
+     * Setzt den Online-Lektorat-Modus (muss vor setupAgentSystem() aufgerufen werden)
+     */
+    public void setOnlineLektoratMode(boolean enabled) {
+        this.onlineLektoratMode = enabled;
+    }
 
     // Online-Lektorat
     private final List<LektoratMatch> currentLektoratMatches = new ArrayList<>();
@@ -389,6 +397,7 @@ public class EditorWindow implements Initializable {
     private boolean isScrolling = false; // Flag, um zu prüfen, ob der Benutzer gerade scrollt
     private boolean isNavigatingWithCursor = false; // Flag, um zu prüfen, ob der Benutzer gerade mit Cursortasten navigiert
     private Timeline cursorNavigationDebounceTimer = null; // Debounce-Timer für Cursor-Navigation
+    private boolean justOpened = true; // Flag, um Styling kurz nach dem Öffnen zu pausieren
     
     /** Anweisungstext API-Rewrite: Sitzung (pro Fenster) */
     private String lastInstructionSpeech = null;
@@ -571,11 +580,39 @@ public class EditorWindow implements Initializable {
             action.run();
             return;
         }
+        
+        // Scroll-Position vor der Aktion speichern
+        double tempScrollY = 0.0;
+        try {
+            java.lang.reflect.Method method = codeArea.getClass().getMethod("getEstimatedScrollY");
+            Object result = method.invoke(codeArea);
+            if (result instanceof Double) {
+                tempScrollY = (Double) result;
+            }
+        } catch (Exception e) {
+            logger.debug("getEstimatedScrollY nicht verfügbar: {}", e.getMessage());
+        }
+        final double estimatedScrollYBefore = tempScrollY;
+        
+        // Auch die estimatedScrollYProperty des ScrollPane speichern
+        final double scrollPaneEstimatedYBefore = scrollPane.estimatedScrollYProperty().getValue();
+        
         suppressScroll = true;
         try {
             action.run();
         } finally {
             suppressScroll = false;
+            
+            // Scroll-Position nach der Aktion wiederherstellen
+            Platform.runLater(() -> {
+                // Zuerst versuchen, estimatedScrollY wiederherzustellen
+                if (estimatedScrollYBefore > 0) {
+                    setScrollOffset(estimatedScrollYBefore);
+                }
+                
+                // Dann auch die estimatedScrollYProperty des ScrollPane wiederherstellen
+                scrollPane.estimatedScrollYProperty().setValue(scrollPaneEstimatedYBefore);
+            });
         }
     }
 
@@ -896,11 +933,12 @@ public class EditorWindow implements Initializable {
         // WICHTIG: Timer als Instanzvariable speichern, damit er während des Tippens pausiert werden kann
         // WICHTIG: Nur aufrufen, wenn sich der Text nicht geändert hat, um Viewport-Sprünge zu vermeiden
         lastStyledText = codeArea.getText();
-        stylingTimer = new Timeline(new KeyFrame(Duration.seconds(1), event -> {
+        stylingTimer = new Timeline(new KeyFrame(Duration.seconds(10), event -> {
             Platform.runLater(() -> {
                 // WICHTIG: Überspringe Styling komplett, wenn der Benutzer gerade scrollt oder mit Cursortasten navigiert
                 // Oder wenn sich der Text geändert hat (dann wird Styling später durch Text-Change-Listener aufgerufen)
-                if (isScrolling || isNavigatingWithCursor) {
+                // Oder wenn das Kapitel gerade geöffnet wurde (um Cursor-Sprünge zu vermeiden)
+                if (isScrolling || isNavigatingWithCursor || justOpened) {
                     return;
                 }
                 
@@ -922,6 +960,12 @@ public class EditorWindow implements Initializable {
         stylingTimer.setCycleCount(Timeline.INDEFINITE);
         stylingTimer.play();
         
+        // Timer zum Zurücksetzen des justOpened Flags nach 3 Sekunden
+        Timeline justOpenedTimer = new Timeline(new KeyFrame(Duration.seconds(3), event -> {
+            justOpened = false;
+        }));
+        justOpenedTimer.play();
+
 
         
         // CSS-Dateien für CodeArea laden
@@ -1012,19 +1056,8 @@ if (caret != null) {
             codeArea.textProperty().addListener((obs, oldText, newText) -> {
                 updateSelectionCount();
                 
-                // Paragraph Spacing Normalizer: Track text changes
-                if (!isNormalizingParagraphs && !isUpdatingFromQuill && !isReplacingWithSuggestion && !newText.equals(oldText)) {
-                    // Detect change position by comparing old and new text
-                    int changePos = findFirstDifference(oldText, newText);
-                    if (changePos >= 0) {
-                        lastChangeStart = changePos;
-                        lastChangeEnd = Math.max(oldText.length(), newText.length());
-                        lastTextBeforeChange = oldText;
-                        
-                        // Start or restart the debounce timer
-                        startParagraphSpacingTimer();
-                    }
-                }
+                // Paragraph Spacing Normalizer: Läuft NUR beim Speichern (normalizeAllParagraphSpacing()),
+                // um Viewport-Sprünge und ungewollte Caret-Verschiebungen nach Enter zu vermeiden.
                 
                 // Prüfe, ob Text sich geändert hat
                 if (!newText.equals(oldText)) {
@@ -1294,19 +1327,23 @@ if (caret != null) {
                     newCaretPos = contextStart + newRel;
                 }
 
-                // Ersetze den Text
-                codeArea.replaceText(contextStart, contextEnd, normalizedContext);
-
-                // Caret nur setzen, wenn er sich vom aktuellen Stand unterscheidet,
-                // damit kein unnötiger Sprung entsteht.  
-                    
-                int clamped = Math.max(0, Math.min(codeArea.getLength(), newCaretPos));
-                if (clamped != codeArea.getCaretPosition()) {
-                    codeArea.moveTo(clamped);
-                }
-
-                logger.debug("Paragraph spacing normalized around position {} (caret {}→{})",
-                        changeStart, oldCaret, clamped);
+                // WICHTIG: Ersetzen + Caret-Set in runWithoutScrolling kapseln,
+                // damit der Viewport nicht springt (5-Sekunden-Debounce nach Tippen)
+                final int contextStartF = contextStart;
+                final int contextEndF = contextEnd;
+                final String normalizedContextF = normalizedContext;
+                final int newCaretPosF = newCaretPos;
+                final int oldCaretF = oldCaret;
+                final int changeStartF = changeStart;
+                runWithoutScrolling(() -> {
+                    codeArea.replaceText(contextStartF, contextEndF, normalizedContextF);
+                    int clamped = Math.max(0, Math.min(codeArea.getLength(), newCaretPosF));
+                    if (clamped != codeArea.getCaretPosition()) {
+                        codeArea.displaceCaret(clamped);
+                    }
+                    logger.debug("Paragraph spacing normalized around position {} (caret {}→{})",
+                            changeStartF, oldCaretF, clamped);
+                });
             } finally {
                 isNormalizingParagraphs = false;
             }
@@ -1400,6 +1437,29 @@ if (caret != null) {
         }
         
         return result.toString();
+    }
+    
+    /**
+     * Normalisiert die Leerzeilen im gesamten Text. Wird beim Speichern aufgerufen.
+     */
+    private void normalizeAllParagraphSpacing() {
+        if (codeArea == null || isNormalizingParagraphs) return;
+        String fullText = codeArea.getText();
+        if (fullText == null || fullText.isEmpty()) return;
+        String normalized = normalizeParagraphSpacingInText(fullText);
+        if (!fullText.equals(normalized)) {
+            isNormalizingParagraphs = true;
+            try {
+                final int caret = codeArea.getCaretPosition();
+                runWithoutScrolling(() -> {
+                    codeArea.replaceText(0, codeArea.getLength(), normalized);
+                    int clamped = Math.max(0, Math.min(codeArea.getLength(), caret));
+                    codeArea.displaceCaret(clamped);
+                });
+            } finally {
+                isNormalizingParagraphs = false;
+            }
+        }
     }
     
     /**
@@ -6072,6 +6132,9 @@ if (caret != null) {
     
     // Datei-Operationen
     public void saveFile() {
+        // Vor dem Speichern: Leerzeilen im gesamten Text normalisieren
+        normalizeAllParagraphSpacing();
+        
         // Prüfe ob englische Anführungszeichen für KI-Assistent aktiv sind
         boolean aiQuotesActive = (cmbQuoteStyle != null && cmbQuoteStyle.isDisabled() && currentQuoteStyleIndex == 2);
         boolean wasConverted = false;
@@ -13273,9 +13336,20 @@ spacer.setStyle("-fx-background-color: transparent;");
             // Viewport kurzzeitig auf 0 springt. Wir kapseln den Vorgang daher in
             // runWithoutScrolling(), das ungewollte Scroll-Y-Änderungen am ScrollPane sofort
             // wieder zurückrollt.
-            int caretBeforeStyling = codeArea.getCaretPosition();
-            int anchorBeforeStyling = codeArea.getAnchor();
-            boolean hadSelection = anchorBeforeStyling != caretBeforeStyling;
+            final int caretBeforeStyling = codeArea.getCaretPosition();
+            final int anchorBeforeStyling = codeArea.getAnchor();
+            final boolean hadSelection = anchorBeforeStyling != caretBeforeStyling;
+            
+            // WICHTIG: Zeilennummern-Factory vor dem Styling speichern und danach wiederherstellen
+            // um zu verhindern, dass setStyleSpans die Zeilennummern neu berechnet
+            Object tempFactory = null;
+            try {
+                java.lang.reflect.Method method = codeArea.getClass().getMethod("getParagraphGraphicFactory");
+                tempFactory = method.invoke(codeArea);
+            } catch (Exception e) {
+                logger.debug("getParagraphGraphicFactory nicht verfügbar: {}", e.getMessage());
+            }
+            final Object paragraphGraphicFactoryBefore = tempFactory;
 
             StyleSpans<Collection<String>> spans = spansBuilder.create();
             runWithoutScrolling(() -> {
@@ -13291,6 +13365,16 @@ spacer.setStyle("-fx-background-color: transparent;");
                 // WICHTIG: Wenn vorher keine Selektion war, auch keine nach dem Styling haben
                 if (!hadSelection && codeArea.getAnchor() != codeArea.getCaretPosition()) {
                     codeArea.deselect();
+                }
+                
+                // WICHTIG: Zeilennummern-Factory wiederherstellen, um Neu-Berechnung zu verhindern
+                if (paragraphGraphicFactoryBefore != null) {
+                    try {
+                        java.lang.reflect.Method method = codeArea.getClass().getMethod("setParagraphGraphicFactory", Object.class);
+                        method.invoke(codeArea, paragraphGraphicFactoryBefore);
+                    } catch (Exception e) {
+                        logger.debug("setParagraphGraphicFactory nicht verfügbar: {}", e.getMessage());
+                    }
                 }
             });
             
@@ -13320,11 +13404,8 @@ spacer.setStyle("-fx-background-color: transparent;");
      */
     private void checkLanguageToolErrorsDebounced() {
         if (!languageToolEnabled || codeArea == null) {
-            logger.debug("checkLanguageToolErrorsDebounced: LanguageTool deaktiviert oder CodeArea null");
             return;
         }
-        
-        logger.debug("checkLanguageToolErrorsDebounced: Starte debounced Prüfung");
         
         // Stoppe vorherige Timeline
         if (languageToolCheckTimeline != null) {
@@ -13333,7 +13414,6 @@ spacer.setStyle("-fx-background-color: transparent;");
         
         // Starte neue Timeline mit 500ms Verzögerung
         languageToolCheckTimeline = new Timeline(new KeyFrame(Duration.millis(500), event -> {
-            logger.debug("checkLanguageToolErrorsDebounced: Verzögerung abgelaufen, rufe checkLanguageToolErrors() auf");
             checkLanguageToolErrors();
             languageToolCheckTimeline = null;
         }));
@@ -13345,7 +13425,6 @@ spacer.setStyle("-fx-background-color: transparent;");
      * Wird aufgerufen, wenn ein neues Kapitel geladen wird, um Race Conditions zu vermeiden
      */
     private void cancelLanguageToolChecks() {
-        logger.debug("cancelLanguageToolChecks: Breche alle laufenden LanguageTool-Checks ab");
         
         // Stoppe die Debounce-Timeline
         if (languageToolCheckTimeline != null) {
@@ -13370,20 +13449,15 @@ spacer.setStyle("-fx-background-color: transparent;");
      */
     private void checkLanguageToolErrors() {
         if (!languageToolEnabled || codeArea == null || languageToolService == null) {
-            logger.debug("checkLanguageToolErrors: Prüfung übersprungen - enabled=" + languageToolEnabled + 
-                        ", codeArea=" + (codeArea != null) + ", service=" + (languageToolService != null));
             return;
         }
         
         String text = codeArea.getText();
         if (text == null || text.trim().isEmpty()) {
-            logger.debug("checkLanguageToolErrors: Text ist leer, lösche Matches");
             currentLanguageToolMatches.clear();
             applyCombinedStyling();
             return;
         }
-        
-        logger.debug("checkLanguageToolErrors: Starte Prüfung für Text der Länge " + text.length());
         
         // WICHTIG: Speichere den aktuellen Text, um später zu prüfen, ob er sich geändert hat
         final String textAtStart = text;
@@ -13407,13 +13481,11 @@ spacer.setStyle("-fx-background-color: transparent;");
                     // Wenn ja, ignoriere die Ergebnisse, da sie für einen anderen Text sind
                     String currentTextAtCheck = codeArea != null ? codeArea.getText() : "";
                     if (!textAtStart.equals(currentTextAtCheck)) {
-                        logger.debug("checkLanguageToolErrors: Text hat sich während der Prüfung geändert - ignoriere Ergebnisse und starte neue Prüfung");
                         // Starte eine neue Prüfung mit dem aktuellen Text
                         checkLanguageToolErrorsDebounced();
                         return;
                     }
                     
-                    logger.debug("checkLanguageToolErrors: Ergebnis erhalten mit " + result.getMatches().size() + " Matches");
                     // Filtere Matches mit Wörtern aus dem Wörterbuch
                     String editorText = codeArea != null ? codeArea.getText() : "";
                     List<LanguageToolService.Match> allMatches = result.getMatches();
@@ -13426,7 +13498,6 @@ spacer.setStyle("-fx-background-color: transparent;");
                             int end = start + match.getLength();
                             // Stelle sicher, dass die Positionen innerhalb des Textes liegen
                             if (start < 0 || end > editorText.length() || start >= end) {
-                                logger.debug("Entferne Match mit ungültiger Position: start=" + start + ", end=" + end + ", textLength=" + editorText.length());
                                 return false;
                             }
                             return true;
@@ -13469,7 +13540,6 @@ spacer.setStyle("-fx-background-color: transparent;");
                                     
                                     // Wenn es genau 2 Guillemets am Ende gibt (öffnend + schließend), ignoriere beide Fehler
                                     if (guillemetCount == 2) {
-                                        logger.debug("Ignoriere Guillemet-Fehler am Textende (beide Anführungszeichen des letzten Satzes): " + match.getMessage());
                                         return false;
                                     }
                                 }
@@ -13483,10 +13553,7 @@ spacer.setStyle("-fx-background-color: transparent;");
                         currentLanguageToolMatches = new ArrayList<>(filteredMatches);
                     }
                     
-                    logger.debug("checkLanguageToolErrors: Nach Filterung " + currentLanguageToolMatches.size() + " Matches");
                     if (!currentLanguageToolMatches.isEmpty()) {
-                        logger.debug("checkLanguageToolErrors: Erste Match-Position: " + currentLanguageToolMatches.get(0).getOffset() + ", Länge: " + currentLanguageToolMatches.get(0).getLength());
-                        logger.debug("checkLanguageToolErrors: Text-Länge: " + editorText.length());
                     }
                     
                     // WICHTIG: Styling explizit aktualisieren, um Markierungen anzuzeigen
@@ -13501,17 +13568,14 @@ spacer.setStyle("-fx-background-color: transparent;");
                             updateStatus("LanguageTool: " + currentErrorCount + " Fehler gefunden");
                             lastLanguageToolErrorCount = currentErrorCount;
                         }
-                        logger.debug("checkLanguageToolErrors: Styling aktualisiert, " + currentLanguageToolMatches.size() + " Matches sollten sichtbar sein");
                     } else {
                         if (lastLanguageToolErrorCount != 0) {
                             updateStatus("LanguageTool: Keine Fehler gefunden");
                             lastLanguageToolErrorCount = 0;
                         }
-                        logger.debug("checkLanguageToolErrors: Keine Fehler mehr gefunden");
                     }
                 });
             } else {
-                logger.debug("checkLanguageToolErrors: Ergebnis ist null");
             }
         }).exceptionally(e -> {
             logger.error("Fehler bei LanguageTool-Prüfung", e);
@@ -13647,7 +13711,19 @@ spacer.setStyle("-fx-background-color: transparent;");
      */
     public void startOnlineLektorat(boolean enableAssessment) {
         this.enableChapterAssessment = enableAssessment;
+        this.onlineLektoratMode = true; // Online-Lektorat-Modus aktivieren
         logger.info("startOnlineLektorat aufgerufen, codeArea={}, enableAssessment={}", codeArea != null, enableAssessment);
+        
+        // Agenten-Panel beim Online-Lektorat immer verstecken (auch wenn es bereits sichtbar ist)
+        Platform.runLater(() -> {
+            ensureAgentPanelVisible(false);
+            // Auch agentTabPane entfernen, falls es direkt im SplitPane ist
+            if (mainSplitPane != null && agentTabPane != null) {
+                ObservableList<Node> items = mainSplitPane.getItems();
+                items.removeIf(node -> node == agentTabPane || (node instanceof ScrollPane && ((ScrollPane) node).getContent() == agentTabPane));
+            }
+        });
+        
         if (codeArea == null) {
             logger.warn("startOnlineLektorat: codeArea ist null – Abbruch");
             Platform.runLater(() -> {
@@ -13664,7 +13740,7 @@ spacer.setStyle("-fx-background-color: transparent;");
             alert.showAndWait();
             return;
         }
-        // Verhindern, dass „Bereit“ oder LanguageTool den Status überschreiben; geplanten Clear abbrechen
+        // Verhindern, dass „Bereit" oder LanguageTool den Status überschreiben; geplanten Clear abbrechen
         scheduleStatusClear(0, true);
         onlineLektoratInProgress = true;
         if (lblStatus != null) {
@@ -13948,6 +14024,12 @@ spacer.setStyle("-fx-background-color: transparent;");
             logger.info("Agenten-System ist deaktiviert (Parameter agent.enabled=false)");
             return;
         }
+        
+        // Im Online-Lektorat-Modus Agenten-Panel nicht anzeigen
+        if (onlineLektoratMode) {
+            logger.info("Agenten-System wird im Online-Lektorat-Modus nicht angezeigt");
+            return;
+        }
 
         // AgentTabPane erstellen und Konfigurationen laden
         agentTabPane = new AgentTabPane();
@@ -14134,11 +14216,31 @@ spacer.setStyle("-fx-background-color: transparent;");
         if (projectDir != null) {
             java.io.File dataDir = new java.io.File(projectDir, "data");
             if (dataDir.exists() && dataDir.isDirectory()) {
-                // Lade alle Markdown-Dateien aus dem data-Verzeichnis
-                java.io.File[] mdFiles = dataDir.listFiles((dir, name) -> name.toLowerCase().endsWith(".md"));
+                // Lade alle Markdown-Dateien aus dem data-Verzeichnis (außer tts-md Dateien)
+                java.io.File[] mdFiles = dataDir.listFiles((dir, name) -> 
+                    name.toLowerCase().endsWith(".md") && !name.toLowerCase().contains("tts-md"));
                 if (mdFiles != null && mdFiles.length > 0) {
+                    // Basis-Name des aktuellen Kapitels für Deduplizierung
+                    String currentBaseName = null;
+                    if (currentFile != null) {
+                        String name = currentFile.getName();
+                        int dot = name.lastIndexOf('.');
+                        currentBaseName = (dot > 0) ? name.substring(0, dot) : name;
+                    }
                     StringBuilder allText = new StringBuilder();
+                    int skipped = 0;
                     for (java.io.File mdFile : mdFiles) {
+                        // Aktuelles Kapitel überspringen (wird separat als currentChapterText gesendet)
+                        if (currentBaseName != null) {
+                            String mdBaseName = mdFile.getName();
+                            int mdDot = mdBaseName.lastIndexOf('.');
+                            mdBaseName = (mdDot > 0) ? mdBaseName.substring(0, mdDot) : mdBaseName;
+                            if (mdBaseName.equals(currentBaseName)) {
+                                logger.debug("Kapitel {} übersprungen (ist das aktuelle Kapitel)", mdFile.getName());
+                                skipped++;
+                                continue;
+                            }
+                        }
                         try {
                             String content = java.nio.file.Files.readString(mdFile.toPath(), java.nio.charset.StandardCharsets.UTF_8);
                             allText.append("=== ").append(mdFile.getName()).append(" ===\n");
@@ -14149,7 +14251,7 @@ spacer.setStyle("-fx-background-color: transparent;");
                         }
                     }
                     allChapters = allText.toString();
-                    logger.info("Kapitel für Kontext geladen: {} Zeichen aus {} Dateien", allChapters.length(), mdFiles.length);
+                    logger.info("Kapitel für Kontext geladen: {} Zeichen aus {} Dateien ({} übersprungen)", allChapters.length(), mdFiles.length - skipped, skipped);
                 } else {
                     logger.warn("Keine Markdown-Dateien in data-Verzeichnis gefunden: {}", dataDir.getAbsolutePath());
                 }

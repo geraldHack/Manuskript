@@ -10,6 +10,7 @@ public class DocxFile {
     private final long fileSize;
     private final long lastModified;
     private boolean changed = false;
+    private String notes = "";
     
     public DocxFile(File file) {
         this.file = file;
@@ -92,6 +93,14 @@ public class DocxFile {
     
     public void setChanged(boolean changed) {
         this.changed = changed;
+    }
+    
+    public String getNotes() {
+        return notes;
+    }
+    
+    public void setNotes(String notes) {
+        this.notes = notes;
     }
     
     public String getDisplayFileName() {

@@ -40,9 +40,9 @@
                   </HBox>
                   <TableView fx:id="tableViewAvailable" VBox.vgrow="ALWAYS">
                     <columns>
-                      <TableColumn fx:id="colFileNameAvailable" text="Dateiname" prefWidth="200.0" />
-                      <TableColumn fx:id="colFileSizeAvailable" text="Größe" prefWidth="80.0" />
-                      <TableColumn fx:id="colLastModifiedAvailable" text="Geändert" prefWidth="120.0" />
+                      <TableColumn fx:id="colFileNameAvailable" text="Dateiname" prefWidth="200.0" id="colFileNameAvailable" />
+                      <TableColumn fx:id="colFileSizeAvailable" text="Größe" prefWidth="80.0" id="colFileSizeAvailable" />
+                      <TableColumn fx:id="colLastModifiedAvailable" text="Geändert" prefWidth="120.0" id="colLastModifiedAvailable" />
                     </columns>
                   </TableView>
                </children>
@@ -64,9 +64,10 @@
                   <Label text="Extern geänderte Dateien werden mit einem ! markiert" styleClass="info-text" style="-fx-padding: 0 0 4 0;" />
                   <TableView fx:id="tableViewSelected" VBox.vgrow="ALWAYS">
                     <columns>
-                      <TableColumn fx:id="colFileNameSelected" text="Dateiname" prefWidth="200.0" />
-                      <TableColumn fx:id="colFileSizeSelected" text="Größe" prefWidth="80.0" />
-                      <TableColumn fx:id="colLastModifiedSelected" text="Geändert" prefWidth="120.0" />
+                      <TableColumn fx:id="colFileNameSelected" text="Dateiname" prefWidth="200.0" id="colFileNameSelected" />
+                      <TableColumn fx:id="colFileSizeSelected" text="Größe" prefWidth="80.0" id="colFileSizeSelected" />
+                      <TableColumn fx:id="colLastModifiedSelected" text="Geändert" prefWidth="120.0" id="colLastModifiedSelected" />
+                      <TableColumn fx:id="colNotesSelected" text="Notizen" prefWidth="200.0" id="colNotesSelected" />
                     </columns>
                   </TableView>
 

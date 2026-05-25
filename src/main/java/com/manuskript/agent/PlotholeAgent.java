@@ -18,6 +18,9 @@ import org.slf4j.LoggerFactory;
 public class PlotholeAgent {
     private static final Logger logger = LoggerFactory.getLogger(PlotholeAgent.class);
 
+    private static final int MAX_CONTEXT_CHARS = 400_000;
+    private static final int MAX_OUTPUT_TOKENS = 32768;
+
     private static final String SYSTEM_PROMPT =
         "Du bist ein Analysemodul zur Erkennung von Plotlöchern und logischen Widersprüchen in Manuskripten.\n\n" +
         "AUSGABEREGELN:\n\n" +
@@ -87,8 +90,17 @@ public class PlotholeAgent {
 
         StringBuilder userMessage = new StringBuilder();
         if (allChapters != null && !allChapters.isEmpty()) {
+            String context = allChapters;
+            if (context.length() > MAX_CONTEXT_CHARS) {
+                int headLen = MAX_CONTEXT_CHARS * 40 / 100;
+                int tailLen = MAX_CONTEXT_CHARS * 40 / 100;
+                String head = context.substring(0, headLen);
+                String tail = context.substring(context.length() - tailLen);
+                context = head + "\n\n[... KONTEXT GEKÜRZT: " + (context.length() - MAX_CONTEXT_CHARS) + " Zeichen entfernt ...]\n\n" + tail;
+                logger.warn("PlotholeAgent: Kontext von {} auf {} Zeichen gekürzt", allChapters.length(), context.length());
+            }
             userMessage.append("=== ALLE KAPITEL (KONTEXT) ===\n");
-            userMessage.append(allChapters);
+            userMessage.append(context);
             userMessage.append("\n=== ALLE KAPITEL ENDE ===\n\n");
         }
         userMessage.append("=== MANUSKRIPT BEGINN ===\n");
@@ -105,7 +117,10 @@ public class PlotholeAgent {
         userMessage.append("- Findest du im MANUSKRIPT keine Probleme, antworte ausschließlich mit KEINE_PROBLEME.\n\n");
         userMessage.append("Analysiere jetzt das MANUSKRIPT gemäß den Systemregeln.");
 
-        return backend.chat(systemPrompt, userMessage.toString(), 8192)
+        String messageStr = userMessage.toString();
+        logger.info("PlotholeAgent: User-Message Größe = {} Zeichen (≈{}K Tokens)", messageStr.length(), messageStr.length() / 4);
+
+        return backend.chat(systemPrompt, messageStr, MAX_OUTPUT_TOKENS)
                 .thenApply(this::parseResponse);
     }
 

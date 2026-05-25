@@ -564,9 +564,6 @@ public class ResourceManager {
                     if (existingValue == null) {
                         preferences.put(key, value);
                         migratedCount++;
-                        logger.debug("Migriert: " + key + " = " + value);
-                    } else {
-                        logger.debug("Bereits vorhanden: " + key + " = " + existingValue);
                     }
                 }
             }
@@ -578,20 +575,14 @@ public class ResourceManager {
                 if (existingSessionValue == null) {
                     preferences.put("session.max_qapairs_per_session", sessionMaxQaPairs);
                     migratedCount++;
-                    logger.debug("Spezifisch migriert: session.max_qapairs_per_session = " + sessionMaxQaPairs);
-                } else {
-                    logger.debug("session.max_qapairs_per_session bereits vorhanden: " + existingSessionValue);
                 }
             }
             
             if (migratedCount > 0) {
-                logger.debug("Migration abgeschlossen: " + migratedCount + " Parameter zu User Preferences migriert");
-                
                 // Backup der alten parameters.properties erstellen
                 File backupFile = new File(CONFIG_DIR + File.separator + "parameters.properties.backup");
                 try {
                     Files.copy(configFile.toPath(), backupFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                    logger.debug("Backup erstellt: " + backupFile.getAbsolutePath());
                 } catch (IOException e) {
                     logger.warn("Fehler beim Erstellen des Backups: " + e.getMessage());
                 }
@@ -659,10 +650,8 @@ public class ResourceManager {
                     String paramValue = getParameterFromProperties(key, null);
                     if (paramValue != null && !paramValue.trim().isEmpty()) {
                         resourcePrefs.put(key, paramValue);
-                        logger.debug("Wert aus parameters.properties übernommen (ResourceManager): " + key + " = " + paramValue);
                     } else {
                         resourcePrefs.put(key, defaultValue);
-                        logger.debug("Standardwert wiederhergestellt (ResourceManager): " + key + " = " + defaultValue);
                     }
                     restoredCount++;
                 }
@@ -678,10 +667,8 @@ public class ResourceManager {
                         String paramValue = getParameterFromProperties(key, null);
                         if (paramValue != null && !paramValue.trim().isEmpty()) {
                             mainPrefs.put(key, paramValue);
-                            logger.debug("Wert aus parameters.properties übernommen (MainController): " + key + " = " + paramValue);
                         } else {
                             mainPrefs.put(key, defaultValue);
-                            logger.debug("Standardwert wiederhergestellt (MainController): " + key + " = " + defaultValue);
                         }
                         restoredCount++;
                     }
@@ -689,9 +676,6 @@ public class ResourceManager {
             }
             
             if (restoredCount > 0) {
-                logger.debug("Standardwerte wiederhergestellt: " + restoredCount + " Parameter");
-            } else {
-                logger.debug("Alle Standardwerte sind bereits vorhanden");
             }
             
         } catch (Exception e) {

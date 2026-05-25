@@ -553,21 +553,46 @@ public class DebugWindow {
         textArea.getStyleClass().add("log-area");
         textArea.setStyle("-fx-font-family: 'Consolas', 'Monaco', 'Courier New', monospace; -fx-font-size: 11px;");
         
-        // Clear-Button hinzufügen
+        // Clear-Button und Checkbox hinzufügen
+        HBox buttonRow = new HBox(10);
+        buttonRow.setAlignment(Pos.CENTER_LEFT);
+        
         Button clearButton = new Button("Löschen");
         clearButton.setPrefWidth(80);
+        
+        CheckBox deleteFileCheckbox = new CheckBox("auch Datei leeren");
+        deleteFileCheckbox.setTooltip(new Tooltip("Wenn aktiviert, wird auch die Log-Datei geleert"));
+        
         clearButton.setOnAction(e -> {
             if (isManuskript && manuskriptLogArea != null) {
                 manuskriptLogArea.setText("");
+                if (deleteFileCheckbox.isSelected() && manuskriptLogFile != null) {
+                    try {
+                        java.nio.file.Files.write(manuskriptLogFile.toPath(), new byte[0]);
+                        logger.info("Manuskript-Log-Datei geleert: {}", manuskriptLogFile.getPath());
+                    } catch (IOException ex) {
+                        logger.warn("Konnte Manuskript-Log-Datei nicht leeren: {}", manuskriptLogFile.getPath(), ex);
+                    }
+                }
             } else if (!isManuskript && debugLogArea != null) {
                 debugLogArea.setText("");
+                if (deleteFileCheckbox.isSelected() && debugLogFile != null) {
+                    try {
+                        java.nio.file.Files.write(debugLogFile.toPath(), new byte[0]);
+                        logger.info("Debug-Log-Datei geleert: {}", debugLogFile.getPath());
+                    } catch (IOException ex) {
+                        logger.warn("Konnte Debug-Log-Datei nicht leeren: {}", debugLogFile.getPath(), ex);
+                    }
+                }
             }
         });
+        
+        buttonRow.getChildren().addAll(clearButton, deleteFileCheckbox);
         
         // TextArea hat bereits eingebautes ScrollPane - kein zusätzliches ScrollPane nötig
         VBox.setVgrow(textArea, Priority.ALWAYS);
         
-        container.getChildren().addAll(titleLabel, clearButton, textArea);
+        container.getChildren().addAll(titleLabel, buttonRow, textArea);
         return container;
     }
     

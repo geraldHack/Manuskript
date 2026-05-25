@@ -155,7 +155,6 @@ public class LanguageToolService {
                 HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
                 return response.statusCode() == 200;
             } catch (Exception e) {
-                logger.debug("Server-Status-Prüfung fehlgeschlagen: " + e.getMessage());
                 return false;
             }
         });
@@ -167,12 +166,10 @@ public class LanguageToolService {
     public CompletableFuture<Boolean> startServerIfNeeded() {
         return checkServerStatus().thenCompose(isRunning -> {
             if (isRunning) {
-                logger.debug("LanguageTool Server läuft bereits");
                 return CompletableFuture.completedFuture(true);
             }
             
             if (!autoStartEnabled) {
-                logger.debug("Automatischer Server-Start ist deaktiviert");
                 return CompletableFuture.completedFuture(false);
             }
             
@@ -230,7 +227,6 @@ public class LanguageToolService {
                             return true;
                         }
                     } catch (Exception e) {
-                        logger.debug("Server-Status-Prüfung " + (i + 1) + "/" + maxRetries + " fehlgeschlagen: " + e.getMessage());
                     }
                     
                     // Prüfe ob Prozess noch läuft
@@ -432,7 +428,6 @@ public class LanguageToolService {
                 }
             }
         } catch (Exception e) {
-            logger.debug("Fehler beim Auflösen des App-Pfads: " + e.getMessage());
         }
         
         // 4. Versuche relativ zum Projekt-Root (ein Verzeichnis höher, falls wir in target/classes sind)

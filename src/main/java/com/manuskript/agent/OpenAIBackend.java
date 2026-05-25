@@ -98,19 +98,30 @@ public class OpenAIBackend implements AIBackend {
 
                 body.add("messages", messages);
 
+                String requestBody = gson.toJson(body);
+                logger.info("OpenAI Request: {} Zeichen, System-Prompt: {} Zeichen, User-Message: {} Zeichen, max_tokens: {}",
+                        requestBody.length(), systemPrompt.length(), userMessage.length(), maxTokens);
+
                 HttpRequest request = HttpRequest.newBuilder()
                         .uri(URI.create(url))
                         .header("Authorization", "Bearer " + apiKey)
                         .header("Content-Type", "application/json")
                         .timeout(Duration.ofSeconds(120))
-                        .POST(HttpRequest.BodyPublishers.ofString(gson.toJson(body)))
+                        .POST(HttpRequest.BodyPublishers.ofString(requestBody))
                         .build();
 
                 HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
                 if (response.statusCode() != 200) {
                     logger.error("OpenAI API Fehler {}: {}", response.statusCode(), response.body());
-                    throw new RuntimeException("OpenAI API Fehler " + response.statusCode() + ": " + response.body());
+                    String errorMsg;
+                    if (response.statusCode() == 413) {
+                        errorMsg = "OpenAI API Fehler 413: Request body zu groß. " +
+                                "Der gesendete Text ist zu lang. Bitte Kontext reduzieren oder Projekt aufteilen.";
+                    } else {
+                        errorMsg = "OpenAI API Fehler " + response.statusCode() + ": " + response.body();
+                    }
+                    throw new RuntimeException(errorMsg);
                 }
 
                 JsonObject json = gson.fromJson(response.body(), JsonObject.class);

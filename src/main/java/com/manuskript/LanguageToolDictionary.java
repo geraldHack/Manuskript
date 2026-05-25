@@ -130,7 +130,6 @@ public class LanguageToolDictionary {
         
         // Exakte Übereinstimmung
         if (words.contains(normalized)) {
-            logger.debug("Wort gefunden (exakt): '" + word + "' -> '" + normalized + "'");
             return true;
         }
         
@@ -138,11 +137,9 @@ public class LanguageToolDictionary {
         // Entferne Satzzeichen am Anfang/Ende
         String cleaned = normalized.replaceAll("^[^a-zäöüß]+|[^a-zäöüß]+$", "");
         if (!cleaned.isEmpty() && words.contains(cleaned)) {
-            logger.debug("Wort gefunden (bereinigt): '" + word + "' -> '" + cleaned + "'");
             return true;
         }
         
-        logger.debug("Wort NICHT gefunden: '" + word + "' (normalized: '" + normalized + "', cleaned: '" + cleaned + "')");
         return false;
     }
     
@@ -197,7 +194,6 @@ public class LanguageToolDictionary {
             }
         }
         
-        logger.debug("filterMatches: {} Matches -> {} gefiltert", matches.size(), filtered.size());
         return filtered;
     }
 }

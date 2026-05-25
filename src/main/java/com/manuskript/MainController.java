@@ -127,6 +127,7 @@ public class MainController implements Initializable {
     @FXML private TableColumn<DocxFile, String> colFileNameSelected;
     @FXML private TableColumn<DocxFile, String> colFileSizeSelected;
     @FXML private TableColumn<DocxFile, String> colLastModifiedSelected;
+    @FXML private TableColumn<DocxFile, String> colNotesSelected;
     
     // Filter, Sortierung und Format-Auswahl entfernt - einfache Lösung
     
@@ -490,11 +491,49 @@ public class MainController implements Initializable {
         colFileNameSelected.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getDisplayFileName()));
         colFileSizeSelected.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getFormattedSize()));
         colLastModifiedSelected.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getFormattedLastModified()));
+        colNotesSelected.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getNotes()));
+        
+        // Notiz-Spalte editierbar machen mit TextField
+        colNotesSelected.setCellFactory(column -> new TableCell<DocxFile, String>() {
+            private final TextField textField = new TextField();
+            
+            {
+                textField.setOnAction(event -> {
+                    DocxFile docxFile = getTableView().getItems().get(getIndex());
+                    String newNotes = textField.getText();
+                    docxFile.setNotes(newNotes);
+                    saveNotesToFile(docxFile);
+                    commitEdit(newNotes);
+                });
+                textField.focusedProperty().addListener((obs, oldVal, newVal) -> {
+                    if (!newVal) {
+                        DocxFile docxFile = getTableView().getItems().get(getIndex());
+                        if (docxFile != null) {
+                            String newNotes = textField.getText();
+                            docxFile.setNotes(newNotes);
+                            saveNotesToFile(docxFile);
+                            commitEdit(newNotes);
+                        }
+                    }
+                });
+            }
+            
+            @Override
+            protected void updateItem(String notes, boolean empty) {
+                super.updateItem(notes, empty);
+                if (empty || notes == null) {
+                    setGraphic(null);
+                    setText(null);
+                } else {
+                    setGraphic(textField);
+                    setText(null);
+                    textField.setText(notes);
+                }
+            }
+        });
         
         // Spaltenbreiten für ausgewählte Dateien setzen
-        colFileNameSelected.setPrefWidth(260);
-        colFileSizeSelected.setPrefWidth(120);
-        colLastModifiedSelected.setPrefWidth(180);
+        loadTableColumnConfiguration();
         
         // RowFactory für Markierung von Dateien mit Suchtreffern
         setupSearchHighlightRowFactory();
@@ -504,6 +543,10 @@ public class MainController implements Initializable {
         colFileNameSelected.setSortable(false);
         colFileSizeSelected.setSortable(false);
         colLastModifiedSelected.setSortable(false);
+        colNotesSelected.setSortable(false);
+        
+        // Listener für Spaltenänderungen hinzufügen
+        setupColumnResizeListeners();
         
         // Tabelle fokussierbar machen für KeyEvents, aber Sortierung verhindern
         tableViewSelected.setFocusTraversable(true);
@@ -1539,6 +1582,7 @@ public class MainController implements Initializable {
             // Für jede Datei entscheiden: links oder rechts?
             for (File file : files) {
                 DocxFile docxFile = new DocxFile(file);
+                docxFile.setNotes(loadNotesFromFile(docxFile));
                 originalDocxFiles.add(docxFile);
                 
                 // Prüfe: Hat die Datei eine MD-Datei?
@@ -1823,6 +1867,7 @@ public class MainController implements Initializable {
                 // Füge neue Dateien hinzu
                 for (File file : newFiles) {
                     DocxFile docxFile = new DocxFile(file);
+                    docxFile.setNotes(loadNotesFromFile(docxFile));
                     originalDocxFiles.add(docxFile);
                     
                     // WICHTIG: Neue Dateien sollten NICHT als "changed" markiert werden
@@ -2049,6 +2094,48 @@ public class MainController implements Initializable {
         } catch (Exception e) {
             logger.error("Fehler beim Speichern des Hash für {}: {}", docxFile.getName(), e.getMessage());
         }
+    }
+    
+    /**
+     * Speichert die Notizen für eine DOCX-Datei in einer .notes Datei
+     */
+    private void saveNotesToFile(DocxFile docxFile) {
+        try {
+            File dataDir = getDataDirectory(docxFile.getFile());
+            if (dataDir == null) {
+                logger.warn("data-Verzeichnis nicht gefunden für {}", docxFile.getFileName());
+                return;
+            }
+            String baseName = docxFile.getFileName();
+            int idx = baseName.lastIndexOf('.');
+            if (idx > 0) baseName = baseName.substring(0, idx);
+            File notesFile = new File(dataDir, baseName + ".notes");
+            java.nio.file.Files.write(notesFile.toPath(), docxFile.getNotes().getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        } catch (Exception e) {
+            logger.error("Fehler beim Speichern der Notizen für {}: {}", docxFile.getFileName(), e.getMessage());
+        }
+    }
+    
+    /**
+     * Lädt die Notizen für eine DOCX-Datei aus einer .notes Datei
+     */
+    private String loadNotesFromFile(DocxFile docxFile) {
+        try {
+            File dataDir = getDataDirectory(docxFile.getFile());
+            if (dataDir == null) {
+                return "";
+            }
+            String baseName = docxFile.getFileName();
+            int idx = baseName.lastIndexOf('.');
+            if (idx > 0) baseName = baseName.substring(0, idx);
+            File notesFile = new File(dataDir, baseName + ".notes");
+            if (notesFile.exists()) {
+                return new String(java.nio.file.Files.readAllBytes(notesFile.toPath()), java.nio.charset.StandardCharsets.UTF_8);
+            }
+        } catch (Exception e) {
+            logger.error("Fehler beim Laden der Notizen für {}: {}", docxFile.getFileName(), e.getMessage());
+        }
+        return "";
     }
     
     /**
@@ -2484,7 +2571,7 @@ public class MainController implements Initializable {
                                         }
                                     });
                                 } else {
-                                    editorController = openChapterEditorWindow(docxContent, chapterFile, format);
+                                    editorController = openChapterEditorWindow(docxContent, chapterFile, format, startOnlineLektorat);
                                 }
                                 updateStatus("Kapitel-Editor geöffnet (DOCX übernommen): " + chapterFile.getFileName());
                                 if (startOnlineLektorat && editorController != null) {
@@ -2522,7 +2609,7 @@ public class MainController implements Initializable {
                         String mdContent = new String(java.nio.file.Files.readAllBytes(mdFile.toPath()), java.nio.charset.StandardCharsets.UTF_8);
 
                         // Öffne Chapter-Editor mit MD-Inhalt
-                        EditorWindow editor = openChapterEditorWindow(mdContent, chapterFile, format);
+                        EditorWindow editor = openChapterEditorWindow(mdContent, chapterFile, format, startOnlineLektorat);
                         if (editor != null) {
                             updateStatus("Kapitel-Editor geöffnet (MD): " + chapterFile.getFileName());
                             if (startOnlineLektorat) {
@@ -2535,7 +2622,7 @@ public class MainController implements Initializable {
                         logger.error("Fehler beim Laden der MD-Datei", e);
                         // Fallback: Lade DOCX-Inhalt
                         String content = docxProcessor.processDocxFileContent(chapterFile.getFile(), 1, format);
-                        EditorWindow editor = openChapterEditorWindow(content, chapterFile, format);
+                        EditorWindow editor = openChapterEditorWindow(content, chapterFile, format, startOnlineLektorat);
                         if (editor != null) {
                             updateStatus("Kapitel-Editor geöffnet (DOCX-Fallback): " + chapterFile.getFileName());
                             if (startOnlineLektorat) {
@@ -2570,7 +2657,7 @@ public class MainController implements Initializable {
                 }
                 
                 // Öffne Chapter-Editor mit konvertiertem Inhalt
-                EditorWindow editor = openChapterEditorWindow(content, chapterFile, format);
+                EditorWindow editor = openChapterEditorWindow(content, chapterFile, format, startOnlineLektorat);
                 if (editor != null) {
                     updateStatus("Kapitel-Editor geöffnet (DOCX→MD): " + chapterFile.getFileName());
                     if (startOnlineLektorat) {
@@ -4117,6 +4204,10 @@ public class MainController implements Initializable {
         openEditors.remove(editorKey);
     }
     private EditorWindow openChapterEditorWindow(String text, DocxFile chapterFile, DocxProcessor.OutputFormat format) {
+        return openChapterEditorWindow(text, chapterFile, format, false);
+    }
+    
+    private EditorWindow openChapterEditorWindow(String text, DocxFile chapterFile, DocxProcessor.OutputFormat format, boolean onlineLektoratMode) {
         try {
             
             // WICHTIG: Prüfe ob Editor bereits geöffnet ist
@@ -4150,6 +4241,11 @@ public class MainController implements Initializable {
             EditorWindow editorController = loader.getController();
             editorController.setText(text);
             editorController.setOutputFormat(format);
+            
+            // Online-Lektorat-Modus setzen, bevor setupAgentSystem() aufgerufen wird
+            if (onlineLektoratMode) {
+                editorController.setOnlineLektoratMode(true);
+            }
             
             // Erstelle Datei-Referenz für das Kapitel
             String chapterNameForFile = chapterFile.getFileName();
@@ -5538,7 +5634,109 @@ public class MainController implements Initializable {
         
         // Theme-Button Icon aktualisieren
         updateThemeButtonIcon();
+    }
+    
+    /**
+     * Lädt die gespeicherte Tabellenkonfiguration (Spaltenbreiten und Positionen)
+     */
+    private void loadTableColumnConfiguration() {
+        // Linke Tabelle - verfügbare Dateien
+        colFileNameAvailable.setPrefWidth(preferences.getDouble("colFileNameAvailable_width", 260));
+        colFileSizeAvailable.setPrefWidth(preferences.getDouble("colFileSizeAvailable_width", 120));
+        colLastModifiedAvailable.setPrefWidth(preferences.getDouble("colLastModifiedAvailable_width", 180));
         
+        // Rechte Tabelle - ausgewählte Dateien
+        colFileNameSelected.setPrefWidth(preferences.getDouble("colFileNameSelected_width", 260));
+        colFileSizeSelected.setPrefWidth(preferences.getDouble("colFileSizeSelected_width", 120));
+        colLastModifiedSelected.setPrefWidth(preferences.getDouble("colLastModifiedSelected_width", 180));
+        colNotesSelected.setPrefWidth(preferences.getDouble("colNotesSelected_width", 200));
+        
+        // Spaltenpositionen wiederherstellen
+        restoreColumnPositions(tableViewAvailable, "tableViewAvailable");
+        restoreColumnPositions(tableViewSelected, "tableViewSelected");
+    }
+    
+    /**
+     * Speichert die Tabellenkonfiguration (Spaltenbreiten und Positionen)
+     */
+    private void saveTableColumnConfiguration() {
+        // Linke Tabelle - verfügbare Dateien
+        preferences.putDouble("colFileNameAvailable_width", colFileNameAvailable.getWidth());
+        preferences.putDouble("colFileSizeAvailable_width", colFileSizeAvailable.getWidth());
+        preferences.putDouble("colLastModifiedAvailable_width", colLastModifiedAvailable.getWidth());
+        
+        // Rechte Tabelle - ausgewählte Dateien
+        preferences.putDouble("colFileNameSelected_width", colFileNameSelected.getWidth());
+        preferences.putDouble("colFileSizeSelected_width", colFileSizeSelected.getWidth());
+        preferences.putDouble("colLastModifiedSelected_width", colLastModifiedSelected.getWidth());
+        preferences.putDouble("colNotesSelected_width", colNotesSelected.getWidth());
+        
+        // Spaltenpositionen speichern
+        saveColumnPositions(tableViewAvailable, "tableViewAvailable");
+        saveColumnPositions(tableViewSelected, "tableViewSelected");
+    }
+    
+    /**
+     * Speichert die Spaltenpositionen einer Tabelle
+     */
+    private void saveColumnPositions(TableView<?> tableView, String tablePrefix) {
+        ObservableList<?> columns = tableView.getColumns();
+        for (int i = 0; i < columns.size(); i++) {
+            Object column = columns.get(i);
+            if (column instanceof TableColumn) {
+                TableColumn<?, ?> tableColumn = (TableColumn<?, ?>) column;
+                preferences.putInt(tablePrefix + "_col_" + tableColumn.getId() + "_position", i);
+            }
+        }
+    }
+    
+    /**
+     * Stellt die Spaltenpositionen einer Tabelle wieder her
+     */
+    private void restoreColumnPositions(TableView<?> tableView, String tablePrefix) {
+        ObservableList<?> columns = tableView.getColumns();
+        // Erstelle eine Map der gespeicherten Positionen
+        Map<Object, Integer> positions = new HashMap<>();
+        for (Object column : columns) {
+            if (column instanceof TableColumn) {
+                TableColumn<?, ?> tableColumn = (TableColumn<?, ?>) column;
+                int savedPosition = preferences.getInt(tablePrefix + "_col_" + tableColumn.getId() + "_position", columns.indexOf(column));
+                positions.put(column, savedPosition);
+            }
+        }
+        // Sortiere die Spalten nach den gespeicherten Positionen
+        FXCollections.sort(columns, (c1, c2) -> positions.get(c1).compareTo(positions.get(c2)));
+    }
+    
+    /**
+     * Richtet Listener für Spaltenbreiten-Änderungen ein
+     */
+    private void setupColumnResizeListeners() {
+        // Listener für linke Tabelle
+        setupColumnResizeListener(tableViewAvailable);
+        // Listener für rechte Tabelle
+        setupColumnResizeListener(tableViewSelected);
+    }
+    
+    /**
+     * Richtet Listener für Spaltenbreiten-Änderungen einer Tabelle ein
+     */
+    private void setupColumnResizeListener(TableView<?> tableView) {
+        for (TableColumn<?, ?> column : tableView.getColumns()) {
+            column.widthProperty().addListener((obs, oldVal, newVal) -> {
+                // Speichere die Konfiguration mit einer kleinen Verzögerung
+                Platform.runLater(() -> saveTableColumnConfiguration());
+            });
+        }
+        
+        // Listener für Spaltenverschiebung
+        tableView.getColumns().addListener((javafx.collections.ListChangeListener<TableColumn<?, ?>>) change -> {
+            while (change.next()) {
+                if (change.wasPermutated()) {
+                    Platform.runLater(() -> saveTableColumnConfiguration());
+                }
+            }
+        });
     }
     
 
@@ -5737,6 +5935,7 @@ public class MainController implements Initializable {
                 
                 // Füge das neue Kapitel automatisch zu den ausgewählten Dateien hinzu
                 DocxFile newDocxFile = new DocxFile(docxFile);
+                newDocxFile.setNotes(loadNotesFromFile(newDocxFile));
                 
                 // Erstelle Hash für das neue Kapitel (damit es als "unverändert" markiert wird)
                 try {

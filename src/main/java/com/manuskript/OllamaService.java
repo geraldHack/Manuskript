@@ -1163,6 +1163,8 @@ public class OllamaService {
                 
                 if (response.statusCode() == 200) {
                     return response.body();
+                } else if (response.statusCode() == 413) {
+                    throw new IOException("HTTP 413: Request body zu groß. Der gesendete Text ist zu lang für den Ollama-Server. Bitte Kontext reduzieren oder Projekt aufteilen.");
                 } else if (response.statusCode() == 500) {
                     // Spezifische Behandlung für Ollama 500 Fehler
                     String errorMsg = "Ollama-Server Fehler (HTTP 500): ";
