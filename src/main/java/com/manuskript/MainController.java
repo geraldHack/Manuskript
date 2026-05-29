@@ -493,42 +493,26 @@ public class MainController implements Initializable {
         colLastModifiedSelected.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getFormattedLastModified()));
         colNotesSelected.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getNotes()));
         
-        // Notiz-Spalte editierbar machen mit TextField
-        colNotesSelected.setCellFactory(column -> new TableCell<DocxFile, String>() {
-            private final TextField textField = new TextField();
-            
-            {
-                textField.setOnAction(event -> {
-                    DocxFile docxFile = getTableView().getItems().get(getIndex());
-                    String newNotes = textField.getText();
-                    docxFile.setNotes(newNotes);
-                    saveNotesToFile(docxFile);
-                    commitEdit(newNotes);
-                });
-                textField.focusedProperty().addListener((obs, oldVal, newVal) -> {
-                    if (!newVal) {
-                        DocxFile docxFile = getTableView().getItems().get(getIndex());
-                        if (docxFile != null) {
-                            String newNotes = textField.getText();
-                            docxFile.setNotes(newNotes);
-                            saveNotesToFile(docxFile);
-                            commitEdit(newNotes);
-                        }
-                    }
-                });
-            }
-            
-            @Override
-            protected void updateItem(String notes, boolean empty) {
-                super.updateItem(notes, empty);
-                if (empty || notes == null) {
-                    setGraphic(null);
-                    setText(null);
-                } else {
-                    setGraphic(textField);
-                    setText(null);
-                    textField.setText(notes);
+        // Notiz-Spalte editierbar machen mit JavaFX-Standard-Editiermodus
+        tableViewSelected.setEditable(true);
+        colNotesSelected.setEditable(true);
+        colNotesSelected.setCellFactory(column -> {
+            TextFieldTableCell<DocxFile, String> cell = new TextFieldTableCell<>(new DefaultStringConverter());
+            cell.setOnMouseClicked(event -> {
+                if (event.getButton() == MouseButton.PRIMARY && !cell.isEmpty()) {
+                    event.consume();
+                    tableViewSelected.getSelectionModel().select(cell.getIndex());
+                    tableViewSelected.edit(cell.getIndex(), colNotesSelected);
                 }
+            });
+            return cell;
+        });
+        colNotesSelected.setOnEditCommit(event -> {
+            DocxFile docxFile = event.getRowValue();
+            if (docxFile != null) {
+                String newNotes = event.getNewValue();
+                docxFile.setNotes(newNotes != null ? newNotes : "");
+                saveNotesToFile(docxFile);
             }
         });
         
@@ -978,7 +962,7 @@ public class MainController implements Initializable {
             tableViewSelected.refresh();
             
             // Doppelklick öffnet den Editor
-            if (event.getClickCount() == 2 && event.getButton() == MouseButton.PRIMARY) {
+            if (event.getClickCount() == 2 && event.getButton() == MouseButton.PRIMARY && !isClickOnColumn(event, colNotesSelected)) {
                 DocxFile selectedFile = tableViewSelected.getSelectionModel().getSelectedItem();
                 if (selectedFile != null) {
                     openChapterEditor(selectedFile);
@@ -7233,6 +7217,20 @@ public class MainController implements Initializable {
         Node current = node;
         while (current != null) {
             if (current instanceof ButtonBase || current instanceof TextInputControl) {
+                return true;
+            }
+            current = current.getParent();
+        }
+        return false;
+    }
+
+    private boolean isClickOnColumn(MouseEvent event, TableColumn<?, ?> column) {
+        if (column == null || event.getTarget() == null) {
+            return false;
+        }
+        Node current = event.getTarget() instanceof Node ? (Node) event.getTarget() : null;
+        while (current != null) {
+            if (current instanceof TableCell<?, ?> cell && cell.getTableColumn() == column) {
                 return true;
             }
             current = current.getParent();

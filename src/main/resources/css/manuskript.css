@@ -9824,28 +9824,24 @@
     -fx-text-alignment: left;
 }
 
-/* CustomMenuItem für umgebrochenen Text */
+/* CustomMenuItem für umgebrochenen Text (z. B. LanguageTool-Fehlermeldung) */
 .context-menu .custom-menu-item {
     -fx-alignment: center-left;
     -fx-content-display: left;
-    -fx-pref-width: 600px;
-    -fx-max-width: 600px;
-    -fx-min-width: 600px;
 }
 
-.context-menu .custom-menu-item .vbox {
-    -fx-pref-width: 600px;
-    -fx-max-width: 600px;
-    -fx-min-width: 600px;
+.context-menu .custom-menu-item.languagetool-menu-header-item {
+    -fx-pref-width: 576px;
+    -fx-max-width: 576px;
 }
 
-.context-menu .custom-menu-item .label {
+.context-menu .languagetool-menu-header-container {
     -fx-alignment: center-left;
+    -fx-max-width: 576px;
+}
+
+.context-menu .text.languagetool-menu-header {
     -fx-text-alignment: left;
-    -fx-wrap-text: true;
-    -fx-pref-width: 600px;
-    -fx-max-width: 600px;
-    -fx-min-width: 600px;
 }
 
 /* Weiß-Theme Kontextmenü */
@@ -10658,3 +10654,4 @@
 .pastell-theme .world-editor-save-button:hover {
     -fx-background-color: #9575cd;
 }
+

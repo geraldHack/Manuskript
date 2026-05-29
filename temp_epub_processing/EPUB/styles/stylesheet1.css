@@ -1,0 +1,299 @@
+/* ===========================================
+   EPUB 3 / Pandoc Roman-Layout (2025)
+   -------------------------------------------
+   Ziel: konsistente Darstellung in Apple Books,
+   Calibre, Kindle Previewer, Kobo, Tolino
+   =========================================== */
+
+/* --- Grundlayout --- */
+html, body {
+  margin: 0;
+  padding: 0;
+  line-height: 1.4;
+  font-family: "Georgia", "Times New Roman", serif;
+  font-size: 1em;
+  widows: 2;
+  orphans: 2;
+}
+
+/* Apple Books liebt exzessive Ränder – hier zähmen wir sie */
+@page {
+  margin: 1em;
+}
+
+
+/*
+section > p:first-of-type:first-letter {
+  float: left;
+  font-size: 2.8em;
+  line-height: 0.9;
+  padding-right: 0.15em;
+  font-weight: bold;
+  font-family: "Georgia", serif;
+  color: #000;
+}
+*/
+
+/* Sicherheitsnetz: keine Initialen in der Titelei */
+.titlepage p:first-letter,
+.frontmatter p:first-letter {
+  float: none !important;
+  font-size: inherit !important;
+  line-height: inherit !important;
+  padding: 0 !important;
+  font-weight: inherit !important;
+}
+
+
+/* Initiale nur für den ersten Absatz nach einer Kapitelüberschrift */
+h1 + p:first-letter {
+  float: left;
+  font-size: 2.8em;
+  line-height: 0.9;
+  padding-right: 0.15em;
+  margin-top: 0.1em;
+  font-weight: bold;
+  font-family: "Georgia", serif;
+  color: inherit;
+}
+
+/* Textabsatz direkt nach H1: keinen Erstzeileneinzug, normales Block-Layout */
+h1 + p {
+  text-indent: 0;
+}
+
+
+/* --- Textstruktur --- */
+p {
+  text-indent: 1.2em;
+  margin: 0 0 0.6em 0;
+  text-align: justify;
+  
+  /* Verhindert Überlaufen am Zeilenende */
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: normal;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+  -ms-hyphens: auto;
+  -moz-hyphens: auto;
+}
+
+p:first-child,
+section > p:first-of-type {
+  text-indent: 0;
+}
+
+/* --- Kapitelüberschriften --- */
+h1, h2, h3 {
+  font-family: "Georgia", "Times New Roman", serif;
+  text-align: center;
+  font-weight: normal;
+  margin-top: 3em;
+  margin-bottom: 1.5em;
+  page-break-before: always;
+  page-break-after: avoid;
+  break-before: page;
+  break-after: avoid;
+}
+
+/* --- Unterüberschriften / Szenentrenner --- */
+h2, h3 {
+  font-size: 1.1em;
+  margin-top: 2em;
+  page-break-before: auto;
+}
+
+/* --- Szenentrenner (*** oder --- im Text) --- */
+hr {
+  border: none;
+  border-top: 1px solid #888;
+  width: 40%;
+  margin: 2em auto;
+  page-break-before: avoid;
+  page-break-after: avoid;
+  break-before: avoid;
+  break-after: avoid;
+}
+
+/* --- Zitate, Kursivabschnitte --- */
+blockquote {
+  margin: 1.2em 2em;
+  font-style: italic;
+}
+
+/* --- Keine unnötigen Apple-Umbrüche --- */
+section, article, div {
+  page-break-before: avoid !important;
+  page-break-after: avoid !important;
+  break-before: avoid !important;
+  break-after: avoid !important;
+}
+
+/* --- Kapitelanfang etwas tiefer (optisch) --- */
+section:first-of-type h1 {
+  margin-top: 1em;
+  page-break-before: auto;
+}
+
+/* --- Bildzentrierung --- */
+img {
+  display: block;
+  margin: 1em auto;
+  max-width: 100%;
+  height: auto;
+}
+
+/* --- Fußnoten (Pandoc generiert <aside> mit class="footnotes") --- */
+aside.footnotes {
+  border-top: 1px solid #888;
+  margin-top: 2em;
+  font-size: 0.9em;
+  line-height: 1.3;
+}
+
+/* --- Apple Books Bugfix: unsichtbare Seite nach <section> verhindern --- */
+section + section {
+  page-break-before: avoid;
+  break-before: avoid;
+}
+
+/* --- Cover-Bild für HTML --- */
+.cover-image {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 2em auto;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* Erste Seite mit Cover-Bild */
+body > .cover-image:first-child {
+  margin-top: 0;
+  page-break-after: avoid;
+}
+
+/* --- Titelseite Styles --- */
+.title-page {
+  text-align: center;
+  margin: 4em 0;
+  padding: 2em;
+  page-break-after: always;
+}
+
+.title {
+  font-size: 2.5em;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 0.5em;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.subtitle {
+  font-size: 1.5em;
+  color: #666;
+  margin-bottom: 1em;
+  font-style: italic;
+  text-align: center;
+}
+
+.author {
+  font-size: 1.2em;
+  color: #555;
+  margin-bottom: 0.5em;
+  text-align: center;
+}
+
+.date {
+  font-size: 1em;
+  color: #777;
+  margin-bottom: 0;
+  text-align: center;
+}
+
+.rights {
+  font-size: 0.9em;
+  color: #666;
+  margin-top: 1em;
+  margin-bottom: 0;
+  text-align: center;
+}
+
+.abstract {
+  margin-top: 2em;
+  padding: 1.5em;
+  background-color: #f8f9fa;
+  border-left: 4px solid #007bff;
+  text-align: left;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.abstract h3 {
+  margin-top: 0;
+  margin-bottom: 1em;
+  color: #333;
+  font-size: 1.2em;
+}
+
+/* Überschreibe die Standard-Abstract-Überschrift */
+.abstract h3 {
+  display: none;
+}
+
+.abstract h3:before {
+  content: "Zusammenfassung";
+  display: block;
+  font-size: 1.2em;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 1em;
+}
+
+.abstract p {
+  margin: 0;
+  line-height: 1.6;
+  color: #555;
+}
+
+/* --- Tabellen Styles --- */
+table {
+  border-collapse: collapse;
+  width: auto;
+  margin: 1em auto;
+  font-family: Arial, sans-serif;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  max-width: 80%;
+}
+
+th, td {
+  border: 1px solid #ddd;
+  padding: 12px;
+  text-align: left;
+}
+
+th {
+  background-color: #f8f9fa;
+  font-weight: bold;
+  color: #333;
+}
+
+tr:nth-child(even) {
+  background-color: #f8f9fa;
+}
+
+tr:hover {
+  background-color: #e9ecef;
+}
+
+/* Responsive Tabellen */
+@media (max-width: 768px) {
+  table {
+    font-size: 14px;
+  }
+  th, td {
+    padding: 8px;
+  }
+}

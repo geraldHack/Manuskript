@@ -15010,34 +15010,24 @@ spacer.setStyle("-fx-background-color: transparent;");
             
             if (clickedMatch != null && languageToolEnabled) {
                 // Fehler gefunden - zeige Korrekturvorschläge
-                // Verwende ein Label mit wrapText, damit der Text umgebrochen wird
+                // Text mit wrappingWidth: in CustomMenuItem bricht Label+wrapText oft nicht um
+                final double ltHeaderWrapWidth = 560;
                 String message = clickedMatch.getMessage();
-                Label headerLabel = new Label("LanguageTool: " + message);
-                headerLabel.setWrapText(true);
-                // WICHTIG: Setze die Breite direkt am Label, nicht am Container
-                headerLabel.setPrefWidth(600);
-                headerLabel.setMaxWidth(600);
-                headerLabel.setMinWidth(Region.USE_PREF_SIZE);
-                headerLabel.setStyle("-fx-padding: 5px; -fx-alignment: center-left; -fx-text-alignment: left;");
-                // Wende Theme-Styling auf das Label an
-                applyThemeToNode(headerLabel, currentThemeIndex);
+                Text headerText = new Text("LanguageTool: " + message);
+                headerText.setWrappingWidth(ltHeaderWrapWidth);
+                headerText.setFill(Color.web(THEMES[currentThemeIndex][1]));
+                headerText.getStyleClass().add("languagetool-menu-header");
                 
-                // Packe das Label in einen Container mit fester Breite
-                VBox container = new VBox(headerLabel);
+                VBox container = new VBox(headerText);
                 container.setAlignment(Pos.CENTER_LEFT);
-                container.setPrefWidth(600);
-                container.setMaxWidth(600);
-                container.setMinWidth(600); // WICHTIG: Minimale Breite erzwingen
-                container.setStyle("-fx-padding: 0px;");
+                container.setFillWidth(true);
+                container.setPadding(new Insets(5, 8, 5, 8));
+                container.getStyleClass().add("languagetool-menu-header-container");
+                applyThemeToNode(container, currentThemeIndex);
                 
-                // Verwende CustomMenuItem statt MenuItem, um mehr Kontrolle zu haben
-                // Der zweite Parameter (false) bedeutet, dass das Menü nicht automatisch schließt
                 CustomMenuItem headerItem = new CustomMenuItem(container, false);
                 headerItem.setDisable(true);
-                // WICHTIG: Setze die Breite des CustomMenuItem explizit
-                headerItem.setContent(container);
-                // WICHTIG: Setze CSS-Klasse für zusätzliches Styling
-                headerItem.getStyleClass().add("custom-menu-item");
+                headerItem.getStyleClass().addAll("custom-menu-item", "languagetool-menu-header-item");
                 contextMenu.getItems().add(headerItem);
                 contextMenu.getItems().add(new SeparatorMenuItem());
                 
@@ -15252,27 +15242,32 @@ spacer.setStyle("-fx-background-color: transparent;");
             int length = match.getLength();
             
             // WICHTIG: Cursorposition vor dem Replace speichern
-            int oldCaretPos = codeArea.getCaretPosition();
-            int oldLength = codeArea.getLength();
+            final int oldCaretPos = codeArea.getCaretPosition();
+            final int oldLength = codeArea.getLength();
+            final int startF = start;
+            final int endF = start + length;
+            final String replacementF = replacement;
             
-            // Ersetze Text
-            codeArea.replaceText(start, start + length, replacement);
-            
-            // WICHTIG: Cursorposition nach dem Replace wiederherstellen
-            int newLength = codeArea.getLength();
-            int lengthDiff = newLength - oldLength;
-            int newCaretPos = oldCaretPos + lengthDiff;
-            
-            // Stelle sicher, dass die neue Position innerhalb des Textes liegt
-            newCaretPos = Math.max(0, Math.min(newLength, newCaretPos));
-            codeArea.moveTo(newCaretPos);
-            
-            // WICHTIG: Kompletter Reset nach Korrektur
-            // 1. Lösche alle Matches sofort, da Positionen nach Text-Änderung ungültig sind
-            currentLanguageToolMatches.clear();
-            
-            // 2. Aktualisiere Styling sofort (ohne Fehler-Markierungen)
-            applyCombinedStyling();
+            // WICHTIG: Replace + Caret-Set in runWithoutScrolling kapseln,
+            // damit der Viewport beim Klick auf einen Vorschlag nicht springt.
+            // displaceCaret statt moveTo, um Follow-Caret-Scrollen zu vermeiden.
+            // Caret wird ans Ende des Replacements gesetzt (natürlichste Position).
+            // applyCombinedStyling() wird hier NICHT aufgerufen - die Re-Check nach 200ms
+            // erledigt das. So vermeiden wir verschachtelte runWithoutScrolling-Aufrufe.
+            runWithoutScrolling(() -> {
+                isReplacingWithSuggestion = true;
+                try {
+                    codeArea.replaceText(startF, endF, replacementF);
+                    int newCaretPos = Math.max(0, Math.min(codeArea.getLength(),
+                            startF + replacementF.length()));
+                    codeArea.displaceCaret(newCaretPos);
+                    
+                    // Matches löschen (Positionen nach Text-Änderung ungültig)
+                    currentLanguageToolMatches.clear();
+                } finally {
+                    isReplacingWithSuggestion = false;
+                }
+            });
             updateLanguageToolStatus();
             
             // 3. Starte eine vollständige Neuprüfung nach kurzer Verzögerung
@@ -15733,8 +15728,8 @@ spacer.setStyle("-fx-background-color: transparent;");
         }
     }
     
-    private boolean useOnlineApiForRewrite() {
-        return "true".equalsIgnoreCase(ResourceManager.getParameter("api.editor_rewrite.use_online_api", "false").trim());
+    private boolean isAgentOpenAIBackend() {
+        return "OpenAI".equalsIgnoreCase(ResourceManager.getParameter("agent.backend", "Ollama").trim());
     }
 
     /**
@@ -15761,7 +15756,7 @@ spacer.setStyle("-fx-background-color: transparent;");
         // Markiere den Satz
         codeArea.selectRange(bounds[0], bounds[1]);
         
-        if (useOnlineApiForRewrite()) {
+        if (isAgentOpenAIBackend()) {
             showApiRewriteDialog("Sprechantwort korrigieren", sentence, bounds[0], bounds[1], "speech");
         } else {
             showSprechantwortKorrekturDialog(sentence, bounds[0], bounds[1]);
@@ -16056,8 +16051,8 @@ spacer.setStyle("-fx-background-color: transparent;");
         // Ollama-Service verwenden
         OllamaService ollamaService = new OllamaService();
         
-        // Prüfe verfügbare Modelle und verwende das gewünschte Modell oder ein Fallback
-        String targetModel = "jobautomation/OpenEuroLLM-German";
+        // Prüfe verfügbare Modelle und verwende das in den Agent-Parametern konfigurierte Modell oder ein Fallback
+        String targetModel = ResourceManager.getParameter("agent.ollama.model", "gemma3:4b").trim();
         Label statusLabel = new Label("Lade verfügbare Modelle...");
         statusLabel.setStyle(String.format("-fx-text-fill: %s;", THEMES[currentThemeIndex][1]));
         answersBox.getChildren().add(statusLabel);
@@ -16065,13 +16060,13 @@ spacer.setStyle("-fx-background-color: transparent;");
         ollamaService.getAvailableModels().thenAccept(models -> {
             Platform.runLater(() -> {
                 String modelToUse = null;
+                String lowerTargetModel = targetModel.toLowerCase();
                 
                 // Prüfe ob das gewünschte Modell verfügbar ist (exakte Übereinstimmung oder ähnlich)
                 for (String model : models) {
                     if (model.equals(targetModel) || 
                         model.equalsIgnoreCase(targetModel) ||
-                        model.toLowerCase().contains("openeurollm") ||
-                        (model.toLowerCase().contains("german") && model.toLowerCase().contains("openeuro"))) {
+                        model.toLowerCase().contains(lowerTargetModel)) {
                         modelToUse = model;
                         break;
                     }
@@ -16079,10 +16074,10 @@ spacer.setStyle("-fx-background-color: transparent;");
                 
                 // Falls nicht verfügbar, suche nach ähnlichen Modellnamen
                 if (modelToUse == null && models.length > 0) {
-                    // Suche nach Modellen mit "german" oder "openeuro"
+                    // Suche nach ähnlichen Modellnamen
                     for (String model : models) {
                         String lowerModel = model.toLowerCase();
-                        if (lowerModel.contains("german") || lowerModel.contains("openeuro")) {
+                        if (lowerTargetModel.contains(lowerModel) || lowerModel.contains(lowerTargetModel)) {
                             modelToUse = model;
                             logger.info("Verwende ähnliches Modell: '{}' statt '{}'", model, targetModel);
                             break;
@@ -16612,8 +16607,8 @@ spacer.setStyle("-fx-background-color: transparent;");
         // Ollama-Service verwenden
         OllamaService ollamaService = new OllamaService();
         
-        // Prüfe verfügbare Modelle und verwende das gewünschte Modell oder ein Fallback
-        String targetModel = "jobautomation/OpenEuroLLM-German";
+        // Prüfe verfügbare Modelle und verwende das in den Agent-Parametern konfigurierte Modell oder ein Fallback
+        String targetModel = ResourceManager.getParameter("agent.ollama.model", "gemma3:4b").trim();
         Label statusLabel = new Label("Lade verfügbare Modelle...");
         statusLabel.setStyle(String.format("-fx-text-fill: %s;", THEMES[currentThemeIndex][1]));
         answersBox.getChildren().add(statusLabel);
@@ -16621,13 +16616,13 @@ spacer.setStyle("-fx-background-color: transparent;");
         ollamaService.getAvailableModels().thenAccept(models -> {
             Platform.runLater(() -> {
                 String modelToUse = null;
+                String lowerTargetModel = targetModel.toLowerCase();
                 
                 // Prüfe ob das gewünschte Modell verfügbar ist (exakte Übereinstimmung oder ähnlich)
                 for (String model : models) {
                     if (model.equals(targetModel) || 
                         model.equalsIgnoreCase(targetModel) ||
-                        model.toLowerCase().contains("openeurollm") ||
-                        (model.toLowerCase().contains("german") && model.toLowerCase().contains("openeuro"))) {
+                        model.toLowerCase().contains(lowerTargetModel)) {
                         modelToUse = model;
                         break;
                     }
@@ -16635,10 +16630,10 @@ spacer.setStyle("-fx-background-color: transparent;");
                 
                 // Falls nicht verfügbar, suche nach ähnlichen Modellnamen
                 if (modelToUse == null && models.length > 0) {
-                    // Suche nach Modellen mit "german" oder "openeuro"
+                    // Suche nach ähnlichen Modellnamen
                     for (String model : models) {
                         String lowerModel = model.toLowerCase();
-                        if (lowerModel.contains("german") || lowerModel.contains("openeuro")) {
+                        if (lowerTargetModel.contains(lowerModel) || lowerModel.contains(lowerTargetModel)) {
                             modelToUse = model;
                             logger.info("Verwende ähnliches Modell: '{}' statt '{}'", model, targetModel);
                             break;
@@ -16877,8 +16872,35 @@ spacer.setStyle("-fx-background-color: transparent;");
      * Handler für "Phrase korrigieren"
      */
     private void handlePhraseKorrektur() {
-        // Ähnlich wie handleSprechantwortKorrektur, aber für Phrasen
-        updateStatus("Phrase korrigieren - noch nicht implementiert");
+        if (codeArea == null) return;
+        
+        IndexRange selection = codeArea.getSelection();
+        int startPos = selection.getStart();
+        int endPos = selection.getEnd();
+        
+        if (startPos >= endPos) {
+            int caretPos = codeArea.getCaretPosition();
+            int[] bounds = findCurrentSentenceBounds(caretPos);
+            if (bounds == null) {
+                updateStatus("Bitte zuerst eine Phrase auswählen oder den Cursor in einen Satz setzen.");
+                return;
+            }
+            startPos = bounds[0];
+            endPos = bounds[1];
+            codeArea.selectRange(startPos, endPos);
+        }
+        
+        String selectedText = codeArea.getText(startPos, endPos);
+        if (selectedText == null || selectedText.trim().isEmpty()) {
+            updateStatus("Die Auswahl ist leer.");
+            return;
+        }
+        
+        if (isAgentOpenAIBackend()) {
+            showApiRewriteDialog("Phrase korrigieren", selectedText, startPos, endPos, "phrase");
+        } else {
+            showSelektionUeberarbeitungDialog(selectedText, startPos, endPos);
+        }
     }
     
     /**
@@ -16903,7 +16925,7 @@ spacer.setStyle("-fx-background-color: transparent;");
             return;
         }
         
-        if (useOnlineApiForRewrite()) {
+        if (isAgentOpenAIBackend()) {
             showApiRewriteDialog("Selektion überarbeiten", selectedText, startPos, endPos, "selection");
         } else {
             showSelektionUeberarbeitungDialog(selectedText, startPos, endPos);
@@ -17087,7 +17109,8 @@ spacer.setStyle("-fx-background-color: transparent;");
         instructionLabel.getStyleClass().add("dialog-label");
         applyThemeToNode(instructionLabel, currentThemeIndex);
         TextField instructionField = new TextField();
-        String prefKey = "speech".equals(mode) ? "api_editor_rewrite_instruction_speech" : "api_editor_rewrite_instruction_selection";
+        String prefKey = "speech".equals(mode) ? "api_editor_rewrite_instruction_speech"
+                : ("phrase".equals(mode) ? "api_editor_rewrite_instruction_phrase" : "api_editor_rewrite_instruction_selection");
         String persisted = preferences != null ? preferences.get(prefKey, "") : "";
         if ("speech".equals(mode)) {
             if (persisted != null && !persisted.isEmpty()) {
@@ -17130,7 +17153,7 @@ spacer.setStyle("-fx-background-color: transparent;");
         Label modelLabel = new Label("Modell (leer = aus Parametern):");
         modelLabel.getStyleClass().add("dialog-label");
         applyThemeToNode(modelLabel, currentThemeIndex);
-        TextField modelField = new TextField(ResourceManager.getParameter("api.lektorat.model", "gpt-4o-mini"));
+        TextField modelField = new TextField(ResourceManager.getParameter("agent.openai.model", "gpt-4o-mini"));
         modelField.setPromptText("z.B. gpt-4o-mini");
         modelField.setPrefWidth(300);
         applyThemeToNode(modelField, currentThemeIndex);
@@ -17182,6 +17205,8 @@ spacer.setStyle("-fx-background-color: transparent;");
             String instruction = instructionField.getText().trim();
             if ("speech".equals(mode)) {
                 lastInstructionSpeech = instruction;
+            } else if ("phrase".equals(mode)) {
+                lastInstructionSelection = instruction;
             } else {
                 lastInstructionSelection = instruction;
             }
@@ -17214,6 +17239,11 @@ spacer.setStyle("-fx-background-color: transparent;");
                 }
                 userMessage += "Zu überarbeitender Satz:\n" + originalText;
                 if (!instruction.isEmpty()) userMessage += "\n\nAnweisung: " + instruction;
+            } else if ("phrase".equals(mode)) {
+                systemPrompt = "Du bist ein erfahrener deutscher Lektor. Deine Aufgabe: Die ausgewählte Phrase korrigieren und stilistisch verbessern, ohne unnötig Bedeutung, Perspektive oder Tonfall zu verändern.\n\n"
+                        + "WICHTIG – Ausgabeformat: Antworte AUSSCHLIESSLICH mit 3–5 korrigierten Varianten der Phrase. KEINE Einleitung, KEINE Erklärungen, KEINE Anmerkungen, KEINE Nummerierung. Beginne direkt mit der ersten Variante. Trenne die Varianten nur durch eine eigene Zeile, die ausschließlich aus drei Bindestrichen besteht: ---";
+                userMessage = "Zu korrigierende Phrase:\n" + originalText;
+                if (!instruction.isEmpty()) userMessage += "\n\nAnweisung: " + instruction;
             } else {
                 systemPrompt = "Du agierst als sehr erfahrener, kritischer deutscher Lektor. Überarbeite den gegebenen Text: Verbessere Stil, Klarheit, Lebendigkeit und Wirkung.\n\n"
                         + "WICHTIG – Ausgabeformat: Antworte AUSSCHLIESSLICH mit 3–5 überarbeiteten Versionen. KEINE Einleitung, KEINE Erklärungen, KEINE Anmerkungen (z. B. „Hier meine Vorschläge“), KEINE Nummerierung. Beginne direkt mit der ersten Version. Jede Version kann mehrere Absätze haben. Trenne die Versionen nur durch eine eigene Zeile, die ausschließlich aus drei Bindestrichen besteht: ---";
@@ -17223,8 +17253,10 @@ spacer.setStyle("-fx-background-color: transparent;");
             double temperature = tempSlider.getValue();
             String modelOverride = modelField.getText().trim();
 
-            OnlineLektoratService api = new OnlineLektoratService();
-            api.complete(systemPrompt, userMessage, temperature, modelOverride.isEmpty() ? null : modelOverride)
+            OpenAIBackend api = new OpenAIBackend();
+            api.setCurrentModel(modelOverride.isEmpty() ? ResourceManager.getParameter("agent.openai.model", "gpt-4o-mini") : modelOverride);
+            api.setTemperature(temperature);
+            api.chat(systemPrompt, userMessage, 2048)
                     .thenAccept(response -> {
                         Platform.runLater(() -> {
                             if (response == null || response.trim().isEmpty()) {

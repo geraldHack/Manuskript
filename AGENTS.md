@@ -8,7 +8,6 @@ Manuskript is a JavaFX 21 desktop application for manuscript editing with AI int
 ### Prerequisites (installed in VM snapshot)
 - Java 21 (OpenJDK, pre-installed at `/usr/lib/jvm/java-21-openjdk-amd64`)
 - Maven 3.8+ (installed via `apt-get install maven`)
-- Xvfb is available but the VM desktop at `DISPLAY=:1` can be used directly for GUI testing
 
 ### Build & Run Commands
 | Task | Command |

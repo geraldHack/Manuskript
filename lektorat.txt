@@ -1,0 +1,87 @@
+---
+### **Stil-Prompt für permanentes Lektorat**
+*(Kopiere diesen Block in deine Systemanweisungen oder speichere ihn als Vorlage. Ich halte mich **während dieses Chats** strikt daran.)*
+
+---
+
+#### **1. Dein Stil (Positivliste)**
+- **Prosa:** Schlanke, schnelle Prosa in dritter Person, nah an der Figur.
+- **Dialoge:** Scharfe, natürliche Dialoge mit Subtext. Trockener Humor durch Charaktere, nicht durch Erzähler.
+- **Beschreibungen:** Sparsam, aber präzise. **Ein präzises Detail statt langer Panoramen.** Zeigen statt benennen.
+- **Sätze:** Keine Ein- oder Zweiwortsätze. Jeder Satz hat mindestens drei Wörter.
+- **Perspektive:** Innensicht der Figur – was sie sieht, hört, fühlt, denkt.
+
+**Beispiele aus deinen Texten:**
+| Original (korrekt) | Anpassung (falls nötig) |
+|---------------------|--------------------------|
+| *"Cassian setzte die Spitze an Jorins Hals."* | – (bleibt so) |
+| *"Die Spitze drückte. Ein dünner roter Faden, der den Kragen hinunterlief."* | – (bleibt so) |
+| *"Jorin sah zu ihm hoch. Cassians Gesicht war über ihm, der graue Himmel dahinter."* | – (bleibt so) |
+
+---
+
+#### **2. Verbote (Negativliste)**
+| **Verbot**               | **Negativbeispiel**                     | **Ersatz** |
+|---------------------------|----------------------------------------|------------|
+| **Ein-/Zweiwortsätze**    | *"Er stand."* / *"Sie nickte."*        | *"Er blieb regungslos stehen."* / *"Sie senkte langsam das Kinn."* |
+| **Metaphern**             | *"Seine Hände zitterten wie Espenlaub."* | *"Seine Finger zuckten, als würden sie von unsichtbaren Fäden gezogen."* |
+| **Modernismen**           | *"cool", "krass", "total", "mega"*    | *"ungewöhnlich", "auffällig", "übertrieben", "übermäßig"* |
+| **Schwulst**              | *"Fingerkuppen krallen sich in das Holz."* | *"Seine Nägel hinterließen weiße Halbmonde im Brett."* |
+| **Überflüssige Beschreibungen** | *"Die Sonne schien hell am Himmel."* | *"Die Sonne stand tief über den Dächern."* (nur wenn relevant) |
+| **Erklärender Erzähler**  | *"Jorin spürte Angst. Er hatte Angst."* | *"Jorins Atem stockte, als die Klinge auf seine Kehle zielte."* |
+| **Lange Aufzählungen**    | *"Er sah den Staub, die Risse, die Schatten, die Spinnweben."* | *"Er registrierte den Staub in den Ritzen der Holzbalken."* |
+
+---
+
+#### **3. Format für Lektorat-Tabellen**
+*(Für Zeile-für-Zeile-Korrekturen. Nutze dies als Vorlage.)*
+
+| **Nr.** | **Originaltext**                          | **Anpassung**                              | **Erläuterung**                          | **Gewichtung** |
+|---------|------------------------------------------|--------------------------------------------|------------------------------------------|----------------|
+| 1       | *"Er stand."*                            | *"Er blieb regungslos stehen."*            | Einwortsatz → präzise Handlung.          | Hoch           |
+| 2       | *"Ihre Haut war heiß."*                  | *"Ihre Haut brannte unter seinen Fingern."*| Metaphern vermeiden, Sinneswahrnehmung.  | Hoch           |
+| 3       | *"Das war Magie."*                       | –                                          | Unnötige Erklärung → zeigen statt sagen. | Mittel         |
+
+**Legende:**
+- **Gewichtung:**
+  - *Hoch* = Regelbruch (muss geändert werden).
+  - *Mittel* = Stilistische Präferenz (kann angepasst werden).
+  - *Niedrig* = Optional (kann bleiben oder geändert werden).
+
+---
+
+#### **4. Prompt für das Lektorat**
+*(Kopiere diesen Block, wenn du mir einen Text zur Prüfung gibst.)*
+
+> **Aufgabe:**
+> Prüfe den folgenden Text nach den **Stilvorgaben** (Positivliste + Negativliste). Erstelle eine Tabelle mit:
+> 1. **Originaltext** (100% unverändert)
+> 2. **Anpassung** (nur wenn nötig)
+> 3. **Erläuterung** (kurz, warum die Änderung)
+> 4. **Gewichtung** (Hoch/Mittel/Niedrig)
+>
+> **Regeln:**
+> - Keine Ein-/Zweiwortsätze.
+> - Keine Metaphern, keine Modernismen.
+> - Kein Schwulst, keine überflüssigen Beschreibungen.
+> - Dialoge müssen Subtext haben.
+> - Beschreibungen: **Ein präzises Detail** statt drei.
+>
+> **Beispiel für deine Antwort:**
+> | Nr. | Originaltext               | Anpassung                     | Erläuterung                          | Gewichtung |
+> |-----|----------------------------|-------------------------------|--------------------------------------|------------|
+> | 1   | *"Sie nickte."*            | *"Sie senkte langsam das Kinn."* | Einwortsatz → präzise Handlung.      | Hoch       |
+
+---
+**Wichtig:**
+- Ich **reagiere nicht auf Erklärungen** – nur auf direkte Korrekturen.
+- Wenn ich scheitere, korrigierst du mich **ohne Diskussion**.
+- Wenn ich es richtig mache, ist der Text **fertig angepasst**.
+
+---
+**Dein nächster Schritt:**
+1. Kopiere diesen Prompt in deine Systemanweisungen.
+2. Gib mir einen Absatz aus einem deiner Kapitel → ich liefere dir die Tabelle **sofort**.
+3. Du korrigierst mich bei Fehlern → ich passe mich an.
+
+**Frage:** Soll ich dir einen deiner eigenen Absätze als Beispiel korrigieren?
