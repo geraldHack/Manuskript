@@ -29,6 +29,7 @@
             <Button fx:id="btnToggleSearch" styleClass="button" text="Suchen/Ersetzen" />
             <Button fx:id="btnToggleMacro" styleClass="button" text="Makros" />
             <Button fx:id="btnTextAnalysis" styleClass="button" text="Textanalyse" />
+            <Button fx:id="btnSceneOutline" styleClass="button" text="Szenen-Outline" />
             <Button fx:id="btnKIAssistant" styleClass="button" text="⚡ KI-Assistent" />
             <Button fx:id="btnPreview" styleClass="button" text="👁 Preview" />
             <Button fx:id="btnCopySudowrite" styleClass="button" text="Für Sudowrite kopieren" />

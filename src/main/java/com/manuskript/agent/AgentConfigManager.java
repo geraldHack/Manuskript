@@ -87,6 +87,16 @@ public class AgentConfigManager {
             model,
             0.3, 2048, 0.7, 1.3
         ));
+        AgentConfig sceneAgent = new AgentConfig(
+            "Szene Schreiben",
+            backend,
+            SceneWritingAgent.DEFAULT_SYSTEM_PROMPT,
+            model,
+            0.8, 4096, 0.9, 1.1
+        );
+        sceneAgent.setDefaultPrompt(SceneWritingAgent.DEFAULT_SYSTEM_PROMPT);
+        sceneAgent.setAgentType("scene-writing");
+        defaults.add(sceneAgent);
         return defaults;
     }
 
@@ -116,6 +126,9 @@ public class AgentConfigManager {
                 String backend = ResourceManager.getParameter("agent.backend", "Ollama");
                 logger.info("Backend aus Parametern: {}", backend);
                 for (AgentConfig config : configs) {
+                    if (config.getAgentType() == null || config.getAgentType().isBlank()) {
+                        config.setAgentType("analysis");
+                    }
                     if ("OpenAI".equals(backend)) {
                         String model = ResourceManager.getParameter("agent.openai.model", "gpt-4o-mini");
                         logger.info("OpenAI Modell aus Parametern: {}", model);
@@ -128,6 +141,7 @@ public class AgentConfigManager {
                         config.setBackend("Ollama");
                     }
                 }
+                ensureSceneWritingAgent(configs);
                 cachedConfigs = configs;
                 // Nicht speichern, da das Modell aus den Parametern gelesen wird
             }
@@ -163,6 +177,8 @@ public class AgentConfigManager {
                 configCopy.setMaxTokens(config.getMaxTokens());
                 configCopy.setTopP(config.getTopP());
                 configCopy.setRepeatPenalty(config.getRepeatPenalty());
+                configCopy.setAgentType(config.getAgentType());
+                configCopy.setUserDefined(config.isUserDefined());
                 configsToSave.add(configCopy);
             }
             String json = gson.toJson(configsToSave);
@@ -174,5 +190,32 @@ public class AgentConfigManager {
 
     public static synchronized void invalidateCache() {
         cachedConfigs = null;
+    }
+
+    private static void ensureSceneWritingAgent(List<AgentConfig> configs) {
+        boolean hasScene = false;
+        for (AgentConfig c : configs) {
+            if (c.isSceneWritingAgent()) {
+                hasScene = true;
+                break;
+            }
+        }
+        if (!hasScene) {
+            String backend = ResourceManager.getParameter("agent.backend", "Ollama");
+            String model = "OpenAI".equals(backend)
+                ? ResourceManager.getParameter("agent.openai.model", "gpt-4o-mini")
+                : ResourceManager.getParameter("agent.ollama.model", "gemma3:4b");
+            AgentConfig sceneAgent = new AgentConfig(
+                "Szene Schreiben",
+                backend,
+                SceneWritingAgent.DEFAULT_SYSTEM_PROMPT,
+                model,
+                0.8, 4096, 0.9, 1.1
+            );
+            sceneAgent.setDefaultPrompt(SceneWritingAgent.DEFAULT_SYSTEM_PROMPT);
+            sceneAgent.setAgentType("scene-writing");
+            configs.add(sceneAgent);
+            saveConfigs(configs);
+        }
     }
 }

@@ -17,6 +17,8 @@ public class AgentConfig {
     private int maxTokens;
     private double topP;
     private double repeatPenalty;
+    private String agentType = "analysis";
+    private boolean userDefined;
 
     public AgentConfig() {
         this.id = UUID.randomUUID().toString();
@@ -82,4 +84,21 @@ public class AgentConfig {
 
     public double getRepeatPenalty() { return repeatPenalty; }
     public void setRepeatPenalty(double repeatPenalty) { this.repeatPenalty = repeatPenalty; }
+
+    public String getAgentType() {
+        return agentType != null ? agentType : "analysis";
+    }
+    public void setAgentType(String agentType) { this.agentType = agentType; }
+
+    public boolean isSceneWritingAgent() {
+        return "scene-writing".equals(getAgentType());
+    }
+
+    public boolean isUserDefined() {
+        return userDefined;
+    }
+
+    public void setUserDefined(boolean userDefined) {
+        this.userDefined = userDefined;
+    }
 }

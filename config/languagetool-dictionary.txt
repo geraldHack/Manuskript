@@ -13,6 +13,7 @@ almins
 altheras
 alvaro
 arista
+asthenar
 asthenars
 ayen
 ayens
@@ -49,6 +50,7 @@ elana
 elexandra
 elexandras
 elpenul
+esfahn
 euch
 eure
 fendrel
@@ -58,6 +60,9 @@ figons
 gallat
 gallats
 grakk
+grakk-einheit
+grakk-patrouille
+grakk-patrouillen
 guttik
 guttiks
 infusoren
@@ -93,6 +98,7 @@ maela
 malvek
 malveks
 melvaks
+morai
 naniten
 nelian
 nicht-zirari

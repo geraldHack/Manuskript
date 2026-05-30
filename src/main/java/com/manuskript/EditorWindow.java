@@ -136,24 +136,27 @@ public class EditorWindow implements Initializable {
         private final int selectionEnd;
         private final int paragraphIndex;
         private final double scrollOffset;
+        private final double scrollPaneEstimatedY;
 
         private CodeAreaViewSnapshot(int caretPosition, int selectionStart, int selectionEnd, int paragraphIndex) {
-            this.caretPosition = caretPosition;
-            this.selectionStart = selectionStart;
-            this.selectionEnd = selectionEnd;
-            this.paragraphIndex = paragraphIndex;
-            this.scrollOffset = 0.0;
+            this(caretPosition, selectionStart, selectionEnd, paragraphIndex, 0.0, 0.0);
         }
 
         private CodeAreaViewSnapshot(int caretPosition, int selectionStart, int selectionEnd, int paragraphIndex, double scrollOffset) {
+            this(caretPosition, selectionStart, selectionEnd, paragraphIndex, scrollOffset, 0.0);
+        }
+
+        private CodeAreaViewSnapshot(int caretPosition, int selectionStart, int selectionEnd, int paragraphIndex,
+                                     double scrollOffset, double scrollPaneEstimatedY) {
             this.caretPosition = caretPosition;
             this.selectionStart = selectionStart;
             this.selectionEnd = selectionEnd;
             this.paragraphIndex = paragraphIndex;
             this.scrollOffset = scrollOffset;
+            this.scrollPaneEstimatedY = scrollPaneEstimatedY;
         }
     }
-    
+
     // Flag um zu verhindern, dass während des Ladens gespeichert wird
     private boolean isLoadingChapter = false;
     // Speichert den aktuell geladenen Text, um Race Conditions zu verhindern
@@ -218,6 +221,7 @@ public class EditorWindow implements Initializable {
     @FXML private Button btnToggleSearch;
     @FXML private Button btnToggleMacro;
     @FXML private Button btnTextAnalysis;
+    @FXML private Button btnSceneOutline;
     @FXML private Button btnRegexHelp;
     @FXML private Button btnKIAssistant;
     @FXML private Button btnPreview;
@@ -324,6 +328,7 @@ public class EditorWindow implements Initializable {
     private CustomStage stage;
     private CustomStage macroStage;
     private CustomStage textAnalysisStage;
+    private SceneOutlineWindow sceneOutlineWindow;
     private CustomStage previewStage;
     private OllamaWindow ollamaWindow;
     private WebView previewWebView; // Wird jetzt für Quill Editor verwendet
@@ -379,11 +384,14 @@ public class EditorWindow implements Initializable {
     private LanguageToolDictionary languageToolDictionary; // Wörterbuch für Eigennamen
     private boolean languageToolEnabled = false; // Wird aus Preferences geladen
     private Timeline languageToolCheckTimeline = null; // Debouncing für Fehlerprüfung
+    private Timeline combinedStylingDebounceTimeline = null; // Debouncing für applyCombinedStyling (Lektorat etc.)
+    private static final long COMBINED_STYLING_DEBOUNCE_MS = 400;
     private List<LanguageToolService.Match> currentLanguageToolMatches = new ArrayList<>();
     private int lastLanguageToolErrorCount = -1; // Letzte bekannte Fehleranzahl für Status-Updates
     private int lastLoggedMatchCount = -1; // Letzte bekannte Match-Anzahl für DEBUG-Logs
     private int lastLoggedValidMatchCount = -1; // Letzte bekannte gültige Matches für DEBUG-Logs
     private int lastLoggedInvalidMatchCount = -1; // Letzte bekannte ungültige Matches für DEBUG-Logs
+    private long languageToolCheckGeneration = 0L; // invalidiert laufende LT-Prüfungen nach Korrekturen
     private ExecutorService languageToolExecutor;
     private Button btnToggleLanguageTool; // Toggle-Button für LanguageTool
     private Button btnLanguageToolSettings; // Einstellungs-Button
@@ -395,6 +403,10 @@ public class EditorWindow implements Initializable {
     private Timeline stylingTimerDebounce = null; // Debounce-Timer zum Fortsetzen des Styling-Timers
     private String lastStyledText = ""; // Letzter Text, für den Styling angewendet wurde
     private boolean isScrolling = false; // Flag, um zu prüfen, ob der Benutzer gerade scrollt
+    private Timeline editorUserScrollDebounceTimeline = null;
+    private static final long EDITOR_USER_SCROLL_DEBOUNCE_MS = 450;
+    /** Ungültigt verzögerte Viewport-Wiederherstellungen nach Benutzer-Scroll. */
+    private long scrollRestoreGeneration = 0L;
     private boolean isNavigatingWithCursor = false; // Flag, um zu prüfen, ob der Benutzer gerade mit Cursortasten navigiert
     private Timeline cursorNavigationDebounceTimer = null; // Debounce-Timer für Cursor-Navigation
     private boolean justOpened = true; // Flag, um Styling kurz nach dem Öffnen zu pausieren
@@ -525,7 +537,9 @@ public class EditorWindow implements Initializable {
             int selectionStart = selection != null ? Math.max(0, selection.getStart()) : caretPosition;
             int selectionEnd = selection != null ? Math.max(0, selection.getEnd()) : caretPosition;
             int paragraphIndex = getFirstVisibleParagraphIndex();
-            return new CodeAreaViewSnapshot(caretPosition, selectionStart, selectionEnd, paragraphIndex);
+            double scrollOffset = getScrollOffset();
+            double scrollPaneY = scrollPane != null ? scrollPane.estimatedScrollYProperty().getValue() : 0.0;
+            return new CodeAreaViewSnapshot(caretPosition, selectionStart, selectionEnd, paragraphIndex, scrollOffset, scrollPaneY);
         } catch (Exception e) {
             logger.debug("Fehler beim Erfassen des CodeArea-Snapshots: {}", e.getMessage());
             return null;
@@ -533,17 +547,53 @@ public class EditorWindow implements Initializable {
     }
 
     private CodeAreaViewSnapshot captureCodeAreaViewSnapshotWithoutSelection() {
-        if (codeArea == null) return null;
+        return captureViewportSnapshot();
+    }
+
+    /**
+     * Erfasst Caret, ersten sichtbaren Absatz und exakte Scroll-Position (CodeArea + VirtualizedScrollPane).
+     */
+    private CodeAreaViewSnapshot captureViewportSnapshot() {
+        if (codeArea == null) {
+            return null;
+        }
         try {
             int caretPosition = Math.max(0, codeArea.getCaretPosition());
             int paragraphIndex = getFirstVisibleParagraphIndex();
             double scrollOffset = getScrollOffset();
-            // WICHTIG: selectionStart = selectionEnd = caretPosition, damit keine Selektion wiederhergestellt wird
-            return new CodeAreaViewSnapshot(caretPosition, caretPosition, caretPosition, paragraphIndex, scrollOffset);
+            double scrollPaneY = scrollPane != null ? scrollPane.estimatedScrollYProperty().getValue() : 0.0;
+            return new CodeAreaViewSnapshot(caretPosition, caretPosition, caretPosition, paragraphIndex, scrollOffset, scrollPaneY);
         } catch (Exception e) {
-            logger.debug("Fehler beim Erfassen des CodeArea-Snapshots: {}", e.getMessage());
+            logger.debug("Fehler beim Erfassen des Viewport-Snapshots: {}", e.getMessage());
             return null;
         }
+    }
+
+    /**
+     * Mausrad/Trackpad-Scroll im Editor: Hintergrund-Wiederherstellungen abbrechen, Styling pausieren.
+     */
+    private void notifyEditorUserScroll() {
+        scrollRestoreGeneration++;
+        suppressScroll = false;
+        isScrolling = true;
+        if (editorUserScrollDebounceTimeline != null) {
+            editorUserScrollDebounceTimeline.stop();
+        }
+        editorUserScrollDebounceTimeline = new Timeline(new KeyFrame(Duration.millis(EDITOR_USER_SCROLL_DEBOUNCE_MS), e -> {
+            isScrolling = false;
+            editorUserScrollDebounceTimeline = null;
+        }));
+        editorUserScrollDebounceTimeline.play();
+    }
+
+    /**
+     * Wendet Styling an, ohne die Scroll-Position zu verändern (alles in einem synchronen Block).
+     */
+    private void applyCombinedStylingWithoutViewportChange() {
+        if (codeArea == null || isScrolling) {
+            return;
+        }
+        runWithoutScrolling(this::applyCombinedStyling);
     }
 
     private double getScrollOffset() {
@@ -572,6 +622,16 @@ public class EditorWindow implements Initializable {
     }
 
     /**
+     * Stellt CodeArea- und VirtualizedScrollPane-Scrollposition wieder her.
+     */
+    private void restoreScrollPosition(double scrollPaneEstimatedY, double codeAreaEstimatedY) {
+        if (scrollPane != null) {
+            scrollPane.estimatedScrollYProperty().setValue(scrollPaneEstimatedY);
+        }
+        setScrollOffset(codeAreaEstimatedY);
+    }
+
+    /**
      * Führt eine Aktion aus, ohne dass der Viewport springt.
      * Sichert die Scroll-Position, führt action aus, stellt Position wieder her.
      */
@@ -580,40 +640,41 @@ public class EditorWindow implements Initializable {
             action.run();
             return;
         }
-        
-        // Scroll-Position vor der Aktion speichern
-        double tempScrollY = 0.0;
-        try {
-            java.lang.reflect.Method method = codeArea.getClass().getMethod("getEstimatedScrollY");
-            Object result = method.invoke(codeArea);
-            if (result instanceof Double) {
-                tempScrollY = (Double) result;
-            }
-        } catch (Exception e) {
-            logger.debug("getEstimatedScrollY nicht verfügbar: {}", e.getMessage());
-        }
-        final double estimatedScrollYBefore = tempScrollY;
-        
-        // Auch die estimatedScrollYProperty des ScrollPane speichern
+
+        final double estimatedScrollYBefore = getScrollOffset();
         final double scrollPaneEstimatedYBefore = scrollPane.estimatedScrollYProperty().getValue();
-        
+        final long restoreGen = scrollRestoreGeneration;
+
         suppressScroll = true;
         try {
             action.run();
         } finally {
+            if (restoreGen == scrollRestoreGeneration) {
+                restoreScrollPosition(scrollPaneEstimatedYBefore, estimatedScrollYBefore);
+            }
             suppressScroll = false;
-            
-            // Scroll-Position nach der Aktion wiederherstellen
-            Platform.runLater(() -> {
-                // Zuerst versuchen, estimatedScrollY wiederherzustellen
-                if (estimatedScrollYBefore > 0) {
-                    setScrollOffset(estimatedScrollYBefore);
-                }
-                
-                // Dann auch die estimatedScrollYProperty des ScrollPane wiederherstellen
-                scrollPane.estimatedScrollYProperty().setValue(scrollPaneEstimatedYBefore);
-            });
         }
+    }
+
+    /**
+     * Wendet kombiniertes Markdown-/LanguageTool-Styling verzögert an,
+     * um Viewport-Sprünge während des Tippens zu vermeiden.
+     */
+    private void scheduleApplyCombinedStyling() {
+        if (codeArea == null) {
+            return;
+        }
+        if (combinedStylingDebounceTimeline != null) {
+            combinedStylingDebounceTimeline.stop();
+        }
+        combinedStylingDebounceTimeline = new Timeline(new KeyFrame(Duration.millis(COMBINED_STYLING_DEBOUNCE_MS), event -> {
+            combinedStylingDebounceTimeline = null;
+            if (isScrolling || isNavigatingWithCursor || justOpened) {
+                return;
+            }
+            applyCombinedStylingWithoutViewportChange();
+        }));
+        combinedStylingDebounceTimeline.play();
     }
 
     private void setScrollOffset(double scrollOffset) {
@@ -673,49 +734,29 @@ public class EditorWindow implements Initializable {
         int selectionEnd = restoreSelection ? Math.max(0, Math.min(snapshot.selectionEnd, textLength)) : caretPosition;
         int paragraphIndex = Math.max(0, Math.min(snapshot.paragraphIndex, Math.max(0, codeArea.getParagraphs().size() - 1)));
 
-        Runnable restoreAction = () -> {
-            if (restoreViewport) {
-                try {
-                    codeArea.showParagraphInViewport(paragraphIndex);
-                    // Zusätzlich den exakten Scroll-Offset wiederherstellen
-                    if (snapshot.scrollOffset > 0.0) {
-                        setScrollOffset(snapshot.scrollOffset);
-                    }
-                } catch (Exception e) {
-                    logger.debug("Fehler beim Wiederherstellen des sichtbaren Absatzes: {}", e.getMessage());
-                }
-            }
-
+        Runnable restoreCaretAction = () -> {
             try {
                 if (selectionEnd > selectionStart) {
                     codeArea.selectRange(selectionStart, selectionEnd);
-                } else {
+                } else if (restoreSelection) {
                     codeArea.moveTo(caretPosition);
-                }
-                
-                // WICHTIG: Wenn keine Selektion wiederhergestellt werden soll, explizit deselect
-                if (!restoreSelection) {
+                } else {
+                    codeArea.displaceCaret(caretPosition);
                     codeArea.deselect();
                 }
             } catch (Exception e) {
                 logger.debug("Fehler beim Wiederherstellen von Cursor/Selektion: {}", e.getMessage());
-                try {
-                    codeArea.moveTo(caretPosition);
-                    if (!restoreSelection) {
-                        codeArea.deselect();
-                    }
-                } catch (Exception ignored) {
-                }
             }
-
             if (requestFocus) {
                 codeArea.requestFocus();
             }
         };
 
-        restoreAction.run();
-        Platform.runLater(restoreAction);
-        Platform.runLater(() -> Platform.runLater(restoreAction));
+        if (restoreViewport) {
+            runWithoutScrolling(restoreCaretAction);
+        } else {
+            restoreCaretAction.run();
+        }
     }
 
     private String preserveParagraphBoundaries(String originalText, String replacementText) {
@@ -952,9 +993,7 @@ public class EditorWindow implements Initializable {
                 }
                 
                 // Text hat sich nicht geändert UND Benutzer scrollt nicht UND Benutzer navigiert nicht
-                // WICHTIG: Rufe applyCombinedStyling() auf für Markdown-Styling
-                // Styling wird nur aufgerufen, wenn sich der Text ändert oder LanguageTool neue Matches findet
-                applyCombinedStyling();
+                applyCombinedStylingWithoutViewportChange();
             });
         }));
         stylingTimer.setCycleCount(Timeline.INDEFINITE);
@@ -992,12 +1031,13 @@ if (caret != null) {
         
         // VirtualizedScrollPane für bessere Performance
         scrollPane = new VirtualizedScrollPane<>(codeArea);
-        // Scroll-Unterdrückung: Bei programmatischen Änderungen Position einfrieren
-        scrollPane.estimatedScrollYProperty().addListener((obs, oldVal, newVal) -> {
-            if (suppressScroll && oldVal != null) {
-                scrollPane.estimatedScrollYProperty().setValue(oldVal);
+        // Benutzer-Scroll erkennen (vor Preview-Sync-Filtern), damit Styling/Viewport-Restore nicht gegen Mausrad kämpft
+        EventHandler<ScrollEvent> editorUserScrollHandler = event -> {
+            if (!event.isControlDown()) {
+                notifyEditorUserScroll();
             }
-        });
+        };
+        scrollPane.addEventFilter(ScrollEvent.SCROLL, editorUserScrollHandler);
         // WICHTIG: CSS-Klasse für VirtualizedScrollPane hinzufügen, damit Scrollbalken gestylt werden können
         scrollPane.getStyleClass().add("code-area-scroll-pane");
         
@@ -1711,6 +1751,10 @@ if (caret != null) {
         // Textanalyse-Button
         btnTextAnalysis.setOnAction(e -> toggleTextAnalysisPanel());
         btnTextAnalysis.setTooltip(new Tooltip("Textanalyse-Panel ein-/ausblenden"));
+        if (btnSceneOutline != null) {
+            btnSceneOutline.setOnAction(e -> toggleSceneOutlineWindow());
+            btnSceneOutline.setTooltip(new Tooltip("Szenen-Outline für dieses Kapitel bearbeiten"));
+        }
         
         // KI-Assistent-Button
         btnKIAssistant.setOnAction(e -> toggleOllamaWindow());
@@ -2114,9 +2158,11 @@ if (caret != null) {
             // Ctrl + Pos1/Ende wird bereits im switch-Statement behandelt (falls nötig)
         });
         
-        // Mausrad-Event-Filter für Schriftgröße (Strg + Mausrad)
+        // Mausrad-Event-Filter für Schriftgröße (Strg + Mausrad) und Benutzer-Scroll-Erkennung
         codeArea.addEventFilter(ScrollEvent.SCROLL, event -> {
-            if (event.isControlDown()) {
+            if (!event.isControlDown()) {
+                notifyEditorUserScroll();
+            } else if (event.isControlDown()) {
                 event.consume();
                 
                 double deltaY = event.getDeltaY();
@@ -3694,7 +3740,6 @@ if (caret != null) {
         // EINGEBAUTE UNDO-FUNKTIONALITÄT VERWENDEN - kein manueller Aufruf nötig
         
         try {
-            CodeAreaViewSnapshot viewSnapshot = captureCodeAreaViewSnapshot();
             Pattern pattern = createSearchPattern(searchText.trim());
             String content = codeArea.getText();
             Matcher matcher = pattern.matcher(content);
@@ -3738,8 +3783,12 @@ if (caret != null) {
                     replacement = replaceText != null ? replaceText : "";
                 }
                 
-                codeArea.replaceText(matchStart, matchEnd, replacement);
-                restoreCodeAreaViewSnapshot(viewSnapshot);
+                final int matchStartF = matchStart;
+                final int matchEndF = matchEnd;
+                final String replacementF = replacement;
+                runWithoutScrolling(() -> codeArea.replaceText(matchStartF, matchEndF, replacementF));
+                int newCaret = Math.min(codeArea.getLength(), matchStartF + replacementF.length());
+                codeArea.displaceCaret(newCaret);
                 updateStatus("Ersetzt");
                 
                 // Cache komplett zurücksetzen, da sich der Text geändert hat
@@ -8656,6 +8705,37 @@ spacer.setStyle("-fx-background-color: transparent;");
             updateStatus("Textanalyse-Fenster geschlossen");
         }
     }
+
+    private void toggleSceneOutlineWindow() {
+        if (originalDocxFile == null && currentFile == null) {
+            updateStatus("Bitte zuerst ein Kapitel öffnen.");
+            return;
+        }
+        if (sceneOutlineWindow == null) {
+            sceneOutlineWindow = new SceneOutlineWindow();
+        }
+        File docx = originalDocxFile != null ? originalDocxFile : currentFile;
+        String chapterName = docx != null ? docx.getName().replaceAll("\\.(docx|md|txt|html)$", "") : "Kapitel";
+        if (sceneOutlineWindow.isShowing()) {
+            sceneOutlineWindow.hide();
+            updateStatus("Szenen-Outline geschlossen");
+        } else {
+            sceneOutlineWindow.show(stage != null ? stage.getScene() : null, docx, chapterName, currentThemeIndex);
+            updateStatus("Szenen-Outline geöffnet");
+        }
+    }
+
+    private void reloadSceneOutlineIfOpen() {
+        if (sceneOutlineWindow == null || !sceneOutlineWindow.isShowing()) {
+            return;
+        }
+        File docx = originalDocxFile != null ? originalDocxFile : currentFile;
+        if (docx == null) {
+            return;
+        }
+        String chapterName = docx.getName().replaceAll("\\.(docx|md|txt|html)$", "");
+        sceneOutlineWindow.reloadForChapter(stage != null ? stage.getScene() : null, docx, chapterName, currentThemeIndex);
+    }
     
     private void createTextAnalysisWindow() {
         textAnalysisStage = StageManager.createStage("Textanalyse");
@@ -11319,6 +11399,14 @@ spacer.setStyle("-fx-background-color: transparent;");
             preferences.putInt("fontSize", size);
         }
         
+        if (sceneOutlineWindow != null && sceneOutlineWindow.isShowing()) {
+            sceneOutlineWindow.applyFontSize(size);
+        }
+
+        if (agentTabPane != null) {
+            agentTabPane.applyFontSize(size);
+        }
+        
         // WICHTIG: Quill-Fontgröße NICHT ändern - Editor und Quill haben unabhängige Fontgrößen!
         // Die Quill-Fontgröße wird nur über die Quill-Steuerelemente (A+/A-/Spinner) geändert.
     }
@@ -12404,6 +12492,7 @@ spacer.setStyle("-fx-background-color: transparent;");
             applyThemeToNode(btnToggleSearch, themeIndex);
             applyThemeToNode(btnToggleMacro, themeIndex);
             applyThemeToNode(btnTextAnalysis, themeIndex);
+            applyThemeToNode(btnSceneOutline, themeIndex);
             applyThemeToNode(btnRegexHelp, themeIndex);
             applyThemeToNode(btnKIAssistant, themeIndex);
             
@@ -12532,6 +12621,11 @@ spacer.setStyle("-fx-background-color: transparent;");
                 if (macroPanel != null) {
                     applyThemeToNode(macroPanel, themeIndex);
                 }
+            }
+
+            // Szenen-Outline-Fenster
+            if (sceneOutlineWindow != null && sceneOutlineWindow.isShowing()) {
+                sceneOutlineWindow.applyTheme(themeIndex);
             }
             
             // Ollama Window
@@ -13431,6 +13525,10 @@ spacer.setStyle("-fx-background-color: transparent;");
             languageToolCheckTimeline.stop();
             languageToolCheckTimeline = null;
         }
+        if (combinedStylingDebounceTimeline != null) {
+            combinedStylingDebounceTimeline.stop();
+            combinedStylingDebounceTimeline = null;
+        }
         
         // Lösche alle Matches
         currentLanguageToolMatches.clear();
@@ -13438,7 +13536,7 @@ spacer.setStyle("-fx-background-color: transparent;");
         // Aktualisiere das Styling, um alle Markierungen zu entfernen
         if (codeArea != null) {
             Platform.runLater(() -> {
-                applyCombinedStyling();
+                applyCombinedStylingWithoutViewportChange();
                 updateLanguageToolStatus();
             });
         }
@@ -13455,12 +13553,13 @@ spacer.setStyle("-fx-background-color: transparent;");
         String text = codeArea.getText();
         if (text == null || text.trim().isEmpty()) {
             currentLanguageToolMatches.clear();
-            applyCombinedStyling();
+            applyCombinedStylingWithoutViewportChange();
             return;
         }
         
         // WICHTIG: Speichere den aktuellen Text, um später zu prüfen, ob er sich geändert hat
         final String textAtStart = text;
+        final long checkGeneration = languageToolCheckGeneration;
         
         // Prüfe Server-Status und starte falls nötig
         languageToolService.startServerIfNeeded().thenCompose(serverReady -> {
@@ -13477,11 +13576,14 @@ spacer.setStyle("-fx-background-color: transparent;");
         }).thenAccept(result -> {
             if (result != null) {
                 Platform.runLater(() -> {
+                    if (checkGeneration != languageToolCheckGeneration) {
+                        return;
+                    }
+                    
                     // WICHTIG: Prüfe, ob der Text sich seit dem Start der Prüfung geändert hat
                     // Wenn ja, ignoriere die Ergebnisse, da sie für einen anderen Text sind
                     String currentTextAtCheck = codeArea != null ? codeArea.getText() : "";
                     if (!textAtStart.equals(currentTextAtCheck)) {
-                        // Starte eine neue Prüfung mit dem aktuellen Text
                         checkLanguageToolErrorsDebounced();
                         return;
                     }
@@ -13556,10 +13658,7 @@ spacer.setStyle("-fx-background-color: transparent;");
                     if (!currentLanguageToolMatches.isEmpty()) {
                     }
                     
-                    // WICHTIG: Styling explizit aktualisieren, um Markierungen anzuzeigen
-                    // Stelle sicher, dass wir im JavaFX-Thread sind (sind wir bereits durch Platform.runLater)
-                    // WICHTIG: applyCombinedStyling() verändert NICHT Cursor-Position oder Viewport
-                    applyCombinedStyling();
+                    applyCombinedStylingWithoutViewportChange();
                     updateLanguageToolStatus();
                     if (!currentLanguageToolMatches.isEmpty()) {
                         // Nur Status aktualisieren wenn sich die Anzahl der Fehler tatsächlich geändert hat
@@ -13579,9 +13678,7 @@ spacer.setStyle("-fx-background-color: transparent;");
             }
         }).exceptionally(e -> {
             logger.error("Fehler bei LanguageTool-Prüfung", e);
-            Platform.runLater(() -> {
-                updateStatus("LanguageTool Fehler: " + e.getMessage());
-            });
+            Platform.runLater(() -> updateStatus("LanguageTool Fehler: " + e.getMessage()));
             return null;
         });
     }
@@ -13656,9 +13753,8 @@ spacer.setStyle("-fx-background-color: transparent;");
                 });
             });
         } else {
-            // Entferne Markierungen
             currentLanguageToolMatches.clear();
-            applyCombinedStyling();
+            applyCombinedStylingWithoutViewportChange();
             updateLanguageToolStatus();
             updateStatus("LanguageTool deaktiviert");
         }
@@ -13777,7 +13873,7 @@ spacer.setStyle("-fx-background-color: transparent;");
                     currentLektoratMatches.clear();
                     currentLektoratMatches.addAll(matches);
                     selectedLektoratMatch = null;
-                    applyCombinedStyling();
+                    applyCombinedStylingWithoutViewportChange();
                     showLektoratPanelHint();
                     if (result.isPartial()) {
                         int done = result.getChunksDone();
@@ -14039,12 +14135,113 @@ spacer.setStyle("-fx-background-color: transparent;");
         for (AgentTab tab : agentTabPane.getAgentTabs()) {
             setupAgentTabCallbacks(tab);
         }
+        for (SceneWritingAgentTab tab : agentTabPane.getSceneWritingTabs()) {
+            setupSceneWritingTabCallbacks(tab);
+        }
 
         // Panel zum SplitPane hinzufügen
         ensureAgentPanelVisible(true);
 
+        // Backends für alle Tabs initialisieren
+        initAgentBackends();
+
         // Modelle für alle Tabs laden
         loadAgentModels();
+
+        agentTabPane.applyFontSize(preferences.getInt("fontSize", 12));
+    }
+
+    private void initAgentBackends() {
+        for (AgentTab tab : agentTabPane.getAgentTabs()) {
+            getOrCreateBackendForConfig(tab.getAgentId(), tab.getAgentConfig(), true, null);
+        }
+        for (SceneWritingAgentTab tab : agentTabPane.getSceneWritingTabs()) {
+            getOrCreateBackendForConfig(tab.getAgentId(), tab.getAgentConfig(), true, null);
+        }
+    }
+
+    private void setupSceneWritingTabCallbacks(SceneWritingAgentTab tab) {
+        tab.setOnInsertClicked(this::insertTextFromAI);
+        tab.setGenerationHandler((instruction, useParameterModel, overrideModel, onStatus, onComplete, onError) -> {
+            String sceneOutlineText = null;
+            if (sceneOutlineWindow != null && originalDocxFile != null) {
+                sceneOutlineText = sceneOutlineWindow.getOutlineTextForDocx(originalDocxFile);
+            }
+
+            SceneContextLoader.Context ctx = SceneContextLoader.load(
+                getProjectDirectory(),
+                originalDocxFile,
+                currentFile,
+                codeArea != null ? codeArea.getText() : "",
+                getChapterOrderList(),
+                instruction,
+                sceneOutlineText
+            );
+
+            if (ctx.targetSceneNumber != null && ctx.targetScene.isBlank()) {
+                return "Szene " + ctx.targetSceneNumber
+                    + " nicht in der Outline gefunden — 'Szenen-Outline' prüfen";
+            }
+            if (ctx.sceneOutline.isBlank()) {
+                return "Keine Szenen-Outline für dieses Kapitel gefunden";
+            }
+
+            AgentConfig config = tab.getAgentConfig();
+            AIBackend backend = createGenerationBackend(useParameterModel, overrideModel, config);
+            if (backend == null) {
+                onError.accept(new IllegalStateException("Backend nicht verfügbar"));
+                return null;
+            }
+            backend.setTemperature(config.getTemperature());
+            SceneWritingAgent agent = new SceneWritingAgent(backend);
+            agent.setSystemPrompt(config.getSystemPrompt());
+
+            int maxTokens = config.getMaxTokens() > 0 ? config.getMaxTokens() : 4096;
+            agent.generate(ctx, maxTokens)
+                .thenAccept(onComplete)
+                .exceptionally(ex -> {
+                    onError.accept(ex);
+                    return null;
+                });
+            return null;
+        });
+    }
+
+    private AIBackend createGenerationBackend(boolean useParameterModel, String overrideModel, AgentConfig config) {
+        String backendType = config.getBackend();
+        AIBackend backend;
+        if ("OpenAI".equals(backendType)) {
+            backend = new OpenAIBackend();
+        } else {
+            backend = new OllamaBackend(new OllamaService());
+        }
+        String model = useParameterModel ? config.getModel() : overrideModel;
+        if (model != null && !model.isBlank()) {
+            backend.setCurrentModel(model.trim());
+        }
+        return backend;
+    }
+
+    private AIBackend getOrCreateBackendForConfig(String agentId, AgentConfig config,
+                                                    boolean useParameterModel, String overrideModel) {
+        AIBackend backend = agentBackends.get(agentId);
+        if (backend == null) {
+            backend = createGenerationBackend(useParameterModel, overrideModel, config);
+            agentBackends.put(agentId, backend);
+        } else {
+            String model = useParameterModel ? config.getModel() : overrideModel;
+            if (model != null && !model.isBlank()) {
+                backend.setCurrentModel(model.trim());
+            }
+        }
+        return backend;
+    }
+
+    private java.util.List<DocxFile> getChapterOrderList() {
+        if (chapterListView == null || chapterListView.getItems() == null) {
+            return java.util.Collections.emptyList();
+        }
+        return new java.util.ArrayList<>(chapterListView.getItems());
     }
 
     private void setupAgentTabCallbacks(AgentTab tab) {
@@ -14112,19 +14309,29 @@ spacer.setStyle("-fx-background-color: transparent;");
     }
 
     private void loadAgentModels() {
-        if (agentBackends.isEmpty() || agentTabPane == null) return;
+        if (agentTabPane == null) return;
         CompletableFuture.supplyAsync(() -> {
             try {
-                // Modelle vom ersten verfügbaren Backend laden
-                AIBackend firstBackend = agentBackends.values().iterator().next();
+                AIBackend firstBackend;
+                if (!agentBackends.isEmpty()) {
+                    firstBackend = agentBackends.values().iterator().next();
+                } else {
+                    String backendType = ResourceManager.getParameter("agent.backend", "Ollama");
+                    firstBackend = "OpenAI".equals(backendType) ? new OpenAIBackend() : new OllamaBackend(new OllamaService());
+                }
                 return firstBackend.getAvailableModels();
             } catch (Exception e) {
                 return java.util.Arrays.asList("gemma3:4b", "mistral:7b-instruct", "llama3.1:8b-instruct");
             }
         }).thenAccept(models -> {
-            for (AgentTab tab : agentTabPane.getAgentTabs()) {
-                tab.setModels(models);
-            }
+            Platform.runLater(() -> {
+                for (AgentTab tab : agentTabPane.getAgentTabs()) {
+                    tab.setModels(models);
+                }
+                for (SceneWritingAgentTab tab : agentTabPane.getSceneWritingTabs()) {
+                    tab.setModels(models);
+                }
+            });
         });
     }
 
@@ -14398,6 +14605,10 @@ spacer.setStyle("-fx-background-color: transparent;");
         if (paragraphSpacingTimer != null) {
             paragraphSpacingTimer.stop();
             paragraphSpacingTimer = null;
+        }
+        if (combinedStylingDebounceTimeline != null) {
+            combinedStylingDebounceTimeline.stop();
+            combinedStylingDebounceTimeline = null;
         }
 
         // Caret-Position VOR der Ersetzung sichern, damit wir sie anschließend
@@ -14677,10 +14888,18 @@ spacer.setStyle("-fx-background-color: transparent;");
         String replacementWithBoundaries = preserveParagraphBoundaries(originalSegment, unescaped);
         int originalEnd = start + originalSegment.length();
         int delta = replacementWithBoundaries.length() - originalSegment.length();
-        // WICHTIG: Snapshot OHNE Selektion erstellen, damit keine blaue Markierung wiederhergestellt wird
-        CodeAreaViewSnapshot viewSnapshot = captureCodeAreaViewSnapshotWithoutSelection();
+        final int newCaretPos = start + replacementWithBoundaries.length();
+        final int startF = start;
+        final int endF = end;
+        final String replacementF = replacementWithBoundaries;
         
-        codeArea.replaceText(start, end, replacementWithBoundaries);
+        runWithoutScrolling(() -> {
+            codeArea.replaceText(startF, endF, replacementF);
+            applyCombinedStyling();
+        });
+        codeArea.displaceCaret(Math.min(newCaretPos, codeArea.getLength()));
+        codeArea.deselect();
+        
         currentLektoratMatches.remove(match);
         selectedLektoratMatch = null;
         
@@ -14699,11 +14918,6 @@ spacer.setStyle("-fx-background-color: transparent;");
             }
         }
         
-        // Styling anwenden (ohne Cursor-Position zu ändern)
-        applyCombinedStyling();
-        
-        // Cursor-Position NICHT ändern - bleibt an aktueller Position
-        
         if (currentLektoratMatches.isEmpty()) {
             ensureLektoratPanelVisible(false);
             
@@ -14716,9 +14930,6 @@ spacer.setStyle("-fx-background-color: transparent;");
             applyThemeToNode(hint, currentThemeIndex);
             lektoratPanelContainer.getChildren().add(hint);
         }
-        
-        // Viewport wiederherstellen (KEINE Selektion, aber exakte Scroll-Position!)
-        restoreCodeAreaViewSnapshot(viewSnapshot, false, true, false);
         
         updateStatus("Lektorat-Vorschlag übernommen");
     }
@@ -14784,8 +14995,8 @@ spacer.setStyle("-fx-background-color: transparent;");
             }
         }
         
-        // Styling aktualisieren, falls nötig (debounced, um Performance zu erhalten)
-        Platform.runLater(this::applyCombinedStyling);
+        // Styling aktualisieren (debounced, um Viewport-Sprünge beim Tippen zu vermeiden)
+        scheduleApplyCombinedStyling();
     }
     
     /**
@@ -15083,33 +15294,9 @@ spacer.setStyle("-fx-background-color: transparent;");
                             
                             logger.info("Liste ersetzt. Aktuelle Matches: " + currentLanguageToolMatches.size());
                             
-                            // 4. Aktualisiere Styling SOFORT - WICHTIG: Explizit StyleSpans neu setzen
-                            logger.info("Rufe applyCombinedStyling() auf...");
-                            
-                            // WICHTIG: Setze StyleSpans explizit neu, um sicherzustellen, dass Änderungen sichtbar werden
                             Platform.runLater(() -> {
-                                logger.info("applyCombinedStyling() wird aufgerufen mit " + currentLanguageToolMatches.size() + " Matches");
-                                applyCombinedStyling();
+                                applyCombinedStylingWithoutViewportChange();
                                 updateLanguageToolStatus();
-                                
-                                // Zusätzlich: Erzwinge ein Update des CodeArea
-                                if (codeArea != null) {
-                                    // Erzwinge ein Re-layout
-                                    codeArea.requestLayout();
-                                    
-                                    // Setze StyleSpans nochmal explizit
-                                    String content = codeArea.getText();
-                                    if (content != null && !content.isEmpty()) {
-                                        StyleSpansBuilder<Collection<String>> spansBuilder = new StyleSpansBuilder<>();
-                                        spansBuilder.add(Collections.emptyList(), content.length());
-                                        StyleSpans<Collection<String>> spans = spansBuilder.create();
-                                        codeArea.setStyleSpans(0, spans);
-                                        
-                                        // Jetzt wieder mit den aktuellen Matches
-                                        applyCombinedStyling();
-                                    }
-                                }
-                                
                                 logger.info("=== FERTIG. Verbleibende Matches: " + currentLanguageToolMatches.size() + " ===");
                             });
                         } else {
@@ -15234,62 +15421,52 @@ spacer.setStyle("-fx-background-color: transparent;");
     private void applyLanguageToolCorrection(LanguageToolService.Match match, String replacement) {
         if (codeArea == null || match == null) return;
         
-        // Setze Flag, um doppelte Prüfungen zu vermeiden
         isApplyingLanguageToolCorrection = true;
+        languageToolCheckGeneration++;
+        if (languageToolCheckTimeline != null) {
+            languageToolCheckTimeline.stop();
+            languageToolCheckTimeline = null;
+        }
         
         try {
-            int start = match.getOffset();
-            int length = match.getLength();
-            
-            // WICHTIG: Cursorposition vor dem Replace speichern
-            final int oldCaretPos = codeArea.getCaretPosition();
-            final int oldLength = codeArea.getLength();
-            final int startF = start;
-            final int endF = start + length;
+            final int startF = match.getOffset();
+            final int endF = startF + match.getLength();
             final String replacementF = replacement;
+            final int delta = replacementF.length() - match.getLength();
             
-            // WICHTIG: Replace + Caret-Set in runWithoutScrolling kapseln,
-            // damit der Viewport beim Klick auf einen Vorschlag nicht springt.
-            // displaceCaret statt moveTo, um Follow-Caret-Scrollen zu vermeiden.
-            // Caret wird ans Ende des Replacements gesetzt (natürlichste Position).
-            // applyCombinedStyling() wird hier NICHT aufgerufen - die Re-Check nach 200ms
-            // erledigt das. So vermeiden wir verschachtelte runWithoutScrolling-Aufrufe.
             runWithoutScrolling(() -> {
                 isReplacingWithSuggestion = true;
                 try {
                     codeArea.replaceText(startF, endF, replacementF);
-                    int newCaretPos = Math.max(0, Math.min(codeArea.getLength(),
-                            startF + replacementF.length()));
-                    codeArea.displaceCaret(newCaretPos);
-                    
-                    // Matches löschen (Positionen nach Text-Änderung ungültig)
-                    currentLanguageToolMatches.clear();
+                    synchronized (currentLanguageToolMatches) {
+                        List<LanguageToolService.Match> updatedMatches = new ArrayList<>();
+                        for (LanguageToolService.Match other : currentLanguageToolMatches) {
+                            if (other == match) {
+                                continue;
+                            }
+                            
+                            int otherStart = other.getOffset();
+                            int otherEnd = otherStart + other.getLength();
+                            if (otherStart < endF && otherEnd > startF) {
+                                continue;
+                            }
+                            if (otherStart >= endF && delta != 0) {
+                                other.setOffset(otherStart + delta);
+                            }
+                            updatedMatches.add(other);
+                        }
+                        currentLanguageToolMatches = updatedMatches;
+                    }
+                    applyCombinedStyling();
                 } finally {
                     isReplacingWithSuggestion = false;
                 }
             });
-            updateLanguageToolStatus();
             
-            // 3. Starte eine vollständige Neuprüfung nach kurzer Verzögerung
-            // (damit der Text-Change-Listener nicht interferiert)
-            Platform.runLater(() -> {
-                if (languageToolEnabled) {
-                    // Kurze Verzögerung, damit der Text-Change-Listener nicht interferiert
-                    new java.util.Timer().schedule(new java.util.TimerTask() {
-                        @Override
-                        public void run() {
-                            Platform.runLater(() -> {
-                                isApplyingLanguageToolCorrection = false; // Flag zurücksetzen
-                                checkLanguageToolErrors(); // Vollständige Neuprüfung
-                            });
-                        }
-                    }, 200); // 200ms Verzögerung für sichereren Reset
-                } else {
-                    isApplyingLanguageToolCorrection = false;
-                }
-            });
+            updateLanguageToolStatus();
         } catch (Exception e) {
             logger.error("Fehler bei LanguageTool-Korrektur", e);
+        } finally {
             isApplyingLanguageToolCorrection = false;
         }
     }
@@ -15368,11 +15545,9 @@ spacer.setStyle("-fx-background-color: transparent;");
                         // WICHTIG: Ersetze die Liste komplett (nicht nur clear() + addAll())
                         currentLanguageToolMatches = new ArrayList<>(filteredMatches);
                         
-                        // Aktualisiere Styling sofort
-                        applyCombinedStyling();
+                        applyCombinedStylingWithoutViewportChange();
                         updateLanguageToolStatus();
                     }
-                    // Starte auch eine vollständige Neuprüfung im Hintergrund
                     checkLanguageToolErrors();
                 }
                 updateStatus("Wort zum Wörterbuch hinzugefügt: " + word);
@@ -18376,6 +18551,10 @@ spacer.setStyle("-fx-background-color: transparent;");
                         return;
                     }
                     
+                    if (isScrolling) {
+                        engine.executeScript("window.quillScrollChanged = false;");
+                        return;
+                    }
                     // Prüfe, ob der Editor gerade fokussiert ist - wenn ja, keine Synchronisation
                     // Das verhindert, dass der Editor während des Tippens wegscrollt
                     if (codeArea != null && codeArea.isFocused()) {
@@ -20793,6 +20972,10 @@ spacer.setStyle("-fx-background-color: transparent;");
                 Object scrollChanged = engine.executeScript("(window.normalViewScrollChanged || false)");
                 if (Boolean.TRUE.equals(scrollChanged)) {
                     engine.executeScript("window.normalViewScrollChanged = false;");
+                    // Kein Zurücksync während Editor-Scroll (verhindert Ruckler durch Preview-Feedback)
+                    if (isScrolling || (codeArea != null && codeArea.isFocused())) {
+                        return;
+                    }
                     
                     // Scroll-Informationen verarbeiten: Normaler WebView → Editor (textbasiert)
                     try {
@@ -21043,7 +21226,9 @@ spacer.setStyle("-fx-background-color: transparent;");
      * @param idx Index des Absatzes
      */
     private void scrollEditorToParagraphCentered(int idx) {
-        if (codeArea == null || scrollPane == null || idx < 0 || idx >= codeArea.getParagraphs().size()) return;
+        if (isScrolling || codeArea == null || scrollPane == null || idx < 0 || idx >= codeArea.getParagraphs().size()) {
+            return;
+        }
         try {
             // Zeige den Absatz oben an, dann einmal mittig – reduziert "Schlackern"
             codeArea.showParagraphAtTop(idx);
@@ -21695,6 +21880,7 @@ spacer.setStyle("-fx-background-color: transparent;");
                             activeTab.clearFindings();
                         }
                     }
+                    reloadSceneOutlineIfOpen();
                 }
             });
             
