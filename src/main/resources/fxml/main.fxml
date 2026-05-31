@@ -139,6 +139,9 @@
                      <Button fx:id="btnWorldEditor" styleClass="main-toolbar-button" text="🌍 Welt-Editor" minWidth="120">
                         <tooltip><Tooltip text="Projekt-Kontextdateien bearbeiten (Charaktere, Welt, Kontext, etc.)" /></tooltip>
                      </Button>
+                     <Button fx:id="btnPrototypeEditor" styleClass="main-toolbar-button" text="Eigener Editor" minWidth="120">
+                        <tooltip><Tooltip text="Eigenen Editor öffnen und ausgewähltes Kapitel laden (falls vorhanden)" /></tooltip>
+                     </Button>
                   </HBox>
                   <Region HBox.hgrow="ALWAYS" style="-fx-background-color: transparent;" />
                </children>

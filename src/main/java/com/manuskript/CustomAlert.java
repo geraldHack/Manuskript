@@ -694,6 +694,13 @@ public class CustomAlert {
             stage.initOwner(owner);
         }
     }
+
+    /**
+     * Fenster des Dialogs (z.B. als Owner für FileChooser, damit der Dialog offen bleibt).
+     */
+    public Window getDialogWindow() {
+        return stage;
+    }
     
     // Flag, um zu tracken, ob Modality explizit gesetzt wurde
     private Modality explicitModality = null;

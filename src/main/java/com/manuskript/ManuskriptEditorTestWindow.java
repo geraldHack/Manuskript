@@ -1,0 +1,1434 @@
+package com.manuskript;
+
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
+import javafx.application.Platform;
+import javafx.util.Duration;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.Separator;
+import javafx.scene.control.Spinner;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
+import javafx.scene.control.SpinnerValueFactory;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.Node;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCombination;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
+import javafx.stage.FileChooser;
+import javafx.stage.Window;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.prefs.Preferences;
+
+/**
+ * Prototyp-Fenster für den eigenen Editor mit Kapitel-Laden aus dem Hauptfenster.
+ */
+public class ManuskriptEditorTestWindow {
+
+    private static final String PREF_FONT_FAMILY = "prototype_editor_font_family";
+    private static final String PREF_FONT_SIZE = "prototype_editor_font_size";
+    private static final String PREF_LAST_IMAGE_PATH = "prototype_editor_last_image_path";
+    private static final String PREF_LAST_IMAGE_ALT = "prototype_editor_last_image_alt";
+    private static final String PREF_LAST_IMAGE_DIRECTORY = "prototype_editor_last_image_directory";
+    private static final String PREF_LAST_IMAGE_WIDTH = "prototype_editor_last_image_width";
+    private static final String PREF_HIDE_MARKUP = "prototype_editor_hide_markup";
+    private static final String PREF_LT_AUTO = "prototype_editor_languagetool_auto";
+
+    private final Window owner;
+    private final MainController mainController;
+    private final Preferences preferences = Preferences.userNodeForPackage(ManuskriptEditorTestWindow.class);
+    private CustomStage stage;
+    private ManuskriptTextEditor editor;
+    private Label statusLabel;
+    private Label lblSelectionCount;
+    private Label lblLanguageToolStatus;
+    private ManuskriptTextEditor.MarkedArea searchMarks;
+    private ManuskriptTextEditor.MarkedArea searchCurrentMark;
+    private TextField searchField;
+    private TextField replaceField;
+    private CheckBox regexCheckbox;
+    private List<ManuskriptTextEditor.SearchMatch> cachedSearchMatches = List.of();
+    private String lastSearchCacheKey = null;
+    private int currentSearchMatchIndex = -1;
+    private boolean editingShortcutsInstalled;
+    private LanguageToolDictionary languageToolDictionary;
+    private LanguageToolService languageToolService;
+    private Timeline languageToolCheckTimeline;
+    private boolean languageToolAutoEnabled;
+    private long languageToolCheckGeneration;
+    private boolean languageToolHasBeenChecked;
+    private String originalContent = "";
+    private ScheduledExecutorService statusClearExecutor;
+    private ScheduledFuture<?> statusClearFuture;
+    private final Object statusLock = new Object();
+    private static final String STATUS_STYLE_READY =
+            "-fx-text-fill: #28a745; -fx-font-weight: normal; -fx-background-color: #d4edda; -fx-padding: 2 6 2 6; -fx-background-radius: 3;";
+    private static final String STATUS_STYLE_WARNING =
+            "-fx-text-fill: #ff6b35; -fx-font-weight: bold; -fx-background-color: #fff3cd; -fx-padding: 2 6 2 6; -fx-background-radius: 3;";
+    private int themeIndex;
+    private File loadedChapterFile;
+    private File loadedProjectDirectory;
+    private String loadedChapterName;
+    private boolean dirty;
+    private boolean suppressDirty;
+    private boolean quoteErrorsDialogShown;
+
+    public ManuskriptEditorTestWindow(Window owner) {
+        this(owner, null);
+    }
+
+    public ManuskriptEditorTestWindow(Window owner, MainController mainController) {
+        this.owner = owner;
+        this.mainController = mainController;
+        createUI();
+    }
+
+    public void show() {
+        stage.show();
+        Platform.runLater(() -> {
+            stage.toFront();
+            stage.requestFocus();
+            editor.requestInputFocus();
+            scheduleInitialLanguageToolCheck();
+        });
+    }
+
+    private void createUI() {
+        stage = StageManager.createStage("Prototyp: Eigener Editor");
+        stage.setWindowPersistenceType("prototype_editor");
+        if (owner instanceof javafx.stage.Stage ownerStage) {
+            stage.initOwner(ownerStage);
+        }
+        stage.setMinWidth(900);
+        stage.setMinHeight(650);
+
+        editor = new ManuskriptTextEditor();
+        languageToolDictionary = new LanguageToolDictionary();
+        languageToolService = new LanguageToolService();
+        languageToolAutoEnabled = preferences.getBoolean(PREF_LT_AUTO, false);
+        editor.setLanguageToolDictionary(languageToolDictionary);
+        editor.setOnLanguageToolMatchesChanged(() -> Platform.runLater(this::updateLanguageToolStatus));
+        editor.setOnSelectionChanged(() -> Platform.runLater(this::updateSelectionCount));
+        editor.setFontFamilyForAll(preferences.get(PREF_FONT_FAMILY, "Segoe UI"));
+        editor.setFontSizeForAll(preferences.getDouble(PREF_FONT_SIZE, 16.0));
+        editor.setQuoteStyleIndex(Preferences.userNodeForPackage(EditorWindow.class).getInt("quoteStyle", 0));
+        editor.setText(sampleText());
+        captureOriginalContent();
+        editor.setOnTextChanged(text -> {
+            if (!suppressDirty) {
+                updateDirtyFromContent(text);
+            }
+            scheduleLanguageToolCheckDebounced();
+        });
+        editor.addAutoRegexStyleRule("\\*\\*(.+?)\\*\\*", 1, ManuskriptTextEditor.MarkedArea.BOLD);
+        editor.addAutoRegexStyleRule("(?<!\\*)\\*(?!\\*)(.+?)(?<!\\*)\\*(?!\\*)", 1, ManuskriptTextEditor.MarkedArea.ITALIC);
+        editor.addAutoRegexStyleRule("<u>(.+?)</u>", 1, ManuskriptTextEditor.MarkedArea.UNDERLINE);
+        boolean hideMarkup = preferences.getBoolean(PREF_HIDE_MARKUP, true);
+        editor.setRenderMarkupHidden(hideMarkup);
+        themeIndex = Preferences.userNodeForPackage(MainController.class).getInt("main_window_theme", 0);
+        editor.applyTheme(themeIndex);
+
+        BorderPane root = new BorderPane();
+        initializeStatusLabel();
+        initializeSelectionLabel();
+        root.setTop(createToolbar());
+        root.setCenter(editor);
+        applyThemeToNode(root, themeIndex);
+        root.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
+            if (event.getTarget() == editor || editor.getBoundsInParent().contains(event.getX(), event.getY())) {
+                Platform.runLater(editor::requestInputFocus);
+            }
+        });
+
+        Scene scene = new Scene(root, 1100, 780);
+        String cssPath = ResourceManager.getCssResource("css/manuskript.css");
+        if (cssPath != null) {
+            scene.getStylesheets().add(cssPath);
+        }
+        stage.setSceneWithTitleBar(scene);
+        stage.setFullTheme(themeIndex);
+        stage.setOnShown(event -> {
+            stage.requestFocus();
+            editor.requestInputFocus();
+            ensureEditingShortcutsInstalled();
+            scheduleInitialLanguageToolCheck();
+        });
+
+        PreferencesManager.MultiMonitorValidator.applyWindowProperties(
+                stage,
+                PreferencesManager.MultiMonitorValidator.loadAndValidateWindowProperties(
+                        preferences, "prototype_editor_window", 1100.0, 780.0));
+        setupWindowPersistence();
+        stage.setOnCloseRequest(event -> {
+            if (!confirmDiscardUnsavedChanges()) {
+                event.consume();
+                return;
+            }
+            cancelLanguageToolChecks();
+        });
+
+        updateStatus("Bereit");
+        updateSelectionCount();
+
+        initializeImageDirectories();
+    }
+
+    private void initializeImageDirectories() {
+        File projectDirectory = resolveProjectDirectory();
+        if (projectDirectory != null) {
+            loadedProjectDirectory = projectDirectory;
+            editor.setImageDirectories(resolveMdDirectory(), projectDirectory);
+        }
+    }
+
+    private VBox createToolbar() {
+        ComboBox<String> fontFamily = new ComboBox<>();
+        fontFamily.getItems().addAll(Font.getFamilies());
+        fontFamily.setValue(preferences.get(PREF_FONT_FAMILY, "Segoe UI"));
+        fontFamily.setPrefWidth(180);
+        fontFamily.valueProperty().addListener((obs, oldValue, newValue) -> {
+            editor.setFontFamilyForAll(newValue);
+            preferences.put(PREF_FONT_FAMILY, newValue);
+        });
+
+        ComboBox<Double> fontSize = new ComboBox<>();
+        fontSize.getItems().addAll(10.0, 11.0, 12.0, 14.0, 16.0, 18.0, 20.0, 24.0, 28.0, 32.0);
+        fontSize.setValue(preferences.getDouble(PREF_FONT_SIZE, 16.0));
+        fontSize.setPrefWidth(80);
+        fontSize.valueProperty().addListener((obs, oldValue, newValue) -> {
+            if (newValue != null) {
+                editor.setFontSizeForAll(newValue);
+                preferences.putDouble(PREF_FONT_SIZE, newValue);
+            }
+        });
+
+        Button undo = new Button("Rückgängig");
+        undo.setTooltip(new Tooltip("Rückgängig (Strg+Z)"));
+        undo.setOnAction(e -> {
+            editor.undo();
+            editor.requestInputFocus();
+        });
+
+        Button redo = new Button("Wiederholen");
+        redo.setTooltip(new Tooltip("Wiederholen (Strg+Y)"));
+        redo.setOnAction(e -> {
+            editor.redo();
+            editor.requestInputFocus();
+        });
+
+        Button bold = new Button("Fett");
+        bold.setTooltip(new Tooltip("Fett (Strg+B)"));
+        bold.setOnAction(e -> {
+            editor.toggleBold();
+            editor.requestInputFocus();
+        });
+        Button italic = new Button("Kursiv");
+        italic.setTooltip(new Tooltip("Kursiv (Strg+I)"));
+        italic.setOnAction(e -> {
+            editor.toggleItalic();
+            editor.requestInputFocus();
+        });
+        Button underline = new Button("Unterstrichen");
+        underline.setTooltip(new Tooltip("Unterstrichen (Strg+U)"));
+        underline.setOnAction(e -> {
+            editor.toggleUnderline();
+            editor.requestInputFocus();
+        });
+
+        searchField = new TextField();
+        searchField.setPromptText("Suchen");
+        searchField.setPrefWidth(160);
+        searchField.setTooltip(new Tooltip("Suchen (Strg+F, Enter = weiter, F3 = weiter)"));
+
+        replaceField = new TextField();
+        replaceField.setPromptText("Ersetzen");
+        replaceField.setPrefWidth(140);
+        regexCheckbox = new CheckBox("Regex");
+        setupSearchFieldShortcuts();
+
+        Button find = new Button("Weiter");
+        find.setTooltip(new Tooltip("Nächster Treffer (Enter / F3)"));
+        find.setOnAction(e -> findNextMatch());
+
+        Button findPrevious = new Button("Zurück");
+        findPrevious.setTooltip(new Tooltip("Vorheriger Treffer (Umschalt+Enter / Umschalt+F3)"));
+        findPrevious.setOnAction(e -> findPreviousMatch());
+
+        Button replaceOne = new Button("Ersetzen");
+        replaceOne.setTooltip(new Tooltip("Aktuellen Treffer ersetzen und weiter (Strg+H)"));
+        replaceOne.setOnAction(e -> replaceNextMatch());
+
+        Button replaceAll = new Button("Alle ersetzen");
+        replaceAll.setOnAction(e -> {
+            int count = editor.replaceAll(searchField.getText(), replaceField.getText(), regexCheckbox.isSelected(), true);
+            invalidateSearchCache();
+            updateStatus(count + " Treffer ersetzt");
+        });
+
+        CheckBox hideMarkup = new CheckBox("Markup ausblenden");
+        hideMarkup.setSelected(preferences.getBoolean(PREF_HIDE_MARKUP, true));
+        hideMarkup.setTooltip(new Tooltip("Markdown-Syntax (# ** * <u>) im Editor ausblenden"));
+        hideMarkup.selectedProperty().addListener((obs, oldValue, newValue) -> {
+            editor.setRenderMarkupHidden(newValue);
+            preferences.putBoolean(PREF_HIDE_MARKUP, newValue);
+        });
+
+        ComboBox<String> quoteStyle = new ComboBox<>();
+        for (String[] option : QuotationMarkSupport.STYLE_OPTIONS) {
+            quoteStyle.getItems().add(option[0]);
+        }
+        int quoteStyleIndex = Preferences.userNodeForPackage(EditorWindow.class).getInt("quoteStyle", 0);
+        if (quoteStyleIndex < 0 || quoteStyleIndex >= QuotationMarkSupport.STYLE_COUNT) {
+            quoteStyleIndex = 0;
+        }
+        quoteStyle.setValue(QuotationMarkSupport.styleLabel(quoteStyleIndex));
+        quoteStyle.setPrefWidth(230);
+        quoteStyle.setTooltip(new Tooltip("Stil für Anführungszeichen beim Tippen von \" und '"));
+        quoteStyle.setOnAction(e -> {
+            int selectedIndex = quoteStyle.getSelectionModel().getSelectedIndex();
+            if (selectedIndex >= 0) {
+                editor.setQuoteStyleIndex(selectedIndex);
+                Preferences.userNodeForPackage(EditorWindow.class).putInt("quoteStyle", selectedIndex);
+                convertAllQuotationMarksInText(selectedIndex);
+            }
+        });
+
+        Button languageTool = new Button("LanguageTool");
+        languageTool.setTooltip(new Tooltip("LanguageTool jetzt prüfen"));
+        languageTool.setOnAction(e -> runLanguageToolCheck(true));
+
+        CheckBox languageToolAuto = new CheckBox("LT automatisch");
+        languageToolAuto.setSelected(languageToolAutoEnabled);
+        languageToolAuto.setTooltip(new Tooltip("LanguageTool nach Textänderungen automatisch prüfen (500 ms Verzögerung)"));
+        languageToolAuto.selectedProperty().addListener((obs, oldValue, newValue) -> {
+            languageToolAutoEnabled = newValue;
+            preferences.putBoolean(PREF_LT_AUTO, newValue);
+            if (newValue) {
+                scheduleLanguageToolCheckDebounced();
+            } else {
+                cancelLanguageToolChecks();
+                languageToolHasBeenChecked = false;
+                editor.clearLanguageToolMatches();
+                updateLanguageToolStatus();
+            }
+        });
+
+        lblLanguageToolStatus = new Label("");
+        lblLanguageToolStatus.setTooltip(new Tooltip("LanguageTool Status"));
+        lblLanguageToolStatus.setStyle("-fx-text-fill: #666; -fx-font-size: 11px;");
+        updateLanguageToolStatus();
+
+        Button loadSelectedChapter = new Button("Kapitel laden");
+        loadSelectedChapter.setOnAction(e -> loadSelectedChapterFromMainWindow());
+
+        Button saveChapter = new Button("Speichern");
+        saveChapter.setTooltip(new Tooltip("Speichern (Strg+S)"));
+        saveChapter.setOnAction(e -> saveLoadedChapter());
+
+        Button insertImage = new Button("Bild einfügen");
+        insertImage.setOnAction(e -> insertImage());
+
+        Button editImage = new Button("Bild bearbeiten");
+        editImage.setTooltip(new Tooltip("Breite und Beschriftung des Bildes am Cursor ändern"));
+        editImage.setOnAction(e -> editImageAtCaret());
+
+        Button deleteImage = new Button("Bild löschen");
+        deleteImage.setOnAction(e -> {
+            if (editor.deleteImageBlockAtCaret()) {
+                updateStatus("Bild entfernt");
+            } else {
+                updateStatus("Kein Bild am Cursor – Bild anklicken oder Cursor im Bild platzieren", true);
+            }
+        });
+
+        HBox row1 = new HBox(8,
+                undo, redo,
+                new Separator(),
+                new Label("Font:"), fontFamily,
+                new Label("Größe:"), fontSize,
+                new Separator(), bold, italic, underline,
+                hideMarkup);
+        Region statusSpacer = new Region();
+        HBox.setHgrow(statusSpacer, Priority.ALWAYS);
+        row1.getChildren().addAll(statusSpacer, lblSelectionCount, new Separator(), statusLabel);
+        row1.setAlignment(Pos.CENTER_LEFT);
+
+        HBox row2 = new HBox(8,
+                searchField, replaceField, regexCheckbox, find, findPrevious, replaceOne, replaceAll,
+                new Separator(), new Label("Anführungszeichen:"), quoteStyle,
+                new Separator(), languageTool, languageToolAuto, lblLanguageToolStatus,
+                new Separator(), insertImage, editImage, deleteImage, loadSelectedChapter, saveChapter);
+        row2.setAlignment(Pos.CENTER_LEFT);
+
+        VBox toolbar = new VBox(6, row1, row2);
+        toolbar.setPadding(new Insets(8));
+        applyThemeToNode(toolbar, themeIndex);
+        HBox.setHgrow(searchField, Priority.NEVER);
+        return toolbar;
+    }
+
+    public void tryLoadSelectedChapter() {
+        Platform.runLater(() -> {
+            loadSelectedChapterFromMainWindow();
+            scheduleInitialLanguageToolCheck();
+        });
+    }
+
+    private void focusReplaceField() {
+        if (searchField.getText() == null || searchField.getText().isBlank()) {
+            if (editor.hasTextSelection()) {
+                searchField.setText(editor.getSelectedText());
+            }
+        }
+        searchField.requestFocus();
+        replaceField.requestFocus();
+        replaceField.selectAll();
+    }
+
+    private void replaceNextMatch() {
+        String query = searchField.getText();
+        if (query == null || query.isBlank()) {
+            focusSearchField();
+            updateStatus("Suchbegriff eingeben", true);
+            return;
+        }
+        refreshSearchCacheIfNeeded();
+        if (cachedSearchMatches.isEmpty()) {
+            updateStatus("Keine Treffer", true);
+            return;
+        }
+        if (currentSearchMatchIndex < 0) {
+            currentSearchMatchIndex = 0;
+        }
+        int index = Math.min(currentSearchMatchIndex, cachedSearchMatches.size() - 1);
+        String replacement = replaceField.getText() == null ? "" : replaceField.getText();
+        editor.replaceOne(query, replacement, regexCheckbox.isSelected(), true, index);
+        lastSearchCacheKey = null;
+        currentSearchMatchIndex = -1;
+        refreshSearchCacheIfNeeded();
+        if (cachedSearchMatches.isEmpty()) {
+            clearSearchMarks();
+            updateStatus("Ersetzt – keine weiteren Treffer");
+            return;
+        }
+        int nextIndex = Math.min(index, cachedSearchMatches.size() - 1);
+        goToSearchMatch(nextIndex);
+        updateStatus("Ersetzt, Treffer " + (nextIndex + 1) + " von " + cachedSearchMatches.size());
+    }
+
+    private void editImageAtCaret() {
+        ManuskriptTextEditor.ImageBlockInfo info = editor.getImageBlockAtCaret();
+        if (info == null) {
+            updateStatus("Kein Bild am Cursor – Bild anklicken oder Cursor im Bild platzieren", true);
+            return;
+        }
+
+        CustomAlert alert = new CustomAlert(CustomAlert.AlertType.INFORMATION);
+        alert.setTitle("Bild bearbeiten");
+        alert.setHeaderText("Bild bearbeiten");
+        alert.initOwner(stage);
+
+        VBox contentBox = new VBox(10);
+        contentBox.setPadding(new Insets(10));
+
+        Label fileLabel = new Label("Datei:");
+        Label fileValue = new Label(info.imagePath());
+        fileValue.setWrapText(true);
+
+        Label textLabel = new Label("Beschriftung:");
+        TextField textField = new TextField();
+        textField.setPromptText("Optionale Bildbeschriftung");
+        if (info.caption() != null) {
+            textField.setText(info.caption());
+        }
+
+        Label sizeLabel = new Label("Breite (%):");
+        Spinner<Integer> widthSpinner = new Spinner<>();
+        widthSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(10, 100, info.widthPercent(), 5));
+        widthSpinner.setEditable(true);
+        widthSpinner.setPrefWidth(80);
+
+        contentBox.getChildren().addAll(fileLabel, fileValue, textLabel, textField, sizeLabel, widthSpinner);
+        alert.setCustomContent(contentBox);
+        alert.applyTheme(themeIndex);
+        alert.setButtonTypes(new ButtonType("Übernehmen"), new ButtonType("Abbrechen"));
+
+        Optional<ButtonType> result = alert.showAndWait(stage);
+        if (result.isEmpty() || result.get().getButtonData().isCancelButton()) {
+            return;
+        }
+
+        int widthPercent = widthSpinner.getValue() == null ? info.widthPercent() : widthSpinner.getValue();
+        if (editor.updateImageBlockAtCaret(textField.getText(), widthPercent)) {
+            preferences.putInt(PREF_LAST_IMAGE_WIDTH, widthPercent);
+            String caption = textField.getText();
+            if (caption != null && !caption.isBlank()) {
+                preferences.put(PREF_LAST_IMAGE_ALT, caption);
+            }
+            updateStatus("Bild aktualisiert");
+        } else {
+            updateStatusError("Bild konnte nicht aktualisiert werden");
+        }
+    }
+
+    private void setupSearchFieldShortcuts() {
+        searchField.setOnAction(event -> {
+            editor.suppressEnterKey(4);
+            findNextMatch();
+        });
+        searchField.addEventFilter(KeyEvent.KEY_TYPED, event -> {
+            String character = event.getCharacter();
+            if (character != null && !character.isEmpty() && character.charAt(0) < 32) {
+                event.consume();
+            }
+        });
+        searchField.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+            if (event.isConsumed()) {
+                return;
+            }
+            if (ManuskriptTextEditor.isEditingShortcutKey(event) && event.getCode() == KeyCode.F) {
+                searchField.selectAll();
+                event.consume();
+                return;
+            }
+            if (event.getCode() == KeyCode.ESCAPE) {
+                editor.requestInputFocus();
+                event.consume();
+                return;
+            }
+            if (event.getCode() == KeyCode.ENTER && event.isShiftDown()
+                    && !ManuskriptTextEditor.isEditingShortcutKey(event)) {
+                editor.suppressEnterKey(4);
+                event.consume();
+                findPreviousMatch();
+            }
+        });
+        searchField.textProperty().addListener((obs, oldValue, newValue) -> {
+            invalidateSearchCache();
+            if (newValue == null || newValue.isBlank()) {
+                clearSearchMarks();
+            }
+        });
+        regexCheckbox.selectedProperty().addListener((obs, oldValue, newValue) -> {
+            invalidateSearchCache();
+            if (searchField.getText() == null || searchField.getText().isBlank()) {
+                clearSearchMarks();
+            }
+        });
+    }
+
+    private void focusSearchField() {
+        if (editor.hasTextSelection()) {
+            searchField.setText(editor.getSelectedText());
+        }
+        searchField.requestFocus();
+        searchField.selectAll();
+    }
+
+    private void invalidateSearchCache() {
+        lastSearchCacheKey = null;
+        currentSearchMatchIndex = -1;
+    }
+
+    private String searchCacheKey(String query, boolean regex) {
+        return query + "\0" + regex;
+    }
+
+    private void refreshSearchCacheIfNeeded() {
+        String query = searchField.getText();
+        if (query == null) {
+            query = "";
+        }
+        boolean regex = regexCheckbox.isSelected();
+        String key = searchCacheKey(query, regex);
+        if (key.equals(lastSearchCacheKey)) {
+            return;
+        }
+        lastSearchCacheKey = key;
+        currentSearchMatchIndex = -1;
+        if (query.isBlank()) {
+            clearSearchMarks();
+            cachedSearchMatches = List.of();
+            return;
+        }
+        cachedSearchMatches = editor.searchAll(query, regex, true);
+        markSearchResults(query, regex);
+    }
+
+    private void markSearchResults(String query, boolean regex) {
+        clearSearchMarks();
+        if (cachedSearchMatches.isEmpty()) {
+            return;
+        }
+        searchMarks = editor.newMarkedArea();
+        searchMarks.markType(ManuskriptTextEditor.MarkedArea.Type.HIGHLIGHT)
+                .markColor(ManuskriptTextEditor.MarkedArea.SEARCH_MATCH_COLOR);
+        searchMarks.searchAll(query, regex);
+    }
+
+    private void markCurrentSearchMatch(int index) {
+        if (searchCurrentMark != null) {
+            searchCurrentMark.clear();
+            searchCurrentMark = null;
+        }
+        if (index < 0 || index >= cachedSearchMatches.size()) {
+            return;
+        }
+        ManuskriptTextEditor.SearchMatch match = cachedSearchMatches.get(index);
+        searchCurrentMark = editor.newMarkedArea();
+        searchCurrentMark.markType(ManuskriptTextEditor.MarkedArea.Type.HIGHLIGHT)
+                .markColor(ManuskriptTextEditor.MarkedArea.SEARCH_CURRENT_MATCH_COLOR)
+                .addRange(match.start(), match.end());
+    }
+
+    private void clearSearchMarks() {
+        if (searchCurrentMark != null) {
+            searchCurrentMark.clear();
+            searchCurrentMark = null;
+        }
+        if (searchMarks != null) {
+            searchMarks.clear();
+            searchMarks = null;
+        }
+    }
+
+    private void findNextMatch() {
+        String query = searchField.getText();
+        if (query == null || query.isBlank()) {
+            focusSearchField();
+            updateStatus("Suchbegriff eingeben", true);
+            return;
+        }
+        refreshSearchCacheIfNeeded();
+        if (cachedSearchMatches.isEmpty()) {
+            clearSearchMarks();
+            updateStatus("Keine Treffer", true);
+            return;
+        }
+        int nextIndex = currentSearchMatchIndex < 0
+                ? 0
+                : (currentSearchMatchIndex + 1) % cachedSearchMatches.size();
+        goToSearchMatch(nextIndex);
+    }
+
+    private void findPreviousMatch() {
+        String query = searchField.getText();
+        if (query == null || query.isBlank()) {
+            focusSearchField();
+            updateStatus("Suchbegriff eingeben", true);
+            return;
+        }
+        refreshSearchCacheIfNeeded();
+        if (cachedSearchMatches.isEmpty()) {
+            clearSearchMarks();
+            updateStatus("Keine Treffer", true);
+            return;
+        }
+        int previousIndex = currentSearchMatchIndex <= 0
+                ? cachedSearchMatches.size() - 1
+                : currentSearchMatchIndex - 1;
+        goToSearchMatch(previousIndex);
+    }
+
+    private void goToSearchMatch(int index) {
+        ManuskriptTextEditor.SearchMatch match = cachedSearchMatches.get(index);
+        currentSearchMatchIndex = index;
+        markCurrentSearchMatch(index);
+        editor.revealMatchAt(match.start(), match.end());
+        updateStatus("Treffer " + (index + 1) + " von " + cachedSearchMatches.size());
+    }
+
+    private void ensureEditingShortcutsInstalled() {
+        if (editingShortcutsInstalled) {
+            return;
+        }
+        Scene scene = stage.getScene();
+        if (scene == null) {
+            return;
+        }
+        var accelerators = scene.getAccelerators();
+        bindEditingAccelerator(accelerators, "Shortcut+Z", editor::undo, true);
+        bindEditingAccelerator(accelerators, "Ctrl+Z", editor::undo, true);
+        bindEditingAccelerator(accelerators, "Shortcut+Shift+Z", editor::redo, true);
+        bindEditingAccelerator(accelerators, "Ctrl+Shift+Z", editor::redo, true);
+        bindEditingAccelerator(accelerators, "Shortcut+Y", editor::redo, true);
+        bindEditingAccelerator(accelerators, "Ctrl+Y", editor::redo, true);
+        bindEditingAccelerator(accelerators, "Shortcut+B", editor::toggleBold, true);
+        bindEditingAccelerator(accelerators, "Ctrl+B", editor::toggleBold, true);
+        bindEditingAccelerator(accelerators, "Shortcut+I", editor::toggleItalic, true);
+        bindEditingAccelerator(accelerators, "Ctrl+I", editor::toggleItalic, true);
+        bindEditingAccelerator(accelerators, "Shortcut+U", editor::toggleUnderline, true);
+        bindEditingAccelerator(accelerators, "Ctrl+U", editor::toggleUnderline, true);
+        bindEditingAccelerator(accelerators, "Shortcut+F", this::focusSearchField, false);
+        bindEditingAccelerator(accelerators, "Ctrl+F", this::focusSearchField, false);
+        bindEditingAccelerator(accelerators, "Shortcut+S", this::saveLoadedChapter, true);
+        bindEditingAccelerator(accelerators, "Ctrl+S", this::saveLoadedChapter, true);
+        bindEditingAccelerator(accelerators, "Shortcut+H", this::replaceNextMatch, false);
+        bindEditingAccelerator(accelerators, "Ctrl+H", this::replaceNextMatch, false);
+
+        stage.addEventFilter(KeyEvent.KEY_PRESSED, this::handleSearchNavigationKey);
+        editingShortcutsInstalled = true;
+    }
+
+    private void handleSearchNavigationKey(KeyEvent event) {
+        if (event.getCode() == KeyCode.F3) {
+            event.consume();
+            if (event.isShiftDown()) {
+                findPreviousMatch();
+            } else {
+                findNextMatch();
+            }
+        }
+    }
+
+    private void bindEditingAccelerator(javafx.collections.ObservableMap<KeyCombination, Runnable> accelerators,
+                                        String combination, Runnable action, boolean refocusEditor) {
+        accelerators.put(KeyCombination.valueOf(combination), () -> Platform.runLater(() -> {
+            action.run();
+            if (refocusEditor) {
+                editor.requestInputFocus();
+            }
+        }));
+    }
+
+    private void initializeStatusLabel() {
+        statusLabel = new Label("Bereit");
+        statusLabel.getStyleClass().add("status-label");
+        statusLabel.setMinWidth(280);
+        statusLabel.setStyle(STATUS_STYLE_READY);
+    }
+
+    private void initializeSelectionLabel() {
+        lblSelectionCount = new Label("Auswahl: 0 Zeichen, 0 Wörter");
+        lblSelectionCount.getStyleClass().add("selection-label");
+    }
+
+    private void updateSelectionCount() {
+        if (lblSelectionCount == null || editor == null) {
+            return;
+        }
+        String selectedText = editor.getSelectedText();
+        if (selectedText != null && !selectedText.isEmpty()) {
+            lblSelectionCount.setText("Auswahl: " + selectedText.length() + " Zeichen, " + countWords(selectedText) + " Wörter");
+        } else {
+            lblSelectionCount.setText("Auswahl: 0 Zeichen, 0 Wörter");
+        }
+    }
+
+    private static int countWords(String text) {
+        if (text == null || text.trim().isEmpty()) {
+            return 0;
+        }
+        return text.trim().split("\\s+").length;
+    }
+
+    private void scheduleInitialLanguageToolCheck() {
+        if (!languageToolAutoEnabled) {
+            return;
+        }
+        scheduleLanguageToolCheckDebounced();
+    }
+
+    private void scheduleLanguageToolCheckDebounced() {
+        if (!languageToolAutoEnabled) {
+            return;
+        }
+        if (languageToolCheckTimeline != null) {
+            languageToolCheckTimeline.stop();
+        }
+        languageToolCheckTimeline = new Timeline(new KeyFrame(Duration.millis(500), event -> {
+            languageToolCheckTimeline = null;
+            runLanguageToolCheck(false);
+        }));
+        languageToolCheckTimeline.play();
+    }
+
+    private void cancelLanguageToolChecks() {
+        languageToolCheckGeneration++;
+        if (languageToolCheckTimeline != null) {
+            languageToolCheckTimeline.stop();
+            languageToolCheckTimeline = null;
+        }
+    }
+
+    private void runLanguageToolCheck() {
+        runLanguageToolCheck(true);
+    }
+
+    private void runLanguageToolCheck(boolean showRunningStatus) {
+        if (showRunningStatus) {
+            updateStatus("LanguageTool-Prüfung läuft...");
+        }
+        String editorText = editor.getText();
+        if (editorText == null || editorText.isBlank()) {
+            languageToolHasBeenChecked = true;
+            editor.clearLanguageToolMatches();
+            if (showRunningStatus) {
+                updateStatus("LanguageTool: Kein Text zum Prüfen", true);
+            }
+            return;
+        }
+
+        LanguageToolTextMapping mapping = LanguageToolTextMapping.fromOriginal(editorText);
+        final long checkGeneration = languageToolCheckGeneration;
+        languageToolService.startServerIfNeeded()
+                .thenCompose(running -> {
+                    if (!running) {
+                        return java.util.concurrent.CompletableFuture.completedFuture(null);
+                    }
+                    return languageToolService.checkText(mapping.cleanedText(), "de-DE");
+                })
+                .thenAccept(result -> Platform.runLater(() -> {
+                    if (checkGeneration != languageToolCheckGeneration) {
+                        return;
+                    }
+                    if (result == null) {
+                        languageToolHasBeenChecked = true;
+                        if (showRunningStatus) {
+                            updateStatusError("LanguageTool Server nicht verfügbar");
+                        }
+                        updateLanguageToolStatus();
+                        return;
+                    }
+                    List<LanguageToolService.Match> matches = mapping.mapMatchesToOriginal(result.getMatches());
+                    matches = languageToolDictionary.filterMatches(matches, editor.getText());
+                    languageToolHasBeenChecked = true;
+                    editor.applyLanguageToolMatches(matches);
+                    updateLanguageToolStatus();
+                    if (showRunningStatus) {
+                        updateStatus("LanguageTool: " + matches.size() + " Fehler gefunden");
+                    }
+                }))
+                .exceptionally(ex -> {
+                    Platform.runLater(() -> {
+                        if (checkGeneration == languageToolCheckGeneration && showRunningStatus) {
+                            updateStatusError("LanguageTool fehlgeschlagen: " + ex.getMessage());
+                        }
+                    });
+                    return null;
+                });
+    }
+
+    private void updateStatus(String message) {
+        if (statusLabel == null) {
+            return;
+        }
+        statusLabel.setText(message == null ? "" : message);
+        statusLabel.setStyle(STATUS_STYLE_READY);
+        scheduleStatusClear(5);
+    }
+
+    private void updateStatus(String message, boolean isError) {
+        if (isError) {
+            updateStatusError(message);
+        } else {
+            updateStatus(message);
+        }
+    }
+
+    private void updateStatusError(String message) {
+        if (statusLabel == null) {
+            return;
+        }
+        statusLabel.setText(message == null ? "" : message);
+        statusLabel.setStyle(STATUS_STYLE_WARNING);
+        scheduleStatusClear(5);
+    }
+
+    private void updateStatusDisplay() {
+        if (statusLabel == null) {
+            return;
+        }
+        if (dirty) {
+            statusLabel.setText("⚠ Ungespeicherte Änderungen");
+            statusLabel.setStyle(STATUS_STYLE_WARNING);
+        } else {
+            statusLabel.setText("Bereit");
+            statusLabel.setStyle(STATUS_STYLE_READY);
+        }
+    }
+
+    private void scheduleStatusClear(long delaySeconds) {
+        synchronized (statusLock) {
+            if (statusClearExecutor == null) {
+                statusClearExecutor = Executors.newSingleThreadScheduledExecutor(r -> {
+                    Thread t = new Thread(r, "PrototypeEditorStatusClear");
+                    t.setDaemon(true);
+                    return t;
+                });
+            }
+            if (statusClearFuture != null && !statusClearFuture.isDone()) {
+                statusClearFuture.cancel(false);
+            }
+            statusClearFuture = statusClearExecutor.schedule(() -> Platform.runLater(() -> {
+                if (statusLabel != null) {
+                    updateStatusDisplay();
+                }
+            }), delaySeconds, TimeUnit.SECONDS);
+        }
+    }
+
+    private void updateLanguageToolStatus() {
+        if (lblLanguageToolStatus == null) {
+            return;
+        }
+        int count = editor.getLanguageToolMatchCount();
+        if (!languageToolAutoEnabled && !languageToolHasBeenChecked) {
+            lblLanguageToolStatus.setText("");
+            lblLanguageToolStatus.setStyle("-fx-text-fill: #666; -fx-font-size: 11px;");
+            lblLanguageToolStatus.setTooltip(new Tooltip("LanguageTool automatisch deaktiviert"));
+        } else if (count == 0) {
+            lblLanguageToolStatus.setText("✓");
+            lblLanguageToolStatus.setStyle("-fx-text-fill: #4caf50; -fx-font-size: 11px;");
+            lblLanguageToolStatus.setTooltip(new Tooltip("Keine Fehler gefunden"));
+        } else {
+            lblLanguageToolStatus.setText("⚠ " + count);
+            lblLanguageToolStatus.setStyle("-fx-text-fill: #f44336; -fx-font-size: 11px;");
+            lblLanguageToolStatus.setTooltip(new Tooltip(count + " Fehler gefunden"));
+        }
+    }
+
+    private void loadSelectedChapterFromMainWindow() {
+        if (mainController == null) {
+            updateStatusError("Kein Hauptfenster angebunden");
+            return;
+        }
+        MainController.PrototypeChapterContent chapter = mainController.loadSelectedChapterMarkdownForPrototype();
+        if (chapter == null) {
+            updateStatus("Kein Kapitel ausgewählt oder keine MD-Datei in data gefunden", true);
+            return;
+        }
+        suppressDirty = true;
+        try {
+            clearTransientMarks();
+            loadedChapterFile = chapter.file();
+            loadedProjectDirectory = chapter.file().getParentFile() != null
+                    ? chapter.file().getParentFile().getParentFile()
+                    : null;
+            editor.loadDocument(chapter.content(), chapter.file().getParentFile(), loadedProjectDirectory);
+            loadedChapterName = chapter.fileName();
+            captureOriginalContent();
+            setDirty(false);
+            updateStatus("Geladen: " + loadedChapterName);
+            checkQuoteErrorsOnLoad(chapter.content());
+        } finally {
+            suppressDirty = false;
+            scheduleInitialLanguageToolCheck();
+        }
+    }
+
+    private void convertAllQuotationMarksInText(int styleIndex) {
+        String currentText = editor.getText();
+        if (currentText == null || currentText.isEmpty()) {
+            return;
+        }
+        String convertedText = QuotationMarkSupport.convertTextToStyle(currentText, styleIndex);
+        if (currentText.equals(convertedText)) {
+            return;
+        }
+        suppressDirty = true;
+        try {
+            editor.replaceRange(0, currentText.length(), convertedText);
+            updateDirtyFromContent(convertedText);
+        } finally {
+            suppressDirty = false;
+        }
+        updateStatus("Anführungszeichen zu " + QuotationMarkSupport.styleLabel(styleIndex) + " konvertiert");
+    }
+
+    private void checkQuoteErrorsOnLoad(String text) {
+        List<QuotationMarkSupport.QuoteError> errors = QuotationMarkSupport.findQuoteErrors(text);
+        if (!errors.isEmpty()) {
+            Platform.runLater(() -> showQuoteErrorsDialog(errors));
+        }
+    }
+
+    private void showQuoteErrorsDialog(List<QuotationMarkSupport.QuoteError> errors) {
+        if (errors == null || errors.isEmpty()) {
+            updateStatus("Keine Anführungszeichen-Fehler gefunden.");
+            return;
+        }
+        if (quoteErrorsDialogShown) {
+            return;
+        }
+        quoteErrorsDialogShown = true;
+
+        CustomStage errorStage = StageManager.createStage("Anführungszeichen-Fehler");
+        if (stage != null) {
+            errorStage.initOwner(stage);
+        }
+        errorStage.setMinWidth(700);
+        errorStage.setMinHeight(500);
+
+        VBox mainContainer = new VBox(16);
+        mainContainer.setPadding(new Insets(20));
+
+        Label titleLabel = new Label("Anführungszeichen-Fehler gefunden");
+        Label descriptionLabel = new Label("Die folgenden Absätze haben eine ungerade Anzahl von Anführungszeichen:");
+
+        ScrollPane scrollPane = new ScrollPane();
+        VBox errorList = new VBox(10);
+        for (QuotationMarkSupport.QuoteError error : errors) {
+            VBox errorItem = new VBox(4);
+            Label typeLabel = new Label(error.type() + " (" + error.count() + " Stück)");
+            TextArea paragraphArea = new TextArea(error.paragraph());
+            paragraphArea.setEditable(false);
+            paragraphArea.setPrefRowCount(3);
+            paragraphArea.setWrapText(true);
+            paragraphArea.setTooltip(new Tooltip("Klicken zum Springen zum Absatz im Editor"));
+            paragraphArea.setOnMouseClicked(e -> {
+                jumpToQuoteError(error);
+                editor.requestInputFocus();
+            });
+            errorItem.getChildren().addAll(typeLabel, paragraphArea);
+            errorList.getChildren().add(errorItem);
+        }
+        scrollPane.setContent(errorList);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setPrefHeight(360);
+
+        Button closeButton = new Button("Schließen");
+        closeButton.setOnAction(e -> {
+            quoteErrorsDialogShown = false;
+            errorStage.close();
+        });
+        HBox buttonBox = new HBox(closeButton);
+        buttonBox.setAlignment(Pos.CENTER_RIGHT);
+
+        mainContainer.getChildren().addAll(titleLabel, descriptionLabel, scrollPane, buttonBox);
+        Scene scene = new Scene(mainContainer, 780, 560);
+        String cssPath = ResourceManager.getCssResource("css/manuskript.css");
+        if (cssPath != null) {
+            scene.getStylesheets().add(cssPath);
+        }
+        errorStage.setSceneWithTitleBar(scene);
+        errorStage.setFullTheme(themeIndex);
+        applyThemeToNode(mainContainer, themeIndex);
+        errorStage.setOnHidden(e -> quoteErrorsDialogShown = false);
+        errorStage.show();
+        Platform.runLater(() -> {
+            errorStage.toFront();
+            errorStage.requestFocus();
+        });
+        updateStatus("⚠ " + errors.size() + " Anführungszeichen-Fehler gefunden", true);
+    }
+
+    private void jumpToQuoteError(QuotationMarkSupport.QuoteError error) {
+        if (error == null) {
+            return;
+        }
+        int offset = Math.max(0, Math.min(editor.getText().length(), error.textOffset()));
+        editor.selectRange(offset, Math.min(editor.getText().length(), offset + error.paragraph().length()));
+        editor.scrollToOffset(offset);
+        editor.requestInputFocus();
+    }
+
+    private void clearTransientMarks() {
+        clearSearchMarks();
+        invalidateSearchCache();
+        cancelLanguageToolChecks();
+        languageToolHasBeenChecked = false;
+        editor.clearLanguageToolMatches();
+        updateLanguageToolStatus();
+    }
+
+    private void saveLoadedChapter() {
+        if (loadedChapterFile == null) {
+            updateStatusError("Keine geladene MD-Datei zum Speichern");
+            return;
+        }
+        try {
+            Files.writeString(loadedChapterFile.toPath(), normalizeMarkdownParagraphSpacing(editor.getText()), StandardCharsets.UTF_8);
+            captureOriginalContent();
+            setDirty(false);
+            updateStatus("Gespeichert: " + loadedChapterFile.getName());
+        } catch (IOException e) {
+            updateStatusError("Speichern fehlgeschlagen: " + e.getMessage());
+        }
+    }
+
+    private File resolveProjectDirectory() {
+        if (loadedProjectDirectory != null && loadedProjectDirectory.isDirectory()) {
+            return loadedProjectDirectory;
+        }
+        if (mainController != null) {
+            String path = mainController.getCurrentDirectoryPath();
+            if (path != null && !path.isBlank()) {
+                File dir = new File(path.trim());
+                if (dir.isDirectory()) {
+                    return dir;
+                }
+            }
+        }
+        if (loadedChapterFile != null && loadedChapterFile.getParentFile() != null) {
+            File parent = loadedChapterFile.getParentFile().getParentFile();
+            if (parent != null && parent.isDirectory()) {
+                return parent;
+            }
+        }
+        return null;
+    }
+
+    private File resolveMdDirectory() {
+        if (loadedChapterFile != null && loadedChapterFile.getParentFile() != null) {
+            return loadedChapterFile.getParentFile();
+        }
+        File projectDir = resolveProjectDirectory();
+        if (projectDir != null) {
+            File dataDir = new File(projectDir, "data");
+            if (dataDir.isDirectory()) {
+                return dataDir;
+            }
+        }
+        return null;
+    }
+
+    private void insertImage() {
+        CustomAlert alert = new CustomAlert(CustomAlert.AlertType.INFORMATION);
+        alert.setTitle("Bild einfügen");
+        alert.setHeaderText("Bild einfügen");
+        alert.initOwner(stage);
+
+        VBox contentBox = new VBox(10);
+        contentBox.setPadding(new Insets(10));
+
+        Label pathLabel = new Label("Pfad:");
+        TextField pathField = new TextField();
+        pathField.setPromptText("Pfad zum Bild");
+        HBox.setHgrow(pathField, Priority.ALWAYS);
+        pathField.setText(preferences.get(PREF_LAST_IMAGE_PATH, ""));
+
+        Label textLabel = new Label("Beschriftung:");
+        TextField textField = new TextField();
+        textField.setPromptText("Optionale Bildbeschriftung");
+        HBox.setHgrow(textField, Priority.ALWAYS);
+        textField.setText(preferences.get(PREF_LAST_IMAGE_ALT, ""));
+
+        Label sizeLabel = new Label("Breite (%):");
+        Spinner<Integer> widthSpinner = new Spinner<>();
+        widthSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(10, 100, 80, 5));
+        widthSpinner.setEditable(true);
+        widthSpinner.setPrefWidth(80);
+        int savedWidth = preferences.getInt(PREF_LAST_IMAGE_WIDTH, 80);
+        widthSpinner.getValueFactory().setValue(Math.max(10, Math.min(100, savedWidth)));
+
+        Button btnBrowse = new Button("Durchsuchen...");
+        btnBrowse.setOnAction(e -> {
+            e.consume();
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("Bild auswählen");
+            fileChooser.getExtensionFilters().addAll(
+                    new FileChooser.ExtensionFilter("Bilddateien", "*.png", "*.jpg", "*.jpeg", "*.gif", "*.bmp", "*.webp"),
+                    new FileChooser.ExtensionFilter("Alle Dateien", "*.*"));
+
+            String lastDirectory = preferences.get(PREF_LAST_IMAGE_DIRECTORY, "");
+            if (!lastDirectory.isBlank()) {
+                File dir = new File(lastDirectory);
+                if (dir.isDirectory()) {
+                    fileChooser.setInitialDirectory(dir);
+                }
+            } else {
+                File projectDir = resolveProjectDirectory();
+                if (projectDir != null && projectDir.isDirectory()) {
+                    fileChooser.setInitialDirectory(projectDir);
+                }
+            }
+
+            File selectedFile = fileChooser.showOpenDialog(alert.getDialogWindow());
+            if (selectedFile != null) {
+                pathField.setText(selectedFile.getAbsolutePath());
+                if (selectedFile.getParentFile() != null) {
+                    preferences.put(PREF_LAST_IMAGE_DIRECTORY, selectedFile.getParentFile().getAbsolutePath());
+                }
+            }
+        });
+
+        HBox pathBox = new HBox(10, pathField, btnBrowse);
+        HBox.setHgrow(pathField, Priority.ALWAYS);
+        HBox sizeBox = new HBox(8, sizeLabel, widthSpinner);
+        sizeBox.setAlignment(Pos.CENTER_LEFT);
+        contentBox.getChildren().addAll(pathLabel, pathBox, textLabel, textField, sizeBox);
+        alert.setCustomContent(contentBox);
+        alert.applyTheme(themeIndex);
+        ButtonType insertButton = new ButtonType("Einfügen");
+        ButtonType cancelButton = new ButtonType("Abbrechen");
+        alert.setButtonTypes(insertButton, cancelButton);
+
+        Optional<ButtonType> result = alert.showAndWait(stage);
+        if (result.isEmpty() || result.get() != insertButton) {
+            return;
+        }
+
+        File projectDirectory = resolveProjectDirectory();
+        if (projectDirectory == null) {
+            CustomAlert error = new CustomAlert(CustomAlert.AlertType.WARNING);
+            error.setTitle("Kein Arbeitsverzeichnis");
+            error.setHeaderText("Kein Arbeitsverzeichnis");
+            error.setContentText("Bitte im Hauptfenster ein Projektverzeichnis wählen oder ein Kapitel laden.");
+            error.applyTheme(themeIndex);
+            error.initOwner(stage);
+            error.showAndWait(stage);
+            return;
+        }
+
+        String imagePath = pathField.getText();
+        String caption = textField.getText();
+        if (imagePath == null || imagePath.isBlank()) {
+            updateStatusError("Kein Bildpfad angegeben");
+            return;
+        }
+
+        try {
+            File sourceImage = new File(imagePath.trim());
+            if (!sourceImage.isFile()) {
+                updateStatusError("Bilddatei nicht gefunden");
+                return;
+            }
+
+            loadedProjectDirectory = projectDirectory;
+            File targetImage = MarkdownImageSupport.copyImageToProjectDirectory(sourceImage, projectDirectory);
+            int widthPercent = widthSpinner.getValue() == null ? 80 : widthSpinner.getValue();
+            String markdown = MarkdownImageSupport.buildMarkdown(targetImage.getName(), caption, widthPercent);
+            editor.insertText("\n\n" + markdown + "\n\n");
+            editor.setImageDirectories(resolveMdDirectory(), projectDirectory);
+
+            preferences.put(PREF_LAST_IMAGE_PATH, sourceImage.getAbsolutePath());
+            preferences.putInt(PREF_LAST_IMAGE_WIDTH, widthPercent);
+            if (caption != null && !caption.isBlank()) {
+                preferences.put(PREF_LAST_IMAGE_ALT, caption);
+            }
+            updateStatus("Bild eingefügt: " + targetImage.getName());
+        } catch (IOException ex) {
+            updateStatusError("Bild konnte nicht kopiert werden: " + ex.getMessage());
+        }
+    }
+
+    private String normalizeMarkdownParagraphSpacing(String markdown) {
+        if (markdown == null || markdown.isEmpty()) {
+            return "";
+        }
+
+        String normalized = markdown.replace("\r\n", "\n").replace('\r', '\n');
+        StringBuilder result = new StringBuilder(normalized.length() + 64);
+        String[] lines = normalized.split("\n", -1);
+        boolean previousWasNonEmpty = false;
+
+        for (String line : lines) {
+            boolean currentIsNonEmpty = !line.trim().isEmpty();
+            if (previousWasNonEmpty && currentIsNonEmpty) {
+                result.append('\n');
+            }
+            result.append(line).append('\n');
+            previousWasNonEmpty = currentIsNonEmpty;
+            if (!currentIsNonEmpty) {
+                previousWasNonEmpty = false;
+            }
+        }
+
+        return result.toString();
+    }
+
+    private void setDirty(boolean dirty) {
+        this.dirty = dirty;
+        String title = "Prototyp: Eigener Editor";
+        if (loadedChapterName != null && !loadedChapterName.isBlank()) {
+            title += " - " + loadedChapterName;
+        }
+        if (dirty) {
+            title += " *";
+        }
+        if (stage != null) {
+            stage.setCustomTitle(title);
+        }
+        updateStatusDisplay();
+    }
+
+    private void captureOriginalContent() {
+        originalContent = cleanTextForComparison(editor.getText());
+    }
+
+    private void updateDirtyFromContent(String text) {
+        setDirty(!cleanTextForComparison(text).equals(originalContent));
+    }
+
+    private static String cleanTextForComparison(String text) {
+        if (text == null) {
+            return "";
+        }
+        return text.replace("¶", "");
+    }
+
+    private boolean confirmDiscardUnsavedChanges() {
+        if (!dirty) {
+            return true;
+        }
+        CustomAlert alert = new CustomAlert(CustomAlert.AlertType.CONFIRMATION);
+        alert.setTitle("Ungespeicherte Änderungen");
+        alert.setHeaderText("Ungespeicherte Änderungen");
+        alert.setContentText("Der Prototyp-Editor enthält ungespeicherte Änderungen. Fenster trotzdem schließen?");
+        alert.applyTheme(themeIndex);
+        Optional<ButtonType> result = alert.showAndWait();
+        return result.isPresent() && result.get() == ButtonType.OK;
+    }
+
+    private void applyThemeToNode(Node node, int themeIndex) {
+        if (node == null) {
+            return;
+        }
+        node.getStyleClass().removeAll("theme-dark", "theme-light", "blau-theme", "gruen-theme", "lila-theme", "weiss-theme", "pastell-theme");
+        switch (themeIndex) {
+            case 0 -> node.getStyleClass().add("weiss-theme");
+            case 2 -> node.getStyleClass().add("pastell-theme");
+            case 3 -> node.getStyleClass().addAll("theme-dark", "blau-theme");
+            case 4 -> node.getStyleClass().addAll("theme-dark", "gruen-theme");
+            case 5 -> node.getStyleClass().addAll("theme-dark", "lila-theme");
+            default -> node.getStyleClass().add("theme-dark");
+        }
+    }
+
+    private void setupWindowPersistence() {
+        stage.xProperty().addListener((obs, oldValue, newValue) ->
+                PreferencesManager.putWindowPosition(preferences, "prototype_editor_window_x", newValue.doubleValue()));
+        stage.yProperty().addListener((obs, oldValue, newValue) ->
+                PreferencesManager.putWindowPosition(preferences, "prototype_editor_window_y", newValue.doubleValue()));
+        stage.widthProperty().addListener((obs, oldValue, newValue) ->
+                PreferencesManager.putWindowWidth(preferences, "prototype_editor_window_width", newValue.doubleValue()));
+        stage.heightProperty().addListener((obs, oldValue, newValue) ->
+                PreferencesManager.putWindowHeight(preferences, "prototype_editor_window_height", newValue.doubleValue()));
+    }
+
+    private static String sampleText() {
+        return """
+                # Kapitel 1 – Prototyp-Editor
+                ## Ziele dieses Fensters
+                ### Technische Eckpunkte
+
+                Dies ist der erste Prototyp des eigenen Manuskript-Editors.
+
+                Ziele dieses Fensters:
+                - kein JavaFX TextArea-Control
+                - kein RichTextFX
+                - eigenes Textmodell
+                - eigene Auswahl, Navigation, Undo/Redo
+                - interne Suche und Ersetzen
+                - externe Markierungen über MarkedArea
+
+                Beispiel für automatische Regeln:
+                **Dieser Text soll fett markiert werden**
+                *Dieser Text soll kursiv markiert werden*
+                <u>Dieser Text soll unterstrichen werden</u>
+
+                Jorin geht durch den Regen. Jorina wartet am Tor.
+
+                Langer Absatz für Zeilenumbruch und Viewport-Stabilität: Jorin betrachtet die alten Mauern der Stadt, während der Regen in langen silbernen Fäden über die Dächer zieht und **wichtige Begriffe fett** hervortreten, ohne dass die sichtbaren Marker den Umbruch verschieben sollen. Dieser Satz enthält außerdem *kursiv gesetzte Gedanken* und <u>unterstrichene Hinweise</u>, damit Hoch- und Runter-Navigation bei proportionaler Schrift ungefähr auf derselben sichtbaren Position bleibt.
+
+                ExtremLangesWortOhneLeerzeichenDasHartUmbrechenMussDamitDerEditorNichtÜberDenRandHinausLäuftUndTrotzdemWeiterBedienbarBleibt.
+
+                Nächste Schritte: Zeilenumbruch, stabile Viewport-Logik, Bilder, Link-Callbacks,
+                LanguageTool-Hover und robustere Überlappungsregeln werden hier isoliert getestet.
+                """;
+    }
+
+    private record LanguageToolTextMapping(String cleanedText, int[] cleanToOriginal) {
+        static LanguageToolTextMapping fromOriginal(String original) {
+            String source = original == null ? "" : original;
+            StringBuilder cleaned = new StringBuilder(source.length());
+            List<Integer> mapping = new ArrayList<>(source.length());
+
+            for (int i = 0; i < source.length(); i++) {
+                if (source.startsWith("**", i)) {
+                    i++;
+                    continue;
+                }
+                if (source.startsWith("<u>", i)) {
+                    i += 2;
+                    continue;
+                }
+                if (source.startsWith("</u>", i)) {
+                    i += 3;
+                    continue;
+                }
+
+                char c = source.charAt(i);
+                if (c == '*') {
+                    continue;
+                }
+
+                cleaned.append(normalizeForLanguageTool(c));
+                mapping.add(i);
+            }
+
+            int[] offsets = new int[mapping.size()];
+            for (int i = 0; i < mapping.size(); i++) {
+                offsets[i] = mapping.get(i);
+            }
+            return new LanguageToolTextMapping(cleaned.toString(), offsets);
+        }
+
+        List<LanguageToolService.Match> mapMatchesToOriginal(List<LanguageToolService.Match> matches) {
+            List<LanguageToolService.Match> mapped = new ArrayList<>();
+            if (matches == null) {
+                return mapped;
+            }
+
+            for (LanguageToolService.Match match : matches) {
+                int cleanStart = match.getOffset();
+                int cleanEndExclusive = cleanStart + match.getLength();
+                if (cleanStart < 0 || cleanStart >= cleanToOriginal.length) {
+                    continue;
+                }
+                int safeCleanEnd = Math.max(cleanStart + 1, Math.min(cleanEndExclusive, cleanToOriginal.length));
+                int originalStart = cleanToOriginal[cleanStart];
+                int originalEnd = cleanToOriginal[safeCleanEnd - 1] + 1;
+                if (originalEnd <= originalStart) {
+                    continue;
+                }
+
+                LanguageToolService.Match mappedMatch = new LanguageToolService.Match();
+                mappedMatch.setOffset(originalStart);
+                mappedMatch.setLength(originalEnd - originalStart);
+                mappedMatch.setMessage(match.getMessage());
+                mappedMatch.setShortMessage(match.getShortMessage());
+                mappedMatch.setRuleId(match.getRuleId());
+                mappedMatch.setRuleDescription(match.getRuleDescription());
+                mappedMatch.setReplacements(match.getReplacements());
+                mapped.add(mappedMatch);
+            }
+            return mapped;
+        }
+
+        private static char normalizeForLanguageTool(char c) {
+            return switch (c) {
+                case '»', '«', '„', '“', '”', '‟', '‹', '›' -> '"';
+                case '‚', '‘', '’' -> '\'';
+                default -> c;
+            };
+        }
+    }
+}

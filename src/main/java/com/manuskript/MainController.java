@@ -143,6 +143,7 @@ public class MainController implements Initializable {
     @FXML private Button btnNewChapter;
     @FXML private Button btnOpenTtsEditor;
     @FXML private Button btnWorldEditor;
+    @FXML private Button btnPrototypeEditor;
     @FXML private Button btnAudiobook;
     @FXML private Button btnDeleteFile;
     @FXML private Button btnSearchAllFiles;
@@ -591,6 +592,9 @@ public class MainController implements Initializable {
         });
         if (btnWorldEditor != null) {
             btnWorldEditor.setOnAction(e -> openWorldEditor());
+        }
+        if (btnPrototypeEditor != null) {
+            btnPrototypeEditor.setOnAction(e -> openPrototypeEditor());
         }
         if (btnOnlineLektorat != null) {
             btnOnlineLektorat.setOnAction(e -> {
@@ -9042,6 +9046,36 @@ public class MainController implements Initializable {
         WorldEditorWindow worldEditor = new WorldEditorWindow(owner, projectDirectory, this);
         worldEditor.show();
     }
+
+    private void openPrototypeEditor() {
+        Window owner = primaryStage != null ? primaryStage.getScene().getWindow() : null;
+        ManuskriptEditorTestWindow prototypeEditor = new ManuskriptEditorTestWindow(owner, this);
+        prototypeEditor.show();
+        prototypeEditor.tryLoadSelectedChapter();
+    }
+
+    public PrototypeChapterContent loadSelectedChapterMarkdownForPrototype() {
+        DocxFile selected = tableViewSelected != null ? tableViewSelected.getSelectionModel().getSelectedItem() : null;
+        if (selected == null || selected.getFile() == null) {
+            return null;
+        }
+
+        File mdFile = deriveMdFileFor(selected.getFile());
+        if (mdFile == null || !mdFile.exists() || !mdFile.isFile()) {
+            logger.warn("Keine MD-Datei für Prototyp-Editor gefunden: {}", mdFile != null ? mdFile.getAbsolutePath() : "null");
+            return null;
+        }
+
+        try {
+            String content = Files.readString(mdFile.toPath(), StandardCharsets.UTF_8);
+            return new PrototypeChapterContent(selected.getFileName(), mdFile, content);
+        } catch (IOException e) {
+            logger.warn("Konnte MD-Datei für Prototyp-Editor nicht laden: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    public record PrototypeChapterContent(String fileName, File file, String content) {}
     
     public List<String> getMarkdownFilesInOrder() {
         List<String> mdFiles = new ArrayList<>();

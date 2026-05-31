@@ -74,6 +74,7 @@ public class CustomStage extends Stage {
     private static final String PROPERTY_HIDE_ICON = "hideIcon";
     private static final String PROPERTY_USE_SIMPLE_ACTIONS = "useSimpleActions";
     private static final String PROPERTY_USE_LEGACY_WINDOW_SIZE = "useLegacyWindowSizePersistence";
+    private static final String PROPERTY_WINDOW_PERSISTENCE_TYPE = "windowPersistenceType";
     
     private double xOffset = 0;
     private double yOffset = 0;
@@ -554,6 +555,15 @@ public class CustomStage extends Stage {
     /** Aktiviert das alte Laden der Fenstergröße aus ~/.manuskript_window.properties für Spezialfenster. */
     public void enableLegacyWindowSizePersistence() {
         getProperties().put(PROPERTY_USE_LEGACY_WINDOW_SIZE, Boolean.TRUE);
+    }
+
+    /** Setzt einen stabilen Schlüssel für die Legacy-Fenstergrößen-Persistenz. */
+    public void setWindowPersistenceType(String windowType) {
+        if (windowType == null || windowType.trim().isEmpty()) {
+            getProperties().remove(PROPERTY_WINDOW_PERSISTENCE_TYPE);
+            return;
+        }
+        getProperties().put(PROPERTY_WINDOW_PERSISTENCE_TYPE, windowType.trim());
     }
     // Debug vollständig entfernt
     
@@ -1345,6 +1355,11 @@ public class CustomStage extends Stage {
      * Speichert die aktuelle Fenstergröße und Position.
      */
     private String getWindowType() {
+        Object explicitWindowType = getProperties().get(PROPERTY_WINDOW_PERSISTENCE_TYPE);
+        if (explicitWindowType instanceof String type && !type.trim().isEmpty()) {
+            return type.trim();
+        }
+
         // Bestimme den Fenstertyp basierend auf Titel oder Größe
         String title = getTitle();
         if (title != null) {
