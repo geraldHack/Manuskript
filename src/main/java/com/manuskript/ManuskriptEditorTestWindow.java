@@ -1,5 +1,6 @@
 package com.manuskript;
 
+import javafx.beans.binding.Bindings;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
@@ -12,26 +13,36 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
+import javafx.scene.control.MenuButton;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.Separator;
 import javafx.scene.control.Spinner;
+import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.Node;
+import javafx.collections.ListChangeListener;
+import javafx.collections.ObservableList;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.geometry.Orientation;
 import javafx.scene.text.Font;
 import javafx.stage.FileChooser;
 import javafx.stage.Window;
+import javafx.stage.WindowEvent;
 
 import java.io.File;
 import java.io.IOException;
@@ -58,7 +69,10 @@ public class ManuskriptEditorTestWindow {
     private static final String PREF_LAST_IMAGE_DIRECTORY = "prototype_editor_last_image_directory";
     private static final String PREF_LAST_IMAGE_WIDTH = "prototype_editor_last_image_width";
     private static final String PREF_HIDE_MARKUP = "prototype_editor_hide_markup";
+    private static final String PREF_SHOW_LINE_NUMBERS = "prototype_editor_show_line_numbers";
     private static final String PREF_LT_AUTO = "prototype_editor_languagetool_auto";
+    private static final String PREF_SIDEBAR_EXPANDED = "prototype_editor_sidebar_expanded";
+    private static final String PREF_SIDEBAR_DIVIDER = "prototype_editor_sidebar_divider";
 
     private final Window owner;
     private final MainController mainController;
@@ -93,8 +107,20 @@ public class ManuskriptEditorTestWindow {
             "-fx-text-fill: #ff6b35; -fx-font-weight: bold; -fx-background-color: #fff3cd; -fx-padding: 2 6 2 6; -fx-background-radius: 3;";
     private int themeIndex;
     private File loadedChapterFile;
+    private File loadedDocxFile;
     private File loadedProjectDirectory;
     private String loadedChapterName;
+    private SplitPane mainSplitPane;
+    private VBox sidebarContainer;
+    private HBox sidebarHeader;
+    private Label sidebarTitleLabel;
+    private Label chapterListPlaceholder;
+    private Button btnToggleSidebar;
+    private ListView<DocxFile> chapterListView;
+    private ChapterSidebarTheme chapterSidebarTheme;
+    private boolean sidebarExpanded = true;
+    private ListChangeListener<DocxFile> chapterListChangeListener;
+    private boolean sidebarDividerListenerAttached;
     private boolean dirty;
     private boolean suppressDirty;
     private boolean quoteErrorsDialogShown;
@@ -115,6 +141,7 @@ public class ManuskriptEditorTestWindow {
             stage.toFront();
             stage.requestFocus();
             editor.requestInputFocus();
+            updateChapterList();
             scheduleInitialLanguageToolCheck();
         });
     }
@@ -146,11 +173,10 @@ public class ManuskriptEditorTestWindow {
             }
             scheduleLanguageToolCheckDebounced();
         });
-        editor.addAutoRegexStyleRule("\\*\\*(.+?)\\*\\*", 1, ManuskriptTextEditor.MarkedArea.BOLD);
-        editor.addAutoRegexStyleRule("(?<!\\*)\\*(?!\\*)(.+?)(?<!\\*)\\*(?!\\*)", 1, ManuskriptTextEditor.MarkedArea.ITALIC);
-        editor.addAutoRegexStyleRule("<u>(.+?)</u>", 1, ManuskriptTextEditor.MarkedArea.UNDERLINE);
+        editor.registerDefaultFormatAutoRules();
         boolean hideMarkup = preferences.getBoolean(PREF_HIDE_MARKUP, true);
         editor.setRenderMarkupHidden(hideMarkup);
+        editor.setShowLineNumbers(preferences.getBoolean(PREF_SHOW_LINE_NUMBERS, true));
         themeIndex = Preferences.userNodeForPackage(MainController.class).getInt("main_window_theme", 0);
         editor.applyTheme(themeIndex);
 
@@ -158,8 +184,7 @@ public class ManuskriptEditorTestWindow {
         initializeStatusLabel();
         initializeSelectionLabel();
         root.setTop(createToolbar());
-        root.setCenter(editor);
-        applyThemeToNode(root, themeIndex);
+        root.setCenter(createEditorWithSidebar());
         root.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
             if (event.getTarget() == editor || editor.getBoundsInParent().contains(event.getX(), event.getY())) {
                 Platform.runLater(editor::requestInputFocus);
@@ -173,7 +198,9 @@ public class ManuskriptEditorTestWindow {
         }
         stage.setSceneWithTitleBar(scene);
         stage.setFullTheme(themeIndex);
+        applyThemeToNode(root, themeIndex);
         stage.setOnShown(event -> {
+            applyChapterSidebarTheme();
             stage.requestFocus();
             editor.requestInputFocus();
             ensureEditingShortcutsInstalled();
@@ -185,18 +212,208 @@ public class ManuskriptEditorTestWindow {
                 PreferencesManager.MultiMonitorValidator.loadAndValidateWindowProperties(
                         preferences, "prototype_editor_window", 1100.0, 780.0));
         setupWindowPersistence();
-        stage.setOnCloseRequest(event -> {
-            if (!confirmDiscardUnsavedChanges()) {
-                event.consume();
-                return;
-            }
-            cancelLanguageToolChecks();
-        });
+        stage.addEventHandler(WindowEvent.WINDOW_CLOSE_REQUEST, this::handleCloseRequest);
 
         updateStatus("Bereit");
         updateSelectionCount();
 
         initializeImageDirectories();
+        initializeSidebar();
+        applyChapterSidebarTheme();
+        loadSidebarState();
+        attachChapterListListener();
+    }
+
+    private Node createEditorWithSidebar() {
+        btnToggleSidebar = new Button("◀");
+        btnToggleSidebar.setMaxWidth(30);
+        btnToggleSidebar.setMinWidth(30);
+        btnToggleSidebar.getStyleClass().add("sidebar-toggle-button");
+        btnToggleSidebar.setTooltip(new Tooltip("Kapitel-Seitenleiste ein-/ausblenden"));
+        btnToggleSidebar.setOnAction(e -> toggleSidebar());
+
+        sidebarTitleLabel = new Label("Kapitel");
+        sidebarTitleLabel.getStyleClass().add("sidebar-title");
+        sidebarHeader = new HBox(sidebarTitleLabel);
+        sidebarHeader.setAlignment(Pos.CENTER_LEFT);
+        sidebarHeader.getStyleClass().add("sidebar-header");
+        sidebarHeader.setPadding(new Insets(5, 10, 5, 10));
+
+        chapterListView = new ListView<>();
+        chapterListView.getStyleClass().add("chapter-list-view");
+        chapterListPlaceholder = new Label("Keine Kapitel in der Auswahl");
+        chapterListView.setPlaceholder(chapterListPlaceholder);
+        VBox.setVgrow(chapterListView, Priority.ALWAYS);
+
+        sidebarContainer = new VBox(sidebarHeader, chapterListView);
+        sidebarContainer.setMinWidth(200);
+        sidebarContainer.setPrefWidth(250);
+        sidebarContainer.setMaxWidth(300);
+
+        mainSplitPane = new SplitPane(sidebarContainer, editor);
+        mainSplitPane.setDividerPositions(0.18);
+        HBox.setHgrow(mainSplitPane, Priority.ALWAYS);
+
+        HBox editorRow = new HBox(0, btnToggleSidebar, mainSplitPane);
+        HBox.setHgrow(editorRow, Priority.ALWAYS);
+        return editorRow;
+    }
+
+    private void initializeSidebar() {
+        if (chapterListView == null) {
+            return;
+        }
+        updateChapterList();
+        chapterListView.setCellFactory(listView -> new ListCell<>() {
+            @Override
+            protected void updateItem(DocxFile docxFile, boolean empty) {
+                super.updateItem(docxFile, empty);
+                styleChapterListCell(this, docxFile, empty);
+            }
+        });
+        chapterListView.setOnMouseClicked(e -> {
+            if (e.getClickCount() != 2) {
+                return;
+            }
+            DocxFile selected = chapterListView.getSelectionModel().getSelectedItem();
+            if (selected != null) {
+                navigateToChapter(selected);
+            }
+        });
+    }
+
+    private void attachChapterListListener() {
+        if (mainController == null || chapterListView == null) {
+            return;
+        }
+        ObservableList<DocxFile> chapters = mainController.getSelectedDocxFilesAsDocxFiles();
+        if (chapterListChangeListener != null) {
+            chapters.removeListener(chapterListChangeListener);
+        }
+        chapterListChangeListener = change -> Platform.runLater(() -> {
+            updateChapterList();
+            refreshChapterListAppearance();
+        });
+        chapters.addListener(chapterListChangeListener);
+    }
+
+    private void updateChapterList() {
+        if (chapterListView == null) {
+            return;
+        }
+        if (mainController == null) {
+            if (!chapterListView.getItems().isEmpty()) {
+                chapterListView.getItems().clear();
+            }
+            return;
+        }
+        ObservableList<DocxFile> selected = mainController.getSelectedDocxFilesAsDocxFiles();
+        if (chapterListView.getItems() != selected) {
+            chapterListView.setItems(selected);
+        }
+        selectLoadedChapterInList();
+    }
+
+    private void selectLoadedChapterInList() {
+        if (chapterListView == null || loadedDocxFile == null) {
+            return;
+        }
+        ObservableList<DocxFile> items = chapterListView.getItems();
+        if (items == null) {
+            return;
+        }
+        for (int i = 0; i < items.size(); i++) {
+            if (items.get(i).getFile().equals(loadedDocxFile)) {
+                chapterListView.getSelectionModel().select(i);
+                return;
+            }
+        }
+    }
+
+    /** Zellen neu zeichnen (Markierungen), ohne die ObservableList zu verändern. */
+    private void refreshChapterListAppearance() {
+        if (chapterListView != null) {
+            chapterListView.refresh();
+        }
+    }
+
+    private void toggleSidebar() {
+        if (mainSplitPane == null || sidebarContainer == null || btnToggleSidebar == null) {
+            return;
+        }
+        sidebarExpanded = !sidebarExpanded;
+        if (sidebarExpanded) {
+            sidebarContainer.setVisible(true);
+            sidebarContainer.setManaged(true);
+            btnToggleSidebar.setText("◀");
+            Platform.runLater(() -> {
+                double saved = preferences.getDouble(PREF_SIDEBAR_DIVIDER, 0.18);
+                mainSplitPane.setDividerPositions(saved);
+            });
+        } else {
+            sidebarContainer.setVisible(false);
+            sidebarContainer.setManaged(false);
+            btnToggleSidebar.setText("▶");
+            Platform.runLater(() -> mainSplitPane.setDividerPositions(0.0));
+        }
+        saveSidebarState();
+    }
+
+    private void loadSidebarState() {
+        if (mainSplitPane == null || sidebarContainer == null || btnToggleSidebar == null) {
+            return;
+        }
+        sidebarExpanded = preferences.getBoolean(PREF_SIDEBAR_EXPANDED, true);
+        double divider = preferences.getDouble(PREF_SIDEBAR_DIVIDER, 0.18);
+        Platform.runLater(() -> {
+            if (sidebarExpanded) {
+                sidebarContainer.setVisible(true);
+                sidebarContainer.setManaged(true);
+                btnToggleSidebar.setText("◀");
+                mainSplitPane.setDividerPositions(divider);
+            } else {
+                sidebarContainer.setVisible(false);
+                sidebarContainer.setManaged(false);
+                btnToggleSidebar.setText("▶");
+                mainSplitPane.setDividerPositions(0.0);
+            }
+            if (!sidebarDividerListenerAttached && !mainSplitPane.getDividers().isEmpty()) {
+                sidebarDividerListenerAttached = true;
+                mainSplitPane.getDividers().getFirst().positionProperty().addListener((obs, oldPos, newPos) -> {
+                    if (sidebarExpanded && newPos.doubleValue() > 0.01) {
+                        preferences.putDouble(PREF_SIDEBAR_DIVIDER, newPos.doubleValue());
+                    }
+                });
+            }
+        });
+    }
+
+    private void saveSidebarState() {
+        preferences.putBoolean(PREF_SIDEBAR_EXPANDED, sidebarExpanded);
+        if (mainSplitPane != null && sidebarExpanded && !mainSplitPane.getDividers().isEmpty()) {
+            preferences.putDouble(PREF_SIDEBAR_DIVIDER, mainSplitPane.getDividers().getFirst().getPosition());
+        }
+    }
+
+    private void navigateToChapter(DocxFile docxFile) {
+        if (docxFile == null || mainController == null) {
+            return;
+        }
+        if (loadedDocxFile != null && docxFile.getFile().equals(loadedDocxFile)) {
+            return;
+        }
+        refreshDirtyState();
+        if (dirty && !confirmLoseUnsavedChanges("Das gewählte Kapitel laden?")) {
+            selectLoadedChapterInList();
+            refreshChapterListAppearance();
+            return;
+        }
+        MainController.PrototypeChapterContent chapter = mainController.loadChapterMarkdownForPrototype(docxFile);
+        if (chapter == null) {
+            updateStatus("Keine MD-Datei für „" + docxFile.getFileName() + "“ gefunden", true);
+            return;
+        }
+        applyLoadedChapter(chapter, chapter.docxFile());
     }
 
     private void initializeImageDirectories() {
@@ -211,7 +428,9 @@ public class ManuskriptEditorTestWindow {
         ComboBox<String> fontFamily = new ComboBox<>();
         fontFamily.getItems().addAll(Font.getFamilies());
         fontFamily.setValue(preferences.get(PREF_FONT_FAMILY, "Segoe UI"));
+        fontFamily.setMinWidth(180);
         fontFamily.setPrefWidth(180);
+        fontFamily.setMaxWidth(180);
         fontFamily.valueProperty().addListener((obs, oldValue, newValue) -> {
             editor.setFontFamilyForAll(newValue);
             preferences.put(PREF_FONT_FAMILY, newValue);
@@ -242,22 +461,86 @@ public class ManuskriptEditorTestWindow {
             editor.requestInputFocus();
         });
 
-        Button bold = new Button("Fett");
-        bold.setTooltip(new Tooltip("Fett (Strg+B)"));
-        bold.setOnAction(e -> {
+        Button fontLarger = toolbarButton("A+", "Schriftgröße erhöhen", () -> {
+            fontSize.setValue(Math.min(96, fontSize.getValue() + 1));
+            editor.requestInputFocus();
+        });
+        Button fontSmaller = toolbarButton("A-", "Schriftgröße verringern", () -> {
+            fontSize.setValue(Math.max(6, fontSize.getValue() - 1));
+            editor.requestInputFocus();
+        });
+
+        Button bold = toolbarButton("B", "Fett (Strg+B)", () -> {
             editor.toggleBold();
             editor.requestInputFocus();
         });
-        Button italic = new Button("Kursiv");
-        italic.setTooltip(new Tooltip("Kursiv (Strg+I)"));
-        italic.setOnAction(e -> {
+        Button italic = toolbarButton("I", "Kursiv (Strg+I)", () -> {
             editor.toggleItalic();
             editor.requestInputFocus();
         });
-        Button underline = new Button("Unterstrichen");
-        underline.setTooltip(new Tooltip("Unterstrichen (Strg+U)"));
-        underline.setOnAction(e -> {
+        Button underline = toolbarButton("U", "Unterstrichen (Strg+U)", () -> {
             editor.toggleUnderline();
+            editor.requestInputFocus();
+        });
+        Button strikethrough = toolbarButton("S", "Durchgestrichen (~~text~~)", () -> {
+            editor.toggleStrikethrough();
+            editor.requestInputFocus();
+        });
+        Button mark = toolbarButton("Mark", "Hervorheben (<mark>)", () -> {
+            editor.toggleMark();
+            editor.requestInputFocus();
+        });
+        Button center = toolbarButton("◉", "Text zentrieren (<center>)", () -> {
+            editor.toggleCenter();
+            editor.requestInputFocus();
+        });
+        Button blockquote = toolbarButton(">", "Zitat (> Zeile)", () -> {
+            editor.toggleBlockquote();
+            editor.requestInputFocus();
+        });
+        Button big = toolbarButton("Groß", "Größere Schrift (<big>)", () -> {
+            editor.toggleBig();
+            editor.requestInputFocus();
+        });
+        Button small = toolbarButton("Klein", "Kleinere Schrift (<small>)", () -> {
+            editor.toggleSmall();
+            editor.requestInputFocus();
+        });
+        Button superscript = toolbarButton("x²", "Hochgestellt (<sup>)", () -> {
+            editor.toggleSuperscript();
+            editor.requestInputFocus();
+        });
+        Button subscript = toolbarButton("x₂", "Tiefgestellt (<sub>)", () -> {
+            editor.toggleSubscript();
+            editor.requestInputFocus();
+        });
+
+        MenuButton colorMenu = new MenuButton("Farbe");
+        colorMenu.setTooltip(new Tooltip("Textfarbe"));
+        for (String[] entry : new String[][]{
+                {"Rot", "red"}, {"Blau", "blue"}, {"Grün", "green"},
+                {"Gelb", "yellow"}, {"Lila", "purple"}, {"Orange", "orange"}, {"Grau", "gray"}
+        }) {
+            String tag = entry[1];
+            MenuItem item = new MenuItem(entry[0]);
+            item.setOnAction(e -> {
+                editor.wrapTextColor(tag);
+                editor.requestInputFocus();
+            });
+            colorMenu.getItems().add(item);
+        }
+
+        Button lineBreak = new Button("↵");
+        lineBreak.setTooltip(new Tooltip("Zeilenumbruch (<br>)"));
+        lineBreak.setOnAction(e -> {
+            editor.insertLineBreak();
+            editor.requestInputFocus();
+        });
+
+        Button horizontalRule = new Button("━");
+        horizontalRule.setTooltip(new Tooltip("Horizontale Linie (---)"));
+        horizontalRule.setOnAction(e -> {
+            editor.insertHorizontalRule();
             editor.requestInputFocus();
         });
 
@@ -293,10 +576,18 @@ public class ManuskriptEditorTestWindow {
 
         CheckBox hideMarkup = new CheckBox("Markup ausblenden");
         hideMarkup.setSelected(preferences.getBoolean(PREF_HIDE_MARKUP, true));
-        hideMarkup.setTooltip(new Tooltip("Markdown-Syntax (# ** * <u>) im Editor ausblenden"));
+        hideMarkup.setTooltip(new Tooltip("Markup ausblenden: Syntax verstecken, WYSIWYG inkl. Bild-Vorschau. Aus = Markdown-Quelltext"));
         hideMarkup.selectedProperty().addListener((obs, oldValue, newValue) -> {
             editor.setRenderMarkupHidden(newValue);
             preferences.putBoolean(PREF_HIDE_MARKUP, newValue);
+        });
+
+        CheckBox showLineNumbers = new CheckBox("Zeilennummern");
+        showLineNumbers.setSelected(preferences.getBoolean(PREF_SHOW_LINE_NUMBERS, true));
+        showLineNumbers.setTooltip(new Tooltip("Zeilennummern-Spalte links ein- oder ausblenden"));
+        showLineNumbers.selectedProperty().addListener((obs, oldValue, newValue) -> {
+            editor.setShowLineNumbers(newValue);
+            preferences.putBoolean(PREF_SHOW_LINE_NUMBERS, newValue);
         });
 
         ComboBox<String> quoteStyle = new ComboBox<>();
@@ -308,7 +599,9 @@ public class ManuskriptEditorTestWindow {
             quoteStyleIndex = 0;
         }
         quoteStyle.setValue(QuotationMarkSupport.styleLabel(quoteStyleIndex));
-        quoteStyle.setPrefWidth(230);
+        quoteStyle.setMinWidth(140);
+        quoteStyle.setPrefWidth(180);
+        quoteStyle.setMaxWidth(280);
         quoteStyle.setTooltip(new Tooltip("Stil für Anführungszeichen beim Tippen von \" und '"));
         quoteStyle.setOnAction(e -> {
             int selectedIndex = quoteStyle.getSelectionModel().getSelectedIndex();
@@ -367,30 +660,73 @@ public class ManuskriptEditorTestWindow {
             }
         });
 
-        HBox row1 = new HBox(8,
-                undo, redo,
-                new Separator(),
-                new Label("Font:"), fontFamily,
-                new Label("Größe:"), fontSize,
-                new Separator(), bold, italic, underline,
-                hideMarkup);
+        HBox statusRow = new HBox(8);
         Region statusSpacer = new Region();
         HBox.setHgrow(statusSpacer, Priority.ALWAYS);
-        row1.getChildren().addAll(statusSpacer, lblSelectionCount, new Separator(), statusLabel);
-        row1.setAlignment(Pos.CENTER_LEFT);
+        statusRow.getChildren().addAll(statusSpacer, saveChapter, lblSelectionCount, statusLabel);
+        statusRow.setAlignment(Pos.CENTER_RIGHT);
 
-        HBox row2 = new HBox(8,
-                searchField, replaceField, regexCheckbox, find, findPrevious, replaceOne, replaceAll,
-                new Separator(), new Label("Anführungszeichen:"), quoteStyle,
-                new Separator(), languageTool, languageToolAuto, lblLanguageToolStatus,
-                new Separator(), insertImage, editImage, deleteImage, loadSelectedChapter, saveChapter);
-        row2.setAlignment(Pos.CENTER_LEFT);
+        HBox fontRow = new HBox(6,
+                undo, redo,
+                toolbarSeparator(),
+                fontSmaller, fontLarger,
+                new Label("Font:"), fontFamily,
+                new Label("Größe:"), fontSize,
+                hideMarkup, showLineNumbers);
+        fontRow.setAlignment(Pos.CENTER_LEFT);
 
-        VBox toolbar = new VBox(6, row1, row2);
+        FlowPane formatPane = new FlowPane(6, 4);
+        formatPane.setAlignment(Pos.CENTER_LEFT);
+        formatPane.getChildren().addAll(
+                bold, italic, underline, strikethrough, mark, blockquote, center,
+                superscript, subscript,
+                big, small, colorMenu, lineBreak, horizontalRule);
+
+        searchField.setMinWidth(80);
+        searchField.setPrefWidth(140);
+        searchField.setMaxWidth(Double.MAX_VALUE);
+        replaceField.setMinWidth(80);
+        replaceField.setPrefWidth(120);
+        replaceField.setMaxWidth(Double.MAX_VALUE);
+        HBox searchInputs = new HBox(6, searchField, replaceField);
+        HBox.setHgrow(searchField, Priority.ALWAYS);
+        HBox.setHgrow(replaceField, Priority.ALWAYS);
+        searchInputs.setAlignment(Pos.CENTER_LEFT);
+
+        FlowPane searchActions = new FlowPane(6, 4, regexCheckbox, find, findPrevious, replaceOne, replaceAll);
+        searchActions.setAlignment(Pos.CENTER_LEFT);
+
+        VBox searchBlock = new VBox(4, searchInputs, searchActions);
+
+        FlowPane toolsPane = new FlowPane(6, 4);
+        toolsPane.setAlignment(Pos.CENTER_LEFT);
+        Label quoteLabel = new Label("Anführungszeichen:");
+        toolsPane.getChildren().addAll(
+                quoteLabel, quoteStyle,
+                languageTool, languageToolAuto, lblLanguageToolStatus,
+                insertImage, editImage, deleteImage, loadSelectedChapter);
+
+        VBox toolbar = new VBox(8, statusRow, fontRow, formatPane, searchBlock, toolsPane);
         toolbar.setPadding(new Insets(8));
+        var wrapLength = Bindings.max(220, toolbar.widthProperty().subtract(16));
+        formatPane.prefWrapLengthProperty().bind(wrapLength);
+        searchActions.prefWrapLengthProperty().bind(wrapLength);
+        toolsPane.prefWrapLengthProperty().bind(wrapLength);
         applyThemeToNode(toolbar, themeIndex);
-        HBox.setHgrow(searchField, Priority.NEVER);
         return toolbar;
+    }
+
+    private static Button toolbarButton(String label, String tooltip, Runnable action) {
+        Button button = new Button(label);
+        button.setTooltip(new Tooltip(tooltip));
+        button.setOnAction(e -> action.run());
+        return button;
+    }
+
+    private static Separator toolbarSeparator() {
+        Separator separator = new Separator(Orientation.VERTICAL);
+        separator.setPrefHeight(26);
+        return separator;
     }
 
     public void tryLoadSelectedChapter() {
@@ -924,17 +1260,25 @@ public class ManuskriptEditorTestWindow {
             updateStatus("Kein Kapitel ausgewählt oder keine MD-Datei in data gefunden", true);
             return;
         }
+        applyLoadedChapter(chapter, chapter.docxFile());
+    }
+
+    private void applyLoadedChapter(MainController.PrototypeChapterContent chapter, File docxFile) {
         suppressDirty = true;
         try {
             clearTransientMarks();
             loadedChapterFile = chapter.file();
+            loadedDocxFile = docxFile;
             loadedProjectDirectory = chapter.file().getParentFile() != null
                     ? chapter.file().getParentFile().getParentFile()
                     : null;
             editor.loadDocument(chapter.content(), chapter.file().getParentFile(), loadedProjectDirectory);
             loadedChapterName = chapter.fileName();
+            initializeImageDirectories();
             captureOriginalContent();
             setDirty(false);
+            updateChapterList();
+            refreshChapterListAppearance();
             updateStatus("Geladen: " + loadedChapterName);
             checkQuoteErrorsOnLoad(chapter.content());
         } finally {
@@ -954,7 +1298,7 @@ public class ManuskriptEditorTestWindow {
         }
         suppressDirty = true;
         try {
-            editor.replaceRange(0, currentText.length(), convertedText);
+            editor.replaceAllTextPreservingCaretAndViewport(convertedText);
             updateDirtyFromContent(convertedText);
         } finally {
             suppressDirty = false;
@@ -1067,6 +1411,7 @@ public class ManuskriptEditorTestWindow {
             Files.writeString(loadedChapterFile.toPath(), normalizeMarkdownParagraphSpacing(editor.getText()), StandardCharsets.UTF_8);
             captureOriginalContent();
             setDirty(false);
+            refreshChapterListAppearance();
             updateStatus("Gespeichert: " + loadedChapterFile.getName());
         } catch (IOException e) {
             updateStatusError("Speichern fehlgeschlagen: " + e.getMessage());
@@ -1284,17 +1629,133 @@ public class ManuskriptEditorTestWindow {
         return text.replace("¶", "");
     }
 
+    private void handleCloseRequest(WindowEvent event) {
+        refreshDirtyState();
+        if (!dirty) {
+            cancelLanguageToolChecks();
+            return;
+        }
+        event.consume();
+        if (confirmDiscardUnsavedChanges()) {
+            cancelLanguageToolChecks();
+            stage.close();
+        }
+    }
+
+    private void refreshDirtyState() {
+        if (editor != null) {
+            updateDirtyFromContent(editor.getText());
+        }
+    }
+
     private boolean confirmDiscardUnsavedChanges() {
+        return confirmLoseUnsavedChanges("Fenster trotzdem schließen?");
+    }
+
+    private boolean confirmLoseUnsavedChanges(String actionDescription) {
+        refreshDirtyState();
         if (!dirty) {
             return true;
         }
         CustomAlert alert = new CustomAlert(CustomAlert.AlertType.CONFIRMATION);
         alert.setTitle("Ungespeicherte Änderungen");
         alert.setHeaderText("Ungespeicherte Änderungen");
-        alert.setContentText("Der Prototyp-Editor enthält ungespeicherte Änderungen. Fenster trotzdem schließen?");
+        alert.setContentText("Der Prototyp-Editor enthält ungespeicherte Änderungen. "
+                + (actionDescription == null || actionDescription.isBlank() ? "Fortfahren?" : actionDescription));
         alert.applyTheme(themeIndex);
-        Optional<ButtonType> result = alert.showAndWait();
+        Optional<ButtonType> result = alert.showAndWait(stage);
         return result.isPresent() && result.get() == ButtonType.OK;
+    }
+
+    private void applyChapterSidebarTheme() {
+        if (sidebarContainer == null || chapterListView == null) {
+            return;
+        }
+        chapterSidebarTheme = ChapterSidebarTheme.forThemeIndex(themeIndex);
+        sidebarContainer.setStyle("-fx-background-color: " + chapterSidebarTheme.listBackground() + ";");
+        sidebarHeader.setStyle(String.format(
+                "-fx-background-color: %s; -fx-border-color: %s; -fx-border-width: 0 0 1 0;",
+                chapterSidebarTheme.headerBackground(), chapterSidebarTheme.headerBorderColor()));
+        sidebarTitleLabel.setStyle("-fx-text-fill: " + chapterSidebarTheme.titleColor()
+                + "; -fx-font-size: 14px; -fx-font-weight: bold;");
+        chapterListView.setStyle(String.format(
+                "-fx-background-color: %s; -fx-control-inner-background: %s;",
+                chapterSidebarTheme.listBackground(), chapterSidebarTheme.listBackground()));
+        if (chapterListPlaceholder != null) {
+            chapterListPlaceholder.setStyle("-fx-text-fill: " + chapterSidebarTheme.textColor() + ";");
+        }
+        applyThemeToNode(sidebarContainer, themeIndex);
+        refreshChapterListAppearance();
+    }
+
+    private void styleChapterListCell(ListCell<DocxFile> cell, DocxFile docxFile, boolean empty) {
+        if (chapterSidebarTheme == null) {
+            chapterSidebarTheme = ChapterSidebarTheme.forThemeIndex(themeIndex);
+        }
+        if (empty || docxFile == null) {
+            cell.setText(null);
+            cell.setStyle("");
+            cell.getStyleClass().removeAll("current-chapter", "changed-chapter");
+            return;
+        }
+        cell.setText(docxFile.getDisplayFileName());
+        cell.getStyleClass().removeAll("current-chapter", "changed-chapter");
+        String textColor = chapterSidebarTheme.textColor();
+        String background = "transparent";
+        if (cell.isSelected()) {
+            background = chapterSidebarTheme.selectedBackground();
+        }
+        if (loadedDocxFile != null && docxFile.getFile().equals(loadedDocxFile)) {
+            cell.getStyleClass().add("current-chapter");
+            background = chapterSidebarTheme.currentChapterBackground();
+            textColor = chapterSidebarTheme.textColor();
+        } else if (docxFile.isChanged()) {
+            cell.getStyleClass().add("changed-chapter");
+            textColor = chapterSidebarTheme.changedChapterText();
+        }
+        cell.setStyle(String.format(
+                "-fx-text-fill: %s; -fx-background-color: %s; -fx-padding: 8 12 8 12;",
+                textColor, background));
+        if (cell.getStyleClass().contains("current-chapter")) {
+            cell.setStyle(cell.getStyle() + String.format(
+                    " -fx-border-color: %s; -fx-border-width: 0 0 0 3;",
+                    chapterSidebarTheme.currentChapterBorder()));
+        }
+    }
+
+    private record ChapterSidebarTheme(
+            String listBackground,
+            String textColor,
+            String headerBackground,
+            String headerBorderColor,
+            String titleColor,
+            String selectedBackground,
+            String changedChapterText,
+            String currentChapterBackground,
+            String currentChapterBorder) {
+
+        static ChapterSidebarTheme forThemeIndex(int themeIndex) {
+            return switch (themeIndex) {
+                case 0 -> new ChapterSidebarTheme(
+                        "#ffffff", "#000000", "#ffffff", "#dddddd", "#000000",
+                        "#e3f2fd", "#ff6b35", "#d4e8f7", "#4a90e2");
+                case 2 -> new ChapterSidebarTheme(
+                        "#f3e5f5", "#4a148c", "#f3e5f5", "#dddddd", "#4a148c",
+                        "#e1bee7", "#ff6b35", "#e1d5f0", "#7e57c2");
+                case 3 -> new ChapterSidebarTheme(
+                        "#1e3a8a", "#ffffff", "#1e3a8a", "#3b82f6", "#ffffff",
+                        "#1e40af", "#ff8c69", "#2563eb", "#60a5fa");
+                case 4 -> new ChapterSidebarTheme(
+                        "#064e3b", "#ffffff", "#064e3b", "#10b981", "#ffffff",
+                        "#047857", "#ff8c69", "#0d9488", "#34d399");
+                case 5 -> new ChapterSidebarTheme(
+                        "#4c1d95", "#ffffff", "#4c1d95", "#8b5cf6", "#ffffff",
+                        "#6d28d9", "#ff8c69", "#7c3aed", "#a78bfa");
+                default -> new ChapterSidebarTheme(
+                        "#1e1e1e", "#ffffff", "#2a2a2a", "#444444", "#ffffff",
+                        "#1e3a5f", "#ff8c69", "#2a5080", "#4a90e2");
+            };
+        }
     }
 
     private void applyThemeToNode(Node node, int themeIndex) {
@@ -1342,7 +1803,17 @@ public class ManuskriptEditorTestWindow {
                 Beispiel für automatische Regeln:
                 **Dieser Text soll fett markiert werden**
                 *Dieser Text soll kursiv markiert werden*
+                ***fett und kursiv***
+                ~~durchgestrichen~~
+                <mark>hervorgehoben</mark>
                 <u>Dieser Text soll unterstrichen werden</u>
+                <big>größer</big> und <small>kleiner</small>
+                Formel: E = mc<sup>2</sup>, chemisch: H<sub>2</sub>O
+                <red>roter Text</red>
+
+                > Dies ist ein Blockquote mit grauer kursiver Darstellung.
+
+                <center>Zentrierter Absatz</center>
 
                 Jorin geht durch den Regen. Jorina wartet am Tor.
 

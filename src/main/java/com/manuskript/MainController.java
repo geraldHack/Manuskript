@@ -9056,26 +9056,28 @@ public class MainController implements Initializable {
 
     public PrototypeChapterContent loadSelectedChapterMarkdownForPrototype() {
         DocxFile selected = tableViewSelected != null ? tableViewSelected.getSelectionModel().getSelectedItem() : null;
-        if (selected == null || selected.getFile() == null) {
+        return loadChapterMarkdownForPrototype(selected);
+    }
+
+    public PrototypeChapterContent loadChapterMarkdownForPrototype(DocxFile docxFile) {
+        if (docxFile == null || docxFile.getFile() == null) {
             return null;
         }
-
-        File mdFile = deriveMdFileFor(selected.getFile());
+        File mdFile = deriveMdFileFor(docxFile.getFile());
         if (mdFile == null || !mdFile.exists() || !mdFile.isFile()) {
             logger.warn("Keine MD-Datei für Prototyp-Editor gefunden: {}", mdFile != null ? mdFile.getAbsolutePath() : "null");
             return null;
         }
-
         try {
             String content = Files.readString(mdFile.toPath(), StandardCharsets.UTF_8);
-            return new PrototypeChapterContent(selected.getFileName(), mdFile, content);
+            return new PrototypeChapterContent(docxFile.getFileName(), mdFile, docxFile.getFile(), content);
         } catch (IOException e) {
             logger.warn("Konnte MD-Datei für Prototyp-Editor nicht laden: {}", e.getMessage());
             return null;
         }
     }
 
-    public record PrototypeChapterContent(String fileName, File file, String content) {}
+    public record PrototypeChapterContent(String fileName, File file, File docxFile, String content) {}
     
     public List<String> getMarkdownFilesInOrder() {
         List<String> mdFiles = new ArrayList<>();
