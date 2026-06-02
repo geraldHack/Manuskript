@@ -134,8 +134,7 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
     private boolean onlineLektoratMode;
     private javafx.stage.Stage featuresSetupStage;
     private ChapterTextAnalysisWindow textAnalysisWindow;
-    private javafx.collections.ObservableList<Macro> macros = javafx.collections.FXCollections.observableArrayList();
-    private Macro currentMacro;
+    private ChapterMacroWindow macroWindow;
 
     public ManuskriptEditorTestWindow(Window owner) {
         this(owner, null);
@@ -245,8 +244,8 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
             chapterAgentSupport.setSceneOutlineWindow(sceneOutlineWindow);
             chapterAgentSupport.setupIfEnabled();
         }
-        MacroStorage.loadInto(macros);
         textAnalysisWindow = new ChapterTextAnalysisWindow(createTextAnalysisHost());
+        macroWindow = new ChapterMacroWindow(createMacroHost());
     }
 
     private ChapterTextAnalysisWindow.Host createTextAnalysisHost() {
@@ -794,28 +793,14 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         Button sceneOutline = toolbarButton("Outline", "Szenen-Outline für dieses Kapitel", this::toggleSceneOutlineWindow);
         Button textAnalysis = toolbarButton("Analyse", "Textanalyse-Fenster ein-/ausblenden", this::toggleTextAnalysisWindow);
         Button onlineLektorat = toolbarButton("Lektorat", "Online-Lektorat starten", () -> startOnlineLektorat(false));
-        Button runMacro = toolbarButton("Makro", "Aktuelles Makro ausführen", this::runCurrentMacro);
-        ComboBox<String> macroCombo = new ComboBox<>();
-        macroCombo.setPromptText("Makro");
-        javafx.collections.ObservableList<String> macroNames = javafx.collections.FXCollections.observableArrayList();
-        for (Macro macro : macros) {
-            macroNames.add(macro.getName());
-        }
-        macroCombo.setItems(macroNames);
-        macroCombo.valueProperty().addListener((obs, o, name) -> {
-            if (name != null) {
-                currentMacro = macros.stream().filter(m -> name.equals(m.getName())).findFirst().orElse(null);
-            }
-        });
-        if (!macros.isEmpty()) {
-            macroCombo.setValue(macros.get(0).getName());
-            currentMacro = macros.get(0);
-        }
+        Button macrosBtn = toolbarButton("Makros", "Makro-Verwaltung ein-/ausblenden", this::toggleMacroWindow);
+        Button copySudowrite = toolbarButton("Sudowrite", "Für Sudowrite kopieren (Zwischenablage)",
+                this::copyForSudowrite);
 
         toolsPane.getChildren().addAll(
                 quoteLabel, quoteStyle,
                 languageTool, languageToolAuto, lblLanguageToolStatus,
-                sceneOutline, textAnalysis, onlineLektorat, macroCombo, runMacro,
+                sceneOutline, textAnalysis, onlineLektorat, macrosBtn, copySudowrite,
                 insertImage, editImage, deleteImage, loadSelectedChapter);
 
         VBox toolbar = new VBox(8, statusRow, fontRow, formatPane, searchBlock, toolsPane);
@@ -1919,6 +1904,52 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         textAnalysisWindow.toggle();
     }
 
+    private ChapterMacroWindow.Host createMacroHost() {
+        return new ChapterMacroWindow.Host() {
+            @Override
+            public ChapterEditorHost getChapterEditor() {
+                return ManuskriptEditorTestWindow.this;
+            }
+
+            @Override
+            public void updateStatus(String message) {
+                ManuskriptEditorTestWindow.this.updateStatus(message);
+            }
+
+            @Override
+            public void updateStatusError(String message) {
+                ManuskriptEditorTestWindow.this.updateStatus(message, true);
+            }
+
+            @Override
+            public javafx.stage.Stage getOwnerStage() {
+                return stage;
+            }
+
+            @Override
+            public Window getOwnerWindow() {
+                return stage;
+            }
+
+            @Override
+            public int getThemeIndex() {
+                return themeIndex;
+            }
+
+            @Override
+            public void applyThemeToNode(Node node, int themeIndex) {
+                ManuskriptEditorTestWindow.this.applyThemeToNode(node, themeIndex);
+            }
+        };
+    }
+
+    private void toggleMacroWindow() {
+        if (macroWindow == null) {
+            macroWindow = new ChapterMacroWindow(createMacroHost());
+        }
+        macroWindow.toggle();
+    }
+
     private void toggleSceneOutlineWindow() {
         File docx = loadedDocxFile != null ? loadedDocxFile : loadedChapterFile;
         if (docx == null) {
@@ -1947,14 +1978,6 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         }
         String chapterName = loadedChapterName != null ? loadedChapterName : loadedDocxFile.getName();
         sceneOutlineWindow.reloadForChapter(stage != null ? stage.getScene() : null, loadedDocxFile, chapterName, themeIndex);
-    }
-
-    private void runCurrentMacro() {
-        if (currentMacro == null) {
-            updateStatus("Kein Makro ausgewählt", true);
-            return;
-        }
-        runMacro(currentMacro, this::updateStatus);
     }
 
     // --- ChapterEditorHost ---
@@ -2007,6 +2030,24 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
     @Override
     public void setText(String text) {
         editor.setText(text);
+    }
+
+    /** Ersetzt Text nach Diff-Übernahme und markiert das Kapitel als geändert. */
+    public void applyTextFromDiff(String text) {
+        editor.setText(text);
+        setDirty(true);
+        updateStatus("Text wurde durch Diff geändert", true);
+    }
+
+    private void copyForSudowrite() {
+        try {
+            SudowriteClipboardHelper.copyForSudowrite(
+                    editor.getText(),
+                    msg -> updateStatus("In Zwischenablage kopiert (Sudowrite)"),
+                    msg -> updateStatus(msg, true));
+        } catch (Exception ex) {
+            updateStatus("Fehler beim Kopieren: " + ex.getMessage(), true);
+        }
     }
 
     @Override

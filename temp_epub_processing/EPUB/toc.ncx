@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ncx version="2005-1" xmlns="http://www.daisy.org/z3986/2005/ncx/">
+  <head>
+    <meta name="dtb:uid" content="urn:uuid:c50d9a8c-368d-4365-9713-2ebb058144f3" />
+    <meta name="dtb:depth" content="1" />
+    <meta name="dtb:totalPageCount" content="0" />
+    <meta name="dtb:maxPageNumber" content="0" />
+    <meta name="cover" content="cover_image_png" />
+  </head>
+  <docTitle>
+    <text>Der Lehrling</text>
+  </docTitle>
+  <navMap>
+    <navPoint id="navPoint-0">
+      <navLabel>
+        <text>Der Lehrling</text>
+      </navLabel>
+      <content src="text/title_page.xhtml" />
+    </navPoint>
+    <navPoint id="navPoint-1">
+      <navLabel>
+        <text>Kapitel 1 - Der Krämerladen</text>
+      </navLabel>
+      <content src="text/ch001.xhtml#kapitel-1---der-krämerladen" />
+    </navPoint>
+    <navPoint id="navPoint-2">
+      <navLabel>
+        <text>Kapitel 2 - Der Droschkenkutscher</text>
+      </navLabel>
+      <content src="text/ch002.xhtml#kapitel-2---der-droschkenkutscher" />
+    </navPoint>
+    <navPoint id="navPoint-3">
+      <navLabel>
+        <text>Kapitel 3 - Magister Valen</text>
+      </navLabel>
+      <content src="text/ch003.xhtml#kapitel-3---magister-valen" />
+    </navPoint>
+    <navPoint id="navPoint-4">
+      <navLabel>
+        <text>Kapitel 4 - Formular Neun-Grakk-Zwei</text>
+      </navLabel>
+      <content src="text/ch004.xhtml#kapitel-4---formular-neun-grakk-zwei" />
+    </navPoint>
+    <navPoint id="navPoint-5">
+      <navLabel>
+        <text>Kapitel 5 - Die Akademie</text>
+      </navLabel>
+      <content src="text/ch005.xhtml#kapitel-5---die-akademie" />
+    </navPoint>
+    <navPoint id="navPoint-6">
+      <navLabel>
+        <text>Kapitel 6 - Unterricht</text>
+      </navLabel>
+      <content src="text/ch006.xhtml#kapitel-6---unterricht" />
+    </navPoint>
+    <navPoint id="navPoint-7">
+      <navLabel>
+        <text>Kapitel 7 - Alera</text>
+      </navLabel>
+      <content src="text/ch007.xhtml#kapitel-7---alera" />
+    </navPoint>
+    <navPoint id="navPoint-8">
+      <navLabel>
+        <text>Kapitel 8 - Jorins Geheimnis</text>
+      </navLabel>
+      <content src="text/ch008.xhtml#kapitel-8---jorins-geheimnis" />
+    </navPoint>
+    <navPoint id="navPoint-9">
+      <navLabel>
+        <text>Kapitel 9 - Das Krankenhaus</text>
+      </navLabel>
+      <content src="text/ch009.xhtml#kapitel-9---das-krankenhaus" />
+    </navPoint>
+    <navPoint id="navPoint-10">
+      <navLabel>
+        <text>Kapitel 10 - Wiedersehen mit Alera</text>
+      </navLabel>
+      <content src="text/ch010.xhtml#kapitel-10---wiedersehen-mit-alera" />
+      <navPoint id="navPoint-11">
+        <navLabel>
+          <text>Kapitel 11 - Der Kampf</text>
+        </navLabel>
+        <content src="text/ch010.xhtml#kapitel-11---der-kampf" />
+      </navPoint>
+    </navPoint>
+    <navPoint id="navPoint-12">
+      <navLabel>
+        <text>Kapitel 12 – Erklärungen</text>
+      </navLabel>
+      <content src="text/ch011.xhtml#kapitel-12-erklärungen" />
+    </navPoint>
+    <navPoint id="navPoint-13">
+      <navLabel>
+        <text>Kapitel 13 - Der Ausflug</text>
+      </navLabel>
+      <content src="text/ch012.xhtml#kapitel-13---der-ausflug" />
+    </navPoint>
+    <navPoint id="navPoint-14">
+      <navLabel>
+        <text>Kapitel 14 - Die Nacht der Asche</text>
+      </navLabel>
+      <content src="text/ch013.xhtml#kapitel-14---die-nacht-der-asche" />
+    </navPoint>
+    <navPoint id="navPoint-15">
+      <navLabel>
+        <text>Kapitel 15 - Privatunterricht</text>
+      </navLabel>
+      <content src="text/ch014.xhtml#kapitel-15---privatunterricht" />
+    </navPoint>
+  </navMap>
+</ncx>

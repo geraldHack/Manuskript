@@ -1270,9 +1270,8 @@ public class PandocExportWindow extends CustomStage {
             
             // Für EPUB3: Ähnliche Fixes wie für DOCX
             if ("epub3".equals(format) || "epub".equals(format)) {
-                // <br> Tags für EPUB: Pandoc unterstützt HTML in Markdown, verarbeitet <br> automatisch
-                // Keine Konvertierung nötig - Pandoc konvertiert <br> zu Zeilenumbrüchen in EPUB
-                
+                content = ExportHtmlNormalizer.normalizeBrTagsForEpubHtml(content);
+
                 // ZUERST: Reihenfolge korrigieren - wenn Überschrift vor Bild steht, tauschen wir sie im Markdown
                 // Pattern: # Überschrift\n\n![alt](path) -> ![alt](path)\n\n# Überschrift
                 content = content.replaceAll(
@@ -1635,29 +1634,34 @@ public class PandocExportWindow extends CustomStage {
                     content = content.substring(0, start) + entry.getValue() + content.substring(end);
                 }
             } else if ("epub3".equals(format) || "html5".equals(format) || "epub".equals(format) || "html".equals(format)) {
-                // Für EPUB/HTML: <c> Tags zu <center> konvertieren (HTML-Standard)
+                content = ExportHtmlNormalizer.normalizeBrTagsForEpubHtml(content);
+
                 content = content.replaceAll("(?s)<c>(.*?)</c>", "<center>$1</center>");
-                // <center> Tags bleiben erhalten (HTML-Standard)
-                
-                // Kurze Farb-Tags zu HTML-Spans konvertieren
-                // Englische Tags: <red>Text</red> -> <span style="color: red;">Text</span>
-                content = content.replaceAll("(?i)<red>([^<]+)</red>", "<span style=\"color: red;\">$1</span>");
-                content = content.replaceAll("(?i)<blue>([^<]+)</blue>", "<span style=\"color: blue;\">$1</span>");
-                content = content.replaceAll("(?i)<green>([^<]+)</green>", "<span style=\"color: green;\">$1</span>");
-                content = content.replaceAll("(?i)<yellow>([^<]+)</yellow>", "<span style=\"color: yellow;\">$1</span>");
-                content = content.replaceAll("(?i)<purple>([^<]+)</purple>", "<span style=\"color: purple;\">$1</span>");
-                content = content.replaceAll("(?i)<orange>([^<]+)</orange>", "<span style=\"color: orange;\">$1</span>");
-                content = content.replaceAll("(?i)<gray>([^<]+)</gray>", "<span style=\"color: gray;\">$1</span>");
-                content = content.replaceAll("(?i)<grey>([^<]+)</grey>", "<span style=\"color: gray;\">$1</span>");
-                
-                // Deutsche Tags: <rot>Text</rot> -> <span style="color: red;">Text</span>
-                content = content.replaceAll("(?i)<rot>([^<]+)</rot>", "<span style=\"color: red;\">$1</span>");
-                content = content.replaceAll("(?i)<blau>([^<]+)</blau>", "<span style=\"color: blue;\">$1</span>");
-                content = content.replaceAll("(?i)<grün>([^<]+)</grün>", "<span style=\"color: green;\">$1</span>");
-                content = content.replaceAll("(?i)<gelb>([^<]+)</gelb>", "<span style=\"color: yellow;\">$1</span>");
-                content = content.replaceAll("(?i)<lila>([^<]+)</lila>", "<span style=\"color: purple;\">$1</span>");
-                content = content.replaceAll("(?i)<orange>([^<]+)</orange>", "<span style=\"color: orange;\">$1</span>");
-                content = content.replaceAll("(?i)<grau>([^<]+)</grau>", "<span style=\"color: gray;\">$1</span>");
+
+                content = content.replaceAll("(?is)<mark>(.*?)</mark>", "<mark>$1</mark>");
+                content = content.replaceAll("(?is)<u>(.*?)</u>", "<u>$1</u>");
+                content = content.replaceAll("(?is)<b>(.*?)</b>", "<strong>$1</strong>");
+                content = content.replaceAll("(?is)<i>(.*?)</i>", "<em>$1</em>");
+                content = content.replaceAll("(?is)<strong>(.*?)</strong>", "<strong>$1</strong>");
+                content = content.replaceAll("(?is)<em>(.*?)</em>", "<em>$1</em>");
+                content = content.replaceAll("(?is)<s>(.*?)</s>", "<del>$1</del>");
+                content = content.replaceAll("(?is)<del>(.*?)</del>", "<del>$1</del>");
+
+                content = content.replaceAll("(?is)<red>(.*?)</red>", "<span style=\"color: red;\">$1</span>");
+                content = content.replaceAll("(?is)<blue>(.*?)</blue>", "<span style=\"color: blue;\">$1</span>");
+                content = content.replaceAll("(?is)<green>(.*?)</green>", "<span style=\"color: green;\">$1</span>");
+                content = content.replaceAll("(?is)<yellow>(.*?)</yellow>", "<span style=\"color: yellow;\">$1</span>");
+                content = content.replaceAll("(?is)<purple>(.*?)</purple>", "<span style=\"color: purple;\">$1</span>");
+                content = content.replaceAll("(?is)<orange>(.*?)</orange>", "<span style=\"color: orange;\">$1</span>");
+                content = content.replaceAll("(?is)<gray>(.*?)</gray>", "<span style=\"color: gray;\">$1</span>");
+                content = content.replaceAll("(?is)<grey>(.*?)</grey>", "<span style=\"color: gray;\">$1</span>");
+
+                content = content.replaceAll("(?is)<rot>(.*?)</rot>", "<span style=\"color: red;\">$1</span>");
+                content = content.replaceAll("(?is)<blau>(.*?)</blau>", "<span style=\"color: blue;\">$1</span>");
+                content = content.replaceAll("(?is)<grün>(.*?)</grün>", "<span style=\"color: green;\">$1</span>");
+                content = content.replaceAll("(?is)<gelb>(.*?)</gelb>", "<span style=\"color: yellow;\">$1</span>");
+                content = content.replaceAll("(?is)<lila>(.*?)</lila>", "<span style=\"color: purple;\">$1</span>");
+                content = content.replaceAll("(?is)<grau>(.*?)</grau>", "<span style=\"color: gray;\">$1</span>");
             }
             
             // Nur schreiben wenn sich etwas geändert hat
@@ -4072,6 +4076,8 @@ public class PandocExportWindow extends CustomStage {
             String content = Files.readString(htmlFile.toPath(), StandardCharsets.UTF_8);
             String originalContent = content;
             
+            content = ExportHtmlNormalizer.fixBrTagsInXhtml(content);
+
             // "Abstract" durch "Zusammenfassung" ersetzen (alle Vorkommen)
             content = content.replaceAll("(?i)Abstract", "Zusammenfassung");
             

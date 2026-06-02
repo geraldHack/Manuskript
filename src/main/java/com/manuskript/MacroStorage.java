@@ -52,6 +52,42 @@ public final class MacroStorage {
         parseInto(savedMacros, target);
     }
 
+    public static void saveFrom(ObservableList<Macro> macros) {
+        try {
+            String macroData = serialize(macros);
+            File file = macrosFile();
+            Files.createDirectories(file.getParentFile().toPath());
+            Files.writeString(file.toPath(), macroData, StandardCharsets.UTF_8);
+            Preferences.userNodeForPackage(EditorWindow.class).put("savedMacros", macroData);
+            Preferences.userNodeForPackage(EditorWindow.class).flush();
+        } catch (Exception e) {
+            logger.error("Makros speichern fehlgeschlagen", e);
+            throw new RuntimeException("Makros speichern fehlgeschlagen: " + e.getMessage(), e);
+        }
+    }
+
+    public static String serialize(ObservableList<Macro> macros) {
+        StringBuilder sb = new StringBuilder();
+        for (Macro macro : macros) {
+            sb.append("MACRO:").append(macro.getName()).append("\n");
+            sb.append("DESC:").append(macro.getDescription() != null ? macro.getDescription() : "").append("\n");
+            for (MacroStep step : macro.getSteps()) {
+                String replaceText = step.getReplaceText() != null ? step.getReplaceText() : "";
+                sb.append("STEP:").append(step.getStepNumber()).append("\n");
+                sb.append("SEARCH:").append(step.getSearchText() != null ? step.getSearchText() : "").append("\n");
+                sb.append("REPLACE:").append(replaceText).append("\n");
+                sb.append("REGEX:").append(step.isUseRegex() ? "1" : "0").append("\n");
+                sb.append("CASE:").append(step.isCaseSensitive() ? "1" : "0").append("\n");
+                sb.append("WORD:").append(step.isWholeWord() ? "1" : "0").append("\n");
+                sb.append("ENABLED:").append(step.isEnabled() ? "1" : "0").append("\n");
+                sb.append("STEPDESC:").append(step.getDescription() != null ? step.getDescription() : "").append("\n");
+                sb.append("REPLACECOUNT:").append(step.getReplacementCount()).append("\n");
+            }
+            sb.append("ENDMACRO\n");
+        }
+        return sb.toString();
+    }
+
     private static void parseInto(String macroContent, ObservableList<Macro> macros) {
         Macro currentMacro = null;
         MacroStep currentStep = null;

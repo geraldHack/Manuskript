@@ -180,7 +180,7 @@ public class MainController implements Initializable {
 
     public static boolean isCanvasChapterEditorEnabled() {
         return Preferences.userNodeForPackage(MainController.class)
-                .getBoolean(PREF_USE_CANVAS_CHAPTER_EDITOR, false);
+                .getBoolean(PREF_USE_CANVAS_CHAPTER_EDITOR, true);
     }
     
     // Split-Dialog: globale Referenzen (werden in createSplitPanel() gesetzt)
@@ -2549,28 +2549,21 @@ public class MainController implements Initializable {
                                     }
                                 }
                                 // WICHTIG: Prüfe ob bereits ein Editor für dieses Kapitel existiert
-                                final EditorWindow foundEditor = findExistingEditor(editorKey);
-                                EditorWindow editorController;
-                                if (foundEditor != null) {
-                                    editorController = foundEditor;
-                                    final File mdFileForEditor = mdFileToSave;
+                                final ChapterEditorHost foundHost = findExistingChapterEditor(editorKey);
+                                ChapterEditorHost editorHost;
+                                if (foundHost != null) {
+                                    editorHost = foundHost;
                                     Platform.runLater(() -> {
-                                        foundEditor.setOriginalDocxFile(chapterFile.getFile());
-                                        if (mdFileForEditor != null) foundEditor.setCurrentFile(mdFileForEditor);
-                                        foundEditor.replaceTextWithoutUpdatingOriginal(docxContent);
-                                        if (foundEditor.getStage() != null && foundEditor.getStage().isShowing()) {
-                                            foundEditor.getStage().setIconified(false);
-                                            foundEditor.getStage().toFront();
-                                            foundEditor.getStage().requestFocus();
-                                        }
+                                        applyDiffContentToHost(foundHost, docxContent, chapterFile);
+                                        bringChapterEditorToFront(foundHost);
                                     });
                                 } else {
-                                    editorController = openChapterEditorWindow(docxContent, chapterFile, format, startOnlineLektorat);
+                                    editorHost = openChapterEditorHost(docxContent, chapterFile, format, startOnlineLektorat);
                                 }
                                 updateStatus("Kapitel-Editor geöffnet (DOCX übernommen): " + chapterFile.getFileName());
-                                if (startOnlineLektorat && editorController != null) {
+                                if (startOnlineLektorat && editorHost != null) {
                                     logger.info("openChapterEditor: startOnlineLektorat geplant (DOCX übernommen)");
-                                    Platform.runLater(() -> editorController.startOnlineLektorat(enableAssessment));
+                                    Platform.runLater(() -> editorHost.startOnlineLektorat(enableAssessment));
                                 }
                                 DiffProcessor.saveDocxHashAsync(chapterFile.getFile(), mdFile);
                                 updateDocxHashAfterAccept(chapterFile.getFile());
@@ -2827,62 +2820,39 @@ public class MainController implements Initializable {
     }
     
     /**
-     * Findet den aktuell geöffneten Editor für ein Kapitel
+     * Findet den aktuell geöffneten Kapitel-Editor (Legacy oder Canvas).
      */
-    private EditorWindow findCurrentEditorForChapter(DocxFile chapterFile) {
-        
+    private ChapterEditorHost findCurrentChapterEditor(DocxFile chapterFile) {
         String chapterName = chapterFile.getFileName();
         if (chapterName.toLowerCase().endsWith(".docx")) {
             chapterName = chapterName.substring(0, chapterName.length() - 5);
         }
-        
+
         String editorKey = chapterName + ".md";
         File targetFile = chapterFile.getFile();
-        
-        logger.debug("=== findCurrentEditorForChapter: Suche Editor für Key: {}, Datei: {}", editorKey, targetFile.getName());
-        
-        // 1) Verwende findExistingEditor, das auch Editoren findet, die mit einem falschen Key registriert sind
-        EditorWindow editor = findExistingEditor(editorKey);
-        
-        if (editor != null) {
-            // Prüfe ob der Editor wirklich zu diesem Kapitel gehört
-            File originalDocx = editor.getOriginalDocxFile();
-            logger.debug("=== findCurrentEditorForChapter: Editor aus Map gefunden, originalDocx: {}", originalDocx != null ? originalDocx.getName() : "null");
+
+        logger.debug("=== findCurrentChapterEditor: Suche Editor für Key: {}, Datei: {}", editorKey, targetFile.getName());
+
+        ChapterEditorHost host = findExistingChapterEditor(editorKey);
+        if (host != null) {
+            File originalDocx = host.getOriginalDocxFile();
             if (originalDocx != null && originalDocx.equals(targetFile)) {
-                logger.debug("=== findCurrentEditorForChapter: Editor passt! Zurückgeben.");
-                return editor;
-            } else {
-                logger.debug("=== findCurrentEditorForChapter: Editor passt NICHT (originalDocx: {}, targetFile: {})", originalDocx != null ? originalDocx.getName() : "null", targetFile.getName());
+                return host;
             }
-        } else {
-            logger.debug("=== findCurrentEditorForChapter: Kein Editor in Map gefunden für Key: {}", editorKey);
         }
-        
-        // 2) Durchsuche alle EditorWindow-Instanzen direkt, um zu sehen, ob einer zu diesem Kapitel gehört
-        logger.debug("=== findCurrentEditorForChapter: Durchsuche Hosts ({} Stück)", openChapterEditors.size());
+
         for (ChapterEditorHost candidate : openChapterEditors.values()) {
-            if (candidate == null) {
-                continue;
-            }
-            if (!(candidate instanceof EditorWindow editorCandidate)) {
-                continue;
-            }
-            if (candidate.getStage() == null || !candidate.getStage().isShowing()) {
+            if (candidate == null || candidate.getStage() == null || !candidate.getStage().isShowing()) {
                 continue;
             }
             File originalDocx = candidate.getOriginalDocxFile();
             if (originalDocx != null && originalDocx.equals(targetFile)) {
-                registerEditor(editorKey, editorCandidate);
-                return editorCandidate;
+                registerChapterEditor(editorKey, candidate);
+                return candidate;
             }
         }
-        
-        // 3) Fallback: Suche auch direkt nach dem Fenster-Titel, falls die Map-Suche fehlschlägt
-        // Dies ist wichtig, wenn der Editor gerade geladen wird oder die Map noch nicht aktualisiert wurde
+
         String fileName = chapterFile.getFileName();
-        logger.debug("=== findCurrentEditorForChapter: Suche nach Fenster-Titel mit: {}", fileName);
-        
-        // Zuerst: Prüfe das fokussierte Fenster (wahrscheinlich der aktuelle Editor)
         Window focusedWindow = null;
         for (Window window : Window.getWindows()) {
             if (window.isFocused() && window instanceof CustomStage) {
@@ -2890,70 +2860,112 @@ public class MainController implements Initializable {
                 break;
             }
         }
-        
-        // Wenn kein fokussiertes Fenster, nimm das zuletzt geöffnete Editor-Fenster
         if (focusedWindow == null) {
             for (Window window : Window.getWindows()) {
-                if (window instanceof CustomStage && window.isShowing()) {
-                    CustomStage customStage = (CustomStage) window;
+                if (window instanceof CustomStage customStage && window.isShowing()) {
                     String title = customStage.getTitle();
-                    if (title != null && (title.contains("Kapitel-Editor") || title.contains("📄"))) {
+                    if (title != null && (title.contains("Kapitel-Editor") || title.contains("📄")
+                            || title.contains("Eigener Editor") || title.contains("Prototyp"))) {
                         focusedWindow = window;
                         break;
                     }
                 }
             }
         }
-        
-        // Durchsuche alle Fenster
+
         for (Window window : Window.getWindows()) {
-            if (window instanceof CustomStage && window.isShowing()) {
-                CustomStage customStage = (CustomStage) window;
-                String title = customStage.getTitle();
-                // Prüfe ob der Titel den Dateinamen enthält ODER ob es das fokussierte Fenster ist
-                boolean matchesTitle = title != null && title.contains(fileName);
-                boolean isFocused = (window == focusedWindow);
-                
-                if (matchesTitle || isFocused) {
-                    logger.debug("=== findCurrentEditorForChapter: Fenster gefunden (Titel: {}, fokussiert: {}): {}", title, isFocused, title);
-                    // Versuche den EditorWindow-Controller aus dem Fenster zu extrahieren
-                    try {
-                        javafx.scene.Scene scene = customStage.getScene();
-                        if (scene != null) {
-                            javafx.scene.Parent root = scene.getRoot();
-                            if (root != null) {
-                                Object userData = root.getUserData();
-                                if (userData instanceof EditorWindow) {
-                                    EditorWindow foundEditor = (EditorWindow) userData;
-                                    // Prüfe ob dieser Editor wirklich zu diesem Kapitel gehört
-                                    File originalDocx = foundEditor.getOriginalDocxFile();
-                                    logger.debug("=== findCurrentEditorForChapter: Editor aus Fenster extrahiert, originalDocx: {}", originalDocx != null ? originalDocx.getName() : "null");
-                                    if (originalDocx != null && originalDocx.equals(targetFile)) {
-                                        logger.debug("=== findCurrentEditorForChapter: Editor aus Fenster passt! Registriere mit Key: {}", editorKey);
-                                        // Editor gefunden - registriere ihn mit dem richtigen Key
-                                        registerEditor(editorKey, foundEditor);
-                                        return foundEditor;
-                                    } else if (isFocused && originalDocx == null) {
-                                        // Wenn es das fokussierte Fenster ist und originalDocx noch nicht gesetzt ist,
-                                        // könnte es der richtige Editor sein, der gerade geladen wird
-                                        logger.debug("=== findCurrentEditorForChapter: Fokussiertes Fenster hat noch kein originalDocx - könnte der richtige Editor sein");
-                                        // Setze originalDocx und registriere
-                                        foundEditor.setOriginalDocxFile(targetFile);
-                                        registerEditor(editorKey, foundEditor);
-                                        return foundEditor;
-                                    }
-                                }
-                            }
-                        }
-                    } catch (Exception e) {
-                        logger.debug("Fehler beim Extrahieren des Editors aus Fenster", e);
-                    }
+            if (!(window instanceof CustomStage customStage) || !window.isShowing()) {
+                continue;
+            }
+            String title = customStage.getTitle();
+            boolean matchesTitle = title != null && title.contains(fileName);
+            boolean isFocused = window == focusedWindow;
+            if (!matchesTitle && !isFocused) {
+                continue;
+            }
+            try {
+                javafx.scene.Scene scene = customStage.getScene();
+                if (scene == null) {
+                    continue;
                 }
+                javafx.scene.Parent root = scene.getRoot();
+                if (root == null) {
+                    continue;
+                }
+                Object userData = root.getUserData();
+                ChapterEditorHost found = null;
+                if (userData instanceof ChapterEditorHost chapterHost) {
+                    found = chapterHost;
+                } else if (userData instanceof EditorWindow editorWindow) {
+                    found = editorWindow;
+                }
+                if (found == null) {
+                    continue;
+                }
+                File originalDocx = found.getOriginalDocxFile();
+                if (originalDocx != null && originalDocx.equals(targetFile)) {
+                    registerChapterEditor(editorKey, found);
+                    return found;
+                }
+                if (isFocused && originalDocx == null) {
+                    found.setOriginalDocxFile(targetFile);
+                    registerChapterEditor(editorKey, found);
+                    return found;
+                }
+            } catch (Exception e) {
+                logger.debug("Fehler beim Extrahieren des Editors aus Fenster", e);
             }
         }
-        
-        logger.debug("=== findCurrentEditorForChapter: KEIN Editor gefunden!");
+
+        logger.debug("=== findCurrentChapterEditor: KEIN Editor gefunden!");
         return null;
+    }
+
+    private EditorWindow findCurrentEditorForChapter(DocxFile chapterFile) {
+        ChapterEditorHost host = findCurrentChapterEditor(chapterFile);
+        return host != null ? host.asLegacyEditorWindow() : null;
+    }
+
+    private void bringChapterEditorToFront(ChapterEditorHost host) {
+        if (host == null || host.getStage() == null || !host.getStage().isShowing()) {
+            return;
+        }
+        Platform.runLater(() -> {
+            host.getStage().setIconified(false);
+            host.getStage().toFront();
+            host.getStage().requestFocus();
+        });
+    }
+
+    private void applyDiffContentToHost(ChapterEditorHost host, String content, DocxFile chapterFile) {
+        if (host == null) {
+            return;
+        }
+        host.setOriginalDocxFile(chapterFile.getFile());
+        File mdFileForEditor = deriveMdFileFor(chapterFile.getFile());
+        if (host instanceof EditorWindow editorWindow) {
+            if (mdFileForEditor != null) {
+                editorWindow.setCurrentFile(mdFileForEditor);
+            }
+            editorWindow.replaceTextWithoutUpdatingOriginal(content);
+        } else if (host instanceof ManuskriptEditorTestWindow canvas) {
+            canvas.applyTextFromDiff(content);
+        } else {
+            host.setText(content);
+        }
+    }
+
+    private ChapterEditorHost openChapterEditorHost(String text, DocxFile chapterFile,
+                                                    DocxProcessor.OutputFormat format) {
+        return openChapterEditorHost(text, chapterFile, format, false);
+    }
+
+    private ChapterEditorHost openChapterEditorHost(String text, DocxFile chapterFile,
+                                                    DocxProcessor.OutputFormat format, boolean onlineLektoratMode) {
+        if (isCanvasChapterEditorEnabled()) {
+            return openCanvasChapterEditorWindow(text, chapterFile, onlineLektoratMode);
+        }
+        return openChapterEditorWindow(text, chapterFile, format, onlineLektoratMode);
     }
     public void showDetailedDiffDialog(DocxFile chapterFile, File mdFile, DiffProcessor.DiffResult diffResult,
                                       DocxProcessor.OutputFormat format) {
@@ -2961,7 +2973,7 @@ public class MainController implements Initializable {
     }
     
     public void showDetailedDiffDialog(DocxFile chapterFile, File mdFile, DiffProcessor.DiffResult diffResult,
-                                      DocxProcessor.OutputFormat format, EditorWindow callingEditor) {
+                                      DocxProcessor.OutputFormat format, ChapterEditorHost callingHost) {
         try {
 
             // Erstelle Diff-Fenster mit spezieller Diff-Stage
@@ -2985,30 +2997,20 @@ public class MainController implements Initializable {
             String mdContent;
             String docxContent = docxProcessor.processDocxFileContent(chapterFile.getFile(), 1, format);
             
-            // Prüfe ob ein Editor für dieses Kapitel geöffnet ist
-            // WICHTIG: Wenn ein callingEditor übergeben wurde, prüfe ob er wirklich zu dieser Datei gehört
-            EditorWindow currentEditor = null;
-            if (callingEditor != null) {
-                // Prüfe ob der callingEditor zu dieser Datei gehört
-                File editorOriginalDocx = callingEditor.getOriginalDocxFile();
+            ChapterEditorHost currentHost = null;
+            if (callingHost != null) {
+                File editorOriginalDocx = callingHost.getOriginalDocxFile();
                 if (editorOriginalDocx != null && editorOriginalDocx.equals(chapterFile.getFile())) {
-                    // Der callingEditor gehört zu dieser Datei - verwende seinen Inhalt
-                    currentEditor = callingEditor;
+                    currentHost = callingHost;
                 } else {
-                    // Der callingEditor gehört NICHT zu dieser Datei (z.B. wenn der Editor gerade das nächste Kapitel lädt)
-                    // In diesem Fall sollte der Diff mit der gespeicherten MD-Datei gemacht werden, nicht mit dem Editor-Inhalt
-                    // Suche nach dem richtigen Editor für diese Datei
-                    currentEditor = findCurrentEditorForChapter(chapterFile);
+                    currentHost = findCurrentChapterEditor(chapterFile);
                 }
             } else {
-                // Kein callingEditor übergeben - suche nach dem Editor
-                currentEditor = findCurrentEditorForChapter(chapterFile);
+                currentHost = findCurrentChapterEditor(chapterFile);
             }
-            
-            if (currentEditor != null) {
-                // Verwende den aktuellen Editor-Inhalt statt der gespeicherten Datei
-                // WICHTIG: Der Diff wird zwischen diesem Inhalt und der DOCX-Version der chapterFile gemacht
-                mdContent = currentEditor.getText();
+
+            if (currentHost != null) {
+                mdContent = currentHost.getText();
             } else {
                 // Fallback: Verwende die gespeicherte Datei
                 mdContent = new String(java.nio.file.Files.readAllBytes(mdFile.toPath()), java.nio.charset.StandardCharsets.UTF_8);
@@ -3573,61 +3575,35 @@ public class MainController implements Initializable {
                     
                     // Keine MD-Datei speichern - nur den Inhalt verwenden
                     
-                    // Prüfe ob bereits ein Editor für dieses Kapitel geöffnet ist
-                    // WICHTIG: Wenn ein callingEditor übergeben wurde, verwende diesen IMMER
-                    // (Der callingEditor ist der Editor, der den Diff-Dialog aufgerufen hat und sollte aktualisiert werden)
-                    EditorWindow existingEditor;
-                    if (callingEditor != null) {
-                        // Der callingEditor ist der Editor, der den Diff-Dialog aufgerufen hat
-                        // Dieser sollte immer verwendet werden, unabhängig von originalDocxFile
-                        existingEditor = callingEditor;
-                        // WICHTIG: Setze originalDocxFile auf die neue Datei, damit der Editor korrekt registriert ist
-                        existingEditor.setOriginalDocxFile(chapterFile.getFile());
+                    ChapterEditorHost existingHost;
+                    if (callingHost != null) {
+                        existingHost = callingHost;
+                        existingHost.setOriginalDocxFile(chapterFile.getFile());
                     } else {
-                        // Kein callingEditor übergeben - suche nach dem Editor
-                        existingEditor = findCurrentEditorForChapter(chapterFile);
+                        existingHost = findCurrentChapterEditor(chapterFile);
                     }
-                    
-                    final EditorWindow finalExistingEditor = existingEditor;
-                    if (finalExistingEditor != null) {
-                        logger.debug("=== DIFF: Editor gefunden! Aktualisiere bestehenden Editor (aufrufender Editor: {})", callingEditor != null ? "JA" : "NEIN");
-                        // Bestehenden Editor aktualisieren - KEIN neues Fenster öffnen
-                        final String finalContentForLambda = finalContent;
-                        // WICHTIG: Stelle sicher, dass der Editor für die neue Datei registriert ist
+
+                    final ChapterEditorHost finalExistingHost = existingHost;
+                    final String finalContentForLambda = finalContent;
+                    if (finalExistingHost != null) {
+                        logger.debug("=== DIFF: Editor gefunden! Aktualisiere bestehenden Editor (aufrufender Editor: {})",
+                                callingHost != null ? "JA" : "NEIN");
                         String chapterName = chapterFile.getFileName();
                         if (chapterName.toLowerCase().endsWith(".docx")) {
                             chapterName = chapterName.substring(0, chapterName.length() - 5);
                         }
-                        String editorKey = chapterName + ".md";
-                        registerEditor(editorKey, finalExistingEditor);
-                        final File mdFileForEditor = deriveMdFileFor(chapterFile.getFile());
+                        registerChapterEditor(chapterName + ".md", finalExistingHost);
                         Platform.runLater(() -> {
-                            finalExistingEditor.setOriginalDocxFile(chapterFile.getFile());
-                            if (mdFileForEditor != null) finalExistingEditor.setCurrentFile(mdFileForEditor);
-                            finalExistingEditor.replaceTextWithoutUpdatingOriginal(finalContentForLambda);
-                            if (finalExistingEditor.getStage() != null && finalExistingEditor.getStage().isShowing()) {
-                                finalExistingEditor.getStage().setIconified(false);
-                                finalExistingEditor.getStage().toFront();
-                                finalExistingEditor.getStage().requestFocus();
-                            }
+                            applyDiffContentToHost(finalExistingHost, finalContentForLambda, chapterFile);
+                            bringChapterEditorToFront(finalExistingHost);
                         });
                     } else {
                         logger.debug("=== DIFF: KEIN Editor gefunden! Erstelle neuen Editor.");
-                        // Nur wenn KEIN bestehender Editor existiert - dann neuen erstellen
-                        // WICHTIG: Verwende finalContent direkt, nicht mdContent (mdContent könnte Editor-Inhalt enthalten)
-                        EditorWindow editorController = openChapterEditorWindow(finalContent, chapterFile, format);
-                        
-                        // Editor sollte bereits den richtigen Inhalt haben, aber zur Sicherheit nochmal setzen
-                        if (editorController != null) {
-                            final String finalContentForLambda = finalContent;
+                        ChapterEditorHost newHost = openChapterEditorHost(finalContent, chapterFile, format);
+                        if (newHost != null) {
                             Platform.runLater(() -> {
-                                editorController.replaceTextWithoutUpdatingOriginal(finalContentForLambda);
-                                // Editor in den Vordergrund bringen
-                                if (editorController.getStage() != null && editorController.getStage().isShowing()) {
-                                    editorController.getStage().setIconified(false);
-                                    editorController.getStage().toFront();
-                                    editorController.getStage().requestFocus();
-                                }
+                                applyDiffContentToHost(newHost, finalContentForLambda, chapterFile);
+                                bringChapterEditorToFront(newHost);
                             });
                         }
                     }
@@ -3641,35 +3617,32 @@ public class MainController implements Initializable {
             });
             btnAcceptAll.setOnAction(e -> {
                 try {
-                    // Prüfe ob bereits ein Editor für dieses Kapitel geöffnet ist
-                    // WICHTIG: Wenn ein callingEditor übergeben wurde, verwende diesen IMMER
-                    // (Der callingEditor ist der Editor, der den Diff-Dialog aufgerufen hat und sollte aktualisiert werden)
-                    EditorWindow existingEditor = null;
-                    if (callingEditor != null) {
-                        // Der callingEditor ist der Editor, der den Diff-Dialog aufgerufen hat
-                        // Dieser sollte immer verwendet werden, unabhängig von originalDocxFile
-                        existingEditor = callingEditor;
-                        // WICHTIG: Setze originalDocxFile auf die neue Datei, damit der Editor korrekt registriert ist
-                        existingEditor.setOriginalDocxFile(chapterFile.getFile());
+                    ChapterEditorHost existingHost = null;
+                    if (callingHost != null) {
+                        existingHost = callingHost;
+                        existingHost.setOriginalDocxFile(chapterFile.getFile());
                     } else {
-                        // Kein callingEditor übergeben - suche nach dem Editor
-                        existingEditor = findCurrentEditorForChapter(chapterFile);
+                        existingHost = findCurrentChapterEditor(chapterFile);
                     }
-                    
-                    EditorWindow editorController;
-                    if (existingEditor != null) {
-                        editorController = existingEditor;
-                        editorController.setText(docxContent);
+
+                    ChapterEditorHost editorHost;
+                    if (existingHost != null) {
+                        editorHost = existingHost;
+                        editorHost.setText(docxContent);
                         File mdFileToSave = deriveMdFileFor(chapterFile.getFile());
-                        if (mdFileToSave != null) existingEditor.setCurrentFile(mdFileToSave);
+                        if (editorHost instanceof EditorWindow editorWindow && mdFileToSave != null) {
+                            editorWindow.setCurrentFile(mdFileToSave);
+                        }
                         String chapterName = chapterFile.getFileName();
                         if (chapterName.toLowerCase().endsWith(".docx")) {
                             chapterName = chapterName.substring(0, chapterName.length() - 5);
                         }
-                        String editorKey = chapterName + ".md";
-                        registerEditor(editorKey, editorController);
+                        registerChapterEditor(chapterName + ".md", editorHost);
                     } else {
-                        editorController = openChapterEditorWindow(docxContent, chapterFile, format);
+                        editorHost = openChapterEditorHost(docxContent, chapterFile, format);
+                        if (editorHost != null) {
+                            editorHost.setText(docxContent);
+                        }
                     }
                     // KRITISCH: Immer docxContent (nicht getText()) in die Zieldatei schreiben
                     File mdFileToSave = deriveMdFileFor(chapterFile.getFile());
@@ -3683,27 +3656,14 @@ public class MainController implements Initializable {
                             logger.error("Fehler beim Speichern der MD-Datei (Accept All)", saveException);
                         }
                     }
-                    if (editorController == null) {
+                    if (editorHost == null) {
                         logger.error("=== DEBUG: Editor-Controller ist NULL!");
+                    } else {
+                        bringChapterEditorToFront(editorHost);
                     }
-                    
-                    // WICHTIG: Editor in den Vordergrund bringen
-                    Platform.runLater(() -> {
-                        for (Window window : Window.getWindows()) {
-                            if (window instanceof CustomStage && window.isShowing()) {
-                                CustomStage customStage = (CustomStage) window;
-                                if (customStage.getTitle().contains(chapterFile.getFileName())) {
-                                    customStage.toFront();
-                                    customStage.requestFocus();
-                                    break;
-                                }
-                            }
-                        }
-                    });
-                    
+
                     chapterFile.setChanged(false);
                     updateDocxHashAfterAccept(chapterFile.getFile());
-                    // WICHTIG: Das "!" aus der Tabelle entfernen
                     markDocxFileAsUnchanged(chapterFile.getFile());
                     diffStage.close();
                 } catch (Exception ex) {
@@ -3714,52 +3674,26 @@ public class MainController implements Initializable {
             
             btnKeepCurrent.setOnAction(e -> {
                 try {
-                    // Prüfe ob bereits ein Editor für dieses Kapitel geöffnet ist
-                    // WICHTIG: Wenn ein callingEditor übergeben wurde, verwende diesen IMMER
-                    // (Der callingEditor ist der Editor, der den Diff-Dialog aufgerufen hat und sollte aktualisiert werden)
-                    EditorWindow existingEditor;
-                    if (callingEditor != null) {
-                        // Der callingEditor ist der Editor, der den Diff-Dialog aufgerufen hat
-                        // Dieser sollte immer verwendet werden, unabhängig von originalDocxFile
-                        existingEditor = callingEditor;
-                        // WICHTIG: Setze originalDocxFile auf die neue Datei, damit der Editor korrekt registriert ist
-                        existingEditor.setOriginalDocxFile(chapterFile.getFile());
+                    ChapterEditorHost existingHost;
+                    if (callingHost != null) {
+                        existingHost = callingHost;
+                        existingHost.setOriginalDocxFile(chapterFile.getFile());
                     } else {
-                        // Kein callingEditor übergeben - suche nach dem Editor
-                        existingEditor = findCurrentEditorForChapter(chapterFile);
+                        existingHost = findCurrentChapterEditor(chapterFile);
                     }
-                    
-                    final EditorWindow finalExistingEditor = existingEditor;
-                    if (finalExistingEditor != null) {
-                        // WICHTIG: Stelle sicher, dass der Editor für die neue Datei registriert ist
+
+                    final ChapterEditorHost finalExistingHost = existingHost;
+                    if (finalExistingHost != null) {
                         String chapterName = chapterFile.getFileName();
                         if (chapterName.toLowerCase().endsWith(".docx")) {
                             chapterName = chapterName.substring(0, chapterName.length() - 5);
                         }
-                        String editorKey = chapterName + ".md";
-                        registerEditor(editorKey, finalExistingEditor);
-                        
-                        // Bestehenden Editor in den Vordergrund bringen
-                        Platform.runLater(() -> {
-                            if (finalExistingEditor.getStage() != null && finalExistingEditor.getStage().isShowing()) {
-                                finalExistingEditor.getStage().setIconified(false);
-                                finalExistingEditor.getStage().toFront();
-                                finalExistingEditor.getStage().requestFocus();
-                            }
-                        });
+                        registerChapterEditor(chapterName + ".md", finalExistingHost);
+                        bringChapterEditorToFront(finalExistingHost);
                     } else {
-                        // Neuen Editor erstellen
-                        EditorWindow newEditor = openChapterEditorWindow(mdContent, chapterFile, format);
-                        
-                        // WICHTIG: Editor in den Vordergrund bringen
-                        if (newEditor != null) {
-                            Platform.runLater(() -> {
-                                if (newEditor.getStage() != null && newEditor.getStage().isShowing()) {
-                                    newEditor.getStage().setIconified(false);
-                                    newEditor.getStage().toFront();
-                                    newEditor.getStage().requestFocus();
-                                }
-                            });
+                        ChapterEditorHost newHost = openChapterEditorHost(mdContent, chapterFile, format);
+                        if (newHost != null) {
+                            bringChapterEditorToFront(newHost);
                         }
                     }
                     
@@ -4261,8 +4195,7 @@ public class MainController implements Initializable {
             }
 
             // WICHTIG: Prüfe ob Editor bereits geöffnet ist
-            // Verwende findCurrentEditorForChapter statt findExistingEditor für bessere Suche
-            EditorWindow existingEditor = findCurrentEditorForChapter(chapterFile);
+            ChapterEditorHost existingEditor = findCurrentChapterEditor(chapterFile);
             
             if (existingEditor != null) {
                 // Editor bereits geöffnet - bringe ihn in den Vordergrund
@@ -4276,7 +4209,9 @@ public class MainController implements Initializable {
                 });
                 
                 updateStatus("Bestehender Editor für '" + chapterFile.getFileName() + "' in den Vordergrund gebracht");
-                return existingEditor; // Bestehenden Editor zurückgeben
+                return existingEditor instanceof EditorWindow editorWindow
+                        ? editorWindow
+                        : existingEditor.asLegacyEditorWindow();
             }
             
             // Erstelle chapterName für späteren Gebrauch

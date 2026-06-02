@@ -1,5 +1,6 @@
 package com.manuskript;
 
+import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
@@ -10,6 +11,8 @@ import javafx.scene.control.SplitPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -19,6 +22,8 @@ import java.util.function.IntSupplier;
  * Rechtes Lektorat-Panel für den Canvas-Kapitel-Editor (Vorschläge, Begründung).
  */
 public class ChapterLektoratPanel {
+
+    private static final Logger logger = LoggerFactory.getLogger(ChapterLektoratPanel.class);
 
     private final VBox container;
     private final SplitPane splitPane;
@@ -142,6 +147,65 @@ public class ChapterLektoratPanel {
         if (container != null) {
             container.getChildren().clear();
         }
+    }
+
+    /**
+     * Zeigt die Kapitel-Einschätzung unterhalb des Lektorat-Inhalts (parallel zum Lektorat-Lauf).
+     */
+    public void appendChapterAssessment(String chapterText) {
+        if (container == null) {
+            return;
+        }
+        ensureVisible(true);
+        int theme = themeIndex.getAsInt();
+
+        Label assessmentLabel = sectionLabel("Kapitel-Einschätzung", theme);
+        VBox assessmentBox = new VBox(8);
+        assessmentBox.getStyleClass().add("dialog-container");
+        assessmentBox.getStyleClass().add("theme-" + theme);
+        assessmentBox.setPadding(new Insets(10));
+        assessmentBox.setMaxWidth(Double.MAX_VALUE);
+        themeApplier.accept(assessmentBox, theme);
+
+        Label assessmentLoading = new Label("Einschätzung wird geladen...");
+        assessmentLoading.setWrapText(true);
+        assessmentLoading.setMaxWidth(Double.MAX_VALUE);
+        themeApplier.accept(assessmentLoading, theme);
+        assessmentBox.getChildren().add(assessmentLoading);
+        container.getChildren().addAll(assessmentLabel, assessmentBox);
+
+        if (chapterText == null || chapterText.isBlank()) {
+            assessmentBox.getChildren().clear();
+            Label noText = new Label("Kein Text für Einschätzung vorhanden.");
+            noText.setWrapText(true);
+            noText.setMaxWidth(Double.MAX_VALUE);
+            themeApplier.accept(noText, theme);
+            assessmentBox.getChildren().add(noText);
+            return;
+        }
+
+        OnlineLektoratService service = new OnlineLektoratService();
+        service.runChapterAssessment(chapterText)
+                .thenAccept(assessment -> Platform.runLater(() -> {
+                    assessmentBox.getChildren().clear();
+                    Label assessmentText = new Label(assessment);
+                    assessmentText.setWrapText(true);
+                    assessmentText.setMaxWidth(Double.MAX_VALUE);
+                    themeApplier.accept(assessmentText, theme);
+                    assessmentBox.getChildren().add(assessmentText);
+                }))
+                .exceptionally(ex -> {
+                    Platform.runLater(() -> {
+                        assessmentBox.getChildren().clear();
+                        Label errorText = new Label("Einschätzung fehlgeschlagen:\n" + ex.getMessage());
+                        errorText.setWrapText(true);
+                        errorText.setMaxWidth(Double.MAX_VALUE);
+                        themeApplier.accept(errorText, theme);
+                        assessmentBox.getChildren().add(errorText);
+                    });
+                    logger.error("Kapitel-Einschätzung", ex);
+                    return null;
+                });
     }
 
     private Label sectionLabel(String text, int theme) {

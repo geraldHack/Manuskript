@@ -38,6 +38,9 @@ public class ChapterOnlineLektoratHelper {
     public void start(boolean enableAssessment) {
         host.setOnlineLektoratMode(true);
         String text = host.getText();
+        if (enableAssessment && panel != null) {
+            panel.appendChapterAssessment(text);
+        }
         if (text == null || text.trim().isEmpty()) {
             host.updateStatus("Editor leer – kein Online-Lektorat möglich");
             return;
