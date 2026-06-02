@@ -60,7 +60,9 @@ import java.util.prefs.Preferences;
 /**
  * Prototyp-Fenster für den eigenen Editor mit Kapitel-Laden aus dem Hauptfenster.
  */
-public class ManuskriptEditorTestWindow {
+public class ManuskriptEditorTestWindow implements ChapterEditorHost {
+
+    private static final String PREF_USE_CANVAS = "use_canvas_chapter_editor";
 
     private static final String PREF_FONT_FAMILY = "prototype_editor_font_family";
     private static final String PREF_FONT_SIZE = "prototype_editor_font_size";
@@ -124,6 +126,16 @@ public class ManuskriptEditorTestWindow {
     private boolean dirty;
     private boolean suppressDirty;
     private boolean quoteErrorsDialogShown;
+    private ChapterAgentSupport chapterAgentSupport;
+    private ChapterOnlineLektoratHelper lektoratHelper;
+    private VBox lektoratPanelContainer;
+    private ChapterLektoratPanel lektoratPanel;
+    private SceneOutlineWindow sceneOutlineWindow;
+    private boolean onlineLektoratMode;
+    private javafx.stage.Stage featuresSetupStage;
+    private ChapterTextAnalysisWindow textAnalysisWindow;
+    private javafx.collections.ObservableList<Macro> macros = javafx.collections.FXCollections.observableArrayList();
+    private Macro currentMacro;
 
     public ManuskriptEditorTestWindow(Window owner) {
         this(owner, null);
@@ -222,6 +234,77 @@ public class ManuskriptEditorTestWindow {
         applyChapterSidebarTheme();
         loadSidebarState();
         attachChapterListListener();
+        setupChapterEditorFeatures();
+    }
+
+    private void setupChapterEditorFeatures() {
+        lektoratHelper = new ChapterOnlineLektoratHelper(this, lektoratPanel);
+        sceneOutlineWindow = new SceneOutlineWindow();
+        if (!onlineLektoratMode) {
+            chapterAgentSupport = new ChapterAgentSupport(this, mainSplitPane);
+            chapterAgentSupport.setSceneOutlineWindow(sceneOutlineWindow);
+            chapterAgentSupport.setupIfEnabled();
+        }
+        MacroStorage.loadInto(macros);
+        textAnalysisWindow = new ChapterTextAnalysisWindow(createTextAnalysisHost());
+    }
+
+    private ChapterTextAnalysisWindow.Host createTextAnalysisHost() {
+        return new ChapterTextAnalysisWindow.Host() {
+            @Override
+            public String getChapterText() {
+                return editor.getText();
+            }
+
+            @Override
+            public void applyAnalysisResult(TextAnalysisEngine.AnalysisResult result) {
+                editor.applyTextAnalysisSpans(result.spans());
+            }
+
+            @Override
+            public void clearAnalysisMarks() {
+                editor.clearTextAnalysisMarks();
+            }
+
+            @Override
+            public void revealAnalysisRange(int start, int end) {
+                editor.selectRange(start, end);
+                editor.revealMatchAt(start, end);
+            }
+
+            @Override
+            public void updateStatus(String message) {
+                ManuskriptEditorTestWindow.this.updateStatus(message);
+            }
+
+            @Override
+            public void updateStatusError(String message) {
+                ManuskriptEditorTestWindow.this.updateStatus(message, true);
+            }
+
+            @Override
+            public Window getOwnerWindow() {
+                return stage;
+            }
+
+            @Override
+            public int getThemeIndex() {
+                return themeIndex;
+            }
+
+            @Override
+            public void applyThemeToNode(Node node, int themeIndex) {
+                ManuskriptEditorTestWindow.this.applyThemeToNode(node, themeIndex);
+            }
+        };
+    }
+
+    public ManuskriptTextEditor getTextEditor() {
+        return editor;
+    }
+
+    public File getLoadedChapterFile() {
+        return loadedChapterFile;
     }
 
     private Node createEditorWithSidebar() {
@@ -250,8 +333,15 @@ public class ManuskriptEditorTestWindow {
         sidebarContainer.setPrefWidth(250);
         sidebarContainer.setMaxWidth(300);
 
+        lektoratPanelContainer = new VBox();
+        lektoratPanelContainer.setMinWidth(120);
+        lektoratPanelContainer.setPrefWidth(320);
+        lektoratPanelContainer.setPadding(new Insets(10));
+
         mainSplitPane = new SplitPane(sidebarContainer, editor);
         mainSplitPane.setDividerPositions(0.18);
+        lektoratPanel = new ChapterLektoratPanel(
+                lektoratPanelContainer, mainSplitPane, () -> themeIndex, this::applyThemeToNode);
         HBox.setHgrow(mainSplitPane, Priority.ALWAYS);
 
         HBox editorRow = new HBox(0, btnToggleSidebar, mainSplitPane);
@@ -701,9 +791,31 @@ public class ManuskriptEditorTestWindow {
         FlowPane toolsPane = new FlowPane(6, 4);
         toolsPane.setAlignment(Pos.CENTER_LEFT);
         Label quoteLabel = new Label("Anführungszeichen:");
+        Button sceneOutline = toolbarButton("Outline", "Szenen-Outline für dieses Kapitel", this::toggleSceneOutlineWindow);
+        Button textAnalysis = toolbarButton("Analyse", "Textanalyse-Fenster ein-/ausblenden", this::toggleTextAnalysisWindow);
+        Button onlineLektorat = toolbarButton("Lektorat", "Online-Lektorat starten", () -> startOnlineLektorat(false));
+        Button runMacro = toolbarButton("Makro", "Aktuelles Makro ausführen", this::runCurrentMacro);
+        ComboBox<String> macroCombo = new ComboBox<>();
+        macroCombo.setPromptText("Makro");
+        javafx.collections.ObservableList<String> macroNames = javafx.collections.FXCollections.observableArrayList();
+        for (Macro macro : macros) {
+            macroNames.add(macro.getName());
+        }
+        macroCombo.setItems(macroNames);
+        macroCombo.valueProperty().addListener((obs, o, name) -> {
+            if (name != null) {
+                currentMacro = macros.stream().filter(m -> name.equals(m.getName())).findFirst().orElse(null);
+            }
+        });
+        if (!macros.isEmpty()) {
+            macroCombo.setValue(macros.get(0).getName());
+            currentMacro = macros.get(0);
+        }
+
         toolsPane.getChildren().addAll(
                 quoteLabel, quoteStyle,
                 languageTool, languageToolAuto, lblLanguageToolStatus,
+                sceneOutline, textAnalysis, onlineLektorat, macroCombo, runMacro,
                 insertImage, editImage, deleteImage, loadSelectedChapter);
 
         VBox toolbar = new VBox(8, statusRow, fontRow, formatPane, searchBlock, toolsPane);
@@ -727,6 +839,16 @@ public class ManuskriptEditorTestWindow {
         Separator separator = new Separator(Orientation.VERTICAL);
         separator.setPrefHeight(26);
         return separator;
+    }
+
+    public void openChapter(MainController.PrototypeChapterContent chapter, File docxFile) {
+        if (chapter == null) {
+            return;
+        }
+        applyLoadedChapter(chapter, docxFile);
+        if (stage != null && !stage.isShowing()) {
+            show();
+        }
     }
 
     public void tryLoadSelectedChapter() {
@@ -1171,7 +1293,8 @@ public class ManuskriptEditorTestWindow {
                 });
     }
 
-    private void updateStatus(String message) {
+    @Override
+    public void updateStatus(String message) {
         if (statusLabel == null) {
             return;
         }
@@ -1188,7 +1311,8 @@ public class ManuskriptEditorTestWindow {
         }
     }
 
-    private void updateStatusError(String message) {
+    @Override
+    public void updateStatusError(String message) {
         if (statusLabel == null) {
             return;
         }
@@ -1281,6 +1405,8 @@ public class ManuskriptEditorTestWindow {
             refreshChapterListAppearance();
             updateStatus("Geladen: " + loadedChapterName);
             checkQuoteErrorsOnLoad(chapter.content());
+            registerWithMainController();
+            reloadSceneOutlineIfOpen();
         } finally {
             suppressDirty = false;
             scheduleInitialLanguageToolCheck();
@@ -1638,6 +1764,9 @@ public class ManuskriptEditorTestWindow {
         event.consume();
         if (confirmDiscardUnsavedChanges()) {
             cancelLanguageToolChecks();
+            if (mainController != null && getEditorKey() != null) {
+                mainController.unregisterChapterEditor(getEditorKey());
+            }
             stage.close();
         }
     }
@@ -1771,6 +1900,202 @@ public class ManuskriptEditorTestWindow {
             case 5 -> node.getStyleClass().addAll("theme-dark", "lila-theme");
             default -> node.getStyleClass().add("theme-dark");
         }
+    }
+
+    private void registerWithMainController() {
+        if (mainController == null || loadedDocxFile == null) {
+            return;
+        }
+        String key = getEditorKey();
+        if (key != null) {
+            mainController.registerChapterEditor(key, this);
+        }
+    }
+
+    private void toggleTextAnalysisWindow() {
+        if (textAnalysisWindow == null) {
+            textAnalysisWindow = new ChapterTextAnalysisWindow(createTextAnalysisHost());
+        }
+        textAnalysisWindow.toggle();
+    }
+
+    private void toggleSceneOutlineWindow() {
+        File docx = loadedDocxFile != null ? loadedDocxFile : loadedChapterFile;
+        if (docx == null) {
+            updateStatus("Bitte zuerst ein Kapitel laden.", true);
+            return;
+        }
+        if (sceneOutlineWindow == null) {
+            sceneOutlineWindow = new SceneOutlineWindow();
+            if (chapterAgentSupport != null) {
+                chapterAgentSupport.setSceneOutlineWindow(sceneOutlineWindow);
+            }
+        }
+        String chapterName = loadedChapterName != null ? loadedChapterName : docx.getName();
+        if (sceneOutlineWindow.isShowing()) {
+            sceneOutlineWindow.hide();
+            updateStatus("Szenen-Outline geschlossen");
+        } else {
+            sceneOutlineWindow.show(stage != null ? stage.getScene() : null, docx, chapterName, themeIndex);
+            updateStatus("Szenen-Outline geöffnet");
+        }
+    }
+
+    private void reloadSceneOutlineIfOpen() {
+        if (sceneOutlineWindow == null || !sceneOutlineWindow.isShowing() || loadedDocxFile == null) {
+            return;
+        }
+        String chapterName = loadedChapterName != null ? loadedChapterName : loadedDocxFile.getName();
+        sceneOutlineWindow.reloadForChapter(stage != null ? stage.getScene() : null, loadedDocxFile, chapterName, themeIndex);
+    }
+
+    private void runCurrentMacro() {
+        if (currentMacro == null) {
+            updateStatus("Kein Makro ausgewählt", true);
+            return;
+        }
+        runMacro(currentMacro, this::updateStatus);
+    }
+
+    // --- ChapterEditorHost ---
+
+    @Override
+    public EditorKind getEditorKind() {
+        return EditorKind.CANVAS;
+    }
+
+    @Override
+    public javafx.stage.Stage getStage() {
+        return stage;
+    }
+
+    @Override
+    public File getOriginalDocxFile() {
+        return loadedDocxFile;
+    }
+
+    @Override
+    public void setOriginalDocxFile(File file) {
+        loadedDocxFile = file;
+    }
+
+    @Override
+    public String getEditorKey() {
+        File docx = loadedDocxFile;
+        if (docx == null && loadedChapterFile != null) {
+            String name = loadedChapterFile.getName();
+            if (name.toLowerCase().endsWith(".md")) {
+                return name;
+            }
+            return null;
+        }
+        if (docx == null) {
+            return null;
+        }
+        String name = docx.getName();
+        if (name.toLowerCase().endsWith(".docx")) {
+            name = name.substring(0, name.length() - 5);
+        }
+        return name + ".md";
+    }
+
+    @Override
+    public String getText() {
+        return editor.getText();
+    }
+
+    @Override
+    public void setText(String text) {
+        editor.setText(text);
+    }
+
+    @Override
+    public void replaceRange(int start, int end, String replacement) {
+        editor.replaceRange(start, end, replacement);
+    }
+
+    @Override
+    public void revealRange(int start, int end) {
+        editor.revealMatchAt(start, end);
+    }
+
+    @Override
+    public int getCaretPosition() {
+        return editor.getCaretPosition();
+    }
+
+    @Override
+    public void selectRange(int start, int end) {
+        editor.selectRange(start, end);
+    }
+
+    @Override
+    public void requestEditorFocus() {
+        editor.requestInputFocus();
+    }
+
+    @Override
+    public boolean isDirty() {
+        return dirty;
+    }
+
+    @Override
+    public void markSaved() {
+        setDirty(false);
+    }
+
+    @Override
+    public void insertTextAtCaret(String text) {
+        if (text == null || text.isEmpty()) {
+            return;
+        }
+        editor.insertText(text);
+    }
+
+    @Override
+    public void jumpToQuote(String quote) {
+        ChapterAgentQuoteActions.jumpToQuote(this, quote);
+    }
+
+    @Override
+    public void setOnlineLektoratMode(boolean enabled) {
+        onlineLektoratMode = enabled;
+        if (enabled && chapterAgentSupport != null) {
+            chapterAgentSupport.ensurePanelVisible(false);
+        } else if (!enabled && chapterAgentSupport == null && mainSplitPane != null) {
+            chapterAgentSupport = new ChapterAgentSupport(this, mainSplitPane);
+            chapterAgentSupport.setSceneOutlineWindow(sceneOutlineWindow);
+            chapterAgentSupport.setupIfEnabled();
+        }
+    }
+
+    @Override
+    public void startOnlineLektorat() {
+        startOnlineLektorat(false);
+    }
+
+    @Override
+    public void startOnlineLektorat(boolean enableAssessment) {
+        if (lektoratHelper == null) {
+            lektoratHelper = new ChapterOnlineLektoratHelper(this, lektoratPanel);
+        }
+        lektoratHelper.start(enableAssessment);
+    }
+
+    @Override
+    public int getThemeIndex() {
+        return themeIndex;
+    }
+
+    @Override
+    public MainController getMainController() {
+        return mainController;
+    }
+
+    @Override
+    public boolean saveChapter() throws IOException {
+        saveLoadedChapter();
+        return true;
     }
 
     private void setupWindowPersistence() {

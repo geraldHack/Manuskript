@@ -1,0 +1,89 @@
+package com.manuskript;
+
+import javafx.stage.Stage;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.function.Consumer;
+
+/**
+ * Gemeinsame API für Kapitel-Editoren (RichTextFX und Canvas-Editor).
+ * Neue Integrationen (Agenten, Makros, Lektorat) sollen nur diese Schnittstelle nutzen.
+ */
+public interface ChapterEditorHost {
+
+    enum EditorKind {
+        LEGACY_CODE_AREA,
+        CANVAS
+    }
+
+    EditorKind getEditorKind();
+
+    Stage getStage();
+
+    File getOriginalDocxFile();
+
+    void setOriginalDocxFile(File file);
+
+    /** Schlüssel wie in {@link MainController#registerChapterEditor}: {@code kapitel.md}. */
+    String getEditorKey();
+
+    String getText();
+
+    void setText(String text);
+
+    void replaceRange(int start, int end, String replacement);
+
+    void revealRange(int start, int end);
+
+    int getCaretPosition();
+
+    void selectRange(int start, int end);
+
+    void requestEditorFocus();
+
+    boolean isDirty();
+
+    void markSaved();
+
+    void insertTextAtCaret(String text);
+
+    void jumpToQuote(String quote);
+
+    void setOnlineLektoratMode(boolean enabled);
+
+    void startOnlineLektorat();
+
+    void startOnlineLektorat(boolean enableAssessment);
+
+    void updateStatus(String message);
+
+    void updateStatusError(String message);
+
+    int getThemeIndex();
+
+    MainController getMainController();
+
+    default EditorWindow asLegacyEditorWindow() {
+        return this instanceof EditorWindow editorWindow ? editorWindow : null;
+    }
+
+    default ManuskriptEditorTestWindow asCanvasChapterEditor() {
+        return this instanceof ManuskriptEditorTestWindow window ? window : null;
+    }
+
+    default boolean saveChapterIfPossible() {
+        try {
+            return saveChapter();
+        } catch (IOException e) {
+            updateStatusError("Speichern fehlgeschlagen: " + e.getMessage());
+            return false;
+        }
+    }
+
+    boolean saveChapter() throws IOException;
+
+    default void runMacro(Macro macro, Consumer<String> statusUpdater) {
+        MacroExecutor.execute(macro, this, statusUpdater);
+    }
+}

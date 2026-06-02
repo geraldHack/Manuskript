@@ -173,8 +173,15 @@ public class MainController implements Initializable {
     private volatile boolean watchRunning = false;
     private volatile boolean suppressExternalChangeDialog = false;
     
-    // Map zur Verfolgung geöffneter Editoren
-    private static final Map<String, EditorWindow> openEditors = new HashMap<>();
+    // Map zur Verfolgung geöffneter Kapitel-Editoren (Legacy RichTextFX und Canvas)
+    private static final Map<String, ChapterEditorHost> openChapterEditors = new HashMap<>();
+
+    private static final String PREF_USE_CANVAS_CHAPTER_EDITOR = "use_canvas_chapter_editor";
+
+    public static boolean isCanvasChapterEditorEnabled() {
+        return Preferences.userNodeForPackage(MainController.class)
+                .getBoolean(PREF_USE_CANVAS_CHAPTER_EDITOR, false);
+    }
     
     // Split-Dialog: globale Referenzen (werden in createSplitPanel() gesetzt)
     private TextField splitTxtFilePath;
@@ -2489,19 +2496,18 @@ public class MainController implements Initializable {
                 chapterName = chapterName.substring(0, chapterName.length() - 5);
             }
             String editorKey = chapterName + ".md";
-            EditorWindow existingEditor = findExistingEditor(editorKey);
+            ChapterEditorHost existingHost = findExistingChapterEditor(editorKey);
             
-            if (existingEditor != null) {
-                // Editor existiert bereits - bringe ihn in den Vordergrund
+            if (existingHost != null) {
                 Platform.runLater(() -> {
-                    if (existingEditor.getStage() != null && existingEditor.getStage().isShowing()) {
-                        existingEditor.getStage().setIconified(false);
-                        existingEditor.getStage().toFront();
-                        existingEditor.getStage().requestFocus();
+                    if (existingHost.getStage() != null && existingHost.getStage().isShowing()) {
+                        existingHost.getStage().setIconified(false);
+                        existingHost.getStage().toFront();
+                        existingHost.getStage().requestFocus();
                     }
                     if (startOnlineLektorat) {
                         logger.info("openChapterEditor: startOnlineLektorat auf bestehendem Editor aufgerufen");
-                        existingEditor.startOnlineLektorat(enableAssessment);
+                        existingHost.startOnlineLektorat(enableAssessment);
                     }
                 });
                 updateStatus("Bestehender Editor für '" + chapterFile.getFileName() + "' in den Vordergrund gebracht");
@@ -2853,21 +2859,21 @@ public class MainController implements Initializable {
         }
         
         // 2) Durchsuche alle EditorWindow-Instanzen direkt, um zu sehen, ob einer zu diesem Kapitel gehört
-        logger.debug("=== findCurrentEditorForChapter: Durchsuche alle EditorWindow-Instanzen ({} Stück)", openEditors.size());
-        for (EditorWindow candidate : openEditors.values()) {
-            if (candidate == null) continue;
-            if (candidate.getStage() == null || !candidate.getStage().isShowing()) {
-                logger.debug("=== findCurrentEditorForChapter: Editor hat kein Stage oder ist nicht sichtbar");
+        logger.debug("=== findCurrentEditorForChapter: Durchsuche Hosts ({} Stück)", openChapterEditors.size());
+        for (ChapterEditorHost candidate : openChapterEditors.values()) {
+            if (candidate == null) {
                 continue;
             }
-            
+            if (!(candidate instanceof EditorWindow editorCandidate)) {
+                continue;
+            }
+            if (candidate.getStage() == null || !candidate.getStage().isShowing()) {
+                continue;
+            }
             File originalDocx = candidate.getOriginalDocxFile();
-            logger.debug("=== findCurrentEditorForChapter: Prüfe Editor mit originalDocx: {}", originalDocx != null ? originalDocx.getName() : "null");
             if (originalDocx != null && originalDocx.equals(targetFile)) {
-                logger.debug("=== findCurrentEditorForChapter: Editor gefunden durch direkte Suche! Registriere mit Key: {}", editorKey);
-                // Editor gefunden - registriere ihn mit dem richtigen Key
-                registerEditor(editorKey, candidate);
-                return candidate;
+                registerEditor(editorKey, editorCandidate);
+                return editorCandidate;
             }
         }
         
@@ -4091,50 +4097,56 @@ public class MainController implements Initializable {
     /**
      * Findet einen bestehenden Editor für ein Kapitel
      */
-    public EditorWindow findExistingEditor(String editorKey) {
-        // 1) Direkter Treffer aus der Map
-        EditorWindow editor = openEditors.get(editorKey);
-        if (editor != null) {
-            if (editor.getStage() == null || !editor.getStage().isShowing()) {
-                // Stale Entry – entfernen
-                openEditors.remove(editorKey);
-                editor = null;
+    public ChapterEditorHost findExistingChapterEditor(String editorKey) {
+        ChapterEditorHost host = openChapterEditors.get(editorKey);
+        if (host != null) {
+            if (host.getStage() == null || !host.getStage().isShowing()) {
+                openChapterEditors.remove(editorKey);
+                host = null;
             } else {
-                // Prüfen, ob der Editor-Schlüssel noch zum aktuellen Kapitel passt
-                String currentKey = buildEditorKeyFor(editor);
+                String currentKey = buildEditorKeyFor(host);
                 if (currentKey == null || !currentKey.equals(editorKey)) {
-                    // Falscher Schlüssel – Map korrigieren
-                    openEditors.remove(editorKey);
+                    openChapterEditors.remove(editorKey);
                     if (currentKey != null) {
-                        openEditors.put(currentKey, editor);
+                        openChapterEditors.put(currentKey, host);
                     }
-                    editor = null;
+                    host = null;
                 }
             }
         }
-
-        if (editor != null) {
-            return editor;
+        if (host != null) {
+            return host;
         }
-
-        // 2) Kein Treffer: vorhandene Einträge auf passenden Controller prüfen und Map reparieren
-        for (EditorWindow candidate : openEditors.values()) {
-            if (candidate == null) continue;
-            if (candidate.getStage() == null || !candidate.getStage().isShowing()) continue;
+        for (ChapterEditorHost candidate : openChapterEditors.values()) {
+            if (candidate == null) {
+                continue;
+            }
+            if (candidate.getStage() == null || !candidate.getStage().isShowing()) {
+                continue;
+            }
             String currentKey = buildEditorKeyFor(candidate);
             if (currentKey != null && currentKey.equals(editorKey)) {
-                openEditors.put(editorKey, candidate);
+                openChapterEditors.put(editorKey, candidate);
                 return candidate;
             }
         }
-
         return null;
     }
 
-    private String buildEditorKeyFor(EditorWindow editor) {
+    public EditorWindow findExistingEditor(String editorKey) {
+        ChapterEditorHost host = findExistingChapterEditor(editorKey);
+        if (host instanceof EditorWindow editorWindow) {
+            return editorWindow;
+        }
+        return host != null ? host.asLegacyEditorWindow() : null;
+    }
+
+    private String buildEditorKeyFor(ChapterEditorHost host) {
         try {
-            java.io.File docx = editor.getOriginalDocxFile();
-            if (docx == null) return null;
+            java.io.File docx = host.getOriginalDocxFile();
+            if (docx == null) {
+                return host.getEditorKey();
+            }
             String name = docx.getName();
             if (name.toLowerCase().endsWith(".docx")) {
                 name = name.substring(0, name.length() - 5);
@@ -4166,38 +4178,88 @@ public class MainController implements Initializable {
      * Entfernt den Editor auch aus alten Einträgen, wenn er bereits für ein anderes Kapitel registriert war
      */
     public void registerEditor(String editorKey, EditorWindow editor) {
-        logger.debug("=== registerEditor: Registriere Editor mit Key: {}", editorKey);
-        // Entferne den Editor aus allen alten Einträgen, falls er bereits für ein anderes Kapitel registriert war
+        registerChapterEditor(editorKey, editor);
+    }
+
+    public void registerChapterEditor(String editorKey, ChapterEditorHost host) {
+        logger.debug("=== registerChapterEditor: Key: {}", editorKey);
         String oldKey = null;
-        for (Map.Entry<String, EditorWindow> entry : openEditors.entrySet()) {
-            if (entry.getValue() == editor && !entry.getKey().equals(editorKey)) {
+        for (Map.Entry<String, ChapterEditorHost> entry : openChapterEditors.entrySet()) {
+            if (entry.getValue() == host && !entry.getKey().equals(editorKey)) {
                 oldKey = entry.getKey();
-                logger.debug("=== registerEditor: Entferne alten Key: {}", oldKey);
                 break;
             }
         }
         if (oldKey != null) {
-            openEditors.remove(oldKey);
+            openChapterEditors.remove(oldKey);
         }
-        
-        // Registriere den Editor mit dem neuen Key
-        openEditors.put(editorKey, editor);
-        logger.debug("=== registerEditor: Editor registriert. Map-Größe: {}", openEditors.size());
+        openChapterEditors.put(editorKey, host);
+        logger.debug("=== registerChapterEditor: Map-Größe: {}", openChapterEditors.size());
     }
-    
+
     /**
-     * Entfernt einen Editor aus der openEditors Map
+     * Entfernt einen Editor aus der openChapterEditors Map
      */
     public void unregisterEditor(String editorKey) {
-        openEditors.remove(editorKey);
+        openChapterEditors.remove(editorKey);
     }
+
+    public void unregisterChapterEditor(String editorKey) {
+        unregisterEditor(editorKey);
+    }
+    private ManuskriptEditorTestWindow openCanvasChapterEditorWindow(String text, DocxFile chapterFile,
+                                                                     boolean onlineLektoratMode) {
+        String chapterName = chapterFile.getFileName();
+        if (chapterName.toLowerCase().endsWith(".docx")) {
+            chapterName = chapterName.substring(0, chapterName.length() - 5);
+        }
+        String editorKey = chapterName + ".md";
+        ChapterEditorHost existing = findExistingChapterEditor(editorKey);
+        if (existing instanceof ManuskriptEditorTestWindow canvasWindow) {
+            Platform.runLater(() -> {
+                if (canvasWindow.getStage() != null) {
+                    canvasWindow.getStage().setIconified(false);
+                    canvasWindow.getStage().toFront();
+                    canvasWindow.getStage().requestFocus();
+                }
+            });
+            PrototypeChapterContent content = new PrototypeChapterContent(
+                    chapterFile.getFileName(),
+                    deriveMdFileFor(chapterFile.getFile()),
+                    chapterFile.getFile(),
+                    text);
+            canvasWindow.openChapter(content, chapterFile.getFile());
+            if (onlineLektoratMode) {
+                Platform.runLater(() -> canvasWindow.startOnlineLektorat(false));
+            }
+            return canvasWindow;
+        }
+        Window owner = primaryStage != null ? primaryStage.getScene().getWindow() : null;
+        ManuskriptEditorTestWindow window = new ManuskriptEditorTestWindow(owner, this);
+        File mdFile = deriveMdFileFor(chapterFile.getFile());
+        PrototypeChapterContent content = new PrototypeChapterContent(
+                chapterFile.getFileName(), mdFile, chapterFile.getFile(), text);
+        window.openChapter(content, chapterFile.getFile());
+        registerChapterEditor(editorKey, window);
+        window.show();
+        if (onlineLektoratMode) {
+            window.setOnlineLektoratMode(true);
+            Platform.runLater(() -> window.startOnlineLektorat(false));
+        }
+        return window;
+    }
+
     private EditorWindow openChapterEditorWindow(String text, DocxFile chapterFile, DocxProcessor.OutputFormat format) {
         return openChapterEditorWindow(text, chapterFile, format, false);
     }
     
     private EditorWindow openChapterEditorWindow(String text, DocxFile chapterFile, DocxProcessor.OutputFormat format, boolean onlineLektoratMode) {
         try {
-            
+            if (isCanvasChapterEditorEnabled()) {
+                ManuskriptEditorTestWindow canvas = openCanvasChapterEditorWindow(text, chapterFile, onlineLektoratMode);
+                return canvas != null ? canvas.asLegacyEditorWindow() : null;
+            }
+
             // WICHTIG: Prüfe ob Editor bereits geöffnet ist
             // Verwende findCurrentEditorForChapter statt findExistingEditor für bessere Suche
             EditorWindow existingEditor = findCurrentEditorForChapter(chapterFile);
@@ -4281,7 +4343,8 @@ public class MainController implements Initializable {
             
             // Prüfe ob ein OllamaWindow offen ist und konvertiere Anführungszeichen falls nötig
             // Suche nach einem offenen Editor mit aktivem OllamaWindow
-            for (EditorWindow editor : openEditors.values()) {
+            for (ChapterEditorHost host : openChapterEditors.values()) {
+                EditorWindow editor = host instanceof EditorWindow editorWindow ? editorWindow : host.asLegacyEditorWindow();
                 if (editor != null && editor.hasActiveOllamaWindow()) {
                     // Ein OllamaWindow ist offen - konvertiere Anführungszeichen im neuen Editor
                     editorController.enableEnglishQuotesForAI();
@@ -4322,7 +4385,7 @@ public class MainController implements Initializable {
             
             // Editor in Map speichern für spätere Suche
             String editorKeyForMap = chapterName + ".md";
-            openEditors.put(editorKeyForMap, editorController);
+            registerChapterEditor(editorKeyForMap, editorController);
             
             // WICHTIG: EditorWindow übernimmt die Fenster-Eigenschaften
             // EditorWindow.loadWindowProperties() wird automatisch aufgerufen
@@ -4360,7 +4423,7 @@ public class MainController implements Initializable {
                 // (nicht wenn der Speichern-Dialog das Schließen verhindert)
                 Platform.runLater(() -> {
                     if (!editorStage.isShowing()) {
-                        openEditors.remove(finalEditorKey);
+                        openChapterEditors.remove(finalEditorKey);
                     }
                 });
             });

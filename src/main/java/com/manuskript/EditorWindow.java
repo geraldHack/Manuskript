@@ -107,7 +107,7 @@ import javafx.scene.control.ListView;
 import javafx.scene.text.Text;
 
 @SuppressWarnings("unchecked")
-public class EditorWindow implements Initializable {
+public class EditorWindow implements Initializable, ChapterEditorHost {
     
     private static final Logger logger = LoggerFactory.getLogger(EditorWindow.class);
     
@@ -14505,7 +14505,11 @@ spacer.setStyle("-fx-background-color: transparent;");
         // TODO: Styling für ersetzte Lektorat-Bereiche anwenden
     }
 
-    private void jumpToQuote(String quote) {
+    public void jumpToQuote(String quote) {
+        jumpToQuoteFromHost(quote);
+    }
+
+    private void jumpToQuoteLegacy(String quote) {
         if (codeArea == null || quote == null || quote.isEmpty()) return;
 
         // Versuche, den Index aus dem Zitat zu extrahieren (Format: "Zitat|Index")
@@ -22896,6 +22900,113 @@ spacer.setStyle("-fx-background-color: transparent;");
                 }
             });
         }
+    }
+
+    private EditorWindowHostAdapter chapterHostAdapter;
+
+    public ChapterEditorHost getChapterEditorHost() {
+        if (chapterHostAdapter == null) {
+            chapterHostAdapter = new EditorWindowHostAdapter(this);
+        }
+        return chapterHostAdapter;
+    }
+
+    public void revealTextRange(int start, int end) {
+        highlightAndScroll(start, end);
+    }
+
+    public void replaceTextRange(int start, int end, String replacement) {
+        if (codeArea == null) {
+            return;
+        }
+        codeArea.replaceText(start, end, replacement == null ? "" : replacement);
+    }
+
+    public void selectTextRange(int start, int end) {
+        if (codeArea == null) {
+            return;
+        }
+        codeArea.selectRange(start, end);
+    }
+
+    public MainController getMainController() {
+        return mainController;
+    }
+
+    public boolean saveCurrentChapterFromHost() throws IOException {
+        saveFile();
+        return true;
+    }
+
+    public void jumpToQuoteFromHost(String quote) {
+        QuoteNavigation.findQuoteRange(getText(), quote).ifPresentOrElse(
+                range -> highlightAndScroll(range.start(), range.end()),
+                () -> updateStatus("Zitat im Kapitel nicht gefunden."));
+    }
+
+    @Override
+    public ChapterEditorHost.EditorKind getEditorKind() {
+        return ChapterEditorHost.EditorKind.LEGACY_CODE_AREA;
+    }
+
+    @Override
+    public void revealRange(int start, int end) {
+        revealTextRange(start, end);
+    }
+
+    @Override
+    public void replaceRange(int start, int end, String replacement) {
+        replaceTextRange(start, end, replacement);
+    }
+
+    @Override
+    public void selectRange(int start, int end) {
+        selectTextRange(start, end);
+    }
+
+    @Override
+    public void requestEditorFocus() {
+        if (codeArea != null) {
+            codeArea.requestFocus();
+        }
+    }
+
+    @Override
+    public boolean isDirty() {
+        return hasUnsavedChanges();
+    }
+
+    @Override
+    public void markSaved() {
+        markAsSavedPublic();
+    }
+
+    @Override
+    public void insertTextAtCaret(String text) {
+        insertTextFromAI(text);
+    }
+
+    @Override
+    public int getThemeIndex() {
+        return getCurrentThemeIndex();
+    }
+
+    @Override
+    public boolean saveChapter() throws IOException {
+        return saveCurrentChapterFromHost();
+    }
+
+    @Override
+    public String getEditorKey() {
+        File docx = getOriginalDocxFile();
+        if (docx == null) {
+            return null;
+        }
+        String name = docx.getName();
+        if (name.toLowerCase().endsWith(".docx")) {
+            name = name.substring(0, name.length() - 5);
+        }
+        return name + ".md";
     }
 
 }

@@ -1160,7 +1160,12 @@ public class OllamaService {
                         .build();
                 
                 HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-                
+                if (GatewayHttpRetry.isRetryableStatus(response.statusCode())) {
+                    logger.info("Ollama: HTTP {} – ein Wiederholungsversuch…", response.statusCode());
+                    GatewayHttpRetry.sleepBeforeRetry();
+                    response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+                }
+
                 if (response.statusCode() == 200) {
                     return response.body();
                 } else if (response.statusCode() == 413) {

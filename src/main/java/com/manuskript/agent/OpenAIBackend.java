@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.manuskript.GatewayHttpRetry;
 import com.manuskript.ResourceManager;
 
 /**
@@ -110,19 +111,7 @@ public class OpenAIBackend implements AIBackend {
                         .POST(HttpRequest.BodyPublishers.ofString(requestBody))
                         .build();
 
-                HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-
-                if (response.statusCode() != 200) {
-                    logger.error("OpenAI API Fehler {}: {}", response.statusCode(), response.body());
-                    String errorMsg;
-                    if (response.statusCode() == 413) {
-                        errorMsg = "OpenAI API Fehler 413: Request body zu groß. " +
-                                "Der gesendete Text ist zu lang. Bitte Kontext reduzieren oder Projekt aufteilen.";
-                    } else {
-                        errorMsg = "OpenAI API Fehler " + response.statusCode() + ": " + response.body();
-                    }
-                    throw new RuntimeException(errorMsg);
-                }
+                HttpResponse<String> response = sendWithGatewayRetry(request);
 
                 JsonObject json = gson.fromJson(response.body(), JsonObject.class);
                 
@@ -265,6 +254,33 @@ public class OpenAIBackend implements AIBackend {
                 throw new RuntimeException("OpenAI Fehler: " + e.getMessage(), e);
             }
         });
+    }
+
+    private HttpResponse<String> sendWithGatewayRetry(HttpRequest request) throws java.io.IOException, InterruptedException {
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        if (response.statusCode() == 200 || !GatewayHttpRetry.isRetryableStatus(response.statusCode())) {
+            if (response.statusCode() != 200) {
+                throw httpError(response);
+            }
+            return response;
+        }
+        logger.info("OpenAI Agent: HTTP {} – ein Wiederholungsversuch nach {} ms…",
+                response.statusCode(), 1500);
+        GatewayHttpRetry.sleepBeforeRetry();
+        response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        if (response.statusCode() != 200) {
+            throw httpError(response);
+        }
+        return response;
+    }
+
+    private RuntimeException httpError(HttpResponse<String> response) {
+        logger.error("OpenAI API Fehler {}: {}", response.statusCode(), response.body());
+        if (response.statusCode() == 413) {
+            return new RuntimeException("OpenAI API Fehler 413: Request body zu groß. "
+                    + "Der gesendete Text ist zu lang. Bitte Kontext reduzieren oder Projekt aufteilen.");
+        }
+        return new RuntimeException("OpenAI API Fehler " + response.statusCode() + ": " + response.body());
     }
 
     /**

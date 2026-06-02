@@ -288,7 +288,7 @@ public class ManuskriptTextEditor extends Region {
         int safeStart = Math.max(0, Math.min(length, start));
         int safeEnd = Math.max(safeStart, Math.min(length, end));
         anchor = safeStart;
-        caret = safeStart;
+        caret = safeEnd;
         preferredCaretX = Double.NaN;
         updateScrollBar();
         scrollRangeToViewportCenter(safeStart, safeEnd);
@@ -757,6 +757,10 @@ public class ManuskriptTextEditor extends Region {
         return renderMarkupHidden;
     }
 
+    private String lektoratMarkBackground = "#fff3e0";
+    private String lektoratMarkUnderline = "#ff9800";
+    private boolean darkMarkPalette;
+
     public void applyTheme(int themeIndex) {
         switch (themeIndex) {
             case 1 -> setEditorTheme("#1a1a1a", "#2d2d2d", "#9ca3af", "#ffffff", "#375a7f");
@@ -776,9 +780,22 @@ public class ManuskriptTextEditor extends Region {
         editorTextColor = Color.web(textColor);
         selectionColor = Color.web(selection);
         caretColor = Color.web(CARET_COLOR);
-        initHeadingColors(isDarkBackground(background));
+        boolean dark = isDarkBackground(background);
+        initHeadingColors(dark);
+        updateMarkPalette(dark);
         updateLanguageToolHoverTheme();
         render();
+    }
+
+    private void updateMarkPalette(boolean dark) {
+        darkMarkPalette = dark;
+        if (dark) {
+            lektoratMarkBackground = "#4a3728";
+            lektoratMarkUnderline = "#ffb74d";
+        } else {
+            lektoratMarkBackground = "#fff3e0";
+            lektoratMarkUnderline = "#ff9800";
+        }
     }
 
     private static boolean isDarkBackground(String background) {
@@ -830,6 +847,87 @@ public class ManuskriptTextEditor extends Region {
         markedAreas.removeIf(area -> area.type == MarkedArea.Type.LANGUAGE_TOOL);
         render();
         notifyLanguageToolMatchesChanged();
+    }
+
+    public void clearLektoratMatches() {
+        markedAreas.removeIf(area -> area.type == MarkedArea.Type.LEKTORAT);
+        render();
+    }
+
+    public void applyLektoratMatches(List<LektoratMatch> matches, java.util.function.Consumer<LektoratMatch> onSelect) {
+        clearLektoratMatches();
+        if (matches == null || matches.isEmpty()) {
+            return;
+        }
+        for (LektoratMatch match : matches) {
+            if (match.getLength() <= 0) {
+                continue;
+            }
+            MarkedArea area = new MarkedArea(this);
+            area.markType(MarkedArea.Type.LEKTORAT);
+            area.markColor(lektoratMarkBackground);
+            area.markUnderlineColor(lektoratMarkUnderline);
+            area.addRange(match.getOffset(), match.getOffset() + match.getLength());
+            if (onSelect != null) {
+                LektoratMatch captured = match;
+                area.onClick(() -> onSelect.accept(captured));
+            }
+            markedAreas.add(area);
+        }
+        render();
+    }
+
+    public void clearTextAnalysisMarks() {
+        markedAreas.removeIf(area -> area.type == MarkedArea.Type.TEXT_ANALYSIS);
+        render();
+    }
+
+    public void applyTextAnalysisSpans(List<TextAnalysisEngine.AnalysisSpan> spans) {
+        clearTextAnalysisMarks();
+        if (spans == null || spans.isEmpty()) {
+            return;
+        }
+        java.util.Map<String, MarkedArea> areasByStyle = new java.util.LinkedHashMap<>();
+        for (TextAnalysisEngine.AnalysisSpan span : spans) {
+            if (span.end() <= span.start()) {
+                continue;
+            }
+            MarkedArea area = areasByStyle.computeIfAbsent(span.styleId(), styleId -> {
+                MarkedArea created = new MarkedArea(this);
+                created.markTypeSilent(MarkedArea.Type.TEXT_ANALYSIS);
+                created.markColorSilent(colorForAnalysisStyle(styleId, darkMarkPalette));
+                markedAreas.add(created);
+                return created;
+            });
+            area.addRangeSilent(span.start(), span.end());
+        }
+        render();
+    }
+
+    private static String colorForAnalysisStyle(String styleId, boolean dark) {
+        if (styleId == null) {
+            return dark ? "#4a4228" : "#fff9c4";
+        }
+        if (dark) {
+            return switch (styleId) {
+                case "highlight-orange" -> "#5c3d1f";
+                case "search-match-first" -> "#7a4f1a";
+                case "search-match-second" -> "#1a4a6e";
+                case "sentence-short" -> "#66bb6a";
+                case "sentence-medium" -> "#f9a825";
+                case "sentence-long" -> "#ef5350";
+                default -> "#4a4228";
+            };
+        }
+        return switch (styleId) {
+            case "highlight-orange" -> "#ffcc80";
+            case "search-match-first" -> "#ff9800";
+            case "search-match-second" -> "#2196f3";
+            case "sentence-short" -> "#4caf50";
+            case "sentence-medium" -> "#f9a825";
+            case "sentence-long" -> "#f44336";
+            default -> "#fff9c4";
+        };
     }
 
     public void setFontFamilyForAll(String family) {
@@ -3102,8 +3200,10 @@ public class ManuskriptTextEditor extends Region {
 
         public enum Type {
             MARKDOWN(10),
+            TEXT_ANALYSIS(25),
             HIGHLIGHT(30),
             LINK(50),
+            LEKTORAT(70),
             LANGUAGE_TOOL(80),
             SELECTION(100);
 
@@ -3141,8 +3241,17 @@ public class ManuskriptTextEditor extends Region {
         }
 
         public MarkedArea addRange(int start, int end) {
-            ranges.add(new TextRange(start, end));
+            addRangeSilent(start, end);
             editor.render();
+            return this;
+        }
+
+        private void addRangeSilent(int start, int end) {
+            ranges.add(new TextRange(start, end));
+        }
+
+        private MarkedArea markColorSilent(String colorValue) {
+            color = Color.web(colorValue);
             return this;
         }
 
@@ -3167,6 +3276,11 @@ public class ManuskriptTextEditor extends Region {
         public MarkedArea markType(Type type) {
             this.type = type == null ? Type.HIGHLIGHT : type;
             editor.render();
+            return this;
+        }
+
+        private MarkedArea markTypeSilent(Type type) {
+            this.type = type == null ? Type.HIGHLIGHT : type;
             return this;
         }
 
