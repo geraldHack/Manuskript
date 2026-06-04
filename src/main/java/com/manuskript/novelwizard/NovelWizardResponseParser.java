@@ -16,6 +16,10 @@ public final class NovelWizardResponseParser {
     }
 
     public static NovelWizardTurn parse(String raw) {
+        return parse(raw, false);
+    }
+
+    public static NovelWizardTurn parse(String raw, boolean contentPhase) {
         NovelWizardTurn turn = new NovelWizardTurn();
         String response = raw == null ? "" : raw.trim();
         turn.setQuestion(extract(QUESTION, response));
@@ -23,6 +27,11 @@ public final class NovelWizardResponseParser {
         turn.setSummary(extract(SUMMARY, response));
         turn.setContent(extract(CONTENT, response));
         turn.setOptions(extractOptions(response));
+
+        if (contentPhase) {
+            applyContentPhaseRules(turn, response);
+            return turn;
+        }
 
         if (turn.getQuestion().isBlank() && turn.getContent().isBlank()) {
             turn.setQuestion(firstNonEmptyLine(response));
@@ -34,6 +43,55 @@ public final class NovelWizardResponseParser {
             turn.setQuestion("Bitte prüfe den Vorschlag und entscheide, wie es weitergehen soll.");
         }
         return turn;
+    }
+
+    /** Schreibphase: Entwurf retten, Interview-Format verwerfen. */
+    private static void applyContentPhaseRules(NovelWizardTurn turn, String response) {
+        if (turn.getContent().isBlank()) {
+            turn.setContent(extractContentFallback(response));
+        }
+        if (!turn.getContent().isBlank()) {
+            turn.setQuestion("");
+            turn.setOptions(List.of());
+            if (turn.getHint().isBlank() && !turn.getSummary().isBlank()) {
+                turn.setHint(turn.getSummary());
+            }
+            return;
+        }
+        turn.setQuestion("");
+        turn.setOptions(List.of());
+        if (turn.getHint().isBlank()) {
+            turn.setHint("Die KI hat keine Synopsis bzw. keinen Entwurf geliefert (nur Rueckfragen). "
+                    + "Bitte „Entwurf erneut anfordern“ wählen.");
+        }
+    }
+
+    private static String extractContentFallback(String raw) {
+        if (raw == null || raw.isBlank()) {
+            return "";
+        }
+        String stripped = raw
+                .replaceAll("(?is)<QUESTION>.*?</QUESTION>", "")
+                .replaceAll("(?is)<OPTIONS>.*?</OPTIONS>", "")
+                .replaceAll("(?is)<OPTION[^>]*>.*?</OPTION>", "")
+                .replaceAll("(?is)<HINT[^>]*>.*?</HINT>", "")
+                .replaceAll("(?is)<SUMMARY[^>]*>.*?</SUMMARY>", "")
+                .replaceAll("(?is)</?CONTENT>", "")
+                .trim();
+        stripped = cleanup(stripped);
+        if (stripped.length() >= 120 && looksLikeNarrativeDraft(stripped)) {
+            return stripped;
+        }
+        String contentOnly = extract(CONTENT, raw);
+        return contentOnly.isBlank() ? "" : contentOnly;
+    }
+
+    private static boolean looksLikeNarrativeDraft(String text) {
+        if (text.contains("<OPTION") || text.contains("<QUESTION")) {
+            return false;
+        }
+        long words = text.split("\\s+").length;
+        return words >= 40;
     }
 
     private static String extract(Pattern pattern, String raw) {

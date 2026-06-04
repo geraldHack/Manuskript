@@ -6,10 +6,10 @@ public enum NovelWizardPhase {
     BOOTSTRAP("Bootstrap", "Projekt einrichten", List.of()),
     BRAINSTORM("Brainstorm", "Genre, Stil, Umfang, Prämisse", List.of("context.txt", "style.txt")),
     WORLD("Welt", "Setting, Regeln, Lore", List.of("worldbuilding.txt")),
-    CHARACTERS("Figuren", "Protagonist, Antagonist, Nebenfiguren", List.of("characters.txt")),
+    CHARACTERS("Figuren", "Namen, Beschreibungen, Rollen, Beziehungen", List.of("characters.txt")),
     PLOT("Handlung", "Ausgangslage und Hauptkonflikt", List.of("outline.txt")),
     SYNOPSIS("Synopsis", "Gesamt-Synopsis", List.of("synopsis.txt")),
-    STRUCTURE("Akte", "Akte und Handlungsabschnitte", List.of("outline.txt")),
+    STRUCTURE("Akte", "Akte und Handlungsabschnitte", List.of("akte.txt")),
     CHAPTERS("Kapitel", "Kapitel-Zusammenfassungen und DOCX", List.of("chapter.txt"));
 
     private final String title;

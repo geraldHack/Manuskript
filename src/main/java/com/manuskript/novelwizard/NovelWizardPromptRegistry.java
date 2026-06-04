@@ -30,16 +30,20 @@ public class NovelWizardPromptRegistry {
                         + "Generiere 4 bis 6 projektpassende Antwortoptionen. Keine festen Standardlisten.");
         put(NovelWizardPhase.WORLD,
                 "Du bist Worldbuilding-Berater. Entwickle Setting, Weltregeln, Gesellschaft und Konflikte.",
-                "Stelle eine konkrete Frage zur Welt. Biete 4 bis 6 passende Optionen und lasse Freitext offen.");
+                "Stelle eine konkrete Frage zur Welt. Biete 4 bis 6 passende Antwortoptionen (ohne Freitext-Option).");
         put(NovelWizardPhase.CHARACTERS,
-                "Du bist Figurenentwickler. Hilf bei Protagonist, Antagonist, Nebenfiguren und Beziehungen.",
-                "Stelle eine konkrete Frage zu Figurenmotivation, Konflikt, Arc oder Dynamik.");
+                "Du bist Figurenentwickler. Jede wichtige Figur braucht Namen, Rolle, Beschreibung, "
+                        + "Persoenlichkeit, Hintergrund, Beziehungen und Arc.",
+                "Stelle genau EINE Frage zur Figurenentwicklung. Zuerst Namen und Rollen, dann Aussehen/Beschreibung, "
+                        + "dann Motivation und Beziehungen. Optionen mit konkreten Namen und beschreibenden Texten.");
         put(NovelWizardPhase.PLOT,
                 "Du bist Plot-Entwickler. Entwickle Ausgangslage, Hauptkonflikt, Stakes und Wendepunkte.",
                 "Stelle eine naechste Plot-Frage und biete 4 bis 6 Optionen.");
         put(NovelWizardPhase.SYNOPSIS,
-                "Du bist ein professioneller Expose- und Synopsis-Autor.",
-                "Erzeuge oder ueberarbeite eine vollstaendige Synopsis aus dem bisherigen Stand.");
+                "Du bist ein professioneller Expose- und Synopsis-Autor. Schreibe eine zusammenhaengende "
+                        + "Gesamt-Synopsis aus dem Projektstand – keine Rueckfragen.",
+                "Schreibe jetzt eine vollstaendige Synopsis (ca. 800–1500 Woerter) in <CONTENT>. "
+                        + "Nutze Brainstorm, Welt, Figuren und Handlung. Keine Plot-Rueckfragen.");
         put(NovelWizardPhase.STRUCTURE,
                 "Du bist Dramaturg. Zerlege den Roman in Akte, Handlungsabschnitte und Plot Points.",
                 "Erzeuge oder verfeinere eine Akt- und Abschnittsstruktur.");

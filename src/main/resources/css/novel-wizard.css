@@ -1,0 +1,157 @@
+/* Roman-Assistent – immer aus Resources geladen (unabhängig von config/css) */
+
+.novel-wizard-question-box {
+    -fx-max-width: infinity;
+    -fx-min-width: 0;
+}
+
+.novel-wizard-question-box .novel-wizard-question {
+    -fx-wrap-text: true;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-alignment: top-left;
+    -fx-text-alignment: left;
+    -fx-max-width: infinity;
+    -fx-min-width: 0;
+}
+
+.novel-wizard-hint {
+    -fx-wrap-text: true;
+    -fx-font-size: 12px;
+    -fx-opacity: 0.8;
+    -fx-alignment: top-left;
+    -fx-text-alignment: left;
+    -fx-max-width: infinity;
+    -fx-min-width: 0;
+}
+
+.novel-wizard-interaction {
+    -fx-min-width: 0;
+}
+
+.novel-wizard-shell {
+    -fx-padding: 22;
+    -fx-spacing: 12;
+}
+
+.novel-wizard-header {
+    -fx-padding: 0 0 16 0;
+    -fx-spacing: 12;
+    -fx-border-color: derive(-fx-base, -18%);
+    -fx-border-width: 0 0 1 0;
+}
+
+.novel-wizard-header-main {
+    -fx-spacing: 12;
+}
+
+.novel-wizard-project-title {
+    -fx-font-size: 13px;
+    -fx-opacity: 0.75;
+}
+
+.novel-wizard-phase-headline {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+}
+
+.novel-wizard-progress-caption {
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+.novel-wizard-progress-fraction {
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-alignment: center-right;
+    -fx-min-width: 120;
+}
+
+.novel-wizard-progress-row {
+    -fx-spacing: 10;
+    -fx-alignment: center-left;
+}
+
+.novel-wizard-phase-progress {
+    -fx-pref-height: 14;
+    -fx-min-height: 14;
+    -fx-max-height: 14;
+}
+
+.novel-wizard-phase-progress > .track {
+    -fx-background-color: derive(-fx-base, -14%);
+    -fx-background-radius: 7;
+}
+
+.novel-wizard-phase-progress > .bar {
+    -fx-background-color: -fx-accent;
+    -fx-background-radius: 7;
+    -fx-padding: 0;
+}
+
+.novel-wizard-phase-steps-scroll {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 0 0 4 0;
+    -fx-pref-height: 42;
+    -fx-min-height: 42;
+    -fx-max-height: 42;
+}
+
+.novel-wizard-phase-steps-scroll > .viewport {
+    -fx-background-color: transparent;
+}
+
+.novel-wizard-phase-track {
+    -fx-spacing: 8;
+    -fx-alignment: center-left;
+    -fx-padding: 2 4 2 4;
+}
+
+.novel-wizard-phase-chip {
+    -fx-font-size: 12px;
+    -fx-padding: 7 14;
+    -fx-background-radius: 18;
+    -fx-border-radius: 18;
+    -fx-border-width: 1.5;
+    -fx-border-color: derive(-fx-base, -22%);
+    -fx-background-color: derive(-fx-base, 8%);
+}
+
+.novel-wizard-phase-chip-pending {
+    -fx-opacity: 0.72;
+}
+
+.novel-wizard-phase-chip-done {
+    -fx-background-color: derive(-fx-accent, 55%);
+    -fx-border-color: derive(-fx-accent, 10%);
+    -fx-font-weight: bold;
+}
+
+.novel-wizard-phase-chip-revisit {
+    -fx-background-color: derive(-fx-accent, 65%);
+    -fx-border-color: derive(-fx-accent, 20%);
+}
+
+.novel-wizard-phase-chip-current {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-background-color: -fx-accent;
+    -fx-border-color: derive(-fx-accent, -15%);
+    -fx-border-width: 2;
+    -fx-effect: dropshadow(gaussian, derive(-fx-accent, -30%), 6, 0.35, 0, 1);
+}
+
+.theme-dark .novel-wizard-phase-chip-current {
+    -fx-text-fill: white;
+}
+
+.weiss-theme .novel-wizard-phase-chip-current,
+.pastell-theme .novel-wizard-phase-chip-current {
+    -fx-text-fill: white;
+}
+
+.novel-wizard-status {
+    -fx-font-size: 11px;
+    -fx-opacity: 0.72;
+}

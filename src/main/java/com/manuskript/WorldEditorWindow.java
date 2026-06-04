@@ -22,7 +22,7 @@ import java.nio.file.Paths;
 import java.util.*;
 
 /**
- * Welt-Editor: Verwaltung von Projekt-Kontextdateien (chapter.txt, characters.txt, context.txt, outline.txt, style.txt, synopsis.txt, worldbuilding.txt).
+ * Welt-Editor: Verwaltung von Projekt-Kontextdateien (context, style, worldbuilding, characters, outline, akte, synopsis, chapter).
  * Jede Datei hat einen Tab mit TextArea für manuelle Editierung und KI-Button für automatische Generierung.
  */
 public class WorldEditorWindow {
@@ -41,23 +41,25 @@ public class WorldEditorWindow {
     private boolean suppressAutoSave = false;
 
     private static final String[] FILES = {
-        "chapter.txt",
-        "characters.txt",
         "context.txt",
-        "outline.txt",
         "style.txt",
+        "worldbuilding.txt",
+        "characters.txt",
+        "outline.txt",
+        "akte.txt",
         "synopsis.txt",
-        "worldbuilding.txt"
+        "chapter.txt"
     };
 
     private static final String[] FILE_LABELS = {
-        "Kapitel-Zusammenfassungen",
-        "Charaktere",
         "Kontext",
-        "Outline",
         "Schreibstil",
+        "Worldbuilding",
+        "Charaktere",
+        "Handlung (Outline)",
+        "Akte",
         "Synopsis",
-        "Worldbuilding"
+        "Kapitel"
     };
 
     public WorldEditorWindow(Window owner, String projectDirectory, MainController mainController) {
@@ -585,6 +587,8 @@ public class WorldEditorWindow {
                 return "Erstelle eine Liste wichtiger Details und Fakten über die Charaktere und die Welt. Nutze Markdown-Formatierung mit Kategorien.";
             case "outline.txt":
                 return "Erstelle ein Outline mit Szenen für alle Kapitel. Nutze Markdown-Formatierung mit Kapitel-Nummern und Szenen-Beschreibungen.";
+            case "akte.txt":
+                return "Erstelle eine Akt- und Dramaturgiestruktur (Akte, Wendepunkte, Eskalation). Nutze Markdown-Formatierung mit Überschriften pro Akt.";
             case "style.txt":
                 return "Erstelle eine Beschreibung des Schreibstils des Buches. Nutze Markdown-Formatierung.";
             case "synopsis.txt":

@@ -4682,27 +4682,36 @@ public class MainController implements Initializable {
     }
     
     private void showError(String title, String message) {
+        showError(title, message, primaryStage);
+    }
+
+    private void showError(String title, String message, Window owner) {
         CustomAlert alert = new CustomAlert(Alert.AlertType.ERROR, title);
         alert.setContentText(message);
-        // alert.setHeaderText(null); // ENTFERNT: Setzt 'null' String
         alert.applyTheme(currentThemeIndex);
-        alert.initOwner(primaryStage);
-        alert.showAndWait();
+        alert.showAndWait(owner != null ? owner : primaryStage);
     }
     
     private void showInfo(String title, String message) {
+        showInfo(title, message, primaryStage);
+    }
+
+    private void showInfo(String title, String message, Window owner) {
         CustomAlert alert = new CustomAlert(Alert.AlertType.INFORMATION, title);
         alert.setContentText(message);
         alert.applyTheme(currentThemeIndex);
-        alert.initOwner(primaryStage);
-        alert.showAndWait();
+        alert.showAndWait(owner != null ? owner : primaryStage);
     }
+
     private void showWarning(String title, String message) {
+        showWarning(title, message, primaryStage);
+    }
+
+    private void showWarning(String title, String message, Window owner) {
         CustomAlert alert = new CustomAlert(Alert.AlertType.WARNING, title);
         alert.setContentText(message);
         alert.applyTheme(currentThemeIndex);
-        alert.initOwner(primaryStage);
-        alert.showAndWait();
+        alert.showAndWait(owner != null ? owner : primaryStage);
     }
     
     /**
@@ -7816,7 +7825,7 @@ public class MainController implements Initializable {
             createButton.setOnAction(e -> {
                 String projectName = nameField.getText().trim();
                 if (projectName.isEmpty()) {
-                    showError("Fehler", "Bitte gib einen Projektnamen ein.");
+                    showError("Fehler", "Bitte gib einen Projektnamen ein.", dialogStage);
                     return;
                 }
 
@@ -7833,13 +7842,15 @@ public class MainController implements Initializable {
 
                     if (targetDir.exists()) {
                         showWarning("Verzeichnis existiert bereits",
-                            "Das Verzeichnis '" + targetDir.getAbsolutePath() + "' existiert bereits.");
+                            "Das Verzeichnis '" + targetDir.getAbsolutePath() + "' existiert bereits.",
+                            dialogStage);
                         return;
                     }
 
                     boolean created = targetDir.mkdirs();
                     if (!created && !targetDir.exists()) {
-                        showError("Fehler", "Verzeichnis konnte nicht erstellt werden: " + targetDir.getAbsolutePath());
+                        showError("Fehler", "Verzeichnis konnte nicht erstellt werden: " + targetDir.getAbsolutePath(),
+                                dialogStage);
                         return;
                     }
 
@@ -7859,13 +7870,12 @@ public class MainController implements Initializable {
                             + "Verzeichnis: " + targetDir.getAbsolutePath() + "\n"
                             + "Eine readme.docx Demo-Datei wurde angelegt.");
                         alert.applyTheme(currentThemeIndex);
-                        alert.initOwner(parentStage);
-                        alert.showAndWait();
+                        alert.showAndWait(parentStage);
                     });
 
                 } catch (Exception ex) {
                     logger.error("Fehler beim Erstellen des Projekts", ex);
-                    showError("Fehler", "Projekt konnte nicht erstellt werden: " + ex.getMessage());
+                    showError("Fehler", "Projekt konnte nicht erstellt werden: " + ex.getMessage(), dialogStage);
                 }
             });
 
@@ -7885,7 +7895,11 @@ public class MainController implements Initializable {
 
             dialogStage.setSceneWithTitleBar(scene);
             dialogStage.setFullTheme(currentThemeIndex);
-            dialogStage.initOwner(parentStage);
+            if (parentStage != null) {
+                dialogStage.initModality(javafx.stage.Modality.WINDOW_MODAL);
+                dialogStage.initOwner(parentStage);
+                DialogPositioning.centerWhenShown(dialogStage, parentStage);
+            }
             dialogStage.showAndWait();
 
         } catch (Exception e) {
@@ -7951,7 +7965,7 @@ public class MainController implements Initializable {
             startButton.setOnAction(e -> {
                 String projectName = nameField.getText().trim();
                 if (projectName.isEmpty()) {
-                    showError("Fehler", "Bitte gib einen Projektnamen ein.");
+                    showError("Fehler", "Bitte gib einen Projektnamen ein.", dialogStage);
                     return;
                 }
                 String seriesName = seriesCheck.isSelected() ? seriesField.getText().trim() : "";
@@ -7961,12 +7975,14 @@ public class MainController implements Initializable {
                             : new File(new File(rootDir, seriesName), projectName);
                     if (targetDir.exists()) {
                         showWarning("Verzeichnis existiert bereits",
-                                "Das Verzeichnis '" + targetDir.getAbsolutePath() + "' existiert bereits.");
+                                "Das Verzeichnis '" + targetDir.getAbsolutePath() + "' existiert bereits.",
+                                dialogStage);
                         return;
                     }
                     boolean created = targetDir.mkdirs();
                     if (!created && !targetDir.exists()) {
-                        showError("Fehler", "Verzeichnis konnte nicht erstellt werden: " + targetDir.getAbsolutePath());
+                        showError("Fehler", "Verzeichnis konnte nicht erstellt werden: " + targetDir.getAbsolutePath(),
+                                dialogStage);
                         return;
                     }
                     createDemoDocx(new File(targetDir, "readme.docx"), projectName);
@@ -7982,7 +7998,7 @@ public class MainController implements Initializable {
                     openNovelWizard(targetDir.toPath());
                 } catch (Exception ex) {
                     logger.error("Fehler beim Starten des Roman-Assistenten", ex);
-                    showError("Fehler", "Roman-Assistent konnte nicht gestartet werden: " + ex.getMessage());
+                    showError("Fehler", "Roman-Assistent konnte nicht gestartet werden: " + ex.getMessage(), dialogStage);
                 }
             });
 
@@ -7995,7 +8011,11 @@ public class MainController implements Initializable {
             }
             dialogStage.setSceneWithTitleBar(scene);
             dialogStage.setFullTheme(currentThemeIndex);
-            dialogStage.initOwner(parentStage);
+            if (parentStage != null) {
+                dialogStage.initModality(javafx.stage.Modality.WINDOW_MODAL);
+                dialogStage.initOwner(parentStage);
+                DialogPositioning.centerWhenShown(dialogStage, parentStage);
+            }
             dialogStage.showAndWait();
         } catch (Exception e) {
             logger.error("Fehler beim Öffnen des Roman-Assistent-Dialogs", e);
@@ -8012,10 +8032,7 @@ public class MainController implements Initializable {
         choice.setContentText("Lege ein neues Romanprojekt an oder arbeite mit dem aktuell geöffneten Projekt weiter.");
         choice.getButtonTypes().setAll(createNew, useCurrent, cancel);
         choice.applyTheme(currentThemeIndex);
-        if (primaryStage != null) {
-            choice.initOwner(primaryStage);
-        }
-        Optional<ButtonType> result = choice.showAndWait();
+        Optional<ButtonType> result = choice.showAndWait(primaryStage);
         if (result.isEmpty() || result.get() == cancel) {
             return;
         }

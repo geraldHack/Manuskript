@@ -144,7 +144,7 @@ public class DialogFactory {
      */
     public static void showInfo(String title, String content, Window owner) {
         CustomAlert alert = createInfoAlert(title, null, content, owner);
-        alert.showAndWait();
+        alert.showAndWait(owner);
     }
     
     /**
@@ -152,7 +152,7 @@ public class DialogFactory {
      */
     public static void showError(String title, String content, Window owner) {
         CustomAlert alert = createErrorAlert(title, null, content, owner);
-        alert.showAndWait();
+        alert.showAndWait(owner);
     }
     
     /**
@@ -160,7 +160,7 @@ public class DialogFactory {
      */
     public static void showWarning(String title, String content, Window owner) {
         CustomAlert alert = createWarningAlert(title, null, content, owner);
-        alert.showAndWait();
+        alert.showAndWait(owner);
     }
     
     /**
@@ -168,6 +168,6 @@ public class DialogFactory {
      */
     public static Optional<ButtonType> showConfirmation(String title, String content, Window owner) {
         CustomAlert alert = createConfirmationAlert(title, null, content, owner);
-        return alert.showAndWait();
+        return alert.showAndWait(owner);
     }
 }

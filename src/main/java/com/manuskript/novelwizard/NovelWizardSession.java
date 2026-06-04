@@ -9,6 +9,9 @@ import java.util.List;
 import java.util.Map;
 
 public class NovelWizardSession {
+    /** Praefix fuer verbindliche Autoren-Korrekturen im Chat-Verlauf */
+    public static final String CORRECTION_PREFIX = "[Korrektur] ";
+
     private int version = 1;
     private String status = "ACTIVE";
     private NovelWizardPhase currentPhase = NovelWizardPhase.BRAINSTORM;
@@ -40,6 +43,29 @@ public class NovelWizardSession {
         }
         for (NovelWizardPhase phase : NovelWizardPhase.values()) {
             phaseStatus.putIfAbsent(phase, NovelWizardPhaseStatus.NOT_STARTED);
+        }
+    }
+
+    /**
+     * Stellt fehlende Phasen-Marker in der Chat-Historie her (z. B. nach JSON-Laden).
+     */
+    public void normalizeChatPhases() {
+        if (chatHistory == null) {
+            chatHistory = new ArrayList<>();
+            return;
+        }
+        NovelWizardPhase running = currentPhase == null || currentPhase == NovelWizardPhase.BOOTSTRAP
+                ? NovelWizardPhase.BRAINSTORM
+                : currentPhase;
+        for (ChatEntry entry : chatHistory) {
+            if (entry == null) {
+                continue;
+            }
+            if (entry.phase != null && entry.phase != NovelWizardPhase.BOOTSTRAP) {
+                running = entry.phase;
+            } else {
+                entry.phase = running;
+            }
         }
     }
 

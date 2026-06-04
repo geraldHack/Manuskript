@@ -11046,3 +11046,264 @@
     -fx-background-color: #9575cd;
 }
 
+/* ========================================
+   ROMAN-ASSISTENT (Novel Wizard)
+   ======================================== */
+
+.novel-wizard-root {
+    -fx-background-color: inherit;
+    -fx-padding: 0;
+}
+
+.novel-wizard-shell {
+    -fx-padding: 22;
+    -fx-spacing: 12;
+}
+
+.novel-wizard-header {
+    -fx-padding: 0 0 14 0;
+    -fx-spacing: 10;
+    -fx-border-color: derive(-fx-base, -15%);
+    -fx-border-width: 0 0 1 0;
+}
+
+.novel-wizard-header-main {
+    -fx-spacing: 10;
+}
+
+.novel-wizard-app-title {
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+}
+
+.novel-wizard-phase-subtitle {
+    -fx-font-size: 14px;
+    -fx-opacity: 0.88;
+}
+
+.novel-wizard-phase-progress {
+    -fx-pref-height: 8;
+    -fx-max-height: 8;
+}
+
+.novel-wizard-phase-progress > .track {
+    -fx-background-color: derive(-fx-base, -12%);
+    -fx-background-radius: 4;
+}
+
+.novel-wizard-phase-progress > .bar {
+    -fx-background-color: derive(-fx-accent, -10%);
+    -fx-background-radius: 4;
+    -fx-padding: 0;
+}
+
+.novel-wizard-phase-track {
+    -fx-padding: 2 0 0 0;
+}
+
+.novel-wizard-phase-chip {
+    -fx-font-size: 11px;
+    -fx-padding: 5 10;
+    -fx-background-radius: 14;
+    -fx-border-radius: 14;
+    -fx-border-width: 1;
+    -fx-border-color: derive(-fx-base, -18%);
+    -fx-background-color: derive(-fx-base, 6%);
+    -fx-opacity: 0.92;
+}
+
+.novel-wizard-phase-chip-pending {
+    -fx-opacity: 0.65;
+}
+
+.novel-wizard-phase-chip-done {
+    -fx-background-color: derive(-fx-accent, 70%);
+    -fx-border-color: derive(-fx-accent, 30%);
+    -fx-font-weight: bold;
+}
+
+.novel-wizard-phase-chip-revisit {
+    -fx-background-color: derive(-fx-accent, 78%);
+    -fx-border-color: derive(-fx-accent, 40%);
+}
+
+.novel-wizard-phase-chip-current {
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-background-color: derive(-fx-accent, 45%);
+    -fx-border-color: derive(-fx-accent, -5%);
+    -fx-text-fill: derive(-fx-accent, -85%);
+    -fx-opacity: 1;
+}
+
+.novel-wizard-status {
+    -fx-font-size: 11px;
+    -fx-opacity: 0.72;
+}
+
+.novel-wizard-jump-label {
+    -fx-font-size: 12px;
+    -fx-opacity: 0.9;
+}
+
+.novel-wizard-chat {
+    -fx-font-family: "Consolas", "Monaco", monospace;
+    -fx-font-size: 12px;
+}
+
+.novel-wizard-preview-tabs {
+    -fx-tab-min-width: 72px;
+}
+
+.novel-wizard-main-split {
+    -fx-padding: 0;
+}
+
+.novel-wizard-content-split {
+    -fx-padding: 0;
+}
+
+.novel-wizard-interaction {
+    -fx-padding: 14 12 12 12;
+    -fx-spacing: 12;
+    -fx-background-color: derive(-fx-base, -6%);
+    -fx-border-color: derive(-fx-base, -18%);
+    -fx-border-width: 1 0 0 0;
+}
+
+.novel-wizard-question-box {
+    -fx-padding: 14 16;
+    -fx-background-color: derive(-fx-accent, 85%);
+    -fx-background-radius: 8;
+    -fx-border-color: derive(-fx-accent, 35%);
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+}
+
+.novel-wizard-question-box .label.novel-wizard-question,
+.novel-wizard-question-box .novel-wizard-question {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-wrap-text: true;
+    -fx-alignment: top-left;
+    -fx-text-alignment: left;
+    -fx-max-width: infinity;
+    -fx-min-width: 0;
+}
+
+.weiss-theme .novel-wizard-question-box .label.novel-wizard-question,
+.theme-dark .novel-wizard-question-box .label.novel-wizard-question,
+.pastell-theme .novel-wizard-question-box .label.novel-wizard-question,
+.theme-dark.blau-theme .novel-wizard-question-box .label.novel-wizard-question,
+.theme-dark.gruen-theme .novel-wizard-question-box .label.novel-wizard-question,
+.theme-dark.lila-theme .novel-wizard-question-box .label.novel-wizard-question {
+    -fx-font-weight: bold;
+}
+
+.novel-wizard-hint {
+    -fx-font-size: 12px;
+    -fx-opacity: 0.8;
+    -fx-wrap-text: true;
+    -fx-padding: 0 0 4 0;
+}
+
+.novel-wizard-section-label {
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-opacity: 0.9;
+    -fx-padding: 4 0 6 0;
+}
+
+.novel-wizard-options-scroll {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 6 0;
+    -fx-min-height: 100;
+    -fx-pref-height: 160;
+    -fx-max-height: 240;
+}
+
+.novel-wizard-options-scroll > .viewport {
+    -fx-background-color: transparent;
+}
+
+.novel-wizard-options-box {
+    -fx-spacing: 12;
+    -fx-fill-width: true;
+}
+
+.novel-wizard-option-button {
+    -fx-alignment: center-left;
+    -fx-text-alignment: left;
+    -fx-wrap-text: true;
+    -fx-padding: 12 16;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-border-color: derive(-fx-base, -20%);
+    -fx-border-width: 1;
+    -fx-background-color: derive(-fx-base, 8%);
+    -fx-cursor: hand;
+}
+
+.novel-wizard-option-button:hover {
+    -fx-background-color: derive(-fx-accent, 60%);
+    -fx-border-color: derive(-fx-accent, 20%);
+}
+
+.novel-wizard-answer-area {
+    -fx-font-size: 13px;
+    -fx-wrap-text: true;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-padding: 8;
+}
+
+.novel-wizard-actions-bar {
+    -fx-alignment: center;
+    -fx-spacing: 8;
+    -fx-padding: 4 0 0 0;
+}
+
+.novel-wizard-action-button {
+    -fx-padding: 8 14;
+    -fx-background-radius: 4;
+    -fx-font-size: 12px;
+}
+
+.novel-wizard-action-primary {
+    -fx-font-weight: bold;
+}
+
+.novel-wizard-action-secondary {
+    -fx-opacity: 0.95;
+}
+
+.theme-dark .novel-wizard-interaction {
+    -fx-background-color: derive(-fx-base, -8%);
+}
+
+.theme-dark .novel-wizard-option-button {
+    -fx-background-color: derive(-fx-base, 12%);
+    -fx-border-color: derive(-fx-base, -25%);
+}
+
+.theme-dark .novel-wizard-option-button:hover {
+    -fx-background-color: derive(-fx-accent, 40%);
+}
+
+.theme-dark .novel-wizard-question-box {
+    -fx-background-color: derive(-fx-base, 10%);
+    -fx-border-color: derive(-fx-accent, 25%);
+}
+
+.theme-dark .novel-wizard-phase-chip-current {
+    -fx-text-fill: #ffffff;
+}
+
+.theme-dark .novel-wizard-phase-progress > .track {
+    -fx-background-color: derive(-fx-base, 8%);
+}
+
+.theme-dark .novel-wizard-app-title {
+    -fx-text-fill: #ffffff;
+}

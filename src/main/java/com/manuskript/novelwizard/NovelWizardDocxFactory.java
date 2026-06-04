@@ -3,87 +3,271 @@ package com.manuskript.novelwizard;
 import com.google.gson.Gson;
 import org.docx4j.Docx4J;
 import org.docx4j.openpackaging.packages.WordprocessingMLPackage;
-import org.docx4j.wml.BooleanDefaultTrue;
 import org.docx4j.wml.ObjectFactory;
-import org.docx4j.wml.P;
-import org.docx4j.wml.R;
-import org.docx4j.wml.RPr;
-import org.docx4j.wml.Text;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public final class NovelWizardDocxFactory {
-    private static final Pattern HEADING = Pattern.compile("(?m)^##\\s+(.+)$");
+    private static final Pattern INDIVIDUAL_CHAPTER = Pattern.compile(
+            "^#{4}\\s+Kapitel\\s+(\\d+)\\s*[:.]\\s*(.+)$",
+            Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
+    private static final Pattern GROUP_HEADING = Pattern.compile("^#{3}\\s+(.+)$");
+    private static final Pattern ACT_HEADING = Pattern.compile("^#{2}\\s+(.+)$");
+    private static final Pattern TOP_HEADING = Pattern.compile("^#\\s+(.+)$");
 
     private NovelWizardDocxFactory() {
     }
 
-    public static List<Path> createChapterDocxFiles(Path projectDirectory, String chapterMarkdown) throws Exception {
-        List<String> titles = extractChapterTitles(chapterMarkdown);
-        List<Path> created = new ArrayList<>();
-        int index = 1;
-        for (String title : titles) {
-            Path target = projectDirectory.resolve(String.format("kapitel-%02d-%s.docx", index, slug(title)));
-            if (!Files.exists(target)) {
-                createDocx(target, title);
+    public static NovelWizardDocxResult createChapterDocxFiles(Path projectDirectory, String chapterMarkdown) throws Exception {
+        List<ChapterEntry> chapters = extractChapters(chapterMarkdown);
+        List<String> titles = chapters.stream().map(ChapterEntry::title).toList();
+        List<Path> paths = new ArrayList<>();
+        int created = 0;
+        int updated = 0;
+        for (ChapterEntry chapter : chapters) {
+            Path target = projectDirectory.resolve(String.format("kapitel-%02d-%s.docx",
+                    chapter.number(), slug(chapter.title())));
+            boolean existed = Files.exists(target);
+            writeDocx(target, chapter);
+            if (existed) {
+                updated++;
+            } else {
+                created++;
             }
-            created.add(target);
-            index++;
+            paths.add(target);
         }
-        if (!created.isEmpty()) {
-            saveSelection(projectDirectory, created);
+        if (!paths.isEmpty()) {
+            saveSelection(projectDirectory, paths);
         }
-        return created;
+        return new NovelWizardDocxResult(titles, paths, created, updated);
     }
 
-    private static List<String> extractChapterTitles(String markdown) {
-        List<String> titles = new ArrayList<>();
-        Matcher matcher = HEADING.matcher(markdown == null ? "" : markdown);
-        while (matcher.find()) {
-            String title = matcher.group(1).trim();
-            if (!title.isBlank() && !title.toLowerCase().contains("roman-assistent")) {
-                titles.add(title);
-            }
+    static List<ChapterEntry> extractChapters(String markdown) {
+        if (markdown == null || markdown.isBlank()) {
+            return List.of();
         }
-        if (titles.isEmpty()) {
-            titles.add("Kapitel 1");
+        ChapterOutlineParser parser = new ChapterOutlineParser();
+        for (String line : markdown.split("\\R")) {
+            parser.accept(line);
         }
-        return titles;
+        parser.finish();
+        return parser.chapters().stream()
+                .sorted(Comparator.comparingInt(ChapterEntry::number))
+                .toList();
     }
 
-    private static void createDocx(Path target, String title) throws Exception {
+    static List<String> extractChapterTitles(String markdown) {
+        return extractChapters(markdown).stream().map(ChapterEntry::title).toList();
+    }
+
+    /** Parst chapter.txt-Hierarchie: Uebersicht → Akt → Abschnitt → Einzelkapitel. */
+    private static final class ChapterOutlineParser {
+        private final Map<Integer, ChapterEntry> chapters = new LinkedHashMap<>();
+
+        private String overview = "";
+        private String actHeading = "";
+        private String actBody = "";
+        private String groupHeading = "";
+        private String groupBody = "";
+        private StringBuilder buffer = new StringBuilder();
+
+        private Integer chapterNum;
+        private String chapterTitle;
+        private StringBuilder chapterSummary = new StringBuilder();
+
+        private enum Mode { OVERVIEW, ACT, GROUP, CHAPTER }
+
+        private Mode mode = Mode.OVERVIEW;
+
+        void accept(String rawLine) {
+            String trimmed = rawLine.trim();
+            if (trimmed.isEmpty() || "---".equals(trimmed)) {
+                appendBuffer("");
+                return;
+            }
+
+            Matcher top = TOP_HEADING.matcher(trimmed);
+            if (top.matches() && isSkippedHeading(top.group(1).trim())) {
+                return;
+            }
+
+            Matcher chapter = INDIVIDUAL_CHAPTER.matcher(trimmed);
+            if (chapter.matches()) {
+                commitBuffer();
+                flushChapter();
+                mode = Mode.CHAPTER;
+                chapterNum = Integer.parseInt(chapter.group(1));
+                chapterTitle = "Kapitel " + chapterNum + ": " + chapter.group(2).trim();
+                chapterSummary = new StringBuilder();
+                return;
+            }
+
+            Matcher act = ACT_HEADING.matcher(trimmed);
+            if (act.matches()) {
+                flushChapter();
+                commitBuffer();
+                String heading = act.group(1).trim();
+                if (isOverviewHeading(heading)) {
+                    mode = Mode.OVERVIEW;
+                    buffer = new StringBuilder();
+                } else if (heading.toUpperCase().startsWith("AKT ") || heading.toUpperCase().startsWith("AKT:")) {
+                    actHeading = heading;
+                    actBody = "";
+                    groupHeading = "";
+                    groupBody = "";
+                    mode = Mode.ACT;
+                    buffer = new StringBuilder();
+                } else if (!isSkippedHeading(heading)) {
+                    mode = Mode.OVERVIEW;
+                    appendBuffer("## " + heading);
+                }
+                return;
+            }
+
+            Matcher group = GROUP_HEADING.matcher(trimmed);
+            if (group.matches()) {
+                flushChapter();
+                commitBuffer();
+                groupHeading = group.group(1).trim();
+                groupBody = "";
+                mode = Mode.GROUP;
+                buffer = new StringBuilder();
+                return;
+            }
+
+            if (mode == Mode.CHAPTER && chapterNum != null) {
+                appendTo(chapterSummary, trimmed);
+            } else {
+                appendBuffer(trimmed);
+            }
+        }
+
+        void finish() {
+            flushChapter();
+            commitBuffer();
+        }
+
+        private void commitBuffer() {
+            String text = buffer.toString().trim();
+            buffer = new StringBuilder();
+            if (text.isEmpty()) {
+                return;
+            }
+            switch (mode) {
+                case OVERVIEW -> overview = mergeMarkdown(overview, text);
+                case ACT -> actBody = mergeMarkdown(actBody, text);
+                case GROUP -> groupBody = mergeMarkdown(groupBody, text);
+                default -> { }
+            }
+        }
+
+        private void flushChapter() {
+            if (chapterNum == null || chapterTitle == null) {
+                return;
+            }
+            chapters.put(chapterNum, new ChapterEntry(
+                    chapterNum,
+                    chapterTitle,
+                    chapterSummary.toString().trim(),
+                    overview.trim(),
+                    actHeading,
+                    actBody.trim(),
+                    groupHeading,
+                    groupBody.trim()));
+            chapterNum = null;
+            chapterTitle = null;
+            chapterSummary = new StringBuilder();
+            mode = Mode.GROUP;
+        }
+
+        private void appendBuffer(String line) {
+            appendTo(buffer, line);
+        }
+
+        private static void appendTo(StringBuilder sb, String line) {
+            if (sb.length() > 0) {
+                sb.append('\n');
+            }
+            sb.append(line);
+        }
+
+        private static String mergeMarkdown(String existing, String addition) {
+            if (existing == null || existing.isBlank()) {
+                return addition;
+            }
+            if (addition == null || addition.isBlank()) {
+                return existing;
+            }
+            return existing + "\n\n" + addition;
+        }
+
+        List<ChapterEntry> chapters() {
+            return new ArrayList<>(chapters.values());
+        }
+    }
+
+    private static boolean isOverviewHeading(String title) {
+        String lower = title.toLowerCase();
+        return lower.contains("kapitelübersicht") || lower.contains("struktur");
+    }
+
+    private static boolean isSkippedHeading(String title) {
+        String lower = title.toLowerCase();
+        return lower.contains("roman-assistent")
+                || lower.startsWith("kapitelstruktur")
+                || lower.startsWith("erzählweise")
+                || lower.equals("kapitel")
+                || lower.equals("übersicht")
+                || lower.equals("eigene notizen")
+                || lower.equals("traumwelt");
+    }
+
+    private static void writeDocx(Path target, ChapterEntry chapter) throws Exception {
+        Files.createDirectories(target.getParent());
         WordprocessingMLPackage pkg = WordprocessingMLPackage.createPackage();
         ObjectFactory factory = new ObjectFactory();
-        addParagraph(pkg, factory, title, true, "28");
-        addParagraph(pkg, factory, "", false, "12");
-        addParagraph(pkg, factory, "Kapiteltext hier schreiben.", false, "12");
-        Docx4J.save(pkg, target.toFile());
-    }
 
-    private static void addParagraph(WordprocessingMLPackage pkg, ObjectFactory factory, String text, boolean bold, String fontSize) {
-        P paragraph = factory.createP();
-        R run = factory.createR();
-        RPr rPr = factory.createRPr();
-        if (bold) {
-            BooleanDefaultTrue b = factory.createBooleanDefaultTrue();
-            b.setVal(true);
-            rPr.setB(b);
+        if (!chapter.overviewMarkdown().isBlank()) {
+            DocxMarkdownSupport.appendPlainParagraph(pkg, factory, "Kapitelübersicht", true, "20");
+            DocxMarkdownSupport.appendMarkdownBlock(pkg, factory, chapter.overviewMarkdown());
+            DocxMarkdownSupport.appendMarkdownBlock(pkg, factory, "");
         }
-        org.docx4j.wml.HpsMeasure size = factory.createHpsMeasure();
-        size.setVal(new java.math.BigInteger(fontSize));
-        rPr.setSz(size);
-        run.setRPr(rPr);
-        Text t = factory.createText();
-        t.setValue(text);
-        run.getContent().add(t);
-        paragraph.getContent().add(run);
-        pkg.getMainDocumentPart().addObject(paragraph);
+
+        if (!chapter.actHeading().isBlank()) {
+            DocxMarkdownSupport.appendPlainParagraph(pkg, factory, chapter.actHeading(), true, "22");
+            if (!chapter.actMarkdown().isBlank()) {
+                DocxMarkdownSupport.appendMarkdownBlock(pkg, factory, chapter.actMarkdown());
+            }
+            DocxMarkdownSupport.appendMarkdownBlock(pkg, factory, "");
+        }
+
+        if (!chapter.groupHeading().isBlank()) {
+            DocxMarkdownSupport.appendPlainParagraph(pkg, factory, chapter.groupHeading(), true, "18");
+            if (!chapter.groupMarkdown().isBlank()) {
+                DocxMarkdownSupport.appendMarkdownBlock(pkg, factory, chapter.groupMarkdown());
+            }
+            DocxMarkdownSupport.appendMarkdownBlock(pkg, factory, "");
+        }
+
+        DocxMarkdownSupport.appendPlainParagraph(pkg, factory, chapter.title(), true, "28");
+
+        if (!chapter.summary().isBlank()) {
+            DocxMarkdownSupport.appendMarkdownBlock(pkg, factory, chapter.summary());
+        }
+
+        DocxMarkdownSupport.appendMarkdownBlock(pkg, factory, "");
+        DocxMarkdownSupport.appendPlainParagraph(pkg, factory, "Kapiteltext hier schreiben.", false, "12");
+
+        Docx4J.save(pkg, target.toFile());
     }
 
     private static void saveSelection(Path projectDirectory, List<Path> docxFiles) throws Exception {
@@ -104,6 +288,9 @@ public final class NovelWizardDocxFactory {
                 .replace("ß", "ss")
                 .replaceAll("[^a-z0-9]+", "-")
                 .replaceAll("(^-|-$)", "");
-        return slug.isBlank() ? "kapitel" : slug;
+        if (slug.isBlank()) {
+            return "kapitel";
+        }
+        return slug.length() > 40 ? slug.substring(0, 40) : slug;
     }
 }

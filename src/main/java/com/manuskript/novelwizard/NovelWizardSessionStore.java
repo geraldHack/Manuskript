@@ -41,6 +41,7 @@ public class NovelWizardSessionStore {
                     NovelWizardSession.class);
             if (session != null) {
                 session.ensurePhaseStatus();
+                session.normalizeChatPhases();
                 return Optional.of(session);
             }
         } catch (Exception e) {
