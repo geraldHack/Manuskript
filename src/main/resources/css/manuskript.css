@@ -590,6 +590,10 @@
 .weiss-theme {
     -fx-background-color: #ffffff;
     -fx-text-fill: #000000;
+    -fx-accent: #000000;
+    -fx-control-inner-background: #ffffff;
+    -fx-text-box-border: #ced4da;
+    -fx-mark-color: #000000;
 }
 
 .weiss-theme .button {
@@ -609,6 +613,7 @@
 .weiss-theme .text-field {
     -fx-background-color: #ffffff;
     -fx-text-fill: #000000;
+    -fx-prompt-text-fill: #6c757d;
     -fx-border-color: #ced4da;
     -fx-border-width: 1px;
     -fx-border-radius: 3px;
@@ -647,6 +652,10 @@
 /* Dark Theme */
 .theme-dark {
     -fx-background-color: #343a40;
+    -fx-accent: #6c757d;
+    -fx-control-inner-background: #495057;
+    -fx-text-box-border: #6c757d;
+    -fx-mark-color: #ffffff;
 }
 
 
@@ -668,6 +677,7 @@
 .theme-dark .text-field {
     -fx-background-color: #495057;
     -fx-text-fill: #ffffff;
+    -fx-prompt-text-fill: #9ca3af;
     -fx-border-color: #6c757d;
     -fx-border-width: 1px;
     -fx-border-radius: 3px;
@@ -712,6 +722,10 @@
 .theme-dark.gruen-theme {
     -fx-background-color: #064e3b;
     -fx-text-fill: #ffffff;
+    -fx-accent: #10b981;
+    -fx-control-inner-background: #065f46;
+    -fx-text-box-border: #10b981;
+    -fx-mark-color: #ffffff;
 }
 
 .theme-dark.gruen-theme .button {
@@ -731,6 +745,7 @@
 .theme-dark.gruen-theme .text-field {
     -fx-background-color: #065f46;
     -fx-text-fill: #ffffff;
+    -fx-prompt-text-fill: #6ee7b7;
     -fx-border-color: #10b981;
     -fx-border-width: 1px;
     -fx-border-radius: 3px;
@@ -936,8 +951,8 @@
 }
 
 .weiss-theme .check-box .box {
-    -fx-background-color: #000000;
-    -fx-border-color: #000000;
+    -fx-background-color: -fx-control-inner-background;
+    -fx-border-color: -fx-text-box-border;
     -fx-min-width: 16px;
     -fx-min-height: 16px;
     -fx-max-width: 16px;
@@ -946,7 +961,7 @@
 
 .weiss-theme .check-box:selected .box {
     -fx-background-color: #ffffff;
-    -fx-border-color: #000000;
+    -fx-border-color: #666666;
 }
 
 .weiss-theme .check-box .mark {
@@ -1048,6 +1063,10 @@
 .pastell-theme {
     -fx-background-color: #f3e5f5;
     -fx-text-fill: #000000;
+    -fx-accent: #ce93d8;
+    -fx-control-inner-background: #f3e5f5;
+    -fx-text-box-border: #ba68c8;
+    -fx-mark-color: #000000;
 }
 
 .pastell-theme VBox,
@@ -1102,6 +1121,7 @@
 .pastell-theme * .text-field {
     -fx-background-color: #e1bee7;
     -fx-text-fill: #000000;
+    -fx-prompt-text-fill: #6b7280;
     -fx-border-color: #ba68c8;
     -fx-border-radius: 4px;
     -fx-background-radius: 4px;
@@ -1217,8 +1237,8 @@
 
 .pastell-theme .check-box .box,
 .pastell-theme * .check-box .box {
-    -fx-background-color: #000000;
-    -fx-border-color: #000000;
+    -fx-background-color: -fx-control-inner-background;
+    -fx-border-color: -fx-text-box-border;
     -fx-border-radius: 2px;
     -fx-background-radius: 2px;
     -fx-min-width: 16px;
@@ -1229,8 +1249,8 @@
 
 .pastell-theme .check-box:selected .box,
 .pastell-theme * .check-box:selected .box {
-    -fx-background-color: #ba68c8;
-    -fx-border-color: #9c27b0;
+    -fx-background-color: -fx-accent;
+    -fx-border-color: derive(-fx-accent, -20%);
 }
 
 .pastell-theme .check-box .mark,
@@ -1245,7 +1265,7 @@
 
 .pastell-theme .check-box:selected .mark,
 .pastell-theme * .check-box:selected .mark {
-    -fx-background-color: #ffffff;
+    -fx-background-color: -fx-mark-color;
     -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z";
     -fx-scale-x: 0.6;
     -fx-scale-y: 0.6;
@@ -2001,15 +2021,15 @@
 }
 
 .theme-dark .check-box .box {
-    -fx-background-color: #ffffff;
-    -fx-border-color: #ffffff;
+    -fx-background-color: -fx-control-inner-background;
+    -fx-border-color: -fx-text-box-border;
     -fx-border-radius: 2px;
     -fx-background-radius: 2px;
 }
 
 .theme-dark .check-box:selected .box {
-    -fx-background-color: #3b82f6;
-    -fx-border-color: #3b82f6;
+    -fx-background-color: -fx-accent;
+    -fx-border-color: derive(-fx-accent, -20%);
 }
 
 .theme-dark .check-box .mark {
@@ -2017,7 +2037,7 @@
 }
 
 .theme-dark .check-box:selected .mark {
-    -fx-background-color: #ffffff;
+    -fx-background-color: -fx-mark-color;
 }
 
 /* Labels im dunklen Theme */
@@ -2338,6 +2358,10 @@
 .theme-dark.blau-theme {
     -fx-background-color: #1e3a8a;
     -fx-text-fill: #ffffff;
+    -fx-accent: #3b82f6;
+    -fx-control-inner-background: #1e40af;
+    -fx-text-box-border: #3b82f6;
+    -fx-mark-color: #ffffff;
 }
 
 .theme-dark.blau-theme VBox,
@@ -2376,7 +2400,13 @@
 .theme-dark.blau-theme .text-field {
     -fx-background-color: #1e40af;
     -fx-text-fill: #ffffff;
+    -fx-prompt-text-fill: #dbeafe;
     -fx-border-color: #3b82f6;
+}
+
+/* Prompt-Farbe wird intern auf .text-input gezeichnet – hier explizit überschreiben */
+.theme-dark.blau-theme .text-input {
+    -fx-prompt-text-fill: #dbeafe;
 }
 
 .theme-dark.blau-theme .combo-box {
@@ -2454,6 +2484,7 @@
 .theme-dark.gruen-theme .text-field {
     -fx-background-color: #065f46;
     -fx-text-fill: #ffffff;
+    -fx-prompt-text-fill: #6ee7b7;
     -fx-border-color: #10b981;
 }
 
@@ -2491,6 +2522,10 @@
 .theme-dark.lila-theme {
     -fx-background-color: #4c1d95;
     -fx-text-fill: #ffffff;
+    -fx-accent: #8b5cf6;
+    -fx-control-inner-background: #5b21b6;
+    -fx-text-box-border: #8b5cf6;
+    -fx-mark-color: #ffffff;
 }
 
 .theme-dark.lila-theme VBox,
@@ -2529,6 +2564,7 @@
 .theme-dark.lila-theme .text-field {
     -fx-background-color: #5b21b6;
     -fx-text-fill: #ffffff;
+    -fx-prompt-text-fill: #c084fc;
     -fx-border-color: #8b5cf6;
 }
 
@@ -3158,6 +3194,10 @@
 .pastell-theme {
     -fx-background-color: #f3e5f5;
     -fx-text-fill: #000000;
+    -fx-accent: #ba68c8;
+    -fx-control-inner-background: #f3e5f5;
+    -fx-text-box-border: #ba68c8;
+    -fx-mark-color: #000000;
 }
 
 
@@ -4395,48 +4435,30 @@
   -rtfx-underline-dash-array: 2 2;
 }
 
-/* Online-Lektorat-Markierungen (alle 6 Themes) */
+/* Online-Lektorat-Markierungen (alle 6 Themes) – nur Hintergrund, keine Unterstreichung */
 .code-area .lektorat-marking,
 .weiss-theme .code-area .lektorat-marking {
   -rtfx-background-color: #fff3e0;
-  -rtfx-underline-color: #ff9800;
-  -rtfx-underline-width: 1px;
-  -rtfx-underline-dash-array: none;
 }
 
 .theme-dark .code-area .lektorat-marking {
   -rtfx-background-color: #4a3728;
-  -rtfx-underline-color: #ffb74d;
-  -rtfx-underline-width: 1px;
-  -rtfx-underline-dash-array: none;
 }
 
 .pastell-theme .code-area .lektorat-marking {
   -rtfx-background-color: #fce4ec;
-  -rtfx-underline-color: #f48fb1;
-  -rtfx-underline-width: 1px;
-  -rtfx-underline-dash-array: none;
 }
 
 .theme-dark.blau-theme .code-area .lektorat-marking {
   -rtfx-background-color: #1e3a5f;
-  -rtfx-underline-color: #60a5fa;
-  -rtfx-underline-width: 1px;
-  -rtfx-underline-dash-array: none;
 }
 
 .theme-dark.gruen-theme .code-area .lektorat-marking {
   -rtfx-background-color: #14532d;
-  -rtfx-underline-color: #34d399;
-  -rtfx-underline-width: 1px;
-  -rtfx-underline-dash-array: none;
 }
 
 .theme-dark.lila-theme .code-area .lektorat-marking {
   -rtfx-background-color: #3b0764;
-  -rtfx-underline-color: #a78bfa;
-  -rtfx-underline-width: 1px;
-  -rtfx-underline-dash-array: none;
 }
 
 /* Lektorat-Ergebnisfenster (rechts) */
@@ -5911,8 +5933,8 @@
 }
 
 .weiss-theme.macro-panel .table-view .check-box:selected .box {
-    -fx-background-color: #007bff;
-    -fx-border-color: #0056b3;
+    -fx-background-color: #ffffff;
+    -fx-border-color: #666666;
 }
 
 .weiss-theme.macro-panel .table-view .check-box .mark {
@@ -5923,7 +5945,7 @@
 }
 
 .weiss-theme.macro-panel .table-view .check-box:selected .mark {
-    -fx-background-color: #ffffff;
+    -fx-background-color: #000000;
     -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z";
     -fx-scale-x: 0.6;
     -fx-scale-y: 0.6;
@@ -6377,8 +6399,8 @@
 }
 
 .weiss-theme.macro-panel .table-view .check-box:selected .box {
-    -fx-background-color: #007bff;
-    -fx-border-color: #0056b3;
+    -fx-background-color: #ffffff;
+    -fx-border-color: #666666;
 }
 
 .weiss-theme.macro-panel .table-view .check-box .mark {
@@ -6389,7 +6411,7 @@
 }
 
 .weiss-theme.macro-panel .table-view .check-box:selected .mark {
-    -fx-background-color: #ffffff;
+    -fx-background-color: #000000;
     -fx-shape: "M 1 6 L 4 9 L 9 2 L 8 1 L 4 8 L 2 6 Z";
     -fx-scale-x: 0.6;
     -fx-scale-y: 0.6;
@@ -6857,7 +6879,23 @@
 
 /* Globale Regel: Alle Checkbox-Boxen transparent machen */
 .check-box .box {
+    -fx-background-color: -fx-control-inner-background;
+    -fx-border-color: -fx-text-box-border;
+    -fx-border-radius: 2px;
+    -fx-background-radius: 2px;
+}
+
+.check-box:selected .box {
+    -fx-background-color: -fx-accent;
+    -fx-border-color: derive(-fx-accent, -20%);
+}
+
+.check-box .mark {
     -fx-background-color: transparent;
+}
+
+.check-box:selected .mark {
+    -fx-background-color: -fx-mark-color;
 }
 
 /* ========================================
@@ -10531,6 +10569,115 @@
     -fx-background-color: transparent;
 }
 
+/* Plothole-Agent: vertikale Scrollbar sichtbar (Findings-Liste) */
+.agent-scroll .scroll-bar:vertical {
+    -fx-pref-width: 12px;
+    -fx-min-width: 12px;
+    -fx-opacity: 1;
+}
+
+.weiss-theme .agent-scroll .scroll-bar:vertical {
+    -fx-background-color: #eceff1;
+}
+
+.weiss-theme .agent-scroll .scroll-bar:vertical .track {
+    -fx-background-color: #eceff1;
+    -fx-background-radius: 6px;
+}
+
+.weiss-theme .agent-scroll .scroll-bar:vertical .thumb {
+    -fx-background-color: #546e7a;
+    -fx-background-radius: 6px;
+}
+
+.weiss-theme .agent-scroll .scroll-bar:vertical .thumb:hover {
+    -fx-background-color: #37474f;
+}
+
+.pastell-theme .agent-scroll .scroll-bar:vertical {
+    -fx-background-color: #e1bee7;
+}
+
+.pastell-theme .agent-scroll .scroll-bar:vertical .track {
+    -fx-background-color: #e1bee7;
+    -fx-background-radius: 6px;
+}
+
+.pastell-theme .agent-scroll .scroll-bar:vertical .thumb {
+    -fx-background-color: #7b1fa2;
+    -fx-background-radius: 6px;
+}
+
+.pastell-theme .agent-scroll .scroll-bar:vertical .thumb:hover {
+    -fx-background-color: #4a148c;
+}
+
+.theme-dark .agent-scroll .scroll-bar:vertical {
+    -fx-background-color: #3a3a3a;
+}
+
+.theme-dark .agent-scroll .scroll-bar:vertical .track {
+    -fx-background-color: #3a3a3a;
+    -fx-background-radius: 6px;
+}
+
+.theme-dark .agent-scroll .scroll-bar:vertical .thumb {
+    -fx-background-color: #9e9e9e;
+    -fx-background-radius: 6px;
+}
+
+.theme-dark .agent-scroll .scroll-bar:vertical .thumb:hover {
+    -fx-background-color: #bdbdbd;
+}
+
+.theme-dark.blau-theme .agent-scroll .scroll-bar:vertical {
+    -fx-background-color: #1e3a8a;
+}
+
+.theme-dark.blau-theme .agent-scroll .scroll-bar:vertical .track {
+    -fx-background-color: #1e3a8a;
+}
+
+.theme-dark.blau-theme .agent-scroll .scroll-bar:vertical .thumb {
+    -fx-background-color: #60a5fa;
+}
+
+.theme-dark.blau-theme .agent-scroll .scroll-bar:vertical .thumb:hover {
+    -fx-background-color: #93c5fd;
+}
+
+.theme-dark.gruen-theme .agent-scroll .scroll-bar:vertical {
+    -fx-background-color: #064e3b;
+}
+
+.theme-dark.gruen-theme .agent-scroll .scroll-bar:vertical .track {
+    -fx-background-color: #064e3b;
+}
+
+.theme-dark.gruen-theme .agent-scroll .scroll-bar:vertical .thumb {
+    -fx-background-color: #34d399;
+}
+
+.theme-dark.gruen-theme .agent-scroll .scroll-bar:vertical .thumb:hover {
+    -fx-background-color: #6ee7b7;
+}
+
+.theme-dark.lila-theme .agent-scroll .scroll-bar:vertical {
+    -fx-background-color: #4c1d95;
+}
+
+.theme-dark.lila-theme .agent-scroll .scroll-bar:vertical .track {
+    -fx-background-color: #4c1d95;
+}
+
+.theme-dark.lila-theme .agent-scroll .scroll-bar:vertical .thumb {
+    -fx-background-color: #a78bfa;
+}
+
+.theme-dark.lila-theme .agent-scroll .scroll-bar:vertical .thumb:hover {
+    -fx-background-color: #c4b5fd;
+}
+
 /* Finding Cards (Weiß-Theme) */
 .finding-card {
     -fx-background-color: #fff8e1;
@@ -10560,13 +10707,13 @@
 
 .finding-quote-text {
     -fx-font-size: 11px;
-    -fx-text-fill: #666;
+    -fx-text-fill: #c62828;
     -fx-underline: true;
     -fx-cursor: hand;
 }
 
 .finding-quote-text:hover {
-    -fx-text-fill: #333;
+    -fx-text-fill: #b71c1c;
 }
 
 .finding-suggestion {

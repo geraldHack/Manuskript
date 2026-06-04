@@ -8,6 +8,7 @@ import javafx.util.Duration;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
@@ -58,7 +59,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.prefs.Preferences;
 
 /**
- * Prototyp-Fenster für den eigenen Editor mit Kapitel-Laden aus dem Hauptfenster.
+ * Kapitel-Editor (Canvas) mit Kapitel-Laden aus dem Hauptfenster.
  */
 public class ManuskriptEditorTestWindow implements ChapterEditorHost {
 
@@ -66,6 +67,9 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
 
     private static final String PREF_FONT_FAMILY = "prototype_editor_font_family";
     private static final String PREF_FONT_SIZE = "prototype_editor_font_size";
+    private static final String PREF_LINE_SPACING = "prototype_editor_line_spacing";
+    private static final String PREF_PARAGRAPH_SPACING = "prototype_editor_paragraph_spacing";
+    private static final String PREF_JUSTIFY_TEXT = "prototype_editor_justify_text";
     private static final String PREF_LAST_IMAGE_PATH = "prototype_editor_last_image_path";
     private static final String PREF_LAST_IMAGE_ALT = "prototype_editor_last_image_alt";
     private static final String PREF_LAST_IMAGE_DIRECTORY = "prototype_editor_last_image_directory";
@@ -74,7 +78,6 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
     private static final String PREF_SHOW_LINE_NUMBERS = "prototype_editor_show_line_numbers";
     private static final String PREF_LT_AUTO = "prototype_editor_languagetool_auto";
     private static final String PREF_SIDEBAR_EXPANDED = "prototype_editor_sidebar_expanded";
-    private static final String PREF_SIDEBAR_DIVIDER = "prototype_editor_sidebar_divider";
 
     private final Window owner;
     private final MainController mainController;
@@ -113,6 +116,7 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
     private File loadedProjectDirectory;
     private String loadedChapterName;
     private SplitPane mainSplitPane;
+    private HBox sidebarColumn;
     private VBox sidebarContainer;
     private HBox sidebarHeader;
     private Label sidebarTitleLabel;
@@ -122,7 +126,6 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
     private ChapterSidebarTheme chapterSidebarTheme;
     private boolean sidebarExpanded = true;
     private ListChangeListener<DocxFile> chapterListChangeListener;
-    private boolean sidebarDividerListenerAttached;
     private boolean dirty;
     private boolean suppressDirty;
     private boolean quoteErrorsDialogShown;
@@ -158,7 +161,7 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
     }
 
     private void createUI() {
-        stage = StageManager.createStage("Prototyp: Eigener Editor");
+        stage = StageManager.createStage("Kapitel-Editor");
         stage.setWindowPersistenceType("prototype_editor");
         if (owner instanceof javafx.stage.Stage ownerStage) {
             stage.initOwner(ownerStage);
@@ -173,10 +176,15 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         editor.setLanguageToolDictionary(languageToolDictionary);
         editor.setOnLanguageToolMatchesChanged(() -> Platform.runLater(this::updateLanguageToolStatus));
         editor.setOnSelectionChanged(() -> Platform.runLater(this::updateSelectionCount));
+        editor.setContextMenuRewriteActions(
+                new ChapterRewriteContextActions(this, stage, () -> themeIndex, preferences, loadedDocxFile),
+                themeIndex);
         editor.setFontFamilyForAll(preferences.get(PREF_FONT_FAMILY, "Segoe UI"));
         editor.setFontSizeForAll(preferences.getDouble(PREF_FONT_SIZE, 16.0));
+        editor.setLineSpacing(loadInitialLineSpacing());
+        editor.setParagraphSpacing(loadInitialParagraphSpacing());
+        editor.setJustifyText(preferences.getBoolean(PREF_JUSTIFY_TEXT, false));
         editor.setQuoteStyleIndex(Preferences.userNodeForPackage(EditorWindow.class).getInt("quoteStyle", 0));
-        editor.setText(sampleText());
         captureOriginalContent();
         editor.setOnTextChanged(text -> {
             if (!suppressDirty) {
@@ -197,7 +205,11 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         root.setTop(createToolbar());
         root.setCenter(createEditorWithSidebar());
         root.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
-            if (event.getTarget() == editor || editor.getBoundsInParent().contains(event.getX(), event.getY())) {
+            Object targetObj = event.getTarget();
+            if (!(targetObj instanceof Node target)) {
+                return;
+            }
+            if (isDescendantOf(target, editor)) {
                 Platform.runLater(editor::requestInputFocus);
             }
         });
@@ -234,6 +246,20 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         loadSidebarState();
         attachChapterListListener();
         setupChapterEditorFeatures();
+    }
+
+    private static boolean isDescendantOf(Node target, Node ancestor) {
+        if (target == null || ancestor == null) {
+            return false;
+        }
+        Node current = target;
+        while (current != null) {
+            if (current == ancestor) {
+                return true;
+            }
+            current = current.getParent();
+        }
+        return false;
     }
 
     private void setupChapterEditorFeatures() {
@@ -307,12 +333,13 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
     }
 
     private Node createEditorWithSidebar() {
-        btnToggleSidebar = new Button("◀");
+        btnToggleSidebar = new Button();
         btnToggleSidebar.setMaxWidth(30);
         btnToggleSidebar.setMinWidth(30);
+        btnToggleSidebar.setMinHeight(Region.USE_PREF_SIZE);
         btnToggleSidebar.getStyleClass().add("sidebar-toggle-button");
-        btnToggleSidebar.setTooltip(new Tooltip("Kapitel-Seitenleiste ein-/ausblenden"));
         btnToggleSidebar.setOnAction(e -> toggleSidebar());
+        SidebarToggleButtonSupport.updateAppearance(btnToggleSidebar, sidebarExpanded, themeIndex);
 
         sidebarTitleLabel = new Label("Kapitel");
         sidebarTitleLabel.getStyleClass().add("sidebar-title");
@@ -332,18 +359,22 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         sidebarContainer.setPrefWidth(250);
         sidebarContainer.setMaxWidth(300);
 
+        sidebarColumn = new HBox(0, btnToggleSidebar, sidebarContainer);
+        sidebarColumn.setFillHeight(true);
+        sidebarColumn.setMinWidth(Region.USE_PREF_SIZE);
+        sidebarColumn.setMaxWidth(Region.USE_PREF_SIZE);
+
         lektoratPanelContainer = new VBox();
         lektoratPanelContainer.setMinWidth(120);
         lektoratPanelContainer.setPrefWidth(320);
         lektoratPanelContainer.setPadding(new Insets(10));
 
-        mainSplitPane = new SplitPane(sidebarContainer, editor);
-        mainSplitPane.setDividerPositions(0.18);
+        mainSplitPane = new SplitPane(editor);
         lektoratPanel = new ChapterLektoratPanel(
                 lektoratPanelContainer, mainSplitPane, () -> themeIndex, this::applyThemeToNode);
         HBox.setHgrow(mainSplitPane, Priority.ALWAYS);
 
-        HBox editorRow = new HBox(0, btnToggleSidebar, mainSplitPane);
+        HBox editorRow = new HBox(0, sidebarColumn, mainSplitPane);
         HBox.setHgrow(editorRow, Priority.ALWAYS);
         return editorRow;
     }
@@ -369,6 +400,22 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
                 navigateToChapter(selected);
             }
         });
+    }
+
+    private double loadInitialLineSpacing() {
+        double saved = preferences.getDouble(PREF_LINE_SPACING, Double.NaN);
+        if (!Double.isNaN(saved) && saved >= 1.0 && saved <= 3.0) {
+            return saved;
+        }
+        return ResourceManager.getDoubleParameter("editor.line-spacing", 1.55);
+    }
+
+    private double loadInitialParagraphSpacing() {
+        double saved = preferences.getDouble(PREF_PARAGRAPH_SPACING, Double.NaN);
+        if (!Double.isNaN(saved) && saved >= 0 && saved <= 48) {
+            return saved;
+        }
+        return ResourceManager.getIntParameter("editor.paragraph-spacing", 10);
     }
 
     private void attachChapterListListener() {
@@ -434,17 +481,11 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         if (sidebarExpanded) {
             sidebarContainer.setVisible(true);
             sidebarContainer.setManaged(true);
-            btnToggleSidebar.setText("◀");
-            Platform.runLater(() -> {
-                double saved = preferences.getDouble(PREF_SIDEBAR_DIVIDER, 0.18);
-                mainSplitPane.setDividerPositions(saved);
-            });
         } else {
             sidebarContainer.setVisible(false);
             sidebarContainer.setManaged(false);
-            btnToggleSidebar.setText("▶");
-            Platform.runLater(() -> mainSplitPane.setDividerPositions(0.0));
         }
+        SidebarToggleButtonSupport.updateAppearance(btnToggleSidebar, sidebarExpanded, themeIndex);
         saveSidebarState();
     }
 
@@ -453,35 +494,20 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
             return;
         }
         sidebarExpanded = preferences.getBoolean(PREF_SIDEBAR_EXPANDED, true);
-        double divider = preferences.getDouble(PREF_SIDEBAR_DIVIDER, 0.18);
         Platform.runLater(() -> {
             if (sidebarExpanded) {
                 sidebarContainer.setVisible(true);
                 sidebarContainer.setManaged(true);
-                btnToggleSidebar.setText("◀");
-                mainSplitPane.setDividerPositions(divider);
             } else {
                 sidebarContainer.setVisible(false);
                 sidebarContainer.setManaged(false);
-                btnToggleSidebar.setText("▶");
-                mainSplitPane.setDividerPositions(0.0);
             }
-            if (!sidebarDividerListenerAttached && !mainSplitPane.getDividers().isEmpty()) {
-                sidebarDividerListenerAttached = true;
-                mainSplitPane.getDividers().getFirst().positionProperty().addListener((obs, oldPos, newPos) -> {
-                    if (sidebarExpanded && newPos.doubleValue() > 0.01) {
-                        preferences.putDouble(PREF_SIDEBAR_DIVIDER, newPos.doubleValue());
-                    }
-                });
-            }
+            SidebarToggleButtonSupport.updateAppearance(btnToggleSidebar, sidebarExpanded, themeIndex);
         });
     }
 
     private void saveSidebarState() {
         preferences.putBoolean(PREF_SIDEBAR_EXPANDED, sidebarExpanded);
-        if (mainSplitPane != null && sidebarExpanded && !mainSplitPane.getDividers().isEmpty()) {
-            preferences.putDouble(PREF_SIDEBAR_DIVIDER, mainSplitPane.getDividers().getFirst().getPosition());
-        }
     }
 
     private void navigateToChapter(DocxFile docxFile) {
@@ -492,7 +518,7 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
             return;
         }
         refreshDirtyState();
-        if (dirty && !confirmLoseUnsavedChanges("Das gewählte Kapitel laden?")) {
+        if (dirty && !showSaveDialogForNavigation()) {
             selectLoadedChapterInList();
             refreshChapterListAppearance();
             return;
@@ -533,6 +559,41 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
             if (newValue != null) {
                 editor.setFontSizeForAll(newValue);
                 preferences.putDouble(PREF_FONT_SIZE, newValue);
+            }
+        });
+
+        ComboBox<Double> lineSpacing = new ComboBox<>();
+        lineSpacing.getItems().addAll(1.0, 1.15, 1.2, 1.35, 1.5, 1.55, 1.8, 2.0, 2.5);
+        double initialLineSpacing = loadInitialLineSpacing();
+        if (!lineSpacing.getItems().contains(initialLineSpacing)) {
+            lineSpacing.getItems().add(initialLineSpacing);
+            lineSpacing.getItems().sort(Double::compare);
+        }
+        lineSpacing.setValue(initialLineSpacing);
+        lineSpacing.setPrefWidth(72);
+        lineSpacing.setTooltip(new Tooltip("Zeilenabstand (Faktor zur Schriftgröße)"));
+        lineSpacing.valueProperty().addListener((obs, oldValue, newValue) -> {
+            if (newValue != null) {
+                editor.setLineSpacing(newValue);
+                preferences.putDouble(PREF_LINE_SPACING, newValue);
+            }
+        });
+
+        ComboBox<Integer> paragraphSpacing = new ComboBox<>();
+        paragraphSpacing.getItems().addAll(0, 4, 6, 8, 10, 12, 16, 20, 24, 32);
+        int initialParagraphSpacing = (int) Math.round(loadInitialParagraphSpacing());
+        if (!paragraphSpacing.getItems().contains(initialParagraphSpacing)) {
+            paragraphSpacing.getItems().add(initialParagraphSpacing);
+            paragraphSpacing.getItems().sort(Integer::compare);
+        }
+        paragraphSpacing.setValue(initialParagraphSpacing);
+        paragraphSpacing.setPrefWidth(64);
+        paragraphSpacing.setTooltip(new Tooltip(
+                "Mindesthöhe von Leerzeilen im WYSIWYG-Modus (Markdown ausblenden)"));
+        paragraphSpacing.valueProperty().addListener((obs, oldValue, newValue) -> {
+            if (newValue != null) {
+                editor.setParagraphSpacing(newValue);
+                preferences.putDouble(PREF_PARAGRAPH_SPACING, newValue);
             }
         });
 
@@ -663,9 +724,11 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
             updateStatus(count + " Treffer ersetzt");
         });
 
-        CheckBox hideMarkup = new CheckBox("Markup ausblenden");
+        CheckBox hideMarkup = new CheckBox("Markdown ausblenden");
         hideMarkup.setSelected(preferences.getBoolean(PREF_HIDE_MARKUP, true));
-        hideMarkup.setTooltip(new Tooltip("Markup ausblenden: Syntax verstecken, WYSIWYG inkl. Bild-Vorschau. Aus = Markdown-Quelltext"));
+        hideMarkup.setTooltip(new Tooltip(
+                "Markdown ausblenden: Syntax verstecken, WYSIWYG inkl. Bild-Vorschau. "
+                        + "Leerzeilen und Zeilenumbrüche bleiben sichtbar. Aus = Markdown-Quelltext"));
         hideMarkup.selectedProperty().addListener((obs, oldValue, newValue) -> {
             editor.setRenderMarkupHidden(newValue);
             preferences.putBoolean(PREF_HIDE_MARKUP, newValue);
@@ -761,12 +824,23 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
                 fontSmaller, fontLarger,
                 new Label("Font:"), fontFamily,
                 new Label("Größe:"), fontSize,
+                new Label("Zeilenabstand:"), lineSpacing,
+                new Label("Absatzabstand:"), paragraphSpacing,
                 hideMarkup, showLineNumbers);
         fontRow.setAlignment(Pos.CENTER_LEFT);
+
+        CheckBox justifyText = new CheckBox("Blocksatz");
+        justifyText.setSelected(preferences.getBoolean(PREF_JUSTIFY_TEXT, false));
+        justifyText.setTooltip(new Tooltip("Text im Blocksatz ausrichten (letzte Zeile eines Absatzes linksbündig)"));
+        justifyText.selectedProperty().addListener((obs, oldValue, newValue) -> {
+            editor.setJustifyText(newValue);
+            preferences.putBoolean(PREF_JUSTIFY_TEXT, newValue);
+        });
 
         FlowPane formatPane = new FlowPane(6, 4);
         formatPane.setAlignment(Pos.CENTER_LEFT);
         formatPane.getChildren().addAll(
+                justifyText,
                 bold, italic, underline, strikethrough, mark, blockquote, center,
                 superscript, subscript,
                 big, small, colorMenu, lineBreak, horizontalRule);
@@ -1712,17 +1786,18 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
 
     private void setDirty(boolean dirty) {
         this.dirty = dirty;
-        String title = "Prototyp: Eigener Editor";
-        if (loadedChapterName != null && !loadedChapterName.isBlank()) {
-            title += " - " + loadedChapterName;
-        }
-        if (dirty) {
-            title += " *";
-        }
         if (stage != null) {
-            stage.setCustomTitle(title);
+            stage.setCustomTitle(buildWindowTitle());
         }
         updateStatusDisplay();
+    }
+
+    /** Wie Legacy-Editor: 📄 Dateiname, bei Änderungen ein Stern. */
+    private String buildWindowTitle() {
+        String base = (loadedChapterName != null && !loadedChapterName.isBlank())
+                ? "📄 " + loadedChapterName
+                : "Kapitel-Editor";
+        return dirty ? base + " *" : base;
     }
 
     private void captureOriginalContent() {
@@ -1747,13 +1822,7 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
             return;
         }
         event.consume();
-        if (confirmDiscardUnsavedChanges()) {
-            cancelLanguageToolChecks();
-            if (mainController != null && getEditorKey() != null) {
-                mainController.unregisterChapterEditor(getEditorKey());
-            }
-            stage.close();
-        }
+        showSaveDialog();
     }
 
     private void refreshDirtyState() {
@@ -1762,23 +1831,115 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         }
     }
 
-    private boolean confirmDiscardUnsavedChanges() {
-        return confirmLoseUnsavedChanges("Fenster trotzdem schließen?");
+    private void showSaveDialog() {
+        refreshDirtyState();
+        if (!dirty) {
+            finishCloseEditor();
+            return;
+        }
+        Optional<UnsavedChangesChoice> result = promptUnsavedChangesDialog(
+                "Möchten Sie die Änderungen speichern?",
+                "Speichern",
+                "Verwerfen");
+        if (result.isEmpty()) {
+            return;
+        }
+        UnsavedChangesChoice choice = result.get();
+        if (choice.discard()) {
+            setDirty(false);
+            finishCloseEditor();
+        } else if (choice.save() && performSave()) {
+            finishCloseEditor();
+        }
     }
 
-    private boolean confirmLoseUnsavedChanges(String actionDescription) {
+    private boolean showSaveDialogForNavigation() {
         refreshDirtyState();
         if (!dirty) {
             return true;
         }
-        CustomAlert alert = new CustomAlert(CustomAlert.AlertType.CONFIRMATION);
-        alert.setTitle("Ungespeicherte Änderungen");
-        alert.setHeaderText("Ungespeicherte Änderungen");
-        alert.setContentText("Der Prototyp-Editor enthält ungespeicherte Änderungen. "
-                + (actionDescription == null || actionDescription.isBlank() ? "Fortfahren?" : actionDescription));
+        Optional<UnsavedChangesChoice> result = promptUnsavedChangesDialog(
+                "Möchten Sie die Änderungen speichern, bevor Sie zum nächsten Kapitel wechseln?",
+                "Speichern & Weitermachen",
+                "Verwerfen & Weitermachen");
+        if (result.isEmpty()) {
+            return false;
+        }
+        UnsavedChangesChoice choice = result.get();
+        if (choice.discard()) {
+            setDirty(false);
+            return true;
+        }
+        if (choice.save()) {
+            return performSave();
+        }
+        return false;
+    }
+
+    private record UnsavedChangesChoice(boolean save, boolean discard) {
+    }
+
+    private Optional<UnsavedChangesChoice> promptUnsavedChangesDialog(String contentHint, String saveLabel,
+            String discardLabel) {
+        CustomAlert alert = new CustomAlert(Alert.AlertType.CONFIRMATION, "Ungespeicherte Änderungen");
+        alert.setHeaderText("Die Datei hat ungespeicherte Änderungen.");
+        alert.setContentText(contentHint);
         alert.applyTheme(themeIndex);
+
+        ButtonType saveButton = new ButtonType(saveLabel);
+        ButtonType discardButton = new ButtonType(discardLabel);
+        ButtonType diffButton = new ButtonType("🔍 Diff anzeigen");
+        ButtonType cancelButton = new ButtonType("Abbrechen");
+        alert.setButtonTypes(saveButton, discardButton, diffButton, cancelButton);
+
         Optional<ButtonType> result = alert.showAndWait(stage);
-        return result.isPresent() && result.get() == ButtonType.OK;
+        if (result.isEmpty()) {
+            return Optional.empty();
+        }
+        ButtonType chosen = result.get();
+        if (chosen == diffButton) {
+            showDiffForUnsavedChanges();
+            return Optional.empty();
+        }
+        if (chosen == cancelButton) {
+            return Optional.empty();
+        }
+        if (chosen == discardButton) {
+            return Optional.of(new UnsavedChangesChoice(false, true));
+        }
+        if (chosen == saveButton) {
+            return Optional.of(new UnsavedChangesChoice(true, false));
+        }
+        return Optional.empty();
+    }
+
+    private boolean performSave() {
+        try {
+            saveLoadedChapter();
+            refreshDirtyState();
+            return !dirty;
+        } catch (Exception e) {
+            updateStatusError("Speichern fehlgeschlagen: " + e.getMessage());
+            return false;
+        }
+    }
+
+    private void finishCloseEditor() {
+        cancelLanguageToolChecks();
+        if (mainController != null && getEditorKey() != null) {
+            mainController.unregisterChapterEditor(getEditorKey());
+        }
+        stage.close();
+    }
+
+    private void showDiffForUnsavedChanges() {
+        if (mainController == null || loadedDocxFile == null || loadedChapterFile == null) {
+            updateStatusError("Diff nicht verfügbar (keine DOCX/MD-Datei)");
+            return;
+        }
+        DocxFile chapterFile = new DocxFile(loadedDocxFile);
+        mainController.showDetailedDiffDialog(
+                chapterFile, loadedChapterFile, null, DocxProcessor.OutputFormat.MARKDOWN, this);
     }
 
     private void applyChapterSidebarTheme() {
@@ -1799,6 +1960,10 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
             chapterListPlaceholder.setStyle("-fx-text-fill: " + chapterSidebarTheme.textColor() + ";");
         }
         applyThemeToNode(sidebarContainer, themeIndex);
+        if (btnToggleSidebar != null) {
+            applyThemeToNode(btnToggleSidebar, themeIndex);
+            SidebarToggleButtonSupport.updateAppearance(btnToggleSidebar, sidebarExpanded, themeIndex);
+        }
         refreshChapterListAppearance();
     }
 
@@ -2066,6 +2231,21 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
     }
 
     @Override
+    public int getSelectionStart() {
+        return editor.getSelectionStart();
+    }
+
+    @Override
+    public int getSelectionEnd() {
+        return editor.getSelectionEnd();
+    }
+
+    @Override
+    public boolean hasTextSelection() {
+        return editor.hasTextSelection();
+    }
+
+    @Override
     public void selectRange(int start, int end) {
         editor.selectRange(start, end);
     }
@@ -2148,48 +2328,6 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
                 PreferencesManager.putWindowWidth(preferences, "prototype_editor_window_width", newValue.doubleValue()));
         stage.heightProperty().addListener((obs, oldValue, newValue) ->
                 PreferencesManager.putWindowHeight(preferences, "prototype_editor_window_height", newValue.doubleValue()));
-    }
-
-    private static String sampleText() {
-        return """
-                # Kapitel 1 – Prototyp-Editor
-                ## Ziele dieses Fensters
-                ### Technische Eckpunkte
-
-                Dies ist der erste Prototyp des eigenen Manuskript-Editors.
-
-                Ziele dieses Fensters:
-                - kein JavaFX TextArea-Control
-                - kein RichTextFX
-                - eigenes Textmodell
-                - eigene Auswahl, Navigation, Undo/Redo
-                - interne Suche und Ersetzen
-                - externe Markierungen über MarkedArea
-
-                Beispiel für automatische Regeln:
-                **Dieser Text soll fett markiert werden**
-                *Dieser Text soll kursiv markiert werden*
-                ***fett und kursiv***
-                ~~durchgestrichen~~
-                <mark>hervorgehoben</mark>
-                <u>Dieser Text soll unterstrichen werden</u>
-                <big>größer</big> und <small>kleiner</small>
-                Formel: E = mc<sup>2</sup>, chemisch: H<sub>2</sub>O
-                <red>roter Text</red>
-
-                > Dies ist ein Blockquote mit grauer kursiver Darstellung.
-
-                <center>Zentrierter Absatz</center>
-
-                Jorin geht durch den Regen. Jorina wartet am Tor.
-
-                Langer Absatz für Zeilenumbruch und Viewport-Stabilität: Jorin betrachtet die alten Mauern der Stadt, während der Regen in langen silbernen Fäden über die Dächer zieht und **wichtige Begriffe fett** hervortreten, ohne dass die sichtbaren Marker den Umbruch verschieben sollen. Dieser Satz enthält außerdem *kursiv gesetzte Gedanken* und <u>unterstrichene Hinweise</u>, damit Hoch- und Runter-Navigation bei proportionaler Schrift ungefähr auf derselben sichtbaren Position bleibt.
-
-                ExtremLangesWortOhneLeerzeichenDasHartUmbrechenMussDamitDerEditorNichtÜberDenRandHinausLäuftUndTrotzdemWeiterBedienbarBleibt.
-
-                Nächste Schritte: Zeilenumbruch, stabile Viewport-Logik, Bilder, Link-Callbacks,
-                LanguageTool-Hover und robustere Überlappungsregeln werden hier isoliert getestet.
-                """;
     }
 
     private record LanguageToolTextMapping(String cleanedText, int[] cleanToOriginal) {

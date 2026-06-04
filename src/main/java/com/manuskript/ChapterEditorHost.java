@@ -38,6 +38,18 @@ public interface ChapterEditorHost {
 
     int getCaretPosition();
 
+    default int getSelectionStart() {
+        return getCaretPosition();
+    }
+
+    default int getSelectionEnd() {
+        return getCaretPosition();
+    }
+
+    default boolean hasTextSelection() {
+        return getSelectionStart() != getSelectionEnd();
+    }
+
     void selectRange(int start, int end);
 
     void requestEditorFocus();

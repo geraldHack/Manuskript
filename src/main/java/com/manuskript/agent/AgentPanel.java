@@ -87,9 +87,7 @@ public class AgentPanel extends VBox {
         findingsList.getChildren().add(emptyLabel);
 
         scrollPane = new ScrollPane(findingsList);
-        scrollPane.setFitToWidth(true);
-        scrollPane.setFitToHeight(true);
-        scrollPane.getStyleClass().add("agent-scroll");
+        AgentScrollPaneSupport.configureFindingsScrollPane(scrollPane);
         VBox.setVgrow(scrollPane, Priority.ALWAYS);
 
         getChildren().addAll(title, statusLabel, buttonRow, scrollPane);
@@ -174,12 +172,8 @@ public class AgentPanel extends VBox {
         severityLabel.setMaxWidth(Double.MAX_VALUE);
         severityLabel.setStyle(severityLabel.getStyle() + String.format("-fx-font-size: %dpx;", editorFontSize));
 
-        String theme = com.manuskript.ResourceManager.getParameter("main_window_theme", "0");
-        boolean isDarkTheme = theme.equals("1") || theme.equals("3");
-        String textColor = isDarkTheme ? "#e0e0e0" : "#000000";
-
         Text problemText = new Text(f.getProblem());
-        problemText.setStyle(String.format("-fx-fill: %s; -fx-font-size: %dpx;", textColor, editorFontSize));
+        problemText.setStyle(AgentFindingStyles.problemTextStyle(editorFontSize));
         TextFlow problemFlow = new TextFlow(problemText);
         problemFlow.getStyleClass().add("finding-problem");
         problemFlow.setMinWidth(0);
@@ -187,8 +181,7 @@ public class AgentPanel extends VBox {
         problemFlow.prefWidthProperty().bind(scrollPane.widthProperty().subtract(40));
 
         Text quoteText = new Text("Zitat: " + f.getQuote());
-        String quoteColor = isDarkTheme ? "#ffb74d" : "#666";
-        quoteText.setStyle(String.format("-fx-fill: %s; -fx-font-size: %dpx;", quoteColor, editorFontSize));
+        quoteText.setStyle(AgentFindingStyles.quoteTextStyle(editorFontSize));
         TextFlow quoteFlow = new TextFlow(quoteText);
         quoteFlow.getStyleClass().add("finding-quote-text");
         quoteFlow.setMinWidth(0);

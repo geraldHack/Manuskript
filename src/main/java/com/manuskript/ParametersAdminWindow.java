@@ -315,6 +315,59 @@ public class ParametersAdminWindow {
         openaiParams.getChildren().add(openaiModelCard);
         keyToControl.put("agent.openai.model", openaiModelCombo);
 
+        double openaiTemp = ResourceManager.getDoubleParameter("agent.openai.temperature", 0.7);
+        Spinner<Double> openaiTempSpinner = new Spinner<>(0.0, 2.0, openaiTemp, 0.05);
+        openaiTempSpinner.setEditable(true);
+        openaiTempSpinner.setPrefWidth(120);
+        Label openaiTempLabel = new Label("agent.openai.temperature");
+        openaiTempLabel.getStyleClass().add("param-key-label");
+        Label openaiTempHelp = new Label(
+                "Temperatur fuer OpenAI-Backend (Welt-Editor, Agenten). Bereich 0.0–2.0; bei Claude-Modellen max. 1.0.");
+        openaiTempHelp.getStyleClass().add("param-help-label");
+        openaiTempHelp.setWrapText(true);
+        openaiTempHelp.setMaxWidth(680);
+        VBox openaiTempCard = new VBox(4);
+        openaiTempCard.getStyleClass().add("param-card");
+        openaiTempCard.getChildren().addAll(openaiTempLabel, openaiTempSpinner, openaiTempHelp);
+        openaiParams.getChildren().add(openaiTempCard);
+        keyToControl.put("agent.openai.temperature", openaiTempSpinner);
+
+        String agentTimeoutStr = ResourceManager.getParameter("agent.openai.request_timeout_sec", "300");
+        int agentTimeoutVal = parseInt(agentTimeoutStr, 300);
+        agentTimeoutVal = Math.max(60, Math.min(900, agentTimeoutVal));
+        Spinner<Integer> agentTimeoutSpinner = new Spinner<>(60, 900, agentTimeoutVal);
+        agentTimeoutSpinner.setEditable(true);
+        agentTimeoutSpinner.setPrefWidth(180);
+        Label agentTimeoutLabel = new Label("agent.openai.request_timeout_sec");
+        agentTimeoutLabel.getStyleClass().add("param-key-label");
+        Label agentTimeoutHelp = new Label(
+                "Timeout pro Agenten-Anfrage (Sekunden). Kimi mit vollem Buch-Kontext braucht oft 180–600 s.");
+        agentTimeoutHelp.getStyleClass().add("param-help-label");
+        agentTimeoutHelp.setWrapText(true);
+        agentTimeoutHelp.setMaxWidth(680);
+        VBox agentTimeoutCard = new VBox(4);
+        agentTimeoutCard.getStyleClass().add("param-card");
+        agentTimeoutCard.getChildren().addAll(agentTimeoutLabel, agentTimeoutSpinner, agentTimeoutHelp);
+        openaiParams.getChildren().add(agentTimeoutCard);
+        keyToControl.put("agent.openai.request_timeout_sec", agentTimeoutSpinner);
+
+        boolean includeAllChapters = Boolean.parseBoolean(
+                ResourceManager.getParameter("agent.plothole.include_all_chapters", "true"));
+        CheckBox includeAllChaptersCheck = new CheckBox("Alle Kapitel als Kontext mitsenden");
+        includeAllChaptersCheck.setSelected(includeAllChapters);
+        Label includeAllLabel = new Label("agent.plothole.include_all_chapters");
+        includeAllLabel.getStyleClass().add("param-key-label");
+        Label includeAllHelp = new Label(
+                "An = gesamtes Manuskript als Kontext (langsamer, mehr Timeout-Risiko). Aus = nur aktuelles Kapitel.");
+        includeAllHelp.getStyleClass().add("param-help-label");
+        includeAllHelp.setWrapText(true);
+        includeAllHelp.setMaxWidth(680);
+        VBox includeAllCard = new VBox(4);
+        includeAllCard.getStyleClass().add("param-card");
+        includeAllCard.getChildren().addAll(includeAllLabel, includeAllChaptersCheck, includeAllHelp);
+        content.getChildren().add(includeAllCard);
+        keyToControl.put("agent.plothole.include_all_chapters", includeAllChaptersCheck);
+
         // Sichtbarkeit basierend auf Backend-Auswahl
         Runnable updateVisibility = () -> {
             String selected = backendCombo.getValue();

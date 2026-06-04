@@ -87,9 +87,11 @@ public class WorldEditorWindow {
         } else {
             logger.warn("Kein Modell in Parametern gefunden für Backend {}", backendType);
         }
-        double temperature = ResourceManager.getDoubleParameter("ollama.temperature", 0.3);
+        double temperature = "OpenAI".equals(backendType)
+                ? ResourceManager.getDoubleParameter("agent.openai.temperature", 0.7)
+                : ResourceManager.getDoubleParameter("ollama.temperature", 0.3);
         aiBackend.setTemperature(temperature);
-        logger.info("Temperature aus Parametern gesetzt: {}", temperature);
+        logger.info("Temperature aus Parametern gesetzt ({}): {}", backendType, temperature);
         logger.info("Backend ist null: {}", aiBackend == null);
     }
 

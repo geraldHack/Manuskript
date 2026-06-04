@@ -1,6 +1,8 @@
 package com.manuskript;
 
+import javafx.animation.PauseTransition;
 import javafx.beans.binding.Bindings;
+import javafx.util.Duration;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
@@ -98,6 +100,7 @@ import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.util.converter.DefaultStringConverter;
 import java.util.function.Consumer;
 import java.awt.Desktop;
+import com.manuskript.novelwizard.NovelCreationWizardWindow;
 
 public class MainController implements Initializable {
     
@@ -143,7 +146,7 @@ public class MainController implements Initializable {
     @FXML private Button btnNewChapter;
     @FXML private Button btnOpenTtsEditor;
     @FXML private Button btnWorldEditor;
-    @FXML private Button btnPrototypeEditor;
+    @FXML private Button btnNovelWizard;
     @FXML private Button btnAudiobook;
     @FXML private Button btnDeleteFile;
     @FXML private Button btnSearchAllFiles;
@@ -199,6 +202,9 @@ public class MainController implements Initializable {
     
     // Theme-System
     private int currentThemeIndex = 0;
+
+    private boolean restoringMainWindowGeometry;
+    private PauseTransition mainWindowGeometrySaveDelay;
     
     // Initialisierungs-Flag
     private boolean isInitializing = false;
@@ -600,8 +606,8 @@ public class MainController implements Initializable {
         if (btnWorldEditor != null) {
             btnWorldEditor.setOnAction(e -> openWorldEditor());
         }
-        if (btnPrototypeEditor != null) {
-            btnPrototypeEditor.setOnAction(e -> openPrototypeEditor());
+        if (btnNovelWizard != null) {
+            btnNovelWizard.setOnAction(e -> openNovelWizardForCurrentProject());
         }
         if (btnOnlineLektorat != null) {
             btnOnlineLektorat.setOnAction(e -> {
@@ -2864,8 +2870,7 @@ public class MainController implements Initializable {
             for (Window window : Window.getWindows()) {
                 if (window instanceof CustomStage customStage && window.isShowing()) {
                     String title = customStage.getTitle();
-                    if (title != null && (title.contains("Kapitel-Editor") || title.contains("📄")
-                            || title.contains("Eigener Editor") || title.contains("Prototyp"))) {
+                    if (title != null && (title.contains("Kapitel-Editor") || title.contains("📄"))) {
                         focusedWindow = window;
                         break;
                     }
@@ -4141,6 +4146,7 @@ public class MainController implements Initializable {
     public void unregisterChapterEditor(String editorKey) {
         unregisterEditor(editorKey);
     }
+
     private ManuskriptEditorTestWindow openCanvasChapterEditorWindow(String text, DocxFile chapterFile,
                                                                      boolean onlineLektoratMode) {
         String chapterName = chapterFile.getFileName();
@@ -5238,14 +5244,13 @@ public class MainController implements Initializable {
     }
     public void setPrimaryStage(CustomStage primaryStage) {
         this.primaryStage = primaryStage;
-        
+        primaryStage.setWindowPersistenceType("main");
+
         // Hauptfenster-Properties laden und Event-Handler hinzufügen
         loadMainWindowProperties();
-        
+
         // CustomStage Theme-Synchronisation
-        if (primaryStage instanceof CustomStage) {
-            CustomStage customStage = (CustomStage) primaryStage;
-            // Theme aus Preferences laden und anwenden
+        if (primaryStage instanceof CustomStage customStage) {
             int savedTheme = preferences.getInt("main_window_theme", 0);
             customStage.setTitleBarTheme(savedTheme);
             currentThemeIndex = savedTheme;
@@ -5260,7 +5265,7 @@ public class MainController implements Initializable {
         
         // Stoppe WatchService beim Schließen und prüfe ob es das letzte Fenster ist
         primaryStage.setOnCloseRequest(event -> {
-            // Keine Auswahl mehr speichern - MD-Erkennung ist ausreichend
+            saveMainWindowGeometryNow();
 
             // Stoppe den File Watcher
             stopFileWatcher();
@@ -5505,6 +5510,7 @@ public class MainController implements Initializable {
         applyThemeToNode(btnNewChapter, themeIndex);
         if (btnOpenTtsEditor != null) applyThemeToNode(btnOpenTtsEditor, themeIndex);
         if (btnWorldEditor != null) applyThemeToNode(btnWorldEditor, themeIndex);
+        if (btnNovelWizard != null) applyThemeToNode(btnNovelWizard, themeIndex);
         if (btnAudiobook != null) applyThemeToNode(btnAudiobook, themeIndex);
         applyThemeToNode(btnSearchAllFiles, themeIndex);
         if (bookLengthLabel != null) applyThemeToNode(bookLengthLabel, themeIndex);
@@ -5750,38 +5756,66 @@ public class MainController implements Initializable {
             logger.warn("PrimaryStage ist null - kann Hauptfenster-Properties nicht laden");
             return;
         }
-        
-        // Verwende die neue Multi-Monitor-Validierung
+
         Rectangle2D windowBounds = PreferencesManager.MultiMonitorValidator.loadAndValidateWindowProperties(
             preferences, "main_window", 1400.0, 900.0);
-        
-        // Wende die validierten Eigenschaften an
-        PreferencesManager.MultiMonitorValidator.applyWindowProperties(primaryStage, windowBounds);
-        
-        // Event-Handler für Fenster-Änderungen hinzufügen
-        primaryStage.widthProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal != null && !newVal.equals(oldVal)) {
-                preferences.putDouble("main_window_width", newVal.doubleValue());
-            }
-        });
-        
-        primaryStage.heightProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal != null && !newVal.equals(oldVal)) {
-                preferences.putDouble("main_window_height", newVal.doubleValue());
-            }
-        });
-        
-        primaryStage.xProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal != null && !newVal.equals(oldVal)) {
-                preferences.putDouble("main_window_x", newVal.doubleValue());
-            }
-        });
-        
-        primaryStage.yProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal != null && !newVal.equals(oldVal)) {
-                preferences.putDouble("main_window_y", newVal.doubleValue());
-            }
-        });
+
+        restoringMainWindowGeometry = true;
+        try {
+            PreferencesManager.MultiMonitorValidator.applyWindowProperties(primaryStage, windowBounds);
+        } finally {
+            Platform.runLater(() -> restoringMainWindowGeometry = false);
+        }
+
+        if (mainWindowGeometrySaveDelay == null) {
+            mainWindowGeometrySaveDelay = new PauseTransition(Duration.millis(450));
+            mainWindowGeometrySaveDelay.setOnFinished(e -> saveMainWindowGeometryNow());
+        }
+
+        primaryStage.widthProperty().addListener((obs, oldVal, newVal) -> scheduleMainWindowGeometrySave());
+        primaryStage.heightProperty().addListener((obs, oldVal, newVal) -> scheduleMainWindowGeometrySave());
+        primaryStage.xProperty().addListener((obs, oldVal, newVal) -> scheduleMainWindowGeometrySave());
+        primaryStage.yProperty().addListener((obs, oldVal, newVal) -> scheduleMainWindowGeometrySave());
+    }
+
+    private void scheduleMainWindowGeometrySave() {
+        if (restoringMainWindowGeometry || primaryStage == null || mainWindowGeometrySaveDelay == null) {
+            return;
+        }
+        if (primaryStage instanceof CustomStage custom && custom.isEffectivelyMaximized()) {
+            return;
+        }
+        mainWindowGeometrySaveDelay.playFromStart();
+    }
+
+    private void saveMainWindowGeometryNow() {
+        if (primaryStage == null || preferences == null) {
+            return;
+        }
+        double x;
+        double y;
+        double width;
+        double height;
+        if (primaryStage instanceof CustomStage custom && custom.isEffectivelyMaximized() && custom.hasPreMaximizeBounds()) {
+            x = custom.getPreMaximizeX();
+            y = custom.getPreMaximizeY();
+            width = custom.getPreMaximizeWidth();
+            height = custom.getPreMaximizeHeight();
+        } else {
+            x = primaryStage.getX();
+            y = primaryStage.getY();
+            width = primaryStage.getWidth();
+            height = primaryStage.getHeight();
+        }
+        PreferencesManager.putWindowWidth(preferences, "main_window_width", width);
+        PreferencesManager.putWindowHeight(preferences, "main_window_height", height);
+        PreferencesManager.putWindowPosition(preferences, "main_window_x", x);
+        PreferencesManager.putWindowPosition(preferences, "main_window_y", y);
+        try {
+            preferences.flush();
+        } catch (Exception e) {
+            logger.warn("Hauptfenster-Preferences konnten nicht geschrieben werden: {}", e.getMessage());
+        }
     }
     
     
@@ -6705,6 +6739,12 @@ public class MainController implements Initializable {
             createProjectButton.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
             createProjectButton.setOnAction(e -> showCreateProjectDialog(projectFlow, projectStage));
 
+            Button novelWizardButton = new Button("🧭 Roman-Assistent");
+            novelWizardButton.getStyleClass().add("select-project-button");
+            novelWizardButton.setPrefSize(200, 40);
+            novelWizardButton.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
+            novelWizardButton.setOnAction(e -> showNovelWizardProjectDialog(projectFlow, projectStage));
+
             // Abbrechen-Button
             Button cancelButton = new Button("❌ Abbrechen");
             cancelButton.getStyleClass().add("cancel-button");
@@ -6726,7 +6766,7 @@ public class MainController implements Initializable {
             if (currentThemeIndex >= 0 && currentThemeIndex < projectSelectionBg.length) {
                 buttonContainer.setStyle("-fx-background-color: " + projectSelectionBg[currentThemeIndex] + ";");
             }
-            buttonContainer.getChildren().addAll(createProjectButton, spacer, cancelButton);
+            buttonContainer.getChildren().addAll(createProjectButton, novelWizardButton, spacer, cancelButton);
             
             // Layout zusammenbauen (ohne Spacer)
             mainLayout.getChildren().addAll(titleRow, mainScrollPane, buttonContainer);
@@ -7852,6 +7892,157 @@ public class MainController implements Initializable {
             logger.error("Fehler beim Öffnen des Projekt-Erstellen-Dialogs", e);
             showError("Fehler", "Dialog konnte nicht geöffnet werden: " + e.getMessage());
         }
+    }
+
+    private void showNovelWizardProjectDialog(FlowPane projectFlow, CustomStage parentStage) {
+        try {
+            CustomStage dialogStage = new CustomStage();
+            dialogStage.setCustomTitle("Roman-Assistent starten");
+            dialogStage.setMinWidth(650);
+            dialogStage.setMinHeight(500);
+            dialogStage.setWidth(650);
+            dialogStage.setHeight(520);
+            dialogStage.setResizable(false);
+            dialogStage.setTitleBarTheme(currentThemeIndex);
+
+            VBox mainLayout = new VBox(15);
+            mainLayout.setPadding(new Insets(25));
+            mainLayout.setAlignment(Pos.TOP_LEFT);
+
+            Label titleLabel = new Label("Neues Romanprojekt mit Assistent");
+            titleLabel.setStyle("-fx-font-size: 22px; -fx-font-weight: bold;");
+            Label infoLabel = new Label(
+                    "Der Roman-Assistent legt ein Projekt an und fuehrt dich danach interaktiv durch "
+                            + "Brainstorming, Welt, Figuren, Synopsis, Outline und Kapitel.");
+            infoLabel.setWrapText(true);
+            infoLabel.setStyle("-fx-font-size: 13px; -fx-opacity: 0.7;");
+
+            String rootDir = ResourceManager.getParameter("project.root.directory", "");
+            Label nameLabel = new Label("Projektname *");
+            nameLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
+            TextField nameField = new TextField();
+            nameField.setPromptText("z.B. 'Der Sternenwald'");
+            nameField.setPrefHeight(35);
+
+            CheckBox seriesCheck = new CheckBox("Gehört zu einer Serie");
+            Label seriesLabel = new Label("Serienverzeichnis (optional)");
+            seriesLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
+            seriesLabel.setDisable(true);
+            TextField seriesField = new TextField();
+            seriesField.setPromptText("z.B. 'Weltenwanderer-Saga'");
+            seriesField.setPrefHeight(35);
+            seriesField.setDisable(true);
+            seriesCheck.selectedProperty().addListener((obs, oldVal, newVal) -> {
+                seriesField.setDisable(!newVal);
+                seriesLabel.setDisable(!newVal);
+                if (!newVal) {
+                    seriesField.clear();
+                }
+            });
+
+            Button startButton = new Button("Projekt anlegen & Assistent starten");
+            startButton.getStyleClass().add("select-project-button");
+            Button cancelBtn = new Button("Abbrechen");
+            cancelBtn.getStyleClass().add("cancel-button");
+            cancelBtn.setOnAction(e -> dialogStage.close());
+            HBox buttonBox = new HBox(15, startButton, cancelBtn);
+            buttonBox.setAlignment(Pos.CENTER_RIGHT);
+
+            startButton.setOnAction(e -> {
+                String projectName = nameField.getText().trim();
+                if (projectName.isEmpty()) {
+                    showError("Fehler", "Bitte gib einen Projektnamen ein.");
+                    return;
+                }
+                String seriesName = seriesCheck.isSelected() ? seriesField.getText().trim() : "";
+                try {
+                    File targetDir = seriesName.isEmpty()
+                            ? new File(rootDir, projectName)
+                            : new File(new File(rootDir, seriesName), projectName);
+                    if (targetDir.exists()) {
+                        showWarning("Verzeichnis existiert bereits",
+                                "Das Verzeichnis '" + targetDir.getAbsolutePath() + "' existiert bereits.");
+                        return;
+                    }
+                    boolean created = targetDir.mkdirs();
+                    if (!created && !targetDir.exists()) {
+                        showError("Fehler", "Verzeichnis konnte nicht erstellt werden: " + targetDir.getAbsolutePath());
+                        return;
+                    }
+                    createDemoDocx(new File(targetDir, "readme.docx"), projectName);
+                    txtDirectoryPath.setText(targetDir.getAbsolutePath());
+                    preferences.put("lastDirectory", targetDir.getAbsolutePath());
+                    loadDocxFiles(targetDir);
+
+                    dialogStage.close();
+                    if (projectFlow != null && parentStage != null) {
+                        projectItems.clear();
+                        loadAndDisplayProjects(projectFlow, parentStage);
+                    }
+                    openNovelWizard(targetDir.toPath());
+                } catch (Exception ex) {
+                    logger.error("Fehler beim Starten des Roman-Assistenten", ex);
+                    showError("Fehler", "Roman-Assistent konnte nicht gestartet werden: " + ex.getMessage());
+                }
+            });
+
+            mainLayout.getChildren().addAll(titleLabel, infoLabel, nameLabel, nameField,
+                    seriesCheck, seriesLabel, seriesField, buttonBox);
+            Scene scene = new Scene(mainLayout);
+            String cssPath = ResourceManager.getCssResource("css/manuskript.css");
+            if (cssPath != null) {
+                scene.getStylesheets().add(cssPath);
+            }
+            dialogStage.setSceneWithTitleBar(scene);
+            dialogStage.setFullTheme(currentThemeIndex);
+            dialogStage.initOwner(parentStage);
+            dialogStage.showAndWait();
+        } catch (Exception e) {
+            logger.error("Fehler beim Öffnen des Roman-Assistent-Dialogs", e);
+            showError("Fehler", "Dialog konnte nicht geöffnet werden: " + e.getMessage());
+        }
+    }
+
+    private void openNovelWizardForCurrentProject() {
+        ButtonType createNew = new ButtonType("Neues Projekt anlegen");
+        ButtonType useCurrent = new ButtonType("Aktuelles Projekt verwenden");
+        ButtonType cancel = new ButtonType("Abbrechen", ButtonBar.ButtonData.CANCEL_CLOSE);
+        CustomAlert choice = new CustomAlert(Alert.AlertType.CONFIRMATION, "Roman-Assistent starten");
+        choice.setHeaderText("Wie möchtest du starten?");
+        choice.setContentText("Lege ein neues Romanprojekt an oder arbeite mit dem aktuell geöffneten Projekt weiter.");
+        choice.getButtonTypes().setAll(createNew, useCurrent, cancel);
+        choice.applyTheme(currentThemeIndex);
+        if (primaryStage != null) {
+            choice.initOwner(primaryStage);
+        }
+        Optional<ButtonType> result = choice.showAndWait();
+        if (result.isEmpty() || result.get() == cancel) {
+            return;
+        }
+        if (result.get() == createNew) {
+            showNovelWizardProjectDialog(currentProjectFlow, primaryStage);
+            return;
+        }
+
+        String projectDirectory = txtDirectoryPath.getText();
+        if (projectDirectory == null || projectDirectory.trim().isEmpty()) {
+            showWarning("Kein Projekt ausgewählt", "Bitte wählen Sie zuerst ein Projektverzeichnis aus.");
+            return;
+        }
+        openNovelWizard(Path.of(projectDirectory));
+    }
+
+    private void openNovelWizard(Path projectDirectory) {
+        Window owner = primaryStage != null ? primaryStage.getScene().getWindow() : null;
+        NovelCreationWizardWindow wizard = new NovelCreationWizardWindow(owner, projectDirectory, () -> {
+            File dir = projectDirectory.toFile();
+            loadDocxFiles(dir);
+            if (currentProjectFlow != null && currentProjectStage != null) {
+                projectItems.clear();
+                loadAndDisplayProjects(currentProjectFlow, currentProjectStage);
+            }
+        }, currentThemeIndex);
+        wizard.show();
     }
 
     /**
@@ -9045,13 +9236,6 @@ public class MainController implements Initializable {
         worldEditor.show();
     }
 
-    private void openPrototypeEditor() {
-        Window owner = primaryStage != null ? primaryStage.getScene().getWindow() : null;
-        ManuskriptEditorTestWindow prototypeEditor = new ManuskriptEditorTestWindow(owner, this);
-        prototypeEditor.show();
-        prototypeEditor.tryLoadSelectedChapter();
-    }
-
     public PrototypeChapterContent loadSelectedChapterMarkdownForPrototype() {
         DocxFile selected = tableViewSelected != null ? tableViewSelected.getSelectionModel().getSelectedItem() : null;
         return loadChapterMarkdownForPrototype(selected);
@@ -9063,14 +9247,14 @@ public class MainController implements Initializable {
         }
         File mdFile = deriveMdFileFor(docxFile.getFile());
         if (mdFile == null || !mdFile.exists() || !mdFile.isFile()) {
-            logger.warn("Keine MD-Datei für Prototyp-Editor gefunden: {}", mdFile != null ? mdFile.getAbsolutePath() : "null");
+            logger.warn("Keine MD-Datei für Kapitel-Editor gefunden: {}", mdFile != null ? mdFile.getAbsolutePath() : "null");
             return null;
         }
         try {
             String content = Files.readString(mdFile.toPath(), StandardCharsets.UTF_8);
             return new PrototypeChapterContent(docxFile.getFileName(), mdFile, docxFile.getFile(), content);
         } catch (IOException e) {
-            logger.warn("Konnte MD-Datei für Prototyp-Editor nicht laden: {}", e.getMessage());
+            logger.warn("Konnte MD-Datei für Kapitel-Editor nicht laden: {}", e.getMessage());
             return null;
         }
     }

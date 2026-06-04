@@ -24,7 +24,7 @@ Manuskript is a JavaFX 21 desktop application for manuscript editing with AI int
 - Damit nach Aenderungen der **aktuelle Code** laeuft: App mit **`mvn javafx:run`** starten (oder `run-developer.bat` unter Windows), oder vor dem Start **`mvn package`** ausfuehren und danach die gebaute App starten.
 
 ### Canvas-Kapitel-Editor (Migration)
-- Prototyp-Fenster: **Eigener Editor** (`ManuskriptEditorTestWindow` / `ManuskriptTextEditor`).
+- Kapitel-Editor (Canvas): `ManuskriptEditorTestWindow` / `ManuskriptTextEditor`.
 - Gemeinsame API: `ChapterEditorHost` (Legacy `EditorWindow` + Canvas).
 - Standard-Umschaltung für Doppelklick auf Kapitel: Java-Preference  
   `Preferences.userNodeForPackage(com.manuskript.MainController).putBoolean("use_canvas_chapter_editor", true);`  

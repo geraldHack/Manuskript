@@ -1871,7 +1871,7 @@ if (caret != null) {
         // Seitenleiste Event-Handler
         if (btnToggleSidebar != null) {
             btnToggleSidebar.setOnAction(e -> toggleSidebar());
-            btnToggleSidebar.setTooltip(new Tooltip("Kapitel-Seitenleiste ein-/ausblenden"));
+            SidebarToggleButtonSupport.updateAppearance(btnToggleSidebar, sidebarExpanded, currentThemeIndex);
         }
         if (chapterListView != null) {
             // Auswahl zurücksetzen wenn auf leeren Bereich der ListView geklickt wird
@@ -8024,6 +8024,27 @@ if (caret != null) {
     public int getCaretPosition() {
         return codeArea != null ? codeArea.getCaretPosition() : 0;
     }
+
+    @Override
+    public int getSelectionStart() {
+        if (codeArea == null) {
+            return 0;
+        }
+        return Math.min(codeArea.getSelection().getStart(), codeArea.getSelection().getEnd());
+    }
+
+    @Override
+    public int getSelectionEnd() {
+        if (codeArea == null) {
+            return 0;
+        }
+        return Math.max(codeArea.getSelection().getStart(), codeArea.getSelection().getEnd());
+    }
+
+    @Override
+    public boolean hasTextSelection() {
+        return codeArea != null && getSelectionStart() != getSelectionEnd();
+    }
     
     public CustomStage getStage() {
         return stage;
@@ -8275,6 +8296,9 @@ if (caret != null) {
         // WICHTIG: Theme sofort anwenden
         applyTheme(themeIndex);
         updateThemeButtonTooltip();
+        if (btnToggleSidebar != null) {
+            SidebarToggleButtonSupport.updateAppearance(btnToggleSidebar, sidebarExpanded, currentThemeIndex);
+        }
         
         // Zusätzlicher verzögerter Theme-Refresh für bessere Kompatibilität
         // Dies stellt sicher, dass die RichTextFX CodeArea korrekt aktualisiert wird
@@ -14371,11 +14395,9 @@ spacer.setStyle("-fx-background-color: transparent;");
         
         boolean hasPanel = agentScrollPane != null || items.contains(agentTabPane);
         if (visible && !hasPanel) {
-            // Erstelle ScrollPane für AgentTabPane
-            agentScrollPane = new ScrollPane(agentTabPane);
-            agentScrollPane.setFitToWidth(true);
-            agentScrollPane.setFitToHeight(true);
-            items.add(agentScrollPane);
+            agentTabPane.setMinWidth(220);
+            agentTabPane.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+            items.add(agentTabPane);
             double[] current = mainSplitPane.getDividerPositions();
             if (current.length >= 2) {
                 mainSplitPane.setDividerPositions(current[0], 0.72, 0.85);
@@ -14416,11 +14438,13 @@ spacer.setStyle("-fx-background-color: transparent;");
         targetTab.setAnalyzing(true);
         String text = codeArea.getText();
         
-        // Alle Kapitel für Kontext laden
+        // Alle Kapitel für Kontext laden (optional — siehe agent.plothole.include_all_chapters)
         String allChapters = "";
-        logger.info("Starte Laden der Kapitel für Kontext");
+        boolean includeAllChapters = Boolean.parseBoolean(
+                ResourceManager.getParameter("agent.plothole.include_all_chapters", "true"));
         File projectDir = getProjectDirectory();
-        if (projectDir != null) {
+        if (includeAllChapters && projectDir != null) {
+            logger.info("Starte Laden der Kapitel für Kontext");
             java.io.File dataDir = new java.io.File(projectDir, "data");
             if (dataDir.exists() && dataDir.isDirectory()) {
                 // Lade alle Markdown-Dateien aus dem data-Verzeichnis (außer tts-md Dateien)
@@ -14465,16 +14489,22 @@ spacer.setStyle("-fx-background-color: transparent;");
             } else {
                 logger.warn("data-Verzeichnis existiert nicht oder ist kein Verzeichnis: {}", dataDir.getAbsolutePath());
             }
+        } else if (!includeAllChapters) {
+            logger.info("Plothole: nur aktuelles Kapitel (agent.plothole.include_all_chapters=false)");
         } else {
             logger.warn("Projekt-Verzeichnis ist null, kann keine Kapitel laden");
         }
 
-        agent.analyze(text, allChapters)
-            .thenAccept(findings -> {
-                targetTab.showFindings(findings);
-            })
+        int maxOutputTokens = targetTab.getAgentConfig().getMaxTokens();
+        agent.analyze(text, allChapters, maxOutputTokens)
+            .thenAccept(targetTab::showParseResult)
             .exceptionally(ex -> {
-                targetTab.showError(ex.getMessage());
+                String detail = com.manuskript.agent.AgentAnalysisErrors.format(ex);
+                org.slf4j.LoggerFactory.getLogger(EditorWindow.class)
+                        .error("Plothole-Analyse fehlgeschlagen (Modell={}, Backend={}): {}",
+                                model, targetTab.getAgentConfig().getBackend(), detail,
+                                com.manuskript.agent.AgentAnalysisErrors.unwrap(ex));
+                targetTab.showError(detail);
                 return null;
             });
     }
@@ -22068,7 +22098,6 @@ spacer.setStyle("-fx-background-color: transparent;");
             // Seitenleiste einblenden
             sidebarContainer.setVisible(true);
             sidebarContainer.setManaged(true);
-            btnToggleSidebar.setText("◀");
             // WICHTIG: Divider-Position muss nach setVisible gesetzt werden
             Platform.runLater(() -> {
                 if (mainSplitPane.getItems().size() >= 2) {
@@ -22084,7 +22113,6 @@ spacer.setStyle("-fx-background-color: transparent;");
         } else {
             sidebarContainer.setVisible(false);
             sidebarContainer.setManaged(false);
-            btnToggleSidebar.setText("▶");
             Platform.runLater(() -> {
                 if (mainSplitPane.getItems().size() >= 2) {
                     double[] current = mainSplitPane.getDividerPositions();
@@ -22096,6 +22124,7 @@ spacer.setStyle("-fx-background-color: transparent;");
                 }
             });
         }
+        SidebarToggleButtonSupport.updateAppearance(btnToggleSidebar, sidebarExpanded, currentThemeIndex);
         
         // Speichere den Status
         saveSidebarState();
@@ -22117,7 +22146,6 @@ spacer.setStyle("-fx-background-color: transparent;");
             if (sidebarExpanded) {
                 sidebarContainer.setVisible(true);
                 sidebarContainer.setManaged(true);
-                btnToggleSidebar.setText("◀");
                 if (mainSplitPane.getItems().size() >= 2) {
                     double[] current = mainSplitPane.getDividerPositions();
                     if (current.length >= 2) {
@@ -22129,7 +22157,6 @@ spacer.setStyle("-fx-background-color: transparent;");
             } else {
                 sidebarContainer.setVisible(false);
                 sidebarContainer.setManaged(false);
-                btnToggleSidebar.setText("▶");
                 if (mainSplitPane.getItems().size() >= 2) {
                     double[] current = mainSplitPane.getDividerPositions();
                     if (current.length >= 2) {
@@ -22139,6 +22166,7 @@ spacer.setStyle("-fx-background-color: transparent;");
                     }
                 }
             }
+            SidebarToggleButtonSupport.updateAppearance(btnToggleSidebar, sidebarExpanded, currentThemeIndex);
             
             if (mainSplitPane.getItems().size() >= 2) {
                 mainSplitPane.getDividers().get(0).positionProperty().addListener((obs, oldPos, newPos) -> {

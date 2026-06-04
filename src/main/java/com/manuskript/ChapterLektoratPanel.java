@@ -48,18 +48,19 @@ public class ChapterLektoratPanel {
         boolean hasPanel = items.contains(container);
         if (visible && !hasPanel) {
             items.add(container);
-            double[] current = splitPane.getDividerPositions();
-            double sidebarPos = current.length > 0 ? current[0] : 0.18;
-            if (current.length >= 2) {
-                splitPane.setDividerPositions(sidebarPos, 0.72);
-            } else {
-                splitPane.setDividerPositions(sidebarPos, 0.72, 0.88);
-            }
+            applySplitDividerPositions(splitPane);
         } else if (!visible && hasPanel) {
             items.remove(container);
-            double[] current = splitPane.getDividerPositions();
-            double sidebarPos = current.length > 0 ? current[0] : 0.18;
-            splitPane.setDividerPositions(sidebarPos);
+            applySplitDividerPositions(splitPane);
+        }
+    }
+
+    private static void applySplitDividerPositions(SplitPane splitPane) {
+        int count = splitPane.getItems().size();
+        if (count == 2) {
+            splitPane.setDividerPositions(0.72);
+        } else if (count >= 3) {
+            splitPane.setDividerPositions(0.58, 0.76);
         }
     }
 

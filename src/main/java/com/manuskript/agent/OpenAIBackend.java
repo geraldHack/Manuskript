@@ -14,7 +14,9 @@ import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonSyntaxException;
 import com.manuskript.GatewayHttpRetry;
 import com.manuskript.ResourceManager;
 
@@ -57,7 +59,7 @@ public class OpenAIBackend implements AIBackend {
 
     @Override
     public void setCurrentModel(String model) {
-        this.currentModel = model;
+        this.currentModel = AgentModelIds.apiModelId(model);
     }
 
     @Override
@@ -103,56 +105,82 @@ public class OpenAIBackend implements AIBackend {
                 logger.info("OpenAI Request: {} Zeichen, System-Prompt: {} Zeichen, User-Message: {} Zeichen, max_tokens: {}",
                         requestBody.length(), systemPrompt.length(), userMessage.length(), maxTokens);
 
+                int timeoutSec = requestTimeoutSeconds();
                 HttpRequest request = HttpRequest.newBuilder()
                         .uri(URI.create(url))
                         .header("Authorization", "Bearer " + apiKey)
                         .header("Content-Type", "application/json")
-                        .timeout(Duration.ofSeconds(120))
+                        .timeout(Duration.ofSeconds(timeoutSec))
                         .POST(HttpRequest.BodyPublishers.ofString(requestBody))
                         .build();
 
                 HttpResponse<String> response = sendWithGatewayRetry(request);
+                String responseBody = response.body();
 
-                JsonObject json = gson.fromJson(response.body(), JsonObject.class);
+                JsonElement root;
+                try {
+                    root = OpenAIChatCompletionParser.parseRoot(responseBody);
+                } catch (JsonSyntaxException e) {
+                    logger.error("OpenAI API (Modell={}): Antwort ist kein gültiges JSON. HTTP {}. Anfang:\n{}",
+                            currentModel, response.statusCode(), preview(responseBody, 2500), e);
+                    throw new RuntimeException("API-Antwort ist kein gültiges JSON (Modell "
+                            + currentModel + "): " + e.getMessage(), e);
+                }
+                JsonObject json = OpenAIChatCompletionParser.toCompletionEnvelope(root);
+                if (json == null) {
+                    String rootKind = root == null ? "null"
+                            : root.isJsonArray() ? "array[" + root.getAsJsonArray().size() + "]"
+                            : root.isJsonObject() ? "object keys=" + root.getAsJsonObject().keySet()
+                            : "other";
+                    logger.error("OpenAI API (Modell={}): Antwort-Format nicht erkannt ({}). HTTP {}. Anfang:\n{}",
+                            currentModel, rootKind, response.statusCode(), preview(responseBody, 2500));
+                    throw new RuntimeException("API-Antwortformat nicht erkannt (Modell " + currentModel
+                            + ", " + rootKind + "). Details im Log.");
+                }
+                if (root != null && root.isJsonArray()) {
+                    logger.info("OpenAI API (Modell={}): Wurzel-Array mit {} Element(en) normalisiert",
+                            currentModel, root.getAsJsonArray().size());
+                }
                 
                 // Prüfen, ob die Antwort ein Fehler enthält (einige APIs geben 200 mit Fehler zurück)
                 if (json.has("error")) {
                     JsonObject error = json.getAsJsonObject("error");
                     String errorMsg = error.has("message") ? error.get("message").getAsString() : error.toString();
-                    logger.error("OpenAI API gab Fehler zurück (HTTP 200): {}", errorMsg);
-                    throw new RuntimeException("OpenAI API Fehler: " + errorMsg);
+                    logger.error("OpenAI API (Modell={}) Fehler im JSON (HTTP 200): {} — Body:\n{}",
+                            currentModel, errorMsg, preview(responseBody, 2500));
+                    throw new RuntimeException("API-Fehler (Modell " + currentModel + "): " + errorMsg);
                 }
                 
                 JsonArray choices = json.getAsJsonArray("choices");
-                if (choices == null || choices.size() == 0) {
-                    logger.error("OpenAI API Antwort enthält kein 'choices' Array oder ist leer: {}", response.body());
-                    throw new RuntimeException("Keine Antwort von OpenAI erhalten (keine choices)");
+                if (choices == null || choices.isEmpty()) {
+                    logger.error("OpenAI API (Modell={}): kein choices-Array. Body:\n{}",
+                            currentModel, preview(responseBody, 2500));
+                    throw new RuntimeException("Keine Antwort von der API erhalten (keine choices, Modell "
+                            + currentModel + ")");
                 }
-                
+
                 JsonObject choice = choices.get(0).getAsJsonObject();
                 JsonObject message = choice.getAsJsonObject("message");
                 if (message == null) {
-                    logger.error("OpenAI API Antwort enthält kein 'message' Objekt: {}", response.body());
-                    throw new RuntimeException("Keine Antwort von OpenAI erhalten (kein message)");
+                    logger.error("OpenAI API (Modell={}): choice ohne message. Body:\n{}",
+                            currentModel, preview(responseBody, 2500));
+                    throw new RuntimeException("Keine Antwort von der API erhalten (kein message, Modell "
+                            + currentModel + ")");
                 }
-                
-                // Manche APIs (z.B. Minimax) geben zwei content-Felder zurück, wobei das zweite null ist
-                // Wir suchen das erste nicht-null content-Feld
+
                 String content = null;
-                if (message.has("content")) {
-                    com.google.gson.JsonElement contentElement = message.get("content");
-                    if (!contentElement.isJsonNull()) {
-                        if (contentElement.isJsonPrimitive() && contentElement.getAsJsonPrimitive().isString()) {
-                            content = contentElement.getAsString();
-                        }
+                if (message.has("content") && !message.get("content").isJsonNull()) {
+                    JsonElement contentElement = message.get("content");
+                    content = OpenAIMessageContentExtractor.extractText(contentElement);
+                    if (content == null || content.isBlank()) {
+                        logger.warn("OpenAI API (Modell={}): content nicht als Text extrahierbar: {}",
+                                currentModel, OpenAIMessageContentExtractor.describe(contentElement));
                     }
                 }
-                
+
                 // Wenn das content-Feld null ist, prüfen wir, ob es im JSON-String ein zweites content gibt
                 // (Workaround für fehlerhafte APIs wie Minimax)
                 if (content == null || content.trim().isEmpty()) {
-                    String responseBody = response.body();
-                    
                     // Extrahiere das message-Objekt als String
                     int messageStart = responseBody.indexOf("\"message\":");
                     if (messageStart != -1) {
@@ -243,17 +271,43 @@ public class OpenAIBackend implements AIBackend {
                 }
 
                 if (content == null || content.trim().isEmpty()) {
-                    logger.error("OpenAI API Antwort enthält keinen gültigen content: {}", response.body());
-                    throw new RuntimeException("Keine Antwort von OpenAI erhalten (kein gültiger content)");
+                    String contentShape = message.has("content")
+                            ? OpenAIMessageContentExtractor.describe(message.get("content"))
+                            : "fehlt";
+                    logger.error("OpenAI API (Modell={}): kein Text in message.content ({}). "
+                            + "Manche Modelle (z. B. Kimi) liefern JSON-Objekte statt Klartext — "
+                            + "Antwort-Anfang:\n{}", currentModel, contentShape, preview(responseBody, 2500));
+                    throw new RuntimeException("Keine lesbare Text-Antwort von der API (Modell " + currentModel
+                            + ", content=" + contentShape + "). Details im Log.");
                 }
-                
+
                 return content;
 
+            } catch (RuntimeException e) {
+                throw e;
+            } catch (java.net.http.HttpTimeoutException e) {
+                int timeoutSec = requestTimeoutSeconds();
+                logger.error("OpenAI API Timeout nach {}s (Modell={}). User-Message {} Zeichen. "
+                        + "Bei kurzem Kapitel: oft wegen Kontext „alle Kapitel“ oder langsamem Reasoning-Modell — "
+                        + "Parameter agent.openai.request_timeout_sec erhöhen oder agent.plothole.include_all_chapters=false.",
+                        timeoutSec, currentModel, userMessage.length(), e);
+                throw new RuntimeException("API-Timeout nach " + timeoutSec + " s (Modell " + currentModel
+                        + "). Kontext zu groß oder Modell zu langsam — siehe Log.", e);
             } catch (Exception e) {
-                logger.error("OpenAI chat Fehler", e);
-                throw new RuntimeException("OpenAI Fehler: " + e.getMessage(), e);
+                logger.error("OpenAI chat Fehler (Modell={}): {}", currentModel, e.getMessage(), e);
+                throw new RuntimeException("OpenAI Fehler (Modell " + currentModel + "): " + e.getMessage(), e);
             }
         });
+    }
+
+    /** Liest konfigurierbares Anfrage-Timeout (Sekunden). */
+    public static int requestTimeoutSeconds() {
+        int fromAgent = ResourceManager.getIntParameter("agent.openai.request_timeout_sec", -1);
+        if (fromAgent >= 60) {
+            return Math.min(900, fromAgent);
+        }
+        int fromLektorat = ResourceManager.getIntParameter("api.lektorat.request_timeout_sec", 300);
+        return Math.max(60, Math.min(900, fromLektorat));
     }
 
     private HttpResponse<String> sendWithGatewayRetry(HttpRequest request) throws java.io.IOException, InterruptedException {
@@ -274,8 +328,20 @@ public class OpenAIBackend implements AIBackend {
         return response;
     }
 
+    private static String preview(String body, int maxChars) {
+        if (body == null) {
+            return "(null)";
+        }
+        String trimmed = body.trim();
+        if (trimmed.length() <= maxChars) {
+            return trimmed;
+        }
+        return trimmed.substring(0, maxChars) + "\n… [" + trimmed.length() + " Zeichen gesamt]";
+    }
+
     private RuntimeException httpError(HttpResponse<String> response) {
-        logger.error("OpenAI API Fehler {}: {}", response.statusCode(), response.body());
+        logger.error("OpenAI API Fehler {} (Modell={}): {}", response.statusCode(), currentModel,
+                preview(response.body(), 2500));
         if (response.statusCode() == 413) {
             return new RuntimeException("OpenAI API Fehler 413: Request body zu groß. "
                     + "Der gesendete Text ist zu lang. Bitte Kontext reduzieren oder Projekt aufteilen.");

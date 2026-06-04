@@ -7,6 +7,7 @@ import com.manuskript.agent.AgentTab;
 import com.manuskript.agent.AgentTabPane;
 import com.manuskript.agent.OllamaBackend;
 import com.manuskript.agent.OpenAIBackend;
+import com.manuskript.agent.AgentAnalysisErrors;
 import com.manuskript.agent.PlotholeAgent;
 import com.manuskript.agent.SceneContextLoader;
 import com.manuskript.agent.SceneWritingAgent;
@@ -85,26 +86,45 @@ public class ChapterAgentSupport {
                 break;
             }
         }
+        if (visible && agentScrollPane != null) {
+            int idx = items.indexOf(agentScrollPane);
+            items.remove(agentScrollPane);
+            if (!items.contains(agentTabPane)) {
+                agentTabPane.setMinWidth(220);
+                agentTabPane.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+                items.add(idx >= 0 ? idx : items.size(), agentTabPane);
+            }
+            applySplitDividerPositions(mainSplitPane);
+            agentPanelVisible = true;
+            return;
+        }
         boolean hasPanel = agentScrollPane != null || items.contains(agentTabPane);
         if (visible && !hasPanel) {
-            agentScrollPane = new ScrollPane(agentTabPane);
-            agentScrollPane.setFitToWidth(true);
-            agentScrollPane.setFitToHeight(true);
-            items.add(agentScrollPane);
-            double[] current = mainSplitPane.getDividerPositions();
-            if (current.length >= 2) {
-                mainSplitPane.setDividerPositions(current[0], 0.72, 0.85);
-            } else if (current.length >= 1) {
-                mainSplitPane.setDividerPositions(current[0], 0.85);
-            }
+            agentTabPane.setMinWidth(220);
+            agentTabPane.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+            items.add(agentTabPane);
+            applySplitDividerPositions(mainSplitPane);
         } else if (!visible && hasPanel) {
             if (agentScrollPane != null) {
                 items.remove(agentScrollPane);
             } else {
                 items.remove(agentTabPane);
             }
+            applySplitDividerPositions(mainSplitPane);
         }
         agentPanelVisible = visible;
+    }
+
+    private static void applySplitDividerPositions(SplitPane splitPane) {
+        if (splitPane == null) {
+            return;
+        }
+        int count = splitPane.getItems().size();
+        if (count == 2) {
+            splitPane.setDividerPositions(0.78);
+        } else if (count >= 3) {
+            splitPane.setDividerPositions(0.55, 0.78);
+        }
     }
 
     private void setupAgentTabCallbacks(AgentTab tab) {
@@ -190,16 +210,23 @@ public class ChapterAgentSupport {
         }
         agent.setSystemPrompt(targetTab.getAgentConfig().getSystemPrompt());
         targetTab.setAnalyzing(true);
-        String text = host.getText();
+        String text = host.getText() != null ? host.getText() : "";
+        boolean includeAllChapters = Boolean.parseBoolean(
+                ResourceManager.getParameter("agent.plothole.include_all_chapters", "true"));
         String allChapters = "";
         MainController main = host.getMainController();
-        if (main != null) {
+        if (includeAllChapters && main != null) {
             allChapters = main.loadAllChapters();
         }
-        agent.analyze(text, allChapters)
-                .thenAccept(targetTab::showFindings)
+        int maxOutputTokens = targetTab.getAgentConfig().getMaxTokens();
+        agent.analyze(text, allChapters, maxOutputTokens)
+                .thenAccept(targetTab::showParseResult)
                 .exceptionally(ex -> {
-                    targetTab.showError(ex.getMessage());
+                    String detail = AgentAnalysisErrors.format(ex);
+                    logger.error("Plothole-Analyse fehlgeschlagen (Modell={}, Backend={}): {}",
+                            model, targetTab.getAgentConfig().getBackend(), detail,
+                            AgentAnalysisErrors.unwrap(ex));
+                    targetTab.showError(detail);
                     return null;
                 });
     }

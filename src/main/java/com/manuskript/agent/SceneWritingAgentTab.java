@@ -77,7 +77,8 @@ public class SceneWritingAgentTab extends VBox {
         configBox.setManaged(false);
 
         promptArea = new TextArea(config.getSystemPrompt());
-        promptArea.setPrefRowCount(6);
+        promptArea.setPrefRowCount(AgentTab.SYSTEM_PROMPT_VISIBLE_ROWS);
+        promptArea.setMinHeight(AgentTab.SYSTEM_PROMPT_VISIBLE_ROWS * 18.0);
         promptArea.setWrapText(true);
         promptArea.setMaxWidth(Double.MAX_VALUE);
         promptArea.textProperty().addListener((obs, o, n) -> {

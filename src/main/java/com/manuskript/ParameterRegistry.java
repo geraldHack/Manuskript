@@ -214,6 +214,12 @@ public final class ParameterRegistry {
                 "Basis-URL der OpenAI-kompatiblen API.", "Agenten");
         add("agent.openai.model", ParameterDef.Type.STRING, "gpt-4o-mini",
                 "Modell fuer die OpenAI-Analyse (z.B. gpt-4o-mini, gpt-4o).", "Agenten");
+        add("agent.openai.temperature", ParameterDef.Type.DOUBLE, "0.7",
+                "Temperatur fuer OpenAI-Backend (Welt-Editor, Agenten). Bereich 0.0–2.0; bei Claude-Modellen max. 1.0.", "Agenten");
+        add("agent.openai.request_timeout_sec", ParameterDef.Type.INT, "300",
+                "Timeout pro Agenten-API-Anfrage in Sekunden (60–900). Kimi/OpenRouter mit vollem Buch-Kontext brauchen oft 180–600 s.", "Agenten");
+        add("agent.plothole.include_all_chapters", ParameterDef.Type.BOOLEAN, "true",
+                "Alle Kapitel als Kontext mitsenden (fuer Plot-Widersprueche ueber das Buch). Aus = nur aktuelles Kapitel (schneller, weniger Timeout-Risiko).", "Agenten");
     }
 
     private static void add(String key, ParameterDef.Type type, String defaultValue, String helpText, String category) {

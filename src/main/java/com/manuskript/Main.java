@@ -2,12 +2,10 @@ package com.manuskript;
 
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.animation.PauseTransition;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-import javafx.util.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ch.qos.logback.classic.LoggerContext;
@@ -65,33 +63,11 @@ public class Main extends Application {
             // WICHTIG: Kein setOnCloseRequest hier - wird in MainController.setPrimaryStage() behandelt
             customStage.show();
 
-            // Initial direkt in den Vordergrund
+            // Fenstergröße kommt aus Java-Preferences (MainController.loadMainWindowProperties), nicht aus .manuskript_window.properties
             Platform.runLater(() -> {
                 customStage.toFront();
                 customStage.requestFocus();
             });
-
-            // Gespeicherte Fenstergröße laden (nicht blockierend) und Fokus danach erneut setzen
-            PauseTransition loadWindowSizeDelay = new PauseTransition(Duration.millis(200));
-            loadWindowSizeDelay.setOnFinished(event -> {
-                try {
-                    customStage.loadWindowSize();
-                } catch (Exception e) {
-                    logger.warn("Fehler beim Laden der Fenstergröße: {}", e.getMessage());
-                }
-
-                customStage.toFront();
-                customStage.requestFocus();
-            });
-            loadWindowSizeDelay.play();
-
-            // Zweite kurze Fokus-Synchronisation nach vollständigem UI-Layout
-            PauseTransition focusSyncDelay = new PauseTransition(Duration.millis(500));
-            focusSyncDelay.setOnFinished(event -> {
-                customStage.toFront();
-                customStage.requestFocus();
-            });
-            focusSyncDelay.play();
             
             
         } catch (IOException e) {

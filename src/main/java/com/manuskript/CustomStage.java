@@ -498,6 +498,32 @@ public class CustomStage extends Stage {
         setY(restoreY);
         isMaximized = false;
     }
+
+    /** True wenn das Fenster maximiert ist (eigener oder JavaFX-Zustand). */
+    public boolean isEffectivelyMaximized() {
+        return isMaximized || isMaximized();
+    }
+
+    /** Normalgröße vor Maximieren – für Preferences-Persistenz beim Schließen. */
+    public boolean hasPreMaximizeBounds() {
+        return hasRestoreBounds && restoreWidth > 0 && restoreHeight > 0;
+    }
+
+    public double getPreMaximizeX() {
+        return restoreX;
+    }
+
+    public double getPreMaximizeY() {
+        return restoreY;
+    }
+
+    public double getPreMaximizeWidth() {
+        return restoreWidth;
+    }
+
+    public double getPreMaximizeHeight() {
+        return restoreHeight;
+    }
     
     /**
      * Setzt die Scene mit benutzerdefinierter Titelleiste
@@ -1363,7 +1389,9 @@ public class CustomStage extends Stage {
         // Bestimme den Fenstertyp basierend auf Titel oder Größe
         String title = getTitle();
         if (title != null) {
-            if (title.contains("Manuskript") && !title.contains("-")) {
+            if (title.contains("Manuskript")
+                    && !title.contains("Kapitel-Editor")
+                    && !title.contains("Sprachsynthese")) {
                 return "main";
             } else if (title.contains("Sprachsynthese")) {
                 return "tts";
@@ -1387,6 +1415,9 @@ public class CustomStage extends Stage {
     }
 
     private void saveWindowSize() {
+        if ("main".equals(getWindowType())) {
+            return;
+        }
         try {
             Screen currentScreen = getCurrentScreen();
             String screenId = "screen_" + currentScreen.hashCode();
@@ -1429,11 +1460,15 @@ public class CustomStage extends Stage {
      * Lädt die gespeicherte Fenstergröße und Position
      */
     public void loadWindowSize() {
+        if ("main".equals(getWindowType())) {
+            windowSizeLoaded = true;
+            return;
+        }
         // Verhindere mehrfaches Laden durch einen Flag
         if (windowSizeLoaded) {
             return;
         }
-        
+
         try {
             java.io.File configFile = new java.io.File(System.getProperty("user.home"), ".manuskript_window.properties");
             if (!configFile.exists()) {
