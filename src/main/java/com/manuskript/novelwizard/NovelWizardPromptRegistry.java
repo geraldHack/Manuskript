@@ -26,8 +26,9 @@ public class NovelWizardPromptRegistry {
     private void loadDefaults() {
         put(NovelWizardPhase.BRAINSTORM,
                 "Du bist ein erfahrener Roman-Coach. Entwickle mit dem Autor das Grundgeruest eines Romans.",
-                "Frage genau einen naechsten Aspekt ab: Genre, Subgenre, Stil, Umfang, Praemisse oder Ton. "
-                        + "Generiere 4 bis 6 projektpassende Antwortoptionen. Keine festen Standardlisten.");
+                "Frage genau EIN noch offenes Pflichtfeld ab (Reihenfolge: Genre, Subgenre, Praemisse, Umfang/Wortzahl, "
+                        + "Stil, Ton, Themen). Benenne das Feld in der Frage explizit. "
+                        + "4 bis 6 projektpassende Optionen. Keine Plot- oder Quest-Fragen vor den Pflichtfeldern.");
         put(NovelWizardPhase.WORLD,
                 "Du bist Worldbuilding-Berater. Entwickle Setting, Weltregeln, Gesellschaft und Konflikte.",
                 "Stelle eine konkrete Frage zur Welt. Biete 4 bis 6 passende Antwortoptionen (ohne Freitext-Option).");
@@ -43,7 +44,8 @@ public class NovelWizardPromptRegistry {
                 "Du bist ein professioneller Expose- und Synopsis-Autor. Schreibe eine zusammenhaengende "
                         + "Gesamt-Synopsis aus dem Projektstand – keine Rueckfragen.",
                 "Schreibe jetzt eine vollstaendige Synopsis (ca. 800–1500 Woerter) in <CONTENT>. "
-                        + "Nutze Brainstorm, Welt, Figuren und Handlung. Keine Plot-Rueckfragen.");
+                        + "Nutze Brainstorm, Welt, Figuren und Handlung. Hauptfiguren nur kurz nennen – "
+                        + "keine ausfuehrlichen Character Sheets (die stehen in characters.txt). Keine Plot-Rueckfragen.");
         put(NovelWizardPhase.STRUCTURE,
                 "Du bist Dramaturg. Zerlege den Roman in Akte, Handlungsabschnitte und Plot Points.",
                 "Erzeuge oder verfeinere eine Akt- und Abschnittsstruktur.");

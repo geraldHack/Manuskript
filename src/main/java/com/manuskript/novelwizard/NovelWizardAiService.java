@@ -27,6 +27,59 @@ public class NovelWizardAiService {
         return nextTurn(session, existingContext, 0);
     }
 
+    /**
+     * Erzeugt aus dem Figuren-Interview strukturierte Character Sheets fuer characters.txt.
+     */
+    public CompletableFuture<String> generateCharacterSheets(NovelWizardSession session, String existingContext,
+                                                                String phaseDialogue) {
+        String systemPrompt = """
+                Du bist Figurenentwickler. Erstelle aus dem Figuren-Interview strukturierte Character Sheets auf Deutsch.
+                Antworte ausschliesslich in diesem Format:
+                <CONTENT>
+                Markdown-Inhalt
+                </CONTENT>
+                <SUMMARY>Kurze Einordnung (1–3 Saetze)</SUMMARY>
+                
+                VERBOTEN: Rueckfragen, Interview-Format, **Frage:**/**Antwort:**-Listen, Stichpunkt-Antworten aus dem Dialog.
+                
+                Pro wichtiger Figur genau EIN Sheet mit Ueberschrift ## Vorname Nachname (vollstaendiger Name) und diesen Feldern:
+                **Rolle:** (Protagonist, Antagonist, …)
+                **Alter / Aussehen:**
+                **Persoenlichkeit:**
+                **Hintergrund:**
+                **Ziele:**
+                **Schwaechen / innere Konflikte:**
+                **Beziehungen:** (mit konkreten Namen anderer Figuren)
+                **Character Arc:**
+                """;
+        StringBuilder user = new StringBuilder();
+        user.append("Erstelle jetzt die vollstaendigen Character Sheets aus dem Figuren-Interview.\n\n");
+        if (existingContext != null && !existingContext.isBlank()) {
+            user.append("<EXISTING_CONTEXT>\n").append(existingContext).append("\n</EXISTING_CONTEXT>\n\n");
+        }
+        if (session.getProjectSummary() != null && !session.getProjectSummary().isBlank()) {
+            user.append("<PROJECT_SUMMARY>\n").append(session.getProjectSummary()).append("\n</PROJECT_SUMMARY>\n\n");
+        }
+        if (phaseDialogue != null && !phaseDialogue.isBlank()) {
+            user.append("<FIGUREN_INTERVIEW>\n").append(phaseDialogue).append("\n</FIGUREN_INTERVIEW>\n\n");
+        }
+        String corrections = collectAuthorCorrections(session);
+        if (!corrections.isBlank()) {
+            user.append("<AUTOR_KORREKTUREN>\n").append(corrections).append("\n</AUTOR_KORREKTUREN>\n\n");
+        }
+        user.append("<COLLECTED>\n");
+        for (Map.Entry<String, String> entry : session.getCollected().entrySet()) {
+            user.append(entry.getKey()).append(": ").append(entry.getValue()).append("\n");
+        }
+        user.append("</COLLECTED>\n");
+        return backend.chat(systemPrompt, user.toString(), maxTokensForPhase(NovelWizardPhase.SYNOPSIS))
+                .thenApply(raw -> {
+                    NovelWizardTurn turn = NovelWizardResponseParser.parse(raw, true);
+                    String content = turn.getContent();
+                    return content == null ? "" : content.trim();
+                });
+    }
+
     private CompletableFuture<NovelWizardTurn> nextTurn(NovelWizardSession session, String existingContext,
                                                          int attempt) {
         NovelWizardPhase phase = session.getCurrentPhase();
@@ -153,8 +206,9 @@ public class NovelWizardAiService {
                 sb.append("""
                         
                         Synopsis-Inhalt (ca. 800–1500 Woerter, durchgaengiger Fliesstext oder Abschnitte):
-                        Praemisse, Setting, Hauptfiguren, Konflikt, Eskalation, Wendepunkte, Aufloesung/Ende.
-                        Spoiler sind erwuenscht. Keine weiteren Plot-Fragen stellen.
+                        Praemisse, Setting, Konflikt, Eskalation, Wendepunkte, Aufloesung/Ende.
+                        Hauptfiguren nur kurz (Namen + je ein Satz Rolle) – keine ausfuehrlichen Character Sheets
+                        (die stehen in characters.txt). Spoiler sind erwuenscht. Keine Plot-Rueckfragen.
                         """);
             } else if (phase == NovelWizardPhase.STRUCTURE) {
                 sb.append("""
@@ -169,6 +223,14 @@ public class NovelWizardAiService {
                     .append("der aktuellen Phase vertiefen.\n")
                     .append("Autoren-Korrekturen in <AUTOR_KORREKTUREN> sind verbindlich und ueberschreiben fruehere KI-Annahmen "
                     + "in Fragen und Optionen.\n");
+        }
+        if (phase == NovelWizardPhase.BRAINSTORM) {
+            sb.append("""
+                    
+                    Brainstorm-Phase – Pflicht-Grunddaten ZUERST (explizit benennen, nicht nur in Hinweisen erwaehnen):
+                    Genre, Subgenre, Praemisse, Umfang (konkrete Wortzahl), Stil, Ton, Themen.
+                    Erst wenn alle geklaert sind: vertiefende Grundgeruest-Fragen. Keine Handlungs-/Quest-Details vorher.
+                    """);
         }
         if (phase == NovelWizardPhase.CHARACTERS) {
             sb.append("""
@@ -235,6 +297,11 @@ public class NovelWizardAiService {
             sb.append(entry.getKey()).append(": ").append(entry.getValue()).append("\n");
         }
         sb.append("</COLLECTED>\n");
+        if (phase == NovelWizardPhase.BRAINSTORM) {
+            sb.append("\n<FEHLENDE_GRUNDDATEN>\n");
+            sb.append(BrainstormGrunddaten.buildMissingAspectsInstruction(session.getChatHistory()));
+            sb.append("\n</FEHLENDE_GRUNDDATEN>\n");
+        }
         if (phase == NovelWizardPhase.CHARACTERS) {
             sb.append("""
                     

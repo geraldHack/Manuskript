@@ -103,7 +103,7 @@ public class WorldEditorMapper {
         switch (phase) {
             case BRAINSTORM -> persistBrainstorm(content);
             case WORLD -> appendSection(NovelManager.WORLDBUILDING_FILE, "Roman-Assistent: Welt", content);
-            case CHARACTERS -> appendSection(NovelManager.CHARACTERS_FILE, "Roman-Assistent: Figuren", content);
+            case CHARACTERS -> persistCharacterSheets(content);
             case PLOT -> appendSection(NovelManager.OUTLINE_FILE, "Roman-Assistent: Handlung", content);
             case STRUCTURE -> appendSection(AKTE_FILE, "Roman-Assistent: Akte", content);
             case SYNOPSIS -> appendSection(NovelManager.SYNOPSIS_FILE, "Roman-Assistent: Synopsis", content);
@@ -130,6 +130,57 @@ public class WorldEditorMapper {
             }
         }
         return false;
+    }
+
+    private static final String CHARACTER_SHEETS_HEADING = "Character Sheets";
+    private static final String LEGACY_CHARACTERS_HEADING = "Roman-Assistent: Figuren";
+
+    /**
+     * Schreibt strukturierte Character Sheets. Entfernt aeltere Interview-Bloecke aus der Figuren-Phase.
+     */
+    private void persistCharacterSheets(String content) throws IOException {
+        Path file = projectDirectory.resolve(NovelManager.CHARACTERS_FILE);
+        String existing = Files.exists(file) ? Files.readString(file, StandardCharsets.UTF_8) : "";
+        String withoutLegacy = removeSectionBody(existing, LEGACY_CHARACTERS_HEADING);
+        appendSectionToText(withoutLegacy, NovelManager.CHARACTERS_FILE, CHARACTER_SHEETS_HEADING, content);
+    }
+
+    private void appendSectionToText(String baseText, String fileName, String heading, String wizardContent)
+            throws IOException {
+        Path file = projectDirectory.resolve(fileName);
+        Files.createDirectories(file.getParent());
+        SectionParts parts = splitAroundSection(baseText, heading);
+        String manualInSection = extractManualLines(parts.sectionBody());
+        String mergedBody = buildMergedSectionBody(manualInSection, wizardContent.trim());
+        String block = "## " + heading + "\n\n" + mergedBody + "\n";
+
+        StringBuilder result = new StringBuilder();
+        if (!parts.before().isBlank()) {
+            result.append(parts.before().stripTrailing()).append("\n\n");
+        }
+        result.append(block.stripTrailing());
+        if (!parts.after().isBlank()) {
+            result.append("\n\n").append(parts.after().strip());
+        }
+        Files.writeString(file, result.toString().strip() + "\n", StandardCharsets.UTF_8);
+    }
+
+    private static String removeSectionBody(String fullText, String heading) {
+        SectionParts parts = splitAroundSection(fullText, heading);
+        if (parts.sectionBody().isBlank() && parts.before().equals(fullText == null ? "" : fullText)) {
+            return fullText == null ? "" : fullText;
+        }
+        StringBuilder result = new StringBuilder();
+        if (!parts.before().isBlank()) {
+            result.append(parts.before().stripTrailing());
+        }
+        if (!parts.after().isBlank()) {
+            if (!result.isEmpty()) {
+                result.append("\n\n");
+            }
+            result.append(parts.after().strip());
+        }
+        return result.toString().strip();
     }
 
     private void persistBrainstorm(String content) throws IOException {
@@ -236,6 +287,7 @@ public class WorldEditorMapper {
         return trimmed.startsWith("**Frage:**")
                 || trimmed.startsWith("- ")
                 || trimmed.startsWith("### ")
+                || trimmed.startsWith(BrainstormGrunddaten.KURZ_HEADING)
                 || trimmed.equals("---");
     }
 
@@ -313,7 +365,7 @@ public class WorldEditorMapper {
 
     private static Map<String, String> worldFiles() {
         Map<String, String> files = new LinkedHashMap<>();
-        files.put(NovelManager.CONTEXT_FILE, "Kontext");
+        files.put(NovelManager.CONTEXT_FILE, "Brainstorm");
         files.put(STYLE_FILE, "Schreibstil");
         files.put(NovelManager.WORLDBUILDING_FILE, "Worldbuilding");
         files.put(NovelManager.CHARACTERS_FILE, "Charaktere");

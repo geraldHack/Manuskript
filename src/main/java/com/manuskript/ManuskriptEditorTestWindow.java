@@ -83,18 +83,11 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
     private final MainController mainController;
     private final Preferences preferences = Preferences.userNodeForPackage(ManuskriptEditorTestWindow.class);
     private CustomStage stage;
+    private MdTextArea mdTextArea;
     private ManuskriptTextEditor editor;
     private Label statusLabel;
     private Label lblSelectionCount;
     private Label lblLanguageToolStatus;
-    private ManuskriptTextEditor.MarkedArea searchMarks;
-    private ManuskriptTextEditor.MarkedArea searchCurrentMark;
-    private TextField searchField;
-    private TextField replaceField;
-    private CheckBox regexCheckbox;
-    private List<ManuskriptTextEditor.SearchMatch> cachedSearchMatches = List.of();
-    private String lastSearchCacheKey = null;
-    private int currentSearchMatchIndex = -1;
     private boolean editingShortcutsInstalled;
     private LanguageToolDictionary languageToolDictionary;
     private LanguageToolService languageToolService;
@@ -169,7 +162,34 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         stage.setMinWidth(900);
         stage.setMinHeight(650);
 
-        editor = new ManuskriptTextEditor();
+        themeIndex = Preferences.userNodeForPackage(MainController.class).getInt("main_window_theme", 0);
+
+        mdTextArea = new MdTextArea(MdTextAreaOptions.builder()
+                .fontFamily(preferences.get(PREF_FONT_FAMILY, "Segoe UI"))
+                .fontSize(preferences.getDouble(PREF_FONT_SIZE, 16.0))
+                .lineSpacing(loadInitialLineSpacing())
+                .paragraphSpacing(loadInitialParagraphSpacing())
+                .justifyText(preferences.getBoolean(PREF_JUSTIFY_TEXT, false))
+                .hideMarkup(preferences.getBoolean(PREF_HIDE_MARKUP, true))
+                .showLineNumbers(preferences.getBoolean(PREF_SHOW_LINE_NUMBERS, true))
+                .themeIndex(themeIndex)
+                .enableUndoRedo(true)
+                .enableFontControls(true)
+                .enableJustify(true)
+                .enableBasicFormatting(true)
+                .enableSearch(true)
+                .enableReplace(true)
+                .enableHideMarkupToggle(true)
+                .onFontFamilyChanged(value -> preferences.put(PREF_FONT_FAMILY, value))
+                .onFontSizeChanged(value -> preferences.putDouble(PREF_FONT_SIZE, value))
+                .onLineSpacingChanged(value -> preferences.putDouble(PREF_LINE_SPACING, value))
+                .onParagraphSpacingChanged(value -> preferences.putDouble(PREF_PARAGRAPH_SPACING, value))
+                .onJustifyChanged(value -> preferences.putBoolean(PREF_JUSTIFY_TEXT, value))
+                .onHideMarkupChanged(value -> preferences.putBoolean(PREF_HIDE_MARKUP, value))
+                .onSearchStatus(message -> updateStatus(message))
+                .build());
+        editor = mdTextArea.getEditor();
+
         languageToolDictionary = new LanguageToolDictionary();
         languageToolService = new LanguageToolService();
         languageToolAutoEnabled = preferences.getBoolean(PREF_LT_AUTO, false);
@@ -179,12 +199,6 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         editor.setContextMenuRewriteActions(
                 new ChapterRewriteContextActions(this, stage, () -> themeIndex, preferences, loadedDocxFile),
                 themeIndex);
-        editor.setFontFamilyForAll(preferences.get(PREF_FONT_FAMILY, "Segoe UI"));
-        editor.setFontSizeForAll(preferences.getDouble(PREF_FONT_SIZE, 16.0));
-        editor.setLineSpacing(loadInitialLineSpacing());
-        editor.setParagraphSpacing(loadInitialParagraphSpacing());
-        editor.setJustifyText(preferences.getBoolean(PREF_JUSTIFY_TEXT, false));
-        editor.setQuoteStyleIndex(Preferences.userNodeForPackage(EditorWindow.class).getInt("quoteStyle", 0));
         captureOriginalContent();
         editor.setOnTextChanged(text -> {
             if (!suppressDirty) {
@@ -192,24 +206,19 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
             }
             scheduleLanguageToolCheckDebounced();
         });
-        editor.registerDefaultFormatAutoRules();
-        boolean hideMarkup = preferences.getBoolean(PREF_HIDE_MARKUP, true);
-        editor.setRenderMarkupHidden(hideMarkup);
-        editor.setShowLineNumbers(preferences.getBoolean(PREF_SHOW_LINE_NUMBERS, true));
-        themeIndex = Preferences.userNodeForPackage(MainController.class).getInt("main_window_theme", 0);
-        editor.applyTheme(themeIndex);
+        editor.setQuoteStyleIndex(Preferences.userNodeForPackage(EditorWindow.class).getInt("quoteStyle", 0));
 
         BorderPane root = new BorderPane();
         initializeStatusLabel();
         initializeSelectionLabel();
-        root.setTop(createToolbar());
+        root.setTop(createHostToolbar());
         root.setCenter(createEditorWithSidebar());
         root.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
             Object targetObj = event.getTarget();
             if (!(targetObj instanceof Node target)) {
                 return;
             }
-            if (isDescendantOf(target, editor)) {
+            if (isDescendantOf(target, mdTextArea.getEditor())) {
                 Platform.runLater(editor::requestInputFocus);
             }
         });
@@ -222,6 +231,7 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         stage.setSceneWithTitleBar(scene);
         stage.setFullTheme(themeIndex);
         applyThemeToNode(root, themeIndex);
+        mdTextArea.applyTheme(themeIndex);
         stage.setOnShown(event -> {
             applyChapterSidebarTheme();
             stage.requestFocus();
@@ -369,7 +379,7 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         lektoratPanelContainer.setPrefWidth(320);
         lektoratPanelContainer.setPadding(new Insets(10));
 
-        mainSplitPane = new SplitPane(editor);
+        mainSplitPane = new SplitPane(mdTextArea);
         lektoratPanel = new ChapterLektoratPanel(
                 lektoratPanelContainer, mainSplitPane, () -> themeIndex, this::applyThemeToNode);
         HBox.setHgrow(mainSplitPane, Priority.ALWAYS);
@@ -539,103 +549,7 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         }
     }
 
-    private VBox createToolbar() {
-        ComboBox<String> fontFamily = new ComboBox<>();
-        fontFamily.getItems().addAll(Font.getFamilies());
-        fontFamily.setValue(preferences.get(PREF_FONT_FAMILY, "Segoe UI"));
-        fontFamily.setMinWidth(180);
-        fontFamily.setPrefWidth(180);
-        fontFamily.setMaxWidth(180);
-        fontFamily.valueProperty().addListener((obs, oldValue, newValue) -> {
-            editor.setFontFamilyForAll(newValue);
-            preferences.put(PREF_FONT_FAMILY, newValue);
-        });
-
-        ComboBox<Double> fontSize = new ComboBox<>();
-        fontSize.getItems().addAll(10.0, 11.0, 12.0, 14.0, 16.0, 18.0, 20.0, 24.0, 28.0, 32.0);
-        fontSize.setValue(preferences.getDouble(PREF_FONT_SIZE, 16.0));
-        fontSize.setPrefWidth(80);
-        fontSize.valueProperty().addListener((obs, oldValue, newValue) -> {
-            if (newValue != null) {
-                editor.setFontSizeForAll(newValue);
-                preferences.putDouble(PREF_FONT_SIZE, newValue);
-            }
-        });
-
-        ComboBox<Double> lineSpacing = new ComboBox<>();
-        lineSpacing.getItems().addAll(1.0, 1.15, 1.2, 1.35, 1.5, 1.55, 1.8, 2.0, 2.5);
-        double initialLineSpacing = loadInitialLineSpacing();
-        if (!lineSpacing.getItems().contains(initialLineSpacing)) {
-            lineSpacing.getItems().add(initialLineSpacing);
-            lineSpacing.getItems().sort(Double::compare);
-        }
-        lineSpacing.setValue(initialLineSpacing);
-        lineSpacing.setPrefWidth(72);
-        lineSpacing.setTooltip(new Tooltip("Zeilenabstand (Faktor zur Schriftgröße)"));
-        lineSpacing.valueProperty().addListener((obs, oldValue, newValue) -> {
-            if (newValue != null) {
-                editor.setLineSpacing(newValue);
-                preferences.putDouble(PREF_LINE_SPACING, newValue);
-            }
-        });
-
-        ComboBox<Integer> paragraphSpacing = new ComboBox<>();
-        paragraphSpacing.getItems().addAll(0, 4, 6, 8, 10, 12, 16, 20, 24, 32);
-        int initialParagraphSpacing = (int) Math.round(loadInitialParagraphSpacing());
-        if (!paragraphSpacing.getItems().contains(initialParagraphSpacing)) {
-            paragraphSpacing.getItems().add(initialParagraphSpacing);
-            paragraphSpacing.getItems().sort(Integer::compare);
-        }
-        paragraphSpacing.setValue(initialParagraphSpacing);
-        paragraphSpacing.setPrefWidth(64);
-        paragraphSpacing.setTooltip(new Tooltip(
-                "Mindesthöhe von Leerzeilen im WYSIWYG-Modus (Markdown ausblenden)"));
-        paragraphSpacing.valueProperty().addListener((obs, oldValue, newValue) -> {
-            if (newValue != null) {
-                editor.setParagraphSpacing(newValue);
-                preferences.putDouble(PREF_PARAGRAPH_SPACING, newValue);
-            }
-        });
-
-        Button undo = new Button("Rückgängig");
-        undo.setTooltip(new Tooltip("Rückgängig (Strg+Z)"));
-        undo.setOnAction(e -> {
-            editor.undo();
-            editor.requestInputFocus();
-        });
-
-        Button redo = new Button("Wiederholen");
-        redo.setTooltip(new Tooltip("Wiederholen (Strg+Y)"));
-        redo.setOnAction(e -> {
-            editor.redo();
-            editor.requestInputFocus();
-        });
-
-        Button fontLarger = toolbarButton("A+", "Schriftgröße erhöhen", () -> {
-            fontSize.setValue(Math.min(96, fontSize.getValue() + 1));
-            editor.requestInputFocus();
-        });
-        Button fontSmaller = toolbarButton("A-", "Schriftgröße verringern", () -> {
-            fontSize.setValue(Math.max(6, fontSize.getValue() - 1));
-            editor.requestInputFocus();
-        });
-
-        Button bold = toolbarButton("B", "Fett (Strg+B)", () -> {
-            editor.toggleBold();
-            editor.requestInputFocus();
-        });
-        Button italic = toolbarButton("I", "Kursiv (Strg+I)", () -> {
-            editor.toggleItalic();
-            editor.requestInputFocus();
-        });
-        Button underline = toolbarButton("U", "Unterstrichen (Strg+U)", () -> {
-            editor.toggleUnderline();
-            editor.requestInputFocus();
-        });
-        Button strikethrough = toolbarButton("S", "Durchgestrichen (~~text~~)", () -> {
-            editor.toggleStrikethrough();
-            editor.requestInputFocus();
-        });
+    private VBox createHostToolbar() {
         Button mark = toolbarButton("Mark", "Hervorheben (<mark>)", () -> {
             editor.toggleMark();
             editor.requestInputFocus();
@@ -692,46 +606,6 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         horizontalRule.setOnAction(e -> {
             editor.insertHorizontalRule();
             editor.requestInputFocus();
-        });
-
-        searchField = new TextField();
-        searchField.setPromptText("Suchen");
-        searchField.setPrefWidth(160);
-        searchField.setTooltip(new Tooltip("Suchen (Strg+F, Enter = weiter, F3 = weiter)"));
-
-        replaceField = new TextField();
-        replaceField.setPromptText("Ersetzen");
-        replaceField.setPrefWidth(140);
-        regexCheckbox = new CheckBox("Regex");
-        setupSearchFieldShortcuts();
-
-        Button find = new Button("Weiter");
-        find.setTooltip(new Tooltip("Nächster Treffer (Enter / F3)"));
-        find.setOnAction(e -> findNextMatch());
-
-        Button findPrevious = new Button("Zurück");
-        findPrevious.setTooltip(new Tooltip("Vorheriger Treffer (Umschalt+Enter / Umschalt+F3)"));
-        findPrevious.setOnAction(e -> findPreviousMatch());
-
-        Button replaceOne = new Button("Ersetzen");
-        replaceOne.setTooltip(new Tooltip("Aktuellen Treffer ersetzen und weiter (Strg+H)"));
-        replaceOne.setOnAction(e -> replaceNextMatch());
-
-        Button replaceAll = new Button("Alle ersetzen");
-        replaceAll.setOnAction(e -> {
-            int count = editor.replaceAll(searchField.getText(), replaceField.getText(), regexCheckbox.isSelected(), true);
-            invalidateSearchCache();
-            updateStatus(count + " Treffer ersetzt");
-        });
-
-        CheckBox hideMarkup = new CheckBox("Markdown ausblenden");
-        hideMarkup.setSelected(preferences.getBoolean(PREF_HIDE_MARKUP, true));
-        hideMarkup.setTooltip(new Tooltip(
-                "Markdown ausblenden: Syntax verstecken, WYSIWYG inkl. Bild-Vorschau. "
-                        + "Leerzeilen und Zeilenumbrüche bleiben sichtbar. Aus = Markdown-Quelltext"));
-        hideMarkup.selectedProperty().addListener((obs, oldValue, newValue) -> {
-            editor.setRenderMarkupHidden(newValue);
-            preferences.putBoolean(PREF_HIDE_MARKUP, newValue);
         });
 
         CheckBox showLineNumbers = new CheckBox("Zeilennummern");
@@ -818,48 +692,13 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         statusRow.getChildren().addAll(statusSpacer, saveChapter, lblSelectionCount, statusLabel);
         statusRow.setAlignment(Pos.CENTER_RIGHT);
 
-        HBox fontRow = new HBox(6,
-                undo, redo,
-                toolbarSeparator(),
-                fontSmaller, fontLarger,
-                new Label("Font:"), fontFamily,
-                new Label("Größe:"), fontSize,
-                new Label("Zeilenabstand:"), lineSpacing,
-                new Label("Absatzabstand:"), paragraphSpacing,
-                hideMarkup, showLineNumbers);
-        fontRow.setAlignment(Pos.CENTER_LEFT);
-
-        CheckBox justifyText = new CheckBox("Blocksatz");
-        justifyText.setSelected(preferences.getBoolean(PREF_JUSTIFY_TEXT, false));
-        justifyText.setTooltip(new Tooltip("Text im Blocksatz ausrichten (letzte Zeile eines Absatzes linksbündig)"));
-        justifyText.selectedProperty().addListener((obs, oldValue, newValue) -> {
-            editor.setJustifyText(newValue);
-            preferences.putBoolean(PREF_JUSTIFY_TEXT, newValue);
-        });
-
         FlowPane formatPane = new FlowPane(6, 4);
         formatPane.setAlignment(Pos.CENTER_LEFT);
         formatPane.getChildren().addAll(
-                justifyText,
-                bold, italic, underline, strikethrough, mark, blockquote, center,
+                showLineNumbers,
+                mark, blockquote, center,
                 superscript, subscript,
                 big, small, colorMenu, lineBreak, horizontalRule);
-
-        searchField.setMinWidth(80);
-        searchField.setPrefWidth(140);
-        searchField.setMaxWidth(Double.MAX_VALUE);
-        replaceField.setMinWidth(80);
-        replaceField.setPrefWidth(120);
-        replaceField.setMaxWidth(Double.MAX_VALUE);
-        HBox searchInputs = new HBox(6, searchField, replaceField);
-        HBox.setHgrow(searchField, Priority.ALWAYS);
-        HBox.setHgrow(replaceField, Priority.ALWAYS);
-        searchInputs.setAlignment(Pos.CENTER_LEFT);
-
-        FlowPane searchActions = new FlowPane(6, 4, regexCheckbox, find, findPrevious, replaceOne, replaceAll);
-        searchActions.setAlignment(Pos.CENTER_LEFT);
-
-        VBox searchBlock = new VBox(4, searchInputs, searchActions);
 
         FlowPane toolsPane = new FlowPane(6, 4);
         toolsPane.setAlignment(Pos.CENTER_LEFT);
@@ -877,11 +716,10 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
                 sceneOutline, textAnalysis, onlineLektorat, macrosBtn, copySudowrite,
                 insertImage, editImage, deleteImage, loadSelectedChapter);
 
-        VBox toolbar = new VBox(8, statusRow, fontRow, formatPane, searchBlock, toolsPane);
+        VBox toolbar = new VBox(8, statusRow, formatPane, toolsPane);
         toolbar.setPadding(new Insets(8));
         var wrapLength = Bindings.max(220, toolbar.widthProperty().subtract(16));
         formatPane.prefWrapLengthProperty().bind(wrapLength);
-        searchActions.prefWrapLengthProperty().bind(wrapLength);
         toolsPane.prefWrapLengthProperty().bind(wrapLength);
         applyThemeToNode(toolbar, themeIndex);
         return toolbar;
@@ -892,12 +730,6 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         button.setTooltip(new Tooltip(tooltip));
         button.setOnAction(e -> action.run());
         return button;
-    }
-
-    private static Separator toolbarSeparator() {
-        Separator separator = new Separator(Orientation.VERTICAL);
-        separator.setPrefHeight(26);
-        return separator;
     }
 
     public void openChapter(MainController.PrototypeChapterContent chapter, File docxFile) {
@@ -915,48 +747,6 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
             loadSelectedChapterFromMainWindow();
             scheduleInitialLanguageToolCheck();
         });
-    }
-
-    private void focusReplaceField() {
-        if (searchField.getText() == null || searchField.getText().isBlank()) {
-            if (editor.hasTextSelection()) {
-                searchField.setText(editor.getSelectedText());
-            }
-        }
-        searchField.requestFocus();
-        replaceField.requestFocus();
-        replaceField.selectAll();
-    }
-
-    private void replaceNextMatch() {
-        String query = searchField.getText();
-        if (query == null || query.isBlank()) {
-            focusSearchField();
-            updateStatus("Suchbegriff eingeben", true);
-            return;
-        }
-        refreshSearchCacheIfNeeded();
-        if (cachedSearchMatches.isEmpty()) {
-            updateStatus("Keine Treffer", true);
-            return;
-        }
-        if (currentSearchMatchIndex < 0) {
-            currentSearchMatchIndex = 0;
-        }
-        int index = Math.min(currentSearchMatchIndex, cachedSearchMatches.size() - 1);
-        String replacement = replaceField.getText() == null ? "" : replaceField.getText();
-        editor.replaceOne(query, replacement, regexCheckbox.isSelected(), true, index);
-        lastSearchCacheKey = null;
-        currentSearchMatchIndex = -1;
-        refreshSearchCacheIfNeeded();
-        if (cachedSearchMatches.isEmpty()) {
-            clearSearchMarks();
-            updateStatus("Ersetzt – keine weiteren Treffer");
-            return;
-        }
-        int nextIndex = Math.min(index, cachedSearchMatches.size() - 1);
-        goToSearchMatch(nextIndex);
-        updateStatus("Ersetzt, Treffer " + (nextIndex + 1) + " von " + cachedSearchMatches.size());
     }
 
     private void editImageAtCaret() {
@@ -1014,173 +804,6 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         }
     }
 
-    private void setupSearchFieldShortcuts() {
-        searchField.setOnAction(event -> {
-            editor.suppressEnterKey(4);
-            findNextMatch();
-        });
-        searchField.addEventFilter(KeyEvent.KEY_TYPED, event -> {
-            String character = event.getCharacter();
-            if (character != null && !character.isEmpty() && character.charAt(0) < 32) {
-                event.consume();
-            }
-        });
-        searchField.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
-            if (event.isConsumed()) {
-                return;
-            }
-            if (ManuskriptTextEditor.isEditingShortcutKey(event) && event.getCode() == KeyCode.F) {
-                searchField.selectAll();
-                event.consume();
-                return;
-            }
-            if (event.getCode() == KeyCode.ESCAPE) {
-                editor.requestInputFocus();
-                event.consume();
-                return;
-            }
-            if (event.getCode() == KeyCode.ENTER && event.isShiftDown()
-                    && !ManuskriptTextEditor.isEditingShortcutKey(event)) {
-                editor.suppressEnterKey(4);
-                event.consume();
-                findPreviousMatch();
-            }
-        });
-        searchField.textProperty().addListener((obs, oldValue, newValue) -> {
-            invalidateSearchCache();
-            if (newValue == null || newValue.isBlank()) {
-                clearSearchMarks();
-            }
-        });
-        regexCheckbox.selectedProperty().addListener((obs, oldValue, newValue) -> {
-            invalidateSearchCache();
-            if (searchField.getText() == null || searchField.getText().isBlank()) {
-                clearSearchMarks();
-            }
-        });
-    }
-
-    private void focusSearchField() {
-        if (editor.hasTextSelection()) {
-            searchField.setText(editor.getSelectedText());
-        }
-        searchField.requestFocus();
-        searchField.selectAll();
-    }
-
-    private void invalidateSearchCache() {
-        lastSearchCacheKey = null;
-        currentSearchMatchIndex = -1;
-    }
-
-    private String searchCacheKey(String query, boolean regex) {
-        return query + "\0" + regex;
-    }
-
-    private void refreshSearchCacheIfNeeded() {
-        String query = searchField.getText();
-        if (query == null) {
-            query = "";
-        }
-        boolean regex = regexCheckbox.isSelected();
-        String key = searchCacheKey(query, regex);
-        if (key.equals(lastSearchCacheKey)) {
-            return;
-        }
-        lastSearchCacheKey = key;
-        currentSearchMatchIndex = -1;
-        if (query.isBlank()) {
-            clearSearchMarks();
-            cachedSearchMatches = List.of();
-            return;
-        }
-        cachedSearchMatches = editor.searchAll(query, regex, true);
-        markSearchResults(query, regex);
-    }
-
-    private void markSearchResults(String query, boolean regex) {
-        clearSearchMarks();
-        if (cachedSearchMatches.isEmpty()) {
-            return;
-        }
-        searchMarks = editor.newMarkedArea();
-        searchMarks.markType(ManuskriptTextEditor.MarkedArea.Type.HIGHLIGHT)
-                .markColor(ManuskriptTextEditor.MarkedArea.SEARCH_MATCH_COLOR);
-        searchMarks.searchAll(query, regex);
-    }
-
-    private void markCurrentSearchMatch(int index) {
-        if (searchCurrentMark != null) {
-            searchCurrentMark.clear();
-            searchCurrentMark = null;
-        }
-        if (index < 0 || index >= cachedSearchMatches.size()) {
-            return;
-        }
-        ManuskriptTextEditor.SearchMatch match = cachedSearchMatches.get(index);
-        searchCurrentMark = editor.newMarkedArea();
-        searchCurrentMark.markType(ManuskriptTextEditor.MarkedArea.Type.HIGHLIGHT)
-                .markColor(ManuskriptTextEditor.MarkedArea.SEARCH_CURRENT_MATCH_COLOR)
-                .addRange(match.start(), match.end());
-    }
-
-    private void clearSearchMarks() {
-        if (searchCurrentMark != null) {
-            searchCurrentMark.clear();
-            searchCurrentMark = null;
-        }
-        if (searchMarks != null) {
-            searchMarks.clear();
-            searchMarks = null;
-        }
-    }
-
-    private void findNextMatch() {
-        String query = searchField.getText();
-        if (query == null || query.isBlank()) {
-            focusSearchField();
-            updateStatus("Suchbegriff eingeben", true);
-            return;
-        }
-        refreshSearchCacheIfNeeded();
-        if (cachedSearchMatches.isEmpty()) {
-            clearSearchMarks();
-            updateStatus("Keine Treffer", true);
-            return;
-        }
-        int nextIndex = currentSearchMatchIndex < 0
-                ? 0
-                : (currentSearchMatchIndex + 1) % cachedSearchMatches.size();
-        goToSearchMatch(nextIndex);
-    }
-
-    private void findPreviousMatch() {
-        String query = searchField.getText();
-        if (query == null || query.isBlank()) {
-            focusSearchField();
-            updateStatus("Suchbegriff eingeben", true);
-            return;
-        }
-        refreshSearchCacheIfNeeded();
-        if (cachedSearchMatches.isEmpty()) {
-            clearSearchMarks();
-            updateStatus("Keine Treffer", true);
-            return;
-        }
-        int previousIndex = currentSearchMatchIndex <= 0
-                ? cachedSearchMatches.size() - 1
-                : currentSearchMatchIndex - 1;
-        goToSearchMatch(previousIndex);
-    }
-
-    private void goToSearchMatch(int index) {
-        ManuskriptTextEditor.SearchMatch match = cachedSearchMatches.get(index);
-        currentSearchMatchIndex = index;
-        markCurrentSearchMatch(index);
-        editor.revealMatchAt(match.start(), match.end());
-        updateStatus("Treffer " + (index + 1) + " von " + cachedSearchMatches.size());
-    }
-
     private void ensureEditingShortcutsInstalled() {
         if (editingShortcutsInstalled) {
             return;
@@ -1202,26 +825,15 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         bindEditingAccelerator(accelerators, "Ctrl+I", editor::toggleItalic, true);
         bindEditingAccelerator(accelerators, "Shortcut+U", editor::toggleUnderline, true);
         bindEditingAccelerator(accelerators, "Ctrl+U", editor::toggleUnderline, true);
-        bindEditingAccelerator(accelerators, "Shortcut+F", this::focusSearchField, false);
-        bindEditingAccelerator(accelerators, "Ctrl+F", this::focusSearchField, false);
+        bindEditingAccelerator(accelerators, "Shortcut+F", mdTextArea::focusSearchField, false);
+        bindEditingAccelerator(accelerators, "Ctrl+F", mdTextArea::focusSearchField, false);
         bindEditingAccelerator(accelerators, "Shortcut+S", this::saveLoadedChapter, true);
         bindEditingAccelerator(accelerators, "Ctrl+S", this::saveLoadedChapter, true);
-        bindEditingAccelerator(accelerators, "Shortcut+H", this::replaceNextMatch, false);
-        bindEditingAccelerator(accelerators, "Ctrl+H", this::replaceNextMatch, false);
+        bindEditingAccelerator(accelerators, "Shortcut+H", mdTextArea::replaceNextMatch, false);
+        bindEditingAccelerator(accelerators, "Ctrl+H", mdTextArea::replaceNextMatch, false);
 
-        stage.addEventFilter(KeyEvent.KEY_PRESSED, this::handleSearchNavigationKey);
+        stage.addEventFilter(KeyEvent.KEY_PRESSED, mdTextArea::handleSearchNavigationKey);
         editingShortcutsInstalled = true;
-    }
-
-    private void handleSearchNavigationKey(KeyEvent event) {
-        if (event.getCode() == KeyCode.F3) {
-            event.consume();
-            if (event.isShiftDown()) {
-                findPreviousMatch();
-            } else {
-                findNextMatch();
-            }
-        }
     }
 
     private void bindEditingAccelerator(javafx.collections.ObservableMap<KeyCombination, Runnable> accelerators,
@@ -1579,8 +1191,6 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
     }
 
     private void clearTransientMarks() {
-        clearSearchMarks();
-        invalidateSearchCache();
         cancelLanguageToolChecks();
         languageToolHasBeenChecked = false;
         editor.clearLanguageToolMatches();

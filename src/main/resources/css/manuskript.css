@@ -260,6 +260,22 @@
     -fx-border-width: 1px;
 }
 
+/* Wiederverwendbare Markdown-Textfläche (MdTextArea) */
+.md-text-area {
+    -fx-spacing: 0;
+}
+
+.md-text-area-toolbar {
+    -fx-spacing: 6;
+    -fx-padding: 6 8 6 8;
+    -fx-border-color: #d0d0d0;
+    -fx-border-width: 0 0 1 0;
+}
+
+.theme-dark .md-text-area-toolbar {
+    -fx-border-color: #444444;
+}
+
 /* ========================================
    FONT-SIZE-LABELS - Für Toolbar-Labels (Textgröße, Formatierung, Zeilenabstand)
    ======================================== */
@@ -11127,13 +11143,24 @@
     -fx-border-color: derive(-fx-accent, 40%);
 }
 
-.novel-wizard-phase-chip-current {
-    -fx-font-size: 12px;
+.novel-wizard-phase-chip-in-progress {
+    -fx-background-color: derive(-fx-accent, 70%);
+    -fx-border-color: derive(-fx-accent, 30%);
+    -fx-border-width: 2;
     -fx-font-weight: bold;
-    -fx-background-color: derive(-fx-accent, 45%);
-    -fx-border-color: derive(-fx-accent, -5%);
-    -fx-text-fill: derive(-fx-accent, -85%);
+    -fx-text-fill: white;
     -fx-opacity: 1;
+}
+
+.novel-wizard-phase-chip-current {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-background-color: -fx-accent;
+    -fx-border-color: derive(-fx-accent, -15%);
+    -fx-border-width: 2;
+    -fx-text-fill: white;
+    -fx-opacity: 1;
+    -fx-effect: dropshadow(gaussian, derive(-fx-accent, -30%), 6, 0.35, 0, 1);
 }
 
 .novel-wizard-status {
@@ -11181,30 +11208,38 @@
 }
 
 .novel-wizard-question-box .label.novel-wizard-question,
+.novel-wizard-question-box .text.novel-wizard-question,
 .novel-wizard-question-box .novel-wizard-question {
     -fx-font-size: 16px;
     -fx-font-weight: bold;
-    -fx-wrap-text: true;
-    -fx-alignment: top-left;
-    -fx-text-alignment: left;
-    -fx-max-width: infinity;
-    -fx-min-width: 0;
+    -fx-fill: -fx-text-base-color;
 }
 
 .weiss-theme .novel-wizard-question-box .label.novel-wizard-question,
+.weiss-theme .novel-wizard-question-box .text.novel-wizard-question,
 .theme-dark .novel-wizard-question-box .label.novel-wizard-question,
+.theme-dark .novel-wizard-question-box .text.novel-wizard-question,
 .pastell-theme .novel-wizard-question-box .label.novel-wizard-question,
+.pastell-theme .novel-wizard-question-box .text.novel-wizard-question,
 .theme-dark.blau-theme .novel-wizard-question-box .label.novel-wizard-question,
+.theme-dark.blau-theme .novel-wizard-question-box .text.novel-wizard-question,
 .theme-dark.gruen-theme .novel-wizard-question-box .label.novel-wizard-question,
-.theme-dark.lila-theme .novel-wizard-question-box .label.novel-wizard-question {
+.theme-dark.gruen-theme .novel-wizard-question-box .text.novel-wizard-question,
+.theme-dark.lila-theme .novel-wizard-question-box .label.novel-wizard-question,
+.theme-dark.lila-theme .novel-wizard-question-box .text.novel-wizard-question {
     -fx-font-weight: bold;
 }
 
-.novel-wizard-hint {
-    -fx-font-size: 12px;
+.novel-wizard-hint-box {
     -fx-opacity: 0.8;
-    -fx-wrap-text: true;
     -fx-padding: 0 0 4 0;
+}
+
+.novel-wizard-hint.label,
+.novel-wizard-hint.text,
+.text.novel-wizard-hint {
+    -fx-font-size: 12px;
+    -fx-fill: -fx-text-base-color;
 }
 
 .novel-wizard-section-label {

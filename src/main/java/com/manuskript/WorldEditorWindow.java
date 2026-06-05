@@ -23,22 +23,24 @@ import java.util.*;
 
 /**
  * Welt-Editor: Verwaltung von Projekt-Kontextdateien (context, style, worldbuilding, characters, outline, akte, synopsis, chapter).
- * Jede Datei hat einen Tab mit TextArea für manuelle Editierung und KI-Button für automatische Generierung.
+ * Jede Datei hat einen Tab mit {@link MdTextArea} für manuelle Editierung und KI-Button für automatische Generierung.
  */
 public class WorldEditorWindow {
 
     private static final Logger logger = LoggerFactory.getLogger(WorldEditorWindow.class);
 
     private CustomStage stage;
+    private TabPane tabPane;
     private final Window owner;
     private final String projectDirectory;
     private final MainController mainController;
-    private final Map<String, TextArea> fileToTextArea = new HashMap<>();
+    private final Map<String, MdTextArea> fileToTextArea = new HashMap<>();
     private final Map<String, Button> fileToAiButton = new HashMap<>();
     private final Map<String, Button> fileToSaveButton = new HashMap<>();
     private Label statusLabel;
     private AIBackend aiBackend;
     private boolean suppressAutoSave = false;
+    private int themeIndex;
 
     private static final String[] FILES = {
         "context.txt",
@@ -52,7 +54,7 @@ public class WorldEditorWindow {
     };
 
     private static final String[] FILE_LABELS = {
-        "Kontext",
+        "Brainstorm",
         "Schreibstil",
         "Worldbuilding",
         "Charaktere",
@@ -115,6 +117,7 @@ public class WorldEditorWindow {
         setupWorldEditorWindowPersistence(worldPrefs);
 
         int theme = java.util.prefs.Preferences.userNodeForPackage(MainController.class).getInt("main_window_theme", 0);
+        this.themeIndex = theme;
 
         // Statuszeile oben rechts
         statusLabel = new Label("Bereit");
@@ -123,7 +126,7 @@ public class WorldEditorWindow {
         statusBox.setAlignment(Pos.CENTER_RIGHT);
         statusBox.setPadding(new Insets(10, 15, 10, 10));
 
-        TabPane tabPane = new TabPane();
+        tabPane = new TabPane();
         tabPane.getStyleClass().add("tab-pane");
         tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
 
@@ -131,9 +134,20 @@ public class WorldEditorWindow {
             String filename = FILES[i];
             String label = FILE_LABELS[i];
             Tab tab = new Tab(label);
+            tab.setUserData(filename);
             tab.setContent(createTabContent(filename));
             tabPane.getTabs().add(tab);
         }
+
+        tabPane.getSelectionModel().selectedItemProperty().addListener((obs, oldTab, newTab) -> {
+            updateTabEditorInteractivity(oldTab, newTab);
+            if (newTab != null && newTab.getUserData() instanceof String filename) {
+                MdTextArea area = fileToTextArea.get(filename);
+                if (area != null) {
+                    Platform.runLater(area::requestFocus);
+                }
+            }
+        });
 
         VBox root = new VBox();
         root.getStyleClass().addAll(getThemeStyleClasses(theme));
@@ -146,6 +160,16 @@ public class WorldEditorWindow {
         stage.setTitleBarTheme(theme);
         stage.setSceneWithTitleBar(scene);
         stage.setFullTheme(theme);
+        stage.setOnShown(event -> {
+            updateTabEditorInteractivity(null, tabPane.getSelectionModel().getSelectedItem());
+            Tab selected = tabPane.getSelectionModel().getSelectedItem();
+            if (selected != null && selected.getUserData() instanceof String filename) {
+                MdTextArea area = fileToTextArea.get(filename);
+                if (area != null) {
+                    Platform.runLater(area::requestFocus);
+                }
+            }
+        });
 
         // Window-Handler: Speichern beim Schließen
         stage.setOnCloseRequest(e -> {
@@ -193,15 +217,21 @@ public class WorldEditorWindow {
     }
 
     private VBox createTabContent(String filename) {
-        TextArea textArea = new TextArea();
-        textArea.setWrapText(true);
-        textArea.setPrefRowCount(20);
+        MdTextArea textArea = new MdTextArea(MdTextAreaOptions.builder()
+                .editable(true)
+                .showToolbar(true)
+                .enableUndoRedo(true)
+                .enableFontControls(true)
+                .enableBasicFormatting(true)
+                .enableSearch(true)
+                .enableHideMarkupToggle(true)
+                .hideMarkup(true)
+                .themeIndex(themeIndex)
+                .build());
 
-        // Datei laden
         loadFile(filename, textArea);
         fileToTextArea.put(filename, textArea);
 
-        // Auto-Save bei Textänderungen
         textArea.textProperty().addListener((obs, oldVal, newVal) -> {
             if (!suppressAutoSave) {
                 saveFile(filename, textArea);
@@ -225,7 +255,17 @@ public class WorldEditorWindow {
         return content;
     }
 
-    private void loadFile(String filename, TextArea textArea) {
+    private void updateTabEditorInteractivity(Tab oldTab, Tab newTab) {
+        for (Tab tab : tabPane.getTabs()) {
+            if (!(tab.getContent() instanceof VBox content)) {
+                continue;
+            }
+            boolean selected = tab == newTab;
+            content.setMouseTransparent(!selected);
+        }
+    }
+
+    private void loadFile(String filename, MdTextArea textArea) {
         Path filePath = Paths.get(projectDirectory, filename);
         if (Files.exists(filePath)) {
             try {
@@ -237,7 +277,7 @@ public class WorldEditorWindow {
         }
     }
 
-    private void saveFile(String filename, TextArea textArea) {
+    private void saveFile(String filename, MdTextArea textArea) {
         Path filePath = Paths.get(projectDirectory, filename);
         try {
             Files.writeString(filePath, textArea.getText());
@@ -248,12 +288,12 @@ public class WorldEditorWindow {
     }
 
     private void saveAllFiles() {
-        for (Map.Entry<String, TextArea> entry : fileToTextArea.entrySet()) {
+        for (Map.Entry<String, MdTextArea> entry : fileToTextArea.entrySet()) {
             saveFile(entry.getKey(), entry.getValue());
         }
     }
 
-    private void handleAiGeneration(String filename, TextArea textArea) {
+    private void handleAiGeneration(String filename, MdTextArea textArea) {
         String currentContent = textArea.getText();
         boolean hasContent = currentContent != null && !currentContent.trim().isEmpty();
 
@@ -282,7 +322,7 @@ public class WorldEditorWindow {
         }
     }
 
-    private void generateWithAi(String filename, TextArea textArea, boolean append) {
+    private void generateWithAi(String filename, MdTextArea textArea, boolean append) {
         if (aiBackend == null) {
             logger.error("KI-Backend nicht initialisiert");
             int theme = java.util.prefs.Preferences.userNodeForPackage(MainController.class).getInt("main_window_theme", 0);
@@ -364,7 +404,7 @@ public class WorldEditorWindow {
         });
     }
 
-    private void generateChapterSummaries(TextArea textArea) {
+    private void generateChapterSummaries(MdTextArea textArea) {
         logger.info("generateChapterSummaries aufgerufen");
         String currentContent = textArea.getText();
         Set<String> existingSummaries = parseExistingSummaries(currentContent);
@@ -385,7 +425,7 @@ public class WorldEditorWindow {
         generateNextChapter(textArea, mdFiles, existingSummaries, 0, aiButton);
     }
     
-    private void generateNextChapter(TextArea textArea, List<String> mdFiles, Set<String> existingSummaries, int index, Button aiButton) {
+    private void generateNextChapter(MdTextArea textArea, List<String> mdFiles, Set<String> existingSummaries, int index, Button aiButton) {
         if (index >= mdFiles.size()) {
             // Alle Kapitel verarbeitet
             Platform.runLater(() -> {
@@ -582,7 +622,13 @@ public class WorldEditorWindow {
             case "chapter.txt":
                 return "Erstelle Zusammenfassungen aller Kapitel des Buches. Nutze Markdown-Formatierung mit Überschriften für jedes Kapitel.";
             case "characters.txt":
-                return "Erstelle Beschreibungen aller Charaktere im Buch. Kein Vorgeplänkel, keine Floskeln, keine Bewertung. Nutze Markdown-Formatierung mit Überschriften für jeden Charakter. Enthalte: Name, Rolle, Persönlichkeit, Hintergrund, wichtige Eigenschaften.";
+                return """
+                        Erstelle strukturierte Character Sheets für alle wichtigen Figuren des Buches.
+                        Kein Interview, keine Fragen/Antworten, kein Vorgeplänkel.
+                        Pro Figur eine Markdown-Überschrift ## Vorname Nachname und die Felder:
+                        **Rolle:**, **Alter / Aussehen:**, **Persönlichkeit:**, **Hintergrund:**, **Ziele:**,
+                        **Schwächen / innere Konflikte:**, **Beziehungen:**, **Character Arc:**
+                        """;
             case "context.txt":
                 return "Erstelle eine Liste wichtiger Details und Fakten über die Charaktere und die Welt. Nutze Markdown-Formatierung mit Kategorien.";
             case "outline.txt":
@@ -592,7 +638,11 @@ public class WorldEditorWindow {
             case "style.txt":
                 return "Erstelle eine Beschreibung des Schreibstils des Buches. Nutze Markdown-Formatierung.";
             case "synopsis.txt":
-                return "Erstelle eine Synopsis des Buches. Nutze Markdown-Formatierung.";
+                return """
+                        Erstelle eine Synopsis des Buches (Handlung, Konflikt, Wendepunkte, Ende).
+                        Hauptfiguren nur kurz nennen (Name + ein Satz Rolle) – keine ausführlichen Character Sheets
+                        (die stehen in characters.txt). Nutze Markdown-Formatierung.
+                        """;
             case "worldbuilding.txt":
                 return "Erstelle eine Beschreibung der Welt und des Settings des Buches. Nutze Markdown-Formatierung mit Kategorien.";
             default:

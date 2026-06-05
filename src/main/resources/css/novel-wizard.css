@@ -5,24 +5,21 @@
     -fx-min-width: 0;
 }
 
+.novel-wizard-question-box .text.novel-wizard-question,
 .novel-wizard-question-box .novel-wizard-question {
-    -fx-wrap-text: true;
     -fx-font-size: 16px;
     -fx-font-weight: bold;
-    -fx-alignment: top-left;
-    -fx-text-alignment: left;
-    -fx-max-width: infinity;
-    -fx-min-width: 0;
+    -fx-fill: -fx-text-base-color;
 }
 
-.novel-wizard-hint {
-    -fx-wrap-text: true;
+.novel-wizard-hint.text,
+.text.novel-wizard-hint {
     -fx-font-size: 12px;
+    -fx-fill: -fx-text-base-color;
+}
+
+.novel-wizard-hint-box {
     -fx-opacity: 0.8;
-    -fx-alignment: top-left;
-    -fx-text-alignment: left;
-    -fx-max-width: infinity;
-    -fx-min-width: 0;
 }
 
 .novel-wizard-interaction {
@@ -131,6 +128,14 @@
 .novel-wizard-phase-chip-revisit {
     -fx-background-color: derive(-fx-accent, 65%);
     -fx-border-color: derive(-fx-accent, 20%);
+}
+
+.novel-wizard-phase-chip-in-progress {
+    -fx-background-color: derive(-fx-accent, 55%);
+    -fx-border-color: derive(-fx-accent, 10%);
+    -fx-border-width: 2;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
 }
 
 .novel-wizard-phase-chip-current {
