@@ -3,6 +3,7 @@ package com.manuskript.agent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.prefs.Preferences;
 
 import com.manuskript.ResourceManager;
 
@@ -16,10 +17,14 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Labeled;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.Slider;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.Tooltip;
+import javafx.util.StringConverter;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -34,14 +39,18 @@ public class SceneWritingAgentTab extends VBox {
     private final ToggleButton toggleConfigButton;
     private final VBox configBox;
     private final TextArea promptArea;
+    private final Slider temperatureSlider;
+    private final Label temperatureValueLabel;
     private final TextArea instructionArea;
     private final CheckBox useParameterModelCheck;
     private final ComboBox<String> modelCombo;
+    private final ComboBox<SceneContextSize> contextSizeCombo;
     private final Button loadModelsButton;
     private final Button generateButton;
     private final Button insertButton;
     private final Label statusLabel;
     private final Label metaLabel;
+    private final ScrollPane metaScroll;
     private final TextArea resultArea;
 
     private Runnable onConfigChanged;
@@ -55,7 +64,8 @@ public class SceneWritingAgentTab extends VBox {
         /**
          * @return null wenn Generierung gestartet wurde, sonst Validierungsfehlermeldung
          */
-        String generate(String instruction, boolean useParameterModel, String overrideModel,
+        String generate(String instruction, SceneContextSize contextSize, boolean useParameterModel,
+                        String overrideModel,
                       Consumer<String> onStatus, Consumer<SceneWritingAgent.GenerationResult> onComplete,
                       Consumer<Throwable> onError);
     }
@@ -66,9 +76,10 @@ public class SceneWritingAgentTab extends VBox {
         setSpacing(6);
         getStyleClass().addAll("agent-tab", "scene-writing-agent-tab");
 
-        toggleConfigButton = new ToggleButton("⚙ System-Prompt");
+        toggleConfigButton = new ToggleButton("⚙ Konfiguration");
         toggleConfigButton.setMaxWidth(Double.MAX_VALUE);
         toggleConfigButton.setSelected(false);
+        toggleConfigButton.setTooltip(new Tooltip("System-Prompt, Temperatur, Modell und Kontext"));
 
         configBox = new VBox(6);
         configBox.setPadding(new Insets(8));
@@ -86,20 +97,20 @@ public class SceneWritingAgentTab extends VBox {
             fireConfigChanged();
         });
 
-        Label promptLabel = new Label("System-Prompt:");
-        configBox.getChildren().addAll(promptLabel, promptArea);
-
-        toggleConfigButton.selectedProperty().addListener((obs, o, sel) -> {
-            configBox.setVisible(sel);
-            configBox.setManaged(sel);
+        temperatureSlider = new Slider(0.0, 2.0, config.getTemperature());
+        temperatureSlider.setMajorTickUnit(0.1);
+        temperatureSlider.setBlockIncrement(0.1);
+        temperatureValueLabel = new Label(formatValue(config.getTemperature()));
+        temperatureValueLabel.setPrefWidth(55);
+        temperatureValueLabel.setMinWidth(55);
+        temperatureValueLabel.setAlignment(Pos.CENTER_RIGHT);
+        temperatureSlider.valueProperty().addListener((obs, old, val) -> {
+            temperatureValueLabel.setText(formatValue(val.doubleValue()));
+            config.setTemperature(val.doubleValue());
+            fireConfigChanged();
         });
-
-        Label instructionLabel = new Label("Anweisung:");
-        instructionArea = new TextArea();
-        instructionArea.setPromptText("z.B. Schreibe 1. Szene, berücksichtige die Stimmung aus dem letzten Kapitel. 1000–1500 Zeichen.");
-        instructionArea.setPrefRowCount(3);
-        instructionArea.setWrapText(true);
-        instructionArea.setMaxWidth(Double.MAX_VALUE);
+        temperatureSlider.setTooltip(new Tooltip(
+                "Überschreibt die globale Temperatur aus dem Parameter-Tab für Szenen-Generierung."));
 
         useParameterModelCheck = new CheckBox("Parameter-Modell verwenden");
         useParameterModelCheck.setSelected(true);
@@ -114,16 +125,59 @@ public class SceneWritingAgentTab extends VBox {
         loadModelsButton.setDisable(true);
 
         useParameterModelCheck.selectedProperty().addListener((obs, o, useParams) -> {
-            modelCombo.setDisable(useParams);
-            loadModelsButton.setDisable(useParams);
+            if (!generating) {
+                modelCombo.setDisable(useParams);
+                loadModelsButton.setDisable(useParams);
+            }
         });
 
         loadModelsButton.setOnAction(e -> loadModelsAsync());
 
-        HBox modelRow = new HBox(8, useParameterModelCheck);
+        Label modelLabel = new Label("Modell:");
         HBox modelSelectRow = new HBox(8, modelCombo, loadModelsButton);
         HBox.setHgrow(modelCombo, Priority.ALWAYS);
         modelSelectRow.setAlignment(Pos.CENTER_LEFT);
+
+        Label contextSizeLabel = new Label("Kontext:");
+        contextSizeCombo = new ComboBox<>();
+        contextSizeCombo.getItems().setAll(SceneContextSize.values());
+        contextSizeCombo.setConverter(contextSizeConverter());
+        contextSizeCombo.setButtonCell(contextSizeListCell());
+        contextSizeCombo.setCellFactory(list -> contextSizeListCell());
+        contextSizeCombo.setMaxWidth(Double.MAX_VALUE);
+        Preferences scenePrefs = Preferences.userNodeForPackage(SceneWritingAgentTab.class);
+        contextSizeCombo.setValue(SceneContextSize.fromName(
+                scenePrefs.get("context_size", SceneContextSize.COMPACT.name())));
+        contextSizeCombo.valueProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null) {
+                scenePrefs.put("context_size", newVal.name());
+                contextSizeCombo.setTooltip(new Tooltip(newVal.getTooltip()));
+            }
+        });
+        if (contextSizeCombo.getValue() != null) {
+            contextSizeCombo.setTooltip(new Tooltip(contextSizeCombo.getValue().getTooltip()));
+        }
+        HBox contextSizeRow = new HBox(8, contextSizeLabel, contextSizeCombo);
+        HBox.setHgrow(contextSizeCombo, Priority.ALWAYS);
+        contextSizeRow.setAlignment(Pos.CENTER_LEFT);
+
+        Label promptLabel = new Label("System-Prompt:");
+        HBox tempRow = createSliderRow("Temperatur:", temperatureSlider, temperatureValueLabel);
+        configBox.getChildren().addAll(
+                promptLabel, promptArea, tempRow,
+                useParameterModelCheck, modelLabel, modelSelectRow, contextSizeRow);
+
+        toggleConfigButton.selectedProperty().addListener((obs, o, sel) -> {
+            configBox.setVisible(sel);
+            configBox.setManaged(sel);
+        });
+
+        Label instructionLabel = new Label("Anweisung:");
+        instructionArea = new TextArea();
+        instructionArea.setPromptText("z.B. Schreibe 1. Szene, berücksichtige die Stimmung aus dem letzten Kapitel. 1000–1500 Zeichen.");
+        instructionArea.setPrefRowCount(3);
+        instructionArea.setWrapText(true);
+        instructionArea.setMaxWidth(Double.MAX_VALUE);
 
         generateButton = new Button("Szene generieren");
         generateButton.setMaxWidth(Double.MAX_VALUE);
@@ -136,9 +190,18 @@ public class SceneWritingAgentTab extends VBox {
 
         metaLabel = new Label();
         metaLabel.setWrapText(true);
+        metaLabel.setMaxWidth(Double.MAX_VALUE);
         metaLabel.getStyleClass().add("scene-meta-label");
-        metaLabel.setVisible(false);
-        metaLabel.setManaged(false);
+
+        metaScroll = new ScrollPane(metaLabel);
+        metaScroll.getStyleClass().add("scene-meta-scroll");
+        AgentScrollPaneSupport.configureFindingsScrollPane(metaScroll);
+        metaScroll.setPrefViewportHeight(72);
+        metaScroll.setMaxHeight(120);
+        metaScroll.setVisible(false);
+        metaScroll.setManaged(false);
+        metaScroll.widthProperty().addListener((obs, oldW, newW) ->
+                metaLabel.setMaxWidth(Math.max(0, newW.doubleValue() - 4)));
 
         resultArea = new TextArea();
         resultArea.setPrefRowCount(12);
@@ -162,14 +225,17 @@ public class SceneWritingAgentTab extends VBox {
             configBox,
             instructionLabel,
             instructionArea,
-            modelRow,
-            modelSelectRow,
             generateButton,
             statusLabel,
             insertButton,
-            metaLabel,
+            metaScroll,
             resultArea
         );
+    }
+
+    private void setMetaHintVisible(boolean visible) {
+        metaScroll.setVisible(visible);
+        metaScroll.setManaged(visible);
     }
 
     private void startGeneration() {
@@ -184,16 +250,21 @@ public class SceneWritingAgentTab extends VBox {
         generating = true;
         generateButton.setDisable(true);
         insertButton.setDisable(true);
-        metaLabel.setVisible(false);
-        metaLabel.setManaged(false);
+        setConfigControlsDisabled(true);
+        setMetaHintVisible(false);
         resultArea.clear();
         statusLabel.setText("Generiere Szene…");
 
         boolean useParams = useParameterModelCheck.isSelected();
         String model = modelCombo.getValue();
+        SceneContextSize contextSize = contextSizeCombo.getValue();
+        if (contextSize == null) {
+            contextSize = SceneContextSize.COMPACT;
+        }
 
         String validationError = generationHandler.generate(
             instruction.trim(),
+            contextSize,
             useParams,
             model,
             msg -> Platform.runLater(() -> statusLabel.setText(msg)),
@@ -201,6 +272,7 @@ public class SceneWritingAgentTab extends VBox {
             err -> Platform.runLater(() -> {
                 generating = false;
                 generateButton.setDisable(false);
+                setConfigControlsDisabled(false);
                 statusLabel.setText("Fehler: " + (err.getMessage() != null ? err.getMessage() : err.toString()));
             })
         );
@@ -212,14 +284,17 @@ public class SceneWritingAgentTab extends VBox {
     private void abortGeneration(String message) {
         generating = false;
         generateButton.setDisable(false);
+        setConfigControlsDisabled(false);
         statusLabel.setText(message);
     }
 
     private void finishGeneration(SceneWritingAgent.GenerationResult result) {
         generating = false;
         generateButton.setDisable(false);
+        setConfigControlsDisabled(false);
         if (result.getSceneText() != null && !result.getSceneText().isBlank()) {
             resultArea.setText(result.getSceneText());
+            scrollResultToTop();
             insertButton.setDisable(false);
             if (result.isParsedFromTags()) {
                 statusLabel.setText("Szene generiert.");
@@ -228,12 +303,50 @@ public class SceneWritingAgentTab extends VBox {
             }
             if (result.getMetaText() != null && !result.getMetaText().isBlank()) {
                 metaLabel.setText("Hinweis (wird nicht eingefügt): " + result.getMetaText());
-                metaLabel.setVisible(true);
-                metaLabel.setManaged(true);
+                setMetaHintVisible(true);
             }
         } else {
             statusLabel.setText("Keine Szene in der Antwort.");
         }
+    }
+
+    private void scrollResultToTop() {
+        Platform.runLater(() -> {
+            resultArea.positionCaret(0);
+            try {
+                resultArea.setScrollTop(0);
+            } catch (Exception ignored) {
+            }
+        });
+    }
+
+    private static StringConverter<SceneContextSize> contextSizeConverter() {
+        return new StringConverter<>() {
+            @Override
+            public String toString(SceneContextSize value) {
+                return value == null ? "" : value.getLabel();
+            }
+
+            @Override
+            public SceneContextSize fromString(String string) {
+                for (SceneContextSize size : SceneContextSize.values()) {
+                    if (size.getLabel().equals(string)) {
+                        return size;
+                    }
+                }
+                return SceneContextSize.COMPACT;
+            }
+        };
+    }
+
+    private static ListCell<SceneContextSize> contextSizeListCell() {
+        return new ListCell<>() {
+            @Override
+            protected void updateItem(SceneContextSize item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? null : item.getLabel());
+            }
+        };
     }
 
     private void loadModelsAsync() {
@@ -303,31 +416,40 @@ public class SceneWritingAgentTab extends VBox {
         }
     }
 
-    public void applyFontSize(int size) {
-        if (size < 8) {
-            size = 8;
-        } else if (size > 72) {
-            size = 72;
+    private void setConfigControlsDisabled(boolean disabled) {
+        promptArea.setDisable(disabled);
+        temperatureSlider.setDisable(disabled);
+        contextSizeCombo.setDisable(disabled);
+        useParameterModelCheck.setDisable(disabled);
+        if (disabled) {
+            modelCombo.setDisable(true);
+            loadModelsButton.setDisable(true);
+        } else {
+            boolean useParams = useParameterModelCheck.isSelected();
+            modelCombo.setDisable(useParams);
+            loadModelsButton.setDisable(useParams);
         }
-        applyFontSizeToNode(this, size);
     }
 
-    private void applyFontSizeToNode(Node node, int size) {
-        String fontCss = String.format("-fx-font-size: %dpx;", size);
-        if (node instanceof TextInputControl textControl) {
-            textControl.setStyle(fontCss);
-        } else if (node instanceof Label label) {
-            if (label == metaLabel) {
-                label.setStyle(fontCss + " -fx-opacity: 0.75;");
-            } else {
-                label.setStyle(fontCss);
-            }
-        } else if (node instanceof Labeled labeled) {
-            labeled.setStyle(fontCss);
-        } else if (node instanceof Parent parent) {
-            for (Node child : parent.getChildrenUnmodifiable()) {
-                applyFontSizeToNode(child, size);
-            }
+    private static HBox createSliderRow(String labelText, Slider slider, Label valueLabel) {
+        Label caption = new Label(labelText);
+        caption.setPrefWidth(110);
+        caption.setMinWidth(110);
+        HBox row = new HBox(6);
+        row.setAlignment(Pos.CENTER_LEFT);
+        row.getChildren().addAll(caption, slider, valueLabel);
+        HBox.setHgrow(slider, Priority.ALWAYS);
+        return row;
+    }
+
+    private static String formatValue(double v) {
+        if (v == (long) v) {
+            return String.valueOf((long) v);
         }
+        return String.format("%.2f", v);
+    }
+
+    public void applyFontSize(int size) {
+        AgentFontSizeSupport.apply(this, size, metaLabel);
     }
 }

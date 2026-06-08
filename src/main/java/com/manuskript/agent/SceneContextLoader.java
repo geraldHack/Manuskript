@@ -20,12 +20,6 @@ public class SceneContextLoader {
 
     private static final Logger logger = LoggerFactory.getLogger(SceneContextLoader.class);
 
-    private static final int MAX_BLOCK_CHARS = 2000;
-    private static final int MAX_SCENE_OUTLINE_CHARS = 16000;
-    private static final int MAX_CHAPTER_CHARS = 8000;
-    private static final int MAX_RECENT_CHAPTERS = 10;
-    private static final int MAX_CHARS_PER_RECENT_CHAPTER = 4000;
-
     private SceneContextLoader() {}
 
     public static class Context {
@@ -40,6 +34,9 @@ public class SceneContextLoader {
         public String romanOutline = "";
         public String previousChapter = "";
         public String currentChapter = "";
+        public SceneContextSize contextSize = SceneContextSize.COMPACT;
+        public int recentChaptersIncluded;
+        public boolean allPreviousChapters;
     }
 
     public static Context load(
@@ -50,7 +47,8 @@ public class SceneContextLoader {
             List<DocxFile> chapterOrder,
             String instruction
     ) {
-        return load(projectDir, currentDocx, currentMdFile, currentEditorText, chapterOrder, instruction, null);
+        return load(projectDir, currentDocx, currentMdFile, currentEditorText, chapterOrder,
+                instruction, null, SceneContextSize.COMPACT);
     }
 
     public static Context load(
@@ -62,22 +60,38 @@ public class SceneContextLoader {
             String instruction,
             String sceneOutlineOverride
     ) {
+        return load(projectDir, currentDocx, currentMdFile, currentEditorText, chapterOrder,
+                instruction, sceneOutlineOverride, SceneContextSize.COMPACT);
+    }
+
+    public static Context load(
+            File projectDir,
+            File currentDocx,
+            File currentMdFile,
+            String currentEditorText,
+            List<DocxFile> chapterOrder,
+            String instruction,
+            String sceneOutlineOverride,
+            SceneContextSize contextSize
+    ) {
+        SceneContextSize size = contextSize != null ? contextSize : SceneContextSize.COMPACT;
         Context ctx = new Context();
+        ctx.contextSize = size;
         ctx.instruction = instruction != null ? instruction.trim() : "";
 
         if (currentDocx != null) {
             String docxPath = currentDocx.getAbsolutePath();
-            ctx.style = limitText(readProjectFile(projectDir, "style.txt"));
-            ctx.worldbuilding = limitText(NovelManager.loadWorldbuilding(docxPath));
-            ctx.characters = limitText(NovelManager.loadCharacters(docxPath));
-            ctx.synopsis = limitText(NovelManager.loadSynopsis(docxPath));
-            ctx.romanOutline = limitText(NovelManager.loadOutline(docxPath));
+            ctx.style = truncate(readProjectFile(projectDir, "style.txt"), size.maxBlockChars(), "Stil");
+            ctx.worldbuilding = truncate(NovelManager.loadWorldbuilding(docxPath), size.maxBlockChars(), "Worldbuilding");
+            ctx.characters = truncate(NovelManager.loadCharacters(docxPath), size.maxBlockChars(), "Charaktere");
+            ctx.synopsis = truncate(NovelManager.loadSynopsis(docxPath), size.maxBlockChars(), "Synopsis");
+            ctx.romanOutline = truncate(NovelManager.loadOutline(docxPath), size.maxBlockChars(), "Outline");
 
             if (sceneOutlineOverride != null) {
-                ctx.sceneOutline = limitSceneOutline(sceneOutlineOverride.trim());
+                ctx.sceneOutline = truncate(sceneOutlineOverride.trim(), size.maxSceneOutlineChars(), "Szenen-Outline");
             } else {
                 File scenesFile = SceneOutlinePaths.scenesFileForDocx(currentDocx);
-                ctx.sceneOutline = limitSceneOutline(readFile(scenesFile));
+                ctx.sceneOutline = truncate(readFile(scenesFile), size.maxSceneOutlineChars(), "Szenen-Outline");
             }
         }
 
@@ -96,12 +110,18 @@ public class SceneContextLoader {
         }
 
         if (currentEditorText != null && !currentEditorText.isBlank()) {
-            ctx.currentChapter = limitChapterText(currentEditorText);
+            ctx.currentChapter = truncate(currentEditorText, size.maxChapterChars(), "Aktuelles Kapitel");
         } else if (currentMdFile != null) {
-            ctx.currentChapter = limitChapterText(readFile(currentMdFile));
+            ctx.currentChapter = truncate(readFile(currentMdFile), size.maxChapterChars(), "Aktuelles Kapitel");
         }
 
-        ctx.previousChapter = loadRecentChapters(projectDir, currentDocx, chapterOrder);
+        RecentChaptersResult recent = loadRecentChapters(projectDir, currentDocx, chapterOrder, size);
+        ctx.previousChapter = recent.text;
+        ctx.recentChaptersIncluded = recent.count;
+        ctx.allPreviousChapters = recent.allPrevious;
+
+        logger.info("Szene-Kontext ({}): User-Message-Vorschau {} Zeichen Kapitel, {} Vorkapitel",
+                size.name(), ctx.currentChapter.length(), ctx.recentChaptersIncluded);
         return ctx;
     }
 
@@ -143,7 +163,10 @@ public class SceneContextLoader {
             sb.append("=== OUTLINE (Roman) ===\n").append(ctx.romanOutline).append("\n\n");
         }
         if (!ctx.previousChapter.isBlank()) {
-            sb.append("=== LETZTE KAPITEL (bis zu ").append(MAX_RECENT_CHAPTERS)
+            String chapterHint = ctx.allPreviousChapters
+                    ? "alle bisherigen"
+                    : "bis zu " + ctx.recentChaptersIncluded;
+            sb.append("=== LETZTE KAPITEL (").append(chapterHint)
                 .append(", Stimmung/Kontinuität) ===\n").append(ctx.previousChapter).append("\n\n");
         }
         if (!ctx.currentChapter.isBlank()) {
@@ -152,16 +175,23 @@ public class SceneContextLoader {
         return sb.toString().trim();
     }
 
-    private static String loadRecentChapters(File projectDir, File currentDocx, List<DocxFile> chapterOrder) {
+    private record RecentChaptersResult(String text, int count, boolean allPrevious) {}
+
+    private static RecentChaptersResult loadRecentChapters(
+            File projectDir, File currentDocx, List<DocxFile> chapterOrder, SceneContextSize size) {
         if (currentDocx == null || chapterOrder == null || chapterOrder.isEmpty()) {
-            return limitText(readProjectFile(projectDir, "chapter.txt"));
+            String fallback = truncate(readProjectFile(projectDir, "chapter.txt"), size.maxBlockChars(), "Kapitel");
+            return new RecentChaptersResult(fallback, fallback.isBlank() ? 0 : 1, false);
         }
         int idx = findChapterIndex(currentDocx, chapterOrder);
         if (idx <= 0) {
-            return "";
+            return new RecentChaptersResult("", 0, false);
         }
-        int start = Math.max(0, idx - MAX_RECENT_CHAPTERS);
+        boolean allPrevious = size.unlimited(size.maxRecentChapters());
+        int maxChapters = allPrevious ? idx : size.maxRecentChapters();
+        int start = allPrevious ? 0 : Math.max(0, idx - maxChapters);
         StringBuilder sb = new StringBuilder();
+        int included = 0;
         for (int i = start; i < idx; i++) {
             DocxFile df = chapterOrder.get(i);
             if (df == null || df.getFile() == null) {
@@ -180,9 +210,10 @@ public class SceneContextLoader {
             }
             String chapterLabel = df.getDisplayFileName();
             sb.append("--- ").append(chapterLabel).append(" ---\n");
-            sb.append(limitRecentChapterText(content));
+            sb.append(truncate(content, size.maxCharsPerRecentChapter(), chapterLabel));
+            included++;
         }
-        return sb.toString().trim();
+        return new RecentChaptersResult(sb.toString().trim(), included, allPrevious);
     }
 
     private static int findChapterIndex(File currentDocx, List<DocxFile> chapterOrder) {
@@ -227,35 +258,14 @@ public class SceneContextLoader {
         }
     }
 
-    private static String limitText(String text) {
+    static String truncate(String text, int maxChars, String label) {
         if (text == null || text.isBlank()) {
             return "";
         }
-        return text.length() > MAX_BLOCK_CHARS ? text.substring(0, MAX_BLOCK_CHARS) + "\n..." : text;
-    }
-
-    private static String limitSceneOutline(String text) {
-        if (text == null || text.isBlank()) {
-            return "";
+        if (maxChars < 0 || text.length() <= maxChars) {
+            return text;
         }
-        return text.length() > MAX_SCENE_OUTLINE_CHARS
-            ? text.substring(0, MAX_SCENE_OUTLINE_CHARS) + "\n..."
-            : text;
-    }
-
-    private static String limitChapterText(String text) {
-        if (text == null || text.isBlank()) {
-            return "";
-        }
-        return text.length() > MAX_CHAPTER_CHARS ? text.substring(0, MAX_CHAPTER_CHARS) + "\n..." : text;
-    }
-
-    private static String limitRecentChapterText(String text) {
-        if (text == null || text.isBlank()) {
-            return "";
-        }
-        return text.length() > MAX_CHARS_PER_RECENT_CHAPTER
-            ? text.substring(0, MAX_CHARS_PER_RECENT_CHAPTER) + "\n..."
-            : text;
+        return text.substring(0, maxChars) + "\n\n[… " + label + " gekürzt, "
+                + (text.length() - maxChars) + " Zeichen weggelassen …]";
     }
 }

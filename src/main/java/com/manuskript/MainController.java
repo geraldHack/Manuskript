@@ -9289,11 +9289,19 @@ public class MainController implements Initializable {
     }
 
     public String loadAllChapters() {
+        return loadAllChaptersExcluding(null);
+    }
+
+    /** Lädt alle Kapitel-MDs; {@code excludeMdFileName} (z. B. aktuelles Kapitel) wird ausgelassen. */
+    public String loadAllChaptersExcluding(String excludeMdFileName) {
         StringBuilder allText = new StringBuilder();
         if (projectRootDirectory == null) return "";
         java.io.File dataDir = new java.io.File(projectRootDirectory, "data");
         if (!dataDir.exists() || !dataDir.isDirectory()) return "";
         for (String mdFileName : getMarkdownFilesInOrder()) {
+            if (excludeMdFileName != null && excludeMdFileName.equalsIgnoreCase(mdFileName)) {
+                continue;
+            }
             java.io.File mdFile = new java.io.File(dataDir, mdFileName);
             if (mdFile.exists()) {
                 try {

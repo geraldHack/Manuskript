@@ -115,8 +115,14 @@ public class ResourceManager {
         if (externalFile.exists() && externalFile.isFile()) {
             return externalFile.toURI().toString();
         }
-        
-        return null;
+
+        return getBundledCssResource(resourcePath);
+    }
+
+    /** CSS aus src/main/resources (Classpath), unabhängig von config/css. */
+    public static String getBundledCssResource(String resourcePath) {
+        java.net.URL url = ResourceManager.class.getResource("/" + resourcePath);
+        return url != null ? url.toExternalForm() : null;
     }
     
     /**

@@ -74,6 +74,7 @@ public class AgentPanel extends VBox {
         buttonRow.getChildren().addAll(analyzeButton, realtimeToggle);
         HBox.setHgrow(analyzeButton, Priority.ALWAYS);
         HBox.setHgrow(realtimeToggle, Priority.ALWAYS);
+        AgentActionButtonSupport.configureRow(buttonRow, analyzeButton, realtimeToggle);
 
         // Findings-Liste
         findingsList = new VBox(6);
@@ -172,7 +173,7 @@ public class AgentPanel extends VBox {
         severityLabel.setMaxWidth(Double.MAX_VALUE);
         severityLabel.setStyle(severityLabel.getStyle() + String.format("-fx-font-size: %dpx;", editorFontSize));
 
-        Text problemText = new Text(f.getProblem());
+        Text problemText = new Text(AgentFindingDisplay.stripIndexField(f.getProblem()));
         problemText.setStyle(AgentFindingStyles.problemTextStyle(editorFontSize));
         TextFlow problemFlow = new TextFlow(problemText);
         problemFlow.getStyleClass().add("finding-problem");
@@ -180,7 +181,7 @@ public class AgentPanel extends VBox {
         problemFlow.setMaxWidth(Double.MAX_VALUE);
         problemFlow.prefWidthProperty().bind(scrollPane.widthProperty().subtract(40));
 
-        Text quoteText = new Text("Zitat: " + f.getQuote());
+        Text quoteText = new Text("Zitat: " + AgentFindingDisplay.stripIndexField(f.getQuote()));
         quoteText.setStyle(AgentFindingStyles.quoteTextStyle(editorFontSize));
         TextFlow quoteFlow = new TextFlow(quoteText);
         quoteFlow.getStyleClass().add("finding-quote-text");
@@ -206,7 +207,8 @@ public class AgentPanel extends VBox {
             for (int i = 0; i < f.getSuggestions().size(); i++) {
                 String suggestion = f.getSuggestions().get(i);
                 logger.info("Vorschlag {}: {}", i + 1, suggestion);
-                Text suggestionTextNode = new Text("Vorschlag " + (i + 1) + ": " + suggestion);
+                Text suggestionTextNode = new Text("Vorschlag " + (i + 1) + ": "
+                        + AgentFindingDisplay.stripIndexField(suggestion));
                 String suggestionTheme = com.manuskript.ResourceManager.getParameter("main_window_theme", "0");
                 boolean suggestionIsDarkTheme = suggestionTheme.equals("1") || suggestionTheme.equals("3");
                 String suggestionColor;
@@ -238,7 +240,8 @@ public class AgentPanel extends VBox {
                 suggestionsBox.getChildren().add(suggestionFlow);
             }
         } else {
-            Text suggestionTextNode = new Text("Vorschlag: " + f.getSuggestion());
+            Text suggestionTextNode = new Text("Vorschlag: "
+                    + AgentFindingDisplay.stripIndexField(f.getSuggestion()));
             String suggestionTheme = com.manuskript.ResourceManager.getParameter("main_window_theme", "0");
             boolean suggestionIsDarkTheme = suggestionTheme.equals("1") || suggestionTheme.equals("3");
             String suggestionColor;

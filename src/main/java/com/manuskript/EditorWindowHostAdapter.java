@@ -100,7 +100,7 @@ public class EditorWindowHostAdapter implements ChapterEditorHost {
 
     @Override
     public void insertTextAtCaret(String text) {
-        editor.insertTextFromAI(text);
+        editor.insertTextAtCaret(text);
     }
 
     @Override

@@ -185,6 +185,11 @@ public class OnlineLektoratService {
         }
     }
 
+    /** OpenAI-Temperatur aus Parameter-Tab (agent.openai.temperature). */
+    private static double openAiTemperature() {
+        return ResourceManager.getDoubleParameter("agent.openai.temperature", 0.7);
+    }
+
     /**
      * Einfache Chat-Completion für Editor-Funktionen (Sprechantwort korrigieren, Selektion überarbeiten).
      * Verwendet api.lektorat.* (api_key, base_url, model). Kein Streaming; liefert den rohen Antworttext.
@@ -400,7 +405,7 @@ public class OnlineLektoratService {
         String userPrompt = buildUserPrompt(chunkText, extraPrompt);
         JsonObject body = new JsonObject();
         body.addProperty("model", model.isEmpty() ? "gpt-4o-mini" : model);
-        body.addProperty("temperature", 0.3);
+        body.addProperty("temperature", openAiTemperature());
         body.addProperty("max_tokens", 16384);
         body.addProperty("stream", true);
         JsonArray messages = new JsonArray();
@@ -591,7 +596,7 @@ public class OnlineLektoratService {
         JsonObject requestBody = new JsonObject();
         requestBody.addProperty("model", model);
         requestBody.addProperty("max_tokens", 1000);
-        requestBody.addProperty("temperature", 0.7);
+        requestBody.addProperty("temperature", openAiTemperature());
 
         JsonArray messages = new JsonArray();
         JsonObject systemMsg = new JsonObject();

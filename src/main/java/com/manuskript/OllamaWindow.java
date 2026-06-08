@@ -1634,6 +1634,7 @@ public class OllamaWindow {
             List<OllamaService.ChatMessage> chatMessages = new ArrayList<>();
             // Plugin-Logik für Variablen-Ersetzung
             String processedUserMessage = userMessage;
+            Plugin activePlugin = null;
             
             // Normalisierung: ? zu 📦 konvertieren
             if (selectedFunction.startsWith("? ")) {
@@ -1645,6 +1646,7 @@ public class OllamaWindow {
     
                 Plugin plugin = pluginManager.getPlugin(pluginName);
                 if (plugin != null) {
+                    activePlugin = plugin;
 
                     // Selektierten Text aus Editor oder Chat-Input holen
                     String selectedText = getSelectedTextFromEditor();
@@ -1835,9 +1837,11 @@ public class OllamaWindow {
                           .append(escapeJson.apply(msg.getContent())).append("\"}");
             }
             
-            // Hole Parameter von OllamaService
-            int maxTokens = ollamaService.getMaxTokens();
-            double temperature = ollamaService.getTemperature();
+            // Hole Parameter von OllamaService (Plugin überschreibt Temperatur/Max-Tokens)
+            int maxTokens = activePlugin != null && activePlugin.getMaxTokens() > 0
+                    ? activePlugin.getMaxTokens() : ollamaService.getMaxTokens();
+            double temperature = activePlugin != null
+                    ? activePlugin.getTemperature() : ollamaService.getTemperature();
             double topP = ollamaService.getTopP();
             double repeatPenalty = ollamaService.getRepeatPenalty();
             
@@ -4546,6 +4550,9 @@ public class OllamaWindow {
                                            List<String> textChunks, Map<String, String> variables,
                                            List<PluginVariable> variableDefinitions, Plugin plugin,
                                            StringBuilder finalResult, int qaIndex, StringBuilder aggregated) {
+        if (catIndex == 0 && chunkIndex == 0 && plugin != null && ollamaService != null) {
+            ollamaService.applySamplingInMemory(plugin.getTemperature(), plugin.getMaxTokens());
+        }
         // Wenn alle Kategorien fertig sind
         if (catIndex >= categories.size()) {
             Platform.runLater(() -> {
@@ -4569,7 +4576,7 @@ public class OllamaWindow {
                 try {
                     String header = String.format(java.util.Locale.US, "[%s | temp=%.2f, top_p=%.2f, repeat_penalty=%.2f]",
                         ollamaService != null ? ollamaService.getCurrentParameters().split(",")[0].replace("Modell: ", "").trim() : modelComboBox.getValue(),
-                        ResourceManager.getDoubleParameter("ollama.temperature", 0.3),
+                        plugin != null ? plugin.getTemperature() : ResourceManager.getDoubleParameter("ollama.temperature", 0.3),
                         ResourceManager.getDoubleParameter("ollama.top_p", 0.7),
                         ResourceManager.getDoubleParameter("ollama.repeat_penalty", 1.3)
                     );

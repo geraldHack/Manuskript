@@ -84,7 +84,11 @@ public class PlotholeAgent {
     }
 
     public CompletableFuture<PlotholeParseResult> analyze(String currentChapterText, String allChapters, int maxOutputTokens) {
-        // Gedächtnis vor der Analyse löschen, um alte Ergebnisse nicht zu beeinflussen
+        return analyze(currentChapterText, allChapters, maxOutputTokens, null);
+    }
+
+    public CompletableFuture<PlotholeParseResult> analyze(
+            String currentChapterText, String allChapters, int maxOutputTokens, String authorInstruction) {
         memory.clear();
 
         String systemPrompt = customSystemPrompt != null ? customSystemPrompt : SYSTEM_PROMPT;
@@ -107,6 +111,10 @@ public class PlotholeAgent {
         userMessage.append("=== MANUSKRIPT BEGINN ===\n");
         userMessage.append(currentChapterText);
         userMessage.append("\n=== MANUSKRIPT ENDE ===\n\n");
+        if (authorInstruction != null && !authorInstruction.isBlank()) {
+            userMessage.append("ANWEISUNG DES AUTORS (zwingend berücksichtigen):\n");
+            userMessage.append(authorInstruction.trim()).append("\n\n");
+        }
         userMessage.append("ANALYSE-SCOPE (zwingend einzuhalten):\n");
         userMessage.append("- Erstelle Problemblöcke AUSSCHLIESSLICH für Probleme, die im Abschnitt zwischen ")
                 .append("\"=== MANUSKRIPT BEGINN ===\" und \"=== MANUSKRIPT ENDE ===\" stehen.\n");

@@ -9598,6 +9598,31 @@
     -fx-background-color: #d0d0d0;
 }
 
+.host-toolbar-toggle-button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-cursor: hand;
+    -fx-padding: 0;
+    -fx-alignment: center;
+    -fx-content-display: graphic-only;
+}
+
+.host-toolbar-toggle-button:hover {
+    -fx-background-color: rgba(0, 0, 0, 0.06);
+}
+
+.host-toolbar-toggle-button:pressed {
+    -fx-background-color: rgba(0, 0, 0, 0.12);
+}
+
+.theme-dark .host-toolbar-toggle-button:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.08);
+}
+
+.theme-dark .host-toolbar-toggle-button:pressed {
+    -fx-background-color: rgba(255, 255, 255, 0.14);
+}
+
 .sidebar-title {
     -fx-font-size: 14px;
     -fx-font-weight: bold;
@@ -10346,6 +10371,11 @@
     -fx-wrap-text: true;
 }
 
+.scene-meta-scroll {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+}
+
 /* Grün-Theme Dialog TextArea */
 .theme-dark.gruen-theme .dialog-text-area,
 .theme-dark.gruen-theme .dialog-text-area .content {
@@ -10545,6 +10575,20 @@
     -fx-text-fill: #333;
 }
 
+.agent-analyze-btn,
+.agent-realtime-btn {
+    -fx-padding: 6 12 6 12;
+}
+
+.agent-realtime-btn {
+    -fx-background-insets: 0;
+    -fx-background-radius: 4;
+}
+
+.agent-realtime-btn:selected {
+    -fx-background-insets: 0;
+}
+
 .agent-status {
     -fx-font-size: 11px;
     -fx-text-fill: #888;
@@ -10585,112 +10629,162 @@
     -fx-background-color: transparent;
 }
 
-/* Plothole-Agent: vertikale Scrollbar sichtbar (Findings-Liste) */
-.agent-scroll .scroll-bar:vertical {
+/* Agenten-Panel + Canvas-Editor: gut sichtbare vertikale Scrollbar */
+.agent-scroll .scroll-bar:vertical,
+.manuskript-text-editor .scroll-bar:vertical,
+.scene-writing-agent-tab .text-area .scroll-bar:vertical {
     -fx-pref-width: 12px;
     -fx-min-width: 12px;
     -fx-opacity: 1;
 }
 
-.weiss-theme .agent-scroll .scroll-bar:vertical {
+.weiss-theme .agent-scroll .scroll-bar:vertical,
+.weiss-theme .manuskript-text-editor .scroll-bar:vertical,
+.weiss-theme .scene-writing-agent-tab .text-area .scroll-bar:vertical {
     -fx-background-color: #eceff1;
 }
 
-.weiss-theme .agent-scroll .scroll-bar:vertical .track {
+.weiss-theme .agent-scroll .scroll-bar:vertical .track,
+.weiss-theme .manuskript-text-editor .scroll-bar:vertical .track,
+.weiss-theme .scene-writing-agent-tab .text-area .scroll-bar:vertical .track {
     -fx-background-color: #eceff1;
     -fx-background-radius: 6px;
 }
 
-.weiss-theme .agent-scroll .scroll-bar:vertical .thumb {
+.weiss-theme .agent-scroll .scroll-bar:vertical .thumb,
+.weiss-theme .manuskript-text-editor .scroll-bar:vertical .thumb,
+.weiss-theme .scene-writing-agent-tab .text-area .scroll-bar:vertical .thumb {
     -fx-background-color: #546e7a;
     -fx-background-radius: 6px;
 }
 
-.weiss-theme .agent-scroll .scroll-bar:vertical .thumb:hover {
+.weiss-theme .agent-scroll .scroll-bar:vertical .thumb:hover,
+.weiss-theme .manuskript-text-editor .scroll-bar:vertical .thumb:hover,
+.weiss-theme .scene-writing-agent-tab .text-area .scroll-bar:vertical .thumb:hover {
     -fx-background-color: #37474f;
 }
 
-.pastell-theme .agent-scroll .scroll-bar:vertical {
+.pastell-theme .agent-scroll .scroll-bar:vertical,
+.pastell-theme .manuskript-text-editor .scroll-bar:vertical,
+.pastell-theme .scene-writing-agent-tab .text-area .scroll-bar:vertical {
     -fx-background-color: #e1bee7;
 }
 
-.pastell-theme .agent-scroll .scroll-bar:vertical .track {
+.pastell-theme .agent-scroll .scroll-bar:vertical .track,
+.pastell-theme .manuskript-text-editor .scroll-bar:vertical .track,
+.pastell-theme .scene-writing-agent-tab .text-area .scroll-bar:vertical .track {
     -fx-background-color: #e1bee7;
     -fx-background-radius: 6px;
 }
 
-.pastell-theme .agent-scroll .scroll-bar:vertical .thumb {
+.pastell-theme .agent-scroll .scroll-bar:vertical .thumb,
+.pastell-theme .manuskript-text-editor .scroll-bar:vertical .thumb,
+.pastell-theme .scene-writing-agent-tab .text-area .scroll-bar:vertical .thumb {
     -fx-background-color: #7b1fa2;
     -fx-background-radius: 6px;
 }
 
-.pastell-theme .agent-scroll .scroll-bar:vertical .thumb:hover {
+.pastell-theme .agent-scroll .scroll-bar:vertical .thumb:hover,
+.pastell-theme .manuskript-text-editor .scroll-bar:vertical .thumb:hover,
+.pastell-theme .scene-writing-agent-tab .text-area .scroll-bar:vertical .thumb:hover {
     -fx-background-color: #4a148c;
 }
 
-.theme-dark .agent-scroll .scroll-bar:vertical {
+.theme-dark .agent-scroll .scroll-bar:vertical,
+.theme-dark .manuskript-text-editor .scroll-bar:vertical,
+.theme-dark .scene-writing-agent-tab .text-area .scroll-bar:vertical {
     -fx-background-color: #3a3a3a;
 }
 
-.theme-dark .agent-scroll .scroll-bar:vertical .track {
+.theme-dark .agent-scroll .scroll-bar:vertical .track,
+.theme-dark .manuskript-text-editor .scroll-bar:vertical .track,
+.theme-dark .scene-writing-agent-tab .text-area .scroll-bar:vertical .track {
     -fx-background-color: #3a3a3a;
     -fx-background-radius: 6px;
 }
 
-.theme-dark .agent-scroll .scroll-bar:vertical .thumb {
+.theme-dark .agent-scroll .scroll-bar:vertical .thumb,
+.theme-dark .manuskript-text-editor .scroll-bar:vertical .thumb,
+.theme-dark .scene-writing-agent-tab .text-area .scroll-bar:vertical .thumb {
     -fx-background-color: #9e9e9e;
     -fx-background-radius: 6px;
 }
 
-.theme-dark .agent-scroll .scroll-bar:vertical .thumb:hover {
+.theme-dark .agent-scroll .scroll-bar:vertical .thumb:hover,
+.theme-dark .manuskript-text-editor .scroll-bar:vertical .thumb:hover,
+.theme-dark .scene-writing-agent-tab .text-area .scroll-bar:vertical .thumb:hover {
     -fx-background-color: #bdbdbd;
 }
 
-.theme-dark.blau-theme .agent-scroll .scroll-bar:vertical {
+.theme-dark.blau-theme .agent-scroll .scroll-bar:vertical,
+.theme-dark.blau-theme .manuskript-text-editor .scroll-bar:vertical,
+.theme-dark.blau-theme .scene-writing-agent-tab .text-area .scroll-bar:vertical {
     -fx-background-color: #1e3a8a;
 }
 
-.theme-dark.blau-theme .agent-scroll .scroll-bar:vertical .track {
+.theme-dark.blau-theme .agent-scroll .scroll-bar:vertical .track,
+.theme-dark.blau-theme .manuskript-text-editor .scroll-bar:vertical .track,
+.theme-dark.blau-theme .scene-writing-agent-tab .text-area .scroll-bar:vertical .track {
     -fx-background-color: #1e3a8a;
 }
 
-.theme-dark.blau-theme .agent-scroll .scroll-bar:vertical .thumb {
+.theme-dark.blau-theme .agent-scroll .scroll-bar:vertical .thumb,
+.theme-dark.blau-theme .manuskript-text-editor .scroll-bar:vertical .thumb,
+.theme-dark.blau-theme .scene-writing-agent-tab .text-area .scroll-bar:vertical .thumb {
     -fx-background-color: #60a5fa;
 }
 
-.theme-dark.blau-theme .agent-scroll .scroll-bar:vertical .thumb:hover {
+.theme-dark.blau-theme .agent-scroll .scroll-bar:vertical .thumb:hover,
+.theme-dark.blau-theme .manuskript-text-editor .scroll-bar:vertical .thumb:hover,
+.theme-dark.blau-theme .scene-writing-agent-tab .text-area .scroll-bar:vertical .thumb:hover {
     -fx-background-color: #93c5fd;
 }
 
-.theme-dark.gruen-theme .agent-scroll .scroll-bar:vertical {
+.theme-dark.gruen-theme .agent-scroll .scroll-bar:vertical,
+.theme-dark.gruen-theme .manuskript-text-editor .scroll-bar:vertical,
+.theme-dark.gruen-theme .scene-writing-agent-tab .text-area .scroll-bar:vertical {
     -fx-background-color: #064e3b;
 }
 
-.theme-dark.gruen-theme .agent-scroll .scroll-bar:vertical .track {
+.theme-dark.gruen-theme .agent-scroll .scroll-bar:vertical .track,
+.theme-dark.gruen-theme .manuskript-text-editor .scroll-bar:vertical .track,
+.theme-dark.gruen-theme .scene-writing-agent-tab .text-area .scroll-bar:vertical .track {
     -fx-background-color: #064e3b;
 }
 
-.theme-dark.gruen-theme .agent-scroll .scroll-bar:vertical .thumb {
+.theme-dark.gruen-theme .agent-scroll .scroll-bar:vertical .thumb,
+.theme-dark.gruen-theme .manuskript-text-editor .scroll-bar:vertical .thumb,
+.theme-dark.gruen-theme .scene-writing-agent-tab .text-area .scroll-bar:vertical .thumb {
     -fx-background-color: #34d399;
 }
 
-.theme-dark.gruen-theme .agent-scroll .scroll-bar:vertical .thumb:hover {
+.theme-dark.gruen-theme .agent-scroll .scroll-bar:vertical .thumb:hover,
+.theme-dark.gruen-theme .manuskript-text-editor .scroll-bar:vertical .thumb:hover,
+.theme-dark.gruen-theme .scene-writing-agent-tab .text-area .scroll-bar:vertical .thumb:hover {
     -fx-background-color: #6ee7b7;
 }
 
-.theme-dark.lila-theme .agent-scroll .scroll-bar:vertical {
+.theme-dark.lila-theme .agent-scroll .scroll-bar:vertical,
+.theme-dark.lila-theme .manuskript-text-editor .scroll-bar:vertical,
+.theme-dark.lila-theme .scene-writing-agent-tab .text-area .scroll-bar:vertical {
     -fx-background-color: #4c1d95;
 }
 
-.theme-dark.lila-theme .agent-scroll .scroll-bar:vertical .track {
+.theme-dark.lila-theme .agent-scroll .scroll-bar:vertical .track,
+.theme-dark.lila-theme .manuskript-text-editor .scroll-bar:vertical .track,
+.theme-dark.lila-theme .scene-writing-agent-tab .text-area .scroll-bar:vertical .track {
     -fx-background-color: #4c1d95;
 }
 
-.theme-dark.lila-theme .agent-scroll .scroll-bar:vertical .thumb {
+.theme-dark.lila-theme .agent-scroll .scroll-bar:vertical .thumb,
+.theme-dark.lila-theme .manuskript-text-editor .scroll-bar:vertical .thumb,
+.theme-dark.lila-theme .scene-writing-agent-tab .text-area .scroll-bar:vertical .thumb {
     -fx-background-color: #a78bfa;
 }
 
-.theme-dark.lila-theme .agent-scroll .scroll-bar:vertical .thumb:hover {
+.theme-dark.lila-theme .agent-scroll .scroll-bar:vertical .thumb:hover,
+.theme-dark.lila-theme .manuskript-text-editor .scroll-bar:vertical .thumb:hover,
+.theme-dark.lila-theme .scene-writing-agent-tab .text-area .scroll-bar:vertical .thumb:hover {
     -fx-background-color: #c4b5fd;
 }
 
@@ -10900,6 +10994,50 @@
     -fx-border-radius: 0 0 4px 4px;
 }
 
+.weiss-theme .tab-pane.world-editor-tab-pane .tab.world-editor-tab-dirty {
+    -fx-background-color: #ffe0b2;
+    -fx-border-color: #fb8c00;
+    -fx-border-width: 1 1 0 1;
+}
+
+.weiss-theme .tab-pane.world-editor-tab-pane .tab.world-editor-tab-dirty:selected {
+    -fx-background-color: #ffcc80;
+}
+
+.weiss-theme .tab-pane.world-editor-tab-pane .tab.world-editor-tab-dirty .world-editor-tab-label-dirty {
+    -fx-text-fill: #bf360c;
+    -fx-font-weight: bold;
+}
+
+.theme-dark .tab-pane.world-editor-tab-pane .tab.world-editor-tab-dirty {
+    -fx-background-color: #5d4037;
+    -fx-border-color: #ff9800;
+    -fx-border-width: 1 1 0 1;
+}
+
+.theme-dark .tab-pane.world-editor-tab-pane .tab.world-editor-tab-dirty:selected {
+    -fx-background-color: #6d4c41;
+}
+
+.theme-dark .tab-pane.world-editor-tab-pane .tab.world-editor-tab-dirty .world-editor-tab-label-dirty {
+    -fx-text-fill: #ffcc80;
+    -fx-font-weight: bold;
+}
+
+.world-editor-tab-pane .tab.world-editor-tab-dirty {
+    -fx-background-color: #ffe0b2;
+    -fx-border-color: #fb8c00;
+}
+
+.world-editor-tab-pane .tab.world-editor-tab-dirty:selected {
+    -fx-background-color: #ffcc80;
+}
+
+.world-editor-tab-pane .tab.world-editor-tab-dirty .tab-label {
+    -fx-text-fill: #bf360c;
+    -fx-font-weight: bold;
+}
+
 /* Dark Theme für Welt-Editor */
 .theme-dark .world-editor-root {
     -fx-background-color: #2d2d2d;
@@ -10948,6 +11086,20 @@
     -fx-border-color: #555;
 }
 
+.theme-dark .world-editor-tab-pane .tab.world-editor-tab-dirty {
+    -fx-background-color: #5d4037;
+    -fx-border-color: #ff9800;
+}
+
+.theme-dark .world-editor-tab-pane .tab.world-editor-tab-dirty:selected {
+    -fx-background-color: #6d4c41;
+}
+
+.theme-dark .world-editor-tab-pane .tab.world-editor-tab-dirty .tab-label {
+    -fx-text-fill: #ffcc80;
+    -fx-font-weight: bold;
+}
+
 /* Pastell Theme für Welt-Editor */
 .pastell-theme .world-editor-root {
     -fx-background-color: #ede7f6;
@@ -10994,6 +11146,20 @@
 .pastell-theme .world-editor-tab-pane .tab-content-area {
     -fx-background-color: #ffffff;
     -fx-border-color: #d1c4e9;
+}
+
+.pastell-theme .world-editor-tab-pane .tab.world-editor-tab-dirty {
+    -fx-background-color: #ffecb3;
+    -fx-border-color: #ff8f00;
+}
+
+.pastell-theme .world-editor-tab-pane .tab.world-editor-tab-dirty:selected {
+    -fx-background-color: #ffe082;
+}
+
+.pastell-theme .world-editor-tab-pane .tab.world-editor-tab-dirty .tab-label {
+    -fx-text-fill: #e65100;
+    -fx-font-weight: bold;
 }
 
 /* FlowPane Styling für Toolbar */

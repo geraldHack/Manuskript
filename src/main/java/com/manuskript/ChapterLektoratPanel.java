@@ -1,5 +1,6 @@
 package com.manuskript;
 
+import com.manuskript.agent.AgentFontSizeSupport;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
@@ -29,15 +30,30 @@ public class ChapterLektoratPanel {
     private final SplitPane splitPane;
     private final IntSupplier themeIndex;
     private final BiConsumer<Node, Integer> themeApplier;
+    private int fontSizePx = 16;
 
     public ChapterLektoratPanel(VBox container, SplitPane splitPane,
-                                IntSupplier themeIndex, BiConsumer<Node, Integer> themeApplier) {
+                                IntSupplier themeIndex, BiConsumer<Node, Integer> themeApplier,
+                                int initialFontSizePx) {
         this.container = container;
         this.splitPane = splitPane;
         this.themeIndex = themeIndex;
         this.themeApplier = themeApplier;
+        this.fontSizePx = initialFontSizePx;
         container.setMaxWidth(Double.MAX_VALUE);
         container.getStyleClass().add("lektorat-panel");
+    }
+
+    public void applyFontSize(int size) {
+        if (size < 8) {
+            size = 8;
+        } else if (size > 72) {
+            size = 72;
+        }
+        fontSizePx = size;
+        if (container != null) {
+            AgentFontSizeSupport.apply(container, size);
+        }
     }
 
     public void ensureVisible(boolean visible) {
@@ -48,19 +64,10 @@ public class ChapterLektoratPanel {
         boolean hasPanel = items.contains(container);
         if (visible && !hasPanel) {
             items.add(container);
-            applySplitDividerPositions(splitPane);
+            ChapterEditorSplitPreferences.apply(splitPane);
         } else if (!visible && hasPanel) {
             items.remove(container);
-            applySplitDividerPositions(splitPane);
-        }
-    }
-
-    private static void applySplitDividerPositions(SplitPane splitPane) {
-        int count = splitPane.getItems().size();
-        if (count == 2) {
-            splitPane.setDividerPositions(0.72);
-        } else if (count >= 3) {
-            splitPane.setDividerPositions(0.58, 0.76);
+            ChapterEditorSplitPreferences.apply(splitPane);
         }
     }
 
@@ -76,6 +83,7 @@ public class ChapterLektoratPanel {
         hint.getStyleClass().add("lektorat-panel-hint");
         themeApplier.accept(hint, themeIndex.getAsInt());
         container.getChildren().add(hint);
+        applyFontSize(fontSizePx);
         ensureVisible(hasMatches);
     }
 
@@ -130,6 +138,7 @@ public class ChapterLektoratPanel {
         themeApplier.accept(scroll, theme);
         container.getChildren().add(scroll);
         VBox.setVgrow(scroll, Priority.ALWAYS);
+        applyFontSize(fontSizePx);
     }
 
     public void showAppliedHint() {
@@ -141,6 +150,7 @@ public class ChapterLektoratPanel {
         hint.setWrapText(true);
         themeApplier.accept(hint, themeIndex.getAsInt());
         container.getChildren().add(hint);
+        applyFontSize(fontSizePx);
     }
 
     public void clear() {
@@ -174,6 +184,7 @@ public class ChapterLektoratPanel {
         themeApplier.accept(assessmentLoading, theme);
         assessmentBox.getChildren().add(assessmentLoading);
         container.getChildren().addAll(assessmentLabel, assessmentBox);
+        applyFontSize(fontSizePx);
 
         if (chapterText == null || chapterText.isBlank()) {
             assessmentBox.getChildren().clear();
@@ -194,6 +205,7 @@ public class ChapterLektoratPanel {
                     assessmentText.setMaxWidth(Double.MAX_VALUE);
                     themeApplier.accept(assessmentText, theme);
                     assessmentBox.getChildren().add(assessmentText);
+                    applyFontSize(fontSizePx);
                 }))
                 .exceptionally(ex -> {
                     Platform.runLater(() -> {
@@ -203,6 +215,7 @@ public class ChapterLektoratPanel {
                         errorText.setMaxWidth(Double.MAX_VALUE);
                         themeApplier.accept(errorText, theme);
                         assessmentBox.getChildren().add(errorText);
+                        applyFontSize(fontSizePx);
                     });
                     logger.error("Kapitel-Einschätzung", ex);
                     return null;

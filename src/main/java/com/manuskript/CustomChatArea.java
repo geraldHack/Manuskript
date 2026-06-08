@@ -12,6 +12,7 @@ import javafx.scene.text.Font;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.prefs.Preferences;
 
 public class CustomChatArea extends VBox {
     private TextArea chatHistoryArea;
@@ -21,7 +22,39 @@ public class CustomChatArea extends VBox {
     private VBox scrollIndicator;
     private List<QAPair> chatHistory = new ArrayList<>();
     private int currentIndex = -1;
+    private int themeIndex = readDefaultThemeIndex();
+    private String fontFamily = "Segoe UI";
+    private int fontSizePx = 14;
     private Runnable onDisplayChange;
+    
+    private static int readDefaultThemeIndex() {
+        return Preferences.userNodeForPackage(MainController.class).getInt("main_window_theme", 0);
+    }
+
+    public void setThemeIndex(int themeIndex) {
+        this.themeIndex = themeIndex;
+        applyTheme();
+    }
+
+    public int getThemeIndex() {
+        return themeIndex;
+    }
+
+    /** Theme-Farben neu anwenden (z. B. nach Schriftgrößen-Änderung im Agenten-Panel). */
+    public void refreshTheme() {
+        applyTheme();
+    }
+
+    /** Editor-Schriftart und -größe übernehmen. */
+    public void applyEditorFont(String family, int sizePx) {
+        if (family != null && !family.isBlank()) {
+            this.fontFamily = family.trim();
+        }
+        if (sizePx > 0) {
+            this.fontSizePx = sizePx;
+        }
+        applyTheme();
+    }
     
     public CustomChatArea() {
         initializeUI();
@@ -32,9 +65,8 @@ public class CustomChatArea extends VBox {
         questionArea = new TextArea("Keine Frage ausgewählt");
         questionArea.setEditable(false);
         questionArea.setWrapText(true);
-        questionArea.setPrefRowCount(4);  // noch etwas höher
-        questionArea.setMaxHeight(108);   // angepasst
-        questionArea.setStyle("-fx-font-family: 'System'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-background-color: transparent; -fx-border-color: #bdc3c7; -fx-border-width: 1px;");
+        questionArea.setPrefRowCount(4);
+        questionArea.setMaxHeight(108);
         
         // TextArea für Antworten
         chatHistoryArea = new TextArea();
@@ -42,7 +74,6 @@ public class CustomChatArea extends VBox {
         chatHistoryArea.setWrapText(true);
         chatHistoryArea.setPrefRowCount(15);
         chatHistoryArea.setPromptText("Antwort wird hier angezeigt...");
-        chatHistoryArea.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px;");
         
         // Keyboard-Navigation für TextArea
         chatHistoryArea.setOnKeyPressed(e -> {
@@ -105,6 +136,7 @@ public class CustomChatArea extends VBox {
         this.setPadding(new Insets(10));
         this.getChildren().addAll(questionArea, answerSection);
         VBox.setVgrow(answerSection, javafx.scene.layout.Priority.ALWAYS);
+        getStyleClass().add("custom-chat-area");
         
         // Theme anwenden
         applyTheme();
@@ -184,18 +216,7 @@ public class CustomChatArea extends VBox {
     }
     
     public void addAssistantResponse(String response) {
-        Platform.runLater(() -> {
-            
-            
-            if (currentIndex >= 0 && currentIndex < chatHistory.size()) {
-                // Antwort zum aktuellen QAPair hinzufügen
-                QAPair currentPair = chatHistory.get(currentIndex);
-                currentPair.setAnswer(response);
-                
-                // UI aktualisieren
-                updateDisplay();
-            }
-        });
+        setAnswerAt(getLastIndex(), response);
     }
 
     /**
@@ -210,15 +231,23 @@ public class CustomChatArea extends VBox {
      * unabhängig davon, welcher Eintrag aktuell angezeigt wird.
      */
     public void setAnswerAt(int index, String response) {
-        Platform.runLater(() -> {
+        Runnable action = () -> {
             if (index >= 0 && index < chatHistory.size()) {
                 QAPair pair = chatHistory.get(index);
                 pair.setAnswer(response);
+                if (index == chatHistory.size() - 1) {
+                    currentIndex = index;
+                }
                 if (index == currentIndex) {
                     updateDisplay();
                 }
             }
-        });
+        };
+        if (Platform.isFxApplicationThread()) {
+            action.run();
+        } else {
+            Platform.runLater(action);
+        }
     }
     
     /**
@@ -259,7 +288,8 @@ public class CustomChatArea extends VBox {
             questionArea.setText("Frage: " + currentPair.getQuestion());
             
             // Antwort anzeigen
-            chatHistoryArea.setText(currentPair.getAnswer());
+            String answer = currentPair.getAnswer();
+            chatHistoryArea.setText(answer != null ? answer : "");
             // Beim Streamen automatisch nach unten scrollen
             int len = chatHistoryArea.getText() != null ? chatHistoryArea.getText().length() : 0;
             chatHistoryArea.positionCaret(len);
@@ -321,14 +351,6 @@ public class CustomChatArea extends VBox {
     }
     
     private void applyTheme() {
-        // Theme aus den Preferences lesen
-        int themeIndex = 4; // Standard: Grün
-        try {
-            themeIndex = Integer.parseInt(java.util.prefs.Preferences.userNodeForPackage(com.manuskript.EditorWindow.class).get("editor_theme", "4"));
-        } catch (Exception e) {
-            // Fallback auf Standard-Theme
-        }
-        
         String backgroundColor, textColor, borderColor, highlightColor;
         
         switch (themeIndex) {
@@ -378,14 +400,14 @@ public class CustomChatArea extends VBox {
         
         // Frage-TextArea Theme
         questionArea.setStyle(String.format(
-            "-fx-font-family: 'System'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: %s; -fx-background-color: %s; -fx-control-inner-background: %s; -fx-border-color: %s; -fx-border-width: 1px; -fx-border-radius: 4px; -fx-background-radius: 4px;",
-            textColor, backgroundColor, backgroundColor, borderColor
+            "-fx-font-family: %s; -fx-font-size: %dpx; -fx-font-weight: bold; -fx-text-fill: %s; -fx-background-color: %s; -fx-control-inner-background: %s; -fx-border-color: %s; -fx-border-width: 1px; -fx-border-radius: 4px; -fx-background-radius: 4px;",
+            cssFontFamily(fontFamily), fontSizePx, textColor, backgroundColor, backgroundColor, borderColor
         ));
         
         // TextArea Theme
         chatHistoryArea.setStyle(String.format(
-            "-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px; -fx-text-fill: %s; -fx-background-color: %s; -fx-control-inner-background: %s; -fx-border-color: %s;",
-            textColor, backgroundColor, backgroundColor, borderColor
+            "-fx-font-family: %s; -fx-font-size: %dpx; -fx-text-fill: %s; -fx-background-color: %s; -fx-control-inner-background: %s; -fx-border-color: %s;",
+            cssFontFamily(fontFamily), fontSizePx, textColor, backgroundColor, backgroundColor, borderColor
         ));
         
         // Buttons Theme (Navigation)
@@ -411,10 +433,10 @@ public class CustomChatArea extends VBox {
         ));
         
         // Scroll-Indikator-Elemente aktualisieren
+        int childIndex = 0;
         for (javafx.scene.Node node : scrollIndicator.getChildren()) {
-            if (node instanceof Region) {
-                Region indicator = (Region) node;
-                if (scrollIndicator.getChildren().indexOf(node) == currentIndex) {
+            if (node instanceof Region indicator) {
+                if (childIndex == currentIndex) {
                     // Aktueller Eintrag - hervorgehoben
                     indicator.setStyle(String.format(
                         "-fx-background-color: %s; -fx-border-color: %s; -fx-border-width: 1px;",
@@ -428,8 +450,20 @@ public class CustomChatArea extends VBox {
                         normalBg, borderColor
                     ));
                 }
+                childIndex++;
             }
         }
+    }
+
+    public static String cssFontFamily(String family) {
+        if (family == null || family.isBlank()) {
+            return "'Segoe UI'";
+        }
+        String trimmed = family.trim();
+        if (trimmed.startsWith("'") || trimmed.contains(",")) {
+            return trimmed;
+        }
+        return "'" + trimmed.replace("'", "\\'") + "'";
     }
     
     public void insertSavedHistoryAfterResponse() {
@@ -473,6 +507,9 @@ public class CustomChatArea extends VBox {
         private String question;
         private String answer;
         
+        public QAPair() {
+        }
+
         public QAPair(String question, String answer) {
             this.question = question;
             this.answer = answer;
@@ -494,4 +531,4 @@ public class CustomChatArea extends VBox {
             this.question = question;
         }
     }
-} 
+}

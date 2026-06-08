@@ -3,6 +3,7 @@ package com.manuskript;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.beans.value.ObservableDoubleValue;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
@@ -114,11 +115,11 @@ public class MdTextArea extends VBox {
         row.setAlignment(Pos.CENTER_LEFT);
 
         if (opts.enableUndoRedo()) {
-            Button undo = toolbarButton("Rückgängig", "Rückgängig (Strg+Z)", () -> {
+            Button undo = toolbarButton("Rückgängig", "Rückgängig (" + EditingShortcuts.acceleratorHint("Z") + ")", () -> {
                 editor.undo();
                 editor.requestInputFocus();
             });
-            Button redo = toolbarButton("Wiederholen", "Wiederholen (Strg+Y)", () -> {
+            Button redo = toolbarButton("Wiederholen", "Wiederholen (" + EditingShortcuts.acceleratorHint("Y") + ")", () -> {
                 editor.redo();
                 editor.requestInputFocus();
             });
@@ -242,15 +243,15 @@ public class MdTextArea extends VBox {
 
         if (opts.enableBasicFormatting()) {
             formatPane.getChildren().addAll(
-                    toolbarButton("B", "Fett (Strg+B)", () -> {
+                    toolbarButton("B", "Fett (" + EditingShortcuts.acceleratorHint("B") + ")", () -> {
                         editor.toggleBold();
                         editor.requestInputFocus();
                     }),
-                    toolbarButton("I", "Kursiv (Strg+I)", () -> {
+                    toolbarButton("I", "Kursiv (" + EditingShortcuts.acceleratorHint("I") + ")", () -> {
                         editor.toggleItalic();
                         editor.requestInputFocus();
                     }),
-                    toolbarButton("U", "Unterstrichen (Strg+U)", () -> {
+                    toolbarButton("U", "Unterstrichen (" + EditingShortcuts.acceleratorHint("U") + ")", () -> {
                         editor.toggleUnderline();
                         editor.requestInputFocus();
                     }),
@@ -264,6 +265,52 @@ public class MdTextArea extends VBox {
 
     public ManuskriptTextEditor getEditor() {
         return editor;
+    }
+
+    /** Toolbar-Knoten für externes Layout (z. B. über Editor- und Agenten-Spalte). */
+    public VBox getToolbarNode() {
+        return toolbarBox;
+    }
+
+    /** Editor-Knoten für SplitPane-Layouts ohne eingebettete Toolbar. */
+    public ManuskriptTextEditor getEditorNode() {
+        return editor;
+    }
+
+    /**
+     * Entfernt die Toolbar aus dieser VBox und bindet den Zeilenumbruch an die übergebene Breite
+     * (typisch: Spalte rechts neben der Kapitel-Seitenleiste).
+     */
+    public void useExternalToolbarLayout(ObservableDoubleValue wrapWidthSource) {
+        if (toolbarBox == null) {
+            return;
+        }
+        if (getChildren().contains(toolbarBox)) {
+            getChildren().remove(toolbarBox);
+        }
+        rebindToolbarWrapLength(wrapWidthSource);
+    }
+
+    private void rebindToolbarWrapLength(ObservableDoubleValue wrapWidthSource) {
+        if (toolbarBox == null) {
+            return;
+        }
+        var wrapLength = Bindings.max(220,
+                Bindings.createDoubleBinding(
+                        () -> wrapWidthSource.getValue().doubleValue() - 16,
+                        wrapWidthSource));
+        bindFlowPaneWrapLength(toolbarBox, wrapLength);
+    }
+
+    private static void bindFlowPaneWrapLength(javafx.scene.Parent parent, javafx.beans.binding.NumberBinding wrapLength) {
+        for (var child : parent.getChildrenUnmodifiable()) {
+            if (child instanceof FlowPane flowPane) {
+                flowPane.prefWrapLengthProperty().unbind();
+                flowPane.prefWrapLengthProperty().bind(wrapLength);
+            } else if (child instanceof javafx.scene.Parent nested) {
+                bindFlowPaneWrapLength(nested, wrapLength);
+            }
+        }
     }
 
     public String getText() {
@@ -297,6 +344,7 @@ public class MdTextArea extends VBox {
     }
 
     public void applyTheme(int themeIndex) {
+        applyThemeToNode(this, themeIndex);
         editor.applyTheme(themeIndex);
         if (toolbarBox != null) {
             applyThemeToNode(toolbarBox, themeIndex);
@@ -403,7 +451,8 @@ public class MdTextArea extends VBox {
             searchField = new TextField();
             searchField.setPromptText("Suchen");
             searchField.setPrefWidth(160);
-            searchField.setTooltip(new Tooltip("Suchen (Strg+F, Enter = weiter, F3 = weiter)"));
+            searchField.setTooltip(new Tooltip("Suchen (" + EditingShortcuts.acceleratorHint("F")
+                    + ", Enter = weiter, F3 = weiter)"));
 
             replaceField = new TextField();
             replaceField.setPromptText("Ersetzen");
@@ -441,7 +490,7 @@ public class MdTextArea extends VBox {
             searchActions.getChildren().addAll(regexCheckbox, find, findPrevious);
             if (enableReplace) {
                 Button replaceOne = toolbarButton("Ersetzen",
-                        "Aktuellen Treffer ersetzen und weiter (Strg+H)", this::replaceNextMatch);
+                        "Aktuellen Treffer ersetzen und weiter (" + EditingShortcuts.acceleratorHint("H") + ")", this::replaceNextMatch);
                 Button replaceAll = toolbarButton("Alle ersetzen", "Alle Treffer ersetzen", () -> {
                     int count = editor.replaceAll(
                             searchField.getText(),

@@ -26,6 +26,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.ToggleButton;
 import javafx.scene.Node;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -78,6 +79,7 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
     private static final String PREF_SHOW_LINE_NUMBERS = "prototype_editor_show_line_numbers";
     private static final String PREF_LT_AUTO = "prototype_editor_languagetool_auto";
     private static final String PREF_SIDEBAR_EXPANDED = "prototype_editor_sidebar_expanded";
+    private static final String PREF_HOST_TOOLBAR_EXPANDED = "prototype_editor_host_toolbar_expanded";
 
     private final Window owner;
     private final MainController mainController;
@@ -115,6 +117,11 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
     private Label sidebarTitleLabel;
     private Label chapterListPlaceholder;
     private Button btnToggleSidebar;
+    private Button btnToggleHostToolbar;
+    private ToggleButton btnToggleAgents;
+    private VBox hostToolbarCollapsibleSection;
+    private VBox editorMdToolbar;
+    private boolean hostToolbarExpanded = true;
     private ListView<DocxFile> chapterListView;
     private ChapterSidebarTheme chapterSidebarTheme;
     private boolean sidebarExpanded = true;
@@ -180,8 +187,22 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
                 .enableSearch(true)
                 .enableReplace(true)
                 .enableHideMarkupToggle(true)
-                .onFontFamilyChanged(value -> preferences.put(PREF_FONT_FAMILY, value))
-                .onFontSizeChanged(value -> preferences.putDouble(PREF_FONT_SIZE, value))
+                .onFontFamilyChanged(value -> {
+                    preferences.put(PREF_FONT_FAMILY, value);
+                    if (chapterAgentSupport != null) {
+                        chapterAgentSupport.applyEditorAppearance();
+                    }
+                })
+                .onFontSizeChanged(value -> {
+                    preferences.putDouble(PREF_FONT_SIZE, value);
+                    int sizePx = (int) Math.round(value);
+                    if (chapterAgentSupport != null) {
+                        chapterAgentSupport.applyEditorAppearance();
+                    }
+                    if (lektoratPanel != null) {
+                        lektoratPanel.applyFontSize(sizePx);
+                    }
+                })
                 .onLineSpacingChanged(value -> preferences.putDouble(PREF_LINE_SPACING, value))
                 .onParagraphSpacingChanged(value -> preferences.putDouble(PREF_PARAGRAPH_SPACING, value))
                 .onJustifyChanged(value -> preferences.putBoolean(PREF_JUSTIFY_TEXT, value))
@@ -213,6 +234,7 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         initializeSelectionLabel();
         root.setTop(createHostToolbar());
         root.setCenter(createEditorWithSidebar());
+        applyHostToolbarExpanded(hostToolbarExpanded);
         root.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
             Object targetObj = event.getTarget();
             if (!(targetObj instanceof Node target)) {
@@ -279,9 +301,11 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
             chapterAgentSupport = new ChapterAgentSupport(this, mainSplitPane);
             chapterAgentSupport.setSceneOutlineWindow(sceneOutlineWindow);
             chapterAgentSupport.setupIfEnabled();
+            wireSelectionRevisionAgentAction();
         }
         textAnalysisWindow = new ChapterTextAnalysisWindow(createTextAnalysisHost());
         macroWindow = new ChapterMacroWindow(createMacroHost());
+        syncAgentsToggleButton();
     }
 
     private ChapterTextAnalysisWindow.Host createTextAnalysisHost() {
@@ -379,12 +403,23 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         lektoratPanelContainer.setPrefWidth(320);
         lektoratPanelContainer.setPadding(new Insets(10));
 
-        mainSplitPane = new SplitPane(mdTextArea);
-        lektoratPanel = new ChapterLektoratPanel(
-                lektoratPanelContainer, mainSplitPane, () -> themeIndex, this::applyThemeToNode);
-        HBox.setHgrow(mainSplitPane, Priority.ALWAYS);
+        VBox editorContentColumn = new VBox(0);
+        HBox.setHgrow(editorContentColumn, Priority.ALWAYS);
+        editorMdToolbar = mdTextArea.getToolbarNode();
+        if (editorMdToolbar != null) {
+            mdTextArea.useExternalToolbarLayout(editorContentColumn.widthProperty());
+            editorContentColumn.getChildren().add(editorMdToolbar);
+        }
 
-        HBox editorRow = new HBox(0, sidebarColumn, mainSplitPane);
+        mainSplitPane = new SplitPane(mdTextArea.getEditorNode());
+        ChapterEditorSplitPreferences.bindPersistence(mainSplitPane, preferences);
+        lektoratPanel = new ChapterLektoratPanel(
+                lektoratPanelContainer, mainSplitPane, () -> themeIndex, this::applyThemeToNode,
+                getEditorFontSizePx());
+        VBox.setVgrow(mainSplitPane, Priority.ALWAYS);
+        editorContentColumn.getChildren().add(mainSplitPane);
+
+        HBox editorRow = new HBox(0, sidebarColumn, editorContentColumn);
         HBox.setHgrow(editorRow, Priority.ALWAYS);
         return editorRow;
     }
@@ -518,6 +553,44 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
 
     private void saveSidebarState() {
         preferences.putBoolean(PREF_SIDEBAR_EXPANDED, sidebarExpanded);
+    }
+
+    private void toggleHostToolbar() {
+        applyHostToolbarExpanded(!hostToolbarExpanded);
+        preferences.putBoolean(PREF_HOST_TOOLBAR_EXPANDED, hostToolbarExpanded);
+    }
+
+    private void applyHostToolbarExpanded(boolean expanded) {
+        hostToolbarExpanded = expanded;
+        if (hostToolbarCollapsibleSection != null) {
+            hostToolbarCollapsibleSection.setVisible(expanded);
+            hostToolbarCollapsibleSection.setManaged(expanded);
+        }
+        if (editorMdToolbar != null) {
+            editorMdToolbar.setVisible(expanded);
+            editorMdToolbar.setManaged(expanded);
+        }
+        if (btnToggleHostToolbar != null) {
+            HostToolbarToggleSupport.updateAppearance(btnToggleHostToolbar, expanded, themeIndex);
+        }
+    }
+
+    private void expandHostToolbarIfCollapsed() {
+        if (hostToolbarExpanded) {
+            return;
+        }
+        applyHostToolbarExpanded(true);
+        preferences.putBoolean(PREF_HOST_TOOLBAR_EXPANDED, true);
+    }
+
+    private void focusSearchField() {
+        expandHostToolbarIfCollapsed();
+        mdTextArea.focusSearchField();
+    }
+
+    private void replaceNextMatch() {
+        expandHostToolbarIfCollapsed();
+        mdTextArea.replaceNextMatch();
     }
 
     private void navigateToChapter(DocxFile docxFile) {
@@ -663,11 +736,8 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         lblLanguageToolStatus.setStyle("-fx-text-fill: #666; -fx-font-size: 11px;");
         updateLanguageToolStatus();
 
-        Button loadSelectedChapter = new Button("Kapitel laden");
-        loadSelectedChapter.setOnAction(e -> loadSelectedChapterFromMainWindow());
-
         Button saveChapter = new Button("Speichern");
-        saveChapter.setTooltip(new Tooltip("Speichern (Strg+S)"));
+        saveChapter.setTooltip(new Tooltip("Speichern (" + EditingShortcuts.acceleratorHint("S") + ")"));
         saveChapter.setOnAction(e -> saveLoadedChapter());
 
         Button insertImage = new Button("Bild einfügen");
@@ -689,7 +759,22 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         HBox statusRow = new HBox(8);
         Region statusSpacer = new Region();
         HBox.setHgrow(statusSpacer, Priority.ALWAYS);
-        statusRow.getChildren().addAll(statusSpacer, saveChapter, lblSelectionCount, statusLabel);
+
+        btnToggleHostToolbar = new Button();
+        btnToggleHostToolbar.setMinWidth(36);
+        btnToggleHostToolbar.setMaxWidth(36);
+        btnToggleHostToolbar.setMinHeight(24);
+        btnToggleHostToolbar.setPrefHeight(24);
+        btnToggleHostToolbar.setMaxHeight(24);
+        btnToggleHostToolbar.getStyleClass().add("host-toolbar-toggle-button");
+        hostToolbarExpanded = preferences.getBoolean(PREF_HOST_TOOLBAR_EXPANDED, true);
+        btnToggleHostToolbar.setOnAction(e -> toggleHostToolbar());
+
+        HBox toggleRow = new HBox(btnToggleHostToolbar);
+        toggleRow.setAlignment(Pos.CENTER);
+        toggleRow.setPadding(new Insets(2, 0, 2, 0));
+
+        statusRow.getChildren().addAll(statusSpacer, saveChapter, lblLanguageToolStatus, lblSelectionCount, statusLabel);
         statusRow.setAlignment(Pos.CENTER_RIGHT);
 
         FlowPane formatPane = new FlowPane(6, 4);
@@ -705,6 +790,13 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         Label quoteLabel = new Label("Anführungszeichen:");
         Button sceneOutline = toolbarButton("Outline", "Szenen-Outline für dieses Kapitel", this::toggleSceneOutlineWindow);
         Button textAnalysis = toolbarButton("Analyse", "Textanalyse-Fenster ein-/ausblenden", this::toggleTextAnalysisWindow);
+        if (Boolean.parseBoolean(ResourceManager.getParameter("agent.enabled", "true"))) {
+            btnToggleAgents = new ToggleButton("Agenten");
+            btnToggleAgents.setSelected(Preferences.userNodeForPackage(ChapterAgentSupport.class)
+                    .getBoolean(ChapterAgentSupport.PREF_AGENT_PANEL_VISIBLE, true));
+            btnToggleAgents.setTooltip(new Tooltip("Agenten-Panel ein- oder ausblenden"));
+            btnToggleAgents.setOnAction(e -> onAgentsToggle());
+        }
         Button onlineLektorat = toolbarButton("Lektorat", "Online-Lektorat starten", () -> startOnlineLektorat(false));
         Button macrosBtn = toolbarButton("Makros", "Makro-Verwaltung ein-/ausblenden", this::toggleMacroWindow);
         Button copySudowrite = toolbarButton("Sudowrite", "Für Sudowrite kopieren (Zwischenablage)",
@@ -712,17 +804,45 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
 
         toolsPane.getChildren().addAll(
                 quoteLabel, quoteStyle,
-                languageTool, languageToolAuto, lblLanguageToolStatus,
-                sceneOutline, textAnalysis, onlineLektorat, macrosBtn, copySudowrite,
-                insertImage, editImage, deleteImage, loadSelectedChapter);
+                languageTool, languageToolAuto,
+                sceneOutline, textAnalysis);
+        if (btnToggleAgents != null) {
+            toolsPane.getChildren().add(btnToggleAgents);
+        }
+        toolsPane.getChildren().addAll(
+                onlineLektorat, macrosBtn, copySudowrite,
+                insertImage, editImage, deleteImage);
 
-        VBox toolbar = new VBox(8, statusRow, formatPane, toolsPane);
-        toolbar.setPadding(new Insets(8));
+        hostToolbarCollapsibleSection = new VBox(8, formatPane, toolsPane);
+        VBox toolbar = new VBox(4, toggleRow, statusRow, hostToolbarCollapsibleSection);
+        toolbar.setPadding(new Insets(4, 8, 8, 8));
         var wrapLength = Bindings.max(220, toolbar.widthProperty().subtract(16));
         formatPane.prefWrapLengthProperty().bind(wrapLength);
         toolsPane.prefWrapLengthProperty().bind(wrapLength);
+        applyHostToolbarExpanded(hostToolbarExpanded);
         applyThemeToNode(toolbar, themeIndex);
+        HostToolbarToggleSupport.updateAppearance(btnToggleHostToolbar, hostToolbarExpanded, themeIndex);
         return toolbar;
+    }
+
+    private void onAgentsToggle() {
+        if (chapterAgentSupport == null || !chapterAgentSupport.isAvailable()) {
+            return;
+        }
+        if (onlineLektoratMode) {
+            syncAgentsToggleButton();
+            return;
+        }
+        chapterAgentSupport.setPanelVisible(btnToggleAgents.isSelected(), true);
+    }
+
+    private void syncAgentsToggleButton() {
+        if (btnToggleAgents == null) {
+            return;
+        }
+        boolean visible = chapterAgentSupport != null && chapterAgentSupport.isPanelVisible();
+        btnToggleAgents.setSelected(visible);
+        btnToggleAgents.setDisable(onlineLektoratMode);
     }
 
     private static Button toolbarButton(String label, String tooltip, Runnable action) {
@@ -813,37 +933,12 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
             return;
         }
         var accelerators = scene.getAccelerators();
-        bindEditingAccelerator(accelerators, "Shortcut+Z", editor::undo, true);
-        bindEditingAccelerator(accelerators, "Ctrl+Z", editor::undo, true);
-        bindEditingAccelerator(accelerators, "Shortcut+Shift+Z", editor::redo, true);
-        bindEditingAccelerator(accelerators, "Ctrl+Shift+Z", editor::redo, true);
-        bindEditingAccelerator(accelerators, "Shortcut+Y", editor::redo, true);
-        bindEditingAccelerator(accelerators, "Ctrl+Y", editor::redo, true);
-        bindEditingAccelerator(accelerators, "Shortcut+B", editor::toggleBold, true);
-        bindEditingAccelerator(accelerators, "Ctrl+B", editor::toggleBold, true);
-        bindEditingAccelerator(accelerators, "Shortcut+I", editor::toggleItalic, true);
-        bindEditingAccelerator(accelerators, "Ctrl+I", editor::toggleItalic, true);
-        bindEditingAccelerator(accelerators, "Shortcut+U", editor::toggleUnderline, true);
-        bindEditingAccelerator(accelerators, "Ctrl+U", editor::toggleUnderline, true);
-        bindEditingAccelerator(accelerators, "Shortcut+F", mdTextArea::focusSearchField, false);
-        bindEditingAccelerator(accelerators, "Ctrl+F", mdTextArea::focusSearchField, false);
-        bindEditingAccelerator(accelerators, "Shortcut+S", this::saveLoadedChapter, true);
-        bindEditingAccelerator(accelerators, "Ctrl+S", this::saveLoadedChapter, true);
-        bindEditingAccelerator(accelerators, "Shortcut+H", mdTextArea::replaceNextMatch, false);
-        bindEditingAccelerator(accelerators, "Ctrl+H", mdTextArea::replaceNextMatch, false);
+        EditingShortcuts.bindPlatformAccelerators(accelerators, "S", () -> Platform.runLater(this::saveLoadedChapter));
+        EditingShortcuts.bindPlatformAccelerators(accelerators, "F", () -> Platform.runLater(this::focusSearchField));
+        EditingShortcuts.bindPlatformAccelerators(accelerators, "H", () -> Platform.runLater(this::replaceNextMatch));
 
         stage.addEventFilter(KeyEvent.KEY_PRESSED, mdTextArea::handleSearchNavigationKey);
         editingShortcutsInstalled = true;
-    }
-
-    private void bindEditingAccelerator(javafx.collections.ObservableMap<KeyCombination, Runnable> accelerators,
-                                        String combination, Runnable action, boolean refocusEditor) {
-        accelerators.put(KeyCombination.valueOf(combination), () -> Platform.runLater(() -> {
-            action.run();
-            if (refocusEditor) {
-                editor.requestInputFocus();
-            }
-        }));
     }
 
     private void initializeStatusLabel() {
@@ -1574,6 +1669,10 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
             applyThemeToNode(btnToggleSidebar, themeIndex);
             SidebarToggleButtonSupport.updateAppearance(btnToggleSidebar, sidebarExpanded, themeIndex);
         }
+        if (btnToggleHostToolbar != null) {
+            applyThemeToNode(btnToggleHostToolbar, themeIndex);
+            HostToolbarToggleSupport.updateAppearance(btnToggleHostToolbar, hostToolbarExpanded, themeIndex);
+        }
         refreshChapterListAppearance();
     }
 
@@ -1763,6 +1862,16 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
     }
 
     @Override
+    public int getEditorFontSizePx() {
+        return (int) Math.round(preferences.getDouble(PREF_FONT_SIZE, 16.0));
+    }
+
+    @Override
+    public String getEditorFontFamily() {
+        return preferences.get(PREF_FONT_FAMILY, "Segoe UI");
+    }
+
+    @Override
     public javafx.stage.Stage getStage() {
         return stage;
     }
@@ -1880,7 +1989,15 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         if (text == null || text.isEmpty()) {
             return;
         }
-        editor.insertText(text);
+        editor.insertTextPreserveCaret(text);
+    }
+
+    private void wireSelectionRevisionAgentAction() {
+        editor.setSelectionRevisionAgentAction(() -> {
+            if (chapterAgentSupport != null && chapterAgentSupport.isAvailable()) {
+                chapterAgentSupport.runSelectionRevisionFromContextMenu();
+            }
+        });
     }
 
     @Override
@@ -1893,11 +2010,15 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         onlineLektoratMode = enabled;
         if (enabled && chapterAgentSupport != null) {
             chapterAgentSupport.ensurePanelVisible(false);
+        } else if (!enabled && chapterAgentSupport != null) {
+            chapterAgentSupport.restoreUserPanelVisibility();
         } else if (!enabled && chapterAgentSupport == null && mainSplitPane != null) {
             chapterAgentSupport = new ChapterAgentSupport(this, mainSplitPane);
             chapterAgentSupport.setSceneOutlineWindow(sceneOutlineWindow);
             chapterAgentSupport.setupIfEnabled();
+            wireSelectionRevisionAgentAction();
         }
+        syncAgentsToggleButton();
     }
 
     @Override
@@ -1930,6 +2051,7 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
     }
 
     private void setupWindowPersistence() {
+        stage.setOnHidden(event -> ChapterEditorSplitPreferences.save(mainSplitPane, preferences));
         stage.xProperty().addListener((obs, oldValue, newValue) ->
                 PreferencesManager.putWindowPosition(preferences, "prototype_editor_window_x", newValue.doubleValue()));
         stage.yProperty().addListener((obs, oldValue, newValue) ->

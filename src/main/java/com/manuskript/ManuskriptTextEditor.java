@@ -1,5 +1,7 @@
 package com.manuskript;
 
+import com.manuskript.agent.SelectionRevisionSupport;
+
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.beans.property.DoubleProperty;
@@ -59,7 +61,7 @@ public class ManuskriptTextEditor extends Region {
 
     /** Strg (Windows/Linux) bzw. Strg oder Cmd (macOS) – wie {@link EditorWindow}. */
     public static boolean isEditingShortcutKey(KeyEvent event) {
-        return event.isControlDown() || event.isMetaDown();
+        return EditingShortcuts.isShortcutDown(event);
     }
 
     private static final double GUTTER_WIDTH = 48;
@@ -103,6 +105,8 @@ public class ManuskriptTextEditor extends Region {
     private static final double SMALL_FONT_SCALE = 0.8;
     /** Hoch-/Tiefstellung typografisch kleiner (≈ 75 % der Grundschrift). */
     private static final double SUP_SUB_FONT_SCALE = 0.75;
+    /** Breite der vertikalen Scrollbar (CSS: editor-scrollbar.css). */
+    private static final double SCROLLBAR_WIDTH = 18;
 
     private final Canvas canvas = new Canvas();
     private final ScrollBar verticalScrollBar = new ScrollBar();
@@ -136,6 +140,7 @@ public class ManuskriptTextEditor extends Region {
     private final ContextMenu languageToolContextMenu = new ContextMenu();
     private final ContextMenu editorContextMenu = new ContextMenu();
     private ChapterRewriteContextActions contextMenuRewriteActions;
+    private Runnable selectionRevisionAgentAction;
     private int contextMenuThemeIndex;
     private final Popup languageToolHoverPopup = new Popup();
     private final Label languageToolHoverMessage = new Label();
@@ -144,7 +149,7 @@ public class ManuskriptTextEditor extends Region {
     private LanguageToolDictionary languageToolDictionary;
     private Runnable onLanguageToolMatchesChanged;
     private LanguageToolService.Match hoveredLanguageToolMatch;
-    private EventHandler<MouseEvent> languageToolContextMenuOutsideClickFilter;
+    private EventHandler<MouseEvent> contextMenuOutsideClickFilter;
     private Consumer<String> textChangeListener;
     private Runnable selectionChangeListener;
     private int lastNotifiedCaret = -1;
@@ -199,17 +204,30 @@ public class ManuskriptTextEditor extends Region {
     private double[] cachedLineSegmentHeight;
     private double cachedTotalContentHeight = -1;
 
+    private boolean sceneAcceleratorsInstalled;
+
     public ManuskriptTextEditor() {
+        getStyleClass().add("manuskript-text-editor");
+        installBundledScrollbarStyles();
         initHeadingColors(false);
         setupKeyboardProxy();
         getChildren().addAll(keyboardProxy, canvas, verticalScrollBar);
         setFocusTraversable(false);
         setPadding(new Insets(0));
 
+        verticalScrollBar.setPrefWidth(SCROLLBAR_WIDTH);
+        verticalScrollBar.setMinWidth(SCROLLBAR_WIDTH);
+        verticalScrollBar.setMaxWidth(SCROLLBAR_WIDTH);
+
         canvas.setFocusTraversable(true);
-        canvas.addEventHandler(KeyEvent.KEY_PRESSED, this::handleKeyPressed);
-        canvas.addEventHandler(KeyEvent.KEY_TYPED, this::handleKeyTyped);
+        canvas.addEventFilter(KeyEvent.KEY_PRESSED, this::handleKeyPressed);
+        canvas.addEventFilter(KeyEvent.KEY_TYPED, this::handleKeyTyped);
         canvas.focusedProperty().addListener((obs, wasFocused, focused) -> render());
+        sceneProperty().addListener((obs, oldScene, newScene) -> {
+            if (newScene != null) {
+                installSceneAccelerators(newScene);
+            }
+        });
 
         verticalScrollBar.setOrientation(javafx.geometry.Orientation.VERTICAL);
         verticalScrollBar.valueProperty().addListener((obs, oldValue, newValue) -> {
@@ -306,7 +324,7 @@ public class ManuskriptTextEditor extends Region {
     protected void layoutChildren() {
         double width = Math.max(0, getWidth());
         double height = Math.max(0, getHeight());
-        double barWidth = 14;
+        double barWidth = SCROLLBAR_WIDTH;
         canvas.setLayoutX(0);
         canvas.setLayoutY(0);
         canvas.setWidth(Math.max(0, width - barWidth));
@@ -369,6 +387,10 @@ public class ManuskriptTextEditor extends Region {
         contextMenuRewriteActions = actions;
         contextMenuThemeIndex = themeIndex;
         EditorDialogThemes.styleContextMenu(editorContextMenu, themeIndex);
+    }
+
+    public void setSelectionRevisionAgentAction(Runnable action) {
+        selectionRevisionAgentAction = action;
     }
 
     public int getSelectionStart() {
@@ -490,6 +512,24 @@ public class ManuskriptTextEditor extends Region {
             return;
         }
         replaceSelection(value);
+    }
+
+    /** Fügt Text an der Caret-/Selektionsposition ein, ohne den Cursor zu verschieben. */
+    public void insertTextPreserveCaret(String value) {
+        if (value == null || value.isEmpty()) {
+            return;
+        }
+        pushUndoCoalesced(classifyUndoKind(value), value);
+        int start = selectionStart();
+        int end = selectionEnd();
+        ViewportAnchor viewportAnchor = captureCaretViewportAnchor(start);
+        text.replace(start, end, value);
+        int inserted = value.length();
+        adjustRangesForReplace(start, end, inserted);
+        caret = normalizeCaretOffset(start, true);
+        anchor = caret;
+        preferredCaretX = Double.NaN;
+        afterTextChanged(viewportAnchor, caret, true);
     }
 
     public void replaceSelection(String replacement) {
@@ -684,6 +724,13 @@ public class ManuskriptTextEditor extends Region {
         resetUndoCoalesceState();
     }
 
+    public void selectAll() {
+        anchor = 0;
+        caret = text.length();
+        ensureCaretVisible();
+        render();
+    }
+
     public List<SearchMatch> searchAll(String query, boolean regex, boolean caseSensitive) {
         List<SearchMatch> result = new ArrayList<>();
         if (query == null || query.isEmpty()) {
@@ -865,6 +912,16 @@ public class ManuskriptTextEditor extends Region {
     private boolean darkMarkPalette;
 
     public void applyTheme(int themeIndex) {
+        getStyleClass().removeAll(
+                "theme-dark", "theme-light", "blau-theme", "gruen-theme", "lila-theme", "weiss-theme", "pastell-theme");
+        switch (themeIndex) {
+            case 0 -> getStyleClass().add("weiss-theme");
+            case 2 -> getStyleClass().add("pastell-theme");
+            case 3 -> getStyleClass().addAll("theme-dark", "blau-theme");
+            case 4 -> getStyleClass().addAll("theme-dark", "gruen-theme");
+            case 5 -> getStyleClass().addAll("theme-dark", "lila-theme");
+            default -> getStyleClass().add("theme-dark");
+        }
         switch (themeIndex) {
             case 1 -> setEditorTheme("#1a1a1a", "#2d2d2d", "#9ca3af", "#ffffff", "#375a7f");
             case 2 -> setEditorTheme("#f3e5f5", "#e1bee7", "#6b4f6b", "#000000", "#c7a6d8");
@@ -1165,55 +1222,31 @@ public class ManuskriptTextEditor extends Region {
         }
     }
 
-    /** Umschließt die Auswahl mit {@code **} (wie Ctrl+B im Haupt-Editor). */
+    /** Schaltet Fett ({@code **}) ein oder aus. */
     public void toggleBold() {
-        if (hasSelection()) {
-            replaceSelection("**" + selectedText() + "**");
-            return;
-        }
-        int pos = caret;
-        replaceSelection("****");
-        caret = pos + 2;
-        anchor = caret;
-        render();
+        toggleInlineFormat("**", "**");
     }
 
-    /** Umschließt die Auswahl mit {@code *} (wie Ctrl+I im Haupt-Editor). */
+    /** Schaltet Kursiv ({@code *}) ein oder aus. */
     public void toggleItalic() {
-        if (hasSelection()) {
-            replaceSelection("*" + selectedText() + "*");
-            return;
-        }
-        int pos = caret;
-        replaceSelection("**");
-        caret = pos + 1;
-        anchor = caret;
-        render();
+        toggleInlineFormat("*", "*");
     }
 
-    /** Umschließt die Auswahl mit {@code <u></u>} (wie Ctrl+U im Haupt-Editor). */
+    /** Schaltet Unterstrichen ({@code <u>}) ein oder aus. */
     public void toggleUnderline() {
-        if (hasSelection()) {
-            replaceSelection("<u>" + selectedText() + "</u>");
-            return;
-        }
-        int pos = caret;
-        replaceSelection("<u></u>");
-        caret = pos + 3;
-        anchor = caret;
-        render();
+        toggleInlineFormat("<u>", "</u>");
     }
 
     public void toggleStrikethrough() {
-        wrapSelectionOrInsert("~~", "~~", "<s>", "</s>");
+        toggleWrappedFormat("", "", "<s>", "</s>");
     }
 
     public void toggleMark() {
-        wrapSelectionOrInsert("", "", "<mark>", "</mark>");
+        toggleWrappedFormat("", "", "<mark>", "</mark>");
     }
 
     public void toggleCenter() {
-        wrapSelectionOrInsert("", "", "<center>", "</center>");
+        toggleWrappedFormat("", "", "<center>", "</center>");
     }
 
     /** Zeilenweise Markdown-Zitat: {@code > Text} (wie im Haupt-Editor). */
@@ -1271,19 +1304,19 @@ public class ManuskriptTextEditor extends Region {
     }
 
     public void toggleBig() {
-        wrapSelectionOrInsert("", "", "<big>", "</big>");
+        toggleWrappedFormat("", "", "<big>", "</big>");
     }
 
     public void toggleSmall() {
-        wrapSelectionOrInsert("", "", "<small>", "</small>");
+        toggleWrappedFormat("", "", "<small>", "</small>");
     }
 
     public void toggleSuperscript() {
-        wrapSelectionOrInsert("", "", "<sup>", "</sup>");
+        toggleWrappedFormat("", "", "<sup>", "</sup>");
     }
 
     public void toggleSubscript() {
-        wrapSelectionOrInsert("", "", "<sub>", "</sub>");
+        toggleWrappedFormat("", "", "<sub>", "</sub>");
     }
 
     public void wrapTextColor(String colorTag) {
@@ -1291,7 +1324,7 @@ public class ManuskriptTextEditor extends Region {
             return;
         }
         String tag = colorTag.trim().toLowerCase(Locale.ROOT);
-        wrapSelectionOrInsert("", "", "<" + tag + ">", "</" + tag + ">");
+        toggleInlineFormat("<" + tag + ">", "</" + tag + ">");
     }
 
     public void insertLineBreak() {
@@ -1311,16 +1344,147 @@ public class ManuskriptTextEditor extends Region {
         setFontSizeForAll(Math.max(6, fontSize - 1));
     }
 
-    private void wrapSelectionOrInsert(String mdStart, String mdEnd, String htmlStart, String htmlEnd) {
-        if (hasSelection()) {
-            replaceSelection(htmlStart + selectedText() + htmlEnd);
+    private void toggleWrappedFormat(String mdStart, String mdEnd, String htmlStart, String htmlEnd) {
+        if (mdStart != null && !mdStart.isEmpty()) {
+            toggleInlineFormat(mdStart, mdEnd);
+        } else {
+            toggleInlineFormat(htmlStart, htmlEnd);
+        }
+    }
+
+    private void toggleInlineFormat(String startTag, String endTag) {
+        if (startTag == null || endTag == null) {
             return;
         }
+
+        if (hasSelection()) {
+            int start = selectionStart();
+            int end = selectionEnd();
+            String selected = selectedText();
+            if (isTextFormatted(selected, startTag, endTag)) {
+                String unformatted = removeFormatting(selected, startTag, endTag);
+                replaceRange(start, end, unformatted);
+                selectRange(start, start + unformatted.length());
+            } else if (hasSurroundingFormat(start, end, startTag, endTag)) {
+                int tagStart = surroundingFormatStart(start, startTag);
+                int tagEnd = surroundingFormatEnd(end, endTag);
+                replaceRange(tagStart, tagEnd, selected);
+                selectRange(tagStart, tagStart + selected.length());
+            } else {
+                String formatted = startTag + selected + endTag;
+                replaceRange(start, end, formatted);
+                selectRange(start, start + formatted.length());
+            }
+            return;
+        }
+
+        int[] wordBounds = findWordBoundsAt(caret);
+        if (wordBounds != null) {
+            int wordStart = wordBounds[0];
+            int wordEnd = wordBounds[1];
+            String wordText = text.substring(wordStart, wordEnd);
+            if (isTextFormatted(wordText, startTag, endTag)) {
+                String unformatted = removeFormatting(wordText, startTag, endTag);
+                replaceRange(wordStart, wordEnd, unformatted);
+                selectRange(wordStart, wordStart + unformatted.length());
+            } else if (hasSurroundingFormat(wordStart, wordEnd, startTag, endTag)) {
+                int tagStart = surroundingFormatStart(wordStart, startTag);
+                int tagEnd = surroundingFormatEnd(wordEnd, endTag);
+                replaceRange(tagStart, tagEnd, wordText);
+                selectRange(tagStart, tagStart + wordText.length());
+            } else {
+                String formatted = startTag + wordText + endTag;
+                replaceRange(wordStart, wordEnd, formatted);
+                selectRange(wordStart, wordStart + formatted.length());
+            }
+            return;
+        }
+
         int pos = caret;
-        replaceSelection(htmlStart + htmlEnd);
-        caret = pos + htmlStart.length();
-        anchor = caret;
-        render();
+        replaceSelection(startTag + endTag);
+        selectRange(pos + startTag.length(), pos + startTag.length());
+    }
+
+    private int[] findWordBoundsAt(int offset) {
+        if (text.isEmpty()) {
+            return null;
+        }
+        int safe = Math.max(0, Math.min(text.length(), offset));
+        if (safe >= text.length() && safe > 0) {
+            safe--;
+        }
+        int wordStart = safe;
+        while (wordStart > 0 && isWordCharacter(text.charAt(wordStart - 1))) {
+            wordStart--;
+        }
+        int wordEnd = safe;
+        while (wordEnd < text.length() && isWordCharacter(text.charAt(wordEnd))) {
+            wordEnd++;
+        }
+        return wordStart < wordEnd ? new int[]{wordStart, wordEnd} : null;
+    }
+
+    private static boolean isTextFormatted(String value, String startTag, String endTag) {
+        return value != null
+                && !value.isEmpty()
+                && value.startsWith(startTag)
+                && value.endsWith(endTag);
+    }
+
+    private static String removeFormatting(String value, String startTag, String endTag) {
+        if (isTextFormatted(value, startTag, endTag)) {
+            return value.substring(startTag.length(), value.length() - endTag.length());
+        }
+        return value;
+    }
+
+    private boolean hasSurroundingFormat(int contentStart, int contentEnd, String startTag, String endTag) {
+        if ("**".equals(startTag) && "**".equals(endTag)) {
+            return contentStart >= 2
+                    && contentEnd + 2 <= text.length()
+                    && text.substring(contentStart - 2, contentStart).equals("**")
+                    && text.substring(contentEnd, contentEnd + 2).equals("**");
+        }
+        if ("*".equals(startTag) && "*".equals(endTag)) {
+            return hasSingleStarSurrounding(contentStart, contentEnd);
+        }
+        return contentStart >= startTag.length()
+                && contentEnd + endTag.length() <= text.length()
+                && text.substring(contentStart - startTag.length(), contentStart).equals(startTag)
+                && text.substring(contentEnd, contentEnd + endTag.length()).equals(endTag);
+    }
+
+    private boolean hasSingleStarSurrounding(int contentStart, int contentEnd) {
+        if (contentStart < 1 || contentEnd >= text.length() || text.charAt(contentStart - 1) != '*') {
+            return false;
+        }
+        if (contentStart >= 2 && text.charAt(contentStart - 2) == '*') {
+            return false;
+        }
+        if (text.charAt(contentEnd) != '*') {
+            return false;
+        }
+        return contentEnd + 1 >= text.length() || text.charAt(contentEnd + 1) != '*';
+    }
+
+    private static int surroundingFormatStart(int contentStart, String startTag) {
+        if ("**".equals(startTag)) {
+            return contentStart - 2;
+        }
+        if ("*".equals(startTag)) {
+            return contentStart - 1;
+        }
+        return contentStart - startTag.length();
+    }
+
+    private static int surroundingFormatEnd(int contentEnd, String endTag) {
+        if ("**".equals(endTag)) {
+            return contentEnd + 2;
+        }
+        if ("*".equals(endTag)) {
+            return contentEnd + 1;
+        }
+        return contentEnd + endTag.length();
     }
 
     public void scrollToRatio(double ratio) {
@@ -1342,7 +1506,60 @@ public class ManuskriptTextEditor extends Region {
         return verticalScrollBar.valueProperty();
     }
 
+    private void installSceneAccelerators(javafx.scene.Scene scene) {
+        if (sceneAcceleratorsInstalled || scene == null) {
+            return;
+        }
+        var accelerators = scene.getAccelerators();
+        Runnable refocus = () -> javafx.application.Platform.runLater(this::requestInputFocus);
+        EditingShortcuts.bindPlatformAccelerators(accelerators, "C", () -> {
+            copySelection();
+            refocus.run();
+        });
+        EditingShortcuts.bindPlatformAccelerators(accelerators, "X", () -> {
+            cutSelection();
+            refocus.run();
+        });
+        EditingShortcuts.bindPlatformAccelerators(accelerators, "V", () -> {
+            pasteFromClipboard();
+            refocus.run();
+        });
+        EditingShortcuts.bindPlatformAccelerators(accelerators, "A", () -> {
+            selectAll();
+            refocus.run();
+        });
+        EditingShortcuts.bindPlatformAccelerators(accelerators, "Z", () -> {
+            undo();
+            refocus.run();
+        });
+        EditingShortcuts.bindPlatformAccelerators(accelerators, "Shift+Z", () -> {
+            redo();
+            refocus.run();
+        });
+        EditingShortcuts.bindPlatformAccelerators(accelerators, "Y", () -> {
+            redo();
+            refocus.run();
+        });
+        EditingShortcuts.bindPlatformAccelerators(accelerators, "B", () -> {
+            toggleBold();
+            refocus.run();
+        });
+        EditingShortcuts.bindPlatformAccelerators(accelerators, "I", () -> {
+            toggleItalic();
+            refocus.run();
+        });
+        EditingShortcuts.bindPlatformAccelerators(accelerators, "U", () -> {
+            toggleUnderline();
+            refocus.run();
+        });
+        sceneAcceleratorsInstalled = true;
+    }
+
     private void handleKeyTyped(KeyEvent event) {
+        if (isEditingShortcutKey(event)) {
+            event.consume();
+            return;
+        }
         if (!editable) {
             event.consume();
             return;
@@ -1498,40 +1715,47 @@ public class ManuskriptTextEditor extends Region {
         languageToolHoverPopup.setAutoHide(true);
         languageToolHoverPopup.setAutoFix(true);
         languageToolContextMenu.setAutoHide(true);
-        languageToolContextMenu.setOnShown(event -> installLanguageToolContextMenuOutsideClickHandler());
-        languageToolContextMenu.setOnHidden(event -> removeLanguageToolContextMenuOutsideClickHandler());
+        languageToolContextMenu.setOnShown(event -> installContextMenuOutsideClickHandler());
+        languageToolContextMenu.setOnHidden(event -> removeContextMenuOutsideClickHandler());
+
+        editorContextMenu.setAutoHide(true);
+        editorContextMenu.setOnShown(event -> installContextMenuOutsideClickHandler());
+        editorContextMenu.setOnHidden(event -> removeContextMenuOutsideClickHandler());
         updateLanguageToolHoverTheme();
     }
 
-    private void installLanguageToolContextMenuOutsideClickHandler() {
+    private void installContextMenuOutsideClickHandler() {
         Scene scene = canvas.getScene();
-        if (scene == null) {
+        if (scene == null || contextMenuOutsideClickFilter != null) {
             return;
         }
-        if (languageToolContextMenuOutsideClickFilter == null) {
-            languageToolContextMenuOutsideClickFilter = event -> {
-                if (!languageToolContextMenu.isShowing()) {
-                    return;
-                }
-                if (isEventInsideLanguageToolContextMenu(event)) {
-                    return;
-                }
+        contextMenuOutsideClickFilter = event -> {
+            if (languageToolContextMenu.isShowing()
+                    && !isEventInsideContextMenu(event, languageToolContextMenu)) {
                 languageToolContextMenu.hide();
-            };
-        }
-        scene.addEventFilter(MouseEvent.MOUSE_PRESSED, languageToolContextMenuOutsideClickFilter);
+            }
+            if (editorContextMenu.isShowing()
+                    && !isEventInsideContextMenu(event, editorContextMenu)) {
+                editorContextMenu.hide();
+            }
+        };
+        scene.addEventFilter(MouseEvent.MOUSE_PRESSED, contextMenuOutsideClickFilter);
     }
 
-    private void removeLanguageToolContextMenuOutsideClickHandler() {
-        Scene scene = canvas.getScene();
-        if (scene == null || languageToolContextMenuOutsideClickFilter == null) {
+    private void removeContextMenuOutsideClickHandler() {
+        if (languageToolContextMenu.isShowing() || editorContextMenu.isShowing()) {
             return;
         }
-        scene.removeEventFilter(MouseEvent.MOUSE_PRESSED, languageToolContextMenuOutsideClickFilter);
+        Scene scene = canvas.getScene();
+        if (scene == null || contextMenuOutsideClickFilter == null) {
+            return;
+        }
+        scene.removeEventFilter(MouseEvent.MOUSE_PRESSED, contextMenuOutsideClickFilter);
+        contextMenuOutsideClickFilter = null;
     }
 
-    private boolean isEventInsideLanguageToolContextMenu(MouseEvent event) {
-        Scene menuScene = languageToolContextMenu.getScene();
+    private boolean isEventInsideContextMenu(MouseEvent event, ContextMenu menu) {
+        Scene menuScene = menu.getScene();
         if (menuScene == null || !(event.getTarget() instanceof Node target)) {
             return false;
         }
@@ -1543,6 +1767,17 @@ public class ManuskriptTextEditor extends Region {
             current = current.getParent() instanceof Node parent ? parent : null;
         }
         return false;
+    }
+
+    private void hideEditorContextMenu() {
+        if (editorContextMenu.isShowing()) {
+            editorContextMenu.hide();
+        }
+    }
+
+    private void hideAllContextMenus() {
+        hideLanguageToolContextMenu();
+        hideEditorContextMenu();
     }
 
     private void hideLanguageToolContextMenu() {
@@ -1580,7 +1815,7 @@ public class ManuskriptTextEditor extends Region {
     private void setupMouseHandling() {
         canvas.setOnMousePressed(event -> {
             hideLanguageToolHover();
-            hideLanguageToolContextMenu();
+            hideAllContextMenus();
             if (event.getButton() != MouseButton.PRIMARY) {
                 requestInputFocus();
                 return;
@@ -1666,16 +1901,16 @@ public class ManuskriptTextEditor extends Region {
         }
 
         String selected = hasSelection() ? selectedText() : "";
-        MenuItem copyItem = new MenuItem("Kopieren\tStrg+C");
+        MenuItem copyItem = new MenuItem("Kopieren\t" + EditingShortcuts.acceleratorHint("C"));
         copyItem.setDisable(selected.isEmpty());
         copyItem.setOnAction(e -> copySelection());
 
-        MenuItem cutItem = new MenuItem("Ausschneiden\tStrg+X");
+        MenuItem cutItem = new MenuItem("Ausschneiden\t" + EditingShortcuts.acceleratorHint("X"));
         cutItem.setDisable(selected.isEmpty());
         cutItem.setOnAction(e -> cutSelection());
 
         boolean hasClipboard = Clipboard.getSystemClipboard().hasString();
-        MenuItem pasteItem = new MenuItem("Einfügen\tStrg+V");
+        MenuItem pasteItem = new MenuItem("Einfügen\t" + EditingShortcuts.acceleratorHint("V"));
         pasteItem.setDisable(!hasClipboard);
         pasteItem.setOnAction(e -> pasteFromClipboard());
 
@@ -1690,6 +1925,21 @@ public class ManuskriptTextEditor extends Region {
             MenuItem selectionItem = new MenuItem("Selektion überarbeiten");
             selectionItem.setOnAction(e -> contextMenuRewriteActions.handleSelektionUeberarbeitung());
             editorContextMenu.getItems().addAll(sprechItem, phraseItem, selectionItem);
+
+            if (selectionRevisionAgentAction != null) {
+                int selLen = hasSelection() ? selectionEnd() - selectionStart() : 0;
+                int maxChars = SelectionRevisionSupport.maxSelectionChars();
+                MenuItem revisionAgentItem = new MenuItem("Überarbeiten (Agent)");
+                if (selLen <= 0 || selLen > maxChars) {
+                    revisionAgentItem.setDisable(true);
+                    if (selLen > maxChars) {
+                        revisionAgentItem.setText("Überarbeiten (Agent) — max. " + maxChars + " Zeichen");
+                    }
+                } else {
+                    revisionAgentItem.setOnAction(e -> selectionRevisionAgentAction.run());
+                }
+                editorContextMenu.getItems().add(revisionAgentItem);
+            }
         }
 
         editorContextMenu.show(canvas, event.getScreenX(), event.getScreenY());
@@ -2627,6 +2877,18 @@ public class ManuskriptTextEditor extends Region {
             verticalScrollBar.setValue(clamped);
         }
         scrollTop = verticalScrollBar.getValue();
+    }
+
+    /** Lädt Scrollbar-CSS aus dem Classpath (config/css kann veraltet sein). */
+    private void installBundledScrollbarStyles() {
+        java.net.URL url = ManuskriptTextEditor.class.getResource("/css/editor-scrollbar.css");
+        if (url == null) {
+            return;
+        }
+        String uri = url.toExternalForm();
+        if (!getStylesheets().contains(uri)) {
+            getStylesheets().add(uri);
+        }
     }
 
     private void render() {

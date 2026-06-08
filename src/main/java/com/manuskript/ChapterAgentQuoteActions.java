@@ -1,5 +1,6 @@
 package com.manuskript;
 
+import com.manuskript.agent.AgentResponseText;
 import com.manuskript.agent.Finding;
 
 import java.util.Optional;
@@ -38,7 +39,8 @@ public final class ChapterAgentQuoteActions {
             return;
         }
 
-        String rawSuggestion = suggestion.replaceAll("^\"|\"$", "").trim();
+        String rawSuggestion = AgentResponseText.normalizeModelText(
+                suggestion.replaceAll("^\"|\"$", ""));
         String text = host.getText();
         if (text == null || text.isEmpty()) {
             return;

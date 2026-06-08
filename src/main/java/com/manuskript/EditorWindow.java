@@ -1033,7 +1033,7 @@ if (caret != null) {
         scrollPane = new VirtualizedScrollPane<>(codeArea);
         // Benutzer-Scroll erkennen (vor Preview-Sync-Filtern), damit Styling/Viewport-Restore nicht gegen Mausrad kämpft
         EventHandler<ScrollEvent> editorUserScrollHandler = event -> {
-            if (!event.isControlDown()) {
+            if (!EditingShortcuts.isShortcutDown(event)) {
                 notifyEditorUserScroll();
             }
         };
@@ -2038,7 +2038,7 @@ if (caret != null) {
         // Globaler Event-Filter für CTRL+F überall im Editor-Fenster
         if (mainContainer != null) {
             mainContainer.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
-                if (event.isControlDown() && event.getCode() == KeyCode.F) {
+                if (EditingShortcuts.isShortcutDown(event) && event.getCode() == KeyCode.F) {
                     toggleSearchPanel();
                     event.consume();
                 }
@@ -2047,13 +2047,15 @@ if (caret != null) {
         
         // Keyboard-Shortcuts für den Editor
         codeArea.setOnKeyPressed(event -> {
-            // Debug-Ausgabe für Keyboard-Events
-            
-            if (event.isControlDown()) {
+            if (EditingShortcuts.isShortcutDown(event)) {
+                if (event.isShiftDown() && event.getCode() == KeyCode.Z) {
+                    redo();
+                    event.consume();
+                    return;
+                }
                 switch (event.getCode()) {
                     case F:
-                        // Ctrl+F wird bereits vom globalen Filter behandelt
-                        // Hier nur andere Shortcuts
+                        // Shortcut+F wird bereits vom globalen Filter behandelt
                         break;
                     case S:
                         saveFile();
@@ -2144,7 +2146,7 @@ if (caret != null) {
         
         // Event-Filter für Pos1/Ende (ohne Ctrl) -> zum Anfang/Ende des Dokuments
         codeArea.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
-            if (!event.isControlDown()) {
+            if (!EditingShortcuts.isShortcutDown(event)) {
                 if (event.getCode() == KeyCode.HOME) {
                     // Pos1 alleine -> Anfang des Dokuments
                     jumpToDocumentStart();
@@ -2160,13 +2162,14 @@ if (caret != null) {
         
         // Mausrad-Event-Filter für Schriftgröße (Strg + Mausrad) und Benutzer-Scroll-Erkennung
         codeArea.addEventFilter(ScrollEvent.SCROLL, event -> {
-            if (!event.isControlDown()) {
+            if (!EditingShortcuts.isShortcutDown(event)) {
                 notifyEditorUserScroll();
-            } else if (event.isControlDown()) {
+            } else {
                 event.consume();
-                
+
                 double deltaY = event.getDeltaY();
-                logger.debug("Mausrad-Event: deltaY={}, Strg gedrückt={}", deltaY, event.isControlDown());
+                logger.debug("Mausrad-Event: deltaY={}, Modifikator gedrückt={}", deltaY,
+                        EditingShortcuts.isShortcutDown(event));
                 
                 if (deltaY > 0) {
                     // Mausrad nach oben - Schriftgröße erhöhen
@@ -2190,38 +2193,14 @@ if (caret != null) {
         });
     }
     
-    /**
-     * Toggle für kursiven Text (Ctrl+I)
-     */
+    /** Toggle für kursiven Text (Ctrl+I). */
     private void toggleItalic() {
-        String selectedText = getSelectedTextSafely();
-        if (selectedText != null && !selectedText.isEmpty()) {
-            // Text ist ausgewählt - umschließen mit *
-            String newText = "*" + selectedText + "*";
-            codeArea.replaceSelection(newText);
-        } else {
-            // Kein Text ausgewählt - * einfügen
-            codeArea.insertText(codeArea.getCaretPosition(), "**");
-            // Cursor zwischen die Sterne setzen
-            codeArea.moveTo(codeArea.getCaretPosition() - 1);
-        }
+        formatTextItalic();
     }
-    
-    /**
-     * Toggle für fetten Text (Ctrl+B)
-     */
+
+    /** Toggle für fetten Text (Ctrl+B). */
     private void toggleBold() {
-        String selectedText = getSelectedTextSafely();
-        if (selectedText != null && !selectedText.isEmpty()) {
-            // Text ist ausgewählt - umschließen mit **
-            String newText = "**" + selectedText + "**";
-            codeArea.replaceSelection(newText);
-        } else {
-            // Kein Text ausgewählt - ** einfügen
-            codeArea.insertText(codeArea.getCaretPosition(), "****");
-            // Cursor zwischen die Sterne setzen
-            codeArea.moveTo(codeArea.getCaretPosition() - 2);
-        }
+        formatTextBold();
     }
     
     /**
@@ -2244,21 +2223,9 @@ if (caret != null) {
         restoreCodeAreaViewSnapshot(viewSnapshot, false);
     }
     
-    /**
-     * Toggle für unterstrichenen Text (Ctrl+U)
-     */
+    /** Toggle für unterstrichenen Text (Ctrl+U). */
     private void toggleUnderline() {
-        String selectedText = getSelectedTextSafely();
-        if (selectedText != null && !selectedText.isEmpty()) {
-            // Text ist ausgewählt - umschließen mit <u> tags
-            String newText = "<u>" + selectedText + "</u>";
-            codeArea.replaceSelection(newText);
-        } else {
-            // Kein Text ausgewählt - <u></u> einfügen
-            codeArea.insertText(codeArea.getCaretPosition(), "<u></u>");
-            // Cursor zwischen die Tags setzen
-            codeArea.moveTo(codeArea.getCaretPosition() - 4);
-        }
+        formatTextUnderline();
     }
     
     /**
@@ -11428,7 +11395,7 @@ spacer.setStyle("-fx-background-color: transparent;");
         }
 
         if (agentTabPane != null) {
-            agentTabPane.applyFontSize(size);
+            agentTabPane.applyEditorAppearance(size, getThemeIndex(), getEditorFontFamily());
         }
         
         // WICHTIG: Quill-Fontgröße NICHT ändern - Editor und Quill haben unabhängige Fontgrößen!
@@ -12793,6 +12760,7 @@ spacer.setStyle("-fx-background-color: transparent;");
     private void formatTextAtCursor(String markdownStart, String markdownEnd, String htmlStart, String htmlEnd) {
         if (codeArea == null) return;
         
+        String text = codeArea.getText();
         String selectedText = getSelectedTextSafely();
         int caretPosition = codeArea.getCaretPosition();
         
@@ -12807,6 +12775,11 @@ spacer.setStyle("-fx-background-color: transparent;");
                     String unformattedText = removeFormatting(selectedText, markdownStart, markdownEnd);
                     codeArea.replaceText(start, end, unformattedText);
                     codeArea.selectRange(start, start + unformattedText.length());
+                } else if (hasSurroundingFormat(text, start, end, markdownStart, markdownEnd)) {
+                    int tagStart = surroundingFormatStart(start, markdownStart);
+                    int tagEnd = surroundingFormatEnd(end, markdownEnd);
+                    codeArea.replaceText(tagStart, tagEnd, selectedText);
+                    codeArea.selectRange(tagStart, tagStart + selectedText.length());
                 } else {
                     // Formatierung hinzufügen
                     String formattedText = markdownStart + selectedText + markdownEnd;
@@ -12819,6 +12792,11 @@ spacer.setStyle("-fx-background-color: transparent;");
                     String unformattedText = removeFormatting(selectedText, htmlStart, htmlEnd);
                     codeArea.replaceText(start, end, unformattedText);
                     codeArea.selectRange(start, start + unformattedText.length());
+                } else if (hasSurroundingFormat(text, start, end, htmlStart, htmlEnd)) {
+                    int tagStart = surroundingFormatStart(start, htmlStart);
+                    int tagEnd = surroundingFormatEnd(end, htmlEnd);
+                    codeArea.replaceText(tagStart, tagEnd, selectedText);
+                    codeArea.selectRange(tagStart, tagStart + selectedText.length());
                 } else {
                     // Formatierung hinzufügen
                     String formattedText = htmlStart + selectedText + htmlEnd;
@@ -12841,6 +12819,11 @@ spacer.setStyle("-fx-background-color: transparent;");
                         String unformattedText = removeFormatting(wordText, markdownStart, markdownEnd);
                         codeArea.replaceText(wordStart, wordEnd, unformattedText);
                         codeArea.selectRange(wordStart, wordStart + unformattedText.length());
+                    } else if (hasSurroundingFormat(text, wordStart, wordEnd, markdownStart, markdownEnd)) {
+                        int tagStart = surroundingFormatStart(wordStart, markdownStart);
+                        int tagEnd = surroundingFormatEnd(wordEnd, markdownEnd);
+                        codeArea.replaceText(tagStart, tagEnd, wordText);
+                        codeArea.selectRange(tagStart, tagStart + wordText.length());
                     } else {
                         // Formatierung hinzufügen
                         String formattedText = markdownStart + wordText + markdownEnd;
@@ -12853,6 +12836,11 @@ spacer.setStyle("-fx-background-color: transparent;");
                         String unformattedText = removeFormatting(wordText, htmlStart, htmlEnd);
                         codeArea.replaceText(wordStart, wordEnd, unformattedText);
                         codeArea.selectRange(wordStart, wordStart + unformattedText.length());
+                    } else if (hasSurroundingFormat(text, wordStart, wordEnd, htmlStart, htmlEnd)) {
+                        int tagStart = surroundingFormatStart(wordStart, htmlStart);
+                        int tagEnd = surroundingFormatEnd(wordEnd, htmlEnd);
+                        codeArea.replaceText(tagStart, tagEnd, wordText);
+                        codeArea.selectRange(tagStart, tagStart + wordText.length());
                     } else {
                         // Formatierung hinzufügen
                         String formattedText = htmlStart + wordText + htmlEnd;
@@ -12964,6 +12952,55 @@ spacer.setStyle("-fx-background-color: transparent;");
         }
         
         return text;
+    }
+
+    private static boolean hasSurroundingFormat(String text, int contentStart, int contentEnd,
+            String startTag, String endTag) {
+        if (text == null || startTag == null || endTag == null) {
+            return false;
+        }
+        if ("**".equals(startTag) && "**".equals(endTag)) {
+            return contentStart >= 2
+                    && contentEnd + 2 <= text.length()
+                    && text.substring(contentStart - 2, contentStart).equals("**")
+                    && text.substring(contentEnd, contentEnd + 2).equals("**");
+        }
+        if ("*".equals(startTag) && "*".equals(endTag)) {
+            if (contentStart < 1 || contentEnd >= text.length() || text.charAt(contentStart - 1) != '*') {
+                return false;
+            }
+            if (contentStart >= 2 && text.charAt(contentStart - 2) == '*') {
+                return false;
+            }
+            if (text.charAt(contentEnd) != '*') {
+                return false;
+            }
+            return contentEnd + 1 >= text.length() || text.charAt(contentEnd + 1) != '*';
+        }
+        return contentStart >= startTag.length()
+                && contentEnd + endTag.length() <= text.length()
+                && text.substring(contentStart - startTag.length(), contentStart).equals(startTag)
+                && text.substring(contentEnd, contentEnd + endTag.length()).equals(endTag);
+    }
+
+    private static int surroundingFormatStart(int contentStart, String startTag) {
+        if ("**".equals(startTag)) {
+            return contentStart - 2;
+        }
+        if ("*".equals(startTag)) {
+            return contentStart - 1;
+        }
+        return contentStart - startTag.length();
+    }
+
+    private static int surroundingFormatEnd(int contentEnd, String endTag) {
+        if ("**".equals(endTag)) {
+            return contentEnd + 2;
+        }
+        if ("*".equals(endTag)) {
+            return contentEnd + 1;
+        }
+        return contentEnd + endTag.length();
     }
     
     /**
@@ -14162,6 +14199,9 @@ spacer.setStyle("-fx-background-color: transparent;");
         for (SceneWritingAgentTab tab : agentTabPane.getSceneWritingTabs()) {
             setupSceneWritingTabCallbacks(tab);
         }
+        for (ChatbotAgentTab tab : agentTabPane.getChatbotTabs()) {
+            setupChatbotTabCallbacks(tab);
+        }
 
         // Panel zum SplitPane hinzufügen
         ensureAgentPanelVisible(true);
@@ -14172,7 +14212,8 @@ spacer.setStyle("-fx-background-color: transparent;");
         // Modelle für alle Tabs laden
         loadAgentModels();
 
-        agentTabPane.applyFontSize(preferences.getInt("fontSize", 12));
+        agentTabPane.applyEditorAppearance(
+                preferences.getInt("fontSize", 12), getThemeIndex(), getEditorFontFamily());
     }
 
     private void initAgentBackends() {
@@ -14182,11 +14223,14 @@ spacer.setStyle("-fx-background-color: transparent;");
         for (SceneWritingAgentTab tab : agentTabPane.getSceneWritingTabs()) {
             getOrCreateBackendForConfig(tab.getAgentId(), tab.getAgentConfig(), true, null);
         }
+        for (ChatbotAgentTab tab : agentTabPane.getChatbotTabs()) {
+            getOrCreateBackendForConfig(tab.getAgentId(), tab.getAgentConfig(), true, null);
+        }
     }
 
     private void setupSceneWritingTabCallbacks(SceneWritingAgentTab tab) {
-        tab.setOnInsertClicked(this::insertTextFromAI);
-        tab.setGenerationHandler((instruction, useParameterModel, overrideModel, onStatus, onComplete, onError) -> {
+        tab.setOnInsertClicked(this::insertTextAtCaret);
+        tab.setGenerationHandler((instruction, contextSize, useParameterModel, overrideModel, onStatus, onComplete, onError) -> {
             String sceneOutlineText = null;
             if (sceneOutlineWindow != null && originalDocxFile != null) {
                 sceneOutlineText = sceneOutlineWindow.getOutlineTextForDocx(originalDocxFile);
@@ -14199,7 +14243,8 @@ spacer.setStyle("-fx-background-color: transparent;");
                 codeArea != null ? codeArea.getText() : "",
                 getChapterOrderList(),
                 instruction,
-                sceneOutlineText
+                sceneOutlineText,
+                contextSize
             );
 
             if (ctx.targetSceneNumber != null && ctx.targetScene.isBlank()) {
@@ -14216,7 +14261,7 @@ spacer.setStyle("-fx-background-color: transparent;");
                 onError.accept(new IllegalStateException("Backend nicht verfügbar"));
                 return null;
             }
-            backend.setTemperature(config.getTemperature());
+            AgentSamplingParams.applyAgentConfig(backend, config);
             SceneWritingAgent agent = new SceneWritingAgent(backend);
             agent.setSystemPrompt(config.getSystemPrompt());
 
@@ -14229,6 +14274,49 @@ spacer.setStyle("-fx-background-color: transparent;");
                 });
             return null;
         });
+    }
+
+    private void setupChatbotTabCallbacks(ChatbotAgentTab tab) {
+        tab.setOnInsertClicked(this::insertTextAtCaret);
+        tab.setProjectProvider(this::getProjectDirectory);
+        tab.setMessageHandler((userMessage, historyBeforeSend, contextConfig, contextSize,
+                               useParameterModel, overrideModel, temperature, onComplete, onError) -> {
+            ChatbotContextConfig cfg = contextConfig != null ? contextConfig : new ChatbotContextConfig();
+            if (contextSize != null) {
+                cfg.setContextSize(contextSize);
+            }
+            String contextBlock = ChatbotContextBuilder.build(
+                    getProjectDirectory(),
+                    mainController,
+                    getChapterName(),
+                    codeArea != null ? codeArea.getText() : "",
+                    currentFile,
+                    originalDocxFile,
+                    getChapterOrderList(),
+                    cfg);
+            AgentConfig config = tab.getAgentConfig();
+            AIBackend backend = createGenerationBackend(useParameterModel, overrideModel, config);
+            if (backend == null) {
+                onError.accept(new IllegalStateException("Backend nicht verfügbar"));
+                return null;
+            }
+            backend.setTemperature(temperature);
+            AgentSamplingParams.applyAgentConfig(backend, config);
+            ChatbotAgent agent = new ChatbotAgent(backend);
+            agent.setSystemPrompt(config.getSystemPrompt());
+            int maxTokens = config.getMaxTokens() > 0 ? config.getMaxTokens() : 4096;
+            agent.sendMessage(contextBlock, historyBeforeSend, userMessage,
+                    ChatbotAgent.defaultMaxHistoryTurns(), maxTokens)
+                    .thenAccept(onComplete)
+                    .exceptionally(ex -> {
+                        onError.accept(ex);
+                        return null;
+                    });
+            return null;
+        });
+        tab.refreshProjectBinding();
+        tab.applyChatTheme(getThemeIndex());
+        tab.applyEditorFont(getEditorFontFamily(), getEditorFontSizePx());
     }
 
     private AIBackend createGenerationBackend(boolean useParameterModel, String overrideModel, AgentConfig config) {
@@ -14269,25 +14357,91 @@ spacer.setStyle("-fx-background-color: transparent;");
     }
 
     private void setupAgentTabCallbacks(AgentTab tab) {
-        tab.setOnAnalyzeClicked(() -> runAgentAnalysis(tab));
-        
-        // Echtzeit-Status aus globalem Parameter initialisieren
-        boolean realtimeEnabled = Boolean.parseBoolean(
-            ResourceManager.getParameter("agent.realtime_enabled", "false"));
-        tab.setRealtimeEnabled(realtimeEnabled);
-        
-        tab.setOnRealtimeToggled(enabled -> {
-            if (enabled) {
-                triggerRealtimeCheck();
-            } else {
-                if (agentRealtimeTimeline != null) {
+        if (tab.getAgentConfig().isSelectionRevisionAgent()) {
+            tab.setRealtimeEnabled(false);
+            tab.setOnAnalyzeClicked(() -> runSelectionRevision(tab));
+        } else {
+            tab.setOnAnalyzeClicked(() -> runAgentAnalysis(tab));
+            boolean realtimeEnabled = Boolean.parseBoolean(
+                    ResourceManager.getParameter("agent.realtime_enabled", "false"));
+            tab.setRealtimeEnabled(realtimeEnabled);
+            tab.setOnRealtimeToggled(enabled -> {
+                if (enabled) {
+                    triggerRealtimeCheck();
+                } else if (agentRealtimeTimeline != null) {
                     agentRealtimeTimeline.stop();
                     agentRealtimeTimeline = null;
                 }
-            }
-        });
+            });
+        }
         tab.setOnQuoteClicked(this::jumpToQuote);
         tab.setOnSuggestionClicked(this::replaceWithSuggestion);
+    }
+
+    private void runSelectionRevision(AgentTab explicitTab) {
+        if (agentTabPane == null) {
+            updateStatus("Agenten-Panel nicht verfügbar.");
+            return;
+        }
+        AgentTab tab = explicitTab != null ? explicitTab : com.manuskript.agent.SelectionRevisionSupport.findRevisionTab(agentTabPane);
+        String instruction = tab != null ? tab.getRevisionInstruction() : SelectionRevisionDialog.loadPersistedInstruction();
+        runSelectionRevisionWithInstruction(tab, instruction);
+    }
+
+    private void runSelectionRevisionWithInstruction(AgentTab explicitTab, String instruction) {
+        if (agentTabPane == null) {
+            updateStatus("Agenten-Panel nicht verfügbar.");
+            return;
+        }
+        com.manuskript.agent.AgentSelectionRevisionRunner.run(
+                this,
+                agentTabPane,
+                agentInstances,
+                agentBackends,
+                this::getProjectDirectory,
+                () -> ensureAgentPanelVisible(true),
+                explicitTab,
+                instruction);
+    }
+
+    private void handleSelectionRevisionAgent() {
+        if (agentTabPane == null || codeArea == null) {
+            return;
+        }
+        if (!hasTextSelection()) {
+            updateStatus("Bitte zuerst Text markieren (max. "
+                    + com.manuskript.agent.SelectionRevisionSupport.maxSelectionChars() + " Zeichen).");
+            return;
+        }
+        int start = getSelectionStart();
+        int end = getSelectionEnd();
+        String fullText = codeArea.getText() != null ? codeArea.getText() : "";
+        String selected = fullText.substring(Math.min(start, end), Math.max(start, end));
+        if (selected.trim().isEmpty()) {
+            updateStatus("Die Markierung ist leer.");
+            return;
+        }
+        if (selected.length() > com.manuskript.agent.SelectionRevisionSupport.maxSelectionChars()) {
+            updateStatus("Markierung zu lang (max. "
+                    + com.manuskript.agent.SelectionRevisionSupport.maxSelectionChars() + " Zeichen).");
+            return;
+        }
+        AgentTab revisionTab = com.manuskript.agent.SelectionRevisionSupport.findRevisionTab(agentTabPane);
+        String defaultInstruction = revisionTab != null
+                ? revisionTab.getRevisionInstruction()
+                : SelectionRevisionDialog.loadPersistedInstruction();
+        SelectionRevisionDialog.show(
+                this,
+                getStage(),
+                getThemeIndex(),
+                selected,
+                defaultInstruction,
+                instruction -> {
+                    if (revisionTab != null) {
+                        revisionTab.setRevisionInstruction(instruction);
+                    }
+                    runSelectionRevisionWithInstruction(revisionTab, instruction);
+                });
     }
 
     private PlotholeAgent getOrCreateAgentForTab(AgentTab tab) {
@@ -14353,6 +14507,9 @@ spacer.setStyle("-fx-background-color: transparent;");
                     tab.setModels(models);
                 }
                 for (SceneWritingAgentTab tab : agentTabPane.getSceneWritingTabs()) {
+                    tab.setModels(models);
+                }
+                for (ChatbotAgentTab tab : agentTabPane.getChatbotTabs()) {
                     tab.setModels(models);
                 }
             });
@@ -14432,8 +14589,13 @@ spacer.setStyle("-fx-background-color: transparent;");
         PlotholeAgent agent = getOrCreateAgentForTab(targetTab);
         if (agent == null) return;
 
-        // Prompt aus der aktuellen Tab-Konfiguration übernehmen
-        agent.setSystemPrompt(targetTab.getAgentConfig().getSystemPrompt());
+        // Prompt und Sampling aus der aktuellen Tab-Konfiguration übernehmen
+        AgentConfig config = targetTab.getAgentConfig();
+        agent.setSystemPrompt(config.getSystemPrompt());
+        AIBackend backend = agentBackends.get(targetTab.getAgentId());
+        if (backend != null) {
+            AgentSamplingParams.applyAgentConfig(backend, config);
+        }
 
         targetTab.setAnalyzing(true);
         String text = codeArea.getText();
@@ -15197,6 +15359,11 @@ spacer.setStyle("-fx-background-color: transparent;");
         
         // WICHTIG: Setze Cursor beim Klick, damit Kontextmenü die richtige Position findet
         codeArea.setOnMousePressed(mouseEvent -> {
+            ContextMenu openMenu = codeArea.getContextMenu();
+            if (openMenu != null && openMenu.isShowing()
+                    && mouseEvent.getButton() == javafx.scene.input.MouseButton.PRIMARY) {
+                openMenu.hide();
+            }
             if (mouseEvent.getButton() == javafx.scene.input.MouseButton.PRIMARY) {
                 try {
                     double sceneX = mouseEvent.getSceneX();
@@ -15347,7 +15514,7 @@ spacer.setStyle("-fx-background-color: transparent;");
             
             // Kopieren und Einfügen (in try-catch, damit eine Exception hier die LanguageTool-Vorschläge nicht verhindert)
             try {
-                MenuItem itemKopieren = new MenuItem("Kopieren\tCtrl+C");
+                MenuItem itemKopieren = new MenuItem("Kopieren\t" + EditingShortcuts.acceleratorHint("C"));
                 String selectedForCopy = getSelectedTextSafely();
                 itemKopieren.setDisable(selectedForCopy == null || selectedForCopy.isEmpty());
                 itemKopieren.setOnAction(e -> {
@@ -15366,7 +15533,7 @@ spacer.setStyle("-fx-background-color: transparent;");
                     }
                 });
                 
-                MenuItem itemEinfuegen = new MenuItem("Einfügen\tCtrl+V");
+                MenuItem itemEinfuegen = new MenuItem("Einfügen\t" + EditingShortcuts.acceleratorHint("V"));
                 boolean hasClipboardText = false;
                 try {
                     Clipboard clipboard = Clipboard.getSystemClipboard();
@@ -15400,8 +15567,8 @@ spacer.setStyle("-fx-background-color: transparent;");
                 contextMenu.getItems().addAll(itemKopieren, itemEinfuegen);
             } catch (Exception ex) {
                 logger.warn("Kontextmenü Kopieren/Einfügen konnte nicht erstellt werden – LanguageTool-Vorschläge sollten trotzdem sichtbar sein: " + ex.getMessage());
-                MenuItem itemKopieren = new MenuItem("Kopieren\tCtrl+C");
-                MenuItem itemEinfuegen = new MenuItem("Einfügen\tCtrl+V");
+                MenuItem itemKopieren = new MenuItem("Kopieren\t" + EditingShortcuts.acceleratorHint("C"));
+                MenuItem itemEinfuegen = new MenuItem("Einfügen\t" + EditingShortcuts.acceleratorHint("V"));
                 itemKopieren.setDisable(true);
                 itemEinfuegen.setDisable(true);
                 contextMenu.getItems().addAll(itemKopieren, itemEinfuegen);
@@ -15417,8 +15584,25 @@ spacer.setStyle("-fx-background-color: transparent;");
             
             MenuItem itemSelektion = new MenuItem("Selektion überarbeiten");
             itemSelektion.setOnAction(actionEvent -> handleSelektionUeberarbeitung());
-            
+
             contextMenu.getItems().addAll(itemSprechantwort, itemPhrase, itemSelektion);
+
+            if (agentTabPane != null && codeArea != null && codeArea.getSelection().getLength() > 0) {
+                int selLen = codeArea.getSelection().getLength();
+                int maxChars = com.manuskript.agent.SelectionRevisionSupport.maxSelectionChars();
+                MenuItem revisionAgentItem = new MenuItem("Überarbeiten (Agent)");
+                if (selLen > maxChars) {
+                    revisionAgentItem.setDisable(true);
+                    revisionAgentItem.setText("Überarbeiten (Agent) — max. " + maxChars + " Zeichen");
+                } else {
+                    revisionAgentItem.setOnAction(actionEvent -> handleSelectionRevisionAgent());
+                }
+                contextMenu.getItems().add(revisionAgentItem);
+            } else if (agentTabPane != null) {
+                MenuItem revisionAgentItem = new MenuItem("Überarbeiten (Agent)");
+                revisionAgentItem.setDisable(true);
+                contextMenu.getItems().add(revisionAgentItem);
+            }
             
             // Cursor an Rechtsklick-Position setzen (nach Menüaufbau, damit Selektion für "Kopieren" erhalten blieb)
             if (clickPos >= 0 && clickPos <= codeArea.getLength()) {
@@ -23011,12 +23195,29 @@ spacer.setStyle("-fx-background-color: transparent;");
 
     @Override
     public void insertTextAtCaret(String text) {
-        insertTextFromAI(text);
+        if (codeArea == null || text == null || text.trim().isEmpty()) {
+            return;
+        }
+        int selStart = codeArea.getSelection() != null ? codeArea.getSelection().getStart() : codeArea.getCaretPosition();
+        int selEnd = codeArea.getSelection() != null ? codeArea.getSelection().getEnd() : codeArea.getCaretPosition();
+        if (selEnd > selStart) {
+            codeArea.replaceText(selStart, selEnd, text);
+        } else {
+            codeArea.insertText(selStart, text);
+        }
+        codeArea.moveTo(selStart);
+        codeArea.requestFocus();
+        updateStatus("Text eingefügt");
     }
 
     @Override
     public int getThemeIndex() {
         return getCurrentThemeIndex();
+    }
+
+    @Override
+    public String getEditorFontFamily() {
+        return preferences.get("quillFontFamily", "Consolas");
     }
 
     @Override

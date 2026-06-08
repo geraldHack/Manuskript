@@ -51,4 +51,16 @@ class NovelWizardDocxFactoryTest {
         assertEquals(first.actHeading(), second.actHeading());
         assertEquals(first.groupHeading(), second.groupHeading());
     }
+
+    @Test
+    void chapterDocxFileName_usesKapitelNumberDashTitlePattern() {
+        ChapterEntry chapter = new ChapterEntry(1, "Kapitel 1: Der Kristall", "Summary");
+        assertEquals("Kapitel 1 - Der Kristall.docx", NovelWizardDocxFactory.chapterDocxFileName(chapter));
+
+        ChapterEntry second = new ChapterEntry(12, "Kapitel 12: Erste Vision", "Summary");
+        assertEquals("Kapitel 12 - Erste Vision.docx", NovelWizardDocxFactory.chapterDocxFileName(second));
+
+        ChapterEntry third = new ChapterEntry(3, "Kapitel 3: Brücktücke", "Summary");
+        assertEquals("Kapitel 3 - Brücktücke.docx", NovelWizardDocxFactory.chapterDocxFileName(third));
+    }
 }

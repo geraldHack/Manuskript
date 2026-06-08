@@ -28,7 +28,7 @@ public class DocxFile {
     }
     
     public long getFileSize() {
-        return fileSize;
+        return resolveDisplayFileSize();
     }
     
     public long getLastModified() {
@@ -36,12 +36,25 @@ public class DocxFile {
     }
     
     public String getFormattedSize() {
-        if (fileSize < 1024) {
-            return fileSize + " B";
-        } else if (fileSize < 1024 * 1024) {
-            return String.format("%.1f KB", fileSize / 1024.0);
+        return formatSize(resolveDisplayFileSize());
+    }
+
+    /** Größe der Arbeitskopie ({@code data/*.md}), falls vorhanden, sonst der DOCX-Datei. */
+    private long resolveDisplayFileSize() {
+        File mdFile = deriveMdFileFor(file);
+        if (mdFile != null && mdFile.exists()) {
+            return mdFile.length();
+        }
+        return file.exists() ? file.length() : fileSize;
+    }
+
+    private static String formatSize(long size) {
+        if (size < 1024) {
+            return size + " B";
+        } else if (size < 1024 * 1024) {
+            return String.format("%.1f KB", size / 1024.0);
         } else {
-            return String.format("%.1f MB", fileSize / (1024.0 * 1024.0));
+            return String.format("%.1f MB", size / (1024.0 * 1024.0));
         }
     }
     

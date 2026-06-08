@@ -68,7 +68,9 @@ public class AgentTab extends VBox {
 
     private boolean realtimeEnabled = false;
     private boolean analyzing = false;
+    private int currentFontSize = 12;
     private List<String> availableModels = new ArrayList<>();
+    private TextArea revisionInstructionField;
 
     public AgentTab(AgentConfig config) {
         this.config = config;
@@ -248,7 +250,8 @@ public class AgentTab extends VBox {
         });
 
         // === Aktionsbereich ===
-        analyzeButton = new Button("▶ Jetzt prüfen");
+        boolean selectionRevision = config.isSelectionRevisionAgent();
+        analyzeButton = new Button(selectionRevision ? "▶ Markierung prüfen" : "▶ Jetzt prüfen");
         analyzeButton.setMaxWidth(Double.MAX_VALUE);
         analyzeButton.getStyleClass().add("agent-analyze-btn");
         analyzeButton.setOnAction(e -> {
@@ -268,6 +271,11 @@ public class AgentTab extends VBox {
         buttonRow.getChildren().addAll(analyzeButton, realtimeToggle);
         HBox.setHgrow(analyzeButton, Priority.ALWAYS);
         HBox.setHgrow(realtimeToggle, Priority.ALWAYS);
+        AgentActionButtonSupport.configureRow(buttonRow, analyzeButton, realtimeToggle);
+        if (selectionRevision) {
+            realtimeToggle.setVisible(false);
+            realtimeToggle.setManaged(false);
+        }
 
         // Status
         statusLabel = new Label("Bereit");
@@ -278,7 +286,9 @@ public class AgentTab extends VBox {
         findingsList.setPadding(new Insets(4, 0, 4, 0));
         findingsList.getStyleClass().add("agent-findings-list");
 
-        emptyLabel = new Label("Noch keine Analyse.\nKlicke ▶ oder aktiviere ⚡.");
+        emptyLabel = new Label(selectionRevision
+                ? "Text markieren, Anweisung optional eingeben,\ndann ▶ oder Rechtsklick → Überarbeiten (Agent)."
+                : "Noch keine Analyse.\nKlicke ▶ oder aktiviere ⚡.");
         emptyLabel.getStyleClass().add("agent-empty-label");
         emptyLabel.setWrapText(true);
         findingsList.getChildren().add(emptyLabel);
@@ -287,7 +297,25 @@ public class AgentTab extends VBox {
         AgentScrollPaneSupport.configureFindingsScrollPane(scrollPane);
         VBox.setVgrow(scrollPane, Priority.ALWAYS);
 
-        getChildren().addAll(toggleConfigButton, configBox, statusLabel, buttonRow, scrollPane);
+        if (selectionRevision) {
+            Label instructionLabel = new Label("Anweisung (optional):");
+            revisionInstructionField = new TextArea();
+            revisionInstructionField.setPromptText("z.B. Name der Gruppe ergänzen, klarer formulieren");
+            revisionInstructionField.setWrapText(true);
+            revisionInstructionField.setPrefRowCount(4);
+            revisionInstructionField.setMinHeight(4 * 18.0);
+            revisionInstructionField.setMaxWidth(Double.MAX_VALUE);
+            String savedInstruction = com.manuskript.SelectionRevisionDialog.loadPersistedInstruction();
+            if (savedInstruction != null && !savedInstruction.isBlank()) {
+                revisionInstructionField.setText(savedInstruction);
+            }
+            revisionInstructionField.textProperty().addListener((obs, old, val) ->
+                    com.manuskript.SelectionRevisionDialog.syncInstruction(val));
+            VBox instructionBox = new VBox(4, instructionLabel, revisionInstructionField);
+            getChildren().addAll(toggleConfigButton, configBox, instructionBox, statusLabel, buttonRow, scrollPane);
+        } else {
+            getChildren().addAll(toggleConfigButton, configBox, statusLabel, buttonRow, scrollPane);
+        }
     }
 
     private HBox createSliderRow(String labelText, Slider slider, Label valueLabel) {
@@ -305,6 +333,17 @@ public class AgentTab extends VBox {
     private static String formatValue(double v) {
         if (v == (long) v) return String.valueOf((long) v);
         return String.format("%.2f", v);
+    }
+
+    public void applyFontSize(int size) {
+        if (size < 8) {
+            size = 8;
+        } else if (size > 72) {
+            size = 72;
+        }
+        currentFontSize = size;
+        AgentFontSizeSupport.apply(this, size);
+        AgentActionButtonSupport.applyFontSize(size, analyzeButton, realtimeToggle);
     }
 
     // === Öffentliche API ===
@@ -335,6 +374,24 @@ public class AgentTab extends VBox {
             modelCombo.setValue(model);
             config.setModel(model);
         });
+    }
+
+    public String getRevisionInstruction() {
+        if (revisionInstructionField == null) {
+            return "";
+        }
+        String text = revisionInstructionField.getText();
+        return text != null ? text.trim() : "";
+    }
+
+    public void setRevisionInstruction(String instruction) {
+        if (revisionInstructionField != null) {
+            revisionInstructionField.setText(instruction != null ? instruction : "");
+        }
+    }
+
+    private boolean isSelectionRevisionAgent() {
+        return config.isSelectionRevisionAgent();
     }
 
     public void refreshFromConfig() {
@@ -415,10 +472,14 @@ public class AgentTab extends VBox {
                     statusLabel.getStyleClass().add("agent-status-error");
                 }
                 case NO_PROBLEMS -> {
-                    Label ok = new Label("✅ Keine Widersprüche gefunden.");
+                    Label ok = new Label(isSelectionRevisionAgent()
+                            ? "✅ Keine Überarbeitung nötig — der markierte Text ist ausreichend."
+                            : "✅ Keine Widersprüche gefunden.");
                     ok.getStyleClass().add("agent-ok-label");
                     findingsList.getChildren().add(ok);
-                    statusLabel.setText("Analyse abgeschlossen - keine Probleme");
+                    statusLabel.setText(isSelectionRevisionAgent()
+                            ? "Markierung in Ordnung"
+                            : "Analyse abgeschlossen - keine Probleme");
                     statusLabel.getStyleClass().removeAll("agent-status-error");
                     statusLabel.getStyleClass().add("agent-status-ok");
                 }
@@ -435,15 +496,25 @@ public class AgentTab extends VBox {
 
     private void showFindingsInternal(List<Finding> findings) {
         if (findings.isEmpty()) {
-            Label ok = new Label("✅ Keine Widersprüche gefunden.");
+            Label ok = new Label(isSelectionRevisionAgent()
+                    ? "✅ Keine Überarbeitung nötig — der markierte Text ist ausreichend."
+                    : "✅ Keine Widersprüche gefunden.");
             ok.getStyleClass().add("agent-ok-label");
             findingsList.getChildren().add(ok);
-            statusLabel.setText("Analyse abgeschlossen - keine Probleme");
+            statusLabel.setText(isSelectionRevisionAgent()
+                    ? "Markierung in Ordnung"
+                    : "Analyse abgeschlossen - keine Probleme");
             statusLabel.getStyleClass().removeAll("agent-status-error");
             statusLabel.getStyleClass().add("agent-status-ok");
             return;
         }
-        statusLabel.setText(findings.size() + " Widersprüche gefunden");
+        if (isSelectionRevisionAgent()) {
+            statusLabel.setText(findings.size() == 1
+                    ? "Überarbeitung empfohlen"
+                    : findings.size() + " Überarbeitungsvorschläge");
+        } else {
+            statusLabel.setText(findings.size() + " Widersprüche gefunden");
+        }
         statusLabel.getStyleClass().removeAll("agent-status-ok");
         statusLabel.getStyleClass().add("agent-status-error");
         for (Finding f : findings) {
@@ -457,9 +528,8 @@ public class AgentTab extends VBox {
         card.getStyleClass().add("finding-card");
         card.setMaxWidth(Double.MAX_VALUE);
 
-        // Schriftgröße aus Preferences lesen (wie im Editor)
-        java.util.prefs.Preferences prefs = java.util.prefs.Preferences.userNodeForPackage(com.manuskript.MainController.class);
-        int editorFontSize = prefs.getInt("fontSize", 12);
+        // Schriftgröße aus aktuellem Editor-Stand (wird via applyFontSize gesetzt)
+        int editorFontSize = currentFontSize;
 
         Label severityLabel = new Label(f.getSeverityStars());
         severityLabel.getStyleClass().add("finding-severity");
@@ -468,7 +538,7 @@ public class AgentTab extends VBox {
         severityLabel.setMaxWidth(Double.MAX_VALUE);
         severityLabel.setStyle(severityLabel.getStyle() + String.format("-fx-font-size: %dpx;", editorFontSize));
 
-        Text problemText = new Text(f.getProblem());
+        Text problemText = new Text(AgentFindingDisplay.stripIndexField(f.getProblem()));
         problemText.setStyle(AgentFindingStyles.problemTextStyle(editorFontSize));
         TextFlow problemFlow = new TextFlow(problemText);
         problemFlow.getStyleClass().add("finding-problem");
@@ -476,7 +546,7 @@ public class AgentTab extends VBox {
         problemFlow.setMaxWidth(Double.MAX_VALUE);
         problemFlow.prefWidthProperty().bind(scrollPane.widthProperty().subtract(40));
 
-        Text quoteText = new Text("Zitat: " + f.getQuote());
+        Text quoteText = new Text("Zitat: " + AgentFindingDisplay.stripIndexField(f.getQuote()));
         quoteText.setStyle(AgentFindingStyles.quoteTextStyle(editorFontSize));
         TextFlow quoteFlow = new TextFlow(quoteText);
         quoteFlow.getStyleClass().add("finding-quote-text");
@@ -497,7 +567,8 @@ public class AgentTab extends VBox {
         if (f.getSuggestions() != null && !f.getSuggestions().isEmpty()) {
             for (int i = 0; i < f.getSuggestions().size(); i++) {
                 String suggestion = f.getSuggestions().get(i);
-                Text suggestionTextNode = new Text("Vorschlag " + (i + 1) + ": " + suggestion);
+                Text suggestionTextNode = new Text("Vorschlag " + (i + 1) + ": "
+                        + AgentFindingDisplay.stripIndexField(suggestion));
                 String suggestionStyle = String.format("-fx-font-size: %dpx;", editorFontSize);
                 if (f.getSuggestionIndex() >= 0) {
                     String suggestionTheme = com.manuskript.ResourceManager.getParameter("main_window_theme", "0");
@@ -527,7 +598,8 @@ public class AgentTab extends VBox {
                 suggestionsBox.getChildren().add(suggestionFlow);
             }
         } else {
-            Text suggestionTextNode = new Text("Vorschlag: " + f.getSuggestion());
+            Text suggestionTextNode = new Text("Vorschlag: "
+                    + AgentFindingDisplay.stripIndexField(f.getSuggestion()));
             String suggestionStyle = String.format("-fx-font-size: %dpx;", editorFontSize);
             if (f.getSuggestionIndex() >= 0) {
                 String suggestionTheme = com.manuskript.ResourceManager.getParameter("main_window_theme", "0");

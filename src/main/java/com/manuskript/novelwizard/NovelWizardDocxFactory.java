@@ -34,8 +34,7 @@ public final class NovelWizardDocxFactory {
         int created = 0;
         int updated = 0;
         for (ChapterEntry chapter : chapters) {
-            Path target = projectDirectory.resolve(String.format("kapitel-%02d-%s.docx",
-                    chapter.number(), slug(chapter.title())));
+            Path target = projectDirectory.resolve(chapterDocxFileName(chapter));
             boolean existed = Files.exists(target);
             writeDocx(target, chapter);
             if (existed) {
@@ -270,6 +269,33 @@ public final class NovelWizardDocxFactory {
         Docx4J.save(pkg, target.toFile());
     }
 
+    static String chapterDocxFileName(ChapterEntry chapter) {
+        String subtitle = chapterSubtitle(chapter);
+        return sanitizeDocxFileName(String.format("Kapitel %d - %s.docx", chapter.number(), subtitle));
+    }
+
+    private static String chapterSubtitle(ChapterEntry chapter) {
+        if (chapter == null || chapter.title() == null || chapter.title().isBlank()) {
+            return "Ohne Titel";
+        }
+        Matcher subtitle = Pattern.compile(
+                "^Kapitel\\s+\\d+\\s*[:.\\-–—]\\s*(.+)$",
+                Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE).matcher(chapter.title().trim());
+        if (subtitle.matches()) {
+            String name = subtitle.group(1).trim();
+            return name.isEmpty() ? "Ohne Titel" : name;
+        }
+        return chapter.title().trim();
+    }
+
+    private static String sanitizeDocxFileName(String fileName) {
+        String cleaned = fileName
+                .replaceAll("[\\\\/:*?\"<>|\\n\\r\\t]", " ")
+                .replaceAll("\\s{2,}", " ")
+                .trim();
+        return cleaned.isEmpty() ? "Kapitel.docx" : cleaned;
+    }
+
     private static void saveSelection(Path projectDirectory, List<Path> docxFiles) throws Exception {
         Path dataDir = projectDirectory.resolve("data");
         Files.createDirectories(dataDir);
@@ -278,19 +304,5 @@ public final class NovelWizardDocxFactory {
                 .toList();
         Files.writeString(dataDir.resolve(".manuskript_selection.json"),
                 new Gson().toJson(names), StandardCharsets.UTF_8);
-    }
-
-    private static String slug(String value) {
-        String slug = value == null ? "kapitel" : value.toLowerCase()
-                .replace("ä", "ae")
-                .replace("ö", "oe")
-                .replace("ü", "ue")
-                .replace("ß", "ss")
-                .replaceAll("[^a-z0-9]+", "-")
-                .replaceAll("(^-|-$)", "");
-        if (slug.isBlank()) {
-            return "kapitel";
-        }
-        return slug.length() > 40 ? slug.substring(0, 40) : slug;
     }
 }

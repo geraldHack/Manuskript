@@ -14,6 +14,7 @@ public class AgentTabPane extends TabPane {
 
     private final List<AgentTab> agentTabs = new ArrayList<>();
     private final List<SceneWritingAgentTab> sceneWritingTabs = new ArrayList<>();
+    private final List<ChatbotAgentTab> chatbotTabs = new ArrayList<>();
     private final Tab addTab;
 
     public AgentTabPane() {
@@ -45,6 +46,9 @@ public class AgentTabPane extends TabPane {
     public AgentTab addAgentTab(AgentConfig config, boolean saveConfig) {
         if (config.isSceneWritingAgent()) {
             return addSceneWritingTab(config, saveConfig);
+        }
+        if (config.isChatbotAgent()) {
+            return addChatbotTab(config, saveConfig);
         }
         return addAnalysisTab(config, saveConfig);
     }
@@ -98,6 +102,30 @@ public class AgentTabPane extends TabPane {
         return null;
     }
 
+    private AgentTab addChatbotTab(AgentConfig config, boolean saveConfig) {
+        ChatbotAgentTab chatTab = new ChatbotAgentTab(config);
+        chatTab.setOnConfigChanged(this::saveAllConfigs);
+
+        Tab tab = new Tab(config.getName());
+        tab.setContent(chatTab);
+        tab.getStyleClass().add("agent-tab-item");
+        tab.setClosable(false);
+        tab.setOnCloseRequest(e -> e.consume());
+
+        chatTab.setOnConfigChanged(() -> {
+            tab.setText(chatTab.getAgentConfig().getName());
+            saveAllConfigs();
+        });
+
+        insertTabBeforeAdd(tab);
+        chatbotTabs.add(chatTab);
+
+        if (saveConfig) {
+            saveAllConfigs();
+        }
+        return null;
+    }
+
     private void handleTabClose(AgentTab agentTab, javafx.event.Event e) {
         if (!agentTab.getAgentConfig().isUserDefined()) {
             e.consume();
@@ -139,6 +167,9 @@ public class AgentTabPane extends TabPane {
         for (SceneWritingAgentTab tab : sceneWritingTabs) {
             configs.add(tab.getAgentConfig());
         }
+        for (ChatbotAgentTab tab : chatbotTabs) {
+            configs.add(tab.getAgentConfig());
+        }
         AgentConfigManager.saveConfigs(configs);
     }
 
@@ -150,6 +181,30 @@ public class AgentTabPane extends TabPane {
         return agentTabs.isEmpty() ? null : agentTabs.get(0);
     }
 
+    public AgentTab findTabByAgentId(String agentId) {
+        if (agentId == null || agentId.isBlank()) {
+            return null;
+        }
+        for (AgentTab tab : agentTabs) {
+            if (agentId.equals(tab.getAgentId())) {
+                return tab;
+            }
+        }
+        return null;
+    }
+
+    public void selectTab(AgentTab agentTab) {
+        if (agentTab == null) {
+            return;
+        }
+        for (Tab tab : getTabs()) {
+            if (tab.getContent() == agentTab) {
+                getSelectionModel().select(tab);
+                return;
+            }
+        }
+    }
+
     public List<AgentTab> getAgentTabs() {
         return new ArrayList<>(agentTabs);
     }
@@ -158,9 +213,33 @@ public class AgentTabPane extends TabPane {
         return new ArrayList<>(sceneWritingTabs);
     }
 
+    public List<ChatbotAgentTab> getChatbotTabs() {
+        return new ArrayList<>(chatbotTabs);
+    }
+
     public void applyFontSize(int size) {
+        applyFontSize(size, -1);
+    }
+
+    public void applyFontSize(int size, int themeIndex) {
+        applyEditorAppearance(size, themeIndex, null);
+    }
+
+    public void applyEditorAppearance(int fontSizePx, int themeIndex, String fontFamily) {
+        for (AgentTab tab : agentTabs) {
+            tab.applyFontSize(fontSizePx);
+        }
         for (SceneWritingAgentTab tab : sceneWritingTabs) {
-            tab.applyFontSize(size);
+            tab.applyFontSize(fontSizePx);
+        }
+        for (ChatbotAgentTab tab : chatbotTabs) {
+            tab.applyFontSize(fontSizePx);
+            if (themeIndex >= 0) {
+                tab.applyChatTheme(themeIndex);
+            }
+            if (fontFamily != null && !fontFamily.isBlank()) {
+                tab.applyEditorFont(fontFamily, fontSizePx);
+            }
         }
     }
 
@@ -169,6 +248,7 @@ public class AgentTabPane extends TabPane {
         getTabs().clear();
         agentTabs.clear();
         sceneWritingTabs.clear();
+        chatbotTabs.clear();
         getTabs().add(addTab);
         loadFromConfig();
     }

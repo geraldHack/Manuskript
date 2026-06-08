@@ -142,6 +142,8 @@ public class AgentConfigManager {
                     }
                 }
                 ensureSceneWritingAgent(configs);
+                ensureChatbotAgent(configs);
+                ensureSelectionRevisionAgent(configs);
                 cachedConfigs = configs;
                 // Nicht speichern, da das Modell aus den Parametern gelesen wird
             }
@@ -217,5 +219,54 @@ public class AgentConfigManager {
             configs.add(sceneAgent);
             saveConfigs(configs);
         }
+    }
+
+    private static void ensureChatbotAgent(List<AgentConfig> configs) {
+        for (AgentConfig c : configs) {
+            if (c.isChatbotAgent()) {
+                return;
+            }
+        }
+        String backend = ResourceManager.getParameter("agent.backend", "Ollama");
+        String model = "OpenAI".equals(backend)
+                ? ResourceManager.getParameter("agent.openai.model", "gpt-4o-mini")
+                : ResourceManager.getParameter("agent.ollama.model", "gemma3:4b");
+        AgentConfig chatAgent = new AgentConfig(
+                "Chat",
+                backend,
+                ChatbotAgent.DEFAULT_SYSTEM_PROMPT,
+                model,
+                0.7, 4096, 0.9, 1.1
+        );
+        chatAgent.setDefaultPrompt(ChatbotAgent.DEFAULT_SYSTEM_PROMPT);
+        chatAgent.setAgentType("chatbot");
+        configs.add(chatAgent);
+        saveConfigs(configs);
+    }
+
+    private static void ensureSelectionRevisionAgent(List<AgentConfig> configs) {
+        for (AgentConfig c : configs) {
+            if (c.isSelectionRevisionAgent()
+                    || SelectionRevisionSupport.DEFAULT_AGENT_ID.equals(c.getId())) {
+                return;
+            }
+        }
+        String backend = ResourceManager.getParameter("agent.backend", "Ollama");
+        String model = "OpenAI".equals(backend)
+                ? ResourceManager.getParameter("agent.openai.model", "gpt-4o-mini")
+                : ResourceManager.getParameter("agent.ollama.model", "gemma3:4b");
+        String prompt = SelectionRevisionSupport.getDefaultSystemPrompt();
+        AgentConfig revisionAgent = new AgentConfig(
+                "Überarbeiten",
+                backend,
+                prompt,
+                model,
+                0.4, 2048, 0.7, 1.2
+        );
+        revisionAgent.setId(SelectionRevisionSupport.DEFAULT_AGENT_ID);
+        revisionAgent.setDefaultPrompt(prompt);
+        revisionAgent.setAgentType("selection-revision");
+        configs.add(revisionAgent);
+        saveConfigs(configs);
     }
 }

@@ -1,5 +1,7 @@
 package com.manuskript;
 
+import com.manuskript.agent.SelectionRevisionSupport;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -200,6 +202,12 @@ public final class ParameterRegistry {
                 "Echtzeit-Pruefung beim Tippen aktivieren.", "Agenten");
         add("agent.realtime_debounce_ms", ParameterDef.Type.INT, "2000",
                 "Verzoegerung in ms nach letztem Tippen, bevor die Echtzeit-Pruefung startet.", "Agenten");
+        add("agent.selection_revision.max_chars", ParameterDef.Type.INT, "2000",
+                "Maximale Laenge einer Markierung fuer den Ueberarbeiten-Agenten (Kontextmenue).", "Agenten");
+        add("agent.selection_revision.context_chars", ParameterDef.Type.INT, "1500",
+                "Zeichen Kontext vor/nach der Markierung fuer den Ueberarbeiten-Agenten.", "Agenten");
+        add("agent.selection_revision.agent_id", ParameterDef.Type.STRING, SelectionRevisionSupport.DEFAULT_AGENT_ID,
+                "Agent-ID des Ueberarbeiten-Agenten in config/agents.json.", "Agenten");
 
         // —— Agenten (Ollama) ——
         add("agent.ollama.api_url", ParameterDef.Type.STRING, "http://localhost:11434",
@@ -215,11 +223,16 @@ public final class ParameterRegistry {
         add("agent.openai.model", ParameterDef.Type.STRING, "gpt-4o-mini",
                 "Modell fuer die OpenAI-Analyse (z.B. gpt-4o-mini, gpt-4o).", "Agenten");
         add("agent.openai.temperature", ParameterDef.Type.DOUBLE, "0.7",
-                "Temperatur fuer OpenAI-Backend (Welt-Editor, Agenten). Bereich 0.0–2.0; bei Claude-Modellen max. 1.0.", "Agenten");
+                "Temperatur fuer OpenAI-Backend (Welt-Editor, Agenten, Online-Lektorat). Bereich 0.0–2.0; bei Claude-Modellen max. 1.0.", "Agenten");
         add("agent.openai.request_timeout_sec", ParameterDef.Type.INT, "300",
                 "Timeout pro Agenten-API-Anfrage in Sekunden (60–900). Kimi/OpenRouter mit vollem Buch-Kontext brauchen oft 180–600 s.", "Agenten");
         add("agent.plothole.include_all_chapters", ParameterDef.Type.BOOLEAN, "true",
                 "Alle Kapitel als Kontext mitsenden (fuer Plot-Widersprueche ueber das Buch). Aus = nur aktuelles Kapitel (schneller, weniger Timeout-Risiko).", "Agenten");
+        add("agent.chatbot.max_history_turns", ParameterDef.Type.INT, "10",
+                "Anzahl Q&A-Paare, die der Chatbot an die KI mitsendet (Multi-Turn).", "Agenten");
+        add("agent.chatbot.context_size", ParameterDef.Type.CHOICE, "COMPACT",
+                "Standard-Kontextgroesse fuer den Chatbot-Tab.", "Agenten",
+                new String[]{"COMPACT", "EXTENDED", "FULL"});
     }
 
     private static void add(String key, ParameterDef.Type type, String defaultValue, String helpText, String category) {

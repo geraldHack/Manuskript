@@ -261,6 +261,19 @@ public class OllamaService {
         // In properties-Datei speichern
         ResourceManager.saveParameter("ollama.repeat_penalty", String.valueOf(this.repeatPenalty));
     }
+
+    /**
+     * Setzt Sampling-Werte nur im Speicher (ohne parameters.properties zu ändern).
+     * Für Plugin-/Agent-Läufe, die globale Parameter nicht überschreiben sollen.
+     */
+    public void applySamplingInMemory(double temperature, int maxTokens) {
+        if (temperature >= 0) {
+            this.temperature = Math.max(0.0, Math.min(2.0, temperature));
+        }
+        if (maxTokens > 0) {
+            this.maxTokens = Math.max(1, Math.min(8192, maxTokens));
+        }
+    }
     
     /**
      * Gibt aktuelle Parameter zurück
@@ -556,6 +569,53 @@ public class OllamaService {
 
         return sendRequest(CHAT_ENDPOINT, json)
                 .thenApply(this::parseChatResponse);
+    }
+
+    /**
+     * Multi-Turn-Chat mit System-Prompt, optionalem Kontext und Nachrichten-Historie.
+     */
+    public CompletableFuture<String> chatMultiTurn(String systemPrompt, String contextBlock,
+                                                    List<ChatMessage> history, String newUserMessage,
+                                                    int numPredict, double temperature, double topP,
+                                                    double repeatPenalty) {
+        int tokens = numPredict > 0 ? numPredict : this.maxTokens;
+        double temp = Double.isNaN(temperature) ? this.temperature : temperature;
+        double tp = Double.isNaN(topP) ? this.topP : topP;
+        double rp = Double.isNaN(repeatPenalty) ? this.repeatPenalty : repeatPenalty;
+
+        List<ChatMessage> fullMessages = new ArrayList<>();
+        fullMessages.add(new ChatMessage("system", systemPrompt));
+        if (contextBlock != null && !contextBlock.trim().isEmpty()) {
+            fullMessages.add(new ChatMessage("user", "=== KONTEXT ===\n" + contextBlock.trim()));
+        }
+        if (history != null) {
+            fullMessages.addAll(history);
+        }
+        fullMessages.add(new ChatMessage("user", newUserMessage));
+
+        StringBuilder jsonBuilder = new StringBuilder();
+        jsonBuilder.append("{\"model\":\"").append(currentModel).append("\",\"messages\":[");
+        for (int i = 0; i < fullMessages.size(); i++) {
+            ChatMessage msg = fullMessages.get(i);
+            if (i > 0) {
+                jsonBuilder.append(",");
+            }
+            jsonBuilder.append("{\"role\":\"").append(msg.getRole()).append("\",\"content\":\"")
+                    .append(escapeJson(msg.getContent())).append("\"}");
+        }
+        jsonBuilder.append("],\"stream\":false,\"options\":{\"num_ctx\":8192,\"num_predict\":")
+                .append(tokens)
+                .append(String.format(java.util.Locale.US,
+                        ",\"temperature\":%.2f,\"top_p\":%.2f,\"repeat_penalty\":%.2f}}",
+                        temp, tp, rp));
+
+        String json = jsonBuilder.toString();
+        this.lastEndpoint = CHAT_ENDPOINT;
+        this.lastRequestJson = json;
+        this.lastFullPrompt = newUserMessage;
+        this.lastContext = contextBlock;
+
+        return sendRequest(CHAT_ENDPOINT, json).thenApply(this::parseChatResponse);
     }
 
     /**
@@ -1260,64 +1320,67 @@ public class OllamaService {
      */
     private String parseChatResponse(String response) {
         try {
-            // Robustes JSON-Parsing mit besserer Fehlerbehandlung
             if (response == null || response.isEmpty()) {
                 return "Leere Antwort erhalten";
             }
-            
-            // Suche nach dem "content" Feld
-            int contentStart = response.indexOf("\"content\":\"");
-            if (contentStart == -1) {
-                return "Kein 'content' Feld in der Antwort gefunden";
+
+            // Assistant-Nachricht bevorzugen (letztes content-Feld in message)
+            int messageIdx = response.lastIndexOf("\"message\"");
+            String content = messageIdx >= 0
+                    ? extractJsonStringValue(response, messageIdx, "content")
+                    : null;
+            if (content == null || content.isEmpty()) {
+                content = extractJsonStringValue(response, 0, "content");
             }
-            
-            // Start-Position nach dem "content":" Teil
-            int textStart = contentStart + 11;
-            
-            // Suche das Ende des Content-Strings
-            StringBuilder result = new StringBuilder();
-            boolean escaped = false;
-            
-            for (int i = textStart; i < response.length(); i++) {
-                char c = response.charAt(i);
-                
-                if (escaped) {
-                    switch (c) {
-                        case '\\':
-                            result.append('\\');
-                            break;
-                        case '"':
-                            result.append('"');
-                            break;
-                        case 'n':
-                            result.append('\n');
-                            break;
-                        case 'r':
-                            result.append('\r');
-                            break;
-                        case 't':
-                            result.append('\t');
-                            break;
-                        default:
-                            result.append('\\').append(c);
-                            break;
-                    }
-                    escaped = false;
-                } else if (c == '\\') {
-                    escaped = true;
-                } else if (c == '"') {
-                    // Ende des Content-Strings gefunden
-                    break;
-                } else {
-                    result.append(c);
-                }
+            if (content == null || content.isEmpty()) {
+                content = extractJsonStringValue(response, messageIdx >= 0 ? messageIdx : 0, "thinking");
             }
-            
-            return result.toString();
+            if (content != null && !content.isEmpty()) {
+                return content;
+            }
+            return "Kein Text in der Modellantwort (content/thinking leer).";
         } catch (Exception e) {
             logger.warn("Fehler beim Parsen der Chat-Antwort: {}", e.getMessage());
             return "Fehler beim Parsen der Chat-Antwort: " + e.getMessage();
         }
+    }
+
+    /**
+     * Extrahiert einen JSON-String-Wert fuer ein Feld ab einer Startposition.
+     */
+    private String extractJsonStringValue(String json, int searchFrom, String fieldName) {
+        if (json == null || fieldName == null) {
+            return null;
+        }
+        String needle = "\"" + fieldName + "\":\"";
+        int contentStart = json.indexOf(needle, Math.max(0, searchFrom));
+        if (contentStart == -1) {
+            return null;
+        }
+        int textStart = contentStart + needle.length();
+        StringBuilder result = new StringBuilder();
+        boolean escaped = false;
+        for (int i = textStart; i < json.length(); i++) {
+            char c = json.charAt(i);
+            if (escaped) {
+                switch (c) {
+                    case '\\' -> result.append('\\');
+                    case '"' -> result.append('"');
+                    case 'n' -> result.append('\n');
+                    case 'r' -> result.append('\r');
+                    case 't' -> result.append('\t');
+                    default -> result.append('\\').append(c);
+                }
+                escaped = false;
+            } else if (c == '\\') {
+                escaped = true;
+            } else if (c == '"') {
+                break;
+            } else {
+                result.append(c);
+            }
+        }
+        return result.toString();
     }
     
     /**

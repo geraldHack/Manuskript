@@ -164,7 +164,7 @@ public final class PlotholeResponseParser {
         while (m.find()) {
             try {
                 int severity = clampSeverity(Integer.parseInt(m.group(1)));
-                String quote = m.group(2) != null ? m.group(2).trim() : "";
+                String quote = AgentResponseText.normalizeModelText(m.group(2) != null ? m.group(2) : "");
                 Finding finding = buildFinding(severity, quote, m.group(3).trim());
                 if (finding != null) {
                     findings.add(finding);
@@ -182,7 +182,7 @@ public final class PlotholeResponseParser {
         while (m.find()) {
             try {
                 int severity = clampSeverity(Integer.parseInt(m.group(1)));
-                String quote = pickFirstNonEmpty(m.group(2), m.group(3), m.group(4));
+                String quote = AgentResponseText.normalizeModelText(pickFirstNonEmpty(m.group(2), m.group(3), m.group(4)));
                 Finding finding = buildFinding(severity, quote, m.group(5).trim());
                 if (finding != null) {
                     findings.add(finding);
@@ -199,8 +199,11 @@ public final class PlotholeResponseParser {
             return "";
         }
         for (String p : parts) {
-            if (p != null && !p.trim().isEmpty()) {
-                return p.trim();
+            if (p != null && !p.isEmpty()) {
+                String normalized = AgentResponseText.normalizeModelText(p);
+                if (!normalized.isEmpty()) {
+                    return normalized;
+                }
             }
         }
         return "";
@@ -223,6 +226,7 @@ public final class PlotholeResponseParser {
         if (problem.isEmpty()) {
             return null;
         }
+        problem = AgentResponseText.normalizeModelText(problem);
         Finding finding = new Finding(severity, quote, problem, "");
         finding.setSuggestions(extractSuggestions(suggestionsText));
         finding.setSuggestionIndex(finding.getSuggestions().isEmpty() ? -1 : 0);
@@ -245,31 +249,75 @@ public final class PlotholeResponseParser {
         if (indexPos >= 0) {
             cleanText = cleanText.substring(0, indexPos).trim();
         }
-        Matcher qm = Pattern.compile("\"([^\"]+)\"").matcher(cleanText);
-        while (qm.find()) {
-            String suggestion = qm.group(1).trim();
-            if (!suggestion.isEmpty()) {
-                suggestions.add(suggestion);
+        suggestions.addAll(extractQuotedStrings(cleanText));
+        if (suggestions.isEmpty()) {
+            Matcher qm = Pattern.compile("\"([^\"]+)\"", Pattern.DOTALL).matcher(cleanText);
+            while (qm.find()) {
+                addSuggestion(suggestions, qm.group(1));
             }
         }
         if (suggestions.isEmpty()) {
-            Matcher sm = Pattern.compile("VORSCHLAG:\\s*([^<]+)", Pattern.CASE_INSENSITIVE).matcher(suggestionsText);
+            Matcher sm = Pattern.compile("VORSCHLAG:\\s*([^<]+)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL)
+                    .matcher(suggestionsText);
             while (sm.find()) {
-                String suggestion = sm.group(1).trim();
-                if (!suggestion.isEmpty()) {
-                    suggestions.add(suggestion);
-                }
+                addSuggestion(suggestions, sm.group(1));
             }
         }
         if (suggestions.isEmpty() && !cleanText.isEmpty()) {
             for (String part : cleanText.split(",")) {
-                String suggestion = part.trim().replaceAll("^\"|\"$", "").trim();
-                if (!suggestion.isEmpty()) {
-                    suggestions.add(suggestion);
-                }
+                addSuggestion(suggestions, part.replaceAll("^\"|\"$", ""));
             }
         }
         return suggestions;
+    }
+
+    /** Liest doppelt-quotierte Strings inkl. Zeilenumbrüche und {@code \\n}-Escapes. */
+    private static List<String> extractQuotedStrings(String text) {
+        List<String> results = new ArrayList<>();
+        if (text == null || text.isEmpty()) {
+            return results;
+        }
+        int i = 0;
+        while (i < text.length()) {
+            int quoteStart = text.indexOf('"', i);
+            if (quoteStart < 0) {
+                break;
+            }
+            StringBuilder sb = new StringBuilder();
+            i = quoteStart + 1;
+            while (i < text.length()) {
+                char c = text.charAt(i);
+                if (c == '\\' && i + 1 < text.length()) {
+                    char next = text.charAt(i + 1);
+                    switch (next) {
+                        case 'n' -> sb.append('\n');
+                        case 'r' -> sb.append('\r');
+                        case 't' -> sb.append('\t');
+                        case '"', '\\' -> sb.append(next);
+                        default -> sb.append(c);
+                    }
+                    i += 2;
+                } else if (c == '"') {
+                    i++;
+                    break;
+                } else {
+                    sb.append(c);
+                    i++;
+                }
+            }
+            addSuggestion(results, sb.toString());
+        }
+        return results;
+    }
+
+    private static void addSuggestion(List<String> suggestions, String raw) {
+        if (raw == null) {
+            return;
+        }
+        String normalized = AgentResponseText.normalizeModelText(raw.strip());
+        if (!normalized.isEmpty()) {
+            suggestions.add(normalized);
+        }
     }
 
     private static List<Finding> parseJsonFindings(String text) {

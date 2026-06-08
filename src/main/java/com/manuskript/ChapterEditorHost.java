@@ -98,4 +98,15 @@ public interface ChapterEditorHost {
     default void runMacro(Macro macro, Consumer<String> statusUpdater) {
         MacroExecutor.execute(macro, this, statusUpdater);
     }
+
+    /** Schriftgröße des Editors in Pixel (für Agenten-Panel etc.). */
+    default int getEditorFontSizePx() {
+        return java.util.prefs.Preferences.userNodeForPackage(EditorWindow.class).getInt("fontSize", 12);
+    }
+
+    /** Schriftart des Editors (für Agenten-Panel etc.). */
+    default String getEditorFontFamily() {
+        return java.util.prefs.Preferences.userNodeForPackage(EditorWindow.class)
+                .get("quillFontFamily", "Segoe UI");
+    }
 }

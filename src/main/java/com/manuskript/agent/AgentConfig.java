@@ -94,6 +94,14 @@ public class AgentConfig {
         return "scene-writing".equals(getAgentType());
     }
 
+    public boolean isChatbotAgent() {
+        return "chatbot".equals(getAgentType());
+    }
+
+    public boolean isSelectionRevisionAgent() {
+        return "selection-revision".equals(getAgentType());
+    }
+
     public boolean isUserDefined() {
         return userDefined;
     }

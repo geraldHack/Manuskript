@@ -20,6 +20,7 @@ ayens
 bataflagon
 bataflagons
 bettlergilde
+blackwood
 brak
 braks
 bram
@@ -74,6 +75,7 @@ jomars
 joms
 jorin
 jorins
+kael
 kala
 kalem
 kalems
@@ -107,6 +109,7 @@ niras
 oryn
 paleus
 rawhester
+schulterrempler
 seb
 sebs
 silphe
