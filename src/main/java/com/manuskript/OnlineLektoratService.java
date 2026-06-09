@@ -30,6 +30,42 @@ import java.util.stream.Stream;
 public class OnlineLektoratService {
     private static final Logger logger = LoggerFactory.getLogger(OnlineLektoratService.class);
 
+    /** Hinweistext für Dialoge und Statuszeile: Einstellungen in den Parametern. */
+    public static final String SETTINGS_HINT =
+            "Modell, Lektorat-Typ und weitere Optionen können unter Parameter → Online-Lektorat geändert werden.";
+
+    /** Aktueller Wert von {@code api.lektorat.type} (normalisiert). */
+    public static String currentLektoratType() {
+        String type = ResourceManager.getParameter("api.lektorat.type", "allgemein").trim();
+        if (type.isEmpty()) {
+            return "allgemein";
+        }
+        return type.toLowerCase();
+    }
+
+    /** Anzeigename für den Lektorat-Typ in der UI. */
+    public static String formatLektoratTypeLabel(String lektoratType) {
+        if (lektoratType == null || lektoratType.isBlank()) {
+            return "Allgemein";
+        }
+        return switch (lektoratType.trim().toLowerCase()) {
+            case "stil" -> "Stil";
+            case "grammatik" -> "Grammatik";
+            case "plot" -> "Plot / Dramaturgie";
+            case "allgemein" -> "Allgemein";
+            default -> lektoratType.trim();
+        };
+    }
+
+    public static String currentLektoratTypeLabel() {
+        return formatLektoratTypeLabel(currentLektoratType());
+    }
+
+    public static String currentModelDisplay() {
+        String model = modelIdOnly(ResourceManager.getParameter("api.lektorat.model", "gpt-4o-mini"));
+        return model.isEmpty() ? "gpt-4o-mini" : model;
+    }
+
     /** Entfernt den Anzeigetext (z. B. Kosten in Klammern), sodass nur die Modell-ID an die API geht. */
     private static String modelIdOnly(String raw) {
         if (raw == null) return "";

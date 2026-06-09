@@ -46,16 +46,20 @@ public class ChapterOnlineLektoratHelper {
             return;
         }
         inProgress = true;
-        host.updateStatus("Lektorat wird erstellt – bitte warten…");
+        if (panel != null) {
+            panel.applyFontSize(host.getEditorFontSizePx());
+        }
+        String typeLabel = OnlineLektoratService.currentLektoratTypeLabel();
+        host.updateStatus("Lektorat (" + typeLabel + ") wird erstellt – bitte warten…");
         OnlineLektoratService service = new OnlineLektoratService();
         BiConsumer<Integer, Integer> onProgress = (done, total) -> Platform.runLater(() -> {
             if (!inProgress) {
                 return;
             }
             if (total == 100) {
-                host.updateStatus("Lektorat: " + done + "% …");
+                host.updateStatus("Lektorat (" + typeLabel + "): " + done + "% …");
             } else {
-                host.updateStatus("Lektorat: " + done + "/" + total + " Abschnitte …");
+                host.updateStatus("Lektorat (" + typeLabel + "): " + done + "/" + total + " Abschnitte …");
             }
         });
         service.runLektorat(text, onProgress)

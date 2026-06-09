@@ -34,12 +34,12 @@ public final class AgentFontSizeSupport {
             text.setStyle(mergeFontSize(text.getStyle(), size));
         } else if (node instanceof Label label) {
             if (label == opacityLabel) {
-                label.setStyle(fontCss + " -fx-opacity: 0.75;");
+                label.setStyle(mergeFontSize(label.getStyle(), size) + " -fx-opacity: 0.75;");
             } else {
-                label.setStyle(fontCss);
+                label.setStyle(mergeFontSize(label.getStyle(), size));
             }
         } else if (node instanceof Labeled labeled) {
-            labeled.setStyle(fontCss);
+            labeled.setStyle(mergeFontSize(labeled.getStyle(), size));
         } else if (node instanceof Parent parent) {
             for (Node child : parent.getChildrenUnmodifiable()) {
                 applyToNode(child, size, opacityLabel);

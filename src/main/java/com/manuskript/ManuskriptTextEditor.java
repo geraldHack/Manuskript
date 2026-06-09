@@ -1019,11 +1019,12 @@ public class ManuskriptTextEditor extends Region {
         }
         List<TextRange> paintRanges = new ArrayList<>();
         for (LektoratMatch match : matches) {
-            if (match.getLength() <= 0) {
+            int[] span = resolveLektoratMatchSpan(match);
+            if (span == null) {
                 continue;
             }
-            int start = match.getOffset();
-            int end = start + match.getLength();
+            int start = span[0];
+            int end = span[1];
             paintRanges.add(new TextRange(start, end));
             if (onSelect != null) {
                 MarkedArea clickArea = new MarkedArea(this);
@@ -1044,6 +1045,58 @@ public class ManuskriptTextEditor extends Region {
             markedAreas.add(paintArea);
         }
         render();
+    }
+
+    /**
+     * Sucht den Originaltext im Editor und aktualisiert Offset/Länge am Match (wie Legacy-Editor).
+     * Verhindert optisch verschobene Markierungen nach übernommenen Ersetzungen.
+     */
+    private int[] resolveLektoratMatchSpan(LektoratMatch match) {
+        if (match == null) {
+            return null;
+        }
+        String original = match.getOriginal();
+        if (original == null || original.isEmpty()) {
+            return null;
+        }
+        int hint = match.getOffset();
+        int len = match.getLength() > 0 ? match.getLength() : original.length();
+        int start = hint;
+        int end = start + len;
+        if (start >= 0 && end <= text.length() && text.substring(start, end).equals(original)) {
+            match.setLength(original.length());
+            return new int[]{start, start + original.length()};
+        }
+        int located = locateLektoratOriginalNear(original, hint);
+        if (located < 0) {
+            return null;
+        }
+        match.setOffset(located);
+        match.setLength(original.length());
+        return new int[]{located, located + original.length()};
+    }
+
+    /** Nächstes Vorkommen von {@code original} nahe der erwarteten Position (nicht immer das erste im Kapitel). */
+    private int locateLektoratOriginalNear(String original, int hint) {
+        if (original.isEmpty()) {
+            return -1;
+        }
+        int best = -1;
+        int bestDistance = Integer.MAX_VALUE;
+        int from = 0;
+        while (from < text.length()) {
+            int idx = text.indexOf(original, from);
+            if (idx < 0) {
+                break;
+            }
+            int distance = hint >= 0 ? Math.abs(idx - hint) : idx;
+            if (distance < bestDistance) {
+                bestDistance = distance;
+                best = idx;
+            }
+            from = idx + 1;
+        }
+        return best;
     }
 
     /**
@@ -1156,6 +1209,10 @@ public class ManuskriptTextEditor extends Region {
         invalidateLayoutCaches();
         updateScrollBar();
         render();
+    }
+
+    public double getFontSizeForAll() {
+        return fontSize;
     }
 
     public double getLineSpacing() {

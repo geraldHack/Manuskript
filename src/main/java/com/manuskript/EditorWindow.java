@@ -13900,8 +13900,9 @@ spacer.setStyle("-fx-background-color: transparent;");
         // Verhindern, dass „Bereit" oder LanguageTool den Status überschreiben; geplanten Clear abbrechen
         scheduleStatusClear(0, true);
         onlineLektoratInProgress = true;
+        String lektoratTypeLabel = OnlineLektoratService.currentLektoratTypeLabel();
         if (lblStatus != null) {
-            lblStatus.setText("Lektorat wird erstellt – bitte warten…");
+            lblStatus.setText("Lektorat (" + lektoratTypeLabel + ") wird erstellt – bitte warten…");
             lblStatus.setVisible(true);
             lblStatus.setManaged(true);
         }
@@ -13915,12 +13916,14 @@ spacer.setStyle("-fx-background-color: transparent;");
                         // Einzelpuffer-Modus: Fortschritt in % (0-100)
                         int totalChars = text.length();
                         int processedChars = (done * totalChars) / 100;
-                        lblStatus.setText("Lektorat: " + done + "% (" + processedChars + "/" + totalChars + " Zeichen) bearbeitet …");
+                        lblStatus.setText("Lektorat (" + lektoratTypeLabel + "): " + done + "% ("
+                                + processedChars + "/" + totalChars + " Zeichen) bearbeitet …");
                     } else {
                         // Multi-Chunk-Modus: Abschnitte
                         int totalChars = text.length();
                         int processedChars = (done * totalChars) / total;
-                        lblStatus.setText("Lektorat: " + done + "/" + total + " Abschnitte (" + processedChars + "/" + totalChars + " Zeichen) bearbeitet …");
+                        lblStatus.setText("Lektorat (" + lektoratTypeLabel + "): " + done + "/" + total
+                                + " Abschnitte (" + processedChars + "/" + totalChars + " Zeichen) bearbeitet …");
                     }
                     lblStatus.setVisible(true);
                     lblStatus.setManaged(true);

@@ -1,0 +1,24 @@
+---
+description: Kapitel-Editor nur Canvas – Legacy-Editor ignorieren
+alwaysApply: true
+---
+
+# Kapitel-Editor: nur Canvas, kein Legacy
+
+Der **Legacy-Kapitel-Editor** (`EditorWindow`, RichTextFX/CodeArea, FXML-Editor) spielt für künftige Entwicklung **keine Rolle mehr**.
+
+## Was gilt für neue Arbeit
+
+- **Ziel-Editor:** Canvas-Kapitel-Editor (`ManuskriptEditorTestWindow`, `ManuskriptTextEditor`, `MdTextArea`).
+- **Gemeinsame Schnittstelle:** `ChapterEditorHost` – neue Features dort und im Canvas implementieren, nicht in `EditorWindow` nachziehen.
+- **Kein Legacy-Parität:** Keine Features „auch im Legacy-Editor“, keine Vergleiche mit RichTextFX-Verhalten, keine Preview/WebView-Legacy-Pfade.
+
+## Was nicht tun
+
+- `EditorWindow.java` nicht erweitern oder als Referenz für neues Editor-Verhalten nutzen.
+- Keine Doppelpflege (Canvas + Legacy) für Editor-UI, Lektorat, Markup, Performance.
+- Legacy-Code nur anfassen, wenn der Nutzer ausdrücklich einen Bugfix oder Entfernung im alten Pfad verlangt.
+
+## Bestehende Legacy-Dateien
+
+`EditorWindow`, `EditorWindowHostAdapter` können im Repo verbleiben (Routing/Fallback in `MainController`), sind aber **out of scope** für Agenten-Aufgaben am Kapitel-Editor.

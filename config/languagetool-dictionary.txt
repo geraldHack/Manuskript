@@ -58,6 +58,7 @@ fendrel
 ferris
 figon
 figons
+frina
 gallat
 gallats
 grakk

@@ -267,6 +267,10 @@ public class MdTextArea extends VBox {
         return editor;
     }
 
+    public double getEditorFontSize() {
+        return editor.getFontSizeForAll();
+    }
+
     /** Toolbar-Knoten für externes Layout (z. B. über Editor- und Agenten-Spalte). */
     public VBox getToolbarNode() {
         return toolbarBox;

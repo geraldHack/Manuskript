@@ -415,7 +415,7 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         ChapterEditorSplitPreferences.bindPersistence(mainSplitPane, preferences);
         lektoratPanel = new ChapterLektoratPanel(
                 lektoratPanelContainer, mainSplitPane, () -> themeIndex, this::applyThemeToNode,
-                getEditorFontSizePx());
+                this::getEditorFontSizePx);
         VBox.setVgrow(mainSplitPane, Priority.ALWAYS);
         editorContentColumn.getChildren().add(mainSplitPane);
 
@@ -797,7 +797,10 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
             btnToggleAgents.setTooltip(new Tooltip("Agenten-Panel ein- oder ausblenden"));
             btnToggleAgents.setOnAction(e -> onAgentsToggle());
         }
-        Button onlineLektorat = toolbarButton("Lektorat", "Online-Lektorat starten", () -> startOnlineLektorat(false));
+        Button onlineLektorat = toolbarButton("Lektorat",
+                "Online-Lektorat starten (Typ: " + OnlineLektoratService.currentLektoratTypeLabel()
+                        + "). " + OnlineLektoratService.SETTINGS_HINT,
+                () -> startOnlineLektorat(false));
         Button macrosBtn = toolbarButton("Makros", "Makro-Verwaltung ein-/ausblenden", this::toggleMacroWindow);
         Button copySudowrite = toolbarButton("Sudowrite", "Für Sudowrite kopieren (Zwischenablage)",
                 this::copyForSudowrite);
@@ -1863,6 +1866,9 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
 
     @Override
     public int getEditorFontSizePx() {
+        if (mdTextArea != null) {
+            return (int) Math.round(mdTextArea.getEditorFontSize());
+        }
         return (int) Math.round(preferences.getDouble(PREF_FONT_SIZE, 16.0));
     }
 

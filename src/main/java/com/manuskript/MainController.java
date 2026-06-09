@@ -620,8 +620,8 @@ public class MainController implements Initializable {
                 
                 // Custom Dialog mit Checkbox erstellen
                 CustomStage dialogStage = StageManager.createModalStage("Online-Lektorat", owner);
-                dialogStage.setWidth(480);
-                dialogStage.setHeight(350);
+                dialogStage.setWidth(500);
+                dialogStage.setHeight(420);
                 dialogStage.setTitleBarTheme(currentThemeIndex);
                 
                 VBox dialogContent = new VBox(20);
@@ -636,11 +636,28 @@ public class MainController implements Initializable {
                 titleLabel.setPadding(new Insets(0));
                 applyThemeToNode(titleLabel, currentThemeIndex);
                 
-                Label infoLabel = new Label("Das Online-Lektorat nutzt einen externen API-Dienst und kann je nach Nutzung Kosten verursachen.\n\nBenutztes Modell: " + ResourceManager.getParameter("api.lektorat.model", "unknown"));
+                Label infoLabel = new Label(
+                        "Das Online-Lektorat nutzt einen externen API-Dienst und kann je nach Nutzung Kosten verursachen.");
                 infoLabel.setWrapText(true);
-                infoLabel.setMaxWidth(400);
-                infoLabel.setPadding(new Insets(0, 0, 10, 0));
+                infoLabel.setMaxWidth(440);
+                infoLabel.setPadding(new Insets(0, 0, 4, 0));
                 applyThemeToNode(infoLabel, currentThemeIndex);
+
+                Label modelLabel = new Label("Modell: " + OnlineLektoratService.currentModelDisplay());
+                modelLabel.setWrapText(true);
+                modelLabel.setMaxWidth(440);
+                applyThemeToNode(modelLabel, currentThemeIndex);
+
+                Label typeLabel = new Label("Lektorat-Typ: " + OnlineLektoratService.currentLektoratTypeLabel());
+                typeLabel.setWrapText(true);
+                typeLabel.setMaxWidth(440);
+                applyThemeToNode(typeLabel, currentThemeIndex);
+
+                Label settingsHintLabel = new Label(OnlineLektoratService.SETTINGS_HINT);
+                settingsHintLabel.setWrapText(true);
+                settingsHintLabel.setMaxWidth(440);
+                settingsHintLabel.setPadding(new Insets(4, 0, 10, 0));
+                applyThemeToNode(settingsHintLabel, currentThemeIndex);
                 
                 CheckBox assessmentCheckBox = new CheckBox("Zusätzliche Kapitel-Einschätzung erstellen");
                 assessmentCheckBox.setTooltip(new Tooltip("Nach dem Lektorat eine Einschätzung des gesamten Kapitels anfordern (zusätzliche Kosten)"));
@@ -661,7 +678,8 @@ public class MainController implements Initializable {
                 
                 buttonBox.getChildren().addAll(startButton, cancelButton);
                 
-                dialogContent.getChildren().addAll(titleLabel, infoLabel, assessmentCheckBox, buttonBox);
+                dialogContent.getChildren().addAll(
+                        titleLabel, infoLabel, modelLabel, typeLabel, settingsHintLabel, assessmentCheckBox, buttonBox);
                 
                 javafx.scene.Scene scene = new javafx.scene.Scene(dialogContent);
                 String cssPath = ResourceManager.getCssResource("css/manuskript.css");
@@ -739,9 +757,13 @@ public class MainController implements Initializable {
         boolean hasKey = apiKey != null && !apiKey.trim().isEmpty();
         btnOnlineLektorat.setDisable(!hasKey);
         if (!hasKey) {
-            btnOnlineLektorat.setTooltip(new Tooltip("Online-Lektorat der ausgewählten Kapiteldatei starten (API-Key unter Parameter → Online-Lektorat eintragen)"));
+            btnOnlineLektorat.setTooltip(new Tooltip(
+                    "Online-Lektorat der ausgewählten Kapiteldatei starten (API-Key unter Parameter → Online-Lektorat eintragen)"));
         } else {
-            btnOnlineLektorat.setTooltip(new Tooltip("Online-Lektorat der ausgewählten Kapiteldatei starten (API in Parameter)"));
+            btnOnlineLektorat.setTooltip(new Tooltip(
+                    "Online-Lektorat starten (Typ: " + OnlineLektoratService.currentLektoratTypeLabel()
+                            + ", Modell: " + OnlineLektoratService.currentModelDisplay()
+                            + "). Einstellungen unter Parameter → Online-Lektorat."));
         }
     }
     
