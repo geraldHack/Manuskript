@@ -23,7 +23,9 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Popup;
 
+import java.awt.Desktop;
 import java.io.File;
+import java.net.URI;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.KeyCode;
@@ -79,6 +81,13 @@ public class ManuskriptTextEditor extends Region {
     private static final int MAX_UNDO = 250;
     /** Tipp-/Lösch-Bursts werden zu einem Undo-Schritt zusammengefasst (Pause oder Wortgrenze beendet). */
     private static final long UNDO_COALESCE_MS = 500;
+    /** Inline-Markup erst nach Tipp-Pause neu parsen (entlastet UI bei langen Kapiteln). */
+    private static final Duration AUTO_RULE_DELAY = Duration.millis(550);
+    private static final Duration AUTO_RULE_DELAY_LARGE_DOC = Duration.millis(900);
+    private static final int LARGE_DOC_AUTO_MARK_THRESHOLD = 20_000;
+    private static final int MAX_INCREMENTAL_AUTO_MARK_SPAN = 6_000;
+    /** Inline-Formatierung pro Zeile statt über den ganzen Roman. */
+    private static final String INLINE_NO_NL = "[^\\n]+?";
 
     private enum UndoEditKind {
         TYPE, DELETE, OTHER
@@ -92,6 +101,13 @@ public class ManuskriptTextEditor extends Region {
     private static final Pattern BLOCKQUOTE_PATTERN = Pattern.compile("^>\\s*(.*)$", Pattern.MULTILINE);
     /** Sichtbarer Einzug für Zitatzeilen (wie padding-left in der HTML-Vorschau). */
     private static final double BLOCKQUOTE_INDENT_PX = 28.0;
+    private static final double LIST_INDENT_PX = 22.0;
+    /** Markdown-Quell-Einzug pro Ebene (2 Leerzeichen, wie DOCX-Export). */
+    private static final String SOURCE_LIST_INDENT = "  ";
+    private static final double TABLE_CELL_PADDING_PX = 10.0;
+    private static final double TABLE_SEPARATOR_LINE_HEIGHT = 8.0;
+    private static final Color LINK_TEXT_COLOR = Color.web("#007bff");
+    private static final Pattern LINK_PATTERN = Pattern.compile("\\[([^\\]\\n]+)\\]\\(([^)\\s]+)\\)");
     private static final Pattern CENTER_TAG_PATTERN = Pattern.compile(
             "(?is)<(?:c|center)>([\\s\\S]*?)</(?:c|center)>");
     /** Zeilenumbruch-Tags (mit/ohne Schrägstrich, optional Leerzeichen). */
@@ -116,6 +132,7 @@ public class ManuskriptTextEditor extends Region {
     private final List<StyleRange> styles = new ArrayList<>();
     private final List<MarkedArea> markedAreas = new ArrayList<>();
     private final List<TextRange> hiddenMarkupRanges = new ArrayList<>();
+    private final List<TextRange> blockStructureHiddenRanges = new ArrayList<>();
     private final List<TextRange> hiddenImageBlockRanges = new ArrayList<>();
     private final List<ParsedImageBlock> imageBlocks = new ArrayList<>();
     private final List<ParsedHorizontalRule> horizontalRules = new ArrayList<>();
@@ -126,12 +143,22 @@ public class ManuskriptTextEditor extends Region {
     private final Map<Integer, Integer> headingLevelByLineStart = new HashMap<>();
     private final Set<Integer> centerLineStarts = new HashSet<>();
     private final Set<Integer> blockquoteLineStarts = new HashSet<>();
+    private final Map<Integer, MarkdownBlockSupport.ListLineInfo> listLineInfoByStart = new HashMap<>();
+    private final Map<Integer, Integer> orderedDisplayNumberByLineStart = new HashMap<>();
+    private final Map<Integer, MarkdownBlockSupport.TableRow> tableRowByLineStart = new HashMap<>();
+    private final Map<Integer, Integer> tableBlockIdByLineStart = new HashMap<>();
+    private final Map<Integer, double[]> tableColumnWidthsByBlockId = new HashMap<>();
+    private final Set<Integer> tableLineStarts = new HashSet<>();
+    private final Set<Integer> tableSeparatorLineStarts = new HashSet<>();
+    private final List<MarkdownBlockSupport.TableBlock> tableBlocks = new ArrayList<>();
+    private final List<MarkdownBlockSupport.CodeFenceBlock> codeFenceBlocks = new ArrayList<>();
+    private final Set<Integer> codeFenceContentLineStarts = new HashSet<>();
     private Color[] headingColors = new Color[6];
     private final ArrayDeque<Snapshot> undoStack = new ArrayDeque<>();
     private final ArrayDeque<Snapshot> redoStack = new ArrayDeque<>();
     private UndoEditKind lastUndoEditKind;
     private long lastUndoEditTimeMs;
-    private final PauseTransition autoRuleDelay = new PauseTransition(Duration.millis(350));
+    private final PauseTransition autoRuleDelay = new PauseTransition(AUTO_RULE_DELAY);
     private final PauseTransition widthLayoutDelay = new PauseTransition(Duration.millis(120));
     private final PauseTransition imageSyncDelay = new PauseTransition(Duration.millis(400));
     private final Text measuringText = new Text();
@@ -155,8 +182,13 @@ public class ManuskriptTextEditor extends Region {
     private int lastNotifiedCaret = -1;
     private int lastNotifiedAnchor = -2;
     private boolean textChangeNotificationPending;
+    private boolean forceFullAutoMarkRebuild = true;
+    private boolean preserveReadingViewportOnNextRebuild;
+    private int autoMarkDirtyStart = Integer.MAX_VALUE;
+    private int autoMarkDirtyEnd = 0;
 
     private String fontFamily = "Segoe UI";
+    private String monospaceFontFamily = "Monospace";
     private double fontSize = 16.0;
     private double lineSpacing = DEFAULT_LINE_SPACING;
     /** Zusätzliche Höhe für ausgeblendete einzeilige Leerzeile zwischen Absätzen (WYSIWYG). */
@@ -172,6 +204,10 @@ public class ManuskriptTextEditor extends Region {
     private boolean showLineNumbers = true;
     private int quoteStyleIndex = 0;
     private Color editorBackgroundColor = Color.WHITE;
+    private Color codeBlockBackgroundColor = Color.web("#f0f0f0");
+    private Color tableBlockBackgroundColor = Color.web("#e8ecf0");
+    private Color inlineCodeBackgroundColor = Color.web("#f4f4f4");
+    private Color tableBorderColor = Color.web("#ced4da");
     private Color gutterBackgroundColor = Color.web("#f5f5f5");
     private Color gutterTextColor = Color.web("#9e9e9e");
     private Color editorTextColor = Color.web("#1f1f1f");
@@ -188,6 +224,9 @@ public class ManuskriptTextEditor extends Region {
     private int cachedVisualLinesHeadingCount = -1;
     private int cachedVisualLinesHorizontalRules = -1;
     private int cachedVisualLinesBlockquotes = -1;
+    private int cachedVisualLinesLists = -1;
+    private int cachedVisualLinesTables = -1;
+    private int cachedVisualLinesCodeFences = -1;
     private boolean cachedVisualLinesMarkupHidden;
     private double cachedVisualLinesFontSize = -1;
     private double cachedVisualLinesLineSpacing = -1;
@@ -262,6 +301,7 @@ public class ManuskriptTextEditor extends Region {
         setupLanguageToolHoverPopup();
         setupMouseHandling();
 
+        monospaceFontFamily = resolveMonospaceFontFamily();
         autoRuleDelay.setOnFinished(e -> rebuildAutoMarks());
         imageSyncDelay.setOnFinished(e -> {
             syncBlockLayoutFromMarkdown();
@@ -442,9 +482,10 @@ public class ManuskriptTextEditor extends Region {
         redoStack.clear();
         resetUndoCoalesceState();
         invalidateLayoutCaches();
-        autoRuleDelay.stop();
-        autoRuleDelay.playFromStart();
-        rebuildHeadingStyles();
+        forceFullAutoMarkRebuild = true;
+        preserveReadingViewportOnNextRebuild = true;
+        rebuildStructuralMarkdownNow();
+        scheduleAutoRuleRebuild();
         imageSyncDelay.stop();
         syncBlockLayoutFromMarkdown();
         if (resetScroll) {
@@ -522,7 +563,7 @@ public class ManuskriptTextEditor extends Region {
         pushUndoCoalesced(classifyUndoKind(value), value);
         int start = selectionStart();
         int end = selectionEnd();
-        ViewportAnchor viewportAnchor = captureCaretViewportAnchor(start);
+        ViewportAnchor viewportAnchor = viewportAnchorForReplacement(value, start);
         text.replace(start, end, value);
         int inserted = value.length();
         adjustRangesForReplace(start, end, inserted);
@@ -536,7 +577,7 @@ public class ManuskriptTextEditor extends Region {
         pushUndoCoalesced(classifyUndoKind(replacement), replacement);
         int start = selectionStart();
         int end = selectionEnd();
-        ViewportAnchor viewportAnchor = captureCaretViewportAnchor(start);
+        ViewportAnchor viewportAnchor = viewportAnchorForReplacement(replacement, start);
         text.replace(start, end, replacement == null ? "" : replacement);
         int inserted = replacement == null ? 0 : replacement.length();
         adjustRangesForReplace(start, end, inserted);
@@ -824,7 +865,8 @@ public class ManuskriptTextEditor extends Region {
                                       Color textColor, Color backgroundColor, double fontSizeScale) {
         autoRules.add(new AutoRule(regex, Math.max(0, groupIndex), styleFlags,
                 textColor, backgroundColor, fontSizeScale));
-        rebuildAutoMarks();
+        forceFullAutoMarkRebuild = true;
+        scheduleAutoRuleRebuild();
     }
 
     private void addAutoRuleEntry(String regex, int groupIndex, int styleFlags) {
@@ -833,50 +875,62 @@ public class ManuskriptTextEditor extends Region {
 
     private void addAutoRuleEntry(String regex, int groupIndex, int styleFlags,
                                   Color textColor, Color backgroundColor, double fontSizeScale) {
-        autoRules.add(new AutoRule(regex, Math.max(0, groupIndex), styleFlags,
-                textColor, backgroundColor, fontSizeScale));
+        addAutoRuleEntry(regex, groupIndex, styleFlags, textColor, backgroundColor, fontSizeScale, null);
     }
 
-    /** Standard-Formatregeln wie im Haupt-Editor ({@link EditorWindow#applyCombinedStyling}). */
+    private void addAutoRuleEntry(String regex, int groupIndex, int styleFlags,
+                                  Color textColor, Color backgroundColor, double fontSizeScale,
+                                  String fontFamilyOverride) {
+        autoRules.add(new AutoRule(regex, Math.max(0, groupIndex), styleFlags,
+                textColor, backgroundColor, fontSizeScale, fontFamilyOverride));
+    }
+
+    /** Standard-Formatregeln für den Canvas-Editor (zeilenbasiert, performance-sicher). */
     public void registerDefaultFormatAutoRules() {
         autoRules.clear();
-        addAutoRuleEntry("\\*\\*\\*([\\s\\S]+?)\\*\\*\\*", 1, MarkedArea.BOLD | MarkedArea.ITALIC);
-        addAutoRuleEntry("\\*\\*(.+?)\\*\\*", 1, MarkedArea.BOLD);
-        addAutoRuleEntry("(?<!\\*)\\*(?!\\*)(.+?)(?<!\\*)\\*(?!\\*)", 1, MarkedArea.ITALIC);
-        addAutoRuleEntry("~~([\\s\\S]+?)~~", 1, MarkedArea.STRIKETHROUGH);
-        addAutoRuleEntry("<mark>([\\s\\S]+?)</mark>", 1, 0, null, MARK_HIGHLIGHT_COLOR, 0);
-        addAutoRuleEntry("<(b|strong)>([\\s\\S]+?)</(b|strong)>", 2, MarkedArea.BOLD);
-        addAutoRuleEntry("<(i|em)>([\\s\\S]+?)</(i|em)>", 2, MarkedArea.ITALIC);
-        addAutoRuleEntry("<(s|del)>([\\s\\S]+?)</(s|del)>", 2, MarkedArea.STRIKETHROUGH);
-        addAutoRuleEntry("<u>([\\s\\S]+?)</u>", 1, MarkedArea.UNDERLINE);
-        addAutoRuleEntry("<sup>([\\s\\S]+?)</sup>", 1, MarkedArea.SUPERSCRIPT);
-        addAutoRuleEntry("<sub>([\\s\\S]+?)</sub>", 1, MarkedArea.SUBSCRIPT);
-        addAutoRuleEntry("<big>([\\s\\S]+?)</big>", 1, 0, null, null, BIG_FONT_SCALE);
-        addAutoRuleEntry("<small>([\\s\\S]+?)</small>", 1, 0, null, null, SMALL_FONT_SCALE);
+        addAutoRuleEntry("\\*\\*\\*(" + INLINE_NO_NL + ")\\*\\*\\*", 1, MarkedArea.BOLD | MarkedArea.ITALIC);
+        addAutoRuleEntry("\\*\\*(" + INLINE_NO_NL + ")\\*\\*", 1, MarkedArea.BOLD);
+        addAutoRuleEntry("(?<!\\*)\\*(?!\\*)(" + INLINE_NO_NL + ")(?<!\\*)\\*(?!\\*)", 1, MarkedArea.ITALIC);
+        addAutoRuleEntry("__(" + INLINE_NO_NL + ")__", 1, MarkedArea.BOLD);
+        addAutoRuleEntry("(?<![_\\w])_(" + INLINE_NO_NL + ")_(?![_\\w])", 1, MarkedArea.ITALIC);
+        addAutoRuleEntry("~~(" + INLINE_NO_NL + ")~~", 1, MarkedArea.STRIKETHROUGH);
+        addAutoRuleEntry("==(" + INLINE_NO_NL + ")==", 1, 0, null, MARK_HIGHLIGHT_COLOR, 0);
+        addAutoRuleEntry("`([^`\\n]+)`", 1, 0, null, inlineCodeBackgroundColor, 0, monospaceFontFamily);
+        addAutoRuleEntry("<mark>(" + INLINE_NO_NL + ")</mark>", 1, 0, null, MARK_HIGHLIGHT_COLOR, 0);
+        addAutoRuleEntry("<(b|strong)>(" + INLINE_NO_NL + ")</(b|strong)>", 2, MarkedArea.BOLD);
+        addAutoRuleEntry("<(i|em)>(" + INLINE_NO_NL + ")</(i|em)>", 2, MarkedArea.ITALIC);
+        addAutoRuleEntry("<(s|del)>(" + INLINE_NO_NL + ")</(s|del)>", 2, MarkedArea.STRIKETHROUGH);
+        addAutoRuleEntry("<u>(" + INLINE_NO_NL + ")</u>", 1, MarkedArea.UNDERLINE);
+        addAutoRuleEntry("<sup>(" + INLINE_NO_NL + ")</sup>", 1, MarkedArea.SUPERSCRIPT);
+        addAutoRuleEntry("<sub>(" + INLINE_NO_NL + ")</sub>", 1, MarkedArea.SUBSCRIPT);
+        addAutoRuleEntry("<big>(" + INLINE_NO_NL + ")</big>", 1, 0, null, null, BIG_FONT_SCALE);
+        addAutoRuleEntry("<small>(" + INLINE_NO_NL + ")</small>", 1, 0, null, null, SMALL_FONT_SCALE);
         addColorAutoRuleEntries();
-        rebuildAutoMarks();
+        forceFullAutoMarkRebuild = true;
+        scheduleAutoRuleRebuild();
     }
 
     private void addColorAutoRuleEntries() {
-        addAutoRuleEntry("<red>([\\s\\S]+?)</red>", 1, 0, Color.web("#dc3545"), null, 0);
-        addAutoRuleEntry("<blue>([\\s\\S]+?)</blue>", 1, 0, Color.web("#007bff"), null, 0);
-        addAutoRuleEntry("<green>([\\s\\S]+?)</green>", 1, 0, Color.web("#28a745"), null, 0);
-        addAutoRuleEntry("<yellow>([\\s\\S]+?)</yellow>", 1, 0, Color.web("#ffc107"), null, 0);
-        addAutoRuleEntry("<purple>([\\s\\S]+?)</purple>", 1, 0, Color.web("#6f42c1"), null, 0);
-        addAutoRuleEntry("<orange>([\\s\\S]+?)</orange>", 1, 0, Color.web("#fd7e14"), null, 0);
-        addAutoRuleEntry("<(?:gray|grey)>([\\s\\S]+?)</(?:gray|grey)>", 1, 0, Color.web("#6c757d"), null, 0);
-        addAutoRuleEntry("<rot>([\\s\\S]+?)</rot>", 1, 0, Color.web("#dc3545"), null, 0);
-        addAutoRuleEntry("<blau>([\\s\\S]+?)</blau>", 1, 0, Color.web("#007bff"), null, 0);
-        addAutoRuleEntry("<grün>([\\s\\S]+?)</grün>", 1, 0, Color.web("#28a745"), null, 0);
-        addAutoRuleEntry("<gelb>([\\s\\S]+?)</gelb>", 1, 0, Color.web("#ffc107"), null, 0);
-        addAutoRuleEntry("<lila>([\\s\\S]+?)</lila>", 1, 0, Color.web("#6f42c1"), null, 0);
-        addAutoRuleEntry("<grau>([\\s\\S]+?)</grau>", 1, 0, Color.web("#6c757d"), null, 0);
+        addAutoRuleEntry("<red>(" + INLINE_NO_NL + ")</red>", 1, 0, Color.web("#dc3545"), null, 0);
+        addAutoRuleEntry("<blue>(" + INLINE_NO_NL + ")</blue>", 1, 0, Color.web("#007bff"), null, 0);
+        addAutoRuleEntry("<green>(" + INLINE_NO_NL + ")</green>", 1, 0, Color.web("#28a745"), null, 0);
+        addAutoRuleEntry("<yellow>(" + INLINE_NO_NL + ")</yellow>", 1, 0, Color.web("#ffc107"), null, 0);
+        addAutoRuleEntry("<purple>(" + INLINE_NO_NL + ")</purple>", 1, 0, Color.web("#6f42c1"), null, 0);
+        addAutoRuleEntry("<orange>(" + INLINE_NO_NL + ")</orange>", 1, 0, Color.web("#fd7e14"), null, 0);
+        addAutoRuleEntry("<(?:gray|grey)>(" + INLINE_NO_NL + ")</(?:gray|grey)>", 1, 0, Color.web("#6c757d"), null, 0);
+        addAutoRuleEntry("<rot>(" + INLINE_NO_NL + ")</rot>", 1, 0, Color.web("#dc3545"), null, 0);
+        addAutoRuleEntry("<blau>(" + INLINE_NO_NL + ")</blau>", 1, 0, Color.web("#007bff"), null, 0);
+        addAutoRuleEntry("<grün>(" + INLINE_NO_NL + ")</grün>", 1, 0, Color.web("#28a745"), null, 0);
+        addAutoRuleEntry("<gelb>(" + INLINE_NO_NL + ")</gelb>", 1, 0, Color.web("#ffc107"), null, 0);
+        addAutoRuleEntry("<lila>(" + INLINE_NO_NL + ")</lila>", 1, 0, Color.web("#6f42c1"), null, 0);
+        addAutoRuleEntry("<grau>(" + INLINE_NO_NL + ")</grau>", 1, 0, Color.web("#6c757d"), null, 0);
     }
 
     public void clearAutoRules() {
         autoRules.clear();
         hiddenMarkupRanges.clear();
-        rebuildAutoMarks();
+        forceFullAutoMarkRebuild = true;
+        scheduleAutoRuleRebuild();
     }
 
     public void setShowLineNumbers(boolean showLineNumbers) {
@@ -899,6 +953,10 @@ public class ManuskriptTextEditor extends Region {
         textWidthCache.clear();
         invalidateLayoutCaches();
         syncBlockLayoutFromMarkdown();
+        forceFullAutoMarkRebuild = true;
+        preserveReadingViewportOnNextRebuild = true;
+        rebuildStructuralMarkdownNow();
+        autoRuleDelay.stop();
         rebuildAutoMarks();
         updateScrollBar();
         render();
@@ -923,16 +981,16 @@ public class ManuskriptTextEditor extends Region {
             default -> getStyleClass().add("theme-dark");
         }
         switch (themeIndex) {
-            case 1 -> setEditorTheme("#1a1a1a", "#2d2d2d", "#9ca3af", "#ffffff", "#375a7f");
-            case 2 -> setEditorTheme("#f3e5f5", "#e1bee7", "#6b4f6b", "#000000", "#c7a6d8");
-            case 3 -> setEditorTheme("#1e3a8a", "#172554", "#bfdbfe", "#ffffff", "#3b82f6");
-            case 4 -> setEditorTheme("#064e3b", "#022c22", "#bbf7d0", "#ffffff", "#10b981");
-            case 5 -> setEditorTheme("#581c87", "#3b0764", "#e9d5ff", "#ffffff", "#8b5cf6");
-            default -> setEditorTheme("#ffffff", "#f5f5f5", "#9e9e9e", "#1f1f1f", "#9ec9ff");
+            case 1 -> setEditorTheme(themeIndex, "#1a1a1a", "#2d2d2d", "#9ca3af", "#ffffff", "#375a7f");
+            case 2 -> setEditorTheme(themeIndex, "#f3e5f5", "#e1bee7", "#6b4f6b", "#000000", "#c7a6d8");
+            case 3 -> setEditorTheme(themeIndex, "#1e3a8a", "#172554", "#bfdbfe", "#ffffff", "#3b82f6");
+            case 4 -> setEditorTheme(themeIndex, "#064e3b", "#022c22", "#bbf7d0", "#ffffff", "#10b981");
+            case 5 -> setEditorTheme(themeIndex, "#581c87", "#3b0764", "#e9d5ff", "#ffffff", "#8b5cf6");
+            default -> setEditorTheme(themeIndex, "#ffffff", "#f5f5f5", "#9e9e9e", "#1f1f1f", "#9ec9ff");
         }
     }
 
-    private void setEditorTheme(String background, String gutter, String gutterText,
+    private void setEditorTheme(int themeIndex, String background, String gutter, String gutterText,
                                 String textColor, String selection) {
         editorBackgroundColor = Color.web(background);
         gutterBackgroundColor = Color.web(gutter);
@@ -942,9 +1000,28 @@ public class ManuskriptTextEditor extends Region {
         caretColor = Color.web(CARET_COLOR);
         boolean dark = isDarkBackground(background);
         initHeadingColors(dark);
+        updateBlockStructureColors(themeIndex);
         updateMarkPalette(dark);
         updateLanguageToolHoverTheme();
+        registerDefaultFormatAutoRules();
+        forceFullAutoMarkRebuild = true;
+        scheduleAutoRuleRebuild();
         render();
+    }
+
+    /** Code-/Tabellen-Hintergrund und Rahmen passend zum gewählten Theme. */
+    private void updateBlockStructureColors(int themeIndex) {
+        if (themeIndex == 0 || themeIndex == 2) {
+            codeBlockBackgroundColor = Color.web("#f0f0f0");
+            tableBlockBackgroundColor = Color.web("#e8ecf0");
+            inlineCodeBackgroundColor = Color.web("#f4f4f4");
+            tableBorderColor = Color.web("#ced4da");
+            return;
+        }
+        codeBlockBackgroundColor = editorBackgroundColor.interpolate(Color.WHITE, 0.14);
+        tableBlockBackgroundColor = editorBackgroundColor.interpolate(Color.WHITE, 0.09);
+        inlineCodeBackgroundColor = editorBackgroundColor.interpolate(Color.WHITE, 0.18);
+        tableBorderColor = gutterTextColor.interpolate(editorBackgroundColor, 0.55);
     }
 
     private void updateMarkPalette(boolean dark) {
@@ -1295,7 +1372,112 @@ public class ManuskriptTextEditor extends Region {
     }
 
     public void toggleStrikethrough() {
-        toggleWrappedFormat("", "", "<s>", "</s>");
+        toggleInlineFormat("~~", "~~");
+    }
+
+    /** Überschrift umschalten: normal → H1 → … → H6 → normal. */
+    public void toggleHeading() {
+        int lineStart = logicalLineStartForOffset(selectionStart());
+        int lineEnd = logicalLineEndIndex(lineStart);
+        String line = text.substring(lineStart, lineEnd);
+        Matcher matcher = Pattern.compile("^(#{1,6})\\s+(.*)$").matcher(line);
+        String replacement;
+        if (matcher.matches()) {
+            int level = matcher.group(1).length();
+            String content = matcher.group(2);
+            if (level >= 6) {
+                replacement = content;
+            } else {
+                replacement = "#".repeat(level + 1) + " " + content;
+            }
+        } else {
+            replacement = "# " + line;
+        }
+        replaceRange(lineStart, lineEnd, replacement);
+    }
+
+    public void toggleUnorderedList() {
+        toggleListPrefix("- ");
+    }
+
+    public void toggleOrderedList() {
+        toggleListPrefix(nextOrderedListPrefix());
+    }
+
+    private String nextOrderedListPrefix() {
+        int lineStart = logicalLineStartForOffset(selectionStart());
+        int lineEnd = logicalLineEndIndex(lineStart);
+        String line = text.substring(lineStart, lineEnd);
+        int nestLevel = 0;
+        int i = 0;
+        while (i < line.length() && (line.charAt(i) == ' ' || line.charAt(i) == '\t')) {
+            i++;
+        }
+        if (i > 0) {
+            nestLevel = MarkdownBlockSupport.leadingIndentWidth(line.substring(0, i)) / 2;
+        }
+        String source = text.toString();
+        List<MarkdownBlockSupport.ListLineInfo> listLines = MarkdownBlockSupport.parseListLines(source);
+        Map<Integer, Integer> displayNumbers = MarkdownBlockSupport.computeOrderedDisplayNumbers(source, listLines);
+        int maxNumber = 0;
+        for (MarkdownBlockSupport.ListLineInfo info : listLines) {
+            if (info.kind() != MarkdownBlockSupport.ListKind.ORDERED || info.lineStart() >= lineStart) {
+                continue;
+            }
+            if (info.nestLevel() != nestLevel) {
+                continue;
+            }
+            Integer number = displayNumbers.get(info.lineStart());
+            if (number != null) {
+                maxNumber = Math.max(maxNumber, number);
+            }
+        }
+        return (maxNumber + 1) + ". ";
+    }
+
+    private void toggleListPrefix(String prefix) {
+        int lineStart = logicalLineStartForOffset(selectionStart());
+        int lineEnd = logicalLineEndIndex(lineStart);
+        String line = text.substring(lineStart, lineEnd);
+        String trimmed = line.stripLeading();
+        if (trimmed.startsWith("- ") || trimmed.startsWith("* ") || trimmed.startsWith("+ ")
+                || trimmed.matches("^\\d+\\.\\s+.*")) {
+            String without = trimmed.replaceFirst("^([-+*]|\\d+\\.)\\s+", "");
+            int leading = line.length() - trimmed.length();
+            replaceRange(lineStart, lineEnd, line.substring(0, leading) + without);
+        } else {
+            int leading = line.length() - trimmed.length();
+            replaceRange(lineStart, lineEnd, line.substring(0, leading) + prefix + trimmed);
+        }
+    }
+
+    public void insertLinkPlaceholder() {
+        if (hasSelection()) {
+            String selected = text.substring(selectionStart(), selectionEnd());
+            replaceSelection("[" + selected + "](https://)");
+        } else {
+            replaceSelection("[Link-Text](https://)");
+        }
+    }
+
+    public void wrapInlineCode() {
+        if (hasSelection()) {
+            toggleInlineFormat("`", "`");
+            return;
+        }
+        int lineStart = logicalLineStartForOffset(caret);
+        int lineEnd = logicalLineEndIndex(lineStart);
+        if (lineEnd - lineStart > 1) {
+            replaceRange(lineStart, lineEnd, "```\n" + text.substring(lineStart, lineEnd) + "\n```");
+        } else {
+            int insertAt = selectionStart();
+            replaceSelection("```\n\n```");
+            caret = normalizeCaretOffset(insertAt + 4, true);
+            anchor = caret;
+            preferredCaretX = Double.NaN;
+            ensureCaretVisible();
+            render();
+        }
     }
 
     public void toggleMark() {
@@ -1358,6 +1540,240 @@ public class ManuskriptTextEditor extends Region {
             blockEnd++;
         }
         replaceRange(blockStart, blockEnd, block.toString());
+    }
+
+    private void handleTabKey(boolean shiftDown) {
+        ViewportAnchor viewport = captureReadingViewportAnchor();
+        int savedLineIndex = lineIndexForOffset(caret);
+        int savedContentColumn = contentColumnForOffset(caret);
+        if (shiftDown) {
+            outdentAffectedLines();
+        } else {
+            indentAffectedLines();
+        }
+        syncOrderedListSourceNumbers();
+        restoreCaretToLineContent(savedLineIndex, savedContentColumn);
+        anchor = caret;
+        restoreViewportAnchor(viewport, viewport.offset());
+        preferredCaretX = Double.NaN;
+        render();
+    }
+
+    private int lineIndexForOffset(int offset) {
+        int index = 0;
+        int pos = 0;
+        int safe = Math.max(0, Math.min(text.length(), offset));
+        while (pos < safe) {
+            int newline = text.indexOf("\n", pos);
+            if (newline < 0 || newline >= safe) {
+                break;
+            }
+            index++;
+            pos = newline + 1;
+        }
+        return index;
+    }
+
+    private int lineStartForLineIndex(int lineIndex) {
+        int pos = 0;
+        for (int i = 0; i < lineIndex; i++) {
+            int newline = text.indexOf("\n", pos);
+            if (newline < 0) {
+                return text.length();
+            }
+            pos = newline + 1;
+        }
+        return Math.min(pos, text.length());
+    }
+
+    private int contentStartOffsetForLine(int lineStart) {
+        MarkdownBlockSupport.ListLineInfo info = listLineInfoByStart.get(lineStart);
+        if (info != null) {
+            return info.prefixEnd();
+        }
+        int blockquotePrefix = blockquotePrefixLength(lineStart);
+        if (blockquotePrefix > 0) {
+            return lineStart + blockquotePrefix;
+        }
+        return lineStart;
+    }
+
+    private int contentColumnForOffset(int offset) {
+        int lineStart = logicalLineStartForOffset(offset);
+        return Math.max(0, offset - contentStartOffsetForLine(lineStart));
+    }
+
+    private void restoreCaretToLineContent(int lineIndex, int columnInContent) {
+        if (lineIndex < 0) {
+            return;
+        }
+        int lineStart = lineStartForLineIndex(lineIndex);
+        int contentStart = contentStartOffsetForLine(lineStart);
+        int target = Math.min(text.length(), contentStart + Math.max(0, columnInContent));
+        caret = normalizeCaretOffset(target, true);
+        anchor = caret;
+    }
+
+    private void syncOrderedListSourceNumbers() {
+        String before = text.toString();
+        String after = MarkdownBlockSupport.renumberOrderedListMarkers(before);
+        if (before.equals(after)) {
+            return;
+        }
+        int mappedCaret = mapOffsetThroughTextChange(before, after, caret);
+        int mappedAnchor = mapOffsetThroughTextChange(before, after, anchor);
+        int oldLength = before.length();
+        pushUndoCoalesced(UndoEditKind.OTHER, after);
+        text.setLength(0);
+        text.append(after);
+        adjustRangesForReplace(0, oldLength, after.length());
+        caret = normalizeCaretOffset(mappedCaret, true);
+        anchor = normalizeCaretOffset(mappedAnchor, true);
+        invalidateLayoutCaches();
+        rebuildStructuralMarkdownNow();
+        scheduleAutoRuleRebuild();
+        updateScrollBar();
+        scheduleTextChangeNotification();
+    }
+
+    private void indentAffectedLines() {
+        List<Integer> lineStarts = collectAffectedLogicalLineStarts().stream()
+                .filter(this::canModifyLineIndent)
+                .toList();
+        if (lineStarts.isEmpty()) {
+            return;
+        }
+        if (lineStarts.size() == 1 && !hasSelection() && !shouldIndentWholeLine(lineStarts.get(0))) {
+            int insertAt = normalizeCaretOffset(caret, true);
+            replaceRange(insertAt, insertAt, SOURCE_LIST_INDENT);
+            return;
+        }
+        applyLineStartIndent(lineStarts, SOURCE_LIST_INDENT);
+    }
+
+    private void outdentAffectedLines() {
+        List<Integer> lineStarts = collectAffectedLogicalLineStarts().stream()
+                .filter(this::canModifyLineIndent)
+                .toList();
+        if (lineStarts.isEmpty()) {
+            return;
+        }
+        applyLineStartOutdent(lineStarts);
+    }
+
+    private List<Integer> collectAffectedLogicalLineStarts() {
+        int rangeStart = hasSelection() ? selectionStart() : logicalLineStartForOffset(caret);
+        int rangeEnd = hasSelection() ? selectionEnd() : logicalLineEndIndex(logicalLineStartForOffset(caret));
+        int firstLineStart = logicalLineStartForOffset(rangeStart);
+        int lastLineStart = logicalLineStartForOffset(Math.max(0, rangeEnd > 0 ? rangeEnd - 1 : 0));
+
+        List<Integer> lineStarts = new ArrayList<>();
+        for (int pos = firstLineStart; pos <= lastLineStart && pos < text.length(); ) {
+            lineStarts.add(pos);
+            int newline = text.indexOf("\n", pos);
+            if (newline < 0) {
+                break;
+            }
+            pos = newline + 1;
+        }
+        if (lineStarts.isEmpty()) {
+            lineStarts.add(0);
+        }
+        return lineStarts;
+    }
+
+    private boolean shouldIndentWholeLine(int lineStart) {
+        return listLineInfoByStart.containsKey(lineStart) || isBlockquoteLineStart(lineStart);
+    }
+
+    private boolean canModifyLineIndent(int lineStart) {
+        int lineEnd = logicalLineEndIndex(lineStart);
+        String line = text.substring(lineStart, lineEnd);
+        String trimmed = line.trim();
+        if (trimmed.startsWith("```")) {
+            return false;
+        }
+        return !MarkdownBlockSupport.isTableMarkdownLine(line);
+    }
+
+    private void applyLineStartIndent(List<Integer> lineStarts, String prefix) {
+        if (lineStarts.isEmpty()) {
+            return;
+        }
+        int blockStart = lineStarts.get(0);
+        int blockEnd = blockEndForLineStarts(lineStarts);
+
+        StringBuilder block = new StringBuilder();
+        for (int i = 0; i < lineStarts.size(); i++) {
+            int lineStart = lineStarts.get(i);
+            int lineEnd = i + 1 < lineStarts.size()
+                    ? lineStarts.get(i + 1) - 1
+                    : logicalLineEndIndex(lineStart);
+            block.append(prefix).append(text.substring(lineStart, lineEnd));
+            if (lineEnd < text.length()) {
+                block.append('\n');
+            }
+        }
+        replaceLineBlock(blockStart, blockEnd, block.toString());
+    }
+
+    private void applyLineStartOutdent(List<Integer> lineStarts) {
+        if (lineStarts.isEmpty()) {
+            return;
+        }
+        int blockStart = lineStarts.get(0);
+        int blockEnd = blockEndForLineStarts(lineStarts);
+
+        StringBuilder block = new StringBuilder();
+        for (int i = 0; i < lineStarts.size(); i++) {
+            int lineStart = lineStarts.get(i);
+            int lineEnd = i + 1 < lineStarts.size()
+                    ? lineStarts.get(i + 1) - 1
+                    : logicalLineEndIndex(lineStart);
+            String line = text.substring(lineStart, lineEnd);
+            int removed = leadingIndentRemovableLength(line);
+            block.append(line.substring(removed));
+            if (lineEnd < text.length()) {
+                block.append('\n');
+            }
+        }
+        replaceLineBlock(blockStart, blockEnd, block.toString());
+    }
+
+    private int blockEndForLineStarts(List<Integer> lineStarts) {
+        int lastLineStart = lineStarts.get(lineStarts.size() - 1);
+        int blockEnd = text.indexOf("\n", lastLineStart);
+        if (blockEnd < 0) {
+            return text.length();
+        }
+        return blockEnd + 1;
+    }
+
+    private static int leadingIndentRemovableLength(String line) {
+        if (line.startsWith(SOURCE_LIST_INDENT)) {
+            return SOURCE_LIST_INDENT.length();
+        }
+        if (line.startsWith("\t")) {
+            return 1;
+        }
+        if (line.startsWith(" ")) {
+            return 1;
+        }
+        return 0;
+    }
+
+    private void replaceLineBlock(int blockStart, int blockEnd, String replacement) {
+        int safeStart = Math.max(0, Math.min(text.length(), blockStart));
+        int safeEnd = Math.max(safeStart, Math.min(text.length(), blockEnd));
+        String oldContent = text.toString();
+        String newSegment = replacement == null ? "" : replacement;
+        String newContent = buildTextAfterReplace(oldContent, safeStart, safeEnd, newSegment);
+        pushUndoCoalesced(UndoEditKind.OTHER, newSegment);
+        text.replace(safeStart, safeEnd, newSegment);
+        adjustRangesForReplace(safeStart, safeEnd, newSegment.length());
+        caret = normalizeCaretOffset(mapOffsetThroughTextChange(oldContent, newContent, caret), true);
+        anchor = normalizeCaretOffset(mapOffsetThroughTextChange(oldContent, newContent, anchor), true);
+        afterTextChanged(null, caret, false);
     }
 
     public void toggleBig() {
@@ -1632,9 +2048,7 @@ public class ManuskriptTextEditor extends Region {
         }
         if ("\"".equals(character) || "'".equals(character)) {
             caret = normalizeCaretOffset(caret, true);
-            if (!hasSelection()) {
-                anchor = caret;
-            }
+            anchor = caret;
             String replacement = QuotationMarkSupport.resolveTypedQuote(
                     text.toString(), caret, character, quoteStyleIndex);
             replaceSelection(replacement);
@@ -1642,9 +2056,7 @@ public class ManuskriptTextEditor extends Region {
             return;
         }
         caret = normalizeCaretOffset(caret, true);
-        if (!hasSelection()) {
-            anchor = caret;
-        }
+        anchor = caret;
         replaceSelection(character);
         event.consume();
     }
@@ -1735,7 +2147,12 @@ public class ManuskriptTextEditor extends Region {
                         anchor = insertAt;
                     }
                     caret = insertAt;
-                    replaceSelection(newlinesForEnter(insertAt));
+                    String insertion = newlinesForEnter(insertAt);
+                    boolean continuedList = listContinuationForEnter(insertAt) != null;
+                    replaceSelection(insertion);
+                    if (continuedList) {
+                        syncOrderedListSourceNumbers();
+                    }
                 }
             }
             case LEFT -> moveCaret(caret - 1, event.isShiftDown());
@@ -1752,6 +2169,7 @@ public class ManuskriptTextEditor extends Region {
                 verticalScrollBar.setValue(Math.min(verticalScrollBar.getMax(), verticalScrollBar.getValue() + canvas.getHeight()));
                 moveVertical((int) Math.max(1, canvas.getHeight() / lineHeight()), event.isShiftDown());
             }
+            case TAB -> handleTabKey(event.isShiftDown());
             default -> {
                 return;
             }
@@ -2350,14 +2768,18 @@ public class ManuskriptTextEditor extends Region {
         caret = Math.max(0, Math.min(caret, text.length()));
         anchor = Math.max(0, Math.min(anchor, text.length()));
         scheduleImageSyncIfNeeded();
-        autoRuleDelay.stop();
-        autoRuleDelay.playFromStart();
+        rebuildStructuralMarkdownNow();
+        scheduleAutoRuleRebuild();
         updateScrollBar();
         if (viewportAnchor != null) {
             restoreViewportAnchor(viewportAnchor, scrollSyncOffset);
         }
         if (keepCaretVisible) {
-            ensureCaretVisible();
+            if (viewportAnchor == null) {
+                ensureCaretVisibleAfterInsert();
+            } else {
+                ensureCaretVisible();
+            }
         }
         render();
         scheduleTextChangeNotification();
@@ -2380,8 +2802,7 @@ public class ManuskriptTextEditor extends Region {
     }
 
     private boolean textMightContainImages() {
-        return text.indexOf("![") >= 0 || !imageBlocks.isEmpty() || !hiddenImageBlockRanges.isEmpty()
-                || text.indexOf("---") >= 0 || !horizontalRules.isEmpty();
+        return text.indexOf("![") >= 0 || !imageBlocks.isEmpty() || !hiddenImageBlockRanges.isEmpty();
     }
 
     private void scheduleTextChangeNotification() {
@@ -2412,6 +2833,17 @@ public class ManuskriptTextEditor extends Region {
         return new ViewportAnchor(lines.get(lineIndex).start, lineTop - scrollTop);
     }
 
+    /**
+     * Nach Zeilenumbrüchen kein Viewport-Restore – Layout springt (Absatzlücke/WYSIWYG),
+     * stattdessen {@link #ensureCaretVisible()}.
+     */
+    private ViewportAnchor viewportAnchorForReplacement(String replacement, int offset) {
+        if (replacement != null && replacement.indexOf('\n') >= 0) {
+            return null;
+        }
+        return captureCaretViewportAnchor(offset);
+    }
+
     /** Caret-Zeile soll beim Tippen an derselben Viewport-Y-Position bleiben. */
     private ViewportAnchor captureCaretViewportAnchor(int offset) {
         int safe = Math.max(0, Math.min(text.length(), offset));
@@ -2433,79 +2865,514 @@ public class ManuskriptTextEditor extends Region {
     }
 
     private void rebuildAutoMarks() {
-        ViewportAnchor viewportAnchor = captureReadingViewportAnchor();
-        markedAreas.removeIf(area -> area.autoRule);
+        if (text.isEmpty()) {
+            markedAreas.removeIf(area -> area.autoRule);
+            hiddenMarkupRanges.clear();
+            headingRanges.clear();
+            headingLevelByLineStart.clear();
+            listLineInfoByStart.clear();
+            orderedDisplayNumberByLineStart.clear();
+            tableRowByLineStart.clear();
+            tableBlockIdByLineStart.clear();
+            tableColumnWidthsByBlockId.clear();
+            tableLineStarts.clear();
+            tableSeparatorLineStarts.clear();
+            tableBlocks.clear();
+            codeFenceBlocks.clear();
+            codeFenceContentLineStarts.clear();
+            blockStructureHiddenRanges.clear();
+            blockquoteLineStarts.clear();
+            centerLineStarts.clear();
+            forceFullAutoMarkRebuild = true;
+            autoMarkDirtyStart = Integer.MAX_VALUE;
+            autoMarkDirtyEnd = 0;
+            invalidateLayoutCaches();
+            render();
+            return;
+        }
+        boolean incremental = canRebuildAutoMarksIncrementally();
+        if (incremental) {
+            rebuildAutoMarksIncremental(autoMarkDirtyStart, autoMarkDirtyEnd);
+            finishAutoMarkRebuild(false);
+        } else {
+            rebuildAutoMarksFull();
+            finishAutoMarkRebuild(preserveReadingViewportOnNextRebuild);
+            preserveReadingViewportOnNextRebuild = false;
+        }
+        forceFullAutoMarkRebuild = false;
+        autoMarkDirtyStart = Integer.MAX_VALUE;
+        autoMarkDirtyEnd = 0;
+    }
+
+    private boolean canRebuildAutoMarksIncrementally() {
+        if (forceFullAutoMarkRebuild || text.length() < LARGE_DOC_AUTO_MARK_THRESHOLD) {
+            return false;
+        }
+        if (autoMarkDirtyStart > autoMarkDirtyEnd) {
+            return false;
+        }
+        int span = autoMarkDirtyEnd - autoMarkDirtyStart;
+        if (span > MAX_INCREMENTAL_AUTO_MARK_SPAN) {
+            return false;
+        }
+        return !dirtyRegionTouchesBlockStructures(autoMarkDirtyStart, autoMarkDirtyEnd);
+    }
+
+    private boolean dirtyRegionTouchesBlockStructures(int dirtyStart, int dirtyEnd) {
+        int from = Math.max(0, dirtyStart);
+        int to = Math.min(text.length(), dirtyEnd);
+        for (int i = from; i < to; i++) {
+            char c = text.charAt(i);
+            if (c == '`' || c == '|') {
+                return true;
+            }
+            if (c == '\n' && i + 1 < to) {
+                int lineEnd = indexOfNewline(i + 1);
+                if (lineEnd < 0) {
+                    lineEnd = text.length();
+                }
+                String line = text.substring(i + 1, Math.min(lineEnd, to));
+                if (line.startsWith("- ") || line.startsWith("* ") || line.startsWith("+ ")
+                        || line.startsWith("- [") || line.startsWith("* [")
+                        || ORDERED_LIST_PREFIX.matcher(line).lookingAt()) {
+                    return true;
+                }
+            }
+        }
+        return from == 0 && (textStartsWith("- ") || textStartsWith("* ") || textStartsWith("+ ")
+                || textStartsWith("- [") || ORDERED_LIST_PREFIX.matcher(text).lookingAt());
+    }
+
+    private static final Pattern ORDERED_LIST_PREFIX = Pattern.compile("^\\d+\\.\\s");
+
+    private void rebuildAutoMarksFull() {
+        markedAreas.removeIf(area -> area.autoRule && area.autoRuleId >= 0);
         hiddenMarkupRanges.clear();
+        String source = text.toString();
+        applyAllAutoRules(source, 0, text.length());
+        if (source.indexOf("](") >= 0) {
+            rebuildLinkStyles(0, text.length());
+        }
+    }
+
+    private void rebuildAutoMarksIncremental(int dirtyStart, int dirtyEnd) {
+        int scanStart = logicalLineStartForOffset(Math.max(0, dirtyStart));
+        int scanEnd = logicalLineEndIndex(Math.max(0, Math.min(text.length(), dirtyEnd)));
+        if (scanEnd < scanStart) {
+            scanEnd = scanStart;
+        }
+        removeAutoRuleContentInRange(scanStart, scanEnd);
+        removeHiddenMarkupInRange(scanStart, scanEnd);
+        String source = text.toString();
+        applyAllAutoRules(source, scanStart, scanEnd);
+        if (source.indexOf("](", scanStart) >= 0) {
+            rebuildLinkStyles(scanStart, scanEnd);
+        }
+    }
+
+    private void rebuildMarkdownBlockStylesIfNeeded(String source) {
+        if (source == null || source.isEmpty()) {
+            listLineInfoByStart.clear();
+            orderedDisplayNumberByLineStart.clear();
+            tableRowByLineStart.clear();
+            tableBlockIdByLineStart.clear();
+            tableColumnWidthsByBlockId.clear();
+            tableLineStarts.clear();
+            tableSeparatorLineStarts.clear();
+            tableBlocks.clear();
+            codeFenceBlocks.clear();
+            codeFenceContentLineStarts.clear();
+            blockStructureHiddenRanges.clear();
+            return;
+        }
+        rebuildMarkdownBlockStyles(source);
+    }
+
+    /** Überschriften, Zitate, Listen, Tabellen, Code-Fences – sofort (nicht verzögert). */
+    private void rebuildStructuralMarkdownNow() {
+        if (text.isEmpty()) {
+            rebuildMarkdownBlockStylesIfNeeded("");
+            headingRanges.clear();
+            headingLevelByLineStart.clear();
+            centerLineStarts.clear();
+            blockquoteLineStarts.clear();
+            markedAreas.removeIf(area -> area.autoRule && area.isBlockquoteArea());
+            return;
+        }
+        blockStructureHiddenRanges.clear();
+        markedAreas.removeIf(area -> area.autoRule && area.isBlockquoteArea());
         rebuildHeadingStyles();
         rebuildBlockquoteAndCenterStyles();
-        for (AutoRule rule : autoRules) {
-            MarkedArea area = new MarkedArea(this);
-            area.autoRule = true;
-            area.markStyle(rule.styleFlags());
-            if (rule.textColor() != null) {
-                area.markTextColor(rule.textColor());
-            }
-            if (rule.backgroundColor() != null) {
-                area.markColor(toWebHex(rule.backgroundColor()));
-            }
-            if (rule.fontSizeScale() > 0) {
-                area.markFontSizeScale(rule.fontSizeScale());
-            }
-            addAutoRuleRanges(area, rule);
-            markedAreas.add(area);
+        rebuildMarkdownBlockStyles(text.toString());
+        sortBlockStructureHiddenRanges();
+    }
+
+    private void sortBlockStructureHiddenRanges() {
+        if (blockStructureHiddenRanges.size() < 2) {
+            return;
         }
-        hiddenMarkupRanges.sort(Comparator.comparingInt(range -> range.start));
+        blockStructureHiddenRanges.sort(Comparator.comparingInt(range -> range.start));
+    }
+
+    private String resolveMonospaceFontFamily() {
+        Set<String> available = new HashSet<>(Font.getFamilies());
+        for (String candidate : new String[]{
+                "SF Mono", "Menlo", "Monaco", "Consolas", "Courier New",
+                "DejaVu Sans Mono", "Liberation Mono", "Monospaced"
+        }) {
+            if (available.contains(candidate)) {
+                return candidate;
+            }
+        }
+        for (String family : Font.getFamilies()) {
+            String lower = family.toLowerCase(Locale.ROOT);
+            if (lower.contains("mono") || lower.contains("courier") || lower.contains("consolas")) {
+                return family;
+            }
+        }
+        return "Monospaced";
+    }
+
+    private void removeAutoRuleContentInRange(int start, int end) {
+        markedAreas.removeIf(area -> {
+            if (!area.autoRule) {
+                return false;
+            }
+            area.ranges.removeIf(range -> range.overlaps(start, end));
+            return area.ranges.isEmpty() && area.clickCallback == null;
+        });
+    }
+
+    private void removeHiddenMarkupInRange(int start, int end) {
+        hiddenMarkupRanges.removeIf(range -> range.overlaps(start, end));
+    }
+
+    private boolean lineRangeMightHaveHeadings(int start, int end) {
+        int lineStart = logicalLineStartForOffset(start);
+        while (lineStart <= end && lineStart < text.length()) {
+            if (text.charAt(lineStart) == '#') {
+                return true;
+            }
+            int next = indexOfNewline(lineStart);
+            if (next < 0) {
+                break;
+            }
+            lineStart = next + 1;
+        }
+        return false;
+    }
+
+    private boolean lineRangeMightHaveBlockquotesOrCenter(int start, int end) {
+        String slice = text.substring(start, Math.min(text.length(), end));
+        return slice.indexOf('>') >= 0
+                || slice.contains("<center")
+                || slice.contains("</center")
+                || slice.contains("<c>")
+                || slice.contains("</c>");
+    }
+
+    private void applyAllAutoRules(String source, int scanStart, int scanEnd) {
+        for (int i = 0; i < autoRules.size(); i++) {
+            AutoRule rule = autoRules.get(i);
+            MarkedArea area = findOrCreateAutoRuleArea(i, rule);
+            addAutoRuleRanges(area, rule, scanStart, scanEnd);
+        }
+        for (MarkedArea area : markedAreas) {
+            if (area.autoRule) {
+                area.sortRanges();
+            }
+        }
+    }
+
+    private MarkedArea findOrCreateAutoRuleArea(int ruleIndex, AutoRule rule) {
+        for (MarkedArea area : markedAreas) {
+            if (area.autoRule && area.matchesAutoRule(ruleIndex)) {
+                return area;
+            }
+        }
+        MarkedArea area = new MarkedArea(this);
+        area.autoRule = true;
+        area.bindAutoRule(ruleIndex, rule);
+        markedAreas.add(area);
+        return area;
+    }
+
+    private void finishAutoMarkRebuild(boolean restoreReadingViewport) {
+        mergeHiddenMarkupRanges();
         invalidateLayoutCaches();
         updateScrollBar();
-        restoreViewportAnchor(viewportAnchor, viewportAnchor.offset());
+        if (restoreReadingViewport) {
+            ViewportAnchor anchor = captureReadingViewportAnchor();
+            restoreViewportAnchor(anchor, anchor.offset());
+        } else {
+            ensureCaretVisibleAfterInsert();
+        }
         render();
+    }
+
+    private void rebuildMarkdownBlockStyles(String source) {
+        listLineInfoByStart.clear();
+        orderedDisplayNumberByLineStart.clear();
+        tableRowByLineStart.clear();
+        tableBlockIdByLineStart.clear();
+        tableColumnWidthsByBlockId.clear();
+        tableLineStarts.clear();
+        tableSeparatorLineStarts.clear();
+        tableBlocks.clear();
+        codeFenceBlocks.clear();
+        codeFenceContentLineStarts.clear();
+        List<MarkdownBlockSupport.ListLineInfo> parsedListLines = MarkdownBlockSupport.parseListLines(source);
+        for (MarkdownBlockSupport.ListLineInfo info : parsedListLines) {
+            listLineInfoByStart.put(info.lineStart(), info);
+            if (renderMarkupHidden && info.prefixEnd() > info.lineStart()) {
+                blockStructureHiddenRanges.add(new TextRange(info.lineStart(), info.prefixEnd()));
+            }
+        }
+        orderedDisplayNumberByLineStart.putAll(
+                MarkdownBlockSupport.computeOrderedDisplayNumbers(source, parsedListLines));
+        int blockId = 0;
+        for (MarkdownBlockSupport.TableBlock block : MarkdownBlockSupport.parseTableBlocks(source)) {
+            tableBlocks.add(block);
+            double[] columnWidths = computeTableColumnWidths(block);
+            tableColumnWidthsByBlockId.put(blockId, columnWidths);
+            for (MarkdownBlockSupport.TableRow row : block.rows()) {
+                tableRowByLineStart.put(row.lineStart(), row);
+                tableBlockIdByLineStart.put(row.lineStart(), blockId);
+                if (row.separator()) {
+                    tableSeparatorLineStarts.add(row.lineStart());
+                } else {
+                    tableLineStarts.add(row.lineStart());
+                }
+                if (renderMarkupHidden && row.lineEnd() > row.lineStart()) {
+                    blockStructureHiddenRanges.add(new TextRange(row.lineStart(), row.lineEnd()));
+                }
+            }
+            blockId++;
+        }
+        codeFenceBlocks.addAll(MarkdownBlockSupport.parseCodeFences(source));
+        indexCodeFenceContentLineStarts(source);
+        if (renderMarkupHidden) {
+            for (MarkdownBlockSupport.CodeFenceBlock block : codeFenceBlocks) {
+                int openLineEnd = source.indexOf('\n', block.start());
+                if (openLineEnd < 0) {
+                    openLineEnd = block.end();
+                } else {
+                    openLineEnd++;
+                }
+                if (openLineEnd > block.start()) {
+                    blockStructureHiddenRanges.add(new TextRange(block.start(), Math.min(openLineEnd, block.end())));
+                }
+                if (block.contentEnd() < block.end()) {
+                    int closeEnd = block.end();
+                    if (closeEnd < source.length() && source.charAt(closeEnd) == '\n') {
+                        closeEnd++;
+                    }
+                    blockStructureHiddenRanges.add(new TextRange(block.contentEnd(), closeEnd));
+                }
+            }
+        }
+        sortBlockStructureHiddenRanges();
+        textWidthCache.clear();
+        syncHorizontalRulesFromMarkdown();
+    }
+
+    private void indexCodeFenceContentLineStarts(String source) {
+        for (MarkdownBlockSupport.CodeFenceBlock block : codeFenceBlocks) {
+            if (block.contentEnd() <= block.contentStart()) {
+                continue;
+            }
+            int scan = block.contentStart();
+            while (scan < block.contentEnd()) {
+                int lineStart = source.lastIndexOf('\n', scan - 1) + 1;
+                codeFenceContentLineStarts.add(lineStart);
+                int next = source.indexOf('\n', scan);
+                if (next < 0 || next >= block.contentEnd()) {
+                    break;
+                }
+                scan = next + 1;
+            }
+        }
+    }
+
+    private double[] computeTableColumnWidths(MarkdownBlockSupport.TableBlock block) {
+        int columnCount = 0;
+        for (MarkdownBlockSupport.TableRow row : block.rows()) {
+            if (!row.separator()) {
+                columnCount = Math.max(columnCount, row.cells().size());
+            }
+        }
+        if (columnCount == 0) {
+            return new double[0];
+        }
+        double[] widths = new double[columnCount];
+        RenderStyle monoStyle = new RenderStyle();
+        monoStyle.fontFamily = monospaceFontFamily;
+        for (MarkdownBlockSupport.TableRow row : block.rows()) {
+            if (row.separator()) {
+                continue;
+            }
+            for (int c = 0; c < row.cells().size() && c < columnCount; c++) {
+                String cellText = row.cells().get(c).text();
+                double width = measureText(cellText.isEmpty() ? " " : cellText, monoStyle) + TABLE_CELL_PADDING_PX * 2;
+                widths[c] = Math.max(widths[c], width);
+            }
+        }
+        for (int c = 0; c < columnCount; c++) {
+            if (widths[c] <= 0) {
+                widths[c] = measureText(" ", monoStyle) + TABLE_CELL_PADDING_PX * 2;
+            }
+        }
+        return widths;
+    }
+
+    private void rebuildLinkStyles(int scanStart, int scanEnd) {
+        if (scanStart > 0 || scanEnd < text.length()) {
+            markedAreas.removeIf(area -> area.autoRule && area.isLinkArea()
+                    && area.intersectsRange(scanStart, scanEnd));
+            removeHiddenMarkupInRange(scanStart, scanEnd);
+        }
+        int lineStart = logicalLineStartForOffset(scanStart);
+        int limit = Math.min(text.length(), Math.max(scanEnd, lineStart));
+        while (lineStart <= limit) {
+            int lineEnd = indexOfNewline(lineStart);
+            if (lineEnd < 0) {
+                lineEnd = text.length();
+            }
+            if (lineEnd > scanEnd && lineStart > scanStart) {
+                break;
+            }
+            CharSequence line = text.subSequence(lineStart, lineEnd);
+            Matcher matcher = LINK_PATTERN.matcher(line);
+            while (matcher.find()) {
+                int textStart = lineStart + matcher.start(1);
+                int textEnd = lineStart + matcher.end(1);
+                String url = matcher.group(2);
+                if (textStart >= textEnd || url == null || url.isBlank()) {
+                    continue;
+                }
+                MarkedArea linkArea = new MarkedArea(this);
+                linkArea.autoRule = true;
+                linkArea.markTypeSilent(MarkedArea.Type.LINK);
+                linkArea.markTextColor(LINK_TEXT_COLOR);
+                linkArea.markUnderline(true);
+                linkArea.addRangeSilent(textStart, textEnd);
+                String linkUrl = url.trim();
+                linkArea.onClick(() -> openExternalLink(linkUrl));
+                markedAreas.add(linkArea);
+                addHiddenMarkupRangesIfEnabled(lineStart + matcher.start(), lineStart + matcher.end(),
+                        textStart, textEnd);
+            }
+            if (lineEnd >= text.length()) {
+                break;
+            }
+            lineStart = lineEnd + 1;
+        }
+    }
+
+    private static void openExternalLink(String url) {
+        try {
+            if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+                Desktop.getDesktop().browse(new URI(url));
+            }
+        } catch (Exception ignored) {
+            // Link öffnen ist optional – Editor bleibt benutzbar.
+        }
+    }
+
+    private void mergeHiddenMarkupRanges() {
+        if (hiddenMarkupRanges.size() < 2) {
+            return;
+        }
+        hiddenMarkupRanges.sort(Comparator.comparingInt(range -> range.start));
+        List<TextRange> merged = new ArrayList<>(hiddenMarkupRanges.size());
+        TextRange current = hiddenMarkupRanges.get(0);
+        for (int i = 1; i < hiddenMarkupRanges.size(); i++) {
+            TextRange next = hiddenMarkupRanges.get(i);
+            if (next.start <= current.end) {
+                current.end = Math.max(current.end, next.end);
+            } else {
+                merged.add(current);
+                current = next;
+            }
+        }
+        merged.add(current);
+        hiddenMarkupRanges.clear();
+        hiddenMarkupRanges.addAll(merged);
     }
 
     private void rebuildHeadingStyles() {
         headingRanges.clear();
         headingLevelByLineStart.clear();
-        Matcher matcher = HEADING_PATTERN.matcher(text.toString());
-        while (matcher.find()) {
-            int level = Math.min(6, Math.max(1, matcher.group(1).length()));
-            int contentStart = matcher.start(2);
-            int contentEnd = matcher.end(2);
-            while (contentEnd > contentStart && text.charAt(contentEnd - 1) == '\r') {
-                contentEnd--;
+        int lineStart = 0;
+        for (int i = 0; i <= text.length(); i++) {
+            if (i < text.length() && text.charAt(i) != '\n') {
+                continue;
             }
-            if (contentEnd > contentStart) {
-                headingRanges.add(new HeadingRange(contentStart, contentEnd, level));
+            int lineEnd = i;
+            if (lineEnd > lineStart && text.charAt(lineStart) == '#') {
+                int hashes = 0;
+                while (lineStart + hashes < lineEnd && text.charAt(lineStart + hashes) == '#') {
+                    hashes++;
+                }
+                if (hashes > 0 && hashes <= 6 && lineStart + hashes < lineEnd
+                        && text.charAt(lineStart + hashes) == ' ') {
+                    int level = hashes;
+                    int contentStart = lineStart + hashes + 1;
+                    int contentEnd = lineEnd;
+                    while (contentEnd > contentStart && text.charAt(contentEnd - 1) == '\r') {
+                        contentEnd--;
+                    }
+                    if (contentEnd > contentStart) {
+                        headingRanges.add(new HeadingRange(contentStart, contentEnd, level));
+                    }
+                    headingLevelByLineStart.put(lineStart, level);
+                    addStructuralHiddenMarkupRangesIfEnabled(lineStart, lineEnd, contentStart, contentEnd);
+                }
             }
-            headingLevelByLineStart.put(matcher.start(), level);
-            addHiddenMarkupRangesIfEnabled(matcher.start(), matcher.end(), contentStart, contentEnd);
+            lineStart = i + 1;
         }
         textWidthCache.clear();
     }
 
     private void rebuildBlockquoteAndCenterStyles() {
+        markedAreas.removeIf(area -> area.autoRule && area.isBlockquoteArea());
         centerLineStarts.clear();
         blockquoteLineStarts.clear();
-        Matcher blockquoteMatcher = BLOCKQUOTE_PATTERN.matcher(text.toString());
-        while (blockquoteMatcher.find()) {
-            int lineStart = logicalLineStartForOffset(blockquoteMatcher.start());
-            blockquoteLineStarts.add(lineStart);
-            int contentStart = blockquoteMatcher.start(1);
-            int contentEnd = blockquoteMatcher.end(1);
-            if (contentEnd > contentStart) {
-                MarkedArea area = new MarkedArea(this);
-                area.autoRule = true;
-                area.markStyle(MarkedArea.ITALIC);
-                area.markTextColor(BLOCKQUOTE_TEXT_COLOR);
-                area.ranges.add(new TextRange(contentStart, contentEnd));
-                markedAreas.add(area);
-                addHiddenMarkupRangesIfEnabled(blockquoteMatcher.start(), blockquoteMatcher.end(), contentStart, contentEnd);
+        int lineStart = 0;
+        for (int i = 0; i <= text.length(); i++) {
+            if (i < text.length() && text.charAt(i) != '\n') {
+                continue;
             }
+            int lineEnd = i;
+            if (lineEnd > lineStart && text.charAt(lineStart) == '>' && (lineStart + 1 >= lineEnd
+                    || text.charAt(lineStart + 1) == ' ')) {
+                int contentStart = lineStart + 1;
+                if (contentStart < lineEnd && text.charAt(contentStart) == ' ') {
+                    contentStart++;
+                }
+                blockquoteLineStarts.add(lineStart);
+                if (lineEnd > contentStart) {
+                    MarkedArea area = new MarkedArea(this);
+                    area.autoRule = true;
+                    area.markBlockquoteArea();
+                    area.markStyle(MarkedArea.ITALIC);
+                    area.markTextColor(BLOCKQUOTE_TEXT_COLOR);
+                    area.addRangeSilent(contentStart, lineEnd);
+                    markedAreas.add(area);
+                    addStructuralHiddenMarkupRangesIfEnabled(lineStart, lineEnd, contentStart, lineEnd);
+                }
+            }
+            lineStart = i + 1;
         }
-        Matcher centerMatcher = CENTER_TAG_PATTERN.matcher(text.toString());
-        while (centerMatcher.find()) {
-            centerLineStarts.add(logicalLineStartForOffset(centerMatcher.start()));
-            int contentStart = centerMatcher.start(1);
-            int contentEnd = centerMatcher.end(1);
-            addHiddenMarkupRangesIfEnabled(centerMatcher.start(), centerMatcher.end(), contentStart, contentEnd);
+        String source = text.toString();
+        if (source.contains("<center") || source.contains("<c>")) {
+            Matcher centerMatcher = CENTER_TAG_PATTERN.matcher(source);
+            while (centerMatcher.find()) {
+                centerLineStarts.add(logicalLineStartForOffset(centerMatcher.start()));
+                int contentStart = centerMatcher.start(1);
+                int contentEnd = centerMatcher.end(1);
+                addStructuralHiddenMarkupRangesIfEnabled(centerMatcher.start(), centerMatcher.end(), contentStart, contentEnd);
+            }
         }
         rebuildHiddenBrTags();
     }
@@ -2516,7 +3383,19 @@ public class ManuskriptTextEditor extends Region {
         }
         Matcher matcher = BR_TAG_PATTERN.matcher(text);
         while (matcher.find()) {
-            hiddenMarkupRanges.add(new TextRange(matcher.start(), matcher.end()));
+            blockStructureHiddenRanges.add(new TextRange(matcher.start(), matcher.end()));
+        }
+    }
+
+    private void addStructuralHiddenMarkupRangesIfEnabled(int matchStart, int matchEnd, int contentStart, int contentEnd) {
+        if (!renderMarkupHidden) {
+            return;
+        }
+        if (matchStart < contentStart) {
+            blockStructureHiddenRanges.add(new TextRange(matchStart, contentStart));
+        }
+        if (contentEnd < matchEnd) {
+            blockStructureHiddenRanges.add(new TextRange(contentEnd, matchEnd));
         }
     }
 
@@ -2534,25 +3413,64 @@ public class ManuskriptTextEditor extends Region {
                 (int) Math.round(color.getBlue() * 255));
     }
 
-    private void addAutoRuleRanges(MarkedArea area, AutoRule rule) {
-        try {
-            Pattern pattern = Pattern.compile(rule.regex());
-            Matcher matcher = pattern.matcher(text);
-            while (matcher.find()) {
-                int groupIndex = rule.groupIndex();
-                if (groupIndex > matcher.groupCount()) {
-                    continue;
-                }
-                int start = matcher.start(groupIndex);
-                int end = matcher.end(groupIndex);
-                if (start >= 0 && end > start) {
-                    area.ranges.add(new TextRange(start, end));
-                    addHiddenMarkupRangesIfEnabled(matcher.start(), matcher.end(), start, end);
+    private void addAutoRuleRanges(MarkedArea area, AutoRule rule, int scanStart, int scanEnd) {
+        Pattern pattern = rule.pattern();
+        if (pattern == null) {
+            return;
+        }
+        int lineStart = logicalLineStartForOffset(scanStart);
+        int limit = Math.min(text.length(), Math.max(scanEnd, lineStart));
+        while (lineStart <= limit) {
+            int lineEnd = indexOfNewline(lineStart);
+            if (lineEnd < 0) {
+                lineEnd = text.length();
+            }
+            CharSequence line = text.subSequence(lineStart, lineEnd);
+            if (lineMightMatchAutoRule(line, rule)) {
+                Matcher matcher = pattern.matcher(line);
+                while (matcher.find()) {
+                    int groupIndex = rule.groupIndex();
+                    if (groupIndex > matcher.groupCount()) {
+                        continue;
+                    }
+                    int start = lineStart + matcher.start(groupIndex);
+                    int end = lineStart + matcher.end(groupIndex);
+                    if (start >= 0 && end > start) {
+                        area.addRangeSilent(start, end);
+                        addHiddenMarkupRangesIfEnabled(
+                                lineStart + matcher.start(),
+                                lineStart + matcher.end(),
+                                start,
+                                end);
+                    }
                 }
             }
-        } catch (PatternSyntaxException ignored) {
-            // Ungültige Auto-Regeln deaktivieren sich still, damit Tippen nicht unterbrochen wird.
+            if (lineEnd >= text.length()) {
+                break;
+            }
+            lineStart = lineEnd + 1;
         }
+    }
+
+    private static boolean lineMightMatchAutoRule(CharSequence line, AutoRule rule) {
+        if (line.isEmpty()) {
+            return false;
+        }
+        if (rule.quickChar() != 0) {
+            for (int i = 0; i < line.length(); i++) {
+                if (line.charAt(i) == rule.quickChar()) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        for (int i = 0; i < line.length(); i++) {
+            char c = line.charAt(i);
+            if (c == '*' || c == '_' || c == '`' || c == '<' || c == '~' || c == '=') {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void addHiddenMarkupRanges(int matchStart, int matchEnd, int contentStart, int contentEnd) {
@@ -2576,6 +3494,9 @@ public class ManuskriptTextEditor extends Region {
         for (TextRange range : hiddenMarkupRanges) {
             range.shiftAfterReplace(start, end, delta);
         }
+        for (TextRange range : blockStructureHiddenRanges) {
+            range.shiftAfterReplace(start, end, delta);
+        }
         for (HeadingRange range : headingRanges) {
             range.shiftAfterReplace(start, end, delta);
         }
@@ -2588,6 +3509,84 @@ public class ManuskriptTextEditor extends Region {
         shiftHeadingLineStarts(start, end, delta);
         shiftCenterLineStarts(start, end, delta);
         shiftBlockquoteLineStarts(start, end, delta);
+        markAutoMarkDirty(start, end);
+    }
+
+    private void markAutoMarkDirty(int start, int end) {
+        if (forceFullAutoMarkRebuild) {
+            return;
+        }
+        autoMarkDirtyStart = Math.min(autoMarkDirtyStart, Math.max(0, start));
+        autoMarkDirtyEnd = Math.max(autoMarkDirtyEnd, Math.min(text.length(), end));
+    }
+
+    private void scheduleAutoRuleRebuild() {
+        autoRuleDelay.stop();
+        autoRuleDelay.setDuration(text.length() >= LARGE_DOC_AUTO_MARK_THRESHOLD
+                ? AUTO_RULE_DELAY_LARGE_DOC
+                : AUTO_RULE_DELAY);
+        autoRuleDelay.playFromStart();
+    }
+
+    private void shiftListLineStarts(int replaceStart, int replaceEnd, int delta) {
+        if (listLineInfoByStart.isEmpty()) {
+            return;
+        }
+        Map<Integer, MarkdownBlockSupport.ListLineInfo> shifted = new HashMap<>();
+        for (Map.Entry<Integer, MarkdownBlockSupport.ListLineInfo> entry : listLineInfoByStart.entrySet()) {
+            int offset = entry.getKey();
+            if (offset >= replaceEnd) {
+                shifted.put(offset + delta, entry.getValue());
+            } else if (offset < replaceStart) {
+                shifted.put(offset, entry.getValue());
+            }
+        }
+        listLineInfoByStart.clear();
+        listLineInfoByStart.putAll(shifted);
+    }
+
+    private void shiftTableLineStarts(int replaceStart, int replaceEnd, int delta) {
+        if (tableLineStarts.isEmpty() && tableSeparatorLineStarts.isEmpty()) {
+            return;
+        }
+        Set<Integer> shiftedTables = new HashSet<>();
+        for (int offset : tableLineStarts) {
+            if (offset >= replaceEnd) {
+                shiftedTables.add(offset + delta);
+            } else if (offset < replaceStart) {
+                shiftedTables.add(offset);
+            }
+        }
+        tableLineStarts.clear();
+        tableLineStarts.addAll(shiftedTables);
+        Set<Integer> shiftedSeparators = new HashSet<>();
+        for (int offset : tableSeparatorLineStarts) {
+            if (offset >= replaceEnd) {
+                shiftedSeparators.add(offset + delta);
+            } else if (offset < replaceStart) {
+                shiftedSeparators.add(offset);
+            }
+        }
+        tableSeparatorLineStarts.clear();
+        tableSeparatorLineStarts.addAll(shiftedSeparators);
+    }
+
+    private void shiftCodeFenceBlocks(int replaceStart, int replaceEnd, int delta) {
+        if (codeFenceBlocks.isEmpty()) {
+            return;
+        }
+        List<MarkdownBlockSupport.CodeFenceBlock> shifted = new ArrayList<>();
+        for (MarkdownBlockSupport.CodeFenceBlock block : codeFenceBlocks) {
+            if (block.start() >= replaceEnd) {
+                shifted.add(new MarkdownBlockSupport.CodeFenceBlock(
+                        block.start() + delta, block.end() + delta,
+                        block.contentStart() + delta, block.contentEnd() + delta));
+            } else if (block.end() <= replaceStart) {
+                shifted.add(block);
+            }
+        }
+        codeFenceBlocks.clear();
+        codeFenceBlocks.addAll(shifted);
     }
 
     private void shiftBlockquoteLineStarts(int replaceStart, int replaceEnd, int delta) {
@@ -2640,8 +3639,20 @@ public class ManuskriptTextEditor extends Region {
     }
 
     private void syncBlockLayoutFromMarkdown() {
-        syncImagesFromMarkdown();
-        syncHorizontalRulesFromMarkdown();
+        if (text.indexOf("![") >= 0) {
+            syncImagesFromMarkdown();
+        } else if (!imageBlocks.isEmpty() || !hiddenImageBlockRanges.isEmpty()) {
+            imageBlocks.clear();
+            hiddenImageBlockRanges.clear();
+            invalidateLayoutCaches();
+        }
+        if (MarkdownBlockSupport.mightHaveHorizontalRules(text.toString())) {
+            syncHorizontalRulesFromMarkdown();
+        } else if (!horizontalRules.isEmpty() || !hiddenHorizontalRuleRanges.isEmpty()) {
+            horizontalRules.clear();
+            hiddenHorizontalRuleRanges.clear();
+            invalidateLayoutCaches();
+        }
     }
 
     private void syncImagesFromMarkdown() {
@@ -2706,7 +3717,11 @@ public class ManuskriptTextEditor extends Region {
                 continue;
             }
             int lineEnd = i;
-            String lineText = text.substring(lineStart, lineEnd).trim();
+            String lineText = MarkdownBlockSupport.normalizeTableLine(text.substring(lineStart, lineEnd)).trim();
+            if (isTableMarkdownLine(lineStart, lineEnd)) {
+                lineStart = i + 1;
+                continue;
+            }
             if (HORIZONTAL_RULE_LINE.matcher(lineText).matches()) {
                 int startLineIndex = lineIndexForOffset(lineStart, lines);
                 horizontalRules.add(new ParsedHorizontalRule(lineStart, lineEnd, startLineIndex, ruleHeight));
@@ -2715,6 +3730,60 @@ public class ManuskriptTextEditor extends Region {
             lineStart = i + 1;
         }
         invalidateLayoutCaches();
+    }
+
+    private boolean isTableMarkdownLine(int lineStart, int lineEnd) {
+        if (tableRowByLineStart.containsKey(lineStart)) {
+            return true;
+        }
+        if (lineEnd <= lineStart) {
+            return false;
+        }
+        return MarkdownBlockSupport.isTableMarkdownLine(text.substring(lineStart, lineEnd));
+    }
+
+    /** Tabellen-Trennzeile (|---|---|) erzeugt im WYSIWYG-Modus keine eigene Layout-Zeile. */
+    private boolean shouldOmitTableSeparatorVisualLine(int lineStart) {
+        if (!renderMarkupHidden) {
+            return false;
+        }
+        if (tableSeparatorLineStarts.contains(lineStart)) {
+            return true;
+        }
+        MarkdownBlockSupport.TableRow row = tableRowByLineStart.get(lineStart);
+        return row != null && row.separator();
+    }
+
+    /** Leerzeile innerhalb einer Tabelle (z. B. nach DOCX-Laden) ausblenden. */
+    private boolean shouldOmitTableGapVisualLine(int lineStart, int lineEnd) {
+        if (!renderMarkupHidden || lineEnd < lineStart || tableRowByLineStart.containsKey(lineStart)) {
+            return false;
+        }
+        if (!MarkdownBlockSupport.normalizeTableLine(text.substring(lineStart, lineEnd)).trim().isEmpty()) {
+            return false;
+        }
+        for (MarkdownBlockSupport.TableBlock block : tableBlocks) {
+            if (lineStart > block.startLine() && lineStart <= block.endLine()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean shouldOmitTableStructureVisualLine(int lineStart, int lineEnd) {
+        return shouldOmitTableSeparatorVisualLine(lineStart) || shouldOmitTableGapVisualLine(lineStart, lineEnd);
+    }
+
+    private int offsetAfterCollapsedTableSeparator(int offset) {
+        int logicalStart = logicalLineStartForOffset(offset);
+        if (!shouldOmitTableSeparatorVisualLine(logicalStart)) {
+            return offset;
+        }
+        int lineEnd = logicalLineEndIndex(logicalStart);
+        if (lineEnd < text.length() && text.charAt(lineEnd) == '\n') {
+            return lineEnd + 1;
+        }
+        return Math.max(0, logicalStart);
     }
 
     private Image loadCachedImage(File imageFile) {
@@ -2744,7 +3813,7 @@ public class ManuskriptTextEditor extends Region {
     }
 
     private int lineIndexForOffset(int offset, List<VisualLine> lines) {
-        int safeOffset = Math.max(0, Math.min(text.length(), offset));
+        int safeOffset = offsetAfterCollapsedTableSeparator(Math.max(0, Math.min(text.length(), offset)));
         for (int i = 0; i < lines.size(); i++) {
             VisualLine line = lines.get(i);
             if (safeOffset >= line.start && safeOffset < line.end) {
@@ -2810,6 +3879,16 @@ public class ManuskriptTextEditor extends Region {
     }
 
     private boolean isLineInsideHorizontalRule(int lineIndex) {
+        if (lineIndex < 0) {
+            return false;
+        }
+        List<VisualLine> lines = cachedVisualLines;
+        if (lines != null && lineIndex < lines.size()) {
+            int logicalStart = logicalLineStartForOffset(lines.get(lineIndex).start);
+            if (tableSeparatorLineStarts.contains(logicalStart)) {
+                return false;
+            }
+        }
         return horizontalRuleStartingAtLine(lineIndex) != null;
     }
 
@@ -2920,7 +3999,11 @@ public class ManuskriptTextEditor extends Region {
         double oldValue = verticalScrollBar.getValue();
         if (Math.abs(oldMax - max) > 0.01) {
             verticalScrollBar.setMax(max);
-            if (oldMax > 0.01 && max > 0.01) {
+            if (max > oldMax) {
+                // Inhalt gewachsen (z. B. Enter): absolute Position beibehalten, nicht proportional
+                // nach oben schieben – danach folgt ensureCaretVisible bei Bedarf nach unten.
+                verticalScrollBar.setValue(Math.min(oldValue, max));
+            } else if (oldMax > 0.01 && max > 0.01) {
                 double scaled = oldValue * (max / oldMax);
                 verticalScrollBar.setValue(Math.max(0, Math.min(max, scaled)));
             }
@@ -2988,7 +4071,10 @@ public class ManuskriptTextEditor extends Region {
                 continue;
             }
             VisualLine line = lines.get(i);
-            paintLineText(gc, line, i, lineTopY(i), selectionStart, selectionEnd);
+            double lineY = lineTopY(i);
+            paintListMarker(gc, line, i, lineY);
+            paintBlockStructureLineBackground(gc, line, i, lineY);
+            paintLineText(gc, line, i, lineY, selectionStart, selectionEnd);
         }
 
         paintCaret(gc, lines);
@@ -3006,8 +4092,143 @@ public class ManuskriptTextEditor extends Region {
         }
     }
 
+    private void paintBlockStructureLineBackground(GraphicsContext gc, VisualLine line, int lineIndex, double y) {
+        double bandHeight = paintBandHeight(lineIndex);
+        if (bandHeight <= 0) {
+            return;
+        }
+        int logicalStart = logicalLineStartForOffset(line.start);
+        if (renderMarkupHidden
+                && (tableLineStarts.contains(logicalStart) || tableSeparatorLineStarts.contains(logicalStart))) {
+            return;
+        }
+        Color background = null;
+        if (tableLineStarts.contains(logicalStart) || tableSeparatorLineStarts.contains(logicalStart)) {
+            background = tableBlockBackgroundColor;
+        } else if (codeFenceContentLineStarts.contains(logicalStart)) {
+            background = codeBlockBackgroundColor;
+        }
+        if (background == null) {
+            return;
+        }
+        double top = paintBandTop(y);
+        double x = textLeft() + headingCenterOffset(line) + blockIndentOffset(line);
+        double width = Math.max(MIN_CHAR_WIDTH, availableLineWidth() - headingCenterOffset(line) - blockIndentOffset(line));
+        fillBackgroundRect(gc, x, top, width, bandHeight, background);
+    }
+
+    private void paintTableRow(GraphicsContext gc, VisualLine line, int lineIndex, double y,
+                               MarkdownBlockSupport.TableRow tableRow) {
+        double bandHeight = paintBandHeight(lineIndex);
+        if (bandHeight <= 0) {
+            return;
+        }
+        double top = paintBandTop(y);
+        double baseX = textLeft() + headingCenterOffset(line) + blockIndentOffset(line);
+        double rowWidth = Math.max(MIN_CHAR_WIDTH, availableLineWidth() - headingCenterOffset(line) - blockIndentOffset(line));
+        Integer blockId = tableBlockIdByLineStart.get(tableRow.lineStart());
+        double[] columnWidths = blockId == null ? null : tableColumnWidthsByBlockId.get(blockId);
+        double tableWidth = columnWidths == null ? rowWidth : sumColumnWidths(columnWidths);
+
+        fillBackgroundRect(gc, baseX, top, rowWidth, bandHeight, tableBlockBackgroundColor);
+        gc.setStroke(tableBorderColor);
+        gc.setLineWidth(1.0);
+
+        if (tableRow.separator()) {
+            return;
+        }
+
+        if (columnWidths == null || columnWidths.length == 0) {
+            return;
+        }
+
+        RenderStyle cellStyle = new RenderStyle();
+        cellStyle.fontFamily = monospaceFontFamily;
+        gc.setFont(fontFor(cellStyle));
+        gc.setFill(editorTextColor);
+        double x = baseX;
+        double baselineY = y + baselineForVisualLine(line);
+        if (isFirstVisibleTableRow(tableRow, blockId)) {
+            gc.strokeLine(baseX, top, baseX + tableWidth, top);
+        }
+        gc.strokeLine(baseX, top, baseX, top + bandHeight);
+        for (int c = 0; c < tableRow.cells().size() && c < columnWidths.length; c++) {
+            x += TABLE_CELL_PADDING_PX;
+            String cellText = tableRow.cells().get(c).text();
+            if (!cellText.isEmpty()) {
+                gc.fillText(cellText, x, baselineY);
+            }
+            x += Math.max(MIN_CHAR_WIDTH, columnWidths[c] - TABLE_CELL_PADDING_PX * 2);
+            x += TABLE_CELL_PADDING_PX;
+            gc.strokeLine(x, top, x, top + bandHeight);
+        }
+        double bottomY = top + bandHeight;
+        gc.strokeLine(baseX, bottomY, baseX + tableWidth, bottomY);
+    }
+
+    private static double sumColumnWidths(double[] columnWidths) {
+        double tableWidth = 0;
+        for (double columnWidth : columnWidths) {
+            tableWidth += columnWidth;
+        }
+        return tableWidth;
+    }
+
+    private boolean isFirstVisibleTableRow(MarkdownBlockSupport.TableRow row, Integer blockId) {
+        if (blockId == null || blockId < 0 || blockId >= tableBlocks.size()) {
+            return false;
+        }
+        for (MarkdownBlockSupport.TableRow candidate : tableBlocks.get(blockId).rows()) {
+            if (!candidate.separator()) {
+                return candidate.lineStart() == row.lineStart();
+            }
+        }
+        return false;
+    }
+
+    private double tableSeparatorLineHeight() {
+        return renderMarkupHidden ? 0.0 : TABLE_SEPARATOR_LINE_HEIGHT;
+    }
+
+    private void paintListMarker(GraphicsContext gc, VisualLine line, int lineIndex, double y) {
+        if (!renderMarkupHidden || !isFirstVisualLineOfLogicalLine(line)) {
+            return;
+        }
+        MarkdownBlockSupport.ListLineInfo info = listInfoForVisualLine(line);
+        if (info == null) {
+            return;
+        }
+        String marker;
+        if (info.kind() == MarkdownBlockSupport.ListKind.TASK) {
+            marker = info.taskChecked() ? "☑" : "☐";
+        } else if (info.kind() == MarkdownBlockSupport.ListKind.ORDERED) {
+            int displayNumber = orderedDisplayNumberByLineStart.getOrDefault(
+                    info.lineStart(), info.orderNumber());
+            marker = displayNumber + ".";
+        } else {
+            marker = info.bulletChar() == '*' ? "•" : info.bulletChar() == '+' ? "⊕" : "•";
+        }
+        double x = textLeft() + blockquoteIndentOffset(line) + info.nestLevel() * LIST_INDENT_PX + 2;
+        gc.setFill(gutterTextColor);
+        gc.setFont(Font.font(fontFamily, fontSize * 0.95));
+        gc.fillText(marker, x, y + baselineForVisualLine(line));
+    }
+
     private void paintLineText(GraphicsContext gc, VisualLine line, int lineIndex, double y,
                                int selectionStart, int selectionEnd) {
+        int logicalStart = logicalLineStartForOffset(line.start);
+        MarkdownBlockSupport.TableRow tableRow = tableRowByLineStart.get(logicalStart);
+        if (tableRow != null && renderMarkupHidden) {
+            paintLineSelectionBackground(gc, line, lineIndex, y, selectionStart, selectionEnd);
+            paintTableRow(gc, line, lineIndex, y, tableRow);
+            return;
+        }
+        if (codeFenceContentLineStarts.contains(logicalStart)) {
+            paintLineSelectionBackground(gc, line, lineIndex, y, selectionStart, selectionEnd);
+            paintLineMarkedBackgrounds(gc, line, lineIndex, y);
+            paintLineTextSegments(gc, line, lineIndex, y, true);
+            return;
+        }
         if (isFirstVisualLineOfLogicalLine(line)) {
             Integer headingLevel = headingLevelForVisualLine(line);
             if (headingLevel != null) {
@@ -3034,7 +4255,7 @@ public class ManuskriptTextEditor extends Region {
         if (bandHeight <= 0) {
             return;
         }
-        double top = y + 1;
+        double top = paintBandTop(y);
         double height = bandHeight;
         for (MarkedArea area : markedAreas) {
             if (area.color == null) {
@@ -3088,7 +4309,7 @@ public class ManuskriptTextEditor extends Region {
         if (bandHeight <= 0) {
             return;
         }
-        double top = y + 1;
+        double top = paintBandTop(y);
         double height = bandHeight;
         int offset = overlapStart;
         while (offset < overlapEnd) {
@@ -3118,8 +4339,8 @@ public class ManuskriptTextEditor extends Region {
         if (bandHeight <= 0) {
             return;
         }
-        double x = textLeft() + headingCenterOffset(line) + blockquoteIndentOffset(line);
-        double top = y + 1;
+        double x = textLeft() + headingCenterOffset(line) + blockIndentOffset(line);
+        double top = paintBandTop(y);
         double height = bandHeight;
         for (int w = 0; w < words.size(); w++) {
             int wordStart = words.get(w)[0];
@@ -3200,11 +4421,16 @@ public class ManuskriptTextEditor extends Region {
     }
 
     private void paintLineTextSegments(GraphicsContext gc, VisualLine line, int lineIndex, double y) {
+        paintLineTextSegments(gc, line, lineIndex, y, false);
+    }
+
+    private void paintLineTextSegments(GraphicsContext gc, VisualLine line, int lineIndex, double y,
+                                       boolean forceCodeBlockStyle) {
         double bandHeight = paintBandHeight(lineIndex);
         if (bandHeight <= 0) {
             return;
         }
-        double top = y + 1;
+        double top = paintBandTop(y);
         double height = bandHeight;
         int segmentStart = line.start;
         while (segmentStart < line.end) {
@@ -3213,8 +4439,18 @@ public class ManuskriptTextEditor extends Region {
                 continue;
             }
             RenderStyle style = styleAt(segmentStart);
+            if (forceCodeBlockStyle) {
+                applyCodeBlockStyle(style);
+            }
             int segmentEnd = segmentStart + 1;
-            while (segmentEnd < line.end && !isHiddenOffset(segmentEnd) && sameTextStyle(style, styleAt(segmentEnd))) {
+            while (segmentEnd < line.end && !isHiddenOffset(segmentEnd)) {
+                RenderStyle nextStyle = styleAt(segmentEnd);
+                if (forceCodeBlockStyle) {
+                    applyCodeBlockStyle(nextStyle);
+                }
+                if (!sameTextStyle(style, nextStyle)) {
+                    break;
+                }
                 segmentEnd++;
             }
 
@@ -3250,7 +4486,9 @@ public class ManuskriptTextEditor extends Region {
         gc.setFill(color);
         double x0 = Math.floor(x);
         double x1 = Math.ceil(x + width + BACKGROUND_BLEED);
-        gc.fillRect(x0, top, Math.max(CARET_WIDTH, x1 - x0), height);
+        double y0 = top - BACKGROUND_BLEED * 0.5;
+        double h = height + BACKGROUND_BLEED;
+        gc.fillRect(x0, y0, Math.max(CARET_WIDTH, x1 - x0), h);
     }
 
     private boolean shouldRenderImagePreview() {
@@ -3423,11 +4661,56 @@ public class ManuskriptTextEditor extends Region {
                 result.textColor = headingColor(range.level);
             }
         }
+        applyBlockStructureStyle(offset, result);
         result.baselineShift = baselineShiftFor(result);
         if ((result.flags & MarkedArea.STRIKETHROUGH) != 0) {
             result.strikethrough = true;
         }
         return result;
+    }
+
+    private void applyCodeBlockStyle(RenderStyle style) {
+        style.fontFamily = monospaceFontFamily;
+        if (style.background == null) {
+            style.background = codeBlockBackgroundColor;
+        }
+    }
+
+    private void applyBlockStructureStyle(int offset, RenderStyle result) {
+        int lineStart = logicalLineStartForOffset(offset);
+        if (codeFenceContentLineStarts.contains(lineStart)) {
+            applyCodeBlockStyle(result);
+            return;
+        }
+        if (tableLineStarts.contains(lineStart) || tableSeparatorLineStarts.contains(lineStart)) {
+            result.fontFamily = monospaceFontFamily;
+            if (tableSeparatorLineStarts.contains(lineStart)) {
+                result.fontSizeScale = 0.92;
+            }
+            if (result.background == null) {
+                result.background = tableBlockBackgroundColor;
+            }
+        }
+    }
+
+    private MarkdownBlockSupport.CodeFenceBlock codeFenceAt(int offset) {
+        if (codeFenceBlocks.isEmpty()) {
+            return null;
+        }
+        int lo = 0;
+        int hi = codeFenceBlocks.size() - 1;
+        while (lo <= hi) {
+            int mid = (lo + hi) >>> 1;
+            MarkdownBlockSupport.CodeFenceBlock block = codeFenceBlocks.get(mid);
+            if (offset < block.start()) {
+                hi = mid - 1;
+            } else if (offset >= block.end()) {
+                lo = mid + 1;
+            } else {
+                return block;
+            }
+        }
+        return null;
     }
 
     private MarkedArea interactiveAreaAt(int offset) {
@@ -3446,6 +4729,9 @@ public class ManuskriptTextEditor extends Region {
                 && cachedVisualLinesHeadingCount == headingRanges.size()
                 && cachedVisualLinesHorizontalRules == horizontalRules.size()
                 && cachedVisualLinesBlockquotes == blockquoteLineStarts.size()
+                && cachedVisualLinesLists == listLineInfoByStart.size()
+                && cachedVisualLinesTables == tableLineStarts.size() + tableSeparatorLineStarts.size()
+                && cachedVisualLinesCodeFences == codeFenceBlocks.size()
                 && cachedVisualLinesMarkupHidden == renderMarkupHidden
                 && Double.compare(cachedVisualLinesFontSize, fontSize) == 0
                 && Double.compare(cachedVisualLinesLineSpacing, lineSpacing) == 0
@@ -3470,6 +4756,9 @@ public class ManuskriptTextEditor extends Region {
         cachedVisualLinesHeadingCount = headingRanges.size();
         cachedVisualLinesHorizontalRules = horizontalRules.size();
         cachedVisualLinesBlockquotes = blockquoteLineStarts.size();
+        cachedVisualLinesLists = listLineInfoByStart.size();
+        cachedVisualLinesTables = tableLineStarts.size() + tableSeparatorLineStarts.size();
+        cachedVisualLinesCodeFences = codeFenceBlocks.size();
         cachedVisualLinesMarkupHidden = renderMarkupHidden;
         cachedVisualLinesFontSize = fontSize;
         cachedVisualLinesLineSpacing = lineSpacing;
@@ -3505,7 +4794,7 @@ public class ManuskriptTextEditor extends Region {
     }
 
     private double contentWidthForLine(VisualLine line) {
-        return Math.max(MIN_CHAR_WIDTH, availableLineWidth() - headingCenterOffset(line) - blockquoteIndentOffset(line));
+        return Math.max(MIN_CHAR_WIDTH, availableLineWidth() - headingCenterOffset(line) - blockIndentOffset(line));
     }
 
     private boolean canJustifyVisualLine(VisualLine line, int lineIndex) {
@@ -3683,6 +4972,9 @@ public class ManuskriptTextEditor extends Region {
             return lineHeight();
         }
         VisualLine line = lines.get(lineIndex);
+        if (shouldOmitTableStructureVisualLine(line.start, line.end)) {
+            return 0;
+        }
         if (renderMarkupHidden && isWhitespaceOnlyVisualLine(line, lineIndex)) {
             return Math.max(lineHeightForVisualLine(line), paragraphSpacingPx);
         }
@@ -3699,6 +4991,13 @@ public class ManuskriptTextEditor extends Region {
     /** Leerzeile (nur Leerzeichen und/oder ausgeblendetes Markup wie {@code <br>}). */
     private boolean isWhitespaceOnlyVisualLine(VisualLine line, int lineIndex) {
         if (isLineInsideImageBlock(lineIndex) || isLineInsideHorizontalRule(lineIndex)) {
+            return false;
+        }
+        int logicalStart = logicalLineStartForOffset(line.start);
+        if (tableLineStarts.contains(logicalStart) || tableSeparatorLineStarts.contains(logicalStart)) {
+            return false;
+        }
+        if (codeFenceContentLineStarts.contains(logicalStart)) {
             return false;
         }
         if (headingLevelForVisualLine(line) != null) {
@@ -3757,12 +5056,16 @@ public class ManuskriptTextEditor extends Region {
                 break;
             }
             if (i == text.length()) {
-                lines.add(new VisualLine(lineStart, i));
+                if (!shouldOmitTableStructureVisualLine(lineStart, i)) {
+                    lines.add(new VisualLine(lineStart, i));
+                }
                 break;
             }
 
             if (text.charAt(i) == '\n') {
-                lines.add(new VisualLine(lineStart, i));
+                if (!shouldOmitTableStructureVisualLine(lineStart, i)) {
+                    lines.add(new VisualLine(lineStart, i));
+                }
                 lineStart = i + 1;
                 i++;
                 lineWidthSoFar = 0;
@@ -3775,8 +5078,10 @@ public class ManuskriptTextEditor extends Region {
             }
 
             double wrapWidth = defaultWrapWidth;
-            if (blockquoteLineStarts.contains(logicalLineStartForOffset(lineStart))) {
-                wrapWidth = Math.max(MIN_CHAR_WIDTH, wrapWidth - BLOCKQUOTE_INDENT_PX);
+            VisualLine tempLine = new VisualLine(lineStart, lineStart);
+            double indent = blockIndentOffset(tempLine);
+            if (indent > 0) {
+                wrapWidth = Math.max(MIN_CHAR_WIDTH, wrapWidth - indent);
             }
 
             double widthIncludingI = lineWidthSoFar + measureOffsetWidth(i);
@@ -3915,6 +5220,18 @@ public class ManuskriptTextEditor extends Region {
                     }
                 }
             }
+            if (!snapped && renderMarkupHidden) {
+                int lineStart = logicalLineStartForOffset(safe);
+                if (shouldOmitTableSeparatorVisualLine(lineStart)) {
+                    int lineEnd = logicalLineEndIndex(lineStart);
+                    if (forward) {
+                        safe = lineEnd < text.length() && text.charAt(lineEnd) == '\n' ? lineEnd + 1 : lineEnd;
+                    } else {
+                        safe = lineStart;
+                    }
+                    snapped = true;
+                }
+            }
             if (!snapped) {
                 if (forward) {
                     if (safe >= text.length()) {
@@ -3942,7 +5259,7 @@ public class ManuskriptTextEditor extends Region {
     }
 
     private int offsetAtLineX(VisualLine line, int lineIndex, double localX) {
-        localX = Math.max(0, localX - headingCenterOffset(line) - blockquoteIndentOffset(line));
+        localX = Math.max(0, localX - headingCenterOffset(line) - blockIndentOffset(line));
         double extraPerGap = justifyExtraPerGap != null && lineIndex >= 0 && lineIndex < justifyExtraPerGap.length
                 ? justifyExtraPerGap[lineIndex] : 0;
         if (extraPerGap > 0) {
@@ -4015,8 +5332,38 @@ public class ManuskriptTextEditor extends Region {
         if (offset <= 0) {
             return 0;
         }
-        int newline = text.toString().lastIndexOf('\n', offset - 1);
+        int newline = lastIndexOfNewlineBefore(offset - 1);
         return newline < 0 ? 0 : newline + 1;
+    }
+
+    private int indexOfNewline(int fromIndex) {
+        for (int i = Math.max(0, fromIndex); i < text.length(); i++) {
+            if (text.charAt(i) == '\n') {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private int lastIndexOfNewlineBefore(int offset) {
+        for (int i = Math.min(offset, text.length() - 1); i >= 0; i--) {
+            if (text.charAt(i) == '\n') {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private boolean textStartsWith(String prefix) {
+        if (prefix.length() > text.length()) {
+            return false;
+        }
+        for (int i = 0; i < prefix.length(); i++) {
+            if (text.charAt(i) != prefix.charAt(i)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private boolean isFirstVisualLineOfLogicalLine(VisualLine line) {
@@ -4039,7 +5386,7 @@ public class ManuskriptTextEditor extends Region {
      * {@link VisualLine#end} ist bei Umbrüchen exklusiv, bei {@code \n}-Zeilen inklusiv (am Newline).
      */
     private int visualLineIndexForOffset(int offset) {
-        int safeOffset = Math.max(0, Math.min(text.length(), offset));
+        int safeOffset = offsetAfterCollapsedTableSeparator(Math.max(0, Math.min(text.length(), offset)));
         List<VisualLine> lines = visualLines();
         for (int i = 0; i < lines.size(); i++) {
             VisualLine line = lines.get(i);
@@ -4091,6 +5438,19 @@ public class ManuskriptTextEditor extends Region {
         }
     }
 
+    /** Nach Zeilenumbruch: nur nach unten scrollen, wenn der Caret unterhalb des Viewports liegt. */
+    private void ensureCaretVisibleAfterInsert() {
+        TextPosition pos = positionForOffset(caret);
+        double y = contentYForLineStart(pos.lineIndex);
+        double lineBottom = y + segmentHeightForLine(pos.lineIndex);
+        double viewportBottom = scrollTop + canvas.getHeight();
+        if (lineBottom > viewportBottom) {
+            verticalScrollBar.setValue(lineBottom - canvas.getHeight());
+        } else if (y < scrollTop) {
+            verticalScrollBar.setValue(y);
+        }
+    }
+
     private void scrollRangeToViewportCenter(int start, int end) {
         double viewportHeight = canvas.getHeight();
         if (viewportHeight <= 0) {
@@ -4122,6 +5482,9 @@ public class ManuskriptTextEditor extends Region {
         }
         if (lineIndex >= 0 && lineIndex < lines.size()) {
             VisualLine line = lines.get(lineIndex);
+            if (shouldOmitTableStructureVisualLine(line.start, line.end)) {
+                return 0;
+            }
             if (renderMarkupHidden && isWhitespaceOnlyVisualLine(line, lineIndex)) {
                 return Math.max(lineHeightForVisualLine(line), paragraphSpacingPx);
             }
@@ -4130,16 +5493,25 @@ public class ManuskriptTextEditor extends Region {
         return lineHeight();
     }
 
-    /** Innenhöhe für Text-/Markierungsband; muss zur Layout-Zeilenhöhe passen (Absatz-Lücke, kollabierte Leerzeile). */
+    /** Oberkante für Selektion/Markierungs-Hintergrund (volle Zeilenhöhe). */
+    private double paintBandTop(double lineY) {
+        return lineY;
+    }
+
+    /** Höhe für Selektion/Markierungsband; entspricht der Layout-Zeilenhöhe. */
     private double paintBandHeight(int lineIndex) {
         double segmentHeight = lineHeightForLineIndex(lineIndex);
         if (segmentHeight <= 0) {
             return 0;
         }
-        return Math.max(1, segmentHeight - 2);
+        return segmentHeight;
     }
 
     private double lineHeightForVisualLine(VisualLine line) {
+        int logicalStart = logicalLineStartForOffset(line.start);
+        if (tableSeparatorLineStarts.contains(logicalStart)) {
+            return tableSeparatorLineHeight();
+        }
         double base = Math.ceil(maxFontSizeInLine(line) * lineSpacing);
         Integer level = headingLevelForVisualLine(line);
         if (level != null && isFirstVisualLineOfLogicalLine(line) && level == 1) {
@@ -4213,15 +5585,42 @@ public class ManuskriptTextEditor extends Region {
     }
 
     private double blockquoteIndentOffset(VisualLine line) {
+        if (!renderMarkupHidden) {
+            return 0;
+        }
         return isBlockquoteVisualLine(line) ? BLOCKQUOTE_INDENT_PX : 0;
+    }
+
+    private MarkdownBlockSupport.ListLineInfo listInfoForVisualLine(VisualLine line) {
+        return listLineInfoByStart.get(logicalLineStartForOffset(line.start));
+    }
+
+    private double listIndentOffset(VisualLine line) {
+        if (!renderMarkupHidden) {
+            return 0;
+        }
+        MarkdownBlockSupport.ListLineInfo info = listInfoForVisualLine(line);
+        if (info == null) {
+            return 0;
+        }
+        return (info.nestLevel() + 1) * LIST_INDENT_PX;
+    }
+
+    private double blockIndentOffset(VisualLine line) {
+        return blockquoteIndentOffset(line) + listIndentOffset(line);
     }
 
     /**
      * Enter erzeugt markdowngerechte Absätze: zwischen Absätzen muss eine Leerzeile in der Quelle stehen
      * ({@code \n\n}), sonst werden sie zu einem Absatz zusammengezogen.
+     * In Listenzeilen: nächster Eintrag auf der folgenden Zeile (gleiche Ebene).
      */
     private String newlinesForEnter(int offset) {
         int safe = Math.max(0, Math.min(text.length(), offset));
+        String listContinuation = listContinuationForEnter(safe);
+        if (listContinuation != null) {
+            return listContinuation;
+        }
         if (!isAtEndOfLogicalLineContent(safe)) {
             return "\n\n";
         }
@@ -4231,6 +5630,30 @@ public class ManuskriptTextEditor extends Region {
         }
         boolean lineAlreadyEnded = logicalEnd < text.length() && text.charAt(logicalEnd) == '\n';
         return lineAlreadyEnded ? "\n" : "\n\n";
+    }
+
+    /**
+     * {@code null} = keine Listenfortsetzung (leerer Eintrag beendet die Liste).
+     */
+    private String listContinuationForEnter(int offset) {
+        int lineStart = logicalLineStartForOffset(offset);
+        MarkdownBlockSupport.ListLineInfo info = listLineInfoByStart.get(lineStart);
+        if (info == null) {
+            return null;
+        }
+        int lineEnd = logicalLineEndIndex(offset);
+        if (text.substring(info.contentStart(), lineEnd).trim().isEmpty()) {
+            return null;
+        }
+        String indent = SOURCE_LIST_INDENT.repeat(info.nestLevel());
+        return switch (info.kind()) {
+            case ORDERED -> {
+                int current = orderedDisplayNumberByLineStart.getOrDefault(lineStart, info.orderNumber());
+                yield "\n" + indent + (current + 1) + ". ";
+            }
+            case UNORDERED -> "\n" + indent + info.bulletChar() + " ";
+            case TASK -> "\n" + indent + "- [ ] ";
+        };
     }
 
     private boolean isAtEndOfLogicalLineContent(int offset) {
@@ -4245,7 +5668,7 @@ public class ManuskriptTextEditor extends Region {
 
     private int logicalLineEndIndex(int offset) {
         int start = logicalLineStartForOffset(offset);
-        int newline = text.indexOf("\n", start);
+        int newline = indexOfNewline(start);
         return newline < 0 ? text.length() : newline;
     }
 
@@ -4306,7 +5729,7 @@ public class ManuskriptTextEditor extends Region {
 
     private double xForOffsetInLine(VisualLine line, int lineIndex, int offset) {
         int safeOffset = Math.max(line.start, Math.min(line.end, offset));
-        return textLeft() + headingCenterOffset(line) + blockquoteIndentOffset(line)
+        return textLeft() + headingCenterOffset(line) + blockIndentOffset(line)
                 + measureRange(line.start, safeOffset) + justifyExtraBefore(line, lineIndex, safeOffset);
     }
 
@@ -4345,10 +5768,33 @@ public class ManuskriptTextEditor extends Region {
                 return true;
             }
         }
-        if (!renderMarkupHidden || hiddenMarkupRanges.isEmpty()) {
+        if (!renderMarkupHidden) {
             return false;
         }
-        return hiddenMarkupRangeContains(offset);
+        if (!hiddenMarkupRanges.isEmpty() && hiddenMarkupRangeContains(offset)) {
+            return true;
+        }
+        return blockStructureHiddenRangeContains(offset);
+    }
+
+    private boolean blockStructureHiddenRangeContains(int offset) {
+        if (blockStructureHiddenRanges.isEmpty()) {
+            return false;
+        }
+        int lo = 0;
+        int hi = blockStructureHiddenRanges.size() - 1;
+        while (lo <= hi) {
+            int mid = (lo + hi) >>> 1;
+            TextRange range = blockStructureHiddenRanges.get(mid);
+            if (offset < range.start) {
+                hi = mid - 1;
+            } else if (offset >= range.end) {
+                lo = mid + 1;
+            } else {
+                return true;
+            }
+        }
+        return false;
     }
 
     private boolean hiddenMarkupRangeContains(int offset) {
@@ -4415,10 +5861,101 @@ public class ManuskriptTextEditor extends Region {
     /** {@code viewportLineTop}: Abstand Zeilenanfang → Viewport-Oberkante (vor Layout-Änderung). */
     private record ViewportAnchor(int offset, double viewportLineTop) {}
     private record Snapshot(String text, int caret, int anchor, List<StyleRange> styles) {}
-    private record AutoRule(String regex, int groupIndex, int styleFlags,
-                            Color textColor, Color backgroundColor, double fontSizeScale) {
+    private static final class AutoRule {
+        private final Pattern pattern;
+        private final int groupIndex;
+        private final int styleFlags;
+        private final Color textColor;
+        private final Color backgroundColor;
+        private final double fontSizeScale;
+        private final String fontFamily;
+        private final char quickChar;
+
         AutoRule(String regex, int groupIndex, int styleFlags) {
-            this(regex, groupIndex, styleFlags, null, null, 0);
+            this(regex, groupIndex, styleFlags, null, null, 0, null);
+        }
+
+        AutoRule(String regex, int groupIndex, int styleFlags,
+                 Color textColor, Color backgroundColor, double fontSizeScale) {
+            this(regex, groupIndex, styleFlags, textColor, backgroundColor, fontSizeScale, null);
+        }
+
+        AutoRule(String regex, int groupIndex, int styleFlags,
+                 Color textColor, Color backgroundColor, double fontSizeScale,
+                 String fontFamily) {
+            pattern = compilePattern(regex);
+            this.groupIndex = Math.max(0, groupIndex);
+            this.styleFlags = styleFlags;
+            this.textColor = textColor;
+            this.backgroundColor = backgroundColor;
+            this.fontSizeScale = fontSizeScale;
+            this.fontFamily = fontFamily;
+            quickChar = detectQuickChar(regex);
+        }
+
+        private static Pattern compilePattern(String regex) {
+            try {
+                return Pattern.compile(regex);
+            } catch (PatternSyntaxException ignored) {
+                return null;
+            }
+        }
+
+        private static char detectQuickChar(String regex) {
+            if (regex.startsWith("\\*\\*\\*")) {
+                return '*';
+            }
+            if (regex.startsWith("\\*\\*")) {
+                return '*';
+            }
+            if (regex.startsWith("~~")) {
+                return '~';
+            }
+            if (regex.startsWith("==")) {
+                return '=';
+            }
+            if (regex.startsWith("__")) {
+                return '_';
+            }
+            if (regex.startsWith("`")) {
+                return '`';
+            }
+            if (regex.startsWith("<")) {
+                return '<';
+            }
+            return 0;
+        }
+
+        Pattern pattern() {
+            return pattern;
+        }
+
+        int groupIndex() {
+            return groupIndex;
+        }
+
+        int styleFlags() {
+            return styleFlags;
+        }
+
+        Color textColor() {
+            return textColor;
+        }
+
+        Color backgroundColor() {
+            return backgroundColor;
+        }
+
+        double fontSizeScale() {
+            return fontSizeScale;
+        }
+
+        String fontFamily() {
+            return fontFamily;
+        }
+
+        char quickChar() {
+            return quickChar;
         }
     }
     private static final class HeadingRange extends TextRange {
@@ -4471,6 +6008,10 @@ public class ManuskriptTextEditor extends Region {
 
         boolean contains(int offset) {
             return offset >= start && offset < end;
+        }
+
+        boolean overlaps(int otherStart, int otherEnd) {
+            return start < otherEnd && end > otherStart;
         }
 
         void shiftAfterReplace(int replaceStart, int replaceEnd, int delta) {
@@ -4583,8 +6124,11 @@ public class ManuskriptTextEditor extends Region {
         private Color underlineColor;
         private int styleFlags;
         private double fontSizeScale;
+        private String fontFamilyOverride;
         private boolean underline;
         private boolean autoRule;
+        private int autoRuleId = -1;
+        private boolean blockquoteArea;
         private String name;
         private Type type = Type.HIGHLIGHT;
         private Runnable clickCallback;
@@ -4610,6 +6154,62 @@ public class ManuskriptTextEditor extends Region {
 
         private void addRangeSilent(int start, int end) {
             ranges.add(new TextRange(start, end));
+        }
+
+        private void sortRanges() {
+            if (ranges.size() < 2) {
+                return;
+            }
+            ranges.sort(Comparator.comparingInt(range -> range.start));
+        }
+
+        private void bindAutoRule(int ruleIndex, AutoRule rule) {
+            autoRuleId = ruleIndex;
+            markStyleSilent(rule.styleFlags());
+            if (rule.textColor() != null) {
+                textColor = rule.textColor();
+            }
+            if (rule.backgroundColor() != null) {
+                color = rule.backgroundColor();
+            }
+            if (rule.fontSizeScale() > 0) {
+                fontSizeScale = rule.fontSizeScale();
+            }
+            if (rule.fontFamily() != null) {
+                fontFamilyOverride = rule.fontFamily();
+            }
+        }
+
+        private void markStyleSilent(int styleFlags) {
+            this.styleFlags |= styleFlags;
+            if ((styleFlags & UNDERLINE) != 0) {
+                underline = true;
+            }
+        }
+
+        private boolean matchesAutoRule(int ruleIndex) {
+            return autoRuleId == ruleIndex;
+        }
+
+        private boolean isLinkArea() {
+            return type == Type.LINK;
+        }
+
+        private void markBlockquoteArea() {
+            blockquoteArea = true;
+        }
+
+        private boolean isBlockquoteArea() {
+            return blockquoteArea;
+        }
+
+        private boolean intersectsRange(int start, int end) {
+            for (TextRange range : ranges) {
+                if (range.overlaps(start, end)) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         private MarkedArea markColorSilent(String colorValue) {
@@ -4643,6 +6243,11 @@ public class ManuskriptTextEditor extends Region {
 
         private MarkedArea markTypeSilent(Type type) {
             this.type = type == null ? Type.HIGHLIGHT : type;
+            return this;
+        }
+
+        private MarkedArea markFontFamilySilent(String family) {
+            this.fontFamilyOverride = family;
             return this;
         }
 
@@ -4680,41 +6285,59 @@ public class ManuskriptTextEditor extends Region {
         }
 
         private void applyTo(int offset, RenderStyle style) {
-            for (TextRange range : ranges) {
-                if (range.contains(offset)) {
-                    style.flags |= styleFlags;
-                    int priority = type.priority;
-                    if ((clickCallback != null || type == Type.LANGUAGE_TOOL) && priority >= style.interactivePriority) {
-                        style.interactiveArea = this;
-                        style.interactivePriority = priority;
-                    }
-                    if (underline && priority >= style.underlinePriority) {
-                        style.underline = true;
-                        style.underlinePriority = priority;
-                    }
-                    if (underlineColor != null) {
-                        if (priority >= style.underlinePriority) {
-                            style.underlineColor = underlineColor;
-                            style.underlinePriority = priority;
-                        }
-                    }
-                    if (color != null && priority >= style.backgroundPriority) {
-                        if (type != Type.LEKTORAT && type != Type.TEXT_ANALYSIS) {
-                            style.background = color;
-                            style.backgroundPriority = priority;
-                        } else {
-                            style.backgroundPriority = priority;
-                        }
-                    }
-                    if (textColor != null && priority >= style.textColorPriority) {
-                        style.textColor = textColor;
-                        style.textColorPriority = priority;
-                    }
-                    if (fontSizeScale > 0) {
-                        style.fontSizeScale = fontSizeScale;
-                    }
+            if (ranges.isEmpty()) {
+                return;
+            }
+            int lo = 0;
+            int hi = ranges.size() - 1;
+            while (lo <= hi) {
+                int mid = (lo + hi) >>> 1;
+                TextRange range = ranges.get(mid);
+                if (offset < range.start) {
+                    hi = mid - 1;
+                } else if (offset >= range.end) {
+                    lo = mid + 1;
+                } else {
+                    applyStyleAtOffset(style);
                     return;
                 }
+            }
+        }
+
+        private void applyStyleAtOffset(RenderStyle style) {
+            style.flags |= styleFlags;
+            int priority = type.priority;
+            if ((clickCallback != null || type == Type.LANGUAGE_TOOL) && priority >= style.interactivePriority) {
+                style.interactiveArea = this;
+                style.interactivePriority = priority;
+            }
+            if (underline && priority >= style.underlinePriority) {
+                style.underline = true;
+                style.underlinePriority = priority;
+            }
+            if (underlineColor != null) {
+                if (priority >= style.underlinePriority) {
+                    style.underlineColor = underlineColor;
+                    style.underlinePriority = priority;
+                }
+            }
+            if (color != null && priority >= style.backgroundPriority) {
+                if (type != Type.LEKTORAT && type != Type.TEXT_ANALYSIS) {
+                    style.background = color;
+                    style.backgroundPriority = priority;
+                } else {
+                    style.backgroundPriority = priority;
+                }
+            }
+            if (textColor != null && priority >= style.textColorPriority) {
+                style.textColor = textColor;
+                style.textColorPriority = priority;
+            }
+            if (fontSizeScale > 0) {
+                style.fontSizeScale = fontSizeScale;
+            }
+            if (fontFamilyOverride != null) {
+                style.fontFamily = fontFamilyOverride;
             }
         }
 

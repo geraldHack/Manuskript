@@ -25,12 +25,13 @@ import javafx.scene.text.TextFlow;
 /**
  * Ein einzelner Agent-Tab: Konfiguration (einklappbar), Aktionen und Findings-Liste.
  */
-public class AgentTab extends VBox {
+public class AgentTab extends ScrollPane {
 
     /** Mindesthöhe des System-Prompt-Felds in sichtbaren Zeilen (alle Agenten-Tabs). */
     static final int SYSTEM_PROMPT_VISIBLE_ROWS = 20;
 
     private final AgentConfig config;
+    private final VBox contentRoot;
 
     // Konfigurations-UI
     private final ToggleButton toggleConfigButton;
@@ -38,7 +39,7 @@ public class AgentTab extends VBox {
     private final TextField nameField;
     private final TextArea promptArea;
     private final ComboBox<String> backendCombo;
-    private final ComboBox<String> modelCombo;
+    private final FilterableModelSelector modelSelector;
     private final Slider temperatureSlider;
     private final Label temperatureValueLabel;
     private final Slider maxTokensSlider;
@@ -68,6 +69,8 @@ public class AgentTab extends VBox {
 
     private boolean realtimeEnabled = false;
     private boolean analyzing = false;
+    private boolean activityRegistered = false;
+    private AgentActivityTracker activityTracker;
     private int currentFontSize = 12;
     private List<String> availableModels = new ArrayList<>();
     private TextArea revisionInstructionField;
@@ -75,11 +78,16 @@ public class AgentTab extends VBox {
     public AgentTab(AgentConfig config) {
         this.config = config;
 
-        setPadding(new Insets(8));
-        setSpacing(6);
-        setFillWidth(true);
+        contentRoot = new VBox(6);
+        contentRoot.setPadding(new Insets(8));
+        contentRoot.setFillWidth(true);
+        contentRoot.setMinHeight(0);
+        contentRoot.getStyleClass().add("agent-tab");
+
         setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
-        getStyleClass().add("agent-tab");
+        setMinHeight(0);
+        AgentScrollPaneSupport.configureEntireTabScroll(this);
+        setContent(contentRoot);
 
         // === Konfigurations-Toggle ===
         toggleConfigButton = new ToggleButton("⚙ Konfiguration");
@@ -130,40 +138,15 @@ public class AgentTab extends VBox {
 
         // Modell
         Label modelLabel = new Label("Modell:");
-        modelCombo = new ComboBox<>();
-        modelCombo.setMaxWidth(Double.MAX_VALUE);
-        modelCombo.setEditable(true);
-        modelCombo.setValue(config.getModel());
-        modelCombo.valueProperty().addListener((obs, old, val) -> {
-            if (val != null && !val.equals(old)) {
-                config.setModel(val);
-                ModelHistory.addModel(val);
-                // Neue Modelle zu availableModels hinzufügen
-                if (!availableModels.contains(val)) {
-                    availableModels.add(val);
-                }
-                // Dropdown aktualisieren
-                List<String> modelsWithHistory = ModelHistory.getHistoryWithAvailableModels(availableModels);
-                modelCombo.getItems().setAll(modelsWithHistory);
-                modelCombo.setValue(val);
-                fireConfigChanged();
+        modelSelector = new FilterableModelSelector(false);
+        modelSelector.setUseModelHistory(true);
+        modelSelector.setValue(config.getModel());
+        modelSelector.setOnModelChanged(model -> {
+            config.setModel(model);
+            if (!availableModels.contains(model)) {
+                availableModels.add(model);
             }
-        });
-        modelCombo.setOnAction(e -> {
-            String val = modelCombo.getValue();
-            if (val != null && !val.trim().isEmpty()) {
-                config.setModel(val);
-                ModelHistory.addModel(val);
-                // Neue Modelle zu availableModels hinzufügen
-                if (!availableModels.contains(val)) {
-                    availableModels.add(val);
-                }
-                // Dropdown aktualisieren
-                List<String> modelsWithHistory = ModelHistory.getHistoryWithAvailableModels(availableModels);
-                modelCombo.getItems().setAll(modelsWithHistory);
-                modelCombo.setValue(val);
-                fireConfigChanged();
-            }
+            fireConfigChanged();
         });
 
         // Temperature
@@ -238,16 +221,10 @@ public class AgentTab extends VBox {
             nameLabel, nameField,
             promptLabel, promptArea,
             backendLabel, backendCombo,
-            modelLabel, modelCombo,
+            modelLabel, modelSelector,
             tempRow, tokensRow, topPRow, penaltyRow,
             restoreDefaultsButton
         );
-
-        toggleConfigButton.setOnAction(e -> {
-            boolean show = toggleConfigButton.isSelected();
-            configBox.setVisible(show);
-            configBox.setManaged(show);
-        });
 
         // === Aktionsbereich ===
         boolean selectionRevision = config.isSelectionRevisionAgent();
@@ -312,10 +289,18 @@ public class AgentTab extends VBox {
             revisionInstructionField.textProperty().addListener((obs, old, val) ->
                     com.manuskript.SelectionRevisionDialog.syncInstruction(val));
             VBox instructionBox = new VBox(4, instructionLabel, revisionInstructionField);
-            getChildren().addAll(toggleConfigButton, configBox, instructionBox, statusLabel, buttonRow, scrollPane);
+            contentRoot.getChildren().addAll(toggleConfigButton, configBox, instructionBox, statusLabel, buttonRow, scrollPane);
         } else {
-            getChildren().addAll(toggleConfigButton, configBox, statusLabel, buttonRow, scrollPane);
+            contentRoot.getChildren().addAll(toggleConfigButton, configBox, statusLabel, buttonRow, scrollPane);
         }
+
+        toggleConfigButton.setOnAction(e -> {
+            boolean show = toggleConfigButton.isSelected();
+            configBox.setVisible(show);
+            configBox.setManaged(show);
+            AgentScrollPaneSupport.applyConfigExpandedLayout(this, contentRoot, scrollPane, show);
+        });
+        AgentScrollPaneSupport.applyConfigExpandedLayout(this, contentRoot, scrollPane, false);
     }
 
     private HBox createSliderRow(String labelText, Slider slider, Label valueLabel) {
@@ -362,16 +347,12 @@ public class AgentTab extends VBox {
 
     public void setModels(List<String> models) {
         availableModels = new ArrayList<>(models);
-        Platform.runLater(() -> {
-            String current = modelCombo.getValue();
-            List<String> modelsWithHistory = ModelHistory.getHistoryWithAvailableModels(availableModels);
-            modelCombo.getItems().setAll(modelsWithHistory);
-        });
+        Platform.runLater(() -> modelSelector.setModels(availableModels));
     }
 
     public void setModel(String model) {
         Platform.runLater(() -> {
-            modelCombo.setValue(model);
+            modelSelector.setValue(model);
             config.setModel(model);
         });
     }
@@ -398,7 +379,7 @@ public class AgentTab extends VBox {
         nameField.setText(config.getName());
         promptArea.setText(config.getSystemPrompt());
         backendCombo.setValue(config.getBackend() != null ? config.getBackend() : "Ollama");
-        modelCombo.setValue(config.getModel());
+        modelSelector.setValue(config.getModel());
         temperatureSlider.setValue(config.getTemperature());
         maxTokensSlider.setValue(config.getMaxTokens());
         topPSlider.setValue(config.getTopP());
@@ -448,6 +429,33 @@ public class AgentTab extends VBox {
         realtimeToggle.setSelected(enabled);
     }
 
+    public void bindActivityTracker(AgentActivityTracker tracker) {
+        this.activityTracker = tracker;
+    }
+
+    private void registerActivity(String message) {
+        if (activityTracker != null && !activityRegistered) {
+            activityTracker.begin(message);
+            activityRegistered = true;
+        }
+    }
+
+    private void unregisterActivity() {
+        if (activityTracker != null && activityRegistered) {
+            activityTracker.end();
+            activityRegistered = false;
+        }
+    }
+
+    private String activityMessageForAnalyzing() {
+        String name = config.getName() != null ? config.getName() : "Agent";
+        String model = modelSelector.getValue();
+        if (model != null && !model.isBlank()) {
+            return name + ": Analysiere… (Modell: " + model + ")";
+        }
+        return name + ": Analysiere…";
+    }
+
     public boolean isAnalyzing() {
         return analyzing;
     }
@@ -487,6 +495,7 @@ public class AgentTab extends VBox {
             }
             analyzing = false;
             analyzeButton.setDisable(false);
+            unregisterActivity();
         });
     }
 
@@ -634,7 +643,7 @@ public class AgentTab extends VBox {
         Platform.runLater(() -> {
             analyzeButton.setDisable(analyzing);
             if (analyzing) {
-                String model = modelCombo.getValue();
+                String model = modelSelector.getValue();
                 if (model != null && !model.isEmpty()) {
                     statusLabel.setText("Analysiere... (Modell: " + model + ")");
                 } else {
@@ -642,6 +651,9 @@ public class AgentTab extends VBox {
                 }
                 statusLabel.getStyleClass().removeAll("agent-status-ok", "agent-status-error");
                 statusLabel.getStyleClass().add("agent-status-running");
+                registerActivity(activityMessageForAnalyzing());
+            } else {
+                unregisterActivity();
             }
         });
     }
@@ -662,6 +674,7 @@ public class AgentTab extends VBox {
             statusLabel.getStyleClass().add("agent-status-error");
             analyzing = false;
             analyzeButton.setDisable(false);
+            unregisterActivity();
         });
     }
 }

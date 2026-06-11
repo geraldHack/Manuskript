@@ -1,8 +1,12 @@
 package com.manuskript;
 
+import com.manuskript.agent.FilterableModelOptionSelector;
+import com.manuskript.agent.ModelOption;
+
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
@@ -30,22 +34,11 @@ import java.util.concurrent.CompletableFuture;
  */
 public class ParametersAdminWindow {
 
-    /** Modell-Eintrag für Dropdown: ID (für API) + Anzeigetext (mit lesbaren Kosten). */
-    private static final class ModelOption {
-        final String id;
-        final String displayText;
-
-        ModelOption(String id, String displayText) {
-            this.id = id;
-            this.displayText = displayText;
-        }
-    }
-
     private static final Logger logger = LoggerFactory.getLogger(ParametersAdminWindow.class);
 
     private CustomStage stage;
     private final Window owner;
-    private final Map<String, Control> keyToControl = new HashMap<>();
+    private final Map<String, Parent> keyToControl = new HashMap<>();
     private final Map<String, ParameterDef> keyToDef = new HashMap<>();
 
     public ParametersAdminWindow(Window owner) {
@@ -73,6 +66,7 @@ public class ParametersAdminWindow {
         TabPane tabPane = new TabPane();
         tabPane.getStyleClass().add("tab-pane");
         tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
+        tabPane.setMinHeight(0);
 
         for (String category : ParameterRegistry.getCategories()) {
             List<ParameterDef> params = ParameterRegistry.getByCategory(category);
@@ -83,9 +77,7 @@ public class ParametersAdminWindow {
                 for (ParameterDef def : params) {
                     keyToDef.put(def.getKey(), def);
                 }
-                ScrollPane scroll = new ScrollPane(lektoratContent);
-                scroll.setFitToWidth(true);
-                scroll.getStyleClass().add("param-tab-scroll");
+                ScrollPane scroll = createParamTabScroll(lektoratContent);
                 Tab tab = new Tab(category, scroll);
                 tab.setClosable(false);
                 tabPane.getTabs().add(tab);
@@ -97,18 +89,13 @@ public class ParametersAdminWindow {
                 for (ParameterDef def : params) {
                     keyToDef.put(def.getKey(), def);
                 }
-                ScrollPane scroll = new ScrollPane(agentenContent);
-                scroll.setFitToWidth(true);
-                scroll.getStyleClass().add("param-tab-scroll");
+                ScrollPane scroll = createParamTabScroll(agentenContent);
                 Tab tab = new Tab(category, scroll);
                 tab.setClosable(false);
                 tabPane.getTabs().add(tab);
                 continue;
             }
 
-            ScrollPane scroll = new ScrollPane();
-            scroll.setFitToWidth(true);
-            scroll.getStyleClass().add("param-tab-scroll");
             VBox content = new VBox(12);
             content.setPadding(new Insets(16));
             content.getStyleClass().addAll(getThemeStyleClasses(theme));
@@ -127,7 +114,7 @@ public class ParametersAdminWindow {
                 card.getChildren().addAll(keyLabel, control, helpLabel);
                 content.getChildren().add(card);
             }
-            scroll.setContent(content);
+            ScrollPane scroll = createParamTabScroll(content);
             Tab tab = new Tab(category, scroll);
             tab.setClosable(false);
             tabPane.getTabs().add(tab);
@@ -156,6 +143,16 @@ public class ParametersAdminWindow {
         stage.setFullTheme(theme);
     }
 
+    private static ScrollPane createParamTabScroll(VBox content) {
+        ScrollPane scroll = new ScrollPane(content);
+        scroll.setFitToWidth(true);
+        scroll.setMinHeight(0);
+        scroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scroll.getStyleClass().add("param-tab-scroll");
+        return scroll;
+    }
+
     private static List<String> getThemeStyleClasses(int themeIndex) {
         switch (themeIndex) {
             case 0: return java.util.Collections.singletonList("weiss-theme");
@@ -168,7 +165,7 @@ public class ParametersAdminWindow {
         }
     }
 
-    private VBox buildAgentenTab(Map<String, Control> keyToControl, int theme) {
+    private VBox buildAgentenTab(Map<String, Parent> keyToControl, int theme) {
         VBox content = new VBox(12);
         content.setPadding(new Insets(16));
         content.getStyleClass().addAll(getThemeStyleClasses(theme));
@@ -284,36 +281,21 @@ public class ParametersAdminWindow {
         keyToControl.put("agent.openai.api_url", openaiUrlField);
 
         String openaiModel = ResourceManager.getParameter("agent.openai.model", "gpt-4o-mini");
-        ComboBox<ModelOption> openaiModelCombo = new ComboBox<>();
-        openaiModelCombo.setConverter(new javafx.util.StringConverter<ModelOption>() {
-            @Override
-            public String toString(ModelOption m) {
-                return m == null ? "" : m.displayText;
-            }
-            @Override
-            public ModelOption fromString(String s) {
-                return s == null || s.isBlank() ? null : new ModelOption(s.trim(), s.trim());
-            }
-        });
-        openaiModelCombo.setValue(new ModelOption(openaiModel, openaiModel));
-        openaiModelCombo.setPrefWidth(400);
-        openaiModelCombo.setEditable(true);
+        FilterableModelOptionSelector openaiModelSelector = new FilterableModelOptionSelector(true);
+        openaiModelSelector.setModelId(openaiModel);
+        openaiModelSelector.setOnLoad(() -> loadAgentModels(
+                openaiKeyField.getText(), openaiUrlField.getText(), openaiModelSelector));
         Label openaiModelLabel = new Label("agent.openai.model");
         openaiModelLabel.getStyleClass().add("param-key-label");
         Label openaiModelHelp = new Label("Modell fuer die OpenAI-Analyse (nach „Modelle laden“ auswählen oder frei eingeben). Kosten werden bei OpenRouter-kompatiblen APIs angezeigt.");
         openaiModelHelp.getStyleClass().add("param-help-label");
         openaiModelHelp.setWrapText(true);
         openaiModelHelp.setMaxWidth(680);
-        Button btnLoadAgentModels = new Button("Modelle laden");
-        btnLoadAgentModels.setOnAction(e -> loadAgentModels(openaiKeyField.getText(), openaiUrlField.getText(), openaiModelCombo));
-        HBox openaiModelRow = new HBox(10);
-        openaiModelRow.getChildren().addAll(openaiModelCombo, btnLoadAgentModels);
-        openaiModelRow.setAlignment(Pos.CENTER_LEFT);
         VBox openaiModelCard = new VBox(4);
         openaiModelCard.getStyleClass().add("param-card");
-        openaiModelCard.getChildren().addAll(openaiModelLabel, openaiModelRow, openaiModelHelp);
+        openaiModelCard.getChildren().addAll(openaiModelLabel, openaiModelSelector, openaiModelHelp);
         openaiParams.getChildren().add(openaiModelCard);
-        keyToControl.put("agent.openai.model", openaiModelCombo);
+        keyToControl.put("agent.openai.model", openaiModelSelector);
 
         double openaiTemp = ResourceManager.getDoubleParameter("agent.openai.temperature", 0.7);
         Spinner<Double> openaiTempSpinner = new Spinner<>(0.0, 2.0, openaiTemp, 0.05);
@@ -425,7 +407,7 @@ public class ParametersAdminWindow {
         return content;
     }
 
-    private VBox buildOnlineLektoratTab(Map<String, Control> keyToControl, int theme) {
+    private VBox buildOnlineLektoratTab(Map<String, Parent> keyToControl, int theme) {
         VBox content = new VBox(12);
         content.setPadding(new Insets(16));
         content.getStyleClass().addAll(getThemeStyleClasses(theme));
@@ -464,37 +446,21 @@ public class ParametersAdminWindow {
         content.getChildren().add(baseUrlCard);
         keyToControl.put("api.lektorat.base_url", baseUrlField);
 
-        ComboBox<ModelOption> modelCombo = new ComboBox<>();
-        modelCombo.setEditable(true);
-        modelCombo.setPrefWidth(520);
-        modelCombo.getEditor().setText(model != null ? stripModelIdFromDisplay(model) : "");
-        modelCombo.setPromptText("Modell wählen oder eingeben");
-        modelCombo.setConverter(new javafx.util.StringConverter<ModelOption>() {
-            @Override
-            public String toString(ModelOption m) {
-                return m == null ? "" : m.displayText;
-            }
-            @Override
-            public ModelOption fromString(String s) {
-                return s == null || s.isBlank() ? null : new ModelOption(s.trim(), s.trim());
-            }
-        });
+        FilterableModelOptionSelector lektoratModelSelector = new FilterableModelOptionSelector(true);
+        lektoratModelSelector.setInitialEditorText(model);
+        lektoratModelSelector.setOnLoad(() -> loadLektoratModels(
+                apiKeyField.getText(), baseUrlField.getText(), lektoratModelSelector));
         Label modelLabel = new Label("api.lektorat.model");
         modelLabel.getStyleClass().add("param-key-label");
         Label modelHelp = new Label("Modell für das Lektorat (nach „Modelle laden“ auswählen oder frei eingeben). Kosten werden bei OpenRouter-kompatiblen APIs angezeigt.");
         modelHelp.getStyleClass().add("param-help-label");
         modelHelp.setWrapText(true);
         modelHelp.setMaxWidth(680);
-        Button btnLoadModels = new Button("Modelle laden");
-        btnLoadModels.setOnAction(e -> loadLektoratModels(apiKeyField.getText(), baseUrlField.getText(), modelCombo));
-        HBox modelRow = new HBox(10);
-        modelRow.getChildren().addAll(modelCombo, btnLoadModels);
-        modelRow.setAlignment(Pos.CENTER_LEFT);
         VBox modelCard = new VBox(4);
         modelCard.getStyleClass().add("param-card");
-        modelCard.getChildren().addAll(modelLabel, modelRow, modelHelp);
+        modelCard.getChildren().addAll(modelLabel, lektoratModelSelector, modelHelp);
         content.getChildren().add(modelCard);
-        keyToControl.put("api.lektorat.model", modelCombo);
+        keyToControl.put("api.lektorat.model", lektoratModelSelector);
 
         // Zusatzprompt (Textarea)
         TextArea extraPromptArea = new TextArea(extraPrompt != null ? extraPrompt : "");
@@ -726,13 +692,6 @@ public class ParametersAdminWindow {
     }
 
     /** Entfernt den Kosten-Anzeigetext, sodass nur die Modell-ID für die API übrig bleibt. */
-    private static String stripModelIdFromDisplay(String s) {
-        if (s == null) return "";
-        s = s.trim();
-        int i = s.indexOf(" (");
-        return i >= 0 ? s.substring(0, i).trim() : s;
-    }
-
     private static double firstValidDouble(double a, double b) {
         return !Double.isNaN(a) ? a : b;
     }
@@ -749,15 +708,15 @@ public class ParametersAdminWindow {
     }
 
     @SuppressWarnings("unchecked")
-    private void loadLektoratModels(String apiKey, String baseUrl, ComboBox<ModelOption> modelCombo) {
-        loadOpenAIModels(apiKey, baseUrl, modelCombo, "Lektorat");
+    private void loadLektoratModels(String apiKey, String baseUrl, FilterableModelOptionSelector modelSelector) {
+        loadOpenAIModels(apiKey, baseUrl, modelSelector, "Lektorat");
     }
 
-    private void loadAgentModels(String apiKey, String baseUrl, ComboBox<ModelOption> modelCombo) {
-        loadOpenAIModels(apiKey, baseUrl, modelCombo, "Agenten");
+    private void loadAgentModels(String apiKey, String baseUrl, FilterableModelOptionSelector modelSelector) {
+        loadOpenAIModels(apiKey, baseUrl, modelSelector, "Agenten");
     }
 
-    private void loadOpenAIModels(String apiKey, String baseUrl, ComboBox<ModelOption> modelCombo, String context) {
+    private void loadOpenAIModels(String apiKey, String baseUrl, FilterableModelOptionSelector modelSelector, String context) {
         if (apiKey == null || apiKey.isBlank() || baseUrl == null || baseUrl.isBlank()) {
             showInfo("Eingabe fehlt", "Bitte API-Key und Basis-URL eintragen.");
             return;
@@ -796,9 +755,8 @@ public class ParametersAdminWindow {
                         data = parsed.getAsJsonObject().getAsJsonArray("data");
                     else if (parsed != null && parsed.isJsonArray())
                         data = parsed.getAsJsonArray();
-                    modelCombo.getItems().clear();
+                    java.util.List<ModelOption> items = new java.util.ArrayList<>();
                     if (data != null) {
-                        java.util.List<ModelOption> items = new java.util.ArrayList<>();
                         for (int i = 0; i < data.size(); i++) {
                             com.google.gson.JsonElement el = data.get(i);
                             if (el != null && el.isJsonObject()) {
@@ -812,12 +770,12 @@ public class ParametersAdminWindow {
                             }
                         }
                         items.sort(java.util.Comparator.comparing(m -> m.id, String.CASE_INSENSITIVE_ORDER));
-                        modelCombo.getItems().addAll(items);
                     }
-                    if (modelCombo.getItems().isEmpty()) {
+                    modelSelector.setModelOptions(items);
+                    if (items.isEmpty()) {
                         showInfo("Modelle laden (" + context + ")", "Keine Modelle in der Antwort gefunden.");
                     } else {
-                        showInfo("Modelle laden (" + context + ")", modelCombo.getItems().size() + " Modelle geladen. Bitte Modell auswählen und Speichern klicken.");
+                        showInfo("Modelle laden (" + context + ")", items.size() + " Modelle geladen. Bitte Modell auswählen und Speichern klicken.");
                     }
                 } catch (Exception e) {
                     showInfo("Modelle laden (" + context + ")", "Antwort konnte nicht gelesen werden: " + e.getMessage());
@@ -1041,7 +999,7 @@ public class ParametersAdminWindow {
     }
 
     private void saveAll() {
-        for (Map.Entry<String, Control> e : keyToControl.entrySet()) {
+        for (Map.Entry<String, Parent> e : keyToControl.entrySet()) {
             String key = e.getKey();
             ParameterDef def = keyToDef.get(key);
             if (def == null) continue;
@@ -1067,27 +1025,24 @@ public class ParametersAdminWindow {
         showInfo("Gespeichert", "Alle Parameter wurden gespeichert.");
     }
 
-    private String getValueFromControl(Control c, ParameterDef def) {
+    private String getValueFromControl(Parent c, ParameterDef def) {
         if (c instanceof CheckBox) return String.valueOf(((CheckBox) c).isSelected());
         if (c instanceof Spinner) {
             Object v = ((Spinner<?>) c).getValue();
             return v != null ? v.toString() : def.getDefaultValue();
         }
         if (c instanceof TextArea) return ((TextArea) c).getText();
+        if (c instanceof FilterableModelOptionSelector) {
+            return ((FilterableModelOptionSelector) c).getModelId();
+        }
         if (c instanceof ComboBox) {
             ComboBox<?> cb = (ComboBox<?>) c;
             Object v = cb.getValue();
             if (v != null) {
-                if ("api.lektorat.model".equals(def.getKey()) || "agent.openai.model".equals(def.getKey())) {
-                    if (v instanceof ModelOption) return ((ModelOption) v).id;
-                    return stripModelIdFromDisplay(v.toString());
-                }
                 return v.toString();
             }
             if (cb.isEditable() && cb.getEditor() != null) {
-                String editorText = cb.getEditor().getText();
-                if ("api.lektorat.model".equals(def.getKey()) || "agent.openai.model".equals(def.getKey())) return stripModelIdFromDisplay(editorText);
-                return editorText;
+                return cb.getEditor().getText();
             }
             return def.getDefaultValue();
         }
@@ -1096,7 +1051,7 @@ public class ParametersAdminWindow {
     }
 
     private void restoreDefaults() {
-        for (Map.Entry<String, Control> e : keyToControl.entrySet()) {
+        for (Map.Entry<String, Parent> e : keyToControl.entrySet()) {
             ParameterDef def = keyToDef.get(e.getKey());
             if (def == null) continue;
             setControlToDefault(e.getValue(), def);
@@ -1105,7 +1060,7 @@ public class ParametersAdminWindow {
     }
 
     @SuppressWarnings("unchecked")
-    private void setControlToDefault(Control c, ParameterDef def) {
+    private void setControlToDefault(Parent c, ParameterDef def) {
         String d = def.getDefaultValue();
         if (c instanceof CheckBox) ((CheckBox) c).setSelected(Boolean.parseBoolean(d));
         else if (c instanceof Spinner) {
@@ -1115,11 +1070,14 @@ public class ParametersAdminWindow {
             else
                 ((Spinner<Double>) s).getValueFactory().setValue(parseDouble(d, 0.0));
         } else if (c instanceof TextArea) ((TextArea) c).setText(d != null ? d : "");
-        else if (c instanceof ComboBox) {
-            @SuppressWarnings("unchecked")
-            ComboBox<ModelOption> cb = (ComboBox<ModelOption>) c;
+        else if (c instanceof FilterableModelOptionSelector) {
+            ((FilterableModelOptionSelector) c).setInitialEditorText(d);
+        } else if (c instanceof ComboBox) {
+            ComboBox<?> cb = (ComboBox<?>) c;
             cb.getSelectionModel().clearSelection();
-            if (cb.isEditable() && cb.getEditor() != null) cb.getEditor().setText(d != null ? d : "");
+            if (cb.isEditable() && cb.getEditor() != null) {
+                cb.getEditor().setText(d != null ? d : "");
+            }
         } else if (c instanceof TextField) {
             TextField tf = (TextField) c;
             tf.setText(d != null ? d : "");

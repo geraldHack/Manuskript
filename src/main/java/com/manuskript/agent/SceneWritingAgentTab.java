@@ -32,20 +32,24 @@ import javafx.scene.layout.VBox;
 /**
  * Agent-Tab für Szenen-Generierung (kein Finding-basiertes Analyse-UI).
  */
-public class SceneWritingAgentTab extends VBox {
+public class SceneWritingAgentTab extends ScrollPane {
+
+    private static final String PREF_CONTEXT_SIZE = "context_size";
+    private static final String PREF_DEFAULT_INSTRUCTION = "default_instruction";
 
     private final AgentConfig config;
+    private final VBox contentRoot;
 
     private final ToggleButton toggleConfigButton;
     private final VBox configBox;
     private final TextArea promptArea;
+    private final TextArea defaultInstructionArea;
     private final Slider temperatureSlider;
     private final Label temperatureValueLabel;
     private final TextArea instructionArea;
     private final CheckBox useParameterModelCheck;
-    private final ComboBox<String> modelCombo;
+    private final FilterableModelSelector modelSelector;
     private final ComboBox<SceneContextSize> contextSizeCombo;
-    private final Button loadModelsButton;
     private final Button generateButton;
     private final Button insertButton;
     private final Label statusLabel;
@@ -58,6 +62,8 @@ public class SceneWritingAgentTab extends VBox {
     private SceneGenerationHandler generationHandler;
 
     private boolean generating = false;
+    private boolean activityRegistered = false;
+    private AgentActivityTracker activityTracker;
     private List<String> availableModels = new ArrayList<>();
 
     public interface SceneGenerationHandler {
@@ -72,9 +78,15 @@ public class SceneWritingAgentTab extends VBox {
 
     public SceneWritingAgentTab(AgentConfig config) {
         this.config = config;
-        setPadding(new Insets(8));
-        setSpacing(6);
-        getStyleClass().addAll("agent-tab", "scene-writing-agent-tab");
+
+        contentRoot = new VBox(6);
+        contentRoot.setPadding(new Insets(8));
+        contentRoot.setMinHeight(0);
+        contentRoot.getStyleClass().addAll("agent-tab", "scene-writing-agent-tab");
+
+        setMinHeight(0);
+        AgentScrollPaneSupport.configureEntireTabScroll(this);
+        setContent(contentRoot);
 
         toggleConfigButton = new ToggleButton("⚙ Konfiguration");
         toggleConfigButton.setMaxWidth(Double.MAX_VALUE);
@@ -116,27 +128,17 @@ public class SceneWritingAgentTab extends VBox {
         useParameterModelCheck.setSelected(true);
         useParameterModelCheck.setTooltip(new Tooltip("Modell aus den globalen Agenten-Parametern nutzen"));
 
-        modelCombo = new ComboBox<>();
-        modelCombo.setEditable(true);
-        modelCombo.setMaxWidth(Double.MAX_VALUE);
-        modelCombo.setDisable(true);
-
-        loadModelsButton = new Button("Modelle laden");
-        loadModelsButton.setDisable(true);
+        modelSelector = new FilterableModelSelector(true);
+        modelSelector.setSelectorDisabled(true);
+        modelSelector.setOnLoad(this::loadModelsAsync);
 
         useParameterModelCheck.selectedProperty().addListener((obs, o, useParams) -> {
             if (!generating) {
-                modelCombo.setDisable(useParams);
-                loadModelsButton.setDisable(useParams);
+                modelSelector.setSelectorDisabled(useParams);
             }
         });
 
-        loadModelsButton.setOnAction(e -> loadModelsAsync());
-
         Label modelLabel = new Label("Modell:");
-        HBox modelSelectRow = new HBox(8, modelCombo, loadModelsButton);
-        HBox.setHgrow(modelCombo, Priority.ALWAYS);
-        modelSelectRow.setAlignment(Pos.CENTER_LEFT);
 
         Label contextSizeLabel = new Label("Kontext:");
         contextSizeCombo = new ComboBox<>();
@@ -147,10 +149,10 @@ public class SceneWritingAgentTab extends VBox {
         contextSizeCombo.setMaxWidth(Double.MAX_VALUE);
         Preferences scenePrefs = Preferences.userNodeForPackage(SceneWritingAgentTab.class);
         contextSizeCombo.setValue(SceneContextSize.fromName(
-                scenePrefs.get("context_size", SceneContextSize.COMPACT.name())));
+                scenePrefs.get(PREF_CONTEXT_SIZE, SceneContextSize.COMPACT.name())));
         contextSizeCombo.valueProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null) {
-                scenePrefs.put("context_size", newVal.name());
+                scenePrefs.put(PREF_CONTEXT_SIZE, newVal.name());
                 contextSizeCombo.setTooltip(new Tooltip(newVal.getTooltip()));
             }
         });
@@ -162,22 +164,31 @@ public class SceneWritingAgentTab extends VBox {
         contextSizeRow.setAlignment(Pos.CENTER_LEFT);
 
         Label promptLabel = new Label("System-Prompt:");
+        Label defaultInstructionLabel = new Label("Default-Prompt (Anweisung):");
+        defaultInstructionArea = new TextArea(loadDefaultInstruction());
+        defaultInstructionArea.setPromptText(
+                "z.B. Schreibe Szene 1, berücksichtige die Stimmung aus dem letzten Kapitel. 1000–1500 Zeichen.");
+        defaultInstructionArea.setPrefRowCount(4);
+        defaultInstructionArea.setMinHeight(4 * 18.0);
+        defaultInstructionArea.setWrapText(true);
+        defaultInstructionArea.setMaxWidth(Double.MAX_VALUE);
+        defaultInstructionArea.setTooltip(new Tooltip(
+                "Standardtext für das Anweisungsfeld — wird beim Öffnen des Tabs vorausgefüllt."));
+        defaultInstructionArea.textProperty().addListener((obs, o, n) ->
+                persistDefaultInstruction(n));
+
         HBox tempRow = createSliderRow("Temperatur:", temperatureSlider, temperatureValueLabel);
         configBox.getChildren().addAll(
                 promptLabel, promptArea, tempRow,
-                useParameterModelCheck, modelLabel, modelSelectRow, contextSizeRow);
-
-        toggleConfigButton.selectedProperty().addListener((obs, o, sel) -> {
-            configBox.setVisible(sel);
-            configBox.setManaged(sel);
-        });
+                useParameterModelCheck, modelLabel, modelSelector, contextSizeRow,
+                defaultInstructionLabel, defaultInstructionArea);
 
         Label instructionLabel = new Label("Anweisung:");
-        instructionArea = new TextArea();
-        instructionArea.setPromptText("z.B. Schreibe 1. Szene, berücksichtige die Stimmung aus dem letzten Kapitel. 1000–1500 Zeichen.");
+        instructionArea = new TextArea(loadDefaultInstruction());
         instructionArea.setPrefRowCount(3);
         instructionArea.setWrapText(true);
         instructionArea.setMaxWidth(Double.MAX_VALUE);
+        instructionArea.setPromptText("Wird aus dem Default-Prompt in der Konfiguration vorausgefüllt.");
 
         generateButton = new Button("Szene generieren");
         generateButton.setMaxWidth(Double.MAX_VALUE);
@@ -220,7 +231,7 @@ public class SceneWritingAgentTab extends VBox {
             }
         });
 
-        getChildren().addAll(
+        contentRoot.getChildren().addAll(
             toggleConfigButton,
             configBox,
             instructionLabel,
@@ -231,11 +242,36 @@ public class SceneWritingAgentTab extends VBox {
             metaScroll,
             resultArea
         );
+
+        toggleConfigButton.selectedProperty().addListener((obs, o, sel) -> {
+            configBox.setVisible(sel);
+            configBox.setManaged(sel);
+            AgentScrollPaneSupport.applyConfigExpandedLayout(this, contentRoot, resultArea, sel);
+        });
+        AgentScrollPaneSupport.applyConfigExpandedLayout(this, contentRoot, resultArea, false);
     }
 
     private void setMetaHintVisible(boolean visible) {
         metaScroll.setVisible(visible);
         metaScroll.setManaged(visible);
+    }
+
+    public void bindActivityTracker(AgentActivityTracker tracker) {
+        this.activityTracker = tracker;
+    }
+
+    private void registerActivity(String message) {
+        if (activityTracker != null && !activityRegistered) {
+            activityTracker.begin(message);
+            activityRegistered = true;
+        }
+    }
+
+    private void unregisterActivity() {
+        if (activityTracker != null && activityRegistered) {
+            activityTracker.end();
+            activityRegistered = false;
+        }
     }
 
     private void startGeneration() {
@@ -254,9 +290,10 @@ public class SceneWritingAgentTab extends VBox {
         setMetaHintVisible(false);
         resultArea.clear();
         statusLabel.setText("Generiere Szene…");
+        registerActivity(config.getName() + ": Szene wird generiert…");
 
         boolean useParams = useParameterModelCheck.isSelected();
-        String model = modelCombo.getValue();
+        String model = modelSelector.getValue();
         SceneContextSize contextSize = contextSizeCombo.getValue();
         if (contextSize == null) {
             contextSize = SceneContextSize.COMPACT;
@@ -273,6 +310,7 @@ public class SceneWritingAgentTab extends VBox {
                 generating = false;
                 generateButton.setDisable(false);
                 setConfigControlsDisabled(false);
+                unregisterActivity();
                 statusLabel.setText("Fehler: " + (err.getMessage() != null ? err.getMessage() : err.toString()));
             })
         );
@@ -285,6 +323,7 @@ public class SceneWritingAgentTab extends VBox {
         generating = false;
         generateButton.setDisable(false);
         setConfigControlsDisabled(false);
+        unregisterActivity();
         statusLabel.setText(message);
     }
 
@@ -292,6 +331,7 @@ public class SceneWritingAgentTab extends VBox {
         generating = false;
         generateButton.setDisable(false);
         setConfigControlsDisabled(false);
+        unregisterActivity();
         if (result.getSceneText() != null && !result.getSceneText().isBlank()) {
             resultArea.setText(result.getSceneText());
             scrollResultToTop();
@@ -357,9 +397,9 @@ public class SceneWritingAgentTab extends VBox {
                 List<String> models = backend.getAvailableModels();
                 Platform.runLater(() -> {
                     availableModels = new ArrayList<>(models);
-                    modelCombo.getItems().setAll(models);
-                    if (!models.isEmpty() && modelCombo.getValue() == null) {
-                        modelCombo.setValue(models.get(0));
+                    modelSelector.setModels(models);
+                    if (!models.isEmpty() && modelSelector.getValue() == null) {
+                        modelSelector.setValue(models.get(0));
                     }
                     statusLabel.setText(models.size() + " Modelle geladen.");
                 });
@@ -380,12 +420,12 @@ public class SceneWritingAgentTab extends VBox {
     public void setModels(List<String> models) {
         if (models != null) {
             availableModels = new ArrayList<>(models);
-            modelCombo.getItems().setAll(models);
+            modelSelector.setModels(models);
             String paramModel = config.getModel();
             if (paramModel != null && !paramModel.isBlank()) {
-                modelCombo.setValue(paramModel);
+                modelSelector.setValue(paramModel);
             } else if (!models.isEmpty()) {
-                modelCombo.setValue(models.get(0));
+                modelSelector.setValue(models.get(0));
             }
         }
     }
@@ -418,16 +458,14 @@ public class SceneWritingAgentTab extends VBox {
 
     private void setConfigControlsDisabled(boolean disabled) {
         promptArea.setDisable(disabled);
+        defaultInstructionArea.setDisable(disabled);
         temperatureSlider.setDisable(disabled);
         contextSizeCombo.setDisable(disabled);
         useParameterModelCheck.setDisable(disabled);
         if (disabled) {
-            modelCombo.setDisable(true);
-            loadModelsButton.setDisable(true);
+            modelSelector.setSelectorDisabled(true);
         } else {
-            boolean useParams = useParameterModelCheck.isSelected();
-            modelCombo.setDisable(useParams);
-            loadModelsButton.setDisable(useParams);
+            modelSelector.setSelectorDisabled(useParameterModelCheck.isSelected());
         }
     }
 
@@ -451,5 +489,15 @@ public class SceneWritingAgentTab extends VBox {
 
     public void applyFontSize(int size) {
         AgentFontSizeSupport.apply(this, size, metaLabel);
+    }
+
+    public static String loadDefaultInstruction() {
+        return Preferences.userNodeForPackage(SceneWritingAgentTab.class)
+                .get(PREF_DEFAULT_INSTRUCTION, "");
+    }
+
+    private static void persistDefaultInstruction(String instruction) {
+        Preferences.userNodeForPackage(SceneWritingAgentTab.class)
+                .put(PREF_DEFAULT_INSTRUCTION, instruction != null ? instruction : "");
     }
 }

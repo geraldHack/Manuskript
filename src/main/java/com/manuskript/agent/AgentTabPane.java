@@ -16,6 +16,7 @@ public class AgentTabPane extends TabPane {
     private final List<SceneWritingAgentTab> sceneWritingTabs = new ArrayList<>();
     private final List<ChatbotAgentTab> chatbotTabs = new ArrayList<>();
     private final Tab addTab;
+    private AgentActivityTracker activityTracker;
 
     public AgentTabPane() {
         setTabClosingPolicy(TabClosingPolicy.ALL_TABS);
@@ -31,6 +32,26 @@ public class AgentTabPane extends TabPane {
                 addNewAgent();
             }
         });
+    }
+
+    public void setActivityTracker(AgentActivityTracker tracker) {
+        this.activityTracker = tracker;
+        wireActivityTracking();
+    }
+
+    private void wireActivityTracking() {
+        if (activityTracker == null) {
+            return;
+        }
+        for (AgentTab tab : agentTabs) {
+            tab.bindActivityTracker(activityTracker);
+        }
+        for (SceneWritingAgentTab tab : sceneWritingTabs) {
+            tab.bindActivityTracker(activityTracker);
+        }
+        for (ChatbotAgentTab tab : chatbotTabs) {
+            tab.bindActivityTracker(activityTracker);
+        }
     }
 
     public void loadFromConfig() {
@@ -70,6 +91,9 @@ public class AgentTabPane extends TabPane {
 
         insertTabBeforeAdd(tab);
         agentTabs.add(agentTab);
+        if (activityTracker != null) {
+            agentTab.bindActivityTracker(activityTracker);
+        }
 
         if (saveConfig) {
             saveAllConfigs();
@@ -95,6 +119,9 @@ public class AgentTabPane extends TabPane {
 
         insertTabBeforeAdd(tab);
         sceneWritingTabs.add(sceneTab);
+        if (activityTracker != null) {
+            sceneTab.bindActivityTracker(activityTracker);
+        }
 
         if (saveConfig) {
             saveAllConfigs();
@@ -119,6 +146,9 @@ public class AgentTabPane extends TabPane {
 
         insertTabBeforeAdd(tab);
         chatbotTabs.add(chatTab);
+        if (activityTracker != null) {
+            chatTab.bindActivityTracker(activityTracker);
+        }
 
         if (saveConfig) {
             saveAllConfigs();

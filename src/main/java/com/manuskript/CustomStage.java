@@ -499,6 +499,19 @@ public class CustomStage extends Stage {
         isMaximized = false;
     }
 
+    /** Stellt normale Fenstergröße wieder her, falls maximiert (z. B. Ctrl+R Reset). */
+    public void restoreFromMaximizedIfNeeded() {
+        if (!isEffectivelyMaximized()) {
+            return;
+        }
+        if (isMacPlatform() && hasRestoreBounds) {
+            restoreWindowBounds();
+            return;
+        }
+        setMaximized(false);
+        isMaximized = false;
+    }
+
     /** True wenn das Fenster maximiert ist (eigener oder JavaFX-Zustand). */
     public boolean isEffectivelyMaximized() {
         return isMaximized || isMaximized();

@@ -17,6 +17,12 @@ public class PreferencesManager {
     // Standard-Werte für Fenster
     public static final double DEFAULT_WINDOW_WIDTH = 1200.0;
     public static final double DEFAULT_WINDOW_HEIGHT = 800.0;
+    public static final double DEFAULT_MAIN_WINDOW_WIDTH = 1400.0;
+    public static final double DEFAULT_MAIN_WINDOW_HEIGHT = 900.0;
+    public static final double DEFAULT_PROJECT_WINDOW_WIDTH = 1200.0;
+    public static final double DEFAULT_PROJECT_WINDOW_HEIGHT = 800.0;
+    public static final double DEFAULT_PROTOTYPE_EDITOR_WIDTH = DEFAULT_MAIN_WINDOW_WIDTH;
+    public static final double DEFAULT_PROTOTYPE_EDITOR_HEIGHT = DEFAULT_MAIN_WINDOW_HEIGHT;
     public static final double DEFAULT_EDITOR_WIDTH = 1200.0;
     public static final double DEFAULT_EDITOR_HEIGHT = 800.0;
     public static final double DEFAULT_DIFF_WIDTH = 1600.0;
@@ -266,13 +272,63 @@ public class PreferencesManager {
      */
     public static void resetMainWindowPreferences(Preferences prefs) {
         try {
-            prefs.putDouble("window_width", DEFAULT_WINDOW_WIDTH);
-            prefs.putDouble("window_height", DEFAULT_WINDOW_HEIGHT);
+            prefs.putDouble("main_window_width", DEFAULT_MAIN_WINDOW_WIDTH);
+            prefs.putDouble("main_window_height", DEFAULT_MAIN_WINDOW_HEIGHT);
+            prefs.remove("main_window_x");
+            prefs.remove("main_window_y");
+            prefs.remove("window_width");
+            prefs.remove("window_height");
             prefs.remove("window_x");
             prefs.remove("window_y");
         } catch (Exception e) {
             logger.error("Fehler beim Zurücksetzen der Hauptfenster-Preferences: {}", e.getMessage());
         }
+    }
+
+    public static void resetProjectWindowPreferences(Preferences prefs) {
+        try {
+            prefs.putDouble("project_window_width", DEFAULT_PROJECT_WINDOW_WIDTH);
+            prefs.putDouble("project_window_height", DEFAULT_PROJECT_WINDOW_HEIGHT);
+            prefs.remove("project_window_x");
+            prefs.remove("project_window_y");
+        } catch (Exception e) {
+            logger.error("Fehler beim Zurücksetzen der Projekt-Fenster-Preferences: {}", e.getMessage());
+        }
+    }
+
+    public static void resetPrototypeEditorWindowPreferences(Preferences prefs) {
+        try {
+            prefs.putDouble("prototype_editor_window_width", DEFAULT_PROTOTYPE_EDITOR_WIDTH);
+            prefs.putDouble("prototype_editor_window_height", DEFAULT_PROTOTYPE_EDITOR_HEIGHT);
+            prefs.remove("prototype_editor_window_x");
+            prefs.remove("prototype_editor_window_y");
+        } catch (Exception e) {
+            logger.error("Fehler beim Zurücksetzen der Kapitel-Editor-Fenster-Preferences: {}", e.getMessage());
+        }
+    }
+
+    public static Rectangle2D defaultCenteredBounds(Stage stage, double width, double height) {
+        javafx.stage.Screen screen = stage != null && stage.getScene() != null
+                ? com.manuskript.windowhandling.ScreenDetector.getCurrentScreen(stage)
+                : javafx.stage.Screen.getPrimary();
+        Rectangle2D visual = screen.getVisualBounds();
+        double w = Math.min(width, visual.getWidth());
+        double h = Math.min(height, visual.getHeight());
+        double x = visual.getMinX() + (visual.getWidth() - w) / 2;
+        double y = visual.getMinY() + (visual.getHeight() - h) / 2;
+        return new Rectangle2D(x, y, w, h);
+    }
+
+    public static void applyDefaultWindowGeometry(Stage stage, double width, double height) {
+        if (stage == null) {
+            return;
+        }
+        if (stage instanceof CustomStage customStage) {
+            customStage.restoreFromMaximizedIfNeeded();
+        } else if (stage.isMaximized()) {
+            stage.setMaximized(false);
+        }
+        MultiMonitorValidator.applyWindowProperties(stage, defaultCenteredBounds(stage, width, height));
     }
     
     /**

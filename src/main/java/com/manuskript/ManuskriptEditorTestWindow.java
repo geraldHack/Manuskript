@@ -1,5 +1,8 @@
 package com.manuskript;
 
+import com.manuskript.agent.AgentActivityBanner;
+import com.manuskript.agent.AgentActivityTracker;
+
 import javafx.beans.binding.Bindings;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -128,6 +131,7 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
     private ListChangeListener<DocxFile> chapterListChangeListener;
     private boolean dirty;
     private boolean suppressDirty;
+    private boolean transientStatusActive;
     private boolean quoteErrorsDialogShown;
     private ChapterAgentSupport chapterAgentSupport;
     private ChapterOnlineLektoratHelper lektoratHelper;
@@ -138,6 +142,8 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
     private javafx.stage.Stage featuresSetupStage;
     private ChapterTextAnalysisWindow textAnalysisWindow;
     private ChapterMacroWindow macroWindow;
+    private AgentActivityTracker agentActivityTracker;
+    private AgentActivityBanner agentActivityBanner;
 
     public ManuskriptEditorTestWindow(Window owner) {
         this(owner, null);
@@ -184,6 +190,7 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
                 .enableFontControls(true)
                 .enableJustify(true)
                 .enableBasicFormatting(true)
+                .enableExtendedFormatting(true)
                 .enableSearch(true)
                 .enableReplace(true)
                 .enableHideMarkupToggle(true)
@@ -232,7 +239,10 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         BorderPane root = new BorderPane();
         initializeStatusLabel();
         initializeSelectionLabel();
-        root.setTop(createHostToolbar());
+        agentActivityTracker = new AgentActivityTracker();
+        agentActivityBanner = new AgentActivityBanner(agentActivityTracker);
+        VBox topArea = new VBox(agentActivityBanner, createHostToolbar());
+        root.setTop(topArea);
         root.setCenter(createEditorWithSidebar());
         applyHostToolbarExpanded(hostToolbarExpanded);
         root.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
@@ -265,7 +275,9 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         PreferencesManager.MultiMonitorValidator.applyWindowProperties(
                 stage,
                 PreferencesManager.MultiMonitorValidator.loadAndValidateWindowProperties(
-                        preferences, "prototype_editor_window", 1100.0, 780.0));
+                        preferences, "prototype_editor_window",
+                        PreferencesManager.DEFAULT_PROTOTYPE_EDITOR_WIDTH,
+                        PreferencesManager.DEFAULT_PROTOTYPE_EDITOR_HEIGHT));
         setupWindowPersistence();
         stage.addEventHandler(WindowEvent.WINDOW_CLOSE_REQUEST, this::handleCloseRequest);
 
@@ -299,6 +311,7 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         sceneOutlineWindow = new SceneOutlineWindow();
         if (!onlineLektoratMode) {
             chapterAgentSupport = new ChapterAgentSupport(this, mainSplitPane);
+            chapterAgentSupport.setActivityTracker(agentActivityTracker);
             chapterAgentSupport.setSceneOutlineWindow(sceneOutlineWindow);
             chapterAgentSupport.setupIfEnabled();
             wireSelectionRevisionAgentAction();
@@ -553,6 +566,28 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
 
     private void saveSidebarState() {
         preferences.putBoolean(PREF_SIDEBAR_EXPANDED, sidebarExpanded);
+    }
+
+    /** Strg/Cmd+R: Fenster, Split-Panels, Seitenleiste und Toolbar auf Standard. */
+    public void resetScreenLayout() {
+        ChapterEditorSplitPreferences.reset(preferences);
+        if (mainSplitPane != null) {
+            ChapterEditorSplitPreferences.apply(mainSplitPane, preferences);
+        }
+        preferences.putBoolean(PREF_SIDEBAR_EXPANDED, true);
+        preferences.putBoolean(PREF_HOST_TOOLBAR_EXPANDED, true);
+        loadSidebarState();
+        applyHostToolbarExpanded(true);
+        PreferencesManager.resetPrototypeEditorWindowPreferences(preferences);
+        PreferencesManager.applyDefaultWindowGeometry(
+                stage,
+                PreferencesManager.DEFAULT_PROTOTYPE_EDITOR_WIDTH,
+                PreferencesManager.DEFAULT_PROTOTYPE_EDITOR_HEIGHT);
+        try {
+            preferences.flush();
+        } catch (Exception ignored) {
+            // flush optional
+        }
     }
 
     private void toggleHostToolbar() {
@@ -939,6 +974,13 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         EditingShortcuts.bindPlatformAccelerators(accelerators, "S", () -> Platform.runLater(this::saveLoadedChapter));
         EditingShortcuts.bindPlatformAccelerators(accelerators, "F", () -> Platform.runLater(this::focusSearchField));
         EditingShortcuts.bindPlatformAccelerators(accelerators, "H", () -> Platform.runLater(this::replaceNextMatch));
+        EditingShortcuts.bindPlatformAccelerators(accelerators, "R", () -> Platform.runLater(() -> {
+            if (mainController != null) {
+                mainController.resetAllScreenSettings();
+            } else {
+                resetScreenLayout();
+            }
+        }));
 
         stage.addEventFilter(KeyEvent.KEY_PRESSED, mdTextArea::handleSearchNavigationKey);
         editingShortcutsInstalled = true;
@@ -1067,6 +1109,7 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         if (statusLabel == null) {
             return;
         }
+        transientStatusActive = true;
         statusLabel.setText(message == null ? "" : message);
         statusLabel.setStyle(STATUS_STYLE_READY);
         scheduleStatusClear(5);
@@ -1085,13 +1128,14 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         if (statusLabel == null) {
             return;
         }
+        transientStatusActive = true;
         statusLabel.setText(message == null ? "" : message);
         statusLabel.setStyle(STATUS_STYLE_WARNING);
         scheduleStatusClear(5);
     }
 
     private void updateStatusDisplay() {
-        if (statusLabel == null) {
+        if (statusLabel == null || transientStatusActive) {
             return;
         }
         if (dirty) {
@@ -1116,6 +1160,7 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
                 statusClearFuture.cancel(false);
             }
             statusClearFuture = statusClearExecutor.schedule(() -> Platform.runLater(() -> {
+                transientStatusActive = false;
                 if (statusLabel != null) {
                     updateStatusDisplay();
                 }
@@ -2020,6 +2065,9 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
             chapterAgentSupport.restoreUserPanelVisibility();
         } else if (!enabled && chapterAgentSupport == null && mainSplitPane != null) {
             chapterAgentSupport = new ChapterAgentSupport(this, mainSplitPane);
+            if (agentActivityTracker != null) {
+                chapterAgentSupport.setActivityTracker(agentActivityTracker);
+            }
             chapterAgentSupport.setSceneOutlineWindow(sceneOutlineWindow);
             chapterAgentSupport.setupIfEnabled();
             wireSelectionRevisionAgentAction();

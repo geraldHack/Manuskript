@@ -21,6 +21,7 @@ public final class MdTextAreaOptions {
     private final boolean enableFontControls;
     private final boolean enableJustify;
     private final boolean enableBasicFormatting;
+    private final boolean enableExtendedFormatting;
     private final boolean enableSearch;
     private final boolean enableReplace;
     private final boolean enableHideMarkupToggle;
@@ -47,6 +48,7 @@ public final class MdTextAreaOptions {
         this.enableFontControls = builder.enableFontControls;
         this.enableJustify = builder.enableJustify;
         this.enableBasicFormatting = builder.enableBasicFormatting;
+        this.enableExtendedFormatting = builder.enableExtendedFormatting;
         this.enableSearch = builder.enableSearch;
         this.enableReplace = builder.enableReplace;
         this.enableHideMarkupToggle = builder.enableHideMarkupToggle;
@@ -119,6 +121,10 @@ public final class MdTextAreaOptions {
         return enableBasicFormatting;
     }
 
+    public boolean enableExtendedFormatting() {
+        return enableExtendedFormatting;
+    }
+
     public boolean enableSearch() {
         return enableSearch;
     }
@@ -174,6 +180,7 @@ public final class MdTextAreaOptions {
         private boolean enableFontControls = false;
         private boolean enableJustify = false;
         private boolean enableBasicFormatting = false;
+        private boolean enableExtendedFormatting = false;
         private boolean enableSearch = false;
         private boolean enableReplace = false;
         private boolean enableHideMarkupToggle = false;
@@ -252,6 +259,11 @@ public final class MdTextAreaOptions {
 
         public Builder enableBasicFormatting(boolean enable) {
             this.enableBasicFormatting = enable;
+            return this;
+        }
+
+        public Builder enableExtendedFormatting(boolean enable) {
+            this.enableExtendedFormatting = enable;
             return this;
         }
 

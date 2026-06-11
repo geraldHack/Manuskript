@@ -777,9 +777,8 @@ public class MainController implements Initializable {
                     DebugWindow.show(primaryStage);
                     event.consume();
                 }
-                // Ctrl+R für Reset der Bildschirmeinstellungen
-                else if (event.isControlDown() && event.getCode() == KeyCode.R) {
-                    resetScreenSettings();
+                else if (EditingShortcuts.isShortcutDown(event) && event.getCode() == KeyCode.R) {
+                    resetAllScreenSettings();
                     event.consume();
                 }
             });
@@ -787,35 +786,48 @@ public class MainController implements Initializable {
     }
     
     /**
-     * Setzt die Bildschirmeinstellungen zurück (Ctrl+R)
+     * Setzt Fenstergrößen, -positionen und Editor-Layouts zurück (Strg/Cmd+R).
      */
-    private void resetScreenSettings() {
+    public void resetAllScreenSettings() {
         try {
-            // Fenster auf Standardgröße zurücksetzen
+            PreferencesManager.resetMainWindowPreferences(preferences);
+            PreferencesManager.resetProjectWindowPreferences(preferences);
+            PreferencesManager.resetPrototypeEditorWindowPreferences(preferences);
+            ChapterEditorSplitPreferences.reset(ChapterEditorSplitPreferences.preferencesNode());
+
             if (primaryStage != null) {
-                // Aktuellen Screen ermitteln
-                var currentScreen = com.manuskript.windowhandling.ScreenDetector.getCurrentScreen(primaryStage);
-                var visualBounds = currentScreen.getVisualBounds();
-                
-                // Standardgröße: 80% des Bildschirms, zentriert
-                double standardWidth = visualBounds.getWidth() * 0.8;
-                double standardHeight = visualBounds.getHeight() * 0.8;
-                double standardX = visualBounds.getMinX() + (visualBounds.getWidth() - standardWidth) / 2;
-                double standardY = visualBounds.getMinY() + (visualBounds.getHeight() - standardHeight) / 2;
-                
-                // Fenster zurücksetzen
-                primaryStage.setMaximized(false);
-                primaryStage.setX(standardX);
-                primaryStage.setY(standardY);
-                primaryStage.setWidth(standardWidth);
-                primaryStage.setHeight(standardHeight);
-                
-                // Benachrichtigung anzeigen
-                showInfo("Bildschirmeinstellungen zurückgesetzt", 
-                    "Das Fenster wurde auf Standardgröße (80% des Bildschirms) zurückgesetzt.");
+                restoringMainWindowGeometry = true;
+                try {
+                    PreferencesManager.applyDefaultWindowGeometry(
+                            primaryStage,
+                            PreferencesManager.DEFAULT_MAIN_WINDOW_WIDTH,
+                            PreferencesManager.DEFAULT_MAIN_WINDOW_HEIGHT);
+                    saveMainWindowGeometryNow();
+                } finally {
+                    Platform.runLater(() -> restoringMainWindowGeometry = false);
+                }
             }
+
+            if (currentProjectStage != null && currentProjectStage.isShowing()) {
+                PreferencesManager.applyDefaultWindowGeometry(
+                        currentProjectStage,
+                        PreferencesManager.DEFAULT_PROJECT_WINDOW_WIDTH,
+                        PreferencesManager.DEFAULT_PROJECT_WINDOW_HEIGHT);
+            }
+
+            for (ChapterEditorHost host : new ArrayList<>(openChapterEditors.values())) {
+                if (host instanceof ManuskriptEditorTestWindow canvas) {
+                    canvas.resetScreenLayout();
+                }
+            }
+
+            preferences.flush();
+            showInfo("Bildschirmeinstellungen zurückgesetzt",
+                    "Hauptfenster, Projektfenster und offene Kapitel-Editoren "
+                            + "(Größe, Position, Seitenleiste, Split-Panels) wurden auf Standard gesetzt.");
         } catch (Exception e) {
-            logger.error("Fehler beim Zurücksetzen der Bildschirmeinstellungen: " + e.getMessage(), e);
+            logger.error("Fehler beim Zurücksetzen der Bildschirmeinstellungen: {}", e.getMessage(), e);
+            showError("Reset fehlgeschlagen", e.getMessage());
         }
     }
     private void setupDragAndDrop() {
@@ -5295,6 +5307,13 @@ public class MainController implements Initializable {
         });
         
         // Stoppe WatchService beim Schließen und prüfe ob es das letzte Fenster ist
+        if (primaryStage.getScene() != null) {
+            EditingShortcuts.bindPlatformAccelerators(
+                    primaryStage.getScene().getAccelerators(),
+                    "R",
+                    () -> Platform.runLater(this::resetAllScreenSettings));
+        }
+
         primaryStage.setOnCloseRequest(event -> {
             saveMainWindowGeometryNow();
 

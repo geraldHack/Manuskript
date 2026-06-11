@@ -40,9 +40,10 @@ import javafx.util.StringConverter;
 /**
  * Agent-Tab fuer Multi-Turn-Chat mit Sessions und Kontext-Pills.
  */
-public class ChatbotAgentTab extends VBox {
+public class ChatbotAgentTab extends ScrollPane {
 
     private final AgentConfig config;
+    private final VBox contentRoot;
 
     private final ComboBox<String> sessionCombo;
     private final FlowPane contextPills;
@@ -61,9 +62,8 @@ public class ChatbotAgentTab extends VBox {
     private final Slider temperatureSlider;
     private final Label temperatureValueLabel;
     private final CheckBox useParameterModelCheck;
-    private final ComboBox<String> modelCombo;
+    private final FilterableModelSelector modelSelector;
     private final ComboBox<ChatbotContextSize> contextSizeCombo;
-    private final Button loadModelsButton;
 
     private Runnable onConfigChanged;
     private Consumer<String> onInsertClicked;
@@ -73,6 +73,8 @@ public class ChatbotAgentTab extends VBox {
     private ChatbotSessionData currentSession;
     private ChatbotContextConfig contextConfig;
     private boolean sending = false;
+    private boolean activityRegistered = false;
+    private AgentActivityTracker activityTracker;
     private File projectDir;
     /** Name der Session, deren Q&A aktuell in {@link #chatArea} angezeigt wird. */
     private String loadedSessionName;
@@ -102,9 +104,14 @@ public class ChatbotAgentTab extends VBox {
         this.contextConfig = new ChatbotContextConfig();
         contextConfig.addSource(ChatbotContextSource.CURRENT_CHAPTER);
 
-        setPadding(new Insets(8));
-        setSpacing(6);
-        getStyleClass().addAll("agent-tab", "chatbot-agent-tab");
+        contentRoot = new VBox(6);
+        contentRoot.setPadding(new Insets(8));
+        contentRoot.setMinHeight(0);
+        contentRoot.getStyleClass().addAll("agent-tab", "chatbot-agent-tab");
+
+        setMinHeight(0);
+        AgentScrollPaneSupport.configureEntireTabScroll(this);
+        setContent(contentRoot);
 
         sessionCombo = new ComboBox<>();
         sessionCombo.setMaxWidth(Double.MAX_VALUE);
@@ -212,21 +219,16 @@ public class ChatbotAgentTab extends VBox {
 
         useParameterModelCheck = new CheckBox("Parameter-Modell verwenden");
         useParameterModelCheck.setSelected(true);
-        modelCombo = new ComboBox<>();
-        modelCombo.setEditable(true);
-        modelCombo.setMaxWidth(Double.MAX_VALUE);
-        modelCombo.setDisable(true);
-        loadModelsButton = new Button("Modelle laden");
-        loadModelsButton.setDisable(true);
-        keepButtonReadable(loadModelsButton);
+        modelSelector = new FilterableModelSelector(true);
+        modelSelector.setSelectorDisabled(true);
+        modelSelector.setOnLoad(this::loadModelsAsync);
+        keepButtonReadable(modelSelector.getLoadButton());
         useParameterModelCheck.selectedProperty().addListener((obs, o, useParams) -> {
             if (!sending) {
-                modelCombo.setDisable(useParams);
-                loadModelsButton.setDisable(useParams);
+                modelSelector.setSelectorDisabled(useParams);
             }
             persistSessionSettings();
         });
-        loadModelsButton.setOnAction(e -> loadModelsAsync());
 
         contextSizeCombo = new ComboBox<>();
         contextSizeCombo.getItems().setAll(ChatbotContextSize.values());
@@ -241,24 +243,23 @@ public class ChatbotAgentTab extends VBox {
             }
         });
 
-        modelCombo.setMinWidth(0);
-        HBox modelRow = new HBox(8, modelCombo, loadModelsButton);
-        HBox.setHgrow(modelCombo, Priority.ALWAYS);
+        modelSelector.getComboBox().setMinWidth(0);
 
         configBox.getChildren().addAll(
                 new Label("System-Prompt:"), promptArea,
                 createSliderRow("Temperatur:", temperatureSlider, temperatureValueLabel),
                 useParameterModelCheck,
-                new Label("Modell:"), modelRow,
+                new Label("Modell:"), modelSelector,
                 new Label("Kontextgröße:"), contextSizeCombo
         );
 
         toggleConfigButton.selectedProperty().addListener((obs, o, sel) -> {
             configBox.setVisible(sel);
             configBox.setManaged(sel);
+            AgentScrollPaneSupport.applyConfigExpandedLayout(this, contentRoot, chatArea, sel);
         });
 
-        getChildren().addAll(
+        contentRoot.getChildren().addAll(
                 sessionRow,
                 addContextButton,
                 contextPills,
@@ -271,6 +272,7 @@ public class ChatbotAgentTab extends VBox {
                 toggleConfigButton,
                 configBox
         );
+        AgentScrollPaneSupport.applyConfigExpandedLayout(this, contentRoot, chatArea, false);
 
         refreshContextPills();
     }
@@ -397,7 +399,7 @@ public class ChatbotAgentTab extends VBox {
         temperatureSlider.setValue(currentSession.getTemperature() > 0
                 ? currentSession.getTemperature() : config.getTemperature());
         if (currentSession.getModel() != null && !currentSession.getModel().isBlank()) {
-            modelCombo.setValue(currentSession.getModel());
+            modelSelector.setValue(currentSession.getModel());
         }
         refreshContextPills();
         updateNeighborSpinnersVisibility();
@@ -412,7 +414,7 @@ public class ChatbotAgentTab extends VBox {
         currentSession.setContextSize(contextConfig.getContextSize().name());
         currentSession.setTemperature(temperatureSlider.getValue());
         currentSession.setUseParameterModel(useParameterModelCheck.isSelected());
-        currentSession.setModel(modelCombo.getValue());
+        currentSession.setModel(modelSelector.getValue());
         ChatbotSessionStore.save(projectDir, currentSession);
     }
 
@@ -500,6 +502,24 @@ public class ChatbotAgentTab extends VBox {
         statusLabel.setText("Chat geleert.");
     }
 
+    public void bindActivityTracker(AgentActivityTracker tracker) {
+        this.activityTracker = tracker;
+    }
+
+    private void registerActivity(String message) {
+        if (activityTracker != null && !activityRegistered) {
+            activityTracker.begin(message);
+            activityRegistered = true;
+        }
+    }
+
+    private void unregisterActivity() {
+        if (activityTracker != null && activityRegistered) {
+            activityTracker.end();
+            activityRegistered = false;
+        }
+    }
+
     private void sendMessage() {
         if (sending) {
             return;
@@ -526,13 +546,14 @@ public class ChatbotAgentTab extends VBox {
         sending = true;
         sendButton.setDisable(true);
         statusLabel.setText("Denke nach…");
+        registerActivity(config.getName() + ": Chat-Anfrage läuft…");
 
         ChatbotContextSize size = contextSizeCombo.getValue();
         if (size == null) {
             size = ChatbotContextSize.COMPACT;
         }
         boolean useParams = useParameterModelCheck.isSelected();
-        String model = modelCombo.getValue();
+        String model = modelSelector.getValue();
         double temp = temperatureSlider.getValue();
 
         String validationError = messageHandler.sendMessage(
@@ -547,6 +568,7 @@ public class ChatbotAgentTab extends VBox {
                 err -> Platform.runLater(() -> {
                     sending = false;
                     sendButton.setDisable(false);
+                    unregisterActivity();
                     chatArea.setAnswerAt(qaIndex, "Fehler: "
                             + (err.getMessage() != null ? err.getMessage() : err.toString()));
                     persistSessionSettings();
@@ -556,6 +578,7 @@ public class ChatbotAgentTab extends VBox {
         if (validationError != null) {
             sending = false;
             sendButton.setDisable(false);
+            unregisterActivity();
             statusLabel.setText(validationError);
         }
     }
@@ -563,6 +586,7 @@ public class ChatbotAgentTab extends VBox {
     private void finishSend(int qaIndex, String answer) {
         sending = false;
         sendButton.setDisable(false);
+        unregisterActivity();
         String text = answer != null ? answer.trim() : "";
         if (text.isEmpty()) {
             text = "(Keine Textantwort vom Modell — ggf. anderes Modell wählen oder Kontext verkleinern.)";
@@ -628,9 +652,9 @@ public class ChatbotAgentTab extends VBox {
                 AIBackend backend = createBackendForModelLoad();
                 List<String> models = backend.getAvailableModels();
                 Platform.runLater(() -> {
-                    modelCombo.getItems().setAll(models);
-                    if (!models.isEmpty() && modelCombo.getValue() == null) {
-                        modelCombo.setValue(models.get(0));
+                    modelSelector.setModels(models);
+                    if (!models.isEmpty() && modelSelector.getValue() == null) {
+                        modelSelector.setValue(models.get(0));
                     }
                     statusLabel.setText(models.size() + " Modelle geladen.");
                 });
@@ -650,12 +674,12 @@ public class ChatbotAgentTab extends VBox {
 
     public void setModels(List<String> models) {
         if (models != null) {
-            modelCombo.getItems().setAll(models);
+            modelSelector.setModels(models);
             String paramModel = config.getModel();
             if (paramModel != null && !paramModel.isBlank()) {
-                modelCombo.setValue(paramModel);
+                modelSelector.setValue(paramModel);
             } else if (!models.isEmpty()) {
-                modelCombo.setValue(models.get(0));
+                modelSelector.setValue(models.get(0));
             }
         }
     }

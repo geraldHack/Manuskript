@@ -1,5 +1,6 @@
 package com.manuskript;
 
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
@@ -81,6 +82,7 @@ public class MdTextArea extends VBox {
                 || opts.enableFontControls()
                 || opts.enableJustify()
                 || opts.enableBasicFormatting()
+                || opts.enableExtendedFormatting()
                 || opts.enableSearch()
                 || opts.enableHideMarkupToggle();
         if (!hasContent) {
@@ -96,6 +98,9 @@ public class MdTextArea extends VBox {
         }
         if (opts.enableJustify() || opts.enableBasicFormatting()) {
             toolbar.getChildren().add(buildFormatRow(opts));
+        }
+        if (opts.enableExtendedFormatting()) {
+            toolbar.getChildren().add(buildExtendedFormatRow());
         }
         if (opts.enableSearch()) {
             toolbar.getChildren().add(searchSupport.buildSearchBlock(opts.enableReplace()));
@@ -261,6 +266,41 @@ public class MdTextArea extends VBox {
                     }));
         }
         return formatPane;
+    }
+
+    private FlowPane buildExtendedFormatRow() {
+        FlowPane extendedPane = new FlowPane(6, 4);
+        extendedPane.setAlignment(Pos.CENTER_LEFT);
+        extendedPane.getChildren().addAll(
+                toolbarButton("H", "Überschrift (# …)", () -> {
+                    editor.toggleHeading();
+                    editor.requestInputFocus();
+                }),
+                toolbarButton("•", "Aufzählungsliste (-)", () -> {
+                    editor.toggleUnorderedList();
+                    editor.requestInputFocus();
+                }),
+                toolbarButton("1.", "Nummerierte Liste", () -> {
+                    editor.toggleOrderedList();
+                    editor.requestInputFocus();
+                }),
+                toolbarButton("Link", "Link [Text](URL)", () -> {
+                    editor.insertLinkPlaceholder();
+                    editor.requestInputFocus();
+                }),
+                toolbarButton("`", "Inline-Code oder Code-Block", () -> {
+                    editor.wrapInlineCode();
+                    editor.requestInputFocus();
+                }),
+                toolbarButton("━", "Horizontale Linie (---)", () -> {
+                    editor.insertHorizontalRule();
+                    editor.requestInputFocus();
+                }),
+                toolbarButton(">", "Zitat (> Zeile)", () -> {
+                    editor.toggleBlockquote();
+                    editor.requestInputFocus();
+                }));
+        return extendedPane;
     }
 
     public ManuskriptTextEditor getEditor() {
@@ -502,7 +542,7 @@ public class MdTextArea extends VBox {
                             regexCheckbox.isSelected(),
                             true);
                     invalidateSearchCache();
-                    reportStatus(count + " Treffer ersetzt");
+                    reportReplaceAllStatus(count);
                 });
                 searchActions.getChildren().addAll(replaceOne, replaceAll);
             }
@@ -605,12 +645,12 @@ public class MdTextArea extends VBox {
             refreshSearchCacheIfNeeded();
             if (cachedSearchMatches.isEmpty()) {
                 clearSearchMarks();
-                reportStatus("Ersetzt – keine weiteren Treffer");
+                reportStatusLater("Ersetzt – keine weiteren Treffer");
                 return;
             }
             int nextIndex = Math.min(index, cachedSearchMatches.size() - 1);
             goToSearchMatch(nextIndex);
-            reportStatus("Ersetzt, Treffer " + (nextIndex + 1) + " von " + cachedSearchMatches.size());
+            reportStatusLater("Ersetzt, Treffer " + (nextIndex + 1) + " von " + cachedSearchMatches.size());
         }
 
         void handleSearchNavigationKey(KeyEvent event) {
@@ -753,6 +793,24 @@ public class MdTextArea extends VBox {
         private void reportStatus(String message, boolean error) {
             if (statusConsumer != null) {
                 statusConsumer.accept(message);
+            }
+        }
+
+        /** Nach Textänderungen (runLater), damit Host-Status nicht sofort überschrieben wird. */
+        private void reportStatusLater(String message) {
+            if (statusConsumer == null) {
+                return;
+            }
+            Platform.runLater(() -> statusConsumer.accept(message));
+        }
+
+        private void reportReplaceAllStatus(int count) {
+            if (count == 0) {
+                reportStatusLater("Keine Vorkommen ersetzt");
+            } else if (count == 1) {
+                reportStatusLater("1 Vorkommen ersetzt");
+            } else {
+                reportStatusLater(count + " Vorkommen ersetzt");
             }
         }
     }

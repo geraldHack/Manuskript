@@ -11,6 +11,7 @@ import com.manuskript.agent.ChatbotContextBuilder;
 import com.manuskript.agent.ChatbotContextConfig;
 import com.manuskript.agent.OllamaBackend;
 import com.manuskript.agent.OpenAIBackend;
+import com.manuskript.agent.AgentActivityTracker;
 import com.manuskript.agent.AgentAnalysisErrors;
 import com.manuskript.agent.AgentSamplingParams;
 import com.manuskript.agent.PlotholeAgent;
@@ -54,6 +55,7 @@ public class ChapterAgentSupport {
     private Timeline agentRealtimeTimeline;
     private boolean agentPanelVisible;
     private boolean userWantsPanelVisible = true;
+    private AgentActivityTracker activityTracker;
 
     public ChapterAgentSupport(ChapterEditorHost host, SplitPane mainSplitPane) {
         this.host = host;
@@ -64,6 +66,13 @@ public class ChapterAgentSupport {
         this.sceneOutlineWindow = sceneOutlineWindow;
     }
 
+    public void setActivityTracker(AgentActivityTracker tracker) {
+        this.activityTracker = tracker;
+        if (agentTabPane != null) {
+            agentTabPane.setActivityTracker(tracker);
+        }
+    }
+
     public void setupIfEnabled() {
         boolean agentEnabled = Boolean.parseBoolean(
                 ResourceManager.getParameter("agent.enabled", "true"));
@@ -71,6 +80,9 @@ public class ChapterAgentSupport {
             return;
         }
         agentTabPane = new AgentTabPane();
+        if (activityTracker != null) {
+            agentTabPane.setActivityTracker(activityTracker);
+        }
         agentTabPane.loadFromConfig();
         for (AgentTab tab : agentTabPane.getAgentTabs()) {
             setupAgentTabCallbacks(tab);

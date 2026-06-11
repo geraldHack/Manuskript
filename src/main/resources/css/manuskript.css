@@ -10609,6 +10609,22 @@
     -fx-text-fill: #ff9800;
 }
 
+.agent-activity-banner {
+    -fx-background-color: #fff8e1;
+    -fx-border-color: #ffcc80;
+    -fx-border-width: 0 0 1 0;
+}
+
+.agent-activity-message {
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #e65100;
+}
+
+.agent-activity-spinner {
+    -fx-progress-color: #ff9800;
+}
+
 .agent-empty-label {
     -fx-font-size: 11px;
     -fx-text-fill: #aaa;
@@ -10621,16 +10637,22 @@
     -fx-wrap-text: true;
 }
 
-.agent-scroll {
+.agent-scroll,
+.agent-tab-scroll,
+.param-tab-scroll {
     -fx-background-color: transparent;
 }
 
-.agent-scroll > .viewport {
+.agent-scroll > .viewport,
+.agent-tab-scroll > .viewport,
+.param-tab-scroll > .viewport {
     -fx-background-color: transparent;
 }
 
 /* Agenten-Panel + Canvas-Editor: gut sichtbare vertikale Scrollbar */
 .agent-scroll .scroll-bar:vertical,
+.agent-tab-scroll .scroll-bar:vertical,
+.param-tab-scroll .scroll-bar:vertical,
 .manuskript-text-editor .scroll-bar:vertical,
 .scene-writing-agent-tab .text-area .scroll-bar:vertical {
     -fx-pref-width: 12px;
@@ -10844,6 +10866,19 @@
 
 .theme-dark .agent-status {
     -fx-text-fill: #999;
+}
+
+.theme-dark .agent-activity-banner {
+    -fx-background-color: #3d3520;
+    -fx-border-color: #8d6e00;
+}
+
+.theme-dark .agent-activity-message {
+    -fx-text-fill: #ffb74d;
+}
+
+.theme-dark .agent-activity-spinner {
+    -fx-progress-color: #ffb74d;
 }
 
 .theme-dark .agent-empty-label {

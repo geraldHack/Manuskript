@@ -17,6 +17,7 @@ public final class DialogPositioning {
     }
 
     /**
+     * 
      * Zentriert die Stage einmal nach dem Anzeigen (wenn Breite/Höhe bekannt sind).
      */
     public static void centerWhenShown(Stage stage, Window owner) {

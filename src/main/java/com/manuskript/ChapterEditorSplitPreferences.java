@@ -113,4 +113,19 @@ public final class ChapterEditorSplitPreferences {
     private static double clamp(double position) {
         return Math.max(MIN_DIVIDER, Math.min(MAX_DIVIDER, position));
     }
+
+    public static void reset(Preferences prefs) {
+        if (prefs == null) {
+            return;
+        }
+        try {
+            for (String key : prefs.keys()) {
+                if (key.startsWith(PREF_KEY_PREFIX)) {
+                    prefs.remove(key);
+                }
+            }
+        } catch (Exception ignored) {
+            // Preferences.keys() kann fehlschlagen
+        }
+    }
 }
