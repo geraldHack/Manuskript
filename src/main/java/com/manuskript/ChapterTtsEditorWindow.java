@@ -309,6 +309,10 @@ public class ChapterTtsEditorWindow {
     private double playbackTrimStartSec = 0;
 
     private ComboBox<ComfyUIClient.SavedVoice> voiceCombo;
+    private Button btnSaveCurrentVoice;
+    private TabPane ttsTabPane;
+    private Tab ttsMainTab;
+    private TtsVoiceSearchPanel ttsVoiceSearchPanel;
     private Slider temperatureSlider;
     private Label temperatureLabel;
     private Slider topPSlider;
@@ -362,6 +366,8 @@ public class ChapterTtsEditorWindow {
     private Button btnBatchToggle;
     private volatile boolean batchCancelled = false;
     private ProgressIndicator progressIndicator;
+    /** Wandernder Busy-Balken in der Statusleiste waehrend TTS-/Batch-Generierung. */
+    private ProgressBar ttsStatusBusyBar;
     /** Busy-Indicator für v3 Audio-Tagging. */
     private ProgressIndicator v3TagProgressIndicator;
     private Label v3TagCheckmark;
@@ -655,6 +661,9 @@ public class ChapterTtsEditorWindow {
                     ttsPrefs.putBoolean("tts_auto_save", w.autoSaveCheckBox.isSelected());
                 }
             }
+            if (w.ttsVoiceSearchPanel != null) {
+                w.ttsVoiceSearchPanel.persistSampleText();
+            }
         });
         w.stage.show();
         // Hash-Pruefung NACH stage.show(), damit der Diff-Dialog (showAndWait) korrekt angezeigt werden kann
@@ -769,8 +778,12 @@ public class ChapterTtsEditorWindow {
         btnComfyUIHelp.setPrefWidth(30);
         btnComfyUIHelp.setOnAction(e -> showComfyUIHelp());
 
+        btnSaveCurrentVoice = new Button("Stimme speichern…");
+        btnSaveCurrentVoice.setTooltip(new Tooltip("Aktuelle ComfyUI-Parameter (Slider, Seed, Beschreibung) als neue Stimme in config/tts-voices.json speichern."));
+        btnSaveCurrentVoice.setOnAction(e -> saveCurrentTtsParamsAsVoice());
+
         HBox voiceRow = new HBox(6);
-        voiceRow.getChildren().addAll(voiceLabel, voiceCombo, btnComfyUIHelp);
+        voiceRow.getChildren().addAll(voiceLabel, voiceCombo, btnSaveCurrentVoice, btnComfyUIHelp);
         HBox.setHgrow(voiceCombo, Priority.ALWAYS);
 
         elevenLabsModelCombo = new ComboBox<>();
@@ -1166,6 +1179,7 @@ public class ChapterTtsEditorWindow {
         trimStartLabel = new Label("Anfang abschneiden: 0,00 s");
         trimStartSlider.valueProperty().addListener((o, a, b) -> {
             double sec = b.doubleValue();
+            playbackTrimStartSec = Math.max(0, sec);
             if (trimStartLabel != null) trimStartLabel.setText(String.format(java.util.Locale.ROOT, "Anfang abschneiden: %.2f s", sec));
         });
         trimStartSlider.setTooltip(new Tooltip("Einschwingtext am Anfang weglassen. Bei Batch kann die tatsächliche Einschwing-Dauer je nach Absatzlänge leicht variieren (TTS-abhängig)."));
@@ -1227,7 +1241,7 @@ public class ChapterTtsEditorWindow {
         erstellenIconStack.setMaxSize(20, 20);
         erstellenIconStack.getChildren().addAll(progressIndicator, successCheckmark);
         btnAufnahme = new Button("Aufnahme");
-        btnAufnahme.setTooltip(new Tooltip("Segment-Text per Mikrofon einsprechen, abspielen, dann mit ElevenLabs (multilingual v2) konvertieren und als Segment übernehmen."));
+        btnAufnahme.setTooltip(new Tooltip("Mikrofon-Aufnahme und Umwandlung per ElevenLabs Speech-to-Speech (nur ElevenLabs-Stimmen). Bei Voice Clone/ComfyUI: „Erstellen“ nutzen."));
         btnAufnahme.setDisable(true);
         btnAufnahme.setOnAction(e -> openRecordingWindow());
         HBox erstellenRow = new HBox(8);
@@ -1237,9 +1251,18 @@ public class ChapterTtsEditorWindow {
         statusLabel.setWrapText(true);
         statusLabel.setMaxWidth(Double.MAX_VALUE);
         statusLabel.getStyleClass().add("param-key-label");
-        VBox statusBar = new VBox(0);
+        ttsStatusBusyBar = new ProgressBar();
+        ttsStatusBusyBar.getStyleClass().add("tts-generation-busy-bar");
+        ttsStatusBusyBar.setProgress(ProgressBar.INDETERMINATE_PROGRESS);
+        ttsStatusBusyBar.setPrefHeight(6);
+        ttsStatusBusyBar.setMinHeight(6);
+        ttsStatusBusyBar.setMaxHeight(6);
+        ttsStatusBusyBar.setMaxWidth(Double.MAX_VALUE);
+        ttsStatusBusyBar.setVisible(false);
+        ttsStatusBusyBar.setManaged(false);
+        VBox statusBar = new VBox(4);
         statusBar.getStyleClass().add("param-card");
-        statusBar.getChildren().add(statusLabel);
+        statusBar.getChildren().addAll(statusLabel, ttsStatusBusyBar);
         statusBar.setMaxWidth(Double.MAX_VALUE);
 
         selectionWordCountLabel = new Label("");
@@ -1369,10 +1392,57 @@ public class ChapterTtsEditorWindow {
         TabPane tabPane = new TabPane();
         Tab ttsTab = new Tab("TTS", left);
         ttsTab.setClosable(false);
+        ttsVoiceSearchPanel = new TtsVoiceSearchPanel(new TtsVoiceSearchPanel.Host() {
+            @Override
+            public javafx.stage.Window ownerWindow() {
+                return stage;
+            }
+
+            @Override
+            public void onVoiceSaved(ComfyUIClient.SavedVoice voice) {
+                loadCombinedVoiceList();
+                if (ttsVoiceSearchPanel != null) ttsVoiceSearchPanel.reloadSavedVoicesList();
+                if (voice != null) {
+                    for (ComfyUIClient.SavedVoice v : voiceCombo.getItems()) {
+                        if (v != null && voice.getName().equals(v.getName())) {
+                            voiceCombo.getSelectionModel().select(v);
+                            applyVoiceToParams(v);
+                            return;
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void onUseForTts(ComfyUIClient.SavedVoice voice) {
+                loadCombinedVoiceList();
+                if (voice != null) {
+                    for (ComfyUIClient.SavedVoice v : voiceCombo.getItems()) {
+                        if (v != null && voice.getName().equals(v.getName())) {
+                            voiceCombo.getSelectionModel().select(v);
+                            applyVoiceToParams(v);
+                            break;
+                        }
+                    }
+                }
+                if (ttsTabPane != null && ttsMainTab != null) {
+                    ttsTabPane.getSelectionModel().select(ttsMainTab);
+                }
+            }
+
+            @Override
+            public void setStatus(String message) {
+                ChapterTtsEditorWindow.this.setStatus(message);
+            }
+        });
+        Tab searchTab = new Tab("Stimmsuche", ttsVoiceSearchPanel.buildContent());
+        searchTab.setClosable(false);
         Node vcContent = buildVoiceCloneTabContent();
         Tab vcTab = new Tab("Voice Clone", vcContent);
         vcTab.setClosable(false);
-        tabPane.getTabs().addAll(ttsTab, vcTab);
+        tabPane.getTabs().addAll(ttsTab, searchTab, vcTab);
+        this.ttsTabPane = tabPane;
+        this.ttsMainTab = ttsTab;
 
         VBox wrapper = new VBox(12);
         wrapper.setPadding(new Insets(12));
@@ -1434,6 +1504,7 @@ public class ChapterTtsEditorWindow {
         applyThemeToNode(btnV3AudioTag, themeIndex);
         applyThemeToNode(statusBar, themeIndex);
         applyThemeToNode(statusLabel, themeIndex);
+        applyThemeToNode(ttsStatusBusyBar, themeIndex);
         applyThemeToNode(segmentColorLabel, themeIndex);
         applyThemeToNode(colorPalette, themeIndex);
         applyThemeToNode(btnPlay, themeIndex);
@@ -2195,15 +2266,20 @@ public class ChapterTtsEditorWindow {
             dialogueList.append(dialogue.index).append("| ").append(dialogue.dialogue).append("\n");
         }
 
+        String tagFormatExample = buildScriptTagFormatExample(speakers, emotionTags);
         String systemPrompt = """
                 Du bist ein Tagging-Assistent fuer direkte Rede.
                 Aufgabe: Gib NUR Zuordnungen fuer Tags je Dialognummer zurueck.
                 Regeln:
                 - Antworte ausschliesslich zeilenweise im Format: <nummer>|<tags>
-                - <tags> enthaelt nur eckige Klammer-Tags, z.B. [Kalem][surprised]
+                - <tags> enthaelt nur eckige Klammer-Tags, z.B. """
+                + tagFormatExample + """
+                
+                - Sprecher-Tags NUR als exakte Namen aus der Sprecherliste (werden zu Stimm-Tags aufgeloest).
+                - Keine Sprecher-Namen erfinden oder aus anderen Buechern uebernehmen.
+                - Emotions-/Delivery-Tags nur aus der Emotionsliste oder aus den Stimm-Tags der Sprecher.
                 - Keine Erklaerungen, kein Fliesstext, keine Code-Fences.
                 - Wenn unsicher: <nummer>| (leer lassen).
-                - Nutze bevorzugt die vorgegebenen Sprecher- und Emotions-Tags.
                 """;
 
         String userMessage = "Sprecherliste:\n"
@@ -2228,7 +2304,7 @@ public class ChapterTtsEditorWindow {
         logger.info("Script Step 1 parsing {} lines", lines.length);
         for (String line : lines) {
             if (line == null || line.isBlank()) continue;
-            // API liefert Format: Zeilennummer|Dialog-Nummer|Tags (z.B. "50|1|[Letos][excitedly]")
+            // API liefert Format: Zeilennummer|Dialog-Nummer|Tags (z.B. "50|1|[Sprecher][Emotion]")
             Matcher m = Pattern.compile("^\\s*(?:[-*]\\s*)?(?:\\d+)\\s*[:|;-]\\s*(\\d+)\\s*[:|;-]\\s*(.*)$").matcher(line);
             if (!m.matches()) {
                 // Fallback: altes Format ohne Zeilennummer (z.B. "1|[tags]")
@@ -2286,9 +2362,39 @@ public class ChapterTtsEditorWindow {
         return dialogues;
     }
 
+    private static String buildScriptTagFormatExample(List<ScriptSpeakerDefinition> speakers, List<String> emotionTags) {
+        String speakerPart = (speakers != null && !speakers.isEmpty() && speakers.get(0).name != null && !speakers.get(0).name.isBlank())
+                ? "[" + speakers.get(0).name.trim() + "]"
+                : "[Sprechername]";
+        String emotionPart = "[Emotion]";
+        if (emotionTags != null) {
+            for (String e : emotionTags) {
+                if (e == null || e.isBlank()) continue;
+                String trimmed = e.trim();
+                emotionPart = trimmed.startsWith("[") ? trimmed : "[" + trimmed + "]";
+                break;
+            }
+        }
+        return speakerPart + emotionPart;
+    }
+
+    private static Set<String> buildKnownSpeakerNameKeys(List<ScriptSpeakerDefinition> speakers) {
+        Set<String> keys = new LinkedHashSet<>();
+        if (speakers == null) return keys;
+        for (ScriptSpeakerDefinition s : speakers) {
+            if (s == null || s.name == null || s.name.isBlank()) continue;
+            String name = s.name.trim().toLowerCase(Locale.ROOT);
+            keys.add(name);
+            String canonical = canonicalizeSpeakerOrTag(name);
+            if (!canonical.isEmpty()) keys.add(canonical);
+        }
+        return keys;
+    }
+
     private static String normalizeScriptTags(String raw, List<ScriptSpeakerDefinition> speakers) {
         if (raw == null || raw.isBlank()) return "";
         Map<String, String> speakerTagsByName = buildSpeakerTagsByName(speakers);
+        Set<String> knownSpeakerKeys = buildKnownSpeakerNameKeys(speakers);
 
         Map<String, String> uniqueTagsByKey = new LinkedHashMap<>();
         Matcher matcher = BRACKET_TAG_PATTERN.matcher(raw);
@@ -2303,6 +2409,8 @@ public class ChapterTtsEditorWindow {
             }
             if (mappedSpeakerTags != null && !mappedSpeakerTags.isEmpty()) {
                 appendUniqueScriptTags(uniqueTagsByKey, mappedSpeakerTags);
+            } else if (TtsTagMapper.isLikelyHallucinatedSpeakerTag(inner, knownSpeakerKeys)) {
+                logger.warn("Script: unbekannter Sprecher-Tag verworfen: [{}]", inner);
             } else {
                 appendUniqueScriptTag(uniqueTagsByKey, t);
             }
@@ -2318,7 +2426,7 @@ public class ChapterTtsEditorWindow {
     private String replaceSpeakerNameTagsInText(String text, List<ScriptSpeakerDefinition> speakers) {
         if (text == null || text.isBlank()) return text;
         Map<String, String> speakerTagsByName = buildSpeakerTagsByName(speakers);
-        if (speakerTagsByName.isEmpty()) return text;
+        Set<String> knownSpeakerKeys = buildKnownSpeakerNameKeys(speakers);
 
         Matcher matcher = BRACKET_TAG_PATTERN.matcher(text);
         StringBuffer out = new StringBuffer();
@@ -2334,6 +2442,9 @@ public class ChapterTtsEditorWindow {
                 }
                 if (mapped != null && !mapped.isEmpty()) {
                     replacement = mapped;
+                } else if (TtsTagMapper.isLikelyHallucinatedSpeakerTag(inner, knownSpeakerKeys)) {
+                    replacement = "";
+                    logger.warn("Script: unbekannter Sprecher-Tag im Text entfernt: [{}]", inner);
                 }
             }
             matcher.appendReplacement(out, Matcher.quoteReplacement(replacement));
@@ -4051,15 +4162,17 @@ public class ChapterTtsEditorWindow {
                 return; // bereits am Abspielen
             }
             if (status == MediaPlayer.Status.PAUSED) {
-                embeddedPlayer.play();
+                double trimSec = getEffectivePlaybackTrimSec(0);
+                Duration cur = embeddedPlayer.getCurrentTime();
+                if (trimSec > 0 && cur != null && cur.toSeconds() + 0.05 < trimSec) {
+                    playEmbeddedPlayerFromTrim();
+                } else {
+                    embeddedPlayer.play();
+                }
                 return;
             }
-            // STOPPED / READY: ggf. an Trim-Position seeken (Einschwing-Ende oder Slider), dann abspielen
-            double trimSec = (playbackTrimStartSec > 0) ? playbackTrimStartSec : ((trimStartSlider != null) ? trimStartSlider.getValue() : 0);
-            if (trimSec > 0) {
-                embeddedPlayer.seek(Duration.seconds(trimSec));
-            }
-            embeddedPlayer.play();
+            // STOPPED / READY / nach Ende: Seek mit Settle, sonst startet die Wiedergabe wieder bei 0 s
+            playEmbeddedPlayerFromTrim();
         });
         btnPause.setOnAction(e -> {
             if (embeddedPlayer == null) return;
@@ -4229,7 +4342,7 @@ public class ChapterTtsEditorWindow {
         Duration total = embeddedPlayer.getTotalDuration();
         if (total == null || !total.greaterThan(Duration.ZERO)) return;
         double totalSec = total.toSeconds();
-        double trimSec = (trimStartSlider != null) ? trimStartSlider.getValue() : 0;
+        double trimSec = getEffectivePlaybackTrimSec(0);
         double playableSec = Math.max(0, totalSec - trimSec);
         double targetSec = trimSec + frac * playableSec;
         targetSec = Math.max(0, Math.min(totalSec, targetSec));
@@ -4360,11 +4473,24 @@ public class ChapterTtsEditorWindow {
         return TRAIL_SILENCE_SECONDS;
     }
 
+    /** Aufnahme-Modus: ElevenLabs Speech-to-Speech (nicht ComfyUI Voice Clone / CustomVoice). */
+    private static boolean isAufnahmeModeAvailable(ComfyUIClient.SavedVoice voice) {
+        return voice != null && "elevenlabs".equalsIgnoreCase(voice.getProvider())
+                && voice.getElevenLabsVoiceId() != null && !voice.getElevenLabsVoiceId().isBlank();
+    }
+
+    private void updateAufnahmeButtonState(String selectedText) {
+        if (btnAufnahme == null) return;
+        ComfyUIClient.SavedVoice v = voiceCombo != null ? voiceCombo.getSelectionModel().getSelectedItem() : null;
+        boolean hasSelection = selectedText != null && !selectedText.isBlank();
+        btnAufnahme.setDisable(!hasSelection || !isAufnahmeModeAvailable(v));
+    }
+
     /** Aktualisiert den Wortzaehler fuer die aktuelle Textselektion und aktiviert/deaktiviert den Aufnahme-Button und Erstellen-Button. */
     private void updateSelectionWordCount() {
         if (selectionWordCountLabel == null || codeArea == null) return;
         String sel = codeArea.getSelectedText();
-        if (btnAufnahme != null) btnAufnahme.setDisable(sel == null || sel.isBlank());
+        updateAufnahmeButtonState(sel);
         
         // Erstellen-Button nur aktiv wenn Text ausgewählt ist UND nicht in einem Segment enthalten ist
         if (btnErstellen != null && !isTtsGenerationRunning) {
@@ -4412,6 +4538,127 @@ public class ChapterTtsEditorWindow {
             return " <break time=\"2.5s\" /> ";
         }
         return " ... ";
+    }
+
+    /** Grobe Sprechgeschwindigkeit fuer Einschwing-Schaetzung (Zeichen/s). */
+    private static final double EINSCHWING_CHARS_PER_SEC = 11.0;
+    private static final double EINSCHWING_TRIM_PAD_SEC = 0.25;
+
+    /** Effektive Abspielposition: expliziter Start, dann gespeicherter Trim, dann Slider. */
+    private double getEffectivePlaybackTrimSec(double explicitStartSec) {
+        if (explicitStartSec > 0) return explicitStartSec;
+        if (playbackTrimStartSec > 0) return playbackTrimStartSec;
+        if (trimStartSlider != null) return Math.max(0, trimStartSlider.getValue());
+        return 0;
+    }
+
+    /** Trim-Start fuer Wiedergabe merken (Slider + interner Wert). */
+    private void applyPlaybackTrimSec(double trimSec) {
+        double sec = Math.max(0, trimSec);
+        playbackTrimStartSec = sec;
+        if (trimStartSlider != null && sec > 0) {
+            trimStartSlider.setValue(Math.min(trimStartSlider.getMax(), sec));
+        }
+    }
+
+    /**
+     * Seek ist asynchron – ohne kurze Verzoegerung startet play() oft noch bei 0 s (besonders nach Stop/Ende).
+     */
+    private void seekPlayerAndThen(MediaPlayer player, double trimSec, Runnable thenRun) {
+        if (player == null) {
+            if (thenRun != null) thenRun.run();
+            return;
+        }
+        if (seekSettleTransition != null) {
+            seekSettleTransition.stop();
+            seekSettleTransition = null;
+        }
+        if (trimSec <= 0) {
+            if (thenRun != null) thenRun.run();
+            return;
+        }
+        player.seek(Duration.seconds(trimSec));
+        seekSettleTransition = new PauseTransition(Duration.millis(SEEK_SETTLE_MS));
+        seekSettleTransition.setOnFinished(e -> {
+            seekSettleTransition = null;
+            if (thenRun != null) thenRun.run();
+        });
+        seekSettleTransition.play();
+    }
+
+    private void playEmbeddedPlayerFromTrim() {
+        if (embeddedPlayer == null) return;
+        double trimSec = getEffectivePlaybackTrimSec(0);
+        seekPlayerAndThen(embeddedPlayer, trimSec, () -> {
+            if (embeddedPlayer != null) embeddedPlayer.play();
+        });
+    }
+
+    /** Schaetzt Trim-Dauer aus Einschwingtext-Laenge (Fallback wenn FFmpeg keine Stille findet). */
+    private static double estimateEinschwingTrimSec(String einschwingPrefix) {
+        if (einschwingPrefix == null || einschwingPrefix.isBlank()) return -1;
+        int chars = einschwingPrefix.trim().length();
+        return Math.max(0.35, chars / EINSCHWING_CHARS_PER_SEC) + EINSCHWING_TRIM_PAD_SEC;
+    }
+
+    /**
+     * Sucht das Ende der Einschwing-Pause: ElevenLabs mit langer SSML-Pause (2 s),
+     * ComfyUI mit kuerzeren Schwellen; bei Misserfolg -1 (dann Schaetzung nutzen).
+     */
+    private static double findEinschwingTrimSec(Path input, boolean isElevenLabs) {
+        if (isElevenLabs) {
+            double t = findFirstLongSilenceEnd(input, 2.0);
+            if (t > 0) return t;
+        }
+        for (double minSec : new double[] { 1.2, 0.8, 0.5, 0.35 }) {
+            double t = findFirstLongSilenceEnd(input, minSec);
+            if (t > 0) return t;
+        }
+        return -1;
+    }
+
+    private static final class EinschwingTrimResult {
+        final Path path;
+        final double trimSec;
+        final boolean trimmedInFile;
+        final boolean usedEstimate;
+
+        EinschwingTrimResult(Path path, double trimSec, boolean trimmedInFile, boolean usedEstimate) {
+            this.path = path;
+            this.trimSec = trimSec;
+            this.trimmedInFile = trimmedInFile;
+            this.usedEstimate = usedEstimate;
+        }
+    }
+
+    /**
+     * Schneidet den Einschwing-Anfang nur bei erkannter Stille physisch aus der Datei.
+     * Schaetzung nur fuer Slider/Wiedergabe – schneidet die Datei nicht (vermeidet falsches Abschneiden).
+     */
+    private static EinschwingTrimResult applyEinschwingTrimToFile(Path source, String einschwingPrefix, boolean isElevenLabs) throws IOException {
+        double trimSec = findEinschwingTrimSec(source, isElevenLabs);
+        boolean usedEstimate = false;
+        if (trimSec <= 0) {
+            double est = estimateEinschwingTrimSec(einschwingPrefix);
+            return new EinschwingTrimResult(source, est > 0 ? est : 0, false, est > 0);
+        }
+        double duration = getAudioDurationSec(source);
+        if (duration > 0 && trimSec >= duration - 0.15) {
+            logger.warn("Einschwing-Trim {}s >= Dateidauer {}s – uebersprungen", trimSec, duration);
+            return new EinschwingTrimResult(source, 0, false, usedEstimate);
+        }
+        Path trimmed = Files.createTempFile("manuskript-tts-trimmed-", ".mp3");
+        String err = trimAudioFromStart(source, trimmed, trimSec);
+        if (err != null) {
+            logger.warn("Einschwing-Trim fehlgeschlagen ({} s): {}", trimSec, err);
+            Files.deleteIfExists(trimmed);
+            return new EinschwingTrimResult(source, trimSec, false, usedEstimate);
+        }
+        try {
+            Files.deleteIfExists(source);
+        } catch (IOException ignored) { }
+        logger.info("Einschwing-Trim: {}s aus Datei entfernt (geschaetzt={})", trimSec, usedEstimate);
+        return new EinschwingTrimResult(trimmed, trimSec, true, usedEstimate);
     }
 
     /**
@@ -4655,6 +4902,52 @@ public class ChapterTtsEditorWindow {
             vcVoiceDescriptionArea.setText(d != null ? d : "");
         }
         // Hohe Qualität nicht aus Stimme übernehmen – Nutzer-Einstellung bleibt erhalten
+        updateAufnahmeButtonState(codeArea != null ? codeArea.getSelectedText() : null);
+    }
+
+    /** Speichert die aktuellen ComfyUI-Parameter (Slider, Seed, Beschreibung) als neue Stimme in tts-voices.json. */
+    private void saveCurrentTtsParamsAsVoice() {
+        ComfyUIClient.SavedVoice selected = voiceCombo.getSelectionModel().getSelectedItem();
+        if (selected != null && "elevenlabs".equalsIgnoreCase(selected.getProvider())) {
+            setStatus("ElevenLabs-Stimmen werden über die API verwaltet – „Stimme speichern“ gilt nur für ComfyUI.");
+            return;
+        }
+        String defaultName = selected != null && selected.getName() != null ? selected.getName().trim() : "Neue Stimme";
+        TextInputDialog d = new TextInputDialog(defaultName);
+        d.initOwner(stage);
+        d.setTitle("Stimme speichern");
+        d.setHeaderText("Name für diese ComfyUI-Stimme (CustomVoice):");
+        d.showAndWait().ifPresent(name -> {
+            if (name == null || name.isBlank()) return;
+            String desc = getEffectiveVoiceDescription();
+            if (!desc.isEmpty()) ComfyUIClient.addRecentVoiceDescription(desc);
+            long seed = (currentSeedForGeneration != 0) ? currentSeedForGeneration : ComfyUIClient.DEFAULT_SEED;
+            double temp = temperatureSlider != null ? temperatureSlider.getValue() : 0.7;
+            double topP = topPSlider != null ? topPSlider.getValue() : 0.8;
+            int topK = topKSlider != null ? (int) Math.round(topKSlider.getValue()) : 20;
+            double repPen = repetitionPenaltySlider != null ? repetitionPenaltySlider.getValue() : 1.05;
+            boolean hq = highQualityCheck != null && highQualityCheck.isSelected();
+            String speakerId = (currentSpeakerIdForGeneration != null && !currentSpeakerIdForGeneration.isBlank())
+                    ? currentSpeakerIdForGeneration : ComfyUIClient.DEFAULT_CUSTOM_SPEAKER;
+            ComfyUIClient.SavedVoice v = TtsVoiceSearchPanel.buildVoiceFromTtsParams(
+                    name.trim(), seed, temp, topP, topK, repPen, hq, desc, speakerId);
+            try {
+                TtsVoiceSearchPanel.saveVoiceToConfig(v);
+                loadCombinedVoiceList();
+                if (ttsVoiceSearchPanel != null) ttsVoiceSearchPanel.reloadSavedVoicesList();
+                for (ComfyUIClient.SavedVoice item : voiceCombo.getItems()) {
+                    if (item != null && v.getName().equals(item.getName())) {
+                        voiceCombo.getSelectionModel().select(item);
+                        applyVoiceToParams(item);
+                        break;
+                    }
+                }
+                setStatus("Stimme \"" + v.getName() + "\" gespeichert.");
+            } catch (IOException ex) {
+                logger.warn("Stimme speichern fehlgeschlagen", ex);
+                setStatus("Speichern fehlgeschlagen: " + ex.getMessage());
+            }
+        });
     }
 
     private Node buildRightPanel(String content) {
@@ -5453,32 +5746,30 @@ public class ChapterTtsEditorWindow {
             voiceDesc, voice.getName(), seed, temp, topP, topK, repPen, hq, sel != null ? sel.length() : 0);
         ttsRequestId++;
         final int myRequestId = ttsRequestId;
-        progressIndicator.setVisible(true);
+        setTtsGenerationBusy(true);
         btnErstellen.setDisable(true);
         if (codeArea != null) codeArea.setDisable(true);
         setStatus("Erzeuge Sprachausgabe…");
         final long effectiveSeed = seed;
         final boolean isElevenLabs = voice != null && "elevenlabs".equalsIgnoreCase(voice.getProvider());
         final String ttsText = prependEinschwingText(sel, isElevenLabs);
-        final boolean detectEinschwingTrim = isElevenLabs && einschwingCheckBox != null && einschwingCheckBox.isSelected()
+        final boolean detectEinschwingTrim = einschwingCheckBox != null && einschwingCheckBox.isSelected()
             && einschwingTextArea != null && einschwingTextArea.getText() != null && !einschwingTextArea.getText().isBlank();
+        final String einschwingPrefixForTrim = detectEinschwingTrim ? einschwingTextArea.getText().trim() : "";
         CompletableFuture.runAsync(() -> {
             try {
                 java.util.Map<String, String> lexicon = getLexiconFromTable();
                 Path path = Files.createTempFile("manuskript-tts-", ".mp3");
                 TtsBackend.generateTtsToFile(ttsText, effectiveVoice, lexicon, path, true, null, effectiveSeed);
-                Path p = path;
-                double trimSec = (detectEinschwingTrim) ? findFirstLongSilenceEnd(p, 2.0) : -1;
-                if (trimSec > 0) {
-                    Path trimmed = Files.createTempFile("manuskript-tts-trimmed-", ".mp3");
-                    String err = trimAudioFromStart(p, trimmed, trimSec);
-                    if (err == null) {
-                        try { Files.delete(p); } catch (IOException ignored) { }
-                        p = trimmed;
-                    }
-                }
-                final Path resultPath = p;
-                final boolean einschwingTrimFound = trimSec > 0;
+                EinschwingTrimResult trimResult = detectEinschwingTrim
+                        ? applyEinschwingTrimToFile(path, einschwingPrefixForTrim, isElevenLabs)
+                        : new EinschwingTrimResult(path, 0, false, false);
+                final Path resultPath = trimResult.path;
+                final boolean einschwingTrimFound = detectEinschwingTrim && trimResult.trimSec > 0;
+                final boolean trimAppliedToFileFinal = trimResult.trimmedInFile;
+                final boolean usedEstimate = detectEinschwingTrim && trimResult.usedEstimate && trimResult.trimSec > 0;
+                final double playbackTrimSec = trimAppliedToFileFinal ? 0 : Math.max(0, trimResult.trimSec);
+                final double trimmedSec = trimResult.trimSec;
                 String sig = signature;
                 Platform.runLater(() -> {
                     if (myRequestId != ttsRequestId) return;
@@ -5486,8 +5777,13 @@ public class ChapterTtsEditorWindow {
                     lastGeneratedAudioPath = resultPath;
                     lastGeneratedSignature = sig;
                     generatedAudioBySignature.put(sig, resultPath);
-                    loadAudioInPlayer(resultPath);
-                    progressIndicator.setVisible(false);
+                    if (trimAppliedToFileFinal) {
+                        applyPlaybackTrimSec(0);
+                    } else if (playbackTrimSec > 0) {
+                        applyPlaybackTrimSec(playbackTrimSec);
+                    }
+                    loadAudioInPlayer(resultPath, playbackTrimSec, false);
+                    setTtsGenerationBusy(false);
                     if (codeArea != null) codeArea.setDisable(false);
                     if (successCheckmark != null) {
                         successCheckmark.setVisible(true);
@@ -5499,11 +5795,18 @@ public class ChapterTtsEditorWindow {
                     btnErstellen.setDisable(true);
                     playPlingSound();
                     if (detectEinschwingTrim && !einschwingTrimFound) {
-                        setStatus("Erstellt. Einschwing-Ende nicht erkannt – Datei unverändert. Beim Speichern ggf. „Anfang abschneiden“-Slider nutzen.");
+                        setStatus("Erstellt. Einschwing konnte nicht ermittelt werden – Datei unverändert.");
+                    } else if (detectEinschwingTrim && !trimAppliedToFileFinal && playbackTrimSec > 0) {
+                        setStatus(String.format(java.util.Locale.ROOT,
+                                "Erstellt. FFmpeg-Trim fehlgeschlagen – Wiedergabe überspringt ca. %.1f s (Slider). FFmpeg installieren?", playbackTrimSec));
+                    } else if (detectEinschwingTrim && trimAppliedToFileFinal && usedEstimate) {
+                        setStatus(String.format(java.util.Locale.ROOT,
+                                "Erstellt. Einschwing-Anfang ca. %.1f s abgeschnitten (geschätzt).", trimmedSec));
+                    } else if (detectEinschwingTrim && trimAppliedToFileFinal) {
+                        setStatus(String.format(java.util.Locale.ROOT,
+                                "Erstellt. Einschwing-Anfang abgeschnitten (%.1f s).", trimmedSec));
                     } else {
                         setStatus("Erstellt. Sie können speichern oder erneut erstellen.");
-                        // Datei ist bereits getrimmt – Slider auf 0, damit beim Speichern nicht nochmal geschnitten wird
-                        if (einschwingTrimFound && trimStartSlider != null) trimStartSlider.setValue(0);
                     }
                     if (autoSaveCheckBox != null && autoSaveCheckBox.isSelected()) {
                         // Aktuelle Auswahl speichern
@@ -5517,7 +5820,7 @@ public class ChapterTtsEditorWindow {
                 Platform.runLater(() -> {
                     if (myRequestId != ttsRequestId) return;
                     isTtsGenerationRunning = false;
-                    progressIndicator.setVisible(false);
+                    setTtsGenerationBusy(false);
                     if (codeArea != null) codeArea.setDisable(false);
                     // Nach Fehler Button deaktivieren (Benutzer muss neu auswählen)
                     btnErstellen.setDisable(true);
@@ -5536,12 +5839,22 @@ public class ChapterTtsEditorWindow {
     }
 
     private void loadAudioInPlayer(Path path) {
-        loadAudioInPlayer(path, 0);
+        loadAudioInPlayer(path, 0, false);
     }
 
     private void loadAudioInPlayer(Path path, double startAtSec) {
+        loadAudioInPlayer(path, startAtSec, false);
+    }
+
+    private void loadAudioInPlayer(Path path, double startAtSec, boolean autoPlay) {
         if (path == null) return;
-        playbackTrimStartSec = startAtSec > 0 ? startAtSec : 0;
+        if (startAtSec > 0) {
+            playbackTrimStartSec = startAtSec;
+        } else if (trimStartSlider != null && trimStartSlider.getValue() > 0) {
+            playbackTrimStartSec = trimStartSlider.getValue();
+        } else {
+            playbackTrimStartSec = 0;
+        }
         Path requestedPath = path.normalize().toAbsolutePath();
         pendingAudioPath = requestedPath;
         if (playAllAdvanceTransition != null) {
@@ -5566,7 +5879,7 @@ public class ChapterTtsEditorWindow {
             btnPlay.setDisable(false);
             btnPause.setDisable(false);
             btnStop.setDisable(false);
-            final double trimForProgress = playbackTrimStartSec;
+            final boolean playWhenReady = autoPlay;
             // WeakReference, damit nach dispose() + embeddedPlayer=null der Player GC-fähig ist und die Datei freigegeben wird (z. B. für externes Audioschnittprogramm)
             java.lang.ref.WeakReference<MediaPlayer> weakPlayer = new java.lang.ref.WeakReference<>(player);
             player.currentTimeProperty().addListener((o, a, b) -> {
@@ -5574,7 +5887,7 @@ public class ChapterTtsEditorWindow {
                 if (p == null || embeddedPlayer != p) return;
                 Duration total = p.getTotalDuration();
                 if (total != null && total.greaterThan(Duration.ZERO)) {
-                    double trimSec = trimForProgress > 0 ? trimForProgress : ((trimStartSlider != null) ? trimStartSlider.getValue() : 0);
+                    double trimSec = getEffectivePlaybackTrimSec(0);
                     double totalSec = total.toSeconds();
                     double curSec = b.toSeconds();
                     double frac;
@@ -5590,36 +5903,46 @@ public class ChapterTtsEditorWindow {
             player.setOnReady(() -> Platform.runLater(() -> {
                 MediaPlayer p = weakPlayer.get();
                 if (p == null || embeddedPlayer != p || !requestedPath.equals(pendingAudioPath)) return;
-                if (playbackTrimStartSec > 0) {
-                    p.seek(javafx.util.Duration.seconds(playbackTrimStartSec));
-                }
+                double trimSec = getEffectivePlaybackTrimSec(startAtSec);
                 playerProgress.setProgress(0);
                 Duration total = p.getTotalDuration();
                 if (total != null && total.toSeconds() > 0 && trimStartSlider != null) {
                     double maxSec = Math.min(20, total.toSeconds());
                     trimStartSlider.setMax(maxSec);
-                    if (trimStartSlider.getValue() > maxSec) trimStartSlider.setValue(0);
-                }
-                if (isPlayingAllSequence) {
-                    Duration d = p.getTotalDuration();
-                    if (d != null && d.greaterThan(Duration.ZERO)) {
-                        if (playAllAdvanceTransition != null) playAllAdvanceTransition.stop();
-                        // Trim-Start berücksichtigen: nur die abspielbare Dauer verwenden
-                        double trimSec = (trimStartSlider != null) ? trimStartSlider.getValue() : 0;
-                        Duration playableDuration = Duration.seconds(Math.max(0, d.toSeconds() - trimSec));
-                        playAllAdvanceTransition = new PauseTransition(playableDuration.add(Duration.millis(200)));
-                        playAllAdvanceTransition.setOnFinished(e2 -> {
-                            MediaPlayer px = weakPlayer.get();
-                            if (!isPlayingAllSequence || px == null || embeddedPlayer != px) return;
-                            playAllAdvanceTransition = null;
-                            playerProgress.setProgress(1.0);
-                            px.stop();
-                            playingSegmentIndex++;
-                            playCurrentSegmentInEmbeddedPlayer();
-                        });
-                        playAllAdvanceTransition.play();
+                    if (trimStartSlider.getValue() > maxSec) {
+                        double clamped = maxSec;
+                        trimStartSlider.setValue(clamped);
+                        playbackTrimStartSec = clamped;
                     }
                 }
+                Runnable afterSeek = () -> {
+                    MediaPlayer px = weakPlayer.get();
+                    if (px == null || embeddedPlayer != px || !requestedPath.equals(pendingAudioPath)) return;
+                    if (playWhenReady && !isPlayingAllSequence) {
+                        px.play();
+                    }
+                    if (isPlayingAllSequence) {
+                        Duration d = px.getTotalDuration();
+                        if (d != null && d.greaterThan(Duration.ZERO)) {
+                            if (playAllAdvanceTransition != null) playAllAdvanceTransition.stop();
+                            double t = getEffectivePlaybackTrimSec(startAtSec);
+                            Duration playableDuration = Duration.seconds(Math.max(0, d.toSeconds() - t));
+                            playAllAdvanceTransition = new PauseTransition(playableDuration.add(Duration.millis(200)));
+                            playAllAdvanceTransition.setOnFinished(e2 -> {
+                                MediaPlayer pxx = weakPlayer.get();
+                                if (!isPlayingAllSequence || pxx == null || embeddedPlayer != pxx) return;
+                                playAllAdvanceTransition = null;
+                                playerProgress.setProgress(1.0);
+                                pxx.stop();
+                                playingSegmentIndex++;
+                                playCurrentSegmentInEmbeddedPlayer();
+                            });
+                            playAllAdvanceTransition.play();
+                        }
+                        px.play();
+                    }
+                };
+                seekPlayerAndThen(p, trimSec, afterSeek);
             }));
             player.setOnEndOfMedia(() -> Platform.runLater(() -> {
                 MediaPlayer p = weakPlayer.get();
@@ -5662,112 +5985,9 @@ public class ChapterTtsEditorWindow {
             if (out.isEmpty() && fullText.trim().length() > 0)
                 out.add(new int[] { 0, fullText.length() });
         } else {
-            out.addAll(splitIntoSentencesRespectingQuotes(fullText));
+            out.addAll(TtsSentenceSplitter.splitIntoSentences(fullText));
         }
         return out;
-    }
-
-    /** Überspringt Leerzeichen, Tabs und Kommas ab Position from (z. B. nach schließendem Anführungszeichen: ", sagte sie." → nächster Satz beginnt bei "s"). */
-    private static int skipSpacesAndComma(String fullText, int len, int from) {
-        while (from < len) {
-            char c = fullText.charAt(from);
-            if (c == ' ' || c == '\t' || c == ',') from++;
-            else break;
-        }
-        return from;
-    }
-
-    /** Verschiedene Anführungszeichen (öffnend/schließend); direkte Rede wird als ein Satz behandelt. */
-    private static final String OPENING_QUOTES = "\u201E\u2018";            // „ '
-    private static final String CLOSING_QUOTES = "\u201D\u2019";             // " '
-    /** Guillemets « » und " – je nach Kontext öffnend/schließend (z. B. »öffnet« Rede, «schließt» sie). */
-    private static final String AMBIGUOUS_QUOTES = "\u00AB\u00BB\u201C";    // « » "
-    private static final char ASCII_QUOTE = '"'; // U+0022 – Toggle
-
-    /**
-     * Teilt Text in Sätze, wobei . ! ? innerhalb von Anführungszeichen (direkte Rede) keine Satzgrenze sind.
-     * Berücksichtigt deutsche („ "), französische (« »), einfache (' ') und ASCII-Anführungszeichen (").
-     */
-    private List<int[]> splitIntoSentencesRespectingQuotes(String fullText) {
-        List<int[]> ranges = new ArrayList<>();
-        if (fullText == null || fullText.isEmpty()) return ranges;
-        int len = fullText.length();
-        int sentenceStart = 0;
-        int quoteLevel = 0;
-        int i = 0;
-        while (i < len) {
-            char c = fullText.charAt(i);
-            if (OPENING_QUOTES.indexOf(c) >= 0) {
-                quoteLevel++;
-                i++;
-                continue;
-            }
-            if (CLOSING_QUOTES.indexOf(c) >= 0) {
-                if (quoteLevel > 0) {
-                    quoteLevel--;
-                    if (quoteLevel == 0) {
-                        int end = i + 1;
-                        if (sentenceStart < end && fullText.substring(sentenceStart, end).trim().length() > 0)
-                            ranges.add(new int[] { sentenceStart, end });
-                        sentenceStart = end;
-                    }
-                }
-                i++;
-                if (quoteLevel == 0) {
-                    sentenceStart = skipSpacesAndComma(fullText, len, sentenceStart);
-                }
-                continue;
-            }
-            if (AMBIGUOUS_QUOTES.indexOf(c) >= 0) {
-                if (quoteLevel > 0) {
-                    quoteLevel--;
-                    if (quoteLevel == 0) {
-                        int end = i + 1;
-                        if (sentenceStart < end && fullText.substring(sentenceStart, end).trim().length() > 0)
-                            ranges.add(new int[] { sentenceStart, end });
-                        sentenceStart = end;
-                    }
-                } else {
-                    quoteLevel = 1;
-                }
-                i++;
-                if (quoteLevel == 0) {
-                    sentenceStart = skipSpacesAndComma(fullText, len, sentenceStart);
-                }
-                continue;
-            }
-            if (c == ASCII_QUOTE) {
-                if (quoteLevel > 0) {
-                    quoteLevel--;
-                    if (quoteLevel == 0) {
-                        int end = i + 1;
-                        if (sentenceStart < end && fullText.substring(sentenceStart, end).trim().length() > 0)
-                            ranges.add(new int[] { sentenceStart, end });
-                        sentenceStart = end;
-                    }
-                } else {
-                    quoteLevel = 1;
-                }
-                i++;
-                if (quoteLevel == 0) {
-                    sentenceStart = skipSpacesAndComma(fullText, len, sentenceStart);
-                }
-                continue;
-            }
-            if (quoteLevel == 0 && (c == '.' || c == '!' || c == '?')) {
-                int end = i + 1;
-                while (end < len && (fullText.charAt(end) == ' ' || fullText.charAt(end) == '\t')) end++;
-                if (sentenceStart < end && fullText.substring(sentenceStart, end).trim().length() > 0)
-                    ranges.add(new int[] { sentenceStart, end });
-                sentenceStart = end;
-                i = end;
-                continue;
-            }
-            i++;
-        }
-        if (sentenceStart < len && fullText.substring(sentenceStart).trim().length() > 0)
-            ranges.add(new int[] { sentenceStart, len });
-        return ranges;
     }
 
     /**
@@ -5877,6 +6097,7 @@ public class ChapterTtsEditorWindow {
         btnBatchToggle.setText("Batch beenden");
         btnBatchToggle.setOnAction(ev -> batchCancelled = true);
         batchModeCombo.setDisable(true);
+        setTtsGenerationBusy(true);
         setStatus("Batch: " + unmarked.size() + " " + (byParagraph ? "Absatz/Absätze" : "Satz/Sätze") + " werden nacheinander gerendert. „Batch beenden“ zum Unterbrechen.");
         // Einschwingtext auf FX-Thread lesen, bevor der Hintergrund-Thread startet
         final String einschwingPrefix;
@@ -5931,8 +6152,17 @@ public class ChapterTtsEditorWindow {
             try {
                 Path tempPath = Files.createTempFile("manuskript-batch-", ".mp3");
                 TtsBackend.generateTtsToFile(ttsText, effectiveVoice, lexicon, tempPath, true, null, seed);
-                double detectedTrim = (einschwingPrefix != null) ? findFirstLongSilenceEnd(tempPath, 2.0) : -1;
-                saveBatchSegment(start, end, tempPath, voiceName, temp, topP, topK, repPen, hq, effectiveVoice, detectedTrim > 0 ? detectedTrim : null);
+                Path audioPath = tempPath;
+                Double trimForSave = null;
+                if (einschwingPrefix != null) {
+                    boolean isElBatch = "elevenlabs".equalsIgnoreCase(voice.getProvider());
+                    EinschwingTrimResult tr = applyEinschwingTrimToFile(tempPath, einschwingPrefix, isElBatch);
+                    audioPath = tr.path;
+                    if (!tr.trimmedInFile && tr.trimSec > 0) {
+                        trimForSave = tr.trimSec;
+                    }
+                }
+                saveBatchSegment(start, end, audioPath, voiceName, temp, topP, topK, repPen, hq, effectiveVoice, trimForSave);
                 doneRef[0]++;
                 final int d = doneRef[0];
                 Platform.runLater(() -> setStatus("Batch: " + d + "/" + total + " " + (byParagraph ? "Absätze" : "Sätze") + " erledigt."));
@@ -5948,6 +6178,7 @@ public class ChapterTtsEditorWindow {
             btnBatchToggle.setText("Batch starten");
             btnBatchToggle.setOnAction(ev -> startBatch());
             batchModeCombo.setDisable(false);
+            setTtsGenerationBusy(false);
             setStatus(batchCancelled ? "Batch unterbrochen. " + finalDone + "/" + total + " erledigt." : "Batch fertig. " + finalDone + "/" + total + " " + (byParagraph ? "Absätze" : "Sätze") + " gerendert.");
             if (wasElevenLabs) refreshElevenLabsBalance();
         });
@@ -6009,8 +6240,22 @@ public class ChapterTtsEditorWindow {
             return;
         }
         ComfyUIClient.SavedVoice voice = voiceCombo.getSelectionModel().getSelectedItem();
+        if (!isAufnahmeModeAvailable(voice)) {
+            String name = voice != null ? voice.getName() : "—";
+            CustomAlert info = DialogFactory.createInfoAlert(
+                    "Aufnahme-Modus",
+                    "Nur mit ElevenLabs-Stimmen",
+                    "Die gewählte Stimme „" + name + "“ ist keine ElevenLabs-Stimme.\n\n"
+                            + "Der Aufnahme-Modus wandelt Ihre Mikrofon-Aufnahme per ElevenLabs Speech-to-Speech "
+                            + "in die Zielstimme um.\n\n"
+                            + "Voice Clone (z. B. Jenny) und ComfyUI CustomVoice: bitte Text markieren und „Erstellen“ nutzen.",
+                    stage);
+            info.applyTheme(themeIndex);
+            info.showAndWait();
+            return;
+        }
         String voiceName = voice != null ? voice.getName() : "";
-        String elevenLabsVoiceId = (voice != null && "elevenlabs".equalsIgnoreCase(voice.getProvider())) ? voice.getElevenLabsVoiceId() : "";
+        String elevenLabsVoiceId = voice.getElevenLabsVoiceId();
         ElevenLabsClient.VoiceSettings elevenLabsVoiceSettings = null;
         if (voice != null && "elevenlabs".equalsIgnoreCase(voice.getProvider())) {
             elevenLabsVoiceSettings = new ElevenLabsClient.VoiceSettings(
@@ -6311,11 +6556,7 @@ public class ChapterTtsEditorWindow {
             playCurrentSegmentInEmbeddedPlayer();
             return;
         }
-        loadAudioInPlayer(p);
-        if (embeddedPlayer != null) {
-            embeddedPlayer.seek(Duration.ZERO);
-            embeddedPlayer.play();
-        }
+        loadAudioInPlayer(p, 0, true);
     }
 
     private void createFullAudioFile() {
@@ -6548,22 +6789,41 @@ public class ChapterTtsEditorWindow {
      * @return null bei Erfolg, sonst Fehlermeldung
      */
     private static String trimAudioFromStart(Path source, Path target, double trimStartSec) {
+        String err = runTrimAudioFromStart(source, target, trimStartSec, true);
+        if (err == null) return null;
+        logger.debug("Einschwing-Trim copy fehlgeschlagen ({}), Re-Encode…", err);
+        return runTrimAudioFromStart(source, target, trimStartSec, false);
+    }
+
+    /** @param streamCopy true = -c:a copy (schnell); false = libmp3lame (zuverlaessiger bei MP3) */
+    private static String runTrimAudioFromStart(Path source, Path target, double trimStartSec, boolean streamCopy) {
         String ffmpegExe = getFfmpegExePath();
         if (ffmpegExe == null) ffmpegExe = "ffmpeg";
-        // -ss VOR -i = Input-Seeking: Ausgabe beginnt exakt ab dieser Position (wichtig für -c copy)
-        List<String> cmd = List.of(
-            ffmpegExe, "-y", "-loglevel", "error",
-            "-ss", String.format(java.util.Locale.ROOT, "%.3f", trimStartSec),
-            "-i", source.toAbsolutePath().toString(),
-            "-c:a", "copy",
-            target.toAbsolutePath().toString()
-        );
+        java.util.List<String> cmd = new java.util.ArrayList<>();
+        cmd.add(ffmpegExe);
+        cmd.add("-y");
+        cmd.add("-loglevel");
+        cmd.add("error");
+        cmd.add("-ss");
+        cmd.add(String.format(java.util.Locale.ROOT, "%.3f", trimStartSec));
+        cmd.add("-i");
+        cmd.add(source.toAbsolutePath().toString());
+        if (streamCopy) {
+            cmd.add("-c:a");
+            cmd.add("copy");
+        } else {
+            cmd.add("-c:a");
+            cmd.add("libmp3lame");
+            cmd.add("-b:a");
+            cmd.add("320k");
+        }
+        cmd.add(target.toAbsolutePath().toString());
         try {
             Process p = new ProcessBuilder(cmd).redirectErrorStream(true).start();
             String out = new String(p.getInputStream().readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
             int code = p.waitFor();
             if (code != 0) return out.isEmpty() ? "Exit " + code : out.trim();
-            return null;
+            return Files.isRegularFile(target) && Files.size(target) > 0 ? null : "Leere Ausgabedatei";
         } catch (Exception e) {
             return e.getMessage();
         }
@@ -8348,6 +8608,22 @@ public class ChapterTtsEditorWindow {
 
     private void setStatus(String msg) {
         if (statusLabel != null) statusLabel.setText(msg != null ? msg : " ");
+    }
+
+    /** Indeterminater Balken unter der Statuszeile (links–rechts) waehrend TTS-/Batch-Lauf. */
+    private void setTtsGenerationBusy(boolean busy) {
+        if (ttsStatusBusyBar != null) {
+            ttsStatusBusyBar.setVisible(busy);
+            ttsStatusBusyBar.setManaged(busy);
+            if (busy) {
+                ttsStatusBusyBar.setProgress(ProgressBar.INDETERMINATE_PROGRESS);
+            } else {
+                ttsStatusBusyBar.setProgress(0);
+            }
+        }
+        if (progressIndicator != null) {
+            progressIndicator.setVisible(busy);
+        }
     }
 
     private void applyThemeToAll(Node root, int themeIndex) {

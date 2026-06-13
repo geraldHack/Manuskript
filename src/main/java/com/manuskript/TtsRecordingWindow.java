@@ -587,8 +587,10 @@ public class TtsRecordingWindow {
                     try { Files.deleteIfExists(currentRecordingPath); } catch (Exception ignored) { }
                 }
                 currentRecordingPath = wav;
-                btnUebernehmen.setDisable(false);
-                setStatus("Aufnahme gespeichert. Abspielen oder Übernehmen.");
+                btnUebernehmen.setDisable(elevenLabsVoiceId.isBlank());
+                setStatus(elevenLabsVoiceId.isBlank()
+                        ? "Aufnahme gespeichert (nur Abspielen). Übernehmen erfordert eine ElevenLabs-Stimme im TTS-Editor."
+                        : "Aufnahme gespeichert. Abspielen oder Übernehmen.");
                 updatePlayButtonState();
                 javafx.application.Platform.runLater(this::updatePlayButtonState);
             } else {

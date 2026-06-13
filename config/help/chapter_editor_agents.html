@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 20px; background: #f8f9fa; }
+        .help-container { background: white; border-radius: 8px; padding: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); max-width: 900px; margin: 0 auto; }
+        h1 { color: #2C3E50; border-bottom: 3px solid #4A90E2; padding-bottom: 10px; }
+        h2 { color: #34495E; margin-top: 28px; border-bottom: 2px solid #E8F4FD; padding-bottom: 5px; }
+        .highlight { background: #E8F4FD; padding: 15px; border-left: 4px solid #4A90E2; margin: 15px 0; border-radius: 0 4px 4px 0; }
+        .warning { background: #FFF3CD; padding: 15px; border-left: 4px solid #FFC107; margin: 15px 0; }
+        ul { padding-left: 20px; }
+        li { margin-bottom: 8px; }
+        code { background: #f1f3f4; padding: 2px 5px; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <div class="help-container">
+        <h1>Agenten im Kapitel-Editor</h1>
+
+        <p>Das <strong>Agenten-Panel</strong> rechts im Editor bündelt KI-gestützte Analyse, Szenen-Schreiben, Chat und Überarbeiten. Es ersetzt den früheren separaten KI-Assistenten.</p>
+
+        <h2>Panel öffnen und schließen</h2>
+        <ul>
+            <li>Toolbar-Button <strong>Agenten</strong> (Toggle) – Panel ein-/ausblenden</li>
+            <li>Während <strong>Online-Lektorat</strong> läuft, wird das Agenten-Panel durch das Lektorat-Panel ersetzt</li>
+            <li>Oben erscheint ein <strong>Activity-Banner</strong>, wenn ein Agent arbeitet</li>
+        </ul>
+
+        <h2>Agenten-Typen</h2>
+        <ul>
+            <li><strong>Analyse</strong> – Plothole, Dialog, Textstruktur, Show-don't-tell usw.; findet Probleme mit Zitat und Verbesserungsvorschlägen</li>
+            <li><strong>Szene schreiben</strong> – neue Szenen anhand von Anweisung und Szenen-Kontext (Outline, vorherige Kapitel)</li>
+            <li><strong>Chatbot</strong> – Dialog mit KI unter Einbezug von Projektkontext (Weltdateien, Kapitel)</li>
+            <li><strong>Überarbeiten</strong> – markierten Text umschreiben (auch per Kontextmenü „Überarbeiten“)</li>
+        </ul>
+
+        <h2>Workflow (Analyse)</h2>
+        <ol>
+            <li>Agent-Tab wählen (z. B. Plothole-Agent)</li>
+            <li>Optional: Anweisung anpassen</li>
+            <li><strong>Analyse starten</strong> – der Agent liest den Kapiteltext (ggf. mit Kontext aus anderen Kapiteln)</li>
+            <li>Befunde erscheinen im Text markiert; Vorschläge im Panel</li>
+            <li>Vorschlag <strong>übernehmen</strong> oder <strong>ablehnen</strong></li>
+        </ol>
+
+        <h2>Konfiguration pro Tab</h2>
+        <p>Über <strong>Konfiguration</strong> (ausklappbar) pro Agent-Tab:</p>
+        <ul>
+            <li>System-Prompt und Default-Prompt (Anweisung)</li>
+            <li>Backend: Ollama oder OpenAI (pro Agent in <code>config/agents.json</code>)</li>
+            <li>Sampling: Temperatur, Max Tokens, Top-P, Repeat Penalty</li>
+            <li>Bei Szene-Agent: Default-Prompt wird in Anweisungsfeld übernommen; Szenen-Kontext-Größe wählbar</li>
+        </ul>
+
+        <h2>Neue Agenten</h2>
+        <ul>
+            <li>Tab <strong>+</strong> – neuen Agent anlegen (Typ wählen)</li>
+            <li>Definitionen werden in <code>config/agents.json</code> gespeichert</li>
+        </ul>
+
+        <h2>Backends und Parameter</h2>
+        <div class="highlight">
+            <p><strong>Ollama (lokal):</strong> <code>agent.ollama.api_url</code>, <code>agent.ollama.model</code> – Ollama muss laufen (<code>ollama serve</code>).</p>
+            <p><strong>OpenAI-kompatibel:</strong> <code>agent.openai.api_key</code>, <code>agent.openai.api_url</code>, <code>agent.openai.model</code>.</p>
+            <p>Globaler Standard: <code>agent.backend</code> (Ollama oder OpenAI). Ein-/Aus: <code>agent.enabled</code>.</p>
+        </div>
+
+        <h2>Echtzeit-Analyse</h2>
+        <p>Optional (<code>agent.realtime_enabled</code>): Analyse-Agenten können nach längerer Schreibpause automatisch erneut laufen (Debounce über <code>agent.realtime_debounce_ms</code>).</p>
+
+        <div class="warning">
+            <strong>Hinweis:</strong> Cloud-Backends (OpenAI) erfordern API-Key und können Kosten verursachen. Ollama läuft lokal, benötigt aber ausreichend RAM/GPU für größere Modelle.
+        </div>
+    </div>
+</body>
+</html>

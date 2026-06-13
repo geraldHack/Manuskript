@@ -3,6 +3,8 @@ package com.manuskript;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.MenuButton;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.VBox;
 import javafx.scene.web.WebView;
@@ -88,6 +90,32 @@ public class HelpSystem {
         
         return helpButton;
     }
+
+    /**
+     * Hilfe als ein Menü-Button (statt mehrerer ?-Icons nebeneinander).
+     * topics: {@code {Menülabel, helpFileName[, windowTitle]}}
+     */
+    public static MenuButton createHelpMenuButton(String tooltipText, String[][] topics) {
+        MenuButton menuButton = new MenuButton("Hilfe");
+        menuButton.setMinHeight(24);
+        menuButton.setTooltip(new Tooltip(tooltipText));
+        if (topics != null) {
+            for (String[] topic : topics) {
+                if (topic == null || topic.length < 2) {
+                    continue;
+                }
+                String label = topic[0];
+                String helpFileName = topic[1];
+                String windowTitle = topic.length > 2 ? topic[2] : null;
+                MenuItem item = new MenuItem(label);
+                item.setOnAction(e -> showHelpWindow(helpFileName, windowTitle));
+                menuButton.getItems().add(item);
+            }
+        }
+        menuButton.setVisible(helpEnabled);
+        menuButton.setManaged(helpEnabled);
+        return menuButton;
+    }
     
     /**
      * Zeigt ein Hilfefenster mit Titelleiste und Theme-Styling
@@ -119,6 +147,18 @@ public class HelpSystem {
                     break;
                 case "main_window.html":
                     title = "Hilfe - Hauptfenster";
+                    break;
+                case "chapter_editor_agents.html":
+                    title = "Hilfe - Agenten";
+                    break;
+                case "online_lektorat.html":
+                    title = "Hilfe - Online-Lektorat";
+                    break;
+                case "world_editor.html":
+                    title = "Hilfe - Welt-Editor";
+                    break;
+                case "novel_wizard.html":
+                    title = "Hilfe - Roman-Assistent";
                     break;
                 default:
                     title = "Hilfe - " + helpFileName;

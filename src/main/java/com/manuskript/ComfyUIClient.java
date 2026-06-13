@@ -223,6 +223,14 @@ public class ComfyUIClient {
      * Nur für „Text vorlesen“ verwendet; „Probe abspielen“ nutzt die gespeicherte Temperatur unverändert.
      */
     public static final double MAX_TEMPERATURE_FOR_VOICE_CONSISTENCY = 0.35;
+    /** Max. top_p beim Vorlesen (Kapitel-TTS), um Stimm-Schwankungen zu reduzieren. */
+    public static final double MAX_TOP_P_FOR_VOICE_CONSISTENCY = 0.8;
+    /** Max. top_k beim Vorlesen (Kapitel-TTS). */
+    public static final int MAX_TOP_K_FOR_VOICE_CONSISTENCY = 30;
+
+    private static final Object COMFY_UI_TEXT_DEDUP_LOCK = new Object();
+    private static String lastComfyUiVisibleTtsText = "";
+    private static int comfyUiTextDedupSuffixCount = 0;
 
     /** Gespeicherte Stimme: Name + Parameter für reproduzierbare Wiedergabe. */
     public static class SavedVoice {
@@ -897,14 +905,13 @@ public class ComfyUIClient {
                                                 Map<String, String> pronunciationLexicon, Consumer<String> promptLogger,
                                                 Long seed, Double temperature, String voiceDescription, Double topP, Integer topK, Double repetitionPenalty) throws IOException, InterruptedException {
         Map<String, String> lexicon = pronunciationLexicon != null ? pronunciationLexicon : getDefaultPronunciationLexicon();
-        // Regieanweisungen in eckigen Klammern NICHT mehr filtern – vollständigen Text sprechen.
+        // Regieanweisungen im Text bleiben erhalten (Kapitel-TTS-Pfad nutzt vollen Text + DEFAULT_INSTRUCT).
         String textForTTS = text;
         textForTTS = lexicon.isEmpty() ? textForTTS : applyPronunciationLexicon(textForTTS, lexicon);
         if (!textForTTS.equals(text)) {
             logger.info("Text für TTS (nach Lexikon): {}", textForTTS);
         }
-        // Eindeutigen, unsichtbaren Suffix anhängen, damit ComfyUI bei gleichem Text + geänderten Parametern nicht ablehnt (Duplikat-Erkennung nur am Text).
-        textForTTS = textForTTS + "\u200B".repeat((int) (System.nanoTime() % 5) + 1);
+        textForTTS = applyComfyUiTextDedupSuffix(textForTTS);
         if (seed != null || voiceDescription != null) {
             logger.info("TTS gespeicherte Stimme: seed={}, temperature={}, voiceDescription=\"{}\", topP={}, topK={}, repetitionPenalty={}, highQuality={}, consistentVoice={}",
                     seed, temperature, voiceDescription, topP, topK, repetitionPenalty, highQuality, consistentVoice);
@@ -913,7 +920,8 @@ public class ComfyUIClient {
         Map<String, Object> workflow = buildQwen3CustomVoiceWorkflow(textForTTS, instruct, highQuality, consistentVoice, seed, temperature, voiceDescription, topP, topK, repetitionPenalty, runPrefix);
         Map<String, Object> fullPrompt = Map.of("prompt", workflow);
         String pretty = JsonUtil.toJsonPretty(fullPrompt);
-        logger.debug("ComfyUI Prompt (Workflow, menschenlesbar):\n{}", pretty);
+        logComfyUiWorkflowSummary(workflow);
+        logger.info("ComfyUI Workflow JSON:\n{}", pretty);
         if (promptLogger != null) {
             promptLogger.accept(pretty);
         }
@@ -962,11 +970,59 @@ public class ComfyUIClient {
         Map<String, Object> workflow = buildQwen3VoiceCloneWorkflow(refFilename, voiceClonePrompt, textForTTS,
                 seed, temp, topP, topK, repetitionPenalty, highQuality, runPrefix, voiceDescription);
         String pretty = JsonUtil.toJsonPretty(Map.of("prompt", workflow));
-        logger.debug("ComfyUI Voice-Clone-Prompt:\n{}", pretty);
+        logComfyUiWorkflowSummary(workflow);
+        logger.info("ComfyUI Voice-Clone Workflow JSON:\n{}", pretty);
         if (promptLogger != null) promptLogger.accept(pretty);
         String promptId = queuePrompt(workflow);
         logger.info("ComfyUI Voice-Clone prompt queued: {}", promptId);
         return waitForCompletion(promptId);
+    }
+
+    static double capTopPForConsistency(double topP, boolean useConsistencyTemperature) {
+        double p = topP > 0 ? topP : DEFAULT_TOP_P;
+        return useConsistencyTemperature ? Math.min(p, MAX_TOP_P_FOR_VOICE_CONSISTENCY) : p;
+    }
+
+    static int capTopKForConsistency(int topK, boolean useConsistencyTemperature) {
+        int k = topK > 0 ? topK : DEFAULT_TOP_K;
+        return useConsistencyTemperature ? Math.min(k, MAX_TOP_K_FOR_VOICE_CONSISTENCY) : k;
+    }
+
+    /**
+     * ComfyUI erkennt Duplikate nur am Text. Unsichtbare Zeichen nur bei wiederholtem gleichem Text
+     * (z. B. erneutes „Erstellen“), nicht bei jedem neuen Segment.
+     */
+    static String applyComfyUiTextDedupSuffix(String visibleText) {
+        if (visibleText == null) return "";
+        synchronized (COMFY_UI_TEXT_DEDUP_LOCK) {
+            if (visibleText.equals(lastComfyUiVisibleTtsText)) {
+                comfyUiTextDedupSuffixCount = Math.min(comfyUiTextDedupSuffixCount + 1, 8);
+                if (comfyUiTextDedupSuffixCount > 0) {
+                    logger.debug("ComfyUI Text-Dedup: {} Zero-Width-Spaces fuer wiederholten Text", comfyUiTextDedupSuffixCount);
+                    return visibleText + "\u200B".repeat(comfyUiTextDedupSuffixCount);
+                }
+            } else {
+                lastComfyUiVisibleTtsText = visibleText;
+                comfyUiTextDedupSuffixCount = 0;
+            }
+            return visibleText;
+        }
+    }
+
+    static void resetComfyUiTextDedupCacheForTests() {
+        synchronized (COMFY_UI_TEXT_DEDUP_LOCK) {
+            lastComfyUiVisibleTtsText = "";
+            comfyUiTextDedupSuffixCount = 0;
+        }
+    }
+
+    /** instruct fuer CustomVoice: Basis + Emotion/Delivery aus Tags + optionale Stimmbeschreibung (einmal, ohne „Stimme:“). */
+    static String buildFixedSpeakerInstruct(String tagInstruct, String voiceDescription) {
+        String result = TtsTagMapper.mergeInstruct(DEFAULT_INSTRUCT_DEUTSCH, tagInstruct);
+        if (voiceDescription != null && !voiceDescription.isBlank()) {
+            result = TtsTagMapper.mergeInstruct(result, voiceDescription.trim());
+        }
+        return result;
     }
 
     /**
@@ -996,7 +1052,11 @@ public class ComfyUIClient {
                     ? Math.min(voice.getTemperature(), MAX_TEMPERATURE_FOR_VOICE_CONSISTENCY)
                     : voice.getTemperature();
             String vcDesc = (voice.getVoiceDescription() != null && !voice.getVoiceDescription().isBlank()) ? voice.getVoiceDescription() : null;
-            return generateVoiceCloneTTS(refFile, voice.getVoiceCloneTranscript(), text,
+            TtsTagMapper.PreparedTts prepared = TtsTagMapper.stripRegieTags(text);
+            if (!prepared.strippedTags().isEmpty()) {
+                logger.info("Voice Clone: Regie-Tags entfernt (kein instruct): {}", prepared.strippedTags());
+            }
+            return generateVoiceCloneTTS(refFile, voice.getVoiceCloneTranscript(), prepared.cleanText(),
                     voice.getSeed(), temp, voice.getTopP(), voice.getTopK(), voice.getRepetitionPenalty(),
                     voice.isHighQuality(), pronunciationLexicon != null ? pronunciationLexicon : getDefaultPronunciationLexicon(), promptLogger, vcDesc);
         }
@@ -1198,5 +1258,65 @@ public class ComfyUIClient {
 
     public String getBaseUrl() {
         return baseUrl;
+    }
+
+    private static void logComfyUiTtsPreparation(String mode, String originalText, TtsTagMapper.PreparedTts prepared,
+                                                  String mergedInstruct, String voiceDescription, SavedVoice voice) {
+        String voiceName = voice != null ? voice.getName() : "?";
+        boolean voiceClone = voice != null && voice.isVoiceClone();
+        boolean highQuality = voice == null || voice.isHighQuality();
+        String speaker = voice != null && voice.getSpeakerId() != null ? voice.getSpeakerId() : DEFAULT_CUSTOM_SPEAKER;
+        logger.info("""
+                === ComfyUI TTS Vorbereitung ({}) ===
+                Originaltext: {}
+                Bereinigter Text (an Qwen3): {}
+                Entfernte Tags: {}
+                Tag-instruct: {}
+                Zusammengefuehrte instruct (Basis + Tags): {}
+                Stimmbeschreibung (voiceDescription): {}
+                Stimme: {} | VoiceClone={} | 1.7B={} | Speaker={}
+                ================================""",
+                mode,
+                truncateForLog(originalText),
+                truncateForLog(prepared != null ? prepared.cleanText() : ""),
+                prepared != null ? prepared.strippedTags() : List.of(),
+                prepared != null ? prepared.tagInstruct() : "",
+                truncateForLog(mergedInstruct),
+                voiceDescription != null ? voiceDescription : "",
+                voiceName, voiceClone, highQuality, speaker);
+        if (voiceClone && prepared != null && !prepared.tagInstruct().isBlank()) {
+            logger.warn("Hinweis: Bei Voice Clone wirken Regie-Tags akustisch nicht – nur ElevenLabs oder CustomVoice/VoiceDesign (kein Clone).");
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void logComfyUiWorkflowSummary(Map<String, Object> workflow) {
+        if (workflow == null) return;
+        Object nodeObj = workflow.get("3");
+        if (!(nodeObj instanceof Map<?, ?> node)) return;
+        String classType = String.valueOf(node.get("class_type"));
+        Object inputsObj = node.get("inputs");
+        if (!(inputsObj instanceof Map<?, ?> inputs)) return;
+        logger.info("ComfyUI Workflow-Knoten 3: class_type={}", classType);
+        logWorkflowInput(inputs, "text");
+        logWorkflowInput(inputs, "target_text");
+        logWorkflowInput(inputs, "instruct");
+        logWorkflowInput(inputs, "speaker");
+        logWorkflowInput(inputs, "language");
+        logWorkflowInput(inputs, "model_choice");
+        logWorkflowInput(inputs, "seed");
+        logWorkflowInput(inputs, "temperature");
+    }
+
+    private static void logWorkflowInput(Map<?, ?> inputs, String key) {
+        if (inputs.containsKey(key)) {
+            logger.info("  {} = {}", key, truncateForLog(String.valueOf(inputs.get(key))));
+        }
+    }
+
+    private static String truncateForLog(String s) {
+        if (s == null) return "";
+        String t = s.replace('\u200B', '·'); // Zero-width spaces sichtbar machen
+        return t.length() > 500 ? t.substring(0, 500) + "…" : t;
     }
 }

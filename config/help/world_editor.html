@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 20px; background: #f8f9fa; }
+        .help-container { background: white; border-radius: 8px; padding: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); max-width: 900px; margin: 0 auto; }
+        h1 { color: #2C3E50; border-bottom: 3px solid #4A90E2; padding-bottom: 10px; }
+        h2 { color: #34495E; margin-top: 28px; border-bottom: 2px solid #E8F4FD; padding-bottom: 5px; }
+        .highlight { background: #E8F4FD; padding: 15px; border-left: 4px solid #4A90E2; margin: 15px 0; }
+        table { border-collapse: collapse; width: 100%; margin: 15px 0; }
+        th, td { border: 1px solid #ddd; padding: 8px 12px; text-align: left; }
+        th { background: #f1f3f4; }
+        code { background: #f1f3f4; padding: 2px 5px; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <div class="help-container">
+        <h1>Welt-Editor</h1>
+
+        <p>Der <strong>Welt-Editor</strong> verwaltet Projekt-Kontextdateien im aktuellen Buchordner. Agenten, Roman-Assistent und Chatbot können diese Dateien als Wissen über Ihr Projekt nutzen.</p>
+
+        <h2>Öffnen</h2>
+        <p>Hauptfenster → Toolbar <strong>Welt-Editor</strong> (Projekt muss geladen sein).</p>
+
+        <h2>Dateien und Tabs</h2>
+        <table>
+            <tr><th>Tab</th><th>Datei</th><th>Inhalt</th></tr>
+            <tr><td>Brainstorm</td><td><code>context.txt</code></td><td>Genre, Prämisse, Themen, Konflikt</td></tr>
+            <tr><td>Schreibstil</td><td><code>style.txt</code></td><td>Perspektive, Tempo, Ton, Satzbau</td></tr>
+            <tr><td>Worldbuilding</td><td><code>worldbuilding.txt</code></td><td>Setting, Regeln, Gesellschaft, Orte</td></tr>
+            <tr><td>Charaktere</td><td><code>characters.txt</code></td><td>Figurenblätter</td></tr>
+            <tr><td>Handlung (Outline)</td><td><code>outline.txt</code></td><td>Kapitel- und Szenen-Outline</td></tr>
+            <tr><td>Akte</td><td><code>akte.txt</code></td><td>Dramaturgie, Wendepunkte</td></tr>
+            <tr><td>Synopsis</td><td><code>synopsis.txt</code></td><td>Kurzfassung der Handlung</td></tr>
+            <tr><td>Kapitel</td><td><code>chapter.txt</code></td><td>Kapitelzusammenfassungen</td></tr>
+        </table>
+
+        <h2>Bearbeitung</h2>
+        <ul>
+            <li>Jeder Tab hat einen Markdown-Editor (<code>MdTextArea</code>)</li>
+            <li><strong>Speichern</strong> – schreibt die Datei in den Projektordner</li>
+            <li>Ungespeicherte Tabs werden im Tab-Titel markiert</li>
+        </ul>
+
+        <h2>KI-Aktionen</h2>
+        <ul>
+            <li><strong>KI-Generierung</strong> – erstellt Inhalt aus der Datei-Vorlage (leeres oder knappes Dokument)</li>
+            <li><strong>Aus Kapiteln</strong> (wo verfügbar) – extrahiert Informationen aus den DOCX-/Markdown-Kapiteln des Projekts</li>
+        </ul>
+        <p>Backend und Modell entsprechen den Agenten-Parametern (<code>agent.backend</code>, <code>agent.ollama.*</code> oder <code>agent.openai.*</code>).</p>
+
+        <div class="highlight">
+            <strong>Tipp:</strong> Pflegen Sie Charaktere und Outline hier, bevor Sie im Kapitel-Editor mit Szene-Agent oder Chatbot arbeiten – der Kontext wird automatisch eingebunden.
+        </div>
+    </div>
+</body>
+</html>

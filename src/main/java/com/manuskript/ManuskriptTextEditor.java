@@ -4117,8 +4117,8 @@ public class ManuskriptTextEditor extends Region {
         fillBackgroundRect(gc, x, top, width, bandHeight, background);
     }
 
-    private void paintTableRow(GraphicsContext gc, VisualLine line, int lineIndex, double y,
-                               MarkdownBlockSupport.TableRow tableRow) {
+    private void paintTableRowBackground(GraphicsContext gc, VisualLine line, int lineIndex, double y,
+                                         MarkdownBlockSupport.TableRow tableRow) {
         double bandHeight = paintBandHeight(lineIndex);
         if (bandHeight <= 0) {
             return;
@@ -4142,16 +4142,41 @@ public class ManuskriptTextEditor extends Region {
             return;
         }
 
+        if (isFirstVisibleTableRow(tableRow, blockId)) {
+            gc.strokeLine(baseX, top, baseX + tableWidth, top);
+        }
+        gc.strokeLine(baseX, top, baseX, top + bandHeight);
+        double x = baseX;
+        for (int c = 0; c < tableRow.cells().size() && c < columnWidths.length; c++) {
+            x += columnWidths[c];
+            gc.strokeLine(x, top, x, top + bandHeight);
+        }
+        double bottomY = top + bandHeight;
+        gc.strokeLine(baseX, bottomY, baseX + tableWidth, bottomY);
+    }
+
+    private void paintTableRowText(GraphicsContext gc, VisualLine line, int lineIndex, double y,
+                                   MarkdownBlockSupport.TableRow tableRow) {
+        if (tableRow.separator()) {
+            return;
+        }
+        double bandHeight = paintBandHeight(lineIndex);
+        if (bandHeight <= 0) {
+            return;
+        }
+        double baseX = textLeft() + headingCenterOffset(line) + blockIndentOffset(line);
+        Integer blockId = tableBlockIdByLineStart.get(tableRow.lineStart());
+        double[] columnWidths = blockId == null ? null : tableColumnWidthsByBlockId.get(blockId);
+        if (columnWidths == null || columnWidths.length == 0) {
+            return;
+        }
+
         RenderStyle cellStyle = new RenderStyle();
         cellStyle.fontFamily = monospaceFontFamily;
         gc.setFont(fontFor(cellStyle));
         gc.setFill(editorTextColor);
         double x = baseX;
         double baselineY = y + baselineForVisualLine(line);
-        if (isFirstVisibleTableRow(tableRow, blockId)) {
-            gc.strokeLine(baseX, top, baseX + tableWidth, top);
-        }
-        gc.strokeLine(baseX, top, baseX, top + bandHeight);
         for (int c = 0; c < tableRow.cells().size() && c < columnWidths.length; c++) {
             x += TABLE_CELL_PADDING_PX;
             String cellText = tableRow.cells().get(c).text();
@@ -4160,10 +4185,60 @@ public class ManuskriptTextEditor extends Region {
             }
             x += Math.max(MIN_CHAR_WIDTH, columnWidths[c] - TABLE_CELL_PADDING_PX * 2);
             x += TABLE_CELL_PADDING_PX;
-            gc.strokeLine(x, top, x, top + bandHeight);
         }
-        double bottomY = top + bandHeight;
-        gc.strokeLine(baseX, bottomY, baseX + tableWidth, bottomY);
+    }
+
+    /** Selektion in WYSIWYG-Tabellen: Zellenoffsets liegen in blockStructureHiddenRanges. */
+    private void paintTableRowSelectionBackground(GraphicsContext gc, VisualLine line, int lineIndex, double y,
+                                                  MarkdownBlockSupport.TableRow tableRow,
+                                                  int selectionStart, int selectionEnd) {
+        if (selectionStart >= selectionEnd || tableRow.separator()) {
+            return;
+        }
+        double bandHeight = paintBandHeight(lineIndex);
+        if (bandHeight <= 0) {
+            return;
+        }
+        double top = paintBandTop(y);
+        double height = bandHeight;
+        double baseX = textLeft() + headingCenterOffset(line) + blockIndentOffset(line);
+        Integer blockId = tableBlockIdByLineStart.get(tableRow.lineStart());
+        double[] columnWidths = blockId == null ? null : tableColumnWidthsByBlockId.get(blockId);
+        if (columnWidths == null || columnWidths.length == 0) {
+            return;
+        }
+        RenderStyle cellStyle = new RenderStyle();
+        cellStyle.fontFamily = monospaceFontFamily;
+        double x = baseX;
+        for (int c = 0; c < tableRow.cells().size() && c < columnWidths.length; c++) {
+            MarkdownBlockSupport.TableCell cell = tableRow.cells().get(c);
+            x += TABLE_CELL_PADDING_PX;
+            double cellTextWidth = Math.max(MIN_CHAR_WIDTH, columnWidths[c] - TABLE_CELL_PADDING_PX * 2);
+            int displayStart = tableCellDisplayStart(cell);
+            int displayEnd = displayStart + cell.text().length();
+            int overlapStart = Math.max(selectionStart, displayStart);
+            int overlapEnd = Math.min(selectionEnd, displayEnd);
+            if (overlapStart < overlapEnd) {
+                String before = text.substring(displayStart, overlapStart);
+                String selected = text.substring(overlapStart, overlapEnd);
+                double selX = x + measureText(before, cellStyle);
+                double selWidth = measureText(selected, cellStyle);
+                if (selWidth > 0) {
+                    fillBackgroundRect(gc, selX, top, selWidth, height, selectionColor);
+                }
+            }
+            x += cellTextWidth;
+            x += TABLE_CELL_PADDING_PX;
+        }
+    }
+
+    private int tableCellDisplayStart(MarkdownBlockSupport.TableCell cell) {
+        int start = cell.sourceStart();
+        int end = cell.sourceEnd();
+        while (start < end && Character.isWhitespace(text.charAt(start))) {
+            start++;
+        }
+        return start;
     }
 
     private static double sumColumnWidths(double[] columnWidths) {
@@ -4219,8 +4294,9 @@ public class ManuskriptTextEditor extends Region {
         int logicalStart = logicalLineStartForOffset(line.start);
         MarkdownBlockSupport.TableRow tableRow = tableRowByLineStart.get(logicalStart);
         if (tableRow != null && renderMarkupHidden) {
-            paintLineSelectionBackground(gc, line, lineIndex, y, selectionStart, selectionEnd);
-            paintTableRow(gc, line, lineIndex, y, tableRow);
+            paintTableRowBackground(gc, line, lineIndex, y, tableRow);
+            paintTableRowSelectionBackground(gc, line, lineIndex, y, tableRow, selectionStart, selectionEnd);
+            paintTableRowText(gc, line, lineIndex, y, tableRow);
             return;
         }
         if (codeFenceContentLineStarts.contains(logicalStart)) {
@@ -4232,10 +4308,14 @@ public class ManuskriptTextEditor extends Region {
         if (isFirstVisualLineOfLogicalLine(line)) {
             Integer headingLevel = headingLevelForVisualLine(line);
             if (headingLevel != null) {
+                paintLineSelectionBackground(gc, line, lineIndex, y, selectionStart, selectionEnd);
+                paintLineMarkedBackgrounds(gc, line, lineIndex, y);
                 paintCenteredLine(gc, line, y);
                 return;
             }
             if (centerLineStarts.contains(logicalLineStartForOffset(line.start))) {
+                paintLineSelectionBackground(gc, line, lineIndex, y, selectionStart, selectionEnd);
+                paintLineMarkedBackgrounds(gc, line, lineIndex, y);
                 paintCenteredLine(gc, line, y);
                 return;
             }
@@ -4458,7 +4538,7 @@ public class ManuskriptTextEditor extends Region {
             double x = xForOffsetInLine(line, lineIndex, segmentStart);
             double layoutWidth = xForOffsetInLine(line, lineIndex, segmentEnd) - x;
             double segmentWidth = Math.max(measureText(segment, style), layoutWidth);
-            if (style.background != null && !usesLayoutPaintedBackground(style)) {
+            if (style.background != null && !usesLayoutPaintedBackground(style) && !forceCodeBlockStyle) {
                 double bgWidth = Math.max(layoutWidth, segmentWidth);
                 fillBackgroundRect(gc, x, top, bgWidth, height, style.background);
             }

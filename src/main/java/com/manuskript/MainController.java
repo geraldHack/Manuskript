@@ -152,8 +152,6 @@ public class MainController implements Initializable {
     @FXML private Button btnSearchAllFiles;
     @FXML private CheckBox chkDownloadsMonitor;
     @FXML private HBox downloadsMonitorContainer;
-    // Help-Toggle Button (programmatisch erstellt)
-    private Button btnHelpToggle;
     
     // Status
     // ProgressBar und lblStatus wurden entfernt
@@ -572,8 +570,7 @@ public class MainController implements Initializable {
         // Status initialisieren
         updateStatus("Bereit - Wählen Sie ein Verzeichnis aus");
         
-        // Help-Toggle-Button programmatisch erstellen (nach UI-Setup)
-        Platform.runLater(() -> createHelpToggleButton());
+        Platform.runLater(this::createMainToolbarExtras);
     }
     
     private void setupEventHandlers() {
@@ -605,9 +602,11 @@ public class MainController implements Initializable {
         });
         if (btnWorldEditor != null) {
             btnWorldEditor.setOnAction(e -> openWorldEditor());
+            attachToolbarHelpButton(btnWorldEditor, "Hilfe zum Welt-Editor", "world_editor.html", "Hilfe - Welt-Editor");
         }
         if (btnNovelWizard != null) {
             btnNovelWizard.setOnAction(e -> openNovelWizardForCurrentProject());
+            attachToolbarHelpButton(btnNovelWizard, "Hilfe zum Roman-Assistenten", "novel_wizard.html", "Hilfe - Roman-Assistent");
         }
         if (btnOnlineLektorat != null) {
             btnOnlineLektorat.setOnAction(e -> {
@@ -742,7 +741,6 @@ public class MainController implements Initializable {
         }
         btnDeleteFile.setOnAction(e -> deleteSelectedFile());
         btnSearchAllFiles.setOnAction(e -> searchAllFiles());
-        // btnHelpToggle Event-Handler wird in createHelpToggleButton() gesetzt
 
         updateOnlineLektoratButtonState();
     }
@@ -5448,68 +5446,28 @@ public class MainController implements Initializable {
 
     
     /**
-     * Wechselt das Help-System ein/aus
-     */
-    private void toggleHelp() {
-        helpEnabled = !helpEnabled;
-        
-        // In Preferences speichern
-        preferences.putBoolean("help_enabled", helpEnabled);
-        
-        // Button-Text aktualisieren
-        updateHelpButtonIcon();
-        
-        // Help-Buttons in allen Fenstern aktualisieren
-        HelpSystem.setHelpEnabled(helpEnabled);
-        
-        updateStatus("Hilfe " + (helpEnabled ? "eingeschaltet" : "ausgeschaltet"));
-    }
-    
-    /**
-     * Aktualisiert das Help-Button Icon
-     */
-    private void updateHelpButtonIcon() {
-        if (btnHelpToggle != null) {
-            if (helpEnabled) {
-                btnHelpToggle.setText("❓");
-                btnHelpToggle.setTooltip(new Tooltip("Hilfe ausschalten"));
-            } else {
-                btnHelpToggle.setText("❌");
-                btnHelpToggle.setTooltip(new Tooltip("Hilfe einschalten"));
-            }
-        }
-    }
-    
-    /**
-     * Lädt Help-Einstellung aus Preferences
+     * Lädt Help-Einstellung aus Preferences (ohne Toggle in der Toolbar).
      */
     private void loadHelpSettings() {
         helpEnabled = preferences.getBoolean("help_enabled", true);
-        updateHelpButtonIcon();
         HelpSystem.setHelpEnabled(helpEnabled);
     }
-    /**
-     * Erstellt den Help-Toggle-Button programmatisch
-     */
-    private void createHelpToggleButton() {
-        btnHelpToggle = new Button("❓");
-        btnHelpToggle.setPrefSize(40, 40);
-        btnHelpToggle.getStyleClass().add("help-toggle-button");
-        btnHelpToggle.setOnAction(e -> toggleHelp());
-        
-        // Button zum Layout hinzufügen (neben Theme-Button)
+
+    /** Parameter-Button in der Haupt-Toolbar (neben Theme). */
+    private void createMainToolbarExtras() {
         if (btnThemeToggle != null && btnThemeToggle.getParent() != null) {
             HBox parentBox = (HBox) btnThemeToggle.getParent();
-            parentBox.getChildren().add(btnHelpToggle);
-            Button btnParams = new Button("Parameter");
-            btnParams.getStyleClass().add("main-toolbar-button");
-            btnParams.setMinWidth(100);
-            btnParams.setTooltip(new Tooltip("Parameter und Einstellungen verwalten"));
-            btnParams.setOnAction(e -> ParametersAdminWindow.show(primaryStage));
-            parentBox.getChildren().add(btnParams);
+            boolean hasParams = parentBox.getChildren().stream()
+                    .anyMatch(node -> node instanceof Button b && "Parameter".equals(b.getText()));
+            if (!hasParams) {
+                Button btnParams = new Button("Parameter");
+                btnParams.getStyleClass().add("main-toolbar-button");
+                btnParams.setMinWidth(100);
+                btnParams.setTooltip(new Tooltip("Parameter und Einstellungen verwalten"));
+                btnParams.setOnAction(e -> ParametersAdminWindow.show(primaryStage));
+                parentBox.getChildren().add(btnParams);
+            }
         }
-        
-        updateHelpButtonIcon();
     }
     /**
      * Wechselt das Theme
@@ -9280,6 +9238,20 @@ public class MainController implements Initializable {
         
         public Object getChapter() { return chapter; }
         public SplitSource getSource() { return source; }
+    }
+
+    private void attachToolbarHelpButton(Button anchor, String tooltip, String helpFile, String windowTitle) {
+        if (anchor == null || !(anchor.getParent() instanceof HBox parent)) {
+            return;
+        }
+        int index = parent.getChildren().indexOf(anchor);
+        if (index < 0) {
+            return;
+        }
+        Button helpButton = HelpSystem.createHelpButton(tooltip, helpFile, windowTitle);
+        helpButton.setScaleX(0.85);
+        helpButton.setScaleY(0.85);
+        parent.getChildren().add(index + 1, helpButton);
     }
 
     private void openWorldEditor() {

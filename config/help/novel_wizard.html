@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 20px; background: #f8f9fa; }
+        .help-container { background: white; border-radius: 8px; padding: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); max-width: 900px; margin: 0 auto; }
+        h1 { color: #2C3E50; border-bottom: 3px solid #4A90E2; padding-bottom: 10px; }
+        h2 { color: #34495E; margin-top: 28px; border-bottom: 2px solid #E8F4FD; padding-bottom: 5px; }
+        .highlight { background: #E8F4FD; padding: 15px; border-left: 4px solid #4A90E2; margin: 15px 0; }
+        ul, ol { padding-left: 20px; }
+        li { margin-bottom: 8px; }
+    </style>
+</head>
+<body>
+    <div class="help-container">
+        <h1>Roman-Assistent</h1>
+
+        <p>Der <strong>Roman-Assistent</strong> führt Sie interaktiv durch die Planung eines Romans. KI-gestützte Fragen und Antworten füllen schrittweise die Welt-Editor-Dateien und bereiten die Kapitelstruktur vor.</p>
+
+        <h2>Öffnen</h2>
+        <ul>
+            <li>Hauptfenster → <strong>Roman-Assistent</strong></li>
+            <li>Beim ersten Start oder aus der Projektübersicht: Projektordner wählen</li>
+        </ul>
+
+        <h2>Session fortsetzen</h2>
+        <p>Pro Projekt wird eine Session gespeichert. Beim Öffnen können Sie:</p>
+        <ul>
+            <li><strong>Fortsetzen</strong> – dort weitermachen, wo Sie aufgehört haben</li>
+            <li><strong>Neu starten (Backup)</strong> – alte Session archivieren, von vorn beginnen</li>
+            <li><strong>Abbrechen</strong></li>
+        </ul>
+
+        <h2>Ablauf</h2>
+        <ol>
+            <li><strong>Phasen</strong> – z. B. Idee, Figuren, Welt, Synopsis, Struktur, Kapitel (Fortschrittsbalken oben)</li>
+            <li><strong>Fragen</strong> – KI stellt eine Frage; Sie wählen eine Option oder schreiben eine eigene Antwort</li>
+            <li><strong>Nächste Frage / Phase abschließen</strong> – schreitet voran, wenn die Phase genug Material hat</li>
+            <li><strong>Vorschau</strong> – generierte Texte (Outline, Charaktere usw.) in Tabs rechts</li>
+            <li>Am Ende: DOCX-Kapitel im Hauptfenster anlegen und im Editor bearbeiten</li>
+        </ol>
+
+        <h2>Phasen und Welt-Dateien</h2>
+        <p>Antworten und KI-Generierungen werden in die Projektdateien des Welt-Editors geschrieben (<code>characters.txt</code>, <code>outline.txt</code>, …). Diese Dateien können Sie danach im Welt-Editor manuell nachbearbeiten.</p>
+
+        <h2>KI-Backend</h2>
+        <p>Der Assistent nutzt dieselben API-Einstellungen wie die Agenten (OpenAI-kompatibel). Phasen-Definitionen liegen in <code>config/novel-wizard-phases.json</code>.</p>
+
+        <div class="highlight">
+            <strong>Workflow-Tipp:</strong> Roman-Assistent → Welt-Editor feinjustieren → Kapitel in Hauptfenster → Kapitel-Editor mit Agenten und Online-Lektorat.
+        </div>
+    </div>
+</body>
+</html>

@@ -11,11 +11,7 @@
             margin: 0 auto;
             padding: 20px;
         }
-        h1, h2, h3 {
-            color: #2c3e50;
-            border-bottom: 2px solid #3498db;
-            padding-bottom: 5px;
-        }
+        h1, h2, h3 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 5px; }
         .tool-section {
             background-color: #f8f9fa;
             padding: 15px;
@@ -23,15 +19,8 @@
             margin: 15px 0;
             border-left: 4px solid #3498db;
         }
-        .tool-name {
-            font-weight: bold;
-            color: #2c3e50;
-            font-size: 1.1em;
-        }
-        .tool-description {
-            margin: 8px 0;
-            color: #555;
-        }
+        .tool-name { font-weight: bold; color: #2c3e50; font-size: 1.1em; margin-top: 12px; }
+        .tool-description { margin: 8px 0; color: #555; }
         .tool-shortcut {
             background-color: #e9ecef;
             padding: 2px 6px;
@@ -39,17 +28,8 @@
             font-family: 'Courier New', monospace;
             font-size: 0.9em;
         }
-        ul, ol {
-            margin: 10px 0;
-            padding-left: 20px;
-        }
-        li {
-            margin: 5px 0;
-        }
-        .icon {
-            font-size: 1.2em;
-            margin-right: 8px;
-        }
+        ul, ol { margin: 10px 0; padding-left: 20px; }
+        li { margin: 5px 0; }
         .highlight {
             background-color: #E8F4FD;
             padding: 15px;
@@ -57,7 +37,6 @@
             margin: 15px 0;
             border-radius: 0 4px 4px 0;
         }
-
         .warning {
             background-color: #FFF3CD;
             padding: 15px;
@@ -65,231 +44,137 @@
             margin: 15px 0;
             border-radius: 0 4px 4px 0;
         }
-
     </style>
 </head>
 <body>
-    <h1>■ Kapitel-Editor Tools</h1>
-    
-    <p>Hier findest du eine Übersicht aller verfügbaren Tools im Kapitel-Editor:</p>
-    
-    <div class="tool-section">
-        <h2>● Textformatierung</h2>
-        
-        <div class="tool-name">■ Textgröße</div>
-        <div class="tool-description">
-            <strong>Dropdown:</strong> Wähle eine Schriftgröße aus der Liste<br>
-            <strong>A+ Button:</strong> Vergrößert die Schrift um 2pt<br>
-            <strong>A- Button:</strong> Verkleinert die Schrift um 2pt<br>
-            Geht auch mit <span class="tool-shortcut">Strg + Mausrad</span> 
-        </div>
-        
-        <div class="tool-name">■ Fett und Kursiv</div>
-        <div class="tool-description">
-            <strong>B Button:</strong> Macht markierten Text fett<br>
-            <strong>I Button:</strong> Macht markierten Text kursiv<br>
-            <strong>U Button:</strong> Macht markierten Text unterstrichen<br>
-            <span class="tool-shortcut">Strg+B</span> für Fett, <span class="tool-shortcut">Strg+I</span> für Kursiv, <span class="tool-shortcut">Strg+U</span> für Unterstrichen
-        </div>
-        
-        <div class="tool-name">■ Bilder einfügen (Bild-Button)</div>
-        <div class="tool-description">
-            <strong>Funktion:</strong> Fügt Bilder in Markdown-Syntax ein<br>
-            <strong>Verwendung:</strong><br>
-            1. Klicken Sie auf den <strong>Bild-Button</strong> in der Toolbar<br>
-            2. Wählen Sie eine Bilddatei aus (PNG, JPG, GIF, BMP, WEBP)<br>
-            3. Geben Sie optional einen Alt-Text ein (für Barrierefreiheit)<br>
-            4. Das Bild wird automatisch in Markdown-Syntax eingefügt: <code>![Alt-Text](Pfad/zum/Bild.jpg)</code><br><br>
-            
-            <strong>Features:</strong><br>
-            • Unterstützte Formate: PNG, JPG, JPEG, GIF, BMP, WEBP<br>
-            • Der zuletzt verwendete Pfad wird gespeichert<br>
-            • Der zuletzt verwendete Alt-Text wird gespeichert<br>
-            • Pfad kann absolut oder relativ zum Dokument sein<br>
-            • Relative Pfade sind portabler (z.B. <code>images/cover.jpg</code>)<br><br>
-            
-            <div class="highlight">
-                <strong>Tipp:</strong> Verwenden Sie relative Pfade für bessere Portabilität. Erstellen Sie einen <code>images</code>-Ordner neben Ihrem Dokument.
-            </div>
-        </div>
+    <h1>Kapitel-Editor – Werkzeuge</h1>
+
+    <p>Übersicht der Werkzeuge in der Host-Toolbar und Markdown-Toolbar des Canvas-Editors.</p>
+
+    <div class="highlight">
+        <strong>Agenten und Online-Lektorat</strong> haben eigene Hilfeseiten – nutzen Sie die ?-Buttons „Agenten“ und „Lektorat“ im Editor.
     </div>
-    
+
     <div class="tool-section">
-        <h2>● Zeilenabstand</h2>
-        
-        <div class="tool-name">■ Zeilenabstand</div>
+        <h2>Textformatierung</h2>
+
+        <div class="tool-name">Markdown-Toolbar</div>
         <div class="tool-description">
-            <strong>Dropdown:</strong> Wähle den Abstand zwischen Zeilen (5px, 10px, 15px, 20px)<br>
-        </div>
-        <div class="warning">
-            <strong>Wichtig:</strong> Absätze müssen in markdown durch Leerzeilen getrennt werden. Ein großer Zeilenabstand könnte mit einem Abstatz verwechselt Werden. Bitte das Makro  'Textbereinigung' ausführen.
+            Fett (B), Kursiv (I), Unterstrichen (U), Überschriften, Listen, Tabellen, Code, Links.<br>
+            <span class="tool-shortcut">Strg+B</span>, <span class="tool-shortcut">Strg+I</span>, <span class="tool-shortcut">Strg+U</span>
         </div>
 
+        <div class="tool-name">Markdown ausblenden</div>
+        <div class="tool-description">
+            Checkbox in der Markdown-Toolbar: Formatierung wird inline dargestellt, Syntaxzeichen werden ausgeblendet.
+        </div>
+
+        <div class="tool-name">Erweiterte Formatierung (Host-Toolbar)</div>
+        <div class="tool-description">
+            Mark (Hervorheben), Zitat (&gt;), Zentrieren, groß/klein, Farbe, hoch/tief gestellt, Zeilenumbruch (&lt;br&gt;), horizontale Linie (---).
+        </div>
+
+        <div class="tool-name">Schriftgröße</div>
+        <div class="tool-description">
+            Dropdown in der Markdown-Toolbar oder <span class="tool-shortcut">Strg + Mausrad</span>.
+        </div>
+
+        <div class="tool-name">Zeilennummern</div>
+        <div class="tool-description">
+            Checkbox in der Host-Toolbar – Zeilennummern-Spalte links ein-/ausblenden.
+        </div>
     </div>
-    
+
     <div class="tool-section">
-        <h2>● Navigation und Textbearbeitung</h2>
-        
-        <div class="tool-name">■ Kapitel-Navigation</div>
+        <h2>Anführungszeichen</h2>
         <div class="tool-description">
-            <strong>◀ Vorheriges Kapitel:</strong> Springt zum vorherigen Kapitel<br>
-            <strong>Nächstes Kapitel ▶:</strong> Springt zum nächsten Kapitel<br>
-            <span class="tool-shortcut">Strg + Pfeil links</span> für vorheriges Kapitel<br>
-            <span class="tool-shortcut">Strg + Pfeil rechts</span> für nächstes Kapitel<br>
-            Funktioniert nur, wenn mehrere Kapitel geöffnet sind
-        </div>
-        
-        <div class="tool-name">■ Zeile löschen</div>
-        <div class="tool-description">
-            <strong>Funktion:</strong> Löscht die aktuelle Zeile und setzt den Cursor nach links<br>
-            <strong>Verwendung:</strong> <span class="tool-shortcut">Strg+X</span><br>
-            <strong>Hinweis:</strong> Der Cursor springt an den Anfang der vorherigen Zeile (oder an den Anfang des Dokuments, wenn es die erste Zeile war)
-        </div>
-        
-        <div class="tool-name">■ Zum Anfang/Ende des Dokuments springen</div>
-        <div class="tool-description">
-            <strong>Funktion:</strong> Springt zum Anfang oder Ende des gesamten Dokuments<br>
-            <strong>Verwendung:</strong><br>
-            • <span class="tool-shortcut">Pos1</span> → Anfang des Dokuments<br>
-            • <span class="tool-shortcut">Ende</span> → Ende des Dokuments<br>
-            • <span class="tool-shortcut">Strg + Pfeil hoch</span> → Anfang des Dokuments<br>
-            • <span class="tool-shortcut">Strg + Pfeil unten</span> → Ende des Dokuments<br>
+            Dropdown <strong>Anführungszeichen</strong> in der Host-Toolbar: Deutsch („…"), Französisch (»…«), Englisch ("…"), Schweiz («…»).<br>
+            Beim Tippen von <code>"</code> und <code>'</code> werden die gewählten Zeichen gesetzt; der gesamte Text kann konvertiert werden.
         </div>
     </div>
-    
+
     <div class="tool-section">
-        <h2>● Rückgängig/Wiederholen</h2>
-        
-        <div class="tool-name">■ Rückgängig (↶)</div>
+        <h2>LanguageTool</h2>
+        <div class="tool-name">LanguageTool / LT automatisch</div>
         <div class="tool-description">
-            <strong>Funktion:</strong> Macht die letzte Aktion rückgängig<br>
-            <strong>Verwendung:</strong> Klicke auf den ↶ Button oder verwende <span class="tool-shortcut">Strg+Z</span><br>
-            <strong>Hinweis:</strong> Funktioniert mit allen Textänderungen (Eingabe, Formatierung, Löschen, etc.)<br>
-            <strong>Mehrfach:</strong> Kann mehrfach verwendet werden, um mehrere Aktionen rückgängig zu machen
-        </div>
-        
-        <div class="tool-name">■ Wiederholen (↷)</div>
-        <div class="tool-description">
-            <strong>Funktion:</strong> Wiederholt die letzte rückgängig gemachte Aktion<br>
-            <strong>Verwendung:</strong> Klicke auf den ↷ Button oder verwende <span class="tool-shortcut">Strg+Y</span><br>
-            <strong>Hinweis:</strong> Funktioniert nur, wenn zuvor eine Aktion rückgängig gemacht wurde<br>
-            <strong>Mehrfach:</strong> Kann mehrfach verwendet werden, um mehrere Aktionen wieder zu wiederholen
+            <strong>LanguageTool</strong> startet eine sofortige Prüfung (lokaler Server, z. B. localhost:8081).<br>
+            <strong>LT automatisch</strong> prüft nach Textänderungen mit kurzer Verzögerung. Treffer werden im Text markiert.
         </div>
     </div>
-    
+
     <div class="tool-section">
-        <h2>● Theme und Anführungszeichen</h2>
-        
-        <div class="tool-name">■ Theme-Toggle (☀)</div>
+        <h2>Outline und Textanalyse</h2>
+        <div class="tool-name">Outline</div>
+        <div class="tool-description">Szenen-Outline für das aktuelle Kapitel in einem separaten Fenster.</div>
+
+        <div class="tool-name">Analyse</div>
         <div class="tool-description">
-            Wechselt zwischen Hell- und Dunkelmodus<br>
-            Einstellung wird gespeichert und beim nächsten Start wiederhergestellt<br>
-            <strong>Verwendung:</strong> Klicke auf das Sonnen-/Mond-Symbol in der Toolbar
-        </div>
-        
-        <div class="tool-name">■ Anführungszeichen-Styling</div>
-        <div class="tool-description">
-            <strong>Dropdown:</strong> Wähle den Stil der Anführungszeichen für dein Dokument<br>
-            <strong>Verfügbare Optionen:</strong><br>
-            • Deutsche Anführungszeichen: „Text"<br>
-            • Französische Anführungszeichen: »Text«<br>
-            • Englische Anführungszeichen: "Text"<br>
-            • Schweizer Anführungszeichen: «Text»<br>
-            <strong>Wichtig:</strong> Diese Einstellung wird beim Export automatisch angewendet und betrifft den gesamten Text
+            Textanalyse: Füllwörter, Phrasen, Wortwiederholungen, Sprechantworten, Satzlängen.<br>
+            Konfiguration in <code>config/textanalysis.properties</code>.
         </div>
     </div>
-    
+
     <div class="tool-section">
-        <h2>● Status-Anzeigen</h2>
-        
-        <div class="tool-name">■ Auswahl-Anzeige</div>
+        <h2>Makros</h2>
         <div class="tool-description">
-            <strong>Funktion:</strong> Zeigt die Anzahl der markierten Zeichen an<br>
-            <strong>Format:</strong> "Auswahl: X Zeichen"<br>
-            <strong>Verwendung:</strong> Markiere Text, um die Zeichenanzahl zu sehen
-        </div>
-        
-        <div class="tool-name">■ Status-Label</div>
-        <div class="tool-description">
-            <strong>Funktion:</strong> Zeigt den aktuellen Status des Editors an<br>
-            <strong>Mögliche Status:</strong><br>
-            • "Bereit" - Editor ist bereit für Eingaben<br>
-            • "Speichern..." - Datei wird gespeichert<br>
-            • "Fehler" - Ein Fehler ist aufgetreten<br>
-            • "Gespeichert" - Datei wurde erfolgreich gespeichert
-            • Weitere Status-Meldungen 
+            Button <strong>Makros</strong> öffnet die Makro-Verwaltung.<br>
+            Standard-Makro „Textbereinigung“: Auslassungszeichen, Gedankenstriche, Absatzformatierung, Anführungszeichen.<br>
+            Eigene Makros erstellen, CSV-Import/Export möglich.
         </div>
     </div>
-    
+
     <div class="tool-section">
-        <h2>● Preview (Vorschau)</h2>
-        
-        <div class="tool-name">■ Preview-Fenster (Preview-Button)</div>
+        <h2>Bilder</h2>
         <div class="tool-description">
-            <strong>Funktion:</strong> Zeigt eine gerenderte Vorschau Ihres Markdown-Textes<br>
-            <strong>Verwendung:</strong> Klicken Sie auf den <strong>Preview-Button</strong> in der Toolbar<br><br>
-            
-            <strong>Features:</strong><br>
-            • <strong>Live-Aktualisierung:</strong> Die Vorschau wird automatisch aktualisiert, während Sie schreiben (nach 500ms Pause)<br>
-            • <strong>Scroll-Synchronisation:</strong> Editor und Preview scrollen synchron - wenn Sie im Editor navigieren, scrollt die Preview mit<br>
-            • <strong>Blocksatz-Toggle:</strong> Aktivieren/Deaktivieren Sie Blocksatz in der Vorschau mit dem "Blocksatz"-Button<br>
-            • <strong>Export-Vorschau:</strong> Die Preview zeigt Ihnen, wie Ihr Text nach dem Export aussehen wird<br>
-            • <strong>Fenster-Position:</strong> Position und Größe des Preview-Fensters werden gespeichert<br>
-            • <strong>Theme-Unterstützung:</strong> Die Preview passt sich dem aktuellen Editor-Theme an<br><br>
-            
-            <strong>Was wird angezeigt:</strong><br>
-            • Alle Markdown-Formatierungen (Fett, Kursiv, Überschriften, Listen, etc.)<br>
-            • Bilder werden korrekt dargestellt<br>
-            • Tabellen werden formatiert angezeigt<br>
-            • Code-Blöcke werden mit Syntax-Highlighting dargestellt<br>
-            • Zitate werden als Blockquotes angezeigt<br><br>
-            
-            <div class="highlight">
-                <strong>Tipp:</strong> Öffnen Sie die Preview in einem zweiten Fenster, um gleichzeitig zu schreiben und das Ergebnis zu sehen. Die automatische Aktualisierung macht es einfach, Formatierungen zu überprüfen.
-            </div>
+            <strong>Bild einfügen</strong> – Datei wählen, Alt-Text optional; Syntax <code>![Alt](pfad.jpg)</code><br>
+            <strong>Bild bearbeiten</strong> – Breite und Beschriftung am Cursor<br>
+            <strong>Bild löschen</strong> – Bildblock am Cursor entfernen<br>
+            Tipp: relative Pfade (z. B. <code>images/cover.jpg</code>) für Portabilität.
         </div>
     </div>
-    
+
     <div class="tool-section">
-        <h2>● Weitere wichtige Funktionen</h2>
-        
-        <div class="tool-name">■ Kapitel-Editor (✏)</div>
+        <h2>Sudowrite-Kopie</h2>
         <div class="tool-description">
-            <strong>Funktion:</strong> Beschreibung und Szenen für das aktuelle Kapitel<br>
-            <strong>Verwendung:</strong> Klicke auf "✏ Chapter-Beschreibung" um den Editor zu öffnen<br>
-            <strong>Speichern:</strong> Verwende den "💾 Speichern" Button<br>
-            <strong>Hinweis:</strong> Diese Beschreibung wird beim Export als Metadaten verwendet
-        </div>
-        
-        <div class="tool-name">■ Haupt-Buttons</div>
-        <div class="tool-description">
-            <strong>Speichern:</strong> Speichert das aktuelle Kapitel<br>
-            <strong>Speichern als...:</strong> Speichert unter neuem Namen<br>
-            <strong>Exportieren:</strong> Exportiert in verschiedene Formate (DOCX, PDF, etc.)<br>
-            <strong>Suchen/Ersetzen:</strong> Öffnet das Such- und Ersetzungs-Panel<br>
-            <strong>Makros:</strong> Öffnet das Makro-System<br>
-            <strong>Textanalyse:</strong> Öffnet die Textanalyse-Funktionen<br>
-            <strong>KI-Assistent:</strong> Öffnet den KI-Assistenten für Textverbesserungen<br>
-            <strong>Preview:</strong> Öffnet die Vorschau des gerenderten Markdown-Textes
+            Button <strong>Sudowrite</strong> kopiert bereinigten Text in die Zwischenablage (ohne Kapiteltitel, ohne Manuskript-spezifische Markierungen).<br>
+            Für vollständigen Export mit Bildern: <strong>Buch exportieren</strong> im Hauptfenster.
         </div>
     </div>
-    
-    <h2>● Tipps für effizientes Arbeiten</h2>
-    
+
+    <div class="tool-section">
+        <h2>Suchen und Ersetzen</h2>
+        <div class="tool-description">
+            Panel in der Markdown-Toolbar: <span class="tool-shortcut">Strg+F</span> (Suchen), <span class="tool-shortcut">Strg+H</span> (Ersetzen), F3 für nächsten Treffer.<br>
+            Unterstützt reguläre Ausdrücke und Such-Historie.
+        </div>
+    </div>
+
+    <div class="tool-section">
+        <h2>Navigation</h2>
+        <div class="tool-description">
+            <span class="tool-shortcut">Strg + Pfeil links/rechts</span> – vorheriges/nächstes Kapitel<br>
+            <span class="tool-shortcut">Pos1 / Ende</span> oder <span class="tool-shortcut">Strg + Pfeil hoch/unten</span> – Dokumentanfang/-ende<br>
+            <span class="tool-shortcut">Strg+X</span> ohne Auswahl – aktuelle Zeile löschen
+        </div>
+    </div>
+
+    <div class="tool-section">
+        <h2>Statuszeile</h2>
+        <div class="tool-description">
+            Rechts unten: Speichern-Button, LanguageTool-Status, Auswahlzähler (Zeichen/Wörter), allgemeiner Status (Bereit, Gespeichert, Fehler …).
+        </div>
+    </div>
+
+    <div class="warning">
+        <strong>Absätze:</strong> In Markdown müssen Absätze durch Leerzeilen getrennt sein. Nach Import oder großen Formatänderungen das Makro „Textbereinigung“ ausführen.
+    </div>
+
+    <h2>Tipps</h2>
     <ul>
-        <li>■ Verwende die Tastenkürzel für häufige Aktionen</li>
-        <li>■ Speichere regelmäßig mit <span class="tool-shortcut">Strg+S</span></li>
-        <li>■ Nutze die Kapitel-Navigation für große Projekte (<span class="tool-shortcut">Strg + Pfeil links/rechts</span>)</li>
-        <li>■ Experimentiere mit verschiedenen Schriftgrößen für bessere Lesbarkeit</li>
-        <li>■ Der Theme-Wechsel hilft bei längerem Schreiben</li>
-        <li>■ Die Anführungszeichen-Einstellung wird für den gesamten Text übernommen</li>
-        <li>■ Nutze die Preview-Funktion, um Formatierungen zu überprüfen</li>
-        <li>■ Verwende relative Pfade für Bilder, damit sie auch nach dem Verschieben funktionieren</li>
-        <li>■ Die Markdown-Hilfe öffnen Sie mit <span class="tool-shortcut">Strg+M</span> oder dem Markdown-Hilfe-Button</li>
-        <li>■ Aktuelle Zeile löschen: <span class="tool-shortcut">Strg+X</span> (Cursor springt nach links, nur wenn kein Text markiert ist)</li>
-        <li>■ Zum Anfang/Ende des Dokuments springen: <span class="tool-shortcut">Pos1</span> / <span class="tool-shortcut">Ende</span> oder <span class="tool-shortcut">Strg + Pfeil hoch/unten</span></li>
+        <li>Regelmäßig speichern: <span class="tool-shortcut">Strg+S</span></li>
+        <li>Markdown-Hilfe: <span class="tool-shortcut">Strg+M</span></li>
+        <li>„Markdown ausblenden“ zum Lesen und Prüfen der Formatierung</li>
+        <li>Host-Toolbar einklappen für mehr Schreibfläche (Pfeil-Button)</li>
     </ul>
-    
-   
 </body>
 </html>

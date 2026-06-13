@@ -3,6 +3,7 @@ package com.manuskript.novelwizard;
 import com.manuskript.CustomAlert;
 import com.manuskript.CustomStage;
 import com.manuskript.EditorDialogThemes;
+import com.manuskript.HelpSystem;
 import com.manuskript.MdTextArea;
 import com.manuskript.MdTextAreaOptions;
 import com.manuskript.PreferencesManager;
@@ -351,7 +352,12 @@ public class NovelCreationWizardWindow {
         HBox footerRow = new HBox(12, statusLabel, footerSpacer, jumpRow);
         footerRow.setAlignment(Pos.CENTER_LEFT);
 
-        VBox titleBlock = new VBox(2, projectTitleLabel, phaseHeadlineLabel);
+        Button wizardHelpButton = HelpSystem.createHelpButton(
+                "Hilfe zum Roman-Assistenten", "novel_wizard.html", "Hilfe - Roman-Assistent");
+        HBox titleRow = new HBox(8, projectTitleLabel, wizardHelpButton);
+        titleRow.setAlignment(Pos.CENTER_LEFT);
+        HBox.setHgrow(projectTitleLabel, Priority.ALWAYS);
+        VBox titleBlock = new VBox(2, titleRow, phaseHeadlineLabel);
         VBox headerMain = new VBox(12, titleBlock, progressRow, phaseStepsScroll);
         headerMain.getStyleClass().add("novel-wizard-header-main");
 

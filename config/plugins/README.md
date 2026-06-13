@@ -1,37 +1,29 @@
-# Plugin-System für den KI-Assistenten
+# Plugin-System (Legacy)
 
-## 📦 Übersicht
+## Hinweis
 
-Das Plugin-System erweitert den KI-Assistenten um spezialisierte Funktionen. Plugins sind JSON-Dateien mit Prompts und Variablen. **Neu: Dynamische Dialoge für alle Variablen!**
+Das **Plugin-System** gehörte zum früheren **KI-Assistenten** (Ollama-Fenster mit Chat und Plugin-Auswahl). Dieser Assistent ist nicht mehr Teil der Benutzeroberfläche.
 
-## 🔧 Verwendung
+Für KI-gestützte Arbeit nutzen Sie stattdessen:
 
-### 1. Plugin auswählen
-- Öffne den KI-Assistenten
-- Wähle in der Funktionsauswahl unter "📦 Plugins" dein gewünschtes Plugin
+- **Agenten** im Kapitel-Editor (Analyse, Szene schreiben, Chat, Überarbeiten) – konfiguriert in `config/agents.json`
+- **Online-Lektorat** – Parameter unter `api.lektorat.*`
+- **Welt-Editor** und **Roman-Assistent** – KI-Generierung und Extraktion aus Kapiteln
 
-### 2. Text vorbereiten (optional)
-- **Editor-Selektion**: Markiere Text im Editor für automatische Verwendung
-- **Chat-Input**: Oder gib Text in das Chat-Eingabefeld ein
+Hilfe dazu: ?-Buttons im Editor bzw. in den jeweiligen Fenstern.
 
-### 3. Plugin starten
-- Klicke auf "Generieren"
-- **Automatisch**: Ein Dialog öffnet sich mit allen Plugin-Variablen
-- **"Selektierter Text"**: Wird automatisch aus Editor-Selektion oder Chat-Input gesetzt
-- **Andere Variablen**: Werden mit Standard-Werten vorausgefüllt
+## Alte Plugin-Dateien
 
-### 4. Variablen anpassen
-- Bearbeite die Werte im Dialog
-- Klicke "OK" um das Plugin zu starten
-- Klicke "Abbrechen" um abzubrechen
+JSON-Dateien in `config/plugins/` können noch im Repository liegen. Sie werden von der aktuellen Anwendung **nicht mehr geladen**.
 
-## 📝 Plugin erstellen
+Falls Sie Prompts aus einem Plugin übernehmen möchten, kopieren Sie den `prompt`-Text in einen neuen Agenten (`config/agents.json`) oder in den System-Prompt eines Agent-Tabs im Editor.
 
-### JSON-Struktur:
+### Beispiel-Struktur (nur Referenz)
+
 ```json
 {
   "name": "Plugin-Name",
-  "description": "Beschreibung des Plugins",
+  "description": "Beschreibung",
   "category": "Kategorie",
   "prompt": "Prompt mit {Variablen}",
   "temperature": 0.7,
@@ -40,55 +32,4 @@ Das Plugin-System erweitert den KI-Assistenten um spezialisierte Funktionen. Plu
 }
 ```
 
-### Variablen verwenden:
-- Verwende `{VariableName}` im Prompt
-- **Automatische Variablen**: `{Hier den Text einfügen, den du analysieren möchtest}`, `{selektierter Text}`, `{selected text}`
-- **Benutzer-Variablen**: Alle anderen Variablen werden im Dialog abgefragt
-
-### Standard-Werte:
-Das System erkennt automatisch Standard-Werte basierend auf Variablen-Namen:
-- `{Genre}` → "Fantasy"
-- `{Länge}` → "Roman" 
-- `{Zielgruppe}` → "Erwachsene"
-- `{Charakter-Name}` → "Unbekannter Charakter"
-- `{Grundidee}` → Selektierter Text
-
-## 🎯 Verfügbare Plugins
-
-### Charakter-Entwicklung
-Entwickelt detaillierte Charakterprofile basierend auf Grundideen.
-
-### Erweiterte Charakter-Entwicklung
-Entwickelt Charakterprofile mit vielen Parametern (Name, Alter, Beruf, etc.).
-
-### Plot-Entwicklung
-Entwickelt Plot-Ideen und Story-Strukturen.
-
-### Test-Plugin
-Einfaches Plugin zum Testen des Systems.
-
-## 🔄 Plugin verwalten
-
-- **Ordner öffnen**: "📁 Ordner öffnen" Button
-- **Plugins neu laden**: "🔄 Neu laden" Button
-- **Plugin bearbeiten**: JSON-Datei direkt editieren
-
-## 💡 Tipps
-
-1. **Editor-Selektion nutzen**: Markiere Text im Editor für automatische Verwendung
-2. **Variablen-Namen**: Verwende aussagekräftige Namen für bessere Standard-Werte
-3. **Kategorien**: Gruppiere ähnliche Plugins in Kategorien
-4. **Temperature**: Höhere Werte (0.8-1.0) für kreativere, niedrigere (0.3-0.7) für präzisere Antworten
-
-## 🆕 Neue Features
-
-### Dynamische Dialoge
-- **Automatische Erkennung**: Alle Variablen werden automatisch erkannt
-- **Intelligente Standard-Werte**: Basierend auf Variablen-Namen
-- **Editor-Integration**: Automatische Verwendung selektierten Texts
-- **Benutzerfreundlich**: Klare Labels und Platzhalter
-
-### Automatische Text-Erkennung
-- **Editor-Selektion**: Hat Vorrang
-- **Chat-Input**: Fallback wenn keine Selektion
-- **Intelligente Zuordnung**: Automatische Erkennung von Text-Variablen
+Neue Agenten werden über den **+**-Tab im Agenten-Panel oder direkt in `config/agents.json` angelegt – siehe Hilfe „Agenten“ im Kapitel-Editor.

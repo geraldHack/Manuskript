@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 20px; background: #f8f9fa; }
+        .help-container { background: white; border-radius: 8px; padding: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); max-width: 900px; margin: 0 auto; }
+        h1 { color: #2C3E50; border-bottom: 3px solid #4A90E2; padding-bottom: 10px; }
+        h2 { color: #34495E; margin-top: 28px; border-bottom: 2px solid #E8F4FD; padding-bottom: 5px; }
+        .highlight { background: #E8F4FD; padding: 15px; border-left: 4px solid #4A90E2; margin: 15px 0; }
+        .warning { background: #FFF3CD; padding: 15px; border-left: 4px solid #FFC107; margin: 15px 0; }
+        ul { padding-left: 20px; }
+        code { background: #f1f3f4; padding: 2px 5px; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <div class="help-container">
+        <h1>Online-Lektorat</h1>
+
+        <p>Das <strong>Online-Lektorat</strong> lektorisiert ein ganzes Kapitel über eine OpenAI-kompatible API. Es unterscheidet sich von den <strong>Agenten</strong>: Agenten analysieren punktuell oder nach Regeln; das Lektorat durchläuft den Kapiteltext in Abschnitten und liefert strukturierte Verbesserungsvorschläge.</p>
+
+        <h2>Starten</h2>
+        <ul>
+            <li><strong>Im Editor:</strong> Toolbar-Button <strong>Lektorat</strong></li>
+            <li><strong>Im Hauptfenster:</strong> Button <strong>Online-Lektorat</strong> (Kapitel in rechter Tabelle auswählen)</li>
+        </ul>
+        <p>Während des Lektorats ersetzt das rechte Panel die Agenten-Spalte. Der Editor bleibt bearbeitbar; Vorschläge erscheinen im Lektorat-Panel.</p>
+
+        <h2>Ablauf</h2>
+        <ol>
+            <li>Kapiteltext wird in Abschnitte geteilt (<code>api.lektorat.chunk_size</code>)</li>
+            <li>Jeder Abschnitt wird an die API gesendet (Pause zwischen Chunks konfigurierbar)</li>
+            <li>Vorschläge erscheinen mit Zitat, Begründung und Alternativtexten</li>
+            <li><strong>Übernehmen</strong> – Text im Editor ersetzen</li>
+            <li><strong>Ablehnen</strong> – Vorschlag verwerfen</li>
+            <li>Optional: Bewertung/Assessment je nach Lektorat-Typ</li>
+        </ol>
+
+        <h2>Lektorat-Typ</h2>
+        <p>Parameter <code>api.lektorat.type</code>: z. B. allgemein, Stil, Grammatik, Plot/Dramaturgie. Der aktuelle Typ wird im Tooltip des Lektorat-Buttons angezeigt.</p>
+
+        <h2>Konfiguration (Parameter → Online-Lektorat)</h2>
+        <ul>
+            <li><code>api.lektorat.api_key</code> – API-Schlüssel (erforderlich)</li>
+            <li><code>api.lektorat.base_url</code> – z. B. https://api.openai.com/v1</li>
+            <li><code>api.lektorat.model</code> – z. B. gpt-4o-mini</li>
+            <li><code>api.lektorat.extra_prompt</code> – zusätzliche Stil-Anweisungen</li>
+            <li><code>api.lektorat.chunk_size</code> – Zeichen pro Anfrage (typisch 5000–15000)</li>
+            <li><code>api.lektorat.delay_between_chunks_ms</code> – Pause zwischen Abschnitten</li>
+            <li><code>api.lektorat.request_timeout_sec</code> – Timeout pro Anfrage</li>
+            <li><code>api.lektorat.suggestions_per_entry</code> – Vorschläge pro Fundstelle</li>
+        </ul>
+
+        <h2>Kontextmenü „Überarbeiten“</h2>
+        <p>Mit <code>api.editor_rewrite.use_online_api=true</code> nutzen „Sprechantwort korrigieren“ und Selektion-Überarbeiten dieselbe API wie das Online-Lektorat (statt Ollama).</p>
+
+        <div class="warning">
+            <strong>Kosten:</strong> Online-Lektorat verwendet eine kostenpflichtige API, sofern kein eigener kostenloser Endpoint genutzt wird. Lange Kapitel erzeugen mehrere Anfragen.
+        </div>
+
+        <div class="highlight">
+            <strong>Agenten vs. Lektorat:</strong> Nutzen Sie Agenten für wiederholbare Checks (Plotlöcher, Dialog). Nutzen Sie Online-Lektorat für durchgängiges stilistisches oder grammatikalisches Lektorat des ganzen Kapitels.
+        </div>
+    </div>
+</body>
+</html>

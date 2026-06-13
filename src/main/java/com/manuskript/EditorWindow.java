@@ -6503,7 +6503,7 @@ if (caret != null) {
         
         ButtonType saveButton = new ButtonType("Speichern");
         ButtonType discardButton = new ButtonType("Verwerfen");
-        ButtonType diffButton = new ButtonType("🔍 Diff anzeigen");
+        ButtonType diffButton = new ButtonType("🔍 Änderungen anzeigen");
         ButtonType cancelButton = new ButtonType("Abbrechen");
         
         alert.setButtonTypes(saveButton, discardButton, diffButton, cancelButton);
@@ -6525,13 +6525,7 @@ if (caret != null) {
                 hasUnsavedChanges = false;
                 stage.close();
             } else if (result.get() == diffButton) {
-                // Diff anzeigen - verwende MainController Diff
-                    if (mainController != null && originalDocxFile != null) {
-                    File mdFile = deriveSidecarFileFor(originalDocxFile, outputFormat);
-                    DocxFile docxFile = new DocxFile(originalDocxFile);
-                    // WICHTIG: Übergib diesen Editor als aufrufenden Editor
-                    mainController.showDetailedDiffDialog(docxFile, mdFile, null, outputFormat, this);
-                }
+                UnsavedChangesDiffDialog.showForChapterEditor(this);
             }
             }
             // Bei Abbrechen nichts tun (Dialog schließt nicht)
@@ -6782,7 +6776,7 @@ if (caret != null) {
         
         ButtonType saveButton = new ButtonType("Speichern & Weitermachen");
         ButtonType discardButton = new ButtonType("Verwerfen & Weitermachen");
-        ButtonType diffButton = new ButtonType("🔍 Diff anzeigen");
+        ButtonType diffButton = new ButtonType("🔍 Änderungen anzeigen");
         ButtonType cancelButton = new ButtonType("Abbrechen");
         
         alert.setButtonTypes(saveButton, discardButton, diffButton, cancelButton);
@@ -6809,13 +6803,7 @@ if (caret != null) {
                 hasUnsavedChanges = false;
                 return true; // Navigation fortsetzen
             } else if (result.get() == diffButton) {
-                // Diff anzeigen - verwende MainController Diff
-                if (mainController != null && originalDocxFile != null) {
-                    File mdFile = deriveSidecarFileFor(originalDocxFile, outputFormat);
-                    DocxFile docxFile = new DocxFile(originalDocxFile);
-                    // WICHTIG: Übergib diesen Editor als aufrufenden Editor
-                    mainController.showDetailedDiffDialog(docxFile, mdFile, null, outputFormat, this);
-                }
+                UnsavedChangesDiffDialog.showForChapterEditor(this);
                 return false; // Navigation abbrechen (Dialog bleibt offen)
             } else if (result.get() == cancelButton) {
                 // Abbrechen - keine Navigation
@@ -7979,6 +7967,11 @@ if (caret != null) {
     
     public File getCurrentFile() {
         return this.currentFile;
+    }
+
+    /** Inhalt der zuletzt gespeicherten Datei (Basis für Ungespeichert-Diff). */
+    String readSavedChapterFileContent() {
+        return UnsavedChangesDiffDialog.readFileContent(currentFile);
     }
     
     public String getText() {

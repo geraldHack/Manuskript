@@ -112,7 +112,9 @@ public final class TtsBackend {
         }
 
         ComfyUIClient client = new ComfyUIClient();
-        var history = client.generateTTSWithSavedVoice(text, voice, lex, useConsistencyTemperature, promptLogger);
+        java.util.function.Consumer<String> comfyLog = promptLogger != null ? promptLogger
+                : pretty -> logger.info("ComfyUI Prompt:\n{}", pretty);
+        var history = client.generateTTSWithSavedVoice(text, voice, lex, useConsistencyTemperature, comfyLog);
         client.downloadAudioToFile(history, outputPath);
         return outputPath;
     }

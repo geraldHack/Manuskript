@@ -2303,6 +2303,43 @@
     -fx-font-weight: bold;
 }
 
+/* TTS-Editor: wandernder Busy-Balken unter „Erzeuge Sprachausgabe…“ */
+.tts-generation-busy-bar {
+    -fx-pref-height: 6px;
+    -fx-min-height: 6px;
+    -fx-max-height: 6px;
+}
+.weiss-theme .tts-generation-busy-bar > .track {
+    -fx-background-color: #cbd5e1;
+    -fx-background-radius: 3px;
+}
+.weiss-theme .tts-generation-busy-bar > .bar {
+    -fx-background-color: #2563eb;
+    -fx-background-radius: 3px;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+}
+.theme-dark .tts-generation-busy-bar > .track {
+    -fx-background-color: #4a5568;
+    -fx-background-radius: 3px;
+}
+.theme-dark .tts-generation-busy-bar > .bar {
+    -fx-background-color: #60a5fa;
+    -fx-background-radius: 3px;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+}
+.pastell-theme .tts-generation-busy-bar > .track {
+    -fx-background-color: #ce93d8;
+    -fx-background-radius: 3px;
+}
+.pastell-theme .tts-generation-busy-bar > .bar {
+    -fx-background-color: #7b1fa2;
+    -fx-background-radius: 3px;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+}
+
 .param-help-label {
     -fx-font-size: 0.9em;
 }

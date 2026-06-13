@@ -13,21 +13,21 @@ public final class ParameterRegistry {
     private static final List<ParameterDef> ALL = new ArrayList<>();
 
     static {
-        // —— Ollama ——
+        // —— Ollama (Legacy – alter KI-Assistent, nicht mehr in der UI) ——
         add("ollama.temperature", ParameterDef.Type.DOUBLE, "0.1",
-                "Temperatur für KI-Antworten (0 = deterministisch, höher = kreativer). Typisch 0.1–0.9.", "Ollama");
+                "Legacy: alter KI-Assistent (entfernt). Für Agenten siehe agent.ollama.* und agent.openai.*.", "Ollama (Legacy)");
         add("ollama.max_tokens", ParameterDef.Type.INT, "3200",
-                "Maximale Anzahl Tokens pro Antwort.", "Ollama");
+                "Legacy: alter KI-Assistent (entfernt). Nicht mehr in der Benutzeroberfläche verwendet.", "Ollama (Legacy)");
         add("ollama.top_p", ParameterDef.Type.DOUBLE, "0.5",
-                "Nukleus-Sampling (Top-P). Begrenzt die Auswahl auf wahrscheinliche Tokens.", "Ollama");
+                "Legacy: alter KI-Assistent (entfernt). Für Agenten-Sampling die Einstellungen pro Agent-Tab nutzen.", "Ollama (Legacy)");
         add("ollama.repeat_penalty", ParameterDef.Type.DOUBLE, "1.05",
-                "Strafe für Wiederholungen. Höher = weniger Wiederholungen.", "Ollama");
+                "Legacy: alter KI-Assistent (entfernt). Für Agenten-Sampling die Einstellungen pro Agent-Tab nutzen.", "Ollama (Legacy)");
         add("ollama.http_connect_timeout_secs", ParameterDef.Type.INT, "30",
-                "Timeout in Sekunden für die Verbindung zu Ollama.", "Ollama");
+                "Legacy: alter KI-Assistent (entfernt). Für Ollama-Agenten: agent.ollama.api_url.", "Ollama (Legacy)");
         add("ollama.http_request_timeout_secs", ParameterDef.Type.INT, "360",
-                "Timeout in Sekunden für die gesamte Ollama-Anfrage.", "Ollama");
+                "Legacy: alter KI-Assistent (entfernt). Für Agenten: agent.openai.request_timeout_sec.", "Ollama (Legacy)");
         add("session.max_qapairs_per_session", ParameterDef.Type.INT, "20",
-                "Maximale Anzahl Frage-Antwort-Paare pro Session vor automatischer Aufteilung.", "Ollama");
+                "Legacy: Chat-Session des alten KI-Assistenten (entfernt).", "Ollama (Legacy)");
 
         // —— TTS (ComfyUI) ——
         add("comfyui.base_url", ParameterDef.Type.STRING, "http://127.0.0.1:8188",
@@ -65,7 +65,7 @@ public final class ParameterRegistry {
         add("api.lektorat.suggestions_per_entry", ParameterDef.Type.INT, "2",
                 "Anzahl Vorschläge pro Anmerkung (1–5). Weniger = weniger API-Output und Kosten. Typisch 2.", "Online-Lektorat");
         add("api.editor_rewrite.use_online_api", ParameterDef.Type.BOOLEAN, "false",
-                "Sprechantwort korrigieren und Selektion überarbeiten per Online-API (OpenAI-kompatibel) statt Ollama. Erfordert api.lektorat.api_key.", "Online-Lektorat");
+                "Kontextmenü „Überarbeiten“ und Sprechantwort-Korrektur per Online-API (OpenAI-kompatibel) statt Agenten-Ollama. Erfordert api.lektorat.api_key.", "Online-Lektorat");
 
         // —— Projekt ——
         add("project.root.directory", ParameterDef.Type.STRING, "",

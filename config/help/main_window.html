@@ -64,6 +64,9 @@
             font-size: 14px;
             margin: 10px 0;
         }
+        a {
+            color: #4A90E2;
+        }
     </style>
 </head>
 <body>
@@ -71,18 +74,18 @@
         <h1>Hilfe – Hauptfenster</h1>
 
         <h2>Was macht Manuskript?</h2>
-        <p>Manuskript ist eine Anwendung zur Roman- und Buchproduktion. Sie verwalten Kapitel als DOCX-Dateien, bearbeiten sie im Editor (als Markdown), exportieren daraus Bücher oder Hörbücher. Optional stehen KI-Assistent, Lektorat und Textanalyse zur Verfügung.</p>
+        <p>Manuskript ist eine Anwendung zur Roman- und Buchproduktion. Sie verwalten Kapitel als DOCX-Dateien, bearbeiten sie im Canvas-Editor (intern als Markdown), exportieren daraus Bücher oder Hörbücher. Optional stehen <strong>Agenten</strong>, <strong>Online-Lektorat</strong>, Textanalyse, Makros, Welt-Editor und Roman-Assistent zur Verfügung.</p>
 
         <h2>Warum DOCX – und was, wenn ich keine habe?</h2>
-        <p>DOCX ist das Standardformat für Kapitel und ermöglicht den Austausch mit Word und anderen Tools.  Wenn Sie nur ein anderes Format haben (z. B. RTF, ODT), konvertieren Sie zuerst mit <strong>Pandoc</strong> oder z.B. <strong>Word</strong> nach DOCX. Pandoc liegt im Programmverzeinhnis unter <code>pandoc</code></p>
+        <p>DOCX ist das Standardformat für Kapitel und ermöglicht den Austausch mit Word und anderen Tools. Wenn Sie nur ein anderes Format haben (z. B. RTF, ODT), konvertieren Sie zuerst mit <strong>Pandoc</strong> oder Word nach DOCX. Pandoc liegt im Programmverzeichnis unter <code>pandoc</code>.</p>
 
         <h2>Verzeichnisstruktur</h2>
-        <p><strong>Wurzel</strong> ist das beim ersten Start des Programms gewählte Projektverzeichnis. Es gibt zwei Varianten:</p>
+        <p><strong>Wurzel</strong> ist das beim ersten Start gewählte Projektverzeichnis. Es gibt zwei Varianten:</p>
         <ul>
-            <li><strong>Mit Serie:</strong> Unterordner der Wurzel = eine Serie (z. B. eine Buchreihe); darunter Bücherordner mit DOCX-Kapiteln.</li>
+            <li><strong>Mit Serie:</strong> Unterordner der Wurzel = eine Serie; darunter Bücherordner mit DOCX-Kapiteln.</li>
             <li><strong>Ohne Serie:</strong> Bücherordner direkt unter der Wurzel; darin die DOCX-Kapitel.</li>
         </ul>
-        <p>Das wurzelverzeichnis kann unter "Parameter" -> "Projekt" -> "Wurzelverzeichnis" geändert werden. Programm muss dann restartet werden.</p>
+        <p>Das Wurzelverzeichnis kann unter Parameter → Projekt → Wurzelverzeichnis geändert werden. Das Programm muss danach neu gestartet werden.</p>
 
         <h3>Beispiel mit Serie</h3>
         <pre>MeineManuskripte/
@@ -98,37 +101,58 @@
     Kapitel02.docx</pre>
 
         <h2>Tabellen im Hauptfenster</h2>
-        <p>Die <strong>Linke Tabelle</strong> zeigt docx-Dateien die nicht in das Buchverzeichnis verschoben wurden. In der <strong>rechten Tabelle</strong> stehen die für Buch und Editor ausgewählten Kapitel; die Reihenfolge dort ist die Buchreihenfolge.</p>
+        <p>Die <strong>linke Tabelle</strong> zeigt DOCX-Dateien, die noch nicht im Buch sind. In der <strong>rechten Tabelle</strong> stehen die für Buch und Editor ausgewählten Kapitel; die Reihenfolge dort ist die Buchreihenfolge.</p>
 
         <h2>Ablauf Romanerstellung</h2>
         <ol>
-            <li>Kapitel (DOCX) in die rechte Tabelle einfügen und sortieren.</li>
-            <li>Kapitel bearbeiten (Editor = Markdown, siehe Bemerkung unten).</li>
-            <li>Optional: Kapitel aus dem Download-Verzeichnis holen oder synchronisieren (z. B. von Sudowrite) und mit vorhandenen Kapiteln abgleichen.</li>
-            <li>Buch exportieren.</li>
+            <li>Optional: <strong>Roman-Assistent</strong> für ein neues Projekt oder <strong>Welt-Editor</strong> für Kontextdateien nutzen.</li>
+            <li>Mehrere Kapitel (DOCX) in die rechte Tabelle einfügen und sortieren, oder Kapitel neu Erstellen (<strong> Neues Kapitel </strong>).</li>
+            <li><strong>Kapitel bearbeiten</strong> – öffnet den Canvas-Editor (Markdown).</li>
+            <li>Optional: Kapitel aus dem Download-Verzeichnis synchronisieren (z. B. von Sudowrite) und abgleichen.</li>
+            <li>Buch exportieren oder Hörbuch erzeugen.</li>
         </ol>
 
-        <h2>Optionale Funktionen</h2>
+        <h2>Toolbar-Funktionen</h2>
         <ul>
-            <li><strong>KI-Assistent</strong> für verschiedene Aufgaben (wenn Ollama installiert ist)</li>
-            <li><strong>KI-Tools im Editor</strong> (Absatz umschreiben, Sprechantwort korrigieren)</li>
-            <li><strong>Export einzelner Kapitel</strong> (RTF, DOCX, PDF, HTML, Markdown, TXT)</li>
-            <li><strong>Textanalyse</strong> (Phrasen, „sagte er“-Muster, Wortwiederholungen, Füllwörter)</li>
-            <li><strong>Online-Lektorat</strong> (meist kostenpflichtiger API-Key, unter Parameter → Online-Lektorat)</li>
-            <li><strong>Webbasierte Preview</strong> (mit Bildern, Tabellen)</li>
-            <li><strong>Makros</strong> (Hauptmakro: Anführungszeichen korrigieren, Leerzeichen, Gedankenstriche usw. – hat eigene Hilfe)</li>
+            <li><strong>Kapitel bearbeiten</strong> – Canvas-Editor für ausgewählte Kapitel</li>
+            <li><strong>Online-Lektorat</strong> – Lektorat für ein ausgewähltes Kapitel (API-Key unter Parameter)</li>
+            <li><strong>Sprachsynthese</strong> – TTS-Editor für Hörbuch-Produktion</li>
+            <li><strong>Welt-Editor</strong> – Charaktere, Outline, Worldbuilding usw. (Hilfe: ?-Button neben dem Button)</li>
+            <li><strong>Roman-Assistent</strong> – Interaktive Planung mit KI (Hilfe: ?-Button neben dem Button)</li>
+        </ul>
+
+        <h2>Optionale Funktionen im Editor</h2>
+        <ul>
+            <li><strong>Agenten-Panel</strong> – Analyse, Szene schreiben, Chat, Überarbeiten (Ollama oder OpenAI)</li>
+            <li><strong>Online-Lektorat</strong> – ganzes Kapitel lektorieren (API-Key unter Parameter → Online-Lektorat)</li>
+            <li><strong>Textanalyse</strong> – Phrasen, Sprechantworten, Wortwiederholungen, Füllwörter</li>
+            <li><strong>Makros</strong> – Textbereinigung, Anführungszeichen, Gedankenstriche</li>
+            <li><strong>Szenen-Outline</strong> – Szenenübersicht pro Kapitel</li>
+            <li><strong>LanguageTool</strong> – Rechtschreibprüfung (lokal, optional)</li>
+            <li><strong>Export einzelner Kapitel</strong> – RTF, DOCX, PDF, HTML, Markdown, TXT</li>
         </ul>
 
         <h2>Bemerkung: Warum Markdown – muss ich das lernen?</h2>
-        <p>Sie können ganz normal schreiben; viele Funktionen (Kursiv, Fett, …) sind über Menü und Buttons verfügbar. Zwei Dinge sind nötig:</p>
+        <p>Sie können ganz normal schreiben; viele Funktionen (Kursiv, Fett, Überschriften) sind über Toolbar-Buttons verfügbar. Mit <strong>„Markdown ausblenden“</strong> sehen Sie die Formatierung direkt im Editor. Zwei Regeln sind wichtig:</p>
         <ul>
-            <li><strong>Trenner</strong> werden immer als <code>---</code> (drei Minus) geschrieben.</li>
+            <li><strong>Trenner</strong> werden als <code>---</code> (drei Minus) geschrieben.</li>
             <li><strong>Zwischen Absätzen</strong> müssen Leerzeilen sein.</li>
         </ul>
-        <p>Im Editor gibt es eine Markdown-Hilfe (STRG+M bzw. Hilfe-Button).</p>
+        <p>Im Editor: Hilfe-Buttons (?) oder <strong>Strg+M</strong> für die Markdown-Syntax.</p>
+
+        <h2>Tastenkürzel (Hauptfenster)</h2>
+        <p>Globale Kürzel  (unter macOS: <strong>Strg/Cmd</strong> statt nur Strg):</p>
+        <ul>
+            <li><strong>Strg+D</strong> – <strong>Debug-Fenster</strong> öffnen (Log-Dateien der Anwendung anzeigen und mitlesen)</li>
+            <li><strong>Strg+R</strong> – <strong>Fenster zurücksetzen</strong>: Standardgröße und -position von Hauptfenster, Projektansicht und offenen Kapitel-Editoren; Editor-Layouts (Split, Toolbar) werden ebenfalls zurückgesetzt</li>
+        </ul>
 
         <div class="highlight">
-            <strong>Parameter:</strong> Über den Button „Parameter“ in der Toolbar erreichen Sie Einstellungen wie API-Keys, Pfade und Theme.
+            <strong>Weitere Hilfe:</strong> Kapitel-Editor, Agenten, Online-Lektorat, Welt-Editor und Roman-Assistent haben eigene Hilfeseiten – erreichbar über die ?-Buttons in den jeweiligen Fenstern.
+        </div>
+
+        <div class="highlight">
+            <strong>Parameter:</strong> Über den Button „Parameter“ erreichen Sie Einstellungen wie API-Keys, Pfade und Theme.
         </div>
     </div>
 </body>

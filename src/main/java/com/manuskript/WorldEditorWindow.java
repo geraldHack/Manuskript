@@ -126,8 +126,11 @@ public class WorldEditorWindow {
         // Statuszeile oben rechts
         statusLabel = new Label("Bereit");
         statusLabel.getStyleClass().add("status-label");
-        HBox statusBox = new HBox(statusLabel);
-        statusBox.setAlignment(Pos.CENTER_RIGHT);
+        Button helpButton = HelpSystem.createHelpButton("Hilfe zum Welt-Editor", "world_editor.html", "Hilfe - Welt-Editor");
+        Region statusSpacer = new Region();
+        HBox.setHgrow(statusSpacer, Priority.ALWAYS);
+        HBox statusBox = new HBox(8, helpButton, statusSpacer, statusLabel);
+        statusBox.setAlignment(Pos.CENTER_LEFT);
         statusBox.setPadding(new Insets(10, 15, 10, 10));
 
         tabPane = new TabPane();

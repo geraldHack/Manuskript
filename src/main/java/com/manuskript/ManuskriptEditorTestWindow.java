@@ -791,6 +791,14 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
             }
         });
 
+        MenuButton editorHelpMenu = HelpSystem.createHelpMenuButton("Hilfe zum Kapitel-Editor", new String[][]{
+                {"Kapitel-Editor", "chapter_editor.html", "Hilfe - Kapitel-Editor"},
+                {"Markdown-Syntax", "markdown_syntax.html", "Hilfe - Markdown-Syntax"},
+                {"Werkzeuge", "chapter_editor_tools.html", "Hilfe - Werkzeuge"},
+                {"Agenten", "chapter_editor_agents.html", "Hilfe - Agenten"},
+                {"Online-Lektorat", "online_lektorat.html", "Hilfe - Online-Lektorat"}
+        });
+
         HBox statusRow = new HBox(8);
         Region statusSpacer = new Region();
         HBox.setHgrow(statusSpacer, Priority.ALWAYS);
@@ -809,7 +817,7 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         toggleRow.setAlignment(Pos.CENTER);
         toggleRow.setPadding(new Insets(2, 0, 2, 0));
 
-        statusRow.getChildren().addAll(statusSpacer, saveChapter, lblLanguageToolStatus, lblSelectionCount, statusLabel);
+        statusRow.getChildren().addAll(editorHelpMenu, statusSpacer, saveChapter, lblLanguageToolStatus, lblSelectionCount, statusLabel);
         statusRow.setAlignment(Pos.CENTER_RIGHT);
 
         FlowPane formatPane = new FlowPane(6, 4);
@@ -981,6 +989,8 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
                 resetScreenLayout();
             }
         }));
+        EditingShortcuts.bindPlatformAccelerators(accelerators, "M",
+                () -> Platform.runLater(() -> HelpSystem.showHelpWindow("markdown_syntax.html")));
 
         stage.addEventFilter(KeyEvent.KEY_PRESSED, mdTextArea::handleSearchNavigationKey);
         editingShortcutsInstalled = true;
@@ -1641,7 +1651,7 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
 
         ButtonType saveButton = new ButtonType(saveLabel);
         ButtonType discardButton = new ButtonType(discardLabel);
-        ButtonType diffButton = new ButtonType("🔍 Diff anzeigen");
+        ButtonType diffButton = new ButtonType("🔍 Änderungen anzeigen");
         ButtonType cancelButton = new ButtonType("Abbrechen");
         alert.setButtonTypes(saveButton, discardButton, diffButton, cancelButton);
 
@@ -1686,13 +1696,12 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
     }
 
     private void showDiffForUnsavedChanges() {
-        if (mainController == null || loadedDocxFile == null || loadedChapterFile == null) {
-            updateStatusError("Diff nicht verfügbar (keine DOCX/MD-Datei)");
-            return;
-        }
-        DocxFile chapterFile = new DocxFile(loadedDocxFile);
-        mainController.showDetailedDiffDialog(
-                chapterFile, loadedChapterFile, null, DocxProcessor.OutputFormat.MARKDOWN, this);
+        UnsavedChangesDiffDialog.showForChapterEditor(this);
+    }
+
+    /** Inhalt der zuletzt gespeicherten MD-Datei (Basis für Ungespeichert-Diff). */
+    String readSavedChapterFileContent() {
+        return UnsavedChangesDiffDialog.readFileContent(loadedChapterFile);
     }
 
     private void applyChapterSidebarTheme() {
