@@ -261,7 +261,7 @@ public class AgentConfigManager {
                 backend,
                 prompt,
                 model,
-                0.4, 2048, 0.7, 1.2
+                0.4, 8192, 0.7, 1.2
         );
         revisionAgent.setId(SelectionRevisionSupport.DEFAULT_AGENT_ID);
         revisionAgent.setDefaultPrompt(prompt);

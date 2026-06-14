@@ -75,6 +75,11 @@ public class AgentTab extends ScrollPane {
     private List<String> availableModels = new ArrayList<>();
     private TextArea revisionInstructionField;
 
+    /** Letzte Markierung für den Überarbeiten-Agenten (Ersetzung auch bei Platzhalter-Zitat). */
+    private int revisionSelectionStart = -1;
+    private int revisionSelectionEnd = -1;
+    private String revisionSelectedText = "";
+
     public AgentTab(AgentConfig config) {
         this.config = config;
 
@@ -371,6 +376,19 @@ public class AgentTab extends ScrollPane {
         }
     }
 
+    /** Speichert die aktuelle Editor-Markierung für Ersetzung und Zitat-Anzeige. */
+    public void setSelectionRevisionContext(int start, int end, String selectedText) {
+        this.revisionSelectionStart = start;
+        this.revisionSelectionEnd = end;
+        this.revisionSelectedText = selectedText != null ? selectedText : "";
+    }
+
+    public void clearSelectionRevisionContext() {
+        revisionSelectionStart = -1;
+        revisionSelectionEnd = -1;
+        revisionSelectedText = "";
+    }
+
     private boolean isSelectionRevisionAgent() {
         return config.isSelectionRevisionAgent();
     }
@@ -491,7 +509,13 @@ public class AgentTab extends ScrollPane {
                     statusLabel.getStyleClass().removeAll("agent-status-error");
                     statusLabel.getStyleClass().add("agent-status-ok");
                 }
-                case FINDINGS -> showFindingsInternal(result.getFindings());
+                case FINDINGS -> {
+                    List<Finding> findings = result.getFindings();
+                    if (isSelectionRevisionAgent()) {
+                        findings = enrichSelectionRevisionFindings(findings);
+                    }
+                    showFindingsInternal(findings);
+                }
             }
             analyzing = false;
             analyzeButton.setDisable(false);
@@ -555,7 +579,10 @@ public class AgentTab extends ScrollPane {
         problemFlow.setMaxWidth(Double.MAX_VALUE);
         problemFlow.prefWidthProperty().bind(scrollPane.widthProperty().subtract(40));
 
-        Text quoteText = new Text("Zitat: " + AgentFindingDisplay.stripIndexField(f.getQuote()));
+        Text quoteText = new Text("Zitat: " + AgentFindingDisplay.formatQuotePreview(
+                isSelectionRevisionAgent() && revisionSelectedText != null && !revisionSelectedText.isBlank()
+                        ? revisionSelectedText
+                        : AgentFindingDisplay.stripIndexField(f.getQuote())));
         quoteText.setStyle(AgentFindingStyles.quoteTextStyle(editorFontSize));
         TextFlow quoteFlow = new TextFlow(quoteText);
         quoteFlow.getStyleClass().add("finding-quote-text");
@@ -564,8 +591,12 @@ public class AgentTab extends ScrollPane {
         quoteFlow.prefWidthProperty().bind(scrollPane.widthProperty().subtract(40));
         quoteFlow.setCursor(javafx.scene.Cursor.HAND);
         quoteFlow.setOnMouseClicked(e -> {
-            if (onQuoteClicked != null && f.getQuote() != null && !f.getQuote().isEmpty()) {
-                onQuoteClicked.accept(f.getQuoteWithIndex());
+            String jumpQuote = isSelectionRevisionAgent()
+                    && revisionSelectedText != null && !revisionSelectedText.isBlank()
+                    ? revisionSelectedText
+                    : f.getQuote();
+            if (onQuoteClicked != null && jumpQuote != null && !jumpQuote.isEmpty()) {
+                onQuoteClicked.accept(jumpQuote);
             }
         });
 
@@ -599,6 +630,8 @@ public class AgentTab extends ScrollPane {
                         if (onSuggestionClicked != null && finalSuggestion != null && !finalSuggestion.isEmpty()) {
                             Finding tempFinding = new Finding(f.getSeverity(), f.getQuote(), f.getProblem(), finalSuggestion);
                             tempFinding.setSuggestionIndex(f.getSuggestionIndex());
+                            tempFinding.setReplaceRangeStart(f.getReplaceRangeStart());
+                            tempFinding.setReplaceRangeEnd(f.getReplaceRangeEnd());
                             onSuggestionClicked.accept(tempFinding);
                         }
                     });
@@ -636,6 +669,53 @@ public class AgentTab extends ScrollPane {
 
         card.getChildren().addAll(severityLabel, problemFlow, quoteFlow, suggestionsBox);
         return card;
+    }
+
+    private List<Finding> enrichSelectionRevisionFindings(List<Finding> findings) {
+        if (findings == null || findings.isEmpty()) {
+            return findings != null ? findings : List.of();
+        }
+        if (revisionSelectedText == null || revisionSelectedText.isBlank()
+                || revisionSelectionStart < 0 || revisionSelectionEnd <= revisionSelectionStart) {
+            return findings;
+        }
+        List<Finding> enriched = new ArrayList<>();
+        for (Finding source : findings) {
+            Finding f = copyFinding(source);
+            f.setQuote(revisionSelectedText);
+            f.setReplaceRangeStart(revisionSelectionStart);
+            f.setReplaceRangeEnd(revisionSelectionEnd);
+            f.setProblem(trimLeakedProblemText(f.getProblem()));
+            enriched.add(f);
+        }
+        return enriched;
+    }
+
+    private static Finding copyFinding(Finding source) {
+        Finding f = new Finding(source.getSeverity(), source.getQuote(), source.getProblem(), source.getSuggestion());
+        if (source.getSuggestions() != null) {
+            f.setSuggestions(new ArrayList<>(source.getSuggestions()));
+        }
+        f.setSuggestionIndex(source.getSuggestionIndex());
+        return f;
+    }
+
+    private static String trimLeakedProblemText(String problem) {
+        if (problem == null || problem.isBlank()) {
+            return problem != null ? problem : "";
+        }
+        String lower = problem.toLowerCase(java.util.Locale.ROOT);
+        int cut = -1;
+        for (String marker : new String[]{"vorschläge:", "vorschlaege:", "vorschlag:"}) {
+            int idx = lower.indexOf(marker);
+            if (idx >= 0 && (cut < 0 || idx < cut)) {
+                cut = idx;
+            }
+        }
+        if (cut >= 0) {
+            return problem.substring(0, cut).trim();
+        }
+        return problem;
     }
 
     public void setAnalyzing(boolean analyzing) {

@@ -2000,6 +2000,11 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
     }
 
     @Override
+    public void replaceRangePreserveView(int start, int end, String replacement) {
+        editor.replaceRange(start, end, replacement, true);
+    }
+
+    @Override
     public void revealRange(int start, int end) {
         editor.revealMatchAt(start, end);
     }

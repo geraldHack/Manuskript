@@ -88,6 +88,7 @@ kisal
 kisals
 knarl
 knarls
+konvergenzsäulen
 lakan
 lakanische
 lakanischen

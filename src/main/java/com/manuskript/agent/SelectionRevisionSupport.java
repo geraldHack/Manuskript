@@ -14,6 +14,12 @@ public final class SelectionRevisionSupport {
     public static final String PARAM_CONTEXT_CHARS = "agent.selection_revision.context_chars";
     public static final String PARAM_AGENT_ID = "agent.selection_revision.agent_id";
 
+    /** Platzhalter im Modell-Output — der Client kennt die Markierung bereits. */
+    public static final String MARKED_QUOTE_PLACEHOLDER = "(MARKIERT)";
+
+    private static final int DEFAULT_MAX_OUTPUT_TOKENS = 8192;
+    private static final int MAX_OUTPUT_TOKENS_CAP = 16384;
+
     private SelectionRevisionSupport() {
     }
 
@@ -29,7 +35,7 @@ public final class SelectionRevisionSupport {
                 KEINE_PROBLEME
 
                 VARIANTE B — genau EIN Block:
-                <PROBLEM> SCHWEREGRAD: [1-5] ZITAT: "[EXAKTER MARKIERTER TEXT]" PROBLEM: Der markierte Text muss überarbeitet werden. [Konkrete Begründung] VORSCHLÄGE: "[Vollständiger Ersatztext 1]", "[Vollständiger Ersatztext 2]" </PROBLEM>
+                <PROBLEM> SCHWEREGRAD: [1-5] ZITAT: (MARKIERT) PROBLEM: Der markierte Text muss überarbeitet werden. [Konkrete Begründung] VORSCHLÄGE: "[Vollständiger Ersatztext 1]", "[Vollständiger Ersatztext 2]" </PROBLEM>
 
                 WICHTIGE FORMATREGELN:
 
@@ -37,9 +43,10 @@ public final class SelectionRevisionSupport {
                 Verwende niemals Aufzählungen.
                 Verwende niemals Nummerierungen.
                 Verwende niemals zusätzlichen Fließtext.
-                Das Feld ZITAT muss exakt dem markierten Text entsprechen (inklusive Zeilenumbrüche).
-                Das Feld PROBLEM beginnt mit „Der markierte Text muss überarbeitet werden.“
-                Genau 2 VORSCHLÄGE — vollständige Ersatztexte für die gesamte Markierung.
+                Das Feld ZITAT ist immer exakt (MARKIERT) — wiederhole den markierten Text nicht.
+                Das Feld PROBLEM beginnt mit „Der markierte Text muss überarbeitet werden.“ und enthält nur die Begründung (keine Ersatztexte).
+                Genau 2 VORSCHLÄGE — vollständige Ersatztexte für die gesamte Markierung von Anfang bis Ende.
+                VORSCHLÄGE niemals kürzen oder mit … abkürzen; beide Varianten müssen die komplette Markierung ersetzen.
                 In VORSCHLÄGEN echte Zeilenumbrüche/Absätze beibehalten; nicht die Zeichenfolge \\n schreiben.
                 Wenn der Abschnitt ausreichend ist: KEINE_PROBLEME.
                 Wenn eine ANWEISUNG DES AUTORS mitgegeben wird, hat sie Vorrang vor allgemeinen Stilregeln.
@@ -48,6 +55,42 @@ public final class SelectionRevisionSupport {
 
                 Prüfe den markierten Abschnitt auf fehlende Informationen, Unklarheiten, Widersprüche zum Kontext, schwache Formulierung und konkret verbesserbare Stellen.
                 Ignoriere reine Rechtschreibfragen, es sei denn sie beeinträchtigen das Verständnis.""";
+    }
+
+    /**
+     * Ergänzt die Autoren-Anweisung um Längen- und Format-Hinweise für den Überarbeiten-Agenten.
+     */
+    public static String buildAuthorInstruction(String authorInstruction, int selectionChars) {
+        StringBuilder sb = new StringBuilder();
+        if (authorInstruction != null && !authorInstruction.isBlank()) {
+            sb.append(authorInstruction.trim()).append("\n\n");
+        }
+        sb.append("Die Markierung umfasst ").append(selectionChars).append(" Zeichen.\n");
+        sb.append("Im Antwortblock ZITAT: ").append(MARKED_QUOTE_PLACEHOLDER).append(" verwenden.\n");
+        sb.append("Beide VORSCHLÄGE müssen vollständige Ersatztexte für die gesamte Markierung sein (nicht gekürzt).");
+        return sb.toString();
+    }
+
+    /**
+     * Schätzt benötigte Ausgabe-Tokens: zwei vollständige Umschreibungen der Markierung plus Overhead.
+     */
+    public static int estimateMaxOutputTokens(int selectionChars, int configuredMax) {
+        int floor = configuredMax > 0 ? configuredMax : DEFAULT_MAX_OUTPUT_TOKENS;
+        if (selectionChars <= 0) {
+            return Math.min(MAX_OUTPUT_TOKENS_CAP, Math.max(floor, DEFAULT_MAX_OUTPUT_TOKENS));
+        }
+        // Deutsch: grob 0,7 Zeichen pro Token; zwei volle Ersatztexte + Puffer
+        int estimated = (int) Math.ceil(selectionChars * 2.0 / 0.7) + 768;
+        return Math.min(MAX_OUTPUT_TOKENS_CAP, Math.max(floor, estimated));
+    }
+
+    public static boolean isMarkedQuotePlaceholder(String quote) {
+        if (quote == null) {
+            return false;
+        }
+        String trimmed = quote.trim();
+        return MARKED_QUOTE_PLACEHOLDER.equalsIgnoreCase(trimmed)
+                || "(markiert)".equalsIgnoreCase(trimmed);
     }
 
     public static int maxSelectionChars() {

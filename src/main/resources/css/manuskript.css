@@ -3018,6 +3018,18 @@
     -fx-background-color: #1e3a8a;
 }
 
+#tableViewSelected .column-header#colNotesSelected {
+    -fx-alignment: CENTER-LEFT;
+}
+
+#tableViewSelected .column-header#colNotesSelected .label,
+.left-aligned-column-header-label {
+    -fx-alignment: CENTER-LEFT;
+    -fx-text-alignment: LEFT;
+    -fx-font-weight: bold;
+    -fx-max-width: infinity;
+}
+
 /* ========================================
    MACRO-TABELLE STYLING
    ======================================== */

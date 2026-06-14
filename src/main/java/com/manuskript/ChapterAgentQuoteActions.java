@@ -2,6 +2,7 @@ package com.manuskript;
 
 import com.manuskript.agent.AgentResponseText;
 import com.manuskript.agent.Finding;
+import com.manuskript.agent.SelectionRevisionSupport;
 
 import java.util.Optional;
 
@@ -46,11 +47,18 @@ public final class ChapterAgentQuoteActions {
             return;
         }
 
-        Optional<QuoteNavigation.QuoteRange> rangeOpt = QuoteNavigation.findQuoteRange(text, quote);
-        if (rangeOpt.isEmpty()) {
-            int quoteIndex = text.indexOf(quote);
-            if (quoteIndex >= 0) {
-                rangeOpt = Optional.of(new QuoteNavigation.QuoteRange(quoteIndex, quoteIndex + quote.length()));
+        Optional<QuoteNavigation.QuoteRange> rangeOpt = Optional.empty();
+        if (finding.hasReplaceRange() && finding.getReplaceRangeEnd() <= text.length()) {
+            rangeOpt = Optional.of(new QuoteNavigation.QuoteRange(
+                    finding.getReplaceRangeStart(), finding.getReplaceRangeEnd()));
+        }
+        if (rangeOpt.isEmpty() && !SelectionRevisionSupport.isMarkedQuotePlaceholder(quote)) {
+            rangeOpt = QuoteNavigation.findQuoteRange(text, quote);
+            if (rangeOpt.isEmpty()) {
+                int quoteIndex = text.indexOf(quote);
+                if (quoteIndex >= 0) {
+                    rangeOpt = Optional.of(new QuoteNavigation.QuoteRange(quoteIndex, quoteIndex + quote.length()));
+                }
             }
         }
         if (rangeOpt.isEmpty()) {
@@ -63,30 +71,8 @@ public final class ChapterAgentQuoteActions {
         int rangeEnd = range.end();
         String replacement = rawSuggestion;
 
-        int oldCaret = host.getCaretPosition();
-        int lengthDiff = replacement.length() - (rangeEnd - rangeStart);
-        int newCaret;
-        if (oldCaret <= rangeStart) {
-            newCaret = oldCaret;
-        } else if (oldCaret >= rangeEnd) {
-            newCaret = oldCaret + lengthDiff;
-        } else {
-            int oldRangeLen = Math.max(1, rangeEnd - rangeStart);
-            double rel = (oldCaret - rangeStart) / (double) oldRangeLen;
-            newCaret = rangeStart + (int) Math.round(rel * replacement.length());
-        }
-
-        host.replaceRange(rangeStart, rangeEnd, replacement);
-
-        ManuskriptEditorTestWindow canvas = host.asCanvasChapterEditor();
-        if (canvas != null) {
-            ManuskriptTextEditor editor = canvas.getTextEditor();
-            int clamped = Math.max(0, Math.min(editor.getText().length(), newCaret));
-            editor.selectRange(clamped, clamped);
-            editor.requestInputFocus();
-        } else {
-            host.selectRange(newCaret, newCaret);
-        }
+        host.replaceRangePreserveView(rangeStart, rangeEnd, replacement);
+        host.requestEditorFocus();
         host.updateStatus("Agenten-Vorschlag übernommen");
     }
 }

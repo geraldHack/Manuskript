@@ -28,6 +28,7 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.input.KeyCode;
 import javafx.event.Event;
 import javafx.scene.input.DragEvent;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -105,12 +106,17 @@ import com.manuskript.novelwizard.NovelCreationWizardWindow;
 public class MainController implements Initializable {
     
     private static final Logger logger = LoggerFactory.getLogger(MainController.class);
+    private static final String PREF_MAIN_TABLES_SPLIT = "main_tables_split_divider";
+    private static final double DEFAULT_MAIN_TABLES_SPLIT = 0.48;
+    private static final double MIN_MAIN_TABLES_SPLIT = 0.15;
+    private static final double MAX_MAIN_TABLES_SPLIT = 0.85;
     
     // Liste der gesperrten Dateien mit Zeitstempel
     private static final Map<String, Long> lockedFiles = new ConcurrentHashMap<>();
     private static final long LOCK_TIMEOUT = 1 * 60 * 1000; // 5 Minuten
     
     @FXML private BorderPane mainContainer;
+    private SplitPane mainTablesSplitPane;
     private ImageView coverImageView;
     @FXML private Button btnSelectDirectory;
     @FXML private TextField txtDirectoryPath;
@@ -504,6 +510,7 @@ public class MainController implements Initializable {
         colFileSizeSelected.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getFormattedSize()));
         colLastModifiedSelected.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getFormattedLastModified()));
         colNotesSelected.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getNotes()));
+        configureLeftAlignedColumnHeader(colNotesSelected, "Notizen");
         
         // Notiz-Spalte editierbar machen mit JavaFX-Standard-Editiermodus
         tableViewSelected.setEditable(true);
@@ -543,6 +550,7 @@ public class MainController implements Initializable {
         
         // Listener für Spaltenänderungen hinzufügen
         setupColumnResizeListeners();
+        setupMainTablesSplitPane();
         
         // Tabelle fokussierbar machen für KeyEvents, aber Sortierung verhindern
         tableViewSelected.setFocusTraversable(true);
@@ -817,6 +825,11 @@ public class MainController implements Initializable {
                 if (host instanceof ManuskriptEditorTestWindow canvas) {
                     canvas.resetScreenLayout();
                 }
+            }
+
+            if (mainTablesSplitPane != null) {
+                mainTablesSplitPane.setDividerPositions(DEFAULT_MAIN_TABLES_SPLIT);
+                Platform.runLater(() -> mainTablesSplitPane.setDividerPositions(DEFAULT_MAIN_TABLES_SPLIT));
             }
 
             preferences.flush();
@@ -5636,6 +5649,82 @@ public class MainController implements Initializable {
         updateThemeButtonIcon();
     }
     
+    /**
+     * Ersetzt die feste HBox zwischen den Tabellen durch eine SplitPane und persistiert die Divider-Position.
+     */
+    private void setupMainTablesSplitPane() {
+        if (tableViewAvailable == null || tableViewSelected == null
+                || btnAddToSelected == null || btnRemoveFromSelected == null) {
+            return;
+        }
+        Node leftPane = tableViewAvailable.getParent();
+        Node buttonsPane = btnAddToSelected.getParent();
+        Node rightPane = tableViewSelected.getParent();
+        if (!(leftPane instanceof VBox) || !(buttonsPane instanceof VBox) || !(rightPane instanceof VBox)) {
+            return;
+        }
+        Node tablesContainer = leftPane.getParent();
+        if (!(tablesContainer instanceof HBox tablesHBox)) {
+            return;
+        }
+        if (!(tablesHBox.getParent() instanceof VBox parentVBox)) {
+            return;
+        }
+
+        HBox rightSide = new HBox(10, buttonsPane, rightPane);
+        rightSide.setMinWidth(220);
+        HBox.setHgrow(rightPane, Priority.ALWAYS);
+
+        mainTablesSplitPane = new SplitPane(leftPane, rightSide);
+        mainTablesSplitPane.getStyleClass().add("main-tables-split");
+        SplitPane.setResizableWithParent(leftPane, true);
+        SplitPane.setResizableWithParent(rightSide, true);
+
+        double dividerPos = clampMainTablesSplit(
+                preferences.getDouble(PREF_MAIN_TABLES_SPLIT, DEFAULT_MAIN_TABLES_SPLIT));
+        mainTablesSplitPane.setDividerPositions(dividerPos);
+
+        VBox wrapper = new VBox(mainTablesSplitPane);
+        wrapper.setPadding(tablesHBox.getPadding());
+        VBox.setVgrow(mainTablesSplitPane, Priority.ALWAYS);
+
+        int index = parentVBox.getChildren().indexOf(tablesHBox);
+        if (index >= 0) {
+            parentVBox.getChildren().set(index, wrapper);
+        } else {
+            parentVBox.getChildren().add(wrapper);
+        }
+
+        if (!mainTablesSplitPane.getDividers().isEmpty()) {
+            mainTablesSplitPane.getDividers().get(0).positionProperty().addListener((obs, oldVal, newVal) -> {
+                if (newVal != null) {
+                    preferences.putDouble(PREF_MAIN_TABLES_SPLIT, clampMainTablesSplit(newVal.doubleValue()));
+                }
+            });
+        }
+        Platform.runLater(() -> mainTablesSplitPane.setDividerPositions(
+                clampMainTablesSplit(preferences.getDouble(PREF_MAIN_TABLES_SPLIT, DEFAULT_MAIN_TABLES_SPLIT))));
+    }
+
+    private static double clampMainTablesSplit(double position) {
+        return Math.max(MIN_MAIN_TABLES_SPLIT, Math.min(MAX_MAIN_TABLES_SPLIT, position));
+    }
+
+    private void configureLeftAlignedColumnHeader(TableColumn<?, ?> column, String title) {
+        Label headerLabel = new Label(title);
+        headerLabel.setAlignment(Pos.CENTER_LEFT);
+        headerLabel.setMaxWidth(Double.MAX_VALUE);
+        headerLabel.getStyleClass().add("left-aligned-column-header-label");
+
+        StackPane headerContainer = new StackPane(headerLabel);
+        headerContainer.setAlignment(Pos.CENTER_LEFT);
+        headerContainer.setMaxWidth(Double.MAX_VALUE);
+
+        column.setText("");
+        column.setGraphic(headerContainer);
+        column.setStyle("-fx-alignment: CENTER-LEFT;");
+    }
+
     /**
      * Lädt die gespeicherte Tabellenkonfiguration (Spaltenbreiten und Positionen)
      */

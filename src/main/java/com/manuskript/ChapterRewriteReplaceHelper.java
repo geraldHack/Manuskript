@@ -27,7 +27,7 @@ final class ChapterRewriteReplaceHelper {
                 return false;
             }
         }
-        host.replaceRange(safeStart, safeEnd, replacement == null ? "" : replacement);
+        host.replaceRangePreserveView(safeStart, safeEnd, replacement == null ? "" : replacement);
         host.updateStatus(successMessage);
         return true;
     }

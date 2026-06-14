@@ -138,7 +138,7 @@ public class ChapterOnlineLektoratHelper {
         int originalEnd = start + originalSegment.length();
         int delta = replacementWithBoundaries.length() - originalSegment.length();
 
-        host.replaceRange(start, end, replacementWithBoundaries);
+        host.replaceRangePreserveView(start, end, replacementWithBoundaries);
         currentMatches.remove(match);
 
         if (delta != 0 && !currentMatches.isEmpty()) {

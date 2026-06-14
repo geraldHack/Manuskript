@@ -563,14 +563,14 @@ public class ManuskriptTextEditor extends Region {
         pushUndoCoalesced(classifyUndoKind(value), value);
         int start = selectionStart();
         int end = selectionEnd();
-        ViewportAnchor viewportAnchor = viewportAnchorForReplacement(value, start);
+        ViewportAnchor viewportAnchor = captureReadingViewportAnchor();
         text.replace(start, end, value);
         int inserted = value.length();
         adjustRangesForReplace(start, end, inserted);
         caret = normalizeCaretOffset(start, true);
         anchor = caret;
         preferredCaretX = Double.NaN;
-        afterTextChanged(viewportAnchor, caret, true);
+        afterTextChanged(viewportAnchor, caret, false);
     }
 
     public void replaceSelection(String replacement) {
@@ -2682,7 +2682,7 @@ public class ManuskriptTextEditor extends Region {
         }
         String pasted = Clipboard.getSystemClipboard().getString();
         if (pasted != null && !pasted.isEmpty()) {
-            insertText(pasted);
+            insertTextPreserveCaret(pasted);
         }
     }
 

@@ -13,6 +13,9 @@ public class Finding {
     private String suggestion; // Korrekturvorschlag
     private List<String> suggestions; // Liste von Korrekturvorschlägen
     private int suggestionIndex = -1; // Index des ausgewählten Vorschlags
+    /** Optional: feste Ersetzungs-Range (Überarbeiten-Agent). */
+    private int replaceRangeStart = -1;
+    private int replaceRangeEnd = -1;
 
     public Finding() {}
 
@@ -40,6 +43,16 @@ public class Finding {
 
     public int getSuggestionIndex() { return suggestionIndex; }
     public void setSuggestionIndex(int suggestionIndex) { this.suggestionIndex = suggestionIndex; }
+
+    public int getReplaceRangeStart() { return replaceRangeStart; }
+    public void setReplaceRangeStart(int replaceRangeStart) { this.replaceRangeStart = replaceRangeStart; }
+
+    public int getReplaceRangeEnd() { return replaceRangeEnd; }
+    public void setReplaceRangeEnd(int replaceRangeEnd) { this.replaceRangeEnd = replaceRangeEnd; }
+
+    public boolean hasReplaceRange() {
+        return replaceRangeStart >= 0 && replaceRangeEnd > replaceRangeStart;
+    }
 
     public String getQuoteWithIndex() {
         return quote;

@@ -34,6 +34,11 @@ public interface ChapterEditorHost {
 
     void replaceRange(int start, int end, String replacement);
 
+    /** Ersetzt Text, ohne Caret und Scroll-Position zu verändern (Canvas-Editor). */
+    default void replaceRangePreserveView(int start, int end, String replacement) {
+        replaceRange(start, end, replacement);
+    }
+
     void revealRange(int start, int end);
 
     int getCaretPosition();

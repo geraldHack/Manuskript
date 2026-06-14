@@ -280,6 +280,7 @@ public class PreferencesManager {
             prefs.remove("window_height");
             prefs.remove("window_x");
             prefs.remove("window_y");
+            prefs.remove("main_tables_split_divider");
         } catch (Exception e) {
             logger.error("Fehler beim Zurücksetzen der Hauptfenster-Preferences: {}", e.getMessage());
         }

@@ -34,6 +34,10 @@ public final class PlotholeResponseParser {
             "<PROBLEM>\\s*SCHWEREGRAD:\\s*(\\d+)\\s*ZITAT:\\s*(?:\"([^\"]*)\"|'([^']*)'|([^<\\n]+?))\\s*PROBLEM:\\s*(.*?)</PROBLEM>",
             Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
 
+    private static final Pattern PROBLEM_BLOCK = Pattern.compile(
+            "<PROBLEM>(.*?)</PROBLEM>",
+            Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+
     private PlotholeResponseParser() {
     }
 
@@ -54,7 +58,10 @@ public final class PlotholeResponseParser {
 
         String normalized = trimmed.replace("\r\n", "\n").replace("\r", "\n");
         List<Finding> findings = new ArrayList<>();
-        findings.addAll(parseStrictBlocks(normalized));
+        findings.addAll(parseProblemBlocks(normalized));
+        if (findings.isEmpty()) {
+            findings.addAll(parseStrictBlocks(normalized));
+        }
         if (findings.isEmpty()) {
             findings.addAll(parseFlexBlocks(normalized));
         }
@@ -158,6 +165,153 @@ public final class PlotholeResponseParser {
         return text.replace("```", "").trim();
     }
 
+    private static List<Finding> parseProblemBlocks(String normalized) {
+        List<Finding> findings = new ArrayList<>();
+        Matcher blockMatcher = PROBLEM_BLOCK.matcher(normalized);
+        while (blockMatcher.find()) {
+            Finding finding = parseProblemBlockInner(blockMatcher.group(1).trim());
+            if (finding != null) {
+                findings.add(finding);
+            }
+        }
+        return findings;
+    }
+
+    /**
+     * Parst einen {@code <PROBLEM>}-Inhalt robust — auch bei Anführungszeichen im Zitat
+     * und mehrzeiligen Vorschlägen.
+     */
+    private static Finding parseProblemBlockInner(String inner) {
+        if (inner.isEmpty()) {
+            return null;
+        }
+        Matcher severityMatcher = Pattern.compile("(?i)SCHWEREGRAD:\\s*(\\d+)").matcher(inner);
+        if (!severityMatcher.find()) {
+            return null;
+        }
+        int severity;
+        try {
+            severity = clampSeverity(Integer.parseInt(severityMatcher.group(1)));
+        } catch (NumberFormatException e) {
+            return null;
+        }
+
+        int zitatIdx = indexOfIgnoreCase(inner, "ZITAT:");
+        if (zitatIdx < 0) {
+            return null;
+        }
+        int afterZitatLabel = zitatIdx + "ZITAT:".length();
+        int problemIdx = indexOfIgnoreCase(inner, "PROBLEM:", afterZitatLabel);
+        if (problemIdx < 0) {
+            return null;
+        }
+        String quote = parseFieldValue(inner.substring(afterZitatLabel, problemIdx).trim());
+
+        int afterProblemLabel = problemIdx + "PROBLEM:".length();
+        int suggestionIdx = indexOfAnyIgnoreCase(inner, afterProblemLabel, "VORSCHLÄGE:", "VORSCHLÄGE", "VORSCHLAG:");
+        if (suggestionIdx < 0) {
+            return null;
+        }
+        String problem = inner.substring(afterProblemLabel, suggestionIdx).trim();
+        if (problem.isEmpty()) {
+            return null;
+        }
+        problem = AgentResponseText.normalizeModelText(problem);
+
+        String suggestionsText = inner.substring(suggestionIdx).trim();
+        Finding finding = new Finding(severity, quote, problem, "");
+        finding.setSuggestions(extractTopLevelQuotedStrings(stripSuggestionLabel(suggestionsText)));
+        if (finding.getSuggestions().isEmpty()) {
+            finding.setSuggestions(extractSuggestions(suggestionsText));
+        }
+        finding.setSuggestionIndex(finding.getSuggestions().isEmpty() ? -1 : 0);
+        return finding.getSuggestions().isEmpty() ? null : finding;
+    }
+
+    private static String parseFieldValue(String raw) {
+        if (raw == null || raw.isEmpty()) {
+            return "";
+        }
+        if (raw.toUpperCase(java.util.Locale.ROOT).startsWith("(MARKIERT)")) {
+            return SelectionRevisionSupport.MARKED_QUOTE_PLACEHOLDER;
+        }
+        if (raw.length() >= 2 && raw.startsWith("\"") && raw.endsWith("\"")) {
+            return AgentResponseText.normalizeModelText(raw.substring(1, raw.length() - 1));
+        }
+        if (raw.length() >= 2 && raw.startsWith("'") && raw.endsWith("'")) {
+            return AgentResponseText.normalizeModelText(raw.substring(1, raw.length() - 1));
+        }
+        return AgentResponseText.normalizeModelText(raw);
+    }
+
+    private static String stripSuggestionLabel(String suggestionsText) {
+        if (suggestionsText == null) {
+            return "";
+        }
+        return suggestionsText
+                .replaceFirst("(?i)VORSCHLÄGE:\\s*", "")
+                .replaceFirst("(?i)VORSCHLÄGE\\s*", "")
+                .replaceFirst("(?i)VORSCHLAG:\\s*", "")
+                .trim();
+    }
+
+    /** Liest kommagetrennte Top-Level-Strings in doppelten Anführungszeichen (inkl. Zeilenumbrüche). */
+    private static List<String> extractTopLevelQuotedStrings(String text) {
+        List<String> results = new ArrayList<>();
+        if (text == null || text.isEmpty()) {
+            return results;
+        }
+        int indexPos = text.indexOf("INDEX:");
+        if (indexPos >= 0) {
+            text = text.substring(0, indexPos).trim();
+        }
+        int i = 0;
+        while (i < text.length()) {
+            while (i < text.length() && (Character.isWhitespace(text.charAt(i)) || text.charAt(i) == ',')) {
+                i++;
+            }
+            if (i >= text.length() || text.charAt(i) != '"') {
+                break;
+            }
+            StringBuilder sb = new StringBuilder();
+            i++;
+            while (i < text.length()) {
+                char c = text.charAt(i);
+                if (c == '\\' && i + 1 < text.length()) {
+                    char next = text.charAt(i + 1);
+                    switch (next) {
+                        case 'n' -> sb.append('\n');
+                        case 'r' -> sb.append('\r');
+                        case 't' -> sb.append('\t');
+                        case '"', '\\' -> sb.append(next);
+                        default -> sb.append(c);
+                    }
+                    i += 2;
+                } else if (c == '"') {
+                    i++;
+                    break;
+                } else {
+                    sb.append(c);
+                    i++;
+                }
+            }
+            addSuggestion(results, sb.toString());
+        }
+        return results;
+    }
+
+    private static int indexOfAnyIgnoreCase(String text, int fromIndex, String... needles) {
+        int best = -1;
+        for (String needle : needles) {
+            int idx = text.toLowerCase(java.util.Locale.ROOT)
+                    .indexOf(needle.toLowerCase(java.util.Locale.ROOT), fromIndex);
+            if (idx >= 0 && (best < 0 || idx < best)) {
+                best = idx;
+            }
+        }
+        return best;
+    }
+
     private static List<Finding> parseStrictBlocks(String normalized) {
         List<Finding> findings = new ArrayList<>();
         Matcher m = STRICT_BLOCK.matcher(normalized);
@@ -235,6 +389,10 @@ public final class PlotholeResponseParser {
 
     private static int indexOfIgnoreCase(String text, String needle) {
         return text.toLowerCase(Locale.ROOT).indexOf(needle.toLowerCase(Locale.ROOT));
+    }
+
+    private static int indexOfIgnoreCase(String text, String needle, int fromIndex) {
+        return text.toLowerCase(Locale.ROOT).indexOf(needle.toLowerCase(Locale.ROOT), fromIndex);
     }
 
     private static List<String> extractSuggestions(String suggestionsText) {

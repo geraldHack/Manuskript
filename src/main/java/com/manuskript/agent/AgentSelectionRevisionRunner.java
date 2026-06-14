@@ -90,14 +90,16 @@ public final class AgentSelectionRevisionRunner {
         }
         agentTabPane.selectTab(targetTab);
         targetTab.setAnalyzing(true);
+        targetTab.setSelectionRevisionContext(start, end, selected);
 
         String context = SelectionRevisionSupport.buildSurroundingContext(fullText, start, end);
-        int maxOutputTokens = config.getMaxTokens();
-        logger.info("Überarbeiten-Agent: Markierung {} Zeichen, Kontext {} Zeichen, Anweisung {} Zeichen",
+        int maxOutputTokens = SelectionRevisionSupport.estimateMaxOutputTokens(selected.length(), config.getMaxTokens());
+        String effectiveInstruction = SelectionRevisionSupport.buildAuthorInstruction(authorInstruction, selected.length());
+        logger.info("Überarbeiten-Agent: Markierung {} Zeichen, Kontext {} Zeichen, Anweisung {} Zeichen, max_output_tokens={}",
                 selected.length(), context.length(),
-                authorInstruction != null ? authorInstruction.length() : 0);
+                effectiveInstruction.length(), maxOutputTokens);
 
-        agent.analyze(selected, context, maxOutputTokens, authorInstruction)
+        agent.analyze(selected, context, maxOutputTokens, effectiveInstruction)
                 .thenAccept(targetTab::showParseResult)
                 .exceptionally(ex -> {
                     String detail = AgentAnalysisErrors.format(ex);
