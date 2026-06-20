@@ -426,6 +426,17 @@ public class MdTextArea extends VBox {
         editor.revealMatchAt(clamped, clamped);
     }
 
+    /** Scrollt zum Ende des Textes (z. B. beim Streamen von Chat-Antworten). */
+    public void scrollToEnd() {
+        int len = getText().length();
+        positionCaret(len);
+        if (len > 0) {
+            editor.scrollToOffset(len);
+        } else {
+            editor.scrollToRatio(1.0);
+        }
+    }
+
     public void appendText(String addition) {
         if (addition == null || addition.isEmpty()) {
             return;

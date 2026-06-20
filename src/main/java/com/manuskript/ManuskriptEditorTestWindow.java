@@ -1,7 +1,7 @@
 package com.manuskript;
 
-import com.manuskript.agent.AgentActivityBanner;
 import com.manuskript.agent.AgentActivityTracker;
+import com.manuskript.agent.AgentStatusBusyBarSupport;
 
 import javafx.beans.binding.Bindings;
 import javafx.animation.KeyFrame;
@@ -21,6 +21,7 @@ import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.ProgressBar;
 import javafx.scene.control.Separator;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.SplitPane;
@@ -91,6 +92,7 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
     private MdTextArea mdTextArea;
     private ManuskriptTextEditor editor;
     private Label statusLabel;
+    private ProgressBar agentStatusBusyBar;
     private Label lblSelectionCount;
     private Label lblLanguageToolStatus;
     private boolean editingShortcutsInstalled;
@@ -132,6 +134,7 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
     private boolean dirty;
     private boolean suppressDirty;
     private boolean transientStatusActive;
+    private boolean agentActivityActive;
     private boolean quoteErrorsDialogShown;
     private ChapterAgentSupport chapterAgentSupport;
     private ChapterOnlineLektoratHelper lektoratHelper;
@@ -143,7 +146,6 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
     private ChapterTextAnalysisWindow textAnalysisWindow;
     private ChapterMacroWindow macroWindow;
     private AgentActivityTracker agentActivityTracker;
-    private AgentActivityBanner agentActivityBanner;
 
     public ManuskriptEditorTestWindow(Window owner) {
         this(owner, null);
@@ -236,12 +238,13 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         });
         editor.setQuoteStyleIndex(Preferences.userNodeForPackage(EditorWindow.class).getInt("quoteStyle", 0));
 
-        BorderPane root = new BorderPane();
         initializeStatusLabel();
+        initializeAgentStatusBusyBar();
         initializeSelectionLabel();
+        BorderPane root = new BorderPane();
+        VBox topArea = new VBox(createHostToolbar());
         agentActivityTracker = new AgentActivityTracker();
-        agentActivityBanner = new AgentActivityBanner(agentActivityTracker);
-        VBox topArea = new VBox(agentActivityBanner, createHostToolbar());
+        wireAgentActivityToStatusBar();
         root.setTop(topArea);
         root.setCenter(createEditorWithSidebar());
         applyHostToolbarExpanded(hostToolbarExpanded);
@@ -315,6 +318,7 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
             chapterAgentSupport.setSceneOutlineWindow(sceneOutlineWindow);
             chapterAgentSupport.setupIfEnabled();
             wireSelectionRevisionAgentAction();
+            wireIdiomReviewAgentAction();
         }
         textAnalysisWindow = new ChapterTextAnalysisWindow(createTextAnalysisHost());
         macroWindow = new ChapterMacroWindow(createMacroHost());
@@ -860,7 +864,8 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
                 insertImage, editImage, deleteImage);
 
         hostToolbarCollapsibleSection = new VBox(8, formatPane, toolsPane);
-        VBox toolbar = new VBox(4, toggleRow, statusRow, hostToolbarCollapsibleSection);
+        VBox statusSection = new VBox(2, statusRow, agentStatusBusyBar);
+        VBox toolbar = new VBox(4, toggleRow, statusSection, hostToolbarCollapsibleSection);
         toolbar.setPadding(new Insets(4, 8, 8, 8));
         var wrapLength = Bindings.max(220, toolbar.widthProperty().subtract(16));
         formatPane.prefWrapLengthProperty().bind(wrapLength);
@@ -1003,6 +1008,37 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         statusLabel.setStyle(STATUS_STYLE_READY);
     }
 
+    private void initializeAgentStatusBusyBar() {
+        agentStatusBusyBar = AgentStatusBusyBarSupport.createBusyBar();
+    }
+
+    private void wireAgentActivityToStatusBar() {
+        agentActivityTracker.addListener(state -> Platform.runLater(() -> applyAgentActivityState(state)));
+    }
+
+    private void applyAgentActivityState(AgentActivityTracker.State state) {
+        if (statusLabel == null || agentStatusBusyBar == null) {
+            return;
+        }
+        agentActivityActive = state.active();
+        if (state.active()) {
+            transientStatusActive = true;
+            synchronized (statusLock) {
+                if (statusClearFuture != null && !statusClearFuture.isDone()) {
+                    statusClearFuture.cancel(false);
+                }
+            }
+            statusLabel.setText(state.message());
+            statusLabel.setStyle(STATUS_STYLE_READY);
+            AgentStatusBusyBarSupport.setActive(agentStatusBusyBar, true);
+        } else {
+            AgentStatusBusyBarSupport.setActive(agentStatusBusyBar, false);
+            if (!transientStatusActive) {
+                updateStatusDisplay();
+            }
+        }
+    }
+
     private void initializeSelectionLabel() {
         lblSelectionCount = new Label("Auswahl: 0 Zeichen, 0 Wörter");
         lblSelectionCount.getStyleClass().add("selection-label");
@@ -1122,7 +1158,9 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         transientStatusActive = true;
         statusLabel.setText(message == null ? "" : message);
         statusLabel.setStyle(STATUS_STYLE_READY);
-        scheduleStatusClear(5);
+        if (!agentActivityActive) {
+            scheduleStatusClear(5);
+        }
     }
 
     private void updateStatus(String message, boolean isError) {
@@ -1141,7 +1179,9 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         transientStatusActive = true;
         statusLabel.setText(message == null ? "" : message);
         statusLabel.setStyle(STATUS_STYLE_WARNING);
-        scheduleStatusClear(5);
+        if (!agentActivityActive) {
+            scheduleStatusClear(5);
+        }
     }
 
     private void updateStatusDisplay() {
@@ -2005,6 +2045,11 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
     }
 
     @Override
+    public int getQuoteStyleIndex() {
+        return editor.getQuoteStyleIndex();
+    }
+
+    @Override
     public void revealRange(int start, int end) {
         editor.revealMatchAt(start, end);
     }
@@ -2065,6 +2110,14 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         });
     }
 
+    private void wireIdiomReviewAgentAction() {
+        editor.setIdiomReviewAgentAction(() -> {
+            if (chapterAgentSupport != null && chapterAgentSupport.isAvailable()) {
+                chapterAgentSupport.runIdiomReviewFromContextMenu();
+            }
+        });
+    }
+
     @Override
     public void jumpToQuote(String quote) {
         ChapterAgentQuoteActions.jumpToQuote(this, quote);
@@ -2085,6 +2138,7 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
             chapterAgentSupport.setSceneOutlineWindow(sceneOutlineWindow);
             chapterAgentSupport.setupIfEnabled();
             wireSelectionRevisionAgentAction();
+            wireIdiomReviewAgentAction();
         }
         syncAgentsToggleButton();
     }

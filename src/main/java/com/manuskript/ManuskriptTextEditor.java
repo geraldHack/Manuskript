@@ -1,12 +1,16 @@
 package com.manuskript;
 
+import com.manuskript.agent.IdiomReviewSupport;
 import com.manuskript.agent.SelectionRevisionSupport;
 
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.beans.property.DoubleProperty;
 import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
+import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
@@ -68,6 +72,8 @@ public class ManuskriptTextEditor extends Region {
 
     private static final double GUTTER_WIDTH = 48;
     private static final double TEXT_PADDING = 8;
+    /** Rechter Textabstand (zusammen mit {@link #TEXT_PADDING} = 24 px Gesamtrand wie Bilder/HR). */
+    private static final double TEXT_RIGHT_PADDING = 14;
     private static final double CARET_WIDTH = 1.5;
     private static final String CARET_COLOR = "#ff3333";
     private static final double MIN_CHAR_WIDTH = 4.0;
@@ -168,6 +174,7 @@ public class ManuskriptTextEditor extends Region {
     private final ContextMenu editorContextMenu = new ContextMenu();
     private ChapterRewriteContextActions contextMenuRewriteActions;
     private Runnable selectionRevisionAgentAction;
+    private Runnable idiomReviewAgentAction;
     private int contextMenuThemeIndex;
     private final Popup languageToolHoverPopup = new Popup();
     private final Label languageToolHoverMessage = new Label();
@@ -177,6 +184,13 @@ public class ManuskriptTextEditor extends Region {
     private Runnable onLanguageToolMatchesChanged;
     private LanguageToolService.Match hoveredLanguageToolMatch;
     private EventHandler<MouseEvent> contextMenuOutsideClickFilter;
+    private EventHandler<MouseEvent> sceneSelectionDragFilter;
+    private EventHandler<MouseEvent> sceneSelectionReleaseFilter;
+    private Timeline selectionAutoScrollTimeline;
+    private boolean mouseSelectionDragActive;
+    private double lastSelectionDragViewportX = Double.NaN;
+    private double lastSelectionDragViewportY = Double.NaN;
+    private int selectionAutoScrollDirection;
     private Consumer<String> textChangeListener;
     private Runnable selectionChangeListener;
     private int lastNotifiedCaret = -1;
@@ -242,6 +256,10 @@ public class ManuskriptTextEditor extends Region {
     private double[] cachedLineContentY;
     private double[] cachedLineSegmentHeight;
     private double cachedTotalContentHeight = -1;
+
+    private static final double SELECTION_AUTO_SCROLL_EDGE_PX = 20;
+    private static final double SELECTION_AUTO_SCROLL_STEP_PX = 16;
+    private static final Duration SELECTION_AUTO_SCROLL_INTERVAL = Duration.millis(45);
 
     private boolean sceneAcceleratorsInstalled;
 
@@ -367,7 +385,11 @@ public class ManuskriptTextEditor extends Region {
         double barWidth = SCROLLBAR_WIDTH;
         canvas.setLayoutX(0);
         canvas.setLayoutY(0);
-        canvas.setWidth(Math.max(0, width - barWidth));
+        double newCanvasWidth = Math.max(0, width - barWidth);
+        if (Math.abs(canvas.getWidth() - newCanvasWidth) > 0.5) {
+            invalidateLayoutCaches();
+        }
+        canvas.setWidth(newCanvasWidth);
         canvas.setHeight(height);
         keyboardProxy.resizeRelocate(0, 0, 1, 1);
         verticalScrollBar.resizeRelocate(Math.max(0, width - barWidth), 0, barWidth, height);
@@ -398,7 +420,7 @@ public class ManuskriptTextEditor extends Region {
         anchor = safeStart;
         caret = safeEnd;
         preferredCaretX = Double.NaN;
-        ensureCaretVisible();
+        ensureCaretVisibleAfterInsert();
         render();
     }
 
@@ -431,6 +453,10 @@ public class ManuskriptTextEditor extends Region {
 
     public void setSelectionRevisionAgentAction(Runnable action) {
         selectionRevisionAgentAction = action;
+    }
+
+    public void setIdiomReviewAgentAction(Runnable action) {
+        idiomReviewAgentAction = action;
     }
 
     public int getSelectionStart() {
@@ -564,13 +590,15 @@ public class ManuskriptTextEditor extends Region {
         int start = selectionStart();
         int end = selectionEnd();
         ViewportAnchor viewportAnchor = captureReadingViewportAnchor();
+        String beforeContent = text.toString();
         text.replace(start, end, value);
         int inserted = value.length();
         adjustRangesForReplace(start, end, inserted);
         caret = normalizeCaretOffset(start, true);
         anchor = caret;
         preferredCaretX = Double.NaN;
-        afterTextChanged(viewportAnchor, caret, false);
+        int scrollSync = mapOffsetThroughTextChange(beforeContent, text.toString(), viewportAnchor.offset());
+        afterTextChanged(viewportAnchor, scrollSync, false);
     }
 
     public void replaceSelection(String replacement) {
@@ -588,7 +616,40 @@ public class ManuskriptTextEditor extends Region {
     }
 
     public void replaceRange(int start, int end, String replacement) {
-        replaceRange(start, end, replacement, false);
+        replaceRange(start, end, replacement, true);
+    }
+
+    /**
+     * Ersetzt einen Textbereich und mappt Caret/Anker sowie Scroll-Position durch die Änderung.
+     */
+    public void replaceRange(int start, int end, String replacement, boolean preserveCaretAndViewport) {
+        int safeStart = Math.max(0, Math.min(text.length(), start));
+        int safeEnd = Math.max(safeStart, Math.min(text.length(), end));
+        String oldContent = text.toString();
+        String newSegment = replacement == null ? "" : replacement;
+        String afterContent = buildTextAfterReplace(oldContent, safeStart, safeEnd, newSegment);
+
+        ViewportAnchor viewportAnchor = preserveCaretAndViewport ? captureReadingViewportAnchor() : null;
+        int scrollSyncOffset = preserveCaretAndViewport
+                ? mapOffsetThroughTextChange(oldContent, afterContent, viewportAnchor.offset())
+                : safeStart + newSegment.length();
+        int mappedCaret = preserveCaretAndViewport
+                ? mapOffsetThroughTextChange(oldContent, afterContent, caret)
+                : safeStart + newSegment.length();
+        int mappedAnchor = preserveCaretAndViewport
+                ? mapOffsetThroughTextChange(oldContent, afterContent, anchor)
+                : mappedCaret;
+
+        pushUndoCoalesced(UndoEditKind.OTHER, newSegment);
+        text.replace(safeStart, safeEnd, newSegment);
+        adjustRangesForReplace(safeStart, safeEnd, newSegment.length());
+        caret = normalizeCaretOffset(mappedCaret, true);
+        anchor = normalizeCaretOffset(mappedAnchor, true);
+        preferredCaretX = Double.NaN;
+        if (preserveCaretAndViewport) {
+            preserveReadingViewportOnNextRebuild = true;
+        }
+        afterTextChanged(viewportAnchor, scrollSyncOffset, false);
     }
 
     /**
@@ -610,28 +671,9 @@ public class ManuskriptTextEditor extends Region {
         caret = normalizeCaretOffset(mappedCaret, true);
         anchor = normalizeCaretOffset(mappedAnchor, true);
         preferredCaretX = Double.NaN;
-        afterTextChanged(viewportAnchor, mappedCaret, false);
-    }
-
-    public void replaceRange(int start, int end, String replacement, boolean preserveCaretAndViewport) {
-        int safeStart = Math.max(0, Math.min(text.length(), start));
-        int safeEnd = Math.max(safeStart, Math.min(text.length(), end));
-        String oldContent = text.toString();
-        String newSegment = replacement == null ? "" : replacement;
-        ViewportAnchor viewportAnchor = preserveCaretAndViewport ? captureReadingViewportAnchor() : null;
-        int mappedCaret = preserveCaretAndViewport
-                ? mapOffsetThroughTextChange(oldContent, buildTextAfterReplace(oldContent, safeStart, safeEnd, newSegment), caret)
-                : safeStart + newSegment.length();
-        int mappedAnchor = preserveCaretAndViewport
-                ? mapOffsetThroughTextChange(oldContent, buildTextAfterReplace(oldContent, safeStart, safeEnd, newSegment), anchor)
-                : mappedCaret;
-        pushUndoCoalesced(UndoEditKind.OTHER, newSegment);
-        text.replace(safeStart, safeEnd, newSegment);
-        adjustRangesForReplace(safeStart, safeEnd, newSegment.length());
-        caret = normalizeCaretOffset(mappedCaret, true);
-        anchor = normalizeCaretOffset(mappedAnchor, true);
-        preferredCaretX = Double.NaN;
-        afterTextChanged(viewportAnchor, caret, !preserveCaretAndViewport);
+        int scrollSync = mapOffsetThroughTextChange(oldContent, replacement, viewportAnchor.offset());
+        preserveReadingViewportOnNextRebuild = true;
+        afterTextChanged(viewportAnchor, scrollSync, false);
     }
 
     private static UndoEditKind classifyUndoKind(String replacement) {
@@ -653,49 +695,7 @@ public class ManuskriptTextEditor extends Region {
     }
 
     static int mapOffsetThroughTextChange(String before, String after, int offset) {
-        if (before == null || after == null) {
-            return Math.max(0, offset);
-        }
-        if (before.equals(after)) {
-            return Math.max(0, Math.min(offset, after.length()));
-        }
-        int beforeLength = before.length();
-        int afterLength = after.length();
-        int safeOffset = Math.max(0, Math.min(offset, beforeLength));
-        if (safeOffset == 0) {
-            return 0;
-        }
-        if (safeOffset >= beforeLength) {
-            return afterLength;
-        }
-
-        int prefix = 0;
-        int prefixLimit = Math.min(Math.min(safeOffset, beforeLength), afterLength);
-        while (prefix < prefixLimit && before.charAt(prefix) == after.charAt(prefix)) {
-            prefix++;
-        }
-        if (safeOffset <= prefix) {
-            return safeOffset;
-        }
-
-        int suffix = 0;
-        while (suffix < beforeLength - prefix
-                && suffix < afterLength - prefix
-                && before.charAt(beforeLength - 1 - suffix) == after.charAt(afterLength - 1 - suffix)) {
-            suffix++;
-        }
-
-        int beforeMiddleLength = beforeLength - prefix - suffix;
-        int afterMiddleLength = afterLength - prefix - suffix;
-        int offsetInMiddle = safeOffset - prefix;
-        if (offsetInMiddle >= beforeMiddleLength) {
-            return afterLength - (beforeLength - safeOffset);
-        }
-        if (beforeMiddleLength <= 0) {
-            return prefix;
-        }
-        int mappedMiddle = (int) Math.round(offsetInMiddle * (afterMiddleLength / (double) beforeMiddleLength));
-        return prefix + Math.max(0, Math.min(afterMiddleLength, mappedMiddle));
+        return TextChangeOffsetMapper.mapOffsetThroughTextChange(before, after, offset);
     }
 
     public void deleteSelectionOrPrevious() {
@@ -1377,6 +1377,11 @@ public class ManuskriptTextEditor extends Region {
 
     /** Überschrift umschalten: normal → H1 → … → H6 → normal. */
     public void toggleHeading() {
+        int savedLineIndex = lineIndexForOffset(caret);
+        int savedColumn = contentColumnForOffset(caret);
+        int savedAnchorLine = lineIndexForOffset(anchor);
+        int savedAnchorColumn = contentColumnForOffset(anchor);
+        boolean hadSelection = hasSelection();
         int lineStart = logicalLineStartForOffset(selectionStart());
         int lineEnd = logicalLineEndIndex(lineStart);
         String line = text.substring(lineStart, lineEnd);
@@ -1394,6 +1399,16 @@ public class ManuskriptTextEditor extends Region {
             replacement = "# " + line;
         }
         replaceRange(lineStart, lineEnd, replacement);
+        if (hadSelection) {
+            restoreCaretToLineContent(savedAnchorLine, savedAnchorColumn);
+            int anchorPos = caret;
+            restoreCaretToLineContent(savedLineIndex, savedColumn);
+            anchor = anchorPos;
+        } else {
+            restoreCaretToLineContent(savedLineIndex, savedColumn);
+            anchor = caret;
+        }
+        render();
     }
 
     public void toggleUnorderedList() {
@@ -1436,6 +1451,11 @@ public class ManuskriptTextEditor extends Region {
     }
 
     private void toggleListPrefix(String prefix) {
+        int savedLineIndex = lineIndexForOffset(caret);
+        int savedColumn = contentColumnForOffset(caret);
+        int savedAnchorLine = lineIndexForOffset(anchor);
+        int savedAnchorColumn = contentColumnForOffset(anchor);
+        boolean hadSelection = hasSelection();
         int lineStart = logicalLineStartForOffset(selectionStart());
         int lineEnd = logicalLineEndIndex(lineStart);
         String line = text.substring(lineStart, lineEnd);
@@ -1449,6 +1469,16 @@ public class ManuskriptTextEditor extends Region {
             int leading = line.length() - trimmed.length();
             replaceRange(lineStart, lineEnd, line.substring(0, leading) + prefix + trimmed);
         }
+        if (hadSelection) {
+            restoreCaretToLineContent(savedAnchorLine, savedAnchorColumn);
+            int anchorPos = caret;
+            restoreCaretToLineContent(savedLineIndex, savedColumn);
+            anchor = anchorPos;
+        } else {
+            restoreCaretToLineContent(savedLineIndex, savedColumn);
+            anchor = caret;
+        }
+        render();
     }
 
     public void insertLinkPlaceholder() {
@@ -2047,16 +2077,13 @@ public class ManuskriptTextEditor extends Region {
             return;
         }
         if ("\"".equals(character) || "'".equals(character)) {
-            caret = normalizeCaretOffset(caret, true);
-            anchor = caret;
+            int insertPos = hasSelection() ? selectionStart() : normalizeCaretOffset(caret, true);
             String replacement = QuotationMarkSupport.resolveTypedQuote(
-                    text.toString(), caret, character, quoteStyleIndex);
+                    text.toString(), insertPos, character, quoteStyleIndex);
             replaceSelection(replacement);
             event.consume();
             return;
         }
-        caret = normalizeCaretOffset(caret, true);
-        anchor = caret;
         replaceSelection(character);
         event.consume();
     }
@@ -2079,7 +2106,7 @@ public class ManuskriptTextEditor extends Region {
         if (!editable) {
             switch (event.getCode()) {
                 case LEFT -> moveCaret(caret - 1, event.isShiftDown());
-                case RIGHT -> moveCaret(caret + 1, event.isShiftDown());
+                case RIGHT -> moveCaretForwardOne(event.isShiftDown());
                 case UP -> moveVertical(-1, event.isShiftDown());
                 case DOWN -> moveVertical(1, event.isShiftDown());
                 case HOME -> moveCaret(lineStart(caret), event.isShiftDown());
@@ -2156,7 +2183,7 @@ public class ManuskriptTextEditor extends Region {
                 }
             }
             case LEFT -> moveCaret(caret - 1, event.isShiftDown());
-            case RIGHT -> moveCaret(caret + 1, event.isShiftDown());
+            case RIGHT -> moveCaretForwardOne(event.isShiftDown());
             case UP -> moveVertical(-1, event.isShiftDown());
             case DOWN -> moveVertical(1, event.isShiftDown());
             case HOME -> moveCaret(lineStart(caret), event.isShiftDown());
@@ -2309,10 +2336,12 @@ public class ManuskriptTextEditor extends Region {
                 }
             }
             placeCaretAt(event.getX(), contentY, event.isShiftDown());
+            beginMouseSelectionDrag(event.getX(), event.getY());
             ensureInputFocusAfterMouseEvent();
         });
         canvas.setOnMouseReleased(event -> {
             if (event.getButton() == MouseButton.PRIMARY) {
+                endMouseSelectionDrag();
                 ensureInputFocusAfterMouseEvent();
             }
         });
@@ -2343,7 +2372,7 @@ public class ManuskriptTextEditor extends Region {
             if (!event.isPrimaryButtonDown()) {
                 return;
             }
-            placeCaretAt(event.getX(), event.getY() + scrollTop, true);
+            updateSelectionFromDrag(event.getX(), event.getY());
             ensureInputFocusAfterMouseEvent();
         });
         canvas.setOnScroll(event -> {
@@ -2352,13 +2381,131 @@ public class ManuskriptTextEditor extends Region {
             event.consume();
         });
         canvas.setOnMouseMoved(event -> updateLanguageToolHover(event.getX(), event.getY() + scrollTop, event.getScreenX(), event.getScreenY()));
-        canvas.setOnMouseExited(event -> hideLanguageToolHover());
+        canvas.setOnMouseExited(event -> {
+            hideLanguageToolHover();
+            if (mouseSelectionDragActive && event.isPrimaryButtonDown()) {
+                updateSelectionAutoScroll(lastSelectionDragViewportY);
+            }
+        });
         canvas.setOnContextMenuRequested(event -> {
             hideLanguageToolHover();
             hideLanguageToolContextMenu();
             showEditorContextMenu(event);
             event.consume();
         });
+    }
+
+    private void beginMouseSelectionDrag(double viewportX, double viewportY) {
+        mouseSelectionDragActive = true;
+        lastSelectionDragViewportX = viewportX;
+        lastSelectionDragViewportY = viewportY;
+        installSceneSelectionDragHandlers();
+    }
+
+    private void endMouseSelectionDrag() {
+        if (!mouseSelectionDragActive) {
+            return;
+        }
+        mouseSelectionDragActive = false;
+        stopSelectionAutoScroll();
+        removeSceneSelectionDragHandlers();
+    }
+
+    private void installSceneSelectionDragHandlers() {
+        Scene scene = canvas.getScene();
+        if (scene == null) {
+            return;
+        }
+        if (sceneSelectionDragFilter == null) {
+            sceneSelectionDragFilter = event -> {
+                if (!mouseSelectionDragActive || !event.isPrimaryButtonDown()) {
+                    return;
+                }
+                Point2D local = canvas.sceneToLocal(event.getSceneX(), event.getSceneY());
+                updateSelectionFromDrag(local.getX(), local.getY());
+            };
+            sceneSelectionReleaseFilter = event -> endMouseSelectionDrag();
+        }
+        scene.removeEventFilter(MouseEvent.MOUSE_DRAGGED, sceneSelectionDragFilter);
+        scene.removeEventFilter(MouseEvent.MOUSE_RELEASED, sceneSelectionReleaseFilter);
+        scene.addEventFilter(MouseEvent.MOUSE_DRAGGED, sceneSelectionDragFilter);
+        scene.addEventFilter(MouseEvent.MOUSE_RELEASED, sceneSelectionReleaseFilter);
+    }
+
+    private void removeSceneSelectionDragHandlers() {
+        Scene scene = canvas.getScene();
+        if (scene == null || sceneSelectionDragFilter == null) {
+            return;
+        }
+        scene.removeEventFilter(MouseEvent.MOUSE_DRAGGED, sceneSelectionDragFilter);
+        scene.removeEventFilter(MouseEvent.MOUSE_RELEASED, sceneSelectionReleaseFilter);
+    }
+
+    private void updateSelectionFromDrag(double viewportX, double viewportY) {
+        lastSelectionDragViewportX = viewportX;
+        lastSelectionDragViewportY = viewportY;
+        double contentY = viewportY + scrollTop;
+        placeCaretAt(viewportX, contentY, true);
+        updateSelectionAutoScroll(viewportY);
+    }
+
+    private void updateSelectionAutoScroll(double viewportY) {
+        if (!mouseSelectionDragActive || canvas.getHeight() <= 0) {
+            stopSelectionAutoScroll();
+            return;
+        }
+        if (viewportY > canvas.getHeight()) {
+            startSelectionAutoScroll(1);
+        } else if (viewportY < 0) {
+            startSelectionAutoScroll(-1);
+        } else if (viewportY >= canvas.getHeight() - SELECTION_AUTO_SCROLL_EDGE_PX) {
+            startSelectionAutoScroll(1);
+        } else if (viewportY <= SELECTION_AUTO_SCROLL_EDGE_PX) {
+            startSelectionAutoScroll(-1);
+        } else {
+            stopSelectionAutoScroll();
+        }
+    }
+
+    private void startSelectionAutoScroll(int direction) {
+        if (selectionAutoScrollTimeline != null
+                && selectionAutoScrollTimeline.getStatus() == javafx.animation.Animation.Status.RUNNING
+                && selectionAutoScrollDirection == direction) {
+            return;
+        }
+        stopSelectionAutoScroll();
+        selectionAutoScrollDirection = direction;
+        selectionAutoScrollTimeline = new Timeline(new KeyFrame(SELECTION_AUTO_SCROLL_INTERVAL, event -> tickSelectionAutoScroll()));
+        selectionAutoScrollTimeline.setCycleCount(Timeline.INDEFINITE);
+        selectionAutoScrollTimeline.play();
+    }
+
+    private void tickSelectionAutoScroll() {
+        if (!mouseSelectionDragActive) {
+            stopSelectionAutoScroll();
+            return;
+        }
+        double max = verticalScrollBar.getMax();
+        double step = selectionAutoScrollDirection * SELECTION_AUTO_SCROLL_STEP_PX;
+        double nextScroll = Math.max(0, Math.min(max, verticalScrollBar.getValue() + step));
+        if (Math.abs(nextScroll - verticalScrollBar.getValue()) < 0.01) {
+            return;
+        }
+        verticalScrollBar.setValue(nextScroll);
+        scrollTop = nextScroll;
+        double dragX = Double.isNaN(lastSelectionDragViewportX) ? textLeft() : lastSelectionDragViewportX;
+        double contentY = selectionAutoScrollDirection > 0
+                ? scrollTop + Math.max(0, canvas.getHeight() - 1)
+                : scrollTop;
+        placeCaretAt(dragX, contentY, true);
+    }
+
+    private void stopSelectionAutoScroll() {
+        selectionAutoScrollDirection = 0;
+        if (selectionAutoScrollTimeline != null) {
+            selectionAutoScrollTimeline.stop();
+            selectionAutoScrollTimeline = null;
+        }
     }
 
     private void showEditorContextMenu(javafx.scene.input.ContextMenuEvent event) {
@@ -2414,6 +2561,21 @@ public class ManuskriptTextEditor extends Region {
                     revisionAgentItem.setOnAction(e -> selectionRevisionAgentAction.run());
                 }
                 editorContextMenu.getItems().add(revisionAgentItem);
+            }
+
+            if (idiomReviewAgentAction != null) {
+                int selLen = hasSelection() ? selectionEnd() - selectionStart() : 0;
+                int maxChars = IdiomReviewSupport.maxSelectionChars();
+                MenuItem idiomItem = new MenuItem("Sprachentflechtung");
+                if (selLen <= 0 || selLen > maxChars) {
+                    idiomItem.setDisable(true);
+                    if (selLen > maxChars) {
+                        idiomItem.setText("Sprachentflechtung — max. " + maxChars + " Zeichen");
+                    }
+                } else {
+                    idiomItem.setOnAction(e -> idiomReviewAgentAction.run());
+                }
+                editorContextMenu.getItems().add(idiomItem);
             }
         }
 
@@ -2598,6 +2760,53 @@ public class ManuskriptTextEditor extends Region {
         }
         ensureCaretVisible();
         render();
+    }
+
+    /**
+     * Pfeil rechts: bei Blocksatz-Zeilen zuerst das letzte sichtbare Zeichen anfahren,
+     * bevor verstecktes Markup oder der Zeilenumbruch übersprungen wird.
+     */
+    private void moveCaretForwardOne(boolean extendSelection) {
+        int next = caret + 1;
+        if (next > text.length()) {
+            moveCaret(text.length(), extendSelection);
+            return;
+        }
+        if (!isHiddenOffset(next)) {
+            moveCaret(next, extendSelection);
+            return;
+        }
+        int lineIdx = visualLineIndexForOffset(caret);
+        VisualLine line = visualLines().get(lineIdx);
+        int lastChar = lastMeaningfulCharOffsetInLine(line);
+        if (caret < lastChar) {
+            boolean onlyHiddenBeforeLastChar = true;
+            for (int offset = caret + 1; offset < lastChar; offset++) {
+                if (!isHiddenOffset(offset)) {
+                    onlyHiddenBeforeLastChar = false;
+                    break;
+                }
+            }
+            if (onlyHiddenBeforeLastChar) {
+                moveCaret(lastChar, extendSelection);
+                return;
+            }
+        }
+        moveCaret(next, extendSelection);
+    }
+
+    private int lastMeaningfulCharOffsetInLine(VisualLine line) {
+        for (int offset = line.end - 1; offset >= line.start; offset--) {
+            if (!isHiddenOffset(offset) && !Character.isWhitespace(text.charAt(offset))) {
+                return offset;
+            }
+        }
+        for (int offset = line.end - 1; offset >= line.start; offset--) {
+            if (!isHiddenOffset(offset)) {
+                return offset;
+            }
+        }
+        return Math.max(line.start, line.end - 1);
     }
 
     private void moveVertical(int lineDelta, boolean extendSelection) {
@@ -2822,7 +3031,7 @@ public class ManuskriptTextEditor extends Region {
         }
     }
 
-    /** Lese-Position: erste sichtbare Zeile (z. B. nach Auto-Markup-Rebuild). */
+    /** Lese-Position: erste sichtbare Zeile (für „Viewport beibehalten“ bei Fernersetzung). */
     private ViewportAnchor captureReadingViewportAnchor() {
         List<VisualLine> lines = visualLines();
         if (lines.isEmpty()) {
@@ -2853,6 +3062,7 @@ public class ManuskriptTextEditor extends Region {
     }
 
     private void restoreViewportAnchor(ViewportAnchor anchor, int syncOffset) {
+        // syncOffset = Textoffset der Zeile, die an derselben Viewport-Y bleiben soll (Leseanker, nicht Caret).
         int safe = Math.max(0, Math.min(text.length(), syncOffset));
         TextPosition pos = positionForOffset(safe);
         double target = contentYForLineStart(pos.lineIndex) - anchor.viewportLineTop();
@@ -2891,14 +3101,15 @@ public class ManuskriptTextEditor extends Region {
             return;
         }
         boolean incremental = canRebuildAutoMarksIncrementally();
+        boolean restoreReading = preserveReadingViewportOnNextRebuild;
         if (incremental) {
             rebuildAutoMarksIncremental(autoMarkDirtyStart, autoMarkDirtyEnd);
-            finishAutoMarkRebuild(false);
+            finishAutoMarkRebuild(restoreReading);
         } else {
             rebuildAutoMarksFull();
-            finishAutoMarkRebuild(preserveReadingViewportOnNextRebuild);
-            preserveReadingViewportOnNextRebuild = false;
+            finishAutoMarkRebuild(restoreReading);
         }
+        preserveReadingViewportOnNextRebuild = false;
         forceFullAutoMarkRebuild = false;
         autoMarkDirtyStart = Integer.MAX_VALUE;
         autoMarkDirtyEnd = 0;
@@ -3807,9 +4018,13 @@ public class ManuskriptTextEditor extends Region {
         return gutterWidth() + TEXT_PADDING;
     }
 
-    private double availableContentWidth() {
+    private double textRight() {
         double width = canvas.getWidth() > 0 ? canvas.getWidth() : 800;
-        return Math.max(80, width - gutterWidth() - 24);
+        return width - TEXT_RIGHT_PADDING;
+    }
+
+    private double availableContentWidth() {
+        return Math.max(80, textRight() - gutterWidth());
     }
 
     private int lineIndexForOffset(int offset, List<VisualLine> lines) {
@@ -4865,12 +5080,26 @@ public class ManuskriptTextEditor extends Region {
         if (words.size() < 2) {
             return 0;
         }
-        double target = contentWidthForLine(line);
+        double target = contentWidthForLine(line) - justifyInkSafetyPx(line);
         double natural = measureRange(line.start, line.end);
         if (natural >= target - 0.5) {
             return 0;
         }
         return (target - natural) / (words.size() - 1);
+    }
+
+    /**
+     * Canvas-{@code fillText} zeichnet Glyphen oft etwas breiter als {@link #measureText};
+     * Reserve skaliert mit der Zeilenlänge (breite Fenster → längere Zeilen).
+     */
+    private double justifyInkSafetyPx(VisualLine line) {
+        int visibleChars = 0;
+        for (int offset = line.start; offset < line.end; offset++) {
+            if (!isHiddenOffset(offset) && !Character.isWhitespace(text.charAt(offset))) {
+                visibleChars++;
+            }
+        }
+        return Math.min(10.0, 1.0 + visibleChars * 0.05);
     }
 
     private double contentWidthForLine(VisualLine line) {
@@ -5188,7 +5417,7 @@ public class ManuskriptTextEditor extends Region {
     }
 
     private double availableLineWidth() {
-        return Math.max(measureText("MMMMMMMM", new RenderStyle()), canvas.getWidth() - textLeft() - 10);
+        return Math.max(measureText("MMMMMMMM", new RenderStyle()), textRight() - textLeft());
     }
 
     private boolean isVisibleBreakOpportunity(int offset) {
@@ -5361,15 +5590,29 @@ public class ManuskriptTextEditor extends Region {
                     int gapEnd = words.get(w + 1)[0];
                     double gapWidth = measureRange(gapStart, gapEnd) + extraPerGap;
                     if (localX < x + gapWidth) {
-                        if (gapEnd > gapStart) {
-                            return offsetAtRangeX(gapStart, gapEnd, x, localX);
-                        }
-                        return localX < x + gapWidth / 2.0 ? gapStart : gapEnd;
+                        return offsetAtJustifiedGapX(gapStart, gapEnd, x, gapWidth, localX);
                     }
                     x += gapWidth;
                 }
             }
             int lastWordEnd = words.get(words.size() - 1)[1];
+            if (localX >= x - CHAR_HIT_SLOP) {
+                int lastChar = lastWordEnd - 1;
+                while (lastChar >= line.start
+                        && (isHiddenOffset(lastChar)
+                        || Character.isWhitespace(text.charAt(lastChar)))) {
+                    lastChar--;
+                }
+                if (lastChar >= line.start) {
+                    double lastCharX = localXForOffsetInJustifiedLine(line, lastChar, extraPerGap);
+                    if (localX < (lastCharX + x) / 2.0) {
+                        return lastChar;
+                    }
+                }
+                if (lastWordEnd < line.end) {
+                    return offsetAtJustifiedTrailingX(line, lastWordEnd, x, localX);
+                }
+            }
             return Math.min(line.end, lastWordEnd);
         }
         int lastVisible = -1;
@@ -5387,6 +5630,72 @@ public class ManuskriptTextEditor extends Region {
             return Math.min(line.end, lastVisible + 1);
         }
         return normalizeCaretOffset(line.start, true);
+    }
+
+    private int offsetAtJustifiedGapX(int gapStart, int gapEnd, double gapStartX, double gapWidth, double localX) {
+        if (gapEnd <= gapStart) {
+            return localX < gapStartX + gapWidth / 2.0 ? gapStart : gapEnd;
+        }
+        double naturalGap = measureRange(gapStart, gapEnd);
+        if (naturalGap <= 0) {
+            return localX < gapStartX + gapWidth / 2.0 ? gapStart : gapEnd;
+        }
+        double posInGap = Math.max(0, Math.min(gapWidth, localX - gapStartX));
+        double naturalPos = posInGap / gapWidth * naturalGap;
+        return offsetAtRangeX(gapStart, gapEnd, gapStartX, gapStartX + naturalPos);
+    }
+
+    /** Caret in nachgelagertem Leerraum einer Blocksatz-Zeile (nicht mitgemalter Umbruch). */
+    private int offsetAtJustifiedTrailingX(VisualLine line, int lastWordEnd, double contentEndX, double localX) {
+        if (localX < contentEndX - CHAR_HIT_SLOP) {
+            return Math.min(line.end, lastWordEnd);
+        }
+        for (int offset = lastWordEnd; offset < line.end; offset++) {
+            if (isHiddenOffset(offset)) {
+                continue;
+            }
+            return offset;
+        }
+        return Math.min(line.end, lastWordEnd);
+    }
+
+    /**
+     * Horizontale Caret-Position in einer Blocksatz-Zeile — gleiche Wort-/Lücken-Logik wie
+     * {@link #paintLineTextJustified}.
+     */
+    private double localXForOffsetInJustifiedLine(VisualLine line, int offset, double extraPerGap) {
+        int safeOffset = Math.max(line.start, Math.min(line.end, offset));
+        List<int[]> words = wordRangesOnLine(line);
+        if (words.isEmpty()) {
+            return 0;
+        }
+        double x = 0;
+        for (int w = 0; w < words.size(); w++) {
+            int wordStart = words.get(w)[0];
+            int wordEnd = words.get(w)[1];
+            if (safeOffset <= wordStart) {
+                return x;
+            }
+            if (safeOffset < wordEnd) {
+                return x + measureRange(wordStart, safeOffset);
+            }
+            x += measureRange(wordStart, wordEnd);
+            if (w < words.size() - 1) {
+                int gapStart = wordEnd;
+                int gapEnd = words.get(w + 1)[0];
+                double gapNatural = measureRange(gapStart, gapEnd);
+                double gapWidth = gapNatural + extraPerGap;
+                if (safeOffset < gapEnd) {
+                    if (gapNatural > 0) {
+                        double inGap = measureRange(gapStart, safeOffset);
+                        return x + inGap / gapNatural * gapWidth;
+                    }
+                    return x;
+                }
+                x += gapWidth;
+            }
+        }
+        return x;
     }
 
     /** Zeichengenauer Treffer innerhalb eines sichtbaren Bereichs (ohne Blocksatz-Zusatz). */
@@ -5809,8 +6118,13 @@ public class ManuskriptTextEditor extends Region {
 
     private double xForOffsetInLine(VisualLine line, int lineIndex, int offset) {
         int safeOffset = Math.max(line.start, Math.min(line.end, offset));
-        return textLeft() + headingCenterOffset(line) + blockIndentOffset(line)
-                + measureRange(line.start, safeOffset) + justifyExtraBefore(line, lineIndex, safeOffset);
+        double baseX = textLeft() + headingCenterOffset(line) + blockIndentOffset(line);
+        double extraPerGap = justifyExtraPerGap != null && lineIndex >= 0 && lineIndex < justifyExtraPerGap.length
+                ? justifyExtraPerGap[lineIndex] : 0;
+        if (extraPerGap > 0) {
+            return baseX + localXForOffsetInJustifiedLine(line, safeOffset, extraPerGap);
+        }
+        return baseX + measureRange(line.start, safeOffset) + justifyExtraBefore(line, lineIndex, safeOffset);
     }
 
     private double measureRange(int start, int end) {

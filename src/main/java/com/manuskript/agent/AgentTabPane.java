@@ -3,8 +3,13 @@ package com.manuskript.agent;
 import java.util.ArrayList;
 import java.util.List;
 
+import javafx.application.Platform;
+import javafx.collections.ListChangeListener;
+import javafx.scene.Parent;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.control.Tooltip;
+import javafx.scene.Node;
 
 /**
  * TabPane-Container für mehrere Agenten-Tabs.
@@ -25,6 +30,7 @@ public class AgentTabPane extends TabPane {
         addTab = new Tab("+");
         addTab.setClosable(false);
         addTab.getStyleClass().add("agent-add-tab");
+        addTab.getProperties().put("agentTabTooltip", AgentTabTooltipSupport.addTabTooltip());
         getTabs().add(addTab);
 
         getSelectionModel().selectedItemProperty().addListener((obs, oldTab, newTab) -> {
@@ -32,6 +38,13 @@ public class AgentTabPane extends TabPane {
                 addNewAgent();
             }
         });
+
+        sceneProperty().addListener((obs, oldScene, newScene) -> {
+            if (newScene != null) {
+                Platform.runLater(this::refreshTabTooltips);
+            }
+        });
+        getTabs().addListener((ListChangeListener<Tab>) change -> Platform.runLater(this::refreshTabTooltips));
     }
 
     public void setActivityTracker(AgentActivityTracker tracker) {
@@ -62,6 +75,8 @@ public class AgentTabPane extends TabPane {
         if (getTabs().size() > 1) {
             getSelectionModel().select(0);
         }
+        wireActivityTracking();
+        Platform.runLater(this::refreshTabTooltips);
     }
 
     public AgentTab addAgentTab(AgentConfig config, boolean saveConfig) {
@@ -87,7 +102,10 @@ public class AgentTabPane extends TabPane {
         agentTab.setOnConfigChanged(() -> {
             tab.setText(agentTab.getAgentConfig().getName());
             saveAllConfigs();
+            Platform.runLater(this::refreshTabTooltips);
         });
+
+        applyTabTooltip(tab, config);
 
         insertTabBeforeAdd(tab);
         agentTabs.add(agentTab);
@@ -115,7 +133,10 @@ public class AgentTabPane extends TabPane {
         sceneTab.setOnConfigChanged(() -> {
             tab.setText(sceneTab.getAgentConfig().getName());
             saveAllConfigs();
+            Platform.runLater(this::refreshTabTooltips);
         });
+
+        applyTabTooltip(tab, config);
 
         insertTabBeforeAdd(tab);
         sceneWritingTabs.add(sceneTab);
@@ -142,7 +163,10 @@ public class AgentTabPane extends TabPane {
         chatTab.setOnConfigChanged(() -> {
             tab.setText(chatTab.getAgentConfig().getName());
             saveAllConfigs();
+            Platform.runLater(this::refreshTabTooltips);
         });
+
+        applyTabTooltip(tab, config);
 
         insertTabBeforeAdd(tab);
         chatbotTabs.add(chatTab);
@@ -168,6 +192,39 @@ public class AgentTabPane extends TabPane {
     private void insertTabBeforeAdd(Tab tab) {
         int insertPos = getTabs().size() - 1;
         getTabs().add(insertPos, tab);
+    }
+
+    private void applyTabTooltip(Tab tab, AgentConfig config) {
+        String text = tab == addTab ? AgentTabTooltipSupport.addTabTooltip() : AgentTabTooltipSupport.tooltipFor(config);
+        if (text == null || text.isBlank()) {
+            tab.getProperties().remove("agentTabTooltip");
+        } else {
+            tab.getProperties().put("agentTabTooltip", text);
+        }
+        Platform.runLater(this::refreshTabTooltips);
+    }
+
+    private void refreshTabTooltips() {
+        if (getScene() == null) {
+            return;
+        }
+        Node headersRegion = lookup(".tab-header-area .headers-region");
+        if (!(headersRegion instanceof Parent headers)) {
+            return;
+        }
+        var headerNodes = headers.getChildrenUnmodifiable();
+        int count = Math.min(headerNodes.size(), getTabs().size());
+        for (int i = 0; i < count; i++) {
+            Tab tab = getTabs().get(i);
+            Object tipText = tab.getProperties().get("agentTabTooltip");
+            Node header = headerNodes.get(i);
+            if (tipText instanceof String text && !text.isBlank()) {
+                Tooltip tip = new Tooltip(text);
+                tip.setWrapText(true);
+                tip.setMaxWidth(420);
+                Tooltip.install(header, tip);
+            }
+        }
     }
 
     private void addNewAgent() {
@@ -281,5 +338,7 @@ public class AgentTabPane extends TabPane {
         chatbotTabs.clear();
         getTabs().add(addTab);
         loadFromConfig();
+        wireActivityTracking();
+        Platform.runLater(this::refreshTabTooltips);
     }
 }

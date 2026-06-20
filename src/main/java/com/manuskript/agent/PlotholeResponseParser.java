@@ -38,6 +38,11 @@ public final class PlotholeResponseParser {
             "<PROBLEM>(.*?)</PROBLEM>",
             Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
 
+    private static final Pattern REWRITE_STRIP_PATTERN = Pattern.compile(
+            "<REWRITE>\\s*[\\s\\S]*?\\s*</REWRITE>", Pattern.CASE_INSENSITIVE);
+
+    private static final Pattern INDEX_FIELD_PATTERN = Pattern.compile("(?i)INDEX:\\s*(\\d+)");
+
     private PlotholeResponseParser() {
     }
 
@@ -56,7 +61,7 @@ public final class PlotholeResponseParser {
             return PlotholeParseResult.noProblems();
         }
 
-        String normalized = trimmed.replace("\r\n", "\n").replace("\r", "\n");
+        String normalized = stripRewriteBlock(trimmed.replace("\r\n", "\n").replace("\r", "\n"));
         List<Finding> findings = new ArrayList<>();
         findings.addAll(parseProblemBlocks(normalized));
         if (findings.isEmpty()) {
@@ -68,7 +73,8 @@ public final class PlotholeResponseParser {
         if (findings.isEmpty()) {
             findings.addAll(parseJsonFindings(normalized));
         }
-        if (findings.isEmpty()) {
+        boolean hasProblemTags = normalized.toLowerCase(Locale.ROOT).contains("<problem");
+        if (findings.isEmpty() && !hasProblemTags) {
             findings.addAll(parseLooseLines(normalized));
         }
 
@@ -77,7 +83,7 @@ public final class PlotholeResponseParser {
             return PlotholeParseResult.findings(findings);
         }
 
-        if (likelyUnparseable(normalized)) {
+        if (likelyUnparseable(normalized) || hasProblemTags) {
             logFullResponseForAnalysis("UNPARSEABLE", normalized);
             String preview = normalized.length() > 280
                     ? normalized.substring(0, 280).replace('\n', ' ') + "…"
@@ -165,6 +171,14 @@ public final class PlotholeResponseParser {
         return text.replace("```", "").trim();
     }
 
+    /** Entfernt {@code <REWRITE>}-Blöcke — relevant für Sprachentflechtung neben {@code <PROBLEM>}. */
+    private static String stripRewriteBlock(String text) {
+        if (text == null || text.isBlank()) {
+            return text != null ? text : "";
+        }
+        return REWRITE_STRIP_PATTERN.matcher(text).replaceAll("").trim();
+    }
+
     private static List<Finding> parseProblemBlocks(String normalized) {
         List<Finding> findings = new ArrayList<>();
         Matcher blockMatcher = PROBLEM_BLOCK.matcher(normalized);
@@ -186,14 +200,13 @@ public final class PlotholeResponseParser {
             return null;
         }
         Matcher severityMatcher = Pattern.compile("(?i)SCHWEREGRAD:\\s*(\\d+)").matcher(inner);
-        if (!severityMatcher.find()) {
-            return null;
-        }
-        int severity;
-        try {
-            severity = clampSeverity(Integer.parseInt(severityMatcher.group(1)));
-        } catch (NumberFormatException e) {
-            return null;
+        int severity = 3;
+        if (severityMatcher.find()) {
+            try {
+                severity = clampSeverity(Integer.parseInt(severityMatcher.group(1)));
+            } catch (NumberFormatException e) {
+                severity = 3;
+            }
         }
 
         int zitatIdx = indexOfIgnoreCase(inner, "ZITAT:");
@@ -208,40 +221,134 @@ public final class PlotholeResponseParser {
         String quote = parseFieldValue(inner.substring(afterZitatLabel, problemIdx).trim());
 
         int afterProblemLabel = problemIdx + "PROBLEM:".length();
-        int suggestionIdx = indexOfAnyIgnoreCase(inner, afterProblemLabel, "VORSCHLÄGE:", "VORSCHLÄGE", "VORSCHLAG:");
+        int suggestionIdx = indexOfAnyIgnoreCase(inner, afterProblemLabel,
+                "VORSCHLÄGE:", "VORSCHLÄGE", "VORSCHLAEGE:", "VORSCHLAEGE", "VORSCHLAG:");
+        String problem;
+        List<String> suggestions = List.of();
         if (suggestionIdx < 0) {
-            return null;
+            problem = cleanProblemTail(inner.substring(afterProblemLabel).trim());
+        } else {
+            problem = inner.substring(afterProblemLabel, suggestionIdx).trim();
+            String suggestionsText = inner.substring(suggestionIdx).trim();
+            suggestions = extractAllSuggestions(suggestionsText);
         }
-        String problem = inner.substring(afterProblemLabel, suggestionIdx).trim();
         if (problem.isEmpty()) {
             return null;
         }
-        problem = AgentResponseText.normalizeModelText(problem);
+        problem = AgentResponseText.normalizeModelText(stripXmlFromProblem(problem));
 
-        String suggestionsText = inner.substring(suggestionIdx).trim();
         Finding finding = new Finding(severity, quote, problem, "");
-        finding.setSuggestions(extractTopLevelQuotedStrings(stripSuggestionLabel(suggestionsText)));
-        if (finding.getSuggestions().isEmpty()) {
-            finding.setSuggestions(extractSuggestions(suggestionsText));
+        finding.setSuggestions(suggestions);
+        finding.setSuggestionIndex(suggestions.isEmpty() ? -1 : 0);
+        applySelectionQuoteIndex(finding, inner);
+        return finding;
+    }
+
+    private static List<String> extractAllSuggestions(String suggestionsText) {
+        List<String> suggestions = extractTopLevelQuotedStrings(stripSuggestionLabel(suggestionsText));
+        if (!suggestions.isEmpty()) {
+            return suggestions;
         }
-        finding.setSuggestionIndex(finding.getSuggestions().isEmpty() ? -1 : 0);
-        return finding.getSuggestions().isEmpty() ? null : finding;
+        suggestions = extractNumberedQuotedSuggestions(suggestionsText);
+        if (!suggestions.isEmpty()) {
+            return suggestions;
+        }
+        if (countVorschlagLabels(suggestionsText) > 1) {
+            suggestions = extractRepeatedVorschlagSuggestions(suggestionsText);
+            if (!suggestions.isEmpty()) {
+                return suggestions;
+            }
+        }
+        suggestions = extractSuggestions(suggestionsText);
+        if (!suggestions.isEmpty()) {
+            return suggestions;
+        }
+        return extractRepeatedVorschlagSuggestions(suggestionsText);
+    }
+
+    /** Nummerierte Liste: {@code 1. „Ersatzsatz"} oder {@code 2) "Ersatzsatz"}. */
+    private static List<String> extractNumberedQuotedSuggestions(String suggestionsText) {
+        List<String> results = new ArrayList<>();
+        if (suggestionsText == null || suggestionsText.isBlank()) {
+            return results;
+        }
+        String trimmed = stripSuggestionLabel(suggestionsText);
+        int indexPos = indexOfIgnoreCase(trimmed, "INDEX:");
+        if (indexPos >= 0) {
+            trimmed = trimmed.substring(0, indexPos).trim();
+        }
+        Matcher matcher = Pattern.compile("(?m)^\\s*\\d+[.)]\\s*(.+)$").matcher(trimmed);
+        while (matcher.find()) {
+            addSuggestion(results, parseFieldValue(matcher.group(1).trim()));
+        }
+        return results;
+    }
+
+    private static int countVorschlagLabels(String text) {
+        if (text == null || text.isBlank()) {
+            return 0;
+        }
+        Matcher matcher = Pattern.compile("(?i)VORSCHLAG:\\s*").matcher(text);
+        int count = 0;
+        while (matcher.find()) {
+            count++;
+        }
+        return count;
+    }
+
+    private static void applySelectionQuoteIndex(Finding finding, String inner) {
+        Matcher indexMatcher = INDEX_FIELD_PATTERN.matcher(inner);
+        if (indexMatcher.find()) {
+            try {
+                finding.setSelectionQuoteIndex(Integer.parseInt(indexMatcher.group(1).trim()));
+            } catch (NumberFormatException ignored) {
+                finding.setSelectionQuoteIndex(-1);
+            }
+        }
+    }
+
+    private static String cleanProblemTail(String raw) {
+        if (raw == null || raw.isEmpty()) {
+            return "";
+        }
+        String text = raw;
+        int indexPos = indexOfIgnoreCase(text, "INDEX:");
+        if (indexPos >= 0) {
+            text = text.substring(0, indexPos).trim();
+        }
+        int closePos = text.toLowerCase(Locale.ROOT).indexOf("</problem>");
+        if (closePos >= 0) {
+            text = text.substring(0, closePos).trim();
+        }
+        return stripXmlFromProblem(text);
+    }
+
+    private static String stripXmlFromProblem(String problem) {
+        if (problem == null || problem.isEmpty()) {
+            return problem != null ? problem : "";
+        }
+        return problem.replaceAll("(?i)</?problem>", "").trim();
     }
 
     private static String parseFieldValue(String raw) {
         if (raw == null || raw.isEmpty()) {
             return "";
         }
-        if (raw.toUpperCase(java.util.Locale.ROOT).startsWith("(MARKIERT)")) {
+        String trimmed = raw.trim();
+        if (trimmed.toUpperCase(Locale.ROOT).startsWith("(MARKIERT)")) {
             return SelectionRevisionSupport.MARKED_QUOTE_PLACEHOLDER;
         }
-        if (raw.length() >= 2 && raw.startsWith("\"") && raw.endsWith("\"")) {
-            return AgentResponseText.normalizeModelText(raw.substring(1, raw.length() - 1));
+        if (trimmed.length() >= 2) {
+            char open = trimmed.charAt(0);
+            char close = trimmed.charAt(trimmed.length() - 1);
+            if ((open == '"' && close == '"')
+                    || (open == '\'' && close == '\'')
+                    || (open == '\u201E' && (close == '"' || close == '\u201C' || close == '\u201D'))
+                    || (open == '\u201C' && close == '\u201D')) {
+                return AgentResponseText.normalizeModelText(trimmed.substring(1, trimmed.length() - 1));
+            }
         }
-        if (raw.length() >= 2 && raw.startsWith("'") && raw.endsWith("'")) {
-            return AgentResponseText.normalizeModelText(raw.substring(1, raw.length() - 1));
-        }
-        return AgentResponseText.normalizeModelText(raw);
+        return AgentResponseText.normalizeModelText(trimmed);
     }
 
     private static String stripSuggestionLabel(String suggestionsText) {
@@ -251,8 +358,45 @@ public final class PlotholeResponseParser {
         return suggestionsText
                 .replaceFirst("(?i)VORSCHLÄGE:\\s*", "")
                 .replaceFirst("(?i)VORSCHLÄGE\\s*", "")
+                .replaceFirst("(?i)VORSCHLAEGE:\\s*", "")
+                .replaceFirst("(?i)VORSCHLAEGE\\s*", "")
                 .replaceFirst("(?i)VORSCHLAG:\\s*", "")
                 .trim();
+    }
+
+    /** Mehrere {@code VORSCHLAG:}-Felder (Plothole-Format) statt {@code VORSCHLÄGE:}. */
+    private static List<String> extractRepeatedVorschlagSuggestions(String text) {
+        List<String> results = new ArrayList<>();
+        if (text == null || text.isBlank()) {
+            return results;
+        }
+        Pattern label = Pattern.compile("(?i)VORSCHLAG:\\s*");
+        Matcher matcher = label.matcher(text);
+        while (matcher.find()) {
+            int valueStart = matcher.end();
+            int valueEnd = text.length();
+            Matcher next = label.matcher(text);
+            next.region(valueStart, text.length());
+            if (next.find()) {
+                valueEnd = next.start();
+            }
+            int indexPos = indexOfIgnoreCase(text, "INDEX:", valueStart);
+            if (indexPos >= 0) {
+                valueEnd = Math.min(valueEnd, indexPos);
+            }
+            int closePos = text.toLowerCase(Locale.ROOT).indexOf("</problem>", valueStart);
+            if (closePos >= 0) {
+                valueEnd = Math.min(valueEnd, closePos);
+            }
+            String chunk = text.substring(valueStart, Math.max(valueStart, valueEnd)).trim();
+            List<String> quoted = extractQuotedStrings(chunk);
+            if (!quoted.isEmpty()) {
+                addSuggestion(results, quoted.get(0));
+            } else {
+                addSuggestion(results, chunk);
+            }
+        }
+        return results;
     }
 
     /** Liest kommagetrennte Top-Level-Strings in doppelten Anführungszeichen (inkl. Zeilenumbrüche). */
@@ -364,10 +508,8 @@ public final class PlotholeResponseParser {
     }
 
     private static Finding buildFinding(int severity, String quote, String problemAndSuggestions) {
-        int suggestionIndex = indexOfIgnoreCase(problemAndSuggestions, "VORSCHLÄGE:");
-        if (suggestionIndex < 0) {
-            suggestionIndex = indexOfIgnoreCase(problemAndSuggestions, "VORSCHLAG:");
-        }
+        int suggestionIndex = indexOfAnyIgnoreCase(problemAndSuggestions, 0,
+                "VORSCHLÄGE:", "VORSCHLÄGE", "VORSCHLAEGE:", "VORSCHLAEGE", "VORSCHLAG:");
         String problem;
         String suggestionsText;
         if (suggestionIndex >= 0) {
@@ -380,10 +522,14 @@ public final class PlotholeResponseParser {
         if (problem.isEmpty()) {
             return null;
         }
-        problem = AgentResponseText.normalizeModelText(problem);
+        problem = AgentResponseText.normalizeModelText(stripXmlFromProblem(problem));
         Finding finding = new Finding(severity, quote, problem, "");
-        finding.setSuggestions(extractSuggestions(suggestionsText));
+        finding.setSuggestions(extractAllSuggestions(suggestionsText));
+        if (finding.getSuggestions().isEmpty() && !suggestionsText.isBlank()) {
+            finding.setSuggestions(extractSuggestions(suggestionsText));
+        }
         finding.setSuggestionIndex(finding.getSuggestions().isEmpty() ? -1 : 0);
+        applySelectionQuoteIndex(finding, problemAndSuggestions);
         return finding;
     }
 

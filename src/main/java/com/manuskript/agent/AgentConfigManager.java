@@ -144,6 +144,7 @@ public class AgentConfigManager {
                 ensureSceneWritingAgent(configs);
                 ensureChatbotAgent(configs);
                 ensureSelectionRevisionAgent(configs);
+                ensureIdiomReviewAgent(configs);
                 cachedConfigs = configs;
                 // Nicht speichern, da das Modell aus den Parametern gelesen wird
             }
@@ -267,6 +268,31 @@ public class AgentConfigManager {
         revisionAgent.setDefaultPrompt(prompt);
         revisionAgent.setAgentType("selection-revision");
         configs.add(revisionAgent);
+        saveConfigs(configs);
+    }
+
+    private static void ensureIdiomReviewAgent(List<AgentConfig> configs) {
+        for (AgentConfig c : configs) {
+            if (c.isIdiomReviewAgent() || IdiomReviewSupport.DEFAULT_AGENT_ID.equals(c.getId())) {
+                return;
+            }
+        }
+        String backend = ResourceManager.getParameter("agent.backend", "Ollama");
+        String model = "OpenAI".equals(backend)
+                ? ResourceManager.getParameter("agent.openai.model", "gpt-4o-mini")
+                : ResourceManager.getParameter("agent.ollama.model", "gemma3:4b");
+        String prompt = IdiomReviewSupport.getDefaultSystemPrompt();
+        AgentConfig idiomAgent = new AgentConfig(
+                "Sprachentflechtung",
+                backend,
+                prompt,
+                model,
+                0.2, 4096, 0.7, 1.2
+        );
+        idiomAgent.setId(IdiomReviewSupport.DEFAULT_AGENT_ID);
+        idiomAgent.setDefaultPrompt(prompt);
+        idiomAgent.setAgentType("idiom-review");
+        configs.add(idiomAgent);
         saveConfigs(configs);
     }
 }

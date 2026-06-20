@@ -1,5 +1,6 @@
 package com.manuskript;
 
+import com.manuskript.agent.IdiomReviewSupport;
 import com.manuskript.agent.SelectionRevisionSupport;
 
 import java.util.ArrayList;
@@ -208,6 +209,10 @@ public final class ParameterRegistry {
                 "Zeichen Kontext vor/nach der Markierung fuer den Ueberarbeiten-Agenten.", "Agenten");
         add("agent.selection_revision.agent_id", ParameterDef.Type.STRING, SelectionRevisionSupport.DEFAULT_AGENT_ID,
                 "Agent-ID des Ueberarbeiten-Agenten in config/agents.json.", "Agenten");
+        add("agent.idiom_review.max_chars", ParameterDef.Type.INT, "5000",
+                "Maximale Laenge einer Markierung fuer Sprachentflechtung.", "Agenten");
+        add("agent.idiom_review.agent_id", ParameterDef.Type.STRING, IdiomReviewSupport.DEFAULT_AGENT_ID,
+                "Agent-ID des Sprachentflechtung-Agenten in config/agents.json.", "Agenten");
 
         // —— Agenten (Ollama) ——
         add("agent.ollama.api_url", ParameterDef.Type.STRING, "http://localhost:11434",

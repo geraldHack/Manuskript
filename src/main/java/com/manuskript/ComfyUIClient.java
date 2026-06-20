@@ -62,6 +62,67 @@ public class ComfyUIClient {
         if (url == null || url.isBlank()) return DEFAULT_BASE_URL;
         return url.trim();
     }
+
+    private static volatile Process lastRestartProcess;
+
+    /** true, wenn Parameter comfyui.restart_script auf eine existierende Datei zeigt. */
+    public static boolean isRestartScriptConfigured() {
+        String script = ResourceManager.getParameter("comfyui.restart_script", "");
+        if (script == null || script.isBlank()) return false;
+        return Files.isRegularFile(Paths.get(script.trim()));
+    }
+
+    /**
+     * Startet das in comfyui.restart_script hinterlegte Skript (z. B. zum Neustarten von ComfyUI).
+     *
+     * @return Statusmeldung für die UI
+     */
+    public static String runRestartScript() {
+        String script = ResourceManager.getParameter("comfyui.restart_script", "");
+        if (script == null || script.isBlank()) {
+            return "Kein Restart-Skript konfiguriert (Parameter: comfyui.restart_script).";
+        }
+        Path scriptPath = Paths.get(script.trim());
+        if (!Files.isRegularFile(scriptPath)) {
+            return "Restart-Skript nicht gefunden: " + scriptPath.toAbsolutePath();
+        }
+        try {
+            boolean isWindows = System.getProperty("os.name", "").toLowerCase(java.util.Locale.ROOT).contains("win");
+            ProcessBuilder pb;
+            if (isWindows) {
+                java.io.File scriptDir = scriptPath.getParent() != null ? scriptPath.getParent().toFile() : null;
+                String scriptAbs = scriptPath.toAbsolutePath().toString();
+                List<String> cmd = scriptDir != null
+                        ? List.of("cmd", "/c", "start", "\"ComfyUI-Restart\"", "/d", scriptDir.getAbsolutePath(), scriptAbs)
+                        : List.of("cmd", "/c", "start", "\"ComfyUI-Restart\"", scriptAbs);
+                pb = new ProcessBuilder(cmd);
+            } else {
+                pb = new ProcessBuilder(scriptPath.toAbsolutePath().toString());
+                pb.directory(scriptPath.getParent() != null ? scriptPath.getParent().toFile() : null);
+            }
+            pb.redirectError(ProcessBuilder.Redirect.DISCARD);
+            pb.redirectOutput(ProcessBuilder.Redirect.DISCARD);
+            pb.redirectInput(ProcessBuilder.Redirect.PIPE);
+            Process prev = lastRestartProcess;
+            if (prev != null && prev.isAlive()) {
+                prev.destroyForcibly();
+            }
+            lastRestartProcess = pb.start();
+            return "ComfyUI-Restart-Skript gestartet: " + scriptPath.getFileName();
+        } catch (IOException e) {
+            logger.warn("ComfyUI-Restart-Skript konnte nicht gestartet werden", e);
+            return "Fehler beim Starten des Skripts: " + e.getMessage();
+        }
+    }
+
+    /** Beendet einen noch laufenden Restart-Prozess (z. B. beim Schließen eines Fensters). */
+    public static void destroyRestartProcessIfRunning() {
+        Process prev = lastRestartProcess;
+        if (prev != null && prev.isAlive()) {
+            prev.destroyForcibly();
+        }
+        lastRestartProcess = null;
+    }
     /** Standard-Stil: deutsch, ohne amerikanischen Akzent, neutrales Hochdeutsch. */
     public static final String DEFAULT_INSTRUCT_DEUTSCH =
             "Deutsch. Neutrale deutsche Stimme, Hochdeutsch, ohne amerikanischen oder englischen Akzent. "

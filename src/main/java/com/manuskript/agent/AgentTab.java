@@ -53,7 +53,6 @@ public class AgentTab extends ScrollPane {
     // Aktions-UI
     private final Button analyzeButton;
     private final ToggleButton realtimeToggle;
-    private final Label statusLabel;
 
     // Findings-UI
     private final VBox findingsList;
@@ -66,6 +65,8 @@ public class AgentTab extends ScrollPane {
     private Consumer<String> onQuoteClicked;
     private Consumer<Finding> onSuggestionClicked;
     private Runnable onConfigChanged;
+    private Consumer<String> onStatus;
+    private Consumer<String> onStatusError;
 
     private boolean realtimeEnabled = false;
     private boolean analyzing = false;
@@ -74,6 +75,10 @@ public class AgentTab extends ScrollPane {
     private int currentFontSize = 12;
     private List<String> availableModels = new ArrayList<>();
     private TextArea revisionInstructionField;
+    private ChatbotContextPane idiomContextPane;
+    private TextArea rewriteTextArea;
+    private Button applyRewriteButton;
+    private Runnable onApplyRewriteClicked;
 
     /** Letzte Markierung für den Überarbeiten-Agenten (Ersetzung auch bei Platzhalter-Zitat). */
     private int revisionSelectionStart = -1;
@@ -233,7 +238,10 @@ public class AgentTab extends ScrollPane {
 
         // === Aktionsbereich ===
         boolean selectionRevision = config.isSelectionRevisionAgent();
-        analyzeButton = new Button(selectionRevision ? "▶ Markierung prüfen" : "▶ Jetzt prüfen");
+        boolean idiomReview = config.isIdiomReviewAgent();
+        analyzeButton = new Button(selectionRevision || idiomReview
+                ? "▶ Markierung analysieren"
+                : "▶ Jetzt prüfen");
         analyzeButton.setMaxWidth(Double.MAX_VALUE);
         analyzeButton.getStyleClass().add("agent-analyze-btn");
         analyzeButton.setOnAction(e -> {
@@ -254,14 +262,10 @@ public class AgentTab extends ScrollPane {
         HBox.setHgrow(analyzeButton, Priority.ALWAYS);
         HBox.setHgrow(realtimeToggle, Priority.ALWAYS);
         AgentActionButtonSupport.configureRow(buttonRow, analyzeButton, realtimeToggle);
-        if (selectionRevision) {
+        if (selectionRevision || idiomReview) {
             realtimeToggle.setVisible(false);
             realtimeToggle.setManaged(false);
         }
-
-        // Status
-        statusLabel = new Label("Bereit");
-        statusLabel.getStyleClass().add("agent-status");
 
         // === Findings-Liste ===
         findingsList = new VBox(6);
@@ -270,6 +274,9 @@ public class AgentTab extends ScrollPane {
 
         emptyLabel = new Label(selectionRevision
                 ? "Text markieren, Anweisung optional eingeben,\ndann ▶ oder Rechtsklick → Überarbeiten (Agent)."
+                : idiomReview
+                ? "Text markieren (max. " + IdiomReviewSupport.maxSelectionChars() + " Zeichen),\n"
+                + "dann ▶ oder Rechtsklick → Sprachentflechtung."
                 : "Noch keine Analyse.\nKlicke ▶ oder aktiviere ⚡.");
         emptyLabel.getStyleClass().add("agent-empty-label");
         emptyLabel.setWrapText(true);
@@ -294,9 +301,28 @@ public class AgentTab extends ScrollPane {
             revisionInstructionField.textProperty().addListener((obs, old, val) ->
                     com.manuskript.SelectionRevisionDialog.syncInstruction(val));
             VBox instructionBox = new VBox(4, instructionLabel, revisionInstructionField);
-            contentRoot.getChildren().addAll(toggleConfigButton, configBox, instructionBox, statusLabel, buttonRow, scrollPane);
+            contentRoot.getChildren().addAll(toggleConfigButton, configBox, instructionBox, buttonRow, scrollPane);
+        } else if (idiomReview) {
+            idiomContextPane = new ChatbotContextPane(config.getId());
+            Label rewriteLabel = new Label("Überarbeitete Markierung:");
+            rewriteTextArea = new TextArea();
+            rewriteTextArea.setPromptText("Erscheint nach der Analyse…");
+            rewriteTextArea.setWrapText(true);
+            rewriteTextArea.setPrefRowCount(6);
+            rewriteTextArea.setMaxWidth(Double.MAX_VALUE);
+            applyRewriteButton = new Button("Übernehmen");
+            applyRewriteButton.setMaxWidth(Double.MAX_VALUE);
+            applyRewriteButton.getStyleClass().add("button primary");
+            applyRewriteButton.setDisable(true);
+            applyRewriteButton.setOnAction(e -> {
+                if (onApplyRewriteClicked != null) {
+                    onApplyRewriteClicked.run();
+                }
+            });
+            contentRoot.getChildren().addAll(toggleConfigButton, configBox, idiomContextPane,
+                    buttonRow, scrollPane, rewriteLabel, rewriteTextArea, applyRewriteButton);
         } else {
-            contentRoot.getChildren().addAll(toggleConfigButton, configBox, statusLabel, buttonRow, scrollPane);
+            contentRoot.getChildren().addAll(toggleConfigButton, configBox, buttonRow, scrollPane);
         }
 
         toggleConfigButton.setOnAction(e -> {
@@ -389,8 +415,41 @@ public class AgentTab extends ScrollPane {
         revisionSelectedText = "";
     }
 
+    public int getRevisionSelectionStart() {
+        return revisionSelectionStart;
+    }
+
+    public int getRevisionSelectionEnd() {
+        return revisionSelectionEnd;
+    }
+
+    public ChatbotContextConfig getIdiomContextConfig() {
+        return idiomContextPane != null ? idiomContextPane.getContextConfig() : null;
+    }
+
+    public String getRewriteText() {
+        return rewriteTextArea != null && rewriteTextArea.getText() != null
+                ? rewriteTextArea.getText() : "";
+    }
+
+    public void setRewriteText(String text) {
+        if (rewriteTextArea != null) {
+            rewriteTextArea.setText(text != null ? text : "");
+        }
+    }
+
+    public void setApplyRewriteEnabled(boolean enabled) {
+        if (applyRewriteButton != null) {
+            applyRewriteButton.setDisable(!enabled);
+        }
+    }
+
     private boolean isSelectionRevisionAgent() {
         return config.isSelectionRevisionAgent();
+    }
+
+    private boolean isIdiomReviewAgent() {
+        return config.isIdiomReviewAgent();
     }
 
     public void refreshFromConfig() {
@@ -428,6 +487,10 @@ public class AgentTab extends ScrollPane {
         this.onSuggestionClicked = callback;
     }
 
+    public void setOnApplyRewriteClicked(Runnable callback) {
+        this.onApplyRewriteClicked = callback;
+    }
+
     public void setOnConfigChanged(Runnable callback) {
         this.onConfigChanged = callback;
     }
@@ -449,6 +512,26 @@ public class AgentTab extends ScrollPane {
 
     public void bindActivityTracker(AgentActivityTracker tracker) {
         this.activityTracker = tracker;
+    }
+
+    public void setOnStatus(Consumer<String> onStatus) {
+        this.onStatus = onStatus;
+    }
+
+    public void setOnStatusError(Consumer<String> onStatusError) {
+        this.onStatusError = onStatusError;
+    }
+
+    private void reportStatus(String message) {
+        if (onStatus != null && message != null) {
+            onStatus.accept(message);
+        }
+    }
+
+    private void reportStatusError(String message) {
+        if (onStatusError != null && message != null) {
+            onStatusError.accept(message);
+        }
     }
 
     private void registerActivity(String message) {
@@ -493,26 +576,28 @@ public class AgentTab extends ScrollPane {
                     warn.getStyleClass().add("agent-empty-label");
                     warn.setWrapText(true);
                     findingsList.getChildren().add(warn);
-                    statusLabel.setText("Antwort nicht auswertbar");
-                    statusLabel.getStyleClass().removeAll("agent-status-ok");
-                    statusLabel.getStyleClass().add("agent-status-error");
+                    reportStatusError("Antwort nicht auswertbar");
                 }
                 case NO_PROBLEMS -> {
                     Label ok = new Label(isSelectionRevisionAgent()
                             ? "✅ Keine Überarbeitung nötig — der markierte Text ist ausreichend."
+                            : isIdiomReviewAgent()
+                            ? "✅ Keine unnatürlichen Formulierungen in der Markierung gefunden."
                             : "✅ Keine Widersprüche gefunden.");
                     ok.getStyleClass().add("agent-ok-label");
                     findingsList.getChildren().add(ok);
-                    statusLabel.setText(isSelectionRevisionAgent()
+                    reportStatus(isSelectionRevisionAgent()
+                            ? "Markierung in Ordnung"
+                            : isIdiomReviewAgent()
                             ? "Markierung in Ordnung"
                             : "Analyse abgeschlossen - keine Probleme");
-                    statusLabel.getStyleClass().removeAll("agent-status-error");
-                    statusLabel.getStyleClass().add("agent-status-ok");
                 }
                 case FINDINGS -> {
                     List<Finding> findings = result.getFindings();
                     if (isSelectionRevisionAgent()) {
                         findings = enrichSelectionRevisionFindings(findings);
+                    } else if (isIdiomReviewAgent()) {
+                        findings = enrichIdiomReviewFindings(findings);
                     }
                     showFindingsInternal(findings);
                 }
@@ -531,25 +616,29 @@ public class AgentTab extends ScrollPane {
         if (findings.isEmpty()) {
             Label ok = new Label(isSelectionRevisionAgent()
                     ? "✅ Keine Überarbeitung nötig — der markierte Text ist ausreichend."
+                    : isIdiomReviewAgent()
+                    ? "✅ Keine unnatürlichen Formulierungen in der Markierung gefunden."
                     : "✅ Keine Widersprüche gefunden.");
             ok.getStyleClass().add("agent-ok-label");
             findingsList.getChildren().add(ok);
-            statusLabel.setText(isSelectionRevisionAgent()
+            reportStatus(isSelectionRevisionAgent()
+                    ? "Markierung in Ordnung"
+                    : isIdiomReviewAgent()
                     ? "Markierung in Ordnung"
                     : "Analyse abgeschlossen - keine Probleme");
-            statusLabel.getStyleClass().removeAll("agent-status-error");
-            statusLabel.getStyleClass().add("agent-status-ok");
             return;
         }
         if (isSelectionRevisionAgent()) {
-            statusLabel.setText(findings.size() == 1
+            reportStatus(findings.size() == 1
                     ? "Überarbeitung empfohlen"
                     : findings.size() + " Überarbeitungsvorschläge");
+        } else if (isIdiomReviewAgent()) {
+            reportStatus(findings.size() == 1
+                    ? "1 auffällige Formulierung"
+                    : findings.size() + " auffällige Formulierungen");
         } else {
-            statusLabel.setText(findings.size() + " Widersprüche gefunden");
+            reportStatus(findings.size() + " Widersprüche gefunden");
         }
-        statusLabel.getStyleClass().removeAll("agent-status-ok");
-        statusLabel.getStyleClass().add("agent-status-error");
         for (Finding f : findings) {
             findingsList.getChildren().add(createFindingCard(f));
         }
@@ -691,12 +780,82 @@ public class AgentTab extends ScrollPane {
         return enriched;
     }
 
+    private List<Finding> enrichIdiomReviewFindings(List<Finding> findings) {
+        if (findings == null || findings.isEmpty()) {
+            return findings != null ? findings : List.of();
+        }
+        List<Finding> enriched = new ArrayList<>();
+        for (Finding source : findings) {
+            Finding f = copyFinding(source);
+            f.setProblem(trimLeakedProblemText(stripXmlFromFindingText(f.getProblem())));
+            String quote = f.getQuote() != null ? f.getQuote().trim() : "";
+            if (revisionSelectionStart >= 0 && revisionSelectionEnd > revisionSelectionStart
+                    && revisionSelectedText != null && !revisionSelectedText.isBlank()) {
+                int relStart = !quote.isEmpty()
+                        ? IdiomReviewSupport.findQuoteOffsetInSelection(revisionSelectedText, quote)
+                        : -1;
+                int indexField = f.getSelectionQuoteIndex();
+                if (relStart < 0 && indexField > 0) {
+                    relStart = IdiomReviewSupport.charOffsetOfSentence(revisionSelectedText, indexField);
+                }
+                if (relStart < 0 && indexField >= 0 && indexField < revisionSelectedText.length()) {
+                    relStart = indexField;
+                }
+                if (relStart >= 0) {
+                    int sentenceEnd = IdiomReviewSupport.endOfSentence(revisionSelectedText, relStart);
+                    if (quote.isEmpty()) {
+                        f.setQuote(revisionSelectedText.substring(relStart,
+                                Math.min(revisionSelectedText.length(), sentenceEnd)).trim());
+                        quote = f.getQuote();
+                    }
+                    int relEnd = relStart + IdiomReviewSupport.matchLengthAt(revisionSelectedText, relStart, quote);
+                    if (relEnd <= relStart) {
+                        relEnd = sentenceEnd;
+                    } else {
+                        relEnd = Math.min(revisionSelectedText.length(), relEnd);
+                    }
+                    int absStart = revisionSelectionStart + relStart;
+                    int absEnd = revisionSelectionStart + relEnd;
+                    if (absEnd <= revisionSelectionEnd && absStart >= revisionSelectionStart) {
+                        f.setReplaceRangeStart(absStart);
+                        f.setReplaceRangeEnd(absEnd);
+                    }
+                }
+            }
+            if (f.getSuggestionIndex() < 0 && f.getSuggestions() != null && !f.getSuggestions().isEmpty()) {
+                f.setSuggestionIndex(0);
+            }
+            if (f.getSuggestions() != null && !f.getSuggestions().isEmpty()) {
+                List<String> normalized = new ArrayList<>(f.getSuggestions().size());
+                for (String suggestion : f.getSuggestions()) {
+                    normalized.add(IdiomReviewSupport.normalizeSuggestion(suggestion));
+                }
+                f.setSuggestions(normalized);
+            }
+            if (f.getSuggestion() != null && !f.getSuggestion().isBlank()) {
+                f.setSuggestion(IdiomReviewSupport.normalizeSuggestion(f.getSuggestion()));
+            }
+            enriched.add(f);
+        }
+        return enriched;
+    }
+
+    private static String stripXmlFromFindingText(String text) {
+        if (text == null || text.isBlank()) {
+            return text != null ? text : "";
+        }
+        return text.replaceAll("(?i)</?problem>", "").trim();
+    }
+
     private static Finding copyFinding(Finding source) {
         Finding f = new Finding(source.getSeverity(), source.getQuote(), source.getProblem(), source.getSuggestion());
         if (source.getSuggestions() != null) {
             f.setSuggestions(new ArrayList<>(source.getSuggestions()));
         }
         f.setSuggestionIndex(source.getSuggestionIndex());
+        f.setReplaceRangeStart(source.getReplaceRangeStart());
+        f.setReplaceRangeEnd(source.getReplaceRangeEnd());
+        f.setSelectionQuoteIndex(source.getSelectionQuoteIndex());
         return f;
     }
 
@@ -725,12 +884,10 @@ public class AgentTab extends ScrollPane {
             if (analyzing) {
                 String model = modelSelector.getValue();
                 if (model != null && !model.isEmpty()) {
-                    statusLabel.setText("Analysiere... (Modell: " + model + ")");
+                    reportStatus("Analysiere... (Modell: " + model + ")");
                 } else {
-                    statusLabel.setText("Analysiere...");
+                    reportStatus("Analysiere...");
                 }
-                statusLabel.getStyleClass().removeAll("agent-status-ok", "agent-status-error");
-                statusLabel.getStyleClass().add("agent-status-running");
                 registerActivity(activityMessageForAnalyzing());
             } else {
                 unregisterActivity();
@@ -742,16 +899,12 @@ public class AgentTab extends ScrollPane {
         Platform.runLater(() -> {
             findingsList.getChildren().clear();
             findingsList.getChildren().add(emptyLabel);
-            statusLabel.setText("Bereit");
-            statusLabel.getStyleClass().removeAll("agent-status-ok", "agent-status-error", "agent-status-running");
         });
     }
 
     public void showError(String message) {
         Platform.runLater(() -> {
-            statusLabel.setText("Fehler: " + message);
-            statusLabel.getStyleClass().removeAll("agent-status-ok", "agent-status-running");
-            statusLabel.getStyleClass().add("agent-status-error");
+            reportStatusError("Fehler: " + message);
             analyzing = false;
             analyzeButton.setDisable(false);
             unregisterActivity();

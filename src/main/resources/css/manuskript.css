@@ -4193,6 +4193,30 @@
     -fx-background-color: #e8d5f2;
 }
 
+/* Sprachsynthese: breiterer Scrollbalken (höhere Spezifität als code-area-scroll-pane 12px) */
+.tts-editor-scroll-pane.code-area-scroll-pane .scroll-bar:vertical,
+.theme-dark .tts-editor-scroll-pane.code-area-scroll-pane .scroll-bar:vertical,
+.theme-dark.blau-theme .tts-editor-scroll-pane.code-area-scroll-pane .scroll-bar:vertical,
+.theme-dark.gruen-theme .tts-editor-scroll-pane.code-area-scroll-pane .scroll-bar:vertical,
+.theme-dark.lila-theme .tts-editor-scroll-pane.code-area-scroll-pane .scroll-bar:vertical,
+.weiss-theme .tts-editor-scroll-pane.code-area-scroll-pane .scroll-bar:vertical,
+.pastell-theme .tts-editor-scroll-pane.code-area-scroll-pane .scroll-bar:vertical {
+    -fx-pref-width: 22px;
+    -fx-min-width: 22px;
+    -fx-max-width: 22px;
+}
+
+.tts-editor-scroll-pane.code-area-scroll-pane .scroll-bar:vertical .increment-button,
+.tts-editor-scroll-pane.code-area-scroll-pane .scroll-bar:vertical .decrement-button {
+    -fx-pref-width: 0;
+    -fx-pref-height: 0;
+    -fx-min-width: 0;
+    -fx-min-height: 0;
+    -fx-max-width: 0;
+    -fx-max-height: 0;
+    -fx-padding: 0;
+}
+
 .pastell-theme .code-area {
     -rtfx-background-color: #f3e5f5;
     -fx-text-fill: #000000;
@@ -9206,9 +9230,13 @@
    ======================================== */
 
 .main-toolbar {
-    -fx-min-height: 80px;
-    -fx-pref-height: 80px;
+    -fx-padding: 6 12 12 12;
     -fx-border-width: 1px 0 0 0;
+}
+
+.main-toolbar > HBox,
+.main-toolbar .action-group {
+    -fx-background-color: transparent;
 }
 
 .weiss-theme .main-toolbar {
@@ -9216,9 +9244,19 @@
     -fx-border-color: #dee2e6;
 }
 
+.weiss-theme .main-toolbar > HBox,
+.weiss-theme .main-toolbar .action-group {
+    -fx-background-color: transparent;
+}
+
 .theme-dark .main-toolbar {
     -fx-background-color: #252525;
     -fx-border-color: #404040;
+}
+
+.theme-dark .main-toolbar > HBox,
+.theme-dark .main-toolbar .action-group {
+    -fx-background-color: transparent;
 }
 
 .pastell-theme .main-toolbar {
@@ -9226,9 +9264,19 @@
     -fx-border-color: #cec4d4;
 }
 
+.pastell-theme .main-toolbar > HBox,
+.pastell-theme .main-toolbar .action-group {
+    -fx-background-color: transparent;
+}
+
 .blau-theme .main-toolbar {
     -fx-background-color: #1a2744;
     -fx-border-color: #2d3a5c;
+}
+
+.blau-theme .main-toolbar > HBox,
+.blau-theme .main-toolbar .action-group {
+    -fx-background-color: transparent;
 }
 
 .gruen-theme .main-toolbar {
@@ -9236,9 +9284,30 @@
     -fx-border-color: #0d5c47;
 }
 
+.gruen-theme .main-toolbar > HBox,
+.gruen-theme .main-toolbar .action-group {
+    -fx-background-color: transparent;
+}
+
 .lila-theme .main-toolbar {
     -fx-background-color: #3d1650;
     -fx-border-color: #5a2470;
+}
+
+.lila-theme .main-toolbar > HBox,
+.lila-theme .main-toolbar .action-group {
+    -fx-background-color: transparent;
+}
+
+.theme-dark.blau-theme .main-toolbar > HBox,
+.theme-dark.blau-theme .main-toolbar .action-group,
+.theme-dark.gruen-theme .main-toolbar > HBox,
+.theme-dark.gruen-theme .main-toolbar .action-group,
+.theme-dark.lila-theme .main-toolbar > HBox,
+.theme-dark.lila-theme .main-toolbar .action-group,
+.pastell-theme * .main-toolbar > HBox,
+.pastell-theme * .main-toolbar .action-group {
+    -fx-background-color: transparent;
 }
 
 .main-toolbar .main-toolbar-button {
@@ -10658,22 +10727,6 @@
     -fx-text-fill: #ff9800;
 }
 
-.agent-activity-banner {
-    -fx-background-color: #fff8e1;
-    -fx-border-color: #ffcc80;
-    -fx-border-width: 0 0 1 0;
-}
-
-.agent-activity-message {
-    -fx-font-size: 12px;
-    -fx-font-weight: bold;
-    -fx-text-fill: #e65100;
-}
-
-.agent-activity-spinner {
-    -fx-progress-color: #ff9800;
-}
-
 .agent-empty-label {
     -fx-font-size: 11px;
     -fx-text-fill: #aaa;
@@ -10915,19 +10968,6 @@
 
 .theme-dark .agent-status {
     -fx-text-fill: #999;
-}
-
-.theme-dark .agent-activity-banner {
-    -fx-background-color: #3d3520;
-    -fx-border-color: #8d6e00;
-}
-
-.theme-dark .agent-activity-message {
-    -fx-text-fill: #ffb74d;
-}
-
-.theme-dark .agent-activity-spinner {
-    -fx-progress-color: #ffb74d;
 }
 
 .theme-dark .agent-empty-label {

@@ -140,7 +140,6 @@ public class ComfyUITTSTestWindow {
     private Label vcStatusLabel;
 
     /** Zuletzt gestarteter Restart-Skript-Prozess; wird beim Schließen des Fensters beendet, damit Java sauber beendet werden kann. */
-    private Process lastRestartProcess;
 
     /** Ein Eintrag im Aussprache-Lexikon (Wort → Ersetzung). */
     public static class LexiconEntry {
@@ -189,8 +188,7 @@ public class ComfyUITTSTestWindow {
         btnRestartComfyUI.setTooltip(new javafx.scene.control.Tooltip(
                 "Startet das in den Parametern (comfyui.restart_script) hinterlegte Skript zum Neustarten von ComfyUI.\nManuskript (Java) und ComfyUI sind getrennte Prozesse – beim Neustart von ComfyUI läuft Manuskript weiter."));
         btnRestartComfyUI.setOnAction(e -> runComfyUIRestartScript());
-        String restartScript = ResourceManager.getParameter("comfyui.restart_script", "");
-        btnRestartComfyUI.setDisable(restartScript == null || restartScript.isBlank());
+        btnRestartComfyUI.setDisable(!ComfyUIClient.isRestartScriptConfigured());
         HBox statusRow = new HBox(10);
         statusRow.setAlignment(Pos.CENTER_LEFT);
         statusRow.getChildren().addAll(statusLabel, btnRestartComfyUI);
@@ -381,10 +379,7 @@ public class ComfyUITTSTestWindow {
             if (voiceSearchSampleTextArea != null) {
                 ComfyUIClient.saveVoiceSearchSampleText(voiceSearchSampleTextArea.getText());
             }
-            if (lastRestartProcess != null && lastRestartProcess.isAlive()) {
-                lastRestartProcess.destroyForcibly();
-                lastRestartProcess = null;
-            }
+            ComfyUIClient.destroyRestartProcessIfRunning();
         });
 
         int theme = java.util.prefs.Preferences.userNodeForPackage(MainController.class).getInt("main_window_theme", 0);
@@ -641,43 +636,7 @@ public class ComfyUITTSTestWindow {
 
     /** Startet das in comfyui.restart_script hinterlegte Skript (z. B. zum Neustarten von ComfyUI). */
     private void runComfyUIRestartScript() {
-        String script = ResourceManager.getParameter("comfyui.restart_script", "");
-        if (script == null || script.isBlank()) {
-            statusLabel.setText("Kein Restart-Skript konfiguriert (Parameter: comfyui.restart_script).");
-            return;
-        }
-        Path scriptPath = Paths.get(script.trim());
-        if (!Files.isRegularFile(scriptPath)) {
-            statusLabel.setText("Restart-Skript nicht gefunden: " + scriptPath.toAbsolutePath());
-            return;
-        }
-        try {
-            boolean isWindows = System.getProperty("os.name", "").toLowerCase(java.util.Locale.ROOT).contains("win");
-            ProcessBuilder pb;
-            if (isWindows) {
-                // Mit "start": Skript in eigenem Konsolenfenster starten – gleicher Kontext wie beim Start über cmd, Ausgabe sichtbar.
-                java.io.File scriptDir = scriptPath.getParent() != null ? scriptPath.getParent().toFile() : null;
-                String scriptAbs = scriptPath.toAbsolutePath().toString();
-                List<String> cmd = scriptDir != null
-                        ? List.of("cmd", "/c", "start", "\"ComfyUI-Restart\"", "/d", scriptDir.getAbsolutePath(), scriptAbs)
-                        : List.of("cmd", "/c", "start", "\"ComfyUI-Restart\"", scriptAbs);
-                pb = new ProcessBuilder(cmd);
-            } else {
-                pb = new ProcessBuilder(scriptPath.toAbsolutePath().toString());
-                pb.directory(scriptPath.getParent() != null ? scriptPath.getParent().toFile() : null);
-            }
-            pb.redirectError(ProcessBuilder.Redirect.DISCARD);
-            pb.redirectOutput(ProcessBuilder.Redirect.DISCARD);
-            pb.redirectInput(ProcessBuilder.Redirect.PIPE);
-            if (lastRestartProcess != null && lastRestartProcess.isAlive()) {
-                lastRestartProcess.destroyForcibly();
-            }
-            lastRestartProcess = pb.start();
-            statusLabel.setText("ComfyUI-Restart-Skript gestartet: " + scriptPath.getFileName());
-        } catch (IOException e) {
-            logger.warn("ComfyUI-Restart-Skript konnte nicht gestartet werden", e);
-            statusLabel.setText("Fehler beim Starten des Skripts: " + e.getMessage());
-        }
+        statusLabel.setText(ComfyUIClient.runRestartScript());
     }
 
     private VBox buildVoiceSearchTab() {

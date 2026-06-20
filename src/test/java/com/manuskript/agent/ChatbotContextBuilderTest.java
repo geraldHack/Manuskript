@@ -79,6 +79,43 @@ class ChatbotContextBuilderTest {
     }
 
     @Test
+    void buildIncludesAllChaptersFromDocxDataDir() throws Exception {
+        File docx1 = new File(tempDir, "kapitel1.docx");
+        File docx2 = new File(tempDir, "kapitel2.docx");
+        Files.writeString(docx1.toPath(), "", StandardCharsets.UTF_8);
+        Files.writeString(docx2.toPath(), "", StandardCharsets.UTF_8);
+        File dataDir = new File(tempDir, "data");
+        Files.createDirectories(dataDir.toPath());
+        Files.writeString(new File(dataDir, "kapitel1.md").toPath(), "Inhalt eins", StandardCharsets.UTF_8);
+        Files.writeString(new File(dataDir, "kapitel2.md").toPath(), "Inhalt zwei", StandardCharsets.UTF_8);
+
+        List<DocxFile> order = List.of(new DocxFile(docx1), new DocxFile(docx2));
+        ChatbotContextConfig config = new ChatbotContextConfig();
+        config.addSource(ChatbotContextSource.ALL_CHAPTERS);
+        config.setContextSize(ChatbotContextSize.FULL);
+
+        String ctx = ChatbotContextBuilder.build(
+                tempDir, null, null, null, null, null, order, config);
+        assertTrue(ctx.contains("ALLE KAPITEL"));
+        assertTrue(ctx.contains("Inhalt eins"));
+        assertTrue(ctx.contains("Inhalt zwei"));
+    }
+
+    @Test
+    void loadAllChaptersFromOrderSkipsMissingMd() throws Exception {
+        File docx1 = new File(tempDir, "a.docx");
+        Files.writeString(docx1.toPath(), "", StandardCharsets.UTF_8);
+        File dataDir = new File(tempDir, "data");
+        Files.createDirectories(dataDir.toPath());
+        Files.writeString(new File(dataDir, "a.md").toPath(), "Nur A", StandardCharsets.UTF_8);
+
+        String all = ChatbotContextBuilder.loadAllChaptersFromOrder(
+                List.of(new DocxFile(docx1), new DocxFile(new File(tempDir, "fehlt.docx"))), null);
+        assertTrue(all.contains("Nur A"));
+        assertFalse(all.contains("fehlt"));
+    }
+
+    @Test
     void buildTruncatesWhenCompactBudgetExceeded() {
         String longText = "x".repeat(50_000);
         ChatbotContextConfig config = new ChatbotContextConfig();

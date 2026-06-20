@@ -16,6 +16,8 @@ public class Finding {
     /** Optional: feste Ersetzungs-Range (Überarbeiten-Agent). */
     private int replaceRangeStart = -1;
     private int replaceRangeEnd = -1;
+    /** Zeichenindex des Zitats innerhalb der Markierung (Sprachentflechtung, INDEX-Feld). */
+    private int selectionQuoteIndex = -1;
 
     public Finding() {}
 
@@ -49,6 +51,9 @@ public class Finding {
 
     public int getReplaceRangeEnd() { return replaceRangeEnd; }
     public void setReplaceRangeEnd(int replaceRangeEnd) { this.replaceRangeEnd = replaceRangeEnd; }
+
+    public int getSelectionQuoteIndex() { return selectionQuoteIndex; }
+    public void setSelectionQuoteIndex(int selectionQuoteIndex) { this.selectionQuoteIndex = selectionQuoteIndex; }
 
     public boolean hasReplaceRange() {
         return replaceRangeStart >= 0 && replaceRangeEnd > replaceRangeStart;

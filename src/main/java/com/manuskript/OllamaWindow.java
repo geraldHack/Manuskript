@@ -1881,7 +1881,7 @@ public class OllamaWindow {
                         // Zusätzliche UI-Aktualisierung
                         Platform.runLater(() -> {
                             chatHistoryArea.getChatHistoryArea().requestLayout();
-                            chatHistoryArea.getChatHistoryArea().setScrollTop(Double.MAX_VALUE);
+                            chatHistoryArea.getChatHistoryArea().scrollToEnd();
                         });
                     } catch (Exception e) {
     
@@ -1893,10 +1893,7 @@ public class OllamaWindow {
                     }
                     // Auch im Standard-Output-Feld (Chat-Historie) immer ans Ende springen
                     try {
-                        String txt = chatHistoryArea.getCurrentAnswer();
-                        int l = txt != null ? txt.length() : 0;
-                        chatHistoryArea.getChatHistoryArea().positionCaret(l);
-                        chatHistoryArea.getChatHistoryArea().setScrollTop(Double.MAX_VALUE);
+                        chatHistoryArea.getChatHistoryArea().scrollToEnd();
                     } catch (Exception ignored) {}
                 }),
                 () -> Platform.runLater(() -> {

@@ -7,7 +7,7 @@ import java.util.function.Consumer;
 import javafx.application.Platform;
 
 /**
- * Zählt laufende Agenten-Aufgaben und informiert Listener (z. B. Banner oben im Editor).
+ * Zählt laufende Agenten-Aufgaben und informiert Listener (Statuszeile + Busy-Balken im Editor).
  */
 public class AgentActivityTracker {
 

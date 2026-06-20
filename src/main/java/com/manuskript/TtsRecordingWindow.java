@@ -8,6 +8,7 @@ import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
+import javafx.scene.control.ScrollBar;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -85,6 +86,7 @@ public class TtsRecordingWindow {
 
     private Path currentRecordingPath;
     private CodeArea codeArea;
+    private VirtualizedScrollPane<CodeArea> textScroll;
     /** Eigenes Markierungsintervall für tts-selection-Spans; unabhängig von CodeArea-Selektion, damit Linksklick sie nicht löscht. -1 = keine Markierung. */
     private int recordingMarkStart = -1;
     private int recordingMarkEnd = -1;
@@ -191,6 +193,7 @@ public class TtsRecordingWindow {
         javafx.scene.Scene scene = new javafx.scene.Scene(root);
         if (cssPath != null) scene.getStylesheets().add(cssPath);
         stage.setSceneWithTitleBar(scene);
+        installTtsVerticalScrollbarSizing(textScroll);
         setupSpaceKeyControl(root);
         stage.setFullTheme(themeIndex);
         applyThemeToNode(root, themeIndex);
@@ -344,6 +347,9 @@ public class TtsRecordingWindow {
         HBox textContainer = new HBox(5);
         colorPicker = createColorPicker();
         VirtualizedScrollPane<CodeArea> textScroll = new VirtualizedScrollPane<>(codeArea);
+        this.textScroll = textScroll;
+        textScroll.getStyleClass().add("code-area-scroll-pane");
+        textScroll.getStyleClass().add("tts-editor-scroll-pane");
         textScroll.setStyle("-fx-padding: 2px;");
         HBox.setHgrow(textScroll, Priority.ALWAYS);
         textContainer.getChildren().addAll(colorPicker, textScroll);
@@ -1176,5 +1182,33 @@ public class TtsRecordingWindow {
 
     public void show() {
         stage.show();
+    }
+
+    private static final double TTS_VERTICAL_SCROLLBAR_WIDTH = 22.0;
+
+    private void installTtsVerticalScrollbarSizing(VirtualizedScrollPane<?> pane) {
+        if (pane == null) return;
+        Runnable apply = () -> {
+            ScrollBar vBar = findVerticalScrollBar(pane);
+            if (vBar != null) {
+                vBar.setPrefWidth(TTS_VERTICAL_SCROLLBAR_WIDTH);
+                vBar.setMinWidth(TTS_VERTICAL_SCROLLBAR_WIDTH);
+                vBar.setMaxWidth(TTS_VERTICAL_SCROLLBAR_WIDTH);
+            }
+        };
+        pane.sceneProperty().addListener((o, oldScene, newScene) -> {
+            if (newScene != null) Platform.runLater(apply);
+        });
+        if (pane.getScene() != null) Platform.runLater(apply);
+    }
+
+    private static ScrollBar findVerticalScrollBar(VirtualizedScrollPane<?> pane) {
+        for (Node n : pane.getChildrenUnmodifiable()) {
+            if (n instanceof ScrollBar sb && sb.getOrientation() == javafx.geometry.Orientation.VERTICAL) {
+                return sb;
+            }
+        }
+        Node looked = pane.lookup(".scroll-bar:vertical");
+        return looked instanceof ScrollBar sb ? sb : null;
     }
 }

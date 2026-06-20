@@ -16,8 +16,22 @@ public final class QuoteNavigation {
     /**
      * Findet einen Textbereich für ein Agenten-Zitat.
      * Unterstützt optional {@code Zitat|Index} im quote-String.
+     * Für Sprünge: toleriert Präfix-/Wort-Treffer bei abweichendem Zitat.
      */
     public static Optional<QuoteRange> findQuoteRange(String documentText, String quote) {
+        return findQuoteRangeInternal(documentText, quote, true);
+    }
+
+    /**
+     * Strikte Zitat-Suche für Ersetzungen — nur exakter (normalisierter) Treffer,
+     * kein Präfix-/Wort-Fallback, der sonst Textreste stehen lässt.
+     */
+    public static Optional<QuoteRange> findQuoteRangeStrict(String documentText, String quote) {
+        return findQuoteRangeInternal(documentText, quote, false);
+    }
+
+    private static Optional<QuoteRange> findQuoteRangeInternal(
+            String documentText, String quote, boolean allowPartialMatch) {
         if (documentText == null || documentText.isEmpty() || quote == null || quote.isBlank()) {
             return Optional.empty();
         }
@@ -49,7 +63,7 @@ public final class QuoteNavigation {
         int found = haystack.indexOf(needle);
         int matchLen = needle.length();
 
-        if (found < 0) {
+        if (found < 0 && allowPartialMatch) {
             int[] tryLengths = {200, 150, 120, 100, 80, 60, 50, 40, 30, 25, 20, 15, 12, 10, 8};
             for (int len : tryLengths) {
                 if (len >= needle.length()) {
@@ -71,7 +85,7 @@ public final class QuoteNavigation {
             }
         }
 
-        if (found < 0) {
+        if (found < 0 && allowPartialMatch) {
             String[] words = needle.split("\\s+");
             for (String word : words) {
                 if (word.length() < 5) {

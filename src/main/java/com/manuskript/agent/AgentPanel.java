@@ -232,6 +232,8 @@ public class AgentPanel extends VBox {
                         if (onSuggestionClicked != null && finalSuggestion != null && !finalSuggestion.isEmpty()) {
                             Finding tempFinding = new Finding(f.getSeverity(), f.getQuote(), f.getProblem(), finalSuggestion);
                             tempFinding.setSuggestionIndex(f.getSuggestionIndex());
+                            tempFinding.setReplaceRangeStart(f.getReplaceRangeStart());
+                            tempFinding.setReplaceRangeEnd(f.getReplaceRangeEnd());
                             onSuggestionClicked.accept(tempFinding);
                         }
                     });

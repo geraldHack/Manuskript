@@ -89,24 +89,45 @@ public class PlotholeAgent {
 
     public CompletableFuture<PlotholeParseResult> analyze(
             String currentChapterText, String allChapters, int maxOutputTokens, String authorInstruction) {
+        return analyzeRaw(currentChapterText, allChapters, maxOutputTokens, authorInstruction)
+                .thenApply(PlotholeResponseParser::parse);
+    }
+
+    public CompletableFuture<String> analyzeRaw(
+            String currentChapterText, String contextBlock, int maxOutputTokens, String authorInstruction) {
         memory.clear();
 
         String systemPrompt = customSystemPrompt != null ? customSystemPrompt : SYSTEM_PROMPT;
+        String messageStr = buildUserMessage(currentChapterText, contextBlock, authorInstruction);
+        int maxTokens = clampMaxOutputTokens(maxOutputTokens);
+        logger.info(
+                "Plothole-Anfrage: Manuskript={} Zeichen, Kontext={} Zeichen, max_output_tokens={}",
+                currentChapterText != null ? currentChapterText.length() : 0,
+                contextBlock != null ? contextBlock.length() : 0,
+                maxTokens);
 
+        return backend.chat(systemPrompt, messageStr, maxTokens);
+    }
+
+    private static String buildUserMessage(String currentChapterText, String contextBlock, String authorInstruction) {
         StringBuilder userMessage = new StringBuilder();
-        if (allChapters != null && !allChapters.isEmpty()) {
-            String context = allChapters;
+        if (contextBlock != null && !contextBlock.isEmpty()) {
+            String context = contextBlock;
             if (context.length() > MAX_CONTEXT_CHARS) {
                 int headLen = MAX_CONTEXT_CHARS * 40 / 100;
                 int tailLen = MAX_CONTEXT_CHARS * 40 / 100;
                 String head = context.substring(0, headLen);
                 String tail = context.substring(context.length() - tailLen);
                 context = head + "\n\n[... KONTEXT GEKÜRZT: " + (context.length() - MAX_CONTEXT_CHARS) + " Zeichen entfernt ...]\n\n" + tail;
-                logger.warn("PlotholeAgent: Kontext von {} auf {} Zeichen gekürzt", allChapters.length(), context.length());
+                logger.warn("PlotholeAgent: Kontext von {} auf {} Zeichen gekürzt", contextBlock.length(), context.length());
             }
-            userMessage.append("=== ALLE KAPITEL (KONTEXT) ===\n");
-            userMessage.append(context);
-            userMessage.append("\n=== ALLE KAPITEL ENDE ===\n\n");
+            if (context.trim().startsWith("===")) {
+                userMessage.append(context.trim()).append("\n\n");
+            } else {
+                userMessage.append("=== ALLE KAPITEL (KONTEXT) ===\n");
+                userMessage.append(context);
+                userMessage.append("\n=== ALLE KAPITEL ENDE ===\n\n");
+            }
         }
         userMessage.append("=== MANUSKRIPT BEGINN ===\n");
         userMessage.append(currentChapterText);
@@ -118,29 +139,12 @@ public class PlotholeAgent {
         userMessage.append("ANALYSE-SCOPE (zwingend einzuhalten):\n");
         userMessage.append("- Erstelle Problemblöcke AUSSCHLIESSLICH für Probleme, die im Abschnitt zwischen ")
                 .append("\"=== MANUSKRIPT BEGINN ===\" und \"=== MANUSKRIPT ENDE ===\" stehen.\n");
-        userMessage.append("- Der Inhalt zwischen \"=== ALLE KAPITEL (KONTEXT) ===\" und ")
-                .append("\"=== ALLE KAPITEL ENDE ===\" dient NUR als Kontext. ")
-                .append("Erstelle für diesen Bereich KEINE Problemblöcke, auch wenn dort Probleme enthalten sind.\n");
-        userMessage.append("- Du darfst andere Kapitel im Feld PROBLEM referenzieren (z.B. ")
-                .append("\"widerspricht Kapitel 7\"), aber das Feld ZITAT MUSS wörtlich aus dem MANUSKRIPT-Abschnitt stammen.\n");
+        userMessage.append("- Der mitgelieferte KONTEXT dient NUR zur Einordnung. ")
+                .append("Erstelle für Kontextbereiche KEINE Problemblöcke.\n");
+        userMessage.append("- Das Feld ZITAT MUSS wörtlich aus dem MANUSKRIPT-Abschnitt stammen.\n");
         userMessage.append("- Findest du im MANUSKRIPT keine Probleme, antworte ausschließlich mit KEINE_PROBLEME.\n\n");
         userMessage.append("Analysiere jetzt das MANUSKRIPT gemäß den Systemregeln.");
-
-        String messageStr = userMessage.toString();
-        int manuscriptLen = currentChapterText != null ? currentChapterText.length() : 0;
-        int contextLen = allChapters != null ? allChapters.length() : 0;
-        int maxTokens = clampMaxOutputTokens(maxOutputTokens);
-        logger.info(
-                "Plothole-Anfrage: aktuelles Kapitel={} Zeichen, Kontext(alle Kapitel)={} Zeichen, "
-                        + "gesamt≈{} Tokens, max_output_tokens={}, HTTP-Timeout={}s",
-                manuscriptLen,
-                contextLen,
-                messageStr.length() / 4,
-                maxTokens,
-                OpenAIBackend.requestTimeoutSeconds());
-
-        return backend.chat(systemPrompt, messageStr, maxTokens)
-                .thenApply(PlotholeResponseParser::parse);
+        return userMessage.toString();
     }
 
     private static int clampMaxOutputTokens(int maxOutputTokens) {

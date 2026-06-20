@@ -62,9 +62,12 @@ public final class ChatbotContextBuilder {
             budget = remainingBudget(budget, sb.length());
         }
 
-        if (config.hasSource(ChatbotContextSource.ALL_CHAPTERS) && main != null) {
-            appendBlock(sb, "=== ALLE KAPITEL ===",
-                    main.loadAllChapters(), size.maxBlockChars(), budget);
+        if (config.hasSource(ChatbotContextSource.ALL_CHAPTERS)) {
+            String allChapters = loadAllChaptersFromOrder(chapterOrder, null);
+            if (allChapters.isBlank() && main != null) {
+                allChapters = main.loadAllChapters();
+            }
+            appendBlock(sb, "=== ALLE KAPITEL ===", allChapters, size.maxBlockChars(), budget);
             budget = remainingBudget(budget, sb.length());
         }
 
@@ -193,7 +196,7 @@ public final class ChatbotContextBuilder {
         return -1;
     }
 
-    static File mdFileForDocx(File projectDir, File docx) {
+  static File mdFileForDocx(File projectDir, File docx) {
         if (docx == null) {
             return null;
         }
@@ -202,10 +205,42 @@ public final class ChatbotContextBuilder {
         if (dot > 0) {
             baseName = baseName.substring(0, dot);
         }
-        File dataDir = projectDir != null
-                ? new File(projectDir, "data")
-                : new File(docx.getParentFile(), "data");
-        return new File(dataDir, baseName + ".md");
+        File parent = docx.getParentFile();
+        if (parent == null) {
+            return projectDir != null ? new File(new File(projectDir, "data"), baseName + ".md") : null;
+        }
+        return new File(new File(parent, "data"), baseName + ".md");
+    }
+
+    /** Lädt alle Kapitel-MDs in Projekt-Reihenfolge (gleicher Pfad wie {@code deriveMdFileFor} im MainController). */
+    static String loadAllChaptersFromOrder(List<DocxFile> chapterOrder, String excludeMdFileName) {
+        if (chapterOrder == null || chapterOrder.isEmpty()) {
+            return "";
+        }
+        StringBuilder sb = new StringBuilder();
+        for (DocxFile df : chapterOrder) {
+            if (df == null || df.getFile() == null) {
+                continue;
+            }
+            File md = mdFileForDocx(null, df.getFile());
+            if (md == null || !md.isFile()) {
+                continue;
+            }
+            if (excludeMdFileName != null && excludeMdFileName.equalsIgnoreCase(md.getName())) {
+                continue;
+            }
+            String content = readFile(md);
+            if (content.isBlank()) {
+                continue;
+            }
+            if (sb.length() > 0) {
+                sb.append("\n\n");
+            }
+            String label = df.getDisplayFileName();
+            sb.append("=== ").append(label != null && !label.isBlank() ? label : md.getName()).append(" ===\n");
+            sb.append(content);
+        }
+        return sb.toString().trim();
     }
 
     static String readFile(File file) {

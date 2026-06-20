@@ -52,13 +52,14 @@ public class SceneWritingAgentTab extends ScrollPane {
     private final ComboBox<SceneContextSize> contextSizeCombo;
     private final Button generateButton;
     private final Button insertButton;
-    private final Label statusLabel;
     private final Label metaLabel;
     private final ScrollPane metaScroll;
     private final TextArea resultArea;
 
     private Runnable onConfigChanged;
     private Consumer<String> onInsertClicked;
+    private Consumer<String> onStatus;
+    private Consumer<String> onStatusError;
     private SceneGenerationHandler generationHandler;
 
     private boolean generating = false;
@@ -195,10 +196,6 @@ public class SceneWritingAgentTab extends ScrollPane {
         generateButton.getStyleClass().add("button primary");
         generateButton.setOnAction(e -> startGeneration());
 
-        statusLabel = new Label("Bereit");
-        statusLabel.setWrapText(true);
-        statusLabel.getStyleClass().add("agent-status-label");
-
         metaLabel = new Label();
         metaLabel.setWrapText(true);
         metaLabel.setMaxWidth(Double.MAX_VALUE);
@@ -237,7 +234,6 @@ public class SceneWritingAgentTab extends ScrollPane {
             instructionLabel,
             instructionArea,
             generateButton,
-            statusLabel,
             insertButton,
             metaScroll,
             resultArea
@@ -260,6 +256,26 @@ public class SceneWritingAgentTab extends ScrollPane {
         this.activityTracker = tracker;
     }
 
+    public void setOnStatus(Consumer<String> onStatus) {
+        this.onStatus = onStatus;
+    }
+
+    public void setOnStatusError(Consumer<String> onStatusError) {
+        this.onStatusError = onStatusError;
+    }
+
+    private void reportStatus(String message) {
+        if (onStatus != null && message != null) {
+            onStatus.accept(message);
+        }
+    }
+
+    private void reportStatusError(String message) {
+        if (onStatusError != null && message != null) {
+            onStatusError.accept(message);
+        }
+    }
+
     private void registerActivity(String message) {
         if (activityTracker != null && !activityRegistered) {
             activityTracker.begin(message);
@@ -280,7 +296,7 @@ public class SceneWritingAgentTab extends ScrollPane {
         }
         String instruction = instructionArea.getText();
         if (instruction == null || instruction.isBlank()) {
-            statusLabel.setText("Bitte eine Anweisung eingeben.");
+            reportStatusError("Bitte eine Anweisung eingeben.");
             return;
         }
         generating = true;
@@ -289,8 +305,7 @@ public class SceneWritingAgentTab extends ScrollPane {
         setConfigControlsDisabled(true);
         setMetaHintVisible(false);
         resultArea.clear();
-        statusLabel.setText("Generiere Szene…");
-        registerActivity(config.getName() + ": Szene wird generiert…");
+        reportStatus("Generiere Szene…");
 
         boolean useParams = useParameterModelCheck.isSelected();
         String model = modelSelector.getValue();
@@ -299,24 +314,32 @@ public class SceneWritingAgentTab extends ScrollPane {
             contextSize = SceneContextSize.COMPACT;
         }
 
-        String validationError = generationHandler.generate(
-            instruction.trim(),
-            contextSize,
-            useParams,
-            model,
-            msg -> Platform.runLater(() -> statusLabel.setText(msg)),
-            result -> Platform.runLater(() -> finishGeneration(result)),
-            err -> Platform.runLater(() -> {
-                generating = false;
-                generateButton.setDisable(false);
-                setConfigControlsDisabled(false);
-                unregisterActivity();
-                statusLabel.setText("Fehler: " + (err.getMessage() != null ? err.getMessage() : err.toString()));
-            })
-        );
+        String validationError;
+        try {
+            validationError = generationHandler.generate(
+                instruction.trim(),
+                contextSize,
+                useParams,
+                model,
+                msg -> Platform.runLater(() -> reportStatus(msg)),
+                result -> Platform.runLater(() -> finishGeneration(result)),
+                err -> Platform.runLater(() -> {
+                    generating = false;
+                    generateButton.setDisable(false);
+                    setConfigControlsDisabled(false);
+                    unregisterActivity();
+                    reportStatusError("Fehler: " + (err.getMessage() != null ? err.getMessage() : err.toString()));
+                })
+            );
+        } catch (RuntimeException ex) {
+            abortGeneration("Fehler: " + (ex.getMessage() != null ? ex.getMessage() : ex.toString()));
+            return;
+        }
         if (validationError != null) {
             abortGeneration(validationError);
+            return;
         }
+        registerActivity(config.getName() + ": Szene wird generiert…");
     }
 
     private void abortGeneration(String message) {
@@ -324,7 +347,7 @@ public class SceneWritingAgentTab extends ScrollPane {
         generateButton.setDisable(false);
         setConfigControlsDisabled(false);
         unregisterActivity();
-        statusLabel.setText(message);
+        reportStatusError(message);
     }
 
     private void finishGeneration(SceneWritingAgent.GenerationResult result) {
@@ -337,16 +360,16 @@ public class SceneWritingAgentTab extends ScrollPane {
             scrollResultToTop();
             insertButton.setDisable(false);
             if (result.isParsedFromTags()) {
-                statusLabel.setText("Szene generiert.");
+                reportStatus("Szene generiert.");
             } else {
-                statusLabel.setText("Szene generiert (ohne SCENE-Tags — Rohtext übernommen).");
+                reportStatus("Szene generiert (ohne SCENE-Tags — Rohtext übernommen).");
             }
             if (result.getMetaText() != null && !result.getMetaText().isBlank()) {
                 metaLabel.setText("Hinweis (wird nicht eingefügt): " + result.getMetaText());
                 setMetaHintVisible(true);
             }
         } else {
-            statusLabel.setText("Keine Szene in der Antwort.");
+            reportStatusError("Keine Szene in der Antwort.");
         }
     }
 
@@ -390,7 +413,7 @@ public class SceneWritingAgentTab extends ScrollPane {
     }
 
     private void loadModelsAsync() {
-        statusLabel.setText("Lade Modelle…");
+        reportStatus("Lade Modelle…");
         new Thread(() -> {
             try {
                 AIBackend backend = createBackendForModelLoad();
@@ -401,10 +424,10 @@ public class SceneWritingAgentTab extends ScrollPane {
                     if (!models.isEmpty() && modelSelector.getValue() == null) {
                         modelSelector.setValue(models.get(0));
                     }
-                    statusLabel.setText(models.size() + " Modelle geladen.");
+                    reportStatus(models.size() + " Modelle geladen.");
                 });
             } catch (Exception e) {
-                Platform.runLater(() -> statusLabel.setText("Modelle laden fehlgeschlagen: " + e.getMessage()));
+                Platform.runLater(() -> reportStatusError("Modelle laden fehlgeschlagen: " + e.getMessage()));
             }
         }, "SceneAgent-LoadModels").start();
     }

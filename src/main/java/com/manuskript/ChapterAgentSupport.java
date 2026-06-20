@@ -9,6 +9,7 @@ import com.manuskript.agent.ChatbotAgent;
 import com.manuskript.agent.ChatbotAgentTab;
 import com.manuskript.agent.ChatbotContextBuilder;
 import com.manuskript.agent.ChatbotContextConfig;
+import com.manuskript.agent.ChatbotContextSource;
 import com.manuskript.agent.OllamaBackend;
 import com.manuskript.agent.OpenAIBackend;
 import com.manuskript.agent.AgentActivityTracker;
@@ -18,6 +19,7 @@ import com.manuskript.agent.PlotholeAgent;
 import com.manuskript.agent.SceneContextLoader;
 import com.manuskript.agent.SceneWritingAgent;
 import com.manuskript.agent.SceneWritingAgentTab;
+import com.manuskript.agent.AgentIdiomReviewRunner;
 import com.manuskript.agent.AgentSelectionRevisionRunner;
 import com.manuskript.agent.SelectionRevisionSupport;
 import javafx.application.Platform;
@@ -86,12 +88,15 @@ public class ChapterAgentSupport {
         agentTabPane.loadFromConfig();
         for (AgentTab tab : agentTabPane.getAgentTabs()) {
             setupAgentTabCallbacks(tab);
+            wireAgentTabStatus(tab);
         }
         for (SceneWritingAgentTab tab : agentTabPane.getSceneWritingTabs()) {
             setupSceneWritingTabCallbacks(tab);
+            wireAgentTabStatus(tab);
         }
         for (ChatbotAgentTab tab : agentTabPane.getChatbotTabs()) {
             setupChatbotTabCallbacks(tab);
+            wireAgentTabStatus(tab);
         }
         userWantsPanelVisible = loadPanelVisiblePreference();
         ensurePanelVisible(userWantsPanelVisible);
@@ -196,6 +201,10 @@ public class ChapterAgentSupport {
         if (tab.getAgentConfig().isSelectionRevisionAgent()) {
             tab.setRealtimeEnabled(false);
             tab.setOnAnalyzeClicked(() -> runSelectionRevision(tab));
+        } else if (tab.getAgentConfig().isIdiomReviewAgent()) {
+            tab.setRealtimeEnabled(false);
+            tab.setOnAnalyzeClicked(() -> runIdiomReview(tab));
+            tab.setOnApplyRewriteClicked(() -> applyIdiomRewrite(tab));
         } else {
             tab.setOnAnalyzeClicked(() -> runAgentAnalysis(tab));
             boolean realtimeEnabled = Boolean.parseBoolean(
@@ -212,6 +221,42 @@ public class ChapterAgentSupport {
         }
         tab.setOnQuoteClicked(quote -> ChapterAgentQuoteActions.jumpToQuote(host, quote));
         tab.setOnSuggestionClicked(finding -> ChapterAgentQuoteActions.replaceWithSuggestion(host, finding));
+    }
+
+    private void wireAgentTabStatus(AgentTab tab) {
+        tab.setOnStatus(host::updateStatus);
+        tab.setOnStatusError(host::updateStatusError);
+        bindActivityTracker(tab);
+    }
+
+    private void wireAgentTabStatus(SceneWritingAgentTab tab) {
+        tab.setOnStatus(host::updateStatus);
+        tab.setOnStatusError(host::updateStatusError);
+        bindActivityTracker(tab);
+    }
+
+    private void wireAgentTabStatus(ChatbotAgentTab tab) {
+        tab.setOnStatus(host::updateStatus);
+        tab.setOnStatusError(host::updateStatusError);
+        bindActivityTracker(tab);
+    }
+
+    private void bindActivityTracker(AgentTab tab) {
+        if (activityTracker != null) {
+            tab.bindActivityTracker(activityTracker);
+        }
+    }
+
+    private void bindActivityTracker(SceneWritingAgentTab tab) {
+        if (activityTracker != null) {
+            tab.bindActivityTracker(activityTracker);
+        }
+    }
+
+    private void bindActivityTracker(ChatbotAgentTab tab) {
+        if (activityTracker != null) {
+            tab.bindActivityTracker(activityTracker);
+        }
     }
 
     /** Überarbeiten-Agent für die aktuelle Editor-Markierung (Kontextmenü → mit Dialog). */
@@ -292,12 +337,59 @@ public class ChapterAgentSupport {
                 instruction);
     }
 
+    /** Sprachentflechtung für die aktuelle Editor-Markierung (Kontextmenü). */
+    public void runIdiomReviewFromContextMenu() {
+        runIdiomReview(null);
+    }
+
+    public void runIdiomReview() {
+        runIdiomReview(null);
+    }
+
+    public void runIdiomReview(AgentTab explicitTab) {
+        if (agentTabPane == null) {
+            host.updateStatus("Agenten-Panel nicht verfügbar.");
+            return;
+        }
+        AgentIdiomReviewRunner.run(
+                host,
+                agentTabPane,
+                agentInstances,
+                agentBackends,
+                this::resolveProjectDir,
+                () -> ensurePanelVisible(true),
+                explicitTab);
+    }
+
+    private void applyIdiomRewrite(AgentTab tab) {
+        if (tab == null) {
+            return;
+        }
+        String text = tab.getRewriteText();
+        if (text == null || text.isBlank()) {
+            host.updateStatus("Kein überarbeiteter Text zum Übernehmen.");
+            return;
+        }
+        int start = tab.getRevisionSelectionStart();
+        int end = tab.getRevisionSelectionEnd();
+        if (start < 0 || end <= start) {
+            host.updateStatus("Keine gültige Markierung — bitte erneut analysieren.");
+            return;
+        }
+        host.replaceRangePreserveView(start, end, ChapterAgentQuoteActions.prepareReplacementText(text, host.getQuoteStyleIndex()));
+        host.requestEditorFocus();
+        host.updateStatus("Markierung übernommen.");
+    }
+
     private void setupSceneWritingTabCallbacks(SceneWritingAgentTab tab) {
         tab.setOnInsertClicked(host::insertTextAtCaret);
         tab.setGenerationHandler((instruction, contextSize, useParameterModel, overrideModel, onStatus, onComplete, onError) -> {
             File docx = host.getOriginalDocxFile();
             String sceneOutlineText = sceneOutlineWindow != null && docx != null
                     ? sceneOutlineWindow.getOutlineTextForDocx(docx) : null;
+            if (sceneOutlineText != null && sceneOutlineText.isBlank()) {
+                sceneOutlineText = null;
+            }
             MainController main = host.getMainController();
             String projectDir = main != null && main.getProjectRootDirectory() != null
                     ? main.getProjectRootDirectory().getAbsolutePath() : null;
@@ -319,10 +411,14 @@ public class ChapterAgentSupport {
                     sceneOutlineText,
                     contextSize);
             if (ctx.targetSceneNumber != null && ctx.targetScene.isBlank()) {
+                logger.warn("Szene {} nicht in Outline gefunden ({} Zeichen Outline)",
+                        ctx.targetSceneNumber, ctx.sceneOutline.length());
                 return "Szene " + ctx.targetSceneNumber + " nicht in der Outline gefunden";
             }
             if (ctx.sceneOutline.isBlank()) {
-                return "Keine Szenen-Outline für dieses Kapitel gefunden";
+                onStatus.accept("Hinweis: Keine Szenen-Outline — generiere aus Anweisung und Kapitelkontext.");
+                logger.warn("Szene generieren ohne Szenen-Outline ({} Zeichen Kapitel)",
+                        ctx.currentChapter != null ? ctx.currentChapter.length() : 0);
             }
             AgentConfig config = tab.getAgentConfig();
             AIBackend backend = createGenerationBackend(useParameterModel, overrideModel, config);
@@ -334,6 +430,11 @@ public class ChapterAgentSupport {
             SceneWritingAgent agent = new SceneWritingAgent(backend);
             agent.setSystemPrompt(config.getSystemPrompt());
             int maxTokens = config.getMaxTokens() > 0 ? config.getMaxTokens() : 4096;
+            int timeoutSec = OpenAIBackend.requestTimeoutSeconds();
+            String model = backend.getCurrentModel();
+            logger.info("Szene generieren: Modell={}, max_tokens={}, API-Timeout={}s, Kontext={} Zeichen Kapitel",
+                    model, maxTokens, timeoutSec, ctx.currentChapter != null ? ctx.currentChapter.length() : 0);
+            onStatus.accept("Generiere Szene… (API-Timeout: " + timeoutSec + " s)");
             agent.generate(ctx, maxTokens).thenAccept(onComplete).exceptionally(ex -> {
                 onError.accept(ex);
                 return null;
@@ -363,6 +464,13 @@ public class ChapterAgentSupport {
             String contextBlock = ChatbotContextBuilder.build(
                     resolveProjectDir(), main, host.getEditorKey(), host.getText(),
                     mdFile, docx, chapterOrder, cfg);
+            if (cfg.hasSource(ChatbotContextSource.ALL_CHAPTERS)
+                    && !contextBlock.contains("=== ALLE KAPITEL ===")) {
+                logger.warn("Chatbot: ‚Alle Kapitel‘ aktiv, aber keine Kapitel-MDs geladen ({} Einträge in der Kapitelliste). "
+                        + "MD-Dateien liegen unter <docx-Ordner>/data/.", chapterOrder.size());
+            } else if (!contextBlock.isBlank()) {
+                logger.debug("Chatbot-Kontext: {} Zeichen (Quellen: {})", contextBlock.length(), cfg.getSources());
+            }
             AgentConfig config = tab.getAgentConfig();
             AIBackend backend = createGenerationBackend(useParameterModel, overrideModel, config);
             if (backend == null) {

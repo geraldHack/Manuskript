@@ -5,6 +5,8 @@ import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
@@ -15,7 +17,7 @@ import java.util.List;
 import java.util.prefs.Preferences;
 
 public class CustomChatArea extends VBox {
-    private TextArea chatHistoryArea;
+    private MdTextArea chatHistoryArea;
     private TextArea questionArea;  // Geändert von Label zu TextArea
     private Button upButton;
     private Button downButton;
@@ -53,6 +55,14 @@ public class CustomChatArea extends VBox {
         if (sizePx > 0) {
             this.fontSizePx = sizePx;
         }
+        if (chatHistoryArea != null) {
+            if (family != null && !family.isBlank()) {
+                chatHistoryArea.getEditor().setFontFamilyForAll(family.trim());
+            }
+            if (sizePx > 0) {
+                chatHistoryArea.getEditor().setFontSizeForAll(sizePx);
+            }
+        }
         applyTheme();
     }
     
@@ -68,29 +78,27 @@ public class CustomChatArea extends VBox {
         questionArea.setPrefRowCount(4);
         questionArea.setMaxHeight(108);
         
-        // TextArea für Antworten
-        chatHistoryArea = new TextArea();
-        chatHistoryArea.setEditable(false);
-        chatHistoryArea.setWrapText(true);
-        chatHistoryArea.setPrefRowCount(15);
-        chatHistoryArea.setPromptText("Antwort wird hier angezeigt...");
-        
-        // Keyboard-Navigation für TextArea
-        chatHistoryArea.setOnKeyPressed(e -> {
+        // Markdown-Antwortbereich (wie Kapitel-Editor, nur Lesen)
+        chatHistoryArea = new MdTextArea(MdTextAreaOptions.builder()
+                .fontFamily(fontFamily)
+                .fontSize(fontSizePx)
+                .themeIndex(themeIndex)
+                .editable(false)
+                .showToolbar(false)
+                .hideMarkup(true)
+                .build());
+        chatHistoryArea.setMinHeight(200);
+
+        // Keyboard-Navigation: Ctrl+↑/↓ zwischen Frage-Antwort-Paaren
+        chatHistoryArea.getEditorNode().addEventFilter(KeyEvent.KEY_PRESSED, e -> {
             if (e.isControlDown()) {
-                javafx.scene.input.KeyCode code = e.getCode();
-                switch (code) {
-                    case UP:
-                        showPrevious();
-                        e.consume();
-                        break;
-                    case DOWN:
-                        showNext();
-                        e.consume();
-                        break;
-                    default:
-                        // Alle anderen Tasten ignorieren
-                        break;
+                KeyCode code = e.getCode();
+                if (code == KeyCode.UP) {
+                    showPrevious();
+                    e.consume();
+                } else if (code == KeyCode.DOWN) {
+                    showNext();
+                    e.consume();
                 }
             }
         });
@@ -287,13 +295,10 @@ public class CustomChatArea extends VBox {
             // Frage anzeigen
             questionArea.setText("Frage: " + currentPair.getQuestion());
             
-            // Antwort anzeigen
+            // Antwort anzeigen (Markdown gerendert)
             String answer = currentPair.getAnswer();
             chatHistoryArea.setText(answer != null ? answer : "");
-            // Beim Streamen automatisch nach unten scrollen
-            int len = chatHistoryArea.getText() != null ? chatHistoryArea.getText().length() : 0;
-            chatHistoryArea.positionCaret(len);
-            try { chatHistoryArea.setScrollTop(Double.MAX_VALUE); } catch (Exception ignored) {}
+            chatHistoryArea.scrollToEnd();
             
             // Navigation-Buttons aktualisieren
             upButton.setDisable(currentIndex <= 0);
@@ -404,12 +409,10 @@ public class CustomChatArea extends VBox {
             cssFontFamily(fontFamily), fontSizePx, textColor, backgroundColor, backgroundColor, borderColor
         ));
         
-        // TextArea Theme
-        chatHistoryArea.setStyle(String.format(
-            "-fx-font-family: %s; -fx-font-size: %dpx; -fx-text-fill: %s; -fx-background-color: %s; -fx-control-inner-background: %s; -fx-border-color: %s;",
-            cssFontFamily(fontFamily), fontSizePx, textColor, backgroundColor, backgroundColor, borderColor
-        ));
-        
+        if (chatHistoryArea != null) {
+            chatHistoryArea.applyTheme(themeIndex);
+        }
+
         // Buttons Theme (Navigation)
         String buttonStyle = String.format(
             "-fx-background-color: %s; -fx-text-fill: %s; -fx-border-color: %s; -fx-border-width: 1px; -fx-border-radius: 3px; -fx-background-radius: 3px;",
@@ -494,7 +497,7 @@ public class CustomChatArea extends VBox {
         return "";
     }
     
-    public TextArea getChatHistoryArea() {
+    public MdTextArea getChatHistoryArea() {
         return chatHistoryArea;
     }
     

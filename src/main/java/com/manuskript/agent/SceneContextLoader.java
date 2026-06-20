@@ -87,7 +87,7 @@ public class SceneContextLoader {
             ctx.synopsis = truncate(NovelManager.loadSynopsis(docxPath), size.maxBlockChars(), "Synopsis");
             ctx.romanOutline = truncate(NovelManager.loadOutline(docxPath), size.maxBlockChars(), "Outline");
 
-            if (sceneOutlineOverride != null) {
+            if (sceneOutlineOverride != null && !sceneOutlineOverride.isBlank()) {
                 ctx.sceneOutline = truncate(sceneOutlineOverride.trim(), size.maxSceneOutlineChars(), "Szenen-Outline");
             } else {
                 File scenesFile = SceneOutlinePaths.scenesFileForDocx(currentDocx);

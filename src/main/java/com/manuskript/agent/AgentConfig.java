@@ -102,6 +102,10 @@ public class AgentConfig {
         return "selection-revision".equals(getAgentType());
     }
 
+    public boolean isIdiomReviewAgent() {
+        return "idiom-review".equals(getAgentType());
+    }
+
     public boolean isUserDefined() {
         return userDefined;
     }

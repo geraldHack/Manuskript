@@ -107,7 +107,7 @@ public class MainController implements Initializable {
     
     private static final Logger logger = LoggerFactory.getLogger(MainController.class);
     private static final String PREF_MAIN_TABLES_SPLIT = "main_tables_split_divider";
-    private static final double DEFAULT_MAIN_TABLES_SPLIT = 0.48;
+    private static final double DEFAULT_MAIN_TABLES_SPLIT = 0.55;
     private static final double MIN_MAIN_TABLES_SPLIT = 0.15;
     private static final double MAX_MAIN_TABLES_SPLIT = 0.85;
     
@@ -208,6 +208,9 @@ public class MainController implements Initializable {
     private int currentThemeIndex = 0;
 
     private boolean restoringMainWindowGeometry;
+    private boolean restoringMainTablesSplit;
+    private double lastAppliedMainTablesSplit = -1;
+    private boolean mainTablesSplitShownHookInstalled;
     private PauseTransition mainWindowGeometrySaveDelay;
     
     // Initialisierungs-Flag
@@ -5302,6 +5305,8 @@ public class MainController implements Initializable {
 
         // Hauptfenster-Properties laden und Event-Handler hinzufügen
         loadMainWindowProperties();
+        scheduleMainTablesSplitRestore();
+        installMainTablesSplitRestoreOnShown();
 
         // CustomStage Theme-Synchronisation
         if (primaryStage instanceof CustomStage customStage) {
@@ -5327,6 +5332,13 @@ public class MainController implements Initializable {
 
         primaryStage.setOnCloseRequest(event -> {
             saveMainWindowGeometryNow();
+            saveTableColumnConfiguration();
+            saveMainTablesSplitNow();
+            try {
+                preferences.flush();
+            } catch (Exception e) {
+                logger.warn("Konnte Tabellen-Layout nicht speichern: {}", e.getMessage());
+            }
 
             // Stoppe den File Watcher
             stopFileWatcher();
@@ -5680,9 +5692,7 @@ public class MainController implements Initializable {
         SplitPane.setResizableWithParent(leftPane, true);
         SplitPane.setResizableWithParent(rightSide, true);
 
-        double dividerPos = clampMainTablesSplit(
-                preferences.getDouble(PREF_MAIN_TABLES_SPLIT, DEFAULT_MAIN_TABLES_SPLIT));
-        mainTablesSplitPane.setDividerPositions(dividerPos);
+        applyMainTablesSplitFromPreferences();
 
         VBox wrapper = new VBox(mainTablesSplitPane);
         wrapper.setPadding(tablesHBox.getPadding());
@@ -5697,13 +5707,64 @@ public class MainController implements Initializable {
 
         if (!mainTablesSplitPane.getDividers().isEmpty()) {
             mainTablesSplitPane.getDividers().get(0).positionProperty().addListener((obs, oldVal, newVal) -> {
-                if (newVal != null) {
-                    preferences.putDouble(PREF_MAIN_TABLES_SPLIT, clampMainTablesSplit(newVal.doubleValue()));
+                if (restoringMainTablesSplit || newVal == null) {
+                    return;
                 }
+                double clamped = clampMainTablesSplit(newVal.doubleValue());
+                if (lastAppliedMainTablesSplit >= 0
+                        && Math.abs(clamped - lastAppliedMainTablesSplit) < 0.002) {
+                    return;
+                }
+                lastAppliedMainTablesSplit = clamped;
+                preferences.putDouble(PREF_MAIN_TABLES_SPLIT, clamped);
             });
         }
-        Platform.runLater(() -> mainTablesSplitPane.setDividerPositions(
-                clampMainTablesSplit(preferences.getDouble(PREF_MAIN_TABLES_SPLIT, DEFAULT_MAIN_TABLES_SPLIT))));
+    }
+
+    private double loadMainTablesSplitFromPreferences() {
+        return clampMainTablesSplit(
+                preferences.getDouble(PREF_MAIN_TABLES_SPLIT, DEFAULT_MAIN_TABLES_SPLIT));
+    }
+
+    private void applyMainTablesSplitFromPreferences() {
+        if (mainTablesSplitPane == null) {
+            return;
+        }
+        double dividerPos = loadMainTablesSplitFromPreferences();
+        restoringMainTablesSplit = true;
+        lastAppliedMainTablesSplit = dividerPos;
+        mainTablesSplitPane.setDividerPositions(dividerPos);
+        Platform.runLater(() -> {
+            if (mainTablesSplitPane != null) {
+                mainTablesSplitPane.setDividerPositions(dividerPos);
+            }
+            Platform.runLater(() -> restoringMainTablesSplit = false);
+        });
+    }
+
+    private void scheduleMainTablesSplitRestore() {
+        Platform.runLater(this::applyMainTablesSplitFromPreferences);
+    }
+
+    private void saveMainTablesSplitNow() {
+        if (mainTablesSplitPane == null || preferences == null || mainTablesSplitPane.getDividers().isEmpty()) {
+            return;
+        }
+        double[] positions = mainTablesSplitPane.getDividerPositions();
+        if (positions.length == 0) {
+            return;
+        }
+        double clamped = clampMainTablesSplit(positions[0]);
+        lastAppliedMainTablesSplit = clamped;
+        preferences.putDouble(PREF_MAIN_TABLES_SPLIT, clamped);
+    }
+
+    private void installMainTablesSplitRestoreOnShown() {
+        if (primaryStage == null || mainTablesSplitShownHookInstalled) {
+            return;
+        }
+        mainTablesSplitShownHookInstalled = true;
+        primaryStage.addEventHandler(WindowEvent.WINDOW_SHOWN, event -> scheduleMainTablesSplitRestore());
     }
 
     private static double clampMainTablesSplit(double position) {
@@ -9397,22 +9458,24 @@ public class MainController implements Initializable {
     /** Lädt alle Kapitel-MDs; {@code excludeMdFileName} (z. B. aktuelles Kapitel) wird ausgelassen. */
     public String loadAllChaptersExcluding(String excludeMdFileName) {
         StringBuilder allText = new StringBuilder();
-        if (projectRootDirectory == null) return "";
-        java.io.File dataDir = new java.io.File(projectRootDirectory, "data");
-        if (!dataDir.exists() || !dataDir.isDirectory()) return "";
-        for (String mdFileName : getMarkdownFilesInOrder()) {
-            if (excludeMdFileName != null && excludeMdFileName.equalsIgnoreCase(mdFileName)) {
+        for (DocxFile docxFile : selectedDocxFiles) {
+            if (docxFile == null || docxFile.getFile() == null) {
                 continue;
             }
-            java.io.File mdFile = new java.io.File(dataDir, mdFileName);
-            if (mdFile.exists()) {
-                try {
-                    String content = java.nio.file.Files.readString(mdFile.toPath(), java.nio.charset.StandardCharsets.UTF_8);
-                    allText.append("=== ").append(mdFileName).append(" ===\n");
-                    allText.append(content).append("\n\n");
-                } catch (java.io.IOException e) {
-                    logger.warn("Konnte Kapitel {} nicht laden: {}", mdFileName, e.getMessage());
-                }
+            File mdFile = deriveMdFileFor(docxFile.getFile());
+            if (mdFile == null || !mdFile.isFile()) {
+                continue;
+            }
+            if (excludeMdFileName != null && excludeMdFileName.equalsIgnoreCase(mdFile.getName())) {
+                continue;
+            }
+            try {
+                String content = Files.readString(mdFile.toPath(), StandardCharsets.UTF_8);
+                String label = docxFile.getDisplayFileName();
+                allText.append("=== ").append(label != null && !label.isBlank() ? label : mdFile.getName()).append(" ===\n");
+                allText.append(content).append("\n\n");
+            } catch (IOException e) {
+                logger.warn("Konnte Kapitel {} nicht laden: {}", mdFile.getName(), e.getMessage());
             }
         }
         return allText.toString();

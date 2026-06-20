@@ -364,6 +364,8 @@ public class ChapterTtsEditorWindow {
     /** Batch-Modus: alle noch nicht markierten Teile (Satz oder Absatz) nacheinander rendern. Ein Button wechselt zwischen Start/Beenden. */
     private ComboBox<String> batchModeCombo;
     private Button btnBatchToggle;
+    /** Batch: Signalton am Laufende (Pling) abschalten – Standard an. */
+    private CheckBox batchAudioOffCheckBox;
     private volatile boolean batchCancelled = false;
     private ProgressIndicator progressIndicator;
     /** Wandernder Busy-Balken in der Statusleiste waehrend TTS-/Batch-Generierung. */
@@ -378,6 +380,7 @@ public class ChapterTtsEditorWindow {
     private Label scriptCheckmark;
     private volatile boolean isScriptCreationRunning = false;
     private Label statusLabel;
+    private Button btnRestartComfyUI;
     private Label externalEditorPathLabel;
     private int playingSegmentIndex = -1;
     /** Verhindert Doppelstart und Doppelklick bei „Alle abspielen“. */
@@ -627,6 +630,9 @@ public class ChapterTtsEditorWindow {
                 if (w.autoSaveCheckBox != null) {
                     w.autoSaveCheckBox.setSelected(ttsPrefs.getBoolean("tts_auto_save", false));
                 }
+                if (w.batchAudioOffCheckBox != null) {
+                    w.batchAudioOffCheckBox.setSelected(ttsPrefs.getBoolean("tts_batch_audio_off", true));
+                }
                 w.setupEinschwingTrimResetListener();
         w.loadSegments();
         w.refreshHighlight();
@@ -659,6 +665,9 @@ public class ChapterTtsEditorWindow {
                 }
                 if (w.autoSaveCheckBox != null) {
                     ttsPrefs.putBoolean("tts_auto_save", w.autoSaveCheckBox.isSelected());
+                }
+                if (w.batchAudioOffCheckBox != null) {
+                    ttsPrefs.putBoolean("tts_batch_audio_off", w.batchAudioOffCheckBox.isSelected());
                 }
             }
             if (w.ttsVoiceSearchPanel != null) {
@@ -1217,8 +1226,14 @@ public class ChapterTtsEditorWindow {
         batchModeCombo = new ComboBox<>();
         batchModeCombo.getItems().addAll("Satz", "Absatz");
         batchModeCombo.getSelectionModel().select(0);
-        batchModeCombo.setMaxWidth(Double.MAX_VALUE);
+        batchModeCombo.setPrefWidth(88);
+        batchModeCombo.setMinWidth(72);
+        batchModeCombo.setMaxWidth(120);
         btnBatchToggle = new Button("Batch starten");
+        btnBatchToggle.setMaxWidth(Double.MAX_VALUE);
+        batchAudioOffCheckBox = new CheckBox("Audio aus");
+        batchAudioOffCheckBox.setSelected(true);
+        batchAudioOffCheckBox.setTooltip(new Tooltip("Kein Signalton (Pling) am Ende eines Batch-Laufs."));
         progressIndicator = new ProgressIndicator(-1);
         progressIndicator.setVisible(false);
         progressIndicator.setPrefSize(20, 20);
@@ -1251,6 +1266,17 @@ public class ChapterTtsEditorWindow {
         statusLabel.setWrapText(true);
         statusLabel.setMaxWidth(Double.MAX_VALUE);
         statusLabel.getStyleClass().add("param-key-label");
+        btnRestartComfyUI = new Button("ComfyUI neu starten");
+        btnRestartComfyUI.setTooltip(new Tooltip(
+                "Startet das in den Parametern (comfyui.restart_script) hinterlegte Skript zum Neustarten von ComfyUI.\nManuskript (Java) und ComfyUI sind getrennte Prozesse – beim Neustart von ComfyUI läuft Manuskript weiter."));
+        btnRestartComfyUI.setOnAction(e -> runComfyUIRestartScript());
+        btnRestartComfyUI.setDisable(!ComfyUIClient.isRestartScriptConfigured());
+        btnRestartComfyUI.setVisible(false);
+        btnRestartComfyUI.setManaged(false);
+        HBox statusTextRow = new HBox(10);
+        statusTextRow.setAlignment(Pos.CENTER_LEFT);
+        statusTextRow.getChildren().addAll(statusLabel, btnRestartComfyUI);
+        HBox.setHgrow(statusLabel, Priority.ALWAYS);
         ttsStatusBusyBar = new ProgressBar();
         ttsStatusBusyBar.getStyleClass().add("tts-generation-busy-bar");
         ttsStatusBusyBar.setProgress(ProgressBar.INDETERMINATE_PROGRESS);
@@ -1262,7 +1288,7 @@ public class ChapterTtsEditorWindow {
         ttsStatusBusyBar.setManaged(false);
         VBox statusBar = new VBox(4);
         statusBar.getStyleClass().add("param-card");
-        statusBar.getChildren().addAll(statusLabel, ttsStatusBusyBar);
+        statusBar.getChildren().addAll(statusTextRow, ttsStatusBusyBar);
         statusBar.setMaxWidth(Double.MAX_VALUE);
 
         selectionWordCountLabel = new Label("");
@@ -1275,9 +1301,16 @@ public class ChapterTtsEditorWindow {
         editModeLabel.setVisible(false);
         editModeLabel.setStyle("-fx-text-fill: #0a7c0a; -fx-font-weight: bold;");
 
-        HBox batchRow = new HBox(8);
-        batchRow.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
-        batchRow.getChildren().addAll(new Label("Batch:"), batchModeCombo, btnBatchToggle);
+        VBox batchBox = new VBox(6);
+        batchBox.setMaxWidth(Double.MAX_VALUE);
+        Label batchLabel = new Label("Batch");
+        HBox batchOptionsRow = new HBox(8);
+        batchOptionsRow.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        batchOptionsRow.getChildren().addAll(batchLabel, batchModeCombo, batchAudioOffCheckBox);
+        HBox batchButtonRow = new HBox();
+        batchButtonRow.getChildren().add(btnBatchToggle);
+        HBox.setHgrow(btnBatchToggle, Priority.ALWAYS);
+        batchBox.getChildren().addAll(batchOptionsRow, batchButtonRow);
 
         // Externes Audioschnittprogramm: Programm wählen (FileChooser), Segment-MP3 als Parameter öffnen
         Label externalEditorLabel = new Label("Audioschnittprogramm");
@@ -1311,7 +1344,7 @@ public class ChapterTtsEditorWindow {
             btnAlleAbspielen,
             fullAudioQualityCombo,
             fullAudioStereoCheck,
-            batchRow,
+            batchBox,
             selectionWordCountLabel,
             editModeLabel
         );
@@ -1532,7 +1565,8 @@ public class ChapterTtsEditorWindow {
         applyThemeToNode(fullAudioRow, themeIndex);
         applyThemeToNode(batchModeCombo, themeIndex);
         applyThemeToNode(btnBatchToggle, themeIndex);
-        applyThemeToNode(batchRow, themeIndex);
+        applyThemeToNode(batchAudioOffCheckBox, themeIndex);
+        applyThemeToNode(batchBox, themeIndex);
         applyThemeToNode(editModeLabel, themeIndex);
         applyThemeToNode(playerProgress, themeIndex);
         applyThemeToNode(trimStartSlider, themeIndex);
@@ -3626,6 +3660,16 @@ public class ChapterTtsEditorWindow {
             });
         }
     }
+
+    private static final double TTS_VERTICAL_SCROLLBAR_WIDTH = 22.0;
+
+    /** Scrollbalken-Breite per Layout (CSS allein reicht wegen code-area-scroll-pane-12px-Regeln oft nicht). */
+    private static void applyTtsVerticalScrollbarWidth(ScrollBar vBar) {
+        if (vBar == null) return;
+        vBar.setPrefWidth(TTS_VERTICAL_SCROLLBAR_WIDTH);
+        vBar.setMinWidth(TTS_VERTICAL_SCROLLBAR_WIDTH);
+        vBar.setMaxWidth(TTS_VERTICAL_SCROLLBAR_WIDTH);
+    }
     
     /** Verarbeitet die nächste wörtliche Rede im automatischen Lauf */
     private void processNextSpeech() {
@@ -4868,6 +4912,12 @@ public class ChapterTtsEditorWindow {
             comfyuiParamsContainer.setVisible(!isElevenLabs);
             comfyuiParamsContainer.setManaged(!isElevenLabs);
         }
+        if (btnRestartComfyUI != null) {
+            boolean showRestart = !isElevenLabs;
+            btnRestartComfyUI.setVisible(showRestart);
+            btnRestartComfyUI.setManaged(showRestart);
+            btnRestartComfyUI.setDisable(!ComfyUIClient.isRestartScriptConfigured());
+        }
         boolean isVoiceClone = v.isVoiceClone();
         if (voiceDescriptionContainer != null) {
             boolean showVoiceDesc = !isVoiceClone && !isElevenLabs;
@@ -4962,6 +5012,8 @@ public class ChapterTtsEditorWindow {
         if (cssPath != null) codeArea.getStylesheets().add(cssPath);
 
         scrollPane = new VirtualizedScrollPane<>(codeArea);
+        scrollPane.getStyleClass().add("code-area-scroll-pane");
+        scrollPane.getStyleClass().add("tts-editor-scroll-pane");
         scrollPane.setStyle("-fx-padding: 5px;");
 
         // Doppelte Leertaste-Erkennung für Audio-Tags Autovervollständigung (in allen Modi)
@@ -5111,8 +5163,10 @@ public class ChapterTtsEditorWindow {
                     }
                 }
                 if (vBar == null) vBar = (ScrollBar) scrollPane.lookup(".scroll-bar:vertical");
-                if (vBar != null)
+                if (vBar != null) {
+                    applyTtsVerticalScrollbarWidth(vBar);
                     vBar.valueProperty().addListener((obs, ov, nv) -> Platform.runLater(scheduleDirectSpeechApply));
+                }
             });
         });
         VBox right = new VBox(scrollPane);
@@ -6068,7 +6122,6 @@ public class ChapterTtsEditorWindow {
                 segments.add(seg);
                 saveSegments();
                 refreshHighlight();
-                playPlingSound();
             } catch (IOException e) {
                 logger.warn("Batch-Segment speichern fehlgeschlagen: {}", e.getMessage());
             }
@@ -6097,6 +6150,7 @@ public class ChapterTtsEditorWindow {
         btnBatchToggle.setText("Batch beenden");
         btnBatchToggle.setOnAction(ev -> batchCancelled = true);
         batchModeCombo.setDisable(true);
+        if (batchAudioOffCheckBox != null) batchAudioOffCheckBox.setDisable(true);
         setTtsGenerationBusy(true);
         setStatus("Batch: " + unmarked.size() + " " + (byParagraph ? "Absatz/Absätze" : "Satz/Sätze") + " werden nacheinander gerendert. „Batch beenden“ zum Unterbrechen.");
         // Einschwingtext auf FX-Thread lesen, bevor der Hintergrund-Thread startet
@@ -6178,8 +6232,12 @@ public class ChapterTtsEditorWindow {
             btnBatchToggle.setText("Batch starten");
             btnBatchToggle.setOnAction(ev -> startBatch());
             batchModeCombo.setDisable(false);
+            if (batchAudioOffCheckBox != null) batchAudioOffCheckBox.setDisable(false);
             setTtsGenerationBusy(false);
             setStatus(batchCancelled ? "Batch unterbrochen. " + finalDone + "/" + total + " erledigt." : "Batch fertig. " + finalDone + "/" + total + " " + (byParagraph ? "Absätze" : "Sätze") + " gerendert.");
+            if (!batchCancelled && (batchAudioOffCheckBox == null || !batchAudioOffCheckBox.isSelected())) {
+                playPlingSound();
+            }
             if (wasElevenLabs) refreshElevenLabsBalance();
         });
     }
@@ -8669,6 +8727,11 @@ public class ChapterTtsEditorWindow {
     public static String[] getThemeColors(int themeIndex) {
         int idx = Math.max(0, Math.min(themeIndex, THEMES.length - 1));
         return THEMES[idx];
+    }
+
+    /** Startet das in comfyui.restart_script hinterlegte Skript (z. B. zum Neustarten von ComfyUI). */
+    private void runComfyUIRestartScript() {
+        setStatus(ComfyUIClient.runRestartScript());
     }
 
     /** Öffnet die ComfyUI Installationsanleitung im Browser */

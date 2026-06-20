@@ -54,7 +54,6 @@ public class ChatbotAgentTab extends ScrollPane {
     private final TextArea inputArea;
     private final Button sendButton;
     private final Button insertButton;
-    private final Label statusLabel;
 
     private final ToggleButton toggleConfigButton;
     private final VBox configBox;
@@ -67,6 +66,8 @@ public class ChatbotAgentTab extends ScrollPane {
 
     private Runnable onConfigChanged;
     private Consumer<String> onInsertClicked;
+    private Consumer<String> onStatus;
+    private Consumer<String> onStatusError;
     private ChatMessageHandler messageHandler;
     private SessionProjectProvider projectProvider;
 
@@ -75,6 +76,7 @@ public class ChatbotAgentTab extends ScrollPane {
     private boolean sending = false;
     private boolean activityRegistered = false;
     private AgentActivityTracker activityTracker;
+    private int chatThemeIndex;
     private File projectDir;
     /** Name der Session, deren Q&A aktuell in {@link #chatArea} angezeigt wird. */
     private String loadedSessionName;
@@ -186,10 +188,6 @@ public class ChatbotAgentTab extends ScrollPane {
             }
         });
 
-        statusLabel = new Label("Bereit");
-        statusLabel.setWrapText(true);
-        statusLabel.getStyleClass().add("agent-status-label");
-
         toggleConfigButton = new ToggleButton("⚙ Einstellungen");
         toggleConfigButton.setMaxWidth(Double.MAX_VALUE);
 
@@ -268,7 +266,6 @@ public class ChatbotAgentTab extends ScrollPane {
                 inputArea,
                 sendButton,
                 insertButton,
-                statusLabel,
                 toggleConfigButton,
                 configBox
         );
@@ -424,7 +421,7 @@ public class ChatbotAgentTab extends ScrollPane {
 
     private void createNewSession() {
         if (projectDir == null) {
-            statusLabel.setText("Kein Projektordner — bitte Projekt öffnen.");
+            reportStatusError("Kein Projektordner — bitte Projekt öffnen.");
             return;
         }
         String defaultName = "Session " + (sessionCombo.getItems().size() + 1);
@@ -450,11 +447,11 @@ public class ChatbotAgentTab extends ScrollPane {
             }
             String name = nameField.getText().trim();
             if (name.isBlank()) {
-                statusLabel.setText("Bitte einen Session-Namen eingeben.");
+                reportStatusError("Bitte einen Session-Namen eingeben.");
                 return;
             }
             if (sessionCombo.getItems().stream().anyMatch(n -> n.equalsIgnoreCase(name))) {
-                statusLabel.setText("Session \"" + name + "\" existiert bereits.");
+                reportStatusError("Session \"" + name + "\" existiert bereits.");
                 return;
             }
             saveCurrentSession();
@@ -464,7 +461,7 @@ public class ChatbotAgentTab extends ScrollPane {
             sessionCombo.getItems().setAll(ChatbotSessionStore.listSessionNames(projectDir));
             sessionCombo.setValue(name);
             loadSessionData(name);
-            statusLabel.setText("Session erstellt: " + name);
+            reportStatus("Session erstellt: " + name);
         });
     }
 
@@ -472,11 +469,11 @@ public class ChatbotAgentTab extends ScrollPane {
         ensureProjectBound();
         String name = sessionCombo.getValue();
         if (name == null || projectDir == null || sessionCombo.getItems().size() <= 1) {
-            statusLabel.setText("Mindestens eine Session muss bleiben.");
+            reportStatusError("Mindestens eine Session muss bleiben.");
             return;
         }
         if (ChatbotSessionStore.isStandardSession(name)) {
-            statusLabel.setText("Die Standard-Session kann nicht gelöscht werden.");
+            reportStatusError("Die Standard-Session kann nicht gelöscht werden.");
             return;
         }
         ChatbotSessionStore.delete(projectDir, name);
@@ -493,17 +490,37 @@ public class ChatbotAgentTab extends ScrollPane {
         currentSession = null;
         loadedSessionName = null;
         reloadSessions();
-        statusLabel.setText("Session gelöscht: " + name);
+        reportStatus("Session gelöscht: " + name);
     }
 
     private void clearChat() {
         chatArea.clearHistory();
         persistSessionSettings();
-        statusLabel.setText("Chat geleert.");
+        reportStatus("Chat geleert.");
     }
 
     public void bindActivityTracker(AgentActivityTracker tracker) {
         this.activityTracker = tracker;
+    }
+
+    public void setOnStatus(Consumer<String> onStatus) {
+        this.onStatus = onStatus;
+    }
+
+    public void setOnStatusError(Consumer<String> onStatusError) {
+        this.onStatusError = onStatusError;
+    }
+
+    private void reportStatus(String message) {
+        if (onStatus != null && message != null) {
+            onStatus.accept(message);
+        }
+    }
+
+    private void reportStatusError(String message) {
+        if (onStatusError != null && message != null) {
+            onStatusError.accept(message);
+        }
     }
 
     private void registerActivity(String message) {
@@ -525,16 +542,16 @@ public class ChatbotAgentTab extends ScrollPane {
             return;
         }
         if (messageHandler == null) {
-            statusLabel.setText("Chat nicht verbunden — Kapitel-Editor neu öffnen.");
+            reportStatusError("Chat nicht verbunden — Kapitel-Editor neu öffnen.");
             return;
         }
         if (!ensureSessionReady()) {
-            statusLabel.setText("Kein Projektordner — bitte Projekt in Manuskript öffnen.");
+            reportStatusError("Kein Projektordner — bitte Projekt in Manuskript öffnen.");
             return;
         }
         String text = inputArea.getText();
         if (text == null || text.isBlank()) {
-            statusLabel.setText("Bitte eine Frage eingeben.");
+            reportStatusError("Bitte eine Frage eingeben.");
             return;
         }
         String question = text.trim();
@@ -545,7 +562,7 @@ public class ChatbotAgentTab extends ScrollPane {
         persistSessionSettings();
         sending = true;
         sendButton.setDisable(true);
-        statusLabel.setText("Denke nach…");
+        setStatusRunning("Denke nach…");
         registerActivity(config.getName() + ": Chat-Anfrage läuft…");
 
         ChatbotContextSize size = contextSizeCombo.getValue();
@@ -572,14 +589,14 @@ public class ChatbotAgentTab extends ScrollPane {
                     chatArea.setAnswerAt(qaIndex, "Fehler: "
                             + (err.getMessage() != null ? err.getMessage() : err.toString()));
                     persistSessionSettings();
-                    statusLabel.setText("Fehler beim Senden.");
+                    setStatusError("Fehler beim Senden.");
                 })
         );
         if (validationError != null) {
             sending = false;
             sendButton.setDisable(false);
             unregisterActivity();
-            statusLabel.setText(validationError);
+            setStatusError(validationError);
         }
     }
 
@@ -590,9 +607,9 @@ public class ChatbotAgentTab extends ScrollPane {
         String text = answer != null ? answer.trim() : "";
         if (text.isEmpty()) {
             text = "(Keine Textantwort vom Modell — ggf. anderes Modell wählen oder Kontext verkleinern.)";
-            statusLabel.setText("Leere Antwort vom Modell.");
+            setStatusError("Leere Antwort vom Modell.");
         } else {
-            statusLabel.setText("Antwort erhalten.");
+            setStatusSuccess("Antwort erhalten.");
         }
         chatArea.setAnswerAt(qaIndex, text);
         persistSessionSettings();
@@ -614,7 +631,7 @@ public class ChatbotAgentTab extends ScrollPane {
             menu.getItems().add(item);
         }
         if (menu.getItems().isEmpty()) {
-            statusLabel.setText("Alle Kontext-Quellen aktiv.");
+            reportStatus("Alle Kontext-Quellen aktiv.");
             return;
         }
         menu.show(anchor, javafx.geometry.Side.BOTTOM, 0, 0);
@@ -646,7 +663,7 @@ public class ChatbotAgentTab extends ScrollPane {
     }
 
     private void loadModelsAsync() {
-        statusLabel.setText("Lade Modelle…");
+        reportStatus("Lade Modelle…");
         new Thread(() -> {
             try {
                 AIBackend backend = createBackendForModelLoad();
@@ -656,10 +673,10 @@ public class ChatbotAgentTab extends ScrollPane {
                     if (!models.isEmpty() && modelSelector.getValue() == null) {
                         modelSelector.setValue(models.get(0));
                     }
-                    statusLabel.setText(models.size() + " Modelle geladen.");
+                    reportStatus(models.size() + " Modelle geladen.");
                 });
             } catch (Exception e) {
-                Platform.runLater(() -> statusLabel.setText("Modelle laden fehlgeschlagen: " + e.getMessage()));
+                Platform.runLater(() -> reportStatusError("Modelle laden fehlgeschlagen: " + e.getMessage()));
             }
         }, "Chatbot-LoadModels").start();
     }
@@ -716,7 +733,24 @@ public class ChatbotAgentTab extends ScrollPane {
     }
 
     public void applyChatTheme(int themeIndex) {
+        this.chatThemeIndex = themeIndex;
         chatArea.setThemeIndex(themeIndex);
+    }
+
+    private void setStatusNeutral(String text) {
+        reportStatus(text);
+    }
+
+    private void setStatusRunning(String text) {
+        reportStatus(text);
+    }
+
+    private void setStatusSuccess(String text) {
+        reportStatus(text);
+    }
+
+    private void setStatusError(String text) {
+        reportStatusError(text);
     }
 
     public void applyEditorFont(String fontFamily, int fontSizePx) {

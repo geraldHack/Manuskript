@@ -114,4 +114,10 @@ public interface ChapterEditorHost {
         return java.util.prefs.Preferences.userNodeForPackage(EditorWindow.class)
                 .get("quillFontFamily", "Segoe UI");
     }
+
+    /** Anführungszeichen-Stil (0=deutsch, 1=französisch, 2=englisch, 3=schweizer). */
+    default int getQuoteStyleIndex() {
+        int style = java.util.prefs.Preferences.userNodeForPackage(EditorWindow.class).getInt("quoteStyle", 0);
+        return style >= 0 && style < QuotationMarkSupport.STYLE_COUNT ? style : 0;
+    }
 }

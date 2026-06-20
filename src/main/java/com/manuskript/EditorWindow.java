@@ -273,6 +273,9 @@ public class EditorWindow implements Initializable, ChapterEditorHost {
 
     // Agenten-System
     private AgentTabPane agentTabPane;
+    private AgentActivityTracker agentActivityTracker;
+    private ProgressBar agentStatusBusyBar;
+    private boolean agentActivityActive;
     private final java.util.Map<String, PlotholeAgent> agentInstances = new java.util.HashMap<>();
     private final java.util.Map<String, AIBackend> agentBackends = new java.util.HashMap<>();
     private Timeline agentRealtimeTimeline;
@@ -4313,7 +4316,9 @@ if (caret != null) {
         lblStatus.setText(message);
             lblStatus.setStyle("-fx-text-fill: #28a745; -fx-font-weight: normal; -fx-background-color: #d4edda; -fx-padding: 2 6 2 6; -fx-background-radius: 3;");
         }
-        scheduleStatusClear(5, false);
+        if (!agentActivityActive) {
+            scheduleStatusClear(5, false);
+        }
     }
 
     public void updateStatus(String message, boolean isError) {
@@ -4333,7 +4338,9 @@ if (caret != null) {
                 lblStatus.setStyle("-fx-text-fill: #ff6b35; -fx-font-weight: bold; -fx-background-color: #fff3cd; -fx-padding: 2 6 2 6; -fx-background-radius: 3;");
             });
         }
-        scheduleStatusClear(5, false);
+        if (!agentActivityActive) {
+            scheduleStatusClear(5, false);
+        }
     }
     
     private void updateMatchCount(int current, int total) {
@@ -12573,6 +12580,7 @@ spacer.setStyle("-fx-background-color: transparent;");
             
             // Alle Labels
             applyThemeToNode(lblStatus, themeIndex);
+            applyThemeToNode(agentStatusBusyBar, themeIndex);
             applyThemeToNode(lblMatchCount, themeIndex);
             
             // Chapter-Editor Elemente entfernt - keine Theme-Anwendung mehr nötig
@@ -14185,18 +14193,25 @@ spacer.setStyle("-fx-background-color: transparent;");
         }
 
         // AgentTabPane erstellen und Konfigurationen laden
+        ensureAgentActivityUi();
         agentTabPane = new AgentTabPane();
+        if (agentActivityTracker != null) {
+            agentTabPane.setActivityTracker(agentActivityTracker);
+        }
         agentTabPane.loadFromConfig();
 
         // Callbacks für jeden Tab setzen
         for (AgentTab tab : agentTabPane.getAgentTabs()) {
             setupAgentTabCallbacks(tab);
+            wireAgentTabStatus(tab);
         }
         for (SceneWritingAgentTab tab : agentTabPane.getSceneWritingTabs()) {
             setupSceneWritingTabCallbacks(tab);
+            wireAgentTabStatus(tab);
         }
         for (ChatbotAgentTab tab : agentTabPane.getChatbotTabs()) {
             setupChatbotTabCallbacks(tab);
+            wireAgentTabStatus(tab);
         }
 
         // Panel zum SplitPane hinzufügen
@@ -14230,6 +14245,9 @@ spacer.setStyle("-fx-background-color: transparent;");
             String sceneOutlineText = null;
             if (sceneOutlineWindow != null && originalDocxFile != null) {
                 sceneOutlineText = sceneOutlineWindow.getOutlineTextForDocx(originalDocxFile);
+                if (sceneOutlineText != null && sceneOutlineText.isBlank()) {
+                    sceneOutlineText = null;
+                }
             }
 
             SceneContextLoader.Context ctx = SceneContextLoader.load(
@@ -14248,7 +14266,9 @@ spacer.setStyle("-fx-background-color: transparent;");
                     + " nicht in der Outline gefunden — 'Szenen-Outline' prüfen";
             }
             if (ctx.sceneOutline.isBlank()) {
-                return "Keine Szenen-Outline für dieses Kapitel gefunden";
+                onStatus.accept("Hinweis: Keine Szenen-Outline — generiere aus Anweisung und Kapitelkontext.");
+                logger.warn("Szene generieren ohne Szenen-Outline ({} Zeichen Kapitel)",
+                        ctx.currentChapter != null ? ctx.currentChapter.length() : 0);
             }
 
             AgentConfig config = tab.getAgentConfig();
@@ -14262,6 +14282,8 @@ spacer.setStyle("-fx-background-color: transparent;");
             agent.setSystemPrompt(config.getSystemPrompt());
 
             int maxTokens = config.getMaxTokens() > 0 ? config.getMaxTokens() : 4096;
+            int timeoutSec = OpenAIBackend.requestTimeoutSeconds();
+            onStatus.accept("Generiere Szene… (API-Timeout: " + timeoutSec + " s)");
             agent.generate(ctx, maxTokens)
                 .thenAccept(onComplete)
                 .exceptionally(ex -> {
@@ -14372,6 +14394,52 @@ spacer.setStyle("-fx-background-color: transparent;");
         }
         tab.setOnQuoteClicked(this::jumpToQuote);
         tab.setOnSuggestionClicked(this::replaceWithSuggestion);
+    }
+
+    private void wireAgentTabStatus(AgentTab tab) {
+        tab.setOnStatus(this::updateStatus);
+        tab.setOnStatusError(this::updateStatusError);
+        if (agentActivityTracker != null) {
+            tab.bindActivityTracker(agentActivityTracker);
+        }
+    }
+
+    private void wireAgentTabStatus(SceneWritingAgentTab tab) {
+        tab.setOnStatus(this::updateStatus);
+        tab.setOnStatusError(this::updateStatusError);
+        if (agentActivityTracker != null) {
+            tab.bindActivityTracker(agentActivityTracker);
+        }
+    }
+
+    private void wireAgentTabStatus(ChatbotAgentTab tab) {
+        tab.setOnStatus(this::updateStatus);
+        tab.setOnStatusError(this::updateStatusError);
+        if (agentActivityTracker != null) {
+            tab.bindActivityTracker(agentActivityTracker);
+        }
+    }
+
+    private void ensureAgentActivityUi() {
+        if (agentActivityTracker != null) {
+            return;
+        }
+        agentActivityTracker = new AgentActivityTracker();
+        agentStatusBusyBar = AgentStatusBusyBarSupport.createBusyBar();
+        agentActivityTracker.addListener(state -> Platform.runLater(() -> applyAgentActivityState(state)));
+        if (mainContainer != null && agentStatusBusyBar != null) {
+            int insertAt = Math.min(1, mainContainer.getChildren().size());
+            mainContainer.getChildren().add(insertAt, agentStatusBusyBar);
+        }
+    }
+
+    private void applyAgentActivityState(AgentActivityTracker.State state) {
+        agentActivityActive = state.active();
+        AgentStatusBusyBarSupport.setActive(agentStatusBusyBar, state.active());
+        if (state.active() && lblStatus != null && !onlineLektoratInProgress) {
+            lblStatus.setText(state.message());
+            lblStatus.setStyle("-fx-text-fill: #28a745; -fx-font-weight: normal; -fx-background-color: #d4edda; -fx-padding: 2 6 2 6; -fx-background-radius: 3;");
+        }
     }
 
     private void runSelectionRevision(AgentTab explicitTab) {
