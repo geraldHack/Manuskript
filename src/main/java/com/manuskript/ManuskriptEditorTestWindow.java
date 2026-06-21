@@ -135,6 +135,7 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
     private boolean suppressDirty;
     private boolean transientStatusActive;
     private boolean agentActivityActive;
+    private boolean onlineLektoratBusy;
     private boolean quoteErrorsDialogShown;
     private ChapterAgentSupport chapterAgentSupport;
     private ChapterOnlineLektoratHelper lektoratHelper;
@@ -1030,13 +1031,32 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
             }
             statusLabel.setText(state.message());
             statusLabel.setStyle(STATUS_STYLE_READY);
-            AgentStatusBusyBarSupport.setActive(agentStatusBusyBar, true);
+            refreshStatusBusyBar();
         } else {
-            AgentStatusBusyBarSupport.setActive(agentStatusBusyBar, false);
+            refreshStatusBusyBar();
             if (!transientStatusActive) {
                 updateStatusDisplay();
             }
         }
+    }
+
+    private void refreshStatusBusyBar() {
+        if (agentStatusBusyBar != null) {
+            AgentStatusBusyBarSupport.setActive(agentStatusBusyBar, agentActivityActive || onlineLektoratBusy);
+        }
+    }
+
+    @Override
+    public void setStatusBusyBarActive(boolean active) {
+        onlineLektoratBusy = active;
+        if (active) {
+            synchronized (statusLock) {
+                if (statusClearFuture != null && !statusClearFuture.isDone()) {
+                    statusClearFuture.cancel(false);
+                }
+            }
+        }
+        refreshStatusBusyBar();
     }
 
     private void initializeSelectionLabel() {
@@ -1158,7 +1178,7 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         transientStatusActive = true;
         statusLabel.setText(message == null ? "" : message);
         statusLabel.setStyle(STATUS_STYLE_READY);
-        if (!agentActivityActive) {
+        if (!agentActivityActive && !onlineLektoratBusy) {
             scheduleStatusClear(5);
         }
     }
@@ -1179,7 +1199,7 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         transientStatusActive = true;
         statusLabel.setText(message == null ? "" : message);
         statusLabel.setStyle(STATUS_STYLE_WARNING);
-        if (!agentActivityActive) {
+        if (!agentActivityActive && !onlineLektoratBusy) {
             scheduleStatusClear(5);
         }
     }

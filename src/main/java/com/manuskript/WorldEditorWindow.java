@@ -145,7 +145,7 @@ public class WorldEditorWindow {
             Tab tab = new Tab();
             tab.setGraphic(tabLabel);
             tab.setUserData(filename);
-            tab.setContent(createTabContent(filename));
+            tab.setContent(createTabShell(filename));
             tabPane.getTabs().add(tab);
             fileToTab.put(filename, tab);
             fileToTabLabel.put(filename, tabLabel);
@@ -155,6 +155,7 @@ public class WorldEditorWindow {
             updateTabEditorInteractivity(oldTab, newTab);
             refreshAllDirtyTabStyles();
             if (newTab != null && newTab.getUserData() instanceof String filename) {
+                ensureTabEditorLoaded(filename);
                 MdTextArea area = fileToTextArea.get(filename);
                 if (area != null) {
                     Platform.runLater(area::requestFocus);
@@ -175,14 +176,15 @@ public class WorldEditorWindow {
         stage.setSceneWithTitleBar(scene);
         stage.setFullTheme(theme);
         stage.setOnShown(event -> {
-            updateTabEditorInteractivity(null, tabPane.getSelectionModel().getSelectedItem());
             Tab selected = tabPane.getSelectionModel().getSelectedItem();
             if (selected != null && selected.getUserData() instanceof String filename) {
+                ensureTabEditorLoaded(filename);
                 MdTextArea area = fileToTextArea.get(filename);
                 if (area != null) {
                     Platform.runLater(area::requestFocus);
                 }
             }
+            updateTabEditorInteractivity(null, selected);
         });
 
         // Beim Schließen: bei ungespeicherten Änderungen nachfragen
@@ -234,7 +236,73 @@ public class WorldEditorWindow {
         }
     }
 
-    private VBox createTabContent(String filename) {
+    private VBox createTabShell(String filename) {
+        Button saveButton = new Button("💾 Speichern");
+        saveButton.setOnAction(e -> {
+            MdTextArea area = fileToTextArea.get(filename);
+            if (area != null) {
+                saveFile(filename, area);
+                statusLabel.setText(labelForFile(filename) + " gespeichert");
+            }
+        });
+        fileToSaveButton.put(filename, saveButton);
+
+        Button aiButton = new Button("🤖 KI-Generierung");
+        aiButton.setOnAction(e -> {
+            ensureTabEditorLoaded(filename);
+            MdTextArea area = fileToTextArea.get(filename);
+            if (area != null) {
+                handleAiGeneration(filename, area);
+            }
+        });
+        fileToAiButton.put(filename, aiButton);
+
+        HBox buttonBox = new HBox(10);
+        buttonBox.setAlignment(Pos.CENTER_RIGHT);
+        buttonBox.setPadding(new Insets(5, 0, 0, 0));
+        buttonBox.getChildren().add(saveButton);
+        if (WorldEditorAiPrompts.supportsExtractFromChapters(filename)) {
+            Button extractButton = new Button("📖 Aus Kapiteln");
+            extractButton.setOnAction(e -> {
+                ensureTabEditorLoaded(filename);
+                MdTextArea area = fileToTextArea.get(filename);
+                if (area != null) {
+                    handleExtractFromChapters(filename, area);
+                }
+            });
+            fileToExtractButton.put(filename, extractButton);
+            buttonBox.getChildren().add(extractButton);
+        }
+        buttonBox.getChildren().add(aiButton);
+
+        Region editorPlaceholder = new Region();
+        editorPlaceholder.setMinHeight(120);
+        VBox content = new VBox(5, editorPlaceholder, buttonBox);
+        VBox.setVgrow(editorPlaceholder, Priority.ALWAYS);
+        return content;
+    }
+
+    /** Editor erst beim ersten Öffnen des Tabs laden (Canvas bricht bei Größe 0 ab). */
+    private void ensureTabEditorLoaded(String filename) {
+        if (fileToTextArea.containsKey(filename)) {
+            return;
+        }
+        Tab tab = fileToTab.get(filename);
+        if (tab == null || !(tab.getContent() instanceof VBox content) || content.getChildren().isEmpty()) {
+            return;
+        }
+        if (!(content.getChildren().get(0) instanceof Region placeholder) || placeholder instanceof MdTextArea) {
+            return;
+        }
+
+        MdTextArea textArea = createEditorArea(filename);
+        int placeholderIndex = content.getChildren().indexOf(placeholder);
+        content.getChildren().set(placeholderIndex, textArea);
+        VBox.setVgrow(textArea, Priority.ALWAYS);
+        fileToTextArea.put(filename, textArea);
+    }
+
+    private MdTextArea createEditorArea(String filename) {
         MdTextArea textArea = new MdTextArea(MdTextAreaOptions.builder()
                 .editable(true)
                 .showToolbar(true)
@@ -248,7 +316,6 @@ public class WorldEditorWindow {
                 .build());
 
         loadFile(filename, textArea);
-        fileToTextArea.put(filename, textArea);
         markClean(filename);
 
         textArea.textProperty().addListener((obs, oldVal, newVal) -> {
@@ -256,33 +323,7 @@ public class WorldEditorWindow {
                 markDirty(filename);
             }
         });
-
-        Button saveButton = new Button("💾 Speichern");
-        saveButton.setOnAction(e -> {
-            saveFile(filename, textArea);
-            statusLabel.setText(labelForFile(filename) + " gespeichert");
-        });
-        fileToSaveButton.put(filename, saveButton);
-
-        Button aiButton = new Button("🤖 KI-Generierung");
-        aiButton.setOnAction(e -> handleAiGeneration(filename, textArea));
-        fileToAiButton.put(filename, aiButton);
-
-        HBox buttonBox = new HBox(10);
-        buttonBox.setAlignment(Pos.CENTER_RIGHT);
-        buttonBox.setPadding(new Insets(5, 0, 0, 0));
-        buttonBox.getChildren().add(saveButton);
-        if (WorldEditorAiPrompts.supportsExtractFromChapters(filename)) {
-            Button extractButton = new Button("📖 Aus Kapiteln");
-            extractButton.setOnAction(e -> handleExtractFromChapters(filename, textArea));
-            fileToExtractButton.put(filename, extractButton);
-            buttonBox.getChildren().add(extractButton);
-        }
-        buttonBox.getChildren().add(aiButton);
-
-        VBox content = new VBox(5, textArea, buttonBox);
-        VBox.setVgrow(textArea, Priority.ALWAYS);
-        return content;
+        return textArea;
     }
 
     private void updateTabEditorInteractivity(Tab oldTab, Tab newTab) {

@@ -4247,9 +4247,12 @@ public class ManuskriptTextEditor extends Region {
     }
 
     private void render() {
-        GraphicsContext gc = canvas.getGraphicsContext2D();
         double width = canvas.getWidth();
         double height = canvas.getHeight();
+        if (width <= 0 || height <= 0) {
+            return;
+        }
+        GraphicsContext gc = canvas.getGraphicsContext2D();
         gc.setFill(editorBackgroundColor);
         gc.fillRect(0, 0, width, height);
         if (showLineNumbers) {

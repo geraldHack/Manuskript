@@ -46,6 +46,7 @@ public class ChapterOnlineLektoratHelper {
             return;
         }
         inProgress = true;
+        host.setStatusBusyBarActive(true);
         if (panel != null) {
             panel.applyFontSize(host.getEditorFontSizePx());
         }
@@ -65,6 +66,7 @@ public class ChapterOnlineLektoratHelper {
         service.runLektorat(text, onProgress)
                 .thenAccept(result -> Platform.runLater(() -> {
                     inProgress = false;
+                    host.setStatusBusyBarActive(false);
                     currentMatches.clear();
                     currentMatches.addAll(result.getMatches());
                     applyMatchesToCanvasEditor();
@@ -86,6 +88,7 @@ public class ChapterOnlineLektoratHelper {
                 .exceptionally(ex -> {
                     Platform.runLater(() -> {
                         inProgress = false;
+                        host.setStatusBusyBarActive(false);
                         host.updateStatusError("Online-Lektorat fehlgeschlagen: " + ex.getMessage());
                     });
                     logger.error("Online-Lektorat", ex);

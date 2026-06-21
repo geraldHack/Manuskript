@@ -77,6 +77,10 @@ public interface ChapterEditorHost {
 
     void updateStatusError(String message);
 
+    /** Indeterminater Busy-Balken in der Statuszeile (z. B. Online-Lektorat). */
+    default void setStatusBusyBarActive(boolean active) {
+    }
+
     int getThemeIndex();
 
     MainController getMainController();
