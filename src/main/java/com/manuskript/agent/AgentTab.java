@@ -358,7 +358,10 @@ public class AgentTab extends ScrollPane {
             size = 72;
         }
         currentFontSize = size;
-        AgentFontSizeSupport.apply(this, size);
+        // Tab.setContent() hängt contentRoot nicht unter getChildren() – explizit anwenden
+        if (contentRoot != null) {
+            AgentFontSizeSupport.apply(contentRoot, size);
+        }
         AgentActionButtonSupport.applyFontSize(size, analyzeButton, realtimeToggle);
     }
 

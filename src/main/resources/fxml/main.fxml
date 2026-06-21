@@ -127,9 +127,6 @@
                      <Button fx:id="btnProcessAll" styleClass="main-toolbar-button" text="✏️ Kapitel bearbeiten" minWidth="120">
                         <tooltip><Tooltip text="Ausgewählte Kapitel im Editor öffnen" /></tooltip>
                      </Button>
-                     <Button fx:id="btnOnlineLektorat" styleClass="main-toolbar-button" text="📋 Online-Lektorat" minWidth="110">
-                        <tooltip><Tooltip text="Online-Lektorat starten (API-Key unter Parameter → Online-Lektorat)" /></tooltip>
-                     </Button>
                      <Button fx:id="btnOpenTtsEditor" styleClass="main-toolbar-button" text="🔊 Sprachsynthese" minWidth="120">
                         <tooltip><Tooltip text="Kapitel mit TTS bearbeiten: Text markieren, Sprachausgabe erzeugen" /></tooltip>
                      </Button>

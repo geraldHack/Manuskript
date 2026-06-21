@@ -1094,14 +1094,18 @@ public class ManuskriptTextEditor extends Region {
         if (matches == null || matches.isEmpty()) {
             return;
         }
+        List<LektoratMatch> ordered = new ArrayList<>(matches);
+        ordered.sort(Comparator.comparingInt(LektoratMatch::getOffset));
         List<TextRange> paintRanges = new ArrayList<>();
-        for (LektoratMatch match : matches) {
-            int[] span = resolveLektoratMatchSpan(match);
+        List<int[]> occupied = new ArrayList<>();
+        for (LektoratMatch match : ordered) {
+            int[] span = resolveLektoratMatchSpan(match, occupied);
             if (span == null) {
                 continue;
             }
             int start = span[0];
             int end = span[1];
+            occupied.add(span);
             paintRanges.add(new TextRange(start, end));
             if (onSelect != null) {
                 MarkedArea clickArea = new MarkedArea(this);
@@ -1125,55 +1129,32 @@ public class ManuskriptTextEditor extends Region {
     }
 
     /**
+     * Scrollt zur aktuellen Position des Treffers (Offsets werden vorher neu aufgelöst).
+     */
+    public void revealLektoratMatch(LektoratMatch match) {
+        int[] span = resolveLektoratMatchSpan(match);
+        if (span == null) {
+            return;
+        }
+        revealMatchAt(span[0], span[1]);
+    }
+
+    /**
      * Sucht den Originaltext im Editor und aktualisiert Offset/Länge am Match (wie Legacy-Editor).
      * Verhindert optisch verschobene Markierungen nach übernommenen Ersetzungen.
      */
     private int[] resolveLektoratMatchSpan(LektoratMatch match) {
-        if (match == null) {
-            return null;
-        }
-        String original = match.getOriginal();
-        if (original == null || original.isEmpty()) {
-            return null;
-        }
-        int hint = match.getOffset();
-        int len = match.getLength() > 0 ? match.getLength() : original.length();
-        int start = hint;
-        int end = start + len;
-        if (start >= 0 && end <= text.length() && text.substring(start, end).equals(original)) {
-            match.setLength(original.length());
-            return new int[]{start, start + original.length()};
-        }
-        int located = locateLektoratOriginalNear(original, hint);
-        if (located < 0) {
-            return null;
-        }
-        match.setOffset(located);
-        match.setLength(original.length());
-        return new int[]{located, located + original.length()};
+        return resolveLektoratMatchSpan(match, List.of());
     }
 
-    /** Nächstes Vorkommen von {@code original} nahe der erwarteten Position (nicht immer das erste im Kapitel). */
-    private int locateLektoratOriginalNear(String original, int hint) {
-        if (original.isEmpty()) {
-            return -1;
+    private int[] resolveLektoratMatchSpan(LektoratMatch match, List<int[]> occupiedRanges) {
+        int[] span = LektoratMatchLocator.resolveSpan(text.toString(), match, occupiedRanges);
+        if (span == null) {
+            return null;
         }
-        int best = -1;
-        int bestDistance = Integer.MAX_VALUE;
-        int from = 0;
-        while (from < text.length()) {
-            int idx = text.indexOf(original, from);
-            if (idx < 0) {
-                break;
-            }
-            int distance = hint >= 0 ? Math.abs(idx - hint) : idx;
-            if (distance < bestDistance) {
-                bestDistance = distance;
-                best = idx;
-            }
-            from = idx + 1;
-        }
-        return best;
+        match.setOffset(span[0]);
+        match.setLength(span[1] - span[0]);
+        return span;
     }
 
     /**

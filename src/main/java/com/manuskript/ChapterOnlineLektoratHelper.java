@@ -1,6 +1,9 @@
 package com.manuskript;
 
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Platform;
+import javafx.util.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,6 +24,7 @@ public class ChapterOnlineLektoratHelper {
     private final ChapterLektoratPanel panel;
     private final List<LektoratMatch> currentMatches = new ArrayList<>();
     private volatile boolean inProgress;
+    private Timeline lektoratRefreshTimeline;
 
     public ChapterOnlineLektoratHelper(ChapterEditorHost host, ChapterLektoratPanel panel) {
         this.host = host;
@@ -35,22 +39,37 @@ public class ChapterOnlineLektoratHelper {
         return inProgress;
     }
 
+    public boolean isActive() {
+        return isSessionOpen();
+    }
+
+    /** Lektorat-Sitzung läuft oder Panel ist noch geöffnet (auch ohne offene Vorschläge). */
+    public boolean isSessionOpen() {
+        return inProgress || (panel != null && panel.isVisible()) || !currentMatches.isEmpty();
+    }
+
     public void start(boolean enableAssessment) {
-        host.setOnlineLektoratMode(true);
+        start(enableAssessment, OnlineLektoratService.currentLektoratType());
+    }
+
+    public void start(boolean enableAssessment, String lektoratType) {
+        String type = OnlineLektoratService.normalizeLektoratType(lektoratType);
         String text = host.getText();
-        if (enableAssessment && panel != null) {
-            panel.appendChapterAssessment(text);
-        }
         if (text == null || text.trim().isEmpty()) {
             host.updateStatus("Editor leer – kein Online-Lektorat möglich");
             return;
         }
+        host.setOnlineLektoratMode(true);
         inProgress = true;
         host.setStatusBusyBarActive(true);
         if (panel != null) {
             panel.applyFontSize(host.getEditorFontSizePx());
+            panel.showRunning();
         }
-        String typeLabel = OnlineLektoratService.currentLektoratTypeLabel();
+        if (enableAssessment && panel != null) {
+            panel.appendChapterAssessment(text);
+        }
+        String typeLabel = OnlineLektoratService.formatLektoratTypeLabel(type);
         host.updateStatus("Lektorat (" + typeLabel + ") wird erstellt – bitte warten…");
         OnlineLektoratService service = new OnlineLektoratService();
         BiConsumer<Integer, Integer> onProgress = (done, total) -> Platform.runLater(() -> {
@@ -63,12 +82,16 @@ public class ChapterOnlineLektoratHelper {
                 host.updateStatus("Lektorat (" + typeLabel + "): " + done + "/" + total + " Abschnitte …");
             }
         });
-        service.runLektorat(text, onProgress)
+        service.runLektorat(text, type, onProgress)
                 .thenAccept(result -> Platform.runLater(() -> {
+                    if (!inProgress) {
+                        return;
+                    }
                     inProgress = false;
                     host.setStatusBusyBarActive(false);
                     currentMatches.clear();
                     currentMatches.addAll(result.getMatches());
+                    syncMatchesToCurrentText();
                     applyMatchesToCanvasEditor();
                     if (panel != null) {
                         panel.showHint(!currentMatches.isEmpty());
@@ -87,13 +110,67 @@ public class ChapterOnlineLektoratHelper {
                 }))
                 .exceptionally(ex -> {
                     Platform.runLater(() -> {
+                        if (!inProgress) {
+                            return;
+                        }
                         inProgress = false;
                         host.setStatusBusyBarActive(false);
                         host.updateStatusError("Online-Lektorat fehlgeschlagen: " + ex.getMessage());
+                        if (panel != null) {
+                            panel.showHint(false);
+                        }
                     });
                     logger.error("Online-Lektorat", ex);
                     return null;
                 });
+    }
+
+    /** Beendet Lektorat (Abbrechen oder Schließen): Markierungen weg, Panel zu, Editor-Modus normal. */
+    public void exit() {
+        inProgress = false;
+        if (lektoratRefreshTimeline != null) {
+            lektoratRefreshTimeline.stop();
+            lektoratRefreshTimeline = null;
+        }
+        host.setStatusBusyBarActive(false);
+        currentMatches.clear();
+        ManuskriptEditorTestWindow canvas = host.asCanvasChapterEditor();
+        if (canvas != null) {
+            canvas.getTextEditor().clearLektoratMatches();
+            canvas.closeLektoratPanel();
+        } else if (panel != null) {
+            panel.clear();
+        }
+        host.setOnlineLektoratMode(false);
+        host.updateStatus("Lektorat beendet");
+    }
+
+    /** Editor-Text hat sich geändert – Markierungen neu auflösen (debounced). */
+    public void onEditorTextChanged() {
+        if (inProgress || currentMatches.isEmpty()) {
+            return;
+        }
+        if (lektoratRefreshTimeline != null) {
+            lektoratRefreshTimeline.stop();
+        }
+        lektoratRefreshTimeline = new Timeline(new KeyFrame(Duration.millis(300), event -> {
+            lektoratRefreshTimeline = null;
+            if (inProgress || currentMatches.isEmpty()) {
+                return;
+            }
+            syncMatchesToCurrentText();
+            applyMatchesToCanvasEditor();
+        }));
+        lektoratRefreshTimeline.play();
+    }
+
+    private void syncMatchesToCurrentText() {
+        String text = host.getText();
+        if (text == null || currentMatches.isEmpty()) {
+            return;
+        }
+        currentMatches.removeIf(match -> LektoratMatchLocator.resolveSpan(text, match) == null);
+        LektoratMatchLocator.resolveAllInPlace(text, currentMatches);
     }
 
     private void applyMatchesToCanvasEditor() {
@@ -101,6 +178,7 @@ public class ChapterOnlineLektoratHelper {
         if (canvas == null) {
             return;
         }
+        syncMatchesToCurrentText();
         canvas.getTextEditor().applyLektoratMatches(currentMatches, this::onMatchSelected);
     }
 
@@ -110,7 +188,7 @@ public class ChapterOnlineLektoratHelper {
         }
         ManuskriptEditorTestWindow canvas = host.asCanvasChapterEditor();
         if (canvas != null) {
-            canvas.getTextEditor().revealMatchAt(match.getOffset(), match.getOffset() + match.getLength());
+            canvas.getTextEditor().revealLektoratMatch(match);
         }
     }
 
@@ -120,52 +198,23 @@ public class ChapterOnlineLektoratHelper {
             return;
         }
         String unescaped = replacement.replace("\\n", "\n").replace("\\t", "\t");
-        String original = match.getOriginal();
-        int offset = match.getOffset();
-        int len = match.getLength();
-
-        int start = offset;
-        int end = offset + len;
-        if (start < 0 || end > currentText.length()
-                || !currentText.substring(start, end).equals(original)) {
-            int idx = currentText.indexOf(original);
-            if (idx < 0) {
-                host.updateStatus("Originaltext im Editor nicht mehr gefunden – evtl. wurde er geändert.");
-                return;
-            }
-            start = idx;
-            end = idx + original.length();
+        int[] span = LektoratMatchLocator.resolveSpan(currentText, match);
+        if (span == null) {
+            host.updateStatus("Originaltext im Editor nicht mehr gefunden – evtl. wurde er geändert.");
+            return;
         }
+        int start = span[0];
+        int end = span[1];
         String originalSegment = currentText.substring(start, end);
         String replacementWithBoundaries = preserveParagraphBoundaries(originalSegment, unescaped);
-        int originalEnd = start + originalSegment.length();
-        int delta = replacementWithBoundaries.length() - originalSegment.length();
 
         host.replaceRangePreserveView(start, end, replacementWithBoundaries);
         currentMatches.remove(match);
-
-        if (delta != 0 && !currentMatches.isEmpty()) {
-            for (LektoratMatch other : currentMatches) {
-                if (other == match) {
-                    continue;
-                }
-                int otherOffset = other.getOffset();
-                if (otherOffset >= originalEnd) {
-                    other.setOffset(otherOffset + delta);
-                } else if (otherOffset >= start && otherOffset < originalEnd) {
-                    other.setOffset(start);
-                }
-            }
-        }
+        syncMatchesToCurrentText();
 
         if (currentMatches.isEmpty()) {
-            ManuskriptEditorTestWindow canvas = host.asCanvasChapterEditor();
-            if (canvas != null) {
-                canvas.getTextEditor().clearLektoratMatches();
-            }
-            if (panel != null) {
-                panel.clear();
-            }
+            exit();
+            return;
         } else {
             applyMatchesToCanvasEditor();
             if (panel != null) {
@@ -207,13 +256,6 @@ public class ChapterOnlineLektoratHelper {
     }
 
     public void clear() {
-        currentMatches.clear();
-        ManuskriptEditorTestWindow canvas = host.asCanvasChapterEditor();
-        if (canvas != null) {
-            canvas.getTextEditor().clearLektoratMatches();
-        }
-        if (panel != null) {
-            panel.clear();
-        }
+        exit();
     }
 }

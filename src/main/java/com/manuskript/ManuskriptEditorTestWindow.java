@@ -236,6 +236,9 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
                 updateDirtyFromContent(text);
             }
             scheduleLanguageToolCheckDebounced();
+            if (lektoratHelper != null && lektoratHelper.isActive()) {
+                lektoratHelper.onEditorTextChanged();
+            }
         });
         editor.setQuoteStyleIndex(Preferences.userNodeForPackage(EditorWindow.class).getInt("quoteStyle", 0));
 
@@ -274,6 +277,9 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
             editor.requestInputFocus();
             ensureEditingShortcutsInstalled();
             scheduleInitialLanguageToolCheck();
+            if (chapterAgentSupport != null) {
+                chapterAgentSupport.applyEditorAppearance();
+            }
         });
 
         PreferencesManager.MultiMonitorValidator.applyWindowProperties(
@@ -434,6 +440,7 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         lektoratPanel = new ChapterLektoratPanel(
                 lektoratPanelContainer, mainSplitPane, () -> themeIndex, this::applyThemeToNode,
                 this::getEditorFontSizePx);
+        lektoratPanel.setOnExit(this::exitOnlineLektorat);
         VBox.setVgrow(mainSplitPane, Priority.ALWAYS);
         editorContentColumn.getChildren().add(mainSplitPane);
 
@@ -846,9 +853,8 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
             btnToggleAgents.setOnAction(e -> onAgentsToggle());
         }
         Button onlineLektorat = toolbarButton("Lektorat",
-                "Online-Lektorat starten (Typ: " + OnlineLektoratService.currentLektoratTypeLabel()
-                        + "). " + OnlineLektoratService.SETTINGS_HINT,
-                () -> startOnlineLektorat(false));
+                "Online-Lektorat starten (Typ im Dialog wählbar). " + OnlineLektoratService.SETTINGS_HINT,
+                this::promptAndStartOnlineLektorat);
         Button macrosBtn = toolbarButton("Makros", "Makro-Verwaltung ein-/ausblenden", this::toggleMacroWindow);
         Button copySudowrite = toolbarButton("Sudowrite", "Für Sudowrite kopieren (Zwischenablage)",
                 this::copyForSudowrite);
@@ -2170,10 +2176,64 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
 
     @Override
     public void startOnlineLektorat(boolean enableAssessment) {
+        startOnlineLektorat(enableAssessment, OnlineLektoratService.currentLektoratType());
+    }
+
+    @Override
+    public void startOnlineLektorat(boolean enableAssessment, String lektoratType) {
         if (lektoratHelper == null) {
             lektoratHelper = new ChapterOnlineLektoratHelper(this, lektoratPanel);
         }
-        lektoratHelper.start(enableAssessment);
+        lektoratHelper.start(enableAssessment, lektoratType);
+    }
+
+    private void promptAndStartOnlineLektorat() {
+        if (stage == null) {
+            return;
+        }
+        OnlineLektoratStartDialog.show(stage.getScene().getWindow(), themeIndex)
+                .ifPresent(opts -> startOnlineLektorat(opts.enableAssessment(), opts.lektoratType()));
+    }
+
+    @Override
+    public void exitOnlineLektorat() {
+        if (lektoratHelper == null) {
+            closeLektoratPanel();
+            setOnlineLektoratMode(false);
+            updateStatus("Lektorat beendet");
+            return;
+        }
+        if (lektoratHelper.isInProgress()) {
+            lektoratHelper.exit();
+            return;
+        }
+        if (!lektoratHelper.getCurrentMatches().isEmpty()) {
+            CustomAlert alert = new CustomAlert(CustomAlert.AlertType.CONFIRMATION);
+            alert.setHeaderText("Lektorat beenden?");
+            alert.setContentText(lektoratHelper.getCurrentMatches().size()
+                    + " offene Vorschläge – wirklich beenden? Markierungen werden entfernt und das Lektorat-Panel geschlossen.");
+            alert.applyTheme(themeIndex);
+            alert.initOwner(stage);
+            alert.showAndWait().ifPresent(response -> {
+                if (response == javafx.scene.control.ButtonType.OK) {
+                    lektoratHelper.exit();
+                }
+            });
+            return;
+        }
+        lektoratHelper.exit();
+    }
+
+    /** Schließt das rechte Lektorat-Panel (SplitPane + Inhalt). */
+    void closeLektoratPanel() {
+        if (lektoratPanel != null) {
+            lektoratPanel.clear();
+            return;
+        }
+        if (lektoratPanelContainer != null && mainSplitPane != null
+                && mainSplitPane.getItems().remove(lektoratPanelContainer)) {
+            ChapterEditorSplitPreferences.apply(mainSplitPane);
+        }
     }
 
     @Override

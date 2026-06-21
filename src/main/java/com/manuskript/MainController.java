@@ -146,7 +146,6 @@ public class MainController implements Initializable {
 
     @FXML private Button btnProcessSelected;
     @FXML private Button btnProcessAll;
-    @FXML private Button btnOnlineLektorat;
     @FXML private Button btnThemeToggle;
     @FXML private Button btnSplit;
     @FXML private Button btnNewChapter;
@@ -619,93 +618,6 @@ public class MainController implements Initializable {
             btnNovelWizard.setOnAction(e -> openNovelWizardForCurrentProject());
             attachToolbarHelpButton(btnNovelWizard, "Hilfe zum Roman-Assistenten", "novel_wizard.html", "Hilfe - Roman-Assistent");
         }
-        if (btnOnlineLektorat != null) {
-            btnOnlineLektorat.setOnAction(e -> {
-                DocxFile selected = tableViewSelected.getSelectionModel().getSelectedItem();
-                if (selected == null) {
-                    showWarning("Keine Datei ausgewählt", "Bitte wählen Sie in der rechten Tabelle eine Kapiteldatei aus.");
-                    return;
-                }
-                Window owner = primaryStage != null ? primaryStage.getScene().getWindow() : null;
-                
-                // Custom Dialog mit Checkbox erstellen
-                CustomStage dialogStage = StageManager.createModalStage("Online-Lektorat", owner);
-                dialogStage.setWidth(500);
-                dialogStage.setHeight(420);
-                dialogStage.setTitleBarTheme(currentThemeIndex);
-                
-                VBox dialogContent = new VBox(20);
-                dialogContent.setPadding(new Insets(25));
-                dialogContent.getStyleClass().add("dialog-container");
-                applyThemeToNode(dialogContent, currentThemeIndex);
-                
-                Label titleLabel = new Label("Kostenpflichtiger Dienst");
-                titleLabel.getStyleClass().add("dialog-title");
-                titleLabel.setMaxWidth(Double.MAX_VALUE);
-                titleLabel.setAlignment(javafx.geometry.Pos.CENTER);
-                titleLabel.setPadding(new Insets(0));
-                applyThemeToNode(titleLabel, currentThemeIndex);
-                
-                Label infoLabel = new Label(
-                        "Das Online-Lektorat nutzt einen externen API-Dienst und kann je nach Nutzung Kosten verursachen.");
-                infoLabel.setWrapText(true);
-                infoLabel.setMaxWidth(440);
-                infoLabel.setPadding(new Insets(0, 0, 4, 0));
-                applyThemeToNode(infoLabel, currentThemeIndex);
-
-                Label modelLabel = new Label("Modell: " + OnlineLektoratService.currentModelDisplay());
-                modelLabel.setWrapText(true);
-                modelLabel.setMaxWidth(440);
-                applyThemeToNode(modelLabel, currentThemeIndex);
-
-                Label typeLabel = new Label("Lektorat-Typ: " + OnlineLektoratService.currentLektoratTypeLabel());
-                typeLabel.setWrapText(true);
-                typeLabel.setMaxWidth(440);
-                applyThemeToNode(typeLabel, currentThemeIndex);
-
-                Label settingsHintLabel = new Label(OnlineLektoratService.SETTINGS_HINT);
-                settingsHintLabel.setWrapText(true);
-                settingsHintLabel.setMaxWidth(440);
-                settingsHintLabel.setPadding(new Insets(4, 0, 10, 0));
-                applyThemeToNode(settingsHintLabel, currentThemeIndex);
-                
-                CheckBox assessmentCheckBox = new CheckBox("Zusätzliche Kapitel-Einschätzung erstellen");
-                assessmentCheckBox.setTooltip(new Tooltip("Nach dem Lektorat eine Einschätzung des gesamten Kapitels anfordern (zusätzliche Kosten)"));
-                assessmentCheckBox.setSelected(false);
-                assessmentCheckBox.setPadding(new Insets(10, 0, 10, 0));
-                assessmentCheckBox.setWrapText(true);
-                assessmentCheckBox.setMaxWidth(400);
-                applyThemeToNode(assessmentCheckBox, currentThemeIndex);
-                
-                HBox buttonBox = new HBox(10);
-                buttonBox.setAlignment(javafx.geometry.Pos.CENTER_RIGHT);
-                buttonBox.setPadding(new Insets(10, 0, 0, 0));
-                
-                Button startButton = new Button("Ja, starten");
-                Button cancelButton = new Button("Abbrechen");
-                applyThemeToNode(startButton, currentThemeIndex);
-                applyThemeToNode(cancelButton, currentThemeIndex);
-                
-                buttonBox.getChildren().addAll(startButton, cancelButton);
-                
-                dialogContent.getChildren().addAll(
-                        titleLabel, infoLabel, modelLabel, typeLabel, settingsHintLabel, assessmentCheckBox, buttonBox);
-                
-                javafx.scene.Scene scene = new javafx.scene.Scene(dialogContent);
-                String cssPath = ResourceManager.getCssResource("css/manuskript.css");
-                if (cssPath != null) scene.getStylesheets().add(cssPath);
-                dialogStage.setSceneWithTitleBar(scene);
-                
-                startButton.setOnAction(evt -> {
-                    dialogStage.close();
-                    openChapterEditor(selected, true, assessmentCheckBox.isSelected());
-                });
-                
-                cancelButton.setOnAction(evt -> dialogStage.close());
-                
-                dialogStage.show();
-            });
-        }
         btnThemeToggle.setOnAction(e -> toggleTheme());
         btnSplit.setTooltip(new Tooltip("Eine DOCX- oder RTF-Datei in mehrere Kapiteldateien aufteilen (z. B. ein großes Manuskript nach Überschriften trennen)."));
         btnSplit.setOnAction(e -> {
@@ -752,30 +664,8 @@ public class MainController implements Initializable {
         }
         btnDeleteFile.setOnAction(e -> deleteSelectedFile());
         btnSearchAllFiles.setOnAction(e -> searchAllFiles());
-
-        updateOnlineLektoratButtonState();
     }
 
-    /**
-     * Aktiviert oder deaktiviert den Online-Lektorat-Button je nachdem, ob api.lektorat.api_key gesetzt ist.
-     * Wird bei Start und beim Zurückkehren ins Hauptfenster (z. B. nach Schließen der Parameter-Verwaltung) aufgerufen.
-     */
-    private void updateOnlineLektoratButtonState() {
-        if (btnOnlineLektorat == null) return;
-        String apiKey = ResourceManager.getParameter("api.lektorat.api_key", "");
-        boolean hasKey = apiKey != null && !apiKey.trim().isEmpty();
-        btnOnlineLektorat.setDisable(!hasKey);
-        if (!hasKey) {
-            btnOnlineLektorat.setTooltip(new Tooltip(
-                    "Online-Lektorat der ausgewählten Kapiteldatei starten (API-Key unter Parameter → Online-Lektorat eintragen)"));
-        } else {
-            btnOnlineLektorat.setTooltip(new Tooltip(
-                    "Online-Lektorat starten (Typ: " + OnlineLektoratService.currentLektoratTypeLabel()
-                            + ", Modell: " + OnlineLektoratService.currentModelDisplay()
-                            + "). Einstellungen unter Parameter → Online-Lektorat."));
-        }
-    }
-    
     /**
      * Setzt globale Keyboard-Shortcuts auf
      */
@@ -2529,18 +2419,7 @@ public class MainController implements Initializable {
         }
     }
     private void openChapterEditor(DocxFile chapterFile) {
-        openChapterEditor(chapterFile, false);
-    }
-
-    private void openChapterEditor(DocxFile chapterFile, boolean startOnlineLektorat) {
-        openChapterEditor(chapterFile, startOnlineLektorat, false);
-    }
-
-    private void openChapterEditor(DocxFile chapterFile, boolean startOnlineLektorat, boolean enableAssessment) {
         try {
-            if (startOnlineLektorat) {
-                logger.info("openChapterEditor: Online-Lektorat angefordert für {}", chapterFile != null ? chapterFile.getFileName() : "null");
-            }
             // Verarbeite nur dieses eine Kapitel - nur noch MD
             DocxProcessor.OutputFormat format = DocxProcessor.OutputFormat.MARKDOWN;
             
@@ -2558,10 +2437,6 @@ public class MainController implements Initializable {
                         existingHost.getStage().setIconified(false);
                         existingHost.getStage().toFront();
                         existingHost.getStage().requestFocus();
-                    }
-                    if (startOnlineLektorat) {
-                        logger.info("openChapterEditor: startOnlineLektorat auf bestehendem Editor aufgerufen");
-                        existingHost.startOnlineLektorat(enableAssessment);
                     }
                 });
                 updateStatus("Bestehender Editor für '" + chapterFile.getFileName() + "' in den Vordergrund gebracht");
@@ -2612,13 +2487,9 @@ public class MainController implements Initializable {
                                         bringChapterEditorToFront(foundHost);
                                     });
                                 } else {
-                                    editorHost = openChapterEditorHost(docxContent, chapterFile, format, startOnlineLektorat);
+                                    editorHost = openChapterEditorHost(docxContent, chapterFile, format);
                                 }
                                 updateStatus("Kapitel-Editor geöffnet (DOCX übernommen): " + chapterFile.getFileName());
-                                if (startOnlineLektorat && editorHost != null) {
-                                    logger.info("openChapterEditor: startOnlineLektorat geplant (DOCX übernommen)");
-                                    Platform.runLater(() -> editorHost.startOnlineLektorat(enableAssessment));
-                                }
                                 DiffProcessor.saveDocxHashAsync(chapterFile.getFile(), mdFile);
                                 updateDocxHashAfterAccept(chapterFile.getFile());
                                 markDocxFileAsUnchanged(chapterFile.getFile());
@@ -2650,26 +2521,18 @@ public class MainController implements Initializable {
                         String mdContent = new String(java.nio.file.Files.readAllBytes(mdFile.toPath()), java.nio.charset.StandardCharsets.UTF_8);
 
                         // Öffne Chapter-Editor mit MD-Inhalt
-                        EditorWindow editor = openChapterEditorWindow(mdContent, chapterFile, format, startOnlineLektorat);
+                        EditorWindow editor = openChapterEditorWindow(mdContent, chapterFile, format);
                         if (editor != null) {
                             updateStatus("Kapitel-Editor geöffnet (MD): " + chapterFile.getFileName());
-                            if (startOnlineLektorat) {
-                                logger.info("openChapterEditor: startOnlineLektorat geplant (MD geladen)");
-                                Platform.runLater(() -> editor.startOnlineLektorat(enableAssessment));
-                            }
                         }
 
                     } catch (Exception e) {
                         logger.error("Fehler beim Laden der MD-Datei", e);
                         // Fallback: Lade DOCX-Inhalt
                         String content = docxProcessor.processDocxFileContent(chapterFile.getFile(), 1, format);
-                        EditorWindow editor = openChapterEditorWindow(content, chapterFile, format, startOnlineLektorat);
+                        EditorWindow editor = openChapterEditorWindow(content, chapterFile, format);
                         if (editor != null) {
                             updateStatus("Kapitel-Editor geöffnet (DOCX-Fallback): " + chapterFile.getFileName());
-                            if (startOnlineLektorat) {
-                                logger.info("openChapterEditor: startOnlineLektorat geplant (DOCX-Fallback)");
-                                Platform.runLater(() -> editor.startOnlineLektorat(enableAssessment));
-                            }
                             if (mdFile != null) {
                                 DiffProcessor.saveDocxHashAsync(chapterFile.getFile(), mdFile);
                                 updateDocxHashAfterAccept(chapterFile.getFile());
@@ -2698,13 +2561,9 @@ public class MainController implements Initializable {
                 }
                 
                 // Öffne Chapter-Editor mit konvertiertem Inhalt
-                EditorWindow editor = openChapterEditorWindow(content, chapterFile, format, startOnlineLektorat);
+                EditorWindow editor = openChapterEditorWindow(content, chapterFile, format);
                 if (editor != null) {
                     updateStatus("Kapitel-Editor geöffnet (DOCX→MD): " + chapterFile.getFileName());
-                    if (startOnlineLektorat) {
-                        logger.info("openChapterEditor: startOnlineLektorat geplant (DOCX→MD)");
-                        Platform.runLater(() -> editor.startOnlineLektorat(enableAssessment));
-                    }
                 }
             }
 
@@ -3010,15 +2869,10 @@ public class MainController implements Initializable {
 
     private ChapterEditorHost openChapterEditorHost(String text, DocxFile chapterFile,
                                                     DocxProcessor.OutputFormat format) {
-        return openChapterEditorHost(text, chapterFile, format, false);
-    }
-
-    private ChapterEditorHost openChapterEditorHost(String text, DocxFile chapterFile,
-                                                    DocxProcessor.OutputFormat format, boolean onlineLektoratMode) {
         if (isCanvasChapterEditorEnabled()) {
-            return openCanvasChapterEditorWindow(text, chapterFile, onlineLektoratMode);
+            return openCanvasChapterEditorWindow(text, chapterFile);
         }
-        return openChapterEditorWindow(text, chapterFile, format, onlineLektoratMode);
+        return openChapterEditorWindow(text, chapterFile, format);
     }
     public void showDetailedDiffDialog(DocxFile chapterFile, File mdFile, DiffProcessor.DiffResult diffResult,
                                       DocxProcessor.OutputFormat format) {
@@ -4195,8 +4049,7 @@ public class MainController implements Initializable {
         unregisterEditor(editorKey);
     }
 
-    private ManuskriptEditorTestWindow openCanvasChapterEditorWindow(String text, DocxFile chapterFile,
-                                                                     boolean onlineLektoratMode) {
+    private ManuskriptEditorTestWindow openCanvasChapterEditorWindow(String text, DocxFile chapterFile) {
         String chapterName = chapterFile.getFileName();
         if (chapterName.toLowerCase().endsWith(".docx")) {
             chapterName = chapterName.substring(0, chapterName.length() - 5);
@@ -4217,9 +4070,6 @@ public class MainController implements Initializable {
                     chapterFile.getFile(),
                     text);
             canvasWindow.openChapter(content, chapterFile.getFile());
-            if (onlineLektoratMode) {
-                Platform.runLater(() -> canvasWindow.startOnlineLektorat(false));
-            }
             return canvasWindow;
         }
         Window owner = primaryStage != null ? primaryStage.getScene().getWindow() : null;
@@ -4230,21 +4080,13 @@ public class MainController implements Initializable {
         window.openChapter(content, chapterFile.getFile());
         registerChapterEditor(editorKey, window);
         window.show();
-        if (onlineLektoratMode) {
-            window.setOnlineLektoratMode(true);
-            Platform.runLater(() -> window.startOnlineLektorat(false));
-        }
         return window;
     }
 
     private EditorWindow openChapterEditorWindow(String text, DocxFile chapterFile, DocxProcessor.OutputFormat format) {
-        return openChapterEditorWindow(text, chapterFile, format, false);
-    }
-    
-    private EditorWindow openChapterEditorWindow(String text, DocxFile chapterFile, DocxProcessor.OutputFormat format, boolean onlineLektoratMode) {
         try {
             if (isCanvasChapterEditorEnabled()) {
-                ManuskriptEditorTestWindow canvas = openCanvasChapterEditorWindow(text, chapterFile, onlineLektoratMode);
+                ManuskriptEditorTestWindow canvas = openCanvasChapterEditorWindow(text, chapterFile);
                 return canvas != null ? canvas.asLegacyEditorWindow() : null;
             }
 
@@ -4280,11 +4122,6 @@ public class MainController implements Initializable {
             EditorWindow editorController = loader.getController();
             editorController.setText(text);
             editorController.setOutputFormat(format);
-            
-            // Online-Lektorat-Modus setzen, bevor setupAgentSystem() aufgerufen wird
-            if (onlineLektoratMode) {
-                editorController.setOnlineLektoratMode(true);
-            }
             
             // Erstelle Datei-Referenz für das Kapitel
             String chapterNameForFile = chapterFile.getFileName();
@@ -5315,13 +5152,6 @@ public class MainController implements Initializable {
             currentThemeIndex = savedTheme;
         }
 
-        // Online-Lektorat-Button aktualisieren, wenn Hauptfenster wieder Fokus bekommt (z. B. nach Parameter-Dialog)
-        primaryStage.focusedProperty().addListener((o, oldVal, focused) -> {
-            if (Boolean.TRUE.equals(focused)) {
-                updateOnlineLektoratButtonState();
-            }
-        });
-        
         // Stoppe WatchService beim Schließen und prüfe ob es das letzte Fenster ist
         if (primaryStage.getScene() != null) {
             EditingShortcuts.bindPlatformAccelerators(
@@ -5537,7 +5367,6 @@ public class MainController implements Initializable {
         applyThemeToNode(btnRemoveFromSelected, themeIndex);
         applyThemeToNode(btnProcessSelected, themeIndex);
         applyThemeToNode(btnProcessAll, themeIndex);
-        if (btnOnlineLektorat != null) applyThemeToNode(btnOnlineLektorat, themeIndex);
         applyThemeToNode(btnThemeToggle, themeIndex);
         applyThemeToNode(btnDeleteFile, themeIndex);
         applyThemeToNode(btnNewChapter, themeIndex);

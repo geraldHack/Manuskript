@@ -59,6 +59,7 @@ ferris
 figon
 figons
 frina
+frinas
 gallat
 gallats
 grakk

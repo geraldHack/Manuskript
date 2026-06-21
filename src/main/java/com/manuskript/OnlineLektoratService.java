@@ -32,15 +32,23 @@ public class OnlineLektoratService {
 
     /** Hinweistext für Dialoge und Statuszeile: Einstellungen in den Parametern. */
     public static final String SETTINGS_HINT =
-            "Modell, Lektorat-Typ und weitere Optionen können unter Parameter → Online-Lektorat geändert werden.";
+            "Modell und weitere Optionen können unter Parameter → Online-Lektorat geändert werden.";
+
+    /** Bekannte Lektorat-Typ-IDs (Parameter / Start-Dialog). */
+    public static final List<String> LEKTORAT_TYPE_IDS = List.of("allgemein", "stil", "grammatik", "plot");
+
+    /** Normalisiert einen Lektorat-Typ; unbekannte Werte → {@code allgemein}. */
+    public static String normalizeLektoratType(String lektoratType) {
+        if (lektoratType == null || lektoratType.isBlank()) {
+            return "allgemein";
+        }
+        String t = lektoratType.trim().toLowerCase();
+        return LEKTORAT_TYPE_IDS.contains(t) ? t : "allgemein";
+    }
 
     /** Aktueller Wert von {@code api.lektorat.type} (normalisiert). */
     public static String currentLektoratType() {
-        String type = ResourceManager.getParameter("api.lektorat.type", "allgemein").trim();
-        if (type.isEmpty()) {
-            return "allgemein";
-        }
-        return type.toLowerCase();
+        return normalizeLektoratType(ResourceManager.getParameter("api.lektorat.type", "allgemein"));
     }
 
     /** Anzeigename für den Lektorat-Typ in der UI. */
@@ -128,7 +136,14 @@ public class OnlineLektoratService {
      * Führt das Lektorat aus (ohne Fortschritts-Callback).
      */
     public CompletableFuture<LektoratResult> runLektorat(String chapterText) {
-        return runLektorat(chapterText, null);
+        return runLektorat(chapterText, null, null);
+    }
+
+    /**
+     * Führt das Lektorat für den übergebenen Kapiteltext aus (Typ aus Parametern).
+     */
+    public CompletableFuture<LektoratResult> runLektorat(String chapterText, BiConsumer<Integer, Integer> onChunkProgress) {
+        return runLektorat(chapterText, null, onChunkProgress);
     }
 
     /**
@@ -138,10 +153,12 @@ public class OnlineLektoratService {
      * Bei Abbruch (z. B. Timeout) enthält das Ergebnis die bereits verarbeiteten Chunks (partial=true).
      *
      * @param chapterText vollständiger Kapiteltext
+     * @param lektoratType optionaler Typ ({@code allgemein}, {@code stil}, …); {@code null} = aus Parametern
      * @param onChunkProgress optionaler Callback (done, total) nach jedem erfolgreich bearbeiteten Abschnitt; wird aus Hintergrund-Thread aufgerufen
      * @return LektoratResult mit allen oder partiellen Matches; bei vollständigem Fehler (z. B. kein API-Key) failed Future
      */
-    public CompletableFuture<LektoratResult> runLektorat(String chapterText, BiConsumer<Integer, Integer> onChunkProgress) {
+    public CompletableFuture<LektoratResult> runLektorat(String chapterText, String lektoratType,
+                                                         BiConsumer<Integer, Integer> onChunkProgress) {
         String apiKey = ResourceManager.getParameter("api.lektorat.api_key", "").trim();
         String baseUrl = ResourceManager.getParameter("api.lektorat.base_url", "https://api.openai.com/v1").trim().replaceAll("/$", "");
         String model = modelIdOnly(ResourceManager.getParameter("api.lektorat.model", "gpt-4o-mini"));
@@ -157,15 +174,14 @@ public class OnlineLektoratService {
         }
 
         String extraPrompt = ResourceManager.getParameter("api.lektorat.extra_prompt", "").trim();
-        String lektoratType = ResourceManager.getParameter("api.lektorat.type", "allgemein").trim();
-        if (lektoratType.isEmpty()) lektoratType = "allgemein";
+        String type = normalizeLektoratType(lektoratType != null ? lektoratType : currentLektoratType());
 
         int maxCharsPerRequest = parseChunkSize(ResourceManager.getParameter("api.lektorat.chunk_size", String.valueOf(CHUNK_SIZE_DEFAULT)));
 
-        String systemPrompt = buildSystemPrompt(extraPrompt, lektoratType);
+        String systemPrompt = buildSystemPrompt(extraPrompt, type);
 
         if (chapterText.length() <= maxCharsPerRequest) {
-            logger.info("Online-Lektorat: ein Durchlauf (Textlänge={} <= {}), Modell={}, Typ={}", chapterText.length(), maxCharsPerRequest, model.isEmpty() ? "gpt-4o-mini" : model, lektoratType);
+            logger.info("Online-Lektorat: ein Durchlauf (Textlänge={} <= {}), Modell={}, Typ={}", chapterText.length(), maxCharsPerRequest, model.isEmpty() ? "gpt-4o-mini" : model, type);
             // Sofort 0% Fortschritt melden
             if (onChunkProgress != null) {
                 onChunkProgress.accept(0, 100);
@@ -186,7 +202,7 @@ public class OnlineLektoratService {
             pos += chunks.get(i).length();
         }
         int firstChunkLen = chunks.get(0).length();
-        logger.info("Online-Lektorat: Kapitel in {} Abschnitte geteilt (je max. {} Zeichen), Gesamtlänge={}, 1. Chunk={} Zeichen, Modell={}, Typ={}", chunks.size(), maxCharsPerRequest, chapterText.length(), firstChunkLen, model.isEmpty() ? "gpt-4o-mini" : model, lektoratType);
+        logger.info("Online-Lektorat: Kapitel in {} Abschnitte geteilt (je max. {} Zeichen), Gesamtlänge={}, 1. Chunk={} Zeichen, Modell={}, Typ={}", chunks.size(), maxCharsPerRequest, chapterText.length(), firstChunkLen, model.isEmpty() ? "gpt-4o-mini" : model, type);
 
         // Sofort 0/total Fortschritt melden
         if (onChunkProgress != null) {
@@ -814,6 +830,7 @@ public class OnlineLektoratService {
             }
             logger.info("Online-Lektorat: {} Einträge aus JSON, prüfe Offset im Text…", arr.size());
 
+            int searchFrom = 0;
             for (JsonElement el : arr) {
                 if (!el.isJsonObject()) continue;
                 JsonObject o = el.getAsJsonObject();
@@ -830,13 +847,14 @@ public class OnlineLektoratService {
                 int weight = o.has("weight") ? o.get("weight").getAsInt() : 3;
                 weight = Math.max(1, Math.min(5, weight));
 
-                int offset = chapterText.indexOf(original);
+                int offset = LektoratMatchLocator.locateSequential(chapterText, original, searchFrom);
                 if (offset < 0) {
                     logger.info("Online-Lektorat: Original nicht im Text gefunden, überspringe (Länge {}): \"{}\"", original.length(), original.length() > 60 ? original.substring(0, 60).replace("\n", " ") + "…" : original.replace("\n", " "));
                     continue;
                 }
                 int length = original.length();
                 out.add(new LektoratMatch(offset, length, original, suggestions, reason, weight));
+                searchFrom = offset + Math.max(1, length);
             }
             logger.info("Online-Lektorat: {} Vorschläge nach Offset-Prüfung übernommen", out.size());
         } catch (Exception e) {

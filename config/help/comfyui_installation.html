@@ -186,6 +186,7 @@ git clone https://github.com/flybirdxx/ComfyUI-Qwen-TTS<br>
 cd ComfyUI-Qwen-TTS<br>
 pip install -r requirements.txt
                 </div>
+                <div class="warning">⚠️ Danach ComfyUI <strong>neu starten</strong>, damit die neuen Nodes geladen werden (siehe Abschnitt „ComfyUI neu starten in Manuskript“ unten).</div>
             </div>
 
             <div class="step">
@@ -211,9 +212,10 @@ pip install -r requirements.txt
                 <h3>Schritt 6: In Manuskript testen</h3>
                 <ol>
                     <li>Manuskript starten</li>
-                    <li>Kapitel → "TTS bearbeiten"</li>
-                    <li>Provider: "comfyui" wählen</li>
-                    <li>Text eingeben und "Stimme erstellen" klicken</li>
+                    <li>Kapitel wählen → Toolbar <strong>„Sprachsynthese“</strong></li>
+                    <li>Eine ComfyUI-Stimme wählen (kein ElevenLabs)</li>
+                    <li>Text markieren und <strong>„Erstellen“</strong> klicken</li>
+                    <li>Bei Fragen: <strong>?</strong>-Button neben der Stimmen-Auswahl (öffnet diese Hilfe)</li>
                 </ol>
                 <div class="success">✅ Wenn Audio abgespielt wird, ist alles eingerichtet!</div>
             </div>
@@ -249,28 +251,63 @@ brew install python@3.10 git
 
             <div class="step">
                 <h3>Schritt 4: ComfyUI starten</h3>
-                <p>Terminal öffnen und ausführen:</p>
+                <p>ComfyUI aus dem Programme-Ordner starten (DMG-Installation) <em>oder</em> im Terminal:</p>
                 <div class="code">
 cd /Applications/ComfyUI<br>
-python main.py
+python3 main.py
                 </div>
-                <p>Warten bis "Starting server on 127.0.0.1:8188" erscheint.</p>
+                <p>Warten bis <code>Starting server on 127.0.0.1:8188</code> erscheint. Der ComfyUI-Ordner kann je nach Installation abweichen – wichtig ist der Ordner mit Unterverzeichnis <code>custom_nodes</code>.</p>
             </div>
 
             <div class="step">
                 <h3>Schritt 5: Qwen3-TTS installieren</h3>
+                <p>Terminal öffnen (ComfyUI kann laufen oder gestoppt sein) und ausführen – Pfad ggf. anpassen:</p>
                 <div class="code">
 cd /Applications/ComfyUI/custom_nodes<br>
-git clone https://github.com/Kosinkadink/ComfyUI-Qwen3<br>
-cd ComfyUI-Qwen3<br>
+git clone https://github.com/flybirdxx/ComfyUI-Qwen-TTS<br>
+cd ComfyUI-Qwen-TTS<br>
 pip3 install -r requirements.txt
                 </div>
+                <div class="warning">⚠️ Danach ComfyUI <strong>neu starten</strong>, damit die neuen Nodes geladen werden (siehe Abschnitt „ComfyUI neu starten in Manuskript“ unten).</div>
             </div>
 
             <div class="step">
-                <h3>Schritt 6: Modell downloaden und einrichten</h3>
-                <p>Modell herunterladen und nach <code>/Applications/ComfyUI/models/tts/</code> verschieben.</p>
-                <div class="success">✅ Danach in Manuskript unter Provider "comfyui" testen!</div>
+                <h3>Schritt 6: Qwen3-Modell downloaden</h3>
+                <p><strong>Wichtig:</strong> Für HuggingFace benötigen Sie einen kostenlosen Account!</p>
+                <ol>
+                    <li>Besuchen Sie <a href="https://huggingface.co/join" target="_blank">huggingface.co/join</a> und registrieren Sie sich</li>
+                    <li>Loggen Sie sich ein</li>
+                    <li>Laden Sie ein Qwen3-TTS-Modell herunter (empfohlen: 1.7B Base für „Hohe Qualität“ in Manuskript):</li>
+                </ol>
+                <div class="model-links">
+                    <a href="https://huggingface.co/Qwen/Qwen3-TTS-12Hz-1.7B-Base" class="download-btn" target="_blank">
+                        📥 Qwen3-TTS 1.7B Base (empfohlen)
+                    </a>
+                    <a href="https://huggingface.co/Qwen/Qwen3-TTS-12Hz-0.6B-Base" class="download-btn" target="_blank">
+                        📥 Qwen3-TTS 0.6B Base (kleiner, schneller)
+                    </a>
+                </div>
+                <p>Auf HuggingFace: <strong>Files and versions</strong> → alle Dateien des Modells herunterladen (oder per <code>git lfs clone</code>).</p>
+                <p>Entpacken und in den Ordner legen:</p>
+                <div class="code">/Applications/ComfyUI/models/Qwen3-TTS/</div>
+                <p class="note">Der Ordner muss existieren (<code>mkdir -p /Applications/ComfyUI/models/Qwen3-TTS</code>). Die Modell-Dateien müssen so liegen, wie es der Node <code>ComfyUI-Qwen-TTS</code> erwartet (siehe README des Repos).</p>
+            </div>
+
+            <div class="step">
+                <h3>Schritt 7: ComfyUI neu starten</h3>
+                <p>Nach Schritt 5 und 6 ComfyUI beenden und erneut starten (Schritt 4), <em>oder</em> den Button <strong>„ComfyUI neu starten“</strong> in Manuskript nutzen (siehe Abschnitt unten).</p>
+            </div>
+
+            <div class="step">
+                <h3>Schritt 8: In Manuskript testen</h3>
+                <ol>
+                    <li>Manuskript starten</li>
+                    <li>Kapitel wählen → Toolbar <strong>„Sprachsynthese“</strong></li>
+                    <li>Eine ComfyUI-Stimme wählen (kein ElevenLabs)</li>
+                    <li>Text markieren und <strong>„Erstellen“</strong> klicken</li>
+                    <li>Bei Fragen: <strong>?</strong>-Button neben der Stimmen-Auswahl (öffnet diese Hilfe)</li>
+                </ol>
+                <div class="success">✅ Wenn Audio abgespielt wird, ist alles eingerichtet!</div>
             </div>
         </div>
 
@@ -317,18 +354,79 @@ python3 main.py
                 <h3>Schritt 5: Qwen3-TTS installieren</h3>
                 <div class="code">
 cd ~/ComfyUI/custom_nodes<br>
-git clone https://github.com/Kosinkadink/ComfyUI-Qwen3<br>
-cd ComfyUI-Qwen3<br>
+git clone https://github.com/flybirdxx/ComfyUI-Qwen-TTS<br>
+cd ComfyUI-Qwen-TTS<br>
 pip3 install -r requirements.txt
+                </div>
+                <div class="warning">⚠️ Danach ComfyUI <strong>neu starten</strong> (siehe Abschnitt „ComfyUI neu starten in Manuskript“ unten).</div>
+            </div>
+
+            <div class="step">
+                <h3>Schritt 6: Qwen3-Modell downloaden</h3>
+                <p><strong>Wichtig:</strong> HuggingFace-Account erforderlich (<a href="https://huggingface.co/join" target="_blank">huggingface.co/join</a>).</p>
+                <div class="model-links">
+                    <a href="https://huggingface.co/Qwen/Qwen3-TTS-12Hz-1.7B-Base" class="download-btn" target="_blank">
+                        📥 Qwen3-TTS 1.7B Base (empfohlen)
+                    </a>
+                    <a href="https://huggingface.co/Qwen/Qwen3-TTS-12Hz-0.6B-Base" class="download-btn" target="_blank">
+                        📥 Qwen3-TTS 0.6B Base (kleiner)
+                    </a>
+                </div>
+                <p>Beispiel per Git LFS (nach <code>pip install huggingface_hub</code> und <code>huggingface-cli login</code>):</p>
+                <div class="code">
+mkdir -p ~/ComfyUI/models/Qwen3-TTS<br>
+huggingface-cli download Qwen/Qwen3-TTS-12Hz-1.7B-Base --local-dir ~/ComfyUI/models/Qwen3-TTS
                 </div>
             </div>
 
             <div class="step">
-                <h3>Schritt 6: Modell downloaden</h3>
+                <h3>Schritt 7: In Manuskript testen</h3>
+                <ol>
+                    <li>Manuskript starten</li>
+                    <li>Kapitel wählen → Toolbar <strong>„Sprachsynthese“</strong></li>
+                    <li>ComfyUI-Stimme wählen, Text markieren, <strong>„Erstellen“</strong></li>
+                </ol>
+                <div class="success">✅ Wenn Audio abgespielt wird, ist alles eingerichtet!</div>
+            </div>
+        </div>
+
+        <!-- Manuskript-Integration -->
+        <div class="help-section">
+            <h2>🔄 ComfyUI neu starten in Manuskript</h2>
+
+            <div class="step">
+                <h3>Wann nötig?</h3>
+                <ul>
+                    <li>Nach Installation oder Update von <strong>ComfyUI-Qwen-TTS</strong> (Custom Nodes)</li>
+                    <li>Wenn Manuskript meldet, dass Nodes fehlen oder TTS fehlschlägt</li>
+                    <li>Nach dem Kopieren neuer Modell-Dateien (manchmal ausreichend; bei Problemen neu starten)</li>
+                </ul>
+                <p>Manuskript und ComfyUI sind <strong>getrennte Programme</strong> – ein Neustart von ComfyUI beendet Manuskript nicht.</p>
+            </div>
+
+            <div class="step">
+                <h3>Button „ComfyUI neu starten“</h3>
+                <p>Im Fenster <strong>Sprachsynthese</strong> (Toolbar → Sprachsynthese) erscheint in der Statuszeile der Button <strong>„ComfyUI neu starten“</strong>, sobald eine ComfyUI-Stimme (nicht ElevenLabs) gewählt ist.</p>
+                <p>Der Button ist nur aktiv, wenn in den Manuskript-Parametern ein Restart-Skript hinterlegt ist:</p>
+                <ol>
+                    <li>Parameter-Verwaltung öffnen</li>
+                    <li>Kategorie <strong>TTS (ComfyUI)</strong></li>
+                    <li><code>comfyui.restart_script</code> → Pfad zu einem Skript, das ComfyUI beendet und neu startet</li>
+                </ol>
+                <div class="warning">⚠️ Ist kein Skript eingetragen, bleibt der Button ausgegraut – dann ComfyUI manuell neu starten (Terminal/App schließen und Schritt „ComfyUI starten“ wiederholen).</div>
+                <p><strong>Beispiel macOS</strong> (<code>~/bin/restart-comfyui.sh</code>, ausführbar mit <code>chmod +x</code>):</p>
                 <div class="code">
-mkdir -p ~/ComfyUI/models/tts<br>
-wget -O ~/ComfyUI/models/tts/qwen3-tts.bin https://huggingface.co/Qwen/Qwen3-TTS/resolve/main/pytorch_model.bin
+#!/bin/bash<br>
+pkill -f "ComfyUI" 2>/dev/null || true<br>
+sleep 2<br>
+cd /Applications/ComfyUI &amp;&amp; python3 main.py &amp;
                 </div>
+                <p>Pfad in <code>comfyui.restart_script</code> eintragen, z. B. <code>/Users/IhrName/bin/restart-comfyui.sh</code>.</p>
+            </div>
+
+            <div class="step">
+                <h3>Alternative in der ComfyUI-Oberfläche</h3>
+                <p>In ComfyUI selbst gibt es oft <strong>Reload custom nodes</strong> – das reicht manchmal nach Node-Updates. Wenn TTS in Manuskript weiterhin fehlschlägt, ComfyUI vollständig neu starten.</p>
             </div>
         </div>
 
@@ -354,14 +452,29 @@ wget -O ~/ComfyUI/models/tts/qwen3-tts.bin https://huggingface.co/Qwen/Qwen3-TTS
             </div>
 
             <div class="step">
-                <h3>"CUDA out of memory"</h3>
+                <h3>"CUDA out of memory" / Speicher voll (GPU)</h3>
                 <ul>
-                    <li>ComfyUI mit CPU starten: <code>python main.py --cpu</code></li>
-                    <li>oder kleineres Modell verwenden</li>
+                    <li>ComfyUI mit CPU starten: <code>python main.py --cpu</code> (bzw. <code>python3</code> auf macOS/Linux)</li>
+                    <li>oder kleineres Modell verwenden (0.6B statt 1.7B)</li>
                 </ul>
             </div>
 
-      
+            <div class="step">
+                <h3>„ComfyUI neu starten“ ausgegraut</h3>
+                <ul>
+                    <li>In den Parametern <code>comfyui.restart_script</code> auf ein existierendes Skript setzen</li>
+                    <li>Oder ComfyUI manuell neu starten</li>
+                </ul>
+            </div>
+
+            <div class="step">
+                <h3>Qwen3-Nodes fehlen / unbekannter Node-Typ</h3>
+                <ul>
+                    <li>Prüfen: <code>custom_nodes/ComfyUI-Qwen-TTS</code> von <code>flybirdxx</code> installiert?</li>
+                    <li>ComfyUI danach neu starten (nicht nur Browser-Tab neu laden)</li>
+                </ul>
+            </div>
+
         </div>
 
         <!-- Checkliste -->
@@ -374,6 +487,8 @@ wget -O ~/ComfyUI/models/tts/qwen3-tts.bin https://huggingface.co/Qwen/Qwen3-TTS
                 <li>Qwen3-Nodes installiert</li>
                 <li>Qwen3-Modell heruntergeladen</li>
                 <li>Manuskript kann auf ComfyUI verbinden</li>
+                <li>ComfyUI nach Node-Installation neu gestartet</li>
+                <li>Optional: Restart-Skript in Manuskript-Parametern hinterlegt</li>
                 <li>Erste Audio-Generierung erfolgreich</li>
             </ul>
         </div>

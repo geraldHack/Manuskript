@@ -73,6 +73,15 @@ public interface ChapterEditorHost {
 
     void startOnlineLektorat(boolean enableAssessment);
 
+    /** Wie {@link #startOnlineLektorat(boolean)}, mit explizitem Lektorat-Typ für diesen Lauf. */
+    default void startOnlineLektorat(boolean enableAssessment, String lektoratType) {
+        startOnlineLektorat(enableAssessment);
+    }
+
+    /** Lektorat beenden: Markierungen entfernen, Panel schließen, Agenten wieder freigeben. */
+    default void exitOnlineLektorat() {
+    }
+
     void updateStatus(String message);
 
     void updateStatusError(String message);

@@ -124,6 +124,11 @@ public class EditorWindowHostAdapter implements ChapterEditorHost {
     }
 
     @Override
+    public void startOnlineLektorat(boolean enableAssessment, String lektoratType) {
+        editor.startOnlineLektorat(enableAssessment);
+    }
+
+    @Override
     public void updateStatus(String message) {
         editor.updateStatus(message);
     }

@@ -102,6 +102,7 @@ public class ChapterAgentSupport {
         ensurePanelVisible(userWantsPanelVisible);
         loadAgentModels();
         applyEditorAppearance();
+        Platform.runLater(this::applyEditorAppearance);
     }
 
     public void applyFontSize(int size) {
@@ -178,6 +179,7 @@ public class ChapterAgentSupport {
             }
             ChapterEditorSplitPreferences.apply(mainSplitPane);
             agentPanelVisible = true;
+            applyEditorAppearance();
             return;
         }
         boolean hasPanel = agentScrollPane != null || items.contains(agentTabPane);
@@ -195,6 +197,9 @@ public class ChapterAgentSupport {
             ChapterEditorSplitPreferences.apply(mainSplitPane);
         }
         agentPanelVisible = visible;
+        if (visible) {
+            applyEditorAppearance();
+        }
     }
 
     private void setupAgentTabCallbacks(AgentTab tab) {
@@ -326,6 +331,7 @@ public class ChapterAgentSupport {
             host.updateStatus("Agenten-Panel nicht verfügbar.");
             return;
         }
+        applyEditorAppearance();
         AgentSelectionRevisionRunner.run(
                 host,
                 agentTabPane,
@@ -351,6 +357,7 @@ public class ChapterAgentSupport {
             host.updateStatus("Agenten-Panel nicht verfügbar.");
             return;
         }
+        applyEditorAppearance();
         AgentIdiomReviewRunner.run(
                 host,
                 agentTabPane,
@@ -497,6 +504,7 @@ public class ChapterAgentSupport {
     }
 
     private void runAgentAnalysis(AgentTab tab) {
+        applyEditorAppearance();
         final AgentTab targetTab = tab != null ? tab
                 : (agentTabPane != null ? agentTabPane.getActiveTab() : null);
         if (targetTab == null) {
