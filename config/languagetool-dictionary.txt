@@ -13,6 +13,7 @@ almins
 altheras
 alvaro
 arista
+ashford
 asthenar
 asthenars
 ayen
@@ -78,6 +79,7 @@ joms
 jorin
 jorins
 kael
+kaels
 kala
 kalem
 kalems

@@ -4070,6 +4070,7 @@ public class MainController implements Initializable {
                     chapterFile.getFile(),
                     text);
             canvasWindow.openChapter(content, chapterFile.getFile());
+            applyGlobalSearchIfMatching(canvasWindow, chapterFile);
             return canvasWindow;
         }
         Window owner = primaryStage != null ? primaryStage.getScene().getWindow() : null;
@@ -4080,6 +4081,7 @@ public class MainController implements Initializable {
         window.openChapter(content, chapterFile.getFile());
         registerChapterEditor(editorKey, window);
         window.show();
+        applyGlobalSearchIfMatching(window, chapterFile);
         return window;
     }
 
@@ -4256,18 +4258,7 @@ public class MainController implements Initializable {
             
             editorStage.show();
             
-            // Prüfe, ob diese Datei durch globale Suche markiert ist
-            if (filesWithSearchMatches.contains(chapterFile) && !currentSearchText.isEmpty()) {
-                // Automatisch Suche im Editor aktivieren
-                Platform.runLater(() -> {
-                    editorController.setSearchAndExecute(
-                        currentSearchText,
-                        currentSearchRegex,
-                        currentSearchCaseSensitive,
-                        currentSearchWholeWord
-                    );
-                });
-            }
+            applyGlobalSearchIfMatching(editorController, chapterFile);
             
             return editorController;
             
@@ -8890,6 +8881,53 @@ public class MainController implements Initializable {
         
         // Aktualisiere Tabelle
         refreshTableHighlighting();
+        applyGlobalSearchToOpenEditors();
+    }
+
+    private void applyGlobalSearchToOpenEditors() {
+        if (currentSearchText == null || currentSearchText.isEmpty()) {
+            return;
+        }
+        Platform.runLater(() -> {
+            for (ChapterEditorHost host : new ArrayList<>(openChapterEditors.values())) {
+                if (hostHasGlobalSearchMatch(host)) {
+                    scheduleGlobalSearchInEditor(host);
+                }
+            }
+        });
+    }
+
+    private boolean hostHasGlobalSearchMatch(ChapterEditorHost host) {
+        File hostDocx = host.getOriginalDocxFile();
+        if (hostDocx == null) {
+            return false;
+        }
+        for (DocxFile docxFile : filesWithSearchMatches) {
+            if (hostDocx.equals(docxFile.getFile())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void applyGlobalSearchIfMatching(ChapterEditorHost host, DocxFile chapterFile) {
+        if (host == null || chapterFile == null || currentSearchText == null || currentSearchText.isEmpty()) {
+            return;
+        }
+        if (!filesWithSearchMatches.contains(chapterFile)) {
+            return;
+        }
+        scheduleGlobalSearchInEditor(host);
+    }
+
+    private void scheduleGlobalSearchInEditor(ChapterEditorHost host) {
+        PauseTransition delay = new PauseTransition(Duration.millis(300));
+        delay.setOnFinished(e -> host.applyGlobalSearch(
+                currentSearchText,
+                currentSearchRegex,
+                currentSearchCaseSensitive,
+                currentSearchWholeWord));
+        delay.play();
     }
     
     /**

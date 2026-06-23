@@ -152,4 +152,9 @@ public class EditorWindowHostAdapter implements ChapterEditorHost {
     public boolean saveChapter() throws IOException {
         return editor.saveCurrentChapterFromHost();
     }
+
+    @Override
+    public void applyGlobalSearch(String searchText, boolean regex, boolean caseSensitive, boolean wholeWord) {
+        editor.applyGlobalSearch(searchText, regex, caseSensitive, wholeWord);
+    }
 }

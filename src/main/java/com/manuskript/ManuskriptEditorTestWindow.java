@@ -2252,6 +2252,13 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         return true;
     }
 
+    @Override
+    public void applyGlobalSearch(String searchText, boolean regex, boolean caseSensitive, boolean wholeWord) {
+        if (mdTextArea != null) {
+            mdTextArea.applyGlobalSearch(searchText, regex, caseSensitive, wholeWord);
+        }
+    }
+
     private void setupWindowPersistence() {
         stage.setOnHidden(event -> ChapterEditorSplitPreferences.save(mainSplitPane, preferences));
         stage.xProperty().addListener((obs, oldValue, newValue) ->

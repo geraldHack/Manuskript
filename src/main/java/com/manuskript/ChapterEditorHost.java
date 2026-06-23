@@ -133,4 +133,11 @@ public interface ChapterEditorHost {
         int style = java.util.prefs.Preferences.userNodeForPackage(EditorWindow.class).getInt("quoteStyle", 0);
         return style >= 0 && style < QuotationMarkSupport.STYLE_COUNT ? style : 0;
     }
+
+    /**
+     * Globale Suche aus dem Hauptfenster: Suchfeld befüllen, alle Treffer markieren,
+     * zum ersten Treffer scrollen.
+     */
+    default void applyGlobalSearch(String searchText, boolean regex, boolean caseSensitive, boolean wholeWord) {
+    }
 }

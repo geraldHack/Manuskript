@@ -4080,6 +4080,11 @@ if (caret != null) {
         }
     }
     
+    @Override
+    public void applyGlobalSearch(String searchText, boolean regex, boolean caseSensitive, boolean wholeWord) {
+        setSearchAndExecute(searchText, regex, caseSensitive, wholeWord);
+    }
+
     /**
      * Setzt Suchtext, Flags und führt Suche aus (für globale Suche)
      */

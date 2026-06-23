@@ -24,8 +24,11 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Wiederverwendbare Markdown-Textfläche mit optionalem Minimal-Toolbar
@@ -417,6 +420,10 @@ public class MdTextArea extends VBox {
 
     public void handleSearchNavigationKey(KeyEvent event) {
         searchSupport.handleSearchNavigationKey(event);
+    }
+
+    public void applyGlobalSearch(String searchText, boolean regex, boolean caseSensitive, boolean wholeWord) {
+        searchSupport.applyGlobalSearch(searchText, regex, caseSensitive, wholeWord);
     }
 
     public void positionCaret(int position) {
@@ -822,6 +829,69 @@ public class MdTextArea extends VBox {
                 reportStatusLater("1 Vorkommen ersetzt");
             } else {
                 reportStatusLater(count + " Vorkommen ersetzt");
+            }
+        }
+
+        void applyGlobalSearch(String searchText, boolean regex, boolean caseSensitive, boolean wholeWord) {
+            if (searchField == null || searchText == null || searchText.isBlank()) {
+                return;
+            }
+            String trimmed = searchText.trim();
+            regexCheckbox.setSelected(regex);
+            searchField.setText(trimmed);
+            lastSearchCacheKey = null;
+            currentSearchMatchIndex = -1;
+            cachedSearchMatches = collectSearchMatches(trimmed, regex, caseSensitive, wholeWord);
+            markSearchResultsFromMatches();
+            if (cachedSearchMatches.isEmpty()) {
+                reportStatus("Keine Treffer", true);
+                return;
+            }
+            lastSearchCacheKey = globalSearchCacheKey(trimmed, regex, caseSensitive, wholeWord);
+            Platform.runLater(() -> goToSearchMatch(0));
+        }
+
+        private String globalSearchCacheKey(String query, boolean regex, boolean caseSensitive, boolean wholeWord) {
+            return query + "\0" + regex + "\0" + caseSensitive + "\0" + wholeWord;
+        }
+
+        private List<ManuskriptTextEditor.SearchMatch> collectSearchMatches(
+                String query, boolean regex, boolean caseSensitive, boolean wholeWord) {
+            try {
+                int flags = Pattern.MULTILINE | Pattern.DOTALL;
+                if (!caseSensitive) {
+                    flags |= Pattern.CASE_INSENSITIVE;
+                }
+                String patternText = query;
+                if (wholeWord && !regex) {
+                    patternText = "\\b" + Pattern.quote(patternText) + "\\b";
+                } else if (!regex) {
+                    patternText = Pattern.quote(patternText);
+                } else if (wholeWord) {
+                    patternText = "\\b" + patternText + "\\b";
+                }
+                Pattern pattern = Pattern.compile(patternText, flags);
+                List<ManuskriptTextEditor.SearchMatch> result = new ArrayList<>();
+                Matcher matcher = pattern.matcher(editor.getText());
+                while (matcher.find()) {
+                    result.add(new ManuskriptTextEditor.SearchMatch(matcher.start(), matcher.end()));
+                }
+                return result;
+            } catch (Exception ignored) {
+                return List.of();
+            }
+        }
+
+        private void markSearchResultsFromMatches() {
+            clearSearchMarks();
+            if (cachedSearchMatches.isEmpty()) {
+                return;
+            }
+            searchMarks = editor.newMarkedArea();
+            searchMarks.markType(ManuskriptTextEditor.MarkedArea.Type.HIGHLIGHT)
+                    .markColor(ManuskriptTextEditor.MarkedArea.SEARCH_MATCH_COLOR);
+            for (ManuskriptTextEditor.SearchMatch match : cachedSearchMatches) {
+                searchMarks.addRange(match.start(), match.end());
             }
         }
     }
