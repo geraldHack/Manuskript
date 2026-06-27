@@ -93,7 +93,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.CountDownLatch;
 import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
 import javafx.scene.control.cell.CheckBoxTableCell;
@@ -202,6 +201,8 @@ public class MainController implements Initializable {
     private File downloadsDirectory;
     private File backupDirectory;
     private AtomicBoolean isMonitoring = new AtomicBoolean(false);
+    /** Projektverzeichnis für Hintergrund-Thread (ohne JavaFX-Thread-Wechsel). */
+    private volatile String cachedProjectDirectoryPath = "";
     
     // Theme-System
     private int currentThemeIndex = 0;
@@ -591,6 +592,10 @@ public class MainController implements Initializable {
         
         // Downloads-Monitor Event-Handler
         chkDownloadsMonitor.setOnAction(e -> toggleDownloadsMonitor());
+        if (txtDirectoryPath != null) {
+            txtDirectoryPath.textProperty().addListener((obs, oldValue, newValue) -> updateCachedProjectDirectoryPath());
+            updateCachedProjectDirectoryPath();
+        }
         if (downloadsMonitorContainer != null) {
             Button downloadsMonitorHelpButton = HelpSystem.createHelpButton(
                 "Hilfe zum Downloads-Monitor",
@@ -780,7 +785,7 @@ public class MainController implements Initializable {
                             File mdFile = deriveMdFileFor(file.getFile());
                             if (mdFile != null && mdFile.exists()) {
                                 try {
-                                    mdFile.delete();
+                                    deleteMdFileWithHistory(mdFile);
                                 } catch (Exception e) {
                                     logger.error("Fehler beim Löschen der MD-Datei {}: {}", mdFile.getName(), e.getMessage());
                                 }
@@ -1590,7 +1595,8 @@ public class MainController implements Initializable {
             message.append("  → ").append(mdFile != null ? mdFile.getName() : "unbekannt").append("\n\n");
         }
         
-        message.append("Wenn Sie die Dateien nach links verschieben möchten, müssen die MD-Dateien gelöscht werden.\n\n");
+        message.append("Wenn Sie die Dateien nach links verschieben möchten, müssen die MD-Dateien gelöscht werden.\n");
+        message.append("Die letzten Versionen bleiben in der MD-Historie erhalten (Editor → Versionen).\n\n");
         message.append("Möchten Sie fortfahren?");
         
         // CustomAlert verwenden
@@ -1980,6 +1986,16 @@ public class MainController implements Initializable {
         File dataDir = getDataDirectory(docx);
         return new File(dataDir, baseName + ".md");
     }
+
+    private void deleteMdFileWithHistory(File mdFile) {
+        if (mdFile == null || !mdFile.exists()) {
+            return;
+        }
+        ChapterMdHistory.snapshotFromFile(mdFile, ChapterMdHistory.Reason.DELETE);
+        if (!mdFile.delete()) {
+            logger.warn("MD-Datei konnte nicht gelöscht werden: {}", mdFile.getAbsolutePath());
+        }
+    }
     
     private File deriveSidecarFileFor(File docx, DocxProcessor.OutputFormat format) {
         if (docx == null) return null;
@@ -2303,7 +2319,7 @@ public class MainController implements Initializable {
                     File mdFile = deriveMdFileFor(file.getFile());
                     if (mdFile != null && mdFile.exists()) {
                         try {
-                            mdFile.delete();
+                            deleteMdFileWithHistory(mdFile);
                         } catch (Exception e) {
                             logger.error("Fehler beim Löschen der MD-Datei {}: {}", mdFile.getName(), e.getMessage());
                         }
@@ -3556,6 +3572,9 @@ public class MainController implements Initializable {
                     if (mdFileToSave != null) {
                         try {
                             java.nio.file.Files.createDirectories(mdFileToSave.getParentFile().toPath());
+                            if (mdFileToSave.exists()) {
+                                ChapterMdHistory.snapshotFromFile(mdFileToSave, ChapterMdHistory.Reason.OVERWRITE);
+                            }
                             java.nio.file.Files.write(mdFileToSave.toPath(), docxContent.getBytes(java.nio.charset.StandardCharsets.UTF_8));
                             updateDocxHashAfterAccept(chapterFile.getFile());
                             markDocxFileAsUnchanged(chapterFile.getFile());
@@ -4806,35 +4825,11 @@ public class MainController implements Initializable {
      * WICHTIG: Diese Methode läuft im Hintergrund-Thread, nicht im JavaFX-Thread!
      */
     private void checkForNewFiles() {
-        
         if (!isMonitoring.get() || downloadsDirectory == null) {
-            logger.warn("Downloads-Monitor nicht aktiv oder Verzeichnis null");
-            logger.warn("isMonitoring: {}, downloadsDirectory: {}", isMonitoring.get(), downloadsDirectory);
             return;
         }
-        
-        // JavaFX-Property-Werte im JavaFX-Thread abrufen und dann im Hintergrund-Thread verwenden
-        final String[] currentDirPath = new String[1];
-        CountDownLatch latch = new CountDownLatch(1);
-        try {
-            Platform.runLater(() -> {
-                try {
-                    currentDirPath[0] = txtDirectoryPath.getText();
-                } finally {
-                    latch.countDown();
-                }
-            });
-            // Warten auf JavaFX-Thread (max. 200ms Timeout)
-            if (!latch.await(200, TimeUnit.MILLISECONDS)) {
-                logger.warn("Timeout beim Abrufen des Verzeichnispfads");
-                return;
-            }
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            return;
-        }
-        
-        String dirPath = currentDirPath[0];
+
+        String dirPath = cachedProjectDirectoryPath;
         if (dirPath == null || dirPath.isEmpty()) {
             return;
         }
@@ -4981,6 +4976,16 @@ public class MainController implements Initializable {
         }
     }
     
+    /** Aktualisiert den gecachten Projektpfad für den Downloads-Hintergrund-Thread. */
+    private void updateCachedProjectDirectoryPath() {
+        if (txtDirectoryPath == null) {
+            cachedProjectDirectoryPath = "";
+            return;
+        }
+        String path = txtDirectoryPath.getText();
+        cachedProjectDirectoryPath = path == null ? "" : path.trim();
+    }
+
     /**
      * Lädt die Downloads-Monitor-Einstellungen
      */

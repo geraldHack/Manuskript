@@ -75,7 +75,7 @@ public class AgentTab extends ScrollPane {
     private int currentFontSize = 12;
     private List<String> availableModels = new ArrayList<>();
     private TextArea revisionInstructionField;
-    private ChatbotContextPane idiomContextPane;
+    private ChatbotContextPane contextPane;
     private TextArea rewriteTextArea;
     private Button applyRewriteButton;
     private Runnable onApplyRewriteClicked;
@@ -303,7 +303,7 @@ public class AgentTab extends ScrollPane {
             VBox instructionBox = new VBox(4, instructionLabel, revisionInstructionField);
             contentRoot.getChildren().addAll(toggleConfigButton, configBox, instructionBox, buttonRow, scrollPane);
         } else if (idiomReview) {
-            idiomContextPane = new ChatbotContextPane(config.getId());
+            contextPane = new ChatbotContextPane(config.getId());
             Label rewriteLabel = new Label("Überarbeitete Markierung:");
             rewriteTextArea = new TextArea();
             rewriteTextArea.setPromptText("Erscheint nach der Analyse…");
@@ -319,10 +319,11 @@ public class AgentTab extends ScrollPane {
                     onApplyRewriteClicked.run();
                 }
             });
-            contentRoot.getChildren().addAll(toggleConfigButton, configBox, idiomContextPane,
+            contentRoot.getChildren().addAll(toggleConfigButton, configBox, contextPane,
                     buttonRow, scrollPane, rewriteLabel, rewriteTextArea, applyRewriteButton);
         } else {
-            contentRoot.getChildren().addAll(toggleConfigButton, configBox, buttonRow, scrollPane);
+            contextPane = new ChatbotContextPane(config.getId(), "WORLD_EDITOR");
+            contentRoot.getChildren().addAll(toggleConfigButton, configBox, contextPane, buttonRow, scrollPane);
         }
 
         toggleConfigButton.setOnAction(e -> {
@@ -427,7 +428,11 @@ public class AgentTab extends ScrollPane {
     }
 
     public ChatbotContextConfig getIdiomContextConfig() {
-        return idiomContextPane != null ? idiomContextPane.getContextConfig() : null;
+        return getContextConfig();
+    }
+
+    public ChatbotContextConfig getContextConfig() {
+        return contextPane != null ? contextPane.getContextConfig() : null;
     }
 
     public String getRewriteText() {

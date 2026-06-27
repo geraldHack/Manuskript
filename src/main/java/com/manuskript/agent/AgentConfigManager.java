@@ -85,7 +85,7 @@ public class AgentConfigManager {
             backend,
             getDefaultPlotholePrompt(),
             model,
-            0.3, 2048, 0.7, 1.3
+            0.3, 4096, 0.7, 1.3
         ));
         AgentConfig sceneAgent = new AgentConfig(
             "Szene Schreiben",

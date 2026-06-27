@@ -24,6 +24,7 @@ public class ChatbotContextPane extends VBox {
 
     private final ChatbotContextConfig contextConfig = new ChatbotContextConfig();
     private final Preferences preferences;
+    private final String defaultSourcesCsv;
     private final FlowPane contextPills;
     private final HBox neighborSpinnersRow;
     private final Spinner<Integer> chaptersBeforeSpinner;
@@ -31,13 +32,20 @@ public class ChatbotContextPane extends VBox {
     private final ComboBox<ChatbotContextSize> contextSizeCombo;
 
     public ChatbotContextPane(String preferencesKey) {
+        this(preferencesKey, "CURRENT_CHAPTER,WORLD_EDITOR");
+    }
+
+    /**
+     * @param defaultSourcesCsv kommagetrennte {@link ChatbotContextSource}-Namen für Erststart
+     */
+    public ChatbotContextPane(String preferencesKey, String defaultSourcesCsv) {
         super(4);
         getStyleClass().add("chatbot-context-pane");
         String key = preferencesKey == null || preferencesKey.isBlank() ? "default" : preferencesKey;
         preferences = Preferences.userNodeForPackage(ChatbotContextPane.class).node(key);
-
-        contextConfig.addSource(ChatbotContextSource.CURRENT_CHAPTER);
-        contextConfig.addSource(ChatbotContextSource.WORLD_EDITOR);
+        this.defaultSourcesCsv = defaultSourcesCsv == null || defaultSourcesCsv.isBlank()
+                ? "CURRENT_CHAPTER,WORLD_EDITOR"
+                : defaultSourcesCsv;
 
         Button addContextButton = new Button("+ Kontext");
         addContextButton.setOnAction(e -> showAddContextMenu(addContextButton));
@@ -92,7 +100,7 @@ public class ChatbotContextPane extends VBox {
 
     public void loadFromPreferences() {
         contextConfig.setSources(EnumSet.noneOf(ChatbotContextSource.class));
-        String sources = preferences.get("context_sources", "CURRENT_CHAPTER,WORLD_EDITOR");
+        String sources = preferences.get("context_sources", defaultSourcesCsv);
         if (!sources.isBlank()) {
             for (String part : sources.split(",")) {
                 try {

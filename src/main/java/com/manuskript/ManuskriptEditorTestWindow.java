@@ -147,10 +147,15 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
     private ChapterTextAnalysisWindow textAnalysisWindow;
     private ChapterMacroWindow macroWindow;
     private AgentActivityTracker agentActivityTracker;
+    private ComboBox<ChapterMdHistory.Entry> cmbMdHistory;
+    private Button btnHistoryDiff;
+    private Button btnHistoryRestore;
 
     public ManuskriptEditorTestWindow(Window owner) {
         this(owner, null);
     }
+
+    private boolean suppressViewStateSave;
 
     public ManuskriptEditorTestWindow(Window owner, MainController mainController) {
         this.owner = owner;
@@ -202,6 +207,9 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
                     if (chapterAgentSupport != null) {
                         chapterAgentSupport.applyEditorAppearance();
                     }
+                    if (sceneOutlineWindow != null && sceneOutlineWindow.isShowing()) {
+                        sceneOutlineWindow.applyEditorFont(value, mdTextArea.getEditorFontSize());
+                    }
                 })
                 .onFontSizeChanged(value -> {
                     preferences.putDouble(PREF_FONT_SIZE, value);
@@ -211,6 +219,9 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
                     }
                     if (lektoratPanel != null) {
                         lektoratPanel.applyFontSize(sizePx);
+                    }
+                    if (sceneOutlineWindow != null && sceneOutlineWindow.isShowing()) {
+                        sceneOutlineWindow.applyEditorFont(getEditorFontFamily(), value);
                     }
                 })
                 .onLineSpacingChanged(value -> preferences.putDouble(PREF_LINE_SPACING, value))
@@ -226,7 +237,11 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         languageToolAutoEnabled = preferences.getBoolean(PREF_LT_AUTO, false);
         editor.setLanguageToolDictionary(languageToolDictionary);
         editor.setOnLanguageToolMatchesChanged(() -> Platform.runLater(this::updateLanguageToolStatus));
-        editor.setOnSelectionChanged(() -> Platform.runLater(this::updateSelectionCount));
+        editor.setOnSelectionChanged(() -> Platform.runLater(() -> {
+            updateSelectionCount();
+            saveChapterViewState();
+        }));
+        editor.scrollTopProperty().addListener((obs, oldValue, newValue) -> saveChapterViewState());
         editor.setContextMenuRewriteActions(
                 new ChapterRewriteContextActions(this, stage, () -> themeIndex, preferences, loadedDocxFile),
                 themeIndex);
@@ -787,6 +802,45 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         saveChapter.setTooltip(new Tooltip("Speichern (" + EditingShortcuts.acceleratorHint("S") + ")"));
         saveChapter.setOnAction(e -> saveLoadedChapter());
 
+        cmbMdHistory = new ComboBox<>();
+        cmbMdHistory.setPromptText("Versionen");
+        cmbMdHistory.setPrefWidth(220);
+        cmbMdHistory.setMaxWidth(300);
+        cmbMdHistory.setDisable(true);
+        cmbMdHistory.setCellFactory(listView -> new ListCell<>() {
+            @Override
+            protected void updateItem(ChapterMdHistory.Entry item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? null : item.displayLabel());
+            }
+        });
+        cmbMdHistory.setButtonCell(new ListCell<>() {
+            @Override
+            protected void updateItem(ChapterMdHistory.Entry item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? "Versionen" : item.displayLabel());
+            }
+        });
+        cmbMdHistory.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, selected) -> {
+            boolean hasSelection = selected != null;
+            if (btnHistoryDiff != null) {
+                btnHistoryDiff.setDisable(!hasSelection);
+            }
+            if (btnHistoryRestore != null) {
+                btnHistoryRestore.setDisable(!hasSelection);
+            }
+        });
+
+        btnHistoryDiff = new Button("Diff");
+        btnHistoryDiff.setTooltip(new Tooltip("Gewählte Version mit aktuellem Editor-Text vergleichen"));
+        btnHistoryDiff.setDisable(true);
+        btnHistoryDiff.setOnAction(e -> showSelectedHistoryDiff());
+
+        btnHistoryRestore = new Button("Wiederherstellen");
+        btnHistoryRestore.setTooltip(new Tooltip("Gewählte Version in den Editor laden (ungespeichert)"));
+        btnHistoryRestore.setDisable(true);
+        btnHistoryRestore.setOnAction(e -> restoreSelectedHistoryVersion());
+
         Button insertImage = new Button("Bild einfügen");
         insertImage.setOnAction(e -> insertImage());
 
@@ -829,7 +883,8 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         toggleRow.setAlignment(Pos.CENTER);
         toggleRow.setPadding(new Insets(2, 0, 2, 0));
 
-        statusRow.getChildren().addAll(editorHelpMenu, statusSpacer, saveChapter, lblLanguageToolStatus, lblSelectionCount, statusLabel);
+        statusRow.getChildren().addAll(editorHelpMenu, statusSpacer, cmbMdHistory, btnHistoryDiff,
+                btnHistoryRestore, saveChapter, lblLanguageToolStatus, lblSelectionCount, statusLabel);
         statusRow.setAlignment(Pos.CENTER_RIGHT);
 
         FlowPane formatPane = new FlowPane(6, 4);
@@ -1278,6 +1333,7 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
     }
 
     private void applyLoadedChapter(MainController.PrototypeChapterContent chapter, File docxFile) {
+        saveChapterViewState();
         suppressDirty = true;
         try {
             clearTransientMarks();
@@ -1297,10 +1353,43 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
             checkQuoteErrorsOnLoad(chapter.content());
             registerWithMainController();
             reloadSceneOutlineIfOpen();
+            refreshMdHistoryComboBox();
+            restoreChapterViewState();
         } finally {
             suppressDirty = false;
             scheduleInitialLanguageToolCheck();
         }
+    }
+
+    private void saveChapterViewState() {
+        if (suppressViewStateSave || editor == null) {
+            return;
+        }
+        String key = getEditorKey();
+        if (key == null) {
+            return;
+        }
+        ChapterEditorViewState.save(key, editor.getCaretPosition(), editor.getScrollRatio());
+    }
+
+    private void restoreChapterViewState() {
+        String key = getEditorKey();
+        if (key == null || editor == null) {
+            return;
+        }
+        ChapterEditorViewState.ViewState state = ChapterEditorViewState.load(key);
+        if (state == null) {
+            return;
+        }
+        suppressViewStateSave = true;
+        Platform.runLater(() -> {
+            editor.restoreViewState(state.caret(), state.scrollRatio());
+            Platform.runLater(() -> {
+                editor.restoreViewState(state.caret(), state.scrollRatio());
+                suppressViewStateSave = false;
+                requestEditorFocus();
+            });
+        });
     }
 
     private void convertAllQuotationMarksInText(int styleIndex) {
@@ -1416,16 +1505,127 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         updateLanguageToolStatus();
     }
 
+    private void refreshMdHistoryComboBox() {
+        if (cmbMdHistory == null) {
+            return;
+        }
+        ChapterMdHistory.Entry selected = cmbMdHistory.getSelectionModel().getSelectedItem();
+        List<ChapterMdHistory.Entry> versions = loadedChapterFile != null
+                ? ChapterMdHistory.listVersions(loadedChapterFile)
+                : List.of();
+        cmbMdHistory.getItems().setAll(versions);
+        boolean hasVersions = !versions.isEmpty();
+        cmbMdHistory.setDisable(!hasVersions);
+        if (selected != null) {
+            for (ChapterMdHistory.Entry entry : versions) {
+                if (entry.fileName().equals(selected.fileName())) {
+                    cmbMdHistory.getSelectionModel().select(entry);
+                    return;
+                }
+            }
+        }
+        cmbMdHistory.getSelectionModel().clearSelection();
+        if (btnHistoryDiff != null) {
+            btnHistoryDiff.setDisable(true);
+        }
+        if (btnHistoryRestore != null) {
+            btnHistoryRestore.setDisable(true);
+        }
+    }
+
+    private void showSelectedHistoryDiff() {
+        if (loadedChapterFile == null || cmbMdHistory == null) {
+            return;
+        }
+        ChapterMdHistory.Entry entry = cmbMdHistory.getSelectionModel().getSelectedItem();
+        if (entry == null) {
+            updateStatus("Bitte zuerst eine Version auswählen", true);
+            return;
+        }
+        String historyContent = ChapterMdHistory.readEntryContent(loadedChapterFile, entry);
+        String chapterLabel = loadedChapterName != null ? loadedChapterName : loadedChapterFile.getName();
+        ChapterMdHistoryDiffDialog.show(
+                stage,
+                themeIndex,
+                chapterLabel,
+                entry.displayLabel(),
+                historyContent,
+                editor.getText(),
+                this::applyRestoredHistoryContent);
+    }
+
+    private void restoreSelectedHistoryVersion() {
+        if (loadedChapterFile == null || cmbMdHistory == null) {
+            return;
+        }
+        ChapterMdHistory.Entry entry = cmbMdHistory.getSelectionModel().getSelectedItem();
+        if (entry == null) {
+            updateStatus("Bitte zuerst eine Version auswählen", true);
+            return;
+        }
+        if (!confirmRestoreWithDirtyCheck()) {
+            return;
+        }
+        String historyContent = ChapterMdHistory.readEntryContent(loadedChapterFile, entry);
+        applyRestoredHistoryContent(historyContent);
+        updateStatus("Version geladen: " + entry.displayLabel() + " — bitte speichern");
+    }
+
+    private boolean confirmRestoreWithDirtyCheck() {
+        refreshDirtyState();
+        if (!dirty) {
+            return true;
+        }
+        Optional<UnsavedChangesChoice> result = promptUnsavedChangesDialog(
+                "Möchten Sie die aktuellen Änderungen speichern, bevor eine Version wiederhergestellt wird?",
+                "Speichern & Wiederherstellen",
+                "Verwerfen & Wiederherstellen");
+        if (result.isEmpty()) {
+            return false;
+        }
+        UnsavedChangesChoice choice = result.get();
+        if (choice.discard()) {
+            return true;
+        }
+        if (choice.save()) {
+            return performSave();
+        }
+        return false;
+    }
+
+    private void applyRestoredHistoryContent(String historyContent) {
+        if (loadedChapterFile == null) {
+            return;
+        }
+        String current = editor.getText() != null ? editor.getText() : "";
+        if (!current.equals(historyContent != null ? historyContent : "")) {
+            ChapterMdHistory.snapshotWithContent(loadedChapterFile, current, ChapterMdHistory.Reason.BEFORE_RESTORE);
+            refreshMdHistoryComboBox();
+        }
+        suppressDirty = true;
+        try {
+            editor.loadDocument(historyContent != null ? historyContent : "",
+                    loadedChapterFile.getParentFile(), loadedProjectDirectory);
+            setDirty(true);
+            refreshDirtyState();
+        } finally {
+            suppressDirty = false;
+        }
+    }
+
     private void saveLoadedChapter() {
         if (loadedChapterFile == null) {
             updateStatusError("Keine geladene MD-Datei zum Speichern");
             return;
         }
         try {
-            Files.writeString(loadedChapterFile.toPath(), normalizeMarkdownParagraphSpacing(editor.getText()), StandardCharsets.UTF_8);
+            String normalized = ChapterMarkdownFormat.normalizeParagraphSpacing(editor.getText());
+            Files.writeString(loadedChapterFile.toPath(), normalized, StandardCharsets.UTF_8);
+            ChapterMdHistory.snapshotOnSave(loadedChapterFile, normalized);
             captureOriginalContent();
             setDirty(false);
             refreshChapterListAppearance();
+            refreshMdHistoryComboBox();
             updateStatus("Gespeichert: " + loadedChapterFile.getName());
         } catch (IOException e) {
             updateStatusError("Speichern fehlgeschlagen: " + e.getMessage());
@@ -1589,28 +1789,7 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
     }
 
     private String normalizeMarkdownParagraphSpacing(String markdown) {
-        if (markdown == null || markdown.isEmpty()) {
-            return "";
-        }
-
-        String normalized = markdown.replace("\r\n", "\n").replace('\r', '\n');
-        StringBuilder result = new StringBuilder(normalized.length() + 64);
-        String[] lines = normalized.split("\n", -1);
-        boolean previousWasNonEmpty = false;
-
-        for (String line : lines) {
-            boolean currentIsNonEmpty = !line.trim().isEmpty();
-            if (previousWasNonEmpty && currentIsNonEmpty) {
-                result.append('\n');
-            }
-            result.append(line).append('\n');
-            previousWasNonEmpty = currentIsNonEmpty;
-            if (!currentIsNonEmpty) {
-                previousWasNonEmpty = false;
-            }
-        }
-
-        return result.toString();
+        return ChapterMarkdownFormat.normalizeParagraphSpacing(markdown);
     }
 
     private void setDirty(boolean dirty) {
@@ -1647,7 +1826,7 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
     private void handleCloseRequest(WindowEvent event) {
         refreshDirtyState();
         if (!dirty) {
-            cancelLanguageToolChecks();
+            onEditorClosing();
             return;
         }
         event.consume();
@@ -1754,11 +1933,16 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
     }
 
     private void finishCloseEditor() {
+        onEditorClosing();
+        stage.close();
+    }
+
+    private void onEditorClosing() {
+        saveChapterViewState();
         cancelLanguageToolChecks();
         if (mainController != null && getEditorKey() != null) {
             mainController.unregisterChapterEditor(getEditorKey());
         }
-        stage.close();
     }
 
     private void showDiffForUnsavedChanges() {
@@ -1964,7 +2148,8 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
             sceneOutlineWindow.hide();
             updateStatus("Szenen-Outline geschlossen");
         } else {
-            sceneOutlineWindow.show(stage != null ? stage.getScene() : null, docx, chapterName, themeIndex);
+            sceneOutlineWindow.show(stage != null ? stage.getScene() : null, docx, chapterName, themeIndex,
+                    getEditorFontFamily(), mdTextArea.getEditorFontSize());
             updateStatus("Szenen-Outline geöffnet");
         }
     }
@@ -1974,7 +2159,8 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
             return;
         }
         String chapterName = loadedChapterName != null ? loadedChapterName : loadedDocxFile.getName();
-        sceneOutlineWindow.reloadForChapter(stage != null ? stage.getScene() : null, loadedDocxFile, chapterName, themeIndex);
+        sceneOutlineWindow.reloadForChapter(stage != null ? stage.getScene() : null, loadedDocxFile, chapterName,
+                themeIndex, getEditorFontFamily(), mdTextArea.getEditorFontSize());
     }
 
     // --- ChapterEditorHost ---

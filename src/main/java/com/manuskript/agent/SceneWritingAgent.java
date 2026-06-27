@@ -102,8 +102,26 @@ public class SceneWritingAgent {
             return CompletableFuture.completedFuture(
                 new GenerationResult("", "", false, ""));
         }
+        return sendSceneRequest(userMessage, maxTokens, "generieren");
+    }
+
+    /**
+     * Überarbeitet einen bestehenden Entwurf anhand von Autoren-Feedback (kein Chat-Verlauf).
+     */
+    public CompletableFuture<GenerationResult> revise(
+            SceneContextLoader.Context context, String draft, String feedback, int maxTokens) {
+        if (draft == null || draft.isBlank() || feedback == null || feedback.isBlank()) {
+            return CompletableFuture.completedFuture(
+                new GenerationResult("", "", false, ""));
+        }
+        String userMessage = SceneContextLoader.buildRevisionUserMessage(context, draft, feedback);
+        return sendSceneRequest(userMessage, maxTokens, "überarbeiten");
+    }
+
+    private CompletableFuture<GenerationResult> sendSceneRequest(
+            String userMessage, int maxTokens, String actionLabel) {
         String systemPrompt = getEffectiveSystemPrompt();
-        logger.info("Szene generieren: User-Message {} Zeichen", userMessage.length());
+        logger.info("Szene {}: User-Message {} Zeichen", actionLabel, userMessage.length());
         return backend.chat(systemPrompt, userMessage, maxTokens)
             .thenApply(this::parseResponse);
     }

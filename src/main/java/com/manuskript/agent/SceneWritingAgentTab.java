@@ -47,10 +47,12 @@ public class SceneWritingAgentTab extends ScrollPane {
     private final Slider temperatureSlider;
     private final Label temperatureValueLabel;
     private final TextArea instructionArea;
+    private final TextArea feedbackArea;
     private final CheckBox useParameterModelCheck;
     private final FilterableModelSelector modelSelector;
     private final ComboBox<SceneContextSize> contextSizeCombo;
     private final Button generateButton;
+    private final Button reviseButton;
     private final Button insertButton;
     private final Label metaLabel;
     private final ScrollPane metaScroll;
@@ -61,6 +63,7 @@ public class SceneWritingAgentTab extends ScrollPane {
     private Consumer<String> onStatus;
     private Consumer<String> onStatusError;
     private SceneGenerationHandler generationHandler;
+    private SceneRevisionHandler revisionHandler;
 
     private boolean generating = false;
     private boolean activityRegistered = false;
@@ -73,6 +76,16 @@ public class SceneWritingAgentTab extends ScrollPane {
          */
         String generate(String instruction, SceneContextSize contextSize, boolean useParameterModel,
                         String overrideModel,
+                      Consumer<String> onStatus, Consumer<SceneWritingAgent.GenerationResult> onComplete,
+                      Consumer<Throwable> onError);
+    }
+
+    public interface SceneRevisionHandler {
+        /**
+         * @return null wenn Überarbeitung gestartet wurde, sonst Validierungsfehlermeldung
+         */
+        String revise(String instruction, String draft, String feedback, SceneContextSize contextSize,
+                      boolean useParameterModel, String overrideModel,
                       Consumer<String> onStatus, Consumer<SceneWritingAgent.GenerationResult> onComplete,
                       Consumer<Throwable> onError);
     }
@@ -191,10 +204,26 @@ public class SceneWritingAgentTab extends ScrollPane {
         instructionArea.setMaxWidth(Double.MAX_VALUE);
         instructionArea.setPromptText("Wird aus dem Default-Prompt in der Konfiguration vorausgefüllt.");
 
+        Label feedbackLabel = new Label("Feedback (was soll anders werden?):");
+        feedbackArea = new TextArea();
+        feedbackArea.setPrefRowCount(3);
+        feedbackArea.setWrapText(true);
+        feedbackArea.setMaxWidth(Double.MAX_VALUE);
+        feedbackArea.setPromptText("z.B. Einstieg weniger konstruiert, Dialog natürlicher, Szene kürzer …");
+        feedbackArea.setDisable(true);
+        feedbackArea.textProperty().addListener((obs, oldText, newText) -> updateReviseButtonState());
+
         generateButton = new Button("Szene generieren");
         generateButton.setMaxWidth(Double.MAX_VALUE);
         generateButton.getStyleClass().add("button primary");
         generateButton.setOnAction(e -> startGeneration());
+
+        reviseButton = new Button("Überarbeiten");
+        reviseButton.setMaxWidth(Double.MAX_VALUE);
+        reviseButton.setDisable(true);
+        reviseButton.setTooltip(new Tooltip(
+                "Entwurf mit Feedback neu generieren (kein Chat — ein neuer Vorschlag)"));
+        reviseButton.setOnAction(e -> startRevision());
 
         metaLabel = new Label();
         metaLabel.setWrapText(true);
@@ -217,6 +246,8 @@ public class SceneWritingAgentTab extends ScrollPane {
         resultArea.setEditable(true);
         resultArea.setMaxWidth(Double.MAX_VALUE);
         VBox.setVgrow(resultArea, Priority.ALWAYS);
+        resultArea.textProperty().addListener((obs, oldText, newText) ->
+                updateReviseButtonState());
 
         insertButton = new Button("An Cursorposition einfügen");
         insertButton.setMaxWidth(Double.MAX_VALUE);
@@ -234,6 +265,9 @@ public class SceneWritingAgentTab extends ScrollPane {
             instructionLabel,
             instructionArea,
             generateButton,
+            feedbackLabel,
+            feedbackArea,
+            reviseButton,
             insertButton,
             metaScroll,
             resultArea
@@ -299,14 +333,49 @@ public class SceneWritingAgentTab extends ScrollPane {
             reportStatusError("Bitte eine Anweisung eingeben.");
             return;
         }
+        beginGenerationRun("Generiere Szene…", true);
+        runGeneration(false, instruction.trim(), null, null);
+    }
+
+    private void startRevision() {
+        if (generating || revisionHandler == null) {
+            return;
+        }
+        String draft = resultArea.getText();
+        if (draft == null || draft.isBlank()) {
+            reportStatusError("Kein Entwurf zum Überarbeiten.");
+            return;
+        }
+        String feedback = feedbackArea.getText();
+        if (feedback == null || feedback.isBlank()) {
+            reportStatusError("Bitte Feedback eingeben (was soll anders werden?).");
+            return;
+        }
+        String instruction = instructionArea.getText();
+        if (instruction == null || instruction.isBlank()) {
+            reportStatusError("Bitte die ursprüngliche Anweisung beibehalten oder ergänzen.");
+            return;
+        }
+        beginGenerationRun("Überarbeite Szene…", false);
+        runGeneration(true, instruction.trim(), draft.trim(), feedback.trim());
+    }
+
+    private void beginGenerationRun(String statusMessage, boolean clearResult) {
         generating = true;
         generateButton.setDisable(true);
+        reviseButton.setDisable(true);
         insertButton.setDisable(true);
         setConfigControlsDisabled(true);
         setMetaHintVisible(false);
-        resultArea.clear();
-        reportStatus("Generiere Szene…");
+        if (clearResult) {
+            resultArea.clear();
+            feedbackArea.clear();
+            feedbackArea.setDisable(true);
+        }
+        reportStatus(statusMessage);
+    }
 
+    private void runGeneration(boolean revision, String instruction, String draft, String feedback) {
         boolean useParams = useParameterModelCheck.isSelected();
         String model = modelSelector.getValue();
         SceneContextSize contextSize = contextSizeCombo.getValue();
@@ -316,21 +385,29 @@ public class SceneWritingAgentTab extends ScrollPane {
 
         String validationError;
         try {
-            validationError = generationHandler.generate(
-                instruction.trim(),
-                contextSize,
-                useParams,
-                model,
-                msg -> Platform.runLater(() -> reportStatus(msg)),
-                result -> Platform.runLater(() -> finishGeneration(result)),
-                err -> Platform.runLater(() -> {
-                    generating = false;
-                    generateButton.setDisable(false);
-                    setConfigControlsDisabled(false);
-                    unregisterActivity();
-                    reportStatusError("Fehler: " + (err.getMessage() != null ? err.getMessage() : err.toString()));
-                })
-            );
+            if (revision) {
+                validationError = revisionHandler.revise(
+                    instruction,
+                    draft,
+                    feedback,
+                    contextSize,
+                    useParams,
+                    model,
+                    msg -> Platform.runLater(() -> reportStatus(msg)),
+                    result -> Platform.runLater(() -> finishGeneration(result)),
+                    err -> Platform.runLater(() -> handleGenerationError(err))
+                );
+            } else {
+                validationError = generationHandler.generate(
+                    instruction,
+                    contextSize,
+                    useParams,
+                    model,
+                    msg -> Platform.runLater(() -> reportStatus(msg)),
+                    result -> Platform.runLater(() -> finishGeneration(result)),
+                    err -> Platform.runLater(() -> handleGenerationError(err))
+                );
+            }
         } catch (RuntimeException ex) {
             abortGeneration("Fehler: " + (ex.getMessage() != null ? ex.getMessage() : ex.toString()));
             return;
@@ -339,7 +416,26 @@ public class SceneWritingAgentTab extends ScrollPane {
             abortGeneration(validationError);
             return;
         }
-        registerActivity(config.getName() + ": Szene wird generiert…");
+        registerActivity(config.getName() + (revision ? ": Szene wird überarbeitet…" : ": Szene wird generiert…"));
+    }
+
+    private void handleGenerationError(Throwable err) {
+        generating = false;
+        generateButton.setDisable(false);
+        setConfigControlsDisabled(false);
+        unregisterActivity();
+        updateReviseButtonState();
+        reportStatusError("Fehler: " + (err.getMessage() != null ? err.getMessage() : err.toString()));
+    }
+
+    private void updateReviseButtonState() {
+        if (reviseButton == null) {
+            return;
+        }
+        boolean hasDraft = resultArea.getText() != null && !resultArea.getText().isBlank();
+        boolean hasFeedback = feedbackArea.getText() != null && !feedbackArea.getText().isBlank();
+        reviseButton.setDisable(generating || !hasDraft || !hasFeedback || revisionHandler == null);
+        feedbackArea.setDisable(!hasDraft || generating);
     }
 
     private void abortGeneration(String message) {
@@ -347,6 +443,7 @@ public class SceneWritingAgentTab extends ScrollPane {
         generateButton.setDisable(false);
         setConfigControlsDisabled(false);
         unregisterActivity();
+        updateReviseButtonState();
         reportStatusError(message);
     }
 
@@ -359,10 +456,11 @@ public class SceneWritingAgentTab extends ScrollPane {
             resultArea.setText(result.getSceneText());
             scrollResultToTop();
             insertButton.setDisable(false);
+            feedbackArea.setDisable(false);
             if (result.isParsedFromTags()) {
-                reportStatus("Szene generiert.");
+                reportStatus("Szene fertig.");
             } else {
-                reportStatus("Szene generiert (ohne SCENE-Tags — Rohtext übernommen).");
+                reportStatus("Szene fertig (ohne SCENE-Tags — Rohtext übernommen).");
             }
             if (result.getMetaText() != null && !result.getMetaText().isBlank()) {
                 metaLabel.setText("Hinweis (wird nicht eingefügt): " + result.getMetaText());
@@ -371,6 +469,7 @@ public class SceneWritingAgentTab extends ScrollPane {
         } else {
             reportStatusError("Keine Szene in der Antwort.");
         }
+        updateReviseButtonState();
     }
 
     private void scrollResultToTop() {
@@ -471,6 +570,11 @@ public class SceneWritingAgentTab extends ScrollPane {
 
     public void setGenerationHandler(SceneGenerationHandler handler) {
         this.generationHandler = handler;
+    }
+
+    public void setRevisionHandler(SceneRevisionHandler handler) {
+        this.revisionHandler = handler;
+        updateReviseButtonState();
     }
 
     private void fireConfigChanged() {

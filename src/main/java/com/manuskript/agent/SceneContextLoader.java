@@ -175,6 +175,27 @@ public class SceneContextLoader {
         return sb.toString().trim();
     }
 
+    /**
+     * User-Message für Überarbeitung: Kontext + bisheriger Entwurf + Autoren-Feedback.
+     */
+    public static String buildRevisionUserMessage(Context ctx, String draft, String feedback) {
+        StringBuilder sb = new StringBuilder();
+        String base = buildUserMessage(ctx);
+        if (!base.isBlank()) {
+            sb.append(base).append("\n\n");
+        }
+        sb.append("=== BISHERIGER ENTWURF (zu überarbeiten) ===\n");
+        sb.append(draft != null ? draft.trim() : "").append("\n\n");
+        sb.append("=== AUTOREN-FEEDBACK ===\n");
+        sb.append(feedback != null ? feedback.trim() : "").append("\n\n");
+        sb.append("=== AUFGABE ===\n");
+        sb.append("Überarbeite die Szene vollständig als neue Fließprosa.\n");
+        sb.append("Setze das Autoren-Feedback konsequent um; bewahre Outline, Kontinuität und Stil.\n");
+        sb.append("Was gut funktioniert, darf bleiben — was kritisiert wurde, muss geändert werden.\n");
+        sb.append("Liefere den kompletten neuen Szenentext in <SCENE>…</SCENE> (nicht nur einzelne Änderungen).\n");
+        return sb.toString().trim();
+    }
+
     private record RecentChaptersResult(String text, int count, boolean allPrevious) {}
 
     private static RecentChaptersResult loadRecentChapters(

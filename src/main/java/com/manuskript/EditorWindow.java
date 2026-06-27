@@ -8716,7 +8716,8 @@ spacer.setStyle("-fx-background-color: transparent;");
             sceneOutlineWindow.hide();
             updateStatus("Szenen-Outline geschlossen");
         } else {
-            sceneOutlineWindow.show(stage != null ? stage.getScene() : null, docx, chapterName, currentThemeIndex);
+            sceneOutlineWindow.show(stage != null ? stage.getScene() : null, docx, chapterName, currentThemeIndex,
+                    getEditorFontFamily(), preferences.getInt("fontSize", 12));
             updateStatus("Szenen-Outline geöffnet");
         }
     }
@@ -8730,7 +8731,8 @@ spacer.setStyle("-fx-background-color: transparent;");
             return;
         }
         String chapterName = docx.getName().replaceAll("\\.(docx|md|txt|html)$", "");
-        sceneOutlineWindow.reloadForChapter(stage != null ? stage.getScene() : null, docx, chapterName, currentThemeIndex);
+        sceneOutlineWindow.reloadForChapter(stage != null ? stage.getScene() : null, docx, chapterName,
+                currentThemeIndex, getEditorFontFamily(), preferences.getInt("fontSize", 12));
     }
     
     private void createTextAnalysisWindow() {
@@ -11396,7 +11398,7 @@ spacer.setStyle("-fx-background-color: transparent;");
         }
         
         if (sceneOutlineWindow != null && sceneOutlineWindow.isShowing()) {
-            sceneOutlineWindow.applyFontSize(size);
+            sceneOutlineWindow.applyEditorFont(getEditorFontFamily(), size);
         }
 
         if (agentTabPane != null) {
@@ -14246,16 +14248,36 @@ spacer.setStyle("-fx-background-color: transparent;");
 
     private void setupSceneWritingTabCallbacks(SceneWritingAgentTab tab) {
         tab.setOnInsertClicked(this::insertTextAtCaret);
-        tab.setGenerationHandler((instruction, contextSize, useParameterModel, overrideModel, onStatus, onComplete, onError) -> {
-            String sceneOutlineText = null;
-            if (sceneOutlineWindow != null && originalDocxFile != null) {
-                sceneOutlineText = sceneOutlineWindow.getOutlineTextForDocx(originalDocxFile);
-                if (sceneOutlineText != null && sceneOutlineText.isBlank()) {
-                    sceneOutlineText = null;
-                }
-            }
+        tab.setGenerationHandler((instruction, contextSize, useParameterModel, overrideModel, onStatus, onComplete, onError) ->
+                runSceneWritingForTab(tab, instruction, contextSize, useParameterModel, overrideModel,
+                        onStatus, onComplete, onError, false, null, null));
+        tab.setRevisionHandler((instruction, draft, feedback, contextSize, useParameterModel, overrideModel,
+                                onStatus, onComplete, onError) ->
+                runSceneWritingForTab(tab, instruction, contextSize, useParameterModel, overrideModel,
+                        onStatus, onComplete, onError, true, draft, feedback));
+    }
 
-            SceneContextLoader.Context ctx = SceneContextLoader.load(
+    private String runSceneWritingForTab(
+            SceneWritingAgentTab tab,
+            String instruction,
+            SceneContextSize contextSize,
+            boolean useParameterModel,
+            String overrideModel,
+            java.util.function.Consumer<String> onStatus,
+            java.util.function.Consumer<SceneWritingAgent.GenerationResult> onComplete,
+            java.util.function.Consumer<Throwable> onError,
+            boolean revision,
+            String draft,
+            String feedback) {
+        String sceneOutlineText = null;
+        if (sceneOutlineWindow != null && originalDocxFile != null) {
+            sceneOutlineText = sceneOutlineWindow.getOutlineTextForDocx(originalDocxFile);
+            if (sceneOutlineText != null && sceneOutlineText.isBlank()) {
+                sceneOutlineText = null;
+            }
+        }
+
+        SceneContextLoader.Context ctx = SceneContextLoader.load(
                 getProjectDirectory(),
                 originalDocxFile,
                 currentFile,
@@ -14264,39 +14286,49 @@ spacer.setStyle("-fx-background-color: transparent;");
                 instruction,
                 sceneOutlineText,
                 contextSize
-            );
+        );
 
-            if (ctx.targetSceneNumber != null && ctx.targetScene.isBlank()) {
-                return "Szene " + ctx.targetSceneNumber
+        if (ctx.targetSceneNumber != null && ctx.targetScene.isBlank()) {
+            return "Szene " + ctx.targetSceneNumber
                     + " nicht in der Outline gefunden — 'Szenen-Outline' prüfen";
-            }
-            if (ctx.sceneOutline.isBlank()) {
-                onStatus.accept("Hinweis: Keine Szenen-Outline — generiere aus Anweisung und Kapitelkontext.");
-                logger.warn("Szene generieren ohne Szenen-Outline ({} Zeichen Kapitel)",
-                        ctx.currentChapter != null ? ctx.currentChapter.length() : 0);
-            }
+        }
+        if (ctx.sceneOutline.isBlank()) {
+            onStatus.accept("Hinweis: Keine Szenen-Outline — generiere aus Anweisung und Kapitelkontext.");
+            logger.warn("Szene {} ohne Szenen-Outline ({} Zeichen Kapitel)",
+                    revision ? "überarbeiten" : "generieren",
+                    ctx.currentChapter != null ? ctx.currentChapter.length() : 0);
+        }
 
-            AgentConfig config = tab.getAgentConfig();
-            AIBackend backend = createGenerationBackend(useParameterModel, overrideModel, config);
-            if (backend == null) {
-                onError.accept(new IllegalStateException("Backend nicht verfügbar"));
-                return null;
-            }
-            AgentSamplingParams.applyAgentConfig(backend, config);
-            SceneWritingAgent agent = new SceneWritingAgent(backend);
-            agent.setSystemPrompt(config.getSystemPrompt());
+        AgentConfig config = tab.getAgentConfig();
+        AIBackend backend = createGenerationBackend(useParameterModel, overrideModel, config);
+        if (backend == null) {
+            onError.accept(new IllegalStateException("Backend nicht verfügbar"));
+            return null;
+        }
+        AgentSamplingParams.applyAgentConfig(backend, config);
+        SceneWritingAgent agent = new SceneWritingAgent(backend);
+        agent.setSystemPrompt(config.getSystemPrompt());
 
-            int maxTokens = config.getMaxTokens() > 0 ? config.getMaxTokens() : 4096;
-            int timeoutSec = OpenAIBackend.requestTimeoutSeconds();
+        int maxTokens = config.getMaxTokens() > 0 ? config.getMaxTokens() : 4096;
+        int timeoutSec = OpenAIBackend.requestTimeoutSeconds();
+        if (revision) {
+            onStatus.accept("Überarbeite Szene… (API-Timeout: " + timeoutSec + " s)");
+            agent.revise(ctx, draft, feedback, maxTokens)
+                    .thenAccept(onComplete)
+                    .exceptionally(ex -> {
+                        onError.accept(ex);
+                        return null;
+                    });
+        } else {
             onStatus.accept("Generiere Szene… (API-Timeout: " + timeoutSec + " s)");
             agent.generate(ctx, maxTokens)
-                .thenAccept(onComplete)
-                .exceptionally(ex -> {
-                    onError.accept(ex);
-                    return null;
-                });
-            return null;
-        });
+                    .thenAccept(onComplete)
+                    .exceptionally(ex -> {
+                        onError.accept(ex);
+                        return null;
+                    });
+        }
+        return null;
     }
 
     private void setupChatbotTabCallbacks(ChatbotAgentTab tab) {
@@ -14668,63 +14700,21 @@ spacer.setStyle("-fx-background-color: transparent;");
 
         targetTab.setAnalyzing(true);
         String text = codeArea.getText();
-        
-        // Alle Kapitel für Kontext laden (optional — siehe agent.plothole.include_all_chapters)
-        String allChapters = "";
-        boolean includeAllChapters = Boolean.parseBoolean(
-                ResourceManager.getParameter("agent.plothole.include_all_chapters", "true"));
-        File projectDir = getProjectDirectory();
-        if (includeAllChapters && projectDir != null) {
-            logger.info("Starte Laden der Kapitel für Kontext");
-            java.io.File dataDir = new java.io.File(projectDir, "data");
-            if (dataDir.exists() && dataDir.isDirectory()) {
-                // Lade alle Markdown-Dateien aus dem data-Verzeichnis (außer tts-md Dateien)
-                java.io.File[] mdFiles = dataDir.listFiles((dir, name) -> 
-                    name.toLowerCase().endsWith(".md") && !name.toLowerCase().contains("tts-md"));
-                if (mdFiles != null && mdFiles.length > 0) {
-                    // Basis-Name des aktuellen Kapitels für Deduplizierung
-                    String currentBaseName = null;
-                    if (currentFile != null) {
-                        String name = currentFile.getName();
-                        int dot = name.lastIndexOf('.');
-                        currentBaseName = (dot > 0) ? name.substring(0, dot) : name;
-                    }
-                    StringBuilder allText = new StringBuilder();
-                    int skipped = 0;
-                    for (java.io.File mdFile : mdFiles) {
-                        // Aktuelles Kapitel überspringen (wird separat als currentChapterText gesendet)
-                        if (currentBaseName != null) {
-                            String mdBaseName = mdFile.getName();
-                            int mdDot = mdBaseName.lastIndexOf('.');
-                            mdBaseName = (mdDot > 0) ? mdBaseName.substring(0, mdDot) : mdBaseName;
-                            if (mdBaseName.equals(currentBaseName)) {
-                                logger.debug("Kapitel {} übersprungen (ist das aktuelle Kapitel)", mdFile.getName());
-                                skipped++;
-                                continue;
-                            }
-                        }
-                        try {
-                            String content = java.nio.file.Files.readString(mdFile.toPath(), java.nio.charset.StandardCharsets.UTF_8);
-                            allText.append("=== ").append(mdFile.getName()).append(" ===\n");
-                            allText.append(content).append("\n\n");
-                            logger.debug("Kapitel {} geladen: {} Zeichen", mdFile.getName(), content.length());
-                        } catch (java.io.IOException e) {
-                            logger.warn("Konnte Kapitel {} nicht laden: {}", mdFile.getAbsolutePath(), e.getMessage());
-                        }
-                    }
-                    allChapters = allText.toString();
-                    logger.info("Kapitel für Kontext geladen: {} Zeichen aus {} Dateien ({} übersprungen)", allChapters.length(), mdFiles.length - skipped, skipped);
-                } else {
-                    logger.warn("Keine Markdown-Dateien in data-Verzeichnis gefunden: {}", dataDir.getAbsolutePath());
-                }
-            } else {
-                logger.warn("data-Verzeichnis existiert nicht oder ist kein Verzeichnis: {}", dataDir.getAbsolutePath());
-            }
-        } else if (!includeAllChapters) {
-            logger.info("Plothole: nur aktuelles Kapitel (agent.plothole.include_all_chapters=false)");
-        } else {
-            logger.warn("Projekt-Verzeichnis ist null, kann keine Kapitel laden");
+
+        ChatbotContextConfig contextConfig = targetTab.getContextConfig();
+        if (contextConfig == null) {
+            contextConfig = new ChatbotContextConfig();
+            contextConfig.addSource(ChatbotContextSource.WORLD_EDITOR);
         }
+        File projectDir = getProjectDirectory();
+        String editorKey = currentFile != null ? currentFile.getName() : null;
+        java.util.List<DocxFile> chapterOrder = mainController != null
+                ? mainController.getSelectedDocxFilesAsDocxFiles() : java.util.Collections.emptyList();
+        String allChapters = ChatbotContextBuilder.build(
+                projectDir, mainController, editorKey, text,
+                currentFile, originalDocxFile, chapterOrder, contextConfig);
+        logger.info("Plothole-Analyse: Manuskript={} Zeichen, Kontext={} Zeichen",
+                text != null ? text.length() : 0, allChapters.length());
 
         int maxOutputTokens = targetTab.getAgentConfig().getMaxTokens();
         agent.analyze(text, allChapters, maxOutputTokens)

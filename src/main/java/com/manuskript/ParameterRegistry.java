@@ -91,6 +91,10 @@ public final class ParameterRegistry {
                 "Zeilenabstand im Editor.", "Editor");
         add("editor.paragraph-spacing", ParameterDef.Type.DOUBLE, "10",
                 "Absatzabstand im Editor.", "Editor");
+        add("editor.md_history.enabled", ParameterDef.Type.BOOLEAN, "true",
+                "Versionshistorie für Kapitel-MD-Dateien in data/.history/ aktivieren.", "Editor");
+        add("editor.md_history.max_versions", ParameterDef.Type.INT, "15",
+                "Anzahl gespeicherter MD-Versionen pro Kapitel (1–100). 0 = Historie aus.", "Editor");
 
         // —— DOCX (Auswahl der wichtigsten) ——
         add("docx.defaultFont", ParameterDef.Type.STRING, "Calibri",
@@ -231,8 +235,6 @@ public final class ParameterRegistry {
                 "Temperatur fuer OpenAI-Backend (Welt-Editor, Agenten, Online-Lektorat). Bereich 0.0–2.0; bei Claude-Modellen max. 1.0.", "Agenten");
         add("agent.openai.request_timeout_sec", ParameterDef.Type.INT, "300",
                 "Timeout pro Agenten-API-Anfrage in Sekunden (60–900). Kimi/OpenRouter mit vollem Buch-Kontext brauchen oft 180–600 s.", "Agenten");
-        add("agent.plothole.include_all_chapters", ParameterDef.Type.BOOLEAN, "true",
-                "Alle Kapitel als Kontext mitsenden (fuer Plot-Widersprueche ueber das Buch). Aus = nur aktuelles Kapitel (schneller, weniger Timeout-Risiko).", "Agenten");
         add("agent.chatbot.max_history_turns", ParameterDef.Type.INT, "10",
                 "Anzahl Q&A-Paare, die der Chatbot an die KI mitsendet (Multi-Turn).", "Agenten");
         add("agent.chatbot.context_size", ParameterDef.Type.CHOICE, "COMPACT",

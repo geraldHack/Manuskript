@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import javafx.scene.control.TextArea;
+import javafx.scene.text.Font;
 
 /**
  * TextArea mit erzwungener nummerierter Liste (1., 2., 3., …).
@@ -25,6 +26,15 @@ public class NumberedListTextArea extends TextArea {
             }
             renumber(newText);
         });
+    }
+
+    /**
+     * Schrift wie im Kapitel-Editor (setFont statt nur CSS — zuverlässig in TextArea).
+     */
+    public void applyEditorFont(String fontFamily, double size) {
+        String family = fontFamily == null || fontFamily.isBlank() ? "Segoe UI" : fontFamily.trim();
+        double clamped = Math.max(6, Math.min(96, size));
+        setFont(Font.font(family, clamped));
     }
 
     /**

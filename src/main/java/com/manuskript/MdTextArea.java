@@ -99,11 +99,8 @@ public class MdTextArea extends VBox {
         if (opts.enableUndoRedo() || opts.enableFontControls() || opts.enableHideMarkupToggle()) {
             toolbar.getChildren().add(buildFontRow(opts));
         }
-        if (opts.enableJustify() || opts.enableBasicFormatting()) {
+        if (opts.enableJustify() || opts.enableBasicFormatting() || opts.enableExtendedFormatting()) {
             toolbar.getChildren().add(buildFormatRow(opts));
-        }
-        if (opts.enableExtendedFormatting()) {
-            toolbar.getChildren().add(buildExtendedFormatRow());
         }
         if (opts.enableSearch()) {
             toolbar.getChildren().add(searchSupport.buildSearchBlock(opts.enableReplace()));
@@ -268,42 +265,38 @@ public class MdTextArea extends VBox {
                         editor.requestInputFocus();
                     }));
         }
+        if (opts.enableExtendedFormatting()) {
+            formatPane.getChildren().addAll(
+                    toolbarButton("H", "Überschrift (# …)", () -> {
+                        editor.toggleHeading();
+                        editor.requestInputFocus();
+                    }),
+                    toolbarButton("•", "Aufzählungsliste (-)", () -> {
+                        editor.toggleUnorderedList();
+                        editor.requestInputFocus();
+                    }),
+                    toolbarButton("1.", "Nummerierte Liste", () -> {
+                        editor.toggleOrderedList();
+                        editor.requestInputFocus();
+                    }),
+                    toolbarButton("Link", "Link [Text](URL)", () -> {
+                        editor.insertLinkPlaceholder();
+                        editor.requestInputFocus();
+                    }),
+                    toolbarButton("`", "Inline-Code oder Code-Block", () -> {
+                        editor.wrapInlineCode();
+                        editor.requestInputFocus();
+                    }),
+                    toolbarButton("━", "Horizontale Linie (---)", () -> {
+                        editor.insertHorizontalRule();
+                        editor.requestInputFocus();
+                    }),
+                    toolbarButton(">", "Zitat (> Zeile)", () -> {
+                        editor.toggleBlockquote();
+                        editor.requestInputFocus();
+                    }));
+        }
         return formatPane;
-    }
-
-    private FlowPane buildExtendedFormatRow() {
-        FlowPane extendedPane = new FlowPane(6, 4);
-        extendedPane.setAlignment(Pos.CENTER_LEFT);
-        extendedPane.getChildren().addAll(
-                toolbarButton("H", "Überschrift (# …)", () -> {
-                    editor.toggleHeading();
-                    editor.requestInputFocus();
-                }),
-                toolbarButton("•", "Aufzählungsliste (-)", () -> {
-                    editor.toggleUnorderedList();
-                    editor.requestInputFocus();
-                }),
-                toolbarButton("1.", "Nummerierte Liste", () -> {
-                    editor.toggleOrderedList();
-                    editor.requestInputFocus();
-                }),
-                toolbarButton("Link", "Link [Text](URL)", () -> {
-                    editor.insertLinkPlaceholder();
-                    editor.requestInputFocus();
-                }),
-                toolbarButton("`", "Inline-Code oder Code-Block", () -> {
-                    editor.wrapInlineCode();
-                    editor.requestInputFocus();
-                }),
-                toolbarButton("━", "Horizontale Linie (---)", () -> {
-                    editor.insertHorizontalRule();
-                    editor.requestInputFocus();
-                }),
-                toolbarButton(">", "Zitat (> Zeile)", () -> {
-                    editor.toggleBlockquote();
-                    editor.requestInputFocus();
-                }));
-        return extendedPane;
     }
 
     public ManuskriptTextEditor getEditor() {

@@ -10472,12 +10472,7 @@
 }
 
 .scene-outline-status {
-    -fx-font-size: 11px;
     -fx-opacity: 0.85;
-}
-
-.numbered-list-textarea {
-    -fx-font-family: 'Consolas', 'Monaco', monospace;
 }
 
 .scene-writing-agent-tab {

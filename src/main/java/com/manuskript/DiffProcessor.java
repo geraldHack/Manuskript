@@ -288,8 +288,8 @@ public class DiffProcessor {
         }
         
         result.setDiffLines(diffLines);
-        result.setHasChanges(!originalText.equals(newText));
-        
+        result.setHasChanges(!normalizedOriginal.equals(normalizedNew));
+
         return result;
     }
     

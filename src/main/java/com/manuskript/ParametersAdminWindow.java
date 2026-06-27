@@ -333,23 +333,6 @@ public class ParametersAdminWindow {
         openaiParams.getChildren().add(agentTimeoutCard);
         keyToControl.put("agent.openai.request_timeout_sec", agentTimeoutSpinner);
 
-        boolean includeAllChapters = Boolean.parseBoolean(
-                ResourceManager.getParameter("agent.plothole.include_all_chapters", "true"));
-        CheckBox includeAllChaptersCheck = new CheckBox("Alle Kapitel als Kontext mitsenden");
-        includeAllChaptersCheck.setSelected(includeAllChapters);
-        Label includeAllLabel = new Label("agent.plothole.include_all_chapters");
-        includeAllLabel.getStyleClass().add("param-key-label");
-        Label includeAllHelp = new Label(
-                "An = gesamtes Manuskript als Kontext (langsamer, mehr Timeout-Risiko). Aus = nur aktuelles Kapitel.");
-        includeAllHelp.getStyleClass().add("param-help-label");
-        includeAllHelp.setWrapText(true);
-        includeAllHelp.setMaxWidth(680);
-        VBox includeAllCard = new VBox(4);
-        includeAllCard.getStyleClass().add("param-card");
-        includeAllCard.getChildren().addAll(includeAllLabel, includeAllChaptersCheck, includeAllHelp);
-        content.getChildren().add(includeAllCard);
-        keyToControl.put("agent.plothole.include_all_chapters", includeAllChaptersCheck);
-
         // Sichtbarkeit basierend auf Backend-Auswahl
         Runnable updateVisibility = () -> {
             String selected = backendCombo.getValue();

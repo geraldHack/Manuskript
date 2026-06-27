@@ -47,10 +47,12 @@ public class SceneOutlineWindow {
     private Timeline autoSaveTimeline;
     private boolean dirty = false;
     private int themeIndex = 0;
-    private int fontSize = 12;
+    private String fontFamily = "Segoe UI";
+    private double fontSize = 16;
     private final Preferences preferences = Preferences.userNodeForPackage(EditorWindow.class);
 
-    public void show(Scene ownerScene, File docxFile, String chapterDisplayName, int themeIndex) {
+    public void show(Scene ownerScene, File docxFile, String chapterDisplayName, int themeIndex,
+                     String editorFontFamily, double editorFontSize) {
         this.themeIndex = themeIndex;
         this.scenesFile = SceneOutlinePaths.scenesFileForDocx(docxFile);
 
@@ -58,20 +60,22 @@ public class SceneOutlineWindow {
             createStage(ownerScene);
         }
         applyTheme(themeIndex);
-        applyFontSizeFromPreferences();
+        applyEditorFont(editorFontFamily, editorFontSize);
 
         stage.setTitle("Szenen-Outline — " + (chapterDisplayName != null ? chapterDisplayName : "Kapitel"));
         loadFromFile();
         stage.show();
         stage.toFront();
+        Platform.runLater(() -> applyEditorFont(fontFamily, fontSize));
     }
 
-    public void reloadForChapter(Scene ownerScene, File docxFile, String chapterDisplayName, int themeIndex) {
+    public void reloadForChapter(Scene ownerScene, File docxFile, String chapterDisplayName, int themeIndex,
+                                 String editorFontFamily, double editorFontSize) {
         if (stage == null || !stage.isShowing()) {
             return;
         }
         saveIfDirty();
-        show(ownerScene, docxFile, chapterDisplayName, themeIndex);
+        show(ownerScene, docxFile, chapterDisplayName, themeIndex, editorFontFamily, editorFontSize);
     }
 
     public void applyTheme(int themeIndex) {
@@ -89,23 +93,20 @@ public class SceneOutlineWindow {
         applyThemeToNode(statusLabel);
         applyThemeToNode(btnSave);
         applyThemeToNode(btnClose);
-        applyFontSize(fontSize);
+        applyEditorFont(fontFamily, fontSize);
     }
 
-    public void applyFontSize(int size) {
-        if (size < 8) {
-            size = 8;
-        } else if (size > 72) {
-            size = 72;
+    public void applyEditorFont(String family, double size) {
+        if (family != null && !family.isBlank()) {
+            fontFamily = family.trim();
         }
-        this.fontSize = size;
+        fontSize = Math.max(6, Math.min(96, size));
         if (editor == null) {
             return;
         }
-        String editorFont = String.format(
-            "-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: %dpx;", size);
-        String labelFont = String.format("-fx-font-size: %dpx;", size);
-        editor.setStyle(editorFont);
+        editor.applyEditorFont(fontFamily, fontSize);
+        int labelSizePx = (int) Math.round(fontSize);
+        String labelFont = String.format("-fx-font-size: %dpx;", labelSizePx);
         if (hintLabel != null) {
             hintLabel.setStyle(labelFont);
         }
@@ -114,8 +115,9 @@ public class SceneOutlineWindow {
         }
     }
 
-    private void applyFontSizeFromPreferences() {
-        applyFontSize(preferences.getInt("fontSize", 12));
+    /** @deprecated Nutze {@link #applyEditorFont(String, double)} */
+    public void applyFontSize(int size) {
+        applyEditorFont(fontFamily, size);
     }
 
     private void applyThemeToNode(Node node) {
@@ -200,7 +202,6 @@ public class SceneOutlineWindow {
         stage.setSceneWithTitleBar(scene);
 
         applyTheme(themeIndex);
-        applyFontSizeFromPreferences();
         loadWindowProperties();
 
         editor.textProperty().addListener((obs, o, n) -> {

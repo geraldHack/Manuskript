@@ -138,6 +138,9 @@ public class ManuskriptTextEditor extends Region {
     private final List<StyleRange> styles = new ArrayList<>();
     private final List<MarkedArea> markedAreas = new ArrayList<>();
     private final List<TextRange> hiddenMarkupRanges = new ArrayList<>();
+    /** Gecachte Link-Bereiche – kein Regex-Scan pro Tastendruck/Layout-Zeichen. */
+    private final List<TextRange> linkFullRanges = new ArrayList<>();
+    private final List<TextRange> linkVisibleTextRanges = new ArrayList<>();
     private final List<TextRange> blockStructureHiddenRanges = new ArrayList<>();
     private final List<TextRange> hiddenImageBlockRanges = new ArrayList<>();
     private final List<ParsedImageBlock> imageBlocks = new ArrayList<>();
@@ -287,6 +290,9 @@ public class ManuskriptTextEditor extends Region {
         });
 
         verticalScrollBar.setOrientation(javafx.geometry.Orientation.VERTICAL);
+        verticalScrollBar.setFocusTraversable(false);
+        verticalScrollBar.addEventFilter(KeyEvent.KEY_PRESSED, this::forwardNavigationKeyToEditor);
+        verticalScrollBar.addEventFilter(MouseEvent.MOUSE_PRESSED, e -> requestInputFocus());
         verticalScrollBar.valueProperty().addListener((obs, oldValue, newValue) -> {
             scrollTop = newValue.doubleValue();
             render();
@@ -341,6 +347,18 @@ public class ManuskriptTextEditor extends Region {
                 requestInputFocus();
             }
         });
+    }
+
+    private void forwardNavigationKeyToEditor(KeyEvent event) {
+        switch (event.getCode()) {
+            case UP, DOWN, LEFT, RIGHT, PAGE_UP, PAGE_DOWN, HOME, END -> {
+                requestInputFocus();
+                handleKeyPressed(event);
+                event.consume();
+            }
+            default -> {
+            }
+        }
     }
 
     /** Verhindert kurzzeitig Enter/Zeilenumbruch (z. B. nach Suche im Suchfeld). */
@@ -602,9 +620,16 @@ public class ManuskriptTextEditor extends Region {
     }
 
     public void replaceSelection(String replacement) {
-        pushUndoCoalesced(classifyUndoKind(replacement), replacement);
         int start = selectionStart();
         int end = selectionEnd();
+        if (replacement == null || replacement.isEmpty()) {
+            int[] expanded = expandRangeToFullMarkdownLinks(start, end);
+            if (expanded != null) {
+                replaceRange(expanded[0], expanded[1], "");
+                return;
+            }
+        }
+        pushUndoCoalesced(classifyUndoKind(replacement), replacement);
         ViewportAnchor viewportAnchor = viewportAnchorForReplacement(replacement, start);
         text.replace(start, end, replacement == null ? "" : replacement);
         int inserted = replacement == null ? 0 : replacement.length();
@@ -712,6 +737,14 @@ public class ManuskriptTextEditor extends Region {
         if (caret <= 0) {
             return;
         }
+        int deletePos = caret - 1;
+        if (isHiddenLinkMarkupOffset(deletePos)) {
+            int[] linkRange = markdownLinkContaining(deletePos);
+            if (linkRange != null) {
+                replaceRange(linkRange[0], linkRange[1], "");
+                return;
+            }
+        }
         pushUndoCoalesced(UndoEditKind.DELETE, "");
         int caretBefore = caret;
         ViewportAnchor viewportAnchor = captureCaretViewportAnchor(caretBefore);
@@ -736,6 +769,13 @@ public class ManuskriptTextEditor extends Region {
         }
         if (caret >= text.length()) {
             return;
+        }
+        if (isHiddenLinkMarkupOffset(caret)) {
+            int[] linkRange = markdownLinkContaining(caret);
+            if (linkRange != null) {
+                replaceRange(linkRange[0], linkRange[1], "");
+                return;
+            }
         }
         pushUndoCoalesced(UndoEditKind.DELETE, "");
         int caretBefore = caret;
@@ -952,12 +992,12 @@ public class ManuskriptTextEditor extends Region {
         renderMarkupHidden = hidden;
         textWidthCache.clear();
         invalidateLayoutCaches();
-        syncBlockLayoutFromMarkdown();
         forceFullAutoMarkRebuild = true;
         preserveReadingViewportOnNextRebuild = true;
         rebuildStructuralMarkdownNow();
         autoRuleDelay.stop();
         rebuildAutoMarks();
+        syncBlockLayoutFromMarkdown();
         updateScrollBar();
         render();
     }
@@ -1363,23 +1403,21 @@ public class ManuskriptTextEditor extends Region {
         int savedAnchorLine = lineIndexForOffset(anchor);
         int savedAnchorColumn = contentColumnForOffset(anchor);
         boolean hadSelection = hasSelection();
-        int lineStart = logicalLineStartForOffset(selectionStart());
-        int lineEnd = logicalLineEndIndex(lineStart);
-        String line = text.substring(lineStart, lineEnd);
-        Matcher matcher = Pattern.compile("^(#{1,6})\\s+(.*)$").matcher(line);
-        String replacement;
-        if (matcher.matches()) {
-            int level = matcher.group(1).length();
-            String content = matcher.group(2);
-            if (level >= 6) {
-                replacement = content;
-            } else {
-                replacement = "#".repeat(level + 1) + " " + content;
+
+        List<Integer> lineStarts = collectAffectedLogicalLineStarts();
+        StringBuilder block = new StringBuilder();
+        for (int i = 0; i < lineStarts.size(); i++) {
+            int lineStart = lineStarts.get(i);
+            int lineEnd = i + 1 < lineStarts.size()
+                    ? lineStarts.get(i + 1) - 1
+                    : logicalLineEndIndex(lineStart);
+            block.append(applyHeadingToggleToLine(text.substring(lineStart, lineEnd)));
+            if (lineEnd < text.length()) {
+                block.append('\n');
             }
-        } else {
-            replacement = "# " + line;
         }
-        replaceRange(lineStart, lineEnd, replacement);
+
+        replaceLineBlock(lineStarts.get(0), blockEndForLineStarts(lineStarts), block.toString());
         if (hadSelection) {
             restoreCaretToLineContent(savedAnchorLine, savedAnchorColumn);
             int anchorPos = caret;
@@ -1389,7 +1427,20 @@ public class ManuskriptTextEditor extends Region {
             restoreCaretToLineContent(savedLineIndex, savedColumn);
             anchor = caret;
         }
-        render();
+        finishFormatEdit();
+    }
+
+    private static String applyHeadingToggleToLine(String line) {
+        Matcher matcher = Pattern.compile("^(#{1,6})\\s+(.*)$").matcher(line);
+        if (matcher.matches()) {
+            int level = matcher.group(1).length();
+            String content = matcher.group(2);
+            if (level >= 6) {
+                return content;
+            }
+            return "#".repeat(level + 1) + " " + content;
+        }
+        return "# " + line;
     }
 
     public void toggleUnorderedList() {
@@ -1401,7 +1452,10 @@ public class ManuskriptTextEditor extends Region {
     }
 
     private String nextOrderedListPrefix() {
-        int lineStart = logicalLineStartForOffset(selectionStart());
+        return nextOrderedListPrefixForLine(logicalLineStartForOffset(selectionStart()));
+    }
+
+    private String nextOrderedListPrefixForLine(int lineStart) {
         int lineEnd = logicalLineEndIndex(lineStart);
         String line = text.substring(lineStart, lineEnd);
         int nestLevel = 0;
@@ -1437,19 +1491,38 @@ public class ManuskriptTextEditor extends Region {
         int savedAnchorLine = lineIndexForOffset(anchor);
         int savedAnchorColumn = contentColumnForOffset(anchor);
         boolean hadSelection = hasSelection();
-        int lineStart = logicalLineStartForOffset(selectionStart());
-        int lineEnd = logicalLineEndIndex(lineStart);
-        String line = text.substring(lineStart, lineEnd);
-        String trimmed = line.stripLeading();
-        if (trimmed.startsWith("- ") || trimmed.startsWith("* ") || trimmed.startsWith("+ ")
-                || trimmed.matches("^\\d+\\.\\s+.*")) {
-            String without = trimmed.replaceFirst("^([-+*]|\\d+\\.)\\s+", "");
-            int leading = line.length() - trimmed.length();
-            replaceRange(lineStart, lineEnd, line.substring(0, leading) + without);
-        } else {
-            int leading = line.length() - trimmed.length();
-            replaceRange(lineStart, lineEnd, line.substring(0, leading) + prefix + trimmed);
+
+        List<Integer> lineStarts = collectAffectedLogicalLineStarts();
+        boolean removePrefix = lineStarts.stream().allMatch(this::lineHasListMarker);
+        boolean orderedPrefix = prefix.matches("^\\d+\\.\\s+$");
+        int orderedNumber = orderedPrefix ? nextOrderedListNumberForLine(lineStarts.get(0)) : 1;
+
+        StringBuilder block = new StringBuilder();
+        for (int i = 0; i < lineStarts.size(); i++) {
+            int lineStart = lineStarts.get(i);
+            int lineEnd = i + 1 < lineStarts.size()
+                    ? lineStarts.get(i + 1) - 1
+                    : logicalLineEndIndex(lineStart);
+            String line = text.substring(lineStart, lineEnd);
+            String trimmed = line.stripLeading();
+            String newLine;
+            if (removePrefix) {
+                int leading = line.length() - trimmed.length();
+                newLine = line.substring(0, leading) + trimmed.replaceFirst("^([-+*]|\\d+\\.)\\s+", "");
+            } else if (lineHasListMarker(lineStart)) {
+                newLine = line;
+            } else {
+                int leading = line.length() - trimmed.length();
+                String marker = orderedPrefix ? (orderedNumber++) + ". " : prefix;
+                newLine = line.substring(0, leading) + marker + trimmed;
+            }
+            block.append(newLine);
+            if (lineEnd < text.length()) {
+                block.append('\n');
+            }
         }
+
+        replaceLineBlock(lineStarts.get(0), blockEndForLineStarts(lineStarts), block.toString());
         if (hadSelection) {
             restoreCaretToLineContent(savedAnchorLine, savedAnchorColumn);
             int anchorPos = caret;
@@ -1459,36 +1532,158 @@ public class ManuskriptTextEditor extends Region {
             restoreCaretToLineContent(savedLineIndex, savedColumn);
             anchor = caret;
         }
-        render();
+        finishFormatEdit();
+    }
+
+    private boolean lineHasListMarker(int lineStart) {
+        String line = text.substring(lineStart, logicalLineEndIndex(lineStart));
+        String trimmed = line.stripLeading();
+        return trimmed.startsWith("- ") || trimmed.startsWith("* ") || trimmed.startsWith("+ ")
+                || trimmed.matches("^\\d+\\.\\s+.*");
+    }
+
+    private int nextOrderedListNumberForLine(int lineStart) {
+        String prefix = nextOrderedListPrefixForLine(lineStart);
+        Matcher matcher = Pattern.compile("^(\\d+)\\.\\s+$").matcher(prefix);
+        if (matcher.matches()) {
+            return Integer.parseInt(matcher.group(1));
+        }
+        return 1;
     }
 
     public void insertLinkPlaceholder() {
         if (hasSelection()) {
             String selected = text.substring(selectionStart(), selectionEnd());
-            replaceSelection("[" + selected + "](https://)");
+            int start = selectionStart();
+            replaceRange(start, selectionEnd(), "[" + selected + "](https://)");
+            selectRange(start + 1, start + 1 + selected.length());
         } else {
+            int start = selectionStart();
             replaceSelection("[Link-Text](https://)");
+            selectRange(start + 1, start + 1 + "Link-Text".length());
         }
+        finishFormatEdit();
     }
 
     public void wrapInlineCode() {
-        if (hasSelection()) {
-            toggleInlineFormat("`", "`");
+        if (hasSelection() && text.substring(selectionStart(), selectionEnd()).indexOf('\n') >= 0) {
+            int start = selectionStart();
+            int end = selectionEnd();
+            replaceRange(start, end, "```\n" + text.substring(start, end) + "\n```");
+            finishFormatEdit();
             return;
         }
-        int lineStart = logicalLineStartForOffset(caret);
-        int lineEnd = logicalLineEndIndex(lineStart);
-        if (lineEnd - lineStart > 1) {
-            replaceRange(lineStart, lineEnd, "```\n" + text.substring(lineStart, lineEnd) + "\n```");
-        } else {
-            int insertAt = selectionStart();
-            replaceSelection("```\n\n```");
-            caret = normalizeCaretOffset(insertAt + 4, true);
-            anchor = caret;
-            preferredCaretX = Double.NaN;
-            ensureCaretVisible();
-            render();
+        toggleInlineFormat("`", "`");
+        finishFormatEdit();
+    }
+
+    private void finishFormatEdit() {
+        forceFullAutoMarkRebuild = true;
+        autoRuleDelay.stop();
+        rebuildAutoMarks();
+    }
+
+    private int[] expandRangeToFullMarkdownLinks(int start, int end) {
+        if (start >= end || text.indexOf("](") < 0) {
+            return null;
         }
+        int expandedStart = start;
+        int expandedEnd = end;
+        boolean changed = false;
+        Matcher matcher = LINK_PATTERN.matcher(text);
+        while (matcher.find()) {
+            int linkStart = matcher.start();
+            int linkEnd = matcher.end();
+            if (linkEnd <= expandedStart || linkStart >= expandedEnd) {
+                continue;
+            }
+            if (linkStart < expandedStart) {
+                expandedStart = linkStart;
+                changed = true;
+            }
+            if (linkEnd > expandedEnd) {
+                expandedEnd = linkEnd;
+                changed = true;
+            }
+        }
+        return changed ? new int[]{expandedStart, expandedEnd} : null;
+    }
+
+    private int[] markdownLinkContaining(int offset) {
+        if (offset < 0 || offset >= text.length() || linkFullRanges.isEmpty()) {
+            return null;
+        }
+        TextRange range = linkRangeAtOffset(linkFullRanges, offset, false);
+        return range == null ? null : new int[]{range.start, range.end};
+    }
+
+    /** Nur Klammern/URL – nicht der sichtbare Linktext. */
+    private boolean isHiddenLinkMarkupOffset(int offset) {
+        if (!renderMarkupHidden || offset < 0 || offset >= text.length()) {
+            return false;
+        }
+        TextRange full = linkRangeAtOffset(linkFullRanges, offset, false);
+        if (full == null) {
+            return false;
+        }
+        return linkRangeAtOffset(linkVisibleTextRanges, offset, true) == null;
+    }
+
+    /** Caret darf am Ende des sichtbaren Linktexts stehen (vor {@code ](url)}). */
+    private boolean isLinkVisibleCaretOffset(int offset) {
+        if (!renderMarkupHidden || offset < 0 || offset > text.length()) {
+            return false;
+        }
+        return linkRangeAtOffset(linkVisibleTextRanges, offset, true) != null;
+    }
+
+    private void rebuildLinkRangeCache() {
+        linkFullRanges.clear();
+        linkVisibleTextRanges.clear();
+        if (text.indexOf("](") < 0) {
+            return;
+        }
+        Matcher matcher = LINK_PATTERN.matcher(text);
+        while (matcher.find()) {
+            int textStart = matcher.start(1);
+            int textEnd = matcher.end(1);
+            String url = matcher.group(2);
+            if (textStart >= textEnd || url == null || url.isBlank()) {
+                continue;
+            }
+            linkFullRanges.add(new TextRange(matcher.start(), matcher.end()));
+            linkVisibleTextRanges.add(new TextRange(textStart, textEnd));
+        }
+        sortTextRanges(linkFullRanges);
+        sortTextRanges(linkVisibleTextRanges);
+    }
+
+    private static void sortTextRanges(List<TextRange> ranges) {
+        if (ranges.size() < 2) {
+            return;
+        }
+        ranges.sort(Comparator.comparingInt(range -> range.start));
+    }
+
+    /** {@code inclusiveEnd}: Offset {@code end} zählt noch dazu (Caret hinter sichtbarem Linktext). */
+    private static TextRange linkRangeAtOffset(List<TextRange> ranges, int offset, boolean inclusiveEnd) {
+        if (ranges.isEmpty()) {
+            return null;
+        }
+        int lo = 0;
+        int hi = ranges.size() - 1;
+        while (lo <= hi) {
+            int mid = (lo + hi) >>> 1;
+            TextRange range = ranges.get(mid);
+            if (offset < range.start) {
+                hi = mid - 1;
+            } else if (inclusiveEnd ? offset > range.end : offset >= range.end) {
+                lo = mid + 1;
+            } else {
+                return range;
+            }
+        }
+        return null;
     }
 
     public void toggleMark() {
@@ -1501,24 +1696,13 @@ public class ManuskriptTextEditor extends Region {
 
     /** Zeilenweise Markdown-Zitat: {@code > Text} (wie im Haupt-Editor). */
     public void toggleBlockquote() {
-        int rangeStart = hasSelection() ? selectionStart() : logicalLineStartForOffset(caret);
-        int rangeEnd = hasSelection() ? selectionEnd() : caret;
-        int firstLineStart = logicalLineStartForOffset(rangeStart);
-        int lastLineStart = logicalLineStartForOffset(Math.max(0, rangeEnd > 0 ? rangeEnd - 1 : 0));
+        int savedLineIndex = lineIndexForOffset(caret);
+        int savedColumn = contentColumnForOffset(caret);
+        int savedAnchorLine = lineIndexForOffset(anchor);
+        int savedAnchorColumn = contentColumnForOffset(anchor);
+        boolean hadSelection = hasSelection();
 
-        List<Integer> lineStarts = new ArrayList<>();
-        for (int pos = firstLineStart; pos <= lastLineStart && pos < text.length(); ) {
-            lineStarts.add(pos);
-            int newline = text.indexOf("\n", pos);
-            if (newline < 0) {
-                break;
-            }
-            pos = newline + 1;
-        }
-        if (lineStarts.isEmpty()) {
-            lineStarts.add(0);
-        }
-
+        List<Integer> lineStarts = collectAffectedLogicalLineStarts();
         boolean removePrefix = lineStarts.stream().allMatch(this::isBlockquoteLineStart);
 
         StringBuilder block = new StringBuilder();
@@ -1526,7 +1710,7 @@ public class ManuskriptTextEditor extends Region {
             int lineStart = lineStarts.get(i);
             int lineEnd = i + 1 < lineStarts.size()
                     ? lineStarts.get(i + 1) - 1
-                    : (text.indexOf("\n", lineStart) < 0 ? text.length() : text.indexOf("\n", lineStart));
+                    : logicalLineEndIndex(lineStart);
             String line = text.substring(lineStart, lineEnd);
             if (removePrefix) {
                 int prefixLen = blockquotePrefixLength(lineStart);
@@ -1542,15 +1726,18 @@ public class ManuskriptTextEditor extends Region {
             }
         }
 
-        int blockStart = lineStarts.get(0);
-        int blockEnd = lineStarts.get(lineStarts.size() - 1);
-        blockEnd = text.indexOf("\n", blockEnd);
-        if (blockEnd < 0) {
-            blockEnd = text.length();
+        replaceLineBlock(lineStarts.get(0), blockEndForLineStarts(lineStarts), block.toString());
+
+        if (hadSelection) {
+            restoreCaretToLineContent(savedAnchorLine, savedAnchorColumn);
+            int anchorPos = caret;
+            restoreCaretToLineContent(savedLineIndex, savedColumn);
+            anchor = anchorPos;
         } else {
-            blockEnd++;
+            restoreCaretToLineContent(savedLineIndex, savedColumn);
+            anchor = caret;
         }
-        replaceRange(blockStart, blockEnd, block.toString());
+        finishFormatEdit();
     }
 
     private void handleTabKey(boolean shiftDown) {
@@ -1984,6 +2171,20 @@ public class ManuskriptTextEditor extends Region {
     public void scrollToOffset(int offset) {
         TextPosition pos = positionForOffset(offset);
         verticalScrollBar.setValue(Math.max(0, pos.lineIndex * lineHeight() - lineHeight()));
+    }
+
+    /** Caret und Scroll-Position wiederherstellen (z. B. beim erneuten Öffnen eines Kapitels). */
+    public void restoreViewState(int caretOffset, Double scrollRatio) {
+        int safe = normalizeCaretOffset(Math.max(0, Math.min(text.length(), caretOffset)), true);
+        caret = safe;
+        anchor = safe;
+        preferredCaretX = Double.NaN;
+        updateScrollBar();
+        if (scrollRatio != null) {
+            scrollToRatio(scrollRatio);
+        }
+        ensureCaretVisible();
+        render();
     }
 
     public DoubleProperty scrollTopProperty() {
@@ -2806,6 +3007,18 @@ public class ManuskriptTextEditor extends Region {
             nextCaret = normalizeCaretOffset(firstVisibleOffsetInLine(line), true);
         } else if (!forward && targetLine < current.lineIndex && nextCaret >= previousCaret) {
             nextCaret = normalizeCaretOffset(lastVisibleOffsetInLine(line), false);
+        } else if (forward && targetLine == current.lineIndex && current.lineIndex < lines.size() - 1
+                && nextCaret == previousCaret) {
+            int forcedLine = findVerticalTargetLine(current.lineIndex, 1);
+            if (forcedLine > current.lineIndex) {
+                VisualLine forced = lines.get(forcedLine);
+                nextCaret = normalizeCaretOffset(
+                        offsetAtLineX(forced, forcedLine, preferredCaretX), true);
+                if (nextCaret <= previousCaret) {
+                    nextCaret = normalizeCaretOffset(firstVisibleOffsetInLine(forced), true);
+                }
+                targetLine = forcedLine;
+            }
         }
         caret = nextCaret;
         if (!extendSelection) {
@@ -2828,8 +3041,7 @@ public class ManuskriptTextEditor extends Region {
         int line = Math.max(0, Math.min(lines.size() - 1, startLine));
         for (int step = 0; step < steps; step++) {
             int next = line + direction;
-            while (next >= 0 && next < lines.size()
-                    && (isLineInsideImageBlock(next) || isLineInsideHorizontalRule(next))) {
+            while (next >= 0 && next < lines.size() && isNavigationSkippedLine(next, lines)) {
                 next += direction;
             }
             if (next < 0) {
@@ -2841,6 +3053,12 @@ public class ManuskriptTextEditor extends Region {
             line = next;
         }
         return line;
+    }
+
+    private boolean isNavigationSkippedLine(int lineIndex, List<VisualLine> lines) {
+        return isLineInsideImageBlock(lineIndex)
+                || isLineInsideHorizontalRule(lineIndex)
+                || segmentHeightForLineIndex(lineIndex, lines) <= 0.01;
     }
 
     private String selectedText() {
@@ -3059,6 +3277,8 @@ public class ManuskriptTextEditor extends Region {
         if (text.isEmpty()) {
             markedAreas.removeIf(area -> area.autoRule);
             hiddenMarkupRanges.clear();
+            linkFullRanges.clear();
+            linkVisibleTextRanges.clear();
             headingRanges.clear();
             headingLevelByLineStart.clear();
             listLineInfoByStart.clear();
@@ -3085,11 +3305,11 @@ public class ManuskriptTextEditor extends Region {
         boolean restoreReading = preserveReadingViewportOnNextRebuild;
         if (incremental) {
             rebuildAutoMarksIncremental(autoMarkDirtyStart, autoMarkDirtyEnd);
-            finishAutoMarkRebuild(restoreReading);
         } else {
             rebuildAutoMarksFull();
-            finishAutoMarkRebuild(restoreReading);
         }
+        rebuildLinkRangeCache();
+        finishAutoMarkRebuild(restoreReading);
         preserveReadingViewportOnNextRebuild = false;
         forceFullAutoMarkRebuild = false;
         autoMarkDirtyStart = Integer.MAX_VALUE;
@@ -3684,6 +3904,12 @@ public class ManuskriptTextEditor extends Region {
             area.shiftAfterReplace(start, end, delta);
         }
         for (TextRange range : hiddenMarkupRanges) {
+            range.shiftAfterReplace(start, end, delta);
+        }
+        for (TextRange range : linkFullRanges) {
+            range.shiftAfterReplace(start, end, delta);
+        }
+        for (TextRange range : linkVisibleTextRanges) {
             range.shiftAfterReplace(start, end, delta);
         }
         for (TextRange range : blockStructureHiddenRanges) {
@@ -5505,6 +5731,13 @@ public class ManuskriptTextEditor extends Region {
                 }
             }
             if (!snapped && renderMarkupHidden) {
+                int snappedStructural = snapBlockStructureHiddenOffset(safe, forward);
+                if (snappedStructural != safe) {
+                    safe = snappedStructural;
+                    snapped = true;
+                }
+            }
+            if (!snapped && renderMarkupHidden) {
                 for (TextRange range : hiddenHorizontalRuleRanges) {
                     if (range.contains(safe)) {
                         safe = forward ? range.end : range.start;
@@ -5804,11 +6037,13 @@ public class ManuskriptTextEditor extends Region {
         TextPosition pos = positionForOffset(caret);
         double y = contentYForLineStart(pos.lineIndex);
         double lineBottom = y + segmentHeightForLine(pos.lineIndex);
+        double viewportBottom = scrollTop + canvas.getHeight();
         if (y < scrollTop) {
             verticalScrollBar.setValue(y);
-        } else if (lineBottom > scrollTop + canvas.getHeight()) {
-            verticalScrollBar.setValue(lineBottom - canvas.getHeight());
+        } else if (lineBottom >= viewportBottom) {
+            verticalScrollBar.setValue(Math.min(verticalScrollBar.getMax(), lineBottom - canvas.getHeight()));
         }
+        scrollTop = verticalScrollBar.getValue();
     }
 
     /** Nach Zeilenumbruch: nur nach unten scrollen, wenn der Caret unterhalb des Viewports liegt. */
@@ -6149,6 +6384,9 @@ public class ManuskriptTextEditor extends Region {
         if (!renderMarkupHidden) {
             return false;
         }
+        if (isLinkVisibleCaretOffset(offset)) {
+            return false;
+        }
         if (!hiddenMarkupRanges.isEmpty() && hiddenMarkupRangeContains(offset)) {
             return true;
         }
@@ -6173,6 +6411,26 @@ public class ManuskriptTextEditor extends Region {
             }
         }
         return false;
+    }
+
+    private int snapBlockStructureHiddenOffset(int offset, boolean forward) {
+        if (!blockStructureHiddenRangeContains(offset)) {
+            return offset;
+        }
+        int lo = 0;
+        int hi = blockStructureHiddenRanges.size() - 1;
+        while (lo <= hi) {
+            int mid = (lo + hi) >>> 1;
+            TextRange range = blockStructureHiddenRanges.get(mid);
+            if (offset < range.start) {
+                hi = mid - 1;
+            } else if (offset >= range.end) {
+                lo = mid + 1;
+            } else {
+                return forward ? range.end : range.start;
+            }
+        }
+        return offset;
     }
 
     private boolean hiddenMarkupRangeContains(int offset) {
