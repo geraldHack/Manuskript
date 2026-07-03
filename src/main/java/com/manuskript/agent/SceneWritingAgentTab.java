@@ -615,7 +615,11 @@ public class SceneWritingAgentTab extends ScrollPane {
     }
 
     public void applyFontSize(int size) {
-        AgentFontSizeSupport.apply(this, size, metaLabel);
+        applyEditorFont(null, size);
+    }
+
+    public void applyEditorFont(String fontFamily, int fontSizePx) {
+        AgentFontSizeSupport.applyEditorFont(this, fontSizePx, fontFamily, metaLabel);
     }
 
     public static String loadDefaultInstruction() {

@@ -70,7 +70,7 @@
   "chaptersAfter": 3,
   "contextSize": "FULL",
   "temperature": 0.7,
-  "model": "",
+  "model": "deepseek/deepseek-v3.1-terminus",
   "useParameterModel": true,
   "maxHistoryTurns": 10
 }

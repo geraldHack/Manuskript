@@ -47,11 +47,34 @@ public final class AgentFindingStyles {
     }
 
     public static String quoteTextStyle(int fontSizePx) {
-        return String.format("-fx-fill: %s; -fx-font-size: %dpx; -fx-underline: true;",
-                quoteFillColor(), fontSizePx);
+        return quoteTextStyle(fontSizePx, null);
+    }
+
+    public static String quoteTextStyle(int fontSizePx, String fontFamily) {
+        String familyCss = fontFamilyCss(fontFamily);
+        return String.format("-fx-fill: %s; -fx-font-size: %dpx; -fx-underline: true;%s",
+                quoteFillColor(), fontSizePx, familyCss);
     }
 
     public static String problemTextStyle(int fontSizePx) {
-        return String.format("-fx-fill: %s; -fx-font-size: %dpx;", problemFillColor(), fontSizePx);
+        return problemTextStyle(fontSizePx, null);
+    }
+
+    public static String problemTextStyle(int fontSizePx, String fontFamily) {
+        String familyCss = fontFamilyCss(fontFamily);
+        return String.format("-fx-fill: %s; -fx-font-size: %dpx;%s", problemFillColor(), fontSizePx, familyCss);
+    }
+
+    public static String suggestionTextStyle(int fontSizePx, String fontFamily, String fillColor) {
+        String familyCss = fontFamilyCss(fontFamily);
+        if (fillColor != null && !fillColor.isBlank()) {
+            return String.format("-fx-fill: %s; -fx-font-size: %dpx;%s", fillColor, fontSizePx, familyCss);
+        }
+        return String.format("-fx-font-size: %dpx;%s", fontSizePx, familyCss);
+    }
+
+    private static String fontFamilyCss(String fontFamily) {
+        String css = AgentFontSizeSupport.cssFontFamily(fontFamily);
+        return css != null ? " -fx-font-family: " + css + ";" : "";
     }
 }

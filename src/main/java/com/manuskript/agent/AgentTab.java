@@ -73,6 +73,7 @@ public class AgentTab extends ScrollPane {
     private boolean activityRegistered = false;
     private AgentActivityTracker activityTracker;
     private int currentFontSize = 12;
+    private String currentFontFamily;
     private List<String> availableModels = new ArrayList<>();
     private TextArea revisionInstructionField;
     private ChatbotContextPane contextPane;
@@ -353,15 +354,22 @@ public class AgentTab extends ScrollPane {
     }
 
     public void applyFontSize(int size) {
+        applyEditorFont(currentFontFamily, size);
+    }
+
+    public void applyEditorFont(String fontFamily, int fontSizePx) {
+        int size = fontSizePx;
         if (size < 8) {
             size = 8;
         } else if (size > 72) {
             size = 72;
         }
         currentFontSize = size;
-        // Tab.setContent() hängt contentRoot nicht unter getChildren() – explizit anwenden
+        if (fontFamily != null && !fontFamily.isBlank()) {
+            currentFontFamily = fontFamily.trim();
+        }
         if (contentRoot != null) {
-            AgentFontSizeSupport.apply(contentRoot, size);
+            AgentFontSizeSupport.applyEditorFont(contentRoot, size, currentFontFamily, null);
         }
         AgentActionButtonSupport.applyFontSize(size, analyzeButton, realtimeToggle);
     }
@@ -658,18 +666,20 @@ public class AgentTab extends ScrollPane {
         card.getStyleClass().add("finding-card");
         card.setMaxWidth(Double.MAX_VALUE);
 
-        // Schriftgröße aus aktuellem Editor-Stand (wird via applyFontSize gesetzt)
+        // Schriftgröße und -art aus aktuellem Editor-Stand (via applyEditorFont gesetzt)
         int editorFontSize = currentFontSize;
+        String editorFontFamily = currentFontFamily;
 
         Label severityLabel = new Label(f.getSeverityStars());
         severityLabel.getStyleClass().add("finding-severity");
         severityLabel.setWrapText(true);
         severityLabel.setMinWidth(0);
         severityLabel.setMaxWidth(Double.MAX_VALUE);
-        severityLabel.setStyle(severityLabel.getStyle() + String.format("-fx-font-size: %dpx;", editorFontSize));
+        severityLabel.setStyle(severityLabel.getStyle()
+                + AgentFindingStyles.suggestionTextStyle(editorFontSize, editorFontFamily, null));
 
         Text problemText = new Text(AgentFindingDisplay.stripIndexField(f.getProblem()));
-        problemText.setStyle(AgentFindingStyles.problemTextStyle(editorFontSize));
+        problemText.setStyle(AgentFindingStyles.problemTextStyle(editorFontSize, editorFontFamily));
         TextFlow problemFlow = new TextFlow(problemText);
         problemFlow.getStyleClass().add("finding-problem");
         problemFlow.setMinWidth(0);
@@ -680,7 +690,7 @@ public class AgentTab extends ScrollPane {
                 isSelectionRevisionAgent() && revisionSelectedText != null && !revisionSelectedText.isBlank()
                         ? revisionSelectedText
                         : AgentFindingDisplay.stripIndexField(f.getQuote())));
-        quoteText.setStyle(AgentFindingStyles.quoteTextStyle(editorFontSize));
+        quoteText.setStyle(AgentFindingStyles.quoteTextStyle(editorFontSize, editorFontFamily));
         TextFlow quoteFlow = new TextFlow(quoteText);
         quoteFlow.getStyleClass().add("finding-quote-text");
         quoteFlow.setMinWidth(0);
@@ -706,12 +716,13 @@ public class AgentTab extends ScrollPane {
                 String suggestion = f.getSuggestions().get(i);
                 Text suggestionTextNode = new Text("Vorschlag " + (i + 1) + ": "
                         + AgentFindingDisplay.stripIndexField(suggestion));
-                String suggestionStyle = String.format("-fx-font-size: %dpx;", editorFontSize);
+                String suggestionStyle = AgentFindingStyles.suggestionTextStyle(editorFontSize, editorFontFamily, null);
                 if (f.getSuggestionIndex() >= 0) {
                     String suggestionTheme = com.manuskript.ResourceManager.getParameter("main_window_theme", "0");
                     boolean suggestionIsDarkTheme = suggestionTheme.equals("1") || suggestionTheme.equals("3");
                     String suggestionColor = suggestionIsDarkTheme ? "#81c784" : "#2e7d32";
-                    suggestionStyle = String.format("-fx-fill: %s; -fx-font-size: %dpx;", suggestionColor, editorFontSize);
+                    suggestionStyle = AgentFindingStyles.suggestionTextStyle(
+                            editorFontSize, editorFontFamily, suggestionColor);
                 }
                 suggestionTextNode.setStyle(suggestionStyle);
                 TextFlow suggestionFlow = new TextFlow(suggestionTextNode);
@@ -739,12 +750,13 @@ public class AgentTab extends ScrollPane {
         } else {
             Text suggestionTextNode = new Text("Vorschlag: "
                     + AgentFindingDisplay.stripIndexField(f.getSuggestion()));
-            String suggestionStyle = String.format("-fx-font-size: %dpx;", editorFontSize);
+            String suggestionStyle = AgentFindingStyles.suggestionTextStyle(editorFontSize, editorFontFamily, null);
             if (f.getSuggestionIndex() >= 0) {
                 String suggestionTheme = com.manuskript.ResourceManager.getParameter("main_window_theme", "0");
                 boolean suggestionIsDarkTheme = suggestionTheme.equals("1") || suggestionTheme.equals("3");
                 String suggestionColor = suggestionIsDarkTheme ? "#81c784" : "#2e7d32";
-                suggestionStyle = String.format("-fx-fill: %s; -fx-font-size: %dpx;", suggestionColor, editorFontSize);
+                suggestionStyle = AgentFindingStyles.suggestionTextStyle(
+                        editorFontSize, editorFontFamily, suggestionColor);
             }
             suggestionTextNode.setStyle(suggestionStyle);
             TextFlow suggestionFlow = new TextFlow(suggestionTextNode);

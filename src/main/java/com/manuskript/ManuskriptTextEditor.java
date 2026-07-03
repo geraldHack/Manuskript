@@ -138,6 +138,8 @@ public class ManuskriptTextEditor extends Region {
     private final List<StyleRange> styles = new ArrayList<>();
     private final List<MarkedArea> markedAreas = new ArrayList<>();
     private final List<TextRange> hiddenMarkupRanges = new ArrayList<>();
+    /** Caret darf innerhalb von Inline-Markup (kursiv, fett, …) an allen sichtbaren Grenzen stehen. */
+    private final List<TextRange> inlineFormatCaretZones = new ArrayList<>();
     /** Gecachte Link-Bereiche – kein Regex-Scan pro Tastendruck/Layout-Zeichen. */
     private final List<TextRange> linkFullRanges = new ArrayList<>();
     private final List<TextRange> linkVisibleTextRanges = new ArrayList<>();
@@ -237,6 +239,7 @@ public class ManuskriptTextEditor extends Region {
     private List<VisualLine> cachedVisualLines;
     private double cachedVisualLinesWidth = -1;
     private int cachedVisualLinesTextLength = -1;
+    private int cachedVisualLinesHiddenMarkupRanges = -1;
     private int cachedVisualLinesHiddenBlocks = -1;
     private int cachedVisualLinesHeadingCount = -1;
     private int cachedVisualLinesHorizontalRules = -1;
@@ -573,6 +576,7 @@ public class ManuskriptTextEditor extends Region {
         cachedVisualLines = null;
         cachedVisualLinesWidth = -1;
         cachedVisualLinesTextLength = -1;
+        cachedVisualLinesHiddenMarkupRanges = -1;
         cachedVisualLinesHiddenBlocks = -1;
         cachedVisualLinesHeadingCount = -1;
         cachedVisualLinesBlockquotes = -1;
@@ -1629,14 +1633,6 @@ public class ManuskriptTextEditor extends Region {
         return linkRangeAtOffset(linkVisibleTextRanges, offset, true) == null;
     }
 
-    /** Caret darf am Ende des sichtbaren Linktexts stehen (vor {@code ](url)}). */
-    private boolean isLinkVisibleCaretOffset(int offset) {
-        if (!renderMarkupHidden || offset < 0 || offset > text.length()) {
-            return false;
-        }
-        return linkRangeAtOffset(linkVisibleTextRanges, offset, true) != null;
-    }
-
     private void rebuildLinkRangeCache() {
         linkFullRanges.clear();
         linkVisibleTextRanges.clear();
@@ -1684,6 +1680,11 @@ public class ManuskriptTextEditor extends Region {
             }
         }
         return null;
+    }
+
+    /** Wie {@link #linkRangeAtOffset} mit {@code inclusiveEnd=true} – Caret darf an {@code end} stehen. */
+    private static TextRange rangeAtOffsetInclusiveEnd(List<TextRange> ranges, int offset) {
+        return linkRangeAtOffset(ranges, offset, true);
     }
 
     public void toggleMark() {
@@ -2287,7 +2288,7 @@ public class ManuskriptTextEditor extends Region {
         }
         if (!editable) {
             switch (event.getCode()) {
-                case LEFT -> moveCaret(caret - 1, event.isShiftDown());
+                case LEFT -> moveCaretBackwardOne(event.isShiftDown());
                 case RIGHT -> moveCaretForwardOne(event.isShiftDown());
                 case UP -> moveVertical(-1, event.isShiftDown());
                 case DOWN -> moveVertical(1, event.isShiftDown());
@@ -2364,7 +2365,7 @@ public class ManuskriptTextEditor extends Region {
                     }
                 }
             }
-            case LEFT -> moveCaret(caret - 1, event.isShiftDown());
+            case LEFT -> moveCaretBackwardOne(event.isShiftDown());
             case RIGHT -> moveCaretForwardOne(event.isShiftDown());
             case UP -> moveVertical(-1, event.isShiftDown());
             case DOWN -> moveVertical(1, event.isShiftDown());
@@ -2954,7 +2955,7 @@ public class ManuskriptTextEditor extends Region {
             moveCaret(text.length(), extendSelection);
             return;
         }
-        if (!isHiddenOffset(next)) {
+        if (!isHiddenCaretOffset(next)) {
             moveCaret(next, extendSelection);
             return;
         }
@@ -2964,7 +2965,7 @@ public class ManuskriptTextEditor extends Region {
         if (caret < lastChar) {
             boolean onlyHiddenBeforeLastChar = true;
             for (int offset = caret + 1; offset < lastChar; offset++) {
-                if (!isHiddenOffset(offset)) {
+                if (!isHiddenCaretOffset(offset)) {
                     onlyHiddenBeforeLastChar = false;
                     break;
                 }
@@ -2977,14 +2978,83 @@ public class ManuskriptTextEditor extends Region {
         moveCaret(next, extendSelection);
     }
 
+    /**
+     * Pfeil links: zuerst sichtbare Zeichen in der Zeile, dann verstecktes Markup überspringen.
+     */
+    private void moveCaretBackwardOne(boolean extendSelection) {
+        int prev = caretStepBackward(caret);
+        if (prev == caret) {
+            moveCaret(Math.max(0, caret - 1), extendSelection);
+            return;
+        }
+        if (!isHiddenCaretOffset(prev)) {
+            moveCaret(prev, extendSelection);
+            return;
+        }
+        int lineIdx = visualLineIndexForOffset(caret);
+        VisualLine line = visualLines().get(lineIdx);
+        int firstChar = firstMeaningfulCharOffsetInLine(line);
+        if (caret > firstChar) {
+            boolean onlyHiddenAfterFirstChar = true;
+            for (int offset = firstChar + 1; offset < caret; offset++) {
+                if (!isHiddenCaretOffset(offset)) {
+                    onlyHiddenAfterFirstChar = false;
+                    break;
+                }
+            }
+            if (onlyHiddenAfterFirstChar) {
+                moveCaret(firstChar, extendSelection);
+                return;
+            }
+        }
+        moveCaret(normalizeCaretOffset(prev, false), extendSelection);
+    }
+
+    /** Ein Schritt nach links; verstecktes Inline-Markup (z. B. {@code *} bei Kursiv) wird übersprungen. */
+    private int caretStepBackward(int from) {
+        if (from <= 0) {
+            return 0;
+        }
+        int prev = from - 1;
+        if (!renderMarkupHidden || !isHiddenOffset(prev)) {
+            return prev;
+        }
+        TextRange zone = rangeAtOffsetInclusiveEnd(inlineFormatCaretZones, prev);
+        if (zone == null) {
+            return prev;
+        }
+        int scan = prev - 1;
+        while (scan >= zone.start && isHiddenOffset(scan)) {
+            scan--;
+        }
+        if (scan >= zone.start) {
+            return scan;
+        }
+        return Math.max(0, zone.start - 1);
+    }
+
+    private int firstMeaningfulCharOffsetInLine(VisualLine line) {
+        for (int offset = line.start; offset < line.end; offset++) {
+            if (!isHiddenCaretOffset(offset) && !Character.isWhitespace(text.charAt(offset))) {
+                return offset;
+            }
+        }
+        for (int offset = line.start; offset < line.end; offset++) {
+            if (!isHiddenCaretOffset(offset)) {
+                return offset;
+            }
+        }
+        return line.start;
+    }
+
     private int lastMeaningfulCharOffsetInLine(VisualLine line) {
         for (int offset = line.end - 1; offset >= line.start; offset--) {
-            if (!isHiddenOffset(offset) && !Character.isWhitespace(text.charAt(offset))) {
+            if (!isHiddenCaretOffset(offset) && !Character.isWhitespace(text.charAt(offset))) {
                 return offset;
             }
         }
         for (int offset = line.end - 1; offset >= line.start; offset--) {
-            if (!isHiddenOffset(offset)) {
+            if (!isHiddenCaretOffset(offset)) {
                 return offset;
             }
         }
@@ -3277,6 +3347,7 @@ public class ManuskriptTextEditor extends Region {
         if (text.isEmpty()) {
             markedAreas.removeIf(area -> area.autoRule);
             hiddenMarkupRanges.clear();
+            inlineFormatCaretZones.clear();
             linkFullRanges.clear();
             linkVisibleTextRanges.clear();
             headingRanges.clear();
@@ -3360,6 +3431,7 @@ public class ManuskriptTextEditor extends Region {
     private void rebuildAutoMarksFull() {
         markedAreas.removeIf(area -> area.autoRule && area.autoRuleId >= 0);
         hiddenMarkupRanges.clear();
+        inlineFormatCaretZones.clear();
         String source = text.toString();
         applyAllAutoRules(source, 0, text.length());
         if (source.indexOf("](") >= 0) {
@@ -3457,6 +3529,7 @@ public class ManuskriptTextEditor extends Region {
 
     private void removeHiddenMarkupInRange(int start, int end) {
         hiddenMarkupRanges.removeIf(range -> range.overlaps(start, end));
+        inlineFormatCaretZones.removeIf(range -> range.overlaps(start, end));
     }
 
     private boolean lineRangeMightHaveHeadings(int start, int end) {
@@ -3511,6 +3584,7 @@ public class ManuskriptTextEditor extends Region {
 
     private void finishAutoMarkRebuild(boolean restoreReadingViewport) {
         mergeHiddenMarkupRanges();
+        sortTextRanges(inlineFormatCaretZones);
         invalidateLayoutCaches();
         updateScrollBar();
         if (restoreReadingViewport) {
@@ -3700,7 +3774,7 @@ public class ManuskriptTextEditor extends Region {
         TextRange current = hiddenMarkupRanges.get(0);
         for (int i = 1; i < hiddenMarkupRanges.size(); i++) {
             TextRange next = hiddenMarkupRanges.get(i);
-            if (next.start <= current.end) {
+            if (next.start < current.end) {
                 current.end = Math.max(current.end, next.end);
             } else {
                 merged.add(current);
@@ -3892,6 +3966,7 @@ public class ManuskriptTextEditor extends Region {
         if (contentEnd < matchEnd) {
             hiddenMarkupRanges.add(new TextRange(contentEnd, matchEnd));
         }
+        inlineFormatCaretZones.add(new TextRange(matchStart, matchEnd));
     }
 
     private void adjustRangesForReplace(int start, int end, int insertedLength) {
@@ -3904,6 +3979,9 @@ public class ManuskriptTextEditor extends Region {
             area.shiftAfterReplace(start, end, delta);
         }
         for (TextRange range : hiddenMarkupRanges) {
+            range.shiftAfterReplace(start, end, delta);
+        }
+        for (TextRange range : inlineFormatCaretZones) {
             range.shiftAfterReplace(start, end, delta);
         }
         for (TextRange range : linkFullRanges) {
@@ -5230,6 +5308,7 @@ public class ManuskriptTextEditor extends Region {
         int hiddenBlocks = hiddenImageBlockRanges.size();
         if (cachedVisualLines != null
                 && cachedVisualLinesTextLength == text.length()
+                && cachedVisualLinesHiddenMarkupRanges == hiddenMarkupRanges.size()
                 && cachedVisualLinesHiddenBlocks == hiddenBlocks
                 && cachedVisualLinesHeadingCount == headingRanges.size()
                 && cachedVisualLinesHorizontalRules == horizontalRules.size()
@@ -5257,6 +5336,7 @@ public class ManuskriptTextEditor extends Region {
         rebuildLineVerticalMetrics(cachedVisualLines);
         cachedVisualLinesWidth = lineWidth;
         cachedVisualLinesTextLength = text.length();
+        cachedVisualLinesHiddenMarkupRanges = hiddenMarkupRanges.size();
         cachedVisualLinesHiddenBlocks = hiddenBlocks;
         cachedVisualLinesHeadingCount = headingRanges.size();
         cachedVisualLinesHorizontalRules = horizontalRules.size();
@@ -5622,6 +5702,11 @@ public class ManuskriptTextEditor extends Region {
         }
         if (lines.isEmpty()) {
             lines.add(new VisualLine(0, 0));
+        } else if (lines.get(lines.size() - 1).end < text.length()) {
+            int tailStart = lines.get(lines.size() - 1).end;
+            if (!shouldOmitTableStructureVisualLine(tailStart, text.length())) {
+                lines.add(new VisualLine(tailStart, text.length()));
+            }
         }
         return lines;
     }
@@ -5710,7 +5795,7 @@ public class ManuskriptTextEditor extends Region {
             return 0;
         }
         int guard = 0;
-        while (guard++ <= text.length() + 2 && isHiddenOffset(safe)) {
+        while (guard++ <= text.length() + 2 && isHiddenCaretOffset(safe)) {
             boolean snapped = false;
             if (shouldRenderImagePreview()) {
                 for (TextRange range : hiddenImageBlockRanges) {
@@ -6384,13 +6469,45 @@ public class ManuskriptTextEditor extends Region {
         if (!renderMarkupHidden) {
             return false;
         }
-        if (isLinkVisibleCaretOffset(offset)) {
-            return false;
-        }
         if (!hiddenMarkupRanges.isEmpty() && hiddenMarkupRangeContains(offset)) {
+            if (isAutoRuleStyledContent(offset)) {
+                return false;
+            }
             return true;
         }
         return blockStructureHiddenRangeContains(offset);
+    }
+
+    private boolean isAutoRuleStyledContent(int offset) {
+        for (MarkedArea area : markedAreas) {
+            if (!area.autoRule) {
+                continue;
+            }
+            for (TextRange range : area.ranges) {
+                if (range.contains(offset)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /** Wie {@link #isHiddenOffset}, aber Caret darf in Inline-Formatzonen (kursiv, fett, Link, …) stehen. */
+    private boolean isHiddenCaretOffset(int offset) {
+        if (!renderMarkupHidden) {
+            return isHiddenOffset(offset);
+        }
+        if (isInlineFormatCaretOffset(offset)) {
+            return false;
+        }
+        return isHiddenOffset(offset);
+    }
+
+    private boolean isInlineFormatCaretOffset(int offset) {
+        if (offset < 0 || offset > text.length()) {
+            return false;
+        }
+        return rangeAtOffsetInclusiveEnd(inlineFormatCaretZones, offset) != null;
     }
 
     private boolean blockStructureHiddenRangeContains(int offset) {

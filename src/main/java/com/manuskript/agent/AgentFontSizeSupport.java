@@ -1,5 +1,6 @@
 package com.manuskript.agent;
 
+import com.manuskript.CustomChatArea;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Label;
@@ -20,31 +21,38 @@ public final class AgentFontSizeSupport {
     }
 
     public static void apply(Node root, int size, Label opacityLabel) {
+        applyEditorFont(root, size, null, opacityLabel);
+    }
+
+    public static void applyEditorFont(Node root, int size, String fontFamily, Label opacityLabel) {
         if (root == null) {
             return;
         }
-        applyToNode(root, clamp(size), opacityLabel);
+        applyToNode(root, clamp(size), cssFontFamily(fontFamily), opacityLabel);
     }
 
-    private static void applyToNode(Node node, int size, Label opacityLabel) {
-        String fontCss = String.format("-fx-font-size: %dpx;", size);
+    private static void applyToNode(Node node, int size, String cssFamily, Label opacityLabel) {
         if (node instanceof TextInputControl textControl) {
-            textControl.setStyle(mergeFontSize(textControl.getStyle(), size));
+            textControl.setStyle(mergeFontStyle(textControl.getStyle(), size, cssFamily));
         } else if (node instanceof Text text) {
-            text.setStyle(mergeFontSize(text.getStyle(), size));
+            text.setStyle(mergeFontStyle(text.getStyle(), size, cssFamily));
         } else if (node instanceof Label label) {
             if (label == opacityLabel) {
-                label.setStyle(mergeFontSize(label.getStyle(), size) + " -fx-opacity: 0.75;");
+                label.setStyle(mergeFontStyle(label.getStyle(), size, cssFamily) + " -fx-opacity: 0.75;");
             } else {
-                label.setStyle(mergeFontSize(label.getStyle(), size));
+                label.setStyle(mergeFontStyle(label.getStyle(), size, cssFamily));
             }
         } else if (node instanceof Labeled labeled) {
-            labeled.setStyle(mergeFontSize(labeled.getStyle(), size));
+            labeled.setStyle(mergeFontStyle(labeled.getStyle(), size, cssFamily));
         } else if (node instanceof Parent parent) {
             for (Node child : parent.getChildrenUnmodifiable()) {
-                applyToNode(child, size, opacityLabel);
+                applyToNode(child, size, cssFamily, opacityLabel);
             }
         }
+    }
+
+    private static String mergeFontStyle(String existing, int size, String cssFamily) {
+        return mergeFontFamily(mergeFontSize(existing, size), cssFamily);
     }
 
     private static String mergeFontSize(String existing, int size) {
@@ -56,6 +64,27 @@ public final class AgentFontSizeSupport {
             return existing.replaceAll("-fx-font-size:\\s*[^;]+;", fontPart);
         }
         return existing + " " + fontPart;
+    }
+
+    private static String mergeFontFamily(String existing, String cssFamily) {
+        if (cssFamily == null || cssFamily.isBlank()) {
+            return existing != null ? existing : "";
+        }
+        String fontPart = String.format("-fx-font-family: %s;", cssFamily);
+        if (existing == null || existing.isBlank()) {
+            return fontPart;
+        }
+        if (existing.contains("-fx-font-family:")) {
+            return existing.replaceAll("-fx-font-family:\\s*[^;]+;", fontPart);
+        }
+        return existing + " " + fontPart;
+    }
+
+    static String cssFontFamily(String fontFamily) {
+        if (fontFamily == null || fontFamily.isBlank()) {
+            return null;
+        }
+        return CustomChatArea.cssFontFamily(fontFamily);
     }
 
     private static int clamp(int size) {

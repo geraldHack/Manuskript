@@ -314,19 +314,17 @@ public class AgentTabPane extends TabPane {
 
     public void applyEditorAppearance(int fontSizePx, int themeIndex, String fontFamily) {
         for (AgentTab tab : agentTabs) {
-            tab.applyFontSize(fontSizePx);
+            tab.applyEditorFont(fontFamily, fontSizePx);
         }
         for (SceneWritingAgentTab tab : sceneWritingTabs) {
-            tab.applyFontSize(fontSizePx);
+            tab.applyEditorFont(fontFamily, fontSizePx);
         }
         for (ChatbotAgentTab tab : chatbotTabs) {
             tab.applyFontSize(fontSizePx);
             if (themeIndex >= 0) {
                 tab.applyChatTheme(themeIndex);
             }
-            if (fontFamily != null && !fontFamily.isBlank()) {
-                tab.applyEditorFont(fontFamily, fontSizePx);
-            }
+            tab.applyEditorFont(fontFamily, fontSizePx);
         }
     }
 
