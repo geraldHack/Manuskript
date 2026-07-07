@@ -94,7 +94,7 @@ public final class SelectionRevisionSupport {
     }
 
     public static int maxSelectionChars() {
-        return parsePositiveInt(ResourceManager.getParameter(PARAM_MAX_CHARS, "2000"), 2000);
+        return parsePositiveInt(ResourceManager.getParameter(PARAM_MAX_CHARS, "5000"), 5000);
     }
 
     public static int contextRadiusChars() {

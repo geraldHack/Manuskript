@@ -294,8 +294,13 @@ public class ChapterAgentSupport {
             return;
         }
         if (selected.length() > SelectionRevisionSupport.maxSelectionChars()) {
-            host.updateStatus("Markierung zu lang (max. "
-                    + SelectionRevisionSupport.maxSelectionChars() + " Zeichen).");
+            int maxChars = SelectionRevisionSupport.maxSelectionChars();
+            String msg = "Markierung zu lang: " + selected.length() + " Zeichen (max. " + maxChars + ").";
+            host.updateStatus(msg);
+            AgentTab revisionTab = SelectionRevisionSupport.findRevisionTab(agentTabPane);
+            if (revisionTab != null) {
+                revisionTab.showError(msg);
+            }
             return;
         }
         AgentTab revisionTab = SelectionRevisionSupport.findRevisionTab(agentTabPane);

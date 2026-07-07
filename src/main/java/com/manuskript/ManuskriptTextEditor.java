@@ -5178,15 +5178,9 @@ public class ManuskriptTextEditor extends Region {
             return;
         }
         int safeCaret = normalizeCaretOffset(caret, true);
-        if (safeCaret != caret) {
-            caret = safeCaret;
-            if (caret == anchor) {
-                anchor = safeCaret;
-            }
-        }
-        TextPosition pos = positionForOffset(caret);
+        TextPosition pos = positionForOffset(safeCaret);
         VisualLine line = lines.get(Math.max(0, Math.min(lines.size() - 1, pos.lineIndex)));
-        double x = xForOffsetInLine(line, pos.lineIndex, caret);
+        double x = xForOffsetInLine(line, pos.lineIndex, safeCaret);
         double y = lineTopY(pos.lineIndex) + 2;
         double lineH = lineHeightForLineIndex(pos.lineIndex);
         double caretH = lineH > 1 ? lineH - 4 : Math.max(4, lineHeight() - 4);
@@ -5702,11 +5696,6 @@ public class ManuskriptTextEditor extends Region {
         }
         if (lines.isEmpty()) {
             lines.add(new VisualLine(0, 0));
-        } else if (lines.get(lines.size() - 1).end < text.length()) {
-            int tailStart = lines.get(lines.size() - 1).end;
-            if (!shouldOmitTableStructureVisualLine(tailStart, text.length())) {
-                lines.add(new VisualLine(tailStart, text.length()));
-            }
         }
         return lines;
     }
@@ -5825,7 +5814,11 @@ public class ManuskriptTextEditor extends Region {
             if (!snapped && renderMarkupHidden) {
                 for (TextRange range : hiddenHorizontalRuleRanges) {
                     if (range.contains(safe)) {
-                        safe = forward ? range.end : range.start;
+                        int afterRule = range.end;
+                        if (afterRule < text.length() && text.charAt(afterRule) == '\n') {
+                            afterRule++;
+                        }
+                        safe = forward ? afterRule : range.start;
                         snapped = true;
                         break;
                     }

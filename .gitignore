@@ -52,6 +52,7 @@ Thumbs.db
 
 # Session-Dateien ignorieren
 config/sessions/
+config/openrouter-monitor.properties
 
 # Alle docx-Dateien ignorieren
 #*.docx 

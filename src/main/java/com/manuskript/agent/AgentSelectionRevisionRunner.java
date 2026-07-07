@@ -53,13 +53,19 @@ public final class AgentSelectionRevisionRunner {
             host.updateStatus("Die Markierung ist leer.");
             return;
         }
+
+        AgentTab targetTab = explicitTab != null ? explicitTab : SelectionRevisionSupport.findRevisionTab(agentTabPane);
+
         int maxChars = SelectionRevisionSupport.maxSelectionChars();
         if (selected.length() > maxChars) {
-            host.updateStatus("Markierung zu lang (max. " + maxChars + " Zeichen).");
+            String msg = "Markierung zu lang: " + selected.length() + " Zeichen (max. " + maxChars + ").";
+            host.updateStatus(msg);
+            if (targetTab != null) {
+                targetTab.showError(msg);
+            }
             return;
         }
 
-        AgentTab targetTab = explicitTab != null ? explicitTab : SelectionRevisionSupport.findRevisionTab(agentTabPane);
         if (targetTab == null) {
             host.updateStatus("Überarbeiten-Agent nicht gefunden (config/agents.json).");
             return;

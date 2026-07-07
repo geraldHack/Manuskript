@@ -9,7 +9,7 @@
   "chaptersAfter": 3,
   "contextSize": "COMPACT",
   "temperature": 0.7,
-  "model": "grok-4.3 (Input: 1,25 $/1M (0,02 $/10k Zeichen) · Output: 2,50 $/1M (0,05 $/10k Zeichen))",
+  "model": "deepseek/deepseek-v3.1-terminus",
   "useParameterModel": true,
   "maxHistoryTurns": 10
 }

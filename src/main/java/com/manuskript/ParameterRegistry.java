@@ -207,7 +207,7 @@ public final class ParameterRegistry {
                 "Echtzeit-Pruefung beim Tippen aktivieren.", "Agenten");
         add("agent.realtime_debounce_ms", ParameterDef.Type.INT, "2000",
                 "Verzoegerung in ms nach letztem Tippen, bevor die Echtzeit-Pruefung startet.", "Agenten");
-        add("agent.selection_revision.max_chars", ParameterDef.Type.INT, "2000",
+        add("agent.selection_revision.max_chars", ParameterDef.Type.INT, "5000",
                 "Maximale Laenge einer Markierung fuer den Ueberarbeiten-Agenten (Kontextmenue).", "Agenten");
         add("agent.selection_revision.context_chars", ParameterDef.Type.INT, "1500",
                 "Zeichen Kontext vor/nach der Markierung fuer den Ueberarbeiten-Agenten.", "Agenten");

@@ -114,6 +114,7 @@ nicht-zirari
 nira
 niras
 oryn
+oswin
 paleus
 rawhester
 schulterrempler
@@ -128,6 +129,7 @@ technomagisches
 thalassar
 thoran
 thorans
+thorne
 tilla
 tomas
 toran
