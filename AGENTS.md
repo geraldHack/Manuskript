@@ -21,7 +21,7 @@ Manuskript is a JavaFX 21 desktop application for manuscript editing with AI int
 
 ### Wichtig: Welcher Code laeuft?
 - **`mvn compile`** schreibt nur nach `target/classes`. Die **JAR** (z.B. `target/manuskript-standalone.jar`) und das **App-Image** (z.B. `installer-output\Manuskript\`) werden dabei **nicht** aktualisiert.
-- Wenn die App ueber **Manuskript.exe** (installer-output) oder eine **alte JAR** gestartet wird, laeuft der Stand des letzten **`mvn package`** bzw. **create-installer.bat**.
+- Wenn die App ueber **Manuskript.exe** / **Manuskript.app** (installer-output) oder eine **alte JAR** gestartet wird, laeuft der Stand des letzten **`mvn package`** bzw. **`create-installer.bat`** (Windows) / **`create-installer.sh`** (macOS arm64).
 - Damit nach Aenderungen der **aktuelle Code** laeuft: App mit **`mvn javafx:run`** starten (oder `run-developer.bat` unter Windows), oder vor dem Start **`mvn package`** ausfuehren und danach die gebaute App starten.
 
 ### Kapitel-Editor (nur Canvas – Legacy ignoriert)

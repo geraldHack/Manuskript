@@ -184,7 +184,7 @@ public class MainController implements Initializable {
     private static final String PREF_USE_CANVAS_CHAPTER_EDITOR = "use_canvas_chapter_editor";
 
     public static boolean isCanvasChapterEditorEnabled() {
-        return Preferences.userNodeForPackage(MainController.class)
+        return ApplicationPreferences.mainControllerNode()
                 .getBoolean(PREF_USE_CANVAS_CHAPTER_EDITOR, true);
     }
     
@@ -239,7 +239,7 @@ public class MainController implements Initializable {
     
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        preferences = Preferences.userNodeForPackage(MainController.class);
+        preferences = ApplicationPreferences.mainControllerNode();
         
         // Migration von parameters.properties zu User Preferences
         ResourceManager.migrateParametersToPreferences();
@@ -350,13 +350,16 @@ public class MainController implements Initializable {
             // Prüfe beim Start, ob Root-Verzeichnis konfiguriert ist (nur während Initialisierung)
             if (isInitializing) {
                 String rootDir = ResourceManager.getParameter("project.root.directory", "");
+                boolean openedBundledDemoRoot = false;
                 if (rootDir == null || rootDir.trim().isEmpty()) {
-                    File defaultManuskripte = new File("Manuskripte");
-                    if (defaultManuskripte.exists() && defaultManuskripte.isDirectory()) {
+                    File defaultManuskripte = ApplicationPaths.resolveManuskripteDirectory();
+                    if (defaultManuskripte.isDirectory()) {
                         rootDir = defaultManuskripte.getAbsolutePath();
                         ResourceManager.saveParameter("project.root.directory", rootDir);
                         preferences.put("lastDirectory", rootDir);
-                        logger.debug("Manuskripte-Verzeichnis als Default gesetzt: {}", rootDir);
+                        projectRootDirectory = defaultManuskripte;
+                        openedBundledDemoRoot = ApplicationPreferences.isPackagedApplication();
+                        logger.info("Manuskripte-Verzeichnis als Default gesetzt: {}", rootDir);
                     } else {
                         logger.debug("Root-Verzeichnis nicht gesetzt - zeige Welcome Screen");
                         showRootDirectoryChooser();
@@ -387,7 +390,12 @@ public class MainController implements Initializable {
                 isInitializing = false;
                 
                 // Jetzt loadLastDirectory() aufrufen, falls kein Welcome Screen gezeigt wurde
-                if (rootDir != null && !rootDir.trim().isEmpty()) {
+                if (openedBundledDemoRoot) {
+                    Platform.runLater(() -> {
+                        primaryStage.hide();
+                        showProjectSelectionMenu();
+                    });
+                } else if (rootDir != null && !rootDir.trim().isEmpty()) {
                     File rootDirFile = new File(rootDir);
                     if (rootDirFile.exists()) {
                         // Root-Verzeichnis ist korrekt - lade letztes Verzeichnis
@@ -1272,8 +1280,8 @@ public class MainController implements Initializable {
     private void loadLastDirectory() {
         String lastDirectory = preferences.get("lastDirectory", "");
         if (lastDirectory == null || lastDirectory.isEmpty()) {
-            File defaultDir = new File("Manuskripte");
-            if (defaultDir.exists() && defaultDir.isDirectory()) {
+            File defaultDir = ApplicationPaths.resolveManuskripteDirectory();
+            if (defaultDir.isDirectory()) {
                 lastDirectory = defaultDir.getAbsolutePath();
                 preferences.put("lastDirectory", lastDirectory);
             } else {
@@ -6625,7 +6633,7 @@ public class MainController implements Initializable {
      * Fügt Listener für Projekt-Fenster hinzu
      */
     private void addProjectWindowListeners(CustomStage projectStage) {
-        Preferences preferences = Preferences.userNodeForPackage(MainController.class);
+        Preferences preferences = ApplicationPreferences.mainControllerNode();
         Screen primaryScreen = Screen.getPrimary();
         Rectangle2D screenBounds = primaryScreen.getBounds();
         double screenWidth = screenBounds.getWidth();
@@ -7605,9 +7613,10 @@ public class MainController implements Initializable {
             HBox dirBox = new HBox(10);
             dirBox.setAlignment(Pos.CENTER);
             
-            File defaultManuskripteDir = new File("Manuskripte");
-            String initialDir = defaultManuskripteDir.exists() && defaultManuskripteDir.isDirectory()
-                    ? defaultManuskripteDir.getAbsolutePath() : "manuskripte";
+            File defaultManuskripteDir = ApplicationPaths.resolveManuskripteDirectory();
+            String initialDir = defaultManuskripteDir.isDirectory()
+                    ? defaultManuskripteDir.getAbsolutePath()
+                    : ApplicationPaths.getApplicationHomeDirectory().getAbsolutePath();
 
             TextField dirField = new TextField(initialDir);
             dirField.setPrefWidth(300);

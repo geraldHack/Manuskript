@@ -14,9 +14,11 @@ create-standalone.bat
 manuskript-standalone/
 javafx-sdk-21.0.6/
 javafx-jmods-*/
+javafx-modpath-*/
 manuskript-standalone.jar
 installer-output/
 installer-staging/
+installer-bundle-tmp/
 pandoc/pandoc.exe
 pandoc/*.png
 pandoc/*.jpg
@@ -28,7 +30,12 @@ asd/
 ffmpeg/ffmpeg
 ffmpeg/ffmpeg.exe
 ffmpeg/ffprobe.exe
+ffmpeg/ffmpeg-mac.zip
+ffmpeg/ffmpeg-linux.zip
 ffmpeg/bin/
+
+# Gebündeltes Pandoc (Installer-Skripte laden/placken ZIPs lokal)
+pandoc/pandoc-mac.zip
 
 # IDE
 .idea/

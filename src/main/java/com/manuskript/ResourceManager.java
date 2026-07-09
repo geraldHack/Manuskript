@@ -44,7 +44,7 @@ public class ResourceManager {
      */
     private static void migrateAgentParameters() {
         try {
-            Preferences prefs = Preferences.userNodeForPackage(ResourceManager.class);
+            Preferences prefs = ApplicationPreferences.resourceManagerNode();
             String migrated = prefs.get("_agent_params_migrated_v2", null);
             if ("true".equals(migrated)) return;
 
@@ -401,7 +401,7 @@ public class ResourceManager {
      */
     public static String getParameter(String key, String defaultValue) {
         try {
-            Preferences preferences = Preferences.userNodeForPackage(ResourceManager.class);
+            Preferences preferences = ApplicationPreferences.resourceManagerNode();
             String value = preferences.get(key, null);
             
             // Wenn in User Preferences gefunden, verwende diesen Wert
@@ -439,7 +439,7 @@ public class ResourceManager {
      */
     public static int getIntParameter(String key, int defaultValue) {
         try {
-            Preferences preferences = Preferences.userNodeForPackage(ResourceManager.class);
+            Preferences preferences = ApplicationPreferences.resourceManagerNode();
             int value = preferences.getInt(key, Integer.MIN_VALUE);
             
             // Wenn in User Preferences gefunden, verwende diesen Wert
@@ -466,7 +466,7 @@ public class ResourceManager {
      */
     public static double getDoubleParameter(String key, double defaultValue) {
         try {
-            Preferences preferences = Preferences.userNodeForPackage(ResourceManager.class);
+            Preferences preferences = ApplicationPreferences.resourceManagerNode();
             return preferences.getDouble(key, defaultValue);
         } catch (Exception e) {
             logger.warn("Fehler beim Laden der User Preference {}", key, e);
@@ -479,7 +479,7 @@ public class ResourceManager {
      */
     public static void saveParameter(String key, String value) {
         try {
-            Preferences preferences = Preferences.userNodeForPackage(ResourceManager.class);
+            Preferences preferences = ApplicationPreferences.resourceManagerNode();
             preferences.put(key, value);
         } catch (Exception e) {
             logger.warn("Fehler beim Speichern der User Preference {}", key, e);
@@ -558,7 +558,7 @@ public class ResourceManager {
                 return;
             }
             
-            Preferences preferences = Preferences.userNodeForPackage(ResourceManager.class);
+            Preferences preferences = ApplicationPreferences.resourceManagerNode();
             int migratedCount = 0;
             
             // Alle Properties zu User Preferences migrieren
@@ -628,7 +628,7 @@ public class ResourceManager {
         try {
             // Wichtige Parameter mit Standardwerten wiederherstellen
             String[][] defaultParams = {
-                {"project.root.directory", System.getProperty("user.home") + File.separator + "Manuskripte"},
+                {"project.root.directory", ""},
                 {"session.max_qapairs_per_session", "20"},
                 {"ollama.temperature", "0.17"},
                 {"ollama.max_tokens", "8192"},
@@ -649,7 +649,7 @@ public class ResourceManager {
                 String defaultValue = param[1];
                 
                 // Prüfe in ResourceManager Preferences
-                Preferences resourcePrefs = Preferences.userNodeForPackage(ResourceManager.class);
+                Preferences resourcePrefs = ApplicationPreferences.resourceManagerNode();
                 String existingValue = resourcePrefs.get(key, null);
                 if (existingValue == null || existingValue.trim().isEmpty()) {
                     // Prüfe zuerst in parameters.properties, bevor Standardwert gesetzt wird
@@ -666,7 +666,7 @@ public class ResourceManager {
                 if (key.startsWith("ui.") || key.startsWith("project.") || key.startsWith("session.") || 
                     key.startsWith("main_") || key.startsWith("editor_") || key.startsWith("help_") || 
                     key.startsWith("paragraph_")) {
-                    Preferences mainPrefs = Preferences.userNodeForPackage(com.manuskript.MainController.class);
+                    Preferences mainPrefs = ApplicationPreferences.mainControllerNode();
                     String mainValue = mainPrefs.get(key, null);
                     if (mainValue == null || mainValue.trim().isEmpty()) {
                         // Prüfe zuerst in parameters.properties, bevor Standardwert gesetzt wird
