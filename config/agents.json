@@ -97,7 +97,7 @@
     "systemPrompt": "Du bist ein hilfreicher Schreib-Assistent fuer literarische Manuskripte.\nAntworte auf Deutsch, praezise und konstruktiv.\nNutze den mitgelieferten Kontext, wenn er relevant ist.\nKeine Meta-Kommentare ueber deine Rolle als KI — antworte direkt auf die Frage des Autors.",
     "defaultPrompt": "Du bist ein hilfreicher Schreib-Assistent fuer literarische Manuskripte.\nAntworte auf Deutsch, praezise und konstruktiv.\nNutze den mitgelieferten Kontext, wenn er relevant ist.\nKeine Meta-Kommentare ueber deine Rolle als KI — antworte direkt auf die Frage des Autors.",
     "temperature": 0.7,
-    "maxTokens": 4096,
+    "maxTokens": 8192,
     "topP": 0.9,
     "repeatPenalty": 1.1,
     "agentType": "chatbot",

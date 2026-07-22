@@ -87,6 +87,14 @@ public class MicrophoneRecorder {
             line = (TargetDataLine) AudioSystem.getLine(info);
             line.open(format);
             line.start();
+            // Erste Millisekunden verwerfen (Geräte-Einschwingung / Buffer-Müll)
+            int flushBytes = Math.min(line.available(), (int) (SAMPLE_RATE * 0.05) * 2);
+            if (flushBytes > 0) {
+                byte[] discard = new byte[flushBytes];
+                line.read(discard, 0, flushBytes);
+            }
+            Mixer.Info[] mixers = AudioSystem.getMixerInfo();
+            logger.info("Mikrofon-Aufnahme gestartet ({} Hz, Mixers={})", (int) SAMPLE_RATE, mixers.length);
             recordedBytes = new ByteArrayOutputStream();
             recording.set(true);
             recordThread = new Thread(this::runRecord, "MicrophoneRecorder");
@@ -335,6 +343,41 @@ public class MicrophoneRecorder {
         return recording.get();
     }
 
+    /**
+     * Peak-Amplitude der 16-bit-PCM-Daten (0..32767).
+     * Sehr niedrige Werte bedeuten Stille (Mikrofon aus / ohne Berechtigung / falsches Gerät).
+     */
+    public static int peakAmplitudePcm16(byte[] pcmData) {
+        if (pcmData == null || pcmData.length < 2) {
+            return 0;
+        }
+        int peak = 0;
+        int limit = pcmData.length - (pcmData.length % 2);
+        for (int i = 0; i < limit; i += 2) {
+            int sample = (pcmData[i] & 0xff) | (pcmData[i + 1] << 8);
+            int abs = Math.abs(sample);
+            if (abs > peak) {
+                peak = abs;
+            }
+        }
+        return peak;
+    }
+
+    /**
+     * Liest Peak-Amplitude aus einer WAV-Datei (überspringt 44-Byte-Header).
+     */
+    public static int peakAmplitudeWav(byte[] wavBytes) {
+        if (wavBytes == null || wavBytes.length <= 44) {
+            return 0;
+        }
+        byte[] pcm = new byte[wavBytes.length - 44];
+        System.arraycopy(wavBytes, 44, pcm, 0, pcm.length);
+        return peakAmplitudePcm16(pcm);
+    }
+
+    /** Unter diesem Peak gilt die Aufnahme als praktisch stumm (ca. 0,3 % Full Scale). */
+    public static final int MIN_SPEECH_PEAK = 100;
+
     private void writeWav(Path path, byte[] pcmData) throws IOException {
         int dataLen = pcmData.length;
         int totalLen = 36 + dataLen;
@@ -353,6 +396,57 @@ public class MicrophoneRecorder {
             out.writeBytes("data");
             out.write(intToLittleEndian(dataLen), 0, 4);
             out.write(pcmData);
+        }
+    }
+
+    /**
+     * Analysiert 16-bit-LE-PCM (Mono) auf Peak/RMS — erkennt stumme Aufnahmen
+     * (z. B. fehlende Mikrofon-Berechtigung unter macOS).
+     */
+    public static AudioLevel analyzePcmLevel(byte[] pcmData) {
+        if (pcmData == null || pcmData.length < 2) {
+            return new AudioLevel(0, 0, 0);
+        }
+        int samples = pcmData.length / 2;
+        long sumSquares = 0;
+        int peakAbs = 0;
+        for (int i = 0; i + 1 < pcmData.length; i += 2) {
+            int sample = (pcmData[i] & 0xff) | (pcmData[i + 1] << 8);
+            if (sample > 32767) {
+                sample -= 65536;
+            }
+            int abs = Math.abs(sample);
+            if (abs > peakAbs) {
+                peakAbs = abs;
+            }
+            sumSquares += (long) sample * sample;
+        }
+        double peak = peakAbs / 32768.0;
+        double rms = samples > 0 ? Math.sqrt(sumSquares / (double) samples) / 32768.0 : 0;
+        return new AudioLevel(samples, peak, rms);
+    }
+
+    /**
+     * True wenn die Aufnahme praktisch stumm ist (kein sinnvolles Sprachsignal).
+     */
+    public static boolean isNearSilent(byte[] pcmData) {
+        AudioLevel level = analyzePcmLevel(pcmData);
+        // Peak unter ~1,5 % und RMS unter ~0,3 % → typisch für stummes Mikrofon / Permission denied
+        return level.peak() < 0.015 && level.rms() < 0.003;
+    }
+
+    public static boolean isNearSilentWav(byte[] wavBytes) {
+        if (wavBytes == null || wavBytes.length <= 44) {
+            return true;
+        }
+        byte[] pcm = new byte[wavBytes.length - 44];
+        System.arraycopy(wavBytes, 44, pcm, 0, pcm.length);
+        return isNearSilent(pcm);
+    }
+
+    public record AudioLevel(int samples, double peak, double rms) {
+        public double durationSeconds() {
+            return samples / SAMPLE_RATE;
         }
     }
 

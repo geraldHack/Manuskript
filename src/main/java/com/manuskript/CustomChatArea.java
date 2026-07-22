@@ -2,15 +2,25 @@ package com.manuskript;
 
 import javafx.application.Platform;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.Tooltip;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.LineTo;
+import javafx.scene.shape.MoveTo;
+import javafx.scene.shape.Path;
 import javafx.scene.text.Font;
+import javafx.stage.Window;
+
+import com.manuskript.agent.ChatAnswerEditorWindow;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,6 +31,7 @@ public class CustomChatArea extends VBox {
     private TextArea questionArea;  // Geändert von Label zu TextArea
     private Button upButton;
     private Button downButton;
+    private Button openAnswerButton;
     private VBox scrollIndicator;
     private List<QAPair> chatHistory = new ArrayList<>();
     private int currentIndex = -1;
@@ -117,6 +128,18 @@ public class CustomChatArea extends VBox {
         downButton.setPrefHeight(32);
         downButton.setDisable(true);
         downButton.setOnAction(e -> showNext());
+
+        openAnswerButton = new Button();
+        openAnswerButton.setId("btnChatOpenAnswer");
+        openAnswerButton.setPrefWidth(32);
+        openAnswerButton.setPrefHeight(32);
+        openAnswerButton.setMinSize(32, 32);
+        openAnswerButton.setFocusTraversable(false);
+        openAnswerButton.setDisable(true);
+        openAnswerButton.setTooltip(new Tooltip("Antwort in eigenem Editorfenster öffnen"));
+        openAnswerButton.setOnAction(e -> openCurrentAnswerInEditor());
+        openAnswerButton.setGraphic(createOpenAnswerArrowGraphic(Color.web("#111827")));
+        openAnswerButton.setContentDisplay(javafx.scene.control.ContentDisplay.GRAPHIC_ONLY);
         
         // Keyboard-Hinweis (kleiner)
         Label keyboardHint = new Label("Ctrl+↑/↓");
@@ -130,14 +153,17 @@ public class CustomChatArea extends VBox {
         
         // Navigation-Container (rechts neben der Antwort-TextArea)
         VBox navigationBox = new VBox(5);
-        navigationBox.setAlignment(javafx.geometry.Pos.CENTER);
-        navigationBox.getChildren().addAll(keyboardHint, upButton, downButton, scrollIndicator);
+        navigationBox.setAlignment(Pos.TOP_CENTER);
+        navigationBox.setMinWidth(36);
+        navigationBox.setPrefWidth(36);
+        // ↗ oben in der Nav-Spalte (nicht über dem Editor-Scrollbar)
+        navigationBox.getChildren().addAll(keyboardHint, openAnswerButton, upButton, downButton, scrollIndicator);
         
         // Antwort-Bereich mit Navigation (HBox für nebeneinander)
         HBox answerSection = new HBox(10);
         answerSection.getChildren().addAll(chatHistoryArea, navigationBox);
-        VBox.setVgrow(chatHistoryArea, javafx.scene.layout.Priority.ALWAYS);
-        HBox.setHgrow(chatHistoryArea, javafx.scene.layout.Priority.ALWAYS);
+        VBox.setVgrow(chatHistoryArea, Priority.ALWAYS);
+        HBox.setHgrow(chatHistoryArea, Priority.ALWAYS);
         
         // Haupt-Layout
         this.setSpacing(10);
@@ -303,6 +329,7 @@ public class CustomChatArea extends VBox {
             // Navigation-Buttons aktualisieren
             upButton.setDisable(currentIndex <= 0);
             downButton.setDisable(currentIndex >= chatHistory.size() - 1);
+            updateOpenAnswerButtonState();
             
             // Scroll-Indikator aktualisieren
             updateScrollIndicator();
@@ -312,6 +339,7 @@ public class CustomChatArea extends VBox {
             chatHistoryArea.clear();
             upButton.setDisable(true);
             downButton.setDisable(true);
+            updateOpenAnswerButtonState();
             scrollIndicator.getChildren().clear();
         }
         // Callback benachrichtigen (z. B. externes Ergebnisfenster aktualisieren)
@@ -322,6 +350,39 @@ public class CustomChatArea extends VBox {
 
     public void setOnDisplayChange(Runnable callback) {
         this.onDisplayChange = callback;
+    }
+
+    private void updateOpenAnswerButtonState() {
+        if (openAnswerButton == null) {
+            return;
+        }
+        String answer = getCurrentAnswer();
+        openAnswerButton.setDisable(answer == null || answer.isBlank());
+    }
+
+    private void openCurrentAnswerInEditor() {
+        String answer = getCurrentAnswer();
+        if (answer == null || answer.isBlank()) {
+            return;
+        }
+        Window owner = getScene() != null ? getScene().getWindow() : null;
+        ChatAnswerEditorWindow.open(owner, getCurrentQuestion(), answer, themeIndex, fontFamily, fontSizePx);
+    }
+
+    /** Gezeichneter Pfeil nach rechts oben – unabhängig von Font-Glyphen. */
+    private static Path createOpenAnswerArrowGraphic(Color color) {
+        Path arrow = new Path(
+                new MoveTo(2, 12),
+                new LineTo(12, 2),
+                new MoveTo(5, 2),
+                new LineTo(12, 2),
+                new LineTo(12, 9)
+        );
+        arrow.setStroke(color);
+        arrow.setStrokeWidth(2.0);
+        arrow.setFill(null);
+        arrow.setMouseTransparent(true);
+        return arrow;
     }
     
     private void updateScrollIndicator() {
@@ -420,6 +481,10 @@ public class CustomChatArea extends VBox {
         );
         upButton.setStyle(buttonStyle);
         downButton.setStyle(buttonStyle);
+        if (openAnswerButton != null) {
+            openAnswerButton.setStyle(buttonStyle);
+            openAnswerButton.setGraphic(createOpenAnswerArrowGraphic(Color.web(textColor)));
+        }
         // Hint-Farbe je Theme
         // Hell/Pastell: dunkleres Grau, sonst helles Grau
         String hintColor = (themeIndex == 0 || themeIndex == 2) ? "#6b7280" : "#d1d5db";

@@ -32,11 +32,14 @@ public class LanguageToolService {
     private final HttpClient httpClient;
     private final Preferences preferences;
     
+    private static final Object SERVER_LOCK = new Object();
+    private static final Object CHECK_LOCK = new Object();
+    private static Process sharedServerProcess;
+    private static boolean sharedServerStartedByUs = false;
+
     private String serverUrl;
     private String serverJarPath;
     private boolean autoStartEnabled;
-    private Process serverProcess;
-    private boolean serverStartedByUs = false;
     
     /**
      * Repräsentiert einen gefundenen Fehler von LanguageTool
@@ -87,15 +90,26 @@ public class LanguageToolService {
     }
     
     /**
-     * Ergebnis einer Textprüfung
+     * Ergebnis einer Textprüfung.
+     * {@link #isSuccessful()} unterscheidet echte „0 Fehler“ von fehlgeschlagenen Prüfungen
+     * (Timeout, HTTP-Fehler, Server tot) – sonst zeigt die UI fälschlich einen Haken.
      */
     public static class CheckResult {
         private List<Match> matches;
         private String language;
         private String detectedLanguage;
+        private boolean successful = true;
+        private String errorMessage;
         
         public CheckResult() {
             this.matches = new ArrayList<>();
+        }
+
+        public static CheckResult failure(String message) {
+            CheckResult result = new CheckResult();
+            result.successful = false;
+            result.errorMessage = message != null ? message : "LanguageTool-Prüfung fehlgeschlagen";
+            return result;
         }
         
         public List<Match> getMatches() { return matches; }
@@ -106,6 +120,10 @@ public class LanguageToolService {
         
         public String getDetectedLanguage() { return detectedLanguage; }
         public void setDetectedLanguage(String detectedLanguage) { this.detectedLanguage = detectedLanguage; }
+
+        public boolean isSuccessful() { return successful; }
+
+        public String getErrorMessage() { return errorMessage; }
     }
     
     /**
@@ -178,72 +196,93 @@ public class LanguageToolService {
     }
     
     /**
-     * Startet den Server-Prozess
+     * Startet den Server-Prozess (prozessweit geteilt über alle Editor-Instanzen).
      */
     private CompletableFuture<Boolean> startServerProcess() {
         return CompletableFuture.supplyAsync(() -> {
-            try {
-                File jarFile = resolveJarPath(serverJarPath);
-                if (jarFile == null || !jarFile.exists()) {
-                    logger.error("LanguageTool Server JAR nicht gefunden: " + serverJarPath);
-                    logger.error("Geprüfte Pfade:");
-                    logger.error("  1. " + new File(serverJarPath).getAbsolutePath());
-                    logger.error("  2. " + new File(System.getProperty("user.dir"), serverJarPath).getAbsolutePath());
-                    return false;
-                }
-                
-                logger.info("LanguageTool Server JAR gefunden: " + jarFile.getAbsolutePath());
-                
-                // Extrahiere Port aus URL
-                int port = extractPortFromUrl(serverUrl);
-                
-                // Starte Server-Prozess (bevorzuge eingebettete JRE aus runtime/bin/)
-                String javaExe = resolveJavaExecutable();
-                ProcessBuilder pb = new ProcessBuilder(
-                    javaExe, "-jar", jarFile.getAbsolutePath(), "--port", String.valueOf(port)
-                );
-                pb.directory(jarFile.getParentFile());
-                pb.redirectErrorStream(true);
-                
-                logger.info("Starte LanguageTool Server mit: java -jar " + jarFile.getAbsolutePath() + " --port " + port);
-                
-                serverProcess = pb.start();
-                serverStartedByUs = true;
-                
-                logger.info("LanguageTool Server gestartet (PID: " + serverProcess.pid() + ")");
-                
-                // Warte auf Server-Start mit Retry-Logik
-                // Versuche bis zu 10 Mal (max. 15 Sekunden)
-                int maxRetries = 10;
-                int retryDelay = 1500; // 1.5 Sekunden zwischen Versuchen
-                
-                for (int i = 0; i < maxRetries; i++) {
-                    Thread.sleep(retryDelay);
-                    
-                    try {
-                        boolean isRunning = checkServerStatus().get();
-                        if (isRunning) {
-                            logger.info("LanguageTool Server ist bereit (nach " + ((i + 1) * retryDelay / 1000.0) + " Sekunden)");
-                            return true;
+            synchronized (SERVER_LOCK) {
+                try {
+                    if (sharedServerProcess != null && sharedServerProcess.isAlive()) {
+                        try {
+                            if (Boolean.TRUE.equals(checkServerStatus().get())) {
+                                return true;
+                            }
+                        } catch (Exception ignored) {
                         }
-                    } catch (Exception e) {
                     }
-                    
-                    // Prüfe ob Prozess noch läuft
-                    if (serverProcess != null && !serverProcess.isAlive()) {
-                        int exitCode = serverProcess.exitValue();
-                        logger.error("LanguageTool Server-Prozess beendet mit Exit-Code: " + exitCode);
+
+                    File jarFile = resolveJarPath(serverJarPath);
+                    if (jarFile == null || !jarFile.exists()) {
+                        logger.error("LanguageTool Server JAR nicht gefunden: " + serverJarPath);
+                        logger.error("Geprüfte Pfade:");
+                        logger.error("  1. " + new File(serverJarPath).getAbsolutePath());
+                        logger.error("  2. " + new File(System.getProperty("user.dir"), serverJarPath).getAbsolutePath());
                         return false;
                     }
+
+                    logger.info("LanguageTool Server JAR gefunden: " + jarFile.getAbsolutePath());
+
+                    int port = extractPortFromUrl(serverUrl);
+                    String javaExe = resolveJavaExecutable();
+                    ProcessBuilder pb = new ProcessBuilder(
+                        javaExe, "-jar", jarFile.getAbsolutePath(), "--port", String.valueOf(port)
+                    );
+                    pb.directory(jarFile.getParentFile());
+                    pb.redirectErrorStream(true);
+
+                    logger.info("Starte LanguageTool Server mit: java -jar " + jarFile.getAbsolutePath() + " --port " + port);
+
+                    sharedServerProcess = pb.start();
+                    sharedServerStartedByUs = true;
+
+                    logger.info("LanguageTool Server gestartet (PID: " + sharedServerProcess.pid() + ")");
+
+                    int maxRetries = 10;
+                    int retryDelay = 1500;
+
+                    for (int i = 0; i < maxRetries; i++) {
+                        Thread.sleep(retryDelay);
+
+                        try {
+                            boolean isRunning = checkServerStatus().get();
+                            if (isRunning) {
+                                logger.info("LanguageTool Server ist bereit (nach " + ((i + 1) * retryDelay / 1000.0) + " Sekunden)");
+                                return true;
+                            }
+                        } catch (Exception e) {
+                        }
+
+                        if (sharedServerProcess != null && !sharedServerProcess.isAlive()) {
+                            int exitCode = sharedServerProcess.exitValue();
+                            logger.error("LanguageTool Server-Prozess beendet mit Exit-Code: " + exitCode);
+                            sharedServerProcess = null;
+                            sharedServerStartedByUs = false;
+                            return false;
+                        }
+                    }
+
+                    logger.warn("LanguageTool Server antwortet nach " + (maxRetries * retryDelay / 1000.0) + " Sekunden nicht");
+                    return false;
+                } catch (Exception e) {
+                    logger.error("Fehler beim Starten des LanguageTool Servers", e);
+                    return false;
                 }
-                
-                logger.warn("LanguageTool Server antwortet nach " + (maxRetries * retryDelay / 1000.0) + " Sekunden nicht");
-                return false;
-            } catch (Exception e) {
-                logger.error("Fehler beim Starten des LanguageTool Servers", e);
-                return false;
             }
         });
+    }
+
+    /**
+     * Stoppt den LanguageTool-Server und startet ihn neu (z. B. nach Timeout/Verklemmung).
+     */
+    public CompletableFuture<Boolean> restartServer() {
+        return CompletableFuture.supplyAsync(() -> {
+            synchronized (SERVER_LOCK) {
+                logger.warn("LanguageTool Server wird neu gestartet...");
+                stopSharedServerUnlocked();
+                killProcessOnPort(extractPortFromUrl(serverUrl));
+            }
+            return null;
+        }).thenCompose(ignored -> startServerProcess());
     }
     
     /**
@@ -263,18 +302,48 @@ public class LanguageToolService {
      * Stoppt den Server-Prozess (falls von uns gestartet)
      */
     public void stopServerProcess() {
-        if (serverProcess != null && serverStartedByUs) {
+        synchronized (SERVER_LOCK) {
+            stopSharedServerUnlocked();
+        }
+    }
+
+    private static void stopSharedServerUnlocked() {
+        if (sharedServerProcess != null && sharedServerStartedByUs) {
             try {
-                serverProcess.destroy();
-                if (serverProcess.isAlive()) {
-                    serverProcess.destroyForcibly();
+                sharedServerProcess.destroy();
+                if (sharedServerProcess.isAlive()) {
+                    sharedServerProcess.destroyForcibly();
                 }
-                serverProcess = null;
-                serverStartedByUs = false;
                 logger.info("LanguageTool Server gestoppt");
             } catch (Exception e) {
                 logger.error("Fehler beim Stoppen des LanguageTool Servers", e);
             }
+        }
+        sharedServerProcess = null;
+        sharedServerStartedByUs = false;
+    }
+
+    private void killProcessOnPort(int port) {
+        if (port <= 0) {
+            return;
+        }
+        String os = System.getProperty("os.name", "").toLowerCase(java.util.Locale.ROOT);
+        try {
+            ProcessBuilder pb;
+            if (os.contains("win")) {
+                pb = new ProcessBuilder("cmd", "/c",
+                        "for /f \"tokens=5\" %a in ('netstat -ano ^| findstr :" + port + "') do taskkill /F /PID %a");
+            } else {
+                pb = new ProcessBuilder("bash", "-lc",
+                        "pids=$(lsof -tiTCP:" + port + " -sTCP:LISTEN 2>/dev/null); "
+                                + "if [ -n \"$pids\" ]; then kill -9 $pids; fi");
+            }
+            pb.redirectErrorStream(true);
+            Process killer = pb.start();
+            killer.waitFor(5, java.util.concurrent.TimeUnit.SECONDS);
+            logger.info("Versuche LanguageTool-Prozess auf Port {} zu beenden", port);
+        } catch (Exception e) {
+            logger.debug("Konnte Prozess auf Port {} nicht beenden: {}", port, e.getMessage());
         }
     }
     
@@ -285,34 +354,38 @@ public class LanguageToolService {
      */
     public CompletableFuture<CheckResult> checkText(String text, String language) {
         return CompletableFuture.supplyAsync(() -> {
-            try {
-                // URL-encoded Body erstellen
-                // WICHTIG: Keine disabledCategories setzen, damit alle Fehlertypen geprüft werden:
-                // - Rechtschreibung (SPELLING)
-                // - Grammatik (GRAMMAR)
-                // - Kommasetzung (PUNCTUATION)
-                // - Stil (STYLE)
-                // - Typografie (TYPOGRAPHY)
-                String body = "text=" + urlEncode(text) + "&language=" + language;
-                
-                       HttpRequest request = HttpRequest.newBuilder()
-                           .uri(URI.create(serverUrl + CHECK_ENDPOINT))
-                           .header("Content-Type", "application/x-www-form-urlencoded")
-                           .POST(HttpRequest.BodyPublishers.ofString(body))
-                           .timeout(Duration.ofSeconds(30)) // Erhöht von 10 auf 30 Sekunden für langsame Server
-                           .build();
-                
-                HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-                
-                if (response.statusCode() != 200) {
-                    logger.error("LanguageTool API Fehler: HTTP " + response.statusCode());
-                    return new CheckResult();
+            // Nur eine Prüfung gleichzeitig – parallele Requests verklemmen den lokalen LT-Server leicht
+            synchronized (CHECK_LOCK) {
+                try {
+                    // URL-encoded Body erstellen
+                    // WICHTIG: Keine disabledCategories setzen, damit alle Fehlertypen geprüft werden:
+                    // - Rechtschreibung (SPELLING)
+                    // - Grammatik (GRAMMAR)
+                    // - Kommasetzung (PUNCTUATION)
+                    // - Stil (STYLE)
+                    // - Typografie (TYPOGRAPHY)
+                    String body = "text=" + urlEncode(text) + "&language=" + language;
+
+                    HttpRequest request = HttpRequest.newBuilder()
+                            .uri(URI.create(serverUrl + CHECK_ENDPOINT))
+                            .header("Content-Type", "application/x-www-form-urlencoded")
+                            .POST(HttpRequest.BodyPublishers.ofString(body))
+                            .timeout(Duration.ofSeconds(30))
+                            .build();
+
+                    HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+                    if (response.statusCode() != 200) {
+                        logger.error("LanguageTool API Fehler: HTTP " + response.statusCode());
+                        return CheckResult.failure("HTTP " + response.statusCode());
+                    }
+
+                    return parseCheckResponse(response.body());
+                } catch (Exception e) {
+                    logger.error("Fehler bei LanguageTool Textprüfung", e);
+                    String message = e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();
+                    return CheckResult.failure(message);
                 }
-                
-                return parseCheckResponse(response.body());
-            } catch (Exception e) {
-                logger.error("Fehler bei LanguageTool Textprüfung", e);
-                return new CheckResult();
             }
         });
     }
@@ -389,6 +462,7 @@ public class LanguageToolService {
             }
         } catch (Exception e) {
             logger.error("Fehler beim Parsen der LanguageTool-Antwort", e);
+            return CheckResult.failure("Ungültige LanguageTool-Antwort");
         }
         
         return result;

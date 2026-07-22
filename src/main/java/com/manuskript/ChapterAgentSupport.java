@@ -1,5 +1,8 @@
 package com.manuskript;
 
+import com.manuskript.DocxFile;
+import com.manuskript.MainController;
+import com.manuskript.ResourceManager;
 import com.manuskript.agent.AIBackend;
 import com.manuskript.agent.AgentConfig;
 import com.manuskript.agent.AgentMemory;
@@ -9,6 +12,7 @@ import com.manuskript.agent.ChatbotAgent;
 import com.manuskript.agent.ChatbotAgentTab;
 import com.manuskript.agent.ChatbotContextBuilder;
 import com.manuskript.agent.ChatbotContextConfig;
+import com.manuskript.agent.ChatbotContextSize;
 import com.manuskript.agent.ChatbotContextSource;
 import com.manuskript.agent.OllamaBackend;
 import com.manuskript.agent.OpenAIBackend;
@@ -536,8 +540,11 @@ public class ChapterAgentSupport {
             AgentSamplingParams.applyAgentConfig(backend, config);
             ChatbotAgent agent = new ChatbotAgent(backend);
             agent.setSystemPrompt(config.getSystemPrompt());
-            int maxTokens = config.getMaxTokens() > 0 ? config.getMaxTokens() : 4096;
+            int maxTokens = resolveChatbotMaxTokens(config, contextSize);
             int maxHistory = ChatbotAgent.defaultMaxHistoryTurns();
+            logger.info("Chatbot: Modell={}, max_tokens={}, Kontextgröße={}, Kontext={} Zeichen",
+                    backend.getCurrentModel(), maxTokens, contextSize,
+                    contextBlock != null ? contextBlock.length() : 0);
             agent.sendMessage(contextBlock, historyBeforeSend, userMessage, maxHistory, maxTokens)
                     .thenAccept(onComplete)
                     .exceptionally(ex -> {
@@ -549,6 +556,24 @@ public class ChapterAgentSupport {
         tab.refreshProjectBinding();
         tab.applyChatTheme(host.getThemeIndex());
         tab.applyEditorFont(host.getEditorFontFamily(), host.getEditorFontSizePx());
+    }
+
+    /**
+     * Ausgabe-Budget für Chat: bei großem Kontext (Alles/Mehr) deutlich mehr Tokens,
+     * damit komplexe Antworten nicht an max_tokens abbrechen.
+     */
+    private static int resolveChatbotMaxTokens(AgentConfig config, ChatbotContextSize size) {
+        int base = config != null && config.getMaxTokens() > 0 ? config.getMaxTokens() : 4096;
+        int fromParam = ResourceManager.getIntParameter("agent.chatbot.max_tokens", -1);
+        if (fromParam > 0) {
+            base = Math.max(base, fromParam);
+        }
+        ChatbotContextSize effective = size != null ? size : ChatbotContextSize.COMPACT;
+        return switch (effective) {
+            case FULL -> Math.max(base, 16384);
+            case EXTENDED -> Math.max(base, 8192);
+            case COMPACT -> base;
+        };
     }
 
     private void runAgentAnalysis(AgentTab tab) {

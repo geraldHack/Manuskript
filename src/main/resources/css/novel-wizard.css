@@ -160,3 +160,12 @@
     -fx-font-size: 11px;
     -fx-opacity: 0.72;
 }
+
+.novel-wizard-font-controls {
+    -fx-alignment: center-left;
+}
+
+.novel-wizard-font-size-label {
+    -fx-font-size: 11px;
+    -fx-opacity: 0.8;
+}

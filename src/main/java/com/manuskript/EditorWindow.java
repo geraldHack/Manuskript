@@ -13643,7 +13643,7 @@ spacer.setStyle("-fx-background-color: transparent;");
             // Prüfe Text
             return languageToolService.checkText(text, "de-DE");
         }).thenAccept(result -> {
-            if (result != null) {
+            if (result != null && result.isSuccessful()) {
                 Platform.runLater(() -> {
                     if (checkGeneration != languageToolCheckGeneration) {
                         return;

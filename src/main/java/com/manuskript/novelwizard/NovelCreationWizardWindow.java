@@ -8,6 +8,7 @@ import com.manuskript.MdTextArea;
 import com.manuskript.MdTextAreaOptions;
 import com.manuskript.PreferencesManager;
 import com.manuskript.ResourceManager;
+import com.manuskript.agent.AgentStatusBusyBarSupport;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.geometry.Insets;
@@ -69,8 +70,12 @@ public class NovelCreationWizardWindow {
     private static final String WINDOW_PREFS_PREFIX = "novel_wizard_window";
     private static final String PREF_MAIN_SPLIT = "novel_wizard_main_split_divider";
     private static final String PREF_CONTENT_SPLIT = "novel_wizard_content_split_divider";
+    private static final String PREF_FONT_SIZE = "novel_wizard_font_size";
     private static final double DEFAULT_MAIN_SPLIT = 0.58;
     private static final double DEFAULT_CONTENT_SPLIT = 0.48;
+    private static final int DEFAULT_FONT_SIZE = 14;
+    private static final int MIN_FONT_SIZE = 10;
+    private static final int MAX_FONT_SIZE = 28;
 
     private final Window owner;
     private final Path projectDirectory;
@@ -92,6 +97,7 @@ public class NovelCreationWizardWindow {
     private ScrollPane phaseStepsScroll;
     private ComboBox<NovelWizardPhase> phaseComboBox;
     private Label statusLabel;
+    private ProgressBar statusBusyBar;
     private Text questionText;
     private VBox questionBox;
     private Text hintText;
@@ -110,6 +116,8 @@ public class NovelCreationWizardWindow {
     private Button backQuestionButton;
     private SplitPane mainSplitPane;
     private SplitPane contentSplitPane;
+    private int uiFontSize = DEFAULT_FONT_SIZE;
+    private Label fontSizeLabel;
 
     public NovelCreationWizardWindow(Window owner, Path projectDirectory, Runnable onProjectChanged, int themeIndex) {
         this.owner = owner;
@@ -320,6 +328,8 @@ public class NovelCreationWizardWindow {
         statusLabel.setWrapText(true);
         statusLabel.setMaxWidth(Double.MAX_VALUE);
 
+        statusBusyBar = AgentStatusBusyBarSupport.createBusyBar();
+
         phaseComboBox = new ComboBox<>();
         for (NovelWizardPhase phase : NovelWizardPhase.values()) {
             if (phase != NovelWizardPhase.BOOTSTRAP) {
@@ -349,12 +359,32 @@ public class NovelCreationWizardWindow {
 
         Region footerSpacer = new Region();
         HBox.setHgrow(footerSpacer, Priority.ALWAYS);
-        HBox footerRow = new HBox(12, statusLabel, footerSpacer, jumpRow);
+        VBox statusSection = new VBox(2, statusLabel, statusBusyBar);
+        statusSection.setAlignment(Pos.CENTER_LEFT);
+        statusSection.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(statusSection, Priority.ALWAYS);
+        HBox footerRow = new HBox(12, statusSection, footerSpacer, jumpRow);
         footerRow.setAlignment(Pos.CENTER_LEFT);
 
         Button wizardHelpButton = HelpSystem.createHelpButton(
                 "Hilfe zum Roman-Assistenten", "novel_wizard.html", "Hilfe - Roman-Assistent");
-        HBox titleRow = new HBox(8, projectTitleLabel, wizardHelpButton);
+
+        uiFontSize = clampFontSize(UI_PREFS.getInt(PREF_FONT_SIZE, DEFAULT_FONT_SIZE));
+        Button fontSmallerButton = actionButton("A−", "novel-wizard-action-secondary");
+        fontSmallerButton.setTooltip(new Tooltip("Schriftgröße verringern"));
+        fontSmallerButton.setOnAction(e -> changeUiFontSize(-1));
+        Button fontLargerButton = actionButton("A+", "novel-wizard-action-secondary");
+        fontLargerButton.setTooltip(new Tooltip("Schriftgröße erhöhen"));
+        fontLargerButton.setOnAction(e -> changeUiFontSize(1));
+        fontSizeLabel = new Label(uiFontSize + " px");
+        fontSizeLabel.getStyleClass().add("novel-wizard-font-size-label");
+        fontSizeLabel.setMinWidth(44);
+        fontSizeLabel.setAlignment(Pos.CENTER);
+        HBox fontControls = new HBox(BUTTON_GAP, fontSmallerButton, fontSizeLabel, fontLargerButton);
+        fontControls.setAlignment(Pos.CENTER_LEFT);
+        fontControls.getStyleClass().add("novel-wizard-font-controls");
+
+        HBox titleRow = new HBox(8, projectTitleLabel, fontControls, wizardHelpButton);
         titleRow.setAlignment(Pos.CENTER_LEFT);
         HBox.setHgrow(projectTitleLabel, Priority.ALWAYS);
         VBox titleBlock = new VBox(2, titleRow, phaseHeadlineLabel);
@@ -501,12 +531,63 @@ public class NovelCreationWizardWindow {
         }
         stage.setSceneWithTitleBar(scene);
         stage.setFullTheme(themeIndex);
+        applyUiFontSize();
         loadAndApplyUiLayoutPreferences();
         bindUiLayoutPersistence();
         stage.setOnCloseRequest(e -> {
             saveUiLayoutPreferences();
             sessionStore.save(session);
         });
+    }
+
+    private void changeUiFontSize(int delta) {
+        int next = clampFontSize(uiFontSize + delta);
+        if (next == uiFontSize) {
+            return;
+        }
+        uiFontSize = next;
+        UI_PREFS.putInt(PREF_FONT_SIZE, uiFontSize);
+        applyUiFontSize();
+    }
+
+    private void applyUiFontSize() {
+        if (fontSizeLabel != null) {
+            fontSizeLabel.setText(uiFontSize + " px");
+        }
+        applyTextAreaFont(chatArea, uiFontSize);
+        applyTextAreaFont(customAnswerArea, uiFontSize);
+        if (questionText != null) {
+            questionText.setFont(Font.font(null, FontWeight.BOLD, uiFontSize + 2));
+            questionText.setStyle(String.format("-fx-font-size: %dpx;", uiFontSize + 2));
+        }
+        if (hintText != null) {
+            hintText.setFont(Font.font(null, FontWeight.NORMAL, uiFontSize));
+            hintText.setStyle(String.format("-fx-font-size: %dpx;", uiFontSize));
+        }
+        for (MdTextArea editor : previewEditorByFile.values()) {
+            if (editor != null && editor.getEditor() != null) {
+                editor.getEditor().setFontSizeForAll(uiFontSize);
+            }
+        }
+    }
+
+    private static void applyTextAreaFont(TextArea area, int size) {
+        if (area == null) {
+            return;
+        }
+        String existing = area.getStyle();
+        String fontPart = String.format("-fx-font-size: %dpx;", size);
+        if (existing == null || existing.isBlank()) {
+            area.setStyle(fontPart);
+        } else if (existing.contains("-fx-font-size:")) {
+            area.setStyle(existing.replaceAll("-fx-font-size:\\s*[^;]+;", fontPart));
+        } else {
+            area.setStyle(existing + " " + fontPart);
+        }
+    }
+
+    private static int clampFontSize(int size) {
+        return Math.max(MIN_FONT_SIZE, Math.min(MAX_FONT_SIZE, size));
     }
 
     private void loadAndApplyUiLayoutPreferences() {
@@ -1307,6 +1388,7 @@ public class NovelCreationWizardWindow {
                 .showToolbar(false)
                 .editable(false)
                 .hideMarkup(true)
+                .fontSize(uiFontSize)
                 .themeIndex(themeIndex)
                 .build());
         area.setText(content);
@@ -1494,6 +1576,7 @@ public class NovelCreationWizardWindow {
 
     private void setBusy(boolean busy, String status) {
         statusLabel.setText(status);
+        AgentStatusBusyBarSupport.setActive(statusBusyBar, busy);
         if (optionsScroll != null) {
             optionsScroll.setDisable(busy);
         }

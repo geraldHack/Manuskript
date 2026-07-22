@@ -115,6 +115,72 @@ public class OpenAIBackend implements AIBackend {
 
     private String executeChatCompletion(JsonArray messages, int maxTokens, int userMessageLength) {
         try {
+            JsonArray workingMessages = gson.fromJson(gson.toJson(messages), JsonArray.class);
+            StringBuilder fullContent = new StringBuilder();
+            int maxContinues = Math.max(0, Math.min(8,
+                    ResourceManager.getIntParameter("agent.chatbot.max_continuations", 4)));
+
+            for (int attempt = 0; attempt <= maxContinues; attempt++) {
+                CompletionChunk chunk = executeChatCompletionOnce(workingMessages, maxTokens, userMessageLength);
+                if (chunk.content() != null && !chunk.content().isEmpty()) {
+                    fullContent.append(chunk.content());
+                }
+
+                boolean truncated = isOutputTruncated(chunk.finishReason());
+                if (!truncated) {
+                    break;
+                }
+                if (attempt >= maxContinues) {
+                    logger.warn("OpenAI: Antwort nach {} Fortsetzung(en) immer noch abgeschnitten (finish_reason={})",
+                            maxContinues, chunk.finishReason());
+                    if (fullContent.length() > 0) {
+                        fullContent.append("\n\n[Hinweis: Die Antwort wurde wegen des Ausgabe-Token-Limits "
+                                + "möglicherweise unvollständig abgebrochen. Bitte „weiter“ schreiben "
+                                + "oder max. Tokens beim Chat-Agenten erhöhen.]");
+                    }
+                    break;
+                }
+
+                logger.info("OpenAI: finish_reason={} – setze Antwort fort ({}/{})",
+                        chunk.finishReason(), attempt + 1, maxContinues);
+                JsonObject assistantMsg = new JsonObject();
+                assistantMsg.addProperty("role", "assistant");
+                assistantMsg.addProperty("content",
+                        chunk.content() != null ? chunk.content() : fullContent.toString());
+                workingMessages.add(assistantMsg);
+
+                JsonObject continueMsg = new JsonObject();
+                continueMsg.addProperty("role", "user");
+                continueMsg.addProperty("content",
+                        "Bitte setze deine Antwort nahtlos fort. Wiederhole nichts, was du bereits geschrieben hast.");
+                workingMessages.add(continueMsg);
+            }
+
+            String result = fullContent.toString();
+            if (result.isBlank()) {
+                throw new RuntimeException("Keine lesbare Text-Antwort von der API (Modell " + currentModel + ").");
+            }
+            return result;
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            logger.error("OpenAI chat Fehler (Modell={}): {}", currentModel, e.getMessage(), e);
+            throw new RuntimeException("OpenAI Fehler (Modell " + currentModel + "): " + e.getMessage(), e);
+        }
+    }
+
+    private record CompletionChunk(String content, String finishReason) {}
+
+    private static boolean isOutputTruncated(String finishReason) {
+        if (finishReason == null || finishReason.isBlank()) {
+            return false;
+        }
+        String reason = finishReason.trim().toLowerCase(java.util.Locale.ROOT);
+        return "length".equals(reason) || "max_tokens".equals(reason);
+    }
+
+    private CompletionChunk executeChatCompletionOnce(JsonArray messages, int maxTokens, int userMessageLength) {
+        try {
             String apiKey = ResourceManager.getParameter("agent.openai.api_key", "");
             if (apiKey.isEmpty()) {
                 apiKey = ResourceManager.getParameter("api.lektorat.api_key", "");
@@ -198,6 +264,10 @@ public class OpenAIBackend implements AIBackend {
             }
 
             String content = extractMessageContent(message, choice, responseBody);
+            String finishReason = "";
+            if (choice.has("finish_reason") && !choice.get("finish_reason").isJsonNull()) {
+                finishReason = choice.get("finish_reason").getAsString();
+            }
 
             if (content == null || content.trim().isEmpty()) {
                 String contentShape = message.has("content")
@@ -209,7 +279,12 @@ public class OpenAIBackend implements AIBackend {
                         + ", content=" + contentShape + "). Details im Log.");
             }
 
-            return content;
+            if (isOutputTruncated(finishReason)) {
+                logger.warn("OpenAI: Antwort abgeschnitten (finish_reason={}, {} Zeichen bisher)",
+                        finishReason, content.length());
+            }
+
+            return new CompletionChunk(content, finishReason);
 
         } catch (RuntimeException e) {
             throw e;

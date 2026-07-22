@@ -15,11 +15,11 @@
     "voiceClone": false,
     "provider": "elevenlabs",
     "elevenLabsVoiceId": "ML23UVoFL5mI6APbRAeR",
-    "elevenLabsModelId": "eleven_multilingual_v2",
+    "elevenLabsModelId": "eleven_v3",
     "elevenLabsStability": 0.5,
-    "elevenLabsSimilarityBoost": 1.0,
-    "elevenLabsSpeed": 1.0552666435112161,
-    "elevenLabsUseSpeakerBoost": true,
+    "elevenLabsSimilarityBoost": 0.75,
+    "elevenLabsSpeed": 1.0578945622242129,
+    "elevenLabsUseSpeakerBoost": false,
     "elevenLabsStyle": 0.0
   },
   {

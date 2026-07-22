@@ -23,6 +23,18 @@ public class NovelManager {
     public static final String SYNOPSIS_FILE = "synopsis.txt";
     public static final String OUTLINE_FILE = "outline.txt";
     public static final String WORLDBUILDING_FILE = "worldbuilding.txt";
+    public static final String DICTATION_GLOSSARY_FILE = "dictation-glossary.txt";
+
+    private static final String DICTATION_GLOSSARY_TEMPLATE = """
+            # Diktat-Glossar – Begriffe für Spracherkennung und Korrektur
+            # Ein Begriff pro Zeile: Figurennamen, Orte, englische Lehnwörter, Komposita
+            #
+            # Beispiele:
+            # vintage
+            # vintage-Mantel
+            # Luna Sternfeld
+            #
+            """;
     
     /**
      * Erstellt die TXT-Dateien für einen Roman im Verzeichnis
@@ -209,6 +221,30 @@ public class NovelManager {
      */
     public static void saveWorldbuilding(String docxFilePath, String worldbuilding) {
         saveNovelFile(docxFilePath, WORLDBUILDING_FILE, worldbuilding);
+    }
+
+    public static String loadDictationGlossary(String docxFilePath) {
+        return loadNovelFile(docxFilePath, DICTATION_GLOSSARY_FILE);
+    }
+
+    public static void saveDictationGlossary(String docxFilePath, String glossary) {
+        saveNovelFile(docxFilePath, DICTATION_GLOSSARY_FILE, glossary);
+    }
+
+    /**
+     * Legt {@code dictation-glossary.txt} mit Vorlage an, falls noch nicht vorhanden.
+     */
+    public static void ensureDictationGlossary(String docxFilePath) {
+        try {
+            Path docxPath = Paths.get(docxFilePath);
+            Path directory = docxPath.getParent();
+            if (directory == null) {
+                return;
+            }
+            createFileIfNotExists(directory, DICTATION_GLOSSARY_FILE, DICTATION_GLOSSARY_TEMPLATE);
+        } catch (IOException e) {
+            logger.warn("Diktat-Glossar konnte nicht angelegt werden: {}", e.getMessage());
+        }
     }
     
     /**

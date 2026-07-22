@@ -11627,3 +11627,14 @@
 .theme-dark .novel-wizard-app-title {
     -fx-text-fill: #ffffff;
 }
+
+/* Diktat-Toolbar */
+.toggle-button.dictation-btn-recording:selected {
+    -fx-background-color: #c0392b;
+    -fx-text-fill: white;
+}
+
+.toggle-button.dictation-btn-instruction:selected {
+    -fx-background-color: #b8860b;
+    -fx-text-fill: white;
+}

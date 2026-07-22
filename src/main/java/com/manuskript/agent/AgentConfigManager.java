@@ -237,7 +237,7 @@ public class AgentConfigManager {
                 backend,
                 ChatbotAgent.DEFAULT_SYSTEM_PROMPT,
                 model,
-                0.7, 4096, 0.9, 1.1
+                0.7, 8192, 0.9, 1.1
         );
         chatAgent.setDefaultPrompt(ChatbotAgent.DEFAULT_SYSTEM_PROMPT);
         chatAgent.setAgentType("chatbot");

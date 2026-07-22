@@ -2,6 +2,7 @@ package com.manuskript;
 
 import com.manuskript.agent.AgentActivityTracker;
 import com.manuskript.agent.AgentStatusBusyBarSupport;
+import com.manuskript.dictation.DictationSupport;
 
 import javafx.beans.binding.Bindings;
 import javafx.animation.KeyFrame;
@@ -63,11 +64,15 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.prefs.Preferences;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Kapitel-Editor (Canvas) mit Kapitel-Laden aus dem Hauptfenster.
  */
 public class ManuskriptEditorTestWindow implements ChapterEditorHost {
 
+    private static final Logger logger = LoggerFactory.getLogger(ManuskriptEditorTestWindow.class);
     private static final String PREF_USE_CANVAS = "use_canvas_chapter_editor";
 
     private static final String PREF_FONT_FAMILY = "prototype_editor_font_family";
@@ -102,6 +107,11 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
     private boolean languageToolAutoEnabled;
     private long languageToolCheckGeneration;
     private boolean languageToolHasBeenChecked;
+    private boolean languageToolLastCheckFailed;
+    private String languageToolLastError;
+    private boolean languageToolCheckInFlight;
+    private boolean languageToolCheckPending;
+    private boolean languageToolRestartAttempted;
     private String originalContent = "";
     private ScheduledExecutorService statusClearExecutor;
     private ScheduledFuture<?> statusClearFuture;
@@ -150,6 +160,7 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
     private ComboBox<ChapterMdHistory.Entry> cmbMdHistory;
     private Button btnHistoryDiff;
     private Button btnHistoryRestore;
+    private DictationSupport dictationSupport;
 
     public ManuskriptEditorTestWindow(Window owner) {
         this(owner, null);
@@ -291,6 +302,9 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
             stage.requestFocus();
             editor.requestInputFocus();
             ensureEditingShortcutsInstalled();
+            if (dictationSupport != null) {
+                dictationSupport.installKeyHandlers(stage, editor);
+            }
             scheduleInitialLanguageToolCheck();
             if (chapterAgentSupport != null) {
                 chapterAgentSupport.applyEditorAppearance();
@@ -788,6 +802,10 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
             } else {
                 cancelLanguageToolChecks();
                 languageToolHasBeenChecked = false;
+                languageToolLastCheckFailed = false;
+                languageToolLastError = null;
+                languageToolCheckPending = false;
+                languageToolRestartAttempted = false;
                 editor.clearLanguageToolMatches();
                 updateLanguageToolStatus();
             }
@@ -914,6 +932,9 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         Button copySudowrite = toolbarButton("Sudowrite", "Für Sudowrite kopieren (Zwischenablage)",
                 this::copyForSudowrite);
 
+        dictationSupport = new DictationSupport(this, stage, themeIndex);
+        ToggleButton dictationBtn = dictationSupport.createToolbarButton();
+
         toolsPane.getChildren().addAll(
                 quoteLabel, quoteStyle,
                 languageTool, languageToolAuto,
@@ -922,7 +943,7 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
             toolsPane.getChildren().add(btnToggleAgents);
         }
         toolsPane.getChildren().addAll(
-                onlineLektorat, macrosBtn, copySudowrite,
+                onlineLektorat, macrosBtn, copySudowrite, dictationBtn,
                 insertImage, editImage, deleteImage);
 
         hostToolbarCollapsibleSection = new VBox(8, formatPane, toolsPane);
@@ -1167,6 +1188,7 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
 
     private void cancelLanguageToolChecks() {
         languageToolCheckGeneration++;
+        languageToolCheckPending = false;
         if (languageToolCheckTimeline != null) {
             languageToolCheckTimeline.stop();
             languageToolCheckTimeline = null;
@@ -1178,13 +1200,20 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
     }
 
     private void runLanguageToolCheck(boolean showRunningStatus) {
+        if (languageToolCheckInFlight) {
+            languageToolCheckPending = true;
+            return;
+        }
         if (showRunningStatus) {
             updateStatus("LanguageTool-Prüfung läuft...");
         }
         String editorText = editor.getText();
         if (editorText == null || editorText.isBlank()) {
             languageToolHasBeenChecked = true;
+            languageToolLastCheckFailed = false;
+            languageToolLastError = null;
             editor.clearLanguageToolMatches();
+            updateLanguageToolStatus();
             if (showRunningStatus) {
                 updateStatus("LanguageTool: Kein Text zum Prüfen", true);
             }
@@ -1193,42 +1222,87 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
 
         LanguageToolTextMapping mapping = LanguageToolTextMapping.fromOriginal(editorText);
         final long checkGeneration = languageToolCheckGeneration;
+        final String textAtStart = editorText;
+        languageToolCheckInFlight = true;
         languageToolService.startServerIfNeeded()
                 .thenCompose(running -> {
                     if (!running) {
-                        return java.util.concurrent.CompletableFuture.completedFuture(null);
+                        return java.util.concurrent.CompletableFuture.completedFuture(
+                                LanguageToolService.CheckResult.failure("Server nicht verfügbar"));
                     }
                     return languageToolService.checkText(mapping.cleanedText(), "de-DE");
                 })
-                .thenAccept(result -> Platform.runLater(() -> {
-                    if (checkGeneration != languageToolCheckGeneration) {
-                        return;
+                .thenCompose(result -> {
+                    if (result != null && result.isSuccessful()) {
+                        languageToolRestartAttempted = false;
+                        return java.util.concurrent.CompletableFuture.completedFuture(result);
                     }
-                    if (result == null) {
-                        languageToolHasBeenChecked = true;
-                        if (showRunningStatus) {
-                            updateStatusError("LanguageTool Server nicht verfügbar");
+                    if (languageToolRestartAttempted) {
+                        return java.util.concurrent.CompletableFuture.completedFuture(result);
+                    }
+                    languageToolRestartAttempted = true;
+                    logger.warn("LanguageTool-Prüfung fehlgeschlagen – starte Server neu: {}",
+                            result != null ? result.getErrorMessage() : "unbekannt");
+                    return languageToolService.restartServer().thenCompose(restarted -> {
+                        if (!Boolean.TRUE.equals(restarted)) {
+                            return java.util.concurrent.CompletableFuture.completedFuture(
+                                    result != null ? result : LanguageToolService.CheckResult.failure("Neustart fehlgeschlagen"));
                         }
-                        updateLanguageToolStatus();
+                        return languageToolService.checkText(mapping.cleanedText(), "de-DE");
+                    });
+                })
+                .whenComplete((result, ex) -> Platform.runLater(() -> {
+                    languageToolCheckInFlight = false;
+                    boolean pending = languageToolCheckPending;
+                    languageToolCheckPending = false;
+
+                    if (checkGeneration != languageToolCheckGeneration) {
+                        if (pending || languageToolAutoEnabled) {
+                            scheduleLanguageToolCheckDebounced();
+                        }
                         return;
                     }
-                    List<LanguageToolService.Match> matches = mapping.mapMatchesToOriginal(result.getMatches());
-                    matches = languageToolDictionary.filterMatches(matches, editor.getText());
-                    languageToolHasBeenChecked = true;
-                    editor.applyLanguageToolMatches(matches);
-                    updateLanguageToolStatus();
-                    if (showRunningStatus) {
-                        updateStatus("LanguageTool: " + matches.size() + " Fehler gefunden");
-                    }
-                }))
-                .exceptionally(ex -> {
-                    Platform.runLater(() -> {
-                        if (checkGeneration == languageToolCheckGeneration && showRunningStatus) {
+
+                    if (ex != null) {
+                        languageToolHasBeenChecked = true;
+                        languageToolLastCheckFailed = true;
+                        languageToolLastError = ex.getMessage();
+                        updateLanguageToolStatus();
+                        if (showRunningStatus) {
                             updateStatusError("LanguageTool fehlgeschlagen: " + ex.getMessage());
                         }
-                    });
-                    return null;
-                });
+                    } else if (result == null || !result.isSuccessful()) {
+                        languageToolHasBeenChecked = true;
+                        languageToolLastCheckFailed = true;
+                        languageToolLastError = result != null ? result.getErrorMessage() : "Server nicht verfügbar";
+                        updateLanguageToolStatus();
+                        if (showRunningStatus) {
+                            updateStatusError("LanguageTool: " + languageToolLastError);
+                        }
+                    } else {
+                        String currentText = editor.getText();
+                        if (currentText == null || !textAtStart.equals(currentText)) {
+                            if (languageToolAutoEnabled) {
+                                scheduleLanguageToolCheckDebounced();
+                            }
+                            return;
+                        }
+                        List<LanguageToolService.Match> matches = mapping.mapMatchesToOriginal(result.getMatches());
+                        matches = languageToolDictionary.filterMatches(matches, currentText);
+                        languageToolHasBeenChecked = true;
+                        languageToolLastCheckFailed = false;
+                        languageToolLastError = null;
+                        editor.applyLanguageToolMatches(matches);
+                        updateLanguageToolStatus();
+                        if (showRunningStatus) {
+                            updateStatus("LanguageTool: " + matches.size() + " Fehler gefunden");
+                        }
+                    }
+
+                    if (pending) {
+                        runLanguageToolCheck(false);
+                    }
+                }));
     }
 
     @Override
@@ -1308,6 +1382,13 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
             lblLanguageToolStatus.setText("");
             lblLanguageToolStatus.setStyle("-fx-text-fill: #666; -fx-font-size: 11px;");
             lblLanguageToolStatus.setTooltip(new Tooltip("LanguageTool automatisch deaktiviert"));
+        } else if (languageToolLastCheckFailed) {
+            lblLanguageToolStatus.setText("!");
+            lblLanguageToolStatus.setStyle("-fx-text-fill: #ff9800; -fx-font-size: 11px; -fx-font-weight: bold;");
+            String tip = languageToolLastError != null && !languageToolLastError.isBlank()
+                    ? "LanguageTool fehlgeschlagen: " + languageToolLastError + "\nErneut prüfen oder Server neu starten."
+                    : "LanguageTool-Prüfung fehlgeschlagen";
+            lblLanguageToolStatus.setTooltip(new Tooltip(tip));
         } else if (count == 0) {
             lblLanguageToolStatus.setText("✓");
             lblLanguageToolStatus.setStyle("-fx-text-fill: #4caf50; -fx-font-size: 11px;");
@@ -1501,6 +1582,9 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
     private void clearTransientMarks() {
         cancelLanguageToolChecks();
         languageToolHasBeenChecked = false;
+        languageToolLastCheckFailed = false;
+        languageToolLastError = null;
+        languageToolRestartAttempted = false;
         editor.clearLanguageToolMatches();
         updateLanguageToolStatus();
     }
@@ -2311,7 +2395,10 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         if (text == null || text.isEmpty()) {
             return;
         }
-        editor.insertTextPreserveCaret(text);
+        editor.insertText(text);
+        int caret = editor.getCaretPosition();
+        editor.selectRange(caret, caret);
+        editor.requestInputFocus();
     }
 
     private void wireSelectionRevisionAgentAction() {

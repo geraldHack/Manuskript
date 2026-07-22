@@ -237,9 +237,32 @@ public final class ParameterRegistry {
                 "Timeout pro Agenten-API-Anfrage in Sekunden (60–900). Kimi/OpenRouter mit vollem Buch-Kontext brauchen oft 180–600 s.", "Agenten");
         add("agent.chatbot.max_history_turns", ParameterDef.Type.INT, "10",
                 "Anzahl Q&A-Paare, die der Chatbot an die KI mitsendet (Multi-Turn).", "Agenten");
+        add("agent.chatbot.max_tokens", ParameterDef.Type.INT, "8192",
+                "Mindest-Ausgabe-Tokens fuer Chatbot-Antworten. Bei Kontext „Alles“ wird automatisch mind. 16384 genutzt.", "Agenten");
+        add("agent.chatbot.max_continuations", ParameterDef.Type.INT, "4",
+                "Wie oft eine abgeschnittene Chat-Antwort (finish_reason=length) automatisch fortgesetzt wird (0–8).", "Agenten");
         add("agent.chatbot.context_size", ParameterDef.Type.CHOICE, "COMPACT",
                 "Standard-Kontextgroesse fuer den Chatbot-Tab.", "Agenten",
                 new String[]{"COMPACT", "EXTENDED", "FULL"});
+
+        // —— Diktat ——
+        add("dictation.stt_backend", ParameterDef.Type.CHOICE, "Local",
+                "Spracherkennung (STT) fuer die Diktierfunktion. Local = offline via whisper.cpp, kein API-Key.", "Diktat",
+                new String[]{"Local", "OpenAI"});
+        add("dictation.local_whisper_command", ParameterDef.Type.STRING, "",
+                "Pfad zu whisper-cli (whisper.cpp). Leer = automatisch (whisper/ im Projekt oder PATH).", "Diktat");
+        add("dictation.local_whisper_model", ParameterDef.Type.STRING, "",
+                "Pfad zum GGML-Whisper-Modell. Leer = automatisch (whisper/models/ im Projekt, Arbeitsverzeichnis oder Home).", "Diktat");
+        add("dictation.whisper_api_url", ParameterDef.Type.STRING, "https://api.openai.com/v1",
+                "Basis-URL fuer Whisper STT (nur OpenAI, nicht OpenRouter). Getrennt von agent.openai.api_url.", "Diktat");
+        add("dictation.whisper_api_key", ParameterDef.Type.STRING, "",
+                "API-Key fuer Whisper STT. Leer = agent.openai.api_key oder api.lektorat.api_key.", "Diktat");
+        add("dictation.whisper_model", ParameterDef.Type.STRING, "whisper-1",
+                "Whisper-Modell fuer OpenAI STT (z. B. whisper-1).", "Diktat");
+        add("dictation.language", ParameterDef.Type.STRING, "de",
+                "Sprachcode fuer STT (ISO 639-1, z. B. de, en).", "Diktat");
+        add("dictation.enable_preview_before_insert", ParameterDef.Type.BOOLEAN, "false",
+                "Diktat-Ergebnis vor dem Einfuegen in einer Vorschau anzeigen.", "Diktat");
     }
 
     private static void add(String key, ParameterDef.Type type, String defaultValue, String helpText, String category) {
