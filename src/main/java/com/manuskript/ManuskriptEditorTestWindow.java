@@ -145,7 +145,8 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
     private boolean suppressDirty;
     private boolean transientStatusActive;
     private boolean agentActivityActive;
-    private boolean onlineLektoratBusy;
+    /** Zählt Host-Busy (Lektorat, Diktat, LanguageTool, Rewrite-Dialoge). */
+    private int statusBusyDepth;
     private boolean quoteErrorsDialogShown;
     private ChapterAgentSupport chapterAgentSupport;
     private ChapterOnlineLektoratHelper lektoratHelper;
@@ -266,6 +267,10 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
                 lektoratHelper.onEditorTextChanged();
             }
         });
+        editor.setOnUnbalancedQuoteWarning(errors -> Platform.runLater(() -> {
+            updateStatus("⚠ Ungeschlossene Anführungszeichen früher im Text — am Zeilenanfang öffnendes Zeichen gesetzt.", true);
+            showQuoteErrorsDialog(errors);
+        }));
         editor.setQuoteStyleIndex(Preferences.userNodeForPackage(EditorWindow.class).getInt("quoteStyle", 0));
 
         initializeStatusLabel();
@@ -1124,19 +1129,21 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
 
     private void refreshStatusBusyBar() {
         if (agentStatusBusyBar != null) {
-            AgentStatusBusyBarSupport.setActive(agentStatusBusyBar, agentActivityActive || onlineLektoratBusy);
+            AgentStatusBusyBarSupport.setActive(agentStatusBusyBar, agentActivityActive || statusBusyDepth > 0);
         }
     }
 
     @Override
     public void setStatusBusyBarActive(boolean active) {
-        onlineLektoratBusy = active;
         if (active) {
+            statusBusyDepth++;
             synchronized (statusLock) {
                 if (statusClearFuture != null && !statusClearFuture.isDone()) {
                     statusClearFuture.cancel(false);
                 }
             }
+        } else {
+            statusBusyDepth = Math.max(0, statusBusyDepth - 1);
         }
         refreshStatusBusyBar();
     }
@@ -1206,6 +1213,7 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         }
         if (showRunningStatus) {
             updateStatus("LanguageTool-Prüfung läuft...");
+            setStatusBusyBarActive(true);
         }
         String editorText = editor.getText();
         if (editorText == null || editorText.isBlank()) {
@@ -1215,6 +1223,7 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
             editor.clearLanguageToolMatches();
             updateLanguageToolStatus();
             if (showRunningStatus) {
+                setStatusBusyBarActive(false);
                 updateStatus("LanguageTool: Kein Text zum Prüfen", true);
             }
             return;
@@ -1255,6 +1264,9 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
                     languageToolCheckInFlight = false;
                     boolean pending = languageToolCheckPending;
                     languageToolCheckPending = false;
+                    if (showRunningStatus) {
+                        setStatusBusyBarActive(false);
+                    }
 
                     if (checkGeneration != languageToolCheckGeneration) {
                         if (pending || languageToolAutoEnabled) {
@@ -1313,7 +1325,7 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         transientStatusActive = true;
         statusLabel.setText(message == null ? "" : message);
         statusLabel.setStyle(STATUS_STYLE_READY);
-        if (!agentActivityActive && !onlineLektoratBusy) {
+        if (!agentActivityActive && statusBusyDepth <= 0) {
             scheduleStatusClear(5);
         }
     }
@@ -1334,7 +1346,7 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         transientStatusActive = true;
         statusLabel.setText(message == null ? "" : message);
         statusLabel.setStyle(STATUS_STYLE_WARNING);
-        if (!agentActivityActive && !onlineLektoratBusy) {
+        if (!agentActivityActive && statusBusyDepth <= 0) {
             scheduleStatusClear(5);
         }
     }
@@ -1520,7 +1532,9 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         mainContainer.setPadding(new Insets(20));
 
         Label titleLabel = new Label("Anführungszeichen-Fehler gefunden");
-        Label descriptionLabel = new Label("Die folgenden Absätze haben eine ungerade Anzahl von Anführungszeichen:");
+        Label descriptionLabel = new Label(
+                "Die folgenden Absätze haben eine ungerade Anzahl von Anführungszeichen.\n"
+                        + "Das kann am Zeilenanfang zu falschen schließenden Zeichen führen — bitte Rede schließen oder hier korrigieren:");
 
         ScrollPane scrollPane = new ScrollPane();
         VBox errorList = new VBox(10);

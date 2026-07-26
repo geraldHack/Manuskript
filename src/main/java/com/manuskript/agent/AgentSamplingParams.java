@@ -19,6 +19,8 @@ public final class AgentSamplingParams {
 
     /**
      * Wendet Agent-spezifische Werte auf das Backend an (überschreibt Parameter-Tab-Defaults).
+     * OpenAI/OpenRouter: temperature, top_p, max_tokens (letzteres pro Request).
+     * Ollama zusätzlich: repeat_penalty.
      */
     public static void applyAgentConfig(AIBackend backend, AgentConfig config) {
         if (backend == null || config == null) {
@@ -28,6 +30,8 @@ public final class AgentSamplingParams {
         if (backend instanceof OllamaBackend ollamaBackend) {
             ollamaBackend.setTopP(config.getTopP());
             ollamaBackend.setRepeatPenalty(config.getRepeatPenalty());
+        } else if (backend instanceof OpenAIBackend openAiBackend) {
+            openAiBackend.setTopP(config.getTopP());
         }
     }
 }

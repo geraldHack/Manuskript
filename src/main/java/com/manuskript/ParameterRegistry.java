@@ -235,6 +235,10 @@ public final class ParameterRegistry {
                 "Temperatur fuer OpenAI-Backend (Welt-Editor, Agenten, Online-Lektorat). Bereich 0.0–2.0; bei Claude-Modellen max. 1.0.", "Agenten");
         add("agent.openai.request_timeout_sec", ParameterDef.Type.INT, "300",
                 "Timeout pro Agenten-API-Anfrage in Sekunden (60–900). Kimi/OpenRouter mit vollem Buch-Kontext brauchen oft 180–600 s.", "Agenten");
+        add("agent.openai.reasoning_effort", ParameterDef.Type.CHOICE, "auto",
+                "Reasoning-Aufwand für Kimi K3 u.ä. (low/high/max). auto = bei Kimi/Moonshot low, sonst nicht setzen. "
+                        + "low lässt eher Tokens für die fertige Szene übrig.",
+                "Agenten", new String[]{"auto", "low", "high", "max"});
         add("agent.chatbot.max_history_turns", ParameterDef.Type.INT, "10",
                 "Anzahl Q&A-Paare, die der Chatbot an die KI mitsendet (Multi-Turn).", "Agenten");
         add("agent.chatbot.max_tokens", ParameterDef.Type.INT, "8192",

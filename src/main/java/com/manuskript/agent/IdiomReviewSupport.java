@@ -32,7 +32,7 @@ public final class IdiomReviewSupport {
     };
 
     private static final int DEFAULT_MAX_OUTPUT_TOKENS = 4096;
-    private static final int MAX_OUTPUT_TOKENS_CAP = 16384;
+    private static final int MAX_OUTPUT_TOKENS_CAP = 32768;
 
     private IdiomReviewSupport() {
     }

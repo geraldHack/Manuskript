@@ -37,6 +37,13 @@ public final class QuotationMarkSupport {
     public record QuoteError(String paragraph, String type, int count, int textOffset) {
     }
 
+    /**
+     * Ergebnis der Anführungszeichen-Taste: Ersatzzeichen und ob wegen unausgeglichener
+     * früherer Rede gewarnt werden sollte (Zeilenanfang hätte sonst schließend gesetzt).
+     */
+    public record TypedQuoteResult(String text, boolean warnUnbalancedQuotes) {
+    }
+
     public static String styleLabel(int styleIndex) {
         if (styleIndex < 0 || styleIndex >= STYLE_COUNT) {
             return STYLE_OPTIONS[0][0];
@@ -59,17 +66,59 @@ public final class QuotationMarkSupport {
     }
 
     public static String resolveTypedQuote(String content, int caretPosition, String inputQuote, int styleIndex) {
+        return resolveTypedQuoteDetailed(content, caretPosition, inputQuote, styleIndex).text();
+    }
+
+    public static TypedQuoteResult resolveTypedQuoteDetailed(
+            String content, int caretPosition, String inputQuote, int styleIndex) {
         if (styleIndex < 0 || styleIndex >= STYLE_COUNT) {
-            return inputQuote;
+            return new TypedQuoteResult(inputQuote, false);
         }
-        if (isApostropheContext(content, caretPosition, styleIndex)) {
-            return "'";
+        // Apostroph nur bei der einfachen Quote-Taste — nie bei " (sonst wird »…warten| + " zu ').
+        if ("'".equals(inputQuote) && isApostropheContext(content, caretPosition, styleIndex)) {
+            return new TypedQuoteResult("'", false);
         }
-        boolean shouldBeClosing = determineQuotationState(content, caretPosition, "'".equals(inputQuote), styleIndex);
+        boolean paritySaysClosing = determineQuotationState(
+                content, caretPosition, "'".equals(inputQuote), styleIndex);
+        boolean lineStart = isEffectiveLineStart(content, caretPosition);
+
         if ("\"".equals(inputQuote)) {
-            return shouldBeClosing ? QUOTE_MAPPING[styleIndex][1] : QUOTE_MAPPING[styleIndex][0];
+            // Am Zeilenanfang (neue Zeile / neuer Absatz) immer öffnen — sonst wird bei
+            // früher ungeschlossener Rede fälschlich « bzw. “ gesetzt.
+            boolean closing = paritySaysClosing && !lineStart;
+            String replacement = closing ? QUOTE_MAPPING[styleIndex][1] : QUOTE_MAPPING[styleIndex][0];
+            boolean warn = lineStart && paritySaysClosing;
+            return new TypedQuoteResult(replacement, warn);
         }
-        return shouldBeClosing ? SINGLE_QUOTE_MAPPING[styleIndex][1] : SINGLE_QUOTE_MAPPING[styleIndex][0];
+        boolean closing = paritySaysClosing && !lineStart;
+        String replacement = closing ? SINGLE_QUOTE_MAPPING[styleIndex][1] : SINGLE_QUOTE_MAPPING[styleIndex][0];
+        boolean warn = lineStart && paritySaysClosing;
+        return new TypedQuoteResult(replacement, warn);
+    }
+
+    /**
+     * Caret am visuellen Zeilenanfang: Dokumentstart oder nach {@code \\n},
+     * davor auf der Zeile nur Leerzeichen/Tabs.
+     */
+    static boolean isEffectiveLineStart(String content, int caretPosition) {
+        if (content == null || caretPosition <= 0) {
+            return true;
+        }
+        if (caretPosition > content.length()) {
+            caretPosition = content.length();
+        }
+        int i = caretPosition - 1;
+        while (i >= 0) {
+            char c = content.charAt(i);
+            if (c == '\n') {
+                return true;
+            }
+            if (c != ' ' && c != '\t') {
+                return false;
+            }
+            i--;
+        }
+        return true;
     }
 
     public static List<QuoteError> findQuoteErrors(String text) {

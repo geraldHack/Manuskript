@@ -87,6 +87,8 @@ public class ManuskriptTextEditor extends Region {
     private static final int MAX_UNDO = 250;
     /** Tipp-/Lösch-Bursts werden zu einem Undo-Schritt zusammengefasst (Pause oder Wortgrenze beendet). */
     private static final long UNDO_COALESCE_MS = 500;
+    /** {@code --} → Gedankenstrich nach Pause (unterscheidbar von {@code ---}). */
+    private static final Duration GEDANKENSTRICH_PAUSE = Duration.millis(GedankenstrichSupport.PAUSE_MS);
     /** Inline-Markup erst nach Tipp-Pause neu parsen (entlastet UI bei langen Kapiteln). */
     private static final Duration AUTO_RULE_DELAY = Duration.millis(550);
     private static final Duration AUTO_RULE_DELAY_LARGE_DOC = Duration.millis(900);
@@ -172,6 +174,9 @@ public class ManuskriptTextEditor extends Region {
     private final PauseTransition autoRuleDelay = new PauseTransition(AUTO_RULE_DELAY);
     private final PauseTransition widthLayoutDelay = new PauseTransition(Duration.millis(120));
     private final PauseTransition imageSyncDelay = new PauseTransition(Duration.millis(400));
+    private final PauseTransition gedankenstrichDelay = new PauseTransition(GEDANKENSTRICH_PAUSE);
+    /** Caret-Position direkt hinter dem wartenden {@code --}. */
+    private int pendingGedankenstrichCaret = -1;
     private final Text measuringText = new Text();
     private final Map<MeasureKey, Double> textWidthCache = new HashMap<>();
     private final Map<String, Image> imageCache = new HashMap<>();
@@ -198,6 +203,7 @@ public class ManuskriptTextEditor extends Region {
     private int selectionAutoScrollDirection;
     private Consumer<String> textChangeListener;
     private Runnable selectionChangeListener;
+    private Consumer<java.util.List<QuotationMarkSupport.QuoteError>> unbalancedQuoteWarningHandler;
     private int lastNotifiedCaret = -1;
     private int lastNotifiedAnchor = -2;
     private boolean textChangeNotificationPending;
@@ -335,6 +341,7 @@ public class ManuskriptTextEditor extends Region {
             updateScrollBar();
             render();
         });
+        gedankenstrichDelay.setOnFinished(e -> applyPendingGedankenstrich());
         setText("");
     }
 
@@ -460,6 +467,10 @@ public class ManuskriptTextEditor extends Region {
 
     public void setOnTextChanged(Consumer<String> listener) {
         textChangeListener = listener;
+    }
+
+    public void setOnUnbalancedQuoteWarning(Consumer<java.util.List<QuotationMarkSupport.QuoteError>> handler) {
+        unbalancedQuoteWarningHandler = handler;
     }
 
     public void setOnSelectionChanged(Runnable listener) {
@@ -2260,15 +2271,68 @@ public class ManuskriptTextEditor extends Region {
             return;
         }
         if ("\"".equals(character) || "'".equals(character)) {
+            convertPendingGedankenstrichNow();
             int insertPos = hasSelection() ? selectionStart() : normalizeCaretOffset(caret, true);
-            String replacement = QuotationMarkSupport.resolveTypedQuote(
+            QuotationMarkSupport.TypedQuoteResult quote = QuotationMarkSupport.resolveTypedQuoteDetailed(
                     text.toString(), insertPos, character, quoteStyleIndex);
-            replaceSelection(replacement);
+            replaceSelection(quote.text());
+            if (quote.warnUnbalancedQuotes() && unbalancedQuoteWarningHandler != null) {
+                java.util.List<QuotationMarkSupport.QuoteError> errors =
+                        QuotationMarkSupport.findQuoteErrors(text.toString());
+                if (!errors.isEmpty()) {
+                    unbalancedQuoteWarningHandler.accept(errors);
+                }
+            }
             event.consume();
             return;
         }
+        if ("-".equals(character)) {
+            replaceSelection(character);
+            scheduleGedankenstrichIfNeeded();
+            event.consume();
+            return;
+        }
+        convertPendingGedankenstrichNow();
         replaceSelection(character);
         event.consume();
+    }
+
+    private void scheduleGedankenstrichIfNeeded() {
+        cancelPendingGedankenstrich();
+        int start = GedankenstrichSupport.convertibleDoubleHyphenStart(text.toString(), caret);
+        if (start < 0) {
+            return;
+        }
+        pendingGedankenstrichCaret = caret;
+        gedankenstrichDelay.playFromStart();
+    }
+
+    private void cancelPendingGedankenstrich() {
+        pendingGedankenstrichCaret = -1;
+        gedankenstrichDelay.stop();
+    }
+
+    /** Sofort ersetzen, wenn der Nutzer nach {@code --} weiter tippt (nicht {@code -}). */
+    private void convertPendingGedankenstrichNow() {
+        cancelPendingGedankenstrich();
+        int start = GedankenstrichSupport.convertibleDoubleHyphenStart(text.toString(), caret);
+        if (start < 0) {
+            return;
+        }
+        replaceRange(start, start + 2, GedankenstrichSupport.GEDANKENSTRICH, true);
+    }
+
+    private void applyPendingGedankenstrich() {
+        int expectedCaret = pendingGedankenstrichCaret;
+        pendingGedankenstrichCaret = -1;
+        if (expectedCaret < 0 || caret != expectedCaret) {
+            return;
+        }
+        int start = GedankenstrichSupport.convertibleDoubleHyphenStart(text.toString(), caret);
+        if (start < 0) {
+            return;
+        }
+        replaceRange(start, start + 2, GedankenstrichSupport.GEDANKENSTRICH, true);
     }
 
     private void handleKeyPressed(KeyEvent event) {
@@ -2346,9 +2410,16 @@ public class ManuskriptTextEditor extends Region {
         }
 
         switch (event.getCode()) {
-            case BACK_SPACE -> deleteSelectionOrPrevious();
-            case DELETE -> deleteSelectionOrNext();
+            case BACK_SPACE -> {
+                cancelPendingGedankenstrich();
+                deleteSelectionOrPrevious();
+            }
+            case DELETE -> {
+                cancelPendingGedankenstrich();
+                deleteSelectionOrNext();
+            }
             case ENTER -> {
+                convertPendingGedankenstrichNow();
                 if (suppressEnterCount > 0) {
                     suppressEnterCount--;
                 } else {
@@ -2365,21 +2436,44 @@ public class ManuskriptTextEditor extends Region {
                     }
                 }
             }
-            case LEFT -> moveCaretBackwardOne(event.isShiftDown());
-            case RIGHT -> moveCaretForwardOne(event.isShiftDown());
-            case UP -> moveVertical(-1, event.isShiftDown());
-            case DOWN -> moveVertical(1, event.isShiftDown());
-            case HOME -> moveCaret(lineStart(caret), event.isShiftDown());
-            case END -> moveCaret(lineEnd(caret), event.isShiftDown());
+            case LEFT -> {
+                cancelPendingGedankenstrich();
+                moveCaretBackwardOne(event.isShiftDown());
+            }
+            case RIGHT -> {
+                cancelPendingGedankenstrich();
+                moveCaretForwardOne(event.isShiftDown());
+            }
+            case UP -> {
+                cancelPendingGedankenstrich();
+                moveVertical(-1, event.isShiftDown());
+            }
+            case DOWN -> {
+                cancelPendingGedankenstrich();
+                moveVertical(1, event.isShiftDown());
+            }
+            case HOME -> {
+                cancelPendingGedankenstrich();
+                moveCaret(lineStart(caret), event.isShiftDown());
+            }
+            case END -> {
+                cancelPendingGedankenstrich();
+                moveCaret(lineEnd(caret), event.isShiftDown());
+            }
             case PAGE_UP -> {
+                cancelPendingGedankenstrich();
                 verticalScrollBar.setValue(Math.max(0, verticalScrollBar.getValue() - canvas.getHeight()));
                 moveVertical(-(int) Math.max(1, canvas.getHeight() / lineHeight()), event.isShiftDown());
             }
             case PAGE_DOWN -> {
+                cancelPendingGedankenstrich();
                 verticalScrollBar.setValue(Math.min(verticalScrollBar.getMax(), verticalScrollBar.getValue() + canvas.getHeight()));
                 moveVertical((int) Math.max(1, canvas.getHeight() / lineHeight()), event.isShiftDown());
             }
-            case TAB -> handleTabKey(event.isShiftDown());
+            case TAB -> {
+                convertPendingGedankenstrichNow();
+                handleTabKey(event.isShiftDown());
+            }
             default -> {
                 return;
             }

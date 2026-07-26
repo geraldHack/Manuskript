@@ -20,6 +20,7 @@ import javafx.stage.Stage;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.prefs.Preferences;
 
 /**
@@ -141,12 +142,24 @@ public final class ChapterApiRewriteDialog {
         }
         dialogStage.setSceneWithTitleBar(scene);
 
+        AtomicBoolean hostBusy = new AtomicBoolean(false);
+        Runnable clearHostBusy = () -> {
+            if (hostBusy.compareAndSet(true, false)) {
+                host.setStatusBusyBarActive(false);
+            }
+        };
+        dialogStage.setOnHidden(ev -> clearHostBusy.run());
+
         btnGenerate.setOnAction(e -> {
             btnGenerate.setDisable(true);
             btnGenerate.setText("Generiere...");
             progressBar.setVisible(true);
             progressBar.setManaged(true);
             answersBox.getChildren().clear();
+            if (hostBusy.compareAndSet(false, true)) {
+                host.setStatusBusyBarActive(true);
+                host.updateStatus("Umschreiben: Generiere…");
+            }
 
             String instruction = instructionField.getText().trim();
             if (persistInstructionCheck.isSelected() && preferences != null) {
@@ -210,6 +223,7 @@ public final class ChapterApiRewriteDialog {
                         if (response == null || response.trim().isEmpty()) {
                             answersBox.getChildren().add(errorLabel("Keine Antwort von der API."));
                             resetGenerateButton(btnGenerate, progressBar);
+                            clearHostBusy.run();
                             return;
                         }
                         List<String> variants = parseVariants(response);
@@ -239,6 +253,8 @@ public final class ChapterApiRewriteDialog {
                             answersBox.getChildren().add(variantBox);
                         }
                         resetGenerateButton(btnGenerate, progressBar);
+                        clearHostBusy.run();
+                        host.updateStatus("Umschreiben: " + Math.min(variants.size(), 5) + " Variante(n)");
                     }))
                     .exceptionally(throwable -> {
                         Platform.runLater(() -> {
@@ -247,6 +263,7 @@ public final class ChapterApiRewriteDialog {
                                     : (throwable != null ? throwable.getMessage() : "Unbekannter Fehler");
                             answersBox.getChildren().add(errorLabel("Fehler: " + msg));
                             resetGenerateButton(btnGenerate, progressBar);
+                            clearHostBusy.run();
                         });
                         return null;
                     });

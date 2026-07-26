@@ -124,6 +124,11 @@ public class DictationService {
         backend.setTemperature(instruction ? 0.65 : 0.3);
 
         String transcriptForLlm = analysis.rawTranscript();
+        // Gesprochene Quote-Befehle vor dem LLM auflösen (sonst streicht das Modell oft nur die Wörter).
+        if (!instruction) {
+            transcriptForLlm = DictationSpokenMarkup.finish(
+                    transcriptForLlm, editorContext, quoteStyleIndex);
+        }
 
         String systemPrompt = instruction
                 ? DictationPromptBuilder.buildInstructionSystemPrompt(quoteStyleIndex)
@@ -133,12 +138,13 @@ public class DictationService {
                         analysis.instructionText(), editorContext, vocab)
                 : DictationPromptBuilder.buildUserMessage(transcriptForLlm, editorContext, vocab);
 
+        final String transcriptForDedup = transcriptForLlm;
         return backend.chat(systemPrompt, userMessage, LLM_MAX_TOKENS)
                 .thenApply(response -> {
                     String processed = DictationPromptBuilder.cleanLlmOutput(response);
                     if (!instruction) {
                         processed = DictationPromptBuilder.deduplicateAgainstContext(
-                                processed, editorContext, transcriptForLlm);
+                                processed, editorContext, transcriptForDedup);
                     }
                     processed = DictationSpokenMarkup.finish(processed, editorContext, quoteStyleIndex);
                     if (processed.isBlank()) {

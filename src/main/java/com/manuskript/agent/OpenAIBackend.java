@@ -33,6 +33,7 @@ public class OpenAIBackend implements AIBackend {
     private final Gson gson;
     private String currentModel;
     private double temperature;
+    private Double topP;
 
     public OpenAIBackend() {
         this.httpClient = HttpClient.newBuilder()
@@ -66,6 +67,11 @@ public class OpenAIBackend implements AIBackend {
     @Override
     public void setTemperature(double temperature) {
         this.temperature = temperature;
+    }
+
+    /** Optional; {@code null} = API-Default (nicht mitsenden). */
+    public void setTopP(double topP) {
+        this.topP = topP;
     }
 
     @Override
@@ -119,6 +125,9 @@ public class OpenAIBackend implements AIBackend {
             StringBuilder fullContent = new StringBuilder();
             int maxContinues = Math.max(0, Math.min(8,
                     ResourceManager.getIntParameter("agent.chatbot.max_continuations", 4)));
+            // Reasoning-only (content=null) höchstens 1× nachziehen — sonst hängt Kimi minutenlang.
+            int emptyContentContinues = 0;
+            final int maxEmptyContentContinues = 1;
 
             for (int attempt = 0; attempt <= maxContinues; attempt++) {
                 CompletionChunk chunk = executeChatCompletionOnce(workingMessages, maxTokens, userMessageLength);
@@ -126,39 +135,52 @@ public class OpenAIBackend implements AIBackend {
                     fullContent.append(chunk.content());
                 }
 
-                boolean truncated = isOutputTruncated(chunk.finishReason());
-                if (!truncated) {
+                if (!chunk.requestContinuation()) {
                     break;
                 }
+
+                boolean needsFinalOutput = fullContent.length() == 0;
+                if (needsFinalOutput) {
+                    emptyContentContinues++;
+                    if (emptyContentContinues > maxEmptyContentContinues) {
+                        logger.warn("OpenAI: nach {} leeren Fortsetzung(en) immer noch kein content (finish_reason={})",
+                                maxEmptyContentContinues, chunk.finishReason());
+                        break;
+                    }
+                }
+
                 if (attempt >= maxContinues) {
-                    logger.warn("OpenAI: Antwort nach {} Fortsetzung(en) immer noch abgeschnitten (finish_reason={})",
+                    logger.warn("OpenAI: Antwort nach {} Fortsetzung(en) immer noch unvollständig (finish_reason={})",
                             maxContinues, chunk.finishReason());
                     if (fullContent.length() > 0) {
                         fullContent.append("\n\n[Hinweis: Die Antwort wurde wegen des Ausgabe-Token-Limits "
                                 + "möglicherweise unvollständig abgebrochen. Bitte „weiter“ schreiben "
-                                + "oder max. Tokens beim Chat-Agenten erhöhen.]");
+                                + "oder max. Tokens beim Agenten erhöhen.]");
                     }
                     break;
                 }
 
-                logger.info("OpenAI: finish_reason={} – setze Antwort fort ({}/{})",
-                        chunk.finishReason(), attempt + 1, maxContinues);
-                JsonObject assistantMsg = new JsonObject();
-                assistantMsg.addProperty("role", "assistant");
-                assistantMsg.addProperty("content",
-                        chunk.content() != null ? chunk.content() : fullContent.toString());
-                workingMessages.add(assistantMsg);
+                logger.info("OpenAI: finish_reason={} – setze Antwort fort ({}/{}, finalOutputNeeded={})",
+                        chunk.finishReason(), attempt + 1, maxContinues, needsFinalOutput);
+                workingMessages.add(buildContinuationAssistantMessage(chunk, fullContent.toString()));
 
                 JsonObject continueMsg = new JsonObject();
                 continueMsg.addProperty("role", "user");
-                continueMsg.addProperty("content",
-                        "Bitte setze deine Antwort nahtlos fort. Wiederhole nichts, was du bereits geschrieben hast.");
+                continueMsg.addProperty("content", needsFinalOutput
+                        ? "Deine vorherige Antwort enthielt keinen fertigen Ausgabetext "
+                                + "(nur internes Reasoning und/oder Token-Limit). "
+                                + "Gib jetzt ausschließlich die fertige Antwort im geforderten Format aus. "
+                                + "Kein weiteres Reasoning, keine Einleitung."
+                        : "Bitte setze deine Antwort nahtlos fort. Wiederhole nichts, was du bereits geschrieben hast.");
                 workingMessages.add(continueMsg);
             }
 
             String result = fullContent.toString();
             if (result.isBlank()) {
-                throw new RuntimeException("Keine lesbare Text-Antwort von der API (Modell " + currentModel + ").");
+                throw new RuntimeException(
+                        "Keine lesbare Text-Antwort von der API (Modell " + currentModel
+                                + "). Reasoning-Modelle wie Kimi brauchen oft höheres max_tokens "
+                                + "oder reasoning_effort=low — siehe Parameter agent.openai.reasoning_effort.");
             }
             return result;
         } catch (RuntimeException e) {
@@ -169,7 +191,26 @@ public class OpenAIBackend implements AIBackend {
         }
     }
 
-    private record CompletionChunk(String content, String finishReason) {}
+    /** Kimi/Moonshot: Assistant-Message inkl. Reasoning-Feld zurückgeben. */
+    private static JsonObject buildContinuationAssistantMessage(CompletionChunk chunk, String fullContentSoFar) {
+        JsonObject assistantMsg = new JsonObject();
+        assistantMsg.addProperty("role", "assistant");
+        String reasoning = chunk.reasoning();
+        if (reasoning != null && !reasoning.isBlank()) {
+            assistantMsg.addProperty("reasoning", reasoning);
+            assistantMsg.addProperty("reasoning_content", reasoning);
+        }
+        if (chunk.content() != null && !chunk.content().isEmpty()) {
+            assistantMsg.addProperty("content", chunk.content());
+        } else if (fullContentSoFar != null && !fullContentSoFar.isEmpty()) {
+            assistantMsg.addProperty("content", fullContentSoFar);
+        } else {
+            assistantMsg.add("content", com.google.gson.JsonNull.INSTANCE);
+        }
+        return assistantMsg;
+    }
+
+    private record CompletionChunk(String content, String finishReason, boolean requestContinuation, String reasoning) {}
 
     private static boolean isOutputTruncated(String finishReason) {
         if (finishReason == null || finishReason.isBlank()) {
@@ -196,10 +237,18 @@ public class OpenAIBackend implements AIBackend {
             body.addProperty("model", currentModel);
             body.addProperty("max_tokens", maxTokens);
             body.addProperty("temperature", temperature);
+            if (topP != null) {
+                body.addProperty("top_p", topP);
+            }
             body.add("messages", messages);
+            applyReasoningEffort(body);
 
             String requestBody = gson.toJson(body);
-            logger.info("OpenAI Request: {} Zeichen, max_tokens: {}", requestBody.length(), maxTokens);
+            logger.info("OpenAI Request: {} Zeichen, max_tokens: {}, temperature: {}, top_p: {}, reasoning_effort={}",
+                    requestBody.length(), maxTokens, temperature,
+                    topP != null ? topP : "—",
+                    body.has("reasoning_effort")
+                            ? body.get("reasoning_effort").getAsString() : "—");
 
             int timeoutSec = requestTimeoutSeconds();
             HttpRequest request = HttpRequest.newBuilder()
@@ -268,23 +317,34 @@ public class OpenAIBackend implements AIBackend {
             if (choice.has("finish_reason") && !choice.get("finish_reason").isJsonNull()) {
                 finishReason = choice.get("finish_reason").getAsString();
             }
+            boolean truncated = isOutputTruncated(finishReason);
+            String reasoningOnly = extractReasoningText(message);
 
             if (content == null || content.trim().isEmpty()) {
                 String contentShape = message.has("content")
                         ? OpenAIMessageContentExtractor.describe(message.get("content"))
                         : "fehlt";
+                // Kimi/Moonshot u. a.: lange Reasoning-Phase verbraucht max_tokens, content bleibt null.
+                if (truncated || (reasoningOnly != null && !reasoningOnly.isBlank())) {
+                    logger.warn("OpenAI API (Modell={}): content leer ({}), finish_reason={}, "
+                                    + "reasoning={} Zeichen — fordere fertige Ausgabe an. Antwort-Anfang:\n{}",
+                            currentModel, contentShape, finishReason,
+                            reasoningOnly != null ? reasoningOnly.length() : 0,
+                            preview(responseBody, 2500));
+                    return new CompletionChunk("", finishReason, true, reasoningOnly);
+                }
                 logger.error("OpenAI API (Modell={}): kein Text in message.content ({}). "
                         + "Antwort-Anfang:\n{}", currentModel, contentShape, preview(responseBody, 2500));
                 throw new RuntimeException("Keine lesbare Text-Antwort von der API (Modell " + currentModel
                         + ", content=" + contentShape + "). Details im Log.");
             }
 
-            if (isOutputTruncated(finishReason)) {
+            if (truncated) {
                 logger.warn("OpenAI: Antwort abgeschnitten (finish_reason={}, {} Zeichen bisher)",
                         finishReason, content.length());
             }
 
-            return new CompletionChunk(content, finishReason);
+            return new CompletionChunk(content, finishReason, truncated, reasoningOnly);
 
         } catch (RuntimeException e) {
             throw e;
@@ -371,23 +431,37 @@ public class OpenAIBackend implements AIBackend {
             }
         }
 
+        // Reasoning-Felder bewusst NICHT als Content übernehmen: bei Reasoning-Modellen
+        // (z. B. Kimi) ist das internes Denken; die fertige Ausgabe kommt per Fortsetzung.
         if (content == null || content.trim().isEmpty()) {
-            if (message.has("reasoning_content")) {
-                JsonElement rc = message.get("reasoning_content");
-                if (!rc.isJsonNull() && rc.isJsonPrimitive() && rc.getAsJsonPrimitive().isString()) {
-                    String reasoning = rc.getAsString();
-                    if (reasoning != null && !reasoning.trim().isEmpty()) {
-                        String finishReason = "";
-                        if (choice.has("finish_reason") && !choice.get("finish_reason").isJsonNull()) {
-                            finishReason = choice.get("finish_reason").getAsString();
-                        }
-                        logger.warn("Fallback auf 'reasoning_content' (finish_reason={}, content=null).", finishReason);
-                        content = reasoning;
-                    }
+            String reasoning = extractReasoningText(message);
+            if (reasoning != null && !reasoning.isBlank()) {
+                String finishReason = "";
+                if (choice.has("finish_reason") && !choice.get("finish_reason").isJsonNull()) {
+                    finishReason = choice.get("finish_reason").getAsString();
                 }
+                logger.info("OpenAI API (Modell={}): nur Reasoning vorhanden ({} Zeichen, finish_reason={})",
+                        currentModel, reasoning.length(), finishReason);
             }
         }
         return content;
+    }
+
+    /** Moonshot/Kimi: {@code reasoning}; andere Provider: {@code reasoning_content}. */
+    private static String extractReasoningText(JsonObject message) {
+        if (message == null) {
+            return null;
+        }
+        for (String key : new String[]{"reasoning_content", "reasoning"}) {
+            if (!message.has(key) || message.get(key).isJsonNull()) {
+                continue;
+            }
+            String text = OpenAIMessageContentExtractor.extractText(message.get(key));
+            if (text != null && !text.isBlank()) {
+                return text;
+            }
+        }
+        return null;
     }
 
     /** Liest konfigurierbares Anfrage-Timeout (Sekunden). */
@@ -398,6 +472,37 @@ public class OpenAIBackend implements AIBackend {
         }
         int fromLektorat = ResourceManager.getIntParameter("api.lektorat.request_timeout_sec", 300);
         return Math.max(60, Math.min(900, fromLektorat));
+    }
+
+    /**
+     * Kimi K3 denkt standardmäßig mit effort=max und verbraucht oft alle Tokens für Reasoning.
+     * Default für Kimi/Moonshot: {@code low}. Parameter {@code agent.openai.reasoning_effort}
+     * überschreibt (low/high/max) bzw. leer = Auto.
+     */
+    private void applyReasoningEffort(JsonObject body) {
+        String configured = ResourceManager.getParameter("agent.openai.reasoning_effort", "").trim();
+        String effort = null;
+        if (!configured.isEmpty() && !"auto".equalsIgnoreCase(configured)) {
+            effort = configured.toLowerCase(java.util.Locale.ROOT);
+        } else if (isKimiOrMoonshotModel(currentModel)) {
+            effort = "low";
+        }
+        if (effort == null || effort.isBlank()) {
+            return;
+        }
+        if (!effort.equals("low") && !effort.equals("high") && !effort.equals("max")) {
+            logger.warn("Ungültiger agent.openai.reasoning_effort='{}' — ignoriere", configured);
+            return;
+        }
+        body.addProperty("reasoning_effort", effort);
+    }
+
+    static boolean isKimiOrMoonshotModel(String model) {
+        if (model == null || model.isBlank()) {
+            return false;
+        }
+        String m = model.toLowerCase(java.util.Locale.ROOT);
+        return m.contains("kimi") || m.contains("moonshot");
     }
 
     private HttpResponse<String> sendWithGatewayRetry(HttpRequest request) throws java.io.IOException, InterruptedException {

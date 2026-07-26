@@ -365,11 +365,9 @@ public class DictationSupport {
         if (!toInsert.endsWith(" ") && !toInsert.endsWith("\n")) {
             toInsert = toInsert + " ";
         }
+        // Kein revealRange: das würde den Viewport auf den Caret zentrieren und die Leseposition verschieben.
+        // insertTextAtCaret erhält die Viewport-Verankerung des Canvas-Editors.
         host.insertTextAtCaret(toInsert);
-        int caret = host.getCaretPosition();
-        host.selectRange(caret, caret);
-        host.requestEditorFocus();
-        host.revealRange(caret, caret);
     }
 
     private void applyModeAppearance() {

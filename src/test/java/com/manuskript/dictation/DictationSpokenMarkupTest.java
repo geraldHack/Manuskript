@@ -12,6 +12,8 @@ class DictationSpokenMarkupTest {
 
     private static final String OPEN_DE = "\u201E";
     private static final String CLOSE_DE = "\u201C";
+    private static final String OPEN_DE_SINGLE = "\u201A";
+    private static final String CLOSE_DE_SINGLE = "\u2019";
     private static final String OPEN_FR = "\u00BB";
     private static final String CLOSE_FR = "\u00AB";
 
@@ -19,6 +21,22 @@ class DictationSpokenMarkupTest {
     void finish_smartQuoteAlternatesGerman() {
         assertEquals("Sie sagte " + OPEN_DE + "Hallo" + CLOSE_DE,
                 DictationSpokenMarkup.finish("Sie sagte Anführungszeichen Hallo Anführungszeichen", "", GERMAN));
+    }
+
+    @Test
+    void finish_wrapWordInQuotesWithBitteSetzen() {
+        assertEquals("Die " + OPEN_DE + "Glühlampen" + CLOSE_DE + " glommen schwach.",
+                DictationSpokenMarkup.finish(
+                        "Die Glühlampen bitte in Anführungszeichen setzen glommen schwach.",
+                        "", GERMAN));
+    }
+
+    @Test
+    void finish_wrapWordInSimpleQuotes() {
+        assertEquals("Die " + OPEN_DE_SINGLE + "Glühlampen" + CLOSE_DE_SINGLE + " glommen schwach.",
+                DictationSpokenMarkup.finish(
+                        "Die Glühlampen bitte in einfache Anführungszeichen setzen glommen schwach.",
+                        "", GERMAN));
     }
 
     @Test
@@ -68,5 +86,17 @@ class DictationSpokenMarkupTest {
     void finish_recognizesAnfuehrungszeichenWithoutUmlaut() {
         assertEquals("Sie sagte " + OPEN_DE + "Hallo" + CLOSE_DE,
                 DictationSpokenMarkup.finish("Sie sagte Anfuehrungszeichen Hallo Anfuehrungszeichen", "", GERMAN));
+    }
+
+    @Test
+    void finish_replacesSpokenGedankenstrich() {
+        assertEquals("Wort " + "\u2013" + " Pause",
+                DictationSpokenMarkup.finish("Wort Gedankenstrich Pause", "", GERMAN));
+    }
+
+    @Test
+    void finish_replacesDoubleHyphenButNotTriple() {
+        assertEquals("a " + "\u2013" + " b --- c",
+                DictationSpokenMarkup.finish("a -- b --- c", "", GERMAN));
     }
 }

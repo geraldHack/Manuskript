@@ -1,1614 +1,1658 @@
 ---
-title: "Traumwelt"
-author: "Gerald Leonard"
+title: "Exil"
+subtitle: "Eine Science- Fiction-Roman"
+author: "Gerald Hackbart"
 date: "Oktober 2025"
-rights: "© 2025 Gerald Leonard"
+rights: "© 2025 Gerald Hackbart"
+abstract: |
+  Ein grauer Morgen, eine regennasse Bushaltestelle – und im nächsten Moment steht Jom auf einem Hügel unter zwei Sonnen. Der Wald um ihn herum besteht aus muskelartigen Strängen, die sich winden wie in Zeitlupe. Am Himmel ziehen flügellose Wesen ihre Bahnen. Nichts hier ist vertraut. Nichts ist, wie es sein sollte.
+  
+  Jom ist auf einem fremden Planeten gestrandet, verschleppt von einer unbekannten Macht, die ihm genommen hat, was ihn ausmachte: seinen Namen, seine Worte, sein altes Leben. Er ist nicht allein – Tausende Wesen aus unzähligen Welten wurden hierhergebracht, alle auf dieselbe rätselhafte Weise. In Aklah, einem Wesen mit Pferdekopf, findet Jom einen ersten Verbündeten. Doch er will nur eins: zurück nach Hause, zu seiner Familie.
+  
+  Sein Weg führt ihn in die »City«, eine Stadt, die Menschen an der Grenze einer gigantischen, undurchdringlichen Kuppel errichtet haben. An der Universität soll Jom als Meteorologe die rätselhaften Fallwinde erforschen, die von der Kuppel herabwehen. Je tiefer er in die Geheimnisse dieser Welt eindringt, desto deutlicher wird: Die Kuppel atmet. Sie pulsiert. Und was sich in ihrem Inneren verbirgt, könnte der Schlüssel zur Rückkehr sein – oder der Grund, warum niemand diese Welt je wieder verlassen hat.
 ---
 
-# Kapitel 1 - Der Kristall
+# Kapitel 1
 
-## Kapitel 1 - Der Kristall
+Er stand auf einem Hügel, der sich nur wenige Meter über die Baumwipfel erhob – eine Insel in einem grünen Ozean. Der Wald reichte bis zum Horizont, wo er in einer scharfen Linie endete. Vereinzelt durchbrachen baumlose Erhebungen die wogende Fläche und bildeten ein loses Atoll.
 
-Der Traum begann wie immer – mit dem Fallen.
+Seltsam. Warum wuchs auf diesen Hügeln nichts?
 
-Ich stürzte durch Schichten von Dunkelheit, durch etwas, das sich anfühlte wie Wasser, nur ohne Nässe, und landete auf den Füßen, als wäre ich nie gefallen. Das kannte ich. Das war normal. Die Absurdität war mir längst vertraut – ich existierte in diesem Schwebezustand zwischen Wachen und Träumen, in dem die Logik sich selbst zerlegt und Widersprüche ungehindert nebeneinander bestehen.
+Der Himmel war von einem schmerzhaft intensiven Blau, wie aus einem Reiseprospekt. Er blinzelte. Hätte er nur seine Sonnenbrille mitgenommen – aber an jenem grauen Morgen auf dem Weg zur Arbeit hatte er keinen Anlass dazu gesehen.
 
-Ich stand in einem Raum, den ich noch nie gesehen hatte, aber irgendwie erkannte.
+Tief unter ihm schlängelte sich ein schmaler Bach durch das Gehölz. Sein Plätschern drang bis zu ihm hinauf. Ein Windhauch strich über die Baumwipfel, ließ das grüne Meer erzittern. Der Mann fröstelte. Nicht wegen der Luft – die war warm und mild –, es war die Tatsache, dass er noch vor wenigen Augenblicken an einer regennassen Bushaltestelle gestanden hatte.
 
-Dunkles Metall bildete die Wände, durchsetzt von leuchtenden Adern, die nicht elektrisch, sondern organisch wirkten: wie Blutgefäße, die in blaugrünem Licht pulsierten. Das Licht kam von nirgendwo und überall zugleich. Über mir kreiste ein riesiges Zahnrad, so groß wie ein Fenster, und drehte sich unhörbar, obwohl ich das Mahlen spüren konnte – ein Vibrieren in meinen Knochen. Steampunk. Ich liebte Steampunk.
+Er schloss die Augen. Vielleicht war das hier nur ein Fiebertraum? Ein Sekundenschlaf? Doch die Sonne brannte auf seiner Haut, er hörte den Wind in den Blättern. Er atmete tief ein. Der Duft war fremd. Keine Spur von Abgasen, feuchtem Asphalt oder abgestandenem Regenwasser. Stattdessen lag ein süßliches, harziges Aroma in der Luft, das vage an Lavendel erinnerte, aber doch nicht ganz.
 
-Vier Menschen saßen um einen Tisch aus Glas und Messing. Sie starrten mich an.
+Er öffnete die Augen.
 
-Ich starrte zurück und wartete. Normalerweise sahen mich die Traumgestalten nicht. Und wenn sie es taten, dann sprachen sie mich nicht an. Eher liefen sie davon, als hätten sie einen Geist gesehen – was wahrscheinlich nahe der Wahrheit war. 
+Doch etwas war falsch. Es ging nicht nur darum, dass er jetzt eigentlich in einem stickigen Bus zwischen missmutigen Pendlern hätte sitzen müssen.
 
-»Du bist ruhig«, sagte einer der Männer. Er war groß, mit rasiertem Kopf und einer Narbe, die sich von seinem rechten Auge bis zur Schläfe zog. Sein Blick war scharf, analytisch. »Das ist unerwartet.«
+Er kniff die Augen zusammen.
 
-Ein fast unmerkliches Zucken durchlief mich. Niemand hatte mich je zuvor im Traum direkt angesprochen. Ich beschloss, mir nichts anmerken zu lassen. 
+Etwas war … falsch.
 
-»Ich träume«, sagte ich und lehnte mich zurück. »In Träumen gibt es keine Regeln. Ich kann ruhig sein, wenn ich will.«
+Dann traf ihn die Wahrheit wie ein Schlag: Nichts stimmte. Es gab keine Bäume. Keine Büsche. Keine Vögel.
 
-Eine Frau lachte leise. Sie hatte kurze rote Haare und trug eine Art Uniform aus Leder und Kupferdetails. »Sie denkt, das ist ein luzider Traum.«
+Sein Gehirn hatte ihm einen Streich gespielt, ihm Vertrautes vorgegaukelt. Nur langsam begann er zu begreifen, was seine Augen ihm wirklich zeigten.
 
-»Genau«, sagte ich. »Ich kontrolliere das hier. Das ist mein Traum.«
+Die ›Bäume‹ waren hochgewachsene Pflanzen – falls es überhaupt Pflanzen waren. Ihre Stämme bestanden aus dicken, muskelartig verdrehten Strängen, die sich wanden und verschlangen, als würden sie in Zeitlupe wuchern. Wo sie sich trennten, zerfaserten sie in lindgrüne Büschel, die wie Weidenzweige bis zur halben Höhe herabhingen.
 
-Der Mann mit der Narbe lehnte sich vor. »Wie lange träumst du schon von dieser Welt?«
+Die ›Büsche‹ waren Ansammlungen fleischiger, blattartiger Knoten von krankhaft blassem Grün, die sich dicht an den Boden duckten, als fürchteten sie den Wind. Wie Haufen toter, aufgedunsener Frösche.
 
-Ich überlegte. »Immer. Ich meine – lange. Seit ich denken kann, träume ich von Städten mit Zahnrädern und Lampen, die ohne Strom leuchten. Steampunk-Zeug.« Ich wies auf das rotierende Zahnrad über uns. »So etwas. Ich liebe das. Es ist mein Lieblingstraum.«
+Ein Schatten huschte über ihn hinweg.
 
-»Und du bist dir sicher«, fragte eine dritte Person – eine ältere Frau mit ergrauten Haaren, die zu einem komplizierten Zopf geflochten waren –, »dass dies ein Traum ist?«
+Reflexartig duckte er sich. Ein Vogel? Nein. Das Ding hatte mit einem Vogel nur eines gemein: Es konnte fliegen. Sein Körper war plump, fast kugelförmig, und es hatte keine erkennbaren Flügel. Wie es sich in der Luft hielt, blieb ein Rätsel.
 
-»Natürlich«, sagte ich. »Träume sind nicht real. Ich weiß, dass ich träume, weil ich hier bin, obwohl ich weiß, dass ich in meinem Bett liege. Das ist die Definition von luzid träumen. Ich habe das hunderte Male getan.«
+Er starrte ihm nach, bis es nur noch ein unruhiger Punkt am Himmel war. Dann ließ er den Blick weiterwandern.
 
-Der vierte Mann, jünger als die anderen, mit dunklen Augen und einer Art Ungeduld in seiner Körperhaltung, beugte sich vor. »Wie oft warst du schon hier?«
+Dort, tief am Horizont, standen zwei Sonnen.
 
-»Ich weiß nicht«, sagte ich achselzuckend. »Hunderte Male? Tausende? Ich zähle nicht mit. Es ist ein Traum, den ich immer wieder habe. Eine Welt, die mein Gehirn erschaffen hat. Wahrscheinlich, weil ich zu viel Science-Fiction lese.«
+Eine riesige, orangefarbene und ihre kleine, blau leuchtende Schwester.
 
-Die rote Frau und die ältere Frau wechselten Blicke. Der Mann mit der Narbe nicht.
+Sein Atem stockte.
 
-»Wenn das dein Traum ist«, sagte er langsam, »wer sind wir dann?«
+Ein Gedanke drängte sich auf: Er war verdammt weit weg von zu Hause.
 
-Das war eine gute Frage. Ich hatte keine Antwort. In meinen Träumen waren die Menschen in der Stadt immer da gewesen, aber ich hatte sie vorwiegend beobachtet. Sie waren wie Statisten, die nur dann relevant wurden, wenn ich sie brauchte. Jetzt, da sie mich direkt ansprachen, wurde ihre Präsenz überdeutlich. Sie waren keine Statisten meines Traumes mehr, sie waren Akteure.
+Bis zu diesem Moment war er seltsam ruhig geblieben, als würde sein Verstand sich weigern, die Situation zu akzeptieren. Doch jetzt rissen die Dämme. Die Gefühle strömten in ihn zurück, als hätten sie etwas länger gebraucht, um ihm hierher zu folgen.
 
-»Mein Unterbewusstsein«, sagte ich. »Archetypen. Der Anführer, die Kämpferin, die Weise, der Skeptiker.« Ich deutete auf jeden von ihnen. »Ihr seid alle Versionen von mir, die ich brauchte, um diese Welt zu bevölkern.«
+Und es waren keine angenehmen Gefühle: Angst, Verwirrung und Hilflosigkeit.
 
-»Wir sind real«, sagte die ältere Frau ruhig.
+Seine Kehle wurde eng. Der Druck in seiner Brust wuchs. Nein. Er durfte nicht in Panik verfallen. Er musste sich bewegen. Etwas tun.
 
-»Nein«, sagte ich. »Das seid ihr nicht. Aber das ist okay. Träume sind nicht weniger real, weil sie Träume sind. Sie sind nur real in einer anderen Weise. Ich träume, also existiert ihr in meinem Traum. Das ist eine Form von Existenz.«
+Er setzte sich in Bewegung. Schritt für Schritt, den Hügel hinab.
 
-Der junge Mann lehnte sich zurück. »Sie argumentiert wie ein Philosoph.«
+Seine Beine wurden schneller.
 
-»Sie argumentiert wie jemand, der sich selbst täuscht«, sagte die rote Frau.
+Dann rannte er.
 
-Ich sah sie an. »Was willst du denn von mir? Dass ich Angst habe? Dass ich aufwache und schreie? Das ist nicht mein Traum-Stil.« Ich deutete auf das Zahnrad über mir. »Ich bin hier, weil mein Gehirn mir zeigen will, dass es kreativ ist. Diese Welt ist schön. Warum sollte ich Angst haben?«
 
-Der Mann mit der Narbe stand auf. Er war größer, als ich gedacht hatte. »Wir haben dich beobachtet«, sagte er. »Du bist seit  Jahren in der Traumwelt. Du warst einfach nur nie bewusst präsent. Du bist wie ein Geist gewesen, der durch diese Stadt wandelt. Aber in der letzten Woche ist etwas anders geworden. Deine Präsenz ist dichter geworden. Deine Energie hat sich verdoppelt. Und das bedeutet, dass du bereit bist, echte Entscheidungen zu treffen.«
+# Kapitel 2
 
-Ich sah ihn an. Das klang verrückt. Das klang nach einer Verschwörungstheorie, die mein Unterbewusstsein mir erzählte – eine Art psychologisches Rätsel, das mein Gehirn mir aufgab.
+Vorsichtig tastete er sich durch die Dunkelheit. Äste schlugen ihm ins Gesicht. Knorrige Wurzeln und feuchte, moosige Steine ließen ihn straucheln. Immer wieder verlor er den Halt, oder prallte gegen einen der Bäume. Es war, als hätte er das Laufen verlernt. 
 
-»Okay«, sagte ich. »Nehmen wir an, das ist wahr. Nehmen wir an, ich bin seit dreiundzwanzig Jahren unbewusst in einer Traumwelt, und nun bin ich richtig angekommen hier. Was wollt ihr dann von mir?«
+Dann trat er ins Leere. Der Sturz kam ohne Vorwarnung. Er überschlug sich und schlitterte eine Böschung hinab. Geröll und feuchte Erde prasselten auf ihn herab. Dann – Stille. 
 
-Die ältere Frau stand auf und verließ den Tisch. Sie ging zu einer Wand, wo ein großes Fenster aus glühendem Glas aufflammte. Bilder erschienen – Straßen von Berlin, aber verzerrt, durchzogen von Rissen, aus denen ein undeutliches Licht sickerte. Das war kein Computerbildschirm, sondern etwas ... Untechnisches. Mir fiel keine bessere Beschreibung ein. 
+Er konnte nicht mehr weiterlaufen. Mit jedem Atemzug wich die Panik – und hinterließ eine Leere, in die sich kein anderes Gefühl wagte. 
 
-»Die beiden Welten sind nicht getrennt«, sagte sie. »Sie sind überlagert. An bestimmten Orten, an bestimmten Zeiten, dringt diese Welt – unsere Welt – in eure ein. Und umgekehrt.«
+Er setzte sich auf und lehnte sich an etwas, in der Hoffnung, dass es nur einer jener seltsamen ›Bäume‹ war -- und nichts, das ihn fressen wollte. Der doppelte Sonnenuntergang lag nun schon einige Stunden zurück und das gleißende blaugrün war durch etwas ersetzt worden, das einem verängstigten Mann auf einer fremden Welt nicht weiterhalf: Dunkelheit. 
 
-»Okay«, sagte ich. »Das ist ein interessanter Traum.«
+Seine Kleidung war schweißnass, und er begann zu frieren. Angst und Kälte ließen ihn zittern. Er umklammerte seine Knie, versuchte, sich so klein wie möglich zu machen, doch es half nichts. Er musste sich bewegen.
 
-»Berlin ist der Schwachpunkt«, sagte die rote Frau. »Viele Bruchstellen. Viele Orte, wo die Welten sich berühren. Und vor zwei Wochen ist etwas durchgekommen. Ein Monster. Etwas Altes. Es lebt jetzt in eurer Welt, und es wird andere anziehen.«
+Mit einer Mischung aus Trotz und Verzweiflung zwang er sich auf die Beine.
 
-Ich sah auf die Bilder. Sie zeigten eine U-Bahn-Station, die ich kannte – Friedrichstraße. Aber die Wände waren zerrissen, und aus den Rissen kroch etwas Schwarzes heraus, etwas, das aussah wie Rauch, aber fest war.
+Mit ausgestreckten Händen tastete er sich weiter durch den schwarzen Wald. Alles war fremd. Der Boden fühlte sich zu weich an, federte beim Gehen seltsam elastisch, die Luft roch metallisch.
 
-»Das ist wirklich gut animiert«, sagte ich. »Für einen Traum.«
+Der Wald öffnete sich.
 
-Der junge Mann stand auf und kam zu mir. Er setzte sich direkt neben mich, näher, als ich erwartet hatte. Seine Augen waren dunkelbraun, fast schwarz, und es gab etwas Intensives in ihnen – nicht bedrohlich, aber präsent. Er roch ... angenehm. 
+Er hob den Kopf. Und was er sah, raubte ihm den Atem.
 
-»Wenn das ein Traum ist«, sagte er leise, »dann kannst du es beweisen. Du kannst aufwachen. Jetzt. Sofort.«
+Hoch über ihm erstreckte sich ein Sternenhimmel, wie er ihn noch nie gesehen hatte. Millionen glitzernder Punkte. Dazwischen zarte, milchige Bänder, in sich verwoben, wie Nebelschleier aus Licht. Sterne, die sich zu Haufen ballten, einige so hell, dass sie wie winzige Sonnen wirkten.
 
-Ich öffnete meine Augen. Ich versuchte, mich zu konzentrieren, mein Gehirn zu zwingen, mich zu wecken. Ich kannte den Trick – man musste sich auf seinen echten Körper konzentrieren, auf das Bett unter sich, auf den Atem, auf die Schwere der Realität.
+Das war nicht seine Heimat. Nicht einmal annähernd.
 
-Aber ich konnte mich nicht auf etwas konzentrieren, das nicht da war.
+Egal, ob er ein Lichtjahr oder zehntausend von der Erde entfernt war – er war weg.
 
-Ich öffnete meine Augen wieder. Der junge Mann sah mich an. »Siehst du?«
+Er senkte den Blick, zwang sich, einen klaren Gedanken zu fassen. Was nun?
 
-»Das bedeutet nichts«, sagte ich, aber meine Stimme war nicht mehr so sicher. »Ich bin einfach tiefer im Traum. Das passiert manchmal. Man träumt, dass man aufwacht, aber man schläft noch.«
+Hier stehenbleiben war keine Option.
 
-»Ja«, sagte der Mann mit der Narbe. »Das nennt sich falsch aufwachen. Aber es gibt einen Unterschied zwischen einem falschen Aufwachen und einer echten Schicht der Realität.«
+Er stapfte weiter, folgte dem schwachen Licht der Sterne. Der Boden unter seinen Füßen war weich, gab leicht nach. Irgendwann bemerkte er eine Veränderung in der Umgebung. Die Schatten wurden lichter. Die unheimlichen ›Bäume‹ standen nicht mehr so dicht beieinander.
 
-Die ältere Frau kam zurück und legte etwas auf den Tisch vor mir. Es war ein Kristall – klein, vielleicht so groß wie mein Daumennagel, und er leuchtete von innen heraus, mit einem Licht, das keine Quelle zu haben schien. Es war blaugrün, die gleiche Farbe wie die Adern in den Wänden, und es pulste, als würde es atmen.
+Er stolperte ins Freie.
 
-»Das ist ein Resonanz-Kristall«, sagte sie. »Wenn dieser Traum nur ein Traum ist, dann wird er verschwinden, wenn du aufwachst. Aber wenn wir recht haben – wenn diese Welt real ist – dann wird er in deiner Tasche sein, wenn du in deine Welt zurückkehrst.«
+Vor ihm lag eine schmale, schnurgerade Schneise. Der Boden war mit glatten, runden Steinen gepflastert. Das war ein Weg! Eine Straße!
 
-Ich starrte auf den Kristall. Das war eine sehr spezifische Halluzination. 
+Froh, etwas Vertrautes gefunden zu haben, folgte er dem sternenbeschienenen Pfad. Er wusste nicht, wohin er führte, aber es war besser, als ziellos durch die Wildnis zu irren.
 
-»Und wenn ich ihn in meiner Tasche finde?«, fragte ich.
+Nach wenigen Hundert Metern sah er Licht.
 
-»Dann wirst du verstehen, dass du nicht träumst«, sagte der junge Mann. »Und dann wirst du zurückkommen. Und wir werden dir alles erklären.«
+Sein Herz schlug schneller.
 
-Ich nahm den Kristall. Er war warm in meiner Hand, und das Licht wurde heller, als würde es auf meine Berührung reagieren.
+Ein Gebäude. Flach und aus grob behauenen Holzstämmen zusammengefügt, aber überraschend groß. Flackernde Lichter brannten in den Fenstern.
 
-»Das ist dein erstes Artefakt«, sagte der junge Mann. »Trag es bei dir. Es wird dir helfen, die Bruchstellen zu sehen, wenn du in deine Welt zurückkehrst.«
+Er zögerte. Stand einfach da, sah auf das erste Anzeichen von Zivilisation in dieser fremden Welt.
 
-»Und wenn ich es nicht in meiner Tasche finde?«, fragte ich.
+Er riss sich zusammen und ging weiter.
 
-»Dann war dies ein sehr detaillierter Traum«, sagte der Mann mit der Narbe, »und wir werden dich nie wiedersehen.«
+Kurz vor der Tür hielt er inne. Zwei kleine Fenster lagen hoch oben in der Wand. Zu hoch, um hindurchzusehen. Zwischen ihnen eine massive Holztür, so groß wie ein Scheunentor.
 
-Das war fair.
+Er holte tief Luft.
 
-Ich steckte den Kristall in meine Tasche – eine Bewegung, die sich *zu* real anfühlte, um ein Traum zu sein. Für einen Moment zweifelte ich. Dann lehnte ich mich zurück.
+Und klopfte.
 
-»Also gut«, sagte ich. »Nehmen wir an, ich glaube euch. Dass das hier real ist. *Und dann?*«
-
-Die vier Menschen sahen sich an. Der Mann mit der Narbe nickte leicht.
-
-»Dann«, sagte die rote Frau, »haben wir eine erste Mission für dich.«
-
----
-
-Ich wachte auf, weil mein Herz zu schnell schlug.
-
-Das war das erste, das ich spürte – nicht die Matratze unter mir, nicht die Bettwäsche, sondern das panische Hämmern in meiner Brust, als hätte mein Körper verstanden, was mein Verstand noch ablehnte. Mein Zimmer war dunkel, aber nicht die Art von Dunkelheit, die ich kannte. Diese Dunkelheit war grau, gefiltert durch die Vorhänge, die ich nie richtig zugemacht hatte. Berlin-Dunkelheit. Straßenlicht. Real.
-
-Ich lag auf dem Rücken, die Decke bis zur Brust gezogen, und starrte die Risse in meiner Zimmerdecke an – Risse, die ich kannte wie ein vertrautes Gesicht. *Drei Minuten*, dachte ich. *Gib dir drei Minuten, dann verblasst der Traum.*
-
-Aber der Traum war nicht weg.
-
-Ich konnte die Stimme des Mannes mit der Narbe noch hören. *Das ist nicht dein Traum.* Und der junge Mann, der neben mir saß, dessen Name ich nicht kannte, aber dessen Nähe ich immer noch in meinen Knochen spürte. *Siehst du?*
-
-Ich setzte mich auf. Mein Kopf war schwer,  Mein Zimmer roch nach mir – nach Staub und den alten Büchern, die ich unter dem Bett hortete, nach der Tasse Tee von gestern, die ich vergessen hatte, wegzubringen. Real. Das alles war real.
-
-Mit wackeligen Beinen stand ich auf und ging ins Bad. Ich knipste das Licht an und kniff die Augen zusammen, geblendet. Als ich sie wieder öffnete, sah ich mein Spiegelbild.
-
-Das war immer ein Schock, egal wie oft ich es tat.
-
-Auf konventionelle Weise hübsch war ich nicht. Das war mein erster Gedanke, wenn ich in den Spiegel sah – nicht aus Bescheidenheit, sondern mit der kühlen Objektivität einer Forscherin. Mein Gesicht war zu lang, meine Nase zu groß, meine Augen zu weit auseinander. Meine Haut war blass, fast weiß, durchzogen von feinen Äderchen unter den Augen, die mir einen dauerhaft erschöpften Ausdruck gaben, selbst wenn ich ausgeruht war. Meine Haare waren das Einzige, das ich an mir mochte – dunkelbraun, fast schwarz in diesem Licht, lockig, wild, unkontrollierbar. Sie fielen mir über die Schultern und sahen aus, als hätte ich sie nie gekämmt, obwohl ich es tat. Ich sah aus wie jemand, der gerade aus einem Traum aufgewacht war. Jemand, der nicht ganz hier war. Jemand, der in eine Traumwelt passte.
-
-Das war kein Zufall. Das konnte kein Zufall sein.
-
-Ich lehnte mich näher an den Spiegel heran. Meine Augen waren dunkelblau – fast grau in diesem Licht – und sie sahen mich zurück mit der gleichen Unsicherheit, die ich fühlte. Ich sah eine Frau, die nicht wusste, ob sie verrückt war oder ob die Welt verrückt war. Ich sah eine Frau, die zwischen zwei Realitäten stand und nicht wusste, welche echte war.
-
-Ich nahm ein frugales Frühstück zu mir (Toast mit Marmelade), dann Katzenwäsche, Zähneputzen, anziehen und auf zu ›Grundlagen der Typografie‹ im kleinen Vorlesungssaal, scherzhaft ›Minimax‹ genannt. Ich studierte ›Buch- und Medienproduktion‹  und ›Game Design‹.
-
-Ich streifte meinen 70er-Jahre Vintagemantel über. In der rechten Tasche war etwas.
-
-Mein Herz blieb stehen.
-
-Ich griff hinein und zog den Kristall heraus.
-
-Er war klein, nicht größer als mein Daumen, aber er leuchtete – wirklich leuchtete – in einem kalten blaugrünen Licht, das von innen kam. Es war nicht möglich. Kristalle leuchteten nicht von innen. Es sei denn, man steckte eine LED hinein, aber das war nicht möglich, denn dieser Kristall war nicht künstlich. Er war ... organisch. Er pulsierte wie ein Herzschlag, und jedes Mal, wenn er pulsierte, wurde das Licht stärker.
-
-Das war der Kristall aus dem Traum.
-
-Das war der Beweis.
-
-Ich ließ ihn fallen. Er landete auf dem Badezimmerboden und rollte weg, immer noch leuchtend. Ich starrte auf ihn, als könnte ich ihn mit Blicken zum Verschwinden bringen. Das funktionierte nicht. Er war immer noch da, immer noch leuchtend, immer noch real.
-
-Ich war verrückt. Das war die einzige Erklärung. Ich war endlich verrückt geworden, und das hier war ein psychotischer Anfall, und bald würde ich in einer Klinik aufwachen und man würde mir Medikamente geben, und das war eigentlich besser, denn dann würde ich nicht mehr wissen, dass ich verrückt war.
-
-Oder die Traumwelt war real. Oder beides war real. Oder wirklich nichts war real und ich war nur ein Gehirn in einem Glas, und alles war eine Illusion, und –
-
-Ich holte tief Luft. Ich setzte mich auf den Boden des Flurs, neben dem leuchtenden Kristall, und versuchte, mich selbst zu beruhigen. Das funktionierte nicht.
-
-Ich beschloss, zurück ins Bett zu gehen. Wenn ich wieder einschlief, würde ich zurück in die Traumwelt gehen, und ich würde die Wahrheit erfahren. Oder ich würde aufwachen und die Wahrheit erfahren, was auch immer die Wahrheit war. Das war ein Plan. Das war etwas, das ich tun konnte.
-
-Ich nahm den Kristall mit – ich wusste nicht warum, aber ich konnte ihn nicht hier liegen lassen – und ging zurück ins Schlafzimmer. Es war 5:47 Uhr. Ich war um 21:00 Uhr eingeschlafen, also hatte ich fast neun Stunden geschlafen. Acht Stunden. Das war genug. Das war mehr als genug.
-
-Ich legte mich ins Bett und starrte auf die Decke.
-
-Mein Herz schlug immer noch zu schnell. Mein Gehirn war wach, hyperaktiv, sprang von einem Gedanken zum nächsten wie ein Floh. Ich versuchte, die progressive Muskelentspannung zu nutzen, die Technik, die ich in irgendeinem Wellness-Video gelernt hatte. Ich spannte meine Zehen an, entspannte sie, spannte meine Waden an, entspannte sie. Es funktionierte nicht. Mein Körper wusste, dass mein Gehirn log. Mein Körper wusste, dass etwas Unmögliches passiert war.
-
-Ich versuchte, an etwas Langweiliges zu denken. Meine Vorlesungen. Ja, das war eine gute Strategie. Ich war im dritten Semester meines Studiums an der Freien Universität Berlin, und ich hatte vier Vorlesungen pro Woche, zwei Seminare, und ich sollte eine Hausarbeit schreiben über die narrativen Techniken in der postmodernen Literatur, und ich hatte noch nicht angefangen. Das war langweilig. Das war real. Das war das normale Leben, das ich führte, bevor ein leuchtender Kristall meine Realität zerstörte.
-
-Aber ich konnte nicht aufhören, an den Kristall zu denken. Ich konnte ihn nicht sehen – er war auf meinem Nachttisch, außerhalb meines Sichtfelds – aber ich konnte sein Licht sehen, das an den Wänden meines Zimmers tanzte. Das blaugrüne Licht. Das unmögliche Licht.
-
-Ich war wach. Ich würde nicht wieder einschlafen. Das wusste ich. Ich war zu aufgeregt, zu verängstigt, zu verwirrt. Mein Gehirn war zu laut. Und selbst wenn ich es schaffen würde, einzuschlafen – ich hatte bereits acht Stunden geschlafen. Mein Körper würde mich nicht noch einmal schlafen lassen. Das war einfach nicht möglich.
-
-Ich sah auf mein Telefon. 5:52 Uhr. Meine erste Vorlesung war um 08:00 Uhr  bei Professor Hartmann, ein Kurs, den ich hasste, weil Hartmann eine monotone Stimme hatte und immer die gleichen Beispiele benutzte. Ich sollte dorthin gehen. Das war das Verantwortungsvolle. Das war das, was normale Menschen taten.
-
-Ich konnte nicht gehen. Nicht jetzt. Nicht wenn ich gerade entdeckt hatte, dass die Realität nicht real war. Nicht wenn ich einen leuchtenden Kristall hatte, der unmöglich existieren sollte. Nicht wenn ich in wenigen Stunden zurück in die Traumwelt gehen würde und herausfinden würde, ob ich verrückt war oder ob die ganze Welt verrückt war.
-
-Das war das erste Mal, dass ich eine Vorlesung ausfallen ließ, ohne einen echten Grund zu haben. Ich war nicht stolz auf mich. Aber ich konnte nicht anders.
-
-Ich lag im Bett und hielt den Kristall in meiner Hand, und Ich wartete darauf, dass die Sonne aufging, damit ich sehen konnte, ob er dann immer noch leuchtete. Wartete darauf, dass die Zeit verging und mich zurück in die Traumwelt trug. Dass mein Leben sich änderte – oder dass ich aufwachte und erkannte, dass ich verrückt geworden war.
-
-Das Warten war das Schlimmste.
-
----
-
-Der Morgen war grau. Ich saß auf meinem Bett und starrte auf mein Handy – 7:47 Uhr. 
-
-Ich hatte es versucht. Ich hatte mich hingelegt, die Augen geschlossen, die Atmung verlangsamt. Nichts. Mein Gehirn war wach. Der Kristall lag auf ihrem Nachttisch, und selbst mit geschlossenen Augen spürte ich seine Anwesenheit.
-
-*Das war dein erstes Artefakt. Trage es bei dir. Es wird dir helfen, die Bruchstellen zu sehen, wenn du in deine Welt zurückkehrtest.*
-
-Der junge Mann – der, der so angenehm roch – hatte das gesagt, bevor ich aufwachte. Seine Stimme war noch immer in mir, deutlich wie ein Echo in einem leeren Raum.
-
-Ich stand auf. Meine Wohnung war klein – eine Zweizimmerwohnung in Kreuzberg, die ich mir mit Marcus teilte, wobei Marcus meistens bei seiner Freundin übernachtete. Er war nie offiziell ausgezogen, wahrscheinlich, weil ich die 300 Euro für sein Zimmer dringend brauchte. Ich zog mich an, nahm den Kristall in die Hosentasche und verließ die Wohnung.
-
-Die U-Bahn nach Friedrichstraße dauerte zwanzig Minuten. Ich saß am Fenster und hielt die Hand um den Kristall in meiner Tasche. Er war warm. Das war neu. Gestern war er kalt gewesen, oder ich hatte das nur nicht bemerkt.
-
-Die Station Friedrichstraße war überfüllt wie immer. Pendler, Touristen, Menschen, die irgendwo hin mussten. Ich stieg aus und folgte der Menschenmenge zur Treppe hinauf. Ich wusste nicht genau, wo ich suchen sollte – der Monitor in der Traumwelt hatte nur einen Ausschnitt gezeigt, einen Riss in einer Wand, Rauch, der herausquoll.
-
-Ich ging die Treppen hoch und dann wieder runter. Ich umrundete die Bahnsteige. Und dann sah ich es.
-
-Die Wand neben dem südlichen Aufgang – es gab einen feinen Riss darin, kaum breiter als ein Haar. Er verlief diagonal, von oben links nach unten rechts. Ich blieb stehen. Andere Menschen liefen an mir vorbei. Niemand sonst schien den Riss zu sehen.
-
-Ich holte den Kristall heraus.
-
-Das Licht änderte sich nicht. Die Luft änderte sich nicht. Aber der Riss wurde deutlicher – nicht größer, sondern sichtbarer, wie als würde Luna eine Brille aufsetzen, die den Fokus verschärfte. Und aus dem Riss sickerte etwas Dunkles, etwas, das nicht ganz Rauch war und nicht ganz Schatten. Es bewegte sich wie eine lebende Sache.
-
-*Das war real. Das war wirklich real.*
-
-Ich steckte den Kristall wieder weg. Der Riss wurde wieder zu einem Riss, den niemand beachtete. Ich fuhr nach Hause.
-
-Zurück in der Wohnung setzte ich mich aufs Bett und rief Nele an.
-
-»Hey«, sagte Nele. »Ich dachte, du würdest in der Vorlesung sein?«
-
-»War krank«, sagte ich. »Könnten wir unser Treffen heute verschieben?«
-
-»Klar. Alles okay?«
-
-»Ja. Nur Kopfschmerzen. Hatte schlecht geschlafen.«
-
-»Okay. Ruf mich an, wenn du dich besser fühlst.«
-
-Ich legte auf. Ich schämte mich kurz – Nele war eine gute Freundin – aber der Gedanke an Nele, an normale Gespräche, an Dinge, die nicht Kristalle oder Bruchstellen waren, machte mich nervös.
-
-Ich musste schlafen. Und wenn der Schlaf nicht kommen würde, würde ich ihn erzwingen.
-
-Ich zog meine Sportschuhe an und lief. Ich lief den Landwehr-Kanal entlang, meine Lungen brannten, meine Oberschenkel brannten. Ich lief, bis meine Beine schwach waren und meine Gedanken sich in einem Nebel verloren. Eine Stunde. Zwei Stunden. Ich hörte auf, weil mein Körper einfach nicht mehr konnte.
-
-Zurück in der Wohnung duschte ich kalt. Dann räumte ich auf.
-
-Meine Wohnung war nicht unordentlich, aber ich war nicht ordentlich. Kleidung lag auf einem Stuhl. Bücher stapelten sich auf dem Nachttisch. Ein Teller von gestern noch stand auf dem Schreibtisch. Ich räumte alles weg. Ich wischte die Oberflächen. Ich ordnete meine Kleidung nach Farben. Ich las alle Seiten meiner Vorlesungsmaterialien durch und ordnete sie in Mappen. Ich brauchte etwas zu tun, etwas, das meine Hände beschäftigte, während mein Gehirn hoffentlich irgendwann müde wurde.
-
-Es war 14 Uhr. Ich war erschöpft, aber nicht müde.
-
-Ich öffnete eine Flasche Wein – einen billigen Weißwein aus dem Supermarkt – und goss mir ein Glas ein. Ich trank es schnell. Die Wärme breitete sich in meinem Bauch aus. Ich goss mir ein zweites Glas ein. Dann ein drittes.
-
-Gegen 16 Uhr legte ich mich ins Bett. Der Raum drehte sich leicht. Das war gut. Das war näher am Schlaf.
-
-Ich schloss die Augen. Wartete. Wartete. Wartete.
-
-Der Schlaf kam nicht.
-
-Ich öffnete die Augen und starrte auf die Decke. Ich konnte den Kristall spüren, obwohl er auf dem Nachttisch lag. Es war, als würde er leise rufen, als würde er mich zurück in die Traumwelt ziehen wollen.
-
-Ich stand auf und trank mehr Wein. Ich trank und wartete.
-
-Die Sonne sank. Der Himmel wurde dunkel. Ich lag wieder im Bett, mein Körper schwer, meine Augen schmerzhaft, aber mein Gehirn immer noch wach, immer noch scharf, immer noch obsessiv.
-
-*Der Kristall. Der Riss. Kael. Die Traumwelt. Real. Alles war real.*
-
-Ich versuchte, mich auf etwas Langweiliges zu konzentrieren – eine Vorlesung, die ich gehört hatte, ein Buch, das ich gelesen hatte. Aber die Gedanken kamen immer wieder zurück. Und der Schlaf kam nicht.
-
-Es war kurz nach Mitternacht, als er endlich kam. Ein Gewicht, das sich über mich senkte wie eine warme Decke. Meine Gedanken wurden langsamer, neblig. Der Kristall auf dem Nachttisch leuchtete schwach auf, als würde er atmen.
-
-Ich schlief ein.
-
----
-
-Der Raum war derselbe.
-
-Gleiche Wände aus dunklem Metall, gleiche Adern in blaugrünem Licht, gleiche Zahnräder über mir, die sich lautlos drehten. Aber diesmal war ich nicht überrascht. Ich stand mitten im Raum, bevor mir bewusst wurde, dass ich eingeschlafen war, und die vier Menschen um den Tisch sahen mich an, als hätten sie gewartet.
-
-»Du bist zurück«, sagte der Mann mit der Narbe.
-
-»Ja«, sagte ich. »Ich habe den Kristall gefunden.«
-
-Er nickte. Er schien nicht überrascht.
-
-Ich setzte mich. Das tat ich einfach, ohne gefragt zu werden, weil ich keine Energie hatte, höflich zu sein. Ich war erschöpft. Ich hatte den halben Tag Sport gemacht, eine halbe Flasche Wein getrunken, und trotzdem fünf Stunden auf den Schlaf gewartet. Ich hatte das Recht, mich hinzusetzen.
-
-»Wir sollten anfangen«, sagte ich. »Ich weiß nicht, wie lange ich hier bleibe. Und ich habe Fragen.«
-
-»Wir auch«, sagte die rote Frau.
-
-»Ihr zuerst«, sagte ich. »Wer seid ihr?«
-
-Die vier Menschen wechselten Blicke. Dann lehnte sich der Mann mit der Narbe zurück und begann.
-
-Sein Name war Ezra Blackwood. Ezra Blackwood der Dritte, sagte er, mit einem Ton, der darauf hindeutete, dass das wichtig war, obwohl ich nicht verstand warum. Er war der Anführer der Gruppe – nicht weil er der Stärkste war, sondern weil er am längsten hier war und weil er die Übersicht behielt. Er sprach ruhig und präzise, ohne Umschweife, und ich mochte das.
-
-Die rote Frau hieß Vera Thorne. Sie sah mich an, als würde sie mich einschätzen, und ich sah sie genauso an. Vera saß so, als würde sie jeden Moment aufspringen – Rücken gerade, Ellbogen auf dem Tisch, Gewicht auf den Fußballen, obwohl sie saß.
-
-Die ältere Frau mit den geflochtenen Haaren hieß Mira Blackthorne. Sie war die Analytikerin der Gruppe, diejenige, die die Daten auswertete, die Bruchstellen kartografierte, die Muster erkannte. Ich vergaß ihren Nachnamen sofort, weil mein Gehirn zu müde war.
-
-Und der junge Mann – der Mann, der angenehm roch, der neben mir gesessen hatte – hieß Kael. Kael Ashford. Er sagte es selbst, kurz und ohne weitere Erklärung, und sah mich dabei an.
-
-»Gut«, sagte ich. »Aber zuerst – wie heißt eure Gruppe eigentlich?« 
-
-»Die Hüter«, sagte Ezra. »Wir sind dem Ministerium unterstellt – der obersten Behörde unserer Welt, die die Verbindung zwischen den Welten reguliert und überwacht.« 
-
-»Dem Ministerium -- Für Magie?«, fragte ich. 
-
-»Ja«, sagte Ezra. »Für Magie.« 
-
-Wo hatte ich das nur schon gehört? Jetzt befand ich mich also mitten in einen Fantasy-Roman. 
- 
-»Okay«, sagte ich. »Okay. Wie viele Hüter gibt es?« 
-
-»Insgesamt zweiundzwanzig feste Mitglieder, verteilt auf sechs Städte«, sagte Mira. 
-
-»Wir sind das Berliner Team.«
-
-"Wieso Berlin? Wenn das ein Roman wäre, spielte das Ganze in New York oder Los Angeles."
-
-Kael meldete sich zu Wort. “Berlin ist das weltweite Zentrum der Riss-Aktivitäten. "
-
-»Und ihr alle arbeitet für dieses Ministerium?« 
-
-»Wir arbeiten mit ihm«, sagte Vera. »Das ist ein Unterschied.« 
-
-Ich beschloss, das vorerst nicht weiter zu verfolgen. 
-
-»Gut. Und wer sind die Gegner?«
-
-»Die nennen wir die Resonanz-Magier«, sagte Ezra. »Sie sind eine Fraktion innerhalb unserer Gesellschaft, die glaubt, dass der Einfluss eurer Welt – eurer Technologie, eurer Kultur – die Magie in unserer Welt zerstört. Und sie haben nicht ganz Unrecht. Aber ihre Lösung ist das Problem. Sie wollen eure Welt unterwerfen. Sie schicken bereits Agenten, Monster, Flüche. Seit Jahren infiltrieren sie eure Gesellschaft auf subtile Weise – Desinformation, Misstrauen, Wissenschaftsfeindlichkeit. Jetzt eskalieren sie.«
-
-»Berlin ist ein Brennpunkt«, sagte Vera. »Viele Bruchstellen. Viele Orte, wo die Welten sich berühren. Du hast heute eine gesehen.«
-
-»An der Friedrichstraße«, sagte ich. »Ja.«
-
-»Und du hast sie gesehen, weil du den Kristall dabei hattest«, sagte Mira. »Nur wenige können einfach so Dinge in die jeweils andere Welt mitnehmen. Das macht dich wertvoll für uns.«
-
-Das war direkt. Ich schätzte das.
-
-»Was wollt ihr von mir?«, fragte ich.
-
-Ezra legte die Hände auf den Tisch. »Wir wollen, dass du eine Agentin wirst. Du kannst zwischen den Welten reisen. Das kann sonst niemand – nicht auf die Art, wie du es tust. Du kannst auch andere mitnehmen, wenn du willst. Das macht dich zur einzigen Person, die in eurer Welt operieren kann und trotzdem Zugang zu unserer hat. Wir brauchen das.«
-
-»Und die erste Aufgabe?«, fragte ich.
-
-»Ein Monster«, sagte Vera. »Es ist vor zwei Wochen durch eine Bruchstelle in Berlin durchgekommen. Es lebt jetzt in eurer Welt. Es ist noch klein – ein Späher, kein Krieger – aber es wird andere anziehen, wenn es länger bleibt. Es muss entfernt werden.«
-
-Sie legte etwas auf den Tisch. Es war ein zweiter Kristall, größer als meiner, und er leuchtete nicht blaugrün, sondern weiß – ein scharfes, kaltes Weiß. Er pulsierte nicht. Er schien zu warten.
-
-»Das ist der Beweis-Kristall«, sagte Mira. »Wenn du das Monster tötest, berühre es damit. Der Kristall wird aufleuchten und die Energie absorbieren. Das ist unser Nachweis, dass die Bedrohung beseitigt ist.«
-
-Ich sah auf den Kristall. Dann sah ich auf die vier Menschen.
-
-»Wie?«, fragte ich.
-
-»Wie was?«, sagte Vera.
-
-»Wie soll ich es töten? Ich bin eine Studentin. Ich studiere Buch- und Medienproduktion. Ich habe noch nie etwas getötet, nicht mal eine Mücke, ich meine, ich töte Mücken, aber das ist anders.«
-
-Kael räusperte sich. »Welche Form der Magie beherrschst du?«
-
-Ich sah ihn an. »Was?«
-
-»Magie«, wiederholte er. »Welche Art? Emotionale Kanalisierung? Rituelle Formeln? Elementare Kontrolle?«
-
-»Ich beherrsche keine Magie«, sagte ich. »So etwas gibt es nicht in der Realwelt.«
-
-Die vier Menschen sahen sich an. Es war der Blick von Leuten, die eine Information erhalten hatten, die sie nicht erwartet hatten, und die nicht wussten, wie sie damit umgehen sollten.
-
-»Das stimmt nicht«, sagte Mira schließlich, mit der ruhigen Stimme einer Person, die es gewohnt war, Fakten zu korrigieren. »Eure Welt hat Techno-Magie.«
-
-»Nein«, sagte ich. »Wir haben Technologie. Das ist etwas anderes.«
-
-»Eure Fahrzeuge bewegen sich ohne Pferde«, sagte Vera.
-
-»Das sind Motoren.«
-
-»Manche fliegen«, sagte Kael.
-
-»Das sind Flugzeuge. Oder Drohnen.«
-
-»Manche fahren ohne Fahrer«, sagte Ezra.
-
-Ich öffnete meinen Mund. Schloss ihn wieder. »Das ist Automatisierung. Algorithmen. Das ist Mathematik, keine Magie. Und es klappt bislang nicht besonders gut.«
-
-»Von unserem Standpunkt aus«, sagte Mira, »ist der Unterschied zwischen einem Algorithmus und einem Ritual nicht so groß, wie ihr denkt. Beides ist eine Abfolge von Instruktionen, die eine Wirkung erzeugt, die ohne diese Instruktionen nicht entstehen würde. Ihr nennt es Technologie. Wir nennen es Magie. Das Ergebnis ist dasselbe.«
-
-»Das ist nicht dasselbe«, sagte ich, aber meine Stimme war weniger sicher als vorher.
-
-»Kannst du ein Handy reparieren?«, fragte Kael.
-
-»Nein.«
-
-»Kannst du erklären, wie ein Handy funktioniert?«
-
-»Ungefähr.«
-
-»Kannst du eines bauen?«
-
-»Nein.«
-
-»Dann ist es Magie«, sagte er. »Du nutzt ein Gerät, dessen Mechanismus du nicht vollständig verstehst, das Dinge tut, die deinen Vorfahren unmöglich erschienen wären, und du vertraust darauf, dass es funktioniert. Das ist die Definition von Techno-Magie.«
-
-Ich starrte ihn an. Das war eine sehr überzeugende und gleichzeitig sehr ärgerliche Argumentation.
-
-»Gut«, sagte ich. »Nehmen wir an, ihr habt recht. Das ändert trotzdem nichts daran, dass ich persönlich keine Magie beherrsche. Ich kann kein Feuer erzeugen. Ich kann nicht fliegen. Ich kann nicht –«
-
-»Du kannst zwischen den Welten reisen«, sagte Ezra. »Das ist Magie. Das ist mehr Magie, als die meisten Menschen in diesem Raum jemals getan haben.«
-
-Das stoppte mich.
-
-»Ich schlafe einfach ein«, sagte ich.
-
-»Ja«, sagte er. »Du schläfst ein und reist in eine andere Welt. Das klingt für dich normal, weil du es immer getan hast. Aber es ist nicht normal.«
-
-Ich schwieg. Ich wollte widersprechen, aber ich hatte keinen Widerspruch, der funktionierte.
-
-»Gut«, sagte Vera schließlich. »Dann nehmen wir an, sie hat keine aktive Magie. Das ist ein Problem, aber kein unüberwindbares Problem. Wir haben Artefakte.«
-
-Sie sah Ezra an. Er nickte.
-
-Kael stand auf und ging zu einem Regal an der Wand, das ich vorher nicht bemerkt hatte. Er nahm etwas herunter – ein kleines Objekt, kaum größer als eine Münze, aus einem Material, das weder Metall noch Stein war. Es war bräunlich, fast organisch, und es schien in seiner Mitte einen winzigen Riss zu haben, aus dem ein gedämpftes orangefarbenes Licht sickerte.
-
-»Das ist ein Einmal-Siegel«, sagte er und legte es vor mich auf den Tisch. »Ein Einmalzauber. Du nähert dich dem Monster, du brichst das Siegel, und es wird zurückgeschickt. Durch die Bruchstelle, zurück in unsere Welt, wo wir es empfangen können.«
-
-»Getötet?«, fragte ich.
-
-»Zurückgeschickt«, korrigierte er. »Töten ist komplizierter. Das hier ist einfacher und für eine erste Mission ausreichend.«
-
-Ich sah auf das kleine Objekt. »Wie breche ich es?«
-
-»Du hältst es fest und zerbrichst es.«
-
-»Das ist alles?«
-
-»Das ist alles. Es reagiert auf Intention. Du musst wollen, dass das Monster geht. Das reicht.«
-
-Ich sah auf den Beweis-Kristall. Dann auf das Siegel. Dann auf Kael.
-
-»Und wie finde ich das Monster?«
-
-»Der Beweis-Kristall reagiert auf seine Energie«, sagte Mira. »Je näher du kommst, desto heller wird er. Er funktioniert wie ein Kompass.«
-
-Das war einfacher, als ich erwartet hatte. Das war fast zu einfach.
-
-»Was ist, wenn es mich angreift?«, fragte ich.
-
-»Dann lauf«, sagte Vera.
-
-Ich sah sie an. »Das ist dein Ratschlag? Lauf?«
-
-»Das ist der praktischste Ratschlag«, sagte sie. »Du bist keine Kampfmagierin. Lauf zuerst. Dann brich das Siegel, wenn du nahe genug bist. Das Wesen ist nicht allzu gefährlich. Aber ein paar Schrammen könnte es dir zufügen.«
-
-»Wie nahe ist nahe genug?«
-
-»Zwei Melons«, sagte Kael. »Vielleicht drei. Der Zauber hat eine kurze Reichweite.«
-
-Ich runzelte die Stirn. »Was sind Melons?«
-
-»Wie heißen kurze Lägeneinheiten bei euch?«
-
-»Meter. Ungefähr so.« Ich hielt die Hände auseinander. 
-
-»Gut dann bleibt es dabei. Zwei bis drei Meter.« Er lächelte. 
-
-Ich holte tief Luft. Ich sah auf die zwei Objekte vor mir – den leuchtenden Beweis-Kristall und das kleine, rissige Siegel.
-
-»Gut«, sagte ich. »Ich mache das. Aber ihr erklärt mir danach alles. Wirklich alles. Ich will wissen, wer ihr seid, was diese Welt ist, und warum ich.«
-
-Ezra sah mich an. »Warum du was?«
-
-»Warum ich«, sagte ich. »Warum ausgerechnet ich zwischen den Welten reisen kann, und warum ich hier gelandet bin. Das war soch kein Zufall, oder?«
-
-Kurzes Schweigen.
-
-»Nein«, sagte Ezra. »Wir werden es dir erklären, aber nicht jetzt.«
-
-Das war keine vollständige Antwort. Aber es war genug für jetzt.
-
-
-Ich lehnte mich auf der Metallbank zurück und sah Kael direkt an. „Woher weiß ich, dass ihr mich nicht einfach verheizt?“, fragte ich. „Ihr kennt mich kaum, und plötzlich soll ich in die U-Bahn gehen und etwas jagen, von dem ihr behauptet, es sei gefährlich. Was passiert, wenn es schiefgeht? Vielleicht bin ich ja nur Kanonenfutter, oder ein Experiment.“
-
-Ezra Blackwood antwortete ruhig. „Wir haben dich nicht zufällig gefunden. Deine Fähigkeit, zwischen den Welten zu wechseln, macht dich für uns unverzichtbar. Wenn wir dich verlieren, verlieren wir auch unsere beste Chance, das Problem zu lösen.“
-
-Ich schüttelte den Kopf. „Das klingt für mich nicht nach einem Grund, euch zu vertrauen. Woher weiß ich, ob ihr die Guten seid? Ihr sagt, es gibt eine Bedrohung, aber ihr zeigt mir keine Beweise, die nicht von euch selbst stammen. Vielleicht seid ihr diejenigen, die das Chaos erst schaffen.“
-
-»Natürlich sind wir die ›Guten‹.« Ezra setzte sich aufrecht hin. Er funkelte mich an. »Aber wie soll ich das beweisen? Ich lännte dir die Archive zeigen, dich mit Leuten vom ministerium sprechen lassen, aber dafür haben wir keine Zeit. Du musst uns einfach vertrauen.«
-
-Ich verschränkte die Arme vor der Brust. Ich starrte auf den Tisch zwischen uns. „Und warum sollte ich euch vertrauen? Ihr könntet mir alles erzählen, um mich dazu zu bringen, eure Arbeit zu machen. Ich will wissen, was genau ihr von mir erwartet und was passiert, wenn ich ablehne. Ohne klare Antworten darauf gehe ich nirgendwohin.“
-
-»Wir können dich nur anflehen, dich uns anzuschließen. Wir setzen so viel Hoffnung in dich. Nur du kannst uns retten.«
-
-»Hilf mir, Obi-Wan Kenobi. Du bist meine einzige Hoffnung.« 
-
-»Was meinst du ...«
-
-»Ach schon gut, nur ein Witz.«
-
-Sie betrachtet Ezra schweigend für eine volle Minute. 
-
-»Und das Vieh wird mir nicht den Kopf abbeißen?«
-
-»Nein es ist harmlos. Habt ihr Katzen in eurer Welt?«
-
-»Ja.«
-
-»Ungefähr so. Man möchte eine Katze nicht verärgern, und man kann sich ein paar Kratzer einfangen. Aber sie wird einen nicht umbringen.«
-
-»OK«, sagte ich.
-
-
-»Was?« Erza runzelte die Stirn. OK kannten sie hier anscheinend nicht.
-
-»Ich werde es tun.«
-
-Ich nahm die beiden Objekte und steckte sie in meine Tasche. Ich spürte, wie die Realität an mir zog. Ich kannte das, kurz vor dem Aufwachen zog es mich zurück. 
-
-“Ich muss gehen”, sagte ich schlicht und Ezra nickte nur. Dann verschwamm die Traumwelt. 
-
- 
-
-
-# Kapitel 2 - In der U-Bahn
-
-Ich lag auf meinem Bett, die Decke bis zur Brust gezogen, und starrte auf die dunkelgrüne Wolldecke, die ich über mich geworfen hatte. Unter meiner Wange spürte ich den groben Stoff meines Kissens. Das war real. Das war mein Zimmer. Ich hatte in T-Shirt und Unterhose geschlafen. Ich warf einen Blick zum Stuhl in der Ecke. Dort hing der 70er-Jahre-Vintage-Mantel, den ich gestern getragen hatte. Er sah aus wie immer, aber ich wusste es sofort: Die Artefakte würden in einer der Taschen sein.
-
-Ich setzte mich auf, ging zum Stuhl und hob den Mantel hoch. Es klapperte leise.
-
-Men Herz machte einen Sprung. Ich griff hinein und zog den Beweiskristall heraus – den großen, weißen, der nicht pulsierte, sondern nur wartete. Er war da. Und daneben, in der gleichen Tasche, lag das rissige, orangefarbene Siegel, das wie eine Münze aussah, und der Kristall von ihrem ersten Ausflug.
-
-Ich ließ sie auf die Decke fallen und starrte sie an. Der Mantel war warm, als hätte ich ihn stundenlang getragen. Er roch nach Metall und nach etwas anderem, etwas, das ich nicht benennen konnte – nach einer Welt, die keine Elektrizität kannte, aber leuchtende Lampen hatte. 
-
-Ich legte den Mantel auf das Bett und ging ins Bad. Ich wusch mich, zog mich an – Jeans, Sweatshirt, meine bequemen Slipper.
-
-In der Küche trank ich einen Schluck Wasser direkt aus dem Hahn. Meine Hände zitterten nicht. Das war gut. Ich sah auf die Uhr. 7:23 Uhr. Zu früh für die meisten Menschen, aber für mich genau richtig. 
-
-Ich zog meinen Mantel über und verließ die Wohnung. Die Straße war still, grau, nass von einem leichten Nachtregen. Die Luft roch nach nassem Asphalt und kaltem Morgen. Ich ging zur U-Bahn.
-
-Im Wagen war es halbleer. Ein paar frühe Pendler, die Augen noch verschlafen, starrten auf ihre Handys. Ich setzte mich ans Fenster und hielt die Hand um den Beweiskristall in meiner Tasche. Er war kalt. 
-
-Die U-Bahn ratterte durch den Tunnel. Das Geräusch war monoton, beruhigend fast. Ich schloss die Augen und versuchte, nicht an die Traumwelt zu denken. Versuchte, nicht an Ezra zu denken, oder an Vera, oder an Kael, der angenehm roch und der mir das Siegel gegeben hatte. *Du hältst es fest und zerbrichst es. Das ist alles.* Ich hatte das Siegel noch nicht angefasst, seit ich aufgewacht war. Ich hatte Angst davor.
-
-Die Stationen zogen vorbei. Südkreuz. Yorckstraße. Anhalter Bahnhof. Je näher wir der Friedrichstraße kamen, desto wärmer wurde der Kristall in meiner Tasche.
-
-Ich öffnete die Augen. Ich zog den Kristall vorsichtig heraus und hielt ihn so, dass niemand ihn sehen konnte.
-
-Er leuchtete.
-
-Nicht hell, nicht wie eine Lampe, sondern wie ein Glühwürmchen – ein sanftes, weißes Licht, das pulsierte, langsam, im Rhythmus meines Herzschlags. Jeder Puls wurde ein wenig heller, als würde das Licht atmen. Ich starrte darauf, fasziniert und erschrocken zugleich. Also war ich auf der richtigen Spur.
-
-Die U-Bahn hielt an. Friedrichstraße.
-
-Ich steckte den Kristall schnell weg und stand auf. Meine Beine fühlten sich wackelig an, als hätte ich die ganze Nacht getanzt. Ich stieg aus, folgte der Menschenmenge zur Treppe, und dann blieb ich stehen.
-
-Der Bahnsteig war voll. Menschen strömten an mir vorbei, eilten zu ihren Zügen, zu ihren Jobs, zu ihrem Leben. Niemand sah mich an. Niemand sah den Riss in der Wand neben dem Aufgang, den ich gestern gesehen hatte. Aber ich sah ihn. Und der Kristall in meiner Tasche brannte jetzt fast, so hell war er geworden.
-
-Ich ging langsam darauf zu. Der Riss war noch da – derselbe feine, diagonale Strich, kaum breiter als ein Haar. Aber heute sickerte nichts Dunkles heraus. Heute war er still. Fast harmlos.
-
-Ich holte den Kristall heraus und hielt ihn in der geschlossenen Faust. Das Licht schimmerte zwischen meinen Fingern hindurch, warf blasse Schatten auf den Boden. Es pulsierte schneller, als hätte es einen eigenen Herzschlag gefunden. Je näher ich der Wand kam, desto schneller wurde der Puls, bis es fast ein kontinuierliches Flackern war.
-
-Ich war da. Ich stand direkt vor dem Riss, und der Kristall in meiner Hand war jetzt so hell, dass ich die Knochen meiner Finger durch das Fleisch scheinen sah. Das Licht war kalt und warm zugleich, ein Paradox, das ich nicht verstand.
-
-Ich steckte den Kristall wieder weg.
-
-Jetzt musste ich nur noch das Monster finden. Und das Siegel brechen. Und hoffen, dass niemand mich dabei sah.
-
-Ich stieß mich von der Wand ab und ging los.
-
-Nicht schnell. Schnell wäre auffällig gewesen. Schnell wäre Panik gewesen, und ich war bereits nah genug an Panik, ohne ihr auch noch Beine zu geben. Ich hielt die rechte Hand in der Manteltasche um den Beweiskristall geschlossen und die linke um das Siegel. Die Leute schoben sich an mir vorbei, Jacken, Taschen, Kaffeebecher, ein Kinderwagen, jemand mit Kopfhörern so groß wie Untertassen. Friedrichstraße eben. Niemand hatte Zeit für irgendwen.
-
-Der Kristall pulsierte.
-
-Ich blieb stehen, ließ zwei Männer in dunklen Mänteln an mir vorbeidrängen, dann ging ich in die andere Richtung. Das Licht wurde schwächer. Gut. Also nicht da.
-
-Ich drehte mich wieder um. Ein Schritt. Zwei. Sofort wurde der Kristall heller. Ich folgte ihm den Bahnsteig entlang, langsam, als wäre ich nur unschlüssig, ob ich in die S-Bahn oder die U-Bahn wollte. Mein Herz schlug so fest, dass ich das Pulsieren des Kristalls kaum davon unterscheiden konnte.
-
-Dann sah ich es.
-
-Nicht sofort ganz. Zuerst nur eine Bewegung zwischen den Beinen der Menschen, zu niedrig für einen Hund und zu falsch für alles andere. Ein Knick in der Luft. Ein Schatten, der nicht der Beleuchtung gehorchte. Dann hob es sich über die Bahnsteigkante, kroch an der Wand entlang und wurde für einen Moment scharf, als hätte ich eine Brille aufgesetzt.
-
-Es war klein, verglichen mit dem, was mein Gehirn unter *Monster* verstand, und genau deshalb schlimmer. Kein Drache. Kein Dämon mit Hörnern. Eher etwas, das aus zu vielen falsch zusammengesetzten Teilen bestand: ein länglicher Leib, schwarz und glänzend wie nasser Teer, daran Gliedmaßen, die mal Insektenbeine waren und mal Finger, je nachdem, wie ich hinsah. Es zog eine Spur aus Rauch hinter sich her, aber der Rauch blieb kleben, als hätte er Gewicht. Dort, wo sein Kopf sein sollte, war nur eine eingedellte Fläche, aus der ein blasses, vertikales Leuchten schnitt wie ein halboffenes Auge.
+Drinnen Stimmen. Viele. Ein Murmeln, dann ein Lachen. Worte, die er verstand. Hier waren Menschen!
 
 Niemand reagierte.
 
-Eine Frau telefonierte direkt neben dem Wesen stehend. Ein Mann mit Aktentasche stellte sich fast hinein. Das Wesen duckte sich zwischen ihre Bewegungen, schmiegte sich an ihre Blindheit wie ein Fisch an eine Strömung, und ich begriff mit kalter Klarheit, dass die anderen es wirklich nicht sehen konnten. Nicht verschwommen. Nicht am Rand. Gar nicht.
+Er klopfte fester.
 
-»Scheiße«, murmelte ich.
+Die Stimmen verstummten. Dann knarrte die Tür und öffnete sich einen Spalt.
 
-Der Kristall war jetzt so hell, dass das Weiß durch den Stoff meiner Manteltasche drang. Das Monster drehte den flachen Kopf in meine Richtung. Es hatte mich bemerkt — es hatte bemerkt, dass ich es bemerkt hatte.
+Ein Keil warmen, gelben Lichts fiel auf den Boden.
 
-Ich zog den Beweiskristall heraus. Nur kurz. Das Licht traf das Wesen und es zuckte zurück, als hätte ich ihm etwas ins Gesicht gehalten, das es hasste. Gleichzeitig griff ich mit der anderen Hand nach dem Siegel.
+Dann sah er das Gesicht, das ihn ansah.
 
-*Du näherst dich dem Monster, du brichst das Siegel, und es wird zurückgeschickt.*
+Und er erstarrte.
 
-Das klang im sicheren Metallraum der Traumwelt sehr viel einfacher als auf einem überfüllten Berliner Bahnsteig um halb acht.
+Es war kein Mensch.
 
-Ich machte einen Schritt auf das Ding zu. Es wich zurück. Noch einen. Es schnellte plötzlich seitwärts, viel schneller als etwas mit so vielen unlogischen Gelenken sein sollte, und schoss auf die Kante des Bahnsteigs zu.
+Er blickte in große, schwarze Augen. In das Gesicht eines Pferdes.
 
-Ich lief jetzt doch. Jemand fluchte, als ich ihn streifte. Eine Tasche schlug gegen meine Hüfte. Ich riss das Siegel aus der Tasche. Es war glatt bis auf den feinen Riss in der Mitte.
+»Du bist ein Neuer«, sagte das Pferd mit einer samtig tiefen Stimme.
 
-Das Wesen hielt an und drehte sich zu mir. Ein Zischen kam aus seinem flachen Kopf, doch ich konnte kein Maul erkennen. Es war nur zwei Meter von mir entfernt. 
+Es trug ein grobes, graublaues Hemd und eine schwarze, eng anliegende Hose.
 
-Ich nahm das Siegel in beide Hände, um es zu brechen — und in genau diesem Moment rempelte mich jemand von der Seite an.
+Das war’s. Er hatte zu viel erlebt. Zu viele Fragen. Zu viel Angst. Zu viel Dunkelheit.
 
-Nicht absichtlich. Nur Pendlerchaos. Ein Schulterrempler, ein genervtes »Vorsicht!«, und das Siegel glitt aus meinen Fingern.
+Er war einfach zu erschöpft, um auf diese neue Überraschung noch zu reagieren.
 
-Ich sah zu, wie es fiel.
-
-Diese eine, absurde, gedehnte Sekunde, in der Dinge Zeit haben, unerträglich symbolisch zu werden. Die münzenartige Scheibe kippte über die Bahnsteigkante, blitzte orange auf und landete genau zwischen den Schienen. Natürlich. Natürlich landete das magische Einweg-Artefakt auf den verdammten Gleisen.
-
-»Scheiße. Scheiße, scheiße, scheiße.«
-
-Das Monster kam langsam auf mich zu, und ich tat das einzig Vernünftige. Ich wich zurück.
-
-Zwei Schritte. Dann drei. Ich drehte mich weg, rannte ein paar Meter, stolperte fast gegen einen Mülleimer und blieb stehen. Mir war übel. Mein ganzer Körper schrie nur noch: *raus hier*.
-
-Dann dachte ich an Ezra, der gesagt hatte, ein Späher würde andere anziehen. 
-
-Ich drehte mich um.
-
-»Fuck.«
-
-Ich ging zur Bahnsteigkante und sprang. 
-
-Es war kein heroischer Sprung. Eher ein hässliches Stolpern mit Entschluss. Meine Schuhe rutschten auf dem Schotter weg, mein Knie schlug gegen etwas Hartes, Schmerz schoss hoch, und sofort brach Lärm über mir los. Warum hatte ich mich nicht erst hingesetzt und mich ganz gemütlich zum Gleis hinabgelassen? Jetzt begann das Geschrei.
-
-»Sind Sie wahnsinnig?«
-
-»Runter da!«
-
-»Oh Gott!«
-
-Ich lief die Gleise entlang, vorbei an dem Monster oben auf dem Bahnsteig. Ich blieb dort stehen, wo ich das Artefakt vermutete und suchte. Das war es. Ich griff danach.
-
-Jemand packte mich von hinten unter den Armen. Hart, überraschend stark. Mein Körper wurde nach oben gerissen, mein Schuh verhakte sich noch kurz im Schotter, dann war ich halb kletternd, halb gezerrt wieder an der Bahnsteigkante. Eine zweite Hand schloss sich um meinen Mantel. Ich wurde hochgewuchtet wie ein falsch geparktes Fahrrad.
-
-Ich landete unsanft auf dem Bauch auf dem Bahnsteig, schlug mit dem Ellbogen auf und keuchte. Mein Retter – ein Mann in grauer Jacke mit rotem Gesicht und panischen Augen – hielt mich immer noch fest, als müsste er verhindern, dass ich sofort wieder hineinsprang.
-
-»Sind Sie komplett irre?«, sagte er.
-
-Ich drehte mich herum. »Lassen Sie mich los!«
-
-»Da kommt eine Bahn!«
-
-»Ich weiß!«
-
-Er starrte mich an, als hätte ich ihm gerade erklärt, dass ich freiwillig in Müllcontainern übernachte. Um uns herum bildete sich dieser Halbkreis aus Leuten, Handys wurden gezückt. Eine Frau kommentierte ihre Aufnahme begeistert. Jemand sagte, er habe die Polizei gerufen. Natürlich hatte ein netter Berliner die Polizei gerufen.
-
-Das Monster kam auf uns zu, doch niemand außer mir reagierte.
-
-Im Gesicht des Monsters öffnete sich eine flache Lichtspalte. Sie weitete sich, und dahinter lagen weder Mund noch Zähne, sondern Tiefe. Pure, matte Tiefe.
-
-Das Siegel lag noch immer unten auf den Schienen, unerreichbar, und das ferne Dröhnen war jetzt kein fernes Dröhnen mehr.
-
-»Da ist was!«, sagte ich heiser und zeigte. »Da ist wirklich was!«
-
-Niemand schaute an die richtige Stelle. Oder sie schauten und sahen nur Beton und Gleise und eine überdrehte junge Frau im Mantel.
-
-»Setzen Sie sich hin«, sagte die Frau neben mir, mit dieser Tonlage, die Menschen für Kinder und Verrückte reservieren. »Okay? Alles gut. Sie setzen sich jetzt einfach hin.«
-
-*Alles gut.*
-
-Ich hätte sie beinahe ausgelacht.
-
-Es blieb mir genau eine Möglichkeit.
-
-»Tut mir leid«, sagte ich und sprang auf. Dann stieß ich die Frau mit beiden Händen weg. Nicht brutal. Nur entschlossen genug. Sie taumelte rückwärts in den Mann, der mich ›gerettet‹ hatte. Beide schrien auf. Ich war schon wieder an der Kante. Diesmal setzte ich mich hin und hüpfte auf das Gleis. Ich schnappte mir das Siegel und kletterte zurück auf den Bahnsteig.
-
-Das Monster griff an.
-
-Ich richtete mich auf. Die Leute wichen jetzt endlich zurück, aber nur vor mir – vor der offensichtlich unberechenbaren Frau am Bahnsteigrand, nicht vor dem Ding, das sich wie ein lebender Fehler auf sie zubewegte. Jemand rief: »Nicht schon wieder!«, als wäre ich eine Serie von Entscheidungen, die ihm persönlich den Morgen ruinierten.
-
-Das Wesen war nur noch einen Schritt entfernt. Sein Lichtspaltengesicht flackerte. Der Beweiskristall in meiner anderen Hand loderte weiß auf, so hell, dass mehrere Leute blinzelten. Gut. Wenigstens *das* sahen sie.
-
-Ich umschloss das Siegel mit der Faust.
-
-»Verschwinde«, sagte ich.
-
-Dann zerbrach ich es.
-
-Es war schwerer, als ich gedacht hatte – und zugleich nicht. Eher, als würde etwas in meiner Hand nachgeben, das nicht materiell war. Der feine Riss in der Münze sprang auf, orange Licht schoss heraus, erst als Nadel, dann als Spalte, dann explodierte es.
-
-Der Blitz war weiß, blendend weiß. Er fuhr aus meiner Hand in das Monster, durch es hindurch, über den ganzen Bahnsteig, hinein in die Luft, als hätte jemand für einen Atemzug die Welt von innen aufgerissen. Ich sah das Wesen nicht verbrennen. Es löste sich auf. Jede falsche Gliedmaße, jede Rauchfahne, jedes Stück glänzender Schwärze wurde von Licht getroffen, zerfiel in feine Linien und war weg, einfach *weg*, als hätte es nie existiert.
-
-Der Knall war nicht laut wie eine Bombe. Eher wie alle Lampen einer Stadt, die gleichzeitig zerplatzen.
-
-Menschen schrien. Mehrere duckten sich. Ein Handy fiel zu Boden und zersprang. Die Anzeigen über dem Gleis flackerten einmal und wurden schwarz. Für eine Sekunde roch alles nach Ozon und nassem Metall. Selbst der Wind, der vom Tunnel heraufkam, schien stillzustehen.
-
-Ich stand mitten darin, die Finger noch um die zerbrochenen Reste des Siegels gekrampft, und atmete nicht.
-
-Dann kehrte der Bahnsteig zurück.
-
-Lauter als vorher. Panischer. »Was war das?« – »Haben Sie das gesehen?« – »War das ein Kurzschluss?« »Eine Bombe!« – »Rufen Sie die Feuerwehr!« – »Wo ist die Frau?« Der Mann in der grauen Jacke riss die Augen auf und starrte mich ungläubig an.
-
-Ich ließ die Siegelreste fallen und drängte mich in die Bewegung hinein, die jede Menschenmenge nach einem Schock entwickelt: weg vom Zentrum, in alle Richtungen gleichzeitig.
-
-Niemand hielt mich fest. Alle redeten. Alle zeigten. Zwei Leute filmten die leeren Gleise. Jemand rief nach der Polizei, ein anderer nach der Feuerwehr.
- 
-Ich nahm die Treppe nach oben, ohne zu rennen, bis ich außer Sicht war. Dann erst schneller. Mein Knie pochte. Meine Hand, in der ich das Siegel zerbrochen hatte, brannte noch. Hinter mir hallten Stimmen, Schritte, Durchsagen, das Nachbeben des Blitzes.
-
-Ich verschwand in den Straßen Berlins, bevor ich in irgendeinem Verhörzimmer landete, geblendet von einer Lampe und bombardiert mit Fragen, die ich nicht beantworten konnte.
+Seine Knie gaben nach. Die Stimme des Pferdes klang plötzlich ferner, als würde er durch Wasser hören. Er ließ sich vom willkommenen Nichts einer Ohnmacht einhüllen.
 
 
+# Kapitel 3
+
+Er saß nun schon geraume Zeit in dem Gasthaus, allein an einem Tisch in einer Ecke, etwas abseits der anderen. Am gegenüberliegenden Ende des Raumes knisterte ein Feuer in einem Kamin. An den restlichen hölzernen Tischen saßen fremdartige Wesen. Da waren hochgewachsene Gestalten mit blass lilafarbener Haut und Köpfen, die langgezogenen Melonen glichen. An einem Tisch saß ein Wesen mit vollkommen asymmetrischem Körperbau und dem hässlichsten Kopf, den der Mann je gesehen hatte. Die Augen saßen auf unterschiedlicher Höhe, wo eine Nase sein sollte, war nur ein Loch. Seine Haut war mit lila Pusteln übersät. Es fiel schwer, sich vorzustellen, wie es mit seinen ungleichen, verkrümmten Beinen laufen konnte, ohne umzufallen. Menschen jedoch sah er keine. Diese seltsamen Leute aßen, redeten, lachten und tranken aus tönernen Bechern. Auf den Tischen standen offene Öllampen, die abgesehen vom offenen Feuer des Kamins die einzigen Lichtquellen waren. Doch sie brannten mit einer erstaunlich hellen und großen Flamme. 
+
+Überraschenderweise war seine Angst verflogen. Was er sah, schien seltsam fern zu sein. Dass er ein Teil dieser bizarren Szene sein sollte, war ein fremder, erschreckender Gedanke den er nicht akzeptieren konnte. Er hatte von dem Wesen, das ihm die Tür geöffnet hatte, eine grob gewebte Decke bekommen, die er sich um die Schultern gelegt hatte. Die Ähnlichkeit des Wesens mit einem Pferd beschränkte sich bei genauerer Betrachtung auf den lang gezogenen Kopf, der mit braunem Fell bewachsen war. 
+
+Vor ihm stand ein Becher mit einer dampfenden Flüssigkeit, und nach einigem Zögern nahm er einen vorsichtigen Schluck. Ein scharfer, minzeartiger Geruch kitzelte seine Nase, und seine Zunge fügte noch einen zimtartigen Beigeschmack hinzu. Bald würde sich zeigen, ob sein Magen die fremden Getränke vertrug.
+
+Er kostete mehr von dem wärmenden Gebräu. Die umstehenden Kreaturen schenkten dem Mann in seinem ruinierten, ehemals grauen und – wie er sich erinnerte – unverschämt teuren Anzug kaum Beachtung Nur manchmal blickte jemand verstohlen zu ihm herüber, um anschließend mit seinen Tischgenossen zu tuscheln oder zu lachen – wenn die Geräusche, die sie machten denn Lachen waren. An der Längsseite des Schankraumes, gegenüber der Eingangstür, war eine Theke, hinter der das pferdeköpfige Wesen stand und Becher mit einem grauen Tuch polierte. 
+
+Der Mann sah einfach weiter bei diesem surrealen Theaterstück zu. Er fand nicht die Kraft nachzudenken, denn er fürchtete sich vor Erkenntnissen. Plötzlich begann eine neue Szene: Ein kleines, fast menschlich wirkendes Wesen kam zu ihm herübergetorkelt. Entweder war es betrunken, oder das war seine normale Art, sich fortzubewegen. 
+
+»Wollen wir doch mal sehen, ob der Kleinkopf irgendetwas Nettes mitgebracht hat.« Er zog dem Mann die Decke weg und begann, dessen Kleidung zu durchsuchen. Knotige, dreifingerige Finger glitten schamlos über einen vor Schreck erstarrten Körper. Doch bevor das Wesen in seinen Taschen fündig werden konnte, kam Hilfe von jenseits des Tresens. 
+
+»Du solltest dich lieber wieder hinsetzen. Sonst müsste ich dir hiermit deinen hässlichen Schädel durchbohren.« Das pferdeköpfige Wesen hinter dem Tresen hatte etwas in der Hand, das ohne Zweifel eine Waffe war, auch wenn es aussah, wie eine kaputte, zusammengeklappte Armbrust. 
+
+Der Angesprochene hörte auf, den Mann zu untersuchen, und sah finster zu dem pferdeähnlichen Wesen hinüber.
+
+»Du weißt, dass das hier nicht funktioniert.«
+
+»Möchtest du, dass ich es trotzdem versuche?« 
+
+Sichtlich beeindruckt schwankte der Angesprochene knurrend zurück an seinen Platz, schickte noch ein paar giftige Blicke in Richtung aller Anwesenden und setzte sich. Das Stimmengewirr, das kurz verstummt war, begann erneut und bald schien niemand mehr an dem Neuankömmling Interesse zu haben, woran sicherlich auch die deformierte Waffe ihren Anteil hatte, denn sie blieb offen auf dem Tresen liegen.
+
+Die Wärme der Gaststube und das heiße Getränk hatten die Kälte aus seinem Körper vertrieben, und so legte er die Decke ganz beiseite. Er nahm noch einen Schluck von der seltsamen Flüssigkeit, als sein Beschützer mit dem großen Kopf hinter der Theke hervorkam und sich an seinen Tisch setzte. 
+
+»Trink nicht so schnell, das Gesöff steigt einem ganz schön in den Kopf. Vor allem, wenn man einen so Kleinen hat wie du.« Er lachte und flache, gelbliche Zähne wie marmorne Pflastersteine erschienen in seinem Gesicht. Dieses Lachen schien einen halben Meter breit zu sein. Dann schrumpfte es wieder, ließ jedoch die Andeutung eines Lächelns zurück. 
+
+Sanfte, braune Pferdeaugen sahen ohne zu blinzeln auf den kleinen Menschen hinunter, der nicht anders konnte, als zurückzulächeln. Nach Stunden der Angst und Verzweiflung kehrte ein Gefühl zurück, von dem er nicht mehr geglaubt hätte, es je wieder zu empfinden: Hoffnung. Er wusste nicht, worauf er hoffte, doch irgendwie erfüllte ihn der Anblick des lächelnden Pferds mit Zuversicht. 
+
+»Du wirst viele Fragen haben, aber heute kann ich sie nicht beantworten. Ich heiße Aklah. Hast du dir denn schon einen Namen ausgesucht?«
+
+»Einen Namen?« Die ersten Wörter, die er auf diesem Planeten sprach, kamen ihm nur mühsam über die Lippen, als hätten ihn die wenigen Stunden des Schweigens das Sprechen verlernen lassen.
+
+»Für dich selbst.« Das Wesen stupste ihn leicht mit einer zweifingerigen Hand an. 
+
+»Ich habe einen Namen. Ich heiße …« Er dachte nach. Er war sich sicher, keine Amnesie zu haben. In seinem Kopf forschte er nach seinem Namen – und tatsächlich war er da, deutlich spürbar. Doch als er ihn aussprechen wollte, gelang es ihm nicht. Es war ein eigenartiges Gefühl, das die Situation, in der er sich befand, nur noch bizarrer erscheinen ließ. 
+
+ »Lassen wir das. Du siehst müde aus … glaube ich zumindest. Ich kenne mich mit Kleinköpfen nicht so gut aus. Ich habe hier ein paar Zimmer, die ich gelegentlich an Durchreisende vermiete. Du kannst hier schlafen. Morgen früh habe ich Zeit für dich. Da können wir in Ruhe reden. Komm mit!«  
+
+Widerspruchslos folgte er im Schatten Aklahs, der ihn um mindestens zwei Köpfe überragte, hinter den Tresen. Sie gingen durch eine Tür, Aklah hatte eine der offenen Öllampen mitgenommen, deren unruhiger Schein die hölzernen Wände des Flurs flackernd erleuchtete. Zu beiden Seiten waren Türen. Aklah öffnete eine. Dahinter lag eine Kammer, in der ein Bett stand, das groß genug für den größten Basketballspieler der Welt gewesen wäre. Es hatte eine grau bezogene Matratze, eine sauber gefaltete Decke lag am Fußende, ein Kopfkissen fehlte jedoch. 
+
+ »Hier kannst du schlafen. Morgen früh reden wir.« Aklah hielt seine Lampe an das auf dem Nachttisch stehende Öllämpchen; flackernd fing der Docht Feuer. Dann verließ er ohne ein weiteres Wort die Kammer und schloss die massive Tür hinter sich. 
+
+Der Mann ohne Namen zog seine Schuhe und sein schmutziges Jackett aus. Aus für ihn selbst unerfindlichen Gründen scheute er sich davor, weitere Kleidungsstücke abzulegen. 
+
+Er hielt es für ausgeschlossen, einschlafen zu können. Aber kaum hatte er sich auf die überraschend weiche Matratze gelegt und die Decke über sich gezogen, fühlte er, wie sich die Müdigkeit seines Körpers bemächtigte. Er blies die Öllampe aus. Einen Augenblick lang betrachtete er die Sterne durch das Fenster in seiner Kammer. Ihre unglaubliche Schönheit fesselte und beruhigte ihn. Er schlief ein.
+
+
+# Kapitel 4
+
+
+Als er nach einem glücklicherweise traumlosen Schlaf erwachte, fiel helles Tageslicht durch das kleine Fenster der Kammer. Er gehörte nicht zu den Menschen, die sich nach dem Aufwachen erst orientieren mussten. Er wusste, was mit ihm passiert war. Er erinnerte sich an seine Ankunft und an seine blinde Suche durch den Wald. Und an Aklah, das riesige, pferdeköpfige Wesen, dessen Gastfreundschaft er nun genoss. 
+
+Er zog seine Schuhe an, ließ die verdreckte Jacke auf dem Boden liegen, stand auf und folgte dem Weg zurück, den er am Abend zuvor genommen hatte. Die Gaststube war verlassen; durch die schmalen, hohen Fenster fiel helles Tageslicht. Staub tanzte in den Lichtstrahlen, und die in Reih und Glied aufgestellten Tische und Stühle verliehen der Szenerie etwas Sakrales – als stünde er in einer Kirche. Aklah war nirgends zu sehen. Von draußen war ein immer wiederkehrendes Poltern zu hören. Der Mann schob mit Mühe die riesige Vordertür auf. Seltsamerweise schien die Umgebung viel von ihrem Schrecken verloren zu haben. Die Bäume, die die Hütte umgaben, wiegten sich sanft in einer lauen Brise. Nun, bei Tageslicht und ohne die sinnestrübende Angst, konnte er sie genauer betrachten. Es waren keine Bäume – wie auch? Er befand sich nicht mehr auf der Erde. Doch diese großen Pflanzen erfüllten hier dieselbe Rolle wie Bäume auf seinem Heimatplaneten. Der sanfte Wind, der durch die Wipfel strich, ließ ihre langen, weidenartig herabhängenden Äste, die aus sehr hartem Holz zu bestehen schienen, aneinanderschlagen und erzeugte so ein Geräusch wie von tausend Klanghölzern. Auch trug die Brise ein leises, flüsterndes Singen heran, dessen Quelle nicht auszumachen war, aber wahrscheinlich auch von den Bäumen kam. Alles zusammen war wie ein wunderbares Lied, das von überall herzukommen schien. Er schaute sich weiter um. Die Hütte stand in einer Lichtung inmitten des Waldes. Die Straße, auf der er gekommen war, ging an der Hütte vorbei und wieder in den Wald hinein. Die beiden Sonnen wärmten sein Gesicht, der Himmel war blau und wolkenlos wie am Abend zuvor. Trotz des strahlenden, doppelten Sonnenlichts funkelten Sterne in der blauen Unendlichkeit des Himmels. Es war, als sähe er zwei übereinandergelegte Dias: eins vom Nacht- und eins vom Taghimmel. 
+
+Die volle Blase ließ sich nicht länger ignorieren. Er trat ein paar Meter auf die Lichtung hinaus und erleichterte sich. Doch etwas stimmte nicht. Und wieder benötigte er eine Weile, bis ihm klar wurde, was es war: Er pinkelte mindestens drei Meter weit. Als er fertig war, sah er sich um. Er musste etwas überprüfen. Er hob einen etwa faustgroßen Stein auf und wog ihn in seiner Hand. Dann schleuderte er ihn über die Lichtung. 
+
+Der Stein machte anfangs keinerlei Anstalten, wieder zu Boden zu fallen. Als er es schließlich doch tat, war er mindestens 100 Meter weit geflogen. 
+
+»Weltrekord«, murmelte der Mann. Er ging leicht in die Hocke und sprang in die Höhe. Auch dieser Sprung war weltrekordverdächtig. Dieser Planet hatte eine wesentlich geringere Schwerkraft. Nun wurde ihm auch klar, warum er bei seiner wilden Flucht durch den Wald so oft hingefallen war. Seltsam, dass ihm das erst jetzt klar geworden war. Während seiner Flucht hatte er gedacht, dass mit ihm etwas nicht stimmte. Aber zu diesem Zeitpunkt war alles unerklärlich gewesen. 
+
+Schließlich machte er sich auf den Weg hinter die Hütte, von wo noch immer die rumpelnden Geräusche zu hören waren.
+
+Was er vorfand, war ein Schuppen, vor dem Aklah stand und auf einem Hackklotz Holz hackte. Er stellte einen Holzscheit auf den Klotz und ließ die Axt niedersausen. Krachend flog das gespaltene Holz auseinander. Sein nackter Oberkörper war wie sein Kopf mit einem dichten, braunen Fell bedeckt. Obwohl das Wesen enorm muskulös war, wirkte sein Körper natürlich. Die Muskeln schienen nicht antrainiert zu sein. 
+
+Aklah hatte seinen Gast bemerkt.
+
+»Hallo, gut geschlafen?« Ein weiterer Scheit fiel der Axt zum Opfer. 
+
+»Tief und fest.« Er war etwas unsicher, wie er sich verhalten sollte. Aklah behandelte ihn wie einen frisch angereisten Feriengast. Er hatte so viele Fragen, dass er kaum wusste, wo er anfangen sollte.
+
+Sein Gastgeber kam ihm jedoch zuvor und nahm ihm die Entscheidung ab. 
+
+»Alle kommen so her, wie du. Kein Mensch weiß, warum.«
+
+ »Menschen? Es gibt also auch noch andere Menschen hier?«
+
+Aklah unterbrach das Holzhacken und legte die Axt auf den Hackklotz. Er sah auf den Menschen mit einem undeutbaren Gesichtsausdruck an.
+
+»Ah, ich verstehe. Wenn ich Menschen sage, meine ich natürlich Angehörige meiner Rasse, oder ich meine eben alle, die hier sind. Fast jeder hier sagt ›Mensch‹ zu seinen Leuten, obwohl es auch einige gibt, die sich ›die Erleuchteten‹ nennen oder ›das goldene Volk‹. Na ja, jeder, wie er mag. Für andere Rassen haben wir natürlich meist passendere Bezeichnungen. Das hängt mit der Sprache hier zusammen. Ich wette, du hast auch für mich sofort eine Bezeichnung gefunden. Irgendwas mit Pferd, stimmt’s?«
+
+Der Mann sah über Aklahs Kopf hinweg in den Wald. 
+
+»Das stimmt«, murmelte er.
+
+»Das braucht dir nicht peinlich zu sein. Obwohl ich unter einem Pferd etwas völlig anderes verstehe als du. Du bist für mich – und auch für alle anderen hier – ein Kleinkopf, da ihr hier die mit Abstand kleinsten Köpfe im Verhältnis zu euren Körpern habt. Aber sag das lieber nicht zu einem deiner Leute, die sind da sehr empfindlich.«
+
+»Es gibt hier also andere Menschen … Ich meine andere Kleinköpfe?«
+
+»Sicher, Tausende.« Vielleicht bildete es sich der Mann nur ein, aber so, wie Aklah es sagte, klang das, als seien es Tausende zu viel. 
+
+»Anfänglich kamen Hunderte, wenn nicht Tausende pro Jahr hier an, alle so, wie vermutlich auch du hier hergekommen bist. Später kamen immer weniger. Auf jeden Fall ist es ’ne Menge verschiedener Rassen. Genaueres wirst du wohl von deinen Leuten erfahren. Ihr scheint ja verrückt nach Zahlen und Daten zu sein.« Aklah schwieg einige Sekunden, er schien nachzudenken. 
+
+»Bald schon gab es Dörfer und Städte, viele in der Nähe der großen Kuppel. Die meisten Rassen kommen gut miteinander aus leben gemeinsam in den Städten. Einige bleiben aber auch lieber unter sich, zum Beispiel die Kleinköpfe.«
+
+»Warum sind wir hier?«
+
+»Tja, die Frage nach dem Warum. Es gibt viele Vermutungen. Niemand weiß es. Viele meinen, Gott hat uns hergeholt. Manche sagen, als Strafe, andere meinen, es sei eine Prüfung, oder wir seien die Auserwählten … und so weiter. Such dir aus, woran du glauben magst.« 
+
+»Woran glaubst du?«
+
+Aklah setzte sich auf den Hackklotz und ließ die Axt auf den Boden gleiten.
+
+»Ich mache mir keine Gedanken darüber. Ich weiß nur, dass es für mich ein Glück war, hierherzukommen. In meiner Heimat war ich … Es ist schwer zu erklären, ich hatte einen Fehler gemacht und so meiner Familie Schande bereitet. Ich hätte eh nur ein Leben als Ausgestoßener vor mir gehabt. Hier kann ich frei und ungebunden leben. Etwas Besseres hätte mir nicht passieren können.«
+
+Aklah machte eine Pause und hielt seinen Kopf schräg. Seine großen, spitzen Pferdeohren drehten sich nach vorne. 
+
+»Da kommt ein Wagen. Das ist wahrscheinlich Bel. Komm, wir gehen vors Haus.« Aklah ging voraus, der Mann folgte ihm. Wie schon in der Nacht zuvor, als Aklah ihn zu seinem Zimmer geführt hatte, fühlte der Mann sich klein. Es war ein für ihn ungewohntes Gefühl, denn mit seinen 1,95 Metern musste er nur selten zu jemandem hochsehen.
+
+In einiger Entfernung machte er einen hölzernen, zweirädrigen Wagen aus, der zügig auf die Hütte zukam. Darauf saß ein weiterer Pferdemensch. Er ähnelte Aklah, sein Kopf war jedoch anders gefärbt und er schien kleiner zu sein, wenn auch immer noch größer als der Mann. 
+
+Seine Kleidung unterschied sich kaum von der Aklahs, er trug ein blassblaues Hemd und eine schwarze Hose. Vor den Wagen war ein großes Tier gespannt worden. Es war haarlos und fleischfarben, auf seiner Haut schien jedoch etwas wie Flechten zu wuchern. Es war so hoch wie ein Pferd, aber breit wie zwei. Es hatte vier kurze, kräftige Beine, der Kopf war flach, dreieckig und lag halslos direkt auf dem massigen Oberkörper. Die Augen waren untertellergroß und blickten ohne ein Anzeichen von Intelligenz ins Leere, das lippenlose Maul zeigte schwärzlich verfärbte Zähne. Alles in allem kein besonders hübscher Anblick. Wie dieses halslose Monster sich wohl ernährte? Der Kopf schien ja direkt am Körper festgewachsen zu sein.
+
+»Hallo Bel. Du kommst früh.« Aklah näherte sich seinem Artgenossen. Beide begannen, ihre zweifingerigen Hände einander entgegenzustrecken und rhythmisch zu öffnen und zu schließen. Es war offensichtlich ein Begrüßungsritual. 
+
+Bel stieg vom Wagen. »Ich hab’ heute nicht all zuviel mitgebracht. Es gibt Lieferschwierigkeiten mit Beeren. Na ja, was heißt Lieferschwierigkeiten? Es hatte einfach keiner Lust, welche zu sammeln. Ich hab’ nur etwas Fleisch und Nüsse dabei.« Auf dem Wagen lagen einige Kisten. Der Mann war etwas zurückgeblieben und hielt sich im Hintergrund. Er wusste nicht recht, wie er sich verhalten sollte, und außerdem wollte er dem Lasttier nicht zu nahekommen, vielleicht fraß es ja am liebsten Menschen. Bel hatte ihn jetzt doch im Schatten Aklahs entdeckt. 
+
+»Wen hast du denn da? Ein Kleinkopf, ganz allein?«
+
+»Er ist ein Neuankömmling. Komm doch her!«, rief er dem Mann zu. »Hast du dir nun eigentlich schon einen Namen ausgedacht?« 
+
+Der Mann überlegte kurz.
+
+»Du kannst mich Jom nennen.« Das war ihm einfach so eingefallen. Dieser Name schien den richtigen Klang zu haben.
+
+»Jom. Ein typischer Kleinkopfname. Also Bel, das hier ist mein Freund Jom.«
+
+Der Mann, der nun Jom hieß, war überrascht, als Freund vorgestellt zu werden. Aber er konnte sich Schlimmeres vorstellen, als in einer fremden Welt einen 2,50 Meter großen, muskulösen Freund zu haben, der zu seiner Verteidigung auch mal eine Armbrust zückte. 
+
+»Hallo Jom.« Bel machte wieder diese kurze Geste mit seiner Hand. 
+
+Jom antwortete nur mit »Hallo« und hob halbherzig und verunsichert die Hand und machte eine kurze Winkebewegung. Es war ihm peinlich, die Begrüßung des anderen zu imitieren. 
+
+»Komm, Jom«, sagte Aklah, »hilf uns, die Sachen in die Hütte zu bringen!« Nun musste er an dem hässlichen Lasttier vorbeigehen, das ihn aber glücklicherweise komplett ignorierte. Bel warf ihm eine Kiste auf die Schulter, unter deren Last Jom ächzend in die Knie ging. Von Bel kam bei diesem Anblick das warme, freundliche Lachen, das Jom schon am Abend zuvor von Aklah gehört hatte. Er schwankte hinter Aklah her, der seine Kiste ohne die geringste Mühe auf der Schulter balancierte. In der Hütte stellte Jom seine Last auf dem Tresen ab. 
+
+»Ich habe da eine Frage an dich, Jom: Hattest du etwas bei dir, als du hier ankamst? Eine Tasche vielleicht?«
+
+Jom musste nachdenken. Er hatte kaum eine Erinnerung an die Zeit kurz nach seiner Ankunft. Er konnte sich nur noch erinnern, dass er ohne Ende gerannt war. Aber wäre er ohne Tasche zur Arbeit gegangen? Er musste sie bei seiner Ankunft einfach fallen gelassen haben. 
+
+»Ja, ich hatte eine Tasche. Ich muss sie verloren haben.« 
+
+»Beschreibe mir, wo das war. Was hast du gesehen, als du ankamst?«
+
+Jom dachte nach und versuchte sich zu erinnern, auch wenn er es nur ungern tat. 
+
+»Ich war auf einem Hügel. Es wuchsen nur flache Büsche und Gras darauf. Am Fuße des Hügels floss ein Bach. An seinem Ufer standen riesige Bäume. Aber dann hab’ ich mich umgedreht und bin losgerannt. Vor mir war nur Wald.«
+
+»Ich weiß, wo das ist. Da erscheinen immer wieder Neuankömmlinge. Bin selbst da angekommen. Es ist nur wenige Minuten von hier entfernt. Wir sollten die Tasche suchen gehen. Einige von meinen Gästen von gestern sind möglicherweise schon unterwegs.«
+
+»Nur wenige Minuten entfernt? Ich bin stundenlang durch den Wald gelaufen.«
+
+»Dann wirst du wohl im Kreis gelaufen sein. Es war ja schließlich dunkel.«
+
+»Warum ist die Tasche so wichtig?«, fragte er.
+
+»Wenn du interessante Gegenstände aus deiner Welt mitgebracht hast, könnte das hier eine Menge Wert sein und deinen Start in diese Welt erleichtern. Hast du eine Waffe dabeihabt? Dafür würden dir die Kleinköpfe die Augen drücken vor Freude.«
+
+»Die Augen drücken?«
+
+»Das ist so eine Redewendung bei meinen Leuten. Ich hoffe, du verstehst, was ich meine. Alles ließ sich eben nicht übersetzen.«
+
+»Bei uns würde man wohl ›die Füße küssen‹ sagen.«
+
+»Die Füße küssen?« Aklah machte einen Schritt rückwärts, als befürchtete er, Jom würde ihm zeigen wollen, was er meinte.
+
+»Nein«, sagte Jom auf das ursprüngliche Thema zurückkommend, »eine Waffe hatte ich nicht dabei. In der Tasche war eine …« Er konnte sich wieder nicht an das Wort erinnern. Was er meinte, war eine Zeitung, aber sagen konnte er es nicht. 
+
+»Ich meine worin man lesen kann, gedruckt auf …« Er kam sich vor, wie ein kleines Kind. 
+
+Aklah, der angefangen hatte, Fleisch, das wie geräucherter Schinken aussah, aus den Kisten zu holen, wandte sich Jom zu.
+
+»Suche nicht nach den verlorenen Wörtern. Es hat keinen Sinn, sich damit verrückt zu machen. Wenn du etwas nicht weißt, versuche es zu umschreiben. Deine Leute werden dir die Wörter schon wieder beibringen. Sie haben sich für alles neue Begriffe ausgedacht, sodass man sie manchmal kaum noch versteht. Auch wieder so eine Eigenart von euch Kleinköpfen.« Aklah schien etwas einzufallen.
+
+»Hast du vielleicht die kleinen, weißen Stäbchen dabeigehabt, die man anzündet und deren Rauch man einatmet? Das ist hier einiges wert. Kleinköpfe sind völlig verrückt danach.«
+
+Jom hatte, bevor er zur Bushaltestelle ging, eine ganze Stange Zigaretten gekauft und in seine Tasche gepackt. Er hatte in letzter Zeit immer mehr geraucht und irgendwann war er es leid gewesen, immer wieder zur Tankstelle zu gehen. Deshalb war er dazu übergegangen, sich Zigaretten gleich stangenweise zu kaufen. 
+
+»Du meinst …«, wieder fehlte ihm das Wort. »Ja ich habe solche Stäbchen gehabt. Sogar eine beträchtliche Menge. 20 Schachteln.«
+
+»Dann lass uns sofort aufbrechen. Obwohl es unwahrscheinlich ist, könnten doch einige meiner Gäste von gestern schlau genug sein und sind schon auf der Suche. Komm mit!« Aklah ging nach draußen, Jom folgte ihm. 
+
+»Bel, du musst uns deinen Wagen leihen.« Ohne eine Antwort abzuwarten, sprang er auf den Sitz hinter dem Reittier.
+
+»Jom, komm spring auf. Bel, pass du auf die Hütte auf.« Jom war kaum auf den Wagen gesprungen, da trat Aklah das Lasttier in den Hintern, worauf sich dieses quiekend in Bewegung setzte. Aklah trat das Tier an verschiedene Stellen seines Hinterleibs, worauf es den Wagen wendete und weiter in Richtung Wald trabte. 
+
+Das Tier wurde anscheinend nur durch diese Tritte gelenkt. Es hatte nur eine Art Brustgurt, der es mit dem Wagen verband. Immer schneller wurde die Fahrt, der Wagen rumpelte den Weg entlang. Jom musste sich festklammern, um nicht heruntergeschleudert zu werden. Bel hatte keine Gelegenheit, noch etwas sagen zu können. Er blickte ihnen reglos hinterher.
+
+Mehrere Minuten waren sie über den Waldweg gefahren, als Aklah dem Tier mit seiner zweifingerigen Hand flach auf den Rücken schlug. Es blieb abrupt stehen. Jom wäre beinahe vom Wagen geschleudert worden. Er kam noch immer nicht mit der veränderten Schwerkraft klar. Aklah stieg vom Wagen, Jom folgte ihm. Aklah ging ohne Zögern in den Wald hinein. Sein massiger Körper schlug eine Schneise, durch die Jom mühelos folgen konnte.
+
+»Müssen wir das … Tier nicht festbinden?«
+
+»Das bleibt genau da stehen, wo es ist, es sei denn, ihm tritt einer in den Hintern.« Aklah ging zielstrebig weiter, brach Äste ab, die ihm im Weg waren. Jom war froh, jetzt nicht allein hier zu sein, denn der ›Wald‹ war immer noch fremdartig und unheimlich. 
+
+Plötzlich hörten die Bäume auf und sie traten auf eine Lichtung. Vor ihnen wölbte sich sanft der Hügel, den Jom beschrieben hatte. Aklah stürmte ihn hinauf, Jom hatte Mühe, mitzuhalten. Schließlich standen beide auf der Kuppe des Hügels. Jom schnaufte, Schweiß stand ihm auf der Stirn, und er ließ sich auf den Boden fallen, um auszuruhen. 
+
+»Ich bin körperliche Anstrengungen nicht gewohnt«, sagte er zu seiner Entschuldigung. 
+
+»Wie konntest du denn bei dir zu Hause leben, ohne zu arbeiten?«
+
+»Oh, ich habe gearbeitet. Ich war bei … Hm, ich habe den ganzen Tag vor dem …« Es war zum Verzweifeln. Was war bloß mit seinem Kopf passiert? 
+
+»Ich saß den ganzen Tag vor einem Ding und habe in Fenster gestarrt, um das Wetter vorherzusagen.« Er war Meteorologe und verbrachte die meiste Zeit vor dem Computer. Doch diese Umschreibung von Arbeit an einem Computer konnte wohl niemand verstehen. Aber eigentlich war sie sehr zutreffend.
+
+»Davon konntest du leben? Kleinköpfe sind die mit Abstand seltsamsten Wesen, von denen ich je gehört habe.« Aklah blickte sich um. Schließlich entdeckte er, wonach er gesucht hatte. Er hatte die Tasche gefunden und brachte sie zu Jom. Der nahm sie an sich und betrachtete das schon leicht zerschlissene Stück. Er besaß die Tasche schon viele Jahre. Ihre Vertrautheit löste in ihm leider keinerlei positive Gefühle aus. Diese Tasche war möglicherweise das Letzte, was ihm noch von seinem alten Leben geblieben war. Verzweiflung überkam ihn und er war kurz davor, in Tränen auszubrechen. Er saß immer noch auf dem Boden und presste die Tasche an sich. Er musste an seine Frau und seinen Sohn denken. Er war einfach verschwunden. Wie würde es ihnen wohl gehen? Die Ungewissheit musste für sie unerträglich sein. Aklah berührte ihn an der Schulter. 
+
+»Wir müssen sehen, dass wir wieder zum Wagen kommen. Sonst klaut uns den noch einer.« 
+
+Jom löste sich aus seiner Erstarrung. Er folgte Aklah zurück zum Wagen. 
+
+Wieder wendete Aklah das Tier mit gezielten Tritten und sie fuhren den Weg zurück, den sie gekommen waren. Der Mann hatte nun Zeit, sich seinen pferdeähnlichen Freund aus der Nähe zu betrachten. 
+
+Es war eigentlich erstaunlich, wie ähnlich sie sich im Grunde waren: zwei Arme, Beine, Augen. Eigentlich waren die Unterschiede viel zu gering, da sich beide Spezies doch vollkommen unabhängig voneinander auf verschiedenen Planeten entwickelt hatten. Wenn man das bedachte, glichen sie sich eigentlich wie ein Ei dem anderen. Warum war Aklah kein riesiger Siliziumkristall, oder eine Wolke aus Gas oder was auch immer sich auf einem beliebigen Planeten hätte entwickeln können? Und da war dann auch noch die Sache mit der Sprache. Von wem hatte er sie gelernt? Waren die Menschen hier vielleicht als Erste gewesen? Er musste mehr darüber erfahren. Die beiden ungleichen Zwillinge saßen nun wieder auf dem Wagen, der sich rumpelnd in Bewegung setzte.
+
+»Wie kommt es, dass du …« – wieder fehlte ihm ein Wort – »hm, meine Sprache sprichst?«
+
+»Deine Sprache? Bist du noch nicht darauf gekommen? Ich spreche deine Sprache nicht … und du sprichst sie auch nicht.«
+
+Er war verwirrt, doch dann verstand er. Er dachte eine Weile nach, dann sagte er: 
+
+»Jeder, der hier herkommt, bekommt die Sprache, die wir sprechen. Irgendwie wurde sie uns ins Gehirn gebrannt, die Alte wurde ausgelöscht. Aber alles wurde nicht ersetzt. Alles Persönliche oder nicht für alle hier Verständliche fehlt. Deswegen kannte ich meinen Namen nicht. Es ist unheimlich. Ich spreche eine fremde Sprache und merke es nicht einmal. Wer oder was kann so etwas machen? Was passiert hier mit uns? Warum passiert es?«
+
+»Die Frage nach dem Warum, wirst du dir hier wohl noch tausendmal stellen, doch Antworten gibt es nur wenige. Am besten ist es, du findest dich damit ab. Lebe dein Leben hier und vergiss die Fragen. Das Leben auf diesem Planeten hat unbestreitbare Vorteile, das wirst du schon noch merken.«
+
+»Ich soll mich damit abfinden? Ich werde gegen meinen Willen hierher versetzt, von meiner Familie getrennt, mein Gehirn wird umgekrempelt und ich soll mich damit abfinden? Niemals. Ich muss herausfinden, was hier gespielt wird.« Jom starrte grimmig vor sich hin.
+
+»Ich wäre auch erstaunt gewesen, wenn du anders reagiert hättest«, sagte Aklah grinsend. »Du bist ein typischer Kleinkopf. Für euch scheint alles eine persönliche Kränkung zu sein, und ihr müsst mit allen Mitteln dagegen ankämpfen. Wenn du so denkst, weiß ich schon einen Platz, an den du gehörst: die City. So nennen die Kleinköpfe ihre Stadt. Sie ist die größte Siedlung, von der ich gehört habe. Sie liegt direkt an der großen Kuppel. Dort beschäftigt man sich hauptsächlich damit, die ›Warums‹ zu beantworten. Aber glaube mir, in all den Jahren haben sie nicht allzu viel herausbekommen, oder sie haben es keinem erzählt. Ich werde dich hinbringen, wann immer du willst. Na ja, vielleicht nicht ›jederzeit‹. Die Fahrt dauert etliche Tage und bräuchte schon etwas Planung. Sag mir rechtzeitig Bescheid, ich muss dann erst wieder einen Wagen besorgen und jemanden finden, der auf meinen Laden aufpasst. Ich denke mal, der gute Bel wird mir da mal wieder helfen müssen.«
+
+Aklah gab dem Tier einen kräftigen Tritt. Es war ziemlich langsam geworden, der Tritt ließ es wieder schneller über den Waldweg traben. 
+
+»Ich hoffe, du bleibst noch ein paar Tage hier, oder sogar länger. Ich kann dir noch alles erzählen, was ich über das Leben hier weiß. Das kannst du mit dem vergleichen, was sie dir in der City erzählen, und deine eigenen Schlüsse ziehen.« Aklahs Tonfall ließ in Jom das Gefühl aufkommen, dass Aklah weder allzu viel von der City, noch von den dort lebenden Kleinköpfen hielt. 
+
+»Ich bleibe gern noch. Ich bin froh, hier jemanden wie dich gefunden zu haben. Ich benötige etwas Zeit, mich an all das hier zu gewöhnen. Ich weiß nicht, ob ich noch mehr neue Eindrücke verkrafte. Wer weiß, was mich noch alles erwartet.«
+
+»Ich freue mich. Du kannst bleiben, solange du willst. Ich könnte etwas Hilfe gebrauchen. Ich bin ganz allein in der Gaststätte. Es wäre aber schön, wenn du noch etwas anderes könntest, als nur aus dem Fenster zu sehen.« 
+
+Sie waren am Hof angekommen. Von Bel war keine Spur zu entdecken. Wie zuvor ließen sie das Zugtier und den Wagen einfach zurück und gingen in die Hütte. Bel saß an einem der Tische. Er hatte einen Becher vor sich stehen. 
+
+»Ich sehe, dass du dich schon selbst bedient hast.« Aklah setzte sich zu seinem Artgenossen, Jom folgte ihm. 
+
+»Zeig doch mal, was du in deiner Tasche hast«, sagte Aklah. Jom legte sie auf den Tisch und öffnete sie. Neben der Stange Zigaretten, hatte er ein iPad, einen Schlüsselbund, einige Unterlagen für seine Arbeit und eine Dose Cola dabei. Außerdem bildete diverser Kleinkram einen Bodensatz: Kleingeld, Kopfschmerztabletten, ein Feuerzeug, ein Ladekabel und eine Packung mit Tütensuppe. Es war ein ziemliches Chaos, was Jom sehr peinlich war. Seine pferdeköpfigen Tischgesellen schienen aber daran keinen Anstoß zu nehmen. Sie besahen sich das Innere seiner Tasche interessiert und machten dabei schwer deutbare Lautäußerungen. Vielleicht waren es Laute der Anerkennung oder Überraschung. 
+
+»Diese Schachtel enthält die weißen Stäbchen?«, fragte Aklah.
+
+»Ja, in der Schachtel sind 20 weitere Schachteln mit je 20 ... Stäbchen.«
+
+»Diese Stäbchen sind unter den Kleinköpfen eine der gefragtesten Tauschwaren. Damit kannst du ein gutes Geschäft machen.«
+
+Jom zog sein iPad aus der Tasche und schaltete es ein. Der bunte Startbildschirm erschien und Aklah und Bel machten weitere undeutbare Geräusche. Wenig überraschend hatte er kein Netz und er glaubte nicht, dass Aklahs Hütte WLAN hatte. Die letzten Nachrichten, die er bekommen hatte, wurden angezeigt, und er konnte sie nicht lesen.
+
+Wieder überkam ihn dieses seltsame Gefühl der Verwirrung. Die Schrift kam ihm so vertraut vor. Er sah die Buchstaben und Wörter, aber nichts ergab einen Sinn. Er konnte nicht einmal die einzelnen Buchstaben benennen. Es war zum Verrücktwerden. 
+
+»Dieses Ding da«, Bel zeigte auf die Cola-Dose, »was ist das?«
+
+»Das ist etwas zu trinken. Ein ziemlich beliebtes Getränk auf unserem Planeten.« 
+
+Jom nahm die rote Dose in die Hand. Die weißen Schriftzüge waren nicht zu entziffern.
+
+»Ja, ein ziemlich beliebtes Getränk, wahrscheinlich das beliebteste Getränk überhaupt, und ich weiß nicht einmal mehr, wie es heißt.« Nachdenklich legte er die Dose zurück und schloss die Tasche wieder. 
+
+»Du kannst die Tasche in dein Zimmer legen. Und es ist besser, wenn du niemandem von ihr erzählst.« Aklah stand auf. 
+
+»Ich werde die Vorräte verstauen und in der Küche alles für heute Abend vorbereiten. Die ersten Gäste werden nicht vor Sonnenuntergang kommen. Du kannst mir helfen, wenn du willst.«
+
+»Warte!«, rief Jom. Er kramte in der Tasche und brachte ein rotes Einwegfeuerzeug zum Vorschein.
+
+»Ich weiß nicht, ob es irgendeinen Wert für dich hat, aber ich möchte es dir schenken.«
+
+Aklah nahm das Geschenk mit seinen beiden fast schon tentaklig flexiblen Fingern entgegen. 
+
+»Danke. Allerdings muss ich doch fragen, was das ist.«
+
+»Das ist ein …« ›Feuerzeug‹ stand offensichtlich nicht auf der Liste der verfügbaren Wörter. Seltsam.
+
+»Ein Feuermacher. Warte, ich zeig’ es dir.«
+
+Er nahm es Aklah aus den Fingern und entzündete die Flamme, die größer war, als erwartet. Luftdruck? Schwerkraft? Sauerstoffgehalt? Er hatte keine Ahnung, was der Grund dafür war, aber auch die Öllampchen im Schankraum hatten ja heller und größer geleuchtet, als er das kannte.
+
+»Das ist gut!«, sagte Aklah anerkennend. »Ich hab bis jetzt immer Feuerbeerenpulver benutzt. Dazu braucht man aber Zündsteine und Geduld. Ich lasse für gewöhnlich ein paar Lampen brennen.« Er deutete auf den Tresen, auf dem tatsächlich ein flackernd brennendes Öllämpchen stand. Aklah nahm das Feuerzeug und umschlang es mit einem seiner beiden Finger und benutzte den anderen, um es zu zünden, und schon mit dem ersten Versuch erwachte die Flamme zum Leben.
+
+»Du wirst dir darüber womöglich nicht im Klaren sein, aber alle Artefakte von den Heimatplaneten sind unglaublich wertvoll. Ich wäre nicht beleidigt, wenn du es zurücknähmst.« Er hielt ihm das Feuerzeug hin.
+
+»Auf keinen Fall! Dank deiner Gastfreundschaft lebe ich noch. Dieses Geschenk ist ein Zeichen meiner Dankbarkeit.«
+
+»Dann werde ich es behalten.«
+
+Nun stand Bel auf. 
+
+»Ich werde mich wieder auf den Weg machen. Vielleicht komme ich ja heute Abend mal vorbei, bis dann.« Bel und Aklah machten wieder diese seltsamen Handbewegungen und Bel verließ die Gaststätte. 
+
+Jom und Aklah trugen die Kisten, die immer noch auf dem Tresen standen, in die Küche, die sich gegenüber von Joms Zimmer befand. Danach versteckte Jom seine Tasche unter seinem Bett. 
+
+
+# Kapitel 5
+
+
+Der Raum ähnelte nur entfernt dem, was Jom unter einer Küche verstand. Es gab nur eine offene Kochstelle, über der ein großer Topf an einem Dreibein hing. Ein Loch in der Decke diente offensichtlich als Rauchabzug. Es gab einen großen, hölzernen Tisch. Die Arbeitsfläche war glatt und glänzend, als sei sie eingeölt.
+
+ An den Wänden hingen Regale, auf denen Schachteln, Dosen und einige Flaschen aus grünem Glas standen. Einige Fässer lagerten gegenüber dem Tisch, daneben standen zwei Eimer aus Holz. Auf dem Tisch lagen ein paar Küchenwerkzeuge, aber bis auf ein riesiges, silbriges Messer waren sie alle aus Holz. Jom kam sich vor, als wäre er in der Küche einer mittelalterlichen Burg. Das Einzige, was nicht in dieses Bild passte, war - abgesehen von dem 2.50 m großen, zweibeinigen Pferd - die Tatsache, dass alles ausgesprochen sauber und ordentlich war.
+
+»Stell die Kisten in die Kammer. Lass das Fleisch aber hier. Das muss zerteilt werden. Heute Abend werden wir es braten.« Jom verstaute die Kisten in der Kammer. Aklah hatte einen großen Fleischbrocken auf die Arbeitsfläche gelegt und begonnen, ihn in kleine, dünne Scheiben zu schneiden. Das Fleisch war dunkel und erinnerte an rohen Schinken oder Thunfisch. 
+
+»Das Fleisch stammt von einem Renner. So nennen hier alle das Tier. Es zeichnet sich durch seine enorme Schnelligkeit ebenso aus, wie durch seine unglaubliche Dämlichkeit. Es zu jagen ist in etwa so leicht wie zu scheißen. Hast du eigentlich keinen Hunger? Du musst doch schon ewig nichts mehr gegessen haben.«
+
+Jom fühlte in sich hinein und musste feststellen, dass er sogar sehr hungrig war. Er war bisher einfach zu abgelenkt gewesen, um sich dessen bewusst zu werden.
+
+Aklah wartete seine Antwort nicht ab, sondern ging zu der Kammer und kam mit einem hölzernen Teller zurück. Das Essen bestand aus einem dünnen, brotähnlichen Fladen, sowie ein paar langen, grünen Stäbchen, die von einer Pflanze zu stammen schienen. Jom besah sich das Essen misstrauisch. 
+
+»Du kannst es ruhig essen.« Aklah schien über sein Misstrauen amüsiert zu sein. »Alle Pflanzen und Tiere auf dieser Welt sind essbar. Bisher hat noch niemand etwas Ungenießbares oder gar Giftiges gefunden. Es wird dir schmecken.« 
+
+»Wie kann es sein? Ich hätte geglaubt, dass ich hier gar nichts essen könnte. Lebewesen, die sich unabhängig voneinander auf verschiedenen Planeten entwickelt haben, können doch unmöglich einander so ähnlich sein.«
+
+Aklah sah ihn wieder mit diesem Blick an, den Jom insgeheim den typisch-Kleinkopf-Blick getauft hatte. 
+
+»Das ist wieder so ein Rätsel. Ich hab mir nie Gedanken darüber gemacht. Sei doch froh, dass du hier nicht verhungern musst. Nahrung zu finden ist hier wirklich einfach. Man kann alles essen und das meiste davon schmeckt auch noch. Probier mal das Brot.«
+
+Jom konnte sich schließlich überwinden. Sein Hunger war nun - nach dem er auf ihn aufmerksam geworden war - fast unerträglich. Er biss in den weichen Fladen. Er war köstlich. Er hatte keinen ausgeprägten Eigengeschmack, aber er war trotzdem köstlich. Gierig biss er noch mal ab. Dann versuchte er ein grünes Stäbchen. Es war eindeutig ein Pflanzenstängel. Es war leicht säuerlich, aber geschmacklich konnte er es nichts ihm bekannten zuordnen. Aber auch die Stäbchen schmeckten ausgezeichnet. Es war ihm nicht klar, ob es nur an seinem Hunger lag, aber er hatte seinen Teller innerhalb kürzester Zeit geleert. Aklah hatte ihm einen Becher hingestellt, der einen fruchtigen, süßen Saft enthielt. 
+
+»Was kriegt Bel eigentlich für die Waren, die du ihm geliefert hast? Funktioniert hier alles über Tauschhandel?«
+
+»Bel und seine Familie bekommen von mir die zubereiteten Speisen und Getränke. Ich mache aus den Rauschbeeren, die er mir liefert ein Getränk, dass er dann hier abholen kann. Waren werden hier vorwiegend getauscht, aber es wird auch mit Money bezahlt.«
+
+»Money? Was ist das?«
+
+»Das müsstest du eigentlich am besten wissen. Soweit ich weiß, ist das eine Erfindung von euch Kleinköpfen. Es sind die bunt bedruckten Blätter und diese Metallmünzen. Am Anfang war es nur ein Spaß. Dieses Money, das die Kleinköpfe mitgebracht haben, war hier ja eigentlich zu nichts nütze. Aber bald schon begannen einige damit Waren oder Gefälligkeiten zu bezahlen. Was als Witz anfing, stellte sich schon bald als durchaus als praktikabel heraus. Die bunten Blätter und Metallscheiben waren bald schon ziemlich begehrt. Niemand konnte sie selbst herstellen. Es war einfach damit zu bezahlen, man musste keine Waren mitschleppen oder anderen Hilfe versprechen, so wie es bei mir zuhause üblich war. Heute Abend wirst du sehen, dass die meisten Gäste mit Money bezahlen. Das ist eine gute Erfindung von euch Kleinköpfen.«
+
+Jom musste lachen.
+
+»Glaub mir, darüber kann man geteilter Meinung sein. Woher kommt das Wort: Money?«, fragte Jom. »Ich kenne es nicht. Bei uns heißt es ...« Natürlich wusste er es nicht und damit beantwortete sich seine Frage auch schon teilweise.
+
+»Es gibt kein Wort für Money in dieser Sprache«, bestätigte Aklah«, deine Leute haben es sich ausgedacht, oder es kommt aus einer eurer Sprachen. Sie haben sich für alle verloren gegangenen Wörter Neue ausgedacht. Ich habe hier auch Money. Warte!« Er ging hinter den Tresen und kam mit einer kleinen blechernen Schatulle zurück. Er öffnete sie und zeigte Jom den Inhalt. Jom erkannte einige der Scheine. Hätten ihm nicht die passenden Wörter gefehlt, hätte sie als amerikanische Dollar oder als Euros benennen können. 
+
+»Diese Scheine haben alle einen unterschiedlichen Wert, sie kommen sogar aus völlig unterschiedlichen Ländern. Wie könnt ihr denn damit bezahlen?«
+
+»Ich sagte zwar, dass das Ganze sich als nützlich erwiesen hat, aber allzu ernst wird das nun doch nicht genommen. Man muss meist feilschen. Für meine Getränke nehme ich eine Münze. Es sei denn, sie ist zu klein oder gefällt mir nicht. Dann verlange ich eben mehrere Münzen oder eben eine andere. Man wird sich da schon einig. Mit den Scheinen ist es genauso. Der hier ... «, er nahm einen Schein aus der Schatulle und Jom erkannte ihn als 100 Euroschein, »ist viel Wert, denn er ist selten.«
+
+Jom holte sein Portemonnaie aus seiner Jackentasche. Es enthielt eine Reihe von Scheinen und ein paar Münzen.
+
+»Ich habe auch etwas Money mitgebracht. Wenn ich gewusst hätte, dass ich einen längeren Ausflug mache, hätte ich mehr mitgenommen. Was kann ich jetzt damit anfangen?«
+
+»Ich wüsste da schon was. Wir können in das Dorf gehen und etwas zum Anziehen für dich machen lassen. Im Dorf ist ein Kleinkopf, der macht Kleidung. Du kannst ja nicht ewig in diesen Sachen herumlaufen. Wenn ich hier fertig bin, haben wir den ganzen Nachmittag Zeit. Wenn du mir hilfst, geht es noch schneller. Könntest du das Fleisch weiter schneiden? Ich gehe dann noch etwas Holz hacken.«
+
+Jom nahm das Messer vom Tisch. Es hatte einen viel zu großen Griff und lag schlecht in der Hand. Es war eindeutig für eine wesentlich größere Hand gemacht. Er begann das dunkle Fleisch zu schneiden. Das Messer war sehr scharf und zerteilte das Fleisch ohne Mühe. Nach wenigen Minuten hatte er alles in flache Scheiben geschnitten. Wieder wurde ihm das Absurde seiner Situation bewusst. Hier stand er, Lichtjahre von seiner Heimat entfernt und schnitt Fleisch eines Tieres in Scheiben, von dem er nicht einmal wusste, wie es aussah. Von draußen kam das Geräusch von zersplitterndem Holz, geschlagen von einem auf zwei Beinen gehenden Pferd. Das Seltsamste war aber, dass Jom sich schon an diese neue Umgebung zu gewöhnen begann. Die Anpassungsfähigkeit des Menschen ist einer seiner erstaunlichsten Eigenschaften. Er blickte auf seine Armbanduhr. Wenn er ihrer Anzeige trauen konnte, war es jetzt entweder Mittag oder Mitternacht auf der Erde, wahrscheinlich eher Mittag. Er müsste jetzt bei der Arbeit sein, und mit seinen Kollegen in die Kantine gehen. Dann hätte er seine Frau angerufen und mit ihr geplaudert. Heute würde er das nicht tun können. Was sie jetzt wohl machte? Würde sie jetzt nach ihm suchen? Würde sie Krankenhäuser abklappern, bei der Polizei sitzen und Fragen für ein Protokoll beantworten, das doch nicht helfen konnte, ihn zu finden. »Meine arme Frau«, dachte er. »Sie muss verzweifelt sein. Aber ich bin es auch. Ich weiß nicht einmal mehr ihren Namen.« 
+
+
+# Kapitel 6
+
+
+Nachdem alle Arbeit getan war, gingen Aklah und Jom zu Fuß zum Dorf. Es lag etwa 20 Minuten von der Hütte entfernt und bestand aus etwa 50 Häusern. Auch wenn Jom sich eigentlich darauf vorbereitet hatte, überraschte es ihn doch, was er sah: Kein Haus schien dem anderen zu gleichen. Es gab fensterlose Hütten aus übereinandergestapelten Baumstämmen. Außerdem gab es schmale und hohe Häuser, deren Wände aus miteinander verwobenen Brettern gemacht zu sein schienen. Nur wenige Häuser waren rechteckig, es gab runde Formen und dreieckige Gebäude. Es gab sogar ein mit Lehm überdachtes Erdloch, aus dem eine gedrungene Gestalt herausgekrabbelt kam. Es hatte riesige Schaufelhände und winzig kleine Ohren und Augen. 
+
+Die Bewohner waren so bunt gemischt wie die Baustile. Vor einem schmalen, aber enorm hohem Haus stand eine Gruppe unglaublich dünner, riesengroßer Gestalten. Gekleidet waren sie in lose, seidenartige Tücher, die bei jedem Luftzug zu flattern begannen. Sie sahen aus, als könne sie ein etwas kräftigerer Wind davonwehen. Die ganze Gruppe wiegte sich im Gleichklang hin und her, als lauschten sie einer Musik, die nur für sie bestimmt war. Es gab Pferdemenschen, die die meisten anderen überragten und auch einige der lilaköpfigen Wesen, die er schon bei seiner Ankunft im Gasthaus gesehen hatte und gedrungene Zweibeiner mit fast schon quaderförmigen Körperbau, nur eins sah Jom immer noch nicht: Menschen wie er. 
+
+Sie gingen nun über den zentralen Platz. Seltsame Wesen schienen Waren feilzubieten, die in Säcken zu ihren Füßen standen, es gab Bretterbuden, die wohl Marktstände darstellten, andere Waren wurden direkt von abgestellten Wagen angeboten. Aklah wurde von fast jedem, dem sie begegneten, begrüßt, Jom ignorierten die meisten, einige machten auch tatsächlich einen Bogen um Jom und Aklah. Sie durchquerten den Platz und erreichten über einen Seitenweg schließlich ein am Rande des Dorfes allein stehendes Haus. Es bestand wie alle anderen aus Holz, aber im Gegensatz zu den windschiefen, zu kleinen, zu flachen oder einfach irgendwie falschen Häusern, die Jom beim Durchqueren des Dorfes gesehen hatte, wirkte dieses wohltuend vertraut. Genau so hätte Jom auch eine Hütte gebaut, wenn er das tun müsste. Eine Tür in der Mitte links und rechts davon Fenster, und es war so angenehm vertraut rechteckig. Das Dach lief spitz zu und war mit dicken Lagen von Pflanzenstielen bedeckt. Hier wohnte ein Mensch, da war sich Jom ganz sicher. 
+
+»Hier wohnt der Schneider. Komm, lass uns rein gehen!« Mit diesen Worten öffnete Aklah die Hütte, ohne vorher anzuklopfen. Drinnen war es viel heller, als Jom erwartet hatte. Ein großer Teil der Rückwand der Hütte fehlte und gab den Blick auf einen weitläufigen Garten frei. Drinnen hingen einige wenige Kleidungsstücke an einer Art von Garderobenständer. Ein Schrank, ein Tisch mit 4 Stühlen und ein Bett füllten den Rest der Hütte. Draußen im Garten saß ein Mann an einem Tisch unter einem Baum und nähte. Er hatte sie bemerkt und gab ihnen Zeichen näher zu kommen. 
+
+Jom und Aklah durchquerten den Garten und kamen unter dem Baum an.
+
+»Hallo Aklah, hallo Fremder. Setzt euch.« Er deutete auf eine hölzerne Bank, die auf der anderen Seite des Tisches stand. 
+
+Der Mann war etwa 40 Jahre alt, hatte lange, braune Haare und dunkle Augen und einen kurz gehaltenen Vollbart. Eine goldene Kette lag um seinen Hals und Jom konnte das Funkeln eines Ohrrings erkennen, als der Mann seinen Kopf drehte.
+
+»Seb, das hier ist Jom. Er ist, wie du ja wohl unschwer an seiner Kleidung sehen kannst, ein Neuankömmling. Er braucht eine paar Sachen zum Anziehen und vielleicht einen Sack, in den er sie packen kann.«
+
+»Hallo, Jom. Gerade erst angekommen? Ein ganz schöner Schock, was? Ich bin schon über 30 Jahre hier. Ich kann mich kaum noch an mein Leben auf der Erde erinnern. Wo kommst du her? Ich würde sagen Europäer oder Nordamerikaner. Ich selbst stamme aus Spanien.«
+
+Jom verstand nur jedes zweite Wort, von dem, was der freundlich lächelnde Mann vor ihm sagte und sah entsprechend verwirrt aus. Der Schneider erkannte das Problem und sagte:
+
+»Ich glaube, du brauchst einen kleinen Sprachkurs. Die Erde, das ist unser Heimatplanet, und es gibt fünf große Erdteile. Kommst du vielleicht aus dem Land der unbegrenzten Möglichkeiten? Das heißt Amerika. Oder aus der alten Welt, Europa?«
+
+»Ja dort komme ich her ... Europa. Das Land so ziemlich in der Mitte.« Jom war irgendwie unangenehm berührt über die aufgesetzte Fröhlichkeit des Schneiders. Da saß er nun dem ersten Menschen gegenüber, den er auf dieser Welt gesehen hatte und konnte ihn auf Anhieb nicht leiden. 
+
+»Wie lange bist du schon hier?«, fragte der Mann lächelnd und ließ damit das Thema ihrer irdischen Abstammung fallen. 
+
+»Zwei Tage. Ich war gerade auf dem Weg zur Arbeit und plötzlich befand ich mich hier.«
+
+»Was hast du mitgebracht?« Der Kerl wechselte schon wieder das Thema. Er schien nicht ernsthaft daran interessiert zu sein, was Jom zu sagen hatte, obwohl es diesmal jedoch den Anschein hatte, als ob er die ungeteilte Aufmerksamkeit des Mannes hatte. Obwohl sein Mund unbeirrt weiter lächelte, wurden seine Augen ernst und stechend, was Jom vorsichtig werden ließ. Er hatte nicht die Absicht preiszugeben, was sich in der Tasche, die er in Aklahs Hütte gelassen hatte, befand. 
+
+»Ich hatte nur ein paar Sachen für die Arbeit dabei und Schlüssel und ein paar von diesen weißen Stäbchen, die man rauchen kann.« Bei seinen letzten Worten verließ auch das Lächeln das Gesicht des Schneiders und für einen kurzen Augenblick war – wie Jom vermutete – das wahre Gesicht des Mannes zu sehen. Und was Jom sah, gefiel ihm nicht sonderlich. Sein Stimmungswechsel schien ihm nun selbst aufgefallen zu sein und schon hatte der Mann wieder die Maske des fröhlichen Plauderers aufgelegt und sagte fast beiläufig:
+
+»Zigaretten, das ist doch schon mal was. Für eine Packung könnte ich dir eine komplette Ausstattung für den Start hier machen. Ich habe auch schon ein paar Sachen fertig, die dir passen werden. Die kannst du gleich mitnehmen. Wie viele Zigaretten hast du mitgebracht?«
+
+Jom antwortete ohne zu zögern: »Nur eine angebrochene Schachtel, aber sie ist noch fast voll.« Aklah saß regungslos neben Jom und schien nicht die Absicht zu haben in das Gespräch einzugreifen. 
+
+»Das ist besser als nichts. Wir werden uns schon einig werden. Komm, ich zeige dir ein paar Sachen, die dir passen müssten. Ich habe hier zwar selten Menschen als Kunden, aber ich habe immer was in Reserve. Den Rest werde ich dir schneidern.« 
+
+Seb hatte einige Hosen und Hemden da und sogar Unterwäsche und Socken. Hemd und Hose fühlten sich an, als wären sie aus Leinen gemacht, die restlichen Sachen schienen aus Baumwolle gemacht zu sein. Auf die Frage woher der Stoff kam, antwortete Seb nur:»Aus einer Fabrik in der Stadt. Die Socken kommen auch daher.« Jom musste feststellen, dass er mit Aklah weniger Probleme mit der Kommunikation hatte, als mit seinem Artgenossen. 
+
+»Woher hast du alle diese Begriffe? Fabrik, Europäer, Erde?« »Ich habe viele Jahre in der Stadt gelebt. Dort leben fast nur Menschen. Um miteinander reden zu können, war diese Sprache, die uns hier mitgegeben wurde einfach nicht genug. Wo kam wer her, was hat er auf der Erde gemacht, und so weiter. Die Regierung hat begonnen, die alten Begriffe aus Zeitungen oder Büchern zu rekonstruieren. Es wurden auch das Lesen und Schreiben neu entwickelt, bald schon gab es Schulen, Wörterbücher und im Laufe der Jahre hat sich die Menschensprache zu einem eigenständigen Dialekt entwickelt.« 
+
+Lesen und schreiben? Jom wurde plötzlich bewusst, dass er jetzt ein Analphabet war. Ein weiteres Mal überkam ihn dieses überwältigende Gefühl der Unwirklichkeit. Was an diesem Ort passierte, war so unwahrscheinlich, so unmöglich, dass sich sowohl sein Verstand, als auch sein Gefühl weigerten, irgendetwas davon zu akzeptieren. Worin lag der Sinn seines Aufenthaltes an diesem Ort? War er gestorben, oder lag er im Sterben und all das war ein Produkt seiner Phantasie, ein letztes Aufflackern seines Verstandes kurz vor seinem endgültigem Erlöschen? Wenn das so war, wie passte dann dieser Mensch in diese letzte Reise seines Verstandes? Wenn er sich all das nur einbildete und alles an diesem Ort war exotisch, unbegreiflich und auch schön, was hatte diese schmierige, gierige Gestalt in dieser eingebildeten Welt zu suchen? Vielleicht passte es aber auch. Alles, was er sah und erlebte, war ungewöhnlich und unbegreiflich, nur das Vertraute, auf das er wider Erwarten doch noch gestoßen war, war banal und zutiefst menschlich. Vielleicht sollte er etwas daraus lernen. Wenn das so war, brauchte er wohl noch mehr Zeit, um zu begreifen und zu bewerten, was hier geschah. 
+
+Jom merkte, dass er den Ausführungen Sebs nicht mehr folgte. Es interessiert ihn kaum noch, was er zu sagen hatte. Aber glücklicherweise näherte sich ihr Besuch dem Ende an. Seb nahm noch Joms Maße ab und versprach ihm, in den nächsten Tagen etwas Passendes zu schneidern. Jom war froh, als sie wieder vor der Hütte standen.
+
+ -7-
+
+Am Abend half Jom bei den Vorbereitungen in der Gaststube. Er hatte die Sachen angezogen, die er bei Seb gekauft hatte. Das in erdigen Brauntönen gehaltene Hemd und die schwarze Hose hatten eine überraschende Wirkung auf ihn. Er fühlte sich zwar immer noch als Außenstehender, aber die Kleidung vermittelte ihm immerhin das Gefühl weniger aufzufallen und verringerte etwas die nervöse Spannung, die er empfand. Er passte jetzt besser in die Kulisse dieses absurden Theaterstückes, in das er geraten war.
+
+Aklah hatte eine Art Rost über der offenen Feuerstelle installiert, nachdem er dort ein Feuer aus dicken Holzscheiten entzündet hatte. Jom hatte die Aufgabe erhalten mit einem hölzernen Schaumlöffel Beeren aus einem Kübel zu schöpfen. Sie lagen schon mehrere Tage in Wasser und waren dort vergoren. Die Beeren wurden einfach weggeworfen. Aklah gab ihm einen Becher, mit dem er etwas von der rot gefärbten Flüssigkeit schöpfte, die er schlicht Saft nannte. Sie schmeckte herb, prickelte auf der Zunge und enthielt eindeutig Alkohol. 
+
+Zu dem Fleisch würde es die kleinen Brotfladen geben, die Jom schon am Morgen gegessen hatte. Sie wurden auf einem großen, flachen Stein ausgebacken, der in der Glut der Feuerstelle aufgeheizt wurde. Sie arbeiteten bis zum späten Nachmittag, die beiden Sonnen begannen schon, hinter den Baumwipfeln zu verschwinden. Jom füllte gerade die Öllampen auf den Tischen in der Gaststube, als die ersten Gäste kamen. 
+
+Es waren drei wachsbleiche Gestalten mit riesigen Mondgesichtern. Sie waren in hellgraue Umhänge gehüllt, die den gesamten Körper verdeckten. Einer sprach Jom an:
+
+»Du hier kommen, kleiner Kopf. Gut Aklah. Wenn innere Freude, Saft bringen.« Jom glaubte zu verstehen, dass die drei blassen Wesen Saft haben wollten. Aklah kam gerade aus der Küche und sah die neuen Kunden. »Freude, drei Wesen«, begrüßte er sie. Jom ging zu Aklah, der hinter dem Tresen geblieben war. 
+
+»Sie sagten, wenn ich innere Freude verspüren sollte, könne ich ihnen Saft bringen. So habe ich das zumindest verstanden. Warum sprechen die so seltsam?« Aklah wischte mit einem Lappen über den Tresen und antwortete:
+
+»Weniger Ähnlichkeit. Ihre ursprüngliche Sprache muss sich von unserer so sehr unterscheiden, dass sie sich nicht ohne Verluste ersetzen ließ. Die drei kommen oft. Sie haben mir erzählt, dass sie auch untereinander Probleme mit der Verständigung haben. Ihre Sprache bestand wohl nicht nur aus der Aneinanderreihung von Wörtern, es gab wohl noch zusätzliche Geräusche unterschiedlicher Höhe, die beim Sprechen mit erzeugt wurden. Alles zusammen ergab erst den eigentlichen Sinn. Sie haben die Fähigkeit verloren diese Geräusche zu erzeugen und haben so Schwierigkeiten sich zu verständigen.« Aklah stellte drei Becher auf den Tresen. 
+
+»Hier fülle die mit Saft und bringe sie an den Tisch.«
+
+Jom brachte den drei Fremden die Getränke. Sie bedankten sich mit kaum verständlichen Äußerungen. Sie boten Jom einige Münzen an, die aus den unergründlichen Tiefen ihrer Kleidung hervorzauberten. Jom sah zum Tresen hinüber Aklah fragend an. Dieser nickte und Jom nahm für jedes Getränk eine kleine Münze. Er brachte das Geld zu Aklah. 
+
+»Eine kleine dunkle Münze für einen Becher Saft ist schon in Ordnung. Wenn Händler kommen, dann wird es schon schwieriger. Die feilschen um jedes Stück Scheiße. Ah, sieh an, wenn man an ein Gewitter denkt, fängt es schon an zu regnen. Dort kommen schon zwei Händler.« Jom sah zur Tür und sah zwei nackte Wesen den Raum betreten. Sie waren noch größer als Aklah, sahen aber bedeutend dünner, fast zerbrechlich aus. Sie hatten dunkle, ledrige Haut. Sie sahen aus, wie mumifizierte Skelette. Beide trugen mehrere Beutel an den Schultern und gingen grußlos auf einen leeren Tisch zu. Nachdem sie sich gesetzt hatten, ging Jom zu ihnen, um ihre Bestellung aufzunehmen. Die beiden ignorierten ihn aber völlig. Ohne ihn anzusehen, sagte einer schließlich:
+
+»Essen, süßes Wasser für alle.« Jom war einigermaßen überrascht so unfreundlich behandelt zu werden. 
+
+»Die sind aber nicht sehr höflich«, beschwerte er sich bei Aklah, nachdem er zu ihm zurückgekommen war.
+
+»Ihr seid einander noch nicht vorgestellt worden. Warte ich mach das« Er winkte den beiden Mumien.
+
+»Das hier ist Jom. Jom das sind Eloa und Aaa.« Die beiden begrüßten Jom überschwänglich. Sie hoben ihre Arme und überhäuften Jom mit freundlichen Bemerkungen, als wären alle drei die besten Freunde. Jom musste ein weiters Mal feststellen, dass er noch viel zu lernen hatte. Aklah ging mit Jom in die Küche und zeigte ihm das Fass mit dem ›süßen Wasser‹. Dann legte er zwei der vorgebratenen Fleischstücke auf den Grill und ging wieder zurück in die Gaststube. Jom füllte zwei Becher und brachte sie den beiden Händlern. 
+
+Jom kehrte zu Aklah an den Tresen zurück. 
+
+»Warum sind bis jetzt eigentlich nur Männer hierher gekommen? Gibt es denn keine Frauen bei euch nicht-Kleinköpfen?«
+
+Aklah starrte ihn sekundenlang wortlos an. Soweit Jom die Mimik der Pferdeköpfe zu deuten gelernt hatte, zeigte Aklahs Gesicht völliges Unverständnis. Schließlich sagte er: »Wie kommst du auf die Idee, hier wären nur Männer? Was glaubst du denn, was ich bin? Ich kann Kinder kriegen, also bin ich doch wohl eine Frau. Die beiden da sind auch Frauen. Bei den Händlern weiß ich es nicht, ob sie Männer oder Frauen sind. Aber warum fragst du denn danach? Willst du dich vielleicht fortpflanzen? Ich glaube nicht, dass du hier einen passenden Partner finden wirst. Außerdem gibt es hier sehr selten Geburten. Was also sollte deine Frage?«
+
+Aklah war eine Frau. Jom ließ sich seine Überraschung nicht anmerken. Was hatte er sich bei dieser Frage gedacht? Jom hatte alles, was er an diesem Ort gesehen hatte an typisch menschlichen – oder besser männlichen – Maßstäben gemessen. Danach konnte ein 2.50m großes, muskelbepacktes Wesen natürlich nur ein Mann sein. In einer mittelalterlich anmutenden Gaststätte hatte er nichts anderes als Männer erwartet, und die Wesen, die er gesehen hatte, entsprachen einfach nicht seiner Vorstellung von Weiblichkeit. 
+
+»Vergiss es einfach«, sagte er zu Aklah, »wir Kleinköpfe sind einfach seltsame Wesen. Wir können uns selbst meist nicht verstehen, wie sollest es dir dann gelingen?«
+
+»Seltsam seit ihr. Das ist wohl war.« -8-
+
+Jom war nun schon 10 Tage bei Aklah. Er arbeitete jeden Abend in der Gaststube. Er hatte schnell gelernt, die Gäste zu bedienen, Fleisch zu braten und die Vor- und Nacharbeiten zu besorgen. Er musste erstaunt feststellen, dass ihm diese Arbeit Freude bereitete. Er hatte in den vergangenen Tagen die seltsamsten Wesen gesehen, einige davon hätte er sich niemals auch nur vorstellen können. Er hatte sogar Bekanntschaften gemacht: Bel kam fast jeden Abend, auch der Schneider Seb kam vorbei um sich nach ihm zu erkundigen. Jom hatte einige Beobachtungen gemacht: Eine war, dass es in der Gastwirtschaft fast immer friedlich zuging. Nur selten musste Aklah seine seltsame Armbrust unter dem Tresen hervorholen und wenn, dann war das eigentlich nur ein symbolischer Akt. Die erhitzten Gemüter ließen sich fast immer mit ein paar mahnenden Worten wieder beruhigen. Es gab zwar Rassen, die sich nicht sonderlich mochten, aber meistens gingen sie sich einfach aus dem Weg und begnügten sich mit ein paar Wortgefechten quer über die Tische hinweg. Auch Jom stieß gelegentlich auf Ablehnung. Oft begegnete man ihm mit Misstrauen, doch die legte sich meist, wenn klar wurde, dass Aklah sein Freund war. Kleinköpfe waren - und das war eine weitere Beobachtung - im Allgemeinen nicht besonders beliebt, und außer Seb hatte Jom auf diesem Planeten noch keinen anderen Menschen gesehen. Dass Tausende in der Stadt leben sollten, konnte er kaum glauben, aber er wusste, dass der Tag kommen würde, an dem er sich aufmachen würde und diese Stadt besuchen. 
+
+Was dieser Ablehnung zu Grunde lag, fand Jom nicht heraus. Wenn er fragte, bekam er nie eine zufrieden stellende Antwort oder wurde nur ausgelacht. Auch von Aklah bekam er keine Antworten. Jom hatte das Gefühl, dass Aklah nichts Schlechtes über die Menschen sagen wollte. Andererseits konnte Jom ja den einzigen Menschen, den er hier kennengelernt hatte, ja auch nicht besonders leiden. Wenn Jom es sich recht überlegte, gab es genügend menschliche Eigenschaften, die nicht dazu geeignet waren, den Sympathiewert der Menschheit zu steigern. 
+
+Jom lernte jeden Tag Neues über den Planeten, auf dem er jetzt lebte. Die Tage und Nächte waren etwa so lang, wie auf der Erde. Es gab keine gefährlichen Tiere oder Pflanzen. Alle Tiere und Pflanzen waren essbar, wenn man denn einen Weg fand, sie zuzubereiten. Das Klima war sehr ausgeglichen, Jahreszeiten gab es kaum, es gab gelegentlich heftige Stürme und Niederschläge. 
+
+Dann eines Tages geschah etwas Rätselhaftes:
+
+Jom war gerade damit beschäftigt, Fleisch für die allabendliche Bewirtung zu schneiden. Er benutzte das riesige Messer von Aklah. Es stammte vom Heimatplaneten von Joms Gastgeber. Aklah hatte es von einem seiner Artgenossen eingetauscht, der damit auf diese Welt gekommen war. Nur mühsam konnte Jom das Fleisch zerteilen. Schließlich rutschte er beim Schneiden ab und das silberne Metall schnitt tief in sein Fleisch. Blut schoss aus der Wunde und besudelte die ganze Arbeitsfläche. Jom schrie vor Überraschung und Schmerz auf, Aklah war fast augenblicklich bei ihm. Der Schnitt war nicht tief, aber er musste eine Ader getroffen haben, denn die Menge an Blut, die aus seiner Hand quoll, war enorm. 
+
+Aklah brachte ihm ein weißes Tuch, zerriss es in feine Streifen und legte Jom einen Verband an. Obwohl sich der Verband nach ein paar Minuten rot färbte, schien er zu halten. 
+
+»Ich werde dir wohl ein paar Tage nicht helfen können«, sagte Jom. 
+
+»Du willst dich wohl vor der Arbeit drücken. Das kannst du vergessen, morgen Früh ist alles wieder in Ordnung«, antwortete Aklah scherzhaft, zumindest hielt es Jom für einen Scherz, allerdings wurde er am nächsten Morgen eines Besseren belehrt. 
+
+Als Jom nach einer langen Nacht - von den ungewöhnlich vielen Gästen blieben die letzten bis zum frühen Morgengrauen - erwachte, war seine Wunde verheilt. Er hatte bis er eingeschlafen war, Schmerzen gehabt, doch als er erwachte, spürte er nichts mehr. Neugierig geworden wickelte er den Verband ab und unter etwas Schorf kam rosige, unversehrte Haut zum Vorschein. Jom sprang aus dem Bett und suchte Aklah. Als er ihn gefunden hatte, verlangte er sogleich eine Erklärung für die wundersame Heilung seiner Hand.
+
+»Wunden verheilen hier sehr schnell. Ein weiteres Geschenk derjenigen, die uns hierher gebracht haben. Sie haben auch dafür gesorgt, dass es keine Krankheiten gibt und dass unsere Körper vor Beschädigungen geschützt werden. Die Knochen und vor allem der Schädel sind fast unzerbrechlich. Geschieht dir ein Unglück, wird dein Körper in einen todesähnlichen Schlaf versetzt. Nachdem sich der Körper erholt hat, erwacht man wieder.«
+
+Jom hatte gebannt zugehört. 
+
+»Bedeutet das, dass niemand sterben kann? Kann man hier etwa nicht gewaltsam zu Tode kommen?«
+
+Aklah rückte etwas von Jom ab. Seine Stimme klang beunruhigt: »Es stimmt also, was man sich über euch Kleinköpfe erzählt. Ich erzähle dir, dass man hier ein Leben in körperlicher Unversehrtheit verbringen kann und du fragst mich, ob man es dennoch gewaltsam beenden kann. Warum fiel dir diese Frage nur als erstes ein? Hast du die Absicht jemanden zu töten? Oder befürchtest du selbst getötet zu werden? Hattest du in den letzten Tagen das Gefühl bedroht worden zu sein? Hast du Angst, ich könnte dich töten oder willst du vielleicht mich töten? Ich hatte den Eindruck, du seist ein netter Kerl, aber anscheinend haben die Leute Recht, dass ihr Kleinköpfe gefährlich seid und man den Umgang mit euch besser meidet.« 
+
+Jom war völlig überrascht von der heftigen Reaktion seines Gastgebers. Er suchte nach einer Rechtfertigung für seine Frage. Zu seinem eigenen Erstaunen fiel ihm aber keine ein. Warum hatte er das gefragt? Jede andere Frage hätte ihm einfallen können, warum also hatte er nach einem gewaltsamen Tod gefragt? Es war ihm als Erstes in den Sinn gekommen. 
+
+»Ich will niemanden töten, ich fühle mich hier auch nicht bedroht, ich wollte nur wissen ...«, stammelte er.
+
+»Es ist schon gut.« Aklah schien sich wieder beruhigt zu haben.
+
+»Du hast mir bis jetzt keinen gefährlichen Eindruck gemacht. Ich lasse mich nicht vom Klatsch der Leute beeinflussen. Ich habe keinen Grund, dir zu misstrauen. Aber ein bisschen erschrocken war ich schon über deine Frage. Aber da du sie schon gestellt hast, will ich sie auch beantworten: Man kann hier sterben. Nichts ist unsterblich, sogar Sterne können sterben. Aber derjenige, der uns hierher geholt hat, möchte anscheinend, dass wir hier möglichst lange unversehrt bleiben. Es gibt keine körperlichen Krankheiten, die Alterung ist verlangsamt und es ist wirklich schwer, sich zu verletzen oder gar zu sterben. Ich weiß nicht einmal, ob man überhaupt altert. Ich müsste schon längst tot sein, aber ich sehe noch genauso aus, wie bei meiner Ankunft.«
+
+Diese Information musste Jom erst einmal verdauen. Was Aklah beschrieben hatte, war nichts anderes als Unsterblichkeit, wenn auch nur eine quasi-Unsterblichkeit. War er vielleicht doch gestorben und befand sich in einer Art Leben nach dem Tod? Hatte er an der Bushaltestelle einen Herzinfarkt erlitten und war an diesem Ort wieder zum Leben erwacht? Gegen diese Theorie sprach aber eines: Keiner der Wesen, denen er begegnet war, hatte davon berichtet im Sterben gelegen zu haben, als er auf diesem Planeten ankam. Die Meisten gingen gerade einer mehr oder weniger banalen Tätigkeit nach, als sie fortgerissen wurden. Das berühmte »Ich geh noch mal kurz Zigaretten holen.« Jom wusste nun, wo einige dieser nie Heimgekehrten geblieben waren.
+
+Da Joms Gesprächspartner bis auf Seb sämtlich nichtmenschlicher Herkunft waren, hatte Jom oft Mühe zu verstehen, was sie in ihrem früheren Leben gemacht hatten, aber keiner berichtete von einem Kampf mit dem Tod, von langer, schwerer Krankheit, oder einem tödlichen Unfall. Sie alle waren gezielt und unauffällig mitten aus ihrem Leben gerissen worden und wenn auch auf verschiedene Arten manipuliert, so doch als sie selbst transferiert worden. Und die Entführungen waren gezielt. Ebenso wenig, wie die Leute vor ihrem Tod standen, als sie verschwanden, waren sie dabei im Mittelpunkt der Aufmerksamkeit. Keiner hatte gerade eine Rede gehalten oder saß in trauter Runde bei seiner Familie. Jom erinnerte sich an die letzten Sekunden, die er auf der Erde verbracht hatte: Er war auf dem Weg zur Bushaltestelle gewesen, allein auf der verregneten Straße. Andere berichteten Ähnliches. Nein, ihre Entführungen waren kein Zufall gewesen. Jemand hatte auf den geeigneten Zeitpunkt gewartet. 
+
+
+# Kapitel 7
+
+
+Am Abend half Jom bei den Vorbereitungen in der Gaststube. Er hatte die Sachen angezogen, die er bei Seb gekauft hatte. Das in erdigen Brauntönen gehaltene Hemd und die schwarze Hose hatten eine überraschende Wirkung auf ihn. Er fühlte sich zwar immer noch als Außenstehender, aber die Kleidung vermittelte ihm immerhin das Gefühl weniger aufzufallen und verringerte etwas die nervöse Spannung, die er empfand. Er passte jetzt besser in die Kulisse dieses absurden Theaterstückes, in das er geraten war.
+
+Aklah hatte eine Art Rost über der offenen Feuerstelle installiert, nachdem er dort ein Feuer aus dicken Holzscheiten entzündet hatte. Jom hatte die Aufgabe erhalten mit einem hölzernen Schaumlöffel Beeren aus einem Kübel zu schöpfen. Sie lagen schon mehrere Tage in Wasser und waren dort vergoren. Die Beeren wurden einfach weggeworfen. Aklah gab ihm einen Becher, mit dem er etwas von der rot gefärbten Flüssigkeit schöpfte, die er schlicht Saft nannte. Sie schmeckte herb, prickelte auf der Zunge und enthielt eindeutig Alkohol. 
+
+Zu dem Fleisch würde es die kleinen Brotfladen geben, die Jom schon am Morgen gegessen hatte. Sie wurden auf einem großen, flachen Stein ausgebacken, der in der Glut der Feuerstelle aufgeheizt wurde. Sie arbeiteten bis zum späten Nachmittag, die beiden Sonnen begannen schon, hinter den Baumwipfeln zu verschwinden. Jom füllte gerade die Öllampen auf den Tischen in der Gaststube, als die ersten Gäste kamen. 
+
+Es waren drei wachsbleiche Gestalten mit riesigen Mondgesichtern. Sie waren in hellgraue Umhänge gehüllt, die den gesamten Körper verdeckten. Einer sprach Jom an:
+
+»Du hier kommen, kleiner Kopf. Gut Aklah. Wenn innere Freude, Saft bringen.« Jom glaubte zu verstehen, dass die drei blassen Wesen Saft haben wollten. Aklah kam gerade aus der Küche und sah die neuen Kunden. »Freude, drei Wesen«, begrüßte er sie. Jom ging zu Aklah, der hinter dem Tresen geblieben war. 
+
+»Sie sagten, wenn ich innere Freude verspüren sollte, könne ich ihnen Saft bringen. So habe ich das zumindest verstanden. Warum sprechen die so seltsam?« Aklah wischte mit einem Lappen über den Tresen und antwortete:
+
+»Weniger Ähnlichkeit. Ihre ursprüngliche Sprache muss sich von unserer so sehr unterscheiden, dass sie sich nicht ohne Verluste ersetzen ließ. Die drei kommen oft. Sie haben mir erzählt, dass sie auch untereinander Probleme mit der Verständigung haben. Ihre Sprache bestand wohl nicht nur aus der Aneinanderreihung von Wörtern, es gab wohl noch zusätzliche Geräusche unterschiedlicher Höhe, die beim Sprechen mit erzeugt wurden. Alles zusammen ergab erst den eigentlichen Sinn. Sie haben die Fähigkeit verloren diese Geräusche zu erzeugen und haben so Schwierigkeiten sich zu verständigen.« Aklah stellte drei Becher auf den Tresen. 
+
+»Hier fülle die mit Saft und bringe sie an den Tisch.«
+
+Jom brachte den drei Fremden die Getränke. Sie bedankten sich mit kaum verständlichen Äußerungen. Sie boten Jom einige Münzen an, die aus den unergründlichen Tiefen ihrer Kleidung hervorzauberten. Jom sah zum Tresen hinüber Aklah fragend an. Dieser nickte und Jom nahm für jedes Getränk eine kleine Münze. Er brachte das Geld zu Aklah. 
+
+»Eine kleine dunkle Münze für einen Becher Saft ist schon in Ordnung. Wenn Händler kommen, dann wird es schon schwieriger. Die feilschen um jedes Stück Scheiße. Ah, sieh an, wenn man an ein Gewitter denkt, fängt es schon an zu regnen. Dort kommen schon zwei Händler.« Jom sah zur Tür und sah zwei nackte Wesen den Raum betreten. Sie waren noch größer als Aklah, sahen aber bedeutend dünner, fast zerbrechlich aus. Sie hatten dunkle, ledrige Haut. Sie sahen aus, wie mumifizierte Skelette. Beide trugen mehrere Beutel an den Schultern und gingen grußlos auf einen leeren Tisch zu. Nachdem sie sich gesetzt hatten, ging Jom zu ihnen, um ihre Bestellung aufzunehmen. Die beiden ignorierten ihn aber völlig. Ohne ihn anzusehen, sagte einer schließlich:
+
+»Essen, süßes Wasser für alle.« Jom war einigermaßen überrascht so unfreundlich behandelt zu werden. 
+
+»Die sind aber nicht sehr höflich«, beschwerte er sich bei Aklah, nachdem er zu ihm zurückgekommen war.
+
+»Ihr seid einander noch nicht vorgestellt worden. Warte ich mach das« Er winkte den beiden Mumien.
+
+»Das hier ist Jom. Jom das sind Eloa und Aaa.« Die beiden begrüßten Jom überschwänglich. Sie hoben ihre Arme und überhäuften Jom mit freundlichen Bemerkungen, als wären alle drei die besten Freunde. Jom musste ein weiters Mal feststellen, dass er noch viel zu lernen hatte. Aklah ging mit Jom in die Küche und zeigte ihm das Fass mit dem ›süßen Wasser‹. Dann legte er zwei der vorgebratenen Fleischstücke auf den Grill und ging wieder zurück in die Gaststube. Jom füllte zwei Becher und brachte sie den beiden Händlern. 
+
+Jom kehrte zu Aklah an den Tresen zurück. 
+
+»Warum sind bis jetzt eigentlich nur Männer hierher gekommen? Gibt es denn keine Frauen bei euch nicht-Kleinköpfen?«
+
+Aklah starrte ihn sekundenlang wortlos an. Soweit Jom die Mimik der Pferdeköpfe zu deuten gelernt hatte, zeigte Aklahs Gesicht völliges Unverständnis. Schließlich sagte er: »Wie kommst du auf die Idee, hier wären nur Männer? Was glaubst du denn, was ich bin? Ich kann Kinder kriegen, also bin ich doch wohl eine Frau. Die beiden da sind auch Frauen. Bei den Händlern weiß ich es nicht, ob sie Männer oder Frauen sind. Aber warum fragst du denn danach? Willst du dich vielleicht fortpflanzen? Ich glaube nicht, dass du hier einen passenden Partner finden wirst. Außerdem gibt es hier sehr selten Geburten. Was also sollte deine Frage?«
+
+Aklah war eine Frau. Jom ließ sich seine Überraschung nicht anmerken. Was hatte er sich bei dieser Frage gedacht? Jom hatte alles, was er an diesem Ort gesehen hatte an typisch menschlichen – oder besser männlichen – Maßstäben gemessen. Danach konnte ein 2.50m großes, muskelbepacktes Wesen natürlich nur ein Mann sein. In einer mittelalterlich anmutenden Gaststätte hatte er nichts anderes als Männer erwartet, und die Wesen, die er gesehen hatte, entsprachen einfach nicht seiner Vorstellung von Weiblichkeit. 
+
+»Vergiss es einfach«, sagte er zu Aklah, »wir Kleinköpfe sind einfach seltsame Wesen. Wir können uns selbst meist nicht verstehen, wie sollest es dir dann gelingen?«
+
+»Seltsam seit ihr. Das ist wohl war.« 
+
+
+# Kapitel 8
+
+
+Jom war nun schon 10 Tage bei Aklah. Er arbeitete jeden Abend in der Gaststube. Er hatte schnell gelernt, die Gäste zu bedienen, Fleisch zu braten und die Vor- und Nacharbeiten zu besorgen. Er musste erstaunt feststellen, dass ihm diese Arbeit Freude bereitete. Er hatte in den vergangenen Tagen die seltsamsten Wesen gesehen, einige davon hätte er sich niemals auch nur vorstellen können. Er hatte sogar Bekanntschaften gemacht: Bel kam fast jeden Abend, auch der Schneider Seb kam vorbei um sich nach ihm zu erkundigen. Jom hatte einige Beobachtungen gemacht: Eine war, dass es in der Gastwirtschaft fast immer friedlich zuging. Nur selten musste Aklah seine seltsame Armbrust unter dem Tresen hervorholen und wenn, dann war das eigentlich nur ein symbolischer Akt. Die erhitzten Gemüter ließen sich fast immer mit ein paar mahnenden Worten wieder beruhigen. Es gab zwar Rassen, die sich nicht sonderlich mochten, aber meistens gingen sie sich einfach aus dem Weg und begnügten sich mit ein paar Wortgefechten quer über die Tische hinweg. Auch Jom stieß gelegentlich auf Ablehnung. Oft begegnete man ihm mit Misstrauen, doch die legte sich meist, wenn klar wurde, dass Aklah sein Freund war. Kleinköpfe waren - und das war eine weitere Beobachtung - im Allgemeinen nicht besonders beliebt, und außer Seb hatte Jom auf diesem Planeten noch keinen anderen Menschen gesehen. Dass Tausende in der Stadt leben sollten, konnte er kaum glauben, aber er wusste, dass der Tag kommen würde, an dem er sich aufmachen würde und diese Stadt besuchen. 
+
+Was dieser Ablehnung zu Grunde lag, fand Jom nicht heraus. Wenn er fragte, bekam er nie eine zufrieden stellende Antwort oder wurde nur ausgelacht. Auch von Aklah bekam er keine Antworten. Jom hatte das Gefühl, dass Aklah nichts Schlechtes über die Menschen sagen wollte. Andererseits konnte Jom ja den einzigen Menschen, den er hier kennengelernt hatte, ja auch nicht besonders leiden. Wenn Jom es sich recht überlegte, gab es genügend menschliche Eigenschaften, die nicht dazu geeignet waren, den Sympathiewert der Menschheit zu steigern. 
+
+Jom lernte jeden Tag Neues über den Planeten, auf dem er jetzt lebte. Die Tage und Nächte waren etwa so lang, wie auf der Erde. Es gab keine gefährlichen Tiere oder Pflanzen. Alle Tiere und Pflanzen waren essbar, wenn man denn einen Weg fand, sie zuzubereiten. Das Klima war sehr ausgeglichen, Jahreszeiten gab es kaum, es gab gelegentlich heftige Stürme und Niederschläge. 
+
+Dann eines Tages geschah etwas Rätselhaftes:
+
+Jom war gerade damit beschäftigt, Fleisch für die allabendliche Bewirtung zu schneiden. Er benutzte das riesige Messer von Aklah. Es stammte vom Heimatplaneten von Joms Gastgeber. Aklah hatte es von einem seiner Artgenossen eingetauscht, der damit auf diese Welt gekommen war. Nur mühsam konnte Jom das Fleisch zerteilen. Schließlich rutschte er beim Schneiden ab und das silberne Metall schnitt tief in sein Fleisch. Blut schoss aus der Wunde und besudelte die ganze Arbeitsfläche. Jom schrie vor Überraschung und Schmerz auf, Aklah war fast augenblicklich bei ihm. Der Schnitt war nicht tief, aber er musste eine Ader getroffen haben, denn die Menge an Blut, die aus seiner Hand quoll, war enorm. 
+
+Aklah brachte ihm ein weißes Tuch, zerriss es in feine Streifen und legte Jom einen Verband an. Obwohl sich der Verband nach ein paar Minuten rot färbte, schien er zu halten. 
+
+»Ich werde dir wohl ein paar Tage nicht helfen können«, sagte Jom. 
+
+»Du willst dich wohl vor der Arbeit drücken. Das kannst du vergessen, morgen Früh ist alles wieder in Ordnung«, antwortete Aklah scherzhaft, zumindest hielt es Jom für einen Scherz, allerdings wurde er am nächsten Morgen eines Besseren belehrt. 
+
+Als Jom nach einer langen Nacht - von den ungewöhnlich vielen Gästen blieben die letzten bis zum frühen Morgengrauen - erwachte, war seine Wunde verheilt. Er hatte bis er eingeschlafen war, Schmerzen gehabt, doch als er erwachte, spürte er nichts mehr. Neugierig geworden wickelte er den Verband ab und unter etwas Schorf kam rosige, unversehrte Haut zum Vorschein. Jom sprang aus dem Bett und suchte Aklah. Als er ihn gefunden hatte, verlangte er sogleich eine Erklärung für die wundersame Heilung seiner Hand.
+
+»Wunden verheilen hier sehr schnell. Ein weiteres Geschenk derjenigen, die uns hierher gebracht haben. Sie haben auch dafür gesorgt, dass es keine Krankheiten gibt und dass unsere Körper vor Beschädigungen geschützt werden. Die Knochen und vor allem der Schädel sind fast unzerbrechlich. Geschieht dir ein Unglück, wird dein Körper in einen todesähnlichen Schlaf versetzt. Nachdem sich der Körper erholt hat, erwacht man wieder.«
+
+
+Jom hatte gebannt zugehört.
+
+»Bedeutet das, dass niemand sterben kann? Kann man hier etwa nicht gewaltsam zu Tode kommen?«
+
+Aklah rückte etwas von Jom ab. Nicht viel, aber genug, dass es ihm auffiel. Ihre Stimme klang beunruhigt
+
+»Es stimmt also, was man sich über euch Kleinköpfe erzählt. Ich erzähle dir, dass man hier ein Leben in körperlicher Unversehrtheit verbringen kann, und du fragst mich, ob man es dennoch gewaltsam beenden kann.«
+
+Sie brach ab, als hätte sie sich selbst zugehört.
+
+»Warum fiel dir diese Frage nur als erstes ein?«, fuhr sie fort. »Hast du die Absicht, jemanden zu töten? Oder befürchtest du selbst getötet zu werden? Hattest du in den letzten Tagen das Gefühl, bedroht worden zu sein?« 
+
+ Ihr Blick blieb an ihm hängen. »Hast du Angst, ich könnte dich töten? Oder willst du vielleicht mich töten?« 
+
+ Jom war völlig überrascht von der Heftigkeit der Reaktion seines Gastgebers. Er suchte nach einer Rechtfertigung für seine Frage. Zu seinem eigenen Erstaunen fiel ihm aber keine ein. Warum hatte er das gefragt? Jede andere Frage hätte ihm einfallen können. 
+
+ »Ich will niemanden töten«, sagte er schließlich. »Ich fühle mich hier auch nicht bedroht. Ich wollte nur wissen …« Er wusste nicht, wie der Satz hätte enden sollen.
+
+ Aklah schwieg. Der Abstand zwischen ihnen blieb. 
+
+ Dann sagte sie leiser: »Es ist schon gut.«
+
+ Sie sah ihn nun wieder direkt an.
+
+ »Du hast mir bis jetzt keinen gefährlichen Eindruck gemacht. Ich lasse mich nicht vom Klatsch der Leute beeinflussen.« 
+
+ Sie zögerte. »Aber deine Frage hat mich erschreckt.« Nach einem Moment fügte sie hinzu: »Vielleicht, weil ich dich für einen netten Kerl halte.« 
+
+Sie lehnte sich nun wieder leicht nach vorne. »Aber da du die Frage gestellt hast, will ich sie auch beantworten: Man kann hier sterben. Nichts ist unsterblich, sogar Sterne können sterben. Aber derjenige, der uns hierher geholt hat, möchte anscheinend, dass wir hier möglichst lange unversehrt bleiben. Es gibt keine körperlichen Krankheiten, die Alterung ist verlangsamt und es ist wirklich schwer, sich zu verletzen oder gar zu sterben. Ich weiß nicht einmal, ob man überhaupt altert. Ich müsste schon längst tot sein, aber ich sehe noch genauso aus wie bei meiner Ankunft.«
+
+
+Diese Information musste Jom erst einmal verdauen. Was Aklah beschrieben hatte, war nichts anderes als Unsterblichkeit, wenn auch nur eine quasi-Unsterblichkeit. War er vielleicht doch gestorben und befand sich in einer Art Leben nach dem Tod? Hatte er an der Bushaltestelle einen Herzinfarkt erlitten und war an diesem Ort wieder zum Leben erwacht? Gegen diese Theorie sprach aber eines: Keiner der Wesen, denen er begegnet war, hatte davon berichtet im Sterben gelegen zu haben, als er auf diesem Planeten ankam. Die Meisten gingen gerade einer mehr oder weniger banalen Tätigkeit nach, als sie fortgerissen wurden. Das berühmte »Ich geh noch mal kurz Zigaretten holen.« Jom wusste nun, wo einige dieser nie Heimgekehrten geblieben waren.
 
 ---
 
+Da Joms Gesprächspartner bis auf Seb sämtlich nichtmenschlicher Herkunft waren, hatte Jom oft Mühe zu verstehen, was sie in ihrem früheren Leben gemacht hatten, aber keiner berichtete von einem Kampf mit dem Tod, von langer, schwerer Krankheit, oder einem tödlichen Unfall. Sie alle waren gezielt und unauffällig mitten aus ihrem Leben gerissen worden und wenn auch auf verschiedene Arten manipuliert, so doch als sie selbst transferiert worden. Und die Entführungen waren gezielt. Ebenso wenig, wie die Leute vor ihrem Tod standen, als sie verschwanden, waren sie dabei im Mittelpunkt der Aufmerksamkeit. Keiner hatte gerade eine Rede gehalten oder saß in trauter Runde bei seiner Familie. Jom erinnerte sich an die letzten Sekunden, die er auf der Erde verbracht hatte: Er war auf dem Weg zur Bushaltestelle gewesen, allein auf der verregneten Straße. Andere berichteten Ähnliches. Nein, ihre Entführungen waren kein Zufall gewesen. Jemand hatte auf den geeigneten Zeitpunkt gewartet. 
 
 
-Zu Hause angekommen, schloss ich die Tür hinter mir, lehnte mich dagegen, zog den Mantel aus und ließ ihn fallen.
-
-Ich sah auf die Uhr. Es war erst 11:30 Uhr. Was sollte ich jetzt mit dem Tag anfangen? An Schlaf war nicht zu denken – noch immer pulsierte Adrenalin durch meinen Körper. Am liebsten hätte ich ja Nele angerufen, aber was hätte ich ihr erzählen sollen? *Hallo Nele. Heute habe ich ein Monster aus einem Paralleluniversum getötet*?
-
-Also gammelte ich herum: YouTube, Instagram, Threads. Immerhin las ich für eine Stunde das Skript der verpassten Vorlesung, das schon online stand.
+# Kapitel 9
 
 
+Jom saß auf der Bank, die vor der Hütte stand. Aklah saß hier oft, wenn alle Vorbereitungen des Tages erledigt waren, und wartete auf die ersten Gäste.
+
+Doch jetzt war es Nacht, oder eher die Zeit zwischen Nacht und Tag. Der Himmel im ›Osten‹ hatte schon begonnen das Schwarz der Nacht zu vertreiben. An diesem Morgen begann es mit einem sanften Grau mit einem Stich ins Rosafarbene. Jeder Morgen schien anders zu beginnen. Der Grund dafür waren die beiden Sonnen. Je nachdem, in welcher Reihenfolge sie aufgingen, färbte sich der Morgenhimmel anders. An diesem Morgen würde die kleine blaue Sonne etwa zur gleichen Zeit, wie die große Orangefarbene aufgehen. Dafür sprach jedenfalls der graue Grundton. Ging die Blaue zuerst auf, erstrahlte der Morgenhimmel binnen Minuten in einem fast schmerzhaft klaren blau, war es die Organgefarbene, gab es ein Morgenrot, wie man es von der Erde kannte. 
+
+Interessanter waren die Mischformen. Diese Sonnenaufgänge waren mit nichts auf der Erde zu vergleichen. Jom fiel es nach wie vor schwer zu akzeptieren, dass er sich auf einem fremden Planeten befand, von einem Gott oder einem gottähnlichen Wesen verschleppt. 
+
+Jom hörte das Rumpeln der Eingangstür. Kurz darauf stand Aklah neben Jom.
+
+»Was machst du denn hier so früh? Willst du etwa das Wetter vorhersagen?« Jom lachte. 
+
+»Nein. Obwohl das ziemlich einfach ist: Es wird ein sonniger Tag mit angenehmen Temperaturen. So wie jeder Tag zuvor. Ich genieße nur den Sonnenaufgang.« Aklah sah hinüber an den graublauen Himmel, schien dort aber nichts zu finden, dass man genießen könnte. Sie wandte sich wieder Jom zu. 
+
+»Wir könnten jagen gehen. Es ist genau die richtige Zeit. Warte!« Sie verschwand im Haus und kehrte nach einiger Zeit mit zwei Knüppeln zurück. Einen davon drückte sie Jom in die Hand. Jom betrachtete das Mordinstrument zweifelnd. Bräunliche Flecken ›verzierten‹ das obere Ende.
+
+»Ich war noch nie Jagen, schon gar nicht mit einem Knüppel.«
+
+Aklah lachte laut auf, und sah Jom an, doch nach kurzer Zeit hörte sie auf zu lachen. 
+
+»Du meinst das ernst, oder?« Jom nickte und Aklah erkannte das als Zustimmung. 
+
+»Nur Alte und Kranke, Schwangere oder Kinder bekommen ihr Essen einfach so von anderen. Wie hast du denn für deine Familie gesorgt?«
+
+Jom seufzte. »Bei uns funktionierte das eben etwas anders. Ich bezahlte andere dafür mein Essen herzustellen, mit dem Geld. Du weißt doch: diese bunten Scheine und Münzen.«
+
+Aklah sah ihn nachdenklich an. »Bei euch scheint sich alles um dieses Geld zu drehen.«
+
+Jom lachte laut auf. »Du machst dir keine Vorstellung, wie richtig du damit liegst.«
+
+Aklah warf ihren Knüppel hoch in die Luft, wo er sich um sich selbst drehte und fing ihn geschickt wieder auf. 
+
+»Komm! Lass uns Renner jagen!« Sie lief auf die große Lichtung hinaus, Jom folgte ihr. 
+
+Jom hatte etwas Mühe seine muskulöse, 2.50 Meter große Freundin einzuholen. Doch schließlich trabte er neben ihr her.
+
+»Renner«, begann Aklah zu erklären, »haben zwei Eigenschaften: Sie sind schmackhaft und sie sind dämlich. Obwohl ich glaube, sie können nichts dafür, dass sie so einfach zu jagen sind. Sie reagieren auf Bewegungen, können aber ganz offensichtlich keine Entfernungen abschätzen. Mach einfach nach, was ich mache. Dann wirst du verstehen.« 
+
+ Einhundert Meter vor ihnen erschien eine Herde von etwas schäferhundgroßen Meerschweinchen. So sahen sie zumindest für Jom aus mit ihrem plumpen Körper und der stumpfen Nase an einem halslosen Kopf. 
+
+Aklah blieb unvermittelt stehen. Die Renner hatten die heranstürmenden Jäger bemerkt und erstarrten. 
+
+Aklah ging nun langsam auf die Herde zu. Die Tiere zögerten, bis ihr Fluchttrieb zu stark wurde. So schnell sie ihre kurzen Beine trugen, rannten sie davon, Aklah und Jom folgten ihnen. Ihr Abstand zu der Herde hatte sich deutlich verringert. Aklah blieb unvermittelt stehen, sodass Jom beinahe in sie hineingelaufen wäre. Überraschenderweise blieb auch die Rennerherde stehen, als sie bemerkten, dass ihre Verfolger nun einfach dastanden. Erneut ging Aklah auf die Herde zu und das Spiel begann erneut. 
+
+Nach drei Verfolgungen standen sie direkt vor den verwirrt wirkenden Tieren. 
+
+»Bei drei«, raunte Aklah in Richtung von Jom. 
+
+
+# Kapitel 10
+
+
+Nach der Jagd war Aklah – mit einem Korb bewaffnet – zurück auf die Lichtung gegangen um dort die saftigen Stängel zu sammeln, die Teil von Joms erster Mahlzeit auf diesem Planeten gewesen waren. Sie sollten als Beilage zum Rennerfleisch dienen. Nachdem sich Jom von Aklah nochmals hatte bestätigen lassen, dass es wirklich keinerlei giftige Tiere oder Pflanzen gab, hatte sich auch Jom auf den Weg gemacht. 
+
+Er hatte schon nach ein paar Tagen feststellen müssen, das die kulinarische Vielfalt in Aklahs Taverne doch sehr zu wüschen übrig ließ. Wenn Bel nicht gerade Nüsse oder Früchte brachte, gab es meist Brot und Fleisch mit grünen Stängeln. Vielleicht konnte er ja etwas finden, das etwas Abwechslung in den Speiseplan brachte. 
+
+So ging er am Rand der Lichtung entlang, knabberte an Stängeln, kostete Blüten und Blätter. Doch fand er voresrst nichts wirklich Schmackhaftes. Doch so schnell wollte er nicht aufgeben. Vor ihm erschien eine Gruppe von niedrigen blumenartigen Planzen. Er riss einen Stängel heraus und kostete. Sie hatten einen aromatischen Geruch und nachdem er abgebissen hatte spürte eine angenehme Schärfe auf der Zunge. Das Ganze schmeckte entfernt nach Schnittlauch. Das war doch schon mal was. Jetzt würde es schon ein paar Schnittlauchröllchen über dem Rennerfleisch geben. Er sammelte eine Hand voll der Stängel und legte sie in seinen Korb. Er wollte schon weiter gehen, hielt dann jedoch innne. Vielleicht sollte er sich mal die Wurzeln ansehen ... und tatsächlich konnte er die Pflanzen relativ leicht aus der weichen Erde ausgraben. Zum Vorschein kamen dicke, runde Zwiebeln. 
+
+Er befreite eine von der anhaftenden Erde und entfernte die Schale, dann biss er hinein. Und tatsächlich flutete beißende Schärfe seinen Mund, die auch seine Augen tränen ließ. Heute würde es gebratenen Zwiebelringe zum Rennerfleisch geben, oder er kochte gar ein Gulasch!
+
+Er sammelte so viele Zwiebeln, wie in den Korb passten. Dann setzte er seine Suche fort. Er fand noch ein aromatisches Kraut, das zwar nach nichts schmeckte, was er kannte, aber es würde als zusätzliche Würze gut passen. 
+
+ *
+
+Zurück im Wirtshaus fragte er Aklah, ob er in der Küche etwas experimentieren könne. Es war eigentlich noch zu früh, um mit dem Kochen für den Abend zu beginnen, aber Aklah hatte keine Einwände, auch wenn sie etwas ratlos wirkte.
+
+Nachdem er das Feuer angefacht hatte, begann er damit in Streifen geschnittenen Rennerspeck auszulassen. Das einzige Öl, das er bislang gesehen hatte, war das Lampenöl, aber es roch ranzig und so er versuchte es erstmal mit dem Speck.
+
+Es funktionierte wie erhofft und schon erfüllte der würzige Duft von gebratenem Speck die Küche. Jom schälte einige Zwiebeln und schnitt sie in dünne Scheiben. Sie bestanden nicht aus einzelnen Schalen wie irdische Zwiebeln, aber sie verströmten denselben, scharfen Geruch. Er warf sie in das ausgelassene Fett. Binnen weniger Minuten karamellisierten sie und nahmen eine appetitliche braune Farbe an. Der Geruch ließ Jom das Wasser im Munde zusammenlaufen. 
+
+Er schnitt das Rennerfleisch nicht wie sonst in dünne Scheiben, sondern in kleine Würfel. Er briet es zusammen mit den Zwiebeln an, dann löschte er es mit etwas Wasser und schmorte es. Er hängte den Kessel höher auf, um die Hitze zu reduzieren und ließ sein Gulasch leise vor sich hinblubbern. Dann fügte er noch etwas Salz hinzu, eines der wenigen Gewürze, das er in Aklahs Küche gefunden hatte.
+
+Nach fast 2 Stunden wagte er es, sein Gulasch zu kosten.
+
+Das Fleisch war wunderbar zart, die ›Zwiebeln‹ waren mild und würzig, die Soße war sämig. 
+
+Er fügte noch etwas von den Gewürzen hinzu, die er gefunden hatte und kostete erneut. Es schmeckte wie das Gulasch, das er von zuhause kannte und doch ganz anders. 
+
+Er rief nach Aklah, die in der Gaststube einen Stuhl reparierte. Sie kam, ohne dass er ein zweites Mal rufen musste. 
+
+»Hast du dich wieder geschnitten?«, sagte sie grinsend. 
+
+»Nein. Ich habe etwas gekocht. Koste es und sag mir, wie es dir schmeckt.«
+
+Ohne zu zögern ging sie hinüber zum Kessel und nahm den langen Rührlöffel, der im Gulasch stand und schöpfte einige Fleischbrocken auf den Löffel. Sie pustete einige Male auf das dampfende Fleisch, bis sie schließlich einen Bissen wagte. Sie kaute und schwieg.
+
+Sie nahm einen weiteren Löffel und schwieg weiter.
+
+»Was ist? Schmeckt es dir nicht?«
+
+Nun drehte sich Aklah um und Jom sah, wie ihre Augen zitterten. Er hatte gelernt, dass dieses Zittern der riesigen gewölbten Augäpfel Melancholie oder Trauer bedeuteten. 
+
+»Was ist denn? Ist es so schlecht?«
+
+»Nein, es schmeckt gut. Meine Mutter hat etwas ganz ähnliches gemacht wenn ich oder eines meiner Geschwister Geburtstag hatten. Dazu gab es immer fettgebackene Teiglinge. Ich ... vermisse meine Mutter und meine Geschwister.«
+
+Aklahs Augen hörten auf zu zittern.
+
+»Und, wie nennst du das Gericht?«
+
+»Es heißt ...« Ach verdammt! In dieser vermaledeiten Sprache gab es kein Wort für Gulasch. 
+
+»Ich nenne es geschmortes Würfelfleisch.«
+
+
+# Kapitel 11
+
+
+Am Abend merkte Jom, dass Aklahs Gäste sehr konservativ waren was das Essen betraf. Sie zögerten, wenn er es ihnen vorschlug. Erst nach viel Überredung wagte es mancher. Doch wer es probierte, lobte es. Am nächsten Tag bestellten mehr das Würfelfleisch, am dritten Tag mangelte es an Zwiebeln und Fleisch. Wieder musste er im Morgengrauen mit Aklah Renner erschlagen.
+
+Täglich streifte Jom den Wald ab, suchte neue Zutaten. Er hoffte auf etwas wie Kartoffeln. Er fand stärkehaltige Wurzeln und Knollen – doch gekocht fehlte das kartoffeltypische Aroma.
+
+Die geflügelten Wesen – die er »Vögel« nannte – legten keine Eier, oder sie versteckten sie zu gut vor ihm. Es experimentierte viel mit der Sprache. So zeigte er auf ein fliegendes Tier und sagte »Vogel«. Für das vor den Wagen gespannte Tier gab es kein Wort. Er konnte es denken, aber nicht aussprechen. Er fragte Aklah, wie ihre Vögel aussahen. Sie beschrieb fliegende Wesen ohne Federn und Flügel. Jeder hier verband andere Tiere mit »Vogel«. 
+
+Jom starrte auf die Kelle im Würfelfleisch. Die Sprache verfolgte ihn wie ein ungelöstes Rätsel. Wie konnte eine künstliche Sprache so präzise und gleichzeitig so unvollkommen sein?
+
+Es fehlte nicht nur an Wörtern. Auch die Übersetzung wichtiger Konzepte war lückenhaft. »Vogel« gab es, »Ei« nicht. »Fleisch«, ja, »Steak«, nein. Es war, als habe jemand eine Hierarchie von Konzepten erstellt und entschieden, was wichtig war.
+
+Vielleicht war es wie eine Programmiersprache mit begrenztem Vokabular. Oder eine kindliche Sprache – erst das Konkrete, dann die Abstraktionen.
+
+»Ich bin ein Mensch«, murmelte er. »Ich bin ein Europäer.« Das zweite Wort blieb stecken. Wer entschied, dass »Mensch« wichtiger war als »Europäer«? Dass »Vogel« universell war, aber »Kuh« nicht?
+
+Technische Begriffe fehlten komplett: Computer, Elektrizität, Motoren. Als hätten die Entführer diese Konzepte ausgelöscht.
+
+*Wer die Sprache kontrolliert, kontrolliert das Denken*, dachte er. Er erinnerte sich an einen Philosophen, dessen Namen er vergessen hatte.
+
+Die Implikationen beunruhigten ihn. Ohne Worte keine Gedanken. Er versuchte, den Namen seiner Frau zu denken. Er war weg. Er beschrieb sie, sah ihr Gesicht, konnte ihren Namen nicht formen.
+
+»Das ist Kontrolle«, dachte er. »Perfekte Kontrolle.«
+
+Er stellte die Kelle beiseite und wischte sich an der Schürze die Hände ab. Die Sprache war kein Rätselspiel. Sie war ein Schlüssel. Wer immer sie erschaffen hatte, formte damit die Realität.
+
+*Vielleicht*, dachte er, *haben die Menschen in der ‘City’ ihre Sprache rekonstruiert, um dieser Kontrolle zu entkommen.*
+
+Beim Umrühren im Kessel fiel ihm auf: Alle Namen sind kurz und schlicht – Jom, Aklah, Bel, Seb. Alte Namen verschwanden. Sie zwangen sie zu neuen, einfachen Silben.
+
+Die Sprache formt ihre Realität. Wer sie erschuf, bestimmt ihr Sein.
+
+Vielleicht bauten die Leute in der City ihre Originalsprache wieder auf, um dieser Kontrolle zu entkommen.
+
+Neue Wörter können Werkzeuge sein, um auszubrechen. Sein Gericht hieß Würfelfleisch, nicht Gulasch. Er würde herausfinden, wie man es aussprach.
+
+Jede Rückbenennung trotzte er der Macht, die sie hierhergebracht hat.
+
+*
+
+Einige Stunden später, nachdem der letzte Gast gegangen war, saß Jom schweigend bei Aklah am Tresen und sortierte Münzen in kleinen Stapeln. Die Öllampe flackerte und spiegelte sich in den glänzenden Oberflächen der irdischen Münzen.
+
+Aklah stand hinter dem Tresen und wusch Becher und Teller.
+
+»Du grübelst wieder«, sagte sie. Es war keine Frage, kein Tadel, nur eine Feststellung. Jom sortierte eine schwere, kupferne Münze in den falschen Stapel, korrigierte sich, blickte dann in die Glut des Kamins.
+
+»Denkst du, es gibt einen Weg zurück?«
+
+Aklah hielt die Bewegung an. Ihr Blick wurde für einen Moment leer, als suchte sie in einem nicht vorhandenen Archiv nach einer passenden Antwort. »Du meinst zur Erde. Zu dem Ort, aus dem du gekommen bist.«
+
+Jom nickte. »Ich meine, wenn jemand es schafft, diese Sprache zu machen --« Er brach ab, suchte nach einem Wort, das nicht existierte. »Wenn jemand in der Lage ist, uns hierherzuholen — wer so mächtig ist — der muss doch auch einen Weg zurück kennen.«
+
+Aklah stellte das Glas ab. »Du hast mir diese Frage schon oft gestellt. Ich habe dir immer dasselbe geantwortet: Ich weiß es nicht. Ich habe noch nie von jemandem gehört, der zurückgekehrt ist. Und ich habe viele Leute getroffen.«
+
+“Du wirst ja wohl kaum jemanden getroffen haben, der rurückgekehrt ist”, sagte gereizt.
+
+“Du weißt, was ich meine.”
+
+Sie griff nach einer Flasche, schenkte Jom einen Fingerbreit des starken Rauschbeerenbrands ein, dann auch sich selbst. »Ich verstehe, dass du zurück willst. Aber das Leben hier ist nicht schlecht. Hübsche Sonnenaufgänge. Gutes Essen. Wenig Gewalt. Keine Krankheiten. Und du bist ein respektierter Mann.«
+
+Jom trank. Die Flüssigkeit zog eine feurige Bahn in seinen Magen. »Ich habe das Gefühl, als würde mein Kopf jeden Tag leerer werden. Als wollte jemand, dass ich alles vergesse. Meine Familie. Die Namen. Die Menschensachen.«
+
+Aklah lachte leise. »Vielleicht ist das ja der Trick. Wer vergisst, hat keine Kette mehr an seinem Bein.«
+
+»Aber warum wir?«, fragte Jom. »Warum all diese Wesen, alle so fremd und trotzdem so … kompatibel? Warum diese Sprache, diese Regeln, wieso kennen wir beide das verdammte Wort ‘Flaschenöffner’? Ich brauche Antworten!«
+
+Nun wurde es Aklah anscheinend zu bunt:
+
+ "Dann geh," sagte sie. "Geh in die ‘City’. Stelle dort deine Fragen. Aber ich glaube nicht, dass du dort findest, wonach du suchst.” Sie machte nun ein Gesicht, Jom als ‘grimmig’ interpretierte.
+
+“Und du wirst morgen gehen. Warte nicht bis es regnet, wenn es in der Ferne donnert, sagt man bei uns.”
+
+
+# Kapitel 12
+
+Der Morgen war kühl. Die große orangefarbene Sonne stand bereits über dem Horizont, die kleinere blaue stieg flach auf und warf blasses Licht und lang gezogene, blaue Schatten über den Hof. Tau lag auf dem Boden.
+
+Aklah wartete vor dem Haus. Die Arme verschränkt. Jom trat hinaus. Über der Schulter trug er seine alte Tasche – dieselbe, die er damals bei seiner Ankunft dabeigehabt hatte. Sie enthielt noch immer die Stange Zigaretten, ein iPad, einen Schlüsselbund und die Cola-Dose. Daneben eine zweite Tasche, einfacher genäht, mit Proviant: Messer, Wasserflasche, etwas getrocknetes Rennerfleisch und ein ganzes Bündel der grünen Stäbchen. Auf dem Rücken trug er eine Bettrolle, eine Art Schlafsack.
+
+Sie sagte nichts, bis er vor ihr stand. Dann: »Du musst jetzt aufmerksam zuhören, denn die Wegbeschreibung ist kompliziert. Bist du bereit?«
+
+Jom nickte stumm.
+
+»Also, folge einfach der Straße«, sagte sie, und die linke Mundhälfte zuckte, »die führt – wie die meisten anderen – direkt zur ›City‹.«
+
+Dann lachte sie. Ein tiefes, kehliges Geräusch, das irgendwo zwischen Schnauben und Wiehern lag.
+
+Jom lächelte. »Sehr witzig.«
+
+Er nickte noch einmal, trat zurück, wandte sich um und ging. Keine Umarmung. Kein Abschied. Aber Aklahs riesige Augäpfel zitterten leicht, das war Jom nicht entgangen. 
+
+Hinter ihm blieb das Haus still zurück.
 
 ---
 
+Das Dorf lag auf seinem Weg. Die Luft war frisch und roch nach dem süßlichen Holz, aus dem die meisten Häuser gebaut waren. Er fand Bel auf dem zentralen Platz, wo er mit einigen anderen pferdeköpfigen Wesen stand. Sie winkten ihm zu, und er musste lächeln, als sie die Finger in der typischen Begrüßungsgeste öffneten und schlossen. 
 
+»Ich werde eine Weile weg sein«, rief er. 
 
-Ich zog Jeans und Sweatshirt aus und kroch in T-Shirt und Unterhose unter die Decke. Ich schloss die Augen. Der Schlaf kam nicht sofort. Ich hörte noch den Nachhall des Blitzes, die Schreie, das Dröhnen der U-Bahn. Dann wurde alles still.
+Bel kam auf ihn zu. »Ich hoffte, du würdest länger bleiben. Ich hatte den Eindruck, es hat dir bei Aklah gefallen. Aber ich hoffe, du findest, was du suchst, Jom.« 
 
-Als ich die Augen wieder öffnete, stand ich im Raum mit den pulsierenden Adern und dem großen Zahnrad über mir. Ezra saß am Tisch, Vera neben ihm. Kael lehnte an der Wand. Mira fehlte. Sie drehten sich alle gleichzeitig zu mir um.
+»Das hoffe ich auch.« 
 
-Ich holte den Kristall aus der Manteltasche und legte ihn auf den Tisch. Das weiße Licht war jetzt stärker, pulsierte ruhig, als atme etwas Lebendiges darin.
+»Wenn du zurückkommst«, sagte Bel, »wirst du uns dann noch ein paar neue Gerichte kochen?« 
 
-»Es ist weg«, sagte ich. »Das Siegel hat funktioniert. Der Blitz war so hell, dass alle es gesehen haben.«
+»Das werde ich.« 
 
-Ezra nahm den Kristall auf, drehte ihn zwischen den Fingern und nickte langsam. »Gut gemacht«, sagte er. Seine Stimme war ruhig, aber ich hörte das leichte Zögern darin. »Du hast den Beweis erbracht.«
+Bel lachte. »Viel Glück, Kleinkopf!« 
 
-Kael löste sich von der Wand und trat näher. Wieder dieser Geruch nach Metall und etwas Wärmerem. »Und du bist unverletzt?« Seine Stimme klang so warm und mitfühlend.
+Jom winkte, drehte sich um und ging. 
 
-Ich zuckte mit den Schultern. »Fast. Nur ein paar Schrammen und ein Knie tut weh.« Ich sah auf meine Hände. 
+Er verließ das Dorf und folgte der Straße. Sie war aus flachen, runden Steinen gepflastert und schnurgerade. Die beiden Sonnen stiegen höher und die Luft begann sich zu erwärmen. Jom lief zügig, die Schritte fielen ihm leicht. Die Schwerkraft war noch immer ungewohnt, aber er hatte sich fast daran gewöhnt. 
 
-»Die Leute haben mich für verrückt gehalten. Sie haben die Polizei gerufen. Ich bin einfach gegangen.«
+Die ersten Stunden verliefen ruhig. Der Wald wurde lichter, die Pflanzen niedriger. Dann durchquerte er eine weite Ebene, auf der es kaum noch Bäume gab. Hohe, grasartige Pflanzen wuchsen dort, und Jom fühlte sich seltsam nackt, da er keine Deckung mehr hatte. 
 
-Ezra hielt den Kristall gegen das blaugrüne Licht der Wandadern. Er drehte ihn langsam, beobachtete, wie das weiße Licht darin tanzte, und seine Stirn zog sich zusammen. Vera trat näher heran, beugte sich über seinen Arm, sagte aber nichts. Kael stand immer noch an der Wand, aber seine Körperhaltung hatte sich verändert – weniger entspannt, mehr aufmerksam.
+Die Straße führte ihn an einer kleinen Ansammlung von Hütten vorbei, die noch primitiver wirkten, als die im Dorf. Einige Gestalten standen bei ihre Hütten. Es waren keine Menschen. Ihre Körper waren klein und drahtig, die Köpfe fast so groß wie ihr Oberkörper. Diese Art kannte er nicht. Sie hatten ihn bemerkt und kamen näher. Jom blieb stehen. 
 
-»Das ist nicht normal«, sagte Ezra schließlich.
+»Kleinkopf!«, rief einer. 
 
-»Was meinst du?«, fragte ich.
+Er blieb ruhig, drehte sich um und ging weiter. 
 
-»Sieh zu«, sagte er.
+Von hinten hörte er sie lachen. 
 
-Er hielt den Kristall in der einen Hand und bewegte die andere langsam über ihn. Nicht berührend, sondern schwebend, in einer Bewegung, die fast tänzerisch wirkte. Und während er das tat, sah ich etwas, das mein Gehirn zuerst nicht einordnen konnte.
+»Lauf, Kleinkopf!« 
 
-Silberne Fäden kamen aus seinen Fingerspitzen, dünn wie Spinnweben, und wanderten zum Kristall hinüber. Sie leuchteten nicht, aber sie waren sichtbar – wie Rauch, der sich selbst gegen die Schwerkraft bewegt. Sie wickelten sich um den Kristall, durchdrangen ihn, und das weiße Licht darin begann zu pulsieren, schneller, intensiver, bis es schmerzte, hinzusehen.
+Ein Stein flog an ihm vorbei. 
 
-Das war Magie – echte, sichtbare, unmögliche Magie.
+Er verließ schnellen Schrittes den Pfad, um die Gruppe zu umgehen. Sie ließen ihn ziehen. 
 
-Ich starrte hin, während mein Verstand verzweifelt nach einer Schublade suchte. Spezialeffekte. Halluzination. Aber nein: Ich sah es, Vera sah es, Kael sah es. Also war es real – und meine Welt nicht die einzige.
+Nach einigen Minuten war er wieder auf den Weg zurückgekehrt. Er sah zurück. Die Gestalten waren nur noch schemenhaft zu erkennen. Er atmete auf, blieb einige Sekunden stehen und trank einen Schluck aus seiner Wasserflasche. Dann ging er weiter. Seine erste Konfrontation hatte er überstanden. 
 
-Nach etwa einer Minute ließ Ezra die Hand sinken. Die silbernen Fäden verschwanden. Das Licht im Kristall beruhigte sich wieder.
+Er durchquerte eine weite Steppe. Der Wind strich über das niedrige Gras und ließ es wie Wellen über ein graugrünes Meer ziehen. Der Himmel veränderte sich im Laufe des Tages. Erst war er von einem klaren Blau, dann wurde er heller und schließlich fast weiß. Die beiden Sonnen standen hoch am Himmel. Jom legte einen schnellen Schritt vor. 
 
-»Das Monster hätte nicht derartig explosiv verschwinden sollen«, sagte Ezra. »Ein Siegel dieser Kraft würde es zurückschicken – sanft, kontrolliert, wie ein Fenster, das sich schließt. Aber das hier …« Er deutete auf den Kristall. »Das war eine Detonation. Das war Kraft, die sich nicht einfach verteilt hat, sondern konzentriert wurde.«
+Er kam an einem Hügel vorbei, auf dem ein Turm stand. Er war aus rohen Ästen zusammengebunden und sah aus, als würde er beim ersten Windstoß in sich zusammenfallen. Jom fragte sich, ob er bewohnt war. Er sah niemanden und ging weiter. 
 
-»Ich habe es gebrochen«, sagte ich. »Das Siegel. Ich habe es in der Hand zerbrochen.«
+Als die beiden Sonnen zu sinken begannen, machte er Rast. Er setzte sich an den Rand der Straße und aß etwas von dem getrockneten Fleisch. Es schmeckte fad, aber es sättigte. Die orangefarbene Sonne verschwand zuerst hinter dem Horizont und tauchte die Landschaft in ein kupferfarbenes Licht. Die Blaue folgte langsamer und warf lange, gespenstische Schatten über die Steppe. Er entschied sich, noch ein paar Kilometer zurückzulegen, bevor er sein Lager aufschlug. Als die Dunkelheit schließlich hereinbrach, suchte er sich eine windgeschützte Mulde abseits der Straße. Er rollte seinen Schlafsack aus und sammelte trockene Zweige für ein kleines Feuer. Dies würde die zweite Nacht werden, die er auf diesem Planeten unter freiem Himmel verbringen würde.
 
-»Ja«, sagte Vera. »Aber das erklärt nicht die Intensität.«
-
-Ezra sah mich an. Seine Augen waren dunkelbraun, fast schwarz, und es gab darin etwas, das wie Berechnung aussah. »Wie hast du dich gefühlt, als du es gebrochen hast?«
-
-Ich überlegte. »Panisch. Wütend. Das Ding war auf mich zu, und ich wollte, dass es weg ist. Ich wollte es wirklich weg haben.«
-
-»Intensiv«, sagte Ezra.
-
-»Ja. Intensiv.«
-
-Er nickte langsam. »Dein Wunsch, das Wesen zu vertreiben, war so intensiv, dass es nicht nur zurückgeschickt wurde. Es wurde … ausgelöscht. Oder nah dran. Der Blitz, den die Menschen gesehen haben – das war die Überladung. Das war deine Emotion, die sich in das Siegel ergossen hat und es überlastet hat.«
-
-Ich verstand das nicht ganz, aber ich verstand genug. »Das ist schlecht?«
-
-»Das ist unerwartet«, sagte Ezra. »Aber nicht unbedingt schlecht.« Er legte den Kristall auf den Tisch. »Wir werden das später analysieren. Jetzt aber …« Er stand auf. »Ich denke, es ist Zeit, dass du mehr von dieser Welt siehst. Du kennst nur diesen Raum. Das ist nicht fair.«
-
-Ich sah auf mein Handy. Es zeigte »Kein Netz« und die Uhrzeit: 00:34 Uhr. Ich würde noch ein paar Stunden hier bleiben können.
-
-»Okay«, sagte ich.
-
-Ezra führte mich zur Tür. Sie war aus dunklem Holz, mit Messingbeschlägen, und als er sie öffnete, strömte Licht herein – nicht das blaugrüne Licht der Adern, sondern echtes Tageslicht, warm und golden.
-
-Der Flur war lang und hoch, mit Wänden aus dem gleichen dunklen Metall wie der Besprechungsraum, aber hier durchzogen von größeren Adern, die in einem sanfteren Rhythmus leuchteten. Die Decke war so weit oben, dass ich sie kaum sehen konnte. Fenster – echte Fenster – waren in regelmäßigen Abständen angebracht, und durch sie sickerte dieses goldene Licht. Ich ging näher heran und sah hinaus.
-
-Wir waren hoch oben.
-
-Sehr hoch oben.
-
-Unter mir erstreckte sich eine Stadt, die ich kannte und nicht kannte. Die Straßen waren breit und ordentlich, angelegt in konzentrischen Ringen, wie Ezra es beschrieben hatte. Die Gebäude waren eine Mischung aus Steampunk und etwas Älterem – Architektur, die Zahnräder und Rohre mit Türmen und Kuppeln vermischte. Überall leuchteten Lampen, nicht elektrisch, sondern mit diesem blaugrünen Licht, das ich inzwischen kannte. Selbstfahrende Fahrzeuge bewegten sich auf den Straßen, aber nicht schnell – eher gemächlich, als würden sie sich Zeit nehmen. Und überall Menschen. Tausende von ihnen, in Kleidung, die zwischen mittelalterlich und viktorianisch pendelte, mit Accessoires aus Kupfer und Messing.
-
-Das war die Traumwelt. Das war real.
-
-Mein Magen zog sich zusammen. Nicht aus Angst, sondern aus etwas Tieferem – aus dem Gefühl, dass ich gerade die Grenze zwischen zwei Realitäten überschritten hatte und nicht zurück konnte. Nicht, weil ich nicht wollte, sondern weil ich nicht mehr wusste, welche Seite die echte war.
-
-»Komm«, sagte Ezra. Er war bereits weitergegangen, den Flur hinunter. »Es gibt noch viel zu sehen.«
-
-Ich folgte ihm. Der Flur führte zu einer großen Halle – nicht groß wie ein Bahnhof, sondern groß wie ein Ballsaal, mit einer hohen Decke und Säulen aus Metall und Holz. In der Mitte der Halle war ein Treppenhaus, spiralförmig, mit Stufen aus Stein und Geländern aus Kupfer. Ezra stieg hinauf. Ich folgte, meine Hand auf dem warmen Metall des Geländers.
-
-Wir stiegen lange. Meine Beine begannen zu brennen, aber ich sagte nichts. Schließlich erreichten wir eine Tür – groß, aus dunklem Holz, mit einem Fenster aus Glas oben.
-
-Ezra öffnete sie.
-
-Der Raum dahinter war riesig. Das war das Erste, was ich dachte. Riesig und anders als alles, was ich je gesehen hatte. Die Wände waren aus Glas – nicht alle, aber genug, um den Raum in Licht zu tauchen. Und das Fenster – das Fenster war gigantisch. Es nahm die ganze Wand ein, von Boden bis Decke, und gab den Blick frei auf die ganze Stadt.
-
-Ich ging näher heran.
-
-Die Stadt erstreckte sich unter mir wie eine Landkarte, die lebendig geworden war. Ich konnte die konzentrischen Ringe deutlich sehen – der innerste Ring war der Königspalast, ein Gebäude aus weißem Stein und Gold, mit Türmen, die in den Himmel ragten. Dann die Ringe der Adels- und Handelsviertel, mit größeren Gebäuden, breiten Straßen, Plätzen mit Brunnen. Dann die Handwerker- und Arbeiterviertel, dichter bebaut, mit kleineren Häusern und engeren Gassen. Und am äußersten Rand die Slums – weniger ordentlich, weniger gepflegt, aber immer noch Teil dieser unmöglichen Stadt.
-
-Und über allem der Himmel – nicht blau wie in Berlin, sondern ein sanftes Graugrün, durchzogen von Wolken, die sich bewegten, als hätten sie alle Zeit der Welt.
-
-Ich erkannte Teile davon. Ich war hier gewesen – nicht mit meinem Körper, sondern als Geist, in meinen Träumen, bevor ich wusste, dass die Träume real waren. Ich hatte diese Straßen durchquert, diese Plätze besucht, diese Menschen beobachtet. Ich hatte diese Stadt geliebt, ohne zu wissen, dass sie existierte.
-
-Der Raum selbst war spärlich möbliert – ein paar Stühle, ein Tisch, Regale an den Wänden mit Büchern und Objekten, die ich nicht erkannte. Doch was mich magisch anzog, war das Fenster.
-
-»Schön, nicht wahr?«, sagte Vera. Sie war hinter uns hereingekommen, ebenso wie der Rest der Gruppe.
-
-»Ich hasse diesen Ort, aber ich muss zugeben, dass die Aussicht beeindruckend ist.«
-
-Ich lehnte meine Stirn gegen das Glas. Es war kühl. Ich konnte die Vibrationen der Stadt spüren – nicht laut, aber präsent, wie das Schnurren einer riesigen Maschine. Und ich wusste, dass ich nicht mehr zurück konnte. Nicht wirklich. Nicht, nachdem ich das gesehen hatte.
-
-Ich war in zwei Welten gefangen. Und ich wusste nicht, welche die echte war.
-
-
+Die Flammen tanzten im leichten Nachtwind, während über ihm fremde Sternbilder funkelten. Die Stille war vollkommen, nur unterbrochen vom gelegentlichen Knistern des Feuers und fernen, unidentifizierbaren Rufen aus der Dunkelheit. Er legte sich hin, den Blick zum Himmel gerichtet, und spürte die Kälte des fremden Planeten durch den dünnen Stoff seines Schlafsacks. Er schlief durch bis zum Morgen. 
 
 ---
 
+Der Weg führte ihn über sanfte Hügel. Die Landschaft wurde felsiger, und die Straße begann, sich zu neigen. Jom sah die Hügelkette vor sich. Die Steigung wurde stärker. 
 
+Unvermittelt blieb er stehen. 
 
-Ezra blieb stehen und wandte sich an die Gruppe.
+Vor ihm, am Horizont, war die Kuppel. Sie war noch weit entfernt und schimmerte bläulich in der Dämmerung. Sie war größer, als er sie sich je vorgestellt hatte. 
 
-»Ich werde sie jetzt zu Frina bringen, wir treffen uns dann im Aufenthaltsraum wieder.«
-
-Die anderen nickten und ließen uns beide allein.
-
-Ezra führte mich durch weitere Flure. Schließlich blieb er vor einer Tür stehen, die sich von den anderen unterschied. Sie war schmaler, aus hellerem Holz, und auf ihr war ein Symbol eingebrannt – ein Kreis mit Linien, die nach innen liefen wie ein Labyrinth.
-
-»Frina«, sagte Ezra und klopfte.
-
-»Herein«, kam eine Stimme von innen.
-
-Der Raum dahinter war eine Bibliothek und ein Labor zugleich. Die Wände waren vollständig mit Regalen bedeckt – nicht mit Büchern alleine, sondern mit Objekten. Kristalle in verschiedenen Farben und Größen. Behälter mit Flüssigkeiten, die in unterschiedlichen Farben leuchteten. Pergamente, aufgerollt und mit Schnüren zusammengebunden. Instrumente aus Metall und Glas, deren Zweck ich nicht verstand. In der Mitte des Raumes stand ein großer Tisch aus dunklem Holz, bedeckt mit Papieren, Zeichnungen, noch mehr Objekten.
-
-Und hinter dem Tisch saß eine Frau.
-
-Sie war älter als Mira, mit Haaren, die vollständig ergraut waren und in einem lockeren Zopf hingen. Ihre Haut war dunkel und von feinen Linien durchzogen, die an Karten erinnerten – als hätten sich Jahre des Wissens in sie eingegraben. Sie trug eine Robe aus dunklem Stoff, bestickt mit Symbolen, die ich nicht verstand. Ihre Augen waren grau, fast silbern, und sie sahen mich an, bevor ich auch nur einen Schritt in den Raum gemacht hatte.
-
-»Das ist Luna Kessler«, sagte Ezra. »Ich möchte, dass du sie untersuchst.«
-
-Frina stand auf. Sie war groß, größer als ich erwartet hatte, und ihre Bewegungen waren präzise, ökonomisch – jede Geste hatte einen Zweck. Sie kam um den Tisch herum und blieb vor mir stehen.
-
-»Hallo, Luna«, sagte sie. Ihre Stimme war ruhig, aber nicht sanft. Sie war die Stimme von jemandem, der gewohnt war, Fragen zu stellen und Antworten zu bekommen. »Ich bin Frina. Ich bin die Archivarin und Magieforscherin dieser Gruppe. Du bist die aus der anderen Welt.«
-
-Ich nickte stumm.
-
-»Warum soll ich dich untersuchen?«
-
-»Ich habe ein Monster aus meiner Welt zurückgeschickt … oder getötet. Aber anscheinend anders, als erwartet«, sagte ich.
-
-Frina deutete auf einen Stuhl neben dem Tisch. »Setz dich.«
-
-Ich setzte mich. Frina zog einen anderen Stuhl heran und saß mir direkt gegenüber. Ihre Augen waren so nah, dass ich die feinen Linien darin sehen konnte – nicht nur Falten, sondern etwas anderes, etwas, das wie Schrift aussah, aber zu klein war, um es zu lesen.
-
-»Ich werde dich untersuchen«, sagte sie. »Das wird nicht wehtun.«
-
-»Okay«, sagte ich zögernd. »Es wird nicht wehtun« – eine Versicherung, die mich kein bisschen beruhigte.
-
-Sie schloss die Augen. Ihre Hände hoben sich, und ich sah etwas, das ich schon bei Ezra gesehen hatte – silberne Fäden, die aus ihren Fingerspitzen kamen. Aber Frinas Fäden waren anders. Sie waren nicht einzeln, sondern in Bündeln, und sie leuchteten nicht nur silbern, sondern in verschiedenen Farben – Blau, Grün, Rot, Orange, alles durcheinander. Sie bewegten sich nicht auf mich zu wie bei Ezra, sondern um mich herum, wie Wasser, das um einen Stein fließt.
-
-Ich spürte sie nicht physisch. Aber ich spürte etwas – eine Präsenz, eine Aufmerksamkeit, die mich durchdrang wie Röntgenstrahlen. Es war nicht unangenehm, aber es war intensiv. Es war, als würde jemand meine Gedanken lesen, nur dass es nicht meine Gedanken waren, sondern etwas Tieferes – meine Emotionen, meine Absichten, meine Essenz.
-
-Die Fäden bewegten sich schneller. Sie wickelten sich um mich, durchdrangen mich, und ich sah Bilder – nicht mit meinen Augen, sondern mit etwas anderem. Ich sah die U-Bahn-Station, aber nicht wie ich sie sah. Ich sah sie wie Frina sie sah – als Netzwerk von Energien, Linien, die sich kreuzten und verbanden. Und ich sah mich selbst in der Mitte, aber nicht als Körper. Ich sah mich als Licht – nicht blaugrün wie die Kristalle, sondern weiß, mit Flecken von Orange und Rot und Violett, pulsierend, wild, unkontrolliert.
-
-Und ich sah das Monster – nicht als Wesen, sondern als Fehler, eine Stelle, wo die Realität falsch war, wo zwei Welten sich überlappten und nicht zusammenpassen wollten.
-
-Und ich sah, wie mein Licht – meine Emotion, meine Absicht – sich in das Siegel ergoss und es nicht nur aktivierte, sondern überlud, bis es explodierte.
-
-Dann war es vorbei.
-
-Frina öffnete die Augen. Die Fäden verschwanden. Sie lehnte sich zurück und sah mich an.
-
-»Interessant«, sagte sie.
-
-»Was?«, fragte ich.
-
-»Deine Magie«, sagte Frina. »Sie ist nicht rituell. Sie ist nicht kontrolliert. Sie ist emotional. Reine emotionale Kanalisierung.«
-
-»Ich dachte, ich hätte keine Magie«, sagte ich.
-
-»Das ist das Problem«, sagte Frina. »Du hast keine trainierte Magie. Du hast keine Rituale, keine Formeln, keine Struktur. Aber du hast etwas anderes. Du hast emotionale Resonanz. Und sie ist enorm.«
-
-Sie stand auf und ging zu einem der Regale. Sie zog ein Buch heraus – groß, mit einem Einband aus Leder, der so alt aussah, dass er zerfallen könnte – und schlug es auf. Sie blätterte durch die Seiten, schnell, als würde sie etwas suchen.
-
-»Emotionale Magie ist selten«, sagte sie, während sie blätterte. »Die meisten Menschen in unserer Welt nutzen rituelle Magie – präzise, kalkuliert, zuverlässig. Aber es gibt Aufzeichnungen von Menschen, die emotionale Magie nutzen. Menschen, deren Gefühle sich direkt in Kraft umwandeln. Sie sind unzuverlässig. Sie sind gefährlich. Aber wenn sie trainiert sind, wenn sie lernen, ihre Emotionen zu kontrollieren, können sie Dinge tun, die rituelle Magier nicht können.«
-
-Sie fand die Seite, die sie suchte, und deutete darauf. Ich sah Zeichnungen – Menschen mit Auren um sich herum, Linien, die von ihnen ausgingen wie Blitze. Unter den Zeichnungen war Text, in einer Schrift, die ich nicht lesen konnte.
-
-»Das hier sind Aufzeichnungen aus dem dritten Jahrhundert«, sagte Frina. »Von einer Frau namens Kael – ja, wie unser Kael, aber das ist ein anderer. Diese Kael konnte zwischen den Welten reisen. Sie konnte andere mitnehmen. Sie konnte Bruchstellen heilen. Und alles, was sie tat, tat sie durch emotionale Magie.«
-
-Ich starrte auf die Zeichnungen. Sie zeigten eine Frau mit langen Haaren und einer Aura, die so hell war, dass sie die ganze Seite zu überfluten schien.
-
-»Das bin ich nicht«, sagte ich.
-
-»Nein«, sagte Frina. »Aber du könntest es sein. Deine emotionale Resonanz ist größer als die von Kael. Das habe ich gesehen, als ich dich untersucht habe. Deine Gefühle sind nicht nur stark – sie sind fundamental. Sie sind die Art von Gefühlen, die Realitäten verändern können.«
-
-Sie schloss das Buch und sah mich direkt an.
-
-»Das erklärt auch, wie du die Grenze zwischen den Welten überwinden kannst«, sagte sie. »Rituelle Magie funktioniert nicht über Grenzen hinweg. Die Resonanzen sind zu unterschiedlich. Aber emotionale Magie ist universell. Gefühle sind überall gleich. Angst ist Angst, ob in dieser Welt oder in deiner. Liebe ist Liebe. Wut ist Wut. Deshalb kannst du reisen. Deshalb kannst du andere mitnehmen. Deine emotionale Essenz ist nicht an eine Welt gebunden.«
-
-Ich ließ es auf mich wirken, versuchte zu begreifen, doch mein Verstand sträubte sich, es wirklich anzunehmen. Ich hatte keine Magie. Ich war nichts Besonders. Ich war nur Luna – eine Studentin, die zu viel träumte.
-
-»Was bedeutet das?«, fragte ich.
-
-Frina ging zurück zu ihrem Tisch und setzte sich. Sie legte die Hände flach auf die Oberfläche und schloss die Augen. Für einen Moment sagte sie nichts. Dann öffnete sie die Augen wieder, und es gab etwas darin, das anders war. Etwas Fernes. Etwas, das nicht ganz in dieser Welt war.
-
-»Ich sehe Dinge«, sagte sie. »Nicht immer klar. Nicht immer richtig. Aber ich sehe sie. Es ist eine Gabe, die mit meiner Magie kommt. Und wenn ich dich ansehe, Luna, sehe ich etwas, das ich noch nie zuvor gesehen habe.«
-
-Sie lehnte sich vor.
-
-»Ich sehe Veränderung«, sagte sie. »Ich sehe Dinge, die noch nicht geschehen sind, aber die geschehen werden. Dinge, die völlig neu sein könnten. Dinge, die diese Welt und deine Welt verändern werden. Und ich sehe dich in der Mitte davon. Nicht als Werkzeug. Nicht als Opfer. Sondern als Katalysator.«
-
-»Was bedeutet das?«, fragte ich wieder.
-
-»Das bedeutet«, sagte Frina, »dass du Dinge tun wirst, die niemand erwartet hat. Dinge, die die Regeln brechen. Dinge, die unmöglich scheinen – und trotzdem geschehen werden.«
-
-Sie lehnte sich zurück.
-
-»Aber das ist alles, das ich dir jetzt sagen kann«, sagte sie. »Die Zukunft ist nicht fest. Sie ist flüssig. Sie ändert sich mit jeder Entscheidung, die du triffst. Alles, das ich sehe, ist eine Möglichkeit. Nicht eine Gewissheit.«
-
-Ich saß da und starrte sie an. Mein Herz schlug schneller. Das war nicht die Antwort, die ich erwartet hatte. Ich hatte erwartet, dass sie mir sagt, dass ich trainieren muss, dass ich meine Magie kontrollieren muss, dass ich eine Agentin werden muss und die Welt retten muss. Stattdessen sagte sie mir, dass ich etwas bin, das die Welt verändern könnte. Dass ich Dinge tun könnte, die niemand erwartet.
-
-»Frina«, sagte Ezra von der Tür aus – ich hatte nicht bemerkt, dass er noch da war – »das ist genug.«
-
-»Ja«, sagte Frina. »Das ist genug.«
-
-Sie sah mich an, und ihre grauen Augen waren wieder normal, nicht mehr fern, nicht mehr prophetisch.
-
-
-»Du kannst gehen«, sagte sie. »Aber komm zurück. Ich möchte deine Magie trainieren. Ich möchte sehen, wie weit du gehen kannst.«
-
-Ich stand auf. Meine Beine waren wackelig. Ich ging zur Tür, wo Ezra wartete.
-
-Sie verließen das Zimmer und gingen wieder durch endlose Gänge.
-
-»Frina sieht Dinge«, sagte Ezra. »Nicht immer sind sie hilfreich. Aber sie sind immer wahr, auf ihre Weise.«
+Jom schätzte die Entfernung. Ein oder zwei Tage würde er noch benötigen. 
 
 ---
 
+Am nächsten Tag wurde die Landschaft rauer. Er hatte den höchsten Punkt der Hügelkette hinter sich gelassen. Die Straße wand sich wie eine Schlange durch das hügelige Gelände. 
 
-<META>
+Er sah auf seinem Weg wieder vereinzelt Hütten, die von Wesen bewohnt waren, die er noch nie gesehen hatte. Einige waren freundlich und grüßten ihn. Andere warfen ihm misstrauische Blicke zu. Glücklicherweise warf niemand Steine nach ihm. 
 
-Ich halte den nüchternen, beobachtenden Ich-Erzählstil bei, nutze kurze aber vollständige Sätze ohne Einwort-Fragmente, zeige die Charaktere durch konkrete Handlungen und Dialogrhythmus. Malachai führt, Keal bleibt einsilbig-reserviert, Vera ist direkt und leicht stachelig, Ezra beobachtet mit ruhiger Zufriedenheit. Die Sprachauflösung am Ende kommt als sachliche Erklärung, nicht als Wunder.
+Er hielt sich nicht lange auf. 
 
-</META>
+Doch auch die Tierwelt dieses seltsamen Planeten hatte ihm Neues zu bieten: eine Gruppe kastenförmiger Wesen, die über die Felder kroch. Die Tiere liefen hintereinander, als wären sie an einem unsichtbaren Faden miteinander verbunden; ein paar Mal sah er kleine, pelzige Tiere mit sechs Beinen, die in Schwärmen über die Straße jagten und bizarre Laute ausstießen. Nichts davon wirkte unmittelbar gefährlich, aber Jom spürte mit jeder Meile mehr, wie fremd ihm diese Welt war. Sein Herz schlug schneller, nicht aus Angst, sondern weil er wusste, dass er bald an seinem Ziel war. Die Kuppel, die er am Vortag nur als Reflexion am Horizont gesehen hatte, war nun eine Realität. Sie wurde mit jedem Schritt größer, überwältigender. Zuerst war sie ein matter Fleck am Tageshimmel gewesen, dann ein bläuliches Band, das sich über die gesamte Ebene zog. Inzwischen hatte sie die Gestalt einer auf den Boden gestürzten Halbkugel bekommen, die so gewaltig war, dass der menschliche Verstand Mühe hatte, das Maß zu erfassen.
 
-<SCENE>
+Davor lag die Stadt, umgeben von einer riesigen Mauer. 
 
-Der Gemeinschaftsraum war größer, als ich erwartet hatte, und unordentlicher, als alles andere, was ich bisher von diesem Ort gesehen hatte. Zwei Sofas aus dunkelbraunem Leder standen sich gegenüber, beide mit Kissen beladen, die offensichtlich nicht zusammengehörten. Ein langer Tisch aus Holz und Messing stand an der Wand, darauf Tassen, eine Kanne, ein Stapel Papiere, der kurz davor war, umzufallen, und eine Lampe, die in warmem Bernsteinlicht brannte. Die Fenster gingen auf die Stadt hinaus, und ich konnte die Türme und Dächer sehen, die ich in meinen früheren Träumen nur als Silhouetten gekannt hatte. Jetzt waren sie nah und konkret und voller Details, die ich noch nicht alle verarbeitet hatte.
+---
 
-Malachai saß bereits auf einem der Sofas, die langen Beine vor sich ausgestreckt, und hatte eine Tasse in der Hand. Er sah aus, als hätte er dort schon immer gesessen. Als Ezra mich hereinführte, hob Malachai die Tasse in einer Art lässiger Begrüßung.
+Die letzten Kilometer vergingen wie in Trance. Die Kuppel war nun so nah, dass Jom einzelne Strukturen auf ihrer Oberfläche erkennen konnte. Sie bestand nicht aus einem Stück, sondern aus Abertausenden von transparenten Facetten, die auf komplexe Weise zusammengefügt waren. Das Licht der untergehenden Sonne spielte in diesen Flächen und warf irisierende Muster auf den Boden. Der Anblick war so surreal, dass Jom kurz stehen blieb und einfach nur starrte, unfähig, das Gesehene wirklich zu verstehen.
 
-»Sie lebt«, sagte er.
+Noch bevor er die eigentliche Mauer erreichte, traf er auf einen großen Basar. Fremdartige Wesen drängten sich zwischen provisorischen Ständen und Tischen. Die Atmosphäre war chaotisch, laut und farbig – so anders als die stille Einsamkeit der letzten Tage.
 
-»Ich war nie tot«, sagte ich.
+Der Markt wurde hauptsächlich von Fremdweltlern betrieben. Viele der Wesen hatte er bis dahin noch nie gesehen, aber die meisten hielten sich an die „Zwei-Arme-zwei-Beine-Regel“. An improvisierten Ständen boten sie Gegenstände feil, die er nicht einzuordnen wusste: kristalline Strukturen, die ihre Form veränderten, wenn man sie zu lange betrachtete; Geräte mit Bedienungselementen, die für menschliche Hände ungeeignet schienen. Jom blieb stehen, als er zwischen all der Fremdheit plötzlich CDs erblickte. Die silbrigen Scheiben lagen neben Dingen, die aussahen wie Zahnräder aus Glas. Er betrachtete die vertraute Technologie mit einer Mischung aus Sehnsucht und Verwirrung – diese alltäglichen Datenträger, nun zu exotischen Kuriositäten degradiert, verkauft von Wesen, die vermutlich nie die Musik gehört hatten, die einst darauf gespeichert war.
 
-»Das wissen wir jetzt«, sagte er. »Setz dich. Frina hat dich wahrscheinlich gründlich ausgelaugt.«
+Eine Mischung aus Heimweh und Neugier erfasste ihn. Er bahnte sich einen Weg durch die Menge, wich geschickt den massigen Körpern von Wesen aus, die doppelt so groß waren wie er. Andere Kreaturen wichen ihm aus, als wäre er unrein oder gefährlich.
 
-Das stimmte. Frinas Untersuchung hatte sich angefühlt wie ein sehr langer, sehr höflicher Eingriff in etwas, das ich nicht benennen konnte, und ich war danach müder gewesen als nach dem Kampf auf dem Bahnsteig. Ich setzte mich auf das gegenüberliegende Sofa. Ezra ließ sich in den Sessel am Fenster fallen, ohne etwas zu sagen, und faltete die Hände über dem Bauch. Er sah aus wie jemand, der sich auf etwas freute.
+Er hielt an einem Stand, auf dem sich Papier zu stapeln schien. Als er näher kam, erkannte er die vertrauten Formen von großen Überschriften und schmalen Kolonnen von Wörtern. Dazwischen waren Bilder eingefügt. Er sah einen älteren Mann, der lächelnd einer Menge zuwinkte. Das war eine Zeitung! Er konnte leider nichts lesen. Das Wesen, das den Stand betrieb, kam herbeigeeilt. 
 
-Vera kam aus dem Nebenraum mit einer zweiten Kanne und stellte sie auf den Tisch, ohne mich anzusehen. Sie trug keine Uniform heute, nur eine dunkle Hose und eine Bluse mit aufgerollten Ärmeln, und trotzdem wirkte sie so, als wäre sie jederzeit bereit, jemanden zu Boden zu bringen.
+“Was ist das?”, fragte Jom ratlos.
 
-»Keal ist gleich da«, sagte sie. »Er wollte noch etwas holen.«
+Das Wesen reagierte lautstark, als hätte Jom sich beschwert. “Das ist die neueste Ausgabe. Ich schwöre es beim Leben meiner Mutter. Keine drei Tage alt.”
 
-»Was holen?«, fragte Malachai.
+“Es kommt aus der ‘City’?” 
 
-»Er hat es nicht gesagt.«
+“Natürlich. Auf so was kommen nur Kleinköpfe.”
 
-Malachai nickte, als wäre das eine vollständige Antwort. Dann sah er mich an. »Hast du Hunger? Wir haben Brot. Und irgendetwas, das Vera als Aufschnitt bezeichnet, obwohl ich nicht sicher bin, was es ist.«
+Jom beließ es dabei. 
 
-»Es ist Aufschnitt«, sagte Vera.
+Schließlich erreichte er das massive Stadttor. Eine hohe, steinerne Mauer erstreckte sich zu beiden Seiten und umschloss die gesamte Stadt. 
 
-»Es sieht aus wie Aufschnitt«, sagte Malachai. »Das ist nicht dasselbe.«
+Jom blieb stehen. Vor ihm erstreckte sich ein echter Grenzübergang, wie er ihn von der Erde kannte. Uniformierte Menschen patrouillierten zwischen Schranken und Kontrollhäuschen. Eine lange Schlange verschiedenartiger Wagen – Karren mit Planen, hölzerne Kutschen, metallene Transportfahrzeuge – wartete auf Abfertigung. Auf jedem Fahrersitz saßen Menschen, echte Menschen von der Erde. Jom reihte sich am Ende der Fußgängerschlange ein, starrte noch immer ungläubig auf die vertraute Szene. Ein Uniformierter bemerkte ihn, winkte ihn mit knapper Handbewegung nach vorne. 
 
-Vera sah ihn kurz an, dann wandte sie sich wieder ab. Ich hatte das Gefühl, dass das eine alte Unterhaltung war.
+"Name?" fragte der Mann gelangweilt, ohne aufzusehen.
 
-»Ich bin nicht hungrig«, sagte ich. »Danke.«
+"Jom."
 
-Keal kam durch die Tür. Er trug tatsächlich etwas, nämlich ein schmales Buch mit einem abgegriffenen Einband, das er auf den Tisch legte, ohne es zu erklären. Dann setzte er sich an das andere Ende des Sofas, auf dem ich saß, mit einem Abstand, der höflich und gleichzeitig deutlich war. Er nickte mir zu. Ich nickte zurück. Das schien ihm zu reichen.
+Der Wachmann hob den Blick. Seine Augen verengten sich leicht, als er Jom musterte.
 
-»Also«, sagte Malachai und stellte seine Tasse ab. »Ezra hat mir erzählt, dass Frina fertig ist. Was hat sie gesagt?«
+"Bist du Bürger?"
 
-»Emotionale Magie«, sagte ich. »Anscheinend bin ich darin sehr gut. Oder sehr viel davon vorhanden. Ich bin mir nicht sicher, wie ich das formulieren soll.«
+"Nein."
 
-»Frina sagt selten etwas, das nicht stimmt«, sagte Malachai. »Also würde ich es so formulieren: Du hast eine Menge davon, und du weißt noch nicht, was du damit anfängst.«
+Der Mann nickte kurz und deutete auf ein kleineres Gebäude rechts vom Haupttor. "Dann geh dort zur Anmeldung. Einfach hinsetzen, man wird dich aufrufen. Nächster!"
 
-»Das ist eine freundliche Zusammenfassung.«
+Jom trat beiseite und ging in die angegebene Richtung. Im Gegensatz zu den Wagen, die gründlich durchsucht wurden, schien es für Fußgänger einfacher zu sein. Er betrat das Anmeldegebäude und fand sich in einem Gang wieder: Auf der einen Seite Türen, auf der anderen Stühle. Er setzte sich und stellte seine Tasche ab. Das Gefühl war surreal. Hier saß er, auf einem fremden Planeten, in einem Gang, der genauso trostlos und bürokratisch wirkte wie in einem Amt auf der Erde. Die Absurdität der Situation traf ihn mit voller Wucht.
 
-»Ich bin ein freundlicher Mensch.«
+Eine Frau mittleren Alters erschien in einer der Türen. 
 
-Vera setzte sich auf die Armlehne des zweiten Sofas und verschränkte die Arme. »Was genau ist heute Morgen auf dem Bahnsteig passiert? Ezra hat mir die Kurzversion gegeben.«
+“Oh je. Ich hoffe sie warten nicht schon lange. Kommen sie rein.”
 
-»Das Monster ist verschwunden«, sagte ich. »Ich habe das Siegel zerbrochen, und es ist verschwunden. Mit einem Blitz.«
+Ihr Haar war zu einem strengen Knoten gebunden, und sie trug eine ähnliche blaue Uniform wie der Wachmann am Tor. Sie deutete auf den Stuhl vor ihrem Schreibtisch.
 
-»Mit einem Blitz«, wiederholte Vera. Ihr Ton war nicht ungläubig, aber auch nicht besonders beeindruckt. »Das Siegel war dafür nicht ausgelegt.«
+"Setzen Sie sich. Name?"
 
-»Das weiß ich jetzt.«
+"Jom."
 
-»Ezra hat dir erklärt, was passiert ist?«
+"Vollständiger Name?"
 
-»Er hat gesagt, dass mein Wunsch, das Wesen zu vertreiben, zu intensiv war. Dass das Siegel eigentlich nur eine geordnete Rückführung auslösen sollte.«
+Jom zögerte. "Nur Jom."
 
-»Und stattdessen hast du es explodieren lassen.«
+Die Frau sah ihn durchdringend an. "Neuankömmling?"
 
-»Anscheinend.«
+"Ja."
 
-Vera sah mich eine Sekunde lang an. Dann sah sie zu Ezra. »Und das ist gut?«
+Sie nickte, als hätte sie es bereits gewusst. "Wie lange sind Sie schon hier?"
 
-»Das ist interessant«, sagte Ezra, ohne seinen Ton zu verändern.
+"Etwa zwei Monate."
 
-Malachai hob die Hand, bevor Vera etwas erwidern konnte. »Gut oder nicht gut können wir später diskutieren. Ich würde gerne wissen, wie es ihr dabei gegangen ist. Nicht dem Monster. Ihr.«
+„Oh …“, sagte sie erstaunt. „Jetzt sage irgendwie durcheinander gekommen hier Sie haben aber lange gebraucht, bis sie hier angekommen sind. 
 
-Das war eine Frage, auf die ich keine fertige Antwort hatte. Ich dachte kurz nach. »Ich hatte Angst«, sagte ich. »Und dann war die Angst weg, und ich war sehr müde. Und dann war ich froh, dass es vorbei war.«
+„Ich bin bei Freunden untergekommen.“ Die Frau sah ihn mit säuerlicher Miene an, als hätte er das Falsche gesagt.
 
-»Keine Nachwirkungen? Kopfschmerzen, Schwindel, das Gefühl, dass etwas fehlt?«
+Sie notierte etwas auf einem Formular. "Zweck Ihres Aufenthalts in der City?"
 
-»Nein.«
+Die Frage war so absurd normal, dass Jom fast lachen musste. Als hätte er eine Wahl gehabt, als hätte er einen Flug gebucht und ein Hotel reserviert.
 
-Malachai nickte langsam. »Das ist gut. Emotionale Magie kann zehren, wenn man sie nicht kennt. Dass du danach noch aufrecht stehen konntest, sagt etwas.«
+"Ich suche Antworten", sagte er schließlich. "Ich will verstehen, was hier vorgeht. Warum wir alle hier sind."
 
-»Frina hat dasselbe gesagt.«
+Zum ersten Mal zeigte die Frau eine Reaktion – ein kurzes, bitteres Lächeln. "Natürlich tun Sie das." Sie reichte ihm ein Formular. "Füllen Sie das aus."
 
-»Frina und ich sind selten einer Meinung«, sagte Malachai. »Aber in diesem Punkt offenbar schon.«
+Jom starrte auf das Papier. Es war voller Wörter, die er nicht lesen konnte.
 
-Keal hatte das Buch aufgeschlagen und blätterte darin, ohne wirklich zu lesen. Ich sah ihn kurz an. Er sah nicht auf.
+"Ich... ich kann nicht lesen," gab er zu.
 
-»Du bist Kael«, sagte ich.
+Die Frau seufzte. "Natürlich nicht." Sie nahm das Formular zurück. "Name: Jom. Herkunft?"
 
-Er hob den Blick. »Keal«, sagte er. »Mit einem E.«
+"Europa." Das Wort hatte er von Seb gelernt. Doch das schien der Frau nicht genau genug zu sein. Sie öffnete eine Schreibtischschublade Und holte ein großes Blatt Papier hervor, das sie auf den Tisch zwischen ihnen legte. Es war eine Weltkarte. Er tippte ungefragt auf Deutschland. Weitere Notizen wurden gemacht.
 
-»Entschuldigung. Keal.«
+"Beruf vor der Ankunft?"
 
-Er nickte und sah wieder auf das Buch. Vera beobachtete den Austausch mit einem Ausdruck, den ich nicht ganz einordnen konnte.
+"Wetterkundler", sagte er, da er ja Meteorologe nicht sagen konnte. 
 
-»Er ist nicht unhöflich«, sagte Malachai zu mir, leise genug, dass es fast vertraulich wirkte. »Er braucht nur etwas länger.«
+In den Augen der Frau leuchtete etwas auf. Er hatte nun den Eindruck, dass er nunmehr ihre volle Aufmerksamkeit genoss. 
 
-»Ich höre dich«, sagte Keal, ohne aufzusehen.
+“Studiert?”
 
-»Das weiß ich«, sagte Malachai.
+“Gewiss, Und einen Doktortitel.”
 
-Ezra lachte leise. Es war ein kurzes, warmes Geräusch, das nicht zu dem passte, was ich von ihm erwartet hatte, und ich sah ihn an. Er hatte den Kopf leicht zur Seite geneigt und sah auf seine Gruppe mit einem Ausdruck, der mich an jemanden erinnerte, der eine Pflanze beobachtet, die genau so wächst, wie er es erwartet hatte. Zufrieden. Ruhig. Als wäre das hier ein ganz normaler Morgen.
+Sie schrieb mehr Notizen, machte Haken, stempelte das Formular und gab ihm eine kleine Karte. 
 
-Vielleicht war es das für ihn.
+"Das ist Ihre vorläufige Aufenthaltsgenehmigung. Sie gilt für drei Monate. Suchen Sie sich innerhalb dieser Zeit eine Beschäftigung und eine dauerhafte Unterkunft. Andernfalls müssen Sie die Stadt verlassen. Allerdings wird das kein Problem sein, da Sie ja Meteorologe sind. Sie gehen jetzt am besten direkt zur Universität. Dort wird man ihnen eine Unterkunft zur Verfügung stellen können. Sollte das nicht klappen, gibt es eine Sammelunterkunft, in der sie erst einmal unterkommen könnten."
 
-Vera schenkte sich eine Tasse ein und setzte sich dann doch richtig auf das Sofa, die Beine nebeneinander, die Haltung gerade. »Frina hat gesagt, dass von dir Dinge zu erwarten sind, die neu sein könnten«, sagte sie. »Was bedeutet das konkret?«
+Sie deutete auf eine andere Tür an der Rückseite des Raumes. 
 
-»Das hat sie mir nicht erklärt«, sagte ich.
+"Da geht es in die Stadt. Willkommen in der City, Jom."
 
-»Frina erklärt selten mehr, als sie für notwendig hält.«
+Er dankte der Frau und ging zur Tür. Als er sie öffnete, strömte ihm der Lärm und das Leben der Stadt entgegen. Er trat hinaus und stand auf einer belebten Straße.
 
-»Das habe ich gemerkt.«
+Vor ihm erstreckte sich die City in all ihrer fremdartigen Pracht. Gebäude aus Stein und Holz erhoben sich mehrere Stockwerke hoch. Menschen strömten durch die Straßen. Hinter der Stadt wölbte sich die gigantische, durchscheinende Kuppel, durch die das Licht der beiden Sonnen in seltsamen Mustern gebrochen wurde.
 
-Vera sah mich an, und ich hatte das Gefühl, dass sie gerade entschied, wie viel Aufwand es wert war, weiterzufragen. »Du hast keine Ausbildung. Du weißt nicht, was du tust. Du bist aus einer anderen Welt und schläfst dich hierher.« Sie machte eine kurze Pause. »Und trotzdem bist du das Einzige, das zwischen den Welten reisen kann.«
+Jom atmete tief durch. Er war angekommen.
 
-»Ja«, sagte ich.
 
-»Das ist unbefriedigend.«
+# Chapter 13
 
-»Für mich auch.«
+Er stand mitten in der Straße. Die »City« roch nach Stein, Holz, Essen, Schweiß und noch etwas anderem, das er nicht einordnen konnte. Menschen hasteten an ihm vorbei, zu Fuß, mit zweirädrigen Karren, auf hölzernen Wagen, die von diesen hässlichen, halslosen Viechern gezogen wurden. Es gab keine Autos, keine Motoren, keinen Lärm, wie man ihn von der Erde kannte. Aber alles andere war da – die Hektik, das Gedränge, das ewige Suchen nach dem richtigen Weg.
 
-Vera trank einen Schluck. Dann, sehr kurz, zog sich ein Winkel ihres Mundes nach oben. Es war kein Lächeln, aber es war auch kein Nicht-Lächeln mehr.
+Er ging los, einfach der Straße nach, immer mit Blick auf die Kuppel, die wie ein riesiger, blauer Pilz hinter allem thronte. An der nächsten Ecke stand ein Mann und rauchte. Jom blieb stehen und fragte ihn nach dem Weg zur Universität. Der Mann blinzelte, als hätte er seit Jahren kein so banales Anliegen mehr gehört.
 
-Malachai lehnte sich zurück und streckte die Arme aus. »Oswin fehlt noch«, sagte er zu Ezra. »Soll ich ihn holen?«
-
-»Er kommt, wenn er fertig ist«, sagte Ezra.
-
-»Er ist immer noch nie fertig.«
-
-»Ich weiß.«
-
-Ich sah mich im Raum um. Die Lampe warf Schatten an die Wand, die sich mit dem Licht von draußen mischten. Auf dem Tisch stand neben der Kanne ein kleines Gerät aus Messing, das ich nicht identifizieren konnte, und ein Stapel Karten, die wie Stadtpläne aussahen. Die Wände hatten keine Bilder, aber an einem Haken neben der Tür hingen mehrere Mäntel übereinander, und darunter stand ein Paar Stiefel, die nicht zu den Mänteln passten. Es war ein Raum, in dem Menschen lebten und arbeiteten und manchmal vergaßen, Dinge wegzuräumen.
-
-Ich dachte an etwas, das mich schon eine Weile beschäftigte.
-
-»Kann ich etwas fragen?«
-
-»Du fragst sowieso«, sagte Malachai. »Also ja.«
-
-»Ihr sprecht alle Deutsch«, sagte ich. »Ich meine — Ezra klingt nicht wie jemand aus Berlin. Vera auch nicht. Und Frina schon gar nicht. Aber ich verstehe euch alle problemlos, und ihr versteht mich. Wie funktioniert das?«
-
-Malachai sah mich an, als hätte ich etwas gesagt, das er nicht erwartet hatte, aber nicht auf eine schlechte Art. »Das ist eine gute Frage«, sagte er. »Und die Antwort ist: Wir sprechen nicht Deutsch.«
-
-Ich wartete.
-
-»Wir sprechen gar nicht dieselbe Sprache«, sagte er. »Nicht wirklich. Ich komme aus dem Westbezirk, Keal aus dem Norden, Vera aus einem Gebiet, das du dir auf keiner Karte vorstellen kannst, und Ezra—« Er sah kurz zu Ezra.
-
-»Das ist eine längere Geschichte«, sagte Ezra.
-
-»Ezra ist kompliziert«, sagte Malachai. »Der Punkt ist: Wir sprechen alle verschiedene Sprachen. Aber du verstehst uns, weil die Stadt dafür gesorgt hat, dass du es tust.«
-
-»Die Stadt«, sagte ich.
-
-Malachai stand auf und ging zum Fenster. Er deutete nach draußen, und ich folgte seinem Blick. Auf den Dächern der umliegenden Gebäude standen Türme, schmal und hoch, aus demselben dunklen Metall wie die Wände in den anderen Räumen, mit einem Aufsatz oben, der sich langsam drehte. Sie standen in regelmäßigen Abständen, so weit ich sehen konnte, auf jedem zweiten oder dritten Dach.
-
-»Konvergenzsäulen«, sagte Malachai. »Sie stehen überall in der Stadt. Auf den Dächern, an den Kreuzungen, manchmal in den Türmen der älteren Gebäude. Sie erzeugen ein Feld, das Sprache übersetzt — nicht wörtlich, sondern im Verständnis. Du hörst mich in dem, was dein Gehirn als Sprache kennt. Ich höre dich in dem, was meines kennt. Wir verstehen uns trotzdem.«
-
-Ich sah auf die Türme. Sie drehten sich langsam und gleichmäßig, und ich hatte sie vorher gesehen, ohne zu wissen, was sie waren. Ich hatte sie für Wettergeräte gehalten, oder für etwas Dekoratives.
-
-»Wie Handymasten«, sagte ich.
-
-Malachai sah mich an. »Ich weiß nicht, was das ist.«
-
-»Etwas aus meiner Welt«, sagte ich. »Türme, die Signale übertragen. Damit Menschen miteinander kommunizieren können, auch wenn sie weit voneinander entfernt sind.«
-
-»Dann ja«, sagte Malachai. »Ungefähr so. Nur dass es hier keine Elektrizität ist, die das trägt.«
-
-»Magie«, sagte ich.
-
-»Resonanzmagie«, sagte er. »Eine der wenigen Anwendungen, über die niemand streitet. Sprache zu überbrücken ist politisch unproblematisch. Alle wollen verstanden werden.«
-
-Vera hatte zugehört, ohne etwas zu sagen. Jetzt stellte sie ihre Tasse ab. »Du hast also die ganze Zeit gedacht, wir sprechen deine Sprache.«
-
-»Ja«, sagte ich.
-
-»Das tun wir nicht.«
-
-»Das weiß ich jetzt.«
-
-Sie sah mich an, und diesmal war der Ausdruck in ihrem Gesicht etwas, das ich vorsichtig als Anerkennung einordnete. Nicht warm, aber ehrlich. »Gut«, sagte sie. »Es ist besser, wenn du weißt, wie die Dinge wirklich funktionieren.«
-
-Keal hatte das Buch zugeklappt und hielt es jetzt auf den Knien. Er sah aus dem Fenster, auf die Türme, die sich drehten
-
-
-# 
-
-Meine Augen brannten, als hätte jemand Sand hineingestreut.
-
-Ich blinzelte, versuchte die verschwommenen Buchstaben auf dem Seminarblatt zu entziffern, doch die Wörter verschmolzen zu grauen Flecken. Die Stimme des Dozenten drang wie durch Watte zu mir – ein monotones Summen ohne Bedeutung. Ich zog die Jacke enger um mich, obwohl der Seminarraum überheizt war.
-
-Vier Wochen waren vergangen seit dem Vorfall in der U-Bahn-Station. Vier Wochen, in denen ich gelernt hatte, dass zwischen zwei Welten zu pendeln nicht nur ein metaphorisches Konzept war, sondern eine physische Belastung, die meinen Körper langsam auslaugte.
-
-»Frau Kessler?« Die Stimme des Dozenten durchbrach meinen Gedankenstrom.
-
-Ich riss mich zusammen. »Ja?«
-
-»Könnten Sie vielleicht die These des Textes zusammenfassen?«
-
-Ich starrte auf das Blatt vor mir. Die Überschrift lautete »Poststrukturalistische Ansätze in der Literaturtheorie«. Ich hatte die letzten zwanzig Minuten damit verbracht, nicht an Literaturtheorie zu denken, sondern an die Panoramaaussicht über die Königsstadt. An die goldenen Türme, die sich im Morgenlicht spiegelten. An die Konvergenzsäulen, die sich langsam drehten wie Wächter über einer Welt, die niemand sonst kannte.
-
-»Die These …« Ich schluckte. »Die These besagt, dass Bedeutung nicht festgelegt ist, sondern … fließend.«
-
-Der Dozent wartete. Ich wusste, dass mehr kam, dass ich mehr sagen musste, aber mein Gehirn weigerte sich, die richtigen Wörter zu finden.
-
-»Und was bedeutet das für die Textanalyse?« fragte er.
-
-»Es bedeutet …« Ich suchte verzweifelt nach einer Antwort. »Es bedeutet, dass jeder Leser seinen eigenen Zugang hat.«
-
-Der Dozent nickte, nicht ganz zufrieden, aber bereit, weiterzumachen. Ich atmete aus und senkte den Blick. Meine Hände zitterten leicht. Das letzte Mal, dass ich etwas gegessen hatte, war gestern Mittag gewesen. Ein Apfel, den ich halb aufgefressen hatte, bevor ich eingeschlafen war.
-
-Eingeschlafen. Das war das Problem. Ich schlief ein, sobald ich konnte – in der U-Bahn, in der Bibliothek, einmal sogar während einer Vorlesung. Doch beim Aufwachen fühlte ich mich nicht erholt, sondern ausgelaugt, als hätte der Schlaf nicht erquickt, sondern nur Energie abgezogen. Die Crux war: Der Wechsel in die Traumwelt bedeutete *keinen* Schlaf. Wollte ich nicht am Schlafmangel zugrunde gehen, musste ich schlafen, ohne hinüberzugleiten. Ein schrecklicher Gedanke. 
-
-Die Seminarstunde endete schließlich. Ich packte meine Sachen zusammen, langsam und mechanisch. Draußen wartete Nele, ihr schwarzer Pixie-Cut war zerzaust vom Wind.
-
-»Du siehst schrecklich aus«, sagte sie, ohne Umschweife.
+»Uni? Klar, immer geradeaus, dann am Hauptplatz links, dann siehste schon die hohen Fenster. Kannste nicht verfehlen.«
 
 »Danke.«
 
-»Im Ernst, Luna. Deine Augen sind …« Sie machte eine Geste. »Tot.«
+Der Raucher grinste. »Viel Spaß bei den Eierköpfen.«
 
-»Es ist nur Müdigkeit.«
+Er ging los. Menschen kamen ihm entgegen, wichen aus, blickten kurz auf und dann wieder weg. Die Menschen hier waren schlank, oft gebräunt, selten größer als er. Alle trugen Kleidung in gedeckten Farben. Anscheinend gab es auf diesem Planeten keine wirklich kräftigen Färbemittel. Es gab auch Frauen, die in Gruppen lachten oder mit Kindern an der Hand unterwegs waren. 
 
-»Es ist nicht nur Müdigkeit.« Nele ging neben mir her, ihre Stiefel klapperten auf dem Pflaster. »Du bist seit Wochen nicht mehr du selbst. Du antwortest nicht auf Nachrichten, du sagst Verabredungen ab, und wenn du da bist, bist du nicht wirklich da.«
+Er bog wie beschrieben links ab und stand nur Sekunden später vor dem, was man ohne weiteres als »Uni« erkennen konnte. Drei oder vier Gebäude, nüchtern, Rechtecke aus hellem Stein, endlose Fensterbänder, die sich in den beiden Sonnen spiegelten. Davor ein Gewimmel aus jungen Leuten, die allesamt so taten, als seien sie klüger, schneller und schöner als der Rest der Welt.
 
-Ich wusste, dass sie recht hatte. In den letzten Wochen hatte ich mehr Zeit in der Traumwelt verbracht als in Berlin. Frina hatte meine Ausbildung begonnen, und je mehr ich lernte, desto mehr wollte ich lernen. Die emotionale Magie wirkte wie eine Droge – jedes Mal, wenn ich sie nutzte, fühlte ich mich lebendiger, präsenter, als wäre ich endlich an dem Ort, an den ich gehörte.
+Er ging auf das mittlere Gebäude zu und ging durch den Haupteingang. Er fand sich in einer großen Halle wieder und überall wuselten Studenten herum. 
 
-»Es ist das Semester«, sagte ich. »Die Prüfungen kommen näher.«
+Er blickte umher und ihn beschlich das Gefühl, dass er irgendetwas übersah. Etwas war anders, als er es erwartet hatte. Dann traf es ihn wie ein Schlag ins Gesicht. An der Decke hingen Lampen. Offensichtlich elektrisch betriebene Lampen, und so wie sie aussahen, handelte es sich um Glühlampen.
 
-»Bullshit.« Nele blieb stehen. »Du hast noch nie so auf Prüfungen reagiert. Und außerdem hast du in der letzten Seminararbeit eine Eins bekommen. Du bist nicht gestresst. Du bist — woanders.«
+»Das ist ja ein Ding«, sagte Jom zu sich selbst. Hier gab es elektrischen Strom und elektrische Beleuchtung. Allerdings nahm er ein leichtes Flackern wahr. Jede Lampe schien in einem eigenen Rhythmus zu pulsieren, nicht sehr stark aber wahrnehmbar. 
 
-Ich wollte ihr die Wahrheit sagen – dass ich jede Nacht in eine andere Welt reiste, Magie lernte, Teil von etwas Größerem war. Doch die Worte blieben in meiner Kehle stecken. Wie hätte ich das erklären sollen, ohne dass sie mich für verrückt hielt?
+Nachdem er sich von seiner Überraschung erholt hatte, blickte er sich um und wie erhofft fand er linker Hand einen Tresen, hinter dem ein Mann stand, der gelangweilt ins Leere starrte.
 
-»Es tut mir leid«, sagte ich stattdessen. »Ich weiß, dass ich ein schlechter Freund bin im Moment.«
+Der Mann wirkte überrascht, als Jom an den Tresen herangetreten war. Anscheinend hatte er nicht damit gerechnet, dass ihn jemand tatsächlich ansprechen würde. 
 
-Nele seufzte. »Du bist nicht schlecht. Du bist abwesend. Das ist etwas anderes.« Sie legte eine Hand auf meinen Arm. »Wenn du reden willst – ich bin da, okay?«
+»Was kann ich für Sie tun?«, fragte der Mann nun. Seine Lippen formten ein sehr dünnes Lächeln.
 
-Ich nickte und lächelte, wusste aber, dass ich nicht reden würde. Nicht jetzt. Vielleicht nie.
+Jom dagegen setzte sein gewinnendstes Lächeln auf.
 
-Zu Hause wartete Marcus mit dem Abendessen. Er hatte mir eine Nachricht geschickt, er würde kommen und für uns beide kochen. Es war schließlich immer noch seine Wohnung, auch wenn er nicht mehr hier lebte.
+»Ich bin neu in der Stadt und man hat mir gesagt, ich solle mich hier melden. Ich bin Meteorologe.« Die Frau an der Anmeldung hatte ihm das Wort beigebracht.
 
-Er hatte Nudeln gekocht, eine einfache Tomatensoße, und den Tisch gedeckt, als wäre es ein besonderer Anlass.
+Nun hellte sich sein Gesicht auf.
 
-»Hungrig?« fragte er, als ich die Tür öffnete.
+»Sie sind … Meteorologe? Und sie sind nicht wieder nur so ein Scherzkeks aus dem Westflügel?«
 
-»Ein bisschen.« Ich ließ meine Tasche fallen und setzte mich an den Tisch. Die Nudeln sahen gut aus, aber mein Magen protestierte bei dem Gedanken, etwas zu essen.
+»Ich versichere Ihnen, dass ich kein Scherzkeks aus dem Westflügel bin. Ich weiß nicht mal, was der Westflügel ist. Ich versichere Ihnen, ich bin Meteorologe mit Uniabschluss und jeder Menge Berufserfahrung.«
 
-Marcus setzte sich mir gegenüber. Er beobachtete mich, während ich eine Gabel voller Nudeln zum Mund führte. Ich kaute mechanisch, schluckte, nahm den nächsten Bissen.
+Jom beobachtete, wie der Mann hinter dem Tresen ihn musterte, als wäre er ein seltenes Insekt. Der Blick des Mannes wanderte von Joms Gesicht zu seinen Füßen und wieder zurück, als ob er sicherstellen wollte, dass Jom wirklich existierte.
 
-»Alles okay bei dir?« fragte er schließlich.
+»Ein Meteorologe«, murmelte der Mann schließlich, mehr zu sich selbst als zu Jom. »Das wird den Fachbereichsleiter freuen. Darauf hatte der schon lange gehoffft. Gehen sie rauf in den zweiten Stock Zimmer 205. «
 
-»Natürlich.« Ich lächelte. »Warum?«
+Jom nickte und machte sich auf den Weg zur Treppe. Die Stufen waren aus Stein und fühlten sich kühl unter seinen Füßen an. Sie waren in der mitte leicht abgewtzt. Wie lange gab es diese Universiät schon? 
 
-»Du siehst müde aus.«
+Im zweiten Stock angekommen, sah er sich um. Die Wände waren in einem hellen Beige gestrichen, und die Türen waren aus dunklem Holz. Wieder fühlte er dieses absurde Gefühl der Normalität. Alles sah so vertraut aus. Er fand Zimmer 205 und klopfte an.
 
-»Bin ich auch.« Ich nahm einen Schluck Wasser. »Semesterstress.«
+Eine Stimme rief von drinnen: »Herein!«
 
-Marcus nickte, aber ich sah, dass er nicht überzeugt war. Er kannte mich zu gut. Er wusste, dass ich nicht so auf Stress reagierte. Normalerweise wurde ich aktiv, organisierte mich, machte Listen. Nicht so – nicht dieses langsame Versinken in Müdigkeit, dieses ständige Abschweifen der Gedanken.
+Jom öffnete die Tür und trat ein. Das Zimmer war ein Vorzimmer, in dem eine junge Frau an einem Schreibtisch saß. Sie blickte auf und lächelte ihn an. 
 
-»Du isst kaum noch«, sagte er. »Und wenn du isst, dann nur, weil ich dich dazu bringe.«
+»Was kann ich für Sie tun?«
 
-»Ich esse genug.«
+Jom sagte seinen Spruch auf und das Gesicht der Assistentin erhellte sich wie schon das zuvor beim Pförtner. 
 
-»Nein, tust du nicht.« Er legte die Gabel hin. »Luna, ich mache mir Sorgen.«
+»Metereologe? Das ist ja fantastisch. Ich melde sie gelicht an.«
 
-»Mach dir keine Sorgen.« Ich stand auf und brachte meinen Teller in die Küche. Die Nudeln waren kaum angerührt. »Ich bin nur müde. Das geht vorbei.«
+Sie stand auf und ging zu einer weiteren Tür, klopfte an und trat ein. Jom hörte gedämpfte Stimmen, dann kam die Frau zurück und hielt die Tür auf. »Sie können jetzt hineingehen.«
 
-Marcus folgte mir. »Und die Ringe unter deinen Augen? Die fahle Haut? Das Zittern deiner Hände?«
+Jom trat ein und fand sich in einem großen, hellen Büro wieder. Hinter einem Schreibtisch saß ein relativ junger Mann, der sofort aufstand und ihm die Hand entgegenstreckte. »Willkommen, willkommen! Sie sind also Meteorologe. Das ist ja fantastisch!« 
 
-Ich starrte auf meine Hände. Er hatte recht. Sie zitterten tatsächlich, ein feines, konstantes Beben, das ich selbst nicht bemerkt hatte.
+Langsam wurde jom diese Begeisterung etwas peinlich.
 
-»Es ist nichts«, sagte ich.
+ Jom schüttelte die Hand des Mannes. »Ja, ich bin Meteorologe. Jom ist mein Name.«
 
-»Es ist nicht nichts.« Marcus’ Stimme wurde härter. »Du veränderst dich, Luna. Und ich weiß nicht warum.«
+»Freut mich sehr, Jom. Ich bin Franz, der Fachbereichsleiter. Setzen Sie sich doch bitte.« Er deutete auf einen Stuhl vor dem Schreibtisch. »Ich muss sagen, wir haben schon viele interessante Leute hier gehabt, aber einen Meteorologen noch nie. Das ist wirklich eine Bereicherung für unsere Universität. Sind Sie neu in der Stadt?«
 
-Ich drehte mich zu ihm um. Sein Gesicht war angespannt, die Falten zwischen seinen Augenbrauen vertieft. Er machte sich wirklich Sorgen, und ich konnte ihm nichts sagen, was ihn beruhigen würde.
+»Ich bin sogar neu auf diesem Planeten. Aber ja, ich praktisch gerde eben angekommen.« 
 
-»Ich muss schlafen«, sagte ich. »Wir können morgen reden.«
+Franz zeigt auf einen Stuhl. Jom setzte sich und sah den Mann vor ihm an. Er strahlte eine Energie aus, die ansteckend war. 
 
-»Du sagst das schon seit Wochen.«
+»Ich freue mich, hier zu sein. Was genau erwarten Sie von mir?«
 
-»Ich weiß.« Ich ging an ihm vorbei, zurück ins Wohnzimmer, wo ich meine Tasche aufgehoben hatte. »Gute Nacht, Marcus.«
+Franz lehnte sich in seinem Stuhl zurück und lächelte. »Nun, wir haben hier einige meteorologische Phänomene, die wir noch nicht ganz verstehen. Ihre Expertise könnte uns sehr helfen. Wir haben natürlich keine modernen Instrumente, aber wir haben einige grundlegende Messgeräte und eine Menge Daten, die wir gesammelt haben. Ich bin sicher, Sie werden sich schnell zurechtfinden.«
 
-Er antwortete nicht. Ich hörte, wie er in der Küche blieb, wie er den Wasserhahn aufdrehte, wie er die Teller abspülte. Die Geräusche waren vertraut, beruhigend, und doch fühlten sie sich an wie aus einer anderen Welt.
+Jom nickte. »Das klingt gut. Ich bin bereit, sofort anzufangen.«
 
-In meinem Zimmer zog ich mich aus und kroch ins Bett. Die Matratze war weich, die Decke warm, und doch sehnte ich mich nach dem harten Bett in der Traumwelt, nach dem Geruch von Metall und altem Holz, nach dem Licht der Konvergenzsäulen, das durch die Fenster fiel.
+Franz klatschte in die Hände. »Ausgezeichnet! Dann lassen Sie uns keine Zeit verlieren. Ich werde Ihnen eine Unterkunft und alles Notwendige zur Verfügung stellen lassen. Sie werden sehen, die Stadt hat viel zu bieten.«
 
-Ich schloss die Augen und ließ mich fallen.
+Das Gespräch verlief weiter in freundlicher Atmosphäre, und Jom fühlte sich willkommen und geschätzt. Nach einer Weile stand Franz auf und begleitete Jom zurück ins Vorzimmer.
 
-Der Übergang war nicht mehr so abrupt wie am Anfang. Es war, als würde ich in warmes Wasser gleiten, sanft, ohne Widerstand. Die Geräusche von Berlin verblassten – das Rauschen des Verkehrs, das Summen des Kühlschranks, Marcus’ Schritte im Flur. Stattdessen hörte ich das leise Pulsieren der Adern in den Wänden, das metallische Klicken der Zahnräder über mir.
+»Ich entlasse Sie jetzt in die fähigen Hände meiner Assistentin«, sagte Franz. »Sie wird Ihnen alles Weitere erklären.«
 
-Ich öffnete die Augen. Ich lag auf dem schmalen Bett in meinem Zimmer in der Traumwelt, einem Raum, den sie für mich eingerichtet hatten. Die Wände waren aus dem gleichen dunklen Metall wie der Rest des Gebäudes, durchzogen von den blaugrünen Adern, die in einem langsamen, beruhigenden Rhythmus leuchteten. Das Fenster ging auf die Stadt hinaus, und ich konnte die Türme sehen, die sich im Morgenlicht drehten.
+Die Assistentin lächelte Jom an. »Ich werde Ihnen jetzt die Zimmervermittlung zeigen. Dort werden Sie eine Unterkunft bekommen.«
 
-Ich stand auf und streckte mich. Hier fühlte ich mich nicht müde. Hier fühlte ich mich lebendig.
+Sie gab Jom einen Schrieb und führte ihn aus dem Büro. Jom folgte ihr durch die Gänge der Universität, vorbei an Studenten und Dozenten, die alle beschäftigt wirkten. Die Assistentin erklärte ihm den Weg zur Zimmervermittlung, und Jom prägte sich alles genau ein.
 
-Frina wartete bereits im Trainingsraum. Sie stand am Fenster und beobachtete die Stadt, ihre Hände hinter dem Rücken verschränkt. Als ich eintrat, drehte sie sich um.
+Als sie die Zimmervermittlung erreichten, verabschiedete sich die Assistentin und wünschte Jom viel Glück. Jom bedankte sich und betrat das Büro. Hinter einem Schreibtisch saß ein älterer Mann, der ihn freundlich anlächelte.
 
-»Du bist spät«, sagte sie.
+»Willkommen in der City«, sagte der Mann. »Ich bin hier, um Ihnen eine Unterkunft zu vermitteln. Haben Sie schon eine Vorstellung, wo Sie wohnen möchten?«
 
-»Es ist schwer, den Übergang zu kontrollieren.«
+Jom schüttelte den Kopf. »Nein, ich bin neu hier. Ich vertraue auf Ihre Empfehlung.«
 
-»Ich weiß.« Frina ging zum Tisch in der Mitte des Raumes, auf dem verschiedene Gegenstände lagen – Kristalle, Metallstücke, ein Buch. »Heute werden wir weiter an deiner Fähigkeit arbeiten, emotionale Energie nach außen zu richten.«
+Der Mann nickte. »Gut, dann werde ich Ihnen eine Unterkunft in der Nähe der Universität suchen. Das wird am praktischsten für Sie sein.«
 
-Ich nickte. In den letzten Wochen hatte Frina mir die Grundlagen der emotionalen Magie beigebracht. Na ja, was heißt beigebracht? Sie hatte mir davon erzählt. Sie hatte mir erzählt, wie man die eigene emotionale Energie greifen konnte, wie man sie nach innen richten und so die Wahrnehmung von Kraft und Grenze verändern konnte. Nichts von dem, was sie erzählte, konnte ich wirken, alles was funktionierte, war den Funken der Magie in mir zu zünden. 
+Er blätterte durch einige Papiere und fand schließlich, was er suchte. »Hier haben wir es. Ein Zimmer im Wohnheim direkt neben der Universität. Es ist sauber und gut ausgestattet. Ich denke, das wird Ihnen gefallen.«
 
-»Setz dich«, sagte Frina.
+Jom nahm den Schlüssel und die Zimmernummer entgegen. Das Gebäude war praktisch direkt gegenüber der Universität, er würde sich nicht wieder durchfragen müssen. 
 
-Ich setzte mich auf den Stuhl gegenüber von ihr. Sie nahm einen Kristall vom Tisch – klein, klar, mit einem sanften goldenen Schimmer.
+»Vielen Dank. Ich werde mich sofort auf den Weg machen.«
 
-»Dieser Kristall reagiert auf emotionale Energie«, erklärte sie. »Wenn du ihn berührst und eine Emotion kanalisierst, wird er die Farbe wechseln.«
+Der Mann lächelte. »Gern geschehen. Willkommen in der City, Jom. Ich hoffe, Sie fühlen sich hier wohl. Ach, da fällt mir noch etwas ein. Hätte ich beinahe vergessen.«
 
-Sie legte den Kristall vor mich hin. Ich betrachtete ihn. Er war warm, obwohl niemand ihn berührt hatte.
+Er öffnete eine Schublade seines Schreibtisches und kramte darin herum. Schließlich zog er einige bunte Papiere hervor. 
 
-»Versuche, Freude zu kanalisieren«, sagte Frina. »Konzentriere dich auf etwas, das dich glücklich macht, und lasse die Energie durch deine Hände fließen. So wie wir es geübt haben.«
+»Ein kleiner Vorschuss. Wir wollen ja nicht, dass Sie verhungern. Um die Universität herum gibt es jede Menge *Cafés* und *Restaurants*. Das funktioniert alles so wie zu Hause.«
 
-Ich schloss die Augen und dachte an Nele, an unsere gemeinsamen Abende, an ihr Lachen, wenn ich etwas Dummes sagte. Ich fühlte, wie sich etwas in meiner Brust erwärmte, ein sanftes Prickeln, das sich langsam ausbreitete. Ich öffnete die Augen und legte meine Hände um den Kristall.
+Jom hatte keine Lust nachzufragen, er konnte sich denken, was *Cafés* und *Restaurants* waren. 
 
-Er leuchtete auf – nicht stark, aber deutlich. Ein warmes Rosa.
+Schließlich verließ das Büro und machte sich auf den Weg zum Wohnheim. Die Stadt war voller Leben und Energie, und er fühlte sich bereit, dieses neue Kapitel seines Lebens zu beginnen.
 
-»Gut«, sagte Frina. »Jetzt versuche, die Energie zu halten. Nicht mehr, nicht weniger. Halte sie konstant.«
 
-Ich konzentrierte mich auf das Gefühl in meiner Brust, versuchte, es zu bündeln, zu kontrollieren. Der Kristall pulsierte im Rhythmus meines Atems, rosa, dann heller rosa, dann wieder dunkler. Es war schwerer, als es aussah. Die Energie wollte nicht stillhalten – sie wollte fließen, sich ausbreiten, wie Wasser, das man in den Händen hält.
+# Kapitel 14
 
-»Du kämpfst dagegen an«, sagte Frina. »Das ist der falsche Ansatz. Du musst die Energie nicht kontrollieren. Du musst sie verstehen.«
 
-»Ich verstehe sie nicht.«
+Er lag auf dem Bett und hielt die bunten Scheine in der Hand. Die Zahlen konnte er inzwischen lesen. Zehner. Zwanziger. Ein Fünfziger.
 
-»Dann lerne.«
+Auf jedem Schein war dasselbe Gesicht zu sehen. Ein älterer Mann mit ruhigem Blick.
 
-Ich atmete tief ein und aus. Das Rosa des Kristalls flackerte. Ich dachte wieder an Nele, an ihr Lachen, an die Sicherheit, die ich in ihrer Gegenwart fühlte. Die Energie wurde stabiler, aber nicht konstant. Sie pulsierte immer noch, wie ein Herzschlag.
+Jom kannte ihn. Er hatte ihn auf der Zeitung gesehen, die auf dem Basar vor der Stadt ausgelegen hatte. Also kein längst verstorbener Held, keine Figur aus einer fernen Vergangenheit. Wahrscheinlich der aktuelle Chef dieser Stadt. Oder etwas Vergleichbares.
 
-»Besser«, sagte Frina. »Aber nicht gut genug.«
+Offenbar wichtig genug, um sich selbst auf jedes Zahlungsmittel drucken zu lassen.
 
-Sie nahm den Kristall aus meinen Händen und legte ihn zurück auf den Tisch. Dann ging sie zu einem der Regale und holte einen zweiten Kristall – größer, dunkler, mit einem bläulichen Schimmer.
+Er legte die Scheine neben sich auf das Bett und blickte aus dem Fenster. Er sah nur das oberste Stockwerk der Universität und darüber den blauen Himmel. Doch aus der Tiefe der Straßen drang Lärm herauf. Stimmen. Schritte. Leben.
 
-»Dieser ist schwieriger«, sagte sie. »Er reagiert auf subtilere Emotionen. Auf Trauer, auf Sehnsucht, auf das, was zwischen den großen Gefühlen liegt.«
+Es war früher Abend. Er hätte hinausgehen können. Eine Gaststätte suchen. Etwas essen.
 
-Sie stellte ihn vor mich hin.
+Er tat es nicht. Ihm fehlte die Kraft. Sein Magen knurrte, aber er ignorierte es.
 
-»Versuche es.«
+Das Zimmer war schlicht. Ein Tisch. Ein Schreibtisch. Zwei Stühle. Das Bett. Er stand auf.
 
-Ich schloss die Augen, suchte nach dem Gefühl zwischen Freude und Trauer, dem Unbenannten. Meine Gedanken wanderten zu Marcus, zur Sorge in seinem Blick, zu allem, was ich ihm verschwieg. Zu den Lügen, die die Wahrheit schützen sollten. Zu der Schuld, die sich in meiner Brust aufstaute wie Wasser vor einem Damm.
+In die Wand war ein Schrank eingelassen. Daneben ein kleiner Nebenraum. Dort hing ein Waschbecken aus weißer Keramik. Genau so, wie er es von zu Hause kannte.
 
-Der Kristall reagierte sofort. Nicht mit einem sanften Leuchten wie der erste, sondern mit einem tiefen, vibrierenden Blau, das durch den Raum pulsierte. Es war schön und schmerzhaft zugleich.
+Nur der Wasserhahn war anders.
 
-»Das ist nicht nur Trauer«, sagte Frina. »Das ist etwas anderes.«
+Ein hölzerner Schieber, befestigt an einem Keramikrohr, das in der Wand verschwand.
 
-»Was?«
+Er schob ihn vorsichtig zur Seite. Wasser lief. Klar. Kalt.
 
-Sie betrachtete den Kristall mit einer Intensität, die fast unangenehm war. »Das ist der Preis«, sagte sie schließlich. »Der Preis des Doppellebens.«
+Er hielt die Hände darunter und stellte fest, dass er erleichtert war.
 
-Ich öffnete die Augen. »Was meinst du?«
+Er schob den hölzernen Griff zurück. Das Wasser versiegte sofort.
 
-»Du lebst in zwei Welten, Luna. Dein Körper, dein Geist, deine Emotionen – alles ist geteilt. Und jedes Mal, wenn du hierher kommst, wenn du Magie nutzt, ziehst du Energie aus demselben Reservoir, das du in deiner Welt brauchst.«
+Gut, dachte er. Wenigstens das funktionierte.
 
-»Also bin ich müde, weil ich hier Magie nutze?«
+Er setzte sich wieder auf das Bett. Die Scheine lagen noch dort, ordentlich nebeneinander. Er steckte sie in die Innentasche seines Jacketts und ließ sich rücklings fallen. Die Matratze gab kaum nach.
 
-»Du bist müde, weil du hier lebst.« Frina legte eine Hand auf den Kristall, und das Blau beruhigte sich. »Was immer du hier tust, hat Konsequenzen dort. Wenn du hier einen Muskel anspannst, spürst du die Anstrengung dort. Wenn du hier emotional erschöpft bist, bist du es dort auch.«
+Das Wohnheim war stiller, als er erwartet hatte. Ab und zu Schritte im Flur. Gedämpfte Stimmen hinter den Wänden. Keine Musik. Kein Lachen. Niemand, der anklopfte.
 
-Ich dachte an die Müdigkeit in Berlin, an die Ringe unter meinen Augen, an das Zittern meiner Hände. »Also ist es nicht nur Schlafmangel.«
 
-»Nein.« Frina sah mich an, und in ihren grauen Augen lag etwas, das wie Mitgefühl aussah. »Es ist der Preis. Und er wird höher werden, je mehr du lernst.«
+# Kapitel 15
 
-»Warum hast du mir das nicht früher gesagt?«
 
-»Weil du es nicht gehört hättest.« Frina stand auf und ging zum Fenster. »Du warst zu fasziniert von der Magie, zu begierig zu lernen. Jetzt, wo du die Grundlagen beherrschst, kannst du die Wahrheit verstehen.«
+Die meteorologische Abteilung der Universität entpuppte sich als ein einziger, unscheinbarer Raum. Jom hatte mit Laboren und primitiven Messgeräten gerechnet, vielleicht Barometern und Windmessern aus dem letzten Jahrhundert. Stattdessen fand er sich in einem staubigen Büro wieder, dessen Fenster seltsam undurchsichtig und von Blasen durchsetzt waren. Anscheinend war die Glasproduktion hier noch nicht auf dem Stand der Erde angelangt. Das Sonnenlicht war dementspechend etwas gedämpft. An den Wänden standen handgefertigte Regale, vollgestopft mit handgeschriebenen Aufzeichnungen. Doch was ihn wirklich verblüffte: Auf dem massiven Holztisch, der den Raum dominierte, lagen mehrere Laptops. Er berührte unwillkürlich die Tasche an seiner Seite, in der sein iPad ruhte – sein eigenes Stück Technologie, das er mitgebracht hatte. Natürlich war er nicht der erste, der Technologie mitgebracht hatte.
 
-Ich starrte auf den Kristall. Das Blau war jetzt nur noch ein sanftes Leuchten, wie das letzte Licht eines Sonnenuntergangs. »Was passiert, wenn der Preis zu hoch wird?«
+"Ah, da sind Sie ja!", kam eine dünne Stimme von der Fensterseite.
 
-Frina drehte sich nicht um. »Dann musst du eine Entscheidung treffen.«
+Ein schmächtiger Mann mittleren Alters trat aus dem Halbschatten. Seine Drahtbrille saß schief auf der Nase, und sein graues Haar stand in alle Richtungen ab. Er trug ein fleckiges Hemd, dessen Ärmel nachlässig hochgekrempelt waren.
 
-»Welche Entscheidung?«
+"Professor Einar Weiss", stellte er sich vor und streckte Jom eine knochige Hand entgegen. "Willkommen in unserer bescheidenen Abteilung für Meteorologie."
 
-»Welche Welt dir wichtiger ist.«
+Joms Hand verschwand fast vollständig in dem kräftigen Händedruck des schmächtigen Mannes. "Jom. Freut mich, Sie kennenzulernen."
 
-Die Worte hingen schwer im Raum. Ich wollte protestieren, wollte sagen, dass ich keine Entscheidung treffen musste, dass ich beides haben konnte. Aber die Müdigkeit in meinen Knochen, das Zittern meiner Hände, die Ringe unter meinen Augen – all das sagte mir, dass Frina recht hatte.
+"Ein echter Meteorologe." Einar schüttelte ungläubig den Kopf. "Wissen Sie, wie lange wir darauf gewartet haben? Ich meine, wir haben versucht, uns das Wissen selbst anzueignen, aber..." Er machte eine hilflose Geste zu den vollgestopften Regalen. "Ohne fachliche Grundlage tappen wir oft im Dunkeln."
 
-»Es gibt noch etwas«, sagte Frina. Sie drehte sich um und sah mich an. »Deine Fähigkeit, andere zu beeinflussen – die hast du bereits genutzt, ohne es zu wissen.«
+Jom ließ seinen Blick über die improvisierten Messgeräte schweifen. Da war ein Windmesser, der aussah, als hätte ihn jemand aus einem Kinderspielzeug gebastelt, daneben ein Barometer, das vermutlich von der Erde stammte.
 
-»Was meinst du?«
+"Was genau untersuchen Sie hier?", fragte Jom.
 
-»Lyra. Letzte Woche, vor der Übung. Sie war nervös, hat gezittert. Du hast dich neben sie gestellt, und ihr Zittern hat aufgehört.«
+Einar schob seine Brille zurecht. "Die Fallwinde. Sie kommen von der Kuppel. Immer häufiger, immer stärker." Er deutete auf eine Karte an der Wand. "Wir versuchen, ein Muster zu erkennen. Aber ohne professionelle Hilfe..."
 
-Ich erinnerte mich. Lyra war eine der anderen Auszubildenden, jung, unsicher, mit großen Augen und zitternden Händen. Ich hatte mich neben sie gestellt, weil ich dachte, es würde ihr helfen, nicht allein zu sein. Ich hatte nicht daran gedacht, Magie zu nutzen.
+Die Tür öffnete sich, und eine junge Frau trat ein. Sie trug mehrere Bücher und blickte überrascht auf, als sie Jom sah.
 
-»Das war nicht absichtlich«, sagte ich.
+"Das ist Lena, meine Assistentin", erklärte Einar. "Lena, das ist Jom. Ein echter Meteorologe."
 
-»Das macht es gefährlicher.« Frina kam zurück zum Tisch und setzte sich. »Unkontrollierte emotionale Magie, die auf andere wirkt – das ist nicht dasselbe wie Selbstsuggestion. Du veränderst nicht nur deine eigene Wahrnehmung. Du veränderst ihre.«
+Lena stellte die Bücher ab und musterte Jom mit unverhohlener Neugier. "Wirklich? Ausgebildet und alles?"
 
-»Was habe ich getan?«
+Jom nickte. "Ja, ausgebildet und alles."
 
-»Du hast ihre Nervosität gedämpft. Du hast ihre Emotionen beeinflusst, ohne ihre Erlaubnis.«
+"Zeig ihm die Aufzeichnungen", forderte Einar sie auf.
 
-Ich fühlte, wie sich mein Magen zusammenkrampfte. »Das ist … das ist eine Verletzung.«
+Lena öffnete eine Schublade und zog mehrere handgezeichnete Diagramme hervor. "Hier, die letzten drei Monate. Die Winde kommen immer häufiger, besonders nach Sonnenuntergang."
 
-»Ja.« Frina nickte langsam. »Und es ist nur der Anfang. Wenn du lernst, deine Energie bewusst nach außen zu richten, wirst du mehr tun können. Du wirst die Emotionen anderer verstärken, dämpfen, verändern. Du wirst ihre Magie beeinflussen, ihre Wahrnehmung, ihre Entscheidungen.«
+Jom nahm die Blätter und studierte die Aufzeichnungen. Die Diagramme waren überraschend präzise, wenn auch mit einfachen Mitteln erstellt.
 
-»Das will ich nicht.«
+"Beeindruckend", sagte er. "Haben Sie eine formelle Ausbildung?"
 
-»Es ist nicht eine Frage des Wollens.« Frina legte ihre Hände flach auf den Tisch. »Es ist eine Frage des Könnens. Und du kannst es.«
+Lena schüttelte den Kopf. "Nein, aber ich habe ein Gefühl für die Luftströmungen. Ich kann spüren, wenn sich etwas verändert."
 
-Ich saß da und starrte auf meine Hände. Sie zitterten nicht hier. Hier war ich stark, lebendig, fähig. Aber ich wusste, dass dieser Körper derselbe war wie der in Berlin. Derselbe Körper, dieselbe Energie, dieselben Grenzen.
+Einar tippte auf einen der Laptops. "Wir haben auch einige digitale Daten. Nichts Besonderes, aber vielleicht können Sie damit mehr anfangen als wir."
 
-»Was soll ich tun?« fragte ich.
+Jom setzte sich an den Computer. Der Bildschirm erwachte zum Leben und zeigte die vertraute Oberfläche von Windows.  Er hatte erwartet, dass er Probleme mit der Bedienung haben würde, da die Sprache anders sein sollte. Doch zu seiner Überraschung waren alle Menüs und Befehle auf Englisch, und er verstand sie ohne Schwierigkeiten.
 
-»Lernen«, sagte Frina. »Lernen, zu kontrollieren, was du kannst. Lernen, den Preis zu bezahlen, ohne dich zu zerstören. Und lernen, die Grenze zwischen Beeinflussung und Manipulation zu erkennen.«
+"Das ist seltsam", murmelte er.
 
-Sie stand auf und ging zur Tür. »Komm. Wir haben heute noch eine Übung.«
+"Was ist seltsam?", fragte Einar.
 
-Ich folgte ihr. Der Flur war lang und dunkel, die Adern in den Wänden pulsieren im gleichen langsamen Rhythmus wie immer. Aber etwas hatte sich verändert. Die Magie, die mich so fasziniert hatte, die mich lebendig fühlen ließ – sie hatte einen Preis, und ich hatte ihn bereits bezahlt.
+"Ich verstehe die Sprache auf dem Bildschirm. Als würde ich mich erinnern, nicht als müsste ich sie neu lernen."
 
-Frina führte mich zu einer Plattform am Rand des Gebäudes – eine schwebende Fläche aus Metall und Glas, die sich langsam nach unten bewegte. Der Wind zog an meinen Haaren, kühl und sauber, und unter mir erstreckte sich die Stadt wie eine lebendige Karte.
+Einar nickte wissend. "Ja, so ist es oft. Die Grundlagen sind da, sie müssen nur ... aktiviert werden. Als hätte jemand die Informationen in Ihrem Gehirn abgespeichert und würde sie bei Bedarf freigeben."
 
-»Wir fahren heute zum Rand der Stadt«, sagte Frina. »Es gibt dort einen Ort, der sich gut für das eignet, was ich dir zeigen will.«
+Diese Vorstellung ließ einen kalten Schauer über Joms Rücken laufen. Was man mit seinem Gehirn angestellt hatte, machte ihn noch immer wütend. Er konzentrierte sich wieder auf den Bildschirm und öffnete die Dateien. Tatsächlich handelte es sich um einfache Wetteraufzeichnungen, erstellt mit einem Tabellenkalkulationsprogramm. Die Daten waren rudimentär, aber sie bestätigten das Muster, das Lena in ihren handgezeichneten Diagrammen festgehalten hatte.
 
-Sie winkte einem Drokka-Fahrer, der am Rand der Plattform wartete. Das Fahrzeug war wie eine pferdelose Kutsche, aus dunklem Holz und Messing, mit Rädern, die sich ohne sichtbare Antriebskraft drehten. Frina bezahlte mit Münzen, die ich nicht kannte, und wir stiegen ein.
+»Die Fallwinde«, sagte er langsam, »sie kommen also immer von der Kuppel?«
 
-Die Fahrt dauerte länger, als ich erwartet hatte. Wir verließen die inneren Ringe der Stadt, fuhren durch die Handwerker- und Arbeiterviertel, wo die Gebäude niedriger wurden und die Straßen enger. Die Menschen hier trugen einfachere Kleidung, und ihre Gesichter waren härter, abgearbeiteter. Ich sah Kinder, die auf den Straßen spielten, Frauen, die Wäsche aufhängten, Männer, die an Maschinen arbeiteten, deren Zweck ich nicht verstand.
+Einar nickte eifrig. »Ja, genau. Als würde die Kuppel... atmen. Wir haben keine Erklärung dafür.«
 
-Dann kamen wir in die äußeren Ringe. Hier waren die Gebäude verfallen, die Straßen ungepflastert, und die Luft roch nach Rauch und etwas Säuerlichem. Die Konvergenzsäulen waren hier seltener, und ich bemerkte, dass die Menschen langsamer sprachen, als müssten sie sich mehr anstrengen, um verstanden zu werden.
+»Ich möchte mir das genauer ansehen«, sagte Jom. »Haben Sie einen Aussichtspunkt, von dem aus man die Kuppel beobachten kann?«
 
-Schließlich hielt das Drokka. Wir waren am Rand der Stadt angekommen, wo die Gebäude in eine karge Landschaft übergingen – flach, steinig, mit vereinzelten Bäumen, die sich gegen den Wind bogen. Vor uns lag ein ausgetrocknetes Flussbett, breit und flach, mit Steinen, die in der Sonne glitzerten.
+»Natürlich«, antwortete Einar. »Das Dach des Gebäudes. Von dort aus hat man einen fantastischen Blick.«
 
-»Hier«, sagte Frina. »Wir gehen zu Fuß weiter.«
+Sie verließen das Büro und stiegen mehrere Treppen hinauf, bis sie eine Metalltür erreichten, die auf das Dach führte. Als Einar sie öffnete, strömte helles Sonnenlicht herein.
 
-Wir stiegen aus und gingen das Flussbett entlang. Der Boden war hart und rissig, und die Steine knirschten unter unseren Füßen. Die Sonne stand hoch am Himmel, und ich spürte die Hitze auf meiner Haut. Es war still hier – kein Verkehrslärm, keine Stimmen, nur der Wind und das Geräusch unserer Schritte.
+Jom trat hinaus auf das flache Dach. Der Anblick verschlug ihm den Atem. Die Stadt erstreckte sich vor ihm, ein Meer aus Gebäuden in verschiedenen Höhen und Formen. Und dahinter, alles überragend, die Kuppel. Im Sonnenlicht schimmerte sie bläulich, fast durchsichtig, und doch war sie undurchdringlich.
 
-Wir gingen etwa zwanzig Minuten, als ich es bemerkte. Frina sprach, erklärte etwas über die Geologie der Region, über die Bedeutung des Flusses für die Stadt, aber ihre Worte wurden undeutlich. Nicht leiser, sondern anders – als würde jemand an einem Radio drehen und die Frequenz verlieren.
+Während er starrte, glaubte er, eine leichte Bewegung an der Oberfläche der Kuppel wahrzunehmen. Ein Pulsieren, kaum sichtbar, aber definitiv vorhanden.
 
-Ich blinzelte. »Frina?«
+»Sehen Sie das?«, fragte er und deutete auf die Stelle.
 
-Sie antwortete, aber ich verstand sie nicht. Die Worte waren da, aber sie machten keinen Sinn mehr. Es war, als hörte ich eine Fremdsprache, die ich nicht kannte.
+Einar nickte. »Ja, das ist es, was wir beobachten. Diese ... Pulsationen. Sie treten immer kurz vor den Fallwinden auf."
 
-Die Konvergenzsäulen. Wir waren zu weit weg. Die Übersetzungsmagie funktionierte nicht mehr. Das war ein klarer Fall von »Kein Netz«.
- 
-Frina bemerkte es ebenfalls. Sie blieb stehen und sah mich an. Ihre Lippen bewegten sich, aber die Worte, die herauskamen, waren Geräusche ohne Bedeutung. Sie deutete zurück in Richtung Stadt und machte eine Geste, die ich interpretierte als: »Lass uns zurückgehen.«
+Jom blieb lange stehen und beobachtete das Phänomen. Es war hypnotisierend, diese sanfte, rhythmische Bewegung, die an der Oberfläche der gewaltigen Struktur ablief.
 
-Ich nickte und wir folgten dem Flussbett entlang zurück.
+Als die Sonne zu sinken begann, kehrten sie ins Büro zurück. Lena hatte inzwischen weitere Aufzeichnungen herausgesucht.
 
-Frina sah mich fragend an. Ihre Lippen formten Worte, die ich nun wieder verstand. »Verstehst du mich?«
+"Morgen können wir mit der eigentlichen Arbeit beginnen", sagte Einar. "Sie sollten sich jetzt ausruhen und alles verarbeiten."
 
-Ich nickte erleichtert. »Ja.«
+Jom nickte. Er fühlte sich tatsächlich erschöpft, aber es war eine angenehme Erschöpfung. Zum ersten Mal seit seiner Ankunft auf diesem fremden Planeten hatte er wieder eine berufliche Identität, eine Aufgabe, die seinen Fähigkeiten entsprach.
 
-»Gut«, sagte sie. »Dann ist dies der Ort für unsere Übung.«
- 
-Frina führte mich zu einem großen Stein — einem Findling, den die letzte Eiszeit hier zurückgelassen hatte. Überall lagen Steine verstreut, alle glatt geschliffen wie übergroße Kiesel. Frina deutete auf einen etwa 30 Zentimeter großen Stein. 
+Er verabschiedete sich und machte sich auf den Weg zu seiner Unterkunft. Die Straßen der Stadt waren belebt, Menschen eilten in alle Richtungen. Er fühlte sich seltsam zugehörig, obwohl er erst seit wenigen Stunden hier war.
 
-»Heb ihn hoch.«
+In seinem Zimmer angekommen, ließ er sich auf das Bett fallen und starrte an die Decke. Die Bilder des Tages zogen an seinem inneren Auge vorbei: das staubige Büro, die akribischen Aufzeichnungen, die pulsierende Kuppel.
 
-Ich starrte den Stein an. Vielleicht war er ja nicht so schwer, wie er aussah. Ich stellte mich über ihn, beugte mich herab und legte meine Hände seitlich an den Stein. Mit aller Kraft zog ich. 
+Während er in den Schlaf glitt, kreisten seine Gedanken um die mysteriösen Fallwinde und die Kuppel – und um die Frage, ob seine neue Position an der Universität ihm eines Tages helfen könnte, einen Weg nach Hause zu finden.
 
-»Deine Aufgabe«, sagte Frina, »ist es, diesen Stein anzuheben.«
 
-Ich starrte den Block an. »Das ist unmöglich.«
+# Kapitel 16
 
-»Für dich ohne Magie, ja.« Frina trat einen Schritt zurück. »Aber du hast gelernt, wie man emotionale Energie kanalisiert. Nutze das.«
+Am nächsten Morgen verließ Jom sein Zimmer früher als nötig. Die Sonnen standen noch tief, das Licht fiel schräg durch die trüben Fenster des Wohnheims, und die Straßen waren noch leer genug, dass er ohne Umwege zur Universität gehen konnte. Jom hatte die Nacht über nachgedacht: über Fallwinde, Kuppel und die Aufzeichnungen, die er mit Einar durchgehen wollte. Er wollte direkt in die Meteorologie. Kaum hatte er die Eingangshalle betreten, hielt ihn eine Stimme auf. 
 
-Ich kniete mich neben den Stein und legte meine Hände darauf. Die Oberfläche war rau und warm von der Sonne. Ich schloss die Augen und suchte nach dem Gefühl, das Frina mir beigebracht hatte – nach der Energie in meiner Brust, dem Prickeln, das sich ausbreitete, wenn ich mich konzentrierte.
+»Jom! Da sind Sie ja.«
 
-Nichts passierte.
+Franz kam ihm entgegen, ein Stapel Papiere unter dem Arm, das Hemd schon am frühen Morgen leicht zerknittert. Er sah aus, als sei er schon seit Stunden wach und habe bereits mehrere Gespräche hinter sich.
 
-»Du kämpfst wieder«, sagte Frina. »Lass los.«
+»Guten Morgen, Franz«, sagte Jom. »Ich wollte gerade rauf in die Meteorologie. Einar wartet vermutlich schon.«
 
-Ich atmete tief ein und aus. Statt zu kämpfen, stellte ich mir vor, wie die Energie durch meine Arme floss, in meine Hände, in den Stein. Nicht, um den Stein zu verändern, sondern um meine eigene Wahrnehmung zu verändern. Um die Grenze zu verschieben, die mir sagte, dass ich nicht stark genug war.
+»Dann muss er heute länger warten«, sagte Franz und lächelte.
 
-Beim ersten Versuch passierte nichts. Der Stein bewegte sich nicht.
+»Wieso das?«
 
-Beim zweiten Versuch spürte ich ein Ziehen in meinen Armen, aber der Stein blieb, wo er war.
+»Weil Sie heute nicht in die Meteorologie gehen.« Franz hielt kurz inne, als wollte er die Wirkung seiner Worte genießen. »Sie machen heute die Runde.«
 
-Beim dritten Versuch geschah es.
+»Die Runde?«
 
-Die Energie floss plötzlich wie Wasser durch einen gebrochenen Damm. Ich spürte, wie sich etwas in meiner Brust öffnete, wie die innere Bremse nachgab, die mich normalerweise davon abhielt, meine Muskeln zu überlasten. Der Stein fühlte sich plötzlich leichter an – nicht leicht, aber möglich. Ich hob ihn an, nur wenige Zentimeter, aber ich hob ihn.
+»Die Runde«, wiederholte Franz, als sei damit alles gesagt. Er sah, wie Jom die Stirn runzelte, und ein Grinsen breitete sich auf seinem Gesicht aus. »Bevor Sie hier offiziell zu arbeiten anfangen, müssen Sie sich einmal die ganze Universität ansehen. Alle Fakultäten. Alle Gesichter, die wichtig sind. Und ein paar, die unwichtig sind, sich aber selbst für unentbehrlich halten.«
 
-Das Gefühl war berauschend. Ein Rauschen in der Brust, warm und kraftvoll, als hätte jemand eine Tür geöffnet, die ich nicht kannte. Ich hielt den Stein, spürte sein Gewicht in meinen Armen, und lächelte.
+»Ist das üblich?«
 
-»Ich habe es geschafft«, sagte ich.
+»Es ist Vorschrift«, sagte Franz. »Was hier bedeutet: Irgendjemand hat es sich vor langer Zeit ausgedacht, und seitdem macht es jeder, weil niemand den Mut hat, es wieder abzuschaffen.«
 
-»Setz ihn ab«, sagte Frina.
+Jom musste lachen. »Das kommt mir bekannt vor.«
 
-Ich ließ den Stein fallen. Er landete mit einem dumpfen Knall im trockenen Boden, und Staub wirbelte auf.
+»Sehen Sie. Sie sind schon mittendrin in der Kultur dieser Institution.« Franz drehte sich um und ging los, ohne sich zu vergewissern, ob Jom ihm folgte. Er tat es trotzdem.
 
-Das Rauschen in meiner Brust pulsierte weiter. Ein Gefühl von Stärke und Unbesiegbarkeit durchflutete mich, als gäbe es keine Grenzen mehr. Ich sah mich um und entdeckte einen zweiten Steinblock, größer als der erste, der etwa zehn Meter entfernt lag. Er war breiter, dunkler, mit Kanten, die scharf aussahen wie Messer.
+Sie gingen durch die Eingangshalle, an hohen Fenstern vorbei, die das Morgenlicht in unregelmäßige Streifen auf den Steinboden warfen. Über ihnen hingen die Luminitlampen, dunkel, denn in dieser frühen Stunde wurden sie nicht gebraucht.
 
-»Den da«, sagte ich und deutete darauf. »Ich will den versuchen.«
+»Wie viele Fakultäten gibt es hier eigentlich?«, fragte Jom.
 
-Ich ging darauf zu, meine Hände bereits ausgestreckt, das Rauschen in meiner Brust lauter werdend. Ich wollte das Gefühl ausweiten, wollte sehen, wie weit ich gehen konnte, wie schwer der Stein sein durfte, bevor ich aufhörte.
+»Offiziell neun«, sagte Franz. »Inoffiziell zählt es sich anders, je danach, wen man fragt. Die Werkstoffkundler behaupten, sie seien eine eigene Fakultät, aber die Physiker sagen, das sei nur eine Abteilung von ihnen. Die Werkstoffkundler haben daraufhin ein eigenes Gebäude bezogen, nur um das Gegenteil zu beweisen.«
 
-Frina bewegte sich schneller, als ich es für möglich gehalten hätte. Sie trat zwischen mich und den Stein, eine Hand erhoben, die Finger gespreizt. Die Geste war knapp, ruhig, und doch unmissverständlich. Stopp.
+»Und wer entscheidet, wer recht hat?«
 
-»Was machst du?« fragte ich. Die Energie pulsierte in mir, drängte nach vorne, wollte genutzt werden.
+»Niemand entscheidet das«, sagte Franz. »Das ist ja das Schöne. Man streitet einfach jahrzehntelang weiter.«
 
-»Setz dich hin«, sagte Frina. Ihre Stimme war flach, aber ihre Augen waren scharf.
+Jom blieb nun stehen. »Sie sagen *Jahrzehnte*. Wie lange existiert die Universität schon, oder  -- wenn wir schon dabei sind -- wie lange existiert die Stadt?«
 
-»Ich kann es schaffen. Ich habe es gerade bewiesen.«
+Franz sah ihn nachdenklich an. 
 
-»Setz dich hin.«
+»Das ist schwer zu sagen. Eine eigentliche Zeitrechnung gibt es erst seit ... seitdem die aktuelle politische Ordnung existiert. Das sind 126 Jahre. Ungefähr da wurde auch die Uni gegründet. Was davor war, kann ich nicht sagen. Aber sie werden immer wieder auf Menschen treffen, die behaupten aus dem siebzehnten Jahrhundert zu stammen.«
 
-Ich setzte mich. Der Boden war hart und heiß, aber ich spürte es kaum. Die Energie in mir wollte nicht stillhalten. Sie zog und zerrte, als wollte sie sich befreien.
+Jom schwieg. Es sollte hier Menschen geben, die über dreihundert Jahre alt waren? Das war schwer zu glauben. 
 
-Frina kniete sich vor mich. »Hör mir zu«, sagte sie. »Was du gerade getan hast – das war nicht Stärke.«
+Sie gingen weiter, die Treppe hinauf, dann durch einen weiteren Gang, der zu einer Glastür führte. Draußen lag ein Innenhof, in dem schon einige Studenten saßen, obwohl es noch früh war.
 
-»Natürlich war es das. Ich habe einen Stein gehoben, den ich normalerweise nicht heben könnte.«
+»Sie werden heute viele Gesichter sehen«, sagte Franz, »und die meisten werden Sie wieder vergessen. Das macht nichts. Wichtig ist nur, dass die Leute Sie einmal gesehen haben. Dann grüßen sie später, und Sie müssen nicht wissen, warum.«
 
-»Nein.« Frina schüttelte den Kopf. »Du hast deine Wahrnehmung von Stärke verändert. Dein Körper hat dieselben Grenzen wie immer. Dieselben Muskeln, dieselbe Knochenstruktur, dieselbe physische Kapazität. Was die Magie getan hat, ist deine innere Bremse zu lösen – die Sicherung, die verhindert, dass du deine Muskeln überlastest.«
+»Warum ist das wichtig?«
 
-Ich starrte sie an. Das Rauschen in meiner Brust begann nachzulassen, langsam, wie eine Welle, die sich zurückzog.
+»Weil hier alles über Beziehungen läuft«, sagte Franz. »Wenn Sie irgendwann etwas brauchen – einen Raum, ein Gerät, Geld für Ihre Forschung –, dann hilft es, wenn man Ihr Gesicht kennt. Es gibt einen Rat, der über solche Dinge entscheidet. Und der Rat mag Gesichter, die er kennt.«
 
-»Wenn du diesen größeren Stein angehoben hättest«, fuhr Frina fort, »hättest du deine Muskeln überlastet. Du hättest einen Muskel gerissen, eine Sehne gezerrt, vielleicht sogar einen Knochen gebrochen. Und du hättest es nicht gespürt. Nicht sofort. Die Magie hätte den Schmerz blockiert, die Warnsignale deines Körpers unterdrückt. Erst wenn die Magie nachgelassen hätte, hättest du gemerkt, was du getan hast.«
+»Der Rat?«
 
-Das Rauschen war jetzt fast verschwunden. An seine Stelle trat etwas Kühleres, Klareres. Verständnis.
+»Später«, sagte Franz und winkte ab, als wollte er ein Insekt verscheuchen. »Das erklär ich Ihnen ein andermal, das ist zu früh am Morgen für sowas. Kommen Sie, zuerst zeige ich Ihnen die Botanik. Da wachsen Dinge, die Sie noch nicht gesehen haben, und glauben Sie mir, das ist noch das Harmloseste, was heute auf Sie wartet.«
 
-»Selbstsuggestion«, sagte ich.
-
-»Ja.« Frina nickte. »Emotionale Magie arbeitet mit Suggestion. Du suggerierst dir selbst, dass du stärker bist, schneller, ausdauernder. Und dein Körper reagiert darauf. Aber die physikalische Realität bleibt dieselbe. Deine Muskeln können nur eine bestimmte Menge an Gewicht heben. Wenn du darüber hinausgehst, zahlst du den Preis.«
-
-»Mit Verletzungen.«
-
-»Mit Verletzungen.« Frina stand auf und reichte mir die Hand. Ich nahm sie und zog mich hoch. Meine Arme fühlten sich schwer an, schwerer als vor der Übung.
-
-»Du wirst es morgen spüren«, sagte Frina. »Wenn du aufwachst.«
-
-Ich nickte. Die Euphorie war verflogen, ersetzt durch etwas Nüchterneres. Ich hatte geglaubt, eine neue Magie entdeckt zu haben, eine Fähigkeit, die mich stärker machte. Stattdessen musste ich lernen, dass sie mich nur dazu trieb, meine Grenzen zu überschreiten – ohne die Folgen dabei zu spüren.
-
-Wir gingen zurück zum Drokka. Die Fahrt zur Stadt war still. Ich sah aus dem Fenster, beobachtete die vorbeiziehende Landschaft, die Gebäude, die Menschen. Alles sah anders aus jetzt. Nicht weniger real, aber gefährlicher. Die Magie war kein Geschenk. Sie war ein Werkzeug, und wie jedes Werkzeug konnte sie verletzen, wenn man sie falsch benutzte.
-
-Frina bezahlte den Fahrer und wir stiegen aus. Die Plattform brachte uns zurück in die oberen Etagen des Gebäudes.
-
-»Das war heute genug«, sagte Frina, als wir vor meinem Zimmer standen. »Ruhe dich aus. Und wenn du aufwachst – beobachte, was du spürst.«
-
-Ich nickte und ging in mein Zimmer. Das Bett war hart, aber vertraut. Ich legte mich hin und schloss die Augen.
-
-Der Rückweg verlief sanft, wie immer. Das Pulsieren in meinen Adern verblasste und machte dem Summen des Kühlschranks, dem Rauschen des Verkehrs, den vertrauten Geräuschen meiner Berliner Wohnung Platz.
-
-Ich öffnete die Augen. Die Decke über mir war weiß, nicht metallisch. Die Matratze unter mir war weich, nicht hart. Ich lag in meinem Bett in Berlin, in T-Shirt und Unterhose, und jede einzelne Faser meines Körpers schmerzte.
-
-Ich stöhnte und versuchte, mich aufzusetzen. Mein linker Arm protestierte laut. Die Muskeln in meinen Schultern, meinem Rücken, meinen Armen – alles brannte, als hätte ich eine Stunde lang Gewichte gestemmt. Und das hatte ich im Grunde auch. Der Stein in der Traumwelt hatte mein reales Muskelgewebe belastet, und jetzt zahlte ich den Preis.
-
-Ich schwang meine Beine aus dem Bett und stand auf. Meine Knie zitterten. Ich ging ins Bad, langsam, jeden Schritt sorgfältig setzend, und sah in den Spiegel.
-
-Die Ringe unter meinen Augen waren dunkler als je zuvor. Meine Haut war fahl, fast grau. Und meine Arme – ich betrachtete sie – waren angeschwollen, die Muskeln hart und empfindlich. Muskelkater. Der Muskelkater meines Lebens.
-
-Ich duschte, heiß, und ließ das Wasser über meine schmerzenden Muskeln laufen. Es half ein wenig, aber nicht genug. Ich zog mich an – Jeans, Sweatshirt – und ging in die Küche.
-
-Der Tisch war leer. Kein gedeckter Tisch, keine Nudeln, keine Tomatensoße. Marcus war nicht da. Er hatte nicht gekocht. Er hatte nicht einmal eine Nachricht hinterlassen.
-
-Ich holte mein Handy aus der Tasche. Keine neuen Nachrichten von Marcus. Die letzte war von gestern – »Komme heute Abend vorbei und koche.« Aber er war nicht gekommen. Oder er war gekommen, hatte gesehen, dass ich schlief, und war wieder gegangen.
-
-Ich setzte mich an den Tisch und starrte auf die leere Oberfläche. Mein Magen knurrte, aber ich hatte keine Energie, etwas zu kochen. Stehend in der Küche aß ich einen Apfel und kaute mechanisch.
-
-
-# Kapitel 4 - Quests als Katalysatoren
-
-**Kapitelübersicht**
-
-Der Roman folgt einer klassischen dramaturgischen Struktur über ca. 120.000 Wörter, organisiert in drei Akte mit klaren Wendepunkten. Die Kapitel vermischen beide Welten innerhalb einzelner Abschnitte – Traumsequenzen unterbrechen Realwelt-Momente und umgekehrt, sodass die Grenzen verschwimmen wie in Lunas Wahrnehmung. Die Ich-Erzählung erfolgt in naher Vergangenheit (Präteritum) und ermöglicht emotionale Unmittelbarkeit mit subtiler Distanz.
-
-**Perspektive:** Ausschließlich Ich-Erzählung der Protagonistin Luna Kessler. Beide Welten werden nur durch ihre verunsicherte, subjektive Wahrnehmung gefiltert – maximale psychologische Intensität.
-
-**Zeitform:** Nahe Vergangenheit (Präteritum). Die Geschichte wirkt reflektiert, aber noch warm und emotional nah. Subtile Distanz ermögl
-
-Der Roman folgt einer klassischen dramaturgischen Struktur über ca. 120.000 Wörter, organisiert in drei Akte mit klaren Wendepunkten. Die Kapitel vermischen beide Welten innerhalb einzelner Abschnitte – Traumsequenzen unterbrechen Realwelt-Momente und umgekehrt, sodass die Grenzen verschwimmen wie in Lunas Wahrnehmung. Die Ich-Erzählung erfolgt in naher Vergangenheit (Präteritum) und ermöglicht emotionale Unmittelbarkeit mit subtiler Distanz.
-
-**Perspektive:** Ausschließlich Ich-Erzählung der Protagonistin Luna Kessler. Beide Welten werden nur durch ihre verunsicherte, subjektive Wahrnehmung gefiltert – maximale psychologische Intensität.
-
-**Zeitform:** Nahe Vergangenheit (Präteritum). Die Geschichte wirkt reflektiert, aber noch warm und emotional nah. Subtile Distanz ermögl
-
-Der Roman folgt einer klassischen dramaturgischen Struktur über ca. 120.000 Wörter, organisiert in drei Akte mit klaren Wendepunkten. Die Kapitel vermischen beide Welten innerhalb einzelner Abschnitte – Traumsequenzen unterbrechen Realwelt-Momente und umgekehrt, sodass die Grenzen verschwimmen wie in Lunas Wahrnehmung. Die Ich-Erzählung erfolgt in naher Vergangenheit (Präteritum) und ermöglicht emotionale Unmittelbarkeit mit subtiler Distanz.
-
-**AKT 1: QUESTS UND VERTRAUEN (ca. 36.000 Wörter / 30%)**
-
-**Kapitel 4–6: Emotionale Bindungen und erste Magie-Kontrolle**
-
-**Kapitel 4: Quests als Katalysatoren**
-
-Eine Quest mit Kael offenbart romantische Spannung und seine Loyalität. Eine Quest mit Vera offenbart Schuldgefühle und gegenseitiges Vertrauen. Eine Quest mit Lyra offenbart Lunas Schutzinstinkt. Jede Mission wird zum emotionalen Katalysator ihrer Entwicklung. Luna lernt, ihre Magie besser zu kontrollieren – aber immer noch chaotisch, immer noch gefährlich.
-
-Kapiteltext hier schreiben.
-
-# Test der neuen DOCX-Formatierung
-
-## Überschriften-Test
-
-### H3 Überschrift
-
-#### H4 Überschrift
-
-##### H5 Überschrift
-
-###### H6 Überschrift
-
-## Textformatierung
-
-**Fetter Text** und *kursiver Text* funktionieren jetzt!
-
-**Fett und *kombiniert* mit kursiv** ist auch möglich.
-
-## Links
-
-Hier ist ein [Link zu Google](https://www.google.com) und ein [interner Link](#test).
-
-## Blockquotes
-
-> Dies ist ein Blockquote.
-
-> Es sollte eingerückt und kursiv dargestellt werden.
-
-## Listen
-
-- Erste Aufzählung
-
-- Zweite Aufzählung
-
-  - Verschachtelte Aufzählung
-
-  - Noch eine verschachtelte
-
-- Dritte Aufzählung
-
-1. Nummerierte Liste
-
-2. Zweiter Punkt
-
-   1. Verschachtelte Nummerierung
-
-   2. Noch eine verschachtelte
-
-3. Dritter Punkt
-
-## Tabellen
-
-| Spalte 1 | Spalte 2 | Spalte 3 |
-
-|----------|----------|----------|
-| Zeile 1  | Daten 1  | Info 1   |
-
-| Zeile 2  | Daten 2  | Info 2   |
-| Zeile 3  | Daten 3  | Info 3   |
-
-
-## Code-Blöcke
-
-```java
-
-public class Test {
-
-    public static void main(String[] args) {
-
-        System.out.println("Hello World!");
-
-    }
-
-}
-
-```
-
-## Horizontale Linien
+Jom folgte ihm wortlos. Irgendwo zwischen Alter, Rat und Botanik hatte er aufgehört, wirklich zuzuhören – zu viel auf einmal, zu fremd, zu schnell. Sein altes Leben lag plötzlich unendlich weit zurück, und er hatte keine Ahnung, wie er sich in diesem neuen zurechtfinden sollte.
 
 ---
 
-***
 
-___
+Die Botanik lag in einem eigenen, niedrigeren Gebäude, das sich an die Hauptfakultät anschloss wie ein nachträglich angebauter Flügel. Schon von außen war zu erkennen, dass hier andere Regeln galten als in den steinernen Hallen, durch die Jom bisher gegangen war. Die Wände bestanden zur Hälfte aus jenem trüben, blasigen Glas, das er schon aus seinem eigenen Büro kannte, doch hier war es in großen Flächen verbaut, sodass das Licht der beiden Sonnen milchig und diffus in den Innenraum fiel.
 
-## Kombinierte Formatierung
+»Hier riecht es immer so«, sagte Franz, noch bevor sie die Tür erreicht hatten, und deutete mit dem Kinn auf das Gebäude. »Ich habe mich nie daran gewöhnt.«
 
-**Fetter Text mit [Link](https://example.com)** und *kursiver Text* in einem Absatz.
+Jom sollte bald verstehen, was er meinte. Kaum hatten sie die Tür durchschritten, umgab ihn ein Geruch, der süßlich und faulig zugleich war, wie feuchte Erde, die zu lange in einem geschlossenen Raum gestanden hatte. Der Raum selbst war weitläufiger, als es von außen den Anschein gehabt hatte, mit hohen Glasdächern, durch die das Licht in breiten, schrägen Bahnen fiel. Überall standen Tische und Beete, auf denen Pflanzen wuchsen, wie Jom sie noch nicht gesehen hatte, auch nicht in den Wäldern, durch die er in den vergangenen Wochen gegangen war.
 
-> **Blockquote mit fettem Text** und *kursivem Text*.
+Manche hatten Blätter in einem tiefen Violett, das ins Schwarze überging; andere trugen Stängel, die wie Glas wirkten –  durchscheinend und mit feinen Adern durchzogen, in denen etwas Helles pulsierte. Eine Reihe von niedrigen, kugelförmigen Gewächsen stand in Tonschalen aufgereiht, ihre Oberfläche mit kleinen, haarähnlichen Fortsätzen bedeckt, die sich, wie Jom bemerkte, träge in seine Richtung bewegten, als er näher trat.
 
-> 
+»Nicht anfassen«, sagte eine Stimme hinter ihm, ruhig, aber bestimmt.
 
-> Auch mit [Links](https://example.com) funktioniert es!
+Jom drehte sich um und sah einen Mann in einer fleckigen Schürze, die einmal grün gewesen sein musste. Er war klein, fast zierlich, mit kurzem, grauem Haar und Händen, die von Erde und, wie es schien, von etwas Dunklerem gefärbt waren.
+
+»Das ist Dorn«, sagte Franz. »Er kümmert sich hier um alles, was wächst und manchmal auch beißt.«
+
+»Beißt?«, fragte Jom.
+
+»Ein Scherz«, sagte Dorn, ohne zu lächeln. »Aber halten Sie trotzdem Abstand von den Wollköpfen. Sie reagieren auf Wärme. Wenn Sie zu nah kommen, schließen sich die Fasern um die Hand. Das tut nicht weh, aber man braucht Geduld, um wieder loszukommen.«
+
+Jom trat einen Schritt zurück und betrachtete die kugelförmigen Pflanzen mit neuem Respekt. Eine von ihnen hatte sich tatsächlich leicht zu ihm hin gedreht, die feinen Fortsätze zitterten, als würden sie die Luft abtasten.
+
+»Wozu sind sie gut?«, fragte er.
+
+»Es geht um die Fasern«, sagte Dorn. »Ähnlich wie Baumwolle, nur schwieriger im Anbau. Wir erforschen sie, um die Erträge zu steigern und den Anbau irgendwann zu vereinfachen.«
+
+Sie gingen weiter durch die Reihen, vorbei an Beeten mit Pflanzen, deren Blätter in unregelmäßigen Abständen aufklappten und wieder zusammenfielen, ohne erkennbaren Anlass. An einer Wand, an der lange, wurzelartige Triebe hinabhingen und sanft Hin und Her schwangen, obwohl Jom keinerlei Luftzug wahrnehmen konnte. Franz erklärte wenig, ließ Dorn reden, der mit Begeisterung in der Stimme über Herkunft und Eigenschaften der Pflanzen sprach.
+
+Als sie zu den Pflanzen mit den langen dünnen Blättern kamen, beschleunigte Dorn seine Schritte und begann zu gestikulieren. Die Blätter der Planzen wirkten, als seien sie aus Plastik. Und genau das war auch die Ursache von Dorns Begeisterung.
+
+»Diese Pflanzen sehen nicht nur aus, wie Plastik, sie lassen sich tatsächlich trocknen, schreddern und erhitzt in Formen pressen. Wir stehen kurz vor einer neuen Ära was Werkstoffe angeht. Endlich keine brüchigen Keramikwasserleitungen mehr.« 
+
+An einem der letzten Tische blieb Dorn stehen und wischte sich die Hände an der Schürze ab.
+
+»Die meisten Pflanzen sind hier oben«, sagte er. »Einiges ist im Keller. Die Schlammkulturen zum Beispiel, die stehen unten im Keller.«
+
+Jom horchte auf. »Schlammkulturen?«
+
+»Ja«, sagte Dorn, schon halb abgewandt, mit dem Blick auf ein Regal voller Samentüten. »Für die Stromerzeugung.«
+
+»Stromerzeugung?« Langsam hörte sich Jom an wie ein Papagei.
+
+Franz legte Jom eine Hand auf die Schulter und schob ihn sanft weiter zur Tür. »Dazu kommen wir noch. Kommen Sie. Es gibt noch viel zu sehen, und wir haben nicht den ganzen Tag.«
+
+Jom folgte ihm, warf aber noch einen letzten Blick zurück auf den Botaniker, der schon wieder über seine Pflanzen gebeugt stand, als hätte das Gespräch nie stattgefunden.
+
+---
+
+
+Franz führte ihn nicht zurück in den Hauptflur, sondern zu einer schmalen Tür am Ende eines Seitengangs, die Jom beim Hereinkommen gar nicht bemerkt hatte. Dahinter ging eine Treppe hinunter, steil und ohne Geländer, das Licht wurde mit jeder Stufe schwächer, bis nur noch eine einzelne Luminitlampe am Ende des Gangs brannte, deren Schein leicht flackerte.
+
+»Nicht stolpern«, sagte Franz über die Schulter. »Die Treppe ist älter als die meisten Leute, die sie benutzen.«
+
+Unten angekommen, schlug Jom ein Geruch entgegen, der ihn sofort an den Abfall hinter Aklahs Gasthaus erinnerte, nur stärker. Fäulnis, feuchte Erde, und darunter etwas Säuerliches, das in der Nase kratzte. Der Gang war niedrig, Jom musste den Kopf einziehen, und die Wände waren feucht und glänzten im schwachen Licht.
+
+»Was wird hier unten gelagert?«, fragte Jom. »Gemüse?«
+
+»Nichts wird gelagert«, sagte Franz. »Gleich sind wir da.«
+
+Der Gang mündete in einen größeren Raum, und Jom blieb im Eingang stehen, um sich einen Überblick zu verschaffen. In Reihen, die sich über den gesamten Boden erstreckten, standen Tontöpfe, Hunderte vielleicht, jeder etwa kniehoch und so breit, dass ein Mann ihn gerade umfassen konnte. Aus jedem Topf ragten zwei Stäbe, einer dunkel und rötlich, einer heller und grau, und von jedem Topf liefen Drähte nach oben, wo sie in ein Geflecht aus Kupferdraht mündeten, das an der Decke befestigt war und sich wie ein Netz über den ganzen Raum zog. Das Netz war an einer Stelle gebündelt, und das Bündel verschwand durch ein Loch in der Wand.
+
+Jom ging zwischen den Reihen hindurch und sah in einen der Töpfe. Darin war eine dunkle, feuchte Masse, die leicht blubberte.
+
+»Pflanzenzucht?«, fragte er. Dann, nach einem zweiten Blick: »Kompost?«
+
+»Nein und nein«, sagte eine Stimme aus dem Hintergrund des Raums.
+
+Ein junger Mann kam zwischen den Töpfen hervor, vielleicht Mitte zwanzig, mit hochgekrempelten Ärmeln, die bis zu den Ellbogen dunkel gefärbt waren. Auf der Nase trug er eine Brille, deren eines Glas einen Sprung hatte, und er wischte sich die Hände an einer Hose ab, die offenbar schon viele solcher Reinigungen ertragen hatte.
+
+»Das ist Ren«, sagte Franz. »Doktor der ... eigentlich weiß ich nicht, wovon. Er kümmert sich jedenfalls um die Töpferei. Ren, das ist Jom, unser neuer Meteorologe.«
+
+»Meteorologe«, wiederholte Ren und sah Jom an, als prüfe er, ob das ein Scherz war. Dann zuckte er die Schultern. »Nun gut. Sie stehen mitten im Kraftwerk der Universität. Willkommen.«
+
+Jom sah sich um. »Das hier erzeugt Strom?«
+
+»Das hier erzeugt Strom«, bestätigte Ren. Er trat an einen der Töpfe und klopfte mit dem Knöchel gegen den Rand. »In jedem Topf ist Schlamm. Im Schlamm leben Bakterien, oder das was auf diesem Planeten Bakterien am nächsten komm. Sie ernähren sich von dem, was wir ihnen geben, und wenn sie fressen, geben sie etwas ab.« Er deutete auf die beiden Stäbe. »Der graue Stab ist Eisen. Der rote ist Kupfer. Was die Lebewesen abgeben, wandert zum Eisen, und zwischen Eisen und Kupfer entsteht das, was wir brauchen. «
+
+Jom starrte in den Topf. Bakterien. Mikrobielle Brennstoffzellen, in Tontöpfen, unter der Erde, auf einem fremden Planeten.
+
+»Womit füttern Sie sie?«
+
+»Mit allem, was anfällt«, sagte Ren. »Küchenabfälle, Fäkalien, zermahlene Pflanzenreste. Die Küche des Wohnheims liefert täglich. Manchmal auch die Botanik, was zu faulig zum Anbauen ist.«
+
+»Und der Ton?« Jom strich mit dem Finger über die Wand eines Topfes. Sie war rau und unglasiert.
+
+»Der Topf trennt«, sagte Ren. »Innen der Schlamm mit den Tieren, außen Wasser. Der Ton lässt durch, was durch muss, und hält zurück, was zurück muss. Darum darf er nicht glasiert sein. Wir haben es mit glasierten versucht. Kein Strom.«
+
+Jom nickte langsam. Die Tonwand als Membran. Er ging die Reihe entlang und zählte still mit. Die Töpfe standen in Gruppen, und innerhalb jeder Gruppe lief der Draht vom Kupfer des einen Topfes zum Eisen des nächsten.
+
+»Sie schalten sie hintereinander«, sagte er.
+
+Ren sah ihn zum ersten Mal mit etwas an, das Interesse sein konnte. »Ja. Ein Topf allein gibt zu wenig. Zwanzig hintereinander geben genug, um etwas damit anzufangen. Und es gibt natürlich auch eine Parallelschaltung. Und mehrere Stromleitungen für 5 und 12 *Volt*. «
+
+»Und dann gehen die Gruppen an das Netz an der Decke.«
+
+»Genau. Von dort in die Verteilung. Lampen, ein paar Geräte in den Laboren, die Rechner.«
+
+Jom blieb stehen. Er musste an das Flackern der Lampen in der Eingangshalle denken. »Die Leistung schwankt.«
+
+»En wenig«, sagte Ren und seufzte, als habe Jom eine alte Wunde berührt. »Wenn die Töpfe frisch gefüttert sind, geht es hoch. Nach ein paar Tagen lässt es nach. Manche Töpfe fallen ganz aus, dann muss ich den Schlamm wechseln. Und es ist nie vorherzusagen, welcher als Nächstes dran ist.«
+
+Jom hockte sich neben einen der Töpfe und betrachtete die Anordnung der Stäbe. Der Abstand zwischen Kupfer und Eisen war bei jedem Topf etwas anders, mal zwei Finger breit, mal eine Hand.
+
+»Der Abstand der Stäbe ist nicht einheitlich«, sagte er.
+
+»Er verändert sich«, sagte Ren. »Der Schlamm sackt im Laufe der Zeit zusammen, und die Stäbe sinken unterschiedlich schnell mit.«
+
+»Je näher die Stäbe beieinander sind, desto besser. Und je konstanter der Abstand, desto gleichmäßiger die Leistung. Sie sollten die Stäbe an einem Gestell fixieren, damit sie nicht absinken können.«
+
+Ren schüttelte den Kopf. »Das ist gar nicht nötig«, sagte er. »Die Luminitlampen dienen als Stabilisator. Obwohl sie nur eine gewisse Helligkeit erreichen, können Sie bei höheren Strömen Energie aufnehmen und speichern. Das hat zwei Vorteile: Einerseits brennen die Lampen stundenlang ohne Strom weiter, andererseits können Sie, wie gesagt, die Energie auch speichern und bei Bedarf abgeben. So können wir die gröbsten Stromschwankungen abfangen. Das sind praktisch *condensators*.«
+
+Jom fragte nicht nach, was das letzte Wort bedeutete, er konnte es sich denken: Kondenstatoren. Er stand auf und ging weiter, den Kopf zurückgelegt, das Drahtgeflecht an der Decke betrachtend. »Warum eigentlich einzelne Töpfe?«, fragte er. »Warum nicht ein großer Bottich, mit vielen Stabpaaren darin? Das wäre weniger Arbeit, weniger Draht, weniger Fläche.«
+
+»Haben wir versucht«, sagte Ren. »Die ersten Anlagen waren Bottiche. Aber sobald in einem Bottich etwas schiefgeht, ist alles verloren. Wenn ein Topf kippt oder der Schlamm verdirbt, verliere ich einen Topf von dreihundert. Außerdem«, er hob den Topfrand leicht an, um das Gewicht zu zeigen, »kann ein Mann einen Topf allein tragen. Einen Bottich nicht.«
+
+»Das ergibt Sinn«, gab Jom zu. Er ging noch eine Runde zwischen den Reihen, blieb an einem Topf stehen, dessen Schlamm deutlich fester wirkte als die anderen, und fragte, wann der zuletzt gefüttert worden war. Ren wusste es aus dem Kopf. Jom fragte, ob sie die Zusammensetzung der Fütterung variierten, und Ren begann aufzuzählen, was sie schon ausprobiert hatten, und das Gespräch glitt in Details ab, bei denen Franz nach einigen Minuten aufgab und sich auf ein leeres Fass am Rand setzte.
+
+Als Jom schließlich aufblickte, merkte er, dass er fast eine Stunde in dem feuchten Keller verbracht hatte. Seine Hände waren schmutzig, seine Schuhe standen in einer Pfütze, und in seinem Kopf war eine halbfertige Liste von Dingen, die man hier verbessern konnte.
+
+»Kommen Sie wieder«, sagte Ren, als sie sich verabschiedeten. Es klang nicht höflich. Es klang ernst gemeint.
+
+»Das wird er«, sagte Franz und schob Jom Richtung Treppe. »Aber heute nicht mehr. Der Tag ist noch lang, und ich habe Ihnen noch sechs Fakultäten versprochen.«
+
+---
+
+
+Die Treppe zurück nach oben kam Jom länger vor, als sie beim Hinabgehen gewesen war. Vielleicht lag es an dem Gewicht in seinem Kopf, an den Zahlen und Anordnungen, die er im Keller gesehen hatte und die er nicht wieder loswurde. Franz ging voran, die Hände in den Taschen, und pfiff einige unzusammenhängende Töne, die zu keiner Melodie gehörten, die Jom kannte.
+
+Als sie den Hauptgang erreichten, blieb Jom vor einer der Luminitlampen stehen. Sie hing in einer schlichten Fassung von der Decke, ein länglicher, milchig schimmernder Körper hinter einem Gitter aus dünnem Metall. Das Licht war nicht gleichmäßig. Es schwankte in kleinen, kaum merklichen Wellen, hier ein leichtes Aufhellen, dort ein Nachlassen, als würde jemand in unregelmäßigen Abständen an einem Regler drehen.
+
+»Das habe ich am ersten Tag für einen Defekt gehalten«, sagte Jom. »Das Flackern.«
+
+»Es ist nur eine Folge der Pufferfunktion der Lampen. Da lässt sich nichts machen.«
+
+Sie gingen weiter, an weiteren Lampen vorbei, die alle dasselbe unstete Licht warfen, manche stärker, manche schwächer, je nachdem, wie nahe sie an der letzten Verteilung im Netz hingen, vermutete Jom.
+
+»Wie selten ist das Material?«, fragte er. »Das Luminit.«
+
+»Sehr selten«, sagte Franz. »Es gibt eine Handvoll Vorkommen, alle weit von hier, und der Abbau ist mühsam.«
+
+»Aber hier brennt überall Luminit.«
+
+»Hier schon«, sagte Franz. »Die Universität hat Vorrang. Genau wie der Justizpalast, der Senat, ein paar Häuser der wohlhabenderen Familien. Der Rat entscheidet, wer Licht bekommt und wer nicht.«
+
+»Der Rat wieder«, sagte Jom. »Sie haben ihn vorhin auch schon erwähnt.«
+
+»Habe ich?« Franz tat überrascht, obwohl sein Tonfall etwas zu beiläufig klang, um echt zu sein.
+
+»Sie sagten, der Rat entscheidet über Räume, Geräte, Geld für Forschung. Und jetzt entscheidet er auch, wer Licht bekommt.«
+
+»Der Rat entscheidet über eine ganze Menge«, sagte Franz. »Das ist seine Aufgabe. Irgendjemand muss ja festlegen, wer welche Ressourcen bekommt.«
+
+»Und wer sitzt in diesem Rat?«
+
+Franz blieb kurz stehen, als müsse er sich die Antwort erst zurechtlegen, dann ging er weiter, schneller als zuvor. »Verschiedene Leute. Vertreter der Fakultäten, ein paar Bürger aus der Stadt, ein paar, die einfach schon immer dabei waren. Sie werden das alles noch kennenlernen, wenn Sie lange genug hierbleiben. Heute jedenfalls nicht,  ich habe Ihnen noch Fakultäten versprochen, die deutlich unterhaltsamer sind als Verwaltungsfragen.«
+
+
+---
+
+
+
+
+Die Physik-Fakultät lag im obersten Stockwerk eines Nebengebäudes, zu dem man über eine schmale, gewundene Treppe gelangte. Langsam ging Jom das Treppengeklettere auf die Nerven – und in die Beine. 
+
+Oben angelangt stand eine Tür aus schwerem Holz, auf der mit weißer Farbe eine Zahl gepinselt war, die von jemand anderem übermalt und durch eine andere ersetzt worden war. Franz klopfte nicht, er drückte die Klinke und trat einfach ein.
+
+Der Raum war rund, was Jom überraschte, denn von außen hatte das Gebäude eckig gewirkt. In der Mitte stand ein Gerät auf einem hölzernen Gestell, ein Rohr, länger als ein Mensch, das durch eine Öffnung in der Decke nach oben zeigte. Um das Rohr herum lagen Papiere, aufgeschlagene Bücher, ein paar Notizbücher mit eingerissenen Ecken. An den Wänden hingen Karten, auf denen Punkte und Linien verzeichnet waren, die Jom für Sternbilder hielt, auch wenn er keines davon erkannte.
+
+Ein Mann saß gebeugt über einem der Notizbücher und schrieb, ohne aufzusehen, als sie eintraten.
+
+»Franz«, sagte er, ohne den Kopf zu heben. »Wenn du wieder Geld willst, ich habe keins.«
+
+»Ich will kein Geld, Corvin. Ich bringe dir jemanden.«
+
+Nun hob der Mann den Kopf. Er war älter als Franz, mit grauem, zurückgekämmtem Haar und tiefen Furchen um die Augen, die aussahen, als kämen sie vom vielen Blinzeln durch ein Rohr wie das in der Mitte des Raums.
+
+»Jom«, sagte Franz, »das ist Corvin. Er beobachtet den Himmel und manchmal auch die Kuppel, wenn ihm nach etwas Handfesterem ist.«
+
+»Die Kuppel ist nicht weniger handfest als der Himmel«, sagte Corvin und stand auf. Er reichte Jom die Hand, kurz und fest. »Sie sind der Meteorologe, von dem alle reden.«
+
+»Alle reden über mich?«, fragte Jom.
+
+»In diesem Haus dauert eine Neuigkeit einen Vormittag, bis sie überall angekommen ist«, sagte Franz. »Bei Ihnen hat es sogar schon gestern begonnen.«
+
+Corvin ging zu einer der Wandkarten und tippte mit dem Finger auf eine Stelle, an der mehrere Linien zusammenliefen. »Ein Meteorologe. Dann kennen Sie sich mit Himmelskörpern aus, oder zumindest mit dem, was darunter passiert.«
+
+»Ich kenne mich mit Wetter aus«, sagte Jom. »Nicht mit Sternen.«
+
+»Das eine hängt am anderen«, sagte Corvin. »Aber gut, fangen wir einfacher an. Wissen Sie, wo Sie sich befinden?«
+
+Jom zögerte. »Auf einem fremden Planeten.«
+
+»Das weiß jeder.« Corvin winkte ungeduldig ab. »Ich meine: wo, im Verhältnis zu Ihrer Erde. Wie weit. In welcher Richtung.«
+
+»Nein«, sagte Jom. »Ich weiß es nicht. Der Sternenhimmel sieht aber komplett anders aus, als zu Hause. Ich erkenne kein Sternenbild«
+
+Corvin lachte. »So etwas wie Sternenbilder existiert nicht. Die Muster, die wir zu Hause sehen, zeigen uns nahe und unendlich weit entfernte Sterne. Bewegen wir uns ein paar Lichtjahre von der Erde weg – egal in welche Richtung – so verschieben sich alle Sternenmuster bis zur Unkenntlichkeit. Aber dennoch müssten sich ja Galaxien beobachten lassen. Diese haben teilweise eine sehr Eigenwillige Form, aber ich habe nicht eine einzige Galaxie wiedererkannt.  
+
+
+Also gibt es zwei Möglichkeiten: Entweder ist die Entfernung wirklich so groß, dass unser Verstand sie nicht fassen kann, oder es ist gar keine Entfernung im gewöhnlichen Sinn, sondern etwas anderes.«
+
+»Etwas anderes«, wiederholte Jom.
+
+»Ich habe keine bessere Formulierung dafür«, sagte Corvin. »Das mag ich nicht, aber es ist so.«
+
+Franz, der bis dahin an der Tür gelehnt hatte, verschränkte die Arme. »Corvin schwankt seit Jahren zwischen zwei Theorien, je nachdem, welche ihm an dem Tag gerade besser gefällt.«
+
+»Ich schwanke nicht«, sagte Corvin. »Ich halte beide Möglichkeiten offen, solange ich keine Daten habe, die eine davon ausschließen.«
+
+
+Jom trat näher an das Rohr und betrachtete die Halterung, die es an dem hölzernen Gestell festhielt, grobe, aber solide Arbeit. »Und die Kuppel? Können Sie da hindurchsehen?«
+
+Corvins Miene veränderte sich, wurde wacher. »Das ist die interessantere Frage. Kommen Sie.« Er führte Jom zu dem Rohr, drehte es mit beiden Händen ein Stück, bis es in einem flachen Winkel stand, und deutete auf das Okular am unteren Ende. »Am Tag sieht man mehr als in der Nacht, das mag Sie überraschen. Die Kuppel ist nicht überall gleich durchsichtig, aber es gibt Stellen, klare Facetten, durch die das Licht fast ungebrochen durchkommt. Sehen Sie selbst.«
+
+Jom beugte sich über das Okular. Zunächst war da nur Unschärfe, verschwommenes Blaugrün, dann drehte Corvin an einer kleinen Schraube, und das Bild schärfte sich.
+
+Was Jom sah, war Landschaft. Weite, gepflegte Flächen, die an Parkanlagen erinnerten, Wege, die sich in sanften Kurven durch etwas zogen, das Rasen oder etwas Ähnlichem sein musste, vereinzelte Baumgruppen, symmetrisch gesetzt, als hätte jemand sie mit dem Lineal geplant. Kein Wind schien darin zu wehen, oder jedenfalls konnte Jom keine Bewegung erkennen.
+
+»Das ist … ein Garten«, sagte er.
+
+»Ein Garten, ja«, sagte Corvin. »Ein Garten von enormen Ausmaßen. Aber warten Sie, es gibt mehr.« Er drehte das Rohr ein weiteres Stück, langsam, mit der Geduld eines Mannes, der diese Bewegung tausendmal gemacht hatte. »Da. Im Zentrum.«
+
+Jom sah wieder hindurch. Weiter im Inneren der Kuppel erhob sich ein Gebäude, oder vielmehr ein Komplex aus mehreren Gebäuden, die ineinander übergingen, massiv, grau, mit scharfen Kanten und riesigen, fensterlosen Flächen, die wie aus einem Stück gegossen wirkten. Es hatte etwas Wuchtiges, Bedrückendes.  Es sah aus, als sei es nicht für Menschen gebaut worden, sondern für etwas, das keine Fenster brauchte.
+
+»Was ist das?«, fragte Jom, ohne den Blick vom Okular zu nehmen.
+
+»Das weiß ich nicht«, sagte Corvin. »Niemand weiß es. Ich beobachte diesen Komplex seit Jahren, und ich habe noch nie eine Bewegung darin gesehen. Kein Licht in den Fenstern, weil es keine Fenster gibt. Keine Fahrzeuge auf den Wegen. Niemand, der dort spazieren geht, obwohl die Wege dafür gebaut zu sein scheinen.«
+
+»Ein Park ohne Spaziergänger«, sagte Jom.
+
+»Genau das«, sagte Corvin. »Gepflegt, offenbar. Die Wege sind frei, das Gras ist kurz. Aber es lebt niemand darin, oder wenn doch, dann zeigt er sich nicht.«
+
+Franz, der sich inzwischen dazugestellt hatte, sah ebenfalls durch das Okular, kurz, dann trat er zurück. »Vielleicht mähen die Gärtner nachts«, sagte er.
+
+»Das ist keine Erklärung, das ist ein Scherz«, sagte Corvin.
+
+»Ich mache selten etwas anderes«, sagte Franz. »Aber im Ernst, Corvin, du zeigst das doch bestimmt nicht nur unserem neuen Meteorologen. Hat schon einmal jemand vom Rat durch dieses Rohr gesehen?«
+
+»Der Rat interessiert sich nicht für das, was ich sehe«, sagte Corvin, und etwas in seiner Stimme klang, als sei das eine alte, bereits verheilte Enttäuschung. »Ich habe es einmal vorgeschlagen. Man hat mir gesagt, das Innere der Kuppel sei als Forschungsgegenstand von geringerem Interesse.«
+
+»Wieso das denn?«, fragte Jom.
+
+Corvin sah ihn an, lange genug, dass die Frage im Raum stehen blieb, ohne beantwortet zu werden. »Das würde ich auch gern wissen«, sagte er schließlich und wandte sich wieder dem Rohr zu, als sei das Gespräch damit beendet.
+
+Beim Hinausgehen warf Jom noch einen Blick zurück auf die Wandkarte mit den Linien, die sich an einem Punkt trafen, der, wie ihm jetzt erst auffiel, ungefähr dort lag, wo auf der Stadtkarte im Erdgeschoss die Kuppel eingezeichnet gewesen war.
+
+
+
+»Er soll also das Innere der Kuppel nicht erforschen?«, sagte Jom, als sie die Treppe hinabstiegen.
+
+
+»Der Rat und insbesondere der Vorsitzende bevorzugen Forschungen, die zu verwertbaren Ergebnissen führen. Da hat die Astronomie eh einen schlechten Stand«, sagte Franz achselzuckend.
 
 

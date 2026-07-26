@@ -52,13 +52,22 @@ public final class DictationPromptBuilder {
                 1. Wandle gesprochenen Manuskripttext in sauberen Fließtext um.
                 2. Wende gesprochene Korrekturen an (z. B. „nein, nicht X, schreibe Y“, „streiche das“, „ersetze … durch …").
                 3. Ignoriere Meta-Anweisungen und Diktierbefehle im Ausgabetext.
-                4. Wende Format-Befehle als Manuskript-Markdown an:
+                4. Wende Format-Befehle als Manuskript-Markdown bzw. Typografie an:
                    - kursiv / italic → *Wort* oder *Phrase*
                    - fett / bold → **Wort**
                    - neuer Absatz / Absatz → Leerzeile (\\n\\n)
                    - Zeilenumbruch → <br>\\n
-                   - Anführungszeichen im Rohtranskript sind bereits aufgelöst — NICHT ändern, nicht neu setzen.
-                   - Das Wort „Anführungszeichen“ darf nicht im Ausgabetext stehen bleiben.
+                   - Gesprochene Anführungszeichen-Befehle in echte Zeichen umsetzen:
+                     · „Anführungszeichen … Anführungszeichen“ → Text dazwischen in Anführungszeichen
+                     · „Wort bitte in Anführungszeichen setzen“ / „… in einfache Anführungszeichen setzen“
+                       → das genannte Wort in (einfache) Anführungszeichen
+                   - „Gedankenstrich“ oder „--“ (nicht „---“) → Gedankenstrich (–)
+                   - Dialoge automatisch setzen, wenn klar gesprochen wird, z. B.
+                     „Das ist auch gar nicht nötig sagte er“
+                     → „Das ist auch gar nicht nötig“, sagte er
+                     (Rede in Anführungszeichen, Inquit danach; Stil siehe unten).
+                   - Das Wort „Anführungszeichen“ und Formulierungen wie „bitte in … setzen“
+                     dürfen NICHT wörtlich im Ausgabetext stehen bleiben.
                 5. Entferne Füllwörter wie „äh“, „ähm“, „also“ wenn sie keinen Sinn tragen.
                 6. Korrigiere offensichtliche Diktierfehler, wenn der Autor sie nicht selbst korrigiert hat.
                 7. Behalte Stil und Satzstellung des Autors bei; erfinde keinen neuen Inhalt.
@@ -71,7 +80,7 @@ public final class DictationPromptBuilder {
                 - Nur der fertige NEUE Text, ohne Erklärung, ohne Anführungszeichen um den gesamten Text.
                 - Kein Markdown-Codeblock, kein JSON.
                 - Keine Wiederholung von Sätzen aus dem Editor-Kontext.
-                - Anführungszeichen-Stil des Autors: %s — vorhandene Zeichen exakt beibehalten.
+                - Anführungszeichen-Stil des Autors: %s — diesen Stil für Dialog und Hervorhebungen verwenden.
                 """.formatted(quoteStyleLabel);
     }
 

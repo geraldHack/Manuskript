@@ -21,6 +21,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.prefs.Preferences;
 
 /**
@@ -128,18 +129,30 @@ public final class ChapterOllamaRewriteDialog {
         }
         dialogStage.setSceneWithTitleBar(scene);
 
+        AtomicBoolean hostBusy = new AtomicBoolean(false);
+        Runnable clearHostBusy = () -> {
+            if (hostBusy.compareAndSet(true, false)) {
+                host.setStatusBusyBarActive(false);
+            }
+        };
+        dialogStage.setOnHidden(ev -> clearHostBusy.run());
+
         btnGenerate.setOnAction(e -> {
             btnGenerate.setDisable(true);
             btnGenerate.setText("Generiere...");
             progressBar.setVisible(true);
             progressBar.setManaged(true);
             answersBox.getChildren().clear();
+            if (hostBusy.compareAndSet(false, true)) {
+                host.setStatusBusyBarActive(true);
+                host.updateStatus("Umschreiben: Generiere…");
+            }
             String instruction = instructionField.getText().trim();
             if (preferences != null) {
                 preferences.put(prefKey, instruction);
             }
             generate(host, chapterDocx, themeIndex, mode, originalText, startPos, endPos, instruction,
-                    creativitySlider.getValue(), answersBox, btnGenerate, progressBar, dialogStage);
+                    creativitySlider.getValue(), answersBox, btnGenerate, progressBar, dialogStage, clearHostBusy);
         });
         btnCancel.setOnAction(e -> dialogStage.close());
         dialogStage.showAndWait();
@@ -148,7 +161,7 @@ public final class ChapterOllamaRewriteDialog {
     private static void generate(ChapterEditorHost host, File chapterDocx, int themeIndex, Mode mode,
                                  String originalText, int startPos, int endPos, String instruction,
                                  double creativity, VBox answersBox, Button btnGenerate, ProgressBar progressBar,
-                                 CustomStage dialogStage) {
+                                 CustomStage dialogStage, Runnable clearHostBusy) {
         String context = loadProjectContext(chapterDocx, host.getText(), startPos, endPos);
         String prompt = buildPrompt(mode, originalText, instruction);
         OllamaService ollamaService = new OllamaService();
@@ -163,6 +176,7 @@ public final class ChapterOllamaRewriteDialog {
                 answersBox.getChildren().clear();
                 answersBox.getChildren().add(errorLabel("Keine Ollama-Modelle verfügbar."));
                 resetGenerateButton(btnGenerate, progressBar);
+                clearHostBusy.run();
                 return;
             }
             ollamaService.setModel(modelToUse);
@@ -173,6 +187,7 @@ public final class ChapterOllamaRewriteDialog {
                         if (response == null || response.trim().isEmpty()) {
                             answersBox.getChildren().add(errorLabel("Keine Antwort von Ollama."));
                             resetGenerateButton(btnGenerate, progressBar);
+                            clearHostBusy.run();
                             return;
                         }
                         List<String> variants = ChapterApiRewriteDialog.parseVariants(response);
@@ -201,11 +216,14 @@ public final class ChapterOllamaRewriteDialog {
                             answersBox.getChildren().add(variantBox);
                         }
                         resetGenerateButton(btnGenerate, progressBar);
+                        clearHostBusy.run();
+                        host.updateStatus("Umschreiben: " + Math.min(variants.size(), 5) + " Variante(n)");
                     }))
                     .exceptionally(ex -> {
                         Platform.runLater(() -> {
                             answersBox.getChildren().add(errorLabel("Ollama-Fehler: " + ex.getMessage()));
                             resetGenerateButton(btnGenerate, progressBar);
+                            clearHostBusy.run();
                         });
                         return null;
                     });

@@ -10479,6 +10479,18 @@
     -fx-spacing: 6;
 }
 
+.scene-result-tabs {
+    -fx-min-height: 160;
+}
+
+.scene-result-tabs > .tab-content-area {
+    -fx-padding: 4 0 0 0;
+}
+
+.scene-meta-area {
+    -fx-opacity: 0.92;
+}
+
 .scene-meta-label {
     -fx-opacity: 0.75;
     -fx-wrap-text: true;

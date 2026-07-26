@@ -441,7 +441,7 @@ public class ChapterAgentSupport {
         AgentSamplingParams.applyAgentConfig(backend, config);
         SceneWritingAgent agent = new SceneWritingAgent(backend);
         agent.setSystemPrompt(config.getSystemPrompt());
-        int maxTokens = config.getMaxTokens() > 0 ? config.getMaxTokens() : 4096;
+        int maxTokens = config.getMaxTokens() > 0 ? config.getMaxTokens() : 16384;
         int timeoutSec = OpenAIBackend.requestTimeoutSeconds();
         String model = backend.getCurrentModel();
         if (revision) {

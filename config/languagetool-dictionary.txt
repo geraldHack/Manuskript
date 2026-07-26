@@ -100,6 +100,8 @@ lento
 lethos
 leva
 luduwig
+luminit
+luminitlampen
 lyria
 maela
 malachai

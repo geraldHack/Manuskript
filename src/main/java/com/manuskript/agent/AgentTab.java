@@ -18,6 +18,7 @@ import javafx.scene.control.ToggleButton;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
@@ -46,8 +47,10 @@ public class AgentTab extends ScrollPane {
     private final Label maxTokensValueLabel;
     private final Slider topPSlider;
     private final Label topPValueLabel;
+    private final HBox topPRow;
     private final Slider repeatPenaltySlider;
     private final Label repeatPenaltyValueLabel;
+    private final HBox penaltyRow;
     private final Button restoreDefaultsButton;
 
     // Aktions-UI
@@ -140,9 +143,13 @@ public class AgentTab extends ScrollPane {
         backendCombo.getItems().addAll("Ollama", "OpenAI");
         backendCombo.setMaxWidth(Double.MAX_VALUE);
         backendCombo.setValue(config.getBackend() != null ? config.getBackend() : "Ollama");
+        backendCombo.setTooltip(new Tooltip(
+                "OpenAI = auch OpenRouter u.ä. (Parameter agent.openai.*). "
+                        + "Modell und Sampling unten überschreiben die Agent-Defaults."));
         backendCombo.valueProperty().addListener((obs, old, val) -> {
             if (val != null) {
                 config.setBackend(val);
+                updateSamplingControlsForBackend(val);
                 fireConfigChanged();
             }
         });
@@ -164,6 +171,7 @@ public class AgentTab extends ScrollPane {
         temperatureSlider = new Slider(0.0, 2.0, config.getTemperature());
         temperatureSlider.setMajorTickUnit(0.1);
         temperatureSlider.setBlockIncrement(0.1);
+        temperatureSlider.setTooltip(new Tooltip("Wird an die API übergeben (temperature)."));
         temperatureValueLabel = new Label(formatValue(config.getTemperature()));
         temperatureValueLabel.setPrefWidth(55);
         temperatureValueLabel.setMinWidth(55);
@@ -173,29 +181,33 @@ public class AgentTab extends ScrollPane {
             config.setTemperature(val.doubleValue());
             fireConfigChanged();
         });
-        HBox tempRow = createSliderRow("Temperature:", temperatureSlider, temperatureValueLabel);
+        HBox tempRow = createSliderRow("Temperatur:", temperatureSlider, temperatureValueLabel);
 
-        // Max Tokens
-        maxTokensSlider = new Slider(256, 8192, config.getMaxTokens());
-        maxTokensSlider.setMajorTickUnit(512);
-        maxTokensSlider.setBlockIncrement(128);
+        // Max Tokens (bis 32768 — Reasoning-Modelle / lange Plothole-Antworten)
+        maxTokensSlider = new Slider(256, 32768, Math.min(32768, Math.max(256, config.getMaxTokens())));
+        maxTokensSlider.setMajorTickUnit(1024);
+        maxTokensSlider.setBlockIncrement(512);
         maxTokensSlider.setSnapToTicks(true);
+        maxTokensSlider.setTooltip(new Tooltip(
+                "Wird als max_tokens an die API übergeben (Ausgabe-Budget, nicht Kontextfenster)."));
         maxTokensValueLabel = new Label(String.valueOf(config.getMaxTokens()));
-        maxTokensValueLabel.setPrefWidth(55);
-        maxTokensValueLabel.setMinWidth(55);
+        maxTokensValueLabel.setMinWidth(Region.USE_PREF_SIZE);
+        maxTokensValueLabel.setPrefWidth(Region.USE_COMPUTED_SIZE);
         maxTokensValueLabel.setAlignment(Pos.CENTER_RIGHT);
+        HBox.setHgrow(maxTokensValueLabel, Priority.NEVER);
         maxTokensSlider.valueProperty().addListener((obs, old, val) -> {
-            int intVal = (int) val.doubleValue();
+            int intVal = (int) Math.round(val.doubleValue());
             maxTokensValueLabel.setText(String.valueOf(intVal));
             config.setMaxTokens(intVal);
             fireConfigChanged();
         });
         HBox tokensRow = createSliderRow("Max Tokens:", maxTokensSlider, maxTokensValueLabel);
 
-        // Top-P
+        // Top-P (Ollama + OpenAI/OpenRouter)
         topPSlider = new Slider(0.0, 1.0, config.getTopP());
         topPSlider.setMajorTickUnit(0.1);
         topPSlider.setBlockIncrement(0.05);
+        topPSlider.setTooltip(new Tooltip("Wird als top_p an Ollama und OpenAI/OpenRouter übergeben."));
         topPValueLabel = new Label(formatValue(config.getTopP()));
         topPValueLabel.setPrefWidth(55);
         topPValueLabel.setMinWidth(55);
@@ -205,12 +217,14 @@ public class AgentTab extends ScrollPane {
             config.setTopP(val.doubleValue());
             fireConfigChanged();
         });
-        HBox topPRow = createSliderRow("Top-P:", topPSlider, topPValueLabel);
+        topPRow = createSliderRow("Top-P:", topPSlider, topPValueLabel);
 
-        // Repeat Penalty
+        // Repeat Penalty (nur Ollama)
         repeatPenaltySlider = new Slider(1.0, 2.0, config.getRepeatPenalty());
         repeatPenaltySlider.setMajorTickUnit(0.1);
         repeatPenaltySlider.setBlockIncrement(0.05);
+        repeatPenaltySlider.setTooltip(new Tooltip(
+                "Nur Ollama (repeat_penalty). Bei OpenAI/OpenRouter ohne Wirkung."));
         repeatPenaltyValueLabel = new Label(formatValue(config.getRepeatPenalty()));
         repeatPenaltyValueLabel.setPrefWidth(55);
         repeatPenaltyValueLabel.setMinWidth(55);
@@ -220,7 +234,7 @@ public class AgentTab extends ScrollPane {
             config.setRepeatPenalty(val.doubleValue());
             fireConfigChanged();
         });
-        HBox penaltyRow = createSliderRow("Repeat Penalty:", repeatPenaltySlider, repeatPenaltyValueLabel);
+        penaltyRow = createSliderRow("Repeat Penalty:", repeatPenaltySlider, repeatPenaltyValueLabel);
 
         // Restore Defaults
         restoreDefaultsButton = new Button("↺ Auf Standard zurücksetzen");
@@ -236,6 +250,7 @@ public class AgentTab extends ScrollPane {
             tempRow, tokensRow, topPRow, penaltyRow,
             restoreDefaultsButton
         );
+        updateSamplingControlsForBackend(backendCombo.getValue());
 
         // === Aktionsbereich ===
         boolean selectionRevision = config.isSelectionRevisionAgent();
@@ -477,6 +492,14 @@ public class AgentTab extends ScrollPane {
         maxTokensSlider.setValue(config.getMaxTokens());
         topPSlider.setValue(config.getTopP());
         repeatPenaltySlider.setValue(config.getRepeatPenalty());
+        updateSamplingControlsForBackend(backendCombo.getValue());
+    }
+
+    /** Repeat Penalty nur bei Ollama sichtbar — bei OpenAI ohne Wirkung. */
+    private void updateSamplingControlsForBackend(String backend) {
+        boolean ollama = backend == null || "Ollama".equalsIgnoreCase(backend);
+        penaltyRow.setVisible(ollama);
+        penaltyRow.setManaged(ollama);
     }
 
     public void restoreDefaults() {
@@ -687,9 +710,11 @@ public class AgentTab extends ScrollPane {
         problemFlow.prefWidthProperty().bind(scrollPane.widthProperty().subtract(40));
 
         Text quoteText = new Text("Zitat: " + AgentFindingDisplay.formatQuotePreview(
-                isSelectionRevisionAgent() && revisionSelectedText != null && !revisionSelectedText.isBlank()
-                        ? revisionSelectedText
-                        : AgentFindingDisplay.stripIndexField(f.getQuote())));
+                AgentFindingDisplay.stripIndexField(
+                        f.getQuote() != null && !f.getQuote().isBlank()
+                                ? f.getQuote()
+                                : (isSelectionRevisionAgent() && revisionSelectedText != null
+                                ? revisionSelectedText : ""))));
         quoteText.setStyle(AgentFindingStyles.quoteTextStyle(editorFontSize, editorFontFamily));
         TextFlow quoteFlow = new TextFlow(quoteText);
         quoteFlow.getStyleClass().add("finding-quote-text");
@@ -698,10 +723,10 @@ public class AgentTab extends ScrollPane {
         quoteFlow.prefWidthProperty().bind(scrollPane.widthProperty().subtract(40));
         quoteFlow.setCursor(javafx.scene.Cursor.HAND);
         quoteFlow.setOnMouseClicked(e -> {
-            String jumpQuote = isSelectionRevisionAgent()
-                    && revisionSelectedText != null && !revisionSelectedText.isBlank()
-                    ? revisionSelectedText
-                    : f.getQuote();
+            String jumpQuote = f.getQuote() != null && !f.getQuote().isBlank()
+                    ? f.getQuote()
+                    : (isSelectionRevisionAgent() && revisionSelectedText != null
+                    ? revisionSelectedText : f.getQuote());
             if (onQuoteClicked != null && jumpQuote != null && !jumpQuote.isEmpty()) {
                 onQuoteClicked.accept(jumpQuote);
             }
@@ -710,6 +735,21 @@ public class AgentTab extends ScrollPane {
         // Vorschläge anzeigen (mehrere möglich)
         VBox suggestionsBox = new VBox();
         suggestionsBox.setSpacing(4);
+
+        boolean warnTruncation = isSelectionRevisionAgent()
+                && revisionSelectedText != null
+                && f.getSuggestions() != null
+                && f.getSuggestions().stream().anyMatch(s ->
+                SelectionRevisionSupport.isLikelyTruncatedRewrite(revisionSelectedText, s));
+        if (warnTruncation) {
+            Label truncWarn = new Label("Hinweis: Mindestens ein Vorschlag wirkt unvollständig "
+                    + "(kürzer als die Markierung). Beim Übernehmen wird der Rest der Markierung behalten, "
+                    + "falls möglich — sonst bitte erneut analysieren.");
+            truncWarn.setWrapText(true);
+            truncWarn.setStyle("-fx-text-fill: #b45309; -fx-font-size: 11px;");
+            truncWarn.setMaxWidth(Double.MAX_VALUE);
+            suggestionsBox.getChildren().add(truncWarn);
+        }
 
         if (f.getSuggestions() != null && !f.getSuggestions().isEmpty()) {
             for (int i = 0; i < f.getSuggestions().size(); i++) {
@@ -791,10 +831,19 @@ public class AgentTab extends ScrollPane {
         List<Finding> enriched = new ArrayList<>();
         for (Finding source : findings) {
             Finding f = copyFinding(source);
-            f.setQuote(revisionSelectedText);
-            f.setReplaceRangeStart(revisionSelectionStart);
-            f.setReplaceRangeEnd(revisionSelectionEnd);
             f.setProblem(trimLeakedProblemText(f.getProblem()));
+            String modelQuote = f.getQuote();
+            int[] span = SelectionRevisionSupport.findQuoteSpanInSelection(revisionSelectedText, modelQuote);
+            if (span != null) {
+                // Modell hat nur einen Teil der Markierung zitiert → nur diesen Teil ersetzen
+                f.setQuote(revisionSelectedText.substring(span[0], span[1]));
+                f.setReplaceRangeStart(revisionSelectionStart + span[0]);
+                f.setReplaceRangeEnd(revisionSelectionStart + span[1]);
+            } else {
+                f.setQuote(revisionSelectedText);
+                f.setReplaceRangeStart(revisionSelectionStart);
+                f.setReplaceRangeEnd(revisionSelectionEnd);
+            }
             enriched.add(f);
         }
         return enriched;

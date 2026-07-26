@@ -20,6 +20,8 @@ import javafx.scene.control.Labeled;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Slider;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.control.ToggleButton;
@@ -27,6 +29,7 @@ import javafx.scene.control.Tooltip;
 import javafx.util.StringConverter;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
 /**
@@ -46,6 +49,8 @@ public class SceneWritingAgentTab extends ScrollPane {
     private final TextArea defaultInstructionArea;
     private final Slider temperatureSlider;
     private final Label temperatureValueLabel;
+    private final Slider maxTokensSlider;
+    private final Label maxTokensValueLabel;
     private final TextArea instructionArea;
     private final TextArea feedbackArea;
     private final CheckBox useParameterModelCheck;
@@ -54,8 +59,10 @@ public class SceneWritingAgentTab extends ScrollPane {
     private final Button generateButton;
     private final Button reviseButton;
     private final Button insertButton;
-    private final Label metaLabel;
-    private final ScrollPane metaScroll;
+    private final TabPane resultTabs;
+    private final Tab resultTab;
+    private final Tab metaTab;
+    private final TextArea metaArea;
     private final TextArea resultArea;
 
     private Runnable onConfigChanged;
@@ -127,9 +134,7 @@ public class SceneWritingAgentTab extends ScrollPane {
         temperatureSlider.setMajorTickUnit(0.1);
         temperatureSlider.setBlockIncrement(0.1);
         temperatureValueLabel = new Label(formatValue(config.getTemperature()));
-        temperatureValueLabel.setPrefWidth(55);
-        temperatureValueLabel.setMinWidth(55);
-        temperatureValueLabel.setAlignment(Pos.CENTER_RIGHT);
+        configureSliderValueLabel(temperatureValueLabel);
         temperatureSlider.valueProperty().addListener((obs, old, val) -> {
             temperatureValueLabel.setText(formatValue(val.doubleValue()));
             config.setTemperature(val.doubleValue());
@@ -137,6 +142,22 @@ public class SceneWritingAgentTab extends ScrollPane {
         });
         temperatureSlider.setTooltip(new Tooltip(
                 "Überschreibt die globale Temperatur aus dem Parameter-Tab für Szenen-Generierung."));
+
+        int initialMaxTokens = config.getMaxTokens() > 0 ? config.getMaxTokens() : 16384;
+        maxTokensSlider = new Slider(1024, 32768, initialMaxTokens);
+        maxTokensSlider.setMajorTickUnit(1024);
+        maxTokensSlider.setBlockIncrement(512);
+        maxTokensSlider.setSnapToTicks(true);
+        maxTokensValueLabel = new Label(String.valueOf(initialMaxTokens));
+        configureSliderValueLabel(maxTokensValueLabel);
+        maxTokensSlider.valueProperty().addListener((obs, old, val) -> {
+            int intVal = (int) Math.round(val.doubleValue());
+            maxTokensValueLabel.setText(String.valueOf(intVal));
+            config.setMaxTokens(intVal);
+            fireConfigChanged();
+        });
+        maxTokensSlider.setTooltip(new Tooltip(
+                "Maximale Ausgabe-Tokens. Reasoning-Modelle (z. B. Kimi) brauchen oft 8192+."));
 
         useParameterModelCheck = new CheckBox("Parameter-Modell verwenden");
         useParameterModelCheck.setSelected(true);
@@ -192,8 +213,9 @@ public class SceneWritingAgentTab extends ScrollPane {
                 persistDefaultInstruction(n));
 
         HBox tempRow = createSliderRow("Temperatur:", temperatureSlider, temperatureValueLabel);
+        HBox tokensRow = createSliderRow("Max Tokens:", maxTokensSlider, maxTokensValueLabel);
         configBox.getChildren().addAll(
-                promptLabel, promptArea, tempRow,
+                promptLabel, promptArea, tempRow, tokensRow,
                 useParameterModelCheck, modelLabel, modelSelector, contextSizeRow,
                 defaultInstructionLabel, defaultInstructionArea);
 
@@ -225,29 +247,47 @@ public class SceneWritingAgentTab extends ScrollPane {
                 "Entwurf mit Feedback neu generieren (kein Chat — ein neuer Vorschlag)"));
         reviseButton.setOnAction(e -> startRevision());
 
-        metaLabel = new Label();
-        metaLabel.setWrapText(true);
-        metaLabel.setMaxWidth(Double.MAX_VALUE);
-        metaLabel.getStyleClass().add("scene-meta-label");
-
-        metaScroll = new ScrollPane(metaLabel);
-        metaScroll.getStyleClass().add("scene-meta-scroll");
-        AgentScrollPaneSupport.configureFindingsScrollPane(metaScroll);
-        metaScroll.setPrefViewportHeight(72);
-        metaScroll.setMaxHeight(120);
-        metaScroll.setVisible(false);
-        metaScroll.setManaged(false);
-        metaScroll.widthProperty().addListener((obs, oldW, newW) ->
-                metaLabel.setMaxWidth(Math.max(0, newW.doubleValue() - 4)));
-
         resultArea = new TextArea();
         resultArea.setPrefRowCount(12);
         resultArea.setWrapText(true);
         resultArea.setEditable(true);
         resultArea.setMaxWidth(Double.MAX_VALUE);
+        resultArea.setMaxHeight(Double.MAX_VALUE);
         VBox.setVgrow(resultArea, Priority.ALWAYS);
         resultArea.textProperty().addListener((obs, oldText, newText) ->
                 updateReviseButtonState());
+
+        metaArea = new TextArea();
+        metaArea.setPromptText("Hinweise des Modells erscheinen hier (werden nicht eingefügt).");
+        metaArea.setWrapText(true);
+        metaArea.setEditable(false);
+        metaArea.setMaxWidth(Double.MAX_VALUE);
+        metaArea.setMaxHeight(Double.MAX_VALUE);
+        metaArea.getStyleClass().add("scene-meta-area");
+        VBox.setVgrow(metaArea, Priority.ALWAYS);
+
+        resultTab = new Tab("Ergebnis");
+        resultTab.setClosable(false);
+        VBox resultBox = new VBox(resultArea);
+        VBox.setVgrow(resultArea, Priority.ALWAYS);
+        resultBox.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+        resultTab.setContent(resultBox);
+
+        metaTab = new Tab("Hinweis");
+        metaTab.setClosable(false);
+        metaTab.setDisable(true);
+        metaTab.setTooltip(new Tooltip("Optionale Meta-Hinweise des Modells — nicht Teil der Szene"));
+        VBox metaBox = new VBox(metaArea);
+        VBox.setVgrow(metaArea, Priority.ALWAYS);
+        metaBox.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+        metaTab.setContent(metaBox);
+
+        resultTabs = new TabPane(resultTab, metaTab);
+        resultTabs.getStyleClass().add("scene-result-tabs");
+        resultTabs.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
+        resultTabs.setMinHeight(160);
+        resultTabs.setMaxWidth(Double.MAX_VALUE);
+        VBox.setVgrow(resultTabs, Priority.ALWAYS);
 
         insertButton = new Button("An Cursorposition einfügen");
         insertButton.setMaxWidth(Double.MAX_VALUE);
@@ -269,21 +309,34 @@ public class SceneWritingAgentTab extends ScrollPane {
             feedbackArea,
             reviseButton,
             insertButton,
-            metaScroll,
-            resultArea
+            resultTabs
         );
 
         toggleConfigButton.selectedProperty().addListener((obs, o, sel) -> {
             configBox.setVisible(sel);
             configBox.setManaged(sel);
-            AgentScrollPaneSupport.applyConfigExpandedLayout(this, contentRoot, resultArea, sel);
+            AgentScrollPaneSupport.applyConfigExpandedLayout(this, contentRoot, resultTabs, sel);
         });
-        AgentScrollPaneSupport.applyConfigExpandedLayout(this, contentRoot, resultArea, false);
+        AgentScrollPaneSupport.applyConfigExpandedLayout(this, contentRoot, resultTabs, false);
     }
 
-    private void setMetaHintVisible(boolean visible) {
-        metaScroll.setVisible(visible);
-        metaScroll.setManaged(visible);
+    private void clearMetaHint() {
+        metaArea.clear();
+        metaTab.setDisable(true);
+        metaTab.setText("Hinweis");
+        resultTabs.getSelectionModel().select(resultTab);
+    }
+
+    private void showMetaHint(String metaText) {
+        String cleaned = metaText != null ? metaText.trim() : "";
+        if (cleaned.isEmpty()) {
+            clearMetaHint();
+            return;
+        }
+        metaArea.setText(cleaned);
+        metaTab.setDisable(false);
+        metaTab.setText("Hinweis");
+        metaTab.setTooltip(new Tooltip("Wird nicht eingefügt — nur zur Orientierung"));
     }
 
     public void bindActivityTracker(AgentActivityTracker tracker) {
@@ -334,7 +387,7 @@ public class SceneWritingAgentTab extends ScrollPane {
             return;
         }
         beginGenerationRun("Generiere Szene…", true);
-        runGeneration(false, instruction.trim(), null, null);
+        Platform.runLater(() -> runGeneration(false, instruction.trim(), null, null));
     }
 
     private void startRevision() {
@@ -357,7 +410,7 @@ public class SceneWritingAgentTab extends ScrollPane {
             return;
         }
         beginGenerationRun("Überarbeite Szene…", false);
-        runGeneration(true, instruction.trim(), draft.trim(), feedback.trim());
+        Platform.runLater(() -> runGeneration(true, instruction.trim(), draft.trim(), feedback.trim()));
     }
 
     private void beginGenerationRun(String statusMessage, boolean clearResult) {
@@ -366,13 +419,18 @@ public class SceneWritingAgentTab extends ScrollPane {
         reviseButton.setDisable(true);
         insertButton.setDisable(true);
         setConfigControlsDisabled(true);
-        setMetaHintVisible(false);
         if (clearResult) {
             resultArea.clear();
+            clearMetaHint();
             feedbackArea.clear();
             feedbackArea.setDisable(true);
+        } else {
+            // Überarbeitung: Hinweis aus vorherigem Lauf zurücksetzen
+            clearMetaHint();
         }
         reportStatus(statusMessage);
+        String name = config.getName() != null ? config.getName() : "Szene Schreiben";
+        registerActivity(name + ": " + statusMessage);
     }
 
     private void runGeneration(boolean revision, String instruction, String draft, String feedback) {
@@ -416,7 +474,6 @@ public class SceneWritingAgentTab extends ScrollPane {
             abortGeneration(validationError);
             return;
         }
-        registerActivity(config.getName() + (revision ? ": Szene wird überarbeitet…" : ": Szene wird generiert…"));
     }
 
     private void handleGenerationError(Throwable err) {
@@ -463,8 +520,9 @@ public class SceneWritingAgentTab extends ScrollPane {
                 reportStatus("Szene fertig (ohne SCENE-Tags — Rohtext übernommen).");
             }
             if (result.getMetaText() != null && !result.getMetaText().isBlank()) {
-                metaLabel.setText("Hinweis (wird nicht eingefügt): " + result.getMetaText());
-                setMetaHintVisible(true);
+                showMetaHint(result.getMetaText());
+            } else {
+                clearMetaHint();
             }
         } else {
             reportStatusError("Keine Szene in der Antwort.");
@@ -587,6 +645,7 @@ public class SceneWritingAgentTab extends ScrollPane {
         promptArea.setDisable(disabled);
         defaultInstructionArea.setDisable(disabled);
         temperatureSlider.setDisable(disabled);
+        maxTokensSlider.setDisable(disabled);
         contextSizeCombo.setDisable(disabled);
         useParameterModelCheck.setDisable(disabled);
         if (disabled) {
@@ -596,11 +655,23 @@ public class SceneWritingAgentTab extends ScrollPane {
         }
     }
 
+    private static void configureSliderValueLabel(Label valueLabel) {
+        valueLabel.setMinWidth(Region.USE_PREF_SIZE);
+        valueLabel.setPrefWidth(Region.USE_COMPUTED_SIZE);
+        valueLabel.setMaxWidth(Region.USE_PREF_SIZE);
+        valueLabel.setAlignment(Pos.CENTER_RIGHT);
+        HBox.setHgrow(valueLabel, Priority.NEVER);
+    }
+
     private static HBox createSliderRow(String labelText, Slider slider, Label valueLabel) {
         Label caption = new Label(labelText);
-        caption.setPrefWidth(110);
-        caption.setMinWidth(110);
-        HBox row = new HBox(6);
+        caption.setMinWidth(Region.USE_PREF_SIZE);
+        caption.setPrefWidth(Region.USE_COMPUTED_SIZE);
+        caption.setMaxWidth(Region.USE_PREF_SIZE);
+        HBox.setHgrow(caption, Priority.NEVER);
+        configureSliderValueLabel(valueLabel);
+        slider.setMinWidth(48);
+        HBox row = new HBox(8);
         row.setAlignment(Pos.CENTER_LEFT);
         row.getChildren().addAll(caption, slider, valueLabel);
         HBox.setHgrow(slider, Priority.ALWAYS);
@@ -619,7 +690,7 @@ public class SceneWritingAgentTab extends ScrollPane {
     }
 
     public void applyEditorFont(String fontFamily, int fontSizePx) {
-        AgentFontSizeSupport.applyEditorFont(this, fontSizePx, fontFamily, metaLabel);
+        AgentFontSizeSupport.applyEditorFont(this, fontSizePx, fontFamily, null);
     }
 
     public static String loadDefaultInstruction() {

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import javafx.application.Platform;
 import javafx.scene.control.TextArea;
 import javafx.scene.text.Font;
 
@@ -16,15 +17,25 @@ public class NumberedListTextArea extends TextArea {
     private static final Pattern NUMBER_PREFIX = Pattern.compile("^\\d+\\.\\s*");
 
     private boolean updating = false;
+    private boolean renumberScheduled = false;
 
     public NumberedListTextArea() {
         getStyleClass().add("numbered-list-textarea");
         setWrapText(true);
         textProperty().addListener((obs, oldText, newText) -> {
-            if (updating || newText == null) {
+            if (updating || newText == null || renumberScheduled) {
                 return;
             }
-            renumber(newText);
+            // Nicht synchron im Listener setText aufrufen — sonst
+            // IllegalArgumentException "The start must be <= the end" (JDK-8081700).
+            renumberScheduled = true;
+            Platform.runLater(() -> {
+                renumberScheduled = false;
+                if (updating) {
+                    return;
+                }
+                renumber(getText());
+            });
         });
     }
 
@@ -80,6 +91,9 @@ public class NumberedListTextArea extends TextArea {
     }
 
     private void renumber(String rawText) {
+        if (rawText == null) {
+            return;
+        }
         int caret = getCaretPosition();
         int anchor = getAnchor();
 
@@ -111,10 +125,12 @@ public class NumberedListTextArea extends TextArea {
         updating = true;
         try {
             setText(renumbered);
-            selectRange(
-                mapContextToOffset(renumbered, anchorBefore),
-                mapContextToOffset(renumbered, before)
-            );
+            int newAnchor = mapContextToOffset(renumbered, anchorBefore);
+            int newCaret = mapContextToOffset(renumbered, before);
+            int len = renumbered.length();
+            newAnchor = Math.max(0, Math.min(newAnchor, len));
+            newCaret = Math.max(0, Math.min(newCaret, len));
+            selectRange(newAnchor, newCaret);
         } finally {
             updating = false;
         }

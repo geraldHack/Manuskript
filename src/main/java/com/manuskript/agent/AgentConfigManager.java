@@ -92,7 +92,7 @@ public class AgentConfigManager {
             backend,
             SceneWritingAgent.DEFAULT_SYSTEM_PROMPT,
             model,
-            0.8, 4096, 0.9, 1.1
+            0.8, 16384, 0.9, 1.1
         );
         sceneAgent.setDefaultPrompt(SceneWritingAgent.DEFAULT_SYSTEM_PROMPT);
         sceneAgent.setAgentType("scene-writing");
@@ -213,11 +213,27 @@ public class AgentConfigManager {
                 backend,
                 SceneWritingAgent.DEFAULT_SYSTEM_PROMPT,
                 model,
-                0.8, 4096, 0.9, 1.1
+                0.8, 16384, 0.9, 1.1
             );
             sceneAgent.setDefaultPrompt(SceneWritingAgent.DEFAULT_SYSTEM_PROMPT);
             sceneAgent.setAgentType("scene-writing");
             configs.add(sceneAgent);
+            saveConfigs(configs);
+        } else {
+            bumpSceneWritingMaxTokensIfNeeded(configs);
+        }
+    }
+
+    /** Alte Default 4096 ist für Reasoning-Modelle (Kimi) oft zu knapp. */
+    private static void bumpSceneWritingMaxTokensIfNeeded(List<AgentConfig> configs) {
+        boolean changed = false;
+        for (AgentConfig c : configs) {
+            if (c.isSceneWritingAgent() && c.getMaxTokens() > 0 && c.getMaxTokens() <= 4096) {
+                c.setMaxTokens(16384);
+                changed = true;
+            }
+        }
+        if (changed) {
             saveConfigs(configs);
         }
     }

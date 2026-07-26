@@ -16,7 +16,7 @@ public class PlotholeAgent {
 
     private static final int MAX_CONTEXT_CHARS = 400_000;
     private static final int DEFAULT_MAX_OUTPUT_TOKENS = 4096;
-    private static final int MAX_OUTPUT_TOKENS_CAP = 16384;
+    private static final int MAX_OUTPUT_TOKENS_CAP = 32768;
 
     private static final String SYSTEM_PROMPT =
         "Du bist ein Analysemodul zur Erkennung von Plotlöchern und logischen Widersprüchen in Manuskripten.\n\n" +

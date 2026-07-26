@@ -62,7 +62,23 @@ public final class ChapterAgentQuoteActions {
         }
 
         QuoteNavigation.QuoteRange range = rangeOpt.get();
-        host.replaceRangePreserveView(range.start(), range.end(), rawSuggestion);
+        String originalSlice = text.substring(range.start(), range.end());
+        String toInsert = rawSuggestion;
+
+        if (SelectionRevisionSupport.isLikelyTruncatedRewrite(originalSlice, rawSuggestion)) {
+            String merged = SelectionRevisionSupport.mergeTruncatedRewrite(originalSlice, rawSuggestion);
+            if (merged == null || merged.isBlank()) {
+                host.updateStatus("Vorschlag scheint unvollständig – Ersetzung abgebrochen. "
+                        + "Bitte kürzere Markierung wählen oder erneut analysieren.");
+                return;
+            }
+            toInsert = merged;
+            host.replaceRangePreserveView(range.start(), range.end(), toInsert);
+            host.updateStatus("Vorschlag übernommen (unvollständig – Rest der Markierung behalten).");
+            return;
+        }
+
+        host.replaceRangePreserveView(range.start(), range.end(), toInsert);
         host.updateStatus("Agenten-Vorschlag übernommen");
     }
 
