@@ -813,22 +813,22 @@ public class TtsRecordingWindow {
         }
     }
 
-    /** RichTextFX CodeArea: Hintergrund und Textfarbe passend zum Fenster-Theme. */
+    /** Hintergrund/Caret per Inline; Textfarbe kommt aus CSS (.paragraph-text .text). */
     private void applyCodeAreaTheme(CodeArea area, int themeIndex) {
-        String bg, fg;
+        String bg, caret;
         switch (themeIndex) {
-            case 0: bg = "#ffffff"; fg = "#000000"; break;
-            case 1: bg = "#1a1a1a"; fg = "#ffffff"; break;
-            case 2: bg = "#f3e5f5"; fg = "#000000"; break;
-            case 3: bg = "#1e3a8a"; fg = "#ffffff"; break;
-            case 4: bg = "#064e3b"; fg = "#ffffff"; break;
-            case 5: bg = "#581c87"; fg = "#ffffff"; break;
-            default: bg = "#ffffff"; fg = "#000000"; break;
+            case 0: bg = "#ffffff"; caret = "#000000"; break;
+            case 1: bg = "#1a1a1a"; caret = "#ffffff"; break;
+            case 2: bg = "#f3e5f5"; caret = "#000000"; break;
+            case 3: bg = "#1e3a8a"; caret = "#ffffff"; break;
+            case 4: bg = "#064e3b"; caret = "#ffffff"; break;
+            case 5: bg = "#581c87"; caret = "#ffffff"; break;
+            default: bg = "#ffffff"; caret = "#000000"; break;
         }
         area.setStyle(String.format(
-            "-fx-font-family: 'Segoe UI', system-ui, sans-serif; -fx-font-size: 15px; " +
-            "-rtfx-background-color: %s; -fx-text-fill: %s; -fx-caret-color: %s;",
-            bg, fg, fg));
+            "-fx-font-family: 'Segoe UI', system-ui, sans-serif; -fx-font-size: 15px; "
+                    + "-rtfx-background-color: %s; -fx-caret-color: %s;",
+            bg, caret));
     }
 
     private void applyThemeToAll(Node root) {

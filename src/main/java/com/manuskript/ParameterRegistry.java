@@ -56,7 +56,7 @@ public final class ParameterRegistry {
         add("api.lektorat.extra_prompt", ParameterDef.Type.STRING, "",
                 "Zusätzlicher Prompt (z. B. Stil-Anweisungen), wird an den Lektorat-Prompt angehängt.", "Online-Lektorat");
         add("api.lektorat.type", ParameterDef.Type.STRING, "allgemein",
-                "Art des Lektorats: allgemein, Stil, Grammatik, Plot/Dramaturgie.", "Online-Lektorat");
+                "Lektorat-Fokus: allgemein oder Komma-Liste aus stil, grammatik, plot (kombinierbar).", "Online-Lektorat");
         add("api.lektorat.chunk_size", ParameterDef.Type.INT, "12000",
                 "Max. Zeichen pro API-Anfrage. Längere Kapitel werden in mehrere Abschnitte geteilt. Größer = weniger Anfragen (schneller), bei langsamen Modellen/Gateways aber evtl. Timeout. Kleiner = mehr Anfragen (robuster). Typisch 5000–15000.", "Online-Lektorat");
         add("api.lektorat.delay_between_chunks_ms", ParameterDef.Type.INT, "1500",

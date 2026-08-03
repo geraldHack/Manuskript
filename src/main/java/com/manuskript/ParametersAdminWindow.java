@@ -463,46 +463,41 @@ public class ParametersAdminWindow {
         content.getChildren().add(extraPromptCard);
         keyToControl.put("api.lektorat.extra_prompt", extraPromptArea);
 
-        // Lektorat-Typ (Toggles)
-        TextField typeField = new TextField(lektoratType != null ? lektoratType : "allgemein");
+        // Lektorat-Fokus (Mehrfachauswahl)
+        TextField typeField = new TextField(
+                OnlineLektoratService.normalizeLektoratType(lektoratType != null ? lektoratType : "allgemein"));
         typeField.setMaxWidth(0);
         typeField.setMinWidth(0);
         typeField.setOpacity(0);
         typeField.setFocusTraversable(false);
-        ToggleGroup typeGroup = new ToggleGroup();
-        typeField.setUserData(typeGroup);
-        RadioButton rbAllgemein = new RadioButton("Allgemein");
-        rbAllgemein.setToggleGroup(typeGroup);
-        rbAllgemein.setUserData("allgemein");
-        rbAllgemein.setOnAction(e -> typeField.setText("allgemein"));
-        RadioButton rbStil = new RadioButton("Stil");
-        rbStil.setToggleGroup(typeGroup);
-        rbStil.setUserData("stil");
-        rbStil.setOnAction(e -> typeField.setText("stil"));
-        RadioButton rbGrammatik = new RadioButton("Grammatik");
-        rbGrammatik.setToggleGroup(typeGroup);
-        rbGrammatik.setUserData("grammatik");
-        rbGrammatik.setOnAction(e -> typeField.setText("grammatik"));
-        RadioButton rbPlot = new RadioButton("Plot / Dramaturgie");
-        rbPlot.setToggleGroup(typeGroup);
-        rbPlot.setUserData("plot");
-        rbPlot.setOnAction(e -> typeField.setText("plot"));
-        for (Toggle t : typeGroup.getToggles()) {
-            if (lektoratType != null && lektoratType.equals(t.getUserData())) {
-                typeGroup.selectToggle(t);
-                break;
+        CheckBox cbStil = new CheckBox("Stil");
+        CheckBox cbGrammatik = new CheckBox("Grammatik");
+        CheckBox cbPlot = new CheckBox("Plot / Dramaturgie");
+        List<String> selectedTypes = OnlineLektoratService.parseLektoratTypes(typeField.getText());
+        cbStil.setSelected(selectedTypes.contains("stil"));
+        cbGrammatik.setSelected(selectedTypes.contains("grammatik"));
+        cbPlot.setSelected(selectedTypes.contains("plot"));
+        Runnable syncTypeField = () -> {
+            java.util.ArrayList<String> selected = new java.util.ArrayList<>();
+            if (cbStil.isSelected()) {
+                selected.add("stil");
             }
-        }
-        if (typeGroup.getSelectedToggle() == null) {
-            typeGroup.selectToggle(rbAllgemein);
-            typeField.setText("allgemein");
-        }
-        HBox typeRow = new HBox(12);
-        typeRow.getChildren().addAll(rbAllgemein, rbStil, rbGrammatik, rbPlot);
+            if (cbGrammatik.isSelected()) {
+                selected.add("grammatik");
+            }
+            if (cbPlot.isSelected()) {
+                selected.add("plot");
+            }
+            typeField.setText(OnlineLektoratService.serializeLektoratTypes(selected));
+        };
+        cbStil.setOnAction(e -> syncTypeField.run());
+        cbGrammatik.setOnAction(e -> syncTypeField.run());
+        cbPlot.setOnAction(e -> syncTypeField.run());
+        HBox typeRow = new HBox(12, cbStil, cbGrammatik, cbPlot);
         typeRow.setAlignment(Pos.CENTER_LEFT);
         Label typeLabel = new Label("api.lektorat.type");
         typeLabel.getStyleClass().add("param-key-label");
-        Label typeHelp = new Label("Art des Lektorats.");
+        Label typeHelp = new Label("Fokus des Lektorats (mehrere möglich). Keine Auswahl = Allgemein.");
         typeHelp.getStyleClass().add("param-help-label");
         typeHelp.setWrapText(true);
         typeHelp.setMaxWidth(680);

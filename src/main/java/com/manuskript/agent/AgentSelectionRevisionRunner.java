@@ -80,7 +80,7 @@ public final class AgentSelectionRevisionRunner {
         PlotholeAgent agent = getOrCreateAgentForTab(
                 targetTab, agentInstances, agentBackends, projectDirSupplier, host.getEditorKey());
         if (agent == null) {
-            targetTab.showError("Agent konnte nicht initialisiert werden");
+            targetTab.showError("Kein Buchprojekt – Agent-Daten können nicht gespeichert werden.");
             return;
         }
 
@@ -128,7 +128,7 @@ public final class AgentSelectionRevisionRunner {
         }
         File projectDir = projectDirSupplier != null ? projectDirSupplier.get() : null;
         if (projectDir == null) {
-            projectDir = new File(System.getProperty("user.dir"));
+            return null;
         }
         AIBackend backend = agentBackends.get(agentId);
         if (backend == null) {

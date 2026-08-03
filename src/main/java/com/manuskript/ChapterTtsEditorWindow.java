@@ -464,24 +464,30 @@ public class ChapterTtsEditorWindow {
         }
         
         /** Extrahiert Sprecher-Informationen aus dem Text (Format: "Name: [tags]") */
-        private void extractSpeakerInfo() {
+        void extractSpeakerInfo() {
+            isSpeaker = false;
+            speakerName = "";
             if (text != null && text.contains(":")) {
                 String[] parts = text.split(":", 2);
                 if (parts.length == 2) {
-                    speakerName = parts[0].trim();
-                    isSpeaker = true;
-                } else {
+                    String name = parts[0].trim();
+                    if (!name.isEmpty() && !name.startsWith("[")) {
+                        speakerName = name;
+                        isSpeaker = true;
+                    }
                 }
-            } else {
             }
         }
-        
+
+        /** Setzt Text und aktualisiert Sprecher-Erkennung (wichtig nach Tabellen-Edit). */
+        public void setText(String newText) {
+            this.text = newText != null ? newText : "";
+            extractSpeakerInfo();
+        }
+
         public javafx.beans.property.StringProperty textProperty() {
             javafx.beans.property.SimpleStringProperty p = new javafx.beans.property.SimpleStringProperty(text);
-            p.addListener((o, oldV, newV) -> {
-                text = newV != null ? newV : "";
-                extractSpeakerInfo();
-            });
+            p.addListener((o, oldV, newV) -> setText(newV));
             return p;
         }
         
@@ -1029,7 +1035,8 @@ public class ChapterTtsEditorWindow {
         colRegieText.setOnEditCommit(e -> {
             int row = e.getTablePosition().getRow();
             if (row >= 0 && row < regieanweisungenItems.size()) {
-                regieanweisungenItems.get(row).text = e.getNewValue() != null ? e.getNewValue().trim() : "";
+                RegieanweisungEntry entry = regieanweisungenItems.get(row);
+                entry.setText(e.getNewValue() != null ? e.getNewValue().trim() : "");
                 saveRegieanweisungen();
             }
         });
@@ -2252,19 +2259,44 @@ public class ChapterTtsEditorWindow {
     private List<ScriptSpeakerDefinition> collectScriptSpeakerDefinitions() {
         Map<String, ScriptSpeakerDefinition> byName = new LinkedHashMap<>();
         for (RegieanweisungEntry entry : regieanweisungenItems) {
-            if (entry == null || !entry.isSpeaker) continue;
+            if (entry == null) continue;
+            // Nach Tabellen-Edit kann isSpeaker falsch false sein — aus "Name: …" nachziehen
+            if (!entry.isSpeaker || entry.speakerName == null || entry.speakerName.isBlank()) {
+                entry.extractSpeakerInfo();
+            }
+            if (!entry.isSpeaker) continue;
             String name = entry.speakerName != null ? entry.speakerName.trim() : "";
-            String tags = entry.getTagsOnly() != null ? entry.getTagsOnly().trim() : "";
-            if (name.isEmpty() || tags.isEmpty()) continue;
+            String tags = normalizeSpeakerTagsForScript(entry.getTagsOnly());
+            if (name.isEmpty()) continue;
+            if (tags.isEmpty()) {
+                tags = "[" + name + "]";
+            }
             byName.putIfAbsent(name.toLowerCase(Locale.ROOT), new ScriptSpeakerDefinition(name, tags));
         }
         for (Map.Entry<String, String> e : temporarySpeakers.entrySet()) {
             String name = e.getKey() != null ? e.getKey().trim() : "";
-            String tags = e.getValue() != null ? e.getValue().trim() : "";
-            if (name.isEmpty() || tags.isEmpty()) continue;
+            String tags = normalizeSpeakerTagsForScript(e.getValue());
+            if (name.isEmpty()) continue;
+            if (tags.isEmpty()) {
+                tags = "[" + name + "]";
+            }
             byName.putIfAbsent(name.toLowerCase(Locale.ROOT), new ScriptSpeakerDefinition(name, tags));
         }
         return new ArrayList<>(byName.values());
+    }
+
+    /**
+     * Stellt sicher, dass Sprecher-Tags als {@code […]} vorliegen (für Mapping/Einfügen).
+     * Freitext ohne Klammern wird als ein Tag geklammert.
+     */
+    private static String normalizeSpeakerTagsForScript(String rawTags) {
+        if (rawTags == null) return "";
+        String trimmed = rawTags.trim();
+        if (trimmed.isEmpty()) return "";
+        if (BRACKET_TAG_PATTERN.matcher(trimmed).find()) {
+            return trimmed;
+        }
+        return "[" + trimmed + "]";
     }
 
     private List<String> collectEmotionTagsForScript() {

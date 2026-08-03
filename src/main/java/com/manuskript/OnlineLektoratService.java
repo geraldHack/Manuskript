@@ -14,11 +14,16 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -34,35 +39,96 @@ public class OnlineLektoratService {
     public static final String SETTINGS_HINT =
             "Modell und weitere Optionen können unter Parameter → Online-Lektorat geändert werden.";
 
-    /** Bekannte Lektorat-Typ-IDs (Parameter / Start-Dialog). */
+    /** Bekannte Lektorat-Typ-IDs inkl. Allgemein (Parameter / Legacy). */
     public static final List<String> LEKTORAT_TYPE_IDS = List.of("allgemein", "stil", "grammatik", "plot");
 
-    /** Normalisiert einen Lektorat-Typ; unbekannte Werte → {@code allgemein}. */
-    public static String normalizeLektoratType(String lektoratType) {
-        if (lektoratType == null || lektoratType.isBlank()) {
-            return "allgemein";
+    /** Kombinierbare Fokus-Typen (ohne Allgemein). */
+    public static final List<String> LEKTORAT_FOCUS_IDS = List.of("stil", "grammatik", "plot");
+
+    /**
+     * Parst einen oder mehrere Typen (Komma-getrennt).
+     * {@code allgemein} / leer / unbekannt → leere Liste (= Allgemein).
+     */
+    public static List<String> parseLektoratTypes(String raw) {
+        if (raw == null || raw.isBlank()) {
+            return List.of();
         }
-        String t = lektoratType.trim().toLowerCase();
-        return LEKTORAT_TYPE_IDS.contains(t) ? t : "allgemein";
+        Set<String> found = new LinkedHashSet<>();
+        for (String part : raw.split("[,;|/]+")) {
+            String t = part.trim().toLowerCase(Locale.ROOT);
+            if (t.isEmpty() || "allgemein".equals(t)) {
+                continue;
+            }
+            if (LEKTORAT_FOCUS_IDS.contains(t)) {
+                found.add(t);
+            }
+        }
+        List<String> ordered = new ArrayList<>();
+        for (String id : LEKTORAT_FOCUS_IDS) {
+            if (found.contains(id)) {
+                ordered.add(id);
+            }
+        }
+        return ordered;
     }
 
-    /** Aktueller Wert von {@code api.lektorat.type} (normalisiert). */
+    /** Serialisiert Fokus-Typen; leer → {@code allgemein}. */
+    public static String serializeLektoratTypes(Collection<String> types) {
+        if (types == null || types.isEmpty()) {
+            return "allgemein";
+        }
+        Set<String> found = new LinkedHashSet<>();
+        for (String t : types) {
+            if (t != null && !t.isBlank()) {
+                found.add(t.trim().toLowerCase(Locale.ROOT));
+            }
+        }
+        List<String> ordered = new ArrayList<>();
+        for (String id : LEKTORAT_FOCUS_IDS) {
+            if (found.contains(id)) {
+                ordered.add(id);
+            }
+        }
+        return ordered.isEmpty() ? "allgemein" : String.join(",", ordered);
+    }
+
+    /** Normalisiert einen Typ-String (ein oder mehrere Fokusse). */
+    public static String normalizeLektoratType(String lektoratType) {
+        return serializeLektoratTypes(parseLektoratTypes(lektoratType));
+    }
+
+    /** Aktueller Wert von {@code api.lektorat.type} (normalisiert, ggf. Komma-Liste). */
     public static String currentLektoratType() {
         return normalizeLektoratType(ResourceManager.getParameter("api.lektorat.type", "allgemein"));
     }
 
-    /** Anzeigename für den Lektorat-Typ in der UI. */
-    public static String formatLektoratTypeLabel(String lektoratType) {
-        if (lektoratType == null || lektoratType.isBlank()) {
+    public static List<String> currentLektoratTypes() {
+        return parseLektoratTypes(ResourceManager.getParameter("api.lektorat.type", "allgemein"));
+    }
+
+    /** Anzeigename für einen einzelnen Fokus. */
+    public static String formatSingleLektoratTypeLabel(String typeId) {
+        if (typeId == null || typeId.isBlank()) {
             return "Allgemein";
         }
-        return switch (lektoratType.trim().toLowerCase()) {
+        return switch (typeId.trim().toLowerCase(Locale.ROOT)) {
             case "stil" -> "Stil";
             case "grammatik" -> "Grammatik";
             case "plot" -> "Plot / Dramaturgie";
             case "allgemein" -> "Allgemein";
-            default -> lektoratType.trim();
+            default -> typeId.trim();
         };
+    }
+
+    /** Anzeigename für einen oder mehrere Typen (Komma-getrennt). */
+    public static String formatLektoratTypeLabel(String lektoratType) {
+        List<String> types = parseLektoratTypes(lektoratType);
+        if (types.isEmpty()) {
+            return "Allgemein";
+        }
+        return types.stream()
+                .map(OnlineLektoratService::formatSingleLektoratTypeLabel)
+                .collect(Collectors.joining(", "));
     }
 
     public static String currentLektoratTypeLabel() {
@@ -136,14 +202,14 @@ public class OnlineLektoratService {
      * Führt das Lektorat aus (ohne Fortschritts-Callback).
      */
     public CompletableFuture<LektoratResult> runLektorat(String chapterText) {
-        return runLektorat(chapterText, null, null);
+        return runLektorat(chapterText, null, null, null);
     }
 
     /**
      * Führt das Lektorat für den übergebenen Kapiteltext aus (Typ aus Parametern).
      */
     public CompletableFuture<LektoratResult> runLektorat(String chapterText, BiConsumer<Integer, Integer> onChunkProgress) {
-        return runLektorat(chapterText, null, onChunkProgress);
+        return runLektorat(chapterText, null, null, onChunkProgress);
     }
 
     /**
@@ -159,6 +225,17 @@ public class OnlineLektoratService {
      */
     public CompletableFuture<LektoratResult> runLektorat(String chapterText, String lektoratType,
                                                          BiConsumer<Integer, Integer> onChunkProgress) {
+        return runLektorat(chapterText, lektoratType, null, onChunkProgress);
+    }
+
+    /**
+     * Wie {@link #runLektorat(String, String, BiConsumer)}, mit optionalen Zusatzanweisungen für diesen Lauf.
+     *
+     * @param extraPromptOverride {@code null} = Parameter {@code api.lektorat.extra_prompt}; sonst dieser Text (auch leer)
+     */
+    public CompletableFuture<LektoratResult> runLektorat(String chapterText, String lektoratType,
+                                                         String extraPromptOverride,
+                                                         BiConsumer<Integer, Integer> onChunkProgress) {
         String apiKey = ResourceManager.getParameter("api.lektorat.api_key", "").trim();
         String baseUrl = ResourceManager.getParameter("api.lektorat.base_url", "https://api.openai.com/v1").trim().replaceAll("/$", "");
         String model = modelIdOnly(ResourceManager.getParameter("api.lektorat.model", "gpt-4o-mini"));
@@ -173,7 +250,9 @@ public class OnlineLektoratService {
             return CompletableFuture.completedFuture(LektoratResult.full(new ArrayList<>()));
         }
 
-        String extraPrompt = ResourceManager.getParameter("api.lektorat.extra_prompt", "").trim();
+        String extraPrompt = extraPromptOverride != null
+                ? extraPromptOverride.trim()
+                : ResourceManager.getParameter("api.lektorat.extra_prompt", "").trim();
         String type = normalizeLektoratType(lektoratType != null ? lektoratType : currentLektoratType());
 
         int maxCharsPerRequest = parseChunkSize(ResourceManager.getParameter("api.lektorat.chunk_size", String.valueOf(CHUNK_SIZE_DEFAULT)));
@@ -581,13 +660,19 @@ public class OnlineLektoratService {
     }
 
     private static String buildSystemPrompt(String extraPrompt, String lektoratType) {
-        String focus = "";
-        switch (lektoratType.toLowerCase()) {
-            case "stil": focus = " Fokus: Stil, Ton, Wortwahl, Rhythmus. "; break;
-            case "grammatik": focus = " Fokus: Grammatik, Rechtschreibung, Zeichensetzung. "; break;
-            case "plot": focus = " Fokus: Plot, Dramaturgie, Spannungsbogen, Figurenzeichnung. "; break;
-            default: focus = " ";
+        List<String> types = parseLektoratTypes(lektoratType);
+        List<String> focusParts = new ArrayList<>();
+        for (String t : types) {
+            switch (t) {
+                case "stil" -> focusParts.add("Stil, Ton, Wortwahl, Rhythmus");
+                case "grammatik" -> focusParts.add("Grammatik, Rechtschreibung, Zeichensetzung");
+                case "plot" -> focusParts.add("Plot, Dramaturgie, Spannungsbogen, Figurenzeichnung");
+                default -> { }
+            }
         }
+        String focus = focusParts.isEmpty()
+                ? " "
+                : " Fokus: " + String.join("; ", focusParts) + ". ";
         int n = getSuggestionsPerEntry();
         String base = "Du agierst als sehr erfahrener, kritischer deutscher Lektor. "
                 + "Du analysierst den gegebenen Text ohne Schonung und nutzt alle Register eines professionellen Lektorats "

@@ -2,9 +2,11 @@
 # Eigennamen und andere Wörter, die nicht als Fehler markiert werden sollen
 # Ein Wort pro Zeile
 
+,«
 acen
 acens
 aklah
+aklahs
 aldric
 alduria
 alera
@@ -20,6 +22,7 @@ ayen
 ayens
 bataflagon
 bataflagons
+bel
 bettlergilde
 blackwood
 brak
@@ -31,6 +34,7 @@ brass
 cassian
 cassians
 center
+corvin
 dama
 demirantha
 demiranthas
@@ -42,6 +46,7 @@ demiranthischen
 demiranthisches
 demirantisch
 des einen
+dieser
 dini
 doran
 dorans
@@ -92,6 +97,8 @@ kisals
 knarl
 knarls
 konvergenzsäulen
+kotta
+kottas
 lakan
 lakanische
 lakanischen
@@ -119,6 +126,7 @@ oryn
 oswin
 paleus
 rawhester
+reiman
 schulterrempler
 seb
 sebs

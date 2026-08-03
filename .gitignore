@@ -45,6 +45,9 @@ pandoc/pandoc-mac.zip
 .project
 .classpath
 
+# Fälschlich im Repo angelegte Projekt-Laufzeitdaten (gehören ins Buch: <Roman>/data/)
+/data/
+
 # Logs
 logs/
 *.log

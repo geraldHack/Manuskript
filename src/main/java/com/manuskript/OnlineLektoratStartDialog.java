@@ -6,15 +6,15 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.RadioButton;
-import javafx.scene.control.Toggle;
-import javafx.scene.control.ToggleGroup;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
-import javafx.stage.Modality;
 import javafx.stage.Window;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -22,8 +22,8 @@ import java.util.Optional;
  */
 public final class OnlineLektoratStartDialog {
 
-    /** Ergebnis des Start-Dialogs. */
-    public record StartOptions(boolean enableAssessment, String lektoratType) {
+    /** Ergebnis des Start-Dialogs. {@code lektoratType} kann mehrere Fokusse komma-getrennt enthalten. */
+    public record StartOptions(boolean enableAssessment, String lektoratType, String extraPrompt) {
     }
 
     private OnlineLektoratStartDialog() {
@@ -32,7 +32,7 @@ public final class OnlineLektoratStartDialog {
     public static Optional<StartOptions> show(Window owner, int themeIndex) {
         CustomStage dialogStage = StageManager.createModalStage("Online-Lektorat", owner);
         dialogStage.setWidth(520);
-        dialogStage.setHeight(480);
+        dialogStage.setHeight(640);
         dialogStage.setTitleBarTheme(themeIndex);
 
         VBox dialogContent = new VBox(16);
@@ -58,30 +58,41 @@ public final class OnlineLektoratStartDialog {
         settingsHintLabel.setWrapText(true);
         settingsHintLabel.setMaxWidth(460);
 
-        Label typeHeadingLabel = new Label("Lektorat-Typ");
+        Label typeHeadingLabel = new Label("Lektorat-Fokus (mehrere möglich)");
         typeHeadingLabel.getStyleClass().add("param-key-label");
 
-        ToggleGroup typeGroup = new ToggleGroup();
-        RadioButton rbAllgemein = typeRadio(typeGroup, "allgemein", "Allgemein");
-        RadioButton rbStil = typeRadio(typeGroup, "stil", "Stil");
-        RadioButton rbGrammatik = typeRadio(typeGroup, "grammatik", "Grammatik");
-        RadioButton rbPlot = typeRadio(typeGroup, "plot", "Plot / Dramaturgie");
+        CheckBox cbStil = new CheckBox("Stil");
+        CheckBox cbGrammatik = new CheckBox("Grammatik");
+        CheckBox cbPlot = new CheckBox("Plot / Dramaturgie");
+        List<String> currentTypes = OnlineLektoratService.currentLektoratTypes();
+        cbStil.setSelected(currentTypes.contains("stil"));
+        cbGrammatik.setSelected(currentTypes.contains("grammatik"));
+        cbPlot.setSelected(currentTypes.contains("plot"));
 
-        String currentType = OnlineLektoratService.currentLektoratType();
-        for (Toggle t : typeGroup.getToggles()) {
-            if (currentType.equals(t.getUserData())) {
-                typeGroup.selectToggle(t);
-                break;
-            }
-        }
-        if (typeGroup.getSelectedToggle() == null) {
-            typeGroup.selectToggle(rbAllgemein);
-        }
+        Label typeHintLabel = new Label("Keine Auswahl = Allgemein (alle Register).");
+        typeHintLabel.setWrapText(true);
+        typeHintLabel.setMaxWidth(460);
+        typeHintLabel.getStyleClass().add("param-help-label");
 
-        HBox typeRow1 = new HBox(12, rbAllgemein, rbStil);
-        HBox typeRow2 = new HBox(12, rbGrammatik, rbPlot);
+        HBox typeRow1 = new HBox(12, cbStil, cbGrammatik);
+        HBox typeRow2 = new HBox(12, cbPlot);
         typeRow1.setAlignment(Pos.CENTER_LEFT);
         typeRow2.setAlignment(Pos.CENTER_LEFT);
+
+        Label extraPromptLabel = new Label("Zusätzliche Anweisungen (optional)");
+        extraPromptLabel.getStyleClass().add("param-key-label");
+        TextArea extraPromptArea = new TextArea();
+        extraPromptArea.setPromptText("z.B. Figurenstimmen erhalten, keine Glättung der Dialoge …");
+        extraPromptArea.setWrapText(true);
+        extraPromptArea.setPrefRowCount(4);
+        extraPromptArea.setMaxWidth(Double.MAX_VALUE);
+        VBox.setVgrow(extraPromptArea, Priority.ALWAYS);
+        String defaultExtra = ResourceManager.getParameter("api.lektorat.extra_prompt", "");
+        if (defaultExtra != null && !defaultExtra.isBlank()) {
+            extraPromptArea.setText(defaultExtra);
+        }
+        extraPromptArea.setTooltip(new Tooltip(
+                "Vorbelegt aus Parameter api.lektorat.extra_prompt. Änderungen gelten nur für diesen Lauf."));
 
         CheckBox assessmentCheckBox = new CheckBox("Zusätzliche Kapitel-Einschätzung erstellen");
         assessmentCheckBox.setTooltip(new Tooltip(
@@ -111,7 +122,9 @@ public final class OnlineLektoratStartDialog {
 
         dialogContent.getChildren().addAll(
                 titleLabel, infoLabel, modelLabel, settingsHintLabel,
-                typeHeadingLabel, typeRow1, typeRow2, assessmentCheckBox);
+                typeHeadingLabel, typeRow1, typeRow2, typeHintLabel,
+                extraPromptLabel, extraPromptArea,
+                assessmentCheckBox);
         if (noKeyLabel != null) {
             dialogContent.getChildren().add(4, noKeyLabel);
         }
@@ -127,24 +140,25 @@ public final class OnlineLektoratStartDialog {
 
         final StartOptions[] result = new StartOptions[1];
         startButton.setOnAction(evt -> {
-            Toggle selected = typeGroup.getSelectedToggle();
-            String type = selected != null && selected.getUserData() instanceof String s
-                    ? OnlineLektoratService.normalizeLektoratType(s)
-                    : "allgemein";
-            result[0] = new StartOptions(assessmentCheckBox.isSelected(), type);
+            List<String> selected = new ArrayList<>();
+            if (cbStil.isSelected()) {
+                selected.add("stil");
+            }
+            if (cbGrammatik.isSelected()) {
+                selected.add("grammatik");
+            }
+            if (cbPlot.isSelected()) {
+                selected.add("plot");
+            }
+            String type = OnlineLektoratService.serializeLektoratTypes(selected);
+            String extra = extraPromptArea.getText() != null ? extraPromptArea.getText().trim() : "";
+            result[0] = new StartOptions(assessmentCheckBox.isSelected(), type, extra);
             dialogStage.close();
         });
         cancelButton.setOnAction(evt -> dialogStage.close());
 
         dialogStage.showAndWait();
         return result[0] != null ? Optional.of(result[0]) : Optional.empty();
-    }
-
-    private static RadioButton typeRadio(ToggleGroup group, String id, String label) {
-        RadioButton rb = new RadioButton(label);
-        rb.setToggleGroup(group);
-        rb.setUserData(id);
-        return rb;
     }
 
     private static void applyTheme(VBox root, int themeIndex) {

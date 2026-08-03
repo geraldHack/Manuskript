@@ -78,6 +78,14 @@ public interface ChapterEditorHost {
         startOnlineLektorat(enableAssessment);
     }
 
+    /**
+     * Wie {@link #startOnlineLektorat(boolean, String)}, mit Zusatzanweisungen für diesen Lauf.
+     * {@code extraPrompt == null} → Parameter {@code api.lektorat.extra_prompt}.
+     */
+    default void startOnlineLektorat(boolean enableAssessment, String lektoratType, String extraPrompt) {
+        startOnlineLektorat(enableAssessment, lektoratType);
+    }
+
     /** Lektorat beenden: Markierungen entfernen, Panel schließen, Agenten wieder freigeben. */
     default void exitOnlineLektorat() {
     }

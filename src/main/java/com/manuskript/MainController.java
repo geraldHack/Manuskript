@@ -4621,7 +4621,7 @@ public class MainController implements Initializable {
      * Gibt den aktuellen Verzeichnispfad zurück
      */
     public String getCurrentDirectoryPath() {
-        return txtDirectoryPath.getText();
+        return txtDirectoryPath != null ? txtDirectoryPath.getText() : null;
     }
     
     /**

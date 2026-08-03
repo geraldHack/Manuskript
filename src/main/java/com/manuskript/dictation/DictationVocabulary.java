@@ -266,6 +266,57 @@ public final class DictationVocabulary {
         return normalized.replaceAll("\\s+", " ");
     }
 
+    /**
+     * Fügt neue Begriffe ans Glossar an (zeilenweise), ohne Duplikate (Groß/Klein egal).
+     *
+     * @return Anzahl neu hinzugefügter Begriffe
+     */
+    public static int mergeTermsIntoGlossaryText(StringBuilder glossaryText, Iterable<String> newTerms) {
+        if (glossaryText == null || newTerms == null) {
+            return 0;
+        }
+        LinkedHashSet<String> existingLower = new LinkedHashSet<>();
+        for (String term : parseGlossaryFile(glossaryText.toString())) {
+            existingLower.add(term.toLowerCase(Locale.ROOT));
+        }
+        int added = 0;
+        StringBuilder append = new StringBuilder();
+        for (String term : newTerms) {
+            if (term == null) {
+                continue;
+            }
+            String trimmed = term.trim();
+            if (trimmed.isEmpty()) {
+                continue;
+            }
+            String key = trimmed.toLowerCase(Locale.ROOT);
+            if (existingLower.contains(key)) {
+                continue;
+            }
+            existingLower.add(key);
+            append.append(trimmed).append('\n');
+            added++;
+        }
+        if (added == 0) {
+            return 0;
+        }
+        if (glossaryText.length() > 0 && glossaryText.charAt(glossaryText.length() - 1) != '\n') {
+            glossaryText.append('\n');
+        }
+        glossaryText.append(append);
+        return added;
+    }
+
+    /**
+     * Sammelt World-Editor-Begriffe (##-Überschriften) aus Figuren- und Worldbuilding-Datei.
+     */
+    public static List<String> collectWorldEditorTerms(String charactersText, String worldbuildingText) {
+        LinkedHashSet<String> terms = new LinkedHashSet<>();
+        terms.addAll(extractSectionNames(charactersText));
+        terms.addAll(extractSectionNames(worldbuildingText));
+        return new ArrayList<>(terms);
+    }
+
     private static String safeLoad(String text) {
         return text != null ? text : "";
     }

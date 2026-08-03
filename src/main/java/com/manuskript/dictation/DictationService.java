@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 /**
@@ -23,7 +24,8 @@ public class DictationService {
     private static final int LLM_MAX_TOKENS = 2000;
 
     private final MicrophoneRecorder recorder = new MicrophoneRecorder();
-    private volatile boolean processing;
+    /** Anzahl laufender STT/LLM-Jobs (Aufnahme und Verarbeitung sind entkoppelt). */
+    private final AtomicInteger pendingJobs = new AtomicInteger(0);
 
     public MicrophoneRecorder getRecorder() {
         return recorder;
@@ -34,11 +36,15 @@ public class DictationService {
     }
 
     public boolean isProcessing() {
-        return processing;
+        return pendingJobs.get() > 0;
+    }
+
+    public int getPendingJobCount() {
+        return pendingJobs.get();
     }
 
     public boolean startRecording() {
-        if (processing) {
+        if (recorder.isRecording()) {
             return false;
         }
         if (!MicrophoneRecorder.isMicrophoneAvailable()) {
@@ -65,15 +71,20 @@ public class DictationService {
             DictationVocabulary vocabulary,
             Consumer<DictationPromptBuilder.TranscriptAnalysis> onTranscriptAnalyzed,
             int quoteStyleIndex) {
-        if (processing) {
-            return CompletableFuture.failedFuture(new IllegalStateException("Diktat wird bereits verarbeitet."));
-        }
         Path wav = recorder.stopRecording();
         if (wav == null) {
             return CompletableFuture.failedFuture(new IllegalStateException("Keine Aufnahmedaten."));
         }
-        processing = true;
-        SpeechToTextBackend stt = createSttBackend();
+
+        final SpeechToTextBackend stt;
+        try {
+            stt = createSttBackend();
+        } catch (RuntimeException e) {
+            deleteQuietly(wav);
+            return CompletableFuture.failedFuture(e);
+        }
+
+        pendingJobs.incrementAndGet();
         String language = ResourceManager.getParameter("dictation.language", "de");
         DictationVocabulary vocab = vocabulary != null ? vocabulary : DictationVocabulary.empty();
         String whisperPrompt = vocab.whisperInitialPrompt();
@@ -88,7 +99,7 @@ public class DictationService {
                     return interpretWithLlm(raw, editorContext, analysis, vocab, quoteStyleIndex);
                 })
                 .whenComplete((result, error) -> {
-                    processing = false;
+                    pendingJobs.decrementAndGet();
                     deleteQuietly(wav);
                 });
     }

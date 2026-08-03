@@ -474,8 +474,7 @@ public class ChapterAgentSupport {
             sceneOutlineText = null;
         }
         MainController main = host.getMainController();
-        String projectDir = main != null && main.getProjectRootDirectory() != null
-                ? main.getProjectRootDirectory().getAbsolutePath() : null;
+        File projectDir = resolveProjectDir();
         File mdFile = host.asCanvasChapterEditor() != null
                 ? host.asCanvasChapterEditor().getLoadedChapterFile()
                 : null;
@@ -485,7 +484,7 @@ public class ChapterAgentSupport {
         java.util.List<DocxFile> chapterOrder = main != null
                 ? main.getSelectedDocxFilesAsDocxFiles() : java.util.List.of();
         SceneContextLoader.Context ctx = SceneContextLoader.load(
-                projectDir != null ? new File(projectDir) : null,
+                projectDir,
                 docx,
                 mdFile,
                 host.getText(),
@@ -661,18 +660,41 @@ public class ChapterAgentSupport {
         return agent;
     }
 
+    /**
+     * Verzeichnis des aktuell geöffneten Buchs (DOCX-Projektordner), nicht die Manuskripte-Wurzel.
+     * Chat-Sessions und Agent-Memory gehören unter {@code <Buch>/data/...}.
+     */
     private File resolveProjectDir() {
         MainController main = host.getMainController();
-        if (main != null && main.getProjectRootDirectory() != null) {
-            return main.getProjectRootDirectory();
+        if (main != null) {
+            String path = main.getCurrentDirectoryPath();
+            if (path != null && !path.isBlank()) {
+                File dir = new File(path.trim());
+                if (dir.isDirectory()) {
+                    return dir;
+                }
+            }
         }
-        File md = host.asCanvasChapterEditor() != null
-                ? host.asCanvasChapterEditor().getLoadedChapterFile() : null;
+        File md = null;
+        if (host.asCanvasChapterEditor() != null) {
+            md = host.asCanvasChapterEditor().getLoadedChapterFile();
+        }
+        if (md == null && host.asLegacyEditorWindow() != null) {
+            md = host.asLegacyEditorWindow().getCurrentFile();
+        }
         if (md != null && md.getParentFile() != null) {
-            File data = md.getParentFile();
-            return data.getParentFile() != null ? data.getParentFile() : data;
+            File parent = md.getParentFile();
+            if ("data".equals(parent.getName()) && parent.getParentFile() != null) {
+                return parent.getParentFile();
+            }
+            return parent;
         }
-        return new File(System.getProperty("user.dir"));
+        File docx = host.getOriginalDocxFile();
+        if (docx != null && docx.getParentFile() != null && docx.getParentFile().isDirectory()) {
+            return docx.getParentFile();
+        }
+        // Kein Fallback auf user.dir — sonst landen Chat/Agent-Daten im App-/Repo-Verzeichnis.
+        return null;
     }
 
     private AIBackend createGenerationBackend(boolean useParameterModel, String overrideModel, AgentConfig config) {

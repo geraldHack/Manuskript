@@ -283,6 +283,8 @@ public class AgentPanel extends VBox {
         Platform.runLater(() -> {
             analyzeButton.setDisable(analyzing);
             if (analyzing) {
+                findingsList.getChildren().clear();
+                findingsList.getChildren().add(emptyLabel);
                 statusLabel.setText("Analysiere...");
                 statusLabel.getStyleClass().removeAll("agent-status-ok", "agent-status-error");
                 statusLabel.getStyleClass().add("agent-status-running");

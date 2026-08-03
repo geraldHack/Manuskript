@@ -55,10 +55,22 @@ class DictationVocabularyTest {
     }
 
     @Test
-    void extractTermsFromManuscript_findsHyphenCompounds() {
-        List<String> terms = DictationVocabulary.extractTermsFromManuscript(
-                "Ihr vintage-Mantel flatterte.", java.util.Set.of());
+    void mergeTermsIntoGlossaryText_skipsDuplicatesCaseInsensitive() {
+        StringBuilder glossary = new StringBuilder("Luna\nvintage\n");
+        int added = DictationVocabulary.mergeTermsIntoGlossaryText(
+                glossary, List.of("luna", "Paleus", "vintage-Mantel"));
 
-        assertTrue(terms.contains("vintage-Mantel"));
+        assertEquals(2, added);
+        assertTrue(glossary.toString().contains("Paleus"));
+        assertTrue(glossary.toString().contains("vintage-Mantel"));
+        assertEquals(1, glossary.toString().toLowerCase().split("luna", -1).length - 1);
+    }
+
+    @Test
+    void collectWorldEditorTerms_readsHeadings() {
+        List<String> terms = DictationVocabulary.collectWorldEditorTerms(
+                "## Luna\n\nText\n",
+                "## Paleus\n\nOrt\n");
+        assertEquals(List.of("Luna", "Paleus"), terms);
     }
 }

@@ -951,6 +951,7 @@ public class AgentTab extends ScrollPane {
         Platform.runLater(() -> {
             analyzeButton.setDisable(analyzing);
             if (analyzing) {
+                clearFindingsNow();
                 String model = modelSelector.getValue();
                 if (model != null && !model.isEmpty()) {
                     reportStatus("Analysiere... (Modell: " + model + ")");
@@ -965,10 +966,27 @@ public class AgentTab extends ScrollPane {
     }
 
     public void clearFindings() {
-        Platform.runLater(() -> {
-            findingsList.getChildren().clear();
-            findingsList.getChildren().add(emptyLabel);
-        });
+        Platform.runLater(this::clearFindingsNow);
+    }
+
+    /** Sofort auf dem FX-Thread: alte Ergebnisse aus der UI entfernen. */
+    private void clearFindingsNow() {
+        findingsList.getChildren().clear();
+        Label placeholder = analyzing
+                ? new Label("Analyse läuft…")
+                : emptyLabel;
+        if (analyzing) {
+            placeholder.getStyleClass().add("agent-empty-label");
+            placeholder.setWrapText(true);
+            AgentFontSizeSupport.applyEditorFont(placeholder, currentFontSize, currentFontFamily, null);
+        }
+        findingsList.getChildren().add(placeholder);
+        if (rewriteTextArea != null) {
+            rewriteTextArea.clear();
+        }
+        if (applyRewriteButton != null) {
+            applyRewriteButton.setDisable(true);
+        }
     }
 
     public void showError(String message) {

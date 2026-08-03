@@ -3,6 +3,7 @@ package com.manuskript.dictation;
 import com.manuskript.ChapterEditorHost;
 import com.manuskript.EditingShortcuts;
 import com.manuskript.ManuskriptTextEditor;
+import com.manuskript.NovelManager;
 import com.manuskript.ResourceManager;
 import javafx.application.Platform;
 import javafx.scene.Scene;
@@ -14,6 +15,9 @@ import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.prefs.Preferences;
 
 /**
@@ -36,6 +40,13 @@ public class DictationSupport {
     private boolean spacePushToTalkActive;
     private boolean altModifierHeld;
     private boolean keyHandlersInstalled;
+    /** Fortlaufende Job-ID für geordnetes Einfügen trotz paralleler Verarbeitung. */
+    private int nextJobId;
+    private int nextApplyJobId;
+    private final Map<Integer, PendingOutcome> readyOutcomes = new HashMap<>();
+    private int uiPendingJobs;
+    /** Ob wir den Host-Busy-Zähler aktuell halten (API ist ref-counted). */
+    private boolean busyBarHeld;
 
     public DictationSupport(ChapterEditorHost host, Stage ownerStage, int themeIndex) {
         this(host, ownerStage, themeIndex,
@@ -56,14 +67,22 @@ public class DictationSupport {
         dictationButton.setTooltip(new Tooltip(
                 "Diktat-Modus ein/aus.\n"
                         + "Im Modus: " + hotkeyHint + " gedrückt halten zum Sprechen, loslassen zum Einfügen.\n"
+                        + "Während der Verarbeitung kannst du sofort weiter diktieren; "
+                        + "Texte werden in Aufnahme-Reihenfolge eingefügt.\n"
                         + "Kommando: mit „Anweisung:“, „Befehl:“ oder „Kommando:“ beginnen — "
                         + "z. B. „Anweisung: Schreibe, dass Luna wacklige Knie hat nach der Ankunft“.\n"
                         + "Format: „kursiv“, „fett“, „Absatz“; "
                         + DictationSpokenMarkup.spokenMarkupHint() + ".\n"
-                        + "Glossar: dictation-glossary.txt im Buchordner.\n"
+                        + "Glossar: Rechtsklick auf „Diktat“ → Glossar bearbeiten (data/dictation-glossary.txt).\n"
                         + "STT: lokal (whisper.cpp). LLM: agent.backend."));
         dictationButton.getStyleClass().add("dictation-btn");
         dictationButton.setSelected(dictationModeEnabled);
+
+        javafx.scene.control.ContextMenu glossaryMenu = new javafx.scene.control.ContextMenu();
+        javafx.scene.control.MenuItem openGlossary = new javafx.scene.control.MenuItem("Glossar bearbeiten…");
+        openGlossary.setOnAction(e -> openGlossaryEditor());
+        glossaryMenu.getItems().add(openGlossary);
+        dictationButton.setContextMenu(glossaryMenu);
         if (dictationModeEnabled) {
             String issue = DictationService.checkReadiness();
             if (issue != null) {
@@ -86,7 +105,7 @@ public class DictationSupport {
             } else if (dictationService.isRecording()) {
                 dictationService.cancelRecording();
                 setRecordingAppearance(false);
-                host.setStatusBusyBarActive(false);
+                refreshBusyBar();
             }
             dictationModeEnabled = selected;
             preferences.putBoolean(PREF_DICTATION_MODE, selected);
@@ -95,6 +114,21 @@ public class DictationSupport {
         });
 
         return dictationButton;
+    }
+
+    public void openGlossaryEditor() {
+        File docx = host.getOriginalDocxFile();
+        if (docx == null) {
+            showError("Glossar", "Kein Kapitel mit DOCX geladen – Glossar liegt unter data/dictation-glossary.txt im Buchordner.");
+            return;
+        }
+        NovelManager.ensureDictationGlossary(docx.getAbsolutePath());
+        DictationGlossaryWindow.show(
+                ownerStage,
+                themeIndex,
+                docx.getAbsolutePath(),
+                host.getEditorFontFamily(),
+                host.getEditorFontSizePx());
     }
 
     /**
@@ -124,7 +158,7 @@ public class DictationSupport {
             return;
         }
         trackModifiers(event, true);
-        if (!dictationModeEnabled || dictationService.isProcessing()) {
+        if (!dictationModeEnabled) {
             return;
         }
         if (!isPushToTalkKey(event) || dictationService.isRecording()) {
@@ -237,48 +271,125 @@ public class DictationSupport {
             return;
         }
         setRecordingAppearance(true);
-        host.updateStatus("Diktat: Aufnahme… (" + pushToTalkHint() + " halten)");
-        host.setStatusBusyBarActive(true);
+        refreshBusyBar();
+        host.updateStatus(statusWhileRecording());
     }
 
     private void finishRecording() {
         setRecordingAppearance(false);
-        host.updateStatus("Diktat: Verarbeite…");
+        int jobId = nextJobId++;
+        uiPendingJobs++;
+        refreshBusyBar();
+        host.updateStatus(statusWhileProcessing());
 
         String editorContext = DictationPromptBuilder.extractEditorContext(
                 host.getText(), host.getCaretPosition());
         DictationVocabulary vocabulary = DictationVocabulary.fromHost(host);
-
         int quoteStyleIndex = host.getQuoteStyleIndex();
+
         dictationService.stopAndProcess(editorContext, vocabulary, analysis -> Platform.runLater(() -> {
+                    if (dictationService.isRecording()) {
+                        return;
+                    }
                     if (analysis.mode() == DictationMode.INSTRUCTION) {
                         setInstructionAppearance(true);
                         String vocabHint = vocabularyHint(vocabulary);
                         host.updateStatus("Anweisung erkannt: "
                                 + summarizeInstruction(analysis.instructionText())
-                                + vocabHint);
+                                + vocabHint
+                                + pendingSuffix());
                     } else {
                         String vocabHint = vocabularyHint(vocabulary);
-                        host.updateStatus(vocabHint.isEmpty()
-                                ? "Diktat: Verarbeite…"
-                                : "Diktat: Verarbeite…" + vocabHint);
+                        host.updateStatus(statusWhileProcessing() + vocabHint);
                     }
                 }), quoteStyleIndex)
                 .whenComplete((result, error) -> Platform.runLater(() -> {
-                    host.setStatusBusyBarActive(false);
-                    setInstructionAppearance(false);
                     if (error != null) {
                         Throwable cause = error.getCause() != null ? error.getCause() : error;
-                        String message = cause.getMessage();
-                        logger.warn("Diktat fehlgeschlagen: {}", message);
-                        showError(resolveErrorHeader(message), message);
-                        if (dictationModeEnabled) {
-                            host.updateStatus("Diktat-Modus an (" + pushToTalkHint() + " halten)");
-                        }
-                        return;
+                        readyOutcomes.put(jobId, PendingOutcome.error(cause.getMessage()));
+                    } else {
+                        readyOutcomes.put(jobId, PendingOutcome.success(result));
                     }
-                    applyResult(result);
+                    drainReadyOutcomes();
                 }));
+    }
+
+    /**
+     * Fügt fertige Diktate in Aufnahme-Reihenfolge ein, auch wenn ein späteres Job früher fertig ist.
+     */
+    private void drainReadyOutcomes() {
+        while (readyOutcomes.containsKey(nextApplyJobId)) {
+            PendingOutcome outcome = readyOutcomes.remove(nextApplyJobId);
+            nextApplyJobId++;
+            uiPendingJobs = Math.max(0, uiPendingJobs - 1);
+            setInstructionAppearance(false);
+
+            if (outcome.errorMessage != null) {
+                logger.warn("Diktat fehlgeschlagen: {}", outcome.errorMessage);
+                showError(resolveErrorHeader(outcome.errorMessage), outcome.errorMessage);
+            } else if (outcome.result != null) {
+                applyResult(outcome.result);
+            }
+        }
+        refreshBusyBar();
+        if (dictationService.isRecording()) {
+            host.updateStatus(statusWhileRecording());
+        } else if (uiPendingJobs > 0) {
+            host.updateStatus(statusWhileProcessing());
+        } else if (dictationModeEnabled) {
+            host.updateStatus("Diktat-Modus an (" + pushToTalkHint() + " halten)");
+        } else {
+            host.updateStatus("Diktat eingefügt.");
+        }
+    }
+
+    private void refreshBusyBar() {
+        boolean shouldBeBusy = dictationService.isRecording() || uiPendingJobs > 0;
+        if (shouldBeBusy == busyBarHeld) {
+            return;
+        }
+        busyBarHeld = shouldBeBusy;
+        host.setStatusBusyBarActive(shouldBeBusy);
+    }
+
+    private String statusWhileRecording() {
+        if (uiPendingJobs > 0) {
+            return "Diktat: Aufnahme… (" + uiPendingJobs + " in Verarbeitung, "
+                    + pushToTalkHint() + " halten)";
+        }
+        return "Diktat: Aufnahme… (" + pushToTalkHint() + " halten)";
+    }
+
+    private String statusWhileProcessing() {
+        if (uiPendingJobs <= 1) {
+            return "Diktat: Verarbeite…";
+        }
+        return "Diktat: Verarbeite… (" + uiPendingJobs + ")";
+    }
+
+    private String pendingSuffix() {
+        if (uiPendingJobs <= 1) {
+            return "";
+        }
+        return " (" + uiPendingJobs + " in Verarbeitung)";
+    }
+
+    private static final class PendingOutcome {
+        final DictationResult result;
+        final String errorMessage;
+
+        private PendingOutcome(DictationResult result, String errorMessage) {
+            this.result = result;
+            this.errorMessage = errorMessage;
+        }
+
+        static PendingOutcome success(DictationResult result) {
+            return new PendingOutcome(result, null);
+        }
+
+        static PendingOutcome error(String message) {
+            return new PendingOutcome(null, message != null ? message : "Unbekannter Fehler");
+        }
     }
 
     private void showError(String header, String detail) {
@@ -319,20 +430,8 @@ public class DictationSupport {
                 ResourceManager.getParameter("dictation.enable_preview_before_insert", "false"));
         if (preview) {
             DictationPreviewDialog.show(host, ownerStage, themeIndex, result, text -> insertProcessedText(text));
-            host.updateStatus(result.mode() == DictationMode.INSTRUCTION
-                    ? "Anweisung: Vorschau angezeigt."
-                    : "Diktat: Vorschau angezeigt.");
         } else {
             insertProcessedText(result.processedText());
-            if (dictationModeEnabled) {
-                host.updateStatus(result.mode() == DictationMode.INSTRUCTION
-                        ? "Anweisung umgesetzt — Diktat-Modus an (" + pushToTalkHint() + " halten)"
-                        : "Diktat-Modus an (" + pushToTalkHint() + " halten)");
-            } else {
-                host.updateStatus(result.mode() == DictationMode.INSTRUCTION
-                        ? "Anweisung umgesetzt."
-                        : "Diktat eingefügt.");
-            }
         }
     }
 
@@ -349,7 +448,7 @@ public class DictationSupport {
 
     private static String vocabularyHint(DictationVocabulary vocabulary) {
         if (vocabulary == null || vocabulary.isEmpty()) {
-            return " (Glossar leer — dictation-glossary.txt anlegen)";
+            return " (Glossar leer — Glossar bearbeiten: Rechtsklick auf Diktat)";
         }
         if (!vocabulary.hasUserGlossary()) {
             return " (" + vocabulary.termCount() + " Begriffe, Glossar-Datei noch leer)";

@@ -24,10 +24,12 @@ public class NovelManager {
     public static final String OUTLINE_FILE = "outline.txt";
     public static final String WORLDBUILDING_FILE = "worldbuilding.txt";
     public static final String DICTATION_GLOSSARY_FILE = "dictation-glossary.txt";
+    private static final String DATA_DIR = "data";
 
     private static final String DICTATION_GLOSSARY_TEMPLATE = """
             # Diktat-Glossar – Begriffe für Spracherkennung und Korrektur
-            # Ein Begriff pro Zeile: Figurennamen, Orte, englische Lehnwörter, Komposita
+            # Pfad: data/dictation-glossary.txt
+            # Ein Begriff pro Zeile (oder kommagetrennt): Figurennamen, Orte, englische Lehnwörter, Komposita
             #
             # Beispiele:
             # vintage
@@ -224,29 +226,68 @@ public class NovelManager {
     }
 
     public static String loadDictationGlossary(String docxFilePath) {
-        return loadNovelFile(docxFilePath, DICTATION_GLOSSARY_FILE);
+        try {
+            Path filePath = dictationGlossaryPath(docxFilePath);
+            if (filePath != null && Files.exists(filePath)) {
+                return Files.readString(filePath, StandardCharsets.UTF_8);
+            }
+            return "";
+        } catch (IOException e) {
+            logger.warn("Diktat-Glossar konnte nicht geladen werden: {}", e.getMessage());
+            return "";
+        }
     }
 
     public static void saveDictationGlossary(String docxFilePath, String glossary) {
-        saveNovelFile(docxFilePath, DICTATION_GLOSSARY_FILE, glossary);
+        try {
+            Path filePath = dictationGlossaryPath(docxFilePath);
+            if (filePath == null) {
+                return;
+            }
+            Path parent = filePath.getParent();
+            if (parent != null && !Files.exists(parent)) {
+                Files.createDirectories(parent);
+            }
+            Files.writeString(filePath, glossary != null ? glossary : "", StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            logger.warn("Diktat-Glossar konnte nicht gespeichert werden: {}", e.getMessage());
+        }
     }
 
     /**
-     * Legt {@code dictation-glossary.txt} mit Vorlage an, falls noch nicht vorhanden.
+     * Legt {@code data/dictation-glossary.txt} mit Vorlage an, falls noch nicht vorhanden.
      */
     public static void ensureDictationGlossary(String docxFilePath) {
         try {
-            Path docxPath = Paths.get(docxFilePath);
-            Path directory = docxPath.getParent();
-            if (directory == null) {
+            Path filePath = dictationGlossaryPath(docxFilePath);
+            if (filePath == null) {
                 return;
             }
-            createFileIfNotExists(directory, DICTATION_GLOSSARY_FILE, DICTATION_GLOSSARY_TEMPLATE);
+            Path parent = filePath.getParent();
+            if (parent != null && !Files.exists(parent)) {
+                Files.createDirectories(parent);
+            }
+            if (!Files.exists(filePath)) {
+                Files.writeString(filePath, DICTATION_GLOSSARY_TEMPLATE, StandardCharsets.UTF_8);
+            }
         } catch (IOException e) {
             logger.warn("Diktat-Glossar konnte nicht angelegt werden: {}", e.getMessage());
         }
     }
-    
+
+    /** {@code <Buch>/data/dictation-glossary.txt} */
+    public static Path dictationGlossaryPath(String docxFilePath) {
+        if (docxFilePath == null || docxFilePath.isBlank()) {
+            return null;
+        }
+        Path docxPath = Paths.get(docxFilePath);
+        Path directory = docxPath.getParent();
+        if (directory == null) {
+            return null;
+        }
+        return directory.resolve(DATA_DIR).resolve(DICTATION_GLOSSARY_FILE);
+    }
+
     /**
      * Lädt die Kapitelbeschreibung für eine spezifische DOCX-Datei
      */

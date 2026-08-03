@@ -219,6 +219,8 @@ public class ManuskriptTextEditor extends Region {
     /** Zusätzliche Höhe für ausgeblendete einzeilige Leerzeile zwischen Absätzen (WYSIWYG). */
     private double paragraphSpacingPx = 10;
     private boolean justifyText = false;
+    /** Markdown-Überschriften (# … ######) erkennen und zentriert darstellen. */
+    private boolean markdownHeadingsEnabled = true;
     private int caret = 0;
     private int anchor = 0;
     private double scrollTop = 0.0;
@@ -1366,6 +1368,24 @@ public class ManuskriptTextEditor extends Region {
             return;
         }
         justifyText = justify;
+        invalidateLayoutCaches();
+        preferredCaretX = Double.NaN;
+        render();
+    }
+
+    public boolean isMarkdownHeadingsEnabled() {
+        return markdownHeadingsEnabled;
+    }
+
+    /**
+     * Schaltet Markdown-Überschriften ab (z. B. für Glossar-Dateien mit {@code #}-Kommentaren).
+     */
+    public void setMarkdownHeadingsEnabled(boolean enabled) {
+        if (markdownHeadingsEnabled == enabled) {
+            return;
+        }
+        markdownHeadingsEnabled = enabled;
+        rebuildStructuralMarkdownNow();
         invalidateLayoutCaches();
         preferredCaretX = Double.NaN;
         render();
@@ -3883,6 +3903,10 @@ public class ManuskriptTextEditor extends Region {
     private void rebuildHeadingStyles() {
         headingRanges.clear();
         headingLevelByLineStart.clear();
+        if (!markdownHeadingsEnabled) {
+            textWidthCache.clear();
+            return;
+        }
         int lineStart = 0;
         for (int i = 0; i <= text.length(); i++) {
             if (i < text.length() && text.charAt(i) != '\n') {

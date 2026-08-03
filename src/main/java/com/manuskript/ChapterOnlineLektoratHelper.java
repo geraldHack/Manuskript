@@ -49,10 +49,17 @@ public class ChapterOnlineLektoratHelper {
     }
 
     public void start(boolean enableAssessment) {
-        start(enableAssessment, OnlineLektoratService.currentLektoratType());
+        start(enableAssessment, OnlineLektoratService.currentLektoratType(), null);
     }
 
     public void start(boolean enableAssessment, String lektoratType) {
+        start(enableAssessment, lektoratType, null);
+    }
+
+    /**
+     * @param extraPrompt {@code null} = Parameter {@code api.lektorat.extra_prompt}; sonst dieser Lauf-Wert
+     */
+    public void start(boolean enableAssessment, String lektoratType, String extraPrompt) {
         String type = OnlineLektoratService.normalizeLektoratType(lektoratType);
         String text = host.getText();
         if (text == null || text.trim().isEmpty()) {
@@ -82,7 +89,7 @@ public class ChapterOnlineLektoratHelper {
                 host.updateStatus("Lektorat (" + typeLabel + "): " + done + "/" + total + " Abschnitte …");
             }
         });
-        service.runLektorat(text, type, onProgress)
+        service.runLektorat(text, type, extraPrompt, onProgress)
                 .thenAccept(result -> Platform.runLater(() -> {
                     if (!inProgress) {
                         return;

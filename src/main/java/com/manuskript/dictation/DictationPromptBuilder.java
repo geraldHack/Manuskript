@@ -158,8 +158,9 @@ public final class DictationPromptBuilder {
     private static void appendVocabulary(StringBuilder sb, DictationVocabulary vocabulary) {
         if (vocabulary == null || vocabulary.isEmpty()) {
             sb.append("""
-                    Hinweis: Kein Projekt-Glossar geladen. dictation-glossary.txt im Buchordner \
-                    mit Eigennamen und Fremdwörtern anlegen (ein Begriff pro Zeile).
+                    Hinweis: Kein Projekt-Glossar geladen. Unter data/dictation-glossary.txt \
+                    Begriffe anlegen (Glossar-Button im Editor) oder Figuren/Worldbuilding \
+                    mit ##-Überschriften pflegen.
                     
                     """);
             return;

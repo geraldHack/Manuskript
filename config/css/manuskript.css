@@ -3761,23 +3761,19 @@
     -rtfx-fill: #e9d5ff;
 }
 
-/* TTS-Editor CodeArea: Theme-gerechte Textfarbe (spezifische Selektoren) */
-.theme-dark .code-area.tts-editor-code-area .paragraph-box .text:not(.markdown-bold):not(.markdown-italic):not(.markdown-bold-italic):not(.markdown-underline):not(.markdown-strikethrough):not(.markdown-highlight):not(.markdown-blockquote):not(.heading-1):not(.heading-2):not(.heading-3):not(.heading-4):not(.heading-5) {
+/* TTS-Editor CodeArea: Standardtextfarbe (RichTextFX: .paragraph-text .text, nicht inherit / keine :not-Ketten) */
+.theme-dark .code-area.tts-editor-code-area .paragraph-text .text {
     -fx-fill: #ffffff;
 }
-.weiss-theme .code-area.tts-editor-code-area .paragraph-box .text:not(.markdown-bold):not(.markdown-italic):not(.markdown-bold-italic):not(.markdown-underline):not(.markdown-strikethrough):not(.markdown-highlight):not(.markdown-blockquote):not(.heading-1):not(.heading-2):not(.heading-3):not(.heading-4):not(.heading-5) {
+.weiss-theme .code-area.tts-editor-code-area .paragraph-text .text {
     -fx-fill: #000000;
 }
-.pastell-theme .code-area.tts-editor-code-area .paragraph-box .text:not(.markdown-bold):not(.markdown-italic):not(.markdown-bold-italic):not(.markdown-underline):not(.markdown-strikethrough):not(.markdown-highlight):not(.markdown-blockquote):not(.heading-1):not(.heading-2):not(.heading-3):not(.heading-4):not(.heading-5) {
+.pastell-theme .code-area.tts-editor-code-area .paragraph-text .text {
     -fx-fill: #000000;
 }
-.theme-dark.blau-theme .code-area.tts-editor-code-area .paragraph-box .text:not(.markdown-bold):not(.markdown-italic):not(.markdown-bold-italic):not(.markdown-underline):not(.markdown-strikethrough):not(.markdown-highlight):not(.markdown-blockquote):not(.heading-1):not(.heading-2):not(.heading-3):not(.heading-4):not(.heading-5) {
-    -fx-fill: #ffffff;
-}
-.theme-dark.gruen-theme .code-area.tts-editor-code-area .paragraph-box .text:not(.markdown-bold):not(.markdown-italic):not(.markdown-bold-italic):not(.markdown-underline):not(.markdown-strikethrough):not(.markdown-highlight):not(.markdown-blockquote):not(.heading-1):not(.heading-2):not(.heading-3):not(.heading-4):not(.heading-5) {
-    -fx-fill: #ffffff;
-}
-.theme-dark.lila-theme .code-area.tts-editor-code-area .paragraph-box .text:not(.markdown-bold):not(.markdown-italic):not(.markdown-bold-italic):not(.markdown-underline):not(.markdown-strikethrough):not(.markdown-highlight):not(.markdown-blockquote):not(.heading-1):not(.heading-2):not(.heading-3):not(.heading-4):not(.heading-5) {
+.theme-dark.blau-theme .code-area.tts-editor-code-area .paragraph-text .text,
+.theme-dark.gruen-theme .code-area.tts-editor-code-area .paragraph-text .text,
+.theme-dark.lila-theme .code-area.tts-editor-code-area .paragraph-text .text {
     -fx-fill: #ffffff;
 }
 /* Bearbeitungsmodus: RichTextFX zeichnet Selektion mit Path-Klasse "main-selection" (-fx-fill). Ausblenden, damit nur tts-selection (Orange) sichtbar ist. */
@@ -4007,26 +4003,40 @@
     -fx-border-radius: 4px;
 }
 
-/* RichTextFX: tatsächliche Textfarbe ( .text verwendet -fx-fill ) */
-/* WICHTIG: Markdown-Klassen ausgeschlossen, damit ihre Farben gelten */
-/* HIGHEST PRIORITY: Überschreibt RichTextFX Standard-CSS */
-.code-area .text {
-    -fx-fill: inherit;
-}
-.theme-dark .code-area .text:not(.markdown-bold):not(.markdown-italic):not(.markdown-bold-italic):not(.markdown-underline):not(.markdown-strikethrough):not(.markdown-highlight):not(.markdown-blockquote):not(.heading-1):not(.heading-2):not(.heading-3):not(.heading-4):not(.heading-5) {
+/* RichTextFX-Standardtext: Farbe auf .paragraph-text .text (siehe RichTextFX #737).
+   Nicht inherit — das erbt oft Schwarz. Keine langen :not()-Ketten (JavaFX-Parser). */
+.theme-dark .code-area .paragraph-text .text {
     -fx-fill: #ffffff;
 }
-.weiss-theme .code-area .text:not(.markdown-bold):not(.markdown-italic):not(.markdown-bold-italic):not(.markdown-underline):not(.markdown-strikethrough):not(.markdown-highlight):not(.markdown-blockquote):not(.heading-1):not(.heading-2):not(.heading-3):not(.heading-4):not(.heading-5) {
+.weiss-theme .code-area .paragraph-text .text {
     -fx-fill: #000000;
 }
-.pastell-theme .code-area .text:not(.markdown-bold):not(.markdown-italic):not(.markdown-bold-italic):not(.markdown-underline):not(.markdown-strikethrough):not(.markdown-highlight):not(.markdown-blockquote):not(.heading-1):not(.heading-2):not(.heading-3):not(.heading-4):not(.heading-5) {
+.pastell-theme .code-area .paragraph-text .text {
     -fx-fill: #000000;
 }
-.theme-dark.blau-theme .code-area .text:not(.markdown-bold):not(.markdown-italic):not(.markdown-bold-italic):not(.markdown-underline):not(.markdown-strikethrough):not(.markdown-highlight):not(.markdown-blockquote):not(.heading-1):not(.heading-2):not(.heading-3):not(.heading-4):not(.heading-5),
-.theme-dark.gruen-theme .code-area .text:not(.markdown-bold):not(.markdown-italic):not(.markdown-bold-italic):not(.markdown-underline):not(.markdown-strikethrough):not(.markdown-highlight):not(.markdown-blockquote):not(.heading-1):not(.heading-2):not(.heading-3):not(.heading-4):not(.heading-5),
-.theme-dark.lila-theme .code-area .text:not(.markdown-bold):not(.markdown-italic):not(.markdown-bold-italic):not(.markdown-underline):not(.markdown-strikethrough):not(.markdown-highlight):not(.markdown-blockquote):not(.heading-1):not(.heading-2):not(.heading-3):not(.heading-4):not(.heading-5) {
+.theme-dark.blau-theme .code-area .paragraph-text .text,
+.theme-dark.gruen-theme .code-area .paragraph-text .text,
+.theme-dark.lila-theme .code-area .paragraph-text .text {
     -fx-fill: #ffffff;
 }
+
+/* Markdown/Überschriften müssen spezifischer sein als die Standard-Textfarbe oben */
+.theme-dark .code-area .paragraph-text .text.markdown-bold,
+.theme-dark .code-area .paragraph-text .text.markdown-italic,
+.theme-dark .code-area .paragraph-text .text.markdown-bold-italic {
+    -fx-fill: #87ceeb;
+}
+.theme-dark .code-area .paragraph-text .text.markdown-bold {
+    -fx-fill: #ff8cc8;
+}
+.theme-dark .code-area .paragraph-text .text.markdown-bold-italic {
+    -fx-fill: #c4a0ff;
+}
+.theme-dark .code-area .paragraph-text .text.heading-1 { -fx-fill: #ffffff; }
+.theme-dark .code-area .paragraph-text .text.heading-2 { -fx-fill: #e9ecef; }
+.theme-dark .code-area .paragraph-text .text.heading-3 { -fx-fill: #ced4da; }
+.theme-dark .code-area .paragraph-text .text.heading-4 { -fx-fill: #adb5bd; }
+.theme-dark .code-area .paragraph-text .text.heading-5 { -fx-fill: #6c757d; }
 
 /* RichTextFX CodeArea VirtualizedScrollPane Scrollbalken - Blau Theme */
 .theme-dark.blau-theme .code-area-scroll-pane .scroll-bar:vertical {

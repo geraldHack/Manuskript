@@ -87,6 +87,7 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
     private static final String PREF_HIDE_MARKUP = "prototype_editor_hide_markup";
     private static final String PREF_SHOW_LINE_NUMBERS = "prototype_editor_show_line_numbers";
     private static final String PREF_LT_AUTO = "prototype_editor_languagetool_auto";
+    private static final String PREF_SAVE_DOCX_ALONGSIDE = "prototype_editor_save_docx_alongside";
     private static final String PREF_SIDEBAR_EXPANDED = "prototype_editor_sidebar_expanded";
     private static final String PREF_HOST_TOOLBAR_EXPANDED = "prototype_editor_host_toolbar_expanded";
 
@@ -825,6 +826,14 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         saveChapter.setTooltip(new Tooltip("Speichern (" + EditingShortcuts.acceleratorHint("S") + ")"));
         saveChapter.setOnAction(e -> saveLoadedChapter());
 
+        CheckBox saveDocxAlongside = new CheckBox("DOCX mitspeichern");
+        saveDocxAlongside.setSelected(preferences.getBoolean(PREF_SAVE_DOCX_ALONGSIDE, false));
+        saveDocxAlongside.setTooltip(new Tooltip(
+                "Beim Speichern zusätzlich die Kapitel-DOCX im Projektordner aktualisieren "
+                        + "(Inhalt wie im Editor; Buch-Layout weiterhin über Export)."));
+        saveDocxAlongside.selectedProperty().addListener((obs, oldValue, newValue) ->
+                preferences.putBoolean(PREF_SAVE_DOCX_ALONGSIDE, newValue));
+
         cmbMdHistory = new ComboBox<>();
         cmbMdHistory.setPromptText("Versionen");
         cmbMdHistory.setPrefWidth(220);
@@ -907,7 +916,7 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         toggleRow.setPadding(new Insets(2, 0, 2, 0));
 
         statusRow.getChildren().addAll(editorHelpMenu, statusSpacer, cmbMdHistory, btnHistoryDiff,
-                btnHistoryRestore, saveChapter, lblLanguageToolStatus, lblSelectionCount, statusLabel);
+                btnHistoryRestore, saveChapter, saveDocxAlongside, lblLanguageToolStatus, lblSelectionCount, statusLabel);
         statusRow.setAlignment(Pos.CENTER_RIGHT);
 
         FlowPane formatPane = new FlowPane(6, 4);
@@ -934,11 +943,15 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
                 "Online-Lektorat starten (Typ im Dialog wählbar). " + OnlineLektoratService.SETTINGS_HINT,
                 this::promptAndStartOnlineLektorat);
         Button macrosBtn = toolbarButton("Makros", "Makro-Verwaltung ein-/ausblenden", this::toggleMacroWindow);
-        Button copySudowrite = toolbarButton("Sudowrite", "Für Sudowrite kopieren (Zwischenablage)",
+        Button copySudowrite = toolbarButton("Zwischenablage",
+                "In Zwischenablage kopieren (Sudowrite-kompatibel)",
                 this::copyForSudowrite);
 
         dictationSupport = new DictationSupport(this, stage, themeIndex);
         ToggleButton dictationBtn = dictationSupport.createToolbarButton();
+        Button glossaryBtn = toolbarButton("Glossar",
+                "Diktat-Glossar bearbeiten (data/dictation-glossary.txt)",
+                () -> dictationSupport.openGlossaryEditor());
 
         toolsPane.getChildren().addAll(
                 quoteLabel, quoteStyle,
@@ -948,7 +961,7 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
             toolsPane.getChildren().add(btnToggleAgents);
         }
         toolsPane.getChildren().addAll(
-                onlineLektorat, macrosBtn, copySudowrite, dictationBtn,
+                onlineLektorat, macrosBtn, copySudowrite, dictationBtn, glossaryBtn,
                 insertImage, editImage, deleteImage);
 
         hostToolbarCollapsibleSection = new VBox(8, formatPane, toolsPane);
@@ -1724,9 +1737,73 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
             setDirty(false);
             refreshChapterListAppearance();
             refreshMdHistoryComboBox();
-            updateStatus("Gespeichert: " + loadedChapterFile.getName());
+
+            boolean saveDocx = preferences.getBoolean(PREF_SAVE_DOCX_ALONGSIDE, false);
+            if (saveDocx && loadedDocxFile != null) {
+                try {
+                    saveDocxAlongsideMarkdown(normalized);
+                } catch (IOException docxError) {
+                    updateStatusError("MD gespeichert, DOCX fehlgeschlagen: " + docxError.getMessage());
+                }
+            } else if (saveDocx && loadedDocxFile == null) {
+                updateStatus("Gespeichert: " + loadedChapterFile.getName()
+                        + " (keine DOCX-Datei zugeordnet)");
+            } else {
+                updateStatus("Gespeichert: " + loadedChapterFile.getName());
+            }
         } catch (IOException e) {
             updateStatusError("Speichern fehlgeschlagen: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Schreibt den aktuellen Markdown-Inhalt in die zugeordnete Kapitel-DOCX
+     * und aktualisiert Hash/Watcher, damit kein „externe Änderung“-Dialog erscheint.
+     */
+    private void saveDocxAlongsideMarkdown(String markdownContent) throws IOException {
+        if (loadedDocxFile == null) {
+            return;
+        }
+        if (markdownContent == null || markdownContent.trim().isEmpty()) {
+            updateStatusError("DOCX nicht gespeichert: Inhalt ist leer");
+            return;
+        }
+
+        if (mainController != null) {
+            mainController.stopFileWatcher();
+            mainController.setSuppressExternalChangeDialog(true);
+        }
+
+        try {
+            DocxOptions options = new DocxOptions();
+            options.loadFromPreferences();
+            DocxProcessor processor = new DocxProcessor();
+            processor.exportMarkdownToDocxWithOptions(markdownContent, loadedDocxFile, options);
+
+            if (mainController != null) {
+                mainController.updateDocxHashAfterAccept(loadedDocxFile);
+                mainController.markDocxFileAsUnchanged(loadedDocxFile);
+            }
+
+            updateStatus("Gespeichert: " + loadedChapterFile.getName()
+                    + " + DOCX (" + loadedDocxFile.getName() + ")");
+        } finally {
+            if (mainController != null) {
+                Platform.runLater(() -> {
+                    Timeline restoreWatcher = new Timeline(new KeyFrame(Duration.millis(500), ev -> {
+                        mainController.setSuppressExternalChangeDialog(false);
+                        String currentPath = mainController.getCurrentDirectoryPath();
+                        if (currentPath != null && !currentPath.isBlank()) {
+                            File directory = new File(currentPath.trim());
+                            if (directory.isDirectory()) {
+                                mainController.startFileWatcher(directory);
+                            }
+                        }
+                    }));
+                    restoreWatcher.setCycleCount(1);
+                    restoreWatcher.play();
+                });
+            }
         }
     }
 
@@ -2468,10 +2545,15 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
 
     @Override
     public void startOnlineLektorat(boolean enableAssessment, String lektoratType) {
+        startOnlineLektorat(enableAssessment, lektoratType, null);
+    }
+
+    @Override
+    public void startOnlineLektorat(boolean enableAssessment, String lektoratType, String extraPrompt) {
         if (lektoratHelper == null) {
             lektoratHelper = new ChapterOnlineLektoratHelper(this, lektoratPanel);
         }
-        lektoratHelper.start(enableAssessment, lektoratType);
+        lektoratHelper.start(enableAssessment, lektoratType, extraPrompt);
     }
 
     private void promptAndStartOnlineLektorat() {
@@ -2479,7 +2561,8 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
             return;
         }
         OnlineLektoratStartDialog.show(stage.getScene().getWindow(), themeIndex)
-                .ifPresent(opts -> startOnlineLektorat(opts.enableAssessment(), opts.lektoratType()));
+                .ifPresent(opts -> startOnlineLektorat(
+                        opts.enableAssessment(), opts.lektoratType(), opts.extraPrompt()));
     }
 
     @Override
