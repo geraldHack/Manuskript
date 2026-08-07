@@ -99,4 +99,103 @@ class DictationSpokenMarkupTest {
         assertEquals("a " + "\u2013" + " b --- c",
                 DictationSpokenMarkup.finish("a -- b --- c", "", GERMAN));
     }
+
+    @Test
+    void finish_wrapsDirectSpeechAfterInquit() {
+        assertEquals("Er sagte: " + OPEN_DE + "Diese Idee ist gut." + CLOSE_DE,
+                DictationSpokenMarkup.finish("Er sagte, diese Idee ist gut.", "", GERMAN));
+    }
+
+    @Test
+    void finish_wrapsDirectSpeechAfterWhispered() {
+        assertEquals("Sie flüsterte: " + OPEN_DE + "Komm sofort." + CLOSE_DE,
+                DictationSpokenMarkup.finish("Sie flüsterte, komm sofort.", "", GERMAN));
+    }
+
+    @Test
+    void finish_leavesIndirectSpeechWithDassAlone() {
+        assertEquals("Er sagte, dass er kommt.",
+                DictationSpokenMarkup.finish("Er sagte, dass er kommt.", "", GERMAN));
+    }
+
+    @Test
+    void finish_wrapsDirectSpeechBeforeInquit() {
+        assertEquals(OPEN_DE + "Das ist auch gar nicht nötig" + CLOSE_DE + ", sagte er",
+                DictationSpokenMarkup.finish("Das ist auch gar nicht nötig sagte er", "", GERMAN));
+    }
+
+    @Test
+    void finish_doesNotDoubleWrapAlreadyQuotedSpeech() {
+        String already = "Er sagte: " + OPEN_DE + "Diese Idee ist gut." + CLOSE_DE;
+        assertEquals(already, DictationSpokenMarkup.finish(already, "", GERMAN));
+    }
+
+    @Test
+    void finish_wrapsDirectSpeechInSecondSentence() {
+        assertEquals("Es war still. Er sagte: " + OPEN_DE + "Komm her." + CLOSE_DE,
+                DictationSpokenMarkup.finish("Es war still. Er sagte, komm her.", "", GERMAN));
+    }
+
+    @Test
+    void finish_wrapsDirectSpeechWithFrenchQuotes() {
+        assertEquals("Er sagte: " + OPEN_FR + "Bonjour." + CLOSE_FR,
+                DictationSpokenMarkup.finish("Er sagte, bonjour.", "", FRENCH));
+    }
+
+    @Test
+    void finish_wrapsWordInKursiv() {
+        assertEquals("Er sah sie *wirklich* an.",
+                DictationSpokenMarkup.finish("Er sah sie wirklich in kursiv an.", "", GERMAN));
+    }
+
+    @Test
+    void finish_wrapsWordBitteInKursivSetzen() {
+        assertEquals("Die *Glühlampen* glommen schwach.",
+                DictationSpokenMarkup.finish(
+                        "Die Glühlampen bitte in kursiv setzen glommen schwach.", "", GERMAN));
+    }
+
+    @Test
+    void finish_toggleKursivPhrase() {
+        assertEquals("Sie flüsterte *ich komme sofort* und ging.",
+                DictationSpokenMarkup.finish(
+                        "Sie flüsterte kursiv ich komme sofort kursiv und ging.", "", GERMAN));
+    }
+
+    @Test
+    void finish_toggleInKursivAus() {
+        assertEquals("Er sagte *wirklich*.",
+                DictationSpokenMarkup.finish("Er sagte in kursiv wirklich kursiv aus.", "", GERMAN));
+    }
+
+    @Test
+    void finish_wrapsWordInFett() {
+        assertEquals("Das war **wichtig** genug.",
+                DictationSpokenMarkup.finish("Das war wichtig in fett genug.", "", GERMAN));
+    }
+
+    @Test
+    void finish_recognizesSchraegschriftAsItalic() {
+        assertEquals("Nur *dieses* Wort.",
+                DictationSpokenMarkup.finish("Nur dieses in schrägschrift Wort.", "", GERMAN));
+    }
+
+    @Test
+    void finish_repairsOrphanClosingQuoteBeforeInquit() {
+        assertEquals(
+                OPEN_DE + "Kalem, nach allem, was du hier für mich tust, hast du es verdient, "
+                        + "meine Geschichte zu hören" + CLOSE_DE + ", sagte Jomar.",
+                DictationSpokenMarkup.finish(
+                        "Kalem, nach allem, was du hier für mich tust, hast du es verdient, "
+                                + "meine Geschichte zu hören\", sagte Jomar.",
+                        "", GERMAN));
+    }
+
+    @Test
+    void finish_repairsWrappedDialogueWithTrailingExtraQuote() {
+        assertEquals(
+                OPEN_DE + "Kalem, nach allem hören" + CLOSE_DE + ", sagte Jomar.",
+                DictationSpokenMarkup.finish(
+                        "\"Kalem, nach allem hören\", sagte Jomar.\"", "", GERMAN));
+    }
 }

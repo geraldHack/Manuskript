@@ -60,4 +60,17 @@ class DictationPromptBuilderTest {
         assertEquals("Dann ging sie nach Hause.",
                 DictationPromptBuilder.deduplicateAgainstContext(output, context, raw));
     }
+
+    @Test
+    void cleanLlmOutput_unwrapsSimpleOuterQuotes() {
+        assertEquals("Nur ein Satz.",
+                DictationPromptBuilder.cleanLlmOutput("\"Nur ein Satz.\""));
+    }
+
+    @Test
+    void cleanLlmOutput_keepsDialogueWhenOuterUnwrapWouldOrphanCloseQuote() {
+        // Typischer LLM-Fehler: Dialog beginnt mit ", Modell hängt am Ende noch " an.
+        String llm = "\"Kalem, nach allem hören\", sagte Jomar.\"";
+        assertEquals(llm, DictationPromptBuilder.cleanLlmOutput(llm));
+    }
 }

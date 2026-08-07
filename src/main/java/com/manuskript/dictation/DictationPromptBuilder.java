@@ -53,8 +53,10 @@ public final class DictationPromptBuilder {
                 2. Wende gesprochene Korrekturen an (z. B. „nein, nicht X, schreibe Y“, „streiche das“, „ersetze … durch …").
                 3. Ignoriere Meta-Anweisungen und Diktierbefehle im Ausgabetext.
                 4. Wende Format-Befehle als Manuskript-Markdown bzw. Typografie an:
-                   - kursiv / italic → *Wort* oder *Phrase*
-                   - fett / bold → **Wort**
+                   - kursiv / in kursiv / schrägschrift / italic → *Wort* oder *Phrase*
+                     · „wirklich in kursiv“ / „wirklich bitte in kursiv setzen“ → *wirklich*
+                     · „kursiv ich komme sofort kursiv“ / „in kursiv … kursiv aus“ → *…*
+                   - fett / in fett / bold → **Wort** (gleiche Muster)
                    - neuer Absatz / Absatz → Leerzeile (\\n\\n)
                    - Zeilenumbruch → <br>\\n
                    - Gesprochene Anführungszeichen-Befehle in echte Zeichen umsetzen:
@@ -62,10 +64,20 @@ public final class DictationPromptBuilder {
                      · „Wort bitte in Anführungszeichen setzen“ / „… in einfache Anführungszeichen setzen“
                        → das genannte Wort in (einfache) Anführungszeichen
                    - „Gedankenstrich“ oder „--“ (nicht „---“) → Gedankenstrich (–)
-                   - Dialoge automatisch setzen, wenn klar gesprochen wird, z. B.
-                     „Das ist auch gar nicht nötig sagte er“
-                     → „Das ist auch gar nicht nötig“, sagte er
-                     (Rede in Anführungszeichen, Inquit danach; Stil siehe unten).
+                   - Dialoge / direkte Rede automatisch setzen, wenn klar gesprochen wird:
+                     · Rede NACH dem Inquit (häufig beim Diktat mit Komma statt Doppelpunkt):
+                       „Er sagte, diese Sache ist erledigt“
+                       → Er sagte: „Diese Sache ist erledigt.“
+                       „Sie fragte, wann kommst du“
+                       → Sie fragte: „Wann kommst du?“
+                       Ebenso: rief, flüsterte, antwortete, meinte, erwiderte, murmelte, …
+                       Vor der Rede Doppelpunkt; Rede in Anführungszeichen; Satzanfang groß.
+                     · Rede VOR dem Inquit:
+                       „Das ist auch gar nicht nötig sagte er“
+                       → „Das ist auch gar nicht nötig“, sagte er
+                     · INDIREKTE Rede NICHT in Anführungszeichen:
+                       „Er sagte, dass er kommt“ / „Sie fragte, ob …“ / „Er meinte, wenn …“
+                       → unverändert ohne Anführungszeichen lassen.
                    - Das Wort „Anführungszeichen“ und Formulierungen wie „bitte in … setzen“
                      dürfen NICHT wörtlich im Ausgabetext stehen bleiben.
                 5. Entferne Füllwörter wie „äh“, „ähm“, „also“ wenn sie keinen Sinn tragen.
@@ -209,6 +221,10 @@ public final class DictationPromptBuilder {
 
     /**
      * Bereinigt die LLM-Antwort (Code-Fences, Anführungszeichen am Rand).
+     * <p>
+     * Wichtig: Äußere {@code "..."} nur entfernen, wenn innen die Quotes ausgeglichen
+     * bleiben. Sonst entsteht aus {@code "Rede…", sagte X."} fälschlich
+     * {@code Rede…", sagte X.} (öffnendes Zeichen weg, schließendes bleibt).
      */
     public static String cleanLlmOutput(String raw) {
         if (raw == null) {
@@ -225,11 +241,42 @@ public final class DictationPromptBuilder {
             }
             text = text.trim();
         }
-        if ((text.startsWith("\"") && text.endsWith("\""))
-                || (text.startsWith("'") && text.endsWith("'"))) {
-            text = text.substring(1, text.length() - 1).trim();
-        }
+        text = unwrapOuterQuotesIfSafe(text);
         return text;
+    }
+
+    /**
+     * Entfernt LLM-Hüll-Anführungszeichen um die gesamte Antwort — nur wenn sicher.
+     */
+    static String unwrapOuterQuotesIfSafe(String text) {
+        if (text == null || text.length() < 2) {
+            return text != null ? text : "";
+        }
+        char first = text.charAt(0);
+        char last = text.charAt(text.length() - 1);
+        if (!((first == '"' && last == '"') || (first == '\'' && last == '\''))) {
+            return text;
+        }
+        String inner = text.substring(1, text.length() - 1).trim();
+        if (inner.isEmpty()) {
+            return text;
+        }
+        // Unwrapping würde unausgeglichene Quotes hinterlassen → Hülle behalten
+        // (typisch: Dialog beginnt mit " und Modell hängt am Ende noch ein " an).
+        if (countChar(inner, first) % 2 != 0) {
+            return text;
+        }
+        return inner;
+    }
+
+    private static int countChar(String text, char ch) {
+        int n = 0;
+        for (int i = 0; i < text.length(); i++) {
+            if (text.charAt(i) == ch) {
+                n++;
+            }
+        }
+        return n;
     }
 
     /**

@@ -52,6 +52,72 @@ final class DictationSpokenMarkup {
     /** Genau zwei Bindestriche, nicht Teil von --- */
     private static final Pattern DOUBLE_HYPHEN = Pattern.compile("(?<!-)-{2}(?!-)");
 
+    /** Kursiv-Befehle inkl. STT-Varianten. */
+    private static final String ITALIC_CMD =
+            "kursiv|schrägschrift|schraegschrift|schräg|schraeg|italic";
+    /** Fett-Befehle. */
+    private static final String BOLD_CMD = "fett|fettschrift|bold";
+
+    /**
+     * „wirklich in kursiv“ / „Die Glühlampen bitte in kursiv setzen“
+     * → *wirklich* / Die *Glühlampen*
+     */
+    private static final Pattern WRAP_ITALIC_COMMAND = Pattern.compile(
+            "(?iu)(?:\\b(die|der|das|den|dem|des|ein|eine|einen|einem|einer)\\s+)?"
+                    + "(\\S+?)\\s+"
+                    + "(?:bitte\\s+)?in\\s+(?:" + ITALIC_CMD + ")(?:\\s+setzen)?\\b");
+
+    private static final Pattern WRAP_BOLD_COMMAND = Pattern.compile(
+            "(?iu)(?:\\b(die|der|das|den|dem|des|ein|eine|einen|einem|einer)\\s+)?"
+                    + "(\\S+?)\\s+"
+                    + "(?:bitte\\s+)?in\\s+(?:" + BOLD_CMD + ")(?:\\s+setzen)?\\b");
+
+    /**
+     * „kursiv Phrase kursiv“ / „in kursiv Phrase kursiv aus“
+     */
+    private static final Pattern TOGGLE_ITALIC = Pattern.compile(
+            "(?iu)(?:in\\s+)?(?:" + ITALIC_CMD + ")(?:\\s+auf)?\\s+"
+                    + "(.+?)\\s+"
+                    + "(?:in\\s+)?(?:" + ITALIC_CMD + ")(?:\\s+(?:aus|zu|ende|off))?");
+
+    private static final Pattern TOGGLE_BOLD = Pattern.compile(
+            "(?iu)(?:in\\s+)?(?:" + BOLD_CMD + ")(?:\\s+auf)?\\s+"
+                    + "(.+?)\\s+"
+                    + "(?:in\\s+)?(?:" + BOLD_CMD + ")(?:\\s+(?:aus|zu|ende|off))?");
+
+    private static final Pattern FORMAT_CMD_WORD = Pattern.compile(
+            "(?iu)\\b(?:" + ITALIC_CMD + "|" + BOLD_CMD + ")\\b");
+
+    /**
+     * Verben der Figurenrede (Inquit). Reihenfolge: längere Mehrwort-Formen zuerst.
+     */
+    private static final String SPEECH_VERBS =
+            "rief\\s+aus|fügte\\s+hinzu|sagte|fragte|rief|flüsterte|antwortete|meinte|"
+                    + "erwiderte|murmelte|schrie|entgegnete|bemerkte|erklärte|versetzte|"
+                    + "hauchte|stammelte|brummte|knurrte|zischte|keuchte|stöhnte";
+
+    /** Indirekte Rede / Nebensatz nach Komma — nicht quoten. */
+    private static final String INDIRECT_START =
+            "dass|daß|ob|wenn|weil|als|bevor|nachdem|während|obwohl|falls|indem";
+
+    /**
+     * „Er sagte, diese Sache ist erledigt“ / „Sie flüsterte: komm her“
+     * (max. 6 Wörter vor dem Verb, inkl. Namen).
+     */
+    private static final Pattern INQUIT_FIRST = Pattern.compile(
+            "(?iu)^((?:\\S+\\s+){0,6}(?:" + SPEECH_VERBS + "))\\s*[,:]\\s+"
+                    + "(?!(?:" + INDIRECT_START + ")\\b)(.+)$");
+
+    /**
+     * „Das ist auch gar nicht nötig sagte er“
+     */
+    private static final Pattern INQUIT_AFTER = Pattern.compile(
+            "(?iu)^(.+?)\\s+(" + SPEECH_VERBS + ")\\s+"
+                    + "(er|sie|es|ich|man|[A-ZÄÖÜ][\\wÄÖÜäöüß'-]{1,40})"
+                    + "([.!?]*)\\s*$");
+
+    private static final Pattern SENTENCE_GAP = Pattern.compile("(?<=[.!?…])\\s+");
+
     private DictationSpokenMarkup() {
     }
 
@@ -68,10 +134,257 @@ final class DictationSpokenMarkup {
         }
         // 1. LLM-Text: vorhandene Anführungszeichen-Paare in den Zielstil
         String normalized = QuotationMarkSupport.convertTextToStyle(generatedText, quoteStyleIndex);
-        // 2. Gesprochene Befehle mit Editor-Kontext (inkl. „… in Anführungszeichen setzen“)
+        // 2. Verwaiste Dialog-Quotes reparieren (z. B. fehlendes öffnendes nach LLM-Hülle)
+        normalized = repairOrphanDialogueQuotes(normalized, quoteStyleIndex);
+        // 3. Gesprochene Befehle mit Editor-Kontext (inkl. „… in Anführungszeichen setzen“)
         String resolved = resolveSpokenQuoteCommands(normalized, textBeforeInsert, quoteStyleIndex);
+        // 4. Kursiv/Fett („in kursiv“, „kursiv … kursiv“, …)
+        resolved = resolveSpokenFormatCommands(resolved);
         resolved = resolveGedankenstrich(resolved);
+        // 5. Direkte Rede ohne Anführungszeichen (STT/LLM) nachziehen
+        resolved = resolveDirectSpeech(resolved, quoteStyleIndex);
         return trimSpacesAroundQuotes(resolved, quoteStyleIndex);
+    }
+
+    /**
+     * Repariert typische Diktat-/LLM-Fehler bei direkter Rede:
+     * <ul>
+     *   <li>{@code Rede…", sagte X.} → {@code „Rede…“, sagte X.}</li>
+     *   <li>{@code "Rede…", sagte X."} → {@code „Rede…“, sagte X.}</li>
+     * </ul>
+     */
+    static String repairOrphanDialogueQuotes(String text, int quoteStyleIndex) {
+        if (text == null || text.isBlank()) {
+            return text != null ? text : "";
+        }
+        String open = openingQuote(quoteStyleIndex);
+        String close = closingQuote(quoteStyleIndex);
+
+        // "Rede…", sagte Name."  (Hülle + Dialog, oft nach fehlgeschlagenem Unwrap)
+        Pattern wrapped = Pattern.compile(
+                "(?iu)^\\s*\"(.+?)\"\\s*,\\s*(" + SPEECH_VERBS + ")\\s+"
+                        + "(er|sie|es|ich|man|[A-ZÄÖÜ][\\wÄÖÜäöüß'-]{1,40})"
+                        + "([.!?]*)\"?\\s*$");
+        Matcher wrappedMatcher = wrapped.matcher(text);
+        if (wrappedMatcher.matches()) {
+            String speech = capitalizeFirstLetter(wrappedMatcher.group(1).strip());
+            return open + speech + close + ", " + wrappedMatcher.group(2) + " "
+                    + wrappedMatcher.group(3) + nullToEmpty(wrappedMatcher.group(4));
+        }
+
+        // Rede…", sagte Name. / Rede…" sagte Name.  (nur schließendes Quote)
+        Pattern orphan = Pattern.compile(
+                "(?iu)^\\s*(?![\"\\u201E\\u00BB\\u00AB])(.+?)\\s*[\"\\u201C\\u201D\\u00AB]\\s*,\\s*"
+                        + "(" + SPEECH_VERBS + ")\\s+"
+                        + "(er|sie|es|ich|man|[A-ZÄÖÜ][\\wÄÖÜäöüß'-]{1,40})"
+                        + "([.!?]*)\\s*$");
+        Matcher orphanMatcher = orphan.matcher(text);
+        if (orphanMatcher.matches()) {
+            String speech = capitalizeFirstLetter(orphanMatcher.group(1).strip());
+            if (!speech.isEmpty() && !containsQuoteChar(speech)) {
+                return open + speech + close + ", " + orphanMatcher.group(2) + " "
+                        + orphanMatcher.group(3) + nullToEmpty(orphanMatcher.group(4));
+            }
+        }
+
+        // Trailing Extra-Quote nach Inquit: … sagte Jomar."
+        text = text.replaceAll(
+                "(?iu)(,\\s*(?:" + SPEECH_VERBS + ")\\s+"
+                        + "(?:er|sie|es|ich|man|[A-ZÄÖÜ][\\wÄÖÜäöüß'-]{1,40})[.!?]*)\"\\s*$",
+                "$1");
+        return text;
+    }
+
+    private static String nullToEmpty(String value) {
+        return value != null ? value : "";
+    }
+
+    /**
+     * Wandelt gesprochene Format-Befehle in Manuskript-Markdown um (*kursiv*, **fett**).
+     */
+    static String resolveSpokenFormatCommands(String text) {
+        if (text == null || text.isBlank()) {
+            return text != null ? text : "";
+        }
+        // Zuerst Paare („kursiv … kursiv“), danach Einzelwort („Wort in kursiv“) —
+        // sonst frisst „in kursiv“ den Toggle-Anfang.
+        String resolved = replaceToggleFormatCommands(text, TOGGLE_BOLD, "**");
+        resolved = replaceToggleFormatCommands(resolved, TOGGLE_ITALIC, "*");
+        resolved = replaceWrapFormatCommands(resolved, WRAP_BOLD_COMMAND, "**");
+        resolved = replaceWrapFormatCommands(resolved, WRAP_ITALIC_COMMAND, "*");
+        return resolved;
+    }
+
+    private static String replaceWrapFormatCommands(String text, Pattern pattern, String marker) {
+        Matcher matcher = pattern.matcher(text);
+        StringBuilder result = new StringBuilder();
+        int lastEnd = 0;
+        while (matcher.find()) {
+            result.append(text, lastEnd, matcher.start());
+            String article = matcher.group(1);
+            String word = matcher.group(2);
+            if (word == null || word.isBlank() || isFormatCommandWord(word)) {
+                result.append(text, matcher.start(), matcher.end());
+            } else {
+                if (article != null && !article.isBlank()) {
+                    result.append(article).append(' ');
+                }
+                result.append(wrapWithMarker(word, marker));
+            }
+            lastEnd = matcher.end();
+        }
+        result.append(text.substring(lastEnd));
+        return result.toString();
+    }
+
+    private static String replaceToggleFormatCommands(String text, Pattern pattern, String marker) {
+        Matcher matcher = pattern.matcher(text);
+        StringBuilder result = new StringBuilder();
+        int lastEnd = 0;
+        while (matcher.find()) {
+            result.append(text, lastEnd, matcher.start());
+            String phrase = matcher.group(1) != null ? matcher.group(1).strip() : "";
+            if (phrase.isEmpty() || containsFormatCommand(phrase)) {
+                // Kein sinnvoller Inhalt / verschachtelte Befehle — Original behalten
+                result.append(text, matcher.start(), matcher.end());
+            } else {
+                result.append(wrapWithMarker(phrase, marker));
+            }
+            lastEnd = matcher.end();
+        }
+        result.append(text.substring(lastEnd));
+        return result.toString();
+    }
+
+    private static String wrapWithMarker(String content, String marker) {
+        String trimmed = content.strip();
+        if (trimmed.isEmpty()) {
+            return content;
+        }
+        if (trimmed.startsWith(marker) && trimmed.endsWith(marker) && trimmed.length() > marker.length() * 2) {
+            return trimmed;
+        }
+        return marker + trimmed + marker;
+    }
+
+    private static boolean isFormatCommandWord(String word) {
+        return word != null && word.matches(
+                "(?iu)(?:" + ITALIC_CMD + "|" + BOLD_CMD + "|bitte|setzen|auf|aus|zu|ende|off|in)");
+    }
+
+    private static boolean containsFormatCommand(String phrase) {
+        return FORMAT_CMD_WORD.matcher(phrase).find();
+    }
+
+    /**
+     * Setzt Anführungszeichen bei klarer direkter Rede (Inquit vor/nach der Rede).
+     * Indirekte Rede („sagte, dass …“) bleibt unberührt; bereits gequoteter Text ebenfalls.
+     */
+    static String resolveDirectSpeech(String text, int quoteStyleIndex) {
+        if (text == null || text.isBlank()) {
+            return text != null ? text : "";
+        }
+        String open = openingQuote(quoteStyleIndex);
+        String close = closingQuote(quoteStyleIndex);
+        Matcher gap = SENTENCE_GAP.matcher(text);
+        StringBuilder out = new StringBuilder(text.length() + 8);
+        int last = 0;
+        while (gap.find()) {
+            out.append(transformSpeechSentence(text.substring(last, gap.start()), open, close));
+            out.append(text, gap.start(), gap.end());
+            last = gap.end();
+        }
+        out.append(transformSpeechSentence(text.substring(last), open, close));
+        return out.toString();
+    }
+
+    private static String transformSpeechSentence(String sentence, String open, String close) {
+        if (sentence == null || sentence.isBlank()) {
+            return sentence != null ? sentence : "";
+        }
+        if (containsQuoteChar(sentence)) {
+            return sentence;
+        }
+        Matcher first = INQUIT_FIRST.matcher(sentence);
+        if (first.matches()) {
+            String inquit = first.group(1).stripTrailing();
+            String speech = capitalizeFirstLetter(first.group(2).strip());
+            if (speech.isEmpty()) {
+                return sentence;
+            }
+            return inquit + ": " + open + speech + close;
+        }
+        Matcher after = INQUIT_AFTER.matcher(sentence);
+        if (after.matches()) {
+            String speech = after.group(1).strip();
+            String verb = after.group(2);
+            String subject = after.group(3);
+            String endPunct = after.group(4) != null ? after.group(4) : "";
+            if (speech.isEmpty() || looksLikeNarrativeBeforeInquit(speech)) {
+                return sentence;
+            }
+            // Endpunktuation in die Rede, Komma vor Inquit (deutsche Typografie)
+            String speechBody = speech;
+            String trailing = "";
+            if (speechBody.endsWith(".") || speechBody.endsWith("!") || speechBody.endsWith("?")) {
+                trailing = speechBody.substring(speechBody.length() - 1);
+                speechBody = speechBody.substring(0, speechBody.length() - 1).stripTrailing();
+            }
+            if (speechBody.isEmpty()) {
+                return sentence;
+            }
+            return open + speechBody + trailing + close + ", " + verb + " " + subject + endPunct;
+        }
+        return sentence;
+    }
+
+    /** Vermeidet False Positives bei „… nicht sagte er“-ähnlichen Bruchstücken. */
+    private static boolean looksLikeNarrativeBeforeInquit(String speech) {
+        String trimmed = speech.strip();
+        if (trimmed.length() < 2) {
+            return true;
+        }
+        // Reine Korrekturfragmente / zu kurz für Rede
+        return trimmed.equalsIgnoreCase("nicht")
+                || trimmed.equalsIgnoreCase("nein")
+                || trimmed.equalsIgnoreCase("ja");
+    }
+
+    private static boolean containsQuoteChar(String text) {
+        for (int i = 0; i < text.length(); ) {
+            int cp = text.codePointAt(i);
+            switch (cp) {
+                case '\u201E', '\u201C', '\u201D', '\u201A', '\u2018', '\u2019',
+                     '"', '\'', '\u00AB', '\u00BB', '\u2039', '\u203A' -> {
+                    return true;
+                }
+                default -> {
+                }
+            }
+            i += Character.charCount(cp);
+        }
+        return false;
+    }
+
+    private static String capitalizeFirstLetter(String text) {
+        if (text == null || text.isEmpty()) {
+            return text;
+        }
+        int i = 0;
+        while (i < text.length() && Character.isWhitespace(text.charAt(i))) {
+            i++;
+        }
+        if (i >= text.length()) {
+            return text;
+        }
+        int cp = text.codePointAt(i);
+        int upper = Character.toUpperCase(cp);
+        if (cp == upper) {
+            return text;
+        }
+        return text.substring(0, i)
+                + new String(Character.toChars(upper))
+                + text.substring(i + Character.charCount(cp));
     }
 
     private static String resolveGedankenstrich(String text) {
@@ -222,7 +535,10 @@ final class DictationSpokenMarkup {
     }
 
     static String spokenMarkupHint() {
-        return "„Anführungszeichen“ um Dialog; „Wort bitte in Anführungszeichen setzen“ "
+        return "Dialog: „Er sagte, …“ wird zu Er sagte: „…“; "
+                + "Format: „Wort in kursiv“, „bitte in kursiv setzen“, „kursiv … kursiv“ "
+                + "(ebenso fett); "
+                + "„Anführungszeichen“ um Dialog; „Wort bitte in Anführungszeichen setzen“ "
                 + "bzw. „… in einfache Anführungszeichen setzen“ → passend zum Toolbar-Stil; "
                 + "„Gedankenstrich“ / „--“ → –";
     }

@@ -71,7 +71,7 @@ public class DictationSupport {
                         + "Texte werden in Aufnahme-Reihenfolge eingefügt.\n"
                         + "Kommando: mit „Anweisung:“, „Befehl:“ oder „Kommando:“ beginnen — "
                         + "z. B. „Anweisung: Schreibe, dass Luna wacklige Knie hat nach der Ankunft“.\n"
-                        + "Format: „kursiv“, „fett“, „Absatz“; "
+                        + "Format: „in kursiv“, „kursiv … kursiv“, „in fett“, „Absatz“; "
                         + DictationSpokenMarkup.spokenMarkupHint() + ".\n"
                         + "Glossar: Rechtsklick auf „Diktat“ → Glossar bearbeiten (data/dictation-glossary.txt).\n"
                         + "STT: lokal (whisper.cpp). LLM: agent.backend."));
@@ -393,7 +393,11 @@ public class DictationSupport {
     }
 
     private void showError(String header, String detail) {
-        DictationErrorDialog.show(ownerStage, themeIndex, header, detail);
+        if (DictationWhisperSetup.isWhisperSetupMessage(detail)) {
+            DictationWhisperSetup.show(ownerStage, themeIndex, header, detail);
+        } else {
+            DictationErrorDialog.show(ownerStage, themeIndex, header, detail);
+        }
         if (!dictationModeEnabled) {
             host.updateStatus("Bereit");
         }
