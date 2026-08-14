@@ -194,6 +194,19 @@ public class LanguageToolService {
             return startServerProcess();
         });
     }
+
+    /**
+     * Startet den gebündelten LanguageTool-Server unabhängig von der Auto-Start-Preference
+     * (z. B. Setup-Assistent).
+     */
+    public CompletableFuture<Boolean> ensureServerRunning() {
+        return checkServerStatus().thenCompose(isRunning -> {
+            if (isRunning) {
+                return CompletableFuture.completedFuture(true);
+            }
+            return startServerProcess();
+        });
+    }
     
     /**
      * Startet den Server-Prozess (prozessweit geteilt über alle Editor-Instanzen).
@@ -477,8 +490,14 @@ public class LanguageToolService {
         if (jarFile.exists()) {
             return jarFile;
         }
+
+        // 2. App-Bundle / Dev-Home (jpackage Contents/app)
+        jarFile = ApplicationPaths.resolveBundledPath(jarPath);
+        if (jarFile.exists()) {
+            return jarFile;
+        }
         
-        // 2. Versuche relativ zum Arbeitsverzeichnis (user.dir)
+        // 3. Versuche relativ zum Arbeitsverzeichnis (user.dir)
         String userDir = System.getProperty("user.dir");
         if (userDir != null) {
             jarFile = new File(userDir, jarPath);

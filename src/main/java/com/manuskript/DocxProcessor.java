@@ -281,6 +281,12 @@ public class DocxProcessor {
             throw new IllegalArgumentException("Markdown-Text ist leer - kann nicht exportiert werden!");
         }
 
+        // Docx4J kennt keine Pandoc-Fußnoten; echte Word-Fußnoten nur über Pandoc.
+        if (!MarkdownFootnoteSupport.parse(markdownText).isEmpty()) {
+            PandocFootnoteDocxExporter.export(markdownText, outputFile);
+            return;
+        }
+
         try {
             // Schreibe zuerst in eine temporäre Datei im selben Verzeichnis und ersetze danach atomar
             File parentDir = outputFile.getAbsoluteFile().getParentFile();

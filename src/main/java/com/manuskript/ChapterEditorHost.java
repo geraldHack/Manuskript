@@ -148,4 +148,11 @@ public interface ChapterEditorHost {
      */
     default void applyGlobalSearch(String searchText, boolean regex, boolean caseSensitive, boolean wholeWord) {
     }
+
+    /**
+     * Nach Änderung von agent.openai.* / agent.backend: offene Agenten-Tabs und Backends
+     * neu aus den Parametern laden (Canvas-Editor).
+     */
+    default void reloadAgentParametersFromPreferences() {
+    }
 }

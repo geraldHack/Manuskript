@@ -28,7 +28,7 @@ import java.util.function.Consumer;
 /**
  * Auflösung von whisper-cli / whisper.cpp (lokal, ohne API-Key).
  */
-final class WhisperRuntime {
+public final class WhisperRuntime {
 
     private static final Logger logger = LoggerFactory.getLogger(WhisperRuntime.class);
     private static final String WHISPER_DIR = "whisper";
@@ -43,20 +43,20 @@ final class WhisperRuntime {
     private WhisperRuntime() {
     }
 
-    static boolean isMacOS() {
+    public static boolean isMacOS() {
         return isMac();
     }
 
-    static boolean isExecutableMissing() {
+    public static boolean isExecutableMissing() {
         return resolveExecutable() == null;
     }
 
-    static boolean isModelMissing() {
+    public static boolean isModelMissing() {
         Path model = resolveModelPath();
         return model == null || !Files.isRegularFile(model);
     }
 
-    static boolean isHomebrewAvailable() {
+    public static boolean isHomebrewAvailable() {
         String brew = resolveBrewExecutable();
         if (brew == null) {
             return false;
@@ -77,7 +77,7 @@ final class WhisperRuntime {
         }
     }
 
-    static String resolveBrewExecutable() {
+    public static String resolveBrewExecutable() {
         String[] candidates = {
                 "/opt/homebrew/bin/brew",
                 "/usr/local/bin/brew",
@@ -112,7 +112,7 @@ final class WhisperRuntime {
      *
      * @return {@code null} bei Erfolg, sonst Fehlermeldung
      */
-    static String installWhisperCppViaHomebrew(Consumer<String> log) {
+    public static String installWhisperCppViaHomebrew(Consumer<String> log) {
         Consumer<String> out = log != null ? log : msg -> {};
         if (!isMacOS()) {
             return "Automatische Installation ist nur unter macOS verfügbar.";
@@ -169,7 +169,7 @@ final class WhisperRuntime {
      *
      * @return {@code null} bei Erfolg, sonst Fehlermeldung
      */
-    static String downloadDefaultModel(Consumer<String> log) {
+    public static String downloadDefaultModel(Consumer<String> log) {
         Consumer<String> out = log != null ? log : msg -> {};
         Path target = defaultModelTargetPath();
         try {
@@ -239,7 +239,7 @@ final class WhisperRuntime {
         return t.substring(0, Math.max(0, max - 1)) + "…";
     }
 
-    static String resolveExecutable() {
+    public static String resolveExecutable() {
         String configured = ResourceManager.getParameter("dictation.local_whisper_command", "").trim();
         if (!configured.isEmpty()) {
             File file = new File(configured);
@@ -283,7 +283,7 @@ final class WhisperRuntime {
         return null;
     }
 
-    static Path resolveModelPath() {
+    public static Path resolveModelPath() {
         String configured = ResourceManager.getParameter("dictation.local_whisper_model", "").trim();
         if (!configured.isEmpty()) {
             Path direct = Path.of(configured);

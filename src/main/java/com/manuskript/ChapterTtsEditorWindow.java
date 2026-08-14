@@ -121,7 +121,7 @@ public class ChapterTtsEditorWindow {
         "flüsterte", "murmelte", "brüllte", "schrie", "seufzte", 
         "stöhnte", "ächzte", "grinste", "nickte", "zuckte"
     };
-    private static final Pattern BRACKET_TAG_PATTERN = Pattern.compile("\\[[^\\]]+\\]");
+    static final Pattern BRACKET_TAG_PATTERN = Pattern.compile("(?<!\\^)\\[[^\\]]+\\]");
     
     /** Temporäre Sprecher für diese Sitzung */
     private final Map<String, String> temporarySpeakers = new HashMap<>();
@@ -3352,7 +3352,7 @@ public class ChapterTtsEditorWindow {
         if (text == null) return;
         // Aufeinanderfolgende Tags erkennen: [tag1][tag2] oder [tag1] [tag2] als ein Eintrag
         // Gespeichert wird MIT eckigen Klammern, also z. B. "[lacht]" oder "[lacht][fluestert]"
-        Pattern groupP = Pattern.compile("(\\[[^\\]]+\\](?:\\s*\\[[^\\]]+\\])*)");
+        Pattern groupP = Pattern.compile("((?<!\\^)\\[[^\\]]+\\](?:\\s*(?<!\\^)\\[[^\\]]+\\])*)");
         Matcher gm = groupP.matcher(text);
         Set<String> existing = new HashSet<>();
         for (RegieanweisungEntry e : regieanweisungenItems)
@@ -5627,7 +5627,7 @@ public class ChapterTtsEditorWindow {
     /** Erzeugt eine Signatur aus Text + aktuellen TTS-Parametern für Vergleich „unverändert“. Werte explizit formatiert, damit jede Änderung (z. B. Temperatur, ElevenLabs-Modell) erkannt wird. */
     private String buildTtsRequestSignature(String selectedText, ComfyUIClient.SavedVoice voice, double temp, double topP, int topK, double repPen, boolean hq) {
         StringBuilder sb = new StringBuilder();
-        sb.append(selectedText);
+        sb.append(MarkdownFootnoteSupport.stripForTts(selectedText));
         sb.append("|").append(voice != null ? voice.getName() : "");
         sb.append("|").append(String.format(java.util.Locale.ROOT, "%.4f", temp));
         sb.append("|").append(String.format(java.util.Locale.ROOT, "%.4f", topP));
@@ -5767,6 +5767,11 @@ public class ChapterTtsEditorWindow {
         String sel = codeArea.getSelectedText();
         if (sel == null || sel.isBlank()) {
             setStatus("Bitte Text markieren.");
+            return;
+        }
+        sel = MarkdownFootnoteSupport.stripForTts(sel);
+        if (sel.isBlank()) {
+            setStatus("Die Auswahl enthält nur Fußnoten.");
             return;
         }
         
@@ -6053,27 +6058,42 @@ public class ChapterTtsEditorWindow {
     private List<int[]> splitTextIntoRanges(String fullText, boolean byParagraph) {
         List<int[]> out = new ArrayList<>();
         if (fullText == null || fullText.isEmpty()) return out;
+        String segmentationText = maskInlineFootnotesForSegmentation(fullText);
         if (byParagraph) {
             // Grenzen: Leerzeile, Zeile nur ---, oder \n vor neuem Anführungszeichen; explizit: »\n« (Rede Ende, neue Rede Anfang)
             Pattern boundary = Pattern.compile("(\\n\\s*\\n|\\n-{3,}\\s*\\n|\\n(?=\\s*[\u201E\u2018\u00AB\u201C\"])|(?<=\u00BB)\\s*\\n\\s*(?=\u00AB))");
-            Matcher m = boundary.matcher(fullText);
+            Matcher m = boundary.matcher(segmentationText);
             int segmentStart = 0;
             while (m.find()) {
                 int end = m.start();
-                String segment = fullText.substring(segmentStart, end).trim();
+                String segment = segmentationText.substring(segmentStart, end).trim();
                 if (end > segmentStart && !segment.isEmpty() && !segment.matches("-{3,}\\s*"))
                     out.add(new int[] { segmentStart, end });
                 segmentStart = m.end();
             }
-            String lastSegment = fullText.substring(segmentStart).trim();
+            String lastSegment = segmentationText.substring(segmentStart).trim();
             if (segmentStart < fullText.length() && !lastSegment.isEmpty() && !lastSegment.matches("-{3,}\\s*"))
                 out.add(new int[] { segmentStart, fullText.length() });
             if (out.isEmpty() && fullText.trim().length() > 0)
                 out.add(new int[] { 0, fullText.length() });
         } else {
-            out.addAll(TtsSentenceSplitter.splitIntoSentences(fullText));
+            out.addAll(TtsSentenceSplitter.splitIntoSentences(segmentationText));
         }
         return out;
+    }
+
+    static String maskInlineFootnotesForSegmentation(String text) {
+        if (text == null || text.isEmpty() || !text.contains("^[")) {
+            return text;
+        }
+        StringBuilder masked = new StringBuilder(text);
+        for (MarkdownFootnoteSupport.Footnote footnote : MarkdownFootnoteSupport.parse(text)) {
+            for (int j = footnote.fullRange().startInclusive();
+                 j < footnote.fullRange().endExclusive(); j++) {
+                masked.setCharAt(j, ' ');
+            }
+        }
+        return masked.toString();
     }
 
     /**
@@ -6230,7 +6250,7 @@ public class ChapterTtsEditorWindow {
         for (int[] r : unmarked) {
             if (batchCancelled) break;
             int start = r[0], end = r[1];
-            String text = fullText.substring(start, end).trim();
+            String text = MarkdownFootnoteSupport.stripForTts(fullText.substring(start, end)).trim();
             if (text.isEmpty()) continue;
             boolean isEl = "elevenlabs".equalsIgnoreCase(voice.getProvider());
             String elModel = (voice != null && voice.getElevenLabsModelId() != null) ? voice.getElevenLabsModelId() : null;
@@ -6735,7 +6755,7 @@ public class ChapterTtsEditorWindow {
     private static String getFfmpegExePath() {
         boolean isWindows = System.getProperty("os.name", "").toLowerCase(java.util.Locale.ROOT).contains("win");
         String exeName = isWindows ? "ffmpeg.exe" : "ffmpeg";
-        java.io.File dir = new java.io.File(FFMPEG_DIR);
+        java.io.File dir = ApplicationPaths.resolveBundledPath(FFMPEG_DIR);
         java.io.File exe = new java.io.File(dir, exeName);
         if (exe.isFile()) return exe.getAbsolutePath();
         java.io.File binExe = new java.io.File(dir, "bin" + java.io.File.separator + exeName);

@@ -2,12 +2,16 @@ package com.manuskript.agent;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+import com.manuskript.ApplicationPaths;
 import com.manuskript.ResourceManager;
 
 /**
@@ -23,11 +28,15 @@ import com.manuskript.ResourceManager;
 public class AgentConfigManager {
     private static final Logger logger = LoggerFactory.getLogger(AgentConfigManager.class);
 
-    private static final String CONFIG_DIR = "config";
-    private static final String AGENTS_FILE = "agents.json";
+    private static final String AGENTS_RELATIVE = "config/agents.json";
     private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
     private static List<AgentConfig> cachedConfigs;
+
+    /** Bundle-/Dev-Pfad: App-Home zuerst (jpackage), sonst Arbeitsverzeichnis. */
+    private static Path agentsFilePath() {
+        return ApplicationPaths.resolveConfigPath(AGENTS_RELATIVE).toPath();
+    }
 
     public static String getDefaultPlotholePrompt() {
         return "Du bist ein Analysemodul zur Erkennung von Plotlöchern und logischen Widersprüchen in Manuskripten.\n\n" +
@@ -71,6 +80,16 @@ public class AgentConfigManager {
     }
 
     public static List<AgentConfig> getDefaults() {
+        List<AgentConfig> fromClasspath = loadBuiltinAgentsFromClasspath();
+        if (fromClasspath.size() > 2) {
+            applyBackendAndModel(fromClasspath);
+            ensureSceneWritingAgent(fromClasspath);
+            ensureChatbotAgent(fromClasspath);
+            ensureSelectionRevisionAgent(fromClasspath);
+            ensureIdiomReviewAgent(fromClasspath);
+            return fromClasspath;
+        }
+
         String backend = ResourceManager.getParameter("agent.backend", "Ollama");
         String model;
         if ("OpenAI".equals(backend)) {
@@ -97,7 +116,25 @@ public class AgentConfigManager {
         sceneAgent.setDefaultPrompt(SceneWritingAgent.DEFAULT_SYSTEM_PROMPT);
         sceneAgent.setAgentType("scene-writing");
         defaults.add(sceneAgent);
+        ensureSceneWritingAgent(defaults);
+        ensureChatbotAgent(defaults);
+        ensureSelectionRevisionAgent(defaults);
+        ensureIdiomReviewAgent(defaults);
         return defaults;
+    }
+
+    private static void applyBackendAndModel(List<AgentConfig> configs) {
+        String backend = ResourceManager.getParameter("agent.backend", "Ollama");
+        String model = "OpenAI".equals(backend)
+                ? ResourceManager.getParameter("agent.openai.model", "gpt-4o-mini")
+                : ResourceManager.getParameter("agent.ollama.model", "gemma3:4b");
+        for (AgentConfig config : configs) {
+            if (config.getAgentType() == null || config.getAgentType().isBlank()) {
+                config.setAgentType("analysis");
+            }
+            config.setBackend(backend);
+            config.setModel(model);
+        }
     }
 
     public static synchronized List<AgentConfig> loadConfigs() {
@@ -105,10 +142,11 @@ public class AgentConfigManager {
             return new ArrayList<>(cachedConfigs);
         }
 
-        Path filePath = Paths.get(CONFIG_DIR, AGENTS_FILE);
+        Path filePath = agentsFilePath();
         File file = filePath.toFile();
+        logger.info("Lade Agenten aus: {}", filePath.toAbsolutePath());
 
-        if (!file.exists()) {
+        if (!file.isFile()) {
             cachedConfigs = getDefaults();
             saveConfigs(cachedConfigs);
             return new ArrayList<>(cachedConfigs);
@@ -122,31 +160,34 @@ public class AgentConfigManager {
                 cachedConfigs = getDefaults();
                 saveConfigs(cachedConfigs);
             } else {
-                // Modellnamen aus den Parametern aktualisieren
-                String backend = ResourceManager.getParameter("agent.backend", "Ollama");
-                logger.info("Backend aus Parametern: {}", backend);
-                for (AgentConfig config : configs) {
-                    if (config.getAgentType() == null || config.getAgentType().isBlank()) {
-                        config.setAgentType("analysis");
-                    }
-                    if ("OpenAI".equals(backend)) {
-                        String model = ResourceManager.getParameter("agent.openai.model", "gpt-4o-mini");
-                        logger.info("OpenAI Modell aus Parametern: {}", model);
-                        config.setModel(model);
-                        config.setBackend("OpenAI");
-                    } else {
-                        String model = ResourceManager.getParameter("agent.ollama.model", "gemma3:4b");
-                        logger.info("Ollama Modell aus Parametern: {}", model);
-                        config.setModel(model);
-                        config.setBackend("Ollama");
+                applyBackendAndModel(configs);
+                logger.info("Backend aus Parametern: {}",
+                        ResourceManager.getParameter("agent.backend", "Ollama"));
+                if (looksLikeIncompleteDefaults(configs)) {
+                    List<AgentConfig> seed = loadBuiltinAgentsFromClasspath();
+                    logger.warn("agents.json unvollständig ({} Einträge: {}). Stelle Builtins wieder her ({}).",
+                            configs.size(), summarizeNames(configs), seed.size());
+                    if (seed.size() > configs.size()) {
+                        // Fehlende nachziehen; bei extrem verkürztem Set komplett ersetzen
+                        if (configs.size() <= 2) {
+                            configs.clear();
+                            configs.addAll(seed);
+                        } else {
+                            mergeMissingBuiltinAgents(configs);
+                        }
                     }
                 }
+                int before = configs.size();
+                mergeMissingBuiltinAgents(configs);
                 ensureSceneWritingAgent(configs);
                 ensureChatbotAgent(configs);
                 ensureSelectionRevisionAgent(configs);
                 ensureIdiomReviewAgent(configs);
                 cachedConfigs = configs;
-                // Nicht speichern, da das Modell aus den Parametern gelesen wird
+                logger.info("Agenten geladen: {} ({})", configs.size(), summarizeNames(configs));
+                if (configs.size() > before) {
+                    saveConfigs(configs);
+                }
             }
         } catch (IOException e) {
             logger.error("Fehler beim Laden von agents.json: {}", e.getMessage());
@@ -157,18 +198,21 @@ public class AgentConfigManager {
     }
 
     public static synchronized void saveConfigs(List<AgentConfig> configs) {
-        cachedConfigs = new ArrayList<>(configs);
+        List<AgentConfig> toSave = configs != null ? new ArrayList<>(configs) : new ArrayList<>();
+        // Verhindert, dass speichern nur der offenen Tabs die Builtins löscht
+        mergeMissingBuiltinAgents(toSave);
+        cachedConfigs = new ArrayList<>(toSave);
 
-        Path filePath = Paths.get(CONFIG_DIR, AGENTS_FILE);
+        Path filePath = agentsFilePath();
         try {
-            Path configDir = Paths.get(CONFIG_DIR);
-            if (!Files.exists(configDir)) {
+            Path configDir = filePath.getParent();
+            if (configDir != null && !Files.exists(configDir)) {
                 Files.createDirectories(configDir);
             }
             // Modell aus den Konfigurationen entfernen, da es aus den Parametern gelesen wird
             // Erstelle Kopien, um die ursprünglichen configs nicht zu verändern
             List<AgentConfig> configsToSave = new ArrayList<>();
-            for (AgentConfig config : configs) {
+            for (AgentConfig config : toSave) {
                 AgentConfig configCopy = new AgentConfig();
                 configCopy.setId(config.getId());
                 configCopy.setName(config.getName());
@@ -186,9 +230,186 @@ public class AgentConfigManager {
             }
             String json = gson.toJson(configsToSave);
             Files.writeString(filePath, json, StandardCharsets.UTF_8);
+            logger.info("Agenten gespeichert: {} → {}", configsToSave.size(), filePath.toAbsolutePath());
         } catch (IOException e) {
             logger.error("Fehler beim Speichern von agents.json: {}", e.getMessage());
         }
+    }
+
+    /**
+     * Ergänzt fehlende Standard-Agenten aus Bundle/Classpath.
+     *
+     * @return {@code true} wenn mindestens ein Agent ergänzt wurde
+     */
+    private static boolean mergeMissingBuiltinAgents(List<AgentConfig> configs) {
+        if (configs == null) {
+            return false;
+        }
+        Map<String, AgentConfig> byId = new LinkedHashMap<>();
+        Map<String, AgentConfig> byName = new LinkedHashMap<>();
+        for (AgentConfig c : configs) {
+            if (c.getId() != null) {
+                byId.put(c.getId(), c);
+            }
+            if (c.getName() != null) {
+                byName.put(c.getName(), c);
+            }
+        }
+
+        List<AgentConfig> seed = loadSeedAgentsExcluding(agentsFilePath());
+        if (seed.isEmpty()) {
+            seed = loadBuiltinAgentsFromClasspath();
+        }
+        if (seed.isEmpty()) {
+            return false;
+        }
+        boolean changed = false;
+        for (AgentConfig seedAgent : seed) {
+            if (seedAgent == null || seedAgent.isUserDefined()) {
+                continue;
+            }
+            boolean present = (seedAgent.getId() != null && byId.containsKey(seedAgent.getId()))
+                    || (seedAgent.getName() != null && byName.containsKey(seedAgent.getName()));
+            if (!present) {
+                configs.add(seedAgent);
+                changed = true;
+                logger.info("Builtin-Agent nachgezogen: {}", seedAgent.getName());
+            }
+        }
+        return changed;
+    }
+
+    /** Liest agents.json von bekannten Orten außer {@code alreadyLoaded}, sonst Classpath. */
+    private static List<AgentConfig> loadSeedAgentsExcluding(Path alreadyLoaded) {
+        // Classpath zuerst: unabhängig von CWD/jpackage, immer vollständige Builtins
+        List<AgentConfig> fromClasspath = loadBuiltinAgentsFromClasspath();
+        if (fromClasspath.size() > 2) {
+            logger.info("Seed-Agenten aus Classpath ({} Einträge)", fromClasspath.size());
+            return fromClasspath;
+        }
+
+        List<Path> candidates = new ArrayList<>();
+        candidates.add(ApplicationPaths.resolveConfigPath(AGENTS_RELATIVE).toPath());
+        candidates.add(new File(ApplicationPaths.getApplicationHomeDirectory(), AGENTS_RELATIVE).toPath());
+        candidates.add(Path.of(AGENTS_RELATIVE));
+        candidates.add(Path.of("config", "agents.json"));
+
+        Path loadedAbs = alreadyLoaded != null ? alreadyLoaded.toAbsolutePath().normalize() : null;
+        for (Path candidate : candidates) {
+            try {
+                Path abs = candidate.toAbsolutePath().normalize();
+                if (loadedAbs != null && abs.equals(loadedAbs)) {
+                    continue;
+                }
+                if (!Files.isRegularFile(abs)) {
+                    continue;
+                }
+                List<AgentConfig> list = parseAgentsJson(Files.readString(abs, StandardCharsets.UTF_8));
+                if (list != null && list.size() > 2) {
+                    logger.info("Seed-Agenten aus {} ({} Einträge)", abs, list.size());
+                    return list;
+                }
+            } catch (Exception e) {
+                logger.debug("Seed agents.json übersprungen ({}): {}", candidate, e.getMessage());
+            }
+        }
+        return List.of();
+    }
+
+    private static List<AgentConfig> loadBuiltinAgentsFromClasspath() {
+        String[] resourceNames = {"/builtin/agents.json", "builtin/agents.json"};
+        ClassLoader[] loaders = {
+                AgentConfigManager.class.getClassLoader(),
+                Thread.currentThread().getContextClassLoader(),
+                ClassLoader.getSystemClassLoader()
+        };
+        for (String name : resourceNames) {
+            try (InputStream in = AgentConfigManager.class.getResourceAsStream(name)) {
+                List<AgentConfig> list = readAgentsStream(in);
+                if (list.size() > 2) {
+                    return list;
+                }
+            } catch (Exception e) {
+                logger.debug("Classpath {}: {}", name, e.getMessage());
+            }
+            for (ClassLoader loader : loaders) {
+                if (loader == null) {
+                    continue;
+                }
+                String path = name.startsWith("/") ? name.substring(1) : name;
+                try (InputStream in = loader.getResourceAsStream(path)) {
+                    List<AgentConfig> list = readAgentsStream(in);
+                    if (list.size() > 2) {
+                        return list;
+                    }
+                } catch (Exception e) {
+                    logger.debug("Classpath {} via {}: {}", path, loader, e.getMessage());
+                }
+            }
+        }
+        // Letzter Fallback: Datei neben der JAR (Contents/app/config/agents.json)
+        try {
+            Path besideJar = ApplicationPaths.resolveConfigPath(AGENTS_RELATIVE).toPath();
+            if (Files.isRegularFile(besideJar)) {
+                List<AgentConfig> list = parseAgentsJson(Files.readString(besideJar, StandardCharsets.UTF_8));
+                if (list.size() > 2) {
+                    return list;
+                }
+            }
+        } catch (Exception e) {
+            logger.debug("Builtin neben JAR: {}", e.getMessage());
+        }
+        return List.of();
+    }
+
+    private static List<AgentConfig> readAgentsStream(InputStream in) throws IOException {
+        if (in == null) {
+            return List.of();
+        }
+        try (Reader reader = new InputStreamReader(in, StandardCharsets.UTF_8)) {
+            List<AgentConfig> list = gson.fromJson(reader, new TypeToken<List<AgentConfig>>() {}.getType());
+            return list != null ? list : List.of();
+        }
+    }
+
+    /** Typisches kaputtes Fallback-Set: nur Plothole + Szene Schreiben. */
+    private static boolean looksLikeIncompleteDefaults(List<AgentConfig> configs) {
+        if (configs == null || configs.size() < 5) {
+            return true;
+        }
+        boolean hasDialog = false;
+        boolean hasTextstruktur = false;
+        for (AgentConfig c : configs) {
+            if (c == null || c.getName() == null) {
+                continue;
+            }
+            if ("Dialog-Agent".equals(c.getName())) {
+                hasDialog = true;
+            }
+            if ("Textstruktur".equals(c.getName())) {
+                hasTextstruktur = true;
+            }
+        }
+        return !hasDialog || !hasTextstruktur;
+    }
+
+    private static List<AgentConfig> parseAgentsJson(String json) {
+        if (json == null || json.isBlank()) {
+            return List.of();
+        }
+        List<AgentConfig> list = gson.fromJson(json, new TypeToken<List<AgentConfig>>() {}.getType());
+        return list != null ? list : List.of();
+    }
+
+    private static String summarizeNames(List<AgentConfig> configs) {
+        StringBuilder sb = new StringBuilder();
+        for (AgentConfig c : configs) {
+            if (!sb.isEmpty()) {
+                sb.append(", ");
+            }
+            sb.append(c.getName());
+        }
+        return sb.toString();
     }
 
     public static synchronized void invalidateCache() {

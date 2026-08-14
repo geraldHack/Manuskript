@@ -5,8 +5,10 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 
 import org.slf4j.Logger;
@@ -28,6 +30,9 @@ public class OpenAIBackend implements AIBackend {
     private static final Logger logger = LoggerFactory.getLogger(OpenAIBackend.class);
 
     private static final String DEFAULT_BASE_URL = "https://api.openai.com/v1";
+    private static final String LOOPBACK_PLACEHOLDER_API_KEY = "local";
+    /** Mindest-HTTP-Timeout für localhost/127.0.0.1 (Sekunden). */
+    private static final int LOCAL_DEFAULT_REQUEST_TIMEOUT_SEC = 900;
 
     private final HttpClient httpClient;
     private final Gson gson;
@@ -51,7 +56,36 @@ public class OpenAIBackend implements AIBackend {
 
     @Override
     public List<String> getAvailableModels() {
-        return Arrays.asList("gpt-4o", "gpt-4o-mini", "gpt-3.5-turbo", "gpt-4-turbo");
+        return new ArrayList<>(Arrays.asList(
+                "gpt-4o", "gpt-4o-mini", "gpt-3.5-turbo", "gpt-4-turbo"));
+    }
+
+    /**
+     * Setzt Token-Limits für OpenAI und kompatible Server
+     * ({@code max_tokens} und {@code max_completion_tokens}).
+     */
+    static void putMaxTokenLimits(JsonObject body, int maxTokens) {
+        body.addProperty("max_tokens", maxTokens);
+        body.addProperty("max_completion_tokens", maxTokens);
+    }
+
+    static boolean isLoopbackOpenAiUrl(String apiUrl) {
+        if (apiUrl == null || apiUrl.isBlank()) {
+            return false;
+        }
+        String lower = apiUrl.trim().toLowerCase(Locale.ROOT);
+        return lower.contains("127.0.0.1") || lower.contains("localhost");
+    }
+
+    static String resolveApiKey(String configuredKey, String baseUrl) {
+        String key = configuredKey == null ? "" : configuredKey.trim();
+        if (!key.isEmpty()) {
+            return key;
+        }
+        if (isLoopbackOpenAiUrl(baseUrl)) {
+            return LOOPBACK_PLACEHOLDER_API_KEY;
+        }
+        return "";
     }
 
     @Override
@@ -222,20 +256,23 @@ public class OpenAIBackend implements AIBackend {
 
     private CompletionChunk executeChatCompletionOnce(JsonArray messages, int maxTokens, int userMessageLength) {
         try {
+            String baseUrl = ResourceManager.getParameter("agent.openai.api_url", DEFAULT_BASE_URL);
             String apiKey = ResourceManager.getParameter("agent.openai.api_key", "");
-            if (apiKey.isEmpty()) {
+            if (apiKey == null || apiKey.isBlank()) {
                 apiKey = ResourceManager.getParameter("api.lektorat.api_key", "");
             }
+            apiKey = resolveApiKey(apiKey, baseUrl);
             if (apiKey.isEmpty()) {
                 throw new RuntimeException("Kein OpenAI API-Key konfiguriert. Bitte im Parameter-Fenster unter 'Agenten' setzen.");
             }
 
-            String baseUrl = ResourceManager.getParameter("agent.openai.api_url", DEFAULT_BASE_URL);
-            String url = baseUrl + "/chat/completions";
+            String url = baseUrl.endsWith("/")
+                    ? baseUrl + "chat/completions"
+                    : baseUrl + "/chat/completions";
 
             JsonObject body = new JsonObject();
             body.addProperty("model", currentModel);
-            body.addProperty("max_tokens", maxTokens);
+            putMaxTokenLimits(body, maxTokens);
             body.addProperty("temperature", temperature);
             if (topP != null) {
                 body.addProperty("top_p", topP);
@@ -250,7 +287,7 @@ public class OpenAIBackend implements AIBackend {
                     body.has("reasoning_effort")
                             ? body.get("reasoning_effort").getAsString() : "—");
 
-            int timeoutSec = requestTimeoutSeconds();
+            int timeoutSec = requestTimeoutSeconds(baseUrl);
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
                     .header("Authorization", "Bearer " + apiKey)
@@ -349,9 +386,17 @@ public class OpenAIBackend implements AIBackend {
         } catch (RuntimeException e) {
             throw e;
         } catch (java.net.http.HttpTimeoutException e) {
-            int timeoutSec = requestTimeoutSeconds();
+            String baseUrl = ResourceManager.getParameter("agent.openai.api_url", DEFAULT_BASE_URL);
+            int timeoutSec = requestTimeoutSeconds(baseUrl);
             logger.error("OpenAI API Timeout nach {}s (Modell={}). User-Message {} Zeichen.",
                     timeoutSec, currentModel, userMessageLength, e);
+            if (isLoopbackOpenAiUrl(baseUrl)) {
+                throw new RuntimeException("Lokales Modell-Timeout nach " + timeoutSec
+                        + " s (Modell " + currentModel + "). "
+                        + "Lokale Server brauchen für große Kapitel oft mehrere Minuten. "
+                        + "Bitte warten oder agent.openai.request_timeout_sec erhöhen "
+                        + "(z. B. 900–1800), Kontext verkleinern oder max. Ausgabe-Tokens senken.", e);
+            }
             throw new RuntimeException("API-Timeout nach " + timeoutSec + " s (Modell " + currentModel
                     + "). Kontext zu groß oder Modell zu langsam — siehe Log.", e);
         } catch (Exception e) {
@@ -466,12 +511,32 @@ public class OpenAIBackend implements AIBackend {
 
     /** Liest konfigurierbares Anfrage-Timeout (Sekunden). */
     public static int requestTimeoutSeconds() {
+        String baseUrl = ResourceManager.getParameter("agent.openai.api_url", DEFAULT_BASE_URL);
+        return requestTimeoutSeconds(baseUrl);
+    }
+
+    /**
+     * Timeout in Sekunden. Lokal (localhost/127.0.0.1): mindestens 900 s, Cap 3600.
+     * Cloud: Cap 900.
+     */
+    public static int requestTimeoutSeconds(String baseUrl) {
+        boolean local = isLoopbackOpenAiUrl(baseUrl);
+        int maxCap = local ? 3600 : 900;
         int fromAgent = ResourceManager.getIntParameter("agent.openai.request_timeout_sec", -1);
+        if (local) {
+            int configured = fromAgent >= 60 ? fromAgent : 0;
+            if (configured <= 0) {
+                int fromLektorat = ResourceManager.getIntParameter("api.lektorat.request_timeout_sec", -1);
+                configured = fromLektorat >= 60 ? fromLektorat : LOCAL_DEFAULT_REQUEST_TIMEOUT_SEC;
+            }
+            // 300 s (früherer Cloud-Default) lokal immer auf mind. 900 anheben
+            return Math.min(maxCap, Math.max(LOCAL_DEFAULT_REQUEST_TIMEOUT_SEC, configured));
+        }
         if (fromAgent >= 60) {
-            return Math.min(900, fromAgent);
+            return Math.min(maxCap, fromAgent);
         }
         int fromLektorat = ResourceManager.getIntParameter("api.lektorat.request_timeout_sec", 300);
-        return Math.max(60, Math.min(900, fromLektorat));
+        return Math.max(60, Math.min(maxCap, fromLektorat > 0 ? fromLektorat : 300));
     }
 
     /**

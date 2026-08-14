@@ -18,7 +18,15 @@ echo [OK] Java 21: %JAVA_HOME%
 
 REM --- Konfiguration ---
 set "APP_NAME=Manuskript"
-set "APP_VERSION=1.0.0"
+set "VERSION_FILE=src\main\resources\manuskript.version"
+if not exist "%VERSION_FILE%" (
+    echo FEHLER: Versionsdatei fehlt: %VERSION_FILE%
+    pause
+    exit /b 1
+)
+set /p APP_VERSION=<"%VERSION_FILE%"
+for /f "tokens=* delims= " %%A in ("%APP_VERSION%") do set "APP_VERSION=%%A"
+echo [OK] Deploy-Version: %APP_VERSION%
 set "MAIN_CLASS=com.manuskript.Launcher"
 set "FAT_JAR=manuskript-standalone.jar"
 set "JAVAFX_VERSION=21.0.6"
@@ -157,11 +165,22 @@ if errorlevel 1 (
 REM --- Staging aufraeumen ---
 rmdir /s /q "%STAGING_DIR%" >nul 2>&1
 
+REM Patch-Version fuer den naechsten Deploy hochzaehlen
+for /f "tokens=1-3 delims=." %%A in ("%APP_VERSION%") do (
+    set "VERSION_MAJOR=%%A"
+    set "VERSION_MINOR=%%B"
+    set /a VERSION_PATCH=%%C+1
+)
+set "NEXT_VERSION=!VERSION_MAJOR!.!VERSION_MINOR!.!VERSION_PATCH!"
+> "%VERSION_FILE%" echo !NEXT_VERSION!
+echo [OK] Naechste Deploy-Version: !NEXT_VERSION!
+
 echo.
 echo ========================================
 echo  Fertig!
 echo ========================================
 echo.
+echo  Version:    %APP_VERSION%
 echo  App-Image:  %APP_IMAGE%\
 echo  ZIP:        %OUTPUT_DIR%\%ZIP_NAME%
 echo.

@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.Set;
 import java.util.LinkedHashSet;
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 import java.util.List;
 import java.util.ArrayList;
@@ -1475,39 +1476,96 @@ public class OllamaService {
     }
     
     /**
-     * Installiert ein neues Modell von Ollama
+     * Installiert ein neues Modell (zuerst HTTP {@code /api/pull}, sonst {@code ollama pull}).
      */
     public CompletableFuture<String> installModel(String modelName) {
+        return installModel(modelName, baseUrl);
+    }
+
+    /**
+     * Installiert ein Modell gegen eine explizite Ollama-Basis-URL
+     * (z. B. aus dem Parameter-Dialog vor dem Speichern).
+     */
+    public CompletableFuture<String> installModel(String modelName, String apiBaseUrl) {
         return CompletableFuture.supplyAsync(() -> {
+            if (modelName == null || modelName.isBlank()) {
+                return "❌ Kein Modellname angegeben.";
+            }
+            String name = modelName.trim();
+            String base = (apiBaseUrl != null && !apiBaseUrl.isBlank())
+                    ? apiBaseUrl.replaceAll("/+$", "")
+                    : baseUrl;
+
+            String viaApi = pullModelViaApi(base, name);
+            if (viaApi != null) {
+                return viaApi;
+            }
+
             try {
-                ProcessBuilder processBuilder = new ProcessBuilder("ollama", "pull", modelName);
+                ProcessBuilder processBuilder = new ProcessBuilder("ollama", "pull", name);
                 processBuilder.redirectErrorStream(true);
-                
                 Process process = processBuilder.start();
-                
-                // Sammle die Ausgabe
                 StringBuilder output = new StringBuilder();
                 try (java.io.BufferedReader reader = new java.io.BufferedReader(
                         new java.io.InputStreamReader(process.getInputStream()))) {
                     String line;
                     while ((line = reader.readLine()) != null) {
-                        output.append(line).append("\n");
+                        output.append(line).append('\n');
                     }
                 }
-                
                 int exitCode = process.waitFor();
-                
                 if (exitCode == 0) {
-                    return "✅ Modell erfolgreich installiert: " + modelName;
-                } else {
-                    logger.warn("Fehler beim Installieren des Modells: {}", modelName);
-                    return "❌ Fehler beim Installieren: " + output.toString();
+                    return "✅ Modell erfolgreich installiert: " + name;
                 }
+                logger.warn("Fehler beim Installieren des Modells: {}", name);
+                return "❌ Fehler beim Installieren: " + output;
             } catch (Exception e) {
                 logger.warn("Exception beim Installieren des Modells: {}", e.getMessage());
-                return "❌ Exception: " + e.getMessage();
+                return "❌ Ollama-API und CLI fehlgeschlagen. Läuft Ollama? (" + e.getMessage() + ")";
             }
         });
+    }
+
+    /**
+     * {@code POST /api/pull} ohne Stream. {@code null} bei Verbindungsfehler (dann CLI versuchen).
+     */
+    private String pullModelViaApi(String base, String modelName) {
+        try {
+            String body = "{\"name\":\"" + modelName.replace("\"", "\\\"") + "\",\"stream\":false}";
+            HttpClient client = HttpClient.newBuilder()
+                    .connectTimeout(Duration.ofSeconds(15))
+                    .build();
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(base + "/api/pull"))
+                    .header("Content-Type", "application/json")
+                    .timeout(Duration.ofMinutes(45))
+                    .POST(HttpRequest.BodyPublishers.ofString(body))
+                    .build();
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            String respBody = response.body() != null ? response.body() : "";
+            if (response.statusCode() >= 200 && response.statusCode() < 300) {
+                if (respBody.toLowerCase(Locale.ROOT).contains("\"error\"")) {
+                    return "❌ Ollama-API: " + abbreviate(respBody, 400);
+                }
+                return "✅ Modell erfolgreich installiert: " + modelName;
+            }
+            if (response.statusCode() == 404) {
+                logger.info("Ollama /api/pull nicht erreichbar (404) – versuche CLI.");
+                return null;
+            }
+            return "❌ Ollama-API HTTP " + response.statusCode() + ": " + abbreviate(respBody, 400);
+        } catch (Exception e) {
+            logger.info("Ollama /api/pull fehlgeschlagen ({} ) – versuche CLI.", e.getMessage());
+            return null;
+        }
+    }
+
+    private static String abbreviate(String text, int max) {
+        if (text == null) {
+            return "";
+        }
+        String t = text.trim();
+        return t.length() <= max ? t : t.substring(0, max) + "…";
     }
     
     /**
@@ -1517,6 +1575,7 @@ public class OllamaService {
     public String[] getRecommendedCreativeWritingModels() {
         // Statische Empfehlungen (bewährte Modelle für kreatives Schreiben)
         String[] staticRecommendations = {
+            "jobautomation/OpenEuroLLM-German", // Deutsch, erste Empfehlung
             "llama2:7b",             // Sehr gut für kreatives Schreiben, ausgewogen
             "llama2:13b",            // Bessere Qualität, aber langsamer
             "llama2:70b",            // Beste Qualität, aber sehr langsam

@@ -125,6 +125,7 @@ public class ManuskriptTextEditor extends Region {
     private static final double HORIZONTAL_RULE_MIN_HEIGHT = 28.0;
     private static final Color MARK_HIGHLIGHT_COLOR = Color.web("#ffeb3b");
     private static final Color BLOCKQUOTE_TEXT_COLOR = Color.web("#999999");
+    private static final String FOOTNOTE_BACKGROUND = "#eef2f6";
     private static final double BIG_FONT_SCALE = 1.2;
     private static final double SMALL_FONT_SCALE = 0.8;
     /** Hoch-/Tiefstellung typografisch kleiner (≈ 75 % der Grundschrift). */
@@ -145,6 +146,9 @@ public class ManuskriptTextEditor extends Region {
     /** Gecachte Link-Bereiche – kein Regex-Scan pro Tastendruck/Layout-Zeichen. */
     private final List<TextRange> linkFullRanges = new ArrayList<>();
     private final List<TextRange> linkVisibleTextRanges = new ArrayList<>();
+    /** Pandoc-Inline-Fußnoten: Quelle {@code ^[Text]}, Anzeige als Nummer + Inline-Box. */
+    private final List<FootnoteHandle> footnotes = new ArrayList<>();
+    private final Map<Integer, String> footnoteDisplayNumberByMarkerOffset = new HashMap<>();
     private final List<TextRange> blockStructureHiddenRanges = new ArrayList<>();
     private final List<TextRange> hiddenImageBlockRanges = new ArrayList<>();
     private final List<ParsedImageBlock> imageBlocks = new ArrayList<>();
@@ -202,6 +206,7 @@ public class ManuskriptTextEditor extends Region {
     private double lastSelectionDragViewportY = Double.NaN;
     private int selectionAutoScrollDirection;
     private Consumer<String> textChangeListener;
+    private Consumer<FootnoteHandle> footnoteActivatedListener;
     private Runnable selectionChangeListener;
     private Consumer<java.util.List<QuotationMarkSupport.QuoteError>> unbalancedQuoteWarningHandler;
     private int lastNotifiedCaret = -1;
@@ -471,6 +476,10 @@ public class ManuskriptTextEditor extends Region {
         textChangeListener = listener;
     }
 
+    public void setOnFootnoteActivated(Consumer<FootnoteHandle> listener) {
+        footnoteActivatedListener = listener;
+    }
+
     public void setOnUnbalancedQuoteWarning(Consumer<java.util.List<QuotationMarkSupport.QuoteError>> handler) {
         unbalancedQuoteWarningHandler = handler;
     }
@@ -640,6 +649,11 @@ public class ManuskriptTextEditor extends Region {
         int start = selectionStart();
         int end = selectionEnd();
         if (replacement == null || replacement.isEmpty()) {
+            int[] footnoteExpanded = expandRangeToFullFootnotes(start, end);
+            if (footnoteExpanded != null) {
+                replaceRange(footnoteExpanded[0], footnoteExpanded[1], "");
+                return;
+            }
             int[] expanded = expandRangeToFullMarkdownLinks(start, end);
             if (expanded != null) {
                 replaceRange(expanded[0], expanded[1], "");
@@ -755,6 +769,13 @@ public class ManuskriptTextEditor extends Region {
             return;
         }
         int deletePos = caret - 1;
+        if (isFootnoteMarkupOffset(deletePos)) {
+            FootnoteHandle footnote = footnoteContaining(deletePos);
+            if (footnote != null) {
+                replaceRange(footnote.start(), footnote.end(), "");
+                return;
+            }
+        }
         if (isHiddenLinkMarkupOffset(deletePos)) {
             int[] linkRange = markdownLinkContaining(deletePos);
             if (linkRange != null) {
@@ -786,6 +807,13 @@ public class ManuskriptTextEditor extends Region {
         }
         if (caret >= text.length()) {
             return;
+        }
+        if (isFootnoteMarkupOffset(caret)) {
+            FootnoteHandle footnote = footnoteContaining(caret);
+            if (footnote != null) {
+                replaceRange(footnote.start(), footnote.end(), "");
+                return;
+            }
         }
         if (isHiddenLinkMarkupOffset(caret)) {
             int[] linkRange = markdownLinkContaining(caret);
@@ -1600,6 +1628,65 @@ public class ManuskriptTextEditor extends Region {
         finishFormatEdit();
     }
 
+    /**
+     * Fügt eine Pandoc-Inline-Fußnote direkt hinter Auswahl bzw. Cursor ein.
+     * Die Auswahl selbst bleibt unverändert und ist damit die Bezugsstelle.
+     */
+    public void insertFootnote(String content) {
+        String value = content == null ? "" : content.trim();
+        if (value.isEmpty()) {
+            return;
+        }
+        int insertAt = hasSelection() ? selectionEnd() : caret;
+        String source = MarkdownFootnoteSupport.toInlineSyntax(value);
+        replaceRange(insertAt, insertAt, source, false);
+        finishFormatEdit();
+    }
+
+    /** Ersetzt oder löscht eine zuvor aktivierte Fußnote. */
+    public void replaceFootnote(FootnoteHandle handle, String content) {
+        if (handle == null) {
+            return;
+        }
+        FootnoteHandle current = footnoteStartingAt(handle.start());
+        if (current == null) {
+            return;
+        }
+        String value = content == null ? "" : content.trim();
+        String replacement = MarkdownFootnoteSupport.toInlineSyntax(value);
+        replaceRange(current.start(), current.end(), replacement, false);
+        finishFormatEdit();
+    }
+
+    private FootnoteHandle footnoteStartingAt(int start) {
+        for (FootnoteHandle footnote : footnotes) {
+            if (footnote.start() == start) {
+                return footnote;
+            }
+        }
+        return null;
+    }
+
+    private static String displayFootnoteContent(String content) {
+        StringBuilder result = new StringBuilder(content == null ? 0 : content.length());
+        if (content == null) {
+            return "";
+        }
+        for (int i = 0; i < content.length(); i++) {
+            char c = content.charAt(i);
+            if (c == '\\' && i + 1 < content.length()) {
+                char next = content.charAt(i + 1);
+                if (next == '[' || next == ']' || next == '\\') {
+                    result.append(next);
+                    i++;
+                    continue;
+                }
+            }
+            result.append(c);
+        }
+        return result.toString();
+    }
+
     public void wrapInlineCode() {
         if (hasSelection() && text.substring(selectionStart(), selectionEnd()).indexOf('\n') >= 0) {
             int start = selectionStart();
@@ -1642,6 +1729,42 @@ public class ManuskriptTextEditor extends Region {
             }
         }
         return changed ? new int[]{expandedStart, expandedEnd} : null;
+    }
+
+    private int[] expandRangeToFullFootnotes(int start, int end) {
+        if (start >= end || footnotes.isEmpty()) {
+            return null;
+        }
+        int expandedStart = start;
+        int expandedEnd = end;
+        boolean changed = false;
+        for (FootnoteHandle footnote : footnotes) {
+            if (footnote.end() <= expandedStart || footnote.start() >= expandedEnd) {
+                continue;
+            }
+            expandedStart = Math.min(expandedStart, footnote.start());
+            expandedEnd = Math.max(expandedEnd, footnote.end());
+            changed = true;
+        }
+        return changed ? new int[]{expandedStart, expandedEnd} : null;
+    }
+
+    private FootnoteHandle footnoteContaining(int offset) {
+        for (FootnoteHandle footnote : footnotes) {
+            if (offset >= footnote.start() && offset < footnote.end()) {
+                return footnote;
+            }
+        }
+        return null;
+    }
+
+    private boolean isFootnoteMarkupOffset(int offset) {
+        if (!renderMarkupHidden) {
+            return false;
+        }
+        FootnoteHandle footnote = footnoteContaining(offset);
+        return footnote != null
+                && (offset < footnote.contentStart() || offset >= footnote.contentEnd());
     }
 
     private int[] markdownLinkContaining(int offset) {
@@ -3464,6 +3587,8 @@ public class ManuskriptTextEditor extends Region {
             inlineFormatCaretZones.clear();
             linkFullRanges.clear();
             linkVisibleTextRanges.clear();
+            footnotes.clear();
+            footnoteDisplayNumberByMarkerOffset.clear();
             headingRanges.clear();
             headingLevelByLineStart.clear();
             listLineInfoByStart.clear();
@@ -3505,6 +3630,10 @@ public class ManuskriptTextEditor extends Region {
         if (forceFullAutoMarkRebuild || text.length() < LARGE_DOC_AUTO_MARK_THRESHOLD) {
             return false;
         }
+        // Fußnotennummern hängen von der Dokumentreihenfolge ab.
+        if (text.indexOf("^[") >= 0) {
+            return false;
+        }
         if (autoMarkDirtyStart > autoMarkDirtyEnd) {
             return false;
         }
@@ -3544,6 +3673,7 @@ public class ManuskriptTextEditor extends Region {
 
     private void rebuildAutoMarksFull() {
         markedAreas.removeIf(area -> area.autoRule && area.autoRuleId >= 0);
+        markedAreas.removeIf(area -> area.type == MarkedArea.Type.FOOTNOTE);
         hiddenMarkupRanges.clear();
         inlineFormatCaretZones.clear();
         String source = text.toString();
@@ -3551,6 +3681,7 @@ public class ManuskriptTextEditor extends Region {
         if (source.indexOf("](") >= 0) {
             rebuildLinkStyles(0, text.length());
         }
+        rebuildFootnoteStyles(source);
     }
 
     private void rebuildAutoMarksIncremental(int dirtyStart, int dirtyEnd) {
@@ -3869,6 +4000,71 @@ public class ManuskriptTextEditor extends Region {
         }
     }
 
+    private void rebuildFootnoteStyles(String source) {
+        rebuildFootnoteCache(source);
+        if (!renderMarkupHidden) {
+            return;
+        }
+        for (FootnoteHandle handle : footnotes) {
+            int start = handle.start();
+            int end = handle.end();
+            int contentStart = handle.contentStart();
+            int contentEnd = handle.contentEnd();
+
+            MarkedArea markerArea = new MarkedArea(this);
+            markerArea.autoRule = true;
+            markerArea.markTypeSilent(MarkedArea.Type.FOOTNOTE);
+            markerArea.markStyleSilent(MarkedArea.SUPERSCRIPT | MarkedArea.BOLD);
+            markerArea.textColor = gutterTextColor;
+            markerArea.addRangeSilent(start, start + 1);
+            markerArea.clickCallback = () -> activateFootnote(handle);
+            markedAreas.add(markerArea);
+
+            if (contentStart < contentEnd) {
+                MarkedArea contentArea = new MarkedArea(this);
+                contentArea.autoRule = true;
+                contentArea.markTypeSilent(MarkedArea.Type.FOOTNOTE);
+                contentArea.fontSizeScale = 0.82;
+                contentArea.color = inlineCodeBackgroundColor != null
+                        ? inlineCodeBackgroundColor : Color.web(FOOTNOTE_BACKGROUND);
+                contentArea.textColor = gutterTextColor;
+                contentArea.addRangeSilent(contentStart, contentEnd);
+                contentArea.clickCallback = () -> activateFootnote(handle);
+                markedAreas.add(contentArea);
+            }
+
+            // "^" bleibt als virtueller Nummernanker sichtbar; nur Klammern verschwinden.
+            hiddenMarkupRanges.add(new TextRange(start + 1, contentStart));
+            hiddenMarkupRanges.add(new TextRange(contentEnd, end));
+            inlineFormatCaretZones.add(new TextRange(start, end));
+        }
+    }
+
+    private void rebuildFootnoteCache(String source) {
+        footnotes.clear();
+        footnoteDisplayNumberByMarkerOffset.clear();
+        if (source == null || source.indexOf("^[") < 0) {
+            return;
+        }
+        for (MarkdownFootnoteSupport.Footnote parsed : MarkdownFootnoteSupport.parse(source)) {
+            int start = parsed.fullRange().startInclusive();
+            int end = parsed.fullRange().endExclusive();
+            int contentStart = parsed.sourceRange().startInclusive();
+            int contentEnd = parsed.sourceRange().endExclusive();
+            FootnoteHandle handle = new FootnoteHandle(
+                    start, end, contentStart, contentEnd,
+                    displayFootnoteContent(parsed.content()), parsed.number());
+            footnotes.add(handle);
+            footnoteDisplayNumberByMarkerOffset.put(start, Integer.toString(parsed.number()));
+        }
+    }
+
+    private void activateFootnote(FootnoteHandle handle) {
+        if (footnoteActivatedListener != null && handle != null) {
+            footnoteActivatedListener.accept(handle);
+        }
+    }
+
     private static void openExternalLink(String url) {
         try {
             if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
@@ -4120,10 +4316,59 @@ public class ManuskriptTextEditor extends Region {
         for (ParsedHorizontalRule rule : horizontalRules) {
             rule.shiftAfterReplace(start, end, delta);
         }
+        updateFootnoteCacheAfterReplace(start, end, delta, insertedLength);
         shiftHeadingLineStarts(start, end, delta);
         shiftCenterLineStarts(start, end, delta);
         shiftBlockquoteLineStarts(start, end, delta);
         markAutoMarkDirty(start, end);
+    }
+
+    private void updateFootnoteCacheAfterReplace(int start, int end, int delta, int insertedLength) {
+        if (footnotes.isEmpty()) {
+            int probeStart = Math.max(0, start - 1);
+            int probeEnd = Math.min(text.length(), start + insertedLength + 1);
+            if (probeStart < probeEnd && text.substring(probeStart, probeEnd).contains("^[")) {
+                rebuildFootnoteCache(text.toString());
+            }
+            return;
+        }
+        List<FootnoteHandle> shifted = new ArrayList<>(footnotes.size());
+        for (FootnoteHandle footnote : footnotes) {
+            if (footnote.end() <= start) {
+                shifted.add(footnote);
+                continue;
+            }
+            if (footnote.start() >= end && start != end) {
+                shifted.add(new FootnoteHandle(
+                        footnote.start() + delta,
+                        footnote.end() + delta,
+                        footnote.contentStart() + delta,
+                        footnote.contentEnd() + delta,
+                        footnote.content(),
+                        footnote.number()));
+                continue;
+            }
+            if (start == end && start <= footnote.start()) {
+                shifted.add(new FootnoteHandle(
+                        footnote.start() + delta,
+                        footnote.end() + delta,
+                        footnote.contentStart() + delta,
+                        footnote.contentEnd() + delta,
+                        footnote.content(),
+                        footnote.number()));
+                continue;
+            }
+            // Änderung innerhalb oder über einer Fußnote: Parser ist die sichere Quelle.
+            rebuildFootnoteCache(text.toString());
+            return;
+        }
+        footnotes.clear();
+        footnotes.addAll(shifted);
+        footnoteDisplayNumberByMarkerOffset.clear();
+        for (FootnoteHandle footnote : footnotes) {
+            footnoteDisplayNumberByMarkerOffset.put(
+                    footnote.start(), Integer.toString(footnote.number()));
+        }
     }
 
     private void markAutoMarkDirty(int start, int end) {
@@ -5070,7 +5315,7 @@ public class ManuskriptTextEditor extends Region {
             while (segmentEnd < rangeEnd && !isHiddenOffset(segmentEnd) && sameTextStyle(style, styleAt(segmentEnd))) {
                 segmentEnd++;
             }
-            String segment = text.substring(segmentStart, segmentEnd);
+            String segment = displayTextForRange(segmentStart, segmentEnd);
             double segmentWidth = measureText(segment, style);
             if (style.background != null && !usesLayoutPaintedBackground(style)) {
                 fillBackgroundRect(gc, x, top, segmentWidth, height, style.background);
@@ -5107,7 +5352,7 @@ public class ManuskriptTextEditor extends Region {
             if (firstVisible < 0) {
                 firstVisible = offset;
             }
-            visible.append(text.charAt(offset));
+            visible.append(displayTextForRange(offset, offset + 1));
         }
         if (visible.isEmpty()) {
             return;
@@ -5155,7 +5400,7 @@ public class ManuskriptTextEditor extends Region {
                 segmentEnd++;
             }
 
-            String segment = text.substring(segmentStart, segmentEnd);
+            String segment = displayTextForRange(segmentStart, segmentEnd);
             double x = xForOffsetInLine(line, lineIndex, segmentStart);
             double layoutWidth = xForOffsetInLine(line, lineIndex, segmentEnd) - x;
             double segmentWidth = Math.max(measureText(segment, style), layoutWidth);
@@ -6557,10 +6802,40 @@ public class ManuskriptTextEditor extends Region {
             while (segmentEnd < safeEnd && !isHiddenOffset(segmentEnd) && sameTextStyle(style, styleAt(segmentEnd))) {
                 segmentEnd++;
             }
-            width += measureText(text.substring(segmentStart, segmentEnd), style);
+            width += measureText(displayTextForRange(segmentStart, segmentEnd), style);
             segmentStart = segmentEnd;
         }
         return width;
+    }
+
+    /**
+     * Sichtbarer Text für einen bereits auf nicht-ausgeblendete Zeichen begrenzten Bereich.
+     * Der Quellanker "^" einer Fußnote wird im WYSIWYG-Modus durch ihre laufende Nummer ersetzt.
+     */
+    private String displayTextForRange(int start, int end) {
+        int safeStart = Math.max(0, Math.min(text.length(), start));
+        int safeEnd = Math.max(safeStart, Math.min(text.length(), end));
+        if (!renderMarkupHidden || footnoteDisplayNumberByMarkerOffset.isEmpty()) {
+            return text.substring(safeStart, safeEnd);
+        }
+        StringBuilder display = null;
+        int copyFrom = safeStart;
+        for (int offset = safeStart; offset < safeEnd; offset++) {
+            String number = footnoteDisplayNumberByMarkerOffset.get(offset);
+            if (number == null) {
+                continue;
+            }
+            if (display == null) {
+                display = new StringBuilder(safeEnd - safeStart + 4);
+            }
+            display.append(text, copyFrom, offset).append(number);
+            copyFrom = offset + 1;
+        }
+        if (display == null) {
+            return text.substring(safeStart, safeEnd);
+        }
+        display.append(text, copyFrom, safeEnd);
+        return display.toString();
     }
 
     private boolean isHiddenOffset(int offset) {
@@ -6725,6 +7000,12 @@ public class ManuskriptTextEditor extends Region {
     /** {@code viewportLineTop}: Abstand Zeilenanfang → Viewport-Oberkante (vor Layout-Änderung). */
     private record ViewportAnchor(int offset, double viewportLineTop) {}
     private record Snapshot(String text, int caret, int anchor, List<StyleRange> styles) {}
+
+    /** Bearbeitungsgriff für eine beim letzten Rebuild erkannte Pandoc-Inline-Fußnote. */
+    public record FootnoteHandle(int start, int end, int contentStart, int contentEnd,
+                                 String content, int number) {
+    }
+
     private static final class AutoRule {
         private final Pattern pattern;
         private final int groupIndex;
@@ -6970,6 +7251,7 @@ public class ManuskriptTextEditor extends Region {
             TEXT_ANALYSIS(25),
             HIGHLIGHT(30),
             LINK(50),
+            FOOTNOTE(55),
             LEKTORAT(70),
             LANGUAGE_TOOL(80),
             SELECTION(100);

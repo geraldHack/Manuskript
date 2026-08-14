@@ -35,7 +35,17 @@ JPACKAGE="${JAVA_HOME}/bin/jpackage"
 
 # --- Konfiguration ---
 APP_NAME="Manuskript"
-APP_VERSION="1.0.0"
+VERSION_FILE="src/main/resources/manuskript.version"
+if [[ ! -f "$VERSION_FILE" ]]; then
+    echo "FEHLER: Versionsdatei fehlt: ${VERSION_FILE}"
+    exit 1
+fi
+APP_VERSION="$(tr -d '[:space:]' < "$VERSION_FILE")"
+if [[ ! "$APP_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    echo "FEHLER: Ungültige Version in ${VERSION_FILE}: '${APP_VERSION}'"
+    exit 1
+fi
+echo "[OK] Deploy-Version: ${APP_VERSION}"
 MAIN_CLASS="com.manuskript.Launcher"
 FAT_JAR="manuskript-standalone.jar"
 JAVAFX_VERSION="21.0.6"
@@ -278,11 +288,18 @@ fi
 
 rm -rf "$STAGING_DIR"
 
+# Patch-Version für den nächsten Deploy hochzählen (dieses Build bleibt bei APP_VERSION)
+IFS='.' read -r VERSION_MAJOR VERSION_MINOR VERSION_PATCH <<< "$APP_VERSION"
+NEXT_VERSION="${VERSION_MAJOR}.${VERSION_MINOR}.$((VERSION_PATCH + 1))"
+printf '%s\n' "$NEXT_VERSION" > "$VERSION_FILE"
+echo "[OK] Nächste Deploy-Version: ${NEXT_VERSION}"
+
 echo
 echo "========================================"
 echo " Fertig!"
 echo "========================================"
 echo
+echo " Version: ${APP_VERSION}"
 echo " App:  ${APP_BUNDLE}"
 echo " DMG:  ${OUTPUT_DIR}/${DMG_NAME}"
 echo " ZIP:  ${OUTPUT_DIR}/${ZIP_NAME}"

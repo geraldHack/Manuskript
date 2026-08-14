@@ -5,6 +5,7 @@ import com.manuskript.MainController;
 import com.manuskript.ResourceManager;
 import com.manuskript.agent.AIBackend;
 import com.manuskript.agent.AgentConfig;
+import com.manuskript.agent.AgentConfigManager;
 import com.manuskript.agent.AgentMemory;
 import com.manuskript.agent.AgentTab;
 import com.manuskript.agent.AgentTabPane;
@@ -120,6 +121,47 @@ public class ChapterAgentSupport {
                     host.getEditorFontSizePx(),
                     host.getThemeIndex(),
                     host.getEditorFontFamily());
+        }
+    }
+
+    /**
+     * Parameter (Backend/URL/Modell) neu einlesen: Tabs neu aufbauen, Agent-Instanzen verwerfen.
+     */
+    public void reloadAgentParameters() {
+        if (agentTabPane == null) {
+            return;
+        }
+        Runnable reload = () -> {
+            agentInstances.clear();
+            agentBackends.clear();
+            AgentConfigManager.invalidateCache();
+            java.util.List<AgentConfig> configs = AgentConfigManager.loadConfigs();
+            AgentConfigManager.saveConfigs(configs);
+            boolean keepVisible = agentPanelVisible || userWantsPanelVisible;
+            agentTabPane.reloadFromConfig();
+            for (AgentTab tab : agentTabPane.getAgentTabs()) {
+                setupAgentTabCallbacks(tab);
+                wireAgentTabStatus(tab);
+            }
+            for (SceneWritingAgentTab tab : agentTabPane.getSceneWritingTabs()) {
+                setupSceneWritingTabCallbacks(tab);
+                wireAgentTabStatus(tab);
+            }
+            for (ChatbotAgentTab tab : agentTabPane.getChatbotTabs()) {
+                setupChatbotTabCallbacks(tab);
+                wireAgentTabStatus(tab);
+            }
+            loadAgentModels();
+            applyEditorAppearance();
+            ensurePanelVisible(keepVisible);
+            logger.info("Agenten-Parameter neu geladen (Backend={}, Modell={})",
+                    ResourceManager.getParameter("agent.backend", "Ollama"),
+                    ResourceManager.getParameter("agent.openai.model", ""));
+        };
+        if (Platform.isFxApplicationThread()) {
+            reload.run();
+        } else {
+            Platform.runLater(reload);
         }
     }
 
@@ -601,14 +643,15 @@ public class ChapterAgentSupport {
         String text = host.getText() != null ? host.getText() : "";
         String allChapters = buildAnalysisContext(targetTab, text);
         int maxOutputTokens = targetTab.getAgentConfig().getMaxTokens();
-        logger.info("Plothole-Analyse: Manuskript={} Zeichen, Kontext={} Zeichen, max_output_tokens={}",
-                text.length(), allChapters.length(), maxOutputTokens);
+        String agentName = config.getName() != null ? config.getName() : "Agent";
+        logger.info("{}: Manuskript={} Zeichen, Kontext={} Zeichen, max_output_tokens={}",
+                agentName, text.length(), allChapters.length(), maxOutputTokens);
         agent.analyze(text, allChapters, maxOutputTokens)
                 .thenAccept(targetTab::showParseResult)
                 .exceptionally(ex -> {
                     String detail = AgentAnalysisErrors.format(ex);
-                    logger.error("Plothole-Analyse fehlgeschlagen (Modell={}, Backend={}): {}",
-                            model, targetTab.getAgentConfig().getBackend(), detail,
+                    logger.error("{} fehlgeschlagen (Modell={}, Backend={}): {}",
+                            agentName, model, targetTab.getAgentConfig().getBackend(), detail,
                             AgentAnalysisErrors.unwrap(ex));
                     targetTab.showError(detail);
                     return null;

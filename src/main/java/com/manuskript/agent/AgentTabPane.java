@@ -72,6 +72,12 @@ public class AgentTabPane extends TabPane {
         for (AgentConfig config : configs) {
             addAgentTab(config, false);
         }
+        // +1 wegen „+“-Tab
+        int agentTabCount = getTabs().size() - 1;
+        if (agentTabCount < configs.size()) {
+            org.slf4j.LoggerFactory.getLogger(AgentTabPane.class).warn(
+                    "Nur {}/{} Agenten-Tabs erzeugt", agentTabCount, configs.size());
+        }
         if (getTabs().size() > 1) {
             getSelectionModel().select(0);
         }

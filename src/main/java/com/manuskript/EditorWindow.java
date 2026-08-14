@@ -126,6 +126,26 @@ public class EditorWindow implements Initializable, ChapterEditorHost {
         agentBackends.clear();
         logger.info("Agent-Instanzen gelöscht");
     }
+
+    @Override
+    public void reloadAgentParametersFromPreferences() {
+        clearAgentInstances();
+        if (agentTabPane != null) {
+            Platform.runLater(() -> {
+                agentTabPane.reloadFromConfig();
+                for (AgentTab tab : agentTabPane.getAgentTabs()) {
+                    setupAgentTabCallbacks(tab);
+                }
+                for (SceneWritingAgentTab tab : agentTabPane.getSceneWritingTabs()) {
+                    setupSceneWritingTabCallbacks(tab);
+                }
+                for (ChatbotAgentTab tab : agentTabPane.getChatbotTabs()) {
+                    setupChatbotTabCallbacks(tab);
+                }
+                logger.info("Legacy-Editor: Agenten-Parameter neu geladen");
+            });
+        }
+    }
     
     // Statische Map für Scroll-Positionen (vvalue 0.0-1.0) pro Kapitel
     private static final Map<String, Double> chapterScrollPositions = new HashMap<>();

@@ -198,8 +198,6 @@ public final class ParameterRegistry {
                 "Bewegungs-Phrasen (kommagetrennt).", "Textanalyse");
 
         // —— Agenten (allgemein) ——
-        add("agent.enabled", ParameterDef.Type.BOOLEAN, "true",
-                "Plothole-Agent komplett aktivieren.", "Agenten");
         add("agent.backend", ParameterDef.Type.CHOICE, "Ollama",
                 "KI-Backend fuer die Agenten-Analyse.", "Agenten",
                 new String[]{"Ollama", "OpenAI"});
@@ -226,15 +224,22 @@ public final class ParameterRegistry {
 
         // —— Agenten (OpenAI) ——
         add("agent.openai.api_key", ParameterDef.Type.STRING, "",
-                "API-Key fuer OpenAI (wird auch vom Online-Lektorat verwendet).", "Agenten");
+                "API-Key fuer OpenAI/OpenRouter/Mammouth. Lokale Server akzeptieren oft den Platzhalter „local“.",
+                "Agenten");
         add("agent.openai.api_url", ParameterDef.Type.STRING, "https://api.openai.com/v1",
-                "Basis-URL der OpenAI-kompatiblen API.", "Agenten");
+                "Basis-URL der OpenAI-kompatiblen API (z.B. https://api.openai.com/v1, "
+                        + "https://openrouter.ai/api/v1, https://api.mammouth.ai/v1).",
+                "Agenten");
         add("agent.openai.model", ParameterDef.Type.STRING, "gpt-4o-mini",
-                "Modell fuer die OpenAI-Analyse (z.B. gpt-4o-mini, gpt-4o).", "Agenten");
+                "Modell fuer die OpenAI-Analyse (z.B. gpt-4o-mini, gpt-4o).",
+                "Agenten");
         add("agent.openai.temperature", ParameterDef.Type.DOUBLE, "0.7",
                 "Temperatur fuer OpenAI-Backend (Welt-Editor, Agenten, Online-Lektorat). Bereich 0.0–2.0; bei Claude-Modellen max. 1.0.", "Agenten");
         add("agent.openai.request_timeout_sec", ParameterDef.Type.INT, "300",
-                "Timeout pro Agenten-API-Anfrage in Sekunden (60–900). Kimi/OpenRouter mit vollem Buch-Kontext brauchen oft 180–600 s.", "Agenten");
+                "Timeout pro Agenten-API-Anfrage in Sekunden. Cloud: 60–900 (Default 300). "
+                        + "Lokale Server (localhost): Default 900, max. 3600. "
+                        + "Bei Timeout zuerst Kontext verkleinern.",
+                "Agenten");
         add("agent.openai.reasoning_effort", ParameterDef.Type.CHOICE, "auto",
                 "Reasoning-Aufwand für Kimi K3 u.ä. (low/high/max). auto = bei Kimi/Moonshot low, sonst nicht setzen. "
                         + "low lässt eher Tokens für die fertige Szene übrig.",
@@ -267,6 +272,8 @@ public final class ParameterRegistry {
                 "Sprachcode fuer STT (ISO 639-1, z. B. de, en).", "Diktat");
         add("dictation.enable_preview_before_insert", ParameterDef.Type.BOOLEAN, "false",
                 "Diktat-Ergebnis vor dem Einfuegen in einer Vorschau anzeigen.", "Diktat");
+        add("dictation.local_whisper_timeout_sec", ParameterDef.Type.INT, "180",
+                "Timeout fuer lokales whisper.cpp in Sekunden (30–900). Bei Timeout wird der Prozess abgebrochen.", "Diktat");
     }
 
     private static void add(String key, ParameterDef.Type type, String defaultValue, String helpText, String category) {

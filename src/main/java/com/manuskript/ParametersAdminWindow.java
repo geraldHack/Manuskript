@@ -2,6 +2,7 @@ package com.manuskript;
 
 import com.manuskript.agent.FilterableModelOptionSelector;
 import com.manuskript.agent.ModelOption;
+import com.manuskript.agent.OpenAiProviderProfiles;
 
 import javafx.application.Platform;
 import javafx.geometry.Insets;
@@ -40,6 +41,8 @@ public class ParametersAdminWindow {
     private final Window owner;
     private final Map<String, Parent> keyToControl = new HashMap<>();
     private final Map<String, ParameterDef> keyToDef = new HashMap<>();
+    /** Speichert das aktive OpenAI-Provider-Profil (inkl. API-Key) beim globalen Speichern. */
+    private Runnable openaiProviderProfilesSaveHook;
 
     public ParametersAdminWindow(Window owner) {
         this.owner = owner;
@@ -172,23 +175,6 @@ public class ParametersAdminWindow {
 
         String backendType = ResourceManager.getParameter("agent.backend", "Ollama");
 
-        // Allgemeine Agenten-Parameter
-        boolean agentEnabled = Boolean.parseBoolean(ResourceManager.getParameter("agent.enabled", "true"));
-        CheckBox enabledCheck = new CheckBox("Plothole-Agent aktivieren");
-        enabledCheck.setSelected(agentEnabled);
-        enabledCheck.setMaxWidth(400);
-        Label enabledLabel = new Label("agent.enabled");
-        enabledLabel.getStyleClass().add("param-key-label");
-        Label enabledHelp = new Label("Plothole-Agent komplett aktivieren.");
-        enabledHelp.getStyleClass().add("param-help-label");
-        enabledHelp.setWrapText(true);
-        enabledHelp.setMaxWidth(680);
-        VBox enabledCard = new VBox(4);
-        enabledCard.getStyleClass().add("param-card");
-        enabledCard.getChildren().addAll(enabledLabel, enabledCheck, enabledHelp);
-        content.getChildren().add(enabledCard);
-        keyToControl.put("agent.enabled", enabledCheck);
-
         // Backend-Auswahl
         ComboBox<String> backendCombo = new ComboBox<>();
         backendCombo.getItems().addAll("Ollama", "OpenAI");
@@ -231,19 +217,79 @@ public class ParametersAdminWindow {
         keyToControl.put("agent.ollama.api_url", ollamaUrlField);
 
         String ollamaModel = ResourceManager.getParameter("agent.ollama.model", "gemma3:4b");
-        TextField ollamaModelField = new TextField(ollamaModel);
-        ollamaModelField.setPrefWidth(400);
+        ComboBox<String> ollamaModelCombo = new ComboBox<>();
+        ollamaModelCombo.setEditable(true);
+        ollamaModelCombo.setPrefWidth(400);
+        ollamaModelCombo.setPromptText("Modell wählen oder eingeben…");
+        if (ollamaModel != null && !ollamaModel.isBlank()) {
+            ollamaModelCombo.getItems().add(ollamaModel);
+            ollamaModelCombo.setValue(ollamaModel);
+            ollamaModelCombo.getEditor().setText(ollamaModel);
+        }
+        Button ollamaLoadModelsBtn = new Button("Installierte laden");
+        ollamaLoadModelsBtn.setTooltip(new Tooltip("Lädt lokal bei Ollama vorhandene Modelle in die Liste"));
+        ollamaLoadModelsBtn.setOnAction(e -> loadOllamaInstalledModels(
+                ollamaUrlField.getText(), ollamaModelCombo));
+        HBox ollamaModelRow = new HBox(8, ollamaModelCombo, ollamaLoadModelsBtn);
+        ollamaModelRow.setAlignment(Pos.CENTER_LEFT);
         Label ollamaModelLabel = new Label("agent.ollama.model");
         ollamaModelLabel.getStyleClass().add("param-key-label");
-        Label ollamaModelHelp = new Label("Modell fuer die Ollama-Analyse (z.B. gemma3:4b, llama3, mistral).");
+        Label ollamaModelHelp = new Label(
+                "Aktives Ollama-Modell für Agenten. „Installierte laden“ listet vorhandene Modelle; "
+                        + "unten kannst du weitere von ollama.com nachladen.");
         ollamaModelHelp.getStyleClass().add("param-help-label");
         ollamaModelHelp.setWrapText(true);
         ollamaModelHelp.setMaxWidth(680);
         VBox ollamaModelCard = new VBox(4);
         ollamaModelCard.getStyleClass().add("param-card");
-        ollamaModelCard.getChildren().addAll(ollamaModelLabel, ollamaModelField, ollamaModelHelp);
+        ollamaModelCard.getChildren().addAll(ollamaModelLabel, ollamaModelRow, ollamaModelHelp);
         ollamaParams.getChildren().add(ollamaModelCard);
-        keyToControl.put("agent.ollama.model", ollamaModelField);
+        keyToControl.put("agent.ollama.model", ollamaModelCombo);
+
+        Label ollamaInstallHeader = new Label("Ollama-Modell installieren");
+        ollamaInstallHeader.setStyle("-fx-font-weight: bold; -fx-font-size: 12px; -fx-padding: 4 0 0 0;");
+        ComboBox<String> ollamaInstallCombo = new ComboBox<>();
+        ollamaInstallCombo.setEditable(true);
+        ollamaInstallCombo.setPrefWidth(280);
+        ollamaInstallCombo.setPromptText("z. B. gemma3:4b, llama3.2, qwen2.5:7b");
+        ollamaInstallCombo.getItems().addAll(
+                "jobautomation/OpenEuroLLM-German",
+                "gemma3:4b",
+                "llama3.2",
+                "llama3.2:3b",
+                "qwen2.5:7b",
+                "mistral:7b-instruct",
+                "phi3:mini",
+                "llama3.1:8b");
+        Button ollamaInstallBtn = new Button("Installieren");
+        ollamaInstallBtn.setTooltip(new Tooltip(
+                "Lädt das Modell über Ollama (API /api/pull, sonst ollama pull). Kann mehrere Minuten dauern."));
+        Label ollamaInstallStatus = new Label("");
+        ollamaInstallStatus.setWrapText(true);
+        ollamaInstallStatus.setMaxWidth(680);
+        ProgressIndicator ollamaInstallBusy = new ProgressIndicator();
+        ollamaInstallBusy.setPrefSize(18, 18);
+        ollamaInstallBusy.setVisible(false);
+        ollamaInstallBusy.setManaged(false);
+        ollamaInstallBtn.setOnAction(e -> installOllamaModelFromParams(
+                ollamaUrlField.getText(),
+                ollamaInstallCombo,
+                ollamaModelCombo,
+                ollamaInstallBtn,
+                ollamaInstallStatus,
+                ollamaInstallBusy));
+        HBox ollamaInstallRow = new HBox(8, ollamaInstallCombo, ollamaInstallBtn, ollamaInstallBusy);
+        ollamaInstallRow.setAlignment(Pos.CENTER_LEFT);
+        Label ollamaInstallHelp = new Label(
+                "Ollama muss laufen (z. B. App gestartet). Modellname wie auf https://ollama.com/library.");
+        ollamaInstallHelp.getStyleClass().add("param-help-label");
+        ollamaInstallHelp.setWrapText(true);
+        ollamaInstallHelp.setMaxWidth(680);
+        VBox ollamaInstallCard = new VBox(4);
+        ollamaInstallCard.getStyleClass().add("param-card");
+        ollamaInstallCard.getChildren().addAll(
+                ollamaInstallHeader, ollamaInstallRow, ollamaInstallStatus, ollamaInstallHelp);
+        ollamaParams.getChildren().add(ollamaInstallCard);
 
         // OpenAI-spezifische Parameter
         Label openaiHeader = new Label("OpenAI-Einstellungen");
@@ -253,9 +299,221 @@ public class ParametersAdminWindow {
         String openaiKey = ResourceManager.getParameter("agent.openai.api_key", "");
         TextField openaiKeyField = new TextField(openaiKey);
         openaiKeyField.setPrefWidth(400);
+
+        String openaiUrl = ResourceManager.getParameter("agent.openai.api_url", "https://api.openai.com/v1");
+        TextField openaiUrlField = new TextField(openaiUrl);
+        openaiUrlField.setPrefWidth(400);
+
+        String openaiModel = ResourceManager.getParameter("agent.openai.model", "gpt-4o-mini");
+        FilterableModelOptionSelector openaiModelSelector = new FilterableModelOptionSelector(true);
+        openaiModelSelector.setModelId(openaiModel);
+        openaiModelSelector.setOnLoad(() -> loadAgentModels(
+                openaiKeyField.getText(), openaiUrlField.getText(), openaiModelSelector));
+
+        ComboBox<String> providerProfileCombo = new ComboBox<>();
+        providerProfileCombo.setEditable(true);
+        providerProfileCombo.setPrefWidth(280);
+        providerProfileCombo.setPromptText("Provider-Profil");
+        final java.util.concurrent.atomic.AtomicBoolean providerApplyEnabled =
+                new java.util.concurrent.atomic.AtomicBoolean(false);
+        final java.util.concurrent.atomic.AtomicReference<java.util.List<OpenAiProviderProfiles.Profile>>
+                providerProfilesRef = new java.util.concurrent.atomic.AtomicReference<>(
+                new java.util.ArrayList<>(OpenAiProviderProfiles.load()));
+        final java.util.concurrent.atomic.AtomicReference<String> lastProviderProfileName =
+                new java.util.concurrent.atomic.AtomicReference<>(OpenAiProviderProfiles.loadActiveName());
+        /** Nur Profile, die in dieser Session wirklich übernommen wurden – verhindert Auto-Save-Korruption. */
+        final java.util.Set<String> providerProfilesAppliedThisSession = new java.util.HashSet<>();
+
+        java.util.function.Function<String, OpenAiProviderProfiles.Profile> snapshotCurrentProfile = name -> {
+            if (name == null || name.isBlank()) {
+                return null;
+            }
+            return new OpenAiProviderProfiles.Profile(
+                    name.trim(),
+                    openaiUrlField.getText(),
+                    openaiKeyField.getText(),
+                    openaiModelSelector.getModelId());
+        };
+        java.util.function.Function<OpenAiProviderProfiles.Profile, String> persistProfiles = profile -> {
+            if (profile == null || !profile.hasName()) {
+                return "Kein Profilname.";
+            }
+            java.util.List<OpenAiProviderProfiles.Profile> next =
+                    OpenAiProviderProfiles.upsert(providerProfilesRef.get(), profile);
+            providerProfilesRef.set(next);
+            String error = OpenAiProviderProfiles.saveOrError(next);
+            OpenAiProviderProfiles.saveActiveName(profile.name());
+            lastProviderProfileName.set(profile.name());
+            return error;
+        };
+        Runnable pushProviderFieldsToAgentParams = () -> {
+            String url = openaiUrlField.getText() != null ? openaiUrlField.getText().trim() : "";
+            String key = openaiKeyField.getText() != null ? openaiKeyField.getText() : "";
+            String model = openaiModelSelector.getModelId();
+            ResourceManager.saveParameter("agent.openai.api_url", url);
+            ResourceManager.saveParameter("agent.openai.api_key", key == null ? "" : key);
+            if (model != null && !model.isBlank()) {
+                ResourceManager.saveParameter("agent.openai.model", model.trim());
+            }
+            ResourceManager.saveParameter("agent.backend", "OpenAI");
+            try {
+                ApplicationPreferences.resourceManagerNode().flush();
+            } catch (Exception ex) {
+                logger.debug("flush nach Provider-Übernahme: {}", ex.getMessage());
+            }
+            com.manuskript.agent.AgentConfigManager.invalidateCache();
+            logger.info("Provider aktiv für Agenten: url={}, model={}", url, model);
+            MainController.notifyOpenEditorsAgentParametersChanged();
+        };
+        java.util.function.Consumer<OpenAiProviderProfiles.Profile> applyProviderProfile = profile -> {
+            if (profile == null) {
+                return;
+            }
+            // Vorheriges Profil nur sichern, wenn es in dieser Session wirklich geladen wurde
+            String previousName = lastProviderProfileName.get();
+            if (previousName != null && !previousName.isBlank()
+                    && !previousName.equalsIgnoreCase(profile.name())
+                    && providerProfilesAppliedThisSession.contains(previousName.trim().toLowerCase(Locale.ROOT))) {
+                OpenAiProviderProfiles.Profile previousSnapshot = snapshotCurrentProfile.apply(previousName);
+                if (previousSnapshot != null) {
+                    String persistError = persistProfiles.apply(previousSnapshot);
+                    if (persistError != null) {
+                        logger.warn("Vor Provider-Wechsel: Profil speichern fehlgeschlagen: {}", persistError);
+                    }
+                }
+            }
+            openaiUrlField.setText(profile.apiUrl() != null ? profile.apiUrl() : "");
+            openaiKeyField.setText(profile.apiKey() != null ? profile.apiKey() : "");
+            if (profile.model() != null && !profile.model().isBlank()) {
+                openaiModelSelector.setModelId(profile.model());
+            }
+            OpenAiProviderProfiles.saveActiveName(profile.name());
+            lastProviderProfileName.set(profile.name());
+            providerProfilesAppliedThisSession.add(profile.name().trim().toLowerCase(Locale.ROOT));
+            // Sofort in ResourceManager schreiben – sonst nutzen Agenten weiter die alte TF-URL
+            pushProviderFieldsToAgentParams.run();
+        };
+        Runnable refreshProviderCombo = () -> {
+            providerApplyEnabled.set(false);
+            String previous = providerProfileCombo.getEditor().getText();
+            providerProfileCombo.getItems().clear();
+            for (OpenAiProviderProfiles.Profile profile : providerProfilesRef.get()) {
+                if (profile != null && profile.hasName()) {
+                    providerProfileCombo.getItems().add(profile.name());
+                }
+            }
+            String active = OpenAiProviderProfiles.loadActiveName();
+            if (active != null && !active.isBlank() && providerProfileCombo.getItems().contains(active)) {
+                providerProfileCombo.setValue(active);
+            } else if (previous != null && !previous.isBlank()) {
+                providerProfileCombo.getEditor().setText(previous);
+            }
+            providerApplyEnabled.set(true);
+        };
+        providerProfileCombo.setOnAction(e -> {
+            if (!providerApplyEnabled.get()) {
+                return;
+            }
+            String name = providerProfileCombo.getValue();
+            OpenAiProviderProfiles.Profile profile =
+                    OpenAiProviderProfiles.findByName(providerProfilesRef.get(), name);
+            if (profile != null) {
+                applyProviderProfile.accept(profile);
+            }
+        });
+        Button providerApplyBtn = new Button("Übernehmen");
+        providerApplyBtn.setTooltip(new Tooltip("Gewähltes Profil in URL/Key/Modell laden"));
+        providerApplyBtn.setOnAction(e -> {
+            String name = providerProfileCombo.getEditor().getText();
+            OpenAiProviderProfiles.Profile profile =
+                    OpenAiProviderProfiles.findByName(providerProfilesRef.get(), name);
+            if (profile == null) {
+                showInfo("Provider-Profil", "Kein gespeichertes Profil mit diesem Namen.");
+                return;
+            }
+            applyProviderProfile.accept(profile);
+            providerApplyEnabled.set(false);
+            providerProfileCombo.setValue(profile.name());
+            providerApplyEnabled.set(true);
+        });
+        Button providerSaveBtn = new Button("Profil speichern");
+        providerSaveBtn.setTooltip(new Tooltip(
+                "Aktuelle URL, API-Key und Modell unter dem Profilnamen speichern (auch neuer Name)."));
+        providerSaveBtn.setOnAction(e -> {
+            String name = providerProfileCombo.getEditor().getText();
+            if (name == null || name.isBlank()) {
+                showInfo("Provider-Profil", "Bitte einen Profilnamen eingeben (z. B. Mammouth).");
+                return;
+            }
+            OpenAiProviderProfiles.Profile profile = snapshotCurrentProfile.apply(name);
+            String error = persistProfiles.apply(profile);
+            refreshProviderCombo.run();
+            providerApplyEnabled.set(false);
+            providerProfileCombo.setValue(profile.name());
+            providerApplyEnabled.set(true);
+            if (error != null) {
+                showInfo("Provider-Profil", "Speichern fehlgeschlagen: " + error);
+            } else {
+                showInfo("Provider-Profil", "Profil „" + profile.name() + "“ gespeichert "
+                        + "(inkl. API-Key unter ~/.manuskript/).");
+            }
+        });
+        Button providerDeleteBtn = new Button("Löschen");
+        providerDeleteBtn.setTooltip(new Tooltip("Gewähltes Profil aus der Liste entfernen"));
+        providerDeleteBtn.setOnAction(e -> {
+            String name = providerProfileCombo.getEditor().getText();
+            if (name == null || name.isBlank()) {
+                return;
+            }
+            java.util.List<OpenAiProviderProfiles.Profile> next =
+                    OpenAiProviderProfiles.removeByName(providerProfilesRef.get(), name);
+            if (next.size() == providerProfilesRef.get().size()) {
+                showInfo("Provider-Profil", "Profil nicht gefunden.");
+                return;
+            }
+            providerProfilesRef.set(next);
+            String error = OpenAiProviderProfiles.saveOrError(next);
+            refreshProviderCombo.run();
+            if (error != null) {
+                showInfo("Provider-Profil", "Löschen gespeichert? " + error);
+            }
+        });
+        refreshProviderCombo.run();
+        HBox providerButtons = new HBox(8, providerApplyBtn, providerSaveBtn, providerDeleteBtn);
+        providerButtons.setAlignment(Pos.CENTER_LEFT);
+        Label providerLabel = new Label("Provider-Profil");
+        providerLabel.getStyleClass().add("param-key-label");
+        Label providerHelp = new Label(
+                "Vorlagen für URL + API-Key (+ Modell). „Profil speichern“ oder globales „Speichern“ "
+                        + "schreibt den Key mit. Beim Wechsel wird das vorherige Profil automatisch gesichert. "
+                        + "Datei: ~/.manuskript/openai-provider-profiles.json");
+        providerHelp.getStyleClass().add("param-help-label");
+        providerHelp.setWrapText(true);
+        providerHelp.setMaxWidth(680);
+        VBox providerCard = new VBox(4);
+        providerCard.getStyleClass().add("param-card");
+        providerCard.getChildren().addAll(providerLabel, providerProfileCombo, providerButtons, providerHelp);
+        openaiParams.getChildren().add(providerCard);
+        openaiProviderProfilesSaveHook = () -> {
+            String name = providerProfileCombo.getEditor() != null
+                    ? providerProfileCombo.getEditor().getText()
+                    : providerProfileCombo.getValue();
+            if (name == null || name.isBlank()) {
+                name = lastProviderProfileName.get();
+            }
+            OpenAiProviderProfiles.Profile snapshot = snapshotCurrentProfile.apply(name);
+            if (snapshot != null) {
+                String error = persistProfiles.apply(snapshot);
+                if (error != null) {
+                    logger.warn("Provider-Profil beim Speichern aller Parameter: {}", error);
+                }
+            }
+        };
+
         Label openaiKeyLabel = new Label("agent.openai.api_key");
         openaiKeyLabel.getStyleClass().add("param-key-label");
-        Label openaiKeyHelp = new Label("API-Key fuer OpenAI (wird auch vom Online-Lektorat verwendet).");
+        Label openaiKeyHelp = new Label(
+                "API-Key fuer OpenAI/OpenRouter/Mammouth. Lokale Server akzeptieren oft den Platzhalter „local“.");
         openaiKeyHelp.getStyleClass().add("param-help-label");
         openaiKeyHelp.setWrapText(true);
         openaiKeyHelp.setMaxWidth(680);
@@ -265,12 +523,10 @@ public class ParametersAdminWindow {
         openaiParams.getChildren().add(openaiKeyCard);
         keyToControl.put("agent.openai.api_key", openaiKeyField);
 
-        String openaiUrl = ResourceManager.getParameter("agent.openai.api_url", "https://api.openai.com/v1");
-        TextField openaiUrlField = new TextField(openaiUrl);
-        openaiUrlField.setPrefWidth(400);
         Label openaiUrlLabel = new Label("agent.openai.api_url");
         openaiUrlLabel.getStyleClass().add("param-key-label");
-        Label openaiUrlHelp = new Label("Basis-URL der OpenAI-kompatiblen API.");
+        Label openaiUrlHelp = new Label(
+                "Basis-URL der OpenAI-kompatiblen API (OpenAI, Mammouth, OpenRouter …).");
         openaiUrlHelp.getStyleClass().add("param-help-label");
         openaiUrlHelp.setWrapText(true);
         openaiUrlHelp.setMaxWidth(680);
@@ -280,14 +536,11 @@ public class ParametersAdminWindow {
         openaiParams.getChildren().add(openaiUrlCard);
         keyToControl.put("agent.openai.api_url", openaiUrlField);
 
-        String openaiModel = ResourceManager.getParameter("agent.openai.model", "gpt-4o-mini");
-        FilterableModelOptionSelector openaiModelSelector = new FilterableModelOptionSelector(true);
-        openaiModelSelector.setModelId(openaiModel);
-        openaiModelSelector.setOnLoad(() -> loadAgentModels(
-                openaiKeyField.getText(), openaiUrlField.getText(), openaiModelSelector));
         Label openaiModelLabel = new Label("agent.openai.model");
         openaiModelLabel.getStyleClass().add("param-key-label");
-        Label openaiModelHelp = new Label("Modell fuer die OpenAI-Analyse (nach „Modelle laden“ auswählen oder frei eingeben). Kosten werden bei OpenRouter-kompatiblen APIs angezeigt.");
+        Label openaiModelHelp = new Label(
+                "Modell fuer die OpenAI-Analyse (nach „Modelle laden“ auswählen oder frei eingeben). "
+                        + "Kosten werden bei OpenRouter-kompatiblen APIs angezeigt.");
         openaiModelHelp.getStyleClass().add("param-help-label");
         openaiModelHelp.setWrapText(true);
         openaiModelHelp.setMaxWidth(680);
@@ -694,6 +947,102 @@ public class ParametersAdminWindow {
         loadOpenAIModels(apiKey, baseUrl, modelSelector, "Agenten");
     }
 
+    private void loadOllamaInstalledModels(String apiUrl, ComboBox<String> modelCombo) {
+        String base = apiUrl != null && !apiUrl.isBlank()
+                ? apiUrl.trim().replaceAll("/+$", "")
+                : "http://localhost:11434";
+        String current = comboEditableText(modelCombo);
+        OllamaService service = new OllamaService();
+        service.setBaseUrl(base);
+        CompletableFuture.supplyAsync(() -> {
+            try {
+                return service.getAvailableModels().get(12, java.util.concurrent.TimeUnit.SECONDS);
+            } catch (Exception e) {
+                return new String[]{"__ERROR__:" + e.getMessage()};
+            }
+        }).thenAccept(models -> Platform.runLater(() -> {
+            if (models != null && models.length == 1 && models[0] != null && models[0].startsWith("__ERROR__:")) {
+                showInfo("Ollama", "Modelle konnten nicht geladen werden: "
+                        + models[0].substring("__ERROR__:".length())
+                        + "\n\nLäuft Ollama unter " + base + "?");
+                return;
+            }
+            modelCombo.getItems().clear();
+            if (models != null) {
+                for (String m : models) {
+                    if (m != null && !m.isBlank() && !modelCombo.getItems().contains(m)) {
+                        modelCombo.getItems().add(m);
+                    }
+                }
+            }
+            if (current != null && !current.isBlank()) {
+                if (!modelCombo.getItems().contains(current)) {
+                    modelCombo.getItems().add(0, current);
+                }
+                modelCombo.setValue(current);
+                modelCombo.getEditor().setText(current);
+            } else if (!modelCombo.getItems().isEmpty()) {
+                modelCombo.getSelectionModel().selectFirst();
+            }
+            int n = modelCombo.getItems().size();
+            showInfo("Ollama", n + " installierte Modell(e) geladen. Bitte wählen und Speichern.");
+        }));
+    }
+
+    private void installOllamaModelFromParams(String apiUrl, ComboBox<String> installCombo,
+                                             ComboBox<String> activeModelCombo, Button installBtn,
+                                             Label statusLabel, ProgressIndicator busy) {
+        String name = comboEditableText(installCombo);
+        if (name == null || name.isBlank()) {
+            showInfo("Ollama", "Bitte einen Modellnamen wählen oder eingeben.");
+            return;
+        }
+        String base = apiUrl != null && !apiUrl.isBlank()
+                ? apiUrl.trim().replaceAll("/+$", "")
+                : "http://localhost:11434";
+        installBtn.setDisable(true);
+        busy.setVisible(true);
+        busy.setManaged(true);
+        statusLabel.setText("Installiere „" + name + "“ … (kann mehrere Minuten dauern)");
+        OllamaService service = new OllamaService();
+        service.installModel(name, base).whenComplete((result, ex) -> Platform.runLater(() -> {
+            installBtn.setDisable(false);
+            busy.setVisible(false);
+            busy.setManaged(false);
+            if (ex != null) {
+                statusLabel.setText("Fehler: " + ex.getMessage());
+                showInfo("Ollama", "Installation fehlgeschlagen: " + ex.getMessage());
+                return;
+            }
+            String msg = result != null ? result : "Unbekanntes Ergebnis";
+            statusLabel.setText(msg);
+            if (msg.startsWith("✅")) {
+                if (!activeModelCombo.getItems().contains(name)) {
+                    activeModelCombo.getItems().add(name);
+                }
+                activeModelCombo.setValue(name);
+                activeModelCombo.getEditor().setText(name);
+                showInfo("Ollama", msg + "\n\nAls aktives Modell gesetzt – bitte Speichern klicken.");
+            } else {
+                showInfo("Ollama", msg);
+            }
+        }));
+    }
+
+    private static String comboEditableText(ComboBox<String> combo) {
+        if (combo == null) {
+            return "";
+        }
+        if (combo.isEditable() && combo.getEditor() != null) {
+            String t = combo.getEditor().getText();
+            if (t != null && !t.isBlank()) {
+                return t.trim();
+            }
+        }
+        String v = combo.getValue();
+        return v != null ? v.trim() : "";
+    }
+
     private void loadOpenAIModels(String apiKey, String baseUrl, FilterableModelOptionSelector modelSelector, String context) {
         if (apiKey == null || apiKey.isBlank() || baseUrl == null || baseUrl.isBlank()) {
             showInfo("Eingabe fehlt", "Bitte API-Key und Basis-URL eintragen.");
@@ -988,17 +1337,20 @@ public class ParametersAdminWindow {
                 ResourceManager.saveParameter(key, value);
             }
         }
-        // Cache der Agent-Konfigurationen invalidieren und neu laden, damit neue Modellnamen übernommen werden
-        if (keyToDef.containsKey("agent.openai.model") || keyToDef.containsKey("agent.ollama.model")) {
+        if (openaiProviderProfilesSaveHook != null) {
+            openaiProviderProfilesSaveHook.run();
+        }
+        // Cache invalidieren und offene Kapitel-Editoren (Canvas + Legacy) neu laden
+        if (keyToDef.containsKey("agent.openai.model")
+                || keyToDef.containsKey("agent.ollama.model")
+                || keyToDef.containsKey("agent.openai.api_url")
+                || keyToDef.containsKey("agent.openai.api_key")
+                || keyToDef.containsKey("agent.backend")) {
             com.manuskript.agent.AgentConfigManager.invalidateCache();
-            // Agent-Konfigurationen neu laden und speichern, um die neuen Modellnamen zu übernehmen
-            java.util.List<com.manuskript.agent.AgentConfig> configs = com.manuskript.agent.AgentConfigManager.loadConfigs();
+            java.util.List<com.manuskript.agent.AgentConfig> configs =
+                    com.manuskript.agent.AgentConfigManager.loadConfigs();
             com.manuskript.agent.AgentConfigManager.saveConfigs(configs);
-            // Benachrichtige EditorWindow, um Agent-Instanzen neu zu erstellen
-            com.manuskript.EditorWindow instance = com.manuskript.EditorWindow.getCurrentInstance();
-            if (instance != null) {
-                instance.clearAgentInstances();
-            }
+            MainController.notifyOpenEditorsAgentParametersChanged();
         }
         showInfo("Gespeichert", "Alle Parameter wurden gespeichert.");
     }

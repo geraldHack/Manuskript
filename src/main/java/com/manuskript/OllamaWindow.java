@@ -3484,7 +3484,7 @@ public class OllamaWindow {
      */
     private void openPluginFolder() {
         try {
-            File pluginDir = new File("config/plugins");
+            File pluginDir = ApplicationPaths.resolveConfigPath("config/plugins");
             if (!pluginDir.exists()) {
                 pluginDir.mkdirs();
             }

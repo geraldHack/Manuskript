@@ -273,6 +273,13 @@ public class WorldEditorWindow {
             fileToExtractButton.put(filename, extractButton);
             buttonBox.getChildren().add(extractButton);
         }
+        if (NovelManager.CHARACTERS_FILE.equals(filename)) {
+            Button continuityButton = new Button("🔍 Kontinuität");
+            continuityButton.setTooltip(new Tooltip(
+                    "Figurenfakten (Aussehen) grob gegen Kapiteltexte prüfen"));
+            continuityButton.setOnAction(e -> runContinuityCheck());
+            buttonBox.getChildren().add(continuityButton);
+        }
         buttonBox.getChildren().add(aiButton);
 
         Region editorPlaceholder = new Region();
@@ -862,6 +869,30 @@ public class WorldEditorWindow {
             logger.error("Fehler beim Lesen von MD {}: {}", mdPath, e.getMessage());
             return "[Fehler beim Lesen des Kapitels]";
         }
+    }
+
+    private void runContinuityCheck() {
+        ensureTabEditorLoaded(NovelManager.CHARACTERS_FILE);
+        MdTextArea area = fileToTextArea.get(NovelManager.CHARACTERS_FILE);
+        String characters = area != null ? area.getText() : "";
+        Map<String, String> chapters = new LinkedHashMap<>();
+        if (mainController != null) {
+            for (DocxFile docx : mainController.getSelectedDocxFilesAsDocxFiles()) {
+                MainController.ChapterMarkdownContent md = mainController.loadChapterMarkdownForCanvas(docx);
+                if (md != null) {
+                    chapters.put(md.fileName(), md.content() != null ? md.content() : "");
+                }
+            }
+        }
+        ContinuityCheckService.Report report = ContinuityCheckService.check(characters, chapters);
+        CustomAlert alert = new CustomAlert(Alert.AlertType.INFORMATION, "Kontinuität");
+        alert.setHeaderText("Leichte Kontinuitätsprüfung (regelbasiert)");
+        alert.setContentText(report.asText());
+        if (stage != null) {
+            alert.initOwner(stage);
+        }
+        alert.applyTheme(themeIndex);
+        alert.showAndWait();
     }
 
     public void show() {

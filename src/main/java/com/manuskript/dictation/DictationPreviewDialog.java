@@ -28,6 +28,11 @@ public final class DictationPreviewDialog {
 
     public static void show(ChapterEditorHost host, Stage ownerStage, int themeIndex,
                             DictationResult result, Consumer<String> onInsert) {
+        show(host, ownerStage, themeIndex, result, onInsert, null);
+    }
+
+    public static void show(ChapterEditorHost host, Stage ownerStage, int themeIndex,
+                            DictationResult result, Consumer<String> onInsert, Runnable onCancel) {
         if (host == null || result == null || onInsert == null) {
             return;
         }
@@ -56,9 +61,12 @@ public final class DictationPreviewDialog {
                 themeIndex);
         TextArea processedArea = readOnlyArea(result.processedText(), themeIndex, 6);
 
+        final boolean[] inserted = {false};
+
         Button insertBtn = new Button("Einfügen");
         insertBtn.setDefaultButton(true);
         insertBtn.setOnAction(e -> {
+            inserted[0] = true;
             onInsert.accept(result.processedText());
             dialogStage.close();
         });
@@ -76,6 +84,11 @@ public final class DictationPreviewDialog {
         Scene scene = new Scene(root);
         scene.setFill(javafx.scene.paint.Color.web(EditorDialogThemes.color(themeIndex, 0)));
         dialogStage.setSceneWithTitleBar(scene);
+        dialogStage.setOnHidden(e -> {
+            if (!inserted[0] && onCancel != null) {
+                onCancel.run();
+            }
+        });
         dialogStage.showAndWait();
     }
 

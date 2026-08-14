@@ -156,7 +156,7 @@ public class ChatbotContextPane extends VBox {
         if (menu.getItems().isEmpty()) {
             return;
         }
-        menu.show(anchor, javafx.geometry.Side.BOTTOM, 0, 0);
+        AgentPopupSupport.showMenuBelow(menu, anchor);
     }
 
     private void refreshContextPills() {
@@ -182,6 +182,11 @@ public class ChatbotContextPane extends VBox {
         neighborSpinnersRow.setManaged(show);
         chaptersBeforeSpinner.setDisable(!contextConfig.hasSource(ChatbotContextSource.CHAPTERS_BEFORE));
         chaptersAfterSpinner.setDisable(!contextConfig.hasSource(ChatbotContextSource.CHAPTERS_AFTER));
+        if (show) {
+            AgentScrollPaneSupport.ensureOverflowForChrome(this);
+        } else {
+            AgentScrollPaneSupport.restoreFillIfChromeCollapsed(this);
+        }
     }
 
     private static StringConverter<ChatbotContextSize> contextSizeConverter() {

@@ -231,11 +231,11 @@ public class HelpSystem {
      */
     private static String loadHelpContent(String helpFileName) {
         try {
-            Path helpPath = Paths.get("config/help/" + helpFileName);
-            if (Files.exists(helpPath)) {
-                return Files.readString(helpPath, StandardCharsets.UTF_8);
+            File helpFile = ApplicationPaths.resolveConfigPath("config/help/" + helpFileName);
+            if (helpFile.isFile()) {
+                return Files.readString(helpFile.toPath(), StandardCharsets.UTF_8);
             } else {
-                logger.warn("Help-Datei nicht gefunden: {}", helpPath);
+                logger.warn("Help-Datei nicht gefunden: {}", helpFile.getAbsolutePath());
                 return null;
             }
         } catch (IOException e) {
@@ -249,7 +249,7 @@ public class HelpSystem {
      */
     public static void cleanupOldHelpFiles() {
         try {
-            File helpDir = new File("config/help");
+            File helpDir = ApplicationPaths.resolveConfigPath("config/help");
             if (!helpDir.exists()) return;
             
             long oneHourAgo = System.currentTimeMillis() - (60 * 60 * 1000);

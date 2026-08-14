@@ -343,5 +343,28 @@
     "elevenLabsSpeed": 1.0,
     "elevenLabsUseSpeakerBoost": true,
     "elevenLabsStyle": 0.0
+  },
+  {
+    "name": "Jessica - Playful, Bright, Warm (ElevenLabs)",
+    "seed": "754534819103377",
+    "temperature": 0.6,
+    "voiceDescription": "",
+    "highQuality": true,
+    "consistentVoice": false,
+    "topP": 1.0,
+    "topK": 46,
+    "repetitionPenalty": 1.1,
+    "speakerId": "Ryan",
+    "refAudioPath": "",
+    "voiceCloneTranscript": "",
+    "voiceClone": false,
+    "provider": "elevenlabs",
+    "elevenLabsVoiceId": "cgSgspJ2msm6clMCkdW9",
+    "elevenLabsModelId": "eleven_v3",
+    "elevenLabsStability": 0.5,
+    "elevenLabsSimilarityBoost": 0.75,
+    "elevenLabsSpeed": 1.0,
+    "elevenLabsUseSpeakerBoost": true,
+    "elevenLabsStyle": 0.0
   }
 ]

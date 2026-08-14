@@ -184,7 +184,7 @@ public class DictationService {
      *
      * @return Fehlertext oder {@code null} wenn bereit
      */
-    static String checkReadiness() {
+    public static String checkReadiness() {
         if (!MicrophoneRecorder.isMicrophoneAvailable()) {
             return "Kein Mikrofon verfügbar. Bitte Mikrofon anschließen und Systemeinstellungen prüfen.";
         }

@@ -7,6 +7,10 @@ package com.manuskript;
  */
 public class Launcher {
     public static void main(String[] args) {
+        // Vor Main-Klassenladung / Logback: schreibbaren Log-Pfad setzen
+        System.setProperty(
+                ApplicationPaths.LOG_DIR_PROPERTY,
+                ApplicationPaths.resolveLogDirectoryPath());
         Main.main(args);
     }
 }

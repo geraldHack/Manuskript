@@ -4,11 +4,15 @@ import com.manuskript.MicrophoneRecorder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.manuskript.ResourceManager;
+
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Lokale Spracherkennung via whisper.cpp ({@code whisper-cli}), ohne Cloud-API.
@@ -60,12 +64,41 @@ public class LocalWhisperBackend implements SpeechToTextBackend {
                 initialPrompt);
         logger.debug("Lokales Whisper: {}", String.join(" ", cmd));
 
+        int timeoutSec = resolveTimeoutSec();
+        Process process = null;
         try {
-            Process process = new ProcessBuilder(cmd)
+            process = new ProcessBuilder(cmd)
                     .redirectErrorStream(true)
                     .start();
-            String consoleOutput = WhisperRuntime.readProcessOutput(process);
-            int exitCode = process.waitFor();
+            final Process running = process;
+            CompletableFuture<String> outputFuture = CompletableFuture.supplyAsync(() -> {
+                try {
+                    return WhisperRuntime.readProcessOutput(running);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            });
+
+            boolean finished = process.waitFor(timeoutSec, TimeUnit.SECONDS);
+            if (!finished) {
+                process.destroyForcibly();
+                outputFuture.cancel(true);
+                throw new IllegalStateException(
+                        "Lokales Whisper: Timeout nach " + timeoutSec
+                                + " s – Aufnahme kürzen oder dictation.local_whisper_timeout_sec erhöhen.");
+            }
+
+            String consoleOutput;
+            try {
+                consoleOutput = outputFuture.get(5, TimeUnit.SECONDS);
+            } catch (TimeoutException e) {
+                consoleOutput = "";
+            } catch (Exception e) {
+                Throwable cause = e.getCause() != null ? e.getCause() : e;
+                throw new IllegalStateException("Lokales Whisper: Ausgabe lesen fehlgeschlagen: "
+                        + cause.getMessage(), cause);
+            }
+            int exitCode = process.exitValue();
 
             if (Files.isRegularFile(txtOutput)) {
                 String text = Files.readString(txtOutput, StandardCharsets.UTF_8).trim();
@@ -89,8 +122,16 @@ public class LocalWhisperBackend implements SpeechToTextBackend {
             }
             throw new IllegalStateException("whisper-cli lieferte leere Transkription.");
         } finally {
+            if (process != null && process.isAlive()) {
+                process.destroyForcibly();
+            }
             WhisperRuntime.deleteQuietly(outputPrefix);
         }
+    }
+
+    private static int resolveTimeoutSec() {
+        int t = ResourceManager.getIntParameter("dictation.local_whisper_timeout_sec", 180);
+        return Math.max(30, Math.min(900, t));
     }
 
     private static void validateAudioSize(byte[] audioBytes) {

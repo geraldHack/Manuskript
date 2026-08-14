@@ -11,6 +11,7 @@ public class DocxFile {
     private final long lastModified;
     private boolean changed = false;
     private String notes = "";
+    private ChapterStatus status = ChapterStatus.IN_ARBEIT;
     
     public DocxFile(File file) {
         this.file = file;
@@ -114,6 +115,14 @@ public class DocxFile {
     
     public void setNotes(String notes) {
         this.notes = notes;
+    }
+
+    public ChapterStatus getStatus() {
+        return status == null ? ChapterStatus.IN_ARBEIT : status;
+    }
+
+    public void setStatus(ChapterStatus status) {
+        this.status = status == null ? ChapterStatus.IN_ARBEIT : status;
     }
     
     public String getDisplayFileName() {

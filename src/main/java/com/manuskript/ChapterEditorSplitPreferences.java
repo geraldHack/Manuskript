@@ -11,7 +11,8 @@ import java.util.prefs.Preferences;
  */
 public final class ChapterEditorSplitPreferences {
 
-    private static final String PREF_KEY_PREFIX = "prototype_editor_main_split_";
+    private static final String PREF_KEY_PREFIX = CanvasEditorPrefs.SPLIT_PREFIX;
+    private static final String LEGACY_PREF_KEY_PREFIX = CanvasEditorPrefs.LEGACY_SPLIT_PREFIX;
     private static final double MIN_DIVIDER = 0.12;
     private static final double MAX_DIVIDER = 0.88;
 
@@ -91,7 +92,17 @@ public final class ChapterEditorSplitPreferences {
         double[] defaults = defaultPositions(dividerCount);
         double[] positions = new double[dividerCount];
         for (int i = 0; i < dividerCount; i++) {
-            positions[i] = clamp(prefs.getDouble(prefKey(itemCount, i), defaults[i]));
+            String key = prefKey(itemCount, i);
+            String legacyKey = LEGACY_PREF_KEY_PREFIX + itemCount + "_div_" + i;
+            if (prefs.get(key, null) != null) {
+                positions[i] = clamp(prefs.getDouble(key, defaults[i]));
+            } else if (prefs.get(legacyKey, null) != null) {
+                double v = clamp(prefs.getDouble(legacyKey, defaults[i]));
+                prefs.putDouble(key, v);
+                positions[i] = v;
+            } else {
+                positions[i] = defaults[i];
+            }
         }
         return positions;
     }
@@ -120,7 +131,7 @@ public final class ChapterEditorSplitPreferences {
         }
         try {
             for (String key : prefs.keys()) {
-                if (key.startsWith(PREF_KEY_PREFIX)) {
+                if (key.startsWith(PREF_KEY_PREFIX) || key.startsWith(LEGACY_PREF_KEY_PREFIX)) {
                     prefs.remove(key);
                 }
             }

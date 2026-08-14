@@ -3030,6 +3030,24 @@
     -fx-max-width: infinity;
 }
 
+.weiss-theme .themed-column-header-label,
+.weiss-theme .left-aligned-column-header-label,
+.weiss-theme .table-view .column-header .label .label {
+    -fx-text-fill: #000000;
+}
+
+.pastell-theme .themed-column-header-label,
+.pastell-theme .left-aligned-column-header-label,
+.pastell-theme .table-view .column-header .label .label {
+    -fx-text-fill: #000000;
+}
+
+.theme-dark .themed-column-header-label,
+.theme-dark .left-aligned-column-header-label,
+.theme-dark .table-view .column-header .label .label {
+    -fx-text-fill: #ffffff;
+}
+
 /* ========================================
    MACRO-TABELLE STYLING
    ======================================== */
@@ -9325,6 +9343,17 @@
     -fx-pref-height: 36px;
     -fx-padding: 6 12;
     -fx-font-size: 13px;
+}
+
+.app-version-label {
+    -fx-font-size: 9px;
+    -fx-opacity: 0.55;
+    -fx-padding: 0;
+}
+
+.chapter-status-icon {
+    -fx-font-size: 13px;
+    -fx-padding: 0;
 }
 
 .main-toolbar .action-group {

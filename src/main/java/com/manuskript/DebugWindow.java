@@ -129,9 +129,10 @@ public class DebugWindow {
         this.activeFilters.addAll(Arrays.asList("ERROR", "WARN", "INFO")); // DEBUG entfernt
         this.stringFilters = new HashSet<>(); // String-Filter initialisieren
         
-        // Log-Dateien-Pfade
-        this.manuskriptLogFile = new File("logs/manuskript.log");
-        this.debugLogFile = new File("logs/debug.log");
+        // Log-Dateien-Pfade (gleiche Auflösung wie Logback / jpackage)
+        File logDir = ApplicationPaths.resolveLogDirectory();
+        this.manuskriptLogFile = new File(logDir, "manuskript.log");
+        this.debugLogFile = new File(logDir, "debug.log");
         
         initializeWindow(owner);
         setupLogWatchers();

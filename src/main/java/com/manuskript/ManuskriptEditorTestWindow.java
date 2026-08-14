@@ -75,21 +75,21 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
     private static final Logger logger = LoggerFactory.getLogger(ManuskriptEditorTestWindow.class);
     private static final String PREF_USE_CANVAS = "use_canvas_chapter_editor";
 
-    private static final String PREF_FONT_FAMILY = "prototype_editor_font_family";
-    private static final String PREF_FONT_SIZE = "prototype_editor_font_size";
-    private static final String PREF_LINE_SPACING = "prototype_editor_line_spacing";
-    private static final String PREF_PARAGRAPH_SPACING = "prototype_editor_paragraph_spacing";
-    private static final String PREF_JUSTIFY_TEXT = "prototype_editor_justify_text";
-    private static final String PREF_LAST_IMAGE_PATH = "prototype_editor_last_image_path";
-    private static final String PREF_LAST_IMAGE_ALT = "prototype_editor_last_image_alt";
-    private static final String PREF_LAST_IMAGE_DIRECTORY = "prototype_editor_last_image_directory";
-    private static final String PREF_LAST_IMAGE_WIDTH = "prototype_editor_last_image_width";
-    private static final String PREF_HIDE_MARKUP = "prototype_editor_hide_markup";
-    private static final String PREF_SHOW_LINE_NUMBERS = "prototype_editor_show_line_numbers";
-    private static final String PREF_LT_AUTO = "prototype_editor_languagetool_auto";
-    private static final String PREF_SAVE_DOCX_ALONGSIDE = "prototype_editor_save_docx_alongside";
-    private static final String PREF_SIDEBAR_EXPANDED = "prototype_editor_sidebar_expanded";
-    private static final String PREF_HOST_TOOLBAR_EXPANDED = "prototype_editor_host_toolbar_expanded";
+    private static final String PREF_FONT_FAMILY = CanvasEditorPrefs.key("font_family");
+    private static final String PREF_FONT_SIZE = CanvasEditorPrefs.key("font_size");
+    private static final String PREF_LINE_SPACING = CanvasEditorPrefs.key("line_spacing");
+    private static final String PREF_PARAGRAPH_SPACING = CanvasEditorPrefs.key("paragraph_spacing");
+    private static final String PREF_JUSTIFY_TEXT = CanvasEditorPrefs.key("justify_text");
+    private static final String PREF_LAST_IMAGE_PATH = CanvasEditorPrefs.key("last_image_path");
+    private static final String PREF_LAST_IMAGE_ALT = CanvasEditorPrefs.key("last_image_alt");
+    private static final String PREF_LAST_IMAGE_DIRECTORY = CanvasEditorPrefs.key("last_image_directory");
+    private static final String PREF_LAST_IMAGE_WIDTH = CanvasEditorPrefs.key("last_image_width");
+    private static final String PREF_HIDE_MARKUP = CanvasEditorPrefs.key("hide_markup");
+    private static final String PREF_SHOW_LINE_NUMBERS = CanvasEditorPrefs.key("show_line_numbers");
+    private static final String PREF_LT_AUTO = CanvasEditorPrefs.key("languagetool_auto");
+    private static final String PREF_SAVE_DOCX_ALONGSIDE = CanvasEditorPrefs.key("save_docx_alongside");
+    private static final String PREF_SIDEBAR_EXPANDED = CanvasEditorPrefs.key("sidebar_expanded");
+    private static final String PREF_HOST_TOOLBAR_EXPANDED = CanvasEditorPrefs.key("host_toolbar_expanded");
 
     private final Window owner;
     private final MainController mainController;
@@ -188,8 +188,9 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
     }
 
     private void createUI() {
+        migrateLegacyPrototypePrefs();
         stage = StageManager.createStage("Kapitel-Editor");
-        stage.setWindowPersistenceType("prototype_editor");
+        stage.setWindowPersistenceType(CanvasEditorPrefs.WINDOW_TYPE);
         if (owner instanceof javafx.stage.Stage ownerStage) {
             stage.initOwner(ownerStage);
         }
@@ -244,6 +245,7 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
                 .onSearchStatus(message -> updateStatus(message))
                 .build());
         editor = mdTextArea.getEditor();
+        editor.setOnFootnoteActivated(this::editFootnote);
 
         languageToolDictionary = new LanguageToolDictionary();
         languageToolService = new LanguageToolService();
@@ -320,9 +322,9 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         PreferencesManager.MultiMonitorValidator.applyWindowProperties(
                 stage,
                 PreferencesManager.MultiMonitorValidator.loadAndValidateWindowProperties(
-                        preferences, "prototype_editor_window",
-                        PreferencesManager.DEFAULT_PROTOTYPE_EDITOR_WIDTH,
-                        PreferencesManager.DEFAULT_PROTOTYPE_EDITOR_HEIGHT));
+                        preferences, "canvas_editor_window",
+                        PreferencesManager.DEFAULT_CANVAS_EDITOR_WIDTH,
+                        PreferencesManager.DEFAULT_CANVAS_EDITOR_HEIGHT));
         setupWindowPersistence();
         stage.addEventHandler(WindowEvent.WINDOW_CLOSE_REQUEST, this::handleCloseRequest);
 
@@ -625,11 +627,11 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         preferences.putBoolean(PREF_HOST_TOOLBAR_EXPANDED, true);
         loadSidebarState();
         applyHostToolbarExpanded(true);
-        PreferencesManager.resetPrototypeEditorWindowPreferences(preferences);
+        PreferencesManager.resetCanvasEditorWindowPreferences(preferences);
         PreferencesManager.applyDefaultWindowGeometry(
                 stage,
-                PreferencesManager.DEFAULT_PROTOTYPE_EDITOR_WIDTH,
-                PreferencesManager.DEFAULT_PROTOTYPE_EDITOR_HEIGHT);
+                PreferencesManager.DEFAULT_CANVAS_EDITOR_WIDTH,
+                PreferencesManager.DEFAULT_CANVAS_EDITOR_HEIGHT);
         try {
             preferences.flush();
         } catch (Exception ignored) {
@@ -688,7 +690,7 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
             refreshChapterListAppearance();
             return;
         }
-        MainController.PrototypeChapterContent chapter = mainController.loadChapterMarkdownForPrototype(docxFile);
+        MainController.ChapterMarkdownContent chapter = mainController.loadChapterMarkdownForCanvas(docxFile);
         if (chapter == null) {
             updateStatus("Keine MD-Datei für „" + docxFile.getFileName() + "“ gefunden", true);
             return;
@@ -733,6 +735,9 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
             editor.toggleSubscript();
             editor.requestInputFocus();
         });
+        Button footnote = toolbarButton("Fußnote",
+                "Pandoc-Fußnote direkt hinter Auswahl oder Cursor einfügen",
+                this::insertFootnote);
 
         MenuButton colorMenu = new MenuButton("Farbe");
         colorMenu.setTooltip(new Tooltip("Textfarbe"));
@@ -924,7 +929,7 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         formatPane.getChildren().addAll(
                 showLineNumbers,
                 mark, blockquote, center,
-                superscript, subscript,
+                superscript, subscript, footnote,
                 big, small, colorMenu, lineBreak, horizontalRule);
 
         FlowPane toolsPane = new FlowPane(6, 4);
@@ -977,6 +982,161 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         return toolbar;
     }
 
+    private void insertFootnote() {
+        showFootnoteDialog("", null).ifPresent(result -> {
+            if (!result.delete()) {
+                String value = result.content().trim();
+                if (!value.isEmpty()) {
+                    editor.insertFootnote(value);
+                    updateStatus("Fußnote eingefügt");
+                }
+            }
+            editor.requestInputFocus();
+        });
+    }
+
+    private void editFootnote(ManuskriptTextEditor.FootnoteHandle footnote) {
+        if (footnote == null) {
+            return;
+        }
+        showFootnoteDialog(footnote.content(), footnote).ifPresent(result -> {
+            if (result.delete()) {
+                editor.replaceFootnote(footnote, null);
+                updateStatus("Fußnote entfernt");
+            } else {
+                String value = result.content().trim();
+                if (!value.isEmpty()) {
+                    editor.replaceFootnote(footnote, value);
+                    updateStatus("Fußnote aktualisiert");
+                }
+            }
+            editor.requestInputFocus();
+        });
+    }
+
+    private Optional<FootnoteDialogResult> showFootnoteDialog(
+            String initialValue, ManuskriptTextEditor.FootnoteHandle existingFootnote) {
+        boolean editing = existingFootnote != null;
+        String saveLabel = editing ? "Änderungen speichern" : "Fußnote einfügen";
+        ButtonType saveButtonType = new ButtonType(saveLabel);
+        ButtonType deleteButtonType = new ButtonType("Fußnote löschen");
+        ButtonType cancelButtonType = new ButtonType("Abbrechen");
+
+        CustomAlert alert = new CustomAlert(CustomAlert.AlertType.INFORMATION);
+        alert.setTitle(editing ? "Fußnote bearbeiten" : "Fußnote einfügen");
+        alert.setHeaderText(editing
+                ? "Fußnote " + existingFootnote.number()
+                : "Neue Fußnote");
+        alert.initOwner(stage);
+
+        Label description = new Label(editing
+                ? "Der Text bleibt mit seiner markierten Stelle verbunden."
+                : "Die Fußnote wird direkt hinter der Auswahl oder am Cursor eingefügt.");
+        description.setWrapText(true);
+
+        TextArea textArea = new TextArea(initialValue == null ? "" : initialValue);
+        textArea.setPromptText("Fußnotentext eingeben …");
+        textArea.setWrapText(true);
+        textArea.setPrefRowCount(8);
+        textArea.setPrefWidth(540);
+        textArea.setMinHeight(180);
+        textArea.setPrefHeight(200);
+        VBox.setVgrow(textArea, Priority.ALWAYS);
+
+        Label counter = new Label();
+        counter.setStyle("-fx-opacity: 0.72; -fx-font-size: 11px;");
+        counter.textProperty().bind(Bindings.createStringBinding(
+                () -> textArea.getText().length() + " Zeichen",
+                textArea.textProperty()));
+
+        Label hint = new Label("Strg/⌘ + Enter speichert · Esc bricht ab");
+        hint.setStyle("-fx-opacity: 0.72; -fx-font-size: 11px;");
+        Region footerSpacer = new Region();
+        HBox.setHgrow(footerSpacer, Priority.ALWAYS);
+        HBox footer = new HBox(8, hint, footerSpacer, counter);
+        footer.setAlignment(Pos.CENTER_LEFT);
+
+        VBox content = new VBox(10, description, textArea, footer);
+        content.setPadding(new Insets(4, 0, 0, 0));
+        content.setPrefWidth(540);
+        alert.setCustomContent(content);
+        alert.applyTheme(themeIndex);
+
+        if (editing) {
+            alert.setButtonTypes(saveButtonType, deleteButtonType, cancelButtonType);
+        } else {
+            alert.setButtonTypes(saveButtonType, cancelButtonType);
+        }
+
+        textArea.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+            if (event.getCode() == KeyCode.ENTER && event.isShortcutDown()) {
+                String value = textArea.getText();
+                if (value != null && !value.trim().isEmpty()
+                        && fireNamedButton(textArea.getScene(), saveLabel)) {
+                    event.consume();
+                }
+            }
+        });
+
+        Platform.runLater(() -> {
+            textArea.requestFocus();
+            textArea.positionCaret(textArea.getText().length());
+            Button saveButton = findNamedButton(textArea.getScene(), saveLabel);
+            if (saveButton != null) {
+                saveButton.disableProperty().bind(Bindings.createBooleanBinding(
+                        () -> textArea.getText() == null || textArea.getText().trim().isEmpty(),
+                        textArea.textProperty()));
+            }
+        });
+
+        Optional<ButtonType> chosen = alert.showAndWait(stage);
+        if (chosen.isEmpty() || chosen.get() == cancelButtonType
+                || chosen.get().getButtonData().isCancelButton()) {
+            return Optional.empty();
+        }
+        if (chosen.get() == deleteButtonType) {
+            return Optional.of(new FootnoteDialogResult(true, ""));
+        }
+        if (chosen.get() == saveButtonType) {
+            return Optional.of(new FootnoteDialogResult(false, textArea.getText()));
+        }
+        return Optional.empty();
+    }
+
+    private static boolean fireNamedButton(Scene scene, String label) {
+        Button button = findNamedButton(scene, label);
+        if (button == null || button.isDisabled()) {
+            return false;
+        }
+        button.fire();
+        return true;
+    }
+
+    private static Button findNamedButton(Scene scene, String label) {
+        if (scene == null || label == null) {
+            return null;
+        }
+        return findNamedButtonInNode(scene.getRoot(), label);
+    }
+
+    private static Button findNamedButtonInNode(Node node, String label) {
+        if (node instanceof Button button && label.equals(button.getText())) {
+            return button;
+        }
+        if (node instanceof javafx.scene.Parent parent) {
+            for (Node child : parent.getChildrenUnmodifiable()) {
+                Button found = findNamedButtonInNode(child, label);
+                if (found != null) {
+                    return found;
+                }
+            }
+        }
+        return null;
+    }
+
+    private record FootnoteDialogResult(boolean delete, String content) {
+    }
+
     private void onAgentsToggle() {
         if (chapterAgentSupport == null || !chapterAgentSupport.isAvailable()) {
             return;
@@ -1004,7 +1164,7 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         return button;
     }
 
-    public void openChapter(MainController.PrototypeChapterContent chapter, File docxFile) {
+    public void openChapter(MainController.ChapterMarkdownContent chapter, File docxFile) {
         if (chapter == null) {
             return;
         }
@@ -1430,7 +1590,7 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
             updateStatusError("Kein Hauptfenster angebunden");
             return;
         }
-        MainController.PrototypeChapterContent chapter = mainController.loadSelectedChapterMarkdownForPrototype();
+        MainController.ChapterMarkdownContent chapter = mainController.loadSelectedChapterMarkdownForCanvas();
         if (chapter == null) {
             updateStatus("Kein Kapitel ausgewählt oder keine MD-Datei in data gefunden", true);
             return;
@@ -1438,7 +1598,7 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         applyLoadedChapter(chapter, chapter.docxFile());
     }
 
-    private void applyLoadedChapter(MainController.PrototypeChapterContent chapter, File docxFile) {
+    private void applyLoadedChapter(MainController.ChapterMarkdownContent chapter, File docxFile) {
         saveChapterViewState();
         suppressDirty = true;
         try {
@@ -1775,10 +1935,16 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         }
 
         try {
-            DocxOptions options = new DocxOptions();
-            options.loadFromPreferences();
-            DocxProcessor processor = new DocxProcessor();
-            processor.exportMarkdownToDocxWithOptions(markdownContent, loadedDocxFile, options);
+            if (!MarkdownFootnoteSupport.parse(markdownContent).isEmpty()) {
+                // Nur Pandoc erzeugt hier echte Word-Fußnoten; der eigene Docx4J-Parser
+                // würde ^[...] andernfalls als sichtbaren Rohtext schreiben.
+                PandocFootnoteDocxExporter.export(markdownContent, loadedDocxFile);
+            } else {
+                DocxOptions options = new DocxOptions();
+                options.loadFromPreferences();
+                DocxProcessor processor = new DocxProcessor();
+                processor.exportMarkdownToDocxWithOptions(markdownContent, loadedDocxFile, options);
+            }
 
             if (mainController != null) {
                 mainController.updateDocxHashAfterAccept(loadedDocxFile);
@@ -2617,6 +2783,14 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
     }
 
     @Override
+    public void reloadAgentParametersFromPreferences() {
+        if (chapterAgentSupport != null && chapterAgentSupport.isAvailable()) {
+            chapterAgentSupport.reloadAgentParameters();
+            updateStatus("Agenten-Parameter aktualisiert");
+        }
+    }
+
+    @Override
     public boolean saveChapter() throws IOException {
         saveLoadedChapter();
         return true;
@@ -2632,13 +2806,30 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
     private void setupWindowPersistence() {
         stage.setOnHidden(event -> ChapterEditorSplitPreferences.save(mainSplitPane, preferences));
         stage.xProperty().addListener((obs, oldValue, newValue) ->
-                PreferencesManager.putWindowPosition(preferences, "prototype_editor_window_x", newValue.doubleValue()));
+                PreferencesManager.putWindowPosition(preferences, "canvas_editor_window_x", newValue.doubleValue()));
         stage.yProperty().addListener((obs, oldValue, newValue) ->
-                PreferencesManager.putWindowPosition(preferences, "prototype_editor_window_y", newValue.doubleValue()));
+                PreferencesManager.putWindowPosition(preferences, "canvas_editor_window_y", newValue.doubleValue()));
         stage.widthProperty().addListener((obs, oldValue, newValue) ->
-                PreferencesManager.putWindowWidth(preferences, "prototype_editor_window_width", newValue.doubleValue()));
+                PreferencesManager.putWindowWidth(preferences, "canvas_editor_window_width", newValue.doubleValue()));
         stage.heightProperty().addListener((obs, oldValue, newValue) ->
-                PreferencesManager.putWindowHeight(preferences, "prototype_editor_window_height", newValue.doubleValue()));
+                PreferencesManager.putWindowHeight(preferences, "canvas_editor_window_height", newValue.doubleValue()));
+    }
+
+    /** Einmalige Übernahme von {@code prototype_editor_*} → {@code canvas_editor_*}. */
+    private void migrateLegacyPrototypePrefs() {
+        try {
+            for (String key : preferences.keys()) {
+                if (!key.startsWith(CanvasEditorPrefs.LEGACY_PREFIX)) {
+                    continue;
+                }
+                String neu = CanvasEditorPrefs.PREFIX + key.substring(CanvasEditorPrefs.LEGACY_PREFIX.length());
+                if (preferences.get(neu, null) == null) {
+                    preferences.put(neu, preferences.get(key, ""));
+                }
+            }
+        } catch (Exception e) {
+            logger.debug("Canvas-Editor-Pref-Migration: {}", e.getMessage());
+        }
     }
 
     private record LanguageToolTextMapping(String cleanedText, int[] cleanToOriginal) {
@@ -2646,8 +2837,18 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
             String source = original == null ? "" : original;
             StringBuilder cleaned = new StringBuilder(source.length());
             List<Integer> mapping = new ArrayList<>(source.length());
+            List<MarkdownFootnoteSupport.Footnote> footnotes = MarkdownFootnoteSupport.parse(source);
+            int footnoteIndex = 0;
 
             for (int i = 0; i < source.length(); i++) {
+                if (footnoteIndex < footnotes.size()) {
+                    MarkdownFootnoteSupport.Range range = footnotes.get(footnoteIndex).fullRange();
+                    if (i == range.startInclusive()) {
+                        i = range.endExclusive() - 1;
+                        footnoteIndex++;
+                        continue;
+                    }
+                }
                 if (source.startsWith("**", i)) {
                     i++;
                     continue;

@@ -71,6 +71,7 @@ public class PandocExportWindow extends CustomStage {
     private Button browseButton;
     private Button exportButton;
     private Button cancelButton;
+    private CheckBox openAfterExportCheckBox;
     
     // EPUB-spezifische Felder
     private HBox coverImageBox;
@@ -311,6 +312,15 @@ public class PandocExportWindow extends CustomStage {
         // Buttons
         HBox buttonBox = new HBox(10);
         buttonBox.setAlignment(Pos.CENTER_RIGHT);
+
+        openAfterExportCheckBox = new CheckBox("Nach Export öffnen");
+        openAfterExportCheckBox.setTooltip(new Tooltip(
+                "Öffnet die fertige Datei nach erfolgreichem Export mit dem Standardprogramm."));
+        openAfterExportCheckBox.setSelected(
+                preferences.getBoolean("pandoc_open_after_export", true));
+        openAfterExportCheckBox.selectedProperty().addListener((obs, oldVal, newVal) ->
+                preferences.putBoolean("pandoc_open_after_export", Boolean.TRUE.equals(newVal)));
+        HBox.setHgrow(openAfterExportCheckBox, Priority.ALWAYS);
         
         cancelButton = new Button("Abbrechen");
         cancelButton.getStyleClass().add("dialog-button-secondary");
@@ -320,7 +330,7 @@ public class PandocExportWindow extends CustomStage {
         exportButton.getStyleClass().add("dialog-button-primary");
         exportButton.setOnAction(e -> startExport());
         
-        buttonBox.getChildren().addAll(cancelButton, exportButton);
+        buttonBox.getChildren().addAll(openAfterExportCheckBox, cancelButton, exportButton);
         
         // Layout
         root.getChildren().addAll(
@@ -572,11 +582,12 @@ public class PandocExportWindow extends CustomStage {
         templateComboBox.getItems().clear();
 
         List<File> searchDirs = new ArrayList<>();
-        File localPandocDir = new File("pandoc");
+        File localPandocDir = ApplicationPaths.resolvePandocDirectory();
         if (localPandocDir.exists() && localPandocDir.isDirectory()) {
             searchDirs.add(localPandocDir);
         }
-        if (pandocHome != null && pandocHome.exists() && pandocHome.isDirectory()) {
+        if (pandocHome != null && pandocHome.exists() && pandocHome.isDirectory()
+                && !pandocHome.getAbsolutePath().equals(localPandocDir.getAbsolutePath())) {
             searchDirs.add(pandocHome);
         }
 
@@ -609,10 +620,11 @@ public class PandocExportWindow extends CustomStage {
         String selectedTemplate = templateComboBox.getValue();
         if (selectedTemplate != null) {
             // Look for description file
-            String descriptionFile = "pandoc/reference-" + selectedTemplate + ".txt";
+            File descriptionFile = new File(ApplicationPaths.resolvePandocDirectory(),
+                    "reference-" + selectedTemplate + ".txt");
             try {
-                if (Files.exists(Paths.get(descriptionFile))) {
-                    String description = Files.readString(Paths.get(descriptionFile));
+                if (descriptionFile.isFile()) {
+                    String description = Files.readString(descriptionFile.toPath());
                     templateDescription.setText(description);
                 } else {
                     templateDescription.setText("Keine Beschreibung verfügbar für: " + selectedTemplate);
@@ -749,6 +761,82 @@ public class PandocExportWindow extends CustomStage {
         }
     }
     
+    /** Ziel-Datei des aktuellen Export-Dialogs (wie in runPandocExport). */
+    private File resolveExportOutputFile() {
+        String format = formatComboBox != null ? formatComboBox.getValue() : "docx";
+        String outputDirPath = outputDirectoryField != null ? outputDirectoryField.getText().trim() : "";
+        String fileName = fileNameField != null ? fileNameField.getText().trim() : "";
+        if (outputDirPath.isEmpty() || fileName.isEmpty()) {
+            return null;
+        }
+        if ("html5".equals(format)) {
+            String baseName = fileName.endsWith(".html")
+                    ? fileName.substring(0, fileName.length() - ".html".length())
+                    : fileName;
+            return new File(new File(outputDirPath, baseName + "_html"), fileName);
+        }
+        return new File(outputDirPath, fileName);
+    }
+
+    /**
+     * Öffnet die Exportdatei mit dem System-Standardprogramm
+     * ({@code open}/{@code xdg-open}/Desktop). Bei DOCX/EPUB kurz warten,
+     * bis das asynchrone Post-Processing die Datei freigegeben hat.
+     */
+    private void openExportPreview(File file) {
+        if (file == null) {
+            return;
+        }
+        String format = formatComboBox != null ? formatComboBox.getValue() : "";
+        boolean waitForPostProcess = "docx".equals(format)
+                || "epub3".equals(format)
+                || "epub".equals(format);
+        Thread opener = new Thread(() -> {
+            try {
+                if (waitForPostProcess) {
+                    Thread.sleep(1500);
+                }
+                File target = file;
+                for (int i = 0; i < 20 && (target == null || !target.exists()); i++) {
+                    Thread.sleep(250);
+                }
+                if (target == null || !target.exists()) {
+                    logger.warn("Preview: Exportdatei nicht gefunden: {}", file.getAbsolutePath());
+                    return;
+                }
+                openFileWithSystem(target);
+            } catch (InterruptedException ie) {
+                Thread.currentThread().interrupt();
+            } catch (Exception e) {
+                logger.warn("Preview konnte nicht geöffnet werden: {}", e.getMessage());
+            }
+        }, "pandoc-export-preview");
+        opener.setDaemon(true);
+        opener.start();
+    }
+
+    private static void openFileWithSystem(File file) throws IOException {
+        String os = System.getProperty("os.name", "").toLowerCase(Locale.ROOT);
+        if (os.contains("mac")) {
+            new ProcessBuilder("open", file.getAbsolutePath()).start();
+            return;
+        }
+        if (os.contains("nux") || os.contains("nix")) {
+            new ProcessBuilder("xdg-open", file.getAbsolutePath()).start();
+            return;
+        }
+        if (os.contains("win")) {
+            new ProcessBuilder("cmd", "/c", "start", "", file.getAbsolutePath()).start();
+            return;
+        }
+        if (java.awt.Desktop.isDesktopSupported()
+                && java.awt.Desktop.getDesktop().isSupported(java.awt.Desktop.Action.OPEN)) {
+            java.awt.Desktop.getDesktop().open(file);
+        } else {
+            throw new IOException("Kein System-Befehl zum Öffnen verfügbar.");
+        }
+    }
+
     private void browseOutputDirectory() {
         DirectoryChooser chooser = new DirectoryChooser();
         chooser.setTitle("Zielverzeichnis wählen");
@@ -866,7 +954,13 @@ public class PandocExportWindow extends CustomStage {
                 if (success) {
                     // Metadaten vor dem Schließen speichern
                     saveProjectMetadata();
+                    boolean openPreview = openAfterExportCheckBox != null
+                            && openAfterExportCheckBox.isSelected();
+                    File previewFile = openPreview ? resolveExportOutputFile() : null;
                     showAlert("Erfolg", "Export erfolgreich abgeschlossen!");
+                    if (openPreview && previewFile != null) {
+                        openExportPreview(previewFile);
+                    }
                     close();
                 } else {
                     // Fehler-Dialog mit detaillierter Fehlermeldung
@@ -1198,7 +1292,7 @@ public class PandocExportWindow extends CustomStage {
             try {
                 Files.copy(
                     tempMarkdownFile.toPath(),
-                    Paths.get("pandoc", "debug-export.md"),
+                    new File(ApplicationPaths.resolvePandocDirectory(), "debug-export.md").toPath(),
                     StandardCopyOption.REPLACE_EXISTING
                 );
                 logger.info("Debug-Markdown geschrieben nach pandoc\\debug-export.md");
@@ -1244,6 +1338,17 @@ public class PandocExportWindow extends CustomStage {
     private void replaceHtmlTagsInMarkdown(File markdownFile, String format) {
         try {
             String content = Files.readString(markdownFile.toPath(), StandardCharsets.UTF_8);
+            // Vor jeder Transformation sichern – sonst werden Fußnoten-/Tabellen-Fixes
+            // nicht zurückgeschrieben, wenn keine weiteren HTML-Ersetzungen greifen.
+            final String originalContent = content;
+
+            // HTML/EPUB: Fußnoten entfernen (kein Seitenkonzept).
+            // Drucknahe Formate: in Referenz-Fußnoten überführen.
+            if (isFootnotelessDigitalFormat(format)) {
+                content = MarkdownFootnoteSupport.stripFootnotes(content);
+            } else {
+                content = MarkdownFootnoteSupport.toReferenceMarkdown(content);
+            }
             
             // Gedankenstriche (em-dash, en-dash) bleiben erhalten - Pandoc konvertiert sie korrekt zu DOCX
             // Keine Konvertierung zu normalen Bindestrichen mehr nötig
@@ -1264,9 +1369,6 @@ public class PandocExportWindow extends CustomStage {
             
             // <br> Tags werden NICHT hier ersetzt - Pandoc unterstützt HTML in Markdown
             // Sie werden später format-spezifisch konvertiert (siehe unten)
-            
-            // originalContent NACH allen Änderungen setzen, damit <br> Konvertierung erkannt wird
-            String originalContent = content;
             
             // Für EPUB3: Ähnliche Fixes wie für DOCX
             if ("epub3".equals(format) || "epub".equals(format)) {
@@ -1767,6 +1869,23 @@ public class PandocExportWindow extends CustomStage {
         }
         return count;
     }
+
+    static String pandocMarkdownReaderFormat() {
+        return "markdown+yaml_metadata_block+raw_html+footnotes+inline_notes"
+                + "+superscript+subscript"
+                + "+pipe_tables+simple_tables+grid_tables+fancy_lists+startnum+task_lists-smart";
+    }
+
+    /** HTML/EPUB haben kein Seitenkonzept – Fußnoten dort weglassen. */
+    static boolean isFootnotelessDigitalFormat(String format) {
+        if (format == null) {
+            return false;
+        }
+        return switch (format) {
+            case "html5", "html", "epub3", "epub" -> true;
+            default -> false;
+        };
+    }
     
     private boolean runPandocExport(File markdownFile) {
         // Listen zurücksetzen
@@ -1838,7 +1957,7 @@ public class PandocExportWindow extends CustomStage {
             // hier explizit angegeben, um sicherzustellen, dass sie verwendet werden
             // pipe_tables, simple_tables, grid_tables: Tabellen-Unterstützung
             // fancy_lists, startnum, task_lists: Verschachtelte Listen-Unterstützung
-            command.add("--from=markdown+yaml_metadata_block+raw_html+superscript+subscript+pipe_tables+simple_tables+grid_tables+fancy_lists+startnum+task_lists-smart");
+            command.add("--from=" + pandocMarkdownReaderFormat());
             command.add("--to=" + getOutputFormat());
 
             // Format-spezifische Optionen
@@ -1846,7 +1965,7 @@ public class PandocExportWindow extends CustomStage {
                 // EPUB3-spezifische Optionen (wie von Hand erfolgreich verwendet)
                 command.add("--toc");
                 command.add("--split-level=1");
-                File epubCss = new File("pandoc", "epub.css");
+                File epubCss = new File(ApplicationPaths.resolvePandocDirectory(), "epub.css");
                 if (epubCss.exists() && epubCss.isFile()) {
                     command.add("--css=" + epubCss.getAbsolutePath());
                 } else {
@@ -1857,7 +1976,7 @@ public class PandocExportWindow extends CustomStage {
                 if (!coverImageField.getText().trim().isEmpty()) {
                     File coverImageFile = new File(coverImageField.getText().trim());
                     if (coverImageFile.exists()) {
-                        File pandocDir = new File("pandoc");
+                        File pandocDir = ApplicationPaths.resolvePandocDirectory();
                         if (pandocDir.exists()) {
                             try {
                                 String coverFileName = getCoverFileName(coverImageFile);
@@ -1874,7 +1993,7 @@ public class PandocExportWindow extends CustomStage {
                 
                 // Markdown-Bilder ins Pandoc-Verzeichnis kopieren (wie für PDF)
                 File markdownDir = markdownFile.getParentFile();
-                File pandocDir = new File("pandoc");
+                File pandocDir = ApplicationPaths.resolvePandocDirectory();
                 copyMarkdownImagesToPandocDir(markdownFile, pandocDir);
                 
                 // Resource-Path für EPUB3 setzen, damit Pandoc die Bilder findet
@@ -1918,7 +2037,7 @@ public class PandocExportWindow extends CustomStage {
                         try {
                             // Cover-Bild ins pandoc-Verzeichnis kopieren
                             String coverFileName = getCoverFileName(coverImageFile);
-                            File pandocDir = new File("pandoc");
+                            File pandocDir = ApplicationPaths.resolvePandocDirectory();
                             File targetCover = new File(pandocDir, coverFileName);
                             Files.copy(coverImageFile.toPath(), targetCover.toPath(),
                                 java.nio.file.StandardCopyOption.REPLACE_EXISTING);
@@ -1933,7 +2052,7 @@ public class PandocExportWindow extends CustomStage {
                 
                 // Markdown-Bilder ins Pandoc-Verzeichnis kopieren (wie für EPUB3)
                 File markdownDir = markdownFile.getParentFile();
-                File pandocDir = new File("pandoc");
+                File pandocDir = ApplicationPaths.resolvePandocDirectory();
                 copyMarkdownImagesToPandocDir(markdownFile, pandocDir);
                 
                 // Resource-Path für DOCX setzen, damit Pandoc die Bilder findet
@@ -1959,7 +2078,7 @@ public class PandocExportWindow extends CustomStage {
                 File htmlFile = new File(htmlDir, htmlFileName);
 
                         // CSS-Datei ins Unterverzeichnis kopieren
-                        File sourceCss = new File("pandoc", "epub.css");
+                        File sourceCss = new File(ApplicationPaths.resolvePandocDirectory(), "epub.css");
                         File targetCss = new File(htmlDir, "styles.css");
                         if (sourceCss.exists()) {
                             try {
@@ -2021,11 +2140,11 @@ public class PandocExportWindow extends CustomStage {
                 // Markdown-Formatierung explizit aktivieren
                 // +raw_html aktiviert HTML-Tags in Markdown (für <br> Unterstützung)
                 // -implicit_figures deaktiviert automatische figure-Umgebungen mit Captions
-                command.add("--from=markdown+yaml_metadata_block+raw_html+superscript+subscript-implicit_figures-smart");
+                command.add("--from=" + pandocMarkdownReaderFormat() + "-implicit_figures");
                 command.add("--to=latex");
                 
                 // Template für PDF verwenden (vereinfachtes XeLaTeX-Template)
-                File pdfTemplate = new File("pandoc", "simple-xelatex-template.tex");
+                File pdfTemplate = new File(ApplicationPaths.resolvePandocDirectory(), "simple-xelatex-template.tex");
                 if (hasXelatex && pdfTemplate.exists()) {
                     command.add("--template=" + pdfTemplate.getAbsolutePath());
                     logger.debug("Verwende vereinfachtes XeLaTeX-Template: {}", pdfTemplate.getName());
@@ -2054,7 +2173,7 @@ public class PandocExportWindow extends CustomStage {
                             if (!outputDir.exists()) {
                                 outputDir.mkdirs();
                             }
-                            File pandocDir = new File("pandoc");
+                            File pandocDir = ApplicationPaths.resolvePandocDirectory();
                             
                             // Kopiere ins Ausgabeverzeichnis
                             File targetCoverOutput = new File(outputDir, coverFileName);
@@ -2087,7 +2206,7 @@ public class PandocExportWindow extends CustomStage {
                 // Markdown-Bilder ins Ausgabeverzeichnis kopieren (XeLaTeX kompiliert dort)
                 // UND ins pandoc-Verzeichnis (als Backup)
                 File markdownDir = markdownFile.getParentFile();
-                File pandocDir = new File("pandoc");
+                File pandocDir = ApplicationPaths.resolvePandocDirectory();
                 if (!outputDir.exists()) {
                     outputDir.mkdirs();
                 }
@@ -2112,7 +2231,7 @@ public class PandocExportWindow extends CustomStage {
                 }
                 
                 // Lua-Filter für automatische Initialen
-                File luaFilter = new File("pandoc", "dropcaps.lua");
+                File luaFilter = new File(ApplicationPaths.resolvePandocDirectory(), "dropcaps.lua");
                 if (luaFilter.exists()) {
                     command.add("--lua-filter=" + luaFilter.getAbsolutePath());
                     logger.debug("Verwende Lua-Filter für automatische Initialen: {}", luaFilter.getName());
@@ -2126,11 +2245,11 @@ public class PandocExportWindow extends CustomStage {
                 // Markdown-Formatierung explizit aktivieren
                 // +raw_html aktiviert HTML-Tags in Markdown (für <br> Unterstützung)
                 // -implicit_figures deaktiviert automatische figure-Umgebungen mit Captions
-                command.add("--from=markdown+yaml_metadata_block+raw_html+superscript+subscript-implicit_figures-smart");
+                command.add("--from=" + pandocMarkdownReaderFormat() + "-implicit_figures");
                 command.add("--to=latex");
                 
                 // Template für LaTeX verwenden (vereinfachtes XeLaTeX-Template)
-                File latexTemplate = new File("pandoc", "simple-xelatex-template.tex");
+                File latexTemplate = new File(ApplicationPaths.resolvePandocDirectory(), "simple-xelatex-template.tex");
                 if (latexTemplate.exists()) {
                     command.add("--template=" + latexTemplate.getAbsolutePath());
                     logger.debug("Verwende vereinfachtes XeLaTeX-Template: {}", latexTemplate.getName());
@@ -2152,7 +2271,7 @@ public class PandocExportWindow extends CustomStage {
                         try {
                             // Cover-Bild ins pandoc-Verzeichnis kopieren
                             String coverFileName = getCoverFileName(coverImageFile);
-                            File pandocDir = new File("pandoc");
+                            File pandocDir = ApplicationPaths.resolvePandocDirectory();
                             File targetCover = new File(pandocDir, coverFileName);
                             Files.copy(coverImageFile.toPath(), targetCover.toPath(),
                                 java.nio.file.StandardCopyOption.REPLACE_EXISTING);
@@ -2169,7 +2288,7 @@ public class PandocExportWindow extends CustomStage {
                 
                 // Markdown-Bilder ins Ausgabeverzeichnis UND pandoc-Verzeichnis kopieren
                 // LaTeX-Datei wird im Ausgabeverzeichnis erstellt, daher müssen Bilder dort sein
-                File pandocDirLatex = new File("pandoc");
+                File pandocDirLatex = ApplicationPaths.resolvePandocDirectory();
                 if (!outputDir.exists()) {
                     outputDir.mkdirs();
                 }
@@ -2593,7 +2712,7 @@ public class PandocExportWindow extends CustomStage {
             fallbackCommand.add(originalCommand.get(1)); // input file
             fallbackCommand.add("-o");
             fallbackCommand.add(outputFile.getAbsolutePath());
-            fallbackCommand.add("--from=markdown+yaml_metadata_block+raw_html+superscript+subscript-implicit_figures-smart");
+            fallbackCommand.add("--from=" + pandocMarkdownReaderFormat() + "-implicit_figures");
             fallbackCommand.add("--to=pdf");
             fallbackCommand.add("--pdf-engine=pdflatex");
             fallbackCommand.add("--toc");
@@ -2656,7 +2775,7 @@ public class PandocExportWindow extends CustomStage {
             pandocHome = known.getParentFile();
             return;
         }
-        // Fallback: pandocHome bleibt null → loadReferenceTemplates nutzt new File("pandoc")
+        // Fallback: pandocHome bleibt null → loadReferenceTemplates nutzt ApplicationPaths.resolvePandocDirectory()
     }
 
     /**
@@ -2729,7 +2848,7 @@ public class PandocExportWindow extends CustomStage {
             }
 
             // Zielordner ist pandoc
-            File targetDir = new File("pandoc");
+            File targetDir = ApplicationPaths.resolvePandocDirectory();
             if (!targetDir.exists()) targetDir.mkdirs();
             boolean ok = unzip(zip, targetDir);
             if (!ok) {
@@ -2747,13 +2866,24 @@ public class PandocExportWindow extends CustomStage {
             }
 
             // Fallback: Manche ZIPs enthalten einen Unterordner – versuche zu finden
-            File[] candidates = new File(".").listFiles((dir, name) -> name.toLowerCase().startsWith("pandoc"));
-            if (candidates != null) {
+            File[] searchRoots = {
+                    ApplicationPaths.getApplicationHomeDirectory(),
+                    ApplicationPaths.resolvePandocDirectory(),
+                    new File(".")
+            };
+            for (File root : searchRoots) {
+                if (root == null || !root.isDirectory()) {
+                    continue;
+                }
+                File[] candidates = root.listFiles((dir, name) -> name.toLowerCase().startsWith("pandoc"));
+                if (candidates == null) {
+                    continue;
+                }
                 for (File c : candidates) {
                     File exe = new File(c, getPandocBinaryName());
                     if (exe.exists()) {
                         ensureBinaryExecutable(exe);
-                        pandocHome = c;
+                        pandocHome = c.isDirectory() ? c : c.getParentFile();
                         logger.debug("Pandoc in '{}' gefunden", c.getAbsolutePath());
                         return true;
                     }
@@ -3177,9 +3307,14 @@ public class PandocExportWindow extends CustomStage {
             }
         }
 
-        File inPandocDir = new File("pandoc", binaryName);
+        File inPandocDir = new File(ApplicationPaths.resolvePandocDirectory(), binaryName);
         if (inPandocDir.exists() && inPandocDir.isFile()) {
             return inPandocDir;
+        }
+
+        File inAppHome = new File(ApplicationPaths.getApplicationHomeDirectory(), binaryName);
+        if (inAppHome.exists() && inAppHome.isFile()) {
+            return inAppHome;
         }
 
         File inProjectRoot = new File(binaryName);
@@ -3218,7 +3353,7 @@ public class PandocExportWindow extends CustomStage {
             : new String[] {"pandoc-mac.zip", "pandoc.zip"};
 
         for (String archiveName : archiveNames) {
-            File inPandocDir = new File("pandoc", archiveName);
+            File inPandocDir = new File(ApplicationPaths.resolvePandocDirectory(), archiveName);
             if (inPandocDir.exists()) {
                 return inPandocDir;
             }
@@ -3229,7 +3364,7 @@ public class PandocExportWindow extends CustomStage {
             }
         }
 
-        return new File("pandoc.zip");
+        return ApplicationPaths.resolveBundledPath("pandoc.zip");
     }
 
     private void ensureBinaryExecutable(File binary) {
@@ -5735,7 +5870,7 @@ public class PandocExportWindow extends CustomStage {
             return;
         }
         
-        File pandocDir = new File("pandoc");
+        File pandocDir = ApplicationPaths.resolvePandocDirectory();
         if (!pandocDir.exists() || !pandocDir.isDirectory()) {
             return;
         }

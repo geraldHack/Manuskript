@@ -67,8 +67,9 @@ public class DictationSupport {
         dictationButton.setTooltip(new Tooltip(
                 "Diktat-Modus ein/aus.\n"
                         + "Im Modus: " + hotkeyHint + " gedrückt halten zum Sprechen, loslassen zum Einfügen.\n"
-                        + "Während der Verarbeitung kannst du sofort weiter diktieren; "
-                        + "Texte werden in Aufnahme-Reihenfolge eingefügt.\n"
+                        + "Beim Loslassen wird die Cursorposition als Markierung ⟦d:…⟧ gespeichert; "
+                        + "während der Verarbeitung kannst du dahinter weiter editieren oder erneut diktieren.\n"
+                        + "Fertige Texte ersetzen die Markierung in Aufnahme-Reihenfolge.\n"
                         + "Kommando: mit „Anweisung:“, „Befehl:“ oder „Kommando:“ beginnen — "
                         + "z. B. „Anweisung: Schreibe, dass Luna wacklige Knie hat nach der Ankunft“.\n"
                         + "Format: „in kursiv“, „kursiv … kursiv“, „in fett“, „Absatz“; "
@@ -282,8 +283,19 @@ public class DictationSupport {
         refreshBusyBar();
         host.updateStatus(statusWhileProcessing());
 
-        String editorContext = DictationPromptBuilder.extractEditorContext(
-                host.getText(), host.getCaretPosition());
+        int insertStart = Math.min(host.getSelectionStart(), host.getSelectionEnd());
+        int insertEnd = Math.max(host.getSelectionStart(), host.getSelectionEnd());
+        String editorText = host.getText() != null ? host.getText() : "";
+        insertStart = Math.max(0, Math.min(editorText.length(), insertStart));
+        insertEnd = Math.max(insertStart, Math.min(editorText.length(), insertEnd));
+
+        // Kontext ohne Markierung; Einfügeanker als sichtbare Markierung setzen.
+        String editorContext = DictationPromptBuilder.extractEditorContext(editorText, insertStart);
+        String marker = buildPendingMarker(jobId);
+        host.replaceRange(insertStart, insertEnd, marker);
+        int afterMarker = insertStart + marker.length();
+        host.selectRange(afterMarker, afterMarker);
+
         DictationVocabulary vocabulary = DictationVocabulary.fromHost(host);
         int quoteStyleIndex = host.getQuoteStyleIndex();
 
@@ -306,9 +318,9 @@ public class DictationSupport {
                 .whenComplete((result, error) -> Platform.runLater(() -> {
                     if (error != null) {
                         Throwable cause = error.getCause() != null ? error.getCause() : error;
-                        readyOutcomes.put(jobId, PendingOutcome.error(cause.getMessage()));
+                        readyOutcomes.put(jobId, PendingOutcome.error(cause.getMessage(), marker));
                     } else {
-                        readyOutcomes.put(jobId, PendingOutcome.success(result));
+                        readyOutcomes.put(jobId, PendingOutcome.success(result, marker));
                     }
                     drainReadyOutcomes();
                 }));
@@ -326,9 +338,12 @@ public class DictationSupport {
 
             if (outcome.errorMessage != null) {
                 logger.warn("Diktat fehlgeschlagen: {}", outcome.errorMessage);
+                removePendingMarker(outcome.marker);
                 showError(resolveErrorHeader(outcome.errorMessage), outcome.errorMessage);
             } else if (outcome.result != null) {
-                applyResult(outcome.result);
+                applyResult(outcome.result, outcome.marker);
+            } else {
+                removePendingMarker(outcome.marker);
             }
         }
         refreshBusyBar();
@@ -374,21 +389,28 @@ public class DictationSupport {
         return " (" + uiPendingJobs + " in Verarbeitung)";
     }
 
+    /** Sichtbare, job-eindeutige Einfüge-Markierung im Editortext. */
+    static String buildPendingMarker(int jobId) {
+        return "⟦d:" + Math.max(0, jobId) + "⟧";
+    }
+
     private static final class PendingOutcome {
         final DictationResult result;
         final String errorMessage;
+        final String marker;
 
-        private PendingOutcome(DictationResult result, String errorMessage) {
+        private PendingOutcome(DictationResult result, String errorMessage, String marker) {
             this.result = result;
             this.errorMessage = errorMessage;
+            this.marker = marker;
         }
 
-        static PendingOutcome success(DictationResult result) {
-            return new PendingOutcome(result, null);
+        static PendingOutcome success(DictationResult result, String marker) {
+            return new PendingOutcome(result, null, marker);
         }
 
-        static PendingOutcome error(String message) {
-            return new PendingOutcome(null, message != null ? message : "Unbekannter Fehler");
+        static PendingOutcome error(String message, String marker) {
+            return new PendingOutcome(null, message != null ? message : "Unbekannter Fehler", marker);
         }
     }
 
@@ -429,13 +451,19 @@ public class DictationSupport {
         return "Diktat fehlgeschlagen";
     }
 
-    private void applyResult(DictationResult result) {
+    private void applyResult(DictationResult result, String marker) {
         boolean preview = Boolean.parseBoolean(
                 ResourceManager.getParameter("dictation.enable_preview_before_insert", "false"));
         if (preview) {
-            DictationPreviewDialog.show(host, ownerStage, themeIndex, result, text -> insertProcessedText(text));
+            DictationPreviewDialog.show(
+                    host,
+                    ownerStage,
+                    themeIndex,
+                    result,
+                    text -> insertProcessedText(text, marker),
+                    () -> removePendingMarker(marker));
         } else {
-            insertProcessedText(result.processedText());
+            insertProcessedText(result.processedText(), marker);
         }
     }
 
@@ -460,17 +488,38 @@ public class DictationSupport {
         return " (" + vocabulary.termCount() + " Glossar-Begriffe)";
     }
 
-    private void insertProcessedText(String text) {
+    private void insertProcessedText(String text, String marker) {
         if (text == null || text.isBlank()) {
+            removePendingMarker(marker);
             return;
         }
         String toInsert = text;
         if (!toInsert.endsWith(" ") && !toInsert.endsWith("\n")) {
             toInsert = toInsert + " ";
         }
-        // Kein revealRange: das würde den Viewport auf den Caret zentrieren und die Leseposition verschieben.
-        // insertTextAtCaret erhält die Viewport-Verankerung des Canvas-Editors.
+        if (marker != null && !marker.isBlank()) {
+            String current = host.getText() != null ? host.getText() : "";
+            int markerAt = current.indexOf(marker);
+            if (markerAt >= 0) {
+                // Viewport/Caret des Nutzers behalten – typisch editiert man hinter der Markierung.
+                host.replaceRangePreserveView(markerAt, markerAt + marker.length(), toInsert);
+                return;
+            }
+            logger.warn("Diktat-Markierung {} fehlt – Fallback am Cursor", marker);
+            host.updateStatus("Diktat-Markierung fehlt – am Cursor eingefügt");
+        }
         host.insertTextAtCaret(toInsert);
+    }
+
+    private void removePendingMarker(String marker) {
+        if (marker == null || marker.isBlank()) {
+            return;
+        }
+        String current = host.getText() != null ? host.getText() : "";
+        int markerAt = current.indexOf(marker);
+        if (markerAt >= 0) {
+            host.replaceRangePreserveView(markerAt, markerAt + marker.length(), "");
+        }
     }
 
     private void applyModeAppearance() {

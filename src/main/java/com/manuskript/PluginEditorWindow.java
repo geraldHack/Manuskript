@@ -538,7 +538,7 @@ public class PluginEditorWindow {
         );
         
         // Standard-Verzeichnis setzen
-        File pluginsDir = new File("config/plugins");
+        File pluginsDir = ApplicationPaths.resolveConfigPath("config/plugins");
         if (pluginsDir.exists()) {
             fileChooser.setInitialDirectory(pluginsDir);
         }
@@ -692,7 +692,7 @@ public class PluginEditorWindow {
         );
         
         // Standard-Verzeichnis setzen
-        File pluginsDir = new File("config/plugins");
+        File pluginsDir = ApplicationPaths.resolveConfigPath("config/plugins");
         if (pluginsDir.exists()) {
             fileChooser.setInitialDirectory(pluginsDir);
         }

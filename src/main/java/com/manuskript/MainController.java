@@ -117,6 +117,7 @@ public class MainController implements Initializable {
     @FXML private BorderPane mainContainer;
     private SplitPane mainTablesSplitPane;
     private ImageView coverImageView;
+    @FXML private Label lblAppVersion;
     @FXML private Button btnSelectDirectory;
     @FXML private TextField txtDirectoryPath;
     private Label projectTitleLabel;
@@ -132,6 +133,7 @@ public class MainController implements Initializable {
     
     // Tabellen für ausgewählte Dateien (rechts)
     @FXML private TableView<DocxFile> tableViewSelected;
+    @FXML private TableColumn<DocxFile, ChapterStatus> colStatusSelected;
     @FXML private TableColumn<DocxFile, String> colFileNameSelected;
     @FXML private TableColumn<DocxFile, String> colFileSizeSelected;
     @FXML private TableColumn<DocxFile, String> colLastModifiedSelected;
@@ -151,6 +153,7 @@ public class MainController implements Initializable {
     @FXML private Button btnOpenTtsEditor;
     @FXML private Button btnWorldEditor;
     @FXML private Button btnNovelWizard;
+    @FXML private Button btnSetupAssistant;
     @FXML private Button btnAudiobook;
     @FXML private Button btnDeleteFile;
     @FXML private Button btnSearchAllFiles;
@@ -251,6 +254,10 @@ public class MainController implements Initializable {
         isInitializing = true;
         
         setupUI();
+        if (lblAppVersion != null) {
+            lblAppVersion.setText(AppVersion.current());
+            lblAppVersion.setTooltip(new Tooltip("Manuskript " + AppVersion.current()));
+        }
         setupEventHandlers();
         setupKeyboardShortcuts();
         setupDragAndDrop();
@@ -517,6 +524,14 @@ public class MainController implements Initializable {
         colLastModifiedAvailable.setPrefWidth(180);
         
         // Tabellen-Setup für ausgewählte Dateien
+        colStatusSelected.setCellValueFactory(data -> new SimpleObjectProperty<>(data.getValue().getStatus()));
+        colStatusSelected.setCellFactory(column -> createStatusCell());
+        colStatusSelected.setEditable(false);
+        colStatusSelected.setSortable(false);
+        colStatusSelected.setReorderable(false);
+        colStatusSelected.setResizable(false);
+        configureCenteredColumnHeader(colStatusSelected, "");
+
         colFileNameSelected.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getDisplayFileName()));
         colFileSizeSelected.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getFormattedSize()));
         colLastModifiedSelected.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getFormattedLastModified()));
@@ -630,6 +645,9 @@ public class MainController implements Initializable {
         if (btnNovelWizard != null) {
             btnNovelWizard.setOnAction(e -> openNovelWizardForCurrentProject());
             attachToolbarHelpButton(btnNovelWizard, "Hilfe zum Roman-Assistenten", "novel_wizard.html", "Hilfe - Roman-Assistent");
+        }
+        if (btnSetupAssistant != null) {
+            btnSetupAssistant.setOnAction(e -> openSetupAssistant());
         }
         btnThemeToggle.setOnAction(e -> toggleTheme());
         btnSplit.setTooltip(new Tooltip("Eine DOCX- oder RTF-Datei in mehrere Kapiteldateien aufteilen (z. B. ein großes Manuskript nach Überschriften trennen)."));
@@ -930,7 +948,9 @@ public class MainController implements Initializable {
             tableViewSelected.refresh();
             
             // Doppelklick öffnet den Editor
-            if (event.getClickCount() == 2 && event.getButton() == MouseButton.PRIMARY && !isClickOnColumn(event, colNotesSelected)) {
+            if (event.getClickCount() == 2 && event.getButton() == MouseButton.PRIMARY
+                    && !isClickOnColumn(event, colNotesSelected)
+                    && !isClickOnColumn(event, colStatusSelected)) {
                 DocxFile selectedFile = tableViewSelected.getSelectionModel().getSelectedItem();
                 if (selectedFile != null) {
                     openChapterEditor(selectedFile);
@@ -1534,7 +1554,7 @@ public class MainController implements Initializable {
             // Für jede Datei entscheiden: links oder rechts?
             for (File file : files) {
                 DocxFile docxFile = new DocxFile(file);
-                docxFile.setNotes(loadNotesFromFile(docxFile));
+                loadChapterMeta(docxFile);
                 originalDocxFiles.add(docxFile);
                 
                 // Prüfe: Hat die Datei eine MD-Datei?
@@ -1820,7 +1840,7 @@ public class MainController implements Initializable {
                 // Füge neue Dateien hinzu
                 for (File file : newFiles) {
                     DocxFile docxFile = new DocxFile(file);
-                    docxFile.setNotes(loadNotesFromFile(docxFile));
+                    loadChapterMeta(docxFile);
                     originalDocxFiles.add(docxFile);
                     
                     // WICHTIG: Neue Dateien sollten NICHT als "changed" markiert werden
@@ -2099,6 +2119,140 @@ public class MainController implements Initializable {
             logger.error("Fehler beim Laden der Notizen für {}: {}", docxFile.getFileName(), e.getMessage());
         }
         return "";
+    }
+
+    private void loadChapterMeta(DocxFile docxFile) {
+        if (docxFile == null) {
+            return;
+        }
+        docxFile.setNotes(loadNotesFromFile(docxFile));
+        docxFile.setStatus(loadStatusFromFile(docxFile));
+    }
+
+    private void saveStatusToFile(DocxFile docxFile) {
+        try {
+            File dataDir = getDataDirectory(docxFile.getFile());
+            if (dataDir == null) {
+                logger.warn("data-Verzeichnis nicht gefunden für {}", docxFile.getFileName());
+                return;
+            }
+            File statusFile = chapterSidecarFile(docxFile, ".status");
+            if (statusFile == null) {
+                return;
+            }
+            java.nio.file.Files.writeString(statusFile.toPath(), docxFile.getStatus().id(),
+                    java.nio.charset.StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            logger.error("Fehler beim Speichern des Status für {}: {}", docxFile.getFileName(), e.getMessage());
+        }
+    }
+
+    private ChapterStatus loadStatusFromFile(DocxFile docxFile) {
+        try {
+            File statusFile = chapterSidecarFile(docxFile, ".status");
+            if (statusFile != null && statusFile.exists()) {
+                String value = java.nio.file.Files.readString(
+                        statusFile.toPath(), java.nio.charset.StandardCharsets.UTF_8);
+                return ChapterStatus.fromId(value);
+            }
+        } catch (Exception e) {
+            logger.error("Fehler beim Laden des Status für {}: {}", docxFile.getFileName(), e.getMessage());
+        }
+        return ChapterStatus.IN_ARBEIT;
+    }
+
+    private File chapterSidecarFile(DocxFile docxFile, String suffix) {
+        File dataDir = getDataDirectory(docxFile.getFile());
+        if (dataDir == null) {
+            return null;
+        }
+        String baseName = docxFile.getFileName();
+        int idx = baseName.lastIndexOf('.');
+        if (idx > 0) {
+            baseName = baseName.substring(0, idx);
+        }
+        return new File(dataDir, baseName + suffix);
+    }
+
+    private TableCell<DocxFile, ChapterStatus> createStatusCell() {
+        return new TableCell<>() {
+            private final Label iconLabel = new Label();
+            private final ContextMenu menu = new ContextMenu();
+
+            {
+                iconLabel.getStyleClass().add("chapter-status-icon");
+                setAlignment(Pos.CENTER);
+                setOnMouseClicked(event -> {
+                    if (isEmpty() || getTableRow() == null || getTableRow().getItem() == null) {
+                        return;
+                    }
+                    if (event.getButton() == MouseButton.PRIMARY || event.getButton() == MouseButton.SECONDARY) {
+                        event.consume();
+                        tableViewSelected.getSelectionModel().select(getIndex());
+                        showStatusMenu(getTableRow().getItem(), event.getScreenX(), event.getScreenY());
+                    }
+                });
+            }
+
+            private void showStatusMenu(DocxFile docxFile, double screenX, double screenY) {
+                menu.getItems().clear();
+                ChapterStatus current = docxFile.getStatus();
+                for (ChapterStatus status : ChapterStatus.values()) {
+                    MenuItem item = new MenuItem(status.icon() + "  " + status.label());
+                    if (status == current) {
+                        item.setStyle("-fx-font-weight: bold;");
+                    }
+                    item.setOnAction(e -> {
+                        docxFile.setStatus(status);
+                        saveStatusToFile(docxFile);
+                        tableViewSelected.refresh();
+                    });
+                    menu.getItems().add(item);
+                }
+                EditorDialogThemes.styleContextMenu(menu, currentThemeIndex);
+                menu.show(iconLabel, screenX, screenY);
+            }
+
+            @Override
+            protected void updateItem(ChapterStatus status, boolean empty) {
+                super.updateItem(status, empty);
+                if (empty || getTableRow() == null || getTableRow().getItem() == null) {
+                    setGraphic(null);
+                    setTooltip(null);
+                    return;
+                }
+                ChapterStatus value = status == null ? getTableRow().getItem().getStatus() : status;
+                iconLabel.setText(value.icon());
+                iconLabel.setStyle("-fx-text-fill: " + value.color() + "; -fx-font-size: 13px;");
+                setGraphic(iconLabel);
+                setTooltip(new Tooltip(value.label()));
+            }
+        };
+    }
+
+    private void pinStatusColumnFirst() {
+        if (colStatusSelected == null || tableViewSelected == null) {
+            return;
+        }
+        ObservableList<TableColumn<DocxFile, ?>> columns = tableViewSelected.getColumns();
+        if (columns.indexOf(colStatusSelected) != 0) {
+            columns.remove(colStatusSelected);
+            columns.add(0, colStatusSelected);
+        }
+    }
+
+    private void configureCenteredColumnHeader(TableColumn<?, ?> column, String title) {
+        Label headerLabel = new Label(title);
+        headerLabel.setAlignment(Pos.CENTER);
+        headerLabel.setMaxWidth(Double.MAX_VALUE);
+        headerLabel.getStyleClass().add("themed-column-header-label");
+        StackPane headerContainer = new StackPane(headerLabel);
+        headerContainer.setAlignment(Pos.CENTER);
+        headerContainer.setMaxWidth(Double.MAX_VALUE);
+        headerContainer.setStyle("-fx-background-color: transparent;");
+        column.setText("");
+        column.setGraphic(headerContainer);
+        column.setStyle("-fx-alignment: CENTER;");
     }
     
     /**
@@ -4066,6 +4220,40 @@ public class MainController implements Initializable {
     }
 
     /**
+     * Nach Änderung von Agent-Parametern (Provider/URL/Modell): alle offenen Kapitel-Editoren
+     * aktualisieren ihre Agenten-Tabs.
+     */
+    public static void notifyOpenEditorsAgentParametersChanged() {
+        java.util.List<ChapterEditorHost> hosts = new ArrayList<>(openChapterEditors.values());
+        Runnable notify = () -> {
+            for (ChapterEditorHost host : hosts) {
+                if (host != null) {
+                    try {
+                        host.reloadAgentParametersFromPreferences();
+                    } catch (Exception e) {
+                        LoggerFactory.getLogger(MainController.class)
+                                .warn("Agenten-Reload in Editor fehlgeschlagen: {}", e.getMessage());
+                    }
+                }
+            }
+            EditorWindow legacy = EditorWindow.getCurrentInstance();
+            if (legacy != null && !hosts.contains(legacy)) {
+                try {
+                    legacy.reloadAgentParametersFromPreferences();
+                } catch (Exception e) {
+                    LoggerFactory.getLogger(MainController.class)
+                            .warn("Agenten-Reload Legacy-Editor fehlgeschlagen: {}", e.getMessage());
+                }
+            }
+        };
+        if (Platform.isFxApplicationThread()) {
+            notify.run();
+        } else {
+            Platform.runLater(notify);
+        }
+    }
+
+    /**
      * Entfernt einen Editor aus der openChapterEditors Map
      */
     public void unregisterEditor(String editorKey) {
@@ -4091,7 +4279,7 @@ public class MainController implements Initializable {
                     canvasWindow.getStage().requestFocus();
                 }
             });
-            PrototypeChapterContent content = new PrototypeChapterContent(
+            ChapterMarkdownContent content = new ChapterMarkdownContent(
                     chapterFile.getFileName(),
                     deriveMdFileFor(chapterFile.getFile()),
                     chapterFile.getFile(),
@@ -4103,7 +4291,7 @@ public class MainController implements Initializable {
         Window owner = primaryStage != null ? primaryStage.getScene().getWindow() : null;
         ManuskriptEditorTestWindow window = new ManuskriptEditorTestWindow(owner, this);
         File mdFile = deriveMdFileFor(chapterFile.getFile());
-        PrototypeChapterContent content = new PrototypeChapterContent(
+        ChapterMarkdownContent content = new ChapterMarkdownContent(
                 chapterFile.getFileName(), mdFile, chapterFile.getFile(), text);
         window.openChapter(content, chapterFile.getFile());
         registerChapterEditor(editorKey, window);
@@ -5377,9 +5565,11 @@ public class MainController implements Initializable {
         if (btnOpenTtsEditor != null) applyThemeToNode(btnOpenTtsEditor, themeIndex);
         if (btnWorldEditor != null) applyThemeToNode(btnWorldEditor, themeIndex);
         if (btnNovelWizard != null) applyThemeToNode(btnNovelWizard, themeIndex);
+        if (btnSetupAssistant != null) applyThemeToNode(btnSetupAssistant, themeIndex);
         if (btnAudiobook != null) applyThemeToNode(btnAudiobook, themeIndex);
         applyThemeToNode(btnSearchAllFiles, themeIndex);
         if (bookLengthLabel != null) applyThemeToNode(bookLengthLabel, themeIndex);
+        if (lblAppVersion != null) applyThemeToNode(lblAppVersion, themeIndex);
         
         // Tabellen
         applyThemeToNode(tableViewAvailable, themeIndex);
@@ -5609,10 +5799,12 @@ public class MainController implements Initializable {
         headerLabel.setAlignment(Pos.CENTER_LEFT);
         headerLabel.setMaxWidth(Double.MAX_VALUE);
         headerLabel.getStyleClass().add("left-aligned-column-header-label");
+        headerLabel.getStyleClass().add("themed-column-header-label");
 
         StackPane headerContainer = new StackPane(headerLabel);
         headerContainer.setAlignment(Pos.CENTER_LEFT);
         headerContainer.setMaxWidth(Double.MAX_VALUE);
+        headerContainer.setStyle("-fx-background-color: transparent;");
 
         column.setText("");
         column.setGraphic(headerContainer);
@@ -5633,10 +5825,14 @@ public class MainController implements Initializable {
         colFileSizeSelected.setPrefWidth(preferences.getDouble("colFileSizeSelected_width", 120));
         colLastModifiedSelected.setPrefWidth(preferences.getDouble("colLastModifiedSelected_width", 180));
         colNotesSelected.setPrefWidth(preferences.getDouble("colNotesSelected_width", 200));
+        colStatusSelected.setPrefWidth(40);
+        colStatusSelected.setMinWidth(36);
+        colStatusSelected.setMaxWidth(52);
         
         // Spaltenpositionen wiederherstellen
         restoreColumnPositions(tableViewAvailable, "tableViewAvailable");
         restoreColumnPositions(tableViewSelected, "tableViewSelected");
+        pinStatusColumnFirst();
     }
     
     /**
@@ -5946,7 +6142,7 @@ public class MainController implements Initializable {
                 
                 // Füge das neue Kapitel automatisch zu den ausgewählten Dateien hinzu
                 DocxFile newDocxFile = new DocxFile(docxFile);
-                newDocxFile.setNotes(loadNotesFromFile(newDocxFile));
+                loadChapterMeta(newDocxFile);
                 
                 // Erstelle Hash für das neue Kapitel (damit es als "unverändert" markiert wird)
                 try {
@@ -7353,7 +7549,7 @@ public class MainController implements Initializable {
 
     private Image loadRandomDefaultCover() {
         try {
-            File defaultCoverDir = new File("config/defaultCovers");
+            File defaultCoverDir = ApplicationPaths.resolveConfigPath("config/defaultCovers");
             if (!defaultCoverDir.exists() || !defaultCoverDir.isDirectory()) {
                 return null;
             }
@@ -8419,7 +8615,7 @@ public class MainController implements Initializable {
      * Formatiert Markdown-Inhalt, um sicherzustellen, dass zwischen Absätzen Leerzeilen stehen.
      * Einfache Version für bessere EPUB-Darstellung auf Apple-Geräten.
      */
-    private String formatMarkdownParagraphs(String content) {
+    static String formatMarkdownParagraphs(String content) {
         if (content == null || content.trim().isEmpty()) {
             return content;
         }
@@ -8428,6 +8624,7 @@ public class MainController implements Initializable {
             // Schütze Tabellen vor Leerzeilen-Einfügung
             // Teile den Inhalt in Tabellen und Nicht-Tabellen-Bereiche
             String[] lines = content.split("\n");
+            boolean[] footnoteLines = findInlineFootnoteLines(content, lines);
             StringBuilder result = new StringBuilder();
             boolean inTable = false;
             
@@ -8445,7 +8642,8 @@ public class MainController implements Initializable {
                 } else if (!inTable) {
                     // Normaler Text - füge Leerzeilen zwischen Absätzen hinzu
                     if (i > 0 && !lines[i-1].trim().isEmpty() && !line.trim().isEmpty() && 
-                        !line.trim().startsWith("#") && !lines[i-1].trim().startsWith("#")) {
+                        !line.trim().startsWith("#") && !lines[i-1].trim().startsWith("#")
+                        && !footnoteLines[i] && !footnoteLines[i - 1]) {
                         result.append("\n");
                     }
                     result.append(line).append("\n");
@@ -8464,6 +8662,35 @@ public class MainController implements Initializable {
             // Bei Fehler gib den Original-Inhalt zurück
             return content;
         }
+    }
+
+    private static boolean[] findInlineFootnoteLines(String content, String[] lines) {
+        boolean[] protectedLines = new boolean[lines.length];
+        List<MarkdownFootnoteSupport.Footnote> footnotes = MarkdownFootnoteSupport.parse(content);
+        if (footnotes.isEmpty()) {
+            return protectedLines;
+        }
+        int sourceOffset = 0;
+        int footnoteIndex = 0;
+        for (int lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+            int lineEnd = sourceOffset + lines[lineIndex].length();
+            while (footnoteIndex < footnotes.size()) {
+                MarkdownFootnoteSupport.Range range = footnotes.get(footnoteIndex).fullRange();
+                if (range.startInclusive() > lineEnd) {
+                    break;
+                }
+                if (range.endExclusive() > sourceOffset) {
+                    protectedLines[lineIndex] = true;
+                }
+                if (range.endExclusive() <= lineEnd) {
+                    footnoteIndex++;
+                } else {
+                    break;
+                }
+            }
+            sourceOffset = lineEnd + 1;
+        }
+        return protectedLines;
     }
     
     /**
@@ -9297,12 +9524,24 @@ public class MainController implements Initializable {
         worldEditor.show();
     }
 
-    public PrototypeChapterContent loadSelectedChapterMarkdownForPrototype() {
-        DocxFile selected = tableViewSelected != null ? tableViewSelected.getSelectionModel().getSelectedItem() : null;
-        return loadChapterMarkdownForPrototype(selected);
+    private void openSetupAssistant() {
+        Window owner = primaryStage != null && primaryStage.getScene() != null
+                ? primaryStage.getScene().getWindow() : null;
+        SetupAssistantWindow.show(owner, currentThemeIndex);
     }
 
-    public PrototypeChapterContent loadChapterMarkdownForPrototype(DocxFile docxFile) {
+    public ChapterMarkdownContent loadSelectedChapterMarkdownForCanvas() {
+        DocxFile selected = tableViewSelected != null ? tableViewSelected.getSelectionModel().getSelectedItem() : null;
+        return loadChapterMarkdownForCanvas(selected);
+    }
+
+    /** @deprecated use {@link #loadSelectedChapterMarkdownForCanvas()} */
+    @Deprecated
+    public ChapterMarkdownContent loadSelectedChapterMarkdownForPrototype() {
+        return loadSelectedChapterMarkdownForCanvas();
+    }
+
+    public ChapterMarkdownContent loadChapterMarkdownForCanvas(DocxFile docxFile) {
         if (docxFile == null || docxFile.getFile() == null) {
             return null;
         }
@@ -9313,14 +9552,20 @@ public class MainController implements Initializable {
         }
         try {
             String content = Files.readString(mdFile.toPath(), StandardCharsets.UTF_8);
-            return new PrototypeChapterContent(docxFile.getFileName(), mdFile, docxFile.getFile(), content);
+            return new ChapterMarkdownContent(docxFile.getFileName(), mdFile, docxFile.getFile(), content);
         } catch (IOException e) {
             logger.warn("Konnte MD-Datei für Kapitel-Editor nicht laden: {}", e.getMessage());
             return null;
         }
     }
 
-    public record PrototypeChapterContent(String fileName, File file, File docxFile, String content) {}
+    /** @deprecated use {@link #loadChapterMarkdownForCanvas(DocxFile)} */
+    @Deprecated
+    public ChapterMarkdownContent loadChapterMarkdownForPrototype(DocxFile docxFile) {
+        return loadChapterMarkdownForCanvas(docxFile);
+    }
+
+    public record ChapterMarkdownContent(String fileName, File file, File docxFile, String content) {}
     
     public List<String> getMarkdownFilesInOrder() {
         List<String> mdFiles = new ArrayList<>();

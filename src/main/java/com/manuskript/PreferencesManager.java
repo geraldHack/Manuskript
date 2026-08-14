@@ -21,8 +21,14 @@ public class PreferencesManager {
     public static final double DEFAULT_MAIN_WINDOW_HEIGHT = 900.0;
     public static final double DEFAULT_PROJECT_WINDOW_WIDTH = 1200.0;
     public static final double DEFAULT_PROJECT_WINDOW_HEIGHT = 800.0;
-    public static final double DEFAULT_PROTOTYPE_EDITOR_WIDTH = DEFAULT_MAIN_WINDOW_WIDTH;
-    public static final double DEFAULT_PROTOTYPE_EDITOR_HEIGHT = DEFAULT_MAIN_WINDOW_HEIGHT;
+    public static final double DEFAULT_CANVAS_EDITOR_WIDTH = DEFAULT_MAIN_WINDOW_WIDTH;
+    public static final double DEFAULT_CANVAS_EDITOR_HEIGHT = DEFAULT_MAIN_WINDOW_HEIGHT;
+    /** @deprecated use {@link #DEFAULT_CANVAS_EDITOR_WIDTH} */
+    @Deprecated
+    public static final double DEFAULT_PROTOTYPE_EDITOR_WIDTH = DEFAULT_CANVAS_EDITOR_WIDTH;
+    /** @deprecated use {@link #DEFAULT_CANVAS_EDITOR_HEIGHT} */
+    @Deprecated
+    public static final double DEFAULT_PROTOTYPE_EDITOR_HEIGHT = DEFAULT_CANVAS_EDITOR_HEIGHT;
     public static final double DEFAULT_EDITOR_WIDTH = 1200.0;
     public static final double DEFAULT_EDITOR_HEIGHT = 800.0;
     public static final double DEFAULT_DIFF_WIDTH = 1600.0;
@@ -297,15 +303,25 @@ public class PreferencesManager {
         }
     }
 
-    public static void resetPrototypeEditorWindowPreferences(Preferences prefs) {
+    public static void resetCanvasEditorWindowPreferences(Preferences prefs) {
         try {
-            prefs.putDouble("prototype_editor_window_width", DEFAULT_PROTOTYPE_EDITOR_WIDTH);
-            prefs.putDouble("prototype_editor_window_height", DEFAULT_PROTOTYPE_EDITOR_HEIGHT);
+            prefs.putDouble("canvas_editor_window_width", DEFAULT_CANVAS_EDITOR_WIDTH);
+            prefs.putDouble("canvas_editor_window_height", DEFAULT_CANVAS_EDITOR_HEIGHT);
+            prefs.remove("canvas_editor_window_x");
+            prefs.remove("canvas_editor_window_y");
+            prefs.remove("prototype_editor_window_width");
+            prefs.remove("prototype_editor_window_height");
             prefs.remove("prototype_editor_window_x");
             prefs.remove("prototype_editor_window_y");
         } catch (Exception e) {
             logger.error("Fehler beim Zurücksetzen der Kapitel-Editor-Fenster-Preferences: {}", e.getMessage());
         }
+    }
+
+    /** @deprecated use {@link #resetCanvasEditorWindowPreferences(Preferences)} */
+    @Deprecated
+    public static void resetPrototypeEditorWindowPreferences(Preferences prefs) {
+        resetCanvasEditorWindowPreferences(prefs);
     }
 
     public static Rectangle2D defaultCenteredBounds(Stage stage, double width, double height) {

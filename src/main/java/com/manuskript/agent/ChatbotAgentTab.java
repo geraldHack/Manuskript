@@ -634,7 +634,7 @@ public class ChatbotAgentTab extends ScrollPane {
             reportStatus("Alle Kontext-Quellen aktiv.");
             return;
         }
-        menu.show(anchor, javafx.geometry.Side.BOTTOM, 0, 0);
+        AgentPopupSupport.showMenuBelow(menu, anchor);
     }
 
     private void refreshContextPills() {
@@ -660,6 +660,11 @@ public class ChatbotAgentTab extends ScrollPane {
         neighborSpinnersRow.setManaged(show);
         chaptersBeforeSpinner.setDisable(!contextConfig.hasSource(ChatbotContextSource.CHAPTERS_BEFORE));
         chaptersAfterSpinner.setDisable(!contextConfig.hasSource(ChatbotContextSource.CHAPTERS_AFTER));
+        if (show) {
+            AgentScrollPaneSupport.ensureOverflowForChrome(contentRoot);
+        } else {
+            AgentScrollPaneSupport.restoreFillIfChromeCollapsed(contentRoot);
+        }
     }
 
     private void loadModelsAsync() {

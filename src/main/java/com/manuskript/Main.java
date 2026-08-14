@@ -100,11 +100,15 @@ public class Main extends Application {
     
     private static void setupLogging() {
         try {
+            // Schreibbares Log-Verzeichnis VOR Logback (CWD-relatives logs/ bricht in .app)
+            String logDir = ApplicationPaths.resolveLogDirectoryPath();
+            System.setProperty(ApplicationPaths.LOG_DIR_PROPERTY, logDir);
+
             // Config-Ordner initialisieren
             ResourceManager.initializeConfigDirectory();
             
             // Logback-Konfiguration aus config/logback.xml laden
-            File configFile = new File("config/logback.xml");
+            File configFile = ApplicationPaths.resolveConfigPath("config/logback.xml");
             if (configFile.exists()) {
                 LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
                 JoranConfigurator configurator = new JoranConfigurator();
@@ -113,7 +117,9 @@ public class Main extends Application {
                 // WICHTIG: Erst logback.xml laden, dann JUL-Bridge installieren
                 // Sonst werden Meldungen übersprungen
                 context.reset();
+                context.putProperty(ApplicationPaths.LOG_DIR_PROPERTY, logDir);
                 configurator.doConfigure(configFile);
+                System.err.println("Manuskript-Logs: " + logDir);
                 
                 // Bridge java.util.logging (JUL) zu SLF4J/Logback
                 // WICHTIG: Nach logback.xml, damit TurboFilter bereits geladen ist

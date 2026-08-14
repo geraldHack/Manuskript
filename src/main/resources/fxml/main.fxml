@@ -64,6 +64,7 @@
                   <Label text="Extern geänderte Dateien werden mit einem ! markiert" styleClass="info-text" style="-fx-padding: 0 0 4 0;" />
                   <TableView fx:id="tableViewSelected" VBox.vgrow="ALWAYS">
                     <columns>
+                      <TableColumn fx:id="colStatusSelected" text="" prefWidth="40.0" minWidth="36.0" maxWidth="52.0" id="colStatusSelected" />
                       <TableColumn fx:id="colFileNameSelected" text="Dateiname" prefWidth="200.0" id="colFileNameSelected" />
                       <TableColumn fx:id="colFileSizeSelected" text="Größe" prefWidth="80.0" id="colFileSizeSelected" />
                       <TableColumn fx:id="colLastModifiedSelected" text="Geändert" prefWidth="120.0" id="colLastModifiedSelected" />
@@ -136,8 +137,19 @@
                      <Button fx:id="btnNovelWizard" styleClass="main-toolbar-button" text="🧭 Roman-Assistent" minWidth="140">
                         <tooltip><Tooltip text="Interaktive Romanplanung mit KI fortsetzen oder starten" /></tooltip>
                      </Button>
+                     <Button fx:id="btnSetupAssistant" styleClass="main-toolbar-button" text="🛠 Setup" minWidth="80">
+                        <tooltip><Tooltip text="Setup-Assistent: Pandoc, FFmpeg, Whisper, KI, LanguageTool prüfen" /></tooltip>
+                     </Button>
                   </HBox>
                   <Region HBox.hgrow="ALWAYS" style="-fx-background-color: transparent;" />
+               </children>
+            </HBox>
+            <HBox alignment="CENTER_LEFT" spacing="0">
+               <padding>
+                  <Insets bottom="2.0" left="8.0" right="8.0" top="0.0" />
+               </padding>
+               <children>
+                  <Label fx:id="lblAppVersion" styleClass="app-version-label" text="0.0.0" />
                </children>
             </HBox>
          </children>
