@@ -1,29 +1,38 @@
-/* Roman-Assistent – immer aus Resources geladen (unabhängig von config/css) */
+/* Roman-Assistent – immer aus Resources geladen (unabhängig von config/css).
+   Keine derive(-fx-base)-Farben: die fehlen in veraltetem Kunden-CSS und ergeben weiße Flächen. */
 
 .novel-wizard-question-box {
     -fx-max-width: infinity;
     -fx-min-width: 0;
+    -fx-padding: 14 16;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-border-width: 1;
 }
 
 .novel-wizard-question-box .text.novel-wizard-question,
+.novel-wizard-question-box .label.novel-wizard-question,
 .novel-wizard-question-box .novel-wizard-question {
     -fx-font-size: 16px;
     -fx-font-weight: bold;
-    -fx-fill: -fx-text-base-color;
 }
 
 .novel-wizard-hint.text,
-.text.novel-wizard-hint {
+.text.novel-wizard-hint,
+.novel-wizard-hint.label {
     -fx-font-size: 12px;
-    -fx-fill: -fx-text-base-color;
 }
 
 .novel-wizard-hint-box {
-    -fx-opacity: 0.8;
+    -fx-opacity: 0.88;
+    -fx-padding: 0 0 4 0;
 }
 
 .novel-wizard-interaction {
     -fx-min-width: 0;
+    -fx-padding: 14 12 12 12;
+    -fx-spacing: 12;
+    -fx-border-width: 1 0 0 0;
 }
 
 .novel-wizard-shell {
@@ -34,7 +43,6 @@
 .novel-wizard-header {
     -fx-padding: 0 0 16 0;
     -fx-spacing: 12;
-    -fx-border-color: derive(-fx-base, -18%);
     -fx-border-width: 0 0 1 0;
 }
 
@@ -76,12 +84,10 @@
 }
 
 .novel-wizard-phase-progress > .track {
-    -fx-background-color: derive(-fx-base, -14%);
     -fx-background-radius: 7;
 }
 
 .novel-wizard-phase-progress > .bar {
-    -fx-background-color: -fx-accent;
     -fx-background-radius: 7;
     -fx-padding: 0;
 }
@@ -95,7 +101,8 @@
     -fx-max-height: 42;
 }
 
-.novel-wizard-phase-steps-scroll > .viewport {
+.novel-wizard-phase-steps-scroll > .viewport,
+.novel-wizard-phase-steps-scroll > .corner {
     -fx-background-color: transparent;
 }
 
@@ -111,49 +118,16 @@
     -fx-background-radius: 18;
     -fx-border-radius: 18;
     -fx-border-width: 1.5;
-    -fx-border-color: derive(-fx-base, -22%);
-    -fx-background-color: derive(-fx-base, 8%);
 }
 
 .novel-wizard-phase-chip-pending {
     -fx-opacity: 0.72;
 }
 
-.novel-wizard-phase-chip-done {
-    -fx-background-color: derive(-fx-accent, 55%);
-    -fx-border-color: derive(-fx-accent, 10%);
-    -fx-font-weight: bold;
-}
-
-.novel-wizard-phase-chip-revisit {
-    -fx-background-color: derive(-fx-accent, 65%);
-    -fx-border-color: derive(-fx-accent, 20%);
-}
-
-.novel-wizard-phase-chip-in-progress {
-    -fx-background-color: derive(-fx-accent, 55%);
-    -fx-border-color: derive(-fx-accent, 10%);
-    -fx-border-width: 2;
-    -fx-font-weight: bold;
-    -fx-text-fill: white;
-}
-
 .novel-wizard-phase-chip-current {
     -fx-font-size: 13px;
     -fx-font-weight: bold;
-    -fx-background-color: -fx-accent;
-    -fx-border-color: derive(-fx-accent, -15%);
     -fx-border-width: 2;
-    -fx-effect: dropshadow(gaussian, derive(-fx-accent, -30%), 6, 0.35, 0, 1);
-}
-
-.theme-dark .novel-wizard-phase-chip-current {
-    -fx-text-fill: white;
-}
-
-.weiss-theme .novel-wizard-phase-chip-current,
-.pastell-theme .novel-wizard-phase-chip-current {
-    -fx-text-fill: white;
 }
 
 .novel-wizard-status {
@@ -168,4 +142,421 @@
 .novel-wizard-font-size-label {
     -fx-font-size: 11px;
     -fx-opacity: 0.8;
+}
+
+.novel-wizard-section-label {
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-opacity: 0.9;
+    -fx-padding: 4 0 6 0;
+}
+
+.novel-wizard-options-scroll {
+    -fx-background-insets: 0;
+    -fx-padding: 6 0;
+    -fx-min-height: 100;
+    -fx-pref-height: 160;
+    -fx-max-height: 240;
+}
+
+.novel-wizard-options-box {
+    -fx-spacing: 12;
+    -fx-fill-width: true;
+}
+
+.novel-wizard-option-button {
+    -fx-alignment: center-left;
+    -fx-text-alignment: left;
+    -fx-wrap-text: true;
+    -fx-padding: 12 16;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-cursor: hand;
+}
+
+.novel-wizard-answer-area {
+    -fx-font-size: 13px;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-padding: 8;
+}
+
+.novel-wizard-actions-bar {
+    -fx-alignment: center;
+    -fx-spacing: 8;
+    -fx-padding: 4 0 0 0;
+}
+
+.novel-wizard-action-button {
+    -fx-padding: 8 14;
+    -fx-background-radius: 4;
+    -fx-font-size: 12px;
+}
+
+.novel-wizard-action-primary {
+    -fx-font-weight: bold;
+}
+
+.novel-wizard-chat {
+    -fx-font-family: "Consolas", "Monaco", monospace;
+}
+
+.novel-wizard-main-split,
+.novel-wizard-content-split {
+    -fx-padding: 0;
+    -fx-background-insets: 0;
+}
+
+/* —— Weiß —— */
+.weiss-theme .novel-wizard-shell,
+.weiss-theme .novel-wizard-root,
+.weiss-theme .novel-wizard-main-split,
+.weiss-theme .novel-wizard-content-split {
+    -fx-background-color: #ffffff;
+}
+.weiss-theme .novel-wizard-header {
+    -fx-border-color: #e9ecef;
+}
+.weiss-theme .novel-wizard-interaction {
+    -fx-background-color: #f8f9fa;
+    -fx-border-color: #e9ecef;
+}
+.weiss-theme .novel-wizard-question-box {
+    -fx-background-color: #eef2f7;
+    -fx-border-color: #c5d0dc;
+}
+.weiss-theme .novel-wizard-question,
+.weiss-theme .text.novel-wizard-question {
+    -fx-fill: #000000;
+    -fx-text-fill: #000000;
+}
+.weiss-theme .novel-wizard-hint,
+.weiss-theme .text.novel-wizard-hint {
+    -fx-fill: #333333;
+    -fx-text-fill: #333333;
+}
+.weiss-theme .novel-wizard-section-label,
+.weiss-theme .novel-wizard-project-title,
+.weiss-theme .novel-wizard-phase-headline,
+.weiss-theme .novel-wizard-progress-caption,
+.weiss-theme .novel-wizard-progress-fraction,
+.weiss-theme .novel-wizard-jump-label,
+.weiss-theme .novel-wizard-font-size-label {
+    -fx-text-fill: #000000;
+}
+.weiss-theme .novel-wizard-options-scroll,
+.weiss-theme .novel-wizard-options-scroll > .viewport,
+.weiss-theme .novel-wizard-options-scroll > .corner,
+.weiss-theme .novel-wizard-options-box {
+    -fx-background-color: #f8f9fa;
+}
+.weiss-theme .novel-wizard-option-button {
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #000000;
+    -fx-border-color: #ced4da;
+}
+.weiss-theme .novel-wizard-option-button:hover {
+    -fx-background-color: #e9ecef;
+}
+.weiss-theme .novel-wizard-answer-area,
+.weiss-theme .novel-wizard-answer-area .content,
+.weiss-theme .novel-wizard-chat,
+.weiss-theme .novel-wizard-chat .content {
+    -fx-background-color: #ffffff;
+    -fx-control-inner-background: #ffffff;
+    -fx-text-fill: #000000;
+    -fx-prompt-text-fill: #6c757d;
+}
+.weiss-theme .novel-wizard-phase-progress > .track {
+    -fx-background-color: #e9ecef;
+}
+.weiss-theme .novel-wizard-phase-progress > .bar {
+    -fx-background-color: #4a6fa5;
+}
+
+/* —— Schwarz —— */
+.theme-dark .novel-wizard-shell,
+.theme-dark .novel-wizard-root,
+.theme-dark .novel-wizard-main-split,
+.theme-dark .novel-wizard-content-split {
+    -fx-background-color: #1a1a1a;
+}
+.theme-dark .novel-wizard-header {
+    -fx-border-color: #404040;
+}
+.theme-dark .novel-wizard-interaction {
+    -fx-background-color: #2d2d2d;
+    -fx-border-color: #404040;
+}
+.theme-dark .novel-wizard-question-box {
+    -fx-background-color: #3a3a3a;
+    -fx-border-color: #5c9fd6;
+}
+.theme-dark .novel-wizard-question,
+.theme-dark .text.novel-wizard-question {
+    -fx-fill: #ffffff;
+    -fx-text-fill: #ffffff;
+}
+.theme-dark .novel-wizard-hint,
+.theme-dark .text.novel-wizard-hint {
+    -fx-fill: #e5e7eb;
+    -fx-text-fill: #e5e7eb;
+}
+.theme-dark .novel-wizard-section-label,
+.theme-dark .novel-wizard-project-title,
+.theme-dark .novel-wizard-phase-headline,
+.theme-dark .novel-wizard-progress-caption,
+.theme-dark .novel-wizard-progress-fraction,
+.theme-dark .novel-wizard-jump-label,
+.theme-dark .novel-wizard-font-size-label {
+    -fx-text-fill: #ffffff;
+}
+.theme-dark .novel-wizard-options-scroll,
+.theme-dark .novel-wizard-options-scroll > .viewport,
+.theme-dark .novel-wizard-options-scroll > .corner,
+.theme-dark .novel-wizard-options-box {
+    -fx-background-color: #2d2d2d;
+}
+.theme-dark .novel-wizard-option-button {
+    -fx-background-color: #3a3a3a;
+    -fx-text-fill: #ffffff;
+    -fx-border-color: #555555;
+}
+.theme-dark .novel-wizard-option-button:hover {
+    -fx-background-color: #4a4a4a;
+}
+.theme-dark .novel-wizard-answer-area,
+.theme-dark .novel-wizard-answer-area .content,
+.theme-dark .novel-wizard-chat,
+.theme-dark .novel-wizard-chat .content {
+    -fx-background-color: #2d2d2d;
+    -fx-control-inner-background: #2d2d2d;
+    -fx-text-fill: #ffffff;
+    -fx-prompt-text-fill: #9ca3af;
+    -fx-highlight-fill: #5c9fd6;
+    -fx-highlight-text-fill: #ffffff;
+}
+.theme-dark .novel-wizard-phase-progress > .track {
+    -fx-background-color: #404040;
+}
+.theme-dark .novel-wizard-phase-progress > .bar {
+    -fx-background-color: #5c9fd6;
+}
+.theme-dark .novel-wizard-phase-chip-current {
+    -fx-text-fill: #ffffff;
+}
+
+/* —— Pastell —— */
+.pastell-theme .novel-wizard-shell,
+.pastell-theme .novel-wizard-root,
+.pastell-theme .novel-wizard-main-split,
+.pastell-theme .novel-wizard-content-split {
+    -fx-background-color: #f3e5f5;
+}
+.pastell-theme .novel-wizard-header {
+    -fx-border-color: #ce93d8;
+}
+.pastell-theme .novel-wizard-interaction {
+    -fx-background-color: #e1bee7;
+    -fx-border-color: #ce93d8;
+}
+.pastell-theme .novel-wizard-question-box {
+    -fx-background-color: #f3e5f5;
+    -fx-border-color: #ab47bc;
+}
+.pastell-theme .novel-wizard-question,
+.pastell-theme .text.novel-wizard-question {
+    -fx-fill: #000000;
+    -fx-text-fill: #000000;
+}
+.pastell-theme .novel-wizard-hint,
+.pastell-theme .text.novel-wizard-hint {
+    -fx-fill: #4a148c;
+    -fx-text-fill: #4a148c;
+}
+.pastell-theme .novel-wizard-section-label,
+.pastell-theme .novel-wizard-project-title,
+.pastell-theme .novel-wizard-phase-headline,
+.pastell-theme .novel-wizard-progress-caption,
+.pastell-theme .novel-wizard-progress-fraction,
+.pastell-theme .novel-wizard-jump-label,
+.pastell-theme .novel-wizard-font-size-label {
+    -fx-text-fill: #000000;
+}
+.pastell-theme .novel-wizard-options-scroll,
+.pastell-theme .novel-wizard-options-scroll > .viewport,
+.pastell-theme .novel-wizard-options-scroll > .corner,
+.pastell-theme .novel-wizard-options-box {
+    -fx-background-color: #e1bee7;
+}
+.pastell-theme .novel-wizard-option-button {
+    -fx-background-color: #f3e5f5;
+    -fx-text-fill: #000000;
+    -fx-border-color: #ce93d8;
+}
+.pastell-theme .novel-wizard-option-button:hover {
+    -fx-background-color: #ce93d8;
+}
+.pastell-theme .novel-wizard-answer-area,
+.pastell-theme .novel-wizard-answer-area .content,
+.pastell-theme .novel-wizard-chat,
+.pastell-theme .novel-wizard-chat .content {
+    -fx-background-color: #f3e5f5;
+    -fx-control-inner-background: #f3e5f5;
+    -fx-text-fill: #000000;
+    -fx-prompt-text-fill: #7b1fa2;
+}
+.pastell-theme .novel-wizard-phase-progress > .track {
+    -fx-background-color: #ce93d8;
+}
+.pastell-theme .novel-wizard-phase-progress > .bar {
+    -fx-background-color: #9c27b0;
+}
+.pastell-theme .novel-wizard-phase-chip-current {
+    -fx-text-fill: #ffffff;
+}
+
+/* —— Blau —— */
+.theme-dark.blau-theme .novel-wizard-shell,
+.theme-dark.blau-theme .novel-wizard-root,
+.theme-dark.blau-theme .novel-wizard-main-split,
+.theme-dark.blau-theme .novel-wizard-content-split {
+    -fx-background-color: #1e3a8a;
+}
+.theme-dark.blau-theme .novel-wizard-header {
+    -fx-border-color: #60a5fa;
+}
+.theme-dark.blau-theme .novel-wizard-interaction {
+    -fx-background-color: #1e40af;
+    -fx-border-color: #60a5fa;
+}
+.theme-dark.blau-theme .novel-wizard-question-box {
+    -fx-background-color: #2563eb;
+    -fx-border-color: #93c5fd;
+}
+.theme-dark.blau-theme .novel-wizard-options-scroll,
+.theme-dark.blau-theme .novel-wizard-options-scroll > .viewport,
+.theme-dark.blau-theme .novel-wizard-options-scroll > .corner,
+.theme-dark.blau-theme .novel-wizard-options-box {
+    -fx-background-color: #1e40af;
+}
+.theme-dark.blau-theme .novel-wizard-option-button {
+    -fx-background-color: #2563eb;
+    -fx-text-fill: #ffffff;
+    -fx-border-color: #93c5fd;
+}
+.theme-dark.blau-theme .novel-wizard-option-button:hover {
+    -fx-background-color: #3b82f6;
+}
+.theme-dark.blau-theme .novel-wizard-answer-area,
+.theme-dark.blau-theme .novel-wizard-answer-area .content,
+.theme-dark.blau-theme .novel-wizard-chat,
+.theme-dark.blau-theme .novel-wizard-chat .content {
+    -fx-background-color: #1e40af;
+    -fx-control-inner-background: #1e40af;
+    -fx-text-fill: #ffffff;
+    -fx-prompt-text-fill: #bfdbfe;
+}
+.theme-dark.blau-theme .novel-wizard-phase-progress > .track {
+    -fx-background-color: #1e3a8a;
+}
+.theme-dark.blau-theme .novel-wizard-phase-progress > .bar {
+    -fx-background-color: #60a5fa;
+}
+
+/* —— Grün —— */
+.theme-dark.gruen-theme .novel-wizard-shell,
+.theme-dark.gruen-theme .novel-wizard-root,
+.theme-dark.gruen-theme .novel-wizard-main-split,
+.theme-dark.gruen-theme .novel-wizard-content-split {
+    -fx-background-color: #064e3b;
+}
+.theme-dark.gruen-theme .novel-wizard-header {
+    -fx-border-color: #10b981;
+}
+.theme-dark.gruen-theme .novel-wizard-interaction {
+    -fx-background-color: #065f46;
+    -fx-border-color: #10b981;
+}
+.theme-dark.gruen-theme .novel-wizard-question-box {
+    -fx-background-color: #047857;
+    -fx-border-color: #6ee7b7;
+}
+.theme-dark.gruen-theme .novel-wizard-options-scroll,
+.theme-dark.gruen-theme .novel-wizard-options-scroll > .viewport,
+.theme-dark.gruen-theme .novel-wizard-options-scroll > .corner,
+.theme-dark.gruen-theme .novel-wizard-options-box {
+    -fx-background-color: #065f46;
+}
+.theme-dark.gruen-theme .novel-wizard-option-button {
+    -fx-background-color: #047857;
+    -fx-text-fill: #ffffff;
+    -fx-border-color: #6ee7b7;
+}
+.theme-dark.gruen-theme .novel-wizard-option-button:hover {
+    -fx-background-color: #059669;
+}
+.theme-dark.gruen-theme .novel-wizard-answer-area,
+.theme-dark.gruen-theme .novel-wizard-answer-area .content,
+.theme-dark.gruen-theme .novel-wizard-chat,
+.theme-dark.gruen-theme .novel-wizard-chat .content {
+    -fx-background-color: #065f46;
+    -fx-control-inner-background: #065f46;
+    -fx-text-fill: #ffffff;
+    -fx-prompt-text-fill: #a7f3d0;
+}
+.theme-dark.gruen-theme .novel-wizard-phase-progress > .track {
+    -fx-background-color: #064e3b;
+}
+.theme-dark.gruen-theme .novel-wizard-phase-progress > .bar {
+    -fx-background-color: #10b981;
+}
+
+/* —— Lila —— */
+.theme-dark.lila-theme .novel-wizard-shell,
+.theme-dark.lila-theme .novel-wizard-root,
+.theme-dark.lila-theme .novel-wizard-main-split,
+.theme-dark.lila-theme .novel-wizard-content-split {
+    -fx-background-color: #581c87;
+}
+.theme-dark.lila-theme .novel-wizard-header {
+    -fx-border-color: #a855f7;
+}
+.theme-dark.lila-theme .novel-wizard-interaction {
+    -fx-background-color: #6b21a8;
+    -fx-border-color: #a855f7;
+}
+.theme-dark.lila-theme .novel-wizard-question-box {
+    -fx-background-color: #7c3aed;
+    -fx-border-color: #c4b5fd;
+}
+.theme-dark.lila-theme .novel-wizard-options-scroll,
+.theme-dark.lila-theme .novel-wizard-options-scroll > .viewport,
+.theme-dark.lila-theme .novel-wizard-options-scroll > .corner,
+.theme-dark.lila-theme .novel-wizard-options-box {
+    -fx-background-color: #6b21a8;
+}
+.theme-dark.lila-theme .novel-wizard-option-button {
+    -fx-background-color: #7c3aed;
+    -fx-text-fill: #ffffff;
+    -fx-border-color: #c4b5fd;
+}
+.theme-dark.lila-theme .novel-wizard-option-button:hover {
+    -fx-background-color: #8b5cf6;
+}
+.theme-dark.lila-theme .novel-wizard-answer-area,
+.theme-dark.lila-theme .novel-wizard-answer-area .content,
+.theme-dark.lila-theme .novel-wizard-chat,
+.theme-dark.lila-theme .novel-wizard-chat .content {
+    -fx-background-color: #6b21a8;
+    -fx-control-inner-background: #6b21a8;
+    -fx-text-fill: #ffffff;
+    -fx-prompt-text-fill: #ddd6fe;
+}
+.theme-dark.lila-theme .novel-wizard-phase-progress > .track {
+    -fx-background-color: #581c87;
+}
+.theme-dark.lila-theme .novel-wizard-phase-progress > .bar {
+    -fx-background-color: #a855f7;
 }

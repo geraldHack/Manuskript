@@ -73,6 +73,7 @@ public class AgentTab extends ScrollPane {
 
     private boolean realtimeEnabled = false;
     private boolean analyzing = false;
+    private int liveFindingCount = 0;
     private boolean activityRegistered = false;
     private AgentActivityTracker activityTracker;
     private int currentFontSize = 12;
@@ -651,6 +652,67 @@ public class AgentTab extends ScrollPane {
         showParseResult(PlotholeParseResult.findings(findings != null ? findings : List.of()));
     }
 
+    /**
+     * Fügt einen Fund sofort in die Liste ein (während die Analyse noch läuft).
+     */
+    public void appendLiveFinding(Finding finding) {
+        if (finding == null) {
+            return;
+        }
+        Platform.runLater(() -> {
+            List<Finding> one = List.of(finding);
+            if (isSelectionRevisionAgent()) {
+                one = enrichSelectionRevisionFindings(one);
+            } else if (isIdiomReviewAgent()) {
+                one = enrichIdiomReviewFindings(one);
+            }
+            if (one.isEmpty()) {
+                return;
+            }
+            removeLivePlaceholder();
+            findingsList.getChildren().add(createFindingCard(one.get(0)));
+            liveFindingCount++;
+            reportLiveFindingStatus();
+        });
+    }
+
+    /**
+     * Beendet eine Live-Analyse: Funde bleiben stehen; nur wenn keiner kam, das Abschluss-Ergebnis zeigen.
+     */
+    public void finishLiveAnalysis(PlotholeParseResult result) {
+        Platform.runLater(() -> {
+            if (liveFindingCount > 0) {
+                analyzing = false;
+                analyzeButton.setDisable(false);
+                unregisterActivity();
+                reportLiveFindingStatus();
+                return;
+            }
+            showParseResult(result);
+        });
+    }
+
+    private void removeLivePlaceholder() {
+        findingsList.getChildren().removeIf(node ->
+                node.getStyleClass() != null && node.getStyleClass().contains("agent-live-placeholder"));
+    }
+
+    private void reportLiveFindingStatus() {
+        if (isSelectionRevisionAgent()) {
+            reportStatus(liveFindingCount == 1
+                    ? "Überarbeitung empfohlen"
+                    : liveFindingCount + " Überarbeitungsvorschläge");
+        } else if (isIdiomReviewAgent()) {
+            reportStatus(liveFindingCount == 1
+                    ? "1 auffällige Formulierung"
+                    : liveFindingCount + " auffällige Formulierungen");
+        } else {
+            reportStatus(liveFindingCount == 1
+                    ? "1 Fund"
+                    : liveFindingCount + " Funde");
+        }
+    }
+
     private void showFindingsInternal(List<Finding> findings) {
         if (findings.isEmpty()) {
             Label ok = new Label(isSelectionRevisionAgent()
@@ -948,6 +1010,9 @@ public class AgentTab extends ScrollPane {
 
     public void setAnalyzing(boolean analyzing) {
         this.analyzing = analyzing;
+        if (analyzing) {
+            liveFindingCount = 0;
+        }
         Platform.runLater(() -> {
             analyzeButton.setDisable(analyzing);
             if (analyzing) {
@@ -977,6 +1042,7 @@ public class AgentTab extends ScrollPane {
                 : emptyLabel;
         if (analyzing) {
             placeholder.getStyleClass().add("agent-empty-label");
+            placeholder.getStyleClass().add("agent-live-placeholder");
             placeholder.setWrapText(true);
             AgentFontSizeSupport.applyEditorFont(placeholder, currentFontSize, currentFontFamily, null);
         }

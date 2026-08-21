@@ -86,7 +86,7 @@ public class WorldEditorWindow {
             logger.info("OpenAI-Backend initialisiert");
         } else {
             aiBackend = new OllamaBackend(new OllamaService());
-            model = ResourceManager.getParameter("agent.ollama.model", "gemma3:4b");
+            model = ResourceManager.getParameter("agent.ollama.model", ParameterRegistry.DEFAULT_OLLAMA_MODEL);
             logger.info("Ollama-Backend initialisiert");
         }
         if (model != null && !model.trim().isEmpty()) {

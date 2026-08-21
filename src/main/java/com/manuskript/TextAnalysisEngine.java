@@ -17,6 +17,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 /**
  * Berechnet Textanalyse-Treffer ohne RichTextFX (für den Canvas-Editor).
@@ -122,11 +123,11 @@ public class TextAnalysisEngine {
     public AnalysisResult analyzeSprechantworten(String text) throws IOException {
         Properties props = loadProperties();
         String regex = props.getProperty("sprechantworten_regex", "");
-        if (regex.isBlank()) {
-            return AnalysisResult.empty("Kein Sprechantworten-Pattern in der Konfiguration gefunden.");
-        }
-        Pattern pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
-        Matcher matcher = pattern.matcher(text);
+        String sprechwoerter = firstNonBlank(
+                props.getProperty("sprechwörter", ""),
+                props.getProperty("sprechwoerter", ""));
+        Pattern pattern = compileSprechantwortenPattern(regex, sprechwoerter);
+        Matcher matcher = pattern.matcher(text != null ? text : "");
         List<AnalysisSpan> spans = new ArrayList<>();
         while (matcher.find()) {
             AnalysisSpan span = new AnalysisSpan(matcher.start(), matcher.end(), "search-match-first");
@@ -137,6 +138,58 @@ public class TextAnalysisEngine {
             summary += "Verwende „Nächster Treffer“ / „Vorheriger Treffer“ zur Navigation.\n";
         }
         return new AnalysisResult(spans, spans, summary);
+    }
+
+    /**
+     * Properties.load() frisst ungedoppelte Backslashes: {@code \s+\w+\.} wird zu {@code s+w+.}.
+     * Dann trifft das Pattern nie „sagte er.“ – deshalb Fallback aus der Sprechwörter-Liste.
+     */
+    static Pattern compileSprechantwortenPattern(String regex, String sprechwoerter) {
+        int flags = Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CHARACTER_CLASS;
+        if (isUsableSprechantwortenRegex(regex)) {
+            try {
+                return Pattern.compile(regex.trim(), flags);
+            } catch (PatternSyntaxException ignored) {
+                // Fallback unten
+            }
+        }
+        return Pattern.compile(buildSprechantwortenRegex(sprechwoerter), flags);
+    }
+
+    static boolean isUsableSprechantwortenRegex(String regex) {
+        if (regex == null || regex.isBlank()) {
+            return false;
+        }
+        String value = regex.trim();
+        boolean mangledByPropertiesLoad = value.contains("s+w+")
+                && !value.contains("\\s")
+                && !value.contains("\\w");
+        return !mangledByPropertiesLoad;
+    }
+
+    static String buildSprechantwortenRegex(String sprechwoerter) {
+        List<String> quoted = new ArrayList<>();
+        if (sprechwoerter != null) {
+            for (String raw : sprechwoerter.split(",")) {
+                String word = raw.trim();
+                if (!word.isEmpty()) {
+                    quoted.add(Pattern.quote(word));
+                }
+            }
+        }
+        if (quoted.isEmpty()) {
+            quoted.add(Pattern.quote("sagte"));
+            quoted.add(Pattern.quote("fragte"));
+        }
+        quoted.sort(Comparator.comparingInt(String::length).reversed());
+        return "(?:" + String.join("|", quoted) + ")\\s+\\p{L}+[.!?:,]";
+    }
+
+    private static String firstNonBlank(String first, String second) {
+        if (first != null && !first.isBlank()) {
+            return first;
+        }
+        return second != null ? second : "";
     }
 
     public AnalysisResult analyzeWortwiederholungen(String text, int abstand) throws IOException {

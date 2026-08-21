@@ -2,6 +2,7 @@ package com.manuskript.dictation;
 
 import com.manuskript.MicrophoneRecorder;
 import com.manuskript.OllamaService;
+import com.manuskript.ParameterRegistry;
 import com.manuskript.ResourceManager;
 import com.manuskript.agent.AIBackend;
 import com.manuskript.agent.OllamaBackend;
@@ -230,7 +231,7 @@ public class DictationService {
                 : new OllamaBackend(new OllamaService());
         String model = "OpenAI".equals(backendType)
                 ? ResourceManager.getParameter("agent.openai.model", "gpt-4o-mini")
-                : ResourceManager.getParameter("agent.ollama.model", "gemma3:4b");
+                : ResourceManager.getParameter("agent.ollama.model", ParameterRegistry.DEFAULT_OLLAMA_MODEL);
         backend.setCurrentModel(model);
         backend.setTemperature(0.3);
         return backend;

@@ -2,13 +2,10 @@ package com.manuskript;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.io.Reader;
-import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -23,7 +20,6 @@ import java.util.prefs.Preferences;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
-import java.util.Objects;
 
 /**
  * Verwaltet den Zugriff auf Ressourcen mit Priorität für externe Config-Dateien
@@ -129,32 +125,29 @@ public class ResourceManager {
      * Lädt eine Properties-Datei aus dem Config-Ordner
      */
     public static InputStream getPropertiesResource(String resourcePath) {
-        // Externe Datei im Config-Ordner
-        String externalPath = CONFIG_DIR + "/" + resourcePath;
-        File externalFile = new File(externalPath);
-        
-        if (externalFile.exists() && externalFile.isFile()) {
+        File externalFile = resolveConfigFile(resourcePath);
+        if (externalFile.isFile()) {
             try {
                 return Files.newInputStream(externalFile.toPath());
             } catch (IOException e) {
-                logger.warn("Fehler beim Laden der externen Properties-Datei", e);
+                logger.warn("Fehler beim Laden der externen Properties-Datei {}", externalFile, e);
             }
         }
-        
-        logger.warn("Properties-Datei nicht gefunden: {} - Erstelle Standard-Datei", externalPath);
-        
-        // Standard-Datei erstellen
+
+        InputStream fromClasspath = ResourceManager.class.getResourceAsStream("/" + resourcePath);
+        if (fromClasspath != null) {
+            return fromClasspath;
+        }
+
+        logger.warn("Properties-Datei nicht gefunden: {} - versuche Standard-Datei", externalFile.getAbsolutePath());
         createDefaultPropertiesFile(resourcePath);
-        
-        // Erneut versuchen zu laden
-        if (externalFile.exists() && externalFile.isFile()) {
+        if (externalFile.isFile()) {
             try {
                 return Files.newInputStream(externalFile.toPath());
             } catch (IOException e) {
                 logger.warn("Fehler beim Laden der erstellten Properties-Datei", e);
             }
         }
-        
         return null;
     }
     
@@ -163,7 +156,7 @@ public class ResourceManager {
      */
     public static void initializeConfigDirectory() {
         try {
-            Path configPath = Paths.get(CONFIG_DIR);
+            Path configPath = ApplicationPaths.resolveConfigPath("config").toPath();
             
             // Config-Ordner erstellen falls nicht vorhanden
             if (!Files.exists(configPath)) {
@@ -301,9 +294,19 @@ public class ResourceManager {
      */
     private static void createDefaultPropertiesFile(String configPath) {
         try {
-            Path filePath = Paths.get(CONFIG_DIR, configPath);
+            Path filePath = resolveConfigFile(configPath).toPath();
             if (!Files.exists(filePath)) {
-                Files.copy(Objects.requireNonNull(ResourceManager.class.getResourceAsStream("/" + configPath)), filePath);
+                try (InputStream defaults = ResourceManager.class.getResourceAsStream("/" + configPath)) {
+                    if (defaults == null) {
+                        logger.warn("Keine Classpath-Vorlage für {}", configPath);
+                        return;
+                    }
+                    Path parent = filePath.getParent();
+                    if (parent != null) {
+                        Files.createDirectories(parent);
+                    }
+                    Files.copy(defaults, filePath);
+                }
             }
         } catch (IOException e) {
             logger.warn("Fehler beim Erstellen der Properties-Datei {}", configPath, e);
@@ -390,10 +393,22 @@ public class ResourceManager {
     }
     
     /**
-     * Gibt den absoluten Pfad zum Config-Ordner zurück
+     * Absoluter Config-Ordner: App-Home ({@code Contents/app/config}), sonst {@code ./config}.
+     * Nicht das CWD der .app ({@code /}) — sonst fehlen Erstinstallations-Dateien.
      */
     public static String getConfigDirectory() {
-        return Paths.get(CONFIG_DIR).toAbsolutePath().toString();
+        return ApplicationPaths.resolveConfigPath("config").getAbsolutePath();
+    }
+
+    /**
+     * Datei unter {@code config/…} im App-Bundle bzw. Arbeitsverzeichnis.
+     */
+    public static File resolveConfigFile(String nameUnderConfig) {
+        String name = nameUnderConfig != null ? nameUnderConfig.replace('\\', '/') : "";
+        while (name.startsWith("/")) {
+            name = name.substring(1);
+        }
+        return ApplicationPaths.resolveConfigPath(name.isBlank() ? "config" : "config/" + name);
     }
     
     /**
@@ -492,8 +507,8 @@ public class ResourceManager {
      * Liest einen Parameter aus config/textanalysis.properties (UTF-8).
      */
     public static String getTextanalysisParameter(String key, String defaultValue) {
-        File file = new File(CONFIG_DIR + File.separator + TEXTANALYSIS_PROPERTIES);
-        if (!file.exists()) {
+        File file = resolveConfigFile(TEXTANALYSIS_PROPERTIES);
+        if (!file.isFile()) {
             return defaultValue;
         }
         try {
@@ -510,24 +525,54 @@ public class ResourceManager {
 
     /**
      * Speichert einen Parameter in config/textanalysis.properties (UTF-8).
-     * Lädt die Datei, setzt den Key und schreibt sie zurück.
+     * Zeilenweise, ohne {@link Properties#store}: das zerstört Regex-Backslashes
+     * ({@code \s} → {@code s}) und erzeugt Müll-Keys.
      */
     public static void saveTextanalysisParameter(String key, String value) {
-        File file = new File(CONFIG_DIR + File.separator + TEXTANALYSIS_PROPERTIES);
-        Properties props = new Properties();
-        if (file.exists()) {
-            try (Reader r = new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8)) {
-                props.load(r);
-            } catch (IOException e) {
-                logger.warn("Fehler beim Laden von " + TEXTANALYSIS_PROPERTIES + " zum Speichern: " + e.getMessage());
-            }
+        if (key == null || key.isBlank()) {
+            return;
         }
-        props.setProperty(key, value != null ? value : "");
-        try (Writer w = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8)) {
-            props.store(w, "# Textanalyse-Konfiguration");
+        File file = resolveConfigFile(TEXTANALYSIS_PROPERTIES);
+        try {
+            File parent = file.getParentFile();
+            if (parent != null) {
+                Files.createDirectories(parent.toPath());
+            }
+            List<String> lines = file.isFile()
+                    ? Files.readAllLines(file.toPath(), StandardCharsets.UTF_8)
+                    : new ArrayList<>();
+            String encoded = encodePropertiesValue(value);
+            String replacement = key + "=" + encoded;
+            boolean found = false;
+            for (int i = 0; i < lines.size(); i++) {
+                String trimmed = lines.get(i).stripLeading();
+                if (trimmed.startsWith("#") || trimmed.isEmpty()) {
+                    continue;
+                }
+                if (trimmed.startsWith(key + "=") || trimmed.startsWith(key + ":")) {
+                    lines.set(i, replacement);
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                lines.add(replacement);
+            }
+            Files.write(file.toPath(), lines, StandardCharsets.UTF_8);
         } catch (IOException e) {
             logger.warn("Fehler beim Speichern in " + TEXTANALYSIS_PROPERTIES + ": " + e.getMessage());
         }
+    }
+
+    static String encodePropertiesValue(String value) {
+        if (value == null) {
+            return "";
+        }
+        return value
+                .replace("\\", "\\\\")
+                .replace("\n", "\\n")
+                .replace("\r", "\\r")
+                .replace("\t", "\\t");
     }
 
     /**

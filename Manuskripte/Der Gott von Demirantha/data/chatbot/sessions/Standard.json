@@ -1,0 +1,13 @@
+{
+  "name": "Standard",
+  "qaPairs": [],
+  "contextSources": [
+    "CURRENT_CHAPTER"
+  ],
+  "chaptersBefore": 3,
+  "chaptersAfter": 3,
+  "contextSize": "COMPACT",
+  "temperature": 0.7,
+  "useParameterModel": true,
+  "maxHistoryTurns": 10
+}

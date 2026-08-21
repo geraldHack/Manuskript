@@ -105,8 +105,8 @@ public final class AgentSelectionRevisionRunner {
                 selected.length(), context.length(),
                 effectiveInstruction.length(), maxOutputTokens);
 
-        agent.analyze(selected, context, maxOutputTokens, effectiveInstruction)
-                .thenAccept(targetTab::showParseResult)
+        agent.analyze(selected, context, maxOutputTokens, effectiveInstruction, targetTab::appendLiveFinding)
+                .thenAccept(targetTab::finishLiveAnalysis)
                 .exceptionally(ex -> {
                     String detail = AgentAnalysisErrors.format(ex);
                     logger.error("Überarbeiten-Analyse fehlgeschlagen: {}", detail, AgentAnalysisErrors.unwrap(ex));

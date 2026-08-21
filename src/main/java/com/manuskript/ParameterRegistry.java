@@ -11,6 +11,9 @@ import java.util.List;
  */
 public final class ParameterRegistry {
 
+    /** Standard-Ollama-Modell für Agenten und Parameter-Dialog. */
+    public static final String DEFAULT_OLLAMA_MODEL = "jobautomation/OpenEuroLLM-German";
+
     private static final List<ParameterDef> ALL = new ArrayList<>();
 
     static {
@@ -54,7 +57,7 @@ public final class ParameterRegistry {
         add("api.lektorat.model", ParameterDef.Type.STRING, "gpt-4o-mini",
                 "Modell für das Lektorat (Dropdown nach „Modelle laden“ oder freie Eingabe).", "Online-Lektorat");
         add("api.lektorat.extra_prompt", ParameterDef.Type.STRING, "",
-                "Zusätzlicher Prompt (z. B. Stil-Anweisungen), wird an den Lektorat-Prompt angehängt.", "Online-Lektorat");
+                "Zusätzliche Stil-Anweisungen, die Vorrang vor dem Standard-Lektorat-Prompt haben.", "Online-Lektorat");
         add("api.lektorat.type", ParameterDef.Type.STRING, "allgemein",
                 "Lektorat-Fokus: allgemein oder Komma-Liste aus stil, grammatik, plot (kombinierbar).", "Online-Lektorat");
         add("api.lektorat.chunk_size", ParameterDef.Type.INT, "12000",
@@ -70,7 +73,7 @@ public final class ParameterRegistry {
 
         // —— Projekt ——
         add("project.root.directory", ParameterDef.Type.STRING, "",
-                "Projektwurzel-Verzeichnis (Unterordner = Projekte).", "Projekt");
+                "Projektwurzel (Unterordner = Projekte). Installierte App: ~/Documents/Manuskript, nicht im Programmordner.", "Projekt");
 
         // —— UI ——
         add("main_window_theme", ParameterDef.Type.INT, "0",
@@ -219,8 +222,8 @@ public final class ParameterRegistry {
         // —— Agenten (Ollama) ——
         add("agent.ollama.api_url", ParameterDef.Type.STRING, "http://localhost:11434",
                 "Basis-URL des Ollama-Servers.", "Agenten");
-        add("agent.ollama.model", ParameterDef.Type.STRING, "gemma3:4b",
-                "Modell fuer die Ollama-Analyse (z.B. gemma3:4b, llama3, mistral).", "Agenten");
+        add("agent.ollama.model", ParameterDef.Type.STRING, DEFAULT_OLLAMA_MODEL,
+                "Modell fuer die Ollama-Analyse (z.B. jobautomation/OpenEuroLLM-German, gemma3:4b, llama3).", "Agenten");
 
         // —— Agenten (OpenAI) ——
         add("agent.openai.api_key", ParameterDef.Type.STRING, "",
@@ -240,10 +243,10 @@ public final class ParameterRegistry {
                         + "Lokale Server (localhost): Default 900, max. 3600. "
                         + "Bei Timeout zuerst Kontext verkleinern.",
                 "Agenten");
-        add("agent.openai.reasoning_effort", ParameterDef.Type.CHOICE, "auto",
-                "Reasoning-Aufwand für Kimi K3 u.ä. (low/high/max). auto = bei Kimi/Moonshot low, sonst nicht setzen. "
-                        + "low lässt eher Tokens für die fertige Szene übrig.",
-                "Agenten", new String[]{"auto", "low", "high", "max"});
+        add("agent.openai.reasoning_effort", ParameterDef.Type.CHOICE, "low",
+                "Wie stark das Modell nachdenkt, bevor es schreibt. none = aus (schnell, DeepSeek ohne Thinking). "
+                        + "low = wenig (empfohlen für DeepSeek v4 Flash). high = langes Nachdenken.",
+                "Agenten", new String[]{"none", "low", "high"});
         add("agent.chatbot.max_history_turns", ParameterDef.Type.INT, "10",
                 "Anzahl Q&A-Paare, die der Chatbot an die KI mitsendet (Multi-Turn).", "Agenten");
         add("agent.chatbot.max_tokens", ParameterDef.Type.INT, "8192",

@@ -1,7 +1,7 @@
 package com.manuskript;
 
 /**
- * Einmalige Wiederholung bei vorübergehenden Gateway-Fehlern (502/503/504).
+ * Einmalige Wiederholung bei vorübergehenden Gateway-Fehlern (502/503/504/524).
  * Typisch beim ersten Agenten-Request nach Cold Start; manueller Zweitversuch hilft dann auch.
  */
 public final class GatewayHttpRetry {
@@ -12,7 +12,7 @@ public final class GatewayHttpRetry {
     }
 
     public static boolean isRetryableStatus(int statusCode) {
-        return statusCode == 502 || statusCode == 503 || statusCode == 504;
+        return statusCode == 502 || statusCode == 503 || statusCode == 504 || statusCode == 524;
     }
 
     public static boolean isRetryableThrowable(Throwable t) {
@@ -21,7 +21,7 @@ public final class GatewayHttpRetry {
         }
         String msg = t.getMessage();
         if (msg != null) {
-            if (msg.contains("502") || msg.contains("503") || msg.contains("504")
+            if (msg.contains("502") || msg.contains("503") || msg.contains("504") || msg.contains("524")
                     || msg.contains("Bad Gateway") || msg.contains("Timeout") || msg.contains("timeout")) {
                 return true;
             }

@@ -179,6 +179,25 @@ public final class PlotholeResponseParser {
         return REWRITE_STRIP_PATTERN.matcher(text).replaceAll("").trim();
     }
 
+    /**
+     * Parst nur vollständige {@code <PROBLEM>}-Blöcke, ohne KEINE_PROBLEME/JSON-Fallbacks.
+     * Für das Live-Streaming, sobald ein Block geschlossen ist.
+     */
+    public static List<Finding> parseCompleteProblemBlocks(String fragment) {
+        if (fragment == null || fragment.isBlank()) {
+            return List.of();
+        }
+        String normalized = stripRewriteBlock(fragment.replace("\r\n", "\n").replace("\r", "\n"));
+        List<Finding> findings = parseProblemBlocks(normalized);
+        if (findings.isEmpty()) {
+            findings.addAll(parseStrictBlocks(normalized));
+        }
+        if (findings.isEmpty()) {
+            findings.addAll(parseFlexBlocks(normalized));
+        }
+        return findings;
+    }
+
     private static List<Finding> parseProblemBlocks(String normalized) {
         List<Finding> findings = new ArrayList<>();
         Matcher blockMatcher = PROBLEM_BLOCK.matcher(normalized);

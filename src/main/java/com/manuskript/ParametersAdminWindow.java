@@ -216,7 +216,7 @@ public class ParametersAdminWindow {
         ollamaParams.getChildren().add(ollamaUrlCard);
         keyToControl.put("agent.ollama.api_url", ollamaUrlField);
 
-        String ollamaModel = ResourceManager.getParameter("agent.ollama.model", "gemma3:4b");
+        String ollamaModel = ResourceManager.getParameter("agent.ollama.model", ParameterRegistry.DEFAULT_OLLAMA_MODEL);
         ComboBox<String> ollamaModelCombo = new ComboBox<>();
         ollamaModelCombo.setEditable(true);
         ollamaModelCombo.setPrefWidth(400);
@@ -251,9 +251,9 @@ public class ParametersAdminWindow {
         ComboBox<String> ollamaInstallCombo = new ComboBox<>();
         ollamaInstallCombo.setEditable(true);
         ollamaInstallCombo.setPrefWidth(280);
-        ollamaInstallCombo.setPromptText("z. B. gemma3:4b, llama3.2, qwen2.5:7b");
+        ollamaInstallCombo.setPromptText("z. B. jobautomation/OpenEuroLLM-German, gemma3:4b");
         ollamaInstallCombo.getItems().addAll(
-                "jobautomation/OpenEuroLLM-German",
+                ParameterRegistry.DEFAULT_OLLAMA_MODEL,
                 "gemma3:4b",
                 "llama3.2",
                 "llama3.2:3b",
@@ -261,6 +261,7 @@ public class ParametersAdminWindow {
                 "mistral:7b-instruct",
                 "phi3:mini",
                 "llama3.1:8b");
+        ollamaInstallCombo.setValue(ParameterRegistry.DEFAULT_OLLAMA_MODEL);
         Button ollamaInstallBtn = new Button("Installieren");
         ollamaInstallBtn.setTooltip(new Tooltip(
                 "Lädt das Modell über Ollama (API /api/pull, sonst ollama pull). Kann mehrere Minuten dauern."));
@@ -567,6 +568,25 @@ public class ParametersAdminWindow {
         openaiParams.getChildren().add(openaiTempCard);
         keyToControl.put("agent.openai.temperature", openaiTempSpinner);
 
+        ComboBox<String> reasoningCombo = new ComboBox<>();
+        reasoningCombo.getItems().addAll("none", "low", "high");
+        reasoningCombo.setValue(normalizeReasoningEffort(
+                ResourceManager.getParameter("agent.openai.reasoning_effort", "low")));
+        reasoningCombo.setPrefWidth(200);
+        Label reasoningLabel = new Label("agent.openai.reasoning_effort");
+        reasoningLabel.getStyleClass().add("param-key-label");
+        Label reasoningHelp = new Label(
+                "Nachdenken vor der Antwort. none = aus (schnell). low = wenig (empfohlen für DeepSeek v4 Flash). "
+                        + "high = langes Nachdenken (kann Gateway-Timeouts auslösen).");
+        reasoningHelp.getStyleClass().add("param-help-label");
+        reasoningHelp.setWrapText(true);
+        reasoningHelp.setMaxWidth(680);
+        VBox reasoningCard = new VBox(4);
+        reasoningCard.getStyleClass().add("param-card");
+        reasoningCard.getChildren().addAll(reasoningLabel, reasoningCombo, reasoningHelp);
+        openaiParams.getChildren().add(reasoningCard);
+        keyToControl.put("agent.openai.reasoning_effort", reasoningCombo);
+
         String agentTimeoutStr = ResourceManager.getParameter("agent.openai.request_timeout_sec", "300");
         int agentTimeoutVal = parseInt(agentTimeoutStr, 300);
         agentTimeoutVal = Math.max(60, Math.min(900, agentTimeoutVal));
@@ -706,7 +726,7 @@ public class ParametersAdminWindow {
         extraPromptArea.setMaxWidth(Double.MAX_VALUE);
         Label extraPromptLabel = new Label("api.lektorat.extra_prompt");
         extraPromptLabel.getStyleClass().add("param-key-label");
-        Label extraPromptHelp = new Label("Zusätzlicher Prompt (z. B. Stil-Anweisungen), wird an den Lektorat-Prompt angehängt.");
+        Label extraPromptHelp = new Label("Zusätzliche Stil-Anweisungen, die Vorrang vor dem Standard-Lektorat-Prompt haben.");
         extraPromptHelp.getStyleClass().add("param-help-label");
         extraPromptHelp.setWrapText(true);
         extraPromptHelp.setMaxWidth(680);
@@ -1320,6 +1340,23 @@ public class ParametersAdminWindow {
         try { return Integer.parseInt(s.trim()); } catch (NumberFormatException e) { return fallback; }
     }
 
+    static String normalizeReasoningEffort(String raw) {
+        if (raw == null || raw.isBlank() || "auto".equalsIgnoreCase(raw.trim())) {
+            return "low";
+        }
+        String v = raw.trim().toLowerCase(Locale.ROOT);
+        if ("max".equals(v) || "xhigh".equals(v) || "medium".equals(v)) {
+            return "high";
+        }
+        if ("disabled".equals(v) || "off".equals(v)) {
+            return "none";
+        }
+        if ("none".equals(v) || "low".equals(v) || "high".equals(v)) {
+            return v;
+        }
+        return "low";
+    }
+
     private static double parseDouble(String s, double fallback) {
         if (s == null || s.isBlank()) return fallback;
         try { return Double.parseDouble(s.trim().replace(',', '.')); } catch (NumberFormatException e) { return fallback; }
@@ -1403,10 +1440,15 @@ public class ParametersAdminWindow {
         else if (c instanceof FilterableModelOptionSelector) {
             ((FilterableModelOptionSelector) c).setInitialEditorText(d);
         } else if (c instanceof ComboBox) {
-            ComboBox<?> cb = (ComboBox<?>) c;
-            cb.getSelectionModel().clearSelection();
-            if (cb.isEditable() && cb.getEditor() != null) {
-                cb.getEditor().setText(d != null ? d : "");
+            @SuppressWarnings("unchecked")
+            ComboBox<String> cb = (ComboBox<String>) c;
+            if (d != null && cb.getItems().contains(d)) {
+                cb.setValue(d);
+            } else {
+                cb.getSelectionModel().clearSelection();
+                if (cb.isEditable() && cb.getEditor() != null) {
+                    cb.getEditor().setText(d != null ? d : "");
+                }
             }
         } else if (c instanceof TextField) {
             TextField tf = (TextField) c;

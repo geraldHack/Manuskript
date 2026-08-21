@@ -13,6 +13,7 @@ alera
 almin
 almins
 altheras
+altsyrranisch
 alvaro
 arista
 ashford
@@ -125,6 +126,7 @@ niras
 oryn
 oswin
 paleus
+pixie-cut
 rawhester
 reiman
 schulterrempler

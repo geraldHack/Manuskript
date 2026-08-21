@@ -3,8 +3,6 @@ title: "Traumwelt"
 author: "Gerald Hackbart"
 date: "Oktober 2026"
 rights: "© 2026 Gerald Hackbart"
-toc: true
-cover-image: "cover_image.png"
 ---
 
 # Kapitel 1 - Der Kristall
@@ -15,61 +13,57 @@ Ich stürzte durch Schichten von Dunkelheit, durch etwas, das sich anfühlte wie
 
 Ein kurzer Augenblick des Schwindels und der Orientierungslosigkeit, dann war ich angekommen. 
 
-
-
 Ich stand in einem Raum, den ich noch nie gesehen hatte, der aber vertraut wirkte.
 
-Dunkles Metall bildete die Wände, durchsetzt von leuchtenden Adern, die nicht elektrisch, sondern organisch wirkten: wie Blutgefäße, die in blaugrünem Licht pulsierten. Es kam von nirgendwo und überall zugleich. Über mir kreiste ein riesiges Zahnrad, so groß wie ein Fenster, und drehte sich unhörbar, obwohl ich das Mahlen spüren konnte – ein Vibrieren in meinen Knochen. Steampunk – ich liebte Steampunk.
+Dunkles Metall bildete die Wände, durchsetzt von leuchtenden Adern, die nicht elektrisch, sondern organisch wirkten: wie Blutgefäße, die in blaugrünem Licht pulsierten. Es kam von nirgendwo und überall zugleich. Über mir kreiste ein riesiges Zahnrad, so groß wie ein Fenster, und drehte sich unhörbar, obwohl ich das Mahlen spüren konnte – ein Vibrieren in meinen Knochen. Steampunk – ich liebte Steampunk. 
+
+Eine Seite des Raumes war einen einzige große Wand aus Glas, durch das helles Sonnenlicht den Raum erhellt. Warum gab es trotzdem diese leuchtenden Adern in den Wänden?
 
 Vier Menschen saßen um einen Tisch aus Glas und Messing. Sie starrten mich an.
 
-
-
 Ich starrte zurück und wartete. Normalerweise sahen mich die Traumgestalten nicht. Und wenn sie es taten, dann sprachen sie mich nicht an. Eher liefen sie davon, als hätten sie einen Geist gesehen – was wahrscheinlich nahe der Wahrheit war.
 
-»Du bist ruhig«, sagte einer der Männer. Er war groß, mit rasiertem Kopf und einer Narbe, die sich von seinem rechten Auge bis zur Schläfe zog. Sein Blick war scharf, analytisch. »Das ist unerwartet. Solltest du nicht wenigstens eine kleines wenig an Aufregung verspüren?«
+ »Du bist ruhig.« Der Mann mit der rasierten Kopfhaut musterte mich, die Narbe, die von seinem rechten Auge zur Schläfe zog, glänzte im blaugrünen Licht. Sein Blick war scharf, analytisch. »Das ist unerwartet. Solltest du nicht wenigstens ein kleines wenig Aufregung verspüren?« 
 
-Ein fast unmerkliches Zucken durchlief mich. Niemand hatte mich je zuvor im Traum direkt angesprochen. Ich beschloss, mir nichts anmerken zu lassen. 
+Ich zuckte leicht zusammen. Niemand hatte mich je zuvor im Traum direkt angesprochen. Ich beschloss, mir nichts anmerken zu lassen. 
 
-»Ich träume«, sagte ich und lehnte mich zurück. »Träume haben keine Konsequenzen. Warum sollte mich das aufregen?«
+»Ich träume«, sagte ich. »Träume haben keine Konsequenzen. Warum sollte mich das aufregen?« Eine Frau mit kurzen roten Haaren lachte leise. Ihre Uniform aus Leder und Kupferdetails knirschte bei der Bewegung. 
 
-Eine Frau lachte leise. Sie hatte kurze rote Haare und trug eine Art Uniform aus Leder und Kupferdetails. »Sie denkt, das ist ein luzider Traum.«
+»Sie denkt, das ist ein luzider Traum.« 
 
-»Genau«, sagte ich. »Ich kontrolliere das hier. Das ist mein Traum.«
+»Genau. Ich kontrolliere das hier. Das ist mein Traum.« 
 
-Der Mann mit der Narbe lehnte sich vor. »Wie lange träumst du schon von dieser Welt?«
+»Wie lange träumst du schon von dieser Welt?« 
 
-Ich überlegte. »Immer. Ich meine – lange. Seit ich denken kann, träume ich von Städten mit Zahnrädern und Lampen, die ohne Strom leuchten. Steampunk-Zeug.« Ich wies auf das rotierende Zahnrad über uns. »So etwas. Ich liebe das. Es ist mein Lieblingstraum.«
+Ich brauchte einen Moment. 
 
-»Und du bist dir sicher«, fragte eine dritte Person – eine ältere Frau mit ergrauten Haaren, die zu einem komplizierten Zopf geflochten waren –, »dass dies ein Traum ist?«
+»Immer. Ich meine – lange. Seit ich denken kann, träume ich von Städten mit Zahnrädern und Lampen, die ohne Strom leuchten. Steampunk-Zeug.« Ich wies auf das rotierende Zahnrad über uns. »So etwas. Ich liebe das. Es ist mein Lieblingstraum.« 
 
-»Natürlich«, sagte ich. »Träume sind nicht real. Ich weiß, dass ich träume, weil ich hier bin, obwohl ich weiß, dass ich in meinem Bett liege. Das ist die Definition von luzid träumen. Ich habe das hunderte Male getan.«
+Eine dritte Person, älter, mit ergrauten Haaren zu einem komplizierten Zopf geflochten, legte die Handflächen auf den Glastisch. »Und du bist dir sicher, dass dies ein Traum ist?« 
 
-Der vierte Mann, jünger als die anderen, mit dunklen Augen und einer Art Ungeduld in seiner Körperhaltung, beugte sich vor. »Wie oft warst du schon hier?«
+»Natürlich. Träume sind nicht real. Ich weiß, dass ich träume, weil ich hier bin, obwohl ich weiß, dass ich in meinem Bett liege. Das ist die Definition von luzid träumen. Ich habe das hunderte Male getan.« 
 
-»Ich weiß nicht«, sagte ich achselzuckend. »Hunderte Male? Ich zähle nicht mit. Es ist ein Traum, den ich immer wieder habe. Eine Welt, die mein Gehirn erschaffen hat. Wahrscheinlich, weil ich zu viel Science-Fiction lese.«
+Der vierte Mann, jünger als die anderen, mit dunklen Augen und einer Ungeduld, die seine Haltung verriet, rückte vor. »Wie oft warst du schon hier?« 
 
-Die rote Frau und die ältere Frau wechselten Blicke. Der Mann mit der Narbe nicht.
+Ich zuckte mit den Schultern. »Weiß nicht. Hunderte Male? Ich zähle nicht mit. Es ist ein Traum, den ich immer wieder habe. Eine Welt, die mein Gehirn erschaffen hat. Wahrscheinlich, weil ich zu viel Science-Fiction lese.« 
 
-»Wenn das dein Traum ist«, sagte er langsam, »wer sind wir dann?«
+Die rothaarige Frau und die ältere Frau tauschten einen Blick. Der Mann mit der Narbe nicht. »Wenn das dein Traum ist«, seine Stimme kam langsam, jede Silbe bedacht – »wer sind wir dann?« Das war eine gute Frage. Ich hatte keine Antwort. In meinen Träumen waren die Menschen in der Stadt immer da gewesen, aber ich hatte sie nur beobachtet. Sie waren wie Statisten, die nur dann relevant wurden, wenn ich sie brauchte. Jetzt, da sie mich direkt ansprachen, wurde ihre Präsenz überdeutlich. Sie waren keine Statisten meines Traumes mehr, sie waren Akteure. »Mein Unterbewusstsein. Archetypen. Der Anführer, die Kämpferin, die Weise, der Skeptiker.« Ich deutete auf jeden von ihnen. 
 
-Das war eine gute Frage. Ich hatte keine Antwort. In meinen Träumen waren die Menschen in der Stadt immer da gewesen, aber ich hatte sie nur beobachtet. Sie waren wie Statisten, die nur dann relevant wurden, wenn ich sie brauchte. Jetzt, da sie mich direkt ansprachen, wurde ihre Präsenz überdeutlich. Sie waren keine Statisten meines Traumes mehr, sie waren Akteure.
+»Ihr seid alle Versionen von mir, die ich brauchte, um diese Welt zu bevölkern.« 
 
-»Mein Unterbewusstsein«, sagte ich. »Archetypen. Der Anführer, die Kämpferin, die Weise, der Skeptiker.« Ich deutete auf jeden von ihnen. »Ihr seid alle Versionen von mir, die ich brauchte, um diese Welt zu bevölkern.«
+»Wir sind real« – die Worte der alten Frau kamen ruhig, ohne Eile. 
 
-»Wir sind real«, sagte die ältere Frau ruhig.
+»Nein. Das seid ihr nicht. Aber das ist okay. Träume sind nicht weniger real, weil sie Träume sind. Sie sind nur real in einer anderen Weise. Ich träume, also existiert ihr in meinem Traum. Das ist eine Form von Existenz.« 
 
-»Nein«, sagte ich. »Das seid ihr nicht. Aber das ist okay. Träume sind nicht weniger real, weil sie Träume sind. Sie sind nur real in einer anderen Weise. Ich träume, also existiert ihr in meinem Traum. Das ist eine Form von Existenz.«
+Der junge Mann lehnte sich zurück. »Sie argumentiert wie ein Philosoph.« 
 
-Der junge Mann lehnte sich zurück. »Sie argumentiert wie ein Philosoph.«
+»Sie argumentiert wie jemand, der sich etwas vormacht« – die rote Frau, Stimme schneidend. 
 
-»Sie argumentiert wie jemand, der sich etwas vormacht«, sagte die rote Frau.
+Ich sah sie an. »Was willst du denn von mir? Dass ich Angst habe? Dass ich aufwache und schreie? Das ist nicht mein Traum-Stil.« Ich deutete auf das Zahnrad über mir. »Ich bin hier, weil mein Gehirn mir zeigen will, dass es kreativ ist. Diese Welt ist schön. Warum sollte ich Angst haben?« 
 
-Ich sah sie an. »Was willst du denn von mir? Dass ich Angst habe? Dass ich aufwache und schreie? Das ist nicht mein Traum-Stil.« Ich deutete auf das Zahnrad über mir. »Ich bin hier, weil mein Gehirn mir zeigen will, dass es kreativ ist. Diese Welt ist schön. Warum sollte ich Angst haben?«
+Der Mann mit der Narbe stand auf. Er war größer, als ich gedacht hatte. Er baute sich vor mir auf, die Kulisse aus Zahnrad und Nebel hinter ihm. »Wir haben dich beobachtet. Du bist seit Jahren in der Traumwelt. Du warst einfach nur nie bewusst präsent. Du bist wie ein Geist gewesen, der durch diese Stadt wandelt. Aber in der letzten Woche ist etwas anders geworden. Deine Präsenz ist dichter geworden. Deine Energie hat sich verdoppelt. Du bist jetzt ganz hier, und nicht mehr in deinem Bett.« 
 
-Der Mann mit der Narbe stand auf. Er war größer, als ich gedacht hatte. »Wir haben dich beobachtet«, sagte er. »Du bist seit Jahren in der Traumwelt. Du warst einfach nur nie bewusst präsent. Du bist wie ein Geist gewesen, der durch diese Stadt wandelt. Aber in der letzten Woche ist etwas anders geworden. Deine Präsenz ist dichter geworden. Deine Energie hat sich verdoppelt. Du bist jetzt ganz hier, und nicht mehr in deinem Bett.«
-
-»Okay«, sagte ich. »Nehmen wir an, das ist wahr. Nehmen wir an, ich bin seit dreiundzwanzig Jahren unbewusst in einer Traumwelt, und nun bin ich richtig angekommen hier. Was wollt ihr dann von mir?«
+»Okay.« Ich hob die Schultern. »Nehmen wir an, das ist wahr. Nehmen wir an, ich bin seit dreiundzwanzig Jahren unbewusst in einer Traumwelt, und nun bin ich richtig angekommen hier. Was wollt ihr dann von mir?«
 
 Die ältere Frau stand auf und verließ den Tisch. Sie ging zu einer Wand, wo ein großes Fenster aus glühendem Glas aufflammte. Bilder erschienen – Straßen von Berlin, aber verzerrt, durchzogen von Rissen, aus denen ein undeutliches Licht sickerte. Das war kein Computerbildschirm, sondern etwas … völlig Untechnisches. Mir fiel keine bessere Beschreibung ein. Wieder so etwas steampunksmäßiges.
 
@@ -113,21 +107,25 @@ Das war fair.
 
 Ich steckte den Kristall in die Tasche meines Vintage-Mantels, den ich im Traum trug – ein Detail, das mir im Moment nicht auffiel, weil es selbstverständlich schien. In der Traumwelt trug ich immer normale Kleidung von zuhause, so wie ich mich im Wachleben kleidete.
 
-»Also gut«, sagte ich. »Nehmen wir an, ich glaube euch. Dass das hier real ist. *Und dann?*«
+»Also gut«, sagte ich. »Nehmen wir an, ich glaube euch, dass das hier real ist. *Und dann?*«
 
 Die vier Menschen sahen sich an. Der Mann mit der Narbe nickte leicht.
 
 »Dann«, sagte die rote Frau, »haben wir eine erste Mission für dich.«
 
+
+
 ---
+
+
 
 Ich wachte auf, weil mein Herz zu schnell schlug. Die Ruhe, die ich im Traum empfunden hatte, war verflogen und wich nun einer panischen Gewissheit, dass etwas nicht stimmte. Mein Körper hatte begriffen, was mein Verstand noch abwehrte – dass dieser Traum anders war, dass er real gewesen sein musste. Mein Zimmer war dunkel, aber nicht die Art von Dunkelheit, die ich kannte. Diese Dunkelheit war grau, gefiltert durch die Vorhänge, die ich nie richtig zugemacht hatte. Berlin-Dunkelheit. Straßenlicht. Real.
 
-Ich lag auf dem Rücken, die Decke bis zur Brust gezogen, und starrte die Risse in meiner Zimmerdecke an – Risse, die ich kannte wie ein vertrautes Gesicht. *Drei Minuten*, dachte ich. *Gib dir drei Minuten, dann verblasst der Traum.*
+Ich lag auf dem Rücken, die Decke bis zur Brust gezogen, und starrte die Risse in meiner Zimmerdecke an – Risse, die ich seit Jahren kannte. *Drei Minuten*, dachte ich. *Gib dir drei Minuten, dann verblasst der Traum.*
 
 Aber der Traum war nicht weg. Er war klarer und gegenwärtiger als je ein Traum zuvor.
 
-Ich konnte die Stimme des Mannes mit der Narbe noch hören. *Das ist nicht dein Traum.* Und der junge Mann, der neben mir saß, dessen Name ich nicht kannte, aber dessen Nähe ich immer noch in meinen Knochen spürte. *Siehst du?*
+Ich konnte die Stimme des Mannes mit der Narbe noch hören. *Das ist kein Traum.* Und der junge Mann, der neben mir saß, dessen Name ich nicht kannte, aber dessen Nähe ich immer noch in meinen Knochen spürte. *Siehst du?*
 
 Ich setzte mich auf. Mein Kopf war schwer. Mein Zimmer roch nach mir – nach Staub und den alten Büchern, die ich unter dem Bett hortete, nach der Tasse Tee von gestern, die ich vergessen hatte, wegzubringen. Real. Das alles war real.
 
@@ -137,11 +135,11 @@ Mit wackeligen Beinen stand ich auf und ging ins Bad. Ich knipste das Licht an u
 
 Es schockierte mich immer, egal wie oft ich in den Spiegel sah.
 
-Ich war nicht hübsch im konventionellen Sinne. Das war mein erster Gedanke, wenn ich in den Spiegel sah – nicht aus Bescheidenheit, sondern mit der kühlen Objektivität einer Forscherin. Mein Gesicht war zu lang, meine Nase zu groß, meine Augen zu weit auseinander. Meine Haut war blass, fast weiß, durchzogen von feinen Äderchen unter den Augen, die mir einen dauerhaft erschöpften Ausdruck gaben, selbst wenn ich ausgeruht war. Meine Haare waren das Einzige, das ich an mir mochte – dunkelbraun, fast schwarz in diesem Licht, lockig, wild, unkontrollierbar. Sie fielen mir über die Schultern und sahen aus, als hätte ich sie nie gekämmt, obwohl ich es tat. Ich sah aus wie jemand, der gerade aus einem Traum aufgewacht war. Jemand, der nicht ganz hier war. Jemand, der in eine Traumwelt passte.
+Ich war nicht hübsch, das war mein erster Gedanke, wenn ich in den Spiegel sah. Nicht aus Bescheidenheit, sondern aus einer Art kühler Distanz, als würde ich mich selbst beobachten. Mein Gesicht war zu lang, meine Nase zu groß, meine Augen zu weit auseinander. Meine Haut war blass, fast weiß, durchzogen von feinen Äderchen unter den Augen, die mir einen dauerhaft erschöpften Ausdruck gaben, selbst wenn ich ausgeruht war. Meine Haare waren das Einzige, das ich an mir mochte – dunkelbraun, fast schwarz in diesem Licht, lockig, wild, unkontrollierbar. Sie fielen mir über die Schultern und sahen aus, als hätte ich sie nie gekämmt, obwohl ich es tat. Ich sah aus wie jemand, der gerade aus einem Traum aufgewacht war. Jemand, der nicht ganz hier war. Jemand, der in eine Traumwelt passte.
 
 Das war kein Zufall. Das konnte kein Zufall sein.
 
-Ich lehnte mich näher an den Spiegel heran. Meine Augen waren dunkelblau – fast grau in diesem Licht – und sie sahen mich zurück mit der gleichen Unsicherheit, die ich fühlte. Im Spiegel blickte mir eine Frau entgegen, die zwischen Selbstzweifel und Realitätsverlust schwankte. Ich sah eine Frau, die zwischen zwei Realitäten stand und nicht wusste, welche echte war.
+Ich lehnte mich näher an den Spiegel heran. Meine Augen waren dunkelblau – fast grau in diesem Licht – und sie sahen mich zurück mit der gleichen Unsicherheit, die ich fühlte. Im Spiegel blickte mir eine Frau entgegen, die zwischen Selbstzweifel und Realitätsverlust schwankte. Ich sah eine Frau, die sich fragte, ob sie zwischen zwei Realitäten stand.
 
 Meine Katze — Momo — kam ins Bad geschlendert und miaute mich vorwurfsvoll an. Nicht ein Mal, sondern in einer langen, anklagenden Abfolge von Maunzern, die unmissverständlich bedeuteten: Du bist aufgestanden und du hast mich nicht gefüttert. Das ist inakzeptabel. Er hatte recht. Ich hatte ihn vergessen, und er würde mir das nicht so schnell verzeihen. Ich füllte umgehend seinen Napf. 
 
@@ -162,7 +160,6 @@ Das war der Kristall aus dem Traum.
 Das war der Beweis.
 
 Ich ließ ihn fallen. Er landete auf dem Badezimmerboden und rollte weg, immer noch leuchtend. Ich starrte auf ihn, als könnte ich ihn mit Blicken zum Verschwinden bringen. Das funktionierte nicht. Er war immer noch da, immer noch leuchtend, immer noch real.
-
 
 Ich musste verrückt geworden sein. Das war die einzige logische Erklärung: endgültiger Wahnsinn, ein psychotischer Anfall. Bald würde ich in einer Klinik aufwachen, vollgepumpt mit Medikamenten. Vielleicht war das besser. Dann wüsste ich wenigstens nicht mehr, dass ich verrückt war.
 
@@ -206,7 +203,7 @@ Ich hatte es versucht. Hinlegen, Augen geschlossen, Atmung verlangsamt. Nichts. 
 
 *Das war dein erstes Artefakt. Trage es bei dir. Es wird dir helfen, die Bruchstellen zu sehen, wenn du in deine Welt zurückkehrtest.*
 
-Der junge Mann hatte das gesagt, bevor ich aufwachte. Ihre Stimmen waren noch immer in mir, deutlich wie ein Echo in einem leeren Raum. Ihre Stimme war noch immer in mir, deutlich wie ein Echo in einem leeren Raum.
+Der junge Mann hatte das gesagt, bevor ich aufwachte. Ihre Stimmen waren noch immer in mir, deutlich wie ein Echo in einem leeren Raum. 
 
 Ich stand auf. Meine Wohnung war klein – eine Zweizimmerwohnung in Kreuzberg, die ich mir mit Marcus teilte, wobei Marcus meistens bei seiner Freundin übernachtete. Er war nie offiziell ausgezogen, wahrscheinlich, weil ich die 300 Euro für sein Zimmer dringend brauchte. Ich zog mich an, nahm den Kristall in die Hosentasche und verließ die Wohnung.
 
@@ -298,11 +295,11 @@ Ich setzte mich. Einfach so, ohne um Erlaubnis zu bitten, denn ich hatte keine E
 
 Die vier wechselten Blicke. Dann lehnte sich der Mann mit der Narbe zurück und begann.
 
-Sein Name war Ezra Blackwood. »Ezra Blackwood der Dritte«, sagte er mit einem Ton, der darauf hindeutete, dass das wichtig war, obwohl ich nicht verstand, warum. Er war der Anführer der Gruppe. Daran bestand für mich schon nach seinen ersten Worten kein Zweifel.  Er bestätigte das auch im Verlaufe seines Vortrags. Er sprach ruhig und präzise, ohne Umschweife, und ich mochte das.
+Sein Name war Ezra Blackwood. »Ezra Blackwood der Dritte«, sagte er mit einem Ton, der darauf hindeutete, dass das wichtig war, obwohl ich nicht verstand, warum. Er war der Anführer der Gruppe. Daran bestand für mich schon nach seinen ersten Worten kein Zweifel. Er bestätigte das auch im Verlaufe seines Vortrags. Er sprach ruhig und präzise, ohne Umschweife, und ich mochte das.
 
 Die rothaarige Frau hieß Vera Thorne. Sie sah mich an, als würde sie mich einschätzen, und ich sah sie genauso an. Vera saß so, als würde sie jeden Moment aufspringen – Rücken gerade, Ellbogen auf dem Tisch, Gewicht auf den Fußballen, obwohl sie saß. Ihr Blick blieb kühl, und als ich mich setzte, zog sie kaum merklich die Mundwinkel nach unten. Schon bei meinem ersten Besuch hatte sie jedes meiner Worte mit einem spitzen Kommentar gekontert.
 
-Die ältere Frau mit den geflochtenen Haaren hieß Mira. Sie war die Analytikerin der Gruppe.  Ihre ergrauten Haare waren zu einem makellosen Zopf geflochten, der jeden Wirbel bändigte. Sie war die Stille im Raum, die alles sah. Wenn sie sprach, geschah es mit der bedachten Ruhe einer Person, die ihre Worte wie Werkzeuge einsetzte – präzise und nur dann, wenn sie notwendig waren.
+Die ältere Frau mit den geflochtenen Haaren hieß Mira. Sie war die Analytikerin der Gruppe. Ihre ergrauten Haare waren zu einem makellosen Zopf geflochten, der jeden Wirbel bändigte. Sie war die Stille im Raum, die alles sah. Wenn sie sprach, geschah es mit der bedachten Ruhe einer Person, die ihre Worte wie Werkzeuge einsetzte – präzise und nur dann, wenn sie notwendig waren.
 
 Und der junge Mann, der so angenehm roch, hieß Kael. Kael Ashford. Er sagte nur diese beiden Worte, ohne jede Betonung, und sah mich dabei an mit einem Blick, der undurchdringlich blieb. Seine Zurückhaltung war fast beunruhigend.
 
@@ -334,7 +331,7 @@ Ich beschloss, das vorerst nicht weiter zu verfolgen.
 
 »Gut. Und wer sind die Gegner?«
 
-»Wir nennen sie die Resonanz-Magier«, sagte Ezra. »Eine Fraktion, die glaubt, der Einfluss eurer Welt – eurer Technologie, eurer Kultur – zerstöre die Magie in unserer. Und sie haben nicht ganz Unrecht. Nur ist ihre Lösung das Problem. Sie wollen eure Welt unterwerfen. Schon jetzt schicken sie Agenten, Monster, Flüche. Seit Jahren infiltrieren sie eure Gesellschaft subtil – durch Desinformation, das Säen von Misstrauen, Wissenschaftsfeindlichkeit. Und es wird von Jahr zu Jahr schlimmer.«
+»Wir nennen sie die «, sagte Ezra. »Eine Fraktion, die glaubt, der Einfluss eurer Welt – eurer Technologie, eurer Kultur – zerstöre die Magie in unserer. Und sie haben nicht ganz Unrecht. Nur ist ihre Lösung das Problem. Sie wollen eure Welt unterwerfen. Schon jetzt schicken sie Agenten, Monster, Flüche. Seit Jahren infiltrieren sie eure Gesellschaft subtil – durch Desinformation, das Säen von Misstrauen, Wissenschaftsfeindlichkeit. Und es wird von Jahr zu Jahr schlimmer.«
 
 Ich runzelte die Stirn. »Agenten? Also können Sie Menschen in meine Welt schicken?«
 
@@ -348,7 +345,7 @@ Nun meldete sich Kael wieder zu Wort. »Aber sie destabilisieren auch unsere Wel
 
 Vera lächelte. »Du bist unsere Verbindung in deine Welt. Aber ich glaube – je nachdem, wie sich deine Fähigkeiten entwickeln, wirst du auch hier von Nutzen sein.«
 
-Je nachdem, wie sich meine Fähigkeiten entwickeln?* *Wollten Sie mir Karate beibringen, oder mich an der Waffe ausbilden? Ich hatte eigentlich keine große Lust zu einer Geheimagentin zu werden. Das war in meiner Lebensplanung eigentlich nicht vorgesehen gewesen. Ich wollte Spiele entwickeln und Romane schreiben.
+Je nachdem, wie sich meine Fähigkeiten entwickeln?* *Wollten Sie mir Karate beibringen, oder mich an der Waffe ausbilden? Ich sah mich nicht gerade als angehende Geheimagentin. Das war in meiner Lebensplanung eigentlich nicht vorgesehen gewesen. Ich wollte Spiele entwickeln und Romane schreiben.
 
 »Berlin ist ein Brennpunkt«, fuhr Vera fort. »Viele Bruchstellen. Viele Orte, wo die Welten sich berühren. Du hast heute eine gesehen.«
 
@@ -360,7 +357,7 @@ Das war direkt. Ich schätzte das.
 
 »Was wollt ihr von mir?«, fragte ich.
 
-Ezra legte die Hände auf den Tisch. »Wir wollen, dass du dich uns anschließt. Du kannst zwischen den Welten reisen. Das kann sonst niemand – nicht auf die Art, wie du es tust. Das macht dich zu einer Person, die in eurer Welt operieren kann und trotzdem Zugang zu unserer hat. Wir brauchen das.«
+Ezra legte die Hände auf den Tisch. »Wir wollen, dass du dich uns anschließt. Du kannst zwischen den Welten reisen. Das kann sonst niemand – nicht auf die Art, wie du es tust. Du kannst in eurer Welt operieren und hast zugleich Zugang zu unserer. Wir brauchen das.«
 
 »Und die erste Aufgabe?«, fragte ich. 
 
@@ -436,7 +433,7 @@ Das stoppte mich.
 
 »Ja«, sagte er. »Du schläfst ein und reist in eine andere Welt. Das klingt für dich normal, weil du es immer getan hast. Aber es ist nicht normal.«
 
-Ich schwieg. Ich wollte widersprechen, aber ich hatte keinen Widerspruch, der funktionierte.
+Ich schwieg. Ich wollte widersprechen, aber mir fiel nichts ein.
 
 »Gut«, sagte Vera schließlich. »Dann nehmen wir an, sie hat keine aktive Magie. Das ist ein Problem, aber kein unüberwindbares Problem. Wir haben Artefakte.«
 
@@ -444,7 +441,7 @@ Sie sah Ezra an. Er nickte.
 
 Kael stand auf und ging zu einem Regal an der Wand, das ich vorher nicht bemerkt hatte. Er nahm etwas herunter – ein kleines Objekt, kaum größer als eine Münze, aus einem Material, das weder Metall noch Stein war. Es war bräunlich, fast organisch, und es schien in seiner Mitte einen winzigen Riss zu haben, aus dem ein gedämpftes orangefarbenes Licht sickerte.
 
-»Das ist ein Einmal-Siegel«, sagte er und legte es vor mich auf den Tisch. »Ein Einmalzauber. Du nähert dich dem Monster, du brichst das Siegel, und es wird zurückgeschickt. Durch die Bruchstelle, zurück in unsere Welt, wo wir es empfangen können.«
+»Das ist ein Einmal-Siegel«, sagte er und legte es vor mich auf den Tisch. »Ein Zauber, der nur einmal wirkt. Du nähert dich dem Monster, du brichst das Siegel, und  Ziel wird zurückgeschickt. Durch die Bruchstelle, zurück in unsere Welt, wo wir es empfangen können.«
 
 »Getötet?«, fragte ich.
 
@@ -456,7 +453,7 @@ Ich sah auf das kleine Objekt. »Wie breche ich es?«
 
 »Das ist alles?«
 
-»Das ist alles. Es reagiert auf Intention. Du musst wollen, dass das Monster geht. Das reicht.«
+»Das ist alles. Es reagiert auf deinen Willen. Du musst wollen, dass das Monster geht. Das reicht.«
 
 Ich sah auf den Beweis-Kristall. Dann auf das Siegel. Dann auf Kael.
 
@@ -464,7 +461,7 @@ Ich sah auf den Beweis-Kristall. Dann auf das Siegel. Dann auf Kael.
 
 »Der Beweis-Kristall reagiert auf seine Energie«, sagte Mira. »Je näher du kommst, desto heller wird er. Er funktioniert wie ein Kompass.«
 
-Das war einfacher, als ich erwartet hatte. Das war fast zu einfach.
+Das war einfacher, als ich erwartet hatte, fast zu einfach. 
 
 »Was ist, wenn es mich angreift?«, fragte ich.
 
@@ -494,9 +491,9 @@ Ezra sah mich an. »Warum du was?«
 
 »Warum ich«, sagte ich. »Warum ausgerechnet ich zwischen den Welten reisen kann, und warum ich hier gelandet bin. Das war soch kein Zufall, oder?«
 
-Kurzes Schweigen.
+Für einen Moment sagte niemand etwas.
 
-»Nein«, sagte Ezra. »Wir werden es dir erklären, aber nicht jetzt.«
+»Nein«, sagte Ezra schließlich. »Wir werden es dir erklären, aber nicht jetzt.«
 
 Das war keine vollständige Antwort. Aber es war genug für jetzt.
 
@@ -514,11 +511,11 @@ Die Arme vor der Brust verschränkt, starrte ich auf den Tisch zwischen uns. »W
 
 »Hilf mir, Obi-Wan Kenobi. Du bist meine einzige Hoffnung«, sagte ich mit todernster Miene.
 
-»Was meinst du …?"
+»Was meinst du …?«
 
 »Ach, schon gut. Nur ein Witz.«
 
-Ich betrachtete Ezra schweigend für eine volle Minute. 
+Ich musterte Ezra lange, ohne etwas zu sagen. 
 
 »Und das Vieh wird mir nicht den Kopf abbeißen?«
 
@@ -533,14 +530,14 @@ Ich betrachtete Ezra schweigend für eine volle Minute.
 Ich nahm die beiden Objekte und steckte sie in meine Tasche. 
 
 
+
 ---
 
 
 
+»Ihr wisst also fast nichts«, sagte ich. Ich saß nun auf einem Stuhl aus geschmiedetem Metall, der unerwartet bequem war. Neben den vier Gesichtern, die ich kannte, waren zwei neue dazugekommen: ein Mann in einer Robe, der sich als Oswin vorstellte, und ein junges Mädchen namens Lyra. »Nur das, was durch die Risse sickert. Oder was ihr in den Artefakten findet, bevor sie versagen.«
 
-»Ihr wisst also fast nichts«, sagte ich. Ich saß nun auf einem Stuhl aus geschmiedetem Metall, der unerwartet bequem war. Neben den vier Gesichtern, die ich kannte, waren zwei neue dazugekommen: ein Mann in eine Robe, der sich als Oswin vorstellte, und ein junges Mädchen namens Lyra. »Nur das, was durch die Risse sickert. Oder was ihr in den Artefakten findet, bevor sie versagen.«
-
-»Das ist korrekt«, bestätigte Oswin. »Die Bruchstellen erlauben Beobachtung, aber es ist, als ob du etwas durch ein Fernglas beobachtest. Was wir sehen, sind Fragmente. Ausschnitte. Und die geborgenen Objekte…« Er machte eine wegwerfende Handbewegung. »Eine Zeitung,  eines eurer kleinen rechteckigen Geräte mit einem gläsernen Fenster. Es leuchtete, zeigte uns Bilder, bis sein inneres Feuer erlosch. Wir haben schon etliche davon geborgen, aber sie halten nie lange.«
+»Das ist korrekt«, bestätigte Oswin. »Die Bruchstellen erlauben Beobachtung, aber es ist, als ob du etwas durch ein Fernglas beobachtest. Was wir sehen, sind Fragmente. Ausschnitte. Und die geborgenen Objekte …« Er machte eine wegwerfende Handbewegung. »Eine Zeitung, eines eurer kleinen rechteckigen Geräte mit einem gläsernen Fenster. Es leuchtete, zeigte uns Bilder, bis sein inneres Feuer erlosch. Wir haben schon etliche davon geborgen, aber sie halten nie lange.«
 
 »Handys«, sagte ich. »Die heißen Handys. Oder Smartphones. Das innere Feuer ist ein Akku. Eine Batterie.«
 
@@ -552,7 +549,7 @@ Kael lehnte sich vor. Sein Blick war, wie immer, direkt und ungeduldig. »Alles.
 
 Ich holte tief Luft. Ich begann mit den Grundlagen. Ich beschrieb die Erde, die Kontinente, die Nationen. Ich sprach von Deutschland, von Berlin, von einer Welt ohne Monarchien, zumindest nicht in dem Sinne, wie sie sie hier kannten. Ich erklärte Demokratien, Wahlen, Parteien, eine politische Landschaft, die von ständigem Streit, Koalitionen und Skandalen geprägt war. Ich erwähnte den ehemaligen US-Präsidenten mit der orangen Gesichtsfarbe und seinem Talent für Übertreibungen, und den Komiker, der in der Ukraine regierte, während sein Land angegriffen wurde. Ich berichtete von Drohnenkrieg und Raketen, die Ziele aus tausend Kilometern trafen, und von dieser globalen Vernetzung, die jeden Schrecken sofort in unsere Wohnzimmer streamte.
 
-Ich sprach langsam, sachlich, unterdrückte jeden Anflug von Emotion. Es war ein Bericht, keine Erzählung.
+Ich sprach langsam und sachlich und hielt meine Gefühle aus meiner Stimme heraus. Es war ein Bericht, keine Erzählung.
 
 Vera hörte mit zusammengekniffenen Augen zu. »Diese Kriege«, unterbrach sie einmal. »Sie werden um Ressourcen geführt? Um Land?«
 
@@ -562,7 +559,7 @@ Oswin notierte sich etwas auf einem Stück Pergament mit einer Feder, die kein T
 
 »Ja. Sie ist überall. In Kabeln unter der Erde, in der Luft als Funkwellen. Man kann ihr nicht entkommen.« Ich sah, wie Lyra einen kurzen, fast ängstlichen Blick mit Kael austauschte.
 
-Ich sprach weiter. Ich kam zu den Problemen, weil es unmöglich war, von meiner Welt zu sprechen, ohne sie zu erwähnen. Die Klimakrise. Ich erklärte Treibhausgase, schmelzende Polkappen, steigende Meeresspiegel, Hitzewellen, die Wälder verbrannten und Städte unbewohnbar machten. Ich beschrieb den Hunger, der nicht aus Mangel an Nahrung, sondern aus ungerechter Verteilung entstand. Ich erwähnte die Armut, die direkt neben obszönem Reichtum existierte, Milliardäre, die Privatraketen bauten, während andere in U-Bahn-Schächten schliefen. Ich sprach von einer Gesellschaft, die gleichzeitig hypervernetzt und zutiefst einsam war, von psychischen Erkrankungen, die zur Epidemie wurden, von einem Gefühl der permanenten Krise, das in der Luft lag wie Ozon nach einem Gewitter.
+Ich sprach weiter. Irgendwann musste ich auch von den Problemen erzählen. Die Klimakrise. Ich erklärte Treibhausgase, schmelzende Polkappen, steigende Meeresspiegel, Hitzewellen, die Wälder verbrannten und Städte unbewohnbar machten. Ich beschrieb den Hunger, der nicht aus Mangel an Nahrung, sondern aus ungerechter Verteilung entstand. Ich erwähnte die Armut, die direkt neben obszönem Reichtum existierte, Milliardäre, die Privatraketen bauten, während andere in U-Bahn-Schächten schliefen. Ich sprach von einer Gesellschaft, die gleichzeitig hypervernetzt und zutiefst einsam war, von psychischen Erkrankungen, die zur Epidemie wurden, von einem Gefühl der permanenten Krise, das in der Luft lag wie Ozon nach einem Gewitter.
 
 Ich redete fast zwei Stunden, ohne längere Pause. Meine Stimme wurde mit der Zeit rau. Niemand unterbrach mich ernsthaft. Ab und zu eine kurze, präzise Frage zur Klärung eines Begriffs. Eine Geste, die mehr sagte als Worte. Vera, die die Arme vor der Brust verschränkte, als ich von den globalen Rüstungsausgaben sprach. Oswin, der immer wieder nickte, als bestätige sich eine lang gehegte Theorie. Lyra, die mit weit aufgerissenen Augen dasaß, als lausche sie einer schrecklichen und fesselnden Märchenerzählung. Kael, dessen Gesicht eine Maske konzentrierter Aufmerksamkeit war, deren Spannung jedoch in den weißen Knöcheln seiner gefalteten Hände sichtbar wurde.
 
@@ -604,7 +601,7 @@ Oswin lächelte zum ersten Mal, ein kurzes, blasses Aufleuchten. »Eine komplexe
 
 »Ja«, sagte ich. »So ungefähr.«
 
-Lyra beugte sich vor. »Die Geschichten, die durch die Risse kommen. Die Filme. Die Musik. Sind die… repräsentativ?«
+Lyra beugte sich vor. »Die Geschichten, die durch die Risse kommen. Die Filme. Die Musik. Sind die … repräsentativ?«
 
 Ich musste kurz überlegen. »Sie sind ein Ausschnitt. Ein verzerrter. Sie zeigen oft das Extremste. Das Spektakulärste. Das Tragischste oder das Idealisiertste. Das wahre Leben ist meistens dazwischen. Langweiliger. Komplizierter.«
 
@@ -614,39 +611,36 @@ Ich musste kurz überlegen. »Sie sind ein Ausschnitt. Ein verzerrter. Sie zeige
 
 Wieder trat Stille ein. Ich spürte, wie die Anspannung in meinen Schultern langsam nachließ. Ich hatte gesprochen. Sie waren nicht davongelaufen. Das war ein Anfang.
 
-»Danke, Luna«, sagte Oswin und faltete sein Pergament zusammen. »Das war… aufschlussreich. Und beunruhigend. Wir werden diese Informationen mit den anderen teilen müssen.«
+»Danke, Luna«, sagte Oswin und faltete sein Pergament zusammen. »Das war … aufschlussreich. Und beunruhigend. Wir werden diese Informationen mit den anderen teilen müssen.«
 
 Kael stand auf. Seine Bewegung brach die Starre. »Komm. Ich zeige dir, wo du dich ausruhen kannst. Wir haben noch viel zu besprechen, aber das reicht für heute.«
 
 Ich folgte ihm, meine Beine fühlten sich schwer an. Als wir zur Tür gingen, drehte ich mich noch einmal um. Vera, Oswin und Ezra saßen noch am Tisch. Sie sprachen nicht. Sie starrten alle auf die leere Stelle, wo ich gesessen hatte, als versuchten sie, die fremde Welt, die ich gerade beschrieben hatte, in der Luft vor sich zu formen. Ihre Gesichter waren ernst, nachdenklich, ein wenig verloren. Ich erkannte den Ausdruck. Es war derselbe, den ich oft im Spiegel sah, wenn ich aus der Traumwelt zurückkehrte. Den Blick von jemandem, der zwischen zwei Realitäten steht und nicht weiß, wo er hingehört.
 
-
-
 Schon spürte ich, wie die Realität an mir zog. Ich kannte das Gefühl: Kurz vor dem Aufwachen zog es mich immer zurück.
-
 
 »Ich muss gehen«, sagte ich schlicht und Ezra nickte nur. Dann verschwamm die Traumwelt.
 
 
 # Kapitel 2 - In der U-Bahn
 
-Ich lag auf meinem Bett, die Decke bis zur Brust gezogen, und starrte auf die dunkelgrüne Wolldecke, die ich über mich geworfen hatte. Unter meiner Wange spürte ich den groben Stoff meines Kissens. Das war real. Das war mein Zimmer. Ich hatte in T-Shirt und Unterhose geschlafen. Ich warf einen Blick zum Stuhl in der Ecke. Dort hing der 70er-Jahre-Vintage-Mantel, den ich gestern getragen hatte. Er sah aus wie immer, aber ich wusste es sofort: Die Artefakte würden in einer der Taschen sein.
+Auf meinem Bett liegend, die Decke bis zur Brust gezogen, spürte ich den groben Stoff meines Kissens. Das war real, das war mein Zimmer. Ich hatte in T-Shirt und Unterhose geschlafen. Ich warf einen Blick zum Stuhl in der Ecke. Dort hing der 70er-Jahre-Vintage-Mantel, den ich gestern getragen hatte. Er sah aus wie immer, aber ich wusste es sofort: Die Artefakte würden in einer der Taschen sein.
 
 Ich setzte mich auf, ging zum Stuhl und hob den Mantel hoch. Es klapperte leise.
 
-Men Herz machte einen Sprung. Ich griff hinein und zog den Beweiskristall heraus – den großen, weißen, der nicht pulsierte, sondern nur wartete. Er war da. Und daneben, in der gleichen Tasche, lag das rissige, orangefarbene Siegel, das wie eine Münze aussah, und der Kristall von ihrem ersten Ausflug.
+Mein Herz machte einen Sprung. Ich griff hinein und zog den Beweiskristall heraus – den großen, weißen, der nicht pulsierte, sondern nur wartete. Er war da. Und daneben, in der gleichen Tasche, lag das rissige, orangefarbene Siegel, das wie eine Münze aussah, und der Kristall von ihrem ersten Ausflug.
 
-Ich ließ sie auf die Decke fallen und starrte sie an. Der Mantel war warm, als hätte ich ihn stundenlang getragen. Er roch nach Metall und nach etwas anderem, etwas, das ich nicht benennen konnte – nach einer Welt, die keine Elektrizität kannte, aber leuchtende Lampen hatte. 
+Ich ließ sie auf die Decke fallen und starrte sie an. Der Mantel war warm, als hätte ich ihn stundenlang getragen. Er roch nach Metall und nach etwas anderem, etwas Unbenennbarem; es roch nach einer Welt ohne Elektrizität, die dennoch leuchtende Lampen besaß. 
 
-Ich legte den Mantel auf das Bett und ging ins Bad. Ich wusch mich, zog mich an – Jeans, Sweatshirt, meine bequemen Slipper.
+Ich legte den Mantel auf das Bett und ging ins Bad. Ich wusch mich und zog mich an: Jeans, Sweatshirt und meine bequemen Slipper.
 
-In der Küche trank ich einen Schluck Wasser direkt aus dem Hahn. Meine Hände zitterten nicht. Das war gut. Ich sah auf die Uhr. 7:23 Uhr. Zu früh für die meisten Menschen, aber für mich genau richtig. 
+In der Küche trank ich einen Schluck Wasser direkt aus dem Hahn. Meine Hände zitterten nicht. Das war ein gutes Zeichen. Ich sah auf die Uhr. 7:23 Uhr. Zu früh für die meisten Menschen, aber für mich genau richtig. 
 
 Ich zog meinen Mantel über und verließ die Wohnung. Die Straße war still, grau, nass von einem leichten Nachtregen. Die Luft roch nach nassem Asphalt und kaltem Morgen. Ich ging zur U-Bahn.
 
-Im Wagen war es halbleer. Ein paar frühe Pendler, die Augen noch verschlafen, starrten auf ihre Handys. Ich setzte mich ans Fenster und hielt die Hand um den Beweiskristall in meiner Tasche. Er war kalt. 
+Im Wagen war es bereits gut gefüllt. Berufstätige, Schüler und vereinzelte Touristen standen dicht beieinander oder starrten mit verschlafenen Augen auf ihre Handys. Ich setzte mich ans Fenster und hielt die Hand um den Beweiskristall in meiner Tasche. Er war kalt. 
 
-Die U-Bahn ratterte durch den Tunnel. Das Geräusch war monoton, beruhigend fast. Ich schloss die Augen und versuchte, nicht an die Traumwelt zu denken. Versuchte, nicht an Ezra zu denken, oder an Vera, oder an Kael, der angenehm roch und der mir das Siegel gegeben hatte. *Du hältst es fest und zerbrichst es. Das ist alles.* Ich hatte das Siegel noch nicht angefasst, seit ich aufgewacht war. Ich hatte Angst davor.
+Die U-Bahn ratterte durch den Tunnel. Das Geräusch war monoton, beruhigend fast. Ich schloss die Augen und versuchte, nicht an die Traumwelt zu denken. Ich versuchte, nicht an Ezra zu denken, nicht an Vera, nicht an Kael, der so angenehm roch und mir das Siegel gegeben hatte. *Du hältst es fest und zerbrichst es. Das ist alles.* Ich hatte das Siegel seit meinem Aufwachen nicht wieder berührt – ich hatte Angst davor, was geschehen könnte, wenn ich es tat.
 
 Die Stationen zogen vorbei. Südkreuz. Yorckstraße. Anhalter Bahnhof. Je näher wir der Friedrichstraße kamen, desto wärmer wurde der Kristall in meiner Tasche.
 
@@ -658,15 +652,15 @@ Nicht hell, nicht wie eine Lampe, sondern wie ein Glühwürmchen – ein sanftes
 
 Die U-Bahn hielt an. Friedrichstraße.
 
-Ich steckte den Kristall schnell weg und stand auf. Meine Beine fühlten sich wackelig an, als hätte ich die ganze Nacht getanzt. Ich stieg aus, folgte der Menschenmenge zur Treppe, und dann blieb ich stehen.
+Ich steckte den Kristall schnell weg und stand auf. Meine Beine waren wackelig, als hätte ich die ganze Nacht getanzt. Ich stieg aus, folgte der Menschenmenge zur Treppe und blieb dann stehen.
 
-Der Bahnsteig war voll. Menschen strömten an mir vorbei, eilten zu ihren Zügen, zu ihren Jobs, zu ihrem Leben. Niemand sah mich an. Niemand sah den Riss in der Wand neben dem Aufgang, den ich gestern gesehen hatte. Aber ich sah ihn. Und der Kristall in meiner Tasche brannte jetzt fast, so hell war er geworden.
+Der Bahnsteig war voll. Menschen strömten an mir vorbei, eilten zu ihren Zügen, ihren Jobs, ihrem Leben. Niemand sah mich an. Niemand sah den Riss in der Wand neben dem Aufgang, den ich gestern gesehen hatte. Aber ich sah ihn. Und der Kristall in meiner Tasche brannte jetzt fast, so hell war er geworden.
 
 Ich ging langsam darauf zu. Der Riss war noch da – derselbe feine, diagonale Strich, kaum breiter als ein Haar. Aber heute sickerte nichts Dunkles heraus. Heute war er still. Fast harmlos.
 
 Ich holte den Kristall heraus und hielt ihn in der geschlossenen Faust. Das Licht schimmerte zwischen meinen Fingern hindurch, warf blasse Schatten auf den Boden. Es pulsierte schneller, als hätte es einen eigenen Herzschlag gefunden. Je näher ich der Wand kam, desto schneller wurde der Puls, bis es fast ein kontinuierliches Flackern war.
 
-Ich war da. Ich stand direkt vor dem Riss, und der Kristall in meiner Hand war jetzt so hell, dass ich die Knochen meiner Finger durch das Fleisch scheinen sah. Das Licht war kalt und warm zugleich, ein Paradox, das ich nicht verstand.
+Ich war da. Ich stand direkt vor dem Riss, und der Kristall in meiner Hand war jetzt so hell, dass ich glaubte die Knochen meiner Finger durch das Fleisch scheinen zu sehen. Das Licht war kalt und warm zugleich, ein Paradox, das ich nicht verstand.
 
 Ich steckte den Kristall wieder weg.
 
@@ -674,19 +668,19 @@ Jetzt musste ich nur noch das Monster finden. Und das Siegel brechen. Und hoffen
 
 Ich stieß mich von der Wand ab und ging los.
 
-Nicht schnell. Schnell wäre auffällig gewesen. Schnell wäre Panik gewesen, und ich war bereits nah genug an Panik, ohne ihr auch noch Beine zu geben. Ich hielt die rechte Hand in der Manteltasche um den Beweiskristall geschlossen und die linke um das Siegel. Die Leute schoben sich an mir vorbei, Jacken, Taschen, Kaffeebecher, ein Kinderwagen, jemand mit Kopfhörern so groß wie Untertassen. Friedrichstraße eben. Niemand hatte Zeit für irgendwen.
+Nicht schnell. Schnell wäre auffällig gewesen. Schnell wäre Panik gewesen, und ich war bereits nah genug an Panik, ohne ihr auch noch Beine zu geben. Ich hielt die rechte Hand in der Manteltasche um den Beweiskristall geschlossen, mit der Linken hielt ich vorsichtig das Siegel. Die Leute schoben sich an mir vorbei, Jacken, Taschen, Kaffeebecher, ein Kinderwagen, jemand mit Kopfhörern so groß wie Untertassen. Friedrichstraße eben. Niemand hatte Zeit für irgendwen.
 
 Der Kristall pulsierte.
 
 Ich blieb stehen, ließ zwei Männer in dunklen Mänteln an mir vorbeidrängen, dann ging ich in die andere Richtung. Das Licht wurde schwächer. Gut. Also nicht da.
 
-Ich drehte mich wieder um. Ein Schritt. Zwei. Sofort wurde der Kristall heller. Ich folgte ihm den Bahnsteig entlang, langsam, als wäre ich nur unschlüssig, ob ich in die S-Bahn oder die U-Bahn wollte. Mein Herz schlug so fest, dass ich das Pulsieren des Kristalls kaum davon unterscheiden konnte.
+Ich drehte mich wieder um und machte einen Schritt, dann noch einen. Sofort wurde der Kristall heller. Ich folgte ihm den Bahnsteig entlang, langsam, als wäre ich nur unschlüssig, ob ich in die S-Bahn oder die U-Bahn wollte. Mein Herz schlug so fest, dass ich das Pulsieren des Kristalls kaum davon unterscheiden konnte.
 
 Dann sah ich es.
 
-Nicht sofort ganz. Zuerst nur eine Bewegung zwischen den Beinen der Menschen, zu niedrig für einen Hund und zu falsch für alles andere. Ein Knick in der Luft. Ein Schatten, der nicht der Beleuchtung gehorchte. Dann hob es sich über die Bahnsteigkante, kroch an der Wand entlang und wurde für einen Moment scharf, als hätte ich eine Brille aufgesetzt.
+Zuerst nur als eine Bewegung zwischen den Beinen der Menschen, zu niedrig für einen Hund und zu falsch für alles andere. Ein Knick in der Luft. Ein Schatten, der nicht der Beleuchtung gehorchte. Dann hob es sich über die Bahnsteigkante, kroch an der Wand entlang und wurde für einen Moment scharf, als hätte ich eine Brille aufgesetzt.
 
-Es war klein, verglichen mit dem, was mein Gehirn unter *Monster* verstand, und genau deshalb schlimmer. Kein Drache. Kein Dämon mit Hörnern. Eher etwas, das aus zu vielen falsch zusammengesetzten Teilen bestand: ein länglicher Leib, schwarz und glänzend wie nasser Teer, daran Gliedmaßen, die mal Insektenbeine waren und mal Finger, je nachdem, wie ich hinsah. Es zog eine Spur aus Rauch hinter sich her, aber der Rauch blieb kleben, als hätte er Gewicht. Dort, wo sein Kopf sein sollte, war nur eine eingedellte Fläche, aus der ein blasses, vertikales Leuchten schnitt wie ein halboffenes Auge.
+Es war klein – verglichen mit dem, was mein Gehirn unter *Monster* verstand – und genau deshalb schlimmer. Kein Drache. Kein Dämon mit Hörnern. Eher etwas, das aus zu vielen falsch zusammengesetzten Teilen bestand: ein länglicher, schwarzer, glänzender Leib wie flüssiger Teer, daran Gliedmaßen, die zwischen Insektenbeinen und Fingern oszillierten. Es zog eine Spur aus Rauch hinter sich her. Schnell sank er zu Boden, so als hätte er echtes Gewicht. Dort, der Kopf sein sollte, war nur eine eingedellte Fläche, mit einem leuchtenden, horizontalen Strich, der wie ein halboffenes Auge wirkte.
 
 Niemand reagierte.
 
@@ -694,33 +688,33 @@ Eine Frau telefonierte direkt neben dem Wesen stehend. Ein Mann mit Aktentasche 
 
 »Scheiße«, murmelte ich.
 
-Der Kristall war jetzt so hell, dass das Weiß durch den Stoff meiner Manteltasche drang. Das Monster drehte den flachen Kopf in meine Richtung. Es hatte mich bemerkt — es hatte bemerkt, dass ich es bemerkt hatte.
+Der Kristall war jetzt so hell, dass das Weiß durch den Stoff meiner Manteltasche drang. Das Monster drehte den flachen Kopf in meine Richtung. Es hatte mich bemerkt und es hatte bemerkt, dass ich es bemerkt hatte.
 
 Ich zog den Beweiskristall heraus. Nur kurz. Das Licht traf das Wesen und es zuckte zurück, als hätte ich ihm etwas ins Gesicht gehalten, das es hasste. Gleichzeitig griff ich mit der anderen Hand nach dem Siegel.
 
 *Du näherst dich dem Monster, du brichst das Siegel, und es wird zurückgeschickt.*
 
-Das klang im sicheren Metallraum der Traumwelt sehr viel einfacher als auf einem überfüllten Berliner Bahnsteig um halb acht.
+In dem sicheren Steampunk-Zimmer der Traumwelt hatte sich das sehr viel einfacher angehört als hier, auf einem überfüllten Berliner Bahnsteig um halb acht morgens.
 
-Ich machte einen Schritt auf das Ding zu. Es wich zurück. Noch einen. Es schnellte plötzlich seitwärts, viel schneller als etwas mit so vielen unlogischen Gelenken sein sollte, und schoss auf die Kante des Bahnsteigs zu.
+Ich machte einen Schritt auf das Ding zu. Es wich zurück. Noch einen. Dann schnellte es plötzlich seitwärts – viel schneller, als etwas mit so vielen unlogischen Gelenken sein sollte – und schoss auf die Bahnsteigkante zu.
 
-Ich lief jetzt doch. Jemand fluchte, als ich ihn streifte. Eine Tasche schlug gegen meine Hüfte. Ich riss das Siegel aus der Tasche. Es war glatt bis auf den feinen Riss in der Mitte.
+Ich lief jetzt doch. Jemand fluchte, als ich ihn streifte. Eine Tasche schlug gegen meine Hüfte. Ich riss das Siegel aus der Tasche – glatt bis auf den feinen Riss in der Mitte. *Eine Sollbruchstelle*, dachte ich überflüssigerweise.
 
 Das Wesen hielt an und drehte sich zu mir. Ein Zischen kam aus seinem flachen Kopf, doch ich konnte kein Maul erkennen. Es war nur zwei Meter von mir entfernt. 
 
 Ich nahm das Siegel in beide Hände, um es zu brechen — und in genau diesem Moment rempelte mich jemand von der Seite an.
 
-Nicht absichtlich. Nur Pendlerchaos. Ein Schulterrempler, ein genervtes »Vorsicht!«, und das Siegel glitt aus meinen Fingern.
+Es war keine Absicht; nur das übliche Pendlerchaos. Ein Schulterrempler, ein genervtes »Vorsicht!«, und das Siegel glitt aus meinen Fingern.
 
 Ich sah zu, wie es fiel.
 
-Diese eine, absurde, gedehnte Sekunde, in der Dinge Zeit haben, unerträglich symbolisch zu werden. Die münzenartige Scheibe kippte über die Bahnsteigkante, blitzte orange auf und landete genau zwischen den Schienen. Natürlich. Natürlich landete das magische Einweg-Artefakt auf den verdammten Gleisen.
+Für einen Moment schien die Zeit langsamer zu laufen. Ich sah, wie die Scheibe über die Bahnsteigkante kippte, orange aufblitzte und zwischen den Schienen landete, ohne etwas dagegen tun zu können. Natürlich musste das magische Einweg-Artefakt auf den verdammten Gleisen landen.
 
 »Scheiße. Scheiße, scheiße, scheiße.«
 
 Das Monster kam langsam auf mich zu, und ich tat das einzig Vernünftige. Ich wich zurück.
 
-Zwei Schritte. Dann drei. Ich drehte mich weg, rannte ein paar Meter, stolperte fast gegen einen Mülleimer und blieb stehen. Mir war übel. Mein ganzer Körper schrie nur noch: *raus hier*.
+Zwei Schritte. Dann drei. Ich drehte mich weg, rannte ein paar Meter, stolperte fast gegen einen Mülleimer und blieb stehen. Mir war übel. Mein ganzer Körper schrie nur noch: *Raus hier!*
 
 Dann dachte ich an Ezra, der gesagt hatte, ein Späher würde andere anziehen. 
 
@@ -740,11 +734,11 @@ Es war kein heroischer Sprung. Eher ein hässliches Stolpern mit Entschluss. Mei
 
 Ich lief die Gleise entlang, vorbei an dem Monster oben auf dem Bahnsteig. Ich blieb dort stehen, wo ich das Artefakt vermutete und suchte. Das war es. Ich griff danach.
 
-Jemand packte mich von hinten unter den Armen. Hart, überraschend stark. Mein Körper wurde nach oben gerissen, mein Schuh verhakte sich noch kurz im Schotter, dann war ich halb kletternd, halb gezerrt wieder an der Bahnsteigkante. Eine zweite Hand schloss sich um meinen Mantel. Ich wurde hochgewuchtet wie ein falsch geparktes Fahrrad.
+Jemand packte mich von hinten unter den Armen. Der Griff war hart, überraschend stark. Meine 56 Kilo wurden nach oben gerissen, mein Schuh verhakte sich noch kurz im Schotter, dann war ich halb kletternd, halb gezerrt wieder an der Bahnsteigkante. Eine zweite Hand schloss sich um meine Hüfte. Ich wurde hochgewuchtet wie ein falsch geparktes Fahrrad.
 
 Ich landete unsanft auf dem Bauch auf dem Bahnsteig, schlug mit dem Ellbogen auf und keuchte. Mein Retter – ein Mann in grauer Jacke mit rotem Gesicht und panischen Augen – hielt mich immer noch fest, als müsste er verhindern, dass ich sofort wieder hineinsprang.
 
-»Sind Sie komplett irre?«, sagte er.
+»Sind Sie komplett irre?«, fragte er.
 
 Ich drehte mich herum. »Lassen Sie mich los!«
 
@@ -752,7 +746,7 @@ Ich drehte mich herum. »Lassen Sie mich los!«
 
 »Ich weiß!«
 
-Er starrte mich an, als hätte ich ihm gerade erklärt, dass ich freiwillig in Müllcontainern übernachte. Um uns herum bildete sich dieser Halbkreis aus Leuten, Handys wurden gezückt. Eine Frau kommentierte ihre Aufnahme begeistert. Jemand sagte, er habe die Polizei gerufen. Natürlich hatte ein netter Berliner die Polizei gerufen.
+Er starrte mich an, als hätte ich ihm gerade gestanden, dass ich den Verstand verloren hatte und stolz darauf war. Um uns herum bildete sich dieser Halbkreis aus Leuten, Handys wurden gezückt. Eine Frau kommentierte ihre Aufnahme begeistert. Jemand sagte, er habe die Polizei gerufen. Natürlich hatte ein netter Berliner die Polizei gerufen.
 
 Das Monster kam auf uns zu, doch niemand außer mir reagierte.
 
@@ -764,9 +758,7 @@ Das Siegel lag noch immer unten auf den Schienen, unerreichbar, und das ferne Dr
 
 Niemand schaute an die richtige Stelle. Oder sie schauten und sahen nur Beton und Gleise und eine überdrehte junge Frau im Mantel.
 
-»Setzen Sie sich hin«, sagte die Frau neben mir, mit dieser Tonlage, die Menschen für Kinder und Verrückte reservieren. »Okay? Alles gut. Sie setzen sich jetzt einfach hin.«
-
-*Alles gut.*
+»Setzen Sie sich hin«, sagte die Frau neben mir, mit dieser Tonlage, die Menschen für Kinder und Verrückte reservieren. »Okay? Alles gut. Sie setzen sich jetzt einfach hin. Alles wird gut.«
 
 Ich hätte sie beinahe ausgelacht.
 
@@ -776,7 +768,7 @@ Es blieb mir genau eine Möglichkeit.
 
 Das Monster griff an.
 
-Ich richtete mich auf. Die Leute wichen jetzt endlich zurück, aber nur vor mir – vor der offensichtlich unberechenbaren Frau am Bahnsteigrand, nicht vor dem Ding, das sich wie ein lebender Fehler auf sie zubewegte. Jemand rief: »Nicht schon wieder!«, als wäre ich eine Serie von Entscheidungen, die ihm persönlich den Morgen ruinierten.
+Ich richtete mich auf. Die Leute wichen jetzt endlich zurück, aber nur vor mir – vor der offensichtlich unberechenbaren Frau am Bahnsteigrand, nicht vor dem Ding, das sich wie ein lebender Fehler auf sie zubewegte. Jemand rief: »Nicht schon wieder!«, was etwas spät kam, denn ich war ja schon wieder zurück auf dem Bahnsteig. 
 
 Das Wesen war nur noch einen Schritt entfernt. Sein Lichtspaltengesicht flackerte. Der Beweiskristall in meiner anderen Hand loderte weiß auf, so hell, dass mehrere Leute blinzelten. Gut. Wenigstens *das* sahen sie.
 
@@ -790,21 +782,21 @@ Es war schwerer, als ich gedacht hatte – und zugleich nicht. Eher, als würde 
 
 Der Blitz war weiß, blendend weiß. Er fuhr aus meiner Hand in das Monster, durch es hindurch, über den ganzen Bahnsteig, hinein in die Luft, als hätte jemand für einen Atemzug die Welt von innen aufgerissen. Ich sah das Wesen nicht verbrennen. Es löste sich auf. Jede falsche Gliedmaße, jede Rauchfahne, jedes Stück glänzender Schwärze wurde von Licht getroffen, zerfiel in feine Linien und war weg, einfach *weg*, als hätte es nie existiert.
 
-Der Knall war nicht laut wie eine Bombe. Eher wie alle Lampen einer Stadt, die gleichzeitig zerplatzen.
+Der Knall war nicht laut wie eine Bombe. Eher wie das  Zerplatzen von hundert Glühlampen.
 
-Menschen schrien. Mehrere duckten sich. Ein Handy fiel zu Boden und zersprang. Die Anzeigen über dem Gleis flackerten einmal und wurden schwarz. Für eine Sekunde roch alles nach Ozon und nassem Metall. Selbst der Wind, der vom Tunnel heraufkam, schien stillzustehen.
+Menschen schrien. Mehrere duckten sich. Ein Handy fiel zu Boden und zersprang. Die Anzeigen über dem Gleis flackerten einmal und wurden schwarz. Für eine Sekunde roch alles nach Ozon und heißen Metall. Selbst der Wind, der vom Tunnel heraufkam, schien stillzustehen.
 
 Ich stand mitten darin, die Finger noch um die zerbrochenen Reste des Siegels gekrampft, und atmete nicht.
 
 Dann kehrte der Bahnsteig zurück.
 
-Lauter als vorher. Panischer. »Was war das?« – »Haben Sie das gesehen?« – »War das ein Kurzschluss?« »Eine Bombe!« – »Rufen Sie die Feuerwehr!« – »Wo ist die Frau?« Der Mann in der grauen Jacke riss die Augen auf und starrte mich ungläubig an.
+Der Lärm schwoll an, und die Panik breitete sich aus. »Was war das?«, »Haben Sie das gesehen?«, »War das ein Kurzschluss?«, »Eine Bombe!«, »Rufen Sie die Feuerwehr!«, »Wo ist die Frau?« Die Rufe überschlugen sich. Der Mann in der grauen Jacke riss die Augen auf und starrte mich ungläubig an.
 
 Ich ließ die Siegelreste fallen und drängte mich in die Bewegung hinein, die jede Menschenmenge nach einem Schock entwickelt: weg vom Zentrum, in alle Richtungen gleichzeitig.
 
 Niemand hielt mich fest. Alle redeten. Alle zeigten. Zwei Leute filmten die leeren Gleise. Jemand rief nach der Polizei, ein anderer nach der Feuerwehr.
  
-Ich nahm die Treppe nach oben, ohne zu rennen, bis ich außer Sicht war. Dann erst schneller. Mein Knie pochte. Meine Hand, in der ich das Siegel zerbrochen hatte, brannte noch. Hinter mir hallten Stimmen, Schritte, Durchsagen, das Nachbeben des Blitzes.
+Ich nahm die Treppe nach oben, ohne zu rennen, bis ich außer Sicht war. Erst dann lief ich schneller.  Mein Knie pochte. Meine Hand, in der ich das Siegel zerbrochen hatte, brannte noch. Hinter mir hallten Stimmen, Schritte, Durchsagen, das Nachbeben des Blitzes.
 
 Ich verschwand in den Straßen Berlins, bevor ich in irgendeinem Verhörzimmer landete, geblendet von einer Lampe und bombardiert mit Fragen, die ich nicht beantworten konnte.
 
@@ -816,9 +808,9 @@ Ich verschwand in den Straßen Berlins, bevor ich in irgendeinem Verhörzimmer l
 
 Zu Hause angekommen, schloss ich die Tür hinter mir, lehnte mich dagegen, zog den Mantel aus und ließ ihn fallen.
 
-Ich sah auf die Uhr. Es war erst 11:30 Uhr. Was sollte ich jetzt mit dem Tag anfangen? An Schlaf war nicht zu denken – noch immer pulsierte Adrenalin durch meinen Körper. Am liebsten hätte ich ja Nele angerufen, aber was hätte ich ihr erzählen sollen? *Hallo Nele. Heute habe ich ein Monster aus einem Paralleluniversum getötet*?
+Ich sah auf die Uhr. Es war erst 11:30 Uhr. Was sollte ich jetzt mit dem Tag anfangen? An Schlaf war nicht zu denken – noch immer pulsierte Adrenalin durch meinen Körper. Am liebsten hätte ich Nele angerufen, aber was hätte ich ihr erzählen sollen? *Hallo Nele. Heute habe ich ein Monster aus einem Paralleluniversum getötet.*
 
-Also gammelte ich herum: YouTube, Instagram, Threads. Immerhin las ich für eine Stunde das Skript der verpassten Vorlesung, das schon online stand.
+Also gammelte ich herum: YouTube, Instagram, Threads. Immerhin las ich eine Stunde lang das Skript der verpassten Vorlesung, das schon online stand.
 
 
 
@@ -826,7 +818,7 @@ Also gammelte ich herum: YouTube, Instagram, Threads. Immerhin las ich für eine
 
 
 
-Ich zog Jeans und Sweatshirt aus und kroch in T-Shirt und Unterhose unter die Decke. Ich schloss die Augen. Der Schlaf kam nicht sofort. Ich hörte noch den Nachhall des Blitzes, die Schreie, das Dröhnen der U-Bahn. Dann wurde alles still.
+Ich zog Jeans und Sweatshirt aus und kroch in T-Shirt und Unterhose unter die Bettdecke. Ich schloss die Augen. Der Schlaf kam nicht sofort. Ich hörte noch den Nachhall des Blitzes, die Schreie, das Dröhnen der U-Bahn. Dann wurde alles still.
 
 Als ich die Augen wieder öffnete, stand ich im Raum mit den pulsierenden Adern und dem großen Zahnrad über mir. Ezra saß am Tisch, Vera neben ihm. Kael lehnte an der Wand. Mira fehlte. Sie drehten sich alle gleichzeitig zu mir um.
 
@@ -836,7 +828,7 @@ Ich holte den Kristall aus der Manteltasche und legte ihn auf den Tisch. Das wei
 
 Ezra nahm den Kristall auf, drehte ihn zwischen den Fingern und nickte langsam. »Gut gemacht«, sagte er. Seine Stimme war ruhig, aber ich hörte das leichte Zögern darin. »Du hast den Beweis erbracht.«
 
-Kael löste sich von der Wand und trat näher. Wieder dieser Geruch nach Metall und etwas Wärmerem. »Und du bist unverletzt?« Seine Stimme klang so warm und mitfühlend.
+Kael löste sich von der Wand und trat näher – wieder dieser Geruch nach Metall und etwas Wärmerem. »Und du bist unverletzt?« Seine Stimme war warm und mitfühlend.
 
 Ich zuckte mit den Schultern. »Fast. Nur ein paar Schrammen und ein Knie tut weh.« Ich sah auf meine Hände. 
 
@@ -856,11 +848,11 @@ Silberne Fäden kamen aus seinen Fingerspitzen, dünn wie Spinnweben, und wander
 
 Das war Magie – echte, sichtbare, unmögliche Magie.
 
-Ich starrte hin, während mein Verstand verzweifelt nach einer Schublade suchte. Spezialeffekte. Halluzination. Aber nein: Ich sah es, Vera sah es, Kael sah es. Also war es real – und meine Welt nicht die einzige.
+Ich starrte hin, während mein Verstand verzweifelt nach einer Erklärung suchte. Spezialeffekte. Halluzination. Aber nein: Ich sah es, Vera sah es, Kael sah es. Also war es real – und meine Welt nicht die einzige.
 
 Nach etwa einer Minute ließ Ezra die Hand sinken. Die silbernen Fäden verschwanden. Das Licht im Kristall beruhigte sich wieder.
 
-»Das Monster hätte nicht derartig explosiv verschwinden sollen«, sagte Ezra. »Ein Siegel dieser Kraft würde es zurückschicken – sanft, kontrolliert, wie ein Fenster, das sich schließt. Aber das hier …« Er deutete auf den Kristall. »Das war eine Detonation. Das war Kraft, die sich nicht einfach verteilt hat, sondern konzentriert wurde.«
+»Das Monster hätte nicht derartig explosiv verschwinden sollen«, sagte Ezra. »Ein Siegel dieser Kraft würde es zurückschicken – als würde man es durch eine offene Tür hinausbitten.  Aber das hier …« Er deutete auf den Kristall. »Das war eine Detonation. Das war Kraft, die sich nicht einfach verteilt hat, sondern konzentriert worden ist.«
 
 »Ich habe es gebrochen«, sagte ich. »Das Siegel. Ich habe es in der Hand zerbrochen.«
 
@@ -868,7 +860,7 @@ Nach etwa einer Minute ließ Ezra die Hand sinken. Die silbernen Fäden verschwa
 
 Ezra sah mich an. Seine Augen waren dunkelbraun, fast schwarz, und es gab darin etwas, das wie Berechnung aussah. »Wie hast du dich gefühlt, als du es gebrochen hast?«
 
-Ich überlegte. »Panisch. Wütend. Das Ding war auf mich zu, und ich wollte, dass es weg ist. Ich wollte es wirklich weg haben.«
+Ich überlegte. »Ich war panisch und wütend. Das Ding kam direkt auf mich zu, und ich wollte nur, dass es verschwindet. Ich wollte es wirklich loswerden.«
 
 »Intensiv«, sagte Ezra.
 
@@ -884,7 +876,7 @@ Ich sah auf mein Handy. Es zeigte »Kein Netz« und die Uhrzeit: 00:34 Uhr. Ich 
 
 »Okay«, sagte ich.
 
-Ezra führte mich zur Tür. Sie war aus dunklem Holz, mit Messingbeschlägen, und als er sie öffnete, strömte Licht herein – nicht das blaugrüne Licht der Adern, sondern echtes Tageslicht, warm und golden.
+Ezra führte mich zur Tür. Sie war aus dunklem Holz, mit Messingbeschlägen, und als er sie öffnete, strömte Licht herein –  Tageslicht, warm und golden.
 
 Der Flur war lang und hoch, mit Wänden aus dem gleichen dunklen Metall wie der Besprechungsraum, aber hier durchzogen von größeren Adern, die in einem sanfteren Rhythmus leuchteten. Die Decke war so weit oben, dass ich sie kaum sehen konnte. Fenster – echte Fenster – waren in regelmäßigen Abständen angebracht, und durch sie sickerte dieses goldene Licht. Ich ging näher heran und sah hinaus.
 
@@ -894,19 +886,15 @@ Sehr hoch oben.
 
 Unter mir erstreckte sich eine Stadt, die ich kannte und nicht kannte. Die Straßen waren breit und ordentlich, angelegt in konzentrischen Ringen, wie Ezra es beschrieben hatte. Die Gebäude waren eine Mischung aus Steampunk und etwas Älterem – Architektur, die Zahnräder und Rohre mit Türmen und Kuppeln vermischte. Überall leuchteten Lampen, nicht elektrisch, sondern mit diesem blaugrünen Licht, das ich inzwischen kannte. Selbstfahrende Fahrzeuge bewegten sich auf den Straßen, aber nicht schnell – eher gemächlich, als würden sie sich Zeit nehmen. Und überall Menschen. Tausende von ihnen, in Kleidung, die zwischen mittelalterlich und viktorianisch pendelte, mit Accessoires aus Kupfer und Messing.
 
-Das war die Traumwelt. Das war real.
-
-Mein Magen zog sich zusammen. Nicht aus Angst, sondern aus etwas Tieferem – aus dem Gefühl, dass ich gerade die Grenze zwischen zwei Realitäten überschritten hatte und nicht zurück konnte. Nicht, weil ich nicht wollte, sondern weil ich nicht mehr wusste, welche Seite die echte war.
-
 »Komm«, sagte Ezra. Er war bereits weitergegangen, den Flur hinunter. »Es gibt noch viel zu sehen.«
 
-Ich folgte ihm. Der Flur führte zu einer großen Halle – nicht groß wie ein Bahnhof, sondern groß wie ein Ballsaal, mit einer hohen Decke und Säulen aus Metall und Holz. In der Mitte der Halle war ein Treppenhaus, spiralförmig, mit Stufen aus Stein und Geländern aus Kupfer. Ezra stieg hinauf. Ich folgte, meine Hand auf dem warmen Metall des Geländers.
+Ich folgte ihm. Der Flur führte zu einer großen Halle – nicht groß wie ein Bahnhof, sondern groß wie ein Ballsaal, mit einer hohen Decke und Säulen aus Metall und Holz. In der Mitte der Halle war einw Treppe, spiralförmig, mit Stufen aus Stein und Geländern aus Kupfer. Ezra stieg hinauf. Ich folgte, meine Hand auf dem warmen Metall des Geländers.
 
 Wir stiegen lange. Meine Beine begannen zu brennen, aber ich sagte nichts. Schließlich erreichten wir eine Tür – groß, aus dunklem Holz, mit einem Fenster aus Glas oben.
 
 Ezra öffnete sie.
 
-Der Raum dahinter war riesig. Das war das Erste, was ich dachte. Riesig und anders als alles, was ich je gesehen hatte. Die Wände waren aus Glas – nicht alle, aber genug, um den Raum in Licht zu tauchen. Und das Fenster – das Fenster war gigantisch. Es nahm die ganze Wand ein, von Boden bis Decke, und gab den Blick frei auf die ganze Stadt.
+Der Raum dahinter war riesig. Das war das Erste, was ich dachte. Riesig und anders als alles, was ich je gesehen hatte. Die Wände waren aus Glas.  Nur die Ecken bestanden aus massiven Säulen. Irgendetwas musste das Gebäude ja tragen.
 
 Ich ging näher heran.
 
@@ -914,7 +902,7 @@ Die Stadt erstreckte sich unter mir wie eine Landkarte, die lebendig geworden wa
 
 Und über allem der Himmel – nicht blau wie in Berlin, sondern ein sanftes Graugrün, durchzogen von Wolken, die sich bewegten, als hätten sie alle Zeit der Welt.
 
-Ich erkannte Teile davon. Ich war hier gewesen – nicht mit meinem Körper, sondern als Geist, in meinen Träumen, bevor ich wusste, dass die Träume real waren. Ich hatte diese Straßen durchquert, diese Plätze besucht, diese Menschen beobachtet. Ich hatte diese Stadt geliebt, ohne zu wissen, dass sie existierte.
+Ich erkannte Teile davon. Ich war hier gewesen – nicht mit meinem Körper, sondern als Geist, in meinen Träumen, bevor ich wusste, dass die Träume real waren. Ich hatte diese Straßen durchquert, diese Plätze besucht, diese Menschen beobachtet. Ich hatte diese Stadt geliebt, ohne zu wissen, dass sie keine Erfindung meines Geistes war. 
 
 Der Raum selbst war spärlich möbliert – ein paar Stühle, ein Tisch, Regale an den Wänden mit Büchern und Objekten, die ich nicht erkannte. Doch was mich magisch anzog, war das Fenster.
 
@@ -922,14 +910,9 @@ Der Raum selbst war spärlich möbliert – ein paar Stühle, ein Tisch, Regale 
 
 »Ich hasse diesen Ort, aber ich muss zugeben, dass die Aussicht beeindruckend ist.«
 
-Ich lehnte meine Stirn gegen das Glas. Es war kühl. Ich konnte die Vibrationen der Stadt spüren – nicht laut, aber präsent, wie das Schnurren einer riesigen Maschine. Und ich wusste, dass ich nicht mehr zurück konnte. Nicht wirklich. Nicht, nachdem ich das gesehen hatte.
+Ich lehnte meine Stirn gegen das Glas. Es war kühl. Ich konnte die Vibrationen der Stadt spüren – nicht laut, aber präsent, wie das Schnurren einer riesigen Maschine. 
 
-Ich war in zwei Welten gefangen. Und ich wusste nicht, welche die echte war.
-
-
-
----
-
+Ich lebte nun in zwei Welten. 
 
 
 Ezra blieb stehen und wandte sich an die Gruppe.
@@ -938,17 +921,19 @@ Ezra blieb stehen und wandte sich an die Gruppe.
 
 Die anderen nickten und ließen uns beide allein.
 
-Ezra führte mich durch weitere Flure. Schließlich blieb er vor einer Tür stehen, die sich von den anderen unterschied. Sie war schmaler, aus hellerem Holz, und auf ihr war ein Symbol eingebrannt – ein Kreis mit Linien, die nach innen liefen wie ein Labyrinth.
+Ezra führte mich durch weitere Flure, die aber alle Fenster hatten. Das war seltsam. Es gab nicht einein einzigen Gang ohne Fenster. 
+
+Schließlich blieb er vor einer Tür stehen, die sich von den anderen unterschied. Sie war schmaler, aus hellerem Holz, und auf ihr war ein Symbol eingebrannt – ein Kreis mit Linien, die nach innen liefen wie ein Labyrinth.
 
 »Frina«, sagte Ezra und klopfte.
 
 »Herein«, kam eine Stimme von innen.
 
-Der Raum dahinter war eine Bibliothek und ein Labor zugleich. Die Wände waren vollständig mit Regalen bedeckt – nicht mit Büchern alleine, sondern mit Objekten. Kristalle in verschiedenen Farben und Größen. Behälter mit Flüssigkeiten, die in unterschiedlichen Farben leuchteten. Pergamente, aufgerollt und mit Schnüren zusammengebunden. Instrumente aus Metall und Glas, deren Zweck ich nicht verstand. In der Mitte des Raumes stand ein großer Tisch aus dunklem Holz, bedeckt mit Papieren, Zeichnungen, noch mehr Objekten.
+Der Raum dahinter war eine Bibliothek und ein Labor zugleich. Die Wände waren vollständig mit Regalen bedeckt – nicht mit Büchern allein, sondern mit Objekten. Kristalle in verschiedenen Farben und Größen. Behälter mit Flüssigkeiten, die in unterschiedlichen Farben leuchteten. Pergamente, aufgerollt und mit Schnüren zusammengebunden. Instrumente aus Metall und Glas, deren Zweck ich nicht verstand. In der Mitte des Raumes stand ein großer Tisch aus dunklem Holz, bedeckt mit Papieren, Zeichnungen, noch mehr Objekten.
 
 Und hinter dem Tisch saß eine Frau.
 
-Sie war älter als Mira, mit Haaren, die vollständig ergraut waren und in einem lockeren Zopf hingen. Ihre Haut war dunkel und von feinen Linien durchzogen, die an Karten erinnerten – als hätten sich Jahre des Wissens in sie eingegraben. Sie trug eine Robe aus dunklem Stoff, bestickt mit Symbolen, die ich nicht verstand. Ihre Augen waren grau, fast silbern, und sie sahen mich an, bevor ich auch nur einen Schritt in den Raum gemacht hatte.
+Sie war älter als Mira, mit Haaren, die vollständig ergraut waren und in einem lockeren Zopf hingen. Ihre Haut war dunkel und von feinen Linien durchzogen, die an Karten erinnerten – als hätten sich Jahre des Wissens in sie eingegraben. Sie trug eine Robe aus dunklem Stoff, bestickt mit Symbolen, die ich nicht verstand. Ihre grauen, fast silbernen Augen musterten mich schon aufmerksam, als ich noch in der Tür stand. .
 
 »Das ist Luna Kessler«, sagte Ezra. »Ich möchte, dass du sie untersuchst.«
 
@@ -968,7 +953,7 @@ Ich setzte mich. Frina zog einen anderen Stuhl heran und saß mir direkt gegenü
 
 »Ich werde dich untersuchen«, sagte sie. »Das wird nicht wehtun.«
 
-»Okay«, sagte ich zögernd. »Es wird nicht wehtun« – eine Versicherung, die mich kein bisschen beruhigte.
+»Okay«, sagte ich zögernd. *Es wird nicht wehtun* – eine Versicherung, die mich kein bisschen beruhigte.
 
 Sie schloss die Augen. Ihre Hände hoben sich, und ich sah etwas, das ich schon bei Ezra gesehen hatte – silberne Fäden, die aus ihren Fingerspitzen kamen. Aber Frinas Fäden waren anders. Sie waren nicht einzeln, sondern in Bündeln, und sie leuchteten nicht nur silbern, sondern in verschiedenen Farben – Blau, Grün, Rot, Orange, alles durcheinander. Sie bewegten sich nicht auf mich zu wie bei Ezra, sondern um mich herum, wie Wasser, das um einen Stein fließt.
 
@@ -1000,7 +985,7 @@ Sie stand auf und ging zu einem der Regale. Sie zog ein Buch heraus – groß, m
 
 Sie fand die Seite, die sie suchte, und deutete darauf. Ich sah Zeichnungen – Menschen mit Auren um sich herum, Linien, die von ihnen ausgingen wie Blitze. Unter den Zeichnungen war Text, in einer Schrift, die ich nicht lesen konnte.
 
-»Das hier sind Aufzeichnungen aus dem dritten Jahrhundert«, sagte Frina. »Von einer Frau namens Kael – ja, wie unser Kael, aber das ist ein anderer. Diese Kael konnte zwischen den Welten reisen. Sie konnte andere mitnehmen. Sie konnte Bruchstellen heilen. Und alles, was sie tat, tat sie durch emotionale Magie.«
+»Das hier sind Aufzeichnungen aus dem dritten Jahrhundert«, sagte Frina. »Von einer Frau namens Kael – ja, wie unser Kael, aber das ist eine anderere. Diese Kael konnte zwischen den Welten reisen.  Sie konnte Bruchstellen heilen. Und alles, was sie tat, tat sie durch emotionale Magie.«
 
 Ich starrte auf die Zeichnungen. Sie zeigten eine Frau mit langen Haaren und einer Aura, die so hell war, dass sie die ganze Seite zu überfluten schien.
 
@@ -1010,7 +995,7 @@ Ich starrte auf die Zeichnungen. Sie zeigten eine Frau mit langen Haaren und ein
 
 Sie schloss das Buch und sah mich direkt an.
 
-»Das erklärt auch, wie du die Grenze zwischen den Welten überwinden kannst«, sagte sie. »Rituelle Magie funktioniert nicht über Grenzen hinweg. Die Resonanzen sind zu unterschiedlich. Aber emotionale Magie ist universell. Gefühle sind überall gleich. Angst ist Angst, ob in dieser Welt oder in deiner. Liebe ist Liebe. Wut ist Wut. Deshalb kannst du reisen. Deshalb kannst du andere mitnehmen. Deine emotionale Essenz ist nicht an eine Welt gebunden.«
+»Das erklärt auch, wie du die Grenze zwischen den Welten überwinden kannst«, sagte sie. »Rituelle Magie funktioniert nicht über Grenzen hinweg. Die Resonanzen sind zu unterschiedlich. Aber emotionale Magie ist universell. Gefühle sind überall gleich. Angst ist Angst, ob in dieser Welt oder in deiner. Liebe ist Liebe. Wut ist Wut. Deshalb kannst du reisen.  Deine emotionale Essenz ist nicht an eine Welt gebunden.«
 
 Ich ließ es auf mich wirken, versuchte zu begreifen, doch mein Verstand sträubte sich, es wirklich anzunehmen. Ich hatte keine Magie. Ich war nichts Besonders. Ich war nur Luna – eine Studentin, die zu viel träumte.
 
@@ -1083,7 +1068,7 @@ Vera sah ihn kurz an, dann wandte sie sich wieder ab. Ich hatte das Gefühl, das
 
 »Ich bin nicht hungrig«, sagte ich. »Danke.«
 
-Keal kam durch die Tür. Er trug tatsächlich etwas, nämlich ein schmales Buch mit einem abgegriffenen Einband, das er auf den Tisch legte, ohne es zu erklären. Dann setzte er sich an das andere Ende des Sofas, auf dem ich saß, mit einem Abstand, der höflich und gleichzeitig deutlich war. Er nickte mir zu. Ich nickte zurück. Das schien ihm zu reichen.
+Kael kam durch die Tür. Er trug tatsächlich etwas, nämlich ein schmales Buch mit einem abgegriffenen Einband, das er auf den Tisch legte, ohne es zu erklären. Dann setzte er sich an das andere Ende des Sofas, auf dem ich saß, mit einem Abstand, der höflich und gleichzeitig deutlich war. Er nickte mir zu. Ich nickte zurück. Das schien ihm zu reichen.
 
 »Also«, sagte Malachai und stellte seine Tasse ab. »Ezra hat mir erzählt, dass Frina fertig ist. Was hat sie gesagt?«
 
@@ -1189,7 +1174,7 @@ Malachai sah mich an, als hätte ich etwas gesagt, das er nicht erwartet hatte, 
 
 Ich wartete.
 
-»Wir sprechen gar nicht dieselbe Sprache«, sagte er. »Nicht wirklich. Ich komme aus dem Westbezirk, Keal aus dem Norden, Vera aus einem Gebiet, das du dir auf keiner Karte vorstellen kannst, und Ezra—« Er sah kurz zu Ezra.
+»Wir sprechen gar nicht dieselbe Sprache«, sagte er. »Nicht wirklich. Ich komme aus dem Westbezirk, Kael aus dem Norden, Vera aus einem Gebiet, das du dir auf keiner Karte finden wirst, und Ezra—« Er sah kurz zu Ezra.
 
 »Das ist eine längere Geschichte«, sagte Ezra.
 
@@ -1199,7 +1184,7 @@ Ich wartete.
 
 Malachai stand auf und ging zum Fenster. Er deutete nach draußen, und ich folgte seinem Blick. Auf den Dächern der umliegenden Gebäude standen Türme, schmal und hoch, aus demselben dunklen Metall wie die Wände in den anderen Räumen, mit einem Aufsatz oben, der sich langsam drehte. Sie standen in regelmäßigen Abständen, so weit ich sehen konnte, auf jedem zweiten oder dritten Dach.
 
-»Konvergenzsäulen«, sagte Malachai. »Sie stehen überall in der Stadt. Auf den Dächern, an den Kreuzungen, manchmal in den Türmen der älteren Gebäude. Sie erzeugen ein Feld, das Sprache übersetzt — nicht wörtlich, sondern im Verständnis. Du hörst mich in dem, was dein Gehirn als Sprache kennt. Ich höre dich in dem, was meines kennt. Wir verstehen uns trotzdem.«
+»Konvergenzsäulen«, sagte Malachai. »Sie stehen überall in der Stadt. Auf den Dächern, an den Kreuzungen, manchmal in den Türmen der älteren Gebäude. Sie erzeugen ein Feld, das Sprache übersetzt — nicht wörtlich, sondern im Verständnis. Du hörst meine Sprache, und ich höre deine Sprache. Aber die Resonanzsäulen sorgen dafür, dass wir uns trotzdem verstehen.«
 
 Ich sah auf die Türme. Sie drehten sich langsam und gleichmäßig, und ich hatte sie vorher gesehen, ohne zu wissen, was sie waren. Ich hatte sie für Wettergeräte gehalten, oder für etwas Dekoratives.
 
@@ -1246,13 +1231,13 @@ Ich starrte auf das Blatt vor mir. Die Überschrift lautete »Poststrukturalisti
 
 »Die These …« Ich schluckte. »Die These besagt, dass Bedeutung nicht festgelegt ist, sondern … fließend.«
 
-Der Dozent wartete. Ich wusste, dass mehr kam, dass ich mehr sagen musste, aber mein Gehirn weigerte sich, die richtigen Wörter zu finden.
+Der Dozent wartete. Ich wusste, dass er mehr erwartete, dass ich mehr sagen musste, aber mein Gehirn weigerte sich, die richtigen Wörter zu finden.
 
 »Und was bedeutet das für die Textanalyse?«, fragte er.
 
 »Es bedeutet …« Ich suchte verzweifelt nach einer Antwort. »Es bedeutet, dass jeder Leser seinen eigenen Zugang hat.«
 
-Der Dozent nickte, nicht ganz zufrieden, aber bereit, weiterzumachen. Ich atmete aus und senkte den Blick. Meine Hände zitterten leicht. Das letzte Mal, dass ich etwas gegessen hatte, war gestern Mittag gewesen. Ein Apfel, den ich halb aufgeessen hatte, bevor ich eingeschlafen war.
+Der Dozent nickte, nicht ganz zufrieden, aber bereit, weiterzumachen. Ich atmete aus und senkte den Blick. Meine Hände zitterten leicht. Das letzte Mal, dass ich etwas gegessen hatte, war gestern Mittag gewesen. Ein Apfel, den ich halb aufgegessen hatte, bevor ich eingeschlafen war.
 
 Eingeschlafen. Das war das Problem. Ich schlief ein, sobald ich konnte – in der U-Bahn, in der Bibliothek, einmal sogar während einer Vorlesung. Doch beim Aufwachen fühlte ich mich nicht erholt, sondern ausgelaugt, als hätte der Schlaf nichts gegeben, sondern nur genommen. Der Grund war simpel: Der Wechsel in die Traumwelt fraß meinen Nachtschlaf auf. Was meinen Körper hätte erholen sollen, war stattdessen Arbeit — Ausbildung, Magie, eine andere Welt. Und so schlief ich tagsüber ein, wo immer ich konnte, weil der Körper irgendwann einfach forderte, was ihm zustand.
 
@@ -1786,7 +1771,7 @@ Ich spürte eine leichte Bitterkeit auf der Zunge. Doch über allen lag ein voll
 
 »Das ist kein Kaffee«, sagte ich entschieden.
 
-Malachai lachte. »Doch es ist welcher. Die Säulen ...« Er zeigte zum Fenster. »... nehmen, was sie kriegen können. Sie *denken* -- oder was immer sie tun, dass es in unseren Sprachen einen Begriff für *anregendes Heißgetränk* gibt und das ist dann Kaffee.«
+Malachai lachte. »Doch es ist welcher. Die Säulen ...« Er zeigte zum Fenster. »... nehmen, was sie kriegen können. Sie *denken* – oder was immer sie tun, dass es in unseren Sprachen einen Begriff für *anregendes Heißgetränk* gibt und das ist dann Kaffee.«
 
 
 # Kapitel 4 - Pause
@@ -2185,7 +2170,7 @@ Irgendwo in der Wohnung tropfte der Wasserhahn im Bad, den ich seit drei Wochen 
 
 Ich dachte an die Traumwelt – das Zahnrad über dem Tisch, das sich lautlos drehte, die leuchtenden Adern in den Wänden, blaugrün wie tiefes Wasser, Frinas graue Augen, die mich ansahen, als würden sie etwas messen, das ich selbst nicht sehen konnte.
 
-Dann sprang Momo aufs Bett.
+Dann, unerwartet, sprang Momo aufs Bett.
 
 Das war ungewöhnlich. Momo – offiziell Hieronymus, ein Name, den ich ihm gegeben hatte, als ich neunzehn war und dachte, das wäre witzig, und den ich seitdem nie benutzte – war keine Bettkatze. Er war ein Kater mit Prinzipien, schlief hauptsächlich auf dem Fensterbrett und ertrug meine Anwesenheit mit der gelassenen Duldung eines Hotelgastes, dem das Zimmer einiges zu wünschen übrig lässt. Er kam manchmal auf die Couch, wenn er Hunger hatte und es für strategisch hielt. Er kam nie ins Bett.
 
@@ -2348,7 +2333,7 @@ Ich verdrehte die Augen.
 
 Frina trat vor, bevor ich antworten konnte. »Luna hat ein Lebewesen aus ihrer Welt in diese gebracht. Unabsichtlich. Die ... Katze hat neben ihr geschlafen und ist beim Übergang mitgekommen.«
 
-Stille. Vera sah auf Momo. Ezra sah auf Frina. Kael sah auf mich.
+Niemand sprach. Vera starrte auf Momo, Ezra auf Frina, Kael auf mich.
 
 »Ein Lebewesen«, sagte Ezra.
 
@@ -2404,7 +2389,7 @@ Vera sah ihn an. »Kael.«
 
 »Ich sage, wir versuchen es«, wiederholte er. »Wenn jemand das Risiko tragen soll, dann ich.«
 
-Ich öffnete den Mund, um etwas zu sagen – ich wusste nicht genau was, irgendetwas Vernünftiges –, aber in diesem Moment spürte ich es. Das Ziehen. Das leise, unverkennbare Ziehen, das ich inzwischen kannte wie einen alten Schmerz: mein Körper in Berlin, der anfing aufzuwachen. Nicht sofort, nicht in Sekunden, aber bald. Der Übergang kündigte sich an.
+Ich hätte etwas sagen sollen, aber in diesem Moment spürte ich es bereits – das vertraute Ziehen. Das leise, unverkennbare Ziehen, das ich inzwischen kannte wie einen alten Schmerz: mein Körper, der anfing aufzuwachen. Nicht sofort, nicht in Sekunden, aber bald. Der Übergang kündigte sich an.
 
 Ich stand auf. Momo rutschte von meinem Schoß und landete auf dem Boden mit dem lautlosen Aufprall, den Katzen immer hinbekommen.
 
@@ -2851,7 +2836,7 @@ Ich lag in den Armen eines nackten Mannes aus einer anderen Welt und wartete auf
 
 
 
-Ich stand im Aufenthaltsraum. Kael stand neben mir, glücklicherweise vollständig bekleidet. Ich trug wie immer meinen Vintage-Mantel, ein Sweat Shirt und darunter meine Blue Jeans. 
+Ich stand im Aufenthaltsraum. Kael stand neben mir, glücklicherweise vollständig bekleidet. Ich trug wie immer meinen Vintage-Mantel, ein Sweatshirt und darunter meine Blue Jeans. 
 
 Ezra und Vera saßen auf den gemütlichen Sesseln, die im Raum verteilt waren. Sie blickten überrascht auf. Beide hatten rechteckige Tafeln auf den Knien, die aus Metall zu bestehen schienen. Wäre dies meine Welt, würde ich annehmen, dass es sich um iPads handelte. 
 
@@ -2875,9 +2860,9 @@ Ezra beugte sich nach vorne. »Du hast in Lunas Welt gezaubert? Und das hat funk
 
 Ezra sah hinüber zu Vera, die sich bislang nicht am Gespräch beteiligt hatte. 
 
-„Das ist tatsächlich eine völlig neue Information“, sagte sie.  
+„Das ist tatsächlich eine völlig neue Information“, sagte sie.
 
-Kael schwieg nun, doch Ezra sah ihn auffordernd an. Doch dann seufzte Kael und fuhr fort.  
+Kael schwieg nun, doch Ezra sah ihn auffordernd an. Doch dann seufzte Kael und fuhr fort.
  
 »Ich konnte mich mit Luna leider nicht verständigen, denn in ihrer Welt gibt es ja keine Resonanzsäulen.«
 
@@ -2907,5 +2892,11 @@ Vera nickte. »Kein Wunder, dass er sich gewehrt hat. Wer die Dunkelheit nicht k
 Mir ging plötzlich ein Licht auf. »Deshalb sind eure Häuser so hoch, aber schmal! Darüber wundere ich mich schon seit Jahren.  Jedes Zimmer muss ein Fenster nach außen haben. Und die Treppenhäuser und Fahrstühle liegen außen am Haus. Keine Keller, keine Tunnel – nirgendwo Dunkelheit.«
 
 Kael sah mich an, und zum ersten Mal zuckte er nicht mit den Schultern.
+
+
+# Kapitel 7 - Politik
+
+
+Das ist der erste Satz^[Das ist eine Fußnote]
 
 

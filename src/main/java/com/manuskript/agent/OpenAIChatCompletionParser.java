@@ -14,6 +14,106 @@ public final class OpenAIChatCompletionParser {
     private OpenAIChatCompletionParser() {
     }
 
+    /**
+     * Ein SSE-{@code data:}-Ereignis einer gestreamten Chat-Completion.
+     *
+     * @param content      neuer Text (kann leer sein)
+     * @param finishReason {@code stop}/{@code length}/… oder {@code null}
+     * @param done         {@code true} bei {@code [DONE]}
+     * @param errorMessage Fehlermeldung aus dem JSON, sonst {@code null}
+     */
+    public record StreamEvent(String content, String finishReason, boolean done, String errorMessage) {
+        public static StreamEvent empty() {
+            return new StreamEvent("", null, false, null);
+        }
+    }
+
+    /**
+     * Parst den Wert nach {@code data:} (JSON oder {@code [DONE]}).
+     */
+    public static StreamEvent parseSseData(String data) {
+        if (data == null) {
+            return StreamEvent.empty();
+        }
+        String trimmed = data.trim();
+        if (trimmed.isEmpty()) {
+            return StreamEvent.empty();
+        }
+        if ("[DONE]".equalsIgnoreCase(trimmed)) {
+            return new StreamEvent("", "stop", true, null);
+        }
+        JsonElement root;
+        try {
+            root = JsonParser.parseString(trimmed);
+        } catch (JsonSyntaxException e) {
+            return StreamEvent.empty();
+        }
+        if (root == null || root.isJsonNull()) {
+            return StreamEvent.empty();
+        }
+        if (root.isJsonObject()) {
+            return streamEventFromObject(root.getAsJsonObject());
+        }
+        if (root.isJsonArray()) {
+            StringBuilder merged = new StringBuilder();
+            String finish = null;
+            String error = null;
+            for (JsonElement el : root.getAsJsonArray()) {
+                if (!el.isJsonObject()) {
+                    continue;
+                }
+                StreamEvent part = streamEventFromObject(el.getAsJsonObject());
+                if (part.content() != null && !part.content().isEmpty()) {
+                    merged.append(part.content());
+                }
+                if (part.finishReason() != null && !part.finishReason().isBlank()) {
+                    finish = part.finishReason();
+                }
+                if (part.errorMessage() != null) {
+                    error = part.errorMessage();
+                }
+            }
+            return new StreamEvent(merged.toString(), finish, false, error);
+        }
+        return StreamEvent.empty();
+    }
+
+    private static StreamEvent streamEventFromObject(JsonObject o) {
+        if (o.has("error")) {
+            JsonElement err = o.get("error");
+            String msg = err.isJsonObject() && err.getAsJsonObject().has("message")
+                    ? err.getAsJsonObject().get("message").getAsString()
+                    : err.toString();
+            return new StreamEvent("", null, false, msg);
+        }
+        StringBuilder content = new StringBuilder();
+        String finish = null;
+        if (o.has("choices") && o.get("choices").isJsonArray()) {
+            JsonArray choices = o.getAsJsonArray("choices");
+            if (!choices.isEmpty() && choices.get(0).isJsonObject()) {
+                JsonObject choice = choices.get(0).getAsJsonObject();
+                if (choice.has("delta") && choice.get("delta").isJsonObject()) {
+                    appendDeltaObject(content, choice.getAsJsonObject("delta"));
+                }
+                if (choice.has("message") && choice.get("message").isJsonObject()) {
+                    JsonObject msg = choice.getAsJsonObject("message");
+                    if (msg.has("content") && !msg.get("content").isJsonNull()) {
+                        String text = OpenAIMessageContentExtractor.extractText(msg.get("content"));
+                        if (text != null) {
+                            content.append(text);
+                        }
+                    }
+                }
+                if (choice.has("finish_reason") && !choice.get("finish_reason").isJsonNull()) {
+                    finish = choice.get("finish_reason").getAsString();
+                }
+            }
+        } else if (o.has("delta") && o.get("delta").isJsonObject()) {
+            appendDeltaObject(content, o.getAsJsonObject("delta"));
+        }
+        return new StreamEvent(content.toString(), finish, false, null);
+    }
+
     public static JsonElement parseRoot(String responseBody) {
         if (responseBody == null || responseBody.isBlank()) {
             return null;

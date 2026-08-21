@@ -39,7 +39,7 @@ public class AgentMemory {
         this(projectDir, agentName, "global");
     }
 
-    private String sanitizeChapterName(String name) {
+    public static String sanitizeChapterName(String name) {
         if (name == null || name.isEmpty()) return "global";
         return name.replaceAll("[^a-zA-Z0-9_-]", "_");
     }

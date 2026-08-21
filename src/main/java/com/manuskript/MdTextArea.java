@@ -200,7 +200,7 @@ public class MdTextArea extends VBox {
             paragraphSpacing.setValue(initialParagraphSpacing);
             paragraphSpacing.setPrefWidth(64);
             paragraphSpacing.setTooltip(new Tooltip(
-                    "Mindesthöhe von Leerzeilen im WYSIWYG-Modus (Markdown ausblenden)"));
+                    "Abstand zwischen Absätzen (Leerzeile). Im WYSIWYG-Modus Höhe der Absatzlücke."));
             paragraphSpacing.valueProperty().addListener((obs, oldValue, newValue) -> {
                 if (newValue != null) {
                     editor.setParagraphSpacing(newValue);

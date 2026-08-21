@@ -674,6 +674,7 @@ public class OnlineLektoratService {
                 ? " "
                 : " Fokus: " + String.join("; ", focusParts) + ". ";
         int n = getSuggestionsPerEntry();
+        String extraBlock = formatBindingExtraPrompt(extraPrompt);
         String base = "Du agierst als sehr erfahrener, kritischer deutscher Lektor. "
                 + "Du analysierst den gegebenen Text ohne Schonung und nutzt alle Register eines professionellen Lektorats "
                 + "(orthografische Präzision, stilistische Wirkung, Logikprüfung, Kohärenz, Tonalität, Figurenzeichnung, Tempo, Szenendramaturgie)."
@@ -688,19 +689,38 @@ public class OnlineLektoratService {
                 + "\"reason\" (kurze Begründung für die Änderung), "
                 + "\"weight\" (Zahl 3–5: wie wichtig die Änderung ist, 5 = sehr wichtig). "
                 + "Jedes \"original\" muss ein exakter Abschnitt aus dem übergebenen Kapiteltext sein (wörtlich übernommen, inkl. Zeilenumbrüche).";
-        if (extraPrompt != null && !extraPrompt.isEmpty()) {
-            base = base + "\n\nZusätzliche Anweisungen:\n" + extraPrompt;
+        if (extraBlock != null) {
+            base = extraBlock + "\n\n" + base
+                    + "\n\n" + extraBlock
+                    + "\nDiese Zusatzanweisungen haben Vorrang vor allen anderen Stilregeln. "
+                    + "Jeder Text in \"suggestions\" muss sie einhalten. "
+                    + "Formulierungen, die dagegen verstoßen (auch typische Lektorats-Manierismen), nicht ausgeben, sondern eine andere Formulierung wählen.";
         }
         return base;
     }
 
+    private static String formatBindingExtraPrompt(String extraPrompt) {
+        if (extraPrompt == null || extraPrompt.isBlank()) {
+            return null;
+        }
+        return "=== VERBINDLICHE ZUSATZANWEISUNGEN (ZWINGEND) ===\n"
+                + extraPrompt.trim()
+                + "\n=== ENDE ZUSATZANWEISUNGEN ===";
+    }
+
     private static String buildUserPrompt(String chapterText, String extraPrompt) {
         int n = getSuggestionsPerEntry();
+        String extraBlock = formatBindingExtraPrompt(extraPrompt);
         String s = "Analysiere den folgenden Kapiteltext und gib Verbesserungsvorschläge als JSON-Array zurück. "
-                + "Nur Anmerkungen mit weight 3–5. Jeder Eintrag: original (exakter Textausschnitt inkl. Zeilenumbrüche), suggestions (genau " + n + " Alternativen), reason, weight (3–5).\n\n"
-                + "=== KAPITELTEXT ===\n" + chapterText;
-        if (extraPrompt != null && !extraPrompt.isEmpty()) {
-            s = s + "\n\n(Zusatzanweisungen siehe System-Prompt.)";
+                + "Nur Anmerkungen mit weight 3–5. Jeder Eintrag: original (exakter Textausschnitt inkl. Zeilenumbrüche), suggestions (genau " + n + " Alternativen), reason, weight (3–5).";
+        if (extraBlock != null) {
+            s += " " + extraBlock
+                    + " Jedes suggestions-Element muss diese Anweisungen einhalten.";
+        }
+        s += "\n\n=== KAPITELTEXT ===\n" + chapterText;
+        if (extraBlock != null) {
+            s += "\n\n" + extraBlock
+                    + "\nVor der Ausgabe: jedes suggestions-Element gegen diese Anweisungen prüfen. Verstöße nicht ausgeben.";
         }
         return s;
     }

@@ -1,15 +1,20 @@
 package com.manuskript.agent;
 
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -123,6 +128,22 @@ public class OpenAIBackend implements AIBackend {
     }
 
     @Override
+    public CompletableFuture<String> chatStreaming(String systemPrompt, String userMessage, int maxTokens,
+                                                   Consumer<String> onDelta) {
+        JsonArray messages = new JsonArray();
+        JsonObject sysMsg = new JsonObject();
+        sysMsg.addProperty("role", "system");
+        sysMsg.addProperty("content", systemPrompt);
+        messages.add(sysMsg);
+        JsonObject userMsg = new JsonObject();
+        userMsg.addProperty("role", "user");
+        userMsg.addProperty("content", userMessage);
+        messages.add(userMsg);
+        return CompletableFuture.supplyAsync(() ->
+                executeChatCompletion(messages, maxTokens, userMessage.length(), onDelta));
+    }
+
+    @Override
     public CompletableFuture<String> chatMultiTurn(String systemPrompt, String contextBlock,
                                                     List<ChatTurn> history, String newUserMessage,
                                                     int maxTokens) {
@@ -154,6 +175,11 @@ public class OpenAIBackend implements AIBackend {
     }
 
     private String executeChatCompletion(JsonArray messages, int maxTokens, int userMessageLength) {
+        return executeChatCompletion(messages, maxTokens, userMessageLength, null);
+    }
+
+    private String executeChatCompletion(JsonArray messages, int maxTokens, int userMessageLength,
+                                         Consumer<String> onDelta) {
         try {
             JsonArray workingMessages = gson.fromJson(gson.toJson(messages), JsonArray.class);
             StringBuilder fullContent = new StringBuilder();
@@ -164,7 +190,9 @@ public class OpenAIBackend implements AIBackend {
             final int maxEmptyContentContinues = 1;
 
             for (int attempt = 0; attempt <= maxContinues; attempt++) {
-                CompletionChunk chunk = executeChatCompletionOnce(workingMessages, maxTokens, userMessageLength);
+                CompletionChunk chunk = onDelta != null
+                        ? executeChatCompletionOnceStreaming(workingMessages, maxTokens, userMessageLength, onDelta)
+                        : executeChatCompletionOnce(workingMessages, maxTokens, userMessageLength);
                 if (chunk.content() != null && !chunk.content().isEmpty()) {
                     fullContent.append(chunk.content());
                 }
@@ -246,6 +274,55 @@ public class OpenAIBackend implements AIBackend {
 
     private record CompletionChunk(String content, String finishReason, boolean requestContinuation, String reasoning) {}
 
+    private HttpRequest buildChatCompletionRequest(JsonArray messages, int maxTokens, boolean stream) {
+        String baseUrl = ResourceManager.getParameter("agent.openai.api_url", DEFAULT_BASE_URL);
+        String apiKey = ResourceManager.getParameter("agent.openai.api_key", "");
+        if (apiKey == null || apiKey.isBlank()) {
+            apiKey = ResourceManager.getParameter("api.lektorat.api_key", "");
+        }
+        apiKey = resolveApiKey(apiKey, baseUrl);
+        if (apiKey.isEmpty()) {
+            throw new RuntimeException("Kein OpenAI API-Key konfiguriert. Bitte im Parameter-Fenster unter 'Agenten' setzen.");
+        }
+
+        String url = baseUrl.endsWith("/")
+                ? baseUrl + "chat/completions"
+                : baseUrl + "/chat/completions";
+
+        JsonObject body = new JsonObject();
+        body.addProperty("model", currentModel);
+        putMaxTokenLimits(body, maxTokens);
+        body.addProperty("temperature", temperature);
+        if (topP != null) {
+            body.addProperty("top_p", topP);
+        }
+        body.add("messages", messages);
+        applyReasoningEffort(body);
+        if (stream) {
+            body.addProperty("stream", true);
+        }
+
+        String requestBody = gson.toJson(body);
+        logger.info("OpenAI Request{}: {} Zeichen, max_tokens: {}, temperature: {}, top_p: {}, reasoning_effort={}",
+                stream ? " (stream)" : "",
+                requestBody.length(), maxTokens, temperature,
+                topP != null ? topP : "—",
+                body.has("reasoning_effort")
+                        ? body.get("reasoning_effort").getAsString() : "—");
+
+        int timeoutSec = requestTimeoutSeconds(baseUrl);
+        HttpRequest.Builder builder = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .header("Authorization", "Bearer " + apiKey)
+                .header("Content-Type", "application/json")
+                .timeout(Duration.ofSeconds(timeoutSec))
+                .POST(HttpRequest.BodyPublishers.ofString(requestBody));
+        if (stream) {
+            builder.header("Accept", "text/event-stream");
+        }
+        return builder.build();
+    }
+
     private static boolean isOutputTruncated(String finishReason) {
         if (finishReason == null || finishReason.isBlank()) {
             return false;
@@ -256,46 +333,7 @@ public class OpenAIBackend implements AIBackend {
 
     private CompletionChunk executeChatCompletionOnce(JsonArray messages, int maxTokens, int userMessageLength) {
         try {
-            String baseUrl = ResourceManager.getParameter("agent.openai.api_url", DEFAULT_BASE_URL);
-            String apiKey = ResourceManager.getParameter("agent.openai.api_key", "");
-            if (apiKey == null || apiKey.isBlank()) {
-                apiKey = ResourceManager.getParameter("api.lektorat.api_key", "");
-            }
-            apiKey = resolveApiKey(apiKey, baseUrl);
-            if (apiKey.isEmpty()) {
-                throw new RuntimeException("Kein OpenAI API-Key konfiguriert. Bitte im Parameter-Fenster unter 'Agenten' setzen.");
-            }
-
-            String url = baseUrl.endsWith("/")
-                    ? baseUrl + "chat/completions"
-                    : baseUrl + "/chat/completions";
-
-            JsonObject body = new JsonObject();
-            body.addProperty("model", currentModel);
-            putMaxTokenLimits(body, maxTokens);
-            body.addProperty("temperature", temperature);
-            if (topP != null) {
-                body.addProperty("top_p", topP);
-            }
-            body.add("messages", messages);
-            applyReasoningEffort(body);
-
-            String requestBody = gson.toJson(body);
-            logger.info("OpenAI Request: {} Zeichen, max_tokens: {}, temperature: {}, top_p: {}, reasoning_effort={}",
-                    requestBody.length(), maxTokens, temperature,
-                    topP != null ? topP : "—",
-                    body.has("reasoning_effort")
-                            ? body.get("reasoning_effort").getAsString() : "—");
-
-            int timeoutSec = requestTimeoutSeconds(baseUrl);
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(url))
-                    .header("Authorization", "Bearer " + apiKey)
-                    .header("Content-Type", "application/json")
-                    .timeout(Duration.ofSeconds(timeoutSec))
-                    .POST(HttpRequest.BodyPublishers.ofString(requestBody))
-                    .build();
-
+            HttpRequest request = buildChatCompletionRequest(messages, maxTokens, false);
             HttpResponse<String> response = sendWithGatewayRetry(request);
             String responseBody = response.body();
 
@@ -540,26 +578,43 @@ public class OpenAIBackend implements AIBackend {
     }
 
     /**
-     * Kimi K3 denkt standardmäßig mit effort=max und verbraucht oft alle Tokens für Reasoning.
-     * Default für Kimi/Moonshot: {@code low}. Parameter {@code agent.openai.reasoning_effort}
-     * überschreibt (low/high/max) bzw. leer = Auto.
+     * Kimi und DeepSeek v4 denken standardmäßig lange (high/max).
+     * Default auto: {@code low}. {@code none} schaltet DeepSeek-Thinking aus.
      */
     private void applyReasoningEffort(JsonObject body) {
-        String configured = ResourceManager.getParameter("agent.openai.reasoning_effort", "").trim();
+        applyReasoningEffort(body, currentModel,
+                ResourceManager.getParameter("agent.openai.reasoning_effort", "").trim());
+    }
+
+    static void applyReasoningEffort(JsonObject body, String model, String configured) {
         String effort = null;
-        if (!configured.isEmpty() && !"auto".equalsIgnoreCase(configured)) {
-            effort = configured.toLowerCase(java.util.Locale.ROOT);
-        } else if (isKimiOrMoonshotModel(currentModel)) {
+        String cfg = configured == null ? "" : configured.trim();
+        if (!cfg.isEmpty() && !"auto".equalsIgnoreCase(cfg)) {
+            effort = cfg.toLowerCase(java.util.Locale.ROOT);
+        } else if (isKimiOrMoonshotModel(model) || isDeepSeekModel(model)) {
             effort = "low";
         }
         if (effort == null || effort.isBlank()) {
             return;
         }
+        if ("none".equals(effort) || "disabled".equals(effort) || "off".equals(effort)) {
+            if (isDeepSeekModel(model)) {
+                JsonObject thinking = new JsonObject();
+                thinking.addProperty("type", "disabled");
+                body.add("thinking", thinking);
+            }
+            return;
+        }
         if (!effort.equals("low") && !effort.equals("high") && !effort.equals("max")) {
-            logger.warn("Ungültiger agent.openai.reasoning_effort='{}' — ignoriere", configured);
+            logger.warn("Ungültiger agent.openai.reasoning_effort='{}' — ignoriere", cfg);
             return;
         }
         body.addProperty("reasoning_effort", effort);
+        if (isDeepSeekModel(model)) {
+            JsonObject thinking = new JsonObject();
+            thinking.addProperty("type", "enabled");
+            body.add("thinking", thinking);
+        }
     }
 
     static boolean isKimiOrMoonshotModel(String model) {
@@ -568,6 +623,167 @@ public class OpenAIBackend implements AIBackend {
         }
         String m = model.toLowerCase(java.util.Locale.ROOT);
         return m.contains("kimi") || m.contains("moonshot");
+    }
+
+    static boolean isDeepSeekModel(String model) {
+        if (model == null || model.isBlank()) {
+            return false;
+        }
+        return model.toLowerCase(java.util.Locale.ROOT).contains("deepseek");
+    }
+
+    private CompletionChunk executeChatCompletionOnceStreaming(JsonArray messages, int maxTokens,
+                                                               int userMessageLength, Consumer<String> onDelta) {
+        try {
+            HttpRequest request = buildChatCompletionRequest(messages, maxTokens, true);
+            HttpResponse<InputStream> response = sendStreamingWithGatewayRetry(request);
+            return readSseCompletion(response.body(), onDelta);
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (java.net.http.HttpTimeoutException e) {
+            String baseUrl = ResourceManager.getParameter("agent.openai.api_url", DEFAULT_BASE_URL);
+            int timeoutSec = requestTimeoutSeconds(baseUrl);
+            logger.error("OpenAI API Stream-Timeout nach {}s (Modell={}). User-Message {} Zeichen.",
+                    timeoutSec, currentModel, userMessageLength, e);
+            throw new RuntimeException("API-Timeout nach " + timeoutSec + " s (Modell " + currentModel
+                    + "). Kontext zu groß oder Modell zu langsam — siehe Log.", e);
+        } catch (Exception e) {
+            logger.error("OpenAI Stream Fehler (Modell={}): {}", currentModel, e.getMessage(), e);
+            throw new RuntimeException("OpenAI Fehler (Modell " + currentModel + "): " + e.getMessage(), e);
+        }
+    }
+
+    private CompletionChunk readSseCompletion(InputStream body, Consumer<String> onDelta) throws java.io.IOException {
+        StringBuilder content = new StringBuilder();
+        StringBuilder rawFallback = new StringBuilder();
+        String finishReason = "";
+        boolean sawSse = false;
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(body, StandardCharsets.UTF_8))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                rawFallback.append(line).append('\n');
+                String trimmed = line.trim();
+                if (trimmed.isEmpty() || trimmed.startsWith(":")) {
+                    continue;
+                }
+                if (!trimmed.startsWith("data:")) {
+                    continue;
+                }
+                sawSse = true;
+                String data = trimmed.substring("data:".length()).trim();
+                OpenAIChatCompletionParser.StreamEvent event = OpenAIChatCompletionParser.parseSseData(data);
+                if (event.errorMessage() != null && !event.errorMessage().isBlank()) {
+                    throw new RuntimeException("API-Fehler (Modell " + currentModel + "): " + event.errorMessage());
+                }
+                if (event.content() != null && !event.content().isEmpty()) {
+                    content.append(event.content());
+                    if (onDelta != null) {
+                        onDelta.accept(event.content());
+                    }
+                }
+                if (event.finishReason() != null && !event.finishReason().isBlank()) {
+                    finishReason = event.finishReason();
+                }
+                if (event.done()) {
+                    break;
+                }
+            }
+        }
+        if (!sawSse) {
+            return parseNonStreamFallback(rawFallback.toString(), onDelta);
+        }
+        boolean truncated = isOutputTruncated(finishReason);
+        if (truncated) {
+            logger.warn("OpenAI Stream: Antwort abgeschnitten (finish_reason={}, {} Zeichen bisher)",
+                    finishReason, content.length());
+        }
+        if (content.isEmpty() && truncated) {
+            return new CompletionChunk("", finishReason, true, null);
+        }
+        return new CompletionChunk(content.toString(), finishReason, truncated, null);
+    }
+
+    private CompletionChunk parseNonStreamFallback(String responseBody, Consumer<String> onDelta) {
+        JsonElement root;
+        try {
+            root = OpenAIChatCompletionParser.parseRoot(responseBody);
+        } catch (JsonSyntaxException e) {
+            logger.error("OpenAI Stream (Modell={}): weder SSE noch JSON. Anfang:\n{}",
+                    currentModel, preview(responseBody, 2500), e);
+            throw new RuntimeException("API-Antwort ist kein gültiges JSON (Modell "
+                    + currentModel + "): " + e.getMessage(), e);
+        }
+        JsonObject json = OpenAIChatCompletionParser.toCompletionEnvelope(root);
+        if (json == null) {
+            throw new RuntimeException("API-Antwortformat nicht erkannt (Modell " + currentModel + "). Details im Log.");
+        }
+        if (json.has("error")) {
+            JsonObject error = json.getAsJsonObject("error");
+            String errorMsg = error.has("message") ? error.get("message").getAsString() : error.toString();
+            throw new RuntimeException("API-Fehler (Modell " + currentModel + "): " + errorMsg);
+        }
+        JsonArray choices = json.getAsJsonArray("choices");
+        if (choices == null || choices.isEmpty()) {
+            throw new RuntimeException("Keine Antwort von der API erhalten (keine choices, Modell "
+                    + currentModel + ")");
+        }
+        JsonObject choice = choices.get(0).getAsJsonObject();
+        JsonObject message = choice.getAsJsonObject("message");
+        String text = message != null ? extractMessageContent(message, choice, responseBody) : "";
+        if (text == null) {
+            text = "";
+        }
+        if (!text.isEmpty() && onDelta != null) {
+            onDelta.accept(text);
+        }
+        String finishReason = "";
+        if (choice.has("finish_reason") && !choice.get("finish_reason").isJsonNull()) {
+            finishReason = choice.get("finish_reason").getAsString();
+        }
+        boolean truncated = isOutputTruncated(finishReason);
+        return new CompletionChunk(text, finishReason, truncated, extractReasoningText(message));
+    }
+
+    private HttpResponse<InputStream> sendStreamingWithGatewayRetry(HttpRequest request)
+            throws java.io.IOException, InterruptedException {
+        HttpResponse<InputStream> response = httpClient.send(request, HttpResponse.BodyHandlers.ofInputStream());
+        if (response.statusCode() == 200) {
+            return response;
+        }
+        String errorBody = readStreamAsString(response.body());
+        if (!GatewayHttpRetry.isRetryableStatus(response.statusCode())) {
+            throw httpError(response.statusCode(), errorBody);
+        }
+        logger.info("OpenAI Agent Stream: HTTP {} – ein Wiederholungsversuch nach {} ms…",
+                response.statusCode(), 1500);
+        GatewayHttpRetry.sleepBeforeRetry();
+        response = httpClient.send(request, HttpResponse.BodyHandlers.ofInputStream());
+        if (response.statusCode() != 200) {
+            throw httpError(response.statusCode(), readStreamAsString(response.body()));
+        }
+        return response;
+    }
+
+    private static String readStreamAsString(InputStream stream) {
+        if (stream == null) {
+            return "";
+        }
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
+            StringBuilder sb = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (sb.length() > 0) {
+                    sb.append('\n');
+                }
+                sb.append(line);
+                if (sb.length() > 4000) {
+                    break;
+                }
+            }
+            return sb.toString();
+        } catch (Exception e) {
+            return "";
+        }
     }
 
     private HttpResponse<String> sendWithGatewayRetry(HttpRequest request) throws java.io.IOException, InterruptedException {
@@ -600,13 +816,21 @@ public class OpenAIBackend implements AIBackend {
     }
 
     private RuntimeException httpError(HttpResponse<String> response) {
-        logger.error("OpenAI API Fehler {} (Modell={}): {}", response.statusCode(), currentModel,
-                preview(response.body(), 2500));
-        if (response.statusCode() == 413) {
+        return httpError(response.statusCode(), response.body());
+    }
+
+    private RuntimeException httpError(int statusCode, String body) {
+        logger.error("OpenAI API Fehler {} (Modell={}): {}", statusCode, currentModel,
+                preview(body, 2500));
+        if (statusCode == 413) {
             return new RuntimeException("OpenAI API Fehler 413: Request body zu groß. "
                     + "Der gesendete Text ist zu lang. Bitte Kontext reduzieren oder Projekt aufteilen.");
         }
-        return new RuntimeException("OpenAI API Fehler " + response.statusCode() + ": " + response.body());
+        if (statusCode == 524) {
+            return new RuntimeException("OpenAI API Fehler 524: Zeitüberschreitung am Gateway. "
+                    + "Die Anfrage hat zu lange gedauert. Bitte erneut versuchen oder ein schnelleres Modell wählen.");
+        }
+        return new RuntimeException("OpenAI API Fehler " + statusCode + ": " + preview(body, 400));
     }
 
     /**

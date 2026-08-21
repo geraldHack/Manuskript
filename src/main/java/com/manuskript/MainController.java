@@ -211,6 +211,8 @@ public class MainController implements Initializable {
     private int currentThemeIndex = 0;
 
     private boolean restoringMainWindowGeometry;
+    private boolean restoringProjectWindowGeometry;
+    private PauseTransition projectWindowGeometrySaveDelay;
     private boolean restoringMainTablesSplit;
     private double lastAppliedMainTablesSplit = -1;
     private boolean mainTablesSplitShownHookInstalled;
@@ -357,29 +359,36 @@ public class MainController implements Initializable {
             // Prüfe beim Start, ob Root-Verzeichnis konfiguriert ist (nur während Initialisierung)
             if (isInitializing) {
                 String rootDir = ResourceManager.getParameter("project.root.directory", "");
-                boolean openedBundledDemoRoot = false;
+                boolean openedDefaultProjectRoot = false;
                 if (rootDir == null || rootDir.trim().isEmpty()) {
-                    File defaultManuskripte = ApplicationPaths.resolveManuskripteDirectory();
-                    if (defaultManuskripte.isDirectory()) {
-                        rootDir = defaultManuskripte.getAbsolutePath();
+                    logger.debug("Root-Verzeichnis nicht gesetzt - zeige Welcome Screen");
+                    showRootDirectoryChooser();
+                    rootDir = ResourceManager.getParameter("project.root.directory", "");
+                    if (rootDir != null && !rootDir.trim().isEmpty()) {
+                        preferences.put("lastDirectory", rootDir);
+                        projectRootDirectory = new File(rootDir);
+                    }
+                    boolean startSetup = rootDir != null && !rootDir.trim().isEmpty();
+
+                    Platform.runLater(() -> {
+                        if (startSetup) {
+                            openSetupAssistantAndWait();
+                        }
+                        primaryStage.hide();
+                        showProjectSelectionMenu();
+                    });
+                } else {
+                    File rootDirFile = new File(rootDir);
+                    if (ApplicationPreferences.isPackagedApplication()
+                            && ApplicationPaths.shouldRelocateProjectRoot(rootDirFile)) {
+                        File migrated = ApplicationPaths.relocateProjectRootIfNeeded(rootDirFile);
+                        rootDir = migrated.getAbsolutePath();
                         ResourceManager.saveParameter("project.root.directory", rootDir);
                         preferences.put("lastDirectory", rootDir);
-                        projectRootDirectory = defaultManuskripte;
-                        openedBundledDemoRoot = ApplicationPreferences.isPackagedApplication();
-                        logger.info("Manuskripte-Verzeichnis als Default gesetzt: {}", rootDir);
-                    } else {
-                        logger.debug("Root-Verzeichnis nicht gesetzt - zeige Welcome Screen");
-                        showRootDirectoryChooser();
-
-                        Platform.runLater(() -> {
-                            primaryStage.hide();
-                            showProjectSelectionMenu();
-                        });
-                    }
-                } else {
-                    // Root-Verzeichnis ist gesetzt - prüfe ob es existiert
-                    File rootDirFile = new File(rootDir);
-                    if (!rootDirFile.exists()) {
+                        projectRootDirectory = migrated;
+                        openedDefaultProjectRoot = true;
+                        logger.info("Projektwurzel nach {} verschoben", rootDir);
+                    } else if (!rootDirFile.exists()) {
                         logger.debug("Root-Verzeichnis existiert nicht: " + rootDir + " - zeige Welcome Screen");
                         showRootDirectoryChooser();
                         
@@ -397,7 +406,7 @@ public class MainController implements Initializable {
                 isInitializing = false;
                 
                 // Jetzt loadLastDirectory() aufrufen, falls kein Welcome Screen gezeigt wurde
-                if (openedBundledDemoRoot) {
+                if (openedDefaultProjectRoot) {
                     Platform.runLater(() -> {
                         primaryStage.hide();
                         showProjectSelectionMenu();
@@ -739,10 +748,16 @@ public class MainController implements Initializable {
             }
 
             if (currentProjectStage != null && currentProjectStage.isShowing()) {
-                PreferencesManager.applyDefaultWindowGeometry(
-                        currentProjectStage,
-                        PreferencesManager.DEFAULT_PROJECT_WINDOW_WIDTH,
-                        PreferencesManager.DEFAULT_PROJECT_WINDOW_HEIGHT);
+                restoringProjectWindowGeometry = true;
+                try {
+                    PreferencesManager.applyDefaultWindowGeometry(
+                            currentProjectStage,
+                            PreferencesManager.DEFAULT_PROJECT_WINDOW_WIDTH,
+                            PreferencesManager.DEFAULT_PROJECT_WINDOW_HEIGHT);
+                    saveProjectWindowGeometryNow();
+                } finally {
+                    Platform.runLater(() -> restoringProjectWindowGeometry = false);
+                }
             }
 
             for (ChapterEditorHost host : new ArrayList<>(openChapterEditors.values())) {
@@ -945,10 +960,13 @@ public class MainController implements Initializable {
         
         // Mouse-Click-Handler für sofortige Selektion und Doppelklick zum Öffnen
         tableViewSelected.setOnMouseClicked(event -> {
+            if (event.getButton() != MouseButton.PRIMARY) {
+                return;
+            }
             tableViewSelected.refresh();
             
             // Doppelklick öffnet den Editor
-            if (event.getClickCount() == 2 && event.getButton() == MouseButton.PRIMARY
+            if (event.getClickCount() == 2
                     && !isClickOnColumn(event, colNotesSelected)
                     && !isClickOnColumn(event, colStatusSelected)) {
                 DocxFile selectedFile = tableViewSelected.getSelectionModel().getSelectedItem();
@@ -962,6 +980,13 @@ public class MainController implements Initializable {
         // Tastatur-Pfeiltasten für interne Umsortierung (mit Modifier-Tasten)
         tableViewSelected.setOnKeyPressed(event -> {
             ObservableList<DocxFile> selectedItems = tableViewSelected.getSelectionModel().getSelectedItems();
+            if (!selectedItems.isEmpty()
+                    && event.getCode() == KeyCode.F2
+                    && !event.isControlDown() && !event.isMetaDown() && !event.isAltDown()) {
+                promptRenameChapter(selectedItems.get(0));
+                event.consume();
+                return;
+            }
             if (!selectedItems.isEmpty()) {
                 DocxFile fileToMove = selectedItems.get(0);
                 int currentIndex = selectedDocxFiles.indexOf(fileToMove);
@@ -1297,10 +1322,21 @@ public class MainController implements Initializable {
         projectTitleLabel.setText(name);
     }
     
+    /**
+     * Schreibbarer Projektstamm: installierte App nutzt Dokumente/Manuskript
+     * (Demo wird nur beim ersten Start kopiert), Entwicklung den lokalen Manuskripte-Ordner.
+     */
+    private File defaultWritableProjectRoot() {
+        if (ApplicationPreferences.isPackagedApplication()) {
+            return ApplicationPaths.ensureUserProjectsWithDemo();
+        }
+        return ApplicationPaths.resolveManuskripteDirectory();
+    }
+
     private void loadLastDirectory() {
         String lastDirectory = preferences.get("lastDirectory", "");
         if (lastDirectory == null || lastDirectory.isEmpty()) {
-            File defaultDir = ApplicationPaths.resolveManuskripteDirectory();
+            File defaultDir = defaultWritableProjectRoot();
             if (defaultDir.isDirectory()) {
                 lastDirectory = defaultDir.getAbsolutePath();
                 preferences.put("lastDirectory", lastDirectory);
@@ -6182,6 +6218,103 @@ public class MainController implements Initializable {
             }
         }
     }
+
+    /**
+     * Benennt ein Kapitel um (DOCX und alle zugehörigen Dateien unter data/).
+     */
+    private void promptRenameChapter(DocxFile chapter) {
+        if (chapter == null || chapter.getFile() == null) {
+            return;
+        }
+        String oldBase = ChapterRenameService.baseNameOf(chapter.getFile());
+        String editorKey = oldBase + ".md";
+        if (findExistingChapterEditor(editorKey) != null) {
+            showWarning("Kapitel ist geöffnet",
+                    "Bitte schließen Sie zuerst den Kapitel-Editor für „" + oldBase + "“.");
+            return;
+        }
+        if (isChapterTtsEditorOpen(chapter.getFileName())) {
+            showWarning("Sprachsynthese ist geöffnet",
+                    "Bitte schließen Sie zuerst den Sprachsynthese-Editor für „" + oldBase + "“.");
+            return;
+        }
+
+        CustomAlert alert = new CustomAlert(Alert.AlertType.CONFIRMATION, "Kapitel umbenennen");
+        alert.setHeaderText("Neuer Name für „" + oldBase + "“");
+        TextField nameField = new TextField(oldBase);
+        nameField.setPrefWidth(360);
+        Label hint = new Label("DOCX und alle Dateien unter data/ (Markdown, TTS, Historie, Agenten, Notizen, Status) werden mit umbenannt.");
+        hint.setWrapText(true);
+        hint.setMaxWidth(360);
+        VBox content = new VBox(10, nameField, hint);
+        content.setPadding(new Insets(10));
+        alert.setCustomContent(content);
+        alert.applyTheme(currentThemeIndex);
+        alert.initOwner(primaryStage);
+        ButtonType renameButton = new ButtonType("Umbenennen");
+        ButtonType cancelButton = new ButtonType("Abbrechen");
+        alert.setButtonTypes(renameButton, cancelButton);
+
+        Optional<ButtonType> result = alert.showAndWait();
+        if (result.isEmpty() || result.get() != renameButton) {
+            return;
+        }
+        String requested = nameField.getText() != null ? nameField.getText().trim() : "";
+        try {
+            ChapterRenameService.Result renamed = ChapterRenameService.rename(chapter.getFile(), requested);
+            DocxFile replacement = new DocxFile(renamed.newDocxFile);
+            replacement.setNotes(chapter.getNotes());
+            replacement.setStatus(chapter.getStatus());
+            replacement.setChanged(chapter.isChanged());
+            replaceChapterInLists(chapter, replacement);
+            ChapterEditorViewState.rekey(editorKey, ChapterRenameService.baseNameOf(renamed.newDocxFile) + ".md");
+            File currentDir = getCurrentDirectory();
+            if (currentDir != null) {
+                saveSelection(currentDir);
+            }
+            tableViewAvailable.refresh();
+            tableViewSelected.refresh();
+            tableViewSelected.getSelectionModel().select(replacement);
+            String status = "Kapitel umbenannt in „" + ChapterRenameService.baseNameOf(renamed.newDocxFile) + "“";
+            if (!renamed.warnings.isEmpty()) {
+                status += " (" + renamed.warnings.size() + " Hinweis(e))";
+                logger.warn("Kapitel-Umbenennung mit Hinweisen: {}", renamed.warnings);
+            }
+            updateStatus(status);
+        } catch (Exception e) {
+            logger.error("Kapitel umbenennen fehlgeschlagen", e);
+            showError("Umbenennen fehlgeschlagen", e.getMessage());
+        }
+    }
+
+    private void replaceChapterInLists(DocxFile oldFile, DocxFile newFile) {
+        replaceInList(selectedDocxFiles, oldFile, newFile);
+        replaceInList(allDocxFiles, oldFile, newFile);
+        replaceInList(originalDocxFiles, oldFile, newFile);
+        if (filesWithSearchMatches.remove(oldFile)) {
+            filesWithSearchMatches.add(newFile);
+        }
+    }
+
+    private static void replaceInList(ObservableList<DocxFile> list, DocxFile oldFile, DocxFile newFile) {
+        int index = list.indexOf(oldFile);
+        if (index >= 0) {
+            list.set(index, newFile);
+        }
+    }
+
+    private static boolean isChapterTtsEditorOpen(String docxFileName) {
+        String expected = "Sprachsynthese: " + docxFileName;
+        for (Window window : Window.getWindows()) {
+            if (window instanceof Stage stage && stage.isShowing()) {
+                String title = stage.getTitle();
+                if (expected.equals(title) || (title != null && title.contains(expected))) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
     
     /**
      * Erstellt DOCX und MD Dateien für ein neues Kapitel
@@ -6805,64 +6938,86 @@ public class MainController implements Initializable {
     }
 
     /**
-     * Lädt die Projektfenster-Eigenschaften aus den Preferences mit Multi-Monitor-Validierung
+     * Lädt Größe und Position der Projektauswahl. Muss nach setSceneWithTitleBar laufen,
+     * sonst überschreibt JavaFX die Werte mit der Scene-Preferred-Size.
      */
     private void loadProjectWindowProperties(CustomStage projectStage) {
-        if (preferences != null) {
-            // Verwende die neue Multi-Monitor-Validierung
-            Rectangle2D windowBounds = PreferencesManager.MultiMonitorValidator.loadAndValidateWindowProperties(
-                preferences, "project_window", 1200.0, 800.0);
-            
-            // Wende die validierten Eigenschaften an
+        if (projectStage == null || preferences == null) {
+            return;
+        }
+        projectStage.setMinWidth(PreferencesManager.MIN_WINDOW_WIDTH);
+        projectStage.setMinHeight(PreferencesManager.MIN_WINDOW_HEIGHT);
+        projectStage.setResizable(true);
+
+        Rectangle2D windowBounds = PreferencesManager.MultiMonitorValidator.loadAndValidateWindowProperties(
+                preferences, "project_window",
+                PreferencesManager.DEFAULT_PROJECT_WINDOW_WIDTH,
+                PreferencesManager.DEFAULT_PROJECT_WINDOW_HEIGHT);
+        applyProjectWindowGeometry(projectStage, windowBounds);
+        projectStage.setOnShown(e -> {
+            applyProjectWindowGeometry(projectStage, windowBounds);
+            Platform.runLater(() -> applyProjectWindowGeometry(projectStage, windowBounds));
+        });
+    }
+
+    private void applyProjectWindowGeometry(CustomStage projectStage, Rectangle2D windowBounds) {
+        if (projectStage == null || windowBounds == null) {
+            return;
+        }
+        restoringProjectWindowGeometry = true;
+        try {
             PreferencesManager.MultiMonitorValidator.applyWindowProperties(projectStage, windowBounds);
-            
-            // Setze Mindestgrößen und Resizable
-            projectStage.setMinWidth(800);
-            projectStage.setMinHeight(600);
-            projectStage.setResizable(true);
-            
-            // Listener werden in addProjectWindowListeners() hinzugefügt
+        } finally {
+            Platform.runLater(() -> restoringProjectWindowGeometry = false);
         }
     }
-    
-    /**
-     * Fügt Listener für Projekt-Fenster hinzu
-     */
+
     private void addProjectWindowListeners(CustomStage projectStage) {
-        Preferences preferences = ApplicationPreferences.mainControllerNode();
-        Screen primaryScreen = Screen.getPrimary();
-        Rectangle2D screenBounds = primaryScreen.getBounds();
-        double screenWidth = screenBounds.getWidth();
-        double screenHeight = screenBounds.getHeight();
-        
-        
-        // Fenster-Position und Größe speichern (lockere Validierung für große Bildschirme)
-        projectStage.xProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal.doubleValue() >= -100 && newVal.doubleValue() <= screenWidth + 100) {
-                preferences.putDouble("project_window_x", newVal.doubleValue());
-            }
-        });
-        projectStage.yProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal.doubleValue() >= -100 && newVal.doubleValue() <= screenHeight + 100) {
-                preferences.putDouble("project_window_y", newVal.doubleValue());
-            }
-        });
-        projectStage.widthProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal.doubleValue() >= 800) {
-                preferences.putDouble("project_window_width", newVal.doubleValue());
-            }
-        });
-        projectStage.heightProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal.doubleValue() >= 600) {
-                preferences.putDouble("project_window_height", newVal.doubleValue());
-            }
-        });
-        projectStage.maximizedProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal) {
-                preferences.putDouble("project_window_width", screenWidth);
-                preferences.putDouble("project_window_height", screenHeight);
-            }
-        });
+        if (projectWindowGeometrySaveDelay == null) {
+            projectWindowGeometrySaveDelay = new PauseTransition(Duration.millis(450));
+            projectWindowGeometrySaveDelay.setOnFinished(e -> saveProjectWindowGeometryNow());
+        }
+        projectStage.xProperty().addListener((obs, oldVal, newVal) -> scheduleProjectWindowGeometrySave());
+        projectStage.yProperty().addListener((obs, oldVal, newVal) -> scheduleProjectWindowGeometrySave());
+        projectStage.widthProperty().addListener((obs, oldVal, newVal) -> scheduleProjectWindowGeometrySave());
+        projectStage.heightProperty().addListener((obs, oldVal, newVal) -> scheduleProjectWindowGeometrySave());
+        projectStage.setOnHiding(e -> saveProjectWindowGeometryNow());
+    }
+
+    private void scheduleProjectWindowGeometrySave() {
+        if (restoringProjectWindowGeometry || currentProjectStage == null || projectWindowGeometrySaveDelay == null) {
+            return;
+        }
+        if (currentProjectStage.isEffectivelyMaximized()) {
+            return;
+        }
+        projectWindowGeometrySaveDelay.playFromStart();
+    }
+
+    private void saveProjectWindowGeometryNow() {
+        CustomStage projectStage = currentProjectStage;
+        if (projectStage == null || preferences == null) {
+            return;
+        }
+        double x;
+        double y;
+        double width;
+        double height;
+        if (projectStage.isEffectivelyMaximized() && projectStage.hasPreMaximizeBounds()) {
+            x = projectStage.getPreMaximizeX();
+            y = projectStage.getPreMaximizeY();
+            width = projectStage.getPreMaximizeWidth();
+            height = projectStage.getPreMaximizeHeight();
+        } else {
+            x = projectStage.getX();
+            y = projectStage.getY();
+            width = projectStage.getWidth();
+            height = projectStage.getHeight();
+        }
+        PreferencesManager.putWindowWidth(preferences, "project_window_width", width);
+        PreferencesManager.putWindowHeight(preferences, "project_window_height", height);
+        PreferencesManager.putWindowPosition(preferences, "project_window_x", x);
+        PreferencesManager.putWindowPosition(preferences, "project_window_y", y);
     }
     /**
      * Zeigt das übergeordnete Projektauswahl-Menü
@@ -6873,12 +7028,10 @@ public class MainController implements Initializable {
             // Erstelle CustomStage für Projektauswahl
             CustomStage projectStage = new CustomStage();
             projectStage.setCustomTitle("Projektauswahl");
+            projectStage.setWindowPersistenceType("project");
             
             // WICHTIG: Theme sofort setzen (vollständiges Theme)
             projectStage.setFullTheme(currentThemeIndex);
-            
-            // Lade Fenster-Eigenschaften aus Preferences
-            loadProjectWindowProperties(projectStage);
             
             // Haupt-Layout
             VBox mainLayout = new VBox(10);
@@ -6993,12 +7146,13 @@ public class MainController implements Initializable {
             
             projectStage.setSceneWithTitleBar(scene);
             
-            // WICHTIG: Listener NACH setSceneWithTitleBar hinzufügen
+            // Listener und Geometrie NACH setSceneWithTitleBar, sonst überschreibt die Scene die Größe
             addProjectWindowListeners(projectStage);
-            
-            // CustomStage Theme anwenden NACH setSceneWithTitleBar
             projectStage.setFullTheme(currentThemeIndex);
-            projectStage.initOwner(primaryStage);
+            if (primaryStage != null) {
+                projectStage.initOwner(primaryStage);
+            }
+            loadProjectWindowProperties(projectStage);
             projectStage.showAndWait();
             
         } catch (Exception e) {
@@ -7781,10 +7935,10 @@ public class MainController implements Initializable {
             
             // WICHTIG: Theme sofort setzen
             chooserStage.setTitleBarTheme(currentThemeIndex);
-            chooserStage.setMinHeight(400);
+            chooserStage.setMinHeight(440);
             // KEINE setMaxHeight - erlaube große Fenster
-            chooserStage.setWidth(600);
-            chooserStage.setHeight(400);
+            chooserStage.setWidth(620);
+            chooserStage.setHeight(460);
             chooserStage.setResizable(false);
             
             // Layout
@@ -7799,8 +7953,10 @@ public class MainController implements Initializable {
             
             // Beeindruckende Beschreibung
             Label descLabel = new Label("Das Tool für das Importieren, Editieren, Fehler suchen, Lektorieren und Exportieren von Prosa-Texten.\n\n" +
-                "Wähle das Root-Verzeichnis für deine Manuskript-Projekte. Serien werden als Unterordner erkannt und " +
-                "automatisch organisiert. Jedes Projekt kann mehrere Kapitel enthalten und wird intelligent verwaltet.");
+                "Wähle das Root-Verzeichnis für deine Manuskript-Projekte (Standard: Dokumente/Manuskript, außerhalb der App). " +
+                "Serien werden als Unterordner erkannt.\n\n" +
+                "Danach öffnet sich der Setup-Assistent: optionale Werkzeuge wie Pandoc, LanguageTool und Ollama kannst du dort einrichten. " +
+                "Schreiben geht auch ohne sie.");
             descLabel.getStyleClass().add("project-info");
             descLabel.setWrapText(true);
             descLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #34495e; -fx-line-spacing: 2px;");
@@ -7809,10 +7965,13 @@ public class MainController implements Initializable {
             HBox dirBox = new HBox(10);
             dirBox.setAlignment(Pos.CENTER);
             
-            File defaultManuskripteDir = ApplicationPaths.resolveManuskripteDirectory();
-            String initialDir = defaultManuskripteDir.isDirectory()
+            File defaultManuskripteDir = defaultWritableProjectRoot();
+            if (defaultManuskripteDir != null && !defaultManuskripteDir.isDirectory()) {
+                defaultManuskripteDir.mkdirs();
+            }
+            String initialDir = defaultManuskripteDir != null
                     ? defaultManuskripteDir.getAbsolutePath()
-                    : ApplicationPaths.getApplicationHomeDirectory().getAbsolutePath();
+                    : ApplicationPaths.defaultUserProjectsDirectory().getAbsolutePath();
 
             TextField dirField = new TextField(initialDir);
             dirField.setPrefWidth(300);
@@ -9242,6 +9401,27 @@ public class MainController implements Initializable {
                     }
                 }
             };
+            ContextMenu contextMenu = new ContextMenu();
+            MenuItem renameItem = new MenuItem("Umbenennen…");
+            renameItem.setOnAction(evt -> {
+                DocxFile item = row.getItem();
+                if (item == null) {
+                    item = tableViewSelected.getSelectionModel().getSelectedItem();
+                }
+                final DocxFile chapter = item;
+                if (chapter != null) {
+                    Platform.runLater(() -> promptRenameChapter(chapter));
+                }
+            });
+            contextMenu.getItems().add(renameItem);
+            row.contextMenuProperty().bind(
+                    Bindings.when(row.emptyProperty()).then((ContextMenu) null).otherwise(contextMenu));
+            row.setOnContextMenuRequested(evt -> {
+                if (!row.isEmpty()) {
+                    tableViewSelected.getSelectionModel().clearAndSelect(row.getIndex());
+                }
+                EditorDialogThemes.styleContextMenu(contextMenu, currentThemeIndex);
+            });
             return row;
         });
     }
@@ -9528,6 +9708,12 @@ public class MainController implements Initializable {
         Window owner = primaryStage != null && primaryStage.getScene() != null
                 ? primaryStage.getScene().getWindow() : null;
         SetupAssistantWindow.show(owner, currentThemeIndex);
+    }
+
+    private void openSetupAssistantAndWait() {
+        Window owner = primaryStage != null && primaryStage.getScene() != null
+                ? primaryStage.getScene().getWindow() : null;
+        SetupAssistantWindow.show(owner, currentThemeIndex, true);
     }
 
     public ChapterMarkdownContent loadSelectedChapterMarkdownForCanvas() {

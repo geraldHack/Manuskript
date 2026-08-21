@@ -646,8 +646,8 @@ public class ChapterAgentSupport {
         String agentName = config.getName() != null ? config.getName() : "Agent";
         logger.info("{}: Manuskript={} Zeichen, Kontext={} Zeichen, max_output_tokens={}",
                 agentName, text.length(), allChapters.length(), maxOutputTokens);
-        agent.analyze(text, allChapters, maxOutputTokens)
-                .thenAccept(targetTab::showParseResult)
+        agent.analyze(text, allChapters, maxOutputTokens, null, targetTab::appendLiveFinding)
+                .thenAccept(targetTab::finishLiveAnalysis)
                 .exceptionally(ex -> {
                     String detail = AgentAnalysisErrors.format(ex);
                     logger.error("{} fehlgeschlagen (Modell={}, Backend={}): {}",
@@ -778,7 +778,11 @@ public class ChapterAgentSupport {
                         : agentBackends.values().iterator().next();
                 return backend.getAvailableModels();
             } catch (Exception e) {
-                return java.util.Arrays.asList("gemma3:4b", "mistral:7b-instruct", "llama3.1:8b-instruct");
+                return java.util.Arrays.asList(
+                        ParameterRegistry.DEFAULT_OLLAMA_MODEL,
+                        "gemma3:4b",
+                        "mistral:7b-instruct",
+                        "llama3.1:8b-instruct");
             }
         }).thenAccept(models -> Platform.runLater(() -> {
             if (agentTabPane == null) {

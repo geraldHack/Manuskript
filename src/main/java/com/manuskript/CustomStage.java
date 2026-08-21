@@ -78,6 +78,7 @@ public class CustomStage extends Stage {
     
     private double xOffset = 0;
     private double yOffset = 0;
+    private boolean restoreInputPending = false;
     private boolean isMaximized = false;
     private double restoreX;
     private double restoreY;
@@ -115,6 +116,8 @@ public class CustomStage extends Stage {
                 maximizeBtn.setText(newVal ? DEFAULT_MAXIMIZE_SYMBOL_MAXIMIZED : DEFAULT_MAXIMIZE_SYMBOL);
             }
         });
+
+        installMinimizeRestoreRecovery();
     }
 
     /**
@@ -129,6 +132,69 @@ public class CustomStage extends Stage {
             useMacWindowManager = false;
             logger.debug("Nicht-macOS System erkannt - Standard Window Handling wird verwendet");
         }
+    }
+
+    /**
+     * UNDECORATED-Fenster (besonders macOS) verlieren nach Minimieren/Wiederherstellen oft
+     * Maus-Events. Eingabezustand zurücksetzen und natives Fenster neu anbinden.
+     */
+    private void installMinimizeRestoreRecovery() {
+        iconifiedProperty().addListener((obs, wasIconified, isIconified) -> {
+            if (Boolean.TRUE.equals(isIconified)) {
+                restoreInputPending = true;
+                resetTransientInputState();
+                return;
+            }
+            if (restoreInputPending || Boolean.TRUE.equals(wasIconified)) {
+                restoreInputPending = false;
+                Platform.runLater(this::recoverAfterRestoreFromMinimize);
+            }
+        });
+        focusedProperty().addListener((obs, wasFocused, isFocused) -> {
+            if (Boolean.TRUE.equals(isFocused) && restoreInputPending && !isIconified()) {
+                restoreInputPending = false;
+                Platform.runLater(this::recoverAfterRestoreFromMinimize);
+            }
+        });
+    }
+
+    private void resetTransientInputState() {
+        isResizing = false;
+        resizeDirection = "";
+        Scene scene = getScene();
+        if (scene != null && !cursorLocked) {
+            scene.setCursor(javafx.scene.Cursor.DEFAULT);
+        }
+    }
+
+    private void recoverAfterRestoreFromMinimize() {
+        resetTransientInputState();
+        if (isIconified()) {
+            return;
+        }
+        toFront();
+        requestFocus();
+        Scene scene = getScene();
+        if (scene != null && scene.getRoot() != null) {
+            scene.getRoot().requestLayout();
+        }
+        final double width = getWidth();
+        final double height = getHeight();
+        if (width <= 1 || height <= 1 || Double.isNaN(width) || Double.isNaN(height)) {
+            return;
+        }
+        setWidth(width + 1);
+        Platform.runLater(() -> {
+            if (isIconified()) {
+                return;
+            }
+            setWidth(width);
+            requestFocus();
+            Scene restoredScene = getScene();
+            if (restoredScene != null && restoredScene.getRoot() != null) {
+                restoredScene.getRoot().requestLayout();
+            }
+        });
     }
     
     public CustomStage(StageStyle style) {
@@ -153,6 +219,8 @@ public class CustomStage extends Stage {
                 }
             }
         });
+
+        installMinimizeRestoreRecovery();
     }
     
     /**

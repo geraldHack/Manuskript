@@ -1,6 +1,7 @@
 package com.manuskript.novelwizard;
 
 import com.manuskript.OllamaService;
+import com.manuskript.ParameterRegistry;
 import com.manuskript.ResourceManager;
 import com.manuskript.agent.AIBackend;
 import com.manuskript.agent.OllamaBackend;
@@ -145,7 +146,7 @@ public class NovelWizardAiService {
             backend.setTemperature(ResourceManager.getDoubleParameter("agent.openai.temperature", 0.7));
         } else {
             backend = new OllamaBackend(new OllamaService());
-            backend.setCurrentModel(ResourceManager.getParameter("agent.ollama.model", "gemma3:4b"));
+            backend.setCurrentModel(ResourceManager.getParameter("agent.ollama.model", ParameterRegistry.DEFAULT_OLLAMA_MODEL));
             backend.setTemperature(ResourceManager.getDoubleParameter("ollama.temperature", 0.5));
         }
         return backend;

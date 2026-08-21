@@ -92,7 +92,7 @@ public final class OnlineLektoratStartDialog {
             extraPromptArea.setText(defaultExtra);
         }
         extraPromptArea.setTooltip(new Tooltip(
-                "Vorbelegt aus Parameter api.lektorat.extra_prompt. Änderungen gelten nur für diesen Lauf."));
+                "Wird beim Start gespeichert und beim nächsten Lektorat wieder vorausgefüllt."));
 
         CheckBox assessmentCheckBox = new CheckBox("Zusätzliche Kapitel-Einschätzung erstellen");
         assessmentCheckBox.setTooltip(new Tooltip(
@@ -152,6 +152,8 @@ public final class OnlineLektoratStartDialog {
             }
             String type = OnlineLektoratService.serializeLektoratTypes(selected);
             String extra = extraPromptArea.getText() != null ? extraPromptArea.getText().trim() : "";
+            ResourceManager.saveParameter("api.lektorat.type", type);
+            ResourceManager.saveParameter("api.lektorat.extra_prompt", extra);
             result[0] = new StartOptions(assessmentCheckBox.isSelected(), type, extra);
             dialogStage.close();
         });

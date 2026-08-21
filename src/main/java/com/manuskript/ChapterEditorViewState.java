@@ -31,4 +31,19 @@ public final class ChapterEditorViewState {
         }
         return new ViewState(CARET_BY_KEY.get(editorKey), SCROLL_RATIO_BY_KEY.get(editorKey));
     }
+
+    /** Überträgt die gemerkte Leseposition auf den neuen Kapitel-Schlüssel. */
+    public static void rekey(String oldEditorKey, String newEditorKey) {
+        if (oldEditorKey == null || newEditorKey == null || oldEditorKey.equals(newEditorKey)) {
+            return;
+        }
+        Integer caret = CARET_BY_KEY.remove(oldEditorKey);
+        Double scroll = SCROLL_RATIO_BY_KEY.remove(oldEditorKey);
+        if (caret != null) {
+            CARET_BY_KEY.put(newEditorKey, caret);
+        }
+        if (scroll != null) {
+            SCROLL_RATIO_BY_KEY.put(newEditorKey, scroll);
+        }
+    }
 }

@@ -91,7 +91,6 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
     private static final String PREF_SIDEBAR_EXPANDED = CanvasEditorPrefs.key("sidebar_expanded");
     private static final String PREF_HOST_TOOLBAR_EXPANDED = CanvasEditorPrefs.key("host_toolbar_expanded");
 
-    private final Window owner;
     private final MainController mainController;
     private final Preferences preferences = Preferences.userNodeForPackage(ManuskriptEditorTestWindow.class);
     private CustomStage stage;
@@ -101,6 +100,7 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
     private ProgressBar agentStatusBusyBar;
     private Label lblSelectionCount;
     private Label lblLanguageToolStatus;
+    private Button btnLanguageToolNext;
     private boolean editingShortcutsInstalled;
     private LanguageToolDictionary languageToolDictionary;
     private LanguageToolService languageToolService;
@@ -171,7 +171,6 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
     private boolean suppressViewStateSave;
 
     public ManuskriptEditorTestWindow(Window owner, MainController mainController) {
-        this.owner = owner;
         this.mainController = mainController;
         createUI();
     }
@@ -191,9 +190,6 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         migrateLegacyPrototypePrefs();
         stage = StageManager.createStage("Kapitel-Editor");
         stage.setWindowPersistenceType(CanvasEditorPrefs.WINDOW_TYPE);
-        if (owner instanceof javafx.stage.Stage ownerStage) {
-            stage.initOwner(ownerStage);
-        }
         stage.setMinWidth(900);
         stage.setMinHeight(650);
 
@@ -825,6 +821,19 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         lblLanguageToolStatus = new Label("");
         lblLanguageToolStatus.setTooltip(new Tooltip("LanguageTool Status"));
         lblLanguageToolStatus.setStyle("-fx-text-fill: #666; -fx-font-size: 11px;");
+
+        btnLanguageToolNext = new Button("↓");
+        btnLanguageToolNext.setTooltip(new Tooltip(
+                "Zum nächsten LanguageTool-Fehler nach der Cursor-Position springen ("
+                        + EditingShortcuts.acceleratorHint("N") + ")"));
+        btnLanguageToolNext.setOnAction(e -> jumpToNextLanguageToolError());
+        btnLanguageToolNext.setDisable(true);
+        btnLanguageToolNext.setMinWidth(28);
+        btnLanguageToolNext.setPrefHeight(22);
+        btnLanguageToolNext.setMaxHeight(22);
+
+        HBox languageToolStatusBox = new HBox(4, lblLanguageToolStatus, btnLanguageToolNext);
+        languageToolStatusBox.setAlignment(Pos.CENTER_LEFT);
         updateLanguageToolStatus();
 
         Button saveChapter = new Button("Speichern");
@@ -921,7 +930,7 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         toggleRow.setPadding(new Insets(2, 0, 2, 0));
 
         statusRow.getChildren().addAll(editorHelpMenu, statusSpacer, cmbMdHistory, btnHistoryDiff,
-                btnHistoryRestore, saveChapter, saveDocxAlongside, lblLanguageToolStatus, lblSelectionCount, statusLabel);
+                btnHistoryRestore, saveChapter, saveDocxAlongside, languageToolStatusBox, lblSelectionCount, statusLabel);
         statusRow.setAlignment(Pos.CENTER_RIGHT);
 
         FlowPane formatPane = new FlowPane(6, 4);
@@ -1257,6 +1266,8 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         }));
         EditingShortcuts.bindPlatformAccelerators(accelerators, "M",
                 () -> Platform.runLater(() -> HelpSystem.showHelpWindow("markdown_syntax.html")));
+        EditingShortcuts.bindPlatformAccelerators(accelerators, "N",
+                () -> Platform.runLater(this::jumpToNextLanguageToolError));
 
         stage.addEventFilter(KeyEvent.KEY_PRESSED, mdTextArea::handleSearchNavigationKey);
         editingShortcutsInstalled = true;
@@ -1558,11 +1569,27 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         }
     }
 
+    private void jumpToNextLanguageToolError() {
+        LanguageToolService.Match next = editor.revealNextLanguageToolMatchFromCaret();
+        if (next == null) {
+            updateStatus("Keine LanguageTool-Fehler");
+            return;
+        }
+        String msg = next.getShortMessage();
+        if (msg == null || msg.isBlank()) {
+            msg = next.getMessage();
+        }
+        updateStatus(msg != null && !msg.isBlank() ? "LanguageTool: " + msg : "Nächster LanguageTool-Fehler");
+    }
+
     private void updateLanguageToolStatus() {
         if (lblLanguageToolStatus == null) {
             return;
         }
         int count = editor.getLanguageToolMatchCount();
+        if (btnLanguageToolNext != null) {
+            btnLanguageToolNext.setDisable(count <= 0);
+        }
         if (!languageToolAutoEnabled && !languageToolHasBeenChecked) {
             lblLanguageToolStatus.setText("");
             lblLanguageToolStatus.setStyle("-fx-text-fill: #666; -fx-font-size: 11px;");

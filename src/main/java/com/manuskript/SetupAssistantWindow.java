@@ -6,6 +6,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.ScrollPane;
@@ -34,6 +35,10 @@ public final class SetupAssistantWindow {
     }
 
     public static void show(Window owner, int themeIndex) {
+        show(owner, themeIndex, false);
+    }
+
+    public static void show(Window owner, int themeIndex, boolean wait) {
         CustomStage stage = StageManager.createStage("Setup-Assistent", owner, false);
         stage.setCustomTitle("Setup-Assistent – Voraussetzungen");
 
@@ -101,7 +106,11 @@ public final class SetupAssistantWindow {
         stage.setFullTheme(themeIndex);
         refreshHolder[0].run();
         Platform.runLater(() -> applyScrollBackground(scroll, bg));
-        stage.show();
+        if (wait) {
+            stage.showAndWait();
+        } else {
+            stage.show();
+        }
         Platform.runLater(() -> applyScrollBackground(scroll, bg));
     }
 
@@ -119,18 +128,58 @@ public final class SetupAssistantWindow {
 
         HBox box = new HBox(10, row);
         box.setAlignment(Pos.CENTER_LEFT);
+
+        boolean offerSwitch = item.offerOllamaBackendSwitch();
+        CheckBox switchToOllama = offerSwitch ? createOllamaBackendSwitchCheckbox() : null;
+        Label switchHint = offerSwitch ? createOllamaBackendSwitchHint() : null;
+
         if (item.toolId() != null && item.needsAction()) {
             Button action = new Button(item.actionLabel());
             action.getStyleClass().add("dialog-button");
-            action.setOnAction(e ->
-                    runInstallDialog(setupStage, themeIndex, item.toolId(), item.actionLabel(), refreshUi));
+            boolean installOllama = item.installOllama();
+            action.setOnAction(e -> runInstallDialog(
+                    setupStage,
+                    themeIndex,
+                    item.toolId(),
+                    item.actionLabel(),
+                    installOllama,
+                    switchToOllama != null && switchToOllama.isSelected(),
+                    refreshUi));
             box.getChildren().add(action);
         }
+
+        if (!offerSwitch) {
+            return box;
+        }
+        VBox extras = new VBox(6, switchToOllama, switchHint);
+        extras.setPadding(new Insets(0, 0, 4, 28));
+        return new VBox(6, box, extras);
+    }
+
+    private static CheckBox createOllamaBackendSwitchCheckbox() {
+        CheckBox box = new CheckBox("In den Parametern auf Ollama umschalten (statt OpenAI)");
+        box.setSelected(true);
+        box.setWrapText(true);
+        box.setMaxWidth(680);
+        box.getStyleClass().add("dialog-label");
         return box;
     }
 
+    private static Label createOllamaBackendSwitchHint() {
+        Label hint = new Label(
+                "Hinweis: agent.backend steht aktuell auf OpenAI. Ohne Umschalten nutzen die Agenten "
+                        + "weiter die Cloud-API – auch wenn Ollama lokal installiert ist. "
+                        + "Das lässt sich später unter Parameter → Agenten ändern.");
+        hint.setWrapText(true);
+        hint.setMaxWidth(680);
+        hint.getStyleClass().add("dialog-label");
+        hint.setStyle("-fx-font-weight: normal; -fx-opacity: 0.85; -fx-font-size: 12px;");
+        return hint;
+    }
+
     private static void runInstallDialog(Window setupStage, int themeIndex, ToolSetupSupport.ToolId toolId,
-                                         String titleText, Runnable onDone) {
+                                         String titleText, boolean installOllama, boolean switchBackendToOllama,
+                                         Runnable onDone) {
         // Owner = Setup-Assistent (nicht Hauptfenster), sonst rutscht der Assistent nach Schließen nach hinten.
         CustomStage dialog = StageManager.createModalStage(titleText, setupStage);
         dialog.initModality(Modality.WINDOW_MODAL);
@@ -156,7 +205,18 @@ public final class SetupAssistantWindow {
             focusSetupStage(setupStage);
         });
 
-        VBox root = new VBox(12, title, bar, logArea, closeBtn);
+        AtomicBoolean switchFlag = new AtomicBoolean(switchBackendToOllama);
+        VBox root = new VBox(12);
+        root.getChildren().add(title);
+        if (installOllama && isOpenAiAgentBackend()) {
+            CheckBox dialogSwitch = createOllamaBackendSwitchCheckbox();
+            dialogSwitch.setSelected(switchBackendToOllama);
+            dialogSwitch.selectedProperty().addListener((obs, oldVal, selected) -> switchFlag.set(selected));
+            Label dialogHint = createOllamaBackendSwitchHint();
+            root.getChildren().addAll(dialogSwitch, dialogHint);
+            dialog.setHeight(520);
+        }
+        root.getChildren().addAll(bar, logArea, closeBtn);
         root.setPadding(new Insets(16));
         root.getStyleClass().add("dialog-container");
         String bg = EditorDialogThemes.color(themeIndex, 0);
@@ -191,7 +251,9 @@ public final class SetupAssistantWindow {
         }
 
         AtomicBoolean done = new AtomicBoolean(false);
-        CompletableFuture.supplyAsync(() -> ToolSetupSupport.install(toolId, log))
+        CompletableFuture.supplyAsync(() -> installOllama
+                        ? ToolSetupSupport.ensureOllama(log)
+                        : ToolSetupSupport.install(toolId, log))
                 .whenComplete((error, ex) -> Platform.runLater(() -> {
                     if (done.getAndSet(true)) {
                         return;
@@ -206,6 +268,14 @@ public final class SetupAssistantWindow {
                     } else {
                         logArea.appendText("\nFertig.\n");
                         title.setText("Bereit");
+                    }
+                    if (switchFlag.get()) {
+                        applyOllamaBackendSwitch(line -> {
+                            logArea.appendText(line);
+                            if (!line.endsWith("\n")) {
+                                logArea.appendText("\n");
+                            }
+                        });
                     }
                     closeBtn.setDisable(false);
                     if (onDone != null) {
@@ -298,7 +368,8 @@ public final class SetupAssistantWindow {
         }
 
         String agentBackend = ResourceManager.getParameter("agent.backend", "Ollama");
-        if ("OpenAI".equalsIgnoreCase(agentBackend)) {
+        boolean openAiBackend = "OpenAI".equalsIgnoreCase(agentBackend);
+        if (openAiBackend) {
             String key = ResourceManager.getParameter("agent.openai.api_key", "");
             boolean ok = key != null && !key.isBlank();
             results.add(new SetupItem(
@@ -306,13 +377,30 @@ public final class SetupAssistantWindow {
                     "KI-Agenten (OpenAI-kompatibel)",
                     ok ? "API-Key gesetzt" : "Kein agent.openai.api_key",
                     ToolSetupSupport.ToolId.KI, !ok, "Hinweis"));
-        } else {
-            boolean ok = ToolSetupSupport.httpReachable("http://127.0.0.1:11434/api/tags");
+        }
+        boolean ollamaUp = ToolSetupSupport.httpReachable("http://127.0.0.1:11434/api/tags");
+        if (ollamaUp) {
             results.add(new SetupItem(
-                    ok ? "ok" : "warn",
+                    openAiBackend ? "warn" : "ok",
                     "KI-Agenten (Ollama)",
-                    ok ? "Erreichbar" : "Nicht erreichbar – installieren/starten",
-                    ToolSetupSupport.ToolId.KI, !ok, "Einrichten"));
+                    openAiBackend
+                            ? "Erreichbar – in den Parametern steht aber OpenAI"
+                            : "Erreichbar",
+                    ToolSetupSupport.ToolId.KI,
+                    openAiBackend,
+                    openAiBackend ? "Auf Ollama umschalten" : "Einrichten",
+                    true,
+                    openAiBackend));
+        } else {
+            results.add(new SetupItem(
+                    "warn",
+                    "KI-Agenten (Ollama)",
+                    "Nicht erreichbar – installieren/starten",
+                    ToolSetupSupport.ToolId.KI,
+                    true,
+                    "Einrichten",
+                    true,
+                    openAiBackend));
         }
 
         String ltJar = ToolSetupSupport.languageToolJarStatus();
@@ -333,13 +421,39 @@ public final class SetupAssistantWindow {
     }
 
     record SetupItem(String level, String label, String detail, ToolSetupSupport.ToolId toolId,
-                     boolean needsAction, String actionLabel) {
+                     boolean needsAction, String actionLabel,
+                     boolean installOllama, boolean offerOllamaBackendSwitch) {
+        SetupItem(String level, String label, String detail, ToolSetupSupport.ToolId toolId,
+                  boolean needsAction, String actionLabel) {
+            this(level, label, detail, toolId, needsAction, actionLabel, false, false);
+        }
+
         String statusIcon() {
             return switch (level) {
                 case "ok" -> "✓";
                 case "warn" -> "!";
                 default -> "·";
             };
+        }
+    }
+
+    private static boolean isOpenAiAgentBackend() {
+        return "OpenAI".equalsIgnoreCase(ResourceManager.getParameter("agent.backend", "Ollama"));
+    }
+
+    private static void applyOllamaBackendSwitch(Consumer<String> log) {
+        ResourceManager.saveParameter("agent.backend", "Ollama");
+        try {
+            ApplicationPreferences.resourceManagerNode().flush();
+        } catch (Exception e) {
+            if (log != null) {
+                log.accept("Hinweis: Parameter gespeichert, Flush fehlgeschlagen: " + e.getMessage());
+            }
+        }
+        com.manuskript.agent.AgentConfigManager.invalidateCache();
+        MainController.notifyOpenEditorsAgentParametersChanged();
+        if (log != null) {
+            log.accept("Parameter agent.backend auf Ollama gesetzt (statt OpenAI).");
         }
     }
 }

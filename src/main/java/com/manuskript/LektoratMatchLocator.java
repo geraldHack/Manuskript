@@ -67,6 +67,84 @@ public final class LektoratMatchLocator {
     }
 
     /**
+     * Verschiebt Match-Offsets nach einer Textänderung (Prefix/Suffix-Diff).
+     * Treffer, die die Änderungsregion überlappen, werden entfernt.
+     *
+     * @return {@code true} wenn mindestens ein Match entfernt wurde
+     */
+    public static boolean shiftAfterTextChange(String oldText, String newText, List<LektoratMatch> matches) {
+        if (oldText == null || newText == null || matches == null || matches.isEmpty()) {
+            return false;
+        }
+        if (oldText.equals(newText)) {
+            return false;
+        }
+
+        int changeStart = 0;
+        int minLen = Math.min(oldText.length(), newText.length());
+        while (changeStart < minLen && oldText.charAt(changeStart) == newText.charAt(changeStart)) {
+            changeStart++;
+        }
+        if (changeStart >= minLen && oldText.length() == newText.length()) {
+            return false;
+        }
+
+        int oldEnd = oldText.length() - 1;
+        int newEnd = newText.length() - 1;
+        while (oldEnd >= changeStart && newEnd >= changeStart
+                && oldText.charAt(oldEnd) == newText.charAt(newEnd)) {
+            oldEnd--;
+            newEnd--;
+        }
+        int changeEndOld = oldEnd + 1;
+        int delta = newText.length() - oldText.length();
+
+        List<LektoratMatch> toRemove = new ArrayList<>();
+        for (LektoratMatch match : matches) {
+            int matchOffset = match.getOffset();
+            int matchLength = match.getLength() > 0
+                    ? match.getLength()
+                    : (match.getOriginal() != null ? match.getOriginal().length() : 0);
+            int matchEnd = matchOffset + matchLength;
+            if (matchOffset < changeEndOld && matchEnd > changeStart) {
+                toRemove.add(match);
+            } else if (matchOffset >= changeEndOld) {
+                match.setOffset(matchOffset + delta);
+            }
+        }
+        if (!toRemove.isEmpty()) {
+            matches.removeAll(toRemove);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Nächster Treffer nach der Cursor-Position (kleinster Offset {@code > caret}).
+     * Gibt es keinen mehr dahinter, den ersten Treffer im Text (Wrap).
+     */
+    public static LektoratMatch nextAfterCaret(List<LektoratMatch> matches, int caret) {
+        if (matches == null || matches.isEmpty()) {
+            return null;
+        }
+        LektoratMatch next = null;
+        LektoratMatch first = null;
+        for (LektoratMatch match : matches) {
+            if (match == null) {
+                continue;
+            }
+            int start = match.getOffset();
+            if (first == null || start < first.getOffset()) {
+                first = match;
+            }
+            if (start > caret && (next == null || start < next.getOffset())) {
+                next = match;
+            }
+        }
+        return next != null ? next : first;
+    }
+
+    /**
      * Sequentielle Suche für API-Einträge (Reihenfolge im JSON ≈ Textposition).
      */
     public static int locateSequential(String chapterText, String original, int searchFrom) {

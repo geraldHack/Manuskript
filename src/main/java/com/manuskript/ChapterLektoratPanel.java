@@ -8,6 +8,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.Tooltip;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
@@ -43,8 +44,10 @@ public class ChapterLektoratPanel {
     private final BiConsumer<Node, Integer> themeApplier;
     private final IntSupplier fontSizeSupplier;
     private final Button exitButton = new Button("Lektorat beenden");
+    private final Button nextMatchButton = new Button("↓ Nächster Treffer");
     private int fontSizePx = 16;
     private Runnable onExit;
+    private Runnable onNextMatch;
 
     public ChapterLektoratPanel(VBox container, SplitPane splitPane,
                                 IntSupplier themeIndex, BiConsumer<Node, Integer> themeApplier,
@@ -63,11 +66,18 @@ public class ChapterLektoratPanel {
                 onExit.run();
             }
         });
+        nextMatchButton.setOnAction(e -> {
+            if (onNextMatch != null) {
+                onNextMatch.run();
+            }
+        });
+        nextMatchButton.setDisable(true);
+        nextMatchButton.setTooltip(new Tooltip("Zum nächsten Treffer nach der Cursor-Position springen"));
         Label titleLabel = new Label("Online-Lektorat");
         titleLabel.getStyleClass().add("lektorat-panel-section");
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
-        HBox header = new HBox(8, titleLabel, spacer, exitButton);
+        HBox header = new HBox(8, titleLabel, spacer, nextMatchButton, exitButton);
         header.setAlignment(Pos.CENTER_LEFT);
         header.setPadding(new Insets(0, 0, 8, 0));
 
@@ -110,6 +120,14 @@ public class ChapterLektoratPanel {
 
     public void setOnExit(Runnable onExit) {
         this.onExit = onExit;
+    }
+
+    public void setOnNextMatch(Runnable onNextMatch) {
+        this.onNextMatch = onNextMatch;
+    }
+
+    public void setNextMatchEnabled(boolean enabled) {
+        nextMatchButton.setDisable(!enabled);
     }
 
     public void setExitInProgress(boolean inProgress) {
@@ -165,6 +183,7 @@ public class ChapterLektoratPanel {
     public void showRunning() {
         ensureVisible(true);
         setExitInProgress(true);
+        setNextMatchEnabled(false);
         bodyTabs.getSelectionModel().select(lektoratTab);
         clearContent();
         clearAssessment();
@@ -182,9 +201,10 @@ public class ChapterLektoratPanel {
         }
         ensureVisible(true);
         setExitInProgress(false);
+        setNextMatchEnabled(hasMatches);
         clearContent();
         Label hint = new Label(hasMatches
-                ? "Klicken Sie auf eine Markierung im Text."
+                ? "Klicken Sie auf eine Markierung im Text oder auf „Nächster Treffer“."
                 : "Keine Vorschläge.");
         hint.setWrapText(true);
         hint.getStyleClass().add("lektorat-panel-hint");
@@ -199,6 +219,7 @@ public class ChapterLektoratPanel {
         }
         ensureVisible(true);
         setExitInProgress(false);
+        setNextMatchEnabled(true);
         bodyTabs.getSelectionModel().select(lektoratTab);
         clearContent();
 
@@ -254,6 +275,7 @@ public class ChapterLektoratPanel {
             return;
         }
         setExitInProgress(false);
+        setNextMatchEnabled(true);
         clearContent();
         Label hint = new Label("Vorschlag übernommen. Bei Bedarf Online-Lektorat erneut starten.");
         hint.setWrapText(true);
@@ -267,6 +289,7 @@ public class ChapterLektoratPanel {
         clearContent();
         clearAssessment();
         setExitInProgress(false);
+        setNextMatchEnabled(false);
     }
 
     /**
@@ -373,6 +396,7 @@ public class ChapterLektoratPanel {
     private void applyThemeToHeader(Label titleLabel) {
         int theme = themeIndex.getAsInt();
         themeApplier.accept(titleLabel, theme);
+        themeApplier.accept(nextMatchButton, theme);
         themeApplier.accept(exitButton, theme);
     }
 

@@ -23,7 +23,8 @@ public class OllamaBackend implements AIBackend {
 
     public OllamaBackend(OllamaService ollamaService) {
         this.ollamaService = ollamaService;
-        String model = ResourceManager.getParameter("agent.ollama.model", "gemma3:4b");
+        String model = ResourceManager.getParameter("agent.ollama.model",
+                com.manuskript.ParameterRegistry.DEFAULT_OLLAMA_MODEL);
         if (model != null && !model.isEmpty()) {
             ollamaService.setModel(model);
         }
@@ -40,7 +41,11 @@ public class OllamaBackend implements AIBackend {
             String[] models = ollamaService.getAvailableModels().get();
             return Arrays.asList(models);
         } catch (Exception e) {
-            return Arrays.asList("gemma3:4b", "mistral:7b-instruct", "llama3.1:8b-instruct");
+            return Arrays.asList(
+                    com.manuskript.ParameterRegistry.DEFAULT_OLLAMA_MODEL,
+                    "gemma3:4b",
+                    "mistral:7b-instruct",
+                    "llama3.1:8b-instruct");
         }
     }
 
@@ -99,6 +104,24 @@ public class OllamaBackend implements AIBackend {
         List<OllamaService.ChatMessage> messages = new ArrayList<>();
         messages.add(new OllamaService.ChatMessage("user", userMessage));
         return ollamaService.chatStreaming(systemPrompt, messages, null, onChunk, onComplete, onError);
+    }
+
+    @Override
+    public CompletableFuture<String> chatStreaming(String systemPrompt, String userMessage, int maxTokens,
+                                                   Consumer<String> onDelta) {
+        CompletableFuture<String> future = new CompletableFuture<>();
+        StringBuilder acc = new StringBuilder();
+        // maxTokens steckt in den Ollama-Session-Defaults; Stream-API hat kein Extra-Feld.
+        chatStreaming(systemPrompt, userMessage, chunk -> {
+            if (chunk == null || chunk.isEmpty()) {
+                return;
+            }
+            acc.append(chunk);
+            if (onDelta != null) {
+                onDelta.accept(chunk);
+            }
+        }, () -> future.complete(acc.toString()), future::completeExceptionally);
+        return future;
     }
 
     private double effectiveTemperature() {

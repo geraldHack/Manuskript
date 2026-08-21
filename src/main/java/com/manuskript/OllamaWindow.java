@@ -1827,7 +1827,7 @@ public class OllamaWindow {
             StringBuilder jsonBuilder = new StringBuilder();
             String currentModel = modelComboBox != null && modelComboBox.getSelectionModel().getSelectedItem() != null 
                 ? modelComboBox.getSelectionModel().getSelectedItem() 
-                : "gemma3:4b"; // Fallback
+                : ParameterRegistry.DEFAULT_OLLAMA_MODEL;
             jsonBuilder.append("{\"model\":\"").append(currentModel).append("\",\"messages\":[");
             
             for (int i = 0; i < fullMessages.size(); i++) {
@@ -4918,7 +4918,7 @@ public class OllamaWindow {
             return savedModel;
         }
         // Fallback auf Standard-Modell
-        String defaultModel = "gemma3:4b";
+        String defaultModel = ParameterRegistry.DEFAULT_OLLAMA_MODEL;
         return defaultModel;
     }
     

@@ -274,6 +274,16 @@ public final class ToolSetupSupport {
             }
             return "Kein API-Key: unter Parameter → Agent → agent.openai.api_key eintragen.";
         }
+        return ensureOllama(log);
+    }
+
+    /**
+     * Installiert bzw. startet Ollama unabhängig vom aktuellen {@code agent.backend}.
+     *
+     * @return {@code null} bei Erfolg / sinnvollem nächsten Schritt, sonst Fehlermeldung
+     */
+    public static String ensureOllama(Consumer<String> log) {
+        Consumer<String> out = logOrNull(log);
         if (httpReachable("http://127.0.0.1:11434/api/tags")) {
             out.accept("Ollama läuft bereits.");
             return null;

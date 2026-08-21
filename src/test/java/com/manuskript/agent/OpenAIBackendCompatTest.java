@@ -32,4 +32,48 @@ class OpenAIBackendCompatTest {
         assertTrue(OpenAIBackend.isLoopbackOpenAiUrl("http://localhost:11434/v1"));
         assertFalse(OpenAIBackend.isLoopbackOpenAiUrl("https://api.openai.com/v1"));
     }
+
+    @Test
+    void parseSseDataExtractsDeltaContentAndDone() {
+        OpenAIChatCompletionParser.StreamEvent hello = OpenAIChatCompletionParser.parseSseData(
+                "{\"choices\":[{\"delta\":{\"content\":\"Hallo\"},\"finish_reason\":null}]}");
+        assertEquals("Hallo", hello.content());
+        assertFalse(hello.done());
+
+        OpenAIChatCompletionParser.StreamEvent done = OpenAIChatCompletionParser.parseSseData("[DONE]");
+        assertTrue(done.done());
+
+        OpenAIChatCompletionParser.StreamEvent err = OpenAIChatCompletionParser.parseSseData(
+                "{\"error\":{\"message\":\"overloaded\"}}");
+        assertEquals("overloaded", err.errorMessage());
+    }
+
+    @Test
+    void gatewayRetryIncludesCloudflareTimeout() {
+        assertTrue(com.manuskript.GatewayHttpRetry.isRetryableStatus(524));
+        assertTrue(com.manuskript.GatewayHttpRetry.isRetryableStatus(502));
+        assertFalse(com.manuskript.GatewayHttpRetry.isRetryableStatus(401));
+    }
+
+    @Test
+    void deepSeekAutoUsesLowReasoningEffort() {
+        assertTrue(OpenAIBackend.isDeepSeekModel("deepseek-v4-flash"));
+        assertTrue(OpenAIBackend.isDeepSeekModel("deepseek/deepseek-v4-flash"));
+        assertFalse(OpenAIBackend.isDeepSeekModel("gpt-4o-mini"));
+
+        JsonObject auto = new JsonObject();
+        OpenAIBackend.applyReasoningEffort(auto, "deepseek-v4-flash", "auto");
+        assertEquals("low", auto.get("reasoning_effort").getAsString());
+        assertEquals("enabled", auto.getAsJsonObject("thinking").get("type").getAsString());
+
+        JsonObject off = new JsonObject();
+        OpenAIBackend.applyReasoningEffort(off, "deepseek-v4-flash", "none");
+        assertFalse(off.has("reasoning_effort"));
+        assertEquals("disabled", off.getAsJsonObject("thinking").get("type").getAsString());
+
+        JsonObject other = new JsonObject();
+        OpenAIBackend.applyReasoningEffort(other, "gpt-4o-mini", "auto");
+        assertFalse(other.has("reasoning_effort"));
+        assertFalse(other.has("thinking"));
+    }
 }

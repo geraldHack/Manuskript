@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ncx version="2005-1" xmlns="http://www.daisy.org/z3986/2005/ncx/">
   <head>
-    <meta name="dtb:uid" content="urn:uuid:d47aefe8-c97b-4640-8ed4-6e1997b8fdb6" />
+    <meta name="dtb:uid" content="urn:uuid:81216ae0-b5bc-48d1-a937-1755b311bb5a" />
     <meta name="dtb:depth" content="1" />
     <meta name="dtb:totalPageCount" content="0" />
     <meta name="dtb:maxPageNumber" content="0" />
@@ -52,6 +52,12 @@
         <text>Kapitel 6 - Besuch aus Kirgisistan</text>
       </navLabel>
       <content src="text/ch006.xhtml#kapitel-6---besuch-aus-kirgisistan" />
+    </navPoint>
+    <navPoint id="navPoint-7">
+      <navLabel>
+        <text>Kapitel 7 - Politik</text>
+      </navLabel>
+      <content src="text/ch007.xhtml#kapitel-7---politik" />
     </navPoint>
   </navMap>
 </ncx>

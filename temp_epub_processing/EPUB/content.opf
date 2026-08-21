@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <package version="3.0" xmlns="http://www.idpf.org/2007/opf" xml:lang="C" unique-identifier="epub-id-1" prefix="ibooks: http://vocabulary.itunes.apple.com/rdf/ibooks/vocabulary-extensions-1.0/">
   <metadata xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:opf="http://www.idpf.org/2007/opf">
-    <dc:identifier id="epub-id-1">urn:uuid:d47aefe8-c97b-4640-8ed4-6e1997b8fdb6</dc:identifier>
+    <dc:identifier id="epub-id-1">urn:uuid:81216ae0-b5bc-48d1-a937-1755b311bb5a</dc:identifier>
     <dc:title id="epub-title-1">Traumwelt</dc:title>
     <dc:date id="epub-date"></dc:date>
     <dc:language>C</dc:language>
@@ -9,7 +9,7 @@
     <meta refines="#epub-creator-1" property="role" scheme="marc:relators">aut</meta>
     <dc:rights>© 2026 Gerald Hackbart</dc:rights>
     <meta name="cover" content="file0_png" />
-    <meta property="dcterms:modified">2026-08-12T18:26:04Z</meta>
+    <meta property="dcterms:modified">2026-08-17T07:21:58Z</meta>
     <meta property="schema:accessMode">textual</meta>
     <meta property="schema:accessModeSufficient">textual</meta>
     <meta property="schema:accessibilityFeature">alternativeText</meta>
@@ -30,6 +30,7 @@
     <item id="ch004_xhtml" href="text/ch004.xhtml" media-type="application/xhtml+xml" />
     <item id="ch005_xhtml" href="text/ch005.xhtml" media-type="application/xhtml+xml" />
     <item id="ch006_xhtml" href="text/ch006.xhtml" media-type="application/xhtml+xml" />
+    <item id="ch007_xhtml" href="text/ch007.xhtml" media-type="application/xhtml+xml" />
     <item properties="cover-image" id="file0_png" href="media/file0.png" media-type="image/png" />
   </manifest>
   <spine toc="ncx">
@@ -42,6 +43,7 @@
     <itemref idref="ch004_xhtml" />
     <itemref idref="ch005_xhtml" />
     <itemref idref="ch006_xhtml" />
+    <itemref idref="ch007_xhtml" />
   </spine>
   <guide>
     <reference type="toc" title="Traumwelt" href="nav.xhtml" />

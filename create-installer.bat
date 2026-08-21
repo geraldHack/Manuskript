@@ -136,9 +136,9 @@ for %%f in (pandoc\*.docx pandoc\*.txt pandoc\*.lua pandoc\*.css pandoc\*.yaml p
     copy "%%f" "%APP_IMAGE%\pandoc\" >nul 2>&1
 )
 
-REM Demo-Manuskripte
+REM Demo-Vorlage (wird beim ersten Start nach Documents\Manuskript kopiert)
 if exist "Manuskripte" (
-    echo   - Manuskripte/
+    echo   - Manuskripte/ (Demo-Vorlage fuer Erststart)
     xcopy "Manuskripte\*" "%APP_IMAGE%\Manuskripte\" /E /I /Q >nul 2>&1
 )
 

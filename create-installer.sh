@@ -5,6 +5,30 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$ROOT_DIR"
 
+UPLOAD=1
+DEPLOY_HOST="${MANUSKRIPT_DEPLOY_HOST:-spoteroxe.de}"
+DEPLOY_PATH="${MANUSKRIPT_DEPLOY_PATH:-/home/gehack/home/downloads}"
+STABLE_DMG_NAME="Manuskript-macos-arm64.dmg"
+for arg in "$@"; do
+    case "$arg" in
+        --no-upload) UPLOAD=0 ;;
+        --upload) UPLOAD=1 ;;
+        -h|--help)
+            echo "Usage: $0 [--upload|--no-upload]"
+            echo
+            echo "  --upload      DMG nach ${DEPLOY_HOST} kopieren (Standard)"
+            echo "  --no-upload   nur lokal bauen"
+            echo
+            echo "Umgebung: MANUSKRIPT_DEPLOY_HOST, MANUSKRIPT_DEPLOY_PATH"
+            exit 0
+            ;;
+        *)
+            echo "Unbekanntes Argument: $arg (siehe --help)"
+            exit 1
+            ;;
+    esac
+done
+
 echo "========================================"
 echo " Manuskript Installer-Paket erstellen"
 echo " (macOS Apple Silicon)"
@@ -72,7 +96,7 @@ download_file() {
 
 ensure_javafx_module_path() {
     echo
-    echo "[2/7] Prüfe JavaFX-Module (Maven Central)..."
+    echo "[2/8] Prüfe JavaFX-Module (Maven Central)..."
     mkdir -p "$JAVAFX_MODULE_PATH"
 
     local missing=0
@@ -144,17 +168,15 @@ copy_bundled_resources() {
     done
 
     if [[ -d Manuskripte ]]; then
-        echo "  - Manuskripte/ (Demo-Projekte aus dem Repo)"
+        echo "  - Manuskripte/ (Demo-Vorlage; wird beim ersten Start nach ~/Documents/Manuskript kopiert)"
         mkdir -p "${app_dir}/Manuskripte"
         if command -v rsync >/dev/null 2>&1; then
             rsync -a \
                 --exclude '.DS_Store' \
-                --exclude 'data/' \
                 Manuskripte/ "${app_dir}/Manuskripte/"
         else
             cp -R Manuskripte/. "${app_dir}/Manuskripte/"
             find "${app_dir}/Manuskripte" -name '.DS_Store' -delete 2>/dev/null || true
-            find "${app_dir}/Manuskripte" -type d -name 'data' -prune -exec rm -rf {} + 2>/dev/null || true
         fi
     else
         echo "  WARNUNG: Ordner Manuskripte/ nicht gefunden – kein Demo-Projekt im Paket."
@@ -173,9 +195,80 @@ copy_bundled_resources() {
     fi
 }
 
+human_size_mb() {
+    local bytes="$1"
+    echo $(( (bytes + 524288) / 1048576 ))
+}
+
+upload_dmg_to_spoteroxe() {
+    local dmg_path="$1"
+    if [[ ! -f "$dmg_path" ]]; then
+        echo "WARNUNG: Keine DMG zum Hochladen: ${dmg_path}"
+        return 1
+    fi
+
+    echo
+    echo "[8/8] Lade DMG nach ${DEPLOY_HOST}:${DEPLOY_PATH} ..."
+    if ! ssh -o BatchMode=yes -o ConnectTimeout=15 "$DEPLOY_HOST" "mkdir -p '${DEPLOY_PATH}'"; then
+        echo "WARNUNG: SSH zu ${DEPLOY_HOST} fehlgeschlagen. Lokal: ${dmg_path}"
+        return 1
+    fi
+
+    echo "  scp ${DMG_NAME} (kann bei ~500 MB dauern) ..."
+    if ! scp -o BatchMode=yes "$dmg_path" "${DEPLOY_HOST}:${DEPLOY_PATH}/${DMG_NAME}"; then
+        echo "WARNUNG: scp der DMG fehlgeschlagen."
+        return 1
+    fi
+
+    local size_bytes size_mb json_file js_file
+    size_bytes="$(stat -f%z "$dmg_path")"
+    size_mb="$(human_size_mb "$size_bytes")"
+    json_file="$(mktemp -t manuskript-download)"
+    cat > "$json_file" <<EOF
+{
+  "version": "${APP_VERSION}",
+  "platform": "macOS (Apple Silicon / arm64)",
+  "filename": "${DMG_NAME}",
+  "url": "downloads/${STABLE_DMG_NAME}",
+  "sizeBytes": ${size_bytes},
+  "sizeLabel": "${size_mb} MB",
+  "updated": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+}
+EOF
+
+    js_file="${ROOT_DIR}/deploy/spoteroxe/manuskript-download.js"
+    if ! scp -o BatchMode=yes "$json_file" "${DEPLOY_HOST}:${DEPLOY_PATH}/manuskript.json"; then
+        rm -f "$json_file"
+        echo "WARNUNG: scp von manuskript.json fehlgeschlagen."
+        return 1
+    fi
+    rm -f "$json_file"
+
+    if [[ -f "$js_file" ]]; then
+        scp -o BatchMode=yes "$js_file" "${DEPLOY_HOST}:/home/gehack/home/js/manuskript-download.js" || \
+            echo "WARNUNG: scp von manuskript-download.js fehlgeschlagen."
+    fi
+
+    ssh -o BatchMode=yes "$DEPLOY_HOST" \
+        "DEPLOY_PATH='${DEPLOY_PATH}' CURRENT='${DMG_NAME}' STABLE='${STABLE_DMG_NAME}' bash -s" <<'REMOTE'
+set -euo pipefail
+cd "$DEPLOY_PATH"
+ln -f "$CURRENT" "$STABLE"
+for f in Manuskript-*-macos-arm64.dmg; do
+    [[ -f "$f" ]] || continue
+    [[ "$f" == "$CURRENT" ]] && continue
+    echo "  Entferne alte Version: $f"
+    rm -f "$f"
+done
+REMOTE
+
+    echo "[OK] Download aktuell: https://spoteroxe.de/downloads/${STABLE_DMG_NAME}"
+    echo "     Version ${APP_VERSION}, ${size_mb} MB"
+}
+
 # --- Schritt 1: Fat JAR bauen ---
 echo
-echo "[1/7] Baue Fat JAR..."
+echo "[1/8] Baue Fat JAR..."
 mvn clean package -DskipTests -q
 if [[ ! -f "target/${FAT_JAR}" ]]; then
     echo "FEHLER: ${FAT_JAR} nicht in target/ gefunden!"
@@ -187,7 +280,7 @@ ensure_javafx_module_path
 
 # --- Schritt 3: Pandoc/FFmpeg ZIPs ---
 echo
-echo "[3/7] Prüfe Pandoc- und FFmpeg-Bundles..."
+echo "[3/8] Prüfe Pandoc- und FFmpeg-Bundles..."
 if [[ ! -f pandoc/pandoc-mac.zip || ! -f ffmpeg/ffmpeg-mac.zip ]]; then
     echo "  Fehlende Bundles – rufe prepare-mac-bundles.sh auf ..."
     "$ROOT_DIR/prepare-mac-bundles.sh"
@@ -198,7 +291,7 @@ fi
 
 # --- Schritt 4: Staging ---
 echo
-echo "[4/7] Bereite Staging vor..."
+echo "[4/8] Bereite Staging vor..."
 rm -rf "$STAGING_DIR"
 mkdir -p "${STAGING_DIR}/app"
 cp "target/${FAT_JAR}" "${STAGING_DIR}/app/"
@@ -206,7 +299,7 @@ echo "[OK] Staging vorbereitet."
 
 # --- Schritt 5: jpackage App-Image ---
 echo
-echo "[5/7] Erstelle App-Image mit jpackage..."
+echo "[5/8] Erstelle App-Image mit jpackage..."
 ensure_mac_icon || true
 rm -rf "${OUTPUT_DIR}/${APP_NAME}.app"
 mkdir -p "$OUTPUT_DIR"
@@ -245,13 +338,13 @@ echo "[OK] App-Image erstellt."
 
 # --- Schritt 6: Ressourcen kopieren ---
 echo
-echo "[6/7] Kopiere Ressourcen ins App-Bundle..."
+echo "[6/8] Kopiere Ressourcen ins App-Bundle..."
 copy_bundled_resources "$APP_CONTENTS"
 echo "[OK] Ressourcen kopiert."
 
 # --- Schritt 7: DMG + ZIP ---
 echo
-echo "[7/7] Erstelle DMG und ZIP..."
+echo "[7/8] Erstelle DMG und ZIP..."
 echo "  (DMG und ZIP sind groß – kann mehrere Minuten dauern, bitte warten)"
 DMG_NAME="${APP_NAME}-${APP_VERSION}-macos-arm64.dmg"
 ZIP_NAME="${APP_NAME}-${APP_VERSION}-macos-arm64.zip"
@@ -288,6 +381,13 @@ fi
 
 rm -rf "$STAGING_DIR"
 
+if [[ "$UPLOAD" -eq 1 ]]; then
+    upload_dmg_to_spoteroxe "${OUTPUT_DIR}/${DMG_NAME}" || true
+else
+    echo
+    echo "[8/8] Upload übersprungen (--no-upload)."
+fi
+
 # Patch-Version für den nächsten Deploy hochzählen (dieses Build bleibt bei APP_VERSION)
 IFS='.' read -r VERSION_MAJOR VERSION_MINOR VERSION_PATCH <<< "$APP_VERSION"
 NEXT_VERSION="${VERSION_MAJOR}.${VERSION_MINOR}.$((VERSION_PATCH + 1))"
@@ -303,6 +403,9 @@ echo " Version: ${APP_VERSION}"
 echo " App:  ${APP_BUNDLE}"
 echo " DMG:  ${OUTPUT_DIR}/${DMG_NAME}"
 echo " ZIP:  ${OUTPUT_DIR}/${ZIP_NAME}"
+if [[ "$UPLOAD" -eq 1 ]]; then
+    echo " Web:  https://spoteroxe.de/downloads.html"
+fi
 echo
 echo " Starten: open \"${APP_BUNDLE}\""
 echo

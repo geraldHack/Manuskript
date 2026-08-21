@@ -36,9 +36,11 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
+import javafx.stage.Screen;
 import javafx.stage.Window;
 import javafx.util.StringConverter;
 import org.slf4j.Logger;
@@ -71,7 +73,11 @@ public class NovelCreationWizardWindow {
     private static final String PREF_MAIN_SPLIT = "novel_wizard_main_split_divider";
     private static final String PREF_CONTENT_SPLIT = "novel_wizard_content_split_divider";
     private static final String PREF_FONT_SIZE = "novel_wizard_font_size";
-    private static final double DEFAULT_MAIN_SPLIT = 0.58;
+    private static final double DEFAULT_WINDOW_WIDTH = 1100;
+    private static final double DEFAULT_WINDOW_HEIGHT = 980;
+    private static final double MIN_WIZARD_WIDTH = 860;
+    private static final double MIN_WIZARD_HEIGHT = 840;
+    private static final double DEFAULT_MAIN_SPLIT = 0.46;
     private static final double DEFAULT_CONTENT_SPLIT = 0.48;
     private static final int DEFAULT_FONT_SIZE = 14;
     private static final int MIN_FONT_SIZE = 10;
@@ -268,10 +274,10 @@ public class NovelCreationWizardWindow {
     private void createUi() {
         stage = new CustomStage();
         stage.setCustomTitle("Roman-Assistent");
-        stage.setWidth(1000);
-        stage.setHeight(820);
-        stage.setMinWidth(780);
-        stage.setMinHeight(680);
+        stage.setWidth(DEFAULT_WINDOW_WIDTH);
+        stage.setHeight(preferredWizardWindowHeight());
+        stage.setMinWidth(MIN_WIZARD_WIDTH);
+        stage.setMinHeight(MIN_WIZARD_HEIGHT);
         stage.setTitleBarTheme(themeIndex);
         if (owner != null) {
             stage.initOwner(owner);
@@ -468,6 +474,8 @@ public class NovelCreationWizardWindow {
 
         HBox answerButtonRow = new HBox(BUTTON_GAP, sendCustomButton, correctionButton);
         answerButtonRow.setAlignment(Pos.CENTER);
+        answerButtonRow.setMinHeight(Region.USE_PREF_SIZE);
+        VBox.setVgrow(answerButtonRow, Priority.NEVER);
 
         backQuestionButton = actionButton("Eine Frage zurück", "novel-wizard-action-secondary");
         backQuestionButton.setOnAction(e -> goBackOneQuestion());
@@ -498,8 +506,8 @@ public class NovelCreationWizardWindow {
         interactionPanel.getStyleClass().add("novel-wizard-interaction");
         interactionPanel.setFillWidth(true);
         interactionPanel.setMinWidth(0);
-        interactionPanel.setMinHeight(300);
-        interactionPanel.setPrefHeight(380);
+        interactionPanel.setMinHeight(420);
+        interactionPanel.setPrefHeight(480);
         questionBox.prefWidthProperty().bind(interactionPanel.widthProperty());
         hintBox.prefWidthProperty().bind(interactionPanel.widthProperty());
         bindWrappingText(questionText, interactionPanel, QUESTION_BOX_HORIZONTAL_PADDING);
@@ -521,17 +529,17 @@ public class NovelCreationWizardWindow {
         root.setCenter(shell);
 
         Scene scene = new Scene(root);
-        String cssPath = ResourceManager.getCssResource("css/manuskript.css");
-        if (cssPath != null) {
-            scene.getStylesheets().add(cssPath);
-        }
+        addStylesheet(scene, ResourceManager.getCssResource("css/manuskript.css"));
+        addStylesheet(scene, ResourceManager.getBundledCssResource("css/manuskript.css"));
         java.net.URL wizardCss = NovelCreationWizardWindow.class.getResource("/css/novel-wizard.css");
         if (wizardCss != null) {
-            scene.getStylesheets().add(wizardCss.toExternalForm());
+            addStylesheet(scene, wizardCss.toExternalForm());
         }
         stage.setSceneWithTitleBar(scene);
         stage.setFullTheme(themeIndex);
         applyUiFontSize();
+        applyWizardChrome();
+        Platform.runLater(this::applyWizardChrome);
         loadAndApplyUiLayoutPreferences();
         bindUiLayoutPersistence();
         stage.setOnCloseRequest(e -> {
@@ -554,16 +562,15 @@ public class NovelCreationWizardWindow {
         if (fontSizeLabel != null) {
             fontSizeLabel.setText(uiFontSize + " px");
         }
-        applyTextAreaFont(chatArea, uiFontSize);
-        applyTextAreaFont(customAnswerArea, uiFontSize);
+        applyThemedTextArea(chatArea, uiFontSize);
+        applyThemedTextArea(customAnswerArea, uiFontSize);
         if (questionText != null) {
             questionText.setFont(Font.font(null, FontWeight.BOLD, uiFontSize + 2));
-            questionText.setStyle(String.format("-fx-font-size: %dpx;", uiFontSize + 2));
         }
         if (hintText != null) {
             hintText.setFont(Font.font(null, FontWeight.NORMAL, uiFontSize));
-            hintText.setStyle(String.format("-fx-font-size: %dpx;", uiFontSize));
         }
+        applyWizardTextColors();
         for (MdTextArea editor : previewEditorByFile.values()) {
             if (editor != null && editor.getEditor() != null) {
                 editor.getEditor().setFontSizeForAll(uiFontSize);
@@ -571,28 +578,24 @@ public class NovelCreationWizardWindow {
         }
     }
 
-    private static void applyTextAreaFont(TextArea area, int size) {
-        if (area == null) {
-            return;
-        }
-        String existing = area.getStyle();
-        String fontPart = String.format("-fx-font-size: %dpx;", size);
-        if (existing == null || existing.isBlank()) {
-            area.setStyle(fontPart);
-        } else if (existing.contains("-fx-font-size:")) {
-            area.setStyle(existing.replaceAll("-fx-font-size:\\s*[^;]+;", fontPart));
-        } else {
-            area.setStyle(existing + " " + fontPart);
-        }
-    }
-
     private static int clampFontSize(int size) {
         return Math.max(MIN_FONT_SIZE, Math.min(MAX_FONT_SIZE, size));
     }
 
+    private static double preferredWizardWindowHeight() {
+        Rectangle2D visual = Screen.getPrimary().getVisualBounds();
+        double available = Math.max(MIN_WIZARD_HEIGHT, visual.getHeight() - 28);
+        return Math.min(DEFAULT_WINDOW_HEIGHT, available);
+    }
+
     private void loadAndApplyUiLayoutPreferences() {
+        double defaultHeight = preferredWizardWindowHeight();
         Rectangle2D bounds = PreferencesManager.MultiMonitorValidator.loadAndValidateWindowProperties(
-                UI_PREFS, WINDOW_PREFS_PREFIX, 1000, 820);
+                UI_PREFS, WINDOW_PREFS_PREFIX, DEFAULT_WINDOW_WIDTH, defaultHeight);
+        if (bounds.getHeight() < MIN_WIZARD_HEIGHT) {
+            bounds = new Rectangle2D(bounds.getMinX(), bounds.getMinY(),
+                    Math.max(bounds.getWidth(), MIN_WIZARD_WIDTH), defaultHeight);
+        }
         PreferencesManager.MultiMonitorValidator.applyWindowProperties(stage, bounds);
 
         double mainPos = clampDivider(UI_PREFS.getDouble(PREF_MAIN_SPLIT, DEFAULT_MAIN_SPLIT));
@@ -673,13 +676,16 @@ public class NovelCreationWizardWindow {
         row.setAlignment(Pos.CENTER);
         row.getStyleClass().add("novel-wizard-actions-bar");
         row.setMaxWidth(Double.MAX_VALUE);
+        row.setMinHeight(Region.USE_PREF_SIZE);
         row.setPadding(new Insets(6, 0, 0, 0));
+        VBox.setVgrow(row, Priority.NEVER);
         return row;
     }
 
     private Button createOptionButton(String text, Runnable onSelect) {
         Button button = new Button(text);
         button.getStyleClass().add("novel-wizard-option-button");
+        applyOptionButtonChrome(button);
         button.setWrapText(true);
         button.setMaxWidth(Double.MAX_VALUE);
         button.setAlignment(Pos.CENTER_LEFT);
@@ -1546,6 +1552,121 @@ public class NovelCreationWizardWindow {
                     surface, text, border);
         };
         chip.setStyle(style);
+    }
+
+    private static void addStylesheet(Scene scene, String uri) {
+        if (scene == null || uri == null || uri.isBlank() || scene.getStylesheets().contains(uri)) {
+            return;
+        }
+        scene.getStylesheets().add(uri);
+    }
+
+    /**
+     * Untere Fläche, Textfelder und Frage-Text auch ohne aktuelles config/css einfärben.
+     */
+    private void applyWizardChrome() {
+        String bg = EditorDialogThemes.color(themeIndex, 0);
+        String text = EditorDialogThemes.color(themeIndex, 1);
+        String surface = EditorDialogThemes.color(themeIndex, 2);
+        String border = EditorDialogThemes.color(themeIndex, 3);
+        if (questionBox != null) {
+            questionBox.setStyle(String.format(
+                    "-fx-background-color: %s; -fx-border-color: %s; -fx-background-radius: 8; "
+                            + "-fx-border-radius: 8; -fx-border-width: 1; -fx-padding: 14 16;",
+                    surface, border));
+        }
+        if (optionsScroll != null) {
+            optionsScroll.setStyle(String.format("-fx-background-color: %s; -fx-background: %s;", surface, surface));
+            Node viewport = optionsScroll.lookup(".viewport");
+            if (viewport != null) {
+                viewport.setStyle("-fx-background-color: " + surface + ";");
+            }
+        }
+        if (optionsBox != null) {
+            optionsBox.setStyle("-fx-background-color: " + surface + ";");
+        }
+        if (mainSplitPane != null) {
+            mainSplitPane.setStyle("-fx-background-color: " + bg + ";");
+            if (mainSplitPane.getItems().size() > 1) {
+                Node lower = mainSplitPane.getItems().get(1);
+                lower.setStyle(String.format(
+                        "-fx-background-color: %s; -fx-border-color: %s; -fx-border-width: 1 0 0 0; -fx-padding: 14 12 12 12;",
+                        surface, border));
+            }
+            if (mainSplitPane.getParent() != null) {
+                mainSplitPane.getParent().setStyle("-fx-background-color: " + bg + ";");
+            }
+        }
+        applyWizardTextColors();
+        applyThemedTextArea(chatArea, uiFontSize);
+        applyThemedTextArea(customAnswerArea, uiFontSize);
+        if (optionsBox != null) {
+            for (Node child : optionsBox.getChildren()) {
+                if (child instanceof Button button) {
+                    applyOptionButtonChrome(button);
+                }
+            }
+        }
+        String textColor = text;
+        if (projectTitleLabel != null) {
+            projectTitleLabel.setStyle("-fx-text-fill: " + textColor + ";");
+        }
+        if (phaseHeadlineLabel != null) {
+            phaseHeadlineLabel.setStyle("-fx-text-fill: " + textColor + "; -fx-font-weight: bold;");
+        }
+        if (progressCaptionLabel != null) {
+            progressCaptionLabel.setStyle("-fx-text-fill: " + textColor + ";");
+        }
+        if (progressFractionLabel != null) {
+            progressFractionLabel.setStyle("-fx-text-fill: " + textColor + ";");
+        }
+        if (fontSizeLabel != null) {
+            fontSizeLabel.setStyle("-fx-text-fill: " + textColor + ";");
+        }
+    }
+
+    private void applyWizardTextColors() {
+        String text = EditorDialogThemes.color(themeIndex, 1);
+        Color fill = Color.web(text);
+        if (questionText != null) {
+            questionText.setFill(fill);
+            questionText.setStyle(String.format("-fx-font-size: %dpx; -fx-fill: %s;", uiFontSize + 2, text));
+        }
+        if (hintText != null) {
+            hintText.setFill(fill);
+            hintText.setStyle(String.format("-fx-font-size: %dpx; -fx-fill: %s;", uiFontSize, text));
+        }
+    }
+
+    private void applyOptionButtonChrome(Button button) {
+        if (button == null) {
+            return;
+        }
+        String text = EditorDialogThemes.color(themeIndex, 1);
+        String surface = EditorDialogThemes.color(themeIndex, 2);
+        String border = EditorDialogThemes.color(themeIndex, 3);
+        button.setStyle(String.format(
+                "-fx-background-color: %s; -fx-text-fill: %s; -fx-border-color: %s; -fx-border-width: 1; "
+                        + "-fx-background-radius: 6; -fx-border-radius: 6; -fx-padding: 12 16; "
+                        + "-fx-alignment: CENTER_LEFT;",
+                surface, text, border));
+    }
+
+    private void applyThemedTextArea(TextArea area, int size) {
+        if (area == null) {
+            return;
+        }
+        String text = EditorDialogThemes.color(themeIndex, 1);
+        String surface = EditorDialogThemes.color(themeIndex, 2);
+        String border = EditorDialogThemes.color(themeIndex, 3);
+        area.setStyle(String.format(
+                "-fx-font-size: %dpx; -fx-control-inner-background: %s; -fx-text-fill: %s; "
+                        + "-fx-background-color: %s; -fx-border-color: %s; -fx-prompt-text-fill: derive(%s, 40%%);",
+                size, surface, text, surface, border, text));
+        Node content = area.lookup(".content");
+        if (content != null) {
+            content.setStyle("-fx-background-color: " + surface + ";");
+        }
     }
 
     private String accentColorForTheme() {

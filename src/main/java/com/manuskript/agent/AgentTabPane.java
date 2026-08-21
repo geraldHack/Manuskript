@@ -22,6 +22,8 @@ public class AgentTabPane extends TabPane {
     private final List<ChatbotAgentTab> chatbotTabs = new ArrayList<>();
     private final Tab addTab;
     private AgentActivityTracker activityTracker;
+    /** Verhindert, dass Layout/Scroll das „+“-Tab kurz auswählt und so „Neuer Agent“ erzeugt. */
+    private boolean suppressAddTabHandler;
 
     public AgentTabPane() {
         setTabClosingPolicy(TabClosingPolicy.ALL_TABS);
@@ -34,9 +36,17 @@ public class AgentTabPane extends TabPane {
         getTabs().add(addTab);
 
         getSelectionModel().selectedItemProperty().addListener((obs, oldTab, newTab) -> {
-            if (newTab == addTab) {
-                addNewAgent();
+            if (newTab != addTab || suppressAddTabHandler) {
+                return;
             }
+            // JavaFX wählt „+“ oft nur kurz beim Einblenden/Scrollen (z. B. Sprachentflechtung).
+            // Nur anlegen, wenn die Auswahl im nächsten Puls immer noch auf „+“ steht.
+            Platform.runLater(() -> {
+                if (suppressAddTabHandler || getSelectionModel().getSelectedItem() != addTab) {
+                    return;
+                }
+                addNewAgent();
+            });
         });
 
         sceneProperty().addListener((obs, oldScene, newScene) -> {
@@ -79,7 +89,7 @@ public class AgentTabPane extends TabPane {
                     "Nur {}/{} Agenten-Tabs erzeugt", agentTabCount, configs.size());
         }
         if (getTabs().size() > 1) {
-            getSelectionModel().select(0);
+            withSuppressedAddTab(() -> getSelectionModel().select(0));
         }
         wireActivityTracking();
         Platform.runLater(this::refreshTabTooltips);
@@ -122,7 +132,7 @@ public class AgentTabPane extends TabPane {
         if (saveConfig) {
             saveAllConfigs();
         }
-        getSelectionModel().select(tab);
+        withSuppressedAddTab(() -> getSelectionModel().select(tab));
         return agentTab;
     }
 
@@ -239,7 +249,8 @@ public class AgentTabPane extends TabPane {
         if ("OpenAI".equals(backend)) {
             model = com.manuskript.ResourceManager.getParameter("agent.openai.model", "gpt-4o-mini");
         } else {
-            model = com.manuskript.ResourceManager.getParameter("agent.ollama.model", "gemma3:4b");
+            model = com.manuskript.ResourceManager.getParameter("agent.ollama.model",
+                    com.manuskript.ParameterRegistry.DEFAULT_OLLAMA_MODEL);
         }
         AgentConfig defaultConfig = new AgentConfig(
             "Neuer Agent",
@@ -292,7 +303,7 @@ public class AgentTabPane extends TabPane {
         }
         for (Tab tab : getTabs()) {
             if (tab.getContent() == agentTab) {
-                getSelectionModel().select(tab);
+                withSuppressedAddTab(() -> getSelectionModel().select(tab));
                 return;
             }
         }
@@ -336,13 +347,24 @@ public class AgentTabPane extends TabPane {
 
     public void reloadFromConfig() {
         AgentConfigManager.invalidateCache();
-        getTabs().clear();
-        agentTabs.clear();
-        sceneWritingTabs.clear();
-        chatbotTabs.clear();
-        getTabs().add(addTab);
-        loadFromConfig();
+        withSuppressedAddTab(() -> {
+            getTabs().clear();
+            agentTabs.clear();
+            sceneWritingTabs.clear();
+            chatbotTabs.clear();
+            getTabs().add(addTab);
+            loadFromConfig();
+        });
         wireActivityTracking();
         Platform.runLater(this::refreshTabTooltips);
+    }
+
+    private void withSuppressedAddTab(Runnable action) {
+        suppressAddTabHandler = true;
+        try {
+            action.run();
+        } finally {
+            Platform.runLater(() -> suppressAddTabHandler = false);
+        }
     }
 }

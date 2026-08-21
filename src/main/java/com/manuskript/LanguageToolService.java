@@ -78,6 +78,31 @@ public class LanguageToolService {
         public String getRuleDescription() { return ruleDescription; }
         public void setRuleDescription(String ruleDescription) { this.ruleDescription = ruleDescription; }
     }
+
+    /**
+     * Nächster Fehler nach der Cursor-Position (kleinster Offset {@code > caret}).
+     * Gibt es keinen mehr dahinter, den ersten Fehler im Text (Wrap).
+     */
+    public static Match nextAfterCaret(List<Match> matches, int caret) {
+        if (matches == null || matches.isEmpty()) {
+            return null;
+        }
+        Match next = null;
+        Match first = null;
+        for (Match match : matches) {
+            if (match == null) {
+                continue;
+            }
+            int start = match.getOffset();
+            if (first == null || start < first.getOffset()) {
+                first = match;
+            }
+            if (start > caret && (next == null || start < next.getOffset())) {
+                next = match;
+            }
+        }
+        return next != null ? next : first;
+    }
     
     /**
      * Repräsentiert einen Korrekturvorschlag

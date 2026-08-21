@@ -5,58 +5,57 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.prefs.Preferences;
 
 /**
- * Lädt Makros aus {@code config/makros/macros.txt} (gemeinsam mit dem Legacy-Editor).
+ * Lädt Makros aus {@code config/makros/macros.txt} im App-Bundle (nicht relativ zum CWD).
+ * Fehlt die Datei, wird das mitgelieferte Standard-Makro aus dem Classpath verwendet.
  */
 public final class MacroStorage {
 
     private static final Logger logger = LoggerFactory.getLogger(MacroStorage.class);
+    static final String MACROS_RELATIVE = "config/makros/macros.txt";
+    private static final String CLASSPATH_DEFAULT = "/makros/macros.txt";
 
     private MacroStorage() {
     }
 
+    /**
+     * Nutz- und Installationsdatei: App-Home {@code config/makros/macros.txt}, sonst Arbeitsverzeichnis.
+     */
     public static File macrosFile() {
-        File dir = new File(ResourceManager.getConfigDirectory(), "makros");
-        if (!dir.exists()) {
-            dir.mkdirs();
-        }
-        return new File(dir, "macros.txt");
+        return ApplicationPaths.resolveConfigPath(MACROS_RELATIVE);
     }
 
     public static void loadInto(ObservableList<Macro> target) {
         target.clear();
-        String savedMacros = "";
-        File file = macrosFile();
-        try {
-            if (file.exists()) {
-                savedMacros = Files.readString(file.toPath(), StandardCharsets.UTF_8);
-            } else {
-                String legacy = Preferences.userNodeForPackage(EditorWindow.class).get("savedMacros", "");
-                if (legacy != null && !legacy.isEmpty()) {
-                    savedMacros = legacy;
-                }
-            }
-        } catch (Exception e) {
-            logger.error("Makros laden fehlgeschlagen", e);
-        }
+        String savedMacros = readMacrosContent();
         if (savedMacros == null || savedMacros.contains("|||") || savedMacros.contains("<<<MACRO>>>")) {
             savedMacros = "";
         }
         if (savedMacros.isBlank()) {
+            savedMacros = readClasspathDefault();
+        }
+        if (savedMacros == null || savedMacros.isBlank()) {
+            logger.warn("Keine Makros gefunden (weder {} noch Classpath {})",
+                    macrosFile().getAbsolutePath(), CLASSPATH_DEFAULT);
             return;
         }
         parseInto(savedMacros, target);
+        logger.info("Makros geladen: {} aus {}", target.size(), macrosFile().getAbsolutePath());
     }
 
     public static void saveFrom(ObservableList<Macro> macros) {
         try {
             String macroData = serialize(macros);
             File file = macrosFile();
-            Files.createDirectories(file.getParentFile().toPath());
+            File parent = file.getParentFile();
+            if (parent != null) {
+                Files.createDirectories(parent.toPath());
+            }
             Files.writeString(file.toPath(), macroData, StandardCharsets.UTF_8);
             Preferences.userNodeForPackage(EditorWindow.class).put("savedMacros", macroData);
             Preferences.userNodeForPackage(EditorWindow.class).flush();
@@ -88,7 +87,42 @@ public final class MacroStorage {
         return sb.toString();
     }
 
-    private static void parseInto(String macroContent, ObservableList<Macro> macros) {
+    private static String readMacrosContent() {
+        File file = macrosFile();
+        try {
+            if (file.isFile()) {
+                String fromFile = Files.readString(file.toPath(), StandardCharsets.UTF_8);
+                if (fromFile != null && !fromFile.isBlank()) {
+                    return fromFile;
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Makros laden fehlgeschlagen: {}", file.getAbsolutePath(), e);
+        }
+        try {
+            String legacy = Preferences.userNodeForPackage(EditorWindow.class).get("savedMacros", "");
+            if (legacy != null && !legacy.isBlank()) {
+                return legacy;
+            }
+        } catch (Exception e) {
+            logger.warn("Legacy-Makro-Preferences nicht lesbar", e);
+        }
+        return "";
+    }
+
+    private static String readClasspathDefault() {
+        try (InputStream in = MacroStorage.class.getResourceAsStream(CLASSPATH_DEFAULT)) {
+            if (in == null) {
+                return "";
+            }
+            return new String(in.readAllBytes(), StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            logger.warn("Classpath-Standard-Makro nicht lesbar", e);
+            return "";
+        }
+    }
+
+    static void parseInto(String macroContent, ObservableList<Macro> macros) {
         Macro currentMacro = null;
         MacroStep currentStep = null;
         for (String rawLine : macroContent.split("\n")) {

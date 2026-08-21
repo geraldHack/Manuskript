@@ -16524,7 +16524,7 @@ spacer.setStyle("-fx-background-color: transparent;");
         OllamaService ollamaService = new OllamaService();
         
         // Prüfe verfügbare Modelle und verwende das in den Agent-Parametern konfigurierte Modell oder ein Fallback
-        String targetModel = ResourceManager.getParameter("agent.ollama.model", "gemma3:4b").trim();
+        String targetModel = ResourceManager.getParameter("agent.ollama.model", ParameterRegistry.DEFAULT_OLLAMA_MODEL).trim();
         Label statusLabel = new Label("Lade verfügbare Modelle...");
         statusLabel.setStyle(String.format("-fx-text-fill: %s;", THEMES[currentThemeIndex][1]));
         answersBox.getChildren().add(statusLabel);
@@ -17080,7 +17080,7 @@ spacer.setStyle("-fx-background-color: transparent;");
         OllamaService ollamaService = new OllamaService();
         
         // Prüfe verfügbare Modelle und verwende das in den Agent-Parametern konfigurierte Modell oder ein Fallback
-        String targetModel = ResourceManager.getParameter("agent.ollama.model", "gemma3:4b").trim();
+        String targetModel = ResourceManager.getParameter("agent.ollama.model", ParameterRegistry.DEFAULT_OLLAMA_MODEL).trim();
         Label statusLabel = new Label("Lade verfügbare Modelle...");
         statusLabel.setStyle(String.format("-fx-text-fill: %s;", THEMES[currentThemeIndex][1]));
         answersBox.getChildren().add(statusLabel);

@@ -165,7 +165,7 @@ public final class ChapterOllamaRewriteDialog {
         String context = loadProjectContext(chapterDocx, host.getText(), startPos, endPos);
         String prompt = buildPrompt(mode, originalText, instruction);
         OllamaService ollamaService = new OllamaService();
-        String targetModel = ResourceManager.getParameter("agent.ollama.model", "gemma3:4b").trim();
+        String targetModel = ResourceManager.getParameter("agent.ollama.model", ParameterRegistry.DEFAULT_OLLAMA_MODEL).trim();
         Label statusLabel = new Label("Lade verfügbare Modelle...");
         statusLabel.setStyle(String.format("-fx-text-fill: %s;", EditorDialogThemes.color(themeIndex, 1)));
         answersBox.getChildren().add(statusLabel);

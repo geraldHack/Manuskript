@@ -35,7 +35,7 @@ Manuskript is a JavaFX 21 desktop application for manuscript editing with AI int
 - **Display**: The JavaFX app requires `DISPLAY=:1` (the VM desktop) to render. Do NOT use headless mode.
 - **No Maven wrapper**: The repo does not include `mvnw`. System-installed Maven is required.
 - **Deprecation warnings**: `OllamaWindow.java` and `MainController.java` produce compiler warnings (deprecated API, unchecked operations) — these are expected and non-blocking.
-- **First launch**: The app shows a "Willkommen zu Manuskript" dialog asking for a project root directory. Without DOCX project files, the project selection screen will show "Keine Projekte gefunden".
+- **First launch**: Shows "Willkommen zu Manuskript" so the user can confirm the project root. Packaged default is `~/Documents/Manuskript` (Gott demo copied there once). Dev (`mvn javafx:run`) still suggests repo `Manuskripte/`.
 - **Optional services**: Ollama (localhost:11434), LanguageTool (localhost:8081), Pandoc, FFmpeg are optional and not required for basic app functionality or tests.
 - **OpenRouter Monitor** (`tools/openrouter-monitor/`): eigenständiges JavaFX-Hilfsprogramm für Credits und API-Logs; liest `agent.openai.api_key` und `agent.openai.api_url` aus Manuskript-Konfiguration. Nicht in die Haupt-App integriert.
 - **Test suite**: 7 unit tests (JUnit 5) covering `QuotationMarkConverterTest` and `LoggingConfigurationTest`. All pass without a display server.

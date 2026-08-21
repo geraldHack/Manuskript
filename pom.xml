@@ -167,6 +167,18 @@
     </dependencies>
 
     <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+            <resource>
+                <directory>config/makros</directory>
+                <includes>
+                    <include>macros.txt</include>
+                </includes>
+                <targetPath>makros</targetPath>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

@@ -38,7 +38,7 @@ public class OllamaService {
     private static final String CREATE_ENDPOINT = "/api/create";
     
     private final HttpClient httpClient;
-    private String currentModel = "gemma3:4b";
+    private String currentModel = ParameterRegistry.DEFAULT_OLLAMA_MODEL;
     
     // Konfigurierbare Parameter - OPTIMIERT FÜR PERFORMANCE
     private double temperature = 0.1;  // Sehr niedrig für schnellere, deterministischere Antworten

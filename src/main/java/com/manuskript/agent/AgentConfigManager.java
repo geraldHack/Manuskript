@@ -20,6 +20,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.manuskript.ApplicationPaths;
+import com.manuskript.ParameterRegistry;
 import com.manuskript.ResourceManager;
 
 /**
@@ -95,7 +96,7 @@ public class AgentConfigManager {
         if ("OpenAI".equals(backend)) {
             model = ResourceManager.getParameter("agent.openai.model", "gpt-4o-mini");
         } else {
-            model = ResourceManager.getParameter("agent.ollama.model", "gemma3:4b");
+            model = ResourceManager.getParameter("agent.ollama.model", ParameterRegistry.DEFAULT_OLLAMA_MODEL);
         }
 
         List<AgentConfig> defaults = new ArrayList<>();
@@ -127,7 +128,7 @@ public class AgentConfigManager {
         String backend = ResourceManager.getParameter("agent.backend", "Ollama");
         String model = "OpenAI".equals(backend)
                 ? ResourceManager.getParameter("agent.openai.model", "gpt-4o-mini")
-                : ResourceManager.getParameter("agent.ollama.model", "gemma3:4b");
+                : ResourceManager.getParameter("agent.ollama.model", ParameterRegistry.DEFAULT_OLLAMA_MODEL);
         for (AgentConfig config : configs) {
             if (config.getAgentType() == null || config.getAgentType().isBlank()) {
                 config.setAgentType("analysis");
@@ -428,7 +429,7 @@ public class AgentConfigManager {
             String backend = ResourceManager.getParameter("agent.backend", "Ollama");
             String model = "OpenAI".equals(backend)
                 ? ResourceManager.getParameter("agent.openai.model", "gpt-4o-mini")
-                : ResourceManager.getParameter("agent.ollama.model", "gemma3:4b");
+                : ResourceManager.getParameter("agent.ollama.model", ParameterRegistry.DEFAULT_OLLAMA_MODEL);
             AgentConfig sceneAgent = new AgentConfig(
                 "Szene Schreiben",
                 backend,
@@ -468,7 +469,7 @@ public class AgentConfigManager {
         String backend = ResourceManager.getParameter("agent.backend", "Ollama");
         String model = "OpenAI".equals(backend)
                 ? ResourceManager.getParameter("agent.openai.model", "gpt-4o-mini")
-                : ResourceManager.getParameter("agent.ollama.model", "gemma3:4b");
+                : ResourceManager.getParameter("agent.ollama.model", ParameterRegistry.DEFAULT_OLLAMA_MODEL);
         AgentConfig chatAgent = new AgentConfig(
                 "Chat",
                 backend,
@@ -492,7 +493,7 @@ public class AgentConfigManager {
         String backend = ResourceManager.getParameter("agent.backend", "Ollama");
         String model = "OpenAI".equals(backend)
                 ? ResourceManager.getParameter("agent.openai.model", "gpt-4o-mini")
-                : ResourceManager.getParameter("agent.ollama.model", "gemma3:4b");
+                : ResourceManager.getParameter("agent.ollama.model", ParameterRegistry.DEFAULT_OLLAMA_MODEL);
         String prompt = SelectionRevisionSupport.getDefaultSystemPrompt();
         AgentConfig revisionAgent = new AgentConfig(
                 "Überarbeiten",
@@ -517,7 +518,7 @@ public class AgentConfigManager {
         String backend = ResourceManager.getParameter("agent.backend", "Ollama");
         String model = "OpenAI".equals(backend)
                 ? ResourceManager.getParameter("agent.openai.model", "gpt-4o-mini")
-                : ResourceManager.getParameter("agent.ollama.model", "gemma3:4b");
+                : ResourceManager.getParameter("agent.ollama.model", ParameterRegistry.DEFAULT_OLLAMA_MODEL);
         String prompt = IdiomReviewSupport.getDefaultSystemPrompt();
         AgentConfig idiomAgent = new AgentConfig(
                 "Sprachentflechtung",

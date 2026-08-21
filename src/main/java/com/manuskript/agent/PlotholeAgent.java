@@ -1,6 +1,7 @@
 package com.manuskript.agent;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -89,8 +90,44 @@ public class PlotholeAgent {
 
     public CompletableFuture<PlotholeParseResult> analyze(
             String currentChapterText, String allChapters, int maxOutputTokens, String authorInstruction) {
-        return analyzeRaw(currentChapterText, allChapters, maxOutputTokens, authorInstruction)
-                .thenApply(PlotholeResponseParser::parse);
+        return analyze(currentChapterText, allChapters, maxOutputTokens, authorInstruction, null);
+    }
+
+    public CompletableFuture<PlotholeParseResult> analyze(
+            String currentChapterText, String allChapters, int maxOutputTokens, String authorInstruction,
+            Consumer<Finding> onFinding) {
+        memory.clear();
+
+        String systemPrompt = customSystemPrompt != null ? customSystemPrompt : SYSTEM_PROMPT;
+        String messageStr = buildUserMessage(currentChapterText, allChapters, authorInstruction);
+        int maxTokens = clampMaxOutputTokens(maxOutputTokens);
+        logger.info(
+                "Plothole-Anfrage: Manuskript={} Zeichen, Kontext={} Zeichen, max_output_tokens={}",
+                currentChapterText != null ? currentChapterText.length() : 0,
+                allChapters != null ? allChapters.length() : 0,
+                maxTokens);
+
+        PlotholeStreamParser streamParser = new PlotholeStreamParser();
+        return backend.chatStreaming(systemPrompt, messageStr, maxTokens, delta -> {
+                    for (Finding finding : streamParser.append(delta)) {
+                        if (onFinding != null) {
+                            onFinding.accept(finding);
+                        }
+                    }
+                })
+                .thenApply(raw -> {
+                    for (Finding finding : streamParser.pollCompleteFindings()) {
+                        if (onFinding != null) {
+                            onFinding.accept(finding);
+                        }
+                    }
+                    if (streamParser.hasFindings()) {
+                        logger.info("Plothole: {} Fund(e) während des Streams erkannt",
+                                streamParser.allFindings().size());
+                        return PlotholeParseResult.findings(streamParser.allFindings());
+                    }
+                    return PlotholeResponseParser.parse(raw);
+                });
     }
 
     public CompletableFuture<String> analyzeRaw(
@@ -106,7 +143,7 @@ public class PlotholeAgent {
                 contextBlock != null ? contextBlock.length() : 0,
                 maxTokens);
 
-        return backend.chat(systemPrompt, messageStr, maxTokens);
+        return backend.chatStreaming(systemPrompt, messageStr, maxTokens, delta -> { });
     }
 
     private static String buildUserMessage(String currentChapterText, String contextBlock, String authorInstruction) {

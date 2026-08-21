@@ -68,7 +68,8 @@ public class AgentConfig {
         if ("OpenAI".equals(backend)) {
             return com.manuskript.ResourceManager.getParameter("agent.openai.model", "gpt-4o-mini");
         } else {
-            return com.manuskript.ResourceManager.getParameter("agent.ollama.model", "gemma3:4b");
+            return com.manuskript.ResourceManager.getParameter("agent.ollama.model",
+                    com.manuskript.ParameterRegistry.DEFAULT_OLLAMA_MODEL);
         }
     }
     public void setModel(String model) { this.model = model; }

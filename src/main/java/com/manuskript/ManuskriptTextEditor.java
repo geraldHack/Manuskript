@@ -1151,6 +1151,22 @@ public class ManuskriptTextEditor extends Region {
         return currentLanguageToolMatches == null ? 0 : currentLanguageToolMatches.size();
     }
 
+    /**
+     * Springt zum nächsten LanguageTool-Fehler nach der Cursor-Position (danach Wrap zum ersten).
+     *
+     * @return der gewählte Treffer oder {@code null}
+     */
+    public LanguageToolService.Match revealNextLanguageToolMatchFromCaret() {
+        LanguageToolService.Match next = LanguageToolService.nextAfterCaret(currentLanguageToolMatches, caret);
+        if (next == null) {
+            return null;
+        }
+        int start = Math.max(0, next.getOffset());
+        int end = start + Math.max(0, next.getLength());
+        revealMatchAt(start, end);
+        return next;
+    }
+
     public void setOnLanguageToolMatchesChanged(Runnable listener) {
         onLanguageToolMatchesChanged = listener;
     }
@@ -4720,7 +4736,7 @@ public class ManuskriptTextEditor extends Region {
         for (int i = 0; i < lines.size(); i++) {
             y += segmentHeightForLineIndex(i, lines);
         }
-        return Math.max(canvas.getHeight(), y + 12);
+        return Math.max(canvas.getHeight(), y + endPadding());
     }
 
     private ParsedImageBlock imageBlockStartingAtLine(int lineIndex) {
@@ -5682,9 +5698,8 @@ public class ManuskriptTextEditor extends Region {
             return cachedVisualLines;
         }
         cachedVisualLines = computeVisualLines();
-        // Leerzeilen bleiben sichtbar; „Markup ausblenden“ betrifft nur Tags, nicht Zeilenumbrüche.
-        collapsedBlankLineAtRunEnd = null;
-        paragraphGapLine = null;
+        rebuildCollapsedBlankLineAtRunEnd(cachedVisualLines);
+        rebuildParagraphGapLines(cachedVisualLines);
         if (justifyText) {
             rebuildJustifyExtraPerGap(cachedVisualLines);
         } else {
@@ -5909,7 +5924,12 @@ public class ManuskriptTextEditor extends Region {
             cachedLineSegmentHeight[i] = segmentHeight;
             y += segmentHeight;
         }
-        cachedTotalContentHeight = Math.max(canvas.getHeight(), y + 12);
+        cachedTotalContentHeight = Math.max(canvas.getHeight(), y + endPadding());
+    }
+
+    /** Platz unter der letzten Zeile, damit das Kapitelende nicht am Canvas-Rand klebt. */
+    private double endPadding() {
+        return Math.max(24, lineHeight());
     }
 
     private double segmentHeightForLineIndex(int lineIndex, List<VisualLine> lines) {
@@ -5917,12 +5937,12 @@ public class ManuskriptTextEditor extends Region {
         if (blockStart != null) {
             return blockStart.displayHeight();
         }
-        if (isLineInsideImageBlock(lineIndex) || isLineInsideHorizontalRule(lineIndex)) {
-            return 0;
-        }
         ParsedHorizontalRule ruleStart = horizontalRuleStartingAtLine(lineIndex);
         if (ruleStart != null) {
             return ruleStart.displayHeight;
+        }
+        if (isLineInsideImageBlock(lineIndex) || isLineInsideHorizontalRule(lineIndex)) {
+            return 0;
         }
         if (lineIndex < 0 || lineIndex >= lines.size()) {
             return lineHeight();
@@ -5931,8 +5951,18 @@ public class ManuskriptTextEditor extends Region {
         if (shouldOmitTableStructureVisualLine(line.start, line.end)) {
             return 0;
         }
-        if (renderMarkupHidden && isWhitespaceOnlyVisualLine(line, lineIndex)) {
-            return Math.max(lineHeightForVisualLine(line), paragraphSpacingPx);
+        if (isParagraphGapLine(lineIndex)) {
+            return paragraphSpacingPx;
+        }
+        if (isBlankLineCollapsed(lineIndex)) {
+            return 0;
+        }
+        if (isWhitespaceOnlyVisualLine(line, lineIndex)) {
+            double blankHeight = lineHeightForVisualLine(line);
+            if (!renderMarkupHidden && paragraphSpacingPx > 0) {
+                return blankHeight + paragraphSpacingPx;
+            }
+            return blankHeight;
         }
         return lineHeightForVisualLine(line);
     }
@@ -6000,65 +6030,24 @@ public class ManuskriptTextEditor extends Region {
     }
 
     private List<VisualLine> computeVisualLines() {
-        List<VisualLine> lines = new ArrayList<>();
-        int lineStart = 0;
-        int i = 0;
-        int lastBreakOffset = -1;
-        double lineWidthSoFar = 0;
         double defaultWrapWidth = availableLineWidth();
-        int guard = 0;
-        while (i <= text.length()) {
-            if (++guard > text.length() + 1024) {
-                break;
-            }
-            if (i == text.length()) {
-                if (!shouldOmitTableStructureVisualLine(lineStart, i)) {
-                    lines.add(new VisualLine(lineStart, i));
-                }
-                break;
-            }
-
-            if (text.charAt(i) == '\n') {
-                if (!shouldOmitTableStructureVisualLine(lineStart, i)) {
-                    lines.add(new VisualLine(lineStart, i));
-                }
-                lineStart = i + 1;
-                i++;
-                lineWidthSoFar = 0;
-                lastBreakOffset = -1;
-                continue;
-            }
-
-            if (wrapText && isVisibleBreakOpportunity(i)) {
-                lastBreakOffset = i;
-            }
-
-            double wrapWidth = defaultWrapWidth;
-            VisualLine tempLine = new VisualLine(lineStart, lineStart);
-            double indent = blockIndentOffset(tempLine);
-            if (indent > 0) {
-                wrapWidth = Math.max(MIN_CHAR_WIDTH, wrapWidth - indent);
-            }
-
-            double widthIncludingI = lineWidthSoFar + measureOffsetWidth(i);
-            if (wrapText && i > lineStart && widthIncludingI > wrapWidth) {
-                int breakOffset = lastBreakOffset >= lineStart ? lastBreakOffset + 1 : Math.max(lineStart + 1, i);
-                if (breakOffset <= lineStart) {
-                    breakOffset = Math.min(text.length(), lineStart + 1);
-                }
-                lines.add(new VisualLine(lineStart, breakOffset));
-                lineStart = breakOffset;
-                lineWidthSoFar = 0;
-                i = lineStart;
-                lastBreakOffset = -1;
-                continue;
-            }
-
-            lineWidthSoFar = widthIncludingI;
-            i++;
-        }
-        if (lines.isEmpty()) {
-            lines.add(new VisualLine(0, 0));
+        List<VisualLineBreaker.Span> spans = VisualLineBreaker.breakLines(
+                text.toString(),
+                wrapText,
+                this::measureOffsetWidth,
+                this::isVisibleBreakOpportunity,
+                lineStart -> {
+                    double wrapWidth = defaultWrapWidth;
+                    double indent = blockIndentOffset(new VisualLine(lineStart, lineStart));
+                    if (indent > 0) {
+                        wrapWidth = Math.max(MIN_CHAR_WIDTH, wrapWidth - indent);
+                    }
+                    return wrapWidth;
+                },
+                this::shouldOmitTableStructureVisualLine);
+        List<VisualLine> lines = new ArrayList<>(spans.size());
+        for (VisualLineBreaker.Span span : spans) {
+            lines.add(new VisualLine(span.start(), span.end()));
         }
         return lines;
     }
@@ -6534,8 +6523,18 @@ public class ManuskriptTextEditor extends Region {
             if (shouldOmitTableStructureVisualLine(line.start, line.end)) {
                 return 0;
             }
-            if (renderMarkupHidden && isWhitespaceOnlyVisualLine(line, lineIndex)) {
-                return Math.max(lineHeightForVisualLine(line), paragraphSpacingPx);
+            if (isParagraphGapLine(lineIndex)) {
+                return paragraphSpacingPx;
+            }
+            if (isBlankLineCollapsed(lineIndex)) {
+                return 0;
+            }
+            if (isWhitespaceOnlyVisualLine(line, lineIndex)) {
+                double blankHeight = lineHeightForVisualLine(line);
+                if (!renderMarkupHidden && paragraphSpacingPx > 0) {
+                    return blankHeight + paragraphSpacingPx;
+                }
+                return blankHeight;
             }
             return lineHeightForVisualLine(line);
         }

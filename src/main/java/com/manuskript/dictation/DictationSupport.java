@@ -493,12 +493,21 @@ public class DictationSupport {
             removePendingMarker(marker);
             return;
         }
-        String toInsert = text;
+        String current = host.getText() != null ? host.getText() : "";
+        int insertAt = host.getSelectionStart();
+        if (marker != null && !marker.isBlank()) {
+            int markerAt = current.indexOf(marker);
+            if (markerAt >= 0) {
+                insertAt = markerAt;
+            }
+        }
+        insertAt = Math.max(0, Math.min(current.length(), insertAt));
+        String toInsert = DictationInsertCapitalization.adjustLeadingCapital(
+                text, current.substring(0, insertAt));
         if (!toInsert.endsWith(" ") && !toInsert.endsWith("\n")) {
             toInsert = toInsert + " ";
         }
         if (marker != null && !marker.isBlank()) {
-            String current = host.getText() != null ? host.getText() : "";
             int markerAt = current.indexOf(marker);
             if (markerAt >= 0) {
                 // Viewport/Caret des Nutzers behalten – typisch editiert man hinter der Markierung.

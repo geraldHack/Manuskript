@@ -1,9 +1,6 @@
 package com.manuskript;
 
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
 import javafx.application.Platform;
-import javafx.util.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,11 +21,14 @@ public class ChapterOnlineLektoratHelper {
     private final ChapterLektoratPanel panel;
     private final List<LektoratMatch> currentMatches = new ArrayList<>();
     private volatile boolean inProgress;
-    private Timeline lektoratRefreshTimeline;
+    private String lastSyncedText;
 
     public ChapterOnlineLektoratHelper(ChapterEditorHost host, ChapterLektoratPanel panel) {
         this.host = host;
         this.panel = panel;
+        if (panel != null) {
+            panel.setOnNextMatch(this::jumpToNextMatchFromCaret);
+        }
     }
 
     public List<LektoratMatch> getCurrentMatches() {
@@ -135,10 +135,7 @@ public class ChapterOnlineLektoratHelper {
     /** Beendet Lektorat (Abbrechen oder Schließen): Markierungen weg, Panel zu, Editor-Modus normal. */
     public void exit() {
         inProgress = false;
-        if (lektoratRefreshTimeline != null) {
-            lektoratRefreshTimeline.stop();
-            lektoratRefreshTimeline = null;
-        }
+        lastSyncedText = null;
         host.setStatusBusyBarActive(false);
         currentMatches.clear();
         ManuskriptEditorTestWindow canvas = host.asCanvasChapterEditor();
@@ -152,23 +149,30 @@ public class ChapterOnlineLektoratHelper {
         host.updateStatus("Lektorat beendet");
     }
 
-    /** Editor-Text hat sich geändert – Markierungen neu auflösen (debounced). */
+    /**
+     * Editor-Text hat sich geändert. Offsets der Treffer werden nur verschoben;
+     * ein teures Neuzeichnen aller Markierungen passiert nur, wenn ein Treffer ungültig wird.
+     */
     public void onEditorTextChanged() {
         if (inProgress || currentMatches.isEmpty()) {
             return;
         }
-        if (lektoratRefreshTimeline != null) {
-            lektoratRefreshTimeline.stop();
+        String newText = host.getText();
+        if (newText == null) {
+            return;
         }
-        lektoratRefreshTimeline = new Timeline(new KeyFrame(Duration.millis(300), event -> {
-            lektoratRefreshTimeline = null;
-            if (inProgress || currentMatches.isEmpty()) {
-                return;
-            }
-            syncMatchesToCurrentText();
+        if (lastSyncedText == null) {
+            lastSyncedText = newText;
+            return;
+        }
+        if (lastSyncedText.equals(newText)) {
+            return;
+        }
+        boolean removed = LektoratMatchLocator.shiftAfterTextChange(lastSyncedText, newText, currentMatches);
+        lastSyncedText = newText;
+        if (removed) {
             applyMatchesToCanvasEditor();
-        }));
-        lektoratRefreshTimeline.play();
+        }
     }
 
     private void syncMatchesToCurrentText() {
@@ -178,6 +182,7 @@ public class ChapterOnlineLektoratHelper {
         }
         currentMatches.removeIf(match -> LektoratMatchLocator.resolveSpan(text, match) == null);
         LektoratMatchLocator.resolveAllInPlace(text, currentMatches);
+        lastSyncedText = text;
     }
 
     private void applyMatchesToCanvasEditor() {
@@ -185,8 +190,22 @@ public class ChapterOnlineLektoratHelper {
         if (canvas == null) {
             return;
         }
-        syncMatchesToCurrentText();
         canvas.getTextEditor().applyLektoratMatches(currentMatches, this::onMatchSelected);
+    }
+
+    /** Springt zum nächsten Treffer nach der aktuellen Cursor-Position (danach Wrap zum ersten). */
+    public void jumpToNextMatchFromCaret() {
+        if (inProgress || currentMatches.isEmpty()) {
+            host.updateStatus("Keine Lektorat-Treffer");
+            return;
+        }
+        LektoratMatch next = LektoratMatchLocator.nextAfterCaret(currentMatches, host.getCaretPosition());
+        if (next == null) {
+            host.updateStatus("Keine Lektorat-Treffer");
+            return;
+        }
+        onMatchSelected(next);
+        host.updateStatus("Nächster Lektorat-Treffer");
     }
 
     private void onMatchSelected(LektoratMatch match) {
