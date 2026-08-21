@@ -533,13 +533,18 @@ public class LanguageToolService {
         
         // 3. Versuche relativ zum JAR-Verzeichnis der Anwendung
         try {
-            String appPath = LanguageToolService.class.getProtectionDomain()
-                .getCodeSource().getLocation().toURI().getPath();
-            if (appPath != null && appPath.endsWith(".jar")) {
-                File appJar = new File(appPath);
-                File appDir = appJar.getParentFile();
-                if (appDir != null) {
-                    jarFile = new File(appDir, jarPath);
+            File appDir = ApplicationPaths.getApplicationHomeDirectory();
+            if (appDir != null && appDir.isDirectory()) {
+                jarFile = new File(appDir, jarPath);
+                if (jarFile.exists()) {
+                    return jarFile;
+                }
+            }
+            File codeSource = ApplicationPaths.resolveCodeSourceFile(LanguageToolService.class);
+            if (codeSource != null && codeSource.getName().toLowerCase().endsWith(".jar")) {
+                File jarParent = codeSource.getParentFile();
+                if (jarParent != null) {
+                    jarFile = new File(jarParent, jarPath);
                     if (jarFile.exists()) {
                         return jarFile;
                     }

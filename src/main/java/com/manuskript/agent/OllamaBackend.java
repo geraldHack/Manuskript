@@ -8,6 +8,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 import com.manuskript.OllamaService;
+import com.manuskript.ModelTextNormalizer;
 import com.manuskript.ResourceManager;
 
 /**
@@ -79,7 +80,8 @@ public class OllamaBackend implements AIBackend {
         ollamaService.setCurrentSession(uniqueSessionId);
         return ollamaService.chatWithSystemPrompt(
                 systemPrompt, userMessage, maxTokens,
-                effectiveTemperature(), effectiveTopP(), effectiveRepeatPenalty());
+                effectiveTemperature(), effectiveTopP(), effectiveRepeatPenalty())
+                .thenApply(ModelTextNormalizer::normalize);
     }
 
     @Override
@@ -96,7 +98,8 @@ public class OllamaBackend implements AIBackend {
         }
         return ollamaService.chatMultiTurn(
                 systemPrompt, contextBlock, ollamaHistory, newUserMessage, maxTokens,
-                effectiveTemperature(), effectiveTopP(), effectiveRepeatPenalty());
+                effectiveTemperature(), effectiveTopP(), effectiveRepeatPenalty())
+                .thenApply(ModelTextNormalizer::normalize);
     }
 
     public OllamaService.StreamHandle chatStreaming(String systemPrompt, String userMessage,
@@ -120,7 +123,7 @@ public class OllamaBackend implements AIBackend {
             if (onDelta != null) {
                 onDelta.accept(chunk);
             }
-        }, () -> future.complete(acc.toString()), future::completeExceptionally);
+        }, () -> future.complete(ModelTextNormalizer.normalize(acc.toString())), future::completeExceptionally);
         return future;
     }
 

@@ -1,5 +1,7 @@
 package com.manuskript.novelwizard;
 
+import com.manuskript.ModelTextNormalizer;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -21,7 +23,7 @@ public final class NovelWizardResponseParser {
 
     public static NovelWizardTurn parse(String raw, boolean contentPhase) {
         NovelWizardTurn turn = new NovelWizardTurn();
-        String response = raw == null ? "" : raw.trim();
+        String response = raw == null ? "" : ModelTextNormalizer.normalize(raw.trim());
         turn.setQuestion(extract(QUESTION, response));
         turn.setHint(extract(HINT, response));
         turn.setSummary(extract(SUMMARY, response));

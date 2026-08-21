@@ -3,6 +3,7 @@ package com.manuskript.agent;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.manuskript.ModelTextNormalizer;
 
 /**
  * Extrahiert Text aus OpenAI-kompatiblen {@code message.content}-Feldern
@@ -18,14 +19,14 @@ public final class OpenAIMessageContentExtractor {
             return null;
         }
         if (contentElement.isJsonPrimitive() && contentElement.getAsJsonPrimitive().isString()) {
-            return contentElement.getAsString();
+            return ModelTextNormalizer.normalize(contentElement.getAsString());
         }
         if (contentElement.isJsonArray()) {
             StringBuilder sb = new StringBuilder();
             for (JsonElement part : contentElement.getAsJsonArray()) {
                 appendPartText(sb, part);
             }
-            return sb.isEmpty() ? null : sb.toString();
+            return sb.isEmpty() ? null : ModelTextNormalizer.normalize(sb.toString());
         }
         if (contentElement.isJsonObject()) {
             JsonObject o = contentElement.getAsJsonObject();
@@ -35,7 +36,7 @@ public final class OpenAIMessageContentExtractor {
                 }
                 JsonElement inner = o.get(key);
                 if (inner.isJsonPrimitive() && inner.getAsJsonPrimitive().isString()) {
-                    return inner.getAsString();
+                    return ModelTextNormalizer.normalize(inner.getAsString());
                 }
                 String nested = extractText(inner);
                 if (nested != null && !nested.isBlank()) {

@@ -7,6 +7,7 @@ import javax.swing.filechooser.FileSystemView;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -46,12 +47,14 @@ public final class ApplicationPaths {
         }
 
         try {
-            String codeLocation = Launcher.class.getProtectionDomain()
-                    .getCodeSource().getLocation().toURI().getPath();
-            if (codeLocation != null && codeLocation.endsWith(".jar")) {
-                File jarDir = new File(codeLocation).getParentFile();
-                if (jarDir != null && jarDir.isDirectory()) {
-                    return jarDir;
+            File codeSource = resolveCodeSourceFile(Launcher.class);
+            if (codeSource != null) {
+                String name = codeSource.getName().toLowerCase();
+                if (name.endsWith(".jar")) {
+                    File jarDir = codeSource.getParentFile();
+                    if (jarDir != null && jarDir.isDirectory()) {
+                        return jarDir;
+                    }
                 }
             }
         } catch (Exception ignored) {
@@ -59,6 +62,36 @@ public final class ApplicationPaths {
         }
 
         return new File(System.getProperty("user.dir", "."));
+    }
+
+    /**
+     * CodeSource-Location als {@link File} (Windows-sicher: kein {@code URI.getPath()} mit führendem {@code /C:/}).
+     */
+    public static File resolveCodeSourceFile(Class<?> clazz) {
+        if (clazz == null) {
+            return null;
+        }
+        try {
+            var location = clazz.getProtectionDomain().getCodeSource().getLocation();
+            if (location == null) {
+                return null;
+            }
+            return Path.of(location.toURI()).toFile();
+        } catch (Exception e) {
+            try {
+                var location = clazz.getProtectionDomain().getCodeSource().getLocation();
+                if (location == null) {
+                    return null;
+                }
+                String s = location.toString();
+                if (s.startsWith("file:")) {
+                    return Path.of(URI.create(s)).toFile();
+                }
+                return new File(location.getPath());
+            } catch (Exception ignored) {
+                return null;
+            }
+        }
     }
 
     /**
@@ -421,6 +454,15 @@ public final class ApplicationPaths {
         File bundled = new File(getApplicationHomeDirectory(), normalized);
         if (bundled.exists()) {
             return bundled;
+        }
+        // Ältere Windows-App-Images: Ressourcen neben der EXE (Parent von app/)
+        File home = getApplicationHomeDirectory();
+        File parent = home != null ? home.getParentFile() : null;
+        if (parent != null && "app".equalsIgnoreCase(home.getName())) {
+            File legacy = new File(parent, normalized);
+            if (legacy.exists()) {
+                return legacy;
+            }
         }
         File relative = new File(normalized);
         if (relative.exists()) {

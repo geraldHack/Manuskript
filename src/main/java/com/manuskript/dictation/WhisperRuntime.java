@@ -24,6 +24,8 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 /**
  * Auflösung von whisper-cli / whisper.cpp (lokal, ohne API-Key).
@@ -39,12 +41,19 @@ public final class WhisperRuntime {
     };
     private static final String DEFAULT_MODEL_URL =
             "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin";
+    /** Offizielles Windows-x64-Release (CPU) von ggml-org/whisper.cpp. */
+    private static final String WINDOWS_BIN_URL =
+            "https://github.com/ggml-org/whisper.cpp/releases/download/v1.7.6/whisper-bin-x64.zip";
 
     private WhisperRuntime() {
     }
 
     public static boolean isMacOS() {
         return isMac();
+    }
+
+    public static boolean isWindowsOS() {
+        return isWindows();
     }
 
     public static boolean isExecutableMissing() {
@@ -108,14 +117,30 @@ public final class WhisperRuntime {
     }
 
     /**
-     * Installiert whisper.cpp via Homebrew.
+     * Installiert whisper.cpp: macOS via Homebrew, Windows via offizielles ZIP von GitHub.
+     *
+     * @return {@code null} bei Erfolg, sonst Fehlermeldung
+     */
+    public static String installWhisperCpp(Consumer<String> log) {
+        if (isWindows()) {
+            return installWhisperCppWindows(log);
+        }
+        if (isMacOS()) {
+            return installWhisperCppViaHomebrew(log);
+        }
+        return "Automatische whisper-cli-Installation ist unter diesem Betriebssystem nicht verfügbar. "
+                + "Bitte whisper.cpp manuell installieren oder OpenAI-Backend nutzen.";
+    }
+
+    /**
+     * Installiert whisper.cpp via Homebrew (macOS).
      *
      * @return {@code null} bei Erfolg, sonst Fehlermeldung
      */
     public static String installWhisperCppViaHomebrew(Consumer<String> log) {
         Consumer<String> out = log != null ? log : msg -> {};
         if (!isMacOS()) {
-            return "Automatische Installation ist nur unter macOS verfügbar.";
+            return "Homebrew-Installation ist nur unter macOS verfügbar.";
         }
         String brew = resolveBrewExecutable();
         if (brew == null) {
@@ -160,6 +185,94 @@ public final class WhisperRuntime {
         } finally {
             if (process != null) {
                 process.destroy();
+            }
+        }
+    }
+
+    /**
+     * Lädt das offizielle Windows-x64-ZIP und entpackt es nach {@code whisper/} im App-Home.
+     *
+     * @return {@code null} bei Erfolg, sonst Fehlermeldung
+     */
+    public static String installWhisperCppWindows(Consumer<String> log) {
+        Consumer<String> out = log != null ? log : msg -> {};
+        if (!isWindows()) {
+            return "Windows-ZIP-Installation ist nur unter Windows verfügbar.";
+        }
+        File targetDir = new File(ApplicationPaths.getApplicationHomeDirectory(), WHISPER_DIR);
+        try {
+            Files.createDirectories(targetDir.toPath());
+            Path zipPath = targetDir.toPath().resolve("whisper-bin-x64.zip");
+            out.accept("Lade Windows-Binary: " + WINDOWS_BIN_URL);
+            out.accept("Zielordner: " + targetDir.getAbsolutePath());
+            HttpClient client = HttpClient.newBuilder()
+                    .followRedirects(HttpClient.Redirect.NORMAL)
+                    .connectTimeout(Duration.ofSeconds(30))
+                    .build();
+            HttpRequest request = HttpRequest.newBuilder(URI.create(WINDOWS_BIN_URL))
+                    .timeout(Duration.ofMinutes(30))
+                    .GET()
+                    .build();
+            Path partial = zipPath.resolveSibling(zipPath.getFileName() + ".partial");
+            HttpResponse<Path> response = client.send(request, HttpResponse.BodyHandlers.ofFile(partial));
+            if (response.statusCode() < 200 || response.statusCode() >= 300) {
+                Files.deleteIfExists(partial);
+                return "Windows-Binary-Download fehlgeschlagen (HTTP " + response.statusCode() + ").";
+            }
+            long size = Files.size(partial);
+            if (size < 100_000) {
+                Files.deleteIfExists(partial);
+                return "Windows-Binary-Download verdächtig klein (" + size + " Bytes).";
+            }
+            try {
+                Files.move(partial, zipPath, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+            } catch (Exception moveEx) {
+                Files.move(partial, zipPath, StandardCopyOption.REPLACE_EXISTING);
+            }
+            out.accept("ZIP gespeichert (" + (size / 1_000_000) + " MB), entpacke…");
+            extractZip(zipPath, targetDir.toPath(), out);
+            try {
+                Files.deleteIfExists(zipPath);
+            } catch (Exception ignored) {
+            }
+            String exe = resolveExecutable();
+            if (exe == null) {
+                return "ZIP entpackt, aber whisper-cli.exe nicht gefunden unter " + targetDir.getAbsolutePath()
+                        + ". Bitte dictation.local_whisper_command setzen.";
+            }
+            out.accept("whisper-cli gefunden: " + exe);
+            out.accept("Hinweis: Bei Startfehlern ggf. „Microsoft Visual C++ Redistributable“ installieren.");
+            return null;
+        } catch (Exception e) {
+            logger.warn("Windows Whisper-Installation fehlgeschlagen", e);
+            return "Windows Whisper-Installation fehlgeschlagen: " + e.getMessage();
+        }
+    }
+
+    private static void extractZip(Path zipPath, Path targetDir, Consumer<String> log) throws Exception {
+        try (ZipInputStream zis = new ZipInputStream(Files.newInputStream(zipPath))) {
+            ZipEntry entry;
+            byte[] buffer = new byte[8192];
+            while ((entry = zis.getNextEntry()) != null) {
+                Path entryPath = targetDir.resolve(entry.getName()).normalize();
+                if (!entryPath.startsWith(targetDir)) {
+                    throw new IllegalStateException("Ungültiger ZIP-Eintrag: " + entry.getName());
+                }
+                if (entry.isDirectory()) {
+                    Files.createDirectories(entryPath);
+                } else {
+                    Files.createDirectories(entryPath.getParent());
+                    try (var os = Files.newOutputStream(entryPath)) {
+                        int len;
+                        while ((len = zis.read(buffer)) > 0) {
+                            os.write(buffer, 0, len);
+                        }
+                    }
+                    if (log != null) {
+                        log.accept("  " + entry.getName());
+                    }
+                }
+                zis.closeEntry();
             }
         }
     }
@@ -243,7 +356,7 @@ public final class WhisperRuntime {
         String configured = ResourceManager.getParameter("dictation.local_whisper_command", "").trim();
         if (!configured.isEmpty()) {
             File file = new File(configured);
-            if (file.isFile() && file.canExecute()) {
+            if (isUsableBinary(file)) {
                 return file.getAbsolutePath();
             }
             if (isRunnableCommand(configured)) {
@@ -252,34 +365,79 @@ public final class WhisperRuntime {
             logger.warn("Konfiguriertes whisper-cli nicht ausführbar: {}", configured);
         }
 
-        boolean isWindows = System.getProperty("os.name", "").toLowerCase(Locale.ROOT).contains("win");
-        String[] names = isWindows
+        boolean windows = isWindows();
+        String[] names = windows
                 ? new String[]{"whisper-cli.exe", "whisper.exe", "main.exe", "whisper-cpp.exe"}
                 : new String[]{"whisper-cli", "whisper", "main", "whisper-cpp"};
 
         for (File whisperDir : whisperDirectories()) {
             for (String name : names) {
                 File exe = new File(whisperDir, name);
-                if (exe.isFile() && exe.canExecute()) {
+                if (isUsableBinary(exe)) {
                     logger.info("whisper-cli gefunden: {}", exe.getAbsolutePath());
                     return exe.getAbsolutePath();
                 }
                 File binExe = new File(whisperDir, "bin" + File.separator + name);
-                if (binExe.isFile() && binExe.canExecute()) {
+                if (isUsableBinary(binExe)) {
                     logger.info("whisper-cli gefunden: {}", binExe.getAbsolutePath());
                     return binExe.getAbsolutePath();
                 }
+                File releaseExe = new File(whisperDir, "Release" + File.separator + name);
+                if (isUsableBinary(releaseExe)) {
+                    logger.info("whisper-cli gefunden: {}", releaseExe.getAbsolutePath());
+                    return releaseExe.getAbsolutePath();
+                }
+            }
+            File nested = findNamedFile(whisperDir, windows ? "whisper-cli.exe" : "whisper-cli", 4);
+            if (nested == null && windows) {
+                nested = findNamedFile(whisperDir, "main.exe", 4);
+            }
+            if (nested != null && isUsableBinary(nested)) {
+                logger.info("whisper-cli gefunden: {}", nested.getAbsolutePath());
+                return nested.getAbsolutePath();
             }
         }
 
         for (String name : names) {
-            String found = findOnPath(name, isWindows);
+            String found = findOnPath(name, windows);
             if (found != null) {
                 logger.info("whisper-cli gefunden: {}", found);
                 return found;
             }
         }
         logger.warn("whisper-cli nicht gefunden");
+        return null;
+    }
+
+    /** Unter Windows oft false für canExecute() trotz gültiger .exe – daher isFile() genügt. */
+    private static boolean isUsableBinary(File file) {
+        if (file == null || !file.isFile()) {
+            return false;
+        }
+        if (isWindows()) {
+            return true;
+        }
+        return file.canExecute();
+    }
+
+    private static File findNamedFile(File dir, String fileName, int maxDepth) {
+        if (dir == null || !dir.isDirectory() || maxDepth < 0) {
+            return null;
+        }
+        File[] children = dir.listFiles();
+        if (children == null) {
+            return null;
+        }
+        for (File child : children) {
+            if (child.isDirectory()) {
+                File found = findNamedFile(child, fileName, maxDepth - 1);
+                if (found != null) {
+                    return found;
+                }
+            } else if (fileName.equalsIgnoreCase(child.getName())) {
+                return child;
+            }
+        }
         return null;
     }
 
@@ -333,18 +491,19 @@ public final class WhisperRuntime {
 
                 1) whisper-cli installieren:
                    macOS: brew install whisper-cpp
+                   Windows: in Manuskript „Diktat einrichten“ (lädt whisper-bin-x64.zip),
+                            oder manuell von https://github.com/ggml-org/whisper.cpp/releases
 
                 2) Modell ablegen (einer der Ordner):
                    %s/whisper/models/ggml-base.bin
                    %s/whisper/models/ggml-base.bin
 
-                Modell laden:
-                   mkdir -p whisper/models
+                Modell laden (Beispiel):
                    curl -L -o whisper/models/ggml-base.bin \\
                      https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin
 
                 Optional in Parametern:
-                   dictation.local_whisper_command (z. B. /opt/homebrew/bin/whisper-cli)
+                   dictation.local_whisper_command
                    dictation.local_whisper_model
                 """.formatted(appHome.getAbsolutePath(), home);
     }
@@ -396,15 +555,15 @@ public final class WhisperRuntime {
         return new ArrayList<>(dirs);
     }
 
-    private static String findOnPath(String command, boolean isWindows) {
+    private static String findOnPath(String command, boolean windows) {
         for (String dir : pathDirectories()) {
             File exe = new File(dir, command);
-            if (exe.isFile() && exe.canExecute()) {
+            if (isUsableBinary(exe)) {
                 return exe.getAbsolutePath();
             }
-            if (isWindows) {
-                File withExe = new File(dir, command + ".exe");
-                if (withExe.isFile() && withExe.canExecute()) {
+            if (windows) {
+                File withExe = new File(dir, command.endsWith(".exe") ? command : command + ".exe");
+                if (isUsableBinary(withExe)) {
                     return withExe.getAbsolutePath();
                 }
             }
@@ -426,6 +585,10 @@ public final class WhisperRuntime {
 
     private static boolean isMac() {
         return System.getProperty("os.name", "").toLowerCase(Locale.ROOT).contains("mac");
+    }
+
+    private static boolean isWindows() {
+        return System.getProperty("os.name", "").toLowerCase(Locale.ROOT).contains("win");
     }
 
     static List<String> buildCommand(String executable, Path model, Path audioFile, String language,

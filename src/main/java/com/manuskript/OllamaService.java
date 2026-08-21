@@ -1294,6 +1294,19 @@ public class OllamaService {
                         case 't':
                             result.append('\t');
                             break;
+                        case 'u':
+                            if (i + 4 < response.length()) {
+                                String hex = response.substring(i + 1, i + 5);
+                                try {
+                                    result.append((char) Integer.parseInt(hex, 16));
+                                    i += 4;
+                                } catch (NumberFormatException ex) {
+                                    result.append('\\').append(c);
+                                }
+                            } else {
+                                result.append('\\').append(c);
+                            }
+                            break;
                         default:
                             result.append('\\').append(c);
                             break;
@@ -1309,7 +1322,7 @@ public class OllamaService {
                 }
             }
             
-            return result.toString();
+            return ModelTextNormalizer.normalize(result.toString());
         } catch (Exception e) {
             logger.warn("Fehler beim Parsen der Generate-Antwort: {}", e.getMessage());
             return "Fehler beim Parsen der Antwort: " + e.getMessage();
@@ -1370,6 +1383,19 @@ public class OllamaService {
                     case 'n' -> result.append('\n');
                     case 'r' -> result.append('\r');
                     case 't' -> result.append('\t');
+                    case 'u' -> {
+                        if (i + 4 < json.length()) {
+                            String hex = json.substring(i + 1, i + 5);
+                            try {
+                                result.append((char) Integer.parseInt(hex, 16));
+                                i += 4;
+                            } catch (NumberFormatException ex) {
+                                result.append('\\').append(c);
+                            }
+                        } else {
+                            result.append('\\').append(c);
+                        }
+                    }
                     default -> result.append('\\').append(c);
                 }
                 escaped = false;
@@ -1381,7 +1407,7 @@ public class OllamaService {
                 result.append(c);
             }
         }
-        return result.toString();
+        return ModelTextNormalizer.normalize(result.toString());
     }
     
     /**

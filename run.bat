@@ -1,16 +1,21 @@
 @echo off
-REM Java 21 fuer diese Sitzung verwenden (anpassen an deinen Installationspfad)
-set "JAVA_HOME=C:\Program Files\Eclipse Adoptium\jdk-21.0.6.7-hotspot"
-if exist "%JAVA_HOME%\bin\java.exe" (
-    echo Java 21: %JAVA_HOME%
-) else (
-    if not defined JAVA_HOME echo Warnung: JAVA_HOME nicht gesetzt. Fuehre einmal set-java21-env.ps1 aus.
+setlocal
+cd /d "%~dp0"
+
+call "%~dp0find-java21.bat"
+if errorlevel 1 (
+    pause
+    exit /b 1
 )
-echo Stoppe alle Java-Prozesse...
-taskkill /f /im java.exe >nul 2>&1
-echo Warte 2 Sekunden...
-timeout /t 2 /nobreak >nul
+
+echo Stoppe Manuskript-bezogene Java-Prozesse ^(nicht alle java.exe^)...
+REM Nur Hinweis: globales taskkill aller java.exe entfallen - zu destruktiv.
+echo Warte 1 Sekunde...
+timeout /t 1 /nobreak >nul
 echo Führe Maven Clean aus...
 call mvn clean
 echo Starte Anwendung...
 call mvn javafx:run
+set "EXITCODE=%ERRORLEVEL%"
+pause
+exit /b %EXITCODE%

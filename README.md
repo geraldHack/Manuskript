@@ -29,7 +29,7 @@
 
 ### Voraussetzungen
 
-> **Warnung:** Zur Zeit ist nur die Mac-Version vollständig getestet. Experimente auf anderen Systemen auf eigene Gefahr.
+> **Hinweis:** macOS und Windows werden aktiv gepflegt. Linux (Cloud-VM) für Builds/Tests.
 
 - **Java 21+** ([Download](https://adoptium.net/))
 - **Maven 3.8+** ([Download](https://maven.apache.org/download.cgi))
@@ -42,6 +42,18 @@
 
 ### Installation & Start
 
+**Windows (Empfehlung):**
+
+```bat
+git clone https://codeberg.org/gehackb/Manuskript.git
+cd Manuskript
+run-developer.bat
+```
+
+App-Image bauen: `create-installer.bat` → Start über `installer-output\Manuskript\Manuskript.exe` (Ressourcen unter `app\`).
+
+**Allgemein (Maven):**
+
 ```bash
 git clone https://codeberg.org/gehackb/Manuskript.git
 cd Manuskript
@@ -49,7 +61,7 @@ mvn clean install
 mvn javafx:run
 ```
 
-> **Hinweis:** `mvn compile` aktualisiert nur `target/classes`. Für JAR/App-Image zuerst `mvn package` ausführen.
+> **Hinweis:** `mvn compile` aktualisiert nur `target/classes`. Für JAR/App-Image zuerst `mvn package` bzw. `create-installer.bat` ausführen.
 
 ### Erste Schritte
 

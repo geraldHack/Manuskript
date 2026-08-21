@@ -197,21 +197,24 @@ public final class ToolSetupSupport {
             return null;
         }
         if (needExe) {
-            if (!isMac()) {
-                return "Automatische whisper-cli-Installation ist nur unter macOS verfügbar. "
+            if (isMac()) {
+                if (!WhisperRuntime.isHomebrewAvailable()) {
+                    out.accept("Homebrew fehlt – öffne offiziellen Installer im Terminal…");
+                    String brewErr = HomebrewSupport.openInstallInTerminal();
+                    if (brewErr != null) {
+                        return brewErr;
+                    }
+                    return "Homebrew-Installer im Terminal gestartet. Nach Abschluss hier erneut "
+                            + "„Diktat einrichten“ wählen.";
+                }
+                out.accept("=== whisper-cpp installieren (Homebrew) ===");
+            } else if (isWindows()) {
+                out.accept("=== whisper-cli installieren (Windows-ZIP) ===");
+            } else {
+                return "Automatische whisper-cli-Installation ist unter diesem Betriebssystem nicht verfügbar. "
                         + "Bitte whisper.cpp manuell installieren oder OpenAI-Backend nutzen.";
             }
-            if (!WhisperRuntime.isHomebrewAvailable()) {
-                out.accept("Homebrew fehlt – öffne offiziellen Installer im Terminal…");
-                String brewErr = HomebrewSupport.openInstallInTerminal();
-                if (brewErr != null) {
-                    return brewErr;
-                }
-                return "Homebrew-Installer im Terminal gestartet. Nach Abschluss hier erneut "
-                        + "„Diktat einrichten“ wählen.";
-            }
-            out.accept("=== whisper-cpp installieren ===");
-            String err = WhisperRuntime.installWhisperCppViaHomebrew(out);
+            String err = WhisperRuntime.installWhisperCpp(out);
             if (err != null) {
                 return err;
             }

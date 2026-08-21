@@ -30,6 +30,7 @@ import javax.sound.sampled.DataLine;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -1145,14 +1146,15 @@ public class TtsRecordingWindow {
     }
 
     private static String getFfmpegPath() {
+        File exe = ToolSetupSupport.resolveFfmpegBinary(true);
+        if (exe != null) {
+            String path = exe.getAbsolutePath();
+            if (exe.isFile() || "ffmpeg".equalsIgnoreCase(exe.getName()) || "ffmpeg.exe".equalsIgnoreCase(exe.getName())) {
+                return path;
+            }
+        }
         boolean isWindows = System.getProperty("os.name", "").toLowerCase(Locale.ROOT).contains("win");
-        String exeName = isWindows ? "ffmpeg.exe" : "ffmpeg";
-        java.io.File dir = new java.io.File("ffmpeg");
-        java.io.File exe = new java.io.File(dir, exeName);
-        if (exe.canExecute()) return exe.getAbsolutePath();
-        java.io.File inBin = new java.io.File(dir, "bin/" + exeName);
-        if (inBin.canExecute()) return inBin.getAbsolutePath();
-        return "ffmpeg";
+        return isWindows ? "ffmpeg.exe" : "ffmpeg";
     }
 
     private void loadWindowPreferences() {

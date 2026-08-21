@@ -27,7 +27,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * Interaktives Einrichten von lokalem Whisper (Homebrew + Modell-Download).
+ * Interaktives Einrichten von lokalem Whisper (macOS/Homebrew oder Windows-ZIP + Modell-Download).
  */
 final class DictationWhisperSetup {
 
@@ -47,13 +47,16 @@ final class DictationWhisperSetup {
     }
 
     /**
-     * Zeigt Setup-Dialog mit optionaler automatischer Installation (macOS/Homebrew).
+     * Zeigt Setup-Dialog mit optionaler automatischer Installation.
      */
     static void show(Window owner, int themeIndex, String header, String detail) {
         boolean mac = WhisperRuntime.isMacOS();
+        boolean windows = WhisperRuntime.isWindowsOS();
+        boolean autoInstallSupported = mac || windows;
         boolean exeMissing = WhisperRuntime.isExecutableMissing();
         boolean modelMissing = WhisperRuntime.isModelMissing();
         boolean brewOk = mac && WhisperRuntime.isHomebrewAvailable();
+        boolean canAutoInstallExe = (windows && exeMissing) || (mac && brewOk && exeMissing);
 
         CustomAlert alert = new CustomAlert(CustomAlert.AlertType.CONFIRMATION);
         alert.setTitle(header != null && !header.isBlank() ? header : "Whisper einrichten");
@@ -68,15 +71,18 @@ final class DictationWhisperSetup {
         VBox.setVgrow(area, Priority.ALWAYS);
         alert.setCustomContent(content);
 
-        ButtonType installAll = new ButtonType("Mit Homebrew einrichten", ButtonBar.ButtonData.OK_DONE);
+        String installLabel = windows ? "Automatisch einrichten (Windows)" : "Mit Homebrew einrichten";
+        ButtonType installAll = new ButtonType(installLabel, ButtonBar.ButtonData.OK_DONE);
         ButtonType modelOnly = new ButtonType("Nur Modell laden", ButtonBar.ButtonData.APPLY);
         ButtonType close = new ButtonType("Schließen", ButtonBar.ButtonData.CANCEL_CLOSE);
 
-        if (mac && brewOk && (exeMissing || modelMissing)) {
-            if (exeMissing) {
+        if (canAutoInstallExe || (mac && brewOk && modelMissing && !exeMissing)) {
+            if (exeMissing && canAutoInstallExe) {
                 alert.setButtonTypes(installAll, modelOnly, close);
-            } else {
+            } else if (!exeMissing && modelMissing) {
                 alert.setButtonTypes(modelOnly, close);
+            } else {
+                alert.setButtonTypes(close);
             }
         } else if (mac && !brewOk && exeMissing) {
             alert.setButtonTypes(close);
@@ -84,6 +90,10 @@ final class DictationWhisperSetup {
                     + "dann Diktat erneut versuchen – oder dictation.stt_backend auf OpenAI stellen.");
         } else if (!exeMissing && modelMissing) {
             alert.setButtonTypes(modelOnly, close);
+        } else if (!autoInstallSupported && exeMissing) {
+            alert.setButtonTypes(close);
+            area.setText(detail + "\n\nAutomatische Installation ist unter diesem System nicht verfügbar. "
+                    + "Bitte whisper.cpp manuell installieren oder OpenAI-Backend nutzen.");
         } else {
             alert.setButtonTypes(close);
         }
@@ -104,14 +114,17 @@ final class DictationWhisperSetup {
         }
     }
 
-    private static void runInstall(Window owner, int themeIndex, boolean brew, boolean model) {
+    private static void runInstall(Window owner, int themeIndex, boolean installBinary, boolean model) {
         CustomStage stage = StageManager.createModalStage("Whisper wird eingerichtet", owner);
         stage.initModality(Modality.WINDOW_MODAL);
         stage.setWidth(620);
         stage.setHeight(420);
         stage.setTitleBarTheme(themeIndex);
 
-        Label title = new Label(brew ? "Homebrew + Modell" : "Modell-Download");
+        String titleText = installBinary
+                ? (WhisperRuntime.isWindowsOS() ? "Binary + Modell" : "Homebrew + Modell")
+                : "Modell-Download";
+        Label title = new Label(titleText);
         title.getStyleClass().add("dialog-title");
 
         TextArea logArea = new TextArea();
@@ -157,9 +170,9 @@ final class DictationWhisperSetup {
         CompletableFuture.supplyAsync(() -> {
             String error = null;
             try {
-                if (brew) {
-                    log.accept("=== whisper-cpp installieren ===");
-                    error = WhisperRuntime.installWhisperCppViaHomebrew(log);
+                if (installBinary) {
+                    log.accept("=== whisper-cli installieren ===");
+                    error = WhisperRuntime.installWhisperCpp(log);
                     if (error != null) {
                         return error;
                     }

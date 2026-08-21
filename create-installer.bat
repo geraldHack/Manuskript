@@ -6,15 +6,15 @@ echo  Manuskript Installer-Paket erstellen
 echo ========================================
 echo.
 
-REM --- Java 21 pruefen / setzen ---
-set "JAVA_HOME=C:\Program Files\Eclipse Adoptium\jdk-21.0.6.7-hotspot"
-if not exist "%JAVA_HOME%\bin\jpackage.exe" (
-    echo FEHLER: JDK 21 nicht gefunden unter %JAVA_HOME%
-    echo Bitte JAVA_HOME anpassen oder JDK 21 installieren.
+REM --- Java 21 pruefen / setzen (mit jpackage) ---
+cd /d "%~dp0"
+set "REQUIRE_JPACKAGE=1"
+call "%~dp0find-java21.bat"
+if errorlevel 1 (
     pause
     exit /b 1
 )
-echo [OK] Java 21: %JAVA_HOME%
+echo [OK] Java 21 + jpackage: %JAVA_HOME%
 
 REM --- Konfiguration ---
 set "APP_NAME=Manuskript"
@@ -110,45 +110,51 @@ if errorlevel 1 (
 )
 echo [OK] App-Image erstellt.
 
-REM --- Schritt 5: Ressourcen in App-Image kopieren ---
+REM --- Schritt 5: Ressourcen in App-Image kopieren (unter app\, wie ApplicationPaths) ---
 echo.
 echo [5/6] Kopiere Ressourcen ins App-Image...
 
 set "APP_IMAGE=%OUTPUT_DIR%\%APP_NAME%"
+set "APP_DIR=%APP_IMAGE%\app"
+if not exist "%APP_DIR%" (
+    echo FEHLER: app\-Verzeichnis fehlt unter %APP_IMAGE%
+    pause
+    exit /b 1
+)
 
 REM Config-Verzeichnis (ohne sessions/)
 echo   - config/
-xcopy "config\*" "%APP_IMAGE%\config\" /E /I /Q >nul 2>&1
-if exist "%APP_IMAGE%\config\sessions" rmdir /s /q "%APP_IMAGE%\config\sessions" >nul 2>&1
+xcopy "config\*" "%APP_DIR%\config\" /E /I /Q >nul 2>&1
+if exist "%APP_DIR%\config\sessions" rmdir /s /q "%APP_DIR%\config\sessions" >nul 2>&1
 REM LanguageTool-Wörterbuch nicht mitshipen (projektspezifisch; App legt leere Datei an)
-if exist "%APP_IMAGE%\config\languagetool-dictionary.txt" del "%APP_IMAGE%\config\languagetool-dictionary.txt" >nul 2>&1
+if exist "%APP_DIR%\config\languagetool-dictionary.txt" del "%APP_DIR%\config\languagetool-dictionary.txt" >nul 2>&1
 
 REM FFmpeg (nur ZIP, wird beim ersten Start automatisch entpackt)
 echo   - ffmpeg/
-mkdir "%APP_IMAGE%\ffmpeg"
-if exist "ffmpeg\ffmpeg.zip" copy "ffmpeg\ffmpeg.zip" "%APP_IMAGE%\ffmpeg\" >nul
+mkdir "%APP_DIR%\ffmpeg" 2>nul
+if exist "ffmpeg\ffmpeg.zip" copy "ffmpeg\ffmpeg.zip" "%APP_DIR%\ffmpeg\" >nul
 
 REM Pandoc (ZIP + Templates + Hilfsdateien)
 echo   - pandoc/
-mkdir "%APP_IMAGE%\pandoc"
-if exist "pandoc\pandoc.zip" copy "pandoc\pandoc.zip" "%APP_IMAGE%\pandoc\" >nul
+mkdir "%APP_DIR%\pandoc" 2>nul
+if exist "pandoc\pandoc.zip" copy "pandoc\pandoc.zip" "%APP_DIR%\pandoc\" >nul
 for %%f in (pandoc\*.docx pandoc\*.txt pandoc\*.lua pandoc\*.css pandoc\*.yaml pandoc\*.tex pandoc\*.html pandoc\*.rtf pandoc\*.md) do (
-    copy "%%f" "%APP_IMAGE%\pandoc\" >nul 2>&1
+    copy "%%f" "%APP_DIR%\pandoc\" >nul 2>&1
 )
 
 REM Demo-Vorlage (wird beim ersten Start nach Documents\Manuskript kopiert)
 if exist "Manuskripte" (
     echo   - Manuskripte/ (Demo-Vorlage fuer Erststart)
-    xcopy "Manuskripte\*" "%APP_IMAGE%\Manuskripte\" /E /I /Q >nul 2>&1
+    xcopy "Manuskripte\*" "%APP_DIR%\Manuskripte\" /E /I /Q >nul 2>&1
 )
 
 REM Language Tool (ca. 386 MB, enthaelt lokalen Grammatik-Server)
 if exist "language tool" (
     echo   - language tool/ ^(kann etwas dauern...^)
-    xcopy "language tool\*" "%APP_IMAGE%\language tool\" /E /I /Q >nul 2>&1
+    xcopy "language tool\*" "%APP_DIR%\language tool\" /E /I /Q >nul 2>&1
 )
 
-echo [OK] Ressourcen kopiert.
+echo [OK] Ressourcen nach %APP_DIR% kopiert.
 
 REM --- Schritt 6: ZIP erstellen ---
 echo.

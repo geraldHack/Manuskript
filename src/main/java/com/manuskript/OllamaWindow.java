@@ -2951,8 +2951,8 @@ public class OllamaWindow {
         }
         if (text == null) text = "";
         
-        // Unicode-Escape-Sequenzen in echte HTML-Tags umwandeln (für gesamten Text)
-        text = text.replace("u003c", "<").replace("u003e", ">");
+        // Unicode-Escapes (\u003c, u00e4, …) → normale Zeichen (jobautomation u. a.)
+        text = ModelTextNormalizer.normalize(text);
 
         // Header-Zeile im Format: [model | param, param, ...] erkennen
         String headerHtml = "";

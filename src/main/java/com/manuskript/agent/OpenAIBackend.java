@@ -237,8 +237,8 @@ public class OpenAIBackend implements AIBackend {
                 workingMessages.add(continueMsg);
             }
 
-            String result = fullContent.toString();
-            if (result.isBlank()) {
+            String result = com.manuskript.ModelTextNormalizer.normalize(fullContent.toString());
+            if (result == null || result.isBlank()) {
                 throw new RuntimeException(
                         "Keine lesbare Text-Antwort von der API (Modell " + currentModel
                                 + "). Reasoning-Modelle wie Kimi brauchen oft höheres max_tokens "
