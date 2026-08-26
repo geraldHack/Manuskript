@@ -11,6 +11,7 @@ import com.manuskript.ResourceManager;
 import com.manuskript.agent.AgentStatusBusyBarSupport;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
+import javafx.collections.ListChangeListener;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
@@ -95,7 +96,6 @@ public class NovelCreationWizardWindow {
     private NovelWizardSession session;
     private TextArea chatArea;
     private Label projectTitleLabel;
-    private Label phaseHeadlineLabel;
     private Label progressCaptionLabel;
     private Label progressFractionLabel;
     private ProgressBar phaseProgressBar;
@@ -111,6 +111,8 @@ public class NovelCreationWizardWindow {
     private VBox optionsBox;
     private ScrollPane optionsScroll;
     private TextArea customAnswerArea;
+    private TextArea standingInstructionsArea;
+    private Tab standingInstructionsTab;
     private TabPane previewTabs;
     private final Map<String, Tab> previewTabByFile = new LinkedHashMap<>();
     private final Map<String, ScrollPane> previewScrollByFile = new LinkedHashMap<>();
@@ -124,6 +126,10 @@ public class NovelCreationWizardWindow {
     private SplitPane contentSplitPane;
     private int uiFontSize = DEFAULT_FONT_SIZE;
     private Label fontSizeLabel;
+    /** Steigt bei jedem neuen KI-Lauf und Phasenwechsel; veraltete Antworten werden verworfen. */
+    private int turnRequestId;
+    private boolean turnInFlight;
+    private boolean suppressPhaseComboAction;
 
     public NovelCreationWizardWindow(Window owner, Path projectDirectory, Runnable onProjectChanged, int themeIndex) {
         this.owner = owner;
@@ -164,7 +170,6 @@ public class NovelCreationWizardWindow {
         selectPreviewTabForPhase(phase);
         if (session.getPendingTurn() != null) {
             renderTurn(session.getPendingTurn());
-            statusLabel.setText("Phase " + phaseNumber(phase) + "/" + totalPhaseCount() + ": " + phase.getTitle());
             return;
         }
         NovelWizardPhaseStatus status = session.getPhaseStatus().get(phase);
@@ -226,7 +231,7 @@ public class NovelCreationWizardWindow {
     private void startRevisitTurn(NovelWizardPhase phase) {
         session.getPhaseStatus().put(phase, NovelWizardPhaseStatus.REVISITING);
         session.setCurrentPhase(phase);
-        sessionStore.save(session);
+        persistSession();
         requestNextTurn(true);
     }
 
@@ -243,7 +248,7 @@ public class NovelCreationWizardWindow {
         Optional<NovelWizardSession> existing = sessionStore.load();
         if (existing.isEmpty()) {
             session = NovelWizardSession.create("NEW");
-            sessionStore.save(session);
+            persistSession();
             return true;
         }
 
@@ -264,7 +269,7 @@ public class NovelCreationWizardWindow {
         if (result.get() == restart) {
             sessionStore.archiveCurrentSession();
             session = NovelWizardSession.create("NEW");
-            sessionStore.save(session);
+            persistSession();
         } else {
             session = existing.get();
         }
@@ -279,9 +284,7 @@ public class NovelCreationWizardWindow {
         stage.setMinWidth(MIN_WIZARD_WIDTH);
         stage.setMinHeight(MIN_WIZARD_HEIGHT);
         stage.setTitleBarTheme(themeIndex);
-        if (owner != null) {
-            stage.initOwner(owner);
-        }
+        // Kein initOwner: sonst klebt das Fenster unter macOS am Screen des Hauptfensters.
 
         BorderPane root = new BorderPane();
         root.getStyleClass().add("novel-wizard-root");
@@ -291,11 +294,6 @@ public class NovelCreationWizardWindow {
         projectTitleLabel = new Label("Roman-Assistent · " + projectName);
         projectTitleLabel.getStyleClass().add("novel-wizard-project-title");
         projectTitleLabel.setMaxWidth(Double.MAX_VALUE);
-
-        phaseHeadlineLabel = new Label("Brainstorm");
-        phaseHeadlineLabel.getStyleClass().add("novel-wizard-phase-headline");
-        phaseHeadlineLabel.setMaxWidth(Double.MAX_VALUE);
-        phaseHeadlineLabel.setFont(Font.font(null, FontWeight.BOLD, 24));
 
         progressCaptionLabel = new Label("Projektfortschritt");
         progressCaptionLabel.getStyleClass().add("novel-wizard-progress-caption");
@@ -356,21 +354,16 @@ public class NovelCreationWizardWindow {
         phaseComboBox.setPromptText("Phase wählen…");
         phaseComboBox.setPrefWidth(200);
         phaseComboBox.setMaxWidth(260);
-        phaseComboBox.setOnAction(e -> jumpToPhase(phaseComboBox.getValue()));
+        phaseComboBox.setOnAction(e -> {
+            if (suppressPhaseComboAction) {
+                return;
+            }
+            jumpToPhase(phaseComboBox.getValue());
+        });
 
-        Label jumpLabel = new Label("Springen zu:");
-        jumpLabel.getStyleClass().add("novel-wizard-jump-label");
-        HBox jumpRow = new HBox(8, jumpLabel, phaseComboBox);
-        jumpRow.setAlignment(Pos.CENTER_RIGHT);
-
-        Region footerSpacer = new Region();
-        HBox.setHgrow(footerSpacer, Priority.ALWAYS);
         VBox statusSection = new VBox(2, statusLabel, statusBusyBar);
         statusSection.setAlignment(Pos.CENTER_LEFT);
         statusSection.setMaxWidth(Double.MAX_VALUE);
-        HBox.setHgrow(statusSection, Priority.ALWAYS);
-        HBox footerRow = new HBox(12, statusSection, footerSpacer, jumpRow);
-        footerRow.setAlignment(Pos.CENTER_LEFT);
 
         Button wizardHelpButton = HelpSystem.createHelpButton(
                 "Hilfe zum Roman-Assistenten", "novel_wizard.html", "Hilfe - Roman-Assistent");
@@ -390,14 +383,14 @@ public class NovelCreationWizardWindow {
         fontControls.setAlignment(Pos.CENTER_LEFT);
         fontControls.getStyleClass().add("novel-wizard-font-controls");
 
-        HBox titleRow = new HBox(8, projectTitleLabel, fontControls, wizardHelpButton);
+        Region titleSpacer = new Region();
+        HBox.setHgrow(titleSpacer, Priority.ALWAYS);
+        HBox titleRow = new HBox(8, projectTitleLabel, fontControls, wizardHelpButton, titleSpacer, phaseComboBox);
         titleRow.setAlignment(Pos.CENTER_LEFT);
-        HBox.setHgrow(projectTitleLabel, Priority.ALWAYS);
-        VBox titleBlock = new VBox(2, titleRow, phaseHeadlineLabel);
-        VBox headerMain = new VBox(12, titleBlock, progressRow, phaseStepsScroll);
+        VBox headerMain = new VBox(12, titleRow, progressRow, phaseStepsScroll, statusSection);
         headerMain.getStyleClass().add("novel-wizard-header-main");
 
-        VBox headerBox = new VBox(10, headerMain, footerRow);
+        VBox headerBox = new VBox(headerMain);
         headerBox.getStyleClass().add("novel-wizard-header");
 
         chatArea = new TextArea();
@@ -449,19 +442,54 @@ public class NovelCreationWizardWindow {
                 optionsBox.setMinWidth(width);
                 optionsBox.setPrefWidth(width);
             }
+            syncOptionsScrollToContent();
         });
-
-        Label answerLabel = new Label("Eigene Antwort");
-        answerLabel.getStyleClass().add("novel-wizard-section-label");
+        optionsBox.getChildren().addListener((ListChangeListener<Node>) c ->
+                Platform.runLater(this::syncOptionsScrollToContent));
 
         customAnswerArea = new TextArea();
         customAnswerArea.setPromptText("Eigene Antwort, Überarbeitung oder Korrektur an die KI…");
         customAnswerArea.setWrapText(true);
         customAnswerArea.setPrefRowCount(3);
         customAnswerArea.setMinHeight(72);
-        customAnswerArea.setMaxHeight(140);
+        customAnswerArea.setMaxHeight(Double.MAX_VALUE);
         customAnswerArea.getStyleClass().add("novel-wizard-answer-area");
-        VBox.setVgrow(customAnswerArea, Priority.NEVER);
+
+        standingInstructionsArea = new TextArea();
+        standingInstructionsArea.setPromptText(
+                "Steht dauerhaft: z. B. welche KI-Entscheidungen schlecht waren, Stil, Verbote, Erwartungen…");
+        standingInstructionsArea.setWrapText(true);
+        standingInstructionsArea.setPrefRowCount(3);
+        standingInstructionsArea.setMinHeight(72);
+        standingInstructionsArea.setMaxHeight(Double.MAX_VALUE);
+        standingInstructionsArea.getStyleClass().add("novel-wizard-answer-area");
+        standingInstructionsArea.setText(session.getStandingInstructions());
+        standingInstructionsArea.focusedProperty().addListener((obs, wasFocused, focused) -> {
+            if (!focused) {
+                persistSession();
+            }
+        });
+        standingInstructionsArea.textProperty().addListener((obs, oldText, newText) -> updateStandingInstructionsTabLabel());
+
+        standingInstructionsTab = new Tab("Anweisungen");
+        standingInstructionsTab.setClosable(false);
+        standingInstructionsTab.setContent(new BorderPane(standingInstructionsArea));
+        standingInstructionsTab.setTooltip(new Tooltip(
+                "Geht an jede KI-Anfrage. Bleibt stehen. Wird nicht im Chat und nicht in den Welt-Dateien notiert."));
+
+        Tab answerTab = new Tab("Antwort");
+        answerTab.setClosable(false);
+        answerTab.setContent(new BorderPane(customAnswerArea));
+        answerTab.setTooltip(new Tooltip("Einmalige Antwort auf die aktuelle Frage. Wird in den Chat übernommen."));
+
+        TabPane answerTabs = new TabPane(answerTab, standingInstructionsTab);
+        answerTabs.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
+        answerTabs.getStyleClass().add("novel-wizard-answer-tabs");
+        answerTabs.setMinHeight(110);
+        answerTabs.setPrefHeight(150);
+        answerTabs.setMaxHeight(Double.MAX_VALUE);
+        VBox.setVgrow(answerTabs, Priority.ALWAYS);
+        updateStandingInstructionsTabLabel();
 
         Button sendCustomButton = actionButton("Antwort senden", "novel-wizard-action-primary");
         sendCustomButton.setOnAction(e -> submitCustomAnswer());
@@ -471,11 +499,6 @@ public class NovelCreationWizardWindow {
         Tooltip.install(correctionButton, new Tooltip(
                 "Verbindliche Korrektur an die KI (z. B. falsche Rolle einer Figur). "
                         + "Text zuerst ins Feld darunter schreiben."));
-
-        HBox answerButtonRow = new HBox(BUTTON_GAP, sendCustomButton, correctionButton);
-        answerButtonRow.setAlignment(Pos.CENTER);
-        answerButtonRow.setMinHeight(Region.USE_PREF_SIZE);
-        VBox.setVgrow(answerButtonRow, Priority.NEVER);
 
         backQuestionButton = actionButton("Eine Frage zurück", "novel-wizard-action-secondary");
         backQuestionButton.setOnAction(e -> goBackOneQuestion());
@@ -490,6 +513,8 @@ public class NovelCreationWizardWindow {
         pauseButton.setOnAction(e -> pause());
 
         HBox actionsRow = actionButtonRow(
+                sendCustomButton,
+                correctionButton,
                 backQuestionButton,
                 nextQuestionButton,
                 pauseButton,
@@ -499,9 +524,7 @@ public class NovelCreationWizardWindow {
                 questionBox,
                 hintBox,
                 optionsScroll,
-                answerLabel,
-                customAnswerArea,
-                answerButtonRow,
+                answerTabs,
                 actionsRow);
         interactionPanel.getStyleClass().add("novel-wizard-interaction");
         interactionPanel.setFillWidth(true);
@@ -512,9 +535,10 @@ public class NovelCreationWizardWindow {
         hintBox.prefWidthProperty().bind(interactionPanel.widthProperty());
         bindWrappingText(questionText, interactionPanel, QUESTION_BOX_HORIZONTAL_PADDING);
         bindWrappingText(hintText, interactionPanel, 0);
-        VBox.setVgrow(optionsScroll, Priority.ALWAYS);
-        VBox.setMargin(answerLabel, new Insets(6, 0, 2, 0));
+        VBox.setVgrow(optionsScroll, Priority.NEVER);
+        VBox.setMargin(answerTabs, new Insets(6, 0, 2, 0));
         VBox.setMargin(actionsRow, new Insets(4, 0, 0, 0));
+        syncOptionsScrollToContent();
 
         mainSplitPane = new SplitPane(contentSplitPane, interactionPanel);
         mainSplitPane.setOrientation(Orientation.VERTICAL);
@@ -544,7 +568,7 @@ public class NovelCreationWizardWindow {
         bindUiLayoutPersistence();
         stage.setOnCloseRequest(e -> {
             saveUiLayoutPreferences();
-            sessionStore.save(session);
+            persistSession();
         });
     }
 
@@ -564,6 +588,7 @@ public class NovelCreationWizardWindow {
         }
         applyThemedTextArea(chatArea, uiFontSize);
         applyThemedTextArea(customAnswerArea, uiFontSize);
+        applyThemedTextArea(standingInstructionsArea, uiFontSize);
         if (questionText != null) {
             questionText.setFont(Font.font(null, FontWeight.BOLD, uiFontSize + 2));
         }
@@ -571,6 +596,7 @@ public class NovelCreationWizardWindow {
             hintText.setFont(Font.font(null, FontWeight.NORMAL, uiFontSize));
         }
         applyWizardTextColors();
+        syncOptionsScrollToContent();
         for (MdTextArea editor : previewEditorByFile.values()) {
             if (editor != null && editor.getEditor() != null) {
                 editor.getEditor().setFontSizeForAll(uiFontSize);
@@ -657,6 +683,9 @@ public class NovelCreationWizardWindow {
     private Button actionButton(String text, String styleClass) {
         Button button = new Button(text);
         button.getStyleClass().addAll("novel-wizard-action-button", styleClass);
+        button.setWrapText(false);
+        button.setMinWidth(Region.USE_PREF_SIZE);
+        button.setMaxHeight(Region.USE_PREF_SIZE);
         return button;
     }
 
@@ -736,6 +765,36 @@ public class NovelCreationWizardWindow {
         optionsBox.getChildren().add(createOptionButton(text, onSelect));
     }
 
+    /** Passt die Optionsliste an den Inhalt an, damit alle Antworten sichtbar sind, wenn Platz ist. */
+    private void syncOptionsScrollToContent() {
+        if (optionsScroll == null || optionsBox == null) {
+            return;
+        }
+        if (optionsBox.getChildren().isEmpty()) {
+            optionsScroll.setMinHeight(0);
+            optionsScroll.setPrefHeight(0);
+            optionsScroll.setMaxHeight(0);
+            return;
+        }
+        double width = optionsScroll.getWidth();
+        if (width <= 1) {
+            width = optionsScroll.getViewportBounds().getWidth();
+        }
+        if (width <= 1) {
+            width = Math.max(optionsBox.getWidth(), 400);
+        }
+        double contentWidth = Math.max(80, width - 4);
+        for (Node child : optionsBox.getChildren()) {
+            child.applyCss();
+        }
+        optionsBox.applyCss();
+        double contentHeight = optionsBox.prefHeight(contentWidth);
+        double height = Math.max(8, contentHeight);
+        optionsScroll.setMinHeight(Math.min(48, height));
+        optionsScroll.setPrefHeight(height);
+        optionsScroll.setMaxHeight(height);
+    }
+
     private void renderSession() {
         updatePhaseLabel();
         StringBuilder sb = new StringBuilder();
@@ -790,20 +849,29 @@ public class NovelCreationWizardWindow {
             startRevisitTurn(phase);
             return;
         }
+        syncStandingInstructionsFromUi();
+        int requestId = ++turnRequestId;
+        turnInFlight = true;
         clearPendingInteraction();
         setBusy(true, "KI denkt...");
         aiService.nextTurn(session, worldEditorMapper.readExistingContext())
                 .whenComplete((turn, ex) -> Platform.runLater(() -> {
+                    if (requestId != turnRequestId || session.getCurrentPhase() != phase) {
+                        logger.info("Veraltete Roman-Assistent-Antwort verworfen (Phase {}, jetzt {})",
+                                phase, session.getCurrentPhase());
+                        return;
+                    }
+                    turnInFlight = false;
                     if (ex != null) {
                         logger.warn("Roman-Assistent KI-Aufruf fehlgeschlagen", ex);
                         NovelWizardTurn fallback = fallbackTurn(ex);
-                        session.addAssistantTurn(session.getCurrentPhase(), ex.getMessage(), fallback);
+                        session.addAssistantTurn(phase, ex.getMessage(), fallback);
                         renderTurn(fallback);
                     } else {
-                        session.addAssistantTurn(session.getCurrentPhase(), "", turn);
+                        session.addAssistantTurn(phase, "", turn);
                         renderTurn(turn);
                     }
-                    sessionStore.save(session);
+                    persistSession();
                     renderSession();
                     setBusy(false, "Gespeichert");
                 }));
@@ -867,6 +935,7 @@ public class NovelCreationWizardWindow {
             }
         }
         Platform.runLater(() -> {
+            syncOptionsScrollToContent();
             if (optionsScroll != null) {
                 optionsScroll.setVvalue(0);
             }
@@ -898,7 +967,7 @@ public class NovelCreationWizardWindow {
         updateProjectSummary("Korrektur: " + text);
         persistCurrentPhaseDraft(phase);
         session.setPendingTurn(null);
-        sessionStore.save(session);
+        persistSession();
         renderSession();
         statusLabel.setText("Korrektur gespeichert – KI passt die naechste Frage an …");
         customAnswerArea.clear();
@@ -911,7 +980,7 @@ public class NovelCreationWizardWindow {
         session.getCollected().put(phase.name().toLowerCase() + "." + session.getChatHistory().size(), answer);
         updateProjectSummary(answer);
         persistCurrentPhaseDraft(phase);
-        sessionStore.save(session);
+        persistSession();
         renderSession();
         if ("Nochmal versuchen".equalsIgnoreCase(answer)) {
             requestNextTurn();
@@ -999,6 +1068,7 @@ public class NovelCreationWizardWindow {
     }
 
     private void finishCharactersPhaseWithSheets() {
+        syncStandingInstructionsFromUi();
         setBusy(true, "Character Sheets werden erzeugt …");
         String dialogue = NovelWizardAiService.buildPhaseDialogue(session, NovelWizardPhase.CHARACTERS);
         aiService.generateCharacterSheets(session, worldEditorMapper.readExistingContext(), dialogue)
@@ -1036,7 +1106,7 @@ public class NovelCreationWizardWindow {
                 }
                 session.getPhaseStatus().put(phase, NovelWizardPhaseStatus.COMPLETED);
                 session.setPendingTurn(null);
-                sessionStore.save(session);
+                persistSession();
                 renderSession();
                 refreshPreview();
                 renderWizardCompleteState(docxResult.total());
@@ -1055,7 +1125,7 @@ public class NovelCreationWizardWindow {
                         + ": " + session.getCurrentPhase().getTitle());
             }
             session.setPendingTurn(null);
-            sessionStore.save(session);
+            persistSession();
             renderSession();
             requestNextTurn();
         } catch (Exception e) {
@@ -1069,6 +1139,14 @@ public class NovelCreationWizardWindow {
             return;
         }
         if (targetPhase == session.getCurrentPhase()) {
+            setPhaseComboValue(targetPhase);
+            if (turnInFlight) {
+                return;
+            }
+            if (session.getPendingTurn() != null) {
+                renderTurn(session.getPendingTurn());
+                return;
+            }
             enterSelectedPhase();
             return;
         }
@@ -1086,16 +1164,19 @@ public class NovelCreationWizardWindow {
             Window dialogOwner = stage != null ? stage : owner;
             Optional<ButtonType> result = alert.showAndWait(dialogOwner);
             if (result.isEmpty() || result.get() == cancel) {
-                phaseComboBox.setValue(session.getCurrentPhase());
+                setPhaseComboValue(session.getCurrentPhase());
                 return;
             }
         }
 
         persistCurrentPhaseDraft(leaving);
 
+        turnRequestId++;
+        turnInFlight = false;
         session.setCurrentPhase(targetPhase);
         session.setPendingTurn(null);
-        sessionStore.save(session);
+        persistSession();
+        setPhaseComboValue(targetPhase);
         updatePhaseLabel();
         renderSession();
         selectPreviewTabForPhase(targetPhase);
@@ -1131,7 +1212,7 @@ public class NovelCreationWizardWindow {
         rebuildCollectedAndSummary();
         restoreLatestPendingTurn();
         persistCurrentPhaseDraft(session.getCurrentPhase());
-        sessionStore.save(session);
+        persistSession();
         renderSession();
         NovelWizardTurn pending = session.getPendingTurn();
         if (pending != null) {
@@ -1190,13 +1271,13 @@ public class NovelCreationWizardWindow {
             session.setPendingTurn(null);
             return;
         }
+        NovelWizardPhase phase = session.getCurrentPhase();
         int last = session.getChatHistory().size() - 1;
         NovelWizardSession.ChatEntry entry = session.getChatHistory().get(last);
-        if ("assistant".equals(entry.role)) {
+        if ("assistant".equals(entry.role) && (entry.phase == null || entry.phase == phase)) {
             session.getChatHistory().remove(last);
-            session.setPendingTurn(null);
-            restoreLatestPendingTurn();
         }
+        restorePendingTurnForPhase(phase);
     }
 
     private void restorePendingTurnForPhase(NovelWizardPhase targetPhase) {
@@ -1229,20 +1310,9 @@ public class NovelCreationWizardWindow {
     }
 
     private void restoreLatestPendingTurn() {
-        NovelWizardTurn pending = null;
         NovelWizardPhase phase = session.getCurrentPhase();
-        for (int i = session.getChatHistory().size() - 1; i >= 0; i--) {
-            NovelWizardSession.ChatEntry entry = session.getChatHistory().get(i);
-            if ("assistant".equals(entry.role) && entry.parsed != null
-                    && (!entry.parsed.getQuestion().isBlank() || !entry.parsed.getContent().isBlank())) {
-                pending = entry.parsed;
-                phase = entry.phase == null ? phase : entry.phase;
-                break;
-            }
-        }
-        session.setCurrentPhase(phase);
-        session.setPendingTurn(pending);
-        if (pending == null) {
+        restorePendingTurnForPhase(phase);
+        if (session.getPendingTurn() == null) {
             questionText.setText("");
             hintText.setText("");
             hintBox.setManaged(false);
@@ -1431,15 +1501,11 @@ public class NovelCreationWizardWindow {
         int completed = countCompletedPhases();
         int percent = (int) Math.round(computePhaseProgress() * 100);
 
-        phaseHeadlineLabel.setText(phase.getTitle());
         progressCaptionLabel.setText("Schritt " + number + " von " + total);
         progressFractionLabel.setText(completed + " erledigt · " + percent + " %");
         phaseProgressBar.setProgress(computePhaseProgress());
         rebuildPhaseSteps();
-        if (phaseComboBox != null && phaseComboBox.getValue() != phase) {
-            phaseComboBox.setValue(phase);
-        }
-        statusLabel.setText("Zuletzt gespeichert: " + session.getUpdatedAt());
+        setPhaseComboValue(phase);
         refreshCompletionUi();
     }
 
@@ -1513,12 +1579,7 @@ public class NovelCreationWizardWindow {
             chip.setAlignment(Pos.CENTER);
             applyPhaseChipInlineStyle(chip, variant);
             NovelWizardPhase jumpTarget = phase;
-            chip.setOnMouseClicked(e -> {
-                if (phaseComboBox != null) {
-                    phaseComboBox.setValue(jumpTarget);
-                }
-                jumpToPhase(jumpTarget);
-            });
+            chip.setOnMouseClicked(e -> jumpToPhase(jumpTarget));
             phaseStepsBar.getChildren().add(chip);
         }
     }
@@ -1600,6 +1661,7 @@ public class NovelCreationWizardWindow {
         applyWizardTextColors();
         applyThemedTextArea(chatArea, uiFontSize);
         applyThemedTextArea(customAnswerArea, uiFontSize);
+        applyThemedTextArea(standingInstructionsArea, uiFontSize);
         if (optionsBox != null) {
             for (Node child : optionsBox.getChildren()) {
                 if (child instanceof Button button) {
@@ -1610,9 +1672,6 @@ public class NovelCreationWizardWindow {
         String textColor = text;
         if (projectTitleLabel != null) {
             projectTitleLabel.setStyle("-fx-text-fill: " + textColor + ";");
-        }
-        if (phaseHeadlineLabel != null) {
-            phaseHeadlineLabel.setStyle("-fx-text-fill: " + textColor + "; -fx-font-weight: bold;");
         }
         if (progressCaptionLabel != null) {
             progressCaptionLabel.setStyle("-fx-text-fill: " + textColor + ";");
@@ -1687,6 +1746,18 @@ public class NovelCreationWizardWindow {
         return WorldEditorMapper.tabLabel(phase.getTargetFiles().getFirst());
     }
 
+    private void setPhaseComboValue(NovelWizardPhase phase) {
+        if (phaseComboBox == null || phaseComboBox.getValue() == phase) {
+            return;
+        }
+        suppressPhaseComboAction = true;
+        try {
+            phaseComboBox.setValue(phase);
+        } finally {
+            suppressPhaseComboAction = false;
+        }
+    }
+
     private int phaseNumber(NovelWizardPhase phase) {
         return Math.max(1, phase.ordinal());
     }
@@ -1727,8 +1798,30 @@ public class NovelCreationWizardWindow {
         }
     }
 
-    private void pause() {
+    private void persistSession() {
+        syncStandingInstructionsFromUi();
         sessionStore.save(session);
+    }
+
+    private void syncStandingInstructionsFromUi() {
+        if (session == null || standingInstructionsArea == null) {
+            return;
+        }
+        session.setStandingInstructions(standingInstructionsArea.getText());
+    }
+
+    private void updateStandingInstructionsTabLabel() {
+        if (standingInstructionsTab == null) {
+            return;
+        }
+        boolean active = standingInstructionsArea != null
+                && standingInstructionsArea.getText() != null
+                && !standingInstructionsArea.getText().isBlank();
+        standingInstructionsTab.setText(active ? "Anweisungen · an" : "Anweisungen");
+    }
+
+    private void pause() {
+        persistSession();
         stage.close();
     }
 }

@@ -170,9 +170,6 @@ public class ComfyUITTSTestWindow {
 
     private void initializeWindow() {
         stage = StageManager.createStage("TTS Test (ComfyUI / Qwen3)");
-        if (owner instanceof javafx.stage.Stage) {
-            stage.initOwner(owner);
-        }
         stage.setMinWidth(880);
         stage.setMinHeight(720);
         stage.setWidth(1000);
@@ -1326,7 +1323,6 @@ public class ComfyUITTSTestWindow {
 
             CustomStage popup = StageManager.createStage("Wiedergabe");
             openAudioPlayerStage = popup;
-            if (owner != null) popup.initOwner(owner);
             popup.setMinWidth(380);
             popup.setMinHeight(140);
             popup.setWidth(420);

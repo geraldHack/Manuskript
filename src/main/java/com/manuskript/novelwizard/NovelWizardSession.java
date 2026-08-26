@@ -23,6 +23,8 @@ public class NovelWizardSession {
     private String projectSummary = "";
     private List<ChatEntry> chatHistory = new ArrayList<>();
     private List<PromptLogEntry> promptLog = new ArrayList<>();
+    /** Stehende Autoren-Anweisungen; gehen an jede KI-Anfrage, nicht in Chat oder Welt-Dateien. */
+    private String standingInstructions = "";
     private String startedAt = now();
     private String updatedAt = now();
 
@@ -151,6 +153,19 @@ public class NovelWizardSession {
 
     public void setProjectSummary(String projectSummary) {
         this.projectSummary = projectSummary == null ? "" : projectSummary;
+    }
+
+    public String getStandingInstructions() {
+        return standingInstructions == null ? "" : standingInstructions;
+    }
+
+    public void setStandingInstructions(String standingInstructions) {
+        String next = standingInstructions == null ? "" : standingInstructions;
+        if (next.equals(this.standingInstructions)) {
+            return;
+        }
+        this.standingInstructions = next;
+        touch();
     }
 
     public List<ChatEntry> getChatHistory() {

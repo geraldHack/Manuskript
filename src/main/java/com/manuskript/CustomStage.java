@@ -76,8 +76,13 @@ public class CustomStage extends Stage {
     private static final String PROPERTY_USE_LEGACY_WINDOW_SIZE = "useLegacyWindowSizePersistence";
     private static final String PROPERTY_WINDOW_PERSISTENCE_TYPE = "windowPersistenceType";
     
-    private double xOffset = 0;
-    private double yOffset = 0;
+    private double dragGrabOffsetX = 0;
+    private double dragGrabOffsetY = 0;
+    private double dragLockWidth = 0;
+    private double dragLockHeight = 0;
+    private Screen dragHomeScreen;
+    private boolean freezeSizeReentrant = false;
+    private boolean titleBarDragging = false;
     private boolean restoreInputPending = false;
     private boolean isMaximized = false;
     private double restoreX;
@@ -160,6 +165,8 @@ public class CustomStage extends Stage {
 
     private void resetTransientInputState() {
         isResizing = false;
+        titleBarDragging = false;
+        dragHomeScreen = null;
         resizeDirection = "";
         Scene scene = getScene();
         if (scene != null && !cursorLocked) {
@@ -375,38 +382,34 @@ public class CustomStage extends Stage {
     }
     
     /**
-     * macOS-spezifisches Drag & Drop Handling
+     * macOS-spezifisches Drag & Drop Handling.
+     *
+     * UNDECORATED-Fenster dürfen auf macOS keinen zweiten Bildschirm
+     * überlappen: JavaFX wechselt dann den Render-Scale (Retina vs. extern)
+     * und das Fenster zittert, verformt sich und wird erst sichtbar, wenn
+     * es vollständig auf dem neuen Schirm liegt. Deshalb bleibt das Fenster
+     * auf dem Start-Schirm, bis der Zeiger den anderen Schirm betritt –
+     * dann wird es dort unter dem Cursor platziert.
      */
     private void setupMacDragAndDrop() {
-        // Minimale Größe sofort beim Start setzen
-        setMinWindowSize();
-        
+        installDragSizeFreeze();
+
         titleBar.setOnMousePressed(event -> {
             if (event.getClickCount() == 1 && !isResizing) {
-                xOffset = event.getSceneX();
-                yOffset = event.getSceneY();
+                beginTitleBarDrag(event);
+                event.consume();
             }
         });
         
         titleBar.setOnMouseDragged(event -> {
-            if (!isResizing) {
-                double newX = event.getScreenX() - xOffset;
-                double newY = event.getScreenY() - yOffset;
-                
-                // Minimale Größe sicherstellen
-                setMinWindowSize();
-                
-                // KEINE Bounds-Beschränkung - Fenster kann überall hin
-                setX(newX);
-                setY(newY);
+            if (!isResizing && titleBarDragging) {
+                applyMacTitleBarDrag(event);
+                event.consume();
             }
         });
         
         titleBar.setOnMouseReleased(event -> {
-            // Wenn Drag beendet ist, Fenster an aktuellen Screen anpassen
-            adjustWindowToCurrentScreen();
-            
-            // Fenstergröße speichern
+            endTitleBarDrag();
             saveWindowSize();
         });
 
@@ -417,77 +420,150 @@ public class CustomStage extends Stage {
             }
         });
     }
-    
-    /**
-     * Setzt die minimale Fenstergröße basierend auf dem aktuellen Screen
-     */
-    private void setMinWindowSize() {
-        var currentScreen = getCurrentScreen();
-        var visualBounds = currentScreen.getVisualBounds();
-        
-        // Absolute Minimalgrößen
-        double minHeight = 600;  // Mindestens 600px für alle UI-Elemente
-        double minWidth = 400;   // Mindestens 400px Breite
-        
-        // Wenn Screen sehr klein ist, passe die Höhe an
-        if (visualBounds.getHeight() < minHeight) {
-            minHeight = visualBounds.getHeight() - 50; // 50px Puffer
-        }
-        
-        setMinWidth(minWidth);
-        setMinHeight(minHeight);
-        
-        // Auch aktuelle Größe anpassen wenn zu klein
-        if (getWidth() < minWidth) {
-            setWidth(minWidth);
-        }
-        if (getHeight() < minHeight) {
-            setHeight(minHeight);
+
+    private void beginTitleBarDrag(MouseEvent event) {
+        titleBarDragging = true;
+        dragGrabOffsetX = event.getScreenX() - getX();
+        dragGrabOffsetY = event.getScreenY() - getY();
+        dragLockWidth = getWidth();
+        dragLockHeight = getHeight();
+        dragHomeScreen = screenContaining(event.getScreenX(), event.getScreenY());
+        if (dragHomeScreen == null) {
+            dragHomeScreen = getCurrentScreen();
         }
     }
-    
+
+    private void endTitleBarDrag() {
+        titleBarDragging = false;
+        dragHomeScreen = null;
+    }
+
+    private void applyMacTitleBarDrag(MouseEvent event) {
+        double mouseX = event.getScreenX();
+        double mouseY = event.getScreenY();
+        Screen mouseScreen = screenContaining(mouseX, mouseY);
+        if (mouseScreen == null) {
+            return;
+        }
+
+        double x = mouseX - dragGrabOffsetX;
+        double y = mouseY - dragGrabOffsetY;
+        double w = dragLockWidth > 1 ? dragLockWidth : getWidth();
+        double h = dragLockHeight > 1 ? dragLockHeight : getHeight();
+
+        if (dragHomeScreen != null && !sameScreen(mouseScreen, dragHomeScreen)) {
+            double[] pos = keepOffOtherScreens(mouseScreen, x, y, w, h);
+            x = pos[0];
+            y = pos[1];
+            dragHomeScreen = mouseScreen;
+        } else if (dragHomeScreen != null) {
+            double[] pos = keepOffOtherScreens(dragHomeScreen, x, y, w, h);
+            x = pos[0];
+            y = pos[1];
+        }
+
+        setX(x);
+        setY(y);
+        restoreDragLockedSize();
+    }
+
+    private void installDragSizeFreeze() {
+        javafx.beans.value.ChangeListener<Number> freeze = (obs, oldVal, newVal) -> {
+            if (titleBarDragging) {
+                restoreDragLockedSize();
+            }
+        };
+        widthProperty().addListener(freeze);
+        heightProperty().addListener(freeze);
+    }
+
+    private void restoreDragLockedSize() {
+        if (freezeSizeReentrant || dragLockWidth <= 1 || dragLockHeight <= 1) {
+            return;
+        }
+        freezeSizeReentrant = true;
+        try {
+            if (Math.abs(getWidth() - dragLockWidth) > 0.5) {
+                setWidth(dragLockWidth);
+            }
+            if (Math.abs(getHeight() - dragLockHeight) > 0.5) {
+                setHeight(dragLockHeight);
+            }
+        } finally {
+            freezeSizeReentrant = false;
+        }
+    }
+
+    private static Screen screenContaining(double x, double y) {
+        for (Screen screen : Screen.getScreens()) {
+            if (screen.getBounds().contains(x, y)) {
+                return screen;
+            }
+        }
+        return null;
+    }
+
+    private static boolean sameScreen(Screen a, Screen b) {
+        if (a == b) {
+            return true;
+        }
+        if (a == null || b == null) {
+            return false;
+        }
+        Rectangle2D left = a.getBounds();
+        Rectangle2D right = b.getBounds();
+        return left.getMinX() == right.getMinX()
+                && left.getMinY() == right.getMinY()
+                && left.getWidth() == right.getWidth()
+                && left.getHeight() == right.getHeight();
+    }
+
+    private double[] keepOffOtherScreens(Screen home, double x, double y, double w, double h) {
+        if (home == null) {
+            return new double[]{x, y};
+        }
+        java.util.List<Rectangle2D> others = new java.util.ArrayList<>();
+        for (Screen other : Screen.getScreens()) {
+            if (!sameScreen(other, home)) {
+                others.add(other.getBounds());
+            }
+        }
+        return keepOffOtherScreens(home.getBounds(), others, x, y, w, h);
+    }
+
     /**
-     * Passt das Fenster an den aktuellen Screen an
+     * Verschiebt das Fenster so, dass es den Zielschirm nicht mit einem
+     * anderen überlappt (kein gemischter Retina-Scale).
      */
-    private void adjustWindowToCurrentScreen() {
-        var currentScreen = getCurrentScreen();
-        var visualBounds = currentScreen.getVisualBounds();
-        
-        double windowX = getX();
-        double windowY = getY();
-        double windowWidth = getWidth();
-        double windowHeight = getHeight();
-        
-        // Prüfe ob Fenster außerhalb des aktuellen Screens ist
-        boolean needsAdjustment = false;
-        
-        // Wenn Fenster größer als der Screen ist
-        if (windowWidth > visualBounds.getWidth() || windowHeight > visualBounds.getHeight()) {
-            needsAdjustment = true;
+    static double[] keepOffOtherScreens(Rectangle2D homeBounds, java.util.List<Rectangle2D> others,
+                                        double x, double y, double w, double h) {
+        if (homeBounds == null || w <= 0 || h <= 0 || others == null) {
+            return new double[]{x, y};
         }
-        
-        // Wenn Fenster teilweise außerhalb des Screens ist
-        if (windowX < visualBounds.getMinX() || 
-            windowY < visualBounds.getMinY() ||
-            windowX + windowWidth > visualBounds.getMaxX() ||
-            windowY + windowHeight > visualBounds.getMaxY()) {
-            needsAdjustment = true;
+        for (Rectangle2D bounds : others) {
+            if (bounds == null || !rectsOverlap(x, y, w, h, bounds)) {
+                continue;
+            }
+            double homeCx = homeBounds.getMinX() + homeBounds.getWidth() / 2.0;
+            double homeCy = homeBounds.getMinY() + homeBounds.getHeight() / 2.0;
+            double otherCx = bounds.getMinX() + bounds.getWidth() / 2.0;
+            double otherCy = bounds.getMinY() + bounds.getHeight() / 2.0;
+            double dx = homeCx - otherCx;
+            double dy = homeCy - otherCy;
+            if (Math.abs(dy) >= Math.abs(dx)) {
+                y = dy > 0 ? bounds.getMaxY() : bounds.getMinY() - h;
+            } else {
+                x = dx > 0 ? bounds.getMaxX() : bounds.getMinX() - w;
+            }
         }
-        
-        if (needsAdjustment) {
-            // Fenster an Screen anpassen
-            double newWidth = Math.min(windowWidth, visualBounds.getWidth() * 0.9);
-            double newHeight = Math.min(windowHeight, visualBounds.getHeight() * 0.9);
-            double newX = Math.max(visualBounds.getMinX(), Math.min(windowX, visualBounds.getMaxX() - newWidth));
-            double newY = Math.max(visualBounds.getMinY(), Math.min(windowY, visualBounds.getMaxY() - newHeight));
-            
-            setWidth(newWidth);
-            setHeight(newHeight);
-            setX(newX);
-            setY(newY);
-            
-            // NICHT speichern - nur bei echtem Resize/Drag speichern
-        }
+        return new double[]{x, y};
+    }
+
+    private static boolean rectsOverlap(double x, double y, double w, double h, Rectangle2D bounds) {
+        return x < bounds.getMaxX()
+                && x + w > bounds.getMinX()
+                && y < bounds.getMaxY()
+                && y + h > bounds.getMinY();
     }
     
     
@@ -497,18 +573,21 @@ public class CustomStage extends Stage {
     private void setupWindowsLinuxDragAndDrop() {
         titleBar.setOnMousePressed(event -> {
             if (event.getClickCount() == 1 && !isResizing) {
-                xOffset = event.getSceneX();
-                yOffset = event.getSceneY();
+                beginTitleBarDrag(event);
+                event.consume();
             }
         });
         
         titleBar.setOnMouseDragged(event -> {
-            if (!isResizing) {
-                double newX = event.getScreenX() - xOffset;
-                double newY = event.getScreenY() - yOffset;
-                setX(newX);
-                setY(newY);
+            if (!isResizing && titleBarDragging) {
+                setX(event.getScreenX() - dragGrabOffsetX);
+                setY(event.getScreenY() - dragGrabOffsetY);
+                event.consume();
             }
+        });
+
+        titleBar.setOnMouseReleased(event -> {
+            endTitleBarDrag();
         });
         
         // Doppelklick zum Maximieren/Minimieren (Windows/Linux-Verhalten)
@@ -709,8 +788,7 @@ public class CustomStage extends Stage {
             
             // KEINE Maximierungs-Checks mehr
             
-            // Prüfe, ob wir uns in der Titelleiste befinden - dann kein Resize
-            if (event.getY() < titleBar.getHeight()) {
+            if (titleBarDragging || isInTitleBar(event)) {
                 scene.setCursor(javafx.scene.Cursor.DEFAULT);
                 return;
             }
@@ -771,8 +849,7 @@ public class CustomStage extends Stage {
         scene.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
             // KEINE Maximierungs-Checks mehr
             
-            // Prüfe, ob wir uns in der Titelleiste befinden - dann kein Resize
-            if (event.getY() < titleBar.getHeight()) {
+            if (titleBarDragging || isInTitleBar(event)) {
                 return;
             }
             
@@ -809,6 +886,9 @@ public class CustomStage extends Stage {
         
         // WICHTIG: EventFilter für Mouse-Drag verwenden
         scene.addEventFilter(MouseEvent.MOUSE_DRAGGED, event -> {
+            if (titleBarDragging) {
+                return;
+            }
             if (isResizing) {
                 performResize(event);
                 event.consume(); // WICHTIG: Event konsumieren während Resize
@@ -819,6 +899,7 @@ public class CustomStage extends Stage {
         scene.addEventFilter(MouseEvent.MOUSE_RELEASED, event -> {
             if (isResizing) {
                 isResizing = false;
+                titleBarDragging = false;
                 scene.setCursor(javafx.scene.Cursor.DEFAULT);
                 
                 // Größe nach Resize speichern
@@ -830,8 +911,13 @@ public class CustomStage extends Stage {
     }
     
     private double resizeStartX, resizeStartY, resizeStartWidth, resizeStartHeight;
+    private double resizeStartWinX, resizeStartWinY;
     private boolean isResizing = false;
     private String resizeDirection = "";
+
+    private boolean isInTitleBar(MouseEvent event) {
+        return titleBar != null && event.getSceneY() < titleBar.getHeight();
+    }
     
     /**
      * Startet das Resizing
@@ -843,6 +929,8 @@ public class CustomStage extends Stage {
         resizeStartY = event.getScreenY();
         resizeStartWidth = getWidth();
         resizeStartHeight = getHeight();
+        resizeStartWinX = getX();
+        resizeStartWinY = getY();
         
         // Bestimme Resize-Richtung - ALLE RICHTUNGEN AKTIVIERT
         final int RESIZE_BORDER = 10; // Gleicher Wert wie in setupResizeHandles
@@ -879,48 +967,49 @@ public class CustomStage extends Stage {
         
         double newWidth = resizeStartWidth;
         double newHeight = resizeStartHeight;
-        double newX = getX();
-        double newY = getY();
+        double newX = resizeStartWinX;
+        double newY = resizeStartWinY;
         
         // Mindestgröße definieren
         double minWidth = Math.max(getMinWidth(), 300.0);
         double minHeight = Math.max(getMinHeight(), 200.0);
         
-        // Resize basierend auf Richtung
+        // Resize basierend auf Richtung – Position immer aus dem Drag-Start,
+        // sonst zuckt/verformt sich das Fenster am Bildschirmrand.
         switch (resizeDirection) {
             case "SE":
                 newWidth = Math.max(minWidth, resizeStartWidth + deltaX);
                 newHeight = Math.max(minHeight, resizeStartHeight + deltaY);
                 break;
             case "SW":
-                newX = event.getScreenX();
-                newWidth = Math.max(minWidth, getX() + getWidth() - newX);
+                newWidth = Math.max(minWidth, resizeStartWidth - deltaX);
                 newHeight = Math.max(minHeight, resizeStartHeight + deltaY);
+                newX = resizeStartWinX + (resizeStartWidth - newWidth);
                 break;
             case "NE":
                 newWidth = Math.max(minWidth, resizeStartWidth + deltaX);
                 newHeight = Math.max(minHeight, resizeStartHeight - deltaY);
-                newY = getY() + (resizeStartHeight - newHeight);
+                newY = resizeStartWinY + (resizeStartHeight - newHeight);
                 break;
             case "NW":
                 newWidth = Math.max(minWidth, resizeStartWidth - deltaX);
                 newHeight = Math.max(minHeight, resizeStartHeight - deltaY);
-                newX = getX() + (resizeStartWidth - newWidth);
-                newY = getY() + (resizeStartHeight - newHeight);
+                newX = resizeStartWinX + (resizeStartWidth - newWidth);
+                newY = resizeStartWinY + (resizeStartHeight - newHeight);
                 break;
             case "E":
                 newWidth = Math.max(minWidth, resizeStartWidth + deltaX);
                 break;
             case "W":
-                newX = event.getScreenX();
-                newWidth = Math.max(minWidth, getX() + getWidth() - newX);
+                newWidth = Math.max(minWidth, resizeStartWidth - deltaX);
+                newX = resizeStartWinX + (resizeStartWidth - newWidth);
                 break;
             case "S":
                 newHeight = Math.max(minHeight, resizeStartHeight + deltaY);
                 break;
             case "N":
                 newHeight = Math.max(minHeight, resizeStartHeight - deltaY);
-                newY = getY() + (resizeStartHeight - newHeight);
+                newY = resizeStartWinY + (resizeStartHeight - newHeight);
                 break;
         }
         

@@ -101,7 +101,6 @@ public class AudiobookDialog {
         }
 
         CustomStage stage = StageManager.createStage("Hoerbuch erstellen");
-        if (owner != null) stage.initOwner(owner);
         stage.setMinWidth(900);
         stage.setMinHeight(550);
 

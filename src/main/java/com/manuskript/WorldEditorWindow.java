@@ -105,9 +105,6 @@ public class WorldEditorWindow {
 
     private void createUI() {
         stage = StageManager.createStage("Welt-Editor");
-        if (owner != null && owner instanceof javafx.stage.Stage) {
-            stage.initOwner(owner);
-        }
         stage.setMinWidth(900);
         stage.setMinHeight(600);
 

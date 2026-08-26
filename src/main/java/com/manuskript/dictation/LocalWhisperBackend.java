@@ -60,8 +60,9 @@ public class LocalWhisperBackend implements SpeechToTextBackend {
         Files.deleteIfExists(outputPrefix);
         Path txtOutput = Path.of(outputPrefix.toString() + ".txt");
 
+        String prompt = WhisperTranscriptGuard.promptForClip(initialPrompt, audioBytes);
         List<String> cmd = WhisperRuntime.buildCommand(executable, model, audioFile, language, outputPrefix,
-                initialPrompt);
+                prompt);
         logger.debug("Lokales Whisper: {}", String.join(" ", cmd));
 
         int timeoutSec = resolveTimeoutSec();
@@ -104,7 +105,7 @@ public class LocalWhisperBackend implements SpeechToTextBackend {
                 String text = Files.readString(txtOutput, StandardCharsets.UTF_8).trim();
                 if (!text.isBlank()) {
                     logger.debug("Lokales Whisper: {} Zeichen (Datei)", text.length());
-                    return text;
+                    return WhisperTranscriptGuard.requireRealSpeech(text);
                 }
             }
 
@@ -112,7 +113,7 @@ public class LocalWhisperBackend implements SpeechToTextBackend {
                 String cleaned = stripWhisperConsoleNoise(consoleOutput);
                 if (!cleaned.isBlank()) {
                     logger.debug("Lokales Whisper: {} Zeichen (Stdout)", cleaned.length());
-                    return cleaned;
+                    return WhisperTranscriptGuard.requireRealSpeech(cleaned);
                 }
             }
 

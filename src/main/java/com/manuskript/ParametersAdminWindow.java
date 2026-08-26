@@ -56,9 +56,6 @@ public class ParametersAdminWindow {
 
     private void initializeWindow() {
         stage = StageManager.createStage("Parameter-Verwaltung");
-        if (owner != null && owner instanceof javafx.stage.Stage) {
-            stage.initOwner(owner);
-        }
         stage.setMinWidth(720);
         stage.setMinHeight(520);
         stage.setWidth(820);

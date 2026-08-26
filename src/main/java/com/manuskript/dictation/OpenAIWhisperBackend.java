@@ -92,11 +92,16 @@ public class OpenAIWhisperBackend implements SpeechToTextBackend {
             sb.append(language.trim()).append("\r\n");
         }
 
-        if (initialPrompt != null && !initialPrompt.isBlank()) {
+        String prompt = WhisperTranscriptGuard.promptForClip(initialPrompt, audioBytes);
+        if (prompt != null && !prompt.isBlank()) {
             sb.append("--").append(boundary).append("\r\n");
             sb.append("Content-Disposition: form-data; name=\"prompt\"\r\n\r\n");
-            sb.append(initialPrompt.trim()).append("\r\n");
+            sb.append(prompt.trim()).append("\r\n");
         }
+
+        sb.append("--").append(boundary).append("\r\n");
+        sb.append("Content-Disposition: form-data; name=\"temperature\"\r\n\r\n");
+        sb.append("0").append("\r\n");
 
         sb.append("--").append(boundary).append("\r\n");
         sb.append("Content-Disposition: form-data; name=\"response_format\"\r\n\r\n");
@@ -139,7 +144,7 @@ public class OpenAIWhisperBackend implements SpeechToTextBackend {
             throw new IllegalStateException("Whisper API: Leere Transkription.");
         }
         logger.debug("Whisper-Transkription: {} Zeichen", text.length());
-        return text.trim();
+        return WhisperTranscriptGuard.requireRealSpeech(text);
     }
 
     private static void validateAudioSize(byte[] audioBytes) {

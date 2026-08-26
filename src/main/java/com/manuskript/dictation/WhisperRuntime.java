@@ -609,6 +609,16 @@ public final class WhisperRuntime {
         cmd.add("-of");
         cmd.add(outputPrefix.toAbsolutePath().toString());
         cmd.add("-nt");
+        // Kurze Clips: Whisper füllt Stille sonst mit Halluzinationen (Outros, Wortsalat).
+        cmd.add("-nc");
+        cmd.add("-tp");
+        cmd.add("0");
+        cmd.add("-tpi");
+        cmd.add("0");
+        cmd.add("-nth");
+        cmd.add("0.5");
+        cmd.add("-et");
+        cmd.add("2.2");
         return cmd;
     }
 

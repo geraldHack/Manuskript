@@ -111,10 +111,6 @@ public class ChapterMacroWindow {
         stage.setTitle("Makro-Verwaltung");
         stage.setTitleBarTheme(host.getThemeIndex());
         stage.initModality(Modality.NONE);
-        Window owner = host.getOwnerWindow();
-        if (owner != null) {
-            stage.initOwner(owner);
-        }
 
         VBox root = buildPanel();
         Scene scene = new Scene(root);

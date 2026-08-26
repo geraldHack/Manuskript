@@ -97,10 +97,6 @@ public class ChapterTextAnalysisWindow {
         stage.setHeight(620);
         stage.setTitleBarTheme(host.getThemeIndex());
         stage.initModality(Modality.NONE);
-        Window owner = host.getOwnerWindow();
-        if (owner != null) {
-            stage.initOwner(owner);
-        }
 
         VBox root = buildPanel();
         Scene scene = new Scene(root);

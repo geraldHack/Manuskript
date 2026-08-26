@@ -5,7 +5,6 @@ import com.manuskript.windowhandling.ScreenDetector;
 import javafx.scene.input.MouseEvent;
 import javafx.stage.Window;
 import javafx.stage.Stage;
-import javafx.stage.Screen;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -229,36 +228,8 @@ public class MacDragHandler extends DragHandler {
         
         double newX = event.getScreenX() - xOffset;
         double newY = event.getScreenY() - yOffset;
-        
-        // Multi-Monitor-Unterstützung - Fenster kann über alle Monitore bewegt werden
-        // Keine Begrenzung auf aktuellen Screen für Dragging!
-        
-        // Nur minimale Bounds, um Fenster komplett vom Bildschirm zu verhindern
-        // Aber erlaube Bewegung über alle Monitore
-        var allScreens = Screen.getScreens();
-        if (!allScreens.isEmpty()) {
-            // Berechne Gesamt-Bounds aller Monitore
-            double minX = Double.MAX_VALUE;
-            double minY = Double.MAX_VALUE;
-            double maxX = Double.MIN_VALUE;
-            double maxY = Double.MIN_VALUE;
-            
-            for (var screen : allScreens) {
-                var bounds = screen.getBounds();
-                minX = Math.min(minX, bounds.getMinX());
-                minY = Math.min(minY, bounds.getMinY());
-                maxX = Math.max(maxX, bounds.getMaxX());
-                maxY = Math.max(maxY, bounds.getMaxY());
-            }
-            
-            // Fenster im sichtbaren Bereich halten (mit 50px Buffer)
-            double windowWidth = window.getWidth();
-            double windowHeight = window.getHeight();
-            
-            newX = Math.max(minX + 50, Math.min(newX, maxX - windowWidth - 50));
-            newY = Math.max(minY + 50, Math.min(newY, maxY - windowHeight - 50));
-        }
-        
+        // Keine Klammer an die Gesamtfläche minus Fenstergroesse:
+        // ein MacBook unter einem großen Monitor waere sonst nicht erreichbar.
         return new double[]{newX, newY};
     }
 }

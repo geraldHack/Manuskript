@@ -55,6 +55,7 @@ public class NovelWizardAiService {
                 """;
         StringBuilder user = new StringBuilder();
         user.append("Erstelle jetzt die vollstaendigen Character Sheets aus dem Figuren-Interview.\n\n");
+        user.append(standingInstructionsBlock(session));
         if (existingContext != null && !existingContext.isBlank()) {
             user.append("<EXISTING_CONTEXT>\n").append(existingContext).append("\n</EXISTING_CONTEXT>\n\n");
         }
@@ -98,7 +99,7 @@ public class NovelWizardAiService {
                         return nextTurn(session, existingContext, attempt + 1);
                     }
                     if (!contentPhase && attempt == 0
-                            && isDuplicateQuestion(turn.getQuestion(), collectAskedQuestions(session, phase))) {
+                            && isOffTopicOrDuplicateQuestion(turn.getQuestion(), session, phase)) {
                         return nextTurn(session, existingContext, attempt + 1);
                     }
                     if (contentPhase && turn.getContent().isBlank() && attempt + 1 >= maxAttempts) {
@@ -107,7 +108,7 @@ public class NovelWizardAiService {
                                         + "stärkeres KI-Modell (Agent-Einstellungen)."));
                     }
                     if (!contentPhase && attempt > 0
-                            && isDuplicateQuestion(turn.getQuestion(), collectAskedQuestions(session, phase))) {
+                            && isOffTopicOrDuplicateQuestion(turn.getQuestion(), session, phase)) {
                         turn.setHint(appendHint(turn.getHint(),
                                 "Diese Frage wurde schon gestellt. Nutze „Eigene Antwort“ oder „Phase abschließen“, "
                                         + "wenn du genug Material hast."));
@@ -218,13 +219,19 @@ public class NovelWizardAiService {
                         """);
             }
         } else {
-            sb.append("Die Optionen muessen KI-generiert und auf das konkrete Projekt bezogen sein. ")
+            sb.append("Aktuelle Phase: ").append(phase.getTitle())
+                    .append(" (").append(phase.getDescription()).append(").\n")
+                    .append("Fragen zu anderen Phasen sind verboten. Frueheres Material ist nur Kontext, ")
+                    .append("kein fortzusetzendes Interview.\n")
+                    .append("Die Optionen muessen KI-generiert und auf das konkrete Projekt bezogen sein. ")
                     .append("Keine Option fuer Freitext, eigene Antwort oder Aehnliches (dafuer gibt es ein separates Eingabefeld). ")
                     .append("Wiederhole keine bereits gestellte Frage. Jede neue Frage muss einen noch nicht geklaerten Aspekt ")
                     .append("der aktuellen Phase vertiefen.\n")
                     .append("Autoren-Korrekturen in <AUTOR_KORREKTUREN> sind verbindlich und ueberschreiben fruehere KI-Annahmen "
                     + "in Fragen und Optionen.\n");
         }
+        sb.append("Stehende Autoren-Anweisungen in <AUTOR_ANWEISUNGEN> gelten immer. ")
+                .append("Nicht ins Manuskript, nicht in den Chat und nicht in <CONTENT> schreiben.\n");
         if (phase == NovelWizardPhase.BRAINSTORM) {
             sb.append("""
                     
@@ -253,8 +260,12 @@ public class NovelWizardAiService {
                                    String existingContext, boolean duplicateRetry) {
         NovelWizardPhase phase = session.getCurrentPhase();
         StringBuilder sb = new StringBuilder();
-        sb.append("Aktuelle Phase: ").append(phase.getTitle()).append("\n");
-        sb.append("Anweisung: ").append(prompt.instruction).append("\n\n");
+        sb.append("Aktuelle Phase: ").append(phase.getTitle())
+                .append(" – ").append(phase.getDescription()).append("\n");
+        sb.append("Anweisung: ").append(prompt.instruction).append("\n");
+        sb.append("Stelle ausschliesslich eine Frage zu dieser Phase. ")
+                .append("Keine Folgefrage zur vorherigen Phase.\n\n");
+        sb.append(standingInstructionsBlock(session));
         if (isContentPhase(phase)) {
             sb.append("""
                     MODUS: Schreibphase (kein Interview).
@@ -285,6 +296,13 @@ public class NovelWizardAiService {
             }
             sb.append("</BEREITS_GESTELLTE_FRAGEN>\n\n");
         }
+        String lastOther = lastQuestionFromOtherPhases(session, phase);
+        if (lastOther != null && !lastOther.isBlank() && isQuestionPhase(phase)) {
+            sb.append("<LETZTE_FRAGE_ANDERER_PHASE>\n")
+                    .append(lastOther)
+                    .append("\n</LETZTE_FRAGE_ANDERER_PHASE>\n")
+                    .append("Diese Frage gehoert NICHT zur aktuellen Phase. Nicht fortsetzen, nicht wiederholen.\n\n");
+        }
         String phaseDialogue = buildPhaseDialogue(session, phase);
         if (!phaseDialogue.isBlank()) {
             sb.append("<PHASE_DIALOG>\n").append(phaseDialogue).append("</PHASE_DIALOG>\n\n");
@@ -311,6 +329,19 @@ public class NovelWizardAiService {
                     """);
         }
         return sb.toString();
+    }
+
+    static String standingInstructionsBlock(NovelWizardSession session) {
+        if (session == null) {
+            return "";
+        }
+        String text = session.getStandingInstructions();
+        if (text == null || text.isBlank()) {
+            return "";
+        }
+        return "<AUTOR_ANWEISUNGEN>\n" + text.trim() + "\n</AUTOR_ANWEISUNGEN>\n"
+                + "Diese Anweisungen sind verbindlich und dauerhaft. "
+                + "Nicht zitieren, nicht ins Manuskript und nicht in den Chat schreiben.\n\n";
     }
 
     static List<String> collectAskedQuestions(NovelWizardSession session, NovelWizardPhase phase) {
@@ -369,6 +400,31 @@ public class NovelWizardAiService {
             }
         }
         return sb.toString().trim();
+    }
+
+    static boolean isOffTopicOrDuplicateQuestion(String candidate, NovelWizardSession session,
+                                                 NovelWizardPhase phase) {
+        if (isDuplicateQuestion(candidate, collectAskedQuestions(session, phase))) {
+            return true;
+        }
+        return isDuplicateQuestion(candidate, List.of(lastQuestionFromOtherPhases(session, phase)));
+    }
+
+    static String lastQuestionFromOtherPhases(NovelWizardSession session, NovelWizardPhase phase) {
+        if (session == null || session.getChatHistory() == null) {
+            return "";
+        }
+        for (int i = session.getChatHistory().size() - 1; i >= 0; i--) {
+            NovelWizardSession.ChatEntry entry = session.getChatHistory().get(i);
+            if (entry == null || entry.phase == null || entry.phase == phase || !"assistant".equals(entry.role)) {
+                continue;
+            }
+            String question = extractQuestion(entry);
+            if (!question.isBlank()) {
+                return question;
+            }
+        }
+        return "";
     }
 
     static boolean isDuplicateQuestion(String candidate, List<String> asked) {

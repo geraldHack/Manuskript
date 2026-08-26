@@ -55,11 +55,6 @@
     -fx-opacity: 0.75;
 }
 
-.novel-wizard-phase-headline {
-    -fx-font-size: 24px;
-    -fx-font-weight: bold;
-}
-
 .novel-wizard-progress-caption {
     -fx-font-size: 12px;
     -fx-font-weight: bold;
@@ -182,6 +177,20 @@
     -fx-padding: 8;
 }
 
+.novel-wizard-answer-tabs {
+    -fx-tab-min-height: 26px;
+    -fx-tab-max-height: 28px;
+    -fx-background-color: transparent;
+}
+
+.novel-wizard-answer-tabs .tab-header-area {
+    -fx-padding: 0 0 4 0;
+}
+
+.novel-wizard-answer-tabs .tab-content-area {
+    -fx-padding: 0;
+}
+
 .novel-wizard-actions-bar {
     -fx-alignment: center;
     -fx-spacing: 8;
@@ -189,9 +198,10 @@
 }
 
 .novel-wizard-action-button {
-    -fx-padding: 8 14;
+    -fx-padding: 6 10;
     -fx-background-radius: 4;
     -fx-font-size: 12px;
+    -fx-wrap-text: false;
 }
 
 .novel-wizard-action-primary {
@@ -238,7 +248,6 @@
 }
 .weiss-theme .novel-wizard-section-label,
 .weiss-theme .novel-wizard-project-title,
-.weiss-theme .novel-wizard-phase-headline,
 .weiss-theme .novel-wizard-progress-caption,
 .weiss-theme .novel-wizard-progress-fraction,
 .weiss-theme .novel-wizard-jump-label,
@@ -305,7 +314,6 @@
 }
 .theme-dark .novel-wizard-section-label,
 .theme-dark .novel-wizard-project-title,
-.theme-dark .novel-wizard-phase-headline,
 .theme-dark .novel-wizard-progress-caption,
 .theme-dark .novel-wizard-progress-fraction,
 .theme-dark .novel-wizard-jump-label,
@@ -377,7 +385,6 @@
 }
 .pastell-theme .novel-wizard-section-label,
 .pastell-theme .novel-wizard-project-title,
-.pastell-theme .novel-wizard-phase-headline,
 .pastell-theme .novel-wizard-progress-caption,
 .pastell-theme .novel-wizard-progress-fraction,
 .pastell-theme .novel-wizard-jump-label,

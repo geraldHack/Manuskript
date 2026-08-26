@@ -2473,7 +2473,6 @@ public class OllamaWindow {
         if (stylesCssPath != null) sc.getStylesheets().add(stylesCssPath);
         if (editorCssPath != null) sc.getStylesheets().add(editorCssPath);
         s.setSceneWithTitleBar(sc);
-        s.initOwner(stage);
         s.show();
         // Theme-Klasse spiegeln
         applyThemeToNode(box, currentThemeIndex);
@@ -2917,7 +2916,6 @@ public class OllamaWindow {
                 Scene sc = new Scene(box, 1000, 800);
                 resultStage.setSceneWithTitleBar(sc);
                 resultStage.setTitleWithIcon("🔍", "Ergebnis gerendert)");
-                resultStage.initOwner(stage);
                 resultStage.setFullTheme(currentThemeIndex);
                 applyThemeToNode(box, currentThemeIndex);
                 // Pastell-Theme Klasse auf Root hinzufügen für konsistente Styles

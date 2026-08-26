@@ -120,7 +120,8 @@ public class StageManager {
             stage.setCustomTitle(title);
         }
         
-        // Modal-Verhalten
+        // Modal-Verhalten nur fuer echte Dialoge. Arbeitsfenster ohne Owner:
+        // unter macOS bleiben owned Stages auf dem Screen des Hauptfensters.
         if (modal && owner != null) {
             stage.initModality(Modality.WINDOW_MODAL);
             stage.initOwner(owner);

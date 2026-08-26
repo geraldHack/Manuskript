@@ -46,9 +46,6 @@ public final class ChatAnswerEditorWindow {
         stage.setCustomTitle(titleQuestion.isBlank() ? "Chat-Antwort" : "Chat-Antwort · " + titleQuestion);
         stage.setMinWidth(520);
         stage.setMinHeight(420);
-        if (owner != null) {
-            stage.initOwner(owner);
-        }
 
         Label header = new Label(question != null && !question.isBlank()
                 ? "Frage: " + question

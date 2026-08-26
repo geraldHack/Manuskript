@@ -156,9 +156,6 @@ public class SceneOutlineWindow {
         stage.setHeight(480);
         stage.setTitleBarTheme(themeIndex);
         stage.initModality(Modality.NONE);
-        if (ownerScene != null && ownerScene.getWindow() != null) {
-            stage.initOwner(ownerScene.getWindow());
-        }
 
         hintLabel = new Label("Nummerierte Szenenbeschreibungen (Enter = nächste Nummer):");
         hintLabel.getStyleClass().add("scene-outline-hint");

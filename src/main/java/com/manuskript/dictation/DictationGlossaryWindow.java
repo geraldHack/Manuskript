@@ -55,9 +55,6 @@ public final class DictationGlossaryWindow {
         stage.setCustomTitle("Diktat-Glossar");
         stage.setWidth(720);
         stage.setHeight(560);
-        if (owner instanceof Stage ownerStage) {
-            stage.initOwner(ownerStage);
-        }
 
         Label pathLabel = new Label(glossaryPath != null ? glossaryPath.toString() : "");
         pathLabel.setWrapText(true);

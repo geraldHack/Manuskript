@@ -6389,7 +6389,6 @@ public class MainController implements Initializable {
             // WICHTIG: Theme sofort setzen
             splitStage.setTitleBarTheme(currentThemeIndex);
             splitStage.initModality(Modality.NONE);
-            splitStage.initOwner(primaryStage);
             
             // Split-Panel programmatisch erstellen (wie Makros!)
             VBox splitPanel = createSplitPanel();
