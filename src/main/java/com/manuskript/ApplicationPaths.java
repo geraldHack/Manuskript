@@ -155,6 +155,45 @@ public final class ApplicationPaths {
     }
 
     /**
+     * Aktive In-Process-Plugins ({@code Contents/app/plugins}). Nur JARs hier werden geladen.
+     */
+    public static File resolvePluginsDirectory() {
+        File packaged = new File(getApplicationHomeDirectory(), "plugins");
+        if (packaged.isDirectory()) {
+            return canonicalOrSelf(packaged);
+        }
+        File repo = new File(System.getProperty("user.dir", "."), "plugins");
+        if (repo.isDirectory()) {
+            return canonicalOrSelf(repo);
+        }
+        return packaged;
+    }
+
+    /**
+     * Mitgelieferte, noch nicht aktivierte Plugins ({@code plugin-catalog/}).
+     * Werden erst nach Auswahl im Setup nach {@link #resolvePluginsDirectory()} kopiert.
+     */
+    public static File resolvePluginCatalogDirectory() {
+        File packaged = new File(getApplicationHomeDirectory(), "plugin-catalog");
+        if (packaged.isDirectory()) {
+            return canonicalOrSelf(packaged);
+        }
+        File repo = new File(System.getProperty("user.dir", "."), "plugin-catalog");
+        if (repo.isDirectory()) {
+            return canonicalOrSelf(repo);
+        }
+        return packaged;
+    }
+
+    private static File canonicalOrSelf(File file) {
+        try {
+            return file.getCanonicalFile();
+        } catch (IOException e) {
+            return file.getAbsoluteFile();
+        }
+    }
+
+    /**
      * Gebündelte Demo-Vorlage {@code Manuskripte} im App-Bundle bzw. Arbeitsverzeichnis.
      * Nicht als Nutzer-Projektstamm verwenden — Updates überschreiben diesen Ordner.
      */

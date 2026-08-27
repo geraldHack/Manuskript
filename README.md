@@ -15,15 +15,18 @@
 ## Highlights
 
 - **Canvas-Kapitel-Editor** – Markdown mit Inline-Darstellung, „Markdown ausblenden“, Suche/Ersetzen, Zeilennummern
-- **Agenten-Panel** – Analyse (Plothole, Dialog, Stil), Szene schreiben, Chat, Überarbeiten per Selektion
+- **Agenten-Panel** – Analyse (Plothole, Dialog, Stil, Sprachentflechtung), Szene schreiben, Chat, Überarbeiten, eigene Agenten (auch Freeform)
 - **Online-Lektorat** – Kapitelweises Lektorat über OpenAI-kompatible API
 - **Welt-Editor** – Projekt-Kontextdateien (Charaktere, Outline, Worldbuilding, …) mit KI-Generierung
 - **Roman-Assistent** – Interaktive Romanplanung mit KI und Session-Fortsetzung
+- **Setup & Funktionspakete** – KI, Agenten, Lektorat, Diktat und Hörbuch einzeln ein- und ausschalten
+- **JAR-Plugins** – eigene Werkzeuge im Manuskript-Look; Demo: OpenRouter- und Mammouth-Monitor
 - **Makro-System** – Automatische Textbereinigung (Anführungszeichen, Gedankenstriche, Absätze)
 - **Textanalyse** – Füllwörter, Phrasen, Wortwiederholungen, Sprechantworten
 - **Downloads-Monitor** – Sudowrite-Integration mit automatischem DOCX-Import
 - **Export** – RTF, DOCX, Markdown, HTML, EPUB, PDF, LaTeX
 - **Hörbuch-Erstellung** – TTS-Editor mit ElevenLabs und lokaler KI (ComfyUI/Qwen), ACX-kompatible MP3
+- **Diktat** – Whisper lokal oder über API, unabhängig vom KI-Hauptschalter
 
 ## Schnellstart
 
@@ -39,6 +42,7 @@
 - **Optional – Rechtschreibung:** LanguageTool (localhost:8081)
 - **Optional – PDF:** MiKTeX oder TeX Live
 - **Optional – Hörbuch:** FFmpeg (im Projekt unter `ffmpeg/` oder im PATH)
+- **Optional – Diktat:** Whisper (Windows: Setup lädt `whisper/`; macOS: Homebrew)
 
 ### Installation & Start
 
@@ -65,11 +69,13 @@ mvn javafx:run
 
 ### Erste Schritte
 
-1. Projektverzeichnis mit DOCX-Kapiteln wählen (oder Roman-Assistent für ein neues Projekt nutzen)
-2. Kapitel in die rechte Tabelle legen und sortieren
-3. **Kapitel bearbeiten** – öffnet den Canvas-Editor
-4. Optional: Agenten, Online-Lektorat, Makros, Textanalyse
-5. Buch exportieren oder Hörbuch erzeugen
+1. Beim ersten Start Projektstamm bestätigen (Willkommen / Setup)
+2. Im **Setup** Funktionspakete wählen und optional Demo-Plugins aktivieren
+3. Projektverzeichnis mit DOCX-Kapiteln wählen (oder Roman-Assistent für ein neues Projekt)
+4. Kapitel in die rechte Tabelle legen und sortieren
+5. **Kapitel bearbeiten** – öffnet den Canvas-Editor
+6. Optional: Agenten, Online-Lektorat, Makros, Textanalyse, Diktat
+7. Buch exportieren oder Hörbuch erzeugen
 
 ## Kernfunktionen
 
@@ -95,11 +101,12 @@ Ausführliche Hilfe: im Editor über die Hilfe-Buttons (?).
 
 **Agenten** (rechtes Panel im Editor):
 
-- Analyse-Agenten (Plotlöcher, Dialog, Textstruktur, Show-don't-tell, …)
+- Analyse-Agenten (Plotlöcher, Dialog, Textstruktur, Show-don't-tell, Sprachentflechtung, …)
 - Szene-schreiben-Agent mit Anweisungsfeld und Szenen-Kontext
 - Chatbot mit Projektkontext
 - Überarbeiten per Kontextmenü auf markiertem Text
-- Konfiguration in `config/agents.json` und pro Tab; Backend Ollama oder OpenAI
+- Eigene Agenten über **+** (schließenbar); optional **Freeform** = Antwort als Fließtext ohne `<PROBLEM>`-Parser
+- Konfiguration in `config/agents.json` und pro Tab; Backend Ollama oder OpenAI-kompatibel (OpenRouter, Mammouth, …)
 
 **Online-Lektorat** (Toolbar „Lektorat“):
 
@@ -116,6 +123,25 @@ Ausführliche Hilfe: im Editor über die Hilfe-Buttons (?).
 
 - Überwacht den Downloads-Ordner auf neue DOCX/ZIP-Dateien
 - Automatisches Matching und sicheres Ersetzen mit Backup
+
+### Setup, Plugins & eigene Programme
+
+Über den **Setup-Assistenten** (Toolbar / Erststart):
+
+- **Funktionen:** Pakete ein- und ausschalten (KI insgesamt, Agenten, Roman-Assistent, Online-Lektorat, Diktat, Hörbuch). Ausgeschaltete Pakete blenden Buttons und Parameter-Tabs aus; Keys und Texte bleiben gespeichert.
+- **Plugins:** mitgelieferte oder eigene JARs aktivieren. Katalog `plugin-catalog/` (inaktiv, mitgeliefert), geladen wird nur `plugins/` (Toolbar-Button). Im Setup an = Kopie nach `plugins/`, aus = wieder entfernen.
+- **Eigene Programme:** fremde Apps als Extra-Prozess starten (`config/launchers.json`) – sicherer als ein JAR in derselben JVM.
+
+**Demo-Plugins** (liegen unter `tools/`, JAR nach `plugin-catalog/`):
+
+| Plugin | Zweck |
+|--------|--------|
+| [OpenRouter-Monitor](tools/openrouter-monitor/) | Credits und API-Logs für OpenRouter |
+| [Mammouth-Monitor](tools/mammouth-monitor/) | Credits und Modellliste für Mammouth |
+
+Beide laufen **in derselben JVM** wie Manuskript (Manuskript-Look, Theme). Zusätzlich standalone: `./run-openrouter-monitor.sh` bzw. `./run-mammouth-monitor.sh`.
+
+Eigenes Plugin schreiben: [plugins/README.md](plugins/README.md) (API `plugin-api/`, ServiceLoader, kein `Platform.exit()`). JSON unter `config/plugins/` ist **Legacy** und wird nicht mehr geladen.
 
 ### Makros & Textanalyse
 
@@ -193,11 +219,11 @@ Agenten-Definitionen: `config/agents.json`
 
 - **JavaFX 21** – Benutzeroberfläche
 - **Canvas-Editor** (`ManuskriptTextEditor` / `MdTextArea`) – Markdown-Bearbeitung
-- **Ollama / OpenAI-kompatible APIs** – Agenten und Lektorat
+- **Ollama / OpenAI-kompatible APIs** – Agenten und Lektorat (OpenRouter, Mammouth, …)
 - **LanguageTool** – Rechtschreibprüfung
-- **ElevenLabs / ComfyUI** – Sprachsynthese
+- **ElevenLabs / ComfyUI / Whisper** – Sprachsynthese und Diktat
 - **FFmpeg** – Audio
-- **Maven** – Build
+- **Maven** – Build; schlanke Plugin-API (`plugin-api/`)
 
 ## Entwicklung
 
@@ -207,7 +233,14 @@ mvn test
 mvn javafx:run
 ```
 
-Siehe auch `AGENTS.md` für Hinweise zur aktiven Codebasis (Canvas-Editor als Standard).
+Demo-Plugins bauen (kopiert die JAR nach `plugin-catalog/`):
+
+```bash
+cd tools/openrouter-monitor && mvn package
+cd ../mammouth-monitor && mvn package
+```
+
+Siehe auch `AGENTS.md` (Canvas-Editor als Standard) und [plugins/README.md](plugins/README.md) für die Plugin-API.
 
 ## Lizenz
 

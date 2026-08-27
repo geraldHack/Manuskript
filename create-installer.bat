@@ -51,6 +51,34 @@ if not exist "target\%FAT_JAR%" (
 )
 echo [OK] %FAT_JAR% erstellt.
 
+echo   Baue OpenRouter-Monitor...
+call mvn -f tools\openrouter-monitor\pom.xml package -DskipTests -q
+if errorlevel 1 (
+    echo FEHLER: OpenRouter-Monitor-Build fehlgeschlagen!
+    pause
+    exit /b 1
+)
+if not exist "tools\openrouter-monitor\target\openrouter-monitor.jar" (
+    echo FEHLER: tools\openrouter-monitor\target\openrouter-monitor.jar nicht gefunden!
+    pause
+    exit /b 1
+)
+echo [OK] OpenRouter-Monitor erstellt.
+
+echo   Baue Mammouth-Monitor...
+call mvn -f tools\mammouth-monitor\pom.xml package -DskipTests -q
+if errorlevel 1 (
+    echo FEHLER: Mammouth-Monitor-Build fehlgeschlagen!
+    pause
+    exit /b 1
+)
+if not exist "tools\mammouth-monitor\target\mammouth-monitor.jar" (
+    echo FEHLER: tools\mammouth-monitor\target\mammouth-monitor.jar nicht gefunden!
+    pause
+    exit /b 1
+)
+echo [OK] Mammouth-Monitor erstellt.
+
 REM --- Schritt 2: JavaFX jmods herunterladen (falls noetig) ---
 echo.
 echo [2/6] Pruefe JavaFX jmods...
@@ -128,6 +156,34 @@ xcopy "config\*" "%APP_DIR%\config\" /E /I /Q >nul 2>&1
 if exist "%APP_DIR%\config\sessions" rmdir /s /q "%APP_DIR%\config\sessions" >nul 2>&1
 REM LanguageTool-Wörterbuch nicht mitshipen (projektspezifisch; App legt leere Datei an)
 if exist "%APP_DIR%\config\languagetool-dictionary.txt" del "%APP_DIR%\config\languagetool-dictionary.txt" >nul 2>&1
+if exist "%APP_DIR%\config\openrouter-monitor.properties" del "%APP_DIR%\config\openrouter-monitor.properties" >nul 2>&1
+if exist "%APP_DIR%\config\mammouth-monitor.properties" del "%APP_DIR%\config\mammouth-monitor.properties" >nul 2>&1
+copy /Y "installer-assets\installer-config\launchers.json" "%APP_DIR%\config\launchers.json" >nul
+
+REM Plugin-Katalog (inaktiv). plugins\ bleibt leer, bis der Nutzer im Setup aktiviert.
+echo   - plugin-catalog/
+mkdir "%APP_DIR%\plugin-catalog" 2>nul
+mkdir "%APP_DIR%\plugins" 2>nul
+if exist "plugin-catalog" xcopy "plugin-catalog\*" "%APP_DIR%\plugin-catalog\" /E /I /Q /Y >nul 2>&1
+if exist "%APP_DIR%\plugin-catalog\.gitkeep" del "%APP_DIR%\plugin-catalog\.gitkeep" >nul 2>&1
+if exist "%APP_DIR%\plugin-catalog\README.md" del "%APP_DIR%\plugin-catalog\README.md" >nul 2>&1
+del /q "%APP_DIR%\plugin-catalog\*.properties" >nul 2>&1
+if not exist "tools\openrouter-monitor\target\openrouter-monitor.jar" (
+    echo FEHLER: tools\openrouter-monitor\target\openrouter-monitor.jar fehlt.
+    pause
+    exit /b 1
+)
+copy /Y "tools\openrouter-monitor\target\openrouter-monitor.jar" "%APP_DIR%\plugin-catalog\openrouter-monitor.jar" >nul
+copy /Y "tools\openrouter-monitor\packaged\run-openrouter-monitor.sh" "%APP_DIR%\plugin-catalog\run-openrouter-monitor.sh" >nul
+copy /Y "tools\openrouter-monitor\packaged\run-openrouter-monitor.bat" "%APP_DIR%\plugin-catalog\run-openrouter-monitor.bat" >nul
+if not exist "tools\mammouth-monitor\target\mammouth-monitor.jar" (
+    echo FEHLER: tools\mammouth-monitor\target\mammouth-monitor.jar fehlt.
+    pause
+    exit /b 1
+)
+copy /Y "tools\mammouth-monitor\target\mammouth-monitor.jar" "%APP_DIR%\plugin-catalog\mammouth-monitor.jar" >nul
+copy /Y "tools\mammouth-monitor\packaged\run-mammouth-monitor.sh" "%APP_DIR%\plugin-catalog\run-mammouth-monitor.sh" >nul
+copy /Y "tools\mammouth-monitor\packaged\run-mammouth-monitor.bat" "%APP_DIR%\plugin-catalog\run-mammouth-monitor.bat" >nul
 
 REM FFmpeg (nur ZIP, wird beim ersten Start automatisch entpackt)
 echo   - ffmpeg/
@@ -193,7 +249,7 @@ echo.
 echo  Starten:    %APP_IMAGE%\%APP_NAME%.exe
 echo.
 echo  Zur Weitergabe: Die ZIP-Datei enthaelt
-echo  alles (JRE, JavaFX, Config, FFmpeg, Pandoc).
+echo  alles (JRE, JavaFX, Config, FFmpeg, Pandoc, plugins\Monitor-JARs).
 echo  Der Empfaenger muss kein Java installieren!
 echo.
 echo  FFmpeg und Pandoc werden beim ersten Start

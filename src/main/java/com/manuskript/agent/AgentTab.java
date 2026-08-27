@@ -8,6 +8,7 @@ import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
@@ -52,6 +53,7 @@ public class AgentTab extends ScrollPane {
     private final Label repeatPenaltyValueLabel;
     private final HBox penaltyRow;
     private final Button restoreDefaultsButton;
+    private final CheckBox freeformCheck;
 
     // Aktions-UI
     private final Button analyzeButton;
@@ -84,6 +86,7 @@ public class AgentTab extends ScrollPane {
     private TextArea rewriteTextArea;
     private Button applyRewriteButton;
     private Runnable onApplyRewriteClicked;
+    private TextArea freeformOutputArea;
 
     /** Letzte Markierung für den Überarbeiten-Agenten (Ersetzung auch bei Platzhalter-Zitat). */
     private int revisionSelectionStart = -1;
@@ -243,8 +246,24 @@ public class AgentTab extends ScrollPane {
         restoreDefaultsButton.getStyleClass().add("agent-restore-btn");
         restoreDefaultsButton.setOnAction(e -> restoreDefaults());
 
+        boolean showFreeformPref = config.isUserDefined()
+                && !config.isSelectionRevisionAgent()
+                && !config.isIdiomReviewAgent();
+        freeformCheck = new CheckBox("Freeform");
+        freeformCheck.setSelected(config.isFreeform());
+        freeformCheck.setTooltip(new Tooltip(
+                "Antwort ungefiltert als Fließtext anzeigen, ohne <PROBLEM>-Blöcke auszuwerten."));
+        freeformCheck.selectedProperty().addListener((obs, old, selected) -> {
+            config.setFreeform(Boolean.TRUE.equals(selected));
+            applyFreeformUi();
+            fireConfigChanged();
+        });
+        freeformCheck.setVisible(showFreeformPref);
+        freeformCheck.setManaged(showFreeformPref);
+
         configBox.getChildren().addAll(
             nameLabel, nameField,
+            freeformCheck,
             promptLabel, promptArea,
             backendLabel, backendCombo,
             modelLabel, modelSelector,
@@ -350,6 +369,39 @@ public class AgentTab extends ScrollPane {
             AgentScrollPaneSupport.applyConfigExpandedLayout(this, contentRoot, scrollPane, show);
         });
         AgentScrollPaneSupport.applyConfigExpandedLayout(this, contentRoot, scrollPane, false);
+        applyFreeformUi();
+    }
+
+    private void applyFreeformUi() {
+        boolean freeform = config.isFreeform()
+                && !config.isSelectionRevisionAgent()
+                && !config.isIdiomReviewAgent();
+        if (realtimeToggle != null) {
+            boolean hideRealtime = freeform
+                    || config.isSelectionRevisionAgent()
+                    || config.isIdiomReviewAgent();
+            realtimeToggle.setVisible(!hideRealtime);
+            realtimeToggle.setManaged(!hideRealtime);
+            if (freeform && realtimeEnabled) {
+                realtimeEnabled = false;
+                realtimeToggle.setSelected(false);
+                if (onRealtimeToggled != null) {
+                    onRealtimeToggled.accept(false);
+                }
+            }
+        }
+        if (analyzeButton != null
+                && !config.isSelectionRevisionAgent()
+                && !config.isIdiomReviewAgent()) {
+            analyzeButton.setText(freeform ? "▶ Ausführen" : "▶ Jetzt prüfen");
+        }
+        if (emptyLabel != null
+                && !config.isSelectionRevisionAgent()
+                && !config.isIdiomReviewAgent()) {
+            emptyLabel.setText(freeform
+                    ? "Noch keine Antwort.\nKlicke ▶ Ausführen."
+                    : "Noch keine Analyse.\nKlicke ▶ oder aktiviere ⚡.");
+        }
     }
 
     private HBox createSliderRow(String labelText, Slider slider, Label valueLabel) {
@@ -386,6 +438,9 @@ public class AgentTab extends ScrollPane {
         }
         if (contentRoot != null) {
             AgentFontSizeSupport.applyEditorFont(contentRoot, size, currentFontFamily, null);
+        }
+        if (freeformOutputArea != null) {
+            AgentFontSizeSupport.applyEditorFont(freeformOutputArea, size, currentFontFamily, null);
         }
         AgentActionButtonSupport.applyFontSize(size, analyzeButton, realtimeToggle);
     }
@@ -493,7 +548,9 @@ public class AgentTab extends ScrollPane {
         maxTokensSlider.setValue(config.getMaxTokens());
         topPSlider.setValue(config.getTopP());
         repeatPenaltySlider.setValue(config.getRepeatPenalty());
+        freeformCheck.setSelected(config.isFreeform());
         updateSamplingControlsForBackend(backendCombo.getValue());
+        applyFreeformUi();
     }
 
     /** Repeat Penalty nur bei Ollama sichtbar — bei OpenAI ohne Wirkung. */
@@ -542,7 +599,7 @@ public class AgentTab extends ScrollPane {
     // === Status ===
 
     public boolean isRealtimeEnabled() {
-        return realtimeEnabled;
+        return realtimeEnabled && !config.isFreeform();
     }
 
     public void setRealtimeEnabled(boolean enabled) {
@@ -1062,5 +1119,47 @@ public class AgentTab extends ScrollPane {
             analyzeButton.setDisable(false);
             unregisterActivity();
         });
+    }
+
+    public void appendFreeformDelta(String delta) {
+        if (delta == null || delta.isEmpty()) {
+            return;
+        }
+        Platform.runLater(() -> {
+            TextArea area = ensureFreeformOutput();
+            area.appendText(delta);
+        });
+    }
+
+    public void finishFreeformAnalysis(String fullText) {
+        Platform.runLater(() -> {
+            TextArea area = ensureFreeformOutput();
+            if ((area.getText() == null || area.getText().isBlank()) && fullText != null) {
+                area.setText(fullText);
+            }
+            analyzing = false;
+            analyzeButton.setDisable(false);
+            unregisterActivity();
+            reportStatus("Antwort erhalten");
+        });
+    }
+
+    private TextArea ensureFreeformOutput() {
+        if (freeformOutputArea != null && findingsList.getChildren().contains(freeformOutputArea)) {
+            return freeformOutputArea;
+        }
+        freeformOutputArea = new TextArea();
+        freeformOutputArea.setWrapText(true);
+        freeformOutputArea.setEditable(true);
+        freeformOutputArea.getStyleClass().add("agent-freeform-output");
+        freeformOutputArea.setPromptText("Antwort erscheint hier…");
+        freeformOutputArea.setPrefRowCount(16);
+        freeformOutputArea.setMinHeight(180);
+        freeformOutputArea.setMaxWidth(Double.MAX_VALUE);
+        VBox.setVgrow(freeformOutputArea, Priority.ALWAYS);
+        AgentFontSizeSupport.applyEditorFont(freeformOutputArea, currentFontSize, currentFontFamily, null);
+        findingsList.getChildren().clear();
+        findingsList.getChildren().add(freeformOutputArea);
+        return freeformOutputArea;
     }
 }

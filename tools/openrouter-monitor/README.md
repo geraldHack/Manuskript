@@ -26,6 +26,10 @@ mvn package
 
 Ergebnis: `target/openrouter-monitor.jar`
 
+Im Installer liegt derselbe Stand unter `app/plugin-catalog/` (macOS: `Manuskript.app/Contents/app/plugin-catalog/`), zusammen mit `run-openrouter-monitor.sh` / `.bat`. Aktivieren unter **Setup → Plugins** (Kopie nach `app/plugins/`). **Keine Keys** werden mitgeliefert.
+
+**Management-Key** (für Logs und Kontoguthaben) setzt du **im Monitor selbst** — nicht in der Parameter-Verwaltung. Der normale Inference-Key aus Manuskript ist nur optional für die Key-Statistiken.
+
 ## Starten
 
 Aus dem **Repo-Root** (Konfiguration wird per `--config-dir` gesetzt):

@@ -244,31 +244,33 @@ public class WorldEditorWindow {
         });
         fileToSaveButton.put(filename, saveButton);
 
-        Button aiButton = new Button("🤖 KI-Generierung");
-        aiButton.setOnAction(e -> {
-            ensureTabEditorLoaded(filename);
-            MdTextArea area = fileToTextArea.get(filename);
-            if (area != null) {
-                handleAiGeneration(filename, area);
-            }
-        });
-        fileToAiButton.put(filename, aiButton);
-
         HBox buttonBox = new HBox(10);
         buttonBox.setAlignment(Pos.CENTER_RIGHT);
         buttonBox.setPadding(new Insets(5, 0, 0, 0));
         buttonBox.getChildren().add(saveButton);
-        if (WorldEditorAiPrompts.supportsExtractFromChapters(filename)) {
-            Button extractButton = new Button("📖 Aus Kapiteln");
-            extractButton.setOnAction(e -> {
+        if (FeaturePacks.aiEnabled()) {
+            Button aiButton = new Button("🤖 KI-Generierung");
+            aiButton.setOnAction(e -> {
                 ensureTabEditorLoaded(filename);
                 MdTextArea area = fileToTextArea.get(filename);
                 if (area != null) {
-                    handleExtractFromChapters(filename, area);
+                    handleAiGeneration(filename, area);
                 }
             });
-            fileToExtractButton.put(filename, extractButton);
-            buttonBox.getChildren().add(extractButton);
+            fileToAiButton.put(filename, aiButton);
+            if (WorldEditorAiPrompts.supportsExtractFromChapters(filename)) {
+                Button extractButton = new Button("📖 Aus Kapiteln");
+                extractButton.setOnAction(e -> {
+                    ensureTabEditorLoaded(filename);
+                    MdTextArea area = fileToTextArea.get(filename);
+                    if (area != null) {
+                        handleExtractFromChapters(filename, area);
+                    }
+                });
+                fileToExtractButton.put(filename, extractButton);
+                buttonBox.getChildren().add(extractButton);
+            }
+            buttonBox.getChildren().add(aiButton);
         }
         if (NovelManager.CHARACTERS_FILE.equals(filename)) {
             Button continuityButton = new Button("🔍 Kontinuität");
@@ -277,7 +279,6 @@ public class WorldEditorWindow {
             continuityButton.setOnAction(e -> runContinuityCheck());
             buttonBox.getChildren().add(continuityButton);
         }
-        buttonBox.getChildren().add(aiButton);
 
         Region editorPlaceholder = new Region();
         editorPlaceholder.setMinHeight(120);

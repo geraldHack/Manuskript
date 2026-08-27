@@ -52,6 +52,10 @@ pandoc/pandoc-mac.zip
 logs/
 *.log
 
+# Gebaute Plugin-JARs (Katalog und aktive Kopien)
+plugin-catalog/*.jar
+plugins/*.jar
+
 # OS
 .DS_Store
 Thumbs.db
@@ -63,6 +67,7 @@ Thumbs.db
 # Session-Dateien ignorieren
 config/sessions/
 config/openrouter-monitor.properties
+config/mammouth-monitor.properties
 
 # Alle docx-Dateien ignorieren
 #*.docx 

@@ -946,26 +946,17 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         Label quoteLabel = new Label("Anführungszeichen:");
         Button sceneOutline = toolbarButton("Outline", "Szenen-Outline für dieses Kapitel", this::toggleSceneOutlineWindow);
         Button textAnalysis = toolbarButton("Analyse", "Textanalyse-Fenster ein-/ausblenden", this::toggleTextAnalysisWindow);
-        if (Boolean.parseBoolean(ResourceManager.getParameter("agent.enabled", "true"))) {
+        if (FeaturePacks.agentsEnabled()) {
             btnToggleAgents = new ToggleButton("Agenten");
             btnToggleAgents.setSelected(Preferences.userNodeForPackage(ChapterAgentSupport.class)
                     .getBoolean(ChapterAgentSupport.PREF_AGENT_PANEL_VISIBLE, true));
             btnToggleAgents.setTooltip(new Tooltip("Agenten-Panel ein- oder ausblenden"));
             btnToggleAgents.setOnAction(e -> onAgentsToggle());
         }
-        Button onlineLektorat = toolbarButton("Lektorat",
-                "Online-Lektorat starten (Typ im Dialog wählbar). " + OnlineLektoratService.SETTINGS_HINT,
-                this::promptAndStartOnlineLektorat);
         Button macrosBtn = toolbarButton("Makros", "Makro-Verwaltung ein-/ausblenden", this::toggleMacroWindow);
         Button copySudowrite = toolbarButton("Zwischenablage",
                 "In Zwischenablage kopieren (Sudowrite-kompatibel)",
                 this::copyForSudowrite);
-
-        dictationSupport = new DictationSupport(this, stage, themeIndex);
-        ToggleButton dictationBtn = dictationSupport.createToolbarButton();
-        Button glossaryBtn = toolbarButton("Glossar",
-                "Diktat-Glossar bearbeiten (data/dictation-glossary.txt)",
-                () -> dictationSupport.openGlossaryEditor());
 
         toolsPane.getChildren().addAll(
                 quoteLabel, quoteStyle,
@@ -974,9 +965,21 @@ public class ManuskriptEditorTestWindow implements ChapterEditorHost {
         if (btnToggleAgents != null) {
             toolsPane.getChildren().add(btnToggleAgents);
         }
-        toolsPane.getChildren().addAll(
-                onlineLektorat, macrosBtn, copySudowrite, dictationBtn, glossaryBtn,
-                insertImage, editImage, deleteImage);
+        toolsPane.getChildren().addAll(macrosBtn, copySudowrite);
+        if (FeaturePacks.onlineLektoratEnabled()) {
+            toolsPane.getChildren().add(toolbarButton("Lektorat",
+                    "Online-Lektorat starten (Typ im Dialog wählbar). " + OnlineLektoratService.SETTINGS_HINT,
+                    this::promptAndStartOnlineLektorat));
+        }
+        if (FeaturePacks.dictationEnabled()) {
+            dictationSupport = new DictationSupport(this, stage, themeIndex);
+            toolsPane.getChildren().addAll(
+                    dictationSupport.createToolbarButton(),
+                    toolbarButton("Glossar",
+                            "Diktat-Glossar bearbeiten (data/dictation-glossary.txt)",
+                            () -> dictationSupport.openGlossaryEditor()));
+        }
+        toolsPane.getChildren().addAll(insertImage, editImage, deleteImage);
 
         hostToolbarCollapsibleSection = new VBox(8, formatPane, toolsPane);
         VBox statusSection = new VBox(2, statusRow, agentStatusBusyBar);

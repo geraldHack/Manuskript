@@ -10429,3 +10429,36 @@
 .root .theme-dark.lila-theme .table-view .table-cell {
     -fx-background-color: transparent;
 }
+
+/* Platz für den festen „+“-Button rechts in der Agenten-Tab-Leiste */
+.agent-tab-pane > .tab-header-area {
+    -fx-padding: 0 36 0 0;
+}
+
+.agent-add-button {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-padding: 1 10 2 10;
+    -fx-background-radius: 4;
+    -fx-cursor: hand;
+}
+
+.weiss-theme .agent-add-button,
+.pastell-theme .agent-add-button {
+    -fx-background-color: #e9ecef;
+    -fx-text-fill: #000000;
+}
+
+.weiss-theme .agent-add-button:hover,
+.pastell-theme .agent-add-button:hover {
+    -fx-background-color: #ffffff;
+}
+
+.theme-dark .agent-add-button {
+    -fx-background-color: #2d2d2d;
+    -fx-text-fill: #ffffff;
+}
+
+.theme-dark .agent-add-button:hover {
+    -fx-background-color: #4a5568;
+}

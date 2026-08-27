@@ -227,6 +227,7 @@ public class AgentConfigManager {
                 configCopy.setRepeatPenalty(config.getRepeatPenalty());
                 configCopy.setAgentType(config.getAgentType());
                 configCopy.setUserDefined(config.isUserDefined());
+                configCopy.setFreeform(config.isFreeform());
                 configsToSave.add(configCopy);
             }
             String json = gson.toJson(configsToSave);
@@ -272,12 +273,31 @@ public class AgentConfigManager {
             boolean present = (seedAgent.getId() != null && byId.containsKey(seedAgent.getId()))
                     || (seedAgent.getName() != null && byName.containsKey(seedAgent.getName()));
             if (!present) {
-                configs.add(seedAgent);
+                addBuiltinKeepingUserAgentsLast(configs, seedAgent);
                 changed = true;
                 logger.info("Builtin-Agent nachgezogen: {}", seedAgent.getName());
             }
         }
         return changed;
+    }
+
+    private static int indexOfFirstUserDefined(List<AgentConfig> configs) {
+        for (int i = 0; i < configs.size(); i++) {
+            AgentConfig c = configs.get(i);
+            if (c != null && c.isUserDefined()) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private static void addBuiltinKeepingUserAgentsLast(List<AgentConfig> configs, AgentConfig builtin) {
+        int insertAt = indexOfFirstUserDefined(configs);
+        if (insertAt < 0) {
+            configs.add(builtin);
+        } else {
+            configs.add(insertAt, builtin);
+        }
     }
 
     /** Liest agents.json von bekannten Orten außer {@code alreadyLoaded}, sonst Classpath. */
@@ -439,7 +459,7 @@ public class AgentConfigManager {
             );
             sceneAgent.setDefaultPrompt(SceneWritingAgent.DEFAULT_SYSTEM_PROMPT);
             sceneAgent.setAgentType("scene-writing");
-            configs.add(sceneAgent);
+            addBuiltinKeepingUserAgentsLast(configs, sceneAgent);
             saveConfigs(configs);
         } else {
             bumpSceneWritingMaxTokensIfNeeded(configs);
@@ -479,7 +499,7 @@ public class AgentConfigManager {
         );
         chatAgent.setDefaultPrompt(ChatbotAgent.DEFAULT_SYSTEM_PROMPT);
         chatAgent.setAgentType("chatbot");
-        configs.add(chatAgent);
+        addBuiltinKeepingUserAgentsLast(configs, chatAgent);
         saveConfigs(configs);
     }
 
@@ -505,7 +525,7 @@ public class AgentConfigManager {
         revisionAgent.setId(SelectionRevisionSupport.DEFAULT_AGENT_ID);
         revisionAgent.setDefaultPrompt(prompt);
         revisionAgent.setAgentType("selection-revision");
-        configs.add(revisionAgent);
+        addBuiltinKeepingUserAgentsLast(configs, revisionAgent);
         saveConfigs(configs);
     }
 
@@ -530,7 +550,7 @@ public class AgentConfigManager {
         idiomAgent.setId(IdiomReviewSupport.DEFAULT_AGENT_ID);
         idiomAgent.setDefaultPrompt(prompt);
         idiomAgent.setAgentType("idiom-review");
-        configs.add(idiomAgent);
+        addBuiltinKeepingUserAgentsLast(configs, idiomAgent);
         saveConfigs(configs);
     }
 }

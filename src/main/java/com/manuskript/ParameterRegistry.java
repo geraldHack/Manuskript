@@ -89,6 +89,20 @@ public final class ParameterRegistry {
         add("paragraph_marking_enabled", ParameterDef.Type.BOOLEAN, "false",
                 "Absatzmarkierung im Editor anzeigen.", "UI");
 
+        // —— Funktionen (Steuerung im Setup-Assistenten) ——
+        add("feature.pack.ai", ParameterDef.Type.BOOLEAN, "true",
+                "KI-Funktionen insgesamt (Agenten, Roman-Assistent, Online-Lektorat, Welt-Editor-KI).", "Funktionen");
+        add("feature.pack.agents", ParameterDef.Type.BOOLEAN, "true",
+                "Agenten-Panel im Kapitel-Editor.", "Funktionen");
+        add("feature.pack.novel_wizard", ParameterDef.Type.BOOLEAN, "true",
+                "Roman-Assistent in Toolbar und Projektauswahl.", "Funktionen");
+        add("feature.pack.online_lektorat", ParameterDef.Type.BOOLEAN, "true",
+                "Online-Lektorat im Kapitel-Editor.", "Funktionen");
+        add("feature.pack.dictation", ParameterDef.Type.BOOLEAN, "true",
+                "Diktat und Glossar im Kapitel-Editor.", "Funktionen");
+        add("feature.pack.audiobook", ParameterDef.Type.BOOLEAN, "true",
+                "Hörbuch und Sprachsynthese in der Toolbar.", "Funktionen");
+
         // —— Editor ——
         add("editor.line-spacing", ParameterDef.Type.DOUBLE, "2.5",
                 "Zeilenabstand im Editor.", "Editor");

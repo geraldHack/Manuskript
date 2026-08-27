@@ -19,6 +19,8 @@ public class AgentConfig {
     private double repeatPenalty;
     private String agentType = "analysis";
     private boolean userDefined;
+    /** Ungefilterte Anzeige der Modell-Antwort (ohne <PROBLEM>-Parser). */
+    private boolean freeform;
 
     public AgentConfig() {
         this.id = UUID.randomUUID().toString();
@@ -113,5 +115,13 @@ public class AgentConfig {
 
     public void setUserDefined(boolean userDefined) {
         this.userDefined = userDefined;
+    }
+
+    public boolean isFreeform() {
+        return freeform;
+    }
+
+    public void setFreeform(boolean freeform) {
+        this.freeform = freeform;
     }
 }

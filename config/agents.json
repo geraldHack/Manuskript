@@ -10,7 +10,8 @@
     "topP": 0.7,
     "repeatPenalty": 1.3,
     "agentType": "analysis",
-    "userDefined": false
+    "userDefined": false,
+    "freeform": false
   },
   {
     "id": "5a1546dd-c6d7-4615-8d53-2671b9910efa",
@@ -23,7 +24,8 @@
     "topP": 0.7,
     "repeatPenalty": 1.3,
     "agentType": "analysis",
-    "userDefined": false
+    "userDefined": false,
+    "freeform": false
   },
   {
     "id": "d8b753f0-2684-414a-88a3-6cd4bef68650",
@@ -36,7 +38,8 @@
     "topP": 0.7,
     "repeatPenalty": 1.3,
     "agentType": "analysis",
-    "userDefined": false
+    "userDefined": false,
+    "freeform": false
   },
   {
     "id": "a7b8c9d0-e1f2-4a5b-8c9d-0e1f2a3b4c5d",
@@ -49,7 +52,8 @@
     "topP": 0.7,
     "repeatPenalty": 1.3,
     "agentType": "analysis",
-    "userDefined": false
+    "userDefined": false,
+    "freeform": false
   },
   {
     "id": "c91e4b7a-2d3d-4a1f-9e8b-selectionrev01",
@@ -62,7 +66,8 @@
     "topP": 0.7,
     "repeatPenalty": 1.2,
     "agentType": "selection-revision",
-    "userDefined": false
+    "userDefined": false,
+    "freeform": false
   },
   {
     "id": "e7f8a9b0-c1d2-4e3f-9a8b-idiomreview01",
@@ -75,7 +80,8 @@
     "topP": 0.7,
     "repeatPenalty": 1.2,
     "agentType": "idiom-review",
-    "userDefined": false
+    "userDefined": false,
+    "freeform": false
   },
   {
     "id": "40dd16a2-1683-4cd6-b443-5d5b6350061a",
@@ -88,7 +94,8 @@
     "topP": 0.9,
     "repeatPenalty": 1.1,
     "agentType": "scene-writing",
-    "userDefined": false
+    "userDefined": false,
+    "freeform": false
   },
   {
     "id": "b2c3d4e5-f6a7-4890-b1c2-d3e4f5a6b7c8",
@@ -101,6 +108,21 @@
     "topP": 0.9,
     "repeatPenalty": 1.1,
     "agentType": "chatbot",
-    "userDefined": false
+    "userDefined": false,
+    "freeform": false
+  },
+  {
+    "id": "23bb2048-de19-42be-86aa-ddf5770d844a",
+    "name": "Bild-Prompt",
+    "backend": "OpenAI",
+    "systemPrompt": "Sieh dir das Kapitel an und mache ein stimmungsvolles, passenden Prompt für eine Bild-KI  dazu.",
+    "defaultPrompt": "Du bist ein Analysemodul zur Erkennung von Plotlöchern und logischen Widersprüchen in Manuskripten.\n\nAUSGABEREGELN:\n\nDu erzeugst ausschließlich eine der folgenden zwei Antworten:\n\nVARIANTE A:\nKEINE_PROBLEME\n\nVARIANTE B:\nEine oder mehrere Problemblöcke im EXAKTEN Format:\n\n\u003cPROBLEM\u003e SCHWEREGRAD: [1-5] ZITAT: \"[EXAKTES ZITAT AUS DEM TEXT]\" PROBLEM: [KURZE BESCHREIBUNG] VORSCHLAG: [KONKRETE VERBESSERUNG] \u003c/PROBLEM\u003e\n\nWICHTIGE FORMATREGELN:\n\nVerwende niemals Markdown.\nVerwende niemals Aufzählungen.\nVerwende niemals Nummerierungen.\nVerwende niemals zusätzlichen Fließtext.\nVerwende niemals Erklärungen vor oder nach der Ausgabe.\nGib ausschließlich gültige Problemblöcke oder KEINE_PROBLEME aus.\nJeder Problemblock MUSS mit \u003cPROBLEM\u003e beginnen und mit \u003c/PROBLEM\u003e enden.\nZwischen zwei Problemblöcken steht genau eine Leerzeile.\nDas Feld ZITAT muss exakt aus dem Manuskript übernommen werden.\nVerändere niemals den Wortlaut eines Zitats.\nWenn keine relevanten Probleme existieren, gib ausschließlich KEINE_PROBLEME aus.\nAntworte niemals mit Höflichkeitsfloskeln.\nAntworte niemals mit Einleitungen.\nAntworte niemals mit Zusammenfassungen.\n\nANALYSEREGELN:\n\nSuche aktiv nach:\n\nlogischen Widersprüchen\nPlotlöchern\nunstimmigen Motivationen\nunmöglichen Abläufen\nverletzten Weltregeln\nzeitlichen Inkonsistenzen\nFigurenwissen ohne Grundlage\nphysikalischen Unmöglichkeiten innerhalb der Weltlogik\n\nIgnoriere:\n\nStilfragen\nGrammatik\nreine Geschmacksfragen\nabsichtliche Mysterien ohne Widerspruch",
+    "temperature": 0.3,
+    "maxTokens": 2048,
+    "topP": 0.7,
+    "repeatPenalty": 1.3,
+    "agentType": "analysis",
+    "userDefined": true,
+    "freeform": true
   }
 ]

@@ -129,6 +129,53 @@ ensure_mac_icon() {
     fi
 }
 
+copy_openrouter_plugin() {
+    local app_dir="$1"
+    local jar="tools/openrouter-monitor/target/openrouter-monitor.jar"
+    local script_sh="tools/openrouter-monitor/packaged/run-openrouter-monitor.sh"
+    local script_bat="tools/openrouter-monitor/packaged/run-openrouter-monitor.bat"
+    if [[ ! -f "$jar" ]]; then
+        echo "FEHLER: OpenRouter-Monitor-JAR fehlt (${jar})."
+        exit 1
+    fi
+    echo "  - plugin-catalog/ (inaktiv) und plugins/ (leer, Auswahl im Setup)"
+    mkdir -p "${app_dir}/plugin-catalog" "${app_dir}/plugins"
+    if [[ -d plugin-catalog ]]; then
+        if command -v rsync >/dev/null 2>&1; then
+            rsync -a \
+                --exclude '.gitkeep' \
+                --exclude 'README.md' \
+                --exclude '.DS_Store' \
+                --exclude '*.properties' \
+                plugin-catalog/ "${app_dir}/plugin-catalog/"
+        else
+            cp -R plugin-catalog/. "${app_dir}/plugin-catalog/"
+            rm -f "${app_dir}/plugin-catalog/.gitkeep" \
+                  "${app_dir}/plugin-catalog/README.md" \
+                  "${app_dir}/plugin-catalog/"*.properties
+        fi
+    fi
+    cp -f "$jar" "${app_dir}/plugin-catalog/openrouter-monitor.jar"
+    cp -f "$script_sh" "${app_dir}/plugin-catalog/run-openrouter-monitor.sh"
+    cp -f "$script_bat" "${app_dir}/plugin-catalog/run-openrouter-monitor.bat"
+    chmod +x "${app_dir}/plugin-catalog/run-openrouter-monitor.sh"
+}
+
+copy_mammouth_plugin() {
+    local app_dir="$1"
+    local jar="tools/mammouth-monitor/target/mammouth-monitor.jar"
+    local script_sh="tools/mammouth-monitor/packaged/run-mammouth-monitor.sh"
+    local script_bat="tools/mammouth-monitor/packaged/run-mammouth-monitor.bat"
+    if [[ ! -f "$jar" ]]; then
+        echo "FEHLER: Mammouth-Monitor-JAR fehlt (${jar})."
+        exit 1
+    fi
+    cp -f "$jar" "${app_dir}/plugin-catalog/mammouth-monitor.jar"
+    cp -f "$script_sh" "${app_dir}/plugin-catalog/run-mammouth-monitor.sh"
+    cp -f "$script_bat" "${app_dir}/plugin-catalog/run-mammouth-monitor.bat"
+    chmod +x "${app_dir}/plugin-catalog/run-mammouth-monitor.sh"
+}
+
 copy_bundled_resources() {
     local app_dir="$1"
     mkdir -p "$app_dir"
@@ -143,6 +190,9 @@ copy_bundled_resources() {
             --exclude 'tts-voices.json' \
             --exclude 'tts-recent-descriptions.json' \
             --exclude 'languagetool-dictionary.txt' \
+            --exclude 'launchers.json' \
+            --exclude 'openrouter-monitor.properties' \
+            --exclude 'mammouth-monitor.properties' \
             config/ "${app_dir}/config/"
     else
         cp -R config/. "${app_dir}/config/"
@@ -151,9 +201,15 @@ copy_bundled_resources() {
               "${app_dir}/config/parameters.properties.backup" \
               "${app_dir}/config/tts-voices.json" \
               "${app_dir}/config/tts-recent-descriptions.json" \
-              "${app_dir}/config/languagetool-dictionary.txt"
+              "${app_dir}/config/languagetool-dictionary.txt" \
+              "${app_dir}/config/launchers.json" \
+              "${app_dir}/config/openrouter-monitor.properties" \
+              "${app_dir}/config/mammouth-monitor.properties"
     fi
     cp -f installer-assets/installer-config/parameters.properties "${app_dir}/config/parameters.properties"
+    cp -f installer-assets/installer-config/launchers.json "${app_dir}/config/launchers.json"
+    copy_openrouter_plugin "$app_dir"
+    copy_mammouth_plugin "$app_dir"
 
     echo "  - ffmpeg/"
     mkdir -p "${app_dir}/ffmpeg"
@@ -266,7 +322,7 @@ REMOTE
     echo "     Version ${APP_VERSION}, ${size_mb} MB"
 }
 
-# --- Schritt 1: Fat JAR bauen ---
+# --- Schritt 1: Fat JAR und Monitor-Plugins bauen ---
 echo
 echo "[1/8] Baue Fat JAR..."
 mvn clean package -DskipTests -q
@@ -275,6 +331,22 @@ if [[ ! -f "target/${FAT_JAR}" ]]; then
     exit 1
 fi
 echo "[OK] ${FAT_JAR} erstellt."
+
+echo "  Baue OpenRouter-Monitor..."
+mvn -f tools/openrouter-monitor/pom.xml package -DskipTests -q
+if [[ ! -f "tools/openrouter-monitor/target/openrouter-monitor.jar" ]]; then
+    echo "FEHLER: tools/openrouter-monitor/target/openrouter-monitor.jar nicht gefunden!"
+    exit 1
+fi
+echo "[OK] OpenRouter-Monitor erstellt."
+
+echo "  Baue Mammouth-Monitor..."
+mvn -f tools/mammouth-monitor/pom.xml package -DskipTests -q
+if [[ ! -f "tools/mammouth-monitor/target/mammouth-monitor.jar" ]]; then
+    echo "FEHLER: tools/mammouth-monitor/target/mammouth-monitor.jar nicht gefunden!"
+    exit 1
+fi
+echo "[OK] Mammouth-Monitor erstellt."
 
 ensure_javafx_module_path
 
@@ -410,7 +482,7 @@ echo
 echo " Starten: open \"${APP_BUNDLE}\""
 echo
 echo " Zur Weitergabe: DMG oder ZIP enthält alles"
-echo " (JRE, JavaFX, Config, FFmpeg, Pandoc, LanguageTool)."
+echo " (JRE, JavaFX, Config, FFmpeg, Pandoc, LanguageTool, plugins/Monitor-JARs)."
 echo " Der Empfänger braucht kein Java."
 echo
 echo " Hinweis: Ohne Code-Signing zeigt macOS ggf. eine"

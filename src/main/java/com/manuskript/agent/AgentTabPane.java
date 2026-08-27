@@ -2,59 +2,62 @@ package com.manuskript.agent;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Parent;
+import javafx.scene.control.Button;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.Tooltip;
+import javafx.scene.layout.StackPane;
 import javafx.scene.Node;
 
 /**
- * TabPane-Container für mehrere Agenten-Tabs.
- * Ersetzt das alte AgentPanel im Editor-SplitPane.
+ * Agenten-Leiste: Tabs plus fest sichtbarer „+“-Button rechts.
+ * Neue Agenten bleiben am Ende der Leiste, nicht zwischen den Builtins.
  */
-public class AgentTabPane extends TabPane {
+public class AgentTabPane extends StackPane {
 
+    private final TabPane tabPane = new TabPane();
+    private final Button addButton = new Button("+");
     private final List<AgentTab> agentTabs = new ArrayList<>();
     private final List<SceneWritingAgentTab> sceneWritingTabs = new ArrayList<>();
     private final List<ChatbotAgentTab> chatbotTabs = new ArrayList<>();
-    private final Tab addTab;
     private AgentActivityTracker activityTracker;
-    /** Verhindert, dass Layout/Scroll das „+“-Tab kurz auswählt und so „Neuer Agent“ erzeugt. */
-    private boolean suppressAddTabHandler;
+    private Consumer<AgentTab> onAnalysisTabCreated;
 
     public AgentTabPane() {
-        setTabClosingPolicy(TabClosingPolicy.ALL_TABS);
-        getStyleClass().add("agent-tab-pane");
+        getStyleClass().add("agent-tab-host");
+        tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.ALL_TABS);
+        tabPane.getStyleClass().add("agent-tab-pane");
+        tabPane.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
 
-        addTab = new Tab("+");
-        addTab.setClosable(false);
-        addTab.getStyleClass().add("agent-add-tab");
-        addTab.getProperties().put("agentTabTooltip", AgentTabTooltipSupport.addTabTooltip());
-        getTabs().add(addTab);
+        addButton.getStyleClass().add("agent-add-button");
+        addButton.setTooltip(new Tooltip(AgentTabTooltipSupport.addTabTooltip()));
+        addButton.setFocusTraversable(false);
+        addButton.setMinSize(28, 26);
+        addButton.setPrefSize(32, 28);
+        addButton.setOnAction(e -> addNewAgent());
+        StackPane.setAlignment(addButton, Pos.TOP_RIGHT);
+        StackPane.setMargin(addButton, new Insets(3, 4, 0, 0));
 
-        getSelectionModel().selectedItemProperty().addListener((obs, oldTab, newTab) -> {
-            if (newTab != addTab || suppressAddTabHandler) {
-                return;
-            }
-            // JavaFX wählt „+“ oft nur kurz beim Einblenden/Scrollen (z. B. Sprachentflechtung).
-            // Nur anlegen, wenn die Auswahl im nächsten Puls immer noch auf „+“ steht.
-            Platform.runLater(() -> {
-                if (suppressAddTabHandler || getSelectionModel().getSelectedItem() != addTab) {
-                    return;
-                }
-                addNewAgent();
-            });
-        });
+        getChildren().addAll(tabPane, addButton);
 
-        sceneProperty().addListener((obs, oldScene, newScene) -> {
+        tabPane.sceneProperty().addListener((obs, oldScene, newScene) -> {
             if (newScene != null) {
                 Platform.runLater(this::refreshTabTooltips);
             }
         });
-        getTabs().addListener((ListChangeListener<Tab>) change -> Platform.runLater(this::refreshTabTooltips));
+        tabPane.getTabs().addListener((ListChangeListener<Tab>) change ->
+                Platform.runLater(this::refreshTabTooltips));
+    }
+
+    public void setOnAnalysisTabCreated(Consumer<AgentTab> callback) {
+        this.onAnalysisTabCreated = callback;
     }
 
     public void setActivityTracker(AgentActivityTracker tracker) {
@@ -82,14 +85,13 @@ public class AgentTabPane extends TabPane {
         for (AgentConfig config : configs) {
             addAgentTab(config, false);
         }
-        // +1 wegen „+“-Tab
-        int agentTabCount = getTabs().size() - 1;
+        int agentTabCount = tabPane.getTabs().size();
         if (agentTabCount < configs.size()) {
             org.slf4j.LoggerFactory.getLogger(AgentTabPane.class).warn(
                     "Nur {}/{} Agenten-Tabs erzeugt", agentTabCount, configs.size());
         }
-        if (getTabs().size() > 1) {
-            withSuppressedAddTab(() -> getSelectionModel().select(0));
+        if (!tabPane.getTabs().isEmpty()) {
+            tabPane.getSelectionModel().select(0);
         }
         wireActivityTracking();
         Platform.runLater(this::refreshTabTooltips);
@@ -123,7 +125,7 @@ public class AgentTabPane extends TabPane {
 
         applyTabTooltip(tab, config);
 
-        insertTabBeforeAdd(tab);
+        tabPane.getTabs().add(tab);
         agentTabs.add(agentTab);
         if (activityTracker != null) {
             agentTab.bindActivityTracker(activityTracker);
@@ -131,8 +133,11 @@ public class AgentTabPane extends TabPane {
 
         if (saveConfig) {
             saveAllConfigs();
+            if (onAnalysisTabCreated != null) {
+                onAnalysisTabCreated.accept(agentTab);
+            }
         }
-        withSuppressedAddTab(() -> getSelectionModel().select(tab));
+        revealTab(tab);
         return agentTab;
     }
 
@@ -154,7 +159,7 @@ public class AgentTabPane extends TabPane {
 
         applyTabTooltip(tab, config);
 
-        insertTabBeforeAdd(tab);
+        tabPane.getTabs().add(tab);
         sceneWritingTabs.add(sceneTab);
         if (activityTracker != null) {
             sceneTab.bindActivityTracker(activityTracker);
@@ -184,7 +189,7 @@ public class AgentTabPane extends TabPane {
 
         applyTabTooltip(tab, config);
 
-        insertTabBeforeAdd(tab);
+        tabPane.getTabs().add(tab);
         chatbotTabs.add(chatTab);
         if (activityTracker != null) {
             chatTab.bindActivityTracker(activityTracker);
@@ -205,13 +210,8 @@ public class AgentTabPane extends TabPane {
         saveAllConfigs();
     }
 
-    private void insertTabBeforeAdd(Tab tab) {
-        int insertPos = getTabs().size() - 1;
-        getTabs().add(insertPos, tab);
-    }
-
     private void applyTabTooltip(Tab tab, AgentConfig config) {
-        String text = tab == addTab ? AgentTabTooltipSupport.addTabTooltip() : AgentTabTooltipSupport.tooltipFor(config);
+        String text = AgentTabTooltipSupport.tooltipFor(config);
         if (text == null || text.isBlank()) {
             tab.getProperties().remove("agentTabTooltip");
         } else {
@@ -221,17 +221,17 @@ public class AgentTabPane extends TabPane {
     }
 
     private void refreshTabTooltips() {
-        if (getScene() == null) {
+        if (tabPane.getScene() == null) {
             return;
         }
-        Node headersRegion = lookup(".tab-header-area .headers-region");
+        Node headersRegion = tabPane.lookup(".tab-header-area .headers-region");
         if (!(headersRegion instanceof Parent headers)) {
             return;
         }
         var headerNodes = headers.getChildrenUnmodifiable();
-        int count = Math.min(headerNodes.size(), getTabs().size());
+        int count = Math.min(headerNodes.size(), tabPane.getTabs().size());
         for (int i = 0; i < count; i++) {
-            Tab tab = getTabs().get(i);
+            Tab tab = tabPane.getTabs().get(i);
             Object tipText = tab.getProperties().get("agentTabTooltip");
             Node header = headerNodes.get(i);
             if (tipText instanceof String text && !text.isBlank()) {
@@ -263,22 +263,39 @@ public class AgentTabPane extends TabPane {
         addAnalysisTab(defaultConfig, true);
     }
 
+    /**
+     * Speichert in der sichtbaren Tab-Reihenfolge, damit neue Agenten hinten bleiben.
+     */
     private void saveAllConfigs() {
         List<AgentConfig> configs = new ArrayList<>();
-        for (AgentTab tab : agentTabs) {
-            configs.add(tab.getAgentConfig());
-        }
-        for (SceneWritingAgentTab tab : sceneWritingTabs) {
-            configs.add(tab.getAgentConfig());
-        }
-        for (ChatbotAgentTab tab : chatbotTabs) {
-            configs.add(tab.getAgentConfig());
+        for (Tab tab : tabPane.getTabs()) {
+            AgentConfig config = configFromTab(tab);
+            if (config != null) {
+                configs.add(config);
+            }
         }
         AgentConfigManager.saveConfigs(configs);
     }
 
+    private static AgentConfig configFromTab(Tab tab) {
+        if (tab == null) {
+            return null;
+        }
+        Node content = tab.getContent();
+        if (content instanceof AgentTab analysis) {
+            return analysis.getAgentConfig();
+        }
+        if (content instanceof SceneWritingAgentTab scene) {
+            return scene.getAgentConfig();
+        }
+        if (content instanceof ChatbotAgentTab chat) {
+            return chat.getAgentConfig();
+        }
+        return null;
+    }
+
     public AgentTab getActiveTab() {
-        Tab selected = getSelectionModel().getSelectedItem();
+        Tab selected = tabPane.getSelectionModel().getSelectedItem();
         if (selected != null && selected.getContent() instanceof AgentTab) {
             return (AgentTab) selected.getContent();
         }
@@ -301,12 +318,20 @@ public class AgentTabPane extends TabPane {
         if (agentTab == null) {
             return;
         }
-        for (Tab tab : getTabs()) {
+        for (Tab tab : tabPane.getTabs()) {
             if (tab.getContent() == agentTab) {
-                withSuppressedAddTab(() -> getSelectionModel().select(tab));
+                revealTab(tab);
                 return;
             }
         }
+    }
+
+    private void revealTab(Tab tab) {
+        tabPane.getSelectionModel().select(tab);
+        Platform.runLater(() -> {
+            tabPane.getSelectionModel().select(tab);
+            tabPane.requestLayout();
+        });
     }
 
     public List<AgentTab> getAgentTabs() {
@@ -347,24 +372,12 @@ public class AgentTabPane extends TabPane {
 
     public void reloadFromConfig() {
         AgentConfigManager.invalidateCache();
-        withSuppressedAddTab(() -> {
-            getTabs().clear();
-            agentTabs.clear();
-            sceneWritingTabs.clear();
-            chatbotTabs.clear();
-            getTabs().add(addTab);
-            loadFromConfig();
-        });
+        tabPane.getTabs().clear();
+        agentTabs.clear();
+        sceneWritingTabs.clear();
+        chatbotTabs.clear();
+        loadFromConfig();
         wireActivityTracking();
         Platform.runLater(this::refreshTabTooltips);
-    }
-
-    private void withSuppressedAddTab(Runnable action) {
-        suppressAddTabHandler = true;
-        try {
-            action.run();
-        } finally {
-            Platform.runLater(() -> suppressAddTabHandler = false);
-        }
     }
 }

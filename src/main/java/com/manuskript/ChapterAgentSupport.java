@@ -82,15 +82,19 @@ public class ChapterAgentSupport {
     }
 
     public void setupIfEnabled() {
-        boolean agentEnabled = Boolean.parseBoolean(
-                ResourceManager.getParameter("agent.enabled", "true"));
-        if (!agentEnabled) {
+        if (!FeaturePacks.agentsEnabled()) {
             return;
         }
         agentTabPane = new AgentTabPane();
         if (activityTracker != null) {
             agentTabPane.setActivityTracker(activityTracker);
         }
+        agentTabPane.setOnAnalysisTabCreated(tab -> {
+            setupAgentTabCallbacks(tab);
+            wireAgentTabStatus(tab);
+            applyEditorAppearance();
+            loadAgentModels();
+        });
         agentTabPane.loadFromConfig();
         for (AgentTab tab : agentTabPane.getAgentTabs()) {
             setupAgentTabCallbacks(tab);
@@ -646,6 +650,19 @@ public class ChapterAgentSupport {
         String agentName = config.getName() != null ? config.getName() : "Agent";
         logger.info("{}: Manuskript={} Zeichen, Kontext={} Zeichen, max_output_tokens={}",
                 agentName, text.length(), allChapters.length(), maxOutputTokens);
+        if (config.isFreeform()) {
+            agent.analyzeRaw(text, allChapters, maxOutputTokens, null, targetTab::appendFreeformDelta, true)
+                    .thenAccept(targetTab::finishFreeformAnalysis)
+                    .exceptionally(ex -> {
+                        String detail = AgentAnalysisErrors.format(ex);
+                        logger.error("{} fehlgeschlagen (Modell={}, Backend={}): {}",
+                                agentName, model, targetTab.getAgentConfig().getBackend(), detail,
+                                AgentAnalysisErrors.unwrap(ex));
+                        targetTab.showError(detail);
+                        return null;
+                    });
+            return;
+        }
         agent.analyze(text, allChapters, maxOutputTokens, null, targetTab::appendLiveFinding)
                 .thenAccept(targetTab::finishLiveAnalysis)
                 .exceptionally(ex -> {

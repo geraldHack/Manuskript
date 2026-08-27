@@ -37,6 +37,13 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import com.manuskript.launcher.ProgramLauncher;
+import com.manuskript.launcher.ProgramLauncherRunner;
+import com.manuskript.launcher.ProgramLauncherStore;
+import com.manuskript.plugin.ManuskriptPlugin;
+import com.manuskript.plugin.PluginHost;
+import com.manuskript.plugin.PluginLoader;
+import com.manuskript.plugin.PluginStages;
 import javafx.stage.FileChooser;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Screen;
@@ -154,6 +161,7 @@ public class MainController implements Initializable {
     @FXML private Button btnWorldEditor;
     @FXML private Button btnNovelWizard;
     @FXML private Button btnSetupAssistant;
+    @FXML private HBox launcherToolbarBox;
     @FXML private Button btnAudiobook;
     @FXML private Button btnDeleteFile;
     @FXML private Button btnSearchAllFiles;
@@ -209,6 +217,8 @@ public class MainController implements Initializable {
     
     // Theme-System
     private int currentThemeIndex = 0;
+    private List<ManuskriptPlugin> loadedPlugins = List.of();
+    private boolean pluginsLoaded;
 
     private boolean restoringMainWindowGeometry;
     private boolean restoringProjectWindowGeometry;
@@ -704,6 +714,8 @@ public class MainController implements Initializable {
         }
         btnDeleteFile.setOnAction(e -> deleteSelectedFile());
         btnSearchAllFiles.setOnAction(e -> searchAllFiles());
+        applyFeatureVisibility();
+        rebuildLauncherToolbar();
     }
 
     /**
@@ -5603,6 +5615,12 @@ public class MainController implements Initializable {
         if (btnNovelWizard != null) applyThemeToNode(btnNovelWizard, themeIndex);
         if (btnSetupAssistant != null) applyThemeToNode(btnSetupAssistant, themeIndex);
         if (btnAudiobook != null) applyThemeToNode(btnAudiobook, themeIndex);
+        if (launcherToolbarBox != null) {
+            applyThemeToNode(launcherToolbarBox, themeIndex);
+            for (Node child : launcherToolbarBox.getChildren()) {
+                applyThemeToNode(child, themeIndex);
+            }
+        }
         applyThemeToNode(btnSearchAllFiles, themeIndex);
         if (bookLengthLabel != null) applyThemeToNode(bookLengthLabel, themeIndex);
         if (lblAppVersion != null) applyThemeToNode(lblAppVersion, themeIndex);
@@ -7105,7 +7123,11 @@ public class MainController implements Initializable {
             if (currentThemeIndex >= 0 && currentThemeIndex < projectSelectionBg.length) {
                 buttonContainer.setStyle("-fx-background-color: " + projectSelectionBg[currentThemeIndex] + ";");
             }
-            buttonContainer.getChildren().addAll(createProjectButton, novelWizardButton, spacer, cancelButton);
+            if (FeaturePacks.novelWizardEnabled()) {
+                buttonContainer.getChildren().addAll(createProjectButton, novelWizardButton, spacer, cancelButton);
+            } else {
+                buttonContainer.getChildren().addAll(createProjectButton, spacer, cancelButton);
+            }
             
             // Layout zusammenbauen (ohne Spacer)
             mainLayout.getChildren().addAll(titleRow, mainScrollPane, buttonContainer);
@@ -9689,6 +9711,185 @@ public class MainController implements Initializable {
         helpButton.setScaleX(0.85);
         helpButton.setScaleY(0.85);
         parent.getChildren().add(index + 1, helpButton);
+        anchor.getProperties().put("toolbarHelpButton", helpButton);
+    }
+
+    private void applyFeatureVisibility() {
+        setToolbarFeatureVisible(btnAudiobook, FeaturePacks.audiobookEnabled());
+        setToolbarFeatureVisible(btnOpenTtsEditor, FeaturePacks.audiobookEnabled());
+        setToolbarFeatureVisible(btnNovelWizard, FeaturePacks.novelWizardEnabled());
+    }
+
+    private void setToolbarFeatureVisible(Button button, boolean visible) {
+        if (button == null) {
+            return;
+        }
+        button.setVisible(visible);
+        button.setManaged(visible);
+        Object help = button.getProperties().get("toolbarHelpButton");
+        if (help instanceof Node node) {
+            node.setVisible(visible);
+            node.setManaged(visible);
+        }
+    }
+
+    private void rebuildLauncherToolbar() {
+        if (launcherToolbarBox == null) {
+            return;
+        }
+        ensurePluginsLoaded();
+        launcherToolbarBox.getChildren().clear();
+        List<ProgramLauncher> launchers = ProgramLauncherStore.load();
+        if (loadedPlugins.isEmpty() && launchers.isEmpty()) {
+            launcherToolbarBox.setVisible(false);
+            launcherToolbarBox.setManaged(false);
+            return;
+        }
+        launcherToolbarBox.setVisible(true);
+        launcherToolbarBox.setManaged(true);
+        Separator separator = new Separator();
+        separator.setOrientation(javafx.geometry.Orientation.VERTICAL);
+        separator.getStyleClass().add("toolbar-separator");
+        launcherToolbarBox.getChildren().add(separator);
+        for (ManuskriptPlugin plugin : loadedPlugins) {
+            Button button = new Button(plugin.label());
+            button.getStyleClass().add("main-toolbar-button");
+            button.setMinWidth(80);
+            button.setTooltip(new Tooltip("Öffnet „" + plugin.label() + "“ im Manuskript-Fenster"));
+            button.setOnAction(e -> startPlugin(plugin));
+            applyThemeToNode(button, currentThemeIndex);
+            launcherToolbarBox.getChildren().add(button);
+        }
+        for (ProgramLauncher launcher : launchers) {
+            Button button = new Button(launcher.displayLabel());
+            button.getStyleClass().add("main-toolbar-button");
+            button.setMinWidth(80);
+            button.setTooltip(new Tooltip("Startet „" + launcher.displayLabel() + "“ als eigenes Programm"));
+            button.setOnAction(e -> startProgramLauncher(launcher));
+            applyThemeToNode(button, currentThemeIndex);
+            launcherToolbarBox.getChildren().add(button);
+        }
+        applyThemeToNode(launcherToolbarBox, currentThemeIndex);
+    }
+
+    private void ensurePluginsLoaded() {
+        if (pluginsLoaded) {
+            return;
+        }
+        pluginsLoaded = true;
+        PluginLoader.PluginLoadResult result = PluginLoader.load();
+        loadedPlugins = result.plugins();
+        if (!result.errors().isEmpty()) {
+            logger.warn("Plugins mit Fehlern: {}", result.errors());
+            List<String> errors = result.errors();
+            Platform.runLater(() -> showError("Plugins", String.join("\n", errors)));
+        }
+    }
+
+    private void startPlugin(ManuskriptPlugin plugin) {
+        try {
+            plugin.start(createPluginHost());
+        } catch (Exception ex) {
+            logger.warn("Plugin fehlgeschlagen: {}", plugin.id(), ex);
+            String message = ex.getMessage() != null ? ex.getMessage() : "Unbekannter Fehler";
+            showError("Plugin starten", plugin.label() + ": " + message);
+        }
+    }
+
+    private PluginHost createPluginHost() {
+        return new PluginHost() {
+            @Override
+            public Optional<Path> projectRoot() {
+                String path = txtDirectoryPath != null ? txtDirectoryPath.getText() : null;
+                if (path == null || path.isBlank()) {
+                    return Optional.empty();
+                }
+                return Optional.of(Path.of(path.trim()));
+            }
+
+            @Override
+            public Path applicationHome() {
+                File home = ApplicationPaths.getApplicationHomeDirectory();
+                return home != null ? home.toPath() : Path.of(System.getProperty("user.dir", "."));
+            }
+
+            @Override
+            public Path configDir() {
+                return applicationHome();
+            }
+
+            @Override
+            public Optional<String> currentChapterMarkdown() {
+                ChapterMarkdownContent content = loadSelectedChapterMarkdownForCanvas();
+                if (content == null || content.content() == null || content.content().isBlank()) {
+                    return Optional.empty();
+                }
+                return Optional.of(content.content());
+            }
+
+            @Override
+            public int themeIndex() {
+                return currentThemeIndex;
+            }
+
+            @Override
+            public Stage createThemedStage(String title) {
+                return PluginStages.createThemedStage(title, currentThemeIndex);
+            }
+
+            @Override
+            public void attachScene(Stage stage, Scene scene) {
+                PluginStages.attachScene(stage, scene, currentThemeIndex);
+            }
+
+            @Override
+            public void openInBrowser(String uri) {
+                if (uri == null || uri.isBlank()) {
+                    return;
+                }
+                try {
+                    Desktop.getDesktop().browse(java.net.URI.create(uri));
+                } catch (Exception e) {
+                    logger.warn("Konnte URL nicht öffnen: {}", uri, e);
+                }
+            }
+        };
+    }
+
+    private void startProgramLauncher(ProgramLauncher launcher) {
+        try {
+            String projectRoot = txtDirectoryPath != null ? txtDirectoryPath.getText() : null;
+            File home = ApplicationPaths.getApplicationHomeDirectory();
+            String configDir = home != null ? home.getAbsolutePath() : System.getProperty("user.dir", ".");
+            DocxFile selected = tableViewSelected != null
+                    ? tableViewSelected.getSelectionModel().getSelectedItem() : null;
+            String chapterFile = selected != null && selected.getFile() != null
+                    ? selected.getFile().getAbsolutePath() : "";
+            ProgramLauncherRunner.start(launcher, projectRoot, configDir, chapterFile);
+        } catch (Exception ex) {
+            logger.warn("Starter fehlgeschlagen: {}", ex.getMessage());
+            String message = ex.getMessage() != null ? ex.getMessage() : "Unbekannter Fehler";
+            showError("Programm starten", message);
+        }
+    }
+
+    private void refreshAfterSetup() {
+        applyFeatureVisibility();
+        reloadPlugins();
+        rebuildLauncherToolbar();
+    }
+
+    private void reloadPlugins() {
+        for (ManuskriptPlugin plugin : loadedPlugins) {
+            try {
+                plugin.stop();
+            } catch (Exception ex) {
+                logger.warn("Plugin stop fehlgeschlagen: {}", plugin.id(), ex);
+            }
+        }
+        loadedPlugins = List.of();
+        pluginsLoaded = false;
+        ensurePluginsLoaded();
     }
 
     private void openWorldEditor() {
@@ -9706,13 +9907,13 @@ public class MainController implements Initializable {
     private void openSetupAssistant() {
         Window owner = primaryStage != null && primaryStage.getScene() != null
                 ? primaryStage.getScene().getWindow() : null;
-        SetupAssistantWindow.show(owner, currentThemeIndex);
+        SetupAssistantWindow.show(owner, currentThemeIndex, false, this::refreshAfterSetup);
     }
 
     private void openSetupAssistantAndWait() {
         Window owner = primaryStage != null && primaryStage.getScene() != null
                 ? primaryStage.getScene().getWindow() : null;
-        SetupAssistantWindow.show(owner, currentThemeIndex, true);
+        SetupAssistantWindow.show(owner, currentThemeIndex, true, this::refreshAfterSetup);
     }
 
     public ChapterMarkdownContent loadSelectedChapterMarkdownForCanvas() {

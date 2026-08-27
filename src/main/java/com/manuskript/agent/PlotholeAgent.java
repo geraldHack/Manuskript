@@ -132,21 +132,34 @@ public class PlotholeAgent {
 
     public CompletableFuture<String> analyzeRaw(
             String currentChapterText, String contextBlock, int maxOutputTokens, String authorInstruction) {
+        return analyzeRaw(currentChapterText, contextBlock, maxOutputTokens, authorInstruction, null, false);
+    }
+
+    public CompletableFuture<String> analyzeRaw(
+            String currentChapterText, String contextBlock, int maxOutputTokens, String authorInstruction,
+            Consumer<String> onDelta, boolean freeform) {
         memory.clear();
 
         String systemPrompt = customSystemPrompt != null ? customSystemPrompt : SYSTEM_PROMPT;
-        String messageStr = buildUserMessage(currentChapterText, contextBlock, authorInstruction);
+        String messageStr = buildUserMessage(currentChapterText, contextBlock, authorInstruction, freeform);
         int maxTokens = clampMaxOutputTokens(maxOutputTokens);
         logger.info(
-                "Plothole-Anfrage: Manuskript={} Zeichen, Kontext={} Zeichen, max_output_tokens={}",
+                "Plothole-Anfrage{}: Manuskript={} Zeichen, Kontext={} Zeichen, max_output_tokens={}",
+                freeform ? " (freeform)" : "",
                 currentChapterText != null ? currentChapterText.length() : 0,
                 contextBlock != null ? contextBlock.length() : 0,
                 maxTokens);
 
-        return backend.chatStreaming(systemPrompt, messageStr, maxTokens, delta -> { });
+        Consumer<String> deltaConsumer = onDelta != null ? onDelta : delta -> { };
+        return backend.chatStreaming(systemPrompt, messageStr, maxTokens, deltaConsumer);
     }
 
-    private static String buildUserMessage(String currentChapterText, String contextBlock, String authorInstruction) {
+    static String buildUserMessage(String currentChapterText, String contextBlock, String authorInstruction) {
+        return buildUserMessage(currentChapterText, contextBlock, authorInstruction, false);
+    }
+
+    static String buildUserMessage(
+            String currentChapterText, String contextBlock, String authorInstruction, boolean freeform) {
         StringBuilder userMessage = new StringBuilder();
         if (contextBlock != null && !contextBlock.isEmpty()) {
             String context = contextBlock;
@@ -167,11 +180,15 @@ public class PlotholeAgent {
             }
         }
         userMessage.append("=== MANUSKRIPT BEGINN ===\n");
-        userMessage.append(currentChapterText);
+        userMessage.append(currentChapterText != null ? currentChapterText : "");
         userMessage.append("\n=== MANUSKRIPT ENDE ===\n\n");
         if (authorInstruction != null && !authorInstruction.isBlank()) {
             userMessage.append("ANWEISUNG DES AUTORS (zwingend berücksichtigen):\n");
             userMessage.append(authorInstruction.trim()).append("\n\n");
+        }
+        if (freeform) {
+            userMessage.append("Antworte jetzt gemäß dem System-Prompt. Kein Pflichtformat.");
+            return userMessage.toString();
         }
         userMessage.append("ANALYSE-SCOPE (zwingend einzuhalten):\n");
         userMessage.append("- Erstelle Problemblöcke AUSSCHLIESSLICH für Probleme, die im Abschnitt zwischen ")

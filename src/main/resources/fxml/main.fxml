@@ -138,9 +138,10 @@
                         <tooltip><Tooltip text="Interaktive Romanplanung mit KI fortsetzen oder starten" /></tooltip>
                      </Button>
                      <Button fx:id="btnSetupAssistant" styleClass="main-toolbar-button" text="🛠 Setup" minWidth="80">
-                        <tooltip><Tooltip text="Setup-Assistent: Pandoc, FFmpeg, Whisper, KI, LanguageTool prüfen" /></tooltip>
+                        <tooltip><Tooltip text="Setup: Funktionen, Plugins, externe Programme, Pandoc, FFmpeg, Whisper, KI, LanguageTool" /></tooltip>
                      </Button>
                   </HBox>
+                  <HBox fx:id="launcherToolbarBox" spacing="6" alignment="CENTER_LEFT" />
                   <Region HBox.hgrow="ALWAYS" style="-fx-background-color: transparent;" />
                </children>
             </HBox>

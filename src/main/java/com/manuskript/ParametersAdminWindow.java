@@ -69,6 +69,9 @@ public class ParametersAdminWindow {
         tabPane.setMinHeight(0);
 
         for (String category : ParameterRegistry.getCategories()) {
+            if (FeaturePacks.shouldHideParameterCategory(category)) {
+                continue;
+            }
             List<ParameterDef> params = ParameterRegistry.getByCategory(category);
             if (params.isEmpty()) continue;
 

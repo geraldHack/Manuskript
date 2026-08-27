@@ -1,6 +1,5 @@
 package com.manuskript.openrouter;
 
-import javafx.application.HostServices;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -25,7 +24,7 @@ public class ManagementKeyBar extends VBox {
     private final Label statusLabel = new Label();
     private Consumer<String> onSaved;
 
-    public ManagementKeyBar(OpenRouterClient client, Path configRoot, HostServices hostServices) {
+    public ManagementKeyBar(OpenRouterClient client, Path configRoot, Consumer<String> openUrl) {
         this.client = client;
         this.configRoot = configRoot;
         setSpacing(6);
@@ -52,8 +51,8 @@ public class ManagementKeyBar extends VBox {
 
         Hyperlink helpLink = new Hyperlink("Key bei OpenRouter erstellen");
         helpLink.setOnAction(e -> {
-            if (hostServices != null) {
-                hostServices.showDocument("https://openrouter.ai/settings/management-keys");
+            if (openUrl != null) {
+                openUrl.accept("https://openrouter.ai/settings/management-keys");
             }
         });
 
