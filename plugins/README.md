@@ -19,7 +19,7 @@ Nein. Zwei übliche Wege:
 | Ordner unter `tools/` in diesem Repo | Plugin gehört fest zu Manuskript (wie der OpenRouter-Monitor) | dasselbe Git |
 | Eigenes Maven-Projekt irgendwo | Plugin ist unabhängig, du willst es getrennt versionieren | optional eigenes Git |
 
-In beiden Fällen landet die gebaute JAR zuerst im **Katalog** `plugin-catalog/`. Erst unter Setup → Plugins wird sie nach `plugins/` kopiert und damit aktiv (Toolbar-Button).
+In beiden Fällen landet die gebaute JAR zuerst im **Katalog** `plugin-catalog/`. Offizielle Plugins holt Setup → Plugins von spoteroxe.de dorthin. Aktivieren kopiert nach `plugins/` (Toolbar-Button).
 
 - Katalog (inaktiv, mitgeliefert): `plugin-catalog/`
 - Aktiv (wird geladen): `plugins/` — Entwicklung `user.dir/plugins`, installiert `app/plugins/`

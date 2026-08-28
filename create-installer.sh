@@ -483,6 +483,11 @@ rm -rf "$STAGING_DIR"
 
 if [[ "$UPLOAD" -eq 1 ]]; then
     upload_dmg_to_spoteroxe "${OUTPUT_DIR}/${DMG_NAME}" || true
+    echo
+    echo "Lade Plugin-Katalog nach ${DEPLOY_HOST} ..."
+    if ! "${ROOT_DIR}/deploy/spoteroxe/upload-plugins.sh"; then
+        echo "WARNUNG: Plugin-Katalog-Upload fehlgeschlagen."
+    fi
 else
     echo
     echo "[8/8] Upload übersprungen (--no-upload)."

@@ -304,9 +304,13 @@ if not exist "%WIN_ARTIFACT%" goto :upload_missing
 echo [7/7] Lade Windows-Paket nach spoteroxe.de ...
 powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0deploy\spoteroxe\upload-windows.ps1" -File "%WIN_ARTIFACT%" -Version "%APP_VERSION%" -Kind "%WIN_KIND%"
 if errorlevel 1 echo WARNUNG: Upload fehlgeschlagen. Lokal: %WIN_ARTIFACT%
-goto :upload_done
+goto :upload_plugins
 :upload_missing
 echo [7/7] Kein Windows-Paket zum Hochladen.
+:upload_plugins
+echo   Lade Plugin-Katalog nach spoteroxe.de ...
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0deploy\spoteroxe\upload-plugins.ps1"
+if errorlevel 1 echo WARNUNG: Plugin-Katalog-Upload fehlgeschlagen.
 goto :upload_done
 :upload_skip
 echo [7/7] Upload uebersprungen (--no-upload).

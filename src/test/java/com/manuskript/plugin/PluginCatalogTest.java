@@ -47,6 +47,22 @@ class PluginCatalogTest {
     }
 
     @Test
+    void installJarRejectsPathInFileName() throws Exception {
+        File source = tempDir.resolve("ok.jar").toFile();
+        try (JarOutputStream out = new JarOutputStream(Files.newOutputStream(source.toPath()))) {
+            out.putNextEntry(new JarEntry(PluginLoader.SERVICE_PATH));
+            out.write("com.example.Dummy\n".getBytes(StandardCharsets.UTF_8));
+            out.closeEntry();
+        }
+        try {
+            PluginCatalog.installJar(source, "../evil.jar");
+            throw new AssertionError("expected IllegalArgumentException");
+        } catch (IllegalArgumentException expected) {
+            assertTrue(expected.getMessage().contains("Ungültiger Dateiname"));
+        }
+    }
+
+    @Test
     void ignoresJarsWithoutServiceFile() throws Exception {
         File catalog = tempDir.resolve("catalog").toFile();
         File plugins = tempDir.resolve("plugins").toFile();

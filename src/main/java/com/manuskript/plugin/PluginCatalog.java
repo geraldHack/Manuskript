@@ -39,9 +39,46 @@ public final class PluginCatalog {
     }
 
     public static File catalogDirectory() {
-        return firstExistingOrFallback(
+        File dir = firstExistingOrFallback(
                 ApplicationPaths.resolvePluginCatalogDirectory(),
                 new File(System.getProperty("user.dir", "."), "plugin-catalog"));
+        if (dir != null && !dir.isDirectory()) {
+            dir.mkdirs();
+        }
+        return dir;
+    }
+
+    /**
+     * Kopiert eine JAR in den Katalog. Liegt dieselbe Datei bereits aktiv in {@code plugins/},
+     * wird sie mit aktualisiert.
+     */
+    public static File installJar(File source, String fileName) {
+        if (source == null || !source.isFile()) {
+            throw new IllegalArgumentException("Plugin-JAR fehlt");
+        }
+        if (!PluginCatalogUrls.isAllowedFileName(fileName)) {
+            throw new IllegalArgumentException("Ungültiger Dateiname: " + fileName);
+        }
+        File catalogDir = catalogDirectory();
+        if (catalogDir == null) {
+            throw new IllegalStateException("Plugin-Katalog-Ordner fehlt");
+        }
+        try {
+            Files.createDirectories(catalogDir.toPath());
+            File dest = new File(catalogDir, fileName);
+            Files.copy(source.toPath(), dest.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            File pluginsDir = activeDirectory();
+            File active = pluginsDir != null ? new File(pluginsDir, fileName) : null;
+            if (active != null && active.isFile()) {
+                Files.copy(dest.toPath(), active.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                logger.info("Plugin aktualisiert (aktiv): {}", fileName);
+            } else {
+                logger.info("Plugin in den Katalog gelegt: {}", fileName);
+            }
+            return dest;
+        } catch (IOException e) {
+            throw new IllegalStateException("Installieren fehlgeschlagen: " + e.getMessage(), e);
+        }
     }
 
     public static File activeDirectory() {

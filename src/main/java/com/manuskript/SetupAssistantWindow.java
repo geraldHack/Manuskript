@@ -22,12 +22,16 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Window;
 import com.manuskript.plugin.PluginCatalog;
+import com.manuskript.plugin.PluginCatalogClient;
+import com.manuskript.plugin.PluginCatalogItem;
+import com.manuskript.plugin.RemotePluginIndex;
 import com.manuskript.launcher.ProgramLauncher;
 import com.manuskript.launcher.ProgramLauncherStore;
 
@@ -222,7 +226,9 @@ public final class SetupAssistantWindow {
         String catalogPath = catalogDir != null ? catalogDir.getAbsolutePath() : "plugin-catalog";
 
         Label intro = new Label(
-                "Eigene Plugins als JAR in diesen Ordner legen:");
+                "Offizielle Erweiterungen werden hier geladen und ein- oder ausgeschaltet. "
+                        + "An = Kopie nach plugins/ (Toolbar), aus = wieder entfernen. "
+                        + "Eigene JARs kannst du zusätzlich in diesen Ordner legen:");
         intro.setWrapText(true);
         intro.getStyleClass().add("dialog-label");
 
@@ -231,62 +237,175 @@ public final class SetupAssistantWindow {
         pathField.setFocusTraversable(false);
         pathField.getStyleClass().add("dialog-label");
 
-        Label hint = new Label(
-                "Anleitung zum Bauen: Manuskript-Git, Datei plugins/README.md. "
-                        + "Kurzbeschreibung liegt in diesem Ordner als README.md.\n"
-                        + "Unten mitgelieferte Plugins ein- oder ausschalten "
-                        + "(an = nach plugins/ kopieren, aus = aus plugins/ entfernen).");
-        hint.setWrapText(true);
-        hint.getStyleClass().add("dialog-label");
-        hint.setStyle("-fx-font-size: 12px; -fx-opacity: 0.9;");
+        Label status = new Label("Lade Katalog …");
+        status.setWrapText(true);
+        status.getStyleClass().add("dialog-label");
+        status.setStyle("-fx-font-size: 12px; -fx-opacity: 0.9;");
+
+        Button reloadCatalog = new Button("Katalog aktualisieren");
+        reloadCatalog.getStyleClass().add("dialog-button");
 
         VBox list = new VBox(8);
-        List<PluginCatalog.Entry> entries = PluginCatalog.list();
-        if (entries.isEmpty()) {
-            Label empty = new Label("Noch keine Plugin-JARs in diesem Ordner.");
-            empty.setWrapText(true);
-            empty.getStyleClass().add("dialog-label");
-            list.getChildren().add(empty);
-        } else {
-            for (PluginCatalog.Entry entry : entries) {
-                list.getChildren().add(buildPluginRow(entry));
-            }
-        }
+        final RemotePluginIndex[] indexHolder = new RemotePluginIndex[1];
+        final Runnable[] paintHolder = new Runnable[1];
 
-        VBox root = new VBox(12, intro, pathField, hint, new Separator(), list);
+        paintHolder[0] = () -> {
+            list.getChildren().clear();
+            List<PluginCatalogItem> items = PluginCatalogItem.merge(PluginCatalog.list(), indexHolder[0]);
+            if (items.isEmpty()) {
+                Label empty = new Label("Noch keine Plugins im Katalog.");
+                empty.setWrapText(true);
+                empty.getStyleClass().add("dialog-label");
+                list.getChildren().add(empty);
+            } else {
+                for (PluginCatalogItem item : items) {
+                    list.getChildren().add(buildPluginRow(item, status, paintHolder[0], themeIndex));
+                }
+            }
+            EditorDialogThemes.applyToNode(list, themeIndex);
+        };
+
+        Runnable fetchIndex = () -> {
+            reloadCatalog.setDisable(true);
+            status.setText("Lade Katalog …");
+            CompletableFuture.supplyAsync(() -> {
+                try {
+                    return new PluginCatalogClient().fetchIndex();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw new IllegalStateException("Abgebrochen", e);
+                } catch (Exception e) {
+                    throw new IllegalStateException(
+                            e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName(), e);
+                }
+            }).whenComplete((index, error) -> Platform.runLater(() -> {
+                reloadCatalog.setDisable(false);
+                if (error != null) {
+                    Throwable cause = error.getCause() != null ? error.getCause() : error;
+                    String message = cause.getMessage() != null ? cause.getMessage() : cause.getClass().getSimpleName();
+                    status.setText("Katalog nicht erreichbar — nur lokale JARs. " + message);
+                    indexHolder[0] = null;
+                } else {
+                    int count = index.plugins().size();
+                    status.setText(count == 1
+                            ? "1 Erweiterung im Katalog."
+                            : count + " Erweiterungen im Katalog.");
+                    indexHolder[0] = index;
+                }
+                paintHolder[0].run();
+            }));
+        };
+
+        reloadCatalog.setOnAction(e -> fetchIndex.run());
+        paintHolder[0].run();
+        fetchIndex.run();
+
+        HBox statusRow = new HBox(12, reloadCatalog);
+        statusRow.setAlignment(Pos.CENTER_LEFT);
+
+        VBox root = new VBox(12, intro, pathField, statusRow, status, new Separator(), list);
         root.setPadding(new Insets(16));
         EditorDialogThemes.applyToNode(root, themeIndex);
         return root;
     }
 
-    private static Node buildPluginRow(PluginCatalog.Entry entry) {
-        CheckBox enabled = new CheckBox(entry.displayLabel());
-        enabled.setSelected(entry.enabled());
+    private static Node buildPluginRow(
+            PluginCatalogItem item,
+            Label status,
+            Runnable refreshList,
+            int themeIndex) {
+        CheckBox enabled = new CheckBox(item.label());
+        enabled.setSelected(item.canEnable() && item.local().enabled());
+        enabled.setDisable(!item.canEnable());
         enabled.setWrapText(true);
         enabled.getStyleClass().add("dialog-title");
 
-        Label detail = new Label(entry.enabled()
-                ? "Aktiv — liegt in plugins/" + entry.fileName()
-                : "Aus — nur im Katalog (" + entry.fileName() + ")");
+        Label detail = new Label(item.statusText());
         detail.setWrapText(true);
         detail.getStyleClass().add("dialog-label");
         detail.setStyle("-fx-font-size: 12px; -fx-opacity: 0.9;");
 
         enabled.selectedProperty().addListener((obs, was, now) -> {
+            if (!item.canEnable()) {
+                enabled.setSelected(false);
+                return;
+            }
             try {
-                PluginCatalog.setEnabled(entry, Boolean.TRUE.equals(now));
-                detail.setText(Boolean.TRUE.equals(now)
-                        ? "Aktiv — liegt in plugins/" + entry.fileName()
-                        : "Aus — nur im Katalog (" + entry.fileName() + ")");
+                PluginCatalog.setEnabled(item.local(), Boolean.TRUE.equals(now));
+                PluginCatalog.Entry fresh = PluginCatalog.list().stream()
+                        .filter(entry -> item.fileName().equalsIgnoreCase(entry.fileName()))
+                        .findFirst()
+                        .orElse(item.local());
+                boolean on = fresh != null && fresh.enabled();
+                detail.setText(on
+                        ? "Aktiv — liegt in plugins/" + fresh.fileName()
+                        : "Aus — nur im Katalog (" + item.fileName() + ")");
             } catch (RuntimeException ex) {
                 enabled.setSelected(was);
                 detail.setText("Fehler: " + (ex.getMessage() != null ? ex.getMessage() : ex.getClass().getSimpleName()));
             }
         });
 
-        VBox row = new VBox(4, enabled, detail);
+        Button action = pluginActionButton(item, status, refreshList);
+        HBox header = new HBox(10, enabled);
+        header.setAlignment(Pos.CENTER_LEFT);
+        if (action != null) {
+            Region spacer = new Region();
+            HBox.setHgrow(spacer, Priority.ALWAYS);
+            header.getChildren().addAll(spacer, action);
+        }
+
+        VBox row = new VBox(4);
+        row.getChildren().add(header);
+        if (item.description() != null && !item.description().isBlank()) {
+            Label description = new Label(item.description());
+            description.setWrapText(true);
+            description.getStyleClass().add("dialog-label");
+            description.setStyle("-fx-font-size: 12px; -fx-opacity: 0.85;");
+            row.getChildren().add(description);
+        }
+        row.getChildren().add(detail);
         row.setPadding(new Insets(4, 8, 8, 0));
+        EditorDialogThemes.applyToNode(row, themeIndex);
         return row;
+    }
+
+    private static Button pluginActionButton(PluginCatalogItem item, Label status, Runnable refreshList) {
+        if (item.remote() == null) {
+            return null;
+        }
+        Button action = new Button(item.local() == null ? "Installieren" : "Aktualisieren");
+        action.getStyleClass().add("dialog-button");
+        if (!item.canInstall()) {
+            action.setDisable(true);
+            return action;
+        }
+        action.setOnAction(e -> {
+            action.setDisable(true);
+            status.setText("Lade " + item.label() + " …");
+            CompletableFuture.runAsync(() -> {
+                try {
+                    new PluginCatalogClient().download(item.remote(), PluginCatalog.catalogDirectory());
+                } catch (InterruptedException ex) {
+                    Thread.currentThread().interrupt();
+                    throw new IllegalStateException("Abgebrochen", ex);
+                } catch (Exception ex) {
+                    throw new IllegalStateException(
+                            ex.getMessage() != null ? ex.getMessage() : ex.getClass().getSimpleName(), ex);
+                }
+            }).whenComplete((ok, error) -> Platform.runLater(() -> {
+                if (error != null) {
+                    Throwable cause = error.getCause() != null ? error.getCause() : error;
+                    String message = cause.getMessage() != null ? cause.getMessage() : cause.getClass().getSimpleName();
+                    status.setText("Download fehlgeschlagen: " + message);
+                    action.setDisable(false);
+                } else {
+                    status.setText(item.label() + " liegt im Katalog. Zum Nutzen in der Toolbar aktivieren.");
+                    refreshList.run();
+                }
+            }));
+        });
+        return action;
     }
 
     private static void applyAiLock(Pane cards, boolean aiOn) {

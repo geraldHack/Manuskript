@@ -131,7 +131,7 @@ Ausführliche Hilfe: im Editor über die Hilfe-Buttons (?).
 Über den **Setup-Assistenten** (Toolbar / Erststart):
 
 - **Funktionen:** Pakete ein- und ausschalten (KI insgesamt, Agenten, Roman-Assistent, Online-Lektorat, Diktat, Hörbuch). Ausgeschaltete Pakete blenden Buttons und Parameter-Tabs aus; Keys und Texte bleiben gespeichert.
-- **Plugins:** mitgelieferte oder eigene JARs aktivieren. Katalog `plugin-catalog/` (inaktiv, mitgeliefert), geladen wird nur `plugins/` (Toolbar-Button). Im Setup an = Kopie nach `plugins/`, aus = wieder entfernen.
+- **Plugins:** offizielle Erweiterungen unter Setup laden und aktivieren. Katalog `plugin-catalog/` (inaktiv), geladen wird nur `plugins/` (Toolbar-Button). Im Setup an = Kopie nach `plugins/`, aus = wieder entfernen.
 - **Eigene Programme:** fremde Apps als Extra-Prozess starten (`config/launchers.json`) – sicherer als ein JAR in derselben JVM.
 
 **Demo-Plugins** (liegen unter `tools/`, JAR nach `plugin-catalog/`):
