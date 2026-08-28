@@ -74,9 +74,11 @@ if (Test-Path $htmlLocal) {
     scp -o BatchMode=yes $htmlLocal "${DeployHost}:/home/gehack/home/downloads.html"
 }
 
+# Heredoc in PowerShell hat CRLF; bash auf dem Server braucht LF.
+# Sonst stirbt `set -euo pipefail` und der stabile Link (Download-URL) fehlt.
 $pattern = if ($Kind -eq "zip") { "Manuskript-*-windows-x64.zip" } else { "Manuskript-*-windows-x64.exe" }
 $remoteCleanup = @"
-set -euo pipefail
+set -eu
 cd '$RemoteDir'
 ln -f '$currentName' '$stable'
 for f in $pattern; do
@@ -86,7 +88,11 @@ for f in $pattern; do
     rm -f "`$f"
 done
 "@
-$remoteCleanup | ssh -o BatchMode=yes $DeployHost "bash -s"
+$lfScript = ($remoteCleanup -replace "`r`n", "`n") -replace "`r", "`n"
+$lfScript | ssh -o BatchMode=yes $DeployHost "bash -s"
+if ($LASTEXITCODE -ne 0) {
+    throw "Stabiler Download-Link ($stable) konnte nicht gesetzt werden."
+}
 
 Remove-Item -ErrorAction SilentlyContinue $tmpJson, $outJson
 Write-Host "[OK] Download aktuell: https://spoteroxe.de/downloads/$stable"

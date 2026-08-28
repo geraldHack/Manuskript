@@ -26,8 +26,9 @@ echo   --upload      ZIP/EXE nach spoteroxe.de kopieren (Standard)
 echo   --no-upload   nur lokal bauen
 echo.
 echo Umgebung: MANUSKRIPT_DEPLOY_HOST, MANUSKRIPT_DEPLOY_PATH
-echo WiX Toolset 3.x wird fuer die Setup-EXE benoetigt.
-echo Ohne WiX wird die ZIP hochgeladen.
+echo Setup-EXE: JDK 21 jpackage + WiX Toolset 3.x (candle/light).
+echo Fehlt WiX, laedt create-installer.bat portable 3.14-Binaries
+echo nach %%LOCALAPPDATA%%\Manuskript\wix3. Ohne Erfolg bleibt die ZIP.
 pause
 exit /b 0
 :after_help
@@ -136,6 +137,10 @@ mkdir "%STAGING_DIR%\app"
 copy "target\%FAT_JAR%" "%STAGING_DIR%\app\" >nul
 echo [OK] Staging vorbereitet.
 
+REM Windows-Icon aus PNG erzeugen, falls Manuskript.ico fehlt oder veraltet ist.
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0deploy\windows\ensure-windows-icon.ps1"
+if not exist "%~dp0installer-assets\Manuskript.ico" echo WARNUNG: Manuskript.ico fehlt, jpackage nutzt das Standard-Icon.
+
 REM --- Schritt 4: jpackage ausfuehren ---
 echo.
 echo [4/7] Erstelle App-Image mit jpackage...
@@ -154,6 +159,7 @@ echo [4/7] Erstelle App-Image mit jpackage...
     --java-options "--add-opens javafx.graphics/javafx.css=ALL-UNNAMED" ^
     --java-options "--add-opens javafx.graphics/com.sun.javafx.application=ALL-UNNAMED" ^
     --java-options "-Dprism.dirtyopts=false" ^
+    --icon "installer-assets\Manuskript.ico" ^
     --dest "%OUTPUT_DIR%"
 
 if errorlevel 1 (
@@ -226,7 +232,7 @@ for %%f in (pandoc\*.docx pandoc\*.txt pandoc\*.lua pandoc\*.css pandoc\*.yaml p
 
 REM Demo-Vorlage (wird beim ersten Start nach Documents\Manuskript kopiert)
 if exist "Manuskripte" (
-    echo   - Manuskripte/ (Demo-Vorlage fuer Erststart)
+    echo   - Manuskripte/ ^(Demo-Vorlage fuer Erststart^)
     xcopy "Manuskripte\*" "%APP_DIR%\Manuskripte\" /E /I /Q >nul 2>&1
 )
 
@@ -244,94 +250,94 @@ echo [6/7] Erstelle ZIP und Setup-EXE...
 set "ZIP_NAME=%APP_NAME%-%APP_VERSION%-windows-x64.zip"
 if exist "%OUTPUT_DIR%\%ZIP_NAME%" del "%OUTPUT_DIR%\%ZIP_NAME%"
 powershell -Command "Compress-Archive -Path '%APP_IMAGE%' -DestinationPath '%OUTPUT_DIR%\%ZIP_NAME%' -Force"
-if errorlevel 1 (
-    echo WARNUNG: ZIP-Erstellung fehlgeschlagen. App-Image ist trotzdem nutzbar.
-) else (
-    echo [OK] ZIP erstellt: %OUTPUT_DIR%\%ZIP_NAME%
-)
+if errorlevel 1 goto :zip_warn
+echo [OK] ZIP erstellt: %OUTPUT_DIR%\%ZIP_NAME%
+goto :zip_done
+:zip_warn
+echo WARNUNG: ZIP-Erstellung fehlgeschlagen. App-Image ist trotzdem nutzbar.
+:zip_done
 
 set "EXE_NAME=%APP_NAME%-%APP_VERSION%-windows-x64.exe"
 set "WIN_ARTIFACT="
 set "WIN_KIND=zip"
-if exist "%OUTPUT_DIR%\%ZIP_NAME%" (
-    set "WIN_ARTIFACT=%OUTPUT_DIR%\%ZIP_NAME%"
-    set "WIN_KIND=zip"
-)
+if exist "%OUTPUT_DIR%\%ZIP_NAME%" set "WIN_ARTIFACT=%OUTPUT_DIR%\%ZIP_NAME%"
+if exist "%OUTPUT_DIR%\%ZIP_NAME%" set "WIN_KIND=zip"
+
+REM JDK 21 jpackage braucht WiX 3.x (candle.exe/light.exe). Portable Binaries werden bei Bedarf geladen.
+REM PATH nicht in einem if-(...)-Block setzen: "Program Files (x86)" zerbricht die Klammern.
+set "WIX_BIN="
+for /f "usebackq delims=" %%I in (`powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0deploy\windows\ensure-wix3.ps1"`) do set "WIX_BIN=%%I"
+if not defined WIX_BIN goto :skip_exe
+if not exist "%WIX_BIN%\candle.exe" goto :skip_exe
+if not exist "%WIX_BIN%\light.exe" goto :skip_exe
+set "PATH=%WIX_BIN%;%PATH%"
+echo [OK] WiX 3: %WIX_BIN%
 
 echo   Erstelle Setup-EXE mit jpackage --type exe ...
-echo   (braucht WiX Toolset 3.x; sonst bleibt die ZIP)
-if exist "installer-assets\Manuskript.ico" (
-    "%JAVA_HOME%\bin\jpackage.exe" --type exe --app-image "%APP_IMAGE%" --name "%APP_NAME%" --app-version "%APP_VERSION%" --vendor "Manuskript" --icon "installer-assets\Manuskript.ico" --win-dir-chooser --win-menu --win-shortcut --win-per-user-install --dest "%OUTPUT_DIR%"
-) else (
-    "%JAVA_HOME%\bin\jpackage.exe" --type exe --app-image "%APP_IMAGE%" --name "%APP_NAME%" --app-version "%APP_VERSION%" --vendor "Manuskript" --win-dir-chooser --win-menu --win-shortcut --win-per-user-install --dest "%OUTPUT_DIR%"
-)
-if errorlevel 1 (
-    echo WARNUNG: Setup-EXE fehlgeschlagen (WiX 3 installieren: https://wixtoolset.org/docs/wix3/).
-    echo          ZIP wird nach spoteroxe.de hochgeladen.
-) else (
-    if exist "%OUTPUT_DIR%\%APP_NAME%-%APP_VERSION%.exe" (
-        move /Y "%OUTPUT_DIR%\%APP_NAME%-%APP_VERSION%.exe" "%OUTPUT_DIR%\%EXE_NAME%" >nul
-    ) else if exist "%OUTPUT_DIR%\%APP_NAME%.exe" (
-        move /Y "%OUTPUT_DIR%\%APP_NAME%.exe" "%OUTPUT_DIR%\%EXE_NAME%" >nul
-    )
-    if exist "%OUTPUT_DIR%\%EXE_NAME%" (
-        echo [OK] Setup-EXE: %OUTPUT_DIR%\%EXE_NAME%
-        set "WIN_ARTIFACT=%OUTPUT_DIR%\%EXE_NAME%"
-        set "WIN_KIND=exe"
-    )
-)
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0deploy\windows\build-windows-exe.ps1" -JavaHome "%JAVA_HOME%" -AppImage "%APP_IMAGE%" -AppName "%APP_NAME%" -AppVersion "%APP_VERSION%" -Dest "%OUTPUT_DIR%" -Icon "%~dp0installer-assets\Manuskript.ico"
+if errorlevel 1 goto :exe_failed
+if exist "%OUTPUT_DIR%\%APP_NAME%-%APP_VERSION%.exe" move /Y "%OUTPUT_DIR%\%APP_NAME%-%APP_VERSION%.exe" "%OUTPUT_DIR%\%EXE_NAME%" >nul
+if exist "%OUTPUT_DIR%\%APP_NAME%.exe" if not exist "%OUTPUT_DIR%\%EXE_NAME%" move /Y "%OUTPUT_DIR%\%APP_NAME%.exe" "%OUTPUT_DIR%\%EXE_NAME%" >nul
+if exist "%OUTPUT_DIR%\%EXE_NAME%" echo [OK] Setup-EXE: %OUTPUT_DIR%\%EXE_NAME%
+if exist "%OUTPUT_DIR%\%EXE_NAME%" set "WIN_ARTIFACT=%OUTPUT_DIR%\%EXE_NAME%"
+if exist "%OUTPUT_DIR%\%EXE_NAME%" set "WIN_KIND=exe"
+goto :after_exe
+
+:exe_failed
+echo WARNUNG: Setup-EXE fehlgeschlagen. WiX 3: https://wixtoolset.org/docs/wix3/
+echo          ZIP wird nach spoteroxe.de hochgeladen.
+goto :after_exe
+
+:skip_exe
+echo WARNUNG: WiX tools nicht gefunden. Setup-EXE wird uebersprungen, ZIP bleibt.
+
+:after_exe
 
 REM --- Staging aufraeumen ---
 rmdir /s /q "%STAGING_DIR%" >nul 2>&1
 
 REM --- Schritt 7: Upload ---
-echo.
-if "%UPLOAD%"=="1" (
-    if defined WIN_ARTIFACT if exist "%WIN_ARTIFACT%" (
-        echo [7/7] Lade Windows-Paket nach spoteroxe.de ...
-        powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0deploy\spoteroxe\upload-windows.ps1" -File "%WIN_ARTIFACT%" -Version "%APP_VERSION%" -Kind "%WIN_KIND%"
-        if errorlevel 1 (
-            echo WARNUNG: Upload fehlgeschlagen. Lokal: %WIN_ARTIFACT%
-        )
-    ) else (
-        echo [7/7] Kein Windows-Paket zum Hochladen.
-    )
-) else (
-    echo [7/7] Upload uebersprungen (--no-upload).
-)
+echo/
+if not "%UPLOAD%"=="1" goto :upload_skip
+if not defined WIN_ARTIFACT goto :upload_missing
+if not exist "%WIN_ARTIFACT%" goto :upload_missing
+echo [7/7] Lade Windows-Paket nach spoteroxe.de ...
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0deploy\spoteroxe\upload-windows.ps1" -File "%WIN_ARTIFACT%" -Version "%APP_VERSION%" -Kind "%WIN_KIND%"
+if errorlevel 1 echo WARNUNG: Upload fehlgeschlagen. Lokal: %WIN_ARTIFACT%
+goto :upload_done
+:upload_missing
+echo [7/7] Kein Windows-Paket zum Hochladen.
+goto :upload_done
+:upload_skip
+echo [7/7] Upload uebersprungen (--no-upload).
+:upload_done
 
 REM Patch-Version fuer den naechsten Deploy hochzaehlen
-for /f "tokens=1-3 delims=." %%A in ("%APP_VERSION%") do (
-    set "VERSION_MAJOR=%%A"
-    set "VERSION_MINOR=%%B"
-    set /a VERSION_PATCH=%%C+1
-)
+for /f "tokens=1-3 delims=." %%A in ("%APP_VERSION%") do set "VERSION_MAJOR=%%A" & set "VERSION_MINOR=%%B" & set /a "VERSION_PATCH=%%C+1"
 set "NEXT_VERSION=!VERSION_MAJOR!.!VERSION_MINOR!.!VERSION_PATCH!"
 > "%VERSION_FILE%" echo !NEXT_VERSION!
 echo [OK] Naechste Deploy-Version: !NEXT_VERSION!
 
-echo.
+echo/
 echo ========================================
 echo  Fertig!
 echo ========================================
-echo.
+echo/
 echo  Version:    %APP_VERSION%
 echo  App-Image:  %APP_IMAGE%\
 echo  ZIP:        %OUTPUT_DIR%\%ZIP_NAME%
 if exist "%OUTPUT_DIR%\%EXE_NAME%" echo  Setup-EXE:  %OUTPUT_DIR%\%EXE_NAME%
-echo.
+echo/
 echo  Starten:    %APP_IMAGE%\%APP_NAME%.exe
-echo.
-if "%UPLOAD%"=="1" (
-    echo  Web:        https://spoteroxe.de/downloads.html
-)
-echo.
+echo/
+if "%UPLOAD%"=="1" echo  Web:        https://spoteroxe.de/downloads.html
+echo/
 echo  Zur Weitergabe: ZIP oder Setup-EXE enthaelt
-echo  alles (JRE, JavaFX, Config, FFmpeg, Pandoc, plugins\Monitor-JARs).
+echo  alles ^(JRE, JavaFX, Config, FFmpeg, Pandoc, plugins\Monitor-JARs^).
 echo  Der Empfaenger muss kein Java installieren!
-echo.
+echo/
 echo  FFmpeg und Pandoc werden beim ersten Start
 echo  automatisch aus ihren ZIP-Dateien entpackt.
-echo.
+echo/
 pause
 goto :eof

@@ -27,7 +27,7 @@ Manuskript is a JavaFX 21 desktop application for manuscript editing with AI int
 ### Windows (Entwicklung und App-Image)
 - **JDK 21** erforderlich (z.B. Eclipse Adoptium). `find-java21.bat` sucht uebliche Installationspfade; optional einmal `.\set-java21-env.ps1` ausfuehren.
 - **Dev-Start:** `run-developer.bat` (setzt JAVA_HOME und startet `mvn compile javafx:run`). Arbeitsverzeichnis = Projektwurzel (`config/`, `logs/`).
-- **Installer/App-Image:** `create-installer.bat` (braucht `jpackage.exe` aus JDK 21). Ressourcen (`config`, `ffmpeg`, `pandoc`, `language tool`, Demo) landen unter `installer-output\Manuskript\app\` — dort erwartet sie auch `ApplicationPaths`.
+- **Installer/App-Image:** `create-installer.bat` (braucht `jpackage.exe` aus JDK 21). Setup-EXE braucht WiX 3; `deploy\windows\ensure-wix3.ps1` findet eine Installation oder lädt portable 3.14-Binaries nach `%LOCALAPPDATA%\Manuskript\wix3`. Windows-Icon: `deploy\windows\ensure-windows-icon.ps1` erzeugt `installer-assets\Manuskript.ico` aus der PNG; jpackage bekommt `--icon` für App-Image und Setup-EXE. Ressourcen (`config`, `ffmpeg`, `pandoc`, `language tool`, Demo) landen unter `installer-output\Manuskript\app\` — dort erwartet sie auch `ApplicationPaths`.
 - **Start gebuendelt:** `installer-output\Manuskript\Manuskript.exe`. Nach Code-Aenderungen Installer neu bauen, sonst laeuft alter Stand.
 - **JavaFX-SDK:** lokal `javafx-sdk-21.0.6\` (gitignored) fuer `javafx:run`; jmods laedt das Installer-Skript bei Bedarf.
 - **Whisper (Diktat):** Unter Windows automatische Einrichtung (Download von `whisper-bin-x64.zip` nach `whisper/`); unter macOS weiterhin via Homebrew. Modell-Download plattformuebergreifend.
