@@ -7,7 +7,7 @@
 <BorderPane fx:id="mainContainer" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.manuskript.MainController">
    <center>
       <!-- Haupt-Container -->
-      <VBox spacing="10">
+      <VBox spacing="10" maxHeight="Infinity">
          <children>
       <!-- Verzeichnis-Auswahl -->
       <HBox spacing="10" alignment="CENTER_LEFT">
@@ -27,10 +27,10 @@
       <!-- Filter und Sortierung entfernt - einfache Lösung -->
       
       <!-- Zwei Tabellen nebeneinander -->
-      <HBox spacing="10" VBox.vgrow="ALWAYS">
+      <HBox spacing="10" VBox.vgrow="ALWAYS" maxHeight="Infinity">
          <children>
             <!-- Linke Tabelle: Verfügbare Dateien -->
-            <VBox spacing="6" HBox.hgrow="ALWAYS">
+            <VBox spacing="6" HBox.hgrow="ALWAYS" maxHeight="Infinity">
                <children>
                   <Label text="Verfügbare Dateien:" styleClass="section-header" />
                   <HBox fx:id="downloadsMonitorContainer" spacing="8" alignment="CENTER_LEFT">
@@ -38,7 +38,7 @@
                         <CheckBox fx:id="chkDownloadsMonitor" text="📥 Downloads-Monitor: Neue Dateien automatisch überwachen" />
                      </children>
                   </HBox>
-                  <TableView fx:id="tableViewAvailable" VBox.vgrow="ALWAYS">
+                  <TableView fx:id="tableViewAvailable" VBox.vgrow="ALWAYS" maxHeight="Infinity">
                     <columns>
                       <TableColumn fx:id="colFileNameAvailable" text="Dateiname" prefWidth="200.0" id="colFileNameAvailable" />
                       <TableColumn fx:id="colFileSizeAvailable" text="Größe" prefWidth="80.0" id="colFileSizeAvailable" />
@@ -57,12 +57,12 @@
             </VBox>
             
             <!-- Rechte Tabelle: Ausgewählte Dateien -->
-            <VBox spacing="5" HBox.hgrow="ALWAYS">
+            <VBox spacing="5" HBox.hgrow="ALWAYS" maxHeight="Infinity">
                <children>
                   <Label text="Ausgewählte Dateien:" styleClass="section-header" />
                   <Label text="Datei verschieben mit CTRL-Pfeiltaste" styleClass="info-text" />
                   <Label text="Extern geänderte Dateien werden mit einem ! markiert" styleClass="info-text" style="-fx-padding: 0 0 4 0;" />
-                  <TableView fx:id="tableViewSelected" VBox.vgrow="ALWAYS">
+                  <TableView fx:id="tableViewSelected" VBox.vgrow="ALWAYS" maxHeight="Infinity">
                     <columns>
                       <TableColumn fx:id="colStatusSelected" text="" prefWidth="40.0" minWidth="36.0" maxWidth="52.0" id="colStatusSelected" />
                       <TableColumn fx:id="colFileNameSelected" text="Dateiname" prefWidth="200.0" id="colFileNameSelected" />

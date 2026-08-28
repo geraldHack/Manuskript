@@ -5773,7 +5773,23 @@ public class MainController implements Initializable {
 
         VBox wrapper = new VBox(mainTablesSplitPane);
         wrapper.setPadding(tablesHBox.getPadding());
+        wrapper.setFillWidth(true);
+        wrapper.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+        VBox.setVgrow(wrapper, Priority.ALWAYS);
         VBox.setVgrow(mainTablesSplitPane, Priority.ALWAYS);
+        mainTablesSplitPane.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+
+        if (leftPane instanceof VBox leftBox) {
+            leftBox.setMaxHeight(Double.MAX_VALUE);
+            VBox.setVgrow(tableViewAvailable, Priority.ALWAYS);
+            tableViewAvailable.setMaxHeight(Double.MAX_VALUE);
+        }
+        if (rightPane instanceof VBox rightBox) {
+            rightBox.setMaxHeight(Double.MAX_VALUE);
+            VBox.setVgrow(tableViewSelected, Priority.ALWAYS);
+            tableViewSelected.setMaxHeight(Double.MAX_VALUE);
+        }
+        rightSide.setMaxHeight(Double.MAX_VALUE);
 
         int index = parentVBox.getChildren().indexOf(tablesHBox);
         if (index >= 0) {

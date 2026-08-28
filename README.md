@@ -56,6 +56,8 @@ run-developer.bat
 
 App-Image bauen: `create-installer.bat` → Start über `installer-output\Manuskript\Manuskript.exe` (Ressourcen unter `app\`).
 
+Mit Standardoption lädt das Skript ZIP oder Setup-EXE nach [spoteroxe.de/downloads.html](https://spoteroxe.de/downloads.html) (`create-installer.bat --no-upload` nur lokal). Setup-EXE braucht [WiX Toolset 3](https://wixtoolset.org/docs/wix3/).
+
 **Allgemein (Maven):**
 
 ```bash

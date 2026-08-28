@@ -1,10 +1,36 @@
 @echo off
 setlocal enabledelayedexpansion
 
+set "UPLOAD=1"
+if /i "%~1"=="--no-upload" set "UPLOAD=0"
+if /i "%~1"=="--upload" set "UPLOAD=1"
+if /i "%~1"=="-h" goto :help
+if /i "%~1"=="--help" goto :help
+
 echo ========================================
 echo  Manuskript Installer-Paket erstellen
+echo  (Windows x64)
 echo ========================================
 echo.
+if "%UPLOAD%"=="1" (
+    echo  Nach dem Build: Upload nach spoteroxe.de
+) else (
+    echo  Nur lokal bauen (--no-upload)
+)
+echo.
+goto :after_help
+:help
+echo Usage: create-installer.bat [--upload^|--no-upload]
+echo.
+echo   --upload      ZIP/EXE nach spoteroxe.de kopieren (Standard)
+echo   --no-upload   nur lokal bauen
+echo.
+echo Umgebung: MANUSKRIPT_DEPLOY_HOST, MANUSKRIPT_DEPLOY_PATH
+echo WiX Toolset 3.x wird fuer die Setup-EXE benoetigt.
+echo Ohne WiX wird die ZIP hochgeladen.
+pause
+exit /b 0
+:after_help
 
 REM --- Java 21 pruefen / setzen (mit jpackage) ---
 cd /d "%~dp0"
@@ -37,7 +63,7 @@ set "STAGING_DIR=installer-staging"
 
 REM --- Schritt 1: Fat JAR bauen ---
 echo.
-echo [1/6] Baue Fat JAR...
+echo [1/7] Baue Fat JAR...
 call mvn clean package -DskipTests -q
 if errorlevel 1 (
     echo FEHLER: Maven Build fehlgeschlagen!
@@ -81,7 +107,7 @@ echo [OK] Mammouth-Monitor erstellt.
 
 REM --- Schritt 2: JavaFX jmods herunterladen (falls noetig) ---
 echo.
-echo [2/6] Pruefe JavaFX jmods...
+echo [2/7] Pruefe JavaFX jmods...
 if not exist "%JAVAFX_JMODS_DIR%" (
     echo JavaFX jmods nicht vorhanden, lade herunter...
     powershell -Command "Invoke-WebRequest -Uri '%JAVAFX_JMODS_URL%' -OutFile 'javafx-jmods.zip'"
@@ -103,7 +129,7 @@ echo [OK] JavaFX jmods: %JAVAFX_JMODS_DIR%
 
 REM --- Schritt 3: Alte Ausgabe loeschen, Staging vorbereiten ---
 echo.
-echo [3/6] Bereite Staging vor...
+echo [3/7] Bereite Staging vor...
 if exist "%OUTPUT_DIR%" rmdir /s /q "%OUTPUT_DIR%"
 if exist "%STAGING_DIR%" rmdir /s /q "%STAGING_DIR%"
 mkdir "%STAGING_DIR%\app"
@@ -112,7 +138,7 @@ echo [OK] Staging vorbereitet.
 
 REM --- Schritt 4: jpackage ausfuehren ---
 echo.
-echo [4/6] Erstelle App-Image mit jpackage...
+echo [4/7] Erstelle App-Image mit jpackage...
 
 "%JAVA_HOME%\bin\jpackage.exe" ^
     --type app-image ^
@@ -140,7 +166,7 @@ echo [OK] App-Image erstellt.
 
 REM --- Schritt 5: Ressourcen in App-Image kopieren (unter app\, wie ApplicationPaths) ---
 echo.
-echo [5/6] Kopiere Ressourcen ins App-Image...
+echo [5/7] Kopiere Ressourcen ins App-Image...
 
 set "APP_IMAGE=%OUTPUT_DIR%\%APP_NAME%"
 set "APP_DIR=%APP_IMAGE%\app"
@@ -212,10 +238,10 @@ if exist "language tool" (
 
 echo [OK] Ressourcen nach %APP_DIR% kopiert.
 
-REM --- Schritt 6: ZIP erstellen ---
+REM --- Schritt 6: ZIP + Setup-EXE ---
 echo.
-echo [6/6] Erstelle ZIP-Archiv...
-set "ZIP_NAME=%APP_NAME%-%APP_VERSION%-windows.zip"
+echo [6/7] Erstelle ZIP und Setup-EXE...
+set "ZIP_NAME=%APP_NAME%-%APP_VERSION%-windows-x64.zip"
 if exist "%OUTPUT_DIR%\%ZIP_NAME%" del "%OUTPUT_DIR%\%ZIP_NAME%"
 powershell -Command "Compress-Archive -Path '%APP_IMAGE%' -DestinationPath '%OUTPUT_DIR%\%ZIP_NAME%' -Force"
 if errorlevel 1 (
@@ -224,8 +250,55 @@ if errorlevel 1 (
     echo [OK] ZIP erstellt: %OUTPUT_DIR%\%ZIP_NAME%
 )
 
+set "EXE_NAME=%APP_NAME%-%APP_VERSION%-windows-x64.exe"
+set "WIN_ARTIFACT="
+set "WIN_KIND=zip"
+if exist "%OUTPUT_DIR%\%ZIP_NAME%" (
+    set "WIN_ARTIFACT=%OUTPUT_DIR%\%ZIP_NAME%"
+    set "WIN_KIND=zip"
+)
+
+echo   Erstelle Setup-EXE mit jpackage --type exe ...
+echo   (braucht WiX Toolset 3.x; sonst bleibt die ZIP)
+if exist "installer-assets\Manuskript.ico" (
+    "%JAVA_HOME%\bin\jpackage.exe" --type exe --app-image "%APP_IMAGE%" --name "%APP_NAME%" --app-version "%APP_VERSION%" --vendor "Manuskript" --icon "installer-assets\Manuskript.ico" --win-dir-chooser --win-menu --win-shortcut --win-per-user-install --dest "%OUTPUT_DIR%"
+) else (
+    "%JAVA_HOME%\bin\jpackage.exe" --type exe --app-image "%APP_IMAGE%" --name "%APP_NAME%" --app-version "%APP_VERSION%" --vendor "Manuskript" --win-dir-chooser --win-menu --win-shortcut --win-per-user-install --dest "%OUTPUT_DIR%"
+)
+if errorlevel 1 (
+    echo WARNUNG: Setup-EXE fehlgeschlagen (WiX 3 installieren: https://wixtoolset.org/docs/wix3/).
+    echo          ZIP wird nach spoteroxe.de hochgeladen.
+) else (
+    if exist "%OUTPUT_DIR%\%APP_NAME%-%APP_VERSION%.exe" (
+        move /Y "%OUTPUT_DIR%\%APP_NAME%-%APP_VERSION%.exe" "%OUTPUT_DIR%\%EXE_NAME%" >nul
+    ) else if exist "%OUTPUT_DIR%\%APP_NAME%.exe" (
+        move /Y "%OUTPUT_DIR%\%APP_NAME%.exe" "%OUTPUT_DIR%\%EXE_NAME%" >nul
+    )
+    if exist "%OUTPUT_DIR%\%EXE_NAME%" (
+        echo [OK] Setup-EXE: %OUTPUT_DIR%\%EXE_NAME%
+        set "WIN_ARTIFACT=%OUTPUT_DIR%\%EXE_NAME%"
+        set "WIN_KIND=exe"
+    )
+)
+
 REM --- Staging aufraeumen ---
 rmdir /s /q "%STAGING_DIR%" >nul 2>&1
+
+REM --- Schritt 7: Upload ---
+echo.
+if "%UPLOAD%"=="1" (
+    if defined WIN_ARTIFACT if exist "%WIN_ARTIFACT%" (
+        echo [7/7] Lade Windows-Paket nach spoteroxe.de ...
+        powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0deploy\spoteroxe\upload-windows.ps1" -File "%WIN_ARTIFACT%" -Version "%APP_VERSION%" -Kind "%WIN_KIND%"
+        if errorlevel 1 (
+            echo WARNUNG: Upload fehlgeschlagen. Lokal: %WIN_ARTIFACT%
+        )
+    ) else (
+        echo [7/7] Kein Windows-Paket zum Hochladen.
+    )
+) else (
+    echo [7/7] Upload uebersprungen (--no-upload).
+)
 
 REM Patch-Version fuer den naechsten Deploy hochzaehlen
 for /f "tokens=1-3 delims=." %%A in ("%APP_VERSION%") do (
@@ -245,10 +318,15 @@ echo.
 echo  Version:    %APP_VERSION%
 echo  App-Image:  %APP_IMAGE%\
 echo  ZIP:        %OUTPUT_DIR%\%ZIP_NAME%
+if exist "%OUTPUT_DIR%\%EXE_NAME%" echo  Setup-EXE:  %OUTPUT_DIR%\%EXE_NAME%
 echo.
 echo  Starten:    %APP_IMAGE%\%APP_NAME%.exe
 echo.
-echo  Zur Weitergabe: Die ZIP-Datei enthaelt
+if "%UPLOAD%"=="1" (
+    echo  Web:        https://spoteroxe.de/downloads.html
+)
+echo.
+echo  Zur Weitergabe: ZIP oder Setup-EXE enthaelt
 echo  alles (JRE, JavaFX, Config, FFmpeg, Pandoc, plugins\Monitor-JARs).
 echo  Der Empfaenger muss kein Java installieren!
 echo.
@@ -256,3 +334,4 @@ echo  FFmpeg und Pandoc werden beim ersten Start
 echo  automatisch aus ihren ZIP-Dateien entpackt.
 echo.
 pause
+goto :eof

@@ -276,33 +276,61 @@ upload_dmg_to_spoteroxe() {
         return 1
     fi
 
-    local size_bytes size_mb json_file js_file
+    local size_bytes size_mb json_file tmp_existing
     size_bytes="$(stat -f%z "$dmg_path")"
     size_mb="$(human_size_mb "$size_bytes")"
     json_file="$(mktemp -t manuskript-download)"
-    cat > "$json_file" <<EOF
-{
-  "version": "${APP_VERSION}",
-  "platform": "macOS (Apple Silicon / arm64)",
-  "filename": "${DMG_NAME}",
-  "url": "downloads/${STABLE_DMG_NAME}",
-  "sizeBytes": ${size_bytes},
-  "sizeLabel": "${size_mb} MB",
-  "updated": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+    tmp_existing="$(mktemp -t manuskript-download-old)"
+    scp -o BatchMode=yes -q "${DEPLOY_HOST}:${DEPLOY_PATH}/manuskript.json" "$tmp_existing" 2>/dev/null || true
+
+    python3 - "$tmp_existing" "$json_file" "$APP_VERSION" "$DMG_NAME" "$STABLE_DMG_NAME" "$size_bytes" "$size_mb" <<'PY'
+import json, sys, datetime
+old_path, out_path, version, filename, stable, size_bytes, size_mb = sys.argv[1:]
+root = {}
+try:
+    with open(old_path, encoding="utf-8") as f:
+        raw = f.read().strip()
+        if raw:
+            root = json.loads(raw)
+except Exception:
+    root = {}
+macos_old = root.get("macos")
+if not macos_old and isinstance(root.get("url"), str) and "windows" not in str(root.get("platform", "")).lower():
+    macos_old = root
+windows = root.get("windows")
+macos = {
+    "version": version,
+    "platform": "macOS (Apple Silicon / arm64)",
+    "filename": filename,
+    "url": f"downloads/{stable}",
+    "sizeBytes": int(size_bytes),
+    "sizeLabel": f"{size_mb} MB",
+    "updated": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
 }
-EOF
+out = {"macos": macos, "updated": macos["updated"]}
+if windows:
+    out["windows"] = windows
+with open(out_path, "w", encoding="utf-8") as f:
+    json.dump(out, f, indent=2)
+    f.write("\n")
+PY
 
     js_file="${ROOT_DIR}/deploy/spoteroxe/manuskript-download.js"
+    html_file="${ROOT_DIR}/deploy/spoteroxe/downloads.html"
     if ! scp -o BatchMode=yes "$json_file" "${DEPLOY_HOST}:${DEPLOY_PATH}/manuskript.json"; then
-        rm -f "$json_file"
+        rm -f "$json_file" "$tmp_existing"
         echo "WARNUNG: scp von manuskript.json fehlgeschlagen."
         return 1
     fi
-    rm -f "$json_file"
+    rm -f "$json_file" "$tmp_existing"
 
     if [[ -f "$js_file" ]]; then
         scp -o BatchMode=yes "$js_file" "${DEPLOY_HOST}:/home/gehack/home/js/manuskript-download.js" || \
             echo "WARNUNG: scp von manuskript-download.js fehlgeschlagen."
+    fi
+    if [[ -f "$html_file" ]]; then
+        scp -o BatchMode=yes "$html_file" "${DEPLOY_HOST}:/home/gehack/home/downloads.html" || \
+            echo "WARNUNG: scp von downloads.html fehlgeschlagen."
     fi
 
     ssh -o BatchMode=yes "$DEPLOY_HOST" \
